@@ -1,0 +1,245 @@
+// Testy priorytetu sylwetkowego, kontuzji, mapowania dni planu → kalendarz oraz sync ankiety.
+const fs = require('fs');
+const vm = require('vm');
+const path = require('path');
+
+const document = {
+  querySelectorAll: () => [],
+  getElementById: () => null,
+  addEventListener() {},
+  createElement(){return{style:{},classList:{toggle(){},contains(){return false}},querySelector(){return null},querySelectorAll(){return[]}};},
+  documentElement:{style:{setProperty(){}}}
+};
+const windowObj = {
+  addEventListener() {},
+  CL: [], PL: [], SE: [], EX: [], WO: [],
+  METRIC_ENTRIES: [],
+  SETTINGS: {},
+  document
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj,
+  document,
+  console,
+  Date,
+  Math,
+  parseInt,
+  parseFloat,
+  Number,
+  String,
+  Array,
+  Object,
+  JSON,
+  Set,
+  Map,
+  setTimeout,
+  clearTimeout,
+  isNaN,
+  Infinity,
+  undefined
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 'utf8'), ctx);
+
+// schedule helpers live in 05 — load helpers from file text
+const src05 = fs.readFileSync(path.join(__dirname, '..', '..', '05-clients-builder-plans-calendar.js'), 'utf8');
+const m = src05.match(/function planDayLabelToWeekday[\s\S]*?window\.scheduleTimeFromClient=scheduleTimeFromClient;/);
+if (m) vm.runInContext(m[0], ctx);
+else {
+  const m2 = src05.match(/function planDayLabelToWeekday[\s\S]*?window\.planDayLabelToWeekday=planDayLabelToWeekday;/);
+  if (m2) vm.runInContext(m2[0], ctx);
+}
+
+const {
+  normalizePhysiquePriority, physiquePriorityLabel, clientInjuriesText,
+  clientPhysiquePriorityForAI, planDayLabelToWeekday,
+  normalizeTrainingFreq, normalizePreferredWeekdays, mapGoalFromIntakeText,
+  mapLevelFromIntakeChoice, syncClientFromIntakeForm, resolvePlanDayWeekday,
+  scheduleTimeFromClient, defaultWeekdaysForFreq, preferredWeekdaysLabels,
+  ymdWeekday, clientPreferredWeekdays, isClientTrainingDay, nextClientTrainingDayYmd,
+  hasPlannedSessionOnDate, formatTrainingDayShortPl,
+  clientOnboardStatus, clientsWithIncompleteOnboard, clientHasSchedulePrefs,
+  clientEmailValid, normalizeClientEmail, clientHasPackage, packagesForClient, clientLifecycleStatus,
+  assignClientPipeline, clientOnboardHasBaseline
+} = ctx;
+
+let failed = 0;
+function eq(name, got, want) {
+  const g = JSON.stringify(got);
+  const w = JSON.stringify(want);
+  if (g !== w) {
+    console.error('FAIL ' + name + '\n  got:  ' + g + '\n  want: ' + w);
+    failed++;
+  } else {
+    console.log('OK   ' + name);
+  }
+}
+
+eq('normalize filters unknown', normalizePhysiquePriority(['upper_chest','nope','side_delts']), ['upper_chest','side_delts']);
+eq('label side delts', physiquePriorityLabel('side_delts'), 'Boczny bark');
+eq('injuries prefers dedicated', clientInjuriesText({injuries:'kolano',notes:'prywatne'}), 'kolano');
+eq('injuries fallback notes', clientInjuriesText({notes:'bark'}), 'bark');
+eq('AI priority line includes label', clientPhysiquePriorityForAI({physiquePriority:['upper_chest']}).includes('Góra klatki'), true);
+eq('weekday PON', planDayLabelToWeekday('PON',0), 1);
+eq('weekday ŚR', planDayLabelToWeekday('ŚR',0), 3);
+eq('weekday Dzień 1 fallback Mon', planDayLabelToWeekday('Dzień 1 — Push',0), 1);
+eq('weekday Dzień 2 fallback Wed', planDayLabelToWeekday('Dzień 2 — Pull',1), 3);
+
+eq('freq clamp', normalizeTrainingFreq('3'), 3);
+eq('freq invalid', normalizeTrainingFreq(''), 0);
+eq('weekdays labels', normalizePreferredWeekdays(['PON','ŚR','PT']), [1,3,5]);
+eq('goal masa', mapGoalFromIntakeText('chcę budować masę mięśniową'), 'masa');
+eq('goal redukcja', mapGoalFromIntakeText('schudnąć 8 kg'), 'redukcja');
+eq('level 1-3', mapLevelFromIntakeChoice('1-3 lata'), 'sredni');
+
+windowObj.CL = [{id:'c1',name:'Test',goal:'kondycja',level:'poczatkujacy'}];
+const synced = syncClientFromIntakeForm({
+  formId:'df1',formName:'Ankieta wstępna',clientId:'c1',
+  answers:{q1:'hipertrofia i sylwetka',q2:'1-3 lata',q3:'tak',q4:'kolano prawe',q5:'3',q6:'Wieczór (18-22)'}
+});
+eq('intake sync ok', !!(synced && synced.changed), true);
+eq('intake summary has freq', !!(synced && synced.summary && synced.summary.includes('3×')), true);
+eq('intake goal', windowObj.CL[0].goal, 'masa');
+eq('intake level', windowObj.CL[0].level, 'sredni');
+eq('intake injuries', windowObj.CL[0].injuries, 'kolano prawe');
+eq('intake freq', windowObj.CL[0].trainingFreq, 3);
+eq('intake time', windowObj.CL[0].preferredTrainTime, 'Wieczór (18-22)');
+eq('intake weekdays default', windowObj.CL[0].preferredWeekdays, [1, 3, 5]);
+eq('defaultWeekdays 3', defaultWeekdaysForFreq(3), [1, 3, 5]);
+eq('defaultWeekdays 4', defaultWeekdaysForFreq(4), [1, 2, 4, 5]);
+eq('weekday labels', preferredWeekdaysLabels([1, 3, 5]), ['Pon', 'Śr', 'Pt']);
+
+if (typeof resolvePlanDayWeekday === 'function') {
+  eq('resolve preferred first', resolvePlanDayWeekday('Dzień 1', 0, [2,4,6]), 2);
+  eq('resolve preferred second', resolvePlanDayWeekday('Dzień 2', 1, [2,4,6]), 4);
+  eq('resolve preferred third', resolvePlanDayWeekday('Dzień 3', 2, [2,4,6]), 6);
+  eq('resolve extra not wrap Monday', resolvePlanDayWeekday('Dzień 3', 2, [1,3]), 2);
+  eq('resolve fallback label', resolvePlanDayWeekday('PON', 0, []), 1);
+}
+if (typeof scheduleTimeFromClient === 'function') {
+  eq('time evening', scheduleTimeFromClient({preferredTrainTime:'Wieczór (18-22)'}), '18:00');
+  eq('time morning', scheduleTimeFromClient({preferredTrainTime:'Rano (6-10)'}), '08:00');
+}
+
+eq('ymdWeekday Mon', ymdWeekday('2026-08-24'), 1);
+eq('ymdWeekday Tue', ymdWeekday('2026-08-25'), 2);
+eq('clientPreferredWeekdays explicit', clientPreferredWeekdays({preferredWeekdays:[2,4,6]}), [2,4,6]);
+eq('clientPreferredWeekdays from freq', clientPreferredWeekdays({trainingFreq:3}), [1,3,5]);
+eq('clientPreferredWeekdays none', clientPreferredWeekdays({}), null);
+
+windowObj.CL = [{id:'c1', preferredWeekdays:[1,3,5]}];
+eq('training day Mon', isClientTrainingDay('c1','2026-08-24'), true);
+eq('training day Tue off', isClientTrainingDay('c1','2026-08-25'), false);
+eq('training day Wed', isClientTrainingDay('c1','2026-08-26'), true);
+windowObj.SE = [{clientId:'c1',date:'2026-08-25',source:'planned',dayIdx:0}];
+eq('planned overrides off-day', isClientTrainingDay('c1','2026-08-25'), true);
+windowObj.SE = [];
+eq('no prefs always train', isClientTrainingDay('c2','2026-08-25'), true);
+eq('next training from Tue', nextClientTrainingDayYmd('c1','2026-08-25'), '2026-08-26');
+eq('format training day', formatTrainingDayShortPl('2026-08-26').includes('Śr'), true);
+
+eq('schedule prefs explicit', clientHasSchedulePrefs({preferredWeekdays:[1,3,5]}), true);
+eq('schedule prefs empty', clientHasSchedulePrefs({trainingFreq:3}), false);
+
+windowObj.CL = [{id:'c-new', name:'Nowy', status:'active'}];
+windowObj.PL = [];
+windowObj.SE = [];
+windowObj.METRIC_ENTRIES = [];
+windowObj.PACKAGES = [];
+const emptySt = clientOnboardStatus(windowObj.CL[0]);
+eq('onboard empty total', emptySt.total, 7);
+eq('onboard empty complete', emptySt.complete, false);
+eq('onboard empty next', emptySt.next, 'invite');
+eq('onboard empty missing has schedule', emptySt.missing.indexOf('schedule')>=0, true);
+eq('onboard empty missing has package', emptySt.missing.indexOf('package')>=0, true);
+eq('onboard empty missing has baseline', emptySt.missing.indexOf('baseline')>=0, true);
+eq('card weight is not baseline', clientOnboardHasBaseline({id:'c-w', weight:80}), false);
+eq('baselineDone counts', clientOnboardHasBaseline({id:'c-b', baselineDone:true}), true);
+
+windowObj.CL = [{id:'c-full', name:'Gotowy', status:'active', inviteSent:true, intakeDone:true, baselineDone:true, preferredWeekdays:[1,3,5], packageSkipped:true}];
+windowObj.PL = [{id:'p1', clientId:'c-full'}];
+windowObj.SE = [{clientId:'c-full', source:'planned', date:'2026-08-24', dayIdx:0}];
+windowObj.PACKAGES = [];
+const fullSt = clientOnboardStatus(windowObj.CL[0]);
+eq('onboard full complete', fullSt.complete, true);
+eq('onboard full next', fullSt.next, null);
+eq('onboard session alias', fullSt.session, true);
+eq('onboard package skipped counts', fullSt.package, true);
+
+windowObj.CL = [{id:'c-pay', name:'Paid', status:'active', inviteSent:true, intakeDone:true, baselineDone:true, preferredWeekdays:[1,3,5]}];
+windowObj.PL = [{id:'p-pay', clientId:'c-pay'}];
+windowObj.SE = [{clientId:'c-pay', source:'planned', date:'2026-08-24', dayIdx:0}];
+windowObj.PACKAGES = [];
+eq('onboard needs package', clientOnboardStatus(windowObj.CL[0]).next, 'package');
+windowObj.PACKAGES = [{id:'pkg1', clientId:'c-pay', title:'10 sesji'}];
+eq('onboard with package complete', clientOnboardStatus(windowObj.CL[0]).complete, true);
+
+windowObj.CL = [
+  {id:'c-a', name:'Ala', status:'active', inviteSkipped:true, intakeDone:true, preferredWeekdays:[1,3,5]},
+  {id:'c-b', name:'Bartek', status:'archived', inviteSent:true},
+  {id:'c-c', name:'Celina', status:'active', inviteSent:true, intakeDone:true, baselineDone:true, preferredWeekdays:[1,3,5]}
+];
+windowObj.PL = [{id:'p-c', clientId:'c-c'}];
+windowObj.SE = [];
+windowObj.PACKAGES = [];
+const stuck = clientsWithIncompleteOnboard();
+eq('pipeline skips archived', stuck.map(x=>x.client.id), ['c-a','c-c']);
+eq('pipeline Ala next baseline', stuck[0].status.next, 'baseline');
+eq('pipeline Celina next calendar', stuck[1].status.next, 'calendar');
+
+eq('email valid', clientEmailValid('jan@studio.pl'), true);
+eq('email invalid empty', clientEmailValid(''), false);
+eq('email invalid spaces', clientEmailValid('  '), false);
+eq('normalize email', normalizeClientEmail('  Jan@Studio.PL '), 'jan@studio.pl');
+
+windowObj.PACKAGES = [{id:'pk-name', clientId:'c-other', clientName:'Nowy'}];
+eq('package not by name', clientHasPackage({id:'c-new', name:'Nowy'}), false);
+eq('packagesForClient ignores name', packagesForClient('c-new').map(p=>p.id), []);
+windowObj.PACKAGES = [{id:'pk-id', clientId:'c-new', clientName:'Inna'}];
+eq('package by clientId', clientHasPackage({id:'c-new', name:'Nowy'}), true);
+eq('packagesForClient by id', packagesForClient('c-new').map(p=>p.id), ['pk-id']);
+
+windowObj.CL = [{id:'c-life', name:'Ewa', email:'ewa@x.pl', status:'active'}];
+windowObj.PL = [];
+windowObj.SE = [];
+windowObj.PACKAGES = [];
+eq('lifecycle onboarding', clientLifecycleStatus(windowObj.CL[0]).key, 'onboarding');
+eq('lifecycle noemail', clientLifecycleStatus({id:'c-x', name:'X', status:'active', inviteSent:true, weight:70, preferredWeekdays:[1,3,5]}).key, 'noemail');
+
+windowObj.PLAN_TEMPLATES = [{
+  id:'t-pipe', name:'PPL test', method:'PPL', weeks:1,
+  days_detail:[{name:'Push', exercises:[{n:'Wyciskanie',s:'3',r:'8',rest:'90s'}]}]
+}];
+windowObj.CL = [{id:'c-pipe', name:'Piotr', email:'piotr@studio.pl', status:'active'}];
+windowObj.PL = [];
+const persisted = [];
+ctx.persistById = function(col, obj){ persisted.push(col+':'+(obj&&obj.id)); return obj; };
+windowObj.persistById = ctx.persistById;
+const pipe = assignClientPipeline(windowObj.CL[0], {
+  persist:true, runFlow:false, schedule:false, notify:false, fireEvent:true, templateId:'t-pipe'
+});
+eq('pipeline ok', pipe.ok, true);
+eq('pipeline email', pipe.emailOk, true);
+eq('pipeline has plan part', pipe.parts.indexOf('plan')>=0, true);
+eq('pipeline plan clientId', !!(pipe.plan && pipe.plan.clientId==='c-pipe'), true);
+eq('pipeline plan not nested client object', pipe.plan && !pipe.plan.client, true);
+eq('event emitted', (windowObj._appEvents||[]).some(e=>e.type==='client.created'), true);
+
+const src04 = fs.readFileSync(path.join(__dirname, '..', '..', '04-client-portal.js'), 'utf8');
+const src08 = fs.readFileSync(path.join(__dirname, '..', '..', '08-client-profile-extras.js'), 'utf8');
+eq('report skips name match', /clientName===c\.name/.test(src04), false);
+eq('cp payments skips name match', /clientName===c\.name/.test(src08), false);
+eq('uses packagesForClient', src04.includes('packagesForClient') && src08.includes('packagesForClient'), true);
+eq('src getClientOnboard uses status', src05.includes('clientOnboardStatus'), true);
+eq('src invite from onboard', src05.includes('function openInviteFromOnboard') && src05.includes("action:`openInviteFromOnboard('${id}')`"), true);
+eq('src forms library from onboard', src05.includes('function openFormsLibraryFromOnboard') && src05.includes("openFormsLibraryFromOnboard('${id}')"), true);
+eq('src builder from onboard', src05.includes("openBuilderForClient('${id}',true)") && !src05.includes("setCPTab('plan'),300)"), true);
+eq('src schedule picker', src05.includes('function saveClientScheduleFromOnboard') && src05.includes("openM('m-onboard-schedule')"), true);
+
+if (failed) {
+  console.error('\n' + failed + ' failed');
+  process.exit(1);
+}
+console.log('\nAll client-flow helper tests passed');

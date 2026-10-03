@@ -1,0 +1,7945 @@
+const W='https://anthropic-proxy.teamprogress2018.workers.dev/';
+window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];
+/* Relacje CRM (Firestore = kolekcje, klucz = obj.id):
+ * clients.id  ←  plans.clientId, sessions.clientId, packages.clientId,
+ *   formSends.clientId, tasks.clientId, messages, checkins, odProgress
+ * clientName na planie/pakiecie = cache UI, NIE klucz. Pipeline: assignClientPipeline().
+ */
+var dayCount=0;var curChat=null;var libF='Wszystkie';
+var wlNav='all';var wlView='grid';var wlSort='nazwa';var wlDetailId=null;
+
+const MSGS={};
+window.MSGS=MSGS;
+
+/** Escape HTML — chroni przed XSS przy wstawianiu tekstu użytkownika. */
+function escHtml(s){
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+window.escHtml=escHtml;
+
+/** Stabilne ID współdzielone lokalnie i w Firestore (doc id = obj.id). */
+function newId(prefix){
+  return (prefix||'id')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+}
+window.newId=newId;
+/** Dokleja trainerId bieżącego użytkownika do obiektu przed zapisem.
+ *  W aplikacji klienta zachowujemy trainerId trenera (nie uid podopiecznego). */
+function withTrainer(obj){
+  const owner=window._clientAppMode?window._trainerId:window._uid;
+  if(obj.trainerId&&owner&&obj.trainerId!==owner)throw new Error('Odmowa zapisu danych innego trenera');
+  if(window._db&&!owner)throw new Error('Zaloguj się ponownie przed zapisem');
+  if(window._clientAppMode){
+    if(window._trainerId)obj.trainerId=window._trainerId;
+    // clientId tylko na rekordach klienta. Nie dopisuj go do postów trenera —
+    // inaczej Firestore odrzuca reakcje/wyświetlenia ( spoza dozwolonych pól ).
+    if(window._clientId && !obj.clientId && obj.authorRole!=='trener' && !obj._fbId){
+      obj.clientId=window._clientId;
+    }
+    return obj;
+  }
+  if(window._uid)obj.trainerId=window._uid;
+  return obj;
+}
+window.withTrainer=withTrainer;
+/** Mapuje dokument Firestore z priorytetem id dokumentu (nie lokalnego pola id z data()). */
+function mapFbDoc(d,colName){
+  const data=d.data()||{};
+  const col=colName||(d.ref&&d.ref.parent&&d.ref.parent.id);
+  const logical=tenantCatalogCollections.includes(col)&&data.id&&data.trainerId
+    &&d.id===data.trainerId+'__'+data.id?data.id:d.id;
+  return {...data,id:logical,_fbId:d.id};
+}
+window.mapFbDoc=mapFbDoc;
+const tenantCatalogCollections=['odWorkouts','odPrograms','resources','metricGroups'];
+function tenantDocumentId(colName,obj,owner){
+  if(obj._fbId)return obj._fbId;
+  return tenantCatalogCollections.includes(colName)?owner+'__'+obj.id:obj.id;
+}
+window.tenantDocumentId=tenantDocumentId;
+/** Brak właściciela nie daje dostępu do rekordów legacy. */
+function belongsToTrainer(data){
+  const owner=window._clientAppMode?window._trainerId:window._uid;
+  if(!owner||!data||data.trainerId!==owner)return false;
+  return !window._clientAppMode||!data.clientId||data.clientId===window._clientId;
+}
+window.belongsToTrainer=belongsToTrainer;
+function persistWarn(msg){
+  const now=Date.now();
+  if(now-(window._persistWarnAt||0)<8000)return;
+  window._persistWarnAt=now;
+  if(typeof notify==='function')notify(msg);
+}
+/** Zapisuje dokument pod stałym id (setDoc), żeby lokalne id = Firestore id. */
+async function persistById(colName,obj){
+  if(!obj||!obj.id)return null;
+  if(!window._db){
+    persistWarn('⚠ Brak połączenia z bazą — dane mogą nie zostać zapisane');
+    return null;
+  }
+  try{
+    withTrainer(obj);
+    if(window._clientAppMode&&colName!=='forumPosts'&&obj.clientId&&obj.clientId!==window._clientId)throw new Error('Odmowa zapisu danych innego klienta');
+    const owner=window._clientAppMode?window._trainerId:window._uid;
+    const session={uid:window._uid,generation:window.tenantSessionGeneration};
+    const docId=tenantDocumentId(colName,obj,owner);
+    if(window._clientAppMode&&tenantCatalogCollections.includes(colName))throw new Error('Biblioteka jest edytowana przez trenera');
+    const payload={...obj};
+    delete payload._fbId;
+    await window._setDoc(window._doc(window._db,colName,docId),payload,{merge:true});
+    if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return null;
+    obj._fbId=docId;
+  }catch(e){
+    console.warn('Firebase persist '+colName+':',e);
+    persistWarn('⚠ Nie udało się zapisać. Sprawdź internet i spróbuj ponownie.');
+    return null;
+  }
+  return obj;
+}
+window.persistById=persistById;
+
+/** Publiczny profil dla zalogowanych podopiecznych. Nigdy nie kopiuj całych SETTINGS. */
+function trainerPublicProfilePayload(settings,uid){
+  const pick=(value,keys)=>Object.fromEntries(keys.filter(k=>value&&typeof value[k]==='string').map(k=>[k,value[k]]));
+  const sections={};
+  for(const key of ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile']){
+    const value=settings.clientApp?.visibleSections?.[key];
+    if(typeof value==='boolean')sections[key]=value;
+  }
+  return {trainerId:uid,schemaVersion:1,updatedAt:new Date().toISOString(),
+    profile:pick(settings.profile,['name','title','avatar','avatarUrl']),
+    brand:pick(settings.brand,['accentColor','theme','appName','logo','font']),
+    clientApp:{...pick(settings.clientApp,['appName']),visibleSections:sections},
+    paymentInstructions:{name:String(settings.company?.name||settings.profile?.name||''),bank:String(settings.payments?.bankAccount||''),currency:String(settings.payments?.currency||'PLN'),footer:String(settings.company?.invoice_footer||'')}
+  };
+}
+async function syncTrainerPublicProfile(session){
+  session=session||{uid:window._uid,generation:window.tenantSessionGeneration};
+  if(!session.uid||!window._db||window._clientAppMode||!window.SETTINGS)return false;
+  if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return false;
+  if(window.SETTINGS.trainerId&&window.SETTINGS.trainerId!==session.uid)return false;
+  const payload=trainerPublicProfilePayload(window.SETTINGS,session.uid);
+  try{
+    await window._setDoc(window._doc(window._db,'trainerPublicProfiles',session.uid),payload);
+    return !window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(session);
+  }catch(e){console.warn('Nie udało się zapisać profilu dla klientów',e);return false;}
+}
+window.trainerPublicProfilePayload=trainerPublicProfilePayload;
+window.syncTrainerPublicProfile=syncTrainerPublicProfile;
+
+/** Prosty eksport CSV (UTF-8 BOM) — pobiera plik w przeglądarce. */
+function downloadCsv(filename,rows){
+  const esc=v=>{
+    const s=String(v??'');
+    if(/[",\n\r]/.test(s))return '"'+s.replace(/"/g,'""')+'"';
+    return s;
+  };
+  const csv='\uFEFF'+rows.map(r=>r.map(esc).join(';')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+window.downloadCsv=downloadCsv;
+
+/** Przypisanie starych rekordów wymaga zweryfikowanego właściciela poza przeglądarką. */
+async function migrateTrainerOwnership(){return false;}
+window.migrateTrainerOwnership=migrateTrainerOwnership;
+
+/** Wejście w tryb podglądu klienta z linku #client-preview=<id>. */
+function enterClientPreviewMode(clientId){
+  window._clientPreviewMode=true;
+  capClientId=clientId;
+  window.capClientId=clientId;
+  const sidebar=document.querySelector('.sidebar');
+  if(sidebar)sidebar.style.display='none';
+  const main=document.querySelector('.main');
+  if(main){main.style.marginLeft='0';main.style.width='100%';}
+  goTo('clientapp');
+  const sel=document.getElementById('cap-client-sel');
+  if(sel){sel.value=clientId;sel.style.display='none';}
+  document.querySelectorAll('#cap-tab-customize,#cap-tab-access').forEach(b=>{if(b)b.style.display='none';});
+  let banner=document.getElementById('cap-mock-banner');
+  if(!banner){
+    // initClientApp mógł jeszcze nie dodać bannera — dodaj teraz
+    const top=document.querySelector('#screen-clientapp .topbar');
+    if(top){
+      banner=document.createElement('div');
+      banner.id='cap-mock-banner';
+      top.parentNode.insertBefore(banner,top.nextElementSibling);
+    }
+  }
+  if(banner){
+    banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(62,207,178,0.12);border:1px solid rgba(62,207,178,0.35);border-radius:8px;font-size:12px;color:var(--teal);';
+    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
+  }
+  setCapTab('preview');
+  renderClientApp();
+}
+window.enterClientPreviewMode=enterClientPreviewMode;
+
+function exitClientPreviewMode(){
+  window._clientPreviewMode=false;
+  const sidebar=document.querySelector('.sidebar');
+  if(sidebar)sidebar.style.display='';
+  document.querySelectorAll('#cap-tab-customize,#cap-tab-access').forEach(b=>{if(b)b.style.display='';});
+  const sel=document.getElementById('cap-client-sel');
+  if(sel)sel.style.display='';
+  if(location.hash.indexOf('client-preview=')===0)history.replaceState(null,'',location.pathname+location.search);
+  const banner=document.getElementById('cap-mock-banner');
+  if(banner){
+    banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;font-size:12px;color:var(--orange);';
+    banner.textContent='To jest podgląd UI. Prawdziwe logowanie klienta jest w linku z zaproszenia.';
+  }
+  goTo('dashboard');
+}
+window.exitClientPreviewMode=exitClientPreviewMode;
+
+function consumeClientPreviewHash(){
+  const m=(location.hash||'').match(/[#&]client-preview=([^&]+)/);
+  if(!m)return;
+  const cid=decodeURIComponent(m[1]);
+  if(CL.find(c=>c.id===cid))enterClientPreviewMode(cid);
+  else notify('Nie znaleziono klienta z linku podglądu');
+}
+window.consumeClientPreviewHash=consumeClientPreviewHash;
+
+/** Overlay ładowania danych po zalogowaniu. */
+function showAppLoading(on){
+  let el=document.getElementById('app-loading');
+  if(on){
+    if(!el){
+      el=document.createElement('div');
+      el.id='app-loading';
+      el.innerHTML='<div class="app-loading-card"><div class="app-loading-spin"></div><div>Ładowanie danych…</div></div>';
+      document.body.appendChild(el);
+    }
+    el.style.display='flex';
+  }else if(el){
+    el.style.display='none';
+  }
+}
+window.showAppLoading=showAppLoading;
+
+// Wspólna funkcja wysyłania wiadomości — zawsze zapisuje trwale do Firebase.
+// Używana przez WSZYSTKIE miejsca w apce, które wysyłają wiadomość do klienta
+// (czat, broadcast, przypomnienia o check-in, zaproszenia, wyniki kalkulatora itd.),
+// żeby żadna z nich nie znikała po odświeżeniu strony.
+function normalizeMsgKind(m){
+  const k=String((m&&m.kind)||'').toLowerCase();
+  if(k==='direct'||k==='system'||k==='broadcast')return k;
+  if(m&&(m.broadcast===true||m.groupBroadcast))return 'broadcast';
+  const t=String((m&&m.text)||'');
+  if(/\[od(?:prog)?:/.test(t))return 'system';
+  const s=t.trim();
+  if(/^(📱|🗓|📊|📚|📋|📄|🏠)/.test(s))return 'system';
+  if(/Check-in z tego tygodnia|Umów sesję w Calendly|zapotrzebowanie kaloryczne|Formularz do wypełnienia|Jesteś w grupie na forum|Nowy trening on-demand|Program on-demand|Zadanie domowe od trenera|Polecam Ci ten materiał|Aplikacja Progress Live|Zaproszenie do Progress Live|Twój raport postępów|Nowy trening: /.test(t))return 'system';
+  return 'direct';
+}
+function msgDisplayText(m){
+  const raw=String(typeof m==='string'?m:((m&&m.text)||''));
+  if(typeof capStripOdTags==='function')return capStripOdTags(raw);
+  return raw.replace(/\[od(?:prog)?:[^\]]+\]\s*/g,'').trim();
+}
+function msgKindLabel(kind){
+  if(kind==='broadcast')return 'Broadcast';
+  if(kind==='system')return 'System';
+  return 'Czat';
+}
+function pushMsg(clientId,text,opts){
+  opts=opts&&typeof opts==='object'?opts:{};
+  if(!MSGS[clientId])MSGS[clientId]=[];
+  const kind=normalizeMsgKind({text,kind:opts.kind,broadcast:!!opts.broadcast});
+  const msg=withTrainer({id:newId('msg'),clientId,text,out:true,kind,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()});
+  if(opts.broadcast)msg.broadcast=true;
+  MSGS[clientId].push(msg);
+  persistById('messages',msg);
+  return msg;
+}
+window.normalizeMsgKind=normalizeMsgKind;
+window.msgDisplayText=msgDisplayText;
+window.msgKindLabel=msgKindLabel;
+const COLS=['#e60000','#0055a4','#ffd700','#2ecc71','#9e9e9e'];
+
+// ── DEMO TRENINGI ──
+const DEMO_WORKOUTS=[
+  {id:'d1',name:'Full Body EMOM 5x5',cat:'fbw',level:'sredni',time:50,equip:'Sztanga',type:'demo',desc:'Klasyczny protokół EMOM. Każda minuta: 5 powtórzeń ćwiczenia siłowego. Idealne na budowę bazy siłowej przy jednoczesnej kontroli tętna.',notes:'Zachowaj RPE 7-8. Jeśli nie zdążysz odpocząć — zmniejsz ciężar.',exercises:[{name:'Przysiad ze sztangą',sets:'5',reps:'5',rest:'60s'},{name:'Wyciskanie żołnierskie OHP',sets:'5',reps:'5',rest:'60s'},{name:'Wiosłowanie sztangą',sets:'5',reps:'5',rest:'60s'},{name:'Martwy ciąg RDL',sets:'3',reps:'8',rest:'90s'},{name:'Facepull',sets:'3',reps:'15',rest:'45s'}],createdAt:'2025-01-10'},
+  {id:'d2',name:'HIIT Tabata 20:10 5x5',cat:'cardio',level:'sredni',time:30,equip:'Bez sprzętu',type:'demo',desc:'Protokół Tabata: 20s pracy / 10s przerwy przez 5 rund. Intensywny trening cardio bez sprzętu.',notes:'Utrzymaj intensywność przez wszystkie rundy. Tętno 85-95% HRmax.',exercises:[{name:'Burpees',sets:'5',reps:'20s',rest:'10s'},{name:'Jump Squats',sets:'5',reps:'20s',rest:'10s'},{name:'Mountain Climbers',sets:'5',reps:'20s',rest:'10s'},{name:'High Knees',sets:'5',reps:'20s',rest:'10s'},{name:'Pompki',sets:'5',reps:'20s',rest:'10s'}],createdAt:'2025-01-12'},
+  {id:'d3',name:'Lower Body 60:120 5x5',cat:'sila',level:'zaawansowany',time:65,equip:'Sztanga',type:'demo',desc:'Trening dolnych partii z długimi przerwami — nacisk na maksymalną siłę. Progresja liniowa.',notes:'Przerwy 3-5 min przy ciężkich seriach. Scięgna adaptują się 6-8 tyg wolniej od mięśni!',exercises:[{name:'Przysiad ze sztangą',sets:'5',reps:'5',rest:'3min'},{name:'Martwy ciąg klasyczny',sets:'4',reps:'4',rest:'4min'},{name:'Hip Thrust',sets:'4',reps:'8',rest:'2min'},{name:'Leg Press',sets:'3',reps:'10',rest:'90s'},{name:'Uginanie nóg maszyna',sets:'3',reps:'12',rest:'60s'},{name:'Wspięcia na łydki',sets:'4',reps:'15',rest:'45s'}],createdAt:'2025-01-15'},
+  {id:'d4',name:'Push Day — Hipertrofia',cat:'hipertrofia',level:'sredni',time:55,equip:'Mieszany',type:'demo',desc:'Dzień push w układzie PPL. Skupienie na objętości i TUT dla hipertrofii klatki, barków i tricepsa.',notes:'TUT 2-0-2. Przerwy 60-90s. 8-12 powtórzeń w każdej serii.',exercises:[{name:'Wyciskanie sztangi leżąc',sets:'4',reps:'8-10',rest:'90s'},{name:'Wyciskanie hantli skos+',sets:'3',reps:'10-12',rest:'75s'},{name:'Rozpiętki wyciąg krzyżowy',sets:'3',reps:'12-15',rest:'60s'},{name:'Wyciskanie żołnierskie OHP',sets:'3',reps:'10',rest:'90s'},{name:'Wznosy hantli bokiem',sets:'4',reps:'15',rest:'45s'},{name:'Prostowanie triceps wyciąg',sets:'3',reps:'12',rest:'60s'}],createdAt:'2025-01-18'},
+  {id:'d5',name:'Pull Day — Plecy & Biceps',cat:'hipertrofia',level:'sredni',time:55,equip:'Mieszany',type:'demo',desc:'Dzień pull. Budowanie szerokości i grubości pleców + ramiona. Kluczowe: Facepull ZAWSZE na końcu.',notes:'Facepull obowiązkowo! Rotatory mankietu często zaniedbywane — zapobiega kontuzjom.',exercises:[{name:'Podciąganie na drążku',sets:'4',reps:'6-8',rest:'2min'},{name:'Wiosłowanie sztangą',sets:'4',reps:'8-10',rest:'90s'},{name:'Ściąganie drążka wyciąg',sets:'3',reps:'10-12',rest:'75s'},{name:'Wiosłowanie hantlem',sets:'3',reps:'12',rest:'60s'},{name:'Uginanie biceps sztanga',sets:'3',reps:'10',rest:'60s'},{name:'Facepull',sets:'3',reps:'15',rest:'45s'}],createdAt:'2025-01-20'},
+  {id:'d6',name:'Mobilność & Aktywna regeneracja',cat:'mobilnosc',level:'poczatkujacy',time:35,equip:'Bez sprzętu',type:'demo',desc:'Sesja mobilności i rozciągania. Idealna jako aktywna regeneracja w dniu odpoczynku lub po ciężkim treningu.',notes:'Oddychaj spokojnie. Każda pozycja minimum 30 sekund. Brak bólu — tylko delikatne napięcie.',exercises:[{name:'Hip 90/90 stretch',sets:'2',reps:'60s/str',rest:'10s'},{name:'Cat-Cow',sets:'2',reps:'10',rest:'10s'},{name:'Pigeon Pose',sets:'2',reps:'60s/str',rest:'10s'},{name:'Thoracic spine rotations',sets:'2',reps:'10/str',rest:'10s'},{name:'Dead hang',sets:'3',reps:'30s',rest:'30s'},{name:'Y-raise hantlami',sets:'2',reps:'15',rest:'30s'}],createdAt:'2025-01-22'},
+];
+
+function getInit(name){return name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();}
+
+/** Profil trenera z Ustawień — jedno źródło prawdy w całej apce. */
+function getTrainerProfile(){
+  return(window.SETTINGS&&window.SETTINGS.profile)||{};
+}
+function getTrainerName(fallback='Trener'){
+  const name=(getTrainerProfile().name||'').trim();
+  return name||fallback;
+}
+function getTrainerTitle(){
+  return(getTrainerProfile().title||'').trim()||'Trener personalny';
+}
+function getTrainerEmail(){
+  return(getTrainerProfile().email||'').trim()||window._userEmail||'';
+}
+function getTrainerSignature(){
+  return getTrainerName()+' — '+getTrainerTitle();
+}
+function isTrainerProfileIncomplete(){
+  return!(getTrainerProfile().name||'').trim();
+}
+function applyAuthToTrainerProfile(){
+  if(!window.SETTINGS)window.SETTINGS={};
+  if(!window.SETTINGS.profile)window.SETTINGS.profile={title:'Trener personalny',avatar:'?',specialty:[],certs:[]};
+  const p=window.SETTINGS.profile;
+  if(window._userEmail&&!p.email)p.email=window._userEmail;
+  if(!(p.name||'').trim()){
+    if(window._userDisplayName){
+      p.name=window._userDisplayName.trim();
+    }else if(window._userEmail){
+      const local=window._userEmail.split('@')[0];
+      p.name=local.replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    }
+  }
+  if(p.name&&!p.avatar)p.avatar=getInit(p.name);
+}
+function maybePromptTrainerProfile(){
+  if(window._clientAppMode||window._clientPreviewMode)return;
+  if(!isTrainerProfileIncomplete())return;
+  let dismissed=false;
+  try{dismissed=localStorage.getItem('pl_profile_prompt')==='1';}catch(e){}
+  if(dismissed)return;
+  setTimeout(()=>{
+    if(typeof notify==='function')notify('Uzupełnij profil trenera: Ustawienia → Profil');
+  },1200);
+}
+window.getTrainerProfile=getTrainerProfile;
+window.getTrainerName=getTrainerName;
+window.getTrainerTitle=getTrainerTitle;
+window.getTrainerEmail=getTrainerEmail;
+window.getTrainerSignature=getTrainerSignature;
+window.isTrainerProfileIncomplete=isTrainerProfileIncomplete;
+window.applyAuthToTrainerProfile=applyAuthToTrainerProfile;
+window.maybePromptTrainerProfile=maybePromptTrainerProfile;
+
+function toggleMobileSidebar(){
+  document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('mobile-sidebar-backdrop').classList.toggle('show');
+}
+function closeMobileSidebar(){
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('mobile-sidebar-backdrop').classList.remove('show');
+}
+window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
+
+function goTo(n){
+  if(window._onboardResumeTimer){
+    clearTimeout(window._onboardResumeTimer);
+    window._onboardResumeTimer=null;
+  }
+  if(n!=='clients'&&typeof closeClientProfile==='function'){
+    try{closeClientProfile();}catch(e){}
+  }
+  document.querySelectorAll('.modal-ov.show').forEach(m=>m.classList.remove('show'));
+  if(typeof closeIntDetail==='function'){
+    try{closeIntDetail();}catch(e){}
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-flyout-item').forEach(b=>b.classList.remove('active'));
+  const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
+  closeMobileSidebar();
+  if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
+  const libraryScreens=['library','plans','programs','templates','tasks','forms','metrics'];
+  const moreScreens=['ondemand','forum','payments','calculator','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
+  // builder + aiplangen celowo poza Więcej — wejście z profilu klienta (Plan)
+  if(moreScreens.includes(n)){
+    const moreEl=document.getElementById('nav-more-items');
+    const arrow=document.getElementById('nav-more-arrow');
+    if(moreEl)moreEl.style.display='block';
+    if(arrow)arrow.style.transform='rotate(180deg)';
+  }
+  const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
+  if(activeBtn)activeBtn.classList.add('active');
+  const flyItem=document.querySelector('.nav-flyout-item[data-screen="'+n+'"]');
+  if(flyItem)flyItem.classList.add('active');
+  if(libraryScreens.includes(n)){
+    const libBtn=document.getElementById('nav-library-btn');
+    if(libBtn)libBtn.classList.add('active');
+  }
+  try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
+}
+function goToHomeworkQueue(){
+  goTo('tasks');
+  if(typeof setTaskFilter==='function')setTaskFilter('homework');
+}
+window.goToHomeworkQueue=goToHomeworkQueue;
+function _goToRender(n){
+  if(n==='builder')initBuilder();
+  if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
+  if(n==='plans')renderPlans();
+  if(n==='library'){if(typeof renderLibTab==='function')renderLibTab();else renderLib();}
+  if(n==='inbox')renderInbox();
+  if(n==='clients'){renderClientFilters();renderClients();}
+  if(n==='dashboard')renderDash();
+  if(n==='programs'){renderPrograms();}
+  if(n==='metrics'){
+    renderMetrics();
+  }
+  if(n==='tasks'){
+    document.getElementById('task-due').value=new Date().toISOString().split('T')[0];
+    renderTasks();
+  }
+  if(n==='forms'){renderForms();}
+  if(n==='automation'){setAutoTab('onboard');}
+  if(n==='resources'){renderResources();}
+  if(n==='ondemand'){setODTab('browse');}
+  if(n==='payments'){
+    const pkgEl=document.getElementById('pkg-client');
+    if(pkgEl)pkgEl.innerHTML=CL.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
+    const pkgDate=document.getElementById('pkg-date');
+    if(pkgDate)pkgDate.value=new Date().toISOString().split('T')[0];
+    setPayTab('overview');
+  }
+  if(n==='calculator'){initCalcClients();calcTDEE();}
+  if(n==='forum'){
+    fillForumPostGroupSelect();
+    renderForum();
+  }
+  if(n==='settings'){setSettingsTab('brand');}
+  if(n==='trainer-profile'){renderTrainerProfilePage();}
+  if(n==='checkin'){renderCheckin();}
+  if(n==='progbuilder'){pbInit();}
+  if(n==='integrations'){renderIntegrations();}
+  if(n==='clientapp'){initClientApp();}
+  if(n==='aicoach'){initAICoach();}
+  if(n==='bizstats'){initBizStats();}
+  if(n==='aiplangen'){initAplangen();}
+  if(n==='reports'){initReports();}
+  if(n==='live'){initLive();}
+  if(n==='templates'){initTemplates();}
+  if(n==='onboarding'){initOnboarding();}
+  if(n==='kb'){renderKB();}
+}
+
+function initPriorSportsForm(prefix,selected,activities){
+  const ids=normalizePriorSports(selected);
+  const acts=typeof mergeActivitiesWithSports==='function'?mergeActivitiesWithSports(activities,ids):ids.map(sport=>({sport,frequency_per_week:1,intensity:'medium',notes:''}));
+  const html=typeof sportBackgroundFormHTML==='function'?sportBackgroundFormHTML(ids,prefix,acts):(typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(ids,prefix):'');
+  const mount=document.getElementById(prefix+'-prior-sports-mount');
+  if(mount){
+    mount.innerHTML=html;
+    return;
+  }
+  const direct=document.getElementById(prefix+'-prior-sports');
+  if(direct&&direct.parentNode&&html){
+    const wrap=document.createElement('div');
+    wrap.innerHTML=html;
+    const parent=direct.parentNode;
+    const next=direct.nextSibling;
+    parent.removeChild(direct);
+    while(wrap.firstChild)parent.insertBefore(wrap.firstChild,next);
+    return;
+  }
+  if(direct&&typeof setPriorSportsChips==='function'){
+    setPriorSportsChips(prefix,ids);
+    if(typeof renderAdditionalActivityRows==='function')renderAdditionalActivityRows(prefix,acts);
+  }
+}
+window.initPriorSportsForm=initPriorSportsForm;
+
+function openM(id){
+  document.querySelectorAll('.ex-ac-dropdown').forEach(dd=>{dd.style.display='none';});
+  if(id==='m-session'){
+    window._editingSessionId=null;
+    document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('as-time').value='10:00';
+    const hid=document.getElementById('as-client');if(hid)hid.value='';
+    const vis=document.getElementById('as-client-search');if(vis)vis.value='';
+    const notes=document.getElementById('as-notes');if(notes)notes.value='';
+    const dur=document.getElementById('as-duration');if(dur)dur.value='60';
+    const typ=document.getElementById('as-type');if(typ)typ.selectedIndex=0;
+    const rec=document.getElementById('as-recorded-exercises');
+    if(rec)rec.style.display='none';
+    const salaBar=document.getElementById('as-sala-done');
+    if(salaBar){salaBar.style.display='none';salaBar.innerHTML='';}
+    const planDays=document.getElementById('as-plan-days');
+    if(planDays)planDays.style.display='none';
+    const del=document.getElementById('as-del-btn');
+    if(del)del.style.display='none';
+    const titleEl=document.querySelector('#m-session .modal-title');
+    if(titleEl)titleEl.textContent='NOWA SESJA';
+  }
+  if(id==='m-form'){
+    window._editingFormId=null;
+    const titleEl=document.querySelector('#m-form .modal-title');
+    if(titleEl)titleEl.textContent='NOWY FORMULARZ';
+    const saveBtn=document.querySelector('#m-form .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz formularz';
+    document.getElementById('nf-title').value='';
+    document.getElementById('nf-desc').value='';
+    document.getElementById('nf-questions').innerHTML='';
+  }
+  if(id==='m-program'){
+    window._editingProgId=null;
+    const titleEl=document.querySelector('#m-program .modal-title');
+    if(titleEl)titleEl.textContent='NOWY PROGRAM';
+    const saveBtn=document.querySelector('#m-program .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz program';
+    document.getElementById('pm-name').value='';
+    document.getElementById('pm-desc').value='';
+  }
+  if(id==='m-ex'){
+    window._editingExName=null;
+    const titleEl=document.querySelector('#m-ex .modal-title');
+    if(titleEl)titleEl.textContent='NOWE ĆWICZENIE';
+    const saveBtn=document.querySelector('#m-ex .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz';
+    document.getElementById('ex-name').value='';
+    document.getElementById('ex-desc').value='';
+    const ev=document.getElementById('ex-video');if(ev)ev.value='';
+    const ei=document.getElementById('ex-img');if(ei)ei.value='';
+  }
+  if(id==='m-task'){
+    window._editingTaskId=null;
+    const titleEl=document.querySelector('#m-task .modal-title');
+    if(titleEl)titleEl.textContent='NOWE ZADANIE';
+    const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Dodaj zadanie';
+    taskSetClientField('','');
+    const hb=document.getElementById('task-habit');
+    if(hb)hb.checked=false;
+    const chb=document.getElementById('task-challenge');
+    if(chb)chb.checked=false;
+    const chDays=document.getElementById('task-ch-days');
+    if(chDays)chDays.value='21';
+    const chStart=document.getElementById('task-ch-start');
+    if(chStart)chStart.value='';
+    const chTgt=document.getElementById('task-ch-target');
+    if(chTgt)chTgt.value='';
+    if(typeof syncTaskKindUi==='function')syncTaskKindUi();
+    const wrap=document.getElementById('task-due-wrap');
+    if(wrap)wrap.style.display='';
+    const td=document.getElementById('task-due');
+    if(td&&!td.value)td.value=new Date().toISOString().split('T')[0];
+    document.getElementById('task-title').value='';
+  }
+  if(id==='m-metric-entry'){
+    meClientSetField('','');
+    document.getElementById('me-group').innerHTML=allMetricGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
+    document.getElementById('me-date').value=new Date().toISOString().split('T')[0];
+    updateMetricEntryForm();
+  }
+  if(id==='m-metric-group'){
+    document.getElementById('mg-metrics-list').innerHTML='';
+    document.getElementById('mg-name').value='';
+    addMetricField();addMetricField();
+  }
+  if(id==='m-broadcast'){
+    if(typeof refreshBroadcastGroupOptions==='function')refreshBroadcastGroupOptions();
+  }
+  if(id==='m-forum-post'){
+    if(typeof fillForumPostGroupSelect==='function')fillForumPostGroupSelect();
+  }
+  if(id==='m-forum-group'){
+    const name=document.getElementById('fg-name');
+    const desc=document.getElementById('fg-desc');
+    if(name)name.value='';
+    if(desc)desc.value='';
+    if(typeof renderForumGroupMembers==='function')renderForumGroupMembers();
+  }
+  if(id==='m-own-video'){
+    window._editingVideoId=null;
+    const titleEl=document.querySelector('#m-own-video .modal-title');
+    if(titleEl)titleEl.textContent='NOWY FILM';
+    const saveBtn=document.querySelector('#m-own-video .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz film';
+    const n=document.getElementById('ov-name');if(n)n.value='';
+    const u=document.getElementById('ov-url');if(u)u.value='';
+    const e=document.getElementById('ov-ex');if(e)e.value='';
+  }
+  if(id==='m-autoflow-builder'){
+    if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
+  }
+  if(id==='m-client'){
+    window._editingClientId=null;
+    const titleEl=document.querySelector('#m-client .modal-title');
+    if(titleEl)titleEl.textContent='NOWY KLIENT';
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
+  }
+  document.getElementById(id).classList.add('show');
+}
+function closeM(id){
+  if(id==='m-od-player'){
+    const frame=document.getElementById('od-player-frame');
+    if(frame){
+      if(frame.tagName==='IFRAME')frame.removeAttribute('src');
+      else if(frame.pause){try{frame.pause();}catch(e){}}
+    }
+  }
+  const el=document.getElementById(id);
+  if(el)el.classList.remove('show');
+}
+document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+
+window.renderAll=function(){
+  const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};
+  safe(renderDash);safe(renderClients);safe(renderPlans);
+  safe(renderCal);safe(renderLib);safe(renderInbox);
+  try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
+  try{
+    const builder=document.getElementById('screen-builder');
+    const select=document.getElementById('b-client');
+    // Refreshing other screens must not change the recipient of an open draft.
+    if(select&&!(builder&&builder.classList.contains('active')))
+      select.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  }catch(e){}
+  safe(updateExDl);
+  safe(generateAutoNotifs);
+  safe(syncSidebarProfile);
+};
+
+function showNetBanner(offline){
+  let el=document.getElementById('net-banner');
+  if(!el){
+    el=document.createElement('div');
+    el.id='net-banner';
+    el.style.cssText='display:none;position:fixed;top:0;left:0;right:0;z-index:4000;padding:8px 14px;background:var(--orange);color:#000;font-size:12px;font-weight:700;text-align:center;';
+    document.body.appendChild(el);
+  }
+  if(offline){
+    el.textContent='Brak internetu — zmiany mogą nie zostać zapisane w chmurze.';
+    el.style.display='block';
+  }else{
+    el.textContent='Połączenie wróciło.';
+    el.style.background='var(--teal)';
+    el.style.display='block';
+    setTimeout(()=>{el.style.display='none';el.style.background='var(--orange)';},2500);
+  }
+}
+window.addEventListener('offline',()=>showNetBanner(true));
+window.addEventListener('online',()=>showNetBanner(false));
+window.addEventListener('beforeunload',e=>{
+  if(typeof liveSessionActive!=='undefined'&&liveSessionActive){
+    e.preventDefault();
+    e.returnValue='';
+  }
+  if(window._cw&&window._cw.active){
+    e.preventDefault();
+    e.returnValue='';
+  }
+});
+
+function parsePct1RM(v){
+  if(v==null||v==='')return '';
+  const s=String(v).trim().replace(',','.');
+  const m=s.match(/^(\d+(?:\.\d+)?)\s*%$/);
+  const n=parseFloat(m?m[1]:s);
+  if(!Number.isFinite(n)||n<=0||n>150)return '';
+  return String(n);
+}
+window.parsePct1RM=parsePct1RM;
+
+function roundToPlate(kg,plate){
+  const n=parseFloat(kg);
+  const step=plate||2.5;
+  if(!Number.isFinite(n)||n<=0||!Number.isFinite(step)||step<=0)return '';
+  const rounded=Math.round(n/step)*step;
+  if(rounded<=0)return '';
+  const x=Math.round(rounded*10)/10;
+  return Number.isInteger(x)?String(x):x.toFixed(1);
+}
+window.roundToPlate=roundToPlate;
+
+function epley1RM(kg,reps){
+  const w=parseFloat(kg);
+  const r=parseFloat(reps);
+  if(!Number.isFinite(w)||w<=0||!Number.isFinite(r)||r<=0)return null;
+  if(r<=1)return w;
+  return w*(1+r/30);
+}
+window.epley1RM=epley1RM;
+
+/** Rodzina boju do 1RM: OHP przed bench (oboje mają „wyciskanie”). */
+function guessLiftFamily(name){
+  const n=String(name||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  if(!n)return '';
+  if(/francusk|triceps|prostowanie|kickback/.test(n))return '';
+  if(/ohp|military|zolniers|overhead|nad glowa|\barnold\b/.test(n))return 'ohp';
+  if(/wyciskan/.test(n)&&/(siedz|stoj)/.test(n)&&!/lez/.test(n))return 'ohp';
+  if(/przysiad|squat|hack|goblet/.test(n))return 'squat';
+  if(/martw|deadlift|\brdl\b|rumunsk|trap\s*bar/.test(n))return 'deadlift';
+  if(/bench|floor press|podlogi/.test(n))return 'bench';
+  if(/wyciskan/.test(n)&&/(lez|skos|incline|decline|klatk|podlog)/.test(n))return 'bench';
+  if(/^wyciskanie( sztangi| hantli)?$/.test(n))return 'bench';
+  return '';
+}
+window.guessLiftFamily=guessLiftFamily;
+
+const LIFT_1RM_META={
+  squat:{metric:'m1',label:'przysiad'},
+  deadlift:{metric:'m2',label:'martwy ciąg'},
+  bench:{metric:'m3',label:'wyciskanie leżąc'},
+  ohp:{metric:'m4',label:'OHP'}
+};
+
+function officialLift1RMs(clientId){
+  const out={squat:null,deadlift:null,bench:null,ohp:null};
+  if(!clientId)return out;
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId==='mg3')
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const num=x=>{const n=parseFloat(x);return Number.isFinite(n)&&n>0?n:null;};
+  for(const e of entries){
+    const v=e.values||{};
+    if(out.squat==null)out.squat=num(v.m1);
+    if(out.deadlift==null)out.deadlift=num(v.m2);
+    if(out.bench==null)out.bench=num(v.m3);
+    if(out.ohp==null)out.ohp=num(v.m4);
+    if(out.squat&&out.deadlift&&out.bench&&out.ohp)break;
+  }
+  return out;
+}
+window.officialLift1RMs=officialLift1RMs;
+
+function epley1RMFromSessions(clientId,family,exactName){
+  if(!clientId)return null;
+  const want=String(exactName||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const sessions=(window.SE||[]).filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  for(const s of sessions){
+    let best=null;
+    for(const ex of s.exercises||[]){
+      const match=family?guessLiftFamily(ex.name)===family
+        :String(ex.name||'').toLowerCase().replace(/\s+/g,' ').trim()===want;
+      if(!match)continue;
+      const logged=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[]);
+      for(const set of logged){
+        const est=epley1RM(set.kg,set.reps);
+        if(est!=null&&(best==null||est>best))best=est;
+      }
+    }
+    if(best!=null)return best;
+  }
+  return null;
+}
+window.epley1RMFromSessions=epley1RMFromSessions;
+
+function client1RMforExercise(clientId,name){
+  const family=guessLiftFamily(name);
+  const official=officialLift1RMs(clientId);
+  const meta=family?LIFT_1RM_META[family]:null;
+  if(meta&&official[family])return{kg:official[family],source:'metric',family,label:meta.label};
+  const est=epley1RMFromSessions(clientId,family,name);
+  if(est)return{kg:est,source:'epley',family,label:meta?meta.label:(name||'ćwiczenie')};
+  return null;
+}
+window.client1RMforExercise=client1RMforExercise;
+
+function weightFromPct1RM(clientId,name,pct){
+  const p=parseFloat(parsePct1RM(pct));
+  if(!Number.isFinite(p)||p<=0)return{kg:'',hint:'',rm:null};
+  const rm=client1RMforExercise(clientId,name);
+  if(!rm)return{kg:'',hint:p+'% 1RM — wpisz pomiar w Pomiary → Siła bazowa',rm:null};
+  const kg=roundToPlate(rm.kg*p/100);
+  const rmKg=roundToPlate(rm.kg)||String(Math.round(rm.kg));
+  const src=rm.source==='metric'?(rm.label+' 1RM '+rmKg+' kg'):('szac. 1RM '+rmKg+' kg z sesji');
+  return{kg:kg||'',hint:p+'% z '+src+(kg?' → '+kg+' kg':''),rm};
+}
+window.weightFromPct1RM=weightFromPct1RM;
+
+window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+
+function videoAssetsCdnPrefix(){
+  const man=window.EX_GIF_MANIFEST||{};
+  const vals=typeof man==='object'?Object.keys(man).map(k=>man[k]):[];
+  for(let i=0;i<vals.length;i++){
+    const m=String(vals[i]||'').match(/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@([^/]+)\//i);
+    if(m)return 'https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@'+m[1]+'/';
+  }
+  return 'https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@main/';
+}
+window.videoAssetsCdnPrefix=videoAssetsCdnPrefix;
+
+function videoFilenameDecodedBase(filename){
+  const base=String(filename||'').replace(/\\/g,'/').split('/').pop().split('?')[0].split('#')[0].trim();
+  let decoded=base;
+  try{decoded=decodeURIComponent(base);}catch(e){}
+  return String(decoded||base).trim();
+}
+window.videoFilenameDecodedBase=videoFilenameDecodedBase;
+
+function stripWindowsCopySuffix(stem){
+  let s=String(stem||'');
+  const re=/\s*\((?:\d+|copy(?:\s*\d+)?|kopia(?:\s*\d+)?)\)$/i;
+  while(re.test(s))s=s.replace(re,'');
+  return s;
+}
+window.stripWindowsCopySuffix=stripWindowsCopySuffix;
+
+function youCanBasenameAliases(filename){
+  const full=videoFilenameDecodedBase(filename);
+  const m=full.match(/^(.*)(\.(mp4|webm|gif|webp))$/i);
+  if(!m)return [];
+  const stem=stripWindowsCopySuffix(m[1]);
+  const ext=m[2];
+  const out=[];
+  const add=s=>{const n=(s||'')+ext;if(n&&out.indexOf(n)<0)out.push(n);};
+  if(/\(Machine Chest Fly\)$/i.test(stem)&&!/\(Machine Chest Fly \(Pec Deck\)\)/i.test(stem)){
+    add(stem.replace(/\(Machine Chest Fly\)$/i,'(Machine Chest Fly (Pec Deck))'));
+  }
+  return out;
+}
+window.youCanBasenameAliases=youCanBasenameAliases;
+
+function canonicalYouCanBasename(filename){
+  const full=videoFilenameDecodedBase(filename);
+  const m=full.match(/^(.*)(\.(mp4|webm|gif|webp))$/i);
+  if(!m)return full;
+  return stripWindowsCopySuffix(m[1])+m[2];
+}
+window.canonicalYouCanBasename=canonicalYouCanBasename;
+
+function videoAssetBasenameCandidates(filename){
+  const full=videoFilenameDecodedBase(filename);
+  const m=full.match(/^(.*)(\.(mp4|webm|gif|webp))$/i);
+  const out=[];
+  const add=n=>{if(n&&out.indexOf(n)<0)out.push(n);};
+  add(full);
+  if(!m)return out;
+  const ext=m[2];
+  const stripped=stripWindowsCopySuffix(m[1]);
+  add(stripped+ext);
+  youCanBasenameAliases(stripped+ext).forEach(add);
+  return out;
+}
+window.videoAssetBasenameCandidates=videoAssetBasenameCandidates;
+
+function pickVideoAssetsCdnBasename(filename){
+  const names=videoAssetBasenameCandidates(filename);
+  const pool=names.filter(n=>!/\s\(\d+\)\.(mp4|webm|gif|webp)$/i.test(n));
+  const list=pool.length?pool:names;
+  for(let i=0;i<list.length;i++){
+    if(/\(Machine Chest Fly \(Pec Deck\)\)/i.test(list[i]))return list[i];
+  }
+  return canonicalYouCanBasename(filename);
+}
+window.pickVideoAssetsCdnBasename=pickVideoAssetsCdnBasename;
+
+function normalizeVideoAssetsCdnUrl(url){
+  const s=String(url||'').trim();
+  if(!/^https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/i.test(s))return s;
+  const m=s.match(/^(https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@[^/]+\/)([^?#]+)/i);
+  if(!m)return s;
+  let base=m[2];
+  try{base=decodeURIComponent(base);}catch(e){}
+  const fixed=pickVideoAssetsCdnBasename(base);
+  if(fixed===base)return s;
+  return m[1]+encodeURIComponent(fixed);
+}
+window.normalizeVideoAssetsCdnUrl=normalizeVideoAssetsCdnUrl;
+
+function rewriteLocalMediaUrl(raw){
+  let s=String(raw||'').trim().replace(/^["']|["']$/g,'');
+  if(!s)return '';
+  if(/^(javascript|data|vbscript):/i.test(s))return '';
+  if(/^https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/i.test(s))return normalizeVideoAssetsCdnUrl(s);
+  let path=s;
+  if(/^file:/i.test(path)){
+    path=path.replace(/^file:\/\/\/?/i,'');
+    path=path.replace(/^\/([A-Za-z]:)/,'$1');
+  }
+  try{path=decodeURIComponent(path);}catch(e){}
+  path=path.replace(/\\/g,'/');
+  const marker='progress-live-video-assets';
+  const idx=path.toLowerCase().indexOf(marker);
+  if(idx<0)return s;
+  const rest=path.slice(idx+marker.length).replace(/^[\\/]+/,'');
+  const base=(rest.split('/').filter(Boolean).pop()||'').split('?')[0].split('#')[0];
+  if(!/\.(mp4|webm|gif|webp)$/i.test(base))return s;
+  const names=videoAssetBasenameCandidates(base);
+  const man=window.EX_GIF_MANIFEST||{};
+  const keys=Object.keys(man);
+  for(let n=0;n<names.length;n++){
+    for(let i=0;i<keys.length;i++){
+      const u=String(man[keys[i]]||'');
+      let end=(u.split('/').pop()||'').split('?')[0];
+      try{end=decodeURIComponent(end);}catch(e){}
+      if(end===names[n]||end===base)return u;
+    }
+  }
+  const cdnBase=isYouCanVideoFilename(base)?pickVideoAssetsCdnBasename(base):base;
+  return videoAssetsCdnPrefix()+encodeURIComponent(cdnBase);
+}
+window.rewriteLocalMediaUrl=rewriteLocalMediaUrl;
+
+function isYouCanVideoFilename(filename){
+  const names=videoAssetBasenameCandidates(filename);
+  for(let i=0;i<names.length;i++){
+    const stem=String(names[i]||'').replace(/\.(mp4|webm|gif|webp)$/i,'');
+    const m=stem.match(/\((?:[^()]+|\([^()]*\))+\)$/);
+    if(!m)continue;
+    const inner=String(m[0]||'').slice(1,-1).trim();
+    if(/^\d+$/.test(inner))continue;
+    if(/^(copy|copy\s*\d+|kopia|kopia\s*\d+)$/i.test(inner))continue;
+    if(/[A-Za-z]{3,}/.test(inner))return true;
+  }
+  return false;
+}
+window.isYouCanVideoFilename=isYouCanVideoFilename;
+
+function cdnUrlFromVideoFilename(filename){
+  const decoded=videoFilenameDecodedBase(filename);
+  if(!/\.(mp4|webm|gif|webp)$/i.test(decoded))return '';
+  const names=videoAssetBasenameCandidates(decoded);
+  const man=window.EX_GIF_MANIFEST||{};
+  const keys=Object.keys(man);
+  for(let n=0;n<names.length;n++){
+    for(let i=0;i<keys.length;i++){
+      const u=String(man[keys[i]]||'');
+      let end=(u.split('/').pop()||'').split('?')[0];
+      try{end=decodeURIComponent(end);}catch(e){}
+      if(end===names[n]||end===decoded)return u;
+    }
+  }
+  if(!isYouCanVideoFilename(decoded))return '';
+  const u=rewriteLocalMediaUrl('progress-live-video-assets/'+pickVideoAssetsCdnBasename(decoded));
+  return /^https?:\/\//i.test(u)?u:'';
+}
+window.cdnUrlFromVideoFilename=cdnUrlFromVideoFilename;
+
+function isLocalDiskMediaPath(url){
+  const s=String(url||'').trim();
+  return /^file:/i.test(s)||/^[A-Za-z]:[\\/]/.test(s)||/^\/[A-Za-z]:[\\/]/.test(s);
+}
+window.isLocalDiskMediaPath=isLocalDiskMediaPath;
+
+function normalizeCoachVideoUrl(raw){
+  const rewritten=typeof rewriteLocalMediaUrl==='function'?rewriteLocalMediaUrl(raw):String(raw||'').trim();
+  const s=rewritten||String(raw||'').trim();
+  if(!s)return '';
+  if(/^(javascript|data|vbscript):/i.test(s))return '';
+  let url=s;
+  if(!/^https?:\/\//i.test(url)){
+    if(/^(www\.|youtube\.|youtu\.be|vimeo\.)/i.test(url))url='https://'+url;
+    else return '';
+  }
+  if(!/^https?:\/\//i.test(url))return '';
+  return url;
+}
+window.normalizeCoachVideoUrl=normalizeCoachVideoUrl;
+
+function coachVideoEmbed(url){
+  const u=normalizeCoachVideoUrl(url);
+  if(!u)return '';
+  let id='';
+  let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if(m)id=m[1];
+  if(!id){m=u.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(!id){m=u.match(/youtube\.com\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(id)return 'https://www.youtube-nocookie.com/embed/'+id;
+  m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if(m)return 'https://player.vimeo.com/video/'+m[1];
+  return '';
+}
+window.coachVideoEmbed=coachVideoEmbed;
+
+function coachVideoIsFile(url){
+  return /\.(mp4|webm|ogg|m4v)(\?|#|$)/i.test(String(url||''));
+}
+window.coachVideoIsFile=coachVideoIsFile;
+
+function youtubeIdFromUrl(url){
+  const u=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(url):String(url||'');
+  if(!u)return '';
+  let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if(m)return m[1];
+  m=u.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+  if(m)return m[1];
+  m=u.match(/youtube\.com\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/);
+  if(m)return m[1];
+  return '';
+}
+window.youtubeIdFromUrl=youtubeIdFromUrl;
+
+function exerciseMediaKey(name){
+  return String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+window.exerciseMediaKey=exerciseMediaKey;
+
+/** Nazwa partii / kategorii — nie wolno jej auto-dopasowywać do konkretnego MP4 (np. „Klatka piersiowa” ≠ bench). */
+const EX_GENERIC_MEDIA_NAMES={
+  'klatka piersiowa':1,klatka:1,chest:1,plecy:1,back:1,barki:1,shoulders:1,nogi:1,legs:1,
+  biceps:1,triceps:1,core:1,'pośladki':1,posladki:1,glutes:1,cardio:1,rozgrzewka:1,
+  'rozciąganie':1,rozciaganie:1,'mobilność':1,mobilnosc:1,olimpijskie:1,ramiona:1,arms:1,
+  brzuch:1,'łydki':1,lydki:1,przedramiona:1,'całe ciało':1,'cale cialo':1,'full body':1
+};
+function isGenericExerciseMediaName(name){
+  const k=exerciseMediaKey(name);
+  if(!k||k.length<3||/^\d+$/.test(k))return true;
+  if(EX_GENERIC_MEDIA_NAMES[k])return true;
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(name):'';
+  if(slug&&EX_GENERIC_MEDIA_NAMES[slug])return true;
+  const cats=window.CAT_COLORS_EX||{};
+  for(const c of Object.keys(cats)){
+    if(exerciseMediaKey(c)===k)return true;
+  }
+  return false;
+}
+window.isGenericExerciseMediaName=isGenericExerciseMediaName;
+
+function exerciseSlug(name){
+  return exerciseMediaKey(name)
+    .replace(/\+/g,' plus ')
+    .replace(/−/g,' minus ')
+    .normalize('NFD').replace(/\p{M}/gu,'')
+    .replace(/ł/g,'l')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-|-$/g,'');
+}
+window.exerciseSlug=exerciseSlug;
+
+function exerciseMediaNorm(s){
+  return String(s||'')
+    .toLowerCase()
+    .replace(/ł/g,'l')
+    .normalize('NFD').replace(/\p{M}/gu,'')
+    .replace(/[''`´]/g,'')
+    .replace(/&/g,' and ')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+window.exerciseMediaNorm=exerciseMediaNorm;
+
+function exerciseMediaExpand(s){
+  return exerciseMediaNorm(s)
+    .replace(/\bdumb bell\b/g,'dumbbell')
+    .replace(/\bdb\b/g,'dumbbell')
+    .replace(/\bbb\b/g,'barbell')
+    .replace(/\bkb\b/g,'kettlebell')
+    .replace(/\bohp\b/g,'overhead press')
+    .replace(/\brdl\b/g,'romanian deadlift')
+    .replace(/\bsldl\b/g,'stiff leg deadlift')
+    .replace(/\bpush ups\b/g,'push up')
+    .replace(/\bpush-ups\b/g,'push up')
+    .replace(/\bpush up\b/g,'push up')
+    .replace(/\bpull ups\b/g,'pull up')
+    .replace(/\bchin ups\b/g,'chin up')
+    .replace(/\bpec deck\b/g,'peck deck');
+}
+window.exerciseMediaExpand=exerciseMediaExpand;
+
+function exerciseMediaExplode(s){
+  const out=[];
+  const add=x=>{
+    const t=exerciseMediaExpand(x);
+    if(t&&!out.includes(t))out.push(t);
+  };
+  add(s);
+  String(s||'').replace(/\(([^)]+)\)/g,(_,inner)=>{add(inner);return ' ';});
+  add(String(s||'').replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim());
+  String(s||'').split(/[,;/|]/).map(p=>p.trim()).filter(Boolean).forEach(add);
+  return out;
+}
+
+function splitExerciseFilenameParts(base){
+  const s=String(base||'').trim();
+  let depth=0,lastOpen=-1,lastClose=-1;
+  for(let i=0;i<s.length;i++){
+    if(s[i]==='('){if(depth===0)lastOpen=i;depth++;}
+    else if(s[i]===')'){depth--;if(depth===0)lastClose=i;}
+  }
+  if(lastOpen>0&&lastClose===s.length-1){
+    return{pl:s.slice(0,lastOpen).trim(),en:s.slice(lastOpen+1,lastClose).trim()};
+  }
+  return{pl:s,en:''};
+}
+
+function isJunkExerciseMediaFilename(filename){
+  const n=exerciseMediaNorm(filename);
+  return /brak cwiczenia|no exercise|nie dotyczy|splash|youcan|cannot identify|nie mozna zidentyfikowac|app logo|app splash/.test(n);
+}
+
+function parseExerciseMediaFilename(filename){
+  let raw=String(filename||'').split(/[/\\]/).pop()||'';
+  try{raw=decodeURIComponent(raw);}catch(e){}
+  const ext=((raw.match(/\.(gif|webp|mp4|webm)$/i)||[])[1]||'').toLowerCase();
+  let base=raw.replace(/\.(gif|webp|mp4|webm)$/i,'').trim();
+  const dupM=base.match(/\s*\((\d+)\)$/);
+  const dup=dupM?Number(dupM[1]):0;
+  if(dup)base=base.replace(/\s*\(\d+\)$/,'').trim();
+  const {pl,en}=splitExerciseFilenameParts(base);
+  const phrases=[];
+  exerciseMediaExplode(base).forEach(p=>phrases.push(p));
+  exerciseMediaExplode(pl).forEach(p=>phrases.push(p));
+  exerciseMediaExplode(en).forEach(p=>phrases.push(p));
+  const uniq=[];
+  phrases.forEach(p=>{if(p&&!uniq.includes(p))uniq.push(p);});
+  return{
+    filename:String(filename||''),
+    base,
+    ext,
+    dup,
+    junk:isJunkExerciseMediaFilename(base),
+    pl,
+    en,
+    phrases:uniq
+  };
+}
+window.parseExerciseMediaFilename=parseExerciseMediaFilename;
+
+function exerciseIdentityKeys(ex){
+  const keys=[];
+  const add=s=>{
+    exerciseMediaExplode(s).forEach(p=>{
+      if(p&&p.length>=3&&!keys.includes(p))keys.push(p);
+    });
+  };
+  if(!ex)return keys;
+  add(ex.name);
+  add(ex.aka);
+  return keys;
+}
+
+function exerciseMediaFlags(s){
+  const n=' '+exerciseMediaExpand(s)+' ';
+  return{
+    incline:/\bincline\b|skos plus|skosnej dodat|na lawce skosnej|glowa w gore/.test(n),
+    decline:/\bdecline\b|skos minus|glowa w dol/.test(n),
+    close:/close ?grip|waski chwyt|narrow grip/.test(n),
+    wide:/wide ?grip|szerokim chwytem|szeroki chwyt/.test(n),
+    single:/single ?arm|one ?arm|jednoracz|jedna reka/.test(n),
+    seated:/\bseated\b|siedz/.test(n),
+    smith:/\bsmith\b/.test(n),
+    sumo:/\bsumo\b/.test(n),
+    bulgarian:/bulgarian|bulgarsk/.test(n),
+    behindneck:/behind the neck|za kark|za glow/.test(n),
+    hammer:/\bhammer\b|mlotk/.test(n),
+    preacher:/\bpreacher\b|modlitewnik/.test(n),
+    side:/\bside plank\b|deska boczna|\bboczn/.test(n),
+    rdl:/romanian deadlift|\brdl\b|rumunsk/.test(n),
+    arnold:/\barnold\b/.test(n),
+    walking:/\bwalking\b|chodzony|\bchod\b/.test(n),
+    floor:/\bfloor press\b|na podlodze/.test(n),
+    landmine:/\blandmine\b/.test(n),
+    narrowstance:/narrow stance|waski rozstaw/.test(n)
+  };
+}
+
+function exerciseMediaFlagConflict(fileStr,exStr){
+  const a=exerciseMediaFlags(fileStr);
+  const b=exerciseMediaFlags(exStr);
+  const keys=['incline','decline','close','wide','single','smith','sumo','bulgarian','behindneck','hammer','preacher','side','rdl','arnold','walking','floor','landmine','narrowstance'];
+  let n=0;
+  keys.forEach(k=>{if(a[k]!==b[k])n++;});
+  return n;
+}
+
+function aliasSpecMatchesFile(spec,parsed){
+  if(!spec||!parsed)return false;
+  const hay=[parsed.filename,parsed.base,parsed.pl,parsed.en].filter(Boolean).join(' \n ');
+  const include=[].concat(spec.include||[]);
+  const exclude=[].concat(spec.exclude||[]);
+  if(!include.length||!include.some(re=>re.test(hay)))return false;
+  if(exclude.some(re=>re.test(hay)))return false;
+  return true;
+}
+window.aliasSpecMatchesFile=aliasSpecMatchesFile;
+
+function scoreFilenameAgainstExercise(parsed,ex){
+  if(!parsed||parsed.junk||!ex||!ex.name)return -1;
+  if(isGenericExerciseMediaName(ex.name))return -1;
+  if(isKnownLyingMediaFilename(parsed.filename||parsed.base))return -1;
+  const spec=(window.EX_MEDIA_FILE_ALIASES||{})[ex.name];
+  if(spec){
+    const hayAll=[parsed.filename,parsed.base,parsed.pl,parsed.en].filter(Boolean).join(' \n ');
+    const exclude=[].concat(spec.exclude||[]);
+    if(exclude.some(re=>re.test(hayAll)))return -1;
+  }
+  if(spec&&aliasSpecMatchesFile(spec,parsed)){
+    let s=320-parsed.dup*12;
+    if(parsed.ext==='mp4')s+=8;
+    if(/\/VIDEOS\//i.test(parsed.filename)||/VÍDEOS\//.test(parsed.filename))s-=15;
+    const prefer=[].concat(spec.prefer||[]);
+    const hay=[parsed.filename,parsed.base].join(' ');
+    if(prefer.some(re=>re.test(hay)))s+=25;
+    return s;
+  }
+  const keys=exerciseIdentityKeys(ex);
+  const fkeys=parsed.phrases||[];
+  let best=0;
+  const pl=exerciseMediaExpand(parsed.pl);
+  const en=exerciseMediaExpand(parsed.en);
+  const name=exerciseMediaExpand(ex.name);
+  if(pl&&pl===name)best=Math.max(best,220);
+  fkeys.forEach(fk=>{
+    if(fk===name)best=Math.max(best,210);
+  });
+  if(en){
+    keys.forEach(k=>{if(k===en)best=Math.max(best,200+Math.min(24,k.length));});
+  }
+  fkeys.forEach(fk=>{
+    keys.forEach(k=>{
+      if(fk===k&&k.length>=8)best=Math.max(best,160+Math.min(30,k.length));
+      else if(fk===k&&k.length>=5)best=Math.max(best,90+k.length);
+    });
+  });
+  if(best<80)return -1;
+  const blob=[ex.name,ex.aka||''].join(' ');
+  const conflicts=exerciseMediaFlagConflict(parsed.base,blob);
+  if(conflicts&&best<200)best-=conflicts*45;
+  if(best<80)return -1;
+  if(parsed.ext==='mp4')best+=6;
+  best-=parsed.dup*12;
+  if(/\/VIDEOS\//i.test(parsed.filename)||/VÍDEOS\//.test(parsed.filename))best-=12;
+  return best;
+}
+window.scoreFilenameAgainstExercise=scoreFilenameAgainstExercise;
+
+function matchFilenameToExercise(filename,exercises){
+  const parsed=parseExerciseMediaFilename(filename);
+  if(!parsed||parsed.junk)return '';
+  const list=exercises||window.DEF_EX||[];
+  const scored=[];
+  for(let i=0;i<list.length;i++){
+    const s=scoreFilenameAgainstExercise(parsed,list[i]);
+    if(s>=80)scored.push({name:list[i].name,score:s});
+  }
+  scored.sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'pl'));
+  if(!scored.length)return '';
+  if(scored.length>1&&scored[0].score-scored[1].score<12&&scored[1].score>=90)return '';
+  return scored[0].name;
+}
+window.matchFilenameToExercise=matchFilenameToExercise;
+
+/** Pliki, których treść (klatki) nie zgadza się z etykietą. Matcher ich nie przypisuje. */
+const EX_MEDIA_FILENAME_LIES={
+  'Wiosłowanie sztangą w opadzie tułowia (Barbell Bent-Over Row).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (Barbell Row) (Barbell Bent-Over Row).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (podchwytem) (Barbell Bent-Over Row (underhand grip)).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (podchwyt) (Barbell Bent-Over Row (underhand grip)).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (Bent-Over Barbell Row).mp4':1,
+  'Wiosłowanie sztangą w podporze (Pendlay Row) (Barbell Row Pendlay Row).mp4':1,
+  'Wiosłowanie sztangą w oparciu o klatkę piersiową (wiosłowanie Pendlaya) (Pendlay Row Barbell Row (chest-supported incline bench barbell row)).mp4':1,
+  'Wiosłowanie sztangą w oparciu o ławkę (wiosłowanie Pendlay\'a wiosłowanie podchwytem) (Barbell Row (Chest-Supported Barbell Row Seal Row)).mp4':1,
+  'Wiosłowanie sztangą w oparciu o ławkę (wiosłowanie Pendlay\'a wiosłowanie poziome sztangą) (Barbell Row (Pendlay Row Bent-Over Barbell Row)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (wiosłowanie Pendlay) (Barbell Bent-Over Row (Underhand Grip Pendlay Row)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (wiosłowanie Pendlay\'a) w oparciu o ławkę poziomą (Barbell Bent-Over Row (Chest-Supported Barbell Row on Incline Bench)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (odwrotnym chwytem) (Barbell Bent-Over Row (Underhand Grip Reverse Grip)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (uchwyt neutralny) w opadzie tułowia (Barbell Row with Neutral Grip).mp4':1,
+  'Wiosłowanie sztangą na ławce skośnej (podparte) (Incline Bench Barbell Row).mp4':1,
+  'Wiosłowanie sztangą podchwytem na ławce skośnej (Incline Bench Barbell Row (underhand grip)).mp4':1,
+  'Wiosłowanie sztangą podchwytem na ławce skośnej (Pendlay Row) (Incline Bench Barbell Row).mp4':1,
+  'Wiosłowanie jednorączne na ławce (z hantlem) (Single-Arm Dumbbell Row).mp4':1,
+  'Wiosłowanie hantlą w opadzie tułowia (Dumbbell Bent-Over Row).mp4':1,
+  'Wiosłowanie hantlami w opadzie tułowia (Dumbbell Bent-Over Row).mp4':1,
+  'Odwrotne rozpiętki z hantlami w opadzie tułowia (Bent-Over Dumbbell Reverse Fly).mp4':1,
+  'Odwodzenie ramienia z hantlą w opadzie tułowia (odwrotne rozpięcie z hantlami) (Dumbbell Bent-Over Rear Delt Fly (Reverse Dumbbell Fly)).mp4':1,
+  'Odwodzenie ramienia z hantlą w opadzie tułowia (Dumbbell Bent-Over Rear Delt Fly).mp4':1,
+  'Odwodzenie ramion w opadzie tułowia na wyciągu (Bent-Over Cable Rear Delt Fly).mp4':1,
+  'Podciąganie na drążku nachwytem (Pull-up (overhand grip)).mp4':1,
+  'Podciąganie nachwytem na drążku (Pull-Up (Overhand Grip)).mp4':1,
+  'Podciąganie na drążku nachwytem (podciąganie na drążku) (Pull-up (overhand grip)).mp4':1,
+  'Ściąganie drążka wyciągu górnego nachwytem (przed głowę) (Lat Pulldown (overhand grip)).mp4':1,
+  'Wiosłowanie w leżeniu na drążku (Australian Pull-up) (Australian Pull-up Inverted Row).mp4':1,
+  'Wiosłowanie w leżeniu na drążku (Australian Pull-up) (Australian Pull-up (Inverted Row Body Row)).mp4':1,
+  'Wiosłowanie w leżeniu na drążku (Australian Pull-up Inverted Row) (Inverted Row (Australian Pull-up Body Row)).mp4':1,
+  'Australijskie podciąganie (wiosłowanie w leżeniu na drążku) (Australian Pull-Up (Inverted Row)).mp4':1,
+  'Australijskie podciąganie na drążku (wiosłowanie w leżeniu na drążku) (Australian Pull-Up (Inverted Row)).mp4':1,
+  'Martwy ciąg rumuński ze sztangą (Barbell Romanian Deadlift (RDL)).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia bodyweight) (Bodyweight Stiff-Leg Deadlift (Good Morning)).mp4':1,
+  'Odpychanie na wyciągu górnym (prostowanie ramion na wyciągu) (Cable Straight-Arm Pulldown).mp4':1,
+  'Przyciąganie linki wyciągu górnego jednorącz w opadzie tułowia (rowing jednoręczne na wyciągu) (Single-arm cable row (bent-over)).mp4':1,
+  'Ściąganie drążka wyciągu górnego jednorącz (w poprzek ciała) (Single-Arm Cable Pulldown (Cross-Body)).mp4':1,
+  'Wznosy ramion ze sztangą hantlami (szrugsy) – wzruszanie ramionami (Barbell Dumbbell Shrugs).mp4':1,
+  'Wznosy ramion z hantlami w górę (szragi z hantlami) (Dumbbell Shrugs).mp4':1,
+  'Wzruszanie ramionami (szragi) z hantlami (Dumbbell Shrugs).mp4':1,
+  'Wiosłowanie siedząc na wyciągu dolnym (uchwyt jednorączny) (Seated Single-Arm Cable Row).mp4':1,
+  'Wyciskanie sztangi nad głowę stojąc (OHP) (Standing Barbell Overhead Press (OHP)).mp4':1,
+  'Wyciskanie sztangi nad głowę (żołnierskie) stojąc (Standing Barbell Overhead Press (Military Press)).mp4':1,
+  'Wyciskanie sztangi nad głowę stojąc (żołnierskie) (Standing Barbell Overhead Press (Military Press)).mp4':1,
+  'Wyciskanie sztangi stojąc (żołnierskie) nachwytem neutralnym (Barbell Overhead Press (Military Press) with Neutral Grip).mp4':1,
+  'Wznosy ramion w przód z hantlami (Dumbbell Front Raise).mp4':1,
+  'Unoszenie hantle przodem (stojąc) (Dumbbell Front Raise).mp4':1,
+  'Unoszenie hantli przodem (przed siebie) (Dumbbell Front Raise).mp4':1,
+  'Wyciskanie żołnierskie na maszynie (naramienne) (Machine Shoulder Press).mp4':1,
+  'Wyciskanie żołnierskie na maszynie (siedząc) (Seated Machine Shoulder Press).mp4':1,
+  'Wyciskanie żołnierskie na maszynie (siedząc) (Machine Shoulder Press (Seated)).mp4':1,
+  'Wyciskanie żołnierskie na maszynie (siedząc) (Seated Machine Shoulder Press) (2).mp4':1,
+  'Wyciskanie żołnierskie na maszynie (wyciskanie nad głowę na maszynie) (Machine Shoulder Press (Overhead Press Machine)).mp4':1,
+  'Wyciskanie hantli nad głowę (żołnierskie) (Dumbbell Overhead Press (Military Press)).mp4':1,
+  'Wyciskanie hantli nad głowę (żołnierskie) – widok z tyłu (Dumbbell Overhead Press (Military Press) – rear view).mp4':1,
+  'Rozpiętki na maszynie (pec deck motyl) (Reverse Pec Deck Fly (Rear Delt Machine)).mp4':1,
+  'Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Machine)).mp4':1,
+  'Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Fly Machine)).mp4':1,
+  'Odwrotne rozpiętki na maszynie (maszyna do ściągania ramion w tył) (Reverse Pec Deck Fly (Rear Delt Machine Fly)).mp4':1,
+  'Odwodzenie ramion na maszynie (rozpiętki odwrotne na maszynie) (Rear Delt Fly Machine (Reverse Fly Machine)).mp4':1,
+  'Rozpiętki na maszynie (motyl odwrotny tylne ramiona) (Rear Delt Fly Machine (Reverse Pec Deck)).mp4':1,
+  'Rozpiętki na maszynie (motyl odwrotny tylne naramienne) (Reverse Pec Deck Fly (Rear Delt Machine Fly)).mp4':1,
+  'Rozpiętki na maszynie (motyl odwrotny tylne naramienne na maszynie) (Reverse Pec Deck Fly (Rear Delt Machine Fly)).mp4':1,
+  'Wyciskanie hantli nad głowę siedząc (Arnold press wyciskanie żołnierskie z hantlami) (Seated Dumbbell Overhead Press).mp4':1,
+  'Wyciskanie hantli nad głowę siedząc (Arnold press wyciskanie żołnierskie) (Seated Dumbbell Overhead Press).mp4':1,
+  'Wyciskanie hantle nad głowę siedząc (jednorącz) (Single-Arm Dumbbell Overhead Press (Seated)).mp4':1,
+  'Wyciskanie hantli nad głowę siedząc (jednorącz) (Single-Arm Seated Dumbbell Overhead Press).mp4':1,
+  'Wyciskanie hantli jednorącz nad głowę siedząc (Single-Arm Seated Dumbbell Overhead Press).mp4':1,
+  'Wyciskanie hantli nad głowę siedząc (jednostronne) (Single-Arm Seated Dumbbell Shoulder Press).mp4':1,
+  'Odwodzenie ramion na maszynie (rozpiętki na maszynie siedząc) (Seated Machine Lateral Raise).mp4':1,
+  'Odwodzenie ramion na wyciągu górnym (rozpiętki odwrotne na wyciągu) (Cable Rear Delt Fly (Cable Reverse Fly)).mp4':1,
+  'Odwrotne rozpiętki na wyciągu górnym (stojąc, oburącz) (Cable Rear Delt Fly (standing, both arms)).mp4':1,
+  'Odwodzenie ramion na wyciągu dolnym w opadzie tułowia (rozpiętki w opadzie na wyciągu) (Bent-Over Cable Rear Delt Fly (Cable Bent-Over Lateral Raise)).mp4':1,
+  'Wznosy ramion w bok z hantlami (w opadzie tułowia) (Dumbbell Bent-Over Lateral Raise).mp4':1,
+  'Przysiad ze sztangielkami (goblet squat z hantlami) (Dumbbell Goblet Squat).mp4':1,
+  'Przysiad z własnym ciężarem ciała (Bodyweight Squat).mp4':1,
+  'Przysiad ze sztangą trzymaną z przodu (front squat) (Barbell Front Squat).mp4':1,
+  'Przysiad ze sztangą na barkach (przysiad tylny) (Barbell Back Squat).mp4':1,
+  'Przysiad sumo (Sumo Squat).mp4':1,
+  'Wyciskanie nóg na suwnicy (leg press) (Leg Press Machine).mp4':1,
+  'Wykrok ze sztangą (Barbell Lunge).mp4':1,
+  'Wykrok bułgarski (tylna noga na ławce) (Bulgarian Split Squat).mp4':1,
+  'Wykrok z hantlami (chód) (Dumbbell Walking Lunges).mp4':1,
+  'Przysiad ze sztangą na suwnicy Smitha (Smith Machine Squat).mp4':1,
+  'Wyciskanie nogami na suwnicy (jednotnie) (Single-Leg Press (Leg Press Machine)).mp4':1,
+  'Wykrok wsteczny z hantlą na podwyższeniu (reverse lunge z hantlą) (Dumbbell Reverse Lunge with Elevated Front Foot).mp4':1,
+  'Wykrok wsteczny z hantlą na podwyższeniu (step-back lunge) (Dumbbell Reverse Lunge with Step Platform).mp4':1,
+  'Wykrok wsteczny z hantlą na podwyższeniu (step) (Dumbbell Reverse Step-Up Lunge).mp4':1,
+  'Przysiad z wyskokiem i klaśnięciem nad głową (Jump Squat with Overhead Clap).mp4':1,
+  'Przysiady z wyskokiem i klaśnięciem nad głową (Jump Squat with Overhead Clap).mp4':1,
+  'Wyciskanie nóg na maszynie (leg press) (Leg Press Machine).mp4':1,
+  'Wypychanie nóg na maszynie (leg press) (Leg Press Machine).mp4':1,
+  'Wypychanie nóg na suwnicy poziomej (leg press poziomy) (Horizontal Leg Press Machine).mp4':1,
+  'Przysiad bułgarski (jednonóż na podwyższeniu) (Bulgarian Split Squat).mp4':1,
+  'Przysiad sumo ze sztangą z przodu (front squat sumo) (Barbell Sumo Front Squat).mp4':1,
+  'Przysiad sumo ze sztangą na barkach (Barbell Sumo Squat).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia z własnym ciężarem ciała) (Bodyweight Straight-Leg Deadlift (Good Morning)).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia z własnym ciężarem ciałem) (Bodyweight Straight-Leg Deadlift (Good Morning)).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia z własną masą ciała) (Bodyweight Stiff-Leg Deadlift (Good Morning)).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia ćwiczenie z własną masą ciała) (Bodyweight Stiff-Leg Deadlift (Good Morning)).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia) (Bodyweight Stiff-Leg Deadlift (Romanian Deadlift)).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia) Skłon do przodu (Bodyweight Romanian Deadlift Standing Forward Bend).mp4':1,
+  'Martwy ciąg na prostych nogach (bez sprzętu) (Bodyweight Stiff-Leg Deadlift (Romanian Deadlift)).mp4':1,
+  'Martwy ciąg ze złączonymi nogami (sumo) z własnym ciężarem (Bodyweight Sumo Deadlift Good Morning).mp4':1,
+  'Uginanie nóg leżąc na brzuchu na maszynie (Lying Leg Curl (Machine)).mp4':1,
+  'Uginanie nóg leżąc na maszynie (Lying Leg Curl (Machine)).mp4':1,
+  'Uginanie nóg leżąc na plecach (Nordic Curl Glute-Ham Raise na ławce) (Nordic Hamstring Curl (Lying)).mp4':1,
+  'Uginanie nóg leżąc na plecach (Nordic Curl Odwrócone uginanie ścięgien podkolanowych) (Glute Ham Raise Nordic Hamstring Curl).mp4':1,
+  'Uginanie nóg w leżeniu na ławce (maszyna do uginania nóg leżąc) (Lying Leg Curl (Machine)).mp4':1,
+  'Uginanie nóg w leżeniu na ławce (maszyna do uginania nóg) (Lying Leg Curl (Machine)).mp4':1,
+  'Uginanie nóg w leżeniu na maszynie (Lying Leg Curl Machine).mp4':1,
+  'Uginanie nóg w leżeniu na maszynie (Seated Leg Curl Machine).mp4':1,
+  'Uginanie nóg w leżeniu na brzuchu (maszyna) (Lying Leg Curl (machine)).mp4':1,
+  'Uginanie nóg z hantlą w siadzie (nordic curl z hantlą odwrócone ćwiczenie na dwugłowy uda z hantlą) (Dumbbell Nordic Hamstring Curl (seated dumbbell leg curl)).mp4':1,
+  'Martwy ciąg hantlami (Dumbbell Deadlift).mp4':1,
+  'Martwy ciąg z hantlami (Dumbbell Deadlift).mp4':1,
+  'Mostek biodrowy (uginanie bioder w leżeniu) (Glute Bridge).mp4':1,
+  'Mostek biodrowy (uniesienie bioder w leżeniu na plecach) (Glute Bridge).mp4':1,
+  'Mostek biodrowy (unieśienie bioder w leżeniu na plecach) (Glute Bridge).mp4':1,
+  'Mostek biodrowy Unieisenie bioder w leżeniu na plecach (Glute Bridge).mp4':1,
+  'Unieisienie bioder w leżeniu (mostek biodrowy) (Glute Bridge).mp4':1,
+  'Odwodzenie nogi w tył w klęku podpartym (kickback) (Donkey Kick Glute Kickback on all fours).mp4':1,
+  'Odwodzenie nogi w tył w klęku podpartym (kopnięcie osła) (Donkey Kick (Quadruped Hip Extension)).mp4':1,
+  'Unieisienie nogi w leżeniu bokiem (Side-Lying Hip Abduction).mp4':1,
+  'Unieś biodra w bok w leżeniu bokiem (odwodzenie biodra w leżeniu bokiem) (Side-Lying Hip Abduction).mp4':1,
+  'Unieście biodra w bok w leżeniu bokiem (odwodzenie biodra) (Side-Lying Hip Abduction).mp4':1,
+  'Unosenie nogi w bok w leżeniu na boku (odwodzenie biodra) (Side-Lying Hip Abduction).mp4':1,
+  'Unosenie nogi w bok w leżeniu na brzuchu (Prone Hip Abduction).mp4':1,
+  'Unieś prostą nogę w bok w leżeniu na brzuchu (Prone Hip Abduction).mp4':1,
+  'Unosenie nogi w bok w leżeniu bokiem (odwodzenie biodra) (Side-Lying Hip Abduction).mp4':1,
+  'Unosenie nogi w tył w leżeniu na brzuchu (Prone Leg Raise (Glute Kickback)).mp4':1,
+  'Odwodzenie nóg z gumą oporową (na stojąco) (Standing Hip Abduction with Resistance Band).mp4':1,
+  'Przywodzenie nóg z gumą oporową (taśmą) (Standing Hip Adduction with Resistance Band).mp4':1,
+  'Przywodzenie nóg z taśmą oporową (stojąc) (Standing Hip Adduction with Resistance Band).mp4':1,
+  'Przywodzenie nóg na maszynie (adduktor) (Seated Hip Adduction Machine).mp4':1,
+  'Odwodzenie nóg na maszynie (przywodzicitelemaszyna do ściskania nóg) (Seated Hip Adduction Machine).mp4':1,
+  'Odwodzenie nóg na maszynie (przywodzicieleodwodziciele) (Seated Hip Adduction Machine).mp4':1,
+  'Odwodzenie nóg na maszynie (siedzące) (Seated Hip Abduction Machine).mp4':1,
+  'Odwodzenie nóg na maszynie (leżąc) (Lying Hip Abduction Machine).mp4':1,
+  'Odwodzenie nóg w maszynie (leżąc) (Lying Hip Abduction Machine).mp4':1,
+  'Odwodzenie nogi w tył na maszynie (kickback na maszynie) (Machine Glute Kickback).mp4':1,
+  'Odciąganie linek wyciągu górnego w opadzie tułowia (wiosłowanie na wyciągu) (Cable Pull-Through Standing Cable Row (bent-over)).mp4':1,
+  'Odciąganie ramion w tył na wyciągu górnym (stojąc, oburącz) (Cable Pull-Through Standing Cable Rear Delt Fly).mp4':1,
+  'Dipy na ławce (Bench Dip).mp4':1,
+  'Odciąganie ramienia w tył na wyciągu górnym (triceps kickback na wyciągu) (Cable Tricep Kickback).mp4':1,
+  'Odpychanie na wyciągu górnym (prostowanie ramienia) — triceps pushdown na wyciągu (Cable Triceps Pushdown (Straight Bar Rope)).mp4':1,
+  'Prostowanie ramienia na wyciągu górnym (triceps pushdown jednorącz) (Single-Arm Cable Triceps Pushdown).mp4':1,
+  'Wyprost ramienia na wyciągu górnym (jednorącz) (Single-Arm Cable Tricep Pushdown).mp4':1,
+  'Wyprost ramienia na wyciągu górnym (triceps pushdown) jednorącz (Single-arm cable tricep pushdown).mp4':1,
+  'Wyprosty ramion na wyciągu górnym (triceps pushdown) (Cable Triceps Pushdown).mp4':1,
+  'Prostowanie ramienia na wyciągu dolnym (triceps kickback na wyciągu) (Cable Tricep Kickback).mp4':1,
+  'Prostowanie ramienia na wyciągu dolnym (triceps pushdown jednorącz) (Single-arm cable triceps pushdown (low pulley)).mp4':1,
+  'Prostowanie ramienia na wyciągu dolnym (triceps pushdown jednorącz) (Single-arm cable triceps pushdown).mp4':1,
+  'Odpychanie linki wyciągu dolnego jednorącz (triceps pushdown na wyciągu dolnym) (Single-arm Cable Tricep Pushdown (low pulley)).mp4':1,
+  'Odpychanie linki wyciągu dolnego stojąc (triceps pushdown jedną ręką) (Single-arm cable triceps pushdown (low pulley)).mp4':1,
+  'Odpychanie na wyciągu dolnym (triceps pushdown jednorącz) (Single-arm cable triceps pushdown).mp4':1,
+  'Prostowanie ramion na wyciągu górnym (drążek prosty) (Cable Tricep Pushdown (Straight Bar)).mp4':1,
+  'Prostowanie ramion na wyciągu górnym (triceps pushdown) – uchwyt linowy (Cable Triceps Pushdown – Rope Attachment).mp4':1,
+  'Francuski wycisk hantlą leżąc (prostowanie ramion z hantlą nad głową w leżeniu) (Dumbbell Skull Crusher (Lying Dumbbell Triceps Extension)).mp4':1,
+  'Francuski wycisk hantlą nad głową (triceps overhead extension z hantlą) (Dumbbell Overhead Triceps Extension).mp4':1,
+  'Francuskie wyciskanie hantli leżąc (skull crusher z hantlą) (Dumbbell Skull Crusher (Lying Dumbbell Tricep Extension)).mp4':1,
+  'Francuskie wyciskanie hantli leżąc (triceps overhead extension z hantlą leżąc) (Dumbbell Lying Triceps Extension (Skull Crusher with Dumbbell)).mp4':1,
+  'Francuskie wyciskanie hantli siedząc (triceps overhead extension) (Seated Dumbbell Overhead Triceps Extension).mp4':1,
+  'Francuskie wyciskanie hantli siedząc (wąski chwyt) (Seated Dumbbell Tricep Extension (Overhead)).mp4':1,
+  'Ściąganie drążka wyciągu górnego jednorącz (triceps pushdown jednorącz) (Single-arm cable tricep pushdown).mp4':1,
+  'Ściąganie linki wyciągu górnego w dół (push-down) – ściąganie na triceps na wyciągu górnym (Cable Triceps Pushdown (RopeSingle-handle Cable Pushdown)).mp4':1,
+  'Ściąganie drążka wyciągu górnego nachwytem (wąski chwyt, oburącz nad głową) (Overhead Triceps Extension on Cable Machine (ropesingle attachment, seated)).mp4':1,
+  'Ściąganie drążka wyciągu górnego nachwytem (wąski chwyt, oburącz nad głową) (Seated Cable Overhead Tricep Extension).mp4':1,
+  'Ściąganie drążka wyciągu górnego nachwytem (wąskim chwytem nad głową) (Overhead Tricep Extension with Cable (ropesingle attachment, seated)).mp4':1,
+  'Odpychanie linki wyciągu górnego jednorącz (prostowanie ramienia w stawie łokciowym na wyciągu) (Single-Arm Cable Tricep Pushdown).mp4':1,
+  'Odpychanie liny wyciągiem górnym w opadzie tułowia (prostowanie ramienia na wyciągu) (Cable Tricep Pushdown with Rope (bent-over single-arm cable pullover straight-arm cable pulldown)).mp4':1,
+  'Ściąganie linki wyciągu górnego jednorącz w opadzie tułowia (wyprost ramienia) (Single-Arm Cable Pushdown One-Arm Cable Tricep Pushdown).mp4':1,
+  'Ściąganie linki wyciągu górnego w dół jedną ręką (odpychanie w dół na wyciągu) (Single-Arm Cable Pushdown (Cable Tricep Pushdown – One Arm)).mp4':1,
+  'Prostowanie ramienia na wyciągu górnym (triceps pushdown) (Cable Triceps Pushdown).mp4':1,
+  'Przyciąganie linki wyciągu dolnego do boku (przekos na triceps) (Cable triceps kickback (low pulley)).mp4':1,
+  'Przyciąganie linki wyciągu górnego do boku (prostowanie ramienia na wyciągu – triceps) (Cable Tricep Pushdown (one-arm cable tricep extension)).mp4':1,
+  'Ściąganie drążka wyciągu górnego nachwytem (prostowanie ramion) (Cable Tricep Pushdown (Straight Bar Overhand Grip)).mp4':1,
+  'Ściąganie drążka wyciągu górnego nachwytem (triceps pushdown) (Cable Triceps Pushdown (Overhand Grip)).mp4':1,
+  'Ściąganie linki wyciągu górnego nachwytem (prostowanie ramion na wyciągu) (Cable Tricep Pushdown (RopeCable Overhead Tricep Extension)).mp4':1,
+  'Ściąganie linki wyciągu górnego nachwytem (triceps pushdown) (Cable Triceps Pushdown (Overhand Grip)).mp4':1,
+  'Ściąganie linki wyciągu górnego nachwytem (triceps pushdown) (Cable Triceps Pushdown (RopeBar Overhead Pulley)).mp4':1,
+  'Odwodzenie ramion w tył na wyciągu górnym (prostowanie ramion na wyciągu – triceps pushdown straight-arm pulldown) (Cable Straight-Arm Pulldown).mp4':1,
+  'Wyprost ramion na wyciągu górnym (triceps pushdown przyciąganie linki w dół) (Cable Straight-Arm Pulldown).mp4':1,
+  'Naprzemienne uginanie ramion z hantlami siedząc (uchwyt młotkowy) (Seated Alternating Hammer Curl with Dumbbells).mp4':1,
+  'Naprzemienne uginanie ramion z hantlami siedząc (uchwyt supinowany) (Seated Alternating Dumbbell Bicep Curl).mp4':1,
+  'Naprzemienne uginanie ramion z hantlami siedząc (uchwyt supinowany) (Seated Dumbbell Bicep Curl).mp4':1,
+  'Uginanie przedramion z hantlą w siadzie (modlitewnik) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie przedramion ze sztangą stojąc (uchwyt podchwytem) (Barbell Bicep Curl).mp4':1,
+  'Uginanie ramienia z hantlem na modlitewniku (koncentryczne uginanie z hantlem) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlem na modlitewniku (ławka Scotta) (Dumbbell Preacher Curl).mp4':1,
+  'Uginanie ramienia z hantlem w siadzie (koncentryczne uginanie na kolanie) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlem w siadzie (modlitewnik) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlą na modlitewniku (koncentryczne uginanie bicepsa z hantlą) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlą na modlitewniku (koncentryczne uginanie z hantlą) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlą na modlitewniku (oparte o kolano) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlą na modlitewniku (uginanie koncentryczne) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlą na modlitewniku (ławeczka Scotta) (Dumbbell Preacher Curl).mp4':1,
+  'Uginanie ramienia z hantlą na modlitewniku (ławka Scotta) (Dumbbell Preacher Curl).mp4':1,
+  'Uginanie ramienia z hantlą w siadzie (modliszka) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramienia z hantlą w siadzie (uginanie koncentryczne) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramion na modlitewniku (Scott curl) ze sztangą łamaną (Preacher Curl with EZ-bar).mp4':1,
+  'Uginanie ramion na modlitewniku (ze sztangądrążkiem) (Preacher Curl (barbellEZ-bar)).mp4':1,
+  'Uginanie ramion na wyciągu dolnym (stojąc) (Standing Cable Curl).mp4':1,
+  'Uginanie ramion na wyciągu górnym (stojąc) (Standing Cable Curl (high pulley)).mp4':1,
+  'Uginanie ramion na wyciągu górnym (stojąc) (Standing High Cable Curl).mp4':1,
+  'Uginanie ramion na wyciągu górnym (stojąc, chwyt podchwytem) (Standing Cable Curl (high pulley, underhand grip)).mp4':1,
+  'Uginanie ramion z hantlami (biceps curl z hantlami) (Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlami (biceps curl) (Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlami (uchwyt młotkowy neutralny) – curl na modlitewniku (Scott curl) (Preacher Curl (Hammer Neutral Grip) with Dumbbell).mp4':1,
+  'Uginanie ramion z hantlami (uchwyt młotkowy) (Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlami (uchwyt młotkowy) (Hammer Curl with Dumbbells).mp4':1,
+  'Uginanie ramion z hantlami (uchwyt młotkowy) – curl na modlitewniku (Scott curl) (Preacher Curl (Hammer Grip Dumbbell)).mp4':1,
+  'Uginanie ramion z hantlami (uchwyt młotkowy) – stojąc (Standing Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlami (uchwyt neutralnymłotkowy) (Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlami na ławce skośnej (modlitewnik) (Incline Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlami na ławce skośnej (uchwyt młotkowy supinowany) (Incline Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlami na ławce skośnej (uchwyt supinowany) (Incline Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlami na ławce skośnej (uginanie naprzemienne na ławce Scottaincline) (Incline Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlami siedząc (uchwyt młotkowy supinowany) (Seated Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlami stojąc (uchwyt młotkowy) (Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą (curl na biceps z hantlą) (Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlą (uchwyt młotkowy) (Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą (uchwyt neutralny młotkowy) (Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą na modlitewniku (koncentrowane uginanie) (Dumbbell Concentration Curl).mp4':1,
+  'Uginanie ramion z hantlą na modlitewniku (uchwyt neutralnymłotkowy) (Dumbbell Preacher Curl (Hammer Grip)).mp4':1,
+  'Uginanie ramion z hantlą na modlitewniku (uchwyt neutralnymłotkowy) (Dumbbell Preacher Curl (hammer grip)).mp4':1,
+  'Uginanie ramion z hantlą na modlitewniku (uchwyt neutralnymłotkowy) (Hammer Curl on Preacher Bench (Dumbbell)).mp4':1,
+  'Uginanie ramion z hantlą na modlitewniku (ławka Scotta) (Dumbbell Preacher Curl).mp4':1,
+  'Uginanie ramion z hantlą na ławce Scotta (modlitewnik) (Dumbbell Preacher Curl).mp4':1,
+  'Uginanie ramion z hantlą na ławce Scotta (uchwyt młotkowy) (Dumbbell Preacher Curl (hammer grip)).mp4':1,
+  'Uginanie ramion z hantlą na ławce Scotta (uchwyt neutralny) (Dumbbell Preacher Curl).mp4':1,
+  'Uginanie ramion z hantlą na ławce Scotta (uchwyt neutralnymłotkowy) (Dumbbell Preacher Curl (hammer grip)).mp4':1,
+  'Uginanie ramion z hantlą na ławce skośnej (modlitewnik) (Incline Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlą siedząc (młotkowe neutralny chwyt) — Hammer Curl siedząc (Seated Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą siedząc (uchwyt młotkowy naprzemiennie) (Seated Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą siedząc (uchwyt młotkowy neutralny) (Seated Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą siedząc (uchwyt neutralnymłotkowy) – hammer curl (Seated Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą siedząc (uchwyt supinowany) (Seated Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion z hantlą w podporze (młotkowy chwyt) na ławce skośnej (Incline Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion z hantlą w podporze o ławkę (uginanie koncentryczne) (Concentration Curl with Dumbbell).mp4':1,
+  'Uginanie ramion z hantlą – uchwyt młotkowy (Hammer Curl) (Dumbbell Hammer Curl).mp4':1,
+  'Uginanie ramion ze sztangą (uchwyt podchwytem) (Barbell Bicep Curl).mp4':1,
+  'Uginanie ramion ze sztangą hantlami (uchwyt podchwytem) – uginanie nadgarstków podczas unoszeń (curl bicepsowy) (Barbell Dumbbell Bicep Curl – wrist position during curl).mp4':1,
+  'Uginanie ramion ze sztangą hantlami (uchwyt podchwytem) — uginanie nadgarstka w górę (błędna vs poprawna technika) (Barbell Dumbbell Bicep Curl — wrist position (incorrect vs correct form)).mp4':1,
+  'Uginanie ramion ze sztangą hantlami – uchwyt podchwytem (curl na biceps) (Barbell Dumbbell Bicep Curl).mp4':1,
+  'Uginanie ramion ze sztangą na modlitewniku (uchwyt podchwytem) (Barbell Preacher Curl).mp4':1,
+  'Uginanie ramion ze sztangą stojąc (uchwyt podchwytem) (Barbell Bicep Curl (Standing)).mp4':1,
+  'Uginanie ramion ze sztangą stojąc (uchwyt podchwytem) (Barbell Bicep Curl).mp4':1,
+  'Uginanie ramion ze sztangą stojąc (uchwyt podchwytem) (Standing Barbell Bicep Curl).mp4':1,
+  'Uginanie ramion ze sztangą łamaną (EZ) na modlitewniku (EZ Bar Preacher Curl).mp4':1,
+  'Uginanie ramion ze sztangą łamaną (EZ) na modlitewniku (Scott curl) (EZ Bar Preacher Curl).mp4':1,
+  'Uginanie ramion ze sztangą łamaną (EZ) nachwytem neutralnym (EZ Bar Curl with Neutral Grip).mp4':1,
+  'Brzuszki na ławce skośnej (Decline Sit-Ups).mp4':1,
+  'Brzuszki na ławce skośnej (decline) (Decline Crunch).mp4':1,
+  'Brzuszki siedzące z uniesieniem rąk (bez obciążenia) (Seated Abdominal Crunch (bodyweight)).mp4':1,
+  'Brzuszki skośne (skręty tułowia leżąc) (Bicycle Crunches).mp4':1,
+  'Brzuszki skrętne (skręty tułowia w leżeniu) (Bicycle Crunches).mp4':1,
+  'Brzuszki z uniesieniem nóg (naprzemienne) (Alternating Leg Raise Crunch).mp4':1,
+  'Crunch brzuszny (Crunch).mp4':1,
+  'Crunch na ławce skośnej (brzuszki na ławce skośnej) (Decline Crunch).mp4':1,
+  'Deska w leżeniu przodem (plank na brzuchu) (Prone Plank (Front Plank)).mp4':1,
+  'Deska w leżeniu przodem (plank) (Prone Plank).mp4':1,
+  'Naprzemienne unoszenie nóg (flutter kicks) (Flutter Kicks).mp4':1,
+  'Nożyce poziome (flutter kicks) (Flutter Kicks).mp4':1,
+  'Nożyce w leżeniu na plecach (Scissor Kicks).mp4':1,
+  'Rowerek (leżąc na plecach) (Bicycle Crunch).mp4':1,
+  'Rowerek (leżący pedałowanie nogami) (Bicycle Crunch).mp4':1,
+  'Rowerek (leżący) – ćwiczenie na mięśnie brzucha (Bicycle Crunch).mp4':1,
+  'Rowerek (naprzemienne unoszenie nóg w leżeniu) (Bicycle Crunch).mp4':1,
+  'Rowerek (nożyce naprzemienne w leżeniu) (Bicycle Crunch).mp4':1,
+  'Rowerek brzuszny (leżąc na plecach) (Bicycle Crunch).mp4':1,
+  'Rowerek na brzuch (leżąc na plecach) (Bicycle Crunch).mp4':1,
+  'Skręty tułowia leżąc (brzuszki skośne) (Lying Trunk Rotation (Oblique Crunches)).mp4':1,
+  'Skręty tułowia leżąc (brzuszki skośne) (Lying Trunk Twists (Oblique Crunches)).mp4':1,
+  'Skręty tułowia leżąc (rosyjski skręt leżąc) (Lying Trunk Rotation (Supine Spinal Twist)).mp4':1,
+  'Skręty tułowia siedząc (bez obciążenia) (Seated Torso Twist Seated Russian Twist (bodyweight)).mp4':1,
+  'Skręty tułowia w leżeniu (brzuszki skośne) (Bicycle Crunch).mp4':1,
+  'Skręty tułowia w leżeniu (brzuszki skośne) (Bicycle Crunches).mp4':1,
+  'Skręty tułowia w leżeniu (brzuszki skośne) (Lying Oblique Crunches (Bicycle Crunches)).mp4':1,
+  'Skręty tułowia w leżeniu (brzuszki ze skrętem) (Bicycle Crunches).mp4':1,
+  'Skręty tułowia w siadzie (Russian Twist bez obciążenia) (Seated Torso Twist (Russian Twist bodyweight)).mp4':1,
+  'Skręty tułowia w siadzie (Russian Twist bez obciążenia) (Seated Trunk Rotation (Russian Twist bodyweight)).mp4':1,
+  'Skręty tułowia w siadzie (Russian Twist bez obciążenia) (Seated Trunk Rotation (Russian Twist)).mp4':1,
+  'Skręty tułowia w siadzie (Russian twist bez obciążenia) (Seated Torso Twist (Russian Twist without weight)).mp4':1,
+  'Skręty tułowia w siadzie (Russian twist) (Russian Twist).mp4':1,
+  'Skręty tułowia w siadzie (rosyjski skręt) (Russian Twist).mp4':1,
+  'Skręty tułowia z hantlem nad głową (siedząc) (Seated Dumbbell Overhead Trunk Rotation).mp4':1,
+  'Skłony boczne w leżeniu (brzuszki skośne) (Side Crunches (Oblique Crunches)).mp4':1,
+  'Uginanie bioder w leżeniu z nogami w górze (unoszenie bioder) (Lying Leg Raises Hip Lift (Reverse Crunch with legs vertical)).mp4':1,
+  'Unoszenie kolan w siadzie na ławce skośnej (Seated Bench Knee Raise).mp4':1,
+  'Unoszenie nóg w leżeniu (bicycle crunch nożyce) (Lying Leg Raise Scissors).mp4':1,
+  'Unoszenie nóg w leżeniu (brzuszki z uniesieniem nóg) (Lying Leg Raises).mp4':1,
+  'Unoszenie nóg w leżeniu (leżące unoszenie nóg) (Lying Leg Raise).mp4':1,
+  'Unoszenie nóg w leżeniu (leżące unoszenie prostych nóg) (Lying Leg Raise).mp4':1,
+  'Unoszenie nóg w leżeniu na plecach (Lying Leg Raises).mp4':1,
+  'Wspinaczka górska (mountain climbers) (Mountain Climbers).mp4':1,
+  'Wznosy nóg na ławce skośnej (brzuch) (Decline Bench Leg Raises).mp4':1,
+  'Wznosy nóg na ławce skośnej (brzuszki na ławce skośnej) (Decline Bench Leg Raises (Decline Sit-Ups)).mp4':1,
+  'Wznosy nóg na ławce skośnej (leżenie na plecach) (Decline bench leg raises).mp4':1,
+  'Wznosy nóg na ławce skośnej (ujemny kąt) (Decline Bench Leg Raises).mp4':1,
+  'Wspięcia na palce (rozciąganie ścięgna Achillesa zakres ruchu kostki) (Ankle Dorsiflexion Plantar Flexion Mobility Drill).mp4':1,
+  'Wspięcia na palce (zgięcie podeszwowe stopy) – w leżeniu (Ankle Plantar Flexion (lying position)).mp4':1,
+  'Wspięcia na palce (zgięcie podeszwowe stopy) – ćwiczenie mobilizacyjne stawu skokowego (Ankle Plantar Flexion Mobility Exercise).mp4':1,
+  'Zgięcie podeszwowe stopy (rozciąganie ścięgna Achillesa mięśni łydki) (Ankle Plantar Flexion stretch).mp4':1,
+  'Wspięcia na palce stojąc (szerokość stóp) (Standing Calf Raise – Foot Width Position Check).mp4':1,
+  'Wspięcia na palce stojąc z gumą oporową (Standing Calf Raises with Resistance Band).mp4':1,
+  'Wspięcia na palce stojąc (z gumą oporową) (Standing Calf Raises (with resistance band)).mp4':1,
+  'Pozycja dziecka (rozciąganie) (Child\'s Pose (stretch)).mp4':1,
+  'Wykrok w klęku – rozciąganie zginacza biodra (hip flexor stretch) (Kneeling Hip Flexor Stretch).mp4':1,
+  'Wykrok w klęku – rozciąganie zginacza biodra (półklęk) (Kneeling Hip Flexor Stretch (Low Lunge Stretch)).mp4':1,
+  'Wykrok z rozciąganiem zginacza biodra (klęk jednonóż) (Kneeling Hip Flexor Stretch (Lunge Stretch)).mp4':1,
+  'Rozciąganie mięśni czworobocznych rozciąganie karku (Neck and Upper Trapezius Stretch).mp4':1,
+  'Rozciąganie tricepsów (za plecami) (Triceps Stretch (behind back)).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (stretching statyczny) (Seated Quadriceps Stretch).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (na ławce) (Seated Quadriceps Stretch (on bench)).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (z hantlem) (Seated Quadriceps Stretch (with dumbbell)).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (ze hantlą) (Seated Quadriceps Stretch).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie na ławce (Seated Quadriceps Stretch).mp4':1,
+  'Rozpiętki w leżeniu na podłodze (bez sprzętu ćwiczenie rozciągające klatkę piersiową) (Floor Chest Stretch Lying Chest Opener).mp4':1,
+  'Zgięcie podeszwowe stopy (rozciąganie ścięgna Achillesa mobilizacja stawu skokowego) (Ankle Plantar Flexion Stretch).mp4':1
+};
+function exerciseMediaBasename(filename){
+  let raw=String(filename||'').split(/[/\\]/).pop()||'';
+  try{raw=decodeURIComponent(raw);}catch(e){}
+  return raw.replace(/\s*\(\d+\)(?=\.(gif|webp|mp4|webm)$)/i,'').trim();
+}
+function isKnownLyingMediaFilename(filename){
+  return !!EX_MEDIA_FILENAME_LIES[exerciseMediaBasename(filename)];
+}
+window.isKnownLyingMediaFilename=isKnownLyingMediaFilename;
+window.EX_MEDIA_FILENAME_LIES=EX_MEDIA_FILENAME_LIES;
+
+/** PL nazwa DEF_EX → filtry na nazwę pliku (PL + EN). Dopasowanie ostrożne — bez zgadywania. */
+const EX_MEDIA_FILE_ALIASES={
+  'Wyciskanie sztangi leżąc':{include:[/barbell bench press/i],exclude:[/close[- ]?grip/i,/wąski/i,/smith/i,/incline/i,/decline/i]},
+  'Wyciskanie hantli leżąc':{include:[/dumbbell bench press/i],exclude:[/incline/i,/sko[sś]n/i,/narrow/i,/wąsk/i,/shoulder/i,/nad głow/i,/decline/i,/floor/i]},
+  'Wyciskanie hantli skos+':{include:[/incline dumbbell (chest )?press/i],exclude:[/shoulder/i,/nad głow/i,/decline/i,/sko[sś]nej \(incline\)/i],prefer:[/sko[sś]nej dodatniej/i,/górna część klatki/i]},
+  'Wyciskanie hantli na ławce skośnej':{include:[/incline dumbbell (chest )?press/i],exclude:[/shoulder/i,/nad głow/i,/decline/i,/sko[sś]nej \(incline\)/i],prefer:[/sko[sś]nej dodatniej/i,/górna część klatki/i]},
+  'Rozpiętki na bramie na ławce skośnej':{include:[/incline cable fly/i,/incline bench cable fly/i],exclude:[/reverse/i,/decline/i,/flat bench/i]},
+  'Wyciskanie hantli skos−':{include:[/decline dumbbell (bench )?press/i],exclude:[/incline/i]},
+  'Wyciskanie sztangi skos+':{include:[/incline barbell (bench )?press/i],exclude:[/dumbbell/i,/smith/i,/decline/i]},
+  'Wyciskanie sztangi skos−':{include:[/decline barbell (bench )?press/i],exclude:[/dumbbell/i,/incline/i]},
+  'Rozpiętki hantlami':{include:[/dumbbell chest fly/i,/dumbbell flat bench fly/i],exclude:[/decline/i,/głow[aą] w d[oó]ł/i,/lateral raise/i,/pec deck/i,/reverse/i,/rear delt/i,/odwrotn/i,/opadzie/i]},
+  'Rozpiętki na wyciągu':{include:[/cable crossover/i],exclude:[/reverse/i,/single[- ]arm/i,/low cable/i,/pec deck/i,/middle chest/i,/stojąc/i,/high pulley/i],prefer:[/krzesełko/i]},
+  'Krzyżowanie wyciągów góra–dół':{include:[/cable crossover \(high/i,/high pulley fly/i,/high cable fly/i],exclude:[/reverse/i,/single[- ]arm/i,/low /i,/stojąc/i,/krzesełko/i]},
+  'Krzyżowanie wyciągów dół–góra':{include:[/cable crossover/i],exclude:[/reverse/i,/single[- ]arm/i,/high pulley/i,/krzesełko/i],prefer:[/wyciąg górny, stojąc/i,/standing\) \(cable crossover\)/i]},
+  'Rozpiętki na wyciągu w poziomie':{include:[/cable crossover fly \(middle chest\)/i]},
+  'Rozpiętki jednorącz wyciąg':{include:[/single[- ]arm low cable fly/i,/single[- ]arm cable fly/i],exclude:[/lateral raise/i]},
+  'Pompki':{include:[/push[- ]?ups?/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i]},
+  'Pompki diamentowe':{include:[/diamond push[- ]?up/i],exclude:[/knee/i,/kolan/i]},
+  'Pompki na hantlach':{include:[/dumbbell push[- ]?ups?/i]},
+  'Pompki na kolanach':{include:[/knee push[- ]?up/i,/kneeling push[- ]?up/i],exclude:[/incorrect/i,/błędn/i]},
+  'Dipy na poręczach':{include:[/parallel bar dips/i],exclude:[/bench dip/i,/ławc/i]},
+  'Dipy na ławce':{include:[/bench dips?/i],exclude:[/parallel bar/i,/incline/i]},
+  'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/odwrotn/i,/rear delt/i,/pulldown/i,/lat pulldown/i,/cable/i,/lunge/i]},
+  'Wyciskanie wąskim chwytem':{include:[/close[- ]?grip barbell bench press/i,/narrow grip (barbell )?bench press/i]},
+  'Pullover sztangą':{include:[/barbell pullover/i]},
+  'Pullover hantlem':{include:[/dumbbell pullover/i],exclude:[/barbell/i]},
+  'Martwy ciąg klasyczny':{include:[/barbell deadlift/i],exclude:[/dumbbell/i,/sumo/i,/rdl/i,/romanian/i,/straight[- ]leg/i,/stiff/i,/bodyweight/i,/hantl/i,/deficit/i,/snatch/i]},
+  'Martwy ciąg RDL':{include:[/romanian deadlift/i,/\brdl\b/i],exclude:[/dumbbell/i,/hantl/i,/stiff/i,/bodyweight/i]},
+  'Podciąganie na drążku':{include:[/pull[- ]?up \(overhand/i],exclude:[/wide[- ]grip/i,/szerok/i,/australian/i,/chin/i]},
+  'Podciąganie szerokim chwytem':{include:[/wide[- ]grip pull[- ]?up/i]},
+  'Podciąganie podchwytem':{include:[/chin[- ]?ups?/i],exclude:[/overhand/i,/nachwyt/i,/wide[- ]grip/i,/szerok/i,/neutral/i,/pull[- ]?up/i]},
+  'Ściąganie drążka wyciąg':{include:[/lat pulldown/i],exclude:[/behind the neck/i,/kark/i,/za głow/i,/single[- ]arm/i,/jednor[aą]cz/i,/straight[- ]arm/i,/wide[- ]grip/i,/szerok/i],prefer:[/to chest/i,/overhand grip/i,/do klatki/i]},
+  'Ściąganie drążka szerokim chwytem':{include:[/wide[- ]grip lat pulldown/i],exclude:[/behind the neck/i,/kark/i]},
+  'Ściąganie drążka jednorącz':{include:[/single[- ]arm lat pulldown/i,/single[- ]arm cable pulldown/i],exclude:[/straight[- ]arm/i,/triceps/i]},
+  'Ściąganie prostymi rękami':{include:[/straight[- ]arm pulldown/i],exclude:[/lat pulldown/i,/triceps/i,/one[- ]arm/i]},
+  'Ściąganie do twarzy (face pull)':{include:[/face pull/i]},
+  'Wiosłowanie sztangą':{include:[/barbell bent[- ]over row/i],exclude:[/underhand/i,/incline/i,/neutral grip/i,/dumbbell/i,/pendlay/i]},
+  'Wiosłowanie hantlem':{include:[/one[- ]arm dumbbell row/i,/single[- ]arm dumbbell row/i],exclude:[/bent[- ]over row\)/i]},
+  'Wiosłowanie hantlami oburącz':{include:[/dumbbell bent[- ]over row/i],exclude:[/one[- ]arm/i,/single[- ]arm/i,/rear delt/i,/jednor[aą]cz/i]},
+  'Wiosłowanie wyciągiem siedząc':{include:[/seated cable row/i],exclude:[/machine/i,/maszynie/i,/single/i,/jednor/i]},
+  'Wiosłowanie na maszynie':{include:[/seated cable row \(machine/i,/cable row machine/i,/machine row/i]},
+  'Wiosłowanie odwrócone':{include:[/inverted row/i,/australian pull[- ]?up/i]},
+  'Wiosłowanie T-bar':{include:[/t[- ]?bar row/i],exclude:[/landmine/i,/meadows/i]},
+  'Prostowanie tułowia':{include:[/hyperextension/i,/back extension/i],exclude:[/reverse hyper/i]},
+  'Odwrotne rozpiętki':{include:[/dumbbell (bent[- ]over )?(rear delt fly|reverse fly)/i,/bent[- ]over dumbbell (rear delt fly|reverse fly)/i],exclude:[/cable/i,/machine/i,/pec deck/i,/seated/i,/prone/i,/siadzie/i]},
+  'Odwrotne rozpiętki maszyna':{include:[/reverse pec deck/i,/rear delt machine fly/i],exclude:[/pulldown/i,/wiosł/i,/row/i,/tricep/i]},
+  'Odwrotne rozpiętki na wyciągu':{include:[/cable rear delt fly/i],exclude:[/face pull/i,/row/i,/wiosł/i]},
+  'Unoszenie bokiem w opadzie':{include:[/dumbbell bent[- ]over (lateral raise|rear delt fly)/i],exclude:[/cable/i]},
+  'Unoszenie bokiem':{include:[/dumbbell lateral raise/i],exclude:[/bent[- ]over/i,/opadzie/i,/seated/i,/siadzie/i,/barbell/i,/sztang/i],prefer:[/w staniu/i,/standing/i]},
+  'Unoszenie bokiem na wyciągu jednorącz':{include:[/cable lateral raise \(low pulley\)/i,/single[- ]arm cable lateral/i],exclude:[/bent[- ]over/i,/opadzie/i,/rear delt/i]},
+  'Wyciskanie hantli siedząc':{include:[/seated dumbbell (shoulder|overhead) press/i],exclude:[/single[- ]arm/i,/jednostronn/i,/jednor[aą]cz/i,/incline/i,/arnold/i,/sko[sś]n/i]},
+  'Wyciskanie barków maszyna':{include:[/machine shoulder press/i],exclude:[/tricep/i,/francusk/i,/extension/i]},
+  'Wyciskanie hantla jednorącz nad głowę':{include:[/single[- ]arm seated dumbbell shoulder press/i,/single[- ]arm dumbbell overhead press/i],exclude:[/arnold/i]},
+  'Wyciskanie żołnierskie OHP':{include:[/barbell (overhead|military|shoulder) press/i],exclude:[/dumbbell/i,/hantl/i,/seated/i,/siedz/i,/push press/i,/arnold/i,/face pull/i,/lin[ye]/i,/rope/i,/neutral grip/i]},
+  'Wyciskanie Arnolda':{include:[/arnold press/i],exclude:[/military press/i,/overhead press\)/i,/seated dumbbell overhead press/i]},
+  'Unoszenie przodem':{include:[/dumbbell front raise/i],exclude:[/plate/i,/talerz/i,/lateral/i,/shrug/i,/szrag/i]},
+  'Wyciskanie hantli stojąc':{include:[/dumbbell overhead press \(military press\)/i],exclude:[/seated/i,/siedz/i,/tricep/i,/francusk/i,/extension/i,/rear view/i]},
+  'Wiosłowanie pionowe':{include:[/upright row/i]},
+  'Uginanie biceps sztangą':{include:[/barbell bicep curl/i],exclude:[/preacher/i,/modlitewnik/i,/ez bar/i,/reverse/i,/nachwyt/i]},
+  'Uginanie młotkowe':{include:[/dumbbell hammer curl/i],exclude:[/seated/i,/siedz/i,/preacher/i,/scott/i,/incline/i,/sko[sś]n/i]},
+  'Uginanie hantlami naprzemiennie':{include:[/dumbbell bicep curl/i],exclude:[/hammer/i,/młotk/i,/preacher/i,/incline/i,/seated/i,/siedz/i]},
+  'Uginanie na wyciągu':{include:[/standing cable curl/i],exclude:[/high pulley/i,/górnym/i,/rope/i,/reverse/i]},
+  'Uginanie na modlitewniku':{include:[/preacher curl/i,/ez bar preacher/i],exclude:[/hammer/i,/młotk/i,/incline/i,/concentration/i]},
+  'Uginanie na skosie':{include:[/incline dumbbell bicep curl/i],exclude:[/hammer/i,/preacher/i,/spider/i,/prone/i]},
+  'Uginanie reverse':{include:[/barbell reverse curl/i],exclude:[/preacher/i,/ez bar/i,/cable/i]},
+  'Uginanie koncentryczne':{include:[/concentration curl/i],exclude:[/preacher/i,/scott/i,/modlitewnik/i,/wrist/i]},
+  'Prostowanie tricepsa wyciąg':{include:[/cable triceps? pushdown/i],exclude:[/one[- ]arm/i,/single[- ]arm/i,/jednor[aą]cz/i,/kickback/i,/overhead/i,/rope/i,/linow/i]},
+  'Prostowanie jednorącz wyciąg':{include:[/single[- ]arm cable triceps? pushdown/i,/one[- ]arm cable tricep/i],exclude:[/kickback/i,/fly/i,/crossover/i,/lateral/i,/pulldown/i]},
+  'Kickback na wyciągu':{include:[/cable tricep kickback/i],exclude:[/pushdown/i,/glute/i]},
+  'Kickback triceps':{include:[/dumbbell.{0,24}tricep(s)? kickback/i,/bent over db triceps kickback/i],exclude:[/cable/i]},
+  'Prostowanie linką':{include:[/cable triceps? pushdown with rope/i,/rope (triceps? )?pushdown/i,/uchwyt linow/i],exclude:[/one[- ]arm/i,/jednor[aą]cz/i,/– rope/i]},
+  'Prostowanie za głowę hantlem':{include:[/dumbbell overhead triceps? extension/i],exclude:[/seated/i,/siedz/i,/lying/i,/leż/i,/one[- ]arm/i,/jednostronn/i,/skull/i]},
+  'Przysiad ze sztangą':{include:[/barbell back squat/i],exclude:[/smith/i,/suwnic/i,/wide stance/i,/szeroki/i,/sumo/i,/front squat/i,/narrow/i,/wąski rozstaw/i],prefer:[/przysiad klasyczny/i]},
+  'Przysiad w bramie Smith':{include:[/smith machine (barbell back )?squat/i],exclude:[/bulgarian/i,/split squat/i,/lunge/i,/hack/i,/bułgarsk/i]},
+  'Przysiad sumo':{include:[/sumo squat/i,/wide stance squat/i],exclude:[/dumbbell/i,/hantel/i,/goblet/i,/barbell sumo squat \(front/i,/smith/i]},
+  'Przysiad sumo z hantlem':{include:[/dumbbell sumo squat/i,/sumo (goblet )?squat with dumbbell/i]},
+  'Przysiad Goblet':{include:[/goblet squat/i],exclude:[/sumo/i,/bulgarian/i,/bułgarsk/i,/heel/i,/pięt/i,/bodyweight/i,/złączon/i]},
+  'Przysiad bułgarski':{include:[/bulgarian split squat/i],exclude:[/\bdip\b/i,/chair/i,/tricep/i],prefer:[/ławce/i,/rear foot/i]},
+  'Przysiad przedni':{include:[/barbell front squat/i],exclude:[/goblet/i,/smith/i,/sumo/i]},
+  'Wyciskanie nogami':{include:[/leg press/i],exclude:[/single[- ]leg/i,/jednon[oó]/i,/jednostronn/i,/jednotnie/i,/hack/i,/extension/i,/skull/i,/tricep/i,/francusk/i],prefer:[/ustawienie st[oó]p/i,/footknee/i]},
+  'Wyciskanie nogami jednonóż':{include:[/single[- ]leg press/i]},
+  'Wykrok z hantlami':{include:[/dumbbell lunge/i],exclude:[/barbell/i,/step[- ]up/i,/bulgarian/i,/walking/i,/chód/i]},
+  'Wykrok chodzony':{include:[/walking lunge/i]},
+  'Wykrok ze sztangą':{include:[/barbell lunge/i],exclude:[/dumbbell/i,/hantl/i]},
+  'Przysiad z piętami na podwyższeniu':{include:[/heel elevat/i],exclude:[/mini ?band/i,/sumo/i,/bulgarian/i,/bułgarsk/i]},
+  'Przysiad goblet na podwyższeniu pięt':{include:[/heel elevat/i],exclude:[/mini ?band/i,/sumo/i,/bulgarian/i,/bułgarsk/i]},
+  'Wyprosty nóg maszyna':{include:[/leg extension/i]},
+  'Uginanie nóg maszyna':{include:[/lying leg curl/i],exclude:[/nordic/i,/seated/i,/siadzie/i],prefer:[/wide stance/i,/głowa głęboka/i]},
+  'Uginanie nóg leżąc':{include:[/lying leg curl/i],exclude:[/nordic/i,/seated/i,/siadzie/i],prefer:[/część zewnętrzna/i]},
+  'Uginanie nóg siedząc':{include:[/seated leg curl/i],exclude:[/lying/i,/leżeniu/i,/leżąc/i,/nordic/i]},
+  'Uginanie nordyckie':{include:[/nordic hamstring/i,/nordic curl/i],exclude:[/lying leg curl/i,/seated/i,/siadzie/i,/reverse nordic/i]},
+  'Martwy ciąg na sztywnych nogach':{include:[/stiff[- ]leg deadlift/i],exclude:[/bodyweight/i,/bez obciążenia/i,/good morning/i,/dumbbell/i,/hantl/i]},
+  'Good morning (skłon)':{include:[/good morning/i],exclude:[/bodyweight/i,/bez obciążenia/i,/deadlift/i,/martwy/i]},
+  'Wspięcia na palce':{include:[/machine calf raise/i,/calf raise.*maszyn/i],exclude:[/seated/i,/siad/i,/dumbbell/i,/hantl/i,/leg press/i,/suwnic/i,/band/i]},
+  'Wspięcia na palce stojąc':{include:[/standing calf raise/i],exclude:[/dumbbell/i,/hantl/i,/band/i,/gum[aą]/i,/ankle/i,/dorsiflexion/i,/mobility/i,/plantar/i,/seated/i,/single[- ]leg/i,/jednon[oó]ż/i],prefer:[/na stopniu/i,/on step/i,/obie nogi/i]},
+  'Wspięcia na palce hantlami':{include:[/standing dumbbell calf raise/i,/dumbbell calf raise/i],exclude:[/single[- ]leg/i,/jednon[oó]ż/i,/band/i,/gum[aą]/i]},
+  'Wspięcia na palce siedząc':{include:[/seated calf raise/i],exclude:[/standing/i,/stoj/i]},
+  'Abdukcja biodra maszyna':{include:[/hip abduction machine/i],exclude:[/lying/i,/leż/i,/kickback/i,/przywod/i,/adduction/i],prefer:[/seated/i,/siadzie/i]},
+  'Przywodzenie biodra maszyna':{include:[/przywodzenie n[oó]g na maszynie/i,/seated hip adduction/i],exclude:[/odwodzen/i,/abduction/i,/standing/i,/ta[sś]m/i,/band/i]},
+  'Odwodzenie biodra leżąc':{include:[/side[- ]lying hip abduction/i],exclude:[/machine/i,/maszyn/i,/prone/i,/brzuchu/i]},
+  'Kickback na maszynie':{include:[/machine glute kickback/i,/kickback na maszynie/i],exclude:[/cable glute/i,/na wyci[aą]gu/i,/prone/i,/le[zż]eniu/i,/donkey/i]},
+  'Kickback pośladki':{include:[/cable glute kickback/i],exclude:[/tricep/i,/donkey/i,/prone/i,/le[zż]eniu/i,/machine glute kickback/i,/kickback na maszynie/i]},
+  'Mostek biodrowy':{include:[/glute bridge/i],exclude:[/hip thrust/i,/mini band/i,/aktywacja/i,/kas/i]},
+  'Wypychanie bioder (hip thrust)':{include:[/hip thrust/i],exclude:[/glute bridge/i,/jednon[oó][zż]/i,/single[- ]leg/i,/machine/i,/maszynie/i,/banded/i,/ta[sś]m/i,/b[- ]?stance/i,/kas/i,/feet[- ]elevat/i]},
+  'Rollout z kółkiem':{include:[/ab wheel rollout/i],prefer:[/kneeling/i,/z kolan/i]},
+  'Nożyce':{include:[/scissor kicks/i],exclude:[/flutter/i]},
+  'Unoszenie nóg leżąc':{include:[/lying leg raises?/i],exclude:[/decline/i,/reverse crunch/i,/hip lift/i,/scissor/i,/bicycle/i,/no[zż]yc/i]},
+  'Brzuszki rowerowe':{include:[/bicycle crunch/i]},
+  'Skręty rosyjskie':{include:[/russian twist/i]},
+  'Wyciskanie z podłogi':{include:[/barbell floor press/i],exclude:[/dumbbell/i]},
+  'Wyciskanie hantli na podłodze':{include:[/dumbbell floor press/i]},
+  'Wyciskanie na maszynie':{include:[/machine chest press/i],exclude:[/incline/i,/shoulder/i,/leg press/i,/fly/i,/crossover/i,/pulldown/i,/ściąganie/i,/cable/i]},
+  'Wyciskanie landmine':{include:[/landmine press/i],exclude:[/lateral/i,/thruster/i]},
+  'Hip hinge z taśmą':{include:[/band hip hinge/i,/hip hinge.*band/i],exclude:[/bodyweight/i,/bez obciążenia/i]},
+  'Deska':{include:[/prone plank/i,/\bfront plank\b/i],exclude:[/side plank/i,/boczn/i,/shoulder tap/i]},
+  'Prostowanie za głowę (skull crusher)':{include:[/skull crusher/i,/lying (dumbbell )?tricep/i],exclude:[/overhead/i,/seated/i,/siedz/i]}
+};
+window.EX_MEDIA_FILE_ALIASES=EX_MEDIA_FILE_ALIASES;
+
+/** Klucze do szukania mediów: pełna nazwa, alias w nawiasie, część przed pauzą. */
+function exerciseLookupKeys(name){
+  const raw=String(name||'').trim();
+  if(!raw)return[];
+  const out=[];
+  const add=s=>{
+    const k=exerciseMediaKey(s);
+    if(!k||/^\d+$/.test(k)||out.includes(k))return;
+    out.push(k);
+    const slug=exerciseSlug(s);
+    if(slug&&!out.includes(slug)&&!/^\d+$/.test(slug))out.push(slug);
+  };
+  add(raw);
+  raw.split(/\s+[—–|]\s+/).forEach(p=>{
+    if(p&&p!==raw&&!isGenericExerciseMediaName(p))add(p);
+  });
+  add(raw.replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim());
+  const re=/\(([^)]+)\)/g;
+  let m;
+  while((m=re.exec(raw))){
+    if(isGenericExerciseMediaName(m[1]))continue;
+    add(m[1]);
+    add(String(m[1]).replace(/-/g,' '));
+  }
+  out.slice().forEach(k=>{
+    if(/pec[- ]deck/.test(k)){
+      add('peck deck');
+      add('butterfly (peck deck)');
+      add('pec-deck');
+    }
+  });
+  return out;
+}
+window.exerciseLookupKeys=exerciseLookupKeys;
+
+function mediaMapGet(map,name){
+  if(!map||typeof map!=='object')return '';
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[exerciseMediaKey(name),exerciseSlug(name)];
+  for(let i=0;i<keys.length;i++){
+    const k=keys[i];
+    if(!k||/^\d+$/.test(k))continue;
+    if(map[k])return map[k];
+  }
+  if(name&&!/^\d+$/.test(String(name))&&map[name])return map[name];
+  return '';
+}
+
+function mediaUrlLooksAssignedToOtherExercise(url,name){
+  if(!url||!name||typeof matchFilenameToExercise!=='function')return false;
+  const mapped=matchFilenameToExercise(url,(typeof allExercises==='function'?allExercises():null)||window.DEF_EX||[]);
+  if(!mapped)return false;
+  return exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+}
+window.mediaUrlLooksAssignedToOtherExercise=mediaUrlLooksAssignedToOtherExercise;
+
+function normalizeRemoteExerciseMediaUrl(url){
+  const u=String(url||'').trim();
+  if(!u)return '';
+  const fixed=typeof normalizeVideoAssetsCdnUrl==='function'?(normalizeVideoAssetsCdnUrl(u)||u):u;
+  return fixed||u;
+}
+
+/** GIF / zdjęcie techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
+function exGifMapLookup(name){
+  const local=mediaMapGet(window.EX_GIF_MANIFEST,name);
+  const remote=mediaMapGet(window.EX_GIF_REMOTE,name);
+  if(remote){
+    const fixed=normalizeRemoteExerciseMediaUrl(remote);
+    if(fixed&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(fixed)&&mediaUrlLooksAssignedToOtherExercise(fixed,name))
+      return local||'';
+    return fixed||remote;
+  }
+  return local||'';
+}
+window.exGifMapLookup=exGifMapLookup;
+
+function assignedExVideoUrl(exOrName){
+  const name=typeof exOrName==='string'?exOrName:((exOrName&&exOrName.name)||'');
+  if(!name)return '';
+  const asVid=(u,normalize)=>{
+    if(!u)return '';
+    const n=normalize?normalizeRemoteExerciseMediaUrl(u):String(u||'').trim();
+    return (n&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n))?n:'';
+  };
+  const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
+  if(remoteVid&&!mediaUrlLooksAssignedToOtherExercise(remoteVid,name))return remoteVid;
+  return asVid(mediaMapGet(window.EX_GIF_MANIFEST,name),false);
+}
+window.assignedExVideoUrl=assignedExVideoUrl;
+
+function exPhotoMapLookup(name){
+  return mediaMapGet(window.EX_PHOTO_MANIFEST,name);
+}
+window.exPhotoMapLookup=exPhotoMapLookup;
+
+/** Placeholdery SVG z assets/ex/*.svg nie są prawdziwymi zdjęciami techniki. */
+function isDecorativeExAsset(url){
+  const s=String(url||'').trim();
+  if(!s)return false;
+  if(/\/gifs\//i.test(s))return false;
+  return /(?:^|\/)assets\/ex\/(?:bench|curl|deadlift|ohp|pullup|squat)\.svg(?:\?|#|$)/i.test(s)
+    || /(?:^|\/)assets\/ex\/[^/]+\.svg(?:\?|#|$)/i.test(s);
+}
+window.isDecorativeExAsset=isDecorativeExAsset;
+
+function isBareMediaFilename(url){
+  const s=String(url||'').trim().replace(/\\/g,'/');
+  if(!s)return false;
+  if(/^(https?:|file:)/i.test(s))return false;
+  if(/^[A-Za-z]:\//.test(s)||/^\/[A-Za-z]:\//.test(s))return false;
+  if(s.startsWith('assets/'))return false;
+  return s.indexOf('/')<0;
+}
+window.isBareMediaFilename=isBareMediaFilename;
+
+function isSafeMediaUrl(url){
+  const s=String(url||'').trim();
+  if(!s||/^(javascript|data|vbscript):/i.test(s))return false;
+  if(isBareMediaFilename(s))return false;
+  if(/^https?:\/\//i.test(s))return true;
+  if(s.startsWith('assets/'))return true;
+  return /^\.?\.?\/?[A-Za-z0-9_./-]+\.(gif|webp|png|jpe?g|svg|mp4|webm)(\?.*)?$/i.test(s);
+}
+window.isSafeMediaUrl=isSafeMediaUrl;
+
+function isVideoMediaUrl(url){
+  return /\.(mp4|webm)(\?|#|$)/i.test(String(url||'').trim());
+}
+window.isVideoMediaUrl=isVideoMediaUrl;
+
+function sameMediaUrl(a,b){
+  const norm=u=>{
+    let s=String(u||'').trim();
+    if(!s)return '';
+    if(typeof rewriteLocalMediaUrl==='function'){
+      const r=rewriteLocalMediaUrl(s);
+      if(r)s=r;
+    }
+    s=s.replace(/ /g,'%20').split('#')[0].split('?')[0];
+    try{s=decodeURIComponent(s);}catch(e){}
+    return s.replace(/\/+$/,'').toLowerCase();
+  };
+  const x=norm(a), y=norm(b);
+  return !!x&&!!y&&x===y;
+}
+window.sameMediaUrl=sameMediaUrl;
+
+function exGifUrl(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  if(ex&&typeof ex==='object'){
+    const gif=String(ex.gif||'').trim();
+    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
+    const img=String(ex.img||ex.thumb||ex.image||'').trim();
+    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
+    const mapped=exGifMapLookup(ex.name);
+    if(mapped)return mapped;
+    return '';
+  }
+  return exGifMapLookup(typeof exOrName==='string'?exOrName:'');
+}
+window.exGifUrl=exGifUrl;
+
+/** Miniatura kart: GIF/zdjęcie (nie MP4 — <img> nie odtwarza wideo). Film zostaje w szczegółach / builderze przez exGifUrl. */
+function exThumbUrl(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
+  if(gif&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
+  const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
+  const photo=exPhotoMapLookup(name);
+  if(photo)return photo;
+  if(isGenericExerciseMediaName(name))return '';
+  if(!ex||typeof ex!=='object')return '';
+  const img=String(ex.img||ex.thumb||ex.image||'').trim();
+  if(img&&isSafeMediaUrl(img)&&!isDecorativeExAsset(img))return img;
+  let video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(ex.video||''):String(ex.video||'');
+  if(!video&&ex.name&&typeof ownVideoForExercise==='function')video=ownVideoForExercise(ex.name);
+  const yt=youtubeIdFromUrl(video);
+  if(yt)return 'https://i.ytimg.com/vi/'+yt+'/mqdefault.jpg';
+  return '';
+}
+window.exThumbUrl=exThumbUrl;
+
+function libExerciseNormName(s){
+  return String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+
+function libExerciseMatchScore(ex,raw){
+  const key=libExerciseNormName(raw);
+  if(!key||!ex)return 0;
+  const n=libExerciseNormName(ex.name);
+  if(!n)return 0;
+  if(n===key)return 1000;
+  const stripped=key.replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();
+  if(n===stripped)return 900;
+  if(isGenericExerciseMediaName(ex.name)||isGenericExerciseMediaName(raw))return 0;
+  const aka=String(ex.aka||'').toLowerCase().replace(/\s+/g,' ');
+  const akaList=aka.split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
+  if(akaList.includes(key)||akaList.includes(stripped))return 850;
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(raw):[key];
+  const names=typeof exerciseLookupKeys==='function'?exerciseLookupKeys([ex.name,ex.aka].filter(Boolean).join(' ')):[n];
+  if(keys.some(k=>k&&names.includes(k)))return 800;
+  if(n.length>=12&&(key.startsWith(n+' ')||stripped.startsWith(n+' ')||key.includes(n)||stripped.includes(n)))return 500+n.length;
+  const stop=new Set(['siedząc','siedzacy','siedzac','stojąc','stojacy','leżąc','lezac','sitting','seated','standing','na','do','dla','the','and','with']);
+  const stem=w=>w.length>=5?w.slice(0,5):w;
+  const toks=stripped.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(w=>w.length>=3&&!stop.has(w)).map(stem);
+  const nt=n.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(w=>w.length>=3&&!stop.has(w)).map(stem);
+  if(nt.length>=2){
+    const hit=nt.filter(w=>toks.includes(w)).length;
+    if(hit===nt.length)return 400+hit*20+n.length;
+  }
+  return 0;
+}
+
+function libExerciseByName(name){
+  const key=libExerciseNormName(name);
+  if(!key)return null;
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  let best=null,bestScore=0;
+  for(let i=0;i<lib.length;i++){
+    const s=libExerciseMatchScore(lib[i],name);
+    if(s>bestScore){best=lib[i];bestScore=s;}
+    if(s>=1000)break;
+  }
+  return bestScore>=400?best:null;
+}
+window.libExerciseNormName=libExerciseNormName;
+window.libExerciseMatchScore=libExerciseMatchScore;
+window.libExerciseByName=libExerciseByName;
+
+function ownVideoForExercise(name){
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return '';
+  const vids=(window.COACH_VIDEOS||[]).filter(v=>String(v.exName||'').toLowerCase().replace(/\s+/g,' ').trim()===key)
+    .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(vids[0])return normalizeCoachVideoUrl(vids[0].url);
+  const lib=libExerciseByName(name);
+  return lib?normalizeCoachVideoUrl(lib.video||''):'';
+}
+window.ownVideoForExercise=ownVideoForExercise;
+
+function exerciseTodoNote(ex){
+  if(!ex)return '';
+  const own=String(ex.note||ex.notes||ex.cue||ex.planNote||'').trim();
+  if(own)return own;
+  const tip=String(ex.libTip||'').trim();
+  if(tip)return tip;
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(ex.name||ex.n||''):null;
+  return String((lib&&(lib.tip||lib.desc))||'').trim();
+}
+window.exerciseTodoNote=exerciseTodoNote;
+
+function resolveCoachMedia(parsed){
+  const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
+  const name=ex.name||'';
+  const lib=libExerciseByName(name);
+  const note=String(ex.note||ex.notes||ex.cue||'').trim();
+  let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
+  if(!video)video=ownVideoForExercise(name);
+  let libTip='';
+  if(!note&&lib){
+    libTip=String(lib.tip||lib.desc||'').trim();
+    if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
+  }
+  let embed=coachVideoEmbed(video);
+  const gif=exGifUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',gif:(ex.gif||(lib&&lib.gif)||''),img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  const img=gif||exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  if(gif&&video&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(gif)&&sameMediaUrl(gif,video)){
+    video='';
+    embed='';
+  }
+  return{note,libTip,video,videoEmbed:embed,isFile:coachVideoIsFile(video),img,gif};
+}
+window.resolveCoachMedia=resolveCoachMedia;
+
+function coachMediaIcons(ex){
+  const src=ex&&typeof ex==='object'?ex:{name:String(ex||'')};
+  const coach=(src.libTip!==undefined||src.planVideo!==undefined||src.planNote!==undefined)
+    ?{note:String(src.note||'').trim(),libTip:String(src.libTip||'').trim(),video:String(src.video||'').trim(),gif:String(src.gif||'').trim()}
+    :resolveCoachMedia(typeof parsePlanExercise==='function'?parsePlanExercise(src):src);
+  let icons='';
+  if(coach.note||coach.libTip)icons+=' 💡';
+  if(coach.gif)icons+=' 🎞';
+  if(coach.video)icons+=' ▶️';
+  return icons;
+}
+window.coachMediaIcons=coachMediaIcons;
+
+function hideBrokenTechniqueMedia(el){
+  if(!el)return;
+  const box=el.closest?el.closest('.cw-technique-media'):null;
+  if(box)box.setAttribute('hidden','');
+}
+window.hideBrokenTechniqueMedia=hideBrokenTechniqueMedia;
+
+function exTechniqueMediaHtml(media,opts){
+  opts=opts||{};
+  const gif=String((media&&media.gif)||'').trim();
+  const compact=!!opts.compact;
+  if(!gif||!isSafeMediaUrl(gif))return '';
+  const rawName=String((media&&media.name)||'').trim();
+  const alt=escHtml(rawName||'Technika wykonania');
+  const cls=compact?'ex-ac-thumb-img cw-technique-gif-img':'cw-technique-gif-img';
+  const showCap=!compact&&opts.caption!==false&&!!rawName;
+  const cap=showCap?`<div class="cw-technique-cap">${alt}</div>`:'';
+  const imgAlt=showCap?'':alt;
+  const onErr='this.onerror=null;if(typeof hideBrokenTechniqueMedia===\'function\')hideBrokenTechniqueMedia(this);';
+  if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
+    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}" autoplay loop muted playsinline preload="metadata" title="${alt}" onerror="${onErr}"></video>${cap}</div>`;
+  }
+  return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><img class="${cls}" src="${escHtml(gif)}" alt="${imgAlt}" title="${alt}" loading="lazy" referrerpolicy="no-referrer" onerror="${onErr}">${cap}</div>`;
+}
+window.exTechniqueMediaHtml=exTechniqueMediaHtml;
+
+function coachMediaHtml(ex,opts){
+  opts=opts||{};
+  const note=(ex&&ex.note)||'';
+  const libTip=(ex&&ex.libTip)||'';
+  const video=(ex&&ex.video)||'';
+  const embed=(ex&&ex.videoEmbed)||'';
+  const gif=(ex&&ex.gif)||'';
+  const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
+  const show=!!opts.showVideo;
+  const showGif=opts.showGif!==false;
+  const toggle=opts.toggleFn||'';
+  const sameGifVideo=!!(gif&&video&&typeof sameMediaUrl==='function'&&sameMediaUrl(gif,video));
+  let html='';
+  if(showGif&&gif)html+=exTechniqueMediaHtml({gif,name:ex&&ex.name},opts);
+  if(opts.showNote!==false){
+    if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
+    else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
+  }
+  if(video&&!sameGifVideo){
+    html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+    if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
+    html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
+    if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
+    else if(show&&file)html+=`<div class="cw-file-player cw-video-file"><video src="${escHtml(video)}" controls playsinline></video></div>`;
+  }
+  return html;
+}
+window.coachMediaHtml=coachMediaHtml;
+
+/** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
+function parsePlanExercise(ex){
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,note:'',video:'',wu:0,drop:0,dropStep:'',trans:'',cluster:0,rp:0,amrap:false,loadUnit:''};
+  if(typeof ex==='string'){
+    const raw=ex.trim();
+    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg|s|sec|sek|min|mins|minuta|minuty|m)?)?\s*$/i);
+    const amt=m&&m[4]?String(m[4]).replace(',','.'):'';
+    const unit=((m&&m[5])||'').toLowerCase();
+    const isPct=unit==='%';
+    const name=(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie';
+    const parsedUnit=isPct?'':normalizeLoadUnit(unit==='s'||unit==='sec'||unit==='sek'?'sec':unit);
+    return{
+      name,
+      sets:(m&&m[2])||'3',
+      reps:((m&&m[3])||'10').replace(/\s/g,''),
+      rest:'90s',
+      kg:isPct?'':amt,
+      pct1rm:isPct?parsePct1RM(amt):'',
+      ss:'',
+      emom:false,
+      note:'',
+      video:'',
+      wu:0,
+      drop:0,
+      dropStep:'',
+      trans:'',
+      cluster:0,
+      rp:0,
+      amrap:false,
+      loadUnit:parsedUnit||(typeof exLoadUnit==='function'?exLoadUnit(name):'')
+    };
+  }
+  let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
+  let pct1rm=parsePct1RM(ex.pct1rm);
+  const fromKg=parsePct1RM(/^\s*\d+(?:[.,]\d+)?\s*%\s*$/.test(kg)?kg:'');
+  if(fromKg){pct1rm=pct1rm||fromKg;kg='';}
+  const name=ex.name||ex.n||'Ćwiczenie';
+  return{
+    name,
+    exerciseId:String(ex.exerciseId||'').trim(),
+    sets:String(ex.sets||ex.s||'3'),
+    reps:String(ex.reps||ex.r||'10'),
+    rest:String(ex.rest||ex.rs||'90s'),
+    kg,
+    pct1rm,
+    rpe:ex.rpe||ex.rir||'',
+    rir:ex.rir||'',
+    tempo:ex.tempo||'',
+    alt:ex.alt||'',
+    ss:String(ex.ss||ex.superset||'').trim(),
+    emom:isEmomFlag(ex.emom),
+    note:String(ex.note||ex.notes||ex.cue||'').trim(),
+    video:normalizeCoachVideoUrl(ex.video||ex.url||''),
+    wu:parseSetKindCount(ex.wu,2),
+    drop:parseSetKindCount(ex.drop,2),
+    dropStep:String(ex.dropStep||ex.dropPct||'').trim(),
+    trans:String(ex.trans||ex.transSec||'').trim(),
+    cluster:parseSetKindCount(ex.cluster,3),
+    rp:parseSetKindCount(ex.rp,2),
+    amrap:isAmrapFlag(ex.amrap),
+    loadUnit:normalizeLoadUnit(ex.loadUnit||ex.load)||''
+  };
+}
+window.parsePlanExercise=parsePlanExercise;
+
+function parseSetKindCount(v,max){
+  const n=parseInt(v,10);
+  if(!Number.isFinite(n)||n<=0)return 0;
+  return Math.min(max==null?2:max,n);
+}
+window.parseSetKindCount=parseSetKindCount;
+
+function isAmrapFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='amrap'||v==='AMRAP';
+}
+window.isAmrapFlag=isAmrapFlag;
+
+function setKindOf(s){
+  return(s&&s.kind)||'work';
+}
+window.setKindOf=setKindOf;
+
+function isWorkingSet(s){
+  const k=setKindOf(s);
+  return k==='work'||k==='amrap'||k==='cluster'||k==='restpause';
+}
+window.isWorkingSet=isWorkingSet;
+
+/** Serie do analizy progresji ćwiczenia: work + AMRAP (brak kind = work). WU/drop/cluster/RP poza analizą. */
+function isProgressWorkSet(s){
+  const k=setKindOf(s);
+  return k==='work'||k==='amrap';
+}
+window.isProgressWorkSet=isProgressWorkSet;
+
+function exerciseProgressWorkSets(sets){
+  return(Array.isArray(sets)?sets:[]).filter(isProgressWorkSet);
+}
+window.exerciseProgressWorkSets=exerciseProgressWorkSets;
+
+function exerciseProgressVolume(sets){
+  return exerciseProgressWorkSets(sets).reduce((n,s)=>n+(typeof setObjKg==='function'?setObjKg(s):((parseFloat(s.kg)||0)*(parseFloat(s.reps)||0))),0);
+}
+window.exerciseProgressVolume=exerciseProgressVolume;
+
+function exerciseProgressBestEpley(sets){
+  let best=null;
+  exerciseProgressWorkSets(sets).forEach(s=>{
+    const est=typeof epley1RM==='function'?epley1RM(s.kg,s.reps):null;
+    if(est!=null&&(best==null||est>best))best=est;
+  });
+  return best;
+}
+window.exerciseProgressBestEpley=exerciseProgressBestEpley;
+
+/** Exact name-key match against custom EX / DEF_EX that already have an id. No fuzzy merge, no invented catalog ids. */
+function libraryExerciseIdByName(name){
+  const key=typeof exerciseNameKey==='function'?exerciseNameKey(name):String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return '';
+  const pools=[].concat(window.EX||[],window.DEF_EX||[]);
+  for(let i=0;i<pools.length;i++){
+    const e=pools[i];
+    if(!e||!e.id)continue;
+    const ek=typeof exerciseNameKey==='function'?exerciseNameKey(e.name):String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim();
+    if(ek===key)return String(e.id).trim();
+  }
+  return '';
+}
+window.libraryExerciseIdByName=libraryExerciseIdByName;
+
+/** ID z biblioteki (własne Firestore `id`) albo już zapisane `exerciseId`. DEF_EX bez id → pusty string, fallback nazwy. */
+function resolveExerciseId(ex,opts){
+  opts=opts||{};
+  if(!ex)return '';
+  if(!opts.fromName){
+    const existing=String(ex.exerciseId||'').trim();
+    if(existing)return existing;
+  }
+  return libraryExerciseIdByName(ex.name||'');
+}
+window.resolveExerciseId=resolveExerciseId;
+
+function applyExerciseIdentity(ex){
+  if(!ex||typeof ex!=='object')return ex;
+  const id=resolveExerciseId(ex,{fromName:true});
+  if(id)ex.exerciseId=id;
+  else if(ex.exerciseId)delete ex.exerciseId;
+  return ex;
+}
+window.applyExerciseIdentity=applyExerciseIdentity;
+
+function serializeLoggedSet(s,i){
+  const kg=parseFloat(s&&s.kg);
+  const reps=parseFloat(s&&s.reps);
+  return{
+    kg:Number.isFinite(kg)?kg:0,
+    reps:Number.isFinite(reps)?reps:0,
+    setNo:(s&&s.setNo)!=null?s.setNo:(i+1),
+    kind:(s&&s.kind)||'work',
+    rir:(s&&s.rir!=null&&s.rir!=='')?String(s.rir):''
+  };
+}
+window.serializeLoggedSet=serializeLoggedSet;
+
+function serializeLoggedExercise(e,opts){
+  opts=opts||{};
+  const raw=Array.isArray(e&&e.sets)?e.sets:[];
+  const picked=opts.onlyDone?raw.filter(s=>s&&s.done):raw.filter(s=>s&&typeof s==='object'&&!Array.isArray(s));
+  const out={
+    name:String((e&&e.name)||''),
+    loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):((e&&e.loadUnit)||'kg'),
+    sets:picked.map(serializeLoggedSet)
+  };
+  const id=resolveExerciseId(e);
+  if(id)out.exerciseId=id;
+  const planned=String((e&&e.plannedName)||'').trim();
+  if(planned)out.plannedName=planned;
+  const todo=String((e&&(e.note||e.todo))||'').trim();
+  if(todo)out.note=todo;
+  let alts=[];
+  if(Array.isArray(e&&e.alts))alts=e.alts.slice();
+  else if(e&&e.alt)alts=String(e.alt).split(/[,;/]/);
+  const seen=new Set();
+  alts=alts.map(a=>String(a||'').trim()).filter(a=>{
+    if(!a||a===out.name)return false;
+    const k=a.toLowerCase();
+    if(seen.has(k))return false;
+    seen.add(k);
+    return true;
+  });
+  if(alts.length)out.alts=alts;
+  return out;
+}
+window.serializeLoggedExercise=serializeLoggedExercise;
+
+function setKindBadge(kind){
+  if(kind==='warmup')return 'W';
+  if(kind==='drop')return 'D';
+  if(kind==='amrap')return '+';
+  if(kind==='cluster')return 'C';
+  if(kind==='restpause')return 'RP';
+  return '';
+}
+window.setKindBadge=setKindBadge;
+
+function formatSetKindTag(ex){
+  const p=ex&&typeof ex==='object'?ex:{};
+  const bits=[];
+  const inSs=!!String(p.ss||'').trim();
+  const wu=inSs?0:parseSetKindCount(p.wu,2);
+  const dr=inSs?0:parseSetKindCount(p.drop,2);
+  const cl=inSs?0:parseSetKindCount(p.cluster,3);
+  const rp=inSs?0:parseSetKindCount(p.rp,2);
+  if(wu)bits.push('WU'+wu);
+  if(isAmrapFlag(p.amrap))bits.push('AMRAP');
+  if(dr){
+    const step=typeof parseDropStep==='function'?parseDropStep(p.dropStep):null;
+    bits.push('DROP'+dr+(step?(step.mode==='kg'?' −'+step.n+'kg':' −'+step.n+'%'):''));
+  }
+  if(cl)bits.push('KL'+cl);
+  if(rp)bits.push('RP'+rp);
+  return bits.join(' ');
+}
+window.formatSetKindTag=formatSetKindTag;
+
+function scaleKg(kg,frac){
+  const n=parseFloat(kg);
+  if(!Number.isFinite(n)||n<=0)return kg||'';
+  return roundToPlate(n*frac)||String(n);
+}
+window.scaleKg=scaleKg;
+
+function rirFromRpe(rpeStr){
+  const s=String(rpeStr||'').replace(/RPE\s*/ig,'').trim();
+  if(!s)return '';
+  const range=s.match(/(\d+(?:[.,]\d+)?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)/);
+  if(range){
+    const a=10-parseFloat(String(range[1]).replace(',','.'));
+    const b=10-parseFloat(String(range[2]).replace(',','.'));
+    if(isNaN(a)||isNaN(b))return '';
+    const lo=Math.round(Math.min(a,b)*2)/2;
+    const hi=Math.round(Math.max(a,b)*2)/2;
+    return lo===hi?String(lo):(lo+'-'+hi);
+  }
+  const n=parseFloat(String(s).replace(',','.'));
+  if(isNaN(n))return '';
+  return String(Math.max(0,Math.round((10-n)*2)/2));
+}
+window.rirFromRpe=rirFromRpe;
+
+function plannedRir(ex){
+  const rir=String((ex&&ex.rir)||'').replace(/^\s*RIR\s*/i,'').trim();
+  if(rir){
+    const n=parseFloat(String(rir).replace(',','.'));
+    if(!isNaN(n)&&n>=6)return rirFromRpe(rir);
+    return rir;
+  }
+  return rirFromRpe((ex&&ex.rpe)||'');
+}
+window.plannedRir=plannedRir;
+
+function parseRepRange(reps){
+  const s=String(reps==null?'':reps).replace(/powt\.?/ig,'').trim();
+  if(!s)return{lo:0,hi:0};
+  const m=s.match(/(\d+(?:[.,]\d+)?)\s*[-–—/]\s*(\d+(?:[.,]\d+)?)/);
+  if(m){
+    const a=parseFloat(String(m[1]).replace(',','.'));
+    const b=parseFloat(String(m[2]).replace(',','.'));
+    if(!Number.isFinite(a)||!Number.isFinite(b))return{lo:0,hi:0};
+    return{lo:Math.min(a,b),hi:Math.max(a,b)};
+  }
+  const n=parseFloat(String(s).replace(',','.'));
+  if(!Number.isFinite(n)||n<=0)return{lo:0,hi:0};
+  return{lo:n,hi:n};
+}
+window.parseRepRange=parseRepRange;
+
+function normalizePlanProgression(v){
+  const s=String(v||'').toLowerCase().trim();
+  if(s==='off'||s==='none'||s==='copy'||s==='ostatni'||s==='keep')return 'off';
+  if(s==='linear'||s==='liniowa')return 'linear';
+  if(s==='wave'||s==='dup'||s==='falowa'||s==='falowa (dup)')return 'wave';
+  return 'double';
+}
+window.normalizePlanProgression=normalizePlanProgression;
+
+function progressLoadStep(ex){
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):(ex&&ex.loadUnit)||'kg';
+  const u=typeof normalizeLoadUnit==='function'?normalizeLoadUnit(unit)||'kg':'kg';
+  if(u==='min')return 1;
+  if(u==='sec')return 15;
+  if(u==='m')return 100;
+  const name=String((ex&&ex.name)||'').toLowerCase();
+  if(/kettle|kettl/.test(name))return 2;
+  if(/hantel|dumbbell|\bdb\b/.test(name))return 1;
+  return 2.5;
+}
+window.progressLoadStep=progressLoadStep;
+
+function addLoadStep(val,step,unit){
+  const n=parseFloat(String(val==null?'':val).replace(',','.'));
+  if(!Number.isFinite(n)||n<=0)return '';
+  const next=n+(Number(step)||0);
+  const u=typeof normalizeLoadUnit==='function'?normalizeLoadUnit(unit)||'kg':'kg';
+  if(u==='kg'){
+    if(step===2||step===1){
+      const x=Math.round(next*10)/10;
+      return Number.isInteger(x)?String(x):String(x);
+    }
+    return roundToPlate(next,2.5);
+  }
+  const x=Math.round(next*10)/10;
+  return Number.isInteger(x)?String(x):String(x);
+}
+window.addLoadStep=addLoadStep;
+
+/** Z planu trenera + ostatniej sesji: kolejny ciężar / powt. (podwójna albo liniowa). */
+function progressWorkingSet(prev,ex,opts){
+  opts=opts||{};
+  const mode=normalizePlanProgression(opts.progression);
+  const plannedKg=opts.plannedKg!=null?String(opts.plannedKg):String((ex&&ex.kg)||'');
+  const range=parseRepRange(ex&&ex.reps);
+  const defaultReps=range.lo?String(range.lo):(ex&&ex.reps)||'10';
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):(ex&&ex.loadUnit)||'kg';
+  const isWt=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit);
+  const amrap=!!opts.amrap;
+  const prevKg=prev&&prev.kg!=null&&prev.kg!==''?String(prev.kg):'';
+  const prevReps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):'';
+  const prevRir=prev&&prev.rir!=null&&prev.rir!==''?parseFloat(String(prev.rir).replace(',','.')):NaN;
+  const failed=Number.isFinite(prevRir)&&prevRir<=0;
+  const lastN=parseFloat(String(prevReps).replace(',','.'));
+  const hitTop=Number.isFinite(lastN)&&range.hi>0&&lastN>=range.hi;
+  const hitLo=Number.isFinite(lastN)&&range.lo>0&&lastN>=range.lo;
+  const fillReps=amrap?'':(prevReps||defaultReps);
+  if(opts.lockPct)return{kg:plannedKg,reps:amrap?'':(prevReps||defaultReps),hint:''};
+  if(!prev||(prevKg===''&&prevReps===''))return{kg:plannedKg,reps:amrap?'':defaultReps,hint:''};
+  if(mode==='off'||failed)return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+  const step=progressLoadStep(ex);
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):(isWt?'kg':'');
+  if(!isWt){
+    const lastLoad=parseFloat(String(prevKg).replace(',','.'));
+    const planLoad=parseFloat(String(plannedKg).replace(',','.'));
+    const reached=!Number.isFinite(planLoad)||(Number.isFinite(lastLoad)&&lastLoad>=planLoad);
+    if(reached){
+      const next=addLoadStep(prevKg||plannedKg,step,unit);
+      return{kg:next||prevKg||plannedKg,reps:fillReps,hint:next&&next!==prevKg?('Progresja +'+step+' '+suf):''};
+    }
+    return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+  }
+  const assumeHit=!Number.isFinite(lastN)&&prevKg!=='';
+  if(mode==='linear'){
+    if(hitLo||hitTop||assumeHit){
+      const next=addLoadStep(prevKg,step,'kg');
+      return{kg:next||prevKg||plannedKg,reps:amrap?'':defaultReps,hint:next&&next!==prevKg?('Progresja +'+step+' kg'):''};
+    }
+    if(Number.isFinite(lastN)&&range.hi&&lastN<range.hi){
+      const nr=Math.min(range.hi,lastN+1);
+      return{kg:prevKg||plannedKg,reps:amrap?'':String(nr),hint:amrap?'':('Progresja +1 powt.')};
+    }
+    return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+  }
+  if(mode==='wave'){
+    const intensity=!!(Number(opts.waveN||0)%2);
+    if(intensity){
+      if(hitLo||hitTop||assumeHit){
+        const next=addLoadStep(prevKg,step,'kg');
+        return{kg:next||prevKg||plannedKg,reps:amrap?'':defaultReps,hint:next&&next!==prevKg?('DUP ciężar +'+step+' kg'):''};
+      }
+      return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+    }
+    if(Number.isFinite(lastN)&&range.hi&&lastN<range.hi){
+      const nr=Math.min(range.hi,lastN+1);
+      return{kg:prevKg||plannedKg,reps:amrap?'':String(nr),hint:amrap?'':('DUP objętość +1 powt.')};
+    }
+    if(hitTop||assumeHit){
+      const next=addLoadStep(prevKg,step,'kg');
+      return{kg:next||prevKg||plannedKg,reps:amrap?'':defaultReps,hint:next&&next!==prevKg?('DUP +'+step+' kg'):''};
+    }
+    return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+  }
+  if(hitTop||assumeHit){
+    const next=addLoadStep(prevKg,step,'kg');
+    const reset=range.lo&&range.lo<range.hi?String(range.lo):defaultReps;
+    return{kg:next||prevKg||plannedKg,reps:amrap?'':reset,hint:next&&next!==prevKg?('Progresja +'+step+' kg'):''};
+  }
+  if(Number.isFinite(lastN)&&range.hi&&lastN<range.hi){
+    const nr=Math.min(range.hi,lastN+1);
+    return{kg:prevKg||plannedKg,reps:amrap?'':String(nr),hint:amrap?'':('Progresja +1 powt.')};
+  }
+  return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+}
+window.progressWorkingSet=progressWorkingSet;
+
+function expandExerciseSets(ex,opts){
+  opts=opts||{};
+  const last=opts.last;
+  const plannedKg=opts.plannedKg||'';
+  const lockPct=!!opts.lockPct;
+  const mode=normalizePlanProgression(opts.progression);
+  const defaultReps=ex.reps||'10';
+  const plannedRirVal=typeof plannedRir==='function'?plannedRir(ex):String(ex.rir||'');
+  const inSs=!!String(ex.ss||'').trim();
+  const nWork=Math.max(1,parseInt(ex.sets,10)||3);
+  const nWu=inSs?0:parseSetKindCount(ex.wu,2);
+  const nDrop=inSs?0:parseSetKindCount(ex.drop,2);
+  const nCl=inSs?0:parseSetKindCount(ex.cluster,3);
+  const nRp=inSs?0:parseSetKindCount(ex.rp,2);
+  const amrap=isAmrapFlag(ex.amrap);
+  const lastWork=((last&&last.sets)||[]).filter(s=>setKindOf(s)==='work'||setKindOf(s)==='amrap');
+  const work=[];
+  let hint='';
+  for(let i=0;i<nWork;i++){
+    const kind=(amrap&&i===nWork-1)?'amrap':(!inSs&&isEmomFlag(ex.emom)?'emom':'work');
+    const prev=lastWork[i]||lastWork[lastWork.length-1];
+    const nxt=progressWorkingSet(prev,ex,{plannedKg,lockPct,progression:mode,amrap:kind==='amrap',waveN:opts.waveN||0});
+    if(nxt.hint&&!hint)hint=nxt.hint;
+    const rir=prev&&prev.rir!=null&&prev.rir!==''?String(prev.rir):plannedRirVal;
+    work.push({kg:nxt.kg||'',reps:nxt.reps,kind,rir});
+  }
+  const workKg=work.length&&work[0].kg?work[0].kg:plannedKg;
+  const sets=[];
+  let no=1;
+  const wuFrac=nWu===1?[0.6]:[0.5,0.7];
+  for(let i=0;i<nWu;i++){
+    sets.push({setNo:no++,kg:scaleKg(workKg,wuFrac[i])||'',reps:defaultReps,done:false,kind:'warmup',rir:plannedRirVal});
+  }
+  work.forEach(w=>{
+    sets.push({setNo:no++,kg:w.kg,reps:w.reps,done:false,kind:w.kind,rir:w.rir});
+  });
+  for(let i=0;i<nDrop;i++){
+    sets.push({setNo:no++,kg:dropKgAt(workKg,i,nDrop,ex.dropStep)||'',reps:defaultReps,done:false,kind:'drop',rir:plannedRirVal});
+  }
+  for(let i=0;i<nCl;i++){
+    sets.push({setNo:no++,kg:workKg||'',reps:defaultReps,done:false,kind:'cluster',rir:plannedRirVal});
+  }
+  const rpReps=(()=>{const n=parseInt(String(defaultReps).split(/[-–]/)[0],10);return Number.isFinite(n)?String(Math.max(1,Math.round(n/2))):'5';})();
+  for(let i=0;i<nRp;i++){
+    sets.push({setNo:no++,kg:workKg||'',reps:rpReps,done:false,kind:'restpause',rir:plannedRirVal});
+  }
+  sets._progHint=hint;
+  return sets;
+}
+window.expandExerciseSets=expandExerciseSets;
+
+/** Zrzut drop-setu: "20%" / "20" = −20% ciężaru roboczego; "10kg" = −10 kg. Puste = 75% (1 drop) lub 80%/60%. */
+function parseDropStep(v){
+  const s=String(v==null?'':v).trim().replace(',','.').replace('−','-');
+  if(!s)return null;
+  const kg=s.match(/^[-]?\s*(\d+(?:\.\d+)?)\s*kg$/i);
+  if(kg){
+    const n=parseFloat(kg[1]);
+    if(!Number.isFinite(n)||n<=0)return null;
+    return{mode:'kg',n:n};
+  }
+  const pct=s.match(/^[-]?\s*(\d+(?:\.\d+)?)\s*%?$/);
+  if(!pct)return null;
+  const n=parseFloat(pct[1]);
+  if(!Number.isFinite(n)||n<=0||n>=100)return null;
+  return{mode:'pct',n:n};
+}
+window.parseDropStep=parseDropStep;
+
+function dropKgAt(workKg,i,nDrop,dropStep){
+  const parsed=parseDropStep(dropStep);
+  if(!parsed){
+    const frac=nDrop===1?[0.75]:[0.8,0.6];
+    return scaleKg(workKg,frac[Math.min(i,frac.length-1)]);
+  }
+  if(parsed.mode==='pct'){
+    const keep=Math.max(0.15,1-(parsed.n/100)*(i+1));
+    return scaleKg(workKg,keep);
+  }
+  const base=parseFloat(String(workKg==null?'':workKg).replace(',','.'));
+  if(!Number.isFinite(base)||base<=0)return workKg||'';
+  const next=Math.max(0,base-parsed.n*(i+1));
+  if(typeof roundToPlate==='function'){
+    const r=roundToPlate(next);
+    if(r)return r;
+  }
+  const x=Math.round(next*10)/10;
+  return x>0?(Number.isInteger(x)?String(x):String(x)):'';
+}
+window.dropKgAt=dropKgAt;
+
+function dropToastText(nextSet){
+  const kg=nextSet&&nextSet.kg!=null&&nextSet.kg!==''?String(nextSet.kg):'';
+  if(kg)return 'Drop — zejdź do '+kg+' kg, bez przerwy';
+  return 'Drop set — bez przerwy, zdejmij ciężar';
+}
+window.dropToastText=dropToastText;
+
+function parseTransSeconds(v){
+  const s=String(v==null?'':v).trim();
+  if(!s)return 0;
+  if(/min/i.test(s))return Math.round((parseFloat(s)||0)*60);
+  const n=parseFloat(String(s).replace(',','.'));
+  return Number.isFinite(n)&&n>0?Math.round(n):0;
+}
+window.parseTransSeconds=parseTransSeconds;
+
+function isCircuitDay(day,plan){
+  if(day&&(day.circuit===true||day.circuit===1||day.circuit==='1'))return true;
+  const mus=String((day&&(day.muscles||day.focus||day.day||day.dayName||day.name))||'');
+  if(/^obw[oó]d/i.test(mus))return true;
+  const m=typeof normalizeRationaleMethod==='function'?normalizeRationaleMethod(plan&&plan.method):String((plan&&plan.method)||'');
+  return m==='Obwodowy'||/^obwod|circuit/i.test(String((plan&&plan.method)||''));
+}
+window.isCircuitDay=isCircuitDay;
+
+function applyCircuitStations(list,plan,day){
+  const arr=list||[];
+  if(arr.length<2||!isCircuitDay(day,plan))return arr;
+  const roundRest=parseTransSeconds((day&&(day.roundRest||day.roundRestSec))||'')||90;
+  arr.forEach((ex,i)=>{
+    if(!ex||typeof ex!=='object')return;
+    ex.circuit=true;
+    ex.station=i+1;
+    ex.stationN=arr.length;
+    ex.ss='○';
+    ex.ssLetter='○';
+    ex.ssLabel='S'+(i+1);
+    const trans=parseTransSeconds(ex.trans);
+    ex.transSec=trans||20;
+    ex.roundRestSec=roundRest;
+  });
+  return arr;
+}
+window.applyCircuitStations=applyCircuitStations;
+
+function skipRestBeforeSet(next){
+  return!!(next&&(next.kind==='drop'||next.kind==='restpause'));
+}
+window.skipRestBeforeSet=skipRestBeforeSet;
+
+function restSecAfterSet(ex,st,next){
+  if(next&&next.kind==='drop')return 0;
+  if(next&&next.kind==='cluster')return 20;
+  if(next&&next.kind==='restpause')return 15;
+  if(st&&st.kind==='cluster')return 20;
+  if(st&&st.kind==='restpause')return 15;
+  if(st&&st.kind==='warmup')return Math.min(45,(ex&&ex.restSec)||90);
+  return(ex&&ex.restSec)||90;
+}
+window.restSecAfterSet=restSecAfterSet;
+
+function isEmomFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
+}
+window.isEmomFlag=isEmomFlag;
+
+function isEmomExercise(ex){
+  if(!ex)return false;
+  if(String(ex.ss||'').trim())return false;
+  return isEmomFlag(ex.emom);
+}
+window.isEmomExercise=isEmomExercise;
+
+/** Po N-tej skończonej rundzie: ile sekund do N×60 od startu zegara EMOM. */
+function emomRestSec(doneCount,elapsedSec){
+  const n=Math.max(1,parseInt(doneCount,10)||1);
+  const elapsed=Number(elapsedSec)||0;
+  const wait=n*60-elapsed;
+  return wait>0?Math.ceil(wait):0;
+}
+window.emomRestSec=emomRestSec;
+
+function applySsLabels(list){
+  let n=0;
+  let i=0;
+  while(i<(list||[]).length){
+    const g=String(list[i].ss||'').trim();
+    if(!g){
+      list[i].ss='';list[i].ssLabel='';list[i].ssLetter='';
+      i++;continue;
+    }
+    let j=i+1;
+    while(j<list.length&&String(list[j].ss||'').trim()===g)j++;
+    if(j-i<2){
+      list[i].ss='';list[i].ssLabel='';list[i].ssLetter='';
+      i++;continue;
+    }
+    const letter=String.fromCharCode(65+(n%26));
+    n++;
+    for(let k=i;k<j;k++){
+      list[k].ss=letter;
+      list[k].ssLetter=letter;
+      list[k].ssLabel=letter+(k-i+1);
+    }
+    i=j;
+  }
+  return list;
+}
+window.applySsLabels=applySsLabels;
+
+function ssGroupIdxs(list,idx){
+  const g=list&&list[idx]&&String(list[idx].ss||'').trim();
+  if(!g)return[idx];
+  const out=[];
+  for(let i=0;i<list.length;i++) if(String(list[i].ss||'').trim()===g) out.push(i);
+  return out.length>=2?out:[idx];
+}
+window.ssGroupIdxs=ssGroupIdxs;
+
+function ssDoneCount(ex){return ((ex&&ex.sets)||[]).filter(s=>s&&s.done).length;}
+function ssHasRemain(ex){return ((ex&&ex.sets)||[]).some(s=>s&&!s.done);}
+
+function ssNextAfterSet(list,idx){
+  if(!list||!list[idx])return{kind:'advance'};
+  const group=ssGroupIdxs(list,idx);
+  const myDone=ssDoneCount(list[idx]);
+  if(group.length>=2){
+    const pos=group.indexOf(idx);
+    for(let k=1;k<group.length;k++){
+      const j=group[(pos+k)%group.length];
+      if(ssDoneCount(list[j])<myDone)return{kind:'partner',exIdx:j};
+    }
+    const leftover=group.find(i=>ssHasRemain(list[i]));
+    if(leftover!=null)return{kind:'rest',exIdx:leftover};
+    return{kind:'advance'};
+  }
+  if(ssHasRemain(list[idx]))return{kind:'rest',exIdx:idx};
+  return{kind:'advance'};
+}
+window.ssNextAfterSet=ssNextAfterSet;
+
+function ssAdvanceIdx(list,idx){
+  const group=ssGroupIdxs(list,idx);
+  const last=group[group.length-1];
+  const n=last+1;
+  return list&&n<list.length?n:-1;
+}
+window.ssAdvanceIdx=ssAdvanceIdx;
+
+function formatPlanExerciseLine(ex,clientId){
+  const p=parsePlanExercise(ex);
+  if(ex&&typeof ex==='object'&&ex.ssLabel)p.ssLabel=ex.ssLabel;
+  const kgPart=formatPlanLoadSuffix(p,clientId);
+  const tag=formatSetKindTag(p);
+  const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+(tag?' '+tag:'')+emom;
+}
+window.formatPlanExerciseLine=formatPlanExerciseLine;
+
+function formatDayExerciseParts(exercises,clientId){
+  const list=(exercises||[]).map(e=>parsePlanExercise(e));
+  applySsLabels(list);
+  const parts=[];
+  let i=0;
+  while(i<list.length){
+    const line=p=>formatPlanExerciseLine(p,clientId);
+    if(list[i].ss&&i+1<list.length&&list[i+1].ss===list[i].ss){
+      const chunk=[];
+      const g=list[i].ss;
+      while(i<list.length&&list[i].ss===g){chunk.push(line(list[i]));i++;}
+      parts.push(chunk.join(' + '));
+    }else{
+      parts.push(line(list[i]));
+      i++;
+    }
+  }
+  return parts.filter(Boolean);
+}
+window.formatDayExerciseParts=formatDayExerciseParts;
+
+function formatDayExerciseLines(exercises,clientId){
+  return formatDayExerciseParts(exercises,clientId).join(' · ');
+}
+window.formatDayExerciseLines=formatDayExerciseLines;
+
+function isMachineExercise(exOrName){
+  const ex=exOrName&&typeof exOrName==='object'?exOrName:(typeof libExerciseByName==='function'?libExerciseByName(exOrName):null);
+  const name=String((ex&&ex.name)||(typeof exOrName==='string'?exOrName:'')||'');
+  const eq=String((ex&&ex.eq)||'').toLowerCase();
+  const n=name.toLowerCase();
+  if(eq==='maszyna')return true;
+  if(/\bsmith\b|w bramie smith|suwnic|hack squat|leg press|peck?[- ]?deck|pec-deck/.test(n))return true;
+  if(/\bmaszynie\b|\bmaszyna\b/.test(n))return true;
+  return false;
+}
+window.isMachineExercise=isMachineExercise;
+
+function isStudioFreeEx(ex){
+  if(!ex||!ex.name)return false;
+  if(isMachineExercise(ex))return false;
+  const eq=String(ex.eq||'');
+  if(/Hantle|Sztanga|Wyciąg/.test(eq))return true;
+  const n=String(ex.name).toLowerCase();
+  if(/ławce|ławka/.test(n))return true;
+  if(/bramie/.test(n)&&!/smith/.test(n))return true;
+  if(/Własna masa/.test(eq)&&!/cardio/i.test(String(ex.cat||'')))return true;
+  return false;
+}
+window.isStudioFreeEx=isStudioFreeEx;
+
+function studioMuscleOverlap(src,ex){
+  const sm=String(src&&src.muscle||'').toLowerCase();
+  const em=String(ex&&ex.muscle||'').toLowerCase();
+  if(!sm||!em)return true;
+  const toks=sm.split(/[,;/]/).map(t=>t.trim().replace(/[()]/g,'').split(/\s+/)[0]).filter(t=>t.length>=4);
+  if(!toks.length)return true;
+  return toks.some(t=>em.includes(t));
+}
+
+function studioIsolationHint(ex){
+  return /izolac|fly|rozpiętk|uginan|wyprost|wznos|unoszen|kickback|face pull|ściąganie do twarzy/i.test([ex&&ex.name,ex&&ex.muscle,ex&&ex.tip].join(' '));
+}
+
+function studioAltScore(ex,src,listed){
+  if(!ex||!ex.name)return -1;
+  if(src&&String(ex.name).toLowerCase()===String(src.name||'').toLowerCase())return -1;
+  if(isMachineExercise(ex))return listed?8:0;
+  let s=12;
+  if(listed)s+=50;
+  const eq=String(ex.eq||'');
+  if(/Hantle/.test(eq))s+=40;
+  else if(/Sztanga/.test(eq))s+=38;
+  else if(/Wyciąg/.test(eq))s+=36;
+  else if(/Własna masa/.test(eq))s+=10;
+  const n=String(ex.name||'').toLowerCase();
+  if(/ławce|ławka/.test(n))s+=14;
+  if(/bramie/.test(n)&&!/smith/.test(n))s+=14;
+  if(src&&ex.cat&&src.cat&&ex.cat===src.cat)s+=25;
+  const sm=String(src&&src.muscle||'').toLowerCase();
+  const em=String(ex.muscle||'').toLowerCase();
+  if(sm&&em){
+    const toks=sm.split(/[,;/]/).map(t=>t.trim().replace(/[()]/g,'').split(/\s+/)[0]).filter(t=>t.length>=4);
+    if(toks.some(t=>em.includes(t)))s+=16;
+  }
+  if(src&&studioIsolationHint(src)&&studioIsolationHint(ex))s+=18;
+  else if(src&&studioIsolationHint(src)&&!studioIsolationHint(ex))s-=8;
+  return s;
+}
+
+function altsForExercise(name,explicit){
+  const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
+  const hit=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+  const fromLib=hit&&hit.alt?String(hit.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean):[];
+  const cur=String((hit&&hit.name)||name||'').trim().toLowerCase();
+  const seen=new Set();
+  const listed=[];
+  fromPlan.concat(fromLib).forEach(a=>{
+    const k=String(a).trim();
+    if(!k||k.toLowerCase()===cur||seen.has(k.toLowerCase()))return;
+    seen.add(k.toLowerCase());listed.push(k);
+  });
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  if(hit&&isMachineExercise(hit)&&lib.length){
+    let extras=lib.filter(e=>e&&e.name&&e.name.toLowerCase()!==cur&&e.cat===hit.cat&&isStudioFreeEx(e)&&studioMuscleOverlap(hit,e));
+    if(studioIsolationHint(hit)){
+      const iso=extras.filter(e=>studioIsolationHint(e));
+      if(iso.length>=2)extras=iso.concat(extras.filter(e=>!studioIsolationHint(e)));
+    }
+    extras.sort((a,b)=>studioAltScore(b,hit,false)-studioAltScore(a,hit,false));
+    extras.slice(0,8).forEach(e=>{
+      if(seen.has(e.name.toLowerCase()))return;
+      seen.add(e.name.toLowerCase());listed.push(e.name);
+    });
+  }
+  const ranked=listed.map(n=>{
+    const ex=typeof libExerciseByName==='function'?libExerciseByName(n):null;
+    return {n,s:studioAltScore(ex||{name:n},hit,fromPlan.concat(fromLib).some(x=>String(x).toLowerCase()===n.toLowerCase()))};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  let out=ranked.map(x=>x.n);
+  if(hit&&isMachineExercise(hit)){
+    const free=ranked.filter(x=>{
+      const ex=typeof libExerciseByName==='function'?libExerciseByName(x.n):null;
+      return ex?isStudioFreeEx(ex):x.s>=20;
+    }).map(x=>x.n);
+    if(free.length)out=free;
+  }
+  return out.slice(0,8);
+}
+window.altsForExercise=altsForExercise;
+
+function parseRestSeconds(rest){
+  const s=String(rest||'90');
+  if(/min/i.test(s))return Math.round((parseFloat(s)||1)*60);
+  const n=parseInt(s,10);
+  return Number.isFinite(n)&&n>0?n:90;
+}
+window.parseRestSeconds=parseRestSeconds;
+
+function formatDurationHint(sec){
+  const n=Math.round(Number(sec)||0);
+  if(n<=0)return '';
+  if(n>=120&&n%60===0)return (n/60)+' min';
+  return n+' s';
+}
+window.formatDurationHint=formatDurationHint;
+
+function parseTempoSeconds(tempo){
+  const parts=String(tempo||'').match(/\d+(?:[.,]\d+)?/g);
+  if(!parts||!parts.length)return 0;
+  return parts.reduce((a,x)=>a+(parseFloat(String(x).replace(',','.'))||0),0);
+}
+window.parseTempoSeconds=parseTempoSeconds;
+
+function plannedWorkSeconds(ex){
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):(ex&&ex.loadUnit)||'kg';
+  const repsRaw=String(((ex&&Array.isArray(ex.sets)?ex.sets:[]).find(s=>s&&(s.kind==='work'||!s.kind))||{}).reps
+    ||(ex&&ex.sets&&ex.sets[0]&&ex.sets[0].reps)
+    ||(ex&&ex.reps)||'');
+  if(unit==='sec'||/\d+\s*(s|sec|sek)\b/i.test(repsRaw)){
+    const n=parseFloat(String(repsRaw).replace(',','.'));
+    if(Number.isFinite(n)&&n>0)return Math.round(n);
+  }
+  if(unit==='min'||/\d+\s*min/i.test(repsRaw)){
+    const n=parseFloat(String(repsRaw).replace(',','.'));
+    if(Number.isFinite(n)&&n>0)return Math.round(n*60);
+  }
+  const tempoSec=parseTempoSeconds(ex&&ex.tempo);
+  if(!(tempoSec>0))return 0;
+  const range=typeof parseRepRange==='function'?parseRepRange(repsRaw):{lo:parseFloat(repsRaw)||0};
+  const reps=range&&range.lo>0?range.lo:(parseFloat(String(repsRaw).replace(',','.'))||0);
+  if(!(reps>0))return 0;
+  return Math.round(tempoSec*reps);
+}
+window.plannedWorkSeconds=plannedWorkSeconds;
+
+function exerciseCoachHints(ex){
+  if(!ex||typeof ex!=='object')return{restSec:0,restLabel:'',workSec:0,workLabel:'',tempo:'',rpe:''};
+  const hasRest=(ex.restSec!=null&&ex.restSec!=='')||(ex.rest!=null&&String(ex.rest).trim()!=='');
+  const restSec=hasRest?(ex.restSec!=null&&ex.restSec!==''?Number(ex.restSec):parseRestSeconds(ex.rest)):0;
+  const workSec=plannedWorkSeconds(ex);
+  const tempo=String(ex.tempo||'').trim();
+  const rpe=String(ex.rpe||'').replace(/^\s*RPE\s*/i,'').trim();
+  return{
+    restSec:Number.isFinite(restSec)&&restSec>0?restSec:0,
+    restLabel:formatDurationHint(restSec),
+    workSec,
+    workLabel:formatDurationHint(workSec),
+    tempo,
+    rpe
+  };
+}
+window.exerciseCoachHints=exerciseCoachHints;
+
+function exerciseCoachHintsHtml(ex){
+  const h=exerciseCoachHints(ex);
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;'));
+  const bits=[];
+  if(h.workLabel)bits.push(`<span class="live-coach-chip" title="Szacowany czas serii (tempo × powt. albo czas z planu)">Praca ${esc(h.workLabel)}</span>`);
+  if(h.restLabel)bits.push(`<span class="live-coach-chip" title="Przerwa z planu trenera">Przerwa ${esc(h.restLabel)}</span>`);
+  if(h.tempo)bits.push(`<span class="live-coach-chip" title="Ekscentryka – pauza – koncentryka – pauza">Tempo ${esc(h.tempo)}</span>`);
+  if(h.rpe)bits.push(`<span class="live-coach-chip" title="Cel RPE z planu">RPE ${esc(h.rpe)}</span>`);
+  if(!bits.length)return '';
+  return `<div class="live-coach-hints">${bits.join('')}</div>`;
+}
+window.exerciseCoachHintsHtml=exerciseCoachHintsHtml;
+
+function periodScheduleForLevel(level){
+  if(level==='poczatkujacy')return[{nr:1,cel:'Adaptacja — nauka wzorców',rpe:'RPE 7'},{nr:2,cel:'Utrwalenie techniki',rpe:'RPE 7'},{nr:3,cel:'Progresja liniowa',rpe:'RPE 8'},{nr:4,cel:'DELOAD — regeneracja CNS',rpe:'RPE 6'}];
+  if(level==='sredni')return[{nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7'},{nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8'},{nr:3,cel:'DUP Szczyt',rpe:'RPE 9'},{nr:4,cel:'DELOAD',rpe:'RPE 6'}];
+  return[{nr:1,cel:'Blok Akumulacji',rpe:'RPE 7-8'},{nr:2,cel:'Blok Akumulacji +',rpe:'RPE 8'},{nr:3,cel:'Blok Intensyfikacji',rpe:'RPE 8-9'},{nr:4,cel:'Blok Intensyfikacji peak',rpe:'RPE 9'},{nr:5,cel:'Blok Realizacji',rpe:'RPE 9-10'},{nr:6,cel:'DELOAD + Pivot Week',rpe:'RPE 6'}];
+}
+window.periodScheduleForLevel=periodScheduleForLevel;
+
+function isFiteboLikePlan(p){
+  return !!(p&&(p.source==='fitebo'||p.source==='fitebo-continue'||p.fromFitebo));
+}
+window.isFiteboLikePlan=isFiteboLikePlan;
+
+function planPhaseRpe(phase){
+  const ph=String(phase||'').toLowerCase();
+  if(/deload/.test(ph))return '6';
+  if(/adapt/.test(ph))return '7';
+  if(/hipertrof/.test(ph)&&(/ii|2|8 powt/.test(ph)))return '8';
+  if(/hipertrof/.test(ph))return '7';
+  if(/si[lł]a|szczyt|intensyf/.test(ph))return '8';
+  return '8';
+}
+window.planPhaseRpe=planPhaseRpe;
+
+function planPhaseSchedule(plan,client){
+  const c=client||{};
+  if(plan&&Array.isArray(plan.weekKeys)&&plan.weekKeys.length){
+    return plan.weekKeys.map((wk,i)=>{
+      const cel=(plan.phases&&plan.phases[wk])||('Tydzień '+(i+1));
+      const rpe=planPhaseRpe(cel);
+      return{nr:i+1,key:wk,cel,rpe:'RPE '+rpe,rir:typeof rirFromRpe==='function'?rirFromRpe(rpe):String(Math.max(0,10-Number(rpe)||8))};
+    });
+  }
+  if(isFiteboLikePlan(plan)){
+    return[
+      {nr:1,cel:'Hipertrofia — RIR 2',rpe:'RPE 8',rir:'2'},
+      {nr:2,cel:'Hipertrofia I',rpe:'RPE 8',rir:'2'},
+      {nr:3,cel:'Hipertrofia II',rpe:'RPE 8',rir:'2'},
+      {nr:4,cel:'Deload',rpe:'RPE 6',rir:'4'}
+    ];
+  }
+  return periodScheduleForLevel((plan&&plan.level)||c.level||'sredni');
+}
+window.planPhaseSchedule=planPhaseSchedule;
+
+function planDefaultWeekIndex(plan,sch){
+  const keys=(plan&&plan.weekKeys)||[];
+  const phases=(plan&&plan.phases)||{};
+  if(plan&&plan.currentWeek&&keys.length){
+    const i=keys.indexOf(plan.currentWeek);
+    if(i>=0)return i;
+  }
+  const list=sch||planPhaseSchedule(plan,{});
+  const hyp=list.findIndex(w=>/hipertrof/i.test((w&&w.cel)||''));
+  if(hyp>=0)return hyp;
+  const keyHyp=keys.findIndex(k=>/hipertrof/i.test(phases[k]||''));
+  if(keyHyp>=0)return keyHyp;
+  return 0;
+}
+window.planDefaultWeekIndex=planDefaultWeekIndex;
+
+function exerciseForPlanWeek(ex,plan,weekIdx){
+  if(ex==null)return ex;
+  if(typeof ex==='string')return ex;
+  const keys=(plan&&plan.weekKeys)||[];
+  const wk=keys[weekIdx]||(plan&&plan.currentWeek)||keys[0];
+  const wp=wk&&ex[wk];
+  const out=Object.assign({},ex);
+  if(wp){
+    if(wp.s!=null&&wp.s!=='')out.sets=wp.s;
+    if(wp.r!=null&&wp.r!=='')out.reps=wp.r;
+    if(wp.kg!=null&&wp.kg!=='')out.kg=wp.kg;
+    if(wp.rest)out.rest=wp.rest;
+    if(wp.rpe)out.rpe=wp.rpe;
+  }
+  if(isFiteboLikePlan(plan)){
+    const sch=planPhaseSchedule(plan,{});
+    const week=sch[Math.max(0,Math.min(weekIdx||0,sch.length-1))]||sch[0]||{};
+    if(!out.rpe)out.rpe=String(week.rpe||'8').replace(/RPE\s*/i,'');
+    const rir=typeof plannedRir==='function'?plannedRir(out):(out.rir||'');
+    out.rir=rir||week.rir||'2';
+  }
+  return out;
+}
+window.exerciseForPlanWeek=exerciseForPlanWeek;
+
+function periodWeekModel(level,idx){
+  const ls=String(level||'sredni');
+  const beginner=[
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8'},
+    {loadPct:-12,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const intermediate=[
+    {loadPct:-2.5,repDelta:2,setDelta:1,rpe:'7'},
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const advanced=[
+    {loadPct:-2.5,repDelta:1,setDelta:1,rpe:'7-8'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8-9'},
+    {loadPct:7.5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:10,repDelta:-3,setDelta:-1,rpe:'9-10'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const arr=ls==='poczatkujacy'?beginner:ls==='sredni'?intermediate:advanced;
+  return arr[Math.max(0,Math.min(idx,arr.length-1))]||arr[0];
+}
+window.periodWeekModel=periodWeekModel;
+
+function periodWeekDeltaLabel(mod,isBase){
+  const m=mod||{};
+  if(isBase)return 'wartości z planu · RPE '+(m.rpe||'7');
+  const bits=[];
+  if(m.setDelta)bits.push((m.setDelta>0?'+':'')+m.setDelta+' ser.');
+  if(m.repDelta)bits.push((m.repDelta>0?'+':'')+m.repDelta+' powt.');
+  if(m.loadPct)bits.push((m.loadPct>0?'+':'')+m.loadPct+'% kg');
+  if(m.rpe)bits.push('RPE '+m.rpe);
+  if(m.deload)bits.push('deload');
+  return bits.join(' · ')||('RPE '+(m.rpe||''));
+}
+window.periodWeekDeltaLabel=periodWeekDeltaLabel;
+
+function planStartYmd(plan,clientId){
+  const dates=[];
+  if(plan&&plan.startDate)dates.push(String(plan.startDate).slice(0,10));
+  if(plan&&plan.createdAt)dates.push(String(plan.createdAt).slice(0,10));
+  const pid=plan&&plan.id;
+  ((typeof window!=='undefined'&&window.SE)||[]).forEach(s=>{
+    if(!s||s.source==='planned')return;
+    if(clientId&&s.clientId!==clientId)return;
+    if(pid&&s.planId&&s.planId!==pid)return;
+    if(!pid&&s.clientId!==clientId)return;
+    if(s.date)dates.push(String(s.date).slice(0,10));
+  });
+  dates.sort();
+  return dates[0]||'';
+}
+window.planStartYmd=planStartYmd;
+
+function planPeriodWeekIndex(clientId,plan,nowMs){
+  const c=((typeof window!=='undefined'&&window.CL)||[]).find(x=>x&&x.id===clientId)||{};
+  const sch=typeof planPhaseSchedule==='function'?planPhaseSchedule(plan,c):periodScheduleForLevel((plan&&plan.level)||c.level||'sredni');
+  const n=sch.length||4;
+  if(isFiteboLikePlan(plan)){
+    return Math.max(0,Math.min(n-1,planDefaultWeekIndex(plan,sch)));
+  }
+  const start=planStartYmd(plan,clientId);
+  const startMs=start?Date.parse(start):NaN;
+  if(!Number.isFinite(startMs))return 0;
+  const t=nowMs!=null?Number(nowMs):Date.now();
+  const days=Math.floor((t-startMs)/86400000);
+  if(!(days>=0))return 0;
+  return Math.floor(days/7)%n;
+}
+window.planPeriodWeekIndex=planPeriodWeekIndex;
+
+function dateStrLocal(d){
+  const x=d instanceof Date?d:new Date(d);
+  if(isNaN(x.getTime()))return '';
+  const p=n=>String(n).padStart(2,'0');
+  return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate());
+}
+window.dateStrLocal=dateStrLocal;
+
+function todayYmd(){
+  return dateStrLocal(new Date());
+}
+window.todayYmd=todayYmd;
+
+/** Dodaje dni do daty YYYY-MM-DD (południe, bez przesunięcia UTC). */
+function ymdAdd(ymd,days){
+  const p=String(ymd||'').slice(0,10);
+  const d=new Date(p+'T12:00:00');
+  if(isNaN(d.getTime()))return '';
+  d.setDate(d.getDate()+(Number(days)||0));
+  const pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+window.ymdAdd=ymdAdd;
+
+function isHabit(t){
+  if(!t||t.kind==='challenge')return false;
+  return t.kind==='habit'||t.repeat==='daily';
+}
+window.isHabit=isHabit;
+
+function isChallenge(t){
+  return !!(t&&t.kind==='challenge');
+}
+window.isChallenge=isChallenge;
+
+function isHomework(t){
+  return !!(t&&(t.kind==='homework'||t.odWorkoutId||t.odProgramId));
+}
+window.isHomework=isHomework;
+
+function openHomeworkTasks(tasks){
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(tasks||window.TASKS||[]).filter(t=>t&&isHomework(t)&&t.status!=='done'&&t.clientId&&(!live.size||live.has(t.clientId)))
+    .slice()
+    .sort((a,b)=>{
+      const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+      const ao=a.due&&a.due<today?0:1;
+      const bo=b.due&&b.due<today?0:1;
+      if(ao!==bo)return ao-bo;
+      return String(a.due||'9999').localeCompare(String(b.due||'9999'));
+    });
+}
+window.openHomeworkTasks=openHomeworkTasks;
+
+function clientOpenHomework(clientId,tasks){
+  if(!clientId)return[];
+  return openHomeworkTasks(tasks).filter(t=>t.clientId===clientId);
+}
+window.clientOpenHomework=clientOpenHomework;
+
+/** Nawyki aktywnych klientów nieodhachowane dziś (dłuższy streak na górze). */
+function pendingHabitTasks(tasks,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(tasks||window.TASKS||[]).filter(t=>t&&isHabit(t)&&t.clientId&&(!live.size||live.has(t.clientId))&&!habitDoneOn(t,today))
+    .slice()
+    .sort((a,b)=>habitStreak(b,today)-habitStreak(a,today)||String(a.title||'').localeCompare(String(b.title||''),'pl'));
+}
+window.pendingHabitTasks=pendingHabitTasks;
+
+/** Aktywne wyzwania bez odhaczenia dziś. */
+function pendingChallengeTasks(tasks,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(tasks||window.TASKS||[]).filter(t=>{
+    if(!t||!isChallenge(t)||!t.clientId||(live.size&&!live.has(t.clientId)))return false;
+    const p=challengeProgress(t,today);
+    return p.active&&!p.won&&!habitDoneOn(t,today);
+  }).slice().sort((a,b)=>{
+    const pa=challengeProgress(a,today),pb=challengeProgress(b,today);
+    return(pa.pct||0)-(pb.pct||0)||String(a.title||'').localeCompare(String(b.title||''),'pl');
+  });
+}
+window.pendingChallengeTasks=pendingChallengeTasks;
+
+function clientPendingHabits(clientId,tasks,today){
+  if(!clientId)return[];
+  return pendingHabitTasks(tasks,today).filter(t=>t.clientId===clientId)
+    .concat(pendingChallengeTasks(tasks,today).filter(t=>t.clientId===clientId));
+}
+window.clientPendingHabits=clientPendingHabits;
+
+function isOneShot(t){
+  return !!(t&&!isHabit(t)&&!isChallenge(t)&&!isHomework(t));
+}
+window.isOneShot=isOneShot;
+
+function habitDoneOn(t,ymd){
+  return !!(t&&ymd&&(t.doneDates||[]).includes(ymd));
+}
+window.habitDoneOn=habitDoneOn;
+
+/** Ciąg dni kończący się dziś albo wczoraj (dziś jeszcze nie odhaczone). */
+function habitStreak(t,today){
+  const set=new Set((t&&t.doneDates)||[]);
+  let start=today;
+  if(!set.has(today)){
+    const y=ymdAdd(today,-1);
+    if(!set.has(y))return 0;
+    start=y;
+  }
+  let n=0,d=start;
+  while(set.has(d)){
+    n++;
+    d=ymdAdd(d,-1);
+    if(n>4000)break;
+  }
+  return n;
+}
+window.habitStreak=habitStreak;
+
+function toggleHabitDay(t,ymd){
+  if(!t||!ymd)return t;
+  const dates=[...(t.doneDates||[])];
+  const i=dates.indexOf(ymd);
+  if(i>=0)dates.splice(i,1);
+  else dates.push(ymd);
+  dates.sort();
+  t.doneDates=dates;
+  t.status='open';
+  t.due='';
+  t.kind='habit';
+  t.repeat='daily';
+  t.updatedAt=new Date().toISOString();
+  return t;
+}
+window.toggleHabitDay=toggleHabitDay;
+
+function habitWeek(t,today){
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const ymd=ymdAdd(today,-i);
+    days.push({ymd,done:habitDoneOn(t,ymd),today:ymd===today});
+  }
+  return days;
+}
+window.habitWeek=habitWeek;
+
+function habitWeekHtml(t,today){
+  return `<div class="habit-week">${habitWeek(t,today).map(d=>`<span class="habit-dot${d.done?' on':''}${d.today?' today':''}" title="${d.ymd}"></span>`).join('')}</div>`;
+}
+window.habitWeekHtml=habitWeekHtml;
+
+/** Biblioteka z progress-nawyki: fazy dnia + XP. */
+const HABIT_LIBRARY=[
+  {id:'m1',phase:'morning',phaseLabel:'🌅 Poranek',name:'Wstań bez odkładania alarmu',meta:'W ciągu 5 min od budzika',xp:15,cat:'lifestyle',emoji:'⏰'},
+  {id:'m2',phase:'morning',name:'Szklanka wody',meta:'Nawodnienie przed kawą',xp:5,cat:'lifestyle',emoji:'💧'},
+  {id:'m3',phase:'morning',name:'5 min planowania dnia',meta:'3 priorytety na dziś',xp:10,cat:'lifestyle',emoji:'📝'},
+  {id:'mv1',phase:'move',phaseLabel:'🏃 Ruch',name:'Trening / aktywność fizyczna',meta:'Min. 30 min',xp:25,cat:'trening',emoji:'🏋️'},
+  {id:'mv2',phase:'move',name:'10 000 kroków',meta:'Rozbij na kilka wyjść',xp:10,cat:'trening',emoji:'🚶'},
+  {id:'n1',phase:'nutrition',phaseLabel:'🥗 Odżywianie',name:'Zdrowe śniadanie',meta:'Białko + warzywa',xp:10,cat:'dieta',emoji:'🍳'},
+  {id:'n2',phase:'nutrition',name:'Bez cukru / słodyczy',meta:'Zero przetworzonego cukru',xp:15,cat:'dieta',emoji:'🚫'},
+  {id:'n3',phase:'nutrition',name:'2L wody',meta:'Przez cały dzień',xp:10,cat:'dieta',emoji:'💧'},
+  {id:'f1',phase:'focus',phaseLabel:'📚 Fokus',name:'Czytanie — min. 20 stron',meta:'Książka, nie social media',xp:20,cat:'lifestyle',emoji:'📖'},
+  {id:'f2',phase:'focus',name:'Nauka języka — 15 min',meta:'Aplikacja lub kurs',xp:15,cat:'lifestyle',emoji:'🗣️'},
+  {id:'f3',phase:'focus',name:'Bez telefonu przez 2h',meta:'Brak powiadomień',xp:15,cat:'lifestyle',emoji:'📵'},
+  {id:'s1',phase:'social',phaseLabel:'👨‍👧 Rodzina',name:'Czas z dziećmi — 30 min',meta:'Bez telefonu, pełna obecność',xp:25,cat:'lifestyle',emoji:'👨‍👧'},
+  {id:'e1',phase:'evening',phaseLabel:'🌙 Wieczór',name:'Przegląd dnia — 5 min',meta:'Co poszło? Co zmienić?',xp:10,cat:'lifestyle',emoji:'🪞'},
+  {id:'e2',phase:'evening',name:'Sen przed 23:00',meta:'Min. 7h snu',xp:15,cat:'lifestyle',emoji:'😴'},
+];
+window.HABIT_LIBRARY=HABIT_LIBRARY;
+
+const HABIT_PHASE_ORDER=['morning','move','nutrition','focus','social','evening'];
+window.HABIT_PHASE_ORDER=HABIT_PHASE_ORDER;
+
+function habitLibraryById(id){
+  return HABIT_LIBRARY.find(h=>h.id===id)||null;
+}
+window.habitLibraryById=habitLibraryById;
+
+function habitPhaseLabel(phase){
+  const hit=HABIT_LIBRARY.find(h=>h.phase===phase&&h.phaseLabel);
+  return hit?hit.phaseLabel:phase||'';
+}
+window.habitPhaseLabel=habitPhaseLabel;
+
+function habitXpOf(t){
+  const n=Number(t&&t.xp);
+  if(n>0)return n;
+  const lib=t&&t.libId?habitLibraryById(t.libId):null;
+  return lib?Number(lib.xp)||0:10;
+}
+window.habitXpOf=habitXpOf;
+
+/** XP z odhaczeń nawyków klienta (suma doneDates × xp). */
+function clientHabitXpTotal(clientId,tasks){
+  const list=(tasks||window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&isHabit(t));
+  let xp=0;
+  list.forEach(t=>{
+    const per=habitXpOf(t);
+    xp+=((t.doneDates||[]).length)*per;
+  });
+  return xp;
+}
+window.clientHabitXpTotal=clientHabitXpTotal;
+
+function clientHabitBestStreak(clientId,tasks,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const list=(tasks||window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&isHabit(t));
+  if(!list.length)return 0;
+  return Math.max(...list.map(t=>habitStreak(t,today)),0);
+}
+window.clientHabitBestStreak=clientHabitBestStreak;
+
+function habitTaskFromLibrary(lib,clientId){
+  const h=typeof lib==='string'?habitLibraryById(lib):lib;
+  if(!h||!clientId)return null;
+  const base={
+    id:typeof newId==='function'?newId('t'):('t_'+Date.now()),
+    title:h.name,
+    clientId,
+    due:'',
+    priority:'medium',
+    cat:h.cat||'lifestyle',
+    desc:h.meta||'',
+    status:'open',
+    kind:'habit',
+    repeat:'daily',
+    doneDates:[],
+    libId:h.id,
+    phase:h.phase,
+    emoji:h.emoji||'🔥',
+    xp:Number(h.xp)||10,
+    meta:h.meta||'',
+    createdAt:new Date().toISOString()
+  };
+  return typeof withTrainer==='function'?withTrainer(base):base;
+}
+window.habitTaskFromLibrary=habitTaskFromLibrary;
+
+async function assignHabitLibraryToClient(clientId,libIds){
+  if(!clientId){if(typeof notify==='function')notify('Wybierz klienta!');return 0;}
+  const ids=libIds&&libIds.length?libIds:HABIT_LIBRARY.map(h=>h.id);
+  const existing=(window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&isHabit(t));
+  const haveLib=new Set(existing.map(t=>t.libId).filter(Boolean));
+  const haveTitle=new Set(existing.map(t=>String(t.title||'').toLowerCase()));
+  let n=0;
+  for(const id of ids){
+    const lib=habitLibraryById(id);if(!lib)continue;
+    if(haveLib.has(lib.id)||haveTitle.has(String(lib.name).toLowerCase()))continue;
+    const task=habitTaskFromLibrary(lib,clientId);if(!task)continue;
+    (window.TASKS||(window.TASKS=[])).push(task);
+    if(typeof persistById==='function')await persistById('tasks',task);
+    haveLib.add(lib.id);haveTitle.add(String(lib.name).toLowerCase());n++;
+  }
+  return n;
+}
+window.assignHabitLibraryToClient=assignHabitLibraryToClient;
+
+function onHabitToggle(){
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(h&&h.checked&&c)c.checked=false;
+  syncTaskKindUi();
+}
+window.onHabitToggle=onHabitToggle;
+
+function onChallengeToggle(){
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(c&&c.checked&&h)h.checked=false;
+  syncTaskKindUi();
+}
+window.onChallengeToggle=onChallengeToggle;
+
+function syncTaskKindUi(){
+  const habit=!!document.getElementById('task-habit')?.checked;
+  const ch=!!document.getElementById('task-challenge')?.checked;
+  const due=document.getElementById('task-due-wrap');
+  const wrap=document.getElementById('task-ch-wrap');
+  if(due)due.style.display=(habit||ch)?'none':'';
+  if(wrap)wrap.style.display=ch?'':'none';
+  if(ch){
+    const start=document.getElementById('task-ch-start');
+    if(start&&!start.value)start.value=typeof todayYmd==='function'?todayYmd():'';
+    paintChallengeDays();
+  }
+}
+window.syncTaskKindUi=syncTaskKindUi;
+
+function parseChallengeDays(v){
+  const n=parseInt(v,10);
+  if(n===7||n===14||n===21||n===30)return n;
+  if(n>=2&&n<=90)return n;
+  return 21;
+}
+window.parseChallengeDays=parseChallengeDays;
+
+function parseChallengeTarget(t){
+  const days=parseChallengeDays(t&&t.days);
+  const n=parseInt(t&&t.target,10);
+  if(n>=1&&n<=days)return n;
+  return days;
+}
+window.parseChallengeTarget=parseChallengeTarget;
+
+function challengeBounds(t){
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||'').slice(0,10);
+  return{start,end:start?ymdAdd(start,days-1):'',days};
+}
+window.challengeBounds=challengeBounds;
+
+function challengeProgress(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||today||'').slice(0,10);
+  const end=start?ymdAdd(start,days-1):'';
+  const target=parseChallengeTarget({days,target:t&&t.target});
+  const done=((t&&t.doneDates)||[]).filter(d=>start&&end&&d>=start&&d<=end).length;
+  const pct=target?Math.min(100,Math.round(done/target*100)):0;
+  const before=!!(today&&start&&today<start);
+  const after=!!(today&&end&&today>end);
+  const active=!!(today&&start&&end&&!before&&!after);
+  const won=done>=target;
+  const lost=after&&!won;
+  let left=0;
+  if(before)left=days;
+  else if(active&&today&&end){
+    let d=today;
+    while(d<=end&&left<400){left++;d=ymdAdd(d,1);}
+  }
+  return{start,end,days,target,done,pct,before,after,active,won,lost,left};
+}
+window.challengeProgress=challengeProgress;
+
+function challengeCanCheck(t,ymd,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!ymd||!p.start||!p.end)return false;
+  if(ymd<p.start||ymd>p.end)return false;
+  if(today&&ymd>today)return false;
+  return true;
+}
+window.challengeCanCheck=challengeCanCheck;
+
+function challengeVisible(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!p.end||!today)return true;
+  return today<=ymdAdd(p.end,7);
+}
+window.challengeVisible=challengeVisible;
+
+function toggleChallengeDay(t,ymd,today){
+  if(!t||!ymd)return t;
+  if(!challengeCanCheck(t,ymd,today))return t;
+  const dates=[...(t.doneDates||[])];
+  const i=dates.indexOf(ymd);
+  if(i>=0)dates.splice(i,1);
+  else dates.push(ymd);
+  dates.sort();
+  t.doneDates=dates;
+  t.status='open';
+  t.kind='challenge';
+  delete t.repeat;
+  t.updatedAt=new Date().toISOString();
+  return t;
+}
+window.toggleChallengeDay=toggleChallengeDay;
+
+function challengeStatusText(t,today){
+  const p=challengeProgress(t,today);
+  if(p.won)return '🏆 '+p.done+'/'+p.target+' — ukończone';
+  if(p.lost)return p.done+'/'+p.target+' — czas minął';
+  if(p.before)return 'Start '+p.start;
+  return p.done+'/'+p.target+' · jeszcze '+p.left+' '+(p.left===1?'dzień':'dni');
+}
+window.challengeStatusText=challengeStatusText;
+
+function challengeBarHtml(t,today){
+  const p=challengeProgress(t,today);
+  const col=p.won?'var(--teal)':p.lost?'var(--muted2)':'var(--gold)';
+  return `<div class="ch-bar"><div class="ch-bar-fill" style="width:${p.pct}%;background:${col};"></div></div>`;
+}
+window.challengeBarHtml=challengeBarHtml;
+
+function setChallengeDays(n){
+  const days=parseChallengeDays(n);
+  const el=document.getElementById('task-ch-days');
+  if(el)el.value=String(days);
+  const tgt=document.getElementById('task-ch-target');
+  if(tgt){
+    const cur=parseInt(tgt.value,10);
+    if(!cur||cur>days)tgt.value=String(days);
+  }
+  paintChallengeDays();
+}
+window.setChallengeDays=setChallengeDays;
+
+function paintChallengeDays(){
+  const cur=String((document.getElementById('task-ch-days')||{}).value||'21');
+  document.querySelectorAll('.ch-days-btn').forEach(b=>b.classList.toggle('on',b.getAttribute('data-d')===cur));
+}
+window.paintChallengeDays=paintChallengeDays;
+
+function mondayYmd(){
+  const d=new Date();
+  const day=d.getDay();
+  const diff=day===0?-6:1-day;
+  d.setDate(d.getDate()+diff);
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+window.mondayYmd=mondayYmd;
+
+function planTrainingDayIdxs(plan){
+  return(plan&&plan.days||[]).map((d,i)=>d&&!d.rest&&(d.exercises||[]).length?i:-1).filter(i=>i>=0);
+}
+window.planTrainingDayIdxs=planTrainingDayIdxs;
+
+function foldPlanWeekdayText(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/\./g,'');
+}
+function parsePlanWeekdayToken(raw){
+  const t=foldPlanWeekdayText(raw).replace(/[^a-z0-9]/g,'');
+  if(!t)return null;
+  const map={
+    nd:0,niedz:0,nie:0,niedziela:0,sun:0,sunday:0,
+    pn:1,pon:1,poniedzialek:1,mon:1,monday:1,
+    wt:2,wto:2,wtorek:2,tue:2,tuesday:2,
+    sr:3,sro:3,sroda:3,wed:3,wednesday:3,
+    cz:4,czw:4,czwartek:4,thu:4,thursday:4,
+    pt:5,pia:5,piatek:5,fri:5,friday:5,
+    sb:6,sob:6,sobota:6,sat:6,saturday:6
+  };
+  if(map[t]!=null)return map[t];
+  if(t.length<=5){
+    if(t.length>=2&&map[t.slice(0,2)]!=null)return map[t.slice(0,2)];
+    if(t.length>=3&&map[t.slice(0,3)]!=null)return map[t.slice(0,3)];
+  }
+  return null;
+}
+function parsePlanWeekdayFromText(text){
+  const raw=String(text||'');
+  if(!raw.trim())return null;
+  const parens=[...raw.matchAll(/\(([^)]+)\)/g)];
+  for(const m of parens){
+    const wd=parsePlanWeekdayToken(m[1]);
+    if(wd!=null)return wd;
+  }
+  const compact=foldPlanWeekdayText(raw).replace(/[^a-z]/g,'');
+  if(compact.length&&compact.length<=12){
+    const whole=parsePlanWeekdayToken(raw);
+    if(whole!=null)return whole;
+  }
+  const skip={dzien:1,day:1,fbw:1,ppl:1,push:1,pull:1,legs:1,plan:1,full:1,body:1};
+  const tokens=raw.split(/[^A-Za-zĄąĆćĘęŁłŃńÓóŚśŹźŻż0-9]+/).filter(Boolean);
+  for(const tok of tokens){
+    if(tok.length<2)continue;
+    const folded=foldPlanWeekdayText(tok);
+    if(skip[folded])continue;
+    const wd=parsePlanWeekdayToken(tok);
+    if(wd!=null)return wd;
+  }
+  return null;
+}
+function normalizePlanWeekday(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number'&&Number.isFinite(v)){
+    const n=((Number(v)%7)+7)%7;
+    return n;
+  }
+  return parsePlanWeekdayToken(v);
+}
+function stripPlanDayWeekdayName(name){
+  let s=String(name||'');
+  s=s.replace(/\(\s*(poniedziałek|wtorek|środa|czwartek|piątek|sobota|niedziela|niedz\.?|pon\.?|wto\.?|śr\.?|czw\.?|pia\.?|sob\.?|nd|pn|wt|śr|cz|pt|sb|so)\s*\)/gi,'');
+  s=s.replace(/\s*[—–\-:/·,]+\s*(poniedziałek|wtorek|środa|czwartek|piątek|sobota|niedziela)\s*$/i,'');
+  return s.replace(/\s+/g,' ').replace(/[—–\-:/·,]\s*$/,'').trim();
+}
+function planDayRawLabel(day,idx){
+  if(!day)return 'Dzień '+(Number(idx||0)+1);
+  return String(day.day||day.dayName||day.name||('Dzień '+(Number(idx||0)+1))).trim();
+}
+function planDayDisplayName(day,idx){
+  return stripPlanDayWeekdayName(planDayRawLabel(day,idx))||('Dzień '+(Number(idx||0)+1));
+}
+function planDayShortName(day,idx){
+  let s=planDayDisplayName(day,idx);
+  s=s.replace(/^dzień\s+\d+\s*[—–\-:]+\s*/i,'');
+  s=s.replace(/^dzień\s+[a-d]\s*[—–\-:]+\s*/i,'');
+  s=s.replace(/\s+/g,' ').trim();
+  return s||planDayDisplayName(day,idx);
+}
+function planDayWeekdayLabel(wd){
+  return ['nd','pn','wt','śr','cz','pt','sb'][((Number(wd)%7)+7)%7]||'';
+}
+function planDayWeekday(day,idx,preferredWeekdays){
+  if(day&&!day.rest){
+    let wd=normalizePlanWeekday(day.weekday);
+    if(wd!=null)return wd;
+    wd=parsePlanWeekdayFromText(planDayRawLabel(day,idx));
+    if(wd!=null)return wd;
+  }
+  const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
+  const n=Math.max(1,(Number(idx)||0)+1);
+  if(typeof uniqueWeekdaysForTrainDays==='function'){
+    const map=uniqueWeekdaysForTrainDays(n,pref);
+    if(map[idx]!=null)return map[idx];
+  }
+  const out=[];const used=new Set();
+  (pref||[]).forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  [1,2,3,4,5,6,0].forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  if(out[idx]!=null)return out[idx];
+  const fallback=[1,3,5,2,4,6,0];
+  return fallback[(Number(idx)||0)%fallback.length];
+}
+function hydratePlanDaysWeekdays(plan,preferredWeekdays){
+  if(!plan||!Array.isArray(plan.days))return false;
+  const train=plan.days.map((d,i)=>({d,i})).filter(x=>x.d&&!x.d.rest);
+  let changed=false;
+  train.forEach(({d,i},trainI)=>{
+    const wd=planDayWeekday(d,trainI,preferredWeekdays);
+    if(wd==null)return;
+    if(d.weekday!==wd){d.weekday=wd;changed=true;}
+  });
+  return changed;
+}
+function mondayOfYmd(ymd){
+  const p=String(ymd||'').slice(0,10);
+  const d=new Date(p+'T12:00:00');
+  if(isNaN(d.getTime()))return '';
+  const day=d.getDay();
+  d.setDate(d.getDate()+(day===0?-6:1-day));
+  return typeof dateStrLocal==='function'?dateStrLocal(d):p;
+}
+function ymdForWeekdayInWeek(mondayYmd,weekday){
+  const wd=normalizePlanWeekday(weekday);
+  if(wd==null)return '';
+  const off=wd===0?6:wd-1;
+  return typeof ymdAdd==='function'?ymdAdd(mondayYmd,off):'';
+}
+function persistPlanIfPossible(plan){
+  if(!plan)return;
+  try{if(typeof persistById==='function')persistById('plans',plan);}catch(e){}
+}
+function persistSessionIfPossible(sess){
+  if(!sess)return;
+  try{if(typeof persistById==='function')persistById('sessions',sess);}catch(e){}
+}
+function syncFuturePlannedToPlanWeekdays(plan){
+  if(!plan||!plan.id||!plan.clientId||!Array.isArray(plan.days))return 0;
+  const today=typeof todayYmd==='function'?todayYmd():'';
+  const thisMon=today?mondayOfYmd(today):'';
+  const list=(window.SE||[]).filter(s=>s&&s.clientId===plan.clientId&&s.planId===plan.id&&s.source==='planned'&&s.date);
+  let moved=0;
+  list.forEach(s=>{
+    if(typeof sessionIsSkipped==='function'&&sessionIsSkipped(s))return;
+    if(typeof sessionHappened==='function'&&sessionHappened(s))return;
+    const idx=s.dayIdx;
+    if(idx==null||!plan.days[idx])return;
+    const wd=planDayWeekday(plan.days[idx],idx);
+    if(wd==null)return;
+    const y=String(s.date).slice(0,10);
+    if(thisMon&&y<thisMon)return;
+    const mon=mondayOfYmd(y);
+    const want=ymdForWeekdayInWeek(mon,wd);
+    if(!want||want===y)return;
+    const clash=(window.SE||[]).some(o=>o&&o!==s&&o.clientId===s.clientId&&o.source==='planned'&&String(o.date).slice(0,10)===want);
+    if(clash)return;
+    s.date=want;
+    persistSessionIfPossible(s);
+    moved++;
+  });
+  return moved;
+}
+function ensureClientPlanWeekdays(clientId){
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(clientId):null);
+  if(!plan)return null;
+  const client=(window.CL||[]).find(x=>x&&x.id===clientId);
+  const pref=client&&client.preferredWeekdays;
+  const changed=hydratePlanDaysWeekdays(plan,pref);
+  if(changed)persistPlanIfPossible(plan);
+  syncFuturePlannedToPlanWeekdays(plan);
+  return plan;
+}
+window.foldPlanWeekdayText=foldPlanWeekdayText;
+window.parsePlanWeekdayToken=parsePlanWeekdayToken;
+window.parsePlanWeekdayFromText=parsePlanWeekdayFromText;
+window.normalizePlanWeekday=normalizePlanWeekday;
+window.stripPlanDayWeekdayName=stripPlanDayWeekdayName;
+window.planDayRawLabel=planDayRawLabel;
+window.planDayDisplayName=planDayDisplayName;
+window.planDayShortName=planDayShortName;
+window.planDayWeekdayLabel=planDayWeekdayLabel;
+window.planDayWeekday=planDayWeekday;
+window.hydratePlanDaysWeekdays=hydratePlanDaysWeekdays;
+window.mondayOfYmd=mondayOfYmd;
+window.ymdForWeekdayInWeek=ymdForWeekdayInWeek;
+window.syncFuturePlannedToPlanWeekdays=syncFuturePlannedToPlanWeekdays;
+window.ensureClientPlanWeekdays=ensureClientPlanWeekdays;
+
+/** Sesja z kalendarza (source=planned) na dany dzień — dayIdx z planu. */
+function plannedSessionForDate(clientId,planId,dateYmd){
+  if(!clientId||!planId)return null;
+  const day=dateYmd||(typeof todayYmd==='function'?todayYmd():'');
+  if(!day)return null;
+  const list=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.planId===planId&&s.date===day&&s.source==='planned'&&s.dayIdx!=null)
+    .sort((a,b)=>(a.time||'').localeCompare(b.time||'')||(a.createdAt||'').localeCompare(b.createdAt||''));
+  return list[0]||null;
+}
+window.plannedSessionForDate=plannedSessionForDate;
+
+function suggestedPlanDayIdx(clientId,plan){
+  if(!plan||!plan.days||!plan.days.length)return 0;
+  const train=planTrainingDayIdxs(plan);
+  if(!train.length)return 0;
+  // Kalendarz: jeśli dziś jest zaplanowana sesja z tego planu — bierz jej dayIdx (Live / Today).
+  const today=typeof todayYmd==='function'?todayYmd():'';
+  const planned=plannedSessionForDate(clientId,plan.id,today);
+  if(planned){
+    const idx=Number(planned.dayIdx);
+    if(train.indexOf(idx)>=0)return idx;
+  }
+  const todayDow=new Date().getDay();
+  const byWd=train.find(i=>{
+    const d=plan.days[i];
+    return d&&typeof planDayWeekday==='function'&&planDayWeekday(d,i)===todayDow;
+  });
+  if(byWd!=null)return byWd;
+  if(plan.days.length===7)return(todayDow+6)%7;
+  const past=(window.SE||[]).filter(s=>s.clientId===clientId&&s.planId===plan.id&&s.dayIdx!=null&&(s.source==='live'||s.source==='client'))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(!past.length)return train[0];
+  // Zawsze kolejny dzień treningowy po ostatniej sesji (także gdy była dziś) —
+  // Live „Kolejny dzień” i rotacja PPL. Widok „dziś zrobione” w portalu nadpisuje dayIdx osobno.
+  const lastIdx=Number(past[0].dayIdx);
+  const pos=train.indexOf(lastIdx);
+  if(pos<0)return train[0];
+  return train[(pos+1)%train.length];
+}
+window.suggestedPlanDayIdx=suggestedPlanDayIdx;
+
+function exerciseLoggedSets(ex){
+  if(!ex)return[];
+  if(Array.isArray(ex.sets)){
+    if(ex.sets.length&&typeof ex.sets[0]==='object'){
+      return ex.sets.filter(x=>x&&(x.kg!=null&&x.kg!==''||x.reps!=null&&x.reps!==''));
+    }
+    return[];
+  }
+  const kg=ex.kg;
+  const reps=ex.reps;
+  const count=parseInt(ex.sets,10);
+  const r=parseFloat(String(reps==null?'':reps).replace(',','.'));
+  const range=/[-–—]/.test(String(reps||''));
+  if(Number.isFinite(count)&&count>1&&!range&&kg!=null&&kg!==''&&Number.isFinite(r)){
+    return Array.from({length:count},(_,i)=>({kg:kg,reps:r,rir:ex.rir||ex.rpe||'',setNo:i+1}));
+  }
+  if(kg!=null&&kg!==''||reps!=null&&reps!=='')return[{kg:kg,reps:reps,rir:ex.rir||ex.rpe||'',setNo:1}];
+  return[];
+}
+window.exerciseLoggedSets=exerciseLoggedSets;
+
+function exerciseNameKeySet(name,aliases){
+  const keys=new Set();
+  const add=v=>{
+    const k=exerciseNameKey(v);
+    if(k)keys.add(k);
+  };
+  add(name);
+  (Array.isArray(aliases)?aliases:[aliases]).forEach(add);
+  return keys;
+}
+window.exerciseNameKeySet=exerciseNameKeySet;
+
+function exerciseMatchesKeys(ex,keys){
+  if(!ex||!keys||!keys.size)return false;
+  if(keys.has(exerciseNameKey(ex.name)))return true;
+  if(ex.plannedName&&keys.has(exerciseNameKey(ex.plannedName)))return true;
+  if(String(ex.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a))))return true;
+  if(Array.isArray(ex.alts)&&ex.alts.some(a=>keys.has(exerciseNameKey(a))))return true;
+  return false;
+}
+window.exerciseMatchesKeys=exerciseMatchesKeys;
+
+function exerciseMatchesProgress(ex,query){
+  if(!ex)return false;
+  const qid=String(query&&query.exerciseId||'').trim();
+  const eid=String(ex.exerciseId||'').trim();
+  if(qid&&eid)return qid===eid;
+  const keys=(query&&query.keys&&query.keys.size)?query.keys:exerciseNameKeySet(query&&query.name,query&&query.aliases);
+  return exerciseMatchesKeys(ex,keys);
+}
+window.exerciseMatchesProgress=exerciseMatchesProgress;
+
+function isLoggedTrainingSession(s){
+  return !!(s&&s.source!=='planned'&&s.source!=='live-draft');
+}
+window.isLoggedTrainingSession=isLoggedTrainingSession;
+
+function groupProgressExercises(matches,wantId){
+  if(!matches||!matches.length)return [];
+  if(wantId)return [matches];
+  const byId=new Map();
+  const noId=[];
+  matches.forEach(ex=>{
+    const id=String(ex&&ex.exerciseId||'').trim();
+    if(id){
+      if(!byId.has(id))byId.set(id,[]);
+      byId.get(id).push(ex);
+    }else noId.push(ex);
+  });
+  if(!byId.size)return noId.length?[noId]:[];
+  if(byId.size===1){
+    const g=[...byId.values()][0];
+    return [noId.length?g.concat(noId):g];
+  }
+  const groups=[...byId.values()];
+  if(noId.length)groups.push(noId);
+  return groups;
+}
+
+function mergeProgressExerciseGroup(list,fallbackName){
+  const sets=[];
+  let name='',plannedName='',exerciseId='',loadUnit='';
+  (list||[]).forEach(ex=>{
+    const logged=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):[];
+    logged.forEach(st=>sets.push(st));
+    if(!name&&ex&&ex.name)name=ex.name;
+    if(!plannedName&&ex&&ex.plannedName)plannedName=ex.plannedName;
+    if(!exerciseId&&ex&&ex.exerciseId)exerciseId=String(ex.exerciseId).trim();
+    if(!loadUnit){
+      if(typeof exLoadUnit==='function')loadUnit=exLoadUnit(ex)||'';
+      else if(ex&&ex.loadUnit)loadUnit=ex.loadUnit;
+    }
+  });
+  if(!name)name=fallbackName||'';
+  if(!loadUnit&&typeof exLoadUnit==='function')loadUnit=exLoadUnit({name:name})||'kg';
+  if(!loadUnit)loadUnit='kg';
+  return {name,plannedName,exerciseId,loadUnit,sets};
+}
+
+/** Ostatnie sesje z kg/powt. dla ćwiczenia (najnowsze pierwsze). limit 0 = wszystkie. */
+function exerciseLoadHistory(clientId,name,aliases,opts){
+  opts=opts||{};
+  const wantId=String(opts.exerciseId||'').trim();
+  if(!clientId)return [];
+  if(!name&&!wantId)return [];
+  const rawLimit=opts.limit;
+  const limit=rawLimit==null?8:(parseInt(rawLimit,10)||0);
+  const keys=name?exerciseNameKeySet(name,aliases):new Set();
+  if(!wantId&&!keys.size)return [];
+  const pool=opts.sessions||window.SE||[];
+  const wantPlan=opts.planId!=null&&String(opts.planId)!==''?String(opts.planId):'';
+  const query={exerciseId:wantId,keys,name,aliases};
+  const sessions=pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&isLoggedTrainingSession(s)&&(!wantPlan||String(s.planId||'')===wantPlan))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  const out=[];
+  for(const s of sessions){
+    const matches=(s.exercises||[]).filter(e=>exerciseMatchesProgress(e,query));
+    const groups=groupProgressExercises(matches,wantId);
+    for(let gi=0;gi<groups.length;gi++){
+      const merged=mergeProgressExerciseGroup(groups[gi],name);
+      if(!merged.sets.length)continue;
+      const work=exerciseProgressWorkSets(merged.sets);
+      const unit=merged.loadUnit||'kg';
+      const weight=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit);
+      out.push({
+        date:s.date||'',
+        time:s.time||'',
+        createdAt:s.createdAt||'',
+        sessionId:s.id||'',
+        source:s.source||'',
+        type:s.type||'',
+        exerciseId:merged.exerciseId||'',
+        name:merged.name||name,
+        plannedName:merged.plannedName||'',
+        loadUnit:unit,
+        sets:merged.sets,
+        workSets:work,
+        workSetCount:work.length,
+        workVolume:weight?exerciseProgressVolume(merged.sets):null,
+        bestEpley:weight?exerciseProgressBestEpley(merged.sets):null
+      });
+      if(limit>0&&out.length>=limit)return out;
+    }
+  }
+  return out;
+}
+window.exerciseLoadHistory=exerciseLoadHistory;
+
+/** Jednoznaczny RIR 0–5. Nie konwertuje RPE. Zakresy ("2-3") → null. */
+function parseProgressRir(value){
+  if(value==null||value==='')return null;
+  let raw=String(value).trim();
+  if(!raw)return null;
+  if(/rpe/i.test(raw))return null;
+  raw=raw.replace(/^rir\s*/i,'').trim();
+  if(!raw)return null;
+  if(/[-–—/]/.test(raw))return null;
+  if(!/^\d+(?:[.,]\d+)?$/.test(raw))return null;
+  const n=parseFloat(raw.replace(',','.'));
+  if(!Number.isFinite(n)||n<0||n>5)return null;
+  return n;
+}
+window.parseProgressRir=parseProgressRir;
+
+function progressSignalDir(delta,eps){
+  if(delta==null||!Number.isFinite(delta))return null;
+  const e=eps==null?0.05:eps;
+  if(delta>e)return 'up';
+  if(delta<-e)return 'down';
+  return 'flat';
+}
+window.progressSignalDir=progressSignalDir;
+
+function pickProgressTopSet(work,comparable){
+  const rows=Array.isArray(work)?work:[];
+  let best=null;
+  rows.forEach((s,i)=>{
+    const kg=parseFloat(s&&s.kg);
+    const reps=parseFloat(s&&s.reps);
+    const setNo=(s&&s.setNo)!=null?s.setNo:(i+1);
+    const epley=comparable&&typeof epley1RM==='function'?epley1RM(kg,reps):null;
+    const cand={s,i,kg,reps,setNo,epley};
+    if(!best){best=cand;return;}
+    if(comparable){
+      if(cand.epley!=null&&(best.epley==null||cand.epley>best.epley)){best=cand;return;}
+      if(cand.epley!=null&&best.epley!=null&&cand.epley===best.epley){
+        if((Number.isFinite(kg)&&kg>(best.kg||0))||(kg===best.kg&&(setNo>best.setNo||(setNo===best.setNo&&i>best.i))))best=cand;
+      }else if(cand.epley==null&&best.epley==null){
+        if((Number.isFinite(kg)&&kg>(best.kg||0))||(kg===best.kg&&(Number.isFinite(reps)&&reps>(best.reps||0))))best=cand;
+      }
+    }else if((Number.isFinite(kg)&&kg>(best.kg||0))||(kg===best.kg&&(Number.isFinite(reps)&&reps>(best.reps||0)))){
+      best=cand;
+    }
+  });
+  if(!best)return null;
+  return{
+    kg:Number.isFinite(best.kg)?best.kg:null,
+    reps:Number.isFinite(best.reps)?best.reps:null,
+    setNo:best.setNo,
+    kind:typeof setKindOf==='function'?setKindOf(best.s):((best.s&&best.s.kind)||'work'),
+    rir:parseProgressRir(best.s&&best.s.rir),
+    epley:comparable&&best.epley!=null?progressRound(best.epley,2):null
+  };
+}
+window.pickProgressTopSet=pickProgressTopSet;
+
+function progressRound(n,d){
+  if(n==null||!Number.isFinite(n))return null;
+  const p=Math.pow(10,d==null?2:d);
+  return Math.round(n*p)/p;
+}
+
+function exerciseProgressSnapshot(histRow){
+  if(!histRow)return null;
+  const loadUnit=histRow.loadUnit||(typeof exLoadUnit==='function'?exLoadUnit(histRow):'kg')||'kg';
+  const weight=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(loadUnit);
+  const work=Array.isArray(histRow.workSets)?histRow.workSets.slice():exerciseProgressWorkSets(histRow.sets||[]);
+  const workSetCount=work.length;
+  let totalWorkReps=0;
+  work.forEach(s=>{
+    const r=parseFloat(s&&s.reps);
+    if(Number.isFinite(r))totalWorkReps+=r;
+  });
+  const rawVol=typeof exerciseProgressVolume==='function'?exerciseProgressVolume(work):0;
+  const workVolume=weight?rawVol:null;
+  const avgKg=weight&&totalWorkReps>0?rawVol/totalWorkReps:null;
+  let bestEpley=null;
+  if(weight){
+    bestEpley=histRow.bestEpley!=null?histRow.bestEpley:exerciseProgressBestEpley(work);
+  }
+  const topSet=pickProgressTopSet(work,weight);
+  const rirs=work.map(s=>parseProgressRir(s&&s.rir)).filter(v=>v!=null).sort((a,b)=>a-b);
+  const median=rirs.length?rirs[Math.floor((rirs.length-1)/2)]:null;
+  return{
+    date:histRow.date||'',
+    sessionId:histRow.sessionId||'',
+    exerciseId:String(histRow.exerciseId||''),
+    name:histRow.name||'',
+    loadUnit,
+    workSetCount,
+    workVolume:progressRound(workVolume,2),
+    totalWorkReps,
+    avgKg:progressRound(avgKg,2),
+    topSet,
+    bestEpley:progressRound(bestEpley,2),
+    rir:{available:rirs.length>0,top:topSet?topSet.rir:null,median:median},
+    comparable:!!weight
+  };
+}
+window.exerciseProgressSnapshot=exerciseProgressSnapshot;
+
+function progressDeltaVal(prev,next){
+  if(prev==null||next==null||!Number.isFinite(prev)||!Number.isFinite(next))return null;
+  return progressRound(next-prev,3);
+}
+
+function exerciseProgressDelta(prevSnap,nextSnap){
+  const comparable=!!(prevSnap&&nextSnap&&prevSnap.comparable&&nextSnap.comparable);
+  const prevTop=prevSnap&&prevSnap.topSet;
+  const nextTop=nextSnap&&nextSnap.topSet;
+  const prevRir=prevSnap&&prevSnap.rir&&prevSnap.rir.available?prevSnap.rir.top:null;
+  const nextRir=nextSnap&&nextSnap.rir&&nextSnap.rir.available?nextSnap.rir.top:null;
+  const rirAvailable=prevRir!=null&&nextRir!=null;
+  return{
+    deltaKg:comparable?progressDeltaVal(prevTop&&prevTop.kg,nextTop&&nextTop.kg):null,
+    deltaReps:comparable?progressDeltaVal(prevTop&&prevTop.reps,nextTop&&nextTop.reps):null,
+    deltaVolume:comparable?progressDeltaVal(prevSnap&&prevSnap.workVolume,nextSnap&&nextSnap.workVolume):null,
+    deltaWorkSetCount:progressDeltaVal(prevSnap&&prevSnap.workSetCount,nextSnap&&nextSnap.workSetCount),
+    deltaE1RM:comparable?progressDeltaVal(prevSnap&&prevSnap.bestEpley,nextSnap&&nextSnap.bestEpley):null,
+    deltaRir:rirAvailable?progressDeltaVal(prevRir,nextRir):null,
+    rirAvailable,
+    comparable
+  };
+}
+window.exerciseProgressDelta=exerciseProgressDelta;
+
+function exerciseProgressSeries(clientId,name,aliases,opts){
+  opts=opts||{};
+  const windowN=opts.window==null?5:(parseInt(opts.window,10)||5);
+  const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({},opts,{limit:0}));
+  const snaps=[];
+  hist.forEach(row=>{
+    const snap=exerciseProgressSnapshot(row);
+    if(snap&&snap.workSetCount>0)snaps.push(snap);
+  });
+  snaps.reverse();
+  const pool=snaps.filter(s=>s.comparable);
+  const view=pool.slice(Math.max(0,pool.length-windowN));
+  const signals={
+    kg:{up:0,flat:0,down:0},
+    reps:{up:0,flat:0,down:0},
+    volume:{up:0,flat:0,down:0},
+    e1RM:{up:0,flat:0,down:0},
+    rir:{up:0,flat:0,down:0}
+  };
+  const bump=(key,dir)=>{if(dir&&signals[key])signals[key][dir]++;};
+  const steps=[];
+  for(let i=1;i<view.length;i++){
+    const delta=exerciseProgressDelta(view[i-1],view[i]);
+    const dir={
+      kg:progressSignalDir(delta.deltaKg,0.05),
+      reps:progressSignalDir(delta.deltaReps,0.5),
+      volume:progressSignalDir(delta.deltaVolume,0.5),
+      e1RM:progressSignalDir(delta.deltaE1RM,0.05),
+      rir:delta.rirAvailable?progressSignalDir(delta.deltaRir,0.25):null
+    };
+    bump('kg',dir.kg);
+    bump('reps',dir.reps);
+    bump('volume',dir.volume);
+    bump('e1RM',dir.e1RM);
+    if(dir.rir)bump('rir',dir.rir);
+    steps.push({
+      from:view[i-1].sessionId,
+      to:view[i].sessionId,
+      dateFrom:view[i-1].date,
+      dateTo:view[i].date,
+      delta,
+      dir
+    });
+  }
+  return{
+    name:name||(view[0]&&view[0].name)||'',
+    exerciseId:String(opts.exerciseId||(view[0]&&view[0].exerciseId)||''),
+    snapshots:view,
+    steps,
+    signals
+  };
+}
+window.exerciseProgressSeries=exerciseProgressSeries;
+
+/** Etap 6D: klasa progresji ćwiczenia. Wejście = seria 6C, bez UI. */
+function progressClassStepKind(step){
+  const kg=step&&step.dir?step.dir.kg:null;
+  const reps=step&&step.dir?step.dir.reps:null;
+  if((kg==='up'&&reps!=='down')||(kg==='flat'&&reps==='up'))return 'up';
+  if((kg==='down'&&reps!=='up')||(kg==='flat'&&reps==='down'))return 'down';
+  if((kg==='up'&&reps==='down')||(kg==='down'&&reps==='up'))return 'mixed';
+  return 'flat';
+}
+
+function classifyExerciseProgress(series){
+  const snaps=series&&Array.isArray(series.snapshots)?series.snapshots:[];
+  const steps=series&&Array.isArray(series.steps)?series.steps:[];
+  const pack=(label,plateau,flags,confidence,reasons)=>({
+    label:label,
+    plateau:!!plateau,
+    flags:Array.isArray(flags)?flags.slice():[],
+    confidence:confidence||'low',
+    reasons:Array.isArray(reasons)?reasons.slice():[]
+  });
+  if(snaps.length<2){
+    const why=snaps.length===1?'brak drugiej porównywalnej sesji':'brak porównywalnych sesji';
+    return pack('ZA MAŁO DANYCH',false,[], 'low',[why]);
+  }
+  const last=snaps[snaps.length-1];
+  const background=snaps.slice(0,-1);
+  const lastStep=steps[steps.length-1]||{delta:{},dir:{}};
+  const delta=lastStep.delta||{};
+  const kind=progressClassStepKind(lastStep);
+  const rirAvail=!!delta.rirAvailable;
+  const dRir=delta.deltaRir;
+  const effortEasier=rirAvail&&dRir!=null&&dRir>=1;
+  const effortHarder=rirAvail&&dRir!=null&&dRir<=-1;
+  const dSets=delta.deltaWorkSetCount;
+  const doseUp=dSets!=null&&dSets>=1;
+  const doseDown=dSets!=null&&dSets<=-1;
+  const lastRir=last&&last.rir?last.rir.top:null;
+  const grind=lastRir===0&&(kind==='up'||(kind==='mixed'&&lastStep.dir&&lastStep.dir.kg==='up'));
+  const flags=[];
+  if(effortEasier)flags.push('effortEasier');
+  if(effortHarder)flags.push('effortHarder');
+  if(doseUp)flags.push('doseIncreased');
+  if(doseDown)flags.push('doseDecreased');
+  if(grind)flags.push('grind');
+  let consecutiveDown=0;
+  for(let i=steps.length-1;i>=0;i--){
+    if(progressClassStepKind(steps[i])==='down')consecutiveDown++;
+    else break;
+  }
+  const anyUp=steps.some(s=>progressClassStepKind(s)==='up');
+  const earlierUp=steps.slice(0,-1).some(s=>progressClassStepKind(s)==='up');
+  const n=snaps.length;
+  const lastKg=last&&last.topSet?last.topSet.kg:null;
+  const lastReps=last&&last.topSet?last.topSet.reps:null;
+  const newKgHigh=Number.isFinite(lastKg)&&background.every(s=>{
+    const kg=s&&s.topSet?s.topSet.kg:null;
+    return Number.isFinite(kg)&&lastKg>kg;
+  });
+  const bgConfirm=Number.isFinite(lastKg)&&Number.isFinite(lastReps)&&background.some(s=>{
+    const kg=s&&s.topSet?s.topSet.kg:null;
+    const reps=s&&s.topSet?s.topSet.reps:null;
+    return Number.isFinite(kg)&&Number.isFinite(reps)&&kg<lastKg&&lastReps>=reps;
+  });
+  const clearRepsDrop=delta.deltaReps!=null&&delta.deltaReps<=-2;
+  const mixedVeto=kind==='mixed'&&lastStep.dir&&lastStep.dir.kg==='up'&&clearRepsDrop&&effortHarder;
+  const reasons=[];
+  let label='STABILNIE';
+  if(kind==='up'){
+    label='PROGRES';
+    if(lastStep.dir&&lastStep.dir.kg==='up')reasons.push('P-kg: wyższe kg, reps utrzymane lub lepsze');
+    else reasons.push('P-reps: to samo kg, więcej powtórzeń');
+    if(effortHarder)reasons.push('RIR twardszy to ostrzeżenie, nie veto');
+    if(!rirAvail)reasons.push('brak RIR obniża pewność');
+    if(delta.deltaE1RM!=null&&delta.deltaE1RM>0)reasons.push('e1RM tylko wspiera');
+  }else if(kind==='mixed'){
+    if(mixedVeto){
+      flags.push('mixed');
+      reasons.push('kg w górę kosztem wyraźnego spadku reps i większego wysiłku');
+      reasons.push('e1RM nie tworzy PROGRES');
+    }else if(newKgHigh&&bgConfirm){
+      label='PROGRES';
+      reasons.push('podwójna progresja w oknie');
+      reasons.push('nowy kg i reps >= wcześniejszy lżejszy top');
+    }else{
+      flags.push('mixed');
+      reasons.push('kg/reps mixed — brak P-kg/P-reps');
+      reasons.push('e1RM nie nadaje klasy');
+    }
+  }else if(kind==='down'){
+    if(effortEasier&&consecutiveDown<2){
+      reasons.push('jeden spadek obciążenia to nie trend');
+      reasons.push('łatwiej — odpuszczenie, nie REGRES');
+    }else if(consecutiveDown>=2){
+      label='REGRES';
+      reasons.push('dwa kolejne spadki — potwierdzony trend spadkowy');
+    }else{
+      flags.push('dip');
+      reasons.push('jedna słabsza sesja, nie trend spadkowy');
+    }
+  }else{
+    reasons.push('ten sam wynik zewnętrzny');
+    if(effortHarder)reasons.push('większy wysiłek (effortHarder)');
+    if(effortEasier)reasons.push('łatwiej (effortEasier) — nie klasa PROGRES');
+    if(doseUp)reasons.push('więcej serii to dawka, nie progres wykonania');
+    if(doseDown)reasons.push('mniej serii to dawka, nie regres wykonania');
+    if(!doseUp&&!doseDown&&n<4)reasons.push('za wcześnie na plateau');
+  }
+  let plateau=false;
+  if(label==='STABILNIE'&&n>=4&&!anyUp&&kind!=='down'){
+    plateau=true;
+    const tops=snaps.map(s=>s&&s.rir&&s.rir.top!=null?s.rir.top:null).filter(v=>v!=null);
+    let character='effortUnknown';
+    if(tops.length){
+      const sorted=tops.slice().sort((a,b)=>a-b);
+      const med=sorted[Math.floor((sorted.length-1)/2)];
+      character=med>=2?'reserveAvailable':'nearLimit';
+    }
+    flags.push(character);
+    reasons.push('≥4 sesje bez realnej poprawy');
+    if(character==='reserveAvailable')reasons.push('typowy RIR ≥ 2: zapas niewykorzystany');
+    else if(character==='nearLimit')reasons.push('typowy RIR 0–1: plateau przy limicie');
+    else reasons.push('brak wiarygodnych danych RIR');
+  }
+  let confidence='medium';
+  if(label==='PROGRES'){
+    if(n>=3)confidence='high';
+    else if(n===2&&rirAvail)confidence='medium';
+    else confidence='low';
+  }else if(label==='REGRES')confidence='high';
+  else if(flags.indexOf('mixed')>=0)confidence='low';
+  else if(plateau)confidence='high';
+  else if(flags.indexOf('dip')>=0&&n>=4&&earlierUp)confidence='high';
+  else if(rirAvail)confidence='medium';
+  else confidence='low';
+  return pack(label,plateau,flags,confidence,reasons);
+}
+window.classifyExerciseProgress=classifyExerciseProgress;
+
+/** Ćwiczenia klienta z tych samych sesji co 6C — bez drugiej historii. */
+function listClientProgressExercises(clientId,opts){
+  opts=opts||{};
+  if(!clientId)return [];
+  const pool=opts.sessions||window.SE||[];
+  const wantPlan=opts.planId!=null&&String(opts.planId)!==''?String(opts.planId):'';
+  const seen=new Map();
+  const order=[];
+  pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&(typeof isLoggedTrainingSession!=='function'||isLoggedTrainingSession(s))&&(!wantPlan||String(s.planId||'')===wantPlan))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''))
+    .forEach(s=>{
+      (s.exercises||[]).forEach(ex=>{
+        const eid=String(ex&&ex.exerciseId||'').trim();
+        const name=String((ex&&(ex.name||ex.plannedName))||'').trim();
+        if(!eid&&!name)return;
+        const key=eid?('id:'+eid):('name:'+(typeof exerciseNameKey==='function'?exerciseNameKey(name):name.toLowerCase()));
+        if(seen.has(key))return;
+        seen.set(key,{name:name,exerciseId:eid,aliases:(ex&&Array.isArray(ex.alts)&&ex.alts.length)?ex.alts:null});
+        order.push(key);
+      });
+    });
+  return order.map(k=>seen.get(k));
+}
+window.listClientProgressExercises=listClientProgressExercises;
+
+function exerciseProgressClass(clientId,name,aliases,opts){
+  const series=typeof exerciseProgressSeries==='function'
+    ?exerciseProgressSeries(clientId,name,aliases,opts)
+    :{name:name||'',exerciseId:'',snapshots:[],steps:[],signals:{}};
+  const classification=typeof classifyExerciseProgress==='function'
+    ?classifyExerciseProgress(series)
+    :{label:'ZA MAŁO DANYCH',plateau:false,flags:[],confidence:'low',reasons:[]};
+  return{
+    name:series.name||name||'',
+    exerciseId:String((opts&&opts.exerciseId)||series.exerciseId||''),
+    series:series,
+    classification:classification
+  };
+}
+window.exerciseProgressClass=exerciseProgressClass;
+
+function clientExerciseProgressClasses(clientId,opts){
+  opts=opts||{};
+  return listClientProgressExercises(clientId,opts).map(it=>
+    exerciseProgressClass(clientId,it.name,it.aliases,Object.assign({},opts,{exerciseId:it.exerciseId}))
+  );
+}
+window.clientExerciseProgressClasses=clientExerciseProgressClasses;
+
+function rememberClientExerciseProgress(clientId,opts){
+  const items=clientExerciseProgressClasses(clientId,opts);
+  const payload={clientId:String(clientId||''),items:items};
+  window._cpExerciseProgress=payload;
+  return payload;
+}
+window.rememberClientExerciseProgress=rememberClientExerciseProgress;
+
+/** Etap 7A: agregat progresu klienta z wyników 6D. Wejście = pack (items[].classification), bez UI. */
+function aggregateClientProgress(pack){
+  const LABELS={'PROGRES':1,'STABILNIE':1,'REGRES':1,'ZA MAŁO DANYCH':1};
+  const CONF={'high':1,'medium':1,'low':1};
+  const WHY_ORDER=['regres','grind','mixed','nearLimit','plateau'];
+  const clientId=pack&&pack.clientId!=null?String(pack.clientId):'';
+  const raw=pack&&Array.isArray(pack.items)?pack.items:[];
+  const items=[];
+  raw.forEach((it,idx)=>{
+    if(!it||typeof it!=='object')return;
+    const c=it.classification&&typeof it.classification==='object'?it.classification:{};
+    const label=LABELS[c.label]?c.label:'ZA MAŁO DANYCH';
+    const confidence=CONF[c.confidence]?c.confidence:'low';
+    const flags=Array.isArray(c.flags)?c.flags.filter(f=>typeof f==='string'&&f):[];
+    const plateau=c.plateau===true;
+    items.push({
+      name:String(it.name||''),
+      exerciseId:String(it.exerciseId||''),
+      label:label,
+      plateau:plateau,
+      flags:flags,
+      confidence:confidence,
+      idx:idx
+    });
+  });
+  const counts={total:items.length,progres:0,stabilnie:0,regres:0,zaMalo:0,credible:0,solid:0,plateau:0,lowConfidence:0};
+  let nProgresSolid=0,nStableSolid=0,nRegresSolid=0;
+  items.forEach(it=>{
+    if(it.label==='PROGRES')counts.progres++;
+    else if(it.label==='STABILNIE')counts.stabilnie++;
+    else if(it.label==='REGRES')counts.regres++;
+    else counts.zaMalo++;
+    if(it.plateau)counts.plateau++;
+    const thin=it.label==='ZA MAŁO DANYCH';
+    if(!thin){
+      counts.credible++;
+      const solid=it.confidence==='medium'||it.confidence==='high';
+      if(solid){
+        counts.solid++;
+        if(it.label==='PROGRES')nProgresSolid++;
+        else if(it.label==='STABILNIE')nStableSolid++;
+        else if(it.label==='REGRES')nRegresSolid++;
+      }else counts.lowConfidence++;
+    }
+  });
+  let regresSpread='brak';
+  if(counts.credible>0&&counts.regres>0){
+    if(counts.regres>=3||(counts.regres>=2&&counts.regres/counts.credible>=0.5))regresSpread='wielu';
+    else if(counts.regres===2)regresSpread='kilka';
+    else if(counts.regres===1)regresSpread='pojedynczy';
+  }
+  const attention=[];
+  const thin=[];
+  items.forEach(it=>{
+    if(it.label==='ZA MAŁO DANYCH'){
+      thin.push({name:it.name,exerciseId:it.exerciseId});
+      return;
+    }
+    const why=[];
+    if(it.label==='REGRES')why.push('regres');
+    if(it.flags.indexOf('grind')>=0)why.push('grind');
+    if(it.flags.indexOf('mixed')>=0)why.push('mixed');
+    if(it.flags.indexOf('nearLimit')>=0)why.push('nearLimit');
+    if(it.plateau)why.push('plateau');
+    if(!why.length)return;
+    const whyRank=WHY_ORDER.indexOf(why[0]);
+    const solid=it.confidence==='medium'||it.confidence==='high';
+    attention.push({
+      name:it.name,
+      exerciseId:it.exerciseId,
+      label:it.label,
+      plateau:it.plateau,
+      flags:it.flags.slice(),
+      confidence:it.confidence,
+      why:why,
+      _rank:whyRank<0?99:whyRank,
+      _solid:solid?0:1,
+      _idx:it.idx
+    });
+  });
+  attention.sort((a,b)=>{
+    if(a._rank!==b._rank)return a._rank-b._rank;
+    if(a._rank===0&&a._solid!==b._solid)return a._solid-b._solid;
+    return a._idx-b._idx;
+  });
+  const attentionOut=attention.map(it=>{
+    const row={name:it.name,exerciseId:it.exerciseId,label:it.label,plateau:it.plateau,flags:it.flags,confidence:it.confidence,why:it.why};
+    return row;
+  });
+  let trend='NIERÓWNY';
+  const reasons=[];
+  if(counts.total===0||counts.credible<2||counts.solid<1){
+    trend='ZA MAŁO DANYCH';
+    if(counts.total===0)reasons.push('brak ćwiczeń do agregacji');
+    else if(counts.credible<2)reasons.push('mniej niż dwa ćwiczenia z wiarygodną klasą');
+    else reasons.push('brak ćwiczenia z pewnością medium lub high');
+  }else if(nRegresSolid>=2&&nRegresSolid>nProgresSolid){
+    trend='COFANIE';
+    reasons.push('co najmniej dwa wiarygodne REGRES przeważają nad PROGRES');
+  }else if(
+    nProgresSolid>=2
+    && nProgresSolid>nRegresSolid
+    && nRegresSolid<=1
+    && (nRegresSolid!==1||nProgresSolid>=3)
+    && nProgresSolid>=nStableSolid
+  ){
+    trend='WZROST';
+    reasons.push('co najmniej dwa wiarygodne PROGRES bez szerokiego cofania');
+    if(nRegresSolid===1)reasons.push('pojedynczy wiarygodny REGRES nie przekreśla wzrostu');
+  }else if(
+    nStableSolid>=1
+    && !(counts.regres>=1&&nProgresSolid>=1)
+    && (
+      (nRegresSolid===0&&nProgresSolid<=nStableSolid)
+      || (nRegresSolid===1&&nProgresSolid===0)
+    )
+  ){
+    trend='STABILNIE';
+    reasons.push('dominuje STABILNIE między ćwiczeniami');
+    if(counts.plateau)reasons.push('plateau nie zmienia trendu STABILNIE');
+  }else{
+    trend='NIERÓWNY';
+    reasons.push('mieszane sygnały między ćwiczeniami');
+    if(counts.regres>=1&&nProgresSolid>=1)reasons.push('regres i progres jednocześnie — nie COFANIE bez solidnych REGRES');
+  }
+  if(!reasons.length)reasons.push('agregat 7A');
+  let confidence='low';
+  if(trend==='ZA MAŁO DANYCH')confidence='low';
+  else if(counts.solid>=4&&counts.zaMalo/Math.max(counts.total,1)<=1/3)confidence='high';
+  else if(counts.solid>=2)confidence='medium';
+  else confidence='low';
+  return{
+    clientId:clientId,
+    trend:trend,
+    confidence:confidence,
+    counts:counts,
+    nProgresSolid:nProgresSolid,
+    nStableSolid:nStableSolid,
+    nRegresSolid:nRegresSolid,
+    regresSpread:regresSpread,
+    attention:attentionOut,
+    thin:thin,
+    reasons:reasons.slice()
+  };
+}
+window.aggregateClientProgress=aggregateClientProgress;
+
+/** Etap 7B: rekomendacja na następną sesję. Wejście = item 6D + opcjonalny opts.target.repMax. D0–D18. */
+function recommendExerciseProgress(item,opts){
+  const LABELS={'PROGRES':1,'STABILNIE':1,'REGRES':1,'ZA MAŁO DANYCH':1};
+  const CONF={'high':1,'medium':1,'low':1};
+  const pack=function(action,gate,facts,clsConf,n,rirKnown){
+    const levers={
+      'ZA MAŁO DANYCH':{load:'none',reps:'none',dose:'hold'},
+      'OBSERWUJ':{load:'hold',reps:'hold',dose:'hold'},
+      DELOAD:{load:'deload',reps:'hold',dose:'hold'},
+      'ZMNIEJSZ OBCIĄŻENIE':{load:'down',reps:'hold',dose:'hold'},
+      UTRZYMAJ:{load:'hold',reps:'hold',dose:'hold'},
+      'DODAJ POWTÓRZENIA':{load:'hold',reps:'up',dose:'hold'},
+      'DODAJ CIĘŻAR':{load:'up',reps:'hold',dose:'hold'}
+    }[action]||{load:'hold',reps:'hold',dose:'hold'};
+    levers.dose='hold';
+    const reasons={
+      D0:'brak poprawnego wyniku 6D do rekomendacji',
+      D1:'brak drugiej porównywalnej sesji kg',
+      D2:'niska pewność 6D albo brak RIR / mixed — nie ruszam obciążenia',
+      D3:'co najmniej 4 sesje plateau przy RIR 0–1 — zebrany limit, nie jeden ciężki dzień',
+      D4:'REGRES już zszedł z kg — zostaję na obecnym ciężarze, nie tnę dalej',
+      D5:'dwa spadki powtórzeń przy tym samym kg i RIR 0–1 — zejdź z ciężarem; to nie pełny deload',
+      D6:'REGRES sam nie każe tnąć kg — zostaję na obecnym obciążeniu',
+      D7:'jeden słabszy trening (dip) — nie deload i nie zmiana kg',
+      D8:'RIR 0 przy wzroście kg (grind) — nie dokładam; potwierdź obecny ciężar',
+      D9:'liczba serii już się zmieniła — 7B nie rusza dawki ani nie dokładam kg/powt.',
+      D10:'nearLimit bez pełnego wzorca deloadu — nie dokładam kg',
+      D11:'ostatnio poszedł ciężar — najpierw potwierdź nowy kg',
+      D12:'ostatnio spadł ciężar — najpierw potwierdź niższy kg',
+      D13:'serie nierówne przy zapasie RIR — wyrównaj powtórzenia, nie dokładaj kg',
+      D14:'brak zadanego stropu powtórzeń — sam wzrost powt. nie uprawnia +kg; potwierdź wynik',
+      D15:'zapas RIR przy tym kg — najpierw powtórzenia, nie ciężar',
+      D16:'zadany strop powtórzeń osiągnięty przy RIR ≥ 2 i równych seriach',
+      D17:'brak przesłanki do zmiany — utrzymuję obciążenie i powtórzenia',
+      D18:'brak jednoznacznej przesłanki — obserwuj, nie ruszaj obciążenia'
+    };
+    let confidence='low';
+    if(action==='ZA MAŁO DANYCH'||action==='OBSERWUJ')confidence='low';
+    else if(action==='DELOAD'||action==='ZMNIEJSZ OBCIĄŻENIE'||action==='DODAJ CIĘŻAR'){
+      confidence=(clsConf==='high'&&n>=3&&rirKnown)?'high':'medium';
+    }else confidence=CONF[clsConf]?clsConf:'low';
+    return{
+      name:facts.name,
+      exerciseId:facts.exerciseId,
+      action:action,
+      confidence:confidence,
+      reasons:[reasons[gate]],
+      levers:levers,
+      facts:facts
+    };
+  };
+  const emptyFacts={
+    name:'',exerciseId:'',n:0,dirKg:null,dirReps:null,kgUp:false,kgDown:false,repsUp:false,
+    lastKg:null,lastReps:null,lastRir:null,rirKnown:false,reserveNow:false,hardNow:false,
+    avgReps:null,evenSets:false,label:'',plateau:false,classConf:'low',target:null,
+    atRepMax:false,belowRepMax:false,cofanie:false,kgAlreadyDropped:false,repsCollapsedSameKg:false,
+    flags:[]
+  };
+  if(!item||typeof item!=='object')return pack('ZA MAŁO DANYCH','D0',emptyFacts,'low',0,false);
+  const c=item.classification&&typeof item.classification==='object'?item.classification:{};
+  const label=LABELS[c.label]?c.label:'';
+  if(!label)return pack('ZA MAŁO DANYCH','D0',Object.assign({},emptyFacts,{
+    name:String(item.name||''),exerciseId:String(item.exerciseId||'')
+  }),'low',0,false);
+  const series=item.series&&typeof item.series==='object'?item.series:{};
+  const snaps=Array.isArray(series.snapshots)?series.snapshots:[];
+  const steps=Array.isArray(series.steps)?series.steps:[];
+  const n=snaps.length;
+  const last=n?snaps[n-1]:null;
+  const step=steps.length?steps[steps.length-1]:null;
+  const dir=step&&step.dir&&typeof step.dir==='object'?step.dir:{};
+  const dirKg=dir.kg==='up'||dir.kg==='down'||dir.kg==='flat'?dir.kg:null;
+  const dirReps=dir.reps==='up'||dir.reps==='down'||dir.reps==='flat'?dir.reps:null;
+  const kgUp=dirKg==='up';
+  const kgDown=dirKg==='down';
+  const repsUp=dirReps==='up'&&dirKg!=='down';
+  const lastKg=last&&last.topSet&&Number.isFinite(last.topSet.kg)?last.topSet.kg:null;
+  const lastReps=last&&last.topSet&&Number.isFinite(last.topSet.reps)?last.topSet.reps:null;
+  const lastRir=last&&last.rir&&last.rir.top!=null&&Number.isFinite(last.rir.top)?last.rir.top:null;
+  const rirKnown=!!(last&&last.rir&&last.rir.available===true&&lastRir!=null);
+  const reserveNow=rirKnown&&lastRir>=2;
+  const hardNow=rirKnown&&lastRir<=1;
+  const workSetCount=last&&Number.isFinite(last.workSetCount)?last.workSetCount:0;
+  const totalWorkReps=last&&Number.isFinite(last.totalWorkReps)?last.totalWorkReps:null;
+  const avgReps=workSetCount>0&&totalWorkReps!=null?totalWorkReps/workSetCount:null;
+  const evenSets=workSetCount<=1||(avgReps!=null&&lastReps!=null&&avgReps>=lastReps-1);
+  const flags=Array.isArray(c.flags)?c.flags.filter(f=>typeof f==='string'&&f):[];
+  const has=f=>flags.indexOf(f)>=0;
+  const plateau=c.plateau===true;
+  const classConf=CONF[c.confidence]?c.confidence:'low';
+  const raw=opts&&opts.target?opts.target.repMax:undefined;
+  const target=(typeof raw==='number'&&Number.isFinite(raw)&&raw>0)?raw:null;
+  const atRepMax=target!=null&&lastReps!=null&&Number.isFinite(lastReps)&&lastReps>=target;
+  const belowRepMax=target!=null&&lastReps!=null&&Number.isFinite(lastReps)&&lastReps<target;
+  const cofanie=!!(opts&&opts.aggregate&&opts.aggregate.trend==='COFANIE');
+  const kgAlreadyDropped=label==='REGRES'&&kgDown;
+  const repsCollapsedSameKg=label==='REGRES'&&!kgDown&&dirReps==='down';
+  const facts={
+    name:String(item.name||''),
+    exerciseId:String(item.exerciseId||''),
+    n:n,dirKg:dirKg,dirReps:dirReps,kgUp:kgUp,kgDown:kgDown,repsUp:repsUp,
+    lastKg:lastKg,lastReps:lastReps,lastRir:lastRir,rirKnown:rirKnown,
+    reserveNow:reserveNow,hardNow:hardNow,avgReps:avgReps,evenSets:evenSets,
+    label:label,plateau:plateau,classConf:classConf,target:target,
+    atRepMax:atRepMax,belowRepMax:belowRepMax,cofanie:cofanie,
+    kgAlreadyDropped:kgAlreadyDropped,repsCollapsedSameKg:repsCollapsedSameKg,
+    flags:flags.slice()
+  };
+  const done=(action,gate)=>pack(action,gate,facts,classConf,n,rirKnown);
+  if(label==='ZA MAŁO DANYCH'||n<2||!last||last.comparable!==true)return done('ZA MAŁO DANYCH','D1');
+  if(classConf==='low'&&(has('mixed')||!rirKnown||label==='REGRES'))return done('OBSERWUJ','D2');
+  if(plateau&&has('nearLimit')&&n>=4&&rirKnown&&lastRir<=1&&label!=='PROGRES'&&!has('dip')&&classConf!=='low')
+    return done('DELOAD','D3');
+  if(kgAlreadyDropped)return done('UTRZYMAJ','D4');
+  if(repsCollapsedSameKg&&hardNow&&classConf!=='low')return done('ZMNIEJSZ OBCIĄŻENIE','D5');
+  if(label==='REGRES')return done('UTRZYMAJ','D6');
+  if(has('dip'))return done('UTRZYMAJ','D7');
+  if(has('grind'))return done('UTRZYMAJ','D8');
+  if(has('doseIncreased')||has('doseDecreased'))return done('UTRZYMAJ','D9');
+  if(has('nearLimit'))return done('UTRZYMAJ','D10');
+  if(kgUp)return done('UTRZYMAJ','D11');
+  if(kgDown)return done('UTRZYMAJ','D12');
+  if(!evenSets&&reserveNow&&label!=='REGRES'&&!has('mixed')&&!has('grind')&&!kgUp&&!kgDown)
+    return done('DODAJ POWTÓRZENIA','D13');
+  if(repsUp&&!kgUp&&target==null)return done('UTRZYMAJ','D14');
+  if(
+    (reserveNow||has('effortEasier')||(plateau&&has('reserveAvailable')))
+    && evenSets
+    && !has('grind')&&!has('nearLimit')&&!has('mixed')&&!has('dip')
+    && label!=='REGRES'
+    && !atRepMax
+    && !(repsUp&&target==null)
+    && !kgUp&&!kgDown
+    && !has('doseIncreased')&&!has('doseDecreased')
+  )return done('DODAJ POWTÓRZENIA','D15');
+  if(
+    target!=null
+    && atRepMax
+    && evenSets
+    && reserveNow
+    && rirKnown
+    && (classConf==='medium'||classConf==='high')
+    && (n>=3||classConf==='high')
+    && !has('grind')&&!has('nearLimit')&&!has('mixed')&&!has('dip')
+    && label!=='REGRES'
+    && !kgUp&&!kgDown
+    && !has('doseIncreased')&&!has('doseDecreased')
+    && !cofanie
+  )return done('DODAJ CIĘŻAR','D16');
+  if(rirKnown)return done('UTRZYMAJ','D17');
+  return done('OBSERWUJ','D18');
+}
+window.recommendExerciseProgress=recommendExerciseProgress;
+
+/** Etap 7C: brief następnej sesji. Wejście = recs 7B + aggregate 7A. C0–C5. */
+function composeNextSessionProgress(input){
+  const TREND={'WZROST':1,'STABILNIE':1,'NIERÓWNY':1,'COFANIE':1,'ZA MAŁO DANYCH':1};
+  const CONF={'high':1,'medium':1,'low':1};
+  const WHY={
+    C0:'brak poprawnych rekomendacji 7B do briefu sesji',
+    C1:'za mało wiarygodnych akcji 7B, żeby złożyć sesję',
+    C2:'sesja nie jest do dokładania — jest cięcie, deload albo COFANIE',
+    C3:'co najmniej dwie akcje 7B dokładają powt. albo kg, bez deloadu i bez COFANIE',
+    C4:'brak sesyjnego dokładania kg; trzymam kurs albo pojedyncze powtórzenia',
+    C5:'akcje 7B idą w różne strony — nie ma jednej dyrektywy sesji'
+  };
+  const CHANGE_RANK={'DELOAD':0,'ZMNIEJSZ OBCIĄŻENIE':1,'DODAJ CIĘŻAR':2,'DODAJ POWTÓRZENIA':3};
+  const emptyCounts={total:0,deload:0,zmniejsz:0,dodajCiezar:0,dodajPowt:0,utrzymaj:0,obserwuj:0,zaMalo:0};
+  const pack=function(posture,gate,counts,lists,aggEcho,clientId,cofanieWhy){
+    const reasons=[WHY[gate]];
+    if(cofanieWhy)reasons.push(cofanieWhy);
+    let confidence='low';
+    if(posture==='ZA MAŁO DANYCH')confidence='low';
+    else{
+      const recSolid=lists._solid;
+      const aggConf=CONF[aggEcho.confidence]?aggEcho.confidence:'low';
+      if(aggConf==='high'&&recSolid>=2)confidence='high';
+      else if(recSolid>=1||aggConf==='medium'||aggConf==='high')confidence='medium';
+      else confidence='low';
+    }
+    return{
+      clientId:clientId,
+      posture:posture,
+      confidence:confidence,
+      reasons:reasons,
+      counts:counts,
+      change:lists.change,
+      hold:lists.hold,
+      watch:lists.watch,
+      aggregate:{trend:aggEcho.trend,confidence:CONF[aggEcho.confidence]?aggEcho.confidence:'low'}
+    };
+  };
+  const emptyAgg={trend:'ZA MAŁO DANYCH',confidence:'low'};
+  if(!input||typeof input!=='object'||!Array.isArray(input.recs)){
+    const clientId=input&&typeof input==='object'&&input.clientId!=null?String(input.clientId):'';
+    return pack('ZA MAŁO DANYCH','C0',Object.assign({},emptyCounts),{change:[],hold:[],watch:[],_solid:0},emptyAgg,clientId,false);
+  }
+  const clientId=input.clientId!=null?String(input.clientId):'';
+  const rawAgg=input.aggregate&&typeof input.aggregate==='object'?input.aggregate:{};
+  const trend=TREND[rawAgg.trend]?rawAgg.trend:'ZA MAŁO DANYCH';
+  const aggEcho={trend:trend,confidence:CONF[rawAgg.confidence]?rawAgg.confidence:'low'};
+  const recs=input.recs;
+  const counts={total:0,deload:0,zmniejsz:0,dodajCiezar:0,dodajPowt:0,utrzymaj:0,obserwuj:0,zaMalo:0};
+  const change=[],hold=[],watch=[];
+  let recSolid=0,nCounted=0,idx=0;
+  recs.forEach(rec=>{
+    if(!rec||typeof rec!=='object')return;
+    nCounted++;
+    const action=typeof rec.action==='string'?rec.action:'';
+    const bucket=action==='DELOAD'?'deload'
+      :action==='ZMNIEJSZ OBCIĄŻENIE'?'zmniejsz'
+      :action==='DODAJ CIĘŻAR'?'dodajCiezar'
+      :action==='DODAJ POWTÓRZENIA'?'dodajPowt'
+      :action==='UTRZYMAJ'?'utrzymaj'
+      :action==='ZA MAŁO DANYCH'?'zaMalo'
+      :'obserwuj';
+    counts[bucket]++;
+    counts.total++;
+    const conf=CONF[rec.confidence]?rec.confidence:'low';
+    if((conf==='medium'||conf==='high')&&action!=='ZA MAŁO DANYCH'&&action!=='OBSERWUJ')recSolid++;
+    const row={
+      name:String(rec.name||''),
+      exerciseId:String(rec.exerciseId||''),
+      action:action,
+      confidence:conf,
+      reasons:Array.isArray(rec.reasons)?rec.reasons.slice():[],
+      levers:rec.levers&&typeof rec.levers==='object'?rec.levers:undefined
+    };
+    const item={row:row,_idx:idx,_rank:CHANGE_RANK[action]!=null?CHANGE_RANK[action]:99};
+    idx++;
+    if(CHANGE_RANK[action]!=null)change.push(item);
+    else if(action==='UTRZYMAJ')hold.push(row);
+    else watch.push(row);
+  });
+  change.sort((a,b)=>a._rank!==b._rank?a._rank-b._rank:a._idx-b._idx);
+  const lists={
+    change:change.map(x=>x.row),
+    hold:hold,
+    watch:watch,
+    _solid:recSolid
+  };
+  const nDeload=counts.deload,nZmniejsz=counts.zmniejsz;
+  const nDodajCiezar=counts.dodajCiezar,nDodajPowt=counts.dodajPowt;
+  const nAdd=nDodajCiezar+nDodajPowt;
+  const nChange=nAdd+nDeload+nZmniejsz;
+  const nUtrzymaj=counts.utrzymaj,nObserwuj=counts.obserwuj,nZaMalo=counts.zaMalo;
+  const C2b=trend==='COFANIE';
+  if(recs.length===0||(trend==='ZA MAŁO DANYCH'&&nChange===0)||(nCounted>=1&&nZaMalo===nCounted))
+    return pack('ZA MAŁO DANYCH','C1',counts,lists,aggEcho,clientId,false);
+  if(nDeload>=1||C2b||nZmniejsz>=2||(nZmniejsz>=1&&nAdd===0))
+    return pack('HAMUJ','C2',counts,lists,aggEcho,clientId,C2b
+      ?'agregat 7A: COFANIE — 7C nie zamienia sesji w dokładanie kg':false);
+  if(nDeload===0&&trend!=='COFANIE'&&nAdd>=2&&nAdd>nZmniejsz)
+    return pack('ROZWIJAJ','C3',counts,lists,aggEcho,clientId,false);
+  if(nDeload===0&&nZmniejsz===0&&nDodajCiezar===0&&nDodajPowt<=1&&(nUtrzymaj+nObserwuj>=1))
+    return pack('UTRZYMAJ KURS','C4',counts,lists,aggEcho,clientId,false);
+  return pack('MIESZANE','C5',counts,lists,aggEcho,clientId,false);
+}
+window.composeNextSessionProgress=composeNextSessionProgress;
+
+function readStoredExerciseProgress(clientId,name,exerciseId){
+  const pack=window._cpExerciseProgress;
+  if(!pack||!Array.isArray(pack.items))return null;
+  if(clientId&&pack.clientId&&String(pack.clientId)!==String(clientId))return null;
+  const eid=String(exerciseId||'').trim();
+  if(eid){
+    const byId=pack.items.find(it=>String(it&&it.exerciseId||'')===eid);
+    if(byId)return byId;
+  }
+  const key=typeof exerciseNameKey==='function'?exerciseNameKey(name):String(name||'').toLowerCase().trim();
+  if(!key)return null;
+  return pack.items.find(it=>{
+    const n=it&&it.name;
+    const k=typeof exerciseNameKey==='function'?exerciseNameKey(n):String(n||'').toLowerCase().trim();
+    return k===key;
+  })||null;
+}
+window.readStoredExerciseProgress=readStoredExerciseProgress;
+
+function progressClassFlagLabel(flag){
+  const map={
+    effortEasier:'łatwiej',
+    effortImproved:'łatwiej',
+    effortHarder:'ciężej',
+    doseIncreased:'większa dawka',
+    doseDecreased:'mniejsza dawka',
+    dip:'spad',
+    mixed:'trade-off',
+    grind:'do limitu',
+    reserveAvailable:'zapas RIR',
+    nearLimit:'przy limicie',
+    effortUnknown:'brak RIR'
+  };
+  return map[flag]||String(flag||'');
+}
+window.progressClassFlagLabel=progressClassFlagLabel;
+
+function progressClassConfidenceLabel(conf){
+  if(conf==='high')return 'wysoka';
+  if(conf==='medium')return 'średnia';
+  if(conf==='low')return 'niska';
+  return String(conf||'');
+}
+window.progressClassConfidenceLabel=progressClassConfidenceLabel;
+
+function exerciseProgressClassViewHtml(item,opts){
+  opts=opts||{};
+  const c=item&&item.classification;
+  if(!c||!c.label)return '';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const label=String(c.label);
+  const tone=label==='PROGRES'?'good':(label==='REGRES'?'bad':(label==='ZA MAŁO DANYCH'?'muted':'flat'));
+  const flags=Array.isArray(c.flags)?c.flags.filter(Boolean):[];
+  const reasons=Array.isArray(c.reasons)?c.reasons.filter(Boolean):[];
+  const plateauTxt=c.plateau?(function(){
+    if(flags.indexOf('reserveAvailable')>=0)return 'tak · zapas RIR';
+    if(flags.indexOf('nearLimit')>=0)return 'tak · przy limicie';
+    if(flags.indexOf('effortUnknown')>=0)return 'tak · brak RIR';
+    return 'tak';
+  }()):'';
+  const flagTxt=flags.map(progressClassFlagLabel).filter(Boolean).join(' · ');
+  const confTxt=progressClassConfidenceLabel(c.confidence);
+  if(opts.compact){
+    return `<span class="ex-prog-label is-${tone}" style="font-size:16px;">${esc(label)}</span>`;
+  }
+  const reasonHtml=reasons.length
+    ?`<ul class="ex-prog-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`
+    :'';
+  return `<div class="ex-prog-box" data-ex-prog-class="${esc(label)}">
+    <div class="ex-prog-kicker">Analiza</div>
+    <div class="ex-prog-label is-${tone}">${esc(label)}</div>
+    <div class="ex-prog-meta">
+      ${plateauTxt?`<div>Plateau: ${esc(plateauTxt)}</div>`:''}
+      ${confTxt?`<div>Pewność: ${esc(confTxt)}</div>`:''}
+      ${flagTxt?`<div>Flagi: ${esc(flagTxt)}</div>`:''}
+    </div>
+    ${reasonHtml}
+  </div>`;
+}
+window.exerciseProgressClassViewHtml=exerciseProgressClassViewHtml;
+
+function cpExerciseProgressPanelHtml(clientId){
+  const pack=window._cpExerciseProgress;
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const match=pack&&String(pack.clientId||'')===String(clientId||'');
+  const items=match&&Array.isArray(pack.items)?pack.items:[];
+  const rows=items.length?items.map(it=>{
+    const name=it&&it.name||'Ćwiczenie';
+    const eid=it&&it.exerciseId||'';
+    const badge=exerciseProgressClassViewHtml(it,{compact:true})||'<span class="ex-prog-label is-muted" style="font-size:16px;">—</span>';
+    return `<button type="button" class="cp-ex-prog-row" data-ex-name="${esc(name)}" data-ex-id="${esc(eid)}" onclick="openCpExerciseProgress(this)">
+      <span class="cp-ex-prog-name">${esc(name)}</span>
+      ${badge}
+    </button>`;
+  }).join(''):'<div class="ex-prog-empty">Brak analizy — za mało porównywalnych sesji.</div>';
+  return `<div data-cp-panel="train" class="stat-card cp-ex-prog-panel" style="margin-bottom:14px;">
+    <div class="stat-card-hdr">
+      <div>
+        <div class="stat-card-title">Analiza ćwiczeń</div>
+        <div class="stat-card-sub">Klasyfikacja z ostatnich porównywalnych sesji</div>
+      </div>
+    </div>
+    ${rows}
+  </div>`;
+}
+window.cpExerciseProgressPanelHtml=cpExerciseProgressPanelHtml;
+
+function openCpExerciseProgress(el){
+  const name=(el&&el.getAttribute&&el.getAttribute('data-ex-name'))||'';
+  const exerciseId=(el&&el.getAttribute&&el.getAttribute('data-ex-id'))||'';
+  const clientId=window._cpExerciseProgress&&window._cpExerciseProgress.clientId||'';
+  if(typeof openExerciseHistory==='function')openExerciseHistory({clientId:clientId,name:name,exerciseId:exerciseId});
+}
+window.openCpExerciseProgress=openCpExerciseProgress;
+
+function lastLoadForExercise(clientId,name,aliases,opts){
+  const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({limit:0},opts||{}));
+  if(!hist.length)return null;
+  const latest=hist[0];
+  const sets=latest.sets||[];
+  const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
+  const last=(work.length?work:sets)[(work.length?work:sets).length-1];
+  if(!last)return null;
+  return{
+    kg:last.kg,
+    reps:last.reps,
+    rir:last.rir,
+    sets,
+    date:latest.date||'',
+    source:latest.source||'',
+    nSessions:hist.length,
+    history:hist.slice(0,8)
+  };
+}
+window.lastLoadForExercise=lastLoadForExercise;
+
+function formatLastSetsSummary(sets){
+  const parts=(Array.isArray(sets)?sets:[]).map(s=>{
+    const k=(s&&s.kg!=null&&s.kg!=='')?String(s.kg):'';
+    const r=(s&&s.reps!=null&&s.reps!=='')?String(s.reps):'';
+    if(k&&r)return k+' × '+r;
+    if(k)return k;
+    if(r)return r+' powt.';
+    return '';
+  }).filter(Boolean);
+  if(!parts.length)return '';
+  if(parts.length<=5)return parts.join(' · ');
+  return parts.slice(0,5).join(' · ')+' …';
+}
+window.formatLastSetsSummary=formatLastSetsSummary;
+
+function formatLastSetShort(s){
+  if(!s)return '';
+  const k=(s.kg!=null&&s.kg!=='')?String(s.kg):'';
+  const r=(s.reps!=null&&s.reps!=='')?String(s.reps):'';
+  if(k&&r)return k+' × '+r;
+  if(k)return k;
+  if(r)return r+' powt.';
+  return '';
+}
+window.formatLastSetShort=formatLastSetShort;
+
+function resolveLastLoggedSets(ex,opts){
+  opts=opts||{};
+  if(ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length)return ex.lastSets;
+  if(ex&&Array.isArray(ex.lastHistory)){
+    const hit=ex.lastHistory.find(h=>h&&Array.isArray(h.sets)&&h.sets.length);
+    if(hit)return hit.sets;
+  }
+  const cid=(ex&&ex.clientId)||opts.clientId;
+  const nm=(ex&&(ex.name||ex.plannedName))||opts.name;
+  const alts=(ex&&ex.alts)||opts.aliases;
+  if(cid&&nm&&typeof exerciseLoadHistory==='function'){
+    const hist=exerciseLoadHistory(cid,nm,alts,{limit:1,exerciseId:(ex&&ex.exerciseId)||opts.exerciseId});
+    if(hist[0]&&hist[0].sets&&hist[0].sets.length)return hist[0].sets;
+  }
+  return [];
+}
+window.resolveLastLoggedSets=resolveLastLoggedSets;
+
+function lastWorkingSets(ex,opts){
+  const sets=resolveLastLoggedSets(ex,opts);
+  const work=sets.filter(s=>typeof isWorkingSet!=='function'||isWorkingSet(s));
+  return work.length?work:sets;
+}
+window.lastWorkingSets=lastWorkingSets;
+
+function lastLoggedSetAt(ex,si,opts){
+  const src=lastWorkingSets(ex,opts);
+  if(!src.length||si==null||si<0)return null;
+  return src[si]||null;
+}
+window.lastLoggedSetAt=lastLoggedSetAt;
+
+function formatHistorySessionDate(ymd){
+  if(!ymd)return '';
+  return typeof formatTrainingDayShortPl==='function'?formatTrainingDayShortPl(ymd):String(ymd);
+}
+window.formatHistorySessionDate=formatHistorySessionDate;
+
+function formatHistorySessionStamp(h){
+  if(!h)return '';
+  const d=h.date||'';
+  const t=String(h.time||'').slice(0,5);
+  if(d&&t)return d+' '+t;
+  if(d)return d;
+  return t;
+}
+window.formatHistorySessionStamp=formatHistorySessionStamp;
+
+function fmtHistNum(n){
+  const x=parseFloat(n);
+  if(!Number.isFinite(x))return '—';
+  const r=Math.round(x*100)/100;
+  return Number.isInteger(r)?String(r):String(r);
+}
+window.fmtHistNum=fmtHistNum;
+
+function setObjKg(s){
+  const kg=parseFloat(s&&s.kg);
+  const reps=parseFloat(s&&s.reps);
+  if(!Number.isFinite(kg)||!Number.isFinite(reps))return 0;
+  return kg*reps;
+}
+window.setObjKg=setObjKg;
+
+function splitHistSets(sets){
+  const main=[],extra=[],wu=[];
+  (Array.isArray(sets)?sets:[]).forEach(s=>{
+    const k=String(s&&s.kind||'').toLowerCase();
+    if(k==='wu'||k==='warmup')wu.push(s);
+    else if(k==='drop'||k==='extra'||k==='rp'||(s&&s.extra))extra.push(s);
+    else main.push(s);
+  });
+  return {main,extra,wu};
+}
+window.splitHistSets=splitHistSets;
+
+function exerciseHistoryTotals(sets){
+  let reps=0,kg=0,obj=0;
+  (sets||[]).forEach(s=>{
+    const r=parseFloat(s&&s.reps);if(Number.isFinite(r))reps+=r;
+    const k=parseFloat(s&&s.kg);if(Number.isFinite(k))kg+=k;
+    obj+=setObjKg(s);
+  });
+  return {reps,kg,obj};
+}
+window.exerciseHistoryTotals=exerciseHistoryTotals;
+
+function exerciseHistoryTableRowsHtml(sets){
+  return (Array.isArray(sets)?sets:[]).map((s,i)=>{
+    const obj=setObjKg(s);
+    return `<tr>
+      <td class="ex-hist-no">${escHtml(String(s.setNo||(i+1)))}</td>
+      <td>${escHtml(s.reps!=null&&s.reps!==''?String(s.reps):'—')}</td>
+      <td>${escHtml(s.kg!=null&&s.kg!==''?String(s.kg):'—')}</td>
+      <td class="ex-hist-obj">${escHtml(fmtHistNum(obj))} kg</td>
+    </tr>`;
+  }).join('');
+}
+
+function exerciseHistoryModalBodyHtml(history){
+  if(!history||!history.length)return '<div class="ex-hist-empty">Brak zapisanych serii tego ćwiczenia.</div>';
+  return history.map(h=>{
+    const stamp=formatHistorySessionStamp(h);
+    const parts=splitHistSets(h.sets);
+    const all=parts.wu.concat(parts.main,parts.extra);
+    const sets=all.length?all:(h.sets||[]);
+    const tot=exerciseHistoryTotals(sets);
+    let body='';
+    if(parts.wu.length)body+=exerciseHistoryTableRowsHtml(parts.wu);
+    body+=exerciseHistoryTableRowsHtml(parts.main.length?parts.main:(parts.extra.length||parts.wu.length?[]:sets));
+    if(parts.extra.length){
+      body+=`<tr class="ex-hist-sec-row"><td colspan="4">Dodatkowe</td></tr>`;
+      body+=exerciseHistoryTableRowsHtml(parts.extra);
+    }
+    return `<section class="ex-hist-sess">
+      <div class="ex-hist-sess-hd">${escHtml(stamp||'Sesja')}</div>
+      <table class="ex-hist-table">
+        <thead><tr><th>#</th><th>Powt</th><th>KG</th><th>Obj</th></tr></thead>
+        <tbody>${body}</tbody>
+        <tfoot><tr class="ex-hist-total"><th>Σ</th><td>${escHtml(fmtHistNum(tot.reps))}</td><td>${escHtml(fmtHistNum(tot.kg))}</td><td>${escHtml(fmtHistNum(tot.obj))} kg</td></tr></tfoot>
+      </table>
+    </section>`;
+  }).join('');
+}
+window.exerciseHistoryModalBodyHtml=exerciseHistoryModalBodyHtml;
+
+var _exHistCache={};
+var _exHistSeq=0;
+function openExerciseHistory(idOrOpts){
+  let name='',history=null,clientId='',aliases,exerciseId='';
+  if(typeof idOrOpts==='string'&&_exHistCache[idOrOpts]){
+    name=_exHistCache[idOrOpts].name||'';
+    history=_exHistCache[idOrOpts].history;
+    clientId=_exHistCache[idOrOpts].clientId||'';
+    aliases=_exHistCache[idOrOpts].aliases;
+    exerciseId=_exHistCache[idOrOpts].exerciseId||'';
+  }else if(idOrOpts&&typeof idOrOpts==='object'){
+    name=idOrOpts.name||'';
+    history=idOrOpts.history;
+    clientId=idOrOpts.clientId||'';
+    aliases=idOrOpts.aliases;
+    exerciseId=idOrOpts.exerciseId||'';
+  }
+  if((!history||!history.length)&&clientId&&(name||exerciseId)){
+    history=exerciseLoadHistory(clientId,name,aliases,{limit:12,exerciseId});
+  }
+  const title=document.getElementById('ex-hist-title');
+  if(title)title.textContent=name||'Historia ćwiczenia';
+  const body=document.getElementById('ex-hist-body');
+  if(body){
+    const stored=typeof readStoredExerciseProgress==='function'?readStoredExerciseProgress(clientId,name,exerciseId):null;
+    const analysis=stored&&typeof exerciseProgressClassViewHtml==='function'?exerciseProgressClassViewHtml(stored):'';
+    body.innerHTML=analysis+exerciseHistoryModalBodyHtml(history||[]);
+  }
+  if(typeof openM==='function')openM('m-ex-hist');
+}
+window.openExerciseHistory=openExerciseHistory;
+
+function lastSetsSessionRowsHtml(sets,nameOrEx){
+  return (Array.isArray(sets)?sets:[]).map((s,i)=>{
+    const no=s.setNo||(i+1);
+    const kind=s.kind&&s.kind!=='work'&&typeof setKindBadge==='function'
+      ?`<span class="cw-set-kind ${escHtml(String(s.kind))}">${escHtml(setKindBadge(s.kind))}</span>`:'';
+    const rir=s.rir!=null&&s.rir!==''?`<span class="live-last-rir">RIR ${escHtml(String(s.rir))}</span>`:'';
+    const load=typeof formatSetLoad==='function'?formatSetLoad(s.kg,s.reps,nameOrEx):(String(s.kg||'')+' × '+String(s.reps||''));
+    return `<div class="live-last-row"><span class="live-last-no">${escHtml(String(no))}</span><span class="live-last-load">${escHtml(load)}</span>${rir}${kind}</div>`;
+  }).join('');
+}
+window.lastSetsSessionRowsHtml=lastSetsSessionRowsHtml;
+
+function lastSetsBlockHtml(ex,opts){
+  opts=opts||{};
+  let history=Array.isArray(ex&&ex.lastHistory)?ex.lastHistory.filter(h=>h&&Array.isArray(h.sets)&&h.sets.length):[];
+  if(!history.length&&ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length){
+    history=[{date:ex.lastDate||'',time:ex.lastTime||'',sets:ex.lastSets}];
+  }
+  if(!history.length){
+    const cid=(ex&&ex.clientId)||opts.clientId;
+    const nm=(ex&&(ex.name||ex.plannedName))||opts.name;
+    const alts=(ex&&ex.alts)||opts.aliases;
+    if(cid&&nm)history=exerciseLoadHistory(cid,nm,alts,{limit:opts.limit==null?8:opts.limit,exerciseId:(ex&&ex.exerciseId)||opts.exerciseId});
+  }
+  if(!history.length)return '';
+  const latest=history[0];
+  const summary=formatLastSetsSummary(latest.sets);
+  const date=formatHistorySessionStamp(latest)||formatHistorySessionDate(latest.date);
+  const extra=history.length>1?(' · '+history.length+' sesji'):'';
+  const variant=opts.variant==='builder'||(ex&&ex._histVariant==='builder');
+  const cls=variant?'live-last-sets builder-ex-hist':'live-last-sets';
+  const id='exh'+(++_exHistSeq);
+  _exHistCache[id]={
+    name:(ex&&(ex.name||ex.plannedName))||opts.name||'',
+    history,
+    clientId:(ex&&ex.clientId)||opts.clientId||'',
+    aliases:(ex&&ex.alts)||opts.aliases,
+    exerciseId:(ex&&ex.exerciseId)||opts.exerciseId||''
+  };
+  const btn=`<button type="button" class="${cls}" data-ex-hist="${id}" onclick="event.stopPropagation();openExerciseHistory('${id}')" title="Historia ciężaru i powtórzeń z poprzednich treningów">
+    <span class="live-last-ico" aria-hidden="true">🕒</span>
+    <span class="live-last-sum">Ostatnio: ${escHtml(summary)}${date?' · '+escHtml(date):''}${escHtml(extra)}</span>
+  </button>`;
+  if(!opts.panel)return btn;
+  const rows=lastSetsSessionRowsHtml(latest.sets,ex);
+  return `<div class="live-last-panel">${btn}${rows?`<div class="live-last-rows">${rows}</div>`:''}</div>`;
+}
+window.lastSetsBlockHtml=lastSetsBlockHtml;
+
+function exerciseNameKey(name){
+  const folded=typeof foldPlKey==='function'?foldPlKey(name):String(name||'').toLowerCase();
+  return folded.replace(/\s+/g,' ').trim();
+}
+window.exerciseNameKey=exerciseNameKey;
+
+/** kg | sec | min | m — pole „KG” to obciążenie, czas (s/min) albo dystans. */
+const EX_LOAD_SEC_SLUGS={
+  'liny-treningowe':1,'liny':1,'battle-ropes':1,'battle-rope':1,'liny-battle':1,
+  'deska':1,'plank':1,'deska-boczna':1,'side-plank':1,
+  'deska-kopenhaska':1,'copenhagen-plank':1,'copenhagen-adductor':1,
+  'hollow-hold':1,'hollow-rock':1,'hollow-body-rock':1,
+  'zwisy-na-drazku':1,'dead-hang':1,
+  'mountain-climbers':1,'mountain-climber':1,
+  'przysiad-przy-scianie':1,'wall-sit':1,
+  'siad-w-l':1,'l-sit':1,'l-sit-hold':1,
+  'bieganie-w-miejscu':1,'running-in-place':1,'jog-w-miejscu':1,'bieg-w-miejscu':1
+};
+const EX_LOAD_MIN_SLUGS={
+  'wioslarz':1,'rowing':1,'concept2':1,'ergometr-wioslarski':1,'row':1,
+  'airbike':1,'assault-bike':1,'rower-powietrzny':1,'fan-bike':1,'echo-bike':1,'air-bike':1,
+  'rower-stacjonarny':1,'cycling':1,'spinning':1,'rower-treningowy':1,
+  'rower-poziomy':1,'recumbent-bike':1,'rower-lezacy':1,
+  'orbitrek':1,'eliptyk':1,'elliptical':1,'crosstrainer':1,
+  'bieznia':1,'treadmill':1,'bieg-na-biezni':1,
+  'bieg':1,'run':1,'running':1,'bieganie':1,
+  'marsz':1,'walk':1,'walking':1,'spacer':1,
+  'schody':1,'stairmaster':1,'stair-climber':1,'stepper':1,
+  'ergometr-narciarski':1,'skierg':1,'ski-erg':1,
+  'skakanka':1,'jump-rope':1,'jump-rope-classic':1,'skipping':1,'skakanka-bokserska':1
+};
+function normalizeLoadUnit(u){
+  const s=String(u||'').toLowerCase().trim();
+  if(s==='sec'||s==='s'||s==='sek'||s==='sekundy'||s==='seconds'||s==='czas')return 'sec';
+  if(s==='min'||s==='mins'||s==='minute'||s==='minutes'||s==='minuta'||s==='minuty')return 'min';
+  if(s==='m'||s==='m.'||s==='metr'||s==='metry')return 'm';
+  if(s==='kg'||s==='kilo'||s==='kilogram'||s==='kilogramy')return 'kg';
+  return '';
+}
+window.normalizeLoadUnit=normalizeLoadUnit;
+function loadUnitSuffix(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 's';
+  if(u==='min')return 'min';
+  if(u==='m')return 'm';
+  return 'kg';
+}
+window.loadUnitSuffix=loadUnitSuffix;
+function loadUnitPlaceholder(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'sec';
+  if(u==='min')return 'min';
+  if(u==='m')return 'm';
+  return 'kg';
+}
+window.loadUnitPlaceholder=loadUnitPlaceholder;
+function loadUnitTitle(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'Czas (s)';
+  if(u==='min')return 'Czas (min)';
+  if(u==='m')return 'Dystans (m)';
+  return 'Obciążenie (kg)';
+}
+window.loadUnitTitle=loadUnitTitle;
+function loadUnitColumnLabel(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'Czas (s)';
+  if(u==='min')return 'Czas (min)';
+  if(u==='m')return 'Dystans';
+  return 'Ciężar';
+}
+window.loadUnitColumnLabel=loadUnitColumnLabel;
+function loadUnitShortLabel(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'Sec';
+  if(u==='min')return 'Min';
+  if(u==='m')return 'M';
+  return 'Kg';
+}
+window.loadUnitShortLabel=loadUnitShortLabel;
+function isWeightLoadUnit(unit){
+  return (normalizeLoadUnit(unit)||'kg')==='kg';
+}
+window.isWeightLoadUnit=isWeightLoadUnit;
+function inferLoadUnitFromName(name){
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[];
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(name):'';
+  const slugs=keys.map(k=>typeof exerciseSlug==='function'?exerciseSlug(k):k).concat(slug?[slug]:[]);
+  for(let i=0;i<slugs.length;i++){
+    if(EX_LOAD_SEC_SLUGS[slugs[i]])return 'sec';
+  }
+  for(let i=0;i<slugs.length;i++){
+    if(EX_LOAD_MIN_SLUGS[slugs[i]])return 'min';
+  }
+  const n=String(name||'').toLowerCase();
+  if(/\bliny\b|battle\s*rope/.test(n))return 'sec';
+  if(/hollow\s*(hold|rock)/.test(n))return 'sec';
+  if(/mountain\s*climber/.test(n))return 'sec';
+  if(/wall\s*sit|przysiad przy [śs]cianie/.test(n))return 'sec';
+  if(/\bl-sit\b|siad w l/.test(n))return 'sec';
+  if(/dead\s*hang|zwisy na dr/.test(n))return 'sec';
+  if(/^(deska|plank)$/i.test(String(name||'').trim()))return 'sec';
+  if(/^deska boczna|^deska kopenhaska|^side plank/i.test(n))return 'sec';
+  if(/\bplank na (przedramion|łokci|lokci)|\bdeska na (przedramion|łokci|lokci)|forearm plank|elbow plank/.test(n))return 'sec';
+  /* „Plank przedni na łokciach (statyczny)” — hold, nie ciężar */
+  if(/\bplank\b/.test(n) && !/unoszen|\btap\b|walk\s*up|to downward|do psa|pomp/.test(n))return 'sec';
+  if(/\bdeska\b/.test(n) && /(statyczn|izometr|\bhold\b|lokci|łokci|przedramion|przedni|przod|prone)/.test(n) && !/unoszen|\btap\b/.test(n))return 'sec';
+  if(/uginanie|leg\s*curl|hamstring\s*(leg\s*)?curl/.test(n))return 'kg';
+  if(/air\s*bike|assault\s*bike|echo\s*bike|fan\s*bike/.test(n))return 'min';
+  if(/\bwio[śs]larz\b|\browing\b|concept\s*2|ergometr wio/.test(n))return 'min';
+  if(/rower stacjonarny|rower poziomy|rower treningowy/.test(n))return 'min';
+  if(/orbitrek|eliptyk|elliptical|crosstrainer/.test(n))return 'min';
+  if(/bie[żz]nia|treadmill/.test(n))return 'min';
+  if(/ski\s*erg|skierg|ergometr narciarski/.test(n))return 'min';
+  if(/^(bieg|marsz|schody|skakanka|airbike|rower)$/i.test(String(name||'').trim()))return 'min';
+  return 'kg';
+}
+window.inferLoadUnitFromName=inferLoadUnitFromName;
+function exLoadUnit(nameOrEx, maybeEx){
+  let name='', ex=null;
+  if(nameOrEx&&typeof nameOrEx==='object'){
+    ex=nameOrEx;
+    name=ex.name||ex.n||'';
+  }else{
+    name=nameOrEx||'';
+    ex=maybeEx&&typeof maybeEx==='object'?maybeEx:null;
+  }
+  const stored=normalizeLoadUnit(ex&&(ex.loadUnit||ex.load));
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+  const fromLib=normalizeLoadUnit(lib&&(lib.load||lib.loadUnit));
+  const inferred=inferLoadUnitFromName(name)||'kg';
+  const resolved=fromLib||inferred;
+  if(stored==='kg'&&(resolved==='sec'||resolved==='min'||resolved==='m'))return resolved;
+  if(stored)return stored;
+  return resolved;
+}
+window.exLoadUnit=exLoadUnit;
+function formatPlanLoadSuffix(p, clientId){
+  if(!p)return '';
+  const unit=exLoadUnit(p);
+  if(p.pct1rm&&isWeightLoadUnit(unit)){
+    const w=typeof weightFromPct1RM==='function'?weightFromPct1RM(clientId,p.name,p.pct1rm):null;
+    return w&&w.kg?(' @'+p.pct1rm+'% → '+w.kg+'kg'):(' @'+p.pct1rm+'%');
+  }
+  if(p.kg==null||p.kg==='')return '';
+  return ' @'+p.kg+loadUnitSuffix(unit);
+}
+window.formatPlanLoadSuffix=formatPlanLoadSuffix;
+function formatSetLoad(kg,reps,nameOrEx){
+  const unit=exLoadUnit(nameOrEx);
+  const k=(kg==null||kg==='')?'—':String(kg);
+  const r=(reps==null||reps==='')?'—':String(reps);
+  return k+' '+loadUnitSuffix(unit)+' × '+r;
+}
+window.formatSetLoad=formatSetLoad;
+function exerciseSetVolumeKg(exercises){
+  return (exercises||[]).reduce((a,ex)=>{
+    if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(exLoadUnit(ex)))return a;
+    return a+(ex.sets||[]).filter(s=>s&&s.done&&s.kg).reduce((b,s)=>b+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0);
+  },0);
+}
+window.exerciseSetVolumeKg=exerciseSetVolumeKg;
+
+function loggedSetRows(clientId,name,sessions){
+  const key=exerciseNameKey(name);
+  if(!clientId||!key)return [];
+  const rows=[];
+  (sessions||window.SE||[]).forEach(s=>{
+    if(!s||s.clientId!==clientId)return;
+    (s.exercises||[]).forEach(ex=>{
+      if(exerciseNameKey(ex.name)!==key)return;
+      if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(exLoadUnit(ex)))return;
+      (typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[])).forEach(st=>{
+        const est=epley1RM(st&&st.kg,st&&st.reps);
+        if(est==null)return;
+        rows.push({
+          date:s.date||'',
+          createdAt:s.createdAt||'',
+          sessionId:s.id,
+          name:ex.name,
+          kg:parseFloat(st.kg),
+          reps:parseFloat(st.reps),
+          setNo:st.setNo||0,
+          epley:est
+        });
+      });
+    });
+  });
+  return rows.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||'')||(b.setNo||0)-(a.setNo||0));
+}
+window.loggedSetRows=loggedSetRows;
+
+function exercisePR(clientId,name,sessions){
+  const rows=loggedSetRows(clientId,name,sessions);
+  if(!rows.length)return null;
+  return rows.reduce((best,row)=>row.epley>(best.epley||0)?row:best);
+}
+window.exercisePR=exercisePR;
+
+function setBeatsPR(pr,kg,reps){
+  const est=epley1RM(kg,reps);
+  if(est==null||!pr||pr.epley==null)return false;
+  return est>pr.epley+0.05;
+}
+window.setBeatsPR=setBeatsPR;
+
+function prToastText(clientId,name,kg,reps,sessions){
+  const prev=exercisePR(clientId,name,sessions);
+  if(!setBeatsPR(prev,kg,reps))return '';
+  return '🏆 Rekord: '+name+' · '+formatSetLoad(kg,reps,name);
+}
+window.prToastText=prToastText;
+
+function superseriesToastText(nextEx,opts){
+  const ex=nextEx&&typeof nextEx==='object'?nextEx:{name:nextEx};
+  opts=opts||{};
+  const ss='Super-seria → '+(ex&&ex.ssLabel?ex.ssLabel+' ':'')+(ex&&ex.name?ex.name:'')+(opts.noRest?' (bez przerwy)':'');
+  return opts.prMsg?(opts.prMsg+' · '+ss):ss;
+}
+window.superseriesToastText=superseriesToastText;
+
+function clientExercisePRs(clientId,sessions){
+  const names=new Map();
+  (sessions||window.SE||[]).forEach(s=>{
+    if(!s||s.clientId!==clientId)return;
+    (s.exercises||[]).forEach(ex=>{
+      const key=exerciseNameKey(ex.name);
+      if(key&&!names.has(key))names.set(key,ex.name);
+    });
+  });
+  const prs=[];
+  names.forEach(name=>{
+    const pr=exercisePR(clientId,name,sessions);
+    if(pr)prs.push(Object.assign({name},pr));
+  });
+  return prs.sort((a,b)=>b.epley-a.epley);
+}
+window.clientExercisePRs=clientExercisePRs;
+
+function exerciseHistoryByDay(clientId,name,sessions){
+  const rows=loggedSetRows(clientId,name,sessions);
+  const map={};
+  const days=[];
+  rows.forEach(r=>{
+    const d=r.date||'';
+    if(!map[d]){
+      map[d]={date:d,sets:[],best:r};
+      days.push(map[d]);
+    }
+    map[d].sets.push(r);
+    if(r.epley>map[d].best.epley)map[d].best=r;
+  });
+  return days;
+}
+window.exerciseHistoryByDay=exerciseHistoryByDay;
+
+function mapPlanExercisesForClient(rawEx,clientId,plan,day){
+  const mapped=(rawEx||[]).map(raw=>{
+    const ex=parsePlanExercise(raw);
+    const alts=altsForExercise(ex.name,ex.alt);
+    const exerciseId=resolveExerciseId(ex);
+    const last=lastLoadForExercise(clientId,ex.name,alts,exerciseId?{exerciseId}:{});
+    const rest=parseRestSeconds(ex.rest);
+    const loadUnit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+    const pct=isWeightLoadUnit(loadUnit)?(ex.pct1rm||''):'';
+    const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
+    const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
+    const lockPct=!!pct;
+    const emom=isEmomExercise(ex);
+    const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
+    const progression=normalizePlanProgression(plan&&(plan.progression||plan.progressionType));
+    const sets=expandExerciseSets(ex,{last,plannedKg,lockPct,progression,waveN:last&&last.nSessions});
+    const row={
+      name:ex.name,
+      plannedName:ex.name,
+      alts,
+      restSec:rest,
+      tempo:ex.tempo||'',
+      rpe:ex.rpe||'',
+      rir:typeof plannedRir==='function'?plannedRir(ex):(ex.rir||''),
+      pct1rm:pct,
+      loadUnit,
+      kgHint:fromPct?fromPct.hint:'',
+      progHint:sets._progHint||'',
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:'',
+      lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
+      lastDate:last&&last.date||'',
+      lastSets:(last&&last.sets)||[],
+      lastHistory:(last&&last.history)||[],
+      ss:ex.ss||'',
+      wu:ex.ss?0:(ex.wu||0),
+      drop:ex.ss?0:(ex.drop||0),
+      dropStep:ex.ss?'':(ex.dropStep||''),
+      trans:ex.trans||'',
+      cluster:ex.ss?0:(ex.cluster||0),
+      rp:ex.ss?0:(ex.rp||0),
+      amrap:!!ex.amrap,
+      emom,
+      note:coach.note||'',
+      libTip:coach.libTip||'',
+      planNote:coach.note||'',
+      planVideo:normalizeCoachVideoUrl(ex.video||''),
+      video:coach.video||'',
+      videoEmbed:coach.videoEmbed||'',
+      isFile:!!coach.isFile,
+      gif:coach.gif||'',
+      img:coach.img||'',
+      sets
+    };
+    if(exerciseId)row.exerciseId=exerciseId;
+    return row;
+  });
+  applySsLabels(mapped);
+  applyCircuitStations(mapped,plan,day);
+  return mapped;
+}
+window.mapPlanExercisesForClient=mapPlanExercisesForClient;
+
+window.PROGRESS_PHOTOS=window.PROGRESS_PHOTOS||[];
+
+function ppFeatureOn(c){
+  if(!c)return true;
+  const s=c.clientSettings||{};
+  return s.progressPhoto!==false;
+}
+window.ppFeatureOn=ppFeatureOn;
+
+/** Per-client: masa / obwody / Garmin w Progress (domyślnie ON). */
+function bmFeatureOn(c){
+  if(!c)return true;
+  const s=c.clientSettings||{};
+  return s.bodyMetrics!==false;
+}
+window.bmFeatureOn=bmFeatureOn;
+
+function ppListFor(clientId){
+  return (window.PROGRESS_PHOTOS||[]).filter(p=>p.clientId===clientId)
+    .slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||'').localeCompare(b.createdAt||''));
+}
+window.ppListFor=ppListFor;
+
+function compressImageFile(file,max=720,quality=0.68){
+  return new Promise((resolve,reject)=>{
+    if(!file){reject(new Error('Brak pliku'));return;}
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let w=img.width,h=img.height;
+      const scale=Math.min(1,max/Math.max(w,h,1));
+      w=Math.max(1,Math.round(w*scale));
+      h=Math.max(1,Math.round(h*scale));
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.fillStyle='#111';
+      ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Nie udało się wczytać zdjęcia'));};
+    img.src=url;
+  });
+}
+window.compressImageFile=compressImageFile;
+
+const SESSION_RATING={
+  1:{emoji:'😓',label:'Bardzo ciężko'},
+  2:{emoji:'😐',label:'Ciężko'},
+  3:{emoji:'🙂',label:'OK'},
+  4:{emoji:'💪',label:'Dobre'},
+  5:{emoji:'🔥',label:'Świetne'}
+};
+window.SESSION_RATING=SESSION_RATING;
+
+function sessionRatingEmoji(n){
+  const r=SESSION_RATING[Number(n)];
+  return r?r.emoji:'';
+}
+window.sessionRatingEmoji=sessionRatingEmoji;
+
+function sessionRatingLabel(n){
+  const r=SESSION_RATING[Number(n)];
+  return r?(r.emoji+' '+r.label):'';
+}
+window.sessionRatingLabel=sessionRatingLabel;
+
+function isLiveDraftSession(s){
+  return !!(s&&s.source==='live-draft');
+}
+window.isLiveDraftSession=isLiveDraftSession;
+
+function isLoggedWorkout(s){
+  if(!s)return false;
+  if(s.source==='planned'||s.source==='garmin'||s.source==='live-draft')return false;
+  if(s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework')return true;
+  return Array.isArray(s.exercises)&&s.exercises.length>0;
+}
+window.isLoggedWorkout=isLoggedWorkout;
+
+function sessionIsRecorded(s){
+  if(!s)return false;
+  if(s.source==='garmin')return true;
+  return typeof isLoggedWorkout==='function'&&isLoggedWorkout(s);
+}
+window.sessionIsRecorded=sessionIsRecorded;
+
+function sessionIsSkipped(s){
+  if(!s)return false;
+  if(s.skipped===true)return true;
+  const st=String(s.status||s.skipStatus||'').toLowerCase();
+  return st==='opuszczony'||st==='skipped'||st==='missed';
+}
+window.sessionIsSkipped=sessionIsSkipped;
+
+function markSessionSkipped(plannedId){
+  const list=window.SE||[];
+  const p=list.find(s=>s&&s.id===plannedId);
+  if(!p)return null;
+  p.status='opuszczony';
+  p.skipped=true;
+  p.updatedAt=new Date().toISOString();
+  try{if(typeof persistById==='function')persistById('sessions',p);}catch(e){}
+  return p;
+}
+window.markSessionSkipped=markSessionSkipped;
+
+/** A recorded workout fulfils only its client's matching plan/day/date. */
+function sessionMatchesPlanned(planned,recorded){
+  if(!planned||!recorded||planned.id===recorded.id)return false;
+  if(!planned.clientId||planned.clientId!==recorded.clientId)return false;
+  if(!planned.date||String(planned.date).slice(0,10)!==String(recorded.date||'').slice(0,10))return false;
+  if(!isLoggedWorkout(recorded))return false;
+  if(String(planned.planId||'')!==String(recorded.planId||''))return false;
+  if(recorded.plannedSessionId)return recorded.plannedSessionId===planned.id;
+  if(planned.dayIdx!=null&&recorded.dayIdx!=null&&Number(planned.dayIdx)!==Number(recorded.dayIdx))return false;
+  return true;
+}
+window.sessionMatchesPlanned=sessionMatchesPlanned;
+
+function sessionHappened(s,sessions){
+  if(!s)return false;
+  if(sessionIsSkipped(s))return false;
+  if(sessionIsRecorded(s))return true;
+  if(!s.clientId||!s.date)return false;
+  const y=String(s.date).slice(0,10);
+  if(s.source!=='planned'&&typeof homeworkDoneOnDate==='function'&&homeworkDoneOnDate(s.clientId,y))return true;
+  const list=sessions||window.SE||[];
+  return list.some(o=>sessionMatchesPlanned(s,o));
+}
+window.sessionHappened=sessionHappened;
+
+function sessionHappenedTip(s,sessions){
+  if(!s)return '';
+  const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Trening');
+  const t=s.time||'';
+  const src=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):'';
+  const prefix=t?t+' · ':'';
+  if(s.source==='garmin')return prefix+title+' · Garmin (z zegarka)';
+  if(typeof isLoggedWorkout==='function'&&isLoggedWorkout(s)){
+    const how=s.source==='live'?'Live':s.source==='sala'?'sala':s.source==='client'?'aplikacja klienta':'zapisany trening';
+    const n=(s.exercises||[]).length;
+    const fb=s.feedback?' · ocena '+s.feedback+'/5':'';
+    return prefix+'✓ Odbył się ('+how+') · '+title+(n?' · '+n+' ćw.':'')+fb;
+  }
+  if(sessionHappened(s,sessions))return prefix+title+' · ✓ odbył się (jest zapis z tego dnia)';
+  return prefix+title+(src?' · '+src:'')+' · zaplanowany';
+}
+window.sessionHappenedTip=sessionHappenedTip;
+
+/** Zapis sali z terminu w kalendarzu — dzień się liczy, bez wymuszania kg. */
+async function logClientSessionFromPlanned(plannedId,sessions,opts){
+  opts=opts||{};
+  const auth={uid:window._uid,generation:window.tenantSessionGeneration};
+  const cid=window._clientId,tid=window._trainerId;
+  const current=()=>window._clientAppMode&&window._uid===auth.uid&&window._clientId===cid&&window._trainerId===tid&&
+    (!window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(auth));
+  if(!auth.uid||!cid||!tid||!current())return null;
+  const list=sessions||window.SE||[];
+  const p=list.find(s=>s&&s.id===plannedId);
+  if(!p||p.source!=='planned'||p.clientId!==cid||p.trainerId!==tid||!/^\d{4}-\d{2}-\d{2}$/.test(p.date||''))return null;
+  const existing=list.find(s=>sessionMatchesPlanned(p,s));
+  if(existing&&(existing.clientId!==cid||existing.trainerId!==tid||existing.source!=='sala'))return null;
+  const feedback=Math.max(0,Math.min(5,parseInt(opts.feedback,10)||0));
+  if(!feedback)return null;
+  const duration=Math.max(1,parseInt(opts.duration,10)||parseInt(p.duration,10)||60);
+  const plan=(window.PL||[]).find(x=>x&&x.id===p.planId&&x.clientId===cid&&x.trainerId===tid);
+  const day=plan&&Array.isArray(plan.days)?plan.days[p.dayIdx]:null;
+  const candidate=existing?{...existing,feedback,duration,note:opts.note||existing.note||'',updatedAt:new Date().toISOString()}:{
+    id:'sala_'+p.id,trainerId:tid,clientId:cid,date:p.date,time:p.time||'',type:p.type||'Trening personalny',
+    duration,exercises:day&&Array.isArray(day.exercises)?day.exercises.map(e=>({name:(e&&e.name)||e,sets:[]})).filter(e=>e.name):[],
+    source:'sala',plannedSessionId:p.id,planId:p.planId||null,dayIdx:p.dayIdx!=null?p.dayIdx:null,
+    feedback,note:opts.note||'Oznaczone z kalendarza (trening na sali)',createdAt:new Date().toISOString()
+  };
+  const save=typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+  if(!save)return null;
+  let saved;
+  try{saved=await save('sessions',candidate);}catch(e){return null;}
+  if(!saved||!current())return null;
+  // Only a confirmed client record enters Progress. Package settlement stays with the trainer.
+  const committed=existing||list.find(s=>s&&s.id===candidate.id);
+  if(committed)Object.assign(committed,candidate);else list.push(candidate);
+  if(sessions==null)window.SE=list;
+  return committed||candidate;
+}
+window.logClientSessionFromPlanned=logClientSessionFromPlanned;
+
+function logSessionFromPlanned(plannedId,sessions,opts){
+  if(window._clientAppMode)return logClientSessionFromPlanned(plannedId,sessions,opts);
+  opts=opts||{};
+  const list=sessions||window.SE||[];
+  const p=list.find(s=>s&&s.id===plannedId);
+  if(!p||!p.clientId||!p.date)return null;
+  const y=String(p.date).slice(0,10);
+  const existing=list.find(s=>sessionMatchesPlanned(p,s));
+  if(existing){
+    if(opts.feedback!=null&&opts.feedback!=='')existing.feedback=Math.max(1,Math.min(5,parseInt(opts.feedback,10)||existing.feedback||0));
+    if(opts.duration!=null&&opts.duration!=='')existing.duration=Math.max(1,parseInt(opts.duration,10)||existing.duration||60);
+    if(opts.note)existing.note=opts.note;
+    existing.updatedAt=new Date().toISOString();
+    if(sessions==null)window.SE=list;
+    const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+    if(save)try{save('sessions',existing);}catch(e){}
+    return existing;
+  }
+  let exercises=[];
+  const plan=(window.PL||[]).find(x=>x&&x.id===p.planId);
+  const day=plan&&Array.isArray(plan.days)?plan.days[p.dayIdx]:null;
+  if(day&&Array.isArray(day.exercises)){
+    exercises=day.exercises.map(e=>({name:(e&&e.name)||e,sets:[]})).filter(e=>e.name);
+  }
+  const feedback=Math.max(0,Math.min(5,parseInt(opts.feedback,10)||0));
+  const duration=Math.max(1,parseInt(opts.duration,10)||parseInt(p.duration,10)||60);
+  const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
+    id:typeof newId==='function'?newId('s'):('s'+Date.now()),
+    clientId:p.clientId,
+    date:y,
+    time:p.time||'',
+    type:p.type||'Trening personalny',
+    duration:duration,
+    exercises,
+    source:'sala',
+    plannedSessionId:p.id,
+    planId:p.planId||null,
+    dayIdx:p.dayIdx!=null?p.dayIdx:null,
+    feedback:feedback,
+    note:opts.note||'Oznaczone z kalendarza (trening na sali)',
+    createdAt:new Date().toISOString()
+  });
+  list.push(sess);
+  if(sessions==null)window.SE=list;
+  if(!opts.skipPackage){
+    try{if(typeof consumeClientPackageSession==='function')consumeClientPackageSession(p.clientId,{date:y,session:sess,sessions:list});}catch(e){}
+  }
+  const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+  if(save)try{save('sessions',sess);}catch(e){}
+  return sess;
+}
+window.logSessionFromPlanned=logSessionFromPlanned;
+
+function openSalaDoneModal(plannedId){
+  const p=(window.SE||[]).find(s=>s&&s.id===plannedId);
+  if(!p){if(typeof notify==='function')notify('Nie znaleziono terminu');return;}
+  const y=String(p.date||'').slice(0,10);
+  const already=(window.SE||[]).find(s=>sessionMatchesPlanned(p,s));
+  if(already){
+    if(typeof notify==='function')notify('Ten dzień ma już zapis treningu');
+    return already;
+  }
+  let m=document.getElementById('m-sala-done');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-sala-done';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:420px;">
+      <div class="modal-hdr"><div class="modal-title">TRENING NA SALI</div><button class="modal-close" type="button" onclick="closeM('m-sala-done')">×</button></div>
+      <div class="modal-body">
+        <div id="sala-done-title" style="font-size:13px;font-weight:700;margin-bottom:6px;"></div>
+        <div id="sala-done-sub" style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Bez Live tonaż zostaje 0 — zapisz ocenę i czas, żeby dzień wszedł do Postępów.</div>
+        <div class="form-field"><label class="form-lbl">Ocena (1–5)</label>
+          <div id="sala-done-rate-row" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Czas (min)</label><input type="number" class="form-input" id="sala-done-min" min="10" max="180" inputmode="numeric"></div>
+        <div class="form-field"><label class="form-lbl">Notatka (opcjonalnie)</label><textarea class="form-textarea" id="sala-done-note" rows="2" placeholder="np. dobra energia, bez bólu kolana"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" type="button" onclick="closeM('m-sala-done')">Anuluj</button><button class="btn btn-primary" type="button" id="sala-done-save" onclick="saveSalaDone()">Zapisz do Postępów</button></div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  window._salaDoneId=plannedId;
+  window._salaDoneFeedback=0;
+  const c=(window.CL||[]).find(x=>x.id===p.clientId);
+  const title=document.getElementById('sala-done-title');
+  if(title)title.textContent=(c&&c.name?c.name+' · ':'')+(p.type||'Trening')+' · '+y;
+  const min=document.getElementById('sala-done-min');
+  if(min)min.value=String(parseInt(p.duration,10)||60);
+  const note=document.getElementById('sala-done-note');
+  if(note)note.value='';
+  const row=document.getElementById('sala-done-rate-row');
+  const map=typeof SESSION_RATING!=='undefined'?SESSION_RATING:{1:{emoji:'1'},2:{emoji:'2'},3:{emoji:'3'},4:{emoji:'4'},5:{emoji:'5'}};
+  if(row){
+    row.innerHTML=[1,2,3,4,5].map(n=>{
+      const lab=(map[n]&&map[n].emoji)?map[n].emoji+' '+n:String(n);
+      return `<button type="button" class="btn btn-ghost btn-sm sala-rate-btn" data-rate="${n}" onclick="pickSalaDoneRate(${n})">${lab}</button>`;
+    }).join('');
+  }
+  if(typeof openM==='function')openM('m-sala-done');
+  else m.classList.add('show');
+}
+function pickSalaDoneRate(n){
+  window._salaDoneFeedback=Math.max(1,Math.min(5,parseInt(n,10)||0));
+  document.querySelectorAll('.sala-rate-btn').forEach(el=>{
+    const on=el.getAttribute('data-rate')===String(window._salaDoneFeedback);
+    el.classList.toggle('btn-primary',on);
+    el.classList.toggle('btn-ghost',!on);
+  });
+}
+async function saveSalaDone(){
+  const id=window._salaDoneId;
+  const feedback=parseInt(window._salaDoneFeedback,10)||0;
+  if(!feedback){if(typeof notify==='function')notify('Wybierz ocenę 1–5');return;}
+  const duration=parseInt((document.getElementById('sala-done-min')||{}).value,10)||60;
+  const note=String((document.getElementById('sala-done-note')||{}).value||'').trim();
+  const auth={uid:window._uid,generation:window.tenantSessionGeneration};
+  const button=document.getElementById('sala-done-save');
+  if(button&&button.disabled)return;
+  if(button)button.disabled=true;
+  let sess;
+  try{sess=await logSessionFromPlanned(id,null,{feedback,duration,note:note||undefined});}
+  catch(e){sess=null;}
+  finally{if(button)button.disabled=false;}
+  if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(auth))return;
+  if(!sess){if(typeof notify==='function')notify('Nie udało się zapisać treningu. Spróbuj ponownie.');return;}
+  if(typeof closeM==='function')closeM('m-sala-done');
+  const p=(window.SE||[]).find(s=>s&&s.id===id);
+  const c=(window.CL||[]).find(x=>x.id===(p&&p.clientId));
+  try{if(c&&typeof renderCPTraining==='function'&&window.cpClientId===c.id)renderCPTraining(c);}catch(e){}
+  try{if(typeof renderCal==='function')renderCal();}catch(e){}
+  if(window._clientAppMode&&typeof renderClientLive==='function'){
+    window._cliveSessionId=sess.id;
+    renderClientLive();
+  }
+  if(typeof notify==='function'){
+    const pkg=(window.PACKAGES||[]).find(x=>x&&sess&&sess.pkgTick&&x.clientId===(p&&p.clientId));
+    const leftTxt=pkg?(' · pakiet '+pkg.sessionsUsed+'/'+pkg.sessions):'';
+    notify('Zapisano trening na sali · ocena '+feedback+'/5 · '+duration+' min'+leftTxt);
+  }
+  try{if(!window._clientAppMode&&typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(p&&p.clientId);}catch(e){}
+  return sess;
+}
+window.openSalaDoneModal=openSalaDoneModal;
+window.pickSalaDoneRate=pickSalaDoneRate;
+window.saveSalaDone=saveSalaDone;
+
+function completedWorkouts(clientId,sessions){
+  return(sessions||window.SE||[]).filter(s=>s&&s.clientId===clientId&&isLoggedWorkout(s))
+    .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+}
+window.completedWorkouts=completedWorkouts;
+
+function ymdInPastWindow(ymd,days,todayY){
+  const y=String(ymd||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return false;
+  const n=days==null?30:Number(days);
+  if(!Number.isFinite(n))return false;
+  const today=todayY||(typeof todayYmd==='function'?todayYmd():'');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(today))return false;
+  const a=new Date(y+'T12:00:00').getTime();
+  const b=new Date(today+'T12:00:00').getTime();
+  if(!a||!b||isNaN(a)||isNaN(b))return false;
+  const diff=Math.round((b-a)/86400000);
+  return diff>=0&&diff<=n;
+}
+window.ymdInPastWindow=ymdInPastWindow;
+
+function homeworkDoneYmd(t){
+  if(!t)return '';
+  const y=String(t.doneAt||t.updatedAt||t.completedAt||'').slice(0,10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(y)?y:'';
+}
+window.homeworkDoneYmd=homeworkDoneYmd;
+
+function homeworkCompletions(clientId,days){
+  const n=days==null?30:days;
+  return(window.TASKS||[]).filter(t=>{
+    if(!t||t.clientId!==clientId||t.status!=='done')return false;
+    if(typeof isHomework==='function'? !isHomework(t):!(t.kind==='homework'||t.odWorkoutId||t.odProgramId))return false;
+    const y=homeworkDoneYmd(t);
+    if(!y)return false;
+    return ymdInPastWindow(y,n);
+  });
+}
+window.homeworkCompletions=homeworkCompletions;
+
+function homeworkDoneOnDate(clientId,ymd){
+  const y=String(ymd||'').slice(0,10);
+  if(!clientId||!y)return false;
+  return(window.TASKS||[]).some(t=>t&&t.clientId===clientId&&t.status==='done'&&(typeof isHomework==='function'?isHomework(t):(t.kind==='homework'||t.odWorkoutId||t.odProgramId))&&homeworkDoneYmd(t)===y);
+}
+window.homeworkDoneOnDate=homeworkDoneOnDate;
+
+function homeworkRpeToFeedback(rpe){
+  const n=parseInt(rpe,10);
+  if(!Number.isFinite(n)||n<=0)return 0;
+  return Math.max(1,Math.min(5,Math.round(n/2)));
+}
+window.homeworkRpeToFeedback=homeworkRpeToFeedback;
+
+/** Zapis zadania domowego do historii (Postępy): RPE + czas, source homework. */
+function logHomeworkSession(task,opts){
+  opts=opts||{};
+  if(!task||!task.clientId)return null;
+  const list=opts.sessions||window.SE||[];
+  const y=String(opts.date||homeworkDoneYmd(task)||(typeof todayYmd==='function'?todayYmd():'')||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return null;
+  const existing=list.find(s=>s&&s.source==='homework'&&s.taskId===task.id);
+  if(existing){
+    if(opts.rpe!=null&&opts.rpe!=='')existing.rpe=String(opts.rpe);
+    if(opts.duration!=null&&opts.duration!=='')existing.duration=Math.max(1,parseInt(opts.duration,10)||existing.duration||1);
+    if(existing.rpe)existing.feedback=homeworkRpeToFeedback(existing.rpe);
+    if(opts.note)existing.note=opts.note;
+    existing.updatedAt=new Date().toISOString();
+    if(opts.sessions==null)window.SE=list;
+    const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+    if(save)try{save('sessions',existing);}catch(e){}
+    return existing;
+  }
+  const rpe=opts.rpe!=null&&opts.rpe!==''?String(opts.rpe):'';
+  const duration=Math.max(1,parseInt(opts.duration,10)||parseInt(opts.time,10)||0);
+  const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x&&x.id===task.odWorkoutId);
+  const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
+    id:typeof newId==='function'?newId('s'):('s'+Date.now()),
+    clientId:task.clientId,
+    date:y,
+    time:opts.timeOfDay||'',
+    type:task.title||(w&&w.name)||'Zadanie domowe',
+    duration:duration||(w&&w.time)||0,
+    exercises:[],
+    source:'homework',
+    taskId:task.id,
+    odWorkoutId:task.odWorkoutId||null,
+    rpe:rpe,
+    feedback:homeworkRpeToFeedback(rpe),
+    note:opts.note||'',
+    createdAt:new Date().toISOString()
+  });
+  list.push(sess);
+  if(opts.sessions==null)window.SE=list;
+  const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+  if(save)try{save('sessions',sess);}catch(e){}
+  return sess;
+}
+window.logHomeworkSession=logHomeworkSession;
+
+/** Adherencja: unikalne dni. Licznik = Live / apka / zadanie domowe. Mianownik = dni z kalendarza (plan). */
+function clientAdherenceStats(clientId,days){
+  const n=days==null?30:days;
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.date);
+  let planned=sessions.filter(s=>s.source==='planned'&&ymdInPastWindow(s.date,n));
+  if(typeof cpAssignmentSessions==='function'){
+    try{
+      planned=cpAssignmentSessions(clientId,{keepPlanned:true}).filter(s=>s&&s.source==='planned'&&ymdInPastWindow(s.date,n));
+    }catch(e){}
+  }
+  const assignedDates=new Set();
+  planned.forEach(s=>assignedDates.add(String(s.date).slice(0,10)));
+  const loggedDates=new Set();
+  completedWorkouts(clientId,sessions).forEach(s=>{
+    if(ymdInPastWindow(s.date,n))loggedDates.add(String(s.date).slice(0,10));
+  });
+  homeworkCompletions(clientId,n).forEach(t=>{
+    const y=homeworkDoneYmd(t);
+    if(y)loggedDates.add(y);
+  });
+  const assigned=assignedDates.size;
+  const logged=loggedDates.size;
+  const denom=assigned||logged;
+  const pct=denom?Math.round((logged/denom)*100):0;
+  return{assigned,logged,pct:Math.min(100,pct)};
+}
+window.clientAdherenceStats=clientAdherenceStats;
+
+function sessionSetsCount(s){
+  if(!s||!s.exercises)return 0;
+  return s.exercises.reduce((n,e)=>{
+    if(Array.isArray(e.sets))return n+e.sets.length;
+    const k=parseInt(e.sets,10);
+    return n+(Number.isFinite(k)?k:0);
+  },0);
+}
+window.sessionSetsCount=sessionSetsCount;
+
+function avgSessionRating(sessions){
+  const nums=(sessions||[]).map(s=>Number(s.feedback)).filter(n=>n>=1&&n<=5);
+  if(!nums.length)return 0;
+  return Math.round((nums.reduce((a,b)=>a+b,0)/nums.length)*10)/10;
+}
+window.avgSessionRating=avgSessionRating;
+
+function sessionTitle(s){
+  if(s&&s.source==='garmin')return s.notes||s.type||s.title||'Garmin';
+  return (s&&(s.type||s.title))||'Trening';
+}
+window.sessionTitle=sessionTitle;
+
+function sessionSourceLabel(s){
+  if(!s)return '';
+  if(s.source==='garmin')return 'Garmin';
+  if(s.source==='client')return 'Klient';
+  if(s.source==='live')return 'Live';
+  if(s.source==='sala')return 'Sala';
+  if(s.source==='planned')return 'Plan';
+  if(s.source==='live-draft')return 'Szkic Live';
+  return 'Sala';
+}
+window.sessionSourceLabel=sessionSourceLabel;
+
+function snapshotFormQuestions(form){
+  return((form&&form.questions)||[]).map(q=>({
+    id:q.id,type:q.type,text:q.text,required:!!q.required,
+    options:Array.isArray(q.options)?q.options.slice():undefined
+  }));
+}
+window.snapshotFormQuestions=snapshotFormQuestions;
+
+function formQuestionsForSend(send,forms){
+  if(send&&Array.isArray(send.questions)&&send.questions.length)return send.questions;
+  const list=forms||(typeof allForms==='function'?allForms():[]);
+  const f=list.find(x=>x&&send&&x.id===send.formId);
+  return(f&&f.questions)||[];
+}
+window.formQuestionsForSend=formQuestionsForSend;
+
+function formSendAnswersMap(send){
+  const a=send&&send.answers;
+  if(!a)return{};
+  if(!Array.isArray(a))return a;
+  const m={};
+  a.forEach((item,i)=>{
+    if(item&&typeof item==='object'&&item.id!=null)m[item.id]=item.value;
+    else if(item!=null&&item!=='')m['q'+(i+1)]=item;
+  });
+  return m;
+}
+window.formSendAnswersMap=formSendAnswersMap;
+
+function formatFormAnswer(q,val){
+  if(val==null||String(val).trim()==='')return '—';
+  const v=String(val);
+  if(q&&q.type==='yesno'){
+    if(v==='tak'||v==='true'||v==='Tak'||v==='1')return 'Tak';
+    if(v==='nie'||v==='false'||v==='Nie'||v==='0')return 'Nie';
+  }
+  return v;
+}
+window.formatFormAnswer=formatFormAnswer;
+
+function missingRequiredFormAnswers(questions,answers){
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  return(questions||[]).filter(q=>q&&q.required&&(map[q.id]==null||String(map[q.id]).trim()===''));
+}
+window.missingRequiredFormAnswers=missingRequiredFormAnswers;
+
+function pendingFormSends(clientId,sends){
+  return(sends||window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId&&s.status!=='filled');
+}
+window.pendingFormSends=pendingFormSends;
+
+function allPendingFormSends(sends){
+  const list=sends||window.FORM_SENDS||[];
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return list.filter(s=>s&&s.status!=='filled'&&s.clientId&&(!live.size||live.has(s.clientId)))
+    .slice()
+    .sort((a,b)=>String(b.sentAtIso||b.createdAt||'').localeCompare(String(a.sentAtIso||a.createdAt||'')));
+}
+window.allPendingFormSends=allPendingFormSends;
+
+function defaultIntakeForm(){
+  const forms=typeof allForms==='function'?allForms():[];
+  return forms.find(f=>f&&f.id==='df1')
+    ||forms.find(f=>f&&String(f.cat||'').includes('wstepna'))
+    ||forms.find(f=>f&&/wst[eę]p|ankieta|intake|onboard/i.test(String(f.name||'')))
+    ||null;
+}
+window.defaultIntakeForm=defaultIntakeForm;
+
+function clientIntakeFormState(clientId){
+  const form=defaultIntakeForm();
+  const sends=(window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId);
+  const forForm=form?sends.filter(s=>s.formId===form.id):sends;
+  const filledSend=forForm.find(s=>s.status==='filled')||null;
+  const pending=forForm.find(s=>s.status!=='filled')||null;
+  const anyPending=sends.filter(s=>s.status!=='filled');
+  return{
+    form,
+    filled:!!filledSend,
+    filledSend,
+    pending:pending||null,
+    anyPending,
+    sent:!!(filledSend||pending||forForm.length)
+  };
+}
+window.clientIntakeFormState=clientIntakeFormState;
+
+function applyFormSubmit(send,answers,nowIso){
+  if(!send)return{ok:false,error:'missing'};
+  if(send.status==='filled')return{ok:false,error:'already'};
+  const qs=formQuestionsForSend(send);
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  const missing=missingRequiredFormAnswers(qs,map);
+  if(missing.length)return{ok:false,error:'required',missing};
+  send.status='filled';
+  send.answers=map;
+  send.filledAt=nowIso||new Date().toISOString();
+  let intakeSync=null;
+  if(typeof syncClientFromIntakeForm==='function'){
+    try{intakeSync=syncClientFromIntakeForm(send);}catch(e){console.warn('syncClientFromIntakeForm',e);}
+  }
+  return{ok:true,send,intakeSync:intakeSync||null};
+}
+window.applyFormSubmit=applyFormSubmit;
+
+// ── Wcześniejsze sporty / profil wytrzymałość vs siła (planowanie) ──
+const PRIOR_SPORTS_CATALOG=[
+  {id:'running',label:'Bieganie',icon:'🏃',endurance:9,strength:3},
+  {id:'cycling',label:'Kolarstwo',icon:'🚴',endurance:8,strength:4},
+  {id:'swimming',label:'Pływanie',icon:'🏊',endurance:8,strength:4},
+  {id:'football',label:'Piłka nożna',icon:'⚽',endurance:7,strength:5},
+  {id:'basketball',label:'Koszykówka',icon:'🏀',endurance:6,strength:6},
+  {id:'gym',label:'Siłownia',icon:'🏋️',endurance:4,strength:9},
+  {id:'crossfit',label:'CrossFit',icon:'🔥',endurance:7,strength:7},
+  {id:'martial',label:'Sztuki walki',icon:'🥋',endurance:6,strength:6},
+  {id:'yoga',label:'Joga / pilates',icon:'🧘',endurance:5,strength:3},
+  {id:'hiking',label:'Turystyka / góry',icon:'⛰️',endurance:7,strength:5},
+  {id:'nordic_walking',label:'Nordic walking',icon:'🚶',endurance:8,strength:3},
+  {id:'team',label:'Sporty zespołowe',icon:'🤾',endurance:6,strength:5},
+];
+const SPORT_ID_ALIASES={
+  nordic_walking:['nordic_walking','nordic-walking','nordicwalking','nordic walking','nw','kije'],
+  football:['football','soccer','pilka','piłka','piłka nożna','pilka nozna','piłka_nożna'],
+  running:['running','bieg','bieganie'],
+  cycling:['cycling','kolarstwo','rower'],
+  swimming:['swimming','pływanie','plywanie'],
+  basketball:['basketball','koszykówka','koszykowka'],
+  gym:['gym','siłownia','silownia'],
+  crossfit:['crossfit'],
+  martial:['martial','sztuki walki'],
+  yoga:['yoga','pilates'],
+  hiking:['hiking','góry','gory','turystyka'],
+  team:['team','sporty zespołowe','sporty druzynowe']
+};
+const SPORT_TRAINING_LOAD={
+  running:{muscles:'łydki, dwugłowe, czworogłowe, ścięgno Achillesa',gym:'Mniej skoków i ciężkiego cardio. Objętość nóg w dolnej MAV; dodaj uginanie nordyckie i łydki.'},
+  cycling:{muscles:'czworogłowe, biodra, prostowniki',gym:'Mniej wypychania nóg dzień po długiej kolarce; więcej łańcucha tylnego i core.'},
+  swimming:{muscles:'barki, najszersze, core',gym:'Ostrożnie z ciężkim wyciskaniem/OHP; więcej face pull / rotator cuff.'},
+  football:{muscles:'przywodziciele, dwugłowe, czworogłowe, łydki, zmiana kierunku',gym:'Prewencja: deska kopenhaska, uginanie nordyckie, jednonóż. Przy meczu w niedzielę — bez ciężkich nóg w sobotę i poniedziałek.'},
+  basketball:{muscles:'łydki, czworogłowe, ścięgna, barki',gym:'Mniej plyometrii w okolicy meczów; więcej dwugłowych i core.'},
+  gym:{muscles:'objętość siłowa ogólna',gym:'Traktuj jako bazę siłową — nie dokładaj zbędnego cardio kosztem regeneracji.'},
+  crossfit:{muscles:'pełne ciało, barki, odcinek lędźwiowy',gym:'Pilnuj sumy serii (łatwo przekroczyć MRV). Mniej metconu w dniach siłowni.'},
+  martial:{muscles:'biodra, core, barki',gym:'Rotacje/core i mobilność bioder; unikaj max effort nóg dzień przed sparingiem.'},
+  yoga:{muscles:'mobilność, core',gym:'Można trzymać wyższą objętość siłową; wykorzystaj mobilność do głębszego ROM.'},
+  hiking:{muscles:'czworogłowe, łydki, prostowniki, barki (plecak)',gym:'Unikaj długiego cardio dzień po górskiej wycieczce; dodaj jednonóż i core.'},
+  nordic_walking:{muscles:'łydki, core, barki/czworoboczny (kije), prostowniki, objętość marszu nóg',gym:'Nie dokładaj ciężkiego cardio. Dodaj pracę unilateralną nóg, core oraz face pull / wiosło pod kije. Objętość nóg na siłowni w dolnej MAV.'},
+  team:{muscles:'nogi, zmiana kierunku, barki',gym:'Prewencja przywodzicieli i dwugłowych; nie max nogi w dniu meczu.'}
+};
+const ACTIVITY_INTENSITY_LABELS={low:'niska',medium:'średnia',high:'wysoka'};
+const ACTIVITY_LEVEL_LABELS={
+  sedentary:'Siedzący tryb życia',
+  light:'Lekka aktywność (spacery)',
+  moderate:'Umiarkowana aktywność',
+  active:'Aktywny (regularny trening)'
+};
+function resolveSportId(raw){
+  const s=String(raw||'').toLowerCase().trim().replace(/[\s-]+/g,'_');
+  if(!s)return'';
+  if(PRIOR_SPORTS_CATALOG.some(x=>x.id===s))return s;
+  for(const id in SPORT_ID_ALIASES){
+    if(SPORT_ID_ALIASES[id].some(a=>a.replace(/[\s-]+/g,'_')===s||a===String(raw||'').toLowerCase().trim()))return id;
+  }
+  return s;
+}
+function normalizeIntensity(raw){
+  const s=String(raw||'').toLowerCase().trim();
+  if(/^(low|niska|light|lekka)$/.test(s))return'low';
+  if(/^(high|wysoka|hard|wysoki)$/.test(s))return'high';
+  return'medium';
+}
+function normalizePriorSports(list){
+  if(!list)return[];
+  const arr=Array.isArray(list)?list:(typeof list==='string'?list.split(','):[]);
+  const out=[];
+  arr.forEach(item=>{
+    const id=resolveSportId(typeof item==='object'&&item?item.sport||item.id:item);
+    if(id&&out.indexOf(id)<0)out.push(id);
+  });
+  return out;
+}
+function normalizeAdditionalActivities(list){
+  if(!list)return[];
+  const arr=Array.isArray(list)?list:(typeof list==='string'?[]:[list]);
+  const seen={};
+  const out=[];
+  arr.forEach(item=>{
+    if(!item)return;
+    if(typeof item==='string'){
+      const id=resolveSportId(item);
+      if(!id||seen[id])return;
+      seen[id]=1;
+      out.push({sport:id,frequency_per_week:1,intensity:'medium',notes:''});
+      return;
+    }
+    const id=resolveSportId(item.sport||item.id);
+    if(!id||seen[id])return;
+    seen[id]=1;
+    const freq=parseInt(item.frequency_per_week||item.freq||item.times||1,10);
+    out.push({
+      sport:id,
+      frequency_per_week:Math.max(1,Math.min(7,freq||1)),
+      intensity:normalizeIntensity(item.intensity),
+      notes:String(item.notes||item.note||'').trim()
+    });
+  });
+  return out;
+}
+function mergeActivitiesWithSports(activities,sportIds){
+  const acts=normalizeAdditionalActivities(activities);
+  const ids=normalizePriorSports(sportIds);
+  const byId={};
+  acts.forEach(a=>{byId[a.sport]=a;});
+  ids.forEach(id=>{if(!byId[id])byId[id]={sport:id,frequency_per_week:1,intensity:'medium',notes:''};});
+  const order=acts.length?acts.map(a=>a.sport).concat(ids.filter(id=>!acts.some(a=>a.sport===id))):ids;
+  return order.filter((id,i)=>order.indexOf(id)===i).map(id=>byId[id]).filter(Boolean);
+}
+function clientAdditionalActivities(c){
+  const acts=normalizeAdditionalActivities(c&&c.additional_activities);
+  if(acts.length)return acts;
+  return normalizePriorSports(c&&c.priorSports).map(sport=>({sport,frequency_per_week:1,intensity:'medium',notes:''}));
+}
+function sportCatalogItem(id){
+  return PRIOR_SPORTS_CATALOG.find(x=>x.id===id)||null;
+}
+function intensityWeight(int){
+  return int==='high'?1.3:int==='low'?0.7:1;
+}
+function clientSportProfile(c){
+  const acts=clientAdditionalActivities(c);
+  const ids=acts.map(a=>a.sport);
+  const sports=ids.map(sportCatalogItem).filter(Boolean);
+  let endurance=3,strength=3;
+  if(sports.length){
+    let eSum=0,sSum=0,wSum=0;
+    acts.forEach(a=>{
+      const sp=sportCatalogItem(a.sport);
+      if(!sp)return;
+      const w=(a.frequency_per_week||1)*intensityWeight(a.intensity);
+      eSum+=sp.endurance*w;
+      sSum+=sp.strength*w;
+      wSum+=w;
+    });
+    if(wSum){
+      endurance=Math.round(eSum/wSum);
+      strength=Math.round(sSum/wSum);
+    }
+  }
+  const act=c&&c.activityLevel;
+  if(act==='active')endurance=Math.min(10,endurance+1);
+  else if(act==='sedentary')endurance=Math.max(1,endurance-1);
+  let bias='balanced';
+  if(endurance-strength>=2)bias='endurance';
+  else if(strength-endurance>=2)bias='strength';
+  return {endurance,strength,bias,labels:sports.map(s=>s.label),sports,ids,activities:acts};
+}
+function formatActivityShort(a){
+  const sp=sportCatalogItem(a.sport);
+  const lab=sp?sp.label:a.sport;
+  const freq=a.frequency_per_week?a.frequency_per_week+'×':'';
+  const int=ACTIVITY_INTENSITY_LABELS[a.intensity]||'';
+  return lab+(freq?' '+freq:'')+(int?' ('+int+')':'');
+}
+function clientSportProfileLabel(c){
+  const p=clientSportProfile(c);
+  if(!p.labels.length&&!(c&&c.activityLevel)&&!(c&&c.sportNotes))return'';
+  const biasLabel={endurance:'predyspozycja wytrzymałościowa',strength:'predyspozycja siłowa',balanced:'profil zrównoważony'}[p.bias];
+  const parts=[];
+  if(p.activities&&p.activities.length)parts.push('Sporty: '+p.activities.map(formatActivityShort).join(', '));
+  else if(p.labels.length)parts.push('Sporty: '+p.labels.join(', '));
+  if(c&&c.activityLevel&&ACTIVITY_LEVEL_LABELS[c.activityLevel])parts.push(ACTIVITY_LEVEL_LABELS[c.activityLevel]);
+  parts.push(biasLabel);
+  return parts.join(' · ');
+}
+function additionalActivitiesAnalyzer(c){
+  const acts=clientAdditionalActivities(c);
+  if(!acts.length)return'';
+  let txt='AKTYWNOŚCI DODATKOWE (poza siłownią) — OBOWIĄZKOWE:\n';
+  txt+='Przeanalizuj aktywności dodatkowe podopiecznego. Jeśli aktywność obciąża dane partie, zmniejsz na nie objętość na siłowni (RIR/serie) lub dodaj ćwiczenia kompensacyjne/profilaktyczne.\n';
+  acts.forEach(a=>{
+    const sp=sportCatalogItem(a.sport);
+    const load=SPORT_TRAINING_LOAD[a.sport]||{};
+    txt+='- '+(sp?sp.label:a.sport)+': '+a.frequency_per_week+'×/tydzień, intensywność '+(ACTIVITY_INTENSITY_LABELS[a.intensity]||a.intensity);
+    if(a.notes)txt+=' — '+a.notes;
+    txt+='.\n';
+    if(load.muscles)txt+='  Obciąża: '+load.muscles+'.\n';
+    if(load.gym)txt+='  Korekta siłowni: '+load.gym+'\n';
+  });
+  txt+='W JSON MUSISZ wypełnić pole "adaptation_notes" (1–3 zdania): konkretnie co zmniejszono (partie, serie/%, RIR) i jakie ćwiczenia prewencyjne dodano. Jeśli nic nie zmieniasz — napisz dlaczego.\n';
+  return txt;
+}
+function clientSportProfileForAI(c){
+  if(!c)return'';
+  const p=clientSportProfile(c);
+  const extra=additionalActivitiesAnalyzer(c);
+  if(!p.labels.length&&!c.activityLevel&&!c.sportNotes&&!extra)return'';
+  let txt='TŁO SPORTOWE I AKTYWNOŚĆ (obowiązkowo uwzględnij przy doborze objętości, zakresów powtórzeń i pracy kondycyjnej):\n';
+  if(p.activities&&p.activities.length)txt+='- Wcześniejsze sporty/aktywności: '+p.activities.map(formatActivityShort).join(', ')+'\n';
+  else if(p.labels.length)txt+='- Wcześniejsze sporty/aktywności: '+p.labels.join(', ')+'\n';
+  if(c.activityLevel)txt+='- Dotychczasowa aktywność: '+(ACTIVITY_LEVEL_LABELS[c.activityLevel]||c.activityLevel)+'\n';
+  if(c.sportNotes)txt+='- Uwagi sportowe: '+c.sportNotes+'\n';
+  txt+='- Indeks wytrzymałości: '+p.endurance+'/10 · indeks siły bazowej: '+p.strength+'/10\n';
+  if(p.bias==='endurance'){
+    txt+='- WNIOSEK: dominacja wytrzymałościowa (np. biegacz / Nordic walking) — więcej pracy aerobowej i wyższych zakresów powtórzeń, mniejszy startowy nacisk na maksymalne obciążenia siłowe; szybsza adaptacja cardio, wolniejsza siła absolutna.\n';
+  }else if(p.bias==='strength'){
+    txt+='- WNIOSEK: dominacja siłowa — szybsza progresja obciążeń, niższe zakresy powtórzeń, mniej objętości cardio; wykorzystaj istniejącą bazę siłową.\n';
+  }else{
+    txt+='- WNIOSEK: profil zrównoważony — standardowa periodyzacja objętość/intensywność.\n';
+  }
+  if(extra)txt+='\n'+extra;
+  return txt;
+}
+function additionalActivitiesRowsHTML(activities,prefix){
+  const acts=normalizeAdditionalActivities(activities);
+  const rows=acts.map(a=>{
+    const sp=sportCatalogItem(a.sport);
+    const name=(sp?(sp.icon+' '+sp.label):a.sport);
+    const freqOpts=[1,2,3,4,5,6,7].map(n=>'<option value="'+n+'"'+(n===a.frequency_per_week?' selected':'')+'>'+n+'×/tydz</option>').join('');
+    const intOpts=[{id:'low',l:'Niska'},{id:'medium',l:'Średnia'},{id:'high',l:'Wysoka'}].map(x=>'<option value="'+x.id+'"'+(x.id===a.intensity?' selected':'')+'>'+x.l+'</option>').join('');
+    return '<div class="addl-act-row" data-sport="'+a.sport+'" style="display:grid;grid-template-columns:minmax(110px,1.2fr) 92px 110px;gap:6px;align-items:center;margin-top:8px;">'+
+      '<div style="font-size:12px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+name+'</div>'+
+      '<select class="form-select addl-act-freq" style="font-size:12px;padding:6px 8px;">'+freqOpts+'</select>'+
+      '<select class="form-select addl-act-int" style="font-size:12px;padding:6px 8px;">'+intOpts+'</select>'+
+      '<input class="form-input addl-act-notes" style="grid-column:1/-1;font-size:12px;" placeholder="np. mecz w niedzielę, 8–10 km" value="'+(typeof escHtml==='function'?escHtml(a.notes||''):(a.notes||'').replace(/"/g,'&quot;'))+'">'+
+    '</div>';
+  }).join('');
+  return '<div id="'+prefix+'-addl-acts" class="addl-acts" style="margin-top:8px;">'+
+    (acts.length?'<div style="font-size:10px;color:var(--muted);font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;">Częstotliwość i intensywność</div>':'')+
+    rows+'</div>';
+}
+function sportBackgroundFormHTML(selected,prefix,activities){
+  const ids=normalizePriorSports(selected);
+  const acts=mergeActivitiesWithSports(activities,ids);
+  return priorSportsChipsHTML(ids,prefix)+additionalActivitiesRowsHTML(acts,prefix);
+}
+function priorSportsChipsHTML(selected,prefix,onclickFn){
+  const sel=new Set(normalizePriorSports(selected));
+  const fn=onclickFn||("togglePriorSportChip(this,'"+prefix+"')");
+  return '<div class="prior-sports-grid" id="'+prefix+'-prior-sports" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px;">'+
+    PRIOR_SPORTS_CATALOG.map(s=>{
+      const on=sel.has(s.id);
+      return '<button type="button" class="prior-sport-chip'+(on?' active':'')+'" data-sport="'+s.id+'" onclick="'+fn+'" style="padding:8px 6px;border-radius:10px;border:1px solid '+(on?'var(--accent)':'var(--border2)')+';background:'+(on?'var(--adim)':'var(--s3)')+';cursor:pointer;font-size:11px;text-align:center;color:var(--text);">'+
+        '<span style="font-size:16px;display:block;margin-bottom:2px;">'+s.icon+'</span>'+s.label+
+      '</button>';
+    }).join('')+'</div>';
+}
+function readPriorSportsFrom(prefix){
+  const root=document.getElementById(prefix+'-prior-sports');
+  if(!root)return[];
+  return[...root.querySelectorAll('.prior-sport-chip.active')].map(b=>b.dataset.sport).filter(Boolean);
+}
+function readAdditionalActivitiesFrom(prefix){
+  const root=document.getElementById(prefix+'-addl-acts');
+  const rows=root?[...root.querySelectorAll('.addl-act-row')]:[];
+  const fromRows=rows.map(row=>({
+    sport:row.getAttribute('data-sport'),
+    frequency_per_week:Math.max(1,Math.min(7,parseInt(row.querySelector('.addl-act-freq')?.value,10)||1)),
+    intensity:normalizeIntensity(row.querySelector('.addl-act-int')?.value),
+    notes:(row.querySelector('.addl-act-notes')?.value||'').trim()
+  })).filter(a=>a.sport);
+  if(fromRows.length)return fromRows;
+  return readPriorSportsFrom(prefix).map(sport=>({sport,frequency_per_week:1,intensity:'medium',notes:''}));
+}
+function readSportBackgroundFrom(prefix){
+  const additional_activities=readAdditionalActivitiesFrom(prefix);
+  return {priorSports:additional_activities.map(a=>a.sport),additional_activities};
+}
+function renderAdditionalActivityRows(prefix,activities){
+  const ids=readPriorSportsFrom(prefix);
+  const prev=normalizeAdditionalActivities(activities).filter(a=>ids.indexOf(a.sport)>=0);
+  const merged=ids.map(id=>prev.find(a=>a.sport===id)||{sport:id,frequency_per_week:1,intensity:'medium',notes:''});
+  const html=additionalActivitiesRowsHTML(merged,prefix);
+  const root=document.getElementById(prefix+'-addl-acts');
+  if(root){
+    root.outerHTML=html;
+    return;
+  }
+  const chips=document.getElementById(prefix+'-prior-sports');
+  if(chips&&chips.parentNode){
+    const wrap=document.createElement('div');
+    wrap.innerHTML=html;
+    if(wrap.firstChild)chips.parentNode.insertBefore(wrap.firstChild,chips.nextSibling);
+  }
+}
+function setPriorSportsChips(prefix,ids){
+  const root=document.getElementById(prefix+'-prior-sports');
+  if(!root)return;
+  const sel=new Set(normalizePriorSports(ids));
+  root.querySelectorAll('.prior-sport-chip').forEach(b=>{
+    const on=sel.has(b.dataset.sport);
+    b.classList.toggle('active',on);
+    b.style.borderColor=on?'var(--accent)':'var(--border2)';
+    b.style.background=on?'var(--adim)':'var(--s3)';
+  });
+}
+function togglePriorSportChip(btn,prefix){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  const on=btn.classList.contains('active');
+  btn.style.borderColor=on?'var(--accent)':'var(--border2)';
+  btn.style.background=on?'var(--adim)':'var(--s3)';
+  const prev=readAdditionalActivitiesFrom(prefix);
+  renderAdditionalActivityRows(prefix,prev);
+}
+window.PRIOR_SPORTS_CATALOG=PRIOR_SPORTS_CATALOG;
+window.SPORT_TRAINING_LOAD=SPORT_TRAINING_LOAD;
+window.ACTIVITY_LEVEL_LABELS=ACTIVITY_LEVEL_LABELS;
+window.ACTIVITY_INTENSITY_LABELS=ACTIVITY_INTENSITY_LABELS;
+window.normalizePriorSports=normalizePriorSports;
+window.normalizeAdditionalActivities=normalizeAdditionalActivities;
+window.mergeActivitiesWithSports=mergeActivitiesWithSports;
+window.clientAdditionalActivities=clientAdditionalActivities;
+window.additionalActivitiesAnalyzer=additionalActivitiesAnalyzer;
+window.clientSportProfile=clientSportProfile;
+window.clientSportProfileLabel=clientSportProfileLabel;
+window.clientSportProfileForAI=clientSportProfileForAI;
+window.priorSportsChipsHTML=priorSportsChipsHTML;
+window.additionalActivitiesRowsHTML=additionalActivitiesRowsHTML;
+window.sportBackgroundFormHTML=sportBackgroundFormHTML;
+window.readPriorSportsFrom=readPriorSportsFrom;
+window.readAdditionalActivitiesFrom=readAdditionalActivitiesFrom;
+window.readSportBackgroundFrom=readSportBackgroundFrom;
+window.setPriorSportsChips=setPriorSportsChips;
+window.togglePriorSportChip=togglePriorSportChip;
+window.renderAdditionalActivityRows=renderAdditionalActivityRows;
+
+// ── Priorytet sylwetkowy (weak points / focus muscles) ──
+const PHYSIQUE_PRIORITY_CATALOG=[
+  {id:'upper_chest',label:'Góra klatki',icon:'⬆️'},
+  {id:'mid_chest',label:'Środek klatki',icon:'🫁'},
+  {id:'lats',label:'Szerokość pleców',icon:'🦇'},
+  {id:'upper_back',label:'Góra pleców',icon:'🔙'},
+  {id:'side_delts',label:'Boczny bark',icon:'📐'},
+  {id:'rear_delts',label:'Tył barku',icon:'↩️'},
+  {id:'front_delts',label:'Przód barku',icon:'➡️'},
+  {id:'biceps',label:'Biceps',icon:'💪'},
+  {id:'triceps',label:'Triceps',icon:'🔱'},
+  {id:'quads',label:'Czworogłowe',icon:'🦵'},
+  {id:'hamstrings',label:'Dwugłowe',icon:'🦿'},
+  {id:'glutes',label:'Pośladki',icon:'🍑'},
+  {id:'calves',label:'Łydki',icon:'🦶'},
+  {id:'abs',label:'Brzuch / core',icon:'🎯'},
+];
+const PHYSIQUE_PRIORITY_MAP=Object.fromEntries(PHYSIQUE_PRIORITY_CATALOG.map(p=>[p.id,p]));
+function normalizePhysiquePriority(ids){
+  if(!ids)return[];
+  const arr=Array.isArray(ids)?ids:String(ids).split(/[,;|]/).map(s=>s.trim()).filter(Boolean);
+  const known=new Set(PHYSIQUE_PRIORITY_CATALOG.map(p=>p.id));
+  return[...new Set(arr.map(x=>String(x).trim()).filter(id=>known.has(id)))];
+}
+function physiquePriorityLabel(id){
+  return(PHYSIQUE_PRIORITY_MAP[id]&&PHYSIQUE_PRIORITY_MAP[id].label)||id||'';
+}
+function physiquePriorityChipsHTML(selected,prefix,onclickFn){
+  const sel=new Set(normalizePhysiquePriority(selected));
+  const fn=onclickFn||("togglePhysiquePriorityChip(this,'"+prefix+"')");
+  return '<div class="physique-priority-grid" id="'+prefix+'-physique-priority" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;">'+
+    PHYSIQUE_PRIORITY_CATALOG.map(p=>{
+      const on=sel.has(p.id);
+      return '<button type="button" class="physique-priority-chip'+(on?' active':'')+'" data-priority="'+p.id+'" onclick="'+fn+'" style="padding:8px 6px;border-radius:10px;border:1px solid '+(on?'var(--accent)':'var(--border2)')+';background:'+(on?'var(--adim)':'var(--s3)')+';cursor:pointer;font-size:11px;text-align:center;color:var(--text);">'+
+        '<span style="font-size:15px;display:block;margin-bottom:2px;">'+p.icon+'</span>'+p.label+
+      '</button>';
+    }).join('')+'</div>';
+}
+function readPhysiquePriorityFrom(prefix){
+  const root=document.getElementById(prefix+'-physique-priority');
+  if(!root)return[];
+  return[...root.querySelectorAll('.physique-priority-chip.active')].map(b=>b.dataset.priority).filter(Boolean);
+}
+function setPhysiquePriorityChips(prefix,ids){
+  const root=document.getElementById(prefix+'-physique-priority');
+  if(!root)return;
+  const sel=new Set(normalizePhysiquePriority(ids));
+  root.querySelectorAll('.physique-priority-chip').forEach(b=>{
+    const on=sel.has(b.dataset.priority);
+    b.classList.toggle('active',on);
+    b.style.borderColor=on?'var(--accent)':'var(--border2)';
+    b.style.background=on?'var(--adim)':'var(--s3)';
+  });
+}
+function togglePhysiquePriorityChip(btn){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  const on=btn.classList.contains('active');
+  btn.style.borderColor=on?'var(--accent)':'var(--border2)';
+  btn.style.background=on?'var(--adim)':'var(--s3)';
+}
+function initPhysiquePriorityForm(prefix,selected){
+  const mountId=prefix+'-physique-priority-mount';
+  const mount=document.getElementById(mountId);
+  if(mount&&typeof physiquePriorityChipsHTML==='function'){
+    mount.outerHTML=physiquePriorityChipsHTML(selected||[],prefix);
+    return;
+  }
+  const direct=document.getElementById(prefix+'-physique-priority');
+  if(direct&&typeof setPhysiquePriorityChips==='function')setPhysiquePriorityChips(prefix,selected||[]);
+}
+/** Kontuzje: preferuj dedykowane pole, fallback na notes (stare karty). */
+function clientInjuriesText(c){
+  if(!c)return'';
+  const inj=String(c.injuries||'').trim();
+  if(inj)return inj;
+  return String(c.notes||'').trim();
+}
+function clientPhysiquePriorityForAI(c,overrideIds){
+  const ids=normalizePhysiquePriority(overrideIds!=null?overrideIds:(c&&c.physiquePriority));
+  if(!ids.length)return'';
+  const labels=ids.map(physiquePriorityLabel).filter(Boolean);
+  return'- PRIORYTET SYLWETKOWY (weak points): '+labels.join(', ')+'. Te partie MUSZĄ być 1-2 pierwszymi ćwiczeniami w sesjach, które je stymulują (świeży układ nerwowy). Preferuj maszyny/wyciągi/suwnicę i warianty w pozycji wydłużonej (stretch-mediated).\n';
+}
+window.PHYSIQUE_PRIORITY_CATALOG=PHYSIQUE_PRIORITY_CATALOG;
+window.PHYSIQUE_PRIORITY_MAP=PHYSIQUE_PRIORITY_MAP;
+window.normalizePhysiquePriority=normalizePhysiquePriority;
+window.physiquePriorityLabel=physiquePriorityLabel;
+window.physiquePriorityChipsHTML=physiquePriorityChipsHTML;
+window.readPhysiquePriorityFrom=readPhysiquePriorityFrom;
+window.setPhysiquePriorityChips=setPhysiquePriorityChips;
+window.togglePhysiquePriorityChip=togglePhysiquePriorityChip;
+window.initPhysiquePriorityForm=initPhysiquePriorityForm;
+window.clientInjuriesText=clientInjuriesText;
+window.clientPhysiquePriorityForAI=clientPhysiquePriorityForAI;
+
+// ── Częstotliwość i preferowane dni tygodnia (karta → AI → kalendarz) ──
+const WEEKDAY_TRAIN_OPTIONS=[
+  {id:1,label:'Pon',key:'PON'},
+  {id:2,label:'Wt',key:'WT'},
+  {id:3,label:'Śr',key:'ŚR'},
+  {id:4,label:'Czw',key:'CZ'},
+  {id:5,label:'Pt',key:'PT'},
+  {id:6,label:'Sob',key:'SO'},
+  {id:0,label:'Nd',key:'ND'}
+];
+function normalizeTrainingFreq(v){
+  const n=parseInt(v,10);
+  if(!n||n<2)return 0;
+  return Math.min(6,n);
+}
+function foldPlKey(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'l').trim();
+}
+/** Kanon na karcie klienta: M / K (onboarding bywa „mężczyzna” / „kobieta”). */
+function normalizeClientGender(g){
+  const s=foldPlKey(g).replace(/\s+/g,'');
+  if(!s)return'';
+  if(s==='k'||s==='f'||s==='female'||s==='kobieta'||s==='woman'||s==='w')return'K';
+  if(s==='m'||s==='male'||s==='mezczyzna'||s==='man')return'M';
+  return'';
+}
+function genderForAplSelect(g){
+  const n=normalizeClientGender(g);
+  return n==='K'?'kobieta':n==='M'?'mężczyzna':'';
+}
+const APL_EQ_GYM_DEFAULT=['Sztanga i wolne ciężary','Maszyny siłowe','Wyciągi i linki','Hantle','Drążek i poręcze'];
+const APL_EQ_BUTTONS=[
+  {val:'Sztanga i wolne ciężary',aliases:['sztanga','wolne','barbell']},
+  {val:'Maszyny siłowe',aliases:['maszyn','machine']},
+  {val:'Wyciągi i linki',aliases:['wyciag','cable','linki']},
+  {val:'Hantle',aliases:['hantl','dumbbell']},
+  {val:'Drążek i poręcze',aliases:['drazek','porecz','pullup','pull-up']},
+  {val:'Bez sprzętu',aliases:['bez sprzetu','none','bodyweight','home']}
+];
+function mapStoredEquipmentToApl(raw){
+  const items=Array.isArray(raw)?raw.slice():(raw?String(raw).split(/[,;|]/).map(s=>s.trim()).filter(Boolean):[]);
+  if(!items.length)return[];
+  const folded=items.map(foldPlKey).filter(Boolean);
+  if(folded.some(s=>s==='gym'||s==='pelna silownia'||s==='siłownia'||s==='silownia'))return APL_EQ_GYM_DEFAULT.slice();
+  const out=[];
+  APL_EQ_BUTTONS.forEach(btn=>{
+    const bv=foldPlKey(btn.val);
+    const hit=folded.some(s=>{
+      if(s===bv||(s.length>=4&&(bv.includes(s)||s.includes(bv))))return true;
+      return btn.aliases.some(a=>s===a||s.includes(a)||(a.length>=4&&a.includes(s)));
+    });
+    if(hit&&!out.includes(btn.val))out.push(btn.val);
+  });
+  return out;
+}
+function clientAvailableEquipment(c){
+  if(!c)return[];
+  return mapStoredEquipmentToApl(c.availableEquipment||c.equipment||c.equip||[]);
+}
+/** Domyślne dni tygodnia dla danej częstotliwości (JS getDay: 0=Nd…6=Sob). */
+function defaultWeekdaysForFreq(freq){
+  const n=normalizeTrainingFreq(freq);
+  if(n===2)return[1,4];
+  if(n===3)return[1,3,5];
+  if(n===4)return[1,2,4,5];
+  if(n===5)return[1,2,3,4,5];
+  if(n===6)return[1,2,3,4,5,6];
+  return[];
+}
+function ymdWeekday(ymd){
+  const d=new Date(String(ymd||'').slice(0,10)+'T12:00:00');
+  if(isNaN(d.getTime()))return -1;
+  return d.getDay();
+}
+function clientPreferredWeekdays(client){
+  if(!client)return null;
+  const pref=normalizePreferredWeekdays(client.preferredWeekdays);
+  if(pref.length)return pref;
+  const freq=normalizeTrainingFreq(client.trainingFreq);
+  if(freq)return defaultWeekdaysForFreq(freq);
+  return null;
+}
+function hasPlannedSessionOnDate(clientId,dateYmd){
+  const day=String(dateYmd||'').slice(0,10);
+  if(!clientId||!day)return false;
+  return(window.SE||[]).some(s=>s&&s.clientId===clientId&&s.date===day&&s.source==='planned');
+}
+/** Czy klient ma trening w harmonogramie (preferowane dni lub wpis planned w kalendarzu). */
+function isClientTrainingDay(clientId,dateYmd,clientOpt){
+  const day=String(dateYmd||(typeof todayYmd==='function'?todayYmd():'')).slice(0,10);
+  if(!clientId||!day)return true;
+  if(hasPlannedSessionOnDate(clientId,day))return true;
+  const c=clientOpt||(window.CL||[]).find(x=>x&&x.id===clientId);
+  const wds=clientPreferredWeekdays(c);
+  if(!wds||!wds.length)return true;
+  const dow=ymdWeekday(day);
+  if(dow<0)return true;
+  return wds.indexOf(dow)>=0;
+}
+function nextClientTrainingDayYmd(clientId,fromYmd){
+  const start=String(fromYmd||(typeof todayYmd==='function'?todayYmd():'')).slice(0,10);
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  const wds=clientPreferredWeekdays(c);
+  if(!wds||!wds.length)return null;
+  for(let i=1;i<=14;i++){
+    const y=typeof ymdAdd==='function'?ymdAdd(start,i):'';
+    if(!y)continue;
+    if(wds.indexOf(ymdWeekday(y))>=0)return y;
+  }
+  return null;
+}
+function formatTrainingDayShortPl(ymd){
+  const dow=ymdWeekday(ymd);
+  const w=WEEKDAY_TRAIN_OPTIONS.find(x=>x.id===dow);
+  if(!w)return String(ymd||'');
+  const d=new Date(String(ymd||'').slice(0,10)+'T12:00:00');
+  if(isNaN(d.getTime()))return w.label;
+  const mon=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
+  return w.label+' '+d.getDate()+' '+mon[d.getMonth()];
+}
+function preferredWeekdaysLabels(ids){
+  const list=normalizePreferredWeekdays(ids);
+  return list.map(id=>{
+    const w=WEEKDAY_TRAIN_OPTIONS.find(x=>x.id===id);
+    return w?w.label:String(id);
+  });
+}
+function normalizePreferredWeekdays(list){
+  if(!list)return[];
+  const arr=Array.isArray(list)?list:String(list).split(/[,;|]/).map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  arr.forEach(x=>{
+    if(typeof x==='number'&&x>=0&&x<=6){out.push(x);return;}
+    const s=String(x).toUpperCase();
+    const hit=WEEKDAY_TRAIN_OPTIONS.find(w=>w.key===s||w.label.toUpperCase()===s||String(w.id)===s);
+    if(hit&&!out.includes(hit.id))out.push(hit.id);
+    else{
+      const n=parseInt(x,10);
+      if(!isNaN(n)&&n>=0&&n<=6&&!out.includes(n))out.push(n);
+    }
+  });
+  return out;
+}
+function preferredWeekdaysChipsHTML(selected,prefix){
+  const sel=new Set(normalizePreferredWeekdays(selected));
+  return '<div class="preferred-weekdays-grid" id="'+prefix+'-preferred-weekdays" style="display:flex;flex-wrap:wrap;gap:6px;">'+
+    WEEKDAY_TRAIN_OPTIONS.map(w=>{
+      const on=sel.has(w.id);
+      return '<button type="button" class="preferred-weekday-chip'+(on?' active':'')+'" data-wd="'+w.id+'" onclick="togglePreferredWeekdayChip(this)" style="min-width:42px;padding:7px 10px;border-radius:8px;border:1px solid '+(on?'var(--accent)':'var(--border2)')+';background:'+(on?'var(--adim)':'var(--s3)')+';cursor:pointer;font-size:11px;font-weight:600;color:var(--text);">'+w.label+'</button>';
+    }).join('')+'</div>';
+}
+function readPreferredWeekdaysFrom(prefix){
+  const root=document.getElementById(prefix+'-preferred-weekdays');
+  if(!root)return[];
+  return[...root.querySelectorAll('.preferred-weekday-chip.active')].map(b=>parseInt(b.dataset.wd,10)).filter(n=>!isNaN(n));
+}
+function setPreferredWeekdayChips(prefix,ids){
+  const root=document.getElementById(prefix+'-preferred-weekdays');
+  if(!root)return;
+  const sel=new Set(normalizePreferredWeekdays(ids));
+  root.querySelectorAll('.preferred-weekday-chip').forEach(b=>{
+    const on=sel.has(parseInt(b.dataset.wd,10));
+    b.classList.toggle('active',on);
+    b.style.borderColor=on?'var(--accent)':'var(--border2)';
+    b.style.background=on?'var(--adim)':'var(--s3)';
+  });
+}
+function togglePreferredWeekdayChip(btn){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  const on=btn.classList.contains('active');
+  btn.style.borderColor=on?'var(--accent)':'var(--border2)';
+  btn.style.background=on?'var(--adim)':'var(--s3)';
+}
+function initPreferredWeekdaysForm(prefix,selected){
+  const mount=document.getElementById(prefix+'-preferred-weekdays-mount');
+  if(mount){mount.outerHTML=preferredWeekdaysChipsHTML(selected||[],prefix);return;}
+  const direct=document.getElementById(prefix+'-preferred-weekdays');
+  if(direct)setPreferredWeekdayChips(prefix,selected||[]);
+}
+const CLIENT_ONBOARD_STEPS=[
+  {id:'invite',label:'Zaproszenie',missing:'brak zaproszenia'},
+  {id:'intake',label:'Ankieta',missing:'brak wypełnionej ankiety'},
+  {id:'baseline',label:'Pomiary',missing:'brak pomiarów'},
+  {id:'schedule',label:'Harmonogram',missing:'brak dni treningowych'},
+  {id:'plan',label:'Plan',missing:'brak planu'},
+  {id:'calendar',label:'Kalendarz',missing:'brak w kalendarzu'},
+  {id:'package',label:'Pakiet',missing:'brak pakietu'}
+];
+function clientHasSchedulePrefs(c){
+  return normalizePreferredWeekdays(c&&c.preferredWeekdays).length>0;
+}
+function clientHasAssignedPlan(clientId){
+  return(window.PL||[]).some(p=>p&&p.clientId===clientId);
+}
+/** Najpóźniejsza zaplanowana sesja (source=planned) klienta. */
+function clientLastPlannedYmd(clientId){
+  if(!clientId)return'';
+  const dates=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.source==='planned'&&s.date)
+    .map(s=>String(s.date).slice(0,10)).filter(Boolean).sort();
+  return dates.length?dates[dates.length-1]:'';
+}
+window.clientLastPlannedYmd=clientLastPlannedYmd;
+
+/** Plan klienta do dopełnienia kalendarza (najnowszy z dniami treningowymi). */
+function clientPlanForCalendar(clientId){
+  if(!clientId)return null;
+  const list=(window.PL||[]).filter(p=>p&&p.clientId===clientId&&(p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length));
+  if(!list.length)return null;
+  return list.slice().sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')))[0];
+}
+window.clientPlanForCalendar=clientPlanForCalendar;
+
+/**
+ * Klient z planem, którego ostatnia sesja planned jest ≤ withinDays od dziś
+ * (albo brak planned) — trzeba dopełnić kalendarz.
+ */
+function clientNeedsCalendarRefill(c,withinDays){
+  if(!c||c.status==='archived')return false;
+  const plan=clientPlanForCalendar(c.id);
+  if(!plan)return false;
+  const days=withinDays==null?7:withinDays;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const last=clientLastPlannedYmd(c.id);
+  if(!last)return{client:c,plan,last:'',urgency:'empty'};
+  const horizon=typeof ymdAdd==='function'?ymdAdd(today,days):today;
+  if(last>horizon)return false;
+  return{client:c,plan,last,urgency:last<today?'past':'soon'};
+}
+window.clientNeedsCalendarRefill=clientNeedsCalendarRefill;
+
+function clientsNeedingCalendarRefill(withinDays){
+  return(window.CL||[]).filter(c=>c&&c.status!=='archived')
+    .map(c=>clientNeedsCalendarRefill(c,withinDays))
+    .filter(Boolean)
+    .sort((a,b)=>{
+      const u={past:0,empty:1,soon:2};
+      return(u[a.urgency]||9)-(u[b.urgency]||9)||String(a.last||'').localeCompare(String(b.last||''));
+    });
+}
+window.clientsNeedingCalendarRefill=clientsNeedingCalendarRefill;
+
+/** Nowe zdjęcia sylwetki od klientów (source=client), ostatnie N dni. */
+function recentClientProgressPhotos(withinDays){
+  const days=withinDays==null?14:withinDays;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const from=typeof ymdAdd==='function'?ymdAdd(today,-days):today;
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(window.PROGRESS_PHOTOS||[]).filter(p=>{
+    if(!p||!p.clientId||(live.size&&!live.has(p.clientId)))return false;
+    if(p.source&&p.source!=='client')return false;
+    const d=String(p.date||p.createdAt||'').slice(0,10);
+    return d&&d>=from;
+  }).slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
+}
+window.recentClientProgressPhotos=recentClientProgressPhotos;
+
+function clientHasCalendarOrSession(clientId){
+  return(window.SE||[]).some(s=>s&&s.clientId===clientId&&(s.source==='planned'||s.source==='live'||s.source==='client'));
+}
+function clientOnboardHasBaseline(c){
+  if(!c)return false;
+  if(typeof clientHasBaseline==='function')return clientHasBaseline(c.id);
+  if(c.baselineDone)return true;
+  return(window.METRIC_ENTRIES||[]).some(e=>e&&e.clientId===c.id&&(e.groupId==='mg1'||e.groupId==='mg2'));
+}
+function packagesForClient(clientId){
+  if(!clientId)return[];
+  const pkgs=typeof allPackages==='function'?allPackages():(window.PACKAGES||[]);
+  return pkgs.filter(p=>p&&p.clientId===clientId);
+}
+function clientHasPackage(c){
+  if(!c)return false;
+  if(c.packageSkipped)return true;
+  return packagesForClient(c.id).length>0;
+}
+function clientPackageExpired(p,todayY){
+  if(!p)return true;
+  if(p.status==='expired'||p.payStatus==='expired')return true;
+  const exp=String(p.expiresDate||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(exp))return false;
+  const today=todayY||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  return !!today&&exp<today;
+}
+/** Opłacony pakiet sesji, z którego można zdjąć wizytę (Live albo sala). */
+function clientPaidPackageForSession(clientId){
+  if(!clientId)return null;
+  return(window.PACKAGES||[]).filter(p=>p&&p.clientId===clientId&&p.payStatus==='paid'&&(p.sessions||0)>(p.sessionsUsed||0)&&p.status!=='expired'&&!(typeof clientPackageExpired==='function'&&clientPackageExpired(p)))
+    .sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0]||null;
+}
+function sessionConsumedPackageOnDay(clientId,dateY,sessions){
+  const y=String(dateY||'').slice(0,10);
+  if(!clientId||!y)return false;
+  return(sessions||window.SE||[]).some(s=>s&&s.clientId===clientId&&String(s.date).slice(0,10)===y&&s.pkgTick);
+}
+/** Jedna wizyta = jedna sesja pakietu na dany dzień (Live i sala współdzielą). */
+function consumeClientPackageSession(clientId,opts){
+  opts=opts||{};
+  if(!clientId)return null;
+  const dateY=String(opts.date||(opts.session&&opts.session.date)||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10))).slice(0,10);
+  const list=opts.sessions||window.SE||[];
+  if(opts.session&&opts.session.pkgTick)return null;
+  if(sessionConsumedPackageOnDay(clientId,dateY,list))return null;
+  const pkg=clientPaidPackageForSession(clientId);
+  if(!pkg)return null;
+  pkg.sessionsUsed=(pkg.sessionsUsed||0)+1;
+  if(opts.session)opts.session.pkgTick=true;
+  if(opts.persist!==false&&typeof persistById==='function'){
+    try{persistById('packages',pkg);}catch(e){}
+  }
+  const left=Math.max(0,(pkg.sessions||0)-pkg.sessionsUsed);
+  if(opts.notify!==false&&typeof addNotification==='function'&&left<=1){
+    const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+    addNotification('alert',left===0?'Pakiet wyczerpany':'Ostatnia sesja w pakiecie',((c&&c.name)||'')+' — '+(pkg.title||'Pakiet'),'payments');
+  }
+  return pkg;
+}
+function clientAccessMode(c){
+  if(!c)return 'open';
+  const m=String(c.accessMode||'').toLowerCase();
+  if(m==='trial'||c.trialAccess)return 'trial';
+  if(m==='guest'||c.guestAccess)return 'guest';
+  if(m==='standard')return 'standard';
+  if(c.packageSkipped)return 'guest';
+  return 'standard';
+}
+/**
+ * Dostęp do kalendarza / Live.
+ * Brak pakietu = otwarte (trener bez płatności). Trial / Gość omija bramę.
+ * Nieopłacony lub wygasły pakiet bez flagi = blokada.
+ */
+function clientHasPaidAccess(clientId){
+  const id=typeof clientId==='string'?clientId:(clientId&&clientId.id);
+  const c=(window.CL||[]).find(x=>x&&x.id===id)||(clientId&&typeof clientId==='object'?clientId:null);
+  const cid=(c&&c.id)||id;
+  if(!cid)return{ok:true,reason:'noid'};
+  const mode=clientAccessMode(c||{id:cid});
+  if(mode==='trial')return{ok:true,reason:'trial',mode};
+  if(mode==='guest')return{ok:true,reason:'guest',mode};
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const pkgs=(window.PACKAGES||[]).filter(p=>p&&p.clientId===cid);
+  const paid=pkgs.filter(p=>p.payStatus==='paid'&&!clientPackageExpired(p,today));
+  if(paid.length)return{ok:true,reason:'paid',mode:'standard',pkg:paid[0]};
+  const unpaid=pkgs.filter(p=>p.payStatus==='pending'&&p.status!=='expired');
+  if(unpaid.length)return{ok:false,reason:'unpaid',mode:'standard',unpaid};
+  if(pkgs.length)return{ok:false,reason:'expired',mode:'standard'};
+  return{ok:true,reason:'no-package',mode:'open'};
+}
+function clientPaidAccessLabel(r){
+  const x=r||{};
+  if(x.reason==='trial')return 'Trial — bez zejścia sesji pakietu';
+  if(x.reason==='guest')return 'Gość — pakiet niewymagany';
+  if(x.reason==='paid')return 'Pakiet opłacony';
+  if(x.reason==='unpaid')return 'Pakiet nieopłacony';
+  if(x.reason==='expired')return 'Pakiet wygasł';
+  return '';
+}
+function assertClientPaidAccess(clientId){
+  const r=clientHasPaidAccess(clientId);
+  if(r.ok)return true;
+  const who=(((window.CL||[]).find(x=>x&&x.id===clientId)||{}).name)||'Klient';
+  const msg=r.reason==='unpaid'
+    ?who+' ma nieopłacony pakiet — oznacz Opłacony albo ustaw Trial / Gość.'
+    :who+' — pakiet wygasł. Przedłuż pakiet albo ustaw Trial / Gość.';
+  if(typeof notify==='function')notify(msg);
+  return false;
+}
+function setClientAccessMode(clientId,mode){
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  if(!c)return null;
+  const m=String(mode||'standard').toLowerCase();
+  if(m==='trial'){c.accessMode='trial';c.trialAccess=true;c.guestAccess=false;}
+  else if(m==='guest'){c.accessMode='guest';c.guestAccess=true;c.trialAccess=false;c.packageSkipped=true;}
+  else {c.accessMode='standard';c.trialAccess=false;c.guestAccess=false;}
+  const save=typeof persistById==='function'?persistById:(typeof window!=='undefined'&&window.persistById);
+  if(save)try{save('clients',c);}catch(e){}
+  try{if(typeof renderCPPayments==='function'&&window.cpClientId===c.id)renderCPPayments(c);}catch(e){}
+  try{if(typeof renderCPOverview==='function'&&window.cpClientId===c.id)renderCPOverview(c);}catch(e){}
+  try{if(typeof renderLiveClientCard==='function'){renderLiveClientCard(0);renderLiveClientCard(1);}}catch(e){}
+  try{if(typeof liveBindSessionButtons==='function'){liveBindSessionButtons(0);liveBindSessionButtons(1);}}catch(e){}
+  if(typeof notify==='function')notify(m==='trial'?'Trial włączony':m==='guest'?'Gość — pakiet niewymagany':'Dostęp z pakietu');
+  return c;
+}
+function normalizeClientEmail(s){
+  return String(s||'').trim().toLowerCase();
+}
+function clientEmailValid(email){
+  const e=normalizeClientEmail(email);
+  return !!e&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+}
+function clientHasEmail(c){
+  return clientEmailValid(c&&c.email);
+}
+function clientActivePackage(clientId){
+  if(!clientId)return null;
+  const pkgs=(window.PACKAGES||[]).filter(p=>p&&p.clientId===clientId&&p.status!=='expired'&&p.payStatus!=='expired');
+  if(!pkgs.length)return null;
+  return pkgs.slice().sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0];
+}
+/**
+ * Cykl życia: onboarding → brak e-maila → pakiet wygasł → nieaktywny / ryzyko → aktywny.
+ * Źródło: relacje po clientId (SE, PACKAGES), nie kopia karty.
+ */
+function clientLifecycleStatus(c){
+  if(!c)return{key:'unknown',label:'—',pri:9};
+  if(c.status==='archived')return{key:'archived',label:'Archiwum',pri:8};
+  if(c.status==='inactive')return{key:'inactive',label:'Nieaktywny',pri:3};
+  if(!clientHasEmail(c))return{key:'noemail',label:'Brak e-maila',pri:0};
+  const onboard=typeof clientOnboardStatus==='function'?clientOnboardStatus(c):null;
+  if(onboard&&!onboard.complete){
+    return{key:'onboarding',label:'Onboarding '+onboard.done+'/'+onboard.total,pri:1,next:onboard.next};
+  }
+  const pkg=clientActivePackage(c.id);
+  if(pkg&&pkg.expiresDate){
+    const d=Math.ceil((new Date(pkg.expiresDate+'T12:00:00')-Date.now())/86400000);
+    if(d<0)return{key:'expired',label:'Pakiet wygasł',pri:0,expiresDate:pkg.expiresDate};
+    if(d<=7)return{key:'expiring',label:'Pakiet '+d+' d.',pri:2,expiresDate:pkg.expiresDate,pkg};
+  }
+  let days=Infinity;
+  if(typeof getClientLastActivity==='function'){
+    const last=getClientLastActivity(c.id);
+    if(last)days=Math.floor((Date.now()-last.getTime())/86400000);
+  }else{
+    const dates=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.date).map(s=>String(s.date).slice(0,10)).sort();
+    if(dates.length){
+      const last=dates[dates.length-1];
+      const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+      const t=Date.parse(last+'T12:00:00');
+      const n=Date.parse(today+'T12:00:00');
+      if(!isNaN(t)&&!isNaN(n))days=Math.floor((n-t)/86400000);
+    }
+  }
+  if(days>30)return{key:'idle',label:'Nieaktywny',pri:3,idleDays:days};
+  if(days>14)return{key:'atrisk',label:'Ryzyko odejścia',pri:4,idleDays:days};
+  return{key:'active',label:'Aktywny',pri:5,idleDays:days,expiresDate:pkg&&pkg.expiresDate};
+}
+/**
+ * Szyna zdarzeń CRM (in-memory + webhook Integracji).
+ * Typy: client.created | plan.assigned | calendar.scheduled | macros.saved | checkin.submitted | package.expired | client.inactive | session.soon
+ */
+function emitAppEvent(type,payload){
+  const ev={type:String(type||''),at:new Date().toISOString(),payload:payload||{}};
+  try{
+    window._appEvents=window._appEvents||[];
+    window._appEvents.push(ev);
+    if(window._appEvents.length>120)window._appEvents.shift();
+  }catch(e){}
+  if(typeof fireIntEvent==='function'){
+    try{fireIntEvent(type,payload);}catch(e){}
+  }
+  try{
+    const afn=(typeof window!=='undefined'&&window.autoflowOnAppEvent)||(typeof autoflowOnAppEvent==='function'?autoflowOnAppEvent:null);
+    if(typeof afn==='function')afn(type,payload);
+  }catch(e){}
+  try{
+    if(typeof document!=='undefined'&&document.dispatchEvent){
+      document.dispatchEvent(new CustomEvent('pl:'+ev.type,{detail:payload||{}}));
+    }
+  }catch(e){}
+  return ev;
+}
+function assignTemplatePlanToClient(templateId,client,opts){
+  opts=opts||{};
+  if(!templateId||!client||!client.id)return null;
+  if(!opts.force&&typeof clientHasAssignedPlan==='function'&&clientHasAssignedPlan(client.id))return null;
+  const t=(window.PLAN_TEMPLATES||[]).find(x=>x&&x.id===templateId);
+  if(!t)return null;
+  const days=(t.days_detail||[]).map(d=>({
+    day:d.name||d.day||'Dzień',
+    rest:!!d.rest,
+    exercises:(d.exercises||[]).map(e=>({name:e.n||e.name,sets:e.s||e.sets,reps:e.r||e.reps,rest:e.rest}))
+  }));
+  const plan=withTrainer({
+    id:newId('p'),
+    name:t.name,
+    clientId:client.id,
+    clientName:client.name||'',
+    method:t.method,
+    duration:t.weeks||1,
+    _sourceKind:'template-microcycle',
+    days:days.length?days:[{day:'Dzień 1',exercises:[]}],
+    source:'template',
+    templateId:t.id,
+    createdAt:new Date().toISOString()
+  });
+  (window.PL||(window.PL=[])).push(plan);
+  if(typeof persistById==='function')persistById('plans',plan);
+  return plan;
+}
+/** Cache `clientName` na planach / pakietach / fakturach / historii onboardingu — po zmianie imienia. */
+function syncClientNameCache(clientId,name){
+  const nm=String(name||'').trim();
+  if(!clientId||!nm)return{updated:0};
+  const persist=typeof persistById==='function'?persistById:function(){};
+  let updated=0;
+  function bump(col,rec){
+    if(!rec||rec.clientName===nm)return;
+    rec.clientName=nm;
+    updated++;
+    try{persist(col,rec);}catch(e){}
+  }
+  (window.PACKAGES||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('packages',p);});
+  (window.PL||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('plans',p);});
+  const pkgIds=new Set((window.PACKAGES||[]).filter(p=>p&&p.clientId===clientId).map(p=>p.id));
+  (window.INVOICES||[]).forEach(inv=>{
+    if(!inv)return;
+    if(inv.clientId===clientId||(inv.pkgId&&pkgIds.has(inv.pkgId)))bump('invoices',inv);
+  });
+  const flow=window.ONBOARDING_FLOW;
+  if(flow&&Array.isArray(flow.history)){
+    let hist=false;
+    flow.history.forEach(h=>{
+      if(h&&h.clientId===clientId&&h.clientName!==nm){h.clientName=nm;hist=true;updated++;}
+    });
+    if(hist)try{persist('onboardingFlows',flow);}catch(e){}
+  }
+  return{updated};
+}
+window.syncClientNameCache=syncClientNameCache;
+/**
+ * Jednolity pipeline po dodaniu klienta (karta → ankieta → plan → kalendarz).
+ * Relacje wyłącznie po clientId. Nie duplikuje karty w plans/sessions.
+ *
+ * opts: {
+ *   persist, runFlow, skipAssign, schedule, weeks,
+ *   templateId, programId, baseline,
+ *   notify, fireEvent, onboardingRec, tasks
+ * }
+ */
+function assignClientPipeline(client,opts){
+  opts=opts||{};
+  const out={ok:false,client:client||null,parts:[],plan:null,sessions:0,emailOk:false};
+  if(!client||!client.id)return out;
+  out.emailOk=clientEmailValid(client.email);
+  if(opts.persist!==false&&typeof persistById==='function')persistById('clients',client);
+  out.parts.push('karta');
+
+  if(opts.baseline&&typeof saveClientBaselineFromFields==='function'){
+    try{
+      saveClientBaselineFromFields(client.id,opts.baseline);
+      out.parts.push('pomiary');
+    }catch(e){console.warn('pipeline baseline',e);}
+  }
+
+  if(opts.templateId){
+    out.plan=assignTemplatePlanToClient(opts.templateId,client,{force:!!opts.forcePlan});
+    if(out.plan)out.parts.push('plan');
+  }
+  if(!out.plan&&opts.programId&&typeof assignProgramPlanToClient==='function'){
+    try{
+      out.plan=assignProgramPlanToClient(opts.programId,client);
+      if(out.plan)out.parts.push('program');
+    }catch(e){console.warn('pipeline program',e);}
+  }
+
+  if(opts.runFlow!==false&&typeof runOnboardingForClient==='function'){
+    try{
+      const skipAssign=opts.skipAssign||!!out.plan;
+      const flowRet=runOnboardingForClient(client,{skipAssign,skipSchedule:opts.schedule!==false});
+      if(Array.isArray(flowRet)&&flowRet.length){
+        flowRet.forEach(p=>{if(out.parts.indexOf(p)<0)out.parts.push(p);});
+      }
+    }catch(e){console.warn('pipeline flow',e);}
+  }
+
+  if(opts.schedule!==false&&typeof clientHasCalendarOrSession==='function'&&!clientHasCalendarOrSession(client.id)){
+    const plan=out.plan||(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(client.id):null);
+    if(plan&&typeof maybeSchedulePlanToCalendar==='function'){
+      try{
+        const n=maybeSchedulePlanToCalendar(plan.id,{weeks:opts.weeks||4,forceConfirm:false})||0;
+        if(n>0){out.sessions=n;out.parts.push('kalendarz');}
+      }catch(e){console.warn('pipeline calendar',e);}
+    }
+  }
+
+  if(opts.notify!==false&&typeof addNotification==='function'){
+    addNotification('system','Nowy klient!',client.name+(out.parts.length?' — '+out.parts.join(', '):' dodany'),'clients');
+  }
+  if(opts.fireEvent!==false){
+    emitAppEvent('client.created',{client:{id:client.id,name:client.name,email:client.email||'',phone:client.phone||''},parts:out.parts.slice()});
+  }
+  out.ok=true;
+  return out;
+}
+/** Status startu współpracy: zaproszenie → ankieta → baseline → harmonogram → plan → kalendarz → pakiet. */
+function clientOnboardStatus(c){
+  if(!c)return{invite:false,intake:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,session:false,done:0,total:CLIENT_ONBOARD_STEPS.length,complete:true,next:null,missing:[],missingLabels:[]};
+  const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
+  const intakeState=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const intake=!!(c.intakeDone||(intakeState&&intakeState.filled));
+  const baseline=clientOnboardHasBaseline(c);
+  const schedule=clientHasSchedulePrefs(c);
+  const plan=clientHasAssignedPlan(c.id);
+  const calendar=clientHasCalendarOrSession(c.id);
+  const packageDone=clientHasPackage(c);
+  const flags={invite,intake,baseline,schedule,plan,calendar,package:packageDone};
+  const missing=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.id);
+  const missingLabels=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.missing);
+  const done=CLIENT_ONBOARD_STEPS.length-missing.length;
+  return{
+    invite,intake,baseline,schedule,plan,calendar,package:packageDone,
+    session:calendar,
+    done,total:CLIENT_ONBOARD_STEPS.length,
+    complete:missing.length===0,
+    next:missing[0]||null,
+    missing,missingLabels
+  };
+}
+function clientsWithIncompleteOnboard(){
+  return(window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>{
+    const st=clientOnboardStatus(c);
+    return{client:c,status:st};
+  }).filter(x=>!x.status.complete).sort((a,b)=>a.status.done-b.status.done||String(a.client.name||'').localeCompare(String(b.client.name||''),'pl'));
+}
+function mapGoalFromIntakeText(t){
+  const s=String(t||'').toLowerCase();
+  if(/si[lł]a|1\s*rm|max\.?\s*si|powerlift|ciężar/.test(s))return'sila';
+  if(/reduk|schud|odchudz|fat\s*loss|spal/.test(s))return'redukcja';
+  if(/kondyc|wytrzym|cardio|bieg|maraton/.test(s))return'kondycja';
+  if(/masa|hipertrof|mi[eę][sś]|sylwet|kształt|budow/.test(s))return'masa';
+  return null;
+}
+function mapLevelFromIntakeChoice(t){
+  const s=String(t||'').toLowerCase();
+  if(/pocz|0-1|0–1/.test(s))return'poczatkujacy';
+  if(/ponad\s*3|3\+|zaawans/.test(s))return'zaawansowany';
+  if(/1-3|1–3|śred|sred/.test(s))return'sredni';
+  return null;
+}
+/** Po wypełnieniu Ankiety wstępnej (df1) — nadpisz kartę klienta polami z odpowiedzi.
+ *  Zwraca false | {changed:true, summary:string, client} */
+function syncClientFromIntakeForm(send){
+  if(!send||!send.clientId)return false;
+  const formId=String(send.formId||'');
+  const formName=String(send.formName||'').toLowerCase();
+  const isIntake=formId==='df1'||formName.includes('ankieta wstępna')||formName.includes('ankieta wstepna');
+  if(!isIntake)return false;
+  const c=(window.CL||[]).find(x=>x.id===send.clientId);
+  if(!c)return false;
+  const a=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
+  let changed=false;
+  const bits=[];
+  const goal=mapGoalFromIntakeText(a.q1);
+  if(goal){c.goal=goal;changed=true;bits.push('cel '+goal);}
+  if(a.q1&&String(a.q1).trim()){c.goalDesc=String(a.q1).trim();changed=true;}
+  const level=mapLevelFromIntakeChoice(a.q2);
+  if(level){c.level=level;changed=true;bits.push('poziom '+level);}
+  const yesInj=/^(tak|true|1)$/i.test(String(a.q3||'').trim());
+  const injTxt=String(a.q4||'').trim();
+  if(yesInj&&injTxt){c.injuries=injTxt;changed=true;bits.push('kontuzje');}
+  else if(yesInj&&!c.injuries){c.injuries='Zgłoszone w ankiecie (bez opisu)';changed=true;bits.push('kontuzje');}
+  const freq=normalizeTrainingFreq(a.q5);
+  if(freq){
+    c.trainingFreq=freq;changed=true;bits.push(freq+'×/tydz');
+    const hasWd=normalizePreferredWeekdays(c.preferredWeekdays).length>0;
+    if(!hasWd){
+      c.preferredWeekdays=defaultWeekdaysForFreq(freq);
+      bits.push('dni '+preferredWeekdaysLabels(c.preferredWeekdays).join('/'));
+    }
+  }
+  if(a.q6&&String(a.q6).trim()){c.preferredTrainTime=String(a.q6).trim();changed=true;bits.push(c.preferredTrainTime);}
+  if(changed&&typeof persistById==='function')persistById('clients',c);
+  if(!changed)return false;
+  return{changed:true,summary:bits.join(' · '),client:c};
+}
+window.WEEKDAY_TRAIN_OPTIONS=WEEKDAY_TRAIN_OPTIONS;
+window.normalizeTrainingFreq=normalizeTrainingFreq;
+window.foldPlKey=foldPlKey;
+window.normalizeClientGender=normalizeClientGender;
+window.genderForAplSelect=genderForAplSelect;
+window.APL_EQ_GYM_DEFAULT=APL_EQ_GYM_DEFAULT;
+window.mapStoredEquipmentToApl=mapStoredEquipmentToApl;
+window.clientAvailableEquipment=clientAvailableEquipment;
+window.defaultWeekdaysForFreq=defaultWeekdaysForFreq;
+window.ymdWeekday=ymdWeekday;
+window.clientPreferredWeekdays=clientPreferredWeekdays;
+window.hasPlannedSessionOnDate=hasPlannedSessionOnDate;
+window.isClientTrainingDay=isClientTrainingDay;
+window.nextClientTrainingDayYmd=nextClientTrainingDayYmd;
+window.formatTrainingDayShortPl=formatTrainingDayShortPl;
+window.preferredWeekdaysLabels=preferredWeekdaysLabels;
+window.normalizePreferredWeekdays=normalizePreferredWeekdays;
+window.preferredWeekdaysChipsHTML=preferredWeekdaysChipsHTML;
+window.readPreferredWeekdaysFrom=readPreferredWeekdaysFrom;
+window.setPreferredWeekdayChips=setPreferredWeekdayChips;
+window.togglePreferredWeekdayChip=togglePreferredWeekdayChip;
+window.initPreferredWeekdaysForm=initPreferredWeekdaysForm;
+window.CLIENT_ONBOARD_STEPS=CLIENT_ONBOARD_STEPS;
+window.clientHasSchedulePrefs=clientHasSchedulePrefs;
+window.clientHasAssignedPlan=clientHasAssignedPlan;
+window.clientHasCalendarOrSession=clientHasCalendarOrSession;
+window.clientOnboardHasBaseline=clientOnboardHasBaseline;
+window.packagesForClient=packagesForClient;
+window.clientHasPackage=clientHasPackage;
+window.clientPackageExpired=clientPackageExpired;
+window.clientPaidPackageForSession=clientPaidPackageForSession;
+window.sessionConsumedPackageOnDay=sessionConsumedPackageOnDay;
+window.consumeClientPackageSession=consumeClientPackageSession;
+window.clientAccessMode=clientAccessMode;
+window.clientHasPaidAccess=clientHasPaidAccess;
+window.clientPaidAccessLabel=clientPaidAccessLabel;
+window.assertClientPaidAccess=assertClientPaidAccess;
+window.setClientAccessMode=setClientAccessMode;
+window.normalizeClientEmail=normalizeClientEmail;
+window.clientEmailValid=clientEmailValid;
+window.clientHasEmail=clientHasEmail;
+window.clientActivePackage=clientActivePackage;
+window.clientLifecycleStatus=clientLifecycleStatus;
+window.emitAppEvent=emitAppEvent;
+window.assignTemplatePlanToClient=assignTemplatePlanToClient;
+window.assignClientPipeline=assignClientPipeline;
+window.clientOnboardStatus=clientOnboardStatus;
+window.clientsWithIncompleteOnboard=clientsWithIncompleteOnboard;
+window.mapGoalFromIntakeText=mapGoalFromIntakeText;
+window.mapLevelFromIntakeChoice=mapLevelFromIntakeChoice;
+window.syncClientFromIntakeForm=syncClientFromIntakeForm;
+
+// ── Motyw studia (czerwień + grafit) ──
+const STUDIO_THEME={
+  accent:'#e60000',
+  accent2:'#b80000',
+  bg:'#1a1a1a',
+  blue:'#0055a4',
+  yellow:'#ffd700'
+};
+function hexToRgbStr(hex){
+  const h=String(hex||'').replace('#','');
+  if(h.length!==6)return '230,0,0';
+  return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(5,7),16);
+}
+function applyBrandTheme(settings){
+  const root=typeof document!=='undefined'?document.documentElement:null;
+  if(!root)return;
+  const s=settings||window.SETTINGS||{};
+  const brand=s.brand||{};
+  const accent=brand.accentColor||STUDIO_THEME.accent;
+  const rgb=hexToRgbStr(accent);
+  root.style.setProperty('--accent',accent);
+  root.style.setProperty('--accent2',brand.accentDark||STUDIO_THEME.accent2);
+  root.style.setProperty('--accent-rgb',rgb);
+  root.style.setProperty('--adim','rgba('+rgb+',0.14)');
+  root.style.setProperty('--glow','0 0 0 1px rgba('+rgb+',0.35), 0 0 18px rgba('+rgb+',0.18)');
+  const meta=typeof document!=='undefined'?document.querySelector('meta[name="theme-color"]'):null;
+  if(meta)meta.setAttribute('content',accent);
+}
+window.STUDIO_THEME=STUDIO_THEME;
+window.applyBrandTheme=applyBrandTheme;
+if(typeof document!=='undefined'&&document.documentElement){
+  try{applyBrandTheme(window.SETTINGS);}catch(e){}
+}
+
+// ════════════════════════════════════════
+// UZASADNIENIE METODYCZNE (dla trenera)
+// Ramy edukacyjne oparte o NSCA / ACSM / literaturę objętościową —
+// bez live PubMed; cytowania to punkty startowe do dalszej nauki.
+// ════════════════════════════════════════
+const METHOD_WHY={
+  PPL:{label:'Push / Pull / Legs',why:'Dzieli ciało na wzorce push, pull i nogi — każda partia ~2×/tydzień przy 6 dniach (lub 1–2× przy 3–4 dniach). Dobrze skaluje objętość hipertrofii bez „bro-splitu” 1×/tydzień.',best:'4–6 dni/tydzień, masa i kształtowanie'},
+  FBW:{label:'Full Body (FBW)',why:'Całe ciało w każdej sesji → wysoka częstotliwość stymulacji (3×/tydzień na partie). Idealne przy 2–3 dniach i dla początkujących (adaptacja nerwowo-mięśniowa).',best:'2–3 dni/tydzień, nowicjusze, utrzymanie'},
+  'Upper Lower':{label:'Upper / Lower',why:'Góra i dół na przemian — zwykle 4 dni, każda partia 2×/tydzień. Kompromis między FBW a PPL: więcej objętości na sesję niż FBW, mniej dni niż pełne PPL 6×.',best:'3–4 dni/tydzień, masa lub siła'},
+  UL:{label:'Upper / Lower',why:'Góra i dół na przemian — zwykle 4 dni, każda partia 2×/tydzień. Kompromis między FBW a PPL.',best:'3–4 dni/tydzień'},
+  Arnold:{label:'Arnold Split',why:'Klatka+plecy, barki+ramiona, nogi (×2) — wysoka objętość na partie sylwetkowe. Wymaga dobrej regeneracji i doświadczenia z objętością.',best:'5–6 dni, zaawansowani, hipertrofia'},
+  'Bro Split':{label:'Bro Split',why:'Jedna partia / dzień — wysoka objętość lokalna, ale niska częstotliwość (~1×/tydzień). Używaj świadomie; przy hipertrofii częściej lepsze 2×/tydzień.',best:'5–6 dni, zaawansowani z priorytetami'},
+  Smolov:{label:'Smolov (przysiad)',why:'Specjalizacja siłowa na przysiadzie — mikrocykl %1RM (T1–T4+), wysoka częstotliwość przysiadu, reszta ciała w utrzymaniu. Tylko dla zaawansowanych z solidną techniką przysiadu.',best:'4–8 tyg. cykl, cel siła/przysiad, zaawansowany'},
+  '531':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach (przysiad, bench, deadlift, OHP) + asysty. Priorytet siły i długoterminowej progresji, nie maksymalnej objętości sylwetkowej.',best:'3–4 dni, cel siła'},
+  '5/3/1':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach + asysty. Priorytet siły.',best:'3–4 dni, cel siła'},
+  Blokowa:{label:'Periodyzacja blokowa',why:'Bloki akumulacji → intensyfikacji → realizacji (+ deload). Objętość i intensywność nie rosną naraz — chroni przed stagnacją i przetrenowaniem.',best:'8–12+ tygodni, średni/zaawansowany'},
+  Obwodowy:{label:'Trening obwodowy (circuit)',why:'Stacje / rundy z krótkimi przerwami (lub bez) — wysoka gęstość pracy, tętno i wydatek energetyczny. Dobry do kondycji, redukcji i ograniczonego czasu sesji; słabszy wybór pod maksymalne 1RM.',best:'2–4 dni, redukcja, kondycja, sesje 30–45 min'},
+  Circuit:{label:'Trening obwodowy (circuit)',why:'Stacje / rundy z krótkimi przerwami — wysoka gęstość pracy i wydatek energetyczny. Dobry do kondycji i redukcji.',best:'2–4 dni, redukcja, kondycja'},
+  Custom:{label:'Dostosowana',why:'Struktura pod klienta — uzasadnij częstotliwość partii (≥2×/tydzień przy hipertrofii) i objętość względem MEV/MAV.',best:'gdy sztywny split nie pasuje'},
+  'Własna':{label:'Własna struktura',why:'Pełna kontrola trenera. Zapisz w notatkach planu, dlaczego taki układ dni i objętości.',best:'doświadczeni trenerzy'}
+};
+const GOAL_WHY={
+  masa:{
+    label:'Budowa masy (hipertrofia)',
+    sets:'3–4 serie robocze / ćwiczenie',
+    reps:'złożone 6–10 · izolacje 8–15',
+    rpe:'RPE 7–9 (RIR 1–3)',
+    rest:'60–120 s (izolacje krócej, wielostawy dłużej)',
+    why:'Hipertrofia reaguje na tygodniową objętość blisko upadku. Celuj w MEV–MAV na partię; częstotliwość ≥2×/tydzień na główne partie.',
+    volume:'Klatka/plecy ~10–18 serii/tyg · barki ~12–20 · nogi ~12–20 · ramiona ~8–14'
+  },
+  sila:{
+    label:'Wzrost siły',
+    sets:'3–6 serii / ćwiczenie główne',
+    reps:'główne 1–6 · asysty 6–10',
+    rpe:'RPE 7–9 (ciężkie serie), zapas na technikę',
+    rest:'2–5 min na wielostawach',
+    why:'Siła wymaga wysokiej intensywności (%1RM) i pełnej regeneracji między seriami. Objętość niższa niż przy masie; priorytet: przysiad, wyciskanie, martwy, OHP.',
+    volume:'Główne ruchy 10–20 ciężkich serii/tyg łącznie · asysty umiarkowanie'
+  },
+  redukcja:{
+    label:'Redukcja (zachowanie mięśni)',
+    sets:'3–4 serie / ćwiczenie',
+    reps:'6–12 (utrzymaj ciężar, nie „cardio na siłowni”)',
+    rpe:'RPE 7–8 — unikaj ciągłego RPE 10 przy deficycie',
+    rest:'60–120 s',
+    why:'Przy deficycie kalorycznym trening siłowy chroni masę mięśniową. Nie tnij drastycznie objętości na starcie; dodaj NEAT/cardio osobno.',
+    volume:'Utrzymaj blisko MEV–dolne MAV; deload wcześniej przy słabym śnie/stresie'
+  },
+  kondycja:{
+    label:'Kondycja ogólna',
+    sets:'2–4 serie',
+    reps:'8–15 + praca tlenowa / interwały',
+    rpe:'RPE 6–8 siłowo · wyżej w HIIT',
+    rest:'45–90 s siłowo',
+    why:'Łączysz bazę siłową z pojemnością tlenową. Nie maksymalizuj MRV siłowego — zostaw energię na cardio/HIIT.',
+    volume:'Siła: okolice MEV · osobno 1–3 sesje kondycyjne'
+  },
+  atletyzm:{
+    label:'Atletyzm / moc',
+    sets:'3–5 (moc: niższa objętość, wyższa jakość)',
+    reps:'moc 1–5 · siła 3–6 · hipertrofia asyst 6–10',
+    rpe:'RPE 6–8 na plyo/moc (świeżość)',
+    rest:'2–5 min przy mocy',
+    why:'Moc wymaga świeżego układu nerwowego — najpierw skoki/rzuty/olympic, potem siła, na końcu objętość.',
+    volume:'Niska–średnia objętość hipertrofii; jakość ruchu > liczba serii'
+  },
+  rehab:{
+    label:'Rehabilitacja / powrót',
+    sets:'2–3 serie kontrolowane',
+    reps:'8–15, bez bólu ostrego',
+    rpe:'RPE 5–7',
+    rest:'60–90 s',
+    why:'Priorytet: zakres ruchu, kontrola i tolerancja obciążenia. Unikaj maksymalnych ciężarów i metod intensyfikacji do konsultacji z fizjo.',
+    volume:'Poniżej typowego MEV na obszar kontuzji; buduj stopniowo'
+  }
+};
+const LEVEL_WHY={
+  poczatkujacy:'Nowicjusz: dolna połowa MEV–MAV, nauka wzorców, progresja liniowa. Scięgna adaptują się wolniej niż mięśnie — nie skacz objętością co tydzień.',
+  sredni:'Średni: środek/góra MAV, możliwa DUP lub falowanie. Deload co 4–6 tygodni.',
+  zaawansowany:'Zaawansowany: góra MAV, blisko MRV na priorytetach, bloki i specjalizacja. Wymaga snu, białka i monitorowania RPE.'
+};
+
+/** Tygodniowa liczba serii roboczych na partię wg stażu (orientacja MEV–MAV; hipertrofia). */
+const VOLUME_PART_ORDER=['Klatka','Plecy','Barki','Biceps','Triceps','Quady','Tył uda','Pośladki','Brzuch','Łydki'];
+const VOLUME_BY_LEVEL={
+  poczatkujacy:{
+    label:'Początkujący',
+    tenure:'0–1 rok',
+    note:'Startuj nisko (MEV). +1–2 serie/partię co 1–2 tyg. tylko gdy regeneracja OK.',
+    parts:{
+      Klatka:'6–10',Plecy:'8–12',Barki:'8–12',Biceps:'6–8',Triceps:'6–8',
+      Quady:'8–12','Tył uda':'6–10',Pośladki:'6–10',Brzuch:'4–8',Łydki:'6–10'
+    }
+  },
+  sredni:{
+    label:'Średni',
+    tenure:'1–3 lata',
+    note:'Środek MAV. Priorytety +2–4 serie vs. utrzymanie. Deload co 4–6 tyg.',
+    parts:{
+      Klatka:'10–16',Plecy:'12–18',Barki:'12–18',Biceps:'8–12',Triceps:'8–12',
+      Quady:'12–18','Tył uda':'10–16',Pośladki:'10–14',Brzuch:'6–10',Łydki:'8–14'
+    }
+  },
+  zaawansowany:{
+    label:'Zaawansowany',
+    tenure:'3+ lata',
+    note:'Góra MAV / lokalnie blisko MRV na priorytetach. Specjalizacja + bloki; nie trzymaj wszystkich partii na suficie naraz.',
+    parts:{
+      Klatka:'12–20',Plecy:'14–22',Barki:'14–22',Biceps:'10–16',Triceps:'10–16',
+      Quady:'14–22','Tył uda':'12–20',Pośladki:'12–18',Brzuch:'6–12',Łydki:'10–16'
+    }
+  }
+};
+window.VOLUME_BY_LEVEL=VOLUME_BY_LEVEL;
+window.VOLUME_PART_ORDER=VOLUME_PART_ORDER;
+
+function volumeGuideForLevel(levelKey){
+  const k=String(levelKey||'sredni').toLowerCase();
+  return VOLUME_BY_LEVEL[k]||VOLUME_BY_LEVEL.sredni;
+}
+window.volumeGuideForLevel=volumeGuideForLevel;
+
+const RATIONALE_SOURCES=[
+  'NSCA — Essentials of Strength Training and Conditioning (serie/powt./%1RM)',
+  'ACSM — Guidelines: częstotliwość i progresja oporu',
+  'Schoenfeld i in. — metaanalizy objętości i częstotliwości hipertrofii (punkty orientacyjne MEV/MAV)',
+  'Israetel / RP — landmarks objętości (MEV / MAV / MRV) jako ramy, nie sztywne normy',
+  'Twoja Baza wiedzy w apce — dopisz własne zasady i doświadczenie'
+];
+
+/** Wbudowany pakiet dowodów / zasad — zawsze dostępny przy planowaniu (bez live PubMed). */
+const BUILTIN_PLANNING_EVIDENCE=[
+  {id:'bev_freq',kind:'evidence',title:'Częstotliwość ≥2×/partię (hipertrofia)',
+    text:'Przy hipertrofii stymulacja głównych partii co najmniej 2× w tygodniu zwykle daje lepszy efekt niż 1× przy tej samej objętości tygodniowej — stąd PPL/UL/FBW zamiast klasycznego bro-splitu.',
+    citation:'Schoenfeld et al., frequency meta-analyses',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/30558493/',useInPlanning:true,tags:['freq']},
+  {id:'bev_vol',kind:'evidence',title:'Objętość tygodniowa (MEV→MAV)',
+    text:'Hipertrofia skaluje się z tygodniową liczbą serii roboczych blisko upadku. Celuj między MEV a MAV; MRV to sufit, nie domyślny cel. Początkujący: dolna połowa zakresu.',
+    citation:'Schoenfeld / Israetel volume landmarks (ramy praktyczne)',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/27433992/',useInPlanning:true,tags:['mev','mav','mrv']},
+  {id:'bev_prox',kind:'evidence',title:'Bliskość upadku (RIR/RPE)',
+    text:'Serie hipertroficzne powinny kończyć się blisko upadku (ok. 0–3 RIR). Zbyt duży zapas ogranicza bodziec; ciągłe RPE 10 utrudnia progresję i regenerację.',
+    citation:'Refalo / proximity to failure reviews',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/33497853/',useInPlanning:true,tags:['rir','rpe']},
+  {id:'bev_str',kind:'evidence',title:'Siła: intensywność i przerwy',
+    text:'Rozwój siły maksymalnej opiera się na wysokim %1RM, niższych powtórzeniach i dłuższych przerwach (2–5 min) na wielostawach — objętość niższa niż w czystej hipertrofii.',
+    citation:'NSCA Essentials; ACSM resistance guidelines',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/19204579/',useInPlanning:true,tags:[]},
+  {id:'bev_deload',kind:'principle',title:'Deload co 4–6 tygodni',
+    text:'Planuj obniżenie objętości/intensywności co kilka tygodni (sen, staw, RPE drift). Deload to narzędzie progresji, nie „przegrana”.',
+    citation:'Praktyka periodyzacji (NSCA / coaching)',sourceUrl:'',useInPlanning:true,tags:['deload']}
+];
+const KB_TAG_DEFS=[
+  {id:'mev',label:'MEV',group:'landmark'},
+  {id:'mav',label:'MAV',group:'landmark'},
+  {id:'mrv',label:'MRV',group:'landmark'},
+  {id:'rir',label:'RIR',group:'landmark'},
+  {id:'rpe',label:'RPE',group:'landmark'},
+  {id:'freq',label:'Częstotliwość',group:'landmark'},
+  {id:'deload',label:'Deload',group:'landmark'},
+  {id:'klatka',label:'Klatka',group:'muscle'},
+  {id:'plecy',label:'Plecy',group:'muscle'},
+  {id:'barki',label:'Barki',group:'muscle'},
+  {id:'biceps',label:'Biceps',group:'muscle'},
+  {id:'triceps',label:'Triceps',group:'muscle'},
+  {id:'quady',label:'Quady',group:'muscle'},
+  {id:'tyl-uda',label:'Tył uda',group:'muscle'},
+  {id:'posladki',label:'Pośladki',group:'muscle'},
+  {id:'brzuch',label:'Brzuch',group:'muscle'},
+  {id:'lydki',label:'Łydki',group:'muscle'}
+];
+const KB_TAG_BY_ID=Object.create(null);
+KB_TAG_DEFS.forEach(d=>{KB_TAG_BY_ID[d.id]=d;});
+const KB_TAG_TEXT_RULES=[
+  ['mev',/\bmev\b/i],
+  ['mav',/\bmav\b/i],
+  ['mrv',/\bmrv\b/i],
+  ['rir',/\brir\b/i],
+  ['rpe',/\brpe\b/i],
+  ['freq',/częstotliw|czestotliw|frequency|≥\s*2|>=\s*2/i],
+  ['deload',/deload/i],
+  ['klatka',/klatk|chest|\bpec/i],
+  ['plecy',/plecy|\bback\b|najszersz|\blat\b|wiosłow/i],
+  ['barki',/bark|shoulder|delt/i],
+  ['biceps',/biceps/i],
+  ['triceps',/triceps/i],
+  ['quady',/quad|czworogł|przód uda|przod uda|przysiad|leg press|hack squat/i],
+  ['tyl-uda',/tył uda|tyl uda|hamstring|dwugłow|rumuńsk|\brdl\b/i],
+  ['posladki',/poślad|poslad|glute|hip thrust/i],
+  ['brzuch',/brzuch|\bcore\b|\babs\b/i],
+  ['lydki',/łydk|lydk|\bcalf/i]
+];
+
+function normalizeKbKind(k){
+  const v=String((k&&k.kind)||'note').toLowerCase();
+  if(v==='evidence'||v==='badanie'||v==='source')return'evidence';
+  if(v==='principle'||v==='zasada')return'principle';
+  return'note';
+}
+function kbEntryUsesInPlanning(k){
+  if(!k)return false;
+  if(k.useInPlanning===false)return false;
+  const kind=normalizeKbKind(k);
+  // Notatki + badania (+ zasady) idą do Generatora AI i kreatora.
+  if(kind==='note'||kind==='evidence'||kind==='principle')return true;
+  return k.useInPlanning!==false;
+}
+function kbTagDef(id){
+  return KB_TAG_BY_ID[String(id||'').toLowerCase()]||null;
+}
+function normalizeKbTagId(raw){
+  let s=String(raw||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  s=s.replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  if(s==='czestotliwosc'||s==='frequency')s='freq';
+  if(s==='tyluda'||s==='hamstring')s='tyl-uda';
+  if(s==='glute'||s==='glutes')s='posladki';
+  if(s==='calves'||s==='calf')s='lydki';
+  if(s==='chest')s='klatka';
+  if(s==='back')s='plecy';
+  if(s==='shoulders'||s==='shoulder')s='barki';
+  return kbTagDef(s)?s:'';
+}
+function normalizeKbTags(list){
+  const src=Array.isArray(list)?list:String(list||'').split(/[,;/|]/);
+  const out=[];
+  const seen=Object.create(null);
+  src.forEach(x=>{
+    const id=normalizeKbTagId(x);
+    if(!id||seen[id])return;
+    seen[id]=1;
+    out.push(id);
+  });
+  return out;
+}
+function kbTagsFromText(text){
+  const blob=String(text||'');
+  if(!blob.trim())return[];
+  const hits=[];
+  KB_TAG_TEXT_RULES.forEach(rule=>{
+    if(rule[1].test(blob))hits.push(rule[0]);
+  });
+  return normalizeKbTags(hits);
+}
+function kbTagsForEntry(k){
+  const explicit=normalizeKbTags(k&&k.tags);
+  if(explicit.length)return explicit;
+  return kbTagsFromText(((k&&k.title)||'')+' '+((k&&k.text)||'')+' '+((k&&k.citation)||''));
+}
+function kbTagLabels(tags){
+  return normalizeKbTags(tags).map(id=>{
+    const d=kbTagDef(id);
+    return d?d.label:id;
+  });
+}
+function kbMuscleTags(tags){
+  return normalizeKbTags(tags).filter(id=>{
+    const d=kbTagDef(id);
+    return d&&d.group==='muscle';
+  });
+}
+function kbTagOverlapCount(entry,queryTags){
+  const tags=kbTagsForEntry(entry);
+  const q=normalizeKbTags(queryTags);
+  let n=0;
+  tags.forEach(t=>{if(q.indexOf(t)>=0)n++;});
+  return n;
+}
+/** Wpis z tagiem partii tylko przy dniu/ćwiczeniu tej partii. Landmarky (MEV/RIR) — na cały plan. */
+function kbEntriesForBuilder(queryTags,opts){
+  opts=opts||{};
+  const q=normalizeKbTags(queryTags);
+  const muscleQ=kbMuscleTags(q);
+  const list=typeof getPlanningEvidenceEntries==='function'?getPlanningEvidenceEntries():[];
+  const scored=[];
+  list.forEach(e=>{
+    const tags=kbTagsForEntry(e);
+    const muscleE=kbMuscleTags(tags);
+    if(muscleE.length&&muscleQ.length&&!muscleE.some(t=>muscleQ.indexOf(t)>=0))return;
+    const overlap=tags.filter(t=>q.indexOf(t)>=0).length;
+    if(muscleE.length&&!overlap)return;
+    const muscleHit=muscleE.filter(t=>muscleQ.indexOf(t)>=0).length;
+    scored.push({entry:e,tags:tags,score:overlap+muscleHit*4,general:!tags.length||(!muscleE.length&&!overlap)});
+  });
+  scored.sort((a,b)=>b.score-a.score||String(a.entry.title||'').localeCompare(String(b.entry.title||'')));
+  const limit=opts.limit||8;
+  return scored.slice(0,limit);
+}
+/** Wpisy trenera + pakiet wbudowany do kontekstu planowania. Notatki trenera przed pakietem. */
+function getPlanningEvidenceEntries(){
+  const user=(window.KB||[]).filter(kbEntryUsesInPlanning);
+  const userTitles=new Set(user.map(k=>String(k.title||'').toLowerCase()));
+  const userBuiltin=new Set(user.map(k=>k.builtinId).filter(Boolean));
+  const builtins=BUILTIN_PLANNING_EVIDENCE.filter(b=>!userBuiltin.has(b.id)&&!userTitles.has(String(b.title).toLowerCase()));
+  const mapUser=k=>({
+    id:k.id,kind:normalizeKbKind(k),title:k.title,text:k.text,
+    citation:k.citation||'',sourceUrl:k.sourceUrl||'',useInPlanning:true,builtin:false,
+    tags:kbTagsForEntry(k)
+  });
+  return user.map(mapUser).concat(builtins.map(b=>({...b,builtin:true,tags:kbTagsForEntry(b)})));
+}
+function planningEvidenceContext(maxChars,opts){
+  opts=opts||{};
+  let list=getPlanningEvidenceEntries();
+  if(!list.length)return'';
+  const prefer=normalizeKbTags(opts.preferTags||[]);
+  if(prefer.length){
+    list=list.slice().sort((a,b)=>kbTagOverlapCount(b,prefer)-kbTagOverlapCount(a,prefer));
+  }
+  const budget=maxChars||4500;
+  const used=[];
+  let out='\n\n=== BADANIA I NOTATKI TRENERA (kontekst planowania) ===\n';
+  out+='Uwzględnij badania i notatki trenera przy metodzie, seriach i objętości. Zasady trenera mają pierwszeństwo, gdy kolidują z ogólnikami. Tagi wiążą wpis z partią / MEV / RIR w kreatorze — nie w mowie do klienta.\n';
+  for(const e of list){
+    const kind=e.kind==='evidence'?'BADANIE/ŹRÓDŁO':(e.kind==='principle'?'ZASADA TRENERA':'NOTATKA');
+    const cite=e.citation?` [${e.citation}]`:'';
+    const url=e.sourceUrl?` URL: ${e.sourceUrl}`:'';
+    const tagLine=kbTagLabels(kbTagsForEntry(e));
+    const tags=tagLine.length?' Tagi: '+tagLine.join(', '):'';
+    const block=`### [${kind}] ${e.title}${cite}${url}${tags}\n${String(e.text||'').substring(0,500)}\n\n`;
+    if(out.length+block.length>budget)break;
+    out+=block;
+    used.push({id:e.id||'',title:e.title||'',kind:e.kind||'note',builtin:!!e.builtin});
+  }
+  window._kbLastPlanningContext=used;
+  if(typeof window.renderKbAiContextPreview==='function')try{window.renderKbAiContextPreview();}catch(e){}
+  return out;
+}
+function planningEvidenceSourceLines(){
+  return getPlanningEvidenceEntries().slice(0,8).map(e=>{
+    const tag=e.kind==='evidence'?'Źródło':(e.kind==='principle'?'Zasada':'Notatka');
+    const cite=e.citation?` — ${e.citation}`:'';
+    return `${tag}: ${e.title}${cite}`;
+  });
+}
+window.BUILTIN_PLANNING_EVIDENCE=BUILTIN_PLANNING_EVIDENCE;
+window.KB_TAG_DEFS=KB_TAG_DEFS;
+window.getPlanningEvidenceEntries=getPlanningEvidenceEntries;
+window.planningEvidenceContext=planningEvidenceContext;
+window.planningEvidenceSourceLines=planningEvidenceSourceLines;
+window.kbEntryUsesInPlanning=kbEntryUsesInPlanning;
+window.normalizeKbKind=normalizeKbKind;
+window.kbTagDef=kbTagDef;
+window.normalizeKbTagId=normalizeKbTagId;
+window.normalizeKbTags=normalizeKbTags;
+window.kbTagsFromText=kbTagsFromText;
+window.kbTagsForEntry=kbTagsForEntry;
+window.kbTagLabels=kbTagLabels;
+window.kbMuscleTags=kbMuscleTags;
+window.kbTagOverlapCount=kbTagOverlapCount;
+window.kbEntriesForBuilder=kbEntriesForBuilder;
+
+function normalizeRationaleMethod(method){
+  const m=String(method||'').trim();
+  if(!m)return'PPL';
+  if(/^upper\s*\/?\s*lower$/i.test(m)||m==='UL')return'Upper Lower';
+  if(/^5\s*\/\s*3\s*\/\s*1|531$/i.test(m))return'531';
+  if(/^bro/i.test(m))return'Bro Split';
+  if(/^smolov|smol/i.test(m))return'Smolov';
+  if(/^arnold/i.test(m))return'Arnold';
+  if(/^w[lł]asna/i.test(m))return'Własna';
+  if(/^custom|dostosow/i.test(m))return'Custom';
+  if(/^blok/i.test(m))return'Blokowa';
+  if(/^obwod|circuit|okr[eę]ż/i.test(m))return'Obwodowy';
+  if(/^fbw|full\s*body/i.test(m))return'FBW';
+  if(/^ppl|push/i.test(m))return'PPL';
+  return m;
+}
+/** Krótka, prosta mowa do klienta — bez RPE/MEV/żargonu. */
+function buildClientTalkPlain(opts){
+  const o=opts||{};
+  const methodKey=normalizeRationaleMethod(o.methodKey||o.method);
+  const goalKey=String(o.goalKey||o.goal||'masa').toLowerCase();
+  const levelKey=String(o.levelKey||o.level||'sredni').toLowerCase();
+  const weight=parseFloat(o.weight);
+  const methodTalk={
+    PPL:'Trenujemy Push / Pull / Nogi — dzielimy ciało na trzy dni ruchu, żeby mięśnie pracowały częściej niż raz w tygodniu.',
+    FBW:'Trenujemy całe ciało na każdej sesji — przy mniejszej liczbie dni w tygodniu to najprostszy i najskuteczniejszy układ.',
+    'Upper Lower':'Trenujemy na przemian górę i dół ciała — każda partia dostaje bodziec zwykle dwa razy w tygodniu.',
+    UL:'Trenujemy na przemian górę i dół ciała — każda partia dostaje bodziec zwykle dwa razy w tygodniu.',
+    Arnold:'Plan jest bardziej „sylwetkowy”: osobne dni na klatkę+plecy, barki+ramiona i nogi — dużo pracy na kształt.',
+    'Bro Split':'Każdy dzień to inna partia — dużo pracy lokalnie w jednej sesji; trzymamy jakość ruchu i regenerację.',
+    Smolov:'Skupiamy się na progresji przysiadu wg cyklu Smolova (%1RM, wysoka częstotliwość). Reszta ciała tylko w utrzymaniu — bez dokładania objętości na nogach poza planem przysiadu.',
+    '531':'Główny cel to siła na wielostawach (przysiad, wyciskanie, martwy, wyciskanie nad głowę) z jasną progresją ciężaru.',
+    '5/3/1':'Główny cel to siła na wielostawach z jasną progresją ciężaru.',
+    Blokowa:'Plan idzie blokami: najpierw budujemy objętość, potem ciężar, potem domykamy — bez gonienia wszystkiego naraz.',
+    Obwodowy:'Trening w obwodach / stacjach: krótsze przerwy, więcej ruchu w krótszym czasie — dobre do kondycji i redukcji.',
+    Circuit:'Trening w obwodach / stacjach: krótsze przerwy, więcej ruchu w krótszym czasie.',
+    Custom:'Układ dni dobraliśmy pod Ciebie — ważne, żebyś ćwiczył regularnie i z dobrą techniką.',
+    'Własna':'Układ dni dobraliśmy pod Ciebie — ważne, żebyś ćwiczył regularnie i z dobrą techniką.'
+  };
+  const goalTalk={
+    masa:'Cel: budować mięśnie. Robimy kilka solidnych serii i stopniowo dokładamy ciężar, gdy idzie łatwiej.',
+    sila:'Cel: rosnąć w sile. Na początku sesji ciężkie ruchy główne, potem lżejsze uzupełnienia — bez pośpiechu między seriami.',
+    redukcja:'Cel: schudnąć bez gubienia mięśni. Na siłowni trzymamy solidne ciężary; tłuszcz schodzi głównie z diety.',
+    kondycja:'Cel: lepsza kondycja. Łączymy siłę z pracą oddechową / interwałami, bez przeciążania każdej sesji.',
+    atletyzm:'Cel: moc i atletyzm. Najpierw skoki / szybkie ruchy na świeżo, potem siła — jakość ważniejsza niż liczba serii.',
+    rehab:'Cel: bezpieczny powrót. Ćwiczymy z kontrolą, bez ostrego bólu i bez maksymalnych ciężarów.'
+  };
+  const levelTalk={
+    poczatkujacy:'Zaczynamy spokojnie: nauka ruchu i stały, mały postęp — nie skaczemy objętością co tydzień.',
+    sredni:'Masz już bazę — dokładamy obciążenie lub serie w tempie, które dasz radę regenerować.',
+    zaawansowany:'Masz doświadczenie — trzymamy wysoką jakość serii i zostawiamy zapas (nie musisz co raz iść na maksa).'
+  };
+  const parts=[
+    methodTalk[methodKey]||('Trenujemy metodą „'+(o.methodLabel||methodKey)+'”.'),
+    goalTalk[goalKey]||goalTalk.masa,
+    levelTalk[levelKey]||levelTalk.sredni
+  ];
+  if(!isNaN(weight)&&weight>0){
+    if(goalKey==='redukcja'){
+      parts.push('Przy ~'+Math.round(weight)+' kg dobieramy wygodniejsze warianty ćwiczeń i pilnujemy techniki — efekt wagi idzie z diety, nie z „cardio na siłowni”.');
+    }else{
+      parts.push('Przy ~'+Math.round(weight)+' kg dobieramy obciążenie i warianty pod Twój komfort stawów i technikę.');
+    }
+  }
+  return parts.join(' ');
+}
+function buildMethodRationale(opts){
+  const o=opts||{};
+  const methodKey=normalizeRationaleMethod(o.method);
+  const goalKey=String(o.goal||'masa').toLowerCase();
+  const levelKey=String(o.level||'sredni').toLowerCase();
+  const days=parseInt(o.daysPerWeek,10)||0;
+  const weight=parseFloat(o.weight);
+  const method=METHOD_WHY[methodKey]||METHOD_WHY.Custom||METHOD_WHY.PPL;
+  const goal=GOAL_WHY[goalKey]||GOAL_WHY.masa;
+  const levelTip=LEVEL_WHY[levelKey]||LEVEL_WHY.sredni;
+  const tips=[];
+  if(methodKey==='PPL'&&days&&days<4)tips.push('PPL przy '+days+' dniach: rozważ FBW lub Upper/Lower, albo skrócone PPL (np. Push+quad / Pull+ham / Upper).');
+  if(methodKey==='FBW'&&days>=5)tips.push('FBW przy '+days+' dniach bywa zbyt częste — rozważ Upper/Lower lub PPL, żeby dać partiom regenerację.');
+  if(methodKey==='Obwodowy'&&goalKey==='sila')tips.push('Obwód słabo buduje max 1RM — do siły dodaj 1–2 ciężkie wielostawy na początku albo wybierz PPL/531.');
+  if(methodKey==='Obwodowy'&&days&&days>=5)tips.push('Obwód ≥5×/tydzień mocno obciąża regenerację — skróć rundy lub przeplataj dni lżejsze.');
+  if(methodKey==='Bro Split'&&(goalKey==='masa'||goalKey==='redukcja'))tips.push('Przy hipertrofii preferuj ≥2 stymulacje partii/tydzień — bro split daje zwykle 1×; świadomie zwiększ częstotliwość lub objętość priorytetów.');
+  if(methodKey==='Smolov'&&goalKey!=='sila')tips.push('Smolov to program pod przysiad/siłę — przy celu '+goalKey+' traktuj resztę planu jako utrzymanie, nie hipertrofię.');
+  if(methodKey==='Smolov')tips.push('Przed Smolovem: technika przysiadu, mobilność kostek/bioder, sen i białko — nie zaczynaj od maksymalnych % bez deloadu po cyklu.');
+  if(goalKey==='sila'&&methodKey==='PPL')tips.push('Siła + PPL OK, ale trzymaj ciężkie wielostawy na początku sesji i dłuższe przerwy (3–5 min).');
+  tips.push('Zapisuj RPE/RIR — decyzje o +kg / +seriach opieraj na trendzie, nie na jednym „złym dniu”.');
+  if(!isNaN(weight)&&weight>0){
+    if(goalKey==='redukcja'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (redukcja): utrzymaj ciężary robocze — nie zamieniaj treningu w cardio. Deficyt głównie z diety.');
+      if(weight>=95)tips.push('Wyższa masa ciała: więcej maszyn / stabilnych wariantów na stawy, dłuższa rozgrzewka, kontroluj lądowanie i głębokość przysiadu.');
+    }else if(goalKey==='masa'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (masa): celuj w progresję obciążenia przy RPE 7–9; objętość w strefie MEV–MAV.');
+    }else if(goalKey==='sila'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (siła): priorytet technika wielostawów; nie gonij objętości kosztem jakości %1RM.');
+    }else if(goalKey==='kondycja'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (kondycja): łącz obwody / interwały z 1–2 dniami siły, żeby nie tracić masy mięśniowej.');
+    }
+  }
+  const clientTalk=buildClientTalkPlain({methodKey,methodLabel:method.label,goalKey,weight,levelKey});
+  const trainerSources=typeof planningEvidenceSourceLines==='function'?planningEvidenceSourceLines():[];
+  const trainerEntries=typeof getPlanningEvidenceEntries==='function'?getPlanningEvidenceEntries().filter(e=>!e.builtin).slice(0,5):[];
+  const volGuide=volumeGuideForLevel(levelKey);
+  const volSummary=VOLUME_PART_ORDER.slice(0,6).map(p=>p+': '+(volGuide.parts[p]||'—')+' s/tyg').join(' · ');
+  return{
+    methodKey,goalKey,levelKey,daysPerWeek:days||null,weight:(!isNaN(weight)&&weight>0)?weight:null,
+    clientName:o.clientName||undefined,
+    clientId:o.clientId||undefined,
+    methodLabel:method.label,
+    methodWhy:method.why,
+    methodBest:method.best,
+    goalLabel:goal.label,
+    sets:goal.sets,
+    reps:goal.reps,
+    rpe:goal.rpe,
+    rest:goal.rest,
+    goalWhy:goal.why,
+    volume:goal.volume,
+    levelTip,
+    levelVolumeLabel:volGuide.label+' ('+volGuide.tenure+')',
+    levelVolumeNote:volGuide.note,
+    levelVolumeParts:volGuide.parts,
+    levelVolumeSummary:volSummary,
+    volumeByLevel:VOLUME_BY_LEVEL,
+    volumePartOrder:VOLUME_PART_ORDER,
+    tips,
+    clientTalk,
+    sources:RATIONALE_SOURCES.concat(trainerSources).slice(0,12),
+    trainerEntries
+  };
+}
+function renderVolumeByLevelTable(r,esc,tableOpts){
+  const order=r.volumePartOrder||VOLUME_PART_ORDER;
+  const levels=['poczatkujacy','sredni','zaawansowany'];
+  const labels={poczatkujacy:'Pocz.',sredni:'Średni',zaawansowany:'Zaaw.'};
+  const cur=String(r.levelKey||'sredni').toLowerCase();
+  const personalized=!!(tableOpts&&tableOpts.personalizedOnly);
+  const innerOnly=!!(tableOpts&&tableOpts.innerOnly);
+  if(personalized){
+    const guide=r.volumeByLevel&&r.volumeByLevel[cur];
+    const rows=order.map(part=>{
+      const v=(guide&&guide.parts&&guide.parts[part])||'—';
+      return `<tr><th scope="row" class="mr-vol-part">${esc(part)}</th><td class="mr-vol-td is-current">${esc(v)}</td></tr>`;
+    }).join('');
+    const who=r.clientName?(' klienta '+r.clientName):'';
+    const table=`<table class="mr-vol-table mr-vol-table--solo"><thead><tr><th class="mr-vol-part">Partia</th><th class="mr-vol-th is-current">${esc(r.levelVolumeLabel||labels[cur]||cur)}</th></tr></thead><tbody>${rows}</tbody></table>`;
+    const compare=`<details class="mr-vol-compare"><summary class="mr-block-title" style="font-size:11px;cursor:pointer;margin-top:8px;">Porównaj z innymi stażami</summary>${renderVolumeByLevelTable(r,esc,{innerOnly:true})}</details>`;
+    if(innerOnly)return table;
+    return `<div class="mr-vol-wrap mr-vol-personal">
+      <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (MEV–MAV) dopasowane do${esc(who)} · staż <b>${esc(r.levelVolumeLabel||labels[cur]||cur)}</b>.</div>
+      ${table}
+      <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
+      ${compare}
+      <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio.</div>
+    </div>`;
+  }
+  const head=levels.map(l=>`<th class="mr-vol-th${l===cur?' is-current':''}">${esc(labels[l])}</th>`).join('');
+  const rows=order.map(part=>{
+    const cells=levels.map(l=>{
+      const v=(r.volumeByLevel&&r.volumeByLevel[l]&&r.volumeByLevel[l].parts&&r.volumeByLevel[l].parts[part])||'—';
+      return `<td class="mr-vol-td${l===cur?' is-current':''}">${esc(v)}</td>`;
+    }).join('');
+    return `<tr><th scope="row" class="mr-vol-part">${esc(part)}</th>${cells}</tr>`;
+  }).join('');
+  const table=`<table class="mr-vol-table"><thead><tr><th class="mr-vol-part">Partia</th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  if(innerOnly){
+    return `<div class="mr-meta" style="margin:8px 0 6px;">Pełna tabela — kolumna <b>${esc(r.levelVolumeLabel||'')}</b> to wybrany staż.</div>${table}`;
+  }
+  return `<div class="mr-vol-wrap">
+    <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (hipertrofia · MEV–MAV). Kolumna <b>${esc(r.levelVolumeLabel||'')}</b> = wybrany staż klienta.</div>
+    ${table}
+    <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
+    <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio. Nie sumuj „wszystkie partie na MRV” naraz.</div>
+  </div>`;
+}
+function renderMethodRationaleHTML(opts){
+  const r=typeof opts==='object'&&opts.methodWhy?opts:buildMethodRationale(opts||{});
+  const escFn=(typeof window!=='undefined'&&typeof window.escHtml==='function')?window.escHtml:(typeof escHtml==='function'?escHtml:null);
+  const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
+  const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
+  const trainerBlock=(r.trainerEntries&&r.trainerEntries.length)?`<div class="mr-block mr-card"><div class="mr-block-head"><span class="mr-eyebrow">Baza</span><span class="mr-block-title">Twoje zasady / dowody</span></div><ul class="mr-tips">${r.trainerEntries.map(e=>{
+    const tag=e.kind==='evidence'?'Źródło':(e.kind==='principle'?'Zasada':'Notatka');
+    return `<li><b>${esc(tag)}:</b> ${esc(e.title)}${e.citation?' — '+esc(e.citation):''}</li>`;
+  }).join('')}</ul></div>`:'';
+  const volPreview=r.levelVolumeSummary?`<div class="mr-vol-preview">${esc(r.levelVolumeSummary)}</div>`:'';
+  try{window._lastMethodRationale=r;}catch(e){}
+  const ctxBits=[r.methodLabel,r.goalLabel,r.levelVolumeLabel].filter(Boolean).join(' · ');
+  return`<details class="method-rationale">
+    <summary class="method-rationale-hdr">
+      <div class="method-rationale-hdr-main">
+        <div class="method-rationale-kicker">Dlaczego tak? · przewodnik</div>
+        <div class="method-rationale-title">Asystent trenera</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-closed">Naciśnij nagłówek, aby rozwinąć</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-open">Kliknij nagłówek, aby zwinąć</div>
+        ${ctxBits?`<div class="method-rationale-ctx">${esc(ctxBits)}</div>`:''}
+      </div>
+      <div class="method-rationale-actions" onclick="event.preventDefault();event.stopPropagation();">
+        <span class="method-rationale-badge" aria-hidden="true"></span>
+      </div>
+    </summary>
+    <div class="method-rationale-body">
+      <div class="mr-chips" aria-label="Źródła">
+        <span class="mr-chip">NSCA</span>
+        <span class="mr-chip">ACSM</span>
+        <span class="mr-chip mr-chip--accent">Twoja baza</span>
+      </div>
+      <div class="mr-block mr-card mr-client-talk">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Dla klienta</span>
+          <span class="mr-block-title">Jak wytłumaczyć klientowi</span>
+        </div>
+        <div class="mr-text">${esc(r.clientTalk||'')}</div>
+        <div class="mr-meta">Krótka wersja — skopiuj do SMS / wiadomości.</div>
+      </div>
+      <div class="mr-block mr-card">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Metoda</span>
+          <span class="mr-block-title">${esc(r.methodLabel)}</span>
+        </div>
+        <div class="mr-text">${esc(r.methodWhy)}</div>
+        <div class="mr-meta">Najlepiej: ${esc(r.methodBest)}</div>
+      </div>
+      <div class="mr-block mr-card">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Cel</span>
+          <span class="mr-block-title">${esc(r.goalLabel)}</span>
+        </div>
+        <div class="mr-text">${esc(r.goalWhy)}</div>
+        <div class="mr-stats">
+          ${row('Serie',r.sets)}
+          ${row('Powtórzenia',r.reps)}
+          ${row('RPE / RIR',r.rpe)}
+          ${row('Przerwy',r.rest)}
+          ${row('Objętość/tyg.',r.volume)}
+        </div>
+      </div>
+      <div class="mr-block mr-card">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Poziom / staż</span>
+          <span class="mr-block-title">${esc(r.levelVolumeLabel||'')}</span>
+        </div>
+        <div class="mr-text">${esc(r.levelTip)}</div>
+        ${volPreview}
+      </div>
+      <details class="mr-volume mr-card">
+        <summary class="mr-block-title">Serie na partię wg stażu — rozwiń tabelę</summary>
+        ${renderVolumeByLevelTable(r,esc)}
+      </details>
+      ${r.tips&&r.tips.length?`<div class="mr-block mr-card"><div class="mr-block-head"><span class="mr-eyebrow">Wskazówki</span><span class="mr-block-title">${r.weight?'Waga ~'+Math.round(r.weight)+' kg':'Na co uważać'}</span></div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
+      ${trainerBlock}
+      <details class="mr-sources mr-card">
+        <summary class="mr-block-title">Źródła (edukacyjne + baza) — rozwiń</summary>
+        <ul class="mr-tips mr-tips-sm">${(r.sources||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+        <div class="mr-note">Brak live PubMed — wbudowane ramy + linki, które dodasz w Bazie wiedzy (zasady / badania). AI i kreator biorą je jako kontekst planowania.</div>
+      </details>
+    </div>
+  </details>`;
+}
+function refreshMethodRationaleInto(el,opts){
+  if(!el)return;
+  el.innerHTML=renderMethodRationaleHTML(opts||{});
+}
+window.METHOD_WHY=METHOD_WHY;
+window.GOAL_WHY=GOAL_WHY;
+window.LEVEL_WHY=LEVEL_WHY;
+window.buildClientTalkPlain=buildClientTalkPlain;
+window.buildMethodRationale=buildMethodRationale;
+window.renderMethodRationaleHTML=renderMethodRationaleHTML;
+window.renderVolumeByLevelTable=renderVolumeByLevelTable;
+window.refreshMethodRationaleInto=refreshMethodRationaleInto;
+window.normalizeRationaleMethod=normalizeRationaleMethod;
+
+// ════════════════════════════════════════
+// TOOLTIPY EDUKACYJNE (Serie / RPE / Metoda…)
+// ════════════════════════════════════════
+const EDU_TIPS={
+  method:'Metoda = jak dzielisz ciało na dni (PPL, FBW, Upper/Lower…). Przy hipertrofii celuj w ≥2 stymulacje partii/tydzień. Szczegóły zapytaj Asystenta AI w panelu metodyki.',
+  goal:'Cel ustala zakresy: masa → objętość i RIR 0–3; siła → wyższy %1RM i dłuższe przerwy; redukcja → utrzymaj ciężar, nie tnij od razu objętości.',
+  sets:'Serie robocze na ćwiczenie. Hipertrofia zwykle 3–4; siła 3–6 na głównych. Sumę tygodniową partii (MEV–MAV) wg stażu zobaczysz w przewodniku „Serie na partię”.',
+  reps:'Powtórzenia: hipertrofia złożone ~6–10, izolacje ~8–15; siła główne ~1–6. Dobierz tak, by ostatnie powt. były blisko upadku (patrz RPE/RIR).',
+  kg:'Ciężar roboczy. Możesz liczyć z %1RM (Pomiary → Siła bazowa). Zostaw puste, jeśli klient dobiera wg RPE.',
+  rpe:'RPE 1–10: jak trudna była seria. RPE 8 ≈ zostały ~2 powtórzenia (RIR 2). Hipertrofia często RPE 7–9; unikaj ciągłego RPE 10.',
+  rir:'RIR = powtórzenia w zapasie. RIR 0 = upadek; RIR 2 ≈ RPE 8. Łatwiejsze w komunikacji z klientem niż samo RPE.',
+  rest:'Przerwa: izolacje ~60–90 s; wielostawy hipertrofia ~90–120 s; siła 2–5 min. Za krótka przerwa psuje jakość kolejnej serii.',
+  tempo:'Tempo np. 3-1-1-0 = ekscentryka 3 s – pauza w rozciągnięciu 1 s – koncentryka 1 s – pauza 0. Pomaga w kontroli i stretch-mediated hypertrophy.',
+  focus:'Etykieta dnia (Push/Pull/FBW…). Uzupełnia się z metody — możesz nadpisać własną nazwą.',
+  days:'Liczba dni/tydzień musi pasować do metody: FBW 2–3, Upper/Lower 3–4, PPL 4–6. Za mało dni przy PPL = słaba częstotliwość partii.'
+};
+function eduTipText(key,ctx){
+  const k=String(key||'');
+  const o=ctx||{};
+  if(k==='method'&&o.method&&typeof METHOD_WHY==='object'){
+    const mk=typeof normalizeRationaleMethod==='function'?normalizeRationaleMethod(o.method):o.method;
+    const m=METHOD_WHY[mk];
+    if(m)return m.label+': '+m.why+(m.best?' Najlepiej: '+m.best+'.':'');
+  }
+  if((k==='sets'||k==='reps'||k==='rpe')&&o.goal&&typeof GOAL_WHY==='object'){
+    const g=GOAL_WHY[String(o.goal).toLowerCase()];
+    if(g){
+      if(k==='sets')return g.sets+'. '+g.why;
+      if(k==='reps')return g.reps+'. '+g.why;
+      if(k==='rpe')return g.rpe+'. RIR ≈ 10 − RPE.';
+    }
+  }
+  return EDU_TIPS[k]||'Podpowiedź metodyczna — zapytaj Asystenta AI w panelu metodyki.';
+}
+function eduTipMark(key,opts){
+  const text=eduTipText(key,opts);
+  const esc=(typeof window!=='undefined'&&window.escHtml)?window.escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'));
+  const safe=esc(text);
+  return `<button type="button" class="edu-tip" data-edu="${esc(key)}" data-tip="${safe}" title="${safe}" aria-label="Wyjaśnienie: ${esc(key)}">?</button>`;
+}
+function eduLbl(label,key,opts){
+  return `<span class="edu-lbl">${label}${eduTipMark(key,opts)}</span>`;
+}
+window.EDU_TIPS=EDU_TIPS;
+window.eduTipText=eduTipText;
+window.eduTipMark=eduTipMark;
+window.eduLbl=eduLbl;
+
+function hydrateEduTips(root){
+  const scope=root&&root.querySelectorAll?root:document;
+  scope.querySelectorAll('.edu-tip[data-edu]').forEach(btn=>{
+    const key=btn.getAttribute('data-edu');
+    const ctx={};
+    if(key==='method'){
+      const m=document.getElementById('b-method')||document.getElementById('tplc-method');
+      if(m)ctx.method=m.value;
+      if(typeof aplGetVal==='function'){try{ctx.method=aplGetVal('apl-methods')||ctx.method;}catch(e){}}
+    }
+    if(key==='goal'||key==='sets'||key==='reps'||key==='rpe'){
+      const g=document.getElementById('tplc-goal');
+      if(g)ctx.goal=g.value;
+      if(typeof aplGetVal==='function'){try{ctx.goal=aplGetVal('apl-goals')||ctx.goal;}catch(e){}}
+      if(typeof builderEduCtx==='function'){try{Object.assign(ctx,builderEduCtx());}catch(e){}}
+    }
+    const text=eduTipText(key,ctx);
+    btn.setAttribute('data-tip',text);
+    btn.setAttribute('title',text);
+  });
+}
+function bindEduTipClicks(){
+  if(window._eduTipsBound)return;
+  window._eduTipsBound=true;
+  document.addEventListener('click',e=>{
+    const tip=e.target.closest&&e.target.closest('.edu-tip');
+    if(!tip){
+      document.querySelectorAll('.edu-tip.is-open').forEach(b=>b.classList.remove('is-open'));
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    hydrateEduTips(tip.parentElement||document);
+    const open=tip.classList.contains('is-open');
+    document.querySelectorAll('.edu-tip.is-open').forEach(b=>b.classList.remove('is-open'));
+    if(!open)tip.classList.add('is-open');
+  });
+}
+window.hydrateEduTips=hydrateEduTips;
+window.bindEduTipClicks=bindEduTipClicks;
+
+// ════════════════════════════════════════
+// WYGASZACZ — logo studia na TV / tablecie w klubie
+// ════════════════════════════════════════
+var PL_SS_DEFAULT_LOGO='assets/brand/progress-logo.jpg';
+var _ssTimer=null;
+var _ssClockTimer=null;
+var _ssVisible=false;
+var _ssBound=false;
+var _ssGraceUntil=0;
+var _ssPtr0=null;
+
+function ensureScreensaverSettings(){
+  if(!window.SETTINGS)window.SETTINGS={};
+  var ss=window.SETTINGS.screensaver;
+  if(!ss||typeof ss!=='object')ss=window.SETTINGS.screensaver={enabled:true,idleMinutes:3};
+  if(ss.enabled==null)ss.enabled=true;
+  var m=parseInt(ss.idleMinutes,10);
+  if(!m||m<1)m=3;
+  if(m>60)m=60;
+  ss.idleMinutes=m;
+  return ss;
+}
+function screensaverEnabled(){
+  return ensureScreensaverSettings().enabled!==false;
+}
+function screensaverIdleMs(){
+  return ensureScreensaverSettings().idleMinutes*60*1000;
+}
+function screensaverLogoUrl(){
+  var logo=window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.logo;
+  if(typeof logo==='string'&&logo.trim())return logo.trim();
+  return PL_SS_DEFAULT_LOGO;
+}
+function screensaverMediaBusy(){
+  if(typeof document==='undefined'||!document.querySelectorAll)return false;
+  try{
+    var nodes=document.querySelectorAll('video,audio');
+    for(var i=0;i<nodes.length;i++){
+      if(nodes[i]&&nodes[i].paused===false)return true;
+    }
+  }catch(e){}
+  return false;
+}
+function screensaverQueryForce(){
+  var search='';
+  try{search=(window.location&&window.location.search)||'';}catch(e){}
+  return /[?&](ss|wygaszacz)=1(?:&|$)/.test(search);
+}
+function _ssTickClock(){
+  if(!_ssVisible||typeof document==='undefined'||!document.getElementById)return;
+  var clock=document.getElementById('pl-ss-clock');
+  var dateEl=document.getElementById('pl-ss-date');
+  var now=new Date();
+  try{
+    if(clock)clock.textContent=now.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+    if(dateEl)dateEl.textContent=now.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
+  }catch(e){
+    if(clock){
+      var hh=now.getHours(),mm=now.getMinutes();
+      clock.textContent=(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;
+    }
+  }
+}
+function screensaverOverlayEl(){
+  if(typeof document==='undefined'||!document.getElementById)return null;
+  var el=document.getElementById('pl-screensaver');
+  if(!el||typeof el.querySelector!=='function')return null;
+  if(!el.querySelector('.pl-ss-logo'))return null;
+  return el;
+}
+function showScreensaver(force){
+  if(!force&&!screensaverEnabled())return false;
+  if(!force&&typeof document!=='undefined'&&document.hidden)return false;
+  if(!force&&screensaverMediaBusy())return false;
+  var el=screensaverOverlayEl();
+  if(!el)return false;
+  var img=el.querySelector('.pl-ss-logo');
+  if(img){
+    var url=screensaverLogoUrl();
+    if(img.getAttribute&&img.getAttribute('src')!==url)img.setAttribute('src',url);
+    else if(!img.getAttribute)img.src=url;
+  }
+  if(el.classList&&el.classList.add)el.classList.add('on');
+  if(el.setAttribute){
+    el.setAttribute('aria-hidden','false');
+    el.removeAttribute('hidden');
+  }
+  _ssVisible=true;
+  _ssGraceUntil=Date.now()+600;
+  _ssPtr0=null;
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  _ssTickClock();
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  if(typeof setInterval==='function')_ssClockTimer=setInterval(_ssTickClock,1000);
+  return true;
+}
+function hideScreensaver(){
+  _ssVisible=false;
+  _ssGraceUntil=0;
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  var el=screensaverOverlayEl();
+  if(el){
+    if(el.classList&&el.classList.remove)el.classList.remove('on');
+    if(el.setAttribute){
+      el.setAttribute('aria-hidden','true');
+      el.setAttribute('hidden','');
+    }
+  }
+  resetScreensaverIdle();
+}
+function previewScreensaver(){
+  return showScreensaver(true);
+}
+function resetScreensaverIdle(){
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  if(_ssVisible)return;
+  if(!screensaverEnabled())return;
+  if(typeof document==='undefined'||!document.getElementById)return;
+  if(!screensaverOverlayEl())return;
+  if(document.hidden)return;
+  _ssTimer=setTimeout(function(){showScreensaver(false);},screensaverIdleMs());
+}
+function _ssOnActivity(e){
+  if(_ssVisible){
+    if(e&&e.type==='mousemove'){
+      if(Date.now()<_ssGraceUntil)return;
+      var x=e.clientX,y=e.clientY;
+      if(_ssPtr0==null){_ssPtr0={x:x,y:y};return;}
+      var dx=x-_ssPtr0.x,dy=y-_ssPtr0.y;
+      if(dx*dx+dy*dy<576)return;
+    }
+    hideScreensaver();
+    return;
+  }
+  resetScreensaverIdle();
+}
+function initScreensaver(){
+  ensureScreensaverSettings();
+  if(!_ssBound&&typeof document!=='undefined'&&document.addEventListener){
+    _ssBound=true;
+    ['pointerdown','keydown','touchstart','mousemove','wheel'].forEach(function(ev){
+      document.addEventListener(ev,_ssOnActivity,{passive:true});
+    });
+    document.addEventListener('visibilitychange',function(){
+      if(document.hidden){
+        if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+      }else resetScreensaverIdle();
+    });
+    var el=screensaverOverlayEl();
+    if(el&&el.addEventListener)el.addEventListener('click',function(){hideScreensaver();});
+  }
+  resetScreensaverIdle();
+  if(screensaverQueryForce())showScreensaver(true);
+}
+window.PL_SS_DEFAULT_LOGO=PL_SS_DEFAULT_LOGO;
+window.ensureScreensaverSettings=ensureScreensaverSettings;
+window.screensaverEnabled=screensaverEnabled;
+window.screensaverIdleMs=screensaverIdleMs;
+window.screensaverLogoUrl=screensaverLogoUrl;
+window.showScreensaver=showScreensaver;
+window.hideScreensaver=hideScreensaver;
+window.previewScreensaver=previewScreensaver;
+window.resetScreensaverIdle=resetScreensaverIdle;
+window.initScreensaver=initScreensaver;
+window.screensaverQueryForce=screensaverQueryForce;
+window.screensaverOverlayEl=screensaverOverlayEl;
+
+if(typeof document!=='undefined'){
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();initScreensaver();});
+  else{bindEduTipClicks();hydrateEduTips();initScreensaver();}
+}

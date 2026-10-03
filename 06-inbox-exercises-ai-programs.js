@@ -1,0 +1,4890 @@
+// ════════════════════════════════════════
+// INBOX
+// ════════════════════════════════════════
+// ════════════════════════════════════════
+// INBOX — ENHANCED
+// ════════════════════════════════════════
+var inboxTab='all';
+var chatKindFilter='all';
+const QUICK_REPLIES=['Dziękuję za informację!','Rozumiem, zajmę się tym.','Świetna robota! 💪','Pamiętaj o treningu!','Proszę wypełnić formularz postępów.','Kiedy możemy się spotkać?'];
+const CLIENT_NOTES={};// clientId -> [{text, date}]
+const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
+window.CLIENT_NOTES=CLIENT_NOTES;
+window.CLIENT_ACTIVITY=CLIENT_ACTIVITY;
+window.CLIENT_GROUPS=window.CLIENT_GROUPS||[]; // [{id,name,clientIds,color,createdAt}]
+const GROUP_COLORS=['#e60000','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2','#f59e0b'];
+
+// ── Prawdziwe śledzenie "nieprzeczytane" (zamiast losowego i%3) ──
+// Zapisuje, kiedy trener ostatnio otworzył rozmowę z danym klientem.
+function msgGetLastRead(clientId){
+  try{return localStorage.getItem('msg_last_read_'+clientId)||'';}catch(e){return '';}
+}
+function msgSetLastRead(clientId){
+  try{localStorage.setItem('msg_last_read_'+clientId,new Date().toISOString());}catch(e){}
+}
+// Nieprzeczytane = jest wiadomość PRZYCHODZĄCA (out:false) nowsza niż ostatnie otwarcie rozmowy.
+function msgHasUnread(clientId){
+  const msgs=(typeof MSGS!=='undefined'?MSGS:window.MSGS)||{};
+  const list=msgs[clientId]||[];
+  const lastRead=msgGetLastRead(clientId);
+  return list.some(m=>!m.out&&(!lastRead||(m.createdAt||'')>lastRead));
+}
+/** Aktywni klienci z nieprzeczytaną wiadomością do trenera (najnowsza najpierw). */
+function clientsWithUnreadMsgs(){
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  const rows=clients.filter(c=>msgHasUnread(c.id)).map(c=>{
+    const msgs=((typeof MSGS!=='undefined'?MSGS:window.MSGS)||{})[c.id]||[];
+    const lastIn=[...msgs].reverse().find(m=>!m.out)||null;
+    return{client:c,last:lastIn,at:lastIn&&(lastIn.createdAt||'')||''};
+  });
+  rows.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  return rows;
+}
+function unreadMsgCount(){
+  return clientsWithUnreadMsgs().length;
+}
+function updateInboxNavBadge(){
+  const el=document.getElementById('nb-inbox');
+  if(!el)return;
+  const n=unreadMsgCount();
+  el.textContent=n?String(n):'';
+  el.style.display=n?'inline-flex':'none';
+  if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
+}
+window.msgGetLastRead=msgGetLastRead;
+window.msgSetLastRead=msgSetLastRead;
+window.msgHasUnread=msgHasUnread;
+window.clientsWithUnreadMsgs=clientsWithUnreadMsgs;
+window.unreadMsgCount=unreadMsgCount;
+window.updateInboxNavBadge=updateInboxNavBadge;
+
+/** Nieprzeczytane od trenera (out:true) w apce klienta. */
+function clientGetTrainerLastRead(clientId){
+  try{return localStorage.getItem('cmsg_last_read_'+clientId)||'';}catch(e){return '';}
+}
+function clientMarkTrainerMsgsRead(clientId){
+  if(!clientId)return;
+  try{localStorage.setItem('cmsg_last_read_'+clientId,new Date().toISOString());}catch(e){}
+}
+function clientHasUnreadFromTrainer(clientId){
+  if(!clientId)return false;
+  const msgs=((typeof MSGS!=='undefined'?MSGS:window.MSGS)||{})[clientId]||[];
+  const last=clientGetTrainerLastRead(clientId);
+  return msgs.some(m=>m&&m.out&&(!last||(m.createdAt||'')>last));
+}
+window.clientGetTrainerLastRead=clientGetTrainerLastRead;
+window.clientMarkTrainerMsgsRead=clientMarkTrainerMsgsRead;
+window.clientHasUnreadFromTrainer=clientHasUnreadFromTrainer;
+
+function initClientData(c){
+  if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[];
+  if(!CLIENT_ACTIVITY[c.id])CLIENT_ACTIVITY[c.id]=[];
+}
+
+function setInboxTab(t){
+  inboxTab=t;
+  document.querySelectorAll('.inbox-tab').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('itab-'+t);if(el)el.classList.add('active');
+  renderInbox();
+}
+
+function renderInbox(){
+  const search=(document.getElementById('inbox-search')||{}).value||'';
+  let list=CL.filter(c=>c&&c.status!=='archived'&&(!search||c.name.toLowerCase().includes(search.toLowerCase())));
+  if(inboxTab==='unread')list=list.filter(c=>msgHasUnread(c.id));
+
+  const el=document.getElementById('msg-list');
+  if(!el)return;
+
+  if(inboxTab==='groups'){
+    renderInboxGroups(el,search);
+    updateInboxNavBadge();
+    return;
+  }
+
+  if(!list.length){
+    el.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);font-size:12px;">Brak rozmów</div>';
+    updateInboxNavBadge();
+    return;
+  }
+
+  el.innerHTML=list.map((c,i)=>{
+    const msgs=MSGS[c.id]||[];
+    const last=msgs.slice(-1)[0];
+    const unread=msgHasUnread(c.id);
+    const time=last?last.time:'';
+    const col=COLS[i%5];
+    return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${escHtml(c.id)}')">
+      <div class="msg-avatar" style="background:${col}22;color:${col};">${getInit(c.name)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+          <div style="font-size:13px;font-weight:${unread?700:500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:4px;">${escHtml(time)}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?(function(){const k=typeof normalizeMsgKind==='function'?normalizeMsgKind(last):'direct';const pre=k==='broadcast'?'📢 ':k==='system'?'⚙️ ':'';const txt=typeof msgDisplayText==='function'?msgDisplayText(last):(last.text||'');return escHtml(pre+txt);})():(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
+      </div>
+      ${unread?'<div class="msg-unread-dot"></div>':''}
+    </div>`;
+  }).join('');
+  updateInboxNavBadge();
+}
+
+function renderInboxGroups(el,search){
+  const groups=(window.CLIENT_GROUPS||[]).filter(g=>!search||(g.name||'').toLowerCase().includes(search.toLowerCase()));
+  el.innerHTML=`
+    <div style="padding:12px;border-bottom:1px solid var(--border);">
+      <button class="btn btn-primary btn-sm" style="width:100%;" onclick="openClientGroupModal()">+ Nowa grupa</button>
+    </div>
+    ${groups.length?groups.map((g,i)=>{
+      const col=g.color||GROUP_COLORS[i%GROUP_COLORS.length];
+      const members=(g.clientIds||[]).map(id=>CL.find(c=>c.id===id)).filter(Boolean);
+      return `<div class="msg-item-enhanced" style="flex-direction:column;align-items:stretch;gap:8px;" onclick="event.stopPropagation()">
+        <div style="display:flex;gap:10px;align-items:center;cursor:pointer;" onclick="openClientGroupModal('${escHtml(g.id)}')">
+          <div class="msg-avatar" style="background:${col}22;color:${col};">👥</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;">${escHtml(g.name)}</div>
+            <div style="font-size:11px;color:var(--muted);">${members.length} klientów · ${members.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}${members.length>3?'…':''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" style="flex:1;" onclick="messageClientGroup('${escHtml(g.id)}')">💬 Napisz</button>
+          <button class="btn btn-ghost btn-sm" onclick="openClientGroupModal('${escHtml(g.id)}')">Edytuj</button>
+        </div>
+      </div>`;
+    }).join(''):`<div style="padding:30px;text-align:center;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">👥</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak grup</div>
+      <div style="font-size:11px;margin-bottom:12px;">Utwórz grupę i wyślij wiadomość do wielu klientów naraz</div>
+    </div>`}`;
+}
+
+function openClientGroupModal(id){
+  window._editingGroupId=id||null;
+  let m=document.getElementById('m-client-group');
+  if(!m){
+    m=document.createElement('div');m.id='m-client-group';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:480px;">
+      <div class="modal-hdr"><div class="modal-title" id="cg-modal-title">NOWA GRUPA</div><button class="modal-close" onclick="closeM('m-client-group')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa grupy</label><input type="text" class="form-input" id="cg-name" placeholder="np. Redukcja 2026"></div>
+        <div class="form-field"><label class="form-lbl">Kolor</label>
+          <div id="cg-colors" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Członkowie</label>
+          <div id="cg-members" style="max-height:220px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px;padding:8px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="cg-delete-btn" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteClientGroup()">Usuń</button>
+        <button class="btn btn-ghost" onclick="closeM('m-client-group')">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveClientGroup()">Zapisz</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  const g=id?(window.CLIENT_GROUPS||[]).find(x=>x.id===id):null;
+  document.getElementById('cg-modal-title').textContent=g?'EDYTUJ GRUPĘ':'NOWA GRUPA';
+  document.getElementById('cg-name').value=g?.name||'';
+  window._cgColor=g?.color||GROUP_COLORS[0];
+  document.getElementById('cg-colors').innerHTML=GROUP_COLORS.map(c=>`<button type="button" onclick="window._cgColor='${c}';openClientGroupModal(window._editingGroupId)" style="width:28px;height:28px;border-radius:8px;background:${c};border:2px solid ${window._cgColor===c?'#fff':'transparent'};cursor:pointer;"></button>`).join('');
+  const selected=new Set(g?.clientIds||[]);
+  document.getElementById('cg-members').innerHTML=CL.length?CL.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;">
+    <input type="checkbox" class="cg-member-chk" value="${escHtml(c.id)}" ${selected.has(c.id)?'checked':''} style="accent-color:var(--accent);">
+    <span>${escHtml(c.name)}</span>
+  </label>`).join(''):`<div style="font-size:12px;color:var(--muted);padding:8px;">Brak klientów — najpierw dodaj klientów.</div>`;
+  const del=document.getElementById('cg-delete-btn');
+  if(del)del.style.display=g?'inline-flex':'none';
+  openM('m-client-group');
+}
+
+async function saveClientGroup(){
+  const name=document.getElementById('cg-name')?.value.trim();
+  if(!name){notify('Wpisz nazwę grupy!');return;}
+  const clientIds=[...document.querySelectorAll('.cg-member-chk:checked')].map(cb=>cb.value);
+  let g;
+  if(window._editingGroupId){
+    g=(window.CLIENT_GROUPS||[]).find(x=>x.id===window._editingGroupId);
+    if(g){
+      g.name=name;g.clientIds=clientIds;g.color=window._cgColor||g.color;g.updatedAt=new Date().toISOString();
+      withTrainer(g);
+    }
+  }
+  if(!g){
+    g=withTrainer({id:newId('grp'),name,clientIds,color:window._cgColor||GROUP_COLORS[0],createdAt:new Date().toISOString()});
+    window.CLIENT_GROUPS.push(g);
+  }
+  await persistById('clientGroups',g);
+  closeM('m-client-group');
+  refreshBroadcastGroupOptions();
+  if(inboxTab==='groups')renderInbox();
+  notify('✓ Grupa "'+name+'" zapisana ('+clientIds.length+' osób)');
+}
+
+async function deleteClientGroup(){
+  const id=window._editingGroupId;if(!id)return;
+  if(!confirm('Usunąć tę grupę?'))return;
+  window.CLIENT_GROUPS=(window.CLIENT_GROUPS||[]).filter(x=>x.id!==id);
+  if(window._db){try{await window._del(window._doc(window._db,'clientGroups',id));}catch(e){}}
+  closeM('m-client-group');
+  refreshBroadcastGroupOptions();
+  if(inboxTab==='groups')renderInbox();
+  notify('Grupa usunięta');
+}
+
+function messageClientGroup(id){
+  const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===id);if(!g)return;
+  let m=document.getElementById('m-group-msg');
+  if(!m){
+    m=document.createElement('div');m.id='m-group-msg';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:440px;">
+      <div class="modal-hdr"><div class="modal-title">WIADOMOŚĆ DO GRUPY</div><button class="modal-close" onclick="closeM('m-group-msg')">×</button></div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;" id="gm-meta"></div>
+        <textarea class="form-textarea" id="gm-text" rows="4" placeholder="Treść… Użyj {imie} aby spersonalizować."></textarea>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-group-msg')">Anuluj</button><button class="btn btn-primary" onclick="sendClientGroupMessage()">Wyślij</button></div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  window._msgGroupId=id;
+  const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
+  document.getElementById('gm-meta').textContent=g.name+' · '+members.length+' odbiorców';
+  document.getElementById('gm-text').value='';
+  openM('m-group-msg');
+}
+
+function sendClientGroupMessage(){
+  const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===window._msgGroupId);if(!g)return;
+  const msg=document.getElementById('gm-text')?.value.trim();
+  if(!msg){notify('Wpisz wiadomość!');return;}
+  const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
+  if(!members.length){notify('Grupa nie ma członków');return;}
+  if(!confirm('Wysłać wiadomość do '+members.length+' klientów z grupy "'+g.name+'"?'))return;
+  members.forEach(c=>pushMsg(c.id,msg.replace(/\{imie\}/gi,c.name.split(' ')[0]),{kind:'broadcast',broadcast:true}));
+  closeM('m-group-msg');
+  notify('✓ Wysłano do '+members.length+' klientów z grupy "'+g.name+'"');
+  renderInbox();
+}
+
+function refreshBroadcastGroupOptions(){
+  const sel=document.getElementById('bc-target');if(!sel)return;
+  const keep=sel.value;
+  const base=[
+    ['all','Wszyscy klienci'],
+    ['active','Tylko aktywni'],
+    ['inactive','Nieaktywni (zastój)'],
+  ];
+  const groups=(window.CLIENT_GROUPS||[]).map(g=>['group:'+g.id,'Grupa: '+g.name]);
+  sel.innerHTML=[...base,...groups].map(([v,l])=>`<option value="${escHtml(v)}">${escHtml(l)}</option>`).join('');
+  if([...base,...groups].some(([v])=>v===keep))sel.value=keep;
+}
+window.openClientGroupModal=openClientGroupModal;
+window.saveClientGroup=saveClientGroup;
+window.deleteClientGroup=deleteClientGroup;
+window.messageClientGroup=messageClientGroup;
+window.sendClientGroupMessage=sendClientGroupMessage;
+window.refreshBroadcastGroupOptions=refreshBroadcastGroupOptions;
+
+function openChat(id){
+  curChat=id;
+  const c=CL.find(x=>x.id===id);
+  if(!c)return;
+  if(!MSGS[id])MSGS[id]=[];
+  msgSetLastRead(id);
+  initClientData(c);
+  const ci=CL.indexOf(c);
+  const col=COLS[ci%5];
+
+  // header
+  document.getElementById('msg-to').textContent=c.name;
+  document.getElementById('msg-header-actions').innerHTML=`
+    <button class="btn btn-ghost btn-sm" onclick="openM('m-metric-entry')" title="Dodaj pomiar">📏</button>
+    <button class="btn btn-ghost btn-sm" onclick="openM('m-task')" title="Dodaj zadanie">✅</button>
+    <button class="btn btn-ghost btn-sm" onclick="openM('m-send-form')" title="Wyślij formularz">📋</button>`;
+
+  const kindBar=document.getElementById('chat-kind-bar');
+  if(kindBar)kindBar.style.display='block';
+  document.querySelectorAll('.chat-kind-btn').forEach(el=>{
+    const on=el.getAttribute('data-kind')===chatKindFilter;
+    el.classList.toggle('btn-primary',on);
+    el.classList.toggle('btn-ghost',!on);
+  });
+
+  // messages
+  const wrap=document.getElementById('msg-wrap');
+  const allMsgs=MSGS[id]||[];
+  const shown=allMsgs.filter(m=>{
+    if(chatKindFilter==='all')return true;
+    const k=typeof normalizeMsgKind==='function'?normalizeMsgKind(m):'direct';
+    return k===chatKindFilter;
+  });
+  wrap.innerHTML=shown.length?shown.map(m=>{
+    const kind=typeof normalizeMsgKind==='function'?normalizeMsgKind(m):'direct';
+    const display=typeof msgDisplayText==='function'?msgDisplayText(m):(m.text||'');
+    const pill=kind==='direct'?'':`<span style="display:inline-block;font-size:9px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);margin-bottom:4px;">${escHtml(typeof msgKindLabel==='function'?msgKindLabel(kind):kind)}</span>`;
+    return `<div class="msg-row" data-kind="${escHtml(kind)}" style="margin-bottom:12px;${m.out?'text-align:right;':''}">
+      ${pill}
+      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}" style="white-space:pre-wrap;">${escHtml(display)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px;">${escHtml(m.time||'')}</div>
+    </div>`;
+  }).join('')
+    :(allMsgs.length
+      ?`<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:12px;">Brak wiadomości w filtrze „${escHtml(typeof msgKindLabel==='function'?msgKindLabel(chatKindFilter):chatKindFilter)}”.</div>`
+      :`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:8px;">👋</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Zacznij rozmowę z ${escHtml(c.name)}</div>
+      <div style="font-size:11px;">Wyślij wiadomość lub wybierz szybką odpowiedź poniżej</div>
+    </div>`);
+  wrap.scrollTop=wrap.scrollHeight;
+
+  // quick replies
+  document.getElementById('quick-replies').innerHTML=QUICK_REPLIES.map(r=>
+    `<button class="quick-reply-btn" onclick="useQuickReply('${r.replace(/'/g,"\\'")}')">${r}</button>`
+  ).join('');
+
+  // right panel
+  const cipH=document.getElementById('cip-header');
+  cipH.innerHTML=`
+    <div style="width:52px;height:52px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:20px;margin:0 auto 10px;">${getInit(c.name)}</div>
+    <div style="font-size:14px;font-weight:700;">${c.name}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.goal||'Brak celu'} · ${c.level||''}</div>
+    <div style="display:flex;gap:5px;justify-content:center;margin-top:10px;">
+      <span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}" style="font-size:10px;"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span>
+    </div>`;
+
+  const notes=CLIENT_NOTES[id]||[];
+  const activity=CLIENT_ACTIVITY[id]||[];
+  document.getElementById('cip-body').innerHTML=`
+    <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">Notatki (${notes.length})</div>
+        <button onclick="addClientNote('${id}')" style="background:none;border:none;color:var(--accent);font-size:18px;cursor:pointer;line-height:1;">+</button>
+      </div>
+      ${notes.map(n=>`<div class="cip-note">
+        <div>${n.text}</div>
+        <div class="cip-note-date">${n.date}</div>
+      </div>`).join('')}
+      <div id="note-input-${id}" style="display:none;margin-top:6px;">
+        <textarea id="note-text-${id}" placeholder="Dodaj notatkę..." rows="2" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button onclick="saveClientNote('${id}')" class="btn btn-primary btn-sm" style="flex:1;">Zapisz</button>
+          <button onclick="document.getElementById('note-input-${id}').style.display='none'" class="btn btn-ghost btn-sm">Anuluj</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 14px;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Aktywność</div>
+      ${activity.map(a=>`<div class="cip-activity-item">
+        <div class="cip-activity-icon" style="background:var(--s3);">${a.icon}</div>
+        <div><div style="font-size:11px;color:var(--text);">${a.text}</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">${a.date}</div></div>
+      </div>`).join('')}
+    </div>`;
+
+  renderInbox();
+  try{if(typeof renderDashMsgFollowup==='function')renderDashMsgFollowup();}catch(e){}
+  updateInboxNavBadge();
+}
+
+function useQuickReply(text){
+  const inp=document.getElementById('msg-inp');
+  if(inp)inp.value=text;
+  inp.focus();
+}
+
+function addClientNote(id){
+  const ni=document.getElementById('note-input-'+id);
+  if(ni)ni.style.display='block';
+  const nt=document.getElementById('note-text-'+id);
+  if(nt)nt.focus();
+}
+
+function saveClientNote(id){
+  const nt=document.getElementById('note-text-'+id);
+  if(!nt||!nt.value.trim())return;
+  if(!CLIENT_NOTES[id])CLIENT_NOTES[id]=[];
+  const note=withTrainer({
+    id:newId('note'),
+    clientId:id,
+    text:nt.value.trim(),
+    date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),
+    createdAt:new Date().toISOString()
+  });
+  CLIENT_NOTES[id].unshift(note);
+  persistById('clientNotes',note);
+  notify('Notatka zapisana ✓');
+  if(cpClientId===id){
+    const c=CL.find(x=>x.id===id);
+    if(c){
+      if(cpTab==='notes')renderCPNotes(c);
+      else if(cpTab==='overview')renderCPOverview(c);
+      else setCPTab('notes');
+    }
+  }
+}
+
+function sendMsg(){
+  const inp=document.getElementById('msg-inp');
+  const txt=inp?inp.value.trim():'';
+  if(!txt||!curChat)return;
+  pushMsg(curChat,txt,{kind:'direct'});
+  inp.value='';inp.style.height='auto';
+  openChat(curChat);
+}
+
+function setChatKindFilter(kind){
+  chatKindFilter=['direct','system','broadcast'].includes(kind)?kind:'all';
+  document.querySelectorAll('.chat-kind-btn').forEach(el=>{
+    const on=el.getAttribute('data-kind')===chatKindFilter;
+    el.classList.toggle('btn-primary',on);
+    el.classList.toggle('btn-ghost',!on);
+  });
+  if(curChat)openChat(curChat);
+}
+window.setChatKindFilter=setChatKindFilter;
+
+function sendBroadcast(){
+  const msg=document.getElementById('bc-msg').value.trim();
+  if(!msg){notify('Wpisz wiadomość!');return;}
+  const target=document.getElementById('bc-target').value;
+  let targets=CL;
+  if(target==='active')targets=CL.filter(c=>c.status==='active');
+  else if(target==='inactive')targets=CL.filter(c=>c.status==='inactive');
+  else if(target&&target.startsWith('group:')){
+    const gid=target.slice(6);
+    const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===gid);
+    const ids=new Set(g?.clientIds||[]);
+    targets=CL.filter(c=>ids.has(c.id));
+  }
+  if(!targets.length){notify('Brak odbiorców');return;}
+  if(!confirm('Wysłać wiadomość do '+targets.length+' klientów?'))return;
+  targets.forEach(c=>{
+    const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
+    pushMsg(c.id,text,{kind:'broadcast',broadcast:true});
+  });
+  closeM('m-broadcast');
+  renderInbox();
+  notify('✓ Broadcast wysłany do '+targets.length+' klientów');
+}
+
+// ════════════════════════════════════════
+// EXERCISE LIBRARY — ENHANCED
+// ════════════════════════════════════════
+var exView='grid';var exCatFilter='Wszystkie';var exEquipFilter='';var exSelId=null;
+
+const CAT_COLORS_EX={
+  'Klatka piersiowa':'var(--blue)',
+  'Plecy':'var(--purple)',
+  'Barki':'var(--orange)',
+  'Nogi':'var(--teal)',
+  'Biceps':'#f59e0b',
+  'Triceps':'#ec4899',
+  'Core':'var(--accent)',
+  'Pośladki':'var(--red)',
+  'Olimpijskie':'#a78bfa',
+  'Cardio':'#14b8a6',
+  'Rozgrzewka':'#64748b',
+  'Rozciąganie':'#94a3b8',
+  'Mobilność':'#22c55e',
+};
+window.CAT_COLORS_EX=CAT_COLORS_EX;
+
+const DEF_EX=[
+{name:'Wyciskanie sztangi leżąc',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (główna), Triceps, Barki (przednie)',tip:'Łopatki ściągnięte i wciśnięte w ławkę. Pełny ROM.',nsca:'Hipertrofia: 3-4x8-12, RPE 8. Siła: 4-6x3-5.',alt:'Wyciskanie hantli, Pompki',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie hantli leżąc',aka:'DB Bench Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (główna), Triceps',tip:'Hantle w jednej linii z klatką.',nsca:'3x10-12.',alt:'Wyciskanie sztangi, Pompki',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie hantli na ławce skośnej',aka:'Wyciskanie hantli skos+, Incline Dumbbell Press, Incline DB Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka górna, Barki (przednie)',tip:'Kąt ławki 30–45°. Łopatki ściągnięte, hantle w linii z górną klatką.',nsca:'3x10-12.',alt:'Wyciskanie sztangi skos+, Rozpiętki na bramie na ławce skośnej, Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Rozpiętki hantlami',aka:'DB Chest Fly',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (izolacja)',tip:'Lekkie ugięcie łokci. Skup się na rozciągnięciu klatki.',nsca:'3x12-15.',alt:'Rozpiętki na wyciągu, Butterfly (peck deck)'},
+{name:'Rozpiętki na wyciągu',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (izolacja), stałe napięcie',tip:'Stałe napięcie przez cały ruch.',nsca:'3x12-15.',alt:'Rozpiętki hantlami, Butterfly (peck deck)'},
+{name:'Pompki',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka piersiowa, Triceps, Core',tip:'Ciało w jednej linii.',nsca:'3-4xmax.',alt:'Wyciskanie sztangi, Wyciskanie hantli',img:'assets/ex/bench.svg'},
+{name:'Pompki na rączkach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps',tip:'Głębszy zakres ruchu.',nsca:'3x10-15.',alt:'Dipy, Pompki',img:'assets/ex/bench.svg'},
+{name:'Dipy na poręczach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps, Barki',tip:'Pochylenie do przodu = więcej klatki.',nsca:'3x8-12.',alt:'Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Butterfly (peck deck)',aka:'Peck deck, Pec-Deck, Pec deck, Rozpiętki na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka (izolacja)',tip:'Łokcie na poziomie barków.',nsca:'3x12-15.',alt:'Rozpiętki hantlami, Rozpiętki na wyciągu, Rozpiętki na bramie na ławce skośnej',img:'assets/ex/bench.svg'},
+{name:'Pullover hantlem',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Najszerszy',tip:'Pełny zakres ruchu. Rozciągnięcie na dole.',nsca:'3x12-15.',alt:'Pullover sztangą'},
+{name:'Pompki plyometryczne',aka:'Plyo Dynamic Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps, Moc',tip:'Wybij się z podłogi.',nsca:'3x5-8.',alt:'Pompki',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie wąskim chwytem',aka:'Narrow Grip Bench Press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Triceps (główny), Klatka (wewnętrzna)',tip:'Łokcie blisko tułowia.',nsca:'3x8-12.',alt:'Wyciskanie francuskie, Dipy',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie sztangi skos+',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki (przednie), Triceps',tip:'Ławka 30–45°. Łopatki ściągnięte.',nsca:'3–4x8–12.',alt:'Wyciskanie hantli na ławce skośnej, Wyciskanie landmine',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie sztangi skos−',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka dolna, Triceps',tip:'Ławka lekko w dół. Nie odrywaj bioder.',nsca:'3x8–12.',alt:'Dipy, Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie hantli skos−',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka dolna, Triceps',tip:'Kontroluj hantle w dolnej pozycji.',nsca:'3x10–12.',alt:'Wyciskanie sztangi skos−, Dipy',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie z podłogi',aka:'Floor press, Barbell Floor Press, Floor press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka, Triceps (bez pełnego rozciągnięcia)',tip:'Łokcie zatrzymują się o podłogę — bezpieczniej dla barków.',nsca:'3–4x6–10.',alt:'Wyciskanie wąskim chwytem, Wyciskanie sztangi leżąc',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki oparte. Nie blokuj łokci.',nsca:'3x10–15.',alt:'Wyciskanie hantli leżąc, Wyciskanie sztangi leżąc, Wyciskanie hantli na ławce skośnej',img:'assets/ex/bench.svg'},
+{name:'Krzyżowanie wyciągów góra–dół',aka:'Cable crossover góra–dół',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (dolna i środkowa)',tip:'Ruch od góry do bioder. Lekkie ugięcie łokci.',nsca:'3x12–15.',alt:'Rozpiętki na wyciągu, Butterfly (peck deck)',img:'assets/ex/bench.svg'},
+{name:'Krzyżowanie wyciągów dół–góra',aka:'Cable crossover dół–góra',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka górna',tip:'Ruch od dołu do góry, jak „wyciskanie w górę”.',nsca:'3x12–15.',alt:'Wyciskanie hantli na ławce skośnej, Rozpiętki na bramie na ławce skośnej',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie landmine',aka:'Landmine press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki, Core',tip:'Jedna lub dwie ręce. Stabilny tułów.',nsca:'3x8–12.',alt:'Wyciskanie skos+, Wyciskanie z wybiciem',img:'assets/ex/bench.svg'},
+{name:'Pompki diamentowe',aka:'Narrow Push Ups, Diamond Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Triceps, Klatka wewnętrzna',tip:'Dłonie blisko siebie w kształt diamentu.',nsca:'3xmax.',alt:'Wyciskanie wąskim chwytem, Dipy',img:'assets/ex/bench.svg'},
+{name:'Pompki szerokie',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (główna), Barki',tip:'Dłonie szerzej niż barki. Ciało w linii.',nsca:'3xmax.',alt:'Pompki, Rozpiętki',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie Svenda',aka:'Svend press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka wewnętrzna (ściśnięcie)',tip:'Ściskaj talerz/hantel przed klatką i wypychaj do przodu.',nsca:'3x12–20.',alt:'Butterfly (peck deck), Krzyżowanie wyciągów góra–dół',img:'assets/ex/bench.svg'},
+{name:'Martwy ciąg klasyczny',cat:'Plecy',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Prostownicy grzbietu',tip:'Kręgosłup neutralny przez cały czas!',nsca:'Siła: 3-5x3-5. Hipertrofia: 3x8-10.',alt:'Martwy ciąg RDL, Martwy ciąg trap bar',img:'assets/ex/deadlift.svg'},
+{name:'Martwy ciąg RDL',aka:'Romanian deadlift, Rumuński martwy ciąg, RDL',cat:'Plecy',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Prostownicy grzbietu',tip:'Biodra do tyłu, kręgosłup neutralny.',nsca:'3-4x10-12.',alt:'Martwy ciąg klasyczny, Good morning (skłon)',img:'assets/ex/deadlift.svg'},
+{name:'Wiosłowanie sztangą',cat:'Plecy',eq:'Sztanga',muscle:'Plecy środkowe, Biceps, Barki (tylne)',tip:'Tułów pod kątem 45°. Ciągnij do bioder.',nsca:'3-4x8-12.',alt:'Wiosłowanie hantlem, Wyciąg'},
+{name:'Wiosłowanie hantlem',aka:'Single Arm DB Bent Over Row',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe (jednostronnie), Biceps',tip:'Kolano i ręka oparte o ławkę.',nsca:'3x10-12/stronę.',alt:'Wiosłowanie sztangą'},
+{name:'Podciąganie na drążku',cat:'Plecy',eq:'Własna masa',muscle:'Plecy (szerokie), Biceps, Tylne barki',tip:'Nie bujaj się! Pełny ROM.',nsca:'3-4xmax.',alt:'Ściąganie drążka wyciąg',img:'assets/ex/pullup.svg'},
+{name:'Podciąganie neutralnym chwytem',cat:'Plecy',eq:'Własna masa',muscle:'Plecy (szerokie i środkowe), Biceps',tip:'Dłonie zwrócone do siebie.',nsca:'3xmax.',alt:'Podciąganie na drążku',img:'assets/ex/pullup.svg'},
+{name:'Ściąganie drążka wyciąg',cat:'Plecy',eq:'Wyciąg',muscle:'Najszerszy, Biceps',tip:'Drążek do górnej klatki, łokcie do dołu.',nsca:'3x10-12.',alt:'Podciąganie na drążku'},
+{name:'Wiosłowanie wyciągiem siedząc',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy środkowe, Biceps, Rombowate',tip:'Ściągaj łopatki.',nsca:'3x12.',alt:'Wiosłowanie sztangą'},
+{name:'Ściąganie do twarzy (face pull)',aka:'Facepull, Band Face Pull',cat:'Plecy',eq:'Wyciąg',muscle:'Tylne barki, Rombowate, Rotatory',tip:'Wyciągaj do czoła, łokcie wysoko.',nsca:'3x15-20.',alt:'Odwrotne rozpiętki'},
+{name:'Good morning (skłon)',aka:'Good morning',cat:'Plecy',eq:'Sztanga',muscle:'Prostownicy grzbietu, Dwugłowy uda',tip:'Kręgosłup neutralny. Biodra cofaj do tyłu.',nsca:'3x10-12.',alt:'Martwy ciąg RDL, Prostowanie tułowia'},
+{name:'Prostowanie tułowia',aka:'Hyperextension',cat:'Plecy',eq:'Własna masa',muscle:'Prostownicy grzbietu, Pośladki',tip:'Nie przeginaj. Zatrzymaj się w linii ciała.',nsca:'3x12-15.',alt:'Good morning (skłon), Martwy ciąg RDL'},
+{name:'Odwrotne rozpiętki',aka:'Bent Over Reverse DB Fly',cat:'Plecy',eq:'Hantle',muscle:'Tylne barki, Rombowate',tip:'Tułów równoległy do podłogi.',nsca:'3x15.',alt:'Ściąganie do twarzy (face pull), Wiosłowanie'},
+{name:'Wiosłowanie odwrócone',aka:'Inverted row',cat:'Plecy',eq:'Własna masa',muscle:'Plecy środkowe, Biceps',tip:'Leżąc pod drążkiem. Ciągnij klatkę do drążka.',nsca:'3xmax.',alt:'Wiosłowanie, Podciąganie'},
+{name:'Wiosłowanie z oparciem klatki',aka:'Chest supported row',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe (bez dolnego grzbietu)',tip:'Klatka na ławce pod kątem.',nsca:'3x12.',alt:'Wiosłowanie hantlem'},
+{name:'Podciąganie podchwytem',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Biceps (mocniejsza praca)',tip:'Dłonie zwrócone do siebie/podchwytem. Pełny ROM.',nsca:'3–4xmax.',alt:'Podciąganie na drążku, Uginanie biceps'},
+{name:'Wiosłowanie T-bar',aka:'T-bar row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy środkowe, Najszerszy, Biceps',tip:'Klatka stabilna, ciąg do brzucha.',nsca:'3–4x8–12.',alt:'Wiosłowanie sztangą, Wiosłowanie Meadowsa'},
+{name:'Wiosłowanie Meadowsa',aka:'Meadows row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy (jednostronnie), Tylne barki',tip:'Landmine. Ciągnij łokciem w bok/tył.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie hantlem, Wiosłowanie T-bar'},
+{name:'Wiosłowanie Pendlay',aka:'Pendlay row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy środkowe, Moc eksplozywna',tip:'Sztanga z podłogi. Eksplozywny ciąg, kontrolowane opuszczenie.',nsca:'3–5x5–8.',alt:'Wiosłowanie sztangą'},
+{name:'Wiosłowanie seal',aka:'Seal row',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe (bez dolnego grzbietu)',tip:'Leżysz na ławce brzuchem — zero oszukiwania biodrami.',nsca:'3x10–12.',alt:'Wiosłowanie z oparciem klatki'},
+{name:'Ściąganie prostymi rękami',aka:'Straight arm pulldown',cat:'Plecy',eq:'Wyciąg',muscle:'Najszerszy (izolacja)',tip:'Ręce prawie proste. Ciągnij do bioder.',nsca:'3x12–15.',alt:'Pullover hantlem, Ściąganie drążka'},
+{name:'Ściąganie drążka wąskim chwytem',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy środkowe, Biceps',tip:'Chwyt V-bar lub wąski. Drążek do klatki.',nsca:'3x10–12.',alt:'Wiosłowanie wyciągiem, Podciąganie neutralne'},
+{name:'Unoszenie barków sztangą',aka:'Shrugs sztanga',cat:'Plecy',eq:'Sztanga',muscle:'Trapez (górny)',tip:'Unieś barki prosto w górę. Bez rotacji.',nsca:'3–4x10–15.',alt:'Unoszenie barków hantlami, Spacer farmera'},
+{name:'Unoszenie barków hantlami',aka:'Shrugs hantle',cat:'Plecy',eq:'Hantle',muscle:'Trapez (górny)',tip:'Hantle po bokach. Pauza na górze.',nsca:'3–4x12–15.',alt:'Unoszenie barków sztangą'},
+{name:'Ściąganie drążka jednorącz',aka:'Single-arm lat pulldown',cat:'Plecy',eq:'Wyciąg',muscle:'Najszerszy (jednostronnie)',tip:'Ciągnij łokieć do biodra. Stabilny tułów.',nsca:'3x12/stronę.',alt:'Ściąganie drążka, Wiosłowanie hantlem'},
+{name:'Wyciskanie żołnierskie OHP',cat:'Barki',eq:'Sztanga',muscle:'Barki (przednie i środkowe), Triceps',tip:'Napnij pośladki i brzuch.',nsca:'3-4x6-10.',alt:'Wyciskanie hantli, Wyciskanie Arnolda',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie hantli siedząc',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie i środkowe), Triceps',tip:'Hantle na poziomie uszu.',nsca:'3x10-12.',alt:'Wyciskanie żołnierskie OHP, Wyciskanie Arnolda',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie Arnolda',aka:'Arnold press, Seated DB Arnold Press, Seated DB Arnold Shoulder',cat:'Barki',eq:'Hantle',muscle:'Barki (wszystkie głowy), Triceps',tip:'Obrót dłoni podczas wyciskania.',nsca:'3x10-12.',alt:'Wyciskanie hantli, Wyciskanie żołnierskie OHP',img:'assets/ex/ohp.svg'},
+{name:'Unoszenie bokiem',aka:'DB Lateral Raises, DB lateral Raises',cat:'Barki',eq:'Hantle',muscle:'Barki (środkowe)',tip:'Lekkie ugięcie łokci. Nie zamachy!',nsca:'3x15-20.',alt:'Unoszenie wyciągiem'},
+{name:'Unoszenie przodem',aka:'DB Shoulder Front Raises',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie)',tip:'Do wysokości barków, nie wyżej.',nsca:'3x12-15.',alt:'Wyciskanie żołnierskie OHP, Unoszenie wyciągiem'},
+{name:'Unoszenie wyciągiem bokiem',cat:'Barki',eq:'Wyciąg',muscle:'Barki (środkowe), stałe napięcie',tip:'Lepsza aktywacja niż hantle.',nsca:'3x15-20.',alt:'Unoszenie bokiem hantlami'},
+{name:'Odwrotne rozpiętki maszyna',cat:'Barki',eq:'Maszyna',muscle:'Tylne barki, Rombowate',tip:'Łokcie na poziomie barków.',nsca:'3x15.',alt:'Odwrotne rozpiętki, Ściąganie do twarzy (face pull), Odwrotne rozpiętki na wyciągu'},
+{name:'Rotacja zewnętrzna',aka:'Shoulder External Rotation with Band, External rotation',cat:'Barki',eq:'Hantle',muscle:'Rotatory barku, Podgrzebieniowy',tip:'Łokieć przy boku pod kątem 90°.',nsca:'2-3x15-20.',alt:'Rotacja na wyciągu, Ściąganie do twarzy (face pull)'},
+{name:'Wyciskanie z wybiciem',aka:'Push press',cat:'Barki',eq:'Sztanga',muscle:'Barki, Triceps, Moc eksplozywna',tip:'Lekki dip kolanami i wybicie.',nsca:'3x5-8.',alt:'Wyciskanie żołnierskie OHP'},
+{name:'Wyciskanie kubańskie',aka:'Cuban press, Single Arm DB Cuban Press',cat:'Barki',eq:'Hantle',muscle:'Rotatory barku, Tylne barki',tip:'Zewnętrzna rotacja + wyciskanie.',nsca:'3x10-12.',alt:'Rotacja zewnętrzna, Ściąganie do twarzy (face pull)'},
+{name:'Wyciskanie barków maszyna',cat:'Barki',eq:'Maszyna',muscle:'Barki (przednie i środkowe), Triceps',tip:'Plecy oparte. Pełny ROM bez bólu barku.',nsca:'3x10–12.',alt:'Wyciskanie hantli siedząc, Wyciskanie żołnierskie OHP'},
+{name:'Wiosłowanie pionowe',aka:'Upright row',cat:'Barki',eq:'Sztanga',muscle:'Barki środkowe, Trapez',tip:'Łokcie wyżej niż nadgarstki. Nie za wąsko.',nsca:'3x10–12.',alt:'Unoszenie bokiem, Ściąganie do twarzy (face pull)'},
+{name:'Unoszenie Y',aka:'Y-raise',cat:'Barki',eq:'Hantle',muscle:'Tylne barki, Dolny trapez',tip:'Unieś ręce w kształt Y. Lekkie obciążenie.',nsca:'3x12–15.',alt:'Odwrotne rozpiętki, Ściąganie do twarzy (face pull)'},
+{name:'Unoszenie bokiem na wyciągu jednorącz',cat:'Barki',eq:'Wyciąg',muscle:'Barki (środkowe)',tip:'Ciągnij w poprzek ciała — stałe napięcie.',nsca:'3x12–20/stronę.',alt:'Unoszenie bokiem, Unoszenie wyciągiem bokiem'},
+{name:'Unoszenie talerza przodem',aka:'Plate front raise, Plate Shoulder Front Raises, Plate Front Raises HandleBar',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie)',tip:'Talerz/hantel przed sobą do wysokości barków.',nsca:'3x12–15.',alt:'Unoszenie przodem, Wyciskanie żołnierskie OHP'},
+{name:'Unoszenie bokiem landmine',aka:'Landmine lateral raise',cat:'Barki',eq:'Sztanga',muscle:'Barki (środkowe)',tip:'Landmine w jednej ręce — łuk na zewnątrz.',nsca:'3x12–15/stronę.',alt:'Unoszenie bokiem'},
+{name:'Uginanie biceps sztangą',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa i krótka)',tip:'Łokieć stabilny przy boku.',nsca:'3x8-12.',alt:'Uginanie hantlami',img:'assets/ex/curl.svg'},
+{name:'Uginanie młotkowe',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Neutralny chwyt — kciuk do góry.',nsca:'3x10-12.',alt:'Uginanie biceps sztangą',img:'assets/ex/curl.svg'},
+{name:'Uginanie hantlami naprzemiennie',aka:'Alternating DB Biceps Curl, DB Biceps Curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy',tip:'Pełna supinacja przy uginaniu.',nsca:'3x10-12/stronę.',alt:'Uginanie sztangą',img:'assets/ex/curl.svg'},
+{name:'Uginanie na wyciągu',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps, stałe napięcie',tip:'Lepsze dla szczytowej kontrakcji.',nsca:'3x12-15.',alt:'Uginanie hantlami'},
+{name:'Uginanie spider',aka:'Spider curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (szczytowa kontrakcja)',tip:'Klatka oparta na ławce. Maksymalna izolacja.',nsca:'3x12-15.',alt:'Uginanie koncentryczne'},
+{name:'Uginanie Zottman',aka:'DB Zottman Curls',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy, Przedramię',tip:'Supinacja w górze, pronacja w dół.',nsca:'3x10-12.',alt:'Uginanie młotkowe'},
+{name:'Uginanie reverse',cat:'Biceps',eq:'Sztanga',muscle:'Ramiennopromieniowy, Przedramię',tip:'Chwyt pronacyjny. Wzmacnia przedramię.',nsca:'3x12-15.',alt:'Uginanie Zottman'},
+{name:'Uginanie nadgarstka',cat:'Biceps',eq:'Sztanga',muscle:'Zginacze nadgarstka, Przedramię',tip:'Nadgarstek opiera się o ławkę.',nsca:'3x15-20.',alt:'Uginanie reverse'},
+{name:'Uginanie koncentryczne',aka:'Concentration curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (szczytowa izolacja)',tip:'Łokieć oparty o udo. Pełna kontrakcja na górze.',nsca:'3x10–12/stronę.',alt:'Uginanie spider, Uginanie hantlami'},
+{name:'Uginanie na modlitewniku',aka:'Preacher curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa krótka)',tip:'Ramię przylegające do ławki Scotta. Nie odrywaj łokci.',nsca:'3x8–12.',alt:'Uginanie spider, Uginanie sztangą'},
+{name:'Uginanie na skosie',aka:'Incline curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa — rozciągnięcie)',tip:'Ławka 45–60°. Ramiona swobodnie w tył.',nsca:'3x10–12.',alt:'Uginanie hantlami, Uginanie Bayesian'},
+{name:'Uginanie Bayesian',aka:'Bayesian curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps (rozciągnięcie + napięcie)',tip:'Wyciąg z tyłu. Krok do przodu, uginaj do przodu.',nsca:'3x10–15.',alt:'Uginanie na skosie, Uginanie na wyciągu'},
+{name:'Uginanie drag',aka:'Drag curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa)',tip:'Ciągnij sztangę wzdłuż tułowia — łokcie idą w tył.',nsca:'3x10–12.',alt:'Uginanie sztangą'},
+{name:'21-ki biceps',aka:'21s biceps',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (cała głowa — pump)',tip:'7 dolnej połowy + 7 górnej + 7 pełnych.',nsca:'2–3x21.',alt:'Uginanie sztangą, Uginanie na wyciągu'},
+{name:'Prostowanie tricepsa wyciąg',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (wszystkie 3 głowy)',tip:'Łokcie przy tułowiu, nie ruszaj nimi.',nsca:'3x12-15.',alt:'Wyciskanie francuskie, Prostowanie za głowę (skull crusher)'},
+{name:'Wyciskanie francuskie',aka:'French press',cat:'Triceps',eq:'Sztanga',muscle:'Triceps (długa głowa)',tip:'Łokcie skierowane do sufitu.',nsca:'3x10-12.',alt:'Prostowanie wyciąg, Prostowanie za głowę (skull crusher)'},
+{name:'Prostowanie za głowę (skull crusher)',aka:'Skull crusher',cat:'Triceps',eq:'Sztanga',muscle:'Triceps (długa i boczna głowa)',tip:'Opuszczaj do czoła lub za głowę.',nsca:'3x10-12.',alt:'Wyciskanie francuskie'},
+{name:'Kickback triceps',aka:'Kick back triceps, Bent Over DB Triceps Kickback',cat:'Triceps',eq:'Hantle',muscle:'Triceps (boczna i przyśrodkowa głowa)',tip:'Pełne wyprostowanie ramienia.',nsca:'3x12-15.',alt:'Prostowanie wyciąg'},
+{name:'Prostowanie za głowę wyciąg',aka:'Overhead triceps wyciąg',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (długa głowa — rozciągnięcie)',tip:'Wyciąg za głowę.',nsca:'3x12-15.',alt:'Wyciskanie francuskie'},
+{name:'Prostowanie linką',aka:'Prostowanie linką (rope pushdown)',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (boczna głowa)',tip:'Na dole rozciągnij linki na boki.',nsca:'3x12–15.',alt:'Prostowanie tricepsa wyciąg'},
+{name:'Prostowanie jednorącz wyciąg',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (izolacja jednostronna)',tip:'Łokieć przyklejony. Pełny wyprost.',nsca:'3x12–15/stronę.',alt:'Kickback triceps, Prostowanie linką'},
+{name:'Prostowanie za głowę hantlem',aka:'Overhead triceps hantlem, Standing DB Overhead Triceps Extension',cat:'Triceps',eq:'Hantle',muscle:'Triceps (długa głowa)',tip:'Łokcie blisko głowy. Opuszczaj za głowę.',nsca:'3x10–12.',alt:'Wyciskanie francuskie, Prostowanie za głowę wyciąg'},
+{name:'Dipy na ławce',aka:'Bench dip',cat:'Triceps',eq:'Własna masa',muscle:'Triceps, Klatka przednia, Barki',tip:'Biodra blisko ławki. Nie schodź za głęboko przy wrażliwych barkach.',nsca:'3x10–15.',alt:'Dipy na poręczach, Pompki diamentowe'},
+{name:'Dipy triceps (pionowe)',cat:'Triceps',eq:'Własna masa',muscle:'Triceps (główny), Klatka mniej',tip:'Tułów bardziej pionowo niż przy dipach na klatkę.',nsca:'3x8–12.',alt:'Dipy na ławce, Wyciskanie wąskim chwytem'},
+{name:'Wyciskanie JM',aka:'JM press',cat:'Triceps',eq:'Sztanga',muscle:'Triceps, Klatka górna',tip:'Hybryda skull crusher + wąski bench. Łokcie pod kątem.',nsca:'3x6–10.',alt:'Prostowanie za głowę (skull crusher), Wyciskanie wąskim chwytem'},
+{name:'Dipy triceps maszyna',aka:'Triceps dip maszyna',cat:'Triceps',eq:'Maszyna',muscle:'Triceps (wszystkie głowy)',tip:'Ramiona blisko tułowia. Kontrolowany ruch.',nsca:'3x10–15.',alt:'Prostowanie tricepsa wyciąg, Dipy na poręczach'},
+{name:'Przysiad ze sztangą',aka:'Barbell Back Squat, Empty Barbell Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki, Dwugłowy, Prostownicy',tip:'Kolana w kierunku palców. Biodra poniżej kolan.',nsca:'Siła: 4-6x3-5. Hipertrofia: 3-4x8-12.',alt:'Przysiad goblet, Przysiad przedni, Wyciskanie nogami',img:'assets/ex/squat.svg'},
+{name:'Przysiad Goblet',aka:'DB Goblet Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki, Core',tip:'Hantel trzymaj przy klatce.',nsca:'3x12-15.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
+{name:'Przysiad przedni',aka:'Front squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy (głównie), Pośladki, Core',tip:'Łokcie wysoko, klatka dumna.',nsca:'3-4x6-10.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
+{name:'Przysiad sumo',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Przywodziciele, Czworogłowy',tip:'Szerokie ustawienie stóp, palce na zewnątrz.',nsca:'3x8-12.',alt:'Przysiad klasyczny'},
+{name:'Wyciskanie nogami',aka:'Leg press, Leg Press Machine, Leg Press Mchine',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki, Dwugłowy uda',tip:'Nie blokuj kolan całkowicie.',nsca:'3-4x10-15.',alt:'Przysiad ze sztangą, Przysiad Goblet'},
+{name:'Wykrok ze sztangą',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Kolano tylne blisko podłogi.',nsca:'3x10-12/noga.',alt:'Wykrok z hantlami, Przysiad bułgarski'},
+{name:'Przysiad bułgarski',aka:'Bulgarian split squat, RFE DB Split Squat, Bulgarian split squat DB',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (izolacja jednostronna)',tip:'Tylna noga na ławce.',nsca:'3x8-12/noga.',alt:'Wykrok'},
+{name:'Wypychanie bioder (hip thrust)',aka:'Hip thrust',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki (izolacja), Dwugłowy uda',tip:'Ściśnij pośladki maksymalnie na górze.',nsca:'3-4x10-15.',alt:'Mostek biodrowy'},
+{name:'Mostek biodrowy',aka:'DB Glute Bridge, Glute Bridge, Glute Bridge Bodyweight',cat:'Nogi',eq:'Własna masa',muscle:'Pośladki, Dwugłowy uda',tip:'Zatrzymanie na górze 2 sek.',nsca:'3x15-20.',alt:'Wypychanie bioder (hip thrust)'},
+{name:'Uginanie nóg maszyna',aka:'Hamstring Leg Curl Machine',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda (izolacja)',tip:'Pełny zakres ruchu.',nsca:'3x12-15.',alt:'Martwy ciąg RDL, RDL jednonóż, Uginanie nordyckie'},
+{name:'Wyprosty nóg maszyna',aka:'Seated Leg Extension Machine',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (izolacja)',tip:'Zatrzymaj na górze 1 sek.',nsca:'3x12-15.',alt:'Przysiad Goblet, Wykrok chodzony'},
+{name:'Wspięcia na palce',cat:'Nogi',eq:'Maszyna',muscle:'Łydki (brzuchaty i płaszczkowaty)',tip:'Pełny zakres. Powolne tempo.',nsca:'4x15-20.',alt:'Wspięcia na palce jednonóż'},
+{name:'Wspięcia na palce jednonóż',cat:'Nogi',eq:'Własna masa',muscle:'Łydki (jednostronnie)',tip:'Trzymaj się czegoś dla balansu.',nsca:'3x15-20/noga.',alt:'Wspięcia na palce'},
+{name:'Wejścia na skrzynię',aka:'Step-up, Box Step Up',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Ciężar na pięcie.',nsca:'3x10-12/noga.',alt:'Wykrok, Przysiad bułgarski'},
+{name:'Martwy ciąg sumo',aka:'Sumo deadlift',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Przywodziciele, Czworogłowy, Grzbiet',tip:'Szerokie ustawienie, palce na zewnątrz.',nsca:'3-5x3-6.',alt:'Martwy ciąg klasyczny'},
+{name:'Przysiad hack maszyna',aka:'Hack squat maszyna, Hack squat, Przysiad na suwnicy',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (głównie), Pośladki',tip:'Plecy płasko przy podparciu. Schodź do pełnego rozciągnięcia czworogłowych — kolano wędruje w dół i lekko w przód.',nsca:'3x10-12.',alt:'Przysiad ze sztangą, Przysiad Goblet, Wykrok chodzony'},
+{name:'Przysiad jednonóż (pistol)',aka:'Pistol Squat - Home, Pistol Squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Stabilizacja',tip:'Zacznij od wersji na skrzynię.',nsca:'3x5-8/noga.',alt:'Przysiad bułgarski'},
+{name:'Przysiad na skrzynię',aka:'Box squat, Box Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Czworogłowy',tip:'Usiąść na skrzynię, zatrzymać się, wstać.',nsca:'4x5-6.',alt:'Przysiad ze sztangą'},
+{name:'RDL jednonóż',aka:'Single leg RDL, Single Leg DB RDL',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Dwugłowy uda (jednostronnie)',tip:'Biodra równo. Powolne opuszczanie.',nsca:'3x10-12/noga.',alt:'Martwy ciąg RDL, Przysiad bułgarski'},
+{name:'Uginanie nordyckie',aka:'Nordic curl',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy uda (ekscentryczne)',tip:'Nogi przytrzymane. Opuszczaj ciało powoli.',nsca:'3x5-8.',alt:'Uginanie nóg'},
+{name:'Przysiad przy ścianie',aka:'Wall sit',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy (izometria), Pośladki',tip:'Plecy na ścianie, uda równoległe do podłogi.',nsca:'3x45-60 sek.',alt:'Przysiad',load:'sec'},
+{name:'Martwy ciąg trap bar',aka:'Trap bar deadlift',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki, Grzbiet',tip:'Bardziej pionowy tułów niż konwencjonalny deadlift.',nsca:'3-5x4-8.',alt:'Martwy ciąg klasyczny'},
+{name:'Kickback pośladki',cat:'Pośladki',eq:'Wyciąg',muscle:'Pośladki (izolacja)',tip:'Kontrolowany ruch. Maksymalna kontrakcja na górze.',nsca:'3x15-20/noga.',alt:'Wypychanie bioder (hip thrust), Mostek'},
+{name:'Abdukcja biodra maszyna',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki (średni i mały)',tip:'Kontrolowane odwodzenie.',nsca:'3x15-20.',alt:'Monster walk (chód)'},
+{name:'Wypychanie bioder jednonóż',aka:'Hip thrust jednonóż, Banded Single Leg Hip Thrust',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (jednostronnie)',tip:'Jedna noga uniesiona.',nsca:'3x12-15/noga.',alt:'Wypychanie bioder (hip thrust)'},
+{name:'Monster walk (chód)',aka:'Monster walk',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (średni), Stabilizatory biodra',tip:'Taśma oporowa powyżej kolan.',nsca:'3x15 kroków/stronę.',alt:'Abdukcja maszyna'},
+{name:'Muszla (clamshell)',aka:'Clamshell',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (średni i mały)',tip:'Leżąc na boku. Otwieraj kolano jak muszla.',nsca:'3x15-20/stronę.',alt:'Monster walk (chód)'},
+{name:'Pull-through wyciąg',aka:'Cable pull-through',cat:'Pośladki',eq:'Wyciąg',muscle:'Pośladki, Dwugłowy uda',tip:'Hip hinge. Ciągnij linkę między nogami do wyprostu bioder.',nsca:'3x12–15.',alt:'Wypychanie bioder (hip thrust), Martwy ciąg RDL'},
+{name:'Frog pump',aka:'Frog Pumps, Frog Pumps 2',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (izolacja)',tip:'Podeszwy razem, kolana na boki. Wyciskaj biodra w górę.',nsca:'3x20–30.',alt:'Mostek biodrowy, Wypychanie bioder (hip thrust)'},
+{name:'Odwrócone prostowanie tułowia',aka:'Reverse hyperextension, GHD Reverse Hyper Extension, Reverse hyper',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki, Dolny grzbiet, Dwugłowy',tip:'Unoś nogi do linii tułowia. Nie przeprostowuj.',nsca:'3x12–15.',alt:'Prostowanie tułowia, Wypychanie bioder (hip thrust)'},
+{name:'Wejścia boczne na skrzynię',aka:'Step-up boczny',cat:'Pośladki',eq:'Hantle',muscle:'Pośladki (średni), Stabilizacja biodra',tip:'Wejście bokiem na skrzynię. Kontrola zejścia.',nsca:'3x10–12/noga.',alt:'Wejścia na skrzynię, Przysiad bułgarski'},
+{name:'Wypychanie bioder z taśmą',aka:'Banded hip thrust',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (aktywacja + opór)',tip:'Taśma nad kolanami — rozpychaj na boki przy wyproście.',nsca:'3x15–20.',alt:'Wypychanie bioder (hip thrust), Monster walk (chód)'},
+{name:'Prostowanie 45° pośladki',aka:'45° hyperextension pośladki',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki, Dolny grzbiet',tip:'Zaokrąglij lekko górę ruchu w pośladkach, nie w odcinku lędźwiowym.',nsca:'3x12–15.',alt:'Wypychanie bioder (hip thrust), Odwrócone prostowanie tułowia'},
+{name:'Marsz w mostku',aka:'Glute march, Glute Bridge Single Leg March',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (jednostronnie), Core',tip:'Mostek + naprzemienne unoszenie kolan.',nsca:'3x10/stronę.',alt:'Wypychanie bioder jednonóż, Mostek biodrowy'},
+{name:'Deska',aka:'Plank, Front Plank, Plank przedni, Plank na łokciach, Plank przedni na łokciach, Plank przedni na łokciach (statyczny)',cat:'Core',eq:'Własna masa',muscle:'Core (anteriora), Pośladki, Barki',tip:'45-60s/serie. Biodra nie opadają.',nsca:'2-3x45-60s.',alt:'Deska boczna, Rollout z kółkiem',load:'sec'},
+{name:'Rollout z kółkiem',aka:'Ab wheel rollout',cat:'Core',eq:'Własna masa',muscle:'Core (przedni — prosty), Barki',tip:'Zacznij od wersji na kolanach.',nsca:'3x8-12.',alt:'Deska, Hollow hold'},
+{name:'Hollow hold',cat:'Core',eq:'Własna masa',muscle:'Core (głęboki), Biodra',tip:'Plecy płasko na podłodze.',nsca:'3x20-30s.',alt:'Deska, Rollout z kółkiem',load:'sec'},
+{name:'Dragon flag',cat:'Core',eq:'Własna masa',muscle:'Core (cały), Biodra',tip:'Bardzo zaawansowane. Ciało w linii.',nsca:'3x5-8.',alt:'Rollout z kółkiem, Hollow hold'},
+{name:'Deska boczna',aka:'Side plank',cat:'Core',eq:'Własna masa',muscle:'Skośne brzucha, Biodra',tip:'Biodra nie opadają. Ciało w linii bocznej.',nsca:'3x30-45s/stronę.',alt:'Deska',load:'sec'},
+{name:'Martwy robak',aka:'Dead bug',cat:'Core',eq:'Własna masa',muscle:'Core głęboki, Biodra, Stabilizacja',tip:'Plecy ZAWSZE przyciśnięte do podłogi.',nsca:'3x8-10/stronę.',alt:'Bird dog, Deska'},
+{name:'Bird dog',aka:'Quadruped Limb Lift, Quadruped Single Arm Single Leg',cat:'Core',eq:'Własna masa',muscle:'Core głęboki, Prostownicy grzbietu, Pośladki',tip:'Wyciągnij przeciwne ramię i nogę.',nsca:'3x10/stronę.',alt:'Martwy robak'},
+{name:'Brzuszki klasyczne',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha (górny)',tip:'Nie ciągnij za szyję.',nsca:'3x15-20.',alt:'Crunch maszyna, Zwisy nóg'},
+{name:'Zwisy nóg drążek',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha (dolny), Biodra',tip:'Nogi proste lub ugięte.',nsca:'3x10-15.',alt:'Unoszenie kolan'},
+{name:'Skręty rosyjskie',aka:'Russian twist',cat:'Core',eq:'Własna masa',muscle:'Skośne brzucha, Core rotacyjny',tip:'Plecy pod kątem 45°.',nsca:'3x15/stronę.',alt:'Woodchop'},
+{name:'Woodchop wyciąg',cat:'Core',eq:'Wyciąg',muscle:'Skośne brzucha, Core rotacyjny',tip:'Ruch diagonalny od góry do dołu.',nsca:'3x12/stronę.',alt:'Skręty rosyjskie, Wyciskanie Pallofa'},
+{name:'Wyciskanie Pallofa',aka:'Pallof press, Standing Band Pallof Press',cat:'Core',eq:'Wyciąg',muscle:'Core antyrotacyjny, Stabilizacja kręgosłupa',tip:'Opieraj się rotacji.',nsca:'3x10-12/stronę.',alt:'Woodchop, Deska'},
+{name:'Spacer farmera',aka:'Farmer carry, DB Farmer Walk',cat:'Core',eq:'Hantle',muscle:'Chwyt, Core, Trapez, Całe ciało',tip:'Plecy proste, ramiona w dół.',nsca:'3x20-30 m.',alt:'Suitcase carry'},
+{name:'Unoszenie kolan w zwisie',aka:'Hanging knee raise',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Biodra',tip:'Wisisz na drążku. Kolana do klatki.',nsca:'3x15.',alt:'Zwisy nóg'},
+{name:'Palce do drążka',aka:'Toes to bar',cat:'Core',eq:'Własna masa',muscle:'Core (cały), Biodra',tip:'Wisisz na drążku. Nogi proste do drążka.',nsca:'3x8-10.',alt:'Unoszenie kolan w zwisie'},
+{name:'V-upy',aka:'V-up, V Sit Ups',cat:'Core',eq:'Własna masa',muscle:'Core (cały), Biodra',tip:'Unieś jednocześnie nogi i tułów.',nsca:'3x12-15.',alt:'Brzuszki, Hollow hold'},
+{name:'Zwisy na drążku',aka:'Dead hang, Active Dead Hang, Dead hang',cat:'Core',eq:'Własna masa',muscle:'Chwyt, Barki, Kręgosłup (dekompresja)',tip:'Wisisz swobodnie na drążku.',nsca:'3xmax czas.',alt:'Spacer farmera, Podciąganie',load:'sec'},
+{name:'Pajacyki',aka:'Jumping jacks, Jumping jack, Jumping Jacks 2',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Całe ciało, Cardio',tip:'Zacznij powoli, przyspieszaj.',nsca:'2-3 min.',alt:'Wysokie kolana, Bieganie w miejscu'},
+{name:'Wysokie kolana',aka:'High knees',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra, Czworogłowy, Cardio',tip:'Kolana do klatki. Ramiona aktywnie.',nsca:'3x30 sek.',alt:'Pajacyki, Pięty do pośladków'},
+{name:'Pięty do pośladków',aka:'Butt kicks',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Dwugłowy uda, Łydki, Cardio',tip:'Pięty do pośladków.',nsca:'3x30 sek.',alt:'Wysokie kolana'},
+{name:'Gąsienica (inchworm)',aka:'Inchworm, Inch Warm',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Łańcuch tylny, Core, Barki',tip:'Powoli przemieszczaj ręce do przodu.',nsca:'3x8-10 powt.',alt:'Chód niedźwiedzia'},
+{name:'Chód niedźwiedzia',aka:'Bear crawl, Bear Crawl Forward and Backward, Bear Crawl (Quadruped) Mobility',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Core, Barki, Biodra, Koordynacja',tip:'Kolana kilka cm nad podłogą.',nsca:'3x10 m.',alt:'Gąsienica (inchworm)'},
+{name:'Machy nogą przód-tył',aka:'Leg swing przód-tył',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra (mobilizacja), Dwugłowy uda',tip:'Trzymaj się ściany. Swobodny zamach.',nsca:'2x15/noga.',alt:'Machy nogą bokiem'},
+{name:'Machy nogą bokiem',aka:'Leg swing boczny',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Przywodziciele, Biodra',tip:'Boczne machy nogi.',nsca:'2x15/noga.',alt:'Machy nogą przód-tył'},
+{name:'Kółka biodrami',aka:'Hip circle',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra (mobilizacja 360°)',tip:'Szerokie, kontrolowane kółka biodrami.',nsca:'2x10/kierunek.',alt:'Leg swing, Cat-cow (kot-krowa)'},
+{name:'Kółka ramionami',aka:'Arm circle',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Barki (mobilizacja)',tip:'Małe do dużych kółek.',nsca:'2x15/kierunek.',alt:'Shoulder roll'},
+{name:'Cat-cow (kot-krowa)',aka:'Cat-cow, Segmental Cat Camel',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Kręgosłup (mobilizacja), Core',tip:'Naprzemienne wyginanie i prostowanie kręgosłupa.',nsca:'2-3x10.',alt:'Poza dziecka, Nitka w igłę'},
+{name:'Nitka w igłę',aka:'Thread the needle',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Kręgosłup piersiowy (rotacja), Barki',tip:'Przeciągnij rękę pod ciałem.',nsca:'2x8/stronę.',alt:'Cat-cow (kot-krowa)'},
+{name:'World’s greatest stretch',aka:'World greatest stretch, World Greatest Stretch - WGS, WGS',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra, Kręgosłup, Barki — mobilizacja',tip:'Wykrok + rotacja + skrzyżowanie ramion.',nsca:'2x5/stronę.',alt:'Couch stretch, Biodra 90/90'},
+{name:'Biodra 90/90',aka:'Hip 90/90, 90/90 Hip Mobility',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra (rotacja wewnętrzna i zewnętrzna)',tip:'Nogi ugięte pod kątem 90° po obu stronach.',nsca:'2x10/stronę.',alt:'World’s greatest stretch'},
+{name:'Couch stretch',aka:'Hip Flexor Couch Stretch',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Prostownik biodra, Czworogłowy',tip:'Tylna noga oparta o ścianę. Biodra pchaj do przodu.',nsca:'2x30-60 sek/stronę.',alt:'Hip flexor stretch'},
+{name:'Rozciąganie Spiderman',aka:'Spiderman stretch',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra, Pachwinowe, Mobilizacja',tip:'Wykrok do przodu, rękę obok stopy.',nsca:'2x8/stronę.',alt:'World’s greatest stretch'},
+{name:'Kółka stawem skokowym',aka:'Ankle circle',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Staw skokowy (mobilizacja)',tip:'Pełny zakres ruchu.',nsca:'2x10/kierunek/noga.',alt:'Calf raise'},
+{name:'Rotacja piersiowa',aka:'Thoracic rotation, Quadruped Thoracic Spine Rotation, Kneeling Thoracic Spine Rotation',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Kręgosłup piersiowy (rotacja)',tip:'Ręka za głową, otwieraj klatkę.',nsca:'2x10/stronę.',alt:'Nitka w igłę, Cat-cow (kot-krowa)'},
+{name:'Open book',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Kręgosłup piersiowy, Barki (rotacja)',tip:'Leżąc na boku. Otwieraj górną rękę.',nsca:'2x10/stronę.',alt:'Nitka w igłę'},
+{name:'Donkey kick',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Pośladki (aktywacja), Biodra',tip:'Kop piętą w sufit — kolano ugięte 90°.',nsca:'2x15/noga.',alt:'Fire hydrant'},
+{name:'Fire hydrant',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Pośladki (średni), Biodra zewnętrzne',tip:'Na czworaka. Unoś nogę w bok.',nsca:'2x15/noga.',alt:'Muszla (clamshell)'},
+{name:'Mostek biodrowy — aktywacja',aka:'Glute bridge aktywacja',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Pośladki (aktywacja przed treningiem)',tip:'Zatrzymaj na górze 2 sek.',nsca:'2x15.',alt:'Wypychanie bioder (hip thrust)'},
+{name:'Wykrok boczny',aka:'Lateral lunge',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Przywodziciele, Czworogłowy, Pośladki',tip:'Szeroki krok w bok.',nsca:'2x10/stronę.',alt:'Sumo squat, Biodra 90/90'},
+{name:'Przysiad do stania',aka:'Squat to stand, Squat to Standing Hamstring Stretch',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Łańcuch tylny, Mobilizacja',tip:'Stań — chwyć palce — zejdź w przysiad — wstań.',nsca:'2x10.',alt:'Gąsienica (inchworm)'},
+{name:'Toy soldier',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Dwugłowy uda, Biodra (dynamiczne)',tip:'Maszeruj i kopaj prostą nogę.',nsca:'2x10/noga.',alt:'Leg swing'},
+{name:'Przesuw boczny',aka:'Lateral shuffle',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Pośladki, Biodra, Koordynacja',tip:'Szybkie boczne kroki. Środek ciężkości niski.',nsca:'3x10 m.',alt:'Monster walk (chód)'},
+{name:'A-skip',aka:'Skip A in Place, Skip A, High knees skip',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra, Koordynacja biegowa',tip:'Rytmiczne podskoki z unoszeniem kolan.',nsca:'3x10 m.',alt:'Wysokie kolana, B-skip'},
+{name:'B-skip',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Dwugłowy uda, Biodra, Koordynacja',tip:'A-skip + wyprostowanie nogi do przodu.',nsca:'3x10 m.',alt:'A-skip'},
+{name:'Głębokie kucnięcie (hang)',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra, Staw skokowy, Dolny grzbiet',tip:'Trzymaj się czegoś i siedź głęboko.',nsca:'3x30-60 sek.',alt:'Przysiad do stania'},
+{name:'Rozciąganie zginaczy biodra (dynamiczne)',aka:'Hip flexor stretch dynamiczny',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Prostownik biodra (dynamiczne)',tip:'Wykrok niski. Dynamiczne wychylenia.',nsca:'2x10/stronę.',alt:'Couch stretch'},
+{name:'Skłon do nóg siedząc',cat:'Rozciąganie',eq:'Własna masa',muscle:'Dwugłowy uda, Dolny grzbiet',tip:'Plecy proste jak długo możesz.',nsca:'3x30-60 sek.',alt:'Pies z głową w dół'},
+{name:'Rozciąganie butterfly',aka:'Butterfly stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Przywodziciele, Pachwinowe',tip:'Stopy razem, kolana na boki.',nsca:'3x30-60 sek.',alt:'Poza gołębia'},
+{name:'Poza gołębia',aka:'Pigeon pose, Pigeon Stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Pośladki, Biodra zewnętrzne, IT band',tip:'Przednia noga ugięta przed tobą.',nsca:'3x60 sek/stronę.',alt:'Rozciąganie butterfly, Rozciąganie figure-4'},
+{name:'Rozciąganie figure-4',aka:'Figure-4 stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Pośladki (gruszkowaty), Biodra',tip:'Leżąc na plecach. Skrzyżuj nogę na kolanie.',nsca:'3x30-60 sek/stronę.',alt:'Poza gołębia'},
+{name:'Rozciąganie czworogłowego stojąc',aka:'Quads Stretch - Heel to Butt Standing, Quadriceps Femoris Stretch - Home',cat:'Rozciąganie',eq:'Własna masa',muscle:'Czworogłowy uda',tip:'Chwyć stopę z tyłu. Kolana razem.',nsca:'3x30 sek/noga.',alt:'Couch stretch'},
+{name:'Rozciąganie łydek',aka:'Wall Ankle Calf Stretch, Wall Assisted Calf Stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Łydki (brzuchaty i płaszczkowaty)',tip:'Przy ścianie. Prosta noga = brzuchaty.',nsca:'3x30-60 sek/noga.',alt:'Pies z głową w dół'},
+{name:'Rozciąganie w framudze',aka:'Doorway stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Klatka piersiowa, Przedni bark',tip:'Ręce na framudze. Wychyl się do przodu.',nsca:'3x30 sek.',alt:'Rozpiętki'},
+{name:'Poza dziecka',aka:'Child pose, Childs Pose Breath and Stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Dolny grzbiet, Biodra, Barki',tip:'Usiądź na piętach, ramiona do przodu.',nsca:'3x60 sek.',alt:'Cat-cow (kot-krowa), Pies z głową w dół'},
+{name:'Pies z głową w dół',aka:'Downward dog, Downward Dog Stretch Mobility',cat:'Rozciąganie',eq:'Własna masa',muscle:'Łańcuch tylny, Barki, Łydki, Kręgosłup',tip:'V-kształt. Pięty do podłogi.',nsca:'3x30-60 sek.',alt:'Poza dziecka'},
+{name:'Rozciąganie biodra leżąc',cat:'Rozciąganie',eq:'Własna masa',muscle:'Prostownik biodra, Czworogłowy',tip:'Leżąc na boku. Chwyć stopę i przyciągnij.',nsca:'3x30 sek/stronę.',alt:'Couch stretch'},
+{name:'Rozciąganie szyi bokiem',aka:'Neck stretch boczny',cat:'Rozciąganie',eq:'Własna masa',muscle:'Dźwigacz łopatki, Mięśnie szyi',tip:'Pochyl głowę w bok. Delikatne przyciąganie.',nsca:'3x30 sek/stronę.',alt:'Shoulder roll'},
+{name:'Foam roller — plecy',aka:'Foam roller plecy, Foam Roll - Thoracic Spine',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy, Mięśnie przykręgosłupowe',tip:'Roluj powoli. Zatrzymuj na bolących punktach.',nsca:'3-5 min.',alt:'Cat-cow (kot-krowa)'},
+{name:'Foam roller łydki',aka:'Foam Roll - Calf',cat:'Mobilność',eq:'Własna masa',muscle:'Łydki, Ścięgno Achillesa',tip:'Roluj od kostki do dołu kolana.',nsca:'2-3 min.',alt:'Rozciąganie łydek'},
+{name:'Foam roller — IT band',aka:'Foam roller IT band, Foam Roll - Abductors (IT Band)',cat:'Mobilność',eq:'Własna masa',muscle:'Pasmo biodrowo-piszczelowe',tip:'Od biodra do kolana. Zatrzymuj na napiętych miejscach.',nsca:'2-3 min/stronę.',alt:'Poza gołębia'},
+{name:'Skłon siedząc do stóp',aka:'Seated forward fold',cat:'Rozciąganie',eq:'Własna masa',muscle:'Dwugłowy uda, Dolny grzbiet, Łydki',tip:'Nogi proste. Sięgaj do stóp.',nsca:'3x60 sek.',alt:'Pies z głową w dół'},
+{name:'Skręt leżąc',aka:'Supine twist',cat:'Rozciąganie',eq:'Własna masa',muscle:'Kręgosłup (rotacja), Pośladki, Dolny grzbiet',tip:'Kolano do klatki i przełóż na drugą stronę.',nsca:'3x30-60 sek/stronę.',alt:'Poza gołębia'},
+{name:'Poza kobry',aka:'Cobra stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Brzuch, Klatka, Kręgosłup lędźwiowy',tip:'Leżąc na brzuchu. Unoś tułów.',nsca:'3x30 sek.',alt:'Poza dziecka, Upward dog'},
+{name:'Poza jaszczurki',aka:'Lizard pose',cat:'Rozciąganie',eq:'Własna masa',muscle:'Biodra, Prostownik biodra, Przywodziciele',tip:'Niski wykrok z rękami wewnątrz stopy.',nsca:'3x45 sek/stronę.',alt:'World greatest, Poza gołębia'},
+{name:'Rozciąganie w rozkroku',aka:'Straddle stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Przywodziciele, Hamstringi, Grzbiet',tip:'Nogi rozłożone szeroko. Pochyl tułów.',nsca:'3x60 sek.',alt:'Rozciąganie butterfly'},
+{name:'Rozciąganie żaba',aka:'Frog stretch, Frog Stretch with Straight Arms',cat:'Rozciąganie',eq:'Własna masa',muscle:'Przywodziciele, Biodra wewnętrzne',tip:'Na czworaka z szerokimi kolanami.',nsca:'3x60 sek.',alt:'Rozciąganie butterfly'},
+{name:'Sleeper stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Rotatory barku tylne, Tylny bark',tip:'Leżąc na boku. Dociskaj przedramię do dołu.',nsca:'3x30 sek/stronę.',alt:'Rotacja zewnętrzna'},
+{name:'Rozciąganie barku przez klatkę',aka:'Cross body shoulder stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Tylny bark, Rombowate',tip:'Przyciągnij rękę przez klatkę.',nsca:'3x30 sek/stronę.',alt:'Sleeper stretch'},
+{name:'Rozciąganie biodrowo-lędźwiowego',aka:'Half Kneeling Hip Flexors Stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Biodrowo-lędźwiowy, Prostownik biodra',tip:'Klęczysz. Pchaj biodra do przodu.',nsca:'3x45 sek/stronę.',alt:'Couch stretch'},
+{name:'Burpees',cat:'Cardio',eq:'Własna masa',muscle:'Całe ciało — cardio',tip:'Pełny zakres ruchu.',nsca:'3-5x10-15 lub tabata.',alt:'Mountain climbers, Sprawl'},
+{name:'Mountain climbers',aka:'Mountain Climbers 2',cat:'Cardio',eq:'Własna masa',muscle:'Core, Biodra, Cardio',tip:'Pozycja deski. Naprzemienne kolana.',nsca:'3x30-45 sek.',alt:'Burpees, Wysokie kolana',load:'sec'},
+{name:'Skoki na skrzynię',aka:'Box jump',cat:'Cardio',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Moc eksplozywna',tip:'Miękkie lądowanie na lekko ugiętych kolanach.',nsca:'3-4x5-8.',alt:'Przysiad z wyskokiem'},
+{name:'Przysiad z wyskokiem',aka:'Jump squat, Squat Jump, Jump Squat - Home',cat:'Cardio',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Moc',tip:'Przysiad — wybij się explosywnie.',nsca:'3x8-10.',alt:'Skoki na skrzynię'},
+{name:'Swing kettlebell',aka:'Kettlebell swing',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Dwugłowy uda, Core, Cardio',tip:'Napęd biodrami — nie przysiadem. Hip hinge!',nsca:'3-5x15-20.',alt:'Martwy ciąg klasyczny, Wypychanie bioder (hip thrust)'},
+{name:'Turkish get-up',aka:'TGU, Turkish Get Up',cat:'Cardio',eq:'Kettlebell',muscle:'Całe ciało, Stabilizacja, Core',tip:'Powolne. Każda faza kontrolowana.',nsca:'3x3-5/stronę.',alt:'Swing kettlebell'},
+{name:'Liny treningowe',aka:'Liny, Battle ropes, Battle rope, Liny battle',cat:'Cardio',eq:'Liny',muscle:'Całe ciało, Barki, Core, Cardio',tip:'Fale naprzemienne lub oburącz. Stabilny tułów, kolana lekko ugięte.',nsca:'3–5×30–45 s.',alt:'Airbike, Burpees, Mountain climbers',load:'sec'},
+{name:'Rower stacjonarny',aka:'Rower, Bike, Cycling, Spinning, Rower treningowy',cat:'Cardio',eq:'Rower',muscle:'Czworogłowy, Łydki, Cardio (tlenowo)',tip:'Strefa 2: da się rozmawiać. Siodełko na wysokości biodra.',nsca:'10–30 min zona 2 albo interwały.',alt:'Airbike, Orbitrek, Wioślarz',load:'min'},
+{name:'Airbike',aka:'Assault bike, Rower powietrzny, Fan bike, Echo bike, Air bike',cat:'Cardio',eq:'Airbike',muscle:'Całe ciało, Cardio (HIIT)',tip:'Pchaj i ciągnij ramionami. Interwały 20/10 albo 30/30.',nsca:'5–15 min HIIT albo 10–20 min tempo.',alt:'Rower stacjonarny, Liny treningowe, Wioślarz',load:'min'},
+{name:'Wioślarz',aka:'Wioslarz, Rowing, Concept2, Ergometr wioślarski, Row',cat:'Cardio',eq:'Wioślarz',muscle:'Plecy, Nogi, Core, Cardio',tip:'Nogi → tułów → ramiona. Nie garb się. Długi, równy pociąg.',nsca:'500–2000 m albo 10–20 min zona 2.',alt:'Rower stacjonarny, Airbike',load:'min'},
+{name:'Skakanka',aka:'Jump rope, Jump Rope Classic, Skipping, Skakanka bokserska',cat:'Cardio',eq:'Skakanka',muscle:'Łydki, Barki, Cardio',tip:'Lekkie podskoki, nadgarstki kręcą skakanką.',nsca:'5×1–2 min albo 10 min ciągle.',alt:'Pajacyki, Wysokie kolana',load:'min'},
+{name:'Orbitrek',aka:'Eliptyk, Elliptical, Crosstrainer',cat:'Cardio',eq:'Orbitrek',muscle:'Całe ciało (niski impact), Cardio',tip:'Pięty nie odrywaj. Ręce pracują z nogami.',nsca:'15–30 min zona 2.',alt:'Rower stacjonarny, Bieganie w miejscu',load:'min'},
+{name:'Bieganie w miejscu',aka:'Running in place, Jog w miejscu, Bieg w miejscu',cat:'Cardio',eq:'Własna masa',muscle:'Łydki, Czworogłowy, Cardio',tip:'Lekkie lądowanie na śródstopiu.',nsca:'3×45–60 s albo 5–10 min.',alt:'Wysokie kolana, Pajacyki',load:'sec'},
+{name:'Rzut piłką o ścianę',aka:'Wall ball, Wallball, Rzut piłką lekarską o ścianę, Medicine ball wall ball, Rzut piłka',cat:'Cardio',eq:'Piłka lekarska',muscle:'Czworogłowy, Barki, Core, Cardio',tip:'Przysiad, wybicie biodrami, rzut w cel na ścianie, złap i od razu zejdź w kolejny przysiad.',nsca:'3–5×10–15 albo EMOM.',alt:'Rzut piłką z przysiadu, Rzut piłką o podłogę'},
+{name:'Rzut piłką o podłogę',aka:'Medicine ball slam, Slam ball, Ball slam, Rzut piłką lekarską o ziemię, Med ball slam',cat:'Cardio',eq:'Piłka lekarska',muscle:'Całe ciało, Core, Barki, Cardio',tip:'Piłka nad głowę — mocny rzut w podłogę biodrami i tułowiem. Złap po odbiciu.',nsca:'3–5×8–12 albo 3×30–45 s.',alt:'Rzut piłką znad głowy, Rzut piłką o ścianę'},
+{name:'Rzut piłką znad głowy',aka:'Overhead slam, Overhead throw, Overhead med ball throw, Med Ball Overhead Toss, Rzut piłką lekarską znad głowy',cat:'Cardio',eq:'Piłka lekarska',muscle:'Core, Barki, Prostownicy, Cardio',tip:'Wydłuż się w górę, rzuć piłkę w podłogę przed siebie. Nie garb się w odcinku lędźwiowym.',nsca:'3–4×8–12.',alt:'Rzut piłką o podłogę, Rzut piłką z przysiadu'},
+{name:'Rzut piłką z klatki',aka:'Chest pass, Chest throw, Medicine ball chest pass, Standing Med Ball Chest Pass, Rzut piłką lekarską z klatki',cat:'Cardio',eq:'Piłka lekarska',muscle:'Klatka, Triceps, Core, Cardio',tip:'Piłka przy klatce, wystrzel oburącz prosto przed siebie (ściana albo partner).',nsca:'3–4×10–15.',alt:'Rzut piłką o ścianę, Rzut piłką do partnera'},
+{name:'Rzut piłką rotacyjny',aka:'Rotational throw, Rotational slam, Med ball rotational throw, Rzut piłką z rotacją',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne brzucha, Core, Barki, Cardio',tip:'Nabierz rozpęd z bioder i tułowia, rzuć w bok / o ścianę. Nogi pracują z rotacją.',nsca:'3×8–12/stronę.',alt:'Rzut piłką w bok, Rzut piłką z rotacją tułowia'},
+{name:'Rzut piłką w bok',aka:'Side toss, Lateral throw, Side slam, Rzut piłką boczny',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne brzucha, Pośladki, Cardio',tip:'Bokiem do ściany. Rzut z bioder, nie tylko z ramion.',nsca:'3×10/stronę.',alt:'Rzut piłką rotacyjny, Rzut piłką z rotacją tułowia'},
+{name:'Rzut piłką z przysiadu',aka:'Squat to throw, Squat throw, Thruster throw, Medicine Ball Thruster, Rzut piłką z przysiadu o ścianę',cat:'Cardio',eq:'Piłka lekarska',muscle:'Czworogłowy, Pośladki, Barki, Cardio',tip:'Głęboki przysiad z piłką, wybicie i rzut w górę/przód. Miękkie złapanie.',nsca:'3–4×8–12.',alt:'Rzut piłką o ścianę, Rzut piłką znad głowy'},
+{name:'Rzut piłką do partnera',aka:'Partner toss, Partner throw, Medicine ball partner pass, Rzut piłką we dwójkę',cat:'Cardio',eq:'Piłka lekarska',muscle:'Całe ciało, Core, Koordynacja, Cardio',tip:'Stała odległość. Rzut z klatki albo znad głowy, łap miękko i oddawaj od razu.',nsca:'3×20–30 podań albo 45–60 s.',alt:'Rzut piłką z klatki, Rzut piłką podchwytem'},
+{name:'Rzut piłką z brzuszkiem',aka:'Sit-up throw, Med ball sit-up throw, Sit-up chest pass, Rzut piłką z siadu',cat:'Cardio',eq:'Piłka lekarska',muscle:'Prosty brzucha, Klatka, Cardio',tip:'Brzuszek + rzut z klatki do partnera albo o ścianę. Kontrolowane zejście.',nsca:'3×10–15.',alt:'Rzut piłką z klatki, Brzuszki klasyczne'},
+{name:'Rzut piłką podchwytem',aka:'Underhand toss, Scoop toss, Granny toss, Rzut piłką z dołu',cat:'Cardio',eq:'Piłka lekarska',muscle:'Pośladki, Czworogłowy, Barki, Cardio',tip:'Zamach z dołu biodrami (jak swing), rzuć do góry / do partnera.',nsca:'3×10–15.',alt:'Rzut piłką z przysiadu, Swing kettlebell'},
+{name:'Rzut piłką w tył',aka:'Reverse throw, Overhead reverse throw, Behind throw, Rzut piłką za siebie',cat:'Cardio',eq:'Piłka lekarska',muscle:'Prostownicy, Pośladki, Barki, Cardio',tip:'Zamach od dołu, wyprost bioder, rzut za głowę. Dużo miejsca za sobą.',nsca:'3×6–10.',alt:'Rzut piłką znad głowy, Rzut piłką podchwytem'},
+{name:'Rzut piłką jednorącz',aka:'Single-arm throw, Shot put throw, One-arm med ball throw, Rzut piłką jedną ręką',cat:'Cardio',eq:'Piłka lekarska',muscle:'Barki, Core, Nogi, Cardio',tip:'Jak pchnięcie kulą: noga, biodro, tułów, ramię. Zmieniaj strony.',nsca:'3×6–8/stronę.',alt:'Rzut piłką rotacyjny, Rzut piłką z klatki'},
+{name:'Rzut piłką z wykroku',aka:'Lunge to throw, Split stance throw, Rzut piłką w wykroku',cat:'Cardio',eq:'Piłka lekarska',muscle:'Czworogłowy, Pośladki, Core, Cardio',tip:'Wykrok, z tej pozycji rzut z klatki albo rotacyjny. Kolano nad palcami.',nsca:'3×8/stronę.',alt:'Rzut piłką z klatki, Rzut piłką rotacyjny'},
+{name:'Rzut piłką z rotacją tułowia',aka:'Rotational wall throw, Woodchop throw, Med ball woodchop throw, Rzut piłką woodchop',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne brzucha, Core rotacyjny, Cardio',tip:'Piłka z biodra po skosie w górę, o ścianę. Ruch jak woodchop, ale z rzutem.',nsca:'3×8–12/stronę.',alt:'Rzut piłką rotacyjny, Woodchop wyciąg'},
+{name:'Wyciskanie hantli na podłodze',aka:'Dumbbell floor press, Floor press hantle, DB Floor Press, Lying DB Floor Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Triceps',tip:'Łokcie zatrzymują się o podłogę. Stabilne barki.',nsca:'3–4x8–12.',alt:'Wyciskanie z podłogi, Wyciskanie hantli leżąc',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie na maszynie skos+',aka:'Incline machine press, Hammer strength incline',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka górna, Barki (przednie)',tip:'Łopatki oparte. Nie odrywaj bioder.',nsca:'3x10–12.',alt:'Wyciskanie hantli na ławce skośnej, Wyciskanie sztangi skos+, Rozpiętki na bramie na ławce skośnej',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie w bramie Smith',aka:'Smith machine bench, Bench Smith',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki ściągnięte. Smith prowadzi tor — kontroluj dolną pozycję.',nsca:'3x8–12.',alt:'Wyciskanie sztangi leżąc, Wyciskanie hantli leżąc',img:'assets/ex/bench.svg'},
+{name:'Pompki na kolanach',aka:'Knee push-up, Pompki z kolan, Kneeling Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps',tip:'Ciało od kolan w linii. Łokcie ~45°.',nsca:'3xmax.',alt:'Pompki, Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Pompki z nogami na podwyższeniu',aka:'Decline push-up, Pompki decline, Feet Elevated Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka górna, Barki, Triceps',tip:'Stopy na ławce. Nie zapadaj się w barkach.',nsca:'3xmax.',alt:'Pompki, Wyciskanie skos+',img:'assets/ex/bench.svg'},
+{name:'Pompki łucznicze',aka:'Archer push-up',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (jednostronnie), Triceps',tip:'Jedna ręka ugięta, druga prawie prosta. Zmieniaj strony.',nsca:'3x6–8/stronę.',alt:'Pompki szerokie, Pompki',img:'assets/ex/bench.svg'},
+{name:'Rozpiętki na wyciągu w poziomie',aka:'Mid cable fly, Cable fly poziome',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka środkowa (izolacja)',tip:'Linki na wysokości klatki. Lekkie ugięcie łokci.',nsca:'3x12–15.',alt:'Rozpiętki na wyciągu, Butterfly (peck deck)'},
+{name:'Rozpiętki na bramie na ławce skośnej',aka:'Na bramie na skosie ławki, Incline cable fly, Incline cable flyes, Cable fly incline bench',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka górna (izolacja)',tip:'Ławka 30–45° w bramie. Linki poniżej barków, lekkie ugięcie łokci, ścisk na górze.',nsca:'3x12–15.',alt:'Wyciskanie hantli na ławce skośnej, Krzyżowanie wyciągów dół–góra, Rozpiętki hantlami',img:'assets/ex/bench.svg'},
+{name:'Rozpiętki jednorącz wyciąg',aka:'Single-arm cable fly',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (jednostronnie)',tip:'Stabilny tułów. Nie rotuj bioder.',nsca:'3x12–15/stronę.',alt:'Rozpiętki na wyciągu, Krzyżowanie wyciągów góra–dół'},
+{name:'Pullover sztangą',aka:'Barbell pullover',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka, Najszerszy, Zębaty',tip:'Lekkie ugięcie łokci. Nie wyginaj lędźwi.',nsca:'3x10–12.',alt:'Pullover hantlem, Ściąganie prostymi rękami'},
+{name:'Dipy z obciążeniem',aka:'Weighted dip, Dipy obciążone',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka dolna, Triceps, Barki',tip:'Pas z talerzem albo hantel między stopami. Pochylenie = więcej klatki.',nsca:'3x6–10.',alt:'Dipy na poręczach, Wyciskanie wąskim chwytem',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie hantli jednorącz leżąc',aka:'Single-arm dumbbell bench, Single Arm DB Bench Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core antyrotacyjny',tip:'Druga ręka może pomagać w starcie. Napnij brzuch.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli leżąc, Wyciskanie landmine',img:'assets/ex/bench.svg'},
+{name:'Podciąganie szerokim chwytem',aka:'Wide grip pull-up, Wide pull-up',cat:'Plecy',eq:'Własna masa',muscle:'Najszerszy, Biceps',tip:'Chwyt szerzej niż barki. Ciągnij łokcie do bioder.',nsca:'3–4xmax.',alt:'Podciąganie na drążku, Ściąganie drążka wyciąg',img:'assets/ex/pullup.svg'},
+{name:'Podciąganie z gumą',aka:'Band-assisted pull-up, Assisted pull-up guma',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Biceps',tip:'Guma na drążku i pod kolanem/stopą. Pełny ROM.',nsca:'3–4x6–10.',alt:'Podciąganie na drążku, Negatywy podciągania',img:'assets/ex/pullup.svg'},
+{name:'Negatywy podciągania',aka:'Pull-up negative, Eccentric pull-up',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Biceps (ekscentryka)',tip:'Wejdź na górę i opuszczaj 3–5 s.',nsca:'3x5–8.',alt:'Podciąganie z gumą, Podciąganie na drążku',img:'assets/ex/pullup.svg'},
+{name:'Ściąganie drążka szerokim chwytem',aka:'Wide grip lat pulldown',cat:'Plecy',eq:'Wyciąg',muscle:'Najszerszy (szerokość)',tip:'Drążek do górnej klatki, nie za kark.',nsca:'3x10–12.',alt:'Ściąganie drążka wyciąg, Podciąganie szerokim chwytem'},
+{name:'Ściąganie drążka podchwytem',aka:'Underhand pulldown, Chin-down',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy, Biceps',tip:'Podchwyt na szerokość barków. Drążek do klatki.',nsca:'3x10–12.',alt:'Podciąganie podchwytem, Ściąganie drążka wąskim chwytem'},
+{name:'Wiosłowanie wyciągiem jednorącz',aka:'Single-arm cable row',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy (jednostronnie), Tylne barki',tip:'Ciągnij łokieć do biodra. Tułów stabilny.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie hantlem, Wiosłowanie wyciągiem siedząc'},
+{name:'Wiosłowanie hantlami oburącz',aka:'Bent over dumbbell row, DB row oburącz',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe, Biceps',tip:'Tułów ~45°. Ciągnij do bioder, nie do klatki.',nsca:'3–4x8–12.',alt:'Wiosłowanie sztangą, Wiosłowanie hantlem'},
+{name:'Wiosłowanie na maszynie',aka:'Seated row machine, Chest supported machine row, Wiosłowanie na maszynie siedząc, Cable Row, Cable Row / maszyna',cat:'Plecy',eq:'Maszyna',muscle:'Plecy środkowe, Biceps',tip:'Klatka o podparcie. Ściągaj łopatki.',nsca:'3x10–15.',alt:'Wiosłowanie wyciągiem siedząc, Wiosłowanie z oparciem klatki, Wiosłowanie hantlem'},
+{name:'Ciąg z racka',aka:'Rack pull, Block pull',cat:'Plecy',eq:'Sztanga',muscle:'Prostownicy, Trapez, Chwyt',tip:'Sztanga z wysokości kolan/piszczeli. Neutralny kręgosłup.',nsca:'3–5x3–6.',alt:'Martwy ciąg klasyczny, Unoszenie barków sztangą',img:'assets/ex/deadlift.svg'},
+{name:'Martwy ciąg z deficytu',aka:'Deficit deadlift, Feet Elevated Deadlift, Elevated Deadlift, Deficit deadlift',cat:'Plecy',eq:'Sztanga',muscle:'Łańcuch tylny, Czworogłowy (głębszy start)',tip:'Stój na talerzu 2–5 cm. Nie zaokrąglaj lędźwi.',nsca:'3–4x4–6.',alt:'Martwy ciąg klasyczny, Martwy ciąg trap bar',img:'assets/ex/deadlift.svg'},
+{name:'Martwy ciąg chwyt rwaniowy',aka:'Snatch grip deadlift',cat:'Plecy',eq:'Sztanga',muscle:'Plecy górne, Trapez, Łańcuch tylny',tip:'Szeroki chwyt. Klatka duma, biodra nie za wysoko.',nsca:'3x5–8.',alt:'Martwy ciąg klasyczny, Ciąg rwaniowy',img:'assets/ex/deadlift.svg'},
+{name:'Unoszenie barków na maszynie',aka:'Machine shrug, Shrugs maszyna',cat:'Plecy',eq:'Maszyna',muscle:'Trapez górny',tip:'Unieś barki prosto w górę. Pauza na górze.',nsca:'3–4x10–15.',alt:'Unoszenie barków sztangą, Unoszenie barków hantlami'},
+{name:'Superman',aka:'Superman hold, Super man',cat:'Plecy',eq:'Własna masa',muscle:'Prostownicy, Pośladki, Tylne barki',tip:'Leżąc na brzuchu unoś ręce i nogi. Bez bólu lędźwi.',nsca:'3x10–15 albo 3x20–30 s.',alt:'Prostowanie tułowia, Bird dog'},
+{name:'Wiosłowanie Yatesa',aka:'Yates row, Underhand barbell row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy środkowe, Biceps',tip:'Podchwyt, tułów wyżej niż przy Pendlay. Ciągnij do brzucha.',nsca:'3–4x8–12.',alt:'Wiosłowanie sztangą, Wiosłowanie T-bar'},
+{name:'Wiosłowanie Kroc',aka:'Kroc row',cat:'Plecy',eq:'Hantle',muscle:'Plecy, Trapez, Chwyt (ciężkie serie)',tip:'Cięższy hantel, kontrolowany zamach. Pełny ROM łopatki.',nsca:'3x8–15/stronę.',alt:'Wiosłowanie hantlem, Wiosłowanie Meadowsa'},
+{name:'Wyciskanie hantli stojąc',aka:'Standing dumbbell press, DB OHP stojąc, DB Overhead Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Triceps, Core',tip:'Napnij pośladki i brzuch. Nie wyginaj lędźwi.',nsca:'3–4x6–10.',alt:'Wyciskanie hantli siedząc, Wyciskanie żołnierskie OHP',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie sztangi siedząc',aka:'Seated barbell press, Seated OHP',cat:'Barki',eq:'Sztanga',muscle:'Barki, Triceps',tip:'Plecy o ławkę. Sztanga przed twarzą, nie za kark.',nsca:'3x6–10.',alt:'Wyciskanie żołnierskie OHP, Wyciskanie barków maszyna',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie Z',aka:'Z press, Z Press 1',cat:'Barki',eq:'Sztanga',muscle:'Barki, Core, Mobilność bioder',tip:'Siedzisz na podłodze, nogi proste. Zero zamachu nogami.',nsca:'3x5–8.',alt:'Wyciskanie żołnierskie OHP, Wyciskanie Pallofa',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie hantla jednorącz nad głowę',aka:'Single-arm DB press, One-arm press, Single Arm DB Overhead Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core antyrotacyjny',tip:'Naprzemiennie albo jedną stronę. Biodra równo.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli stojąc, Wyciskanie landmine',img:'assets/ex/ohp.svg'},
+{name:'Unoszenie bokiem na maszynie',aka:'Machine lateral raise',cat:'Barki',eq:'Maszyna',muscle:'Barki środkowe',tip:'Łokcie prowadzą ruch. Nie wzruszaj barkami do uszu.',nsca:'3x12–20.',alt:'Unoszenie bokiem, Unoszenie wyciągiem bokiem'},
+{name:'Unoszenie przodem na wyciągu',aka:'Cable front raise',cat:'Barki',eq:'Wyciąg',muscle:'Barki przednie',tip:'Do wysokości barków. Stałe napięcie linki.',nsca:'3x12–15.',alt:'Unoszenie przodem, Unoszenie talerza przodem'},
+{name:'Odwrotne rozpiętki na wyciągu',aka:'Cable reverse fly, Rear delt cable fly',cat:'Barki',eq:'Wyciąg',muscle:'Tylne barki, Rombowate',tip:'Skrzyżuj linki. Ciągnij łokcie na zewnątrz.',nsca:'3x12–20.',alt:'Odwrotne rozpiętki, Ściąganie do twarzy (face pull)'},
+{name:'Rotacja zewnętrzna na wyciągu',aka:'Cable external rotation',cat:'Barki',eq:'Wyciąg',muscle:'Rotatory barku',tip:'Łokieć przyklejony do boku. Mały ciężar, pełny ROM.',nsca:'2–3x12–20/stronę.',alt:'Rotacja zewnętrzna, Ściąganie do twarzy (face pull)'},
+{name:'Rotacja wewnętrzna barku',aka:'Internal rotation, Cable internal rotation, Shoulder Internal Rotation with Band',cat:'Barki',eq:'Wyciąg',muscle:'Rotatory (podłopatkowy)',tip:'Łokieć przy boku. Nie ciągnij tułowiem.',nsca:'2–3x12–20/stronę.',alt:'Rotacja zewnętrzna na wyciągu'},
+{name:'Unoszenie bokiem w opadzie',aka:'Bent-over lateral raise, Rear delt raise, Bent Over DB Lateral Raises, Unoszenie bokiem w opadzie hantle',cat:'Barki',eq:'Hantle',muscle:'Tylne barki, Rombowate',tip:'Tułów prawie równoległy. Nie zamachuj.',nsca:'3x12–15.',alt:'Odwrotne rozpiętki, Unoszenie Y'},
+{name:'Unoszenie Lu',aka:'Lu raise',cat:'Barki',eq:'Hantle',muscle:'Barki (wszystkie głowy), Trapez',tip:'Od ud łukiem nad głowę, kciuki do góry. Lekkie hantle.',nsca:'3x10–15.',alt:'Unoszenie bokiem, Unoszenie Y'},
+{name:'Uginanie gryfem łamanym',aka:'EZ bar curl, Uginanie EZ',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Łagodniejszy kąt nadgarstków niż sztanga prosta.',nsca:'3x8–12.',alt:'Uginanie biceps sztangą, Uginanie na modlitewniku',img:'assets/ex/curl.svg'},
+{name:'Uginanie młotkowe na wyciągu',aka:'Cable hammer curl, Rope hammer curl',cat:'Biceps',eq:'Wyciąg',muscle:'Ramiennopromieniowy, Biceps',tip:'Linka, kciuki w górę. Łokcie przy tułowiu.',nsca:'3x10–15.',alt:'Uginanie młotkowe, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
+{name:'Uginanie na maszynie',aka:'Machine curl, Preacher machine curl, Uginanie ramion na maszynie, Biceps Curl Machine',cat:'Biceps',eq:'Maszyna',muscle:'Biceps (izolacja)',tip:'Ramię przylega do poduszki. Nie odrywaj łokci.',nsca:'3x10–12.',alt:'Uginanie na modlitewniku, Uginanie hantlami naprzemiennie, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
+{name:'Prostowanie nadgarstka',aka:'Wrist extension',cat:'Biceps',eq:'Sztanga',muscle:'Prostowniki nadgarstka, Przedramię',tip:'Przedramiona na ławce, dłonie zwisają. Unoś nadgarstki.',nsca:'3x15–20.',alt:'Uginanie nadgarstka, Uginanie reverse'},
+{name:'Uginanie młotkowe na skosie',aka:'Incline hammer curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Ławka 45–60°. Ramiona swobodnie w tył.',nsca:'3x10–12.',alt:'Uginanie na skosie, Uginanie młotkowe',img:'assets/ex/curl.svg'},
+{name:'Uginanie w poprzek ciała',aka:'Cross-body hammer curl, Across body curl',cat:'Biceps',eq:'Hantle',muscle:'Ramiennopromieniowy, Biceps',tip:'Hantel prowadzi do przeciwnego barku.',nsca:'3x10–12/stronę.',alt:'Uginanie młotkowe, Uginanie Zottman',img:'assets/ex/curl.svg'},
+{name:'Uginanie z linką',aka:'Rope curl, Cable rope curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps, stałe napięcie',tip:'Na górze rozciągnij linkę na boki.',nsca:'3x12–15.',alt:'Uginanie na wyciągu, Uginanie Bayesian',img:'assets/ex/curl.svg'},
+{name:'Wyciskanie Tate',aka:'Tate press',cat:'Triceps',eq:'Hantle',muscle:'Triceps (boczna głowa)',tip:'Leżąc. Hantle od klatki na zewnątrz, łokcie szeroko.',nsca:'3x10–12.',alt:'Prostowanie za głowę (skull crusher), Kickback triceps'},
+{name:'Prostowanie za głowę hantlami',aka:'Dumbbell skull crusher, DB skull crusher',cat:'Triceps',eq:'Hantle',muscle:'Triceps',tip:'Opuszczaj do skroni/za głowę. Łokcie stabilne.',nsca:'3x10–12.',alt:'Prostowanie za głowę (skull crusher), Prostowanie za głowę hantlem'},
+{name:'Kickback na wyciągu',aka:'Cable kickback',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (izolacja)',tip:'Tułów pochylony. Pełny wyprost, pauza.',nsca:'3x12–15/stronę.',alt:'Kickback triceps, Prostowanie jednorącz wyciąg'},
+{name:'Wyciskanie wąskim chwytem w Smith',aka:'Smith close-grip bench',cat:'Triceps',eq:'Maszyna',muscle:'Triceps, Klatka wewnętrzna',tip:'Chwyt na szerokość barków. Łokcie blisko.',nsca:'3x8–12.',alt:'Wyciskanie wąskim chwytem, Wyciskanie JM',img:'assets/ex/bench.svg'},
+{name:'Prostowanie na drążku',aka:'Bodyweight skull crusher, Bar skull crusher',cat:'Triceps',eq:'Własna masa',muscle:'Triceps, Core',tip:'Drążek nisko. Zginaj tylko łokcie, biodra sztywne.',nsca:'3x8–12.',alt:'Prostowanie za głowę (skull crusher), Dipy na ławce'},
+{name:'Prostowanie tricepsa na maszynie',aka:'Machine triceps extension',cat:'Triceps',eq:'Maszyna',muscle:'Triceps (wszystkie głowy)',tip:'Łokcie nieruchomo. Pełny wyprost bez bolesnego zablokowania.',nsca:'3x10–15.',alt:'Prostowanie tricepsa wyciąg, Prostowanie za głowę hantlami'},
+{name:'Wykrok chodzony',aka:'Walking lunge, Wykroki chodzone, DB Walking Lunges',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Długi krok, kolano tylne nisko. Tułów pionowo.',nsca:'3x10–12/noga.',alt:'Wykrok ze sztangą, Wykrok z hantlami',img:'assets/ex/squat.svg'},
+{name:'Wykrok wsteczny',aka:'Reverse lunge, Wykrok w tył, DB Reverse Lunges',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (łagodniej dla kolan)',tip:'Krok w tył. Ciężar na przedniej pięcie.',nsca:'3x8–12/noga.',alt:'Wykrok chodzony, Przysiad bułgarski',img:'assets/ex/squat.svg'},
+{name:'Wykrok z hantlami',aka:'Dumbbell lunge, DB lunge',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Hantle wzdłuż ciała. Kolano w linii palców.',nsca:'3x10/noga.',alt:'Wykrok ze sztangą, Wykrok chodzony',img:'assets/ex/squat.svg'},
+{name:'Zakroki',aka:'Split squat, Stationary lunge, Zakrok',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (stacjonarnie)',tip:'Stopy w rozkroku, góra-dół bez kroku. Tylna pięta uniesiona.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski, Wykrok wsteczny',img:'assets/ex/squat.svg'},
+{name:'Przysiad w bramie Smith',aka:'Smith squat, Smith machine squat',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki',tip:'Stopy lekko przed linią sztangi. Plecy neutralne.',nsca:'3x8–12.',alt:'Przysiad ze sztangą, Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Przysiad z piętami na podwyższeniu',aka:'Heels-elevated squat, Cyclist squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy (mocniej)',tip:'Pięty na talerzach 2–4 cm. Tułów bardziej pionowo.',nsca:'3x10–15.',alt:'Przysiad Goblet, Wyprosty nóg maszyna',img:'assets/ex/squat.svg'},
+{name:'Przysiad sissy',aka:'Sissy squat, Sisi Squat - Home, Sissy squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy (izolacja)',tip:'Kolana do przodu, biodra wyprostowane. Trzymaj się ramy.',nsca:'3x8–15.',alt:'Wyprosty nóg maszyna, Przysiad z piętami na podwyższeniu'},
+{name:'Przysiad kozacki',aka:'Cossack squat, Cossack Squat - Home',cat:'Nogi',eq:'Własna masa',muscle:'Przywodziciele, Czworogłowy, Mobilność',tip:'Szeroki rozkrok. Jedna noga ugięta, druga prosta na pięcie.',nsca:'3x6–10/stronę.',alt:'Wykrok boczny, Przysiad sumo',img:'assets/ex/squat.svg'},
+{name:'Przysiad Zercher',aka:'Zercher squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Core, Górne plecy',tip:'Sztanga w zgięciach łokci. Klatka duma.',nsca:'3x5–8.',alt:'Przysiad przedni, Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Uginanie nóg leżąc',aka:'Lying leg curl, Leg curl leżąc',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda',tip:'Biodra przyciśnięte. Pełny ROM, nie zginaj lędźwi.',nsca:'3x10–15.',alt:'Martwy ciąg RDL, Uginanie nordyckie, RDL jednonóż'},
+{name:'Uginanie nóg siedząc',aka:'Seated leg curl',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda (długa głowa — rozciągnięcie)',tip:'Plecy oparte. Pięty do pośladków.',nsca:'3x10–15.',alt:'Martwy ciąg RDL, Uginanie nordyckie, RDL jednonóż'},
+{name:'Wspięcia na palce siedząc',aka:'Seated calf raise',cat:'Nogi',eq:'Maszyna',muscle:'Płaszczkowaty (łydka)',tip:'Kolana 90°. Pełne opuszczenie i wspięcie.',nsca:'4x12–20.',alt:'Wspięcia na palce jednonóż'},
+{name:'Wspięcia na palce stojąc',aka:'Standing calf raise',cat:'Nogi',eq:'Maszyna',muscle:'Brzuchaty łydki',tip:'Nogi prawie proste. Pauza na górze.',nsca:'4x10–15.',alt:'Wspięcia na palce jednonóż'},
+{name:'Przywodzenie biodra maszyna',aka:'Hip adduction machine, Adductor machine',cat:'Nogi',eq:'Maszyna',muscle:'Przywodziciele',tip:'Kontrolowane zamykanie ud. Nie szarp.',nsca:'3x12–20.',alt:'Przysiad sumo, Przysiad kozacki'},
+{name:'Przysiad z pasem',aka:'Belt squat',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki (mniej obciążenia kręgosłupa)',tip:'Pas na biodrach. Tułów pionowo.',nsca:'3x10–15.',alt:'Przysiad ze sztangą, Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Uginanie nordyckie odwrotne',aka:'Reverse nordic, Reverse nordic curl',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy (ekscentryka)',tip:'Klęczysz, odchyl tułów w tył. Biodra wyprostowane.',nsca:'3x6–10.',alt:'Wyprosty nóg maszyna, Przysiad sissy'},
+{name:'Wyciskanie nogami jednonóż',aka:'Single-leg press, Single Leg Press Machine, Single-leg press',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Stopa na środku platformy. Nie blokuj kolana.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski, Wykrok chodzony'},
+{name:'Zejścia ze skrzyni',aka:'Step-down, Box step-down',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Kolano (kontrola)',tip:'Wolne zejście. Kolano nad palcami, nie zapadaj w koślawość.',nsca:'3x8–12/noga.',alt:'Wejścia na skrzynię, Przysiad bułgarski'},
+{name:'Martwy ciąg na sztywnych nogach',aka:'Stiff-leg deadlift, SLDL',cat:'Nogi',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Grzbiet',tip:'Nogi prawie proste. Biodra do tyłu, sztanga blisko łydek.',nsca:'3x8–12.',alt:'Martwy ciąg RDL, Martwy ciąg klasyczny',img:'assets/ex/deadlift.svg'},
+{name:'Wyprosty nóg jednonóż',aka:'Single-leg extension, Seated Single Leg Extension, Single-leg extension',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (izolacja jednostronna)',tip:'Pełny wyprost z pauzą. Druga noga odpoczywa.',nsca:'3x10–15/noga.',alt:'Przysiad sissy, Przysiad Goblet'},
+{name:'Wypychanie bioder na maszynie',aka:'Machine hip thrust, Hip thrust maszyna',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki',tip:'Podparcie pod łopatkami. Ścisk na górze.',nsca:'3–4x10–15.',alt:'Wypychanie bioder (hip thrust), Mostek biodrowy'},
+{name:'Wypychanie bioder B-stance',aka:'B-stance hip thrust, B Stance Banded Hip Thrust',cat:'Pośladki',eq:'Sztanga',muscle:'Pośladki (jednostronnie, stabilniej niż jednonóż)',tip:'Tylna stopa na palcach, 80% ciężaru na przedniej.',nsca:'3x8–12/stronę.',alt:'Wypychanie bioder jednonóż, Wypychanie bioder (hip thrust)'},
+{name:'Mostek KAS',aka:'KAS glute bridge, Kas bridge',cat:'Pośladki',eq:'Sztanga',muscle:'Pośladki (krótki zakres, pump)',tip:'Krótki ruch przy pełnym wyproście bioder. Duży ścisk.',nsca:'3x12–20.',alt:'Mostek biodrowy, Wypychanie bioder (hip thrust)'},
+{name:'Odwodzenie biodra na wyciągu',aka:'Cable hip abduction',cat:'Pośladki',eq:'Wyciąg',muscle:'Pośladki (średni)',tip:'Linka na kostce. Unoś nogę w bok, tułów nieruchomy.',nsca:'3x12–15/stronę.',alt:'Abdukcja biodra maszyna, Monster walk (chód)'},
+{name:'Odwodzenie biodra leżąc',aka:'Side-lying hip abduction',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (średni i mały)',tip:'Leżąc na boku. Noga prosta, stopa zgięta.',nsca:'3x15–20/stronę.',alt:'Muszla (clamshell), Abdukcja biodra maszyna'},
+{name:'Kickback na maszynie',aka:'Glute kickback machine',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki (izolacja)',tip:'Nie wyginaj lędźwi. Kontrakcja na końcu ruchu.',nsca:'3x12–15/noga.',alt:'Kickback pośladki, Wypychanie bioder (hip thrust)'},
+{name:'Przysiad sumo z hantlem',aka:'Sumo squat dumbbell, DB sumo squat',cat:'Pośladki',eq:'Hantle',muscle:'Pośladki, Przywodziciele, Czworogłowy',tip:'Hantel między nogami. Palce na zewnątrz.',nsca:'3x12–15.',alt:'Przysiad sumo, Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Wypychanie bioder ze stopą na podwyższeniu',aka:'Feet-elevated hip thrust, Shoulder-and-foot elevated hip thrust',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (większy ROM)',tip:'Łopatki na ławce, stopy na drugiej. Kontrolowane zejście.',nsca:'3x10–15.',alt:'Wypychanie bioder (hip thrust), Mostek biodrowy'},
+{name:'Brzuszki na maszynie',aka:'Ab crunch machine, Machine crunch',cat:'Core',eq:'Maszyna',muscle:'Prosty brzucha',tip:'Zwiń klatkę do miednicy. Nie ciągnij za kark.',nsca:'3x12–20.',alt:'Brzuszki klasyczne, Brzuszki na wyciągu'},
+{name:'Brzuszki rowerowe',aka:'Bicycle crunch, Bicycle Crunches',cat:'Core',eq:'Własna masa',muscle:'Skośne, Prosty brzucha',tip:'Łokieć do przeciwnego kolana. Lędźwie przyciśnięte.',nsca:'3x16–24.',alt:'Skręty rosyjskie, Brzuszki klasyczne'},
+{name:'Brzuszki odwrotne',aka:'Reverse crunch, Reverse Crunches',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha (dolny)',tip:'Unoś miednicę, nie machaj nogami z rozpędu.',nsca:'3x12–15.',alt:'Unoszenie nóg leżąc, Unoszenie kolan w zwisie'},
+{name:'Nożyce',aka:'Scissors, Flutter scissors, Flutter Kicks',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Zginacze bioder',tip:'Lędźwie na macie. Naprzemienne nogi nisko.',nsca:'3x20–40 albo 3x30 s.',alt:'Unoszenie nóg leżąc, Hollow hold'},
+{name:'Unoszenie nóg leżąc',aka:'Lying leg raise, Leg raise leżąc',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Zginacze bioder',tip:'Nogami do pionu, opuszczaj bez odrywania lędźwi.',nsca:'3x10–15.',alt:'Zwisy nóg drążek, Brzuszki odwrotne'},
+{name:'Deska z unoszeniem ramienia',aka:'Plank shoulder tap, Plank tap, Shoulder Tap Push Ups, Shoulder Tap Plank',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Barki',tip:'Stopy szerzej. Biodra nie kołyszą się przy tapnięciu.',nsca:'3x10/stronę.',alt:'Deska, Wyciskanie Pallofa'},
+{name:'Deska kopenhaska',aka:'Copenhagen plank, Copenhagen adductor, Copenhagen Hip Adduction',cat:'Core',eq:'Własna masa',muscle:'Przywodziciele, Core boczny',tip:'Górna noga na ławce. Linia bark–biodro–kostka.',nsca:'3x20–40 s/stronę.',alt:'Deska boczna, Przywodzenie biodra maszyna',load:'sec'},
+{name:'Spacer walizkowy',aka:'Suitcase carry, KB Suitcase Carry, DB Suitcase Carry - Single Arm',cat:'Core',eq:'Hantle',muscle:'Core antyboczny, Chwyt, Skośne',tip:'Ciężar w jednej ręce. Nie pochylaj się w stronę hantla.',nsca:'3x20–40 m/stronę.',alt:'Spacer farmera, Spacer kelnera'},
+{name:'Spacer kelnera',aka:'Waiter carry, Waiter walk',cat:'Core',eq:'Hantle',muscle:'Barki, Core, Stabilizacja',tip:'Hantel nad głową, ramię przy uchu. Nadgarstek prosty.',nsca:'3x20–30 m/stronę.',alt:'Spacer farmera, Wyciskanie hantli stojąc'},
+{name:'Spacer z ciężarem nad głową',aka:'Overhead carry, OH carry',cat:'Core',eq:'Sztanga',muscle:'Barki, Core, Prostownicy',tip:'Sztanga zablokowana nad głową. Krótkie, pewne kroki.',nsca:'3x15–30 m.',alt:'Spacer kelnera, Wyciskanie żołnierskie OHP'},
+{name:'Brzuszki na wyciągu',aka:'Cable crunch, Kneeling cable crunch',cat:'Core',eq:'Wyciąg',muscle:'Prosty brzucha',tip:'Klęcząc. Zwijaj żebra do miednicy, nie ciągnij rękami.',nsca:'3x12–20.',alt:'Brzuszki na maszynie, Brzuszki klasyczne'},
+{name:'Hollow rock',aka:'Hollow body rock, Hollow Rocks',cat:'Core',eq:'Własna masa',muscle:'Core głęboki',tip:'Pozycja hollow, małe kołysanie. Lędźwie przyklejone.',nsca:'3x20–40 s.',alt:'Hollow hold, V-upy',load:'sec'},
+{name:'Skłony boczne',aka:'Side bend, Dumbbell side bend',cat:'Core',eq:'Hantle',muscle:'Skośne, Czworoboczny lędźwi',tip:'Hantel w jednej ręce. Ślizg żebrem, nie pochylaj się do przodu.',nsca:'3x12–15/stronę.',alt:'Deska boczna, Woodchop wyciąg'},
+{name:'Rotacja landmine',aka:'Landmine rotation, Landmine twist',cat:'Core',eq:'Sztanga',muscle:'Core rotacyjny, Skośne',tip:'Sztanga w landmine. Rotacja z bioder, ramiona prawie proste.',nsca:'3x8–12/stronę.',alt:'Woodchop wyciąg, Skręty rosyjskie'},
+{name:'Zarzut siłowy',aka:'Power clean, Clean siłowy',cat:'Olimpijskie',eq:'Sztanga',muscle:'Całe ciało, Moc, Trapez',tip:'Ciąg, wyprost, przyjęcie na barki — bez pełnego przysiadu.',nsca:'5x3 albo 6x2.',alt:'Zarzut, Ciąg rwaniowy'},
+{name:'Zarzut',aka:'Clean, Squat clean, Zarzut sztangi',cat:'Olimpijskie',eq:'Sztanga',muscle:'Całe ciało, Moc',tip:'Przyjęcie w przysiadzie przednim. Łokcie wysoko.',nsca:'5x2–3.',alt:'Zarzut siłowy, Zarzut z hang'},
+{name:'Zarzut z hang',aka:'Hang clean',cat:'Olimpijskie',eq:'Sztanga',muscle:'Moc, Prostownicy, Barki',tip:'Start z wysokości kolan/ud. Napęd biodrami.',nsca:'5x3.',alt:'Zarzut siłowy, Zarzut'},
+{name:'Rwanie',aka:'Snatch, Rwanie sztangi',cat:'Olimpijskie',eq:'Sztanga',muscle:'Całe ciało, Moc, Mobilność',tip:'Szeroki chwyt. Sztanga blisko ciała, przyjęcie w przysiadzie.',nsca:'5x2.',alt:'Rwanie siłowe, Ciąg rwaniowy'},
+{name:'Rwanie siłowe',aka:'Power snatch',cat:'Olimpijskie',eq:'Sztanga',muscle:'Moc, Trapez, Barki',tip:'Przyjęcie bez głębokiego przysiadu. Szybkie łokcie.',nsca:'5x3.',alt:'Rwanie, Ciąg rwaniowy'},
+{name:'Podrzut',aka:'Jerk, Split jerk',cat:'Olimpijskie',eq:'Sztanga',muscle:'Barki, Nogi, Moc',tip:'Dip-drive, nogi w rozkroku albo dip. Sztanga nad głową zablokowana.',nsca:'5x2–3.',alt:'Pchanie sztangi (jerk), Wyciskanie z wybiciem'},
+{name:'Pchanie sztangi (jerk)',aka:'Push jerk, Jerk pchanie',cat:'Olimpijskie',eq:'Sztanga',muscle:'Barki, Nogi',tip:'Dip kolan i wybicie. Stopy wracają na linię.',nsca:'5x3.',alt:'Podrzut, Wyciskanie z wybiciem'},
+{name:'Ciąg rwaniowy',aka:'Snatch high pull, High pull',cat:'Olimpijskie',eq:'Sztanga',muscle:'Trapez, Łańcuch tylny, Moc',tip:'Ciąg jak rwanie, łokcie wysoko, sztanga nie ląduje na barkach.',nsca:'5x3–5.',alt:'Rwanie siłowe, Zarzut siłowy'},
+{name:'Wyciskanie z przysiadu (thruster)',aka:'Thruster, Squat to press',cat:'Olimpijskie',eq:'Sztanga',muscle:'Czworogłowy, Barki, Cardio',tip:'Przysiad przedni i od razu wyciskanie. Jeden płynny ruch.',nsca:'3–5x6–10.',alt:'Przysiad przedni, Wyciskanie żołnierskie OHP'},
+{name:'Zarzut i podrzut',aka:'Clean and jerk, C&J',cat:'Olimpijskie',eq:'Sztanga',muscle:'Całe ciało, Siła + moc',tip:'Zarzut, wstań, dip, podrzut. Reset między powtórzeniami.',nsca:'5x1–2.',alt:'Zarzut, Podrzut'},
+{name:'Bieżnia',aka:'Treadmill, Bieznia, Bieg na bieżni',cat:'Cardio',eq:'Bieżnia',muscle:'Nogi, Cardio (tlenowo)',tip:'Strefa 2: da się rozmawiać. Nie trzymaj się poręczy.',nsca:'20–40 min zona 2 albo interwały.',alt:'Bieg, Marsz, Orbitrek',load:'min'},
+{name:'Bieg',aka:'Run, Running, Bieganie',cat:'Cardio',eq:'Własna masa',muscle:'Nogi, Cardio',tip:'Lądowanie pod biodrem. Kadencja ~170–180.',nsca:'20–40 min albo interwały.',alt:'Bieżnia, Marsz',load:'min'},
+{name:'Marsz',aka:'Walk, Walking, Spacer',cat:'Cardio',eq:'Własna masa',muscle:'Nogi, Cardio (niski impact)',tip:'Długi krok, ruch ramion. Można z obciążeniem.',nsca:'30–60 min.',alt:'Bieżnia, Spacer farmera',load:'min'},
+{name:'Schody',aka:'Stairmaster, Stair climber, Stepper',cat:'Cardio',eq:'Maszyna',muscle:'Pośladki, Czworogłowy, Cardio',tip:'Cała stopa na stopniu. Nie opieraj się o poręcze.',nsca:'10–20 min.',alt:'Wejścia na skrzynię, Bieżnia',load:'min'},
+{name:'Ergometr narciarski',aka:'SkiErg, Ski erg, Narty',cat:'Cardio',eq:'Maszyna',muscle:'Plecy, Core, Ramiona, Cardio',tip:'Ciąg z bioder i najszerszego, nie tylko z ramion.',nsca:'500–2000 m albo 10–15 min.',alt:'Wioślarz, Liny treningowe',load:'min'},
+{name:'Rower poziomy',aka:'Recumbent bike, Rower leżący',cat:'Cardio',eq:'Rower',muscle:'Czworogłowy, Cardio (łatwiej dla kręgosłupa)',tip:'Plecy oparte. Kolano lekko ugięte w wyproście.',nsca:'15–30 min zona 2.',alt:'Rower stacjonarny, Orbitrek',load:'min'},
+{name:'Pchanie sań',aka:'Sled push, Prowler push',cat:'Cardio',eq:'Sanki',muscle:'Czworogłowy, Pośladki, Cardio',tip:'Tułów nachylony, krótkie mocne kroki. Ramiona wyprostowane.',nsca:'6–10x15–30 m.',alt:'Ciąg sań, Przysiad ze sztangą'},
+{name:'Ciąg sań',aka:'Sled pull, Sled drag',cat:'Cardio',eq:'Sanki',muscle:'Łańcuch tylny, Plecy, Cardio',tip:'Ciągnij tyłem albo twarzą do sań. Nogi pracują, nie szarp plecami.',nsca:'6–8x20–40 m.',alt:'Pchanie sań, Martwy ciąg klasyczny'},
+{name:'Wypady z wyskokiem',aka:'Jumping lunge, Split jump',cat:'Cardio',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Moc',tip:'Miękkie lądowanie. Kolano nad palcami.',nsca:'3x8–12/stronę.',alt:'Wykrok chodzony, Przysiad z wyskokiem'},
+{name:'Skoki łyżwiarskie',aka:'Skater hop, Skater jump, Lateral bound',cat:'Cardio',eq:'Własna masa',muscle:'Pośladki, Przywodziciele, Koordynacja',tip:'Skok w bok, lądowanie na jednej nodze. Klatka nad stopą.',nsca:'3x10/stronę.',alt:'Przesuw boczny, Przysiad kozacki'},
+{name:'Skok w dal z miejsca',aka:'Broad jump, Standing long jump',cat:'Cardio',eq:'Własna masa',muscle:'Pośladki, Moc pozioma',tip:'Zamach ramion, wyprost bioder. Miękkie lądowanie.',nsca:'4–6x3–5.',alt:'Skoki na skrzynię, Przysiad z wyskokiem'},
+{name:'Wyciskanie z przysiadu hantlami',aka:'Dumbbell thruster, DB thruster',cat:'Cardio',eq:'Hantle',muscle:'Czworogłowy, Barki, Cardio',tip:'Przysiad goblet/hantle na barkach i wyciskanie w jednym takcie.',nsca:'3–5x8–12.',alt:'Wyciskanie z przysiadu (thruster), Przysiad Goblet'},
+{name:'Burpee z hantlami (devil press)',aka:'Devil press, Devil press burpee, Burpee hantle, DB Devil Press',cat:'Cardio',eq:'Hantle',muscle:'Całe ciało, Cardio',tip:'Burpee z hantlami + swing/wyciskanie nad głowę.',nsca:'3–5x6–10 albo EMOM.',alt:'Burpees, Swing kettlebell'},
+{name:'Sprawl',aka:'Sprawl, Sprawls, Burpee bez pompki, Plank to stand',cat:'Cardio',eq:'Własna masa',muscle:'Cardio, Biodra, Core',tip:'Nogi w tył i z powrotem, bez pompki i wyskoku.',nsca:'3x12–20 albo 3x30–45 s.',alt:'Burpees, Mountain climbers'},
+{name:'Skok skupiony',aka:'Tuck jump',cat:'Cardio',eq:'Własna masa',muscle:'Czworogłowy, Moc pionowa',tip:'Kolana do klatki w locie. Ciche lądowanie.',nsca:'3x6–10.',alt:'Przysiad z wyskokiem, Skoki na skrzynię'},
+{name:'Wejścia i zejścia na skrzynię',aka:'Box step-over, Step over',cat:'Cardio',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Cardio',tip:'Wejdź i zejdź na drugą stronę. Nie zeskakuj.',nsca:'3x10/stronę.',alt:'Wejścia na skrzynię, Schody'},
+{name:'Rwanie kettlebell',aka:'Kettlebell snatch, KB snatch',cat:'Cardio',eq:'Kettlebell',muscle:'Moc, Barki, Łańcuch tylny',tip:'Przebijanie kciukiem, dzwonek nie uderza w przedramię.',nsca:'5x5/stronę albo 5 min EMOM.',alt:'Swing kettlebell, Rwanie siłowe'},
+{name:'Zarzut kettlebell',aka:'Kettlebell clean, KB clean',cat:'Cardio',eq:'Kettlebell',muscle:'Biodra, Barki, Core',tip:'KB blisko ciała. Przyjęcie w rack, nie owijaj wokół nadgarstka.',nsca:'5x5/stronę.',alt:'Swing kettlebell, Zarzut z hang'},
+{name:'Wyciskanie kettlebell',aka:'Kettlebell press, KB press, Single Arm KB Overhead Shoulder Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Core',tip:'Z racka. Nadgarstek prosty, biodra zablokowane.',nsca:'3x6–10/stronę.',alt:'Wyciskanie hantli stojąc, Wyciskanie żołnierskie OHP',img:'assets/ex/ohp.svg'},
+{name:'Wiosłowanie kettlebell',aka:'Kettlebell row, KB row, Single Arm KB Bent Over Row, KB Bent Over Row',cat:'Plecy',eq:'Kettlebell',muscle:'Plecy, Biceps',tip:'Oparcie o ławkę. Ciągnij łokieć do biodra.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie hantlem, Wiosłowanie Meadowsa'},
+{name:'Martwy ciąg kettlebell',aka:'Kettlebell deadlift, KB deadlift',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Dwugłowy, Grzbiet',tip:'KB między stopami. Hip hinge, plecy proste.',nsca:'3x10–15.',alt:'Martwy ciąg klasyczny, Swing kettlebell',img:'assets/ex/deadlift.svg'},
+{name:'Okrążenie kettlebell (halo)',aka:'KB halo, Kettlebell halo, Halo kettlebell',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Rotatory, Core',tip:'Okrąż KB wokół głowy. Łokcie blisko, tułów nieruchomy.',nsca:'3x8/kierunek.',alt:'Kółka ramionami, Wyciskanie kubańskie'},
+{name:'Wiatrak kettlebell',aka:'Kettlebell windmill, KB windmill',cat:'Core',eq:'Kettlebell',muscle:'Skośne, Barki, Dwugłowy uda',tip:'KB nad głową. Ślizg ręką po nodze, wzrok na KB.',nsca:'3x5–8/stronę.',alt:'Turkish get-up, Skłony boczne'},
+{name:'Wyciskanie z przysiadu kettlebell',aka:'KB thruster, Kettlebell thruster, Thruster kettlebell',cat:'Cardio',eq:'Kettlebell',muscle:'Nogi, Barki, Cardio',tip:'Przysiad w racku KB i wyciskanie.',nsca:'3x8–12.',alt:'Wyciskanie z przysiadu (thruster), Swing kettlebell'},
+{name:'Wiosłowanie TRX',aka:'TRX row, Ring row TRX',cat:'Plecy',eq:'Taśmy',muscle:'Plecy środkowe, Biceps',tip:'Ciało w desce. Ciągnij klatkę do uchwytów, ściągaj łopatki.',nsca:'3xmax.',alt:'Wiosłowanie odwrócone, Wiosłowanie hantlem'},
+{name:'Przysiad TRX',aka:'TRX squat, TRX Assisted Squat',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy, Pośladki, Równowaga',tip:'Trzymaj taśmy, zejdź w przysiad. Pomoc w wstaniu, nie w zwisie.',nsca:'3x12–15.',alt:'Przysiad Goblet, Przysiad jednonóż (pistol)',img:'assets/ex/squat.svg'},
+{name:'Pompki TRX',aka:'TRX push-up',cat:'Klatka piersiowa',eq:'Taśmy',muscle:'Klatka, Core, Stabilizacja',tip:'Uchwyty pod barkami. Ciało sztywne.',nsca:'3x8–15.',alt:'Pompki, Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Pike na taśmach',aka:'TRX pike, TRX jackknife, Pike TRX',cat:'Core',eq:'Taśmy',muscle:'Core, Barki',tip:'Stopy w uchwytach. Unoś biodra, nogi proste.',nsca:'3x8–12.',alt:'Rollout z kółkiem, Mountain climbers'},
+{name:'Wykrok TRX',aka:'TRX lunge, TRX split squat',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy, Pośladki',tip:'Tylna stopa w uchwycie. Zejście jak bułgarski.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski, Wykrok wsteczny'},
+{name:'Podciągnięcie z wyjściem (muscle-up)',aka:'Muscle-up, Muscle up',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Klatka, Triceps, Moc',tip:'Ciąg wybuchowy + przejście nad drążek. Najpierw opanuj dipy i podciąganie.',nsca:'3–5x1–5.',alt:'Podciąganie na drążku, Dipy na poręczach',img:'assets/ex/pullup.svg'},
+{name:'Pompki w staniu na rękach',aka:'Handstand push-up, HSPU',cat:'Barki',eq:'Własna masa',muscle:'Barki, Triceps, Core',tip:'Przy ścianie. Głowa do maty, łokcie ~45°. Pike jako regresja.',nsca:'3x3–8.',alt:'Pompki pike, Wyciskanie żołnierskie OHP'},
+{name:'Pompki pike',aka:'Pike push-up',cat:'Barki',eq:'Własna masa',muscle:'Barki, Triceps',tip:'Biodra wysoko (odwrócone V). Głowa między ręce.',nsca:'3x8–12.',alt:'Pompki w staniu na rękach, Wyciskanie hantli siedząc'},
+{name:'Siad w L',aka:'L-sit, L sit, L-Sit',cat:'Core',eq:'Własna masa',muscle:'Core, Zginacze bioder, Triceps',tip:'Na poręczach lub podłodze. Nogi proste, klatka otwarta.',nsca:'5x10–20 s.',alt:'Hollow hold, Zwisy nóg drążek',load:'sec'},
+{name:'Dipy na kółkach',aka:'Ring dip',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps, Stabilizacja',tip:'Kółka blisko ciała. Kontroluj chwianie.',nsca:'3x5–10.',alt:'Dipy na poręczach, Dipy z obciążeniem'},
+{name:'Wiosłowanie na kółkach',aka:'Ring row',cat:'Plecy',eq:'Własna masa',muscle:'Plecy środkowe, Biceps',tip:'Ciało sztywne. Im bardziej poziomo, tym ciężej.',nsca:'3xmax.',alt:'Wiosłowanie odwrócone, Wiosłowanie TRX'},
+{name:'Bieg bokserski',aka:'Boxing Run, Bieg Bokserski',cat:'Cardio',eq:'Własna masa',muscle:'Barki, Cardio, Koordynacja',tip:'Cieńsze kroki w miejscu, ręce w guardzie, krótkie ciosy.',nsca:'3x30–45 s.',alt:'Wysokie kolana, Pajacyki',load:'sec'},
+{name:'Skip A jednonóż w miejscu',aka:'Skip A Single Leg in Place',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra, Koordynacja, Łydki',tip:'Skip A na jednej nodze. Druga noga stabilizuje.',nsca:'3x8–12/noga.',alt:'A-skip, Wysokie kolana'},
+{name:'Skip C w miejscu',aka:'Skip C in Place',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Dwugłowy uda, Pośladki, Koordynacja',tip:'Pięta do pośladka z rytmem skipu (nie zwykły butt kick).',nsca:'3x10 m albo 3x20 s.',alt:'B-skip, Pięty do pośladków'},
+{name:'Skip C jednonóż w miejscu',aka:'Skip C Single Leg in Place',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Dwugłowy uda, Koordynacja',tip:'Skip C na jednej nodze w miejscu.',nsca:'3x8–12/noga.',alt:'Skip C w miejscu, B-skip'},
+{name:'Man maker (masa ciała)',aka:'Bodyweight Man Maker, Man maker',cat:'Cardio',eq:'Własna masa',muscle:'Całe ciało, Cardio, Core',tip:'Pompka → mountain climber / wiosłowanie w desce → przysiad i wyciskanie bez ciężaru.',nsca:'3–5x6–10.',alt:'Burpees, Gorilla burpee'},
+{name:'Skakanka naprzemienna',aka:'Jump Rope Alternating Hop, Alternating Hop Jump Rope, Alternating Single Leg Jump Rope',cat:'Cardio',eq:'Skakanka',muscle:'Łydki, Koordynacja, Cardio',tip:'Naprzemienne lądowanie na jednej nodze. Nadgarstki kręcą skakanką.',nsca:'5×45–90 s.',alt:'Skakanka, Skakanka jednonóż'},
+{name:'Skakanka jednonóż',aka:'Jump Rope Single Leg Hop, Jump Rope - Single Leg Hop',cat:'Cardio',eq:'Skakanka',muscle:'Łydki, Stabilizacja, Cardio',tip:'Podskoki na jednej nodze. Zmieniaj strony.',nsca:'4×20–40 s/noga.',alt:'Skakanka, Skakanka naprzemienna'},
+{name:'Skakanka wysokie kolana',aka:'Jump Rope High Knee, High Knee Jump Rope, Jump Rope - High Knee',cat:'Cardio',eq:'Skakanka',muscle:'Zginacze bioder, Cardio',tip:'Kolana wysoko przy każdym obrocie. Krótki kontakt z podłożem.',nsca:'5×30–45 s.',alt:'Skakanka, Wysokie kolana'},
+{name:'Chód niedźwiedzia bokiem',aka:'Bear Crawl Lateral Walk, Lateral bear crawl',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Core, Barki, Odwodziciele',tip:'Pozycja bear, kroki w bok. Kolana nisko, biodra równo.',nsca:'3x8–12 m/stronę.',alt:'Chód niedźwiedzia, Monster walk (chód)'},
+{name:'Gorilla burpee',aka:'Gorilla Burpee',cat:'Cardio',eq:'Własna masa',muscle:'Całe ciało, Cardio, Biodra',tip:'Burpee z szerszym, niższym zejściem jak goryl — ręce między stopami.',nsca:'3–5x8–12.',alt:'Burpees, Man maker (masa ciała)'},
+{name:'W górę i w dół góry',aka:'Up the Mountain, Down the Mountain, Up the Mountain Down the Mountain',cat:'Cardio',eq:'Własna masa',muscle:'Core, Barki, Cardio',tip:'Z deski wchodź dłońmi na podwyższenie i schodź — góra/dół.',nsca:'3x8–12 albo 3x30 s.',alt:'Mountain climbers, Pompki'},
+{name:'Jump around',aka:'Jump Around - Home, Jump Around Home',cat:'Cardio',eq:'Własna masa',muscle:'Łydki, Cardio, Koordynacja',tip:'Szybkie podskoki w miejscu ze zmianą kierunku stóp.',nsca:'3x20–40 s.',alt:'Pajacyki, Skakanka',load:'sec'},
+{name:'Thruster hantlem jednorącz',aka:'Single Arm DB Thruster, Single-arm dumbbell thruster',cat:'Cardio',eq:'Hantle',muscle:'Nogi, Barki, Core',tip:'Hantel w racku. Przysiad i wyciskanie jedną ręką. Napnij brzuch.',nsca:'3x8–12/stronę.',alt:'Wyciskanie z przysiadu hantlami, Wyciskanie landmine'},
+{name:'GHD wyprost bioder',aka:'GHD Hip Extension Bodyweight, GHD hip extension',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki, Dwugłowy, Prostownicy',tip:'Biodra na krawędzi GHD. Unoś tułów do linii nóg. Nie przeprostowuj lędźwi.',nsca:'3x10–15.',alt:'Prostowanie tułowia, Odwrócone prostowanie tułowia'},
+{name:'GHD wyprost bioder ze sztangą',aka:'GHD Barbell Wide Grip Hip Extension, GHD - Barbell Wide Grip Hip Extension',cat:'Pośladki',eq:'Sztanga',muscle:'Pośladki, Dwugłowy, Grzbiet',tip:'Szeroki chwyt sztangi na barkach. Ten sam tor co GHD hip extension.',nsca:'3x8–12.',alt:'GHD wyprost bioder, Good morning (skłon)'},
+{name:'GHD wyprost bioder z pauzą',aka:'GHD Hip Extension with Isometric Hold',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki, Izometria łańcucha tylnego',tip:'Zatrzymaj 2–3 s w linii ciała na górze.',nsca:'3x8–12.',alt:'GHD wyprost bioder'},
+{name:'GHD wyprost bioder z piłką',aka:'GHD Med Ball Drop and Catch, GHD Med Ball Drop and Catch Hip Extension',cat:'Pośladki',eq:'Piłka lekarska',muscle:'Pośladki, Moc, Koordynacja',tip:'Na górze upuść piłkę i złap, wróć kontrolowanie w dół.',nsca:'3x6–10.',alt:'GHD wyprost bioder, Rzut piłką o podłogę'},
+{name:'GHD Russian hip extension',aka:'GHD - Russian Hip Extension, Russian hip extension GHD',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki, Dwugłowy',tip:'Większy zakres w biodrach, mniej w lędźwiach. Ścisk pośladków na górze.',nsca:'3x10–12.',alt:'GHD wyprost bioder'},
+{name:'GHD wyprost bioder jednonóż',aka:'GHD Single Leg Hip Extension',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki (jednostronnie), Dwugłowy',tip:'Jedna noga zablokowana. Biodra równo.',nsca:'3x8–12/noga.',alt:'GHD wyprost bioder, Wypychanie bioder jednonóż'},
+{name:'Przysiad kozacki landmine',aka:'Landmine Goblet Cossack Squat',cat:'Nogi',eq:'Sztanga',muscle:'Przywodziciele, Czworogłowy, Pośladki',tip:'Koniec sztangi przy klatce. Szeroki kozak, pięta drugiej nogi w górze.',nsca:'3x8–12/stronę.',alt:'Przysiad kozacki, Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Wyciskanie landmine klęcząc jednorącz',aka:'Landmine Half Kneeling Single Arm Press',cat:'Barki',eq:'Sztanga',muscle:'Barki, Core, Pośladki (pozycja)',tip:'Klęk jednonóż. Wyciskaj po skosie, biodra zablokowane.',nsca:'3x8–12/stronę.',alt:'Wyciskanie landmine, Wyciskanie kettlebell',img:'assets/ex/ohp.svg'},
+{name:'Landmine rainbow',aka:'Landmine Rainbow Rotation, Landmine rainbow rotation',cat:'Core',eq:'Sztanga',muscle:'Core, Skośne, Barki',tip:'Łuk sztangą z biodra na biodro nad głową. Biodra stabilne.',nsca:'3x8–10/stronę.',alt:'Rotacja landmine, Woodchop wyciąg'},
+{name:'Wykrok wsteczny landmine',aka:'Landmine Reverse Lunges, Landmine reverse lunge',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki',tip:'Sztanga w goblet/landmine. Krok w tył, kolano tylne nisko.',nsca:'3x8–12/noga.',alt:'Wykrok wsteczny, Przysiad bułgarski',img:'assets/ex/squat.svg'},
+{name:'Rotacja zewnętrzna barku landmine',aka:'Landmine Shoulder External Rotation',cat:'Barki',eq:'Sztanga',muscle:'Rotatory barku, Tylne barki',tip:'Łokieć przy boku. Krótki łuk na zewnątrz. Lekki talerz.',nsca:'3x12–15/stronę.',alt:'Rotacja zewnętrzna, Ściąganie do twarzy (face pull)'},
+{name:'Wiosłowanie landmine jednorącz',aka:'Landmine Single Arm Bent Over Row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy, Tylne barki, Biceps',tip:'Tułów nachylony. Ciągnij łokieć do biodra.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie Meadowsa, Wiosłowanie hantlem'},
+{name:'Wyciskanie z wybiciem landmine jednorącz',aka:'Landmine Single Arm Push Press',cat:'Barki',eq:'Sztanga',muscle:'Barki, Moc, Nogi',tip:'Krótki dip i wybicie jedną ręką w landmine.',nsca:'3x5–8/stronę.',alt:'Wyciskanie z wybiciem, Wyciskanie landmine'},
+{name:'Split jerk landmine jednorącz',aka:'Landmine Single Arm Split Jerk',cat:'Olimpijskie',eq:'Sztanga',muscle:'Barki, Nogi, Moc',tip:'Wybicie i przyjęcie w rozkroku. Stabilny catch.',nsca:'4x3–5/stronę.',alt:'Wyciskanie z wybiciem landmine jednorącz, Podrzut'},
+{name:'Thruster landmine jednorącz',aka:'Landmine Single Arm Thruster, Landmine Thruster, Landmine Single Leg Thruster',cat:'Cardio',eq:'Sztanga',muscle:'Nogi, Barki, Core',tip:'Przysiad z landmine przy barku i wyciskanie w jednym takcie.',nsca:'3x8–12/stronę.',alt:'Wyciskanie z przysiadu (thruster), Wyciskanie landmine'},
+{name:'RDL jednonóż landmine',aka:'Landmine Single Leg RDL',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Dwugłowy (jednostronnie)',tip:'Koniec sztangi w ręce przeciwnej do nogi podporowej.',nsca:'3x8–12/noga.',alt:'RDL jednonóż, Martwy ciąg RDL',img:'assets/ex/deadlift.svg'},
+{name:'Wyciskanie landmine split stance',aka:'Landmine Split Stance Single Arm Press',cat:'Barki',eq:'Sztanga',muscle:'Barki, Core, Stabilizacja',tip:'Rozkrok. Wyciskaj po skosie, nie skręcaj bioder.',nsca:'3x8–12/stronę.',alt:'Wyciskanie landmine klęcząc jednorącz'},
+{name:'Wiosłowanie landmine split stance',aka:'Landmine Split Stance Single Arm Row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy, Core antyrotacyjny',tip:'Rozkrok, tułów prawie pionowy. Ciągnij do biodra.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie landmine jednorącz'},
+{name:'Uginanie ud na ślizgach',aka:'Slider Hamstring Curl, Slider hamstring curl',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy uda, Pośladki',tip:'Mostek, pięty na ślizgach. Zginaj kolana, biodra wysoko.',nsca:'3x8–15.',alt:'Uginanie nóg leżąc, Uginanie nordyckie'},
+{name:'Uginanie ud na ślizgach naprzemiennie',aka:'Slider Alternating Hamstring Curl',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy uda (jednostronnie)',tip:'Jedna noga zgina, druga wyprostowana. Biodra nie opadają.',nsca:'3x8–12/noga.',alt:'Uginanie ud na ślizgach'},
+{name:'Uginanie ud na ślizgach ekscentryczne jednonóż',aka:'Slider Single Leg Eccentric Curl',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy (ekscentryka)',tip:'Jedna noga. Wolne 3–4 s wyprostowanie.',nsca:'3x5–8/noga.',alt:'Uginanie nordyckie, Uginanie ud na ślizgach'},
+{name:'Wykrok boczny na ślizgach',aka:'Slider Side Lunge, Slider lateral lunge',cat:'Nogi',eq:'Własna masa',muscle:'Przywodziciele, Czworogłowy',tip:'Jedna stopa na ślizgu, zejście w bok i powrót.',nsca:'3x8–12/stronę.',alt:'Wykrok boczny, Przysiad kozacki'},
+{name:'Rozpiętki z taśmą stojąc',aka:'Standing Band Chest Fly',cat:'Klatka piersiowa',eq:'Taśmy',muscle:'Klatka (izolacja)',tip:'Taśma za sobą. Lekkie ugięcie łokci, ścisk na środku.',nsca:'3x12–15.',alt:'Rozpiętki hantlami, Rozpiętki na wyciągu'},
+{name:'Unoszenie biodra sprintera z taśmą',aka:'Sprinter Ankle Banded Hip Lift',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki, Zginacze bioder',tip:'Taśma na kostce. Pozycja sprintera, kolano do klatki z oporem.',nsca:'3x10–15/stronę.',alt:'Wysokie kolana, Donkey kick'},
+{name:'Odwodzenie biodra jednonóż z taśmą',aka:'Single Leg Banded Glute Abduction',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki średni',tip:'Stojąc na jednej nodze, odwodź drugą w bok z taśmą.',nsca:'3x12–15/stronę.',alt:'Abdukcja biodra maszyna, Monster walk (chód)'},
+{name:'Rotacja wewnętrzna barku 90° z taśmą',aka:'Single Arm 90 Degree Band Internal Rotation',cat:'Barki',eq:'Taśmy',muscle:'Rotatory (90° odwiedzenie)',tip:'Ramię w bok 90°, uginaj przedramię do przodu.',nsca:'2–3x12–15/stronę.',alt:'Rotacja wewnętrzna barku'},
+{name:'Rotacja zewnętrzna barku 90° z taśmą',aka:'Single Arm 90 Degree Band External Rotation',cat:'Barki',eq:'Taśmy',muscle:'Rotatory, Tylne barki',tip:'Ramię w bok 90°, otwieraj przedramię w tył.',nsca:'2–3x12–15/stronę.',alt:'Rotacja zewnętrzna, Ściąganie do twarzy (face pull)'},
+{name:'Przywodzenie piłkarskie z taśmą',aka:'Banded Soccer Adduction Kick',cat:'Nogi',eq:'Taśmy',muscle:'Przywodziciele',tip:'Kop do wewnątrz jak w piłce, taśma na kostce.',nsca:'3x12–15/stronę.',alt:'Przywodzenie biodra maszyna'},
+{name:'Odwodzenie w bok z taśmą na kostce',aka:'Banded Ankle Single Leg Side Abduction',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki średni, Stabilizacja',tip:'Taśma na kostkach. Stojąc, odwodź nogę w bok.',nsca:'3x12–20/stronę.',alt:'Odwodzenie biodra jednonóż z taśmą'},
+{name:'Skok split z taśmą (wspomagany)',aka:'Band Assisted Split Stance Reactive Jump, Band Assisted Split Squat Jump',cat:'Cardio',eq:'Taśmy',muscle:'Nogi, Moc, Reaktywność',tip:'Taśma od góry odciąża. Wybijaj z rozkroku, miękkie lądowanie.',nsca:'3x6–8/stronę.',alt:'Wypady z wyskokiem, Przysiad z wyskokiem'},
+{name:'Przysiad z wyskokiem z taśmą (wspomagany)',aka:'Band Assisted Squat Jump',cat:'Cardio',eq:'Taśmy',muscle:'Czworogłowy, Pośladki, Moc',tip:'Taśma wspomaga wybicie. Ciche lądowanie.',nsca:'3x6–10.',alt:'Przysiad z wyskokiem'},
+{name:'Skok reaktywny z taśmą (wspomagany)',aka:'Band Assisted Reactive Jump',cat:'Cardio',eq:'Taśmy',muscle:'Moc, Łydki, Reaktywność',tip:'Krótki kontakt z podłożem. Taśma od góry.',nsca:'3x6–8.',alt:'Przysiad z wyskokiem, Skok skupiony'},
+{name:'Drop jump z taśmą (wspomagany)',aka:'Band Assisted Drop Jump',cat:'Cardio',eq:'Taśmy',muscle:'Moc, Hamowanie, Reaktywność',tip:'Zeskok ze skrzyni i natychmiastowe wybicie. Taśma odciąża.',nsca:'4x4–6.',alt:'Skoki na skrzynię, Skok reaktywny z taśmą (wspomagany)'},
+{name:'Combo rotacji zewnętrznej z taśmą',aka:'Shoulder External Combo with Band',cat:'Barki',eq:'Taśmy',muscle:'Rotatory, Tylne barki',tip:'Rotacja zewnętrzna + unoszenie / combo w jednym takcie.',nsca:'3x10–12/stronę.',alt:'Rotacja zewnętrzna barku 90° z taśmą'},
+{name:'Rozciąganie taśmy klęcząc',aka:'Half Kneeling Band Pull Apart',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Rombowate',tip:'Klęk jednonóż. Rozciągnij taśmę na szerokość, łopatki w dół.',nsca:'3x12–15.',alt:'Rozciąganie taśmy, Ściąganie do twarzy (face pull)'},
+{name:'Rozciąganie taśmy w opadzie',aka:'Bent Over Band Pull Apart',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Prostownicy',tip:'Tułów nachylony. Rozciągnij taśmę, plecy płasko.',nsca:'3x12–15.',alt:'Rozciąganie taśmy, Odwrotne rozpiętki'},
+{name:'Swing kettlebell z taśmą',aka:'Banded KB Swing, Banded kettlebell swing',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Moc, Cardio',tip:'Taśma na KB zwiększa opór na górze swingu.',nsca:'3–5x12–20.',alt:'Swing kettlebell'},
+{name:'Martwy ciąg z taśmą',aka:'Banded Deadlift, Banded KB Deadlift',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Grzbiet, Moc',tip:'Taśma pod stopami / na KB. Hip hinge, opór rośnie w górze.',nsca:'3x8–12.',alt:'Martwy ciąg kettlebell, Martwy ciąg klasyczny',img:'assets/ex/deadlift.svg'},
+{name:'Wiosłowanie z taśmą siedząc',aka:'Seated Band Row, Seated Band Row Neutral Grip, Seated Band Row Pronated Grip',cat:'Plecy',eq:'Taśmy',muscle:'Plecy środkowe, Biceps',tip:'Siedząc, taśma na stopach. Ciągnij do bioder, ściągaj łopatki.',nsca:'3x12–15.',alt:'Wiosłowanie wyciągiem siedząc'},
+{name:'Prostowanie tricepsa taśmą jednorącz',aka:'Single Arm Band Triceps Pushdown, Single Arm Band Triceps Push Down',cat:'Triceps',eq:'Taśmy',muscle:'Triceps',tip:'Łokieć przyklejony. Pełny wyprost.',nsca:'3x12–15/stronę.',alt:'Prostowanie jednorącz wyciąg, Prostowanie tricepsa wyciąg'},
+{name:'Wyciskanie taśmy klęcząc wysoki klęk jednorącz',aka:'Tall Kneeling Single Arm Band Press',cat:'Barki',eq:'Taśmy',muscle:'Barki, Core',tip:'Wysoki klęk. Wyciskaj jedną ręką, pośladki napięte.',nsca:'3x8–12/stronę.',alt:'Wyciskanie kettlebell, Wyciskanie landmine'},
+{name:'Ściąganie taśmy klęcząc',aka:'Tall Kneeling Band Pulldown',cat:'Plecy',eq:'Taśmy',muscle:'Najszerszy, Core',tip:'Wysoki klęk. Ciągnij taśmę z góry do klatki.',nsca:'3x10–15.',alt:'Ściąganie drążka wyciąg'},
+{name:'Face pull do Y z taśmą',aka:'Band Face Pull to Y Press',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Dolny trapez',tip:'Face pull, potem wyprost ramion w Y.',nsca:'3x10–12.',alt:'Ściąganie do twarzy (face pull), Unoszenie Y'},
+{name:'Rozciąganie taśmy',aka:'Band Pull Apart, Band pull-apart',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Rombowate',tip:'Ramiona proste. Rozciągnij taśmę na klatce, łopatki w dół i tył.',nsca:'3x15–20.',alt:'Odwrotne rozpiętki, Ściąganie do twarzy (face pull)'},
+{name:'Rozciąganie taśmy combo',aka:'Band Pull Apart Combo',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Rotatory',tip:'Pull-apart + rotacja lub unoszenie w jednym cyklu.',nsca:'3x10–12.',alt:'Rozciąganie taśmy'},
+{name:'Wiosłowanie w desce bocznej z taśmą',aka:'Side Plank Band Row',cat:'Core',eq:'Taśmy',muscle:'Skośne, Plecy, Core',tip:'Deska boczna. Wolną ręką wiosłuj taśmę. Biodra wysoko.',nsca:'3x8–12/stronę.',alt:'Deska boczna, Wiosłowanie z taśmą siedząc'},
+{name:'Ściąganie taśmy w desce',aka:'Front Plank Band Pulldown',cat:'Core',eq:'Taśmy',muscle:'Core, Najszerszy, Barki',tip:'Deska na rękach. Ciągnij taśmę z przodu do biodra bez kołysania.',nsca:'3x8–12/stronę.',alt:'Deska, Ściąganie taśmy klęcząc'},
+{name:'Martwy robak z taśmą na ramionach',aka:'Dead Bug Banded Arms',cat:'Core',eq:'Taśmy',muscle:'Core głęboki, Barki',tip:'Taśma w rękach. Ramiona proste, naprzemienne nogi. Lędźwie przyciśnięte.',nsca:'3x8–10/stronę.',alt:'Martwy robak'},
+{name:'Zginanie biodra w desce bocznej jednonóż',aka:'Side Plank Single Leg Hip Flexion, Side Plank Single Leg Hip Flexion',cat:'Core',eq:'Własna masa',muscle:'Skośne, Zginacze bioder',tip:'Deska boczna. Górna noga: kolano do klatki i wyprost.',nsca:'3x8–12/stronę.',alt:'Deska boczna'},
+{name:'Wykrok wsteczny do wiosłowania taśmą',aka:'Reverse Lunge to Single Arm Band Row',cat:'Nogi',eq:'Taśmy',muscle:'Nogi, Plecy, Core',tip:'Wykrok w tył i wiosłowanie tą samą lub przeciwną ręką.',nsca:'3x8–10/stronę.',alt:'Wykrok wsteczny, Wiosłowanie z taśmą siedząc'},
+{name:'Pallof chód boczny z taśmą',aka:'Band Resisted Pallof Lateral Walk, Band Resisted Pallof Lateral Wall, Pallof Press Lateral Step, Pallof Press Hold Lateral Step',cat:'Core',eq:'Taśmy',muscle:'Core antyrotacyjny, Pośladki',tip:'Pallof w wyproście ramion + kroki w bok. Nie skręcaj tułowia.',nsca:'3x8–12 kroków/stronę.',alt:'Wyciskanie Pallofa, Monster walk (chód)'},
+{name:'Rotacja z taśmą w wykroku',aka:'In Lunge Band Rotation',cat:'Core',eq:'Taśmy',muscle:'Skośne, Biodra, Core',tip:'Wykrok, rotuj tułów z taśmą. Kolano stabilne.',nsca:'3x8–12/stronę.',alt:'Woodchop wyciąg, Wyciskanie Pallofa'},
+{name:'Brzuszki kolano–łokieć z mini band',aka:'Banded Knee To Elbow Crunches',cat:'Core',eq:'Taśmy',muscle:'Prosty brzucha, Skośne',tip:'Mini band na stopach/dłoniach. Łokieć do przeciwnego kolana.',nsca:'3x12–16.',alt:'Brzuszki rowerowe'},
+{name:'Monster walk z taśmą na kostkach',aka:'Ankle Banded Lateral Monster Walk',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki średni',tip:'Taśma na kostkach. Kroki w bok, napięcie cały czas.',nsca:'3x12–15 kroków/stronę.',alt:'Monster walk (chód)'},
+{name:'Skok z mini band i talerzem',aka:'Miniband Resisted Plate Offset Jump',cat:'Cardio',eq:'Taśmy',muscle:'Nogi, Moc, Stabilizacja',tip:'Mini band + talerz offset. Wybicie i miękkie lądowanie.',nsca:'3x6–8.',alt:'Przysiad z wyskokiem'},
+{name:'Miniband snap down',aka:'Miniband Snap Down',cat:'Cardio',eq:'Taśmy',muscle:'Hamowanie, Pośladki, Czworogłowy',tip:'Z wyprostu „wpadnij” w pozycję atletyczną. Mini band nad kolanami.',nsca:'3x6–8.',alt:'Przysiad z wyskokiem'},
+{name:'Unoszenie nogi 4 kierunki z mini band',aka:'Banded Ankle and Thigh Straight Leg Raise, Banded 4 Directions Walk',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki, Przywodziciele, Zginacze',tip:'Taśmy na udzie i kostce. Przód/tył/bok/przywodzenie.',nsca:'2x8/kierunek/noga.',alt:'Monster walk (chód), Machy nogą przód-tył'},
+{name:'Odwodzenie biodra jednonóż mini band',aka:'Banded Single Leg Hip Abduction',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki średni',tip:'Leżąc lub stojąc. Mini band nad kolanami.',nsca:'3x12–15/stronę.',alt:'Muszla (clamshell)'},
+{name:'Rotacja zewnętrzna biodra z mini band',aka:'Banded Single Leg External Rotation, Miniband Hip External Rotation',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki, Rotatory biodra',tip:'Kolano 90°. Otwieraj udo na zewnątrz.',nsca:'3x12–15/stronę.',alt:'Muszla (clamshell), Biodra 90/90'},
+{name:'Wypychanie bioder z odwodzeniem mini band',aka:'Banded Hip Thrust with Hip Abduction',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki (wielki i średni)',tip:'Hip thrust i na górze rozpychaj kolana.',nsca:'3x12–15.',alt:'Wypychanie bioder z taśmą'},
+{name:'Mostek biodrowy z mini band',aka:'Banded Glute Bridge',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki',tip:'Mostek, mini band nad kolanami. Rozpychaj na boki.',nsca:'3x15–20.',alt:'Mostek biodrowy, Wypychanie bioder z taśmą'},
+{name:'Dual monster walk',aka:'Dual Banded Lateral Monster Walk, Dual Miniband Lateral Monster Walk',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki średni',tip:'Taśma na kostkach i nad kolanami. Kroki w bok.',nsca:'3x10–12 kroków/stronę.',alt:'Monster walk (chód), Monster walk z taśmą na kostkach'},
+{name:'Miniband standing single leg',aka:'Miniband Standing Single Leg Movement',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki, Stabilizacja jednonóż',tip:'Stojąc na jednej nodze z mini band — kontrolowane ruchy wolnej nogi.',nsca:'3x8–12/noga.',alt:'Odwodzenie biodra jednonóż mini band'},
+{name:'Przysiad powietrzny z mini band',aka:'Miniband Air Squat',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy, Pośladki',tip:'Mini band nad kolanami. Kolana na zewnątrz w przysiadzie.',nsca:'3x12–20.',alt:'Przysiad Goblet, Monster walk (chód)',img:'assets/ex/squat.svg'},
+{name:'Przysiad powietrzny na podwyższeniu pięt z mini band',aka:'Heel Elevated Miniband Air Squat',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy',tip:'Pięty na klinie, mini band nad kolanami.',nsca:'3x12–15.',alt:'Przysiad powietrzny z mini band',img:'assets/ex/squat.svg'},
+{name:'Przysiad goblet na podwyższeniu pięt z mini band',aka:'Heel Elevated Goblet Squat with Miniband',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Goblet + klin pod piętami + mini band.',nsca:'3x10–15.',alt:'Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Chód mini band przód–tył',aka:'Forward and Backward Miniband Walk',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki, Czworogłowy',tip:'Mini band nad kolanami. Kroki w przód i w tył z napięciem.',nsca:'3x10 kroków każda strona.',alt:'Monster walk (chód)'},
+{name:'Donkey kick z mini band',aka:'Donkey Kicks with Miniband',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki',tip:'Na czworaka, mini band. Kop piętą w sufit.',nsca:'3x12–15/noga.',alt:'Donkey kick'},
+{name:'Muszla z wypychaniem mini band',aka:'Clamshell Thruster with Miniband, Clamshell Thruster',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki średni, Core',tip:'Clamshell + wyprost bioder jak mini hip thrust na boku.',nsca:'3x10–12/stronę.',alt:'Muszla (clamshell)'},
+{name:'Pompki TRX z przyciągnięciem kolan',aka:'TRX Push Ups With Knee Tuck',cat:'Klatka piersiowa',eq:'Taśmy',muscle:'Klatka, Core, Biodra',tip:'Pompka, potem kolana do klatki. Ciało sztywne.',nsca:'3x8–12.',alt:'Pompki TRX, Pike na taśmach',img:'assets/ex/bench.svg'},
+{name:'Odwrotne rozpiętki TRX',aka:'TRX Reverse Fly',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Rombowate',tip:'Ramiona prawie proste. Otwieraj na boki, ściągaj łopatki.',nsca:'3x10–15.',alt:'Odwrotne rozpiętki, Wiosłowanie TRX'},
+{name:'Unoszenie Y TRX',aka:'TRX Y Overhead Fly, TRX Y fly',cat:'Barki',eq:'Taśmy',muscle:'Dolny trapez, Tylne barki',tip:'Unieś ramiona w Y. Lekki kąt ciała.',nsca:'3x8–12.',alt:'Unoszenie Y, Odwrotne rozpiętki TRX'},
+{name:'Wiosłowanie TRX z ugiętymi kolanami',aka:'TRX Inverted Row with Bent Knees',cat:'Plecy',eq:'Taśmy',muscle:'Plecy środkowe, Biceps',tip:'Kolana ugięte — łatwiejsza wersja inverted row.',nsca:'3xmax.',alt:'Wiosłowanie TRX, Wiosłowanie odwrócone'},
+{name:'Wiosłowanie TRX wąsko',aka:'TRX Narrow Grip Inverted Row, TRX Inverted Row',cat:'Plecy',eq:'Taśmy',muscle:'Plecy, Biceps',tip:'Dłonie blisko. Ciągnij klatkę do uchwytów.',nsca:'3xmax.',alt:'Wiosłowanie TRX'},
+{name:'Wiosłowanie TRX superhero jednorącz',aka:'TRX Single Arm Superhero Row',cat:'Plecy',eq:'Taśmy',muscle:'Plecy, Core antyrotacyjny',tip:'Jedna ręka. Nie rotuj bioder. Druga ręka jak superbohater w przód.',nsca:'3x8–12/stronę.',alt:'Wiosłowanie TRX, Wiosłowanie hantlem'},
+{name:'Skręt TRX',aka:'TRX Twist',cat:'Core',eq:'Taśmy',muscle:'Skośne, Core rotacyjny',tip:'Stopy w uchwytach. Rotuj biodra bokiem, barki stabilne.',nsca:'3x8–12/stronę.',alt:'Pike na taśmach, Skręty rosyjskie'},
+{name:'Odwodzenie nóg TRX leżąc',aka:'TRX Lying Leg Abduction',cat:'Pośladki',eq:'Taśmy',muscle:'Pośladki średni, Przywodziciele (hamowanie)',tip:'Leżąc, stopy w uchwytach. Otwieraj nogi na boki.',nsca:'3x10–15.',alt:'Abdukcja biodra maszyna'},
+{name:'Uginanie ud TRX',aka:'TRX Hamstring Curl',cat:'Nogi',eq:'Taśmy',muscle:'Dwugłowy uda, Pośladki',tip:'Mostek, pięty w uchwytach. Zginaj kolana, biodra wysoko.',nsca:'3x8–15.',alt:'Uginanie ud na ślizgach, Uginanie nóg leżąc'},
+{name:'Uginanie ud TRX naprzemiennie',aka:'TRX Alternating Hamstring Leg Curl',cat:'Nogi',eq:'Taśmy',muscle:'Dwugłowy (jednostronnie)',tip:'Naprzemienne uginanie. Miednica nie opada.',nsca:'3x8–12/noga.',alt:'Uginanie ud TRX'},
+{name:'Przysiad bułgarski TRX',aka:'TRX RFE Split Squat, TRX Rear Foot Elevated Squat',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy, Pośladki',tip:'Tylna stopa w uchwycie. Zejście pionowe.',nsca:'3x8–12/noga.',alt:'Wykrok TRX, Przysiad bułgarski',img:'assets/ex/squat.svg'},
+{name:'Pistol TRX',aka:'TRX Pistol Squat',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy, Równowaga',tip:'Trzymaj taśmy. Zejdź na jednej nodze, wolna noga w przód.',nsca:'3x5–8/noga.',alt:'Przysiad jednonóż (pistol), Przysiad TRX',img:'assets/ex/squat.svg'},
+{name:'Wykrok wsteczny TRX',aka:'TRX Reverse Lunges',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy, Pośladki',tip:'Uchwyty w rękach. Krok w tył, pomoc taśm w wstaniu.',nsca:'3x8–12/noga.',alt:'Wykrok TRX, Wykrok wsteczny'},
+{name:'Przysiad łyżwiarski TRX',aka:'TRX Skater Squat',cat:'Nogi',eq:'Taśmy',muscle:'Czworogłowy, Pośladki, Równowaga',tip:'Tylna noga uniesiona w tył. Zejście jak pistol z pomocą taśm.',nsca:'3x6–10/noga.',alt:'Pistol TRX, Przysiad jednonóż (pistol)'},
+{name:'Aktywny zwis na kółkach',aka:'Active Dead Hang on Rings, Ring Active Dead Hang, Active Dead Hang on Rings',cat:'Plecy',eq:'Własna masa',muscle:'Barki, Chwyt, Najszerszy',tip:'Zwis z barkami wciśniętymi w panewki (active hang).',nsca:'3x20–40 s.',alt:'Zwisy na drążku, Podciąganie na drążku',load:'sec'},
+{name:'Uginanie biceps na kółkach bokiem',aka:'Ring Side Isolation Biceps Curl',cat:'Biceps',eq:'Własna masa',muscle:'Biceps',tip:'Ciało bokiem do kółek. Izolowane uginanie.',nsca:'3x8–12/stronę.',alt:'Uginanie biceps sztangą',img:'assets/ex/curl.svg'},
+{name:'Wiosłowanie superhero na kółkach jednorącz',aka:'Superhero Single Arm Ring Row',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Core',tip:'Jedna ręka na kółku, druga wyciągnięta. Bez rotacji tułowia.',nsca:'3x6–10/stronę.',alt:'Wiosłowanie na kółkach, Wiosłowanie TRX superhero jednorącz'},
+{name:'Dynamiczny hip hinge na kółkach',aka:'Ring Lat Hip Hinge Dynamic Stretch',cat:'Rozciąganie',eq:'Własna masa',muscle:'Najszerszy, Łańcuch tylny',tip:'Trzymaj kółka, odchodź w tył w hinge. Rozciągaj najszerszy.',nsca:'2x8–10.',alt:'Gąsienica (inchworm), Martwy ciąg RDL'},
+{name:'Podciąganie łopatkowe na kółkach',aka:'Ring Scapula Pull Ups, Ring scapular pull-up',cat:'Plecy',eq:'Własna masa',muscle:'Dolny trapez, Łopatki',tip:'Zwis. Ciągnij barki w dół bez uginania łokci.',nsca:'3x8–12.',alt:'Aktywny zwis na kółkach, Podciąganie na drążku',img:'assets/ex/pullup.svg'},
+{name:'Podciąganie podchwytem na kółkach (ekscentryka)',aka:'Eccentric Ring Chin Ups, Eccentric ring chin-up',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Biceps (ekscentryka)',tip:'Wejdź na górę i opuszczaj 3–5 s na kółkach.',nsca:'3x4–8.',alt:'Negatywy podciągania, Podciąganie podchwytem',img:'assets/ex/pullup.svg'},
+{name:'Przysiad przy ścianie jednonóż na piłce',aka:'Swiss Ball Single Leg Wall Sit',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Równowaga',tip:'Piłka między plecami a ścianą. Jedna noga. Uda prawie równolegle.',nsca:'3x20–40 s/noga.',alt:'Przysiad przy ścianie',load:'sec'},
+{name:'Pallof z piłką swiss (ścisk)',aka:'Pallof Twist with Swiss Ball Hold and Squeeze',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Przywodziciele',tip:'Ściskaj piłkę i wykonuj Pallof / lekką rotację.',nsca:'3x8–12/stronę.',alt:'Wyciskanie Pallofa'},
+{name:'Mostek izometryczny na piłce swiss',aka:'Swiss Ball Hamstring Isometric Bridge, Swiss Ball Isometric Glute Bridge, Mostek izometryczny na piłce swiss (pośladki)',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy, Pośladki, Izometria',tip:'Pięty na piłce, mostek. Trzymaj linię bark–biodro–kolano.',nsca:'3x20–40 s.',alt:'Mostek biodrowy',load:'sec'},
+{name:'Uginanie ud na piłce swiss',aka:'Swiss Ball Hamstring Leg Curl',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy uda, Pośladki',tip:'Mostek, pięty na piłce. Zginaj kolana, przyciągaj piłkę.',nsca:'3x8–15.',alt:'Uginanie ud TRX, Uginanie nóg leżąc'},
+{name:'Mostek izometryczny jednonóż na piłce swiss',aka:'Swiss Ball Single Leg Hamstring Isometric Bridge',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy, Pośladki, Stabilizacja',tip:'Jedna pięta na piłce. Trzymaj mostek.',nsca:'3x15–30 s/noga.',alt:'Mostek izometryczny na piłce swiss',load:'sec'},
+{name:'Uginanie ud jednonóż na piłce swiss',aka:'Swiss Ball Single Leg Hamstring Curl',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy (jednostronnie)',tip:'Jedna noga na piłce. Biodra wysoko przy uginaniu.',nsca:'3x6–10/noga.',alt:'Uginanie ud na piłce swiss'},
+{name:'Przysiad jednonóż przy ścianie z piłką swiss',aka:'Swiss Ball Wall Single Leg Squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Pośladki',tip:'Piłka za plecami. Zejście na jednej nodze.',nsca:'3x8–12/noga.',alt:'Przysiad przy ścianie jednonóż na piłce',img:'assets/ex/squat.svg'},
+{name:'Mostek na piłce swiss',aka:'Swiss Ball Glute Bridge',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki, Dwugłowy',tip:'Łopatki lub stopy na piłce. Wyprost bioder, ścisk na górze.',nsca:'3x12–15.',alt:'Mostek biodrowy'},
+{name:'Ścisk przywodzicieli na piłce swiss',aka:'Swiss Ball Groin Squeeze, Swiss Ball Isometric Groin Squeeze',cat:'Nogi',eq:'Własna masa',muscle:'Przywodziciele',tip:'Piłka między kolanami. Ściskaj i trzymaj.',nsca:'3x20–40 s albo 3x12–15.',alt:'Przywodzenie biodra maszyna'},
+{name:'Pompki z nogami na piłce swiss',aka:'Swiss Ball Feet Elevated Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Core, Barki',tip:'Stopy na piłce. Ciało sztywne.',nsca:'3x8–15.',alt:'Pompki z nogami na podwyższeniu, Pompki',img:'assets/ex/bench.svg'},
+{name:'Pompki na piłce swiss',aka:'Swiss Ball Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Core, Stabilizacja',tip:'Dłonie na piłce. Kontroluj chwianie.',nsca:'3x8–12.',alt:'Pompki, Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Pike na piłce swiss',aka:'Swiss Ball Pike Lift',cat:'Core',eq:'Własna masa',muscle:'Core, Barki',tip:'Stopy na piłce. Unoś biodra, nogi proste.',nsca:'3x8–12.',alt:'Pike na taśmach'},
+{name:'Prostowanie tułowia na piłce swiss',aka:'Swiss Ball Back Extension',cat:'Plecy',eq:'Własna masa',muscle:'Prostownicy, Pośladki',tip:'Biodra na piłce. Unoś tułów do linii ciała.',nsca:'3x12–15.',alt:'Prostowanie tułowia, GHD wyprost bioder'},
+{name:'Wyciskanie hantli na piłce swiss',aka:'Swiss Ball DB Chest Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core',tip:'Łopatki na piłce, biodra w mostku. Wyciskaj hantle.',nsca:'3x8–12.',alt:'Wyciskanie hantli leżąc',img:'assets/ex/bench.svg'},
+{name:'Rozpiętki hantlami na piłce swiss',aka:'Swiss Ball DB Fly',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (izolacja), Core',tip:'Lekkie ugięcie łokci. Biodra wysoko.',nsca:'3x10–15.',alt:'Rozpiętki hantlami'},
+{name:'Body saw na piłce swiss',aka:'Swiss Ball Body Saw',cat:'Core',eq:'Własna masa',muscle:'Core, Barki',tip:'Przedramiona na piłce. Przesuwaj ciało przód–tył jak piła.',nsca:'3x8–12.',alt:'Rollout z kółkiem, Deska'},
+{name:'Rollout stojąc na piłce swiss',aka:'Swiss Ball Standing Rollout',cat:'Core',eq:'Własna masa',muscle:'Core, Barki',tip:'Stojąc, tocz piłkę do przodu. Nie zapadaj lędźwi.',nsca:'3x6–10.',alt:'Rollout z kółkiem'},
+{name:'Mieszanie garnka na piłce swiss',aka:'Swiss Ball Stir The Pot, Stir the pot',cat:'Core',eq:'Własna masa',muscle:'Core, Barki',tip:'Deska na przedramionach na piłce. Kółka ramionami.',nsca:'3x6–8/kierunek.',alt:'Body saw na piłce swiss, Deska'},
+{name:'Martwy robak na piłce swiss',aka:'Swiss Ball Dead Bug',cat:'Core',eq:'Własna masa',muscle:'Core głęboki',tip:'Piłka między ręką a kolanem. Naprzemiennie prostuj.',nsca:'3x8–10/stronę.',alt:'Martwy robak'},
+{name:'Pallof ze ściskiem piłki swiss',aka:'Swiss Ball Groin Squeeze with Band Pallof Press',cat:'Core',eq:'Taśmy',muscle:'Core, Przywodziciele',tip:'Ściskaj piłkę kolanami i wyciskaj Pallofa.',nsca:'3x8–12/stronę.',alt:'Wyciskanie Pallofa, Ścisk przywodzicieli na piłce swiss'},
+{name:'Brzuszki na piłce swiss',aka:'Swiss Ball Full Crunches, Swiss Ball Crunches',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha',tip:'Plecy na piłce. Zwijaj klatkę, nie szyję.',nsca:'3x12–20.',alt:'Brzuszki klasyczne'},
+{name:'Jackknife na piłce swiss',aka:'Swiss Ball Jacknife, Swiss Ball Jackknife',cat:'Core',eq:'Własna masa',muscle:'Core, Biodra',tip:'Kolana do klatki, piłka pod piszczelami.',nsca:'3x8–12.',alt:'Pike na piłce swiss'},
+{name:'Równowaga 3 punkty na piłce swiss',aka:'Swiss Ball Three Point Balance, Swiss Ball Thee Point Balance',cat:'Core',eq:'Własna masa',muscle:'Core, Równowaga',tip:'Trzy punkty podparcia na piłce. Brzuch napięty.',nsca:'3x20–40 s.',alt:'Deska',load:'sec'},
+{name:'Równowaga 4 punkty na piłce swiss',aka:'Swiss Ball Four Point Balance',cat:'Core',eq:'Własna masa',muscle:'Core, Równowaga',tip:'Dłonie i kolana/stopy na piłce. Stabilizuj.',nsca:'3x20–40 s.',alt:'Równowaga 3 punkty na piłce swiss',load:'sec'},
+{name:'Równowaga w wysokim klęku na piłce swiss',aka:'Swiss Ball Tall Kneeling Balance',cat:'Core',eq:'Własna masa',muscle:'Core, Równowaga',tip:'Klęcz na piłce. Tułów pionowo.',nsca:'3x20–40 s.',alt:'Równowaga 4 punkty na piłce swiss',load:'sec'},
+{name:'RDL jednonóż z piłką (drop and catch)',aka:'Medicine Ball Single Leg RDL Drop and Catch',cat:'Nogi',eq:'Piłka lekarska',muscle:'Pośladki, Koordynacja, Hamowanie',tip:'RDL jednonóż. Upuść piłkę i złap, zachowaj równowagę.',nsca:'3x6–8/noga.',alt:'RDL jednonóż'},
+{name:'Wykrok boczny z piłką do wyciskania',aka:'Medicine Ball Lateral Lunge to Overhead Press',cat:'Nogi',eq:'Piłka lekarska',muscle:'Nogi, Barki, Core',tip:'Wykrok w bok i wyciskanie piłki nad głowę.',nsca:'3x8–10/stronę.',alt:'Wykrok boczny, Rzut piłką z przysiadu'},
+{name:'Wykrok boczny z piłką lekarską',aka:'Medicine Ball Lateral Lunge',cat:'Nogi',eq:'Piłka lekarska',muscle:'Przywodziciele, Czworogłowy',tip:'Piłka przy klatce. Szeroki krok w bok.',nsca:'3x8–12/stronę.',alt:'Wykrok boczny'},
+{name:'Przysiad z uginaniem biceps piłką',aka:'Medicine Ball Squat and Biceps Curl',cat:'Nogi',eq:'Piłka lekarska',muscle:'Nogi, Biceps',tip:'Przysiad, na górze uginanie piłki.',nsca:'3x10–12.',alt:'Przysiad Goblet'},
+{name:'Przysiad z podaniem piłki',aka:'Medicine Ball Squat and Pass',cat:'Cardio',eq:'Piłka lekarska',muscle:'Nogi, Core, Koordynacja',tip:'Przysiad i podanie do partnera lub o ścianę.',nsca:'3x10–15.',alt:'Rzut piłką o ścianę, Rzut piłką do partnera'},
+{name:'Wykrok naprzemienny z piłką nad głową',aka:'Med Ball Overhead Alternating Forward Lunge',cat:'Nogi',eq:'Piłka lekarska',muscle:'Nogi, Barki, Core',tip:'Piłka zablokowana nad głową. Wykroki naprzemiennie.',nsca:'3x8–12/noga.',alt:'Wykrok chodzony, Spacer kelnera'},
+{name:'Zarzut slam ball',aka:'Slam Bal Clean, Slam Ball Clean',cat:'Cardio',eq:'Piłka lekarska',muscle:'Całe ciało, Moc',tip:'Zarzut piłki slam jak clean, potem można slam.',nsca:'3–5x6–10.',alt:'Zarzut, Rzut piłką o podłogę'},
+{name:'Martwy ciąg slam ball',aka:'Slam Ball Deadlift',cat:'Nogi',eq:'Piłka lekarska',muscle:'Pośladki, Grzbiet',tip:'Hip hinge, piłka między stopami. Plecy proste.',nsca:'3x10–15.',alt:'Martwy ciąg kettlebell',img:'assets/ex/deadlift.svg'},
+{name:'Hamowanie płaszczyzna czołowa — wykrok boczny z piłką',aka:'Deceleration Frontal Plane - Med Ball Side Lunge, Deceleration Frontal Plane - Side Lunge Med Ball',cat:'Cardio',eq:'Piłka lekarska',muscle:'Hamowanie, Przywodziciele, Core',tip:'Szybki krok w bok, zatrzymaj piłkę przy biodrze. Kontrolowane hamowanie.',nsca:'3x6–8/stronę.',alt:'Wykrok boczny z piłką lekarską'},
+{name:'Hamowanie płaszczyzna poprzeczna — siekanie piłką',aka:'Deceleration Transverse Plane - Diagonal Med Ball, Deceleration Transverse Plane - Diagonal Med',cat:'Cardio',eq:'Piłka lekarska',muscle:'Hamowanie rotacyjne, Skośne',tip:'Krok i zatrzymanie rotacji z piłką po skosie.',nsca:'3x6–8/stronę.',alt:'Rzut piłką z rotacją tułowia'},
+{name:'Hamowanie płaszczyzna strzałkowa — wykrok w przód',aka:'Deceleration Sagittal Plane - Forward Lunge, Sagittal Plane - Med Ball Forward Step',cat:'Cardio',eq:'Piłka lekarska',muscle:'Hamowanie, Czworogłowy',tip:'Krok w przód z piłką, zatrzymaj pęd. Kolano nad palcami.',nsca:'3x6–8/stronę.',alt:'Wykrok chodzony, Rzut piłką z wykroku'},
+{name:'Pompki z rękami na piłce',aka:'Med Ball Arms Elevated Push Ups',cat:'Klatka piersiowa',eq:'Piłka lekarska',muscle:'Klatka, Core',tip:'Dłonie na piłce. Głębszy ROM, ciało sztywne.',nsca:'3x8–12.',alt:'Pompki na piłce swiss, Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Pompki z przetaczaniem piłki bokiem',aka:'Med Ball Side to Side Roll Push Ups',cat:'Klatka piersiowa',eq:'Piłka lekarska',muscle:'Klatka (jednostronnie), Core',tip:'Jedna ręka na piłce. Pompka i przetocz piłkę na drugą dłoń.',nsca:'3x6–10/stronę.',alt:'Pompki łucznicze',img:'assets/ex/bench.svg'},
+{name:'Pompki jednorącz na piłce',aka:'Single Arm Med Ball Elevated Push Ups',cat:'Klatka piersiowa',eq:'Piłka lekarska',muscle:'Klatka, Core antyrotacyjny',tip:'Jedna dłoń na piłce, druga na podłodze.',nsca:'3x6–8/stronę.',alt:'Pompki z przetaczaniem piłki bokiem',img:'assets/ex/bench.svg'},
+{name:'Pompki na dwóch piłkach lekarskich',aka:'Dual Medicine Ball Push Ups',cat:'Klatka piersiowa',eq:'Piłka lekarska',muscle:'Klatka, Stabilizacja',tip:'Każda dłoń na piłce. Kontroluj chwianie.',nsca:'3x6–10.',alt:'Pompki z rękami na piłce',img:'assets/ex/bench.svg'},
+{name:'Skręty rosyjskie z piłką nad klatką',aka:'Med Ball Russian Twist with Chest Overhead',cat:'Core',eq:'Piłka lekarska',muscle:'Skośne, Barki',tip:'Piłka przy klatce lub nad głową. Rotuj barki, biodra stabilne.',nsca:'3x12–16/stronę.',alt:'Skręty rosyjskie'},
+{name:'Brzuszki z tapnięciem palców piłką',aka:'Med Ball Toe Tap Crunches, Medicine Ball Crunches',cat:'Core',eq:'Piłka lekarska',muscle:'Prosty brzucha',tip:'Piłka w rękach. Brzuszek, tapnij palce stóp.',nsca:'3x12–20.',alt:'Brzuszki klasyczne, V-upy'},
+{name:'Siekanie piłką lekarską',aka:'Medicine Ball Chop, Med Ball Diagonal Chop and Lift',cat:'Core',eq:'Piłka lekarska',muscle:'Skośne, Core rotacyjny',tip:'Ruch woodchop z piłką: góra–dół po skosie i odwrotnie.',nsca:'3x8–12/stronę.',alt:'Woodchop wyciąg, Rzut piłką z rotacją tułowia'},
+{name:'Rzut z klatki z wyprostem bioder',aka:'Standing Med Ball Chest Pass with Hip Extension',cat:'Cardio',eq:'Piłka lekarska',muscle:'Klatka, Pośladki, Moc',tip:'Chest pass + wyprost bioder jak przy hip hinge / triple extension.',nsca:'3x8–12.',alt:'Rzut piłką z klatki'},
+{name:'Rzut z klatki w wysokim klęku z wyprostem bioder',aka:'Tall Kneeling Med Ball Chest Pass with Hip Extension',cat:'Cardio',eq:'Piłka lekarska',muscle:'Klatka, Core, Pośladki',tip:'Wysoki klęk. Chest pass z otwarciem bioder.',nsca:'3x8–12.',alt:'Rzut z klatki z wyprostem bioder'},
+{name:'Rzut z klatki w wysokim klęku',aka:'Tall Kneeling Med Ball Chest Pass',cat:'Cardio',eq:'Piłka lekarska',muscle:'Klatka, Core',tip:'Wysoki klęk, pośladki napięte. Chest pass o ścianę.',nsca:'3x10–12.',alt:'Rzut piłką z klatki'},
+{name:'Rzut z klatki klęcząc z wyprostem bioder',aka:'Kneeling Med Ball Chest Pass with Hip Extension',cat:'Cardio',eq:'Piłka lekarska',muscle:'Klatka, Pośladki, Core',tip:'Klęk. Wybicie bioder i chest pass.',nsca:'3x8–12.',alt:'Rzut z klatki w wysokim klęku'},
+{name:'Rzut biodrowy w bok klęcząc',aka:'Kneeling Med Ball Side Hip Throw',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne, Biodra, Moc',tip:'Klęcząc bokiem do ściany. Rzut z biodra.',nsca:'3x6–10/stronę.',alt:'Rzut piłką w bok'},
+{name:'Slam z hamowaniem',aka:'Med Ball Decelerate Slam',cat:'Cardio',eq:'Piłka lekarska',muscle:'Core, Hamowanie, Cardio',tip:'Slam, potem kontrolowane przyjęcie odbicia / zatrzymanie.',nsca:'3x8–10.',alt:'Rzut piłką o podłogę'},
+{name:'Rzut biodrowy w bok stojąc',aka:'Standing Med Ball Side Hip Throw, Standing Med Ball Side Hip Trow',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne, Biodra, Moc',tip:'Rzut z biodra w bok, stojąc. Nogi pracują z rotacją.',nsca:'3x8–12/stronę.',alt:'Rzut piłką w bok, Rzut biodrowy w bok klęcząc'},
+{name:'Slam z potrójnym wyprostem',aka:'Med Ball Slam Triple Extension',cat:'Cardio',eq:'Piłka lekarska',muscle:'Całe ciało, Moc',tip:'Kostka–kolano–biodro wyprost, potem slam.',nsca:'3–5x6–10.',alt:'Rzut piłką o podłogę'},
+{name:'Skok w dal z podaniem z klatki',aka:'Med Ball Broad Jump to Chest Pass',cat:'Cardio',eq:'Piłka lekarska',muscle:'Moc pozioma, Klatka',tip:'Broad jump i od razu chest pass.',nsca:'4x4–6.',alt:'Skok w dal z miejsca, Rzut piłką z klatki'},
+{name:'Rzut znad głowy (moc)',aka:'Med Ball Overhead Toss (Power Throw)',cat:'Cardio',eq:'Piłka lekarska',muscle:'Prostownicy, Barki, Moc',tip:'Wybuchowy rzut znad głowy do przodu / w górę. Dużo miejsca.',nsca:'4x4–6.',alt:'Rzut piłką znad głowy'},
+{name:'Slam rotacyjny',aka:'Rotational Med Ball Slam',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne, Core, Cardio',tip:'Slam z rotacją tułowia w podłogę obok stopy.',nsca:'3x6–10/stronę.',alt:'Rzut piłką rotacyjny, Rzut piłką o podłogę'},
+{name:'Wykrok z rotacją piłki',aka:'Med Ball Lunge with Rotation',cat:'Core',eq:'Piłka lekarska',muscle:'Nogi, Skośne',tip:'Wykrok i rotuj piłkę nad przednim udem.',nsca:'3x8–10/stronę.',alt:'Wykrok chodzony, Rotacja z taśmą w wykroku'},
+{name:'Wymiana piłki jednonóż nad głową',aka:'Med Ball Single Leg Exchange with Overhead',cat:'Core',eq:'Piłka lekarska',muscle:'Równowaga, Barki, Core',tip:'Stojąc na jednej nodze, przekazuj piłkę nad głową / wokół.',nsca:'3x6–8/noga.',alt:'Rzut piłką jednorącz'},
+{name:'Wykrok boczny z siekaniem piłki',aka:'Med Ball Lateral Lunge with Diagonal Chop',cat:'Core',eq:'Piłka lekarska',muscle:'Nogi, Skośne',tip:'Wykrok w bok + chop po skosie.',nsca:'3x8–10/stronę.',alt:'Siekanie piłką lekarską, Wykrok boczny z piłką lekarską'},
+{name:'Rotacja tułowia z piłką',aka:'Med Ball Torso Rotation',cat:'Core',eq:'Piłka lekarska',muscle:'Skośne',tip:'Piłka przed klatką. Rotuj barki, biodra mniej.',nsca:'3x10–12/stronę.',alt:'Skręty rosyjskie'},
+{name:'Przysiad kettlebell w racku jednorącz',aka:'Single Arm Front Rack Kettlebell Squat, Single Arm Front Rack KB Squat',cat:'Nogi',eq:'Kettlebell',muscle:'Czworogłowy, Core, Barki',tip:'KB w racku. Łokieć w górze, przysiad. Nie przechylaj się.',nsca:'3x8–12/stronę.',alt:'Przysiad Goblet, Przysiad przedni',img:'assets/ex/squat.svg'},
+{name:'Swing kettlebell oburącz dwa dzwonki',aka:'Dual KB Swing',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Cardio, Moc',tip:'Dwa KB. Napęd biodrami, dzwonki między nogami.',nsca:'3–5x12–20.',alt:'Swing kettlebell'},
+{name:'Zarzut kettlebell dwa dzwonki',aka:'Dual KB Clean',cat:'Cardio',eq:'Kettlebell',muscle:'Biodra, Barki, Core',tip:'Dwa KB do racku. Dzwonki blisko ciała.',nsca:'4x5–8.',alt:'Zarzut kettlebell'},
+{name:'Przysiad curtsy dwa KB',aka:'Dual KB Curtsy Squat - Drop Lunge, Dual KB Curtsy Squat',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Czworogłowy',tip:'KB w racku. Noga w tył skosem (curtsy).',nsca:'3x8–12/stronę.',alt:'Przysiad Goblet, Wykrok wsteczny'},
+{name:'Przysiad curtsy goblet KB',aka:'KB Goblet Curtsy Squat',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Czworogłowy',tip:'Goblet. Curtsy, kolano nad palcami.',nsca:'3x8–12/stronę.',alt:'Przysiad curtsy dwa KB'},
+{name:'Wykroki wsteczne naprzemienne dwa KB w racku',aka:'Dual KB Front Rack Alternating Reverse',cat:'Nogi',eq:'Kettlebell',muscle:'Nogi, Core, Barki',tip:'Dwa KB w racku. Naprzemienne wykroki w tył.',nsca:'3x8–12/noga.',alt:'Wykrok wsteczny'},
+{name:'Przysiad bułgarski dwa KB w racku',aka:'Dual KB Front Rack Split Squat, RFE Dual KB Split Squat',cat:'Nogi',eq:'Kettlebell',muscle:'Czworogłowy, Pośladki, Core',tip:'Dwa KB w racku. Split squat, opcjonalnie tylna stopa na ławce.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski',img:'assets/ex/squat.svg'},
+{name:'Przysiad dwa KB w racku',aka:'Dual KB Front Rack Squat',cat:'Nogi',eq:'Kettlebell',muscle:'Czworogłowy, Core',tip:'Dwa KB w racku. Łokcie w górze, przysiad.',nsca:'3x6–10.',alt:'Przysiad przedni, Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Przysiad bułgarski walizkowy KB',aka:'KB Suitcase Split Squat',cat:'Nogi',eq:'Kettlebell',muscle:'Nogi, Core antyboczny',tip:'KB w jednej ręce wzdłuż ciała. Split squat.',nsca:'3x8–12/stronę.',alt:'Przysiad bułgarski, Spacer walizkowy'},
+{name:'Wykroki w przód goblet KB',aka:'KB Goblet Alternating Forward Lunges',cat:'Nogi',eq:'Kettlebell',muscle:'Czworogłowy, Pośladki',tip:'Goblet. Naprzemienne wykroki w przód.',nsca:'3x8–12/noga.',alt:'Wykrok chodzony'},
+{name:'Wykroki wsteczne goblet KB',aka:'KB Goblet Alternating Reverse Lunges',cat:'Nogi',eq:'Kettlebell',muscle:'Czworogłowy, Pośladki',tip:'Goblet. Naprzemienne wykroki w tył.',nsca:'3x8–12/noga.',alt:'Wykrok wsteczny'},
+{name:'Wykrok wsteczny jednonóż goblet KB',aka:'KB Goblet Single Leg Reverse Lunges',cat:'Nogi',eq:'Kettlebell',muscle:'Nogi (jednostronnie)',tip:'Seria na jedną nogę, goblet. Potem zmiana.',nsca:'3x8–12/noga.',alt:'Wykroki wsteczne goblet KB'},
+{name:'Wykroki z przysiadu goblet KB',aka:'KB Goblet Squat Lunges',cat:'Nogi',eq:'Kettlebell',muscle:'Czworogłowy, Pośladki, Cardio',tip:'Przysiad goblet i od razu wykrok — kompleks.',nsca:'3x8–10/stronę.',alt:'Przysiad Goblet, Wykroki w przód goblet KB'},
+{name:'Przysiad z wyskokiem KB',aka:'KB Squat Jump',cat:'Cardio',eq:'Kettlebell',muscle:'Nogi, Moc',tip:'Goblet lub rack. Wybicie, miękkie lądowanie.',nsca:'3x6–10.',alt:'Przysiad z wyskokiem'},
+{name:'RDL wąsko KB',aka:'KB RDL Narrow Stance',cat:'Nogi',eq:'Kettlebell',muscle:'Dwugłowy, Pośladki',tip:'Wąskie stopy. Hip hinge, KB blisko nóg.',nsca:'3x10–12.',alt:'Martwy ciąg kettlebell, Martwy ciąg RDL',img:'assets/ex/deadlift.svg'},
+{name:'RDL dwa KB',aka:'Dual KB RDL',cat:'Nogi',eq:'Kettlebell',muscle:'Dwugłowy, Pośladki',tip:'KB po bokach. Biodra w tył, plecy płasko.',nsca:'3x8–12.',alt:'RDL wąsko KB',img:'assets/ex/deadlift.svg'},
+{name:'RDL szeroko KB',aka:'KB RDL Wide Stance',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Przywodziciele, Dwugłowy',tip:'Szerokie stopy. Hip hinge.',nsca:'3x8–12.',alt:'RDL wąsko KB, Martwy ciąg sumo',img:'assets/ex/deadlift.svg'},
+{name:'Swing amerykański KB',aka:'KB American Swing, American kettlebell swing',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Barki, Cardio',tip:'Swing aż KB nad głowę. Ramiona przy uszach na górze.',nsca:'3–5x10–15.',alt:'Swing kettlebell'},
+{name:'Swing high pull KB',aka:'KB Swing High Pull, Kettlebell swing high pull',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Trapez, Moc',tip:'Swing i na górze ciąg do wysokości barków, łokcie wysoko.',nsca:'3x10–15.',alt:'Swing kettlebell, Ciąg rwaniowy'},
+{name:'RDL jednonóż do unoszenia kolana',aka:'Single Leg RDL to Knee Drive',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Koordynacja, Zginacze',tip:'RDL jednonóż i wróć z kolanem do klatki.',nsca:'3x8–10/noga.',alt:'RDL jednonóż'},
+{name:'Przekładanie KB jednonóż',aka:'Single Leg KB Switch, Single Leg KB Transfer, KB Transfer',cat:'Core',eq:'Kettlebell',muscle:'Równowaga, Core, Pośladki',tip:'Stojąc na jednej nodze przekazuj KB z ręki do ręki.',nsca:'3x8–12/noga.',alt:'Wymiana piłki jednonóż nad głową'},
+{name:'Swing KB jednorącz',aka:'Single Arm KB Swing',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Core antyrotacyjny',tip:'Jedna ręka. Nie skręcaj barków. Napęd biodrami.',nsca:'3x10–15/stronę.',alt:'Swing kettlebell'},
+{name:'Swing do wykroku KB dnem do góry',aka:'Swing To Reverse Lunge KB Bottom Up',cat:'Cardio',eq:'Kettlebell',muscle:'Całe ciało, Stabilizacja nadgarstka',tip:'Swing, złap bottom-up i wykrok w tył.',nsca:'3x6–8/stronę.',alt:'Swing KB jednorącz, Wykrok wsteczny'},
+{name:'Martwy ciąg dwa KB',aka:'Dual KB Deadlift',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Grzbiet',tip:'KB na zewnątrz stóp. Hip hinge / martwy.',nsca:'3x8–12.',alt:'Martwy ciąg kettlebell',img:'assets/ex/deadlift.svg'},
+{name:'RDL do wiosłowania dwa KB',aka:'Dual KB RDL To Bent Over Row',cat:'Plecy',eq:'Kettlebell',muscle:'Łańcuch tylny, Plecy',tip:'RDL, na dole wiosłowanie, wyprost bioder.',nsca:'3x8–10.',alt:'RDL dwa KB, Wiosłowanie kettlebell'},
+{name:'Kompleks RDL dwa KB + RDL jednonóż',aka:'Dual KB RDL Single Leg RDL',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Równowaga',tip:'RDL obunóż, potem RDL jednonóż tymi samymi KB.',nsca:'3x6–8.',alt:'RDL dwa KB, RDL jednonóż'},
+{name:'Martwy ciąg w rozkroku dwa KB',aka:'Split Stance Dual KB Deadlift',cat:'Nogi',eq:'Kettlebell',muscle:'Pośladki, Dwugłowy (jednostronnie)',tip:'Rozkrok. KB obok stóp. Hip hinge.',nsca:'3x8–12/stronę.',alt:'Martwy ciąg dwa KB',img:'assets/ex/deadlift.svg'},
+{name:'Wyciskanie KB klęcząc jednorącz',aka:'Half Kneeling Single Arm KB Overhead Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Core',tip:'Klęk jednonóż. Wyciskaj z racku. Biodra zablokowane.',nsca:'3x6–10/stronę.',alt:'Wyciskanie kettlebell',img:'assets/ex/ohp.svg'},
+{name:'Unoszenie barków KB',aka:'KB Shrugs',cat:'Plecy',eq:'Kettlebell',muscle:'Trapez górny',tip:'KB wzdłuż ciała. Unieś barki prosto w górę.',nsca:'3x12–15.',alt:'Unoszenie barków hantlami'},
+{name:'Pół Turkish get-up',aka:'1/2 TGU, Half Turkish Get Up, Half TGU',cat:'Core',eq:'Kettlebell',muscle:'Core, Barki, Stabilizacja',tip:'TGU do pozycji łokcia lub biodra, powrót. Nie wstawaj.',nsca:'3x3–5/stronę.',alt:'Turkish get-up'},
+{name:'Wyciskanie bent press KB',aka:'KB Bent Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Skośne, Mobilność',tip:'Wkręć się pod KB, wypychając dzwonek w górę. Zaawansowane.',nsca:'3x3–5/stronę.',alt:'Wiatrak kettlebell, Wyciskanie kettlebell'},
+{name:'Spacer z KB nad głową jednorącz',aka:'Single Arm KB Overhead Carry',cat:'Core',eq:'Kettlebell',muscle:'Barki, Core, Stabilizacja',tip:'KB zablokowane nad głową. Krótkie kroki.',nsca:'3x20–30 m/stronę.',alt:'Spacer kelnera, Spacer z ciężarem nad głową'},
+{name:'Noszenie mixed rack + overhead KB',aka:'KB Mixed Front Rack Overhead Carry, KB Single Arm Front Rack Single Arm Overhead',cat:'Core',eq:'Kettlebell',muscle:'Core, Barki, Nierównowaga',tip:'Jeden KB w racku, drugi nad głową. Tułów pionowo.',nsca:'3x15–25 m/stronę.',alt:'Spacer z KB nad głową jednorącz'},
+{name:'Noszenie dwa KB w racku',aka:'Dual KB Front Rack Carry',cat:'Core',eq:'Kettlebell',muscle:'Core, Barki, Nogi',tip:'Dwa KB w racku. Łokcie wysoko, krótkie kroki.',nsca:'3x20–40 m.',alt:'Spacer farmera'},
+{name:'Noszenie mixed rack + walizka KB',aka:'KB Mixed Front Rack Suitcase Carry',cat:'Core',eq:'Kettlebell',muscle:'Core antyboczny',tip:'Jeden KB w racku, drugi w suitcase.',nsca:'3x20–30 m/stronę.',alt:'Spacer walizkowy, Noszenie dwa KB w racku'},
+{name:'Noszenie walizka + overhead KB',aka:'Single Arm Suitcase Carry Single Arm Overhead',cat:'Core',eq:'Kettlebell',muscle:'Core, Barki',tip:'Jedna ręka suitcase, druga overhead.',nsca:'3x15–25 m/stronę.',alt:'Noszenie mixed rack + overhead KB'},
+{name:'Halo KB w wysokim klęku',aka:'Tall Kneeling KB Halo',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Core, Rotatory',tip:'Wysoki klęk. Okrąż KB wokół głowy.',nsca:'3x6–8/kierunek.',alt:'Okrążenie kettlebell (halo)'},
+{name:'Przeciąganie KB w desce',aka:'KB Plank Pull Through',cat:'Core',eq:'Kettlebell',muscle:'Core antyrotacyjny',tip:'Deska. Przeciągnij KB spod klatki na drugą stronę.',nsca:'3x8–12/stronę.',alt:'Deska, Wiosłowanie w desce bocznej z taśmą'},
+{name:'Thruster KB jednorącz',aka:'Single Arm KB Thruster',cat:'Cardio',eq:'Kettlebell',muscle:'Nogi, Barki, Core',tip:'Przysiad w racku jednorącz i wyciskanie.',nsca:'3x8–12/stronę.',alt:'Wyciskanie z przysiadu kettlebell'},
+{name:'Zarzut i przysiad dwa KB',aka:'Dual KB Clean Squat',cat:'Cardio',eq:'Kettlebell',muscle:'Całe ciało',tip:'Clean dwóch KB i przysiad w racku.',nsca:'4x5–8.',alt:'Zarzut kettlebell dwa dzwonki, Przysiad dwa KB w racku'},
+{name:'Zarzut i przysiad KB jednorącz',aka:'Single Arm KB Clean Squat',cat:'Cardio',eq:'Kettlebell',muscle:'Nogi, Core, Biodra',tip:'Clean jednorącz i przysiad w racku.',nsca:'3x6–10/stronę.',alt:'Zarzut kettlebell, Przysiad kettlebell w racku jednorącz'},
+{name:'Zarzut i wyciskanie z wybiciem dwa KB',aka:'Dual KB Clean Push Press',cat:'Barki',eq:'Kettlebell',muscle:'Biodra, Barki, Moc',tip:'Clean, potem push press obu KB.',nsca:'4x4–6.',alt:'Zarzut kettlebell dwa dzwonki, Wyciskanie z wybiciem'},
+{name:'Rwanie siłowe z hang KB',aka:'KB Hang Power Snatch, Hang power snatch kettlebell',cat:'Cardio',eq:'Kettlebell',muscle:'Moc, Barki, Biodra',tip:'Hang, wybicie bioder, KB nad głowę.',nsca:'4x5/stronę.',alt:'Rwanie kettlebell'},
+{name:'Zarzut i wyciskanie KB jednorącz',aka:'Single Arm KB Clean and Press',cat:'Barki',eq:'Kettlebell',muscle:'Całe ciało, Barki',tip:'Clean do racku i wyciskanie.',nsca:'3x5–8/stronę.',alt:'Zarzut kettlebell, Wyciskanie kettlebell'},
+{name:'Zarzut siłowy KB jednorącz',aka:'Single Arm KB Power Clean',cat:'Cardio',eq:'Kettlebell',muscle:'Biodra, Trapez, Moc',tip:'Power clean — przyjęcie wyżej, bez pełnego przysiadu.',nsca:'4x5/stronę.',alt:'Zarzut kettlebell'},
+{name:'Wyciskanie z wybiciem KB jednorącz',aka:'Single Arm KB Push Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Moc',tip:'Dip i wybicie jedną ręką.',nsca:'3x5–8/stronę.',alt:'Wyciskanie z wybiciem, Wyciskanie kettlebell'},
+{name:'Wiosłowanie w rozkroku KB jednorącz',aka:'Split Stance Single Arm KB Row, Split Stance KB Bent Over Row',cat:'Plecy',eq:'Kettlebell',muscle:'Plecy, Core',tip:'Rozkrok. Wiosłuj do biodra.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie kettlebell'},
+{name:'Wyciskanie KB dnem do góry',aka:'Single Arm KB Bottom Up Overhead Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Stabilizacja nadgarstka, Core',tip:'Dno KB do góry. Ściskaj uchwyt, wyciskaj wolno.',nsca:'3x5–8/stronę.',alt:'Wyciskanie kettlebell'},
+{name:'Wyciskanie KB dnem do góry klęcząc',aka:'Half Kneeling KB Bottom Up Overhead Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Core, Nadgarstek',tip:'Klęk jednonóż, bottom-up press.',nsca:'3x5–8/stronę.',alt:'Wyciskanie KB dnem do góry'},
+{name:'Wyciskanie z podłogi dwa KB',aka:'Dual KB Floor Press',cat:'Klatka piersiowa',eq:'Kettlebell',muscle:'Klatka, Triceps',tip:'Leżąc. Łokcie o podłogę, wyciskaj dwa KB.',nsca:'3x8–12.',alt:'Wyciskanie z podłogi, Wyciskanie hantli na podłodze',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie z podłogi dwa KB w mostku',aka:'Glute Bridge Dual KB Floor Press',cat:'Klatka piersiowa',eq:'Kettlebell',muscle:'Klatka, Pośladki, Core',tip:'Mostek + floor press dwóch KB.',nsca:'3x8–12.',alt:'Wyciskanie z podłogi dwa KB, Mostek biodrowy'},
+{name:'Wyciskanie z podłogi KB jednorącz w mostku',aka:'Glute Bridge Single Arm KB Press',cat:'Klatka piersiowa',eq:'Kettlebell',muscle:'Klatka, Pośladki, Core antyrotacyjny',tip:'Mostek. Wyciskaj jeden KB, biodra równo.',nsca:'3x8–12/stronę.',alt:'Wyciskanie z podłogi dwa KB w mostku'},
+{name:'Wyciskanie z podłogi KB naprzemiennie',aka:'KB Alternating Floor Press',cat:'Klatka piersiowa',eq:'Kettlebell',muscle:'Klatka, Core',tip:'Naprzemienne wyciskanie KB z podłogi.',nsca:'3x8–12/stronę.',alt:'Wyciskanie z podłogi dwa KB'},
+{name:'Wyciskanie z podłogi KB jednorącz',aka:'KB Single Arm Floor Press, Single Arm KB Floor Press',cat:'Klatka piersiowa',eq:'Kettlebell',muscle:'Klatka, Triceps, Core',tip:'Jeden KB. Druga ręka może pomagać w starcie.',nsca:'3x8–12/stronę.',alt:'Wyciskanie z podłogi dwa KB'},
+{name:'Wiosłowanie gorilla KB',aka:'KB Gorilla Row',cat:'Plecy',eq:'Kettlebell',muscle:'Plecy, Core, Biceps',tip:'Szeroki rozkrok, dwa KB na podłodze. Naprzemienne wiosłowanie.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie kettlebell, Wiosłowanie Meadowsa'},
+{name:'Wyciskanie z podłogi hantlem w mostku jednonóż',aka:'Single Leg Glute Bridge DB Floor Press, Single Leg Glute Bridge DB Floor Press, Single Leg Glute Bridge Single Arm DB Floor Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Pośladki, Core',tip:'Mostek jednonóż + floor press hantlem.',nsca:'3x8–10/stronę.',alt:'Wyciskanie z podłogi KB jednorącz w mostku'},
+{name:'Wyciskanie dwa KB nad głowę w wysokim klęku',aka:'Tall Kneeling Dual KB Overhead Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Core',tip:'Wysoki klęk. Wyciskaj dwa KB. Pośladki napięte.',nsca:'3x6–10.',alt:'Wyciskanie kettlebell',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie naprzemienne KB w wysokim klęku',aka:'Tall Kneeling Alternating KB Overhead Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Core antyrotacyjny',tip:'Wysoki klęk. Naprzemienne wyciskanie.',nsca:'3x8–12/stronę.',alt:'Wyciskanie dwa KB nad głowę w wysokim klęku'},
+{name:'Wyciskanie KB jednorącz w wysokim klęku',aka:'Tall Kneeling Single Arm KB Overhead Press',cat:'Barki',eq:'Kettlebell',muscle:'Barki, Core',tip:'Wysoki klęk. Jedna ręka. Nie przechylaj się.',nsca:'3x6–10/stronę.',alt:'Wyciskanie KB klęcząc jednorącz'},
+{name:'Przysiad goblet na skrzynię',aka:'DB Goblet Box Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Goblet. Usiądź na skrzynię, pauza, wstań.',nsca:'3x8–12.',alt:'Przysiad Goblet, Przysiad na skrzynię',img:'assets/ex/squat.svg'},
+{name:'Przysiad goblet na podwyższeniu pięt',aka:'Heel Elevated DB Goblet Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy',tip:'Pięty na klinie, hantel przy klatce.',nsca:'3x10–15.',alt:'Przysiad Goblet, Przysiad powietrzny na podwyższeniu pięt z mini band',img:'assets/ex/squat.svg'},
+{name:'Przysiad w wykroku hantlami',aka:'DB Split Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Rozkrok w miejscu. Tylna noga nie na ławce.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski, Wykrok wsteczny',img:'assets/ex/squat.svg'},
+{name:'Przysiad bułgarski hantle — pośladki',aka:'RFE DB Split Squat (Glute Focus) - Bulgarian',cat:'Nogi',eq:'Hantle',muscle:'Pośladki (RFE)',tip:'Tułów pochylony, krok dłuższy. Ciężar na przedniej pięcie.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski',img:'assets/ex/squat.svg'},
+{name:'Przysiad bułgarski hantle — czworogłowy',aka:'RFE DB Split Squat (Quads Focus) - Bulgarian',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy (RFE)',tip:'Tułów pionowo, krok krótszy. Kolano do przodu.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski',img:'assets/ex/squat.svg'},
+{name:'RDL jednonóż RFE hantlem',aka:'RFE Single Leg DB RDL',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Dwugłowy',tip:'Tylna stopa na ławce. Hip hinge na przedniej.',nsca:'3x8–12/noga.',alt:'RDL jednonóż',img:'assets/ex/deadlift.svg'},
+{name:'RDL jednonóż hantlem jedną ręką',aka:'Single Leg Single Arm DB RDL',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Core',tip:'Hantel w przeciwnej ręce do nogi podporowej.',nsca:'3x8–12/noga.',alt:'RDL jednonóż'},
+{name:'RDL jednonóż RFE hantlem jedną ręką',aka:'RFE Single Leg Single Arm DB RDL',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Core',tip:'RFE + hantel w jednej ręce.',nsca:'3x8–12/noga.',alt:'RDL jednonóż RFE hantlem'},
+{name:'RDL jednonóż RFE hantlem w poprzek',aka:'RFE Single Leg Single Arm Cross Body DB RDL',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Skośne',tip:'Hantel prowadzi w poprzek ciała przy hinge.',nsca:'3x8–10/noga.',alt:'RDL jednonóż RFE hantlem jedną ręką'},
+{name:'Mostek hantlem na podwyższeniu stóp',aka:'Feet Elevated DB Glute Bridge',cat:'Pośladki',eq:'Hantle',muscle:'Pośladki, Dwugłowy',tip:'Stopy na ławce, hantel na biodrach.',nsca:'3x10–15.',alt:'Mostek biodrowy, Wypychanie bioder ze stopą na podwyższeniu'},
+{name:'Mostek hantlem jednonóż',aka:'Single Leg DB Glute Bridge',cat:'Pośladki',eq:'Hantle',muscle:'Pośladki (jednostronnie)',tip:'Hantel na biodrze nogi pracującej.',nsca:'3x10–12/noga.',alt:'Wypychanie bioder jednonóż, Mostek biodrowy'},
+{name:'Przysiad hantlem w racku jednorącz',aka:'Single Arm DB Front Squat, DB Front Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Core',tip:'Hantel w racku. Nie przechylaj się.',nsca:'3x8–12/stronę.',alt:'Przysiad Goblet, Przysiad kettlebell w racku jednorącz',img:'assets/ex/squat.svg'},
+{name:'Wykrok boczny hantlem w racku jednorącz',aka:'Single Arm DB Front Rack Lateral Lunge',cat:'Nogi',eq:'Hantle',muscle:'Przywodziciele, Core',tip:'Hantel w racku. Szeroki krok w bok.',nsca:'3x8–12/stronę.',alt:'Wykrok boczny, Wykrok boczny z piłką lekarską'},
+{name:'Przysiad kozacki hantlami naprzemiennie',aka:'Alternating DB Cossack Squat',cat:'Nogi',eq:'Hantle',muscle:'Przywodziciele, Czworogłowy',tip:'Hantle przy barkach. Naprzemienny kozak.',nsca:'3x6–10/stronę.',alt:'Przysiad kozacki',img:'assets/ex/squat.svg'},
+{name:'Wykrok boczny do wyciskania hantlem',aka:'Single Arm DB Lateral Lunge to Overhead Press',cat:'Nogi',eq:'Hantle',muscle:'Nogi, Barki, Core',tip:'Wykrok w bok i wyciskanie hantla.',nsca:'3x8–10/stronę.',alt:'Wykrok boczny z piłką do wyciskania'},
+{name:'Wykrok boczny palce w górę hantle',aka:'DB Lateral Lunge Toes Up',cat:'Nogi',eq:'Hantle',muscle:'Przywodziciele, Mobilność kostki',tip:'Wolna stopa: palce w górę. Zejście w bok.',nsca:'3x8–12/stronę.',alt:'Wykrok boczny'},
+{name:'Martwy ciąg dwa hantle',aka:'Dual DB Deadlift',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Grzbiet',tip:'Hantle na zewnątrz stóp. Hip hinge.',nsca:'3x8–12.',alt:'Martwy ciąg dwa KB, Martwy ciąg klasyczny',img:'assets/ex/deadlift.svg'},
+{name:'Martwy ciąg hantlem jednorącz',aka:'Single Arm DB Deadlift',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Core antyboczny',tip:'Hantel w jednej ręce. Tułów równo.',nsca:'3x8–12/stronę.',alt:'Martwy ciąg dwa hantle',img:'assets/ex/deadlift.svg'},
+{name:'Martwy ciąg hantlami w rozkroku',aka:'Split (Staggered) Stance DB Deadlift, Split Staggered Stance DB Deadlift',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Dwugłowy',tip:'Rozkrok. Hip hinge, hantle obok stóp.',nsca:'3x8–12/stronę.',alt:'Martwy ciąg w rozkroku dwa KB'},
+{name:'Wykrok wsteczny z wysokim kolanem hantle',aka:'DB Reverse Lunge with High Knee, DB Alternating Reverse Lunge with High Knee',cat:'Nogi',eq:'Hantle',muscle:'Nogi, Koordynacja, Zginacze',tip:'Wykrok w tył i kolano do klatki przy powrocie.',nsca:'3x8–12/noga.',alt:'Wykrok wsteczny'},
+{name:'Przysiad z wyskokiem hantle (release)',aka:'DB Release Squat Jump',cat:'Cardio',eq:'Hantle',muscle:'Nogi, Moc',tip:'Wybicie — puść hantle na górze (bezpieczna strefa).',nsca:'4x4–6.',alt:'Przysiad z wyskokiem KB'},
+{name:'Przysiad z wyskokiem hantle',aka:'DB Squat Jump',cat:'Cardio',eq:'Hantle',muscle:'Nogi, Moc',tip:'Goblet lub hantle wzdłuż ciała. Ciche lądowanie.',nsca:'3x6–10.',alt:'Przysiad z wyskokiem, Przysiad z wyskokiem KB'},
+{name:'Depth jump z puszczeniem hantli',aka:'Depth Jump DB Release',cat:'Cardio',eq:'Hantle',muscle:'Moc, Reaktywność',tip:'Zeskok ze skrzyni, wybicie, puść hantle.',nsca:'4x4–6.',alt:'Przysiad z wyskokiem hantle (release)'},
+{name:'Wybicie z izometrii w rozkroku hantle',aka:'Isometric Split Stance DB Release Jump, Isometric Split Stance DB Release',cat:'Cardio',eq:'Hantle',muscle:'Moc, Hamowanie',tip:'Pauza w rozkroku, wybicie, opcjonalnie puść hantle.',nsca:'4x4–6/stronę.',alt:'Wypady z wyskokiem'},
+{name:'Wspięcia na palce hantlami',aka:'DB Standing Calf Raises',cat:'Nogi',eq:'Hantle',muscle:'Łydki',tip:'Hantle wzdłuż ciała. Pełny ROM, pauza na górze.',nsca:'4x12–20.',alt:'Wspięcia na palce stojąc'},
+{name:'Wspięcia na palce jednonóż hantlem',aka:'DB Single Leg Calf Raises',cat:'Nogi',eq:'Hantle',muscle:'Łydki (jednostronnie)',tip:'Hantel po stronie nogi pracującej.',nsca:'3x12–15/noga.',alt:'Wspięcia na palce jednonóż, Wspięcia na palce hantlami'},
+{name:'Przysiad na skrzynię jednonóż hantlem w racku',aka:'Single Arm DB Front Rack Single Leg Box Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Równowaga, Core',tip:'Hantel w racku. Usiądź na skrzynię na jednej nodze.',nsca:'3x6–8/noga.',alt:'Przysiad jednonóż (pistol)',img:'assets/ex/squat.svg'},
+{name:'Przysiad na skrzynię jednonóż dwa hantle w racku',aka:'Dual DB Front Rack Single Leg Box Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Core',tip:'Dwa hantle w racku. Jednonóż na skrzynię.',nsca:'3x6–8/noga.',alt:'Przysiad na skrzynię jednonóż hantlem w racku'},
+{name:'Wejścia na skrzynię naprzemiennie hantle w racku',aka:'DB Front Rack Alternating Box Step Up',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Hantle w racku. Naprzemienne wejścia.',nsca:'3x8–10/noga.',alt:'Wejścia na skrzynię'},
+{name:'Wykroki wsteczne naprzemienne hantle w racku',aka:'DB Front Rack Alternating Reverse Lunge',cat:'Nogi',eq:'Hantle',muscle:'Nogi, Core, Barki',tip:'Hantle w racku. Naprzemienne wykroki w tył.',nsca:'3x8–12/noga.',alt:'Wykrok wsteczny'},
+{name:'Wejście na skrzynię z wyciskaniem hantle w racku',aka:'DB Front Rack Box Step Up with Overhead Press',cat:'Nogi',eq:'Hantle',muscle:'Nogi, Barki',tip:'Wejście i wyciskanie na górze.',nsca:'3x6–10/noga.',alt:'Wejścia na skrzynię, Wyciskanie hantli stojąc'},
+{name:'Zejście ze skrzyni jednonóż hantle w racku',aka:'DB Front Rack Single Leg Box Step Down, DB Goblet Single Leg Box Step Down, Single Leg DB Box Step Down',cat:'Nogi',eq:'Hantle',muscle:'Hamowanie, Czworogłowy',tip:'Kontrolowane zejście z jednej nogi. Kolano nad palcami.',nsca:'3x6–8/noga.',alt:'Wejścia na skrzynię'},
+{name:'Wykrok drop w tył hantle',aka:'DB Reverse Drop Lunge',cat:'Nogi',eq:'Hantle',muscle:'Hamowanie, Pośladki',tip:'Szybki krok w tył z hamowaniem. Nie padaj kolanem.',nsca:'3x6–8/noga.',alt:'Wykrok wsteczny'},
+{name:'Przysiad w wykroku decline hantle',aka:'Feet Elevated (Decline) DB Split Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy',tip:'Przednia stopa na podwyższeniu. Split squat.',nsca:'3x8–12/noga.',alt:'Przysiad w wykroku hantlami'},
+{name:'Wykrok boczny hantlem jednorącz',aka:'DB Single Arm Side Lunges',cat:'Nogi',eq:'Hantle',muscle:'Przywodziciele, Core',tip:'Hantel w jednej ręce (suitcase lub rack).',nsca:'3x8–12/stronę.',alt:'Wykrok boczny hantlem w racku jednorącz'},
+{name:'Przysiad curtsy z wysokim kolanem hantle',aka:'DB Curtsy Squat with High Knee',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Koordynacja',tip:'Curtsy i kolano do klatki przy powrocie.',nsca:'3x8–10/stronę.',alt:'Przysiad curtsy goblet KB'},
+{name:'Skull crusher hantle z wyprostem ramienia',aka:'DB Bench Skull Crusher with Arm Extension',cat:'Triceps',eq:'Hantle',muscle:'Triceps',tip:'Skull crusher, na górze pełny wyprost nad klatką.',nsca:'3x8–12.',alt:'Prostowanie za głowę (skull crusher)'},
+{name:'Prostowanie tricepsa hantlami na podłodze',aka:'DB Floor Triceps Extension',cat:'Triceps',eq:'Hantle',muscle:'Triceps',tip:'Leżąc. Łokcie o podłogę, prostuj hantle.',nsca:'3x10–12.',alt:'Wyciskanie hantli na podłodze'},
+{name:'Wiatrak hantlem klęcząc',aka:'Half Kneeling DB Windmill, DB Windmill',cat:'Core',eq:'Hantle',muscle:'Skośne, Barki',tip:'Klęk jednonóż. Hantel nad głową, ślizg wolną ręką po nodze.',nsca:'3x5–8/stronę.',alt:'Wiatrak kettlebell'},
+{name:'Zarzut hantlem jednorącz',aka:'Single Arm DB Clean, Single Arm DB Power Clean, Single Arm DB power Clean 2',cat:'Cardio',eq:'Hantle',muscle:'Biodra, Barki, Moc',tip:'Hantel blisko ciała do racku. Biodra napędzają.',nsca:'4x5/stronę.',alt:'Zarzut kettlebell'},
+{name:'Rwanie hantlem jednorącz',aka:'Single Arm DB Power Snatch, Single Arm DB Snatch, Single Arm DB Hang Snatch, Single Arm DB Hang Snatch 2',cat:'Cardio',eq:'Hantle',muscle:'Moc, Barki, Biodra',tip:'Wybicie bioder, hantel nad głowę. Łokieć przebija.',nsca:'4x5/stronę.',alt:'Rwanie kettlebell'},
+{name:'Uginanie hantlami 1.5',aka:'1 and 1/2 DB Biceps Curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (pump)',tip:'Pełne uginanie + pół ruchu na dole.',nsca:'3x8–10.',alt:'Uginanie hantlami naprzemiennie, 21-ki biceps',img:'assets/ex/curl.svg'},
+{name:'Uginanie hantlami elevator',aka:'Elevator DB Curls',cat:'Biceps',eq:'Hantle',muscle:'Biceps',tip:'Zatrzymania na piętrach zakresu (dół/środek/góra).',nsca:'3x6–8.',alt:'Uginanie hantlami 1.5'},
+{name:'Rotacja przedramienia hantlem (wspomagana)',aka:'Assisted Single Arm Forearm DB Rotation',cat:'Biceps',eq:'Hantle',muscle:'Przedramię, Rotatory',tip:'Lekki hantel. Supinacja/pronacja z pomocą drugiej ręki.',nsca:'2–3x12–15/stronę.',alt:'Uginanie Zottman'},
+{name:'Uginanie nadgarstków hantlami',aka:'DB Wrist Curl, DB Wrst Curl',cat:'Biceps',eq:'Hantle',muscle:'Zginacze nadgarstka',tip:'Przedramiona na udach. Uginaj nadgarstki podchwytem.',nsca:'3x12–20.',alt:'Uginanie Zottman'},
+{name:'Uginanie nadgarstków młotkowo',aka:'DB Hammer Wrist Curl',cat:'Biceps',eq:'Hantle',muscle:'Przedramię (neutralnie)',tip:'Chwyt młotkowy. Tylko nadgarstek.',nsca:'3x12–15.',alt:'Uginanie nadgarstków hantlami'},
+{name:'Uginanie nadgarstków nachwytem',aka:'Reverse DB Wrist Curl',cat:'Biceps',eq:'Hantle',muscle:'Prostowniki nadgarstka',tip:'Nachwyt. Unieś grzbiet dłoni.',nsca:'3x12–20.',alt:'Uginanie nadgarstków hantlami'},
+{name:'Wyciskanie hantli siedząc naprzemiennie',aka:'Seated Alternating DB Shoulder Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Siedząc. Naprzemienne wyciskanie. Plecy oparte.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli siedząc',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie hantli w rozkroku',aka:'Split Stance DB Overhead Press, Staggered Stance DB Shoulder',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Rozkrok. Wyciskaj, biodra zablokowane.',nsca:'3x8–12.',alt:'Wyciskanie hantli stojąc'},
+{name:'Drop and catch hantle w opadzie',aka:'Bent Over DB Drop and Catch',cat:'Plecy',eq:'Hantle',muscle:'Tylne barki, Reaktywność',tip:'W opadzie upuść i złap hantle. Krótki zakres.',nsca:'3x6–8.',alt:'Odwrotne rozpiętki'},
+{name:'Combo unoszeń barków hantle',aka:'DB Combo Shoulder Raises',cat:'Barki',eq:'Hantle',muscle:'Barki (wszystkie głowy)',tip:'Przód + bok + tył w jednym cyklu. Lekkie hantle.',nsca:'3x8–10.',alt:'Unoszenie bokiem, Unoszenie przodem'},
+{name:'Unoszenie przodem młotkowo',aka:'DB Shoulder Hammer Front Raises, SB Shoulder Hammer Front Raises',cat:'Barki',eq:'Hantle',muscle:'Barki przednie, Ramiennopromieniowy',tip:'Chwyt młotkowy. Unieś przed siebie.',nsca:'3x12–15.',alt:'Unoszenie przodem'},
+{name:'Wyciskanie hantli siedząc na piłce swiss',aka:'Swiss Ball Seated DB Overhead Press, Swiss Ball Seated Single Arm DB Overhead Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core, Równowaga',tip:'Siedzisz na piłce. Wyciskaj, brzuch napięty.',nsca:'3x8–12.',alt:'Wyciskanie hantli siedząc'},
+{name:'Pompki T hantlami',aka:'DB T Push Ups',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Skośne, Barki',tip:'Pompka na hantlach, rotacja w T z hantlem w górę.',nsca:'3x6–10/stronę.',alt:'Pompki, Deska z unoszeniem ramienia',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie z wybiciem hantle',aka:'DB Push Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Moc',tip:'Dip kolanami i wybicie hantli.',nsca:'3x5–8.',alt:'Wyciskanie z wybiciem, Wyciskanie hantli stojąc'},
+{name:'Devil press do pompek',aka:'DB Devil Press To Push Ups, Devil Press To Push Up, Alternating Single Arm DB Devil Press To Push Up',cat:'Cardio',eq:'Hantle',muscle:'Całe ciało, Klatka, Cardio',tip:'Devil press i od razu pompka. Można naprzemiennie.',nsca:'3–5x6–10.',alt:'Burpee z hantlami (devil press)'},
+{name:'Man maker hantle',aka:'DB Man Maker',cat:'Cardio',eq:'Hantle',muscle:'Całe ciało, Cardio',tip:'Pompka, wiosłowanie w desce, wstanie, thruster hantlami.',nsca:'3–5x6–10.',alt:'Man maker (masa ciała), Burpee z hantlami (devil press)'},
+{name:'Wyciskanie hantla klęcząc jednorącz',aka:'Half Kneeling Single Arm DB Overhead Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Klęk jednonóż. Wyciskaj z racku.',nsca:'3x6–10/stronę.',alt:'Wyciskanie KB klęcząc jednorącz',img:'assets/ex/ohp.svg'},
+{name:'Wyciskanie Z hantlem jednorącz',aka:'Single Arm DB Z Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Siedzisz na podłodze, nogi proste. Jedna ręka.',nsca:'3x5–8/stronę.',alt:'Wyciskanie Z'},
+{name:'Wyciskanie hantli w wysokim klęku',aka:'Tall Kneeling DB Overhead Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Wysoki klęk. Pośladki napięte. Wyciskaj oburącz.',nsca:'3x8–12.',alt:'Wyciskanie dwa KB nad głowę w wysokim klęku'},
+{name:'Wyciskanie hantla w wysokim klęku jednorącz',aka:'Tall Kneeling Single Arm DB Overhead Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Wysoki klęk. Jedna ręka.',nsca:'3x6–10/stronę.',alt:'Wyciskanie hantli w wysokim klęku'},
+{name:'Empty the can leżąc bokiem',aka:'Side Lying DB Empty The Can, Side Lying Empty the Can',cat:'Barki',eq:'Hantle',muscle:'Nadgrzebieniowy, Rotatory',tip:'Leżąc na boku. Kciuk w dół, unoszenie w płaszczyźnie łopatki. Lekki hantel.',nsca:'2–3x12–15/stronę.',alt:'Unoszenie Y, Rotacja zewnętrzna'},
+{name:'Pompki na hantlach',aka:'DB Push Ups',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Triceps',tip:'Dłonie na hantlach. Głębszy ROM.',nsca:'3xmax.',alt:'Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie hantla na piłce swiss jednorącz',aka:'Swiss Ball Single Arm DB Chest Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core',tip:'Łopatki na piłce. Wyciskaj jeden hantel.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli na piłce swiss'},
+{name:'Wyciskanie hantli na piłce swiss naprzemiennie',aka:'Swiss Ball Alternating DB Chest Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core',tip:'Naprzemienne wyciskanie na piłce.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli na piłce swiss'},
+{name:'Wyciskanie hantli na podłodze naprzemiennie',aka:'DB Alternating Floor Press, Lying Alternating DB Floor Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core',tip:'Naprzemienne wyciskanie z podłogi.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli na podłodze'},
+{name:'Wiosłowanie renegade z pompkami',aka:'DB Renegade Row with Push Ups, Renegade Row',cat:'Plecy',eq:'Hantle',muscle:'Plecy, Klatka, Core',tip:'Pompka i wiosłowanie w desce na hantlach.',nsca:'3x6–10/stronę.',alt:'Pompki na hantlach, Wiosłowanie hantlem'},
+{name:'Wyciskanie hantli w mostku',aka:'Glute Bridge DB Floor Press, Glute Bridge DB Bench Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Pośladki',tip:'Mostek + wyciskanie hantli (podłoga lub ławka).',nsca:'3x8–12.',alt:'Wyciskanie z podłogi dwa KB w mostku'},
+{name:'Wyciskanie hantli w mostku na ławce',aka:'Bench Glute Bridge DB Chest Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Pośladki',tip:'Łopatki na ławce, mostek, wyciskanie.',nsca:'3x8–12.',alt:'Wyciskanie hantli w mostku, Wyciskanie hantli leżąc'},
+{name:'Wyciskanie hantli wąsko',aka:'Close Grip DB Bench Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Triceps, Klatka wewnętrzna',tip:'Hantle blisko siebie. Łokcie przy tułowiu.',nsca:'3x8–12.',alt:'Wyciskanie wąskim chwytem, Wyciskanie hantli leżąc'},
+{name:'Wyciskanie hantli naprzemiennie leżąc',aka:'Alternating DB Bench Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core',tip:'Naprzemienne wyciskanie na ławce.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli leżąc'},
+{name:'Wyciskanie hantla w mostku jednorącz',aka:'Single Arm Glute Bridge DB Bench Press, Bench Glute Bridge Single Arm DB Chest Press, Single Arm Glute Bridge DB Floor Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Pośladki, Core',tip:'Mostek. Wyciskaj jeden hantel.',nsca:'3x8–10/stronę.',alt:'Wyciskanie hantli w mostku'},
+{name:'Wyciskanie hantla z podłogi jednorącz',aka:'Lying Single Arm DB Floor Press, Single Arm DB Floor Press with Bent Knee',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core',tip:'Jeden hantel z podłogi. Druga noga może być ugięta.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli na podłodze'},
+{name:'Przeciąganie hantla w desce',aka:'DB Plank Pull Through',cat:'Core',eq:'Hantle',muscle:'Core antyrotacyjny',tip:'Deska. Przeciągnij hantel spod klatki na drugą stronę.',nsca:'3x8–12/stronę.',alt:'Przeciąganie KB w desce'},
+{name:'Noszenie hantla w racku jednorącz',aka:'Single Arm DB Front Rack Carry',cat:'Core',eq:'Hantle',muscle:'Core, Barki',tip:'Hantel w racku. Krótkie kroki, łokieć wysoko.',nsca:'3x20–30 m/stronę.',alt:'Noszenie dwa KB w racku'},
+{name:'Zarzut siłowy dwa hantle',aka:'Dual DB Power Clean',cat:'Cardio',eq:'Hantle',muscle:'Biodra, Moc',tip:'Dwa hantle do racku. Wybicie bioder.',nsca:'4x5–8.',alt:'Zarzut hantlem jednorącz'},
+{name:'Zarzut w rozkroku hantlem',aka:'Single Arm DB Split Clean, Alternating Single Arm DB Split Clean, Alternating DB Split Clean',cat:'Cardio',eq:'Hantle',muscle:'Moc, Nogi, Koordynacja',tip:'Clean z przyjęciem w rozkroku. Można naprzemiennie.',nsca:'4x4–6/stronę.',alt:'Zarzut hantlem jednorącz'},
+{name:'Zarzut z hang w rozkroku dwa hantle',aka:'Dual DB Hang Split Clean, Dual DB Split Hang Clean, Alternating Dual DB Hang Split Clean',cat:'Cardio',eq:'Hantle',muscle:'Moc, Nogi',tip:'Hang, wybicie, przyjęcie w rozkroku.',nsca:'4x4–6.',alt:'Zarzut siłowy dwa hantle'},
+{name:'Zarzut i podrzut hantlem jednorącz',aka:'DB Single Arm Clean and Jerk, Single Arm DB Hang Clean and Jerk, Alternating Single Arm Hang Clean and Jerk',cat:'Olimpijskie',eq:'Hantle',muscle:'Moc, Barki, Nogi',tip:'Clean i jerk jedną ręką. Dip i wybicie.',nsca:'4x3–5/stronę.',alt:'Zarzut i podrzut'},
+{name:'Zarzut i podrzut dwa hantle',aka:'Dual DB Clean and Jerk',cat:'Olimpijskie',eq:'Hantle',muscle:'Moc, Barki',tip:'Clean obu hantli i jerk.',nsca:'4x3–5.',alt:'Zarzut i podrzut hantlem jednorącz'},
+{name:'Split jerk hantlem jednorącz',aka:'Single Arm DB Split Jerk',cat:'Olimpijskie',eq:'Hantle',muscle:'Barki, Nogi, Moc',tip:'Wybicie i przyjęcie w rozkroku.',nsca:'4x3–5/stronę.',alt:'Split jerk landmine jednorącz'},
+{name:'Devil press jednorącz',aka:'Single Arm DB Devil Press',cat:'Cardio',eq:'Hantle',muscle:'Całe ciało, Cardio',tip:'Devil press jednym hantlem.',nsca:'3–5x6–10/stronę.',alt:'Burpee z hantlami (devil press)'},
+{name:'Lądowanie 2 na 2',aka:'Landing - 2 to 2, Landing 2 to 2',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie, Plyometria',tip:'Wybicie obunóż, lądowanie obunóż. Cicho, kolana ugięte.',nsca:'4x5–8.',alt:'Skoki na skrzynię'},
+{name:'Lądowanie 2 na 1',aka:'Landing - 2 to 1, Landing 2 to 1',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie jednonóż',tip:'Wybicie obunóż, lądowanie na jednej. Stabilizacja 2 s.',nsca:'4x4–6/noga.',alt:'Lądowanie 2 na 2'},
+{name:'Lądowanie 1 na 1',aka:'Landing - 1 to 1, Landing 1 to 1',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie jednonóż',tip:'Hop. Lądowanie na tej samej nodze. Stick.',nsca:'4x4–6/noga.',alt:'Lądowanie 2 na 1'},
+{name:'Pogo w miejscu',aka:'Pogo Jumps in Place',cat:'Cardio',eq:'Własna masa',muscle:'Łydki, Sztywność SSC',tip:'Sztywne kostki, szybki kontakt. Kolana mało uginaj.',nsca:'4x10–20.',alt:'Skok skupiony'},
+{name:'Lądowanie z zeskoku ze skrzyni',aka:'Drop Landing From Box',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie',tip:'Zeskocz i zatrzymaj. Nie dobijaj drugim podskokiem.',nsca:'4x5–8.',alt:'Lądowanie 2 na 2'},
+{name:'Lądowanie jednonóż z zeskoku',aka:'Single Leg Drop Landing, Single Leg Landing From Box',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie jednonóż',tip:'Zeskok na jedną nogę. Stick, biodro nad stopą.',nsca:'4x4–6/noga.',alt:'Lądowanie 1 na 1'},
+{name:'Skok na skrzynię jednonóż',aka:'Single Leg Box Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc pionowa jednonóż',tip:'Wybicie z jednej nogi na skrzynię. Zejdź, nie zeskakuj.',nsca:'4x4–6/noga.',alt:'Skoki na skrzynię'},
+{name:'Drop jump jednonóż',aka:'Single Leg Drop Jump',cat:'Cardio',eq:'Własna masa',muscle:'Reaktywność jednonóż',tip:'Zeskok i natychmiastowe wybicie z jednej nogi.',nsca:'4x4–5/noga.',alt:'Drop jump z taśmą (wspomagany)'},
+{name:'Depth jump',aka:'Depth Jump, Drop Jump (Low Box), Drop Jump (High Box), Drop Jump on Box, Drop jump niska skrzynia, Drop jump wysoka skrzynia, Drop jump na skrzynię',cat:'Cardio',eq:'Własna masa',muscle:'Moc, SSC',tip:'Zeskok ze skrzyni i maksymalny skok w górę.',nsca:'4–6x3–5.',alt:'Skoki na skrzynię'},
+{name:'Depth jump na skrzynię',aka:'Depth Jump on Box',cat:'Cardio',eq:'Własna masa',muscle:'Moc, SSC',tip:'Zeskok i wybicie na drugą skrzynię.',nsca:'4x4–6.',alt:'Depth jump'},
+{name:'Skok pionowy NCM',aka:'NCM - Vertical Jump, NCM Vertical Jump',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Moc pionowa, obunóż',tip:'Start ze statyku, bez dipu. Obunóż.',nsca:'4–6x3–6.',alt:'Skoki na skrzynię, Skok w dal z miejsca'},
+{name:'Hop pionowy NCM',aka:'NCM - Vertical Hop, NCM Vertical Hop',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Moc pionowa, jednonóż',tip:'Start ze statyku, bez dipu. Jednonóż.',nsca:'4–6x3–6.',alt:'Skoki na skrzynię, Skok w dal z miejsca'},
+{name:'Skok pionowy CM',aka:'CM - Vertical Jump, CM Vertical Jump',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Moc pionowa, obunóż',tip:'Szybki dip i wybicie. Obunóż.',nsca:'4–6x3–6.',alt:'Skoki na skrzynię, Skok w dal z miejsca'},
+{name:'Hop pionowy CM',aka:'CM - Vertical Hop, CM Vertical Hop',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Moc pionowa, jednonóż',tip:'Szybki dip i wybicie. Jednonóż.',nsca:'4–6x3–6.',alt:'Skoki na skrzynię, Skok w dal z miejsca'},
+{name:'Skok poziomy CM',aka:'CM - Horizontal Jump, CM Horizontal Jump',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Moc pozioma, obunóż',tip:'Szybki dip i wybicie. Obunóż.',nsca:'4–6x3–6.',alt:'Skoki na skrzynię, Skok w dal z miejsca'},
+{name:'Skok rotacyjny CM',aka:'CM - Rotational Jump, CM Rotational Jump',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Moc rotacyjna, obunóż',tip:'Szybki dip i wybicie. Obunóż.',nsca:'4–6x3–6.',alt:'Skoki na skrzynię, Skok w dal z miejsca'},
+{name:'Skok przez płotki liniowo CM',aka:'CM - Linear Hurdles Jump',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Płotki liniowe',tip:'Płotki w linii. CM, Jump. Miękkie, szybkie lądowanie.',nsca:'4x4–8.',alt:'Skoki na skrzynię'},
+{name:'Skok przez płotki bokiem CM',aka:'CM - Lateral Hurdles Jump',cat:'Cardio',eq:'Własna masa',muscle:'Plyometria, Płotki boczne',tip:'Płotki bokiem. Jump. Lądowanie stick, biodro nad stopą.',nsca:'4x4–8.',alt:'Skoki łyżwiarskie'},
+{name:'Skok z klęku ze stick',aka:'Kneeling Jump to Jump and Stick, Kneeling Jump To Vertical Loop, Kneeling Jump Loud Landing, Kneeling Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc z niskiej pozycji',tip:'Z klęku wybicie do stania/skoku. Lądowanie ciche (albo głośne w wariancie loud).',nsca:'4x4–6.',alt:'Przysiad z wyskokiem'},
+{name:'Skok na skrzynię na prostych nogach',aka:'Box Jump on Straight Legs',cat:'Cardio',eq:'Własna masa',muscle:'Łydki, SSC',tip:'Wybicie z prostych nóg (pogo) na skrzynię.',nsca:'4x5–8.',alt:'Pogo w miejscu, Skoki na skrzynię'},
+{name:'Skok na skrzynię ze zejściem',aka:'Box Jump Step Down',cat:'Cardio',eq:'Własna masa',muscle:'Moc pionowa',tip:'Box jump i zejście krokiem, bez zeskoku.',nsca:'4x5–8.',alt:'Skoki na skrzynię'},
+{name:'Przysiad z wyskokiem w rozkroku',aka:'Split Stance Squat Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc, Rozkrok',tip:'Wybicie z rozkroku, lądowanie w rozkroku.',nsca:'3x6–8/stronę.',alt:'Wypady z wyskokiem'},
+{name:'Przysiad bułgarski z wyskokiem',aka:'RFE Split Squat Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc jednostronna',tip:'Tylna stopa na ławce. Wybicie przednią.',nsca:'3x6–8/noga.',alt:'Wypady z wyskokiem, Przysiad bułgarski'},
+{name:'Wyskok sprintera RFE',aka:'RFE Sprinter Squat Jump with Stick, RFE Sprinter Squat Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc, Pozycja sprintera',tip:'RFE, wybicie jak start sprintera. Stick na lądowaniu.',nsca:'4x4–6/noga.',alt:'Przysiad bułgarski z wyskokiem'},
+{name:'Przysiad z wyskokiem w rozkroku hantle',aka:'DB Split Stance Squat Jump',cat:'Cardio',eq:'Hantle',muscle:'Moc, Nogi',tip:'Hantle wzdłuż ciała. Wyskok z rozkroku.',nsca:'3x5–8/stronę.',alt:'Przysiad z wyskokiem w rozkroku'},
+{name:'Skok pionowy do poziomego',aka:'Vertical Jump to Horizontal Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc mieszana',tip:'Skok w górę i od razu broad jump.',nsca:'4x4–6.',alt:'Skok w dal z miejsca, Przysiad z wyskokiem'},
+{name:'Skok poziomy do pionowego',aka:'Horizontal Jump to Vertical Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc mieszana',tip:'Broad jump i od razu skok pionowy.',nsca:'4x4–6.',alt:'Skok pionowy do poziomego'},
+{name:'Skoki pion–poziom naprzemiennie',aka:'Alternating Vertical to Horizontal Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc, Koordynacja',tip:'Naprzemiennie pion i poziom.',nsca:'4x6–8.',alt:'Skok pionowy do poziomego'},
+{name:'Hop bokiem przez płotek ze stick',aka:'Lateral Hurdle Hop and Stick',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie boczne',tip:'Hop w bok przez płotek i zatrzymaj 2 s.',nsca:'4x4–6/stronę.',alt:'Skoki łyżwiarskie'},
+{name:'Skok na skrzynię z siadu',aka:'Seated Box Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc bez zamachu',tip:'Start z siadu (skrzynia). Wybicie na wyższą skrzynię.',nsca:'4x4–6.',alt:'Skoki na skrzynię'},
+{name:'Reaktywny skok na skrzynię z siadu',aka:'Seated Reactive Box Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc, Reaktywność',tip:'Z siadu, sygnał i natychmiast box jump.',nsca:'4x4–6.',alt:'Skok na skrzynię z siadu'},
+{name:'Hop jednonóż ze stick',aka:'Single Leg Hop and Stick',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie jednonóż',tip:'Hop i zatrzymaj. Biodro nad stopą.',nsca:'4x4–6/noga.',alt:'Lądowanie 1 na 1'},
+{name:'Hop bokiem jednonóż ze stick',aka:'Single Leg Lateral Hop and Stick',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie boczne jednonóż',tip:'Hop w bok, stick.',nsca:'4x4–6/stronę.',alt:'Hop jednonóż ze stick'},
+{name:'Hop w przód jednonóż ze stick',aka:'Single Leg Forward Hop and Stick',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie strzałkowe',tip:'Hop do przodu, stick.',nsca:'4x4–6/noga.',alt:'Hop jednonóż ze stick'},
+{name:'Hop w tył jednonóż ze stick',aka:'Single Leg Backward Hop and Stick',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie w tył',tip:'Hop do tyłu, stick.',nsca:'4x4–6/noga.',alt:'Hop w przód jednonóż ze stick'},
+{name:'Skoki łyżwiarskie ze stick',aka:'Skaters Jump with Stick',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie boczne',tip:'Skater hop i zatrzymaj na nodze.',nsca:'3x6–8/stronę.',alt:'Skoki łyżwiarskie'},
+{name:'Wypady z wyskokiem naprzemiennie',aka:'Alternating Leg Split Squat Jumps, Alternating Split Squat Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc, Cardio',tip:'Wyskok ze zmianą nóg w locie.',nsca:'3x8–12.',alt:'Wypady z wyskokiem'},
+{name:'Wyskok sprintera naprzemiennie',aka:'Alternating Leg Sprinter Split Jump',cat:'Cardio',eq:'Własna masa',muscle:'Moc, Koordynacja',tip:'Pozycja sprintera, zmiana nóg w locie.',nsca:'3x8–12.',alt:'Wypady z wyskokiem naprzemiennie'},
+{name:'Skoki z talerzem offset',aka:'Offset Plate Jumps',cat:'Cardio',eq:'Hantle',muscle:'Moc, Stabilizacja',tip:'Talerz w jednej ręce. Wyskok, tułów równo.',nsca:'3x6–8.',alt:'Przysiad z wyskokiem'},
+{name:'Wybicie z rozkroku z talerzem',aka:'Split Stance Single Leg Plate Elevation',cat:'Cardio',eq:'Hantle',muscle:'Moc, Barki',tip:'Rozkrok. Wybicie i unoszenie talerza.',nsca:'3x6–8/stronę.',alt:'Skoki z talerzem offset'},
+{name:'Odejście boczne z rozkroku jednonóż',aka:'Split Stance Single Leg Lateral Departure',cat:'Cardio',eq:'Własna masa',muscle:'Moc boczna, Odwodziciele',tip:'Z rozkroku odepchnij się w bok na jedną nogę.',nsca:'4x4–6/stronę.',alt:'Skoki łyżwiarskie'},
+{name:'Good morning więzienny',aka:'Prisoner Good Morning',cat:'Plecy',eq:'Własna masa',muscle:'Łańcuch tylny',tip:'Dłonie za głową. Hip hinge, plecy płasko.',nsca:'3x10–12.',alt:'Good morning (skłon)'},
+{name:'Hip hinge z taśmą',aka:'Band Hip Hinge, Band Hip Hinge (Good Morning)',cat:'Plecy',eq:'Taśmy',muscle:'Pośladki, Dwugłowy',tip:'Taśma pod stopami. Hinge, opór w górze.',nsca:'3x12–15.',alt:'Good morning (skłon), Martwy ciąg z taśmą'},
+{name:'RDL dwa hantle do wiosłowania',aka:'Dual DB RDL to Bent Over Row',cat:'Plecy',eq:'Hantle',muscle:'Łańcuch tylny, Plecy',tip:'RDL, na dole wiosłowanie, wyprost.',nsca:'3x8–10.',alt:'RDL do wiosłowania dwa KB'},
+{name:'Przysiad 1/2 ze sztangą',aka:'1/2 Back Squat, Half Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Moc',tip:'Tylko górna połowa przysiadu. Szybki wyprost.',nsca:'4x5–8.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
+{name:'Przysiad 1/4 ze sztangą',aka:'1/4 Back Squat, Quarter Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Moc',tip:'Krótki zakres. Cięższy ciężar, kolana miękkie.',nsca:'4x3–6.',alt:'Przysiad 1/2 ze sztangą',img:'assets/ex/squat.svg'},
+{name:'Przysiad z wyskokiem ze sztangą',aka:'Barbell Squat Jump, Empty Barbell Squat Jump',cat:'Cardio',eq:'Sztanga',muscle:'Moc pionowa',tip:'Lekka sztanga. Wybicie, miękkie lądowanie.',nsca:'4x4–6.',alt:'Przysiad z wyskokiem'},
+{name:'Przysiad z uchwytem talerza',aka:'Plate Handle Bar Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Core',tip:'Talerz z uchwytami przed klatką jak goblet.',nsca:'3x10–15.',alt:'Przysiad Goblet',img:'assets/ex/squat.svg'},
+{name:'Przysiad więzienny',aka:'Prisoner Squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Core',tip:'Dłonie za głową. Przysiad, łokcie w tył.',nsca:'3x12–20.',alt:'Przysiad Goblet'},
+{name:'Deska kopenhaska z ugiętymi kolanami',aka:'Knees Bent Copenhagen',cat:'Core',eq:'Własna masa',muscle:'Przywodziciele (łatwiejsza)',tip:'Kolana ugięte. Górna noga na ławce.',nsca:'3x20–40 s/stronę.',alt:'Deska kopenhaska',load:'sec'},
+{name:'Przysiad na palcach więzienny',aka:'Prisoner Tiptoe Squat',cat:'Nogi',eq:'Własna masa',muscle:'Łydki, Czworogłowy',tip:'Dłonie za głową, pięty w górze. Przysiad na palcach.',nsca:'3x10–15.',alt:'Przysiad więzienny, Wspięcia na palce'},
+{name:'Przysiad na palcach w rozkroku więzienny',aka:'Split Stance Prisoner Tiptoe',cat:'Nogi',eq:'Własna masa',muscle:'Łydki, Czworogłowy',tip:'Rozkrok na palcach, dłonie za głową.',nsca:'3x8–12/stronę.',alt:'Przysiad na palcach więzienny'},
+{name:'Wspięcia na palce na suwnicy',aka:'Calf Raises on Leg Press Machine, Single Leg Calf Raises - Leg Press',cat:'Nogi',eq:'Maszyna',muscle:'Łydki',tip:'Stopy na dole platformy. Pełny ROM kostki.',nsca:'4x12–20.',alt:'Wspięcia na palce jednonóż'},
+{name:'Mostek V walk-out',aka:'Glute Bridge V Walk Outs, Glute Bridge V Walk Out 2, Glute Bridge Hamstring Walk Out',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki, Dwugłowy',tip:'Mostek. Kroki piętami w V, biodra wysoko.',nsca:'3x8–12.',alt:'Mostek biodrowy, Marsz w mostku'},
+{name:'Uginanie ud o ławkę z ugiętym kolanem',aka:'Bent Knee Bench Hamstring, Bent Knee Bench Hamstring Curl, Uginanie ud na ławce (ugięte kolana)',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy',tip:'Pięty na ławce, kolana ugięte. Przyciągaj / isometric.',nsca:'3x8–12.',alt:'Uginanie ud na ślizgach'},
+{name:'Wyciskanie klatki z taśmą stojąc',aka:'Standing Band Chest Press',cat:'Klatka piersiowa',eq:'Taśmy',muscle:'Klatka, Triceps',tip:'Taśma za sobą. Wyciskaj przed klatkę.',nsca:'3x12–15.',alt:'Rozpiętki z taśmą stojąc, Pompki'},
+{name:'Burpee przez skrzynię',aka:'Burpee Over The Box',cat:'Cardio',eq:'Własna masa',muscle:'Całe ciało, Cardio',tip:'Burpee i przeskok bokiem przez skrzynię.',nsca:'3–5x8–12.',alt:'Burpees'},
+{name:'Pompki plyo z nogami na podwyższeniu',aka:'Feet Elevated Plyo Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Moc',tip:'Stopy na ławce. Wybij dłonie z podłogi.',nsca:'3x5–8.',alt:'Pompki plyometryczne, Pompki z nogami na podwyższeniu'},
+{name:'Pompki hindu',aka:'Hindu Push Ups, Yoga Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Barki, Mobilność',tip:'Od downhill do cobra. Płynny łuk.',nsca:'3x8–12.',alt:'Pompki, Pompki pike'},
+{name:'Unoszenie IYT w opadzie',aka:'Bent Over IYT Shoulder Raise',cat:'Barki',eq:'Hantle',muscle:'Tylne barki, Trapez',tip:'W opadzie: I, Y i T. Lekkie hantle.',nsca:'3x6–8/pozycja.',alt:'Unoszenie Y, Odwrotne rozpiętki'},
+{name:'Crab to scorpion',aka:'Crab to Scorpion',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Barki, Kręgosłup, Mobilność',tip:'Z kraba rotuj do skorpiona. Kolano może być na ziemi.',nsca:'2x6–8/stronę.',alt:'Open book, World’s greatest stretch'},
+{name:'Wiosłowanie z taśmą w opadzie',aka:'Band Bent Over Row',cat:'Plecy',eq:'Taśmy',muscle:'Plecy środkowe',tip:'Taśma pod stopami. Wiosłuj w opadzie.',nsca:'3x12–15.',alt:'Wiosłowanie z taśmą siedząc'},
+{name:'Face pull z taśmą klęcząc',aka:'Half Kneeling Band Face Pull',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Rotatory',tip:'Klęk jednonóż. Face pull do twarzy.',nsca:'3x12–15.',alt:'Ściąganie do twarzy (face pull)'},
+{name:'Face pull do rotacji zewnętrznej z taśmą',aka:'Band Face Pull to External Rotation',cat:'Plecy',eq:'Taśmy',muscle:'Tylne barki, Rotatory',tip:'Face pull i dokręć przedramiona w rotację zewnętrzną.',nsca:'3x10–12.',alt:'Face pull do Y z taśmą'},
+{name:'Przysiad Kang masa ciała',aka:'Kang Squat Bodyweight',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Łańcuch tylny',tip:'Hinge (good morning) do przysiadu i z powrotem. Płynnie.',nsca:'3x8–12.',alt:'Good morning więzienny, Przysiad więzienny'},
+{name:'Przysiad Kang ze sztangą',aka:'Kang Squat with Barbell',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Łańcuch tylny',tip:'Sztanga na barkach. Good morning → przysiad → good morning.',nsca:'3x6–10.',alt:'Przysiad Kang masa ciała, Good morning (skłon)',img:'assets/ex/squat.svg'},
+{name:'Przysiad przy ścianie z talerzem',aka:'Wall Sit with Plate Hold',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy (izometria)',tip:'Wall sit, talerz na udach albo przed klatką.',nsca:'3x30–45 s.',alt:'Przysiad przy ścianie',load:'sec'},
+{name:'Uginanie ud na wioślarzu',aka:'Hamstring Leg Curl on Rowing, Hamstring Leg Curl on Rower, Single Leg Hamstring Curl on Rower',cat:'Nogi',eq:'Wioślarz',muscle:'Dwugłowy',tip:'Pięty na siodełku wioślarza. Przyciągaj jak curl.',nsca:'3x8–12.',alt:'Uginanie ud na ślizgach'},
+{name:'Pompki z przeciągnięciem',aka:'Push Ups Pull Through',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Core',tip:'Pompka i przeciągnij hantel pod klatką.',nsca:'3x6–10/stronę.',alt:'Wiosłowanie renegade z pompkami, Przeciąganie hantla w desce'},
+{name:'Candlestick do pompki',aka:'Candlestick Roll Up To Push Up',cat:'Cardio',eq:'Własna masa',muscle:'Core, Klatka, Koordynacja',tip:'Z barków (candlestick) roll-up do pompki.',nsca:'3x6–10.',alt:'Burpees, Pompki'},
+{name:'Pompki offset',aka:'Offset Push Ups, Asymmetric Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (jednostronnie)',tip:'Jedna dłoń na podwyższeniu. Zmieniaj strony.',nsca:'3x6–10/stronę.',alt:'Pompki łucznicze'},
+{name:'Pompki z dłońmi na podwyższeniu',aka:'Arms Elevated Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (łatwiejsze)',tip:'Dłonie na ławce. Ciało w linii.',nsca:'3xmax.',alt:'Pompki na kolanach, Pompki'},
+{name:'Wykrok z talerzem nad głową',aka:'Plate Overhead Walking Lunge',cat:'Nogi',eq:'Hantle',muscle:'Nogi, Barki, Core',tip:'Talerz nad głową. Wykroki, ramiona zablokowane.',nsca:'3x8–12/noga.',alt:'Wykrok naprzemienny z piłką nad głową'},
+{name:'Stanie na rękach przy ścianie',aka:'Wall Handstand',cat:'Barki',eq:'Własna masa',muscle:'Barki, Core',tip:'Brzuch lub plecy do ściany. Ramiona przy uszach.',nsca:'5x15–40 s.',alt:'Pompki w staniu na rękach',load:'sec'},
+{name:'Back widow',aka:'Back Widow',cat:'Plecy',eq:'Własna masa',muscle:'Tylne barki, Rombowate',tip:'Leżąc na plecach, wyciskaj barki w podłogę / unoszenie łopotek.',nsca:'3x12–15.',alt:'Odwrotne rozpiętki, Face pull do Y z taśmą'},
+{name:'Wiosłowanie odwrócone ze skrzynią',aka:'Box Elevated Inverted Row',cat:'Plecy',eq:'Własna masa',muscle:'Plecy środkowe',tip:'Stopy na skrzyni. Ciało sztywniejsze, cięższy kąt.',nsca:'3xmax.',alt:'Wiosłowanie odwrócone'},
+{name:'Wiosłowanie odwrócone nogi w górze',aka:'Feet Elevated Inverted Row',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Biceps',tip:'Stopy na podwyższeniu. Prawie poziomo.',nsca:'3xmax.',alt:'Wiosłowanie odwrócone ze skrzynią'},
+{name:'Wiosłowanie odwrócone podchwytem',aka:'Supinated Grip Inverted Row',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Biceps',tip:'Podchwyt. Ciągnij klatkę do drążka.',nsca:'3xmax.',alt:'Wiosłowanie odwrócone, Podciąganie podchwytem'},
+{name:'Unoszenie tułowia leżąc (prone)',aka:'Prone Back Raise',cat:'Plecy',eq:'Własna masa',muscle:'Prostownicy, Tylne barki',tip:'Leżąc na brzuchu unoś klatkę. Bez bólu lędźwi.',nsca:'3x12–15.',alt:'Superman, Prostowanie tułowia'},
+{name:'Pompki z gąsienicy',aka:'Inchworm Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Łańcuch tylny, Core',tip:'Inchworm w deskę, pompka, wróć.',nsca:'3x6–10.',alt:'Gąsienica (inchworm), Pompki'},
+{name:'Pompki jednonóż',aka:'Single Leg Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Core',tip:'Jedna noga uniesiona. Biodra równo.',nsca:'3x6–10/noga.',alt:'Pompki'},
+{name:'Pompki typewriter',aka:'Typewriter Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (przesuw)',tip:'W dolnej pozycji przesuń klatkę od dłoni do dłoni.',nsca:'3x6–8/stronę.',alt:'Pompki łucznicze'},
+{name:'Pompki podchwytem',aka:'Supinated Hands Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Biceps, Barki',tip:'Palce w tył / podchwyt. Łokcie blisko. Ostrożnie dla nadgarstków.',nsca:'3x6–12.',alt:'Pompki'},
+{name:'Planche na czworaka',aka:'Quadruped Planche, Quadruped Iso Planche',cat:'Core',eq:'Własna masa',muscle:'Barki, Core, Prostowniki nadgarstka',tip:'Bark nad dłońmi, kolana uniesione. Dąż do planche lean.',nsca:'4x10–20 s.',alt:'Pompki pike',load:'sec'},
+{name:'Przysiad nad głową',aka:'Barbell Overhead Squat',cat:'Olimpijskie',eq:'Sztanga',muscle:'Nogi, Barki, Core, Mobilność',tip:'Sztanga zablokowana nad głową. Przysiad, ramiona przy uszach.',nsca:'4x3–6.',alt:'Wyciskanie żołnierskie OHP, Przysiad przedni',img:'assets/ex/squat.svg'},
+{name:'Reverse hollow',aka:'Reverse Hollow, Reverse hollow hold, Reverse Hollow Rocks',cat:'Core',eq:'Własna masa',muscle:'Prostownicy, Pośladki',tip:'Leżąc na brzuchu — przeciwstawieństwo hollow. Ramiona i nogi nisko.',nsca:'3x20–30 s.',alt:'Superman, Hollow hold',load:'sec'},
+{name:'Przysiad zombie',aka:'Zombie Squat, Zoombie Squat',cat:'Nogi',eq:'Sztanga',muscle:'Przysiad przedni, Mobilność',tip:'Ramiona wyprostowane przed sobą (front rack bez chwytu).',nsca:'3x5–8.',alt:'Przysiad przedni'},
+{name:'Żabki',aka:'Frog Jumps - Home, Żabki - Home',cat:'Cardio',eq:'Własna masa',muscle:'Nogi, Moc, Cardio',tip:'Szeroki przysiad i skok do przodu jak żaba.',nsca:'3x8–12.',alt:'Przysiad z wyskokiem, Skok w dal z miejsca'},
+{name:'Drop squat',aka:'Drop Squat - Home',cat:'Cardio',eq:'Własna masa',muscle:'Hamowanie, Czworogłowy',tip:'Z wyprostu wpadnij w przysiad. Ciche lądowanie.',nsca:'3x6–8.',alt:'Miniband snap down'},
+{name:'Wall walks',aka:'Wall Walks - Home',cat:'Barki',eq:'Własna masa',muscle:'Barki, Core',tip:'Z deski nogi na ścianę, podejdź dłońmi do stania na rękach.',nsca:'4x3–6.',alt:'Stanie na rękach przy ścianie, Pompki w staniu na rękach'},
+{name:'Pompki pike plyo',aka:'Plyometric Pike Push Ups, Push Up to Pike - Home',cat:'Barki',eq:'Własna masa',muscle:'Barki, Moc',tip:'Pike / przejście z pompki do pike. Wariant plyo: wybicie dłoni.',nsca:'3x5–8.',alt:'Pompki pike, Pompki plyometryczne'},
+{name:'Przysiad low bar',aka:'Low Bar Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Czworogłowy',tip:'Sztanga niżej na barbell path. Więcej hinge w biodrach.',nsca:'4x4–8.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
+{name:'Wyciskanie sztangi ekscentryczne',aka:'Eccentric Bench Press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (ekscentryka)',tip:'Opuszczaj 3–5 s. Partner do wyciskania w górę jeśli trzeba.',nsca:'3x4–6.',alt:'Wyciskanie sztangi leżąc'},
+{name:'Wyciskanie sztangi szeroko',aka:'Wide Grip Bench Press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (szerzej)',tip:'Chwyt szerzej niż barki. Łokcie ~45–70°.',nsca:'3x6–10.',alt:'Wyciskanie sztangi leżąc, Pompki szerokie'},
+{name:'Wyciskanie sztangi 1.5',aka:'1 and 1/2 Bench Press, 1 and 1/2 Bench Press (Pulse)',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (pump)',tip:'Pełne powtórzenie + pół z dołu. Pauza opcjonalna na dole.',nsca:'3x6–8.',alt:'Wyciskanie sztangi leżąc'},
+{name:'Wyciskanie sztangi z pauzą izometryczną',aka:'Bench Press with Bottom Isometric, Bench Press with Isometric Pause',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (start z klatki)',tip:'Pauza 1–3 s na klatce, potem wyciskaj.',nsca:'3x4–6.',alt:'Wyciskanie sztangi ekscentryczne'},
+{name:'Wejścia na skrzynię power',aka:'Power Box Step Up',cat:'Cardio',eq:'Hantle',muscle:'Moc, Czworogłowy',tip:'Wybuchowe wejście, pełny wyprost biodra na górze.',nsca:'4x5–8/noga.',alt:'Wejścia na skrzynię'},
+{name:'Wykrok wsteczny ze sztangą w racku',aka:'Front Rack Barbell Reverse Lunge',cat:'Nogi',eq:'Sztanga',muscle:'Nogi, Core, Górne plecy',tip:'Sztanga w przednim racku. Krok w tył.',nsca:'3x6–10/noga.',alt:'Wykrok wsteczny, Przysiad przedni'},
+{name:'Wykroki w przód więzienne',aka:'Prisoner Forward Lunges',cat:'Nogi',eq:'Własna masa',muscle:'Nogi, Core',tip:'Dłonie za głową. Wykroki w przód.',nsca:'3x8–12/noga.',alt:'Wykrok chodzony, Przysiad więzienny'},
+{name:'Przysiad w wykroku 1.5',aka:'1 & 1/2 Split Squat - Home',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy (pump)',tip:'Pełny split squat + pół z dołu.',nsca:'3x8–10/noga.',alt:'Przysiad w wykroku hantlami'},
+{name:'Przysiad na skrzynię jednonóż',aka:'Single Leg Box Squat - Home',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Równowaga',tip:'Usiądź na skrzynię na jednej nodze, wstań.',nsca:'3x6–8/noga.',alt:'Przysiad jednonóż (pistol)'},
+{name:'Wykroki z przysiadu',aka:'Squat Lunges - Home',cat:'Nogi',eq:'Własna masa',muscle:'Nogi, Cardio',tip:'Przysiad i od razu wykrok.',nsca:'3x8–10/stronę.',alt:'Wykroki z przysiadu goblet KB'},
+{name:'Przysiad jednonóż z tapnięciem kostki',aka:'Single Leg Squat Ankle Tap',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Równowaga',tip:'Zejście jednonóż, tapnij kostkę / podłogę ręką.',nsca:'3x6–8/noga.',alt:'Przysiad jednonóż (pistol)'},
+{name:'Przysiad łyżwiarski',aka:'Skater Squat - Home, Skater squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Równowaga',tip:'Tylna noga uniesiona w tył. Zejście bez dotykania kolanem.',nsca:'3x5–8/noga.',alt:'Przysiad łyżwiarski TRX, Przysiad jednonóż (pistol)'},
+{name:'Wykrok ciągły jednonóż',aka:'Single Leg Continuous Lunge',cat:'Nogi',eq:'Własna masa',muscle:'Nogi, Wytrzymałość',tip:'Ta sama noga w wykroku bez odstawiania. Płynnie.',nsca:'3x10–15/noga.',alt:'Wykrok wsteczny'},
+{name:'Przysiad przy ścianie jednonóż',aka:'Single Leg Wall Sit',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Izometria',tip:'Wall sit, jedna noga uniesiona.',nsca:'3x15–30 s/noga.',alt:'Przysiad przy ścianie, Przysiad przy ścianie jednonóż na piłce',load:'sec'},
+{name:'Uginanie nóg 2+1 maszyna',aka:'2 + 1 Hamstring Leg Curl, 2+1 Single Leg Barbell RDL',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy',tip:'Dwa powtórzenia obunóż + jedno jednonóż (lub analog RDL).',nsca:'3x6–8.',alt:'Uginanie nóg leżąc, RDL jednonóż'},
+{name:'Mostek hantlem z mini band',aka:'DB Glute Bridge with Miniband',cat:'Pośladki',eq:'Hantle',muscle:'Pośladki',tip:'Hantel na biodrach, mini band nad kolanami.',nsca:'3x12–15.',alt:'Mostek hantlem jednonóż, Mostek biodrowy z mini band'},
+{name:'Wiosłowanie z taśmą (warianty chwytu)',aka:'Band Row Variation',cat:'Plecy',eq:'Taśmy',muscle:'Plecy, Tylne barki',tip:'Zmieniaj chwyt: neutralny, nachwyt, face pull.',nsca:'3x12–15.',alt:'Wiosłowanie z taśmą siedząc'},
+{name:'Landmine wykrok wsteczny do wyciskania',aka:'Landmine Reverse Lunge to Press',cat:'Nogi',eq:'Sztanga',muscle:'Nogi, Barki',tip:'Wykrok w tył z landmine i wyciskanie.',nsca:'3x6–10/stronę.',alt:'Wykrok wsteczny landmine, Wyciskanie landmine'},
+{name:'Sprinter side lunge na band',aka:'Sprinter Side Lunge on Band',cat:'Nogi',eq:'Taśmy',muscle:'Przywodziciele, Pośladki',tip:'Wykrok w bok w pozycji sprintera z taśmą.',nsca:'3x8–12/stronę.',alt:'Wykrok boczny'},
+{name:'Deska z sięgnięciem ramienia w tył',aka:'Plank Single Arm Reach Back, Plank Single Arm Reach B',cat:'Core',eq:'Własna masa',muscle:'Core antywyprost, Barki',tip:'Deska. Sięgnij jedną ręką w tył / pod biodro bez kołysania.',nsca:'3x8–10/stronę.',alt:'Deska, Deska z unoszeniem ramienia'},
+{name:'Wejścia w deskę (high to low)',aka:'Plank Walk Up (High to Low), Plank Walk Up',cat:'Core',eq:'Własna masa',muscle:'Core, Barki, Triceps',tip:'Z deski na łokciach wstań na dłonie i zejdź. Naprzemiennie prowadząca ręka.',nsca:'3x6–10/stronę.',alt:'Deska, Pompki'},
+{name:'Deska T naprzemienna',aka:'Alternating T Plank',cat:'Core',eq:'Własna masa',muscle:'Skośne, Barki, Core',tip:'Z deski na rękach otwórz tułów w T, wróć, zmień stronę.',nsca:'3x6–8/stronę.',alt:'Deska boczna, Deska z unoszeniem ramienia'},
+{name:'Toczenie hollow',aka:'Hollow Body Roll',cat:'Core',eq:'Własna masa',muscle:'Core głęboki',tip:'Pozycja hollow. Toczenie na bok bez łamania linii. Lędźwie przyklejone.',nsca:'3x6–8/stronę.',alt:'Hollow rock, Hollow hold'},
+{name:'Gąsienica bokiem',aka:'Lateral Inchworm, Lateral Inchwarm',cat:'Core',eq:'Własna masa',muscle:'Core, Barki, Przywodziciele',tip:'Inchworm, ale ręce i stopy idą w bok. Biodra nie uciekają w górę.',nsca:'3x6–8 m/stronę.',alt:'Gąsienica (inchworm), Chód niedźwiedzia bokiem'},
+{name:'Deska kolano–łokieć',aka:'Knee To Elbow Plank',cat:'Core',eq:'Własna masa',muscle:'Core, Skośne, Zginacze bioder',tip:'Deska. Kolano do tego samego albo przeciwnego łokcia. Biodra równo.',nsca:'3x8–12/stronę.',alt:'Mountain climbers, Deska'},
+{name:'Przejście na czworaka',aka:'Quadruped Transition',cat:'Core',eq:'Własna masa',muscle:'Core, Koordynacja, Barki',tip:'Płynne przejście deska ↔ czworak / bear. Kolana nisko.',nsca:'3x6–8.',alt:'Chód niedźwiedzia, Bird dog'},
+{name:'Deska z naprzemiennym tuckiem kolan',aka:'Alternating Knee Tuck Plank',cat:'Core',eq:'Własna masa',muscle:'Core, Zginacze bioder',tip:'Deska. Naprzemiennie przyciągaj kolano pod tułów. Nie kołysz biodrami.',nsca:'3x10–12/stronę.',alt:'Deska kolano–łokieć, Mountain climbers'},
+{name:'Opuszczanie nóg naprzemiennie',aka:'Alternating Single Leg Lowering, Alternating Single Leg Lower',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Zginacze bioder',tip:'Leżąc, jedna noga w pionie. Opuszczaj drugą nisko, lędźwie na macie.',nsca:'3x8–10/stronę.',alt:'Martwy robak, Unoszenie nóg leżąc'},
+{name:'Martwy robak regresja — ugięte kolana',aka:'Dead Bug Regression - Bent Knee',cat:'Core',eq:'Własna masa',muscle:'Core głęboki',tip:'Kolana 90°. Tylko ramiona albo tylko nogi. Lędźwie przyciśnięte.',nsca:'3x8–10/stronę.',alt:'Martwy robak'},
+{name:'Martwy robak regresja — przeciwna',aka:'Dead Bug Regression - Contralateral',cat:'Core',eq:'Własna masa',muscle:'Core głęboki, Koordynacja',tip:'Wolniejsza wersja przeciwnej ręki i nogi. Mniejszy zakres.',nsca:'3x8–10/stronę.',alt:'Martwy robak, Martwy robak regresja — ugięte kolana'},
+{name:'Przejście deska–deska boczna',aka:'Front Plank To Side Plank Transition',cat:'Core',eq:'Własna masa',muscle:'Core, Skośne',tip:'Z deski przodem otwórz w deskę boczną i wróć. Biodra wysoko.',nsca:'3x6–8/stronę.',alt:'Deska, Deska T naprzemienna'},
+{name:'Izometria na czworaka',aka:'Quadruped Iso Hold',cat:'Core',eq:'Własna masa',muscle:'Core, Barki, Stabilizacja',tip:'Czworak, kolana uniesione 2–3 cm. Kręgosłup neutralny.',nsca:'3x20–40 s.',alt:'Chód niedźwiedzia, Planche na czworaka',load:'sec'},
+{name:'Wiosłowanie renegade (masa ciała)',aka:'Renegade Row Bodyweight',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Plecy',tip:'Deska. Unoś dłoń do biodra jak wiosło, bez obrotu bioder.',nsca:'3x8–12/stronę.',alt:'Wiosłowanie renegade z pompkami, Deska z unoszeniem ramienia'},
+{name:'Hollow rock z ugiętymi kolanami',aka:'Tuck Hollow Rocks',cat:'Core',eq:'Własna masa',muscle:'Core głęboki',tip:'Hollow z kolanami przy klatce. Małe kołysanie, lędźwie przyklejone.',nsca:'3x20–40 s.',alt:'Hollow rock, Hollow hold',load:'sec'},
+{name:'Tapnięcia barku na czworaka',aka:'Quadruped Shoulder Tap',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Barki',tip:'Czworak lub bear. Tapnij przeciwny bark. Biodra nieruchome.',nsca:'3x10/stronę.',alt:'Deska z unoszeniem ramienia, Bird dog'},
+{name:'Deska z nogami na podwyższeniu',aka:'Feet Elevated Plank',cat:'Core',eq:'Własna masa',muscle:'Core (przedni), Barki',tip:'Stopy na ławce. Linia bark–biodro–kostka. Nie zapadaj lędźwi.',nsca:'3x30–45 s.',alt:'Deska',load:'sec'},
+{name:'Deska wysoka jednorącz',aka:'Single Arm High Plank, Single Arm Front Plank',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Barki',tip:'Deska na rękach, jedna dłoń przy biodrze. Stopy szerzej.',nsca:'3x20–30 s/stronę.',alt:'Deska, Deska z unoszeniem ramienia',load:'sec'},
+{name:'Deska wysoka jednorącz z tapnięciem',aka:'Single Arm High Plank with shoulder tap',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Barki',tip:'Deska jednorącz + tapnięcie wolną ręką. Zero kołysania.',nsca:'3x6–10/stronę.',alt:'Deska wysoka jednorącz, Deska z unoszeniem ramienia'},
+{name:'Deska na łokciach naprzemienny ślizg',aka:'Elbow Plank Alternating Slide, Elbow Plank Alternating',cat:'Core',eq:'Własna masa',muscle:'Core antywyprost',tip:'Deska na łokciach. Naprzemiennie ślizgaj stopę lub ramię w tył/przód.',nsca:'3x8–12/stronę.',alt:'Deska, Body saw na piłce swiss'},
+{name:'Mostek odwrotny (deska tyłem)',aka:'Reverse Plank Bridge Hold',cat:'Core',eq:'Własna masa',muscle:'Prostownicy, Pośladki, Core tylny',tip:'Podpór tyłem na dłoniach i piętach. Biodra wysoko, klatka otwarta.',nsca:'3x20–40 s.',alt:'Reverse hollow, Mostek biodrowy',load:'sec'},
+{name:'Deska boczna muszla (izometria)',aka:'Side Plank Clamshell Hold',cat:'Core',eq:'Własna masa',muscle:'Skośne, Pośladki średni',tip:'Deska boczna, kolana ugięte. Górne kolano otwarte jak muszla. Trzymaj.',nsca:'3x20–30 s/stronę.',alt:'Deska boczna, Muszla (clamshell)',load:'sec'},
+{name:'Deska boczna z ramieniem w bok',aka:'Side Plank with Single Arm Side, Side Plank Single Arm',cat:'Core',eq:'Własna masa',muscle:'Skośne, Barki',tip:'Deska boczna. Górna ręka wyprostowana w bok / w górę.',nsca:'3x20–40 s/stronę.',alt:'Deska boczna',load:'sec'},
+{name:'Rotacja ramienia w desce bocznej',aka:'Side Plank Arm Rotation',cat:'Core',eq:'Własna masa',muscle:'Skośne, Kręgosłup piersiowy',tip:'Deska boczna. Górną ręką „nawlekaj igłę” pod tułów i otwieraj.',nsca:'3x8–12/stronę.',alt:'Deska boczna, Nitka w igłę'},
+{name:'Pallof stojąc z wyciskaniem nad głowę',aka:'Standing Pallof Press with Overhead',cat:'Core',eq:'Taśmy',muscle:'Core antyrotacyjny, Barki',tip:'Pallof, potem wyprost ramion nad głowę. Nie skręcaj tułowia.',nsca:'3x8–10/stronę.',alt:'Wyciskanie Pallofa'},
+{name:'Pallof w wysokim klęku',aka:'Tall Kneeling Pallof Press',cat:'Core',eq:'Taśmy',muscle:'Core antyrotacyjny, Pośladki',tip:'Wysoki klęk, pośladki napięte. Wyciskaj rączkę przed klatkę.',nsca:'3x8–12/stronę.',alt:'Wyciskanie Pallofa, Pallof klęcząc'},
+{name:'Pallof w wysokim klęku nad głowę',aka:'Tall Kneeling Pallof Press with Overhead',cat:'Core',eq:'Taśmy',muscle:'Core antyrotacyjny, Barki',tip:'Wysoki klęk. Pallof i wyciskanie nad głowę bez rotacji.',nsca:'3x8–10/stronę.',alt:'Pallof w wysokim klęku, Pallof stojąc z wyciskaniem nad głowę'},
+{name:'Pallof klęcząc',aka:'Half Kneeling Pallof Press',cat:'Core',eq:'Taśmy',muscle:'Core antyrotacyjny, Biodra',tip:'Klęk jednonóż. Kolano od strony obciążenia w dół. Wyciskaj przed siebie.',nsca:'3x8–12/stronę.',alt:'Wyciskanie Pallofa, Pallof w wysokim klęku'},
+{name:'Deska z sięgnięciem ramienia',aka:'Plank Single Arm Reach',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Barki',tip:'Deska. Sięgnij ramieniem w przód. Biodra nie skręcaj.',nsca:'3x8–10/stronę.',alt:'Deska z sięgnięciem ramienia w tył, Bird dog'},
+{name:'Deska z naprzemiennym unoszeniem nóg',aka:'Plank Alternating Single Leg Lift, Plank Alternating Single Leg',cat:'Core',eq:'Własna masa',muscle:'Core, Pośladki',tip:'Deska. Unoś nogę nisko, bez zapadania lędźwi.',nsca:'3x8–12/stronę.',alt:'Deska, Bird dog'},
+{name:'Siekanie z taśmą w rozkroku',aka:'Split Stance Band Chop',cat:'Core',eq:'Taśmy',muscle:'Skośne, Core rotacyjny',tip:'Rozkrok. Ruch woodchop z taśmą góra–dół po skosie.',nsca:'3x8–12/stronę.',alt:'Woodchop wyciąg, Rotacja z taśmą w wykroku'},
+{name:'Unoszenie z taśmą w rozkroku',aka:'Split Stance Band Lift',cat:'Core',eq:'Taśmy',muscle:'Skośne, Core rotacyjny',tip:'Rozkrok. Ruch odwrotny do chop: dół–góra po skosie.',nsca:'3x8–12/stronę.',alt:'Siekanie z taśmą w rozkroku, Woodchop wyciąg'},
+{name:'Siekanie i unoszenie KB w rozkroku',aka:'Split Stance KB Chop and Lift',cat:'Core',eq:'Kettlebell',muscle:'Skośne, Barki, Core',tip:'KB po skosie w dół i w górę. Biodra stabilne, rozkrok.',nsca:'3x8–10/stronę.',alt:'Siekanie z taśmą w rozkroku, Siekanie piłką lekarską'},
+{name:'Siekanie wyciągiem w rozkroku',aka:'Split Stance Cable Chop',cat:'Core',eq:'Wyciąg',muscle:'Skośne, Core rotacyjny',tip:'Rozkrok bokiem do wyciągu. Chop z góry do biodra.',nsca:'3x8–12/stronę.',alt:'Woodchop wyciąg, Siekanie z taśmą w rozkroku'},
+{name:'Siekanie i unoszenie wyciągiem w rozkroku',aka:'Split Stance Cable Chop and Lift',cat:'Core',eq:'Wyciąg',muscle:'Skośne, Core rotacyjny',tip:'Chop i lift w jednym zestawie, rozkrok. Pełny skos.',nsca:'3x8–10/stronę.',alt:'Siekanie wyciągiem w rozkroku'},
+{name:'Rotacja siekaniem wyciągiem w rozkroku',aka:'Split Stance Cable Chop Rotation',cat:'Core',eq:'Wyciąg',muscle:'Skośne, Core rotacyjny',tip:'Większa rotacja tułowia przy chopie. Kolana śledzą, nie zapadają.',nsca:'3x8–12/stronę.',alt:'Siekanie wyciągiem w rozkroku, Rotacja landmine'},
+{name:'Rotacja z taśmą w rozkroku',aka:'Split Stance Band Rotation',cat:'Core',eq:'Taśmy',muscle:'Skośne, Core rotacyjny',tip:'Rozkrok. Rotuj tułów z taśmą przed klatką. Biodra mniej.',nsca:'3x8–12/stronę.',alt:'Rotacja z taśmą w wykroku, Wyciskanie Pallofa'},
+{name:'Skin the cat',aka:'Skin The Cat',cat:'Core',eq:'Własna masa',muscle:'Core, Barki, Najszerszy',tip:'Na kółkach lub drążku. Przewrót w tył przez barki i powrót. Kontroluj.',nsca:'3x4–8.',alt:'Zwisy na drążku, Palce do drążka'},
+{name:'Brzuszki proste nogi do wyciskania',aka:'Straight Leg Sit Ups to Overhead',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha, Barki',tip:'Nogi proste. Siad i ramiona nad głowę. Nie szarp szyją.',nsca:'3x10–15.',alt:'Brzuszki proste nogi, V-upy'},
+{name:'Brzuszki CrossFit',aka:'Crossfit Sit Ups, CrossFit sit-up',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha, Zginacze bioder',tip:'Stopy zahaczone / motylek. Sięgaj za głowę i do stóp.',nsca:'3x15–25.',alt:'Brzuszki klasyczne, Brzuszki proste nogi'},
+{name:'Wycieraczki leżąc',aka:'Floor Windshield Wipers, Windshield Wipers (lying)',cat:'Core',eq:'Własna masa',muscle:'Skośne, Core dolny',tip:'Nogi w pionie. Opuszczaj na boki, lędźwie kontrolowane.',nsca:'3x8–12/stronę.',alt:'Skręty rosyjskie, Unoszenie nóg leżąc'},
+{name:'Brzuszki na krześle kolano–łokieć',aka:'Chair Sit Ups Knee To Elbow',cat:'Core',eq:'Własna masa',muscle:'Skośne, Prosty brzucha',tip:'Na krześle. Łokieć do przeciwnego kolana.',nsca:'3x12–16.',alt:'Brzuszki rowerowe, Brzuszki na krześle'},
+{name:'Brzuszki gwiazda',aka:'Star Crunches',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha, Skośne',tip:'Leżąc, ramiona i nogi w gwiazdę. Zwiń żebra do miednicy.',nsca:'3x12–20.',alt:'Brzuszki klasyczne, V-upy'},
+{name:'Brzuszki proste nogi',aka:'Straight Leg Sit Ups, Straight Leg Sit Ups (Zoom)',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha, Zginacze bioder',tip:'Nogi proste na macie. Siad bez zamachu szyją.',nsca:'3x10–15.',alt:'Brzuszki klasyczne, Brzuszki CrossFit'},
+{name:'Brzuszki na krześle',aka:'Chair Sit Ups Crunches',cat:'Core',eq:'Własna masa',muscle:'Prosty brzucha',tip:'Siedząc na krześle, zwiń klatkę. Dla osób z ograniczeniem na macie.',nsca:'3x12–20.',alt:'Brzuszki klasyczne, Brzuszki na krześle kolano–łokieć'},
+{name:'Unoszenie nóg skrzyżowanych na poręczach',aka:'Dip Bar - Cross Leg Raises, Dip Bar Cross Leg Raises',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Skośne',tip:'Na poręczach. Nogi skrzyżowane, unoszenie i lekka rotacja.',nsca:'3x8–12.',alt:'Unoszenie nóg na poręczach, Zwisy nóg drążek'},
+{name:'Unoszenie kolan na poręczach',aka:'Dip Bar - Knee Raises, Dip Bar Knee Raises',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Zginacze bioder',tip:'Podpór na poręczach. Kolana do klatki, nie kołysz tułowiem.',nsca:'3x10–15.',alt:'Unoszenie kolan w zwisie, Unoszenie nóg na poręczach'},
+{name:'Rotacja w L-sit na poręczach',aka:'Dip Bar - L Sit Rotation, Dip Bar L Sit Rotation',cat:'Core',eq:'Własna masa',muscle:'Core, Skośne, Zginacze bioder',tip:'L-sit na poręczach. Mała rotacja nóg / bioder na boki.',nsca:'3x6–10/stronę.',alt:'Siad w L, Wycieraczki leżąc'},
+{name:'Unoszenie nóg na poręczach',aka:'Dip Bar - Leg Raises, Dip Bar Leg Raises',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Zginacze bioder',tip:'Nogi proste do poziomu (L) albo wyżej. Łokcie zablokowane.',nsca:'3x8–12.',alt:'Zwisy nóg drążek, Unoszenie kolan na poręczach'},
+{name:'Naprzemienne przyciąganie kolan w zwisie',aka:'Alternating Knee Tuck Raises, Alternating Knee Tuck Raise',cat:'Core',eq:'Własna masa',muscle:'Core, Skośne, Zginacze bioder',tip:'Zwis. Naprzemiennie kolano do klatki. Stabilny bark.',nsca:'3x8–12/stronę.',alt:'Unoszenie kolan w zwisie, Palce do drążka naprzemiennie'},
+{name:'Palce do drążka naprzemiennie',aka:'Alternating Toes To Bar',cat:'Core',eq:'Własna masa',muscle:'Core, Skośne',tip:'Zwis. Jedna noga do drążka, potem druga. Nie rozhuśtuj nadmiernie.',nsca:'3x6–10/stronę.',alt:'Palce do drążka, Naprzemienne przyciąganie kolan w zwisie'},
+{name:'Marsz wysokie kolana więzienny',aka:'Prisoner High Knee March',cat:'Core',eq:'Własna masa',muscle:'Zginacze bioder, Core, Pośladki',tip:'Dłonie za głową. Marsz z wysokim kolanem, tułów wysoki.',nsca:'3x20–30 s.',alt:'Wysokie kolana, Good morning więzienny'},
+{name:'Wycieraczki na drążku',aka:'Windshield Wipers (on bar), Windshield Wipers on bar',cat:'Core',eq:'Własna masa',muscle:'Skośne, Core, Barki',tip:'Zwis, nogi do pionu. Przenoś nogi z boku na bok jak wycieraczki.',nsca:'3x6–10/stronę.',alt:'Wycieraczki leżąc, Palce do drążka'},
+{name:'Pallof z rotacją',aka:'Pallof Press Rotation',cat:'Core',eq:'Taśmy',muscle:'Core rotacyjny, Skośne',tip:'Po wycisku Pallofa dodaj kontrolowaną rotację i wróć.',nsca:'3x8–10/stronę.',alt:'Wyciskanie Pallofa, Rotacja z taśmą w rozkroku'},
+{name:'Tuck-upy',aka:'Tuck Ups',cat:'Core',eq:'Własna masa',muscle:'Core, Zginacze bioder',tip:'Z hollow / leżenia zwiń kolana i tułów do siebie.',nsca:'3x10–15.',alt:'V-upy, Przyciąganie kolan (tuck-up)'},
+{name:'Przyciąganie kolan (tuck-up)',aka:'Knee Tuck Ups',cat:'Core',eq:'Własna masa',muscle:'Core dolny, Zginacze bioder',tip:'Leżąc, przyciągnij kolana do klatki. Lędźwie na macie albo lekki uniesiony.',nsca:'3x12–20.',alt:'Tuck-upy, Brzuszki odwrotne'},
+{name:'Pompki kolano–łokieć',aka:'Push Ups Knee To Elbow',cat:'Core',eq:'Własna masa',muscle:'Klatka, Core, Skośne',tip:'Pompka i kolano do łokcia (ta sama lub przeciwna strona).',nsca:'3x6–10/stronę.',alt:'Pompki, Deska kolano–łokieć',img:'assets/ex/bench.svg'},
+{name:'Deska jednorącz jednonóż',aka:'Single Leg Single Arm Plank',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny, Pośladki',tip:'Przeciwna ręka i noga uniesione. Krótko, jakość ponad czas.',nsca:'3x15–25 s/stronę.',alt:'Deska wysoka jednorącz, Bird dog',load:'sec'},
+{name:'Deska boczna jednorącz jednonóż',aka:'Side Plank with Single Arm Single Leg, Side Plank with Single Arm Sin',cat:'Core',eq:'Własna masa',muscle:'Skośne, Pośladki, Barki',tip:'Deska boczna. Górna noga i ramię uniesione. Linia ciała.',nsca:'3x15–25 s/stronę.',alt:'Deska boczna, Deska jednorącz jednonóż',load:'sec'},
+{name:'Noszenie KB w racku jednorącz',aka:'KB Single Arm Front Rack Carry, KB Single Arm Front Rack',cat:'Core',eq:'Kettlebell',muscle:'Core antyboczny, Barki',tip:'KB w racku. Łokieć wysoko, żebro nad miednicą. Krótkie kroki.',nsca:'3x20–30 m/stronę.',alt:'Noszenie hantla w racku jednorącz, Noszenie dwa KB w racku'},
+{name:'Spacer walizkowy KB jednonóż',aka:'KB Single Arm Suitcase Carry Single Leg, KB Single Arm Suitcase Carry S',cat:'Core',eq:'Kettlebell',muscle:'Core antyboczny, Równowaga',tip:'Walizka KB, marsz lub stanie na jednej nodze. Nie przechylaj się.',nsca:'3x8–12/stronę albo 20 m.',alt:'Spacer walizkowy, Noszenie KB w racku jednonóż'},
+{name:'Noszenie KB w racku jednonóż',aka:'KB Single Arm Front Rack Single Leg, KB Single Arm Front Rack Sing',cat:'Core',eq:'Kettlebell',muscle:'Core, Równowaga, Barki',tip:'KB w racku, stanie lub marsz na jednej nodze.',nsca:'3x8–12 s/stronę albo 8–12 kroków.',alt:'Noszenie KB w racku jednorącz'},
+{name:'TRX naprzemienne kolana (stopy wyżej)',aka:'TRX Feet Elevated Alternating, TRX Feet Elevated Alternating Knee Tuck',cat:'Core',eq:'Taśmy',muscle:'Core, Zginacze bioder',tip:'Stopy w TRX. Naprzemiennie przyciągaj kolana. Biodra nie opadają.',nsca:'3x8–12/stronę.',alt:'Pike na taśmach, Pompki TRX z przyciągnięciem kolan'},
+{name:'TRX krzyżowe przyciąganie kolan',aka:'TRX Cross Knee Tuck, TRX Cross Knee Tuck - Knee',cat:'Core',eq:'Taśmy',muscle:'Skośne, Core',tip:'Stopy w TRX. Kolano do przeciwnego łokcia.',nsca:'3x8–12/stronę.',alt:'Pompki TRX z przyciągnięciem kolan, Deska kolano–łokieć'},
+{name:'Przeciąganie na rollerze w desce',aka:'Roller Plank Pull Through',cat:'Core',eq:'Własna masa',muscle:'Core antyrotacyjny',tip:'Deska, roller pod jedną ręką. Przeciągnij pod tułów bez obrotu bioder.',nsca:'3x8–12/stronę.',alt:'Przeciąganie hantla w desce, Pompki z przeciągnięciem'},
+{name:'Skręty rosyjskie z talerzem',aka:'Russian Twist with Plate',cat:'Core',eq:'Sztanga',muscle:'Skośne, Core rotacyjny',tip:'Talerz przy klatce. Rotuj barki, biodra stabilne. Albo hantel.',nsca:'3x12–16/stronę.',alt:'Skręty rosyjskie, Skręty rosyjskie z piłką nad klatką'},
+{name:'Foam roller — stopa',aka:'Foam Roll - Foot',cat:'Mobilność',eq:'Własna masa',muscle:'Rozcięgno podeszwowe, Stopa',tip:'Roluj podeszwę od pięty do palców. Zatrzymaj na bolących punktach.',nsca:'1–2 min/stopa.',alt:'Foam roller łydki'},
+{name:'SMR sztangą',aka:'Barbell SMR',cat:'Mobilność',eq:'Sztanga',muscle:'Podeszwa, Łydka, Mięśnie twarde',tip:'Stopa lub łydka na gryfie. Mały nacisk, wolne rolowanie.',nsca:'1–2 min/stronę.',alt:'Foam roller — stopa'},
+{name:'Foam roller łydki jednonóż',aka:'Foam Roll - Calf Single Leg',cat:'Mobilność',eq:'Własna masa',muscle:'Łydki',tip:'Jedna noga na rollerze, druga może dociążać. Wolno.',nsca:'1–2 min/stronę.',alt:'Foam roller łydki'},
+{name:'Foam roller — piszczel',aka:'Foam Roll - Tibialis Anterior',cat:'Mobilność',eq:'Własna masa',muscle:'Piszczel przedni',tip:'Leżąc przodem, roluj zewnętrzny przód podudzia.',nsca:'1–2 min/stronę.',alt:'Foam roller łydki'},
+{name:'Foam roller — przywodziciele',aka:'Foam Roll - Adductors',cat:'Mobilność',eq:'Własna masa',muscle:'Przywodziciele',tip:'Leżąc na brzuchu, udo wewnątrz na rollerze. Od kolana do pachwiny.',nsca:'1–2 min/stronę.',alt:'Foam roller — IT band'},
+{name:'Foam roller — czworogłowy',aka:'Foam Roll - Quadriceps Femoris',cat:'Mobilność',eq:'Własna masa',muscle:'Czworogłowy',tip:'Przodem, udo na rollerze. Od kolana do biodra.',nsca:'1–2 min/stronę.',alt:'Foam roller — IT band, Couch stretch'},
+{name:'Foam roller — dwugłowy',aka:'Foam Roll - Hamstring',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy uda',tip:'Siedząc, udo tyłem na rollerze. Od kolana do pośladka.',nsca:'1–2 min/stronę.',alt:'Foam roller łydki'},
+{name:'Foam roller — pośladki średni',aka:'Foam Roll - Gluetus Medius with, Foam Roll - Gluteus Medius',cat:'Mobilność',eq:'Własna masa',muscle:'Pośladki średni',tip:'Bokiem, ciężar na bocznej części pośladka. Małe ruchy.',nsca:'1–2 min/stronę.',alt:'Foam roller — pośladki, Poza gołębia'},
+{name:'Foam roller — pośladki',aka:'Foam Roll - Gluteus',cat:'Mobilność',eq:'Własna masa',muscle:'Pośladki',tip:'Siedząc na rollerze, skrzyżuj nogę. Roluj pośladek.',nsca:'1–2 min/stronę.',alt:'Foam roller — pośladki średni, Poza gołębia'},
+{name:'Foam roller — lędźwie',aka:'Foam Roll - Lumbar Spine',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup lędźwiowy',tip:'Krótko i delikatnie. Nie roluj bezpośrednio wyrostków. Albo obok kręgosłupa.',nsca:'1 min.',alt:'Foam roller — plecy'},
+{name:'Foam roller — najszerszy',aka:'Foam Roll - Latissimus Dorsi',cat:'Mobilność',eq:'Własna masa',muscle:'Najszerszy grzbietu',tip:'Bokiem, ramię nad głową. Roluj od pachy w dół tułowia.',nsca:'1–2 min/stronę.',alt:'Foam roller — plecy'},
+{name:'Foam roller — klatka',aka:'Foam Roll - Chest',cat:'Mobilność',eq:'Własna masa',muscle:'Klatka, Przedni bark',tip:'Przodem skos, roller pod klatką / przodem barku.',nsca:'1–2 min/stronę.',alt:'Rozciąganie w framudze'},
+{name:'Foam roller — kręgosłup z PCV',aka:'Foam Roll - Spine with PCV Overhead, Foam Roll - Thoracic Spine with PVC',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy, Barki',tip:'Roller pod piersiowym, rurka PCV nad głową. Małe przeprosty.',nsca:'1–2 min.',alt:'Foam roller — plecy'},
+{name:'Zgięcie grzbietowe stawu skokowego stojąc',aka:'Standing Ankle Dorsiflexion Mobility',cat:'Mobilność',eq:'Własna masa',muscle:'Staw skokowy, Łydka',tip:'Kolano nad palce przy ścianie, pięta na ziemi. Pulsuj.',nsca:'2x10/stronę.',alt:'Kółka stawem skokowym, Rozciąganie łydek'},
+{name:'Mobilność stawu skokowego klęcząc',aka:'Kneeling Ankle Mobility',cat:'Mobilność',eq:'Własna masa',muscle:'Staw skokowy',tip:'Klęk wykroczna. Kolano pchaj nad palce, pięta w dół.',nsca:'2x10/stronę.',alt:'Zgięcie grzbietowe stawu skokowego stojąc'},
+{name:'Mobilność stawu skokowego w przysiadzie',aka:'Deep Squat Ankle Mobility, Deep Squat Ankle Bobility',cat:'Mobilność',eq:'Własna masa',muscle:'Staw skokowy, Biodra',tip:'Głęboki przysiad. Przenoś ciężar na stopy, kolana nad palce.',nsca:'2x8–10 albo 30–45 s.',alt:'Głębokie kucnięcie (hang), Mobilność stawu skokowego klęcząc'},
+{name:'Mobilność stawu skokowego klęcząc jednonóż',aka:'Half Kneeling Single Leg Ankle Mobility',cat:'Mobilność',eq:'Własna masa',muscle:'Staw skokowy',tip:'Klęk jednonóż. Tylko przednia kostka: kolano nad palce, pięta klei.',nsca:'2x10/stronę.',alt:'Mobilność stawu skokowego klęcząc'},
+{name:'Mobilność zgięcia podeszwowego jednonóż',aka:'Single Leg Plantar Flexion Mobility',cat:'Mobilność',eq:'Własna masa',muscle:'Staw skokowy, Łydka',tip:'Na stopniu. Unoś piętę i opuszczaj poniżej poziomu. Kontroluj.',nsca:'2x10–12/stronę.',alt:'Wspięcia na palce, Kółka stawem skokowym'},
+{name:'Rozciąganie rozcięgna na skrzyni',aka:'Plantar Fascia Stretch with Box',cat:'Mobilność',eq:'Własna masa',muscle:'Rozcięgno podeszwowe',tip:'Palce na krawędzi skrzyni, pięta w dół. Delikatny skłon.',nsca:'3x30 s/stopa.',alt:'Foam roller — stopa'},
+{name:'Przysiad głęboki naprzemienne ramię',aka:'Deep Squat Single Arm Alternating, Deep Squat Single Arm Reach',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Kręgosłup piersiowy, Barki',tip:'Siedź w przysiadzie. Naprzemiennie sięgaj ramieniem w górę / rotuj.',nsca:'2x6–8/stronę.',alt:'Głębokie kucnięcie (hang), World’s greatest stretch'},
+{name:'Przysiad głęboki ramiona nad głowę',aka:'Deep Squat Overhead Arm Reach',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Barki, Kręgosłup',tip:'Głęboki przysiad, ramiona proste nad głowę. Klatka otwarta.',nsca:'3x20–40 s.',alt:'Przysiad głęboki naprzemienne ramię, Przysiad nad głową',load:'sec'},
+{name:'Dynamiczne rozciąganie łyżwiarza',aka:'Dynamic Skaters Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Przywodziciele, Biodra',tip:'Wykrok w bok jak łyżwiarz, pulsuj w dole. Klatka wysoka.',nsca:'2x8–10/stronę.',alt:'Wykrok boczny, Przysiad kozacki'},
+{name:'90/90 skłon w przód',aka:'90/90 Forward Lean Hip Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Pośladki',tip:'Pozycja 90/90. Skłon nad przednim udem, plecy długie.',nsca:'3x30–45 s/stronę.',alt:'Biodra 90/90, Poza gołębia'},
+{name:'Wykrok do rozciągania dwugłowego',aka:'Forward Lunge to Hamstring Stretch, Lunge to Hamstring Stretch, Lunge Step To Hamstring Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy uda, Prostownik biodra',tip:'Z wykroku wypchnij biodra w tył, przednia noga prosta. Potem wróć w wykrok.',nsca:'2x6–8/stronę.',alt:'Rozciąganie zginaczy biodra (dynamiczne), Toy soldier'},
+{name:'Żaba na łokciach',aka:'Frog Stretch Mobility on Elbows',cat:'Mobilność',eq:'Własna masa',muscle:'Przywodziciele, Biodra',tip:'Żaba, łokcie na macie. Kołysz biodrami przód–tył.',nsca:'2x8–10 albo 45 s.',alt:'Rozciąganie żaba'},
+{name:'Wykrok klęcząc do dwugłowego',aka:'Kneeling Lunge To Hamstring Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy, Prostownik biodra',tip:'Z klęku wykrocznego wypchnij biodra, wyprostuj przednią nogę.',nsca:'2x6–8/stronę.',alt:'Wykrok do rozciągania dwugłowego, Couch stretch'},
+{name:'Dynamiczne prostowanie kolana leżąc',aka:'Lying Dynamic Knee Extensions',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy uda, Kolano',tip:'Leżąc, udo pion. Prostuj i uginaj kolano w zakresie bez bólu.',nsca:'2x10–12/noga.',alt:'Toy soldier'},
+{name:'Pancake (rozciąganie)',aka:'Pancake Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Przywodziciele, Dwugłowy, Grzbiet',tip:'Siedząc, nogi szeroko. Tułów do podłogi, plecy jak najdłuższe.',nsca:'3x45–60 s.',alt:'Rozciąganie w rozkroku, Rozciąganie butterfly'},
+{name:'Deska do psa z głową w dół',aka:'Plank to Downward Dog',cat:'Mobilność',eq:'Własna masa',muscle:'Łańcuch tylny, Barki, Core',tip:'Z deski wypchnij biodra w psa. Pięty do podłogi, wróć w deskę.',nsca:'2x8–10.',alt:'Pies z głową w dół, Gąsienica (inchworm)'},
+{name:'Kołysanie kozackie klęcząc',aka:'Half Kneeling Cossack Hip Rocking, Cossack Kneeling Hip Rocking Mobility',cat:'Mobilność',eq:'Własna masa',muscle:'Przywodziciele, Biodra',tip:'Klęk szeroki. Kołysz biodrami nad jedną i drugą piętą.',nsca:'2x8–10/stronę.',alt:'Przysiad kozacki, Dynamiczne rozciąganie łyżwiarza'},
+{name:'Rotacja wewnętrzna biodra z podporą',aka:'Leg Supported Hip Internal Rotation',cat:'Mobilność',eq:'Własna masa',muscle:'Rotatory biodra',tip:'Udo oparte. Kręć goleń do wewnątrz. Mały, kontrolowany zakres.',nsca:'2x8–10/stronę.',alt:'Biodra 90/90, Rotacja wewnętrzna biodra na skrzyni'},
+{name:'CARs biodra na czworaka',aka:'Quadruped Hip CARS',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra (360°)',tip:'Na czworaka. Wolne, duże kółko uda. Miednica nieruchoma.',nsca:'2x5/kierunek/noga.',alt:'Kółka biodrami, Fire hydrant'},
+{name:'CARs biodra leżąc bokiem',aka:'Side Lying Hip CARS',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra (360°)',tip:'Leżąc na boku. Rysuj kółko górną nogą, tułów stabilny.',nsca:'2x5/kierunek/noga.',alt:'CARs biodra na czworaka, Muszla (clamshell)'},
+{name:'RDL jednonóż pięta do pośladka',aka:'Single Leg RDL Heel To Butt, Heel To Butt Single Leg RDL Arm Reach',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy, Pośladki, Równowaga',tip:'RDL jednonóż, wolna pięta do pośladka. Sięgaj ramionami.',nsca:'2x6–8/noga.',alt:'RDL jednonóż, Pięty do pośladków'},
+{name:'Przyciągnięcie kolana do wykroku bocznego',aka:'Knee Hug To Lateral Lunge',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Przywodziciele, Pośladki',tip:'Przytul kolano, potem szeroki wykrok w bok. Płynnie.',nsca:'2x6–8/stronę.',alt:'Wykrok boczny, World’s greatest stretch'},
+{name:'Wykrok z ramionami nad głową',aka:'Lunge With Overhead Arms',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Barki, Core',tip:'Wykrok, ramiona proste nad głowę. Żebra w dół.',nsca:'2x8/stronę.',alt:'Wykrok chodzony, Couch stretch'},
+{name:'Przysiad kozacki do siadu',aka:'Cossack Squat To Sit',cat:'Mobilność',eq:'Własna masa',muscle:'Przywodziciele, Biodra, Mobilność',tip:'Z kozaka usiądź na biodrze / pośladku i wróć. Kontroluj.',nsca:'2x5–8/stronę.',alt:'Przysiad kozacki, Kołysanie kozackie klęcząc'},
+{name:'Dynamiczne rozciąganie dwugłowego leżąc',aka:'Lying Single Leg Hamstring Dynamic Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy uda',tip:'Leżąc, unoszenie prostej nogi w pulsach. Druga noga na macie.',nsca:'2x10/noga.',alt:'Dynamiczne prostowanie kolana leżąc, Toy soldier'},
+{name:'Klęk zginacze do dwugłowego',aka:'Half Kneeling Hip Flexors to Hamstring Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Prostownik biodra, Dwugłowy',tip:'Klęk: najpierw wypchnij biodra (zginacz), potem wyprost przedniej nogi.',nsca:'2x6–8/stronę.',alt:'Rozciąganie biodrowo-lędźwiowego, Wykrok klęcząc do dwugłowego'},
+{name:'Chód w rozkroku — dwugłowy',aka:'Split Stance Walk Hamstring Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy uda, Łydki',tip:'Małe kroki w rozkroku z prostą przednią nogą i skłonem.',nsca:'2x8–10 kroków/noga.',alt:'Wykrok do rozciągania dwugłowego'},
+{name:'Przysiad goblet do dwugłowego',aka:'KB Goblet Squat To Hamstring Stretch',cat:'Mobilność',eq:'Kettlebell',muscle:'Biodra, Dwugłowy, Czworogłowy',tip:'Goblet przysiad, potem wypchnij biodra i wyprost nóg (hinge).',nsca:'2x6–8.',alt:'Przysiad Goblet, Przysiad do stania'},
+{name:'Rozciąganie zginaczy na skrzyni',aka:'Hip Flexor Box Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Prostownik biodra',tip:'Tylna noga na skrzyni. Biodra pchaj do przodu, tułów wysoki.',nsca:'3x30–45 s/stronę.',alt:'Couch stretch, Rozciąganie biodrowo-lędźwiowego'},
+{name:'Łucznik w rozkroku',aka:'Straddle Archer Hamstring Stretch, Straddle Archer Hamstring and',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy, Przywodziciele, Grzbiet',tip:'Siedząc w rozkroku, sięgaj do jednej stopy (łucznik), potem do drugiej.',nsca:'2x6–8/stronę albo 45 s.',alt:'Pancake (rozciąganie), Rozciąganie w rozkroku'},
+{name:'Rozciąganie pośladka leżąc jednonóż',aka:'Lying Single Leg Glute Stretch, Single Leg Glute Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Pośladki',tip:'Leżąc, przyciągnij udo do klatki albo figure-4. Luz szyi.',nsca:'3x30–45 s/stronę.',alt:'Rozciąganie figure-4, Poza gołębia'},
+{name:'Szeroki rozkrok — dwugłowy',aka:'Wide Stance Hamstring Stretch, Wide Stance Hamstring Stretch AL, Wide Stance Forward Lean - Hamstring',cat:'Mobilność',eq:'Własna masa',muscle:'Dwugłowy, Przywodziciele',tip:'Szeroki stojący rozkrok. Skłon z długimi plecami. Można naprzemiennie.',nsca:'3x30–45 s.',alt:'Łucznik w rozkroku, Pancake (rozciąganie)'},
+{name:'Przytulenie kolana siedząc',aka:'Seated Knee Hug Glute Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Pośladki, Kręgosłup',tip:'Siedząc, przytul kolano do klatki. Druga noga wyprostowana lub ugięta.',nsca:'3x30 s/stronę.',alt:'Rozciąganie pośladka leżąc jednonóż'},
+{name:'Bretzel',aka:'Bretzel Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Kręgosłup piersiowy, Czworogłowy',tip:'Leżąc na boku: dolne kolano 90, górna noga w tył. Otwieraj klatkę.',nsca:'3x45–60 s/stronę.',alt:'Open book, Couch stretch'},
+{name:'Half bretzel',aka:'Half Bretzel Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy, Biodra',tip:'Łatwiejszy bretzel: mniejszy zakres nogi tylnej, skup się na rotacji klatki.',nsca:'3x45 s/stronę.',alt:'Bretzel, Open book'},
+{name:'Rotacja zewnętrzna biodra na skrzyni',aka:'Box Elevated Hip External Rotation',cat:'Mobilność',eq:'Własna masa',muscle:'Rotatory biodra, Pośladki',tip:'Udo na skrzyni. Otwieraj udo na zewnątrz, miednica równo.',nsca:'2x8–10/stronę.',alt:'Biodra 90/90, Poza gołębia'},
+{name:'Rotacja wewnętrzna biodra na skrzyni',aka:'Box Elevated Hip Internal Rotation',cat:'Mobilność',eq:'Własna masa',muscle:'Rotatory biodra',tip:'Udo na skrzyni. Kręć udo do wewnątrz. Bez bólu w kolanie.',nsca:'2x8–10/stronę.',alt:'Rotacja wewnętrzna biodra z podporą, Biodra 90/90'},
+{name:'Gołąb na podwyższeniu',aka:'Elevated Pigeon Stretch, Elevated Pigeon Stretch with',cat:'Mobilność',eq:'Własna masa',muscle:'Pośladki, Biodra zewnętrzne',tip:'Przednia gołębia noga na skrzyni. Tułów nad udem.',nsca:'3x45–60 s/stronę.',alt:'Poza gołębia'},
+{name:'Saddle pose (siad na piętach)',aka:'Saddle Pose (Heel Sit) - Quads Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Czworogłowy, Prostownik biodra',tip:'Siad na piętach, tułów wyprostowany. Podkładka pod kostki jeśli trzeba.',nsca:'3x30–60 s.',alt:'Couch stretch, Rozciąganie czworogłowego stojąc'},
+{name:'Saddle pose zaawansowany',aka:'Saddle Pose (Heel Sit) - Advanced',cat:'Mobilność',eq:'Własna masa',muscle:'Czworogłowy, Biodra',tip:'Z siadu na piętach odchyl tułów w tył na łokcie / matę. Ostrożnie kolana.',nsca:'3x20–40 s.',alt:'Saddle pose (siad na piętach)',load:'sec'},
+{name:'Klęk kozacki — kręgosłup piersiowy',aka:'Kneeling Cossack Thoracic Spine',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy, Biodra',tip:'Klęk szeroki. Rotuj klatkę i ramię nad przednim udem.',nsca:'2x6–8/stronę.',alt:'Rotacja piersiowa, Kołysanie kozackie klęcząc'},
+{name:'Rozciąganie najszerszego na czworaka jednorącz',aka:'Quadruped Single Arm Lats Stretch, Quadruped Single Arm Lats STR',cat:'Mobilność',eq:'Własna masa',muscle:'Najszerszy, Kręgosłup piersiowy',tip:'Czworak. Jedna ręka daleko w przód, klatka do podłogi.',nsca:'3x30 s/stronę.',alt:'Rozciąganie najszerszego na czworaka, Poza dziecka'},
+{name:'Rozciąganie klatki leżąc jednorącz',aka:'Prone Lying Single Arm Chest Stretch, Prone Lying Single Arm Chest S',cat:'Mobilność',eq:'Własna masa',muscle:'Klatka, Przedni bark',tip:'Leżąc przodem, ramię w bok 90°. Obróć tułów od ramienia.',nsca:'3x30–45 s/stronę.',alt:'Rozciąganie w framudze, Sleeper stretch'},
+{name:'Tabletop stretch',aka:'Tabletop Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Klatka, Brzuch',tip:'Dłonie na ławce za sobą, biodra w przód. Otwieraj klatkę.',nsca:'3x30–45 s.',alt:'Rozciąganie w framudze'},
+{name:'Tabletop z sięgnięciem ramienia',aka:'Tabletop Stretch with Arm Reach, Tabletop Stretch with Single Arm, Tabletop Stretch with Single Arn',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Kręgosłup piersiowy',tip:'Tabletop. Sięgnij jedną ręką w tył / w bok. Biodra wysokie.',nsca:'2x6–8/stronę.',alt:'Tabletop stretch, Przysiad głęboki naprzemienne ramię'},
+{name:'Mobilność nadgarstków',aka:'Wrist Mobility',cat:'Mobilność',eq:'Własna masa',muscle:'Nadgarstki, Przedramiona',tip:'Na czworaka. Kołysz dłońmi palce w przód i w tył. Delikatnie.',nsca:'2x8–10.',alt:'Kółka ramionami'},
+{name:'Rotacja lędźwi leżąc',aka:'Lying Lumbar Spine Rotation Stretch, Lying Lumbar SPine Rotation St',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup lędźwiowy, Pośladki',tip:'Leżąc, kolana na bok. Łopatki na macie.',nsca:'3x30–45 s/stronę.',alt:'Skręt leżąc, Open book'},
+{name:'Rozciąganie najszerszego na czworaka',aka:'Quadruped Lats Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Najszerszy, Kręgosłup',tip:'Czworak, obie ręce w przód, klatka w dół (puppy / child’s reach).',nsca:'3x30–45 s.',alt:'Poza dziecka, Rozciąganie najszerszego na czworaka jednorącz'},
+{name:'Rotacja piersiowa więzienna siedząc',aka:'Seated Prisoner Thoracic Spine',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy',tip:'Siedząc, dłonie za głową. Rotuj klatkę, biodra w miejscu.',nsca:'2x8–10/stronę.',alt:'Rotacja piersiowa, Open book'},
+{name:'Machy nogą bokiem statyczne',aka:'Side Swing Static Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Przywodziciele, Odwodziciele',tip:'Trzymasz się ściany. Noga w bok, zatrzymaj w rozciągnięciu.',nsca:'3x20–30 s/stronę.',alt:'Machy nogą bokiem, Dynamiczne rozciąganie łyżwiarza'},
+{name:'Rozciąganie klatki jednorącz stojąc',aka:'Standing Single Arm Pec Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Klatka, Przedni bark',tip:'Dłoń na framudze / ścianie. Obróć tułów od ramienia.',nsca:'3x30 s/stronę.',alt:'Rozciąganie w framudze'},
+{name:'Rozciąganie najszerszego klęcząc jednorącz',aka:'Kneeling Single Arm Lat Stretch',cat:'Mobilność',eq:'Własna masa',muscle:'Najszerszy',tip:'Klęcząc, jedna ręka na ławce. Usiądź biodrami do pięt, klatka w dół.',nsca:'3x30 s/stronę.',alt:'Rozciąganie najszerszego na czworaka jednorącz'},
+{name:'CARs barków naprzemiennie',aka:'Alternating Shoulder CARS Rotation, Alternating Shoulder CARs Rotatio',cat:'Mobilność',eq:'Własna masa',muscle:'Barki (360°)',tip:'Stojąc. Duże, wolne kółko barkiem. Żebra w dół. Naprzemiennie.',nsca:'2x5/kierunek/stronę.',alt:'Kółka ramionami, CARs barków na czworaka'},
+{name:'Rotacja barku w pozie dziecka',aka:'Shoulder Rotation in Childs Pose',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Kręgosłup piersiowy',tip:'Poza dziecka. Kręć ramieniem, klatka nisko.',nsca:'2x6–8/stronę.',alt:'CARs barków w pozie dziecka, Poza dziecka'},
+{name:'CARs barków na czworaka',aka:'Quadruped Shoulder CARS, Quadruped Shoulder CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Barki (360°)',tip:'Czworak. Jedno ramię rysuje kółko. Miednica nieruchoma.',nsca:'2x5/kierunek/stronę.',alt:'CARs barków naprzemiennie, Bird dog'},
+{name:'CARs łopatek stojąc',aka:'Standing Scapular CARS, Standing Scapular CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Łopatki, Trapez',tip:'Ramiona wzdłuż ciała. Duże kółka łopatkami: unieś, rozsunięcie, zbliżenie.',nsca:'2x8/kierunek.',alt:'Kółka ramionami'},
+{name:'CARs barków leżąc (rozpiętki)',aka:'Prone Lying Shoulder Fly CARS, Prone Lying Shoulder Fly CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Tylne barki',tip:'Leżąc przodem. Ramiona rysują kółko jak wolna rozpiętka.',nsca:'2x6–8/kierunek.',alt:'CARs barków naprzemiennie, Odwrotne rozpiętki'},
+{name:'CARs barków w pozie dziecka z piersiowym',aka:'Child Pose Shoulder CARS with Thoracic, Child Pose Shoulder CARs with Thoraci',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Kręgosłup piersiowy',tip:'Poza dziecka. Kółko barkiem + rotacja klatki.',nsca:'2x5/kierunek/stronę.',alt:'CARs barków w pozie dziecka, Rotacja piersiowa'},
+{name:'CARs barków w pozie dziecka',aka:'Child Pose Shoulder CARS, Childe Pose Shoulder CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Barki',tip:'Poza dziecka. Wolne kółka ramieniem na macie / nad głową.',nsca:'2x5/kierunek/stronę.',alt:'Rotacja barku w pozie dziecka, Poza dziecka'},
+{name:'CARs bark–łopatka na czworaka',aka:'Quadruped Shoulder Scapular CARS, Quadruped Shoulder Scapular CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Łopatki',tip:'Czworak. Połącz kółko barku z ruchem łopatki. Wolno.',nsca:'2x5/kierunek/stronę.',alt:'CARs barków na czworaka, CARs łopatek stojąc'},
+{name:'CARs szyi w wysokim klęku',aka:'Tall Kneeling Neck CARS, Tall Kneeling Neck CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Szyja',tip:'Wysoki klęk. Małe, kontrolowane kółka głową. Bez bólu, bez szarpania.',nsca:'2x4–6/kierunek.',alt:'Rozciąganie szyi bokiem'},
+{name:'CARs barków w wysokim klęku',aka:'Tall Kneeling Shoulder CARS, Tall Kneeling Shoulder CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Barki',tip:'Wysoki klęk, pośladki napięte. Duże kółka barkami.',nsca:'2x5/kierunek.',alt:'CARs barków naprzemiennie'},
+{name:'CARs kręgosłupa piersiowego w wysokim klęku',aka:'Tall Kneeling Thoracic Spine CARS, Tall Kneeling Thoracic SPine CARs',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy',tip:'Wysoki klęk. Segmentowa flex/ext i rotacja klatki. Biodra nieruchome.',nsca:'2x5/kierunek.',alt:'Rotacja piersiowa, Cat-cow (kot-krowa)'},
+{name:'Flow mobilności przysiadu 1',aka:'Squat Mobility Flow 1',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Staw skokowy, Kręgosłup',tip:'Płynna sekwencja: przysiad, rotacje, sięganie ramion. Bez pośpiechu.',nsca:'2–3 rundy.',alt:'Przysiad głęboki naprzemienne ramię, Głębokie kucnięcie (hang)'},
+{name:'Flow mobilności przysiadu jednonóż',aka:'Single Leg Squat Mobility Flow',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Równowaga, Staw skokowy',tip:'Sekwencja jednonóż: przysiad / RDL / rotacja. Trzymaj się ściany jeśli trzeba.',nsca:'2 rundy/noga.',alt:'Flow mobilności przysiadu 1, Przysiad jednonóż (pistol)'},
+{name:'Mobilność w domu A',aka:'Home - Mobility A',cat:'Mobilność',eq:'Własna masa',muscle:'Całe ciało, Mobilność',tip:'Gotowy zestaw A z atlasu: stawy skokowe, biodra, piersiowy.',nsca:'8–12 min.',alt:'Mobilność w domu B, Flow mobilności przysiadu 1'},
+{name:'Mobilność w domu B',aka:'Home - Mobility B',cat:'Mobilność',eq:'Własna masa',muscle:'Całe ciało, Mobilność',tip:'Gotowy zestaw B z atlasu: barki, CARs, rozciąganie statyczne.',nsca:'8–12 min.',alt:'Mobilność w domu A, CARs barków naprzemiennie'},
+{name:'Jefferson curl (masa ciała)',aka:'Jefferson Curl Bodyweight',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup (segmentowo), Dwugłowy',tip:'Powolne zwijanie kręgosłupa od głowy w dół i odwrotnie. Kolana miękkie.',nsca:'2x6–8.',alt:'Cat-cow (kot-krowa), Skłon do nóg siedząc'},
+{name:'90/90 rotacja wewnętrzna piersiowa',aka:'90/90 Thoracic Spine Internal Rotation',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy, Biodra',tip:'W 90/90 rotuj klatkę w stronę przedniej nogi. Długa szyja.',nsca:'2x6–8/stronę.',alt:'90/90 skłon w przód, Rotacja piersiowa'},
+{name:'Sięganie nad głowę leżąc bokiem',aka:'Side Lying Thoracic Spine Overhead, Side Lying Thoracic Spine Overhe',cat:'Mobilność',eq:'Własna masa',muscle:'Kręgosłup piersiowy, Najszerszy',tip:'Leżąc na boku. Górna ręka po łuku nad głowę, otwieraj klatkę.',nsca:'2x6–8/stronę.',alt:'Open book, Rotacja barku w pozie dziecka'},
+{name:'Krążenia barków z rurką PCV',aka:'PCV Around The World Shoulder, PVC Around The World Shoulder, PCV "Around The World" SHoulder',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Klatka',tip:'Szeroki chwyt rurki. Przenieś przed siebie nad głowę za plecy i z powrotem.',nsca:'2x8–10.',alt:'Kółka ramionami, CARs barków naprzemiennie'},
+{name:'Deska z tapnięciem palców',aka:'Plank Toe Touch',cat:'Mobilność',eq:'Własna masa',muscle:'Core, Dwugłowy, Barki',tip:'Z deski sięgnij ręką do przeciwnej stopy (pike). Wróć w deskę.',nsca:'2x6–8/stronę.',alt:'Deska do psa z głową w dół, Pike na taśmach'},
+{name:'Rotacja zewnętrzna nad głową z PCV klęcząc',aka:'Kneeling PCV Overhead External Rotation, Kneeling PCV Overhead External F',cat:'Mobilność',eq:'Własna masa',muscle:'Barki, Rotatory',tip:'Klęcząc, rurka nad głową. Rotuj ramiona na zewnątrz, żebra w dół.',nsca:'2x8–10.',alt:'Krążenia barków z rurką PCV, Rotacja zewnętrzna'},
+{name:'Wykrok z rotacją',aka:'Forward Lunge with Rotation',cat:'Mobilność',eq:'Własna masa',muscle:'Biodra, Kręgosłup piersiowy',tip:'Wykrok i rotuj tułów nad przednim kolanem. Dłoń do nieba.',nsca:'2x6–8/stronę.',alt:'World’s greatest stretch, Rozciąganie Spiderman'}
+];
+window.DEF_EX=DEF_EX;
+
+
+function hiddenExNames(){
+  const s=(window.SETTINGS&&window.SETTINGS.hiddenExercises)||[];
+  return Array.isArray(s)?s.map(n=>String(n||'').trim()).filter(Boolean):[];
+}
+window.hiddenExNames=hiddenExNames;
+
+function persistHiddenExercises(list){
+  if(!window.SETTINGS)window.SETTINGS={};
+  window.SETTINGS.hiddenExercises=Array.from(new Set((list||[]).map(n=>String(n||'').trim()).filter(Boolean)));
+  const persist=typeof persistSettingsDoc==='function'?persistSettingsDoc:(window.persistSettingsDoc||null);
+  if(typeof persist==='function')persist();
+  return window.SETTINGS.hiddenExercises;
+}
+window.persistHiddenExercises=persistHiddenExercises;
+
+function allExercises(){
+  // Własne ćwiczenia trenera (EX) mają PIERWSZEŃSTWO nad domyślnymi (DEF_EX) o tej samej nazwie —
+  // wcześniej było odwrotnie, przez co własne ćwiczenie znikało bez ostrzeżenia.
+  // hiddenExercises chowa tylko DEF_EX — własne karty zostają, nawet przy tej samej nazwie.
+  const hidden=new Set(hiddenExNames());
+  const custom=window.EX||EX||[];
+  const defs=window.DEF_EX||DEF_EX||[];
+  const seen=new Set();
+  const out=[];
+  custom.forEach(e=>{
+    if(!e||!e.name||seen.has(e.name))return;
+    seen.add(e.name);
+    out.push(e);
+  });
+  defs.forEach(e=>{
+    if(!e||!e.name||seen.has(e.name))return;
+    if(hidden.has(e.name))return;
+    seen.add(e.name);
+    out.push(e);
+  });
+  return out;
+}
+
+const EX_PROFILE_LABELS={
+  ascending:'narastający',
+  descending:'malejący',
+  'bell-shaped':'dzwonowy',
+  constant:'stały'
+};
+const EX_JOINT_LABELS={shoulder:'bark',knee:'kolano',hip:'biodro',elbow:'łokieć'};
+const EX_PATTERN_LABELS={
+  horizontal_pull:'Przyciąganie poziome',
+  vertical_pull:'Przyciąganie pionowe',
+  horizontal_push:'Pchanie poziome',
+  vertical_push:'Pchanie pionowe',
+  knee_dominant:'Dominacja kolana',
+  hip_dominant:'Dominacja biodra',
+  shoulder_abduction:'Odwodzenie ramienia',
+  elbow_flexion:'Zgięcie łokcia',
+  elbow_extension:'Wyprost łokcia',
+  core:'Core / tułów',
+  cardio:'Cardio',
+  other:'Inne'
+};
+const EX_PLANE_LABELS={sagittal:'strzałkowa',frontal:'czołowa',transverse:'poprzeczna'};
+const STAFF_SUB_MAX=97;
+
+function exdEsc(s){
+  return typeof escHtml==='function'?escHtml(s):String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function exBiomechNorm(s){
+  return String(s||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function exPrimeKey(s){
+  return exBiomechNorm(s).replace(/[()]/g,'').split(/[,;/]/)[0].split(' ')[0];
+}
+function exerciseBiomech(ex){
+  const name=exBiomechNorm(ex&&ex.name);
+  const cat=String(ex&&ex.cat||'');
+  const eq=String(ex&&ex.eq||'');
+  const muscle=String(ex&&ex.muscle||'');
+  const blob=name+' '+exBiomechNorm(cat)+' '+exBiomechNorm(eq)+' '+exBiomechNorm(muscle);
+  let pattern='other';
+  if(/cardio/i.test(cat)) pattern='cardio';
+  else if(/core|rozgrzewka|rozciagan|mobilnosc/i.test(exBiomechNorm(cat))) pattern='core';
+  else if(/biceps/i.test(cat)||/uginan/.test(name)) pattern='elbow_flexion';
+  else if(/triceps/i.test(cat)||/prostowan|francusk|kickback|dipy|dip\b/.test(name)) pattern='elbow_extension';
+  else if(/martwy|rdl|hip thrust|glute|mostek|rumun/.test(name)||/poslad/i.test(cat)&&/hip|biodr|thrust/.test(name)) pattern='hip_dominant';
+  else if(/nogi|poslad/i.test(cat)||/przysiad|squat|hack|leg press|wyciskan.*nog|wypych/.test(name)) pattern='knee_dominant';
+  else if(/bokiem|lateral|odwodzen|wznos.*bok|unoszen.*bok/.test(name)||(/barki/i.test(cat)&&/wznos|unoszen/.test(name))) pattern='shoulder_abduction';
+  else if(/podciagan|sciagan|lat pulldown|chin.?up|pull.?up/.test(name)) pattern='vertical_pull';
+  else if(/zolnierskie|\bohp\b|overhead|wyciskan.*nad glow|wyciskan.*siedz/.test(name)) pattern='vertical_push';
+  else if(/wioslow|przenoszen|face pull|sciaganie do twarzy/.test(name)||/plecy/i.test(cat)) pattern='horizontal_pull';
+  else if(/klatka/i.test(cat)||/wyciskan|pompki|rozpietk|fly|butterfly/.test(name)) pattern='horizontal_push';
+  else if(/barki/i.test(cat)) pattern='vertical_push';
+
+  let plane='sagittal';
+  if(/bokiem|lateral|odwodzen|wznos.*bok|unoszen.*bok|crossover|krzyzowan/.test(name)) plane='frontal';
+  else if(/rotacj|woodchop|russian|twist/.test(name)) plane='transverse';
+
+  const joints=[];
+  const addJoint=j=>{if(!joints.includes(j))joints.push(j);};
+  const lowerBody=/nogi|poslad/i.test(cat)||/przysiad|squat|leg press|hack|wypych|wyciskan.*nog|martwy|rdl|hip thrust/.test(name);
+  if(!lowerBody&&(/barki|klatka|plecy/i.test(cat)||/bark|shoulder|pompki|wioslow|podciagan|sciagan|unoszen|wznos|rozpietk|wyciskan/.test(name))) addJoint('shoulder');
+  if(!lowerBody&&(/wyciskan|pompki|ohp|zolnierskie/.test(name)||/biceps|triceps/i.test(cat)||/uginan|prostowan|dipy|dip\b/.test(name))) addJoint('elbow');
+  if(/nogi/i.test(cat)||/przysiad|squat|leg press|hack|wypych|wyciskan.*nog/.test(name)) addJoint('knee');
+  if(/poslad/i.test(cat)||/martwy|rdl|hip|biodr|thrust|mostek/.test(name)) addJoint('hip');
+  if(!joints.length&&/klatka|barki|plecy/i.test(cat)) addJoint('shoulder');
+  if(!joints.length&&/nogi|poslad/i.test(cat)) addJoint('knee');
+
+  let profile='ascending';
+  if(/rozpietk|fly/.test(name)) profile='descending';
+  else if(/unoszen.*bok.*law|wznos.*bok.*law|lawce skos.*bok/.test(name)) profile='bell-shaped';
+  else if(/wyciag|bramie|cable/.test(exBiomechNorm(eq)+' '+name)&&!/smith/.test(name)) profile='constant';
+  else if(/maszyna|suwnica|hack|leg press|peck|butterfly/.test(blob)) profile='bell-shaped';
+  else if(/lawce skos|skos\+|incline/.test(name)&&/hantl/.test(blob)) profile='bell-shaped';
+
+  let sfr='średnie';
+  if(profile==='constant'||profile==='bell-shaped') sfr='wysokie';
+  if(profile==='descending') sfr='niskie';
+  if(/za glowe|upright row|wioslowanie.*brod/.test(name)) sfr='niskie';
+
+  const parts=muscle.split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+  const prime=parts[0]||cat||'—';
+  const secondary=parts.slice(1);
+  let benchAngle=null;
+  const ang=name.match(/(\d+)\s*°/);
+  if(ang) benchAngle=parseInt(ang[1],10);
+  else if(/skos|incline/.test(name)) benchAngle=30;
+
+  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle};
+}
+function findStaffSubstitutes(originalEx, opts){
+  opts=opts||{};
+  if(!originalEx||!originalEx.name) return [];
+  const original=exerciseBiomech(originalEx);
+  const blacklisted=opts.blacklistedJoints||[];
+  const unavailable=(opts.unavailableEquipment||[]).map(s=>String(s).toLowerCase());
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  const cur=String(originalEx.name).toLowerCase();
+  const scored=[];
+  for(const ex of lib){
+    if(!ex||!ex.name||String(ex.name).toLowerCase()===cur) continue;
+    const b=exerciseBiomech(ex);
+    if(b.joints.some(j=>blacklisted.includes(j))) continue;
+    if(unavailable.includes(String(ex.eq||'').toLowerCase())) continue;
+    if(b.pattern!==original.pattern) continue;
+    let score=0;
+    score+=40;
+    if(b.plane===original.plane) score+=20;
+    if(exPrimeKey(b.prime)&&exPrimeKey(b.prime)===exPrimeKey(original.prime)) score+=25;
+    const overlap=b.secondary.filter(m=>{
+      const mk=exPrimeKey(m);
+      return mk&&original.secondary.some(o=>exPrimeKey(o)===mk);
+    }).length;
+    score+=overlap*3;
+    if(b.profile===original.profile) score+=12;
+    if(score>0) scored.push({ex,biomech:b,score:Math.min(STAFF_SUB_MAX,score)});
+  }
+  scored.sort((a,b)=>b.score-a.score);
+  return scored.slice(0,opts.limit||3);
+}
+window.EX_PROFILE_LABELS=EX_PROFILE_LABELS;
+window.EX_PATTERN_LABELS=EX_PATTERN_LABELS;
+window.EX_PLANE_LABELS=EX_PLANE_LABELS;
+window.exerciseBiomech=exerciseBiomech;
+window.findStaffSubstitutes=findStaffSubstitutes;
+
+var exdSubFilter={shoulder:false,knee:false,eq:[]};
+
+function toggleExdSubJoint(joint){
+  if(joint==='shoulder') exdSubFilter.shoulder=!exdSubFilter.shoulder;
+  if(joint==='knee') exdSubFilter.knee=!exdSubFilter.knee;
+  renderExdSubstitutes();
+}
+function toggleExdSubEq(eq){
+  const k=String(eq||'');
+  const i=exdSubFilter.eq.indexOf(k);
+  if(i>=0) exdSubFilter.eq.splice(i,1);
+  else exdSubFilter.eq.push(k);
+  renderExdSubstitutes();
+}
+function exdBiomechRow(label, value, extraClass){
+  return `<div class="exd-biomech-row"><div class="exd-biomech-k">${exdEsc(label)}</div><div class="exd-biomech-v${extraClass?' '+extraClass:''}">${value}</div></div>`;
+}
+function exdSubstituteBlockHtml(e){
+  const b=exerciseBiomech(e);
+  const pattern=EX_PATTERN_LABELS[b.pattern]||String(b.pattern||'').replace(/_/g,' ');
+  const plane=EX_PLANE_LABELS[b.plane]||b.plane;
+  const profile=EX_PROFILE_LABELS[b.profile]||b.profile;
+  const joints=(b.joints||[]).map(j=>EX_JOINT_LABELS[j]||j).join(', ')||'—';
+  const eqSeen={};
+  const eqOpts=[];
+  (typeof allExercises==='function'?allExercises():[]).forEach(x=>{
+    const eq=x&&x.eq;
+    if(!x||x.cat!==e.cat||!eq||eqSeen[eq]) return;
+    eqSeen[eq]=1;
+    if(eqOpts.length<8) eqOpts.push(eq);
+  });
+  return `<div id="exd-subs-box" class="exd-subs-box">
+    <div class="exd-biomech">
+      <div class="exd-sec-h">Profil biomechaniczny</div>
+      <div class="exd-biomech-list">
+        ${exdBiomechRow('Partia', exdEsc(e.cat||'—'))}
+        ${exdBiomechRow('Sprzęt', exdEsc(e.eq||'—'))}
+        ${exdBiomechRow('Wzorzec', exdEsc(pattern))}
+        ${exdBiomechRow('Płaszczyzna', exdEsc(plane))}
+        ${exdBiomechRow('Profil oporu', exdEsc(profile), 'exd-biomech-accent')}
+        ${exdBiomechRow('Stawy', exdEsc(joints), 'exd-biomech-joint')}
+        ${exdBiomechRow('SFR', exdEsc(b.sfr), 'exd-biomech-sfr')}
+        ${e.muscle?exdBiomechRow('Mięśnie', exdEsc(e.muscle)):''}
+      </div>
+    </div>
+    <div class="exd-card">
+      <div class="exd-sec-h">Zamienniki — filtr bezpieczeństwa</div>
+      <div class="exd-sub-filters">
+        <button type="button" class="exd-filter-btn" id="exd-sub-shoulder" aria-pressed="false" onclick="toggleExdSubJoint('shoulder')">Ból barku</button>
+        <button type="button" class="exd-filter-btn" id="exd-sub-knee" aria-pressed="false" onclick="toggleExdSubJoint('knee')">Ból kolana</button>
+      </div>
+      <div class="exd-sub-eqs" id="exd-sub-eqs">${eqOpts.map(eq=>{
+        const safe=String(eq).replace(/'/g,"\\'");
+        return `<button type="button" class="exd-filter-btn" data-eq="${exdEsc(eq)}" aria-pressed="false" onclick="toggleExdSubEq('${safe}')">${exdEsc(eq)}</button>`;
+      }).join('')}</div>
+      <div id="exd-subs-list"></div>
+    </div>
+  </div>`;
+}
+function renderExdSubstitutes(){
+  const list=document.getElementById('exd-subs-list');
+  if(!list) return;
+  const name=currentExDetail;
+  const e=(typeof allExercises==='function'?allExercises():[]).find(x=>x&&x.name===name)||(typeof libExerciseByName==='function'?libExerciseByName(name):null);
+  if(!e){list.innerHTML='';return;}
+  const sh=document.getElementById('exd-sub-shoulder');
+  const kn=document.getElementById('exd-sub-knee');
+  if(sh){sh.classList.toggle('is-on',!!exdSubFilter.shoulder);sh.setAttribute('aria-pressed',exdSubFilter.shoulder?'true':'false');}
+  if(kn){kn.classList.toggle('is-on',!!exdSubFilter.knee);kn.setAttribute('aria-pressed',exdSubFilter.knee?'true':'false');}
+  document.querySelectorAll('#exd-sub-eqs [data-eq]').forEach(btn=>{
+    const on=exdSubFilter.eq.includes(btn.getAttribute('data-eq'));
+    btn.classList.toggle('is-on',on);
+    btn.setAttribute('aria-pressed',on?'true':'false');
+  });
+  const blacklistedJoints=[...(exdSubFilter.shoulder?['shoulder']:[]),...(exdSubFilter.knee?['knee']:[])];
+  const results=findStaffSubstitutes(e,{blacklistedJoints,unavailableEquipment:exdSubFilter.eq,limit:3});
+  if(!results.length){
+    list.innerHTML='<div class="exd-empty">Brak dopasowania przy obecnych ograniczeniach — rozważ ręczny przegląd biblioteki.</div>';
+    return;
+  }
+  const cards=results.map(({ex,score})=>{
+    const pct=Math.max(4,Math.round((score/STAFF_SUB_MAX)*100));
+    const safe=String(ex.name).replace(/'/g,"\\'");
+    return `<div class="exd-sub-card">
+      <div class="exd-sub-card-h">
+        <button type="button" class="exd-sub-name" onclick="openExDetail('${safe}')">${exdEsc(ex.name)}</button>
+        <span class="exd-sub-score">${score}/${STAFF_SUB_MAX}</span>
+      </div>
+      <div class="exd-sub-bar" aria-hidden="true"><div class="exd-sub-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+  const justifies=results.map(({ex})=>{
+    const safe=String(ex.name).replace(/'/g,"\\'");
+    return `<button type="button" class="btn btn-ghost btn-sm exd-justify-btn" onclick="askExStaffJustify('${safe}')">🦴 Uzasadnij ten zamiennik — ${exdEsc(ex.name)}</button>`;
+  }).join('');
+  list.innerHTML=cards+`<details class="exd-acc" id="exd-acc-justify">
+    <summary class="exd-acc-sum">Uzasadnienia zamienników</summary>
+    <div class="exd-acc-body">${justifies}</div>
+  </details>`;
+}
+function askExStaffJustify(altName){
+  const orig=currentExDetail||'';
+  if(typeof openExdAiAcc==='function')openExdAiAcc();
+  const just=document.getElementById('exd-acc-justify');
+  if(just)just.open=true;
+  const inp=document.getElementById('exd-ai-q');
+  if(inp) inp.value=`Dlaczego "${altName}" jest sensownym zamiennikiem dla "${orig}"? Na co zwrócić uwagę przy przejściu.`;
+  if(typeof askExAI==='function') askExAI();
+}
+window.toggleExdSubJoint=toggleExdSubJoint;
+window.toggleExdSubEq=toggleExdSubEq;
+window.renderExdSubstitutes=renderExdSubstitutes;
+window.askExStaffJustify=askExStaffJustify;
+
+// Ciemna lista podpowiedzi ćwiczeń (zamiast natywnego białego datalist)
+let _exAcState=null;
+let _exAcPicking=false;
+
+function exerciseSearchNorm(s){
+  return String(s||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function exerciseSearchBlob(e){
+  return exerciseSearchNorm([e.name,e.aka,e.cat,e.muscle,e.eq].join(' '));
+}
+function exerciseSearchRank(e,ql){
+  if(!ql)return 50;
+  const n=exerciseSearchNorm(e.name);
+  if(n===ql)return 0;
+  if(n.startsWith(ql))return 1;
+  if(n.includes(ql))return 2;
+  const aka=exerciseSearchNorm(e.aka||'');
+  if(aka.split(',').map(s=>s.trim()).includes(ql))return 3;
+  if(aka.includes(ql))return 4;
+  if(exerciseSearchNorm(e.eq||'')===ql)return 5;
+  return 6;
+}
+function exAcFoldCat(raw){
+  const s=exerciseSearchNorm(raw);
+  if(!s)return '';
+  const keys=Object.keys(CAT_COLORS_EX||{});
+  const exact=keys.find(c=>exerciseSearchNorm(c)===s);
+  if(exact)return exact;
+  if(/klatk/.test(s))return 'Klatka piersiowa';
+  if(/triceps|trojglowy ramien/.test(s))return 'Triceps';
+  if(/biceps|dwuglowy ramien/.test(s))return 'Biceps';
+  if(/bark|delt/.test(s))return 'Barki';
+  if(/plec|najszersz|\blat\b|romb/.test(s))return 'Plecy';
+  if(/poslad|glute/.test(s))return 'Pośladki';
+  if(/lydk|calf/.test(s))return 'Nogi';
+  if(/nog|quad|ud\b|hamstring|dwuglowy uda|przysiad/.test(s))return 'Nogi';
+  if(/core|brzuch|\babs\b|prostownik/.test(s))return 'Core';
+  if(/cardio/.test(s))return 'Cardio';
+  if(/olimp/.test(s))return 'Olimpijskie';
+  if(/rozgrzew/.test(s))return 'Rozgrzewka';
+  if(/rozciag/.test(s))return 'Rozciąganie';
+  if(/mobiln/.test(s))return 'Mobilność';
+  return keys.find(c=>{
+    const n=exerciseSearchNorm(c);
+    return n.includes(s)||(s.length>=4&&s.includes(n));
+  })||'';
+}
+function studioHasMachines(){
+  try{
+    if(typeof aplGetMulti==='function'&&typeof document!=='undefined'&&document.getElementById&&document.getElementById('apl-equipment')){
+      const eq=aplGetMulti('apl-equipment')||[];
+      if(eq.length)return eq.indexOf('Maszyny siłowe')>=0;
+    }
+  }catch(e){}
+  return false;
+}
+function exAcSamePartScore(ex,src,hasMachines){
+  if(!ex||!ex.name)return -1;
+  if(src&&String(ex.name).toLowerCase()===String(src.name||'').toLowerCase())return -1;
+  let s=20;
+  if(src&&ex.cat&&src.cat&&ex.cat===src.cat)s+=40;
+  if(typeof studioMuscleOverlap==='function'&&src&&studioMuscleOverlap(src,ex))s+=16;
+  if(typeof studioIsolationHint==='function'&&src){
+    if(studioIsolationHint(src)&&studioIsolationHint(ex))s+=18;
+    else if(studioIsolationHint(src)&&!studioIsolationHint(ex))s-=6;
+  }
+  if(typeof exerciseBiomech==='function'&&src){
+    const a=exerciseBiomech(src),b=exerciseBiomech(ex);
+    if(a&&b&&a.pattern&&a.pattern===b.pattern&&a.pattern!=='other')s+=24;
+    if(a&&b&&a.plane&&a.plane===b.plane)s+=8;
+  }
+  const eq=String(ex.eq||'');
+  const n=String(ex.name||'').toLowerCase();
+  const machine=typeof isMachineExercise==='function'&&isMachineExercise(ex);
+  const free=typeof isStudioFreeEx==='function'&&isStudioFreeEx(ex);
+  if(hasMachines){
+    if(machine)s+=50;
+    else if(free)s+=28;
+  }else{
+    if(free){
+      if(/Hantle/.test(eq))s+=42;
+      else if(/ławce|ławka/.test(n))s+=40;
+      else if(/Sztanga/.test(eq))s+=38;
+      else if(/Wyciąg/.test(eq))s+=32;
+      else s+=24;
+    }
+    if(machine)s+=2;
+  }
+  return s;
+}
+function exAcKeepMachine(ex,ql,hasMachines){
+  if(hasMachines)return true;
+  if(typeof isMachineExercise!=='function'||!isMachineExercise(ex))return true;
+  if(!ql)return false;
+  const n=exerciseSearchNorm(ex.name);
+  if(n.includes(ql))return true;
+  if(/maszyn|smith|hack|peck|deck|suwnic|leg press/.test(ql))return true;
+  return false;
+}
+function exAcSourceName(input){
+  return input&&input.dataset?String(input.dataset.altFor||'').trim():'';
+}
+function exAcSourceEx(input){
+  const name=exAcSourceName(input);
+  const catRaw=input&&input.dataset?String(input.dataset.exCat||'').trim():'';
+  if(!name&&!catRaw)return null;
+  if(name&&typeof libExerciseByName==='function'){
+    const hit=libExerciseByName(name);
+    if(hit)return hit;
+  }
+  const cat=exAcFoldCat(catRaw);
+  if(name||cat)return{name:name||'',cat:cat};
+  return null;
+}
+function exAcRememberSource(input){
+  if(!input||!input.dataset)return;
+  const v=String(input.value||'').trim();
+  if(v&&v!=='Nowe ćwiczenie'&&v!=='Ćwiczenie 1'){
+    const hit=typeof libExerciseByName==='function'?libExerciseByName(v):null;
+    const score=hit&&typeof libExerciseMatchScore==='function'?libExerciseMatchScore(hit,v):hit?800:0;
+    if(hit&&score>=400&&exAcShouldShowAlts(v)){
+      input.dataset.altFor=hit.name;
+      if(hit.cat)input.dataset.exCat=hit.cat;
+      return;
+    }
+  }
+  if(input.dataset.altFor){
+    if(!input.dataset.exCat){
+      const hit=typeof libExerciseByName==='function'?libExerciseByName(input.dataset.altFor):null;
+      if(hit&&hit.cat)input.dataset.exCat=hit.cat;
+    }
+  }
+}
+function exercisesGroupedByCat(q,opts){
+  const raw=(q||'').trim();
+  const ql=exerciseSearchNorm(raw);
+  const all=allExercises();
+  const src=opts&&opts.src;
+  const srcCat=exAcFoldCat((opts&&opts.cat)||(src&&src.cat)||'');
+  const hasMachines=opts&&opts.hasMachines!=null?!!opts.hasMachines:studioHasMachines();
+  const matchBlob=e=>exerciseSearchBlob(e).includes(ql);
+  let filtered;
+  if(!ql){
+    filtered=srcCat?all.filter(e=>(e.cat||'')===srcCat):all;
+  }else{
+    filtered=all.filter(matchBlob);
+    if(!filtered.length){
+      const stripped=ql.replace(/\([^)]*\)/g,' ').replace(/[/|,]+/g,' ').replace(/\s+/g,' ').trim();
+      filtered=all.filter(e=>{
+        const blob=exerciseSearchBlob(e);
+        const n=exerciseSearchNorm(e.name);
+        if(blob.includes(stripped)||(n.length>=8&&stripped.includes(n)))return true;
+        const words=n.split(/\s+/).filter(w=>w.length>=4);
+        return words.length>=2&&words.every(w=>stripped.includes(w));
+      });
+    }
+    if(!filtered.length){
+      const toks=ql.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(t=>t.length>=4);
+      const need=Math.min(2,toks.length);
+      if(need){
+        filtered=all.filter(e=>{
+          const blob=exerciseSearchBlob(e);
+          return toks.filter(t=>blob.includes(t)).length>=need;
+        });
+      }
+    }
+  }
+  if(!ql && srcCat){
+    filtered=filtered.filter(e=>{
+      if(src&&String(e.name||'').toLowerCase()===String(src.name||'').toLowerCase())return false;
+      return exAcKeepMachine(e,ql,hasMachines);
+    });
+  }
+  const byCat={};
+  filtered.forEach(e=>{
+    const cat=e.cat||'Inne';
+    if(!byCat[cat])byCat[cat]=[];
+    byCat[cat].push(e);
+  });
+  Object.keys(byCat).forEach(cat=>byCat[cat].sort((a,b)=>{
+    if(src||srcCat){
+      const sa=exAcSamePartScore(a,src||{cat:srcCat,name:''},hasMachines);
+      const sb=exAcSamePartScore(b,src||{cat:srcCat,name:''},hasMachines);
+      if(sa!==sb)return sb-sa;
+    }
+    const ra=exerciseSearchRank(a,ql),rb=exerciseSearchRank(b,ql);
+    if(ra!==rb)return ra-rb;
+    return a.name.localeCompare(b.name,'pl');
+  }));
+  const catOrder=[...Object.keys(CAT_COLORS_EX||{}),...Object.keys(byCat).filter(c=>!(CAT_COLORS_EX||{})[c])];
+  let cats=catOrder.filter(cat=>byCat[cat]?.length);
+  if(srcCat&&byCat[srcCat]){
+    cats=[srcCat,...cats.filter(c=>c!==srcCat)];
+  }else if(ql){
+    cats.sort((a,b)=>{
+      const ra=Math.min(...byCat[a].map(e=>exerciseSearchRank(e,ql)));
+      const rb=Math.min(...byCat[b].map(e=>exerciseSearchRank(e,ql)));
+      if(ra!==rb)return ra-rb;
+      return catOrder.indexOf(a)-catOrder.indexOf(b);
+    });
+  }
+  return cats.map(cat=>({cat,items:byCat[cat]}));
+}
+window.exerciseSearchNorm=exerciseSearchNorm;
+window.exerciseSearchBlob=exerciseSearchBlob;
+window.exerciseSearchRank=exerciseSearchRank;
+window.exAcFoldCat=exAcFoldCat;
+window.studioHasMachines=studioHasMachines;
+window.exAcSamePartScore=exAcSamePartScore;
+window.exAcKeepMachine=exAcKeepMachine;
+window.exAcSourceName=exAcSourceName;
+window.exAcSourceEx=exAcSourceEx;
+window.exAcRememberSource=exAcRememberSource;
+window.exercisesGroupedByCat=exercisesGroupedByCat;
+
+function exAcFilter(q){
+  const groups=exercisesGroupedByCat(q);
+  const flat=[];
+  groups.forEach(g=>g.items.forEach(e=>flat.push(e.name)));
+  return flat.slice(0,40);
+}
+
+function exAcEnsureWrap(input){
+  if(!input)return null;
+  let wrap=input.closest('.ex-ac-wrap');
+  if(wrap)return wrap;
+  wrap=document.createElement('div');
+  wrap.className='ex-ac-wrap';
+  input.parentNode.insertBefore(wrap,input);
+  wrap.appendChild(input);
+  const dd=document.createElement('div');
+  dd.className='ex-ac-dropdown';
+  wrap.appendChild(dd);
+  input.removeAttribute('list');
+  input.setAttribute('autocomplete','off');
+  input.setAttribute('spellcheck','false');
+  input.setAttribute('autocorrect','off');
+  input.setAttribute('autocapitalize','off');
+  input.classList.add('ex-ac-input');
+  return wrap;
+}
+
+function exAcHide(input){
+  const wrap=input&&input.closest('.ex-ac-wrap');
+  const dd=wrap&&wrap.querySelector('.ex-ac-dropdown');
+  if(dd)dd.style.display='none';
+  const day=input&&input.closest('.builder-day');
+  if(day)day.classList.remove('ex-ac-open');
+  if(_exAcState&&(!input||_exAcState.input===input))_exAcState=null;
+}
+
+function exAcHighlight(dd,idx){
+  const items=[...dd.querySelectorAll('.ex-ac-item')];
+  items.forEach((el,i)=>el.classList.toggle('active',i===idx));
+  const active=items[idx];
+  if(active)active.scrollIntoView({block:'nearest'});
+  return items;
+}
+
+function exAcPick(input,name){
+  if(!input)return;
+  const swapEi=input.dataset?input.dataset.liveSwapEi:'';
+  const nameEi=input.dataset?input.dataset.liveNameEi:'';
+  const slotRaw=input.dataset?input.dataset.liveSlot:'';
+  if(input.dataset){
+    delete input.dataset.altFor;
+    delete input.dataset.exCat;
+  }
+  if(swapEi!==''&&swapEi!=null&&typeof liveSwapEx==='function'){
+    _exAcPicking=true;
+    exAcHide(input);
+    _exAcPicking=false;
+    liveSwapEx(parseInt(swapEi,10),name,slotRaw===''||slotRaw==null?undefined:parseInt(slotRaw,10));
+    return;
+  }
+  if(nameEi!==''&&nameEi!=null&&typeof liveSetExName==='function'){
+    _exAcPicking=true;
+    exAcHide(input);
+    _exAcPicking=false;
+    liveSetExName(parseInt(nameEi,10),name,slotRaw===''||slotRaw==null?undefined:parseInt(slotRaw,10));
+    return;
+  }
+  _exAcPicking=true;
+  input.value=name;
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+  exAcHide(input);
+  _exAcPicking=false;
+  const row=input.closest('.ex-row');
+  const next=row&&row.querySelector('[data-f="sets"]');
+  if(next)next.focus();
+  else input.blur();
+}
+
+function exAcShouldShowAlts(query){
+  const q=String(query||'').trim();
+  if(!q)return false;
+  const hit=typeof libExerciseByName==='function'?libExerciseByName(q):null;
+  if(!hit)return false;
+  const score=typeof libExerciseMatchScore==='function'?libExerciseMatchScore(hit,q):0;
+  const n=typeof libExerciseNormName==='function'?libExerciseNormName(q):q.toLowerCase();
+  if(score>=900)return true;
+  if(score>=800&&/[\s(/]/.test(n))return true;
+  if(score>=500&&n.length>=12)return true;
+  return false;
+}
+window.exAcShouldShowAlts=exAcShouldShowAlts;
+
+function exAcAltItems(query,input){
+  const q=String(query||'').trim();
+  const from=input&&input.dataset?String(input.dataset.altFor||'').trim():'';
+  let src=from||q;
+  if(q&&exAcShouldShowAlts(q)){
+    const hit=typeof libExerciseByName==='function'?libExerciseByName(q):null;
+    src=hit&&hit.name?hit.name:q;
+  }
+  if(!src)return [];
+  if(!from&&!exAcShouldShowAlts(q))return [];
+  const alts=typeof altsForExercise==='function'?altsForExercise(src):[];
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(src):null;
+  const fromLib=lib&&lib.alt?String(lib.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean):[];
+  const cur=String(src||'').trim().toLowerCase();
+  const seen=new Set();
+  const out=[];
+  alts.concat(fromLib).forEach(a=>{
+    const k=String(a).trim();
+    const lk=k.toLowerCase();
+    if(!k||lk===cur||seen.has(lk))return;
+    seen.add(lk);out.push(k);
+  });
+  return out;
+}
+window.exAcAltItems=exAcAltItems;
+
+function exAcRender(input){
+  if(_exAcPicking)return;
+  if(!input||typeof allExercises!=='function')return;
+  const wrap=exAcEnsureWrap(input);
+  const dd=wrap.querySelector('.ex-ac-dropdown');
+  const q=input.value||'';
+  const src=exAcSourceEx(input);
+  const srcCat=exAcFoldCat((input.dataset&&input.dataset.exCat)||(src&&src.cat)||'');
+  const samePart=!!(srcCat||(input.dataset&&input.dataset.altFor));
+  const hasMachines=studioHasMachines();
+  const alts=exAcAltItems(q,input);
+  const groups=exercisesGroupedByCat(q,samePart?{src,cat:srcCat,hasMachines}:undefined);
+  const altSet=new Set(alts.map(a=>String(a).toLowerCase()));
+  groups.forEach(g=>{g.items=(g.items||[]).filter(e=>!altSet.has(String(e.name||'').toLowerCase()));});
+  const shownGroups=groups.filter(g=>g.items&&g.items.length);
+  const total=shownGroups.reduce((s,g)=>s+g.items.length,0);
+  if(!total&&!alts.length){
+    dd.innerHTML='<div class="ex-ac-empty">Brak wyników — wpisz nazwę lub partię (np. klatka, plecy)</div>';
+    dd.style.display='block';
+    const emptyDay=input.closest('.builder-day');
+    if(emptyDay)emptyDay.classList.add('ex-ac-open');
+    _exAcState={input,dd,idx:-1};
+    return;
+  }
+  const ql=(q||'').trim();
+  let html='';
+  if(alts.length){
+    html+=`<div class="ex-ac-group-hdr">Zamienniki — sztanga / hantle / brama / ławka <span style="opacity:0.65;font-weight:500;">(${alts.length})</span></div>`;
+    alts.forEach(name=>{
+      const safe=typeof escHtml==='function'?escHtml(name):name;
+      const attr=String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      html+=`<button type="button" class="ex-ac-item ex-ac-alt" data-name="${attr}"><span class="ex-ac-part" style="color:var(--teal);border-color:rgba(62,207,178,0.45);background:rgba(62,207,178,0.12);">↻</span><span class="ex-ac-name">${safe}</span></button>`;
+    });
+  }
+  shownGroups.forEach(g=>{
+    const col=CAT_COLORS_EX[g.cat]||'var(--muted)';
+    const slice=ql||samePart?g.items.slice(0,40):g.items.slice(0,16);
+    const catLabel=typeof escHtml==='function'?escHtml(g.cat):g.cat;
+    const partHdr=samePart&&srcCat&&g.cat===srcCat
+      ?`Ta sama partia — ${catLabel}`
+      :catLabel;
+    const partHint=samePart&&srcCat&&g.cat===srcCat
+      ?(hasMachines?'maszyny, potem ławka / hantle':'ławka / hantle (studio bez maszyn)')
+      :'';
+    html+=`<div class="ex-ac-group-hdr"><span class="ex-cat-dot" style="background:${col};"></span>${partHdr} <span style="opacity:0.65;font-weight:500;">(${g.items.length}${partHint? ' · '+partHint:''})</span></div>`;
+    slice.forEach(e=>{
+      const name=e.name||'';
+      const safe=typeof escHtml==='function'?escHtml(name):name;
+      const attr=String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      const part=e.cat||g.cat||'Inne';
+      const partSafe=typeof escHtml==='function'?escHtml(part):part;
+      const partCol=CAT_COLORS_EX[part]||col;
+      html+=`<button type="button" class="ex-ac-item" data-name="${attr}"><span class="ex-ac-part" style="color:${partCol};border-color:${partCol}55;background:${partCol}18;">${partSafe}</span><span class="ex-ac-name">${safe}</span></button>`;
+    });
+    if(!ql&&!samePart&&g.items.length>16)html+=`<div class="ex-ac-more">+ ${g.items.length-16} więcej — wpisz aby zawęzić</div>`;
+  });
+  dd.innerHTML=html;
+  dd.style.display='block';
+  const day=input.closest('.builder-day');
+  if(day)day.classList.add('ex-ac-open');
+  _exAcState={input,dd,idx:-1};
+}
+
+function exAcInitInput(input){
+  if(!input||input.dataset.exAcInit)return;
+  input.dataset.exAcInit='1';
+  exAcEnsureWrap(input);
+  input.addEventListener('focus',()=>{if(!_exAcPicking){exAcRememberSource(input);exAcRender(input);}});
+  input.addEventListener('input',()=>{if(!_exAcPicking)exAcRender(input);});
+  input.addEventListener('keydown',e=>{
+    const st=_exAcState&&_exAcState.input===input?_exAcState:null;
+    const dd=st&&st.dd;
+    const open=dd&&dd.style.display!=='none';
+    const items=dd?[...dd.querySelectorAll('.ex-ac-item')]:[];
+    if(e.key==='ArrowDown'){
+      e.preventDefault();
+      if(!open){exAcRender(input);return;}
+      st.idx=Math.min(st.idx+1,items.length-1);
+      exAcHighlight(dd,st.idx);
+    }else if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(!open)return;
+      st.idx=Math.max(st.idx-1,0);
+      exAcHighlight(dd,st.idx);
+    }else if(e.key==='Enter'){
+      if(open&&st.idx>=0&&items[st.idx]){
+        e.preventDefault();
+        exAcPick(input,items[st.idx].dataset.name||items[st.idx].textContent.trim());
+      }else if((input.dataset.liveNameEi!=null||input.dataset.liveSwapEi!=null)&&String(input.value||'').trim()){
+        e.preventDefault();
+        exAcPick(input,input.value.trim());
+      }
+    }else if(e.key==='Escape'){
+      exAcHide(input);
+    }
+  });
+  input.addEventListener('blur',()=>setTimeout(()=>exAcHide(input),160));
+}
+
+function exAcInitAll(root){
+  const scope=root&&root.querySelectorAll?root:document;
+  scope.querySelectorAll('input[list="ex-dl"], input.ex-ac-input').forEach(exAcInitInput);
+}
+
+document.addEventListener('pointerdown',exAcOnItemPointer,true);
+document.addEventListener('mousedown',exAcOnItemPointer,true);
+function exAcOnItemPointer(e){
+  const item=e.target.closest('.ex-ac-item');
+  if(!item)return;
+  e.preventDefault();
+  e.stopPropagation();
+  const input=item.closest('.ex-ac-wrap')&&item.closest('.ex-ac-wrap').querySelector('input');
+  exAcPick(input,item.dataset.name||item.textContent.trim());
+}
+
+document.addEventListener('focusin',e=>{
+  if(e.target.matches&&e.target.matches('input[list="ex-dl"], input.ex-ac-input'))exAcInitInput(e.target);
+});
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>exAcInitAll());
+else exAcInitAll();
+
+window.exAcInitInput=exAcInitInput;
+window.exAcInitAll=exAcInitAll;
+
+// Zwraca własne (niedomyślne) ćwiczenie trenera o danej nazwie, jeśli istnieje.
+function findCustomEx(name){
+  return (EX||[]).find(e=>e.name===name);
+}
+
+function editEx(name){
+  const ex=findCustomEx(name);
+  if(!ex){notify('To ćwiczenie z domyślnej biblioteki — nie można go edytować');return;}
+  openM('m-ex'); // resetuje formularz
+  document.getElementById('ex-name').value=ex.name||'';
+  document.getElementById('ex-cat').value=ex.cat||'';
+  document.getElementById('ex-eq').value=ex.eq||'';
+  document.getElementById('ex-desc').value=ex.desc||ex.tip||'';
+  const ev=document.getElementById('ex-video');
+  if(ev)ev.value=ex.video||'';
+  const ei=document.getElementById('ex-img');
+  if(ei)ei.value=ex.gif||ex.img||ex.thumb||ex.image||'';
+  const titleEl=document.querySelector('#m-ex .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ ĆWICZENIE';
+  const saveBtn=document.querySelector('#m-ex .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingExName=name;
+}
+
+function refreshLibAfterDel(){
+  if(document&&document.getElementById&&document.getElementById('ex-detail')&&typeof closeExDetail==='function')closeExDetail();
+  else if(typeof renderLib==='function')renderLib();
+}
+
+function catalogDedupeKey(s){
+  return String(s||'')
+    .toLowerCase()
+    .replace(/[–—]/g,'-')
+    .replace(/\s+/g,' ')
+    .replace(/\s*\(\d+\)\s*$/,'')
+    .trim();
+}
+window.catalogDedupeKey=catalogDedupeKey;
+
+function catalogDedupeIndex(defs){
+  const map=new Map();
+  (defs||window.DEF_EX||[]).forEach(e=>{
+    if(!e||!e.name)return;
+    const add=(raw)=>{
+      const k=catalogDedupeKey(raw);
+      if(k&&!map.has(k))map.set(k,e);
+    };
+    add(e.name);
+    String(e.aka||'').split(/[,;/|]/).forEach(a=>add(a));
+  });
+  return map;
+}
+window.catalogDedupeIndex=catalogDedupeIndex;
+
+function catalogCardForImport(name,defs){
+  const k=catalogDedupeKey(name);
+  if(!k)return null;
+  return catalogDedupeIndex(defs).get(k)||null;
+}
+window.catalogCardForImport=catalogCardForImport;
+
+function importedExFilmUrl(ex){
+  if(!ex||typeof ex!=='object')return '';
+  const cands=[ex.video,ex.gif,ex.img,ex.thumb,ex.image];
+  for(let i=0;i<cands.length;i++){
+    let u=String(cands[i]||'').trim();
+    if(!u)continue;
+    if(typeof normalizeImportedMediaUrl==='function')u=normalizeImportedMediaUrl(u);
+    if(!u)continue;
+    if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(u))continue;
+    if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(u))continue;
+    if(typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(u))return u;
+    if(/\.(gif|webp)(\?|#|$)/i.test(u))return u;
+  }
+  return '';
+}
+window.importedExFilmUrl=importedExFilmUrl;
+
+async function delEx(name){
+  if(!name||window._delExBusy)return;
+  const ex=findCustomEx(name);
+  const inDef=(window.DEF_EX||DEF_EX||[]).some(e=>e&&e.name===name);
+  const msg=ex
+    ?('Usunąć własne ćwiczenie "'+name+'" na zawsze z biblioteki i z konta?')
+    :(inDef
+      ?('Ukryć ćwiczenie "'+name+'" z biblioteki?\n\nMożesz je później przywrócić przyciskiem „Przywróć ukryte”.')
+      :('Usunąć ćwiczenie "'+name+'" z biblioteki?'));
+  if(!confirm(msg))return;
+  window._delExBusy=true;
+  try{
+    if(ex){
+      window.EX=(window.EX||EX||[]).filter(e=>e.name!==name);
+      refreshLibAfterDel();
+      if(window._db&&ex.id){try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase delEx:',e);}}
+      notify('Ćwiczenie usunięte z biblioteki');
+    }else{
+      if(inDef){
+        const list=hiddenExNames();
+        if(!list.includes(name))list.push(name);
+        persistHiddenExercises(list);
+      }
+      refreshLibAfterDel();
+      notify(inDef?'Ćwiczenie ukryte. Przywrócisz je przyciskiem „Przywróć ukryte”.':'Ćwiczenie usunięte z biblioteki');
+    }
+  }finally{
+    window._delExBusy=false;
+  }
+}
+window.delEx=delEx;
+
+function restoreHiddenExercises(){
+  const n=hiddenExNames().length;
+  if(!n){notify('Brak ukrytych ćwiczeń');return;}
+  if(!confirm('Przywrócić '+n+' ukrytych ćwiczeń do biblioteki?'))return;
+  persistHiddenExercises([]);
+  if(typeof renderLib==='function')renderLib();
+  notify('Przywrócono '+n+' ćwiczeń');
+}
+window.restoreHiddenExercises=restoreHiddenExercises;
+
+async function sweepImportedCatalogDuplicates(opts){
+  const silent=!!(opts&&opts.silent);
+  if(window._sweepExDupBusy)return {removed:0,copied:0};
+  window._sweepExDupBusy=true;
+  try{
+    const customs=(window.EX||[]).slice();
+    const idx=catalogDedupeIndex(window.DEF_EX||[]);
+    const groups=new Map();
+    customs.forEach(ex=>{
+      if(!ex||!ex.name)return;
+      const card=idx.get(catalogDedupeKey(ex.name));
+      if(!card)return;
+      const key=card.name;
+      if(!groups.has(key))groups.set(key,{card,copies:[]});
+      groups.get(key).copies.push(ex);
+    });
+    const removed=[];
+    let copied=0;
+    for(const {card,copies} of groups.values()){
+      if(!copies.length)continue;
+      const film=copies.map(importedExFilmUrl).find(Boolean)||'';
+      const mediaKey=typeof exerciseMediaKey==='function'?exerciseMediaKey(card.name):catalogDedupeKey(card.name);
+      const already=window.EX_GIF_REMOTE&&window.EX_GIF_REMOTE[mediaKey];
+      if(film&&!already&&typeof persistExerciseGifUrl==='function'){
+        try{
+          const ok=await persistExerciseGifUrl(card.name,film);
+          if(ok)copied++;
+        }catch(e){console.warn('sweepImportedCatalogDuplicates film:',e);}
+      }
+      copies.forEach(ex=>removed.push(ex));
+    }
+    if(!removed.length){
+      if(!silent&&typeof notify==='function')notify('Brak duplikatów importu');
+      return {removed:0,copied:0};
+    }
+    const dropIds=new Set(removed.map(e=>e.id).filter(Boolean));
+    const dropNames=new Set(removed.map(e=>e.name));
+    const next=(window.EX||[]).filter(e=>e&&!dropIds.has(e.id)&&!dropNames.has(e.name));
+    window.EX=next;
+    if(window._db&&typeof window._del==='function'&&typeof window._doc==='function'){
+      for(const ex of removed){
+        if(!ex.id)continue;
+        try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase sweepExDup:',e);}
+      }
+    }
+    if(typeof renderLib==='function')renderLib();
+    if(typeof notify==='function'){
+      const n=removed.length;
+      const word=n===1?'duplikat':(n>=2&&n<=4?'duplikaty':'duplikatów');
+      notify('Usunięto '+n+' '+word+' importu'+(copied?(' · film na '+copied+' '+(copied===1?'karcie':'kartach')):''));
+    }
+    return {removed:removed.length,copied};
+  }finally{
+    window._sweepExDupBusy=false;
+  }
+}
+window.sweepImportedCatalogDuplicates=sweepImportedCatalogDuplicates;
+
+async function removeImportedCatalogDuplicates(){
+  if(!confirm('Usunąć z biblioteki importy, które duplikują karty z katalogu? Film z kopii trafi na polską kartę, a kopia zniknie z konta.'))return;
+  return sweepImportedCatalogDuplicates({silent:false});
+}
+window.removeImportedCatalogDuplicates=removeImportedCatalogDuplicates;
+
+async function saveEx(){
+  if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
+
+  const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
+  const videoRaw=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'');
+  const video=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(videoRaw):videoRaw;
+  const imgRaw=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl((document.getElementById('ex-img')||{}).value):String((document.getElementById('ex-img')||{}).value||'').trim();
+  if((typeof isLocalDiskMediaPath==='function')&&(isLocalDiskMediaPath(imgRaw)||isLocalDiskMediaPath(video))){
+    notify('Ścieżka z dysku (D:\\…) nie zapisze się dla klienta. Wklej plik z folderu progress-live-video-assets albo link https://…mp4');
+    return;
+  }
+  const mediaUrl=(imgRaw&&!/^(javascript|data|vbscript):/i.test(imgRaw)&&(/^(https?:\/\/)/i.test(imgRaw)||imgRaw.startsWith('assets/')||/\.(png|jpe?g|gif|webp|svg|mp4|webm)(\?.*)?$/i.test(imgRaw)))?imgRaw:'';
+  const isGif=/\.(gif|webp|mp4|webm)(\?.*)?$/i.test(mediaUrl);
+  const gif=isGif?mediaUrl:'';
+  const img=mediaUrl&&!isGif?mediaUrl:'';
+  const editingName=window._editingExName;
+  if(editingName){
+    const idx=(EX||[]).findIndex(e=>e.name===editingName);
+    if(idx>=0){
+      const oldId=EX[idx].id;
+      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img,gif:gif||EX[idx].gif||''};
+      window._editingExName=null;
+      closeM('m-ex');renderLib();notify('Ćwiczenie zaktualizowane!');
+      await persistById('exercises',EX[idx]);
+      return;
+    }
+  }
+  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img,gif,muscle:'',nsca:'',alt:''});
+  EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
+  await persistById('exercises',ex);
+}
+
+function setExView(v){
+  exView=v;
+  document.getElementById('ex-grid-view').style.display=v==='grid'?'block':'none';
+  document.getElementById('ex-list-view').style.display=v==='list'?'flex':'none';
+  document.getElementById('ex-list-view').style.flexDirection='column';
+  document.getElementById('ex-view-grid-btn').className='btn btn-sm '+(v==='grid'?'btn-primary':'btn-ghost');
+  document.getElementById('ex-view-list-btn').className='btn btn-sm '+(v==='list'?'btn-primary':'btn-ghost');
+  renderLib();
+}
+
+window.exercisesGroupedByCat=exercisesGroupedByCat;
+
+function exCardHtml(e,i){
+  const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
+  const gif=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  const isVid=!!gif;
+  const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
+  const part=e.cat||'Ćwiczenie';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  const filmBadge=isVid?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
+  let media;
+  if(thumb){
+    media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
+  }else if(isVid&&gif){
+    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+  }else{
+    media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${esc(part)}</span></div>`;
+  }
+  return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${(i||0)*0.025}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+    <div class="ex-card-accent" style="background:${col};"></div>
+    <div class="ex-card-body">
+      ${media}
+      <div>
+        <div class="ex-card-name">${e.name}</div>
+        <div class="ex-card-tags">
+          <span class="pill pill-muted" style="font-size:9px;">${e.cat}</span>
+          <span class="pill pill-muted" style="font-size:9px;">${e.eq}</span>
+          ${filmBadge}
+        </div>
+        ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
+        ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);margin-top:6px;" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLibGroupedSections(filtered,mode){
+  const byCat={};
+  filtered.forEach(e=>{
+    const c=e.cat||'Inne';
+    if(!byCat[c])byCat[c]=[];
+    byCat[c].push(e);
+  });
+  const order=[...Object.keys(CAT_COLORS_EX),...Object.keys(byCat).filter(c=>!CAT_COLORS_EX[c])];
+  if(mode==='grid'){
+    const grid=document.getElementById('lib-grid');
+    if(!grid)return;
+    let html='';
+    let idx=0;
+    order.forEach(cat=>{
+      const items=byCat[cat];
+      if(!items?.length)return;
+      items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+      const col=CAT_COLORS_EX[cat]||'var(--muted)';
+      html+=`<div class="ex-cat-section">
+        <div class="ex-cat-section-hdr"><span class="ex-cat-dot" style="background:${col};"></span><span>${cat}</span><span class="ex-cat-section-count">${items.length}</span></div>
+        <div class="ex-cat-section-grid">${items.map(e=>exCardHtml(e,idx++)).join('')}</div>
+      </div>`;
+    });
+    grid.innerHTML=html||'<div style="text-align:center;padding:40px;color:var(--muted);">Brak ćwiczeń pasujących do filtrów</div>';
+    return;
+  }
+  const body=document.getElementById('ex-list-body');
+  if(!body)return;
+  let html='';
+  order.forEach(cat=>{
+    const items=byCat[cat];
+    if(!items?.length)return;
+    items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+    const col=CAT_COLORS_EX[cat]||'var(--muted2)';
+    html+=`<div class="ex-cat-section-hdr ex-cat-section-hdr-list"><span class="ex-cat-dot" style="background:${col};"></span><span>${cat}</span><span class="ex-cat-section-count">${items.length}</span></div>`;
+    items.forEach((e,i)=>{
+      html+=`<div class="ex-list-row" style="animation-delay:${i*0.02}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:4px;height:32px;border-radius:2px;background:${col};flex-shrink:0;"></div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);">${e.name}</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">${e.muscle||''}</div></div>
+        </div>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
+        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
+        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+        </div>
+      </div>`;
+    });
+  });
+  body.innerHTML=html||'<div style="padding:40px;text-align:center;color:var(--muted);">Brak ćwiczeń</div>';
+}
+
+function renderLib(){
+  updateExDl();
+  const all=allExercises();
+  const hiddenN=hiddenExNames().length;
+  const restoreBtn=document.getElementById('lib-restore-hidden');
+  if(restoreBtn){
+    restoreBtn.style.display=hiddenN?'block':'none';
+    restoreBtn.textContent=hiddenN?('Przywróć ukryte ('+hiddenN+')'):'Przywróć ukryte';
+  }
+  const search=(document.getElementById('ex-search')||{}).value||'';
+  const sort=(document.getElementById('ex-sort')||{}).value||'az';
+
+  // build category nav
+  const cats=['Wszystkie',...Object.keys(CAT_COLORS_EX)];
+  const catNav=document.getElementById('ex-cat-nav');
+  if(catNav){
+    catNav.innerHTML=cats.map(c=>{
+      const count=c==='Wszystkie'?all.length:all.filter(e=>e.cat===c).length;
+      const col=CAT_COLORS_EX[c]||'var(--muted)';
+      return `<div class="ex-cat-nav-item${exCatFilter===c?' active':''}" onclick="exCatFilter='${c}';renderLib()">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="ex-cat-dot" style="background:${col};"></div>
+          <span>${c}</span>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;">${count}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // equip filters
+  const equips=['Sztanga','Hantle','Maszyna','Wyciąg','Własna masa','Kettlebell','Piłka lekarska','Taśmy'];
+  const equipEl=document.getElementById('ex-equip-filters');
+  if(equipEl){
+    equipEl.innerHTML=equips.map(eq=>`<div class="ex-equip-chip${exEquipFilter===eq?' active':''}" onclick="exEquipFilter=exEquipFilter==='${eq}'?'':'${eq}';renderLib()">
+      <div class="ex-equip-dot"></div><span>${eq}</span>
+    </div>`).join('');
+  }
+
+  // filter
+  let filtered=all.filter(e=>{
+    if(exCatFilter!=='Wszystkie'&&e.cat!==exCatFilter)return false;
+    if(exEquipFilter&&e.eq!==exEquipFilter)return false;
+    if(search){const s=exerciseSearchNorm(search);if(!exerciseSearchBlob(e).includes(s))return false;}
+    return true;
+  });
+
+  // sort
+  if(sort==='az')filtered.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+  else if(sort==='cat')filtered.sort((a,b)=>a.cat.localeCompare(b.cat,'pl'));
+  else if(sort==='eq')filtered.sort((a,b)=>(a.eq||'').localeCompare(b.eq||'','pl'));
+
+  const countEl=document.getElementById('ex-results-count');
+  if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń');
+
+  const useGrouped=exCatFilter==='Wszystkie';
+
+  if(exView==='grid'){
+    const grid=document.getElementById('lib-grid');
+    if(useGrouped){
+      grid.classList.add('ex-lib-grouped');
+      renderLibGroupedSections(filtered,'grid');
+      return;
+    }
+    grid.classList.remove('ex-lib-grouped');
+    if(!filtered.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Brak ćwiczeń pasujących do filtrów</div>';return;}
+    grid.innerHTML=filtered.map((e,i)=>exCardHtml(e,i)).join('');
+  } else {
+    if(useGrouped){
+      renderLibGroupedSections(filtered,'list');
+      return;
+    }
+    const body=document.getElementById('ex-list-body');
+    if(!filtered.length){body.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak ćwiczeń</div>';return;}
+    body.innerHTML=filtered.map((e,i)=>{
+      const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
+      return `<div class="ex-list-row" style="animation-delay:${i*0.02}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:4px;height:32px;border-radius:2px;background:${col};flex-shrink:0;"></div>
+          <div><div style="font-size:13px;font-weight:600;">${e.name}</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">${e.muscle||''}</div></div>
+        </div>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
+        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
+        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function exTechniqueGuideFor(ex){
+  const blob=[ex&&ex.name,ex&&ex.aka].filter(Boolean).join(' ').toLowerCase();
+  if(/przysiad hack|hack squat|przysiad na suwnicy/.test(blob))return 'hack-squat';
+  if(/odwrotn/.test(blob))return '';
+  if(/butterfly|peck deck|pec-deck|\bpec deck\b|rozpiętki na maszynie/.test(blob))return 'pec-deck';
+  return '';
+}
+window.exTechniqueGuideFor=exTechniqueGuideFor;
+
+function exTechniqueGuideHtml(ex){
+  const id=exTechniqueGuideFor(ex);
+  if(id==='pec-deck'){
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    const gif='assets/ex/gifs/butterfly-peck-deck.gif';
+    const phase=(src,label)=>`<figure class="ex-phase"><img src="${esc(src)}" alt="${esc(label)}" loading="lazy" referrerpolicy="no-referrer"><figcaption>${esc(label)}</figcaption></figure>`;
+    return `<div class="ex-guide" data-guide="pec-deck">
+    <div class="ex-guide-kicker">Fazy ruchu — Butterfly (peck deck)</div>
+    <div class="ex-phase-row">
+      ${phase('assets/ex/pec/phase-open.jpg','Start · rozciągnięcie')}
+      ${phase(gif,'Ruch')}
+      ${phase('assets/ex/pec/phase-close.jpg','Ściśnięcie')}
+    </div>
+    <div class="ex-stretch">
+      <div>
+        <div class="ex-stretch-h">Łokcie na poziomie barków</div>
+        <p class="ex-stretch-p">Siedząc, oprzyj plecy. Łokcie na wysokości barków — ramiona zbliżają się przed klatką jak w uścisku, bez wyciskania w przód.</p>
+        <p class="ex-stretch-note">Pełne rozciągnięcie na starcie, kontrolowane ściśnięcie przy mostku. To <strong>motyl / pec deck</strong>, nie odwrotne rozpiętki.</p>
+      </div>
+    </div>
+  </div>`;
+  }
+  if(id!=='hack-squat')return '';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  const gif='assets/ex/gifs/przysiad-hack-maszyna.gif';
+  const phase=(src,label,extra)=>`<figure class="ex-phase${extra||''}"><img src="${esc(src)}" alt="${esc(label)}" loading="lazy" referrerpolicy="no-referrer">${extra&&extra.includes('is-depth')?'<span class="ex-phase-heat" aria-hidden="true"></span><span class="ex-phase-badge">Głęboko</span>':''}<figcaption>${esc(label)}</figcaption></figure>`;
+  return `<div class="ex-guide" data-guide="hack-squat">
+    <div class="ex-guide-kicker">Fazy ruchu</div>
+    <div class="ex-phase-row">
+      ${phase('assets/ex/hack/phase-start.jpg','Start')}
+      ${phase(gif,'Środek')}
+      ${phase('assets/ex/hack/phase-bottom.jpg','Dół · rozciągnięcie',' is-depth')}
+    </div>
+    <div class="ex-anatomy">
+      <img src="assets/ex/hack/anatomy.jpg" alt="Hack squat — czworogłowe jako cel" loading="lazy">
+      <div class="ex-anatomy-cap"><span class="ex-anatomy-dot"></span>Czworogłowy · cel</div>
+      <div class="ex-stretch-lens">
+        <img src="assets/ex/hack/stretch-lens.jpg" alt="Zbliżenie stawu kolanowego i biodrowego — pełne rozciągnięcie" loading="lazy">
+        <span class="ex-stretch-chip">Głęboko</span>
+      </div>
+    </div>
+    <div class="ex-stretch">
+      <div>
+        <div class="ex-stretch-h">Pełne rozciągnięcie</div>
+        <p class="ex-stretch-p">Maksymalna hipertrofia generowana rozciągnięciem czworogłowych.</p>
+        <p class="ex-stretch-note">Kolano idzie <strong>w dół i do przodu</strong> po torze suwnicy. Biodro i kolano zginają się razem — bez odrywania pleców od podparcia.</p>
+        <svg class="ex-stretch-path" viewBox="0 0 120 28" aria-hidden="true">
+          <defs><marker id="ex-hs-arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#FF3B30"/></marker></defs>
+          <path d="M6 6 C 28 8, 48 12, 72 22" fill="none" stroke="#FF3B30" stroke-width="2.2" stroke-linecap="round" marker-end="url(#ex-hs-arr)"/>
+          <text x="78" y="18" fill="#FF8A82" font-size="8" font-family="Inter,sans-serif">dół + przód</text>
+        </svg>
+      </div>
+    </div>
+  </div>`;
+}
+window.exTechniqueGuideHtml=exTechniqueGuideHtml;
+
+var exdTab='preview';
+var EXD_TABS=['preview','biomech','manage'];
+
+function setExdTab(tab,opts){
+  const next=EXD_TABS.indexOf(tab)>=0?tab:'preview';
+  exdTab=next;
+  EXD_TABS.forEach(id=>{
+    const on=id===next;
+    const btn=document.getElementById('exd-tab-'+id);
+    const panel=document.getElementById('exd-panel-'+id);
+    if(btn){
+      btn.classList.toggle('is-active',on);
+      btn.setAttribute('aria-selected',on?'true':'false');
+      btn.tabIndex=on?0:-1;
+    }
+    if(panel){
+      if(on)panel.removeAttribute('hidden');
+      else panel.setAttribute('hidden','');
+    }
+  });
+  const body=document.getElementById('exd-body');
+  if(body&&!(opts&&opts.keepScroll))body.scrollTop=0;
+  if(opts&&opts.focus){
+    const btn=document.getElementById('exd-tab-'+next);
+    if(btn&&typeof btn.focus==='function')btn.focus();
+  }
+}
+window.setExdTab=setExdTab;
+
+function onExdTabsKeydown(ev){
+  const i=EXD_TABS.indexOf(exdTab);
+  if(i<0)return;
+  let next=i;
+  if(ev.key==='ArrowRight'||ev.key==='ArrowDown')next=(i+1)%EXD_TABS.length;
+  else if(ev.key==='ArrowLeft'||ev.key==='ArrowUp')next=(i-1+EXD_TABS.length)%EXD_TABS.length;
+  else if(ev.key==='Home')next=0;
+  else if(ev.key==='End')next=EXD_TABS.length-1;
+  else return;
+  ev.preventDefault();
+  setExdTab(EXD_TABS[next],{focus:true,keepScroll:true});
+}
+window.onExdTabsKeydown=onExdTabsKeydown;
+
+function openExdAiAcc(){
+  if(exdTab!=='biomech')setExdTab('biomech',{keepScroll:true});
+  const acc=document.getElementById('exd-acc-ai');
+  if(acc)acc.open=true;
+}
+window.openExdAiAcc=openExdAiAcc;
+
+function exdPreviewMediaHtml(e){
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;
+  const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  const assignedIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(assigned);
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  let h='';
+  if(assignedIsVideo){
+    h+=`<div class="exd-preview-media"><video id="exd-mp4-player" class="cw-technique-gif-img" src="${esc(assigned)}" autoplay loop muted playsinline controls preload="auto"></video></div>`;
+  }else if(media){
+    const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));
+    if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});
+    else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${esc(media.img)}" alt="Technika: ${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"></div>`;}
+    const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));
+    if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});
+  }
+  if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);
+  return h;
+}
+window.exdPreviewMediaHtml=exdPreviewMediaHtml;
+
+function exdPreviewHtml(e){
+  const safe=String(e.name||'').replace(/'/g,"\\'");
+  const desc=e.tip||'';
+  const yt=typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button type="button" class="exd-yt-btn" onclick="event.stopPropagation();window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank')">&#9654; Szukaj na YouTube — technika</button>`;
+  return `<p class="exd-preview-meta">${exdEsc(e.cat||'')}${e.eq?' <span aria-hidden="true">·</span> '+exdEsc(e.eq):''}</p>
+    ${exdPreviewMediaHtml(e)}
+    ${desc?`<div class="exd-preview-desc">${exdEsc(desc)}</div>`:''}
+    <button type="button" class="btn btn-primary exd-preview-cta" onclick="prefillExInBuilder('${safe}')">Użyj w builderze</button>
+    ${yt}`;
+}
+
+function exdManageHtml(e){
+  const safe=String(e.name||'').replace(/'/g,"\\'");
+  return `${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
+    <div class="exd-manage-actions">
+      ${findCustomEx(e.name)?`<button type="button" class="btn btn-ghost" onclick="editEx('${safe}')">✏ Edytuj dane ćwiczenia</button>`:''}
+      <button type="button" class="btn btn-ghost exd-del-btn" id="exd-del" onclick="delEx('${safe}')">🗑 Usuń ćwiczenie</button>
+    </div>`;
+}
+
+var currentExDetail='';
+function openExDetail(name){
+  const all=allExercises();
+  const e=all.find(x=>x.name===name)||(typeof libExerciseByName==='function'?libExerciseByName(name):null);
+  if(!e)return;
+  const same=currentExDetail===name;
+  currentExDetail=name;
+  exSelId=name;
+  const title=document.getElementById('exd-title');
+  if(title)title.textContent=e.name;
+  const preview=document.getElementById('exd-panel-preview');
+  const biomech=document.getElementById('exd-biomech-main');
+  const manage=document.getElementById('exd-panel-manage');
+  if(preview)preview.innerHTML=exdPreviewHtml(e);
+  if(biomech){
+    const nsca=e.nsca?`<div class="exd-card exd-card-nsca">
+      <div class="exd-sec-h">Parametry NSCA/ACSM</div>
+      <div class="exd-card-text">${exdEsc(e.nsca)}</div>
+    </div>`:'';
+    const alts=e.alt?`<div class="exd-card">
+      <div class="exd-sec-h">Zamienniki z karty</div>
+      <div class="exd-alt-list">${e.alt.split(',').map(a=>`<button type="button" class="exd-alt-link" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">${exdEsc(a.trim())}</button>`).join('')}</div>
+    </div>`:'';
+    biomech.innerHTML=`${typeof exdSubstituteBlockHtml==='function'?exdSubstituteBlockHtml(e):''}${nsca}${alts}`;
+  }
+  if(manage)manage.innerHTML=exdManageHtml(e);
+  const msgs=document.getElementById('exd-ai-msgs');
+  if(msgs)msgs.innerHTML='';
+  const aiAcc=document.getElementById('exd-acc-ai');
+  if(aiAcc)aiAcc.open=false;
+  const hdrDel=document.getElementById('exd-del-hdr');
+  if(hdrDel)hdrDel.style.display='';
+  const detail=document.getElementById('ex-detail');
+  if(detail)detail.style.transform='translateX(0)';
+  if(!same)exdTab='preview';
+  setExdTab(exdTab);
+  exdSubFilter={shoulder:false,knee:false,eq:[]};
+  if(typeof renderExdSubstitutes==='function') renderExdSubstitutes();
+  const play=document.getElementById('exd-mp4-player');
+  if(play&&typeof play.play==='function'){
+    play.muted=true;
+    const go=()=>play.play().catch(()=>{});
+    play.addEventListener('canplay',go,{once:true});
+    go();
+  }
+  renderLib();
+}
+
+window.EX=window.EX||[];
+window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+var libTab='ex';
+
+function setLibTab(tab){
+  libTab=tab==='videos'?'videos':'ex';
+  renderLibTab();
+}
+window.setLibTab=setLibTab;
+
+function renderLibTab(){
+  const videos=libTab==='videos';
+  const exBody=document.getElementById('lib-ex-body');
+  const vidBody=document.getElementById('lib-vid-body');
+  if(exBody)exBody.style.display=videos?'none':'flex';
+  if(vidBody)vidBody.style.display=videos?'block':'none';
+  const title=document.getElementById('lib-top-title');
+  if(title)title.textContent=videos?'Moje filmy':'Biblioteka ćwiczeń';
+  const tabEx=document.getElementById('lib-tab-ex');
+  const tabVid=document.getElementById('lib-tab-vid');
+  if(tabEx)tabEx.className='btn btn-sm '+(videos?'btn-ghost':'btn-primary');
+  if(tabVid)tabVid.className='btn btn-sm '+(videos?'btn-primary':'btn-ghost');
+  const view=document.getElementById('lib-ex-view-btns');
+  if(view)view.style.display=videos?'none':'flex';
+  const addEx=document.getElementById('lib-add-ex');
+  const addVid=document.getElementById('lib-add-vid');
+  if(addEx)addEx.style.display=videos?'none':'';
+  if(addVid)addVid.style.display=videos?'':'none';
+  if(videos)renderOwnVideos();
+  else renderLib();
+}
+window.renderLibTab=renderLibTab;
+
+function renderOwnVideos(){
+  const el=document.getElementById('own-videos-grid');
+  if(!el)return;
+  const list=(window.COACH_VIDEOS||[]).slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(!list.length){
+    el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px 16px;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:8px;opacity:.4;">▶</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak własnych filmów</div>
+      <div style="font-size:12px;margin-bottom:14px;">Wklej link YouTube (niewidoczny) albo .mp4 i podepnij pod ćwiczenie.</div>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-own-video')">+ Dodaj film</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML=list.map(v=>{
+    const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(v.url):v.url;
+    const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(url):'';
+    const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(url);
+    let player='';
+    if(embed)player=`<div class="cw-video-wrap" style="margin-bottom:8px;"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="${escHtml(v.name||'Film')}"></iframe></div>`;
+    else if(file)player=`<div class="cw-file-player cw-video-file" style="margin-bottom:8px;"><video src="${escHtml(url)}" controls playsinline></video></div>`;
+    else if(url)player=`<a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="margin-bottom:8px;">↗ Otwórz link</a>`;
+    return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;">
+      ${player}
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(v.name||'Film')}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${v.exName?('Ćwiczenie: '+escHtml(v.exName)):'Bez ćwiczenia — podepnij przy edycji'}</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editOwnVideo('${v.id}')">Edytuj</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--red);" onclick="delOwnVideo('${v.id}')">Usuń</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderOwnVideos=renderOwnVideos;
+
+async function saveOwnVideo(){
+  if(window._saveGuard_saveOwnVideo)return;window._saveGuard_saveOwnVideo=true;setTimeout(()=>window._saveGuard_saveOwnVideo=false,1500);
+  const name=(document.getElementById('ov-name')||{}).value.trim();
+  const raw=(document.getElementById('ov-url')||{}).value;
+  let url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(raw):String(raw||'').trim();
+  if(typeof normalizeImportedMediaUrl==='function')url=normalizeImportedMediaUrl(url);
+  const exName=(document.getElementById('ov-ex')||{}).value.trim();
+  if(!name){notify('Wpisz nazwę filmu');return;}
+  if(!url){notify('Wklej poprawny link https (YouTube, Vimeo albo .mp4)');return;}
+  const editing=window._editingVideoId;
+  if(editing){
+    const idx=(window.COACH_VIDEOS||[]).findIndex(v=>v.id===editing);
+    if(idx>=0){
+      window.COACH_VIDEOS[idx]={...window.COACH_VIDEOS[idx],name,url,exName,updatedAt:new Date().toISOString()};
+      window._editingVideoId=null;
+      closeM('m-own-video');
+      renderOwnVideos();
+      notify('Film zaktualizowany');
+      await persistById('coachVideos',window.COACH_VIDEOS[idx]);
+      if(exName&&(typeof coachVideoIsFile==='function'?coachVideoIsFile(url):/\.(mp4|webm)(\?|#|$)/i.test(url))&&typeof persistExerciseGifUrl==='function'){
+        await persistExerciseGifUrl(exName,url);
+      }
+      return;
+    }
+  }
+  const v=withTrainer({id:newId('cv'),name,url,exName,createdAt:new Date().toISOString()});
+  window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+  window.COACH_VIDEOS.push(v);
+  closeM('m-own-video');
+  renderOwnVideos();
+  notify('Film dodany — klient zobaczy go przy ćwiczeniu w Starcie');
+  await persistById('coachVideos',v);
+  if(exName&&(typeof coachVideoIsFile==='function'?coachVideoIsFile(url):/\.(mp4|webm)(\?|#|$)/i.test(url))&&typeof persistExerciseGifUrl==='function'){
+    await persistExerciseGifUrl(exName,url);
+  }
+}
+window.saveOwnVideo=saveOwnVideo;
+
+function editOwnVideo(id){
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  if(!v){notify('Nie znaleziono filmu');return;}
+  openM('m-own-video');
+  const n=document.getElementById('ov-name');if(n)n.value=v.name||'';
+  const u=document.getElementById('ov-url');if(u)u.value=v.url||'';
+  const e=document.getElementById('ov-ex');if(e)e.value=v.exName||'';
+  const titleEl=document.querySelector('#m-own-video .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ FILM';
+  const saveBtn=document.querySelector('#m-own-video .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingVideoId=id;
+}
+window.editOwnVideo=editOwnVideo;
+
+async function delOwnVideo(id){
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  if(!v)return;
+  if(!confirm('Usunąć film "'+(v.name||'')+'"?'))return;
+  window.COACH_VIDEOS=(window.COACH_VIDEOS||[]).filter(x=>x.id!==id);
+  renderOwnVideos();
+  notify('Film usunięty');
+  if(window._db){try{await window._del(window._doc(window._db,'coachVideos',id));}catch(e){console.warn('Firebase delOwnVideo:',e);}}
+}
+window.delOwnVideo=delOwnVideo;
+
+function closeExDetail(){
+  document.getElementById('ex-detail').style.transform='translateX(100%)';
+  const hdrDel=document.getElementById('exd-del-hdr');
+  if(hdrDel)hdrDel.style.display='none';
+  exSelId=null;renderLib();
+}
+
+function prefillExInBuilder(name){
+  closeExDetail();goTo('builder');
+  setTimeout(()=>{
+    const rows=document.querySelectorAll('.ex-inp-name');
+    for(const r of rows){if(!r.value){r.value=name;r.focus();return;}}
+    notify(name+' — dodaj ćwiczenie w builderze');
+  },300);
+}
+
+function prefillExInWorkout(name){
+  prefillExInBuilder(name);
+}
+
+async function askExAI(){
+  if(typeof openExdAiAcc==='function')openExdAiAcc();
+  const qEl=document.getElementById('exd-ai-q');
+  const q=qEl?qEl.value.trim():'';if(!q)return;
+  qEl.value='';
+  const msgs=document.getElementById('exd-ai-msgs');
+  if(!msgs)return;
+  msgs.innerHTML+='<div class="exd-ai-turn is-user"><div class="exd-ai-bubble is-user">'+q+'</div></div>';
+  msgs.innerHTML+='<div id="exd-ai-t" class="exd-ai-turn"><div class="exd-ai-bubble is-pending">🦴 Biomechanika analizuje...</div></div>';
+  msgs.scrollTop=msgs.scrollHeight;
+  const ctx=exSelId?'Ćwiczenie: '+exSelId+'. ':'';
+  const staffSys=(typeof STAFF_SYSTEM_PROMPTS==='object'&&STAFF_SYSTEM_PROMPTS.biomechanika)?STAFF_SYSTEM_PROMPTS.biomechanika:'';
+  const sys=(staffSys||'Asystent trenera personalnego. Ekspert techniki ćwiczeń, biomechaniki, NSCA.')+'\nOdpowiadaj konkretnie po polsku, max 90 słów. Dawaj wskazówki techniczne, bez wstępu.';
+  try{
+    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:220,system:sys,messages:[{role:'user',content:ctx+q}]})});
+    const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
+    document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+  }catch(e){document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble is-err">Błąd</div></div>';}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function askExStaffBiomechanika(){
+  if(typeof openExdAiAcc==='function')openExdAiAcc();
+  const inp=document.getElementById('exd-ai-q');
+  if(inp&&!inp.value.trim()) inp.value='Przeanalizuj wektory sił, profil oporu i bezpieczeństwo stawów.';
+  askExAI();
+}
+window.askExStaffBiomechanika=askExStaffBiomechanika;
+
+// ════════════════════════════════════════
+// AI
+// ════════════════════════════════════════
+async function askAI(){
+  const q=document.getElementById('ai-q').value.trim();if(!q)return;
+  document.getElementById('ai-q').value='';
+  const msgs=document.getElementById('ai-msgs');
+  msgs.innerHTML+='<div class="ai-msg user"><div class="ai-bubble">'+q+'</div></div>';
+  msgs.innerHTML+='<div class="ai-msg bot" id="ai-t"><div class="ai-bubble" style="opacity:0.5;">Analizuję...</div></div>';
+  msgs.scrollTop=msgs.scrollHeight;
+  const cid=document.getElementById('b-client').value;const c=CL.find(x=>x.id===cid);
+  let ctx=c?'Klient: '+c.name+', '+c.age+'lat, '+c.weight+'kg'+(c.height?', '+c.height+' cm':'')+', cel: '+c.goal+', poziom: '+c.level+'. ':'';
+  if(c&&typeof clientSafetyContextForAI==='function')ctx+=clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries,gender:c.gender})+'\n';
+  if(c&&typeof clientMonitorContextForAI==='function')ctx+=clientMonitorContextForAI(c.id);
+  const staffIds=typeof staffAgentsForBuilderQuery==='function'?staffAgentsForBuilderQuery(q):null;
+  const sys='Asystent trenera personalnego. Odpowiadaj KRÓTKO po polsku, max 140 słów. Zawsze podaj DLACZEGO (1 zdanie) przy liczbach. NSCA: hipertrofia 3-6 serii/8-12 powt/67-85% 1RM; siła 2-6 serii/1-6 powt/85%+ 1RM. RPE 8=RIR 2. Objętość tygodniowa: trzymaj MEV–MAV. Facepull i HipThrust zawsze. Dawaj konkretne liczby. Jeśli klient ma nadwagę lub otyłość — stosuj zasady z bloku BEZPIECZEŃSTWO/NADWAGA (maszyny, strefa 2, bez plyo). Jeśli jest STRAŻNIK POSTĘPÓW, powiedz wprost czy idziemy w dobrą czy złą stronę i podaj 2–4 korekty.'
+    +(typeof planningEvidenceContext==='function'?planningEvidenceContext(1800,{preferTags:typeof builderCollectKbTags==='function'?builderCollectKbTags():[]}):'');
+  try{
+    if(staffIds&&staffIds.length&&typeof callStaffAgentsSequentially==='function'){
+      document.getElementById('ai-t')?.remove();
+      await callStaffAgentsSequentially(staffIds, ctx+q, '', null, function(entry){
+        const meta=(typeof STAFF_AGENT_META==='object'&&STAFF_AGENT_META[entry.agentId])||{icon:'💬',label:entry.agentId};
+        const body=entry.error?('Błąd: '+entry.error):(entry.text||'').replace(/\n/g,'<br>');
+        msgs.innerHTML+='<div class="ai-msg bot" data-agent="'+entry.agentId+'"><div class="ai-bubble"><div style="font-size:10px;font-weight:700;margin-bottom:4px;">'+meta.icon+' '+meta.label+'</div>'+body+'</div></div>';
+        msgs.scrollTop=msgs.scrollHeight;
+      }, 400);
+    } else {
+      const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:sys,messages:[{role:'user',content:ctx+q}]})});
+      const d=await r.json();
+      const ans=d.content.map(i=>i.text||'').join('');
+      document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+    }
+  }catch(e){const t=document.getElementById('ai-t');if(t)t.outerHTML='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';else msgs.innerHTML+='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function refreshBuilderAiCoachCard(){
+  const el=document.getElementById('ai-watch-card');
+  if(!el)return;
+  const cid=(document.getElementById('b-client')||{}).value;
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);
+  if(!c){el.hidden=true;el.innerHTML='';return;}
+  const w=c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null);
+  const bmi=typeof clientBmiStatus==='function'?clientBmiStatus(w,c.height):null;
+  const mon=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;'));
+  const tips=[];
+  if(bmi&&bmi.overweight)(bmi.tips||[]).slice(0,4).forEach(t=>tips.push(t));
+  if(mon&&mon.next)mon.next.slice(0,2).forEach(t=>{if(!tips.includes(t))tips.push(t);});
+  const show=(bmi&&bmi.overweight)||(mon&&(mon.verdict==='regres'||mon.verdict==='ryzyko stagnacji'||mon.verdict==='progres'));
+  if(!show||!tips.length){el.hidden=true;el.innerHTML='';return;}
+  const tone=mon&&mon.verdict==='progres'?'ok':(mon&&mon.verdict==='regres'?'bad':(bmi&&bmi.overweight?'warn':'ok'));
+  const head=bmi&&bmi.overweight
+    ?(esc(bmi.label)+(bmi.bmi?' · BMI '+bmi.bmi:''))
+    :('Strażnik: '+esc(mon.verdict));
+  const dir=mon?(mon.verdict==='progres'?' — dobra strona':(mon.verdict==='regres'?' — zła strona':'')):'';
+  el.hidden=false;
+  el.className='ai-watch-card '+tone;
+  el.innerHTML=`<div class="ai-watch-k">${head}${dir}</div>
+    <ul class="ai-watch-tips">${tips.slice(0,5).map(t=>'<li>'+esc(t)+'</li>').join('')}</ul>`;
+}
+window.refreshBuilderAiCoachCard=refreshBuilderAiCoachCard;
+
+// ════════════════════════════════════════
+// PROGRAMS LIBRARY
+// ════════════════════════════════════════
+var progNav='all';var progDurFilter='';var progSelId=null;
+window.USER_PROGRAMS=[];
+
+const GOAL_COLORS={masa:'var(--accent)',sila:'var(--orange)',redukcja:'var(--red)',kondycja:'var(--teal)'};
+const GOAL_LABELS={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+const LEVEL_COLORS_P={poczatkujacy:'var(--teal)',sredni:'var(--blue)',zaawansowany:'var(--purple)'};
+
+const DEMO_PROGRAMS=[
+  {
+    id:'dp1',type:'demo',name:'PPL Masa — 8 tygodni',goal:'masa',level:'sredni',duration:8,daysPerWeek:6,equip:'Siłownia',method:'PPL',
+    desc:'Klasyczny Push/Pull/Legs dla średnio-zaawansowanych ukierunkowany na hipertrofię. Periodyzacja falowana (DUP) z deloadem w 4. i 8. tygodniu. Zgodny z wytycznymi NSCA.',
+    highlights:['DUP — różna intensywność w ciągu tygodnia','Facepull i Hip Thrust w każdym cyklu','Deload co 4 tygodnie','Progresja: +2,5 kg co tydzień przy RPE ≤8'],
+    weeks:[
+      {nr:1,label:'Akumulacja I',rpe:'RPE 7',focus:'Budowa bazy objętościowej',days:[{d:'PON',name:'Push A — Klatka + Barki + Triceps'},{d:'WT',name:'Pull A — Plecy + Biceps'},{d:'ŚR',name:'Legs A — Czworogłowe'},{d:'CZ',name:'Push B — Objętość'},{d:'PT',name:'Pull B — Martwy ciąg'},{d:'SO',name:'Legs B — Pośladki + Dwugłowe'}]},
+      {nr:2,label:'Akumulacja I',rpe:'RPE 7-8',focus:'Progresja liniowa +2,5 kg',days:[{d:'PON',name:'Push A'},{d:'WT',name:'Pull A'},{d:'ŚR',name:'Legs A'},{d:'CZ',name:'Push B'},{d:'PT',name:'Pull B'},{d:'SO',name:'Legs B'}]},
+      {nr:3,label:'Akumulacja I',rpe:'RPE 8',focus:'+1 seria na partie priorytetowe',days:[{d:'PON',name:'Push A'},{d:'WT',name:'Pull A'},{d:'ŚR',name:'Legs A'},{d:'CZ',name:'Push B'},{d:'PT',name:'Pull B'},{d:'SO',name:'Legs B'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 6',focus:'-50% serii, -10% ciężaru — regeneracja CNS',days:[{d:'PON',name:'Push — lekki'},{d:'WT',name:'Pull — lekki'},{d:'ŚR',name:'REST'},{d:'CZ',name:'Legs — lekki'},{d:'PT',name:'REST'},{d:'SO',name:'Mobilność'}]},
+      {nr:5,label:'Akumulacja II',rpe:'RPE 7-8',focus:'Nowy blok — progresja od RPE 7',days:[{d:'PON',name:'Push A'},{d:'WT',name:'Pull A'},{d:'ŚR',name:'Legs A'},{d:'CZ',name:'Push B'},{d:'PT',name:'Pull B'},{d:'SO',name:'Legs B'}]},
+      {nr:6,label:'Akumulacja II',rpe:'RPE 8',focus:'Szczyt objętości — MRV',days:[{d:'PON',name:'Push A'},{d:'WT',name:'Pull A'},{d:'ŚR',name:'Legs A'},{d:'CZ',name:'Push B'},{d:'PT',name:'Pull B'},{d:'SO',name:'Legs B'}]},
+      {nr:7,label:'Intensyfikacja',rpe:'RPE 8-9',focus:'Redukcja objętości, wzrost intensywności',days:[{d:'PON',name:'Push — ciężki'},{d:'WT',name:'Pull — ciężki'},{d:'ŚR',name:'Legs — ciężki'},{d:'CZ',name:'Push — lekki'},{d:'PT',name:'Pull — lekki'},{d:'SO',name:'REST'}]},
+      {nr:8,label:'DELOAD + Ewaluacja',rpe:'RPE 6',focus:'Regeneracja + test 1RM',days:[{d:'PON',name:'Push — lekki'},{d:'WT',name:'Pull — lekki'},{d:'ŚR',name:'REST'},{d:'CZ',name:'Legs — lekki'},{d:'PT',name:'Test 1RM (opcja)'},{d:'SO',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp2',type:'demo',name:'Siła 5×5 — 12 tygodni',goal:'sila',level:'sredni',duration:12,daysPerWeek:3,equip:'Siłownia',method:'FBW',
+    desc:'Protokół oparty na StrongLifts / Starting Strength rozbudowany o periodyzację blokową. Trzy sesje FBW na tydzień. Nacisk na ćwiczenia wielostawowe: przysiad, martwy ciąg, OHP, wiosłowanie.',
+    highlights:['3 sesje FBW / tydzień','Progresja 2,5-5 kg co sesję','12-tygodniowe bloki siłowe','Przerwy 3-5 min między seriami'],
+    weeks:[
+      {nr:1,label:'Adaptacja',rpe:'RPE 7',focus:'Nauka techniki, lekkie ciężary',days:[{d:'PON',name:'FBW A — Przysiad 5×5, OHP 5×5, Martwy 1×5'},{d:'ŚR',name:'FBW B — Przysiad 5×5, Wiosłowanie 5×5, OHP 5×5'},{d:'PT',name:'FBW A — powtórzenie'}]},
+      {nr:2,label:'Liniowa progresja',rpe:'RPE 7-8',focus:'+2,5 kg przysiad i martwy, +2,5 kg reszta',days:[{d:'PON',name:'FBW A'},{d:'ŚR',name:'FBW B'},{d:'PT',name:'FBW A'}]},
+      {nr:3,label:'Liniowa progresja',rpe:'RPE 8',focus:'Kontynuacja — scięgna adaptują się wolniej!',days:[{d:'PON',name:'FBW A'},{d:'ŚR',name:'FBW B'},{d:'PT',name:'FBW A'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 6',focus:'-50% objętości, technika',days:[{d:'PON',name:'FBW lekki'},{d:'ŚR',name:'FBW lekki'},{d:'PT',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp3',type:'demo',name:'Redukcja 8 tygodni — Cardio + Siła',goal:'redukcja',level:'poczatkujacy',duration:8,daysPerWeek:4,equip:'Siłownia',method:'Upper/Lower',
+    desc:'Program łączący trening siłowy (Upper/Lower) z sesjami cardio HIIT. Zachowanie masy mięśniowej przy deficycie kalorycznym. Dla osób z wagą przekraczającą cel.',
+    highlights:['2× Upper + 2× Lower / tydzień','HIIT 2× tydzień (20-30 min)','Zachowanie siły przy redukcji','Deficyt kaloryczny 300-500 kcal'],
+    weeks:[
+      {nr:1,label:'Adaptacja + Cardio',rpe:'RPE 7',focus:'Poznanie struktury, umiarkowany deficyt',days:[{d:'PON',name:'Upper A — Klatka + Plecy'},{d:'WT',name:'HIIT 20 min'},{d:'ŚR',name:'Lower A — Nogi + Pośladki'},{d:'CZ',name:'REST'},{d:'PT',name:'Upper B'},{d:'SO',name:'HIIT 25 min'}]},
+      {nr:2,label:'Progresja',rpe:'RPE 7-8',focus:'Wzrost intensywności cardio',days:[{d:'PON',name:'Upper A'},{d:'WT',name:'HIIT 25 min'},{d:'ŚR',name:'Lower A'},{d:'CZ',name:'REST'},{d:'PT',name:'Upper B'},{d:'SO',name:'HIIT 30 min'}]},
+    ]
+  },
+  {
+    id:'dp4',type:'demo',name:'FBW Początkujący — 4 tygodnie',goal:'masa',level:'poczatkujacy',duration:4,daysPerWeek:3,equip:'Siłownia',method:'FBW',
+    desc:'Idealne wprowadzenie do treningu siłowego. Trzy sesje Full Body w tygodniu. Nacisk na naukę wzorców ruchowych i bezpieczną progresję. Dostosowane do wytycznych NSCA dla nowicjuszy.',
+    highlights:['Adaptacja nerwowo-mięśniowa','Nauka 6 podstawowych wzorców','Liniowa progresja +2,5 kg/tydzień','Scięgna: adaptacja 6-8 tygodni!'],
+    weeks:[
+      {nr:1,label:'Adaptacja — technika',rpe:'RPE 6-7',focus:'Nauka wzorców, lekkie ciężary 60% 1RM',days:[{d:'PON',name:'FBW — Przysiad Goblet, Pompki, Wiosłowanie hantlem, Hip Thrust, Plank'},{d:'ŚR',name:'FBW — powtórzenie dnia A'},{d:'PT',name:'FBW — powtórzenie dnia A'}]},
+      {nr:2,label:'Utrwalenie',rpe:'RPE 7',focus:'Ten sam ciężar lub +2,5 kg gdy RPE <7',days:[{d:'PON',name:'FBW B — +2,5 kg przysiad i wiosłowanie'},{d:'ŚR',name:'FBW B'},{d:'PT',name:'FBW B'}]},
+      {nr:3,label:'Progresja',rpe:'RPE 7-8',focus:'Progresja liniowa — NSCA: 60-70% 1RM',days:[{d:'PON',name:'FBW C'},{d:'ŚR',name:'FBW C'},{d:'PT',name:'FBW C'}]},
+      {nr:4,label:'DELOAD + Ocena',rpe:'RPE 6',focus:'-50% serii, ocena techniki, plan na kolejny blok',days:[{d:'PON',name:'FBW — lekki'},{d:'ŚR',name:'REST / Mobilność'},{d:'PT',name:'FBW — lekki + ocena'}]},
+    ]
+  },
+  {
+    id:'dp5',type:'demo',name:'Kondycja — Bieg + Siła 8 tygodni',goal:'kondycja',level:'sredni',duration:8,daysPerWeek:5,equip:'Bez sprzętu',method:'HIIT',
+    desc:'Hybrydowy program łączący bieganie interwałowe z treningiem siłowym na masę własnego ciała. Poprawa VO2max, wytrzymałości i ogólnej sprawności.',
+    highlights:['Trening kardio 3×/tydzień','Siła własna masa 2×/tydzień','Progresja dystansu biegowego','Brak sprzętu wymagany'],
+    weeks:[
+      {nr:1,label:'Baza aerobowa',rpe:'RPE 6-7',focus:'Łatwy bieg ciągły, poznanie tempa',days:[{d:'PON',name:'Bieg ciągły 20 min (strefa 2)'},{d:'WT',name:'Siła: Pompki 3×10, Przysiady 3×15, Plank 3×45s'},{d:'ŚR',name:'REST'},{d:'CZ',name:'Bieg ciągły 25 min'},{d:'PT',name:'Siła: Burpees, Mountain climbers, Dips'}]},
+      {nr:2,label:'Interwały',rpe:'RPE 7-8',focus:'Wprowadzenie interwałów 1:2',days:[{d:'PON',name:'Bieg interwałowy: 8×200m (przerwa 60s)'},{d:'WT',name:'Siła FBW'},{d:'ŚR',name:'Bieg ciągły 25 min'},{d:'CZ',name:'REST'},{d:'PT',name:'Siła FBW + core'}]},
+    ]
+  },
+  {
+    id:'dp6',type:'demo',name:'Arnold Split — Zaawansowany 12 tyg.',goal:'masa',level:'zaawansowany',duration:12,daysPerWeek:6,equip:'Siłownia',method:'Arnold',
+    desc:'Legendarny split Arnolda Schwarzeneggera zmodernizowany o periodyzację blokową i protokoły NSCA. Dla zaawansowanych szukających nowego bodźca treningowego.',
+    highlights:['6 sesji/tydzień','Każda partia 2× tygodniowo','Bloki: akumulacja → intensyfikacja → peak','Objętość: 18-22 serie/partia/tydzień'],
+    weeks:[
+      {nr:1,label:'Akumulacja — wysoka objętość',rpe:'RPE 7',focus:'Klatka+Plecy / Barki+Ramiona / Nogi — 2×/tydzień',days:[{d:'PON',name:'Klatka + Plecy — Wyciskanie, Wiosłowanie, Podciąganie'},{d:'WT',name:'Barki + Ramiona — OHP, Wznosy, Biceps, Triceps'},{d:'ŚR',name:'Nogi — Przysiad, RDL, Hip Thrust, Łydki'},{d:'CZ',name:'Klatka + Plecy — Objętościowo'},{d:'PT',name:'Barki + Ramiona — Objętościowo'},{d:'SO',name:'Nogi — Objętościowo'}]},
+      {nr:2,label:'Akumulacja + progresja',rpe:'RPE 8',focus:'+2,5 kg ciężarach podstawowych',days:[{d:'PON',name:'Klatka + Plecy'},{d:'WT',name:'Barki + Ramiona'},{d:'ŚR',name:'Nogi'},{d:'CZ',name:'Klatka + Plecy'},{d:'PT',name:'Barki + Ramiona'},{d:'SO',name:'Nogi'}]},
+    ]
+  },
+  {
+    id:'dp7',type:'demo',name:'Tabata — Intensywny 4 tygodnie',goal:'kondycja',level:'sredni',duration:4,daysPerWeek:4,equip:'Bez sprzętu',method:'Tabata',
+    desc:'Protokół Tabata: 20 sekund maksymalnej intensywności + 10 sekund przerwy × 8 rund = 4 minuty piekła. Badania dr Izumi Tabaty (1996) potwierdzają: poprawia zarówno wydolność tlenową jak i beztlenową. Skuteczniejszy niż 60 min cardio.',
+    highlights:['20s praca / 10s przerwa × 8 rund','4 minuty = 1 blok Tabata','Wzrost VO2max o 14% w 6 tyg.','Spalanie kalorii do 24h po treningu (EPOC)'],
+    weeks:[
+      {nr:1,label:'Podstawy Tabata',rpe:'RPE 8-9',focus:'Nauka protokołu, 2-3 bloki/sesja',days:[{d:'PON',name:'Tabata: Burpees + High Knees — 3 bloki'},{d:'WT',name:'REST lub spacer'},{d:'ŚR',name:'Tabata: Przysiady + Mountain Climbers — 3 bloki'},{d:'CZ',name:'REST'},{d:'PT',name:'Tabata: Pompki + Jumping Jacks — 3 bloki'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:2,label:'Progresja',rpe:'RPE 9',focus:'4 bloki/sesja, zmiana ćwiczeń',days:[{d:'PON',name:'Tabata: Burpees + Squat Jump — 4 bloki'},{d:'WT',name:'REST'},{d:'ŚR',name:'Tabata: KB Swing + Push-up — 4 bloki'},{d:'CZ',name:'REST'},{d:'PT',name:'Tabata: Sprint w miejscu + Dips — 4 bloki'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:3,label:'Szczyt intensywności',rpe:'RPE 9-10',focus:'5 bloków, złożone ćwiczenia',days:[{d:'PON',name:'Tabata Full Body — 5 bloków'},{d:'WT',name:'REST'},{d:'ŚR',name:'Tabata Dolna + Core — 5 bloków'},{d:'CZ',name:'REST'},{d:'PT',name:'Tabata Górna — 5 bloków'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:4,label:'Deload + Test',rpe:'RPE 7-8',focus:'3 bloki, test wytrzymałości',days:[{d:'PON',name:'Tabata — lekka wersja 3 bloki'},{d:'WT',name:'REST'},{d:'ŚR',name:'Test: ile Burpees w 4 min?'},{d:'CZ',name:'REST'},{d:'PT',name:'REST'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp8',type:'demo',name:'EMOM — Siła i Kondycja 6 tygodni',goal:'kondycja',level:'sredni',duration:6,daysPerWeek:3,equip:'Siłownia',method:'EMOM',
+    desc:'EMOM (Every Minute On the Minute) — wykonujesz zadaną liczbę powtórzeń na początku każdej minuty, reszta minuty to przerwa. Im szybciej skończysz, tym więcej odpoczywasz. Idealny protokół łączący siłę z wydolnością.',
+    highlights:['Praca na starcie każdej minuty','Im szybsza praca = dłuższa przerwa','Buduje siłę-wytrzymałość','Sesje 20-40 minut'],
+    weeks:[
+      {nr:1,label:'EMOM 20 min',rpe:'RPE 7',focus:'Poznanie protokołu, umiarkowane ciężary',days:[{d:'PON',name:'EMOM 20: Nieparzyste — 5 Przysiadów, Parzyste — 5 Podciągnięć'},{d:'ŚR',name:'EMOM 20: Nieparzyste — 8 KB Swing, Parzyste — 5 Push Press'},{d:'PT',name:'EMOM 20: Nieparzyste — 5 Deadlift, Parzyste — 10 Pompek'}]},
+      {nr:2,label:'EMOM 25 min',rpe:'RPE 7-8',focus:'Wydłużenie czasu pracy',days:[{d:'PON',name:'EMOM 25: 3 ćwiczenia rotacyjnie — Squat/Pull/Hinge'},{d:'ŚR',name:'EMOM 25: Górna — Press/Row/Pull'},{d:'PT',name:'EMOM 25: Siłowy — cięższe ciężary, mniej powtórzeń'}]},
+      {nr:3,label:'EMOM 30 min',rpe:'RPE 8',focus:'Pełne 30 min bez przerwy',days:[{d:'PON',name:'EMOM 30: Full Body rotacja 5 ćwiczeń'},{d:'ŚR',name:'EMOM 30: Siłowy Lower'},{d:'PT',name:'EMOM 30: Siłowy Upper'}]},
+      {nr:4,label:'EMOM cięższy',rpe:'RPE 8-9',focus:'+5% ciężaru przy zachowaniu formy',days:[{d:'PON',name:'EMOM 20 — ciężki: 3-4 powt. Przysiad + Martwy'},{d:'ŚR',name:'EMOM 20 — ciężki: Pull + Press'},{d:'PT',name:'EMOM 20 — ciężki: FBW kompletny'}]},
+      {nr:5,label:'EMOM kompleksowy',rpe:'RPE 8-9',focus:'Kompleksy: kilka ćwiczeń pod rząd',days:[{d:'PON',name:'EMOM 24: co 2 min — Kompleks 6 ćwiczeń ze sztangą'},{d:'ŚR',name:'EMOM 24: KB kompleks'},{d:'PT',name:'EMOM 24: BW kompleks zaawansowany'}]},
+      {nr:6,label:'Deload + Test',rpe:'RPE 6-7',focus:'Regeneracja, ocena progresu',days:[{d:'PON',name:'EMOM 15 — lekki'},{d:'ŚR',name:'REST'},{d:'PT',name:'Test: maks. powtórzeń w EMOM 10 min'}]},
+    ]
+  },
+  {
+    id:'dp9',type:'demo',name:'AMRAP — Crossfit Style 4 tygodnie',goal:'kondycja',level:'sredni',duration:4,daysPerWeek:4,equip:'Siłownia',method:'AMRAP',
+    desc:'AMRAP (As Many Rounds As Possible) — wykonujesz jak najwięcej rund zadanego zestawu ćwiczeń w wyznaczonym czasie. Mierzysz postęp przez porównanie liczby rund w kolejnych tygodniach. Wysoka intensywność, brak przerw.',
+    highlights:['Jak najwyęcej rund w czasie','Mierzalny progres co tydzień','Wytrzymałość siłowa','15-25 minut intensywnej pracy'],
+    weeks:[
+      {nr:1,label:'AMRAP 15 min',rpe:'RPE 8',focus:'Ustanowienie baseline',days:[{d:'PON',name:'AMRAP 15: 5 Pull-up, 10 Push-up, 15 Squat (klasyczny Cindy)'},{d:'WT',name:'REST'},{d:'ŚR',name:'AMRAP 15: 10 KB Swing, 5 Burpee, 10 Box Jump'},{d:'CZ',name:'REST'},{d:'PT',name:'AMRAP 15: 10 Thruster, 10 Ring Row, 10 Sit-up'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:2,label:'AMRAP 20 min',rpe:'RPE 8-9',focus:'Wydłużenie — więcej rund niż tydzień 1',days:[{d:'PON',name:'AMRAP 20: Cindy — cel +2 rundy vs tydzień 1'},{d:'WT',name:'REST'},{d:'ŚR',name:'AMRAP 20: Kompleks dolna'},{d:'CZ',name:'REST'},{d:'PT',name:'AMRAP 20: Kompleks górna'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:3,label:'AMRAP z obciążeniem',rpe:'RPE 9',focus:'Dodaj ciężar — mniejsza liczba rund',days:[{d:'PON',name:'AMRAP 20: Cindy z kamizelką lub ciężarami'},{d:'WT',name:'REST'},{d:'ŚR',name:'AMRAP 15: Thrusters ciężkie'},{d:'CZ',name:'REST'},{d:'PT',name:'AMRAP 20: Deadlift + Burpee'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:4,label:'Benchmark test',rpe:'RPE 9-10',focus:'Maksymalny wysiłek — test progresu',days:[{d:'PON',name:'AMRAP 20: Cindy — pobij rekord!'},{d:'WT',name:'REST'},{d:'ŚR',name:'REST'},{d:'CZ',name:'AMRAP 15: ulubiony zestaw'},{d:'PT',name:'REST'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp10',type:'demo',name:'German Volume Training (GVT) — 6 tyg.',goal:'masa',level:'zaawansowany',duration:6,daysPerWeek:4,equip:'Siłownia',method:'GVT',
+    desc:'GVT (German Volume Training) — 10 serii × 10 powtórzeń z 60% 1RM. Opracowany przez Reinera Heppenthala, popularyzowany przez Charlesa Poliquina. Ekstremalna objętość prowadzi do hipertrofii sarkoplazmatycznej. Tylko dla zaawansowanych.',
+    highlights:['10×10 — 100 powtórzeń na ćwiczenie','60% 1RM — nie więcej!','Przerwa 60-90s między seriami','Przyrost masy do 4-5 kg w 6 tyg.'],
+    weeks:[
+      {nr:1,label:'Adaptacja GVT',rpe:'RPE 7',focus:'Zacznij od 50-60% 1RM — to trudniejsze niż myślisz',days:[{d:'PON',name:'Klatka + Plecy: 10×10 Wyciskanie + 10×10 Podciąganie'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi + Pośladki: 10×10 Przysiad + 10×10 RDL'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: 10×10 OHP + 10×10 Biceps'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:2,label:'GVT klasyczny',rpe:'RPE 8',focus:'Ten sam ciężar przez cały tydzień',days:[{d:'PON',name:'Klatka + Plecy: 10×10'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi + Pośladki: 10×10'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: 10×10'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:3,label:'Progresja +2,5 kg',rpe:'RPE 8-9',focus:'Tylko gdy zrobiłeś wszystkie 10×10 w tyg. 2',days:[{d:'PON',name:'Klatka + Plecy: +2,5 kg'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi + Pośladki: +2,5 kg'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: +2,5 kg'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:4,label:'Deload GVT',rpe:'RPE 6',focus:'5×10 zamiast 10×10 — regeneracja',days:[{d:'PON',name:'Klatka + Plecy: 5×10 (50%)'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi: 5×10 (50%)'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki: 5×10'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:5,label:'GVT Faza 2',rpe:'RPE 9',focus:'Zmień ćwiczenia, zachowaj protokół',days:[{d:'PON',name:'Klatka + Plecy: inne ćwiczenia 10×10'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi: Leg Press + Nordic Curl 10×10'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: 10×10'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:6,label:'Peak + Test siły',rpe:'RPE 8-9',focus:'Ostatni tydzień GVT + test 1RM po regeneracji',days:[{d:'PON',name:'GVT — finalne 10×10'},{d:'WT',name:'REST'},{d:'ŚR',name:'GVT — finalne 10×10'},{d:'CZ',name:'REST'},{d:'PT',name:'Test 1RM po 3 dniach odpoczynku'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp11',type:'demo',name:'5/3/1 Wendler — Siła 12 tygodni',goal:'sila',level:'sredni',duration:12,daysPerWeek:4,equip:'Siłownia',method:'5/3/1',
+    desc:'Jeden z najpopularniejszych programów siłowych na świecie. Jim Wendler oparł go na 4 ćwiczeniach: Przysiad, Martwy ciąg, OHP, Wyciskanie. Cykle 4-tygodniowe z rosnącą intensywnością i resetem obciążeń. Długoterminowa, powolna ale solidna progresja.',
+    highlights:['4 ćwiczenia główne','Cykl 4-tygodniowy (3 + 1 deload)','Submaksymalne ciężary = zdrowie','AMRAP w ostatniej serii (PR)'],
+    weeks:[
+      {nr:1,label:'Tydzień 5 (65-85%)',rpe:'RPE 7-8',focus:'5-5-5+ — ostatnia seria AMRAP',days:[{d:'PON',name:'OHP: 5×65%, 5×75%, 5+×85% + akcesoria'},{d:'WT',name:'Martwy ciąg: 5×65%, 5×75%, 5+×85% + akcesoria'},{d:'CZ',name:'Wyciskanie: 5×65%, 5×75%, 5+×85% + akcesoria'},{d:'PT',name:'Przysiad: 5×65%, 5×75%, 5+×85% + akcesoria'}]},
+      {nr:2,label:'Tydzień 3 (70-90%)',rpe:'RPE 8-9',focus:'3-3-3+ — większe ciężary',days:[{d:'PON',name:'OHP: 3×70%, 3×80%, 3+×90%'},{d:'WT',name:'Martwy: 3×70%, 3×80%, 3+×90%'},{d:'CZ',name:'Wyciskanie: 3×70%, 3×80%, 3+×90%'},{d:'PT',name:'Przysiad: 3×70%, 3×80%, 3+×90%'}]},
+      {nr:3,label:'Tydzień 1 (75-95%)',rpe:'RPE 9',focus:'5-3-1+ — najcięższy tydzień',days:[{d:'PON',name:'OHP: 5×75%, 3×85%, 1+×95%'},{d:'WT',name:'Martwy: 5×75%, 3×85%, 1+×95%'},{d:'CZ',name:'Wyciskanie: 5×75%, 3×85%, 1+×95%'},{d:'PT',name:'Przysiad: 5×75%, 3×85%, 1+×95%'}]},
+      {nr:4,label:'DELOAD (40-60%)',rpe:'RPE 5-6',focus:'Regeneracja — nie pomijaj!',days:[{d:'PON',name:'OHP: 5×40%, 5×50%, 5×60%'},{d:'WT',name:'Martwy: 5×40%, 5×50%, 5×60%'},{d:'CZ',name:'Wyciskanie: 5×40%, 5×50%, 5×60%'},{d:'PT',name:'Przysiad: 5×40%, 5×50%, 5×60%'}]},
+    ]
+  },
+  {
+    id:'dp12',type:'demo',name:'HIIT — Interwały Wysokiej Intensywności 8 tyg.',goal:'kondycja',level:'poczatkujacy',duration:8,daysPerWeek:3,equip:'Bez sprzętu',method:'HIIT',
+    desc:'HIIT (High Intensity Interval Training) — naprzemienne okresy wysokiej i niskiej intensywności. Metaanaliza 2019 (British Journal of Sports Medicine): HIIT 28% skuteczniejszy w spalaniu tłuszczu niż steady-state cardio. Idealne gdy masz mało czasu.',
+    highlights:['20-30 min treningu = 60 min cardio','Efekt EPOC — spalanie do 24h','Poprawa wrażliwości insulinowej','Zachowanie masy mięśniowej'],
+    weeks:[
+      {nr:1,label:'Intro HIIT 1:2',rpe:'RPE 7-8',focus:'Stosunek pracy do odpoczynku 1:2 (20s:40s)',days:[{d:'PON',name:'HIIT 20 min: 20s praca / 40s odpoczynek × 20 rund'},{d:'ŚR',name:'REST lub lekki spacer'},{d:'PT',name:'HIIT 20 min: inne ćwiczenia, ten sam protokół'}]},
+      {nr:2,label:'HIIT 1:2 progresja',rpe:'RPE 8',focus:'Trudniejsze ćwiczenia',days:[{d:'PON',name:'HIIT 25 min: Burpee, Squat Jump, Push-up, Mountain Climber'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT 25 min: Sprint 30s / Marsz 60s × 15'}]},
+      {nr:3,label:'HIIT 1:1',rpe:'RPE 8-9',focus:'Równy stosunek pracy i odpoczynku',days:[{d:'PON',name:'HIIT 30 min: 30s praca / 30s odpoczynek'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT 30 min: Dolna + Core'}]},
+      {nr:4,label:'Deload HIIT',rpe:'RPE 6-7',focus:'Lżejszy tydzień, 1:2 ponownie',days:[{d:'PON',name:'HIIT 20 min — lekki: 1:2'},{d:'ŚR',name:'REST'},{d:'PT',name:'Spacer lub joga'}]},
+      {nr:5,label:'HIIT 2:1',rpe:'RPE 9',focus:'Więcej pracy niż odpoczynku',days:[{d:'PON',name:'HIIT 20 min: 40s praca / 20s odpoczynek'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT 20 min: 40:20 różne ćwiczenia'}]},
+      {nr:6,label:'HIIT zaawansowany',rpe:'RPE 9',focus:'Złożone ćwiczenia wielostawowe',days:[{d:'PON',name:'HIIT 30 min: Kompleksy — Thruster, KB Swing, Box Jump'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT Sprint: 10×100m z 1 min przerwy'}]},
+      {nr:7,label:'Szczyt HIIT',rpe:'RPE 9-10',focus:'Najkrótsza przerwa, najwyższa intensywność',days:[{d:'PON',name:'Tabata + HIIT hybrid: 4+10+4 min'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT maksymalny 20 min: 2:1'}]},
+      {nr:8,label:'Test końcowy',rpe:'RPE 8-9',focus:'Porównaj wyniki z tygodnia 1',days:[{d:'PON',name:'HIIT test — ten sam protokół co tydzień 1'},{d:'ŚR',name:'REST'},{d:'PT',name:'Ocena: ile rund więcej?'}]},
+    ]
+  },
+  {
+    id:'dp13',type:'demo',name:'Upper/Lower Split — Masa 8 tygodni',goal:'masa',level:'sredni',duration:8,daysPerWeek:4,equip:'Siłownia',method:'Upper/Lower',
+    desc:'Klasyczny podział górna/dolna część ciała. Każda partia trenowana 2× tygodniowo. Idealna równowaga między frekwencją, objętością i regeneracją. Zalecany przez NSCA dla naturalnych zawodników na etapie intermediate.',
+    highlights:['Każda partia 2×/tydzień','Optymalna synteza białek','Łatwe do modyfikowania','4 dni treningu = ≥3 dni odpoczynku'],
+    weeks:[
+      {nr:1,label:'Akumulacja I',rpe:'RPE 7',focus:'Budowa bazy, nauka ćwiczeń',days:[{d:'PON',name:'Upper A: Wyciskanie 4×8, Podciąganie 4×8, OHP 3×10, Wiosłowanie 3×10'},{d:'WT',name:'Lower A: Przysiad 4×8, RDL 3×10, Leg Press 3×12, Hip Thrust 3×12'},{d:'CZ',name:'Upper B: Wyciskanie hantli 4×10, Wiosłowanie 4×10, Wznosy 3×15'},{d:'PT',name:'Lower B: Wykrok 3×10, Uginanie nóg 3×12, Wspięcia łydki 4×15'}]},
+      {nr:2,label:'Akumulacja I cont.',rpe:'RPE 7-8',focus:'+2,5 kg ciężarach głównych',days:[{d:'PON',name:'Upper A: +2,5 kg'},{d:'WT',name:'Lower A: +2,5 kg'},{d:'CZ',name:'Upper B'},{d:'PT',name:'Lower B'}]},
+      {nr:3,label:'Akumulacja II',rpe:'RPE 8',focus:'+1 seria na ćwiczenia główne',days:[{d:'PON',name:'Upper A: 5×8'},{d:'WT',name:'Lower A: 5×8'},{d:'CZ',name:'Upper B: 5×10'},{d:'PT',name:'Lower B: 5×10'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 6',focus:'-50% serii',days:[{d:'PON',name:'Upper — lekki'},{d:'WT',name:'Lower — lekki'},{d:'CZ',name:'REST'},{d:'PT',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp14',type:'demo',name:'Piramida siłowa — Moc i masa 6 tyg.',goal:'sila',level:'sredni',duration:6,daysPerWeek:4,equip:'Siłownia',method:'Piramida',
+    desc:'Protokół piramidalny — serie rosnące (ascending) lub malejące (descending) pod względem ciężaru/powtórzeń. Ascending: rozgrzewka wbudowana w trening. Descending: pierwsze serie przy świeżych mięśniach. Kombinacja obu = pełne widmo.',
+    highlights:['Wbudowana rozgrzewka (ascending)','Maks. siła na początku (descending)','Podwójna piramida — najskuteczniejsza','Wszechstronne obciążenie mięśni'],
+    weeks:[
+      {nr:1,label:'Piramida wznosząca',rpe:'RPE 6-9',focus:'12-10-8-6-4 powtórzeń (ciężar rośnie)',days:[{d:'PON',name:'Klatka: Wyciskanie 12/10/8/6/4 + akcesoria'},{d:'WT',name:'Plecy: Wiosłowanie + Podciąganie piramida'},{d:'CZ',name:'Nogi: Przysiad + RDL piramida'},{d:'PT',name:'Barki + Ramiona: OHP piramida + izolacja'}]},
+      {nr:2,label:'Piramida wznosząca cont.',rpe:'RPE 7-9',focus:'+2,5 kg na każdym poziomie',days:[{d:'PON',name:'Klatka: piramida +2,5 kg'},{d:'WT',name:'Plecy: piramida +2,5 kg'},{d:'CZ',name:'Nogi: piramida +2,5 kg'},{d:'PT',name:'Barki: piramida +2,5 kg'}]},
+      {nr:3,label:'Piramida opadająca',rpe:'RPE 9-7',focus:'4-6-8-10-12 (start ciężki, gdy świeży)',days:[{d:'PON',name:'Klatka: Wyciskanie 4/6/8/10/12 — start maksymalny'},{d:'WT',name:'Plecy: Piramida opadająca'},{d:'CZ',name:'Nogi: Piramida opadająca'},{d:'PT',name:'Barki: Piramida opadająca'}]},
+      {nr:4,label:'Podwójna piramida',rpe:'RPE 6-9-6',focus:'12-8-4-8-12 — pełne spectrum',days:[{d:'PON',name:'Klatka: Podwójna piramida 5 serii'},{d:'WT',name:'Plecy: Podwójna piramida'},{d:'CZ',name:'Nogi: Podwójna piramida'},{d:'PT',name:'Barki: Podwójna piramida'}]},
+      {nr:5,label:'Piramida + dropset',rpe:'RPE 9-10',focus:'Po szczycie piramidy — dropset do upadku',days:[{d:'PON',name:'Klatka: Piramida wznosząca + dropset na szczycie'},{d:'WT',name:'Plecy: Piramida + dropset'},{d:'CZ',name:'Nogi: Piramida + dropset'},{d:'PT',name:'Barki: Piramida + dropset'}]},
+      {nr:6,label:'Deload + ocena',rpe:'RPE 6',focus:'Regeneracja, test 1RM',days:[{d:'PON',name:'Lekka piramida wznosząca 3 serie'},{d:'WT',name:'REST'},{d:'CZ',name:'Test 1RM Przysiad + Wyciskanie'},{d:'PT',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp15',type:'demo',name:'Superserie i Drop sety — Hipertrofia 6 tyg.',goal:'masa',level:'sredni',duration:6,daysPerWeek:4,equip:'Siłownia',method:'Superset/Drop',
+    desc:'Superserie (dwa ćwiczenia bez przerwy) i drop sety (zmniejszanie ciężaru bez przerwy) to sprawdzone techniki intensyfikacji treningu. Oszczędzają czas i tworzą ogromny stres metaboliczny. Idealny dla zaawansowanych szukających nowych bodźców.',
+    highlights:['Skrócenie czasu treningu 30%','Maksymalny pompa mięśniowa','Superserie antagonistyczne = więcej siły','Dropsety = pełne wyczerpanie mięśnia'],
+    weeks:[
+      {nr:1,label:'Superserie antagonistyczne',rpe:'RPE 8',focus:'Klatka+Plecy, Biceps+Triceps, Quad+Ham',days:[{d:'PON',name:'Push+Pull: Wyciskanie SS Wiosłowanie × 4, OHP SS Podciąganie × 3'},{d:'WT',name:'Nogi: Przysiad SS RDL × 4, Leg Press SS Uginanie × 3'},{d:'CZ',name:'Ramiona: Biceps SS Triceps × 5 ćwiczeń'},{d:'PT',name:'Barki: Wznosy przód SS tył × 4'}]},
+      {nr:2,label:'Superserie agonistyczne',rpe:'RPE 8-9',focus:'Dwa ćwiczenia tej samej partii pod rząd',days:[{d:'PON',name:'Klatka: Wyciskanie SS Rozpiętki × 4'},{d:'WT',name:'Nogi: Przysiad SS Leg Press × 4'},{d:'CZ',name:'Plecy: Podciąganie SS Wiosłowanie × 4'},{d:'PT',name:'Barki: OHP SS Wznosy × 4'}]},
+      {nr:3,label:'Drop sety',rpe:'RPE 9-10',focus:'Po ostatniej serii — 2 dropsety',days:[{d:'PON',name:'Klatka: 3 normalne serie + 2 dropsety na koniec'},{d:'WT',name:'Nogi: Leg Press + Squat z dropsetami'},{d:'CZ',name:'Plecy: Ściąganie + Wiosłowanie z dropsetami'},{d:'PT',name:'Ramiona: każde ćwiczenie z dropsetem'}]},
+      {nr:4,label:'Deload',rpe:'RPE 6',focus:'Normalne serie, brak superserii',days:[{d:'PON',name:'Push — normalne serie 3×10'},{d:'WT',name:'Pull — normalne serie'},{d:'CZ',name:'REST'},{d:'PT',name:'Nogi — normalne serie'}]},
+      {nr:5,label:'Giant Sets',rpe:'RPE 8-9',focus:'3-4 ćwiczenia pod rząd na jedną partię',days:[{d:'PON',name:'Klatka Giant: Wyciskanie→Rozpiętki→Pompki→Dip × 3 rundy'},{d:'WT',name:'Nogi Giant: Przysiad→Leg Press→Wykrok→Hip Thrust × 3'},{d:'CZ',name:'Plecy Giant: Podciąganie→Wiosłowanie→Ściąganie→Facepull × 3'},{d:'PT',name:'Ramiona Giant: Biceps 2 cwicz + Triceps 2 cwicz × 4'}]},
+      {nr:6,label:'Rest-Pause',rpe:'RPE 9-10',focus:'Seria do upadku + 10s przerwa + dalej',days:[{d:'PON',name:'Push: Rest-pause na głównych ćwiczeniach'},{d:'WT',name:'Nogi: Rest-pause'},{d:'CZ',name:'Pull: Rest-pause'},{d:'PT',name:'Test sił — brak technik intensyfikacji'}]},
+    ]
+  },
+  {
+    id:'dp16',type:'demo',name:'Streching i Mobilność — 4 tygodnie',goal:'kondycja',level:'poczatkujacy',duration:4,daysPerWeek:5,equip:'Bez sprzętu',method:'Mobilność',
+    desc:'Program mobilności i elastyczności oparty na badaniach. Połączenie stretchingu statycznego, dynamicznego i PNF (Proprioceptive Neuromuscular Facilitation). Idealne uzupełnienie każdego programu siłowego lub samodzielny program regeneracji.',
+    highlights:['PNF stretching — najskuteczniejsza metoda','Poprawa zakresu ruchu o 20-30% w 4 tyg.','Redukcja bólu mięśniowego','5-10 min/dzień wystarczy'],
+    weeks:[
+      {nr:1,label:'Stretching statyczny',rpe:'RPE 4-5',focus:'Utrzymuj pozycje 30-60 sekund',days:[{d:'PON',name:'Biodra + Uda: Pigeon, Figure-4, Couch stretch, Butterfly — 30 min'},{d:'WT',name:'Grzbiet + Barki: Doorway, Lat stretch, Thoracic rotation — 30 min'},{d:'ŚR',name:'Aktywna regeneracja: Cat-cow, World Greatest, Hip 90/90 — 20 min'},{d:'CZ',name:'Dolna część: Downward dog, Seated forward fold, Lizard — 30 min'},{d:'PT',name:'Górna część: Pec minor, Sleeper stretch, Cross-body — 30 min'}]},
+      {nr:2,label:'Stretching dynamiczny',rpe:'RPE 5-6',focus:'Ruch w zakresie, bez utrzymywania',days:[{d:'PON',name:'Rozgrzewka dynamiczna: Leg swing, World Greatest, Inchworm — 20 min'},{d:'WT',name:'Mobilność bioder: Hip circle, Lateral lunge, Spiderman — 20 min'},{d:'ŚR',name:'Kręgosłup: T-spine rotation, Cat-cow, Thread needle — 20 min'},{d:'CZ',name:'Dolna: Toy soldier, Hacky sack, Squat to stand — 20 min'},{d:'PT',name:'Całe ciało: płynna sekwencja 20 min'}]},
+      {nr:3,label:'PNF Stretching',rpe:'RPE 6-7',focus:'Naprężenie 6s + rozluźnienie + pogłębienie',days:[{d:'PON',name:'PNF Biodra i uda — technika Contract-Relax'},{d:'WT',name:'PNF Barki i grzbiet'},{d:'ŚR',name:'PNF Hamstringi i łydki'},{d:'CZ',name:'PNF Klatka i piersiowy'},{d:'PT',name:'Pełna sesja mobilności 45 min'}]},
+      {nr:4,label:'Foam roller + mobilność',rpe:'RPE 4-6',focus:'Myofascial release + stretching',days:[{d:'PON',name:'Foam roller: plecy, IT band, czworogłowy — 30 min'},{d:'WT',name:'Foam roller: łydki, pośladki, barki — 30 min'},{d:'ŚR',name:'Mobilność aktywna: Yoga flow 30 min'},{d:'CZ',name:'Foam roller + stretching dolna'},{d:'PT',name:'Test zakresu ruchu + ocena postępu'}]},
+    ]
+  },
+  {
+    id:'dp17',type:'demo',name:'Trening na masę bez sprzętu — 8 tyg.',goal:'masa',level:'sredni',duration:8,daysPerWeek:4,equip:'Bez sprzętu',method:'Calisthenics',
+    desc:'Kalistenika zaawansowana — budowanie masy i siły wyłącznie masą własnego ciała. Progresja przez trudniejsze warianty ćwiczeń. Badania (2017, Journal of Human Kinetics) potwierdzają porównywalną hipertrofię z treningiem siłowym.',
+    highlights:['Zero sprzętu — ćwicz wszędzie','Progresja przez trudniejsze warianty','Buduje siłę funkcjonalną','Zdrowe stawy — mniejsze ryzyko kontuzji'],
+    weeks:[
+      {nr:1,label:'Baza kalisteniki',rpe:'RPE 7',focus:'Opanuj podstawowe wzorce',days:[{d:'PON',name:'Push: Pompki 4×15, Dips 3×10, Pike push-up 3×10'},{d:'WT',name:'Pull: Podciąganie 4×max, Wiosłowanie odwrócone 3×12'},{d:'CZ',name:'Push: Pompki jednoręczne progresja, Dip variations'},{d:'PT',name:'Legs: Pistol squat progresja, Uginanie nordyckie, Wypychanie bioder (hip thrust)'}]},
+      {nr:2,label:'Progresja wariantów',rpe:'RPE 8',focus:'Trudniejsze wersje gdy >15 powtórzeń',days:[{d:'PON',name:'Push: Pompki z elevacją, Archer push-up progresja'},{d:'WT',name:'Pull: Podciąganie z obciążeniem lub L-sit pull-up'},{d:'CZ',name:'Push: Handstand push-up progresja'},{d:'PT',name:'Legs: Pistol squat, Single leg RDL z masą ciała'}]},
+    ]
+  },
+  {
+    id:'dp18',type:'demo',name:'Trening Funkcjonalny — 6 tygodni',goal:'kondycja',level:'poczatkujacy',duration:6,daysPerWeek:3,equip:'Kettlebell',method:'Functional',
+    desc:'Trening funkcjonalny z kettlebell i masą własną ciała. Opracowany na wzór protokołów Military Fitness. Poprawia wzorce ruchowe, siłę całego ciała, stabilizację i koordynację. Idealne dla sportowców wszystkich dyscyplin.',
+    highlights:['Kompleksowe wzorce ruchowe','Siła + Koordynacja + Propriocepcja','Kettlebell — narzędzie wszechstronne','Turkish Get-Up jako benchmark'],
+    weeks:[
+      {nr:1,label:'Kettlebell basics',rpe:'RPE 6-7',focus:'Nauka KB Swing, Goblet Squat, Turkish Get-Up',days:[{d:'PON',name:'KB: Swing 5×15, Goblet Squat 4×10, Halo 3×10, Get-Up 3×3/stronę'},{d:'ŚR',name:'Funkcjonalny BW: Bear crawl, Inchworm, Farmer carry'},{d:'PT',name:'KB kompleks: Swing→Clean→Press→Squat × 5 rund'}]},
+      {nr:2,label:'Kompleksy KB',rpe:'RPE 7-8',focus:'Płynne przejścia między ćwiczeniami',days:[{d:'PON',name:'KB kompleks 5 ćwiczeń: 5 rund'},{d:'ŚR',name:'Unilateral: TGU + Single leg work + Suitcase carry'},{d:'PT',name:'EMOM 20: Swing + Snatch + Press'}]},
+    ]
+  },
+  {
+    id:'dp19',type:'demo',name:'Program Zawodnika — Siła + Moc 12 tyg.',goal:'sila',level:'zaawansowany',duration:12,daysPerWeek:5,equip:'Siłownia',method:'Conjugate/Block',
+    desc:'Program dla zaawansowanych sportowców oparty na metodzie sprzężonej Westside Barbell i periodyzacji blokowej. Rozwijanie siły maksymalnej, mocy eksplozywnej i siły-wytrzymałości jednocześnie. Wymaga doświadczenia i solidnej techniki.',
+    highlights:['Metoda sprzężona (Conjugate Method)','Max Effort + Dynamic Effort','Ćwiczenia akcesoryjne GPP','Przeznaczony dla zawodników'],
+    weeks:[
+      {nr:1,label:'ME Lower / DE Upper',rpe:'RPE 9/7',focus:'Max Effort Dolna + Dynamic Effort Górna',days:[{d:'PON',name:'ME Lower: Przysiad 1RM wariacja + akcesoria siłowe'},{d:'WT',name:'DE Upper: 9×3 Wyciskanie @60% + Górna akcesorium'},{d:'ŚR',name:'REST'},{d:'CZ',name:'ME Upper: Wyciskanie 1RM wariacja'},{d:'PT',name:'DE Lower: 10×2 Przysiad @60% + Martwy + Akcesoria'},{d:'SO',name:'GPP: kondycja, mobilność'}]},
+      {nr:2,label:'ME Lower / DE Upper',rpe:'RPE 9/7',focus:'Inne wariacje ćwiczeń głównych',days:[{d:'PON',name:'ME Lower: Martwy box pull lub sumo'},{d:'WT',name:'DE Upper: Wyciskanie z podłogi dynamic'},{d:'ŚR',name:'REST'},{d:'CZ',name:'ME Upper: Board press lub pin press'},{d:'PT',name:'DE Lower: Przysiad na skrzynię dynamic'},{d:'SO',name:'GPP'}]},
+    ]
+  },
+  {
+    id:'dp20',type:'demo',name:'Bieganie — Od Kanapy do 5km — 8 tyg.',goal:'kondycja',level:'poczatkujacy',duration:8,daysPerWeek:3,equip:'Bez sprzętu',method:'Couch to 5K',
+    desc:'Klasyczny protokół C25K (Couch to 5K) zmodyfikowany o wytyczne ACSM. Przeprowadza początkującego od marszu do biegu ciągłego 5 km. Badania potwierdzają: 90% uczestników ukończyło 5K po 9 tygodniach. Zacznij gdzie jesteś.',
+    highlights:['Od 0 do 5km w 8 tygodniach','Naprzemienne bieg/marsz','Stopniowe wydłużanie biegu','3 sesje tygodniowo'],
+    weeks:[
+      {nr:1,label:'Marsz + bieg 1 min',rpe:'RPE 5-6',focus:'60s bieg / 90s marsz × 8 rund = 20 min',days:[{d:'PON',name:'C25K W1: 5 min marsz rozgrzewka → 8× (60s bieg + 90s marsz) → 5 min marsz'},{d:'ŚR',name:'C25K W1 powtórzenie'},{d:'PT',name:'C25K W1 powtórzenie'}]},
+      {nr:2,label:'Bieg 1,5 min',rpe:'RPE 6',focus:'90s bieg / 2 min marsz × 6 rund',days:[{d:'PON',name:'C25K W2: 6× (90s bieg + 2 min marsz)'},{d:'ŚR',name:'C25K W2 powtórzenie'},{d:'PT',name:'C25K W2 powtórzenie'}]},
+      {nr:3,label:'Bieg 3 min',rpe:'RPE 6-7',focus:'3 min bieg / 90s marsz × 5 rund',days:[{d:'PON',name:'C25K W3: 2× (90s bieg + 90s marsz + 3 min bieg + 3 min marsz)'},{d:'ŚR',name:'C25K W3 powtórzenie'},{d:'PT',name:'C25K W3 powtórzenie'}]},
+      {nr:4,label:'Bieg 5 min',rpe:'RPE 7',focus:'5 min bieg ciągły',days:[{d:'PON',name:'C25K W4: 3 min bieg + 90s marsz + 5 min bieg + 2,5 min marsz + 3 min + 90s + 5 min'},{d:'ŚR',name:'C25K W4 powtórzenie'},{d:'PT',name:'C25K W4 powtórzenie'}]},
+      {nr:5,label:'Bieg 8-20 min',rpe:'RPE 7',focus:'Wydłużanie biegu ciągłego',days:[{d:'PON',name:'C25K W5D1: 5 min + 3 min marsz + 5 min + 3 min + 5 min'},{d:'ŚR',name:'C25K W5D2: 8 min bieg + 5 min marsz + 8 min bieg'},{d:'PT',name:'C25K W5D3: 20 min bieg ciągły — przełomowy moment!'}]},
+      {nr:6,label:'Bieg 22-25 min',rpe:'RPE 7-8',focus:'Wydłużanie do 25 min',days:[{d:'PON',name:'C25K W6D1: 5+8+5 min z marszem'},{d:'ŚR',name:'C25K W6D2: 10 min + 3 min marsz + 10 min'},{d:'PT',name:'C25K W6D3: 22 min bieg ciągły'}]},
+      {nr:7,label:'Bieg 25-28 min',rpe:'RPE 7-8',focus:'Zbliżanie się do 5km',days:[{d:'PON',name:'C25K W7: 25 min bieg ciągły'},{d:'ŚR',name:'C25K W7: 25 min'},{d:'PT',name:'C25K W7: 25 min'}]},
+      {nr:8,label:'5km!',rpe:'RPE 7-8',focus:'30 min bieg = około 5km',days:[{d:'PON',name:'C25K W8: 28 min bieg ciągły'},{d:'ŚR',name:'C25K W8: 28 min'},{d:'PT',name:'5K RACE: Biegnij 5km bez przerwy! 🎉'}]},
+    ]
+  },
+  {
+    id:'dp22',type:'demo',name:'Cardio Baza Wytrzymałościowa — 4 tygodnie',goal:'kondycja',level:'poczatkujacy',duration:4,daysPerWeek:4,equip:'Bez sprzętu',method:'Cardio',
+    desc:'Budowanie aerobowej bazy wytrzymałościowej metodą stałego wysiłku (steady-state) z automatyczną progresją czasu i tempa co tydzień. Fundament pod każdy dalszy trening kondycyjny.',
+    highlights:['Progresja czasu: 20→35 min','Trening w strefie tętna 2 (łatwa rozmowa)','1× tydzień test tempa','Zero sprzętu, dowolna dyscyplina cardio'],
+    weeks:[
+      {nr:1,label:'Baza — 20 min',rpe:'RPE 5-6 (strefa 2)',focus:'Budowanie nawyku, stałe, łatwe tempo',days:[{d:'PON',name:'Cardio ciągłe 20 min'},{d:'WT',name:'REST / spacer regeneracyjny'},{d:'ŚR',name:'Cardio ciągłe 20 min'},{d:'PT',name:'Cardio ciągłe 22 min'},{d:'NIE',name:'Cardio ciągłe 22 min, luźne tempo'}]},
+      {nr:2,label:'Baza — 25 min',rpe:'RPE 6',focus:'+5 min do każdej sesji',days:[{d:'PON',name:'Cardio ciągłe 25 min'},{d:'ŚR',name:'Cardio ciągłe 25 min'},{d:'PT',name:'Cardio ciągłe 27 min'},{d:'NIE',name:'Cardio ciągłe 27 min'}]},
+      {nr:3,label:'Baza — 30 min',rpe:'RPE 6-7',focus:'Wydłużanie + 1 sesja z lekkim przyspieszeniem',days:[{d:'PON',name:'Cardio ciągłe 30 min'},{d:'ŚR',name:'Cardio 30 min + 5×1 min przyspieszenie'},{d:'PT',name:'Cardio ciągłe 32 min'},{d:'NIE',name:'Cardio ciągłe 32 min'}]},
+      {nr:4,label:'Test + Ocena',rpe:'RPE 7',focus:'Test tempa na 35 min — porównanie z tygodniem 1',days:[{d:'PON',name:'Cardio ciągłe 35 min'},{d:'ŚR',name:'Cardio ciągłe 30 min, lżej'},{d:'PT',name:'TEST: 35 min, maksymalny dystans przy stałym tętnie'}]},
+    ]
+  },
+  {
+    id:'dp23',type:'demo',name:'HIIT Spalacz — 12 tygodni',goal:'kondycja',level:'zaawansowany',duration:12,daysPerWeek:4,equip:'Bez sprzętu',method:'HIIT',
+    desc:'Długoterminowy program interwałowy o wysokiej intensywności z pełną periodyzacją blokową (3 bloki po 4 tygodnie). Automatyczna progresja: dłuższe interwały, krótsze przerwy, więcej rund. Dla osób z solidną bazą kondycyjną.',
+    highlights:['3 bloki progresji po 4 tygodnie','Stosunek pracy do przerwy rośnie z 1:2 do 1:1','Deload co 4. tydzień','Test Cooper na starcie i mecie'],
+    weeks:[
+      {nr:1,label:'Blok I — Wprowadzenie',rpe:'RPE 7',focus:'20s praca / 40s przerwa × 8 rund',days:[{d:'PON',name:'HIIT: 8× (20s max + 40s przerwa)'},{d:'WT',name:'REST / mobilność'},{d:'CZ',name:'HIIT: 8× (20s max + 40s przerwa)'},{d:'SO',name:'Cardio LISS 25 min (regeneracja)'}]},
+      {nr:2,label:'Blok I — Progresja',rpe:'RPE 7-8',focus:'30s praca / 40s przerwa × 8 rund',days:[{d:'PON',name:'HIIT: 8× (30s max + 40s przerwa)'},{d:'CZ',name:'HIIT: 8× (30s max + 40s przerwa)'},{d:'SO',name:'Cardio LISS 25 min'}]},
+      {nr:3,label:'Blok I — Szczyt',rpe:'RPE 8',focus:'30s praca / 30s przerwa × 10 rund',days:[{d:'PON',name:'HIIT: 10× (30s max + 30s przerwa)'},{d:'CZ',name:'HIIT: 10× (30s max + 30s przerwa)'},{d:'SO',name:'Cardio LISS 30 min'}]},
+      {nr:4,label:'DELOAD I',rpe:'RPE 5-6',focus:'Regeneracja — połowa objętości',days:[{d:'PON',name:'HIIT lekki: 6× (20s + 40s)'},{d:'CZ',name:'Cardio LISS 20 min'}]},
+      {nr:5,label:'Blok II — Restart wyżej',rpe:'RPE 8',focus:'40s praca / 40s przerwa × 8 rund',days:[{d:'PON',name:'HIIT: 8× (40s max + 40s przerwa)'},{d:'WT',name:'REST'},{d:'CZ',name:'HIIT: 8× (40s max + 40s przerwa)'},{d:'SO',name:'Cardio LISS 30 min'}]},
+      {nr:8,label:'DELOAD II',rpe:'RPE 5-6',focus:'Regeneracja przed blokiem finałowym',days:[{d:'PON',name:'HIIT lekki: 6 rund'},{d:'CZ',name:'Cardio LISS 25 min'}]},
+      {nr:9,label:'Blok III — Peak',rpe:'RPE 8-9',focus:'40s praca / 30s przerwa × 10 rund',days:[{d:'PON',name:'HIIT: 10× (40s max + 30s przerwa)'},{d:'CZ',name:'HIIT: 10× (40s max + 30s przerwa)'},{d:'SO',name:'Cardio LISS 30 min'}]},
+      {nr:12,label:'TEST KOŃCOWY',rpe:'RPE 9-10',focus:'Test Cooper — porównanie z tygodniem 1',days:[{d:'PON',name:'HIIT: 45s praca / 30s przerwa × 10 rund'},{d:'PT',name:'TEST COOPER: maksymalny dystans w 12 min'}]},
+    ]
+  },
+  {
+    id:'dp24',type:'demo',name:'EMOM Kondycja Pro — 12 tygodni',goal:'kondycja',level:'sredni',duration:12,daysPerWeek:4,equip:'Mieszany',method:'EMOM',
+    desc:'12-tygodniowy program EMOM (Every Minute On the Minute) z automatyczną progresją liczby powtórzeń i długości sesji co tydzień. Łączy kondycję z pracą siłową w krótkim czasie.',
+    highlights:['Progresja: 20→35 minut EMOM','Rosnąca liczba powtórzeń w minucie','Deload co 4. tydzień','Mierzalny postęp — więcej rund w tym samym czasie'],
+    weeks:[
+      {nr:1,label:'EMOM 20 min',rpe:'RPE 6-7',focus:'Nauka tempa, umiarkowana liczba powtórzeń',days:[{d:'PON',name:'EMOM 20 min: 8 burpees + 10 kettlebell swing'},{d:'ŚR',name:'EMOM 20 min: 10 przysiadów + 8 pompek'},{d:'PT',name:'EMOM 20 min: 12 mountain climbers + 6 podciągnięć/rząd'}]},
+      {nr:2,label:'EMOM 25 min',rpe:'RPE 7',focus:'+5 minut, ten sam ciężar pracy',days:[{d:'PON',name:'EMOM 25 min: 9 burpees + 11 kettlebell swing'},{d:'ŚR',name:'EMOM 25 min: 11 przysiadów + 9 pompek'},{d:'PT',name:'EMOM 25 min: 13 mountain climbers + 7 wiosłowań'}]},
+      {nr:3,label:'EMOM 30 min',rpe:'RPE 7-8',focus:'Szczyt objętości w tym bloku',days:[{d:'PON',name:'EMOM 30 min: 10 burpees + 12 kettlebell swing'},{d:'ŚR',name:'EMOM 30 min: 12 przysiadów + 10 pompek'},{d:'PT',name:'EMOM 30 min: 14 mountain climbers + 8 wiosłowań'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 5-6',focus:'-50% objętości, regeneracja',days:[{d:'PON',name:'EMOM 15 min, lekkie tempo'},{d:'PT',name:'EMOM 15 min, lekkie tempo'}]},
+      {nr:8,label:'EMOM 30 min — Blok II',rpe:'RPE 8',focus:'Nowy blok, wyższy próg wejścia',days:[{d:'PON',name:'EMOM 30 min: 12 burpees + 14 kettlebell swing'},{d:'ŚR',name:'EMOM 30 min: 14 przysiadów pistolet-progresja + 12 pompek'},{d:'PT',name:'EMOM 30 min: 16 mountain climbers + 10 wiosłowań'}]},
+      {nr:12,label:'EMOM 35 min — Test',rpe:'RPE 8-9',focus:'Maksymalna objętość programu',days:[{d:'PON',name:'EMOM 35 min: pełny obwód, rundy jak w tyg. 8 +2 powt.'},{d:'PT',name:'TEST: EMOM 20 min na maksymalną liczbę powtórzeń'}]},
+    ]
+  },
+  {
+    id:'dp25',type:'demo',name:'Tabata Full Send — 12 tygodni',goal:'kondycja',level:'zaawansowany',duration:12,daysPerWeek:4,equip:'Bez sprzętu',method:'Tabata',
+    desc:'Rozszerzony, 12-tygodniowy program Tabata (20s max / 10s przerwy) z automatyczną progresją liczby rund i bloków. Dla osób gotowych na regularny, bardzo intensywny trening interwałowy.',
+    highlights:['Start: 4 rundy (16 min) → Meta: 8 rund (32 min)','Klasyczny protokół 20:10 przez cały program','Rotacja ćwiczeń co tydzień — brak monotonii','Deload co 4. tydzień chroni stawy i CNS'],
+    weeks:[
+      {nr:1,label:'4 rundy Tabata',rpe:'RPE 8',focus:'2 bloki × 4 rundy (20s/10s), różne ćwiczenia',days:[{d:'PON',name:'Tabata: Burpees + Jump Squats (2×4 rundy)'},{d:'ŚR',name:'Tabata: Mountain Climbers + Pompki (2×4 rundy)'},{d:'PT',name:'Tabata: High Knees + Plank Jacks (2×4 rundy)'}]},
+      {nr:2,label:'5 rund Tabata',rpe:'RPE 8',focus:'2 bloki × 5 rund',days:[{d:'PON',name:'Tabata: Burpees + Jump Squats (2×5 rund)'},{d:'ŚR',name:'Tabata: Mountain Climbers + Pompki (2×5 rund)'},{d:'PT',name:'Tabata: High Knees + Plank Jacks (2×5 rund)'}]},
+      {nr:3,label:'6 rund Tabata',rpe:'RPE 8-9',focus:'2 bloki × 6 rund — szczyt bloku I',days:[{d:'PON',name:'Tabata: pełny obwód, 2×6 rund'},{d:'ŚR',name:'Tabata: pełny obwód, 2×6 rund'},{d:'PT',name:'Tabata: pełny obwód, 2×6 rund'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 5-6',focus:'1 blok × 4 rundy, lekkie ćwiczenia',days:[{d:'PON',name:'Tabata light: 1×4 rundy'},{d:'PT',name:'Tabata light: 1×4 rundy'}]},
+      {nr:8,label:'7 rund Tabata',rpe:'RPE 9',focus:'2 bloki × 7 rund — nowy poziom',days:[{d:'PON',name:'Tabata: pełny obwód, 2×7 rund'},{d:'ŚR',name:'Tabata: pełny obwód, 2×7 rund'},{d:'PT',name:'Tabata: pełny obwód, 2×7 rund'}]},
+      {nr:12,label:'8 rund Tabata — Meta',rpe:'RPE 9-10',focus:'2 bloki × 8 rund — maksimum programu',days:[{d:'PON',name:'Tabata: pełny obwód, 2×8 rund'},{d:'PT',name:'TEST: maksymalna liczba powtórzeń w 1 rundzie Tabata'}]},
+    ]
+  },
+
+
+  // Periodyzacje przeniesione z Szablonów (makrocykle)
+
+  {id:'dp26',type:'demo',name:'GZCLP — Siła 10 tygodni',goal:'sila',level:'poczatkujacy',duration:10,daysPerWeek:3,equip:'Siłownia',method:'GZCLP',
+    desc:'Program GZCLP: T1/T2/T3, progresja liniowa i deload. Przeniesiony z szablonów — tu jest pełny makrocykl.',
+    highlights:['T1 ciężkie single/trójki','T2 objętość','T3 akcesoria','Deload co 4–5 tyg.'],
+    weeks:[{nr:1,label:'Baza T1/T2',rpe:'RPE 7-8',focus:'Nauka progresji',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:2,label:'Objętość',rpe:'RPE 7-8',focus:'Budowa roboczej objętości',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:3,label:'Intensyfikacja',rpe:'RPE 7-8',focus:'Wyższe %1RM',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:4,label:'Deload',rpe:'RPE 7-8',focus:'Regeneracja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:5,label:'Powtórzenie bloku',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:6,label:'Objętość II',rpe:'RPE 7-8',focus:'+ obciążenie',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:7,label:'Intensyfikacja II',rpe:'RPE 7-8',focus:'Peak roboczy',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:8,label:'Deload',rpe:'RPE 7-8',focus:'Regeneracja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:9,label:'Test / realizacja',rpe:'RPE 7-8',focus:'Sprawdzenie siły',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:10,label:'Reset',rpe:'RPE 7-8',focus:'Plan na kolejny blok',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]}]},
+  {id:'dp27',type:'demo',name:'Texas Method — Siła 12 tygodni',goal:'sila',level:'zaawansowany',duration:12,daysPerWeek:3,equip:'Siłownia',method:'Texas Method',
+    desc:'Klasyczny Texas Method: Volume Day → Recovery → Intensity Day. Pełna periodyzacja falowa.',
+    highlights:['Volume Day 5×5','Intensity Day single/top set','Środa recovery','Deload co 4. tydzień'],
+    weeks:[{nr:1,label:'Adaptacja',rpe:'RPE 7-8',focus:'Wprowadzenie do Volume/Intensity',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:2,label:'Volume↑',rpe:'RPE 7-8',focus:'Wzrost objętości',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:3,label:'Intensity↑',rpe:'RPE 7-8',focus:'Cięższe top sety',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:4,label:'Deload',rpe:'RPE 7-8',focus:'-40% objętości',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:5,label:'Volume II',rpe:'RPE 7-8',focus:'Powrót objętości',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:6,label:'Intensity II',rpe:'RPE 7-8',focus:'Nowe PR robocze',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:7,label:'Volume III',rpe:'RPE 7-8',focus:'Stabilizacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:8,label:'Intensity III',rpe:'RPE 7-8',focus:'Peak',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:9,label:'Deload',rpe:'RPE 7-8',focus:'Regeneracja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:10,label:'Realizacja',rpe:'RPE 7-8',focus:'Test 1–3RM',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:11,label:'Utrzymanie',rpe:'RPE 7-8',focus:'Lżejszy volume',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:12,label:'Reset',rpe:'RPE 7-8',focus:'Nowy cykl',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]}]},
+  {id:'dp28',type:'demo',name:'Starting Strength — 12 tygodni',goal:'sila',level:'poczatkujacy',duration:12,daysPerWeek:3,equip:'Siłownia',method:'Starting Strength',
+    desc:'Program Marka Rippetoe: A/B, 3×/tydzień, liniowa progresja. Makrocykl z deloadem — nie sam schemat tygodnia.',
+    highlights:['Workout A/B naprzemiennie','Progresja +2.5 kg','Deload przy stagnacji','3 wielostawy / sesja'],
+    weeks:[{nr:1,label:'Nauka wzorców',rpe:'RPE 7-8',focus:'Technika A/B',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:2,label:'Progresja liniowa',rpe:'RPE 7-8',focus:'+2.5 kg gdy RPE≤8',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:3,label:'Progresja liniowa',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:4,label:'Deload',rpe:'RPE 7-8',focus:'Technika, lżejsze serie',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:5,label:'Progresja',rpe:'RPE 7-8',focus:'Powrót do ciężarów',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:6,label:'Progresja',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:7,label:'Progresja',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:8,label:'Deload',rpe:'RPE 7-8',focus:'Regeneracja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:9,label:'Progresja',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:10,label:'Progresja',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:11,label:'Intensyfikacja',rpe:'RPE 7-8',focus:'Cięższe top sety',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:12,label:'Test',rpe:'RPE 7-8',focus:'Sprawdzenie 5RM',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]}]},
+  {id:'dp29',type:'demo',name:'nSuns 5/3/1 — 16 tygodni',goal:'sila',level:'zaawansowany',duration:16,daysPerWeek:4,equip:'Siłownia',method:'nSuns 5/3/1',
+    desc:'nSuns 5/3/1 (4 dni): wysoka objętość, cotygodniowa korekta TM. Pełny blok — odpowiednik usunięty z Szablonów.',
+    highlights:['4 dni / tydzień','TM +5/+2.5 po tygodniu','Wysoka objętość bench/squat','Deload co 4–6 tyg.'],
+    weeks:[{nr:1,label:'Wprowadzenie TM',rpe:'RPE 7-8',focus:'Ustalenie Training Max',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:2,label:'Objętość',rpe:'RPE 7-8',focus:'Budowa bazy',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:3,label:'Objętość',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:4,label:'Deload',rpe:'RPE 7-8',focus:'-30% objętości',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:5,label:'Intensyfikacja',rpe:'RPE 7-8',focus:'Wyższe %',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:6,label:'Objętość',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:7,label:'Objętość',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:8,label:'Deload',rpe:'RPE 7-8',focus:'Regeneracja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:9,label:'Peak roboczy',rpe:'RPE 7-8',focus:'Ciężkie top sety',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:10,label:'Objętość',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:11,label:'Intensyfikacja',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:12,label:'Deload',rpe:'RPE 7-8',focus:'Regeneracja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:13,label:'Realizacja',rpe:'RPE 7-8',focus:'Testy siły',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:14,label:'Utrzymanie',rpe:'RPE 7-8',focus:'Lżejszy blok',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:15,label:'Utrzymanie',rpe:'RPE 7-8',focus:'Kontynuacja',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},{nr:16,label:'Reset',rpe:'RPE 7-8',focus:'Nowy TM',days:[{d:'PON',name:'Trening A'},{d:'WT',name:'REST'},{d:'ŚR',name:'Trening B'},{d:'CZ',name:'REST'},{d:'PT',name:'Trening A/B'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]}]},
+  {id:'dp30',type:'demo',name:'PPL Siła studio — 8 tygodni',goal:'sila',level:'sredni',duration:8,daysPerWeek:3,equip:'Siłownia',method:'PPL',
+    desc:'Siłowy PPL 3×/tydzień na tych samych ćwiczeniach co hipertrofia ze studia (hantle leżąc, skos maszyna, hack squat, wiosłowanie maszyna, RDL). DUP 4+4 tyg.: akumulacja → intensyfikacja → szczyt → deload. Podwójna progresja: najpierw powtórzenia w zakresie, potem +kg. Przerwy 3 min na wielostawach.',
+    highlights:['Te same ćwiczenia co PPL hipertrofia studio','3×/tydzień — Push+czworo / Pull / Nogi','DUP: RPE 7 → 8 → 8–9 → deload 6','Podwójna progresja: zakres powt., potem ciężar','Tydz. 3: −2 powt. +5% kg; tydz. 4: −1 ser. −15% kg'],
+    weeks:[
+      {nr:1,label:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7',focus:'4–6 powt. na wielostawach, RIR 3. Start od ostatnich kg z hipertrofii (np. wyciskanie 22,5–26 kg, skos maszyna 60 kg, OHP 18 kg).',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'Siła PPL — Nogi'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:2,label:'DUP Intensyfikacja',rpe:'RPE 8',focus:'Ten sam zakres 4–6. Gdy górny próg (6) we wszystkich seriach — +2,5 kg (hantle +2 kg). RIR 2.',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'Siła PPL — Nogi'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:3,label:'DUP Szczyt',rpe:'RPE 8-9',focus:'−2 powt. (zakres 3–5) i +5% kg na głównych. RIR 1–2. Akcesoria bez zmian.',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'Siła PPL — Nogi'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 6',focus:'−1 seria, −2 powt., −15% kg. Technika, bez pogoni za RPE.',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'REST'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:5,label:'DUP Akumulacja II',rpe:'RPE 7-8',focus:'Start od kg z tyg. 2 lub wyżej, jeśli deload był czysty. Znowu 4–6 powt.',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'Siła PPL — Nogi'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:6,label:'DUP Intensyfikacja II',rpe:'RPE 8',focus:'Górny próg zakresu → +kg. Nie dokładaj serii.',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'Siła PPL — Nogi'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:7,label:'DUP Szczyt II',rpe:'RPE 8-9',focus:'−2 powt. +5% kg. Opcja: ostatnia seria AMRAP na wyciskaniu i hacku.',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'Siła PPL — Nogi'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:8,label:'DELOAD + ocena',rpe:'RPE 6',focus:'−1 ser. −15% kg. Zapisz najlepsze serie — baza pod kolejny blok.',days:[{d:'PON',name:'Siła PPL — Push + czworogłowe'},{d:'WT',name:'REST'},{d:'ŚR',name:'Siła PPL — Pull + dwugłowe'},{d:'CZ',name:'REST'},{d:'PT',name:'REST'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]}
+    ]
+  },
+];
+
+function allPrograms(){return[...DEMO_PROGRAMS,...(window.USER_PROGRAMS||[])];}
+window.allPrograms=allPrograms;
+
+/** Rozwija fokus dnia programu (np. „Push A — Klatka”) do listy ćwiczeń startowych. */
+function expandSessionFromDayFocus(focus){
+  const raw=String(focus||'');
+  const s=raw.toLowerCase();
+  const ex=(name,sets,reps,rest)=>({name,sets:String(sets||'3'),reps:String(reps||'8-12'),rest:rest||'90s'});
+  if(typeof sessionExercisesForFocus==='function'){
+    const packed=sessionExercisesForFocus(raw);
+    if(Array.isArray(packed)&&packed.length){
+      return packed.map(e=>({
+        name:e.name||e.n||'Ćwiczenie',
+        sets:String(e.sets!=null?e.sets:(e.s!=null?e.s:'3')),
+        reps:String(e.reps!=null?e.reps:(e.r!=null?e.r:'8-12')),
+        rest:e.rest||'90s'
+      }));
+    }
+  }
+  if((typeof sessionIsRestFocus==='function'?sessionIsRestFocus(raw):false)||(/^\s*rest\b/i.test(raw)&&!/test/i.test(s)))return[];
+  if(/test\s*1\s*rm|test 1rm|test sił/.test(s))return[
+    ex('Przysiad ze sztangą','1-3','1-3','3min'),
+    ex('Wyciskanie sztangi leżąc','1-3','1-3','3min'),
+    ex('Martwy ciąg klasyczny','1-3','1-3','3min'),
+    ex('Wyciskanie żołnierskie OHP','1-3','1-3','3min')
+  ];
+  if(/10\s*[×x]\s*10|gvt/.test(s)){
+    if(/nóg|nogi|przysiad|rdl/.test(s))return[ex('Przysiad ze sztangą','10','10','90s'),ex('Martwy ciąg RDL','10','10','90s'),ex('Wypychanie bioder (hip thrust)','3','12','75s'),ex('Wspięcia na palce stojąc','3','15','45s')];
+    if(/bark|ramion|ohp/.test(s))return[ex('Wyciskanie żołnierskie OHP','10','10','90s'),ex('Uginanie biceps sztangą','10','10','60s'),ex('Prostowanie tricepsa wyciąg','3','12-15','60s'),ex('Unoszenie bokiem','3','15','45s')];
+    return[ex('Wyciskanie sztangi leżąc','10','10','90s'),ex('Podciąganie na drążku','10','10','90s'),ex('Rozpiętki na wyciągu','3','12-15','60s'),ex('Ściąganie do twarzy (face pull)','3','15','45s')];
+  }
+  if(/tabata/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex('Burpees','2','max','10s'),ex('Przysiad powietrzny z mini band','2','max','10s'),ex('Mountain climbers','2','max','10s'),ex('Pompki','2','max','10s'),ex('Cool-down / stretch','1','5 min','—')];
+  if(/emom/.test(s))return[ex('Przysiad ze sztangą','10-20','5 / min','EMOM'),ex('Podciąganie na drążku','10-20','5 / min','EMOM'),ex('Pompki','10-20','8 / min','EMOM'),ex('Swing kettlebell','10-20','8 / min','EMOM')];
+  if(/amrap|cindy/.test(s))return[ex('Podciąganie na drążku','AMRAP','5','—'),ex('Pompki','AMRAP','10','—'),ex('Przysiad powietrzny z mini band','AMRAP','15','—'),ex('Burpees','AMRAP','5','—')];
+  if(/klatka/.test(s)&&/plecy/.test(s))return[ex('Wyciskanie sztangi leżąc','4','8-10','120s'),ex('Wiosłowanie sztangą','4','8-10','120s'),ex('Wyciskanie hantli na ławce skośnej','3','10-12','90s'),ex('Podciąganie na drążku','3','6-10','120s'),ex('Rozpiętki na wyciągu','3','12-15','60s')];
+  if(/barki/.test(s)&&/ramion/.test(s))return[ex('Wyciskanie żołnierskie OHP','4','8-10','120s'),ex('Unoszenie bokiem','4','12-15','45s'),ex('Uginanie biceps sztangą','4','10-12','60s'),ex('Prostowanie tricepsa wyciąg','3','12-15','60s')];
+  if(/trening a\/b/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie sztangi leżąc','5','5','180s'),ex('Wyciskanie żołnierskie OHP','3','5','150s'),ex('Wiosłowanie sztangą','5','5','150s'),ex('Martwy ciąg klasyczny','1','5','240s')];
+  if(/trening a/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie sztangi leżąc','5','5','180s'),ex('Martwy ciąg klasyczny','1','5','240s'),ex('Wiosłowanie sztangą','3','8','120s')];
+  if(/trening b/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie żołnierskie OHP','5','5','150s'),ex('Wiosłowanie sztangą','5','5','150s'),ex('Podciąganie na drążku','3','6-8','120s')];
+  if(/hiit/.test(s)){
+    let rest='40s',setsEach='2';
+    const paren=raw.match(/(\d+)\s*[×x]\s*\(\s*(\d+)\s*s[^\d]+(\d+)\s*s/i);
+    if(paren){
+      rest=paren[3]+'s';
+      setsEach=String(Math.max(1,Math.floor((+paren[1])/4)||2));
+    }
+    return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex('Burpees',setsEach,'max',rest),ex('Przysiad powietrzny z mini band',setsEach,'max',rest),ex('Mountain climbers',setsEach,'max',rest),ex('Pompki',setsEach,'max',rest),ex('Cool-down / stretch','1','5 min','—')];
+  }
+  if(/cardio|bieg/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex(focus||'HIIT / cardio','1','20-30 min','—'),ex('Cool-down / stretch','1','5 min','—')];
+  if(/mobiln|mobility/.test(s))return[ex('Foam rolling','2','10','30s'),ex('Mobilność bioder/barków','2','10','30s'),ex(focus||'Mobilność','2','8','45s')];
+  if(/push/.test(s))return[
+    ex('Wyciskanie sztangi / maszyna (klatka)','4','6-10','2min'),
+    ex('Wyciskanie żołnierskie / barki','3','8-12','90s'),
+    ex('Rozpiętki / fly maszyna','3','10-15','75s'),
+    ex('Prostowanie triceps wyciąg','3','10-12','60s'),
+    ex('Unoszenie boczne','3','12-15','60s')
+  ];
+  if(/pull/.test(s))return[
+    ex('Martwy ciąg / RDL','3','6-10','2min'),
+    ex('Podciąganie / lat pulldown','4','6-10','2min'),
+    ex('Wiosłowanie (wyciąg / hantel)','3','8-12','90s'),
+    ex('Face pull','3','12-15','60s'),
+    ex('Uginanie biceps','3','10-12','60s')
+  ];
+  if(/leg|nóg|nogi|lower|przysiad|czwor|dwugł|poślad/.test(s))return[
+    ex('Przysiad / hack squat','4','6-10','2min'),
+    ex('Wyciskanie nogami / wykroki','3','8-12','90s'),
+    ex('RDL / leg curl','3','8-12','90s'),
+    ex('Wypychanie bioder / hip thrust','3','8-12','90s'),
+    ex('Wspięcia na palce','3','12-15','60s')
+  ];
+  if(/upper|góra/.test(s))return[
+    ex('Wyciskanie klatka (maszyna/Smith)','3','6-10','2min'),
+    ex('Ściąganie drążka / podciąganie','3','6-10','2min'),
+    ex('Wiosłowanie siedząc','3','8-12','90s'),
+    ex('Unoszenie boczne','3','10-15','60s'),
+    ex('Triceps + biceps (superset)','3','10-12','60s')
+  ];
+  if(/fbw|full\s*body/.test(s))return[
+    ex('Przysiad / goblet squat','3','6-10','2min'),
+    ex('Wyciskanie (klatka lub OHP)','3','6-10','2min'),
+    ex('Wiosłowanie','3','8-12','90s'),
+    ex('RDL / hip hinge','3','8-12','90s'),
+    ex('Core / plank','3','30-45s','45s')
+  ];
+  return[ex(focus||'Trening wg planu','3','8-12','90s')];
+}
+window.expandSessionFromDayFocus=expandSessionFromDayFocus;
+
+/** Dni planu treningowego z tygodnia programu (z ćwiczeniami, nie pustą skorupą). */
+function planDaysFromProgram(prog,weekIdx){
+  if(!prog)return[];
+  const weeks=prog.weeks||[];
+  const week=weeks[weekIdx||0]||weeks[0]||{};
+  const rawDays=week.days||prog.days||[];
+  return rawDays.map(d=>{
+    const label=d.d||d.day||d.dayName||'Dzień';
+    const focus=d.name||d.muscles||d.focus||'';
+    const isRest=!!d.rest||(typeof sessionIsRestFocus==='function'&&sessionIsRestFocus(focus))||/^\s*rest\b/i.test(String(focus))&&!/test/i.test(String(focus))||/^rest$/i.test(String(label))||String(focus).toUpperCase()==='REST';
+    let exercises=[];
+    if(!isRest){
+      if(Array.isArray(d.exercises)&&d.exercises.length){
+        exercises=d.exercises.map(e=>{
+          if(typeof e==='string')return{name:e,sets:'3',reps:'8-12',rest:'90s'};
+          return{
+            name:e.name||e.n||'Ćwiczenie',
+            sets:String(e.sets!=null?e.sets:(e.s!=null?e.s:'3')),
+            reps:String(e.reps!=null?e.reps:(e.r!=null?e.r:'8-12')),
+            rest:e.rest||'90s',
+            rpe:e.rpe||e.rir||'',
+            tempo:e.tempo||''
+          };
+        });
+      }else{
+        exercises=expandSessionFromDayFocus(focus||label);
+      }
+    }
+    return{day:label,muscles:focus,rest:isRest,exercises};
+  });
+}
+window.planDaysFromProgram=planDaysFromProgram;
+
+function setProgNav(n){
+  progNav=n;
+  document.querySelectorAll('.prog-nav-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('pn-'+n);if(el)el.classList.add('active');
+  renderPrograms();
+}
+
+function progDurationMatches(duration,filter){
+  if(!filter)return true;
+  const n=Number(duration)||0;
+  if(filter==='10+')return n>=10;
+  return String(n)===String(filter);
+}
+window.progDurationMatches=progDurationMatches;
+
+function setProgDurFilter(d){
+  progDurFilter=d==null?'':String(d);
+  document.querySelectorAll('#prog-dur-chips .wl-filter-chip').forEach(el=>{
+    el.classList.toggle('active',(el.getAttribute('data-dur')||'')===progDurFilter);
+  });
+  renderPrograms();
+}
+
+function updateProgCounts(){
+  const all=allPrograms();
+  const cnt=fn=>all.filter(fn).length;
+  const set=(id,n)=>{const el=document.getElementById(id);if(el)el.textContent=n;};
+  set('pnc-all',all.length);
+  set('pnc-demo',cnt(p=>p.type==='demo'));
+  set('pnc-moje',cnt(p=>p.type==='moje'));
+  ['masa','sila','redukcja','kondycja'].forEach(g=>set('pnc-'+g,cnt(p=>p.goal===g)));
+  ['poczatkujacy','sredni','zaawansowany'].forEach(l=>set('pnc-'+l,cnt(p=>p.level===l)));
+}
+
+function renderPrograms(){
+  updateProgCounts();
+  const all=allPrograms();
+  const search=(document.getElementById('prog-search')||{}).value||'';
+  const equipFil=(document.getElementById('prog-equip-fil')||{}).value||'';
+  let res=all.filter(p=>{
+    if(search&&!p.name.toLowerCase().includes(search.toLowerCase())&&!(p.desc||'').toLowerCase().includes(search.toLowerCase()))return false;
+    if(equipFil&&p.equip!==equipFil)return false;
+    if(progDurFilter&&!progDurationMatches(p.duration,progDurFilter))return false;
+    if(progNav==='all')return true;
+    if(progNav==='demo')return p.type==='demo';
+    if(progNav==='moje')return p.type==='moje';
+    if(['masa','sila','redukcja','kondycja'].includes(progNav))return p.goal===progNav;
+    if(['poczatkujacy','sredni','zaawansowany'].includes(progNav))return p.level===progNav;
+    return true;
+  });
+
+  const lbl=document.getElementById('prog-count-lbl');
+  if(lbl)lbl.textContent=res.length+' '+(res.length===1?'program':res.length<5?'programy':'programów');
+
+  const grid=document.getElementById('prog-grid');
+  if(!grid)return;
+  if(!res.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📋</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak programów</div><div style="font-size:12px;margin-bottom:20px;">Zmień filtry lub dodaj własny program</div><button class="btn btn-primary" onclick="openM(\'m-program\')">+ Nowy program</button></div>';
+    return;
+  }
+
+  grid.innerHTML=res.map((p,i)=>{
+    const gc=GOAL_COLORS[p.goal]||'var(--accent)';
+    const lc=LEVEL_COLORS_P[p.level]||'var(--muted)';
+    const ll={'poczatkujacy':'Początkujący','sredni':'Średni','zaawansowany':'Zaawansowany'}[p.level]||p.level;
+    const gl=GOAL_LABELS[p.goal]||p.goal;
+    const weeks=p.weeks||[];
+    const MAX_WEEK_BARS=6;
+    const weekBars=weeks.slice(0,MAX_WEEK_BARS).map(w=>{
+      const isDeload=w.label&&w.label.includes('DELOAD');
+      const fillPct=isDeload?20:Math.min(95,50+w.nr*6);
+      const col=isDeload?'var(--orange)':gc;
+      return `<div class="prog-week-bar">
+        <span class="prog-week-num">TYG ${w.nr}</span>
+        <div class="prog-week-fill" style="background:${col};opacity:${isDeload?0.6:0.8};width:${fillPct}%;max-width:100%;"></div>
+        <span class="prog-week-label">${w.label||''}</span>
+      </div>`;
+    }).join('')+(weeks.length>MAX_WEEK_BARS?`<div class="prog-week-more">+${weeks.length-MAX_WEEK_BARS} tyg. w szczegółach</div>`:'');
+
+    return `<div class="prog-card" style="animation-delay:${i*0.05}s" onclick="openProgDetail('${p.id}')">
+      <div class="prog-card-top" style="background:${gc};"></div>
+      <div class="prog-card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
+          <div class="prog-card-title">${p.name}</div>
+          ${p.type==='demo'?'<span class="pill pill-blue" style="font-size:9px;white-space:nowrap;flex-shrink:0;">DEMO</span>':'<span class="pill pill-green" style="font-size:9px;white-space:nowrap;flex-shrink:0;">MOJE</span>'}
+        </div>
+        <div class="prog-card-sub">${p.method} · ${gl} · ${ll}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
+          <span class="pill" style="background:${gc}22;color:${gc};font-size:10px;">${gl}</span>
+          <span class="pill" style="background:${lc}22;color:${lc};font-size:10px;">${ll}</span>
+          <span class="pill pill-muted" style="font-size:10px;">${p.equip}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.desc||''}</div>
+        <div class="prog-card-weeks">${weekBars}</div>
+      </div>
+      <div class="prog-stats-row">
+        <div class="prog-stat"><div class="prog-stat-val">${p.duration}</div><div class="prog-stat-lbl">Tygodni</div></div>
+        <div class="prog-stat"><div class="prog-stat-val">${p.daysPerWeek}</div><div class="prog-stat-lbl">Dni/tyg</div></div>
+        <div class="prog-stat"><div class="prog-stat-val">${weeks.length}</div><div class="prog-stat-lbl">Fazy</div></div>
+      </div>
+      <div class="prog-card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openProgDetail('${p.id}')">Szczegóły</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="openAssignProg('${p.id}')">Przypisz</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openProgDetail(id){
+  const p=allPrograms().find(x=>x.id===id);if(!p)return;
+  progSelId=id;
+  const gc=GOAL_COLORS[p.goal]||'var(--accent)';
+  const gl=GOAL_LABELS[p.goal]||p.goal;
+  const ll={'poczatkujacy':'Początkujący','sredni':'Średni','zaawansowany':'Zaawansowany'}[p.level]||p.level;
+  document.getElementById('prd-title').textContent=p.name;
+  document.getElementById('prd-meta').textContent=p.method+' · '+gl+' · '+ll+' · '+p.duration+' tyg. · '+p.daysPerWeek+' dni/tyg.';
+  document.getElementById('prd-body').innerHTML=`
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+      <span class="pill" style="background:${gc}22;color:${gc};">${gl}</span>
+      <span class="pill pill-muted">${ll}</span>
+      <span class="pill pill-muted">${p.equip}</span>
+      <span class="pill pill-muted">${p.method}</span>
+      ${p.type==='demo'?'<span class="pill pill-blue">DEMO</span>':''}
+    </div>
+    <div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;">${p.desc||''}</div>
+    ${p.highlights&&p.highlights.length?`<div style="margin-bottom:16px;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Kluczowe założenia</div>
+      ${p.highlights.map(h=>`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;font-size:12px;"><span style="color:${gc};flex-shrink:0;">✓</span><span>${h}</span></div>`).join('')}
+    </div>`:''}
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Harmonogram tygodniowy</div>
+    ${(p.weeks||[]).map(w=>{
+      const isDeload=w.label&&w.label.includes('DELOAD');
+      return `<div class="prog-detail-week">
+        <div class="prog-detail-week-hdr">
+          <span class="prog-detail-week-num">TYG ${w.nr}</span>
+          <div>
+            <span style="font-size:12px;font-weight:700;color:${isDeload?'var(--orange)':gc};">${w.label||''}</span>
+            ${w.rpe?`<span class="pill pill-muted" style="font-size:9px;margin-left:6px;">${w.rpe}</span>`:''}
+          </div>
+        </div>
+        ${w.focus?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;padding-left:60px;">${w.focus}</div>`:''}
+        ${(w.days||[]).map(d=>`<div class="prog-detail-day">
+          <span class="prog-detail-day-name">${d.d}</span>
+          <span style="font-size:12px;${d.name==='REST'?'color:var(--muted);font-style:italic;':''}">${d.name}</span>
+        </div>`).join('')}
+      </div>`;
+    }).join('')}`;
+  const footer=document.getElementById('prd-footer');
+  const custom=findUserProgram(id);
+  if(footer)footer.innerHTML=custom
+    ?`<button class="btn btn-primary" style="flex:1;" onclick="assignProgramToClient()">Przypisz klientowi</button>
+       <button class="btn btn-ghost" onclick="editProgram('${id}')">✏ Edytuj</button>
+       <button class="btn btn-ghost" style="color:var(--red);" onclick="delProgram('${id}')">🗑</button>`
+    :`<button class="btn btn-primary" style="flex:1;" onclick="assignProgramToClient()">Przypisz klientowi</button>
+       <button class="btn btn-ghost" onclick="closeProgDetail()">Zamknij</button>`;
+  document.getElementById('prog-detail').style.transform='translateX(0)';
+}
+
+function closeProgDetail(){
+  document.getElementById('prog-detail').style.transform='translateX(100%)';
+  progSelId=null;
+}
+
+function assignProgramToClient(){
+  openAssignProg(progSelId);
+}
+
+function openAssignProg(id){
+  progSelId=id;
+  const p=allPrograms().find(x=>x.id===id);
+  if(!p)return;
+  if(!CL.length){notify('Najpierw dodaj klienta!');return;}
+  document.getElementById('m-assign-prog-title').textContent='PRZYPISZ: '+p.name.toUpperCase();
+  assignProgSetClientField('','');
+  document.getElementById('assign-prog-date').value=new Date().toISOString().split('T')[0];
+  openM('m-assign-prog');
+}
+
+// Ustawia pole klienta w oknie przypisania programu: widoczny tekst + ukryte id.
+function assignProgSetClientField(clientId,clientName){
+  const hid=document.getElementById('assign-prog-client');
+  const vis=document.getElementById('assign-prog-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('assign-prog-client-results');
+  if(res)res.style.display='none';
+}
+
+function assignProgClientSearchInput(){
+  const q=(document.getElementById('assign-prog-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('assign-prog-client-results');
+  if(!res)return;
+  let list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(q)list=list.filter(c=>String(c.name||c.email||'').toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>String(a.c.name||'').localeCompare(String(b.c.name||''),'pl'));
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="assignProgSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+async function confirmAssignProgram(){
+  const p=allPrograms().find(x=>x.id===progSelId);
+  if(!p)return;
+  const cid=document.getElementById('assign-prog-client').value;
+  const startDate=document.getElementById('assign-prog-date').value||new Date().toISOString().split('T')[0];
+  const c=CL.find(x=>x.id===cid);
+  if(!c){notify('Wybierz klienta!');return;}
+
+  // Buduj pełny obiekt planu z programu (z ćwiczeniami z tygodnia 1)
+  const newPlan=withTrainer({
+    id:newId('p'),
+    name:p.name,
+    clientId:cid,
+    clientName:c.name,
+    method:p.method||'Własna',
+    duration:p.duration||8,
+    level:p.level||'sredni',
+    goal:p.goal||'masa',
+    source:'program',
+    programId:p.id,
+    startDate,
+    createdAt:new Date().toISOString(),
+    days:typeof planDaysFromProgram==='function'?planDaysFromProgram(p,0):[]
+  });
+
+  PL.push(newPlan);
+  await persistById('plans',newPlan);
+
+  closeM('m-assign-prog');
+  closeProgDetail();
+
+  addNotification('system','Program przypisany!','"'+p.name+'" → '+c.name,'plans');
+  notify('✓ Program "'+p.name+'" przypisany do: '+c.name+'!');
+
+  if(typeof maybeSchedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+    maybeSchedulePlanToCalendar(newPlan.id,{weeks:4});
+  }else if(typeof schedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+    if(confirm('Dodać dni programu do kalendarza na 4 tygodnie?'))schedulePlanToCalendar(newPlan.id,{weeks:4});
+  }
+
+  // Jeśli profil klienta otwarty — odśwież zakładkę Plan
+  if(typeof cpClientId!=='undefined'&&cpClientId===cid){
+    try{setCPTab('plan');}catch(e){}
+  }
+}
+
+function findUserProgram(id){
+  return (window.USER_PROGRAMS||[]).find(p=>p.id===id);
+}
+
+function editProgram(id){
+  const p=findUserProgram(id);
+  if(!p){notify('To program z biblioteki demo — nie można go edytować');return;}
+  openM('m-program'); // resetuje formularz
+  document.getElementById('pm-name').value=p.name||'';
+  document.getElementById('pm-goal').value=p.goal||'';
+  document.getElementById('pm-level').value=p.level||'';
+  document.getElementById('pm-dur').value=p.duration||'';
+  document.getElementById('pm-days').value=p.daysPerWeek||'';
+  document.getElementById('pm-equip').value=p.equip||'';
+  document.getElementById('pm-method').value=p.method||'';
+  document.getElementById('pm-desc').value=p.desc||'';
+  const titleEl=document.querySelector('#m-program .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ PROGRAM';
+  const saveBtn=document.querySelector('#m-program .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingProgId=id;
+}
+
+async function delProgram(id){
+  const p=findUserProgram(id);
+  if(!p){notify('To program z biblioteki demo — nie można go usunąć');return;}
+  if(!confirm('Usunąć program "'+p.name+'"?'))return;
+  window.USER_PROGRAMS=(window.USER_PROGRAMS||[]).filter(x=>x.id!==id);
+  renderPrograms();
+  notify('Program usunięty');
+  if(window._db){try{await window._del(window._doc(window._db,'programs',id));}catch(e){console.warn('Firebase delProgram:',e);}}
+}
+
+async function saveUserProgram(){
+  if(window._saveGuard_saveUserProgram)return;window._saveGuard_saveUserProgram=true;setTimeout(()=>window._saveGuard_saveUserProgram=false,1500);
+
+  const name=document.getElementById('pm-name').value.trim();
+  if(!name){notify('Wpisz nazwę programu!');return;}
+  const editingId=window._editingProgId;
+  if(editingId){
+    const idx=(window.USER_PROGRAMS||[]).findIndex(x=>x.id===editingId);
+    if(idx>=0){
+      window.USER_PROGRAMS[idx]={...window.USER_PROGRAMS[idx],name,goal:document.getElementById('pm-goal').value,level:document.getElementById('pm-level').value,duration:parseInt(document.getElementById('pm-dur').value),daysPerWeek:parseInt(document.getElementById('pm-days').value),equip:document.getElementById('pm-equip').value,method:document.getElementById('pm-method').value,desc:document.getElementById('pm-desc').value,updatedAt:new Date().toISOString()};
+      window._editingProgId=null;
+      closeM('m-program');renderPrograms();notify('Program zaktualizowany!');
+      await persistById('programs',window.USER_PROGRAMS[idx]);
+      return;
+    }
+  }
+  const p=withTrainer({
+    id:newId('up'),type:'moje',
+    name,goal:document.getElementById('pm-goal').value,
+    level:document.getElementById('pm-level').value,
+    duration:parseInt(document.getElementById('pm-dur').value),
+    daysPerWeek:parseInt(document.getElementById('pm-days').value),
+    equip:document.getElementById('pm-equip').value,
+    method:document.getElementById('pm-method').value,
+    desc:document.getElementById('pm-desc').value,
+    highlights:[],weeks:[],createdAt:new Date().toISOString()
+  });
+  await persistById('programs',p);
+  window.USER_PROGRAMS.push(p);closeM('m-program');renderPrograms();notify('Program dodany! 📋');
+}
+window.TASKS=[];var taskFilter='all';
+
+const TASK_TEMPLATES=[
+  {id:'tt1',name:'Start programu — tydzień 1',cat:'trening',icon:'💪',desc:'Pakiet zadań na pierwsze 7 dni po starcie programu',tasks:[{title:'Wykonaj 3 treningi zgodnie z planem',cat:'trening',priority:'high',days:7},{title:'Zrób zdjęcia startowe (przód, bok, tył)',cat:'pomiary',priority:'high',days:2},{title:'Zmierz masę ciała rano na czczo',cat:'pomiary',priority:'medium',days:1},{title:'Wypełnij ankietę wstępną',cat:'lifestyle',priority:'medium',days:3},{title:'Zainstaluj aplikację do śledzenia kalorii',cat:'dieta',priority:'low',days:5}]},
+  {id:'tt2',name:'Kontrola miesięczna',cat:'pomiary',icon:'📏',desc:'Ocena postępów po 4 tygodniach programu',tasks:[{title:'Zmierz masę ciała (3 dni z rzędu, średnia)',cat:'pomiary',priority:'high',days:3},{title:'Zrób zdjęcia postępu',cat:'pomiary',priority:'high',days:3},{title:'Wypełnij formularz oceny postępów',cat:'pomiary',priority:'medium',days:5},{title:'Oceń samopoczucie i energię (skala 1-10)',cat:'lifestyle',priority:'medium',days:2},{title:'Zgłoś ból lub dyskomfort do trenera',cat:'lifestyle',priority:'high',days:1}]},
+  {id:'tt3',name:'Tydzień nawyków żywieniowych',cat:'dieta',icon:'🥗',desc:'Praca nad podstawami diety przez 7 dni',tasks:[{title:'Jedz 1.8-2.2g białka na kg masy ciała każdego dnia',cat:'dieta',priority:'high',days:7},{title:'Wypij min. 35ml wody na kg masy ciała',cat:'dieta',priority:'high',days:7},{title:'Meal prep — przygotuj posiłki wieczorem',cat:'dieta',priority:'medium',days:7},{title:'Unikaj alkoholu przez cały tydzień',cat:'lifestyle',priority:'medium',days:7},{title:'Zapisuj wszystkie posiłki w aplikacji',cat:'dieta',priority:'low',days:7}]},
+  {id:'tt4',name:'Tydzień regeneracji',cat:'lifestyle',icon:'😴',desc:'Zadania wspierające regenerację i sen',tasks:[{title:'Śpij minimum 7-8 godzin każdej nocy',cat:'lifestyle',priority:'high',days:7},{title:'Wykonaj 10 min stretching wieczorem',cat:'trening',priority:'medium',days:7},{title:'Wyjdź na spacer 30 min 3× w tygodniu',cat:'lifestyle',priority:'medium',days:7},{title:'Ogranicz ekrany 1h przed snem',cat:'lifestyle',priority:'low',days:7},{title:'Foam rolling po każdym treningu',cat:'trening',priority:'low',days:3}]},
+  {id:'tt5',name:'Tydzień deloadu',cat:'trening',icon:'⚡',desc:'Zadania na tydzień deloadu i regeneracji CNS',tasks:[{title:'Trenuj z 50% normalnej objętości i -10% ciężaru',cat:'trening',priority:'high',days:7},{title:'Skup się na technice — lekkie ciężary, pełny ROM',cat:'trening',priority:'high',days:7},{title:'Oceń postępy i przygotuj plan na kolejny blok',cat:'pomiary',priority:'medium',days:5},{title:'Zaplanuj cele na kolejne 4 tygodnie',cat:'lifestyle',priority:'medium',days:4}]},
+  {id:'tt6',name:'Przed nowym blokiem',cat:'trening',icon:'🎯',desc:'Zadania przed startem kolejnego cyklu',tasks:[{title:'Ustal nowe 1RM lub szacunkowe maksima',cat:'pomiary',priority:'high',days:3},{title:'Przejrzyj notatki z poprzedniego bloku',cat:'trening',priority:'medium',days:2},{title:'Omów zmiany w planie z trenerem',cat:'lifestyle',priority:'high',days:3},{title:'Sprawdź sprzęt — pas, opaski, buty',cat:'trening',priority:'low',days:5}]},
+  {id:'tt7',name:'Nawyki codzienne',cat:'lifestyle',icon:'🔥',desc:'Odhaczanie co dzień — liczy się seria (streak), bez jednorazowego terminu',tasks:[{title:'Wypij 3L wody',cat:'lifestyle',priority:'medium',kind:'habit'},{title:'Sen 7–8 godzin',cat:'lifestyle',priority:'medium',kind:'habit'},{title:'8 000 kroków',cat:'lifestyle',priority:'low',kind:'habit'},{title:'Białko na każdym posiłku',cat:'dieta',priority:'medium',kind:'habit'}]},
+  {id:'tt8',name:'Wyzwania 21 dni',cat:'lifestyle',icon:'🏆',desc:'Terminowe odhaczanie z paskiem postępu — 21 dni, żeby domknąć nawyk',tasks:[{title:'21 dni bez słodyczy',cat:'dieta',priority:'high',kind:'challenge',days:21},{title:'21 dni treningu',cat:'trening',priority:'high',kind:'challenge',days:21},{title:'21 dni 3L wody',cat:'lifestyle',priority:'medium',kind:'challenge',days:21}]},
+];
+
+const TASK_CAT_COLORS={trening:'var(--accent)',dieta:'var(--teal)',pomiary:'var(--blue)',lifestyle:'var(--purple)'};
+const TASK_CAT_LABELS={trening:'Trening',dieta:'Dieta',pomiary:'Pomiary',lifestyle:'Lifestyle'};
+const TASK_PRIO_COLORS={high:'var(--red)',medium:'var(--orange)',low:'var(--teal)'};
+const TASK_PRIO_LABELS={high:'Wysoki',medium:'Średni',low:'Niski'};
+
+// Ustawia pole klienta w oknie zadania: widoczny tekst wyszukiwania + ukryte id.
+function taskSetClientField(clientId,clientName){
+  const hid=document.getElementById('task-client');
+  const vis=document.getElementById('task-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('task-client-results');
+  if(res)res.style.display='none';
+}
+
+// Filtruje i pokazuje klientów pod polem wyszukiwania w oknie zadania.
+function taskClientSearchInput(){
+  const q=(document.getElementById('task-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('task-client-results');
+  if(!res)return;
+  let list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(q)list=list.filter(c=>String(c.name||c.email||'').toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>String(a.c.name||'').localeCompare(String(b.c.name||''),'pl'));
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="taskSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+function setTaskFilter(f){
+  taskFilter=f;
+  document.querySelectorAll('.task-nav-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('tn-'+f);if(el)el.classList.add('active');
+  renderTasks();
+}
+
+function renderTasks(){
+  const clf=document.getElementById('task-client-filter');
+  if(clf){
+    const cur=clf.value;
+    const live=(window.CL||[]).filter(c=>c&&c.status!=='archived')
+      .slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pl'));
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    clf.innerHTML='<option value="">Wszyscy klienci</option>'+live.map(c=>{
+      const label=c.name||c.email||c.id||'Klient';
+      return '<option value="'+esc(c.id)+'"'+(c.id===cur?' selected':'')+'>'+esc(label)+'</option>';
+    }).join('');
+  }
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
+  const search=(document.getElementById('task-search')||{}).value||'';
+  const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
+  const sortBy=(document.getElementById('task-sort')||{}).value||'due';
+  const oneShot=typeof isOneShot==='function'?isOneShot:t=>!isHabit(t);
+  const isCh=typeof isChallenge==='function'?isChallenge:()=>false;
+  const open=TASKS.filter(t=>oneShot(t)&&t.status!=='done');
+  const done=TASKS.filter(t=>oneShot(t)&&t.status==='done');
+  const over=TASKS.filter(t=>oneShot(t)&&t.status!=='done'&&t.due&&t.due<today);
+  const habitsN=TASKS.filter(isHabit);
+  const chN=TASKS.filter(isCh);
+  const tOpen=document.getElementById('t-open');if(tOpen)tOpen.textContent=open.length;
+  const tDone=document.getElementById('t-done');if(tDone)tDone.textContent=done.length;
+  const tOver=document.getElementById('t-over');if(tOver)tOver.textContent=over.length;
+  const tHabits=document.getElementById('t-habits');if(tHabits)tHabits.textContent=habitsN.length;
+  const tCh=document.getElementById('t-challenges');if(tCh)tCh.textContent=chN.length;
+  const hwN=TASKS.filter(t=>typeof isHomework==='function'?isHomework(t):!!(t&&t.kind==='homework'));
+  const tHw=document.getElementById('t-hw');if(tHw)tHw.textContent=hwN.filter(t=>t.status!=='done').length;
+  let filtered=TASKS.filter(t=>{
+    if(search&&!t.title.toLowerCase().includes(search.toLowerCase()))return false;
+    if(clientFil&&t.clientId!==clientFil)return false;
+    if(taskFilter==='open')return oneShot(t)&&t.status!=='done';
+    if(taskFilter==='done')return oneShot(t)&&t.status==='done';
+    if(taskFilter==='overdue')return oneShot(t)&&t.status!=='done'&&t.due&&t.due<today;
+    if(taskFilter==='habits')return isHabit(t);
+    if(taskFilter==='challenges')return isCh(t);
+    if(['high','medium','low'].includes(taskFilter))return t.priority===taskFilter;
+    if(taskFilter==='homework')return typeof isHomework==='function'?isHomework(t):!!(t.kind==='homework'||t.odWorkoutId);
+    if(['trening','dieta','pomiary','lifestyle'].includes(taskFilter))return t.cat===taskFilter;
+    return true;
+  });
+  if(sortBy==='due')filtered.sort((a,b)=>{
+    const rank=t=>isHabit(t)?0:isCh(t)?1:2;
+    if(rank(a)!==rank(b))return rank(a)-rank(b);
+    return (a.due||'9999').localeCompare(b.due||'9999');
+  });
+  else if(sortBy==='priority'){const o={high:0,medium:1,low:2};filtered.sort((a,b)=>(o[a.priority]||1)-(o[b.priority]||1));}
+  else if(sortBy==='client')filtered.sort((a,b)=>{const ca=CL.find(c=>c.id===a.clientId);const cb=CL.find(c=>c.id===b.clientId);return(ca?ca.name:'').localeCompare(cb?cb.name:'');});
+  else filtered.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const activeTotal=open.length+habitsN.length+chN.length;
+  const taskFilterLabels={
+    all:'Wszystkie zadania',open:'Do wykonania',done:'Ukończone',habits:'Nawyki',
+    challenges:'Wyzwania',overdue:'Przeterminowane',homework:'Zadania domowe',
+    high:'Priorytet wysoki',medium:'Priorytet średni',low:'Priorytet niski',
+    trening:'Trening',dieta:'Dieta',pomiary:'Pomiary',lifestyle:'Lifestyle'
+  };
+  const lbl=document.getElementById('task-count-lbl');
+  if(lbl){
+    const filterName=taskFilterLabels[taskFilter]||'Zadania';
+    lbl.textContent=filterName+': '+filtered.length+(taskFilter==='all'?' · Aktywne: '+activeTotal:' · Wszystkie aktywne: '+activeTotal);
+  }
+  const el=document.getElementById('tasks-list');
+  if(!el)return;
+  const banner=taskFilter==='habits'?habitPackBannerHTML():'';
+  if(!filtered.length){
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    const hwNames=taskFilter==='homework'
+      ?(window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.name||c.email||c.id).filter(Boolean)
+      :[];
+    el.innerHTML=banner+`<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">${taskFilter==='homework'?'🏡':taskFilter==='habits'?'🔥':'✅'}</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">${taskFilter==='homework'?'Brak zadań domowych':taskFilter==='habits'?'Brak nawyków':'Brak zadań'}</div><div style="font-size:12px;margin-bottom:${hwNames.length?'10':'20'}px;">${taskFilter==='homework'?'Przypisz HIIT, mobilność albo oddech — z terminem i notatką.':taskFilter==='habits'?'Przypisz pakiet Progress Nawyki albo dodaj pojedynczy nawyk.':'Dodaj zadanie lub użyj szablonu'}</div>${hwNames.length?`<div style="font-size:11px;max-width:560px;margin:0 auto 18px;line-height:1.5;">Klienci: ${hwNames.map(esc).join(', ')}</div>`:''}<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${taskFilter==='homework'?`<button class="btn btn-primary btn-sm" onclick="openAssignHomeworkModal('')">🏠 Przypisz zadanie domowe</button>`:taskFilter==='habits'?`<button class="btn btn-primary btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>`:`<button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>`}${taskFilter==='homework'?'':`<button class="btn ${taskFilter==='habits'?'btn-ghost':'btn-primary'} btn-sm" onclick="openM('m-task')">+ ${taskFilter==='habits'?'Nawyk':'Zadanie'}</button>`}</div></div>`;
+    return;
+  }
+  const groups={};
+  filtered.forEach(t=>{const key=t.clientId||'__general';if(!groups[key])groups[key]=[];groups[key].push(t);});
+  let html=banner;
+  Object.entries(groups).forEach(([cid,tasks])=>{
+    const c=CL.find(x=>x.id===cid);const cname=c?c.name:'Ogólne';const ci=CL.indexOf(c);
+    html+=`<div style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">${c?`<div style="width:24px;height:24px;border-radius:50%;background:${COLS[ci%5]}22;color:${COLS[ci%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;flex-shrink:0;">${getInit(cname)}</div>`:'<div style="width:24px;height:24px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:12px;">📋</div>'}<span style="font-size:13px;font-weight:700;">${cname}</span><span class="pill pill-muted" style="font-size:10px;">${tasks.length}</span><div style="flex:1;height:1px;background:var(--border);"></div></div>`;
+    tasks.forEach((t,i)=>{
+      const habit=isHabit(t);
+      const ch=isCh(t);
+      const doneToday=(habit||ch)&&habitDoneOn(t,today);
+      const streak=habit?habitStreak(t,today):0;
+      const chProg=ch&&typeof challengeProgress==='function'?challengeProgress(t,today):null;
+      const isOverdue=oneShot(t)&&t.status!=='done'&&t.due&&t.due<today;
+      const isDone=oneShot(t)&&t.status==='done';
+      const catCol=TASK_CAT_COLORS[t.cat]||'var(--muted)';
+      const prioCol=TASK_PRIO_COLORS[t.priority]||'var(--muted)';
+      const daysLeft=t.due?Math.ceil((new Date(t.due)-new Date())/(1000*60*60*24)):null;
+      html+=`<div class="task-card${isDone?' done':''}${habit?' habit':''}${ch?' challenge':''}" style="animation-delay:${i*0.03}s;border-left:3px solid ${isDone?'var(--muted2)':ch?'var(--gold)':habit?'var(--orange)':catCol};">
+        <div class="task-check${isDone||doneToday?' checked':''}" onclick="toggleTask('${t.id}')">${isDone||doneToday?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+        <div class="task-body" onclick="editTask('${t.id}')" style="cursor:pointer;">
+          <div class="task-title${isDone?' done':''}">${t.title}</div>
+          <div class="task-meta">
+            ${habit?`<span class="pill" style="background:rgba(201,123,63,0.18);color:var(--orange);font-size:9px;">🔥 Nawyk${t.xp?' · +'+t.xp+' XP':''}</span>`:''}
+            ${habit&&t.phase?`<span class="pill" style="background:var(--s3);color:var(--muted);font-size:9px;">${escHtml((t.emoji?t.emoji+' ':'')+(typeof habitPhaseLabel==='function'?habitPhaseLabel(t.phase).replace(/^[^ ]+ /,'') :t.phase))}</span>`:''}
+            ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">🏆 Wyzwanie</span>`:''}
+            ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
+            ${habit||ch?'':`<div class="task-prio-dot" style="background:${prioCol};"></div><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${TASK_PRIO_LABELS[t.priority]||''}</span>`}
+            ${habit&&streak?`<span class="habit-streak">🔥 ${streak} ${streak===1?'dzień':'dni'}</span>`:habit?`<span style="font-size:10px;color:var(--muted);">Odhacz na dziś</span>`:''}
+            ${ch&&typeof challengeStatusText==='function'?`<span style="font-size:10px;color:${chProg&&chProg.won?'var(--teal)':chProg&&chProg.lost?'var(--muted)':'var(--gold)'};">${challengeStatusText(t,today)}</span>`:''}
+            ${oneShot(t)&&t.due?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:${isOverdue?'var(--red)':daysLeft<=2?'var(--orange)':'var(--muted)'};">${isOverdue?'⚠ Przeterminowane':daysLeft===0?'dziś':daysLeft===1?'jutro':'za '+daysLeft+' dni'}</span>`:''}
+          </div>
+          ${habit?habitWeekHtml(t,today):''}
+          ${ch&&typeof challengeBarHtml==='function'?challengeBarHtml(t,today):''}
+        </div>
+        <button onclick="delTask('${t.id}')" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;align-self:flex-start;padding:0 2px;">×</button>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+// Ładuje istniejące zadanie do formularza, żeby faktycznie je edytować.
+function editTask(id){
+  const t=TASKS.find(x=>x.id===id);
+  if(!t){notify('Nie znaleziono zadania');return;}
+  openM('m-task'); // resetuje formularz i _editingTaskId
+  const tCl=CL.find(x=>x.id===t.clientId);
+  taskSetClientField(t.clientId||'',tCl?tCl.name:'');
+  document.getElementById('task-title').value=t.title||'';
+  const catEl=document.getElementById('task-cat');if(catEl)catEl.value=t.cat||'trening';
+  document.getElementById('task-priority').value=t.priority||'medium';
+  const habit=isHabit(t);
+  const ch=typeof isChallenge==='function'&&isChallenge(t);
+  const hb=document.getElementById('task-habit');
+  if(hb)hb.checked=habit;
+  const chb=document.getElementById('task-challenge');
+  if(chb)chb.checked=ch;
+  if(ch){
+    const days=typeof parseChallengeDays==='function'?parseChallengeDays(t.days):21;
+    const daysEl=document.getElementById('task-ch-days');
+    if(daysEl)daysEl.value=String(days);
+    const startEl=document.getElementById('task-ch-start');
+    if(startEl)startEl.value=t.start||(typeof todayYmd==='function'?todayYmd():'');
+    const tgtEl=document.getElementById('task-ch-target');
+    if(tgtEl)tgtEl.value=String(typeof parseChallengeTarget==='function'?parseChallengeTarget(t):days);
+    if(typeof paintChallengeDays==='function')paintChallengeDays();
+  }
+  if(typeof syncTaskKindUi==='function')syncTaskKindUi();
+  else if(typeof onHabitToggle==='function')onHabitToggle();
+  document.getElementById('task-due').value=(habit||ch)?'':(t.due||'');
+  const titleEl=document.querySelector('#m-task .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ ZADANIE';
+  const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingTaskId=id;
+}
+
+async function saveTask(){
+  if(window._saveGuard_saveTask)return;window._saveGuard_saveTask=true;setTimeout(()=>window._saveGuard_saveTask=false,1500);
+
+  const title=document.getElementById('task-title').value.trim();if(!title){notify('Wpisz zadanie!');return;}
+  const catEl=document.getElementById('task-cat');
+  const isH=!!document.getElementById('task-habit')?.checked;
+  const isC=!!document.getElementById('task-challenge')?.checked;
+  const dueVal=(isH||isC)?'':(document.getElementById('task-due').value||'');
+  const editingId=window._editingTaskId;
+  const chFields=()=>{
+    const start=(document.getElementById('task-ch-start')||{}).value||(typeof todayYmd==='function'?todayYmd():'');
+    const days=typeof parseChallengeDays==='function'?parseChallengeDays((document.getElementById('task-ch-days')||{}).value):21;
+    const target=typeof parseChallengeTarget==='function'?parseChallengeTarget({days,target:(document.getElementById('task-ch-target')||{}).value}):days;
+    const end=typeof ymdAdd==='function'?ymdAdd(start,days-1):'';
+    return{start,days,target,due:end||dueVal};
+  };
+  const stripCh=obj=>{
+    delete obj.start;delete obj.days;delete obj.target;
+    return obj;
+  };
+  if(editingId){
+    const idx=TASKS.findIndex(x=>x.id===editingId);
+    if(idx>=0){
+      const next={...TASKS[idx],title,clientId:document.getElementById('task-client').value,due:dueVal,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:TASKS[idx].cat,kind:isC?'challenge':isH?'habit':'task',updatedAt:new Date().toISOString()};
+      if(isC){
+        const f=chFields();
+        next.status='open';
+        next.start=f.start;
+        next.days=f.days;
+        next.target=f.target;
+        next.due=f.due;
+        next.doneDates=Array.isArray(TASKS[idx].doneDates)?TASKS[idx].doneDates:[];
+        delete next.repeat;
+      }else if(isH){
+        next.status='open';
+        next.repeat='daily';
+        next.doneDates=Array.isArray(TASKS[idx].doneDates)?TASKS[idx].doneDates:[];
+        stripCh(next);
+      }else{
+        delete next.repeat;
+        delete next.doneDates;
+        stripCh(next);
+      }
+      TASKS[idx]=next;
+      window._editingTaskId=null;
+      closeM('m-task');renderTasks();
+      if(cpClientId&&cpClientId===TASKS[idx].clientId){try{setCPTab(cpTab);}catch(e){}}
+      notify(isC?'Wyzwanie zaktualizowane!':isH?'Nawyk zaktualizowany!':'Zadanie zaktualizowane!');
+      await persistById('tasks',TASKS[idx]);
+      return;
+    }
+  }
+  const t=withTrainer({id:newId('t'),title,clientId:document.getElementById('task-client').value,due:dueVal,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',kind:isC?'challenge':isH?'habit':'task',createdAt:new Date().toISOString()});
+  if(isC){
+    const f=chFields();
+    t.start=f.start;t.days=f.days;t.target=f.target;t.due=f.due;t.doneDates=[];
+  }else if(isH){t.repeat='daily';t.doneDates=[];}
+  TASKS.push(t);closeM('m-task');renderTasks();
+  if(cpClientId&&cpClientId===t.clientId){try{setCPTab(cpTab);}catch(e){}}
+  notify(isC?'Wyzwanie dodane — klient odhacza w terminie 🏆':isH?'Nawyk dodany — klient odhacza codziennie 🔥':'Zadanie dodane!');
+  await persistById('tasks',t);
+}
+
+function openTaskTemplates(){
+  const sel=document.getElementById('tmpl-client-sel');
+  if(sel)sel.innerHTML=CL.length?CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join(''):'<option value="">Brak klientów — dodaj klienta</option>';
+  const body=document.getElementById('task-templates-body');
+    if(body)body.innerHTML=TASK_TEMPLATES.map(tmpl=>`<div class="tmpl-card"><div class="tmpl-card-hdr"><div><span style="font-size:18px;margin-right:6px;">${tmpl.icon}</span><span style="font-size:13px;font-weight:700;">${tmpl.name}</span></div><button class="btn btn-primary btn-sm" onclick="applyTemplate('${tmpl.id}')">Przypisz</button></div><div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${tmpl.desc}</div><div class="tmpl-tasks">${tmpl.tasks.map(t=>`<div class="tmpl-task-item"><span style="color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};flex-shrink:0;">•</span><span>${t.title}</span><span style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap;flex-shrink:0;padding-left:6px;">${t.kind==='challenge'?(t.days||21)+'d ★':t.kind==='habit'?'codziennie':(t.days||0)+'d'}</span></div>`).join('')}</div></div>`).join('');
+  document.getElementById('task-templates-panel').style.transform='translateX(0)';
+}
+function closeTaskTemplates(){document.getElementById('task-templates-panel').style.transform='translateX(100%)';}
+
+async function applyTemplate(tmplId){
+  const tmpl=TASK_TEMPLATES.find(t=>t.id===tmplId);if(!tmpl)return;
+  const cid=document.getElementById('tmpl-client-sel').value;if(!cid){notify('Wybierz klienta!');return;}
+  const today=new Date();let added=0;
+  for(const t of tmpl.tasks){
+    const isC=t.kind==='challenge';
+    const isH=!isC&&(t.kind==='habit'||t.repeat==='daily');
+    const due=new Date(today);due.setDate(due.getDate()+(t.days||7));
+    const start=typeof todayYmd==='function'?todayYmd():due.toISOString().split('T')[0];
+    const chDays=typeof parseChallengeDays==='function'?parseChallengeDays(t.days||21):21;
+    const task=withTrainer({id:newId('t'),title:t.title,clientId:cid,due:isC?(typeof ymdAdd==='function'?ymdAdd(start,chDays-1):due.toISOString().split('T')[0]):isH?'':due.toISOString().split('T')[0],priority:t.priority,cat:t.cat,desc:'',status:'open',kind:isC?'challenge':isH?'habit':'task',createdAt:new Date().toISOString()});
+    if(isC){
+      task.start=start;
+      task.days=chDays;
+      task.target=typeof parseChallengeTarget==='function'?parseChallengeTarget({days:chDays,target:t.target}):chDays;
+      task.doneDates=[];
+    }else if(isH){task.repeat='daily';task.doneDates=[];}
+    await persistById('tasks',task);
+    TASKS.push(task);added++;
+  }
+  const c=CL.find(x=>x.id===cid);
+  closeTaskTemplates();renderTasks();
+  notify('✓ Dodano '+added+' zadań dla '+(c?c.name:'klienta')+' — '+tmpl.name);
+}
+
+async function askTaskAI(){
+  const q=document.getElementById('task-ai-q').value.trim();if(!q)return;
+  document.getElementById('task-ai-q').value='';
+  const msgs=document.getElementById('task-ai-msgs');
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div id="tai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Generuję zadania...</div></div>';
+  msgs.scrollTop=msgs.scrollHeight;
+  const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
+  const c=CL.find(x=>x.id===clientFil);
+  const ctx=c?`Klient: ${c.name}, ${c.age||'?'} lat, cel: ${c.goal||'?'}, poziom: ${c.level||'?'}. `:'';
+  const sys='Asystent trenera personalnego. Zaproponuj 3-5 konkretnych zadań dla klienta jako JSON array: [{"title":"...","cat":"trening|dieta|pomiary|lifestyle","priority":"high|medium|low","days":N}]. Tylko czysty JSON, bez markdown. Zadania po polsku, konkretne i mierzalne.';
+  try{
+    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:sys,messages:[{role:'user',content:ctx+q}]})});
+    const d=await r.json();
+    const raw=d.content.map(i=>i.text||'').join('');
+    let tasks=[];try{tasks=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){}
+    if(tasks.length){
+      const aiHtml=tasks.map(t=>`<div style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;"><div style="font-weight:600;margin-bottom:4px;">${t.title}</div><div style="display:flex;gap:5px;align-items:center;"><span class="pill" style="background:${TASK_CAT_COLORS[t.cat]||'var(--muted)'}22;color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};font-size:9px;">${t.cat||''}</span><span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${t.days||7}d</span><button onclick="addAITask(${JSON.stringify(t).replace(/"/g,"&quot;")})" style="margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;">+ Dodaj</button></div></div>`).join('');
+      document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;">${aiHtml}</div>`;
+    }else{document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;">${raw.substring(0,150)}</div></div>`;}
+  }catch(e){document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd połączenia</div></div>`;}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+async function addAITask(t){
+  if(typeof t==='string')try{t=JSON.parse(t);}catch(e){return;}
+  const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
+  const due=new Date();due.setDate(due.getDate()+(t.days||7));
+  const task=withTrainer({id:newId('t'),title:t.title,clientId:clientFil,due:due.toISOString().split('T')[0],priority:t.priority||'medium',cat:t.cat||'trening',desc:'',status:'open',createdAt:new Date().toISOString()});
+  await persistById('tasks',task);
+  TASKS.push(task);renderTasks();notify('Zadanie AI dodane ✓');
+}
+
+function applyHabitChip(title,cat){
+  const titleEl=document.getElementById('task-title');
+  if(titleEl)titleEl.value=title||'';
+  const catEl=document.getElementById('task-cat');
+  if(catEl&&cat)catEl.value=cat;
+  const hb=document.getElementById('task-habit');
+  if(hb)hb.checked=true;
+  const chb=document.getElementById('task-challenge');
+  if(chb)chb.checked=false;
+  if(typeof syncTaskKindUi==='function')syncTaskKindUi();
+  else if(typeof onHabitToggle==='function')onHabitToggle();
+}
+
+function habitPackSetClient(id,name){
+  const hid=document.getElementById('habit-pack-client');
+  const inp=document.getElementById('habit-pack-client-search');
+  if(hid)hid.value=id||'';
+  if(inp)inp.value=name||'';
+  const box=document.getElementById('habit-pack-client-results');
+  if(box)box.style.display='none';
+}
+window.habitPackSetClient=habitPackSetClient;
+
+function habitPackClientSearch(){
+  const q=String((document.getElementById('habit-pack-client-search')||{}).value||'').toLowerCase().trim();
+  const box=document.getElementById('habit-pack-client-results');if(!box)return;
+  const list=(window.CL||[]).filter(c=>c&&c.status!=='archived'&&(!q||String(c.name||'').toLowerCase().includes(q))).slice(0,12);
+  if(!list.length){box.style.display='none';box.innerHTML='';return;}
+  box.style.display='block';
+  box.innerHTML=list.map(c=>`<button type="button" style="display:block;width:100%;text-align:left;padding:8px 10px;background:transparent;border:none;color:var(--text);cursor:pointer;font-size:12px;" onclick="habitPackSetClient('${escHtml(c.id)}','${escHtml(c.name||'').replace(/'/g,"\\'")}')">${escHtml(c.name||'Klient')}</button>`).join('');
+}
+window.habitPackClientSearch=habitPackClientSearch;
+
+function openHabitPackModal(preClientId){
+  const lib=window.HABIT_LIBRARY||[];
+  const list=document.getElementById('habit-pack-list');
+  if(list){
+    let html='';
+    let lastPhase='';
+    lib.forEach(h=>{
+      if(h.phase!==lastPhase){
+        lastPhase=h.phase;
+        html+=`<div class="habit-pack-phase">${escHtml(h.phaseLabel||(typeof habitPhaseLabel==='function'?habitPhaseLabel(h.phase):h.phase))}</div>`;
+      }
+      html+=`<label class="habit-pack-row">
+        <input type="checkbox" class="habit-pack-cb" data-lib="${escHtml(h.id)}" data-phase="${escHtml(h.phase)}" checked>
+        <span class="habit-pack-emoji">${escHtml(h.emoji||'🔥')}</span>
+        <span class="habit-pack-body">
+          <span class="habit-pack-name">${escHtml(h.name)}</span>
+          <span class="habit-pack-meta">${escHtml(h.meta||'')}</span>
+        </span>
+        <span class="habit-pack-xp">+${Number(h.xp)||0} XP</span>
+      </label>`;
+    });
+    list.innerHTML=html;
+  }
+  if(preClientId){
+    const c=(window.CL||[]).find(x=>x.id===preClientId);
+    habitPackSetClient(preClientId,c?c.name:'');
+  }else{
+    const fromFilter=(document.getElementById('task-client-filter')||{}).value||'';
+    if(fromFilter){
+      const c=(window.CL||[]).find(x=>x.id===fromFilter);
+      habitPackSetClient(fromFilter,c?c.name:'');
+    }else habitPackSetClient('','');
+  }
+  openM('m-habit-pack');
+}
+window.openHabitPackModal=openHabitPackModal;
+
+function habitPackSelectAll(on){
+  document.querySelectorAll('.habit-pack-cb').forEach(cb=>{cb.checked=!!on;});
+}
+window.habitPackSelectAll=habitPackSelectAll;
+
+function habitPackSelectPhase(phase){
+  document.querySelectorAll('.habit-pack-cb').forEach(cb=>{
+    cb.checked=cb.getAttribute('data-phase')===phase;
+  });
+}
+window.habitPackSelectPhase=habitPackSelectPhase;
+
+async function confirmHabitPackAssign(){
+  const cid=(document.getElementById('habit-pack-client')||{}).value||'';
+  if(!cid){notify('Wybierz klienta!');return;}
+  const ids=[...document.querySelectorAll('.habit-pack-cb:checked')].map(cb=>cb.getAttribute('data-lib')).filter(Boolean);
+  if(!ids.length){notify('Zaznacz przynajmniej jeden nawyk');return;}
+  const n=typeof assignHabitLibraryToClient==='function'?await assignHabitLibraryToClient(cid,ids):0;
+  closeM('m-habit-pack');
+  if(typeof setTaskFilter==='function')setTaskFilter('habits');
+  else if(typeof renderTasks==='function')renderTasks();
+  const c=(window.CL||[]).find(x=>x.id===cid);
+  notify(n?('✓ Przypisano '+n+' nawyków'+(c?' → '+c.name:'')):'Te nawyki są już u klienta');
+  try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
+}
+window.confirmHabitPackAssign=confirmHabitPackAssign;
+
+function habitPackBannerHTML(){
+  return `<div class="habit-pack-banner">
+    <div>
+      <div class="habit-pack-banner-title">🔥 Progress Nawyki</div>
+      <div class="habit-pack-banner-sub">Pula z aplikacji progress-nawyki — poranek, ruch, odżywianie, fokus, wieczór + XP. Przypisz klientowi pakiet dnia.</div>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" onclick="openHabitPackModal()">Przypisz pakiet →</button>
+  </div>`;
+}
+
+function applyChallengeChip(title,cat,days){
+  const titleEl=document.getElementById('task-title');
+  if(titleEl)titleEl.value=title||'';
+  const catEl=document.getElementById('task-cat');
+  if(catEl&&cat)catEl.value=cat;
+  const hb=document.getElementById('task-habit');
+  if(hb)hb.checked=false;
+  const chb=document.getElementById('task-challenge');
+  if(chb)chb.checked=true;
+  if(typeof setChallengeDays==='function')setChallengeDays(days||21);
+  const startEl=document.getElementById('task-ch-start');
+  if(startEl&&!startEl.value&&typeof todayYmd==='function')startEl.value=todayYmd();
+  if(typeof syncTaskKindUi==='function')syncTaskKindUi();
+}
+
+function toggleTask(id){
+  const t=TASKS.find(x=>x.id===id);if(!t)return;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
+  if(isHabit(t)){
+    toggleHabitDay(t,today);
+    persistById('tasks',t);
+    renderTasks();
+    try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
+    return;
+  }
+  if(typeof isChallenge==='function'&&isChallenge(t)){
+    if(typeof challengeCanCheck==='function'&&!challengeCanCheck(t,today,today)){
+      const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+      if(typeof notify==='function')notify(p&&p.before?'Wyzwanie jeszcze się nie zaczęło':p&&p.won?'Wyzwanie już ukończone':'Wyzwanie już się skończyło');
+      return;
+    }
+    toggleChallengeDay(t,today,today);
+    persistById('tasks',t);
+    renderTasks();
+    try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
+    return;
+  }
+  t.status=t.status==='done'?'open':'done';
+  if(t.status==='done')t.doneAt=today;
+  persistById('tasks',t);
+  renderTasks();
+}
+async function delTask(id){
+  window.TASKS=TASKS.filter(t=>t.id!==id);
+  renderTasks();
+  if(window._db){try{await window._del(window._doc(window._db,'tasks',id));}catch(e){console.warn('Firebase delTask:',e);}}
+}
+
+// ════════════════════════════════════════
+// IMPORT BIBLIOTEKI GIF (technika ćwiczeń)
+// ════════════════════════════════════════
+let _exGifImportRows=[];
+let _exGifImportMode='files';
+
+function resolveExerciseName(input){
+  const raw=String(input||'').trim();
+  if(!raw)return '';
+  const all=typeof allExercises==='function'?allExercises():[];
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(raw):raw.toLowerCase();
+  let hit=all.find(e=>(typeof exerciseMediaKey==='function'?exerciseMediaKey(e.name):e.name.toLowerCase())===key);
+  if(hit)return hit.name;
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(raw):'';
+  if(slug)hit=all.find(e=>typeof exerciseSlug==='function'&&exerciseSlug(e.name)===slug);
+  if(hit)return hit.name;
+  const partial=all.filter(e=>{
+    const k=typeof exerciseMediaKey==='function'?exerciseMediaKey(e.name):'';
+    return k&&(k.includes(key)||key.includes(k));
+  });
+  if(partial.length===1)return partial[0].name;
+  if(typeof libExerciseByName==='function'){
+    const lib=libExerciseByName(raw);
+    if(lib&&lib.name)return lib.name;
+  }
+  return raw;
+}
+
+function mediaFilenameFromUrl(url){
+  const raw=String(url||'').trim().split('#')[0].split('?')[0];
+  const pop=raw.split('/').pop()||'';
+  try{return decodeURIComponent(pop);}catch(e){return pop;}
+}
+window.mediaFilenameFromUrl=mediaFilenameFromUrl;
+
+function normalizeImportedMediaUrl(url){
+  let rewritten=typeof rewriteLocalMediaUrl==='function'?rewriteLocalMediaUrl(url):String(url||'').trim();
+  rewritten=String(rewritten||url||'').trim();
+  if(typeof normalizeVideoAssetsCdnUrl==='function')rewritten=normalizeVideoAssetsCdnUrl(rewritten)||rewritten;
+  return rewritten.replace(/ /g,'%20');
+}
+window.normalizeImportedMediaUrl=normalizeImportedMediaUrl;
+
+function splitPasteNameUrl(line){
+  const s=String(line||'').trim();
+  if(!s)return{name:'',url:''};
+  const http=s.match(/https?:\/\/.+/i);
+  if(http){
+    const url=normalizeImportedMediaUrl(http[0]);
+    const name=s.slice(0,http.index).replace(/[\s|;,]+$/g,'').trim();
+    return{name,url};
+  }
+  const sep=s.includes('\t')?'\t':(s.includes('|')?'|':(s.includes(';')?';':''));
+  if(sep){
+    const p=s.split(sep);
+    return{name:(p[0]||'').trim(),url:normalizeImportedMediaUrl(p.slice(1).join(sep))};
+  }
+  const assets=s.match(/^(.*?)\s+((?:assets\/|\.?\.?\/)[^\s].+\.(?:gif|webp|mp4|webm|png|jpe?g|svg))$/i);
+  if(assets)return{name:assets[1].trim(),url:assets[2].trim()};
+  if(/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(s))return{name:'',url:s};
+  return{name:s,url:''};
+}
+window.splitPasteNameUrl=splitPasteNameUrl;
+
+function parseExGifBulkPaste(text){
+  const t=String(text||'').trim();
+  if(!t)return [];
+  if(t.startsWith('[')||t.startsWith('{')){
+    try{
+      const j=JSON.parse(t);
+      const arr=Array.isArray(j)?j:(typeof j==='object'?Object.entries(j).map(([name,url])=>({name,url})) :[]);
+      return arr.map(o=>{
+        const url=normalizeImportedMediaUrl(o.url||o.gif||o.video||o.mp4||o.link||o.href||'');
+        const name=String(o.name||o.exercise||o.exerciseName||'').trim();
+        const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
+        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''};
+      }).filter(r=>r.presetUrl);
+    }catch(e){/* fall through to lines */}
+  }
+  const lines=t.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
+  const rows=[];
+  lines.forEach(line=>{
+    const parts=splitPasteNameUrl(line);
+    let name=parts.name;
+    let url=parts.url;
+    if(!url&&name&&(/^(https?:\/\/|assets\/)/i.test(name)||/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(name))){url=normalizeImportedMediaUrl(name);name='';}
+    if(!url)return;
+    url=normalizeImportedMediaUrl(url);
+    const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
+    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''});
+  });
+  return rows;
+}
+
+async function persistExerciseGifUrl(exerciseName,gifUrl){
+  const url=normalizeImportedMediaUrl(gifUrl);
+  if(!url||!exerciseName)return false;
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url))return false;
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url))return false;
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(exerciseName):exerciseName.toLowerCase();
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
+  window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
+  window.EX_GIF_REMOTE[key]=url;
+  window._exGifPersistCloudErr=null;
+  if(window._db&&window._setDoc&&window._doc&&window._uid){
+    try{
+      await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
+        exerciseName,
+        gifUrl:url,
+        trainerId:window._uid,
+        updatedAt:new Date().toISOString()
+      },{merge:true});
+    }catch(err){
+      console.warn('persistExerciseGifUrl',err);
+      window._exGifPersistCloudErr=err;
+    }
+  }
+  return true;
+}
+window.persistExerciseGifUrl=persistExerciseGifUrl;
+
+function hostBlocksFirebaseStorageUpload(){
+  try{
+    const h=String((typeof location!=='undefined'&&location&&location.hostname)||'');
+    return /github\.io$/i.test(h);
+  }catch(e){return false;}
+}
+window.hostBlocksFirebaseStorageUpload=hostBlocksFirebaseStorageUpload;
+
+function exAssignSetMsg(text,ok){
+  const s=String(text||'');
+  const el=document.getElementById('exd-assign-msg');
+  if(el){
+    el.style.display=s?'block':'none';
+    el.style.color=ok?'#8fd19a':'#ff8a80';
+    el.textContent=s;
+  }
+  if(s)notify(s);
+}
+window.exAssignSetMsg=exAssignSetMsg;
+
+function isPecDeckAssignExercise(name){
+  const n=String(name||'').toLowerCase();
+  if(/stretch|rozciągan|reverse|odwrot/.test(n))return false;
+  if(/peck\s*deck|pec-deck|\bpec deck\b/.test(n))return true;
+  return /butterfly/.test(n)&&/peck|motyl|maszyn/.test(n);
+}
+window.isPecDeckAssignExercise=isPecDeckAssignExercise;
+
+function suggestedAssignPathForExercise(name){
+  if(isPecDeckAssignExercise(name))
+    return 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4';
+  return 'D:/progress-live-video-assets/POGRUPOWANE/';
+}
+window.suggestedAssignPathForExercise=suggestedAssignPathForExercise;
+
+function fillSuggestedExAssignPath(){
+  const inp=document.getElementById('exd-mp4-url');
+  const n=typeof currentExDetail!=='undefined'?currentExDetail:'';
+  if(inp){
+    inp.value=suggestedAssignPathForExercise(n);
+    inp.focus();
+    if(typeof inp.select==='function')inp.select();
+  }
+}
+window.fillSuggestedExAssignPath=fillSuggestedExAssignPath;
+
+function isTruncatedAssignUrl(s){
+  const t=String(s||'').trim();
+  if(!/^https?:\/\//i.test(t))return false;
+  if(/\.(mp4|webm|gif|webp)(\?|#|$)/i.test(t))return false;
+  if(/youtu\.be|youtube\.com|vimeo\.com/i.test(t))return false;
+  return true;
+}
+window.isTruncatedAssignUrl=isTruncatedAssignUrl;
+
+function exAssignEmptyPathMsg(name){
+  const pec=typeof isPecDeckAssignExercise==='function'&&isPecDeckAssignExercise(name);
+  if(pec)return 'Pole jest puste. Przy motylu kliknij „Wstaw ścieżkę motyl / pec deck”, potem zapisz. Albo w Eksploratorze: D:\\progress-live-video-assets\\POGRUPOWANE\\Klatka piersiowa → Shift+PPM na pliku .mp4 → „Kopiuj jako ścieżkę”.';
+  return 'Pole jest puste. W Eksploratorze otwórz D:\\progress-live-video-assets\\POGRUPOWANE, Shift+PPM na pliku .mp4 → „Kopiuj jako ścieżkę”, wklej tutaj i zapisz.';
+}
+window.exAssignEmptyPathMsg=exAssignEmptyPathMsg;
+
+function exDetailAssignHtml(e){
+  const name=e&&e.name?e.name:'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
+  const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
+  const currentHint=currentIsVideo
+    ?`<div id="exd-mp4-current" class="exd-assign-hint is-ok">Dopasowany film: <code>${esc(current)}</code></div>`
+    :'<div id="exd-mp4-current" class="exd-assign-hint">Brak filmu MP4 przy tym ćwiczeniu — wklej ścieżkę albo wybierz plik YouCan.</div>';
+  const own=(window.COACH_VIDEOS||[]).filter(v=>{
+    const u=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(v.url):String(v.url||'');
+    return typeof coachVideoIsFile==='function'?coachVideoIsFile(u):/\.(mp4|webm)(\?|#|$)/i.test(u);
+  });
+  const opts=own.map(v=>`<option value="${esc(v.id||'')}">${esc(v.name||v.url||'Film')}</option>`).join('');
+  const ownBlock=opts
+    ?`<label class="form-lbl" style="margin-top:8px;">Z moich filmów MP4</label>
+      <select class="form-select" id="exd-mp4-own" style="margin-bottom:6px;" onchange="previewAssignedExOwnVideo()"><option value="">— wybierz film —</option>${opts}</select>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromOwn(currentExDetail)">Przypisz wybrany film</button>`
+    :'';
+  const flash=window._exAssignFlash;
+  window._exAssignFlash=null;
+  if(flash&&flash.text)notify(flash.text);
+  const msgHtml=`<div id="exd-assign-msg" style="display:${flash&&flash.text?'block':'none'};margin-top:8px;font-size:12px;line-height:1.45;color:${flash&&flash.ok?'#8fd19a':'#ff8a80'};">${flash&&flash.text?esc(flash.text):''}</div>`;
+  return `<div id="exd-assign" class="exd-card exd-assign">
+    <div class="exd-sec-h">Dopasuj film / GIF</div>
+    ${currentHint}
+    <div style="font-size:13px;color:#D1D5DB;line-height:1.5;margin-bottom:12px;">Do <b>${esc(name)}</b> — wybierz film z listy albo plik YouCan, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
+    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Opcjonalnie wklej ścieżkę (Shift+PPM → Kopiuj jako ścieżkę)" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
+    ${isPecDeckAssignExercise(name)?'<button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>':''}
+    <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
+    <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>
+    <input type="file" class="form-input" id="exd-mp4-file" accept=".mp4,.webm,video/mp4,video/webm" onchange="assignExTechniqueFromFile(currentExDetail,this)">
+    ${msgHtml}
+    ${ownBlock}
+  </div>`;
+}
+window.exDetailAssignHtml=exDetailAssignHtml;
+
+async function saveAssignedExTechnique(name,rawUrl){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const raw=String(rawUrl||'').trim().replace(/^["']+|["']+$/g,'');
+  if(typeof isTruncatedAssignUrl==='function'&&isTruncatedAssignUrl(raw)){
+    exAssignSetMsg('Ścieżka/URL jest ucięty. Wklej całość aż do .mp4 albo kliknij „Wstaw ścieżkę motyl / pec deck”.',false);
+    return false;
+  }
+  let url=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(raw):raw;
+  if(url&&!/^https?:\/\//i.test(url)&&typeof cdnUrlFromVideoFilename==='function'){
+    const cdn=cdnUrlFromVideoFilename(raw);
+    if(cdn)url=cdn;
+  }
+  if(!n||!url){
+    if(n&&!raw){
+      const existing=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(n):'';
+      if(existing){
+        exAssignSetMsg('Ten film jest już zapisany. Puste „Dopasuj i zapisz” go nie zmienia. Wybierz inny z listy albo wklej nową ścieżkę.',true);
+        return true;
+      }
+      if(typeof isPecDeckAssignExercise==='function'&&isPecDeckAssignExercise(n)){
+        const suggested=typeof suggestedAssignPathForExercise==='function'?suggestedAssignPathForExercise(n):'';
+        if(suggested){
+          const inp=typeof document!=='undefined'?document.getElementById('exd-mp4-url'):null;
+          if(inp)inp.value=suggested;
+          return saveAssignedExTechnique(n,suggested);
+        }
+      }
+    }
+    exAssignSetMsg(typeof exAssignEmptyPathMsg==='function'?exAssignEmptyPathMsg(n):'Pole jest puste. Wklej pełną ścieżkę z Eksploratora (Shift+PPM → Kopiuj jako ścieżkę).',false);
+    return false;
+  }
+  if(typeof isBareMediaFilename==='function'&&isBareMediaFilename(url)){
+    const base=typeof videoFilenameDecodedBase==='function'?videoFilenameDecodedBase(raw):String(raw||'').replace(/\\/g,'/').split('/').pop();
+    let msg='To tylko nazwa pliku, bez folderu — nie zmieniaj nazwy filmu. Wklej pełną ścieżkę z Eksploratora, np. D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/'+base;
+    if(typeof isPecDeckAssignExercise==='function'&&isPecDeckAssignExercise(n))
+      msg+=' Albo kliknij „Wstaw ścieżkę motyl / pec deck”.';
+    exAssignSetMsg(msg,false);
+    return false;
+  }
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
+    exAssignSetMsg('Ścieżka z dysku poza folderem progress-live-video-assets się nie zapisze. Wklej plik z D:/progress-live-video-assets/…',false);
+    return false;
+  }
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url)){
+    exAssignSetMsg('Wklej https://…mp4 albo pełną ścieżkę z progress-live-video-assets',false);
+    return false;
+  }
+  if(!window._uid){exAssignSetMsg('Zaloguj się, aby zapisać film przy ćwiczeniu',false);return false;}
+  const saved=await persistExerciseGifUrl(n,url);
+  if(!saved){exAssignSetMsg('Nie udało się zapisać filmu',false);return false;}
+  const custom=typeof findCustomEx==='function'?findCustomEx(n):null;
+  if(custom){
+    custom.gif=url;
+    if(typeof persistById==='function')try{await persistById('exercises',custom);}catch(e){}
+  }
+  window._exAssignFlash=window._exGifPersistCloudErr
+    ?{text:'Film widać teraz, ale chmura nie zapisała — po odświeżeniu zniknie',ok:false}
+    :{text:'Film przypisany do: '+n,ok:true};
+  if(typeof renderLib==='function')renderLib();
+  if(typeof openExDetail==='function'){
+    openExDetail(n);
+    if(typeof setExdTab==='function')setExdTab('preview');
+    if(typeof document!=='undefined'&&typeof document.querySelector==='function'){
+      setTimeout(()=>{
+        const v=document.getElementById('exd-mp4-player')||document.querySelector('#exd-body video.cw-technique-gif-img,#exd-body .cw-technique-media video');
+        if(v&&typeof v.play==='function'){v.muted=true;v.play().catch(()=>{});}
+        if(v&&typeof v.scrollIntoView==='function')v.scrollIntoView({behavior:'smooth',block:'start'});
+      },80);
+    }
+  }
+  else exAssignSetMsg(window._exAssignFlash.text,window._exAssignFlash.ok);
+  return true;
+}
+window.saveAssignedExTechnique=saveAssignedExTechnique;
+
+async function assignExTechniqueFromPaste(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const inp=document.getElementById('exd-mp4-url');
+  const pasted=inp?String(inp.value||'').trim().replace(/^["']+|["']+$/g,''):'';
+  if(pasted)return saveAssignedExTechnique(n,pasted);
+  const sel=document.getElementById('exd-mp4-own');
+  if(sel&&sel.value)return assignExTechniqueFromOwn(n);
+  const fileInp=document.getElementById('exd-mp4-file');
+  if(fileInp&&fileInp.files&&fileInp.files[0])return assignExTechniqueFromFile(n,fileInp);
+  return saveAssignedExTechnique(n,'');
+}
+window.assignExTechniqueFromPaste=assignExTechniqueFromPaste;
+
+function previewAssignedExOwnVideo(){
+  const sel=document.getElementById('exd-mp4-own');
+  const id=sel?sel.value:'';
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  const raw=v&&v.url?v.url:'';
+  const url=raw&&typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(raw):raw;
+  if(!url)return;
+  let player=document.getElementById('exd-mp4-player');
+  if(!player&&typeof document!=='undefined'&&document.createElement){
+    const box=document.getElementById('exd-assign');
+    if(!box)return;
+    player=document.createElement('video');
+    player.id='exd-mp4-player';
+    player.className='cw-technique-gif-img';
+    player.autoplay=true;
+    player.loop=true;
+    player.muted=true;
+    player.playsInline=true;
+    player.controls=true;
+    player.preload='auto';
+    player.style.cssText='width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;';
+    const after=box.querySelector('#exd-mp4-current')||box.firstChild;
+    box.insertBefore(player, after);
+  }
+  if(!player)return;
+  player.src=url;
+  player.muted=true;
+  if(typeof player.play==='function')player.play().catch(()=>{});
+}
+window.previewAssignedExOwnVideo=previewAssignedExOwnVideo;
+
+async function assignExTechniqueFromOwn(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const sel=document.getElementById('exd-mp4-own');
+  const id=sel?sel.value:'';
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  if(!v){exAssignSetMsg('Wybierz film z listy Moje filmy',false);return false;}
+  v.exName=n;
+  if(typeof persistById==='function')try{await persistById('coachVideos',v);}catch(e){}
+  return saveAssignedExTechnique(n,v.url);
+}
+window.assignExTechniqueFromOwn=assignExTechniqueFromOwn;
+
+async function assignExTechniqueFromFile(name,input){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const file=input&&input.files&&input.files[0];
+  if(input)input.value='';
+  if(!file){exAssignSetMsg('Wybierz plik MP4',false);return;}
+  const cdn=typeof cdnUrlFromVideoFilename==='function'?cdnUrlFromVideoFilename(file.name):'';
+  if(cdn){await saveAssignedExTechnique(n,cdn);return;}
+  const blocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
+  const canStore=!blocked&&window._uid&&window._storage&&window._storageRef&&window._uploadBytes&&window._getDownloadURL;
+  if(!canStore){
+    const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
+    const suggest=typeof canonicalYouCanBasename==='function'&&typeof isYouCanVideoFilename==='function'&&isYouCanVideoFilename(base)
+      ?canonicalYouCanBasename(base):base;
+    const inp=document.getElementById('exd-mp4-url');
+    if(inp)inp.value=suggest;
+    let msg='Firebase Storage jest niedostępny. Wklej pełną ścieżkę D:/progress-live-video-assets/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
+    if(!window._uid)msg='Zaloguj się, aby zapisać film przy ćwiczeniu';
+    else if(blocked)msg='Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
+    exAssignSetMsg(msg,false);
+    return;
+  }
+  try{
+    const slug=typeof exerciseSlug==='function'?exerciseSlug(n):String(n).toLowerCase();
+    const ext=(file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','mp4'])[1].toLowerCase();
+    const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+    const ref=window._storageRef(window._storage,path);
+    const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
+    await window._uploadBytes(ref,file,{contentType:file.type||mime[ext]||'application/octet-stream'});
+    const url=await window._getDownloadURL(ref);
+    await saveAssignedExTechnique(n,url);
+  }catch(err){
+    console.warn('assignExTechniqueFromFile',err);
+    const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
+    const suggest=typeof canonicalYouCanBasename==='function'&&typeof isYouCanVideoFilename==='function'&&isYouCanVideoFilename(base)
+      ?canonicalYouCanBasename(base):base;
+    const inp=document.getElementById('exd-mp4-url');
+    if(inp)inp.value=suggest;
+    exAssignSetMsg('Wgrywanie padło (często CORS). Wklej D:/progress-live-video-assets/…/'+suggest+' i zapisz.',false);
+  }
+}
+window.assignExTechniqueFromFile=assignExTechniqueFromFile;
+
+function matchGifFileToExercise(filename){
+  const all=typeof allExercises==='function'?allExercises():(window.DEF_EX||[]);
+  if(typeof matchFilenameToExercise==='function'){
+    const mapped=matchFilenameToExercise(filename,all);
+    if(mapped)return mapped;
+  }
+  const base=String(filename||'').replace(/\.(gif|webp|mp4|webm)$/i,'').trim();
+  if(!base)return '';
+  const fileSlug=typeof exerciseSlug==='function'
+    ?exerciseSlug(base)
+    :base.toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-|-$/g,'');
+  let hit=all.find(e=>typeof exerciseSlug==='function'&&exerciseSlug(e.name)===fileSlug);
+  if(hit)return hit.name;
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(base):base.toLowerCase().replace(/[-_]+/g,' ').trim();
+  hit=all.find(e=>typeof exerciseMediaKey==='function'&&exerciseMediaKey(e.name)===key);
+  if(hit)return hit.name;
+  return '';
+}
+window.matchGifFileToExercise=matchGifFileToExercise;
+
+function buildExGifImportRows(files){
+  return (files||[]).filter(f=>/\.(gif|webp|mp4|webm)$/i.test(f.name||'')).map(file=>{
+    const exerciseName=matchGifFileToExercise(file.name);
+    return{file,exerciseName,selected:!!exerciseName,status:'',url:''};
+  }).sort((a,b)=>(b.selected?1:0)-(a.selected?1:0)||a.file.name.localeCompare(b.file.name,'pl'));
+}
+
+function renderExGifImportPreview(){
+  const el=document.getElementById('exgif-preview');
+  const cnt=document.getElementById('exgif-match-count');
+  if(!el)return;
+  const matched=_exGifImportRows.filter(r=>r.selected&&r.exerciseName).length;
+  if(cnt)cnt.textContent=matched+' / '+_exGifImportRows.length+' dopasowanych';
+  if(!_exGifImportRows.length){
+    const msg=_exGifImportMode==='paste'
+      ?'Wklej listę (GIF / WEBP / MP4 / WEBM) i kliknij „Zapisz masowo” — nie musisz osobno parsować'
+      :'Wybierz pliki GIF / WEBP / MP4 / WEBM z dysku';
+    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">'+msg+'</div>';
+    return;
+  }
+  el.innerHTML=_exGifImportRows.map((r,i)=>{
+    const all=typeof allExercises==='function'?allExercises():[];
+    const opts=all.map(e=>`<option value="${typeof escHtml==='function'?escHtml(e.name):e.name}" ${r.exerciseName===e.name?'selected':''}>${typeof escHtml==='function'?escHtml(e.name):e.name}</option>`).join('');
+    const st=r.status==='done'?'✓':r.status==='err'?'✗':r.status==='upload'?'…':'';
+    const label=r.file?(r.file.name):(r.label||r.presetUrl||'');
+    const short=String(label).length>56?String(label).slice(0,53)+'…':label;
+    return `<div class="exgif-row" data-i="${i}">
+      <label class="exgif-row-check"><input type="checkbox" ${r.selected?'checked':''} onchange="toggleExGifImportRow(${i},this.checked)"></label>
+      <div class="exgif-row-file" title="${typeof escHtml==='function'?escHtml(String(label)):String(label)}">${typeof escHtml==='function'?escHtml(short):short}</div>
+      <select class="form-select exgif-row-select" onchange="setExGifImportExercise(${i},this.value)">
+        <option value="">— wybierz ćwiczenie —</option>${opts}
+      </select>
+      <span class="exgif-row-status">${st}</span>
+    </div>`;
+  }).join('');
+}
+
+function onExGifFilesPicked(input){
+  _exGifImportMode='files';
+  if(typeof setExGifImportTab==='function')setExGifImportTab('files',true);
+  const files=input&&input.files?[...input.files]:[];
+  _exGifImportRows=buildExGifImportRows(files);
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+}
+
+function onExGifBulkPastePreview(){
+  _exGifImportMode='paste';
+  const ta=document.getElementById('exgif-paste');
+  _exGifImportRows=parseExGifBulkPaste(ta?ta.value:'');
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+  if(_exGifImportRows.length&&typeof notify==='function')notify('Sparsowano '+_exGifImportRows.length+' pozycji — sprawdź dopasowanie');
+}
+
+function setExGifImportTab(mode,silent){
+  _exGifImportMode=mode==='paste'?'paste':'files';
+  const pf=document.getElementById('exgif-panel-files');
+  const pp=document.getElementById('exgif-panel-paste');
+  const bf=document.getElementById('exgif-tab-files');
+  const bp=document.getElementById('exgif-tab-paste');
+  if(pf)pf.style.display=_exGifImportMode==='files'?'block':'none';
+  if(pp)pp.style.display=_exGifImportMode==='paste'?'block':'none';
+  if(bf)bf.className='btn btn-sm '+(_exGifImportMode==='files'?'btn-primary':'btn-ghost');
+  if(bp)bp.className='btn btn-sm '+(_exGifImportMode==='paste'?'btn-primary':'btn-ghost');
+  if(!silent){
+    _exGifImportRows=[];
+    renderExGifImportPreview();
+  }
+  syncExGifImportBtnLabel();
+}
+
+function syncExGifImportBtnLabel(){
+  const btn=document.getElementById('exgif-import-btn');
+  if(!btn)return;
+  const urlOnly=_exGifImportRows.length>0&&_exGifImportRows.every(r=>!r.file&&!!r.presetUrl);
+  if(_exGifImportMode==='paste'||urlOnly)btn.textContent='Zapisz masowo ('+(_exGifImportRows.filter(r=>r.selected).length||'…')+')';
+  else btn.textContent='Wgraj pliki ('+(_exGifImportRows.filter(r=>r.selected).length||'…')+')';
+}
+
+function toggleExGifImportRow(i,on){
+  if(_exGifImportRows[i])_exGifImportRows[i].selected=!!on;
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+}
+
+function setExGifImportExercise(i,name){
+  if(!_exGifImportRows[i])return;
+  _exGifImportRows[i].exerciseName=name||'';
+  _exGifImportRows[i].selected=!!name;
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+}
+
+function openExGifImport(){
+  _exGifImportRows=[];
+  _exGifImportMode='paste';
+  const inp=document.getElementById('exgif-files');
+  if(inp)inp.value='';
+  const ta=document.getElementById('exgif-paste');
+  if(ta)ta.value='';
+  setExGifImportTab('paste',true);
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+  const bar=document.getElementById('exgif-progress');
+  if(bar){bar.style.width='0%';bar.parentElement.style.display='none';}
+  openM('m-ex-gif-import');
+}
+
+function ensureExGifPasteParsed(){
+  if(_exGifImportRows.length)return;
+  const ta=document.getElementById('exgif-paste');
+  const raw=ta?String(ta.value||'').trim():'';
+  if(!raw)return;
+  _exGifImportMode='paste';
+  _exGifImportRows=parseExGifBulkPaste(raw);
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+}
+
+async function runExGifImport(){
+  ensureExGifPasteParsed();
+  const parsed=_exGifImportRows.length;
+  const rows=_exGifImportRows.filter(r=>r.selected&&r.exerciseName);
+  if(!parsed){notify('Wklej listę: Nazwa | https://link.mp4 (albo .gif / .webm) i kliknij Zapisz');return;}
+  if(!rows.length){notify('Wybierz ćwiczenie z listy przy każdym filmie — potem Zapisz masowo');return;}
+  if(!window._uid){notify('Zaloguj się, aby zapisać GIF-y i filmy MP4');return;}
+  const fileRows=rows.filter(r=>r.file&&!r.presetUrl);
+  const storageBlocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
+  if(fileRows.length&&(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
+    notify('Z GitHub Pages nie wgramy plików (CORS). Wklej ścieżki D:/progress-live-video-assets/…mp4 i Zapisz masowo');
+    if(!rows.some(r=>r.presetUrl))return;
+  }
+  const btn=document.getElementById('exgif-import-btn');
+  if(btn){btn.disabled=true;btn.textContent='Zapisywanie…';}
+  const progWrap=document.getElementById('exgif-progress-wrap');
+  const prog=document.getElementById('exgif-progress');
+  if(progWrap)progWrap.style.display='block';
+  window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
+  let ok=0;
+  const total=rows.length;
+  let step=0;
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i];
+    row.status='upload';
+    renderExGifImportPreview();
+    try{
+      if(row.presetUrl){
+        const saved=await persistExerciseGifUrl(row.exerciseName,row.presetUrl);
+        if(saved){row.url=row.presetUrl;row.status='done';ok++;}
+        else{
+          row.status='err';
+          if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(row.presetUrl)){
+            notify('Ścieżka z dysku nie zapisze się — wklej z folderu progress-live-video-assets (zamienimy na CDN)');
+          }
+        }
+      }else if(row.file){
+        if(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+          row.status='err';
+        }else{
+        const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):String(row.exerciseName).toLowerCase();
+        const ext=(row.file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','gif'])[1].toLowerCase();
+        const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+        const ref=window._storageRef(window._storage,path);
+        const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
+        await window._uploadBytes(ref,row.file,{contentType:row.file.type||mime[ext]||'application/octet-stream'});
+        const url=await window._getDownloadURL(ref);
+        row.url=url;
+        await persistExerciseGifUrl(row.exerciseName,url);
+        row.status='done';
+        ok++;
+        }
+      }else if(row.url){
+        await persistExerciseGifUrl(row.exerciseName,row.url);
+        row.status='done';
+        ok++;
+      }else row.status='err';
+    }catch(e){
+      console.warn('GIF/MP4 import',row.label||row.file&&row.file.name,e);
+      row.status='err';
+    }
+    step++;
+    if(prog)prog.style.width=Math.round((step/total)*100)+'%';
+    renderExGifImportPreview();
+  }
+  if(btn){btn.disabled=false;syncExGifImportBtnLabel();}
+  if(typeof renderLib==='function')renderLib();
+  notify('✓ Zapisano '+ok+' / '+total+' animacji / filmów techniki');
+  if(ok===total)closeM('m-ex-gif-import');
+}
+
+window.openExGifImport=openExGifImport;
+window.onExGifFilesPicked=onExGifFilesPicked;
+window.onExGifBulkPastePreview=onExGifBulkPastePreview;
+window.setExGifImportTab=setExGifImportTab;
+window.runExGifImport=runExGifImport;
+window.parseExGifBulkPaste=parseExGifBulkPaste;
+window.ensureExGifPasteParsed=ensureExGifPasteParsed;
+window.toggleExGifImportRow=toggleExGifImportRow;
+window.setExGifImportExercise=setExGifImportExercise;
+
+function countExercisesWithGif(){
+  const all=typeof allExercises==='function'?allExercises():[];
+  return all.filter(e=>typeof exGifUrl==='function'&&!!exGifUrl(e)).length;
+}
+window.countExercisesWithGif=countExercisesWithGif;

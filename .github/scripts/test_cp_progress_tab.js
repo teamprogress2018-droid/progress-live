@@ -1,0 +1,34 @@
+// Wyniki: rekordy i zachowania bez dublowania Pomiary/Zdjęcia.
+const fs = require('fs');
+const path = require('path');
+
+const src = fs.readFileSync(path.join(__dirname, '..', '..', '08-client-profile-extras.js'), 'utf8');
+const metricsFn = src.slice(src.indexOf('function renderCPMetrics'), src.indexOf('function setCPMetricGroup'));
+const progressFn = src.slice(src.indexOf('function renderCPProgress'), src.indexOf('window.renderCPProgress'));
+
+let failed = 0;
+function ok(name, cond) {
+  if (!cond) { console.error('FAIL ' + name); failed++; }
+  else console.log('OK   ' + name);
+}
+
+ok('metrics has no training PRs block', !/Rekordy z treningów/.test(metricsFn));
+ok('progress has training PRs', /Rekordy z treningów/.test(progressFn));
+ok('progress has weekly tonnage', /Tonaż tygodniowy/.test(progressFn));
+ok('progress hides duplicated body and photos panels', /const allowed=\['all','train','checkin','habits'\]/.test(src) && !/chip\('body'/.test(progressFn) && !/chip\('photos'/.test(progressFn));
+ok('progress has one photo compare shortcut and no generic CTA strip', !/Podsumowanie<\/button>/.test(progressFn) && /cp-photo-summary/.test(progressFn) && /setCPTab\('photos'\)/.test(progressFn));
+ok('progress uses svg charts', /cp-chart-svg|cpLineChartSVG|cpWeeklyDualChart/.test(progressFn));
+ok('progress uses stat-card layout', /stat-card/.test(progressFn));
+ok('progress analytics hub', /POSTĘPY/.test(progressFn) && /Realizacja planu · 30 dni/.test(progressFn));
+ok('progress explains calendar-only entries', /same terminy nie są liczone jako wykonany trening/.test(progressFn));
+ok('progress has focused filters', /Podsumowanie/.test(progressFn) && /Trening/.test(progressFn) && /Check-in/.test(progressFn) && /Nawyki/.test(progressFn));
+ok('metrics is single measurement history', /Jedyne miejsce do dodawania, edycji i przeglądania historii pomiarów/.test(metricsFn));
+ok('index has progress tab', /cpt-progress/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
+ok('setCPTab wires progress', /t==='progress'/.test(fs.readFileSync(path.join(__dirname, '..', '..', '07-forms-metrics-calculator.js'), 'utf8')));
+ok('index slim header', /cp-hdr-actions/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
+ok('podsumowanie in overflow', /openReportForClient\(cpClientId\)/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
+const cacheVersion = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8').match(/08-client-profile-extras\.js\?v=(\d+)/);
+ok('cache bump 08 (83 or newer)', cacheVersion && Number(cacheVersion[1]) >= 83);
+
+if (failed) process.exit(1);
+console.log('\nAll cp-progress tests passed');

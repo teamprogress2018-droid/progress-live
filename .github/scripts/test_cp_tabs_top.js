@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+'use strict';
+/** Client profile: Everfit-style horizontal top tabs. */
+const fs = require('fs');
+const path = require('path');
+
+const root = path.join(__dirname, '../..');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
+const src07 = fs.readFileSync(path.join(root, '07-forms-metrics-calculator.js'), 'utf8');
+const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
+
+const drawer = html.slice(html.indexOf('id="cp-drawer"'), html.indexOf('NOTIFICATIONS PANEL'));
+
+let failed = 0;
+function ok(name, cond) {
+  if (!cond) {
+    console.error('FAIL', name);
+    failed++;
+  } else console.log('OK  ', name);
+}
+
+ok('horizontal tabs bar', drawer.includes('cp-tabs-bar') && drawer.includes('cp-tabs-inner'));
+ok('no vertical tab sidebar width', !/width:200px[\s\S]*cpt-overview/.test(drawer.replace(/\s+/g, ' ')));
+ok('top tabs order-ish', /cpt-overview[\s\S]*cpt-training[\s\S]*cpt-plan[\s\S]*cpt-progress[\s\S]*cpt-metrics/.test(drawer));
+ok('more dropdown', drawer.includes('cp-tabs-more-menu') && drawer.includes('cpt-features'));
+ok('settings in more as Ustawienia', /cpt-features[\s\S]*Ustawienia/.test(drawer));
+ok('css horizontal bar', css.includes('.cp-tabs-bar') && css.includes('.cp-main'));
+ok('tabs centered', css.includes('justify-content:center') && /cp-tabs-bar\{[\s\S]*?justify-content:center/.test(css.replace(/\s+/g,' ')));
+ok('tabs gray inactive + red active underline', /\.cp-tab\{[^}]*color:var\(--text-secondary\)/.test(css.replace(/\s+/g,' ')) && /\.cp-tab\.active\{[^}]*border-bottom-color:var\(--accent\)/.test(css.replace(/\s+/g,' ')));
+ok('more menu not clipped', css.includes('overflow:visible') && css.includes('.cp-tabs-more-menu'));
+ok('setCPTab more list updated', src07.includes("moreTabs=['tasks'") || /moreTabs=\['tasks'/.test(src07));
+ok('toggleCpMoreNav ignore race', /_cpMoreIgnoreUntil/.test(src09) && /function\s+toggleCpMoreNav/.test(src09));
+ok('cp-tab-v not used in drawer', !/cp-tab-v/.test(drawer));
+
+if (failed) {
+  console.error(failed + ' failed');
+  process.exit(1);
+}
+console.log('\nAll cp-tabs-top tests passed');

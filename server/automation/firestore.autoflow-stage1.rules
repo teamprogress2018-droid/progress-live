@@ -1,0 +1,52 @@
+rules_version = '2';
+// Stage 1 protects only Autoflow collections. This is NOT complete trainer isolation.
+// Other collections retain the existing production policy: any signed-in user can
+// read and write them, including nested documents. Migrate those separately after
+// adapting their broad application queries and validating client access.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner() {
+      return signedIn()
+        && resource.data.keys().hasAll(['trainerId'])
+        && resource.data.trainerId == request.auth.uid;
+    }
+
+    function creatingAsOwner() {
+      return signedIn()
+        && request.resource.data.keys().hasAll(['trainerId'])
+        && request.resource.data.trainerId == request.auth.uid;
+    }
+
+    // Only top-level owner documents are accessible. No client-linked access,
+    // owner changes, or implicit access to nested subcollections is granted.
+    match /automationState/{docId} {
+      allow read, delete: if isOwner();
+      allow create: if creatingAsOwner();
+      allow update: if isOwner()
+        && request.resource.data.trainerId == resource.data.trainerId;
+    }
+
+    match /autoflows/{docId} {
+      allow read, delete: if isOwner();
+      allow create: if creatingAsOwner();
+      allow update: if isOwner()
+        && request.resource.data.trainerId == resource.data.trainerId;
+    }
+
+    // Private controls, execution ledger and pagination cursor use Admin SDK only.
+    match /serverAutomation/{document=**} {
+      allow read, write: if false;
+    }
+
+    // Allows from overlapping matches are OR-combined. Exclude the entire protected
+    // top-level namespaces here, including every descendant, not merely their docs.
+    match /{topCollection}/{document=**} {
+      allow read, write: if signedIn()
+        && !(topCollection in ['automationState', 'autoflows', 'serverAutomation']);
+    }
+  }
+}

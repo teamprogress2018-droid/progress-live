@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+/** Evidence base: trainer principles/PubMed links as planning context. */
+'use strict';
+const fs=require('fs');
+const path=require('path');
+const vm=require('vm');
+
+const root=path.join(__dirname,'../..');
+const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8');
+const src09=fs.readFileSync(path.join(root,'09-posture-kb-invites-private.js'),'utf8');
+const src03=fs.readFileSync(path.join(root,'03-ai-plangen-bizstats-aicoach.js'),'utf8');
+const src06=fs.readFileSync(path.join(root,'06-inbox-exercises-ai-programs.js'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+
+let failed=0;
+function ok(name,cond){
+  if(!cond){console.error('FAIL',name);failed++;}
+  else console.log('OK  ',name);
+}
+
+ok('BUILTIN_PLANNING_EVIDENCE',core.includes('BUILTIN_PLANNING_EVIDENCE')&&core.includes('pubmed.ncbi.nlm.nih.gov'));
+ok('planningEvidenceContext',core.includes('function planningEvidenceContext'));
+ok('getPlanningEvidenceEntries',core.includes('function getPlanningEvidenceEntries'));
+ok('kb kinds UI',html.includes('id="kb-kind"')&&html.includes('value="evidence"')&&html.includes('kb-use-planning'));
+ok('kb filters',html.includes('setKbFilter')&&html.includes('kb-builtin-preview'));
+ok('import pack',src09.includes('kbImportBuiltinPack'));
+ok('kb default note',html.includes('value="note">Notatka</option>')&&src09.includes("p.kind||'note'"));
+ok('kbContext no leftover dump',!src09.includes('POZOSTAŁE NOTATKI TRENERA')&&src09.includes('planningEvidenceContext(3500,opts||{})'));
+ok('note+evidence first-class',core.includes("kind==='note'||kind==='evidence'||kind==='principle'"));
+ok('user notes before builtins',core.includes('user.map(mapUser).concat(builtins.map'));
+ok('kbContext uses planning',/function kbContextForAI[\s\S]{0,400}planningEvidenceContext/.test(src09));
+const generatorSource=src03.slice(src03.indexOf('async function aplGenerate(){'),src03.indexOf('const userMsg=',src03.indexOf('async function aplGenerate(){')));
+const contextCall=generatorSource.match(/kbContextForAI\(\{mode:'training',query:[^}]+\}\)/);
+let capturedContext=null;
+if(contextCall)vm.runInNewContext(contextCall[0],{goal:'masa',method:'FBW',notes:'2 dni',kbContextForAI:opts=>{capturedContext=opts;return '';}});
+ok('aplGenerate uses kb context with training topic',capturedContext&&capturedContext.mode==='training'&&capturedContext.query==='masa FBW 2 dni');
+ok('askAI safety+watch', /clientSafetyContextForAI/.test(src06) && /clientMonitorContextForAI/.test(src06));
+ok('kb tag picker UI',html.includes('id="kb-tag-picker"')&&html.includes('builder-kb-hits'));
+ok('askAI prefers builder tags',src06.includes('preferTags')&&src06.includes('builderCollectKbTags'));
+ok('copy notes+evidence',html.includes('notatki i badania'));
+
+const sandbox={window:{KB:[]},console};
+vm.createContext(sandbox);
+const start=core.indexOf('const BUILTIN_PLANNING_EVIDENCE=');
+const end=core.indexOf('window.kbEntriesForBuilder=kbEntriesForBuilder;')+'window.kbEntriesForBuilder=kbEntriesForBuilder;'.length;
+ok('evidence slice',start>=0&&end>start);
+vm.runInContext(core.slice(start,end),sandbox);
+
+const list=sandbox.getPlanningEvidenceEntries();
+ok('builtins present',list.length>=5);
+ok('context header notes+evidence',sandbox.planningEvidenceContext(2000).includes('BADANIA I NOTATKI TRENERA'));
+ok('note uses planning',sandbox.kbEntryUsesInPlanning({kind:'note',title:'x',text:'y'})===true);
+ok('evidence uses planning',sandbox.kbEntryUsesInPlanning({kind:'evidence',title:'x',text:'y'})===true);
+ok('off note skipped',sandbox.kbEntryUsesInPlanning({kind:'note',title:'x',text:'y',useInPlanning:false})===false);
+
+sandbox.window.KB=[
+  {id:'n1',kind:'note',title:'ZZZ sen 7h',text:'Przy słabym śnie tnij objętość.',useInPlanning:true},
+  {id:'n2',kind:'note',title:'Tajemnica gabinetu',text:'Nie do AI.',useInPlanning:false},
+  {id:'e1',kind:'evidence',title:'Pełny ROM',text:'Dłuższy zakres przy hipertrofii.',useInPlanning:true,citation:'Schoenfeld'}
+];
+const mixed=sandbox.getPlanningEvidenceEntries();
+ok('user note in planning',mixed.some(e=>e.title==='ZZZ sen 7h'));
+ok('user evidence in planning',mixed.some(e=>e.title==='Pełny ROM'));
+ok('off note not in planning',!mixed.some(e=>e.title==='Tajemnica gabinetu'));
+const ctx=sandbox.planningEvidenceContext(8000);
+ok('ctx has note',ctx.includes('ZZZ sen 7h'));
+ok('ctx has evidence',ctx.includes('Pełny ROM'));
+ok('ctx skips off note',!ctx.includes('Tajemnica gabinetu'));
+ok('user note before builtin',ctx.indexOf('ZZZ sen 7h')<ctx.indexOf('Częstotliwość'));
+
+ok('cache bumps',html.includes('01-core.js?v=126')&&html.includes('09-posture-kb-invites-private.js?v=54'));
+const wf=fs.readFileSync(path.join(root,'.github/workflows/check.yml'),'utf8');
+ok('CI ui',wf.includes('test_kb_notes_evidence_ui.js'));
+const vol=list.find(e=>e.id==='bev_vol')||sandbox.getPlanningEvidenceEntries().find(e=>e.id==='bev_vol');
+ok('builtin vol tagged mev',vol&&sandbox.kbTagsForEntry(vol).includes('mev')&&sandbox.kbTagsForEntry(vol).includes('mav'));
+ok('text infers klatka',sandbox.kbTagsFromText('Wyciskanie klatki na ławce').includes('klatka'));
+ok('normalize muscle alias',sandbox.normalizeKbTags(['chest','MEV']).join(',')==='klatka,mev');
+sandbox.window.KB=[
+  {id:'chest',kind:'note',title:'Priorytet klatki',text:'Więcej rozpiętek.',tags:['klatka'],useInPlanning:true},
+  {id:'quad',kind:'note',title:'Hack squat',text:'Quady na suwnicy.',tags:['quady'],useInPlanning:true}
+];
+const chestHits=sandbox.kbEntriesForBuilder(['klatka','mev'],{limit:12});
+ok('chest note on chest day',chestHits.some(h=>h.entry.title==='Priorytet klatki'));
+ok('quad note not on chest day',!chestHits.some(h=>h.entry.title==='Hack squat'));
+ok('ctx tags line',sandbox.planningEvidenceContext(8000,{preferTags:['klatka']}).includes('Tagi:'));
+
+const whyCode=src03.slice(src03.indexOf('function aplPlanWhyHTML('),src03.indexOf('function aplRenderPlan('));
+const whyCtx={};vm.createContext(whyCtx);vm.runInContext(whyCode,whyCtx);
+ok('legacy plans do not invent explanations',whyCtx.aplPlanWhyHTML({})==='');
+const why=whyCtx.aplPlanWhyHTML({rationale:{clientData:['<img src=x onerror=alert(1)>'],reasoning:['Dwa dni dostępne'],sources:[]}});
+ok('why panel escapes model content',why.includes('&lt;img')&&!why.includes('<img'));
+ok('why panel identifies missing evidence',why.includes('Brak wskazanego źródła'));
+ok('why panel shows uncertainty and review',why.includes('Założenia i niepewność')&&why.includes('Kiedy ponownie ocenić plan'));
+ok('why panel guards malformed fields',whyCtx.aplPlanWhyHTML({rationale:{sources:{url:'bad'}}}).includes('Brak wskazanego źródła'));
+ok('why persists with saved plan',src03.includes('rationale:aplLastPlan.rationale||null'));
+ok('why renders in plan preview',src03.includes('${aplPlanWhyHTML(plan)}'));
+if(failed){console.error(failed+' failed');process.exit(1);}
+console.log('\nAll evidence-base tests passed');

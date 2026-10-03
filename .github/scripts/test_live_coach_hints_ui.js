@@ -1,0 +1,125 @@
+// UI: Live pokazuje przerwę/tempo i harmonogram periodyzacji z planu.
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
+
+const root = path.join(__dirname, '..', '..');
+const shotDir = process.env.LIVE_COACH_SHOT_DIR || (fs.existsSync('/opt/cursor/artifacts') ? '/opt/cursor/artifacts' : path.join(require('os').tmpdir(), 'pl-live-coach'));
+fs.mkdirSync(shotDir, { recursive: true });
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+(async () => {
+  const port = process.env.LAYOUT_PORT || '8080';
+  const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(20000);
+  await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(500);
+
+  await page.evaluate(() => {
+    window.persistById = async (_c, o) => o;
+    const auth = document.getElementById('auth-screen');
+    const app = document.getElementById('app-root');
+    if (auth) auth.style.display = 'none';
+    if (app) app.style.display = '';
+    const loading = document.getElementById('app-loading');
+    if (loading) loading.style.display = 'none';
+    window.CL = [{ id: 'c1', name: 'Ewelina', level: 'sredni', weight: 62, height: 168, age: 29, goal: 'redukcja' }];
+    window.SE = [];
+    window.PL = [{
+      id: 'p-hiit',
+      clientId: 'c1',
+      name: 'HIIT + Siła A',
+      level: 'sredni',
+      progression: 'double',
+      createdAt: '2026-08-25T10:00:00.000Z',
+      days: [{
+        day: 'PON',
+        exercises: [
+          { name: 'Przysiad Goblet', sets: '4', reps: '10', rest: '90s', tempo: '3-1-1-0', rpe: '8', kg: '16' },
+          { name: 'Wyciskanie hantli leżąc', sets: '3', reps: '10', rest: '90s', tempo: '3-1-1-0', rpe: '8', kg: '12' }
+        ]
+      }]
+    }];
+    if (typeof goTo === 'function') goTo('live');
+    const st = typeof liveRef === 'function' ? liveRef(0) : window.liveA;
+    if (st) {
+      st.clientId = 'c1';
+      st.planId = 'p-hiit';
+      st.currentDayIdx = 0;
+      st.exercises = typeof liveMapPlanExercises === 'function' ? liveMapPlanExercises(window.PL[0].days[0].exercises, 0) : [];
+    }
+    if (typeof liveClientSetField === 'function') liveClientSetField('c1', 'Ewelina', true, 0);
+    if (typeof renderLivePlanPicker === 'function') renderLivePlanPicker(0);
+    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+  });
+
+  await page.waitForSelector('.live-ex-card');
+  const info = await page.evaluate(() => {
+    const card = document.querySelector('.live-ex-card');
+    const target = (document.querySelector('.live-ex-target') || {}).textContent || '';
+    const week = (document.querySelector('.live-week-hint') || {}).textContent || '';
+    const period = document.getElementById('live-period-card');
+    const body = document.getElementById('live-period-body');
+    const toggle = document.getElementById('live-period-toggle');
+    const rows = [...document.querySelectorAll('#live-period-sched .live-period-row')].map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim());
+    const hint = (document.getElementById('live-rest-plan-hint') || {}).textContent || '';
+    const planBtn = (document.getElementById('live-rest-plan-btn') || {}).textContent || '';
+    const add = document.querySelector('.live-ex-card .live-alts-add');
+    const swap = document.querySelector('.live-swap-open');
+    return {
+      target,
+      week,
+      periodHidden: !!(period && period.hidden),
+      periodCollapsed: !!(body && body.hidden),
+      periodExpanded: toggle ? toggle.getAttribute('aria-expanded') : null,
+      rows,
+      hint,
+      planBtn,
+      cardText: (card && card.innerText) || '',
+      hasInfo: !!document.querySelector('.live-week-info'),
+      hasSwap: !!(swap && /Zamień/.test(swap.textContent || '')),
+      searchHidden: !add || !!add.hidden,
+      noPraca: !/Praca\s+\d/.test(target),
+      noRpe: !/\bRPE\b/.test(target)
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_coach_hints.png') });
+
+  ok('przerwa on target', /przerwa 90/.test(info.target), info.target);
+  ok('no praca on card', info.noPraca, info.target);
+  ok('tempo on target', /3-1-1-0/.test(info.target), info.target);
+  ok('rir not rpe', /RIR/.test(info.target) && info.noRpe, info.target);
+  ok('week hint', /Tydz\.|DUP|Intensyfikacja|Akumulacja|Szczyt/.test(info.week), info.week);
+  ok('week info btn', info.hasInfo);
+  ok('long method not in card', !/wysoka objętość|regeneracja CNS/.test(info.cardText), info.cardText.slice(0, 400));
+  ok('swap not search', info.hasSwap && info.searchHidden, JSON.stringify({ hasSwap: info.hasSwap, searchHidden: info.searchHidden }));
+  ok('period visible', !info.periodHidden);
+  ok('period collapsed', info.periodCollapsed && info.periodExpanded === 'false');
+  ok('4 weeks listed', info.rows.length === 4, JSON.stringify(info.rows));
+  ok('akumulacja row', info.rows.some((r) => /Akumulacja/.test(r)), JSON.stringify(info.rows));
+  ok('rest hint from plan', /90/.test(info.hint) || /90/.test(info.planBtn), info.hint + ' | ' + info.planBtn);
+
+  await page.evaluate(() => { if (typeof liveTogglePeriodPanel === 'function') liveTogglePeriodPanel(); });
+  const opened = await page.evaluate(() => {
+    const body = document.getElementById('live-period-body');
+    const toggle = document.getElementById('live-period-toggle');
+    return { hidden: !!(body && body.hidden), expanded: toggle ? toggle.getAttribute('aria-expanded') : null };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_period_open.png') });
+  ok('period expands', !opened.hidden && opened.expanded === 'true', JSON.stringify(opened));
+
+  await browser.close();
+  if (failed) process.exit(1);
+  console.log('\nAll live-coach-hints UI tests passed');
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

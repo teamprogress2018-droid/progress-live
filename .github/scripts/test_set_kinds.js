@@ -1,0 +1,171 @@
+// Testy warmup / drop / AMRAP (bez przeglądarki). Ładuje 01-core.js w atrapie DOM.
+const fs = require('fs');
+const vm = require('vm');
+const path = require('path');
+
+const document = {
+  querySelectorAll: () => [],
+  getElementById: () => null,
+  addEventListener() {}
+};
+const windowObj = {
+  addEventListener() {},
+  CL: [], PL: [], SE: [], EX: [], WO: [],
+  METRIC_ENTRIES: [],
+  document
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj,
+  document,
+  console,
+  Date,
+  Math,
+  parseInt,
+  parseFloat,
+  Number,
+  String,
+  Array,
+  Object,
+  JSON,
+  setTimeout,
+  clearTimeout,
+  isNaN,
+  Infinity,
+  undefined
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 'utf8'), ctx);
+
+const {
+  parsePlanExercise, expandExerciseSets, skipRestBeforeSet, restSecAfterSet,
+  formatSetKindTag, formatPlanExerciseLine, isWorkingSet, setKindBadge,
+  mapPlanExercisesForClient, plannedRir, rirFromRpe,
+  parseDropStep, dropKgAt, dropToastText, isCircuitDay, applyCircuitStations, ssNextAfterSet
+} = ctx;
+
+let failed = 0;
+function eq(name, got, want) {
+  const g = JSON.stringify(got);
+  const w = JSON.stringify(want);
+  if (g !== w) {
+    console.error('FAIL ' + name + '\n  got:  ' + g + '\n  want: ' + w);
+    failed++;
+  } else {
+    console.log('OK   ' + name);
+  }
+}
+
+eq('parse wu', parsePlanExercise({name: 'Przysiad', wu: 2, drop: 1, amrap: true}).wu, 2);
+eq('parse drop', parsePlanExercise({name: 'Przysiad', drop: '2'}).drop, 2);
+eq('parse amrap', parsePlanExercise({name: 'Przysiad', amrap: '1'}).amrap, true);
+eq('parse amrap false', parsePlanExercise({name: 'Przysiad'}).amrap, false);
+eq('wu cap 2', parsePlanExercise({name: 'X', wu: 9}).wu, 2);
+
+const expanded = expandExerciseSets(
+  {name: 'Przysiad', sets: '3', reps: '8', wu: 2, drop: 2, amrap: true, kg: '100', rir: '7'},
+  {plannedKg: '100'}
+);
+eq('len 2wu+3+2drop', expanded.length, 7);
+eq('first warmup', expanded[0].kind, 'warmup');
+eq('warmup kg 50%', expanded[0].kg, '50');
+eq('second warmup 70%', expanded[1].kg, '70');
+eq('first work', expanded[2].kind, 'work');
+eq('last work amrap', expanded[4].kind, 'amrap');
+eq('amrap reps empty', expanded[4].reps, '');
+eq('drop1', expanded[5].kind, 'drop');
+eq('drop1 kg 80%', expanded[5].kg, '80');
+eq('drop2 kg 60%', expanded[6].kg, '60');
+
+eq('skip rest before drop', skipRestBeforeSet(expanded[5]), true);
+eq('no skip before work', skipRestBeforeSet(expanded[2]), false);
+eq('rest after warmup', restSecAfterSet({restSec: 90}, expanded[0], expanded[1]), 45);
+eq('rest 0 before drop', restSecAfterSet({restSec: 90}, expanded[4], expanded[5]), 0);
+eq('rest after work', restSecAfterSet({restSec: 90}, expanded[2], expanded[3]), 90);
+
+eq('tag', formatSetKindTag({wu: 2, drop: 1, amrap: true}), 'WU2 AMRAP DROP1');
+eq('line', formatPlanExerciseLine({name: 'Przysiad', sets: 4, reps: 8, wu: 1, amrap: true}), 'Przysiad 4×8 WU1 AMRAP');
+eq('badge W', setKindBadge('warmup'), 'W');
+eq('working amrap', isWorkingSet({kind: 'amrap'}), true);
+eq('not working wu', isWorkingSet({kind: 'warmup'}), false);
+eq('rir from true rir', plannedRir({rir: '2'}), '2');
+eq('rir from rpe 8', plannedRir({rpe: '8'}), '2');
+eq('rir stored as rpe 7', plannedRir({rir: '7'}), '3');
+eq('work set has rir', expanded[2].rir, '3');
+
+const ssExp = expandExerciseSets(
+  {name: 'Przysiad', sets: '3', reps: '8', wu: 2, drop: 2, ss: 'A', kg: '100'},
+  {plannedKg: '100'}
+);
+eq('ss skips wu/drop', ssExp.length, 3);
+eq('ss all work', ssExp.every(s => s.kind === 'work'), true);
+eq('ss tag no wu/drop', formatSetKindTag({name: 'X', wu: 2, drop: 1, ss: 'A', amrap: true}), 'AMRAP');
+
+const mapped = mapPlanExercisesForClient([{name: 'Przysiad', sets: '3', reps: '8', wu: 1, amrap: true, kg: '80'}], 'c1');
+eq('mapped has warmup', mapped[0].sets[0].kind, 'warmup');
+eq('mapped last amrap', mapped[0].sets[mapped[0].sets.length - 1].kind, 'amrap');
+eq('mapped amrap reps empty', mapped[0].sets[mapped[0].sets.length - 1].reps, '');
+
+const ssMapped = mapPlanExercisesForClient([{name: 'Burpee', sets: '3', reps: '5', wu: 2, drop: 1, ss: 'A', amrap: true}], 'c1');
+eq('ss mapped wu 0', ssMapped[0].wu, 0);
+eq('ss mapped drop 0', ssMapped[0].drop, 0);
+eq('ss mapped keeps amrap', ssMapped[0].amrap, true);
+
+eq('parse cluster', parsePlanExercise({name: 'X', cluster: 2}).cluster, 2);
+eq('parse rp cap 2', parsePlanExercise({name: 'X', rp: 9}).rp, 2);
+const clExp = expandExerciseSets(
+  {name: 'Przysiad', sets: '2', reps: '8', cluster: 2, rp: 1, kg: '100'},
+  {plannedKg: '100'}
+);
+eq('cluster extra sets', clExp.filter(s => s.kind === 'cluster').length, 2);
+eq('rp sets', clExp.filter(s => s.kind === 'restpause').length, 1);
+eq('badge C', setKindBadge('cluster'), 'C');
+eq('badge RP', setKindBadge('restpause'), 'RP');
+eq('working cluster', isWorkingSet({kind: 'cluster'}), true);
+eq('rest after work before cluster', restSecAfterSet({restSec: 90}, clExp[1], clExp[2]), 20);
+eq('skip rest before rp', skipRestBeforeSet(clExp.find(s => s.kind === 'restpause')), true);
+eq('tag KL RP', formatSetKindTag({cluster: 2, rp: 1}), 'KL2 RP1');
+
+eq('parse dropStep', parsePlanExercise({name: 'X', drop: 2, dropStep: '20%'}).dropStep, '20%');
+eq('parseDrop 20%', parseDropStep('20%'), {mode: 'pct', n: 20});
+eq('parseDrop 10kg', parseDropStep('10kg'), {mode: 'kg', n: 10});
+eq('drop 20% first', dropKgAt('100', 0, 2, '20%'), '80');
+eq('drop 20% second', dropKgAt('100', 1, 2, '20%'), '60');
+eq('drop 10kg first', dropKgAt('100', 0, 2, '10kg'), '90');
+eq('drop 10kg second', dropKgAt('100', 1, 2, '10kg'), '80');
+const dropExp = expandExerciseSets(
+  {name: 'Przysiad', sets: '1', reps: '8', drop: 2, dropStep: '25%', kg: '100'},
+  {plannedKg: '100'}
+);
+eq('custom drop kg', dropExp.filter(s => s.kind === 'drop').map(s => s.kg), ['75', '50']);
+eq('tag drop step', formatSetKindTag({drop: 2, dropStep: '20%'}), 'DROP2 −20%');
+eq('toast drop kg', dropToastText({kg: '80'}), 'Drop — zejdź do 80 kg, bez przerwy');
+
+eq('circuit day flag', isCircuitDay({circuit: true}, {method: 'PPL'}), true);
+eq('circuit method', isCircuitDay({}, {method: 'Obwodowy'}), true);
+eq('not circuit ppl', isCircuitDay({muscles: 'Push'}, {method: 'PPL'}), false);
+const circ = applyCircuitStations([
+  {name: 'Goblet', sets: '3'},
+  {name: 'Wiosło', sets: '3'},
+  {name: 'Pompki', sets: '3'}
+], {method: 'PPL'}, {circuit: true, roundRest: '120s'});
+eq('station labels', circ.map(e => e.ssLabel), ['S1', 'S2', 'S3']);
+eq('trans default', circ[0].transSec, 20);
+eq('round rest', circ[0].roundRestSec, 120);
+eq('circuit ss group', circ[0].ss, '○');
+circ.forEach((e, i) => {
+  e.sets = [{done: false}, {done: false}];
+});
+circ[0].sets[0].done = true;
+eq('circuit after S1 → S2', ssNextAfterSet(circ, 0), {kind: 'partner', exIdx: 1});
+circ[1].sets[0].done = true;
+eq('circuit after S2 → S3', ssNextAfterSet(circ, 1), {kind: 'partner', exIdx: 2});
+circ[2].sets[0].done = true;
+eq('circuit after S3 → round rest S1', ssNextAfterSet(circ, 2), {kind: 'rest', exIdx: 0});
+
+if (failed) {
+  console.error('\n' + failed + ' test(s) failed');
+  process.exit(1);
+}
+console.log('\nWszystkie testy warmup/drop/AMRAP OK.');

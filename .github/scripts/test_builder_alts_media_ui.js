@@ -1,0 +1,162 @@
+// UI: zamienniki wysuwane + miniatura techniki przy nazwie (bez pustego boxa filmu).
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
+
+const root = path.join(__dirname, '..', '..');
+const shotDir = process.env.BUILDER_SHOT_DIR || (fs.existsSync('/opt/cursor/artifacts') ? '/opt/cursor/artifacts' : path.join(require('os').tmpdir(), 'pl-builder'));
+fs.mkdirSync(shotDir, { recursive: true });
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+(async () => {
+  const port = process.env.LAYOUT_PORT || '8080';
+  const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(20000);
+  await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(700);
+  await page.evaluate(() => {
+    window.persistById = async (_c, o) => o;
+    const auth = document.getElementById('auth-screen');
+    const app = document.getElementById('app-root');
+    if (auth) auth.style.display = 'none';
+    if (app) app.style.display = '';
+    const loading = document.getElementById('app-loading');
+    if (loading) loading.style.display = 'none';
+    window.CL = [{ id: 'c1', name: 'Piotr Urbaniak' }];
+  });
+  await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('builder');
+    if (typeof initBuilder === 'function') initBuilder();
+    if (typeof addDay === 'function') addDay();
+    const day = document.querySelector('.builder-day');
+    if (day && typeof addRow === 'function') addRow(day.id);
+  });
+  await page.waitForSelector('.ex-row [data-f="name"]');
+  await page.fill('.ex-row [data-f="name"]', 'Rozpiętki na maszynie (Pec-Deck) — środek klatki');
+  await page.waitForTimeout(400);
+
+  const state = await page.evaluate(() => {
+    const row = document.querySelector('.ex-row');
+    const thumb = row && row.querySelector('.builder-ex-thumb');
+    const altBox = row && row.querySelector('.builder-alt-box');
+    const toggle = row && row.querySelector('.builder-alt-toggle');
+    const emptyFilm = (row && row.innerText || '').includes('Brak filmu techniki');
+    const media = typeof resolveCoachMedia === 'function'
+      ? resolveCoachMedia({ name: 'Rozpiętki na maszynie (Pec-Deck) — środek klatki' })
+      : {};
+    const todoInp = row && row.querySelector('[data-f="note"]');
+    const todoLbl = row && row.querySelector('.builder-todo-lbl');
+    return {
+      hasThumbBtn: !!(thumb),
+      thumbHidden: !!(thumb && thumb.hidden),
+      thumbHasImg: !!(thumb && thumb.querySelector('img,video')),
+      thumbSrc: (thumb && ((thumb.querySelector('video') || thumb.querySelector('img') || {}).src)) || '',
+      altHidden: !!(altBox && altBox.hasAttribute('hidden')),
+      hasToggle: !!(toggle),
+      emptyFilm,
+      mediaImg: media.img || media.gif || '',
+      todoLabel: !!(todoLbl && /Do zrobienia/.test(todoLbl.textContent || '')),
+      todoVal: String((todoInp && todoInp.value) || '').trim()
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_ex_thumb.png') });
+  ok('thumb button present', state.hasThumbBtn);
+  ok('thumb visible after pec-deck name', !state.thumbHidden && state.thumbHasImg, JSON.stringify(state));
+  ok('thumb uses real technique media', /free-exercise-db|githubusercontent|jsdelivr|video-assets|Pec(?:%20|[- ])?Deck|Butterfly|\.mp4/i.test(state.thumbSrc + state.mediaImg), state.thumbSrc);
+  ok('alts panel hidden by default', state.altHidden);
+  ok('zamienniki toggle present', state.hasToggle);
+  ok('no duplicate empty film box', !state.emptyFilm);
+  ok('todo label Do zrobienia', state.todoLabel);
+  ok('todo filled from library tip', !!state.todoVal, state.todoVal);
+
+  await page.click('.builder-alt-toggle');
+  const opened = await page.evaluate(() => {
+    const box = document.querySelector('.builder-alt-box');
+    const chips = [...document.querySelectorAll('.builder-alt-chip')].map((el) => el.textContent.trim());
+    return { hidden: !!(box && box.hasAttribute('hidden')), chips, openClass: document.querySelector('.ex-row').classList.contains('alts-open') };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_alts_open.png') });
+  ok('alts panel slides open', !opened.hidden && opened.openClass);
+  ok('alts chips from library', opened.chips.some((c) => /Rozpiętki hantlami/i.test(c)), opened.chips.join(' | '));
+
+  await page.click('.builder-ex-thumb');
+  await page.waitForSelector('#builder-ex-media-pop:not([hidden])');
+  const pop = await page.evaluate(() => {
+    const el = document.getElementById('builder-ex-media-pop');
+    return {
+      open: !!(el && !el.hidden),
+      hasMedia: !!(el && el.querySelector('img,video,iframe'))
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_media_pop.png') });
+  ok('thumb opens technique popover', pop.open && pop.hasMedia);
+
+  await page.evaluate(() => { if (typeof builderCloseExMedia === 'function') builderCloseExMedia(); });
+  await page.waitForFunction(() => {
+    const el = document.getElementById('builder-ex-media-pop');
+    return !el || el.hidden || getComputedStyle(el).display === 'none';
+  });
+
+  await page.fill('.ex-row [data-f="name"]', 'Wiosłowanie na maszynie siedząc (Cable Row / maszyna)');
+  await page.click('.ex-row [data-f="name"]');
+  await page.waitForFunction(() => {
+    const dd = document.querySelector('.ex-ac-dropdown');
+    if (!dd || dd.style.display === 'none') return false;
+    if (dd.querySelector('.ex-ac-empty')) return false;
+    return dd.querySelectorAll('.ex-ac-item').length > 0;
+  }, null, { timeout: 8000 });
+  const ac = await page.evaluate(() => {
+    const dd = document.querySelector('.ex-ac-dropdown');
+    const items = [...(dd ? dd.querySelectorAll('.ex-ac-item') : [])].map((el) => el.textContent.trim());
+    const empty = !!(dd && /Brak wyników/.test(dd.textContent || ''));
+    const hdr = !!(dd && /Zamienniki/.test(dd.textContent || ''));
+    return { display: dd ? dd.style.display : 'missing', items, empty, hdr };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_machine_alts_ac.png') });
+  ok('machine name not empty ac', !ac.empty && ac.items.length > 0, JSON.stringify(ac));
+  ok('ac shows zamienniki header', ac.hdr, JSON.stringify(ac));
+  ok('ac has cable row alt', ac.items.some((t) => /wyciągiem siedząc|hantlem/i.test(t)), ac.items.slice(0, 8).join(' | '));
+
+  await page.click('.builder-alt-toggle');
+  const machineAlts = await page.evaluate(() => {
+    const chips = [...document.querySelectorAll('.builder-alt-chip')].map((el) => el.textContent.trim());
+    const btn = document.querySelector('.builder-alt-toggle');
+    return { chips, btn: btn ? btn.textContent.trim() : '' };
+  });
+  ok('toggle shows alt count', /Zamienniki · \d/.test(machineAlts.btn), machineAlts.btn);
+  ok('machine chips without machine', machineAlts.chips.some((c) => /wyciągiem siedząc|hantlem/i.test(c)), machineAlts.chips.join(' | '));
+
+  await page.evaluate(() => {
+    const inp = document.querySelector('.ex-row [data-f="name"]');
+    if (!inp) return;
+    inp.dataset.altFor = 'Butterfly (peck deck)';
+    inp.value = '';
+    if (typeof exAcRender === 'function') exAcRender(inp);
+  });
+  await page.waitForTimeout(250);
+  const swap = await page.evaluate(() => {
+    const dd = document.querySelector('.ex-ac-dropdown');
+    const items = [...(dd ? dd.querySelectorAll('.ex-ac-item .ex-ac-name') : [])].map((el) => (el.textContent || '').trim());
+    const hdr = dd ? (dd.textContent || '') : '';
+    return { items, hdr, first: items[0] || '' };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_swap_empty_alts.png') });
+  ok('empty swap shows studio header', /sztanga \/ hantle \/ brama \/ ławka/i.test(swap.hdr), swap.hdr.slice(0, 120));
+  ok('empty swap lists flyes not pec deck catalog', swap.items.some((t) => /Rozpiętki hantlami|Rozpiętki na wyciągu|bramie/i.test(t)), swap.items.slice(0, 8).join(' | '));
+  ok('empty swap does not dump butterfly first', !/^Butterfly/i.test(swap.first), swap.first);
+
+  await browser.close();
+  if (failed) process.exit(1);
+  console.log('\nBuilder alts/media UI OK. Shots: ' + shotDir);
+})().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

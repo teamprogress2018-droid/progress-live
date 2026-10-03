@@ -1,0 +1,275 @@
+// UI: Live Postęp 0 bez odhaczeń → po seriach i zapisie wchodzi do Progress.
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
+
+const root = path.join(__dirname, '..', '..');
+const shotDir = process.env.LIVE_PROGRESS_SHOT_DIR || (fs.existsSync('/opt/cursor/artifacts') ? '/opt/cursor/artifacts' : path.join(require('os').tmpdir(), 'pl-live-progress'));
+fs.mkdirSync(shotDir, { recursive: true });
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+(async () => {
+  const port = process.env.LAYOUT_PORT || '8080';
+  const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(20000);
+  // Isolate the fixture from a real auth observer and every production write.
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
+  await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(500);
+
+  await page.evaluate(() => {
+    window._uid = 'live-progress-ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: 'live-progress' };
+    window.__liveProgressDocs = new Map();
+    window._doc = (_db, collection, id) => ({ collection, id });
+    window._setDoc = async (ref, data, options) => {
+      const key = ref.collection + '/' + ref.id;
+      const existing = window.__liveProgressDocs.get(key);
+      if (!window._uid || data.trainerId !== window._uid || (existing && existing.trainerId !== window._uid)) {
+        throw Object.assign(new Error('Fixture write must belong to the signed-in trainer'), { code: 'permission-denied' });
+      }
+      window.__liveProgressDocs.set(key, JSON.parse(JSON.stringify(options && options.merge ? { ...existing, ...data } : data)));
+    };
+    window.confirm = () => true;
+    window.notify = () => {};
+    const auth = document.getElementById('auth-screen');
+    const app = document.getElementById('app-root');
+    if (auth) auth.style.display = 'none';
+    if (app) app.style.display = '';
+    const loading = document.getElementById('app-loading');
+    if (loading) loading.style.display = 'none';
+    window.CL = [{ id: 'c1', trainerId: window._uid, name: 'Justyna Chylińska' }];
+    window.SE = [];
+    window.TASKS = [];
+    if (typeof goTo === 'function') goTo('live');
+    if (typeof liveClientSetField === 'function') liveClientSetField('c1', 'Justyna Chylińska', true, 0);
+  });
+  await page.waitForSelector('#live-exercises-panel');
+
+  await page.evaluate(() => {
+    window.liveClientId = 'c1';
+    window.livePlanId = 'pl-goblet';
+    window.PL = [{
+      id: 'pl-goblet', trainerId: window._uid, clientId: 'c1', name: 'Goblet',
+      days: [{ exercises: [{ name: 'Przysiad Goblet', sets: '4', reps: '12' }] }]
+    }];
+    window.SE = [
+      {
+        id: 'g-old', trainerId: window._uid, clientId: 'c1', date: '2026-09-06', source: 'live', planId: 'pl-goblet',
+        createdAt: '2026-09-06T19:30:00',
+        exercises: [{ name: 'Przysiad Goblet', sets: [
+          { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
+          { setNo: 2, kg: '20', reps: '12', kind: 'work', done: true }
+        ] }]
+      },
+      {
+        id: 'g-new', trainerId: window._uid, clientId: 'c1', date: '2026-09-13', source: 'live', planId: 'pl-goblet',
+        createdAt: '2026-09-13T20:00:00',
+        exercises: [{ name: 'Przysiad Goblet', sets: [
+          { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
+          { setNo: 2, kg: '22.5', reps: '10', kind: 'work', done: true }
+        ] }]
+      }
+    ];
+    window.liveExercises = [
+      { name: 'Przysiad Goblet', done: false, collapsed: false,
+        lastDate: '2099-01-01',
+        lastKg: '999',
+        lastSets: [
+          { setNo: 1, kg: '999', reps: '1', rir: '0' },
+          { setNo: 2, kg: '999', reps: '1', rir: '0' }
+        ],
+        lastHistory: [
+          { date: '2099-01-01', time: '20:00', sets: [
+            { setNo: 1, kg: '999', reps: '1' },
+            { setNo: 2, kg: '999', reps: '1' }
+          ]}
+        ],
+        sets: [
+        { setNo: 1, kg: '6', reps: '12', rir: '2', done: false },
+        { setNo: 2, kg: '6', reps: '12', rir: '2', done: false },
+        { setNo: 3, kg: '6', reps: '12', rir: '2', done: false },
+        { setNo: 4, kg: '6', reps: '12', rir: '3', done: false }
+      ]}
+    ];
+    window.liveSessionActive = false;
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
+
+  const before = await page.evaluate(() => ({
+    ex: document.getElementById('live-ex-done').textContent,
+    total: document.getElementById('live-ex-total').textContent,
+    sets: document.getElementById('live-sets-done').textContent,
+    vol: document.getElementById('live-volume').textContent,
+    hint: (document.getElementById('live-progress-hint') || {}).textContent || ''
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'live_progress_unchecked.png') });
+  ok('unchecked 0/1 ćw', before.ex === '0' && before.total === '1', JSON.stringify(before));
+  ok('unchecked 0 serii / 0 kg', before.sets === '0' && before.vol === '0');
+  ok('hint says check sets', /Odhacz serię/.test(before.hint), before.hint);
+  const rirUi = await page.evaluate(() => {
+    const head = document.querySelector('#live-ex-0 .live-set-head');
+    const inp = document.querySelector('#live-ex-0 .live-rir-input');
+    return { head: head ? head.innerText : '', val: inp ? inp.value : '', n: document.querySelectorAll('#live-ex-0 .live-rir-input').length };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_rir_column.png') });
+  ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
+  const lastUi = await page.evaluate(() => {
+    const title = document.querySelector('#live-ex-0 .live-ex-title.has-hist');
+    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
+    return { has: !!title, tag: title ? title.tagName : '', name: title ? title.textContent : '', pop: pop ? pop.innerText : '' };
+  });
+  ok('hist hover title', lastUi.has && lastUi.tag === 'BUTTON' && /Przysiad Goblet/.test(lastUi.name), JSON.stringify(lastUi));
+  ok('hist popover tables', /poprzednie treningi/i.test(lastUi.pop) && /2026-09-13/.test(lastUi.pop) && /2026-09-06/.test(lastUi.pop) && /Σ/.test(lastUi.pop), lastUi.pop.slice(0, 280));
+  const prevUi = await page.evaluate(() => {
+    const cue = document.querySelector('#live-ex-0 .live-ex-cue');
+    const panel = document.querySelector('#live-ex-0 .live-last-panel');
+    const rows = document.querySelectorAll('#live-ex-0 .live-set-row').length;
+    return { cue: cue ? cue.innerText : '', panel: !!panel, rows };
+  });
+  ok('cue last weights', /Ostatnio:/i.test(prevUi.cue) && /22\.5 kg|20 kg/.test(prevUi.cue) && !/999/.test(prevUi.cue), prevUi.cue);
+  ok('no last panel in card', prevUi.panel === false, JSON.stringify(prevUi));
+  await page.hover('#live-ex-0 .live-ex-title.has-hist');
+  const hoverUi = await page.evaluate(() => {
+    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
+    const cs = pop ? getComputedStyle(pop) : null;
+    return { display: cs ? cs.display : '', text: pop ? pop.innerText : '' };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_hist_hover.png') });
+  ok('hover shows popover', hoverUi.display === 'block' && /20/.test(hoverUi.text) && /poprzednie treningi/i.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 240));
+  await page.mouse.move(8, 8);
+  await page.click('#live-ex-0 .live-ex-title.has-hist');
+  const modalUi = await page.evaluate(() => {
+    const ov = document.getElementById('m-ex-hist');
+    const body = document.getElementById('ex-hist-body');
+    return {
+      show: !!(ov && ov.classList.contains('show')),
+      title: (document.getElementById('ex-hist-title') || {}).textContent || '',
+      text: body ? body.innerText : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_history_modal.png') });
+  ok('hist modal table', modalUi.show && /Przysiad Goblet/.test(modalUi.title) && /Powt/.test(modalUi.text) && /20/.test(modalUi.text) && /Σ/.test(modalUi.text), JSON.stringify(modalUi));
+  await page.evaluate(() => { if (typeof closeM === 'function') closeM('m-ex-hist'); });
+  await page.mouse.move(8, 8);
+  await page.evaluate(() => { if (typeof liveFillFromLast === 'function') liveFillFromLast(0, 0); });
+  const filled = await page.evaluate(() => {
+    const row = document.querySelector('#live-ex-0 .live-set-row');
+    const kg = row ? row.querySelector('.live-kg-input') : null;
+    const reps = row ? row.querySelectorAll('.live-kg-input')[1] : null;
+    return { kg: kg ? kg.value : '', reps: reps ? reps.value : '' };
+  });
+  ok('click last fills kg/reps', filled.kg === '20' && filled.reps === '12', JSON.stringify(filled));
+  await page.evaluate(() => {
+    window.liveExercises[0].sets[0].kg = '6';
+    window.liveExercises[0].sets[0].reps = '12';
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
+  const delUi = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll('#live-ex-0 .live-set-del')];
+    return { n: btns.length, disabled: btns.filter(b => b.disabled).length };
+  });
+  ok('delete buttons on sets', delUi.n === 4 && delUi.disabled === 0, JSON.stringify(delUi));
+  await page.evaluate(() => { if (typeof liveRemoveSet === 'function') liveRemoveSet(0, 3); });
+  const afterDel = await page.evaluate(() => ({
+    rows: document.querySelectorAll('#live-ex-0 .live-set-row').length,
+    sets: (window.liveExercises[0].sets || []).map(s => s.setNo)
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'live_set_deleted.png') });
+  ok('removed last set → 3', afterDel.rows === 3 && JSON.stringify(afterDel.sets) === '[1,2,3]', JSON.stringify(afterDel));
+  await page.evaluate(() => {
+    if (typeof liveRemoveSet === 'function') {
+      liveRemoveSet(0, 0);
+      liveRemoveSet(0, 0);
+    }
+  });
+  const lastSet = await page.evaluate(() => {
+    if (typeof liveRemoveSet === 'function') liveRemoveSet(0, 0);
+    const btns = [...document.querySelectorAll('#live-ex-0 .live-set-del')];
+    return {
+      n: (window.liveExercises[0].sets || []).length,
+      disabled: btns.length > 0 && btns.every(b => b.disabled)
+    };
+  });
+  ok('cannot drop last set', lastSet.n === 1 && lastSet.disabled === true, JSON.stringify(lastSet));
+  await page.evaluate(() => {
+    window.liveExercises[0].sets = [
+      { setNo: 1, kg: '6', reps: '12', rir: '2', done: false },
+      { setNo: 2, kg: '6', reps: '12', rir: '2', done: false },
+      { setNo: 3, kg: '6', reps: '12', rir: '2', done: false },
+      { setNo: 4, kg: '6', reps: '12', rir: '3', done: false }
+    ];
+    window.liveExercises[0].done = false;
+    window.liveExercises[0].collapsed = false;
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
+
+  await page.evaluate(() => {
+    if (typeof liveToggleSet === 'function') {
+      liveToggleSet(0, 0);
+      liveToggleSet(0, 1);
+      liveToggleSet(0, 2);
+      liveToggleSet(0, 3);
+    }
+  });
+
+  const afterSets = await page.evaluate(() => ({
+    ex: document.getElementById('live-ex-done').textContent,
+    sets: document.getElementById('live-sets-done').textContent,
+    vol: document.getElementById('live-volume').textContent
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'live_progress_checked.png') });
+  ok('all sets → 1 ćw', afterSets.ex === '1', JSON.stringify(afterSets));
+  ok('4 serie', afterSets.sets === '4');
+  ok('volume 288', afterSets.vol === '288');
+
+  await page.evaluate(() => {
+    if (typeof liveStartSession === 'function') liveStartSession();
+    if (typeof liveEndSession === 'function') liveEndSession();
+  });
+
+  const saved = await page.evaluate(() => {
+    const se = (window.SE || []).filter(s => s && s.clientId === 'c1');
+    const liveSess = se.find(s => {
+      if (s.source !== 'live') return false;
+      const n = (s.exercises || []).reduce((acc, e) => acc + ((e.sets || []).length), 0);
+      return n === 4;
+    }) || se.find(s => s.source === 'live') || se[0] || null;
+    const adh = typeof clientAdherenceStats === 'function' ? clientAdherenceStats('c1', 30) : null;
+    const stored = liveSess && window.__liveProgressDocs.get('sessions/' + (liveSess._fbId || liveSess.id));
+    return {
+      n: se.length,
+      source: liveSess && liveSess.source,
+      sets: liveSess && (liveSess.exercises || []).reduce((acc, e) => acc + ((e.sets || []).length), 0),
+      volume: liveSess && liveSess.volume,
+      logged: adh && adh.logged,
+      rir: liveSess && liveSess.exercises && liveSess.exercises[0] && liveSess.exercises[0].sets && liveSess.exercises[0].sets[0] && liveSess.exercises[0].sets[0].rir,
+      stored: stored && stored.trainerId === window._uid && stored.clientId === 'c1' && stored.source === 'live'
+        && stored.volume === 288 && stored.exercises[0].sets.length === 4 && stored.exercises[0].sets[0].rir === '2'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_progress_saved.png') });
+  ok('session saved as live', saved.source === 'live' && saved.n >= 3, JSON.stringify(saved));
+  ok('saved 4 sets / 288 kg', saved.sets === 4 && saved.volume === 288, JSON.stringify(saved));
+  ok('Progress logged includes today', saved.logged >= 1, JSON.stringify(saved));
+  ok('saved rir', saved.rir === '2', JSON.stringify(saved));
+  ok('real persistence stores owned live session and its completed sets', saved.stored === true, JSON.stringify(saved));
+
+  await browser.close();
+  if (failed) process.exit(1);
+  console.log('\nAll live-progress UI tests passed');
+})().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

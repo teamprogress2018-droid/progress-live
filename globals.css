@@ -1,0 +1,347 @@
+/* ═══════════════════════════════════════════════════════════════
+   Progress Live — Design System v2 (Dark Mode Pro)
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Tła ── */
+  --bg-main: #111318;
+  --bg-elevated: #151820;
+  --bg-card: #1e202a;
+  --bg-input: #262935;
+  --bg-hover: #2a3140;
+
+  /* ── Tekst (wysoki kontrast) ── */
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-label: #9ca3af;
+
+  /* ── Akcent ── */
+  --accent-red: #ff3b30;
+  --accent-red-hover: #ff5248;
+  --accent-rgb: 255, 59, 48;
+
+  /* ── Obramowania ── */
+  --border-subtle: #374151;
+  --border-default: #4b5563;
+  --border-focus: #d1d5db;
+
+  /* ── Typografia ── */
+  --font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-label: 13px;
+  --font-size-min: 15px;
+  --line-height: 1.55;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ── Odstępy ── */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --card-padding: 24px;
+  --section-gap: 20px;
+
+  /* ── Promienie ── */
+  --r: 10px;
+  --r2: 14px;
+  --r-pill: 999px;
+
+  /* ── Cienie ── */
+  --panel-glow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --focus-ring: 0 0 0 3px rgba(var(--accent-rgb), 0.25);
+  --input-focus-ring: 0 0 0 2px rgba(209, 213, 219, 0.35);
+
+  /* ── Legacy mapowanie (JS / inline styles) ── */
+  --bg: var(--bg-main);
+  --s1: var(--bg-elevated);
+  --s2: var(--bg-card);
+  --s3: var(--bg-input);
+  --s4: var(--bg-hover);
+  --bg-pill: var(--bg-input);
+  --border: var(--border-subtle);
+  --border-color: var(--border-subtle);
+  --border2: var(--border-default);
+  --text: var(--text-primary);
+  --muted: var(--text-label);
+  --muted2: var(--text-secondary);
+  --input-bg: var(--bg-input);
+  --input-text: var(--text-primary);
+  --accent: var(--accent-red);
+  --accent2: #e0352b;
+  --adim: rgba(var(--accent-rgb), 0.12);
+  --glow: var(--focus-ring);
+  --font-body: var(--font-ui);
+  --font-heading: var(--font-ui);
+  --heading-shadow: none;
+}
+
+/* ── Reset typografii ── */
+html {
+  font-size: var(--font-size-base);
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display font — WYŁĄCZNIE duże liczby / KPI */
+.font-display,
+.stat-val,
+.dash-kpi-val,
+.calc-big-val,
+.cp-stat-val,
+.cw-rest-num {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-shadow: none;
+}
+
+/* Nagłówki UI — Inter, nie ozdobne */
+h1, h2, h3, h4,
+.topbar-title,
+.modal-title,
+.section-title,
+.studio-hdr,
+.cp-section-title,
+.card-title,
+.logo-text {
+  font-family: var(--font-ui);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-shadow: none;
+  text-transform: none;
+}
+
+/* ── Karty i panele ── */
+.card,
+.panel,
+.modal,
+.stat-card,
+.plan-card,
+.cp-stat-box,
+.cp-data-tile,
+.ex-card,
+.builder-day,
+.dash-kpi-card,
+.dash-sess-card,
+.settings-card,
+.card-sm {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r2);
+  color: var(--text-primary);
+  box-shadow: var(--panel-glow);
+}
+
+.card,
+.panel {
+  padding: var(--card-padding);
+}
+
+/* ── Etykiety formularzy ── */
+label,
+.form-lbl,
+.form-section-lbl,
+.subtext {
+  display: block;
+  color: var(--text-label) !important;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: var(--space-xs);
+}
+
+/* ── Pola formularzy ── */
+input,
+select,
+textarea,
+.form-input,
+.form-select,
+.form-textarea,
+.ex-inp,
+.wb-inp,
+.cp-edit-field {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary) !important;
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  line-height: 1.4;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus,
+.ex-inp:focus,
+.wb-inp:focus,
+.cp-edit-field:focus {
+  outline: none;
+  border-color: var(--border-focus) !important;
+  box-shadow: var(--input-focus-ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-label) !important;
+  opacity: 1;
+}
+
+/* ── Przyciski ── */
+button,
+.btn {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.btn-primary {
+  background: var(--accent-red);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  padding: 11px 20px;
+  box-shadow: 0 2px 12px rgba(var(--accent-rgb), 0.3);
+}
+
+.btn-primary:hover {
+  background: var(--accent-red-hover);
+}
+
+.btn-secondary,
+.btn-ghost {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r);
+  padding: 11px 20px;
+}
+
+.btn-secondary:hover,
+.btn-ghost:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--r);
+  padding: 11px 20px;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fff;
+}
+
+.btn-cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r);
+  padding: 11px 20px;
+}
+
+.btn-cancel:hover {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+/* ── Modale ── */
+.modal-ov {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  max-width: 580px;
+  border-radius: var(--r2);
+}
+
+.modal-wide {
+  max-width: 920px;
+}
+
+.modal-hdr {
+  padding: 20px 24px;
+}
+
+.modal-body {
+  padding: 24px;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  gap: var(--space-sm);
+}
+
+.modal-title {
+  font-size: 1.25rem;
+}
+
+.form-field {
+  margin-bottom: var(--space-md);
+}
+
+.form-grid {
+  gap: var(--space-md);
+}
+
+/* ── Layout treści ── */
+.content {
+  padding: var(--space-lg) var(--space-xl);
+  gap: var(--section-gap);
+}
+
+/* ── Tabele ── */
+.tbl-hdr,
+.ex-tbl-hdr {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-label);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.tbl-row {
+  padding: 16px 18px;
+  margin-bottom: var(--space-sm);
+  color: var(--text-primary);
+}
+
+/* ── Badge — jedyny dozwolony uppercase ── */
+.pill,
+.nav-badge,
+.forum-badge,
+.tag-upper {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+}

@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+'use strict';
+/** Client profile Overview: Everfit-like main + right rail (display-only). */
+const fs = require('fs');
+const path = require('path');
+
+const root = path.join(__dirname, '../..');
+const src = fs.readFileSync(path.join(root, '08-client-profile-extras.js'), 'utf8');
+const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+const overview = src.slice(
+  src.indexOf('function renderCPOverview'),
+  src.indexOf('function renderCPPlan')
+);
+
+let failed = 0;
+function ok(name, cond) {
+  if (!cond) {
+    console.error('FAIL', name);
+    failed++;
+  } else console.log('OK  ', name);
+}
+
+ok('bmi/watch stays off overview', !overview.includes('cp-bmi-banner') && !overview.includes('Asystent trenera'));
+ok('main column', overview.includes('cp-ov-main'));
+ok('right rail', overview.includes('cp-ov-rail'));
+ok('training history card', overview.includes('last7') && overview.includes('Ostatnie treningi') && !overview.includes('Ostatnie 7 dni ·'));
+ok('last trainings list', overview.includes('Ostatnie treningi') && overview.includes('cp-ov-hist'));
+ok('week plan tiles', overview.includes('Aktywny plan tygodnia') && overview.includes('cp-ov-week'));
+ok('overview calendar not enough', /Brak zapisanych treningów/.test(overview) && overview.includes('Dodaj trening') && !/Same terminy w kalendarzu się nie liczą/.test(overview));
+ok('body metrics cards', overview.includes('Pomiary ciała') && overview.includes('cp-ov-metrics-grid'));
+ok('weight metric', overview.includes("metricCard('Waga'"));
+ok('metric sparklines', overview.includes('cpOvSparkSVG') || /function\s+cpOvSparkSVG/.test(src));
+ok('metrics link to progress', overview.includes("setCPTab('progress')") && overview.includes('Aktualizuj pomiary'));
+ok('notes rail', overview.includes("railCard('Notatka'"));
+ok('injuries rail', overview.includes('Ograniczenia'));
+ok('overview has one latest-photo preview and no duplicate photo rail', overview.includes('Aktualna sylwetka') && overview.includes('cp-ov-physique') && !overview.includes("railCard('Zdjęcia postępu'"));
+ok('pulse status', src.includes('cp-ov-pulse') && /function\s+cpClientPulseStatus/.test(src));
+ok('situation header', overview.includes('cpOverviewSituationHTML') && src.includes('cp-ov-situation') && src.includes('Wnioski'));
+ok('physique card', overview.includes('Aktualna sylwetka') && overview.includes('cp-ov-physique'));
+ok('feel + garmin 7d', overview.includes('Samopoczucie (check-in)') && overview.includes('Garmin · 7 dni'));
+ok('today strip', src.includes('cp-ov-today-row') && src.includes('Podgląd treningu'));
+ok('remind in overview', overview.includes("cpRemindClient('") && overview.includes('Przypomnij'));
+ok('no updates rail', !overview.includes('Aktualizacje') && !/function\s+cpOverviewUpdates/.test(src));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=88'));
+ok('overview edit via header/profil', overview.includes("startCPEdit('${c.id}')") && !overview.includes('cp-ov-edit-cta'));
+ok('profil rail shows name', overview.includes('Imię i nazwisko'));
+ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));
+ok('no duplicate message in profile rail', !/WhatsApp|mailto:/.test(overview));
+ok('no giant profile grid on overview', !overview.includes('cp-data-grid'));
+ok('no food journal on overview', !/Żywienie|Meal Plan|food journal/i.test(overview));
+ok('css layout', css.includes('.cp-ov-layout') && css.includes('.cp-ov-rail'));
+ok('css pulse physique metrics', css.includes('.cp-ov-pulse') && css.includes('.cp-ov-physique') && css.includes('.cp-metrics-head'));
+ok('wider cp-body',
+  (html.includes('max-width:1120px') && html.includes('id="cp-body"')) ||
+  (css.includes('.cp-body-inner') && css.includes('max-width:1120px') && html.includes('id="cp-body"'))
+);
+
+if (failed) {
+  console.error(failed + ' failed');
+  process.exit(1);
+}
+console.log('\nAll cp-overview-everfit tests passed');

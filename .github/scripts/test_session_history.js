@@ -1,0 +1,201 @@
+// Testy oceny treningu i historii sesji (bez przeglądarki). Ładuje 01-core.js w atrapie DOM.
+const fs = require('fs');
+const vm = require('vm');
+const path = require('path');
+
+const document = {
+  querySelectorAll: () => [],
+  getElementById: () => null,
+  addEventListener() {}
+};
+const windowObj = {
+  addEventListener() {},
+  CL: [], PL: [], SE: [], EX: [], WO: [], TASKS: [],
+  METRIC_ENTRIES: [],
+  document
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj,
+  document,
+  console,
+  Date,
+  Math,
+  parseInt,
+  parseFloat,
+  Number,
+  String,
+  Array,
+  Object,
+  JSON,
+  setTimeout,
+  clearTimeout,
+  isNaN,
+  Infinity,
+  undefined
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 'utf8'), ctx);
+
+const {
+  sessionRatingEmoji, sessionRatingLabel, isLoggedWorkout, completedWorkouts,
+  sessionSetsCount, avgSessionRating, sessionTitle, sessionSourceLabel,
+  sessionIsRecorded, sessionHappened, sessionHappenedTip, logSessionFromPlanned,
+  clientAdherenceStats, homeworkCompletions, dateStrLocal, ymdAdd, todayYmd
+} = ctx;
+
+let failed = 0;
+function eq(name, got, want) {
+  const g = JSON.stringify(got);
+  const w = JSON.stringify(want);
+  if (g !== w) {
+    console.error('FAIL ' + name + '\n  got:  ' + g + '\n  want: ' + w);
+    failed++;
+  } else {
+    console.log('OK   ' + name);
+  }
+}
+
+eq('emoji 1', sessionRatingEmoji(1), '😓');
+eq('emoji 5', sessionRatingEmoji(5), '🔥');
+eq('emoji 0 empty', sessionRatingEmoji(0), '');
+eq('emoji string 4', sessionRatingEmoji('4'), '💪');
+eq('label 3', sessionRatingLabel(3), '🙂 OK');
+eq('label missing', sessionRatingLabel(9), '');
+
+eq('logged client', isLoggedWorkout({source: 'client'}), true);
+eq('logged live', isLoggedWorkout({source: 'live'}), true);
+eq('logged sala', isLoggedWorkout({source: 'sala'}), true);
+eq('logged exercises', isLoggedWorkout({exercises: [{name: 'Przysiad'}]}), true);
+eq('booked not logged', isLoggedWorkout({source: 'gym', type: 'Sesja'}), false);
+eq('empty not logged', isLoggedWorkout({}), false);
+eq('null not logged', isLoggedWorkout(null), false);
+
+const sessions = [
+  {id: 'a', clientId: 'c1', date: '2026-08-10', createdAt: '2026-08-10T10:00:00', source: 'client', feedback: 5, type: 'Push'},
+  {id: 'b', clientId: 'c1', date: '2026-08-12', createdAt: '2026-08-12T10:00:00', source: 'live', feedback: 4, type: 'Trening personalny'},
+  {id: 'c', clientId: 'c1', date: '2026-08-11', createdAt: '2026-08-11T10:00:00', type: 'booked'},
+  {id: 'd', clientId: 'c2', date: '2026-08-12', source: 'client', feedback: 5},
+  {id: 'e', clientId: 'c1', date: '2026-08-12', createdAt: '2026-08-12T18:00:00', source: 'client', feedback: 2, type: 'Wieczór'}
+];
+const done = completedWorkouts('c1', sessions);
+eq('logged count', done.length, 3);
+eq('sort newest date first', done[0].id, 'e');
+eq('sort same date by createdAt', done[1].id, 'b');
+eq('excludes booked', done.some(s => s.id === 'c'), false);
+eq('excludes other client', done.some(s => s.id === 'd'), false);
+
+eq('avg skip zeros', avgSessionRating([{feedback: 5}, {feedback: 0}, {feedback: 4}]), 4.5);
+eq('avg empty', avgSessionRating([]), 0);
+eq('avg only invalid', avgSessionRating([{feedback: 0}, {feedback: 9}]), 0);
+eq('avg one', avgSessionRating([{feedback: 3}]), 3);
+
+eq('sets array objects', sessionSetsCount({exercises: [{sets: [{}, {}]}, {sets: [{}]}]}), 3);
+eq('sets numeric string', sessionSetsCount({exercises: [{sets: '3'}]}), 3);
+eq('sets missing', sessionSetsCount({}), 0);
+
+eq('title prefers type', sessionTitle({type: 'Push', title: 'Sesja'}), 'Push');
+eq('title fallback', sessionTitle({title: 'Sesja'}), 'Sesja');
+eq('title default', sessionTitle({}), 'Trening');
+eq('source client', sessionSourceLabel({source: 'client'}), 'Klient');
+eq('source live', sessionSourceLabel({source: 'live'}), 'Live');
+eq('source sala explicit', sessionSourceLabel({source: 'sala'}), 'Sala');
+eq('source sala', sessionSourceLabel({type: 'personalny'}), 'Sala');
+
+eq('happened live', sessionHappened({source: 'live'}), true);
+eq('happened garmin', sessionHappened({source: 'garmin'}), true);
+eq('planned not happened alone', sessionHappened({id: 'p1', clientId: 'c1', date: '2026-08-10', source: 'planned'}), false);
+const pair = [
+  {id: 'p1', clientId: 'c1', date: '2026-08-10', source: 'planned', type: 'Push'},
+  {id: 'l1', clientId: 'c1', date: '2026-08-10', source: 'client', type: 'Push'}
+];
+eq('planned happened when same-day log', sessionHappened(pair[0], pair), true);
+eq('other client planned not happened', sessionHappened({id: 'p2', clientId: 'c9', date: '2026-08-10', source: 'planned'}, pair), false);
+eq('recorded live', sessionIsRecorded({source: 'live'}), true);
+eq('recorded garmin', sessionIsRecorded({source: 'garmin'}), true);
+eq('recorded planned false', sessionIsRecorded({source: 'planned'}), false);
+eq('kpi skips planned pair', pair.filter(sessionIsRecorded).length, 1);
+eq('kpi two logs same day', [
+  {id: 'a', source: 'live'},
+  {id: 'b', source: 'client'}
+].filter(sessionIsRecorded).length, 2);
+eq('tip logged has check', /Odbył się/.test(sessionHappenedTip({source: 'live', type: 'TP', time: '18:00'})), true);
+eq('tip planned says zaplanowany', /zaplanowany/.test(sessionHappenedTip({source: 'planned', type: 'Push'})), true);
+eq('tip planned fulfilled', /odbył się/.test(sessionHappenedTip(pair[0], pair)), true);
+
+const localMidnight = new Date(2026, 8, 5, 0, 0, 0);
+eq('dateStrLocal calendar day', dateStrLocal(localMidnight), '2026-09-05');
+
+const today = todayYmd();
+const d3 = ymdAdd(today, -3);
+const d10 = ymdAdd(today, -10);
+const d1 = ymdAdd(today, -1);
+windowObj.SE = [
+  {id: 'p1', clientId: 'c1', date: d3, source: 'planned'},
+  {id: 'p1b', clientId: 'c1', date: d3, source: 'planned'},
+  {id: 'l1', clientId: 'c1', date: d3, source: 'client'},
+  {id: 'p2', clientId: 'c1', date: d10, source: 'planned'}
+];
+windowObj.TASKS = [
+  {id: 'hw1', clientId: 'c1', kind: 'homework', status: 'done', doneAt: d1 + 'T18:00:00.000Z', title: 'HIIT'}
+];
+const adh = clientAdherenceStats('c1', 30);
+eq('adherence unique assigned days', adh.assigned, 2);
+eq('adherence logged client+homework days', adh.logged, 2);
+eq('homework listed', homeworkCompletions('c1', 30).length, 1);
+eq('unlinked homework does not complete planned session', sessionHappened({id: 'px', clientId: 'c1', date: d1, source: 'planned'}), false);
+
+windowObj.persistById = function persistById() {};
+windowObj.PL = [{
+  id: 'pl1',
+  days: [{ exercises: [{ name: 'Przysiad' }, { name: 'Wyciskanie' }] }]
+}];
+const salaList = [
+  { id: 'p-sala', clientId: 'c9', date: '2026-09-02', source: 'planned', type: 'ŚR — OBWÓD B PLAN', planId: 'pl1', dayIdx: 0 }
+];
+const salaSess = logSessionFromPlanned('p-sala', salaList);
+eq('sala log created', !!(salaSess && salaSess.source === 'sala'), true);
+eq('sala log date', salaSess && salaSess.date, '2026-09-02');
+eq('sala copies exercise names', (salaSess.exercises || []).map(e => e.name), ['Przysiad', 'Wyciskanie']);
+eq('sala sets empty', (salaSess.exercises || []).every(e => Array.isArray(e.sets) && e.sets.length === 0), true);
+eq('sala is logged', isLoggedWorkout(salaSess), true);
+eq('sala happened planned', sessionHappened(salaList[0], salaList), true);
+eq('sala completed count', completedWorkouts('c9', salaList).length, 1);
+const again = logSessionFromPlanned('p-sala', salaList);
+eq('sala no duplicate', salaList.filter(s => s.source === 'sala').length, 1);
+eq('sala returns existing', again && again.id, salaSess.id);
+eq('tip sala', /sala/.test(sessionHappenedTip(salaSess)), true);
+eq('missing planned returns null', logSessionFromPlanned('nope', salaList), null);
+const ratedList = [
+  { id: 'p-rate', clientId: 'c9', date: '2026-09-03', source: 'planned', type: 'PON', duration: 60, planId: 'pl1', dayIdx: 0 }
+];
+const rated = logSessionFromPlanned('p-rate', ratedList, { feedback: 4, duration: 55, note: 'dobra energia' });
+eq('sala feedback', rated && rated.feedback, 4);
+eq('sala duration override', rated && rated.duration, 55);
+eq('sala custom note', rated && /dobra energia/.test(rated.note || ''), true);
+
+ctx.cpAssignmentSessions = function (clientId, opts) {
+  const all = (windowObj.SE || []).filter(s => s && s.clientId === clientId);
+  if (opts && opts.keepPlanned) return all;
+  const logged = new Set(all.filter(s => s.source === 'live' || s.source === 'sala' || s.source === 'client').map(s => String(s.date).slice(0, 10)));
+  return all.filter(s => s.source !== 'planned' || !logged.has(String(s.date).slice(0, 10)));
+};
+const dA = ymdAdd(today, -2);
+const dB = ymdAdd(today, -5);
+windowObj.SE = [
+  { id: 'pA', clientId: 'c-adh', date: dA, source: 'planned' },
+  { id: 'pB', clientId: 'c-adh', date: dB, source: 'planned' },
+  { id: 'lA', clientId: 'c-adh', date: dA, source: 'sala' }
+];
+windowObj.TASKS = [];
+const adhKeep = clientAdherenceStats('c-adh', 30);
+eq('assigned keeps fulfilled plan day', adhKeep.assigned, 2);
+eq('logged sala day', adhKeep.logged, 1);
+eq('pct half after one sala', adhKeep.pct, 50);
+
+if (failed) {
+  console.error('\n' + failed + ' test(s) failed');
+  process.exit(1);
+}
+console.log('\nWszystkie testy historii sesji OK.');

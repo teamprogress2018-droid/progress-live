@@ -1,0 +1,187 @@
+#!/usr/bin/env node
+/** Panel operacyjny trenera: alerty, raporty, aktywność, wygasające pakiety. */
+'use strict';
+const fs=require('fs');
+const path=require('path');
+const vm=require('vm');
+
+function extract(src,name){
+  const start=src.indexOf('function '+name);
+  if(start<0)throw new Error('missing '+name);
+  let i=start,depth=0,begun=false;
+  for(;i<src.length;i++){
+    if(src[i]==='{'){depth++;begun=true;}
+    else if(src[i]==='}'){depth--;if(begun&&depth===0){i++;break;}}
+  }
+  return src.slice(start,i);
+}
+
+const root=path.join(__dirname,'../..');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
+const src01=fs.readFileSync(path.join(root,'01-core.js'),'utf8');
+const src04=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
+const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8');
+
+let failed=0;
+function ok(name,cond){
+  if(!cond){console.error('FAIL',name);failed++;}
+  else console.log('OK  ',name);
+}
+
+ok('kpi row',html.includes('id="d-kpi-row"')&&html.includes('id="d-reports"')&&html.includes('id="d-expiring"'));
+ok('today focus strip',html.includes('id="dash-today-focus"')&&html.includes('focusDashSection'));
+ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&html.includes('id="dash-ops-today"')&&!html.includes('id="dash-ops-reminders"'));
+ok('packages only in pay card',html.includes('Płatności do odnowienia')&&html.includes('id="d-ops-expiring"')&&!html.includes('Brak nadchodzących terminów')&&!html.includes('Raporty i pakiety'));
+ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-sessions"'));
+ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
+ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row')&&css.includes('.dash-today-focus')&&css.includes('.dash-today-tile-ok'));
+ok('no duplicate reminders card',!src04.includes('d-ops-reminders')&&!src04.includes('Brak nadchodzących terminów'));
+ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=2')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
+ok('legacy followups gone',!html.includes('dash-checkin-followup')&&!html.includes('dash-form-followup')&&!html.includes('dash-pay-followup')&&!html.includes('dash-hw-followup')&&!html.includes('dash-msg-followup')&&!html.includes('dash-habit-followup')&&!html.includes('id="dash-cal-refill"')&&!html.includes('dash-photo-followup')&&src04.includes('function refreshDashOps')&&!src04.includes("'dash-checkin':renderDashCheckinFollowup"));
+ok('today before kpi',html.indexOf('id="dash-today-focus"')<html.indexOf('id="d-kpi-row"')&&html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-ops-attention"'));
+ok('hierarchy attention then today then reports',html.indexOf('id="dash-ops-attention"')<html.indexOf('id="dash-ops-today"')&&html.indexOf('id="dash-ops-today"')<html.indexOf('id="dash-ops-reports"'));
+ok('start after reports before activity',html.indexOf('id="dash-ops-reports"')<html.indexOf('id="dash-getting-started"')&&html.indexOf('id="dash-getting-started"')<html.indexOf('id="dash-ops-activity"'));
+ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content')&&css.includes('.dash-kpi-secondary'));
+ok('renderDash wires ops',src04.includes('renderDashTodayFocus()')&&src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
+ok('no decorative red on today info tile',css.includes('.dash-today-tile-info .dash-today-tile-n')&&css.includes('.dash-today-tile-act .dash-today-tile-n{color:var(--red)'));
+
+const today=new Date();
+today.setHours(12,0,0,0);
+function ymd(d){
+  const x=new Date(d);
+  return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+}
+const d0=ymd(today);
+const d3=ymd(new Date(today.getTime()+3*86400000));
+const dPast=ymd(new Date(today.getTime()-3*86400000));
+const dPast10=ymd(new Date(today.getTime()-10*86400000));
+
+const sandbox={
+  window:{
+    CL:[
+      {id:'c1',name:'Anna',status:'active'},
+      {id:'c2',name:'Bartek',status:'active'},
+      {id:'c3',name:'Arch',status:'archived'}
+    ],
+    SE:[
+      {id:'s1',clientId:'c1',date:dPast,source:'planned'},
+      {id:'s2',clientId:'c1',date:dPast10,source:'planned'},
+      {id:'s3',clientId:'c1',date:d0,source:'client',exercises:[{name:'Squat',kg:100,sets:[{kg:100}]}]},
+      {id:'s4',clientId:'c2',date:dPast,source:'planned'},
+      {id:'s5',clientId:'c2',date:dPast,source:'client',exercises:[{name:'Press',sets:3}]}
+    ],
+    PACKAGES:[
+      {id:'pk1',clientId:'c1',clientName:'Anna',title:'Pakiet 8',price:800,expiresDate:d3,status:'active'},
+      {id:'pk2',clientId:'c2',clientName:'Bartek',title:'Stary',price:100,expiresDate:dPast10,status:'expired'},
+      {id:'pk3',clientId:'c3',clientName:'Arch',title:'Arch pkg',price:50,expiresDate:d3,status:'active'}
+    ],
+    CHECKINS:{
+      c1:[{id:'ci1',clientId:'c1',status:'filled',date:d0,score:80,answers:{weight:70,energy:4,sleep:3,notes:'ok'}}],
+      c2:[{id:'ci2',clientId:'c2',status:'pending',date:dPast10}]
+    },
+    FORM_SENDS:[
+      {id:'fs1',clientId:'c1',formId:'df3',formName:'Raport tygodniowy',status:'filled',filledAt:d0}
+    ]
+  },
+  CL:null,SE:null,
+  ensureCheckins:()=>{},
+  escHtml:(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
+  console, Date, Math, Set, JSON, parseInt, Number, String, Array, Object,
+  todayYmd:()=>d0
+};
+sandbox.CL=sandbox.window.CL;
+sandbox.SE=sandbox.window.SE;
+sandbox.window.CL=sandbox.CL;
+sandbox.window.SE=sandbox.SE;
+sandbox.window.PACKAGES=sandbox.window.PACKAGES;
+sandbox.window.CHECKINS=sandbox.window.CHECKINS;
+sandbox.window.FORM_SENDS=sandbox.window.FORM_SENDS;
+
+vm.runInNewContext(
+  extract(src01,'isLoggedWorkout')+'\n'+
+  extract(src01,'completedWorkouts')+'\n'+
+  'function allPackages(){return window.PACKAGES||[];}\n'+
+  extract(src05,'clientTrainingWindowStats')+'\n'+
+  extract(src04,'checkinActivityTime')+'\n'+
+  extract(src04,'checkinActivityDate')+'\n'+
+  extract(src04,'sortedCheckins')+'\n'+
+  extract(src04,'latestFilledCheckin')+'\n'+
+  extract(src04,'pendingCheckin')+'\n'+
+  extract(src04,'filledThisWeek')+'\n'+
+  extract(src04,'checkinRecordAgeDays')+'\n'+
+  extract(src04,'getCIStatus')+'\n'+
+  extract(src04,'dashOpsLiveClients')+'\n'+
+  extract(src04,'dashOpsExpiringPackages')+'\n'+
+  extract(src04,'dashOpsRecentReports')+'\n'+
+  extract(src04,'collectOpsEvents')+'\n'+
+  extract(src04,'dashOpsAttentionItems')+'\n'+
+  extract(src04,'dashOpsRecentActivity')+'\n'+
+  extract(src04,'dashOpsReminders')+'\n'+
+  'window.isLoggedWorkout=isLoggedWorkout;window.completedWorkouts=completedWorkouts;'+
+  'window.clientTrainingWindowStats=clientTrainingWindowStats;window.getCIStatus=getCIStatus;'+
+  'window.dashOpsLiveClients=dashOpsLiveClients;window.dashOpsExpiringPackages=dashOpsExpiringPackages;'+
+  'window.dashOpsRecentReports=dashOpsRecentReports;window.dashOpsAttentionItems=dashOpsAttentionItems;'+
+  'window.collectOpsEvents=collectOpsEvents;window.dashOpsRecentActivity=dashOpsRecentActivity;window.dashOpsReminders=dashOpsReminders;'+
+  'window._opsEventsCache={at:0,items:null};'+
+  extract(src04,'dashTodayYmd')+'\n'+
+  extract(src04,'dashDaysBetween')+'\n'+
+  extract(src04,'dashAgendaSessions')+'\n'+
+  extract(src04,'dashTodaySessions')+'\n'+
+  extract(src04,'dashTodayFocusStats')+'\n'+
+  extract(src04,'dashTodayFocusTone')+'\n'+
+  'window.dashTodaySessions=dashTodaySessions;window.dashTodayFocusStats=dashTodayFocusStats;window.dashTodayFocusTone=dashTodayFocusTone;',
+  sandbox
+);
+
+const exp=sandbox.dashOpsExpiringPackages(7);
+ok('expiring only live window',exp.length===1&&exp[0].id==='pk1');
+
+const reps=sandbox.dashOpsRecentReports();
+ok('reports include checkin',reps.some(r=>r.kind==='checkin'&&r.clientId==='c1'));
+ok('reports include form',reps.some(r=>r.kind==='form'&&r.formName==='Raport tygodniowy'));
+
+const att=sandbox.dashOpsAttentionItems();
+ok('attention overdue report',att.some(a=>a.clientId==='c2'&&/Raport|zaleg/.test(a.tag)));
+ok('attention low plan or missed',att.some(a=>a.clientId==='c1'&&(/<70%|Opuszczone/.test(a.tag))));
+
+const acts=sandbox.dashOpsRecentActivity();
+ok('activity logged only',acts.length>=1&&acts.every(s=>s.source==='client'||s.source==='live'||(s.exercises&&s.exercises.length)));
+ok('activity skips planned',!acts.some(s=>s.id==='s1'||s.id==='s2'||s.id==='s4'));
+
+const rem=sandbox.dashOpsReminders();
+ok('reminders has package',rem.some(r=>/Pakiet/.test(r.txt)&&/Anna/.test(r.txt)));
+ok('reminders skip checkin (already in attention)',!rem.some(r=>/raport/i.test(r.txt)));
+
+const focus=sandbox.dashTodayFocusStats();
+ok('today sessions count',focus.sessions===1,JSON.stringify(focus));
+ok('today attention unique clients',focus.attentionClients>=1,JSON.stringify(focus));
+ok('today checkins count',focus.checkins===1,JSON.stringify(focus));
+ok('today packages count',focus.packages===1,JSON.stringify(focus));
+ok('tone sessions info',sandbox.dashTodayFocusTone('sessions',focus)==='info');
+ok('tone attention not info',sandbox.dashTodayFocusTone('attention',focus)!=='info');
+ok('tone checkins watch',sandbox.dashTodayFocusTone('checkins',focus)==='watch');
+ok('tone packages watch',sandbox.dashTodayFocusTone('packages',{packages:1,packageUrgent:false})==='watch');
+ok('tone packages ok when 0',sandbox.dashTodayFocusTone('packages',{packages:0})==='ok');
+ok('tone attention ok when 0',sandbox.dashTodayFocusTone('attention',{attentionClients:0})==='ok');
+ok('tone attention act on pri 0',sandbox.dashTodayFocusTone('attention',{attentionClients:1,attentionPri:0})==='act');
+
+vm.runInNewContext(
+  extract(src04,'dashListExpanded')+'\n'+
+  extract(src04,'dashListSection')+'\n'+
+  'var DASH_LIST_PREVIEW=2;window._dashListExpanded={};'+
+  'const html=dashListSection("t",[1,2,3,4,5],x=>"<i>"+x+"</i>","");'+
+  'const collapsed=!window._dashListExpanded.t&&html.includes("Pokaż więcej (3)")&&html.includes("<i>1</i>")&&html.includes("<i>2</i>")&&!html.includes("<i>3</i>");'+
+  'window._dashListExpanded.t=true;'+
+  'const expanded=dashListSection("t",[1,2,3,4,5],x=>"<i>"+x+"</i>","");'+
+  'const expandedOk=expanded.includes("Zwiń listę")&&expanded.includes("<i>5</i>");'+
+  'if(!collapsed||!expandedOk)throw new Error("dashListSection collapse failed");',
+  {console,DASH_LIST_PREVIEW:2,window:{_dashListExpanded:{}}}
+);
+ok('dashListSection preview 2','manual');
+
+ok('cache bumps',html.includes('04-client-portal.js?v=55')&&html.includes('styles.css?v=119'));
+ok('CI ui',fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8').includes('test_dash_followup_gone_ui.js'));
+
+if(failed){console.error('\n'+failed+' failed');process.exit(1);}
+console.log('\nAll dash ops panel checks passed');

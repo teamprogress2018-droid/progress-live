@@ -1,0 +1,18 @@
+{
+  "indexes": [
+    {"collectionGroup": "forumGroups", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "trainerId", "order": "ASCENDING"}, {"fieldPath": "privacy", "order": "ASCENDING"},
+      {"fieldPath": "memberIds", "arrayConfig": "CONTAINS"}
+    ]},
+    {"collectionGroup": "forumGroups", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "trainerId", "order": "ASCENDING"}, {"fieldPath": "privacy", "order": "ASCENDING"}
+    ]},
+    {"collectionGroup": "forumPosts", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "trainerId", "order": "ASCENDING"}, {"fieldPath": "groupId", "order": "ASCENDING"}
+    ]},
+    {"collectionGroup": "forumComments", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "trainerId", "order": "ASCENDING"}, {"fieldPath": "postId", "order": "ASCENDING"}
+    ]}
+  ],
+  "fieldOverrides": []
+}

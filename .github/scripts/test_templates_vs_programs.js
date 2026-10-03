@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+'use strict';
+/** Szablony = mikrocykle (1 tydz.); Programy = makrocykle z periodyzacją; brak dublujących nazw. */
+const fs = require('fs');
+const path = require('path');
+
+const root = path.join(__dirname, '../..');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const src02 = fs.readFileSync(path.join(root, '02-workouts-onboarding-templates-live.js'), 'utf8');
+const src06 = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
+const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
+
+const tplBlock = src02.slice(src02.indexOf('const PLAN_TEMPLATES=['), src02.indexOf('];', src02.indexOf('const PLAN_TEMPLATES=[')) + 2);
+const progBlock = src06.slice(src06.indexOf('const DEMO_PROGRAMS=['), src06.indexOf('function allPrograms'));
+
+let failed = 0;
+function ok(name, cond) {
+  if (!cond) {
+    console.error('FAIL', name);
+    failed++;
+  } else console.log('OK  ', name);
+}
+
+ok('templates are microcycles (weeks:1)', /weeks:1/.test(tplBlock) && !/weeks:[2-9]/.test(tplBlock) && !/weeks:1[0-9]/.test(tplBlock));
+ok('no Stronglifts/5x5 in templates', !/Stronglifts|StrongLifts|5×5|5x5/.test(tplBlock));
+ok('no Wendler 5/3/1 template', !/Wendler|5\/3\/1/.test(tplBlock));
+ok('no Texas/Starting Strength/nSuns/GZCLP templates', !/Texas Method|Starting Strength|Nsuns|nSuns|GZCLP|GZCLP/.test(tplBlock));
+ok('templates named as schemat/mikrocykl', /Schemat /.test(tplBlock) && /mikrocykl/.test(tplBlock));
+ok('card shows 1 tydz schemat', src02.includes('1 tydz. · schemat') && src02.includes('Mikrocykl (1 tydzień)'));
+ok('5x5 lives in programs', /5×5|5x5/.test(progBlock));
+ok('5/3/1 lives in programs', /5\/3\/1|Wendler/.test(progBlock));
+ok('moved systems in programs', /GZCLP/.test(progBlock) && /Texas Method/.test(progBlock) && /Starting Strength/.test(progBlock) && /nSuns/.test(progBlock));
+ok('UI copy templates micro', html.includes('mikrocykle') || html.includes('mikrocykle') || html.includes('schematy tygodnia'));
+ok('UI copy programs macro', html.includes('makrocykle') || html.includes('periodyzac'));
+ok('nav labels', html.includes('Bloki 4–16 tyg.') && html.includes('Gotowy tydzień'));
+ok('create form defaults 1 week', /id="tplc-weeks"[^>]*value="1"/.test(src02) || /tplc-weeks'\)\.value=existing\?\.weeks\|\|1/.test(src02));
+ok('cache bumps', html.includes('02-workouts-onboarding-templates-live.js?v=87') && html.includes('06-inbox-exercises-ai-programs.js?v=85'));
+ok('CI', wf.includes('test_templates_vs_programs.js'));
+ok('ppl sila program', /PPL Siła studio — 8 tygodni/.test(progBlock) && /Siła PPL — Push \+ czworogłowe/.test(progBlock));
+ok('programs title 4-16', html.includes('Bloki 4–16 tygodni') && /bloki 4–16 tygodni/.test(html));
+ok('no 1-week demo program', !/duration:1[,}]/.test(progBlock) && !/Cardio Start/.test(progBlock));
+ok('dur chips 4/6/8/10+', html.includes('data-dur="4"') && html.includes('data-dur="6"') && html.includes('data-dur="8"') && html.includes('data-dur="10+"'));
+ok('dur chips not 1 week', !/#prog-dur-chips[\s\S]*setProgDurFilter\('1'\)/.test(html));
+ok('dur filter uses data-dur', /el\.getAttribute\('data-dur'\)/.test(src06) && /function progDurationMatches\(/.test(src06));
+ok('card shows fazy not blokow', src06.includes('prog-stat-lbl">Fazy') && src06.includes('MAX_WEEK_BARS=6'));
+ok('equip kettlebell+mix', html.includes('value="Kettlebell"') && html.includes('value="Mieszany"'));
+ok('CI prog catalog', wf.includes('test_prog_catalog.js'));
+
+if (failed) {
+  console.error(failed + ' failed');
+  process.exit(1);
+}
+console.log('\nAll templates-vs-programs tests passed');

@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+/** Method rationale data stays for AI/tooltips; cheat-sheet UI is gone. */
+'use strict';
+const fs=require('fs');
+const path=require('path');
+const vm=require('vm');
+
+const root=path.join(__dirname,'../..');
+const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8').replace(/\r\n/g,'\n');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8');
+const src03=fs.readFileSync(path.join(root,'03-ai-plangen-bizstats-aicoach.js'),'utf8');
+const src02=fs.readFileSync(path.join(root,'02-workouts-onboarding-templates-live.js'),'utf8');
+const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
+
+let failed=0;
+function ok(name,cond){
+  if(!cond){console.error('FAIL',name);failed++;}
+  else console.log('OK  ',name);
+}
+function eq(name,got,want){
+  if(got!==want){console.error('FAIL',name,'got',got,'want',want);failed++;}
+  else console.log('OK  ',name);
+}
+
+ok('buildMethodRationale exported',core.includes('function buildMethodRationale')&&core.includes('window.buildMethodRationale'));
+ok('renderMethodRationaleHTML',core.includes('function renderMethodRationaleHTML'));
+ok('VOLUME_BY_LEVEL',core.includes('const VOLUME_BY_LEVEL')&&core.includes("Klatka:'6–10'")&&core.includes("Klatka:'12–20'"));
+ok('collapsible guide',core.includes('<details class="method-rationale"')&&core.includes('mr-volume')&&core.includes('Serie na partię wg stażu'));
+ok('METHOD_WHY PPL',core.includes("PPL:{label:"));
+ok('GOAL_WHY masa sets',core.includes("masa:{")&&core.includes('3–4 serie'));
+ok('sources educational',core.includes('NSCA')&&(core.includes('nie pobiera live PubMed')||core.includes('Brak live PubMed')));
+ok('no builder cheat panel',!html.includes('id="builder-rationale"')&&!html.includes('Dlaczego tak? (metodyka)'));
+ok('no apl cheat panel',!html.includes('id="apl-rationale"'));
+ok('builder refresh hook',src05.includes('builderRefreshRationale')&&src05.includes('builderRefreshMethodHint'));
+ok('method change refreshes',/builderOnMethodChange[\s\S]{0,120}builderRefreshRationale/.test(src05));
+ok('no apl plan embed',!/aplRenderPlan[\s\S]{0,2500}renderMethodRationaleHTML/.test(src03)&&!src03.includes('id="apl-rationale"'));
+ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
+ok('no template cheat mount',!src02.includes('tplc-rationale')&&!html.includes('tplc-rationale'));
+ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume')&&css.includes('.mr-chips'));
+ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
+ok('no cheat modal',!html.includes('id="m-method-rationale"')&&!html.includes('method-rationale-modal-body')&&!html.includes('printTrainerCheatSheet'));
+ok('no cheat sheet fns',!core.includes('function renderTrainerCheatSheetHTML')&&!core.includes('function printTrainerCheatSheet')&&!core.includes('function openMethodRationaleModal'));
+ok('no builder topbar cheat',!html.includes('id="builder-cheat-btn"')&&!html.includes('openMethodRationaleModal()')&&!html.includes('id="builder-cheat-print-btn"'));
+ok('no cheat css',!css.includes('.trainer-cheat')&&!css.includes('#builder-cheat-btn')&&!css.includes('printing-cheat-sheet'));
+ok('builder keeps AI panel',html.includes('id="ai-q"')&&html.includes('askAI()')&&html.includes('Asystent AI'));
+ok('aplEduCtx exported',src03.includes('function aplEduCtx')&&src03.includes('window.aplEduCtx'));
+ok('builder ctx clientName',src05.includes('clientName:c.name'));
+ok('personalized volume helper',core.includes('personalizedOnly')&&core.includes('mr-vol-personal'));
+
+const sandbox={window:{},console};
+vm.createContext(sandbox);
+const start=core.indexOf('// ════════════════════════════════════════\n// UZASADNIENIE METODYCZNE');
+const end=core.indexOf('window.normalizeRationaleMethod=normalizeRationaleMethod;')+'window.normalizeRationaleMethod=normalizeRationaleMethod;'.length;
+ok('slice found',start>=0&&end>start);
+vm.runInContext(core.slice(start,end)+'\nwindow.buildMethodRationale=buildMethodRationale;window.renderMethodRationaleHTML=renderMethodRationaleHTML;',sandbox);
+const b=sandbox.buildMethodRationale({method:'PPL',goal:'masa',level:'poczatkujacy',daysPerWeek:3});
+eq('PPL label',b.methodLabel,'Push / Pull / Legs');
+ok('PPL tip for 3 days',b.tips.some(t=>/PPL przy 3/.test(t)));
+ok('masa sets',/3–4/.test(b.sets));
+ok('volume parts beginner',b.levelVolumeParts&&b.levelVolumeParts.Klatka==='6–10'&&b.levelVolumeParts.Plecy==='8–12');
+const htmlR=sandbox.renderMethodRationaleHTML(b);
+ok('html render',htmlR.includes('Dlaczego tak?'));
+ok('html collapsible',/<details class="method-rationale">/.test(htmlR)&&/mr-volume/.test(htmlR)&&/mr-vol-table/.test(htmlR)&&/Asystent trenera/.test(htmlR)&&!/<details class="method-rationale" open>/.test(htmlR));
+ok('html no more/print',!/openMethodRationaleModal\(/.test(htmlR)&&!/printTrainerCheatSheet\(/.test(htmlR)&&!/mr-more-btn/.test(htmlR));
+ok('html highlights beginner col',/mr-vol-th is-current/.test(htmlR));
+ok('clientTalk plain',b.clientTalk&&/Trenujemy/.test(b.clientTalk)&&!/MEV|MRV/.test(b.clientTalk));
+eq('normalize UL',sandbox.normalizeRationaleMethod('Upper/Lower'),'Upper Lower');
+ok('no cheat renderer',typeof sandbox.renderTrainerCheatSheetHTML!=='function');
+
+const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaawansowany',daysPerWeek:4});
+ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
+ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
+
+ok('cache bumps',html.includes('01-core.js?v=126')&&html.includes('02-workouts-onboarding-templates-live.js?v=87')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=82')&&html.includes('09-posture-kb-invites-private.js?v=54')&&html.includes('styles.css?v=119'));
+
+if(failed){console.error(failed+' failed');process.exit(1);}
+console.log('\nAll method-rationale tests passed');

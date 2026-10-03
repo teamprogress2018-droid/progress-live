@@ -1,0 +1,3110 @@
+// ════════════════════════════════════════
+// AI PLAN GENERATOR
+// ════════════════════════════════════════
+var aplGenerating=false;
+var aplLastPlan=null;
+
+// ── Lokalne obliczanie progresji na kolejne tygodnie (bez dodatkowych zapytań do AI) ──
+function aplIsHypertrophyGoal(goal){
+  return /masa|hipertrof|mi[eę][sś]|sylwet|kształt|budow/.test(String(goal||'').toLowerCase());
+}
+window.aplIsHypertrophyGoal=aplIsHypertrophyGoal;
+
+function aplHypertrophyPhaseMods(phase){
+  const p=String(phase||'').toLowerCase();
+  if(/deload/.test(p))return{rir:3.5,rirLabel:'3–4',rpe:6.5,vol:0.55,kgMul:0.9};
+  if(/pik|piku/.test(p))return{rir:0.5,rirLabel:'0–1',rpe:9.5,vol:1.15,kgMul:1.04};
+  if(/akumulacja ii|hipertrofia ii/.test(p))return{rir:1.5,rirLabel:'1–2',rpe:8.5,vol:1.1,kgMul:1.03};
+  if(/akumulacja i|hipertrofia i|adaptacja/.test(p))return{rir:2.5,rirLabel:'2–3',rpe:7.5,vol:1,kgMul:1};
+  return null;
+}
+window.aplHypertrophyPhaseMods=aplHypertrophyPhaseMods;
+
+function aplHypertrophyPhases(weeksNum,weekKeys){
+  const keys=(weekKeys&&weekKeys.length)?weekKeys.slice():['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0,weeksNum||8);
+  const n=keys.length;
+  const label=i=>{
+    const t=i+1;
+    if(t===n)return 'Deload';
+    if(n<=4)return t<=2?'Akumulacja I':'Akumulacja II';
+    if(n<=6){
+      if(t<=2)return 'Akumulacja I';
+      if(t<=4)return 'Akumulacja II';
+      return 'Pik objętości';
+    }
+    if(t<=3)return 'Akumulacja I';
+    if(n>=12){
+      if(t<=8)return 'Akumulacja II';
+      if(t<=10)return 'Pik objętości';
+      return 'Deload';
+    }
+    if(t<=6)return 'Akumulacja II';
+    return 'Pik objętości';
+  };
+  const o={};
+  keys.forEach((k,i)=>{o[k]=label(i);});
+  return o;
+}
+window.aplHypertrophyPhases=aplHypertrophyPhases;
+
+function aplDefaultHypertrophySchema(weeksNum,weekKeys){
+  const keys=(weekKeys&&weekKeys.length)?weekKeys.slice():['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0,weeksNum||8);
+  const phases=aplHypertrophyPhases(keys.length,keys);
+  return keys.map((k,i)=>{
+    const ph=phases[k];
+    const m=aplHypertrophyPhaseMods(ph)||{};
+    return{
+      week:i+1,
+      phase:ph,
+      rir:m.rirLabel||'',
+      reps:/deload/i.test(ph)?'8–12':/pik/i.test(ph)?'6–10':'8–12 (izolacje 10–15)',
+      volume:m.vol==null?'100%':(Math.round(m.vol*100)+'%'),
+      notes:/deload/i.test(ph)?'Objętość −40–50%, RIR 3–4 — superkompensacja':/pik/i.test(ph)?'Kluczowe serie RIR 0–1':/akumulacja ii/i.test(ph)?'Drop-set / rest-pause na izolacjach': 'Baza objętości, zapas RIR 2–3'
+    };
+  });
+}
+window.aplDefaultHypertrophySchema=aplDefaultHypertrophySchema;
+
+function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
+  const baseS=ex.sets,baseR=ex.reps,baseRest=ex.rest;
+  const baseRpe=parseFloat(ex.rpe)||parseFloat(ex.rir)||7;
+  let baseKgNum=null,kgSuffix='';
+  if(ex.kg){
+    const m=String(ex.kg).match(/^([\d.]+)/);
+    if(m){baseKgNum=parseFloat(m[1]);kgSuffix=String(ex.kg).slice(m[1].length);}
+  }
+  weekKeys.forEach((wk,i)=>{
+    const hyp=aplHypertrophyPhaseMods(phasesMap[wk]);
+    if(i===0){
+      const rir0=hyp?hyp.rir: (parseFloat(ex.rir)<=4?parseFloat(ex.rir):'');
+      ex[wk]={s:baseS,r:baseR,rest:baseRest,rpe:String(hyp?hyp.rpe:baseRpe),rir:rir0===''?'':String(rir0),kg:ex.kg||''};
+      return;
+    }
+    const phase=(phasesMap[wk]||'').toLowerCase();
+    const isDeload=phase.includes('deload');
+    let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'',rir='';
+    if(hyp){
+      rpe=hyp.rpe;
+      rir=hyp.rir;
+      s=String(Math.max(1,Math.round((parseInt(baseS)||3)*hyp.vol)));
+      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+0.015*i)*10)/10)+kgSuffix;
+      ex[wk]={s,r,rest,rpe:String(rpe),rir:String(rir),kg};
+      return;
+    }
+    if(isDeload){
+      rpe=Math.max(5,baseRpe-2);
+      s=String(Math.max(1,Math.round((parseInt(baseS)||3)*0.6)));
+      if(baseKgNum!=null)kg=(Math.round(baseKgNum*0.7*10)/10)+kgSuffix;
+    }else{
+      switch(progressionType){
+        case 'linear':
+          rpe=Math.min(9,baseRpe+Math.floor(i/2));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
+          break;
+        case 'dup':
+          rpe=Math.min(9,baseRpe+Math.floor(i/3));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+1.25*i)*10)/10)+kgSuffix;
+          break;
+        case 'wave':
+          rpe=(i%2===0)?Math.min(8,baseRpe):Math.min(9,baseRpe+1);
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+(i%2===0?0:2.5))*10)/10)+kgSuffix;
+          break;
+        case 'block':
+          if(i<weekKeys.length*0.4){rpe=Math.min(7,baseRpe);}
+          else if(i<weekKeys.length*0.8){rpe=Math.min(9,baseRpe+2);}
+          else{rpe=Math.min(10,baseRpe+3);}
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2*i)*10)/10)+kgSuffix;
+          break;
+        case 'double':
+          rpe=Math.min(9,baseRpe+Math.floor(i/2));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2*Math.floor(i/2))*10)/10)+kgSuffix;
+          break;
+        default:
+          rpe=Math.min(9,baseRpe+Math.floor(i/2));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
+      }
+    }
+    ex[wk]={s,r,rest,rpe:String(rpe),rir:rir===''?'':String(rir),kg};
+  });
+}
+
+function initAplangen(){
+  const sel=document.getElementById('apl-client');
+  const prev=sel?sel.value:'';
+  if(sel){
+    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+    const openId=(typeof cpClientId!=='undefined'&&cpClientId)||window.cpClientId||'';
+    const pref=window._aplPrefillClientId||prev||openId||window._aplLastClientId||'';
+    window._aplPrefillClientId=null;
+    if(pref&&[...sel.options].some(o=>o.value===pref))sel.value=pref;
+    if(sel.value)aplFillFromClient();
+    else{
+      if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
+      if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
+      if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
+    }
+  }
+  if(!document.getElementById('apl-result').innerHTML){
+    aplShowWelcome();
+  }
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+  if(typeof aplSyncProgressionFromMethod==='function')aplSyncProgressionFromMethod();
+  if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-aiplangen'));
+}
+
+function aplShowWelcome(){
+  document.getElementById('apl-result').innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
+      <div style="font-size:56px;margin-bottom:20px;">⚡</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">GENERATOR PLANÓW AI</div>
+      <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij formularz po lewej stronie i kliknij <strong style="color:var(--accent);">Generuj plan</strong>. AI stworzy spersonalizowany plan treningowy z ćwiczeniami, seriami, powtórzeniami i wskazówkami metodycznymi.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
+        ${[
+          {icon:'🎯',txt:'Cel i poziom klienta'},
+          {icon:'📅',txt:'Dni i czas sesji'},
+          {icon:'🏋️',txt:'Dostępny sprzęt'},
+          {icon:'🩺',txt:'Kontuzje i limity'},
+          {icon:'📋',txt:'Metoda (PPL/FBW/obwód/531)'},
+          {icon:'✏️',txt:'Dodatkowe życzenia'},
+        ].map(i=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;color:var(--muted);"><div style="font-size:20px;margin-bottom:5px;">${i.icon}</div>${i.txt}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function aplToggleOpt(btn,groupId){
+  const grp=document.getElementById(groupId);
+  grp.querySelectorAll('.apl-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(groupId==='apl-methods'||groupId==='apl-days'){
+    if(typeof aplSyncAutoStructureNotes==='function')aplSyncAutoStructureNotes();
+    if(groupId==='apl-methods'&&typeof aplSyncProgressionFromMethod==='function')aplSyncProgressionFromMethod();
+  }
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+}
+
+function aplRefreshRationale(){
+  /* Panel „Dlaczego tak?” usunięty — metodyka zostaje w Asystencie AI. */
+}
+window.aplRefreshRationale=aplRefreshRationale;
+
+/** Kontekst metodyki z formularza AI + profilu wybranego klienta. */
+function aplEduCtx(){
+  const cid=document.getElementById('apl-client')?.value||'';
+  const c=cid?(window.CL||[]).find(x=>x.id===cid):null;
+  const goal=typeof aplGetVal==='function'?aplGetVal('apl-goals'):(c?.goal||'masa');
+  const level=typeof aplGetVal==='function'?aplGetVal('apl-levels'):(c?.level||'sredni');
+  const method=typeof aplGetVal==='function'?aplGetVal('apl-methods'):'PPL';
+  const days=typeof aplGetVal==='function'?parseInt(aplGetVal('apl-days'),10):0;
+  let weight=parseFloat(document.getElementById('apl-weight')?.value);
+  if((isNaN(weight)||!weight)&&cid&&typeof clientLatestMetricWeight==='function'){
+    const mw=clientLatestMetricWeight(cid);
+    if(mw!=null)weight=mw;
+  }
+  if((isNaN(weight)||!weight)&&c?.weight)weight=parseFloat(c.weight);
+  return{
+    method,
+    goal,
+    level,
+    daysPerWeek:days||undefined,
+    weight:(!isNaN(weight)&&weight>0)?weight:undefined,
+    clientId:cid||undefined,
+    clientName:c?.name||undefined
+  };
+}
+window.aplEduCtx=aplEduCtx;
+
+/** Domyślna metoda progresji dla układu treningowego (auto-sync przy zmianie metody). */
+const APL_METHOD_PROGRESSION={
+  PPL:'dup',
+  FBW:'linear',
+  'Upper/Lower':'dup',
+  Obwodowy:'wave',
+  '531':'linear',
+  Blokowa:'block',
+  'Bro Split':'linear',
+  Arnold:'block',
+  Smolov:'smolov',
+  Custom:'ai'
+};
+window.APL_METHOD_PROGRESSION=APL_METHOD_PROGRESSION;
+
+const APL_PROGRESSION_LABELS={
+  ai:'🤖 AI Auto',
+  linear:'📈 Liniowa',
+  dup:'🔄 DUP',
+  wave:'〰️ Falowa',
+  block:'🧱 Blokowa',
+  double:'⏫ Podwójna',
+  smolov:'🏋️ Smolov'
+};
+
+function aplSyncProgressionFromMethod(){
+  const method=typeof aplGetVal==='function'?aplGetVal('apl-methods'):'';
+  const prog=APL_METHOD_PROGRESSION[method]||'ai';
+  document.querySelectorAll('#apl-progression .apl-opt').forEach(b=>{
+    b.classList.toggle('active',b.dataset.val===prog);
+  });
+  const hint=document.getElementById('apl-progression-hint');
+  if(hint){
+    const lbl=APL_PROGRESSION_LABELS[prog]||prog;
+    hint.textContent=method?('Dopasowano do metody '+method+': '+lbl):'';
+  }
+}
+window.aplSyncProgressionFromMethod=aplSyncProgressionFromMethod;
+
+function aplMethodStructureHint(method){
+  const hints={
+    'Bro Split':'BRO SPLIT: 5–6 dni, 1 partia główna/dzień (np. klatka, plecy, barki, ramiona, nogi). Progresja liniowa +2.5 kg/tyg na wielostawach gdy RPE≤8.',
+    Smolov:'SMOLOV: priorytet PRZYSIAD — mikrocykl %1RM (T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6). Inne dni: utrzymanie góry ciała, max 2–3 ćwiczenia, niska objętość nóg poza przysiadami Smolova.',
+    Arnold:'ARNOLD SPLIT: rotacja klatka+plecy / barki+ramiona / nogi (×2). Wysoka objętość sylwetkowa — periodyzacja blokowa lub falowa.',
+    Blokowa:'BLOKOWA: tygodnie Akumulacja → Intensyfikacja → Realizacja (+ deload). Objętość i intensywność nie rosną naraz.',
+    '531':'5/3/1: 4 główne wielostawy wg cyklu %1RM + asysty BBB. Progresja co tydzień wg tablic Wendlera.',
+    PPL:'PPL: dni Push / Pull / Legs — każda partia ~2×/tydz. przy 6 dniach.',
+    FBW:'FBW: całe ciało każda sesja — progresja liniowa kg lub powtórzeń.',
+    'Upper/Lower':'Upper/Lower: naprzemiennie góra/dół — DUP (siła/hiper/objętość) dobrze pasuje.',
+    Obwodowy:'OBWÓD: stacje/rundy, krótkie przerwy — progresja falowa objętości lub czasu rundy.'
+  };
+  return hints[method]||'';
+}
+window.aplMethodStructureHint=aplMethodStructureHint;
+
+function aplPhasesForPlan(method,weeksNum,weekKeys,goal){
+  const SMOLOV_PHASES={
+    4:{w1:'Smolov T1 70%',w2:'Smolov T2 75%',w3:'Smolov T3 80%',w4:'Smolov T4 85%'},
+    6:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Test/Realizacja'},
+    8:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Utrzymanie',w7:'Realizacja',w8:'Test PR'}
+  };
+  if(method==='Smolov'&&SMOLOV_PHASES[weeksNum])return SMOLOV_PHASES[weeksNum];
+  if(typeof aplIsHypertrophyGoal==='function'?aplIsHypertrophyGoal(goal):false){
+    return aplHypertrophyPhases(weeksNum,weekKeys);
+  }
+  const PHASE_TABLES={
+    1:{w1:'Tydzień 1'},
+    4:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Deload'},
+    6:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia I',w4:'Hipertrofia II',w5:'Intensyfikacja',w6:'Deload'},
+    8:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Siła',w7:'Deload',w8:'Szczyt'},
+    12:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Hipertrofia II',w7:'Siła',w8:'Siła',w9:'Deload',w10:'Intensyfikacja',w11:'Szczyt',w12:'Test/Realizacja'}
+  };
+  return PHASE_TABLES[weeksNum]||(()=>{const o={};weekKeys.forEach((k,i)=>o[k]=i===weekKeys.length-1?'Deload':'Tydzień '+(i+1));return o;})();
+}
+window.aplPhasesForPlan=aplPhasesForPlan;
+
+function toggleAplPharmaPanel(force){
+  const panel=document.getElementById('apl-pharma-panel');
+  const btn=document.getElementById('apl-pharma-reveal');
+  if(!panel)return;
+  const open=typeof force==='boolean'?force:panel.hasAttribute('hidden');
+  if(open){
+    panel.removeAttribute('hidden');
+    if(btn){
+      btn.setAttribute('aria-expanded','true');
+      btn.classList.add('is-open');
+      const txt=btn.querySelector('.apl-pharma-reveal-txt');
+      if(txt)txt.textContent='Ukryj pole poufne';
+    }
+  }else{
+    panel.setAttribute('hidden','');
+    if(btn){
+      btn.setAttribute('aria-expanded','false');
+      btn.classList.remove('is-open');
+      const txt=btn.querySelector('.apl-pharma-reveal-txt');
+      if(txt)txt.textContent='Pokaż pole poufne';
+    }
+  }
+}
+window.toggleAplPharmaPanel=toggleAplPharmaPanel;
+
+function aplClientReviewHtml(c){
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const goals={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja tkanki',kondycja:'Kondycja ogólna',atletyzm:'Atletyzm / moc',rehab:'Rehabilitacja'};
+  const limits=typeof clientCombinedLimitationsText==='function'?clientCombinedLimitationsText(c):(c.injuries||'');
+  const intakeText=c.intakeDone||(intake&&intake.filled)?'Wypełniona — sprawdź odpowiedzi przed planem.':intake&&intake.pending?'Czeka na odpowiedź klienta.':'Brak wypełnionej ankiety.';
+  return `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);" data-apl-client-review>
+    <strong>Przed przygotowaniem planu</strong>
+    <div>Cel z karty: ${esc(goals[c.goal]||c.goal||'Nie podano — wybierz cel poniżej.')}</div>
+    <div>Ankieta: ${esc(intakeText)}</div>
+    <div>Ograniczenia do sprawdzenia: ${esc(limits||'Brak informacji. Nie oznacza to braku przeciwwskazań.')}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:5px;">Dlaczego? Cel i ograniczenia pomagają dobrać ćwiczenia oraz obciążenie. Wypełnienie ankiety samo w sobie nie potwierdza bezpieczeństwa planu.</div>
+  </div>`;
+}
+function aplResetClientFields(){
+  ['apl-age','apl-weight','apl-height','apl-injuries','apl-sport-notes','apl-activity'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const gender=document.getElementById('apl-gender');if(gender)gender.selectedIndex=-1;
+  ['apl-goals','apl-levels','apl-days'].forEach(id=>document.querySelectorAll('#'+id+' .apl-opt').forEach(b=>b.classList.remove('active')));
+  ['apl-metrics-hint','apl-safety-hint'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.style.display='none';el.textContent='';}
+  });
+}
+function aplClientCardSummaryHtml(c){
+  if(!c)return'';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  const gRaw=typeof genderForAplSelect==='function'?genderForAplSelect(c.gender):String(c.gender||'');
+  const gender=gRaw?gRaw.charAt(0).toUpperCase()+gRaw.slice(1):'';
+  const age=c.age||'';
+  let w=typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null;
+  if(w==null||w==='')w=c.weight||'';
+  const h=c.height||'';
+  const actMap=typeof ACTIVITY_LEVEL_LABELS!=='undefined'?ACTIVITY_LEVEL_LABELS:(window.ACTIVITY_LEVEL_LABELS||{});
+  const act=c.activityLevel&&actMap[c.activityLevel]?actMap[c.activityLevel]:'';
+  let sport='';
+  if(typeof clientSportProfile==='function'){
+    const p=clientSportProfile(c);
+    if(p&&p.activities&&p.activities.length&&typeof formatActivityShort==='function')sport=p.activities.map(formatActivityShort).join(', ');
+    else if(p&&p.labels&&p.labels.length)sport=p.labels.join(', ');
+  }
+  const missing=[];
+  if(!age)missing.push('wiek');
+  if(!gender)missing.push('płeć');
+  if(!w)missing.push('waga');
+  const chips=[age?age+' lat':'',gender,w?w+' kg':'',h?h+' cm':'',act].filter(Boolean);
+  return `<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+    <div style="min-width:0;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal,#3ecfb2);letter-spacing:1px;text-transform:uppercase;">Z karty klienta</div>
+      <div style="font-size:13px;font-weight:600;margin-top:3px;">${esc(c.name||'')}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45;">${chips.length?chips.map(esc).join(' · '):'Brak wieku, wagi i płci na karcie'}</div>
+      ${sport?`<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">Sporty: ${esc(sport)}</div>`:''}
+      ${c.sportNotes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(c.sportNotes)}</div>`:''}
+      ${missing.length?`<div style="font-size:11px;color:var(--accent);margin-top:6px;">Brakuje: ${esc(missing.join(', '))} — uzupełnij na karcie.</div>`:''}
+      ${aplClientReviewHtml(c)}
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="aplEditClientFromCard()" style="flex-shrink:0;">✏️ Karta</button>
+  </div>`;
+}
+function aplSyncClientDupUi(){
+  const cid=document.getElementById('apl-client')?.value||'';
+  const c=cid?(window.CL||[]).find(x=>x&&x.id===cid):null;
+  const box=document.getElementById('apl-client-from-card');
+  const sports=document.getElementById('apl-client-dup-sports');
+  const body=document.getElementById('apl-client-dup-body');
+  const hint=document.getElementById('apl-client-pick-hint');
+  if(c){
+    if(box){box.style.display='block';box.innerHTML=aplClientCardSummaryHtml(c);}
+    if(sports)sports.style.display='none';
+    if(body)body.style.display='none';
+    if(hint)hint.style.display='none';
+  }else{
+    if(box){box.style.display='none';box.innerHTML='';}
+    if(sports)sports.style.display='';
+    if(body)body.style.display='grid';
+    if(hint)hint.style.display='';
+  }
+}
+function aplEditClientFromCard(){
+  const cid=document.getElementById('apl-client')?.value;
+  if(!cid)return;
+  if(typeof openClientModal==='function')openClientModal(cid);
+}
+function aplRefreshFromSavedClient(cid){
+  if(cid)window._aplLastClientId=cid;
+  const sel=document.getElementById('apl-client');
+  if(!sel||!cid)return;
+  const screen=document.getElementById('screen-aiplangen');
+  const onApl=screen&&screen.classList.contains('active');
+  if(!onApl)return;
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);
+  if(c&&![...sel.options].some(o=>o.value===cid)){
+    const opt=document.createElement('option');
+    opt.value=cid;
+    opt.textContent=c.name||cid;
+    sel.appendChild(opt);
+  }
+  if(!sel.value)sel.value=cid;
+  if(sel.value===cid&&typeof aplFillFromClient==='function')aplFillFromClient();
+}
+function aplFillFromClient(){
+  const sel=document.getElementById('apl-client');
+  const cid=sel.value;
+  aplResetClientFields();
+  // BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny przy zmianie klienta —
+  // to zbyt wrażliwe pole, żeby mogło przypadkiem "przejść" z poprzedniego klienta.
+  const pharmaStatusEl=document.getElementById('apl-pharma-status');
+  const pharmaDetailsEl=document.getElementById('apl-pharma-details');
+  if(pharmaStatusEl)pharmaStatusEl.value='';
+  if(pharmaDetailsEl)pharmaDetailsEl.value='';
+  if(typeof toggleAplPharmaPanel==='function')toggleAplPharmaPanel(false);
+  if(!cid){
+    window._aplLastClientId='';
+    const ageEl=document.getElementById('apl-age');if(ageEl)ageEl.value='';
+    const wEl=document.getElementById('apl-weight');if(wEl)wEl.value='';
+    const hEl=document.getElementById('apl-height');if(hEl)hEl.value='';
+    const gEl=document.getElementById('apl-gender');if(gEl)gEl.selectedIndex=0;
+    const actEl=document.getElementById('apl-activity');if(actEl)actEl.value='moderate';
+    const snEl=document.getElementById('apl-sport-notes');if(snEl)snEl.value='';
+    const injEl=document.getElementById('apl-injuries');if(injEl)injEl.value='';
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
+    if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
+    return;
+  }
+  const c=CL.find(x=>x.id===cid);
+  if(!c){
+    if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
+    return;
+  }
+  window._aplLastClientId=cid;
+  if(c.age)document.getElementById('apl-age').value=c.age;
+  const metricW=typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(cid):null;
+  if(metricW!=null)document.getElementById('apl-weight').value=metricW;
+  else if(c.weight)document.getElementById('apl-weight').value=c.weight;
+  if(c.height)document.getElementById('apl-height').value=c.height;
+  {
+    const gEl=document.getElementById('apl-gender');
+    if(gEl){
+      const mapped=typeof genderForAplSelect==='function'?genderForAplSelect(c.gender):c.gender;
+      if(mapped)gEl.value=mapped;
+    }
+  }
+  {
+    const injEl=document.getElementById('apl-injuries');
+    if(injEl){
+      const lim=typeof clientCombinedLimitationsText==='function'?clientCombinedLimitationsText(c):'';
+      const base=lim||(c.injuries)||(typeof clientInjuriesText==='function'?clientInjuriesText(c):'')||'';
+      if(base)injEl.value=base;
+    }
+  }
+  if(c.goal){
+    document.querySelectorAll('#apl-goals .apl-opt').forEach(b=>{
+      b.classList.toggle('active',b.dataset.val===c.goal);
+    });
+  }
+  if(c.level){
+    document.querySelectorAll('#apl-levels .apl-opt').forEach(b=>{
+      b.classList.toggle('active',b.dataset.val===c.level);
+    });
+  }
+  const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(c.trainingFreq):parseInt(c.trainingFreq,10);
+  if(freq>=2&&freq<=6){
+    document.querySelectorAll('#apl-days .apl-opt').forEach(b=>{
+      b.classList.toggle('active',b.dataset.val===String(freq));
+    });
+  }
+  if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',c.priorSports||[],c.additional_activities||[]);
+  else if(typeof setPriorSportsChips==='function')setPriorSportsChips('apl',c.priorSports||[]);
+  if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',c.physiquePriority||[]);
+  else if(typeof setPhysiquePriorityChips==='function')setPhysiquePriorityChips('apl',c.physiquePriority||[]);
+  const actEl=document.getElementById('apl-activity');
+  if(actEl&&c.activityLevel)actEl.value=c.activityLevel;
+  const snEl=document.getElementById('apl-sport-notes');
+  if(snEl&&c.sportNotes)snEl.value=c.sportNotes;
+  {
+    const stored=typeof clientAvailableEquipment==='function'?clientAvailableEquipment(c):[];
+    aplSetEquipment(stored.length?stored:(window.APL_EQ_GYM_DEFAULT||['Sztanga i wolne ciężary','Maszyny siłowe','Wyciągi i linki','Hantle','Drążek i poręcze']));
+  }
+  // 3× + masa/kształtowanie → preset hipertrofii Push+Quads / Pull+Hams / Upper
+  if(freq===3&&(c.goal==='masa'||c.goal==='redukcja')&&typeof aplApplyHypertrophy3DayPreset==='function'){
+    aplApplyHypertrophy3DayPreset();
+  }
+  aplRenderMetricsHint(cid);
+  aplRenderSafetyHint(cid);
+  const hasM=typeof clientMetricsContextForAI==='function'&&!!clientMetricsContextForAI(cid);
+  const hasS=typeof clientSafetyContextForAI==='function'&&!!clientSafetyContextForAI(cid,{
+    weight:document.getElementById('apl-weight')?.value,
+    height:document.getElementById('apl-height')?.value,
+    injuries:document.getElementById('apl-injuries')?.value
+  });
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+  if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
+  notify(hasS||hasM?`✓ Dane ${c.name} + bezpieczeństwo/pomiary wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
+}
+
+function aplRenderMetricsHint(clientId){
+  let el=document.getElementById('apl-metrics-hint');
+  if(!el){
+    const anchor=document.getElementById('apl-weight');
+    const field=anchor&&anchor.closest('.form-field');
+    const parent=field&&field.parentElement;
+    if(!parent)return;
+    el=document.createElement('div');
+    el.id='apl-metrics-hint';
+    el.style.cssText='font-size:11px;line-height:1.5;padding:8px 10px;border-radius:8px;margin:8px 0;border:1px solid var(--border2);background:var(--s3);color:var(--muted);';
+    parent.insertAdjacentElement('afterend',el);
+  }
+  const ctx=typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(clientId):'';
+  if(!ctx){
+    el.style.display='none';
+    el.textContent='';
+    return;
+  }
+  el.style.display='block';
+  el.style.borderColor='rgba(62,207,178,0.35)';
+  el.style.background='rgba(62,207,178,0.08)';
+  el.style.color='var(--text)';
+  const short=ctx.split('\n').filter(l=>l&&!l.startsWith('===')&&!l.startsWith('UWAGA')).slice(0,3).join(' · ');
+  el.innerHTML='<strong style="color:var(--teal);">📏 Pomiary z karty klienta</strong> trafią do AI.<br><span style="font-size:10px;color:var(--muted);">'+escHtml(short)+'</span>';
+}
+window.aplRenderMetricsHint=aplRenderMetricsHint;
+
+function aplRenderSafetyHint(clientId){
+  let el=document.getElementById('apl-safety-hint');
+  if(!el){
+    const anchor=document.getElementById('apl-injuries');
+    const field=anchor&&anchor.closest('.form-field');
+    if(!field||!field.parentElement)return;
+    el=document.createElement('div');
+    el.id='apl-safety-hint';
+    el.style.cssText='font-size:11px;line-height:1.5;padding:8px 10px;border-radius:8px;margin:8px 0;border:1px solid var(--border2);background:var(--s3);color:var(--muted);';
+    field.insertAdjacentElement('afterend',el);
+  }
+  const w=document.getElementById('apl-weight')?.value;
+  const h=document.getElementById('apl-height')?.value;
+  const inj=document.getElementById('apl-injuries')?.value;
+  const ctx=typeof clientSafetyContextForAI==='function'?clientSafetyContextForAI(clientId,{weight:w,height:h,injuries:inj}):'';
+  if(!ctx){
+    el.style.display='none';
+    el.textContent='';
+    return;
+  }
+  el.style.display='block';
+  el.style.borderColor='rgba(230,0,0,0.28)';
+  el.style.background='rgba(230,0,0,0.06)';
+  el.style.color='var(--text)';
+  const short=ctx.split('\n').filter(l=>l&&!l.startsWith('===')&&!l.startsWith('PRIORYTET')&&!l.startsWith('- Preferuj')&&!l.startsWith('- Unikaj')&&!l.startsWith('- Nogi')&&!l.startsWith('- Core')&&!l.startsWith('- Dłuższa')).slice(0,4).join(' · ');
+  el.innerHTML='<strong style="color:var(--accent);">🛡 Bezpieczeństwo (waga, postawa, kontuzje)</strong> trafi do AI — plan ma nie szkodzić.<br><span style="font-size:10px;color:var(--muted);">'+escHtml(short)+'</span>';
+}
+window.aplRenderSafetyHint=aplRenderSafetyHint;
+
+function aplGetVal(groupId){
+  const active=document.querySelector(`#${groupId} .apl-opt.active`);
+  return active?.dataset?.val||'';
+}
+function aplSetVal(groupId,val){
+  const btn=document.querySelector('#'+groupId+' .apl-opt[data-val="'+String(val)+'"]');
+  if(btn&&typeof aplToggleOpt==='function')aplToggleOpt(btn,groupId);
+}
+window.aplSetVal=aplSetVal;
+
+function aplGetMulti(groupId){
+  return [...document.querySelectorAll(`#${groupId} .apl-opt-multi.active`)].map(b=>b.dataset.val);
+}
+
+function aplSetEquipment(vals){
+  const wanted=(vals||[]).map(v=>String(v));
+  const mapped=typeof mapStoredEquipmentToApl==='function'?mapStoredEquipmentToApl(wanted):wanted;
+  const set=new Set(mapped.map(v=>String(v)));
+  document.querySelectorAll('#apl-equipment .apl-opt-multi').forEach(b=>{
+    b.classList.toggle('active',set.has(b.dataset.val));
+  });
+}
+
+function aplToggleMulti(btn){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  if(typeof aplPersistClientForm==='function')aplPersistClientForm();
+}
+
+function aplPersistClientForm(){
+  const cid=document.getElementById('apl-client')?.value;
+  if(!cid)return;
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);
+  if(!c)return;
+  const g=typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('apl-gender')?.value):'';
+  if(g)c.gender=g;
+  const eq=aplGetMulti('apl-equipment');
+  c.availableEquipment=eq;
+  if(typeof readSportBackgroundFrom==='function'){
+    const bg=readSportBackgroundFrom('apl');
+    c.priorSports=bg.priorSports||[];
+    c.additional_activities=bg.additional_activities||[];
+  }
+  const actEl=document.getElementById('apl-activity');
+  if(actEl&&actEl.value)c.activityLevel=actEl.value;
+  const snEl=document.getElementById('apl-sport-notes');
+  if(snEl)c.sportNotes=snEl.value;
+  if(typeof persistById==='function')persistById('clients',c);
+}
+
+function aplPlanTokenBudget(dayCount){
+  return Math.min(2400+Math.max(1,dayCount)*480,4200);
+}
+
+function aplExtractJsonObject(text){
+  const s=String(text||'');
+  const start=s.search(/[\[{]/);
+  if(start<0)return s.trim();
+  let depth=0,inStr=false,esc=false;
+  for(let i=start;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+      continue;
+    }
+    if(c==='"'){inStr=true;continue;}
+    if(c==='{'||c==='[')depth++;
+    else if(c==='}'||c===']'){
+      depth--;
+      if(depth===0)return s.slice(start,i+1);
+    }
+  }
+  return s.slice(start);
+}
+
+function aplEscapeInnerQuotes(s){
+  let out='';
+  let i=0;
+  let inStr=false;
+  let esc=false;
+  while(i<s.length){
+    const c=s[i];
+    if(inStr){
+      if(esc){out+=c;esc=false;i++;continue;}
+      if(c==='\\'){out+=c;esc=true;i++;continue;}
+      if(c!=='"'){out+=c;i++;continue;}
+      let j=i+1;
+      while(j<s.length&&/[\s\n\r\t]/.test(s[j]))j++;
+      const n=s[j];
+      if(!n||n===','||n===':'||n==='}'||n===']'){
+        inStr=false;
+        out+=c;
+        i++;
+        continue;
+      }
+      out+='\\"';
+      i++;
+      continue;
+    }
+    out+=c;
+    if(c==='"')inStr=true;
+    i++;
+  }
+  if(inStr)out+='"';
+  return out;
+}
+
+/** Zamień '...' na "..." poza stringami JSON (Claude czasem daje JS-owy styl). */
+function aplNormalizeSingleQuotes(input){
+  let s=String(input||'');
+  let out='';
+  let inDbl=false,inSgl=false,esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inDbl){
+      out+=c;
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inDbl=false;
+      continue;
+    }
+    if(inSgl){
+      if(esc){out+=c;esc=false;continue;}
+      if(c==='\\'){out+='\\';esc=true;continue;}
+      if(c==="'"){out+='"';inSgl=false;continue;}
+      if(c==='"'){out+='\\"';continue;}
+      out+=c;
+      continue;
+    }
+    if(c==='"'){inDbl=true;out+=c;continue;}
+    if(c==="'"){inSgl=true;out+='"';continue;}
+    out+=c;
+  }
+  if(inSgl)out+='"';
+  return out;
+}
+
+/** Dopisz cudzysłowy do niecytowanych kluczy: {planName: → {"planName": */
+function aplQuoteBareKeys(input){
+  let s=String(input||'');
+  let out='';
+  let inStr=false,esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      out+=c;
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+      continue;
+    }
+    if(c==='"'){inStr=true;out+=c;continue;}
+    if((c==='{'||c===','||c==='[') ){
+      out+=c;
+      let j=i+1;
+      while(j<s.length&&/[\s\n\r\t]/.test(s[j])){out+=s[j];j++;}
+      if(j<s.length&&/[A-Za-z_$]/.test(s[j])){
+        const start=j;
+        j++;
+        while(j<s.length&&/[A-Za-z0-9_$]/.test(s[j]))j++;
+        let k=j;
+        while(k<s.length&&/[\s\n\r\t]/.test(s[k]))k++;
+        if(s[k]===':'){
+          out+='"'+s.slice(start,j)+'"';
+          i=j-1;
+          continue;
+        }
+      }
+      i=j-1;
+      continue;
+    }
+    out+=c;
+  }
+  return out;
+}
+
+function aplRepairJsonText(input){
+  let s=String(input||'')
+    .replace(/```(?:json)?/gi,'')
+    .replace(/[\u201C\u201D\u00AB\u00BB]/g,'"')
+    .replace(/[\u2018\u2019]/g,"'")
+    .trim();
+  s=aplExtractJsonObject(s);
+  s=aplNormalizeSingleQuotes(s);
+  s=aplQuoteBareKeys(s);
+  s=aplEscapeInnerQuotes(s);
+
+  let inStr=false,esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+    }else if(c==='"')inStr=true;
+  }
+  if(inStr)s+='"';
+
+  const isWs=c=>c===' '||c==='\n'||c==='\r'||c==='\t';
+  let out='';
+  inStr=false;esc=false;
+  let lastSig='';
+  let lit='';
+  const flushLit=()=>{
+    if(!lit)return;
+    out+=lit;
+    lastSig=lit[lit.length-1];
+    lit='';
+  };
+  const maybeComma=()=>{
+    if(lastSig==='}'||lastSig===']'||lastSig==='"'||(lastSig>='0'&&lastSig<='9')||lastSig==='e'||lastSig==='l'){
+      // e/l tylko po pełnym true/false/null
+      if(lastSig==='e'||lastSig==='l'){
+        const tail=out.slice(-5);
+        if(!/(true|false|null)$/.test(tail))return;
+      }
+      out+=',';
+    }
+  };
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      flushLit();
+      out+=c;
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"'){inStr=false;lastSig='"';}
+      continue;
+    }
+    if(isWs(c)){flushLit();out+=c;continue;}
+    if(c===','){
+      flushLit();
+      out=out.replace(/,(\s*)$/,'$1');
+      out+=c;
+      lastSig=',';
+      continue;
+    }
+    if(c==='"'){
+      flushLit();
+      maybeComma();
+      inStr=true;
+      out+=c;
+      lastSig='"';
+      continue;
+    }
+    if(c==='}'||c===']'){
+      flushLit();
+      out=out.replace(/,(\s*)$/,'$1');
+      out+=c;
+      lastSig=c;
+      continue;
+    }
+    if(c==='{'||c==='['){
+      flushLit();
+      maybeComma();
+      out+=c;
+      lastSig=c;
+      continue;
+    }
+    if(c===':'){
+      flushLit();
+      out+=c;
+      lastSig=':';
+      continue;
+    }
+    if(c==='-'||(c>='0'&&c<='9')||c==='.'||c==='e'||c==='E'||c==='+'||/[a-zA-Z_$]/.test(c)){
+      if(!lit)maybeComma();
+      lit+=c;
+      continue;
+    }
+    flushLit();
+    out+=c;
+    lastSig=c;
+  }
+  flushLit();
+
+  inStr=false;esc=false;
+  const stack=[];
+  for(let i=0;i<out.length;i++){
+    const c=out[i];
+    if(inStr){
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+      continue;
+    }
+    if(c==='"'){inStr=true;continue;}
+    if(c==='{')stack.push('}');
+    else if(c==='[')stack.push(']');
+    else if(c==='}'||c===']')stack.pop();
+  }
+  while(stack.length)out+=stack.pop();
+  return out.replace(/,(\s*[}\]])/g,'$1').replace(/,\s*,+/g,',');
+}
+
+function aplParsePlanJson(raw){
+  const attempts=[
+    ()=>JSON.parse(aplRepairJsonText(raw)),
+    ()=>JSON.parse(aplEscapeInnerQuotes(aplExtractJsonObject(String(raw||'').replace(/```(?:json)?/gi,'').trim()))),
+    ()=>{
+      const clean=String(raw||'').replace(/```(?:json)?/gi,'').trim();
+      const m=clean.match(/\{[\s\S]*\}/);
+      if(!m)throw new Error('Brak JSON w odpowiedzi AI');
+      return JSON.parse(aplRepairJsonText(m[0]));
+    }
+  ];
+  let lastErr=null;
+  for(const tryParse of attempts){
+    try{return aplNormalizeGeneratedPlan(tryParse());}catch(e){lastErr=e;}
+  }
+  throw lastErr||new Error('Nie udało się sparsować planu AI');
+}
+function aplNormalizeGeneratedPlan(plan){
+  if(!plan||typeof plan!=='object')return plan;
+  if((!Array.isArray(plan.days)||!plan.days.length)&&Array.isArray(plan.workout_plan))plan.days=plan.workout_plan;
+  if(!plan.mezocycle_overview&&plan.summary)plan.mezocycle_overview=plan.summary;
+  if(!plan.summary&&plan.mezocycle_overview)plan.summary=plan.mezocycle_overview;
+  const notes=plan.adaptation_notes||plan.adaptationNotes||'';
+  if(notes)plan.adaptation_notes=notes;
+  if(!Array.isArray(plan.weekly_progression_schema)&&plan.weeklyProgressionSchema)plan.weekly_progression_schema=plan.weeklyProgressionSchema;
+  return plan;
+}
+window.aplNormalizeGeneratedPlan=aplNormalizeGeneratedPlan;
+window.aplExtractJsonObject=aplExtractJsonObject;
+window.aplEscapeInnerQuotes=aplEscapeInnerQuotes;
+window.aplNormalizeSingleQuotes=aplNormalizeSingleQuotes;
+window.aplQuoteBareKeys=aplQuoteBareKeys;
+window.aplRepairJsonText=aplRepairJsonText;
+window.aplParsePlanJson=aplParsePlanJson;
+
+async function aplAnthropicRequest(payload,maxRetries=3){
+  const url=typeof W!=='undefined'?W:'https://anthropic-proxy.teamprogress2018.workers.dev/';
+  let lastStatus=0;
+  let lastBody='';
+  for(let attempt=0;attempt<=maxRetries;attempt++){
+    if(attempt>0){
+      await new Promise(r=>setTimeout(r,attempt*4000));
+      if((lastStatus===524||lastStatus===503||lastStatus===429)&&payload.max_tokens>2800){
+        payload.max_tokens=Math.max(2800,payload.max_tokens-800);
+      }
+      if(lastStatus===400&&payload.max_tokens>2400){
+        payload.max_tokens=Math.max(2400,Math.floor(payload.max_tokens*0.75));
+      }
+    }
+    const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    lastStatus=resp.status;
+    if(resp.ok){
+      const data=await resp.json();
+      if(data?.error)throw new Error(data.error.message||String(data.error));
+      return data;
+    }
+    try{lastBody=await resp.text();}catch(e){lastBody='';}
+    try{console.warn('aplAnthropicRequest fail',lastStatus,String(lastBody||'').slice(0,240));}catch(e){}
+    const retryable=lastStatus===429||lastStatus===503||lastStatus===524||lastStatus===502||lastStatus===400;
+    if(attempt===maxRetries||!retryable){
+      if(lastStatus===400)throw new Error('Żądanie AI odrzucone (status 400). Spróbuj krótszego planu lub mniejszej liczby dni.');
+      if(lastStatus===429||lastStatus===503||lastStatus===524)throw new Error('Serwer AI przeciążony (status '+lastStatus+') po '+(attempt+1)+' próbach.');
+      throw new Error('Błąd API AI (status '+lastStatus+')'+(lastBody?' — '+String(lastBody).slice(0,120):''));
+    }
+  }
+}
+
+function aplSetGenProgress(msg){
+  const el=document.getElementById('apl-gen-status');
+  if(el)el.textContent=msg;
+}
+
+// Twarda, programistyczna gwarancja poprawnej kolejności ćwiczeń — niezależna od tego,
+// czy model AI zastosował się do instrukcji w prompcie. Grupuje ćwiczenia tej samej
+// partii razem (stabilnie, wg kolejności pierwszego wystąpienia), zachowując ćwiczenia
+// priorytetowe na początku sesji.
+function aplNormalizeMuscleCategory(ex){
+  const blob=(String(ex.muscleGroup||'')+' '+String(ex.name||'')).toLowerCase();
+  const categories=[
+    ['klatka',/klatk/],
+    ['plecy',/plec|grzbiet/],
+    ['barki',/bark/],
+    ['biceps',/biceps/],
+    ['triceps',/triceps/],
+    ['posladki',/po[śs]ladk|hip thrust|glute/],
+    ['nogi',/czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|przysiad|wykrok|leg press|quad/],
+    ['lydki',/[łl]ydk|calf/],
+    ['core',/brzuch|\bcore\b|skos.*brzuch|abs\b/],
+  ];
+  for(const [key,re] of categories){ if(re.test(blob))return key; }
+  return 'inne';
+}
+
+function aplRegroupExercisesByMuscle(plan,client){
+  (plan.days||[]).forEach(day=>{
+    const exs=day.exercises||[];
+    if(exs.length<3)return;
+
+    const seenOrder=[],groups={};
+    exs.forEach(ex=>{
+      const cat=aplNormalizeMuscleCategory(ex);
+      if(!groups[cat]){groups[cat]=[];seenOrder.push(cat);}
+      groups[cat].push(ex);
+    });
+    day.exercises=seenOrder.flatMap(cat=>groups[cat]);
+  });
+}
+
+async function aplGenerate(){
+  if(aplGenerating)return;
+  const goal=aplGetVal('apl-goals');
+  const level=aplGetVal('apl-levels');
+  const method=aplGetVal('apl-methods');
+  const days=aplGetVal('apl-days');
+  const duration=aplGetVal('apl-duration');
+  const weeks=aplGetVal('apl-weeks');
+  const equipment=aplGetMulti('apl-equipment');
+  const intensify=aplGetMulti('apl-intensify');
+  const age=document.getElementById('apl-age').value;
+  const weight=document.getElementById('apl-weight').value;
+  const height=document.getElementById('apl-height').value;
+  const gender=document.getElementById('apl-gender').value;
+  const injuries=document.getElementById('apl-injuries').value;
+  const pharmaStatus=document.getElementById('apl-pharma-status')?.value||'';
+  const pharmaDetails=document.getElementById('apl-pharma-details')?.value||'';
+  const notesRaw=document.getElementById('apl-notes')?.value||'';
+  const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim();
+  const cid=document.getElementById('apl-client').value;
+  const client=cid?CL.find(x=>x.id===cid):null;
+  const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('apl'):null;
+  if(typeof aplPersistClientForm==='function')aplPersistClientForm();
+
+  // anatomia i biomechanika
+  const femur=document.getElementById('apl-femur')?.value||'';
+  const wingspan=document.getElementById('apl-wingspan')?.value||'';
+  const ankle=document.getElementById('apl-ankle')?.value||'';
+  const pelvis=document.getElementById('apl-pelvis')?.value||'';
+  const asymmetry=document.getElementById('apl-asymmetry')?.value||'';
+
+  // styl zycia
+  const job=document.getElementById('apl-job')?.value||'';
+  const standingPattern=document.getElementById('apl-standing-pattern')?.value||'';
+  const jobDetail=document.getElementById('apl-job-detail')?.value||'';
+  const sleepLabels=['fatalna','słaba','średnia','dobra','świetna'];
+  const stressLabels=['niski','lekki','średni','wysoki','bardzo wysoki'];
+  const sleep=sleepLabels[(document.getElementById('apl-sleep')?.value||3)-1];
+  const stress=stressLabels[(document.getElementById('apl-stress')?.value||3)-1];
+
+  // progresja
+  const progression=aplGetVal('apl-progression')||'ai';
+
+  const weeksNum = parseInt(weeks)||8;
+  const weekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,weeksNum);
+  const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys,goal):{};
+  const hypertrophyGoal=typeof aplIsHypertrophyGoal==='function'&&aplIsHypertrophyGoal(goal);
+
+  if(!goal||!level||!method||!days){
+    notify('⚠ Uzupełnij wymagane pola!');return;
+  }
+
+  aplGenerating=true;
+  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.disabled=true;b.textContent='⏳ Generuję...';}
+  });
+
+  const res=document.getElementById('apl-result');
+  res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;gap:20px;">
+    <div style="width:56px;height:56px;border-radius:16px;background:var(--adim);display:flex;align-items:center;justify-content:center;">
+      <div class="ai-dot" style="width:16px;height:16px;"></div>
+    </div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);">AI GENERUJE PLAN...</div>
+    <div id="apl-gen-status" style="font-size:12px;color:var(--muted);max-width:320px;text-align:center;line-height:1.7;">Analizuję parametry i tworzę plan ${method} na ${weeks} tygodni… To zwykle trwa 60–90 sekund.</div>
+    <div style="display:flex;gap:6px;">${[0,1,2].map(i=>`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s ${i*0.2}s infinite;"></div>`).join('')}</div>
+  </div>`;
+
+  const progressionInstructions={
+    linear:'PROGRESJA LINIOWA: każdy tydzień +2.5-5kg przy tych samych seriach i powtórzeniach.',
+    dup:hypertrophyGoal
+      ?'DUP w STREFIE HIPERTROFII: A 6–8 (złożone), B 8–12, C 12–15 (izolacje). ZAKAZ 1–5 powtórzeń i faz siły maksymalnej.'
+      :'DUP (Daily Undulating Periodization): każda sesja inne zakresy — A: 4-6 powt. (siła), B: 8-12 (hipertrofia), C: 15-20 (wytrzymałość).',
+    wave:'FALUJĄCA TYGODNIOWA: tygodnie nieparzyste = wyższa objętość RPE 7-8, parzyste = wyższa intensywność RPE 8-9.',
+    block:hypertrophyGoal
+      ?'BLOK HIPERTROFII: tyg. 1–3 Akumulacja I (RIR 2–3, 8–12 powt.), tyg. 4–6 Akumulacja II (RIR 1–2, drop-set/rest-pause na izolacjach), tyg. 7 Pik objętości (RIR 0–1), tyg. 8 Deload (objętość −40–50%, RIR 3–4). Bez faz 1–3 powt.'
+      :'BLOKOWA: pierwsze tygodnie Akumulacja (10-15 powt. RPE 6-7), środkowe Intensyfikacja (6-8 powt. RPE 8-9), ostatni tydzień Deload, potem Realizacja.',
+    double:'PODWÓJNA PROGRESJA: dodawaj 1 powt./tydzień do górnego zakresu, potem +2.5-5kg i reset do dolnego zakresu powtórzeń.',
+    smolov:'SMOLOV (przysiad): mikrocykl %1RM — T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6 (dostosuj do długości planu). Reszta ciała: utrzymanie, bez dokładania objętości nóg poza przysiadami Smolova. Deload po cyklu.',
+  };
+  const methodDefaultProg=APL_METHOD_PROGRESSION[method]||'linear';
+  const effectiveProg=progression==='ai'?methodDefaultProg:progression;
+  const progressionInstruction = progression==='ai'
+    ? ('AI dobiera progresję — dla metody „'+method+'” domyślnie: '+progressionInstructions[effectiveProg||'linear']+'. Uzasadnij wybór w polu "periodization".')
+    : progressionInstructions[effectiveProg]||progressionInstructions.linear;
+  const structureHint=typeof aplMethodStructureHint==='function'?aplMethodStructureHint(method):'';
+
+  const wuEx = `[{"name":"Krążenia ramion","emoji":"🔄","sets":"2x","reps":"15","note":"mobilizacja"},{"name":"Aktywacja pośladków z gumą","emoji":"🍑","sets":"2x","reps":"12","note":"aktywacja"}]`;
+
+  if(typeof kbPrepareResearch==='function')await kbPrepareResearch();
+  const systemPrompt=`Jesteś ekspertem programowania treningowego z certyfikatami NSCA CSCS i NASM CPT. Tworzysz szczegółowe plany treningowe w języku polskim.
+
+WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
+{
+  "planName": "Nazwa planu",
+  "summary": "3–5 zdań dla trenera początkującego: dlaczego ta metoda, dlaczego taka objętość serii (nawiąż do MEV/MAV), dlaczego ten RPE/zakres powtórzeń dla poziomu klienta",
+  "rationale": {
+    "clientData": ["Wyłącznie fakty podane w danych klienta, istotne dla wyboru planu"],
+    "reasoning": ["Krótko: jaka decyzja, na podstawie którego faktu i dlaczego"],
+    "uncertainties": ["Brakujące dane i założenia, które trener powinien sprawdzić"],
+    "reviewTriggers": ["Kiedy ponownie ocenić plan na podstawie realizacji i informacji od klienta"],
+    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: tytuł i PMID, DOI lub adres. Jeśli brak pasującego źródła, pusta lista."]
+  },
+  "method": "Nazwa metody",
+  "weeks": ${weeksNum},
+  "daysPerWeek": liczba,
+  "sessionDuration": liczba_minut,
+  "periodization": "Opis periodyzacji (np. progresja liniowa 2.5kg/tyg)",
+  "mezocycle_overview": "Krótkie podsumowanie założeń 8-tygodniowego bloku hipertrofii (akumulacja → pik → deload, bez faz siły 1–3 powt.)",
+  "weekly_progression_schema": [
+    {"week":1,"phase":"Akumulacja I","rir":"2–3","reps":"8–12","volume":"100%","notes":"Baza objętości"}
+  ],
+  "deload": "Opis tygodnia deload (co ile tygodni i jak)",
+  "warmup": "Ogólny protokół rozgrzewki 5-8 min (opis tekstowy, ponad sesjami)",
+  "cooldown": "Protokół cool-down / schłodzenia",
+  "nutritionTip": "Krótka wskazówka żywieniowa dopasowana do celu",
+  "days": [
+    {
+      "dayName": "Dzień 1 — Push / Klatka, barki, triceps",
+      "focus": "Klatka piersiowa, barki, triceps",
+      "warmupExercises": ${wuEx},
+      "exercises": [
+        {
+          "name": "Wyciskanie sztangi leżąc (płaskie)",
+          "notes": "Ćwiczenie bazowe — priorytet siłowy, uwaga techniczna",
+          "muscleGroup": "Klatka",
+          "sets": "4",
+          "reps": "8-10",
+          "rest": "90s",
+          "rpe": "7",
+          "rir": "3",
+          "kg": "60",
+          "tempo": "3-1-1-0"
+        }
+      ]
+    }
+  ],
+  "progressionRules": ["Regułą 1", "Reguła 2"],
+  "keyExercises": ["Ćwiczenie kluczowe 1", "Ćwiczenie kluczowe 2"],
+  "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"},
+  "adaptation_notes": "Zmniejszono objętość nóg o ~25% przez 3× Nordic walking 8–10 km; dodano deskę kopenhaską i uginanie nordyckie pod mecz w niedzielę. Ciężkie nogi we wt/śr, nie w sobotę.",
+  "workout_plan": "(alias opcjonalny — to samo co days)"
+}
+
+Podaj wartości TYLKO dla tygodnia 1 (bazowe). Pole "kg" podaj jako sam SUGEROWANY CIĘŻAR STARTOWY W KG (liczba, np. "60"), albo pusty string jeśli niemożliwe do oszacowania — resztę tygodni (progresję) obliczy aplikacja automatycznie na podstawie wybranej metody progresji.
+
+WARMUP KAŻDEJ SESJI: "warmupExercises" to lista DOKŁADNIE 3 ćwiczeń mobilizacyjno-aktywacyjnych SPECYFICZNYCH dla tej sesji (nie ogólnikowych), z polami name/emoji/sets/reps/note.
+
+FAZY TYGODNI (skopiuj do "weekly_progression_schema"; aplikacja liczy serie/RIR na tyg. 2+): ${JSON.stringify(phasesMap)}
+
+
+METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
+${structureHint?`\nSTRUKTURA METODY (obowiązkowa): ${structureHint}`:''}
+
+OBOWIĄZKOWE PROGI OBJĘTOŚCI (MEV/MAV/MRV) NA PARTIĘ NA TYDZIEŃ — liczba serii roboczych zsumowana ze WSZYSTKICH dni treningowych w całym tygodniu:
+Klatka: MEV 10 / MAV 14-18 / MRV 20
+Plecy: MEV 10 / MAV 14-20 / MRV 22
+Barki: MEV 12 / MAV 16-20 / MRV 22
+Biceps: MEV 8 / MAV 10-14 / MRV 16
+Triceps: MEV 8 / MAV 10-14 / MRV 16
+Nogi (czworogłowe): MEV 12 / MAV 16-20 / MRV 24
+Pośladki: MEV 6 / MAV 10-14 / MRV 16
+Core: MEV 8 / MAV 10-14 / MRV 16
+Wg stażu: Początkujący → doln half MEV-MAV. Średni → środek/góra MAV. Zaawansowany → góra MAV, blisko MRV.
+${pharmaStatus?`
+DOSTOSOWANIE OBJĘTOŚCI DO STATUSU FARMAKOLOGICZNEGO (nadrzędne wobec progów "Wg stażu" powyżej):
+${pharmaStatus==='wspomagany'?'Klient WSPOMAGANY farmakologicznie (sterydy anaboliczno-androgenne) — jego zdolność regeneracji (MRV) jest istotnie wyższa niż u naturalnego sportowca o tym samym stażu. Planuj objętość w GÓRNEJ części MAV lub PONAD standardowe MRV z tabeli (nawet +20-40% serii tygodniowo na partię), krótsze przerwy między seriami są tolerowane lepiej, częstotliwość 2-3×/tydzień na partię jest bezpieczna nawet przy wyższej intensywności. Mimo to zachowaj progresję stopniowo — nie zaczynaj od razu od maksimum.':pharmaStatus==='TRT'?'Klient na TRT (fizjologiczne dawki testosteronu) — regeneracja umiarkowanie lepsza niż przy niedoborze naturalnym, ale NIE traktuj jak wspomaganego. Planuj górną część MAV z tabeli, bez przekraczania MRV.':'Klient naturalny — trzymaj się dokładnie progów MEV/MAV/MRV z tabeli powyżej, bez podwyższania.'}
+`:''}
+
+OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla KAŻDEJ partii zsumuj w pamięci liczbę serii roboczych ze WSZYSTKICH dni treningowych tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Jeśli suma dla jakiejkolwiek partii jest PONIŻEJ MEV z tabeli — to błąd krytyczny: dodaj kolejne ćwiczenie lub serię w jednym z dni, zanim oddasz plan. Pole "weeklyVolume" w JSON MUSI odzwierciedlać faktyczną, sprawdzoną sumę, nie szacunek.
+SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: gdy dana partia (np. barki, biceps) pojawia się tylko w części dni tygodnia, łatwo przypadkiem zejść poniżej MEV mimo że pojedynczy dzień "wygląda nieźle" — zawsze licz sumę tygodniową, nie objętość jednego dnia.
+
+METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. Jeśli zaznaczono, w polu "notes" wybranych ćwiczeń zaznacz zastosowaną metodę (np. "Drop-set na ostatniej serii: -20% ciężaru do upadku").
+
+UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
+
+BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE — ponad objętością MEV):
+1. Uwzględnij WAŻĘ, BMI, kontuzje, wady postawy i analizę postawy z kontekstu użytkownika — plan NIE MOŻE szkodzić.
+2. Przy wyższej masie ciała (≥95 kg lub BMI≥30): maszyny/stabilne warianty, bez plyometrii i skoków, konserwatywne kg i RPE.
+3. Przy wadach postawy / bólu kręgosłupa / kolan / barków: stosuj zasady korekcyjne z kontekstu; unikaj ćwiczeń z ostrzeżeń analizy postawy.
+4. W notes ćwiczeń dodaj krótką uwagę bezpieczeństwa, gdy wariant jest zmodyfikowany pod ograniczenie.
+
+UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie, Nordic walking) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
+
+AKTYWNOŚCI DODATKOWE (gdy podane w kontekście użytkownika): przeanalizuj każdą. Jeśli obciąża dane partie, zmniejsz na nie objętość na siłowni (serie / RIR) albo dodaj ćwiczenia kompensacyjne i prewencyjne. W polu "adaptation_notes" uzasadnij konkretnie (partie, %, ćwiczenia). Przy meczu w niedzielę nie planuj ciężkich nóg w sobotę ani w poniedziałek.
+
+ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/kształtowanie):
+1. CZĘSTOTLIWOŚĆ: każda główna partia (klatka, plecy, barki, czworogłowe, dwugłowe/pośladki, ramiona) musi być zastymulowana CO NAJMNIEJ 2× w tygodniu (suma serii z wielu dni). Przy 3 dniach użyj struktury: Dzień 1 = Push + czworogłowe; Dzień 2 = Pull + dwugłowe; Dzień 3 = Upper (klatka+plecy+barki+ramiona) — chyba że trener wybrał inną metodę i liczbę dni.
+2. PRIORYTET SYLWETKOWY: jeśli podano weak points — 1–2 PIERWSZE ćwiczenia danej sesji (po rozgrzewce) MUSZĄ celować w te partie, gdy sesja je stymuluje. Nie chowaj priorytetu na koniec.
+2b. GRUPOWANIE PARTII (KRYTYCZNE): po ustaleniu kolejności ćwiczeń NIGDY nie wracaj do partii mięśniowej, która już się skończyła w tej sesji. Wszystkie ćwiczenia tej samej głównej partii (np. plecy) muszą stać RAZEM, jedno po drugim — dopiero potem przechodzisz do kolejnej partii i zostajesz przy niej do końca jej ćwiczeń. Błędny przykład (ZABRONIONE): Plecy, Plecy, Pośladki, Plecy, Nogi — bo "Plecy" wraca po przerwie na "Pośladki". Poprawny przykład: Plecy, Plecy, Plecy, Pośladki, Nogi, Nogi.
+3. DOBÓR ĆWICZEŃ: przy priorytetach i izolacjach preferuj wysoką stabilizację (maszyny, suwnica Smitha, wyciągi) oraz warianty w pozycji wydłużonej (lengthened / stretch-mediated hypertrophy) z pauzą 1s w rozciągnięciu.
+4. PARAMETRY: 3–4 serie robocze na ćwiczenie; złożone 6–15 powt. (typowe 8–12), izolacje/maszyny 10–15 lub 15–20; intensywność blisko upadku wg fazy (RIR, nie 1–3 powt.). W JSON dodaj "tempo" "3-1-1-0" i "rir" (liczba) oraz "rest" (wielostawy 90–180 s, izolacje 60–90 s).
+5. W schema ćwiczenia: name, notes, muscleGroup, sets, reps, rest, rpe, rir, kg, tempo (opcjonalne ale wymagane dla priorytetów).
+${hypertrophyGoal?`
+MEZOCYKL HIPERTROFII (OBOWIĄZKOWY — cel masa/kształtowanie):
+Plan jest WYŁĄCZNIE hipertroficzny. ZAKAZ faz siły maksymalnej, 1–3 powtórzeń, akomodacji układu nerwowego i zakresów <6 na seriach roboczych.
+Tyg. 1–3 Akumulacja I: RIR 2–3, baza objętości.
+Tyg. 4–6 Akumulacja II: RIR 1–2; na izolacjach drop-set lub rest-pause (wpisz w notes).
+Tyg. 7 Pik objętości: RIR 0–1 w kluczowych seriach.
+Tyg. 8 Deload: objętość −40–50%, RIR 3–4.
+Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (tablica tygodni 1–${weeksNum} z phase/rir/reps/volume/notes). "days" = workout_plan.
+`:''}
+
+Każdy dzień: 4–6 ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
+  +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
+
+  const userMsg=`Stwórz plan treningowy:
+- Cel: ${goal}
+- Poziom: ${level}
+- Metoda: ${method}
+- Dni/tydzień: ${days}
+- Czas sesji: ${duration} minut
+- Długość planu: ${weeks} tygodni
+- Sprzęt: ${equipment.join(', ')||'pełna siłownia'}
+${age?`- Wiek: ${age} lat`:''}
+${gender?`- Płeć: ${gender}`:''}
+${weight?`- Waga: ${weight} kg`:''}
+${height?`- Wzrost: ${height} cm`:''}
+${injuries?`- Kontuzje/ograniczenia: ${injuries}`:''}
+${pharmaStatus?`- Status farmakologiczny: ${pharmaStatus==='wspomagany'?'WSPOMAGANY (sterydy anaboliczno-androgenne)':pharmaStatus==='TRT'?'TRT (dawki fizjologiczne)':'Naturalny'}${pharmaDetails?` — ${pharmaDetails}`:''}`:''}
+${typeof readPhysiquePriorityFrom==='function'&&readPhysiquePriorityFrom('apl').length?clientPhysiquePriorityForAI(client,readPhysiquePriorityFrom('apl')):(client&&typeof clientPhysiquePriorityForAI==='function'?clientPhysiquePriorityForAI(client):'')}
+${femur?`- Długość kości udowej: ${femur}`:''}
+${wingspan?`- Zasięg ramion: ${wingspan}`:''}
+${ankle?`- Mobilność stawu skokowego: ${ankle}`:''}
+${pelvis?`- Budowa miednicy: ${pelvis}`:''}
+${asymmetry?`- Dominacja stron/asymetrie: ${asymmetry}`:''}
+${job?`- Rodzaj pracy (NEAT): ${job}`:''}
+${standingPattern?`- Wzorzec pracy stojącej: ${standingPattern}${jobDetail?` (${jobDetail})`:''} — WNIOSKUJ prawdopodobne przeciążenia/wady postawy wynikające z tego wzorca (np. jednostronna praca z uniesionymi rękami → przeciążenie barku dominującego, skrócenie górnego czworobocznego, asymetria łopatek; praca pochylona z rotacją → przeciążenie odcinka L-S, jednostronne skrócenie zginaczy bioder) i UWZGLĘDNIJ to w doborze ćwiczeń korekcyjnych/mobilizacyjnych oraz w priorytetach sesji, nawet jeśli klient nie zgłosił wprost kontuzji.`:''}
+- Jakość snu: ${sleep}
+- Poziom stresu: ${stress}
+${notes?`- Dodatkowe uwagi: ${notes}`:''}
+${window._aplFiteboContinue&&window._aplFiteboContinue.context?`
+KONTYNUACJA PLANU Z FITEBO (OBOWIĄZKOWE):
+To kolejny mezocykl na bazie treningów zaimportowanych z Fitebo.
+ZACHOWAJ te same ćwiczenia i podział dni (Push/Pull/Legs albo jak w logach). Nie zamieniaj na inne warianty bez powodu (kontuzja / brak sprzętu).
+Tydzień 1 = ostatnie ciężary i zakresy z logów. Dalej progresja (podwójna: +1 powt. do górnego zakresu, potem +2.5–5 kg i reset powtórzeń). Nie zaniżaj kg poniżej logów.
+LOG / STRUKTURA:
+${window._aplFiteboContinue.context}
+`:''}
+${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:sportBg?sportBg.priorSports:(typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[])),additional_activities:sportBg?sportBg.additional_activities:(client.additional_activities||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
+${cid&&typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(cid):''}
+${(typeof clientSafetyContextForAI==='function'?clientSafetyContextForAI(cid||null,{weight,height,injuries,gender}):'')}
+${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`
+  +(method==='Obwodowy'||/^obwod|circuit/i.test(String(method||''))?`
+
+STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
+- Każdy dzień = 1–2 obwody (stacje). W "exercises" ułóż 5–8 stacji wykonywanych po kolei; w "notes" napisz np. "Stacja 1/6 — przejście bez odpoczynku" lub "Runda 2/3".
+- Przerwy: 0–30 s między stacjami, 90–180 s między rundami (pole "rest"). Powtórzenia często czasowe (np. "40s") lub 10–15.
+- RPE 6–8 (kondycja), nie gonij RPE 10 na każdej stacji. Dla redukcji OK; przy sile dodaj 1 ciężki wielostaw na start dnia z dłuższą przerwą.
+- dayName np. "Dzień 1 — Obwód A (full body)" / "Obwód B (góra+core)".`:'');
+
+  try{
+    const totalDays=parseInt(days)||4;
+    // Mniejsze chunki = krótsza odpowiedź JSON, mniej ucięć i błędów parse (4 dni naraz padało często).
+    const chunkSize=totalDays<=2?totalDays:2;
+    const chunks=[];
+    for(let i=0;i<totalDays;i+=chunkSize)chunks.push({from:i+1,to:Math.min(i+chunkSize,totalDays)});
+    let plan=null;
+    for(let ci=0;ci<chunks.length;ci++){
+      const {from,to}=chunks[ci];
+      const chunkDays=to-from+1;
+      const isFirst=ci===0;
+      if(chunks.length>1){
+        aplSetGenProgress(`Generuję dni ${from}–${to} z ${totalDays} (część ${ci+1}/${chunks.length})…`);
+      }
+      let chunkSystem=systemPrompt;
+      let chunkUser=userMsg;
+      if(chunks.length>1){
+        if(isFirst){
+          chunkSystem+=`\n\nW TEJ ODPOWIEDZI wygeneruj TYLKO dni ${from}–${to} z ${totalDays}. Dołącz pełną strukturę planu (planName, summary, periodization itd.), ale w "days" tylko te ${chunkDays} dni.`;
+        }else{
+          chunkSystem=`Kontynuuj plan treningowy w języku polskim. Zwróć TYLKO JSON (bez markdown): {"days":[...]} z DOKŁADNIE ${chunkDays} dniami (numeracja ${from}–${to} z ${totalDays}). Każdy dzień: dayName, focus, warmupExercises (3), exercises (4 główne + 1 core) z polami name, notes (max 60 znaków), muscleGroup, sets, reps, rest, rpe, kg, tempo.
+
+ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
+1. Każda główna partia ≥2×/tydzień (suma serii z wielu dni).
+2. PRIORYTET SYLWETKOWY: 1–2 pierwsze ćwiczenia sesji (po rozgrzewce) na weak points, gdy sesja je stymuluje.
+2b. GRUPOWANIE PARTII: nigdy nie wracaj do partii, która już się skończyła w tej sesji — wszystkie ćwiczenia tej samej partii stoją razem, jedno po drugim (np. Plecy,Plecy,Plecy,Nogi,Nogi — NIE: Plecy,Nogi,Plecy).
+3. Preferuj maszyny / Smith / wyciągi i warianty lengthened / stretch-mediated z pauzą 1s w rozciągnięciu.
+4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
+5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`;
+          chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
+        }
+      }
+      let chunkPlan=null;
+      let chunkRaw='';
+      for(let parseTry=0;parseTry<3;parseTry++){
+        try{
+          const data=await aplAnthropicRequest({
+            model:'claude-sonnet-4-20250514',
+            max_tokens:aplPlanTokenBudget(chunkDays)-(parseTry?400*parseTry:0),
+            system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON z podwójnymi cudzysłowami przy kluczach i stringach. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown, bez komentarzy.': ''),
+            messages:[{role:'user',content:chunkUser+(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': '')}]
+          });
+          chunkRaw=data?.content?.[0]?.text||'';
+          if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
+          chunkPlan=aplParsePlanJson(chunkRaw);
+          break;
+        }catch(parseErr){
+          const msg=String(parseErr?.message||parseErr||'');
+          const isJson=/JSON|parse|Expected|,|\]|Unexpected|Brak JSON|property name/i.test(msg);
+          const isOverload=/przeciążon|429|503|524/i.test(msg);
+          if(parseTry<2&&(isJson||isOverload))continue;
+          throw parseErr;
+        }
+      }
+      if(!chunkPlan||!(chunkPlan.days||[]).length)throw new Error('AI zwróciło plan bez dni treningowych');
+      if(isFirst)plan=chunkPlan;
+      else plan.days=(plan.days||[]).concat(chunkPlan.days||[]);
+    }
+    aplLastPlan=plan;
+    aplLastClient=client;
+    plan.phases=phasesMap;
+    plan.weekKeys=weekKeys;
+    plan.progression=progression||plan.progression||'linear';
+    plan.currentWeek=plan.currentWeek||weekKeys[0];
+    if(hypertrophyGoal){
+      if(!Array.isArray(plan.weekly_progression_schema)||!plan.weekly_progression_schema.length){
+        plan.weekly_progression_schema=aplDefaultHypertrophySchema(weeksNum,weekKeys);
+      }
+      if(!plan.mezocycle_overview)plan.mezocycle_overview=plan.summary||'';
+    }
+    (plan.days||[]).forEach(d=>{
+      (d.exercises||[]).forEach(ex=>{
+        ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';ex.rir=ex.rir||ex.rpe||'7';
+        aplComputeProgression(ex,weekKeys,phasesMap,progression);
+      });
+    });
+    aplRegroupExercisesByMuscle(plan,client);
+    aplRenderPlan(plan,client,goal,method,days,weeks);
+  }catch(e){
+    console.error('aplGenerate błąd:',e);
+    const msg=String(e?.message||e||'');
+    const isTimeout=/524|503|429|przeciążon|timeout/i.test(msg);
+    const isBadReq=/status 400|odrzucone/i.test(msg);
+    const isJson=/JSON|parse|Expected|,|\]|Unexpected|property name|Brak JSON/i.test(msg);
+    const title=isTimeout?'Serwer AI jest chwilowo przeciążony':isBadReq?'Żądanie AI zostało odrzucone':isJson?'AI zwróciło niekompletny plan':'Błąd generowania planu';
+    const hint=isTimeout?'To zwykle mija po chwili. Odczekaj 30-60 sekund i spróbuj ponownie.':isBadReq?'Spróbuj mniejszej liczby dni (np. 3–4) albo krótszego planu 4 tyg. i wygeneruj ponownie.':isJson?'Spróbuj ponownie — generator naprawia uszkodzony JSON, ale czasem trzeba powtórzyć żądanie.':'Sprawdź połączenie internetowe i spróbuj ponownie.';
+    res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
+      <div style="font-size:40px;">${isTimeout?'⏱️':'❌'}</div>
+      <div style="font-size:15px;font-weight:700;color:var(--red);">${title}</div>
+      <div style="font-size:12px;color:var(--muted);max-width:360px;">${hint}</div>
+      <button class="btn btn-primary" onclick="aplGenerate()">↺ Spróbuj ponownie</button>
+    </div>`;
+  }
+
+  aplGenerating=false;
+  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.disabled=false;b.innerHTML='✨ Generuj plan';}
+  });
+}
+
+function aplPlanWhyHTML(plan){
+  const r=plan&&plan.rationale;
+  if(!r||typeof r!=='object'||Array.isArray(r))return '';
+  const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const section=(key,label,empty)=>{
+    const values=Array.isArray(r[key])?r[key].filter(x=>typeof x==='string'&&x.trim()).slice(0,6):[];
+    return '<div style="margin-top:10px;"><strong>'+label+'</strong>'+(values.length?'<ul style="margin:5px 0;padding-left:20px;">'+values.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p style="margin:5px 0;color:var(--muted);">'+empty+'</p>')+'</div>';
+  };
+  return '<details data-apl-why style="margin-top:14px;padding:12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);"><summary style="cursor:pointer;font-weight:600;">Dlaczego taki plan?</summary>'
+    +'<p style="font-size:12px;color:var(--muted);">Uzasadnienie wygenerowane przez AI — sprawdź zgodność z danymi klienta i treścią źródeł. Nie jest to ocena medyczna ani potwierdzenie skuteczności planu.</p>'
+    +section('clientData','Dane użyte do decyzji','AI nie wskazało danych. Zweryfikuj dopasowanie planu.')
+    +section('reasoning','Uzasadnienie wyborów','Brak uzasadnienia — sprawdź dobór ćwiczeń i obciążeń.')
+    +section('uncertainties','Założenia i niepewność','Nie podano ograniczeń. Nie oznacza to pełnej pewności.')
+    +section('reviewTriggers','Kiedy ponownie ocenić plan','Ustal z klientem termin oceny realizacji planu.')
+    +section('sources','Źródła wskazane przez AI','Brak wskazanego źródła. Traktuj podpowiedź jako propozycję do weryfikacji.')+'</details>';
+}
+function aplRenderPlan(plan,client,goal,method,days,weeks){
+  const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
+  const res=document.getElementById('apl-result');
+  const weekKeys=plan.weekKeys||['w1'];
+  const phases=plan.phases||{w1:'Tydzień 1'};
+  const curWeek=plan.currentWeek||weekKeys[0];
+  const curWeekIdx=weekKeys.indexOf(curWeek);
+  const phaseColors={'Adaptacja':'var(--blue)','Akumulacja I':'var(--teal)','Akumulacja II':'var(--teal)','Hipertrofia I':'var(--teal)','Hipertrofia II':'var(--teal)','Pik objętości':'var(--accent)','Siła':'var(--gold)','Deload':'var(--muted)','Intensyfikacja':'var(--orange)','Szczyt':'var(--accent)','Test/Realizacja':'var(--accent)'};
+  const phaseColor=(ph)=>{for(const k in phaseColors){if((ph||'').includes(k))return phaseColors[k];}return 'var(--accent)';};
+
+  let html=`
+    <!-- plan header -->
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.25);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:var(--glow);">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${plan.planName||'Plan treningowy AI'}</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz plan</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplExportPlanPDF()">📄 PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ JSON</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplGenerate()">↺ Regeneruj</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplAddDay()">+ Dzień</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="pill pill-green">${goalLabels[goal]||goal}</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">📅 ${plan.daysPerWeek||days}×/tydzień</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">⏱ ${plan.sessionDuration||60} min</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">📆 ${plan.weeks||weeks} tygodni</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
+      </div>
+      ${aplPlanWhyHTML(plan)}
+      ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.65;">${plan.adaptation_notes}</div>
+      </div>`:''}
+      ${Array.isArray(plan.weekly_progression_schema)&&plan.weekly_progression_schema.length?`<div id="apl-week-schema" style="margin-top:14px;overflow:auto;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Progresja tygodniowa (RIR / objętość)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr style="color:var(--muted);text-align:left;">
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Tydz.</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Faza</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">RIR</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Powt.</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Obj.</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Uwagi</th>
+          </tr></thead>
+          <tbody>${plan.weekly_progression_schema.map(row=>`<tr>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);font-weight:700;">${row.week||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);">${row.phase||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);font-family:'DM Mono',monospace;">${row.rir||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);">${row.reps||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);">${row.volume||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);color:var(--muted);">${row.notes||''}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`:''}
+    </div>
+
+    <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie (kolory dopasowane 1:1 do Progress Studio AI) -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;">
+      <div style="background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:14px;">📈</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#4ade80;">ZASADY PROGRESJI</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.periodization||''}</div>
+        ${plan.progressionRules?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">${plan.progressionRules.map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:#4ade80;flex-shrink:0;">→</span>${r}</div>`).join('')}</div>`:''}
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:#4ade80;margin-top:10px;margin-bottom:3px;">DELOAD</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;">${plan.deload||'Co 4-6 tygodni: 50% objętości'}</div>
+      </div>
+      <div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:14px;">🔥</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f59e0b;">PROTOKÓŁ ROZGRZEWKI</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:14px;">❄️</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f87171;">SCHŁODZENIE</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
+      </div>
+    </div>
+
+    <!-- legenda -->
+    <div style="background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:7px 14px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;">Legenda:</span>
+      <span style="font-size:10px;color:var(--teal);">✏️ <b>Powt./Serie/Przerwa/Tempo</b> — edytuj przez ✏️</span>
+      <span style="font-size:10px;color:var(--accent);">🏷️ <b>RPE</b> — docelowy poziom wysiłku danego tygodnia</span>
+      <span style="font-size:10px;color:var(--gold);">⚖️ <b>Ciężar ref.</b> — punkt startowy, koryguj wg odczucia</span>
+      <span style="font-size:10px;color:var(--muted);">⏱ <b>Tempo</b> — np. 3-1-1-0 (ekscentrum–pauza–koncentryk–pauza)</span>
+    </div>`;
+
+  // ── NAWIGATOR TYGODNI ──
+  if(weekKeys.length>1){
+    html+=`<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">`;
+    weekKeys.forEach((wk,i)=>{
+      const ph=phases[wk]||('Tydzień '+(i+1));
+      const col=phaseColor(ph);
+      const active=i===curWeekIdx;
+      html+=`<button onclick="aplSetWeek(${i})" style="padding:7px 14px;border-radius:8px;border:1px solid ${active?col:'var(--border)'};background:${active?'var(--adim)':'var(--s3)'};color:${active?col:'var(--muted)'};font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .12s;">TYG ${i+1} <span style="opacity:.75;">${ph}</span></button>`;
+    });
+    html+=`</div>`;
+  }
+
+  const curPhase=phases[curWeek]||'Tydzień '+(curWeekIdx+1);
+  const curCol=phaseColor(curPhase);
+  html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:${curCol};">TYDZIEŃ ${curWeekIdx+1}</div>
+    <div style="background:var(--s3);border:1px solid ${curCol};border-radius:20px;padding:3px 12px;font-size:9px;font-family:'DM Mono',monospace;color:${curCol};letter-spacing:.5px;">${curPhase}</div>
+  </div>`;
+
+  // ── DNI TRENINGOWE ──
+  (plan.days||[]).forEach((d,di)=>{
+    const warmupExs=d.warmupExercises||[];
+    html+=`<div style="margin-bottom:22px;border-radius:14px;overflow:visible;border:1px solid rgba(230,0,0,0.2);">
+      <div style="background:var(--adim);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+        <div style="cursor:pointer;" onclick="aplEditDayName(${di})">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;color:var(--accent);">${d.dayName}</div>
+          ${d.focus?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${d.focus}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;background:var(--s3);color:var(--muted);border-radius:6px;padding:3px 10px;font-family:'DM Mono',monospace;">${(d.exercises||[]).length} ćw.</span>
+          <button onclick="aplAddExercise(${di})" title="Dodaj ćwiczenie" style="background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--teal);cursor:pointer;">+ Ćwiczenie</button>
+          <button onclick="aplRemoveDay(${di})" title="Usuń dzień" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;opacity:.65;">🗑</button>
+        </div>
+      </div>`;
+
+    if(warmupExs.length){
+      html+=`<div style="background:rgba(201,162,39,0.04);padding:14px 20px 16px;">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🔥 Rozgrzewka — mobilizacja &amp; aktywacja</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">
+          ${warmupExs.map(ex=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;display:flex;gap:9px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">${ex.emoji||'🔸'}</span>
+            <div style="min-width:0;">
+              <div style="font-size:11px;font-weight:600;line-height:1.3;">${ex.name||''}</div>
+              <div style="font-size:10px;color:var(--gold);font-family:'DM Mono',monospace;margin-top:2px;">${ex.sets||''}&nbsp;×&nbsp;${ex.reps||''}</div>
+              ${ex.note?`<div style="font-size:9px;color:var(--muted);font-style:italic;margin-top:2px;">${ex.note}</div>`:''}
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    html+=`<div style="background:var(--s2);">
+      <div style="padding:10px 20px;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);">
+        <span style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">📋 Ćwiczenia główne</span>
+      </div>`;
+
+    (d.exercises||[]).forEach((ex,ei)=>{
+      const wp=ex[curWeek]||{};
+      const sets=wp.s||ex.sets||'3';
+      const reps=wp.r||ex.reps||'10';
+      const rest=wp.rest||ex.rest||'90s';
+      const rir=wp.rir||ex.rir||'';
+      const rpe=wp.rpe||'';
+      const kg=wp.kg||'';
+      const tempo=ex.tempo||wp.tempo||'';
+      const isLast=ei===(d.exercises.length-1);
+      const intPill=rir!==''&&parseFloat(rir)<=4
+        ?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RIR ${rir}</span>`
+        :(rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:'');
+      html+=`<div id="apl-ex-row-${di}-${ei}" style="padding:15px 20px;${!isLast?'border-bottom:1px solid rgba(255,255,255,0.05);':''}">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;line-height:1.3;">${ex.name}</div>
+            ${ex.notes?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;line-height:1.6;">💡 ${ex.notes}</div>`:''}
+            ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 6px;margin-top:5px;display:inline-block;">${ex.muscleGroup}</span>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            ${intPill}
+            <div style="display:flex;gap:4px;">
+              <button onclick="aplEditExercise(${di},${ei})" title="Edytuj" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.75;">✏️</button>
+              <button onclick="aplSwapExercise(${di},${ei})" title="Zamiennik" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;opacity:.75;">🔄</button>
+              <button onclick="aplMoveExercise(${di},${ei},-1)" title="W górę" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.65;">▲</button>
+              <button onclick="aplMoveExercise(${di},${ei},1)" title="W dół" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.65;">▼</button>
+              <button onclick="aplRemoveExercise(${di},${ei})" title="Usuń" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;opacity:.65;">✕</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px;padding-left:42px;">
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Serie</div>
+            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--accent);">${sets}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Powt.</div>
+            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--teal);">${reps}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Przerwa</div>
+            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--muted);">${rest}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Tempo</div>
+            <div style="font-size:13px;font-family:'DM Mono',monospace;color:${tempo?'var(--text)':'var(--muted)'};">${tempo||'—'}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Ciężar ref.</div>
+            <div style="font-size:12px;font-family:'Bebas Neue',sans-serif;color:var(--gold);">${kg||'wg odczucia'}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+
+  // ── OBJĘTOŚĆ TYGODNIOWA + ODŻYWIANIE (na dole) ──
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;">`;
+  if(plan.weeklyVolume){
+    html+=`<div class="apl-day-block">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">📊 OBJĘTOŚĆ/TYDZIEŃ</div>
+      ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);text-transform:capitalize;">${k}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span></div>`).join('')}
+    </div>`;
+  }
+  if(plan.nutritionTip){
+    html+=`<div class="apl-day-block">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">🥗 ODŻYWIANIE</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.nutritionTip}</div>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  res.innerHTML=html;
+}
+
+function aplSetWeek(idx){
+  if(!aplLastPlan||!aplLastPlan.weekKeys)return;
+  aplLastPlan.currentWeek=aplLastPlan.weekKeys[idx];
+  aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
+}
+
+// ════════════════════════════════════════
+// EDYCJA ĆWICZENIA W WYGENEROWANYM PLANIE
+// ════════════════════════════════════════
+let aplLastClient=null;
+
+function aplBindExAcSource(inp,ex){
+  if(!inp||!ex)return;
+  const name=String(ex.name||'').trim();
+  if(name&&name!=='Nowe ćwiczenie'&&name!=='Ćwiczenie 1'){
+    inp.dataset.altFor=name;
+  }
+  const hit=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+  const cat=(hit&&hit.cat)||ex.muscleGroup||'';
+  if(cat)inp.dataset.exCat=cat;
+  if(typeof exAcFoldCat==='function'&&cat){
+    const folded=exAcFoldCat(cat);
+    if(folded)inp.dataset.exCat=folded;
+  }
+}
+
+function aplInitExerciseNameInput(di,ei,focusSelect){
+  const inp=document.getElementById(`apl-edit-name-${di}-${ei}`);
+  if(!inp)return;
+  const ex=aplLastPlan&&aplLastPlan.days&&aplLastPlan.days[di]&&aplLastPlan.days[di].exercises
+    ?aplLastPlan.days[di].exercises[ei]:null;
+  aplBindExAcSource(inp,ex);
+  if(typeof exAcInitInput==='function')exAcInitInput(inp);
+  if(focusSelect){
+    inp.focus();
+    if(inp.value==='Nowe ćwiczenie'||inp.value==='Ćwiczenie 1'){inp.value='';}
+    inp.select();
+    if(typeof exAcRememberSource==='function')exAcRememberSource(inp);
+    if(typeof exAcRender==='function')exAcRender(inp);
+  }
+}
+
+function aplEditExercise(di,ei){
+  const ex=aplLastPlan.days[di].exercises[ei];
+  const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
+  const wp=ex[curWeek]||{};
+  const row=document.getElementById(`apl-ex-row-${di}-${ei}`);
+  if(!row||!ex)return;
+  const nameVal=(ex.name==='Nowe ćwiczenie'||ex.name==='Ćwiczenie 1')?'':(ex.name||'');
+  row.innerHTML=`
+    <div class="apl-ex-edit" style="display:flex;align-items:flex-start;gap:12px;">
+      <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;">Ta sama partia — ławka / hantle, gdy w studiu nie ma maszyny</div>
+        <input type="text" id="apl-edit-name-${di}-${ei}" class="form-input ex-ac-input ex-inp-name" autocomplete="off" value="${typeof escHtml==='function'?escHtml(nameVal):nameVal.replace(/"/g,'&quot;')}" placeholder="Szukaj w tej samej partii…" style="width:100%;font-size:14px;font-weight:600;margin-bottom:6px;">
+        <input type="text" id="apl-edit-notes-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(ex.notes||''):(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="Notatka dla klienta (opcjonalnie)" style="width:100%;font-size:12px;">
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;padding-top:18px;">
+        <button onclick="aplSaveExerciseEdit(${di},${ei})" title="Zapisz" style="background:var(--teal);border:none;border-radius:6px;width:28px;height:28px;color:#000;cursor:pointer;font-size:14px;font-weight:700;">✓</button>
+        <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:var(--input-bg);border:1px solid var(--border2);border-radius:6px;width:28px;height:28px;color:var(--red);cursor:pointer;font-size:13px;">✕</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;padding-left:42px;">
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.s||ex.sets||''):(wp.s||ex.sets||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--accent);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.r||ex.reps||''):(wp.r||ex.reps||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--teal);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rest||ex.rest||''):(wp.rest||ex.rest||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RIR / RPE</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||ex.rpe||''):(wp.rpe||ex.rir||ex.rpe||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Tempo</div><input type="text" id="apl-edit-tempo-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.tempo||ex.tempo||''):(wp.tempo||ex.tempo||'').replace(/"/g,'&quot;')}" placeholder="3-1-1-0" style="width:100%;text-align:center;font-size:12px;font-family:'DM Mono',monospace;"></div>
+    </div>`;
+  setTimeout(()=>aplInitExerciseNameInput(di,ei,true),30);
+}
+
+function aplSaveExerciseEdit(di,ei){
+  const ex=aplLastPlan.days[di].exercises[ei];
+  const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
+  const nameEl=document.getElementById(`apl-edit-name-${di}-${ei}`);
+  ex.name=(nameEl&&nameEl.value.trim())||ex.name||'Ćwiczenie';
+  const picked=typeof libExerciseByName==='function'?libExerciseByName(ex.name):null;
+  if(picked&&picked.cat)ex.muscleGroup=picked.cat;
+  ex.notes=document.getElementById(`apl-edit-notes-${di}-${ei}`).value.trim();
+  if(!ex[curWeek])ex[curWeek]={};
+  ex[curWeek].s=document.getElementById(`apl-edit-sets-${di}-${ei}`).value.trim();
+  ex[curWeek].r=document.getElementById(`apl-edit-reps-${di}-${ei}`).value.trim();
+  ex[curWeek].rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
+  ex[curWeek].rpe=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
+  const tempoEl=document.getElementById(`apl-edit-tempo-${di}-${ei}`);
+  const tempoVal=tempoEl?tempoEl.value.trim():'';
+  ex.tempo=tempoVal;
+  ex[curWeek].tempo=tempoVal;
+  // zachowaj kompatybilność wsteczną (tydzień 1 = pola płaskie)
+  if(curWeek===(aplLastPlan.weekKeys||['w1'])[0]){
+    ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;ex.rpe=ex[curWeek].rpe;
+  }
+  notify('✓ Ćwiczenie zaktualizowane');
+  aplRerenderCurrent();
+}
+
+function aplRerenderCurrent(){
+  if(!aplLastPlan)return;
+  aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
+}
+
+function aplAddExercise(di){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  aplLastPlan.days[di].exercises.push({name:'Nowe ćwiczenie',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''});
+  aplRerenderCurrent();
+  const ei=aplLastPlan.days[di].exercises.length-1;
+  setTimeout(()=>aplEditExercise(di,ei),80);
+}
+function aplRemoveExercise(di,ei){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  aplLastPlan.days[di].exercises.splice(ei,1);
+  aplRerenderCurrent();
+  notify('Ćwiczenie usunięte');
+}
+function aplMoveExercise(di,ei,dir){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  const exs=aplLastPlan.days[di].exercises;
+  const ni=ei+dir;
+  if(ni<0||ni>=exs.length)return;
+  [exs[ei],exs[ni]]=[exs[ni],exs[ei]];
+  aplRerenderCurrent();
+}
+function aplSwapExercise(di,ei){
+  const ex=aplLastPlan?.days[di]?.exercises[ei];
+  if(!ex)return;
+  aplEditExercise(di,ei);
+  setTimeout(()=>{
+    const inp=document.getElementById(`apl-edit-name-${di}-${ei}`);
+    if(!inp)return;
+    aplBindExAcSource(inp,ex);
+    inp.dataset.altFor=ex.name||inp.dataset.altFor||'';
+    inp.value='';
+    const part=inp.dataset.exCat||'tej samej partii';
+    inp.placeholder='Szukaj w '+part+' — sztanga / hantle / brama / ławka';
+    if(typeof exAcRender==='function')exAcRender(inp);
+    inp.focus();
+  },60);
+  notify('Wybierz z tej samej partii: maszyna albo ławka / hantle');
+}
+function aplAddDay(){
+  if(!aplLastPlan)return;
+  const n=(aplLastPlan.days||[]).length+1;
+  aplLastPlan.days.push({dayName:'Dzień '+n+' — Nowy',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]});
+  aplLastPlan.daysPerWeek=aplLastPlan.days.length;
+  aplRerenderCurrent();
+}
+function aplRemoveDay(di){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  if(!confirm('Usunąć dzień '+(di+1)+'?'))return;
+  aplLastPlan.days.splice(di,1);
+  aplLastPlan.daysPerWeek=aplLastPlan.days.length;
+  aplRerenderCurrent();
+  notify('Dzień usunięty');
+}
+function aplEditDayName(di){
+  const d=aplLastPlan?.days[di];if(!d)return;
+  const v=prompt('Nazwa dnia:',d.dayName);
+  if(v&&v.trim()){d.dayName=v.trim();aplRerenderCurrent();}
+}
+function aplCreateBlankPlan(){
+  const cid=(document.getElementById('apl-client')||{}).value||'';
+  const client=cid?CL.find(x=>x.id===cid):null;
+  aplLastPlan={
+    planName:'Nowy plan ręczny',
+    summary:'Plan tworzony od podstaw przez trenera.',
+    method:'Custom',
+    weeks:4,
+    daysPerWeek:3,
+    sessionDuration:60,
+    periodization:'Ustaw własne zasady progresji.',
+    deload:'',warmup:'',cooldown:'',nutritionTip:'',
+    weekKeys:['w1'],phases:{w1:'Tydzień 1'},currentWeek:'w1',
+    days:[
+      {dayName:'Dzień 1',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]},
+      {dayName:'Dzień 2',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]},
+      {dayName:'Dzień 3',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]},
+    ]
+  };
+  aplLastClient=client;
+  const goal=(document.querySelector('#apl-goals .active')||{}).dataset?.val||'masa';
+  aplRenderPlan(aplLastPlan,client,goal,'Custom','3','4');
+  notify('Pusty plan gotowy — kliknij ✏️ przy ćwiczeniu i wybierz z listy');
+  setTimeout(()=>{
+    if(aplLastPlan?.days?.[0]?.exercises?.[0])aplEditExercise(0,0);
+  },120);
+}
+window.aplBindExAcSource=aplBindExAcSource;
+window.aplInitExerciseNameInput=aplInitExerciseNameInput;
+window.aplAddExercise=aplAddExercise;
+window.aplRemoveExercise=aplRemoveExercise;
+window.aplMoveExercise=aplMoveExercise;
+window.aplSwapExercise=aplSwapExercise;
+window.aplAddDay=aplAddDay;
+window.aplRemoveDay=aplRemoveDay;
+window.aplEditDayName=aplEditDayName;
+window.aplCreateBlankPlan=aplCreateBlankPlan;
+
+function aplSavePlan(){
+  if(!aplLastPlan){notify('Brak planu do zapisania!');return;}
+  const cid=document.getElementById('apl-client').value;
+  const client=cid?CL.find(x=>x.id===cid):null;
+  const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
+  const newPlan=withTrainer({
+    id:newId('p'),
+    name:aplLastPlan.planName||'Plan AI',
+    rationale:aplLastPlan.rationale||null,
+    clientId:cid||null,
+    clientName:client?client.name:'',
+    method:aplLastPlan.method||'Custom',
+    duration:aplLastPlan.weeks||8,
+    days:(aplLastPlan.days||[]).map(d=>({
+      day:d.dayName,
+      muscles:d.focus||'',
+      exercises:(d.exercises||[]).map(e=>{
+        const wp=e[curWeek]||{};
+        const name=e.name||'Ćwiczenie';
+        return{
+          name,
+          sets:wp.s||e.sets||'3',
+          reps:wp.r||e.reps||'10',
+          rest:wp.rest||e.rest||'90s',
+          rpe:wp.rpe||e.rir||e.rpe||'',
+          rir:wp.rpe||e.rir||e.rpe||'',
+          tempo:e.tempo||wp.tempo||'',
+          kg:wp.kg||e.kg||'',
+          note:e.notes||e.note||'',
+          alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):'')
+        };
+      })
+    })),
+    source:'ai',
+    createdAt:new Date().toISOString()
+  });
+  PL.push(newPlan);
+  persistById('plans',newPlan);
+  addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
+  notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
+  if(cid&&client&&typeof maybeSchedulePlanToCalendar==='function'){
+    maybeSchedulePlanToCalendar(newPlan.id,{weeks:4});
+  }else if(cid&&client&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?')){
+    if(typeof schedulePlanToCalendar==='function')schedulePlanToCalendar(newPlan.id,{weeks:4});
+  }
+  if(cid&&typeof maybeResumeOnboard==='function'){
+    if(window._onboardResumeAfterApl===cid){
+      window._onboardResumeAfterApl=null;
+      if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
+    }
+    maybeResumeOnboard(cid);
+  }
+}
+
+function aplStripAutoStructureNotes(raw){
+  const text=String(raw||'');
+  if(!text)return'';
+  // Usuń auto-wstawione bloki presetu (stare i z markerem), zostaw ręczne uwagi trenera.
+  return text
+    .replace(/\n?<!--APL-AUTO-STRUCT-->[\s\S]*?<!--\/APL-AUTO-STRUCT-->/g,'')
+    .split(/\n/)
+    .filter(line=>{
+      const t=line.trim();
+      if(!t)return true;
+      if(/^STRUKTURA 3 DNI:/i.test(t))return false;
+      if(/Push\+czworogłowe|Pull\+dwugłowe|D3 Upper \(klatka\+plecy\+barki\+ramiona\)/i.test(t))return false;
+      return true;
+    })
+    .join('\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+function aplAutoStructureNoteBlock(){
+  return'<!--APL-AUTO-STRUCT-->\nSTRUKTURA 3 DNI: D1 Push+czworogłowe; D2 Pull+dwugłowe; D3 Upper (klatka+plecy+barki+ramiona). Priorytet sylwetkowy na start sesji. Stretch-mediated + maszyny/wyciągi. Serie 3-4, RIR 0-2, tempo 3-1-1-0.\n<!--/APL-AUTO-STRUCT-->';
+}
+function aplSyncAutoStructureNotes(){
+  const notes=document.getElementById('apl-notes');
+  if(!notes)return;
+  const method=typeof aplGetVal==='function'?String(aplGetVal('apl-methods')||''):'';
+  const days=typeof aplGetVal==='function'?parseInt(aplGetVal('apl-days'),10):0;
+  const cleaned=aplStripAutoStructureNotes(notes.value);
+  // Preset PPL 3-dniowy tylko gdy faktycznie wybrano PPL + 3 dni — inaczej nie trzymaj starej struktury w uwagach.
+  if(method==='PPL'&&days===3){
+    if(/STRUKTURA 3 DNI:/i.test(notes.value)||/<!--APL-AUTO-STRUCT-->/.test(notes.value)){
+      notes.value=cleaned?(cleaned+'\n'+aplAutoStructureNoteBlock()):aplAutoStructureNoteBlock();
+    }
+    return;
+  }
+  if(cleaned!==String(notes.value||'').trim()){
+    notes.value=cleaned;
+  }
+}
+window.aplStripAutoStructureNotes=aplStripAutoStructureNotes;
+window.aplSyncAutoStructureNotes=aplSyncAutoStructureNotes;
+
+function aplApplyHypertrophy3DayPreset(){
+  document.querySelectorAll('#apl-days .apl-opt').forEach(b=>b.classList.toggle('active',b.dataset.val==='3'));
+  document.querySelectorAll('#apl-methods .apl-opt').forEach(b=>b.classList.toggle('active',b.dataset.val==='PPL'));
+  const notes=document.getElementById('apl-notes');
+  if(notes){
+    const manual=aplStripAutoStructureNotes(notes.value);
+    notes.value=manual?(manual+'\n'+aplAutoStructureNoteBlock()):aplAutoStructureNoteBlock();
+  }
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+  notify('✓ Preset 3 dni hipertrofii (PPL) — zmiana metody/dni usunie auto-strukturę z uwag');
+}
+window.aplApplyHypertrophy3DayPreset=aplApplyHypertrophy3DayPreset;
+
+function aplExportPlan(){
+  if(!aplLastPlan){notify('Brak planu!');return;}
+  const txt=JSON.stringify(aplLastPlan,null,2);
+  const blob=new Blob([txt],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`plan-${aplLastPlan.planName?.replace(/\s/g,'-')||'ai'}.json`;
+  a.click();
+  notify('⬇ Plan wyeksportowany jako JSON');
+}
+
+// ════════════════════════════════════════
+// EKSPORT PLANU DO PDF (przez istniejący #report-overlay)
+// ════════════════════════════════════════
+function showPlanPDFOverlay(html,title){
+  const box=document.getElementById('report-container');
+  const ov=document.getElementById('report-overlay');
+  const t=document.getElementById('report-overlay-title');
+  if(!box||!ov){if(typeof notify==='function')notify('Brak podglądu PDF');return;}
+  box.innerHTML=html;
+  if(t)t.textContent=title||'PLAN TRENINGOWY';
+  ov.style.display='flex';
+}
+function aplExportPlanPDF(){
+  if(!aplLastPlan){notify('Brak planu!');return;}
+  const cid=document.getElementById('apl-client')?.value;
+  const client=cid?CL.find(x=>x.id===cid):null;
+  const html=buildPlanPDFHTML(aplLastPlan,client);
+  showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+(aplLastPlan.planName||'AI').toUpperCase());
+}
+function exportSavedPlanPDF(planId){
+  const plan=(window.PL||[]).find(p=>p&&p.id===planId);
+  if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
+  const client=(window.CL||[]).find(c=>c&&c.id===plan.clientId)||(plan.clientName?{name:plan.clientName}:null);
+  const model=planToPdfModel(plan);
+  const html=buildPlanPDFHTML(model,client);
+  showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+String(model.planName||plan.name||'').toUpperCase());
+}
+
+function planPdfEsc(s){
+  if(typeof escHtml==='function')return escHtml(s);
+  return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function planPdfSplitLabel(plan){
+  const days=plan.days||[];
+  const parts=days.map(d=>{
+    const focus=String(d.focus||'').trim();
+    if(focus)return focus;
+    return String(d.dayName||'').replace(/^dzień\s*\d+\s*[—–-]\s*/i,'').trim();
+  }).filter(Boolean);
+  if(parts.length)return parts.join(' / ');
+  return plan.method||'—';
+}
+function planPdfProgressionLabel(plan){
+  const raw=String(plan.progression||plan.progressionType||'').toLowerCase();
+  const map={linear:'linear',dup:'DUP',wave:'falowa',block:'blokowa',double:'podwójna',ai:'AI'};
+  if(map[raw])return map[raw];
+  if(/liniow/.test(String(plan.periodization||'')))return 'linear';
+  return raw||'linear';
+}
+function planPdfIsPriority(ex,client){
+  if(!ex)return false;
+  if(ex.priority===true||ex.priorytet===true)return true;
+  if(/priorytet/i.test(String(ex.notes||ex.note||'')))return true;
+  const pri=(client&&client.physiquePriority)||[];
+  if(!pri.length)return false;
+  const blob=(String(ex.muscleGroup||'')+' '+String(ex.name||'')).toLowerCase();
+  return pri.some(p=>p&&blob.includes(String(p).toLowerCase().slice(0,4)));
+}
+function planPdfWeekArrow(ex,wk,prevWk){
+  if(!prevWk||!ex)return '';
+  const cur=ex[wk]||{},prev=ex[prevWk]||{};
+  const kg=parseFloat(cur.kg),pkg=parseFloat(prev.kg);
+  const rpe=parseFloat(cur.rpe),prpe=parseFloat(prev.rpe);
+  let dir=0;
+  if(!isNaN(kg)&&!isNaN(pkg)&&kg!==pkg)dir=kg>pkg?1:-1;
+  else if(!isNaN(rpe)&&!isNaN(prpe)&&rpe!==prpe)dir=rpe>prpe?1:-1;
+  if(dir>0)return '<span class="plan-pdf-arrow-up">▲</span>';
+  if(dir<0)return '<span class="plan-pdf-arrow-dn">▼</span>';
+  return '';
+}
+function planPdfWeekCell(ex,wk,prevWk){
+  const w=(ex&&ex[wk])||{};
+  const s=w.s||ex.sets||'3';
+  const r=w.r||ex.reps||'10';
+  const rpe=w.rpe||ex.rpe||ex.rir||'';
+  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}</div>`;
+}
+
+/** Zapisany plan z biblioteki / profilu → model PDF (jak generator AI). */
+function planPdfBareEx(ex){
+  if(typeof ex!=='string')return null;
+  const raw=String(ex).trim();
+  const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
+  const amt=m&&m[4]?String(m[4]).replace(',','.'):'';
+  const unit=((m&&m[5])||'').toLowerCase();
+  return{
+    name:(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie',
+    sets:(m&&m[2])||'3',
+    reps:((m&&m[3])||'10').replace(/\s/g,''),
+    kg:unit==='kg'?amt:'',
+    rest:'90s'
+  };
+}
+function planPdfIntensity(src,w){
+  const rpe=(w&&w.rpe)||src.rpe||'';
+  if(rpe!==''&&rpe!=null)return String(rpe);
+  const rir=parseFloat((w&&w.rir)!=null&&(w&&w.rir)!==''?w.rir:src.rir);
+  if(!isNaN(rir))return String(Math.max(0,10-rir));
+  return '';
+}
+function planToPdfModel(plan){
+  plan=plan||{};
+  const weekKeys=(Array.isArray(plan.weekKeys)&&plan.weekKeys.length)?plan.weekKeys.slice():['w1'];
+  const days=(plan.days||[]).filter(d=>d&&!d.rest).map((d,di)=>{
+    const exercises=(d.exercises||[]).map(ex=>{
+      const src=planPdfBareEx(ex)||(ex&&typeof ex==='object'?ex:{name:'Ćwiczenie'});
+      const sets=String(src.sets||src.s||'3');
+      const reps=String(src.reps||src.r||'10');
+      const rest=String(src.rest||src.rs||'90s');
+      const kg=src.kg!=null&&src.kg!==''?String(src.kg):'';
+      const rpe=planPdfIntensity(src,null);
+      const notes=[src.notes,src.note,src.tempo].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(' · ');
+      const out={
+        name:src.name||src.n||'Ćwiczenie',
+        sets,reps,rest,kg,
+        rir:src.rir||'',
+        rpe,
+        notes,note:src.note||src.notes||'',
+        tempo:src.tempo||'',
+        priority:src.priority===true||src.priorytet===true,
+        muscleGroup:src.muscleGroup||d.muscles||d.focus||''
+      };
+      weekKeys.forEach(wk=>{
+        const w=src[wk];
+        const cell=w&&typeof w==='object'?w:null;
+        out[wk]={
+          s:(cell&&(cell.s||cell.sets))||sets,
+          r:(cell&&(cell.r||cell.reps))||reps,
+          kg:cell&&cell.kg!=null&&cell.kg!==''?String(cell.kg):kg,
+          rpe:planPdfIntensity(src,cell),
+          rest:(cell&&cell.rest)||rest
+        };
+      });
+      return out;
+    });
+    const dayLabel=d.dayName||d.day||('Dzień '+(di+1));
+    const focus=d.focus||d.muscles||d.name||'';
+    const dayName=(d.dayName||(focus&&d.day&&!String(d.day).includes(focus)?d.day+' — '+focus:dayLabel));
+    return{dayName,focus,exercises};
+  });
+  return{
+    planName:plan.planName||plan.name||'Plan treningowy',
+    method:plan.method||'',
+    daysPerWeek:plan.daysPerWeek||days.length||'—',
+    weeks:plan.weeks||plan.duration||weekKeys.length||'—',
+    progression:plan.progression||plan.progressionType||'',
+    periodization:plan.periodization||'',
+    deload:plan.deload||'',
+    warmup:plan.warmup||'',
+    nutritionTip:plan.nutritionTip||'',
+    weeklyVolume:plan.weeklyVolume,
+    adaptation_notes:plan.adaptation_notes||plan.adaptationNotes||'',
+    mezocycle_overview:plan.mezocycle_overview||'',
+    weekly_progression_schema:plan.weekly_progression_schema||[],
+    progressionRules:plan.progressionRules,
+    weekKeys,
+    phases:plan.phases||{},
+    days
+  };
+}
+
+function buildPlanPDFHTML(plan,client){
+  plan=plan||{};
+  const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
+  const weekKeys=plan.weekKeys||['w1'];
+  const phases=plan.phases||{};
+  const split=planPdfSplitLabel(plan);
+  const sessions=plan.daysPerWeek||(plan.days||[]).length||'—';
+  const weeks=plan.weeks||weekKeys.length||'—';
+  const prog=planPdfProgressionLabel(plan);
+  const rules=(plan.progressionRules&&plan.progressionRules.length)?plan.progressionRules:(
+    plan.periodization?String(plan.periodization).split(/[.;]\s+/).map(s=>s.trim()).filter(s=>s.length>8):[
+      'Progresja liniowa: co tydzień +2.5 kg na wielostawach, gdy RPE ≤ 8.',
+      'Izolacje: najpierw +1 powtórzenie w zakresie, potem +1.25 kg.',
+      (plan.deload||'Deload co 4–6 tygodni: 50–70% objętości, RPE 5–6.')
+    ]
+  );
+  const warmupBits=[];
+  if(plan.warmup)warmupBits.push(plan.warmup);
+  const wuEx=((plan.days||[])[0]||{}).warmupExercises||[];
+  if(wuEx.length)warmupBits.push(wuEx.map(w=>w.name+(w.note?' — '+w.note:'')).join('; '));
+  const warmupText=warmupBits.join(' ')||'5 min rower stacjonarny + mobilizacja barków/bioder + 2 serie rozjazdowe na pierwszym wielostawie.';
+
+  let html=`<div class="plan-pdf">
+    <div class="plan-pdf-brand">
+      <img class="plan-pdf-logo" src="assets/brand/progress-logo.jpg" alt="">
+      <div>
+        <div class="plan-pdf-title">PLAN TRENINGOWY</div>
+        <div class="plan-pdf-sub">${client&&client.name?planPdfEsc(client.name)+' · ':''}${planPdfEsc(plan.planName||'Progress Live')} · ${today}</div>
+      </div>
+    </div>
+    <div class="plan-pdf-kpis">
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Split</div><div class="plan-pdf-kpi-val is-red">${planPdfEsc(split)}</div></div>
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Sesje / tydzień</div><div class="plan-pdf-kpi-val">${planPdfEsc(sessions)}</div></div>
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Tygodnie</div><div class="plan-pdf-kpi-val">${planPdfEsc(weeks)}</div></div>
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Progresja</div><div class="plan-pdf-kpi-val">${planPdfEsc(prog)}</div></div>
+    </div>
+    ${plan.mezocycle_overview?`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">Mezocykl</div><p>${planPdfEsc(plan.mezocycle_overview)}</p></div>`:''}
+    ${Array.isArray(plan.weekly_progression_schema)&&plan.weekly_progression_schema.length?`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">Progresja tygodniowa</div><table class="plan-pdf-tbl"><thead><tr><th>Tydz.</th><th>Faza</th><th>RIR</th><th>Powt.</th><th>Obj.</th></tr></thead><tbody>${plan.weekly_progression_schema.map(row=>`<tr><td>${planPdfEsc(row.week||'')}</td><td>${planPdfEsc(row.phase||'')}</td><td>${planPdfEsc(row.rir||'')}</td><td>${planPdfEsc(row.reps||'')}</td><td>${planPdfEsc(row.volume||'')}</td></tr>`).join('')}</tbody></table></div>`:''}
+    <div class="plan-pdf-cols">
+      <div class="plan-pdf-box">
+        <div class="plan-pdf-box-h">📓 Zasady progresji</div>
+        <ul>${rules.map(r=>`<li>${planPdfEsc(r)}</li>`).join('')}</ul>
+      </div>
+      <div class="plan-pdf-box">
+        <div class="plan-pdf-box-h">🔥 Rozgrzewka</div>
+        <p>${planPdfEsc(warmupText)}</p>
+      </div>
+    </div>`;
+
+  (plan.days||[]).forEach((day,di)=>{
+    const title=day.dayName||('Dzień '+(di+1));
+    html+=`<div class="plan-pdf-day">
+      <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}</div>
+      <table class="plan-pdf-tbl">
+        <thead><tr>
+          <th class="plan-pdf-ex">Ćwiczenie</th>
+          ${weekKeys.map((wk,i)=>`<th>Tydzień ${i+1}${phases[wk]?`<span class="plan-pdf-phase">${planPdfEsc(phases[wk])}</span>`:''}</th>`).join('')}
+          <th class="plan-pdf-tip">Pauza / wskazówka</th>
+        </tr></thead>
+        <tbody>
+        ${(day.exercises||[]).map((e,ei)=>{
+          const pri=planPdfIsPriority(e,client)||ei===0;
+          const rest=e.rest||((e.w1||{}).rest)||'90s';
+          const tip=e.notes||e.note||e.tempo||'';
+          return `<tr>
+            <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div></td>
+            ${weekKeys.map((wk,wi)=>`<td>${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
+            <td class="plan-pdf-tip-cell"><div class="plan-pdf-rest">⏱ ${planPdfEsc(rest)}</div>${tip?planPdfEsc(tip):''}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  });
+
+  if(plan.weeklyVolume&&typeof plan.weeklyVolume==='object'){
+    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
+  }
+  if(plan.adaptation_notes){
+    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">🏃 Sporty dodatkowe</div><p>${planPdfEsc(plan.adaptation_notes)}</p></div>`;
+  }
+  if(plan.nutritionTip){
+    html+=`<div class="plan-pdf-box"><p><b style="color:#e11f2e;">Wskazówka żywieniowa:</b> ${planPdfEsc(plan.nutritionTip)}</p></div>`;
+  }
+  html+=`<div class="plan-pdf-foot">Plan wygenerowany przez Progress Live · ${today}</div></div>`;
+  return html;
+}
+
+function aplReset(){
+  aplLastPlan=null;
+  aplShowWelcome();
+}
+
+window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
+window.aplToggleMulti=aplToggleMulti;window.aplSetEquipment=aplSetEquipment;window.aplPersistClientForm=aplPersistClientForm;
+window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
+window.aplClientCardSummaryHtml=aplClientCardSummaryHtml;window.aplSyncClientDupUi=aplSyncClientDupUi;
+window.aplEditClientFromCard=aplEditClientFromCard;window.aplRefreshFromSavedClient=aplRefreshFromSavedClient;
+window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
+window.buildPlanPDFHTML=buildPlanPDFHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
+window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
+
+// ════════════════════════════════════════
+// STATYSTYKI BIZNESOWE
+// ════════════════════════════════════════
+var bizPeriod=30;
+
+function setBizPeriod(p,btn){
+  bizPeriod=p;
+  document.querySelectorAll('#bst-p-30,#bst-p-90,#bst-p-365').forEach(b=>b?.classList.remove('active'));
+  btn?.classList.add('active');
+  renderBizStats();
+}
+
+function initBizStats(){renderBizStats();}
+
+function renderBizStats(){
+  const el=document.getElementById('biz-content');if(!el)return;
+  const D=bizGenerateData(bizPeriod);
+  el.innerHTML=`
+    <!-- KPI ROW -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;">
+      ${bizKPI('💰','Przychód',D.revenue,'PLN',D.revenueGrowth)}
+      ${bizKPI('👥','Aktywni klienci',D.activeClients,'os.',D.clientsGrowth)}
+      ${bizKPI('📅','Sesji w okresie',D.sessions,'',D.sessionsGrowth)}
+      ${bizKPI('🔄','Retencja',D.retention,'%',D.retentionDiff,'pp')}
+      ${bizKPI('💎','Śr. wartość klienta',D.ltv,'PLN',D.ltvGrowth)}
+    </div>
+
+    <!-- dwie kolumny -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px;">
+      <!-- wykres przychodów -->
+      <div class="stat-card">
+        <div class="stat-card-hdr">
+          <div>
+            <div class="stat-card-title">Przychody miesięczne</div>
+            <div class="stat-card-sub">Faktyczne vs prognozowane</div>
+          </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);">${D.revenue.toLocaleString('pl')} PLN</div>
+        </div>
+        ${bizRevenueChart(D)}
+      </div>
+
+      <!-- podział przychodów pie-like -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Podział przychodów</div></div>
+        ${bizRevenueBreakdown(D)}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+      <!-- retencja -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Retencja klientów</div><div class="stat-card-sub">Cohort view</div></div>
+        ${bizRetentionChart(D)}
+      </div>
+
+      <!-- akwizycja -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Nowi vs odchodzący</div></div>
+        ${bizAcquisitionChart(D)}
+      </div>
+
+      <!-- sesje per klient -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Aktywność klientów</div></div>
+        ${bizActivityChart(D)}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px;">
+      <!-- top klienci -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Top klienci wg przychodu</div></div>
+        ${bizTopClients(D)}
+      </div>
+
+      <!-- metryki biznesowe -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Kluczowe wskaźniki</div></div>
+        ${bizMetrics(D)}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+      <!-- godziny sesji heatmap -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Popularność godzin sesji</div></div>
+        ${bizHeatmap(D)}
+      </div>
+
+      <!-- prognoza -->
+      <div class="stat-card">
+        <div class="stat-card-hdr"><div class="stat-card-title">Prognoza na kolejne 3 miesiące</div></div>
+        ${bizForecast(D)}
+      </div>
+    </div>`;
+}
+
+function bizGenerateData(period){
+  // base from real data or generate realistic demo
+  const clientCount=CL.length||12;
+  const sessionCount=SE.length||Math.round(clientCount*period/7*0.8);
+  const baseRevPerClient=800;
+  const revenue=Math.round(clientCount*baseRevPerClient*(period/30)*0.9+Math.random()*2000);
+  const months=period<=30?['Kwi','Maj']:period<=90?['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz']:
+    ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
+  const cnt=months.length;
+  // revenue series — growing trend with noise
+  const revSeries=months.map((_,i)=>{
+    const base=Math.round((clientCount-2+i*0.4)*baseRevPerClient*(period<=30?1:period<=90?0.33:0.083));
+    return base+Math.round((Math.random()-0.4)*base*0.15);
+  });
+  const forecastSeries=[revSeries[cnt-1]*1.04,revSeries[cnt-1]*1.08,revSeries[cnt-1]*1.13].map(Math.round);
+  const newClients=months.map((_,i)=>Math.round(1.5+i*0.2+Math.random()*1.5));
+  const lostClients=months.map(()=>Math.round(Math.random()*1.2));
+  return{
+    revenue,revenueGrowth:12,
+    activeClients:clientCount,clientsGrowth:3,
+    sessions:sessionCount,sessionsGrowth:8,
+    retention:87,retentionDiff:2,
+    ltv:Math.round(baseRevPerClient*5.5),ltvGrowth:7,
+    months,revSeries,forecastSeries,newClients,lostClients,
+    breakdown:[
+      {label:'Pakiety sesji',pct:55,col:'var(--accent)'},
+      {label:'Plany online',pct:24,col:'var(--blue)'},
+      {label:'On-demand',pct:13,col:'var(--purple)'},
+      {label:'Inne',pct:8,col:'var(--muted)'},
+    ],
+    cohorts:[92,87,81,75,70,65],
+    topClients:CL.slice(0,6).map((c,i)=>({name:c.name,rev:Math.round((8-i)*290+Math.random()*200),sessions:Math.round((8-i)*1.5+Math.random()*3)})),
+    hourDist:[0,0,1,2,4,6,8,5,3,2,3,5,6,4,3,2,4,6,8,7,5,3,1,0],
+    churnRate:6,nps:72,avgSessionLength:58,utilizationRate:83,
+  };
+}
+
+function bizKPI(icon,label,val,unit,growth,growthUnit='%'){
+  const pos=growth>=0;
+  const disp=typeof val==='number'&&val>1000?val.toLocaleString('pl'):val;
+  return `<div class="stat-kpi">
+    <div style="font-size:20px;margin-bottom:6px;">${icon}</div>
+    <div class="stat-kpi-val">${disp}<span style="font-size:13px;font-weight:400;color:var(--muted);margin-left:3px;">${unit}</span></div>
+    <div class="stat-kpi-label">${label}</div>
+    <div class="stat-kpi-growth ${pos?'pos':'neg'}">${pos?'↑':'↓'} ${Math.abs(growth)}${growthUnit} vs poprzedni okres</div>
+  </div>`;
+}
+
+function bizRevenueChart(D){
+  const max=Math.max(...D.revSeries,...D.forecastSeries)*1.15||1;
+  const W=480,H=140,pad=30;
+  const iW=W-pad*2,iH=H-pad;
+  const n=D.revSeries.length;
+  const pts=D.revSeries.map((v,i)=>[pad+i*(iW/(n-1)),H-pad-Math.round(v/max*iH)]);
+  const fStart=pts[pts.length-1];
+  const fPts=[fStart,...D.forecastSeries.map((v,i)=>[pad+(n+i)*(iW/(n+D.forecastSeries.length-1)),H-pad-Math.round(v/max*iH)])];
+  const poly=pts.map(([x,y])=>`${x},${y}`).join(' ');
+  const fPoly=fPts.map(([x,y])=>`${x},${y}`).join(' ');
+  const area=`${pts[0][0]},${H-pad} ${poly} ${pts[pts.length-1][0]},${H-pad}`;
+  const fArea=`${fPts[0][0]},${H-pad} ${fPoly} ${fPts[fPts.length-1][0]},${H-pad}`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+    <defs>
+      <linearGradient id="rg1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient>
+      <linearGradient id="rg2" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--blue)" stop-opacity=".15"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/></linearGradient>
+    </defs>
+    <polygon points="${area}" fill="url(#rg1)"/>
+    <polygon points="${fArea}" fill="url(#rg2)"/>
+    <polyline points="${poly}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <polyline points="${fPoly}" fill="none" stroke="var(--blue)" stroke-width="2" stroke-dasharray="5,4" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map(([x,y],i)=>i%Math.ceil(n/6)===0?`<text x="${x}" y="${H-4}" font-size="9" fill="rgba(255,255,255,0.3)" text-anchor="middle">${D.months[i]}</text>`:'' ).join('')}
+    ${pts[pts.length-1]?`<circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="4" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5"/>`:''}
+  </svg>
+  <div style="display:flex;gap:14px;margin-top:6px;">
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:16px;height:2px;background:var(--accent);"></div>Faktyczne</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:16px;height:2px;background:var(--blue);border-top:2px dashed var(--blue);"></div>Prognoza</div>
+  </div>`;
+}
+
+function bizRevenueBreakdown(D){
+  let cum=0;
+  const slices=D.breakdown.map(b=>{
+    const start=cum;cum+=b.pct;
+    return{...b,start};
+  });
+  // donut SVG
+  const r=60,cx=80,cy=80,stroke=22;
+  function arc(pct,offset){
+    const c=2*Math.PI*r;
+    return `stroke-dasharray="${pct/100*c} ${c}" stroke-dashoffset="${-offset/100*c}"`;
+  }
+  return `<div style="display:flex;align-items:center;gap:20px;">
+    <svg viewBox="0 0 160 160" style="width:120px;flex-shrink:0;">
+      ${slices.map(s=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.col}" stroke-width="${stroke}" ${arc(s.pct,s.start)} transform="rotate(-90 ${cx} ${cy})" opacity="0.85"/>`).join('')}
+      <text x="${cx}" y="${cy-8}" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.4)">Łącznie</text>
+      <text x="${cx}" y="${cy+8}" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="18" fill="var(--accent)">${D.activeClients}</text>
+      <text x="${cx}" y="${cy+22}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.3)">klientów</text>
+    </svg>
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      ${D.breakdown.map(b=>`<div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+          <span style="color:var(--muted);">${b.label}</span>
+          <span style="color:${b.col};font-weight:700;">${b.pct}%</span>
+        </div>
+        <div style="height:3px;background:var(--s3);border-radius:99px;"><div style="height:100%;background:${b.col};width:${b.pct}%;border-radius:99px;"></div></div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function bizRetentionChart(D){
+  const labels=['M1','M2','M3','M4','M5','M6'];
+  return `<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+    ${D.cohorts.map((pct,i)=>`<div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:24px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-align:right;">${labels[i]}</div>
+      <div style="flex:1;height:22px;background:var(--s3);border-radius:5px;overflow:hidden;position:relative;">
+        <div style="height:100%;background:${pct>80?'var(--teal)':pct>70?'var(--accent)':'var(--orange)'};width:${pct}%;border-radius:5px;"></div>
+        <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#000;">${pct}%</span>
+      </div>
+    </div>`).join('')}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;">Retencja po kolejnych miesiącach od startu</div>
+  </div>`;
+}
+
+function bizAcquisitionChart(D){
+  const maxV=Math.max(...D.newClients,...D.lostClients,1);
+  const W=240,H=100,pad=20;
+  const n=D.months.length;
+  const bW=Math.max(4,Math.floor((W-pad*2)/n)-3);
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+    ${D.newClients.map((v,i)=>{
+      const x=pad+i*(W-pad*2)/n;
+      const h=Math.round(v/maxV*(H-pad-10));
+      return `<rect x="${x}" y="${H-pad-h}" width="${bW}" height="${h}" rx="3" fill="var(--teal)" opacity="0.85"/>`;
+    }).join('')}
+    ${D.lostClients.map((v,i)=>{
+      const x=pad+i*(W-pad*2)/n+bW+2;
+      const h=Math.round(v/maxV*(H-pad-10));
+      return `<rect x="${x}" y="${H-pad-h}" width="${bW}" height="${h}" rx="3" fill="var(--red)" opacity="0.7"/>`;
+    }).join('')}
+    ${D.months.map((_,i)=>i%Math.ceil(n/4)===0?`<text x="${pad+i*(W-pad*2)/n+bW/2}" y="${H-4}" font-size="8" fill="rgba(255,255,255,0.3)" text-anchor="middle">${D.months[i]}</text>`:'').join('')}
+  </svg>
+  <div style="display:flex;gap:12px;margin-top:4px;">
+    <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);"><div style="width:10px;height:10px;border-radius:2px;background:var(--teal);"></div>Nowi</div>
+    <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);"><div style="width:10px;height:10px;border-radius:2px;background:var(--red);"></div>Odchodzący</div>
+  </div>`;
+}
+
+function bizActivityChart(D){
+  const buckets=[
+    {label:'8+ sesji/mies.',count:Math.round(D.activeClients*0.25),col:'var(--accent)'},
+    {label:'4–7 sesji/mies.',count:Math.round(D.activeClients*0.40),col:'var(--blue)'},
+    {label:'1–3 sesji/mies.',count:Math.round(D.activeClients*0.25),col:'var(--orange)'},
+    {label:'Nieaktywni',count:Math.round(D.activeClients*0.10),col:'var(--red)'},
+  ];
+  const total=buckets.reduce((a,b)=>a+b.count,0)||1;
+  return `<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+    ${buckets.map(b=>`<div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+        <span style="color:var(--muted);">${b.label}</span>
+        <span style="color:${b.col};font-weight:700;">${b.count} os.</span>
+      </div>
+      <div style="height:6px;background:var(--s3);border-radius:99px;overflow:hidden;">
+        <div style="height:100%;background:${b.col};width:${Math.round(b.count/total*100)}%;border-radius:99px;transition:width 0.5s;"></div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function bizTopClients(D){
+  const maxRev=D.topClients[0]?.rev||1;
+  return `<div style="margin-top:4px;">
+    <div style="display:grid;grid-template-columns:1fr 90px 70px 50px;gap:6px;padding:5px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+      <span>Klient</span><span style="text-align:right;">Przychód</span><span style="text-align:right;">Sesji</span><span></span>
+    </div>
+    ${D.topClients.map((c,i)=>`<div style="display:grid;grid-template-columns:1fr 90px 70px 50px;gap:6px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <div style="width:24px;height:24px;border-radius:6px;background:${['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--red)'][i%6]}22;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--red)'][i%6]};">${getInit(c.name)}</div>
+        <span style="font-size:12px;font-weight:600;">${c.name}</span>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);">${c.rev.toLocaleString('pl')} PLN</div>
+        <div style="height:3px;background:var(--s3);border-radius:99px;margin-top:3px;"><div style="height:100%;background:var(--accent);width:${Math.round(c.rev/maxRev*100)}%;border-radius:99px;"></div></div>
+      </div>
+      <div style="text-align:right;font-size:12px;color:var(--muted);">${c.sessions} sesji</div>
+      <div style="text-align:center;"><span class="pill pill-green" style="font-size:9px;">Aktywny</span></div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function bizMetrics(D){
+  const items=[
+    {label:'Wskaźnik churnu',val:D.churnRate+'%',icon:'📉',col:'var(--orange)',hint:'Cel: <5%'},
+    {label:'NPS (satysfakcja)',val:D.nps+' pkt',icon:'⭐',col:'var(--accent)',hint:'Świetny (>50)'},
+    {label:'Śr. długość sesji',val:D.avgSessionLength+' min',icon:'⏱',col:'var(--blue)',hint:'Standard 60 min'},
+    {label:'Wykorzystanie czasu',val:D.utilizationRate+'%',icon:'📊',col:'var(--teal)',hint:'Cel: >80%'},
+    {label:'Śr. przychód/sesję',val:Math.round(D.revenue/D.sessions)+' PLN',icon:'💰',col:'var(--accent)',hint:''},
+    {label:'Koszty pozyskania',val:'180 PLN',icon:'🎯',col:'var(--muted)',hint:'CAC'},
+  ];
+  return `<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+    ${items.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:16px;">${m.icon}</span>
+      <div style="flex:1;"><div style="font-size:11px;color:var(--muted);">${m.label}</div>${m.hint?`<div style="font-size:10px;color:var(--muted2);">${m.hint}</div>`:''}</div>
+      <div style="font-size:14px;font-weight:700;color:${m.col};">${m.val}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function bizHeatmap(D){
+  const hours=D.hourDist;
+  const max=Math.max(...hours,1);
+  const slots=['6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
+  return `<div style="margin-top:8px;">
+    <div style="display:flex;gap:3px;flex-wrap:wrap;">
+      ${hours.slice(6).map((v,i)=>{
+        const pct=v/max;
+        const bg=pct>0.7?'var(--accent)':pct>0.4?'rgba(230,0,0,0.5)':pct>0.1?'rgba(230,0,0,0.2)':'var(--s3)';
+        return `<div style="width:28px;text-align:center;">
+          <div style="height:28px;border-radius:5px;background:${bg};margin-bottom:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${pct>0.7?'#000':'transparent'};">${v||''}</div>
+          <div style="font-size:8px;color:var(--muted2);">${slots[i]}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;align-items:center;">
+      <span style="font-size:10px;color:var(--muted);">Mało</span>
+      <div style="display:flex;gap:3px;">${[0.1,0.3,0.5,0.7,1].map(o=>`<div style="width:14px;height:10px;border-radius:2px;background:rgba(230,0,0,${o});"></div>`).join('')}</div>
+      <span style="font-size:10px;color:var(--muted);">Dużo</span>
+    </div>
+  </div>`;
+}
+
+function bizForecast(D){
+  const months=['Lip','Sie','Wrz'];
+  const base=D.revSeries[D.revSeries.length-1]||3000;
+  const vals=[Math.round(base*1.04),Math.round(base*1.09),Math.round(base*1.14)];
+  const max=Math.max(...vals)*1.1;
+  return `<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+    ${vals.map((v,i)=>`<div style="background:var(--s3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
+      <div style="width:36px;height:36px;border-radius:8px;background:rgba(201,162,39,${0.1+i*0.05});display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--blue);">${months[i]}</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);">${v.toLocaleString('pl')} PLN</div>
+        <div style="height:4px;background:var(--s2);border-radius:99px;margin-top:5px;overflow:hidden;">
+          <div style="height:100%;background:var(--blue);width:${Math.round(v/max*100)}%;border-radius:99px;"></div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--teal);font-weight:600;">+${Math.round((v/base-1)*100)}%</div>
+    </div>`).join('')}
+    <div style="font-size:10px;color:var(--muted);line-height:1.5;padding:8px 0;">Prognoza zakłada utrzymanie obecnego tempa wzrostu i retencji klientów.</div>
+  </div>`;
+}
+
+function exportBizReport(){
+  const rows=[['Metryka','Wartość']];
+  rows.push(['Aktywnych klientów',CL.filter(c=>c.status!=='inactive').length]);
+  rows.push(['Planów',PL.length]);
+  rows.push(['Sesji',SE.length]);
+  rows.push(['Pakietów',(window.PACKAGES||[]).length]);
+  const paid=(window.INVOICES||[]).filter(i=>i.status==='paid'||i.payStatus==='paid');
+  rows.push(['Faktury opłacone',paid.length]);
+  rows.push(['Suma opłaconych (zł)',paid.reduce((s,i)=>s+(i.amount||i.price||0),0)]);
+  downloadCsv('bizstats-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  notify('✓ Wyeksportowano CSV ze statystykami biznesowymi');
+}
+
+window.initBizStats=initBizStats;window.setBizPeriod=setBizPeriod;window.exportBizReport=exportBizReport;
+
+// ════════════════════════════════════════
+// AI COACH
+// ════════════════════════════════════════
+var aicMode='coach';
+var aicClientId=null;
+var aicMsgs=[];   // [{role,html,rawText,agentId}]
+var aicLoading=false;
+var aicHistorySessions=[]; // [{title,msgs,mode,date}]
+
+/** Sztab ekspercki: biomechanika / dev / biznes — routing + sekwencyjne wywołania (ten sam worker co AI Coach). */
+const STAFF_AGENT_IDS=['biomechanika','dev','biznes'];
+const STAFF_AGENT_META={
+  biomechanika:{label:'BIOMECHANIKA',icon:'🦴'},
+  dev:{label:'DEV',icon:'💻'},
+  biznes:{label:'BIZNES & MARKETING',icon:'📈'}
+};
+const STAFF_ROUTING_KEYWORDS={
+  biomechanika:['wektor','opór','staw','mięsień','profil','kąt','biomechanik','ból','kontuzj','zakres ruchu','dźwigni','moment obrotowy','sfr'],
+  dev:['kod','aplikacj','algorytm','baza danych','funkcj','moduł','ui','ux','react','python','api','bug','błąd','zaprogram'],
+  biznes:['cena','cennik','oferta','pakiet','klient','marketing','lead','sprzedaż','retencj','content','rolka','post','wycena','upsell']
+};
+const STAFF_SYSTEM_PROMPTS={
+  biomechanika:`Jesteś agentem [BIOMECHANIKA] w Sztabie Eksperckim Progress AI.
+Zajmujesz się analizą wektorów sił, profilu oporu, długości ramion siły oraz doborem ćwiczeń pod hipertrofię i bezpieczeństwo stawów.
+Odpowiadaj konkretnie i technicznie, ale zrozumiale dla trenera personalnego. Odwołuj się do realnych pojęć biomechaniki (moment obrotowy, ramię siły, płaszczyzny ruchu, profil oporu: narastający/malejący/dzwonowy/stały).
+Jeśli dostajesz kontekst konkretnego ćwiczenia z aplikacji (nazwa, wzorzec ruchu, obciążane stawy) — odnoś się do niego wprost, nie ogólnikowo.
+Odpowiadaj po polsku, zwięźle (maks. 150 słów), bez zbędnego wstępu.`,
+  dev:`Jesteś agentem [DEV] w Sztabie Eksperckim Progress AI.
+Piszesz czysty kod w JS (vanilla) i projektujesz moduły aplikacji treningowej Progress Live (GitHub Pages, bez React).
+Gdy pytanie dotyczy funkcji aplikacji — proponuj konkretne, wdrażalne rozwiązanie (fragment kodu, strukturę danych lub logikę), nie ogólne rady.
+Jeśli dostajesz kontekst z aplikacji — odnieś się do niego bezpośrednio.
+Odpowiadaj po polsku, zwięźle (maks. 150 słów lub krótki fragment kodu), bez zbędnego wstępu.`,
+  biznes:`Jesteś agentem [BIZNES & MARKETING] w Sztabie Eksperckim Progress AI.
+Zajmujesz się strategiami pakietowania usług, wyceną, retencją klientów i automatyzacją leadów dla trenera personalnego.
+Odpowiadaj konkretnie: proponuj gotowe frazy sprzedażowe, strukturę oferty lub pomysł na content, dopasowane do kontekstu, który dostajesz z aplikacji.
+Unikaj ogólników w stylu "buduj markę" — dawaj rzeczy do wdrożenia dziś.
+Odpowiadaj po polsku, zwięźle (maks. 150 słów), bez zbędnego wstępu.`
+};
+
+function routeStaffQuery(question){
+  const q=String(question||'').toLowerCase();
+  const matched=STAFF_AGENT_IDS.filter(id=>(STAFF_ROUTING_KEYWORDS[id]||[]).some(kw=>q.includes(kw)));
+  if(!matched.length) return STAFF_AGENT_IDS.slice();
+  return matched;
+}
+function routeStaffFromContext(agentId){
+  return STAFF_AGENT_IDS.includes(agentId)?[agentId]:STAFF_AGENT_IDS.slice();
+}
+/** Builder: tylko gdy pytanie trafia w słowa kluczowe — inaczej zostaje dotychczasowy prompt NSCA. */
+function staffAgentsForBuilderQuery(question){
+  const q=String(question||'').toLowerCase();
+  const matched=STAFF_AGENT_IDS.filter(id=>(STAFF_ROUTING_KEYWORDS[id]||[]).some(kw=>q.includes(kw)));
+  return matched.length?matched:null;
+}
+function staffAgentsForAicMode(mode, question){
+  if(mode==='sztab') return routeStaffQuery(question);
+  if(mode==='exercise') return ['biomechanika'];
+  if(mode==='business') return ['biznes'];
+  if(mode==='dev') return ['dev'];
+  return null;
+}
+function staffSystemForAgent(agentId, extraSystem){
+  return (STAFF_SYSTEM_PROMPTS[agentId]||'')+(extraSystem||'');
+}
+function staffWorkerUrl(){
+  return (typeof W==='string'&&W)?W:'https://anthropic-proxy.teamprogress2018.workers.dev/';
+}
+function staffReplyText(data){
+  if(Array.isArray(data?.content)){
+    const joined=data.content.map(b=>(b&&b.text)||'').filter(Boolean).join('\n').trim();
+    if(joined) return joined;
+  }
+  return 'Przepraszam, wystąpił błąd. Spróbuj ponownie.';
+}
+async function callStaffAgent(agentId, question, extraSystem, apiMsgs, maxTokens){
+  const messages=(apiMsgs&&apiMsgs.length)?apiMsgs:[{role:'user',content:question}];
+  const resp=await fetch(staffWorkerUrl(),{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:maxTokens||800,
+      system:staffSystemForAgent(agentId, extraSystem),
+      messages
+    })
+  });
+  const data=await resp.json();
+  return staffReplyText(data);
+}
+async function callStaffAgentsSequentially(agentIds, question, extraSystem, apiMsgs, onEach, maxTokens){
+  const results=[];
+  const ids=(agentIds&&agentIds.length)?agentIds:STAFF_AGENT_IDS.slice();
+  for(const agentId of ids){
+    try{
+      const text=await callStaffAgent(agentId, question, extraSystem, apiMsgs, maxTokens);
+      const entry={agentId,text,error:null};
+      results.push(entry);
+      if(onEach) onEach(entry);
+    }catch(err){
+      const entry={agentId,text:null,error:(err&&err.message)||String(err)};
+      results.push(entry);
+      if(onEach) onEach(entry);
+    }
+  }
+  return results;
+}
+window.STAFF_AGENT_IDS=STAFF_AGENT_IDS;
+window.STAFF_AGENT_META=STAFF_AGENT_META;
+window.STAFF_ROUTING_KEYWORDS=STAFF_ROUTING_KEYWORDS;
+window.STAFF_SYSTEM_PROMPTS=STAFF_SYSTEM_PROMPTS;
+window.routeStaffQuery=routeStaffQuery;
+window.routeStaffFromContext=routeStaffFromContext;
+window.staffAgentsForAicMode=staffAgentsForAicMode;
+window.staffAgentsForBuilderQuery=staffAgentsForBuilderQuery;
+window.callStaffAgent=callStaffAgent;
+window.callStaffAgentsSequentially=callStaffAgentsSequentially;
+
+const AIC_MODES={
+  coach:{
+    label:'🧠 Analiza klienta',
+    system:`Jesteś AI Coach — zaawansowanym asystentem trenera personalnego Piotra Urbaniaka. Masz wiedzę na poziomie NSCA CSCS, NASM CPT i ACSM. Komunikujesz się po polsku. Analizujesz klientów, ich postępy, check-iny i plany treningowe. Dajesz konkretne, spersonalizowane rekomendacje.
+Gdy klient ma nadwagę lub otyłość (blok BEZPIECZEŃSTWO/NADWAGA), układaj trening pod stawy: maszyny, strefa 2, bez plyo, RPE 6–8.
+Gdy dostaniesz STRAŻNIK POSTĘPÓW — powiedz wprost czy idziemy w dobrą czy złą stronę i podaj 2–4 konkretne korekty.
+Formatuj odpowiedzi używając:
+- **pogrubień** dla ważnych terminów
+- ### nagłówki dla sekcji
+- Listy punktowane dla rekomendacji
+Bądź konkretny i profesjonalny, ale przyjazny.`,
+    suggestions:['Analiza ostatnich check-inów','Czy klient osiąga postępy?','Ryzyko plateau treningowego','Jak zmotywować klienta?','Ocena obciążenia treningowego']
+  },
+  plan:{
+    label:'📋 Generator planu',
+    system:`Jesteś ekspertem od programowania treningowego. Tworzysz spersonalizowane plany treningowe oparte o zasady periodyzacji, specyfice celu klienta i jego możliwościach. Znasz metody PPL, FBW, Upper/Lower, trening obwodowy (circuit), 5/3/1, Block Periodization i inne. Komunikujesz się po polsku.
+Gdy generujesz plan:
+- Podaj strukturę tygodnia (np. PN/ŚR/PT)
+- Dla każdego dnia podaj ćwiczenia z seriami×powtórzeniami
+- Uzasadnij wybory metodologicznie
+- Uwzględnij deload co 4-6 tygodni`,
+    suggestions:['Wygeneruj plan PPL 3-dniowy','Plan dla osoby z problemami kolan','6-tygodniowy program siłowy','Plan treningowy dla kobiety — redukcja','Periodyzacja blokowa na 12 tygodni']
+  },
+  nutrition:{
+    label:'🥗 Doradca żywienia',
+    system:`Jesteś ekspertem żywieniowym z certyfikatem PN i ISSN. Doradzasz w zakresie odżywiania sportowego, kalkulacji makroskładników, suplementacji i diety dopasowanej do celu treningowego. Komunikujesz się po polsku.
+Pamiętaj:
+- Zawsze pytaj o cel (masa/redukcja/utrzymanie) i poziom aktywności
+- Podawaj konkretne wartości kcal i makro
+- Uwzględniaj preferencje żywieniowe klienta
+- Nie zastępujesz dietetyka — w złożonych przypadkach odsyłaj do specjalisty`,
+    suggestions:['Oblicz zapotrzebowanie kaloryczne','Ile białka na kilogram masy?','Suplementacja przy budowaniu masy','Dieta dla klienta na redukcji','Odżywianie przed i po treningu']
+  },
+  exercise:{
+    label:'💪 Ekspert ćwiczeń',
+    system:`Jesteś agentem [BIOMECHANIKA] w Sztabie Eksperckim Progress AI oraz ekspertem techniki ćwiczeń siłowych. Znasz wektory sił, profil oporu, ramiona siły, płaszczyzny ruchu i dobór ćwiczeń pod hipertrofię i stawy. Komunikujesz się po polsku.
+Odpowiadając na pytania o technikę:
+- Opisz ustawienie ciała krok po kroku
+- Wskaż najczęstsze błędy
+- Podaj regresje i progresje
+- Zasugeruj ćwiczenia zastępcze jeśli potrzeba
+- Odwołuj się do momentu obrotowego i profilu oporu (narastający/malejący/dzwonowy/stały), gdy to pasuje`,
+    suggestions:['Technika przysiadu z kontuzją kolana','Zastępniki martwego ciągu dla początkujących','Jak poprawić wyciskanie na klatce?','Ćwiczenia na tylną część uda','Trening mobilności bioder']
+  },
+  business:{
+    label:'💼 Biznes trenerski',
+    system:`Jesteś agentem [BIZNES & MARKETING] w Sztabie Eksperckim Progress AI. Doradzasz w zakresie marketingu, wyceny, pakietów, retencji i leadów dla trenera personalnego. Komunikujesz się po polsku.
+Dajesz konkretne, praktyczne rady do wdrożenia dziś:
+- Strategie pozyskiwania klientów online i offline
+- Konstruowanie oferty i pakietów + gotowe frazy sprzedażowe
+- Social media dla trenerów
+- Jak podnosić ceny bez utraty klientów
+- Automatyzacja i skalowanie biznesu
+Unikaj ogólników w stylu "buduj markę".`,
+    suggestions:['Jak pozyskać pierwszych 10 klientów?','Jak ustalić ceny pakietów?','Social media strategia dla trenera','Jak zwiększyć retencję klientów?','Skalowanie biznesu online']
+  },
+  sztab:{
+    label:'🦴 Sztab ekspercki',
+    system:`Jesteś koordynatorem Sztabu Eksperckiego Progress AI. Pytania trafiają do agentów BIOMECHANIKA, DEV i BIZNES według słów kluczowych; gdy nic nie pasuje — odpowiadają wszyscy po kolei.`,
+    suggestions:['Profil oporu w wyciskaniu na ławce','Ból barku przy unoszeniu bokiem','Jak dodać zamienniki w bibliotece?','Pakiet 8 treningów — jak wycenić?','Retencja po pierwszym miesiącu']
+  },
+  dev:{
+    label:'💻 Dev aplikacji',
+    system:`Jesteś agentem [DEV] w Sztabie Eksperckim Progress AI. Progress Live to vanilla JS na GitHub Pages (bez React). Proponuj wdrażalne rozwiązania: fragment kodu, strukturę danych lub logikę UI.`,
+    suggestions:['Jak ułożyć routing sztabu w czacie?','Pomysł na UI zamienników ćwiczeń','Struktura danych sesji treningowej','Gdzie trzymać GIF-y techniki?']
+  }
+};
+
+function initAICoach(){
+  const sel=document.getElementById('aic-client-sel');
+  if(sel){
+    sel.innerHTML='<option value="">Brak klienta (ogólne)</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+  }
+  if(!aicMsgs.length) aicShowWelcome();
+  renderAICQuickQs();
+  renderAICTools();
+  renderAICHistory();
+}
+
+function aicShowWelcome(){
+  const msgs=document.getElementById('aic-msgs');
+  if(!msgs)return;
+  msgs.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;text-align:center;padding:40px;">
+    <div style="width:64px;height:64px;border-radius:20px;background:var(--adim);border:1px solid rgba(230,0,0,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+      <div class="ai-dot" style="width:14px;height:14px;"></div>
+    </div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI COACH</div>
+    <div style="font-size:13px;color:var(--muted);max-width:420px;line-height:1.7;margin-bottom:24px;">Twój asystent AI z wiedzą NSCA/NASM/ACSM. Tryb <b>Sztab ekspercki</b> pyta biomechanikę, dev i biznes po kolei — gdy pytanie nie pasuje do żadnego, odzywają się wszyscy.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      ${Object.entries(AIC_MODES).map(([k,m])=>`<button class="aic-suggestion" onclick="setAICMode('${k}',document.getElementById('aicm-${k}'));document.getElementById('aic-input').focus();">${m.label}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function aicLoadClient(){
+  const sel=document.getElementById('aic-client-sel');
+  aicClientId=sel?.value||null;
+  const bar=document.getElementById('aic-context-bar');
+  const txt=document.getElementById('aic-context-text');
+  if(aicClientId){
+    const c=CL.find(x=>x.id===aicClientId);
+    if(c&&bar&&txt){
+      const sessions=SE.filter(s=>s.clientId===c.id).length;
+      const plans=PL.filter(p=>p.clientId===c.id).length;
+      bar.style.display='block';
+      const w=c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null);
+      const bmi=typeof clientBmiStatus==='function'?clientBmiStatus(w,c.height):null;
+      const mon=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
+      const extra=[bmi&&bmi.bmi!=null?('BMI '+bmi.bmi+' · '+bmi.label):'',mon?('strażnik: '+mon.verdict):''].filter(Boolean).join(' · ');
+      txt.textContent=`${c.name} · ${c.goal||'brak celu'} · ${c.level||'brak poziomu'} · ${sessions} sesji · ${plans} planów${extra?' · '+extra:''}`;
+    }
+  } else {
+    if(bar)bar.style.display='none';
+  }
+}
+
+function setAICMode(mode,btn){
+  if(mode==='nutrition'){
+    if(typeof notify==='function')notify('Żywienie jest w przygotowaniu — nie ma dziennika posiłków. Kalkulator makro zostaje w Narzędziach.');
+    return;
+  }
+  aicMode=mode;
+  document.querySelectorAll('.aic-mode-btn').forEach(b=>b.classList.remove('active'));
+  const target=btn||document.getElementById('aicm-'+mode);
+  if(target)target.classList.add('active');
+  const inp=document.getElementById('aic-input');
+  if(inp){
+    inp.placeholder=mode==='sztab'?'Pytanie do sztabu (biomechanika / dev / biznes)...'
+      :mode==='dev'?'Zapytaj o kod, UI albo logikę Progress Live...'
+      :mode==='exercise'?'Zapytaj o technikę, wektory sił, zamienniki...'
+      :mode==='business'?'Zapytaj o cennik, pakiety, retencję...'
+      :'Zapytaj AI Coach...';
+  }
+  renderAICQuickQs();
+  renderAICTools();
+}
+
+function renderAICQuickQs(){
+  const el=document.getElementById('aic-quick-qs');if(!el)return;
+  const qs=AIC_MODES[aicMode]?.suggestions||[];
+  el.innerHTML=qs.map(q=>`<button class="aic-quick-q" onclick="aicSendQuick('${q.replace(/'/g,"\\'")}')">${q}</button>`).join('');
+}
+
+function aicSendQuick(q){
+  const inp=document.getElementById('aic-input');
+  if(inp){inp.value=q;inp.style.height='auto';}
+  sendAICMsg();
+}
+
+function renderAICTools(){
+  const el=document.getElementById('aic-tools');if(!el)return;
+  const toolSets={
+    coach:[
+      {icon:'📊',title:'Analiza postępów',desc:'Porównaj wyniki klienta z poprzednim miesiącem',q:'Przeanalizuj postępy klienta i oceń czy idzie w dobrym kierunku.'},
+      {icon:'⚠️',title:'Detekcja plateau',desc:'Sprawdź czy klient nie utknął w miejscu',q:'Czy klient wykazuje oznaki plateau treningowego? Co zmienić?'},
+      {icon:'❤️',title:'Check-in analiza',desc:'Interpretuj wyniki ostatnich check-inów',q:'Przeanalizuj ostatnie check-iny klienta i wskaż obszary wymagające uwagi.'},
+      {icon:'🎯',title:'Zmiana programu',desc:'Kiedy i jak zmodyfikować plan',q:'Czy czas zmienić plan treningowy klienta? Zaproponuj modyfikacje.'},
+    ],
+    plan:[
+      {icon:'📋',title:'PPL 3-dniowy',desc:'Push/Pull/Legs — 3 sesje w tygodniu',q:'Wygeneruj plan PPL na 3 dni w tygodniu dla klienta.'},
+      {icon:'🏋️',title:'FBW 3x/tydzień',desc:'Full Body Workout — dla początkujących',q:'Stwórz plan FBW 3 razy w tygodniu.'},
+      {icon:'📅',title:'Upper/Lower 4x',desc:'4 treningi — górna/dolna partia',q:'Wygeneruj plan Upper/Lower na 4 dni w tygodniu.'},
+      {icon:'🔄',title:'Trening obwodowy',desc:'Circuit — kondycja i redukcja',q:'Wygeneruj plan treningu obwodowego na 3 dni w tygodniu.'},
+      {icon:'⚡',title:'5/3/1 Wendler',desc:'Program siłowy na 16 tygodni',q:'Opisz jak wdrożyć metodę 5/3/1 Wendlera dla tego klienta.'},
+    ],
+    nutrition:[
+      {icon:'🔢',title:'Kalkulator TDEE',desc:'Oblicz zapotrzebowanie kaloryczne',q:'Oblicz TDEE i makroskładniki dla klienta.'},
+      {icon:'💊',title:'Suplementacja',desc:'Co, kiedy i ile suplementować',q:'Jakie suplementy polecasz dla klienta i w jakich dawkach?'},
+      {icon:'🍗',title:'Jadłospis',desc:'Przykładowy plan żywieniowy na dzień',q:'Przygotuj przykładowy jadłospis na jeden dzień dla klienta.'},
+      {icon:'⚖️',title:'Dieta deficytowa',desc:'Plan żywienia na redukcję',q:'Jak skonstruować dietę deficytową dla klienta aby skutecznie spalać tłuszcz?'},
+    ],
+    exercise:[
+      {icon:'🦵',title:'Analiza przysiadu',desc:'Technika i najczęstsze błędy',q:'Opisz technikę przysiadu, najczęstsze błędy i jak je poprawić.'},
+      {icon:'💀',title:'Martwy ciąg',desc:'Technika conventional i sumo',q:'Porównaj technikę martwego ciągu conventional i sumo — kiedy który polecasz?'},
+      {icon:'🤕',title:'Kontuzje i modyfikacje',desc:'Ćwiczenia bezpieczne przy urazach',q:'Jakie modyfikacje ćwiczeń polecasz dla klienta z kontuzją?'},
+      {icon:'🧘',title:'Mobilność i rozgrzewka',desc:'Protokół rozgrzewki przed treningiem',q:'Zaproponuj 10-minutowy protokół rozgrzewki przed treningiem siłowym.'},
+    ],
+    business:[
+      {icon:'📣',title:'Pozyskanie klientów',desc:'Strategie online i offline',q:'Jak skutecznie pozyskiwać nowych klientów jako trener personalny?'},
+      {icon:'💰',title:'Pakiety i ceny',desc:'Jak skonstruować ofertę',q:'Jak skonstruować pakiety treningowe i ustalić ceny?'},
+      {icon:'📱',title:'Social media',desc:'Content strategy dla trenera',q:'Stwórz strategię content marketingową na Instagram/TikTok dla trenera personalnego.'},
+      {icon:'🔄',title:'Retencja klientów',desc:'Jak zmniejszyć odpływ klientów',q:'Jak zwiększyć retencję klientów i zmniejszyć churn?'},
+    ],
+    sztab:[
+      {icon:'🦴',title:'Wektory i profil oporu',desc:'Biomechanika wybranego wzorca',q:'Przeanalizuj profil oporu i wektory sił w wyciskaniu na ławce.'},
+      {icon:'💻',title:'Funkcja w aplikacji',desc:'Konkretna zmiana w Progress Live',q:'Jak dodać zamienniki ćwiczeń w bibliotece Progress Live?'},
+      {icon:'📈',title:'Wycena pakietu',desc:'Oferta do wdrożenia dziś',q:'Pakiet 8 treningów — jak wycenić i jaką frazę sprzedażową dać na rolkę?'},
+      {icon:'🦴💻📈',title:'Pytanie do całej trójki',desc:'Gdy temat styka dziedziny',q:'Jak opisać klientowi zamiennik ćwiczenia w aplikacji i sprzedać to jako wartość pakietu?'},
+    ],
+    dev:[
+      {icon:'🧭',title:'Routing sztabu',desc:'Kto odpowiada na pytanie',q:'Jak ułożyć routing sztabu w czacie AI Coach?'},
+      {icon:'🔁',title:'Zamienniki',desc:'UI i dane ćwiczeń',q:'Pomysł na UI zamienników ćwiczeń w bibliotece.'},
+      {icon:'🗂️',title:'Sesja treningowa',desc:'Struktura danych',q:'Jaką strukturę danych sesji treningowej trzymać w Firestore?'},
+      {icon:'🖼️',title:'GIF-y techniki',desc:'Manifest vs Storage',q:'Gdzie trzymać GIF-y techniki ćwiczeń w Progress Live?'},
+    ],
+  };
+  const tools=toolSets[aicMode]||toolSets.coach;
+  el.innerHTML=tools.map(t=>`<div class="aic-tool-card" onclick="aicSendQuick('${t.q.replace(/'/g,"\\'")}')">
+    <div style="font-size:20px;margin-bottom:6px;">${t.icon}</div>
+    <div style="font-size:12px;font-weight:700;margin-bottom:3px;">${t.title}</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.4;">${t.desc}</div>
+  </div>`).join('');
+}
+
+function renderAICHistory(){
+  const el=document.getElementById('aic-history');if(!el)return;
+  if(!aicHistorySessions.length){
+    el.innerHTML='<div style="padding:8px 14px;font-size:11px;color:var(--muted2);">Brak historii</div>';
+    return;
+  }
+  el.innerHTML=aicHistorySessions.slice().reverse().map((s,i)=>`<div class="aic-hist-item" onclick="aicLoadSession(${aicHistorySessions.length-1-i})">
+    <span style="margin-right:4px;">${AIC_MODES[s.mode]?.label.split(' ')[0]||'💬'}</span>${s.title}
+    <div style="font-size:9px;color:var(--muted2);margin-top:1px;">${s.date}</div>
+  </div>`).join('');
+}
+
+function aicLoadSession(idx){
+  const s=aicHistorySessions[idx];if(!s)return;
+  aicMode=s.mode;
+  aicMsgs=s.msgs.slice();
+  setAICMode(s.mode,null);
+  aicRenderAllMsgs();
+}
+
+function aicRenderAllMsgs(){
+  const el=document.getElementById('aic-msgs');if(!el)return;
+  el.innerHTML='';
+  aicMsgs.forEach(m=>aicAddMsgDOM(m.role,m.html,false,m.agentId));
+  el.scrollTop=el.scrollHeight;
+}
+
+function aicSharedContextSystem(query){
+  let extra=`\n\nDziś: ${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
+  extra+=`\nTrener: ${typeof getTrainerName==='function'?getTrainerName():''}`;
+  extra+=typeof kbContextForAI==='function'?kbContextForAI({mode:aicMode,query:query||''}):'';
+  if(aicClientId){
+    const c=CL.find(x=>x.id===aicClientId);
+    if(c){
+      const sessions=SE.filter(s=>s.clientId===c.id);
+      const plans=PL.filter(p=>p.clientId===c.id);
+      const tasks=TASKS.filter(t=>t.clientId===c.id);
+      const checkins=window.CHECKINS?.[c.id]||[];
+      const lastCheckin=typeof latestFilledCheckin==='function'?latestFilledCheckin(c.id):checkins.filter(x=>x&&x.status==='filled').slice(-1)[0];
+      const metrics=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
+      const metricsTxt=typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(c.id):'';
+      extra+=`\n\n=== DANE KLIENTA ===
+Imię: ${c.name}
+Cel: ${c.goal||'—'}
+Poziom: ${c.level||'—'}
+Wiek: ${c.age||'—'}
+Waga: ${c.weight||'—'} kg
+Wzrost: ${c.height||'—'} cm
+Liczba sesji: ${sessions.length}
+Liczba planów: ${plans.length}
+Liczba zadań: ${tasks.length}
+${lastCheckin?`Ostatni wypełniony check-in: ${JSON.stringify(lastCheckin)}`:'Brak wypełnionych check-inów'}
+${metricsTxt||(metrics.length?`Ostatnie pomiary (raw): ${JSON.stringify(metrics.slice(-3))}`:'Brak pomiarów')}
+${plans.length?`Aktualny plan: ${plans[plans.length-1].name}, metoda: ${plans[plans.length-1].method}`:'Brak planu'}
+Notatki: ${c.notes||'—'}`;
+      if(typeof clientSafetyContextForAI==='function')extra+='\n'+(clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries,gender:c.gender})||'');
+      if(typeof clientMonitorContextForAI==='function')extra+='\n'+(clientMonitorContextForAI(c.id)||'');
+    }
+  }
+  return extra;
+}
+
+function aicStaffAvatarHTML(agentId){
+  const meta=STAFF_AGENT_META[agentId];
+  if(!meta){
+    return `<div style="width:28px;height:28px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+      <div class="ai-dot" style="width:8px;height:8px;"></div>
+    </div>`;
+  }
+  return `<div class="aic-agent-badge" title="${escH(meta.label)}" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:rgba(255,59,48,0.12);border:1px solid var(--accent);font-size:11px;font-weight:700;letter-spacing:0.3px;color:var(--accent);line-height:1.2;">
+    <span>${meta.icon}</span><span style="font-family:'DM Mono',monospace;">${escH(meta.label)}</span>
+  </div>`;
+}
+
+function aicShowTyping(agentId){
+  const msgs=document.getElementById('aic-msgs');
+  const typingId='aic-typing-'+Date.now()+(agentId?('-'+agentId):'');
+  if(!msgs) return typingId;
+  const meta=agentId&&STAFF_AGENT_META[agentId];
+  const label=meta?`${meta.icon} ${meta.label} analizuje...`:'';
+  msgs.insertAdjacentHTML('beforeend', `<div id="${typingId}" class="aic-msg">
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:92%;">
+        ${aicStaffAvatarHTML(agentId)}
+        <div class="aic-bubble-ai" style="padding:10px 14px;">
+          <span style="display:inline-flex;gap:4px;align-items:center;">
+            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;"></span>
+            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s 0.2s infinite;"></span>
+            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s 0.4s infinite;"></span>
+            ${label?`<span style="font-size:11px;color:var(--muted);margin-left:6px;">${escH(label)}</span>`:''}
+          </span>
+        </div>
+      </div>
+    </div>`);
+  msgs.scrollTop=msgs.scrollHeight;
+  return typingId;
+}
+
+async function sendAICMsg(){
+  if(aicLoading)return;
+  const inp=document.getElementById('aic-input');
+  const text=inp?.value?.trim();
+  if(!text)return;
+  inp.value='';inp.style.height='auto';
+
+  if(!aicMsgs.length){
+    const msgs=document.getElementById('aic-msgs');
+    if(msgs)msgs.innerHTML='';
+  }
+
+  aicMsgs.push({role:'user',html:escH(text)});
+  aicAddMsgDOM('user',escH(text),true);
+  const sug=document.getElementById('aic-suggestions');
+  if(sug)sug.innerHTML='';
+
+  aicLoading=true;
+  if(typeof kbPrepareResearch==='function')await kbPrepareResearch();
+  const extra=aicSharedContextSystem(text);
+  const agentIds=staffAgentsForAicMode(aicMode, text);
+
+  const apiMsgs=aicMsgs.slice(-9,-1).map(m=>({
+    role:m.role==='user'?'user':'assistant',
+    content:m.role==='user'?m.html:m.rawText||m.html.replace(/<[^>]+>/g,'')
+  }));
+  apiMsgs.push({role:'user',content:text});
+
+  aicLoading=true;
+  let typingId=aicShowTyping(agentIds&&agentIds.length===1?agentIds[0]:null);
+
+  try{
+    if(agentIds&&agentIds.length){
+      document.getElementById(typingId)?.remove();
+      const maxTokens=agentIds.length>1?800:1500;
+      const longer=agentIds.length===1?'\nW trybie specjalistycznym możesz rozwinąć odpowiedź, jeśli pytanie tego wymaga.':'';
+      for(const agentId of agentIds){
+        typingId=aicShowTyping(agentId);
+        let raw;
+        try{
+          raw=await callStaffAgent(agentId, text, extra+longer, apiMsgs, maxTokens);
+        }catch(err){
+          raw='❌ Błąd połączenia z AI. Sprawdź połączenie internetowe.';
+        }
+        document.getElementById(typingId)?.remove();
+        const html=/^❌/.test(raw)?`<span style="color:var(--red);">${escH(raw)}</span>`:aicMarkdownToHTML(raw);
+        aicMsgs.push({role:'assistant',html,rawText:raw,agentId});
+        aicAddMsgDOM('assistant',html,true,agentId);
+      }
+    } else {
+      const systemPrompt=(AIC_MODES[aicMode]?.system||AIC_MODES.coach.system)+extra;
+      const resp=await fetch(staffWorkerUrl(),{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:1500,
+          system:systemPrompt,
+          messages:apiMsgs
+        })
+      });
+      const data=await resp.json();
+      const raw=staffReplyText(data);
+      document.getElementById(typingId)?.remove();
+      const html=aicMarkdownToHTML(raw);
+      aicMsgs.push({role:'assistant',html,rawText:raw});
+      aicAddMsgDOM('assistant',html,true);
+    }
+    renderAICSuggestions(aicMode);
+    aicSaveToHistory(text);
+  }catch(e){
+    document.getElementById(typingId)?.remove();
+    const errHtml='<span style="color:var(--red);">❌ Błąd połączenia z AI. Sprawdź połączenie internetowe.</span>';
+    aicMsgs.push({role:'assistant',html:errHtml});
+    aicAddMsgDOM('assistant',errHtml,true);
+  }
+  aicLoading=false;
+}
+
+function aicMarkdownToHTML(md){
+  return md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/^[\-\*] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>')
+    .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>');
+}
+
+function aicAddMsgDOM(role,html,scroll,agentId){
+  const el=document.getElementById('aic-msgs');if(!el)return;
+  const isUser=role==='user';
+  const div=document.createElement('div');
+  div.className='aic-msg';
+  if(agentId)div.setAttribute('data-agent',agentId);
+  div.style.display='flex';
+  div.style.justifyContent=isUser?'flex-end':'flex-start';
+  div.style.alignItems='flex-start';
+  div.style.gap='8px';
+  if(isUser){
+    div.innerHTML=`<div class="aic-bubble-user">${html}</div>`;
+  } else if(agentId&&STAFF_AGENT_META[agentId]){
+    div.innerHTML=`<div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:92%;">
+      ${aicStaffAvatarHTML(agentId)}
+      <div class="aic-bubble-ai">${html}</div>
+    </div>`;
+  } else {
+    div.innerHTML=`<div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
+      ${aicStaffAvatarHTML(agentId)}
+      <div class="aic-bubble-ai">${html}</div>
+    </div>`;
+  }
+  el.appendChild(div);
+  if(scroll)el.scrollTop=el.scrollHeight;
+}
+
+function renderAICSuggestions(mode){
+  const el=document.getElementById('aic-suggestions');if(!el)return;
+  const qs=AIC_MODES[mode]?.suggestions||[];
+  const pick=qs.sort(()=>Math.random()-0.5).slice(0,3);
+  el.innerHTML=pick.map(q=>`<button class="aic-suggestion" onclick="aicSendQuick('${q.replace(/'/g,"\\'")}')">↩ ${q}</button>`).join('');
+}
+
+function aicSaveToHistory(firstMsg){
+  const userTurns=aicMsgs.filter(m=>m.role==='user').length;
+  const title=firstMsg.slice(0,40)+(firstMsg.length>40?'…':'');
+  const last=aicHistorySessions[aicHistorySessions.length-1];
+  if(!aicHistorySessions.length || userTurns===1){
+    const lastIsThisTurn=last && (last.msgs||[]).filter(m=>m.role==='user').length<=1 && last.title===title;
+    if(lastIsThisTurn){
+      last.msgs=aicMsgs.slice();
+    } else {
+      aicHistorySessions.push({
+        title,
+        msgs:aicMsgs.slice(),
+        mode:aicMode,
+        date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+      });
+    }
+  } else if(last){
+    last.msgs=aicMsgs.slice();
+  }
+  renderAICHistory();
+}
+
+function aicNewSession(){
+  // save current
+  if(aicMsgs.length>0){
+    aicHistorySessions.push({
+      title:(aicMsgs[0]?.html||'Sesja').replace(/<[^>]+>/g,'').slice(0,40),
+      msgs:aicMsgs.slice(),
+      mode:aicMode,
+      date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+    });
+  }
+  aicMsgs=[];
+  aicShowWelcome();
+  document.getElementById('aic-suggestions').innerHTML='';
+  renderAICHistory();
+}
+
+function aicClear(){
+  aicMsgs=[];
+  aicShowWelcome();
+  document.getElementById('aic-suggestions').innerHTML='';
+}
+
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+window.initAICoach=initAICoach;window.aicLoadClient=aicLoadClient;
+window.setAICMode=setAICMode;window.sendAICMsg=sendAICMsg;
+window.aicSendQuick=aicSendQuick;window.aicNewSession=aicNewSession;
+window.aicClear=aicClear;window.aicLoadSession=aicLoadSession;

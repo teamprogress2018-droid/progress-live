@@ -1,0 +1,97 @@
+// Unit: mapowanie GIF-ów techniki ćwiczeń
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
+const windowObj = {
+  addEventListener() {},
+  EX: [],
+  DEF_EX: [{ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' }],
+  EX_GIF_MANIFEST: { 'wyciskanie sztangi leżąc': 'assets/ex/gifs/bench.gif' },
+  EX_GIF_REMOTE: { 'podciąganie na drążku': 'https://cdn.example.com/pull.gif' },
+  COACH_VIDEOS: [],
+  document,
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj,
+  document,
+  console,
+  Date, Math, parseInt, parseFloat, Number, String, Array, Object, JSON,
+  setTimeout, clearTimeout, isNaN, Infinity, undefined,
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(path.dirname(__filename), '..', '..', '01-core.js'), 'utf8'), ctx);
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) { console.error('FAIL ' + name + (extra ? ' — ' + extra : '')); failed++; }
+  else console.log('OK   ' + name);
+}
+
+ok('exerciseSlug', ctx.exerciseSlug('Wyciskanie sztangi leżąc') === 'wyciskanie-sztangi-lezac');
+ok('exerciseSlug plus', ctx.exerciseSlug('Wyciskanie hantli skos+') === 'wyciskanie-hantli-skos-plus');
+ok('manifest lookup', ctx.exGifMapLookup('Wyciskanie sztangi leżąc') === 'assets/ex/gifs/bench.gif');
+ok('remote lookup', ctx.exGifMapLookup('Podciąganie na drążku') === 'https://cdn.example.com/pull.gif');
+ok('exGifUrl from manifest', ctx.exGifUrl('Wyciskanie sztangi leżąc') === 'assets/ex/gifs/bench.gif');
+
+const coach = ctx.resolveCoachMedia({ name: 'Wyciskanie sztangi leżąc' });
+ok('resolveCoachMedia gif', coach.gif === 'assets/ex/gifs/bench.gif');
+
+const html = ctx.coachMediaHtml(coach, { showGif: true });
+ok('coachMediaHtml has gif', html.includes('cw-technique-gif') && html.includes('bench.gif'));
+ok('isVideoMediaUrl mp4', ctx.isVideoMediaUrl('https://cdn.example.com/a.mp4'));
+ok('isVideoMediaUrl gif false', !ctx.isVideoMediaUrl('assets/ex/gifs/bench.gif'));
+
+const mp4 = 'https://cdn.jsdelivr.net/gh/x/y@1/bench.mp4';
+windowObj.EX_GIF_MANIFEST = { 'wyciskanie sztangi leżąc': mp4, 'wyciskanie-sztangi-lezac': mp4 };
+windowObj.EX_PHOTO_MANIFEST = { 'wyciskanie sztangi leżąc': 'https://example.com/bench.jpg' };
+ok('exGifUrl prefers mp4 from manifest', ctx.exGifUrl({ name: 'Wyciskanie sztangi leżąc' }) === mp4);
+ok('exThumbUrl skips mp4 for photo', ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' }) === 'https://example.com/bench.jpg');
+const hackGif = 'assets/ex/gifs/przysiad-hack-maszyna.gif';
+windowObj.EX_GIF_MANIFEST = { 'przysiad hack maszyna': hackGif, 'przysiad-hack-maszyna': hackGif };
+windowObj.EX_PHOTO_MANIFEST = { 'przysiad hack maszyna': 'https://example.com/hack.jpg' };
+ok('exThumbUrl prefers gif over photo', ctx.exThumbUrl({ name: 'Przysiad hack maszyna' }) === hackGif);
+const vhtml = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, {});
+ok('mp4 technique uses video tag', vhtml.includes('<video') && vhtml.includes(mp4) && !vhtml.includes('<img'));
+ok('technique caption has name', vhtml.includes('cw-technique-cap') && vhtml.includes('Wyciskanie sztangi leżąc'));
+const ihtml = ctx.exTechniqueMediaHtml({ gif: hackGif, name: 'Wyciskanie sztangi leżąc' }, {});
+ok('caption img skips alt', ihtml.includes('<img') && ihtml.includes('alt=""') && ihtml.includes('cw-technique-cap'));
+ok('caption false skips overlay', !ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, { caption: false }).includes('cw-technique-cap'));
+ok('broken media helper', typeof ctx.hideBrokenTechniqueMedia === 'function');
+const compact = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, { compact: true });
+ok('compact has no caption', !compact.includes('cw-technique-cap'));
+const fileVid = ctx.coachMediaHtml({ name: 'X', video: 'https://cdn.example.com/a.mp4', isFile: true }, { showVideo: true, showGif: false });
+ok('file video large wrap', fileVid.includes('cw-file-player') && fileVid.includes('cw-video-file') && fileVid.includes('<video') && !fileVid.includes('cw-video-wrap'));
+ok('youtube stays 16x9 wrap', ctx.coachMediaHtml({ name: 'X', video: 'https://youtu.be/dQw4w9WgXcQ', videoEmbed: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ' }, { showVideo: true, showGif: false }).includes('cw-video-wrap') && !ctx.coachMediaHtml({ name: 'X', video: 'https://youtu.be/dQw4w9WgXcQ', videoEmbed: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ' }, { showVideo: true, showGif: false }).includes('cw-video-file'));
+const dup = ctx.coachMediaHtml({ name: 'X', gif: mp4, video: mp4, isFile: true }, { showVideo: true, showGif: true });
+ok('same gif+video not doubled', (dup.match(/<video/g) || []).length === 1 && !dup.includes('cw-file-player'));
+
+const dipsMp4 = 'https://cdn.jsdelivr.net/gh/x/y@1/Dipy%20na%20por%C4%99czach%20(Parallel%20Bar%20Dips).mp4';
+const benchMp4 = 'https://cdn.jsdelivr.net/gh/x/y@1/Wyciskanie%20sztangi%20na%20%C5%82awce%20p%C5%82askiej%20(Barbell%20Bench%20Press).mp4';
+windowObj.DEF_EX = [
+  { name: 'Dipy na poręczach' },
+  { name: 'Dipy z obciążeniem' },
+  { name: 'Wyciskanie sztangi leżąc' },
+  { name: 'Klatka piersiowa' },
+];
+windowObj.EX_GIF_MANIFEST = { 'dipy na poręczach': dipsMp4 };
+windowObj.EX_GIF_REMOTE = {};
+ok('assignedExVideoUrl uses curated dips mp4', ctx.assignedExVideoUrl('Dipy na poręczach') === dipsMp4);
+windowObj.EX_GIF_REMOTE = { 'dipy z obciążeniem': dipsMp4, 'klatka piersiowa': benchMp4 };
+ok('stolen parallel-bar clip not on weighted dips', !ctx.assignedExVideoUrl('Dipy z obciążeniem'));
+ok('stolen bench clip not on generic chest', !ctx.assignedExVideoUrl('Klatka piersiowa'));
+ok('dips card still gets parallel-bar mp4', ctx.assignedExVideoUrl({ name: 'Dipy na poręczach' }) === dipsMp4);
+ok(
+  'generic chest thumb drops borrowed bench still',
+  !ctx.exThumbUrl({
+    name: 'Klatka piersiowa',
+    img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press/0.jpg',
+  })
+);
+windowObj.EX_GIF_REMOTE = { 'dipy na poręczach': 'https://cdn.example.com/filmy/custom-dips.mp4' };
+ok('honest remote dips override wins', ctx.assignedExVideoUrl('Dipy na poręczach') === 'https://cdn.example.com/filmy/custom-dips.mp4');
+
+process.exit(failed ? 1 : 0);

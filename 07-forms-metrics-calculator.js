@@ -1,0 +1,2290 @@
+// ════════════════════════════════════════
+// FORMS — ENHANCED
+// ════════════════════════════════════════
+var formNav='all';var formSelId=null;var sendFormId=null;
+window.CUSTOM_FORMS=[];
+window.FORM_SENDS=[];// {formId, clientId, sentAt, status:'sent'|'filled', answers:[]}
+
+const CAT_COLORS_F={wstepna:'var(--accent)',postepy:'var(--blue)',zdrowie:'var(--red)',dieta:'var(--teal)',satysfakcja:'var(--purple)'};
+const CAT_LABELS_F={wstepna:'Wstępna',postepy:'Postępy',zdrowie:'Zdrowie',dieta:'Dieta',satysfakcja:'Satysfakcja'};
+const Q_TYPE_LABELS={text:'Tekst',scale:'Skala 1-10',yesno:'Tak/Nie',number:'Liczba',choice:'Wybór'};
+
+const DEMO_FORMS=[
+  {
+    id:'df1',type:'demo',status:'active',cat:'wstepna',
+    name:'Ankieta wstępna',
+    desc:'Jedyna ankieta startowa (cel, poziom, zdrowie, preferencje). Wysyłana w apce albo jako PDF do wydruku / e-maila — nie wypełniaj tych pól ręcznie w profilu klienta.',
+    questions:[
+      {id:'q1',type:'text',text:'Jaki jest Twój główny cel treningowy?',required:true},
+      {id:'q2',type:'choice',text:'Jak długo trenujesz?',options:['Jestem początkujący (0-1 rok)','1-3 lata','Ponad 3 lata'],required:true},
+      {id:'q3',type:'yesno',text:'Czy masz jakieś kontuzje lub problemy zdrowotne, o których powinienem wiedzieć?',required:true},
+      {id:'q4',type:'text',text:'Jeśli tak — opisz proszę rodzaj i lokalizację bólu/kontuzji'},
+      {id:'q5',type:'number',text:'Ile dni w tygodniu możesz trenować?',required:true},
+      {id:'q6',type:'choice',text:'O której porze dnia preferujesz trening?',options:['Rano (6-10)','Południe (10-14)','Po południu (14-18)','Wieczór (18-22)'],required:false},
+      {id:'q7',type:'yesno',text:'Czy stosujesz jakąś dietę lub masz ograniczenia żywieniowe?'},
+      {id:'q8',type:'text',text:'Opisz swój typowy dzień żywieniowy (3 główne posiłki)'},
+      {id:'q9',type:'scale',text:'Jak oceniasz swój obecny poziom energii (1=bardzo niski, 10=bardzo wysoki)?',required:true},
+      {id:'q10',type:'text',text:'Czego oczekujesz od współpracy ze mną jako trenerem?',required:true},
+    ]
+  },
+  {
+    id:'df2',type:'demo',status:'active',cat:'zdrowie',
+    name:'Ocena postawy i zdrowia',
+    desc:'Szczegółowa analiza wad postawy, bólu, ograniczeń ruchowych i historii medycznej. Kluczowa przed ułożeniem planu.',
+    questions:[
+      {id:'q1',type:'yesno',text:'Czy odczuwasz bóle kręgosłupa (odcinek lędźwiowy)?',required:true},
+      {id:'q2',type:'yesno',text:'Czy odczuwasz bóle kręgosłupa (odcinek szyjny/piersiowy)?'},
+      {id:'q3',type:'choice',text:'Czy masz zdiagnozowane wady postawy?',options:['Nie','Hiperlordoza','Hiperkifoza','Skolioza','Protrakcja barków','Kilka z powyższych'],required:true},
+      {id:'q4',type:'yesno',text:'Czy miałeś/aś operacje ortopedyczne w ciągu ostatnich 2 lat?'},
+      {id:'q5',type:'text',text:'Opisz operacje lub poważne urazy (jeśli dotyczy)'},
+      {id:'q6',type:'yesno',text:'Czy przyjmujesz leki na stałe?'},
+      {id:'q7',type:'choice',text:'Jak oceniasz swoją mobilność bioder?',options:['Dobra (pełny przysiad bez problemów)','Średnia (pewne ograniczenia)','Słaba (trudności z głębokim przysiadem)'],required:true},
+      {id:'q8',type:'yesno',text:'Czy masz problemy z kolanami (ból, trzaski, niestabilność)?'},
+      {id:'q9',type:'yesno',text:'Czy masz problemy z barkami (ból przy uniesieniu ramion)?'},
+      {id:'q10',type:'scale',text:'Jak oceniasz swój ogólny stan zdrowia (1=bardzo zły, 10=doskonały)?',required:true},
+    ]
+  },
+  {
+    id:'df3',type:'demo',status:'active',cat:'postepy',
+    name:'Miesięczna ocena postępów',
+    desc:'Formularz wysyłany co 30 dni. Mierzy postęp fizyczny, samopoczucie i satysfakcję z planu treningowego.',
+    questions:[
+      {id:'q1',type:'number',text:'Aktualna masa ciała (kg)'},
+      {id:'q2',type:'scale',text:'Jak oceniasz swoje postępy w tym miesiącu? (1=brak postępów, 10=świetne)'},
+      {id:'q3',type:'scale',text:'Jak oceniasz swoje samopoczucie i energię? (1=bardzo złe, 10=doskonałe)'},
+      {id:'q4',type:'number',text:'Ile treningów udało Ci się wykonać w tym miesiącu?'},
+      {id:'q5',type:'scale',text:'Jak oceniasz poziom trudności planu? (1=za łatwy, 10=za trudny)'},
+      {id:'q6',type:'yesno',text:'Czy trzymałeś/aś się planu żywieniowego?'},
+      {id:'q7',type:'yesno',text:'Czy wystąpiły jakieś bóle lub kontuzje w tym miesiącu?'},
+      {id:'q8',type:'text',text:'Opisz bóle lub kontuzje (jeśli dotyczy)'},
+      {id:'q9',type:'scale',text:'Jak bardzo jesteś zadowolony/a ze współpracy z trenerem? (1-10)'},
+      {id:'q10',type:'text',text:'Co chciałbyś/chciałabyś zmienić lub ulepszyć w swoim planie?'},
+    ]
+  },
+  {
+    id:'df4',type:'demo',status:'active',cat:'dieta',
+    name:'Wywiad żywieniowy',
+    desc:'Szczegółowe informacje o nawykach żywieniowych, preferencjach i celach dietetycznych klienta.',
+    questions:[
+      {id:'q1',type:'number',text:'Ile posiłków dziennie spożywasz?'},
+      {id:'q2',type:'yesno',text:'Czy liczysz kalorie lub makroskładniki?'},
+      {id:'q3',type:'choice',text:'Jaki jest Twój główny cel żywieniowy?',options:['Redukcja masy ciała','Budowa masy mięśniowej','Utrzymanie wagi','Poprawa zdrowia','Nie mam konkretnego celu'],required:true},
+      {id:'q4',type:'yesno',text:'Czy jesteś wegetarianinem/weganinem?'},
+      {id:'q5',type:'text',text:'Jakie masz ograniczenia dietetyczne lub alergie pokarmowe?'},
+      {id:'q6',type:'scale',text:'Jak oceniasz jakość swojej diety (1=bardzo zła, 10=doskonała)?'},
+      {id:'q7',type:'number',text:'Ile litrów wody pijesz dziennie?'},
+      {id:'q8',type:'yesno',text:'Czy suplementujesz? (białko, kreatyna, witaminy itp.)'},
+      {id:'q9',type:'text',text:'Jakie suplementy stosujesz?'},
+      {id:'q10',type:'text',text:'O której godzinie zwykle jesz ostatni posiłek?'},
+    ]
+  },
+  {
+    id:'df5',type:'demo',status:'active',cat:'satysfakcja',
+    name:'Ankieta satysfakcji klienta',
+    desc:'Badanie zadowolenia ze współpracy z trenerem. Anonimowe. Pomaga ulepszać usługi.',
+    questions:[
+      {id:'q1',type:'scale',text:'Jak oceniasz ogólną jakość współpracy z trenerem? (1-10)',required:true},
+      {id:'q2',type:'scale',text:'Jak oceniasz jakość ułożonego planu treningowego? (1-10)',required:true},
+      {id:'q3',type:'scale',text:'Jak oceniasz komunikację i dostępność trenera? (1-10)',required:true},
+      {id:'q4',type:'scale',text:'Jak oceniasz postępy, które osiągnąłeś/osiągnęłaś? (1-10)'},
+      {id:'q5',type:'yesno',text:'Czy poleciłbyś/poleciłabyś tego trenera znajomym?',required:true},
+      {id:'q6',type:'text',text:'Co najbardziej cenisz we współpracy z trenerem?'},
+      {id:'q7',type:'text',text:'Co Twoim zdaniem można by poprawić?'},
+    ]
+  },
+];
+
+function allForms(){return[...DEMO_FORMS,...(window.CUSTOM_FORMS||[])];}
+
+function createFormSend(form,clientId,extraMsg){
+  if(!form||!clientId)return null;
+  const now=new Date();
+  const iso=now.toISOString();
+  const send=withTrainer({
+    id:newId('fs'),
+    formId:form.id,
+    formName:form.name||'Formularz',
+    clientId,
+    sentAt:now.toLocaleDateString('pl'),
+    sentAtIso:iso,
+    createdAt:iso,
+    status:'sent',
+    answers:{},
+    questions:snapshotFormQuestions(form)
+  });
+  window.FORM_SENDS=window.FORM_SENDS||[];
+  window.FORM_SENDS.push(send);
+  persistById('formSends',send);
+  const msg=(extraMsg||'').trim()||('📋 Proszę wypełnić formularz: "'+(form.name||'Formularz')+'"');
+  if(typeof pushMsg==='function')pushMsg(clientId,msg);
+  try{if(typeof renderDashFormFollowup==='function')renderDashFormFollowup();}catch(e){}
+  try{if(typeof renderClientOnboardChecklist==='function'&&window._onboardClientId===clientId)renderClientOnboardChecklist();}catch(e){}
+  return send;
+}
+window.createFormSend=createFormSend;
+
+function remindFormSend(sendId){
+  const send=(window.FORM_SENDS||[]).find(s=>s&&s.id===sendId);
+  if(!send){if(typeof notify==='function')notify('Nie znaleziono formularza');return false;}
+  if(send.status==='filled'){if(typeof notify==='function')notify('Formularz jest już wypełniony');return false;}
+  const name=send.formName||'Formularz';
+  const msg='📋 Przypomnienie: proszę wypełnić formularz "'+name+'" w aplikacji.';
+  if(typeof pushMsg==='function')pushMsg(send.clientId,msg);
+  send.remindedAt=new Date().toISOString();
+  if(typeof persistById==='function')persistById('formSends',send);
+  const c=(window.CL||[]).find(x=>x.id===send.clientId);
+  if(typeof addNotification==='function'){
+    addNotification('form','Przypomnienie o formularzu',((c&&c.name)||'Klient')+' · '+name,'forms');
+  }
+  if(c&&c.email&&typeof openInviteEmailComposer==='function'){
+    const link=c.inviteLink||(typeof clientAppUrl==='function'?clientAppUrl():'https://teamprogress2018-droid.github.io/progress-live/');
+    const first=String(c.name||'').split(' ')[0]||'hej';
+    const body='Cześć '+first+',\n\nPrzypomnienie: wypełnij formularz "'+name+'" w aplikacji Progress Live.\n\n➡️ Wejdź tutaj:\n'+link+'\n\nPozdrawiam';
+    openInviteEmailComposer(c.email,'Przypomnienie: '+name,body);
+    if(typeof notify==='function')notify('✓ Otworzono Gmail z przypomnieniem — kliknij tam Wyślij');
+  }else if(typeof notify==='function'){
+    notify('✓ Przypomnienie poszło do czatu klienta');
+  }
+  try{if(typeof renderDashFormFollowup==='function')renderDashFormFollowup();}catch(e){}
+  return true;
+}
+window.remindFormSend=remindFormSend;
+
+function sendClientIntakeForm(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(!c){if(typeof notify==='function')notify('Nie znaleziono klienta');return null;}
+  const st=typeof clientIntakeFormState==='function'?clientIntakeFormState(clientId):null;
+  if(st&&st.pending){
+    if(typeof notify==='function')notify('Ankieta już czeka na klienta — możesz wysłać przypomnienie');
+    return st.pending;
+  }
+  if(st&&st.filled){
+    if(typeof notify==='function')notify('Ankieta wstępna jest już wypełniona');
+    return st.filledSend||null;
+  }
+  const form=typeof defaultIntakeForm==='function'?defaultIntakeForm():null;
+  if(!form){if(typeof notify==='function')notify('Brak formularza wstępnego w bibliotece (df1 / kategoria wstępna)');return null;}
+  const send=createFormSend(form,clientId,'📋 Ankieta startowa — wypełnij w apce, żebym mógł dopasować plan.');
+  if(send&&typeof notify==='function')notify('✓ Ankieta wstępna wysłana do '+c.name);
+  return send;
+}
+window.sendClientIntakeForm=sendClientIntakeForm;
+
+function renderOnboardFormsBanner(){
+  const bar=document.getElementById('forms-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterForms;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — wstępne. Wyślij ankietę albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromForms()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromForms(){
+  const cid=window._onboardResumeAfterForms;
+  window._onboardResumeAfterForms=null;
+  if(typeof closeFormDetail==='function')try{closeFormDetail();}catch(e){}
+  if(typeof renderOnboardFormsBanner==='function')renderOnboardFormsBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+window.renderOnboardFormsBanner=renderOnboardFormsBanner;
+window.resumeOnboardFromForms=resumeOnboardFromForms;
+
+function setFormNav(n){
+  formNav=n;
+  document.querySelectorAll('.form-nav-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('fn-'+n);if(el)el.classList.add('active');
+  renderForms();
+}
+
+function updateFormCounts(){
+  const all=allForms();
+  const cnt=fn=>all.filter(fn).length;
+  const set=(id,n)=>{const el=document.getElementById(id);if(el)el.textContent=n;};
+  set('fnc-all',all.length);
+  set('fnc-active',cnt(f=>f.status==='active'));
+  set('fnc-draft',cnt(f=>f.status==='draft'));
+  ['wstepna','postepy','zdrowie','dieta','satysfakcja'].forEach(c=>set('fnc-'+c,cnt(f=>f.cat===c)));
+  // stats
+  const sent=FORM_SENDS.length;
+  const filled=FORM_SENDS.filter(s=>s.status==='filled').length;
+  set('fs-sent',sent);
+  set('fs-filled',filled);
+  set('fs-pending',sent-filled);
+}
+
+function renderForms(){
+  if(typeof renderOnboardFormsBanner==='function')renderOnboardFormsBanner();
+  updateFormCounts();
+  const all=allForms();
+  const search=(document.getElementById('form-search')||{}).value||'';
+  const clientFil=(document.getElementById('form-client-filter')||{}).value||'';
+
+  // populate client filter
+  const cf=document.getElementById('form-client-filter');
+  if(cf){const cur=cf.value;cf.innerHTML='<option value="">Wszyscy klienci</option>'+CL.map(c=>'<option value="'+c.id+'"'+(c.id===cur?' selected':'')+'>'+c.name+'</option>').join('');}
+
+  let res=all.filter(f=>{
+    if(search&&!f.name.toLowerCase().includes(search.toLowerCase())&&!(f.desc||'').toLowerCase().includes(search.toLowerCase()))return false;
+    if(formNav==='active')return f.status==='active';
+    if(formNav==='draft')return f.status==='draft';
+    if(['wstepna','postepy','zdrowie','dieta','satysfakcja'].includes(formNav))return f.cat===formNav;
+    return true;
+  });
+
+  const lbl=document.getElementById('form-count-lbl');
+  if(lbl)lbl.textContent=res.length+' '+(res.length===1?'formularz':res.length<5?'formularze':'formularzy');
+
+  const grid=document.getElementById('forms-grid-main');
+  if(!grid)return;
+  if(!res.length){
+    grid.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📋</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak formularzy</div><button class="btn btn-primary" onclick="openM(\'m-form\')">+ Nowy formularz</button></div>';
+    return;
+  }
+
+  grid.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">${res.map((f,i)=>{
+    const col=CAT_COLORS_F[f.cat]||'var(--accent)';
+    const cl=CAT_LABELS_F[f.cat]||f.cat;
+    const sends=FORM_SENDS.filter(s=>s.formId===f.id);
+    const filled=sends.filter(s=>s.status==='filled').length;
+    return `<div class="form-card" style="animation-delay:${i*0.04}s" onclick="openFormDetail('${f.id}')">
+      <div class="form-card-top" style="background:${col};"></div>
+      <div class="form-card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
+          <div class="form-card-title">${f.name}</div>
+          ${f.type==='demo'?'<span class="pill pill-blue" style="font-size:9px;white-space:nowrap;">DEMO</span>':'<span class="pill pill-green" style="font-size:9px;white-space:nowrap;">MOJE</span>'}
+        </div>
+        <div class="form-card-desc">${f.desc||''}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
+          <span class="pill" style="background:${col}22;color:${col};font-size:10px;">${cl}</span>
+          <span class="pill pill-muted" style="font-size:10px;">${(f.questions||[]).length} pytań</span>
+          <span class="pill ${f.status==='active'?'pill-green':'pill-muted'}" style="font-size:10px;">${f.status==='active'?'Aktywny':'Roboczy'}</span>
+        </div>
+        <div class="form-card-stats">
+          <div style="font-size:11px;color:var(--muted);">Wysłanych: <span style="color:var(--text);font-weight:600;">${sends.length}</span> · Wypełnionych: <span style="color:var(--teal);font-weight:600;">${filled}</span></div>
+          <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
+            <button class="btn btn-ghost btn-sm" onclick="openFormDetail('${f.id}')">Podgląd</button>
+            <button class="btn btn-ghost btn-sm" onclick="printFormPdf('${f.id}')" title="Pusty formularz do PDF / wydruku">PDF</button>
+            <button class="btn btn-primary btn-sm" onclick="openSendForm('${f.id}')">Wyślij</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function openFormDetail(id){
+  const f=allForms().find(x=>x.id===id);if(!f)return;
+  formSelId=id;
+  const col=CAT_COLORS_F[f.cat]||'var(--accent)';
+  const cl=CAT_LABELS_F[f.cat]||f.cat;
+  document.getElementById('fd-title').textContent=f.name;
+  document.getElementById('fd-meta').textContent=cl+' · '+(f.questions||[]).length+' pytań · '+(f.status==='active'?'Aktywny':'Roboczy');
+
+  const sends=FORM_SENDS.filter(s=>s.formId===id);
+
+  document.getElementById('fd-body').innerHTML=`
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+      <span class="pill" style="background:${col}22;color:${col};">${cl}</span>
+      <span class="pill pill-muted">${(f.questions||[]).length} pytań</span>
+      ${f.type==='demo'?'<span class="pill pill-blue">DEMO</span>':''}
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${f.desc||''}</div>
+
+    ${sends.length?`<div style="margin-bottom:16px;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Wysyłki i odpowiedzi</div>
+      ${sends.slice().reverse().map(s=>{
+        const c=CL.find(x=>x.id===s.clientId);
+        const filled=s.status==='filled';
+        const open=window._fdAnswersSendId===s.id;
+        return `<div style="padding:7px 0;border-bottom:1px solid var(--border);">
+        <div ${filled?`onclick="toggleFormSendAnswers('${escHtml(s.id)}')"`:''} style="display:flex;align-items:center;gap:8px;font-size:12px;${filled?'cursor:pointer;':''}">
+          <span>${c?escHtml(c.name):'Klient'}</span>
+          <span class="sent-badge ${filled?'pill-green':'pill-orange'}">${filled?'✓ Wypełniony':'⏳ Oczekuje'}</span>
+          <span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(s.sentAt||'')}${filled?' · odpowiedzi':''}</span>
+        </div>
+        ${open?formAnswersHtml(s):''}
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          ${filled?`<button type="button" class="btn btn-ghost btn-sm" onclick="printFormSendPdf('${escHtml(s.id)}')">PDF odpowiedzi</button>`:''}
+          ${!filled?`<button type="button" class="btn btn-ghost btn-sm" onclick="remindFormSend('${escHtml(s.id)}')">Przypomnij</button>`:''}
+        </div>
+      </div>`;}).join('')}
+    </div>`:''}
+
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">PODGLĄD PYTAŃ</div>
+    <div id="fd-questions-preview">
+      ${(f.questions||[]).map((q,i)=>`
+        <div class="fd-question">
+          <div class="fd-q-text">${i+1}. ${q.text}${q.required?'<span style="color:var(--red);margin-left:4px;">*</span>':''}</div>
+          ${q.type==='text'?`<input type="text" class="fd-q-input" placeholder="Odpowiedź tekstowa..." disabled>`:''}
+          ${q.type==='number'?`<input type="number" class="fd-q-input" placeholder="Wpisz liczbę..." disabled>`:''}
+          ${q.type==='scale'?`<div class="fd-scale">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="fd-scale-btn" onclick="selectScale(this,'${q.id}')">${n}</button>`).join('')}</div>`:''}
+          ${q.type==='yesno'?`<div class="fd-yn"><button class="fd-yn-btn" onclick="selectYN(this,'${q.id}','tak')">✓ Tak</button><button class="fd-yn-btn" onclick="selectYN(this,'${q.id}','nie')">✗ Nie</button></div>`:''}
+          ${q.type==='choice'&&q.options?`<div style="display:flex;flex-direction:column;gap:5px;">${q.options.map(opt=>`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;"><input type="radio" name="q${q.id}" style="accent-color:var(--accent);"> ${opt}</label>`).join('')}</div>`:''}
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('fd-actions').innerHTML=findCustomForm(id)
+    ?`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij w apce</button>
+      <button class="btn btn-ghost" onclick="printFormPdf('${id}')" title="Pusty PDF / wydruk do e-maila">📄 PDF</button>
+      <button class="btn btn-ghost" onclick="editForm('${id}')">✏</button>
+      <button class="btn btn-ghost" style="color:var(--red);" onclick="delForm('${id}')">🗑</button>`
+    :`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij w apce</button>
+      <button class="btn btn-ghost" onclick="printFormPdf('${id}')" title="Pusty PDF / wydruk do e-maila">📄 PDF</button>
+      <button class="btn btn-ghost" onclick="closeFormDetail()">Zamknij</button>`;
+
+  document.getElementById('form-detail').style.transform='translateX(0)';
+}
+
+/** HTML do wydruku / „Zapisz jako PDF” (puste odpowiedzi albo wypełnione). */
+function buildFormPrintHtml(form,opts){
+  opts=opts||{};
+  const qs=form&&form.questions?form.questions:[];
+  const ans=opts.answers||{};
+  const filled=!!opts.filled;
+  const clientName=opts.clientName||'';
+  const trainer=(typeof getTrainerName==='function'?getTrainerName('Trener'):'Trener');
+  const when=opts.when||new Date().toLocaleDateString('pl-PL');
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const answerBlock=(q)=>{
+    if(filled){
+      const raw=ans[q.id];
+      const txt=typeof formatFormAnswer==='function'?formatFormAnswer(q,raw):(raw==null||raw===''?'—':String(raw));
+      return `<div class="ans">${esc(txt)}</div>`;
+    }
+    if(q.type==='yesno')return`<div class="blank yn"><span>☐ Tak</span><span>☐ Nie</span></div>`;
+    if(q.type==='choice'&&q.options&&q.options.length){
+      return`<div class="blank yn">${q.options.map(o=>`<div>☐ ${esc(o)}</div>`).join('')}</div>`;
+    }
+    if(q.type==='scale')return`<div class="blank yn">${[1,2,3,4,5,6,7,8,9,10].map(n=>'☐ '+n).join(' &nbsp; ')}</div>`;
+    if(q.type==='number')return`<div class="blank line short"></div>`;
+    return`<div class="blank line"></div><div class="blank line"></div>`;
+  };
+  return `<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><title>${esc(form.name||'Formularz')}</title>
+<style>
+  body{font-family:Georgia,'Times New Roman',serif;color:#111;max-width:720px;margin:24px auto;padding:0 20px;line-height:1.45;}
+  h1{font-size:22px;margin:0 0 6px;font-family:Arial,sans-serif;}
+  .meta{font-size:12px;color:#444;margin-bottom:18px;font-family:Arial,sans-serif;}
+  .q{margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid #ddd;page-break-inside:avoid;}
+  .q-t{font-size:13px;font-weight:700;margin-bottom:8px;font-family:Arial,sans-serif;}
+  .req{color:#b00;}
+  .ans{font-size:14px;padding:6px 0;}
+  .blank.line{border-bottom:1px solid #999;height:22px;margin:4px 0;}
+  .blank.line.short{width:120px;}
+  .blank.yn{font-size:13px;font-family:Arial,sans-serif;display:flex;flex-direction:column;gap:4px;}
+  .foot{margin-top:28px;font-size:11px;color:#666;font-family:Arial,sans-serif;}
+  @media print{body{margin:12px;} .no-print{display:none!important;}}
+</style></head><body>
+  <div class="no-print" style="margin-bottom:16px;font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:10px 12px;border-radius:8px;">
+    Użyj <b>Drukuj → Zapisz jako PDF</b>, potem wyślij plik klientowi e-mailem / WhatsApp.
+    <button onclick="window.print()" style="margin-left:10px;padding:6px 12px;cursor:pointer;">Drukuj / PDF</button>
+  </div>
+  <h1>${esc(form.name||'Formularz')}</h1>
+  <div class="meta">${esc(form.desc||'')}<br>
+    Trener: ${esc(trainer)}${clientName?' · Klient: '+esc(clientName):''} · ${esc(when)}
+    ${filled?' · WYPEŁNIONE':''}
+  </div>
+  ${qs.map((q,i)=>`<div class="q"><div class="q-t">${i+1}. ${esc(q.text||'')}${q.required?' <span class="req">*</span>':''}</div>${answerBlock(q)}</div>`).join('')}
+  <div class="foot">Progress Live · ankieta do wypełnienia${filled?' (kopia odpowiedzi)':' (wersja papierowa / PDF)'}</div>
+  <script>window.addEventListener('load',function(){setTimeout(function(){try{window.print();}catch(e){}},250);});<\/script>
+</body></html>`;
+}
+function openFormPrintWindow(html){
+  const w=window.open('','_blank','noopener,noreferrer,width=800,height=900');
+  if(!w){if(typeof notify==='function')notify('Zablokowano okno — odblokuj pop-upy, żeby wygenerować PDF');return false;}
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  return true;
+}
+function printFormPdf(formId){
+  const f=typeof allForms==='function'?allForms().find(x=>x.id===formId):null;
+  if(!f){if(typeof notify==='function')notify('Nie znaleziono formularza');return false;}
+  return openFormPrintWindow(buildFormPrintHtml(f,{filled:false}));
+}
+function printFormSendPdf(sendId){
+  const send=(window.FORM_SENDS||[]).find(s=>s&&s.id===sendId);
+  if(!send){if(typeof notify==='function')notify('Nie znaleziono wysyłki');return false;}
+  const f=(typeof allForms==='function'?allForms():[]).find(x=>x.id===send.formId)||{name:send.formName,questions:typeof formQuestionsForSend==='function'?formQuestionsForSend(send):[],desc:''};
+  const c=(window.CL||[]).find(x=>x.id===send.clientId);
+  const ans=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
+  const form={name:f.name||send.formName||'Formularz',desc:f.desc||'',questions:f.questions||[]};
+  return openFormPrintWindow(buildFormPrintHtml(form,{
+    filled:send.status==='filled',
+    answers:ans,
+    clientName:c&&c.name||'',
+    when:send.sentAt||send.filledAt||''
+  }));
+}
+window.buildFormPrintHtml=buildFormPrintHtml;
+window.printFormPdf=printFormPdf;
+window.printFormSendPdf=printFormSendPdf;
+
+function closeFormDetail(){
+  document.getElementById('form-detail').style.transform='translateX(100%)';
+  formSelId=null;
+  window._fdAnswersSendId=null;
+}
+
+function formAnswersHtml(send){
+  const qs=formQuestionsForSend(send);
+  const ans=formSendAnswersMap(send);
+  if(!qs.length)return `<div style="font-size:11px;color:var(--muted);padding:8px 0;">Brak pytań w tym wysłaniu.</div>`;
+  return `<div style="background:var(--s3);border-radius:8px;padding:10px 12px;margin-top:8px;">
+    ${qs.map((q,i)=>`<div style="padding:6px 0;${i<qs.length-1?'border-bottom:1px solid var(--border);':''}">
+      <div style="font-size:11px;color:var(--muted);line-height:1.4;">${i+1}. ${escHtml(q.text||'')}${q.required?' <span style="color:var(--red);">*</span>':''}</div>
+      <div style="font-size:13px;font-weight:600;margin-top:3px;">${escHtml(formatFormAnswer(q,ans[q.id]))}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function toggleFormSendAnswers(sendId){
+  window._fdAnswersSendId=window._fdAnswersSendId===sendId?null:sendId;
+  if(formSelId)openFormDetail(formSelId);
+}
+
+function selectScale(btn,qid){
+  btn.closest('.fd-scale').querySelectorAll('.fd-scale-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function selectYN(btn,qid,val){
+  btn.closest('.fd-yn').querySelectorAll('.fd-yn-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function openSendForm(id){
+  sendFormId=id;
+  const f=allForms().find(x=>x.id===id);if(!f)return;
+  if(!CL.length){notify('Najpierw dodaj klienta!');return;}
+  document.getElementById('m-send-form-title').textContent='WYŚLIJ: '+f.name.toUpperCase();
+  const resumeId=window._onboardResumeAfterForms;
+  const resumeC=resumeId&&CL.find(x=>x.id===resumeId);
+  if(resumeC)sendFormSetClientField(resumeC.id,resumeC.name||'');
+  else sendFormSetClientField('','');
+  document.getElementById('send-form-msg').value='';
+  openM('m-send-form');
+}
+
+// Ustawia pole klienta w oknie wysyłania formularza: widoczny tekst + ukryte id.
+function sendFormSetClientField(clientId,clientName){
+  const hid=document.getElementById('send-form-client');
+  const vis=document.getElementById('send-form-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('send-form-client-results');
+  if(res)res.style.display='none';
+}
+
+function sendFormClientSearchInput(){
+  const q=(document.getElementById('send-form-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('send-form-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="sendFormSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+function confirmSendForm(){
+  if(!sendFormId)return;
+  const cid=document.getElementById('send-form-client').value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===cid);
+  const f=allForms().find(x=>x.id===sendFormId);
+  if(!f){notify('Nie znaleziono formularza');return;}
+  const extra=(document.getElementById('send-form-msg')||{}).value||'';
+  createFormSend(f,cid,extra);
+  closeM('m-send-form');
+  renderForms();
+  if(formSelId===sendFormId)openFormDetail(sendFormId);
+  notify('✓ Formularz "'+f.name+'" wysłany do '+(c?c.name:'klienta')+' — wypełni go w apce');
+  if(window._onboardResumeAfterForms===cid&&typeof maybeResumeOnboard==='function'){
+    window._onboardResumeAfterForms=null;
+    maybeResumeOnboard(cid);
+  }
+}
+
+// Form builder
+function addFormQ(type){
+  const container=document.getElementById('nf-questions');
+  const id='nfq'+Date.now();
+  const div=document.createElement('div');
+  div.className='fq-row';
+  div.id=id;
+  div.innerHTML=`
+    <span class="fq-type-badge">${Q_TYPE_LABELS[type]||type}</span>
+    <input type="text" placeholder="Treść pytania..." style="flex:1;background:var(--s4);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;" data-type="${type}">
+    ${type==='choice'?`<input type="text" placeholder="Opcja 1, Opcja 2, Opcja 3..." style="width:180px;background:var(--s4);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:11px;" data-opts>`:'' }
+    <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer;flex-shrink:0;"><input type="checkbox" style="accent-color:var(--accent);" data-req> Wymagane</label>
+    <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;flex-shrink:0;">×</button>`;
+  container.appendChild(div);
+}
+
+function findCustomForm(id){
+  return (window.CUSTOM_FORMS||[]).find(f=>f.id===id);
+}
+
+function editForm(id){
+  const f=findCustomForm(id);
+  if(!f){notify('To formularz z biblioteki demo — nie można go edytować');return;}
+  openM('m-form');
+  document.getElementById('nf-title').value=f.name||'';
+  document.getElementById('nf-cat').value=f.cat||'';
+  document.getElementById('nf-desc').value=f.desc||'';
+  const container=document.getElementById('nf-questions');
+  container.innerHTML='';
+  (f.questions||[]).forEach(q=>{
+    addFormQ(q.type);
+    const lastRow=container.lastElementChild;
+    const inp=lastRow.querySelector('input[data-type]');
+    if(inp)inp.value=q.text||'';
+    const optsInp=lastRow.querySelector('input[data-opts]');
+    if(optsInp&&q.options)optsInp.value=q.options.join(', ');
+    const reqInp=lastRow.querySelector('input[data-req]');
+    if(reqInp)reqInp.checked=!!q.required;
+  });
+  const titleEl=document.querySelector('#m-form .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ FORMULARZ';
+  const saveBtn=document.querySelector('#m-form .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingFormId=id;
+  closeFormDetail();
+}
+
+async function delForm(id){
+  const f=findCustomForm(id);
+  if(!f){notify('To formularz z biblioteki demo — nie można go usunąć');return;}
+  if(!confirm('Usunąć formularz "'+f.name+'"?'))return;
+  window.CUSTOM_FORMS=(window.CUSTOM_FORMS||[]).filter(x=>x.id!==id);
+  closeFormDetail();
+  renderForms();
+  notify('Formularz usunięty');
+  if(window._db){try{await window._del(window._doc(window._db,'forms',id));}catch(e){console.warn('Firebase delForm:',e);}}
+}
+
+async function saveCustomForm(){
+  if(window._saveGuard_saveCustomForm)return;window._saveGuard_saveCustomForm=true;setTimeout(()=>window._saveGuard_saveCustomForm=false,1500);
+
+  const title=document.getElementById('nf-title').value.trim();
+  if(!title){notify('Wpisz nazwę formularza!');return;}
+  const questions=[];
+  document.querySelectorAll('#nf-questions .fq-row').forEach((row,i)=>{
+    const inp=row.querySelector('input[data-type]');
+    const optsInp=row.querySelector('input[data-opts]');
+    const reqInp=row.querySelector('input[data-req]');
+    if(!inp||!inp.value.trim())return;
+    const q={id:'q'+(i+1),type:inp.dataset.type,text:inp.value.trim(),required:reqInp?reqInp.checked:false};
+    if(optsInp&&optsInp.value)q.options=optsInp.value.split(',').map(s=>s.trim()).filter(Boolean);
+    questions.push(q);
+  });
+  if(!questions.length){notify('Dodaj przynajmniej jedno pytanie!');return;}
+  const editingId=window._editingFormId;
+  if(editingId){
+    const idx=(window.CUSTOM_FORMS||[]).findIndex(x=>x.id===editingId);
+    if(idx>=0){
+      window.CUSTOM_FORMS[idx]={...window.CUSTOM_FORMS[idx],cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,updatedAt:new Date().toISOString()};
+      window._editingFormId=null;
+      closeM('m-form');
+      document.getElementById('nf-questions').innerHTML='';
+      document.getElementById('nf-title').value='';
+      renderForms();notify('✓ Formularz zaktualizowany!');
+      await persistById('forms',window.CUSTOM_FORMS[idx]);
+      return;
+    }
+  }
+  const form=withTrainer({id:newId('cf'),type:'moje',status:'active',cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,createdAt:new Date().toISOString()});
+  await persistById('forms',form);
+  window.CUSTOM_FORMS.push(form);
+  closeM('m-form');
+  document.getElementById('nf-questions').innerHTML='';
+  document.getElementById('nf-title').value='';
+  renderForms();notify('✓ Formularz "'+title+'" utworzony!');
+}
+
+function renderCPForms(c){
+  const sends=(window.FORM_SENDS||[]).filter(s=>s.clientId===c.id)
+    .slice().sort((a,b)=>(b.sentAtIso||b.createdAt||b.sentAt||'').localeCompare(a.sentAtIso||a.createdAt||a.sentAt||''));
+  const pending=sends.filter(s=>s.status!=='filled');
+  const filled=sends.filter(s=>s.status==='filled');
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const intakePendingId=intake&&intake.pending?intake.pending.id:null;
+  const listSends=intakePendingId?sends.filter(s=>s.id!==intakePendingId):sends;
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="cp-section-title" style="margin:0;">FORMULARZE (${sends.length})</div>
+      <button class="btn btn-primary btn-sm" onclick="goTo('forms')">📋 Biblioteka</button>
+    </div>
+    <div style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">Ankieta wstępna</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Źródło celu, poziomu i preferencji — wyślij w apce albo jako PDF. Nie duplikuj w Edytuj profil.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${!(intake&&(intake.filled||intake.pending))?`<button class="btn btn-primary btn-sm" onclick="sendClientIntakeForm('${escHtml(c.id)}');renderCPForms(CL.find(x=>x.id==='${escHtml(c.id)}'))">Wyślij w apce</button>`:''}
+        ${intake&&intake.pending?`<button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(intake.pending.id)}')">Przypomnij</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="printFormPdf('df1')">📄 PDF blank</button>
+        ${intake&&intake.filledSend?`<button class="btn btn-ghost btn-sm" onclick="printFormSendPdf('${escHtml(intake.filledSend.id)}')">PDF odpowiedzi</button>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${pending.length}</div><div class="cp-stat-lbl">Oczekuje</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--teal);font-size:22px;">${filled.length}</div><div class="cp-stat-lbl">Wypełnione</div></div>
+    </div>
+    ${!listSends.length
+      ?(intakePendingId
+        ?'<div style="text-align:center;padding:16px 12px;color:var(--muted);font-size:11px;line-height:1.45;">Oczekująca ankieta wstępna jest powyżej. Inne formularze wyślij z biblioteki.</div>'
+        :'<div style="text-align:center;padding:30px;color:var(--muted);">Brak wysłanych formularzy. Użyj przycisków powyżej albo biblioteki Formularze.</div>')
+    :listSends.map(s=>{
+      const f=(typeof allForms==='function'?allForms():[]).find(x=>x.id===s.formId);
+      const name=s.formName||(f&&f.name)||'Formularz';
+      const open=window._fdAnswersSendId===s.id;
+      const isFilled=s.status==='filled';
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="flex:1;${isFilled?'cursor:pointer;':''}" ${isFilled?`onclick="window._fdAnswersSendId=window._fdAnswersSendId==='${s.id}'?null:'${s.id}';renderCPForms(CL.find(x=>x.id==='${c.id}'))"`:''}>
+            <div style="font-size:13px;font-weight:600;">${escHtml(name)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px;">${escHtml(s.sentAt||'')} ${isFilled?'· kliknij, żeby zobaczyć odpowiedzi':''}</div>
+          </div>
+          <span class="pill ${isFilled?'pill-green':'pill-orange'}" style="font-size:9px;">${isFilled?'✓ Wypełniony':'⏳ Oczekuje'}</span>
+        </div>
+        ${open?formAnswersHtml(s):''}
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          ${isFilled?`<button type="button" class="btn btn-ghost btn-sm" onclick="printFormSendPdf('${escHtml(s.id)}')">PDF</button>`:`<button type="button" class="btn btn-ghost btn-sm" onclick="remindFormSend('${escHtml(s.id)}')">Przypomnij</button>`}
+        </div>
+      </div>`;
+    }).join('')}
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px;" onclick="goTo('forms')">📤 Wyślij kolejny</button>`;
+}
+
+// ════════════════════════════════════════
+// METRICS — POMIARY CIAŁA
+// ════════════════════════════════════════
+var metricActiveGroup=null;var metricView='table';var metricSelIcon='⚖️';
+window.METRIC_GROUPS=[];window.METRIC_ENTRIES=[];
+
+const DEMO_METRIC_GROUPS=[
+  {id:'mg1',name:'Masa i BMI',icon:'⚖️',color:'var(--accent)',metrics:[
+    {id:'m1',name:'Masa ciała',unit:'kg',type:'number',better:'down'},
+    {id:'m2',name:'% tkanki tłuszczowej',unit:'%',type:'number',better:'down'},
+    {id:'m3',name:'Masa mięśniowa',unit:'kg',type:'number',better:'up'},
+    {id:'m4',name:'BMI',unit:'',type:'number',better:'down'},
+    {id:'m5',name:'Wiek metaboliczny',unit:'lat',type:'number',better:'down'},
+    {id:'m6',name:'Nawodnienie',unit:'%',type:'number',better:'up'},
+    {id:'m7',name:'Ocena fizyczności',unit:'',type:'number',better:'up',placeholder:'1–9'},
+  ]},
+  {id:'mg2',name:'Obwody ciała',icon:'📏',color:'var(--blue)',metrics:[
+    {id:'m6',name:'Szyja',unit:'cm',type:'number'},
+    {id:'m7',name:'Barki',unit:'cm',type:'number'},
+    {id:'m1',name:'Klatka piersiowa',unit:'cm',type:'number'},
+    {id:'m2',name:'Talia',unit:'cm',type:'number'},
+    {id:'m14',name:'Pas',unit:'cm',type:'number'},
+    {id:'m3',name:'Biodra',unit:'cm',type:'number'},
+    {id:'m5',name:'Ramię (lewe)',unit:'cm',type:'number'},
+    {id:'m8',name:'Ramię (prawe)',unit:'cm',type:'number'},
+    {id:'m12',name:'Przedramię (lewe)',unit:'cm',type:'number'},
+    {id:'m13',name:'Przedramię (prawe)',unit:'cm',type:'number'},
+    {id:'m4',name:'Udo (lewe)',unit:'cm',type:'number'},
+    {id:'m9',name:'Udo (prawe)',unit:'cm',type:'number'},
+    {id:'m10',name:'Łydka (lewa)',unit:'cm',type:'number'},
+    {id:'m11',name:'Łydka (prawa)',unit:'cm',type:'number'},
+  ]},
+  {id:'mg3',name:'Siła bazowa',icon:'💪',color:'var(--orange)',metrics:[
+    {id:'m1',name:'Przysiad 1RM',unit:'kg',type:'number'},
+    {id:'m2',name:'Martwy ciąg 1RM',unit:'kg',type:'number'},
+    {id:'m3',name:'Wyciskanie leżąc 1RM',unit:'kg',type:'number'},
+    {id:'m4',name:'OHP 1RM',unit:'kg',type:'number'},
+  ]},
+  {id:'mg4',name:'Kondycja',icon:'🏃',color:'var(--teal)',metrics:[
+    {id:'m1',name:'Tętno spoczynkowe',unit:'bpm',type:'number'},
+    {id:'m2',name:'Bieg 1km',unit:'min',type:'number'},
+    {id:'m3',name:'Pompki maks.',unit:'szt',type:'number'},
+    {id:'m4',name:'Podciągania maks.',unit:'szt',type:'number'},
+  ]},
+  {id:'mg5',name:'Samopoczucie',icon:'❤️',color:'var(--red)',metrics:[
+    {id:'m1',name:'Energia (1-10)',unit:'',type:'scale'},
+    {id:'m2',name:'Jakość snu (1-10)',unit:'',type:'scale'},
+    {id:'m3',name:'Motywacja (1-10)',unit:'',type:'scale'},
+    {id:'m4',name:'Poziom stresu (1-10)',unit:'',type:'scale'},
+  ]},
+  {id:'mg6',name:'Garmin Connect',icon:'⌚',color:'#007cc3',metrics:[
+    {id:'m1',name:'Kroki',unit:'szt',type:'number'},
+    {id:'m2',name:'Kalorie',unit:'kcal',type:'number'},
+    {id:'m3',name:'Śr. tętno',unit:'bpm',type:'number'},
+    {id:'m4',name:'Czas aktywności',unit:'min',type:'number'},
+    {id:'m5',name:'Dystans',unit:'km',type:'number'},
+  ]},
+];
+window.DEMO_METRIC_GROUPS=DEMO_METRIC_GROUPS;
+
+// Ustawia pole klienta w oknie dodawania pomiaru: widoczny tekst + ukryte id.
+function meClientSetField(clientId,clientName){
+  const hid=document.getElementById('me-client');
+  const vis=document.getElementById('me-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('me-client-results');
+  if(res)res.style.display='none';
+  updateMetricEntryForm();
+}
+
+function meClientSearchInput(){
+  const q=(document.getElementById('me-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('me-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="meClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+// Ustawia pole klienta w bocznym panelu ekranu Pomiary: widoczny tekst + ukryte id.
+function metricClientSetField(clientId,clientName){
+  const hid=document.getElementById('metric-client-sel');
+  const vis=document.getElementById('metric-client-sel-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('metric-client-sel-results');
+  if(res)res.style.display='none';
+  renderMetrics();
+}
+
+function metricClientSearchInput(){
+  const q=(document.getElementById('metric-client-sel-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('metric-client-sel-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="metricClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+function mergeMetricDefs(base,extra){
+  const out=[];const seen=new Set();
+  (base||[]).concat(extra||[]).forEach(m=>{
+    if(!m||!m.id||seen.has(m.id))return;
+    seen.add(m.id);out.push(m);
+  });
+  return out;
+}
+/** Demo groups first; stored copies of the same id contribute extra custom metrics only. */
+function allMetricGroups(){
+  const stored=window.METRIC_GROUPS||[];
+  const demoIds=new Set(DEMO_METRIC_GROUPS.map(g=>g.id));
+  const merged=DEMO_METRIC_GROUPS.map(demo=>{
+    const extra=stored.find(g=>g&&g.id===demo.id);
+    if(!extra||!Array.isArray(extra.metrics)||!extra.metrics.length)return demo;
+    const metrics=mergeMetricDefs(demo.metrics,extra.metrics);
+    if(metrics.length===(demo.metrics||[]).length)return demo;
+    return Object.assign({},demo,{metrics});
+  });
+  return merged.concat(stored.filter(g=>g&&g.id&&!demoIds.has(g.id)));
+}
+function metricGroupById(gid){
+  return allMetricGroups().find(g=>g.id===gid)||null;
+}
+function circMetricDefs(){
+  return (metricGroupById('mg2')||{}).metrics||[];
+}
+const FALLBACK_CIRC_LABELS={
+  m1:'klatka',m2:'talia',m14:'pas',m3:'biodra',m4:'udo (lewe)',m5:'ramię (lewe)',
+  m6:'szyja',m7:'barki',m8:'ramię (prawe)',m9:'udo (prawe)',
+  m10:'łydka (lewa)',m11:'łydka (prawa)',m12:'przedramię (lewe)',m13:'przedramię (prawe)'
+};
+function circMetricLabels(){
+  const out={};
+  circMetricDefs().forEach(m=>{if(m&&m.id)out[m.id]=String(m.name||'').toLowerCase();});
+  return Object.keys(out).length?out:Object.assign({},FALLBACK_CIRC_LABELS);
+}
+function circBarItems(entry){
+  if(!entry||!entry.values)return[];
+  const colors=['var(--accent)','var(--orange)','var(--purple)','var(--blue)','var(--teal)','var(--red)'];
+  return circMetricDefs().map((m,i)=>{
+    const v=parseFloat(entry.values[m.id]);
+    if(!(v>0))return null;
+    return {label:m.name,v,col:colors[i%colors.length],unit:m.unit||'cm'};
+  }).filter(Boolean);
+}
+/** Dopina brakujące pola demo do zapisanej grupy (mg1 skład / mg2 obwody) — bez kasowania własnych. */
+function migrateEnsureDemoGroupMetrics(gid){
+  const demo=DEMO_METRIC_GROUPS.find(g=>g.id===gid);
+  if(!demo||!demo.metrics)return false;
+  const stored=(window.METRIC_GROUPS||[]).find(g=>g&&g.id===gid);
+  if(!stored)return false;
+  const have=new Set((stored.metrics||[]).map(m=>m&&m.id));
+  const missing=demo.metrics.filter(m=>m&&m.id&&!have.has(m.id));
+  if(!missing.length)return false;
+  stored.metrics=mergeMetricDefs(demo.metrics,stored.metrics);
+  if(typeof persistById==='function')persistById('metricGroups',stored);
+  return true;
+}
+function migrateEnsureCircMetrics(){
+  return migrateEnsureDemoGroupMetrics('mg2');
+}
+function migrateEnsureMassMetrics(){
+  return migrateEnsureDemoGroupMetrics('mg1');
+}
+function migrateEnsureMetricGroups(){
+  const a=migrateEnsureCircMetrics();
+  const b=migrateEnsureMassMetrics();
+  return !!(a||b);
+}
+function metricDeltaIsGoodDown(groupId,metric){
+  if(metric&&metric.better==='up')return false;
+  if(metric&&metric.better==='down')return true;
+  return groupId==='mg1'||groupId==='mg2';
+}
+window.mergeMetricDefs=mergeMetricDefs;
+window.allMetricGroups=allMetricGroups;
+window.metricGroupById=metricGroupById;
+window.circMetricDefs=circMetricDefs;
+window.circMetricLabels=circMetricLabels;
+window.circBarItems=circBarItems;
+window.migrateEnsureDemoGroupMetrics=migrateEnsureDemoGroupMetrics;
+window.migrateEnsureCircMetrics=migrateEnsureCircMetrics;
+window.migrateEnsureMassMetrics=migrateEnsureMassMetrics;
+window.migrateEnsureMetricGroups=migrateEnsureMetricGroups;
+window.metricDeltaIsGoodDown=metricDeltaIsGoodDown;
+
+function renderMetrics(){
+  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
+  // populate client sel
+  const csel=document.getElementById('metric-client-sel');
+  if(csel){const cur=csel.value;csel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>'<option value="'+c.id+'"'+(c.id===cur?' selected':'')+'>'+c.name+'</option>').join('');}
+
+  // groups nav
+  const groups=allMetricGroups();
+  const nav=document.getElementById('metric-groups-nav');
+  if(nav){
+    nav.innerHTML=groups.map(g=>`<div class="metric-group-nav${metricActiveGroup===g.id?' active':''}" onclick="setMetricGroup('${g.id}')">
+      <span style="font-size:16px;">${g.icon}</span>
+      <span>${g.name}</span>
+      <span style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId===g.id).length}</span>
+    </div>`).join('');
+  }
+
+  // summary
+  const sumEl=document.getElementById('metric-summary');
+  if(sumEl&&cid){
+    const lastMass=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg1').sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const firstMass=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg1').sort((a,b)=>a.date.localeCompare(b.date))[0];
+    const lastGarmin=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg6').sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const diff=lastMass&&firstMass&&lastMass!==firstMass?((lastMass.values.m1||0)-(firstMass.values.m1||0)).toFixed(1):null;
+    sumEl.innerHTML=(lastMass||lastGarmin)?`
+      ${lastMass?`<div class="metric-summary-row"><span style="color:var(--muted);">Masa ciała</span><span style="font-weight:700;">${lastMass.values.m1||'—'} kg</span></div>`:''}
+      ${diff!==null?`<div class="metric-summary-row"><span style="color:var(--muted);">Zmiana</span><span style="font-weight:700;color:${diff<0?'var(--teal)':diff>0?'var(--red)':'var(--muted)'};">${diff>0?'+':''}${diff} kg</span></div>`:''}
+      ${lastGarmin?`<div class="metric-summary-row"><span style="color:var(--muted);">Garmin</span><span style="font-weight:700;">${lastGarmin.values.m1?lastGarmin.values.m1+' kroków':lastGarmin.values.m2?lastGarmin.values.m2+' kcal':'⌚'}</span></div>`:''}
+      <div class="metric-summary-row"><span style="color:var(--muted);">Pomiarów</span><span>${METRIC_ENTRIES.filter(e=>e.clientId===cid).length}</span></div>
+    `:'<div style="font-size:11px;color:var(--muted);">Brak danych</div>';
+  }
+
+  if(metricActiveGroup)renderMetricData(cid,metricActiveGroup);
+  else{
+    document.getElementById('metric-table-body').innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📊</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz grupę pomiarów</div><div style="font-size:12px;">z lewego panelu</div></div>';
+    document.getElementById('metric-chart-container').innerHTML='';
+    document.getElementById('metric-quick-form').innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 0;">Wybierz klienta i grupę</div>';
+  }
+}
+
+function setMetricGroup(gid){
+  metricActiveGroup=gid;
+  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
+  renderMetrics();
+  renderMetricData(cid,gid);
+}
+
+function setMetricView(v){
+  metricView=v;
+  document.getElementById('metric-chart-view').style.display=v==='chart'?'block':'none';
+  document.getElementById('metric-table-view').style.display=v==='table'?'flex':'none';
+  document.getElementById('metric-table-view').style.flexDirection='column';
+  document.getElementById('metric-view-chart-btn').className='btn btn-sm '+(v==='chart'?'btn-primary':'btn-ghost');
+  document.getElementById('metric-view-table-btn').className='btn btn-sm '+(v==='table'?'btn-primary':'btn-ghost');
+}
+
+function renderMetricData(cid,gid){
+  const group=allMetricGroups().find(g=>g.id===gid);
+  if(!group)return;
+  document.getElementById('metric-active-group-title').textContent=group.icon+' '+group.name;
+
+  const entries=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId===gid).sort((a,b)=>b.date.localeCompare(a.date));
+
+  // quick form
+  const qf=document.getElementById('metric-quick-form');
+  if(qf&&cid){
+    qf.innerHTML=`
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">${group.icon} ${group.name}</div>
+      <div style="margin-bottom:8px;"><input type="date" id="quick-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;"></div>
+      ${group.metrics.map(m=>`<div style="margin-bottom:6px;">
+        <label style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;display:block;margin-bottom:3px;">${m.name}${m.unit?' ('+m.unit+')':''}</label>
+        ${m.type==='scale'
+          ?'<div style="display:flex;gap:3px;">'+(Array.from({length:10},(_,i)=>`<button onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.style.background='var(--s3)');this.style.background='var(--accent)';this.style.color='#000';" style="flex:1;padding:4px 2px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:10px;cursor:pointer;" data-qm="${m.id}">${i+1}</button>`).join(''))+'</div>'
+          :`<input type="number" step="0.1" id="qm-${m.id}" placeholder="${m.placeholder||m.unit||'wartość'}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;">`
+        }
+      </div>`).join('')}
+      <button onclick="saveQuickEntry('${cid}','${gid}')" class="btn btn-primary" style="width:100%;margin-top:6px;">Zapisz pomiar</button>`;
+  }
+
+  // table
+  const tbody=document.getElementById('metric-table-body');
+  if(!entries.length){
+    tbody.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;opacity:0.3;">${group.icon}</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak pomiarów</div><div style="font-size:12px;margin-bottom:20px;">Dodaj pierwszy pomiar klikając "+ Dodaj pomiar"</div><button class="btn btn-primary btn-sm" onclick="openM(\'m-metric-entry\')">+ Dodaj pomiar</button></div>';
+  } else {
+    tbody.innerHTML=entries.map((e,i)=>{
+      const prev=entries[i+1];
+      const firstMetric=group.metrics[0];
+      const currVal=firstMetric?e.values[firstMetric.id]:null;
+      const prevVal=firstMetric&&prev?prev.values[firstMetric.id]:null;
+      const change=currVal!=null&&prevVal!=null?(currVal-prevVal).toFixed(1):null;
+      const trendUp=change&&parseFloat(change)>0;
+      const trendDown=change&&parseFloat(change)<0;
+      // for weight, down=good; for strength, up=good
+      const goodDown=typeof metricDeltaIsGoodDown==='function'?metricDeltaIsGoodDown(gid,firstMetric):['mg1','mg2'].includes(gid);
+      const trendClass=change==null?'trend-neutral':trendUp?(goodDown?'trend-down':'trend-up'):trendDown?(goodDown?'trend-up':'trend-down'):'trend-neutral';
+      return `<div class="metric-table-row" style="animation-delay:${i*0.03}s">
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">${e.date}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;">
+          ${group.metrics.map(m=>`<span class="metric-val-chip">${m.name}: <strong>${e.values[m.id]!=null?e.values[m.id]+'':'—'}${m.unit?'<span style="color:var(--muted);font-size:9px;"> '+m.unit+'</span>':''}</strong></span>`).join('')}
+          ${e.notes?`<span class="metric-val-chip" style="color:var(--muted);">${e.source==='garmin'?'⌚ ':''}${e.notes}</span>`:''}
+        </div>
+        <div style="font-size:12px;" class="${trendClass}">${change!=null?(parseFloat(change)>0?'+':'')+change+(firstMetric&&firstMetric.unit?' '+firstMetric.unit:''):'—'}</div>
+        <div style="font-size:18px;" class="${trendClass}">${e.source==='garmin'?'⌚':change==null?'—':parseFloat(change)>0?'↑':parseFloat(change)<0?'↓':'→'}</div>
+        <div style="display:flex;gap:4px;">
+          <button type="button" onclick="editMetricEntry('${e.id}')" title="Edytuj" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 6px;">✎</button>
+          <button type="button" onclick="delMetricEntry('${e.id}')" title="Usuń" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // chart (SVG)
+  if(metricView==='chart')renderMetricChart(entries,group);
+}
+
+function renderMetricChart(entries,group){
+  const container=document.getElementById('metric-chart-container');
+  if(!entries.length||!group.metrics.length){container.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak danych do wykresu</div>';return;}
+  const sorted=entries.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const m=group.metrics[0];
+  const vals=sorted.map(e=>parseFloat(e.values[m.id])||0).filter(v=>v>0);
+  if(!vals.length){container.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak wartości do wykresu</div>';return;}
+  const minV=Math.min(...vals)*0.97;const maxV=Math.max(...vals)*1.03;
+  const W=600;const H=200;const pad={t:20,r:20,b:40,l:50};
+  const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
+  const xStep=iW/(sorted.length-1||1);
+  const yScale=(v)=>pad.t+iH-(((v-minV)/(maxV-minV||1))*iH);
+  const pts=sorted.map((e,i)=>({x:pad.l+i*xStep,y:yScale(parseFloat(e.values[m.id])||0),v:e.values[m.id],d:e.date}));
+  const col=group.color||'var(--accent)';
+  // path
+  const path='M'+pts.map(p=>`${p.x},${p.y}`).join('L');
+  // area
+  const area=path+'L'+pts[pts.length-1].x+','+(pad.t+iH)+'L'+pad.l+','+(pad.t+iH)+'Z';
+  // y axis labels
+  const yLabels=[minV,minV+(maxV-minV)*0.5,maxV].map(v=>`<text x="${pad.l-6}" y="${yScale(v)+4}" font-size="10" fill="var(--muted)" text-anchor="end">${v.toFixed(1)}</text>`).join('');
+  // x labels
+  const xLabels=pts.map((p,i)=>{if(i%Math.max(1,Math.floor(pts.length/4))!==0&&i!==pts.length-1)return'';return`<text x="${p.x}" y="${H-pad.b+14}" font-size="9" fill="var(--muted)" text-anchor="middle">${p.d.slice(5)}</text>`;}).join('');
+  // dots+tooltips
+  const dots=pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="${col}" stroke="var(--bg)" stroke-width="2"><title>${p.d}: ${p.v} ${m.unit||''}</title></circle>`).join('');
+  container.innerHTML=`
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px;">${group.icon} ${m.name} ${m.unit?'('+m.unit+')':''} — trend</div>
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;overflow:visible;">
+      <defs><linearGradient id="aGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.25"/><stop offset="100%" stop-color="${col}" stop-opacity="0.02"/></linearGradient></defs>
+      <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${pad.t+iH}" stroke="var(--border)" stroke-width="1"/>
+      <line x1="${pad.l}" y1="${pad.t+iH}" x2="${pad.l+iW}" y2="${pad.t+iH}" stroke="var(--border)" stroke-width="1"/>
+      ${yLabels}${xLabels}
+      <path d="${area}" fill="url(#aGrad)"/>
+      <path d="${path}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+    </svg>
+    <div style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+      ${group.metrics.filter((_,i)=>i>0).map(mm=>{
+        const mv=sorted.map(e=>parseFloat(e.values[mm.id])||0).filter(v=>v>0);
+        const last=mv[mv.length-1];const first=mv[0];
+        const d=last&&first?(last-first).toFixed(1):null;
+        return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px;">${mm.name}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);">${last||'—'}${mm.unit?'<span style="font-size:12px;color:var(--muted);"> '+mm.unit+'</span>':''}</div>
+          ${d!=null?`<div style="font-size:11px;color:${parseFloat(d)<0?'var(--teal)':parseFloat(d)>0?'var(--orange)':'var(--muted)'};">${parseFloat(d)>0?'+':''}${d} ${mm.unit||''}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function saveQuickEntry(cid,gid){
+  const group=allMetricGroups().find(g=>g.id===gid);if(!group)return;
+  const date=document.getElementById('quick-date').value||new Date().toISOString().split('T')[0];
+  const values={};
+  group.metrics.forEach(m=>{
+    const el=document.getElementById('qm-'+m.id);
+    if(el&&el.value)values[m.id]=parseFloat(el.value);
+  });
+  if(!Object.keys(values).length){notify('Wpisz przynajmniej jedną wartość!');return;}
+  const entry=withTrainer({id:newId('qe'),clientId:cid,groupId:gid,date,values,notes:'',createdAt:new Date().toISOString()});
+  METRIC_ENTRIES.push(entry);
+  renderMetrics();renderMetricData(cid,gid);
+  notify('✓ Pomiar zapisany!');
+  persistById('metricEntries',entry);
+  refreshClientProfileMetrics(cid);
+}
+
+function refreshClientProfileMetrics(clientId){
+  if(typeof cpClientId==='undefined'||cpClientId!==clientId)return;
+  if(typeof cpTab==='undefined'||cpTab!=='metrics')return;
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c&&typeof renderCPMetrics==='function')renderCPMetrics(c);
+}
+
+function delMetricEntry(id){
+  const old=(window.METRIC_ENTRIES||[]).find(e=>e.id===id);
+  window.METRIC_ENTRIES=METRIC_ENTRIES.filter(e=>e.id!==id);
+  const cid=(document.getElementById('metric-client-sel')||{}).value||(old&&old.clientId)||'';
+  if(cid&&metricActiveGroup)renderMetricData(cid,metricActiveGroup);
+  try{renderMetrics();}catch(e){}
+  if(old)refreshClientProfileMetrics(old.clientId);
+  notify('Pomiar usunięty');
+  if(window._db && id){
+    (async()=>{try{await window._del(window._doc(window._db,'metricEntries',id));}catch(e){/* wpis demo/niezsynchronizowany */}})();
+  }
+}
+window.delMetricEntry=delMetricEntry;
+
+/** Otwórz modal nowego/edycji pomiaru — z profilu klienta (bez zamykania drawera). */
+function openMetricEntryForClient(clientId,groupId,entryId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);if(!c){notify('Brak klienta');return;}
+  window._editingMetricId=entryId||null;
+  openM('m-metric-entry');
+  const title=document.querySelector('#m-metric-entry .modal-title');
+  if(title)title.textContent=entryId?'EDYTUJ POMIAR':'NOWY POMIAR';
+  const hid=document.getElementById('me-client');
+  const search=document.getElementById('me-client-search');
+  if(hid)hid.value=clientId;
+  if(search)search.value=c.name||'';
+  const gsel=document.getElementById('me-group');
+  if(gsel){
+    gsel.innerHTML=allMetricGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
+    if(groupId)gsel.value=groupId;
+  }
+  updateMetricEntryForm();
+  const entry=entryId?(window.METRIC_ENTRIES||[]).find(e=>e.id===entryId):null;
+  const dateEl=document.getElementById('me-date');
+  if(dateEl)dateEl.value=entry&&entry.date?entry.date:(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const notesEl=document.getElementById('me-notes');
+  if(notesEl)notesEl.value=entry&&entry.notes?entry.notes:'';
+  if(entry&&entry.values){
+    const group=allMetricGroups().find(g=>g.id===(entry.groupId||groupId));
+    (group&&group.metrics||[]).forEach(m=>{
+      const el=document.getElementById('mef-'+m.id);
+      if(el&&entry.values[m.id]!=null)el.value=entry.values[m.id];
+    });
+  }
+}
+window.openMetricEntryForClient=openMetricEntryForClient;
+
+function editMetricEntry(id){
+  const e=(window.METRIC_ENTRIES||[]).find(x=>x.id===id);
+  if(!e){notify('Nie znaleziono pomiaru');return;}
+  openMetricEntryForClient(e.clientId,e.groupId,e.id);
+}
+window.editMetricEntry=editMetricEntry;
+
+// Metric group creator
+function addMetricField(){
+  const list=document.getElementById('mg-metrics-list');
+  const div=document.createElement('div');div.className='metric-field-row';
+  div.innerHTML=`<input type="text" placeholder="Nazwa (np. Masa ciała)" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;">
+    <input type="text" placeholder="kg" style="width:50px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;" title="Jednostka">
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>`;
+  list.appendChild(div);
+}
+
+function selectMetricIcon(btn){
+  document.querySelectorAll('.metric-icon-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  metricSelIcon=btn.dataset.icon;
+}
+
+function saveMetricGroup(){
+  const name=document.getElementById('mg-name').value.trim();
+  if(!name){notify('Wpisz nazwę grupy!');return;}
+  const metrics=[];
+  document.querySelectorAll('#mg-metrics-list .metric-field-row').forEach((row,i)=>{
+    const inps=row.querySelectorAll('input');
+    if(inps[0]&&inps[0].value.trim())metrics.push({id:'m'+(i+1),name:inps[0].value.trim(),unit:inps[1]?inps[1].value.trim():'',type:'number'});
+  });
+  const grp=withTrainer({id:newId('ug'),name,icon:metricSelIcon,color:'var(--purple)',metrics});
+  window.METRIC_GROUPS.push(grp);
+  closeM('m-metric-group');
+  document.getElementById('mg-name').value='';
+  document.getElementById('mg-metrics-list').innerHTML='';
+  renderMetrics();notify('✓ Grupa "'+name+'" utworzona!');
+  persistById('metricGroups',grp);
+}
+
+function updateMetricEntryForm(){
+  const cid=document.getElementById('me-client').value;
+  const gid=document.getElementById('me-group').value;
+  // populate group select
+  const gsel=document.getElementById('me-group');
+  const curG=gsel.value;
+  gsel.innerHTML=allMetricGroups().map(g=>'<option value="'+g.id+'"'+(g.id===curG?' selected':'')+'>'+g.icon+' '+g.name+'</option>').join('');
+  const group=allMetricGroups().find(g=>g.id===gsel.value);
+  const fields=document.getElementById('me-fields');
+  if(!fields||!group)return;
+  const hint=gsel.value==='mg2'
+    ?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Obwody taśmą centymetrową (cm) — rano, taśma przy skórze, bez ubrania. Talia = najwęższe miejsce, pas = na wysokości pępka.</div>'
+    :(gsel.value==='mg1'?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Skład ciała z wagi (Tanita / InBody): wiek metaboliczny, nawodnienie i ocena fizyczności — opcjonalnie.</div>':'');
+  const wrap=(group.metrics||[]).length>3;
+  const rows=(group.metrics||[]).map(m=>`<div class="form-field"><label class="form-lbl">${m.name}${m.unit?' ('+m.unit+')':''}</label><input type="number" step="0.1" class="form-input" id="mef-${m.id}" placeholder="${m.placeholder||m.unit||'wartość'}"></div>`).join('');
+  fields.innerHTML=hint+(wrap?'<div class="form-grid">':'')+rows+(wrap?'</div>':'');
+}
+
+async function saveMetricEntry(){
+  if(window._saveGuard_saveMetricEntry)return;window._saveGuard_saveMetricEntry=true;setTimeout(()=>window._saveGuard_saveMetricEntry=false,1500);
+
+  const cid=document.getElementById('me-client').value;
+  const gid=document.getElementById('me-group').value;
+  const date=document.getElementById('me-date').value;
+  if(!cid||!gid||!date){notify('Uzupełnij wszystkie pola!');return;}
+  const group=allMetricGroups().find(g=>g.id===gid);if(!group)return;
+  const values={};
+  group.metrics.forEach(m=>{const el=document.getElementById('mef-'+m.id);if(el&&el.value!=='')values[m.id]=parseFloat(el.value);});
+  if(!Object.keys(values).length){notify('Wpisz przynajmniej jedną wartość!');return;}
+  const notes=document.getElementById('me-notes').value;
+  const editId=window._editingMetricId;
+  if(editId){
+    const idx=METRIC_ENTRIES.findIndex(e=>e.id===editId);
+    if(idx<0){notify('Nie znaleziono wpisu');window._editingMetricId=null;return;}
+    METRIC_ENTRIES[idx]={...METRIC_ENTRIES[idx],clientId:cid,groupId:gid,date,values,notes,updatedAt:new Date().toISOString()};
+    window._editingMetricId=null;
+    closeM('m-metric-entry');
+    if((document.getElementById('metric-client-sel')||{}).value===cid){renderMetrics();if(metricActiveGroup===gid)renderMetricData(cid,gid);}
+    refreshClientProfileMetrics(cid);
+    notify('✓ Pomiar zaktualizowany!');
+    await persistById('metricEntries',METRIC_ENTRIES[idx]);
+    return;
+  }
+  const entry=withTrainer({id:newId('me'),clientId:cid,groupId:gid,date,values,notes,createdAt:new Date().toISOString()});
+  METRIC_ENTRIES.push(entry);
+  closeM('m-metric-entry');
+  if((document.getElementById('metric-client-sel')||{}).value===cid){renderMetrics();if(metricActiveGroup===gid)renderMetricData(cid,gid);}
+  refreshClientProfileMetrics(cid);
+  notify('✓ Pomiar dodany!');
+  await persistById('metricEntries',entry);
+}
+
+function renderBaselineCircFields(){
+  const host=document.getElementById('bl-circ-fields');
+  if(!host)return;
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s??'');
+  host.innerHTML=circMetricDefs().map(m=>`<div class="form-field"><label class="form-lbl">${esc(m.name)}</label><input type="number" class="form-input" id="bl-circ-${m.id}" step="0.1" placeholder="cm"></div>`).join('');
+}
+function collectBaselineCircFields(){
+  const circ={};
+  circMetricDefs().forEach(m=>{
+    const el=document.getElementById('bl-circ-'+m.id);
+    if(el&&el.value!=='')circ[m.id]=el.value;
+  });
+  return circ;
+}
+window.renderBaselineCircFields=renderBaselineCircFields;
+window.collectBaselineCircFields=collectBaselineCircFields;
+
+/** Zapis baseline (mg1 masa/%BF + opcjonalnie mg2 obwody) z prostych pól — onboarding / checklista. */
+function saveClientBaselineFromFields(clientId,fields){
+  if(!clientId||!fields)return[];
+  const rawDate=fields.date&&String(fields.date).trim();
+  const date=(rawDate&&/^\d{4}-\d{2}-\d{2}$/.test(rawDate))?rawDate:(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const note=fields.notes||'Pomiar startowy (baseline)';
+  const created=[];
+  const massVals={};
+  if(fields.weight!=null&&fields.weight!==''&&!isNaN(+fields.weight))massVals.m1=+fields.weight;
+  if(fields.bf!=null&&fields.bf!==''&&!isNaN(+fields.bf))massVals.m2=+fields.bf;
+  if(fields.muscleMass!=null&&fields.muscleMass!==''&&!isNaN(+fields.muscleMass))massVals.m3=+fields.muscleMass;
+  if(fields.bmi!=null&&fields.bmi!==''&&!isNaN(+fields.bmi))massVals.m4=+fields.bmi;
+  if(Object.keys(massVals).length){
+    const entry=withTrainer({id:newId('me'),clientId,groupId:'mg1',date,values:massVals,notes:note,createdAt:new Date().toISOString()});
+    METRIC_ENTRIES.push(entry);
+    persistById('metricEntries',entry);
+    created.push(entry);
+  }
+  const circVals={};
+  if(fields.circ&&typeof fields.circ==='object'){
+    Object.keys(fields.circ).forEach(k=>{
+      const n=fields.circ[k];
+      if(n!=null&&n!==''&&!isNaN(+n))circVals[k]=+n;
+    });
+  }
+  const legacyCirc={chest:'m1',waist:'m2',pas:'m14',belt:'m14',hips:'m3',thigh:'m4',arm:'m5',neck:'m6',shoulders:'m7',armR:'m8',thighR:'m9',calfL:'m10',calfR:'m11',forearmL:'m12',forearmR:'m13'};
+  Object.keys(legacyCirc).forEach(k=>{
+    const n=fields[k];
+    if(n!=null&&n!==''&&!isNaN(+n)&&circVals[legacyCirc[k]]==null)circVals[legacyCirc[k]]=+n;
+  });
+  if(Object.keys(circVals).length){
+    const entry=withTrainer({id:newId('me'),clientId,groupId:'mg2',date,values:circVals,notes:note,createdAt:new Date().toISOString()});
+    METRIC_ENTRIES.push(entry);
+    persistById('metricEntries',entry);
+    created.push(entry);
+  }
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c){
+    if(massVals.m1)c.weight=massVals.m1;
+    c.baselineDone=true;
+    c.baselineAt=date;
+    persistById('clients',c);
+  }
+  return created;
+}
+function clientHasBaseline(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c&&c.baselineDone)return true;
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&(e.groupId==='mg1'||e.groupId==='mg2'));
+  return entries.length>0;
+}
+window.saveClientBaselineFromFields=saveClientBaselineFromFields;
+window.clientHasBaseline=clientHasBaseline;
+
+/** Ostatnie pomiary (masa/%BF/obwody/1RM) + krótki trend — kontekst dla generatora AI / AI Coach. */
+function clientMetricsContextForAI(clientId){
+  if(!clientId)return'';
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.values);
+  if(!entries.length)return'';
+  const byGroup=(gid)=>entries.filter(e=>e.groupId===gid).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  const lines=['=== POMIARY KLIENTA (baseline / historia) ==='];
+  const mass=byGroup('mg1');
+  if(mass.length){
+    const last=mass[0],prev=mass[1];
+    const v=last.values||{};
+    const d=(k)=>v[k]!=null&&prev&&prev.values&&prev.values[k]!=null?(v[k]-prev.values[k]):null;
+    const fmtD=(x)=>x==null?'':(x>0?' (+'+x.toFixed(1)+')':x<0?' ('+x.toFixed(1)+')':' (±0)');
+    lines.push('Masa i skład (ostatni '+ (last.date||'?')+'):'
+      +(v.m1!=null?' masa '+v.m1+' kg'+fmtD(d('m1')):'')
+      +(v.m2!=null?', BF% '+v.m2+fmtD(d('m2')):'')
+      +(v.m3!=null?', masa mięśniowa '+v.m3+' kg'+fmtD(d('m3')):'')
+      +(v.m4!=null?', BMI '+v.m4+fmtD(d('m4')):'')
+      +(v.m5!=null?', wiek metaboliczny '+v.m5+' lat'+fmtD(d('m5')):'')
+      +(v.m6!=null?', nawodnienie '+v.m6+'%'+fmtD(d('m6')):'')
+      +(v.m7!=null?', ocena fizyczności '+v.m7+fmtD(d('m7')):''));
+    if(mass.length>=2){
+      const hist=mass.slice(0,4).map(e=>{
+        const w=e.values&&e.values.m1;const bf=e.values&&e.values.m2;
+        return (e.date||'?')+': '+(w!=null?w+' kg':'—')+(bf!=null?' / BF '+bf+'%':'');
+      }).join('; ');
+      lines.push('Historia masy (od najnowszej): '+hist);
+    }
+  }
+  const circ=byGroup('mg2');
+  if(circ.length){
+    const last=circ[0],prev=circ[1];
+    const v=last.values||{};
+    const labels=typeof circMetricLabels==='function'?circMetricLabels():{m1:'klatka',m2:'talia',m14:'pas',m3:'biodra',m4:'udo (lewe)',m5:'ramię (lewe)',m6:'szyja',m7:'barki',m8:'ramię (prawe)',m9:'udo (prawe)',m10:'łydka (lewa)',m11:'łydka (prawa)',m12:'przedramię (lewe)',m13:'przedramię (prawe)'};
+    const keys=Object.keys(v).filter(k=>v[k]!=null&&v[k]!=='');
+    const parts=keys.map(k=>{
+      let s=(labels[k]||k)+' '+v[k]+' cm';
+      if(prev&&prev.values&&prev.values[k]!=null){
+        const diff=v[k]-prev.values[k];
+        s+=(diff>0?' (+'+diff.toFixed(1)+')':diff<0?' ('+diff.toFixed(1)+')':'');
+      }
+      return s;
+    });
+    if(parts.length)lines.push('Obwody (ostatni '+(last.date||'?')+'): '+parts.join(', '));
+  }
+  const str=byGroup('mg3');
+  if(str.length){
+    const v=str[0].values||{};
+    const parts=[];
+    if(v.m1!=null)parts.push('przysiad 1RM '+v.m1+' kg');
+    if(v.m2!=null)parts.push('martwy 1RM '+v.m2+' kg');
+    if(v.m3!=null)parts.push('wyciskanie 1RM '+v.m3+' kg');
+    if(v.m4!=null)parts.push('OHP 1RM '+v.m4+' kg');
+    if(parts.length)lines.push('Siła bazowa ('+(str[0].date||'?')+'): '+parts.join(', ')+' — użyj do sugerowanych kg w planie.');
+  }
+  if(lines.length<=1)return'';
+  lines.push('UWAGA: uwzględnij trendy (np. spadek BF / wzrost masy mięśniowej) i 1RM przy doborze obciążeń startowych. Nie wymyślaj innych pomiarów.');
+  return lines.join('\n')+'\n';
+}
+/** Ostatnia masa z pomiarów (mg1.m1) — do prefill formularza AI. */
+function clientLatestMetricWeight(clientId){
+  if(!clientId)return null;
+  const mass=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.groupId==='mg1'&&e.values&&e.values.m1!=null)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  return mass.length?mass[0].values.m1:null;
+}
+window.clientMetricsContextForAI=clientMetricsContextForAI;
+window.clientLatestMetricWeight=clientLatestMetricWeight;
+
+/** BMI + zasady bezpieczeństwa przy wyższej masie ciała (dla generatora AI). */
+function clientBmiStatus(weight,height){
+  const w=parseFloat(weight),h=parseFloat(height);
+  if(!(w>0))return null;
+  let bmi=null;
+  if(h>0)bmi=+(w/((h/100)*(h/100))).toFixed(1);
+  let cls='unknown',label='Brak wzrostu — nie liczę BMI';
+  if(bmi!=null){
+    if(bmi<18.5){cls='niedowaga';label='Niedowaga';}
+    else if(bmi<25){cls='norma';label='Waga w normie';}
+    else if(bmi<30){cls='nadwaga';label='Nadwaga';}
+    else if(bmi<35){cls='otylosc1';label='Otyłość I stopnia';}
+    else{cls='otylosc2';label='Otyłość II+ stopnia';}
+  }
+  const overweight=bmi!=null&&bmi>=25;
+  const obese=bmi!=null&&bmi>=30;
+  const tips=[];
+  if(overweight&&!obese){
+    tips.push('Siła 3× w tygodniu (FBW albo Upper/Lower), sesje 45–60 min, RPE 6–8 — nie gonitwa za 1RM.');
+    tips.push('Na start maszyny, hantle i suwnica; wolna sztanga dopiero gdy technika jest pewna.');
+    tips.push('Cardio: strefa 2 (rower, orbitrek, marsz, wioślarz) 2× 20–30 min. Bez skoków, burpee i biegania na twardej nawierzchni na start.');
+    tips.push('Objętość przy MEV, nie MRV. Dłuższa rozgrzewka kolan, bioder i kręgosłupa.');
+    tips.push('Cel: regularność i zachowanie mięśni przy lekkim deficycie — nie „kara cardio”.');
+  }else if(obese||(!(h>0)&&w>=95)){
+    tips.push('Preferuj maszyny, suwnicę, wyciągi i stabilne warianty zamiast wolnej sztangi pod dużym obciążeniem.');
+    tips.push('Unikaj skoków, zeskoków, biegania i plyometrii o wysokim uderzeniu w stawy.');
+    tips.push('Nogi: hack / leg press / goblet / step-up kontrolowany zamiast głębokiego back squat ze sztangą, jeśli technika lub stawy niepewne.');
+    tips.push('Core: deska / dead bug / bird-dog OK; unikaj burpee i ciężkich wiszących unoszeń nóg, jeśli utrudniają technikę.');
+    tips.push('2–4 sesje siłowe 45–60 min, RPE ≤8, dłuższa rozgrzewka stawów; cardio tylko strefa 2 (rower, orbitrek, marsz).');
+  }else if(cls==='niedowaga'){
+    tips.push('Priorytet: budowa masy i siły (3–4× FBW/PPL). Unikaj dużej objętości cardio.');
+  }
+  return{weight:w,height:h>0?h:null,bmi,cls,label,overweight,obese,tips};
+}
+
+function clientBodyLoadContextForAI(weight,height){
+  const st=clientBmiStatus(weight,height);
+  if(!st)return'';
+  const lines=[];
+  lines.push('Masa ciała: '+st.weight+' kg'+(st.height?', wzrost '+st.height+' cm':'')+(st.bmi!=null?', BMI ~'+st.bmi+' ('+st.label+')':''));
+  if(st.tips.length){
+    const hdr=st.obese||(st.bmi==null&&st.weight>=95)
+      ?'BEZPIECZEŃSTWO (wyższa masa ciała / otyłość) — OBOWIĄZKOWE przy doborze ćwiczeń:'
+      :st.overweight
+        ?'NADWAGA — jak ma wyglądać trening z tą osobą (OBOWIĄZKOWE):'
+        :'Uwagi do masy ciała:';
+    lines.push(hdr);
+    st.tips.forEach(t=>lines.push('- '+t));
+  }
+  return lines.join('\n');
+}
+
+/** Ostatnia wypełniona „Ocena postawy i zdrowia” (df2) — wady postawy, bóle, mobilność. */
+function clientPostureHealthFormContextForAI(clientId){
+  if(!clientId)return'';
+  const sends=(window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId&&s.status==='filled')
+    .filter(s=>{
+      const id=String(s.formId||'');
+      const name=String(s.formName||'').toLowerCase();
+      return id==='df2'||/postaw|zdrow/.test(name);
+    })
+    .sort((a,b)=>String(b.filledAt||b.sentAt||'').localeCompare(String(a.filledAt||a.sentAt||'')));
+  if(!sends.length)return'';
+  const send=sends[0];
+  const a=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
+  const yes=v=>/^(tak|true|1)$/i.test(String(v||'').trim());
+  const bits=[];
+  if(yes(a.q1))bits.push('ból kręgosłupa lędźwiowego');
+  if(yes(a.q2))bits.push('ból kręgosłupa szyjnego/piersiowego');
+  const wad=String(a.q3||'').trim();
+  if(wad&&!/^nie$/i.test(wad))bits.push('wady postawy: '+wad);
+  if(yes(a.q4))bits.push('operacje ortopedyczne (≤2 lata)');
+  const ops=String(a.q5||'').trim();
+  if(ops)bits.push('urazy/operacje: '+ops);
+  const mob=String(a.q7||'').trim();
+  if(mob)bits.push('mobilność bioder: '+mob);
+  if(yes(a.q8))bits.push('problemy z kolanami');
+  if(yes(a.q9))bits.push('problemy z barkami');
+  if(!bits.length)return'';
+  const rules=[];
+  if(/hiperlordoza|lordoza/i.test(wad))rules.push('Hiperlordoza: unikaj nadmiernej ekstensji lędźwi pod obciążeniem; core w neutralnej miednicy (dead bug, bird-dog); ostrożnie z OH press i hiperekstensją.');
+  if(/hiperkifoza|kifoza/i.test(wad))rules.push('Hiperkifoza: więcej ściągania (face pull, wiosłowanie), mobilizacja klatki; unikaj wyciskania za kark i zbyt ciężkiego pressu przy protrakcji.');
+  if(/skolioza/i.test(wad))rules.push('Skolioza: równoważ stronami, unikaj forsownych rotacji pod dużym obciążeniem; kontroluj technikę jednostronnych ćwiczeń.');
+  if(/protrakcja/i.test(wad))rules.push('Protrakcja barków: face pull / Y-T-W / ściąganie łopatek przed ciężkim pressem; unikaj za-kark.');
+  if(yes(a.q1)||yes(a.q2))rules.push('Ból kręgosłupa: bez skłonów ze sztangą / good morning / ciężkiego SLDL na start; preferuj maszynę / hip hinge z kontrolą.');
+  if(yes(a.q8))rules.push('Kolana: unikaj głębokich przysiadów ze sztangą i skoków; leg press / hack / step-up niski, kontrola kolana nad stopą.');
+  if(yes(a.q9))rules.push('Barki: unikaj wyciskania za kark i szerokich dipów; landmine / maszyna / hantle z kontrolowanym ROM.');
+  if(/słaba|slaba|trudności|trudnosci/i.test(mob))rules.push('Słaba mobilność bioder: box squat / leg press / step-up; nie forsuj głębokiego ATG.');
+  return 'Ankieta postawy/zdrowia ('+(send.filledAt||send.sentAt||'ostatnia')+'): '+bits.join('; ')
+    +(rules.length?'\nZasady korekcyjne:\n- '+rules.join('\n- '):'');
+}
+
+/** Ostatnia analiza AI postawy ze zdjęć (Analityka → Postawa). */
+function clientPostureAiAnalysisContextForAI(clientId){
+  if(!clientId)return'';
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  const list=c&&c._posture&&Array.isArray(c._posture.analyses)?c._posture.analyses:[];
+  if(!list.length)return'';
+  const last=list[list.length-1];
+  const raw=String(last&&last.result||'').trim();
+  if(!raw)return'';
+  const clip=raw.length>900?raw.slice(0,900)+'…':raw;
+  return 'Analiza postawy AI ('+(last.date||'?')+(last.view?', '+last.view:'')+'):\n'+clip;
+}
+
+/** Krótki tekst ograniczeń do pola „Kontuzje” (formularz AI). */
+function clientCombinedLimitationsText(c){
+  if(!c)return'';
+  const parts=[];
+  const inj=typeof clientInjuriesText==='function'?clientInjuriesText(c):String(c.injuries||'').trim();
+  if(inj)parts.push(inj);
+  const posture=clientPostureHealthFormContextForAI(c.id);
+  if(posture){
+    const m=posture.match(/Ankieta postawy\/zdrowia[^:]*:\s*([^\n]+)/);
+    if(m&&m[1]&&!inj)parts.push(m[1]);
+    else if(m&&m[1]&&inj&&!inj.toLowerCase().includes('postaw'))parts.push(m[1]);
+  }
+  return parts.filter(Boolean).join(' · ');
+}
+
+/** Pełny blok bezpieczeństwa dla promptu generatora planu AI. */
+function clientSafetyContextForAI(clientId,opts){
+  const o=opts||{};
+  const c=clientId?(window.CL||[]).find(x=>x&&x.id===clientId):null;
+  const weight=o.weight!=null&&o.weight!==''?o.weight:(c&&(c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(clientId):null)));
+  const height=o.height!=null&&o.height!==''?o.height:(c&&c.height);
+  const lines=['=== BEZPIECZEŃSTWO I OGRANICZENIA KLIENTA (OBOWIĄZKOWE — plan NIE MOŻE szkodzić) ==='];
+  const body=clientBodyLoadContextForAI(weight,height);
+  if(body)lines.push(body);
+  const inj=String(o.injuries!=null?o.injuries:(c?((typeof clientInjuriesText==='function'?clientInjuriesText(c):c.injuries)||''):'')).trim();
+  if(inj)lines.push('Kontuzje / ograniczenia z karty: '+inj);
+  const formCtx=clientId?clientPostureHealthFormContextForAI(clientId):'';
+  if(formCtx)lines.push(formCtx);
+  const aiPosture=clientId?clientPostureAiAnalysisContextForAI(clientId):'';
+  if(aiPosture)lines.push(aiPosture);
+  if(lines.length<=1)return'';
+  lines.push('PRIORYTET: bezpieczeństwo i wady postawy > objętość MEV. Nie dawaj ćwiczeń z listy ostrzeżeń. W "notes" napisz krótką uwagę bezpieczeństwa, gdy modyfikujesz wariant pod ograniczenie.');
+  return lines.join('\n')+'\n';
+}
+window.clientBmiStatus=clientBmiStatus;
+window.clientBodyLoadContextForAI=clientBodyLoadContextForAI;
+window.clientPostureHealthFormContextForAI=clientPostureHealthFormContextForAI;
+window.clientPostureAiAnalysisContextForAI=clientPostureAiAnalysisContextForAI;
+window.clientCombinedLimitationsText=clientCombinedLimitationsText;
+window.clientSafetyContextForAI=clientSafetyContextForAI;
+
+async function askMetricAI(){
+  const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
+  document.getElementById('metric-ai-q').value='';
+  const msgs=document.getElementById('metric-ai-msgs');
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div id="mai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję dane...</div></div>';
+  msgs.scrollTop=msgs.scrollHeight;
+  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
+  const c=CL.find(x=>x.id===cid);
+  const entries=METRIC_ENTRIES.filter(e=>e.clientId===cid);
+  const group=metricActiveGroup?allMetricGroups().find(g=>g.id===metricActiveGroup):null;
+  const ctx=`Trener personalny analizuje postępy klienta. ${c?'Klient: '+c.name+', cel: '+(c.goal||'?')+', poziom: '+(c.level||'?')+'. ':''}${group?'Grupa pomiarów: '+group.name+'. ':''}${entries.length?'Liczba pomiarów: '+entries.length+'. ':''} `;
+  const sys='Asystent trenera personalnego. Analizuj postępy klienta na podstawie danych. Odpowiadaj KRÓTKO po polsku, max 80 słów. Dawaj konkretne wskazówki i oceny. Używaj danych liczbowych gdy są dostępne.';
+  try{
+    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,system:sys,messages:[{role:'user',content:ctx+q}]})});
+    const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
+    document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:6px 9px;border-radius:8px;font-size:11px;line-height:1.5;">${ans.replace(/\n/g,'<br>')}</div></div>`;
+  }catch(e){document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd połączenia</div></div>`;}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ════════════════════════════════════════
+// CALCULATOR — TDEE / MAKRO
+// ════════════════════════════════════════
+var calcActivity=1.375;var calcGoalDelta=0;
+var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
+
+function initCalcClients(){
+  calcSetClientField('','');
+  calcShowWelcome();
+}
+
+// Ekran powitalny kalkulatora — ten sam styl co w Generatorze AI: duża ikona,
+// tytuł, opis i siatka kart pokazujących, co warto uzupełnić przed obliczeniem.
+function calcShowWelcome(){
+  const el=document.getElementById('calc-results');
+  if(!el)return;
+  el.innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
+      <div style="font-size:56px;margin-bottom:20px;">🧮</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">KALKULATOR TDEE I MAKRO</div>
+      <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij dane po lewej stronie i kliknij <strong style="color:var(--accent);">Oblicz</strong>. Kalkulator wyznaczy zapotrzebowanie kaloryczne, podział makroskładników i przykładowy rozkład na posiłki.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
+        ${[
+          {icon:'👤',txt:'Płeć, wiek, waga, wzrost'},
+          {icon:'🏃',txt:'Poziom aktywności'},
+          {icon:'🎯',txt:'Cel klienta'},
+          {icon:'⚖️',txt:'Podział makroskładników'},
+          {icon:'🍽️',txt:'Liczba posiłków'},
+          {icon:'📤',txt:'Opcjonalnie: wyślij klientowi'},
+        ].map(i=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;color:var(--muted);"><div style="font-size:20px;margin-bottom:5px;">${i.icon}</div>${i.txt}</div>`).join('')}
+      </div>
+      <button class="btn btn-primary" style="margin-top:28px;padding:12px 32px;" onclick="calcTDEE()">🧮 Oblicz teraz</button>
+    </div>`;
+}
+
+// Ustawia pole klienta w kalkulatorze: widoczny tekst + ukryte id, i wczytuje jego dane.
+function calcSetClientField(clientId,clientName){
+  const hid=document.getElementById('calc-client');
+  const vis=document.getElementById('calc-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('calc-client-results');
+  if(res)res.style.display='none';
+  calcLoadFromClient();
+}
+
+function calcClientSearchInput(){
+  const q=(document.getElementById('calc-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('calc-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="calcSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+function calcLoadFromClient(){
+  const cid=document.getElementById('calc-client').value;
+  if(!cid){calcTDEE();return;}
+  const c=CL.find(x=>x.id===cid);
+  if(!c){calcTDEE();return;}
+  if(c.age)document.getElementById('calc-age').value=c.age;
+  if(c.weight)document.getElementById('calc-weight').value=c.weight;
+  if(c.height)document.getElementById('calc-height').value=c.height;
+  if(c.gender){
+    const g=typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender;
+    if(g)document.getElementById('calc-gender').value=g;
+  }
+  // set goal preset based on client goal
+  const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
+  const delta=goalMap[c.goal]||0;
+  document.querySelectorAll('.calc-goal-btn').forEach(b=>{
+    b.classList.remove('active');
+    if(parseInt(b.dataset.val)===delta)b.classList.add('active');
+  });
+  calcGoalDelta=delta;
+  // set macro preset
+  const macroMap={masa:{p:35,f:25,c:40},redukcja:{p:40,f:30,c:30},sila:{p:35,f:25,c:40},kondycja:{p:30,f:30,c:40}};
+  const m=macroMap[c.goal]||{p:30,f:30,c:40};
+  setCalcMacroVals(m.p,m.f,m.c);
+  calcTDEE();
+  notify('✓ Dane klienta wczytane: '+c.name);
+}
+
+function setCalcActivity(btn,val){
+  calcActivity=val;
+  document.querySelectorAll('.calc-act-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  calcTDEE();
+}
+
+function setCalcGoal(btn,delta){
+  calcGoalDelta=delta;
+  document.querySelectorAll('.calc-goal-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  calcTDEE();
+}
+
+function setCalcMacro(btn,p,f,c){
+  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  setCalcMacroVals(p,f,c);
+  calcTDEE();
+}
+
+function setCalcMacroVals(p,f,c){
+  calcMacroP=p;calcMacroF=f;calcMacroC=c;
+  document.getElementById('sl-p').value=p;
+  document.getElementById('sl-f').value=f;
+  document.getElementById('sl-c').value=c;
+  document.getElementById('sl-p-val').textContent=p;
+  document.getElementById('sl-f-val').textContent=f;
+  document.getElementById('sl-c-val').textContent=c;
+  document.getElementById('sl-sum-lbl').textContent='Suma: '+(p+f+c)+'%';
+}
+
+function syncSliders(changed){
+  let p=parseInt(document.getElementById('sl-p').value);
+  let f=parseInt(document.getElementById('sl-f').value);
+  let c=parseInt(document.getElementById('sl-c').value);
+  const sum=p+f+c;
+  // normalize to 100
+  if(sum!==100){
+    const diff=100-sum;
+    if(changed==='p'){if(f+diff>=10&&f+diff<=60){f+=diff;}else{c+=diff;}}
+    else if(changed==='f'){if(c+diff>=5&&c+diff<=65){c+=diff;}else{p+=diff;}}
+    else{if(p+diff>=15&&p+diff<=55){p+=diff;}else{f+=diff;}}
+    p=Math.max(15,Math.min(55,p));f=Math.max(10,Math.min(60,f));c=Math.max(5,Math.min(65,c));
+    const s2=p+f+c;if(s2!==100)c+=100-s2;
+    document.getElementById('sl-p').value=p;
+    document.getElementById('sl-f').value=f;
+    document.getElementById('sl-c').value=c;
+  }
+  calcMacroP=p;calcMacroF=f;calcMacroC=c;
+  document.getElementById('sl-p-val').textContent=p;
+  document.getElementById('sl-f-val').textContent=f;
+  document.getElementById('sl-c-val').textContent=c;
+  document.getElementById('sl-sum-lbl').textContent='Suma: '+(p+f+c)+'%';
+  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
+  calcTDEE();
+}
+
+function calcTDEE(){
+  const gender=document.getElementById('calc-gender').value;
+  const age=parseInt(document.getElementById('calc-age').value)||25;
+  const weight=parseFloat(document.getElementById('calc-weight').value)||80;
+  const height=parseInt(document.getElementById('calc-height').value)||180;
+
+  // Mifflin-St Jeor BMR
+  let bmr;
+  if(gender==='M') bmr=10*weight+6.25*height-5*age+5;
+  else bmr=10*weight+6.25*height-5*age-161;
+
+  const tdee=Math.round(bmr*calcActivity);
+  const target=tdee+calcGoalDelta;
+  const proteinG=Math.round(target*(calcMacroP/100)/4);
+  const fatG=Math.round(target*(calcMacroF/100)/9);
+  const carbG=Math.round(target*(calcMacroC/100)/4);
+
+  // per kg recommendations
+  const protPerKg=(proteinG/weight).toFixed(1);
+  const isProtOk=parseFloat(protPerKg)>=1.6&&parseFloat(protPerKg)<=2.5;
+
+  // LBM (szacunkowa beztłuszczowa masa)
+  const lbm=Math.round(weight*0.82);
+
+  // meals plan
+  const meals=[
+    {name:'Śniadanie',pct:0.25},{name:'II śniadanie',pct:0.15},
+    {name:'Obiad',pct:0.30},{name:'Podwieczorek',pct:0.10},{name:'Kolacja',pct:0.20}
+  ];
+
+  const goalLabels={'-500':'Agresywna redukcja','-300':'Łagodna redukcja','0':'Utrzymanie wagi','300':'Łagodna masa','500':'Agresywna masa'};
+  const goalColors={'-500':'var(--red)','-300':'var(--orange)','0':'var(--teal)','300':'var(--blue)','500':'var(--accent)'};
+  const gc=goalColors[String(calcGoalDelta)]||'var(--accent)';
+  const gl=goalLabels[String(calcGoalDelta)]||'Cel';
+
+  const el=document.getElementById('calc-results');
+  if(!el)return;
+
+  el.innerHTML=`
+    <div class="calc-col-main">
+    <!-- główny wynik TDEE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div class="calc-result-card" style="text-align:center;border-top:3px solid var(--muted);">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">BMR (Metabolizm bazowy)</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--muted);line-height:1;">${Math.round(bmr)}</div>
+        <div style="font-size:11px;color:var(--muted);">kcal / dzień</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">Mifflin-St Jeor</div>
+      </div>
+      <div class="calc-result-card" style="text-align:center;border-top:3px solid var(--orange);">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">TDEE (Całkowite zapotrzebowanie)</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--orange);line-height:1;">${tdee}</div>
+        <div style="font-size:11px;color:var(--muted);">kcal / dzień</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">TDEE = BMR × ${calcActivity}</div>
+      </div>
+    </div>
+
+    <!-- cel kaloryczny -->
+    <div class="calc-result-card" style="border-top:3px solid ${gc};margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:${gc};text-transform:uppercase;margin-bottom:4px;">${gl}</div>
+          <div class="calc-big-val" style="color:${gc};">${target} <span style="font-size:20px;">kcal</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12px;color:var(--muted);">Zmiana vs TDEE</div>
+          <div style="font-size:20px;font-weight:700;color:${calcGoalDelta<0?'var(--teal)':calcGoalDelta>0?'var(--orange)':'var(--muted)'};">${calcGoalDelta>0?'+':''}${calcGoalDelta} kcal</div>
+          ${calcGoalDelta!==0?`<div style="font-size:11px;color:var(--muted);">≈ ${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień</div>`:''}
+        </div>
+      </div>
+
+      <!-- pasek makro -->
+      <div class="calc-macro-bar">
+        <div class="calc-macro-seg" style="width:${calcMacroP}%;background:var(--accent);"></div>
+        <div class="calc-macro-seg" style="width:${calcMacroF}%;background:var(--orange);"></div>
+        <div class="calc-macro-seg" style="width:${calcMacroC}%;background:var(--blue);"></div>
+      </div>
+
+      <!-- makro tabela -->
+      <div>
+        <div class="calc-macro-row">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="calc-macro-dot" style="background:var(--accent);"></div><span style="font-weight:600;">Białko</span></div>
+          <div style="font-family:'DM Mono',monospace;"><span style="font-size:18px;font-weight:700;color:var(--accent);">${proteinG}g</span> <span style="font-size:11px;color:var(--muted);">(${calcMacroP}% · ${Math.round(target*calcMacroP/100)} kcal)</span></div>
+          <div style="font-size:11px;color:${isProtOk?'var(--teal)':'var(--orange)'};">${protPerKg} g/kg ${isProtOk?'✓':'⚠'}</div>
+        </div>
+        <div class="calc-macro-row">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="calc-macro-dot" style="background:var(--orange);"></div><span style="font-weight:600;">Tłuszcze</span></div>
+          <div style="font-family:'DM Mono',monospace;"><span style="font-size:18px;font-weight:700;color:var(--orange);">${fatG}g</span> <span style="font-size:11px;color:var(--muted);">(${calcMacroF}% · ${Math.round(target*calcMacroF/100)} kcal)</span></div>
+          <div style="font-size:11px;color:var(--muted);">${(fatG/weight).toFixed(1)} g/kg</div>
+        </div>
+        <div class="calc-macro-row">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="calc-macro-dot" style="background:var(--blue);"></div><span style="font-weight:600;">Węglowodany</span></div>
+          <div style="font-family:'DM Mono',monospace;"><span style="font-size:18px;font-weight:700;color:var(--blue);">${carbG}g</span> <span style="font-size:11px;color:var(--muted);">(${calcMacroC}% · ${Math.round(target*calcMacroC/100)} kcal)</span></div>
+          <div style="font-size:11px;color:var(--muted);">${(carbG/weight).toFixed(1)} g/kg</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- alternatywne scenariusze -->
+    <div class="calc-result-card">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">ALTERNATYWNE SCENARIUSZE</div>
+      <div class="calc-scenarios">
+        ${[{l:'Agresywna redukcja',d:-500,c:'var(--red)'},{l:'Łagodna redukcja',d:-300,c:'var(--orange)'},{l:'Utrzymanie',d:0,c:'var(--teal)'},{l:'Łagodna masa',d:300,c:'var(--blue)'},{l:'Agresywna masa',d:500,c:'var(--accent)'}].map(s=>`
+          <div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;${calcGoalDelta===s.d?'border:1px solid '+s.c+';':'border:1px solid transparent;'}">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${s.l}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${tdee+s.d}</div>
+            <div style="font-size:9px;color:var(--muted2);">kcal/dzień</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    </div>
+
+    <div class="calc-col-side">
+    <!-- podział na posiłki -->
+    <div class="calc-result-card" style="margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">PODZIAŁ NA POSIŁKI (5 posiłków)</div>
+      ${meals.map(m=>`<div class="calc-meal-card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:12px;font-weight:700;">${m.name}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);">${Math.round(target*m.pct)} kcal</div>
+        </div>
+        <div style="display:flex;gap:8px;font-size:11px;color:var(--muted);">
+          <span>B: <strong style="color:var(--accent);">${Math.round(proteinG*m.pct)}g</strong></span>
+          <span>T: <strong style="color:var(--orange);">${Math.round(fatG*m.pct)}g</strong></span>
+          <span>W: <strong style="color:var(--blue);">${Math.round(carbG*m.pct)}g</strong></span>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <!-- wskazówki i normy -->
+    <div class="calc-result-card">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">NORMY I WSKAZÓWKI</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> Rekomendacja NSCA: 1.6–2.5 g/kg masy ciała. Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w normie':'⚠ poza normą, dostosuj'}.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> Min. ${Math.round(weight*0.035*10)/10} l/dzień (35ml/kg). Podczas treningu +500-1000ml.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> Zalecane 0.5-1% masy ciała/tydzień. Twój deficit/nadwyżka to ~${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">LBM (szacunkowa beztłuszczowa masa):</strong> ~${lbm} kg. Docelowo 1.8-2.2g białka na kg LBM = ${Math.round(lbm*1.8)}–${Math.round(lbm*2.2)}g białka.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Okno żywieniowe po treningu:</strong> Spożyj 20-40g białka + węglowodany w ciągu 2h po treningu (okno anaboliczne).</div>
+    </div>
+    </div>`;
+}
+
+function calcMacrosFromInputs(o){
+  o=o||{};
+  const age=+o.age||25;
+  const weight=+o.weight||80;
+  const height=+o.height||180;
+  const gender=(o.gender==='K'||o.gender==='F'||String(o.gender||'').toLowerCase().indexOf('kob')===0)?'K':'M';
+  const activity=+o.activity||1.55;
+  const goalDelta=+o.goalDelta||0;
+  const p=+o.macroP||30,f=+o.macroF||25,c=+o.macroC||45;
+  const bmr=gender==='M'?10*weight+6.25*height-5*age+5:10*weight+6.25*height-5*age-161;
+  const tdee=Math.round(bmr*activity);
+  const target=tdee+goalDelta;
+  return{
+    tdee,targetKcal:target,
+    proteinG:Math.round(target*(p/100)/4),
+    fatG:Math.round(target*(f/100)/9),
+    carbG:Math.round(target*(c/100)/4),
+    activityMult:activity,goalDelta,
+    macroPct:{p,f,c},
+    weight:weight||null,
+    updatedAt:new Date().toISOString()
+  };
+}
+function calcReadFormMacros(){
+  return calcMacrosFromInputs({
+    age:document.getElementById('calc-age')?.value,
+    weight:document.getElementById('calc-weight')?.value,
+    height:document.getElementById('calc-height')?.value,
+    gender:document.getElementById('calc-gender')?.value,
+    activity:typeof calcActivity!=='undefined'?calcActivity:1.55,
+    goalDelta:typeof calcGoalDelta!=='undefined'?calcGoalDelta:0,
+    macroP:typeof calcMacroP!=='undefined'?calcMacroP:30,
+    macroF:typeof calcMacroF!=='undefined'?calcMacroF:25,
+    macroC:typeof calcMacroC!=='undefined'?calcMacroC:45
+  });
+}
+function applyMacrosToClient(client,macros,opts){
+  opts=opts||{};
+  if(!client||!macros)return false;
+  client.macros=Object.assign({},macros,{updatedAt:new Date().toISOString()});
+  if(opts.persist!==false&&typeof persistById==='function')persistById('clients',client);
+  if(typeof emitAppEvent==='function')emitAppEvent('macros.saved',{clientId:client.id,macros:client.macros});
+  return true;
+}
+function calcSaveToClient(){
+  const cid=document.getElementById('calc-client')?.value;
+  if(!cid){notify('Wybierz klienta!');return false;}
+  const c=CL.find(x=>x.id===cid);
+  if(!c){notify('Nie znaleziono klienta');return false;}
+  applyMacrosToClient(c,calcReadFormMacros(),{persist:true});
+  notify('✓ Makra zapisane w profilu '+(c.name||''));
+  return true;
+}
+function calcSendToClient(){
+  const cid=document.getElementById('calc-client').value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===cid);
+  const macros=calcReadFormMacros();
+  if(c)applyMacrosToClient(c,macros,{persist:true});
+  const weight=macros.weight||(c&&c.weight)||80;
+  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${macros.tdee} kcal\nCel: ${macros.targetKcal} kcal\n\nMakroskładniki:\n🟢 Białko: ${macros.proteinG}g\n🟡 Tłuszcze: ${macros.fatG}g\n🔵 Węglowodany: ${macros.carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
+  notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
+}
+
+function suggestLoad(opts){
+  const o=opts||{};
+  const weight=Number(o.weight);
+  const rir=Number(o.rir);
+  const targetRir=Number(o.targetRir);
+  if(!Number.isFinite(weight)||weight<=0||!Number.isFinite(rir)||!Number.isFinite(targetRir)){
+    return {newWeight:0,adjustment:0};
+  }
+  const stepPct=o.isIncline?0.025:0.05;
+  const adjustment=(rir-targetRir)*stepPct;
+  const newWeight=Math.round(weight*(1+adjustment)*10)/10;
+  return {newWeight,adjustment:adjustment*100};
+}
+var calcTool='tdee';
+var rirIncline=true;
+function setCalcTool(tool){
+  calcTool=(tool==='rir'||tool==='myo')?tool:'tdee';
+  const tdeeLay=document.getElementById('calc-tdee-layout');
+  const rirLay=document.getElementById('calc-rir-layout');
+  const myoLay=document.getElementById('calc-myo-layout');
+  const title=document.getElementById('calc-top-title');
+  const tabT=document.getElementById('calc-tab-tdee');
+  const tabR=document.getElementById('calc-tab-rir');
+  const tabM=document.getElementById('calc-tab-myo');
+  const showTdee=calcTool==='tdee';
+  const showRir=calcTool==='rir';
+  const showMyo=calcTool==='myo';
+  if(tdeeLay) tdeeLay.style.display=showTdee?'':'none';
+  if(rirLay) rirLay.style.display=showRir?'block':'none';
+  if(myoLay) myoLay.style.display=showMyo?'block':'none';
+  if(title) title.textContent=showTdee?'Kalkulator TDEE i Makro':(showRir?'Kalkulator obciążenia RIR':'Sesja Myo-Reps');
+  if(tabT) tabT.className='btn btn-sm '+(showTdee?'btn-primary':'btn-ghost');
+  if(tabR) tabR.className='btn btn-sm '+(showRir?'btn-primary':'btn-ghost');
+  if(tabM) tabM.className='btn btn-sm '+(showMyo?'btn-primary':'btn-ghost');
+  ['calc-tdee-actions','calc-tdee-save','calc-tdee-send'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=showTdee?'':'none';
+  });
+  if(showRir) renderRirLoad();
+  if(showMyo) renderMyoSession();
+  else myoPauseTimer();
+}
+function toggleRirIncline(){
+  rirIncline=!rirIncline;
+  const btn=document.getElementById('rir-incline');
+  if(btn){
+    btn.className='btn btn-sm '+(rirIncline?'btn-primary':'btn-ghost');
+  }
+  renderRirLoad();
+}
+function renderRirLoad(){
+  const weight=parseFloat(document.getElementById('rir-weight')?.value);
+  const rir=parseFloat(document.getElementById('rir-reported')?.value);
+  const target=parseFloat(document.getElementById('rir-target')?.value);
+  const tv=document.getElementById('rir-target-val');
+  if(tv&&Number.isFinite(target)) tv.textContent=String(target);
+  const res=suggestLoad({weight,rir,targetRir:target,isIncline:rirIncline});
+  const kg=document.getElementById('rir-out-kg');
+  const pct=document.getElementById('rir-out-pct');
+  const hint=document.getElementById('rir-out-hint');
+  if(kg) kg.textContent=res.newWeight?String(res.newWeight):'—';
+  if(pct){
+    const sign=res.adjustment>=0?'+':'';
+    pct.textContent=res.newWeight?(sign+res.adjustment.toFixed(1)+'% względem poprzedniej sesji'):'';
+    pct.style.color=res.adjustment>=0?'#7FBF6B':'var(--red)';
+  }
+  if(hint) hint.textContent='Krok progresji: '+(rirIncline?'2,5%':'5%')+' za każdy punkt różnicy między RIR zgłoszonym a docelowym.';
+  const btn=document.getElementById('rir-incline');
+  if(btn) btn.className='btn btn-sm '+(rirIncline?'btn-primary':'btn-ghost');
+}
+window.suggestLoad=suggestLoad;
+window.setCalcTool=setCalcTool;
+window.toggleRirIncline=toggleRirIncline;
+window.renderRirLoad=renderRirLoad;
+
+/** Protokół Myo-Reps (aktywacja + mini-serie). Ćwiczenia z biblioteki Live, nie z 12-kartowego demo. RP w builderze zostaje. */
+const MYO_SESSION_DEFAULT={
+  name:'Desk Worker Express — Full Body A',
+  targetMinutes:45,
+  blocks:[
+    {id:'b1',exercise:'Przysiad Goblet',activationReps:15,miniTarget:4,restSec:20,maxMiniSets:3,caution:false},
+    {id:'b2',exercise:'Wyciskanie hantli na ławce skośnej',activationReps:12,miniTarget:4,restSec:20,maxMiniSets:3,caution:true},
+    {id:'b3',exercise:'Wiosłowanie hantlem',activationReps:12,miniTarget:4,restSec:20,maxMiniSets:3,caution:false},
+    {id:'b4',exercise:'Unoszenie bokiem',activationReps:15,miniTarget:5,restSec:15,maxMiniSets:3,caution:true},
+    {id:'b5',exercise:'Ściąganie drążka wyciąg',activationReps:12,miniTarget:4,restSec:20,maxMiniSets:3,caution:false}
+  ]
+};
+function myoSessionTemplate(){ return MYO_SESSION_DEFAULT; }
+function myoFormatClock(sec){
+  const s=Math.max(0,Math.floor(Number(sec)||0));
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+function myoInitProgress(blocks){
+  const p={};
+  (blocks||[]).forEach(b=>{ p[b.id]=0; });
+  return p;
+}
+function myoLogMini(progress, blockId, maxMini){
+  const next=Object.assign({}, progress||{});
+  const cap=Math.max(0, Number(maxMini)||0);
+  next[blockId]=Math.min((Number(next[blockId])||0)+1, cap);
+  return next;
+}
+function myoDoneCount(progress){
+  return Object.values(progress||{}).reduce((s,v)=>s+(Number(v)||0),0);
+}
+function myoTotalMini(blocks){
+  return (blocks||[]).reduce((s,b)=>s+(Number(b.maxMiniSets)||0),0);
+}
+function myoBlockById(id){
+  return (MYO_SESSION_DEFAULT.blocks||[]).find(b=>b.id===id)||MYO_SESSION_DEFAULT.blocks[0];
+}
+function myoEsc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+}
+
+var myoProgress=myoInitProgress(MYO_SESSION_DEFAULT.blocks);
+var myoActiveId=MYO_SESSION_DEFAULT.blocks[0].id;
+var myoSecondsLeft=MYO_SESSION_DEFAULT.blocks[0].restSec;
+var myoRunning=false;
+var myoTimer=null;
+var myoStaffHtml='';
+var myoStaffLoading=false;
+
+function myoPauseTimer(){
+  myoRunning=false;
+  if(myoTimer){ clearInterval(myoTimer); myoTimer=null; }
+  const runBtn=document.getElementById('myo-run-btn');
+  if(runBtn) runBtn.textContent='Start';
+}
+function myoTick(){
+  myoSecondsLeft=Math.max(0, myoSecondsLeft-1);
+  if(myoSecondsLeft<=0) myoPauseTimer();
+  const clock=document.getElementById('myo-clock');
+  if(clock){
+    clock.textContent=myoFormatClock(myoSecondsLeft);
+    clock.style.color=(myoSecondsLeft<=3&&myoRunning)?'var(--red)':'var(--accent)';
+  }
+}
+function toggleMyoTimer(){
+  if(myoRunning){ myoPauseTimer(); return; }
+  if(myoSecondsLeft<=0){
+    const b=myoBlockById(myoActiveId);
+    myoSecondsLeft=b.restSec;
+  }
+  myoRunning=true;
+  if(myoTimer) clearInterval(myoTimer);
+  myoTimer=setInterval(myoTick,1000);
+  const runBtn=document.getElementById('myo-run-btn');
+  if(runBtn) runBtn.textContent='Pauza';
+  const clock=document.getElementById('myo-clock');
+  if(clock) clock.textContent=myoFormatClock(myoSecondsLeft);
+}
+function resetMyoTimer(){
+  const b=myoBlockById(myoActiveId);
+  myoPauseTimer();
+  myoSecondsLeft=b.restSec;
+  const clock=document.getElementById('myo-clock');
+  if(clock){ clock.textContent=myoFormatClock(myoSecondsLeft); clock.style.color='var(--accent)'; }
+}
+function selectMyoBlock(id){
+  const b=myoBlockById(id);
+  myoActiveId=b.id;
+  myoStaffHtml='';
+  myoPauseTimer();
+  myoSecondsLeft=b.restSec;
+  renderMyoSession();
+}
+function logMyoMiniSet(){
+  const b=myoBlockById(myoActiveId);
+  myoProgress=myoLogMini(myoProgress, b.id, b.maxMiniSets);
+  myoPauseTimer();
+  myoSecondsLeft=b.restSec;
+  renderMyoSession();
+}
+function renderMyoSession(){
+  const tpl=MYO_SESSION_DEFAULT;
+  const blocksEl=document.getElementById('myo-blocks');
+  const detail=document.getElementById('myo-detail');
+  const doneEl=document.getElementById('myo-done-chip');
+  const timeEl=document.getElementById('myo-time-chip');
+  if(timeEl) timeEl.textContent=tpl.targetMinutes+' min';
+  if(doneEl) doneEl.textContent=myoDoneCount(myoProgress)+'/'+myoTotalMini(tpl.blocks)+' mini-serii';
+  const active=myoBlockById(myoActiveId);
+  if(blocksEl){
+    blocksEl.innerHTML=tpl.blocks.map((b,i)=>{
+      const on=b.id===myoActiveId;
+      return `<button type="button" class="myo-block-btn" data-myo-id="${myoEsc(b.id)}" onclick="selectMyoBlock('${b.id}')" style="text-align:left;padding:12px;border-radius:10px;background:${on?'var(--s3)':'var(--s2)'};border:1px solid ${on?'var(--accent)':'var(--border)'};color:var(--text);cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">Blok ${i+1}</span>
+          ${b.caution?'<span style="color:#E15B44;font-size:12px;">⚠ bark</span>':''}
+        </div>
+        <div style="font-size:13px;font-weight:700;margin-top:4px;">${myoEsc(b.exercise)}</div>
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);margin-top:6px;">${myoProgress[b.id]||0}/${b.maxMiniSets} mini-serii</div>
+      </button>`;
+    }).join('');
+  }
+  if(!detail) return;
+  const done=myoProgress[active.id]||0;
+  const capped=done>=active.maxMiniSets;
+  const safeName=String(active.exercise).replace(/'/g,"\\'");
+  detail.innerHTML=`<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:flex-start;">
+      <h3 style="margin:0;font-size:18px;">${myoEsc(active.exercise)}</h3>
+      ${active.caution?'<div style="font-size:12px;color:#E15B44;">⚠ Rozgrzewka aktywacyjna barku przed blokiem</div>':''}
+    </div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 18px;">
+      <div><div style="font-size:11px;color:var(--muted);">Seria aktywacyjna</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">${active.activationReps} powt.</div></div>
+      <div><div style="font-size:11px;color:var(--muted);">Cel mini-serii</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">${active.miniTarget} powt.</div></div>
+      <div><div style="font-size:11px;color:var(--muted);">Odpoczynek</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">${active.restSec}s</div></div>
+    </div>
+    <div style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:22px 0;text-align:center;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;">Timer odpoczynku</div>
+      <div id="myo-clock" style="font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:2px;color:var(--accent);line-height:1;margin:6px 0 14px;">${myoFormatClock(myoSecondsLeft)}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary btn-sm" id="myo-run-btn" onclick="toggleMyoTimer()">${myoRunning?'Pauza':'Start'}</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="myo-reset-btn" onclick="resetMyoTimer()">Reset</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px;">
+      <span style="font-size:13px;color:var(--muted);">Ukończone mini-serie: ${done} / ${active.maxMiniSets}</span>
+      <button type="button" class="btn btn-sm ${capped?'btn-ghost':'btn-primary'}" id="myo-log-btn" ${capped?'disabled':''} onclick="logMyoMiniSet()">+ Zaliczono mini-serię</button>
+    </div>
+    ${typeof openExDetail==='function'?`<button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="openExDetail('${safeName}')">Biblioteka: ${myoEsc(active.exercise)}</button>`:''}
+    ${active.caution?`<div style="margin-top:14px;">
+      <button type="button" class="btn btn-ghost btn-sm" id="myo-staff-pain" ${myoStaffLoading?'disabled':''} onclick="askMyoStaffPain()">⚠ Klient zgłasza ból — zaproponuj modyfikację na żywo</button>
+      <div id="myo-staff-out" style="margin-top:8px;">${myoStaffHtml||''}</div>
+    </div>`:''}`;
+}
+async function askMyoStaffPain(){
+  const b=myoBlockById(myoActiveId);
+  const q=`Klient w trakcie tego bloku zgłasza dyskomfort w barku. Zaproponuj: (1) konkretną modyfikację techniczną ćwiczenia (zakres ruchu, kąt, tempo) możliwą do wdrożenia natychmiast, (2) jak taka zmiana powinna zostać zapisana w logice aplikacji (np. flaga w rekordzie sesji).`;
+  const ctx=`Kontekst z aplikacji:\nBlok: ${b.exercise}\nSeria aktywacyjna: ${b.activationReps} powt.\nCel mini-serii: ${b.miniTarget} powt.\nUkończone mini-serie: ${myoProgress[b.id]||0}/${b.maxMiniSets}\nSzablon sesji: ${MYO_SESSION_DEFAULT.name}\n\nPytanie trenera:\n${q}`;
+  myoStaffLoading=true;
+  myoStaffHtml='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Sztab analizuje...</div>';
+  renderMyoSession();
+  const box=()=>document.getElementById('myo-staff-out');
+  const append=entry=>{
+    const meta=(typeof STAFF_AGENT_META==='object'&&STAFF_AGENT_META[entry.agentId])||{icon:'💬',label:entry.agentId};
+    const body=entry.error?('Agent nie odpowiedział: '+entry.error):(entry.text||'');
+    myoStaffHtml+=`<div style="background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:10px;margin-top:8px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:6px;">${myoEsc(meta.icon+' '+meta.label)}</div>
+      <div style="font-size:13px;line-height:1.55;white-space:pre-wrap;">${myoEsc(body)}</div>
+    </div>`;
+    const el=box();
+    if(el) el.innerHTML=myoStaffHtml;
+  };
+  try{
+    if(typeof callStaffAgentsSequentially==='function'){
+      await callStaffAgentsSequentially(['dev','biomechanika'], ctx, '', null, append);
+    }else{
+      append({agentId:'dev',text:null,error:'Brak sztabu'});
+    }
+  }catch(err){
+    append({agentId:'dev',text:null,error:(err&&err.message)||String(err)});
+  }
+  myoStaffLoading=false;
+  const btn=document.getElementById('myo-staff-pain');
+  if(btn) btn.disabled=false;
+}
+
+window.MYO_SESSION_DEFAULT=MYO_SESSION_DEFAULT;
+window.myoSessionTemplate=myoSessionTemplate;
+window.myoFormatClock=myoFormatClock;
+window.myoInitProgress=myoInitProgress;
+window.myoLogMini=myoLogMini;
+window.myoDoneCount=myoDoneCount;
+window.selectMyoBlock=selectMyoBlock;
+window.toggleMyoTimer=toggleMyoTimer;
+window.resetMyoTimer=resetMyoTimer;
+window.logMyoMiniSet=logMyoMiniSet;
+window.renderMyoSession=renderMyoSession;
+window.askMyoStaffPain=askMyoStaffPain;
+
+var cpClientId=null;var cpTab='overview';
+
+function renderOnboardProfileBanner(){
+  const bar=document.getElementById('cp-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterProfile;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — ankieta w Formularzach. Albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromProfile()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromProfile(){
+  const cid=window._onboardResumeAfterProfile;
+  window._onboardResumeAfterProfile=null;
+  if(typeof renderOnboardProfileBanner==='function')renderOnboardProfileBanner();
+  closeClientProfile();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function closeClientProfileOrResumeOnboard(){
+  if(window._onboardResumeAfterProfile) resumeOnboardFromProfile();
+  else closeClientProfile();
+}
+window.renderOnboardProfileBanner=renderOnboardProfileBanner;
+window.resumeOnboardFromProfile=resumeOnboardFromProfile;
+window.closeClientProfileOrResumeOnboard=closeClientProfileOrResumeOnboard;
+
+function openClientProfile(id,opts){
+  const o=opts||{};
+  const drawer=document.getElementById('cp-drawer');
+  const alreadyOpen=!!(drawer&&drawer.classList.contains('open'));
+  if(o.fromOnboard) window._onboardResumeAfterProfile=id;
+  else if(!(alreadyOpen&&cpClientId===id)) window._onboardResumeAfterProfile=null;
+  // Everfit: przy zmianie klienta z sidebara zostaw bieżącą zakładkę (Plan/Progress…)
+  const keepTab=o.tab||(alreadyOpen&&cpTab?cpTab:'overview');
+  cpClientId=id;
+  window._cpEditingClientId=null;
+  const c=CL.find(x=>x.id===id);if(!c)return;
+  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(id);}catch(e){}
+  const ci=CL.indexOf(c);const col=COLS[ci%5];
+  document.getElementById('cp-avatar').style.background=col+'22';
+  document.getElementById('cp-avatar').style.color=col;
+  document.getElementById('cp-avatar').textContent=getInit(c.name);
+  document.getElementById('cp-name').textContent=c.name;
+  document.getElementById('cp-sub').textContent=(typeof cpProfileSubtext==='function'?cpProfileSubtext(c):((({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal||'Brak celu')+' · '+(({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'')+(c.age?' · '+c.age+' lat':'')));
+  if(typeof refreshClientProfileRemoveActions==='function')refreshClientProfileRemoveActions(c);
+  if(drawer)drawer.classList.add('open');
+  document.getElementById('cp-overlay').classList.add('show');
+  if(typeof setCPTab==='function')setCPTab(keepTab);
+  else{
+    cpTab=keepTab;
+    document.querySelectorAll('.cp-tab').forEach(t=>t.classList.remove('active'));
+    const tabBtn=document.getElementById('cpt-'+keepTab);
+    if(tabBtn)tabBtn.classList.add('active');
+    else document.getElementById('cpt-overview')?.classList.add('active');
+    if(keepTab==='overview'||!tabBtn)renderCPOverview(c);
+  }
+  if(typeof renderOnboardProfileBanner==='function')renderOnboardProfileBanner();
+  if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
+}
+
+function closeClientProfile(){
+  window._cpEditingClientId=null;
+  document.getElementById('cp-drawer').classList.remove('open');
+  document.getElementById('cp-overlay').classList.remove('show');
+  if(cpClientId)window._aplLastClientId=cpClientId;
+  cpClientId=null;
+  const bar=document.getElementById('cp-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+  if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
+}
+
+var cpAnalyticsSub='psycho';
+
+function setCPTab(t){
+  // Legacy deep-links Psycho/SFR/Postawa → Analityka + podsekcja
+  if(t==='psycho'||t==='sfr'||t==='posture'){
+    cpAnalyticsSub=t;
+    t='analytics';
+  }
+  cpTab=t;
+  const moreTabs=['tasks','notes','timeline','analytics','photos','forms','food','payments','features','documents'];
+  if(typeof closeCpMoreNav==='function')closeCpMoreNav();
+  document.querySelectorAll('.cp-tab').forEach(el=>el.classList.remove('active'));
+  const btn=document.getElementById('cpt-'+t);if(btn)btn.classList.add('active');
+  if(moreTabs.includes(t)){
+    const moreBtn=document.getElementById('cp-more-toggle');
+    if(moreBtn)moreBtn.classList.add('active');
+  }
+  const c=CL.find(x=>x.id===cpClientId);if(!c)return;
+  if(t==='overview')renderCPOverview(c);
+  if(t==='notes')renderCPNotes(c);
+  if(t==='timeline')renderCPTimeline(c);
+  if(t==='analytics')renderCPAnalytics(c);
+  if(t==='training')renderCPTraining(c);
+  if(t==='progress')renderCPProgress(c);
+  if(t==='plan')renderCPPlan(c);
+  if(t==='metrics')renderCPMetrics(c);
+  if(t==='tasks')renderCPTasks(c);
+  if(t==='forms')renderCPForms(c);
+  if(t==='food'){if(typeof notify==='function')notify('Żywienie jest w przygotowaniu');setCPTab('overview');return;}
+  if(t==='documents')renderCPDocuments(c);
+  if(t==='payments')renderCPPayments(c);
+  if(t==='features')renderCPSettings(c);
+  if(t==='photos')renderCPPhotos(c);
+}
+
+function setCPAnalyticsSub(sub){
+  if(sub!=='psycho'&&sub!=='sfr'&&sub!=='posture')return;
+  cpAnalyticsSub=sub;
+  const c=CL.find(x=>x.id===cpClientId);if(!c)return;
+  if(typeof renderCPAnalytics==='function')renderCPAnalytics(c);
+}
+
+function cpAnalyticsNavHTML(){
+  const subs=[['psycho','Psycho'],['sfr','SFR'],['posture','Postawa']];
+  return `<div class="cp-analytics-nav" role="tablist" aria-label="Oceny specjalistyczne">
+    ${subs.map(([id,label])=>`<button type="button" role="tab" class="cp-analytics-chip${cpAnalyticsSub===id?' active':''}" aria-selected="${cpAnalyticsSub===id?'true':'false'}" onclick="setCPAnalyticsSub('${id}')">${label}</button>`).join('')}
+  </div>`;
+}
+
+function renderCPAnalytics(c){
+  if(!c)return;
+  if(cpAnalyticsSub==='sfr'&&typeof renderCPSfr==='function')renderCPSfr(c);
+  else if(cpAnalyticsSub==='posture'&&typeof renderCPPosture==='function')renderCPPosture(c);
+  else if(typeof renderCPPsycho==='function')renderCPPsycho(c);
+  else{
+    const body=document.getElementById('cp-body');
+    if(body)body.innerHTML=cpAnalyticsNavHTML()+'<div style="font-size:12px;color:var(--muted);padding:12px 0;">Brak modułu ocen specjalistycznych.</div>';
+  }
+}
+
+/** Prefix Psycho/SFR/Postawa content with Analityka sub-nav when that tab is active. */
+function withAnalyticsShell(html){
+  if(typeof cpTab!=='undefined'&&cpTab==='analytics'&&typeof cpAnalyticsNavHTML==='function'){
+    return cpAnalyticsNavHTML()+html;
+  }
+  return html;
+}
+window.setCPAnalyticsSub=setCPAnalyticsSub;
+window.renderCPAnalytics=renderCPAnalytics;
+window.withAnalyticsShell=withAnalyticsShell;
+

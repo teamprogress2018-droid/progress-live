@@ -1,0 +1,504 @@
+#!/usr/bin/env node
+'use strict';
+/** Manifest MP4 z progress-live-video-assets: URL-e i brak pomyłek (Svend, za kark). */
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const root = path.join(__dirname, '../..');
+const src = fs.readFileSync(path.join(root, 'ex-gif-manifest.js'), 'utf8');
+const m = src.match(/window\.EX_GIF_MANIFEST\s*=\s*(\{[\s\S]*\});/);
+if (!m) {
+  console.error('FAIL missing EX_GIF_MANIFEST');
+  process.exit(1);
+}
+const MAN = JSON.parse(m[1]);
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+const names = [
+  'Wyciskanie sztangi leżąc',
+  'Pompki',
+  'Przysiad ze sztangą',
+  'Ściąganie do twarzy (face pull)',
+  'Martwy ciąg klasyczny',
+];
+ok('many mapped keys', Object.keys(MAN).length >= 80, String(Object.keys(MAN).length));
+
+names.forEach((n) => {
+  const key = n.toLowerCase();
+  const url = MAN[key] || '';
+  ok(n + ' has mp4', /progress-live-video-assets/.test(url) && /\.mp4(\?|#|$)/i.test(url), url.slice(0, 120));
+  ok(n + ' uses jsdelivr', /cdn\.jsdelivr\.net/.test(url), url.slice(0, 80));
+});
+
+ok('bench is barbell bench press', /Barbell%20Bench%20Press/i.test(MAN['wyciskanie sztangi leżąc'] || ''));
+ok('face pull clip', /Face%20Pull/i.test(MAN['ściąganie do twarzy (face pull)'] || MAN['facepull'] || ''));
+ok('incline db not decline', /Incline/i.test(MAN['wyciskanie hantli skos+'] || MAN['wyciskanie-hantli-skos-plus'] || '') && !/Decline/i.test(MAN['wyciskanie hantli skos+'] || MAN['wyciskanie-hantli-skos-plus'] || ''));
+ok('incline db full PL name in gif man', /dodatniej/i.test(MAN['wyciskanie hantli na ławce skośnej'] || ''));
+ok(
+  'incline db is dodatniej not fake incline OHP',
+  /dodatniej|sko%C5%9Bnej%20dodatniej/i.test(MAN['wyciskanie hantli skos+'] || '') &&
+    !/%20\(incline\)%20\(Incline/i.test(MAN['wyciskanie hantli skos+'] || ''),
+  (MAN['wyciskanie hantli skos+'] || '').slice(0, 160)
+);
+ok('cable fly overview is krzeselko', /krzese%C5%82ko|krzesełko/i.test(MAN['rozpiętki na wyciągu'] || ''), (MAN['rozpiętki na wyciągu'] || '').slice(0, 140));
+ok('high pulley crossover', /High%20Pulley/i.test(MAN['krzyżowanie wyciągów góra–dół'] || ''), (MAN['krzyżowanie wyciągów góra–dół'] || '').slice(0, 140));
+ok(
+  'low-to-high crossover is standing compilation',
+  /stoj%C4%85c|stojąc/i.test(MAN['krzyżowanie wyciągów dół–góra'] || '') &&
+    /Cable%20Crossover/i.test(MAN['krzyżowanie wyciągów dół–góra'] || '') &&
+    !/High%20Pulley/i.test(MAN['krzyżowanie wyciągów dół–góra'] || ''),
+  (MAN['krzyżowanie wyciągów dół–góra'] || '').slice(0, 160)
+);
+ok('mid cable fly', /middle%20chest/i.test(MAN['rozpiętki na wyciągu w poziomie'] || ''));
+ok('knee push-up uses wide-grip-named clip', /Wide-Grip%20Push-Up/i.test(MAN['pompki na kolanach'] || ''), (MAN['pompki na kolanach'] || '').slice(0, 140));
+ok('classic push-up stays push-up', /Pompka%20\(Push-up\)\.mp4/i.test(MAN['pompki'] || ''));
+ok('diamond push-up mapped', /Diamond%20Push-Up/i.test(MAN['pompki diamentowe'] || ''));
+ok('db push-up mapped', /Dumbbell%20Push-Ups/i.test(MAN['pompki na hantlach'] || ''));
+ok('no decline barbell clip', !MAN['wyciskanie sztangi skos−'] && !MAN['wyciskanie-sztangi-skos-minus']);
+ok('no single-arm cable fly clip', !MAN['rozpiętki jednorącz wyciąg'] && !MAN['single-arm cable fly']);
+ok('no wide push-up clip', !MAN['pompki szerokie'] && !MAN['pompki-szerokie']);
+ok('chest fly not reverse delt', /Fly/i.test(MAN['rozpiętki hantlami'] || '') && !/Rear%20Delt|Reverse%20Dumbbell%20Fly/i.test(MAN['rozpiętki hantlami'] || ''));
+ok('no colliding skos slug', !MAN['wyciskanie-hantli-skos']);
+ok('no svend key', !MAN['wyciskanie svenda'] && !MAN['svend press']);
+const blob = Object.values(MAN).join('\n');
+ok('no behind-the-neck pulldown', !/Behind%20the%20Neck/i.test(blob));
+const localGifs = Object.values(MAN).filter((u) => /assets\/ex\/gifs/.test(u));
+ok(
+  'local gifs only known technique loops',
+  localGifs.length > 0 && localGifs.every((u) => /przysiad-hack-maszyna\.gif$|butterfly-peck-deck\.gif$/.test(u)),
+  localGifs.join(',')
+);
+ok('hack squat maps to local gif', /przysiad-hack-maszyna\.gif$/.test(MAN['przysiad hack maszyna'] || ''));
+ok('pec deck maps to local gif', /butterfly-peck-deck\.gif$/.test(MAN['butterfly (peck deck)'] || ''));
+ok('pec deck aka maps to local gif', /butterfly-peck-deck\.gif$/.test(MAN['rozpiętki na maszynie'] || ''));
+ok('pec deck not mislabeled mp4', !/\.mp4/i.test(MAN['butterfly (peck deck)'] || ''));
+ok(
+  'barbell row uses pull-up-named clip',
+  /podci%C4%85ganie%20na%20dr%C4%85%C5%BCku%20nachwytem%20\(podci%C4%85ganie/i.test(MAN['wiosłowanie sztangą'] || ''),
+  (MAN['wiosłowanie sztangą'] || '').slice(0, 180)
+);
+ok(
+  'one-arm db row is bench-supported',
+  /podporem%20na%20%C5%82awce|Single-Arm%20Dumbbell%20Row/i.test(MAN['wiosłowanie hantlem'] || '') &&
+    !/jednor%C4%85czne%20na%20%C5%82awce%20\(z%20hantlem\)/i.test(MAN['wiosłowanie hantlem'] || ''),
+  (MAN['wiosłowanie hantlem'] || '').slice(0, 180)
+);
+ok(
+  'db shrugs uses bent-over-row-named clip',
+  /Wios%C5%82owanie%20hantl%C4%85%20w%20opadzie%20tu%C5%82owia%20\(Dumbbell%20Bent-Over%20Row\)/i.test(MAN['unoszenie barków hantlami'] || ''),
+  (MAN['unoszenie barków hantlami'] || '').slice(0, 180)
+);
+ok(
+  'two-arm db row uses reverse-fly-named clip',
+  /Bent-Over%20Dumbbell%20Reverse%20Fly/i.test(MAN['wiosłowanie hantlami oburącz'] || ''),
+  (MAN['wiosłowanie hantlami oburącz'] || '').slice(0, 180)
+);
+ok(
+  'straight-arm pulldown is bent-over cable',
+  /Straight-Arm%20Cable%20Pulldown%20\(bent-over\)/i.test(MAN['ściąganie prostymi rękami'] || ''),
+  (MAN['ściąganie prostymi rękami'] || '').slice(0, 180)
+);
+ok(
+  'lat pulldown is to-chest clip not pec-deck-named',
+  /do%20klatki%20piersiowej/i.test(MAN['ściąganie drążka wyciąg'] || '') &&
+    !/przed%20g%C5%82ow/i.test(MAN['ściąganie drążka wyciąg'] || ''),
+  (MAN['ściąganie drążka wyciąg'] || '').slice(0, 180)
+);
+ok('no pendlay lying clip', !MAN['wiosłowanie pendlay'] && !MAN['pendlay row']);
+ok('no rdl lying clip', !MAN['martwy ciąg rdl'] && !MAN['martwy-ciag-rdl']);
+ok('no inverted-row lying clip', !MAN['wiosłowanie odwrócone'] && !MAN['inverted row']);
+ok('no standard pull-up pec-deck clip', !MAN['podciąganie na drążku']);
+ok('wide pull-up stays mapped', /Wide-Grip%20Pull-Up/i.test(MAN['podciąganie szerokim chwytem'] || ''));
+ok('deadlift stays mapped', /Barbell%20Deadlift/i.test(MAN['martwy ciąg klasyczny'] || ''));
+ok('no lying barbell ohp clip', !MAN['wyciskanie żołnierskie ohp'] && !MAN['wyciskanie-zolnierskie-ohp']);
+ok('no lying front raise clip', !MAN['unoszenie przodem'] && !MAN['unoszenie-przodem']);
+ok('no lying reverse pec clip', !MAN['odwrotne rozpiętki maszyna']);
+ok('no lying machine shoulder press clip', !MAN['wyciskanie barków maszyna']);
+ok('no lying standing db ohp clip', !MAN['wyciskanie hantli stojąc']);
+ok('no lying single-arm seated press clip', !MAN['wyciskanie hantla jednorącz nad głowę']);
+ok('no lying arnold clip', !MAN['wyciskanie arnolda']);
+ok(
+  'one-arm cable lateral in manifest',
+  /Cable%20lateral%20raise/i.test(MAN['unoszenie bokiem na wyciągu jednorącz'] || ''),
+  (MAN['unoszenie bokiem na wyciągu jednorącz'] || '').slice(0, 160)
+);
+ok(
+  'barbell squat is classic back squat clip',
+  /przysiad%20klasyczny|na%20karku/i.test(MAN['przysiad ze sztangą'] || '') &&
+    /Barbell%20Back%20Squat/i.test(MAN['przysiad ze sztangą'] || ''),
+  (MAN['przysiad ze sztangą'] || '').slice(0, 180)
+);
+ok(
+  'bulgarian split squat is rear-foot-on-bench clip',
+  /bu%C5%82garski%20przysiad%20split|tylna%20nog%C4%85%20uniesion%C4%85%20na%20%C5%82awce/i.test(MAN['przysiad bułgarski'] || ''),
+  (MAN['przysiad bułgarski'] || '').slice(0, 180)
+);
+ok(
+  'leg press is foot-alignment clip',
+  /footknee|ustawienie%20st%C3%B3p/i.test(MAN['wyciskanie nogami'] || ''),
+  (MAN['wyciskanie nogami'] || '').slice(0, 180)
+);
+ok(
+  'heel-elevated squat is heel clip',
+  /Heel%20Elevated/i.test(MAN['przysiad z piętami na podwyższeniu'] || ''),
+  (MAN['przysiad z piętami na podwyższeniu'] || '').slice(0, 180)
+);
+ok(
+  'heel-elevated goblet is same heel clip',
+  /Heel%20Elevated/i.test(MAN['przysiad goblet na podwyższeniu pięt'] || ''),
+  (MAN['przysiad goblet na podwyższeniu pięt'] || '').slice(0, 180)
+);
+ok('no lying goblet clip', !MAN['przysiad goblet'] && !MAN['db goblet squat']);
+ok('no lying front squat clip', !MAN['przysiad przedni'] && !MAN['front squat']);
+ok('no lying sumo squat clip', !MAN['przysiad sumo']);
+ok('no lying walking lunge clip', !MAN['wykrok chodzony'] && !MAN['walking lunge']);
+ok('no lying barbell lunge clip', !MAN['wykrok ze sztangą']);
+ok('no lying smith squat clip', !MAN['przysiad w bramie smith'] && !MAN['smith squat']);
+ok('no lying single-leg press clip', !MAN['wyciskanie nogami jednonóż'] && !MAN['single-leg press']);
+ok(
+  'db lunge stays mapped',
+  /Dumbbell%20Lunge/i.test(MAN['wykrok z hantlami'] || '') && !/Walking/i.test(MAN['wykrok z hantlami'] || ''),
+  (MAN['wykrok z hantlami'] || '').slice(0, 160)
+);
+ok(
+  'leg extension stays mapped',
+  /Leg%20Extension/i.test(MAN['wyprosty nóg maszyna'] || MAN['seated leg extension machine'] || ''),
+  (MAN['wyprosty nóg maszyna'] || MAN['seated leg extension machine'] || '').slice(0, 160)
+);
+ok(
+  'lying leg curl is outer-hamstrings clip',
+  /Outer%20Hamstrings|cz%C4%99%C5%9B%C4%87%20zewn%C4%99trzna/i.test(MAN['uginanie nóg leżąc'] || ''),
+  (MAN['uginanie nóg leżąc'] || '').slice(0, 180)
+);
+ok(
+  'machine leg curl is wide-stance clip',
+  /wide%20stance|g%C5%82owa%20g%C5%82%C4%99boka/i.test(MAN['uginanie nóg maszyna'] || ''),
+  (MAN['uginanie nóg maszyna'] || '').slice(0, 180)
+);
+ok('no seated leg curl clip', !MAN['uginanie nóg siedząc'] && !MAN['seated leg curl']);
+ok('no nordic curl clip', !MAN['uginanie nordyckie'] && !MAN['nordic curl']);
+ok('no stiff-leg deadlift clip', !MAN['martwy ciąg na sztywnych nogach'] && !MAN['stiff-leg deadlift']);
+ok('no good-morning clip', !MAN['good morning (skłon)'] && !MAN['good morning']);
+ok(
+  'cable glute kickback is wyciag clip',
+  /Cable%20Glute%20Kickback/i.test(MAN['kickback pośladki'] || '') &&
+    /na%20wyci%C4%85gu|na%20wyciagu/i.test(MAN['kickback pośladki'] || ''),
+  (MAN['kickback pośladki'] || '').slice(0, 180)
+);
+ok(
+  'hip thrust is db hip thrust clip',
+  /Dumbbell%20hip%20thrust/i.test(MAN['wypychanie bioder (hip thrust)'] || ''),
+  (MAN['wypychanie bioder (hip thrust)'] || '').slice(0, 180)
+);
+ok(
+  'abduction is seated machine clip',
+  /Seated%20Hip%20Abduction/i.test(MAN['abdukcja biodra maszyna'] || ''),
+  (MAN['abdukcja biodra maszyna'] || '').slice(0, 180)
+);
+ok('no plank-as-glute-bridge clip', !MAN['mostek biodrowy']);
+ok('no cable-as-machine-kickback clip', !MAN['kickback na maszynie']);
+ok('no extension-as-adduction clip', !MAN['przywodzenie biodra maszyna']);
+ok('no rdl-as-side-lying clip', !MAN['odwodzenie biodra leżąc']);
+ok('no crunch-as-donkey-kick clip', !MAN['donkey kick']);
+ok('no rear-delt-as-pull-through clip', !MAN['pull-through wyciąg'] && !MAN['cable pull-through']);
+ok(
+  'bar pushdown is straight-bar do/dont clip',
+  /\(Cable%20Triceps%20Pushdown\)%20\(2\)\.mp4/i.test(MAN['prostowanie tricepsa wyciąg'] || ''),
+  (MAN['prostowanie tricepsa wyciąg'] || '').slice(0, 180)
+);
+ok(
+  'rope pushdown is with-rope-attachment clip',
+  /with%20Rope%20Attachment/i.test(MAN['prostowanie linką'] || ''),
+  (MAN['prostowanie linką'] || '').slice(0, 180)
+);
+ok(
+  'standing db oh is two-db clip',
+  /Dumbbell%20Overhead%20Triceps%20Extension/i.test(MAN['prostowanie za głowę hantlem'] || '') &&
+    !/Seated/i.test(MAN['prostowanie za głowę hantlem'] || '') &&
+    !/Skull/i.test(MAN['prostowanie za głowę hantlem'] || ''),
+  (MAN['prostowanie za głowę hantlem'] || '').slice(0, 180)
+);
+ok(
+  'skull crusher uses verified lying-bar clip',
+  /Seated%20Dumbbell%20Overhead%20Tricep%20Extension/i.test(MAN['prostowanie za głowę (skull crusher)'] || '') &&
+    /prostowanie%20ramion%20nad%20g%C5%82ow%C4%85%20z%20hantl%C4%85\)/i.test(MAN['prostowanie za głowę (skull crusher)'] || ''),
+  (MAN['prostowanie za głowę (skull crusher)'] || '').slice(0, 220)
+);
+ok(
+  'bench dips is honest triceps bench dips clip',
+  /triceps%20dips%20na%20%C5%82awce|Bench%20Dips/i.test(MAN['dipy na ławce'] || '') &&
+    !/Bench%20Dip\)\.mp4/i.test(MAN['dipy na ławce'] || ''),
+  (MAN['dipy na ławce'] || '').slice(0, 180)
+);
+ok('no one-arm pushdown clip', !MAN['prostowanie jednorącz wyciąg']);
+ok('no cable tricep kickback clip', !MAN['kickback na wyciągu'] && !MAN['cable kickback']);
+ok('no db kickback clip', !MAN['kickback triceps']);
+ok('no french press clip', !MAN['wyciskanie francuskie']);
+ok('no overhead cable tricep clip', !MAN['prostowanie za głowę wyciąg']);
+ok('no machine tricep dip clip', !MAN['dipy triceps maszyna']);
+ok(
+  'hammer curl is db-curl-named clip',
+  /biceps%20curl%20z%20hantlami|Dumbbell%20Bicep%20Curl/i.test(MAN['uginanie młotkowe'] || '') &&
+    /z%20hantlami/i.test(MAN['uginanie młotkowe'] || ''),
+  (MAN['uginanie młotkowe'] || '').slice(0, 180)
+);
+ok(
+  'alternating db curl is hammer-named clip',
+  /Dumbbell%20Hammer%20Curl/i.test(MAN['uginanie hantlami naprzemiennie'] || '') &&
+    /hantl%C4%85/i.test(MAN['uginanie hantlami naprzemiennie'] || ''),
+  (MAN['uginanie hantlami naprzemiennie'] || '').slice(0, 180)
+);
+ok(
+  'concentration is knee-braced clip',
+  /oparcie%20o%20kolano|oparciu%20o%20kolano|Concentration%20Curl/i.test(MAN['uginanie koncentryczne'] || '') &&
+    /kolano/i.test(MAN['uginanie koncentryczne'] || ''),
+  (MAN['uginanie koncentryczne'] || '').slice(0, 180)
+);
+ok(
+  'reverse curl is nachwytem clip',
+  /Barbell%20Reverse%20Curl/i.test(MAN['uginanie reverse'] || ''),
+  (MAN['uginanie reverse'] || '').slice(0, 180)
+);
+ok('no lying barbell curl clip', !MAN['uginanie biceps sztangą']);
+ok('no lying preacher clip', !MAN['uginanie na modlitewniku'] && !MAN['preacher curl']);
+ok('no lying incline curl clip', !MAN['uginanie na skosie'] && !MAN['incline curl']);
+ok('no lying cable curl clip', !MAN['uginanie na wyciągu']);
+ok(
+  'rollout is kneeling ab-wheel clip',
+  /Kneeling%20Ab%20Wheel%20Rollout/i.test(MAN['rollout z kółkiem'] || '') &&
+    /z%20kolan/i.test(MAN['rollout z kółkiem'] || ''),
+  (MAN['rollout z kółkiem'] || '').slice(0, 220)
+);
+ok('no lying plank clip', !MAN['deska'] && !MAN['plank'] && !MAN['front plank']);
+ok('no lying bicycle clip', !MAN['brzuszki rowerowe'] && !MAN['bicycle crunch']);
+ok('no lying russian-twist clip', !MAN['skręty rosyjskie'] && !MAN['russian twist']);
+ok('no lying scissors clip', !MAN['nożyce'] && !MAN['nozyce'] && !MAN['scissor kicks']);
+ok('no lying leg-raise clip', !MAN['unoszenie nóg leżąc'] && !MAN['lying leg raise']);
+ok('no lying mountain-climbers clip', !MAN['mountain climbers'] && !MAN['mountain-climbers']);
+ok('no lying jump-squat clip', !MAN['przysiad z wyskokiem'] && !MAN['jump squat'] && !MAN['squat jump']);
+ok('no lying child-pose clip', !MAN['poza dziecka'] && !MAN['child pose'] && !MAN['childs pose breath and stretch']);
+ok('no lying pancake-stretch clip', !MAN['pancake (rozciąganie)'] && !MAN['pancake stretch']);
+ok('no lying hip-flexor-stretch clip', !MAN['rozciąganie biodrowo-lędźwiowego'] && !MAN['half kneeling hip flexors stretch']);
+ok('no lying neck-stretch clip', !MAN['rozciąganie szyi bokiem']);
+ok('no lying standing-quad-stretch clip', !MAN['rozciąganie czworogłowego stojąc']);
+ok('no lying calf-stretch clip', !MAN['rozciąganie łydek']);
+ok('no lying jumping-jacks clip', !MAN['pajacyki'] && !MAN['jumping jacks']);
+ok('no lying high-knees clip', !MAN['wysokie kolana'] && !MAN['high knees']);
+ok(
+  'db standing calf is dumbbell clip',
+  /Standing%20Dumbbell%20Calf%20Raises/i.test(MAN['wspięcia na palce hantlami'] || '') &&
+    /z%20hantlami/i.test(MAN['wspięcia na palce hantlami'] || ''),
+  (MAN['wspięcia na palce hantlami'] || '').slice(0, 220)
+);
+ok(
+  'standing calf is on-step clip',
+  /Standing%20Calf%20Raise%20on%20Step/i.test(MAN['wspięcia na palce stojąc'] || '') &&
+    /na%20stopniu/i.test(MAN['wspięcia na palce stojąc'] || ''),
+  (MAN['wspięcia na palce stojąc'] || '').slice(0, 220)
+);
+ok('no machine calf clip', !MAN['wspięcia na palce']);
+ok('no seated calf clip', !MAN['wspięcia na palce siedząc'] && !MAN['seated calf raise']);
+ok('no single-leg calf clip', !MAN['wspięcia na palce jednonóż'] && !MAN['wspięcia na palce jednonóż hantlem']);
+ok('no lying band-as-calf clip', !/with%20Resistance%20Band/i.test(MAN['wspięcia na palce stojąc'] || ''));
+
+const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
+const windowObj = {
+  addEventListener() {},
+  EX: [],
+  DEF_EX: [
+    { name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' },
+    { name: 'Wyciskanie Svenda', aka: 'Svend press', img: 'assets/ex/bench.svg' },
+    { name: 'Pompki', img: 'assets/ex/bench.svg' },
+  ],
+  EX_GIF_MANIFEST: MAN,
+  EX_GIF_REMOTE: {},
+  EX_PHOTO_MANIFEST: {
+    'wyciskanie sztangi leżąc': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
+    'pompki': 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg',
+  },
+  COACH_VIDEOS: [],
+  document,
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj,
+  document,
+  console,
+  Date, Math, parseInt, parseFloat, Number, String, Array, Object, JSON,
+  setTimeout, clearTimeout, isNaN, Infinity, undefined,
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(path.join(root, '01-core.js'), 'utf8'), ctx);
+
+const gif = ctx.exGifUrl({ name: 'Wyciskanie sztangi leżąc' });
+ok('exGifUrl bench mp4', /\.mp4/i.test(gif) && /video-assets/.test(gif), gif);
+ok('isVideoMediaUrl', ctx.isVideoMediaUrl(gif));
+const thumb = ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' });
+ok('thumb stays photo', /free-exercise-db/.test(thumb) && !/\.mp4/i.test(thumb), thumb);
+ok('svend has no gif', !ctx.exGifUrl({ name: 'Wyciskanie Svenda' }));
+ok('hack squat thumb is local gif', ctx.exThumbUrl({ name: 'Przysiad hack maszyna' }) === 'assets/ex/gifs/przysiad-hack-maszyna.gif');
+ok('pec deck thumb is local gif', ctx.exThumbUrl({ name: 'Butterfly (peck deck)' }) === 'assets/ex/gifs/butterfly-peck-deck.gif');
+ok('incline gif is dodatniej mp4', /dodatniej/i.test(ctx.exGifUrl({ name: 'Wyciskanie hantli na ławce skośnej' }) || '') && !/%20\(incline\)%20/i.test(ctx.exGifUrl({ name: 'Wyciskanie hantli na ławce skośnej' }) || ''));
+ok('incline gif still keyed by skos+', /dodatniej/i.test(ctx.exGifUrl({ name: 'Wyciskanie hantli skos+' }) || ''));
+ok('decline barbell has no technique clip', !ctx.exGifUrl({ name: 'Wyciskanie sztangi skos−' }));
+ok('single-arm fly has no technique clip', !ctx.exGifUrl({ name: 'Rozpiętki jednorącz wyciąg' }));
+ok('wide push-up has no technique clip', !ctx.exGifUrl({ name: 'Pompki szerokie' }));
+ok('knee push-up gif is wide-grip-named mp4', /Wide-Grip%20Push-Up/i.test(ctx.exGifUrl({ name: 'Pompki na kolanach' }) || ''));
+ok('low-to-high gif is standing crossover', /stoj%C4%85c/i.test(ctx.exGifUrl({ name: 'Krzyżowanie wyciągów dół–góra' }) || ''));
+ok('barbell row gif is verified clip', /podci%C4%85ganie%20na%20dr%C4%85%C5%BCku%20nachwytem%20\(podci%C4%85ganie/i.test(ctx.exGifUrl({ name: 'Wiosłowanie sztangą' }) || ''));
+ok('pendlay has no technique clip', !ctx.exGifUrl({ name: 'Wiosłowanie Pendlay' }));
+ok('rdl has no technique clip', !ctx.exGifUrl({ name: 'Martwy ciąg RDL' }));
+ok('seated db press gif is seated press', /Seated%20Dumbbell%20Shoulder%20Press/i.test(ctx.exGifUrl({ name: 'Wyciskanie hantli siedząc' }) || ''));
+ok('db lateral gif is standing lateral', /Dumbbell%20Lateral%20Raise/i.test(ctx.exGifUrl({ name: 'Unoszenie bokiem' }) || ''));
+ok('upright row gif is upright-row clip', /Upright%20Row/i.test(ctx.exGifUrl({ name: 'Wiosłowanie pionowe' }) || ''));
+ok(
+  'one-arm cable lateral gif is low-pulley clip',
+  /Cable%20lateral%20raise%20\(low%20pulley\)/i.test(ctx.exGifUrl({ name: 'Unoszenie bokiem na wyciągu jednorącz' }) || ''),
+  (ctx.exGifUrl({ name: 'Unoszenie bokiem na wyciągu jednorącz' }) || '').slice(0, 180)
+);
+ok('barbell ohp has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie żołnierskie OHP' }));
+ok('db front raise has no lying clip', !ctx.exGifUrl({ name: 'Unoszenie przodem' }));
+ok('reverse pec deck has no lying clip', !ctx.exGifUrl({ name: 'Odwrotne rozpiętki maszyna' }));
+ok('machine shoulder press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie barków maszyna' }));
+ok('standing db ohp has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie hantli stojąc' }));
+ok('single-arm db press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie hantla jednorącz nad głowę' }));
+ok('arnold has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie Arnolda' }));
+ok(
+  'barbell squat gif is classic clip',
+  /przysiad%20klasyczny|na%20karku/i.test(ctx.exGifUrl({ name: 'Przysiad ze sztangą' }) || ''),
+  (ctx.exGifUrl({ name: 'Przysiad ze sztangą' }) || '').slice(0, 180)
+);
+ok(
+  'bulgarian gif is rear-foot-on-bench clip',
+  /bu%C5%82garski%20przysiad%20split|tylna%20nog%C4%85/i.test(ctx.exGifUrl({ name: 'Przysiad bułgarski' }) || ''),
+  (ctx.exGifUrl({ name: 'Przysiad bułgarski' }) || '').slice(0, 180)
+);
+ok(
+  'leg press gif is foot-alignment clip',
+  /footknee|ustawienie%20st%C3%B3p/i.test(ctx.exGifUrl({ name: 'Wyciskanie nogami' }) || ''),
+  (ctx.exGifUrl({ name: 'Wyciskanie nogami' }) || '').slice(0, 180)
+);
+ok('goblet squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad Goblet' }));
+ok('front squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad przedni' }));
+ok('sumo squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad sumo' }));
+ok('walking lunge has no lying clip', !ctx.exGifUrl({ name: 'Wykrok chodzony' }));
+ok('barbell lunge has no lying clip', !ctx.exGifUrl({ name: 'Wykrok ze sztangą' }));
+ok('smith squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad w bramie Smith' }));
+ok('single-leg press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie nogami jednonóż' }));
+ok(
+  'db lunge gif is stationary lunge',
+  /Dumbbell%20Lunge/i.test(ctx.exGifUrl({ name: 'Wykrok z hantlami' }) || '') &&
+    !/Walking/i.test(ctx.exGifUrl({ name: 'Wykrok z hantlami' }) || '')
+);
+ok(
+  'lying leg curl gif is outer-hamstrings clip',
+  /Outer%20Hamstrings|cz%C4%99%C5%9B%C4%87%20zewn%C4%99trzna/i.test(ctx.exGifUrl({ name: 'Uginanie nóg leżąc' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie nóg leżąc' }) || '').slice(0, 180)
+);
+ok(
+  'machine leg curl gif is wide-stance clip',
+  /wide%20stance|g%C5%82owa%20g%C5%82%C4%99boka/i.test(ctx.exGifUrl({ name: 'Uginanie nóg maszyna' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie nóg maszyna' }) || '').slice(0, 180)
+);
+ok('seated leg curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie nóg siedząc' }));
+ok('nordic curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie nordyckie' }));
+ok('stiff-leg deadlift has no lying clip', !ctx.exGifUrl({ name: 'Martwy ciąg na sztywnych nogach' }));
+ok('good morning has no lying clip', !ctx.exGifUrl({ name: 'Good morning (skłon)' }));
+ok(
+  'cable glute kickback gif is cable clip',
+  /Cable%20Glute%20Kickback/i.test(ctx.exGifUrl({ name: 'Kickback pośladki' }) || '') &&
+    /na%20wyci%C4%85gu|na%20wyciagu/i.test(ctx.exGifUrl({ name: 'Kickback pośladki' }) || ''),
+  (ctx.exGifUrl({ name: 'Kickback pośladki' }) || '').slice(0, 180)
+);
+ok(
+  'hip thrust gif is db hip thrust clip',
+  /Dumbbell%20hip%20thrust/i.test(ctx.exGifUrl({ name: 'Wypychanie bioder (hip thrust)' }) || ''),
+  (ctx.exGifUrl({ name: 'Wypychanie bioder (hip thrust)' }) || '').slice(0, 180)
+);
+ok(
+  'seated abduction gif is seated machine clip',
+  /Seated%20Hip%20Abduction/i.test(ctx.exGifUrl({ name: 'Abdukcja biodra maszyna' }) || ''),
+  (ctx.exGifUrl({ name: 'Abdukcja biodra maszyna' }) || '').slice(0, 180)
+);
+ok('glute bridge has no plank clip', !ctx.exGifUrl({ name: 'Mostek biodrowy' }));
+ok('machine glute kickback has no cable clip', !ctx.exGifUrl({ name: 'Kickback na maszynie' }));
+ok('hip adduction has no extension clip', !ctx.exGifUrl({ name: 'Przywodzenie biodra maszyna' }));
+ok('side-lying abduction has no rdl clip', !ctx.exGifUrl({ name: 'Odwodzenie biodra leżąc' }));
+ok('donkey kick has no crunch clip', !ctx.exGifUrl({ name: 'Donkey kick' }));
+ok('pull-through has no rear-delt clip', !ctx.exGifUrl({ name: 'Pull-through wyciąg' }));
+ok(
+  'bar pushdown gif is (2) straight-bar clip',
+  /\(Cable%20Triceps%20Pushdown\)%20\(2\)\.mp4/i.test(ctx.exGifUrl({ name: 'Prostowanie tricepsa wyciąg' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie tricepsa wyciąg' }) || '').slice(0, 180)
+);
+ok(
+  'rope pushdown gif is rope-attachment clip',
+  /with%20Rope%20Attachment/i.test(ctx.exGifUrl({ name: 'Prostowanie linką' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie linką' }) || '').slice(0, 180)
+);
+ok(
+  'standing db oh gif is two-db clip',
+  /Dumbbell%20Overhead%20Triceps%20Extension/i.test(ctx.exGifUrl({ name: 'Prostowanie za głowę hantlem' }) || '') &&
+    !/Seated/i.test(ctx.exGifUrl({ name: 'Prostowanie za głowę hantlem' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie za głowę hantlem' }) || '').slice(0, 180)
+);
+ok(
+  'skull crusher gif is verified lying-bar clip',
+  /Seated%20Dumbbell%20Overhead%20Tricep%20Extension/i.test(ctx.exGifUrl({ name: 'Prostowanie za głowę (skull crusher)' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie za głowę (skull crusher)' }) || '').slice(0, 180)
+);
+ok(
+  'bench dip gif is honest bench dips clip',
+  /triceps%20dips%20na%20%C5%82awce|Bench%20Dips/i.test(ctx.exGifUrl({ name: 'Dipy na ławce' }) || '') &&
+    !/Bench%20Dip\)\.mp4/i.test(ctx.exGifUrl({ name: 'Dipy na ławce' }) || ''),
+  (ctx.exGifUrl({ name: 'Dipy na ławce' }) || '').slice(0, 180)
+);
+ok('one-arm pushdown has no lateral-raise clip', !ctx.exGifUrl({ name: 'Prostowanie jednorącz wyciąg' }));
+ok('cable tricep kickback has no mix clip', !ctx.exGifUrl({ name: 'Kickback na wyciągu' }));
+ok('db kickback has no cable clip', !ctx.exGifUrl({ name: 'Kickback triceps' }));
+ok('french press has no clip', !ctx.exGifUrl({ name: 'Wyciskanie francuskie' }));
+ok('overhead cable tricep has no clip', !ctx.exGifUrl({ name: 'Prostowanie za głowę wyciąg' }));
+ok(
+  'hammer gif is db-curl-named clip',
+  /biceps%20curl%20z%20hantlami|Dumbbell%20Bicep%20Curl/i.test(ctx.exGifUrl({ name: 'Uginanie młotkowe' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie młotkowe' }) || '').slice(0, 180)
+);
+ok(
+  'alternating db curl gif is hammer-named clip',
+  /Dumbbell%20Hammer%20Curl/i.test(ctx.exGifUrl({ name: 'Uginanie hantlami naprzemiennie' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie hantlami naprzemiennie' }) || '').slice(0, 180)
+);
+ok(
+  'concentration gif is knee-braced clip',
+  /kolano/i.test(ctx.exGifUrl({ name: 'Uginanie koncentryczne' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie koncentryczne' }) || '').slice(0, 180)
+);
+ok(
+  'reverse curl gif is nachwytem clip',
+  /Barbell%20Reverse%20Curl/i.test(ctx.exGifUrl({ name: 'Uginanie reverse' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie reverse' }) || '').slice(0, 180)
+);
+ok('barbell curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie biceps sztangą' }));
+ok('preacher has no lying clip', !ctx.exGifUrl({ name: 'Uginanie na modlitewniku' }));
+ok('incline curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie na skosie' }));
+ok('cable curl has no mix clip', !ctx.exGifUrl({ name: 'Uginanie na wyciągu' }));
+
+const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
+ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));
+
+const coach = ctx.resolveCoachMedia({ name: 'Wyciskanie sztangi leżąc' });
+ok('resolveCoachMedia gif is mp4', /\.mp4/i.test(coach.gif || ''), coach.gif);
+ok('assigned dips film is parallel-bar', /Parallel%20Bar%20Dips/i.test(ctx.assignedExVideoUrl({ name: 'Dipy na poręczach' }) || ''));
+ok('generic chest has no assigned film', !ctx.assignedExVideoUrl({ name: 'Klatka piersiowa' }));
+
+if (failed) process.exit(1);
+console.log('\nAll ex-video-manifest tests passed');

@@ -1,0 +1,495 @@
+#!/usr/bin/env node
+'use strict';
+/** Autoflow: package.expired, check-in, zastój i sesja dziś idą przez emitAppEvent. */
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const root = path.join(__dirname, '../..');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
+const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
+const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
+const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+ok('cache 01', html.includes('01-core.js?v=126'));
+ok('cache 04', html.includes('04-client-portal.js?v=55'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=54'));
+ok('html triggers', html.includes('value="package.expired"') && html.includes('value="checkin.submitted"'));
+ok('bus wires autoflow', /autoflowOnAppEvent/.test(core) && /emitAppEvent/.test(core));
+ok('checkin emits', /emitAppEvent\('checkin.submitted'/.test(src04));
+ok('scan expired', /function scanAndEmitPackageExpired/.test(src09));
+ok('scan idle', /function scanAndEmitInactivity/.test(src09) && /client\.inactive/.test(src09));
+ok('scan session', /function scanAndEmitSessionToday/.test(src09) && /session\.soon/.test(src09));
+ok('event map', /function autoflowTriggerForEvent/.test(src09) && /package\.expired/.test(src09) && /checkin\.submitted/.test(src09));
+ok('poll skips events', /kind==='package.expired'\|\|kind==='checkin.submitted'\|\|kind==='inactivity'\|\|kind==='session_today'/.test(src09));
+ok('clock calls autoflow', /runAutoflowsCheck\(false\)/.test(src04));
+ok('CI unit', wf.includes('test_autoflow_events.js'));
+ok('CI ui', wf.includes('test_autoflow_events_ui.js'));
+ok('ownership is never inferred from a browser scan',!html.includes('window.migrateTrainerOwnership?.(')&&!core.includes("pl_trainer_migrated_"));
+
+const document = {
+  querySelectorAll: () => [],
+  querySelector: () => null,
+  getElementById: () => null,
+  addEventListener() {},
+  dispatchEvent() { return true; },
+  createElement() { return { style: {}, classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } } }; },
+  documentElement: { style: { setProperty() {} } },
+  body: { appendChild() {} }
+};
+const windowObj = {
+  addEventListener() {},
+  CL: [{ id: 'c1', name: 'Anna Nowak', status: 'active' }],
+  PACKAGES: [{ id: 'pk1', clientId: 'c1', title: '10 sesji', payStatus: 'expired', expiresDate: '2020-01-01' }],
+  AUTOFLOWS: [],
+  AF_STATE: { enrollments: {}, executed: {}, lastFired: {}, logs: [] },
+  TASKS: [],
+  persistById() {},
+  notify() {},
+  document,
+  CustomEvent: function(n, o) { this.type = n; this.detail = o && o.detail; }
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj, document, console, Date, Math, parseInt, parseFloat, Number, String,
+  Array, Object, JSON, Set, isFinite, isNaN, CustomEvent: windowObj.CustomEvent,
+  persistById() {}, notify() {},
+  setTimeout: () => 0, clearTimeout() {}
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+vm.runInContext(core, ctx);
+ctx.window.CL = [{ id: 'c1', name: 'Anna Nowak', status: 'active' }];
+ctx.window.PACKAGES = [{ id: 'pk1', clientId: 'c1', title: '10 sesji', payStatus: 'expired', expiresDate: '2020-01-01' }];
+ctx.window.AUTOFLOWS = [];
+ctx.window.AF_STATE = { enrollments: {}, executed: {}, lastFired: {}, logs: [] };
+ctx.window.TASKS = [];
+ctx.CL = ctx.window.CL;
+ctx.PACKAGES = ctx.window.PACKAGES;
+function sliceFn(src, startName, nextName) {
+  const a = src.indexOf('function ' + startName);
+  const b = src.indexOf('function ' + nextName);
+  if (a < 0 || b < 0 || b <= a) throw new Error('slice ' + startName);
+  return src.slice(a, b);
+}
+const bundle = sliceFn(src09, 'ensureAfState', 'enrollScopeClients')
+  + sliceFn(src09, 'logAF', 'runAutoflowsCheck')
+  + sliceFn(src09, 'runAutoflowsCheck', 'notify');
+vm.runInContext(bundle, ctx);
+['autoflowOnAppEvent','autoflowTriggerForEvent','autoflowEventKey','scanAndEmitPackageExpired','scanAndEmitInactivity','scanAndEmitSessionToday','fireAutoflowTrigger','logAF','execAFStep','enrollClientInAutoflow','ensureAfState','runAutoflowsCheck','afClientsFor'].forEach((n) => {
+  if (typeof ctx[n] === 'function') ctx.window[n] = ctx[n];
+});
+ctx.renderAutoflows = function(){};
+ctx.renderAutoflowLog = function(){};
+ctx.window.renderAutoflows = ctx.renderAutoflows;
+ctx.window.renderAutoflowLog = ctx.renderAutoflowLog;
+ctx.formatClientActivity = function(id){
+  const days = (ctx.window._idleDays && ctx.window._idleDays[id]) || 0;
+  return { days: days, label: '', color: '' };
+};
+function clientMsgs(cid) {
+  const bag = (ctx.window.MSGS && ctx.window.MSGS[cid]) || [];
+  return bag;
+}
+function clearMsgs() {
+  const bag = ctx.window.MSGS || {};
+  Object.keys(bag).forEach((k) => { delete bag[k]; });
+}
+
+const remote = new Map();
+function seedRemoteDefinitions(){
+  for(const [collection,items] of [['autoflows',ctx.window.AUTOFLOWS],['clients',ctx.window.CL]]){
+    for(const item of items||[])remote.set(collection+'/'+(item._fbId||item.id),JSON.parse(JSON.stringify({trainerId:ctx.window._uid,...item})));
+  }
+}
+function merge(a,b){for(const [k,v] of Object.entries(b)){if(v&&typeof v==='object'&&!Array.isArray(v)){a[k]=merge(a[k]||{},v);}else a[k]=v;}return a;}
+ctx.window._uid='trainer-test';ctx.window._db={};
+ctx.window._doc=(_db,col,id)=>col+'/'+id;
+ctx.window._setDoc=async(ref,data)=>{remote.set(ref,merge(remote.get(ref)||{},JSON.parse(JSON.stringify(data))));};
+ctx.window._runTransaction=async(_db,fn)=>{
+  const writes=[];
+  const result=await fn({get:async ref=>({exists:()=>remote.has(ref),data:()=>remote.get(ref)}),set:(...args)=>writes.push(args)});
+  for(const [ref,data,opts] of writes)remote.set(ref,opts&&opts.merge?merge(remote.get(ref)||{},data):data);
+  return result;
+};
+(async()=>{
+ok('helpers on ctx', typeof ctx.autoflowOnAppEvent === 'function' && typeof ctx.logAF === 'function' && bundle.includes('function logAF'));
+ok('map package', ctx.autoflowTriggerForEvent('package.expired') === 'package.expired');
+ok('map checkin', ctx.autoflowTriggerForEvent('checkin.submitted') === 'checkin.submitted');
+ok('map alias', ctx.autoflowTriggerForEvent('onCheckInSubmitted') === 'checkin.submitted');
+ok('map client', ctx.autoflowTriggerForEvent('client.created') === 'new_client');
+ok('map idle', ctx.autoflowTriggerForEvent('client.inactive') === 'inactivity');
+ok('map session soon', ctx.autoflowTriggerForEvent('session.soon') === 'session_today');
+ok('map other empty', ctx.autoflowTriggerForEvent('macros.saved') === '');
+
+ctx.window.AUTOFLOWS = [{
+  id: 'af1', status: 'active', type: 'trigger', trigger: 'package.expired', scope: 'all',
+  name: 'Pakiet wygasł',
+  steps: [{ type: 'message', day: 1, text: '{imie}, pakiet wygasł' }]
+}];
+clearMsgs();
+seedRemoteDefinitions();
+const n = ctx.scanAndEmitPackageExpired('2026-09-11');
+await ctx.drainAFQueue();
+ok('scan emits once', n === 1, 'n=' + n);
+ok('msg to client', clientMsgs('c1').length === 1 && /pakiet wygasł/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')));
+const n2 = ctx.scanAndEmitPackageExpired('2026-09-11');
+await ctx.drainAFQueue();
+ok('scan no double', n2 === 0 && clientMsgs('c1').length === 1, 'n2=' + n2 + ' msgs=' + clientMsgs('c1').length);
+
+ctx.window.PACKAGES = [
+  { id: 'pk2', clientId: 'c1', title: '8 sesji', payStatus: 'expired', expiresDate: '2020-01-01' },
+  { id: 'pk3', clientId: 'c1', title: '12 sesji', payStatus: 'expired', expiresDate: '2020-02-01' }
+];
+clearMsgs();
+const n3 = ctx.scanAndEmitPackageExpired('2026-09-11');
+await ctx.drainAFQueue();
+ok('scan two packages', n3 === 2 && clientMsgs('c1').length === 2, 'n3=' + n3 + ' msgs=' + clientMsgs('c1').length);
+
+ctx.window.AUTOFLOWS = [{
+  id: 'af2', status: 'active', type: 'trigger', trigger: 'checkin.submitted', scope: 'all',
+  name: 'Thanks',
+  steps: [{ type: 'message', day: 1, text: 'Dzięki, {imie}' }]
+}];
+clearMsgs();
+seedRemoteDefinitions();
+const ran = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', checkinId: 'ci1' });
+await ctx.drainAFQueue();
+ok('checkin fires', ran === 1 && clientMsgs('c1').length === 1 && /Dzięki/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')) + ' ran=' + ran);
+const ran2 = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', checkinId: 'ci1' });
+await ctx.drainAFQueue();
+ok('checkin no double same id', ran2 === 0 && clientMsgs('c1').length === 1);
+const ran3 = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', checkinId: 'ci2' });
+await ctx.drainAFQueue();
+ok('checkin again new id', ran3 === 1 && clientMsgs('c1').length === 2);
+
+function resetAf(){
+  remote.clear();
+  ctx.window.AF_STATE = { enrollments: {}, executed: {}, lastFired: {}, logs: [], eventOnce: {} };
+  ctx.window.TASKS = [];
+  ctx.window.SE = [];
+  clearMsgs();
+  seedRemoteDefinitions();
+}
+
+ctx.window._idleDays = { c1: 10 };
+ctx.window.AUTOFLOWS = [{
+  id: 'af-idle', status: 'active', type: 'trigger', trigger: 'inactivity', scope: 'all',
+  name: 'Zastój',
+  steps: [{ type: 'message', day: 14, text: '{imie}, minęły 2 tygodnie' }]
+}];
+resetAf();
+const idle0 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
+ok('idle under threshold', idle0 === 0 && clientMsgs('c1').length === 0, 'n=' + idle0);
+
+ctx.window._idleDays = { c1: 20 };
+resetAf();
+const idle1 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
+ok('idle emits', idle1 === 1 && clientMsgs('c1').length === 1 && /2 tygodnie/.test(clientMsgs('c1')[0].text), 'n=' + idle1 + ' msgs=' + JSON.stringify(clientMsgs('c1')));
+const idle2 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
+ok('idle no double same day', idle2 === 0 && clientMsgs('c1').length === 1, 'n2=' + idle2);
+ctx.runAutoflowsCheck(false);
+await ctx.drainAFQueue();
+ok('poll does not re-fire idle', clientMsgs('c1').length === 1, 'msgs=' + clientMsgs('c1').length);
+
+ctx.window.AUTOFLOWS = [
+  { id: 'af-idle-14', status: 'active', type: 'trigger', trigger: 'inactivity', scope: 'all', name: '14', steps: [{ type: 'message', day: 14, text: '14 dni {imie}' }] },
+  { id: 'af-idle-21', status: 'active', type: 'trigger', trigger: 'inactivity', scope: 'all', name: '21', steps: [{ type: 'message', day: 21, text: '21 dni {imie}' }] }
+];
+ctx.window._idleDays = { c1: 16 };
+resetAf();
+ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
+ok('idle 14 fires 21 waits', clientMsgs('c1').length === 1 && /14 dni/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')));
+
+// Use local time because scheduled session times are parsed as local wall-clock time.
+const nowSess = new Date(2026, 8, 16, 10, 0, 0);
+const sessDay = nowSess.toISOString().split('T')[0];
+ctx.window.SETTINGS = { notifications: { sessionReminderTime: 60 } };
+ctx.window.AUTOFLOWS = [{
+  id: 'af-sess', status: 'active', type: 'trigger', trigger: 'session_today', scope: 'all',
+  name: 'Przypomnienie',
+  steps: [{ type: 'message', day: 1, text: 'Hej {imie}! Trening' }]
+}];
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '18:00', type: 'Siła' }];
+resetAf();
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '18:00', type: 'Siła' }];
+const sess0 = ctx.scanAndEmitSessionToday(nowSess);
+await ctx.drainAFQueue();
+ok('session outside window', sess0 === 0 && clientMsgs('c1').length === 0, 'n=' + sess0);
+
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '10:30', type: 'Siła' }];
+resetAf();
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '10:30', type: 'Siła' }];
+const sess1 = ctx.scanAndEmitSessionToday(nowSess);
+await ctx.drainAFQueue();
+ok('session in window', sess1 === 1 && clientMsgs('c1').length === 1 && /Trening/.test(clientMsgs('c1')[0].text), 'n=' + sess1 + ' ' + JSON.stringify(clientMsgs('c1')));
+const sess2 = ctx.scanAndEmitSessionToday(nowSess);
+await ctx.drainAFQueue();
+ok('session no double', sess2 === 0 && clientMsgs('c1').length === 1, 'n2=' + sess2);
+ctx.runAutoflowsCheck(false);
+await ctx.drainAFQueue();
+ok('poll does not re-fire session', clientMsgs('c1').length === 1);
+
+// Persistence failures must never be reported as completed steps.
+const normalSave=ctx.window._setDoc;
+const normalTransaction=ctx.window._runTransaction;
+function setupReliable(type='message'){
+  resetAf();
+  ctx.window.AUTOFLOWS=[{id:'reliable',name:'Reliable',status:'active',type:'trigger',trigger:'checkin.submitted',scope:'all',steps:[{type,text:type==='form'?'Ankieta':'Test {imie}'}]}];
+  seedRemoteDefinitions();
+}
+setupReliable();
+ctx.window._setDoc=async()=>{throw new Error('offline');};
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'retry'});
+await ctx.drainAFQueue();
+let job=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+ok('offline does not send or complete',clientMsgs('c1').length===0&&!ctx.window.AF_STATE.executed.reliable.c1[job.mark]);
+ok('offline error retained',job.status==='error'&&job.attempts===1&&job.nextRetry>Date.now());
+ctx.window._setDoc=normalSave;
+await ctx.retryAutoflowFailures();
+ok('retry sends once after confirmed save',clientMsgs('c1').length===1&&ctx.window.AF_STATE.executed.reliable.c1[job.mark]===true);
+await ctx.retryAutoflowFailures();
+ok('success not retried',clientMsgs('c1').length===1);
+
+setupReliable('task');
+let lostAck=true;
+ctx.window._runTransaction=async(...args)=>{const value=await normalTransaction(...args);if(lostAck){lostAck=false;throw new Error('lost response');}return value;};
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'ambiguous'});
+await ctx.drainAFQueue();
+job=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+const taskEntry=[...remote.entries()].find(([k])=>k.startsWith('tasks/'));
+ok('ambiguous commit stays retryable',job.status==='error'&&!!taskEntry);
+taskEntry[1].status='done';
+remote.delete('autoflows/reliable');
+remote.delete('clients/c1');
+// Simulate reload: local receipt was never marked; the durable queue must still deduplicate.
+ctx.window.AF_STATE=JSON.parse(JSON.stringify(remote.get('automationState/trainer-test')));
+ctx.window._runTransaction=normalTransaction;
+await ctx.retryAutoflowFailures();
+ok('retry preserves completed task',remote.get(taskEntry[0]).status==='done'&&[...remote.keys()].filter(k=>k.startsWith('tasks/')).length===1);
+ok('receipt recovers after flow and client removal',ctx.window.AF_STATE.pending[job.id]===null);
+
+setupReliable('form');
+ctx.allForms=()=>[{id:'f1',name:'Ankieta',questions:[]}];
+ctx.snapshotFormQuestions=()=>[{id:'q1',label:'Cel'}];
+ctx.window.FORM_SENDS=[];
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'form'});
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'form'});
+await ctx.drainAFQueue();
+ok('form and message committed once',ctx.window.FORM_SENDS.length===1&&clientMsgs('c1').length===1&&ctx.window.FORM_SENDS[0].questions.length===1);
+const receipt=JSON.stringify(remote.get('automationState/trainer-test').afReceipts);
+ctx.window.AF_STATE.afReceipts={};
+await ctx.saveAutomationState(true);
+ok('ordinary save cannot erase receipts',JSON.stringify(remote.get('automationState/trainer-test').afReceipts)===receipt);
+remote.get('automationState/trainer-test').serverStatus={serverJob:{status:'done',checkedAt:Date.now()}};
+const serverStatuses=JSON.stringify(remote.get('automationState/trainer-test').serverStatus);
+ctx.window.AF_STATE.serverStatus={serverJob:{status:'error',checkedAt:0}};
+await ctx.saveAutomationState(true);
+ok('stale browser save cannot erase server history',JSON.stringify(remote.get('automationState/trainer-test').serverStatus)===serverStatuses);
+
+setupReliable('form');ctx.allForms=()=>[];
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'missing-form'});
+await ctx.drainAFQueue();
+ok('missing form fails without fake message',clientMsgs('c1').length===0&&Object.values(ctx.window.AF_STATE.pending).some(j=>j&&j.status==='error'));
+
+setupReliable();
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'paused'});
+ctx.window.AUTOFLOWS[0].status='inactive';
+await ctx.drainAFQueue();
+ok('paused flow does not execute queued work',clientMsgs('c1').length===0);
+ctx.window.AUTOFLOWS[0].status='active';
+ctx.window.CL[0].status='archived';
+await ctx.drainAFQueue();
+ok('archived client receives no queued work',clientMsgs('c1').length===0);
+ctx.window.CL[0].status='active';
+await ctx.drainAFQueue();
+ok('eligible queue resumes',clientMsgs('c1').length===1);
+
+// A stale browser must respect current server-side ownership, pause, scope and step content.
+const blockedCases=[
+  ['remote pause','autoflow-paused',()=>{remote.get('autoflows/reliable').status='inactive';}],
+  ['remote archive','autoflow-archived',()=>{remote.get('clients/c1').status='archived';}],
+  ['remote flow owner','autoflow-owner',()=>{remote.get('autoflows/reliable').trainerId='other';}],
+  ['remote client owner','autoflow-owner',()=>{remote.get('clients/c1').trainerId='other';}],
+  ['ownerless client','autoflow-owner',()=>{delete remote.get('clients/c1').trainerId;}],
+  ['removed client scope','autoflow-scope',()=>{Object.assign(remote.get('autoflows/reliable'),{scope:'select',clientIds:['another']});}],
+  ['new-client scope changed','autoflow-scope',()=>{Object.assign(remote.get('autoflows/reliable'),{scope:'new',createdAt:'2026-09-20T00:00:00Z'});remote.get('clients/c1').joinDate='2026-09-01';}],
+  ['changed step','autoflow-changed',()=>{remote.get('autoflows/reliable').steps[0].text='Changed';}],
+  ['removed step','autoflow-changed',()=>{remote.get('autoflows/reliable').steps=[];}],
+  ['deleted flow','autoflow-missing',()=>{remote.delete('autoflows/reliable');}],
+  ['deleted client','autoflow-missing',()=>{remote.delete('clients/c1');}]
+];
+for(const [label,code,change] of blockedCases){
+  setupReliable();change();
+  ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:label});
+  await ctx.drainAFQueue();
+  const blocked=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+  ok(label+' blocks effects',clientMsgs('c1').length===0&&![...remote.keys()].some(k=>k.startsWith('messages/')));
+  ok(label+' remains recoverable',blocked&&blocked.status==='error'&&blocked.errorCode===code&&!ctx.window.AF_STATE.executed.reliable.c1[blocked.mark]);
+}
+
+setupReliable();
+remote.get('autoflows/reliable').status='inactive';
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'remote-resume'});
+await ctx.drainAFQueue();
+remote.get('autoflows/reliable').status='active';
+await ctx.retryAutoflowFailures();
+ok('remote resume retries safely',clientMsgs('c1').length===1);
+
+setupReliable();
+ctx.window.AUTOFLOWS[0]._fbId='stored-flow';
+ctx.window.CL[0]._fbId='stored-client';
+seedRemoteDefinitions();
+remote.delete('autoflows/reliable');remote.delete('clients/c1');
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'document-ids'});
+const mappedJob=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+ok('queue records canonical document references',mappedJob.afDocId==='stored-flow'&&mappedJob.clientDocId==='stored-client');
+await ctx.drainAFQueue();
+ok('transaction reads stored document references',clientMsgs('c1').length===1);
+delete ctx.window.AUTOFLOWS[0]._fbId;delete ctx.window.CL[0]._fbId;
+
+setupReliable();
+ctx.window.AUTOFLOWS[0]._fbId='unrelated-flow';
+remote.set('autoflows/unrelated-flow',{...remote.get('autoflows/reliable'),id:'someone-else'});
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'wrong-flow-ref'});
+await ctx.drainAFQueue();
+ok('unrelated flow document cannot execute',clientMsgs('c1').length===0&&Object.values(ctx.window.AF_STATE.pending).some(j=>j?.errorCode==='autoflow-identity'));
+delete ctx.window.AUTOFLOWS[0]._fbId;
+
+setupReliable();
+ctx.window.CL[0]._fbId='unrelated-client';
+remote.set('clients/unrelated-client',{...remote.get('clients/c1'),id:'someone-else'});
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'wrong-client-ref'});
+await ctx.drainAFQueue();
+ok('unrelated client document cannot execute',clientMsgs('c1').length===0&&Object.values(ctx.window.AF_STATE.pending).some(j=>j?.errorCode==='autoflow-identity'));
+delete ctx.window.CL[0]._fbId;
+
+setupReliable('task');
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'collision'});
+const collisionJob=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+remote.set('tasks/'+collisionJob.id+'_task',{status:'done',title:'Do not overwrite'});
+await ctx.drainAFQueue();
+ok('existing effect without receipt is preserved',remote.get('tasks/'+collisionJob.id+'_task').title==='Do not overwrite'&&collisionJob.errorCode==='autoflow-collision');
+
+setupReliable();
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'server-retry'});
+ctx.window.AUTOFLOWS[0].status='inactive';
+await ctx.drainAFQueue();
+const serverJob=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+serverJob.attempts=5;serverJob.nextRetry=Date.now()+3600000;
+ctx.window.AF_STATE.serverStatus={[serverJob.id]:{status:'exhausted',attempts:5,checkedAt:Date.now(),afId:'reliable',clientId:'c1'}};
+remote.get('automationState/trainer-test').serverStatus=JSON.parse(JSON.stringify(ctx.window.AF_STATE.serverStatus));
+const retryOne=ctx.retryAutoflowFailures(),retryTwo=ctx.retryAutoflowFailures();
+ok('repeated retry clicks share one request',retryOne===retryTwo);
+await retryOne;
+const savedRetry=remote.get('automationState/trainer-test').pending[serverJob.id];
+ok('exhausted server job gets persisted retry generation',typeof savedRetry.retryRequestId==='string'&&savedRetry.retryRequestId.startsWith('afr_')&&savedRetry.attempts===0&&savedRetry.nextRetry===0);
+ok('retry persists even while browser flow paused',clientMsgs('c1').length===0&&savedRetry.retryRequestId===serverJob.retryRequestId);
+ok('retry request preserves authoritative server outcome',remote.get('automationState/trainer-test').serverStatus[serverJob.id].status==='exhausted');
+
+vm.runInContext(sliceFn(src09,'afServerHistoryHTML','toggleAF'),ctx);
+ok('server history hidden before any server outcome',ctx.afServerHistoryHTML({})==='');
+ctx.window.CL[0].name='<img src=x onerror=bad>';
+const serverHtml=ctx.afServerHistoryHTML({serverStatus:{a:{status:'browser-required',afId:'reliable',clientId:'c1',checkedAt:Date.now(),error:'<script>bad</script>'}}});
+ok('server history escapes labels and errors',serverHtml.includes('&lt;img')&&serverHtml.includes('&lt;script&gt;')&&!serverHtml.includes('<script>'));
+ok('unsupported background forms described accurately',serverHtml.includes('Formularze nie są jeszcze obsługiwane w tle.'));
+ctx.window.CL[0].name='Anna Nowak';
+const historyMany={serverStatus:Object.fromEntries(Array.from({length:25},(_,i)=>['job'+i,{status:'done',error:'entry-'+i+'-end',checkedAt:Date.now()+i*1000}]))};
+const cappedHistory=ctx.afServerHistoryHTML(historyMany);
+ok('server history shows newest twenty',cappedHistory.includes('entry-24-end')&&!cappedHistory.includes('entry-4-end')&&cappedHistory.indexOf('entry-24-end')<cappedHistory.indexOf('entry-5-end'));
+const savedGetElement=document.getElementById,logElement={innerHTML:''};
+document.getElementById=id=>id==='autoflow-log'?logElement:null;
+ctx.renderAutoflowLog();
+ok('server exhausted state exposes manual retry',logElement.innerHTML.includes('retryAutoflowFailures()')&&logElement.innerHTML.includes('Historia pracy w tle'));
+document.getElementById=savedGetElement;
+
+// Query-scoped state loading must never adopt an unrelated or ownerless legacy document.
+vm.runInContext(html.slice(html.indexOf('function clearAutoflowSessionState'),html.indexOf('function _takeFb')),ctx);
+ctx.db={};ctx.collection=(_db,name)=>name;ctx.where=(...args)=>args;ctx.query=(...args)=>args;
+let stateRows=[],lastQuery=null,stateReads=0;
+ctx.getDocs=async q=>{lastQuery=q;stateReads++;return {forEach:fn=>stateRows.forEach(([id,data])=>fn({id,data:()=>data}))};};
+stateRows=[['z',{trainerId:'trainer-test',marker:'z'}],['a',{trainerId:'trainer-test',marker:'a'}],['trainer-test',{trainerId:'trainer-test',marker:'preferred'}],['unowned',{marker:'unsafe'}],['foreign',{trainerId:'other',marker:'unsafe'}]];
+await ctx.loadAutoflowState();
+ok('state query explicitly scopes owner',JSON.stringify(lastQuery)===JSON.stringify(['automationState',['trainerId','==','trainer-test']]));
+ok('uid state wins deterministic selection',ctx.window._afStateDocId==='trainer-test'&&ctx.window.AF_STATE.marker==='preferred'&&ctx.window._afStateReady===true);
+stateRows=stateRows.filter(([id])=>id!=='trainer-test').reverse();
+await ctx.loadAutoflowState();
+ok('legacy owned fallback is deterministic',ctx.window._afStateDocId==='a'&&ctx.window.AF_STATE.marker==='a');
+stateRows=[['trainer-test',{marker:'ownerless'}],['foreign',{trainerId:'other'}]];
+await ctx.loadAutoflowState();
+ok('foreign and ownerless state rejected',ctx.window._afStateDocId==='trainer-test'&&ctx.window.AF_STATE.trainerId==='trainer-test'&&!ctx.window.AF_STATE.marker);
+const savedStateReads=stateReads;
+ctx.window._clientAppMode=true;
+await ctx.loadAutoflowState();
+ok('client mode clears state without reading',stateReads===savedStateReads&&ctx.window._afStateDocId===null&&ctx.window._afStateReady===false&&!ctx.window.AF_STATE.trainerId);
+ctx.window._clientAppMode=false;
+ctx.getDocs=async()=>{throw new Error('state unavailable');};
+await ctx.loadAutoflowState();
+ok('failed state load keeps execution disabled',ctx.window._afStateReady===false&&ctx.window._afStateDocId===null);
+ok('failed state load cannot save fresh state',await ctx.saveAutomationState(false)===false);
+ok('failed state load cannot enqueue',ctx.queueAFStep({type:'message',text:'x'},ctx.window.CL[0],ctx.window.AUTOFLOWS[0],'x',0,false)===false);
+let releaseStateRead;
+ctx.getDocs=()=>new Promise(resolve=>{releaseStateRead=resolve;});
+const pendingLoad=ctx.loadAutoflowState();
+ctx.window._uid='another-trainer';ctx.clearAutoflowSessionState();
+releaseStateRead({forEach:fn=>fn({id:'trainer-test',data:()=>({trainerId:'trainer-test',marker:'old-user'})})});
+await pendingLoad;
+ok('late state response cannot leak across accounts',ctx.window._afStateReady===false&&!ctx.window.AF_STATE.marker&&ctx.window._afStateDocId===null);
+
+ctx.window._uid='trainer-test';
+ctx.getDocs=async q=>{
+  lastQuery=q;stateReads++;
+  return {forEach:fn=>[
+    ['stored-flow',{id:'legacy-id',trainerId:'trainer-test',status:'active'}],
+    ['unowned',{status:'active'}],['foreign',{trainerId:'other',status:'active'}]
+  ].forEach(([id,data])=>fn({id,data:()=>data}))};
+};
+await ctx.loadAutoflowDefinitions();
+ok('flow query explicitly scopes owner',JSON.stringify(lastQuery)===JSON.stringify(['autoflows',['trainerId','==','trainer-test']]));
+ok('flow loader rejects foreign and ownerless records',ctx.window.AUTOFLOWS.length===1&&ctx.window.AUTOFLOWS[0].trainerId==='trainer-test');
+ok('flow loader preserves canonical document id',ctx.window.AUTOFLOWS[0].id==='stored-flow'&&ctx.window.AUTOFLOWS[0]._fbId==='stored-flow');
+
+const beforeClientFlowRead=stateReads;
+ctx.window._clientAppMode=true;
+await ctx.loadAutoflowDefinitions();
+ok('client mode clears flows without reading',stateReads===beforeClientFlowRead&&ctx.window.AUTOFLOWS.length===0);
+ctx.window._clientAppMode=false;
+
+let releaseFlowRead;
+ctx.getDocs=()=>new Promise(resolve=>{releaseFlowRead=resolve;});
+const pendingFlowLoad=ctx.loadAutoflowDefinitions();
+ctx.window._uid='another-trainer';
+ctx.window.AUTOFLOWS=[{id:'new-owner-flow',trainerId:'another-trainer'}];
+releaseFlowRead({forEach:fn=>fn({id:'old-flow',data:()=>({trainerId:'trainer-test'})})});
+const oldFlowLoaded=await pendingFlowLoad;
+ok('late flow query cannot replace new account data',oldFlowLoaded===false&&ctx.window.AUTOFLOWS.length===1&&ctx.window.AUTOFLOWS[0].id==='new-owner-flow');
+
+ctx.window._uid='trainer-test';
+ctx.DEMO_AUTOFLOWS=[{id:'example',status:'active',name:'Example',steps:[]}];
+ctx.doc=(_db,collection,id)=>collection+'/'+id;
+const createdExamples=[];
+ctx.setDoc=async(ref,value)=>createdExamples.push({ref,value:{...value}});
+ctx.getDocs=async()=>({forEach(){}});
+await ctx.loadAutoflowDefinitions();
+ok('first-use example remains inactive and owner-scoped',createdExamples.length===1&&createdExamples[0].value.trainerId==='trainer-test'&&createdExamples[0].value.status==='inactive');
+ctx.getDocs=async()=>{throw new Error('flow query unavailable');};
+await ctx.loadAutoflowDefinitions();
+ok('failed flow read does not create replacement examples',ctx.window.AUTOFLOWS.length===0&&createdExamples.length===1);
+
+if (failed) process.exit(1);
+console.log('\nAll autoflow-events tests passed');
+
+})().catch(e=>{console.error(e);process.exit(1);});

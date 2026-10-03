@@ -1,0 +1,701 @@
+name: Sprawdzenie kodu
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sprawdzenie:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+
+      - name: Ustaw Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ustaw Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 1. Sprawdź składnię wszystkich plików JS
+        run: |
+          echo "Sprawdzam skladnie kazdego pliku .js..."
+          for f in *.js; do
+            echo "  -> $f"
+            node --check "$f"
+          done
+          echo "Wszystkie pliki JS maja poprawna skladnie."
+
+      - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
+        run: node .github/scripts/test_coach_media.js
+
+      - name: Izolacja danych trenerów i klientów
+        run: |
+          node .github/scripts/test_tenant_persistence.js
+          node .github/scripts/test_tenant_loader.js
+          node .github/scripts/test_client_tenant_access.js
+          node .github/scripts/test_client_confirmed_writes.js
+          node .github/scripts/test_trainer_checkin_confirmed_writes.js
+          node .github/scripts/test_trainer_plan_confirmed_writes.js
+          node .github/scripts/test_calendar_refill.js
+          node .github/scripts/test_builder_calendar_confirmed.js
+          node .github/scripts/test_client_sala_write.js
+          node .github/scripts/test_forum_reaction_persistence.js
+          node .github/scripts/test_client_checkin_permissions.js
+
+      - name: 1c. Testy warstwy klienta dla coach media
+        run: node .github/scripts/test_client_portal_coach_media.js
+      - name: 1c2. Testy GIF-ów techniki ćwiczeń
+        run: node .github/scripts/test_ex_gif.js
+      - name: 1c2a. Testy importu GIF/MP4
+        run: node .github/scripts/test_ex_gif_import.js
+      - name: 1c2a2. Testy przypisania MP4 do wybranego ćwiczenia
+        run: node .github/scripts/test_ex_assign_mp4.js
+      - name: 1c2b. Testy filmów MP4 w bibliotece ćwiczeń
+        run: node .github/scripts/test_ex_video_manifest.js
+      - name: 1c2c. Testy dopasowania plików filmów do ćwiczeń
+        run: node .github/scripts/test_ex_file_match.js
+      - name: 1c2d. Testy przewodnika Hack Squat
+        run: node .github/scripts/test_hack_squat_guide.js
+      - name: 1c3. Testy własnych filmów trenera
+        run: node .github/scripts/test_own_videos.js
+      - name: 1c4. Testy wygaszacza z logo
+        run: node .github/scripts/test_screensaver.js
+      - name: 1b. Testy %1RM → kg
+        run: node .github/scripts/test_1rm.js
+
+      - name: 1c. Testy super-serii
+        run: node .github/scripts/test_supersets.js
+
+      - name: 1d. Testy nawyków / streak
+        run: node .github/scripts/test_habits.js
+
+      - name: 1d2. Testy Progress Nawyki (port)
+        run: node .github/scripts/test_habits_nawyki_port.js
+
+      - name: 1e. Testy rekordów / historii ćwiczenia
+        run: node .github/scripts/test_exercise_pr.js
+
+      - name: 1e0x. Testy historii progresji ćwiczenia
+        run: node .github/scripts/test_ex_progress_history.js
+
+      - name: 1e0y. Testy faktów progresji ćwiczenia
+        run: node .github/scripts/test_ex_progress_facts.js
+
+      - name: 1e0z. Testy klasyfikatora progresji ćwiczenia
+        run: node .github/scripts/test_ex_progress_class.js
+
+      - name: 1e0z2. Testy podpięcia klasyfikatora pod Progress
+        run: node .github/scripts/test_ex_progress_wire.js
+
+      - name: 1e0z3. Testy UI klasyfikacji progresji w Progress
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ex_progress_ui.js
+
+      - name: 1e0z4. Testy agregatu progresu klienta
+        run: node .github/scripts/test_ex_progress_agg.js
+
+      - name: 1e0z5. Testy rekomendacji progresu ćwiczenia
+        run: node .github/scripts/test_ex_progress_rec.js
+
+      - name: 1e0z6. Testy briefu następnej sesji
+        run: node .github/scripts/test_ex_progress_brief.js
+
+      - name: 1e0z7. Testy E2E ścieżki progresji
+        run: node .github/scripts/test_ex_progress_e2e.js
+
+      - name: 1e0z8. Testy Live OSTATNIO / DZISIAJ / SUGESTIA
+        run: node .github/scripts/test_live_ex_cue.js
+
+      - name: 1e0. Testy auto-progresji z planu trenera
+        run: node .github/scripts/test_plan_auto_progression.js
+
+      - name: 1e0b. Testy podpowiedzi przerwy/tempa i periodyzacji Live
+        run: node .github/scripts/test_live_coach_hints.js
+
+      - name: 1e0b2. Testy Live tryb Przygotowanie / Trening
+        run: |
+          node .github/scripts/test_live_prep_train.js
+          node .github/scripts/test_live_readable.js
+
+      - name: 1e2. Testy jednostki kg/sec w ćwiczeniach czasowych
+        run: node .github/scripts/test_ex_load_unit.js
+
+      - name: 1f. Testy regresji portalu rekordów
+        run: node .github/scripts/test_exercise_pr_portal.js
+      - name: 1e. Testy warmup / drop / AMRAP
+        run: node .github/scripts/test_set_kinds.js
+      - name: 1e. Testy wyzwań
+        run: node .github/scripts/test_challenges.js
+
+      - name: 1f. Testy formularzy klienta
+        run: node .github/scripts/test_forms.js
+
+      - name: 1g. Testy oceny treningu i historii
+        run: node .github/scripts/test_session_history.js
+      - name: 1g1. Testy Live Postęp → zapis sesji
+        run: node .github/scripts/test_live_session_progress.js
+      - name: 1g1b. Testy Live dual (dwie osoby)
+        run: node .github/scripts/test_live_dual.js
+      - name: 1g2. Testy oznaczenia odbytego treningu w kalendarzu
+        run: node .github/scripts/test_cal_session_done.js
+      - name: 1g2e. Testy zapisu / edycji sesji w kalendarzu
+        run: node .github/scripts/test_cal_session_save.js
+      - name: 1g2a. Testy odliczenia sesji pakietu (sala / Live)
+        run: node .github/scripts/test_sala_pkg_tick.js
+      - name: 1g2b. Testy usuwania kart z kalendarza klienta
+        run: node .github/scripts/test_cal_del_card.js
+      - name: 1g2c. Testy kolumn nachodzących sesji w tygodniu
+        run: node .github/scripts/test_cal_week_overlap.js
+      - name: 1g2c2. Testy deduplikacji kart w kalendarzu
+        run: node .github/scripts/test_cal_sess_dedupe.js
+      - name: 1g2d. Testy wyrazistości przycisków kalendarza
+        run: node .github/scripts/test_cal_btn_clarity.js
+
+      - name: 1h. Testy regresji historii treningów
+        run: node .github/scripts/test_workout_rate_history_fixes.js
+      - name: 1h2. Testy rotacji sugerowanego dnia planu
+        run: node .github/scripts/test_suggested_plan_day.js
+      - name: 1g. Testy EMOM
+        run: node .github/scripts/test_emom.js
+
+      - name: 1i. Testy wiring kreatora WU/DROP/AMRAP + film
+        run: node .github/scripts/test_builder_kinds_media.js
+
+      - name: 1i01. Testy notatki Do zrobienia przy ćwiczeniu
+        run: node .github/scripts/test_ex_todo_note.js
+
+      - name: 1i0. Testy własnego czasu w timerze przerwy live
+        run: node .github/scripts/test_live_rest_custom.js
+      - name: 1i0b. Testy sygnału końca przerwy live
+        run: node .github/scripts/test_live_rest_signal.js
+
+      - name: 1i2. Testy kart ćwiczeń w builderze (zamienniki / kolory)
+        run: node .github/scripts/test_builder_ex_cards.js
+
+      - name: 1i3. Testy etykiet dnia wg metody (Push/Pull/FBW)
+        run: node .github/scripts/test_builder_day_method.js
+
+      - name: 1i4. Testy uzasadnienia metodycznego (dlaczego serie/metoda)
+        run: node .github/scripts/test_method_rationale.js
+
+      - name: 1i4b. Testy metody Trening obwodowy
+        run: node .github/scripts/test_circuit_method.js
+
+      - name: 1i5. Testy bazy dowodów / zasad trenera
+        run: node .github/scripts/test_evidence_base.js
+
+      - name: 1i5b. Testy tagów KB ↔ kreator
+        run: node .github/scripts/test_kb_builder_tags.js
+
+      - name: 1i5c. Testy feedu Nowe badania (PubMed)
+        run: node .github/scripts/test_research_feed.js
+
+      - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
+        run: node .github/scripts/test_edu_tooltips.js
+
+      - name: 1i7. Testy scrolla sidebara kreatora
+        run: node .github/scripts/test_builder_sidebar_scroll.js
+
+      - name: 1i7b. Testy korekt UX (Więcej / sidebar / rationale)
+        run: node .github/scripts/test_korekta_ux.js
+
+      - name: 1j. Testy parsera JSON generatora AI
+        run: node .github/scripts/test_ai_plan_json.js
+
+      - name: 1j2. Testy edytora tempo w generatorze AI
+        run: node .github/scripts/test_apl_tempo_editor.js
+
+      - name: 1k. Testy zasobów YouTube i Garmin CSV
+        run: node .github/scripts/test_resources_garmin.js
+
+      - name: 1l. Testy portalu On-demand YouTube
+        run: node .github/scripts/test_ondemand_youtube.js
+
+      - name: 1l2. Testy zadań domowych klienta
+        run: node .github/scripts/test_homework_client.js
+      - name: 1l3. Testy poprawek audytu UX (domowe, nav, plan)
+        run: node .github/scripts/test_ux_audit_fixes.js
+
+      - name: 1m. Testy sportów w planowaniu i statystyk klienta
+        run: node .github/scripts/test_client_sports_stats.js
+
+      - name: 1m2. Testy mezocyklu hipertrofii (8 tyg. RIR)
+        run: node .github/scripts/test_hypertrophy_mesocycle.js
+
+      - name: 1n. Testy przepływu klienta (priorytet / baseline / kalendarz)
+        run: node .github/scripts/test_client_flow_helpers.js
+
+      - name: 1n0a. Testy checklisty startu współpracy (invite / ankieta / dni)
+        run: node .github/scripts/test_onboard_flow.js
+
+      - name: 1n0a2. Testy UX startu (ankieta / pakiet / Live / PDF / HW)
+        run: node .github/scripts/test_onboard_ux_fixes.js
+
+      - name: 1n0. Testy zapisu makro TDEE do karty klienta
+        run: node .github/scripts/test_calc_macros.js
+
+      - name: 1n3. Testy tygodniowego check-inu (audit flow)
+        run: node .github/scripts/test_checkin_weekly.js
+      - name: 1n3b. Testy check-inu po zapisanym treningu
+        run: node .github/scripts/test_checkin_after_session.js
+
+      - name: 1n4. Testy sync wagi z check-inu
+        run: node .github/scripts/test_checkin_sync.js
+
+      - name: 1n5. Testy archiwizacji / usuwania klienta
+        run: node .github/scripts/test_client_delete.js
+
+      - name: 1n6. Testy deep-link check-inu / formularzy (apka klienta)
+        run: node .github/scripts/test_client_deeplink.js
+
+      - name: 1n7. Testy zapisu klienta do forum (onboard)
+        run: node .github/scripts/test_forum_enroll.js
+
+      - name: 1n9. Testy kanałów zaproszenia (mailto / WhatsApp)
+        run: node .github/scripts/test_invite_channels.js
+
+      - name: 1n9b. Testy logowania klienta / zapisu invites
+        run: node .github/scripts/test_client_app_login.js
+
+      - name: 1n10. Testy prośby o wpłatę / appJoined
+        run: node .github/scripts/test_onboard_pay_join.js
+
+      - name: 1n12. Testy follow-upu formularzy (dashboard + ankieta wstępna)
+        run: node .github/scripts/test_dash_forms_followup.js
+      - name: 1n12b. Testy panelu operacyjnego (dashboard)
+        run: node .github/scripts/test_dash_ops_panel.js
+      - name: 1n12b1. Testy snapshotu sytuacji klienta
+        run: node .github/scripts/test_client_situation_snapshot.js
+      - name: 1n12b2. Testy sytuacji w Przeglądzie (nagłówek + kolejny trening)
+        run: node .github/scripts/test_cp_overview_situation.js
+      - name: 1n12b2r. Testy rekomendacji Przeglądu (5 reguł)
+        run: node .github/scripts/test_cp_overview_recs.js
+      - name: 1n12b2l. Testy Przeglądu (zapisy vs plan)
+        run: node .github/scripts/test_cp_overview_logs.js
+      - name: 1n12b2q. Testy cichego Przeglądu (status, próbki, zaproszenie)
+        run: node .github/scripts/test_cp_overview_quiet.js
+      - name: 1n12b2b. Testy Briefu przed treningiem
+        run: node .github/scripts/test_cp_overview_brief.js
+      - name: 1n12b2c. Testy Analizy współpracy (Etap 5)
+        run: node .github/scripts/test_cp_overview_coop.js
+      - name: 1n12b2c2. Testy regresji Analizy współpracy (bramka + mock AI)
+        run: node .github/scripts/test_cp_overview_coop_reg.js
+      - name: 1n12b3. Testy osi czasu klienta (filtry)
+        run: node .github/scripts/test_cp_timeline_filters.js
+      - name: 1n12c. Testy skanu operacyjnego (dzwonek + zegar)
+        run: node .github/scripts/test_ops_scan.js
+      - name: 1n11. Testy widoczności płatności (klient + dashboard)
+        run: node .github/scripts/test_client_payments_visible.js
+      - name: 1n11b. Testy bramy pakietu (kalendarz / Live)
+        run: node .github/scripts/test_pkg_gate.js
+      - name: 1n11c. Testy szkicu Live (Firestore / IndexedDB)
+        run: node .github/scripts/test_live_draft.js
+
+      - name: 1n13. Testy follow-upu zadań domowych (dashboard)
+        run: node .github/scripts/test_dash_homework_followup.js
+
+      - name: 1n14. Testy follow-upu wiadomości (dashboard)
+        run: node .github/scripts/test_dash_msg_followup.js
+      - name: 1n14b. Testy rodzajów wiadomości (czat / system / broadcast)
+        run: node .github/scripts/test_inbox_kinds.js
+      - name: 1n14c. Testy Autoflow na zdarzeniach (pakiet / check-in)
+        run: node .github/scripts/test_autoflow_events.js
+      - name: 1n14d. Testy przerwy automatyzacji po limicie bazy
+        run: node .github/scripts/test_autoflow_quota_pause.js
+
+      - name: 1n15. Testy follow-upu nawyków / wyzwań (dashboard)
+        run: node .github/scripts/test_dash_habits_followup.js
+
+      - name: 1n19. Testy ukrycia stuba żywienia / uczciwych dokumentów
+        run: node .github/scripts/test_hide_food_stub.js
+      - name: "1n22. Testy: skrypty w index.html tylko raz"
+        run: node .github/scripts/test_index_scripts_once.js
+      - name: 1n25. Testy Overview profilu (układ Everfit)
+        run: node .github/scripts/test_cp_overview_everfit.js
+      - name: 1n25b. Testy statusu, sylwetki i zwiniętego kalendarza w profilu
+        run: node .github/scripts/test_cp_pulse_scan.js
+      - name: 1n26. Testy uproszczenia nawigacji profilu klienta
+        run: node .github/scripts/test_cp_nav_simplify.js
+      - name: 1n26b. Testy widocznej edycji danych klienta
+        run: node .github/scripts/test_cp_edit_visible.js
+      - name: 1n26c. Testy sync imienia na pakietach / planach / fakturach
+        run: node .github/scripts/test_client_name_cache.js
+      - name: Hover Edycja na liście klientów
+        run: node .github/scripts/test_client_hover_edit.js
+      - name: 1n27. Testy układu aplikacji (sidebar Everfit)
+        run: node .github/scripts/test_app_shell_everfit.js
+      - name: Szablony vs Programy (mikro/makro)
+        run: node .github/scripts/test_templates_vs_programs.js
+      - name: Katalog programów — filtry 4–16 tyg.
+        run: node .github/scripts/test_prog_catalog.js
+      - name: Szablony i programy — kompletne sesje ćwiczeń
+        run: node .github/scripts/test_template_ready_sessions.js
+      - name: 1n27b. Testy wejścia do planu tylko z klienta
+        run: node .github/scripts/test_nav_plan_entry.js
+      - name: 1n27b1. Testy Edytuj plan z profilu klienta
+        run: node .github/scripts/test_plan_edit_from_profile.js
+      - name: Unieważnianie nieaktualnego uzasadnienia planu
+        run: node .github/scripts/test_plan_rationale_invalidation.js
+      - name: Uporządkowanie nawigacji profilu klienta
+        run: node .github/scripts/test_cp_nav_terms.js
+      - name: 1n27b1b. Testy startu Live z profilu klienta
+        run: node .github/scripts/test_cp_start_live.js
+      - name: 1n27b2. Testy biblioteki planów (filtry / tabela)
+        run: node .github/scripts/test_plans_library.js
+      - name: 1n27c. Testy skróconego primary nav
+        run: node .github/scripts/test_nav_primary_slim.js
+      - name: 1n27c2. Testy domyślnego Panelu głównego
+        run: node .github/scripts/test_nav_home_default.js
+      - name: 1n27d. Testy mini-listy klientów w sidebarze
+        run: node .github/scripts/test_nav_clients_sidebar.js
+      - name: 1n27e. Testy zachowania zakładki przy zmianie klienta
+        run: node .github/scripts/test_cp_tab_persist.js
+      - name: 1n28. Testy poziomych zakładek profilu klienta
+        run: node .github/scripts/test_cp_tabs_top.js
+      - name: 1n28c. Testy slim zakładek profilu (Analityka)
+        run: node .github/scripts/test_cp_tabs_slim.js
+      - name: 1n28b. Testy przycisku własnego planu w profilu klienta
+        run: node .github/scripts/test_cp_own_plan_btn.js
+      - name: 1n28b2. Testy kafelek dni w zakładce Plan
+        run: node .github/scripts/test_cp_plan_day_tiles.js
+      - name: 1n28c. Testy braku duplikacji CTA planu w profilu
+        run: node .github/scripts/test_cp_plan_dedupe.js
+      - name: 1n28c2. Testy kontynuacji planu z Fitebo
+        run: node .github/scripts/test_fitebo_continue.js
+      - name: 1n28c3. Testy Live Fitebo hipertrofia RIR 2
+        run: node .github/scripts/test_fitebo_live.js
+      - name: 1n28d. Testy jednego planu na dzień w grafiku Assignment
+        run: node .github/scripts/test_cp_cal_plan_dedupe.js
+      - name: 1n28d2. Testy jednego pola weekday dnia planu
+        run: node .github/scripts/test_plan_day_weekday.js
+      - name: 1n28d3. Testy stanów kafelków tygodnia
+        run: |
+          node .github/scripts/test_cp_week_tiles.js
+          node .github/scripts/test_profile_plan_isolation.js
+      - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
+        run: node .github/scripts/test_tile_polish_restore.js
+      - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń
+        run: node .github/scripts/test_ex_ac_muscle_label.js
+      - name: 1n30b. Testy zamienników gdy nie ma maszyny
+        run: node .github/scripts/test_studio_machine_alts.js
+      - name: 1n30c. Testy zwijania zamienników Live (max 3)
+        run: node .github/scripts/test_live_alts_collapse.js
+      - name: 1n31. Testy zdjęć w bibliotece ćwiczeń
+        run: node .github/scripts/test_lib_ex_photos.js
+      - name: 1n31b. Testy polskich nazw ćwiczeń w bibliotece
+        run: node .github/scripts/test_ex_names_pl.js
+      - name: 1n31b2. Testy ćwiczeń z atlasu TFS
+        run: node .github/scripts/test_atlas_tfs_ex.js
+      - name: 1n31b3. Testy deduplikacji biblioteki ćwiczeń
+        run: node .github/scripts/test_ex_lib_dedupe.js
+      - name: 1n31b4. Testy usuwania ćwiczenia z biblioteki
+        run: node .github/scripts/test_lib_del_ex.js
+      - name: 1n31b5. Testy czyszczenia duplikatów importu ćwiczeń
+        run: node .github/scripts/test_ex_import_dedupe.js
+      - name: 1n31c. Testy podsumowania start + monitoring klienta
+        run: node .github/scripts/test_client_journey_summary.js
+      - name: 1n32. Testy periodyzacji RPE/RIR w kreatorze
+        run: node .github/scripts/test_period_rpe_rir.js
+      - name: 1n24. Testy braku fałszywych pomiarów demo
+        run: node .github/scripts/test_no_fake_metrics.js
+      - name: 1n24b. Testy obwodów centymetrem
+        run: node .github/scripts/test_circ_metrics.js
+      - name: 1n24c. Testy składu ciała (wiek metaboliczny / nawodnienie)
+        run: node .github/scripts/test_mass_inbody_metrics.js
+      - name: 1n23. Testy usunięcia DEMO_NOTIFS
+        run: node .github/scripts/test_demo_notifs_cleanup.js
+      - name: 1n21. Testy sekcji nawigacji apki klienta (forum / kalendarz)
+        run: node .github/scripts/test_cap_nav_sections.js
+      - name: 1n20. Testy przełącznika pomiarów ciała (bodyMetrics)
+        run: node .github/scripts/test_body_metrics_toggle.js
+      - name: 1n18. Testy dopełniania kalendarza / zdjęć sylwetki (dashboard)
+        run: node .github/scripts/test_dash_cal_photo_followup.js
+      - name: 1n17. Testy polish audytu (check-in refresh / badge / archiwum)
+        run: node .github/scripts/test_audit_polish.js
+      - name: 1n16. Testy PDF formularzy / dedupe ankiety wstępnej
+        run: node .github/scripts/test_form_pdf_dedupe.js
+
+      - name: 1n8. Testy webhooków integracji (Zapier/Make)
+        run: node .github/scripts/test_integrations_webhooks.js
+
+      - name: 1n2. Testy programu → plan z ćwiczeniami (Automatyzacja)
+        run: node .github/scripts/test_program_plan_days.js
+
+      - name: 1o. Testy edycji pomiarów w profilu klienta
+        run: node .github/scripts/test_cp_metrics_edit.js
+
+      - name: 1p. Testy kontekstu pomiarów w generatorze AI
+        run: node .github/scripts/test_ai_metrics_context.js
+      - name: 1p2. Testy bezpieczeństwa planu AI (waga/postawa)
+        run: node .github/scripts/test_ai_plan_safety.js
+      - name: Testy PDF planu AI (kolory wzoru)
+        run: node .github/scripts/test_plan_pdf.js
+      - name: 1p3. Testy nadwagi i strażnika postępów AI
+        run: node .github/scripts/test_ai_bmi_watchdog.js
+      - name: 1p4. Testy routingu sztabu eksperckiego
+        run: node .github/scripts/test_staff_agents.js
+      - name: 1p5. Testy zamienników biomechanicznych i RIR
+        run: node .github/scripts/test_staff_subs_rir.js
+      - name: 1p5b. Testy zakładek panelu ćwiczenia
+        run: node .github/scripts/test_exd_tabs.js
+      - name: 1p5c. Testy stopki sidebara (nazwa vs ikony)
+        run: node .github/scripts/test_sidebar_footer.js
+
+      - name: Testy sync uwag AI vs metoda
+        run: node .github/scripts/test_apl_notes_method_sync.js
+      - name: Testy metod AI (Split/Smolov) + progresja
+        run: node .github/scripts/test_apl_method_progression.js
+      - name: Testy zapisu płci i sprzętu w generatorze AI
+        run: node .github/scripts/test_apl_form_persist.js
+      - name: Testy autofill karty klienta w generatorze AI
+        run: node .github/scripts/test_apl_client_autofill.js
+      - name: 1o2. Testy zakładki Progress (statystyki klienta)
+        run: node .github/scripts/test_cp_progress_tab.js
+      - name: Panel analityczny klienta (Progress)
+        run: node .github/scripts/test_cp_analytics_panel.js
+      - name: Następny krok startu klienta
+        run: |
+          node .github/scripts/test_next_action.js
+          node .github/scripts/test_client_next_start.js
+
+      - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
+        run: python3 .github/scripts/check_duplicates.py
+
+      - name: 3. Sprawdź czy wszystkie odwołania do plików są poprawne
+        run: python3 .github/scripts/check_file_refs.py
+
+      - name: 4. Zainstaluj przeglądarkę testową
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+
+      - name: 5. Uruchom lokalny serwer
+        run: python3 -m http.server 8080 &
+
+      - name: 6. Poczekaj aż serwer wystartuje
+        run: sleep 2
+
+      - name: 6b. Testy layoutu podglądu planu w przeglądarce
+        run: node .github/scripts/test_plan_preview_layout.js
+      - name: 6b0z. Testy UI kafelek dni w zakładce Plan
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_plan_day_tiles_ui.js
+      - name: 6b0. Testy UI biblioteki planów (tabela / filtry)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_plans_library_ui.js
+      - name: 6b0p. Testy UI katalogu programów (filtry 4–16 tyg.)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_prog_catalog_ui.js
+      - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
+        run: node .github/scripts/test_ai_gen_layout.js
+      - name: 6b1. Testy UI PDF planu AI
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_plan_pdf_ui.js
+      - name: 6b1. Testy UI zapisu płci i sprzętu w generatorze
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_apl_form_persist_ui.js
+      - name: 6b1a. Testy UI autofill karty klienta w generatorze
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_apl_client_autofill_ui.js
+      - name: 6b2. Testy UI zamienników i miniatury techniki w kreatorze
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_builder_alts_media_ui.js
+      - name: 6b2a. Testy UI zmiany ćwiczenia w tej samej partii
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_apl_swap_same_part_ui.js
+      - name: 6b2b. Testy UI drop % i obwodu stacji
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_drop_circ_ui.js
+      - name: 6b2c. Testy UI zadań domowych bez YouTube i RPE
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_homework_guide_ui.js
+
+      - name: 6b3. Testy UI cardio w wyszukiwarce ćwiczeń
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cardio_ex_ac_ui.js
+      - name: 6b3b. Testy UI filmów MP4 w bibliotece ćwiczeń
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_lib_ex_video_ui.js
+      - name: 6b3b2. Testy UI importu MP4 do biblioteki
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ex_gif_import_ui.js
+      - name: 6b3b3. Testy UI przypisania MP4 do ćwiczenia
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ex_assign_mp4_ui.js
+      - name: 6b3b4. Testy UI czyszczenia duplikatów w bibliotece
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ex_import_dedupe_ui.js
+      - name: 6b3c. Testy UI timera przerwy live (30s / własny)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_rest_ui.js
+      - name: 6b3c0. Testy UI podpowiedzi Live (przerwa / tempo / periodyzacja)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_coach_hints_ui.js
+      - name: 6b3c0b. Testy UI Live Fitebo hipertrofia RIR 2
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_fitebo_live_ui.js
+      - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_progress_ui.js
+      - name: 6b3c2a. Testy UI Live OSTATNIO / DZISIAJ / SUGESTIA
+        run: |
+          node .github/scripts/test_live_ex_cue_ui.js
+          node .github/scripts/test_live_readable_ui.js
+      - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
+        if: ${{ !cancelled() }}
+        run: |
+          node .github/scripts/test_pkg_gate_ui.js
+          node .github/scripts/test_calendar_refill_ui.js
+          node .github/scripts/test_builder_calendar_confirmed_ui.js
+      - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_kb_notes_evidence_ui.js
+      - name: 6b3c2b1b. Testy UI tagów KB w kreatorze
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_kb_builder_tags_ui.js
+      - name: 6b3c2b2. Testy UI filtrów Płatności po clientId
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_pay_hist_id_ui.js
+      - name: 6b3c2b3. Testy UI checklisty startu współpracy
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_onboard_flow_ui.js
+      - name: 6b3c2b2. Testy UI UX startu (ankieta / Live / HW / WhatsApp)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_onboard_ux_fixes_ui.js
+      - name: 6b3c2c. Testy UI szkicu Live (live-draft)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_draft_ui.js
+      - name: 6b3c2d. Testy UI Autoflow (pakiet / check-in)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_autoflow_events_ui.js
+      - name: 6b3c2e. Testy UI dashboardu bez martwych follow-upów
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_dash_followup_gone_ui.js
+      - name: 6b3c2e1. Testy UI paska DZISIAJ na dashboardzie
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_dash_today_focus_ui.js
+      - name: 6b3c3. Testy UI Live dual (dwie osoby)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_dual_ui.js
+      - name: 6b3c4. Testy UI dodawania zamiennika w Live
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_alts_add_ui.js
+      - name: 6b3c4b. Testy UI max 3 zamienników w Live
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_alts_collapse_ui.js
+      - name: 6b3c5. Testy UI dużego filmu techniki w Live
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_video_ui.js
+
+      - name: 6b4. Testy UI jednostki sec przy linach
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ex_load_unit_ui.js
+
+      - name: 6c. Testy UI zasobów YouTube i Garmin CSV
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_resources_garmin_ui.js
+      - name: 6c2. Testy UI filtrów wiadomości (czat / system / broadcast)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_inbox_kinds_ui.js
+
+      - name: 6d. Testy UI portalu On-demand YouTube
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ondemand_youtube_ui.js
+
+      - name: 6e. Testy UI wygaszacza z logo
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_screensaver_ui.js
+      - name: 6f. Testy UI nadwagi i strażnika w asystencie
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ai_bmi_watchdog_ui.js
+      - name: 6f0. Testy UI sztabu eksperckiego w AI Coach
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_staff_agents_ui.js
+      - name: 6f0b. Testy UI zamienników i kalkulatora RIR
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_staff_subs_rir_ui.js
+      - name: 6f0c. Testy UI zakładek panelu ćwiczenia
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_exd_tabs_ui.js
+      - name: 6f0d. Testy UI stopki sidebara (ikony vs nazwa)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_sidebar_footer_ui.js
+      - name: 6f2. Testy UI edycji imienia i nazwiska w profilu
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_edit_visible_ui.js
+      - name: 6f2b. Testy UI sytuacji w Przeglądzie
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_overview_situation_ui.js
+      - name: 6f2b1. Testy UI zapisów vs planu w Przeglądzie
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_overview_logs_ui.js
+      - name: 6f2b1b. Testy UI kafelków tygodnia w Treningach
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_week_tiles_ui.js
+      - name: 6f2b2. Testy UI Briefu przed treningiem
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_overview_brief_ui.js
+      - name: 6f2b3. Testy UI Analizy współpracy
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_overview_coop_ui.js
+      - name: 6f2c. Testy UI osi czasu (filtry)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_timeline_filters_ui.js
+      - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_log_done_ui.js
+      - name: 6f3a. Testy UI ✓ Odbył się w kalendarzu tygodnia
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_week_sala_done_ui.js
+      - name: 6f3e. Testy UI zapisu / edycji sesji w kalendarzu
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_session_save_ui.js
+      - name: 6f3b. Testy UI usuwania kart z kalendarza
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_del_card_ui.js
+      - name: 6f3c. Testy UI nachodzących sesji w tygodniu
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_week_overlap_ui.js
+      - name: 6f3c1. Testy UI deduplikacji kart w kalendarzu
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_sess_dedupe_ui.js
+      - name: 6f3c2. Testy UI wyrazistości przycisków kalendarza
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_btn_clarity_ui.js
+      - name: 6f3d. Testy UI kontynuacji planu z Fitebo
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_fitebo_continue_ui.js
+      - name: 6f3d2. Testy UI Edytuj plan z zakładki Plan
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_plan_edit_from_profile_ui.js
+      - name: 6f3d3. Testy UI startu Live z profilu klienta
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cp_start_live_ui.js
+      - name: 6g. Testy UI obwodów centymetrem w profilu klienta
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_circ_metrics_ui.js
+      - name: 6g2. Testy UI składu ciała (wiek metaboliczny / nawodnienie)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_mass_inbody_ui.js
+      - name: 6g3. Testy UI szablonów sportowych (NW / piłka / bieg)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_sport_templates_ui.js
+      - name: 6g4. Testy UI aktywności dodatkowych (NW + piłka)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_additional_activities_ui.js
+
+      - name: 7. Sprawdź stronę w prawdziwej przeglądarce
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/check_browser.js
+
+      - name: Podsumowanie
+        if: success()
+        run: echo "✅ Wszystkie sprawdzenia przeszły pomyślnie."
