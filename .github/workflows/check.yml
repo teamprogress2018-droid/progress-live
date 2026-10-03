@@ -47,6 +47,7 @@ jobs:
           node .github/scripts/test_calendar_refill.js
           node .github/scripts/test_builder_calendar_confirmed.js
           node .github/scripts/test_onboarding_calendar_confirmed.js
+          node .github/scripts/test_pipeline_calendar_confirmed.js
           node .github/scripts/test_client_sala_write.js
           node .github/scripts/test_forum_reaction_persistence.js
           node .github/scripts/test_client_checkin_permissions.js
@@ -557,6 +558,7 @@ jobs:
           node .github/scripts/test_calendar_refill_ui.js
           node .github/scripts/test_builder_calendar_confirmed_ui.js
           node .github/scripts/test_onboarding_calendar_confirmed_ui.js
+          node .github/scripts/test_pipeline_calendar_confirmed_ui.js
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_notes_evidence_ui.js

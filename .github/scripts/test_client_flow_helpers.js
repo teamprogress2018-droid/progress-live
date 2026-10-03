@@ -217,7 +217,9 @@ windowObj.PL = [];
 const persisted = [];
 ctx.persistById = function(col, obj){ persisted.push(col+':'+(obj&&obj.id)); return obj; };
 windowObj.persistById = ctx.persistById;
-const pipe = assignClientPipeline(windowObj.CL[0], {
+windowObj._uid='trainer-test';windowObj.tenantSessionGeneration=1;windowObj._tenantDataReady=true;windowObj.CL[0].trainerId='trainer-test';
+(async()=>{
+const pipe = await assignClientPipeline(windowObj.CL[0], {
   persist:true, runFlow:false, schedule:false, notify:false, fireEvent:true, templateId:'t-pipe'
 });
 eq('pipeline ok', pipe.ok, true);
@@ -243,3 +245,5 @@ if (failed) {
   process.exit(1);
 }
 console.log('\nAll client-flow helper tests passed');
+
+})().catch(error=>{console.error(error);process.exitCode=1;});
