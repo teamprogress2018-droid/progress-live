@@ -5,13 +5,13 @@
   const operations=new WeakMap();
   const fields=['name','email','phone','age','gender','weight','height','goal','level',
     'trainingFreq','preferredWeekdays','preferredTrainTime','priorSports',
-    'additional_activities','physiquePriority','activityLevel','sportNotes','injuries','notes'];
+    'additional_activities','physiquePriority','activityLevel','sportNotes','injuries','notes','status'];
   const labels={name:'Imię i nazwisko',email:'E-mail',phone:'Telefon',age:'Wiek',
     gender:'Płeć',weight:'Masa ciała',height:'Wzrost',goal:'Cel',level:'Poziom',
     trainingFreq:'Częstotliwość treningów',preferredWeekdays:'Dni treningów',
     preferredTrainTime:'Pora treningów',priorSports:'Tło sportowe',
     additional_activities:'Dodatkowe aktywności',physiquePriority:'Priorytet sylwetkowy',
-    activityLevel:'Aktywność',sportNotes:'Uwagi sportowe',injuries:'Kontuzje',notes:'Notatki'};
+    activityLevel:'Aktywność',sportNotes:'Uwagi sportowe',injuries:'Kontuzje',notes:'Notatki',status:'Status'};
   const own=(obj,key)=>Object.prototype.hasOwnProperty.call(obj,key);
   const plain=value=>value&&typeof value==='object'&&
     (Object.getPrototypeOf(value)===null||
@@ -167,6 +167,8 @@
           (operation.edit&&(operation.base._fbId||operation.base.id)!==(candidate._fbId||candidate.id)))
           throw fail('Identyfikator klienta zmienił się. Otwórz ponownie formularz.');
         const first=clone(candidate),auth=freeze(clone(operation.auth)),base=freeze(clone(operation.base));
+        if(operation.edit&&own(first,'status')&&!equal(first.status,base.status)&&!['active','inactive'].includes(first.status))
+          throw fail('Wybierz status Aktywny lub Nieaktywny. Archiwizacja jest dostępna w menu profilu.','client-card-status');
         state={auth,base,edit:operation.edit,candidate:first,token:null,promise:null,result:null,failed:false};
         assert(state);if(state.edit)assert(state,base);
         state.token=receipt();first.clientCardWriteId=state.token;
