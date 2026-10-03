@@ -3351,7 +3351,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="modal-hdr"><div class="modal-title" id="m-baseline-title">POMIARY STARTOWE</div><button class="modal-close" onclick="typeof closeBaselineModal==='function'?closeBaselineModal():closeM('m-baseline')">×</button></div>
     <div class="modal-body">
       <div id="bl-onboard-banner" class="onboard-resume-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--adim);border:1px solid rgba(230,0,0,0.25);border-radius:10px;font-size:12px;"></div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Zapisz baseline — historia w Pomiary (możesz zmienić datę).</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Zapisz pomiary początkowe. Znajdziesz je w historii pomiarów klienta.</div>
       <div class="form-field"><label class="form-lbl">Data pomiaru</label><input type="date" class="form-input" id="bl-date"></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="bl-weight" step="0.1" placeholder="80"></div>
@@ -3359,8 +3359,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 8px;">Obwody centymetrem (cm)</div>
       <div class="form-grid" id="bl-circ-fields"></div>
+      <div id="bl-save-status" role="status" aria-live="polite" style="font-size:12px;margin-top:12px;"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="typeof closeBaselineModal==='function'?closeBaselineModal():closeM('m-baseline')">Anuluj</button><button class="btn btn-primary" onclick="saveClientBaselineModal()">Zapisz baseline</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="typeof closeBaselineModal==='function'?closeBaselineModal():closeM('m-baseline')">Anuluj</button><button id="bl-new-btn" class="btn btn-ghost" style="display:none;" onclick="startNewBaselineDraft()">Dodaj kolejne pomiary</button><button id="bl-save-btn" class="btn btn-primary" onclick="saveClientBaselineModal()">Zapisz pomiary</button></div>
   </div>
 </div>
 
@@ -4567,14 +4568,14 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1&assignment-calendar=1"></script>
+<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1"></script>
 <script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1"></script>
-<script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
-<script src="07-forms-metrics-calculator.js?v=43"></script>
+<script src="07-forms-metrics-calculator.js?v=43&baseline-save=1"></script>
 <script src="08-client-profile-extras.js?v=88&ui=2&journey=2&checkin-chronology=1&calendar-fill=1"></script>
 <script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
