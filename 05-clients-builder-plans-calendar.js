@@ -1035,9 +1035,10 @@ function renderBaselineSaveState(state){
   if(!baselineModalIsCurrent(state))return;
   document.querySelectorAll('#m-baseline input').forEach(el=>{el.disabled=!!state.operation.entries;});
   const btn=document.getElementById('bl-save-btn');
-  if(btn){btn.disabled=!!state.pending;btn.textContent=state.pending?'Zapisuję…':state.error?'Ponów zapis':'Zapisz pomiary';}
+  if(btn){btn.disabled=!!(state.pending||state.saved);btn.textContent=state.saved?'Zapisano':state.pending?'Zapisuję…':state.error?'Ponów zapis':'Zapisz pomiary';}
+  const next=document.getElementById('bl-new-btn');if(next)next.style.display=state.saved?'':'none';
   const status=document.getElementById('bl-save-status');
-  if(status){status.textContent=state.pending?'Czekamy na potwierdzenie zapisu.':state.error||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+  if(status){status.textContent=state.saved?'Te pomiary zostały zapisane. Aby dodać nowy zestaw, wybierz „Dodaj kolejne pomiary”.':state.pending?'Czekamy na potwierdzenie zapisu.':state.error||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
 }
 function openClientBaselineModal(clientId,fromOnboard){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
@@ -1047,7 +1048,7 @@ function openClientBaselineModal(clientId,fromOnboard){
   for(const [key,draft] of baselineModalDrafts)if(!baselineSessionCurrent(draft.auth))baselineModalDrafts.delete(key);
   const key=JSON.stringify([auth.uid,auth.generation,clientId]);
   let state=baselineModalDrafts.get(key);
-  if(!state||state.saved){
+  if(!state){
     state={auth,clientId,operation:{},fields:{weight:c.weight||'',bf:'',circ:{},date:typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10)}};
     baselineModalDrafts.set(key,state);
   }
@@ -1072,6 +1073,12 @@ function openClientBaselineModal(clientId,fromOnboard){
   }
   renderBaselineSaveState(state);
 }
+function startNewBaselineDraft(){
+  const state=window._baselineModalState;
+  if(!state||!state.saved||!baselineModalIsCurrent(state))return;
+  baselineModalDrafts.delete(JSON.stringify([state.auth.uid,state.auth.generation,state.clientId]));
+  openClientBaselineModal(state.clientId,!!state.resumeId);
+}
 function closeBaselineModal(){
   const state=window._baselineModalState;
   if(state){if(!state.operation.entries)state.fields=baselineModalFields();state.open=false;}
@@ -1093,6 +1100,11 @@ async function saveClientBaselineModal(){
     const created=await request;
     if(!created.length)throw new Error('Wpisz przynajmniej wagę, skład ciała lub obwód.');
     state.saved=true;
+    const mass=created.find(e=>e.groupId==='mg1'),circ=created.find(e=>e.groupId==='mg2');
+    state.fields={date:created[0].date,weight:mass?.values?.m1??'',bf:mass?.values?.m2??'',circ:{...(circ?.values||{})}};
+    const client=(window.CL||[]).find(c=>c.id===state.clientId);
+    notify('✓ Pomiary startowe zapisane'+(client&&client.name?' — '+client.name:''));
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
     if(!baselineModalIsCurrent(state)){
       if(baselineSessionCurrent(state.auth)&&state.resumeId===window._onboardClientId&&
         document.getElementById('m-client-onboard')?.classList.contains('show')&&typeof renderClientOnboardChecklist==='function')
@@ -1103,8 +1115,6 @@ async function saveClientBaselineModal(){
     state.open=false;window._onboardResumeAfterBaseline=null;
     closeM('m-baseline');
     const bar=document.getElementById('bl-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
-    notify('✓ Pomiary startowe zapisane');
-    if(typeof renderDash==='function')try{renderDash();}catch(e){}
     if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
     else if(typeof renderClientOnboardChecklist==='function'&&document.getElementById('m-client-onboard')?.classList.contains('show'))renderClientOnboardChecklist();
   }catch(error){
@@ -1113,6 +1123,7 @@ async function saveClientBaselineModal(){
   }finally{state.pending=false;renderBaselineSaveState(state);}
 }
 window.openClientBaselineModal=openClientBaselineModal;
+window.startNewBaselineDraft=startNewBaselineDraft;
 window.closeBaselineModal=closeBaselineModal;
 window.saveClientBaselineModal=saveClientBaselineModal;
 
