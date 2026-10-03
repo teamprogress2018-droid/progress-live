@@ -338,6 +338,7 @@ const { chromium } = require('playwright');
     await page.locator('#ac-reload-btn').click();
     ok('conflict reload replaces fields and sports with the remote editable snapshot', await name.inputValue() === 'Alfa z serwera' &&
       await page.locator('#ac-phone').inputValue() === '555666777' && await page.locator('#ac-sport-notes').inputValue() === 'Zdalna zmiana' &&
+      await page.locator('#ac-injuries').inputValue() === remote.notes &&
       await page.locator('#ac-prior-sports [data-sport="cycling"]').getAttribute('class').then(c => c.includes('active')) &&
       await page.locator('#ac-addl-acts .addl-act-freq').inputValue() === '3' && await name.isEnabled() && await save.isEnabled() &&
       (await state()).editId === 'card-a');
@@ -345,6 +346,8 @@ const { chromium } = require('playwright');
     s = await state();
     assert.deepEqual(s.calls[1].base, remote);
     assert.deepEqual(s.calls[1].candidate, { ...remote, name: 'Alfa po ponownej edycji' });
+    ok('notes-only conflict reload displays the fallback without persisting a new injuries field',
+      !Object.hasOwn(s.calls[1].candidate, 'injuries') && s.calls[1].candidate.notes === remote.notes);
     ok('save after reload uses the remote edit base and original client identity', s.calls[1].edit &&
       s.calls[1].candidate.id === 'card-a' && s.calls[1].candidate.phone === '555666777' && !s.calls[1].sameOperation);
     await release(); await settled();
