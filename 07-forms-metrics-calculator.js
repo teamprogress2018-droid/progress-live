@@ -1223,6 +1223,111 @@ function collectBaselineCircFields(){
 window.renderBaselineCircFields=renderBaselineCircFields;
 window.collectBaselineCircFields=collectBaselineCircFields;
 
+// Trainer baseline writes are atomic; weekly check-ins retain their separate legacy path.
+const confirmedBaselineWrites=new Map();
+function baselineSession(){return {uid:window._uid,generation:window.tenantSessionGeneration||0};}
+function baselineSessionCurrent(auth){
+  return !!auth&&!!auth.uid&&auth.uid===window._uid&&auth.generation===(window.tenantSessionGeneration||0)&&
+    window._tenantDataReady===true&&!window._clientAppMode&&!window._clientPreviewMode&&
+    (!window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(auth));
+}
+function assertBaselineClient(auth,client){
+  if(!baselineSessionCurrent(auth))throw new Error('Sesja zmieniła się. Otwórz ponownie profil klienta.');
+  if(!client||client.trainerId!==auth.uid||client.archived||client.deleted||client.status==='archived')
+    throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+}
+function buildClientBaselineEntries(clientId,fields,owner){
+  if(!clientId||!fields)return [];
+  const date=String(fields.date||'').trim()||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const parsed=new Date(date+'T12:00:00Z');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==date)
+    throw new Error('Podaj poprawną datę pomiaru.');
+  const read=(value,label,percent)=>{
+    if(value==null||String(value).trim()==='')return null;
+    const n=Number(value);
+    if(!Number.isFinite(n)||(percent?n<0||n>100:n<=0))throw new Error('Popraw wartość: '+label+'.');
+    return n;
+  };
+  const mass={},circ={};
+  [['weight','m1','waga'],['bf','m2','tkanka tłuszczowa'],['muscleMass','m3','masa mięśniowa'],['bmi','m4','BMI']].forEach(([field,id,label])=>{
+    const n=read(fields[field],label,field==='bf');if(n!==null)mass[id]=n;
+  });
+  Object.entries(fields.circ||{}).forEach(([id,value])=>{const n=read(value,'obwód');if(n!==null)circ[id]=n;});
+  const aliases={chest:'m1',waist:'m2',pas:'m14',belt:'m14',hips:'m3',thigh:'m4',arm:'m5',neck:'m6',shoulders:'m7',armR:'m8',thighR:'m9',calfL:'m10',calfR:'m11',forearmL:'m12',forearmR:'m13'};
+  Object.entries(aliases).forEach(([field,id])=>{if(circ[id]==null){const n=read(fields[field],'obwód');if(n!==null)circ[id]=n;}});
+  return [['mg1',mass],['mg2',circ]].filter(([,values])=>Object.keys(values).length).map(([groupId,values])=>({
+    clientId,trainerId:owner,groupId,date,values,notes:fields.notes||'Pomiar startowy (baseline)'
+  }));
+}
+async function saveClientBaselineConfirmed(clientId,fields,operation){
+  const auth=baselineSession(),client=(window.CL||[]).find(c=>c.id===clientId);
+  assertBaselineClient(auth,client);
+  let state=operation;
+  if(!state||!state.entries){
+    const entries=buildClientBaselineEntries(clientId,fields,auth.uid);
+    if(!entries.length)return [];
+    if(!state){
+      for(const [key,item] of confirmedBaselineWrites)if(!baselineSessionCurrent(item.auth))confirmedBaselineWrites.delete(key);
+      const key=JSON.stringify([auth.uid,auth.generation,clientId,entries]);
+      state=confirmedBaselineWrites.get(key);
+      if(!state){state={};confirmedBaselineWrites.set(key,state);}
+    }
+    if(!state.entries){
+      const token=newId('baseline'),createdAt=new Date().toISOString();
+      Object.assign(state,{auth,clientId,clientDocId:client._fbId||client.id,token,
+        entries:entries.map(entry=>({...entry,id:token+'_'+entry.groupId,createdAt}))});
+    }
+  }
+  assertBaselineClient(state.auth,client);
+  if(state.clientId!==clientId||state.clientDocId!==(client._fbId||client.id))throw new Error('Otwórz ponownie pomiary właściwego klienta.');
+  if(state.promise)return state.promise;
+  if(state.result)return state.result;
+  if(!window._db||typeof window._runTransaction!=='function'||typeof window._doc!=='function')throw new Error('Brak połączenia z bazą. Ponów zapis.');
+  state.promise=(async()=>{
+    const saved=await window._runTransaction(window._db,async tx=>{
+      assertBaselineClient(state.auth,(window.CL||[]).find(c=>c.id===clientId));
+      const clientRef=window._doc(window._db,'clients',state.clientDocId);
+      const snap=await tx.get(clientRef),remote=snap.exists()?snap.data():null;
+      assertBaselineClient(state.auth,remote);
+      const receipt=remote.baselineWriteId||null;
+      if(receipt===state.token){
+        // An earlier attempt committed but its response was lost. Never rewrite its measurements.
+        const entries=[];
+        for(const candidate of state.entries){
+          const entrySnap=await tx.get(window._doc(window._db,'metricEntries',candidate.id));
+          const entry=entrySnap.exists()?entrySnap.data():null;
+          if(!entry||entry.trainerId!==state.auth.uid||entry.clientId!==clientId||entry.groupId!==candidate.groupId)
+            throw new Error('Zapisane pomiary zmieniły się. Otwórz ich aktualną historię.');
+          entries.push({...entry,id:candidate.id,_fbId:candidate.id});
+        }
+        assertBaselineClient(state.auth,remote);
+        const patch={baselineDone:remote.baselineDone===true,baselineAt:remote.baselineAt||'',baselineWriteId:receipt};
+        if(remote.weight!=null)patch.weight=remote.weight;
+        return {entries,patch};
+      }
+      if(state.receiptCaptured&&receipt!==state.beforeToken)throw new Error('Pomiary startowe zmieniły się w innym oknie. Otwórz ich aktualną historię.');
+      state.beforeToken=receipt;state.receiptCaptured=true;
+      const patch={baselineDone:true,baselineAt:state.entries[0].date,baselineWriteId:state.token};
+      const mass=state.entries.find(e=>e.groupId==='mg1');if(mass&&mass.values.m1!=null)patch.weight=mass.values.m1;
+      assertBaselineClient(state.auth,remote);
+      state.entries.forEach(entry=>tx.set(window._doc(window._db,'metricEntries',entry.id),entry));
+      tx.set(clientRef,patch,{merge:true});
+      return {entries:state.entries.map(entry=>({...entry,_fbId:entry.id})),patch};
+    });
+    const current=(window.CL||[]).find(c=>c.id===clientId);
+    assertBaselineClient(state.auth,current);
+    saved.entries.forEach(entry=>{
+      const index=METRIC_ENTRIES.findIndex(e=>e.id===entry.id);
+      if(index<0)METRIC_ENTRIES.push(entry);else METRIC_ENTRIES[index]=entry;
+    });
+    Object.assign(current,saved.patch);
+    state.result=saved.entries;
+    return state.result;
+  })();
+  try{return await state.promise;}finally{state.promise=null;}
+}
+window.saveClientBaselineConfirmed=saveClientBaselineConfirmed;
+
 /** Zapis baseline (mg1 masa/%BF + opcjonalnie mg2 obwody) z prostych pól — onboarding / checklista. */
 function saveClientBaselineFromFields(clientId,fields){
   if(!clientId||!fields)return[];
