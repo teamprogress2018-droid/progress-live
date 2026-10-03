@@ -455,6 +455,7 @@ function initPriorSportsForm(prefix,selected,activities){
 window.initPriorSportsForm=initPriorSportsForm;
 
 function openM(id){
+  if(id==='m-client'&&typeof openClientModal==='function'){openClientModal();return;}
   document.querySelectorAll('.ex-ac-dropdown').forEach(dd=>{dd.style.display='none';});
   if(id==='m-session'){
     window._editingSessionId=null;
@@ -576,6 +577,7 @@ function openM(id){
   document.getElementById(id).classList.add('show');
 }
 function closeM(id){
+  if(id==='m-client'&&typeof captureClientModalDraft==='function')captureClientModalDraft();
   if(id==='m-od-player'){
     const frame=document.getElementById('od-player-frame');
     if(frame){
@@ -586,7 +588,7 @@ function closeM(id){
   const el=document.getElementById(id);
   if(el)el.classList.remove('show');
 }
-document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){if(m.id==='m-client')closeM(m.id);else m.classList.remove('show');}}));
 
 window.renderAll=function(){
   const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};

@@ -3328,7 +3328,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Kontuzje / ograniczenia</label><textarea class="form-textarea" id="ac-injuries" rows="2" placeholder="np. ból kolana, ograniczona mobilność barku..."></textarea></div>
       <div class="form-field"><label class="form-lbl">Uwagi prywatne</label><textarea class="form-textarea" id="ac-notes" rows="2" placeholder="Notatka tylko dla trenera..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-client')">Anuluj</button><button class="btn btn-primary" onclick="saveClient()">Zapisz klienta</button></div>
+    <div id="ac-save-status" role="status" aria-live="polite" style="padding:0 24px;color:var(--muted);font-size:12px"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-client')">Zamknij</button><button id="ac-reload-btn" class="btn btn-ghost" style="display:none" onclick="reloadClientModalDraft()">Wczytaj aktualne dane</button><button id="ac-new-btn" class="btn btn-ghost" style="display:none" onclick="startNewClientModalDraft()">Dodaj kolejnego klienta</button><button id="ac-save-btn" class="btn btn-primary" onclick="saveClient()">Zapisz klienta</button></div>
   </div>
 </div>
 
@@ -4185,14 +4186,14 @@ window.doPasswordReset=window.doPasswordReset||authNetworkFallbackMsg;
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction,Timestamp,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,getDocsFromServer,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction,Timestamp,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
 const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
 const storage=getStorage(app);
 window._storage=storage;window._storageRef=ref;window._uploadBytes=uploadBytes;window._getDownloadURL=getDownloadURL;
-window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;window._runTransaction=runTransaction;
+window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._getDocsFromServer=getDocsFromServer;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;window._runTransaction=runTransaction;
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
 window._signInClient=function(email,pass){return signInWithEmailAndPassword(auth,email,pass);};
 window._Timestamp=Timestamp;window._serverTimestamp=serverTimestamp;
@@ -4339,6 +4340,7 @@ window.tenantSessionIsCurrent=tenantSessionIsCurrent;
 function resetTenantRuntimeData(){
   if(typeof builderSaveUnlock==='function')builderSaveUnlock(window._builderSaveState);
   window._builderSaveState=null;window._editingPlanId=null;
+  if(typeof clearClientModalDrafts==='function')clearClientModalDrafts();
   ['b-name','b-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const builderDays=document.getElementById('builder-days');if(builderDays)builderDays.innerHTML='';
   window._tenantDataReady=false;
@@ -4568,11 +4570,12 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1"></script>
+<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1"></script>
 <script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1"></script>
-<script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1"></script>
+<script src="client-card-save.js?v=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1&client-save=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=43&baseline-save=1"></script>
