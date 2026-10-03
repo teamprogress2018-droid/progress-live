@@ -152,14 +152,27 @@ const { chromium } = require('playwright');
       s.metrics.length === 2 && s.local[0].baselineDone && !s.local[1].baselineDone && remoteMetrics(s).length === 2);
     ok('no optimistic path or Firebase network used', s.unexpected.length === 0 && liveRequests === 0, s.unexpected);
 
+    const transactionsAfterA = s.transactions.length;
+    await open('baseline-a');
+    ok('reopening a saved baseline preserves its receipt and frozen values', await modal.isVisible() &&
+      await page.locator('#bl-weight').inputValue() === '81.2' &&
+      await page.locator('#bl-weight').isDisabled() && await save.isDisabled() &&
+      await page.locator('#bl-new-btn').isVisible() && (await state()).transactions.length === transactionsAfterA);
+    await page.locator('#bl-new-btn').click();
+    ok('explicit new measurement starts an editable draft', await page.locator('#bl-weight').isEnabled() &&
+      await save.isEnabled() && !(await page.locator('#bl-new-btn').isVisible()));
+    await modal.locator('.modal-close').click();
+
     await open('baseline-b'); await fill();
     await save.click(); await pending(1);
     await open('baseline-a');
     const aTitle = await page.locator('#m-baseline-title').innerText();
     await release('succeed');
     await page.waitForFunction(() => window.CL[1].baselineDone === true);
+    s = await state();
     ok('late other-client completion cannot close or replace current modal', await modal.isVisible() &&
-      await page.locator('#m-baseline-title').innerText() === aTitle && (await state()).client === 'baseline-a');
+      await page.locator('#m-baseline-title').innerText() === aTitle && s.client === 'baseline-a' &&
+      s.notifications.some(message => /Beta/.test(message)));
 
     await page.evaluate(() => {
       const f = window._baselineConfirmedUi;
