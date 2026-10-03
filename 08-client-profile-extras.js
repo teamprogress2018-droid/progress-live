@@ -1451,12 +1451,13 @@ function clearCPEditDrafts(){
 function renderCPEditSaveState(state){
   if(!cpEditIsCurrent(state))return;
   state.card.querySelectorAll('input,select,textarea,button').forEach(el=>{
-    if(el.id!=='cpe-cancel-btn'&&el.id!=='cpe-reload-btn')el.disabled=!!state.candidate;
+    if(el.id!=='cpe-cancel-btn'&&el.id!=='cpe-reload-btn'&&el.id!=='cpe-discard-btn')el.disabled=!!state.candidate;
   });
   const btn=document.getElementById('cpe-save-btn');
   if(btn){btn.disabled=!!(state.pending||state.saved||state.conflict);btn.textContent=state.pending?'Zapisuję…':state.saved?'Zapisano':state.error?'Ponów zapis':'💾 Zapisz zmiany';}
   const status=document.getElementById('cpe-save-status');if(status){status.textContent=state.message||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
   const reload=document.getElementById('cpe-reload-btn');if(reload){reload.hidden=!state.conflict;reload.disabled=!!state.pending;}
+  const discard=document.getElementById('cpe-discard-btn');if(discard)discard.disabled=!!(state.pending||state.saved||(state.candidate&&!state.conflict));
 }
 function mountCPEditDraft(){
   const state=window._cpEditState;
@@ -1478,9 +1479,17 @@ function reloadCPEditDraft(){
   state.open=false;
   renderCPOverview(CL.find(c=>c.id===state.clientId));
 }
+function discardCPEditDraft(){
+  const state=window._cpEditState;
+  if(!cpEditIsCurrent(state)||state.pending||state.saved||(state.candidate&&!state.conflict))return;
+  cpEditDrafts.delete(state.key);state.open=false;
+  window._cpEditState=null;window._cpEditingClientId=null;
+  const c=CL.find(x=>x.id===state.clientId);if(c)renderCPOverview(c);
+}
 window.captureCPEditDraft=captureCPEditDraft;
 window.clearCPEditDrafts=clearCPEditDrafts;
 window.reloadCPEditDraft=reloadCPEditDraft;
+window.discardCPEditDraft=discardCPEditDraft;
 window.renderCPEditSaveState=renderCPEditSaveState;
 
 function cpClientDataEditHTML(c){
@@ -1498,7 +1507,7 @@ function cpClientDataEditHTML(c){
         <div class="cp-edit-card-title">Dane osobowe</div>
         <div class="cp-edit-card-sub">Imię i nazwisko, telefon, e-mail, waga, wzrost, sport — dopisz lub popraw</div>
       </div>
-      <button type="button" id="cpe-cancel-btn" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
+      <button type="button" id="cpe-cancel-btn" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Zamknij</button>
     </div>
     <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:14px;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
       📋 Ankieta wstępna — tylko w Formularzach.
@@ -1559,6 +1568,7 @@ function cpClientDataEditHTML(c){
     </div>
     ${field('cpe-notes','Uwagi prywatne',`<textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea>`)}
     <div id="cpe-save-status" role="status" aria-live="polite" style="font-size:12px;margin:10px 0;"></div>
+    <button type="button" id="cpe-discard-btn" class="btn btn-ghost" onclick="discardCPEditDraft()">Odrzuć szkic</button>
     <button type="button" id="cpe-reload-btn" class="btn btn-ghost" hidden onclick="reloadCPEditDraft()">Wczytaj aktualne dane</button>
     <button type="button" id="cpe-save-btn" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
   </div>`;
