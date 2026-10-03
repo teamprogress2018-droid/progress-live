@@ -101,6 +101,29 @@ fs.mkdirSync(shotDir, { recursive: true });
       if (mode === 'success') p.succeed(); else p.fail(remote);
     }, { mode, remote });
     const flush = () => page.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)));
+    const settledView = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const drawerView = remember => page.evaluate(remember => {
+      const body = document.getElementById('cp-body'), card = document.getElementById('cp-edit-card');
+      const name = document.getElementById('cpe-name');
+      const nodes = [...body.querySelectorAll('*')];
+      const previous = window._cpEditUi.view;
+      if (remember) window._cpEditUi.view = { body, card, name, nodes };
+      return { html: body.innerHTML, clientId: window.cpClientId, tab: window.cpTab,
+        header: document.getElementById('cp-name').textContent, name: name?.value,
+        nameDisabled: name?.matches(':disabled'), drawerOpen: document.getElementById('cp-drawer').classList.contains('open'),
+        draftId: window._cpEditState?.clientId, draftPending: !!window._cpEditState?.pending,
+        sameBody: remember || previous?.body === body, sameCard: remember || previous?.card === card,
+        sameName: remember || previous?.name === name,
+        sameNodes: remember || (nodes.length === previous?.nodes.length && nodes.every((node, i) => node === previous.nodes[i])) };
+    }, remember);
+    const viewDetail = (before, after) => {
+      let at = 0;
+      while (at < before.html.length && at < after.html.length && before.html[at] === after.html[at]) at++;
+      const strip = view => ({ ...view, html: undefined });
+      return { before: strip(before), after: strip(after), htmlEqual: before.html === after.html,
+        firstDiff: at, beforeHTML: before.html.slice(Math.max(0, at - 100), at + 180),
+        afterHTML: after.html.slice(Math.max(0, at - 100), at + 180) };
+    };
     const state = () => page.evaluate(() => {
       const f = window._cpEditUi, draft = window._cpEditState;
       return { local: JSON.parse(JSON.stringify(window.CL)), calls: f.calls, notices: f.notifications,
@@ -129,14 +152,15 @@ fs.mkdirSync(shotDir, { recursive: true });
     ok('pending save leaves CL, header and all name caches unchanged', s.header === before.header &&
       s.cacheCalls.length === 0 && s.cacheWrites.length === 0 && s.notices.length === 0);
     ok('pending form locks input and exposes accessible feedback', await name.isDisabled() && await save.isDisabled() &&
-      await page.locator('#cpe-notes').isDisabled() && await status.getAttribute('aria-live') === 'polite');
+      await page.locator('#cpe-notes').isDisabled() && await page.locator('#cpe-discard-btn').isDisabled() &&
+      await status.getAttribute('aria-live') === 'polite');
     await page.evaluate(() => { window._cpDuplicate = saveCPEdit('c-aga'); });
     ok('duplicate pending invocation creates one confirmed operation', (await state()).calls.length === 1);
     await release('fail'); await settled();
     s = await state(); assert.deepEqual(s.local, before.local); assert.deepEqual(s.caches, before.caches);
     ok('failure retains the form and retry feedback without cache writes', await name.inputValue() === 'Agnieszka Kowalska' &&
       await page.locator('#cpe-notes').inputValue() === 'Zachowaj mój szkic' && await save.isEnabled() &&
-      /Ponów zapis/.test(await status.innerText()) && s.cacheWrites.length === 0);
+      await page.locator('#cpe-discard-btn').isDisabled() && /Ponów zapis/.test(await status.innerText()) && s.cacheWrites.length === 0);
     await page.evaluate(() => closeClientProfile()); await open(); await edit();
     ok('failed draft survives closing and reopening with its frozen candidate', await name.inputValue() === 'Agnieszka Kowalska' &&
       await page.locator('#cpe-notes').inputValue() === 'Zachowaj mój szkic' && await name.isDisabled());
@@ -152,6 +176,13 @@ fs.mkdirSync(shotDir, { recursive: true });
       s.cacheCalls.length === 1 && s.cacheWrites.length === 4);
     await page.screenshot({ path: path.join(shotDir, 'cp_edit_saved.png') });
 
+    await reset(); await open(); await edit(); await name.fill('Szkic do odrzucenia');
+    await page.locator('#cpe-discard-btn').click();
+    ok('explicit discard closes an unsent draft without persisting it', await name.count() === 0 &&
+      (await state()).local[0].name === 'Agnieszka' && (await state()).calls.length === 0);
+    await edit();
+    ok('editing after discard starts from the confirmed client', await name.inputValue() === 'Agnieszka' && await name.isEnabled());
+
     await reset(); await open(); await edit(); await name.fill('Niezapisana edycja');
     await page.evaluate(() => setCPTab('training')); await page.evaluate(() => setCPTab('overview')); await edit();
     ok('editable draft survives tab changes before save', await name.inputValue() === 'Niezapisana edycja' && await name.isEnabled());
@@ -162,6 +193,8 @@ fs.mkdirSync(shotDir, { recursive: true });
     ok('pending draft reopens with disabled controls and no duplicate request', await name.inputValue() === 'Niezapisana edycja' &&
       await name.isDisabled() && await save.isDisabled() && (await state()).calls.length === 1);
     await release(); await flush();
+    ok('pending draft ACK closes the same editor after drawer remount', await name.count() === 0 &&
+      (await state()).header === 'Niezapisana edycja');
 
     await reset(); await open(); await edit();
     await page.locator('#cpe-status').selectOption('inactive');
@@ -179,15 +212,23 @@ fs.mkdirSync(shotDir, { recursive: true });
       } else if (view === 'other-tab') {
         await page.evaluate(() => setCPTab('training'));
       } else await page.evaluate(() => closeClientProfile());
-      const otherView = await page.locator('#cp-body').innerHTML();
+      // startCPEdit schedules focus/scroll for the next frame. Capture the fully
+      // mounted view, then require the same DOM nodes as well as exact contents.
+      await settledView();
+      const otherView = await drawerView(true);
+      if (view === 'other-client') ok('client B draft is editable before client A ACK',
+        otherView.clientId === 'c-beta' && otherView.name === 'Szkic klienta Beta' && !otherView.nameDisabled,
+        { ...otherView, html: undefined });
       await release(); await flush(); s = await state();
       ok('background ACK applies only client A for ' + view, s.local[0].name === 'Potwierdzona w tle' &&
         s.local[1].name === 'Klient Beta' && s.cacheCalls.length === 1);
+      const afterView = await drawerView(false);
       ok('background ACK preserves the current drawer content for ' + view,
-        await page.locator('#cp-body').innerHTML() === otherView &&
-        (view !== 'other-client' || (await name.inputValue() === 'Szkic klienta Beta' && await name.isEnabled())) &&
-        (view !== 'other-tab' || s.tab === 'training') &&
-        (view !== 'closed' || !(await page.locator('#cp-drawer').getAttribute('class')).includes('open')));
+        afterView.html === otherView.html && afterView.sameBody && afterView.sameCard && afterView.sameName && afterView.sameNodes &&
+        (view !== 'other-client' || (afterView.clientId === 'c-beta' && afterView.header === otherView.header &&
+          afterView.name === 'Szkic klienta Beta' && !afterView.nameDisabled)) &&
+        (view !== 'other-tab' || afterView.tab === 'training') && (view !== 'closed' || !afterView.drawerOpen),
+        viewDetail(otherView, afterView));
       await open();
       await page.evaluate(() => { window._cpDuplicate = saveCPEdit('c-aga'); });
       ok('reopening the overview cannot resubmit an acknowledged draft for ' + view, (await state()).calls.length === 1);

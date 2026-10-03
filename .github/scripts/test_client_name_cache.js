@@ -133,7 +133,7 @@ function profileHarness(raw) {
     renderClients: () => calls.renders.push('clients'), renderDash: () => calls.renders.push('dash'),
     renderCPOverview: () => calls.renders.push('overview'),
     renderCPEditSaveState: state => calls.stateRenders.push({ pending: state.pending, saved: state.saved, message: state.message }),
-    cpEditIsCurrent: state => ctx.current && ctx._cpEditState === state && ctx.assignmentSessionCurrent(state.auth),
+    cpEditIsCurrent: state => !!state && ctx.current && ctx._cpEditState === state && ctx.assignmentSessionCurrent(state.auth),
     current: true,
     saveClientCardConfirmed: (candidate, operation) => {
       calls.service.push({ candidate: clone(candidate), base: clone(operation.base), operation });
@@ -147,14 +147,16 @@ function profileHarness(raw) {
   ctx.window = ctx;
   vm.createContext(ctx);
   const constants = src08.match(/const cpEditFieldIds=[^\n]+/)[0];
-  const code = [constants, extract(src08, 'cpEditClone'), extract(src08, 'cpEditFields'),
+  const code = ['const cpEditDrafts=new Map();', constants, extract(src08, 'cpEditClone'), extract(src08, 'cpEditFields'),
+    extract(src08, 'discardCPEditDraft'),
     ...['assignmentSession', 'assignmentSessionCurrent', 'assertAssignmentSession', 'syncClientNameCache'].map(name => extract(src01, name)),
     inlineSave].join('\n');
   vm.runInContext(code, ctx, { filename: 'profile-confirmation-fixture.js' });
   const auth = ctx.assignmentSession(), original = clone(base);
-  const state = ctx._cpEditState = { clientId: base.id, auth, base: original, fields: clone(original),
+  const state = ctx._cpEditState = { key: 'fixture-draft', clientId: base.id, auth, base: original, fields: clone(original),
     displayBase: ctx.cpEditFields(), card: {}, open: true, operation: { auth, edit: true, base: original } };
   ctx._cpEditingClientId = base.id;
+  vm.runInContext('cpEditDrafts.set(window._cpEditState.key,window._cpEditState);', ctx);
   return { ctx, calls, controls, state, base: clone(base),
     caches: () => [ctx.PL[0].clientName, ctx.PACKAGES[0].clientName, ctx.INVOICES[0].clientName,
       ctx.ONBOARDING_FLOW.history[0].clientName] };
@@ -259,6 +261,27 @@ async function scenario(label, run) { await run(); scenarios++; console.log('OK 
     const h = profileHarness(); h.controls['cpe-status'].value = 'inactive'; const save = h.ctx.saveCPEdit('c1');
     assert.equal(h.ctx.CL[0].status, 'active'); assert.equal(h.calls.service[0].candidate.status, 'inactive');
     h.calls.pending[0].success(); await save; assert.equal(h.ctx.CL[0].status, 'inactive');
+  });
+  await scenario('success after a matching draft remount closes the acknowledged editor', async () => {
+    const h = profileHarness(); h.controls['cpe-name'].value = 'Anna po powrocie';
+    const save = h.ctx.saveCPEdit('c1'); h.state.card = {}; // Same draft mounted in a new DOM card.
+    h.calls.pending[0].success(); await save;
+    assert.equal(h.state.saved, true); assert.equal(h.state.open, false); assert.equal(h.ctx._cpEditingClientId, null);
+    assert(h.calls.renders.includes('overview'));
+  });
+  for (const mode of ['unsent', 'conflict', 'pending', 'uncertain', 'saved', 'other-view']) await scenario('explicit discard handles a ' + mode + ' draft safely', async () => {
+    const h = profileHarness(), local = clone(h.ctx.CL);
+    if (mode !== 'unsent' && mode !== 'other-view') h.state.candidate = { ...h.base, name: 'Moja zmiana' };
+    if (mode === 'conflict') h.state.conflict = { ...h.base, name: 'Zdalna zmiana' };
+    if (mode === 'pending') h.state.pending = true;
+    if (mode === 'saved') h.state.saved = true;
+    if (mode === 'other-view') h.ctx.current = false;
+    h.ctx.discardCPEditDraft();
+    const safe = mode === 'unsent' || mode === 'conflict';
+    assert.equal(h.ctx._cpEditState === null, safe);
+    assert.equal(vm.runInContext('cpEditDrafts.size', h.ctx), safe ? 0 : 1);
+    assert.equal(h.calls.renders.includes('overview'), safe);
+    assert.deepEqual(clone(h.ctx.CL), local); assert.equal(h.calls.service.length, 0); assert.equal(h.calls.cacheWrites.length, 0);
   });
   console.log('\nAll client-name-cache tests and ' + scenarios + ' inline confirmed-save scenarios passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });
