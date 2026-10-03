@@ -1021,65 +1021,102 @@ function scheduleClientPlanToCalendar(clientId){
 window.latestClientPlan=latestClientPlan;
 window.scheduleClientPlanToCalendar=scheduleClientPlanToCalendar;
 
+const baselineModalDrafts=new Map();
+function baselineModalFields(){
+  const g=id=>document.getElementById(id)?.value||'';
+  return {date:g('bl-date'),weight:g('bl-weight'),bf:g('bl-bf'),
+    circ:typeof collectBaselineCircFields==='function'?collectBaselineCircFields():{},notes:'Pomiar startowy (baseline)'};
+}
+function baselineModalIsCurrent(state){
+  return window._baselineModalState===state&&state.open&&baselineSessionCurrent(state.auth)&&
+    document.getElementById('m-baseline')?.classList.contains('show');
+}
+function renderBaselineSaveState(state){
+  if(!baselineModalIsCurrent(state))return;
+  document.querySelectorAll('#m-baseline input').forEach(el=>{el.disabled=!!state.operation.entries;});
+  const btn=document.getElementById('bl-save-btn');
+  if(btn){btn.disabled=!!state.pending;btn.textContent=state.pending?'Zapisuję…':state.error?'Ponów zapis':'Zapisz pomiary';}
+  const status=document.getElementById('bl-save-status');
+  if(status){status.textContent=state.pending?'Czekamy na potwierdzenie zapisu.':state.error||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+}
 function openClientBaselineModal(clientId,fromOnboard){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
+  const previous=window._baselineModalState;
+  if(previous&&previous.open){if(!previous.operation.entries)previous.fields=baselineModalFields();previous.open=false;}
+  const auth=baselineSession();
+  for(const [key,draft] of baselineModalDrafts)if(!baselineSessionCurrent(draft.auth))baselineModalDrafts.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,clientId]);
+  let state=baselineModalDrafts.get(key);
+  if(!state||state.saved){
+    state={auth,clientId,operation:{},fields:{weight:c.weight||'',bf:'',circ:{},date:typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10)}};
+    baselineModalDrafts.set(key,state);
+  }
+  state.open=true;state.resumeId=fromOnboard?clientId:null;
+  window._baselineModalState=state;
   window._baselineClientId=clientId;
-  window._onboardResumeAfterBaseline=fromOnboard?clientId:null;
+  window._onboardResumeAfterBaseline=state.resumeId;
   if(fromOnboard&&typeof closeM==='function')closeM('m-client-onboard');
-  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null&&v!==''?v:'';};
-  set('bl-weight',c.weight||'');
-  set('bl-bf','');
+  openM('m-baseline');
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};
   if(typeof renderBaselineCircFields==='function')renderBaselineCircFields();
-  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
-  set('bl-date',today);
+  set('bl-weight',state.fields.weight);set('bl-bf',state.fields.bf);set('bl-date',state.fields.date);
+  Object.entries(state.fields.circ||{}).forEach(([id,value])=>set('bl-circ-'+id,value));
   const title=document.getElementById('m-baseline-title');
   if(title)title.textContent='POMIARY STARTOWE — '+(c.name||'').toUpperCase();
   const bar=document.getElementById('bl-onboard-banner');
   if(bar){
-    if(fromOnboard){
-      const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
-      bar.style.display='flex';
-      bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — zapisz pomiary albo wróć do checklisty.</span>'
-        +'<button type="button" class="btn btn-primary btn-sm" onclick="closeBaselineModal()">Wróć do checklisty</button>';
-    }else{
-      bar.style.display='none';bar.innerHTML='';
-    }
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    bar.style.display=fromOnboard?'flex':'none';
+    bar.innerHTML=fromOnboard?'<span>Start współpracy: <b>'+esc(c.name)+'</b> — zapisz pomiary albo wróć do checklisty.</span>'
+      +'<button type="button" class="btn btn-primary btn-sm" onclick="closeBaselineModal()">Wróć do checklisty</button>':'';
   }
-  openM('m-baseline');
+  renderBaselineSaveState(state);
 }
 function closeBaselineModal(){
+  const state=window._baselineModalState;
+  if(state){if(!state.operation.entries)state.fields=baselineModalFields();state.open=false;}
   if(typeof closeM==='function')closeM('m-baseline');
   const bar=document.getElementById('bl-onboard-banner');
   if(bar){bar.style.display='none';bar.innerHTML='';}
-  const cid=window._onboardResumeAfterBaseline;
+  const cid=state&&baselineSessionCurrent(state.auth)?state.resumeId:null;
   window._onboardResumeAfterBaseline=null;
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
 async function saveClientBaselineModal(){
-  const id=window._baselineClientId;if(!id)return;
-  const g=id=>document.getElementById(id)?.value||'';
-  const circ=typeof collectBaselineCircFields==='function'?collectBaselineCircFields():{};
-  const created=typeof saveClientBaselineFromFields==='function'?saveClientBaselineFromFields(id,{
-    date:g('bl-date'),
-    weight:g('bl-weight'),
-    bf:g('bl-bf'),
-    circ,
-    notes:'Pomiar startowy (baseline)'
-  }):[];
-  if(!created.length){notify('Wpisz przynajmniej wagę lub obwód');return;}
-  const resumeId=window._onboardResumeAfterBaseline;
-  window._onboardResumeAfterBaseline=null;
-  if(typeof closeM==='function')closeM('m-baseline');
-  const bar=document.getElementById('bl-onboard-banner');
-  if(bar){bar.style.display='none';bar.innerHTML='';}
-  notify('✓ Baseline zapisany ('+created.length+' wpisów)');
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
-  else if(typeof renderClientOnboardChecklist==='function'&&document.getElementById('m-client-onboard')?.classList.contains('show'))renderClientOnboardChecklist();
+  const state=window._baselineModalState;
+  if(!state||!baselineModalIsCurrent(state)||state.pending||state.saved)return;
+  if(!state.operation.entries)state.fields=baselineModalFields();
+  state.pending=true;state.error='';renderBaselineSaveState(state);
+  try{
+    const request=saveClientBaselineConfirmed(state.clientId,state.fields,state.operation);
+    renderBaselineSaveState(state);
+    const created=await request;
+    if(!created.length)throw new Error('Wpisz przynajmniej wagę, skład ciała lub obwód.');
+    state.saved=true;
+    if(!baselineModalIsCurrent(state)){
+      if(baselineSessionCurrent(state.auth)&&state.resumeId===window._onboardClientId&&
+        document.getElementById('m-client-onboard')?.classList.contains('show')&&typeof renderClientOnboardChecklist==='function')
+        renderClientOnboardChecklist();
+      return;
+    }
+    const resumeId=state.resumeId;
+    state.open=false;window._onboardResumeAfterBaseline=null;
+    closeM('m-baseline');
+    const bar=document.getElementById('bl-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
+    notify('✓ Pomiary startowe zapisane');
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
+    if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+    else if(typeof renderClientOnboardChecklist==='function'&&document.getElementById('m-client-onboard')?.classList.contains('show'))renderClientOnboardChecklist();
+  }catch(error){
+    state.error=(error&&error.message)||'Nie udało się potwierdzić zapisu. Ponów zapis.';
+    if(state.operation.entries)state.error+=' Zachowaliśmy wartości do ponowienia.';
+  }finally{state.pending=false;renderBaselineSaveState(state);}
 }
 window.openClientBaselineModal=openClientBaselineModal;
 window.closeBaselineModal=closeBaselineModal;
 window.saveClientBaselineModal=saveClientBaselineModal;
+
+
 
 // ════════════════════════════════════════
 // BUILDER

@@ -6906,11 +6906,11 @@ function assignClientPipeline(client,opts){
         if(!saved)throw new Error('Nie udało się potwierdzić zapisu klienta. Automatyczny start został wstrzymany.');
       }
       out.parts.push('karta');
-      if(opts.baseline&&typeof saveClientBaselineFromFields==='function'){
-        // Legacy baseline persistence is separate from confirmed plan/calendar writes.
-        saveClientBaselineFromFields(client.id,opts.baseline);
+      if(opts.baseline){
+        if(typeof saveClientBaselineConfirmed!=='function')throw new Error('Zapis pomiarów jest niedostępny. Odśwież aplikację.');
+        const measurements=await saveClientBaselineConfirmed(client.id,opts.baseline);
         assertAssignmentSession(auth,client);
-        out.parts.push('pomiary');
+        if(measurements.length)out.parts.push('pomiary');
       }
       if(opts.templateId){
         out.plan=await assignTemplatePlanToClient(opts.templateId,client,{force:!!opts.forcePlan});
