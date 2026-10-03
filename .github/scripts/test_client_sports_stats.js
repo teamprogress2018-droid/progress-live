@@ -181,7 +181,7 @@ ok('ai JSON adaptation_notes', /"adaptation_notes"/.test(src03) && /apl-adaptati
 ok('ai JSON mezocycle', /mezocycle_overview/.test(src03) && /weekly_progression_schema/.test(src03));
 ok('ai additional activities rule', /AKTYWNOŚCI DODATKOWE/.test(src03));
 ok('save client additional_activities', /additional_activities/.test(src05) && /readSportBackgroundFrom\('ac'\)/.test(src05));
-ok('profile editor rows', /sportBackgroundFormHTML/.test(src08) && /additional_activities/.test(src09));
+ok('profile editor rows', /sportBackgroundFormHTML/.test(src08) && /fields.additional_activities/.test(src08) && /cpEditFields\(\)/.test(src09));
 ok('form rows html helper', /addl-act-row/.test(fs.readFileSync(path.join(root, '01-core.js'), 'utf8')));
 
 if (failed) {
