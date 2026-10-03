@@ -732,7 +732,12 @@ function renderClientOnboardChecklist(){
   const c=CL.find(x=>x.id===id);
   const el=document.getElementById('client-onboard-steps');
   if(!el||!c)return;
-  const st=getClientOnboard(c);
+  const st={...getClientOnboard(c)};
+  const calendarState=getOnboardCalendarState(id);
+  // A local listener may emit before the write acknowledgement. Keep this action unconfirmed.
+  if(calendarState&&calendarState.operation&&!calendarState.calendarBefore&&st.calendar){
+    st.calendar=false;st.done=Math.max(0,st.done-1);st.complete=false;
+  }
   const intro=document.getElementById('client-onboard-intro');
   if(intro)intro.textContent=st.complete
     ? c.name+' jest gotowy do codziennej pracy.'
@@ -774,10 +779,10 @@ function renderClientOnboardChecklist(){
         :'Najszybciej: generator AI z danymi klienta',
       action:`openAiPlanForClient('${id}',true)`,cta:'⚡ Plan AI',
       extra:st.plan?'':`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">Szablon / kreator</button>`},
-    {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
-      action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
+    {key:'calendar',done:st.calendar,icon:'🗓',title:'Dodaj terminy do kalendarza',desc:'Dopełnij 4 tygodnie według planu. Istniejące treningi, zmiany terminów i pominięcia zostaną zachowane.',
+      action:`scheduleClientPlanToCalendar('${id}')`,cta:'Dodaj terminy na 4 tygodnie',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,
-      doneExtra:st.calendar?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-ghost btn-sm" onclick="scheduleClientPlanToCalendar('${id}')">🗓 Dodaj najnowszy plan do kalendarza</button></div>`:''},
+      doneExtra:st.calendar?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button type="button" class="btn btn-ghost btn-sm" data-onboard-calendar-client="${escHtml(id)}" data-onboard-calendar-label="Dopełnij terminy najnowszego planu" onclick="scheduleClientPlanToCalendar('${id}')">Dopełnij terminy najnowszego planu</button></div>`:''},
     {done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
       action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
       extra:st.package?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientPackage('${id}')">Pomiń</button>`,
@@ -822,16 +827,18 @@ function renderClientOnboardChecklist(){
       </div>`;
   }
   el.innerHTML=formBlock+steps.map(s=>`
-    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
+    <div ${s.key==='calendar'?'data-onboard-step="calendar"':''} style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
       <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${s.title}</div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:${(s.done&&!s.afterDone&&!s.doneExtra)||!s.done?'8px':'0'};">${s.desc}</div>
         ${s.done
           ?`<div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>${s.doneExtra||''}${s.afterDone||''}`
-          :`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
+          :`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="btn btn-primary btn-sm" ${s.key==='calendar'?`data-onboard-calendar-client="${escHtml(id)}" data-onboard-calendar-label="${s.cta}"`:''} onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
+        ${s.key==='calendar'?`<div data-onboard-calendar-status="${escHtml(id)}" role="status" aria-live="polite" hidden style="font-size:11px;line-height:1.5;margin-top:8px;"></div>`:''}
       </div>
     </div>`).join('')+(st.complete?`<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="closeM('m-client-onboard')">Gotowe — zamknij</button>`:'');
+  renderOnboardCalendarState(id);
 }
 window.openClientOnboardChecklist=openClientOnboardChecklist;
 window.renderClientOnboardChecklist=renderClientOnboardChecklist;
@@ -912,19 +919,97 @@ function latestClientPlan(clientId){
     return bk.localeCompare(ak);
   })[0]||null;
 }
-function scheduleClientPlanToCalendar(clientId){
-  const plan=latestClientPlan(clientId);
-  if(!plan){
-    if(typeof notify==='function')notify('Najpierw przypisz plan');
-    return 0;
+// Calendar actions in Start współpracy are scoped to the current trainer session.
+const onboardCalendarStates=new Map();
+function onboardCalendarSession(){return {uid:window._uid,generation:window.tenantSessionGeneration||0};}
+function onboardCalendarCurrent(auth){
+  return !!auth.uid&&auth.uid===window._uid&&auth.generation===(window.tenantSessionGeneration||0)&&
+    !window._clientAppMode&&!window._clientPreviewMode&&window._tenantDataReady===true&&
+    (!window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(auth));
+}
+function onboardCalendarKey(auth,cid){return JSON.stringify([auth.uid,auth.generation,cid]);}
+function getOnboardCalendarState(cid){
+  const auth=onboardCalendarSession();
+  for(const [key,state] of onboardCalendarStates){
+    if(state.auth.uid!==auth.uid||state.auth.generation!==auth.generation)onboardCalendarStates.delete(key);
   }
-  let n=0;
-  if(typeof maybeSchedulePlanToCalendar==='function')n=maybeSchedulePlanToCalendar(plan.id,{weeks:4})||0;
-  else if(typeof schedulePlanToCalendar==='function')n=schedulePlanToCalendar(plan.id,{weeks:4})||0;
-  if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(typeof renderClients==='function')try{renderClients();}catch(e){}
-  return n;
+  return onboardCalendarStates.get(onboardCalendarKey(auth,cid));
+}
+function renderOnboardCalendarState(cid){
+  const state=getOnboardCalendarState(cid);
+  document.querySelectorAll('[data-onboard-calendar-client]').forEach(button=>{
+    if(button.getAttribute('data-onboard-calendar-client')!==cid)return;
+    button.disabled=!!(state&&state.pending);
+    button.textContent=state&&state.pending?'Zapisywanie…':state&&state.error?'Ponów zapis terminów':button.getAttribute('data-onboard-calendar-label');
+  });
+  document.querySelectorAll('[data-onboard-calendar-status]').forEach(el=>{
+    if(el.getAttribute('data-onboard-calendar-status')!==cid)return;
+    el.textContent=state&&state.message||'';
+    el.hidden=!el.textContent;
+    el.style.color=state&&state.error?'var(--orange)':'var(--muted)';
+  });
+}
+function scheduleClientPlanToCalendar(clientId){
+  const cid=String(clientId||''),auth=onboardCalendarSession();
+  let state=getOnboardCalendarState(cid);
+  if(state&&state.pending)return state.promise;
+  if(!state){
+    state={auth,pending:false,error:false,message:'',operation:null};
+    onboardCalendarStates.set(onboardCalendarKey(auth,cid),state);
+  }
+  try{
+    if(!onboardCalendarCurrent(auth))throw new Error('Dane konta nie są gotowe. Otwórz ponownie profil klienta po zalogowaniu.');
+    const client=(window.CL||[]).find(c=>c&&c.id===cid&&c.trainerId===auth.uid&&!c.archived&&!c.deleted&&c.status!=='archived');
+    if(!client)throw new Error('Klient jest niedostępny. Odśwież listę klientów.');
+    if(typeof window.refillCalendarConfirmed!=='function')throw new Error('Odśwież aplikację, aby wczytać moduł kalendarza.');
+    if(!state.operation){
+      const plan=(window.PL||[]).filter(p=>p&&p.clientId===cid&&p.trainerId===auth.uid&&!p.archived&&!p.deleted&&p.status!=='archived'&&
+        (p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length))
+        .sort((a,b)=>String(b.updatedAt||b.createdAt||b.id||'').localeCompare(String(a.updatedAt||a.createdAt||a.id||'')))[0];
+      if(!plan)throw new Error('Najpierw przypisz klientowi plan z dniami treningowymi.');
+      const preferred=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(client.preferredWeekdays):(client.preferredWeekdays||[]);
+      if(!preferred.length&&!confirm('Dodać terminy na 4 tygodnie według dni w planie? Preferowane dni klienta nie są jeszcze ustawione.'))return Promise.resolve({status:'cancelled'});
+      state.operation={planId:plan.id,weeks:4};
+      state.planName=plan.name||'Plan treningowy';
+      state.calendarBefore=!!getClientOnboard(client).calendar;
+    }
+  }catch(error){
+    const message=error&&error.message||'Nie można rozpocząć zapisu terminów.';
+    state.error=true;state.message=message;
+    renderOnboardCalendarState(cid);
+    return Promise.resolve({status:'error',error:message});
+  }
+  state.pending=true;state.error=false;
+  state.message='Sprawdzam terminy i zapisuję brakujące: '+state.planName+'. Poczekaj na potwierdzenie.';
+  renderOnboardCalendarState(cid);
+  // Start in a microtask so repeated clicks always receive the same Promise.
+  state.promise=Promise.resolve().then(async()=>{
+    try{
+      if(!onboardCalendarCurrent(auth))throw new Error('Sesja logowania zmieniła się. Otwórz ponownie profil klienta.');
+      const result=await window.refillCalendarConfirmed(cid,state.operation);
+      if(!onboardCalendarCurrent(auth))return {status:'error',error:'Sesja logowania zmieniła się. Otwórz ponownie profil klienta.'};
+      if(!result||!['saved','unchanged'].includes(result.status))throw new Error(result&&result.error||'Nie udało się potwierdzić zapisu terminów.');
+      state.operation=null;state.error=false;
+      state.message=result.added?'Potwierdzono zapis '+result.added+' treningów. Istniejące terminy zachowano.':'Kalendarz jest już uzupełniony. Istniejące terminy zachowano.';
+      return result;
+    }catch(error){
+      const message=error&&error.code?'Nie udało się potwierdzić zapisu. Sprawdź połączenie i ponów zapis terminów.':error&&error.message||'Nie udało się potwierdzić zapisu terminów.';
+      if(onboardCalendarCurrent(auth)){state.error=true;state.message=message;}
+      return {status:'error',error:message};
+    }finally{
+      state.pending=false;
+      const modal=document.getElementById('m-client-onboard');
+      if(onboardCalendarCurrent(auth)&&window._onboardClientId===cid&&
+        getOnboardCalendarState(cid)===state&&modal&&modal.classList.contains('show')){
+        renderClientOnboardChecklist();
+        if(!state.error&&!state.operation){
+          if(typeof renderDash==='function')try{renderDash();}catch(e){}
+          if(typeof renderClients==='function')try{renderClients();}catch(e){}
+        }
+      }
+    }
+  });
+  return state.promise;
 }
 window.latestClientPlan=latestClientPlan;
 window.scheduleClientPlanToCalendar=scheduleClientPlanToCalendar;
