@@ -247,166 +247,181 @@ function renderClients(){
   renderSidebarClients();
 }
 
+// A draft belongs to one trainer session and one client, including after a failed save.
+const clientModalDrafts=new Map();
+const clientModalFieldIds={name:'ac-name',email:'ac-email',phone:'ac-phone',age:'ac-age',gender:'ac-gender',weight:'ac-weight',height:'ac-height',goal:'ac-goal',level:'ac-level',trainingFreq:'ac-freq',preferredTrainTime:'ac-train-time',activityLevel:'ac-activity',sportNotes:'ac-sport-notes',injuries:'ac-injuries',notes:'ac-notes'};
+function clientModalFields(){
+  const fields={};
+  for(const [key,id] of Object.entries(clientModalFieldIds))fields[key]=document.getElementById(id)?.value||'';
+  const bg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac'):{priorSports:[],additional_activities:[]};
+  fields.priorSports=bg.priorSports||[];fields.additional_activities=bg.additional_activities||[];
+  fields.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):[];
+  fields.preferredWeekdays=typeof readPreferredWeekdaysFrom==='function'?readPreferredWeekdaysFrom('ac'):[];
+  return fields;
+}
+function clientModalIsCurrent(state){
+  return window._clientModalState===state&&state.open&&assignmentSessionCurrent(state.auth)&&
+    document.getElementById('m-client')?.classList.contains('show');
+}
+function captureClientModalDraft(){
+  const state=window._clientModalState;
+  if(state&&state.open){if(!state.candidate)state.fields=clientModalFields();state.open=false;}
+}
+function clearClientModalDrafts(){
+  clientModalDrafts.clear();window._clientModalState=null;
+  for(const id of Object.values(clientModalFieldIds)){const el=document.getElementById(id);if(el)el.value='';}
+  ['ac-prior-sports-mount','ac-physique-priority-mount','ac-preferred-weekdays-mount','ac-save-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
+}
+function renderClientModalSaveState(state){
+  if(window._clientModalState!==state)return;
+  document.querySelectorAll('#m-client .modal-body input,#m-client .modal-body select,#m-client .modal-body textarea,#m-client .modal-body button').forEach(el=>{el.disabled=!!state.candidate;});
+  const btn=document.getElementById('ac-save-btn');
+  if(btn){btn.disabled=!!(state.pending||state.saved||state.conflict);btn.textContent=state.pending?'Zapisuję…':state.saved?'Zapisano':state.error?'Ponów zapis':'Zapisz klienta';}
+  const next=document.getElementById('ac-new-btn');if(next)next.style.display=state.saved&&!state.editId&&!state.pending?'':'none';
+  const refresh=document.getElementById('ac-reload-btn');if(refresh)refresh.style.display=state.conflict?'':'none';
+  const status=document.getElementById('ac-save-status');
+  if(status){status.textContent=state.message||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+}
 function openClientModal(clientId){
-  window._editingClientId=clientId||null;
-  const titleEl=document.querySelector('#m-client .modal-title');
-  if(clientId){
-    const c=CL.find(x=>x.id===clientId);
-    if(!c){notify('Nie znaleziono klienta');return;}
-    if(titleEl)titleEl.textContent='EDYTUJ KLIENTA';
-    document.getElementById('ac-name').value=c.name||'';
-    document.getElementById('ac-email').value=c.email||'';
-    document.getElementById('ac-phone').value=c.phone||'';
-    document.getElementById('ac-age').value=c.age||'';
-    document.getElementById('ac-gender').value=(typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M';
-    document.getElementById('ac-weight').value=c.weight||'';
-    document.getElementById('ac-height').value=c.height||'';
-    document.getElementById('ac-goal').value=c.goal||'masa';
-    document.getElementById('ac-level').value=c.level||'poczatkujacy';
-    const freqEl=document.getElementById('ac-freq');
-    if(freqEl)freqEl.value=c.trainingFreq?String(c.trainingFreq):'';
-    const timeEl=document.getElementById('ac-train-time');
-    if(timeEl)timeEl.value=c.preferredTrainTime||'';
-    document.getElementById('ac-activity').value=c.activityLevel||'moderate';
-    document.getElementById('ac-sport-notes').value=c.sportNotes||'';
-    const injEl=document.getElementById('ac-injuries');
-    if(injEl)injEl.value=(typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||''));
-    document.getElementById('ac-notes').value=c.notes||'';
-    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',c.priorSports||[],c.additional_activities||[]);
-    if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',c.physiquePriority||[]);
-    if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',c.preferredWeekdays||[]);
-  }else{
-    if(titleEl)titleEl.textContent='NOWY KLIENT';
-    ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-sport-notes','ac-injuries','ac-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    const freqEl=document.getElementById('ac-freq');if(freqEl)freqEl.value='3';
-    const timeEl=document.getElementById('ac-train-time');if(timeEl)timeEl.value='';
-    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
-    if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',[]);
-    if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',[1,3,5]);
+  captureClientModalDraft();
+  const auth=assignmentSession();
+  for(const [key,draft] of clientModalDrafts)if(!assignmentSessionCurrent(draft.auth))clientModalDrafts.delete(key);
+  const c=clientId?CL.find(x=>x.id===clientId):null;
+  if(clientId&&!c){notify('Nie znaleziono klienta');return;}
+  const key=JSON.stringify([auth.uid,auth.generation,clientId||'new']);
+  let state=clientModalDrafts.get(key);
+  if(state&&state.saved&&!state.pending&&(state.editId||state.acknowledged)){clientModalDrafts.delete(key);state=null;}
+  if(!state){
+    const base=c?JSON.parse(JSON.stringify(c)):null;
+    state={auth,key,editId:clientId||null,base,operation:{auth,edit:!!clientId,base},fields:c?{...base,injuries:typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'')}:{gender:'M',goal:'masa',level:'poczatkujacy',trainingFreq:3,activityLevel:'moderate',preferredWeekdays:[1,3,5]}};
+    clientModalDrafts.set(key,state);
   }
-  openM('m-client');
+  state.open=true;window._clientModalState=state;window._editingClientId=state.editId;
+  const titleEl=document.querySelector('#m-client .modal-title');
+  if(titleEl)titleEl.textContent=state.editId?'EDYTUJ KLIENTA':'NOWY KLIENT';
+  for(const [field,id] of Object.entries(clientModalFieldIds)){
+    const el=document.getElementById(id);if(el)el.value=state.fields[field]??'';
+  }
+  const gender=document.getElementById('ac-gender');if(gender)gender.value=(typeof normalizeClientGender==='function'?normalizeClientGender(state.fields.gender):state.fields.gender)||'M';
+  if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',state.fields.priorSports||[],state.fields.additional_activities||[]);
+  if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',state.fields.physiquePriority||[]);
+  if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',state.fields.preferredWeekdays||[]);
+  // Do not call the generic New Client entry point again: it used to clear the edit ID.
+  if(!state.displayBase)state.displayBase=clientModalFields();
+  document.getElementById('m-client').classList.add('show');
+  renderClientModalSaveState(state);
+}
+function startNewClientModalDraft(){
+  const state=window._clientModalState;
+  if(!state||!clientModalIsCurrent(state)||!state.saved||state.pending)return;
+  clientModalDrafts.delete(state.key);openClientModal();
+}
+function reloadClientModalDraft(){
+  const state=window._clientModalState;
+  if(!state||!clientModalIsCurrent(state)||!state.conflict||state.pending)return;
+  const remote=state.conflict;
+  try{assertAssignmentSession(state.auth,remote);}catch(error){notify(error.message);return;}
+  state.base=JSON.parse(JSON.stringify(remote));state.fields={...state.base,injuries:typeof clientInjuriesText==='function'?clientInjuriesText(state.base):(state.base.injuries||'')};
+  state.operation={auth:state.auth,edit:true,base:state.base};
+  state.candidate=null;state.error=false;state.conflict=null;state.displayBase=null;
+  state.message='Wczytano aktualne dane. Wprowadź i zapisz swoje zmiany.';
+  state.open=false;openClientModal(state.editId);
 }
 window.openClientModal=openClientModal;
 window.quickEditClient=quickEditClient;
+window.captureClientModalDraft=captureClientModalDraft;
+window.clearClientModalDrafts=clearClientModalDrafts;
+window.startNewClientModalDraft=startNewClientModalDraft;
+window.reloadClientModalDraft=reloadClientModalDraft;
 
 async function saveClient(){
-  const name=document.getElementById('ac-name').value.trim();
-  if(!name){notify('Wpisz imię!');return;}
-  const emailRaw=document.getElementById('ac-email').value;
-  const email=typeof normalizeClientEmail==='function'?normalizeClientEmail(emailRaw):String(emailRaw||'').trim().toLowerCase();
-  if(typeof clientEmailValid==='function'? !clientEmailValid(email) : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    notify('Podaj prawidłowy e-mail — bez niego klient nie zaloguje się do aplikacji.');
-    return;
-  }
-  if(window._saveGuard_saveClient)return;window._saveGuard_saveClient=true;setTimeout(()=>window._saveGuard_saveClient=false,1500);
-
-  const editId=window._editingClientId;
-  const readFreq=()=>{
-    const n=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(document.getElementById('ac-freq')?.value):parseInt(document.getElementById('ac-freq')?.value,10);
-    return n||undefined;
-  };
-  const readWeekdays=()=>typeof readPreferredWeekdaysFrom==='function'?readPreferredWeekdaysFrom('ac'):[];
-  const readTrainTime=()=>(document.getElementById('ac-train-time')?.value||'').trim();
-  if(editId){
-    const c=CL.find(x=>x.id===editId);
-    if(!c){notify('Nie znaleziono klienta');return;}
-    c.name=name;
-    c.email=email;
-    c.phone=document.getElementById('ac-phone')?.value||'';
-    c.age=+document.getElementById('ac-age').value||0;
-    c.gender=(typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('ac-gender').value):document.getElementById('ac-gender').value)||'M';
-    c.weight=+document.getElementById('ac-weight').value||0;
-    c.height=+document.getElementById('ac-height').value||0;
-    c.goal=document.getElementById('ac-goal').value;
-    c.level=document.getElementById('ac-level').value;
-    const freq=readFreq();if(freq)c.trainingFreq=freq;else delete c.trainingFreq;
-    c.preferredWeekdays=readWeekdays();
-    c.preferredTrainTime=readTrainTime();
-    const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac'):{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[],additional_activities:[]};
-    c.priorSports=sportBg.priorSports||[];
-    c.additional_activities=sportBg.additional_activities||[];
-    c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):(c.physiquePriority||[]);
-    c.activityLevel=document.getElementById('ac-activity')?.value||'moderate';
-    c.sportNotes=document.getElementById('ac-sport-notes')?.value||'';
-    c.injuries=document.getElementById('ac-injuries')?.value||'';
-    c.notes=document.getElementById('ac-notes').value;
-    window._editingClientId=null;
-    closeM('m-client');
-    window._aplLastClientId=c.id;
-    await persistById('clients',c);
-    if(typeof aplRefreshFromSavedClient==='function'){
-      try{aplRefreshFromSavedClient(c.id);}catch(e){}
+  const state=window._clientModalState;
+  if(!state||!clientModalIsCurrent(state)||state.pending||state.saved||state.conflict)return;
+  if(!state.candidate){
+    const fields=clientModalFields(),name=fields.name.trim();
+    if(!name){notify('Wpisz imię!');return;}
+    const email=typeof normalizeClientEmail==='function'?normalizeClientEmail(fields.email):fields.email.trim().toLowerCase();
+    if(!clientEmailValid(email)){notify('Podaj prawidłowy e-mail — bez niego klient nie zaloguje się do aplikacji.');return;}
+    try{if(!assignmentSessionCurrent(state.auth))throw new Error('Zaloguj się ponownie przed zapisem.');
+      if(state.editId)assertAssignmentSession(state.auth,CL.find(c=>c.id===state.editId));
+    }catch(error){notify(error.message);return;}
+    const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(fields.trainingFreq):parseInt(fields.trainingFreq,10);
+    const values={...fields,name,email,age:+fields.age||0,weight:+fields.weight||0,height:+fields.height||0,
+      gender:(typeof normalizeClientGender==='function'?normalizeClientGender(fields.gender):fields.gender)||'M',trainingFreq:freq||(state.editId?null:3)};
+    if(state.editId){
+      for(const key of Object.keys(values)){
+        if(JSON.stringify(fields[key])===JSON.stringify(state.displayBase[key])){
+          if(Object.prototype.hasOwnProperty.call(state.base,key))values[key]=state.base[key];
+          else delete values[key];
+        }
+      }
     }
-    try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
+    state.fields=fields;
+    state.candidate=state.editId?{...state.base,...values}:{...values,
+      id:'c_'+crypto.randomUUID(),trainerId:state.auth.uid,status:'active',
+      joinDate:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString(),
+      onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow||'standard'};
+  }
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie zapisu klienta.';
+  renderClientModalSaveState(state);
+  try{
+    const saved=await saveClientCardConfirmed(state.candidate,state.operation);
+    if(!assignmentSessionCurrent(state.auth))return;
+    assertAssignmentSession(state.auth,saved);
+    state.saved=true;
+    let c=CL.find(x=>x.id===saved.id);
+    if(state.editId){
+      if(!c)throw new Error('Klient został usunięty podczas zapisu.');
+      assertAssignmentSession(state.auth,c);
+    }
+    if(c)Object.assign(c,saved);else{c=saved;CL.push(c);}
+    state.message='Klient '+c.name+' zapisany.';
+    if(clientModalIsCurrent(state)){
+      window._aplLastClientId=c.id;
+      if(typeof aplRefreshFromSavedClient==='function')try{aplRefreshFromSavedClient(c.id);}catch(e){}
+    }
+    if(state.editId){
+      try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
+    }
     try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
-    if(cpClientId===c.id){
-      try{document.getElementById('cp-name').textContent=c.name;}catch(e){}
-      try{renderCPOverview(c);}catch(e){}
+    if(state.editId){
+      if(typeof cpClientId!=='undefined'&&cpClientId===c.id){
+        try{document.getElementById('cp-name').textContent=c.name;}catch(e){}
+        if(clientModalIsCurrent(state)&&typeof cpTab!=='undefined'&&cpTab==='overview'&&!window._cpEditingClientId){
+          try{renderCPOverview(c);}catch(e){}
+        }
+      }
+      notify('✓ Zaktualizowano: '+c.name);
+      if(clientModalIsCurrent(state)){
+        state.acknowledged=true;closeM('m-client');
+        if(window._onboardResumeAfterEdit===c.id){window._onboardResumeAfterEdit=null;if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(c.id);}
+      }
+      return;
     }
-    notify('✓ Zaktualizowano: '+c.name);
-    if(window._onboardResumeAfterEdit===c.id){
-      window._onboardResumeAfterEdit=null;
-      if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(c.id);
+    state.message='Klient '+c.name+' zapisany. Uruchamiam start współpracy…';
+    renderClientModalSaveState(state);
+    const result=await assignClientPipeline(c,{persist:false,runFlow:true,schedule:true,notify:true,fireEvent:true});
+    if(!assignmentSessionCurrent(state.auth))return;
+    if(!result.ok)state.message='Klient '+c.name+' zapisany. Start współpracy wymaga dokończenia w checkliście: '+(result.error||'Spróbuj ponownie.');
+    else if(result.calendar&&result.calendar.status==='error')state.message='Klient i plan zapisani. Kalendarz wymaga ponowienia w checkliście: '+result.calendar.error;
+    else state.message='✅ Klient '+c.name+' zapisany!';
+    notify(state.message);
+    if(clientModalIsCurrent(state)){
+      state.acknowledged=!!result.ok;closeM('m-client');
+      if(typeof openClientOnboardChecklist==='function')openClientOnboardChecklist(c.id);
     }
-    return;
+  }catch(error){
+    if(!assignmentSessionCurrent(state.auth))return;
+    state.error=true;
+    state.conflict=state.editId&&error&&error.code==='client-card-conflict'?error.remote:null;
+    state.message=state.saved?(state.editId?'Edycja zapisana, ale klient jest teraz niedostępny. Odśwież listę klientów.':'Klient zapisany. Dokończ start współpracy w jego checkliście.'):
+      state.conflict?'Dane klienta zmieniły się podczas edycji. Wczytaj aktualne dane i nanieś zmiany ponownie.':
+      'Nie potwierdzono zapisu. Dane formularza zachowano. Ponów zapis. '+(error?.message||'');
+    notify(state.message);
+  }finally{
+    state.pending=false;
+    if(clientModalIsCurrent(state))renderClientModalSaveState(state);
   }
-
-  const freqNew=readFreq();
-  const c=withTrainer({
-    id:newId('c'),
-    name,
-    email,
-    phone:document.getElementById('ac-phone')?.value||'',
-    age:+document.getElementById('ac-age').value||0,
-    gender:(typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('ac-gender').value):document.getElementById('ac-gender').value)||'M',
-    weight:+document.getElementById('ac-weight').value||0,
-    height:+document.getElementById('ac-height').value||0,
-    goal:document.getElementById('ac-goal').value,
-    level:document.getElementById('ac-level').value,
-    trainingFreq:freqNew||3,
-    preferredWeekdays:readWeekdays(),
-    preferredTrainTime:readTrainTime(),
-    priorSports:(typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac').priorSports:(typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[])),
-    additional_activities:(typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac').additional_activities:[]),
-    physiquePriority:typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):[],
-    activityLevel:document.getElementById('ac-activity')?.value||'moderate',
-    sportNotes:document.getElementById('ac-sport-notes')?.value||'',
-    injuries:document.getElementById('ac-injuries')?.value||'',
-    notes:document.getElementById('ac-notes').value,
-    status:'active',
-    joinDate:new Date().toISOString().split('T')[0],
-    createdAt:new Date().toISOString(),
-    onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow||'standard'
-  });
-  // najpierw dodaj lokalnie — natychmiast
-  CL.push(c);
-  window._editingClientId=null;
-  closeM('m-client');
-  window._aplLastClientId=c.id;
-  if(typeof aplRefreshFromSavedClient==='function'){
-    try{aplRefreshFromSavedClient(c.id);}catch(e){}
-  }
-  ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-injuries','ac-notes'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-  try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
-  const creationSession=assignmentSession();
-  notify('Zapisuję klienta i uruchamiam start współpracy…');
-  if(typeof assignClientPipeline==='function'){
-    const result=await assignClientPipeline(c,{persist:true,runFlow:true,schedule:true,notify:true,fireEvent:true});
-    if(!assignmentSessionCurrent(creationSession))return;
-    if(!result.ok)notify(result.error||'Nie udało się potwierdzić startu współpracy.');
-    else if(result.calendar&&result.calendar.status==='error')notify('Klient i plan zapisani. Kalendarz wymaga ponowienia w checkliście: '+result.calendar.error);
-    else notify('✅ Klient '+c.name+' zapisany!');
-  }else{
-    addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
-    if(!await persistById('clients',c))return;
-    if(!assignmentSessionCurrent(creationSession))return;
-    if(typeof runOnboardingForClient==='function')await runOnboardingForClient(c);
-    if(!assignmentSessionCurrent(creationSession))return;
-    if(typeof fireIntEvent==='function')fireIntEvent('client.created',{client:{id:c.id,name:c.name,email:c.email||'',phone:c.phone||''}});
-  }
-  setTimeout(()=>{if(assignmentSessionCurrent(creationSession))openClientOnboardChecklist(c.id);},400);
 }
 
 function getClientOnboard(c){
