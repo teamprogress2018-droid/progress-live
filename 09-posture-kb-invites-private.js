@@ -2959,29 +2959,49 @@ function renderOnboardHistory(){
 function assignProgramPlanToClient(programId, client){
   if(!programId||typeof allPrograms!=='function')return null;
   const prog=allPrograms().find(p=>p.id===programId);if(!prog)return null;
+  assertAssignmentSession(assignmentSession(),client);
+  const existing=(window.PL||[]).find(p=>p.clientId===client.id&&p.trainerId===client.trainerId&&p.programId===programId&&!p.archived&&!p.deleted&&p.status!=='archived');
+  if(existing)return Promise.resolve(existing);
   const days=typeof planDaysFromProgram==='function'
     ?planDaysFromProgram(prog,0)
     :(((prog.weeks&&prog.weeks[0])||{}).days||[]).map(d=>({day:d.d||d.day||d.name||'Dzień',muscles:d.name||'',exercises:[]}));
-  const plan=withTrainer({
+  return persistAssignedClientPlan(client,'program:'+programId,()=>withTrainer({
     id:newId('p'),name:prog.name,clientId:client.id,clientName:client.name||'',
     method:prog.method||'',duration:prog.duration||0,
     level:prog.level||'sredni',goal:prog.goal||'masa',
     programId:prog.id,
     days:days.length?days:[{day:'Pon',muscles:'',exercises:[{name:'Trening wg planu',sets:'3',reps:'8-12',rest:'90s'}]}],
     source:'onboarding',createdAt:new Date().toISOString()
-  });
-  (window.PL||(window.PL=[])).push(plan);
-  persistById('plans',plan);
-  return plan;
+  }));
 }
 
 function runOnboardingForClient(client,opts){
+  return (async()=>{
   if(!client)return [];
+  const auth=assignmentSession();
+  assertAssignmentSession(auth,client);
   opts=opts||{};
   const flow=window.ONBOARDING_FLOW;
   const first=(client.name||'').split(' ')[0];
   const parts=[];
   if(flow&&flow.active){
+    if(!opts.skipAssign && flow.assignEnabled!==false && flow.programId){
+      const assigned=await assignProgramPlanToClient(flow.programId,client);
+      assertAssignmentSession(auth,client);
+      if(assigned){
+        parts.push('program');
+        if(!opts.skipSchedule){
+          const result=await confirmAssignedClientCalendar(client,assigned,{weeks:4});
+          assertAssignmentSession(auth,client);
+          if(result&&['saved','unchanged'].includes(result.status))parts.push('kalendarz');
+        }
+      }
+    }
+    const startup=assignmentStartupState(client);
+    if(startup.flowParts){
+      parts.push(...startup.flowParts);
+    }else{
+    const effectsStart=parts.length;
     if(flow.msgEnabled!==false && flow.welcomeMsg && typeof pushMsg==='function'){
       pushMsg(client.id,(flow.welcomeMsg||'').replace(/\{imie\}/g,first));
       parts.push('wiadomość');
@@ -3000,25 +3020,6 @@ function runOnboardingForClient(client,opts){
         }
       });
       if(picked.length)parts.push('formularz');
-    }
-    if(!opts.skipAssign && flow.assignEnabled!==false && flow.programId){
-      const assigned=assignProgramPlanToClient(flow.programId,client);
-      if(assigned){
-        parts.push('program');
-        if(!opts.skipSchedule && typeof maybeSchedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
-          try{
-            const n=maybeSchedulePlanToCalendar(assigned.id,{weeks:4});
-            if(n>0)parts.push('kalendarz');
-          }catch(e){console.warn('schedule after onboard assign',e);}
-        }else if(!opts.skipSchedule && typeof schedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
-          try{
-            if(confirm('Program „'+(assigned.name||'')+'” przypisany. Dodać dni do kalendarza na 4 tyg.?')){
-              schedulePlanToCalendar(assigned.id,{weeks:4});
-              parts.push('kalendarz');
-            }
-          }catch(e){console.warn('schedule after onboard assign',e);}
-        }
-      }
     }
     if(flow.forumGroupId && (flow.assignEnabled!==false)){
       const enrolled=typeof enrollClientInForumGroup==='function'
@@ -3058,15 +3059,22 @@ function runOnboardingForClient(client,opts){
       pushMsg(client.id,'Proszę o krótki dzienniczek żywienia z 2–3 dni — wrzucimy to do planu.');
       parts.push('żywienie');
     }
+    startup.flowParts=parts.slice(effectsStart);
     if(parts.length){
       logOnboardRun(client,parts);
       if(typeof addNotification==='function')addNotification('system','Onboarding uruchomiony',client.name+' — '+parts.join(', '),'automation');
     }
+    }
   }
   // Ankieta tylko gdy Automatyzacja → Onboarding jest Aktywny (formsEnabled).
   // Inaczej checklista ma CTA „Wyślij ankietę” — nie udawaj, że już poszła.
-  if(typeof enrollNewClientInAutoflows==='function')enrollNewClientInAutoflows(client);
+  const startup=assignmentStartupState(client);
+  if(!startup.enrolled&&typeof enrollNewClientInAutoflows==='function'){
+    enrollNewClientInAutoflows(client);
+    startup.enrolled=true;
+  }
   return parts;
+  })();
 }
 window.runOnboardingForClient=runOnboardingForClient;
 
