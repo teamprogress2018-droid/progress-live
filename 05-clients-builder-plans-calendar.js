@@ -321,7 +321,7 @@ function reloadClientModalDraft(){
   if(!state||!clientModalIsCurrent(state)||!state.conflict||state.pending)return;
   const remote=state.conflict;
   try{assertAssignmentSession(state.auth,remote);}catch(error){notify(error.message);return;}
-  state.base=JSON.parse(JSON.stringify(remote));state.fields={...state.base};
+  state.base=JSON.parse(JSON.stringify(remote));state.fields={...state.base,injuries:typeof clientInjuriesText==='function'?clientInjuriesText(state.base):(state.base.injuries||'')};
   state.operation={auth:state.auth,edit:true,base:state.base};
   state.candidate=null;state.error=false;state.conflict=null;state.displayBase=null;
   state.message='Wczytano aktualne dane. Wprowadź i zapisz swoje zmiany.';
