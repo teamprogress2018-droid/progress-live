@@ -120,6 +120,8 @@ function ok(name, condition, detail) {
         window._clientAppMode = false;
         window._clientPreviewMode = false;
         window._afStateReady = false;
+        // Calendar confirmation refreshes the real dashboard; this fixture does not enable weekly messaging.
+        window.SETTINGS = { ...(window.SETTINGS || {}), notifications: { ...((window.SETTINGS || {}).notifications || {}), weeklyCheckin: false } };
         f.docs = {}; f.queries = []; f.transactions = []; f.commits = []; f.notifications = [];
         window.CL = [
           { id: f.a, trainerId: f.owner, name: 'Klient Alfa', status: 'active', accessMode: 'trial', preferredWeekdays: [1], inviteSkipped: true, packageSkipped: true },
@@ -301,7 +303,8 @@ function ok(name, condition, detail) {
       return row && /\bGOTOWE\b/.test(row.innerText) && button && !button.disabled;
     });
     ok('confirmation refreshes and unlocks the reopened same-client checklist', await modal.isVisible() && await rowDone() && await button.isEnabled());
-    ok('all persistence uses confirmed calendar transactions only', await page.evaluate(() => window._onboardingCalendarUi.unexpected.length === 0));
+    const unexpected = await page.evaluate(() => window._onboardingCalendarUi.unexpected);
+    ok('all persistence uses confirmed calendar transactions only', unexpected.length === 0, unexpected);
     ok('UI fixture never contacts live Firestore', liveRequests === 0, liveRequests);
     console.log('\n' + passed + ' onboarding calendar confirmation UI checks passed');
   } finally {
