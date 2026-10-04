@@ -730,8 +730,9 @@ function renderPayPackages(){
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="usePackageSession('${p.id}')">+ Sesja</button>
           <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceDocId||p.invoiceId||p.id}')">🧾</button>
-          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Opłacony</button>
-          <button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś o wpłatę</button>`:''}
+          ${['pending','partial'].includes(p.payStatus)?packagePaidButtonHTML(p):''}
+          ${p.payStatus==='pending'?`<button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś o wpłatę</button>`:''}
+          ${packagePaidStatusHTML(p)}
           <button class="btn btn-ghost btn-sm" title="Usuń" onclick="deletePackage('${p.id}')">🗑</button>
         </div>
       </div>
@@ -825,19 +826,55 @@ function refreshPaySurfaces(){
   }}catch(e){}
 }
 
+var packagePaidUiStates=new Map();
+function packagePaidButtonHTML(pkg){
+  const state=packagePaidUiStates.get(pkg.id),pending=!!(state&&state.pending);
+  return '<button class="btn btn-primary btn-sm" data-package-paid="'+escHtml(pkg.id)+'" '+(pending?'disabled ':'')+'onclick="markPaid(this.dataset.packagePaid)">'+(pending?'Zapisywanie…':state&&state.error?'Spróbuj ponownie':'Opłacony')+'</button>';
+}
+function packagePaidStatusHTML(pkg){
+  const state=packagePaidUiStates.get(pkg.id);
+  return '<div data-package-paid-status="'+escHtml(pkg.id)+'" role="status" aria-live="polite" style="font-size:11px;margin-top:6px;color:var(--muted);">'+escHtml(state&&state.pending?'Potwierdzanie płatności…':state&&state.error||'')+'</div>';
+}
+function paintPackagePaidState(id){
+  const state=packagePaidUiStates.get(id);
+  document.querySelectorAll('[data-package-paid]').forEach(btn=>{if(btn.dataset.packagePaid===id){btn.disabled=!!(state&&state.pending);btn.textContent=state&&state.pending?'Zapisywanie…':state&&state.error?'Spróbuj ponownie':'Opłacony';}});
+  document.querySelectorAll('[data-package-paid-status]').forEach(el=>{if(el.dataset.packagePaidStatus===id)el.textContent=state&&state.pending?'Potwierdzanie płatności…':state&&state.error||'';});
+}
+function clearPackagePaidUiStates(){packagePaidUiStates.clear();if(typeof clearPackagePaymentStates==='function')clearPackagePaymentStates();}
 function markPaid(id){
-  const all=allPackages();
-  const p=all.find(x=>x.id===id);
-  if(p){
-    p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');
-    persistById('packages',p);
-    const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId||i.nr===p.invoiceId);
-    if(inv){inv.status='paid';persistById('invoices',inv);}
-    if(typeof fireIntEvent==='function'){
-      fireIntEvent('package.paid',{package:{id:p.id,title:p.title,price:p.price,clientId:p.clientId,clientName:p.clientName}});
-    }
-    refreshPaySurfaces();
-  }
+  let state=packagePaidUiStates.get(id);
+  if(state&&state.pending)return state.promise;
+  const pkg=allPackages().find(p=>p&&p.id===id);
+  if(!pkg){notify('Nie znaleziono pakietu');return Promise.resolve(null);}
+  try{
+    const auth=assignmentSession(),client=(window.CL||[]).find(c=>c&&c.id===pkg.clientId);
+    assertAssignmentSession(auth,client);
+    const cpBody=document.getElementById('cp-body'),cpView=cpBody&&cpBody.firstElementChild;
+    const cpCurrent=typeof cpClientId!=='undefined'&&cpClientId===client.id&&typeof cpTab!=='undefined'&&cpTab==='payments';
+    state={auth,pending:true,error:null,promise:null};packagePaidUiStates.set(id,state);paintPackagePaidState(id);
+    state.promise=Promise.resolve().then(()=>markPackagePaidConfirmed(pkg,auth)).then(result=>{
+      if(!assignmentSessionCurrent(auth))return null;
+      assertAssignmentSession(auth,(window.CL||[]).find(c=>c&&c.id===client.id));
+      const local=(window.PACKAGES||[]).find(p=>p&&p.id===id);
+      if(!local||local.trainerId!==auth.uid||local.clientId!==client.id||(local._fbId||local.id)!==(result.pkg._fbId||result.pkg.id))return null;
+      // Apply only payment fields: newer local usage or client detail updates survive.
+      local.payStatus=result.pkg.payStatus;if(result.pkg.paymentWriteId)local.paymentWriteId=result.pkg.paymentWriteId;
+      const invoice=(window.INVOICES||[]).find(i=>i&&i.trainerId===auth.uid&&(i._fbId||i.id)===(result.invoice._fbId||result.invoice.id));
+      if(invoice){invoice.status=result.invoice.status;if(result.invoice.paymentWriteId)invoice.paymentWriteId=result.invoice.paymentWriteId;}
+      else{if(!Array.isArray(window.INVOICES))window.INVOICES=[];window.INVOICES.push(result.invoice);}
+      state.pending=false;state.error=null;packagePaidUiStates.delete(id);
+      for(const name of ['renderPayPackages','renderPayOverview','renderPayInvoices'])try{if(typeof window[name]==='function')window[name]();}catch(error){console.warn('payment view refresh',error);}
+      if(cpCurrent&&typeof cpClientId!=='undefined'&&cpClientId===client.id&&typeof cpTab!=='undefined'&&cpTab==='payments'&&cpBody&&cpBody.firstElementChild===cpView&&typeof renderCPPayments==='function')try{renderCPPayments((window.CL||[]).find(c=>c&&c.id===client.id));}catch(error){console.warn('client payment refresh',error);}
+      if(result.transitioned){
+        notify('✓ Pakiet oznaczony jako opłacony');
+        if(typeof fireIntEvent==='function')try{Promise.resolve(fireIntEvent('package.paid',{package:{id:result.pkg.id,title:result.pkg.title,price:result.pkg.price,clientId:result.pkg.clientId,clientName:result.pkg.clientName}})).catch(error=>console.warn('package.paid event',error));}catch(error){console.warn('package.paid event',error);}
+      }
+      if(typeof refreshPaySurfaces==='function')refreshPaySurfaces();return result;
+    }).catch(error=>{
+      if(assignmentSessionCurrent(auth)){state.pending=false;state.error=error.message||'Nie udało się potwierdzić płatności. Spróbuj ponownie.';paintPackagePaidState(id);}return null;
+    }).finally(()=>{state.pending=false;});
+    return state.promise;
+  }catch(error){notify(error.message);return Promise.resolve(null);}
 }
 
 function requestPayment(id){
