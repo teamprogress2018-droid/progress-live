@@ -455,6 +455,7 @@ function initPriorSportsForm(prefix,selected,activities){
 window.initPriorSportsForm=initPriorSportsForm;
 
 function openM(id){
+  if(id==='m-package'&&typeof initPackageSaveModal==='function')initPackageSaveModal();
   if(id==='m-client'&&typeof openClientModal==='function'){openClientModal();return;}
   document.querySelectorAll('.ex-ac-dropdown').forEach(dd=>{dd.style.display='none';});
   if(id==='m-session'){
@@ -577,7 +578,9 @@ function openM(id){
   document.getElementById(id).classList.add('show');
 }
 function closeM(id){
+  if(id==='m-package'&&typeof leavePackageSaveModal==='function')leavePackageSaveModal();
   if(id==='m-client'&&typeof captureClientModalDraft==='function')captureClientModalDraft();
+  if(id==='m-onboard-schedule'&&typeof captureOnboardScheduleDraft==='function')captureOnboardScheduleDraft();
   if(id==='m-od-player'){
     const frame=document.getElementById('od-player-frame');
     if(frame){
@@ -6958,6 +6961,7 @@ function assignClientPipeline(client,opts){
 }
 /** Status startu współpracy: zaproszenie → ankieta → baseline → harmonogram → plan → kalendarz → pakiet. */
 function clientOnboardStatus(c){
+  if(typeof clientForOnboardSkip==='function')c=clientForOnboardSkip(c);
   if(!c)return{invite:false,intake:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,session:false,done:0,total:CLIENT_ONBOARD_STEPS.length,complete:true,next:null,missing:[],missingLabels:[]};
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
   const intakeState=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;

@@ -34,7 +34,7 @@ ok('today focus strip',html.includes('id="dash-today-focus"')&&html.includes('fo
 ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&html.includes('id="dash-ops-today"')&&!html.includes('id="dash-ops-reminders"'));
 ok('packages only in pay card',html.includes('Płatności do odnowienia')&&html.includes('id="d-ops-expiring"')&&!html.includes('Brak nadchodzących terminów')&&!html.includes('Raporty i pakiety'));
 ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-sessions"'));
-ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
+ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes('openInviteFromDashboard()')&&html.includes("openM('m-client')")&&html.includes('openNewPlanPicker()')&&html.includes('goToHomeworkQueue()')&&html.includes("goTo('clients')")&&html.includes("openM('m-broadcast')")&&html.includes("goTo('live')"));
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row')&&css.includes('.dash-today-focus')&&css.includes('.dash-today-tile-ok'));
 ok('no duplicate reminders card',!src04.includes('d-ops-reminders')&&!src04.includes('Brak nadchodzących terminów'));
 ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=2')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));

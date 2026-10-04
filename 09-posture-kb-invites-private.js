@@ -729,7 +729,7 @@ function renderPayPackages(){
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="usePackageSession('${p.id}')">+ Sesja</button>
-          <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceId||p.id}')">🧾</button>
+          <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceDocId||p.invoiceId||p.id}')">🧾</button>
           ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Opłacony</button>
           <button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś o wpłatę</button>`:''}
           <button class="btn btn-ghost btn-sm" title="Usuń" onclick="deletePackage('${p.id}')">🗑</button>
@@ -987,63 +987,101 @@ function renderPayHistory(){
   }).join('')||'<div style="padding:40px;text-align:center;color:var(--muted);">Brak wyników</div>';
 }
 
+// Drafts retain the same operation after a failed acknowledgement, including reopen.
+var packageSaveDrafts=new Map(),packageSaveView=0,packageSaveActive=null;
+var packageSaveFields=['title','type','sessions','price','validity','client','date','pay-status','notes'];
+function packageFormValues(){return Object.fromEntries(packageSaveFields.map(key=>[key,(document.getElementById('pkg-'+key)||{}).value||'']));}
+function packageFormRestore(values){packageSaveFields.forEach(key=>{const el=document.getElementById('pkg-'+key);if(el)el.value=values[key]||'';});}
+function renderPackageSaveState(state,message){
+  const active=state&&state===packageSaveActive;
+  if(state&&!active)return;
+  const locked=!!(state&&state.pair),pending=!!(state&&state.pending);
+  packageSaveFields.forEach(key=>{const el=document.getElementById('pkg-'+key);if(el)el.disabled=locked;});
+  const btn=document.getElementById('pkg-save-btn');
+  if(btn){btn.disabled=pending;btn.textContent=pending?'Zapisywanie…':state&&state.result?'Potwierdź zapis':locked?'Spróbuj ponownie':'Zapisz pakiet';}
+  const status=document.getElementById('pkg-save-status');
+  if(status){status.textContent=message||(pending?'Zapisywanie pakietu i faktury…':state&&state.result?'Pakiet i faktura zapisane. Potwierdź, aby zakończyć.':state&&state.error||'');status.style.color=state&&state.error?'var(--red)':'var(--muted)';}
+}
+function initPackageSaveModal(){
+  packageSaveView++;
+  const requested=window._packageOpenClient||null;window._packageOpenClient=null;
+  if(!requested){window._onboardResumeAfterPackage=null;if(typeof clearPackageOnboardBanner==='function')clearPackageOnboardBanner();}
+  const select=document.getElementById('pkg-client'),prior=requested||select&&select.value||'';
+  const clients=(window.CL||[]).filter(c=>c&&c.trainerId===window._uid&&!c.archived&&!c.deleted&&c.status!=='archived');
+  if(select){select.innerHTML=clients.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name||c.id)+'</option>').join('');select.value=clients.some(c=>c.id===prior)?prior:clients[0]&&clients[0].id||'';}
+  const cid=select&&select.value||'';
+  packageSaveActive=packageSaveDrafts.get(cid)||null;
+  if(packageSaveActive)packageFormRestore(packageSaveActive.values);
+  else packageFormRestore({client:cid,type:'sessions','pay-status':requested?'pending':'paid',date:new Date().toISOString().slice(0,10)});
+  const date=document.getElementById('pkg-date');if(date&&!date.value)date.value=new Date().toISOString().slice(0,10);
+  renderPackageSaveState(packageSaveActive);
+}
+function changePackageSaveClient(){
+  packageSaveView++;
+  const cid=(document.getElementById('pkg-client')||{}).value||'';
+  packageSaveActive=packageSaveDrafts.get(cid)||null;
+  if(packageSaveActive)packageFormRestore(packageSaveActive.values);
+  renderPackageSaveState(packageSaveActive);
+}
+function leavePackageSaveModal(){packageSaveView++;packageSaveActive=null;}
+function clearPackageSaveDrafts(){
+  packageSaveDrafts.clear();leavePackageSaveModal();window._packageOpenClient=null;
+  if(typeof clearPackageSaveReceipts==='function')clearPackageSaveReceipts();renderPackageSaveState(null);
+}
 async function savePackage(){
-  if(window._saveGuard_savePackage)return;
-  window._saveGuard_savePackage=true;
+  let state=packageSaveActive;
+  if(state&&state.pending)return;
+  const view=packageSaveView;
+  const current=()=>packageSaveActive===state&&packageSaveView===view&&
+    (document.getElementById('m-package')||{}).classList?.contains('show')&&
+    typeof assignmentSessionCurrent==='function'&&assignmentSessionCurrent(state.auth)&&
+    (document.getElementById('pkg-client')||{}).value===state.client.id;
   try{
-    const titleEl=document.getElementById('pkg-title');
-    const title=(titleEl&&titleEl.value||'').trim();
-    if(!title){if(typeof notify==='function')notify('Wpisz nazwę pakietu!');return;}
-    const cid=(document.getElementById('pkg-client')||{}).value||window._onboardResumeAfterPackage||'';
-    if(!cid){if(typeof notify==='function')notify('Wybierz klienta');return;}
-    const c=CL.find(x=>x.id===cid);
-    const price=parseInt(document.getElementById('pkg-price').value)||0;
-    const sessions=parseInt(document.getElementById('pkg-sessions').value)||1;
-    const validity=parseInt(document.getElementById('pkg-validity').value)||90;
-    const date=document.getElementById('pkg-date').value||new Date().toISOString().split('T')[0];
-    const expD=new Date(date);expD.setDate(expD.getDate()+validity);
-    const invId=nextInvoiceNr();
-    const pkg=withTrainer({
-      id:newId('pkg'),title,
-      type:document.getElementById('pkg-type').value,
-      sessions,sessionsUsed:0,price,validity,
-      clientId:cid,clientName:c?c.name:'Brak klienta',
-      payStatus:document.getElementById('pkg-pay-status').value||'pending',
-      date,expiresDate:expD.toISOString().split('T')[0],
-      notes:document.getElementById('pkg-notes').value,
-      invoiceId:invId
-    });
-    const inv=withTrainer({id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus});
-    if(!Array.isArray(window.PACKAGES))window.PACKAGES=[];
-    if(!Array.isArray(window.INVOICES))window.INVOICES=[];
-    window.PACKAGES.push(pkg);
-    window.INVOICES.push(inv);
-    const fromOnboard=!!window._onboardResumeAfterPackage;
-    const resumeId=fromOnboard?window._onboardResumeAfterPackage:null;
-    window._onboardResumeAfterPackage=null;
-    closeM('m-package');
-    if(typeof clearPackageOnboardBanner==='function')clearPackageOnboardBanner();
-    if(payTab==='overview')renderPayOverview();
-    else if(payTab==='packages')renderPayPackages();
-    else if(payTab==='invoices')renderPayInvoices();
-    if(!fromOnboard&&pkg.payStatus==='pending'&&pkg.clientId&&price>0){
-      if(confirm('Pakiet oczekuje na wpłatę. Wysłać prośbę o płatność do czatu klienta teraz?')){
-        if(typeof requestPayment==='function')requestPayment(pkg.id);
-      }
+    if(!state){
+      const values=packageFormValues(),title=values.title.trim(),cid=values.client;
+      if(packageSaveDrafts.has(cid)){changePackageSaveClient();return savePackage();}
+      if(!title)throw new Error('Wpisz nazwę pakietu!');
+      if(!cid)throw new Error('Wybierz klienta');
+      const client=(window.CL||[]).find(c=>c&&c.id===cid),auth=assignmentSession();
+      assertAssignmentSession(auth,client);
+      const price=values.price.trim()===''?0:Number(values.price),sessions=values.sessions.trim()===''?1:Number(values.sessions),validity=values.validity.trim()===''?90:Number(values.validity);
+      const date=values.date||new Date().toISOString().slice(0,10),expD=new Date(date);
+      if(!Number.isFinite(price)||price<0||Math.abs(price*100-Math.round(price*100))>0.00001||!Number.isSafeInteger(sessions)||sessions<1||!Number.isSafeInteger(validity)||validity<1||!Number.isFinite(expD.getTime())||expD.toISOString().slice(0,10)!==date)throw new Error('Sprawdź datę, cenę oraz dodatnią liczbę sesji i dni ważności.');
+      expD.setUTCDate(expD.getUTCDate()+validity);
+      if(!Number.isFinite(expD.getTime())||expD.getUTCFullYear()>9999)throw new Error('Sprawdź ważność pakietu.');
+      const pkgId=newPackageSaveId('pkg'),invoiceId=newPackageSaveId('inv');
+      const pkg={id:pkgId,trainerId:auth.uid,title,type:values.type,sessions,sessionsUsed:0,price,validity,clientId:cid,clientName:client.name,payStatus:values['pay-status']||'pending',date,expiresDate:expD.toISOString().slice(0,10),notes:values.notes,invoiceDocId:invoiceId};
+      const invoice={id:invoiceId,trainerId:auth.uid,pkgId,clientId:cid,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus};
+      state={auth,client:{...client},values,pair:{pkg,invoice},operation:{auth,client:{...client}},pending:false,error:null,result:null,resumeId:window._onboardResumeAfterPackage===cid?cid:null};
+      packageSaveActive=state;packageSaveDrafts.set(cid,state);
     }
-    if(fromOnboard&&resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+    assertAssignmentSession(state.auth,(window.CL||[]).find(c=>c&&c.id===state.client.id));
+    state.pending=true;state.error=null;renderPackageSaveState(state);
+    const result=await savePackageConfirmed(state.pair,state.operation);
+    state.pending=false;state.result=result;
+    if(!current()){renderPackageSaveState(state);return;}
+    assertAssignmentSession(state.auth,(window.CL||[]).find(c=>c&&c.id===state.client.id));
+    const pkg=result.pkg,inv=result.invoice;
+    // Existing confirmed rows may already contain newer usage/payment updates.
+    if(!(window.PACKAGES||[]).some(p=>p.id===pkg.id))window.PACKAGES.push(pkg);
+    if(!(window.INVOICES||[]).some(i=>i.id===inv.id))window.INVOICES.push(inv);
+    const fromOnboard=state.resumeId&&window._onboardResumeAfterPackage===state.resumeId;
+    packageSaveDrafts.delete(state.client.id);window._onboardResumeAfterPackage=null;
+    closeM('m-package');if(typeof clearPackageOnboardBanner==='function')clearPackageOnboardBanner();
+    if(payTab==='overview')renderPayOverview();else if(payTab==='packages')renderPayPackages();else if(payTab==='invoices')renderPayInvoices();
+    if(!fromOnboard&&pkg.payStatus==='pending'&&pkg.clientId&&pkg.price>0&&confirm('Pakiet oczekuje na wpłatę. Wysłać prośbę o płatność do czatu klienta teraz?')){
+      if(typeof requestPayment==='function')requestPayment(pkg.id);
+    }
+    if(fromOnboard&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(state.resumeId);
     if(typeof renderDash==='function')try{renderDash();}catch(e){}
     if(typeof renderClients==='function')try{renderClients();}catch(e){}
     if(typeof cpClientId!=='undefined'&&cpClientId===pkg.clientId&&typeof renderCPPayments==='function'){
-      const cl=CL.find(x=>x.id===pkg.clientId);if(cl)try{renderCPPayments(cl);}catch(e){}
+      const cl=CL.find(c=>c.id===pkg.clientId);if(cl)try{renderCPPayments(cl);}catch(e){}
     }
-    notify('✓ Pakiet "'+title+'" dodany! Faktura '+invId+' wygenerowana.');
-    try{
-      await persistById('packages',pkg);
-      await persistById('invoices',inv);
-    }catch(e){console.warn('savePackage persist',e);}
-  }finally{
-    window._saveGuard_savePackage=false;
+    notify('✓ Pakiet "'+pkg.title+'" dodany! Faktura '+inv.nr+' wygenerowana.');
+  }catch(error){
+    if(state){state.pending=false;state.error=error.message||'Nie udało się potwierdzić zapisu. Spróbuj ponownie.';if(current())renderPackageSaveState(state);}
+    else{renderPackageSaveState(null,error.message);if(typeof notify==='function')notify(error.message);}
   }
 }
 var odTab='browse';var odWorkoutFilter='all';var odProgramFilter='all';
@@ -4447,9 +4485,37 @@ function paintInviteMethodButtons(method){
   });
 }
 
+function inviteSkipViewIsCurrent(view) {
+  return !!view&&window._inviteModalView===view&&assignmentSessionCurrent(view.auth)&&inviteClientId===view.clientId&&
+    document.getElementById('m-invite')?.classList.contains('show')&&!document.querySelector('.modal-ov.show:not(#m-invite)');
+}
+function renderInviteSkipState(clientId) {
+  const view=window._inviteModalView;
+  if(!view||view.clientId!==clientId||!assignmentSessionCurrent(view.auth)||inviteClientId!==clientId)return;
+  const state=typeof getOnboardSkipState==='function'?getOnboardSkipState(clientId,'inviteSkipped'):null;
+  const pending=!!state?.pending;
+  document.querySelectorAll('#m-invite .modal-body button,#inv-send-btn,#inv-open-wa-btn').forEach(button=>{button.disabled=pending;});
+  const skip=document.getElementById('inv-skip-btn');
+  if(skip){skip.disabled=pending||!!state?.saved;skip.textContent=pending?'Zapisuję…':state?.saved?'Pominięto':state?.error?'Ponów pominięcie':'Pomiń';}
+  const status=document.getElementById('inv-skip-status');
+  if(status){status.textContent=state?.message||'';status.hidden=!status.textContent;status.style.color=state?.error?'var(--accent)':'var(--muted)';}
+}
+function clearInviteSkipView() {
+  window._inviteModalView=null;inviteClientId=null;window._onboardResumeAfterInvite=null;
+  document.querySelectorAll('#m-invite .modal-body button,#inv-send-btn,#inv-open-wa-btn,#inv-skip-btn').forEach(button=>{button.disabled=false;});
+  const skip=document.getElementById('inv-skip-btn');if(skip)skip.textContent='Pomiń';
+  const status=document.getElementById('inv-skip-status');if(status){status.textContent='';status.hidden=true;}
+}
+window.renderInviteSkipState=renderInviteSkipState;
+window.clearInviteSkipView=clearInviteSkipView;
+
 async function openInviteModal(clientId) {
   const c = CL.find(x => x.id === clientId);
-  if (!c) return;
+  const auth=assignmentSession();
+  try{assertAssignmentSession(auth,c);}catch(error){if(typeof notify==='function')notify(error.message);return;}
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  const view={clientId,auth:onboardScheduleFreeze({...auth})};
+  window._inviteModalView=view;
   inviteClientId = clientId;
   inviteMethod = defaultInviteMethod(c);
 
@@ -4461,9 +4527,11 @@ async function openInviteModal(clientId) {
 
   if (el('inv-link')) el('inv-link').textContent = 'Generowanie linku...';
   openM('m-invite');
+  renderInviteSkipState(clientId);
   paintInviteMethodButtons(inviteMethod);
   updateInvitePreview(c, '', inviteMethod);
   const link = typeof ensureClientInvite==='function' ? await ensureClientInvite(c) : generateInviteLink(c);
+  if(!inviteSkipViewIsCurrent(view))return;
   if (el('inv-link')) el('inv-link').textContent = link;
   paintInviteMethodButtons(inviteMethod);
   updateInvitePreview(c, link, inviteMethod);
@@ -4644,22 +4712,48 @@ function sendInvitation() {
   if (typeof renderDash === 'function') try { renderDash(); } catch (e) {}
 }
 
-function closeInviteModal(skip) {
+function openInviteFromDashboard() {
+  if(typeof toggleDashQuickActions==='function')toggleDashQuickActions(false);
+  const view=window._inviteModalView;
+  if(view&&inviteSkipViewIsCurrent(view))return;
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  if(typeof clearInviteSkipView==='function')clearInviteSkipView();
+  else{window._inviteModalView=null;inviteClientId=null;window._onboardResumeAfterInvite=null;}
+  if(typeof goTo==='function')goTo('clients');
+  if(typeof notify==='function')notify('Wybierz klienta, aby przygotować zaproszenie.');
+}
+window.openInviteFromDashboard=openInviteFromDashboard;
+
+async function closeInviteModal(skip) {
   const cid = inviteClientId;
+  const view=window._inviteModalView;
+  if(!view){
+    if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+    if(typeof clearInviteSkipView==='function')clearInviteSkipView();
+    else{inviteClientId=null;window._onboardResumeAfterInvite=null;}
+    closeM('m-invite');
+    return;
+  }
+  if(!inviteSkipViewIsCurrent(view))return;
   const fromOnboard = !!(window._onboardResumeAfterInvite && window._onboardResumeAfterInvite === cid);
+  if(skip&&fromOnboard&&cid){
+    const c=CL.find(x=>x.id===cid);
+    try{assertAssignmentSession(view.auth,c);}catch(error){if(typeof notify==='function')notify(error.message);return;}
+    if(!(c.inviteSent||c.appInvited||c.inviteSentAt)){
+      if(typeof skipClientInvite!=='function'){if(typeof notify==='function')notify('Nie można potwierdzić pominięcia. Odśwież aplikację.');return;}
+      const saved=await skipClientInvite(cid);
+      if(!saved||!inviteSkipViewIsCurrent(view))return;
+    }
+  }
+  if(!inviteSkipViewIsCurrent(view))return;
   closeM('m-invite');
+  window._inviteModalView=null;
   if (!fromOnboard) {
     window._onboardResumeAfterInvite = null;
     return;
   }
   window._onboardResumeAfterInvite = null;
-  if (skip && cid) {
-    const c = CL.find(x => x.id === cid);
-    if (c && !(c.inviteSent || c.appInvited || c.inviteSentAt) && typeof skipClientInvite === 'function') {
-      skipClientInvite(cid);
-    }
-  }
-  if (cid && typeof maybeResumeOnboard === 'function') maybeResumeOnboard(cid);
+  try{assertAssignmentSession(view.auth,CL.find(x=>x.id===cid));if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);}catch(error){}
 }
 
 window.openInviteModal = openInviteModal;

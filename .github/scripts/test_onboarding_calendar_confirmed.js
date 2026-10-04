@@ -8,6 +8,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
+const coreSource = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const calendarSource = fs.readFileSync(path.join(root, 'calendar-refill.js'), 'utf8');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 function section(text, from, to) {
@@ -144,6 +145,10 @@ function fixture(options = {}) {
     const result = serial.then(task); serial = result.catch(() => {}); return result;
   };
   vm.createContext(ctx);
+  // The real checklist now shares confirmation state with invitation/package skips.
+  // Load its actual read/render dependencies so this calendar fixture matches the app.
+  vm.runInContext(section(coreSource, 'function assignmentSession()', 'function assertAssignmentSession('), ctx);
+  vm.runInContext(section(source, 'const onboardSkipStates', 'function clientNextStartStep'), ctx);
   vm.runInContext(section(source, 'function getClientOnboard', 'function maybeResumeOnboard'), ctx);
   vm.runInContext(section(source, 'function openClientOnboardChecklist', 'function enrollClientInOnboardForum'), ctx);
   vm.runInContext(section(source, 'function latestClientPlan', 'function openClientBaselineModal'), ctx);

@@ -49,7 +49,7 @@ ok('settings legend is real checklist', src02.includes('function renderOnbSettin
 ok('flow steps match checklist', src02.includes("['invite','intake','baseline','schedule','plan','calendar','package']") && !src02.includes("steps:['welcome'"));
 ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=126') && html.includes('02-workouts-onboarding-templates-live.js?v=87') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=82') && html.includes('07-forms-metrics-calculator.js?v=43') && html.includes('09-posture-kb-invites-private.js?v=54'));
 ok('package cancel resumes', src05.includes('function closePackageModal') && html.includes('closePackageModal()') && html.includes('id="pkg-onboard-banner"'));
-ok('package save skips confirm from onboard', src09.includes('fromOnboard&&resumeId') && src09.includes('!fromOnboard&&pkg.payStatus'));
+ok('package save skips confirm from onboard', src09.includes('fromOnboard&&typeof maybeResumeOnboard') && src09.includes('!fromOnboard&&pkg.payStatus'));
 ok('invite overlay resumes', html.includes('id="m-invite"') && html.includes('closeInviteModal(false)'));
 ok('profile from onboard resumes', src05.includes('function openClientProfileFromOnboard') && src07.includes('function resumeOnboardFromProfile') && html.includes('id="cp-onboard-banner"') && html.includes('closeClientProfileOrResumeOnboard()'));
 ok('baseline from onboard resumes', src05.includes("openClientBaselineModal('${id}',true)") && src05.includes('function closeBaselineModal') && html.includes('id="bl-onboard-banner"') && html.includes('closeBaselineModal()'));

@@ -425,6 +425,7 @@ async function saveClient(){
 }
 
 function getClientOnboard(c){
+  c=clientForOnboardSkip(c);
   if(typeof clientOnboardStatus==='function')return clientOnboardStatus(c);
   if(!c)return{invite:false,plan:false,session:false,baseline:false,schedule:false,calendar:false,package:false,done:0,total:6,complete:true,next:null,missing:[],missingLabels:[]};
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
@@ -452,16 +453,95 @@ function maybeResumeOnboard(clientId){
 }
 window.maybeResumeOnboard=maybeResumeOnboard;
 
-function skipClientInvite(clientId){
-  const c=CL.find(x=>x.id===clientId);if(!c)return;
-  c.inviteSkipped=true;
-  persistById('clients',c);
-  renderClientOnboardChecklist();
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(typeof renderClients==='function')try{renderClients();}catch(e){}
-  notify('Zaproszenie pominięte — możesz wrócić do niego później');
+const onboardSkipStates=new Map();
+function getOnboardSkipState(clientId,field){
+  const auth=assignmentSession();
+  return onboardSkipStates.get(JSON.stringify([auth.uid,auth.generation,clientId,field]));
 }
+function clientForOnboardSkip(c){
+  if(!c)return c;
+  let result=c;
+  for(const field of ['inviteSkipped','packageSkipped']){
+    const state=getOnboardSkipState(c.id,field);
+    if(state&&!state.saved&&!state.markerBefore&&(state.pending||state.error)){
+      if(result===c)result={...c};delete result[field];
+    }
+  }
+  return result;
+}
+function renderOnboardSkipState(clientId){
+  document.querySelectorAll('button[data-onboard-skip-client]').forEach(button=>{
+    if(button.getAttribute('data-onboard-skip-client')!==clientId)return;
+    const state=getOnboardSkipState(clientId,button.getAttribute('data-onboard-skip-field'));
+    button.disabled=!!state?.pending;
+    if(button.getAttribute('data-onboard-skip-action')==='skip')button.textContent=state?.pending?'Zapisuję…':state?.error?'Ponów pominięcie':'Pomiń';
+  });
+  document.querySelectorAll('[data-onboard-skip-status]').forEach(el=>{
+    if(el.getAttribute('data-onboard-skip-client')!==clientId)return;
+    const state=getOnboardSkipState(clientId,el.getAttribute('data-onboard-skip-status'));
+    el.textContent=state?.message||'';el.hidden=!el.textContent;el.style.color=state?.error?'var(--accent)':'var(--muted)';
+  });
+  if(typeof renderInviteSkipState==='function')renderInviteSkipState(clientId);
+}
+function clearOnboardSkipStates(){
+  onboardSkipStates.clear();
+  document.querySelectorAll('[data-onboard-skip-status]').forEach(el=>{el.textContent='';el.hidden=true;});
+  document.querySelectorAll('button[data-onboard-skip-client]').forEach(button=>{button.disabled=false;});
+  if(typeof clearInviteSkipView==='function')clearInviteSkipView();
+}
+function saveOnboardSkip(clientId,field){
+  if(!['inviteSkipped','packageSkipped'].includes(field))return Promise.resolve(false);
+  const auth=assignmentSession(),key=JSON.stringify([auth.uid,auth.generation,clientId,field]);
+  for(const [storedKey,state] of onboardSkipStates)if(!assignmentSessionCurrent(state.auth))onboardSkipStates.delete(storedKey);
+  let state=onboardSkipStates.get(key);
+  if(state?.pending)return state.promise;
+  const c=CL.find(x=>x.id===clientId);
+  try{
+    assertAssignmentSession(auth,c);
+    if(state&&(c._fbId||c.id)!==(state.candidate._fbId||state.candidate.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie checklistę.');
+  }catch(error){if(typeof notify==='function')notify(error.message);return Promise.resolve(false);}
+  if(state?.saved)return Promise.resolve(true);
+  if(!state){
+    const snapshot=onboardScheduleFreeze(onboardScheduleClone({...c,[field]:true}));
+    state={auth:onboardScheduleFreeze({...auth}),clientId,field,key,candidate:snapshot,markerBefore:!!c[field]};
+    state.operation={auth:state.auth};onboardSkipStates.set(key,state);
+  }
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie pominięcia.';
+  if(window._onboardClientId===clientId&&typeof renderClientOnboardChecklist==='function')try{renderClientOnboardChecklist();}catch(e){}
+  renderOnboardSkipState(clientId);
+  state.promise=Promise.resolve().then(async()=>{
+    try{
+      const saved=await saveClientOnboardSkipConfirmed(state.candidate,field,state.operation);
+      if(!assignmentSessionCurrent(state.auth))return false;
+      assertAssignmentSession(state.auth,saved);
+      if(saved.id!==clientId||(saved._fbId||saved.id)!==(state.candidate._fbId||state.candidate.id)||saved[field]!==true)throw new Error('Nie można potwierdzić pominięcia dla tego klienta.');
+      state.acknowledged=true;
+      const local=CL.find(x=>x.id===clientId);assertAssignmentSession(state.auth,local);
+      if((local._fbId||local.id)!==(state.candidate._fbId||state.candidate.id))throw new Error('Identyfikator klienta zmienił się podczas zapisu.');
+      local[field]=true;state.saved=true;
+      state.message=(field==='inviteSkipped'?'Zaproszenie':'Pakiet')+' klienta '+(saved.name||state.candidate.name||clientId)+' pominięte.';
+      if(window._onboardClientId===clientId&&typeof renderClientOnboardChecklist==='function')try{renderClientOnboardChecklist();}catch(e){}
+      if(typeof renderDash==='function')try{renderDash();}catch(e){}
+      if(typeof renderClients==='function')try{renderClients();}catch(e){}
+      if(typeof notify==='function')notify(state.message);
+      return true;
+    }catch(error){
+      if(!assignmentSessionCurrent(state.auth))return false;
+      state.error=true;state.message=state.acknowledged?'Pominięcie zapisane, ale klient jest teraz niedostępny. Odśwież listę klientów.':
+        'Nie potwierdzono pominięcia. Ponów zapis. '+(error?.message||'');
+      if(window._onboardClientId===clientId&&typeof renderClientOnboardChecklist==='function')try{renderClientOnboardChecklist();}catch(e){}
+      if(typeof notify==='function')notify(state.message);
+      return false;
+    }finally{state.pending=false;state.promise=null;if(assignmentSessionCurrent(state.auth))renderOnboardSkipState(clientId);}
+  });
+  return state.promise;
+}
+function skipClientInvite(clientId){return saveOnboardSkip(clientId,'inviteSkipped');}
 window.skipClientInvite=skipClientInvite;
+window.getOnboardSkipState=getOnboardSkipState;
+window.clientForOnboardSkip=clientForOnboardSkip;
+window.renderOnboardSkipState=renderOnboardSkipState;
+window.clearOnboardSkipStates=clearOnboardSkipStates;
 
 function clientNextStartStep(c){
   if(!c||c.status==='archived'||typeof clientOnboardStatus!=='function')return null;
@@ -499,6 +579,7 @@ window.clientNextStartStep=clientNextStartStep;
 window.openClientNextStartStep=openClientNextStartStep;
 
 function openInviteFromOnboard(clientId){
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
   window._onboardResumeAfterInvite=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
   if(typeof openInviteModal==='function')openInviteModal(clientId);
@@ -622,18 +703,11 @@ window.resumeOnboardFromBuilder=resumeOnboardFromBuilder;
 window.builderGoBack=builderGoBack;
 window.builderLeaveToCaller=builderLeaveToCaller;
 
-function skipClientPackage(clientId){
-  const c=CL.find(x=>x.id===clientId);if(!c)return;
-  c.packageSkipped=true;
-  persistById('clients',c);
-  if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(typeof renderClients==='function')try{renderClients();}catch(e){}
-  notify('Pakiet pominięty — możesz dodać go później w Płatnościach');
-}
+function skipClientPackage(clientId){return saveOnboardSkip(clientId,'packageSkipped');}
 window.skipClientPackage=skipClientPackage;
 
 function openPackageForClient(clientId){
+  window._packageOpenClient=clientId;
   window._onboardResumeAfterPackage=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
   const pkgEl=document.getElementById('pkg-client');
@@ -744,6 +818,7 @@ window.openNewPlanPicker=openNewPlanPicker;
 window.saveNewPlanPicker=saveNewPlanPicker;
 
 function openClientOnboardChecklist(clientId){
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
   window._onboardClientId=clientId;
   renderClientOnboardChecklist();
   openM('m-client-onboard');
@@ -773,13 +848,15 @@ function renderClientOnboardChecklist(){
   const safeName=c.name.replace(/'/g,"\\'");
   const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(id):null;
   const steps=[
-    {done:st.invite,icon:'📱',title:'Wyślij zaproszenie',
-      desc:st.invite&&!c.appJoined
+    {skipField:'inviteSkipped',done:st.invite,icon:'📱',title:'Wyślij zaproszenie',
+      desc:st.invite&&c.inviteSkipped&&!(c.inviteSent||c.appInvited||c.inviteSentAt||c.appJoined)
+        ?'Zaproszenie pominięte — możesz wysłać je później.'
+        :st.invite&&!c.appJoined
         ?'Checklistę oznaczono, ale klient dostanie link dopiero gdy wyślesz e-mail (Gmail) albo WhatsApp — Inbox w apce zobaczy po zalogowaniu.'
         :'Link na e-mail klienta (Gmail). Inbox w apce zobaczy dopiero po pierwszym logowaniu.',
       action:`openInviteFromOnboard('${id}')`,cta:'✉️ E-mail',
-      extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`,
-      doneExtra:(st.invite&&!c.appJoined)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openInviteFromOnboard('${id}')">✉️ Wyślij ponownie e-mailem</button></div>`:''},
+      extra:st.invite?'':`<button type="button" class="btn btn-ghost btn-sm" data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-field="inviteSkipped" data-onboard-skip-action="skip" onclick="skipClientInvite('${id}')">Pomiń</button>`,
+      doneExtra:(st.invite&&!c.appJoined)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openInviteFromOnboard('${id}')">✉️ ${c.inviteSkipped&&!(c.inviteSent||c.appInvited||c.inviteSentAt)?'Wyślij zaproszenie':'Wyślij ponownie e-mailem'}</button></div>`:''},
     {done:!!(intake&&intake.filled),icon:'📋',title:'Ankieta wstępna',
       desc:intake&&intake.filled
         ?'Wypełniona — cel, ograniczenia i preferencje są dostępne w profilu oraz generatorze planu.'
@@ -805,9 +882,9 @@ function renderClientOnboardChecklist(){
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Dodaj terminy na 4 tygodnie',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,
       doneExtra:st.calendar?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button type="button" class="btn btn-ghost btn-sm" data-onboard-calendar-client="${escHtml(id)}" data-onboard-calendar-label="Dopełnij terminy najnowszego planu" onclick="scheduleClientPlanToCalendar('${id}')">Dopełnij terminy najnowszego planu</button></div>`:''},
-    {done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
+    {skipField:'packageSkipped',done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
       action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
-      extra:st.package?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientPackage('${id}')">Pomiń</button>`,
+      extra:st.package?'':`<button type="button" class="btn btn-ghost btn-sm" data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-field="packageSkipped" data-onboard-skip-action="skip" onclick="skipClientPackage('${id}')">Pomiń</button>`,
       afterDone:(()=>{
         const pend=typeof clientPendingPackage==='function'?clientPendingPackage(id):null;
         if(!pend)return'';
@@ -856,11 +933,13 @@ function renderClientOnboardChecklist(){
         <div style="font-size:11px;color:var(--muted);margin-bottom:${(s.done&&!s.afterDone&&!s.doneExtra)||!s.done?'8px':'0'};">${s.desc}</div>
         ${s.done
           ?`<div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>${s.doneExtra||''}${s.afterDone||''}`
-          :`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="btn btn-primary btn-sm" ${s.key==='calendar'?`data-onboard-calendar-client="${escHtml(id)}" data-onboard-calendar-label="${s.cta}"`:''} onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
+          :`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="btn btn-primary btn-sm" ${s.key==='calendar'?`data-onboard-calendar-client="${escHtml(id)}" data-onboard-calendar-label="${s.cta}"`:s.skipField?`data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-field="${s.skipField}" data-onboard-skip-action="related"`:''} onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
+        ${s.skipField?`<div data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-status="${s.skipField}" role="status" aria-live="polite" hidden style="font-size:11px;line-height:1.5;margin-top:8px;"></div>`:''}
         ${s.key==='calendar'?`<div data-onboard-calendar-status="${escHtml(id)}" role="status" aria-live="polite" hidden style="font-size:11px;line-height:1.5;margin-top:8px;"></div>`:''}
       </div>
     </div>`).join('')+(st.complete?`<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="closeM('m-client-onboard')">Gotowe — zamknij</button>`:'');
   renderOnboardCalendarState(id);
+  renderOnboardSkipState(id);
 }
 window.openClientOnboardChecklist=openClientOnboardChecklist;
 window.renderClientOnboardChecklist=renderClientOnboardChecklist;
@@ -885,16 +964,98 @@ function enrollClientInOnboardForum(clientId){
 }
 window.enrollClientInOnboardForum=enrollClientInOnboardForum;
 
+// Schedule retries belong to one client and authenticated trainer session.
+const onboardScheduleDrafts=new Map();
+function onboardScheduleClone(value){
+  if(Array.isArray(value))return value.map(onboardScheduleClone);
+  if(value instanceof Date)return new Date(value.getTime());
+  if(value&&typeof value==='object'&&value.constructor?.name==='Object')return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,onboardScheduleClone(item)]));
+  return value;
+}
+function onboardScheduleFreeze(value){
+  if(Array.isArray(value)||(value&&typeof value==='object'&&value.constructor?.name==='Object')){
+    Object.values(value).forEach(onboardScheduleFreeze);Object.freeze(value);
+  }
+  return value;
+}
+function onboardScheduleOwnsModal(state){
+  return !!state&&window._onboardScheduleState===state&&state.open&&assignmentSessionCurrent(state.auth)&&
+    window._onboardScheduleClientId===state.clientId&&document.getElementById('m-onboard-schedule')?.classList.contains('show');
+}
+function onboardScheduleIsCurrent(state){
+  return onboardScheduleOwnsModal(state)&&!document.querySelector('.modal-ov.show:not(#m-onboard-schedule)');
+}
+function captureOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(state&&state.open){
+    if(!state.candidate&&window._onboardScheduleClientId===state.clientId&&typeof readPreferredWeekdaysFrom==='function')state.days=onboardScheduleClone(readPreferredWeekdaysFrom('ob-sched'));
+    state.open=false;
+  }
+}
+function clearOnboardScheduleDrafts(){
+  onboardScheduleDrafts.clear();window._onboardScheduleState=null;
+  window._onboardScheduleClientId=null;window._onboardResumeAfterSchedule=null;
+  const modal=document.getElementById('m-onboard-schedule');if(modal)modal.classList.remove('show');
+  const name=document.getElementById('ob-sched-name');if(name)name.textContent='';
+  const bar=document.getElementById('sched-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
+  if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ob-sched',[]);
+  const status=document.getElementById('ob-sched-save-status');if(status)status.textContent='';
+}
+function renderOnboardScheduleSaveState(state){
+  if(!onboardScheduleOwnsModal(state))return;
+  const days=document.getElementById('ob-sched-preferred-weekdays');
+  if(days)days.querySelectorAll('button').forEach(button=>{button.disabled=!!state.candidate;});
+  const save=document.getElementById('ob-sched-save-btn');
+  if(save){save.disabled=!!(state.pending||state.saved||state.conflict);save.textContent=state.pending?'Zapisuję…':state.saved?'Zapisano':state.error?'Ponów zapis':'Zapisz dni';}
+  const status=document.getElementById('ob-sched-save-status');if(status){status.textContent=state.message||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+  const reload=document.getElementById('ob-sched-reload-btn');if(reload){reload.hidden=!state.conflict;reload.disabled=!!state.pending;}
+  const discard=document.getElementById('ob-sched-discard-btn');if(discard)discard.disabled=!!(state.pending||state.saved||(state.candidate&&!state.conflict));
+}
+function reloadOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||!state.conflict||state.pending)return;
+  try{
+    const local=CL.find(c=>c.id===state.clientId);
+    assertAssignmentSession(state.auth,state.conflict);assertAssignmentSession(state.auth,local);
+    if((state.conflict._fbId||state.conflict.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+    if((local._fbId||local.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+  }catch(error){state.error=true;state.message=error.message;renderOnboardScheduleSaveState(state);return;}
+  state.base=onboardScheduleFreeze(onboardScheduleClone(state.conflict));
+  state.days=onboardScheduleClone(state.base.preferredWeekdays?.length?state.base.preferredWeekdays:[1,3,5]);
+  state.operation={auth:state.auth,edit:true,base:state.base};state.candidate=null;state.displayDays=null;state.conflict=null;state.error=false;
+  state.message='Wczytano aktualne dane. Zaznacz i zapisz dni treningowe.';state.open=false;
+  openClientScheduleFromOnboard(state.clientId);
+}
+function discardOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||state.pending||state.saved||(state.candidate&&!state.conflict))return;
+  onboardScheduleDrafts.delete(state.key);
+  closeScheduleOnboardModal();window._onboardScheduleState=null;
+}
 function openClientScheduleFromOnboard(clientId){
-  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  const c=CL.find(x=>x.id===clientId),auth=assignmentSession();
+  try{assertAssignmentSession(auth,c);}catch(error){if(typeof notify==='function')notify(error.message);return;}
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  captureOnboardScheduleDraft();
+  for(const [key,draft] of onboardScheduleDrafts)if(!assignmentSessionCurrent(draft.auth))onboardScheduleDrafts.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,clientId]);
+  let state=onboardScheduleDrafts.get(key);
+  if(state&&state.saved&&!state.pending){onboardScheduleDrafts.delete(key);state=null;}
+  if(!state){
+    const base=onboardScheduleFreeze(onboardScheduleClone(c));
+    state={auth:onboardScheduleFreeze({...auth}),key,clientId,base,days:onboardScheduleClone(c.preferredWeekdays?.length?c.preferredWeekdays:[1,3,5])};
+    state.operation={auth:state.auth,edit:true,base};onboardScheduleDrafts.set(key,state);
+  }
+  window._onboardScheduleState=state;state.open=true;
   window._onboardScheduleClientId=clientId;
   window._onboardResumeAfterSchedule=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
   const nameEl=document.getElementById('ob-sched-name');
-  if(nameEl)nameEl.textContent=c.name||'';
+  if(nameEl)nameEl.textContent=state.base.name||'';
   if(typeof initPreferredWeekdaysForm==='function'){
-    initPreferredWeekdaysForm('ob-sched', (c.preferredWeekdays&&c.preferredWeekdays.length)?c.preferredWeekdays:[1,3,5]);
+    initPreferredWeekdaysForm('ob-sched',state.days);
   }
+  if(!state.displayDays&&typeof readPreferredWeekdaysFrom==='function')state.displayDays=onboardScheduleClone(readPreferredWeekdaysFrom('ob-sched'));
   const bar=document.getElementById('sched-onboard-banner');
   if(bar){
     const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
@@ -903,36 +1064,70 @@ function openClientScheduleFromOnboard(clientId){
       +'<button type="button" class="btn btn-primary btn-sm" onclick="closeScheduleOnboardModal()">Wróć do checklisty</button>';
   }
   openM('m-onboard-schedule');
+  renderOnboardScheduleSaveState(state);
 }
 function closeScheduleOnboardModal(){
+  const state=window._onboardScheduleState;
+  const cid=onboardScheduleIsCurrent(state)?state.clientId:null;
+  captureOnboardScheduleDraft();
   if(typeof closeM==='function')closeM('m-onboard-schedule');
   const bar=document.getElementById('sched-onboard-banner');
   if(bar){bar.style.display='none';bar.innerHTML='';}
-  const cid=window._onboardResumeAfterSchedule;
-  window._onboardResumeAfterSchedule=null;
-  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+  window._onboardResumeAfterSchedule=null;window._onboardScheduleClientId=null;
+  if(cid&&assignmentSessionCurrent(state.auth)){
+    try{assertAssignmentSession(state.auth,CL.find(c=>c.id===cid));if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);}catch(error){}
+  }
 }
-function saveClientScheduleFromOnboard(){
-  const id=window._onboardScheduleClientId;
-  const c=CL.find(x=>x.id===id);if(!c)return;
-  const days=typeof readPreferredWeekdaysFrom==='function'?readPreferredWeekdaysFrom('ob-sched'):[];
-  if(!days.length){if(typeof notify==='function')notify('Wybierz przynajmniej jeden dzień');return;}
-  c.preferredWeekdays=days;
-  persistById('clients',c);
-  const resumeId=window._onboardResumeAfterSchedule;
-  window._onboardResumeAfterSchedule=null;
-  if(typeof closeM==='function')closeM('m-onboard-schedule');
-  const bar=document.getElementById('sched-onboard-banner');
-  if(bar){bar.style.display='none';bar.innerHTML='';}
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(typeof renderClients==='function')try{renderClients();}catch(e){}
-  if(typeof notify==='function')notify('Dni treningowe zapisane');
-  if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
-  else if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
+async function saveClientScheduleFromOnboard(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||state.pending||state.saved||state.conflict)return;
+  try{
+    const local=CL.find(c=>c.id===state.clientId);assertAssignmentSession(state.auth,local);
+    if((local._fbId||local.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+    if(!state.candidate){
+      if(typeof readPreferredWeekdaysFrom!=='function')throw new Error('Nie można odczytać dni treningowych. Odśwież aplikację.');
+      const days=readPreferredWeekdaysFrom('ob-sched');
+      if(!days.length)throw new Error('Wybierz przynajmniej jeden dzień');
+      state.days=onboardScheduleClone(days);
+      const untouched=state.base.preferredWeekdays?.length&&JSON.stringify(days)===JSON.stringify(state.displayDays);
+      state.candidate=onboardScheduleFreeze({id:state.clientId,trainerId:state.auth.uid,
+        ...(state.base._fbId?{_fbId:state.base._fbId}:{}),preferredWeekdays:onboardScheduleClone(untouched?state.base.preferredWeekdays:days)});
+    }
+  }catch(error){state.error=true;state.message=error.message;renderOnboardScheduleSaveState(state);if(typeof notify==='function')notify(state.message);return;}
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie zapisu dni treningowych.';
+  renderOnboardScheduleSaveState(state);
+  try{
+    const saved=await saveClientCardConfirmed(state.candidate,state.operation);
+    if(!assignmentSessionCurrent(state.auth))return;
+    assertAssignmentSession(state.auth,saved);
+    if(saved.id!==state.clientId||(saved._fbId||saved.id)!==(state.base._fbId||state.base.id))throw new Error('Nie można potwierdzić identyfikatora zapisanego klienta.');
+    state.saved=true;
+    const c=CL.find(x=>x.id===state.clientId);assertAssignmentSession(state.auth,c);
+    if((c._fbId||c.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się podczas zapisu.');
+    // Merge only the confirmed schedule; other local fields may have changed meanwhile.
+    if(Object.prototype.hasOwnProperty.call(saved,'preferredWeekdays'))c.preferredWeekdays=onboardScheduleClone(saved.preferredWeekdays);
+    if(saved.clientCardWriteId)c.clientCardWriteId=saved.clientCardWriteId;
+    state.message='Dni treningowe klienta '+(saved.name||state.base.name||state.clientId)+' zapisane.';
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
+    if(typeof renderClients==='function')try{renderClients();}catch(e){}
+    if(typeof notify==='function')notify(state.message);
+    if(onboardScheduleIsCurrent(state))closeScheduleOnboardModal();
+  }catch(error){
+    if(!assignmentSessionCurrent(state.auth))return;
+    state.error=true;state.conflict=error?.code==='client-card-conflict'&&error.remote?onboardScheduleClone(error.remote):null;
+    state.message=state.saved?'Dni zapisane, ale klient jest teraz niedostępny. Odśwież listę klientów.':
+      state.conflict?'Dni treningowe zmieniły się w innym oknie. Wczytaj aktualne dane i zaznacz dni ponownie.':
+      'Nie potwierdzono zapisu. Wybrane dni zachowano. Ponów zapis. '+(error?.message||'');
+    if(onboardScheduleIsCurrent(state)&&typeof notify==='function')notify(state.message);
+  }finally{state.pending=false;if(onboardScheduleOwnsModal(state))renderOnboardScheduleSaveState(state);}
 }
 window.openClientScheduleFromOnboard=openClientScheduleFromOnboard;
 window.closeScheduleOnboardModal=closeScheduleOnboardModal;
 window.saveClientScheduleFromOnboard=saveClientScheduleFromOnboard;
+window.captureOnboardScheduleDraft=captureOnboardScheduleDraft;
+window.clearOnboardScheduleDrafts=clearOnboardScheduleDrafts;
+window.reloadOnboardScheduleDraft=reloadOnboardScheduleDraft;
+window.discardOnboardScheduleDraft=discardOnboardScheduleDraft;
 
 function latestClientPlan(clientId){
   return(window.PL||[]).filter(p=>p&&p.clientId===clientId).slice().sort((a,b)=>{

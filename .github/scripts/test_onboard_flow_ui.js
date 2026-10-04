@@ -21,7 +21,9 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  let liveRequests = 0;
   await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
+  await page.route('**://firestore.googleapis.com/**', route => { liveRequests++; return route.abort(); });
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
 
@@ -29,12 +31,42 @@ function ok(name, cond, extra) {
     // Signed-in tenant fixture; no production Firebase connection.
     window._uid = 'ui-trainer';
     window._clientAppMode = false;
+    window._clientPreviewMode = false;
     window.tenantSessionGeneration = 1;
     window._tenantDataReady = true;
     window._db = { fixture: true };
-    window.persistById = async (_c, o) => o;
+    window.__clientDocs = new Map();
+    window.__scheduleTransactions = [];
+    window.persistById = async (collection, record) => {
+      if (collection === 'clients') window.__clientDocs.set(record._fbId || record.id, structuredClone(record));
+      return record;
+    };
     window.__inviteDocs = new Map();
     window._doc = (_db, collection, id) => ({ collection, id });
+    window._runTransaction = async (_db, execute) => {
+      const writes = [];
+      const result = await execute({
+        get: async ref => {
+          if (ref.collection !== 'clients') throw new Error('Unexpected schedule fixture read');
+          const row = window.__clientDocs.get(ref.id);
+          if (row && row.trainerId !== window._uid) throw new Error('Foreign schedule fixture read');
+          return { exists: () => !!row, data: () => structuredClone(row) };
+        },
+        update: (ref, patch) => {
+          const row = window.__clientDocs.get(ref.id);
+          if (ref.collection !== 'clients' || !row || row.trainerId !== window._uid ||
+            Object.keys(patch).some(key => !['preferredWeekdays', 'clientCardWriteId', 'inviteSkipped', 'packageSkipped'].includes(key)))
+            throw new Error('Unexpected schedule fixture write');
+          if (['inviteSkipped', 'packageSkipped'].some(key => Object.hasOwn(patch, key) && patch[key] !== true))
+          throw Error('Invalid fixture skip marker');
+        writes.push({ id: ref.id, patch: structuredClone(patch) });
+        },
+        set: () => { throw new Error('Schedule must not replace the full client document'); }
+      });
+      writes.forEach(write => window.__clientDocs.set(write.id, { ...window.__clientDocs.get(write.id), ...write.patch }));
+      window.__scheduleTransactions.push(writes);
+      return result;
+    };
     window._setDoc = async (ref, data) => {
       if (ref.collection !== 'invites' || data.trainerId !== window._uid)
         throw new Error('Unexpected invite fixture write');
@@ -48,6 +80,7 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     const client = { id: 'c-ewelina', trainerId: window._uid, name: 'Ewelina Test', status: 'active', email: 'ewelina@studio.pl' };
+    window.__clientDocs.set(client.id, structuredClone(client));
     if (Array.isArray(window.CL)) window.CL.splice(0, window.CL.length, client);
     else window.CL = [client];
     window.PL = [];
@@ -96,8 +129,9 @@ function ok(name, cond, extra) {
   });
   ok('invite is stored for this trainer/client with expiry', storedInvite);
 
-  await page.click('#m-invite .modal-footer button:has-text("Pomiń")');
-  await page.waitForTimeout(700);
+  await page.click('#inv-skip-btn');
+  await page.waitForFunction(() => document.getElementById('m-client-onboard').classList.contains('show') &&
+    !getOnboardSkipState('c-ewelina', 'inviteSkipped')?.pending);
   const afterSkip = await page.evaluate(() => {
     const c = (window.CL || [])[0] || {};
     const st = typeof getClientOnboard === 'function' ? getClientOnboard(c) : {};
@@ -105,13 +139,17 @@ function ok(name, cond, extra) {
     const steps = (document.getElementById('client-onboard-steps') || {}).innerText || '';
     return {
       skipped: !!c.inviteSkipped,
+      confirmed: window.__clientDocs.get(c._fbId || c.id)?.inviteSkipped === true &&
+        window.__scheduleTransactions.filter(writes => writes.some(write => Object.hasOwn(write.patch, 'inviteSkipped'))).length === 1 &&
+        window.__scheduleTransactions.filter(writes => writes.some(write => Object.hasOwn(write.patch, 'inviteSkipped'))).every(writes =>
+          writes.length === 1 && JSON.stringify(writes[0].patch) === JSON.stringify({ inviteSkipped: true })),
       invite: !!st.invite,
       open: !!(ov && ov.classList.contains('show')),
       ready: /GOTOWE/.test(steps)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_invite_skip.png') });
-  ok('invite skip marks done and resumes', afterSkip.skipped && afterSkip.invite && afterSkip.open && afterSkip.ready, JSON.stringify(afterSkip));
+  ok('invite skip marks done and resumes', afterSkip.skipped && afterSkip.confirmed && afterSkip.invite && afterSkip.open && afterSkip.ready, JSON.stringify(afterSkip));
 
   await page.click('#client-onboard-steps button:has-text("Biblioteka")');
   await page.waitForTimeout(250);
@@ -170,13 +208,21 @@ function ok(name, cond, extra) {
   ok('schedule picker not full edit', !sched.clientEdit && sched.chips >= 7 && sched.banner && sched.checklistClosed && sched.flag, JSON.stringify(sched));
 
   await page.click('#m-onboard-schedule .modal-footer button:has-text("Zapisz dni")');
-  await page.waitForTimeout(700);
+  await page.waitForFunction(() => window._onboardScheduleState && !window._onboardScheduleState.pending &&
+    (window.CL[0].preferredWeekdays || []).length > 0);
+  await page.waitForSelector('#m-client-onboard.show');
   const afterDays = await page.evaluate(() => {
     const c = (window.CL || [])[0] || {};
     const st = typeof getClientOnboard === 'function' ? getClientOnboard(c) : {};
     return { schedule: !!st.schedule, days: (c.preferredWeekdays || []).slice() };
   });
   ok('schedule saved', afterDays.schedule && afterDays.days.length >= 1, JSON.stringify(afterDays));
+  ok('schedule uses the confirmed transaction and server weekday receipt', await page.evaluate(() => {
+    const client = window.CL[0], server = window.__clientDocs.get(client._fbId || client.id);
+    return window.__scheduleTransactions.filter(writes => writes.some(write => Object.hasOwn(write.patch, 'preferredWeekdays'))).length === 1 &&
+      JSON.stringify(server.preferredWeekdays) === JSON.stringify(client.preferredWeekdays) &&
+      !!server.clientCardWriteId && server.clientCardWriteId === client.clientCardWriteId;
+  }));
 
   await page.click('#client-onboard-steps button:has-text("Trening Live")');
   await page.waitForTimeout(500);
@@ -382,6 +428,7 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_from_overview.png') });
   ok('overview CTA opens checklist without auto-form', fromOverview.send && !fromOverview.waiting, JSON.stringify(fromOverview));
+  ok('onboarding fixture never reaches live Firestore', liveRequests === 0);
 
   await browser.close();
   if (failed) {

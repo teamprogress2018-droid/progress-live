@@ -62,6 +62,7 @@ fs.mkdirSync(shotDir, { recursive: true });
       assert.ok(condition, label + (detail ? ': ' + JSON.stringify(detail) : ''));
       passed++; console.log('OK ' + label);
     };
+    const expectedNames = new Map();
     const reset = () => page.evaluate(() => {
       closeClientProfile();
       clearCPEditDrafts();
@@ -88,13 +89,34 @@ fs.mkdirSync(shotDir, { recursive: true });
       window.ONBOARDING_FLOW = { history: [{ clientId: 'c-aga', clientName: 'Agnieszka', parts: 'ankieta' }] };
       f.calls = []; f.pending = []; f.notifications = []; f.unexpected = [];
       f.cacheCalls = []; f.cacheWrites = []; f.lastOperation = null;
+    }).then(() => {
+      expectedNames.clear(); expectedNames.set('c-aga', 'Agnieszka'); expectedNames.set('c-beta', 'Klient Beta');
     });
     const open = (id = 'c-aga') => page.evaluate(id => openClientProfile(id), id);
-    const edit = (id = 'c-aga') => page.evaluate(id => startCPEdit(id), id);
+    const edit = async (id = 'c-aga') => {
+      await page.evaluate(id => startCPEdit(id), id);
+      // Finish the editor's deferred focus/caret placement before Playwright
+      // selects the old text and sends its separate keyboard insertion command.
+      await settledView();
+    };
     const save = page.locator('#cpe-save-btn');
     const name = page.locator('#cpe-name');
     const status = page.locator('#cpe-save-status');
     const pending = () => page.waitForFunction(() => window._cpEditUi.pending.length === 1);
+    const fillName = async value => {
+      await name.fill(value);
+      expectedNames.set(await page.evaluate(() => cpClientId), value);
+      assert.equal(await name.inputValue(), value, 'editor focus must finish before entering the intended name');
+    };
+    const submit = async () => {
+      const id = await page.evaluate(() => cpClientId), expected = expectedNames.get(id);
+      assert.ok(expected, 'fixture has an explicit intended name for ' + id);
+      assert.equal(await name.inputValue(), expected, 'prepared input keeps the intended name before submit');
+      await save.click(); await pending();
+      const current = await state(), call = current.calls.at(-1);
+      assert.equal(call.candidate.id, id, 'confirmed operation targets the prepared client');
+      assert.equal(call.candidate.name, expected, 'confirmed candidate keeps the intended name after submit');
+    };
     const settled = () => page.waitForFunction(() => window._cpEditState && !window._cpEditState.pending);
     const release = (mode = 'success', remote = null) => page.evaluate(({ mode, remote }) => {
       const p = window._cpEditUi.pending[0];
@@ -139,13 +161,14 @@ fs.mkdirSync(shotDir, { recursive: true });
     ok('form stays hidden until edit opens it', await name.count() === 0 && (await state()).header === 'Agnieszka');
     await page.screenshot({ path: path.join(shotDir, 'cp_edit_overview.png') });
     await page.locator('#cp-edit-data-btn').click();
+    await settledView();
     ok('personal data form has an explicit full name label', await name.inputValue() === 'Agnieszka' &&
       /imię i nazwisko/i.test(await page.locator('label[for="cpe-name"]').innerText()));
-    await name.fill('Agnieszka Kowalska');
+    await fillName('Agnieszka Kowalska');
     await page.locator('#cpe-notes').fill('Zachowaj mój szkic');
     const before = await state();
     await page.screenshot({ path: path.join(shotDir, 'cp_edit_form.png') });
-    await save.click(); await pending();
+    await submit();
     let s = await state();
     assert.deepEqual(s.local, before.local);
     assert.deepEqual(s.caches, before.caches);
@@ -164,7 +187,7 @@ fs.mkdirSync(shotDir, { recursive: true });
     await page.evaluate(() => closeClientProfile()); await open(); await edit();
     ok('failed draft survives closing and reopening with its frozen candidate', await name.inputValue() === 'Agnieszka Kowalska' &&
       await page.locator('#cpe-notes').inputValue() === 'Zachowaj mój szkic' && await name.isDisabled());
-    await save.click(); await pending();
+    await submit();
     s = await state(); assert.deepEqual(s.calls[1].candidate, s.calls[0].candidate); assert.deepEqual(s.calls[1].base, before.local[0]);
     ok('retry reuses the exact snapshot, identity and operation', s.calls[1].sameOperation && s.calls[1].edit);
     await release(); await flush();
@@ -176,19 +199,19 @@ fs.mkdirSync(shotDir, { recursive: true });
       s.cacheCalls.length === 1 && s.cacheWrites.length === 4);
     await page.screenshot({ path: path.join(shotDir, 'cp_edit_saved.png') });
 
-    await reset(); await open(); await edit(); await name.fill('Szkic do odrzucenia');
+    await reset(); await open(); await edit(); await fillName('Szkic do odrzucenia');
     await page.locator('#cpe-discard-btn').click();
     ok('explicit discard closes an unsent draft without persisting it', await name.count() === 0 &&
       (await state()).local[0].name === 'Agnieszka' && (await state()).calls.length === 0);
     await edit();
     ok('editing after discard starts from the confirmed client', await name.inputValue() === 'Agnieszka' && await name.isEnabled());
 
-    await reset(); await open(); await edit(); await name.fill('Niezapisana edycja');
+    await reset(); await open(); await edit(); await fillName('Niezapisana edycja');
     await page.evaluate(() => setCPTab('training')); await page.evaluate(() => setCPTab('overview')); await edit();
     ok('editable draft survives tab changes before save', await name.inputValue() === 'Niezapisana edycja' && await name.isEnabled());
     await page.evaluate(() => closeClientProfile()); await open(); await edit();
     ok('editable draft survives drawer close before save', await name.inputValue() === 'Niezapisana edycja' && await name.isEnabled());
-    await save.click(); await pending();
+    await submit();
     await page.evaluate(() => closeClientProfile()); await open(); await edit();
     ok('pending draft reopens with disabled controls and no duplicate request', await name.inputValue() === 'Niezapisana edycja' &&
       await name.isDisabled() && await save.isDisabled() && (await state()).calls.length === 1);
@@ -198,7 +221,7 @@ fs.mkdirSync(shotDir, { recursive: true });
 
     await reset(); await open(); await edit();
     await page.locator('#cpe-status').selectOption('inactive');
-    await save.click(); await pending();
+    await submit();
     s = await state();
     ok('status change is part of the confirmed candidate while local status stays active',
       s.calls[0].candidate.status === 'inactive' && s.local[0].status === 'active');
@@ -206,9 +229,9 @@ fs.mkdirSync(shotDir, { recursive: true });
     ok('inactive status applies after acknowledgement', (await state()).local[0].status === 'inactive');
 
     for (const view of ['other-client', 'other-tab', 'closed']) {
-      await reset(); await open(); await edit(); await name.fill('Potwierdzona w tle'); await save.click(); await pending();
+      await reset(); await open(); await edit(); await fillName('Potwierdzona w tle'); await submit();
       if (view === 'other-client') {
-        await open('c-beta'); await edit('c-beta'); await name.fill('Szkic klienta Beta');
+        await open('c-beta'); await edit('c-beta'); await fillName('Szkic klienta Beta');
       } else if (view === 'other-tab') {
         await page.evaluate(() => setCPTab('training'));
       } else await page.evaluate(() => closeClientProfile());
@@ -221,7 +244,9 @@ fs.mkdirSync(shotDir, { recursive: true });
         { ...otherView, html: undefined });
       await release(); await flush(); s = await state();
       ok('background ACK applies only client A for ' + view, s.local[0].name === 'Potwierdzona w tle' &&
-        s.local[1].name === 'Klient Beta' && s.cacheCalls.length === 1);
+        s.local[1].name === 'Klient Beta' && s.cacheCalls.length === 1,
+        { localNames: s.local.map(client => ({ id: client.id, name: client.name })), candidate: s.calls.at(-1),
+          cacheCalls: s.cacheCalls, pending: s.pending, saved: s.saved, currentClient: s.clientId, tab: s.tab });
       const afterView = await drawerView(false);
       ok('background ACK preserves the current drawer content for ' + view,
         afterView.html === otherView.html && afterView.sameBody && afterView.sameCard && afterView.sameName && afterView.sameNodes &&
@@ -234,21 +259,21 @@ fs.mkdirSync(shotDir, { recursive: true });
       ok('reopening the overview cannot resubmit an acknowledged draft for ' + view, (await state()).calls.length === 1);
     }
 
-    await reset(); await open(); await edit(); await name.fill('Szkic Alfa do ponowienia');
-    await save.click(); await pending(); await open('c-beta'); await edit('c-beta'); await name.fill('Szkic Beta');
+    await reset(); await open(); await edit(); await fillName('Szkic Alfa do ponowienia');
+    await submit(); await open('c-beta'); await edit('c-beta'); await fillName('Szkic Beta');
     await release('fail'); await flush();
     ok('background failure preserves the foreground client B draft', await name.inputValue() === 'Szkic Beta' &&
       await name.isEnabled() && (await state()).clientId === 'c-beta' && (await state()).cacheWrites.length === 0);
     await open(); await edit();
     ok('returning to failed client A restores its immutable retry draft', await name.inputValue() === 'Szkic Alfa do ponowienia' &&
       await name.isDisabled() && await save.isEnabled() && /Ponów zapis/.test(await status.innerText()));
-    await save.click(); await pending(); s = await state();
+    await submit(); s = await state();
     assert.deepEqual(s.calls[1].candidate, s.calls[0].candidate);
     ok('background failed draft retries the same operation after changing clients', s.calls[1].sameOperation);
     await release(); await flush();
 
     for (const mode of ['success', 'fail']) {
-      await reset(); await open(); await edit(); await name.fill('Stara sesja'); await save.click(); await pending();
+      await reset(); await open(); await edit(); await fillName('Stara sesja'); await submit();
       const old = await state();
       await page.evaluate(() => { window._uid = 'profile-ui-next-owner'; window.tenantSessionGeneration++; clearCPEditDrafts(); });
       await release(mode); await flush(); s = await state();
@@ -257,7 +282,7 @@ fs.mkdirSync(shotDir, { recursive: true });
     }
 
     for (const unavailable of ['removed', 'archived', 'other-owner']) {
-      await reset(); await open(); await edit(); await name.fill('Spóźniona zmiana'); await save.click(); await pending();
+      await reset(); await open(); await edit(); await fillName('Spóźniona zmiana'); await submit();
       const afterRemoval = await page.evaluate(mode => {
         if (mode === 'removed') window.CL = window.CL.filter(c => c.id !== 'c-aga');
         else if (mode === 'archived') window.CL[0].status = 'archived';
@@ -279,8 +304,8 @@ fs.mkdirSync(shotDir, { recursive: true });
         legacyField: { retain: true } };
       window.CL[0] = client; return client;
     });
-    await open(); await edit(); await name.fill('Zmienione tylko imię');
-    await page.evaluate(() => closeClientProfile()); await open(); await edit(); await save.click(); await pending();
+    await open(); await edit(); await fillName('Zmienione tylko imię');
+    await page.evaluate(() => closeClientProfile()); await open(); await edit(); await submit();
     s = await state(); assert.deepEqual(s.calls[0].base, raw);
     assert.deepEqual(s.calls[0].candidate, { ...raw, name: 'Zmienione tylko imię' });
     ok('name-only save preserves raw legacy types and absent default fields',
@@ -291,7 +316,7 @@ fs.mkdirSync(shotDir, { recursive: true });
 
     await reset(); await open(); await edit();
     const original = (await state()).local;
-    await name.fill('Moja zmiana'); await save.click(); await pending();
+    await fillName('Moja zmiana'); await submit();
     const remote = { ...original[0], name: 'Agnieszka z serwera', phone: '555666777', gender: 'female',
       weight: '81.2', trainingFreq: null, notes: 'Zdalna notatka', priorSports: ['cycling'],
       additional_activities: [{ sport: 'cycling', frequency_per_week: 3, intensity: 'low', notes: 'Rower' }] };
@@ -303,7 +328,7 @@ fs.mkdirSync(shotDir, { recursive: true });
     ok('reload displays the latest editable remote values', await name.inputValue() === remote.name &&
       await page.locator('#cpe-phone').inputValue() === remote.phone &&
       await page.locator('#cpe-notes').inputValue() === remote.notes && await name.isEnabled() && await save.isEnabled());
-    await name.fill('Agnieszka po ponownej edycji'); await save.click(); await pending(); s = await state();
+    await fillName('Agnieszka po ponownej edycji'); await submit(); s = await state();
     assert.deepEqual(s.calls[1].base, remote);
     assert.deepEqual(s.calls[1].candidate, { ...remote, name: 'Agnieszka po ponownej edycji' });
     ok('save after reload uses a new operation with remote base and same client identity', !s.calls[1].sameOperation &&

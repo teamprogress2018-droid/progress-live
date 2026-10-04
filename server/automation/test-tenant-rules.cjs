@@ -99,6 +99,33 @@ async function seed(p, data) { await db.doc(p).set(data); }
 function clientData(extra = {}) { return {trainerId: trainerA, clientId: clientA, ...extra}; }
 const tests = [];
 function test(name, fn) { tests.push({name, fn}); }
+async function invoiceCounterTransaction(user, readPaths, writes, label, rejectWrite = false) {
+  const started = await request(':beginTransaction', user, 'POST', {options: {readWrite: {}}});
+  ok(started, label + ' begins');
+  const transaction = started.body.transaction;
+  assert.ok(typeof transaction === 'string' && transaction.length, label + ' transaction token'); count++;
+  let committed = false;
+  try {
+    const reads = await request(':batchGet', user, 'POST', {documents: readPaths.map(fullName), transaction});
+    ok(reads, label + ' reads own counter');
+    assert.ok(Array.isArray(reads.body) && readPaths.every(p => reads.body.some(row =>
+      row.missing === fullName(p) || row.found && row.found.name === fullName(p))),
+    label + ' returns requested counter reads'); count++;
+    const result = await request(':commit', user, 'POST', {transaction, writes});
+    if (rejectWrite) { denied(result, label + ' rejected'); return; }
+    ok(result, label + ' commits'); committed = true;
+  } finally {
+    if (!committed) await request(':rollback', user, 'POST', {transaction}).catch(() => {});
+  }
+}
+function invoiceCounterWrite(uid, data, exists) {
+  return {update: {name: fullName('invoiceCounters/' + uid), fields: fields(data)},
+    ...(exists === undefined ? {} : {currentDocument: {exists}})};
+}
+function invoiceCounterInvoiceWrite(data, exists) {
+  return {update: {name: fullName('invoices/' + data.id), fields: fields(data)},
+    ...(exists === undefined ? {} : {currentDocument: {exists}})};
+}
 
 async function setup() {
   const batch = db.batch();
@@ -137,6 +164,102 @@ test('unknown collections and descendants never inherit a trainer allow', async 
     }
   }
 });
+test('invoice counters are private per-trainer monotonic sequences linked to new invoices', async () => {
+  const counterPath = 'invoiceCounters/' + trainerA;
+  const counterData = (last, invoiceDocId) => ({trainerId: trainerA, last, invoiceDocId});
+  const invoiceData = (id, numberSequence) => ({id, trainerId: trainerA, clientId: clientA,
+    numberPrefix: 'INV', numberSeries: 'S', numberSequence, nr: 'INV-S-' + numberSequence,
+    pkgId: run + '-counter-pkg-' + numberSequence, clientName: 'Klient', pkgTitle: 'Pakiet',
+    date: '2026-10-04', amount: 100, status: 'pending'});
+  const docWrite = (uid, record, requireNew) =>
+    uid === 'counter' ? invoiceCounterWrite(trainerA, record, requireNew) :
+      invoiceCounterInvoiceWrite(record, requireNew);
+
+  const missing = await read(counterPath, ownerA);
+  assert.equal(missing.status, 404, 'owner can get its missing counter'); count++;
+  for (const user of [ownerB, userA, sibling, userB, null]) denied(await read(counterPath, user), 'foreign/client/anonymous cannot get counter');
+  denied(await query('invoiceCounters', ownerA, [['trainerId', 'EQUAL', trainerA]]), 'counter collection cannot be listed');
+  denied(await read('invoiceCounters/' + userA.uid, userA), 'client cannot get its own counter path');
+  denied(await write('invoiceCounters/' + userA.uid, {trainerId: userA.uid, last: 1, invoiceDocId: run + '-client-counter'}, userA), 'client cannot create its own counter path');
+  denied(await remove(counterPath, ownerA), 'missing counter cannot be deleted');
+
+  const invoice1 = invoiceData(run + '-invoice-counter-1', 1);
+  await invoiceCounterTransaction(ownerA, [counterPath], [
+    docWrite('counter', counterData(1, invoice1.id), false),
+    docWrite('invoice', invoice1, false),
+  ], 'initial invoice counter');
+  assert.deepEqual((await db.doc(counterPath).get()).data(), counterData(1, invoice1.id)); count++;
+  assert.deepEqual((await db.doc('invoices/' + invoice1.id).get()).data(), invoice1); count++;
+
+  const invoice2 = invoiceData(run + '-invoice-counter-2', 2);
+  await invoiceCounterTransaction(ownerA, [counterPath], [
+    docWrite('counter', counterData(2, invoice2.id), true),
+    docWrite('invoice', invoice2, false),
+  ], 'own invoice counter increment');
+  assert.deepEqual((await db.doc(counterPath).get()).data(), counterData(2, invoice2.id)); count++;
+  denied(await remove(counterPath, ownerA), 'existing counter cannot be deleted');
+  assert.deepEqual((await db.doc(counterPath).get()).data(), counterData(2, invoice2.id)); count++;
+
+  const skipped = invoiceData(run + '-invoice-counter-skip', 4);
+  await invoiceCounterTransaction(ownerA, [counterPath], [
+    docWrite('counter', counterData(4, skipped.id), true), docWrite('invoice', skipped, false),
+  ], 'skipped invoice counter increment', true);
+  assert.deepEqual((await db.doc(counterPath).get()).data(), counterData(2, invoice2.id)); count++;
+  assert.equal((await db.doc('invoices/' + skipped.id).get()).exists, false, 'denied skip creates no invoice'); count++;
+
+  const decreased = invoiceData(run + '-invoice-counter-decrease', 1);
+  await invoiceCounterTransaction(ownerA, [counterPath], [
+    docWrite('counter', counterData(1, decreased.id), true), docWrite('invoice', decreased, false),
+  ], 'decreased invoice counter', true);
+  assert.deepEqual((await db.doc(counterPath).get()).data(), counterData(2, invoice2.id)); count++;
+  assert.equal((await db.doc('invoices/' + decreased.id).get()).exists, false, 'denied decrease creates no invoice'); count++;
+
+  const missingInvoiceId = run + '-invoice-counter-missing';
+  await invoiceCounterTransaction(ownerA, [counterPath], [
+    docWrite('counter', counterData(3, missingInvoiceId), true),
+  ], 'counter without invoice', true);
+  assert.deepEqual((await db.doc(counterPath).get()).data(), counterData(2, invoice2.id)); count++;
+
+  // A valid-looking sequence cannot be attached to an invoice doc that existed before this commit.
+  const preexistingId = run + '-invoice-counter-preexisting';
+  const preexisting = invoiceData(preexistingId, 3);
+  await seed('invoices/' + preexistingId, preexisting);
+  await invoiceCounterTransaction(ownerA, [counterPath], [
+    docWrite('counter', counterData(3, preexistingId), true),
+    docWrite('invoice', preexisting, true),
+  ], 'preexisting invoice cannot back counter', true);
+  assert.deepEqual((await db.doc(counterPath).get()).data(), counterData(2, invoice2.id)); count++;
+  assert.deepEqual((await db.doc('invoices/' + preexistingId).get()).data(), preexisting); count++;
+
+  const wrongOwnerCounter = counterData(3, run + '-invoice-counter-foreign');
+  await invoiceCounterTransaction(ownerB, ['invoiceCounters/' + trainerB], [
+    invoiceCounterWrite(trainerA, wrongOwnerCounter, true),
+  ], 'counter cannot be claimed at another trainer path', true);
+  denied(await write(counterPath, counterData(3, run + '-invoice-counter-client'), ownerB), 'other trainer cannot mutate counter');
+  denied(await write(counterPath, counterData(3, run + '-invoice-counter-client'), userA), 'linked client cannot mutate counter');
+
+  const max = Number.MAX_SAFE_INTEGER, beforeMaxId = run + '-invoice-counter-before-max';
+  const beforeMax = {id: beforeMaxId, trainerId: trainerB, clientId: clientB, numberPrefix: 'INV',
+    numberSeries: 'S', numberSequence: max - 1, nr: 'INV-S-' + (max - 1)};
+  await seed('invoices/' + beforeMaxId, beforeMax);
+  await seed('invoiceCounters/' + trainerB, {trainerId: trainerB, last: max - 1, invoiceDocId: beforeMaxId});
+  const maxId = run + '-invoice-counter-max';
+  const atMax = {...beforeMax, id: maxId, numberSequence: max, nr: 'INV-S-' + max};
+  await invoiceCounterTransaction(ownerB, ['invoiceCounters/' + trainerB], [
+    invoiceCounterWrite(trainerB, {trainerId: trainerB, last: max, invoiceDocId: maxId}, true),
+    invoiceCounterInvoiceWrite(atMax, false),
+  ], 'maximum safe invoice sequence');
+  assert.equal((await db.doc('invoiceCounters/' + trainerB).get()).data().last, max); count++;
+  const overflowId = run + '-invoice-counter-overflow';
+  const overflow = {...beforeMax, id: overflowId, numberSequence: max + 1, nr: 'INV-S-' + (max + 1)};
+  await invoiceCounterTransaction(ownerB, ['invoiceCounters/' + trainerB], [
+    invoiceCounterWrite(trainerB, {trainerId: trainerB, last: max + 1, invoiceDocId: overflowId}, true),
+    invoiceCounterInvoiceWrite(overflow, false),
+  ], 'invoice sequence overflow', true);
+  assert.equal((await db.doc('invoiceCounters/' + trainerB).get()).data().last, max); count++;
+  assert.equal((await db.doc('invoices/' + overflowId).get()).exists, false, 'overflow creates no invoice'); count++;
+});
+
 test('linked clients see only their records and explicitly shared libraries', async () => {
   for (const col of PRIVATE) {
     const p = col + '/' + run + '-private';
