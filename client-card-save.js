@@ -187,4 +187,51 @@
       return state.promise;
     }catch(error){return Promise.reject(error);}
   };
+
+  // Skipping a start step is an idempotent marker, not a replacement client card.
+  const skipOperations=new WeakMap();
+  window.saveClientOnboardSkipConfirmed=function(client,field,operation){
+    if(!operation||typeof operation!=='object')return Promise.reject(fail('Otwórz ponownie start współpracy.'));
+    let state=skipOperations.get(operation);
+    try{
+      if(!state){
+        if(!['inviteSkipped','packageSkipped'].includes(field))throw fail('Nieprawidłowy krok startu współpracy.');
+        if(!client||typeof client.id!=='string'||!client.id||client.id.includes('/')||
+          (client._fbId!==undefined&&(typeof client._fbId!=='string'||!client._fbId||client._fbId.includes('/'))))
+          throw fail('Nieprawidłowy identyfikator klienta. Otwórz ponownie start współpracy.');
+        state={candidate:freeze(clone(client)),auth:freeze(clone(operation.auth)),field,promise:null,result:null};
+        assert(state);
+        skipOperations.set(operation,state);
+      }
+      if(!client||client.id!==state.candidate.id||(client._fbId||client.id)!==(state.candidate._fbId||state.candidate.id)||field!==state.field)
+        throw fail('Krok lub klient zmienił się. Otwórz ponownie start współpracy.');
+      if(state.promise)return state.promise;
+      assert(state);
+      if(state.result){assert(state,state.result);return Promise.resolve(clone(state.result));}
+      state.promise=Promise.resolve().then(async()=>{
+        assert(state);
+        if(!window._db)throw fail('Brak połączenia z bazą. Spróbuj ponownie.','client-card-unavailable');
+        const transaction=required('_runTransaction'),doc=required('_doc');
+        const docId=state.candidate._fbId||state.candidate.id;
+        const ref=doc(window._db,'clients',docId);
+        const saved=await transaction(window._db,async tx=>{
+          assert(state);
+          const found=await tx.get(ref);
+          assert(state);
+          if(!found.exists())throw fail('Klient został usunięty. Otwórz ponownie listę klientów.','client-card-unavailable');
+          const remote=snapshot(found.data(),docId,state);
+          assert(state,remote);
+          if(remote[state.field]===true)return remote;
+          const patch={[state.field]:true};
+          tx.update(ref,patch);
+          return {...remote,...patch};
+        });
+        assert(state);assert(state,saved);
+        if(saved[state.field]!==true)throw fail('Nie udało się potwierdzić pominięcia kroku. Spróbuj ponownie.','client-card-unconfirmed');
+        state.result=freeze(clone(saved));
+        return clone(saved);
+      }).finally(()=>{state.promise=null;});
+      return state.promise;
+    }catch(error){return Promise.reject(error);}
+  };
 })();

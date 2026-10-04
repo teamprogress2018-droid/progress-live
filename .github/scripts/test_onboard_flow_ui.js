@@ -55,9 +55,11 @@ function ok(name, cond, extra) {
         update: (ref, patch) => {
           const row = window.__clientDocs.get(ref.id);
           if (ref.collection !== 'clients' || !row || row.trainerId !== window._uid ||
-            Object.keys(patch).some(key => !['preferredWeekdays', 'clientCardWriteId'].includes(key)))
+            Object.keys(patch).some(key => !['preferredWeekdays', 'clientCardWriteId', 'inviteSkipped', 'packageSkipped'].includes(key)))
             throw new Error('Unexpected schedule fixture write');
-          writes.push({ id: ref.id, patch: structuredClone(patch) });
+          if (['inviteSkipped', 'packageSkipped'].some(key => Object.hasOwn(patch, key) && patch[key] !== true))
+          throw Error('Invalid fixture skip marker');
+        writes.push({ id: ref.id, patch: structuredClone(patch) });
         },
         set: () => { throw new Error('Schedule must not replace the full client document'); }
       });
@@ -127,8 +129,9 @@ function ok(name, cond, extra) {
   });
   ok('invite is stored for this trainer/client with expiry', storedInvite);
 
-  await page.click('#m-invite .modal-footer button:has-text("Pomiń")');
-  await page.waitForTimeout(700);
+  await page.click('#inv-skip-btn');
+  await page.waitForFunction(() => document.getElementById('m-client-onboard').classList.contains('show') &&
+    !getOnboardSkipState('c-ewelina', 'inviteSkipped')?.pending);
   const afterSkip = await page.evaluate(() => {
     const c = (window.CL || [])[0] || {};
     const st = typeof getClientOnboard === 'function' ? getClientOnboard(c) : {};
@@ -136,13 +139,17 @@ function ok(name, cond, extra) {
     const steps = (document.getElementById('client-onboard-steps') || {}).innerText || '';
     return {
       skipped: !!c.inviteSkipped,
+      confirmed: window.__clientDocs.get(c._fbId || c.id)?.inviteSkipped === true &&
+        window.__scheduleTransactions.filter(writes => writes.some(write => Object.hasOwn(write.patch, 'inviteSkipped'))).length === 1 &&
+        window.__scheduleTransactions.filter(writes => writes.some(write => Object.hasOwn(write.patch, 'inviteSkipped'))).every(writes =>
+          writes.length === 1 && JSON.stringify(writes[0].patch) === JSON.stringify({ inviteSkipped: true })),
       invite: !!st.invite,
       open: !!(ov && ov.classList.contains('show')),
       ready: /GOTOWE/.test(steps)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_invite_skip.png') });
-  ok('invite skip marks done and resumes', afterSkip.skipped && afterSkip.invite && afterSkip.open && afterSkip.ready, JSON.stringify(afterSkip));
+  ok('invite skip marks done and resumes', afterSkip.skipped && afterSkip.confirmed && afterSkip.invite && afterSkip.open && afterSkip.ready, JSON.stringify(afterSkip));
 
   await page.click('#client-onboard-steps button:has-text("Biblioteka")');
   await page.waitForTimeout(250);
@@ -212,7 +219,7 @@ function ok(name, cond, extra) {
   ok('schedule saved', afterDays.schedule && afterDays.days.length >= 1, JSON.stringify(afterDays));
   ok('schedule uses the confirmed transaction and server weekday receipt', await page.evaluate(() => {
     const client = window.CL[0], server = window.__clientDocs.get(client._fbId || client.id);
-    return window.__scheduleTransactions.length === 1 &&
+    return window.__scheduleTransactions.filter(writes => writes.some(write => Object.hasOwn(write.patch, 'preferredWeekdays'))).length === 1 &&
       JSON.stringify(server.preferredWeekdays) === JSON.stringify(client.preferredWeekdays) &&
       !!server.clientCardWriteId && server.clientCardWriteId === client.clientCardWriteId;
   }));

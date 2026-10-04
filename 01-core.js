@@ -6959,6 +6959,7 @@ function assignClientPipeline(client,opts){
 }
 /** Status startu współpracy: zaproszenie → ankieta → baseline → harmonogram → plan → kalendarz → pakiet. */
 function clientOnboardStatus(c){
+  if(typeof clientForOnboardSkip==='function')c=clientForOnboardSkip(c);
   if(!c)return{invite:false,intake:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,session:false,done:0,total:CLIENT_ONBOARD_STEPS.length,complete:true,next:null,missing:[],missingLabels:[]};
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
   const intakeState=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
