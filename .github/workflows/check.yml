@@ -51,6 +51,7 @@ jobs:
           node .github/scripts/test_baseline_confirmed.js
           node .github/scripts/test_client_card_confirmed.js
           node .github/scripts/test_onboard_schedule_confirmed.js
+          node .github/scripts/test_onboard_skip_save.js
           node .github/scripts/test_client_sala_write.js
           node .github/scripts/test_forum_reaction_persistence.js
           node .github/scripts/test_client_checkin_permissions.js
@@ -565,6 +566,7 @@ jobs:
           node .github/scripts/test_baseline_confirmed_ui.js
           node .github/scripts/test_client_card_confirmed_ui.js
           node .github/scripts/test_onboard_schedule_confirmed_ui.js
+          node .github/scripts/test_onboard_skip_save_ui.js
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_notes_evidence_ui.js
