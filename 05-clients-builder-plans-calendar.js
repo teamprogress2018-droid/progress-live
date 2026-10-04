@@ -707,6 +707,7 @@ function skipClientPackage(clientId){return saveOnboardSkip(clientId,'packageSki
 window.skipClientPackage=skipClientPackage;
 
 function openPackageForClient(clientId){
+  window._packageOpenClient=clientId;
   window._onboardResumeAfterPackage=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
   const pkgEl=document.getElementById('pkg-client');
