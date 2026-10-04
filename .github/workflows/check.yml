@@ -472,6 +472,9 @@ jobs:
           node .github/scripts/test_next_action.js
           node .github/scripts/test_client_next_start.js
 
+      - name: Confirmed atomic package and invoice save
+        run: node .github/scripts/test_package_save_confirmed.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
@@ -567,6 +570,7 @@ jobs:
           node .github/scripts/test_client_card_confirmed_ui.js
           node .github/scripts/test_onboard_schedule_confirmed_ui.js
           node .github/scripts/test_onboard_skip_save_ui.js
+          node .github/scripts/test_package_save_confirmed_ui.js
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_notes_evidence_ui.js
