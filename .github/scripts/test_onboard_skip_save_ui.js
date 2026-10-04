@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
     await page.goto('http://' + (process.env.LAYOUT_HOST || '127.0.0.1') + ':' +
       (process.env.LAYOUT_PORT || '8080') + '/index.html', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => typeof window.saveClientOnboardSkipConfirmed === 'function' &&
-      typeof window.clearOnboardSkipStates === 'function' && typeof window.renderInviteSkipState === 'function');
+      typeof window.clearOnboardSkipStates === 'function' && typeof window.renderInviteSkipState === 'function' && typeof window.openInviteFromDashboard === 'function');
     await page.waitForTimeout(600);
     await page.evaluate(() => {
       const clone = value => JSON.parse(JSON.stringify(value));
@@ -72,6 +72,28 @@ const { chromium } = require('playwright');
     let passed = 0;
     const ok = (label, condition, detail) => { assert.ok(condition, label + (detail ? ': ' + JSON.stringify(detail) : '')); passed++; console.log('OK ' + label); };
 
+    await reset(); await openInvite(); await page.evaluate(() => closeInviteModal(false));
+    await page.evaluate(() => { closeM('m-client-onboard'); goTo('dashboard'); window._onboardResumeAfterInvite = 'skip-a';
+      _skipUi.localBefore = JSON.stringify(CL); _skipUi.savesBefore = _skipUi.saves.length;
+      _skipUi.resumeBefore = _skipUi.resume.length; _skipUi.noticeBefore = _skipUi.notices.length; toggleDashQuickActions(true); });
+    await page.locator('button[onclick*="openInviteFromDashboard"]').click(); let quick = await state();
+    ok('dashboard invitation action requires a fresh client choice and clears old A context', await page.locator('#screen-clients').isVisible() &&
+      !(await invite.isVisible()) && await page.evaluate(() => !window._inviteModalView && !window.inviteClientId &&
+      !window._onboardResumeAfterInvite && JSON.stringify(CL) === _skipUi.localBefore &&
+      _skipUi.saves.length === _skipUi.savesBefore && _skipUi.resume.length === _skipUi.resumeBefore &&
+      JSON.stringify(_skipUi.notices.slice(_skipUi.noticeBefore)) === JSON.stringify(['Wybierz klienta, aby przygotować zaproszenie.'])), quick);
+
+    for (const skip of [false, true]) {
+      await reset(); const before = await state();
+      await page.evaluate(() => { window.inviteClientId = 'skip-a'; window._onboardResumeAfterInvite = 'skip-a';
+        window._inviteModalView = null; openM('m-invite'); });
+      await page.evaluate(skip => closeInviteModal(skip), skip); let current = await state();
+      assert.deepEqual(current.local, before.local);
+      ok('raw uninitialized invitation closes safely for skip=' + skip, !(await invite.isVisible()) &&
+        current.saves.length === 0 && current.resume.length === 0 && current.notices.length === 0 &&
+        await page.evaluate(() => !window.inviteClientId && !window._onboardResumeAfterInvite), current);
+    }
+
     for (const field of ['inviteSkipped', 'packageSkipped']) {
       await reset(); await openChecklist(); const before = await state();
       await skipButton(field).click(); await pending(); let s = await state();
@@ -107,6 +129,9 @@ const { chromium } = require('playwright');
       await skipInvite.isDisabled() && await page.locator('#inv-send-btn').isDisabled() &&
       await invite.locator('.modal-body button').evaluateAll(buttons => buttons.length > 0 && buttons.every(button => button.disabled)) &&
       s.local[0].inviteSkipped === undefined && s.resume.length === 0, s);
+    await page.evaluate(() => { closeInviteModal(true); });
+    ok('duplicate initialized invitation skip shares the pending save', (await state()).saves.length === 1 &&
+      await invite.isVisible() && await skipInvite.isDisabled() && (await state()).resume.length === 0);
     ok('invitation confirmation status is accessible', await inviteStatus.getAttribute('role') === 'status' &&
       await inviteStatus.getAttribute('aria-live') === 'polite');
     await release('failure'); await settle();

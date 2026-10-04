@@ -54,7 +54,7 @@ function element(attrs = {}) {
     getAttribute: key => attrs[key], classList: { contains: k => classes.has(k), add: k => classes.add(k), remove: k => classes.delete(k) } };
 }
 function ui() {
-  const ctx = context(), calls = { saves: [], pending: [], renders: [], notices: [], resume: [], close: [] };
+  const ctx = context(), calls = { saves: [], pending: [], renders: [], notices: [], resume: [], close: [], navigation: [], quickMenu: [] };
   const buttons = ['inviteSkipped', 'packageSkipped'].map(field => element({ 'data-onboard-skip-client': 'skip-a',
     'data-onboard-skip-field': field, 'data-onboard-skip-action': 'skip' }));
   const statuses = ['inviteSkipped', 'packageSkipped'].map(field => element({ 'data-onboard-skip-client': 'skip-a', 'data-onboard-skip-status': field }));
@@ -71,6 +71,7 @@ function ui() {
   ctx.openM = id => elements[id].classList.add('show');
   ctx.closeM = id => { elements[id].classList.remove('show'); calls.close.push(id); };
   ctx.maybeResumeOnboard = id => calls.resume.push(id);
+  ctx.goTo = target => calls.navigation.push(target); ctx.toggleDashQuickActions = value => calls.quickMenu.push(value);
   ctx.defaultInviteMethod = () => 'email'; ctx.getInit = () => 'KA';
   ctx.paintInviteMethodButtons = () => {}; ctx.updateInvitePreview = () => {};
   ctx.ensureClientInvite = async () => 'https://example.test/invite/fixture';
@@ -83,7 +84,7 @@ function ui() {
     extract(source, 'skipClientPackage')].join('\n'), ctx);
   const invites = read('09-posture-kb-invites-private.js');
   vm.runInContext('var inviteClientId=null,inviteMethod=null;\n' + ['clearInviteSkipView', 'inviteSkipViewIsCurrent',
-    'renderInviteSkipState', 'openInviteModal', 'closeInviteModal'].map(n => extract(invites, n)).join('\n'), ctx);
+    'renderInviteSkipState', 'openInviteFromDashboard', 'openInviteModal', 'closeInviteModal'].map(n => extract(invites, n)).join('\n'), ctx);
   return { ctx, calls, elements, buttons, statuses,
     save: field => ctx.saveOnboardSkip('skip-a', field || 'inviteSkipped'),
     ack: (n = 0, extra = {}) => calls.pending[n].resolve({ ...clone(calls.saves[n].candidate), ...extra, [calls.saves[n].field]: true }),
@@ -176,6 +177,48 @@ async function test(label, run) { await run(); count++; console.log('OK ' + labe
     if (mode === 'document') h.ctx.CL[0]._fbId = 'different-doc';
     const before = clone(h.ctx.CL); h.ack(); assert.equal(await first, false); assert.deepEqual(clone(h.ctx.CL), before);
     assert(!h.calls.notices.some(message => /pominięte\.$/.test(message)));
+  });
+  await test('dashboard invitation action clears old client context and asks for a fresh client choice', async () => {
+    const h = ui(), before = clone(h.ctx.CL); await h.open();
+    await h.ctx.closeInviteModal(false); h.calls.resume.length = 0;
+    h.ctx._onboardResumeAfterInvite = 'skip-a'; h.ctx._onboardResumeTimer = 17;
+    const cancelled = []; h.ctx.clearTimeout = timer => cancelled.push(timer);
+    h.ctx.openInviteFromDashboard();
+    assert.deepEqual(h.calls.navigation, ['clients']); assert.deepEqual(h.calls.quickMenu, [false]);
+    assert.equal(h.ctx._inviteModalView, null); assert.equal(h.ctx.inviteClientId, null); assert.equal(h.ctx._onboardResumeAfterInvite, null);
+    assert(!h.elements['m-invite'].classList.contains('show')); assert.deepEqual(clone(h.ctx.CL), before);
+    assert.equal(h.calls.saves.length, 0); assert.equal(h.calls.resume.length, 0);
+    assert.deepEqual(h.calls.notices, ['Wybierz klienta, aby przygotować zaproszenie.']);
+    assert.deepEqual(cancelled, [17]); assert.equal(h.ctx._onboardResumeTimer, null);
+  });
+  await test('dashboard action preserves an initialized pending invitation view', async () => {
+    const h = ui(); await h.open(); const first = h.ctx.closeInviteModal(true); await tick();
+    const view = h.ctx._inviteModalView; h.ctx.openInviteFromDashboard();
+    assert.equal(h.ctx._inviteModalView, view); assert(h.elements['m-invite'].classList.contains('show'));
+    assert(h.elements['inv-skip-btn'].disabled); assert.equal(h.calls.navigation.length, 0);
+    assert.equal(h.calls.notices.length, 0); assert.equal(h.calls.saves.length, 1);
+    h.ack(); await first; assert.deepEqual(h.calls.resume, ['skip-a']);
+  });
+  for (const skip of [false, true]) await test('uninitialized invitation modal closes without saving or resuming even with stale client globals: ' + skip, async () => {
+    const h = ui(), before = clone(h.ctx.CL);
+    h.ctx.inviteClientId = 'skip-a'; h.ctx._onboardResumeAfterInvite = 'skip-a'; h.ctx._inviteModalView = null;
+    h.ctx.openM('m-invite'); await h.ctx.closeInviteModal(skip);
+    assert(!h.elements['m-invite'].classList.contains('show')); assert.deepEqual(clone(h.ctx.CL), before);
+    assert.equal(h.calls.saves.length, 0); assert.equal(h.calls.resume.length, 0); assert.equal(h.calls.notices.length, 0);
+    assert.equal(h.ctx._onboardResumeAfterInvite, null); assert.equal(h.ctx.inviteClientId, null);
+  });
+  for (const skip of [false, true]) await test('non-current initialized invitation remains guarded: ' + skip, async () => {
+    const h = ui(); await h.open(); const view = h.ctx._inviteModalView; h.ctx.tenantSessionGeneration++;
+    await h.ctx.closeInviteModal(skip); assert(h.elements['m-invite'].classList.contains('show'));
+    assert.equal(h.ctx._inviteModalView, view); assert.equal(h.calls.saves.length, 0);
+    assert.equal(h.calls.resume.length, 0); assert.equal(h.calls.notices.length, 0);
+  });
+  await test('duplicate initialized modal skip remains pending until one ACK and resumes exactly once', async () => {
+    const h = ui(); await h.open(); const first = h.ctx.closeInviteModal(true), duplicate = h.ctx.closeInviteModal(true);
+    await tick(); assert.equal(h.calls.saves.length, 1); assert(h.elements['m-invite'].classList.contains('show'));
+    assert(h.elements['inv-skip-btn'].disabled); assert.equal(h.calls.resume.length, 0);
+    h.ack(); await Promise.all([first, duplicate]); assert(!h.elements['m-invite'].classList.contains('show'));
+    assert.deepEqual(h.calls.resume, ['skip-a']); assert.equal(h.ctx.CL[0].inviteSkipped, true);
   });
   await test('invite modal stays open on rejection, then closes and resumes only after successful retry', async () => {
     const h = ui(); await h.open(); const first = h.ctx.closeInviteModal(true); await tick();
