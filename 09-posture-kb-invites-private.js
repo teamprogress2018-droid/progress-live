@@ -4447,9 +4447,37 @@ function paintInviteMethodButtons(method){
   });
 }
 
+function inviteSkipViewIsCurrent(view) {
+  return !!view&&window._inviteModalView===view&&assignmentSessionCurrent(view.auth)&&inviteClientId===view.clientId&&
+    document.getElementById('m-invite')?.classList.contains('show')&&!document.querySelector('.modal-ov.show:not(#m-invite)');
+}
+function renderInviteSkipState(clientId) {
+  const view=window._inviteModalView;
+  if(!view||view.clientId!==clientId||!assignmentSessionCurrent(view.auth)||inviteClientId!==clientId)return;
+  const state=typeof getOnboardSkipState==='function'?getOnboardSkipState(clientId,'inviteSkipped'):null;
+  const pending=!!state?.pending;
+  document.querySelectorAll('#m-invite .modal-body button,#inv-send-btn,#inv-open-wa-btn').forEach(button=>{button.disabled=pending;});
+  const skip=document.getElementById('inv-skip-btn');
+  if(skip){skip.disabled=pending||!!state?.saved;skip.textContent=pending?'Zapisuję…':state?.saved?'Pominięto':state?.error?'Ponów pominięcie':'Pomiń';}
+  const status=document.getElementById('inv-skip-status');
+  if(status){status.textContent=state?.message||'';status.hidden=!status.textContent;status.style.color=state?.error?'var(--accent)':'var(--muted)';}
+}
+function clearInviteSkipView() {
+  window._inviteModalView=null;inviteClientId=null;window._onboardResumeAfterInvite=null;
+  document.querySelectorAll('#m-invite .modal-body button,#inv-send-btn,#inv-open-wa-btn,#inv-skip-btn').forEach(button=>{button.disabled=false;});
+  const skip=document.getElementById('inv-skip-btn');if(skip)skip.textContent='Pomiń';
+  const status=document.getElementById('inv-skip-status');if(status){status.textContent='';status.hidden=true;}
+}
+window.renderInviteSkipState=renderInviteSkipState;
+window.clearInviteSkipView=clearInviteSkipView;
+
 async function openInviteModal(clientId) {
   const c = CL.find(x => x.id === clientId);
-  if (!c) return;
+  const auth=assignmentSession();
+  try{assertAssignmentSession(auth,c);}catch(error){if(typeof notify==='function')notify(error.message);return;}
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  const view={clientId,auth:onboardScheduleFreeze({...auth})};
+  window._inviteModalView=view;
   inviteClientId = clientId;
   inviteMethod = defaultInviteMethod(c);
 
@@ -4461,9 +4489,11 @@ async function openInviteModal(clientId) {
 
   if (el('inv-link')) el('inv-link').textContent = 'Generowanie linku...';
   openM('m-invite');
+  renderInviteSkipState(clientId);
   paintInviteMethodButtons(inviteMethod);
   updateInvitePreview(c, '', inviteMethod);
   const link = typeof ensureClientInvite==='function' ? await ensureClientInvite(c) : generateInviteLink(c);
+  if(!inviteSkipViewIsCurrent(view))return;
   if (el('inv-link')) el('inv-link').textContent = link;
   paintInviteMethodButtons(inviteMethod);
   updateInvitePreview(c, link, inviteMethod);
@@ -4644,22 +4674,29 @@ function sendInvitation() {
   if (typeof renderDash === 'function') try { renderDash(); } catch (e) {}
 }
 
-function closeInviteModal(skip) {
+async function closeInviteModal(skip) {
   const cid = inviteClientId;
+  const view=window._inviteModalView;
+  if(!inviteSkipViewIsCurrent(view))return;
   const fromOnboard = !!(window._onboardResumeAfterInvite && window._onboardResumeAfterInvite === cid);
+  if(skip&&fromOnboard&&cid){
+    const c=CL.find(x=>x.id===cid);
+    try{assertAssignmentSession(view.auth,c);}catch(error){if(typeof notify==='function')notify(error.message);return;}
+    if(!(c.inviteSent||c.appInvited||c.inviteSentAt)){
+      if(typeof skipClientInvite!=='function'){if(typeof notify==='function')notify('Nie można potwierdzić pominięcia. Odśwież aplikację.');return;}
+      const saved=await skipClientInvite(cid);
+      if(!saved||!inviteSkipViewIsCurrent(view))return;
+    }
+  }
+  if(!inviteSkipViewIsCurrent(view))return;
   closeM('m-invite');
+  window._inviteModalView=null;
   if (!fromOnboard) {
     window._onboardResumeAfterInvite = null;
     return;
   }
   window._onboardResumeAfterInvite = null;
-  if (skip && cid) {
-    const c = CL.find(x => x.id === cid);
-    if (c && !(c.inviteSent || c.appInvited || c.inviteSentAt) && typeof skipClientInvite === 'function') {
-      skipClientInvite(cid);
-    }
-  }
-  if (cid && typeof maybeResumeOnboard === 'function') maybeResumeOnboard(cid);
+  try{assertAssignmentSession(view.auth,CL.find(x=>x.id===cid));if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);}catch(error){}
 }
 
 window.openInviteModal = openInviteModal;
