@@ -113,7 +113,7 @@ const { chromium } = require('playwright');
       await cpStatus.getAttribute('role') === 'status' && await gridStatus.getAttribute('aria-live') === 'polite' &&
       (await cpStatus.innerText()).includes('Potwierdzanie') && (await gridStatus.innerText()).includes('Potwierdzanie'));
     same('pending keeps both rendered payment pills unpaid', [await page.locator('#cp-body .card-sm .pill').innerText(),
-      await page.locator('#pay-pkg-grid .pkg-card[data-pkg-id="pkg-a"] .pill').innerText()], ['Oczekujący', 'Oczekujący']);
+      await page.locator('#pay-pkg-grid .pkg-card[data-pkg-id="pkg-a"] .pill').innerText()], ['OCZEKUJĄCY', 'OCZEKUJĄCY']);
     ok('no payment success or integration event occurs before ACK', s.notices.length === 0 && s.events.length === 0 && s.commits.length === 0, s);
     same('real service stages one atomic pair of payment patches', s.transactions.map(tx => tx.writes.map(w =>
       [w.key, Object.keys(w.patch).sort()])), [[['packages/package-doc-a', ['payStatus', 'paymentWriteId']],
@@ -125,7 +125,7 @@ const { chromium } = require('playwright');
     await release(true); await settled(); s = await state();
     same('rejection preserves package and invoice statuses and caches', [s.packages, s.invoices], [before.packages, before.invoices]);
     same('failure keeps both rendered payment pills unpaid', [await page.locator('#cp-body .card-sm .pill').innerText(),
-      await page.locator('#pay-pkg-grid .pkg-card[data-pkg-id="pkg-a"] .pill').innerText()], ['Oczekujący', 'Oczekujący']);
+      await page.locator('#pay-pkg-grid .pkg-card[data-pkg-id="pkg-a"] .pill').innerText()], ['OCZEKUJĄCY', 'OCZEKUJĄCY']);
     same('failed transaction commits nothing', s.commits, []);
     ok('failure paints a relevant retry error in both existing surfaces', (await cpStatus.innerText()).includes('Fixture payment offline') &&
       (await gridStatus.innerText()).includes('Fixture payment offline') && await cpButton.isEnabled() && await gridButton.isEnabled());
@@ -143,8 +143,8 @@ const { chromium } = require('playwright');
     same('payment patches preserve current server usage and note', [s.remote['packages/package-doc-a'].sessionsUsed,
       s.remote['packages/package-doc-a'].notes], [7, 'Concurrent remote note']);
     ok('both rendered surfaces show paid and remove the mark-paid action', await cpButton.count() === 0 && await gridButton.count() === 0 &&
-      (await page.locator('#cp-body .card-sm .pill').innerText()) === 'Opłacony' &&
-      (await page.locator('#pay-pkg-grid .pkg-card[data-pkg-id="pkg-a"] .pill').innerText()) === 'Opłacony');
+      (await page.locator('#cp-body .card-sm .pill').innerText()) === 'OPŁACONY' &&
+      (await page.locator('#pay-pkg-grid .pkg-card[data-pkg-id="pkg-a"] .pill').innerText()) === 'OPŁACONY');
     same('successful duplicate and retry flow emits one success notice', s.notices.length, 1);
     same('successful duplicate and retry flow emits one package-paid event', s.events.map(e => e.event), ['package.paid']);
     same('payment event identifies the confirmed package and client', [s.events[0].payload.package.id, s.events[0].payload.package.clientId], ['pkg-a', 'client-a']);
