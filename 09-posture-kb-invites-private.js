@@ -4674,9 +4674,28 @@ function sendInvitation() {
   if (typeof renderDash === 'function') try { renderDash(); } catch (e) {}
 }
 
+function openInviteFromDashboard() {
+  if(typeof toggleDashQuickActions==='function')toggleDashQuickActions(false);
+  const view=window._inviteModalView;
+  if(view&&inviteSkipViewIsCurrent(view))return;
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  if(typeof clearInviteSkipView==='function')clearInviteSkipView();
+  else{window._inviteModalView=null;inviteClientId=null;window._onboardResumeAfterInvite=null;}
+  if(typeof goTo==='function')goTo('clients');
+  if(typeof notify==='function')notify('Wybierz klienta, aby przygotować zaproszenie.');
+}
+window.openInviteFromDashboard=openInviteFromDashboard;
+
 async function closeInviteModal(skip) {
   const cid = inviteClientId;
   const view=window._inviteModalView;
+  if(!view){
+    if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+    if(typeof clearInviteSkipView==='function')clearInviteSkipView();
+    else{inviteClientId=null;window._onboardResumeAfterInvite=null;}
+    closeM('m-invite');
+    return;
+  }
   if(!inviteSkipViewIsCurrent(view))return;
   const fromOnboard = !!(window._onboardResumeAfterInvite && window._onboardResumeAfterInvite === cid);
   if(skip&&fromOnboard&&cid){
