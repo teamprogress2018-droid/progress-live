@@ -885,16 +885,98 @@ function enrollClientInOnboardForum(clientId){
 }
 window.enrollClientInOnboardForum=enrollClientInOnboardForum;
 
+// Schedule retries belong to one client and authenticated trainer session.
+const onboardScheduleDrafts=new Map();
+function onboardScheduleClone(value){
+  if(Array.isArray(value))return value.map(onboardScheduleClone);
+  if(value instanceof Date)return new Date(value.getTime());
+  if(value&&typeof value==='object'&&value.constructor?.name==='Object')return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,onboardScheduleClone(item)]));
+  return value;
+}
+function onboardScheduleFreeze(value){
+  if(Array.isArray(value)||(value&&typeof value==='object'&&value.constructor?.name==='Object')){
+    Object.values(value).forEach(onboardScheduleFreeze);Object.freeze(value);
+  }
+  return value;
+}
+function onboardScheduleOwnsModal(state){
+  return !!state&&window._onboardScheduleState===state&&state.open&&assignmentSessionCurrent(state.auth)&&
+    window._onboardScheduleClientId===state.clientId&&document.getElementById('m-onboard-schedule')?.classList.contains('show');
+}
+function onboardScheduleIsCurrent(state){
+  return onboardScheduleOwnsModal(state)&&!document.querySelector('.modal-ov.show:not(#m-onboard-schedule)');
+}
+function captureOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(state&&state.open){
+    if(!state.candidate&&window._onboardScheduleClientId===state.clientId&&typeof readPreferredWeekdaysFrom==='function')state.days=onboardScheduleClone(readPreferredWeekdaysFrom('ob-sched'));
+    state.open=false;
+  }
+}
+function clearOnboardScheduleDrafts(){
+  onboardScheduleDrafts.clear();window._onboardScheduleState=null;
+  window._onboardScheduleClientId=null;window._onboardResumeAfterSchedule=null;
+  const modal=document.getElementById('m-onboard-schedule');if(modal)modal.classList.remove('show');
+  const name=document.getElementById('ob-sched-name');if(name)name.textContent='';
+  const bar=document.getElementById('sched-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
+  if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ob-sched',[]);
+  const status=document.getElementById('ob-sched-save-status');if(status)status.textContent='';
+}
+function renderOnboardScheduleSaveState(state){
+  if(!onboardScheduleOwnsModal(state))return;
+  const days=document.getElementById('ob-sched-preferred-weekdays');
+  if(days)days.querySelectorAll('button').forEach(button=>{button.disabled=!!state.candidate;});
+  const save=document.getElementById('ob-sched-save-btn');
+  if(save){save.disabled=!!(state.pending||state.saved||state.conflict);save.textContent=state.pending?'Zapisuję…':state.saved?'Zapisano':state.error?'Ponów zapis':'Zapisz dni';}
+  const status=document.getElementById('ob-sched-save-status');if(status){status.textContent=state.message||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+  const reload=document.getElementById('ob-sched-reload-btn');if(reload){reload.hidden=!state.conflict;reload.disabled=!!state.pending;}
+  const discard=document.getElementById('ob-sched-discard-btn');if(discard)discard.disabled=!!(state.pending||state.saved||(state.candidate&&!state.conflict));
+}
+function reloadOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||!state.conflict||state.pending)return;
+  try{
+    const local=CL.find(c=>c.id===state.clientId);
+    assertAssignmentSession(state.auth,state.conflict);assertAssignmentSession(state.auth,local);
+    if((state.conflict._fbId||state.conflict.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+    if((local._fbId||local.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+  }catch(error){state.error=true;state.message=error.message;renderOnboardScheduleSaveState(state);return;}
+  state.base=onboardScheduleFreeze(onboardScheduleClone(state.conflict));
+  state.days=onboardScheduleClone(state.base.preferredWeekdays?.length?state.base.preferredWeekdays:[1,3,5]);
+  state.operation={auth:state.auth,edit:true,base:state.base};state.candidate=null;state.displayDays=null;state.conflict=null;state.error=false;
+  state.message='Wczytano aktualne dane. Zaznacz i zapisz dni treningowe.';state.open=false;
+  openClientScheduleFromOnboard(state.clientId);
+}
+function discardOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||state.pending||state.saved||(state.candidate&&!state.conflict))return;
+  onboardScheduleDrafts.delete(state.key);
+  closeScheduleOnboardModal();window._onboardScheduleState=null;
+}
 function openClientScheduleFromOnboard(clientId){
-  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  const c=CL.find(x=>x.id===clientId),auth=assignmentSession();
+  try{assertAssignmentSession(auth,c);}catch(error){if(typeof notify==='function')notify(error.message);return;}
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  captureOnboardScheduleDraft();
+  for(const [key,draft] of onboardScheduleDrafts)if(!assignmentSessionCurrent(draft.auth))onboardScheduleDrafts.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,clientId]);
+  let state=onboardScheduleDrafts.get(key);
+  if(state&&state.saved&&!state.pending){onboardScheduleDrafts.delete(key);state=null;}
+  if(!state){
+    const base=onboardScheduleFreeze(onboardScheduleClone(c));
+    state={auth:onboardScheduleFreeze({...auth}),key,clientId,base,days:onboardScheduleClone(c.preferredWeekdays?.length?c.preferredWeekdays:[1,3,5])};
+    state.operation={auth:state.auth,edit:true,base};onboardScheduleDrafts.set(key,state);
+  }
+  window._onboardScheduleState=state;state.open=true;
   window._onboardScheduleClientId=clientId;
   window._onboardResumeAfterSchedule=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
   const nameEl=document.getElementById('ob-sched-name');
-  if(nameEl)nameEl.textContent=c.name||'';
+  if(nameEl)nameEl.textContent=state.base.name||'';
   if(typeof initPreferredWeekdaysForm==='function'){
-    initPreferredWeekdaysForm('ob-sched', (c.preferredWeekdays&&c.preferredWeekdays.length)?c.preferredWeekdays:[1,3,5]);
+    initPreferredWeekdaysForm('ob-sched',state.days);
   }
+  if(!state.displayDays&&typeof readPreferredWeekdaysFrom==='function')state.displayDays=onboardScheduleClone(readPreferredWeekdaysFrom('ob-sched'));
   const bar=document.getElementById('sched-onboard-banner');
   if(bar){
     const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
@@ -903,36 +985,70 @@ function openClientScheduleFromOnboard(clientId){
       +'<button type="button" class="btn btn-primary btn-sm" onclick="closeScheduleOnboardModal()">Wróć do checklisty</button>';
   }
   openM('m-onboard-schedule');
+  renderOnboardScheduleSaveState(state);
 }
 function closeScheduleOnboardModal(){
+  const state=window._onboardScheduleState;
+  const cid=onboardScheduleIsCurrent(state)?state.clientId:null;
+  captureOnboardScheduleDraft();
   if(typeof closeM==='function')closeM('m-onboard-schedule');
   const bar=document.getElementById('sched-onboard-banner');
   if(bar){bar.style.display='none';bar.innerHTML='';}
-  const cid=window._onboardResumeAfterSchedule;
-  window._onboardResumeAfterSchedule=null;
-  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+  window._onboardResumeAfterSchedule=null;window._onboardScheduleClientId=null;
+  if(cid&&assignmentSessionCurrent(state.auth)){
+    try{assertAssignmentSession(state.auth,CL.find(c=>c.id===cid));if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);}catch(error){}
+  }
 }
-function saveClientScheduleFromOnboard(){
-  const id=window._onboardScheduleClientId;
-  const c=CL.find(x=>x.id===id);if(!c)return;
-  const days=typeof readPreferredWeekdaysFrom==='function'?readPreferredWeekdaysFrom('ob-sched'):[];
-  if(!days.length){if(typeof notify==='function')notify('Wybierz przynajmniej jeden dzień');return;}
-  c.preferredWeekdays=days;
-  persistById('clients',c);
-  const resumeId=window._onboardResumeAfterSchedule;
-  window._onboardResumeAfterSchedule=null;
-  if(typeof closeM==='function')closeM('m-onboard-schedule');
-  const bar=document.getElementById('sched-onboard-banner');
-  if(bar){bar.style.display='none';bar.innerHTML='';}
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(typeof renderClients==='function')try{renderClients();}catch(e){}
-  if(typeof notify==='function')notify('Dni treningowe zapisane');
-  if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
-  else if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
+async function saveClientScheduleFromOnboard(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||state.pending||state.saved||state.conflict)return;
+  try{
+    const local=CL.find(c=>c.id===state.clientId);assertAssignmentSession(state.auth,local);
+    if((local._fbId||local.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+    if(!state.candidate){
+      if(typeof readPreferredWeekdaysFrom!=='function')throw new Error('Nie można odczytać dni treningowych. Odśwież aplikację.');
+      const days=readPreferredWeekdaysFrom('ob-sched');
+      if(!days.length)throw new Error('Wybierz przynajmniej jeden dzień');
+      state.days=onboardScheduleClone(days);
+      const untouched=state.base.preferredWeekdays?.length&&JSON.stringify(days)===JSON.stringify(state.displayDays);
+      state.candidate=onboardScheduleFreeze({id:state.clientId,trainerId:state.auth.uid,
+        ...(state.base._fbId?{_fbId:state.base._fbId}:{}),preferredWeekdays:onboardScheduleClone(untouched?state.base.preferredWeekdays:days)});
+    }
+  }catch(error){state.error=true;state.message=error.message;renderOnboardScheduleSaveState(state);if(typeof notify==='function')notify(state.message);return;}
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie zapisu dni treningowych.';
+  renderOnboardScheduleSaveState(state);
+  try{
+    const saved=await saveClientCardConfirmed(state.candidate,state.operation);
+    if(!assignmentSessionCurrent(state.auth))return;
+    assertAssignmentSession(state.auth,saved);
+    if(saved.id!==state.clientId||(saved._fbId||saved.id)!==(state.base._fbId||state.base.id))throw new Error('Nie można potwierdzić identyfikatora zapisanego klienta.');
+    state.saved=true;
+    const c=CL.find(x=>x.id===state.clientId);assertAssignmentSession(state.auth,c);
+    if((c._fbId||c.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się podczas zapisu.');
+    // Merge only the confirmed schedule; other local fields may have changed meanwhile.
+    if(Object.prototype.hasOwnProperty.call(saved,'preferredWeekdays'))c.preferredWeekdays=onboardScheduleClone(saved.preferredWeekdays);
+    if(saved.clientCardWriteId)c.clientCardWriteId=saved.clientCardWriteId;
+    state.message='Dni treningowe klienta '+(saved.name||state.base.name||state.clientId)+' zapisane.';
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
+    if(typeof renderClients==='function')try{renderClients();}catch(e){}
+    if(typeof notify==='function')notify(state.message);
+    if(onboardScheduleIsCurrent(state))closeScheduleOnboardModal();
+  }catch(error){
+    if(!assignmentSessionCurrent(state.auth))return;
+    state.error=true;state.conflict=error?.code==='client-card-conflict'&&error.remote?onboardScheduleClone(error.remote):null;
+    state.message=state.saved?'Dni zapisane, ale klient jest teraz niedostępny. Odśwież listę klientów.':
+      state.conflict?'Dni treningowe zmieniły się w innym oknie. Wczytaj aktualne dane i zaznacz dni ponownie.':
+      'Nie potwierdzono zapisu. Wybrane dni zachowano. Ponów zapis. '+(error?.message||'');
+    if(onboardScheduleIsCurrent(state)&&typeof notify==='function')notify(state.message);
+  }finally{state.pending=false;if(onboardScheduleOwnsModal(state))renderOnboardScheduleSaveState(state);}
 }
 window.openClientScheduleFromOnboard=openClientScheduleFromOnboard;
 window.closeScheduleOnboardModal=closeScheduleOnboardModal;
 window.saveClientScheduleFromOnboard=saveClientScheduleFromOnboard;
+window.captureOnboardScheduleDraft=captureOnboardScheduleDraft;
+window.clearOnboardScheduleDrafts=clearOnboardScheduleDrafts;
+window.reloadOnboardScheduleDraft=reloadOnboardScheduleDraft;
+window.discardOnboardScheduleDraft=discardOnboardScheduleDraft;
 
 function latestClientPlan(clientId){
   return(window.PL||[]).filter(p=>p&&p.clientId===clientId).slice().sort((a,b)=>{

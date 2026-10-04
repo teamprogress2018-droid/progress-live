@@ -3378,7 +3378,13 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="ob-sched-preferred-weekdays-mount"></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="typeof closeScheduleOnboardModal==='function'?closeScheduleOnboardModal():closeM('m-onboard-schedule')">Anuluj</button><button class="btn btn-primary" onclick="saveClientScheduleFromOnboard()">Zapisz dni</button></div>
+    <div id="ob-sched-save-status" role="status" aria-live="polite" style="font-size:12px;line-height:1.5;padding:0 24px 10px;"></div>
+    <div class="modal-footer" style="flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost" onclick="typeof closeScheduleOnboardModal==='function'?closeScheduleOnboardModal():closeM('m-onboard-schedule')">Zamknij</button>
+      <button type="button" id="ob-sched-discard-btn" class="btn btn-ghost" onclick="discardOnboardScheduleDraft()">Odrzuć wybór</button>
+      <button type="button" id="ob-sched-reload-btn" class="btn btn-ghost" hidden onclick="reloadOnboardScheduleDraft()">Wczytaj aktualne dni</button>
+      <button type="button" id="ob-sched-save-btn" class="btn btn-primary" onclick="saveClientScheduleFromOnboard()">Zapisz dni</button>
+    </div>
   </div>
 </div>
 
@@ -4342,6 +4348,7 @@ function resetTenantRuntimeData(){
   window._builderSaveState=null;window._editingPlanId=null;
   if(typeof clearClientModalDrafts==='function')clearClientModalDrafts();
   if(typeof clearCPEditDrafts==='function')clearCPEditDrafts();
+  if(typeof clearOnboardScheduleDrafts==='function')clearOnboardScheduleDrafts();
   ['b-name','b-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const builderDays=document.getElementById('builder-days');if(builderDays)builderDays.innerHTML='';
   window._tenantDataReady=false;
@@ -4571,12 +4578,12 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1"></script>
+<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1"></script>
 <script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1"></script>
 <script src="client-card-save.js?v=2"></script>
-<script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1&client-save=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=43&baseline-save=1&profile-save=1"></script>
