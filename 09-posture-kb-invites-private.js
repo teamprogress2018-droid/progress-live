@@ -1049,9 +1049,9 @@ async function savePackage(){
       if(!Number.isFinite(price)||price<0||Math.abs(price*100-Math.round(price*100))>0.00001||!Number.isSafeInteger(sessions)||sessions<1||!Number.isSafeInteger(validity)||validity<1||!Number.isFinite(expD.getTime())||expD.toISOString().slice(0,10)!==date)throw new Error('Sprawdź datę, cenę oraz dodatnią liczbę sesji i dni ważności.');
       expD.setUTCDate(expD.getUTCDate()+validity);
       if(!Number.isFinite(expD.getTime())||expD.getUTCFullYear()>9999)throw new Error('Sprawdź ważność pakietu.');
-      const pkgId=newPackageSaveId('pkg'),invoiceId=newPackageSaveId('inv'),nr=nextInvoiceNr();
-      const pkg={id:pkgId,trainerId:auth.uid,title,type:values.type,sessions,sessionsUsed:0,price,validity,clientId:cid,clientName:client.name,payStatus:values['pay-status']||'pending',date,expiresDate:expD.toISOString().slice(0,10),notes:values.notes,invoiceId:nr,invoiceDocId:invoiceId};
-      const invoice={id:invoiceId,nr,trainerId:auth.uid,pkgId,clientId:cid,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus};
+      const pkgId=newPackageSaveId('pkg'),invoiceId=newPackageSaveId('inv');
+      const pkg={id:pkgId,trainerId:auth.uid,title,type:values.type,sessions,sessionsUsed:0,price,validity,clientId:cid,clientName:client.name,payStatus:values['pay-status']||'pending',date,expiresDate:expD.toISOString().slice(0,10),notes:values.notes,invoiceDocId:invoiceId};
+      const invoice={id:invoiceId,trainerId:auth.uid,pkgId,clientId:cid,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus};
       state={auth,client:{...client},values,pair:{pkg,invoice},operation:{auth,client:{...client}},pending:false,error:null,result:null,resumeId:window._onboardResumeAfterPackage===cid?cid:null};
       packageSaveActive=state;packageSaveDrafts.set(cid,state);
     }
