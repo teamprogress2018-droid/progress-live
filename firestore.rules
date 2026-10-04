@@ -136,6 +136,40 @@ service cloud.firestore {
       allow update: if ownerUpdate() && trainerId == request.auth.uid && safeProfile(request.resource.data);
       allow delete: if owner() && trainerId == request.auth.uid;
     }
+    // Invoice counter IDs are trainer UIDs. A trainer may get its own missing
+    // counter for the initial transaction, but cannot enumerate counters.
+    match /invoiceCounters/{trainerUid} {
+      function ownCounterTrainer() {
+        return trainer() && request.auth.uid == trainerUid;
+      }
+      function counterShape(data) {
+        return data is map
+          && data.keys().hasOnly(['trainerId', 'last', 'invoiceDocId'])
+          && data.keys().hasAll(['trainerId', 'last', 'invoiceDocId'])
+          && data.trainerId == trainerUid
+          && data.last is int && data.last >= 1 && data.last <= 9007199254740991
+          && validId(data.invoiceDocId);
+      }
+      function linksNewInvoice(data) {
+        let path = /databases/$(database)/documents/invoices/$(data.invoiceDocId);
+        let invoice = getAfter(path).data;
+        return !exists(path)
+          && invoice.id == data.invoiceDocId
+          && invoice.trainerId == trainerUid
+          && invoice.numberSeries == 'S'
+          && invoice.numberSequence == data.last;
+      }
+      allow get: if ownCounterTrainer()
+        && (!exists(/databases/$(database)/documents/invoiceCounters/$(trainerUid))
+          || resource.data.trainerId == trainerUid);
+      allow list, delete: if false;
+      allow create: if ownCounterTrainer() && counterShape(request.resource.data)
+        && request.resource.data.last == 1 && linksNewInvoice(request.resource.data);
+      allow update: if ownCounterTrainer() && counterShape(resource.data)
+        && counterShape(request.resource.data) && resource.data.last < 9007199254740991
+        && request.resource.data.last == resource.data.last + 1
+        && linksNewInvoice(request.resource.data);
+    }
     match /clients/{clientId} {
       allow read: if linked() && clientId == account().clientId && sameTrainer(resource.data);
       allow update: if linked() && clientId == account().clientId
