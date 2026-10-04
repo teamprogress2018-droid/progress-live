@@ -578,6 +578,7 @@ function openM(id){
 }
 function closeM(id){
   if(id==='m-client'&&typeof captureClientModalDraft==='function')captureClientModalDraft();
+  if(id==='m-onboard-schedule'&&typeof captureOnboardScheduleDraft==='function')captureOnboardScheduleDraft();
   if(id==='m-od-player'){
     const frame=document.getElementById('od-player-frame');
     if(frame){
