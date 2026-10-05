@@ -2441,7 +2441,7 @@ function revealCpOverviewCoop(){
 }
 /** Ograniczenia z karty klienta vs ćwiczenia: tylko wyraźne kolizje (słowa kluczowe), decyzja należy do trenera. */
 const CP_LIMIT_RULES=[
-  {area:'bark',match:/bark|ramię|ramie|rotator|stożk|obojczyk/i,ex:/nad gł|overhead|ohp|żołnier|zolnier|military|arnold|za kark|podrzut|rwanie|snatch|push press|handstand|pompki w staniu na rękach/i},
+  {area:'bark',match:/bark|(^|[^a-ząćęłńóśźż])rami[ęe]|rotator|stożk|obojczyk/i,ex:/nad gł|overhead|ohp|żołnier|zolnier|military|arnold|za kark|podrzut|rwanie|snatch|push press|handstand|pompki w staniu na rękach/i},
   {area:'kolano',match:/kolan|łąkot|lakot|acl|rzepk/i,ex:/wykrok|bułgar|bulgar|pistol|skok|plyo|box jump|przysiad na jednej|sissy/i},
   {area:'kręgosłup',match:/kręgosł|kregosl|lędźw|ledzw|dysk|przepuklin|rwa kulsz|plecy/i,ex:/martwy ciąg|martwy ciag|deadlift|skłon|sklon|good morning|wiosłowanie w opadzie|wioslowanie w opadzie|przysiad ze sztangą na plecach|back squat/i},
   {area:'nadgarstek',match:/nadgarst|cieśń|ciesn/i,ex:/pompk|front squat|przysiad przedni|zarzut|clean/i}
@@ -2478,7 +2478,11 @@ function cpOverviewMassGoalFact(c){
   const series=typeof cpMetricSeries==='function'?cpMetricSeries(c.id,'mg1','m1',40):[];
   if(series.length<3)return null;
   const last=series[series.length-1];
-  const cutoff=typeof cpOverviewYmdAdd==='function'?cpOverviewYmdAdd(String(last.d).slice(0,10),-21):'';
+  const today=typeof cpOverviewTodayYmd==='function'?cpOverviewTodayYmd():String(last.d).slice(0,10);
+  // Tylko aktualne dane: ostatni pomiar ≤14 dni temu, okno 5 tygodni od dziś (łapie też pomiary co 2 tyg.).
+  const fresh=typeof cpOverviewDaysBetween==='function'?cpOverviewDaysBetween(String(last.d).slice(0,10),today):0;
+  if(fresh==null||fresh>14)return null;
+  const cutoff=typeof cpOverviewYmdAdd==='function'?cpOverviewYmdAdd(today,-35):'';
   const win=series.filter(p=>String(p.d||'')>=cutoff);
   if(win.length<3)return null;
   const first=win[0];
@@ -2502,6 +2506,8 @@ function cpOverviewLiftFact(c){
     const f=r&&r.facts||{};
     if(r.action==='DELOAD')return 4;
     if(r.action==='ZMNIEJSZ OBCIĄŻENIE')return 3;
+    // Sugestia w Live każe dokładać — Przegląd nie może mówić „brak postępu”.
+    if(/^DODAJ/.test(String(r.action||'')))return 0;
     if(f.label==='REGRES')return 2;
     if(f.plateau&&f.n>=3)return 1;
     return 0;

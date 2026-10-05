@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const src=fs.readFileSync(path.join(__dirname,'../../08-client-profile-extras.js'),'utf8');
 const slice=(a,b)=>{const i=src.indexOf(a),j=src.indexOf(b,i);assert.ok(i>=0&&j>i,'missing '+a);return src.slice(i,j);};
 const code=slice('const CP_LIMIT_RULES=','function cpOverviewRecs(')+slice('function cpOverviewPl(','\n}')+'\n}\n'+
-  slice('function cpOverviewDaysBetween(','\n}')+'\n}\n'+slice('function cpOverviewYmdAdd(','\n}')+'\n}\n'+slice('function cpSitClip(','\n}')+'\n}\n';
+  slice('function cpOverviewDaysBetween(','\n}')+'\n}\n'+slice('function cpOverviewYmdAdd(','\n}')+'\n}\n'+'function cpOverviewTodayYmd(){return window.__today||"2026-09-30";}\n'+slice('function cpSitClip(','\n}')+'\n}\n';
 let n=0;const ok=m=>{n++;console.log('OK '+m);};
 function ctx(extra){const c=Object.assign({console,Date,Math,String,Number,JSON,isFinite,parseFloat,
   clientInjuriesText:x=>String(x&&(x.injuries||x.notes)||'')},extra||{});c.window=c;vm.createContext(c);vm.runInContext(code,c);return c;}
@@ -19,6 +19,7 @@ assert.equal(c.cpClientLimitConflicts({notes:'brak przeciwwskazań'},['Martwy ci
 assert.equal(c.cpClientLimitConflicts({notes:''},['OHP']).length,0);ok('empty notes → nothing');
 
 // Masa vs cel
+const brief=recs=>({composeClientNextSessionBrief:()=>({recs})});
 const metrics=(pts)=>({cpMetricSeries:()=>pts.map(([d,v])=>({d,v}))});
 c=ctx(metrics([['2026-09-07',80],['2026-09-14',79.9],['2026-09-28',79.8]]));
 let m=c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'});
@@ -29,11 +30,17 @@ c=ctx(metrics([['2026-09-07',70],['2026-09-14',69.5],['2026-09-28',69.2]]));
 assert.ok(/budowy/.test(c.cpOverviewMassGoalFact({id:'a',goal:'hipertrofia'}).title));ok('gain goal with dropping weight → flagged');
 c=ctx(metrics([['2026-09-20',80],['2026-09-24',80],['2026-09-28',80]]));
 assert.equal(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),null);ok('under 14 days → too early, quiet');
+c=ctx(metrics([['2026-09-01',80],['2026-09-15',80],['2026-09-29',79.9]]));
+assert.ok(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),'biweekly');ok('biweekly weigh-ins (28 days) still flagged');
+c=ctx(Object.assign(metrics([['2026-07-01',80],['2026-07-10',80],['2026-07-20',80]]),{}));
+assert.equal(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),null);ok('stale data (last weigh-in >14 days ago) → quiet');
+assert.equal(c.cpClientLimitConflicts({notes:'ból przedramienia, przedramię'},['OHP']).length,0);ok('forearm is not shoulder');
+c=ctx(brief([{name:'Przysiad',action:'DODAJ POWTÓRZENIA',facts:{plateau:true,n:4}},{name:'Ławka',action:'DODAJ CIĘŻAR',facts:{plateau:true,n:3,label:'REGRES'}}]));
+assert.equal(c.cpOverviewLiftFact({id:'b'}),null);ok('plateau with an add-suggestion is not flagged');
 c=ctx(metrics([['2026-09-07',80],['2026-09-28',80]]));
 assert.equal(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),null);ok('2 measurements → quiet');
 
 // Ćwiczenie wymagające decyzji
-const brief=recs=>({composeClientNextSessionBrief:()=>({recs})});
 c=ctx(brief([
   {name:'Przysiad',action:'UTRZYMAJ',facts:{plateau:true,n:3,lastKg:100,lastRir:2,rirKnown:true}},
   {name:'Wyciskanie',action:'DELOAD',facts:{plateau:true,n:4,lastKg:80,lastRir:0,rirKnown:true}},
