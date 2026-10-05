@@ -2540,7 +2540,7 @@ function cpOverviewLiftFact(c){
   return{kind:'lift',title:name+': '+act+more,reason:why+(kg?' · ostatnio '+kg+rir:'')+'.'};
 }
 window.cpOverviewLiftFact=cpOverviewLiftFact;
-function cpOverviewRecs(c){
+function cpOverviewRecs(c,opts){
   if(!c)return[];
   const id=c.id;
   const hasApp=cpOverviewHasApp(c);
@@ -2615,7 +2615,7 @@ function cpOverviewRecs(c){
     recs.push({priority:2,order:3.5,kind:massGoal.kind,tone:'watch',title:massGoal.title,reason:massGoal.reason,cta:{label:'Dodaj notatkę',onclick:`cpOverviewFocusNote('${id}')`}});
   }
   recs.sort((a,b)=>(a.priority-b.priority)||(a.order-b.order));
-  return recs.slice(0,3);
+  return opts&&opts.all?recs:recs.slice(0,3);
 }
 function cpOverviewStatusHeadline(c){
   const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):{reason:'ok',label:'Status',tone:'info',hint:''};

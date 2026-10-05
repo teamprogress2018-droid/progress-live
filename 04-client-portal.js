@@ -6886,6 +6886,45 @@ function renderDashClients(){
   cl.innerHTML=html;
 }
 
+/** Jedna linijka o kliencie dla agendy dnia: ostatni trening i najważniejsza rzecz wymagająca uwagi. */
+function dashClientBrief(c){
+  const out={last:'',attn:null};
+  if(!c)return out;
+  const done=(typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s&&s.clientId===c.id&&(s.source==='live'||s.source==='client'||s.source==='sala')))
+    .slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  const last=done[0];
+  if(last){
+    const d=new Date(String(last.date).slice(0,10)+'T12:00:00');
+    const day=isNaN(d)?String(last.date):d.toLocaleDateString('pl',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const ex=(last.exercises||[]).find(e=>e&&(e.sets||[]).some(x=>x&&(x.kg||x.reps)));
+    let top='';
+    if(ex){
+      const sets=(ex.sets||[]).filter(x=>x&&x.kind!=='warmup'&&(x.kg||x.reps));
+      const best=sets.slice().sort((a,b)=>(parseFloat(b.kg)||0)-(parseFloat(a.kg)||0))[0];
+      if(best)top=ex.name+' '+(best.kg?String(best.kg).replace('.',',')+'×':'')+(best.reps||'');
+    }
+    const n=(last.exercises||[]).length;
+    out.last='Ostatnio ('+day+'): '+(top||n+' ćw.')+(n>1&&top?' · +'+(n-1)+' ćw.':'');
+  }else out.last='Pierwszy trening';
+  try{
+    const recs=typeof cpOverviewRecs==='function'?cpOverviewRecs(c,{all:true}):[];
+    // Przed treningiem najważniejsze: ograniczenie vs plan, potem decyzja o ciężarze, potem reszta.
+    const order=['limit','lift','sleep','massgoal','adherence','checkin','nolog'];
+    const r=(recs||[]).filter(x=>x&&order.includes(x.kind)).sort((a,b)=>order.indexOf(a.kind)-order.indexOf(b.kind))[0];
+    if(r)out.attn={title:r.title,reason:r.reason||'',tone:r.kind==='limit'?'act':'watch'};
+  }catch(e){}
+  return out;
+}
+window.dashClientBrief=dashClientBrief;
+/** START TRENINGU z agendy: Live z klientem, planem i dniem z kalendarza. */
+function dashStartLive(sessionId){
+  const s=(window.SE||[]).find(x=>x&&x.id===sessionId);
+  if(!s||!s.clientId)return;
+  if(typeof cpStartLiveFromDay==='function')cpStartLiveFromDay(s.clientId,s.dayIdx,s.planId||'');
+  else{if(typeof goTo==='function')goTo('live');if(typeof liveClientSetField==='function'){const c=(window.CL||[]).find(x=>x&&x.id===s.clientId);liveClientSetField(s.clientId,c?c.name:'',false,0);}}
+}
+window.dashStartLive=dashStartLive;
+
 function renderDashToday(){
   const el=document.getElementById('d-today-sessions');if(!el)return;
   const now=new Date();
@@ -6920,6 +6959,9 @@ function renderDashToday(){
 
   function sessRow(s,i){
     const c=CL.find(x=>x.id===s.clientId);
+    const brief=c&&typeof dashClientBrief==='function'?dashClientBrief(c):{last:'',attn:null};
+    const st=dashSessionState(s,now);
+    const canStart=s.date===today&&c&&st.kind!=='done'&&st.kind!=='skipped';
     const ci=CL.findIndex(x=>x.id===s.clientId);
     const clCol=SESS_COLORS[(ci>=0?ci:i)%6];
     const av=c?(c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()):'?';
@@ -6928,11 +6970,13 @@ function renderDashToday(){
       <div class="dash-today-bar" style="background:${clCol};"></div>
       <div class="dash-today-av" style="background:${clCol}22;color:${clCol};">${av}</div>
       <div class="dash-today-body">
-        <div class="dash-today-name">${c?c.name:'Klient'}</div>
-        <div class="dash-today-meta">${s.type||'Trening personalny'} · ${s.duration||60} min</div>
+        <div class="dash-today-name">${c?`<a href="#" class="dash-today-link" onclick="event.preventDefault();event.stopPropagation();openClientProfile('${c.id}')">${escHtml(c.name)}</a>`:'Klient'}</div>
+        <div class="dash-today-meta">${s.time?escHtml(s.time)+' · ':''}${s.type||'Trening personalny'} · ${s.duration||60} min</div>
+        ${brief.last?`<div class="dash-today-last" data-dash-last>${escHtml(brief.last)}</div>`:''}
+        ${brief.attn?`<div class="dash-today-attn dash-today-attn-${escHtml(brief.attn.tone)}" data-dash-attn title="${escHtml(brief.attn.reason||'')}">⚠ ${escHtml(brief.attn.title)}</div>`:''}
       </div>
       ${tl?`<div class="dash-today-badge" style="color:${tl.col};background:${tl.col}18;">${tl.txt}</div>`:''}
-      <button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm">Szczegóły</button>
+      ${canStart?`<button onclick="event.stopPropagation();dashStartLive('${s.id}')" class="btn btn-primary btn-sm" data-dash-start title="Start treningu w Live">▶ Start</button>`:`<button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm">Szczegóły</button>`}
     </div>`;
   }
 
@@ -6950,7 +6994,10 @@ function renderDashToday(){
     return;
   }
 
-  el.innerHTML=dashListSection('dash-today',allSess,(s,i)=>sessRow(s,i),'');
+  // Cały dzisiejszy grafik zawsze widoczny; jutro zwinięte do podglądu.
+  const todayHtml=todaySess.map((s,i)=>sessRow(s,i)).join('');
+  const tomorrowHtml=tomorrowSess.length?`<div class="dash-today-sep" data-dash-tomorrow>Jutro</div>`+dashListSection('dash-today',tomorrowSess,(s,i)=>sessRow(s,todaySess.length+i),''):'';
+  el.innerHTML=todayHtml+tomorrowHtml;
 }
 
 function renderDashTasks(){
