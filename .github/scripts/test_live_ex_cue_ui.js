@@ -221,6 +221,38 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
   ok('D16 last 80 kg', /80 kg/.test(d16.last), d16.last);
   ok('D16 no ZA MAŁO', !/ZA MAŁO DANYCH/.test(d16.suggest + d16.last), d16.suggest);
 
+  // Inny ciężar w polu niż w sugestii → dopisek skąd (plan / wpisane); zgodny ciężar → bez dopisku.
+  const note = await page.evaluate(() => {
+    const row = document.querySelector('#live-ex-0 [data-cue="suggest"]');
+    const before = row.querySelector('[data-cue-note]').textContent;
+    const inp = document.querySelector('#live-ex-0 .live-kg-input');
+    inp.focus(); inp.value = String(row.getAttribute('data-target-kg'));
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    const matched = document.querySelector('#live-ex-0 [data-cue="suggest"] [data-cue-note]').textContent;
+    inp.value = '77.5'; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    const typed = document.querySelector('#live-ex-0 [data-cue="suggest"] [data-cue-note]').textContent;
+    return { before, matched, typed, target: row.getAttribute('data-target-kg') };
+  });
+  ok('note explains differing kg', /(plan|wpisane): 80 kg/.test(note.before), JSON.stringify(note));
+  ok('note hidden when kg matches suggestion', note.matched === '', JSON.stringify(note));
+  ok('note follows typed kg', /wpisane: 77,5 kg/.test(note.typed), JSON.stringify(note));
+
+  // Telefon: „Dlaczego” zwinięte, stuknięcie w Sugestię rozwija i zwija.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => { if (typeof renderLiveExercises === 'function') renderLiveExercises(0); });
+  const whySel = '#live-ex-0 [data-cue="why"]';
+  const hiddenAtStart = !(await page.locator(whySel).isVisible());
+  await page.locator('#live-ex-0 [data-cue="suggest"]').click();
+  const shownAfterTap = await page.locator(whySel).isVisible();
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_cue_mobile_why.png') });
+  await page.locator('#live-ex-0 [data-cue="suggest"]').click();
+  const hiddenAgain = !(await page.locator(whySel).isVisible());
+  ok('mobile why collapsed by default', hiddenAtStart);
+  ok('tap on Sugestia expands why', shownAfterTap);
+  ok('second tap collapses why', hiddenAgain);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.evaluate(() => { if (typeof renderLiveExercises === 'function') renderLiveExercises(0); });
+
   const draft = await page.evaluate(() => {
     window.livePlanId = 'pl-b';
     window.liveExercises = [{

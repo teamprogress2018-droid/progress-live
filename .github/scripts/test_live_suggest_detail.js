@@ -39,6 +39,11 @@ for(const g of ['D2','D4','D6','D7','D8','D9','D10','D11','D12','D14','D17','D18
 for(const g of ['D0','D1','D3','D5','D13','D15','D16'])assert.equal(c.gate(reasons[g]),'','unexpected gate '+g);
 ok('reason mapping matches 7B texts');
 
+const noteSrc=slice(live,'function liveExSuggestNote(','window.liveExSuggestNote=');
+const nn={String,Number,Math,parseFloat};vm.createContext(nn);vm.runInContext(noteSrc+'this.f=liveExSuggestNote;',nn);
+assert.equal(nn.f('62.5',60,'62.5','kg'),'plan: 62,5 kg');assert.equal(nn.f('65',60,'62.5','kg'),'wpisane: 65 kg');
+assert.equal(nn.f('60',60,'62.5','kg'),'');assert.equal(nn.f('',60,'62.5','kg'),'');assert.equal(nn.f('62.5','','62.5','kg'),'');
+ok('note: plan vs typed vs matching');
 const todaySrc=slice(live,'function liveExTodayLine(','window.liveExTodayLine=');
 const t={String,liveExTodayKg:e=>e.kg,liveExPlannedReps:e=>e.reps,exLoadUnit:()=>'kg',loadUnitSuffix:()=>'kg'};vm.createContext(t);vm.runInContext(todaySrc+'this.f=liveExTodayLine;',t);
 assert.equal(t.f({kg:80,reps:'8-12'}),'80 kg · zakres 8–12 powt.');assert.equal(t.f({kg:100,reps:'5'}),'100 kg · 5 powt.');assert.equal(t.f({kg:20,reps:'AMRAP'}),'20 kg · AMRAP');
