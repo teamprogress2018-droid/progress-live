@@ -2954,6 +2954,7 @@ function exerciseForPlanWeek(ex,plan,weekIdx){
     if(wp.kg!=null&&wp.kg!=='')out.kg=wp.kg;
     if(wp.rest)out.rest=wp.rest;
     if(wp.rpe)out.rpe=wp.rpe;
+    if(wp.rir!=null&&wp.rir!=='')out.rir=wp.rir;
   }
   if(isFiteboLikePlan(plan)){
     const sch=planPhaseSchedule(plan,{});

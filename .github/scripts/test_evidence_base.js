@@ -92,7 +92,7 @@ ok('why panel escapes model content',why.includes('&lt;img')&&!why.includes('<im
 ok('why panel identifies missing evidence',why.includes('Brak wskazanego źródła'));
 ok('why panel shows uncertainty and review',why.includes('Założenia i niepewność')&&why.includes('Kiedy ponownie ocenić plan'));
 ok('why panel guards malformed fields',whyCtx.aplPlanWhyHTML({rationale:{sources:{url:'bad'}}}).includes('Brak wskazanego źródła'));
-ok('why persists with saved plan',src03.includes('rationale:aplLastPlan.rationale||null'));
+ok('why persists with saved plan',src03.includes('rationale:src.rationale||null')&&src03.includes('aplBuildSavedPlan(aplLastPlan,'));
 ok('why renders in plan preview',src03.includes('${aplPlanWhyHTML(plan)}'));
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll evidence-base tests passed');
