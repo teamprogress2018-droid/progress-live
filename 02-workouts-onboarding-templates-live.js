@@ -5621,6 +5621,15 @@ function renderRepDocument(c,template,hasAI,ai){
         </div>
 
         <div style="padding:28px 32px;">
+          ${typeof clientReportSummary==='function'&&typeof clientReportSummaryHTML==='function'?(()=>{
+            const kind=typeof aplGetVal==='function'?aplGetVal('rep-types'):'weekly';
+            const to=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+            const span=kind==='weekly'?7:28;
+            const d=new Date(to+'T12:00:00');d.setDate(d.getDate()-(span-1));
+            const p=x=>String(x).padStart(2,'0');
+            const from=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+            return clientReportSummaryHTML(clientReportSummary(c.id,from,to),{text,muted,border,accent,surface:card});
+          })():''}
 
           ${activeSections.includes('sessions')?`
           <!-- SESJE -->
