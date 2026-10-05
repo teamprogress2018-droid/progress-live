@@ -756,9 +756,10 @@ function usePackageSession(id){
   const all=allPackages();
   const p=all.find(x=>x.id===id);
   if(!p)return;
+  if(packagePaymentBusy(id))return;
   if(p.sessionsUsed>=p.sessions){notify('Pakiet wyczerpany!');return;}
   p.sessionsUsed++;
-  persistById('packages',p);
+  persistPackageFields(p,{sessionsUsed:p.sessionsUsed});
   renderPayPackages();
   notify('✓ Sesja odliczona z pakietu ('+p.sessionsUsed+'/'+p.sessions+')');
 }
@@ -840,6 +841,13 @@ function paintPackagePaidState(id){
   document.querySelectorAll('[data-package-paid]').forEach(btn=>{if(btn.dataset.packagePaid===id){btn.disabled=!!(state&&state.pending);btn.textContent=state&&state.pending?'Zapisywanie…':state&&state.error?'Spróbuj ponownie':'Opłacony';}});
   document.querySelectorAll('[data-package-paid-status]').forEach(el=>{if(el.dataset.packagePaidStatus===id)el.textContent=state&&state.pending?'Potwierdzanie płatności…':state&&state.error||'';});
 }
+/** Trwa lub nie powiodło się potwierdzenie płatności — nie zmieniaj pakietu, dopóki status nie jest pewny. */
+function packagePaymentBusy(id){
+  const state=packagePaidUiStates.get(id);
+  if(!state||!(state.pending||state.error))return false;
+  notify(state.pending?'Trwa potwierdzanie płatności — poczekaj chwilę.':'Najpierw ponów „Opłacony”, żeby potwierdzić status płatności.');
+  return true;
+}
 function clearPackagePaidUiStates(){packagePaidUiStates.clear();if(typeof clearPackagePaymentStates==='function')clearPackagePaymentStates();}
 function markPaid(id){
   let state=packagePaidUiStates.get(id);
@@ -881,6 +889,8 @@ function requestPayment(id){
   const p=allPackages().find(x=>x.id===id);
   if(!p){notify('Nie znaleziono pakietu');return false;}
   if(!p.clientId){notify('Pakiet bez klienta');return false;}
+  if(packagePaymentBusy(id))return false;
+  if(p.payStatus==='paid'){notify('Pakiet jest już opłacony');return false;}
   const seller=paySeller();
   const lines=[
     'Prośba o płatność — '+p.title,
@@ -892,7 +902,7 @@ function requestPayment(id){
   ];
   if(typeof pushMsg==='function')pushMsg(p.clientId,lines.join('\n'));
   p.paymentRequestedAt=new Date().toISOString();
-  if(typeof persistById==='function')persistById('packages',p);
+  persistPackageFields(p,{paymentRequestedAt:p.paymentRequestedAt});
   notify('✓ Prośba o wpłatę poszła do czatu klienta');
   if(typeof addNotification==='function')addNotification('payment','Wysłano prośbę o wpłatę',(p.clientName||'')+' · '+(p.price||0)+' zł','inbox');
   if(typeof renderClientOnboardChecklist==='function'&&window._onboardClientId===p.clientId){

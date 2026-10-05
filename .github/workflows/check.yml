@@ -476,6 +476,7 @@ jobs:
         run: |
           node .github/scripts/test_package_save_confirmed.js
           node .github/scripts/test_package_paid_confirmed.js
+          node .github/scripts/test_package_field_writes.js
 
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
