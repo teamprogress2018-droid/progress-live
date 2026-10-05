@@ -91,6 +91,7 @@ const CLIENTS = [
     window.notify = m => window.__notes.push(String(m));
     for (const id of ['auth-screen', 'app-loading']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
     const app = document.getElementById('app-root'); if (app) app.style.display = '';
+    CLIENTS.forEach(c => store.set('plans/' + c.plan, { id: c.plan, trainerId: window._uid, clientId: c.id, name: 'Plan ' + c.name, days: c.days }));
     window.CL = CLIENTS.map(c => ({ id: c.id, trainerId: window._uid, name: c.name, goal: c.goal, level: c.level, status: 'active', notes: c.limits || '' }));
     window.PL = CLIENTS.map(c => ({ id: c.plan, trainerId: window._uid, clientId: c.id, name: 'Plan ' + c.name, goal: c.goal, level: c.level, days: c.days }));
     window.SE = []; window.TASKS = [];
@@ -216,6 +217,39 @@ const CLIENTS = [
   ok('B: no limit or weight-goal noise without data', !monitor.B.some(r => r.kind === 'limit' || r.kind === 'massgoal'), JSON.stringify(monitor.B));
   ok('Live warns about the conflicting exercise', /Ograniczenie \(bark\)/.test(monitor.limitBefore), monitor.limitBefore);
   ok('Live warning disappears after swapping to a safe exercise', monitor.limitAfter === '', monitor.limitAfter);
+
+  // --- ETAP 5: progres per ćwiczenie i zmiana ciężaru w planie po zatwierdzeniu
+  const openProgress = id => page.evaluate(id => { openClientProfile(id); const b = [...document.querySelectorAll('button')].find(x => x.innerText.trim() === 'Zamknij'); if (b) b.click(); setCPTab('progress'); }, id);
+  await openProgress('cB');
+  await page.waitForTimeout(200);
+  const pd = await page.evaluate(() => { const r = document.querySelector('.cp-pd-row'); return r ? { text: r.innerText, btn: (r.querySelector('[data-pd-apply]') || {}).innerText || '' } : null; });
+  await page.screenshot({ path: path.join(shotDir, 'journey_B_progress.png'), fullPage: true });
+  console.log('progress', JSON.stringify(pd));
+  ok('B: progress row shows history, suggestion and plan load', pd && /80×10,10,9 @1 → 80×10,10,10 @2 → 80×10,10,10 @2/.test(pd.text) && /DODAJ 2,5 KG/.test(pd.text) && /w planie: 80 kg/.test(pd.text), pd && pd.text);
+  ok('B: one-click proposal to set 82,5 kg in the plan', pd && /Ustaw w planie: 82,5 kg/.test(pd.btn), pd && pd.btn);
+  const planBefore = await page.evaluate(() => JSON.stringify(window.__store.get('plans/plB').days));
+  ok('nothing changes in the plan before the trainer clicks', /"kg":"80"/.test(planBefore), planBefore);
+  await page.click('[data-pd-apply]');
+  await page.waitForTimeout(150);
+  const applied = await page.evaluate(() => ({ db: window.__store.get('plans/plB').days[0].exercises[0].kg, local: window.PL.find(p => p.id === 'plB').days[0].exercises[0].kg,
+    undo: !!document.querySelector('[data-pd-undo]'), done: (document.querySelector('.cp-pd-done') || {}).innerText || '' }));
+  ok('apply writes 82.5 kg to the plan (database + screen)', applied.db === '82.5' && applied.local === '82.5' && /80 kg → 82,5 kg/.test(applied.done) && applied.undo, JSON.stringify(applied));
+  await page.click('[data-pd-undo]');
+  await page.waitForTimeout(150);
+  const undone = await page.evaluate(() => ({ db: window.__store.get('plans/plB').days[0].exercises[0].kg, local: window.PL.find(p => p.id === 'plB').days[0].exercises[0].kg }));
+  ok('undo restores 80 kg', undone.db === '80' && undone.local === '80', JSON.stringify(undone));
+  const conflict = await page.evaluate(async () => {
+    const row = window.__store.get('plans/plB'); row.days[0].exercises[0].kg = '85';
+    const btn = document.querySelector('[data-pd-apply]');
+    await cpApplyPlanKg(btn);
+    return { db: window.__store.get('plans/plB').days[0].exercises[0].kg, msg: (btn.closest('[data-pd-status]') || {}).textContent || '', retry: !btn.disabled && btn.isConnected };
+  });
+  ok('plan edited elsewhere → no overwrite, clear message, button stays', conflict.db === '85' && /zmienił się/.test(conflict.msg) && conflict.retry, JSON.stringify(conflict));
+  await page.evaluate(() => { const row = window.__store.get('plans/plB'); row.days[0].exercises[0].kg = '80'; });
+  await openProgress('cA');
+  await page.waitForTimeout(200);
+  const pdA = await page.evaluate(() => [...document.querySelectorAll('.cp-pd-row')].map(r => ({ name: r.dataset.pdEx, btn: (r.querySelector('[data-pd-apply]') || {}).innerText || '' })));
+  ok('A: goblet proposal uses the 2 kg step (14 kg)', pdA.some(r => /goblet/i.test(r.name) && /Ustaw w planie: 14 kg/.test(r.btn)), JSON.stringify(pdA));
 
   // --- Profil klienta: historia i progres widzą treningi
   const prof = await page.evaluate(() => {

@@ -3530,6 +3530,15 @@ body,
 .live-ex-cue-why .live-ex-cue-v{font-weight:500;color:var(--text-secondary);}
 @media (max-width:640px){.live-ex-cue-why{display:none;}.live-ex-cue.why-open .live-ex-cue-why{display:flex;}}
 .live-suggestion[role="button"]{cursor:pointer;}
+.cp-pd-row{border-top:1px solid var(--border-subtle);padding:10px 0;display:flex;flex-direction:column;gap:4px;}
+.cp-pd-row:first-of-type{border-top:0;}
+.cp-pd-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.cp-pd-name{font-weight:700;}
+.cp-pd-hist{font-size:12px;color:var(--text-secondary);font-variant-numeric:tabular-nums;}
+.cp-pd-sug{font-size:13px;}
+.cp-pd-plan,.cp-pd-why{color:var(--text-secondary);font-size:12px;}
+.cp-pd-act{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;}
+.cp-pd-done{color:var(--teal);font-weight:600;}
 .cp-ov-next-count{text-transform:none;letter-spacing:0;font-weight:600;color:var(--text-secondary);}
 .live-ex-cue-limit{flex-basis:100%;}
 .live-ex-cue-limit .live-ex-cue-v{color:var(--accent);font-weight:700;}

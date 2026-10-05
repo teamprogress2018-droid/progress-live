@@ -53,3 +53,28 @@ c=ctx(brief([{name:'Wiosłowanie',action:'DODAJ CIĘŻAR',facts:{n:3}}]));
 assert.equal(c.cpOverviewLiftFact({id:'b'}),null);ok('progressing lifts → quiet');
 
 console.log('PASS cp attention: '+n+' checks');
+
+// ETAP 5: docelowy ciężar dla zmiany w planie
+{
+  const s2=fs.readFileSync(path.join(__dirname,'../../08-client-profile-extras.js'),'utf8');
+  const core=fs.readFileSync(path.join(__dirname,'../../01-core.js'),'utf8');
+  const cut=(src,a,b)=>{const i=src.indexOf(a),j=src.indexOf(b,i);assert.ok(i>=0&&j>i,'missing '+a);return src.slice(i,j);};
+  const t={Math,Number,String,parseFloat,console};t.window=t;vm.createContext(t);
+  vm.runInContext(cut(core,'function progressLoadStep(','window.progressLoadStep=')+cut(core,'function addLoadStep(','window.addLoadStep=')+
+    'function normalizeLoadUnit(u){return u||"kg";}function roundToPlate(v,s){return String(Math.round(v/s)*s);}'+
+    cut(s2,'function cpProgNum(','window.cpPlanExerciseRef=')+cut(s2,'function cpProgressTargetKg(','window.cpProgressTargetKg='),t);
+  const r=(load,kg)=>({levers:{load},facts:{lastKg:kg}});
+  assert.equal(t.cpProgressTargetKg(r('up',80),'Wyciskanie sztangi'),82.5);
+  assert.equal(t.cpProgressTargetKg(r('up',12),'Przysiad goblet'),14);
+  assert.equal(t.cpProgressTargetKg(r('down',80),'Wyciskanie sztangi'),77.5);
+  assert.equal(t.cpProgressTargetKg(r('deload',100),'Przysiad ze sztangą'),90);
+  assert.equal(t.cpProgressTargetKg(r('hold',80),'Wyciskanie sztangi'),null);
+  ok('plan target kg: up / down / deload ~10% / hold = no change');
+  const plan={days:[{exercises:[{name:'Wyciskanie sztangi',sets:'3',reps:'8-10',kg:'80'},{name:'Wiosłowanie',sets:'3',reps:'10',kg:'60'}]},{exercises:[{name:'Wyciskanie sztangi',sets:'3',reps:'5',kg:'85'}]}]};
+  const t2={Math,Number,String,parseFloat,console};t2.window=t2;vm.createContext(t2);
+  vm.runInContext(cut(s2,'function cpProgNum(','window.cpPlanExerciseRef='),t2);
+  const refs=t2.cpPlanExerciseRef(plan,'Wyciskanie sztangi','');
+  assert.equal(refs.length,2);assert.equal(String(refs[0].parsed.kg),'80');
+  ok('plan exercise found on every day of the plan');
+}
+console.log('PASS cp attention + ETAP 5: '+n+' checks');
