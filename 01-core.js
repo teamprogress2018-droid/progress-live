@@ -2325,7 +2325,7 @@ function progressLoadStep(ex){
   if(u==='m')return 100;
   const name=String((ex&&ex.name)||'').toLowerCase();
   if(/kettle|kettl/.test(name))return 2;
-  if(/hantel|dumbbell|\bdb\b/.test(name))return 1;
+  if(/hantel|hantl|dumbbell|\bdb\b/.test(name))return 1;
   return 2.5;
 }
 window.progressLoadStep=progressLoadStep;
