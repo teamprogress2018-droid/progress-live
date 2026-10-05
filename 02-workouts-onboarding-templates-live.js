@@ -4594,10 +4594,9 @@ function liveEndSession(slot){
   // Sukces dopiero po potwierdzeniu bazy; do tego czasu trening czeka w kolejce na tym urządzeniu.
   liveQueuePendingSession(newSession);
   const clientName=c?.name||'Klient';
-  Promise.resolve().then(()=>persistById('sessions',newSession)).catch(()=>null).then(saved=>{
+  liveSaveSessionWithPackage(newSession).then(({saved,pkg})=>{
     if(saved){
       liveDropPendingSession(newSession.id);
-      const pkg=liveConsumePackageAfterSave(newSession);
       const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
       addNotification('system','Sesja zapisana!','Trening '+clientName+' · '+durationMin+' min · '+totalSets+' serii','clients');
       notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.'+leftTxt);
@@ -4644,19 +4643,50 @@ function liveDropPendingSession(id){
   liveWritePendingSessions(liveReadPendingSessions().filter(x=>x&&x.id!==id));
 }
 window.liveDropPendingSession=liveDropPendingSession;
-/** Odlicz wejście z pakietu dopiero po zapisanym treningu — także dla treningu z kolejki offline. */
-function liveConsumePackageAfterSave(sess){
-  if(!sess||sess.pkgTick||typeof consumeClientPackageSession!=='function')return null;
-  const pkg=consumeClientPackageSession(sess.clientId,{date:sess.date,session:sess});
-  if(pkg&&sess.pkgTick&&typeof persistById==='function'){
-    const patch={id:sess.id,clientId:sess.clientId,pkgTick:true};
-    if(sess.trainerId)patch.trainerId=sess.trainerId;
-    if(sess._fbId)patch._fbId=sess._fbId;
-    try{Promise.resolve(persistById('sessions',patch)).catch(()=>{});}catch(e){}
+/**
+ * Zapis treningu i odliczenie wejścia z pakietu w jednej transakcji: albo oba, albo nic.
+ * Bez opłaconego pakietu (albo bez transakcji) — zwykły potwierdzony zapis treningu.
+ */
+async function liveSaveSessionWithPackage(sess){
+  const others=(window.SE||[]).filter(s=>s&&s.id!==sess.id);
+  const local=!sess.pkgTick&&typeof clientPaidPackageForSession==='function'
+    &&!(typeof sessionConsumedPackageOnDay==='function'&&sessionConsumedPackageOnDay(sess.clientId,sess.date,others))
+    ?clientPaidPackageForSession(sess.clientId):null;
+  if(!local||typeof window._runTransaction!=='function'||typeof window._doc!=='function'||!window._db){
+    let saved=null;try{saved=await persistById('sessions',sess);}catch(e){saved=null;}
+    return{saved,pkg:null};
   }
-  return pkg;
+  const uid=window._uid,gen=window.tenantSessionGeneration;
+  try{
+    const res=await window._runTransaction(window._db,async tx=>{
+      const pref=window._doc(window._db,'packages',local._fbId||local.id);
+      const sref=window._doc(window._db,'sessions',sess._fbId||sess.id);
+      const snap=await tx.get(pref);
+      const d=snap&&snap.exists()?snap.data():null;
+      const payload={...sess};delete payload._fbId;
+      const usable=d&&d.trainerId===sess.trainerId&&d.clientId===sess.clientId&&d.payStatus==='paid'&&(Number(d.sessionsUsed)||0)<(Number(d.sessions)||0);
+      if(!usable){tx.set(sref,payload,{merge:true});return{used:null};}
+      const used=(Number(d.sessionsUsed)||0)+1;
+      tx.set(sref,{...payload,pkgTick:true,pkgId:local.id},{merge:true});
+      tx.update(pref,{sessionsUsed:used});
+      return{used};
+    });
+    if(window._uid!==uid||window.tenantSessionGeneration!==gen)return{saved:null,pkg:null};
+    if(!sess._fbId)sess._fbId=sess.id;
+    if(!res||res.used==null)return{saved:sess,pkg:null};
+    sess.pkgTick=true;sess.pkgId=local.id;local.sessionsUsed=res.used;
+    const left=Math.max(0,(local.sessions||0)-res.used);
+    if(left<=1&&typeof addNotification==='function'){
+      const c=(window.CL||[]).find(x=>x&&x.id===sess.clientId);
+      addNotification('alert',left===0?'Pakiet wyczerpany':'Ostatnia sesja w pakiecie',((c&&c.name)||'')+' — '+(local.title||'Pakiet'),'payments');
+    }
+    return{saved:sess,pkg:local};
+  }catch(e){
+    console.warn('live session save',e);
+    return{saved:null,pkg:null};
+  }
 }
-window.liveConsumePackageAfterSave=liveConsumePackageAfterSave;
+window.liveSaveSessionWithPackage=liveSaveSessionWithPackage;
 /** Ponawia zapis treningów zakończonych bez połączenia. Tylko własne treningi zalogowanego trenera. */
 let livePendingFlushing=null;
 function liveFlushPendingSessions(){
@@ -4670,10 +4700,10 @@ function liveFlushPendingSessions(){
   livePendingFlushing=(async()=>{
     let saved=0;
     for(const sess of mine){
-      let ok=null;
-      try{ok=await persistById('sessions',sess);}catch(e){ok=null;}
+      const target=list.find(s=>s&&s.id===sess.id)||sess;
+      const res=await liveSaveSessionWithPackage(target);
       if(window._uid!==uid)break;
-      if(ok){liveDropPendingSession(sess.id);liveConsumePackageAfterSave(list.find(s=>s&&s.id===sess.id)||sess);saved++;}
+      if(res.saved){liveDropPendingSession(sess.id);saved++;}
     }
     if(saved&&typeof notify==='function')notify('✅ Zapisano '+saved+(saved===1?' trening':' treningi')+' zakończone bez internetu');
     return saved;

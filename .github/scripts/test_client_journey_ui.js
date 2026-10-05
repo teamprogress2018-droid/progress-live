@@ -72,6 +72,19 @@ const CLIENTS = [
       store.set(key, JSON.parse(JSON.stringify(opts && opts.merge ? { ...prev, ...data } : data)));
       window.__writes.push(key);
     };
+    window._runTransaction = async (_db, fn) => {
+      if (window.__failNextSessionWrite) { window.__failNextSessionWrite = false; throw Object.assign(new Error('offline'), { code: 'unavailable' }); }
+      const staged = [];
+      const tx = {
+        get: async ref => { const row = store.get(ref.collection + '/' + ref.id); return { exists: () => !!row, data: () => JSON.parse(JSON.stringify(row)) }; },
+        set: (ref, data, opts) => staged.push(() => { const k = ref.collection + '/' + ref.id, prev = store.get(k); store.set(k, JSON.parse(JSON.stringify(opts && opts.merge ? { ...prev, ...data } : data))); }),
+        update: (ref, patch) => staged.push(() => { const k = ref.collection + '/' + ref.id, prev = store.get(k); if (!prev) throw new Error('missing ' + k); store.set(k, { ...prev, ...patch }); })
+      };
+      const out = await fn(tx);
+      if (window.__failNextCommit) { window.__failNextCommit = false; throw Object.assign(new Error('commit lost'), { code: 'unavailable' }); }
+      staged.forEach(w => w());
+      return out;
+    };
     window.confirm = () => true;
     window.__notes = [];
     window.notify = m => window.__notes.push(String(m));
@@ -79,7 +92,8 @@ const CLIENTS = [
     const app = document.getElementById('app-root'); if (app) app.style.display = '';
     window.CL = CLIENTS.map(c => ({ id: c.id, trainerId: window._uid, name: c.name, goal: c.goal, level: c.level, status: 'active', notes: c.limits || '' }));
     window.PL = CLIENTS.map(c => ({ id: c.plan, trainerId: window._uid, clientId: c.id, name: 'Plan ' + c.name, goal: c.goal, level: c.level, days: c.days }));
-    window.SE = []; window.TASKS = []; window.PACKAGES = [{ id: 'pkB', trainerId: window._uid, clientId: 'cB', title: '10 wejść', payStatus: 'paid', status: 'active', sessions: 10, sessionsUsed: 0, expiresDate: '2027-12-31' }]; window.CHECKINS = {}; window.METRIC_ENTRIES = [];
+    window.SE = []; window.TASKS = []; window.__store.set('packages/pkB', { id: 'pkB', trainerId: window._uid, clientId: 'cB', title: '10 wejść', payStatus: 'paid', status: 'active', sessions: 10, sessionsUsed: 0 });
+    window.PACKAGES = [{ id: 'pkB', trainerId: window._uid, clientId: 'cB', title: '10 wejść', payStatus: 'paid', status: 'active', sessions: 10, sessionsUsed: 0, expiresDate: '2027-12-31' }]; window.CHECKINS = {}; window.METRIC_ENTRIES = [];
     if (typeof goTo === 'function') goTo('live');
   }, { CLIENTS });
 
@@ -124,6 +138,7 @@ const CLIENTS = [
   await page.waitForTimeout(100);
   const pkgOnline = await page.evaluate(() => ({ used: window.PACKAGES[0].sessionsUsed, db: (window.__store.get('packages/pkB') || {}).sessionsUsed,
     ticks: [...window.__store.entries()].filter(([k, v]) => k.startsWith('sessions/') && v.clientId === 'cB' && v.pkgTick).length }));
+  ok('B: every Bartek workout saved with its package tick in one write', pkgOnline.ticks === 3);
   ok('B: package counts 3 confirmed workouts', pkgOnline.used === 3 && pkgOnline.db === 3 && pkgOnline.ticks === 3, JSON.stringify(pkgOnline));
   const stored = await page.evaluate(() => [...window.__store.keys()].filter(k => k.startsWith('sessions/')).length);
   ok('all 9 sessions reached the database', stored === 9, String(stored));

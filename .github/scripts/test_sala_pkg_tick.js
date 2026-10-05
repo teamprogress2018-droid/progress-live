@@ -23,7 +23,7 @@ ok('cache 01', html.includes('01-core.js?v=126'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=90'));
 ok('helpers', /function consumeClientPackageSession/.test(core) && /function clientPaidPackageForSession/.test(core));
 ok('sala consumes', /consumeClientPackageSession\(p\.clientId/.test(core));
-ok('live uses helper after confirmed save', /consumeClientPackageSession\(sess\.clientId/.test(live) && /liveConsumePackageAfterSave\(newSession\)/.test(live));
+ok('live uses helper after confirmed save', /clientPaidPackageForSession\(sess\.clientId\)/.test(live) && /liveSaveSessionWithPackage\(newSession\)/.test(live) && /tx\.update\(pref,\{sessionsUsed:used\}\)/.test(live));
 ok('CI unit', wf.includes('test_sala_pkg_tick.js'));
 ok('CI ui', wf.includes('test_cal_log_done_ui.js'));
 
