@@ -3528,7 +3528,11 @@ body,
 .live-ex-cue-detail{font-weight:700;margin-left:4px;}
 .live-ex-cue-why{flex-basis:100%;font-size:12px;}
 .live-ex-cue-why .live-ex-cue-v{font-weight:500;color:var(--text-secondary);}
-@media (max-width:640px){.live-ex-cue-why{display:none;}}
+@media (max-width:640px){.live-ex-cue-why{display:none;}.live-ex-cue.why-open .live-ex-cue-why{display:flex;}}
+.live-suggestion[role="button"]{cursor:pointer;}
+.live-ex-cue-note{font-weight:500;color:var(--text-secondary);}
+.live-ex-cue-more{color:var(--text-secondary);font-weight:500;}
+@media (min-width:641px){.live-ex-cue-more{display:none;}}
 .live-set-row{padding:6px 0;}
 .live-kg-input{font-size:18px;}
 .live-rir-input{font-size:16px;color:var(--text-secondary);}

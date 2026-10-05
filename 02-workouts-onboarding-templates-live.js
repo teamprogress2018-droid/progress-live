@@ -3727,6 +3727,11 @@ function livePaintTodayCue(ei,slot){
   const v=card&&card.querySelector?card.querySelector('[data-cue="today"] .live-ex-cue-v'):null;
   if(!v)return;
   v.textContent=liveExTodayLine(ex,n);
+  const row=card.querySelector('[data-cue="suggest"]'),note=row&&row.querySelector('[data-cue-note]');
+  if(note){
+    const text=liveExSuggestNote(liveExTodayKg(ex),row.getAttribute('data-target-kg'),row.getAttribute('data-plan-kg'),typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg');
+    note.textContent=text?' · '+text:'';
+  }
 }
 window.livePaintTodayCue=livePaintTodayCue;
 
@@ -3756,6 +3761,44 @@ function liveExPlannedReps(ex,slot){
   return '';
 }
 window.liveExPlannedReps=liveExPlannedReps;
+
+/** Ciężar zapisany w planie dla tego ćwiczenia (te same reguły dopasowania co liveExPlannedReps). */
+function liveExPlannedKg(ex,slot){
+  const list=typeof liveExPlanDayExercises==='function'?liveExPlanDayExercises(slot):[];
+  const eid=String(ex&&ex.exerciseId||'').trim();
+  const key=typeof liveNormExName==='function'?liveNormExName(ex&&(ex.plannedName||ex.name)):String(ex&&ex.name||'').toLowerCase();
+  for(let i=0;i<list.length;i++){
+    const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(list[i]):list[i];
+    if(!parsed)continue;
+    const pid=String(parsed.exerciseId||'').trim();
+    if(eid&&pid&&eid===pid)return String(parsed.kg||'');
+    if(liveExIdsConflict(eid,pid))continue;
+    const pk=typeof liveNormExName==='function'?liveNormExName(parsed.name):String(parsed.name||'').toLowerCase();
+    if(key&&pk===key)return String(parsed.kg||'');
+  }
+  return '';
+}
+window.liveExPlannedKg=liveExPlannedKg;
+
+/** Gdy w polu jest inny ciężar niż w sugestii — powiedz skąd: z planu czy wpisany ręcznie. */
+function liveExSuggestNote(todayKg,targetKg,planKg,suf){
+  const num=v=>{const n=parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(n)?n:null;};
+  const today=num(todayKg),target=num(targetKg),plan=num(planKg);
+  if(today==null||target==null||Math.abs(today-target)<0.001)return '';
+  const s=String(Number.isInteger(today)?today:Math.round(today*100)/100).replace('.',',')+(suf?' '+suf:'');
+  return (plan!=null&&Math.abs(plan-today)<0.001?'plan: ':'wpisane: ')+s;
+}
+window.liveExSuggestNote=liveExSuggestNote;
+
+/** Stuknięcie w Sugestię rozwija/zwija „Dlaczego” (na telefonie domyślnie zwinięte). */
+function liveToggleCueWhy(el){
+  const box=el&&el.closest?el.closest('.live-ex-cue'):null;
+  if(!box||!box.querySelector('[data-cue="why"]'))return;
+  const open=!box.classList.contains('why-open');
+  box.classList.toggle('why-open',open);
+  el.setAttribute('aria-expanded',open?'true':'false');
+}
+window.liveToggleCueWhy=liveToggleCueWhy;
 
 function liveExFormatKgDelta(n){
   if(!Number.isFinite(n)||n===0)return '';
@@ -3874,10 +3917,14 @@ function liveExCueStripHtml(ex,slot,cue){
   const kgUnit=(typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')==='kg';
   const suggest=liveExSuggestView(rec&&kgUnit&&detail.nextKg!=null&&!Number.isFinite(rec.suggestKg)?Object.assign({},rec,{suggestKg:detail.nextKg}):rec,todayKg);
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const facts=rec&&rec.facts||{};
+  const targetKg=detail.nextKg!=null?detail.nextKg:(rec&&rec.levers&&rec.levers.load==='hold'&&Number.isFinite(facts.lastKg)?facts.lastKg:'');
+  const planKg=liveExPlannedKg(ex,n);
+  const note=liveExSuggestNote(todayKg,targetKg,planKg,suffix);
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
     <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>
     <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">Dzisiaj:</span> <span class="live-ex-cue-v">${esc(todayLine)}</span></span>
-    <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}"${detail.why?' title="Dlaczego: '+esc(detail.why)+'"':''}><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}${detail.detail?' <span class="live-ex-cue-detail">'+esc(detail.detail)+'</span>':''}</span></span>
+    <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}" data-target-kg="${esc(targetKg)}" data-plan-kg="${esc(planKg)}"${detail.why?' title="Dlaczego: '+esc(detail.why)+'" role="button" tabindex="0" aria-expanded="false" onclick="liveToggleCueWhy(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();liveToggleCueWhy(this)}"':''}><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}${detail.detail?' <span class="live-ex-cue-detail">'+esc(detail.detail)+'</span>':''}<span class="live-ex-cue-note" data-cue-note>${note?' · '+esc(note):''}</span>${detail.why&&suggest.kind!=='none'?'<span class="live-ex-cue-more" aria-hidden="true"> ⓘ</span>':''}</span></span>
     ${detail.why?'<span class="live-ex-cue-row live-ex-cue-why" data-cue="why"><span class="live-ex-cue-v">Dlaczego: '+esc(detail.why)+'</span></span>':''}
   </div>`;
 }
