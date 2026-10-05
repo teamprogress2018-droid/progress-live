@@ -3930,7 +3930,10 @@ function liveExCueStripHtml(ex,slot,cue){
   const targetKg=detail.nextKg!=null?detail.nextKg:(rec&&rec.levers&&rec.levers.load==='hold'&&Number.isFinite(facts.lastKg)?facts.lastKg:'');
   const planKg=liveExPlannedKg(ex,n);
   const note=liveExSuggestNote(todayKg,targetKg,planKg,suffix,ex&&ex.prefillKg);
+  const client=(window.CL||[]).find(x=>x&&x.id===st.clientId);
+  const limit=typeof cpClientLimitConflicts==='function'&&client?cpClientLimitConflicts(client,[ex&&ex.name])[0]:null;
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
+    ${limit?'<span class="live-ex-cue-row live-ex-cue-limit" data-cue="limit" role="note"><span class="live-ex-cue-v">⚠ Ograniczenie ('+esc(limit.area)+'): „'+esc(limit.note)+'” — rozważ zamiennik</span></span>':''}
     <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>
     <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">Dzisiaj:</span> <span class="live-ex-cue-v">${esc(todayLine)}</span></span>
     <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}" data-target-kg="${esc(targetKg)}" data-plan-kg="${esc(planKg)}"${detail.why?' title="Dlaczego: '+esc(detail.why)+'" role="button" tabindex="0" aria-expanded="false" onclick="liveToggleCueWhy(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();liveToggleCueWhy(this)}"':''}><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}${detail.detail?' <span class="live-ex-cue-detail">'+esc(detail.detail)+'</span>':''}<span class="live-ex-cue-note" data-cue-note>${note?' · '+esc(note):''}</span>${detail.why&&suggest.kind!=='none'?'<span class="live-ex-cue-more" aria-hidden="true"> ⓘ</span>':''}</span></span>

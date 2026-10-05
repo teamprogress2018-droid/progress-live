@@ -93,7 +93,8 @@ const CLIENTS = [
     const app = document.getElementById('app-root'); if (app) app.style.display = '';
     window.CL = CLIENTS.map(c => ({ id: c.id, trainerId: window._uid, name: c.name, goal: c.goal, level: c.level, status: 'active', notes: c.limits || '' }));
     window.PL = CLIENTS.map(c => ({ id: c.plan, trainerId: window._uid, clientId: c.id, name: 'Plan ' + c.name, goal: c.goal, level: c.level, days: c.days }));
-    window.SE = []; window.TASKS = []; window.__store.set('packages/pkB', { id: 'pkB', trainerId: window._uid, clientId: 'cB', title: '10 wejść', payStatus: 'paid', status: 'active', sessions: 10, sessionsUsed: 0 });
+    window.SE = []; window.TASKS = [];
+    window.__seedMetrics = true; window.__store.set('packages/pkB', { id: 'pkB', trainerId: window._uid, clientId: 'cB', title: '10 wejść', payStatus: 'paid', status: 'active', sessions: 10, sessionsUsed: 0 });
     window.PACKAGES = [{ id: 'pkB', trainerId: window._uid, clientId: 'cB', title: '10 wejść', payStatus: 'paid', status: 'active', sessions: 10, sessionsUsed: 0, expiresDate: '2027-12-31' }]; window.CHECKINS = {}; window.METRIC_ENTRIES = [];
     if (typeof goTo === 'function') goTo('live');
   }, { CLIENTS });
@@ -184,6 +185,37 @@ const CLIENTS = [
   ok('A: goblet steps by 2 kg (12 → 14)', /DODAJ 2 KG → 14 kg/.test(cueA[0].suggest), cueA[0].suggest);
   ok('C: swapped exercise keeps its own history', /15 kg × 10/.test(cueC[0].last), JSON.stringify(cueC[0]));
   ok('C: planned overhead load (8 kg) not shown as history', !/8 kg × 10/.test(cueC[0].last), cueC[0].last);
+
+  // --- ETAP 4: monitoring — „wymaga uwagi” zamiast ściany liczb
+  const monitor = await page.evaluate(() => {
+    window.METRIC_ENTRIES = [
+      { id: 'm1', trainerId: window._uid, clientId: 'cA', groupId: 'mg1', date: '2026-09-07', values: { m1: 80.0 } },
+      { id: 'm2', trainerId: window._uid, clientId: 'cA', groupId: 'mg1', date: '2026-09-14', values: { m1: 79.9 } },
+      { id: 'm3', trainerId: window._uid, clientId: 'cA', groupId: 'mg1', date: '2026-09-28', values: { m1: 79.8 } }
+    ];
+    const recsOf = id => (cpOverviewRecs((window.CL || []).find(c => c.id === id)) || []).map(r => ({ kind: r.kind, title: r.title, reason: r.reason }));
+    const out = { A: recsOf('cA'), B: recsOf('cB'), C: recsOf('cC') };
+    // Live: ostrzeżenie przy ćwiczeniu sprzecznym z ograniczeniem, znika po zamianie.
+    liveClientSetField('cC', 'Celina Ograniczenia', false, 0);
+    liveSelectPlan('plC', 0);
+    out.limitBefore = (document.querySelector('#live-ex-0 [data-cue="limit"]') || {}).innerText || '';
+    liveSwapEx(0, 'Wyciskanie landmine', 0); renderLiveExercises(0);
+    out.limitAfter = (document.querySelector('#live-ex-0 [data-cue="limit"]') || {}).innerText || '';
+    openClientProfile('cC');
+    return out;
+  });
+  await page.waitForTimeout(200);
+  const closeStart = page.getByRole('button', { name: 'Zamknij' });
+  if (await closeStart.count()) await closeStart.first().click().catch(() => {});
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: path.join(shotDir, 'journey_C_overview.png') });
+  console.log('monitor', JSON.stringify(monitor));
+  ok('max 3 attention items per client', ['A', 'B', 'C'].every(k => monitor[k].length <= 3));
+  ok('A: weight not dropping on reduction is flagged with numbers', monitor.A.some(r => r.kind === 'massgoal' && /−0,2 kg w 3 tyg\. \(80 → 79,8 kg\)/.test(r.reason)), JSON.stringify(monitor.A));
+  ok('C: plan exercise conflicting with shoulder limit is flagged first', monitor.C[0] && monitor.C[0].kind === 'limit' && /Wyciskanie hantli nad głowę/.test(monitor.C[0].reason), JSON.stringify(monitor.C));
+  ok('B: no limit or weight-goal noise without data', !monitor.B.some(r => r.kind === 'limit' || r.kind === 'massgoal'), JSON.stringify(monitor.B));
+  ok('Live warns about the conflicting exercise', /Ograniczenie \(bark\)/.test(monitor.limitBefore), monitor.limitBefore);
+  ok('Live warning disappears after swapping to a safe exercise', monitor.limitAfter === '', monitor.limitAfter);
 
   // --- Profil klienta: historia i progres widzą treningi
   const prof = await page.evaluate(() => {

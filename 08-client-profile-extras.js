@@ -2439,6 +2439,87 @@ function revealCpOverviewCoop(){
   if(typeof focusCpOverviewSection==='function')focusCpOverviewSection('cp-ov-coop');
   else el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+/** Ograniczenia z karty klienta vs ćwiczenia: tylko wyraźne kolizje (słowa kluczowe), decyzja należy do trenera. */
+const CP_LIMIT_RULES=[
+  {area:'bark',match:/bark|ramię|ramie|rotator|stożk|obojczyk/i,ex:/nad gł|overhead|ohp|żołnier|zolnier|military|arnold|za kark|podrzut|rwanie|snatch|push press|handstand|pompki w staniu na rękach/i},
+  {area:'kolano',match:/kolan|łąkot|lakot|acl|rzepk/i,ex:/wykrok|bułgar|bulgar|pistol|skok|plyo|box jump|przysiad na jednej|sissy/i},
+  {area:'kręgosłup',match:/kręgosł|kregosl|lędźw|ledzw|dysk|przepuklin|rwa kulsz|plecy/i,ex:/martwy ciąg|martwy ciag|deadlift|skłon|sklon|good morning|wiosłowanie w opadzie|wioslowanie w opadzie|przysiad ze sztangą na plecach|back squat/i},
+  {area:'nadgarstek',match:/nadgarst|cieśń|ciesn/i,ex:/pompk|front squat|przysiad przedni|zarzut|clean/i}
+];
+function cpClientLimitConflicts(c,exNames){
+  const text=typeof clientInjuriesText==='function'?clientInjuriesText(c):String(c&&(c.injuries||c.notes)||'');
+  if(!text)return[];
+  const rules=CP_LIMIT_RULES.filter(r=>r.match.test(text));
+  if(!rules.length)return[];
+  const out=[];const seen=new Set();
+  (exNames||[]).forEach(name=>{
+    const n=String(name||'').trim();if(!n||seen.has(n.toLowerCase()))return;
+    const r=rules.find(rule=>rule.ex.test(n));
+    if(r){seen.add(n.toLowerCase());out.push({exercise:n,area:r.area,note:typeof cpSitClip==='function'?cpSitClip(text,60):text.slice(0,60)});}
+  });
+  return out;
+}
+window.cpClientLimitConflicts=cpClientLimitConflicts;
+function cpPlanExerciseNames(plan){
+  const names=[];
+  ((plan&&plan.days)||[]).forEach(d=>((d&&d.exercises)||[]).forEach(e=>{
+    const p=typeof parsePlanExercise==='function'?parsePlanExercise(e):e;
+    const n=p&&(p.name||p.n);if(n)names.push(String(n));
+  }));
+  return names;
+}
+/** Masa vs cel: redukcja bez spadku albo budowa przy spadku — min. 3 pomiary rozłożone na ≥14 dni. */
+function cpOverviewMassGoalFact(c){
+  if(!c)return null;
+  const goal=String(c.goal||'').toLowerCase();
+  const cut=/redukc|odchud|schud|spal|tłuszcz|tluszcz/.test(goal);
+  const gain=/hipertrof|mas[aęy]|budow|przyrost/.test(goal);
+  if(!cut&&!gain)return null;
+  const series=typeof cpMetricSeries==='function'?cpMetricSeries(c.id,'mg1','m1',40):[];
+  if(series.length<3)return null;
+  const last=series[series.length-1];
+  const cutoff=typeof cpOverviewYmdAdd==='function'?cpOverviewYmdAdd(String(last.d).slice(0,10),-21):'';
+  const win=series.filter(p=>String(p.d||'')>=cutoff);
+  if(win.length<3)return null;
+  const first=win[0];
+  const days=typeof cpOverviewDaysBetween==='function'?cpOverviewDaysBetween(String(first.d).slice(0,10),String(last.d).slice(0,10)):14;
+  if(days==null||days<14)return null;
+  const delta=Math.round((last.v-first.v)*10)/10;
+  const weeks=Math.max(2,Math.round(days/7));
+  const fmt=v=>String(Math.round(v*10)/10).replace('.',',');
+  const span=(delta>0?'+':delta<0?'−':'±')+fmt(Math.abs(delta))+' kg w '+weeks+' tyg. ('+fmt(first.v)+' → '+fmt(last.v)+' kg)';
+  if(cut&&delta>-0.3)return{kind:'massgoal',title:'Masa nie spada przy celu redukcja — porozmawiaj o jedzeniu i aktywności',reason:'Masa: '+span+'.'};
+  if(gain&&delta<-0.5)return{kind:'massgoal',title:'Masa spada przy celu budowy — sprawdź, czy klient je wystarczająco',reason:'Masa: '+span+'.'};
+  return null;
+}
+window.cpOverviewMassGoalFact=cpOverviewMassGoalFact;
+/** Ćwiczenie, które najbardziej wymaga decyzji trenera (deload / spadek / stagnacja) — z tej samej analizy co Live. */
+function cpOverviewLiftFact(c){
+  if(!c||typeof composeClientNextSessionBrief!=='function')return null;
+  let built=null;try{built=composeClientNextSessionBrief(c.id);}catch(e){built=null;}
+  const recs=built&&Array.isArray(built.recs)?built.recs:[];
+  const score=r=>{
+    const f=r&&r.facts||{};
+    if(r.action==='DELOAD')return 4;
+    if(r.action==='ZMNIEJSZ OBCIĄŻENIE')return 3;
+    if(f.label==='REGRES')return 2;
+    if(f.plateau&&f.n>=3)return 1;
+    return 0;
+  };
+  const hits=recs.filter(r=>score(r)>0).sort((a,b)=>score(b)-score(a));
+  if(!hits.length)return null;
+  const r=hits[0],f=r.facts||{},name=r.name||f.name||'Ćwiczenie';
+  const rir=f.rirKnown&&Number.isFinite(f.lastRir)?', RIR '+f.lastRir:'';
+  const kg=Number.isFinite(f.lastKg)?f.lastKg+' kg':'';
+  const more=hits.length>1?' (+ '+(hits.length-1)+' '+cpOverviewPl(hits.length-1,'inne ćwiczenie','inne ćwiczenia','innych ćwiczeń')+')':'';
+  const map={4:['rozważ lżejszy tydzień (deload)','kilka treningów bez postępu przy RIR 0–1'],
+    3:['zmniejsz ciężar','powtórzenia spadają przy tym samym ciężarze'],
+    2:['wynik spada — sprawdź sen, regenerację i technikę','ostatnie treningi słabsze niż wcześniej'],
+    1:['brak postępu — utrzymaj ciężar albo zmień bodziec',(f.n||3)+' treningi bez postępu']};
+  const [act,why]=map[score(r)];
+  return{kind:'lift',title:name+': '+act+more,reason:why+(kg?' · ostatnio '+kg+rir:'')+'.'};
+}
+window.cpOverviewLiftFact=cpOverviewLiftFact;
 function cpOverviewRecs(c){
   if(!c)return[];
   const id=c.id;
@@ -2494,6 +2575,22 @@ function cpOverviewRecs(c){
       reason:'Średnia snu z ostatnich 3 dni: '+sleep.avg+'/10.',
       cta:{label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`}
     });
+  }
+  const plan2=typeof latestClientPlan==='function'?latestClientPlan(id):null;
+  const limits=plan2&&typeof cpClientLimitConflicts==='function'&&typeof cpPlanExerciseNames==='function'?cpClientLimitConflicts(c,cpPlanExerciseNames(plan2)):[];
+  if(limits.length){
+    const names=limits.slice(0,2).map(x=>x.exercise).join(', ')+(limits.length>2?' i '+(limits.length-2)+' '+cpOverviewPl(limits.length-2,'inne','inne','innych'):'');
+    recs.push({priority:1,order:0,kind:'limit',tone:'act',
+      title:'Plan zawiera ćwiczenia sprzeczne z ograniczeniem ('+limits[0].area+') — rozważ zamiennik',
+      reason:names+' · w karcie: „'+limits[0].note+'”.',
+      cta:{label:'Edytuj plan',onclick:`setCPTab('plan')`}});
+  }
+  const lift=typeof cpOverviewLiftFact==='function'?cpOverviewLiftFact(c):null;
+  if(lift)recs.push({priority:2,order:2.5,kind:lift.kind,tone:'watch',title:lift.title,reason:lift.reason,cta:{label:'Progres',onclick:`setCPTab('progress')`}});
+  const massGoal=typeof cpOverviewMassGoalFact==='function'?cpOverviewMassGoalFact(c):null;
+  if(massGoal){
+    for(let i=recs.length-1;i>=0;i--)if(recs[i].kind==='mass')recs.splice(i,1);
+    recs.push({priority:2,order:3.5,kind:massGoal.kind,tone:'watch',title:massGoal.title,reason:massGoal.reason,cta:{label:'Dodaj notatkę',onclick:`cpOverviewFocusNote('${id}')`}});
   }
   recs.sort((a,b)=>(a.priority-b.priority)||(a.order-b.order));
   return recs.slice(0,3);
@@ -2650,7 +2747,7 @@ function cpOverviewSituationHTML(c){
       </div>`:''}
     </div>
     <div class="cp-ov-next">
-      <div class="cp-ov-next-hd">Wnioski</div>
+      <div class="cp-ov-next-hd">Wnioski${recOk?'':`<span class="cp-ov-next-count" data-cp-attn="${steps.length}"> · ${steps.length===1?'1 rzecz wymaga':steps.length+' rzeczy wymagają'} Twojej uwagi</span>`}</div>
       ${recOk?`<div class="cp-ov-rec-ok" data-cp-next="ok">${esc(steps[0].text)}</div>`:`<ol class="cp-ov-next-list cp-ov-steps">
         ${steps.map(it=>`<li class="cp-ov-next-item cp-ov-step cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}">
           <span class="cp-ov-step-n" aria-hidden="true">${esc(String(it.n))}</span>
