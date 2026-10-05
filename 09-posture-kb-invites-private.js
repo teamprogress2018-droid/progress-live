@@ -611,12 +611,12 @@ function payRenewPackage(pkgId){
   if(!p)return;
   if(typeof openPackageForClient==='function')openPackageForClient(p.clientId);
   window._onboardResumeAfterPackage=null;
+  const bar=document.getElementById('pkg-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
   // Niedokończony zapis pakietu tego klienta ma pierwszeństwo — nie nadpisujemy go nowymi wartościami.
   if(typeof packageSaveDrafts!=='undefined'&&packageSaveDrafts.has(p.clientId)){
     if(typeof notify==='function')notify('Ten klient ma niedokończony zapis pakietu — najpierw go zapisz albo anuluj.');
     return;
   }
-  const bar=document.getElementById('pkg-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!=='')el.value=String(v);};
   set('pkg-title',p.title);set('pkg-type',p.type);set('pkg-sessions',p.sessions);set('pkg-price',p.price);
   const valid=p.date&&p.expiresDate?payDaysBetween(p.date,p.expiresDate):null;

@@ -81,9 +81,10 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     document.getElementById('pkg-title').value = 'X';
     payRenewPackage('p-used');
     const t = document.getElementById('pkg-title').value; packageSaveDrafts.delete('b');
-    return t;
+    const bar = document.getElementById('pkg-onboard-banner');
+    return t + '|' + (bar ? bar.style.display : '');
   });
-  ok('Odnów keeps an unfinished package save for that client', draft !== '10 wejść', draft);
+  ok('Odnów keeps an unfinished package save for that client, no onboarding banner', !draft.startsWith('10 wejść|') && draft.endsWith('|none'), draft);
   ok('Odnów: no onboarding banner or resume', renew.banner === 'none' && !renew.onboard, JSON.stringify(renew));
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await browser.close();
