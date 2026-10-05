@@ -4935,7 +4935,7 @@ function clientReportSummary(clientId,from,to){
     byEx[key].last=kg;byEx[key].n++;
   }));
   const strength=Object.values(byEx).filter(x=>x.n>=2&&x.last!==x.first).map(x=>({...x,delta:Math.round((x.last-x.first)*10)/10}))
-    .sort((a,b)=>b.delta-a.delta).slice(0,3);
+    .sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,3);
   return{from,to,days,training,regularity,mass,circ,strength};
 }
 window.clientReportSummary=clientReportSummary;
