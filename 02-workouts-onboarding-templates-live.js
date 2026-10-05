@@ -3712,7 +3712,7 @@ function liveExTodayLine(ex,slot){
   const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
   const todayBits=[];
   if(todayKg!==''&&todayKg!=null)todayBits.push(String(todayKg)+(suf?(' '+suf):''));
-  if(plannedReps)todayBits.push(/^\d+(\s*[-–]\s*\d+)?$/.test(plannedReps.trim())?('zakres '+plannedReps.trim().replace(/\s*-\s*/,'–')+' powt.'):plannedReps);
+  if(plannedReps){const r=plannedReps.trim();todayBits.push(/^\d+\s*[-–]\s*\d+$/.test(r)?('zakres '+r.replace(/\s*[-–]\s*/,'–')+' powt.'):/^\d+$/.test(r)?(r+' powt.'):plannedReps);}
   return todayBits.length?todayBits.join(' · '):'—';
 }
 window.liveExTodayLine=liveExTodayLine;
@@ -3871,7 +3871,8 @@ function liveExCueStripHtml(ex,slot,cue){
   const todayKg=liveExTodayKg(ex);
   const todayLine=liveExTodayLine(ex,n);
   const detail=liveExSuggestDetail(rec,ex);
-  const suggest=liveExSuggestView(rec&&detail.nextKg!=null&&!Number.isFinite(rec.suggestKg)?Object.assign({},rec,{suggestKg:detail.nextKg}):rec,todayKg);
+  const kgUnit=(typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')==='kg';
+  const suggest=liveExSuggestView(rec&&kgUnit&&detail.nextKg!=null&&!Number.isFinite(rec.suggestKg)?Object.assign({},rec,{suggestKg:detail.nextKg}):rec,todayKg);
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
     <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>

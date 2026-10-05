@@ -39,6 +39,11 @@ for(const g of ['D2','D4','D6','D7','D8','D9','D10','D11','D12','D14','D17','D18
 for(const g of ['D0','D1','D3','D5','D13','D15','D16'])assert.equal(c.gate(reasons[g]),'','unexpected gate '+g);
 ok('reason mapping matches 7B texts');
 
+const todaySrc=slice(live,'function liveExTodayLine(','window.liveExTodayLine=');
+const t={String,liveExTodayKg:e=>e.kg,liveExPlannedReps:e=>e.reps,exLoadUnit:()=>'kg',loadUnitSuffix:()=>'kg'};vm.createContext(t);vm.runInContext(todaySrc+'this.f=liveExTodayLine;',t);
+assert.equal(t.f({kg:80,reps:'8-12'}),'80 kg · zakres 8–12 powt.');assert.equal(t.f({kg:100,reps:'5'}),'100 kg · 5 powt.');assert.equal(t.f({kg:20,reps:'AMRAP'}),'20 kg · AMRAP');
+ok('DZISIAJ: range vs single reps');
 const strip=slice(live,'function liveExCueStripHtml(','window.liveExCueStripHtml=');
-assert.ok(!/data-cue="today" hidden/.test(strip)&&/Dzisiaj:/.test(strip),'DZISIAJ visible');ok('DZISIAJ row visible');
+assert.ok(!/data-cue="today" hidden/.test(strip)&&/Dzisiaj:/.test(strip),'DZISIAJ visible');
+assert.match(strip,/kgUnit&&detail\.nextKg/,'KG label only for weight units');ok('DZISIAJ row visible');
 console.log('PASS live suggest detail: '+n+' checks');
