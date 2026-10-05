@@ -61,8 +61,14 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     const r3 = await aplSavePlan();
     const after3 = { pl: window.PL.length, docs: planDocs(), note: window.__notes.slice(-1)[0] };
     plan.days[1].exercises[0].w1.kg = '72.5';
+    aplEditExercise(1, 1);
+    const rirInput = document.getElementById('apl-edit-rir-1-1');
+    let edited = null;
+    if (rirInput) { rirInput.value = '8'; aplSaveExerciseEdit(1, 1); edited = { rir: plan.days[1].exercises[1].w1.rir, rpe: plan.days[1].exercises[1].w1.rpe }; }
     const r4 = await aplSavePlan();
-    const after4 = { pl: window.PL.length, docs: planDocs(), sameId: r4 && r2 && r4.id === r2.id, kg: (r4 && r4.days[1].exercises[0].kg), note: window.__notes.slice(-1)[0] };
+    const row = r4 && r4.days[1].exercises[1];
+    const weekly = typeof exerciseForPlanWeek === 'function' && r4 ? { w1: exerciseForPlanWeek(r4.days[1].exercises[0], r4, 0).rir, w4: exerciseForPlanWeek(r4.days[1].exercises[0], r4, 3).rir } : null;
+    const after4 = { edited, savedRow: row && { rir: row.rir, rpe: row.rpe, w1: row.w1 }, weekly, pl: window.PL.length, docs: planDocs(), sameId: r4 && r2 && r4.id === r2.id, kg: (r4 && r4.days[1].exercises[0].kg), note: window.__notes.slice(-1)[0] };
     const bench = doc.days && doc.days[1].exercises[0];
     // Live: zapisany plan prowadzi trening tym samym celem RIR i tygodniową progresją.
     goTo('live');
@@ -80,6 +86,8 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   ok('retry: plan saved once', out.after2.saved && out.after2.pl === 1 && out.after2.docs === 1 && /Zapisany/.test(out.after2.btn), JSON.stringify(out.after2));
   ok('third click: no duplicate', out.after3.pl === 1 && out.after3.docs === 1 && /już zapisany/.test(out.after3.note), JSON.stringify(out.after3));
   ok('edit after save: same plan updated, not duplicated', out.after4.pl === 1 && out.after4.docs === 1 && out.after4.sameId && out.after4.kg === '72.5', JSON.stringify(out.after4));
+  ok('edit: RPE 8 typed in the plan editor becomes RIR 2 (and is saved)', out.after4.edited && out.after4.edited.rir === '2' && out.after4.edited.rpe === '8' && out.after4.savedRow && out.after4.savedRow.rir === '2', JSON.stringify(out.after4));
+  ok('Live follows weekly RIR (deload week differs from week 1)', out.after4.weekly && out.after4.weekly.w1 !== out.after4.weekly.w4 && out.after4.weekly.w4 === '3.5', JSON.stringify(out.after4.weekly));
   ok('saved plan keeps week progression and rule', JSON.stringify(out.doc.weekKeys) === '["w1","w2","w3","w4"]' && out.doc.currentWeek === 'w1' && out.doc.progression === 'double' && out.doc.phases && out.doc.phases.w4 === 'Deload', JSON.stringify(out.doc));
   ok('RIR stays RIR (not RPE 8)', out.doc.bench && out.doc.bench.rir !== '8' && out.doc.bench.rpe === String(out.doc.bench.rpe) && out.doc.bench.w2 && out.doc.bench.w4, JSON.stringify(out.doc.bench));
   ok('Live uses the saved plan with RIR target', out.liveEx.length >= 2 && out.liveEx.every(e => String(e.rir || '') !== '8'), JSON.stringify(out.liveEx));

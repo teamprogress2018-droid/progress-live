@@ -1638,7 +1638,7 @@ function aplEditExercise(di,ei){
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.s||ex.sets||''):(wp.s||ex.sets||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--accent);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.r||ex.reps||''):(wp.r||ex.reps||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--teal);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rest||ex.rest||''):(wp.rest||ex.rest||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;"></div>
-      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RIR / RPE</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||ex.rpe||''):(wp.rpe||ex.rir||ex.rpe||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;" title="Wpisz RIR (0–5) albo RPE (6–10) — przeliczymy drugie">RIR (lub RPE)</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rir||wp.rpe||ex.rir||ex.rpe||''):(wp.rir||wp.rpe||ex.rir||ex.rpe||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Tempo</div><input type="text" id="apl-edit-tempo-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.tempo||ex.tempo||''):(wp.tempo||ex.tempo||'').replace(/"/g,'&quot;')}" placeholder="3-1-1-0" style="width:100%;text-align:center;font-size:12px;font-family:'DM Mono',monospace;"></div>
     </div>`;
   setTimeout(()=>aplInitExerciseNameInput(di,ei,true),30);
@@ -1656,14 +1656,20 @@ function aplSaveExerciseEdit(di,ei){
   ex[curWeek].s=document.getElementById(`apl-edit-sets-${di}-${ei}`).value.trim();
   ex[curWeek].r=document.getElementById(`apl-edit-reps-${di}-${ei}`).value.trim();
   ex[curWeek].rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
-  ex[curWeek].rpe=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
+  // Pole przyjmuje RIR (0–5) albo RPE (6–10); zapisujemy oba spójnie: RIR ≈ 10 − RPE.
+  const intensity=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim().replace(',','.');
+  const iv=parseFloat(intensity);
+  if(intensity===''){ex[curWeek].rir='';ex[curWeek].rpe='';}
+  else if(Number.isFinite(iv)&&iv<=5){ex[curWeek].rir=String(iv);ex[curWeek].rpe=String(10-iv);}
+  else if(Number.isFinite(iv)){ex[curWeek].rpe=String(iv);ex[curWeek].rir=String(Math.max(0,10-iv));}
+  else{ex[curWeek].rpe=intensity;}
   const tempoEl=document.getElementById(`apl-edit-tempo-${di}-${ei}`);
   const tempoVal=tempoEl?tempoEl.value.trim():'';
   ex.tempo=tempoVal;
   ex[curWeek].tempo=tempoVal;
   // zachowaj kompatybilność wsteczną (tydzień 1 = pola płaskie)
   if(curWeek===(aplLastPlan.weekKeys||['w1'])[0]){
-    ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;ex.rpe=ex[curWeek].rpe;
+    ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rir||'';ex.rpe=ex[curWeek].rpe;
   }
   notify('✓ Ćwiczenie zaktualizowane');
   aplRerenderCurrent();
