@@ -2530,10 +2530,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="form-field">
           <label class="form-lbl">Typ raportu</label>
           <div style="display:flex;flex-direction:column;gap:5px;" id="rep-types">
-            <button class="apl-opt active" data-val="weekly" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">📅 Tygodniowy — podsumowanie 7 dni</button>
-            <button class="apl-opt" data-val="monthly" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">📆 Miesięczny — pełna analiza</button>
-            <button class="apl-opt" data-val="progress" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">📈 Raport postępów — od startu</button>
-            <button class="apl-opt" data-val="custom" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">✏️ Niestandardowy zakres dat</button>
+            <button class="apl-opt active" data-val="weekly" onclick="aplToggleOpt(this,'rep-types');typeof repSyncDateRange==='function'&&repSyncDateRange()" style="text-align:left;">📅 Tygodniowy — podsumowanie 7 dni</button>
+            <button class="apl-opt" data-val="monthly" onclick="aplToggleOpt(this,'rep-types');typeof repSyncDateRange==='function'&&repSyncDateRange()" style="text-align:left;">📆 Miesięczny — pełna analiza</button>
+            <button class="apl-opt" data-val="progress" onclick="aplToggleOpt(this,'rep-types');typeof repSyncDateRange==='function'&&repSyncDateRange()" style="text-align:left;">📈 Raport postępów — od startu</button>
+            <button class="apl-opt" data-val="custom" onclick="aplToggleOpt(this,'rep-types');typeof repSyncDateRange==='function'&&repSyncDateRange()" style="text-align:left;">✏️ Niestandardowy zakres dat</button>
           </div>
         </div>
 

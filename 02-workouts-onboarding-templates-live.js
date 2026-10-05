@@ -5575,6 +5575,19 @@ Wygeneruj raport tygodniowy.`;
   repGenerating=false;
 }
 
+/** Pokazuje zakres dat tylko dla typu „Niestandardowy”, z domyślnymi ostatnimi 28 dniami. */
+function repSyncDateRange(){
+  const box=document.getElementById('rep-date-range');if(!box)return;
+  const custom=typeof aplGetVal==='function'&&aplGetVal('rep-types')==='custom';
+  box.style.display=custom?'':'none';
+  if(!custom)return;
+  const f=document.getElementById('rep-date-from'),t=document.getElementById('rep-date-to');
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  if(t&&!t.value)t.value=today;
+  if(f&&!f.value){const d=new Date(today+'T12:00:00');d.setDate(d.getDate()-27);const p=x=>String(x).padStart(2,'0');f.value=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+}
+window.repSyncDateRange=repSyncDateRange;
+
 function renderRepDocument(c,template,hasAI,ai){
   const area=document.getElementById('rep-preview-area');
   const sessions=SE.filter(s=>s.clientId===c.id);
@@ -5632,9 +5645,11 @@ function renderRepDocument(c,template,hasAI,ai){
               const f1=(document.getElementById('rep-date-from')||{}).value||'',t1=(document.getElementById('rep-date-to')||{}).value||'';
               if(f1)from=f1;if(t1)to=t1;
             }else if(kind==='progress'){
-              const firstLogged=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.date).map(s=>String(s.date).slice(0,10)).sort()[0];
-              from=String(c.createdAt||'').slice(0,10)||firstLogged||from;
-              if(firstLogged&&firstLogged<from)from=firstLogged;
+              const ymd=v=>{const s=String(v||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:'';};
+              const done=typeof completedWorkouts==='function'?completedWorkouts(c.id):[];
+              const firstLogged=done.map(s=>ymd(s&&s.date)).filter(Boolean).sort()[0]||'';
+              const start=ymd(c.joinDate)||ymd(c.createdAt)||firstLogged;
+              if(start)from=firstLogged&&firstLogged<start?firstLogged:start;
             }
             return clientReportSummaryHTML(clientReportSummary(c.id,from,to),{text,muted,border,accent,surface:card});
           })():''}
