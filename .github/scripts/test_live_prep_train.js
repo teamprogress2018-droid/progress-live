@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=92'));
-ok('cache styles', html.includes('styles.css?v=123'));
+ok('cache styles', html.includes('styles.css?v=124'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
 ok('end label', html.includes('Zakończ trening') && /function liveAskEndSession\(/.test(live));
