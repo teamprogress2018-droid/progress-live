@@ -565,6 +565,7 @@ jobs:
         run: |
           node .github/scripts/test_live_ex_cue_ui.js
           node .github/scripts/test_client_journey_ui.js
+          node .github/scripts/test_apl_save_confirmed_ui.js
           node .github/scripts/test_live_readable_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
         if: ${{ !cancelled() }}

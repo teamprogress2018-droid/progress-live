@@ -1358,7 +1358,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz plan</button>
+          <button class="btn btn-primary btn-sm" id="apl-save-btn" onclick="aplSavePlan()">💾 Zapisz plan</button>
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlanPDF()">📄 PDF</button>
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ JSON</button>
           <button class="btn btn-ghost btn-sm" onclick="aplGenerate()">↺ Regeneruj</button>
@@ -1373,6 +1373,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
       ${aplPlanWhyHTML(plan)}
+      ${typeof aplPlanChecksHTML==='function'?aplPlanChecksHTML(plan):''}
       ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
         <div style="font-size:12px;color:var(--text);line-height:1.65;">${plan.adaptation_notes}</div>
@@ -1769,59 +1770,167 @@ window.aplRemoveDay=aplRemoveDay;
 window.aplEditDayName=aplEditDayName;
 window.aplCreateBlankPlan=aplCreateBlankPlan;
 
-function aplSavePlan(){
-  if(!aplLastPlan){notify('Brak planu do zapisania!');return;}
-  const cid=document.getElementById('apl-client').value;
-  const client=cid?CL.find(x=>x.id===cid):null;
-  const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
-  const newPlan=withTrainer({
-    id:newId('p'),
-    name:aplLastPlan.planName||'Plan AI',
-    rationale:aplLastPlan.rationale||null,
+/** Plan do zapisu: bieżący tydzień jako wartości bazowe + pełna progresja tygodniowa (w1…wN), żeby Live i podgląd szły tydzień po tygodniu. */
+function aplBuildSavedPlan(src,cid,client,id){
+  const weekKeys=Array.isArray(src.weekKeys)&&src.weekKeys.length?src.weekKeys.slice():['w1'];
+  const curWeek=src.currentWeek||weekKeys[0];
+  const rirOf=(wp,e)=>{
+    if(wp&&wp.rir!=null&&wp.rir!=='')return String(wp.rir);
+    const n=parseFloat(e&&e.rir);
+    return Number.isFinite(n)&&n<=5?String(e.rir):'';
+  };
+  return withTrainer({
+    id:id,
+    name:src.planName||'Plan AI',
+    rationale:src.rationale||null,
     clientId:cid||null,
     clientName:client?client.name:'',
-    method:aplLastPlan.method||'Custom',
-    duration:aplLastPlan.weeks||8,
-    days:(aplLastPlan.days||[]).map(d=>({
+    method:src.method||'Custom',
+    duration:src.weeks||8,
+    progression:src.progression||'',
+    weekKeys:weekKeys,
+    currentWeek:curWeek,
+    phases:src.phases||null,
+    days:(src.days||[]).map(d=>({
       day:d.dayName,
       muscles:d.focus||'',
       exercises:(d.exercises||[]).map(e=>{
         const wp=e[curWeek]||{};
         const name=e.name||'Ćwiczenie';
-        return{
+        const out={
           name,
           sets:wp.s||e.sets||'3',
           reps:wp.r||e.reps||'10',
           rest:wp.rest||e.rest||'90s',
-          rpe:wp.rpe||e.rir||e.rpe||'',
-          rir:wp.rpe||e.rir||e.rpe||'',
+          rpe:wp.rpe||e.rpe||'',
+          rir:rirOf(wp,e),
           tempo:e.tempo||wp.tempo||'',
           kg:wp.kg||e.kg||'',
           note:e.notes||e.note||'',
           alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):'')
         };
+        weekKeys.forEach(wk=>{
+          const w=e[wk];
+          if(w&&typeof w==='object')out[wk]={s:w.s||'',r:w.r||'',rest:w.rest||'',rpe:w.rpe!=null?String(w.rpe):'',rir:rirOf(w,{}),kg:w.kg||''};
+        });
+        return out;
       })
     })),
     source:'ai',
     createdAt:new Date().toISOString()
   });
-  PL.push(newPlan);
-  persistById('plans',newPlan);
-  addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
-  notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
-  if(cid&&client&&typeof maybeSchedulePlanToCalendar==='function'){
-    maybeSchedulePlanToCalendar(newPlan.id,{weeks:4});
-  }else if(cid&&client&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?')){
-    if(typeof schedulePlanToCalendar==='function')schedulePlanToCalendar(newPlan.id,{weeks:4});
-  }
-  if(cid&&typeof maybeResumeOnboard==='function'){
-    if(window._onboardResumeAfterApl===cid){
-      window._onboardResumeAfterApl=null;
-      if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
-    }
-    maybeResumeOnboard(cid);
-  }
 }
+window.aplBuildSavedPlan=aplBuildSavedPlan;
+let aplSaveState=null;
+/** Zapis planu AI potwierdzany przez bazę; ponowienie używa tego samego id (bez duplikatów). */
+async function aplSavePlan(){
+  if(!aplLastPlan){notify('Brak planu do zapisania!');return null;}
+  const cid=document.getElementById('apl-client').value;
+  const client=cid?CL.find(x=>x.id===cid):null;
+  if(aplSaveState&&aplSaveState.src===aplLastPlan&&aplSaveState.cid===cid){
+    if(aplSaveState.pending)return aplSaveState.promise;
+  }else aplSaveState={src:aplLastPlan,cid,id:newId('p'),pending:false,saved:null,savedSig:'',promise:null};
+  const state=aplSaveState;
+  const newPlan=aplBuildSavedPlan(aplLastPlan,cid,client,state.id);
+  const sig=JSON.stringify({...newPlan,createdAt:''});
+  if(state.saved&&state.savedSig===sig){notify('Ten plan jest już zapisany.');return state.saved;}
+  if(state.saved)newPlan.createdAt=state.saved.createdAt;
+  const firstSave=!state.saved;
+  const btn=document.getElementById('apl-save-btn');
+  if(btn){btn.disabled=true;btn.textContent='Zapisywanie…';}
+  state.pending=true;
+  state.promise=(async()=>{
+    let saved=null;
+    try{saved=await persistById('plans',newPlan);}catch(e){saved=null;}
+    state.pending=false;
+    if(!saved){
+      if(btn){btn.disabled=false;btn.textContent='💾 Zapisz ponownie';}
+      notify('⚠ Plan nie został zapisany — sprawdź internet i kliknij „Zapisz ponownie”.');
+      return null;
+    }
+    state.saved=newPlan;state.savedSig=sig;
+    if(btn){btn.disabled=false;btn.textContent='✓ Zapisany';}
+    const ix=PL.findIndex(p=>p&&p.id===newPlan.id);
+    if(ix>=0)PL[ix]=newPlan;else PL.push(newPlan);
+    if(!firstSave){notify('✅ Zmiany w planie „'+newPlan.name+'” zapisane');return newPlan;}
+    addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
+    notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
+    if(cid&&client&&typeof maybeSchedulePlanToCalendar==='function'){
+      maybeSchedulePlanToCalendar(newPlan.id,{weeks:4});
+    }else if(cid&&client&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?')){
+      if(typeof schedulePlanToCalendar==='function')schedulePlanToCalendar(newPlan.id,{weeks:4});
+    }
+    if(cid&&typeof maybeResumeOnboard==='function'){
+      if(window._onboardResumeAfterApl===cid){
+        window._onboardResumeAfterApl=null;
+        if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
+      }
+      maybeResumeOnboard(cid);
+    }
+    return newPlan;
+  })();
+  return state.promise;
+}
+
+/** Kontrola wygenerowanego planu: ograniczenia klienta, czas sesji, brak zakresu/RIR/przerwy. Tylko podpowiedzi — decyduje trener. */
+function aplRestSec(v){
+  const s=String(v==null?'':v).toLowerCase().replace(',','.');
+  const n=parseFloat(s);if(!Number.isFinite(n))return 90;
+  if(/min|'/.test(s))return Math.round(n*60);
+  if(/s/.test(s))return Math.round(n);
+  return n<=5?Math.round(n*60):Math.round(n);
+}
+window.aplRestSec=aplRestSec;
+function aplPlanChecks(plan,ctx){
+  ctx=ctx||{};
+  const out=[];
+  const wk=plan&&(plan.currentWeek||(plan.weekKeys||[])[0]);
+  const days=(plan&&plan.days)||[];
+  const names=[];
+  days.forEach(d=>(d.exercises||[]).forEach(e=>{if(e&&e.name)names.push(String(e.name));}));
+  const limitSrc={injuries:String(ctx.injuries||'').trim()};
+  const limits=limitSrc.injuries&&typeof cpClientLimitConflicts==='function'?cpClientLimitConflicts(limitSrc,names):[];
+  if(limits.length)out.push({tone:'act',kind:'limit',text:'Ćwiczenia sprzeczne z ograniczeniem ('+limits[0].area+'): '+limits.map(x=>x.exercise).slice(0,4).join(', ')+' — zamień przed zapisem.'});
+  const target=parseFloat(ctx.duration);
+  days.forEach((d,i)=>{
+    let sec=8*60;
+    (d.exercises||[]).forEach(e=>{
+      const w=(wk&&e[wk])||{};
+      const sets=parseInt(w.s||e.sets,10)||3;
+      sec+=sets*(40+aplRestSec(w.rest||e.rest));
+    });
+    const min=Math.round(sec/60);
+    if(Number.isFinite(target)&&target>0&&min>target*1.15)out.push({tone:'watch',kind:'time',text:(d.dayName||('Dzień '+(i+1)))+': ok. '+min+' min przy założonych '+target+' min — usuń serię lub ćwiczenie.'});
+  });
+  const missing=[];
+  days.forEach(d=>(d.exercises||[]).forEach(e=>{
+    const w=(wk&&e[wk])||{};
+    const reps=String(w.r||e.reps||'');
+    const rir=String(w.rir!=null&&w.rir!==''?w.rir:(parseFloat(e.rir)<=5?e.rir:''));
+    if(!reps||(!rir&&!(w.rpe||e.rpe)))missing.push(e.name);
+  }));
+  if(missing.length)out.push({tone:'watch',kind:'fields',text:'Bez zakresu powtórzeń albo RIR: '+missing.slice(0,4).join(', ')+(missing.length>4?' i '+(missing.length-4)+' inne':'')+'.'});
+  if(!plan||!plan.progression)out.push({tone:'watch',kind:'progression',text:'Brak zasady progresji — wybierz ją przed zapisem.'});
+  return out;
+}
+window.aplPlanChecks=aplPlanChecks;
+function aplPlanChecksHTML(plan){
+  const injuries=[document.getElementById('apl-injuries')?.value||''];
+  const cid=document.getElementById('apl-client')?.value||'';
+  const c=cid?(window.CL||[]).find(x=>x&&x.id===cid):null;
+  if(c&&typeof clientInjuriesText==='function')injuries.push(clientInjuriesText(c));
+  const checks=aplPlanChecks(plan,{injuries:injuries.filter(Boolean).join(' · '),duration:(typeof aplGetVal==='function'?aplGetVal('apl-duration'):'')||plan.sessionDuration||''});
+  const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const labels={progression:{linear:'liniowa (ciężar co tydzień)',double:'podwójna (najpierw powtórzenia, potem ciężar)',dup:'falowa dzienna (DUP)',wave:'falowa tygodniowa',block:'blokowa'}};
+  const prog=plan&&plan.progression?(labels.progression[plan.progression]||plan.progression):'';
+  return '<div data-apl-checks style="margin-top:12px;padding:12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);font-size:12px;">'
+    +'<strong>Kontrola planu</strong>'
+    +(prog?'<div style="margin-top:6px;">Zasada progresji: <b>'+esc(prog)+'</b> — w Live sugestie liczone tą samą zasadą.</div>':'')
+    +(checks.length?'<ul style="margin:6px 0 0;padding-left:18px;">'+checks.map(c=>'<li data-apl-check="'+esc(c.kind)+'" style="color:'+(c.tone==='act'?'var(--accent)':'var(--text)')+';">'+esc(c.text)+'</li>').join('')+'</ul>'
+      :'<div data-apl-check="ok" style="margin-top:6px;color:var(--teal);">✓ Bez kolizji z ograniczeniami, sesje mieszczą się w czasie, każde ćwiczenie ma zakres i RIR.</div>')
+    +'</div>';
+}
+window.aplPlanChecksHTML=aplPlanChecksHTML;
 
 function aplStripAutoStructureNotes(raw){
   const text=String(raw||'');
