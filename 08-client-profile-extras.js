@@ -2497,6 +2497,20 @@ function cpOverviewMassGoalFact(c){
   return null;
 }
 window.cpOverviewMassGoalFact=cpOverviewMassGoalFact;
+/** Raport co 4 tygodnie: po ≥4 tyg. współpracy z treningami, gdy od ostatniego raportu minęło ≥28 dni. */
+function cpOverviewReportDue(c){
+  if(!c)return null;
+  const today=typeof cpOverviewTodayYmd==='function'?cpOverviewTodayYmd():new Date().toISOString().slice(0,10);
+  const weeks=typeof cpOverviewCoopWeeks==='function'?cpOverviewCoopWeeks(c):0;
+  if(weeks<4)return null;
+  const logged=(typeof completedWorkouts==='function'?completedWorkouts(c.id):[]).filter(s=>s&&String(s.date||'').slice(0,10)>=(typeof cpOverviewYmdAdd==='function'?cpOverviewYmdAdd(today,-27):''));
+  if(!logged.length)return null;
+  const last=(window.REP_HISTORY||[]).filter(r=>r&&r.clientId===c.id&&r.date).map(r=>String(r.date).slice(0,10)).sort().pop();
+  const since=last&&typeof cpOverviewDaysBetween==='function'?cpOverviewDaysBetween(last,today):null;
+  if(since!=null&&since<28)return null;
+  return{title:'Czas na raport 4-tygodniowy dla klienta',reason:(last?'Ostatni raport '+since+' dni temu.':'Jeszcze nie było raportu.')+' '+logged.length+' '+cpOverviewPl(logged.length,'trening','treningi','treningów')+' w ostatnich 4 tygodniach.'};
+}
+window.cpOverviewReportDue=cpOverviewReportDue;
 /** Ćwiczenie, które najbardziej wymaga decyzji trenera (deload / spadek / stagnacja) — z tej samej analizy co Live. */
 function cpOverviewLiftFact(c){
   if(!c||typeof composeClientNextSessionBrief!=='function')return null;
@@ -2582,6 +2596,8 @@ function cpOverviewRecs(c){
       cta:{label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`}
     });
   }
+  const report=typeof cpOverviewReportDue==='function'?cpOverviewReportDue(c):null;
+  if(report)recs.push({priority:3,order:6,kind:'report',tone:'info',title:report.title,reason:report.reason,cta:{label:'Przygotuj raport',onclick:`openReportForClient('${id}',28)`}});
   const plan2=typeof latestClientPlan==='function'?latestClientPlan(id):null;
   const limits=plan2&&typeof cpClientLimitConflicts==='function'&&typeof cpPlanExerciseNames==='function'?cpClientLimitConflicts(c,cpPlanExerciseNames(plan2)):[];
   if(limits.length){

@@ -5621,6 +5621,23 @@ function renderRepDocument(c,template,hasAI,ai){
         </div>
 
         <div style="padding:28px 32px;">
+          ${typeof clientReportSummary==='function'&&typeof clientReportSummaryHTML==='function'?(()=>{
+            const kind=typeof aplGetVal==='function'?aplGetVal('rep-types'):'weekly';
+            const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+            const p=x=>String(x).padStart(2,'0');
+            const back=n=>{const d=new Date(today+'T12:00:00');d.setDate(d.getDate()-(n-1));return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());};
+            // Okres zgodny z typem raportu: tydzień, 4 tygodnie, od startu współpracy albo zakres dat.
+            let from=back(kind==='weekly'?7:28),to=today;
+            if(kind==='custom'){
+              const f1=(document.getElementById('rep-date-from')||{}).value||'',t1=(document.getElementById('rep-date-to')||{}).value||'';
+              if(f1)from=f1;if(t1)to=t1;
+            }else if(kind==='progress'){
+              const firstLogged=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.date).map(s=>String(s.date).slice(0,10)).sort()[0];
+              from=String(c.createdAt||'').slice(0,10)||firstLogged||from;
+              if(firstLogged&&firstLogged<from)from=firstLogged;
+            }
+            return clientReportSummaryHTML(clientReportSummary(c.id,from,to),{text,muted,border,accent,surface:card});
+          })():''}
 
           ${activeSections.includes('sessions')?`
           <!-- SESJE -->

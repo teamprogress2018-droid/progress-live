@@ -4886,6 +4886,85 @@ window.opsEventNotifKey=opsEventNotifKey;
 window.generateAutoNotifs=generateAutoNotifs;
 window.startOpsScanClock=startOpsScanClock;
 
+/* ETAP 7: podsumowanie 4 tygodni — TRENING · MASA · SIŁA · OBWODY · REGULARNOŚĆ (liczby ze źródeł, bez AI). */
+function repYmdAdd(ymd,n){const d=new Date(String(ymd).slice(0,10)+'T12:00:00');d.setDate(d.getDate()+n);const p=x=>String(x).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function repNum(v){const n=parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(n)?n:null;}
+function repFmt(v,unit){if(v==null)return'—';const s=String(Math.round(v*10)/10).replace('.',',');return unit?s+' '+unit:s;}
+function repSigned(v,unit){if(v==null)return'';const s=(v>0?'+':v<0?'−':'±')+String(Math.round(Math.abs(v)*10)/10).replace('.',',');return unit?s+' '+unit:s;}
+function clientReportSummary(clientId,from,to){
+  const inWin=d=>{const y=String(d||'').slice(0,10);return y>=from&&y<=to;};
+  const all=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
+  const logged=(typeof completedWorkouts==='function'?completedWorkouts(clientId,all):all.filter(s=>s.source==='live'||s.source==='client'||s.source==='sala')).filter(s=>inWin(s.date));
+  const loggedDays=new Set(logged.map(s=>String(s.date).slice(0,10)));
+  const planned=new Set(all.filter(s=>s.source==='planned'&&inWin(s.date)).map(s=>String(s.date).slice(0,10)));
+  const days=Math.max(1,Math.round((new Date(to+'T12:00:00')-new Date(from+'T12:00:00'))/86400000)+1);
+  let expected=planned.size;
+  if(!expected){
+    const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):null;
+    const perWeek=((plan&&plan.days)||[]).filter(d=>d&&!d.rest&&(d.exercises||[]).length).length;
+    if(perWeek)expected=Math.round(perWeek*days/7);
+  }
+  const training={done:loggedDays.size,expected:expected||null,text:expected?(loggedDays.size+'/'+expected+' wykonanych'):(loggedDays.size+' treningów')};
+  const regularity=expected?Math.min(100,Math.round(loggedDays.size/expected*100)):null;
+  // masa: ostatni pomiar przed/na początku okresu vs ostatni w okresie
+  const series=(gid,mid)=>(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.groupId===gid&&e.values&&repNum(e.values[mid])!=null)
+    .sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).map(e=>({d:String(e.date).slice(0,10),v:repNum(e.values[mid])}));
+  const span=(pts)=>{
+    const before=pts.filter(p=>p.d<from),inside=pts.filter(p=>p.d>=from&&p.d<=to);
+    const first=before.length?before[before.length-1]:inside[0];
+    const last=inside[inside.length-1];
+    if(!first||!last||first===last)return null;
+    return{from:first.v,to:last.v,delta:Math.round((last.v-first.v)*10)/10};
+  };
+  const mass=span(series('mg1','m1'));
+  // obwody: największe zmiany (talia, pas, biodra, klatka, udo, ramię)
+  const circ=[['m2','talia'],['m14','pas'],['m3','biodra'],['m1','klatka'],['m4','udo L'],['m9','udo P'],['m5','ramię L'],['m8','ramię P']]
+    .map(([id,label])=>{const s=span(series('mg2',id));return s&&s.delta?{label,...s}:null;}).filter(Boolean)
+    .sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,3);
+  // siła: najcięższa seria robocza — pierwszy vs ostatni trening z ćwiczeniem w okresie
+  const byEx={};
+  logged.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(s=>(s.exercises||[]).forEach(e=>{
+    const name=String(e&&e.name||'').trim();if(!name)return;
+    const unit=typeof exLoadUnit==='function'?exLoadUnit(e):'kg';
+    if(unit&&unit!=='kg')return;
+    const top=(e.sets||[]).filter(x=>x&&x.kind!=='warmup'&&x.kind!=='drop').map(x=>repNum(x.kg)).filter(v=>v!=null&&v>0);
+    if(!top.length)return;
+    const kg=Math.max.apply(null,top);
+    const key=typeof exerciseNameKey==='function'?exerciseNameKey(name):name.toLowerCase();
+    if(!byEx[key])byEx[key]={name,first:kg,last:kg,n:0};
+    byEx[key].last=kg;byEx[key].n++;
+  }));
+  const strength=Object.values(byEx).filter(x=>x.n>=2&&x.last!==x.first).map(x=>({...x,delta:Math.round((x.last-x.first)*10)/10}))
+    .sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,3);
+  return{from,to,days,training,regularity,mass,circ,strength};
+}
+window.clientReportSummary=clientReportSummary;
+function clientReportSummaryHTML(sum,colors){
+  colors=colors||{};
+  const text=colors.text||'#1a1a2a',muted=colors.muted||'#6b7280',border=colors.border||'#e0e0e0',accent=colors.accent||'#e60000',surface=colors.surface||'transparent';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const row=(label,val,sub,key)=>`<div data-rep-sum="${key}" style="padding:12px 14px;border:1px solid ${border};border-radius:12px;background:${surface};">
+    <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${muted};font-weight:700;">${label}</div>
+    <div style="font-size:18px;font-weight:800;color:${text};margin-top:4px;">${val}</div>${sub?`<div style="font-size:12px;color:${muted};margin-top:2px;">${sub}</div>`:''}</div>`;
+  const massTxt=sum.mass?esc(repFmt(sum.mass.from,'')+' → '+repFmt(sum.mass.to,'kg')):'—';
+  const massSub=sum.mass?esc(repSigned(sum.mass.delta,'kg')):'brak 2 pomiarów w okresie';
+  const strTxt=sum.strength.length?sum.strength.map(s=>esc(s.name)+' '+esc(repSigned(s.delta,'kg'))).join('<br>'):'—';
+  const strSub=sum.strength.length?sum.strength.map(s=>esc(repFmt(s.first,'')+' → '+repFmt(s.last,'kg'))).join(' · '):'za mało powtórzonych ćwiczeń';
+  const circTxt=sum.circ.length?sum.circ.map(c=>esc(c.label+' '+repSigned(c.delta,'cm'))).join('<br>'):'—';
+  const circSub=sum.circ.length?'':'brak 2 pomiarów obwodów';
+  return `<div data-rep-summary style="margin-bottom:24px;">
+    <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${accent};font-weight:700;margin-bottom:8px;">Podsumowanie ${esc(sum.from)} – ${esc(sum.to)}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+      ${row('Trening',esc(sum.training.text),'','training')}
+      ${row('Masa',massTxt,massSub,'mass')}
+      ${row('Siła',strTxt,strSub,'strength')}
+      ${row('Obwody',circTxt,circSub,'circ')}
+      ${row('Regularność',sum.regularity==null?'—':sum.regularity+'%',sum.regularity==null?'brak planu do porównania':'treningi vs plan','regularity')}
+    </div>
+  </div>`;
+}
+window.clientReportSummaryHTML=clientReportSummaryHTML;
+
 function openReportModal(){
   const sel=document.getElementById('rep-client');
   if(sel)sel.innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
@@ -4899,13 +4978,14 @@ function openReportModal(){
   openM('m-report');
 }
 
-function openReportForClient(id){
+function openReportForClient(id,days){
   const sel=document.getElementById('rep-client');
   if(sel){
     sel.innerHTML=CL.map(c=>'<option value="'+c.id+'"'+(c.id===id?' selected':'')+'>'+c.name+'</option>').join('');
   }
   const now=new Date();
-  const from=new Date(now);from.setMonth(from.getMonth()-3);
+  const from=new Date(now);
+  if(days>0)from.setDate(from.getDate()-(days-1));else from.setMonth(from.getMonth()-3);
   const fromEl=document.getElementById('rep-from');
   const toEl=document.getElementById('rep-to');
   if(fromEl)fromEl.value=dateStr(from);
@@ -4955,6 +5035,15 @@ function generateReport(){
   document.getElementById('report-container').innerHTML=html;
   document.getElementById('report-overlay-title').textContent='RAPORT — '+c.name.toUpperCase();
   document.getElementById('report-overlay').style.display='flex';
+  // Historia raportu: przypomnienie „raport 4-tyg.” liczy od ostatniego raportu klienta.
+  try{
+    const entry=withTrainer({id:newId('r'),clientId:c.id,clientName:c.name,type:'period',from,to,date:typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10),sent:[],status:'wygenerowany',auto:false});
+    Promise.resolve(persistById('reportHistory',entry)).then(saved=>{
+      if(!saved)return;
+      const list=window.REP_HISTORY||(window.REP_HISTORY=[]);
+      if(!list.some(r=>r&&r.id===entry.id))list.unshift(entry);
+    }).catch(()=>{});
+  }catch(e){}
 }
 
 function reportClose(){document.getElementById('report-overlay').style.display='none';}
@@ -4993,7 +5082,7 @@ function buildReportHTML(c,from,to,sec,template){
   const pkgs=typeof packagesForClient==='function'?packagesForClient(c.id):allPackages().filter(p=>p&&p.clientId===c.id);
   const notes=CLIENT_NOTES[c.id]||[];
 
-  const totalRevenue=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+  const totalRevenue=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+(Number(p.price)||0),0);
 
   // session type counts
   const sessTypes={};
@@ -5094,6 +5183,7 @@ function buildReportHTML(c,from,to,sec,template){
 
   // ── OVERVIEW ──
   if(sec.overview){
+    html+=clientReportSummaryHTML(clientReportSummary(c.id,from,to),{text,muted,border,accent,surface});
     html+=`<div style="margin-bottom:24px;">${sectionTitle('PRZEGLĄD OGÓLNY','📋',accent)}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
       ${kpiBox(loggedSess.length,'Odbyte w okresie',accent)}
@@ -5299,7 +5389,7 @@ function buildReportHTML(c,from,to,sec,template){
             <td style="padding:6px 10px;font-weight:600;">${p.title}</td>
             <td style="padding:6px 10px;color:${muted};">${{sessions:'Sesje',monthly:'Abonament',program:'Program',online:'Online'}[p.type]||p.type}</td>
             <td style="padding:6px 10px;font-family:${fontMono};">${p.sessionsUsed}/${p.sessions}</td>
-            <td style="padding:6px 10px;font-weight:700;color:${accent};">${p.price.toLocaleString('pl')} zł</td>
+            <td style="padding:6px 10px;font-weight:700;color:${accent};">${(Number(p.price)||0).toLocaleString('pl')} zł</td>
             <td style="padding:6px 10px;font-family:${fontMono};color:${muted};">${p.expiresDate||'—'}</td>
             <td style="padding:6px 10px;color:${sc};">${st}</td>
           </tr>`;

@@ -349,6 +349,33 @@ const CLIENTS = [
     await window.liveFlushPendingSessions();
     return { foreign: window.__store.has('sessions/foreign-s'), kept: JSON.parse(localStorage.getItem('pl_live_pending_sessions_v1') || '[]').length };
   });
+  // --- ETAP 7: raport 4-tygodniowy
+  await page.clock.setFixedTime(new Date('2026-10-01T18:00:00'));
+  const rep = await page.evaluate(() => {
+    const b = window.CL.find(c => c.id === 'cB'); b.createdAt = '2026-08-01T10:00:00';
+    window.METRIC_ENTRIES.push(
+      { id: 'c1', trainerId: window._uid, clientId: 'cB', groupId: 'mg2', date: '2026-09-02', values: { m2: 90 } },
+      { id: 'c2', trainerId: window._uid, clientId: 'cB', groupId: 'mg2', date: '2026-09-29', values: { m2: 87 } });
+    const sum = clientReportSummary('cB', '2026-09-04', '2026-10-01');
+    const due = (cpOverviewRecs(b) || []).find(r => r.kind === 'report');
+    openReportForClient('cB', 28);
+    const from = document.getElementById('rep-from').value, to = document.getElementById('rep-to').value;
+    generateReport();
+    const doc = (document.querySelector('#report-container [data-rep-summary]') || {}).innerText || '';
+    return { sum: { training: sum.training.text, regularity: sum.regularity, strength: sum.strength.map(s => s.name + ' ' + s.first + '→' + s.last), circ: sum.circ.map(c => c.label + ' ' + c.delta), mass: sum.mass }, due: due && due.title, from, to, doc };
+  });
+  await page.waitForTimeout(100);
+  const repAfter = await page.evaluate(() => ({ hist: (window.REP_HISTORY || []).filter(r => r.clientId === 'cB').length, due: !!(cpOverviewRecs(window.CL.find(c => c.id === 'cB')) || []).find(r => r.kind === 'report'),
+    stored: [...window.__store.keys()].filter(k => k.startsWith('reportHistory/')).length }));
+  await page.screenshot({ path: path.join(shotDir, 'journey_B_report.png') });
+  console.log('report', JSON.stringify(rep), JSON.stringify(repAfter));
+  ok('report: 4-week window preset (28 days)', rep.from === '2026-09-04' && rep.to === '2026-10-01', rep.from + '..' + rep.to);
+  ok('report: training done vs plan', rep.sum.training === '4/4 wykonanych' && rep.sum.regularity === 100, JSON.stringify(rep.sum));
+  ok('report: strength change from real sets', rep.sum.strength.some(s => /Wyciskanie sztangi na ławce płaskiej 80→82.5/.test(s)), JSON.stringify(rep.sum.strength));
+  ok('report: circumference change', rep.sum.circ.includes('talia -3'), JSON.stringify(rep.sum.circ));
+  ok('report: document shows the 5-part summary', /Trening[\s\S]*4\/4 wykonanych[\s\S]*Siła[\s\S]*\+2,5 kg[\s\S]*Obwody[\s\S]*talia −3 cm[\s\S]*Regularność[\s\S]*100%/i.test(rep.doc), rep.doc);
+  ok('reminder: 4-week report due before, gone after generating', !!rep.due && repAfter.hist === 1 && repAfter.stored === 1 && !repAfter.due, JSON.stringify({ due: rep.due, ...repAfter }));
+
   ok('pending queue never sends another trainer\'s workout', !reload.foreign && reload.kept === 1, JSON.stringify(reload));
 
   ok('no page errors during the journey', errors.length === 0, errors.slice(0, 3).join(' | '));
