@@ -21,4 +21,8 @@ assert.equal(s.strength.length,3);ok('top 3 lifts');
 const html=c.clientReportSummaryHTML(s,{});
 assert.match(html,/96,2 → 94,8 kg/);assert.match(html,/−1,4 kg/);assert.match(html,/Przysiad −30 kg/);ok('html shows signed values with Polish decimals');
 assert.match(live,/kind==='custom'[\s\S]*rep-date-from/);assert.match(live,/kind==='progress'/);ok('client-facing summary follows the selected report period');
+c.latestClientPlan=()=>({days:[{exercises:[{name:'A'}]},{exercises:[{name:'B'}]},{rest:true}]});
+c.SE.push({clientId:'c',date:'2026-10-20',source:'planned'});
+const long=c.clientReportSummary('c','2026-08-01','2026-10-24');
+assert.equal(long.training.expected,24);assert.equal(long.training.text,'2/24 wykonanych');assert.equal(long.regularity,8);ok('long window with partial calendar uses plan frequency');
 console.log('PASS report summary: '+n+' checks');

@@ -4898,12 +4898,12 @@ function clientReportSummary(clientId,from,to){
   const loggedDays=new Set(logged.map(s=>String(s.date).slice(0,10)));
   const planned=new Set(all.filter(s=>s.source==='planned'&&inWin(s.date)).map(s=>String(s.date).slice(0,10)));
   const days=Math.max(1,Math.round((new Date(to+'T12:00:00')-new Date(from+'T12:00:00'))/86400000)+1);
-  let expected=planned.size;
-  if(!expected){
-    const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):null;
-    const perWeek=((plan&&plan.days)||[]).filter(d=>d&&!d.rest&&(d.exercises||[]).length).length;
-    if(perWeek)expected=Math.round(perWeek*days/7);
-  }
+  // Kalendarz liczy się tylko, gdy pokrywa cały okres; inaczej oczekiwane treningi z planu (dni/tydz. × tygodnie).
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):null;
+  const perWeek=((plan&&plan.days)||[]).filter(d=>d&&!d.rest&&(d.exercises||[]).length).length;
+  const firstPlanned=[...planned].sort()[0]||'';
+  const calendarCovers=planned.size&&firstPlanned<=repYmdAdd(from,7);
+  let expected=calendarCovers?planned.size:(perWeek?Math.round(perWeek*days/7):planned.size);
   const training={done:loggedDays.size,expected:expected||null,text:expected?(loggedDays.size+'/'+expected+' wykonanych'):(loggedDays.size+' treningów')};
   const regularity=expected?Math.min(100,Math.round(loggedDays.size/expected*100)):null;
   // masa: ostatni pomiar przed/na początku okresu vs ostatni w okresie
