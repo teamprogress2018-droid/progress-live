@@ -22,7 +22,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=126'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=89'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=90'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=82'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=88'));
 ok('helpers', /function clientHasPaidAccess/.test(core) && /function setClientAccessMode/.test(core) && /function assertClientPaidAccess/.test(core));
@@ -31,7 +31,7 @@ ok('maybe schedule gate', src05.slice(src05.indexOf('function maybeSchedulePlanT
 ok('live start not hard-gated', !/assertClientPaidAccess\(st\.clientId\)/.test(live.slice(live.indexOf('function liveStartSession'), live.indexOf('function liveEndSession'))) && /clientHasPaidAccess\(st\.clientId\)/.test(live));
 ok('live start waits for client+plan', /const ready=!!\(st\.clientId&&\(st\.exercises\|\|\[\]\)\.length\)/.test(live) && /start\.disabled=!ready/.test(live));
 ok('unpaid start still explained', /Pakiet nieopłacony — Start i tak działa/.test(live));
-ok('live decrement paid only', /consumeClientPackageSession\(st\.clientId/.test(live) && /payStatus==='paid'/.test(core));
+ok('live decrement paid only', /clientPaidPackageForSession\(sess\.clientId\)/.test(live) && /d\.payStatus==='paid'/.test(live) && /payStatus==='paid'/.test(core));
 ok('live banner', /live-pay-gate/.test(live) && /Start Live działa/.test(live) && /setClientAccessMode/.test(live));
 ok('cp payments modes', /cp-access-mode/.test(src08) && /Trial/.test(src08) && /Gość/.test(src08));
 ok('overview banner', /cp-pay-gate/.test(src08));

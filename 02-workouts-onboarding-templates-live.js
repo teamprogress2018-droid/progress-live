@@ -3162,7 +3162,12 @@ function liveMapPlanExercises(rawEx,slot){
     ?mapPlanExercisesForClient(list,st.clientId,plan,day)
     :(list||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
   // Planned/history RIR is a target, never a measured result for a new Live set.
-  return mapped.map(ex=>({...ex,sets:(ex.sets||[]).map(set=>({...set,rir:''})),done:false,collapsed:false}));
+  return mapped.map(ex=>{
+    const sets=(ex.sets||[]).map(set=>({...set,rir:''}));
+    const first=sets.find(s=>s&&(!s.kind||s.kind==='work')&&s.kg!==''&&s.kg!=null);
+    // Zapamiętaj, co aplikacja sama wpisała — dopisek przy Sugestii odróżni to od ręcznej zmiany.
+    return {...ex,sets,prefillKg:first?String(first.kg):'',done:false,collapsed:false};
+  });
 }
 
 function liveRefreshPlanLoads(slot){
@@ -3729,7 +3734,7 @@ function livePaintTodayCue(ei,slot){
   v.textContent=liveExTodayLine(ex,n);
   const row=card.querySelector('[data-cue="suggest"]'),note=row&&row.querySelector('[data-cue-note]');
   if(note){
-    const text=liveExSuggestNote(liveExTodayKg(ex),row.getAttribute('data-target-kg'),row.getAttribute('data-plan-kg'),typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg');
+    const text=liveExSuggestNote(liveExTodayKg(ex),row.getAttribute('data-target-kg'),row.getAttribute('data-plan-kg'),typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg',ex.prefillKg);
     note.textContent=text?' · '+text:'';
   }
 }
@@ -3781,12 +3786,14 @@ function liveExPlannedKg(ex,slot){
 window.liveExPlannedKg=liveExPlannedKg;
 
 /** Gdy w polu jest inny ciężar niż w sugestii — powiedz skąd: z planu czy wpisany ręcznie. */
-function liveExSuggestNote(todayKg,targetKg,planKg,suf){
+function liveExSuggestNote(todayKg,targetKg,planKg,suf,prefillKg){
   const num=v=>{const n=parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(n)?n:null;};
-  const today=num(todayKg),target=num(targetKg),plan=num(planKg);
+  const today=num(todayKg),target=num(targetKg),plan=num(planKg),prefill=num(prefillKg);
   if(today==null||target==null||Math.abs(today-target)<0.001)return '';
   const s=String(Number.isInteger(today)?today:Math.round(today*100)/100).replace('.',',')+(suf?' '+suf:'');
-  return (plan!=null&&Math.abs(plan-today)<0.001?'plan: ':'wpisane: ')+s;
+  if(plan!=null&&Math.abs(plan-today)<0.001)return 'plan: '+s;
+  if(prefill!=null&&Math.abs(prefill-today)<0.001)return 'progresja z planu: '+s;
+  return 'wpisane: '+s;
 }
 window.liveExSuggestNote=liveExSuggestNote;
 
@@ -3847,7 +3854,9 @@ function liveExSuggestDetail(rec,ex){
   if(!rec||levers.load==='none'||rec.action==='ZA MAŁO DANYCH')
     return{detail:'',why:'potrzebne min. 2 porównywalne treningi tego ćwiczenia w tym planie'};
   if(levers.load==='up'){
-    const next=lastKg!=null?lastKg+step:null;
+    // Ten sam krok i zaokrąglenie do talerzy co autouzupełnienie serii — jedna liczba w obu miejscach.
+    const viaStep=lastKg!=null&&typeof addLoadStep==='function'?parseFloat(addLoadStep(lastKg,step,unit)):NaN;
+    const next=lastKg!=null?(Number.isFinite(viaStep)?viaStep:lastKg+step):null;
     return{nextKg:next,detail:next!=null?'→ '+fmt(next):'',why:reps?'ostatnio górny zakres ('+reps+')'+rir+' na wszystkich seriach':'górny zakres osiągnięty z zapasem'};
   }
   if(levers.load==='deload')return{detail:lastKg!=null?'lżej niż '+fmt(lastKg):'',why:'kilka treningów bez postępu przy RIR 0–1 — czas na lżejszy trening'};
@@ -3920,7 +3929,7 @@ function liveExCueStripHtml(ex,slot,cue){
   const facts=rec&&rec.facts||{};
   const targetKg=detail.nextKg!=null?detail.nextKg:(rec&&rec.levers&&rec.levers.load==='hold'&&Number.isFinite(facts.lastKg)?facts.lastKg:'');
   const planKg=liveExPlannedKg(ex,n);
-  const note=liveExSuggestNote(todayKg,targetKg,planKg,suffix);
+  const note=liveExSuggestNote(todayKg,targetKg,planKg,suffix,ex&&ex.prefillKg);
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
     <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>
     <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">Dzisiaj:</span> <span class="live-ex-cue-v">${esc(todayLine)}</span></span>
@@ -4356,6 +4365,8 @@ function liveSwapEx(i,name,slot){
       if(s.kind!=='amrap'&&nxt.reps!=null)s.reps=String(nxt.reps);
       if(nxt.hint&&!hint)hint=nxt.hint;
     });
+    const firstWork=work.find(s=>s&&s.kg!==''&&s.kg!=null);
+    cur.prefillKg=firstWork?String(firstWork.kg):'';
     cur.progHint=hint;
   }
   if(typeof resolveCoachMedia==='function'){
@@ -4580,12 +4591,20 @@ function liveEndSession(slot){
   const ix=SE.findIndex(s=>s&&s.id===newSession.id);
   if(ix>=0)SE[ix]=newSession;else SE.push(newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
-  const pkg=typeof consumeClientPackageSession==='function'?consumeClientPackageSession(st.clientId,{date:newSession.date,session:newSession}):null;
-  persistById('sessions',newSession);
-  addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
+  // Sukces dopiero po potwierdzeniu bazy; do tego czasu trening czeka w kolejce na tym urządzeniu.
+  liveQueuePendingSession(newSession);
+  const clientName=c?.name||'Klient';
+  liveSaveSessionWithPackage(newSession).then(({saved,pkg})=>{
+    if(saved){
+      liveDropPendingSession(newSession.id);
+      const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
+      addNotification('system','Sesja zapisana!','Trening '+clientName+' · '+durationMin+' min · '+totalSets+' serii','clients');
+      notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.'+leftTxt);
+    }else{
+      notify('⚠ Brak połączenia — trening '+clientName+' jest zachowany na tym urządzeniu i zapisze się sam, gdy wróci internet.');
+    }
+  });
   if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(st.clientId);}catch(e){}
-  const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
-  notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.'+leftTxt);
   st.savedClientId=st.clientId;
   st.savedClientName=c?.name||'';
   st.timerSec=0;
@@ -4605,6 +4624,101 @@ function liveEndSession(slot){
   if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(st.savedClientId);
   try{if(typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(st.savedClientId);}catch(e){}
 }
+
+const LIVE_PENDING_KEY='pl_live_pending_sessions_v1';
+function liveReadPendingSessions(){
+  try{const raw=localStorage.getItem(LIVE_PENDING_KEY);const list=raw?JSON.parse(raw):[];return Array.isArray(list)?list:[];}catch(e){return [];}
+}
+function liveWritePendingSessions(list){
+  try{if(list.length)localStorage.setItem(LIVE_PENDING_KEY,JSON.stringify(list));else localStorage.removeItem(LIVE_PENDING_KEY);}catch(e){}
+}
+function liveQueuePendingSession(sess){
+  if(!sess||!sess.id)return;
+  const list=liveReadPendingSessions().filter(x=>x&&x.id!==sess.id);
+  list.push(JSON.parse(JSON.stringify(sess)));
+  liveWritePendingSessions(list);
+}
+window.liveQueuePendingSession=liveQueuePendingSession;
+function liveDropPendingSession(id){
+  liveWritePendingSessions(liveReadPendingSessions().filter(x=>x&&x.id!==id));
+}
+window.liveDropPendingSession=liveDropPendingSession;
+/**
+ * Zapis treningu i odliczenie wejścia z pakietu w jednej transakcji: albo oba, albo nic.
+ * Bez opłaconego pakietu (albo bez transakcji) — zwykły potwierdzony zapis treningu.
+ */
+async function liveSaveSessionWithPackage(sess){
+  const others=(window.SE||[]).filter(s=>s&&s.id!==sess.id);
+  const local=!sess.pkgTick&&typeof clientPaidPackageForSession==='function'
+    &&!(typeof sessionConsumedPackageOnDay==='function'&&sessionConsumedPackageOnDay(sess.clientId,sess.date,others))
+    ?clientPaidPackageForSession(sess.clientId):null;
+  if(!local||typeof window._runTransaction!=='function'||typeof window._doc!=='function'||!window._db){
+    let saved=null;try{saved=await persistById('sessions',sess);}catch(e){saved=null;}
+    return{saved,pkg:null};
+  }
+  const uid=window._uid,gen=window.tenantSessionGeneration;
+  try{
+    const res=await window._runTransaction(window._db,async tx=>{
+      const pref=window._doc(window._db,'packages',local._fbId||local.id);
+      const sref=window._doc(window._db,'sessions',sess._fbId||sess.id);
+      // Najpierw stan treningu w bazie: ponowienie po zgubionym potwierdzeniu nie odlicza drugi raz.
+      const sSnap=await tx.get(sref);
+      const prev=sSnap&&sSnap.exists()?sSnap.data():null;
+      const snap=await tx.get(pref);
+      const d=snap&&snap.exists()?snap.data():null;
+      const payload={...sess};delete payload._fbId;
+      if(prev&&prev.pkgTick){tx.set(sref,{...payload,pkgTick:true,pkgId:prev.pkgId||local.id},{merge:true});return{used:d?Number(d.sessionsUsed)||0:null,already:true,pkgId:prev.pkgId||local.id};}
+      const usable=d&&d.trainerId===sess.trainerId&&d.clientId===sess.clientId&&d.payStatus==='paid'&&(Number(d.sessionsUsed)||0)<(Number(d.sessions)||0);
+      if(!usable){tx.set(sref,payload,{merge:true});return{used:null};}
+      const used=(Number(d.sessionsUsed)||0)+1;
+      tx.set(sref,{...payload,pkgTick:true,pkgId:local.id},{merge:true});
+      tx.update(pref,{sessionsUsed:used});
+      return{used};
+    });
+    if(window._uid!==uid||window.tenantSessionGeneration!==gen)return{saved:null,pkg:null};
+    if(!sess._fbId)sess._fbId=sess.id;
+    if(!res||res.used==null)return{saved:sess,pkg:null};
+    sess.pkgTick=true;sess.pkgId=res.pkgId||local.id;
+    if(res.pkgId&&res.pkgId!==local.id)return{saved:sess,pkg:null};
+    local.sessionsUsed=res.used;
+    if(res.already)return{saved:sess,pkg:local};
+    const left=Math.max(0,(local.sessions||0)-res.used);
+    if(left<=1&&typeof addNotification==='function'){
+      const c=(window.CL||[]).find(x=>x&&x.id===sess.clientId);
+      addNotification('alert',left===0?'Pakiet wyczerpany':'Ostatnia sesja w pakiecie',((c&&c.name)||'')+' — '+(local.title||'Pakiet'),'payments');
+    }
+    return{saved:sess,pkg:local};
+  }catch(e){
+    console.warn('live session save',e);
+    return{saved:null,pkg:null};
+  }
+}
+window.liveSaveSessionWithPackage=liveSaveSessionWithPackage;
+/** Ponawia zapis treningów zakończonych bez połączenia. Tylko własne treningi zalogowanego trenera. */
+let livePendingFlushing=null;
+function liveFlushPendingSessions(){
+  if(livePendingFlushing)return livePendingFlushing;
+  const uid=window._uid;
+  if(!uid||window._clientAppMode||typeof persistById!=='function')return Promise.resolve(0);
+  const mine=liveReadPendingSessions().filter(x=>x&&x.trainerId===uid);
+  if(!mine.length)return Promise.resolve(0);
+  const list=window.SE||(window.SE=[]);
+  mine.forEach(sess=>{const i=list.findIndex(s=>s&&s.id===sess.id);if(i<0)list.push(sess);else if(list[i].source!=='live')list[i]=sess;});
+  livePendingFlushing=(async()=>{
+    let saved=0;
+    for(const sess of mine){
+      const target=list.find(s=>s&&s.id===sess.id)||sess;
+      const res=await liveSaveSessionWithPackage(target);
+      if(window._uid!==uid)break;
+      if(res.saved){liveDropPendingSession(sess.id);saved++;}
+    }
+    if(saved&&typeof notify==='function')notify('✅ Zapisano '+saved+(saved===1?' trening':' treningi')+' zakończone bez internetu');
+    return saved;
+  })().finally(()=>{livePendingFlushing=null;});
+  return livePendingFlushing;
+}
+window.liveFlushPendingSessions=liveFlushPendingSessions;
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('online',()=>{try{liveFlushPendingSessions();}catch(e){}});
 
 function liveRepeatSameClient(slot){
   const n=liveN(slot);
