@@ -27,7 +27,7 @@ function ok(name,cond,extra){
   else console.log('OK  ',name);
 }
 
-ok('recs helper',/function cpOverviewRecs\(c\)/.test(src08));
+ok('recs helper',/function cpOverviewRecs\(c(,opts)?\)/.test(src08));
 ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'));
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
 ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));

@@ -6907,7 +6907,7 @@ function dashClientBrief(c){
     out.last='Ostatnio ('+day+'): '+(top||n+' ćw.')+(n>1&&top?' · +'+(n-1)+' ćw.':'');
   }else out.last='Pierwszy trening';
   try{
-    const recs=typeof cpOverviewRecs==='function'?cpOverviewRecs(c):[];
+    const recs=typeof cpOverviewRecs==='function'?cpOverviewRecs(c,{all:true}):[];
     // Przed treningiem najważniejsze: ograniczenie vs plan, potem decyzja o ciężarze, potem reszta.
     const order=['limit','lift','sleep','massgoal','adherence','checkin','nolog'];
     const r=(recs||[]).filter(x=>x&&order.includes(x.kind)).sort((a,b)=>order.indexOf(a.kind)-order.indexOf(b.kind))[0];
