@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-09-28T10:18:17.410Z",
+ "generatedAt": "2026-10-05T10:59:16.967Z",
  "lookbackDays": 14,
  "categories": [
   {
@@ -54,70 +54,754 @@
  ],
  "items": [
   {
-   "pmid": "42798093",
-   "doi": "10.1097/MD.0000000000050799",
-   "title": "Systematic review and meta-analysis of biomarkers of sarcopenia and sarcopenic obesity.",
-   "abstract": "OBJECTIVE: Sarcopenia and sarcopenic obesity (SO) are geriatric syndromes characterized by reduced skeletal muscle mass and impaired muscle strength, whose specific biomarkers and underlying mechanisms remain unclear. This study aimed to conduct a meta-analysis and literature review on the associations between biomarkers and sarcopenia/SO by collecting relevant publications over the past 15 years. We intended to further identify the shared and differential biomarkers of these disorders, thereby revealing their distinct pathophysiological processes and providing a basis for precise diagnosis and targeted intervention.\nMETHODS: A comprehensive literature search was performed in PubMed, Embase databases for all publications from December 2010 to December 2025. We included English articles describing the associations between serum biomarkers and sarcopenia/SO, including cross-sectional studies, prospective cohort studies, and retrospective case studies, with no restrictions on race, population, or sample size. Literature screening was conducted in accordance with predefined inclusion and exclusion criteria. Relevant study data were extracted, and the quality of included studies was assessed. The mean difference and 95% confidence interval were used to calculate the pooled effect size.\nRESULTS: A total of 43 English articles investigating the associations between biomarkers and sarcopenia/SO were finally included. Compared with non-sarcopenic patients, sarcopenic patients had elevated serum levels of C-reactive protein (CRP), interleukins, tumor necrosis factor, cystatin C, blood urea nitrogen, and high-density lipoprotein cholesterol (HDL-C). In contrast, higher serum levels of vitamin D, alanine transaminase, albumin, hemoglobin, TG, uric acid, blood glucose, and fasting insulin were associated with a lower incidence of sarcopenia. No significant differences were observed in WBC count, platelet count, aspartate transaminase, alkaline phosphatase, bilirubin, total cholesterol (TC), creatinine, erythrocyte sedimentation rate, low-density lipoprotein cholesterol (LDL-C), or thyroid-stimulating hormone levels between sarcopenic and non-sarcopenic patients. Compared with healthy individuals, SO patients had higher serum levels of CRP, LDL-C, TC, TG, WBC, creatinine, uric acid, fasting blood glucose, and fasting insulin, while higher levels of HDL-C and vitamin D were associated with a lower risk of SO. SO patients had lower TG levels than patients with simple obesity, with no significant differences in CRP, HDL-C, LDL-C, TC, vitamin D, blood glucose, or interleukin-6 levels between the 2 groups.",
-   "journal": "Medicine",
-   "journalAbbr": "Medicine (Baltimore)",
+   "pmid": "42823642",
+   "doi": "10.2519/jospt.2026.14372",
+   "title": "Rehabilitation of Athletes With Hamstring Strain Injury: SONAFE-Brazil Clinical Practice Guideline.",
+   "abstract": "SYNOPSIS: The National Society of Sports Physical Therapy (SONAFE-Brazil), the official organization representing sports physical therapists in Brazil, developed this clinical practice guideline to support clinicians and athletes in managing hamstring strain injury. The GRADE (Grading of Recommendations Assessment, Development, and Evaluation) approach was used to address the clinical question \"Which interventions provided by physical therapists improve rehabilitation outcomes in athletes with hamstring strain injury?\" The guideline provides an updated and targeted synthesis of evidence from randomized clinical trials, offering practical guidance to inform clinical decision making by physical therapists across diverse health care and sports settings. J Orthop Sports Phys Ther 2026;56(10):627-641. Epub 28 August 2026. doi:10.2519/jospt.2026.14372.",
+   "journal": "The Journal of orthopaedic and sports physical therapy",
+   "journalAbbr": "J Orthop Sports Phys Ther",
    "year": "2026",
-   "authors": "Yang Y i in.",
-   "authorCount": 5,
+   "authors": "Baroni BM i in.",
+   "authorCount": 16,
    "pubTypes": [
     "Journal Article",
-    "Meta-Analysis",
+    "Practice Guideline"
+   ],
+   "evidence": "guideline",
+   "evidenceLabel": "Stanowisko / wytyczne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42823642/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 6,
+   "ai": {
+    "titlePl": "Wytyczne postępowania w rehabilitacji sportowców ze zwapnieniem mięśnia czworogłowego",
+    "summary": "Brazylijskie towarzystwo fizjoterapeutów sportowych (SONAFE) opracowało wytyczne kliniczne do zarządzania urazami rozciągnięcia mięśni czworogłowych u sportowców. Za pomocą metodologii GRADE przeanalizowano dowody z prób klinicznych randomizowanych, aby określić które interwencje fizjoterapeutów poprawiają wyniki rehabilitacji. Wytyczne zawierają praktyczne rekomendacje dla decyzji klinicznych fizjoterapeutów.",
+    "takeaway": "Trener powinien współpracować z fizjoterapeutą, stosując interwencje oparte na wytycznych SONAFE (specifika interwencji nie zostały wymienione w abstrakcie).",
+    "population": "Sportowcy ze zwapnieniem mięśni czworogłowych",
+    "limits": "Abstrakt nie zawiera szczegółów dotyczących konkretnych rekomendacji interwencyjnych ani liczebności badań; dokument to wytyczne, a nie oryginalne badanie kliniczne",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42828697",
+   "doi": "10.1186/s40798-026-01118-6",
+   "title": "The Role of Psychosocial Factors in Returning to Physical Activity and Sport Among Female Football Players After Anterior Cruciate Ligament Injury: A Scoping Review.",
+   "abstract": "BACKGROUND: Anterior cruciate ligament (ACL) injuries are an increasingly common knee injury in sport requiring quick direction changes, such as the football codes. Return to physical activity and sport following an ACL injury predominantly focuses on achieving objective milestones to resolve physical impairments, with sex differences reported. However, irrespective of management approach following an ACL injury, many athletes do not return to the same level of sport, if at all, warranting the need to consider psychological and social factors.\nAIM: The aim of this scoping review was to investigate the role of psychosocial factors in females participating in any football code after an ACL injury, and the impact on return to physical activity and sport.\nMETHODS: A systematic search of six electronic databases (SCOPUS, CINAHL, MEDLINE, SPORTDiscus, PsycInfo, and Embase) was conducted on 1 May 2025. Two reviewers independently screened articles against the eligibility criteria to include original research articles that explored the impact of psychosocial factors on return to sport (RTS) or physical activity in females playing any football code with an ACL injury managed surgically or non-surgically. Studies were eligible where participants had a mean age of 18 years or older. Data extraction and narrative synthesis of included studies was undertaken and themes identified to address the research aim.\nRESULTS: Full-text articles (n = 74) were assessed for eligibility following screening of titles and abstracts (n = 582); seven eligible studies were included. Across the studies, psychosocial barriers and facilitators were perceived to influence RTS at either preinjury or lower competition levels, as well as physical activity, in female footballers. Uncertainty, fear, lack of confidence, and poor social support were identified as perceived barriers to RTS contributing to return at a lower level of competition and the alteration, limitation, or avoidance of physical activity among female footballers. Whilst confidence, motivation, strong social support and athletic identity were identified as perceived facilitators of RTS, helping to build readiness and supporting female footballers to return at their preinjury level or a lower level of competition.\nCONCLUSION: Psychosocial factors appear to play an important role in RTS and physical activity following ACL injury in female football players, acting as both barriers and facilitators to recovery. Further high-quality research focussed specifically on female footballers is needed to better understand these relationships and inform targeted screening and interventions.",
+   "journal": "Sports medicine - open",
+   "journalAbbr": "Sports Med Open",
+   "year": "2026",
+   "authors": "Meredith S i in.",
+   "authorCount": 4,
+   "pubTypes": [
+    "Journal Article",
     "Systematic Review"
    ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42798093/",
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42828697/",
    "topics": [
-    "suplementy"
+    "regeneracja"
    ],
-   "topJournal": false,
-   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
    "score": 4,
    "ai": {
-    "titlePl": "Biomarkery sarkopenii i sarkopenii otyłości – metaanaliza i przegląd systematyczny",
-    "summary": "Metaanaliza 43 badań z ostatnich 15 lat porównała markery biochemiczne między pacjentami ze sarkopenia, sarkopenią otyłości a osobami zdrowymi. U pacjentów ze sarkopenia stwierdzono podwyższone poziomy CRP, cytokin, cystatyny C i obniżoną witaminę D; u pacjentów z sarkopenią otyłości potwierdzono wyższe markery zapalenia, lipidy i glukozę oraz obniżoną witaminę D.",
-    "takeaway": "Trener powinien rozważyć monitorowanie statusu witaminy D u starszych klientów lub tych z otyłością, gdyż jej niedobory korelują ze zwiększonym ryzykiem sarkopenii, jednak sam trening siłowy pozostaje najskuteczniejszą interwencją.",
-    "population": "Badania heterogenne – głównie osoby starsze i pacjenci z chorobami przewlekłymi, brak danych szczegółowych na liczebności",
-    "limits": "Populacja geriatryczna, przewaga obserwacyjnych badań przekrojowych, brak standaryzacji metodologicznej między badaniami, niepewna przyczynowość biomarkerów",
+    "titlePl": "Rola czynników psychospołecznych w powrocie do aktywności fizycznej i sportu u piłkarek po urazie więzadła krzyżowego przedecznego",
+    "summary": "Przegląd systematyczny badający wpływ czynników psychospołecznych na powrót do sportu (RTS) u piłkarek po urazie ACL leczonym operacyjnie lub zachowawczo. Przeanalizowano 7 badań (spośród 582 przesiewanych) i zidentyfikowano barierami: niepewność, strach, brak pewności siebie, słabe wsparcie społeczne; ułatwiającymi: pewność siebie, motywacja, silne wsparcie społeczne i tożsamość sportowca. Czynniki psychospołeczne wpłynęły na powrót na preurazowy poziom konkurencji lub niższy oraz na zmianę/ograniczenie aktywności fizycznej.",
+    "takeaway": "Trener powinien oceniać i wspierać psychospołeczne aspekty rehabilitacji (strach, pewność siebie, wsparcie społeczne), a nie skupiać się wyłącznie na fizycznych wskaźnikach powrotu do sportu, szczególnie u pień podnoszących się piłkarek.",
+    "population": "Piłkarki w dowolnym kodeksie futbolu (≥18 lat) po urazie ACL, badania obejmowały głównie kobiety",
+    "limits": "Tylko 7 włączonych badań, heterogeniczna populacja, większość badań obserwacyjnych, brak danych ilościowych na temat wielkości efektu czynników psychospołecznych",
     "relevance": 2
    }
   },
   {
-   "pmid": "42797082",
-   "doi": "10.3390/nu18183099",
-   "title": "Effects of Carbohydrate Mouth Rinse on Human Capacity and Performance-A Systematic Review and Meta-Analysis of 90 Controlled Trials.",
-   "abstract": "Objective: The aim of the current systematic review and meta-analysis was to examine the acute effects of carbohydrate (CHO) mouth rinse on exercise capacity and performance in humans of any health and fitness status. Methods: We registered our systematic review with PROSPERO (CRD42018085308). Eligibility criteria included adult humans > 18 years old at any health and fitness status undertaking any CHO mouth rinse prior and during of any type of acute exercise session. Results: We included 90 crossover design-controlled trials. We found improvements in distance covered (Hedges' g = 0.17; 95% CI 0.03 to 0.30, p = 0.02; τ2 = 0.00; I2 = 0%; Q(14) = 9.61, p > 0.05), performance time (Hedges' g = -0.15; 95% CI -0.25 to -0.05, p < 0.01; τ2 = 0.008; I2 = 9.3%; Q(34) = 76.48, p < 0.01), speed performance (Hedges' g = 0.17; 95% CI 0.05 to 0.30, p < 0.01; τ2 ≈ 0; I2 = 0%; Q(23) = 22.73, p > 0.05), workload (Hedges' g = 0.25; 95% CI 0.08 to 0.41, p < 0.01, τ2 = 0; I2 = 0%; (Q(9) = 7.37, p > 0.05) and maximum voluntary contraction (MVC) (Hedges' g = 0.18, 95% CI 0.02 to 0.34, p = 0.03; τ2 = 0; I2 = 0%; (Q(10) = 7.73, p > 0.05). No effect of CHO mouth rinse on muscular endurance, maximum power output, or maximum oxygen consumption (VO2max) was found (p > 0.05). Conclusions: The available evidence suggests that CHO mouth rinse can produce a small, outcome-dependent ergogenic effect in distance covered, performance time and speed performance as well as small improvements in workload, with less robust evidence for MVC-evidence that mainly applies to male participants. The practical importance of these findings is likely to vary according to the exercise context and competitive context.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
+   "pmid": "42826085",
+   "doi": "10.1080/15502783.2026.2735569",
+   "title": "Creatine supplementation in soccer players: a systematic review.",
+   "abstract": "AIM: Soccer places repeated demands on short-duration, high-intensity performance, including sprints, accelerations, jumps, and technical actions performed over the course of a match. Because these efforts depend heavily on rapid adenosine triphosphate (ATP) resynthesis, creatine is a plausible ergogenic aid for soccer players. However, findings in soccer-specific studies have been inconsistent, and previous reviews have addressed narrower questions using smaller evidence sets. This systematic review therefore examined the effects of creatine supplementation on performance, body composition, and recovery/fatigue-related outcomes in soccer players.\nMETHODS: PubMed, Scopus, and Web of Science were searched from inception to 15 May 2025 in accordance with the Preferred Reporting Items for Systematic Reviews and Meta-Analyses (PRISMA) 2020 statement. We included controlled clinical trials of creatine supplementation in male or female soccer players of any age or competitive level when an eligible placebo, control, or comparison condition was available. Outcomes were grouped into performance, body composition, and recovery/fatigue domains. Domains from the revised Cochrane risk-of-bias tool for randomised trials (RoB 2) and the Risk Of Bias In Non-randomised Studies - of Interventions (ROBINS-I) tool were used to produce study-level methodological summaries rather than formal result-specific risk-of-bias assessments. Because the studies differed substantially in design, supplementation protocols, populations, and outcomes, findings were synthesised qualitatively rather than pooled in a meta-analysis.\nRESULTS: Source-level verification left 45 eligible reports representing 41 unique studies: 28 randomised parallel-group studies, 2 randomised crossover/repeated-condition studies, and 11 non-randomised or allocation-unverifiable controlled studies. Some trials reported favourable findings for repeated-sprint performance, anaerobic power, and muscular strength, but the comparative evidence was inconsistent and the certainty of evidence was very low. Findings for vertical jump performance and technical skills were mixed, while change-of-direction and endurance outcomes showed no consistent benefit. Recovery- and fatigue-related findings were also largely null or inconsistent. Body mass often increased, particularly after loading protocols, whereas evidence for gains in lean mass was limited and inconsistent.\nCONCLUSION: The soccer-specific evidence for creatine supplementation remains suggestive rather than conclusive. Favourable findings have been reported for some repeated-sprint, anaerobic-power, and strength outcomes, but the comparative evidence is heterogeneous, often limited by unclear or nonsignificant between-group effects, and of very low certainty. Firm conclusions about efficacy are therefore not possible. Body mass commonly increased, especially after loading protocols, while effects on lean mass, endurance, change-of-direction ability, and recovery/fatigue-related outcomes remain uncertain.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
    "year": "2026",
-   "authors": "Zalagkitis C i in.",
-   "authorCount": 14,
+   "authors": "Ashtary-Larky D i in.",
+   "authorCount": 9,
+   "pubTypes": [
+    "Systematic Review",
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42826085/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 5,
+   "ai": {
+    "titlePl": "Suplementacja kreatyną u piłkarzy – przegląd systematyczny",
+    "summary": "Przegląd systematyczny 41 badań (45 raportów) oceniający wpływ suplementacji kreatyny na wydolność, skład ciała i regenerację u piłkarzy. Niektóre badania wykazały korzystne efekty na wydolność powtarzających się sprintów, moc anaerobową i siłę mięśniową, jednak dowody były niespójne i bardzo niskiej pewności. Masa ciała często wzrastała, szczególnie po protokołach loadingu, ale przyrost masy szczupłej był ograniczony i niespójny.",
+    "takeaway": "Trener może rozważyć suplementację kreatyny dla potencjalnych korzyści w sprintach i sile, ale powinna być świadoma niejasnych dowodów, wzrostu masy ciała i braku jasnych korzyści w wydolności lub zdolności zmiany kierunku; indywidualna odpowiedź gracza powinna być monitorowana.",
+    "population": "Piłkarze obu płci, dowolny wiek i poziom konkurencji (n=41 unikalnych badań, łącznie setki uczestników)",
+    "limits": "Bardzo niska pewność dowodów, duża heterogeniczność w protokołach suplementacji i wynikach, brak meta-analizy, niespójne wyniki między badaniami",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42821324",
+   "doi": "10.1080/15502783.2026.2740221",
+   "title": "Effects of dietary supplements on lower-limb power and jump performance in physically active individuals and athletes: a systematic review and Bayesian network meta-analysis.",
+   "abstract": "OBJECTIVE: To evaluate the relative effects of dietary supplements, the certainty of evidence, and the robustness of findings within separate networks for peak power (PP), relative peak power (RPP), vertical jump (VJ), and countermovement jump (CMJ).\nMETHODS: PubMed, Web of Science, Embase, and the Cochrane Library were systematically searched, with the final search conducted on September 8, 2026. Eligible studies were randomised parallel-group and crossover controlled trials published in English through August 31, 2026, involving healthy individuals with physical activity or training backgrounds. Four separate Bayesian random-effects networks were constructed. Effects were assessed using mean differences (MDs) in change scores, 95% credible intervals (CrIs), and prediction intervals. Risk of bias and certainty of evidence were assessed using RoB 2 and CINeMA, respectively. Subgroup analyses, network meta-regression, and sensitivity analyses were also conducted. This review was retrospectively registered in PROSPERO (CRD420261283835).\nRESULTS: A total of 119 studies were included. The PP, RPP, VJ, and CMJ networks comprised 47, 33, 31, and 44 studies, respectively, with some studies contributing to more than one outcome. Compared with placebo, β-hydroxy-β-methylbutyrate (HMB) yielded MDs of 64.70 W (95% CrI: 19.15 to 110.50) for PP and 0.84 W·kg-1 (95% CrI: 0.42 to 1.28) for RPP. Favourable effects were also observed for β-alanine on PP and for creatine and vitamin D on RPP. Iron supplementation yielded an MD of 6.81 cm (95% CrI: 0.84 to 12.83) for VJ, supported by only one direct study. For CMJ, betaine yielded an MD of 3.72 cm (95% CrI: 1.24 to 6.18); the 95% CrIs for palmitoylethanolamide, caffeine combined with Rhodiola rosea, creatine, multi-ingredient supplements, and caffeine also excluded zero. The HMB findings for RPP remained relatively stable across multiple sensitivity analyses, whereas some other favourable comparisons had prediction intervals that included zero or showed attenuated findings in sensitivity analyses. Exploratory associations with training level and sport were observed for RPP, although interpretation was limited by sparse evidence and imbalanced covariate distributions. Of 1,636 pairwise comparisons, 17 were rated as moderate, 55 as low, and 1,564 as very low certainty. The HMB-versus-placebo comparisons for both PP and RPP were rated as moderate certainty.\nCONCLUSIONS: Some supplements showed favourable effects within their respective networks, with the HMB findings for RPP remaining relatively stable. However, direct evidence was limited, and the certainty of evidence was very low for most comparisons. Findings should be interpreted in the context of the populations and supplementation regimens studied. Differences between networks cannot establish that outcome type modifies supplementation effects, and rankings alone should not be used to guide individualised supplementation regimens.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
+   "year": "2026",
+   "authors": "Sun R i in.",
+   "authorCount": 8,
    "pubTypes": [
     "Journal Article",
     "Systematic Review",
-    "Meta-Analysis",
+    "Network Meta-Analysis",
     "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42821324/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 5,
+   "ai": {
+    "titlePl": "Suplementacja diety a moc dolnych kończyn i wydolność skoku – przegląd systematyczny i metaanaliza",
+    "summary": "Przegląd 119 badań randomizowanych (47–44 prace na sieć) porównujący 8 suplementów vs placebo w grupach fizycznie aktywnych i sportowców. HMB wykazał najstabilniejsze efekty: +64,70 W dla mocy szczytowej (PP) i +0,84 W·kg⁻¹ dla mocy względnej (RPP); betaina poprawiła skok w przysiadzie (CMJ) o 3,72 cm, kreatyna i witamina D wykazały korzyści dla RPP.",
+    "takeaway": "HMB i betaina mogą wspierać moc i wydolność skoków, ale dowody dla większości suplementów to bardzo niska pewność; decyzje suplementacyjne powinny być indywidualizowane i oparte na innych parametrach treningu.",
+    "population": "Osoby fizycznie aktywne i sportowcy (dobrze wytrenowani), różne dyscypliny",
+    "limits": "Bardzo niska pewność dowodów dla większości porównań (1564 z 1636 porównań), ograniczona liczba bezpośrednich badań dla wielu suplementów, heterogeniczność reżimów suplementacyjnych",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42816732",
+   "doi": "10.1186/s40798-026-01116-8",
+   "title": "Strategic Application of Post-exercise Cold-Water Immersion to Enhance Performance Recovery and Adaptation: An Umbrella Review of 15 Published Systematic Reviews with Meta-analysis.",
+   "abstract": "BACKGROUND: Athletes commonly implement post-exercise cold-water immersion (CWI), with several meta-analyses having assessed its effectiveness.\nOBJECTIVES: To thoroughly review, appraise, and summarise existing systematic reviews with meta-analyses (SRMA) examining the effects of post-exercise CWI on the recovery of exercise performance and adaptation.\nMETHODS: An umbrella review was conducted in accordance with the Joanna Briggs Institute guidelines. Methodological quality was assessed using AMSTAR 2, and certainty of evidence using GRADE. PROSPERO registration: (CRD420251103267). Eight databases were searched, including Web of Science, Scopus, SPORTDiscus, CINAHL, Cochrane Library, Embase, MEDLINE, and PubMed. Systematic reviews with meta-analyses of peer-reviewed randomised controlled trials examining post-exercise CWI vs passive rest or other recovery modalities on performance, training adaptation, or physiological, biochemical, and perceptual outcomes in healthy humans were included, with restriction to the English language.\nRESULTS: Fifteen SRMAs published between 2011 and 2025, comprising 161 unique studies, were included. Overall methodological quality was low to critically low, and certainty of evidence was low to very low, mainly due to inconsistency and imprecision. Protocols of 10-15 min at 10-15 or 5-10 °C appear to be most effective for improving performance and recovery. Post-exercise CWI resulted in significant improvements in muscular power at 24 h post-high-intensity exercise and at 24-48 h post-eccentric exercise, and in jump performance at 24-48 h, despite impaired jump performance in the initial hours after post-exercise CWI. Endurance performance improved immediately after CWI, but CWI produced no later benefits or positive effects on adaptations. CWI did not improve muscular strength performance, and impaired strength and hypertrophic gains. CWI improved heart rate variability immediately after exercise, reduced muscle soreness up to 96 h, and lowered creatine kinase (CK) concentrations between 24 and 72 h, with no significant effects on C-reactive protein or interleukin-6 up to 72 h. No immediate impact on blood lactate or lactate dehydrogenase was found, although some reductions appear 24-72 h post-exercise.\nCONCLUSIONS: Post-exercise CWI confers outcome-specific recovery benefits but may impair resistance training adaptations with chronic use. These findings support a periodised, context-driven approach to CWI implementation rather than routine application after all exercise sessions.",
+   "journal": "Sports medicine - open",
+   "journalAbbr": "Sports Med Open",
+   "year": "2026",
+   "authors": "Berjisian E i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42816732/",
+   "topics": [
+    "regeneracja",
+    "suplementy"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 6,
+   "ai": {
+    "titlePl": "Zastosowanie immersji w zimnej wodzie po wysiłku: przegląd 15 przeglądów systematycznych",
+    "summary": "Przegląd 15 przeglądów systematycznych (161 unikalnych badań) oceniający wpływ immersji w zimnej wodzie (10-15 minut, 5-15°C) na regenerację i adaptację. CWI poprawiało moc mięśniową w 24h po wysiłku wysokointensywnym, wydolność skoków w 24-48h, zmniejszało bolesność mięśni do 96h, ale osłabiało przyrosty siły i hipertrofii.",
+    "takeaway": "Trener powinien unikać rutynowego stosowania CWI po treningach siłowych (zwłaszcza hipertroficznych), ale może go uwzględnić punktowo przed ćwiczeniami wymagającymi przywrócenia szybkości/mocy w ciągu doby.",
+    "population": "Zdrowsi ludzie, atenci wykonujący różne rodzaje wysiłku (siła, wytrzymałość, wysiłek ekscentriczny)",
+    "limits": "Niska do bardzo niska pewność dowodów; duża heterogeniczność metodologiczna między uwzględnionymi przeglądy; brak konsekwencji wyników",
+    "relevance": 4
+   }
+  },
+  {
+   "pmid": "42811812",
+   "doi": "10.1080/07853890.2026.2726615",
+   "title": "Home-based exercise interventions incorporating cardiac rehabilitation principles for people with cancer: a systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: People with cancer are at increased cardiovascular risk due to treatment-related cardiotoxicity and shared risk factors. Exercise-based cardiac rehabilitation (exCR) may mitigate these risks, but access to center-based programs is limited. This systematic review and meta-analysis evaluated the effectiveness, safety, and adherence of home-based exCR in oncology populations.\nMETHODS: Six databases were searched in January 2025 for randomized controlled trials (RCTs) of home-based exCR in adults with cancer. Eligible interventions included structured aerobic and/or resistance exercise consistent with established CR guidelines. Primary outcomes were cardiorespiratory fitness (CRF), health-related quality of life (HRQoL), adherence, and safety. Random-effects meta-analyses used standardized mean differences (SMDs).\nRESULTS: Nine RCTs (632 participants) were included. Home-based exCR improved CRF (SMD 0.42; 95% CI 0.09-0.75; I²=62%) and HRQoL (SMD 0.63; 95% CI 0.05-1.22; I²=84%). TESTEX scores indicated generally good methodological and reporting quality (mean 10/15; range 7-13). Adherence exceeded 75% in most studies reporting this outcome, and dropout was 15.2%. Adverse-event reporting was inconsistent; no clear safety signal emerged, but evidence was insufficient for firm conclusions. Strength and fatigue findings were inconsistent.\nCONCLUSIONS: Home-based exCR appears feasible and may improve CRF and HRQoL in people with cancer, offering an accessible alternative or complement to center-based rehabilitation. Incomplete adverse-event reporting limits safety conclusions. Future studies should evaluate full, multi-component CR models in oncology.",
+   "journal": "Annals of medicine",
+   "journalAbbr": "Ann Med",
+   "year": "2026",
+   "authors": "Winnige P i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Systematic Review",
+    "Journal Article",
+    "Meta-Analysis"
    ],
    "evidence": "meta",
    "evidenceLabel": "Metaanaliza",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42797082/",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42811812/",
    "topics": [
+    "kondycja",
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Ćwiczenia w domu oparte na zasadach rehabilitacji kardiologicznej u osób z nowotworem: przegląd systematyczny i metaanaliza",
+    "summary": "Metaanaliza 9 RCT (632 uczestników) oceniła efektywność domowych programów ćwiczeń kardiologicznych u pacjentów onkologicznych. Trening w domu poprawił wydolność tlenową (SMD 0,42) i jakość życia (SMD 0,63), z adherencją powyżej 75% i odpadnięciem 15,2%, bez wyraźnych sygnałów bezpieczeństwa.",
+    "takeaway": "Treningiem aerobowy i siłowy w formule domowej może być praktyczną alternatywą dla pacjentów onkologicznych, gdy dostęp do ośrodków rehabilitacyjnych jest ograniczony, choć wyniki dotyczą głównie populacji postępowania medycznego.",
+    "population": "Dorośli pacjenci z nowotworem w różnych stadiach leczenia, n=632 (9 badań)",
+    "limits": "Niekonsekwentne raportowanie zdarzeń niepożądanych; niejednorodne wyniki siły i zmęczenia; badania nie obejmowały pełnych, wieloskładnikowych modeli CR",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42828502",
+   "doi": "10.1080/15502783.2026.2723237",
+   "title": "Effects of a chickpea protein hydrolysate on exercise-induced biomarkers of muscle damage and inflammation in federated road cyclists.",
+   "abstract": "BACKGROUND: This randomized, double-blind, placebo-controlled trial examined the effects of a chickpea protein hydrolysate (CPH) on biomarkers associated with exercise-induced muscle damage and inflammation in federated male road cyclists.\nMETHODS: Twenty-four participants completed a 14-day intervention receiving either 12 g/day of chickpea protein hydrolysate (EXP) or a placebo (PLA) following training sessions. The selected dose was based on previous studies demonstrating antioxidant and immunomodulatory bioactive properties of the hydrolysate. Nutritional intake and training were registered. Body composition and biochemical markers of muscle damage and inflammation were assessed before and after the study.\nRESULTS: No significant differences were observed in body composition, training load, or dietary intake between groups, indicating controlled experimental conditions. However, between-group analyses of change scores revealed significant differences for lactate dehydrogenase (LDH; p = 0.04) and C-reactive protein (CRP; p = 0.02), favoring the experimental group. LDH decreased in the EXP group while increasing slightly in the placebo group, whereas CRP decreased in EXP and increased in PLA. Although creatine kinase (CK) showed a favorable pattern in the EXP group, the between-group comparison did not reach statistical significance (p = 0.062). Myoglobin followed a similar downward trend. The high baseline protein intake (>2 g/kg/day) and short intervention duration may have limited changes in body composition, nevertheless, the observed biomarker responses suggest that CPH supplementation may influence selected physiological processes associated with exercise-induced inflammation and cellular stress.\nCONCLUSIONS: In trained cyclists with high habitual protein intakes, 14 days of CPH supplementation did not alter body composition but was associated with favorable changes in selected biomarkers related to exercise-induced inflammation and cellular stress compared with placebo. Given the short intervention period and the absence of direct assessments of recovery or performance, these findings should be interpreted as short-term biochemical responses. Further studies are required to determine their physiological relevance and whether these biomarker changes translate into meaningful improvements in recovery, training adaptation, or athletic performance.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
+   "year": "2026",
+   "authors": "García-Durán J i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42828502/",
+   "topics": [
+    "regeneracja",
+    "zywienie",
+    "suplementy"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 3,
+   "ai": {
+    "titlePl": "Wpływ hydrolizatu białka ciecierzycy na markery uszkodzenia mięśni i zapalenia u kolarzy szosowych",
+    "summary": "W badaniu RCT wzięło udział 24 wytrenowanych kolarzy szosowych, którzy przez 14 dni przyjmowali 12 g/dzień hydrolizatu białka ciecierzycy (CPH) lub placebo po treningach. Grupa suplementująca wykazała istotnie niższe stężenie laktatodehidrogenazy (LDH, p=0,04) i białka C-reaktywnego (CRP, p=0,02) w porównaniu z placebo, podczas gdy kreatynkinaza wykazała korzystny trend (p=0,062).",
+    "takeaway": "CPH może łagodzić markery zapalenia po wysiłku u zawodników, ale brak danych na temat rzeczywistego wpływu na regenerację lub wydolność – nie uzasadnia zmian w praktyce treningowej bez dalszych badań.",
+    "population": "Wytrenowani mężczyźni kolarze szosowe federowani, n=24, zażywający >2 g/kg białka dziennie",
+    "limits": "Bardzo krótki czas interwencji (14 dni), brak pomiaru wydolności i regeneracji klinicznej, wysokie wyjściowe spożycie białka mogło maskować efekty",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42827936",
+   "doi": "10.3389/fnut.2026.1943678",
+   "title": "Effects of rehydration and nutritional recovery strategies after rapid weight loss on body mass recovery, hydration status, and performance in combat sports athletes: a systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: Rapid Weight Loss (RWL) is common in weight-category combat sports, but the extent to which post-weigh-in feeding and rehydration restore body mass, hydration, and exercise performance remains uncertain.\nOBJECTIVE: To quantify post-weigh-in body-mass regain and hydration status and to evaluate nutritional and rehydration strategies and subsequent exercise performance in combat-sport athletes.\nMETHODS: This review followed PRISMA 2020 and was registered in PROSPERO (CRD420261438676). PubMed, SPORTDiscus, Embase, and Web of Science were searched from inception to July 2026. English-language human studies involving RWL or weight making followed by recovery were eligible. Comparable continuous outcomes were pooled using random-effects models with modified Hartung-Knapp confidence intervals; heterogeneous strategy and performance outcomes were synthesized using evidence maps and effect-direction methods.\nRESULTS: Forty studies were included in the main post-weigh-in recovery review. Pooled post-weigh-in body-mass regain was 6.23% of body mass (95% CI 3.74-8.71; k = 11; n = 1504; I 2 = 99.2%) and 3.71 kg (95% CI 2.45-4.96; k = 12; n = 1451; I 2 = 98.9%). In five matched cohorts with paired pre-weigh-in and follow-up measurements, RWL was 8.33% of body mass (95% CI 6.17-10.49; n = 179), followed by a median regain of 106.5% of the preceding loss (range 63.2-154.1%). At official weigh-in, pooled mean urine specific gravity (USG) was 1.029 (95% CI 1.025-1.033; k = 3; n = 58; I 2 = 92.7%). Urine osmolality was reported in seven studies and plasma osmolality in four, but these data were not sufficiently comparable for pooling. Twenty-three performance records from 12 studies were too heterogeneous for meta-analysis. No specific nutritional or rehydration approach had sufficiently homogeneous comparative evidence for a strategy-effect meta-analysis.\nCONCLUSION: Combat-sport athletes commonly regain substantial body mass after weigh-in, but body-mass regain should not be interpreted as complete rehydration or restored performance readiness. Current strategy-specific evidence is insufficient to identify a superior recovery protocol; standardized, adequately powered trials using multidimensional recovery outcomes are needed.\nSYSTEMATIC REVIEW REGISTRATION: identifier: CRD420261438676.",
+   "journal": "Frontiers in nutrition",
+   "journalAbbr": "Front Nutr",
+   "year": "2026",
+   "authors": "Sun J i in.",
+   "authorCount": 3,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42827936/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Strategie rehidracji i regeneracji żywieniowej po szybkiej utracie wagi u sportowców walk zapaśniczych: przegląd systematyczny i metaanaliza",
+    "summary": "Przegląd 40 badań dotyczących regeneracji po szybkiej utracie wagi w sportach walki. Sportowcy odzyskiwali średnio 6,23% masy ciała (3,71 kg) po ważeniu, a w mniejszych kohortach regain wynosił medianę 106,5% wcześniejszej straty. Żaden konkretny protokół żywienia lub rehidracji nie miał wystarczającego dowodu porównawczego.",
+    "takeaway": "Trener powinien wiedzieć, że regain masy ciała po ważeniu nie gwarantuje pełnej rehidracji ani gotowości do walki; brakuje jednoznacznych rekomendacji dla optymalnej strategii regeneracji.",
+    "population": "Sportowcy walk zapaśniczych (boks, judo, taekwondo itp.) podlegający szybkiej utracie wagi, n=1504 w analizie masy ciała",
+    "limits": "Duża heterogeniczność badań; brak wystarczająco jednorodnych danych do metaanalizy wyników wydajności; niewystarczające porównywalne dane dotyczące osmolalności osocza",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42827250",
+   "doi": "10.1186/s13102-026-02067-z",
+   "title": "Does baseline strength influence adaptations to velocity loss threshold-based resistance training?",
+   "abstract": "OBJECTIVE: This study examined whether baseline strength moderates the magnitude of adaptations to velocity loss (VL) threshold-based resistance training across different training populations.\nMETHODS: A systematic search was conducted in PubMed, Web of Science, SPORTDiscus (EBSCO), and Embase up to January 2026. Randomized controlled trials were included if they implemented resistance training prescribed using predefined VL thresholds, lasted at least 3 weeks, reported quantifiable baseline strength data, and provided pre- and post-intervention measures of strength and/or power outcomes. Effect sizes were calculated as standardized within-group pre-post changes (Hedges' g). A three-level random-effects meta-regression model was applied to account for statistical dependence among multiple effect sizes within studies. Baseline strength (standardized 1RM) was examined as the primary moderator, with training status and VL threshold entered as additional moderators.\nRESULTS: Sixteen studies providing 89 effect sizes were included. VL threshold-based resistance training produced a moderate overall within-group improvement in strength and power outcomes (g = 0.59, 95% CI [0.40, 0.77], p < 0.001). The omnibus test of moderators was not statistically significant (QM(4) = 1.09, p = 0.896). Baseline strength was not significantly associated with adaptation magnitude (β = -0.076, p = 0.355), and the interaction between baseline strength and training status was also not statistically significant (β = 0.045, p = 0.775).\nCONCLUSION: VL threshold-based resistance training elicits moderate improvements in neuromuscular performance. Within the limitations of the available evidence, no statistically detectable moderation by baseline strength or categorical training status was observed. These findings suggest that current evidence does not clearly support modifying VL prescriptions solely on the basis of baseline strength; however, equivalence across populations cannot be definitively established.",
+   "journal": "BMC sports science, medicine & rehabilitation",
+   "journalAbbr": "BMC Sports Sci Med Rehabil",
+   "year": "2026",
+   "authors": "Tao J i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42827250/",
+   "topics": [
+    "hipertrofia"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 5,
+   "ai": {
+    "titlePl": "Czy wstępna siła wpływa na adaptacje do treningu oporowego z progiem utraty prędkości?",
+    "summary": "Przegląd systematyczny 16 badań (89 wielkości efektu) sprawdzał, czy wstępna siła wpływa na adaptacje do treningu oporowego prescrybowanego na podstawie progu utraty prędkości (VL). Trening VL-based dał umiarkowaną poprawę siły i mocy (g = 0,59), ale siła wstępna nie istotnie moderowała wielkość adaptacji (p = 0,355).",
+    "takeaway": "Trener nie musi zmieniać progów VL na podstawie wstępnej siły klienta — obecne dane nie wspierają takiej modyfikacji.",
+    "population": "Różne populacje treningowe (wytrenowani i niewytrenowani) uczestniczące w RCT trwających co najmniej 3 tygodnie",
+    "limits": "Heterogeniczna populacja badań, ograniczona dostępność danych wstępnej siły, brak ustalonej równoważności między grupami",
+    "relevance": 4
+   }
+  },
+  {
+   "pmid": "42824430",
+   "doi": "10.3389/fspor.2026.1709704",
+   "title": "Rethinking neurophysiology of delayed onset muscle soreness: updated concepts and mechanisms for mitigation across endurance, resistance, and plyometric exercise.",
+   "abstract": "UNLABELLED: Delayed-onset muscle soreness (DOMS) is a physiological response to intense eccentric exercise across endurance, resistance, and plyometric training. Although traditionally attributed primarily to structural muscle damage and inflammation, accumulating evidence indicates that DOMS is a multifactorial neurophysiological response involving complex interactions between peripheral tissue responses, inflammatory signalling, neural sensitisation, proprioceptive alterations, and central nervous system adaptations.\nOBJECTIVE: This review aimed to synthesise current evidence on the neurophysiological mechanisms underlying DOMS across endurance, resistance, and plyometric exercise within an integrated neurophysiological framework. It further examined the mechanisms underpinning therapeutic interventions, critically evaluated current approaches to DOMS assessment, and explored their implications for personalised recovery strategies, providing key-take-home to help clinicians and field partitioners.\nMETHODS: This systematic review with narrative synthesis followed PRISMA 2020 guidelines and registered with the International Prospective Register of Systematic Reviews (PROSPERO). 1,183 articles, including clinical trials examining DOMS neurophysiology and therapeutic interventions across exercise modalities were screened.\nRESULTS: The evidence indicates that DOMS cannot be explained by a single biological mechanism. Rather, distinct exercise modalities activate overlapping but different combinations of inflammatory, neural, metabolic, and proprioceptive pathways that influence symptom development and recovery. The findings further indicate that different exercise modalities elicit unique neuromuscular adaptations, with endurance training leading to cumulative inflammatory responses, resistance training inducing nociceptor sensitization, and plyometric exercise disrupting proprioceptive control. Endurance exercise produces IL-6 increase within 48 h but shows inflammation reduction after repeated bouts. Resistance training causes strength loss with Group III/IV nociceptor activation. Plyometric exercise disrupts proprioception alongside C-fiber sensitization. Recovery interventions show DOMS reduction: compression garments SMD = -0.44, acupuncture SMD = -0.89, foam rolling SMD = -0.34, but majority of studies lack extractable effect sizes preventing meta-analysis. Intervention efficacy appeared to vary according to exercise modality, exercise load, and individual neurophysiological responses, suggesting a dose-response influence on recovery outcomes.\nCONCLUSION: Collectively, the evidence supports the concept that DOMS should be regarded as a multifactorial neurophysiological response rather than simply a consequence of muscle damage. Exercise-specific recovery optimizes DOMS management: active recovery for endurance, compression/photobiomodulation for resistance, foam rolling/acupuncture for plyometric. Chronic training reduces DOMS through repeated bout adaptation. Future research should prioritise standardised outcome reporting together with mechanistic biomarkers and adequately designed longitudinal studies to strengthen the evidence base. This review highlights the need for individualized and exercise-specific recovery strategies to optimize DOMS mitigation, post-exercise recovery, and requires rehabilitation protocols based on neural and biochemical markers. Recovery interventions should also consider the dose-response relationship between exercise load and neurophysiological stress, as treatment effectiveness may vary according to DOMS severity and training demands. Given the variability in individual responses, integrating multiple assessment tools enhances accuracy and reliability in both research and clinical settings.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261294291, PROSPERO CRD420261294291.",
+   "journal": "Frontiers in sports and active living",
+   "journalAbbr": "Front Sports Act Living",
+   "year": "2026",
+   "authors": "Jemni M i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42824430/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 5,
+   "ai": {
+    "titlePl": "Neurofizjologia opóźnionego bólu mięśniowego: mechanizmy i strategie łagodzenia w treningu wytrzymałościowym, siłowym i plyometrycznym",
+    "summary": "Przegląd systematyczny (1183 artykułów) wykazał, że opóźniony ból mięśniowy (DOMS) to złożona odpowiedź neurophysjologiczna obejmująca uszkodzenie tkanek, zapalenie, uczulenie nociceptorów i zaburzenia propriocepcji. Efektywność interwencji regeneracyjnych różniła się między typami ćwiczeń: kompresja (SMD = -0,44), akupunktura (SMD = -0,89) i piana do masażu (SMD = -0,34) wykazały redukcję bólu, ale rezultaty zależały od modalności ćwiczenia i obciążenia. Trening chroniczny zmniejsza DOMS poprzez adaptację powtórzonego bólu.",
+    "takeaway": "Trener powinien stosować strategie regeneracji dostosowane do typu ćwiczeń: aktywna regeneracja po wytrzymałościówce, kompresja/fototerapia po treningu siłowym, foam rolling/akupunktura po plyometrii; chroniczny trening naturalnie zmniejsza DOMS.",
+    "population": "Osoby uprawiające trening wytrzymałościowy, siłowy i plyometryczny (wszyscy uczestnicy przeanalizowanych badań klinicznych)",
+    "limits": "Większość badań nie dostarczyła wystarczających danych do meta-analizy; brak standaryzowanych pomiarów wyników; brak badań longitudinalnych z biomarkerami",
+    "relevance": 4
+   }
+  },
+  {
+   "pmid": "42823978",
+   "doi": "10.3389/fphys.2026.1960237",
+   "title": "Effects of caffeine supplementation on post-exercise recovery: a systematic review and three-level meta-analysis of perceptual, functional performance, physiological, and sleep outcomes.",
+   "abstract": "OBJECTIVE: To evaluate the effects of caffeine supplementation on perceptual recovery, functional performance during recovery, physiological recovery, and sleep recovery after exercise and explore potential moderators.\nMETHODS: PubMed, Web of Science, Embase, the Cochrane Library, and SPORTDiscus were searched from inception to June 30, 2026, with supplementary searches of Google Scholar, ResearchGate, and reference lists. Randomized controlled trials comparing caffeine with placebo or a caffeine-free condition were included. Hedges' g was synthesized using three-level random-effects models with REML estimation and CR2 cluster-robust inference. Risk of bias and certainty of evidence were assessed using RoB 2 and GRADE, respectively.\nRESULTS: Seventeen studies were included, of which 16 contributed 120 effect sizes to the quantitative synthesis. Caffeine had no clear effect on perceptual recovery (g = -0.161, CR2 95% CI -0.528 to 0.205, p = 0.319) or physiological recovery (g = -0.104, CR2 95% CI -0.346 to 0.138, p = 0.293), but produced a small beneficial effect on functional performance during recovery (g = -0.208, CR2 95% CI -0.393 to -0.023, p = 0.035). Caffeine was associated with poorer sleep recovery (g = 0.751, CR2 95% CI 0.244 to 1.258, p = 0.018), based on four independent studies. Effects differed across recovery domains (CR2 robust Wald F(3, 3.88) = 9.76, p = 0.028). Exploratory domain-adjusted moderator analyses were inconclusive for recovery time, caffeine dose, ingestion timing or strategy, and exercise model. Effect directions remained generally stable, but statistical significance for functional performance and sleep varied in sensitivity analyses. Model-based 95% prediction intervals crossed the null for both domains (functional: -0.444 to 0.028; sleep: -0.002 to 1.503). GRADE certainty was very low for perceptual recovery, moderate for functional and physiological recovery, and low for sleep recovery.\nCONCLUSION: Caffeine appears to have domain-specific effects on post-exercise recovery. It may modestly improve functional performance during recovery, does not clearly improve perceptual or physiological recovery, and may impair sleep. Functional and sleep findings should be interpreted cautiously because statistical significance varied in sensitivity analyses and prediction intervals included the null.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/prospero/display_record.php?ID=CRD420261467699, identifier CRD420261467699.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2026",
+   "authors": "Zhang J i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42823978/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Efekty suplementacji kofeiny na regenerację po treningu: przegląd systematyczny i meta-analiza wyników percepcyjnych, wydolnościowych, fizjologicznych i snu",
+    "summary": "Przegląd 17 badań (16 dostarczyło 120 efektów) porównujących kofeinę z placebo w kontekście regeneracji. Kofaina wykazała niewielki pozytywny efekt na wydolność funkcjonalną podczas regeneracji (g = -0.208), nie wpłynęła jasno na percepcję regeneracji czy fizjologiczną regenerację, ale pogorszyła jakość snu (g = 0.751).",
+    "takeaway": "Trener może rozważyć kofeinę do poprawy wydolności w następnym treningu, ale powinien unikać jej przed snem w dniu treningowym, szczególnie u klientów wrażliwych na bezsenność.",
+    "population": "Osoby dorosłe poddane treningom (różne modele ćwiczeń), mieszana populacja",
+    "limits": "Bardzo niska pewność dowodów dla percepcji regeneracji, wysoka heterogeniczność, przedziały predykcji obejmujące zero dla wydolności i snu, niestabilność wyników w analizach czułości",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42823924",
+   "doi": "10.13075/ijomeh.1896.02828",
+   "title": "Work-related movement and lumbar spine direction: a systematic review of lifting, posture, and pain risk.",
+   "abstract": "Low back pain (LBP) is a prevalent musculoskeletal condition of occupational and socioeconomic importance. The main biomechanical exposures related to LBP among workers include repetitive lifting, non-neutral trunk postures, and long-duration static trunk positions. This systematic review aimed to evaluate the role of lumbar spine movement direction during work-related lifting and posture in relation to spinal loading and the risk of LBP. PubMed, Scopus, and Web of Science were searched for articles published in January 2015 - June 2025. Eligible studies included adult workers performing occupational lifting or posture activities and reported direction of lumbar spine movement, biomechanical loading measures, or LBP outcomes. Ten studies met the eligibility criteria, including experimental, modeling, and field-based research. Biomechanical evidence showed that squat lifting reduced shear forces at lower vertebral levels but increased overall musculoskeletal effort, while stoop lifting produced higher shear loads at L5/S1. Lifting with a lordotic spine curvature elevated both compressive and shear forces. Individuals with LBP exhibited altered neuromechanical strategies such as reduced lumbar flexion and increased pelvic compensation. Field studies linked repetitive manual handling and constrained postures to higher LBP prevalence. Asymmetrical movement, inadequate strength, and fatigue also contributed to injury risk. The direction and quality of lumbar spine motion during lifting and other posture-dependent activities is an important modifiable risk factor for LBP. Through environmental design changes and behavioral training programs employees can learn and apply ergonomically suitable movement patterns and postures to prevent LBP and decrease spinal loading in their workplaces. Int J Occup Med Environ Health. 2026;39(4):348-62.",
+   "journal": "International journal of occupational medicine and environmental health",
+   "journalAbbr": "Int J Occup Med Environ Health",
+   "year": "2026",
+   "authors": "Liu C i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42823924/",
+   "topics": [
+    "prehab"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Kierunek ruchu kręgosłupa lędźwiowego podczas pracy: przegląd systematyczny podnoszenia, postawy i ryzyka bólu",
+    "summary": "Przegląd 10 badań (2015–2025) dotyczących wpływu kierunku ruchu kręgosłupa lędźwiowego na obciążenie i ból. Podnoszenie w półkucku zmniejszało siły ścinające, ale zwiększało wysiłek mięśniowy, podczas gdy podnoszenie w skłonie generowało wyższe obciążenie przy L5/S1. Osoby z bólem pleców wykazywały zmniejszoną flexję lędźwiową i zwiększoną kompensację miednicy.",
+    "takeaway": "Trener może skupić się na nauczeniu klientów prawidłowego kierunku ruchu kręgosłupa (preferowanie semiflexji nad hiperlordozą) i kompensacji miednicy przy podnoszeniu, oraz na wzmacnianiu stabilizacyjnym w celu zmniejszenia ryzyka bólu.",
+    "population": "Dorośli pracownicy wykonujący podnoszenie lub pracę wymagającą utrzymywania pozycji (brak specjalnych ograniczeń treningowych)",
+    "limits": "Tylko 10 badań spełniło kryteria; heterogenność metodologiczna; trudność w uogólnieniu na populację osób treningowych poza pracownikami fizycznymi",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42813573",
+   "doi": "10.1111/sms.70374",
+   "title": "One-Year Effects of the FIT FIRST 20 High-Intensity and Multisport Physical Education Program on Physical Fitness and Psychological Outcomes in Early Adolescents: A Cluster-Randomized Controlled Trial.",
+   "abstract": "We evaluated the 1-year effectiveness of FIT FIRST 20, a high-intensity multisport physical education (PE) program, on physical fitness and psychological outcomes in 4-6 grade schoolchildren (10-13 years). A cluster-randomized controlled trial was conducted across 82 classes from 30 Danish schools (n = 1652 pupils; 49% girls). Schools were allocated to either three weekly 40-min FIT FIRST 20 sessions (intervention) or standard curriculum PE (control) over approximately 40 weeks. Outcomes were assessed at baseline and post-intervention; 2-year follow-up results will be reported separately. The primary outcome was cardiorespiratory fitness, assessed using the Yo-Yo Intermittent Recovery Test Level 1 (children's version). Secondary outcomes included agility, lower-body muscular power, postural balance, handgrip strength, body composition, blood pressure, resting heart rate, health-related quality of life, physical self-concept, motivation for physical activity, and satisfaction of basic psychological needs. Intervention effects were analyzed using linear mixed-effects models adjusted for sex, baseline sport participation, age, body mass and height. The latter two were excluded from models predicting psychological outcomes. Compared with the control, the intervention arm showed significantly greater improvements in cardiorespiratory fitness (54.90 m, 95% CI [8.35, 101.40], p = 0.021), along with significant gains in agility and lower-body muscular power. No interaction effects were observed for other physical fitness and psychological outcomes, although significant overall effects of time were observed for several outcomes. Overall, FIT FIRST 20 appears to be a feasible school-based strategy for improving selected physical fitness outcomes in 10-13-year-olds. Further modifications may be needed to strengthen the effects on psychological outcomes. Clinical Trial Registration: ISRCTN14624515.",
+   "journal": "Scandinavian journal of medicine & science in sports",
+   "journalAbbr": "Scand J Med Sci Sports",
+   "year": "2026",
+   "authors": "Cimenti C i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Journal Article",
+    "Multicenter Study",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42813573/",
+   "topics": [
+    "kondycja",
+    "adherencja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 3,
+   "ai": {
+    "titlePl": "Efekty programu FIT FIRST 20 (wysoka intensywność, wielodyscyplinowy) na sprawność fizyczną i wyniki psychologiczne u wczesnych adolescentów",
+    "summary": "RCT z udziałem 1652 uczniów klas 4–6 (10–13 lat) z 30 duńskich szkół porównało 3 tygodniowe sesje 40-minutowe wysokointensywnego multisportowego PE przez ~40 tygodni vs. standardowe lekcje WF. Interwencja spowodowała istotnie większą poprawę zdolności tlenowych (+54,9 m w Yo-Yo Intermittent Recovery Test, p=0,021), zwinności i siły dolnych kończyn w porównaniu z grupą kontrolną.",
+    "takeaway": "Program wysokointensywny i wielodyscyplinowy może być efektywną strategią szkolną do poprawy wydolności tlenowej i siły u młodych adolescentów, choć wpływ na aspekty psychologiczne wymaga dalszych modyfikacji.",
+    "population": "Uczniowie klas 4–6 (10–13 lat), n=1652, 49% dziewczęta, wieloośrodkowo z 30 szkół duńskich",
+    "limits": "Populacja szkolna, nie dorosłych na siłowni; efekty na wyniki psychologiczne bez zmian; tylko 1-roczne obserwacje",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42804093",
+   "doi": "10.1007/s12020-026-04775-5",
+   "title": "Effects of concurrent training sequence on cardiometabolic risk factors in patients with type 2 diabetes: a systematic review and network meta-analysis.",
+   "abstract": "PURPOSE: Concurrent training (CT), combining aerobic and resistance exercise, is recommended for managing type 2 diabetes mellitus (T2DM). However, whether the sequence of CT-aerobic training followed by resistance training (CART) or the reverse order (CRAT)-influences cardiometabolic outcomes remains unclear. This study compared the effects of CT sequences on cardiometabolic risk factors in T2DM using network meta-analysis (NMA).\nMETHODS: An NMA of randomized controlled trials (RCTs) published up to January 2026 was conducted using five databases. Two reviewers independently screened and extracted data. Data were analysed using Stata 16.0.\nRESULTS: Twenty-seven RCTs (n = 965) were included. Both CART and CRAT significantly improved body fat percentage, HbA1c, fasting blood glucose, total cholesterol, triglycerides, and low-density lipoprotein compared with control (all p < 0.05). Based on unadjusted SUCRA probabilities, CRAT ranked highest for body composition, glycaemic control, insulin resistance, and most lipid outcomes, whereas CART ranked highest for systolic and diastolic blood pressure. Sensitivity analyses indicated that intervention duration influenced rankings for body composition, whereas participant sex influenced rankings for blood pressure. Meta‑regression further suggested that participant age might modify the relative efficacy of these sequences for BMI, HbA1c, and blood pressure, warranting cautious interpretation of unadjusted rankings.\nCONCLUSIONS: Both CT sequences improve cardiometabolic risk factors in T2DM. Although SUCRA rankings varied across outcomes, these findings are exploratory and do not establish superiority of either sequence. Meta-regression suggested that participant characteristics and training factors may partly account for ranking differences. Given the non-significant direct comparisons and low certainty of evidence according to CINeMA, current evidence does not support a definitive recommendation for one training sequence over the other. Future head-to-head trials are warranted.\nTRIAL REGISTRATION: PROSPERO CRD420261293127. Registered 25 January 2026.",
+   "journal": "Endocrine",
+   "journalAbbr": "Endocrine",
+   "year": "2026",
+   "authors": "Li Z i in.",
+   "authorCount": 3,
+   "pubTypes": [
+    "Journal Article",
+    "Network Meta-Analysis",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42804093/",
+   "topics": [
+    "redukcja",
+    "populacje",
     "kondycja"
    ],
    "topJournal": false,
-   "firstSeen": "2026-09-28T10:16:47.635Z",
-   "score": 4,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 3,
    "ai": {
-    "titlePl": "Wpływ płukania ust węglowodanami na wydolność i wyniki – metaanaliza 90 badań kontrolowanych",
-    "summary": "Metaanaliza 90 badań krzyżowych wykazała, że płukanie ust roztworem węglowodanów podczas wysiłku fizycznego daje małe, zależne od celu polepszenia w dystansie (g=0,17), czasie wysiłku (g=-0,15), prędkości (g=0,17) i obciążeniu (g=0,25), oraz nieznaczne zwiększenie siły maksymalnej (MVC, g=0,18). Nie wykazano efektu na wydolność mięśniową, maksymalną moc ani VO2max.",
-    "takeaway": "Trener może próbować płukania ust węglowodanami podczas wysiłków aerobowych (bieg, rower), szczególnie u mężczyzn, gdy kluczowe są dystans lub prędkość, ale efekt jest marginalny i zależy od kontekstu konkurencji.",
-    "population": "Dorośli > 18 lat, różny status treningu i zdrowia",
-    "limits": "Małe rozmiary efektu (0,15–0,25), większość dowodów dotyczy mężczyzn, brak efektu na siłę maksymalną i VO2max, znacząca heterogenność metodyk badań",
+    "titlePl": "Wpływ sekwencji treningu łączonego na czynniki ryzyka kardiometabolicznego u pacjentów z cukrzycą typu 2: przegląd systematyczny i metaanaliza sieciowa",
+    "summary": "Badanie porównało dwie sekwencje treningu łączonego (aerobowy + siłowy) u 965 pacjentów z cukrzycą typu 2 w 27 RCT. Zarówno trening aerobowy przed siłowym (CART) jak i siłowy przed aerobowym (CRAT) znacząco poprawiły procentowość tkanki tłuszczowej, HbA1c, glikemię na czczo, cholesterol całkowity, triglicerydy i LDL w porównaniu z kontrolą (p < 0,05).",
+    "takeaway": "Trener może stosować obie sekwencje treningu łączonego u pacjentów diabetycznych, jednak obecne dowody nie wskazują wyraźnej przewagi jednej kolejności nad drugą - wybór powinien być dopasowany do indywidualnych charakterystyk klienta.",
+    "population": "Pacjenci z cukrzycą typu 2, n=965 (27 RCT)",
+    "limits": "Brak istotnych różnic w bezpośrednich porównaniach między sekwencjami, niska pewność dowodów (CINeMA), wyniki zależne od wieku uczestników i czasu interwencji",
     "relevance": 2
+   }
+  },
+  {
+   "pmid": "42830444",
+   "doi": "10.1002/hup.70067",
+   "title": "Acute Caffeine Intake Does Not Modulate Active or Reactive Inhibition in Non-Clinical Young Adults, and ADHD Symptoms Do Not Moderate Its Effects.",
+   "abstract": "BACKGROUND: Caffeine is consumed for its presumed cognitive benefits, yet controlled studies have repeatedly failed to find effects on inhibitory control. Cross-sectional work suggests that people with elevated attention-deficit/hyperactivity disorder (ADHD) symptoms may benefit from chronic, moderate caffeine consumption, but whether acute intake improves cognition in proportion to symptom severity has not been tested experimentally.\nAIMS: We tested whether 250 mg of caffeine improves active inhibition (withholding a prepared response) and reactive inhibition (resolving response conflict), and whether ADHD symptom severity moderates these effects.\nMETHODS: In a preregistered, randomised, double-blind, placebo-controlled crossover trial, a nonclinical sample of 36 young adults received 250 mg of caffeine or placebo in counterbalanced order, with testing 45 min after ingestion. Active inhibition was assessed with a Go/No-Go task (204 trials), reactive inhibition with an arrow flanker task (200 trials) and symptoms with the Adult ADHD Self-Report Scale. Mixed-effects models included treatment, symptom severity, their interaction and ten covariates; Bayes factors quantified evidence for the null.\nRESULTS: Both tasks produced their benchmark effects (dz = 1.24 and 1.09) and all indices were reliable (split-half r = 0.73-0.98). Caffeine affected neither commission errors (BF01 = 4.98), response criterion (5.14), Go reaction time (2.83), reaction time variability (4.35), flanker reaction time (5.49) nor flanker accuracy (5.09). ADHD symptoms moderated no effect (15 preregistered tests; smallest p = 0.514), yet predicted performance itself (flanker accuracy r = -0.42), indicating that the null is not due to an insensitive measure.\nCONCLUSIONS: Caffeine produced no acute benefit for either form of inhibition, and ADHD symptoms did not moderate its effects. Bayes factors supported the absence rather than the nondetection of these effects, arguing against an acute improvement of inhibitory control that scales with ADHD symptom severity in nonclinical young adults. Whether this also holds for chronic consumption or for adults with diagnosed ADHD remains to be tested.",
+   "journal": "Human psychopharmacology",
+   "journalAbbr": "Hum Psychopharmacol",
+   "year": "2026",
+   "authors": "Altınok A",
+   "authorCount": 1,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42830444/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Kofaina nie poprawia kontroli hamowania u młodych dorosłych, niezależnie od nasilenia objawów ADHD",
+    "summary": "W badaniu RCT z randomizacją krzyżową 36 zdrowych młodych dorosłych otrzymało 250 mg kofeiny lub placebo. Oceniano dwa rodzaje kontroli hamowania: aktywną (zadanie Go/No-Go) i reaktywną (zadanie arrow flanker). Kofaina nie wpłynęła na żaden wskaźnik (błędy komisji, czas reakcji, dokładność), a nasilenie objawów ADHD nie moderowało żadnych efektów.",
+    "takeaway": "Pojedyncza dawka kofeiny (250 mg) nie poprawia funkcji hamowania u młodych dorosłych bez ADHD, więc trenning kognitywny w warunkach treningowych nie powinien być uzasadniany jej podaniem w celach poprawy kontroli impulsów.",
+    "population": "Nieclinical (bez diagnozy) młodzi dorośli, n=36, badanie z randomizacją krzyżową",
+    "limits": "Populacja bez klinicznego ADHD; testowanie tylko w warunkach laboratoryjnych; brak danych na temat wpływu chronicznej suplementacji; krótki czas od podania do testu (45 minut)",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42824031",
+   "doi": "10.3389/fendo.2026.1911675",
+   "title": "Effectiveness of a nurse-led phone intervention on body composition in adults with prediabetes and overweight/obesity: PREDIPHONE secondary analysis.",
+   "abstract": "BACKGROUND: Prediabetes and obesity are strongly linked to metabolic risk, with visceral adipose tissue playing a central role. Lifestyle interventions combining physical activity and healthy diet are effective for body composition improvement, but most are resource-intensive. Evidence on low-intensity, scalable approaches delivered by primary care professionals, such as nurse-led telephone interventions, remains limited. This secondary analysis of the PREDIPHONE randomized controlled trial assessed the effectiveness of a low-intensity nurse-led telephone lifestyle intervention on body composition outcomes at 4 months (mid-intervention), 9 months (end of intervention), and 15 months (6 months post-intervention).\nMETHODS: The analysis included 174 participants with available body composition data originally enrolled in the PREDIPHONE trial. Original group allocation was retained. Body composition parameters (fat mass, muscle mass, and visceral adipose tissue) were measured using bioelectrical impedance analysis at each time point. Physical activity and adherence to the Mediterranean diet were assessed using validated questionnaires. Group differences were evaluated using general linear models adjusted for baseline values, age, and sex.\nRESULTS: Participants had a mean age of 61.1 years, and 52.3% were women. Compared with the active SMS-based control group, the intervention group achieved short-term reductions in visceral adipose tissue and fat mass at 4 months. These changes were not maintained at 9 or 15 months. No significant differences were observed in muscle mass or body mass index.\nCONCLUSION: In this population, a low-intensity, nurse-led telephone intervention produced modest short-term improvements in body composition without sustained effects. More intensive or prolonged strategies may be required to produce clinically meaningful and sustainable changes in primary care settings.\nTRIAL REGISTRATION: Clinicaltrials.gov, identifier NCT04735640.",
+   "journal": "Frontiers in endocrinology",
+   "journalAbbr": "Front Endocrinol (Lausanne)",
+   "year": "2026",
+   "authors": "Garcia-Coll N i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42824031/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Efektywność interwencji telefonicznej prowadzonej przez pielęgniarki na skład ciała u dorosłych z praediabetesem i nadwagą/otyłością",
+    "summary": "Badanie obejmowało 174 osoby (średnia wiek 61 lat, 52% kobiet) z praediabetesem i nadwagą. Grupa interwencji otrzymała niskointensywne poradnictwo telefoniczne od pielęgniarek, a grupę kontrolną stanowiła aktywna kontrola SMS. W 4. miesiącu grupa interwencji wykazała zmniejszenie tkanki trzewnej i masy tłuszczowej, jednak zmiany te nie utrzymały się w 9. i 15. miesiącu. Nie stwierdzono różnic w masie mięśniowej ani BMI.",
+    "takeaway": "Niskointensywne interwencje telefoniczne mogą dać krótkoterminowe efekty, ale trener pracujący z klientami na siłowni powinien rozważyć bardziej intensywne podejście połączone z treningiem siłowym, aby uzyskać trwałe rezultaty.",
+    "population": "Dorośli z praediabetesem i nadwagą/otyłością, średnia wiek 61 lat, n=174 (52% kobiet)",
+    "limits": "Niskointensywna interwencja, populacja starszych dorosłych (61 lat), brak treningu siłowego w protokole, utrata efektów po zakończeniu interwencji",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42821993",
+   "doi": "10.2196/101615",
+   "title": "Feasibility and Preliminary Effects of AI-Generated Personalized Sleep Feedback in High School Female Soccer Players: Pilot Randomized Controlled Trial.",
+   "abstract": "BACKGROUND: Adequate sleep supports mood regulation and injury prevention in high school female athletes; however, insufficient sleep is common in this population. Wearable devices enable continuous assessment of objective sleep metrics, but personalized feedback based on daily sleep data remains underexplored.\nOBJECTIVE: This study evaluated the technical and operational feasibility of a multicomponent AI-supported mobile health (mHealth) intervention that delivered personalized sleep feedback to high school female soccer players. Sleep efficiency was the primary preliminary efficacy outcome; other sleep-related measures were secondary or exploratory outcomes, and mood state and sports injury severity were exploratory outcomes.\nMETHODS: We conducted a pilot randomized controlled trial among 25 high school female soccer players from a single team. The study briefing and system setup began on August 18, 2025, and the trial was retrospectively registered with the University Hospital Medical Information Network (UMIN) Clinical Trials Registry on April 7, 2026 (UMIN000061189). Weeks 1 to 4 constituted the baseline period. After the week 5 baseline questionnaires, participants were stratified by median baseline total sleep time (TST) and Pittsburgh Sleep Quality Index score and randomly allocated 1:1 to the intervention (n=12) or control (n=13) group. During weeks 6 to 9, the intervention group received GPT-4o-generated personalized feedback via LINE on days with valid prior-night Fitbit data, whereas the control group received daily nonpersonalized sleep information. Technical and operational feasibility outcomes included message delivery success, valid Fitbit wear nights, questionnaire completion, technical problems, adverse events, and privacy breaches. Secondary outcomes included TST, wake after sleep onset (WASO), subjective sleep quality, sleep difficulty, and daytime sleepiness. Deep, light, and rapid eye movement (REM) sleep durations, mood state, and sports injury severity were exploratory outcomes.\nRESULTS: All 25 participants completed the trial. Message delivery success and questionnaire completion were 100% in both groups. Median valid Fitbit wear nights were 26 (IQR 24-28) in the intervention group and 22 (IQR 15-26) in the control group. No major technical problems, adverse events, or privacy breaches occurred. Change in sleep efficiency, the primary preliminary efficacy outcome, favored the intervention group (Hodges-Lehmann between-group difference 2%, 95% CI 0.50%-4%; P=.046; r=0.35). Nominal between-group differences were also observed for the Japanese version of the Pittsburgh Sleep Quality Index (PSQI-J) total score and sleep difficulty score and, among exploratory outcomes, REM sleep duration and total mood disturbance. No between-group differences were observed in TST, WASO, deep or light sleep duration, daytime sleepiness, or sports injury severity.\nCONCLUSIONS: The multicomponent AI-supported mHealth intervention demonstrated technical and operational feasibility in this single-team setting. Preliminary, hypothesis-generating between-group differences were observed in sleep efficiency and selected subjective sleep and mood outcomes. These findings should not be interpreted as evidence of established effectiveness and require confirmation in a sufficiently powered trial.\nTRIAL REGISTRATION: UMIN Clinical Trials Registry UMIN000061189; https://tinyurl.com/tw3d7aku.",
+   "journal": "JMIR formative research",
+   "journalAbbr": "JMIR Form Res",
+   "year": "2026",
+   "authors": "Kedoin H i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Research Support, Non-U.S. Gov't"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42821993/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Personalizowana informacja zwrotna o śnie wspomagana AI u siatkarek – pilotażowe badanie randomizowane",
+    "summary": "Badanie oceniło wykonalność interwencji mHealth wspieranej AI, która dostarczała spersonalizowaną informację o śnie 25 siatkarzom ze szkoły średniej. Grupa interwencyjna otrzymywała spersonalizowane komunikaty GPT-4o przez 4 tygodnie na podstawie danych z Fitbita, grupa kontrolna – informacje ogólne. Efektywność snu poprawiła się istotnie w grupie interwencyjnej (różnica 2%, p=0,046).",
+    "takeaway": "Wyniki są pilotażowe i nie powinny być interpretowane jako dowód skuteczności – interwencja wymaga badania na większej próbie przed wdrożeniem u klientów.",
+    "population": "Dziewczęta ze szkoły średniej grające w piłkę nożną, n=25 (12 interwencja, 13 kontrola)",
+    "limits": "Mała próba, jedna drużyna, krótki okres interwencji (4 tygodnie), małe efekty rozmiar",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42817825",
+   "doi": "10.1177/10732748261493130",
+   "title": "Communicating Cancer Prevention: Comparative Effects of Four Educational Materials on Prevention Beliefs, Information Overload, and Intentions.",
+   "abstract": "IntroductionPublic awareness of modifiable cancer risk factors remains limited, and fatalistic prevention beliefs and cancer information overload may hinder information seeking and engagement in preventive behaviors. Brief communication interventions may help address these barriers, but evidence comparing different communication strategies in cancer prevention remains scarce. This randomized study evaluated the effects of four theory-based intervention materials on cancer prevention beliefs, cancer information overload, and prevention-related intentions.MethodsIn a population-based online study, 1,191 adults from Stuttgart, Germany, were randomly assigned to one of four intervention conditions that varied by presentation modality (audiovisual animation vs. text) and mode (narrative vs. non-narrative) or to a control condition. Interventions were self-developed based on the Protection Motivation Theory, addressing modifiable cancer prevention behaviors, particularly physical activity and healthy diet. Cancer prevention beliefs and cancer information overload were assessed pre- and post-intervention using items from the Health Information National Trends Survey; behavioral intentions were assessed post-intervention. Baseline-adjusted ANCOVAs and robust linear models were used.ResultsAudiovisual and narrative materials showed small advantages over text-based and non-narrative materials for the belief that cancer risk can be reduced (F(1,892)=7.33, p=.007, ηp2=.007; F(1,892)=6.71, p=.010, ηp2=.005, respectively). Narrative materials were associated with comparatively higher perceived cancer information overload than non-narrative materials (F(1,856)=11.90, p<.001, ηp2=.02). Compared with the control condition, all four intervention conditions were associated with stronger behavioral intentions (all p ≤ .009), with no significant differences between the intervention conditions.ConclusionBrief theory-based cancer prevention materials can positively influence prevention-related beliefs, perceived information overload, and behavioral intentions. The findings suggest a trade-off in cancer prevention communication: audiovisual and narrative materials showed advantages in strengthening prevention-related beliefs, whereas non-narrative materials were associated with lower perceived cancer information overload. All intervention conditions were associated with stronger intentions, highlighting the potential of diverse theory-based communication strategies to promote cancer-preventive behaviors.",
+   "journal": "Cancer control : journal of the Moffitt Cancer Center",
+   "journalAbbr": "Cancer Control",
+   "year": "2026",
+   "authors": "Illmann M i in.",
+   "authorCount": 4,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Comparative Study"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42817825/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Porównanie czterech materiałów edukacyjnych w komunikacji profilaktyki raka: wpływ na przekonania, przeciążenie informacyjne i intencje",
+    "summary": "Badanie randomizowane na 1191 dorosłych z Niemiec porównało cztery materiały profilaktyczne (wideo vs. tekst, narracyjne vs. nienaracyjne) z grupą kontrolną. Materiały audiowizualne i narracyjne bardziej zwiększały przekonanie, że można zmniejszyć ryzyko raka, wszystkie interwencje wzmacniały intencje behawioralne, ale materiały narracyjne wywoływały większe przeciążenie informacyjne.",
+    "takeaway": "Trener może wykorzystywać krótkie, audiowizualne materiały edukacyjne o profilaktyce zdrowotnej (aktywność fizyczna, dieta), ale powinien unikać zbyt złożonych narracji, aby nie przytłoczyć klienta informacją.",
+    "population": "Dorośli dorosli z populacji ogólnej (n=1191), średnia płci i wieku nie podana",
+    "limits": "Populacja niezwiązana bezpośrednio z treningiem siłowym; badanie dotyczy intencji, a nie rzeczywistych zachowań profilaktycznych; brak informacji o demografii próby",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42815033",
+   "doi": "10.2196/90115",
+   "title": "Behavior Change and Compliance Outcomes of a Novel Web-Based Health Behavior Tool Integrated Into Certified Exercise Practitioner Services: Twelve-Week, Two-Arm, Randomized Pre-Post Trial.",
+   "abstract": "BACKGROUND: Healthy lifestyle behaviors, including a balanced diet, regular physical activity, adequate sleep, avoiding tobacco, moderating alcohol consumption, and stress management, are associated with reduced risk of chronic disease and improved well-being. In recent years, digital interventions have emerged as cost-effective platforms for promoting these behaviors, yet few have been integrated into services delivered by certified exercise practitioners (CEPs) or focused on multiple domains of health.\nOBJECTIVE: This study aimed to examine changes in health behaviors during implementation of the Food, Exercise, Sleep, and Stress (FESS) web-based questionnaire as an adjunct to traditional face-to-face services provided by CEPs and compare these changes across 2 prompting frequencies.\nMETHODS: A 2-arm, randomized pre-post intervention design was conducted with 41 participants (23 women), with a median age of 65 (IQR 58-70) years, who were recruited from CEP clinics. Participants were randomized to complete the FESS questionnaire either 3 times per week (3-day group, n=21) or daily (everyday group, n=20) for 12 weeks. The questionnaire tracked health behaviors across 4 domains and provided health tips. Outcomes were assessed using the assessment version of the FESS questionnaire at baseline and at 6 and 12 weeks. Changes in FESS questionnaire responses were examined over time using Friedman ANOVA with Wilcoxon signed-rank post hoc tests. Group differences between prompting frequencies were assessed by calculating changes in questionnaire responses from baseline to 6 and 12 weeks and analyzing them using the Mann-Whitney U test. Compliance was assessed by calculating the proportion of completed FESS questionnaires relative to the total number of questionnaires prescribed for each participant within each intervention arm. Validity of the exercise domain was evaluated by comparing self-reported physical activity and sedentary time from daily FESS responses with accelerometer-derived measures in a subsample of participants.\nRESULTS: Positive or no changes were observed across most behaviors, with significant improvements in vegetable consumption, water intake, stress, and sleep. Group comparisons indicated larger changes in stress and sleep behaviors in the everyday group; however, compliance was higher in the 3-day group. Compliance declined over time in both groups. Accelerometer validation of the exercise domain showed low rates of overreporting exercise (3/59, 5.1%) and underreporting sedentary behavior (11/59, 18.6%).\nCONCLUSIONS: The FESS questionnaire demonstrated feasibility and was associated with observed changes in health behaviors, particularly in diet, stress, and sleep, when integrated into CEP services. While daily use was associated with larger observed changes, reduced compliance highlights the importance of flexible engagement strategies. These preliminary findings suggest that CEP services may benefit from embedding structured digital tools into traditional face-to-face interactions, as such tools may support education, promote reflection and accountability between sessions, and facilitate attention to a broader range of lifestyle factors within routine CEP care. Further controlled studies are required to confirm these findings.",
+   "journal": "Journal of medical Internet research",
+   "journalAbbr": "J Med Internet Res",
+   "year": "2026",
+   "authors": "Davison K i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42815033/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 3,
+   "ai": {
+    "titlePl": "Narzędzie internetowe FESS (dieta, ćwiczenia, sen, stres) wspomaga pracę fizjoterapeuty – badanie randomizowane",
+    "summary": "41 uczestników (mediana 65 lat) z klinik fizjoterapii porównano w dwóch grupach: wypełniających kwestionariusz FESS 3 razy tygodniowo vs. codziennie przez 12 tygodni. Zaobserwowano poprawę spożycia warzyw, nawodnienia, stresu i snu; większe zmiany w stresie i śnie w grupie codziennej, ale wyższą adherencję w grupie 3x/tydzień.",
+    "takeaway": "Trener może wprowadzić cyfrowe narzędzie monitorujące dietę, sen i stres jako uzupełnienie sesji treningowych, ale powinien oferować elastyczną częstotliwość (nie tylko codziennie) aby utrzymać adherencję.",
+    "population": "Osoby dorosłe (mediana 65 lat, IQR 58-70), pacjenci klinik fizjoterapii, n=41 (23 kobiety)",
+    "limits": "Mała próba, populacja starszych osób (ograniczona generalizacja na młodszych), brak grupy kontrolnej bez narzędzia, wysoka strata adherencji w czasie",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42811427",
+   "doi": "10.1093/tbm/ibag067",
+   "title": "Cost-effectiveness of a web-based peer-delivered physical activity program for breast cancer survivors.",
+   "abstract": "BACKGROUND: Breast cancer survivors are increasing in number and living longer but often experience reduced quality of life (QOL) from treatment sequelae. Physical activity (PA) interventions can improve QOL, but many rely on costly specialists or are difficult to scale. We adapted an evidence-based peer-mentoring program (moving forward together) for web delivery (webMFT). The platform centralizes peer-coach matching, delivery, and coordination to reduce administrative burden and improve scalability.\nPURPOSE: We evaluated webMFT's cost-effectiveness.\nMETHODS: In a 12-week randomized trial (N = 61), survivors were assigned to webMFT (n = 30; weekly phone calls plus activity self-monitoring) or MVPA Tracking (n = 31; activity self-monitoring only). From a payer's perspective, we estimated incremental cost-effectiveness ratios (ICERs) for quality-adjusted life years (QALYs) and device-measured moderate-to-vigorous physical activity (MVPA). Intervention costs were collected from time logs for research staff and peer coaches. We conducted sensitivity analyses by bootstrapping and constructing cost-effectiveness planes and cost-effectiveness acceptability curves (CEACs).\nRESULTS: In the base-case analysis the ICER for webMFT was $38 430 per QALY gained versus MVPA Tracking. At the high end of probabilistic implementation-cost sensitivity analyses that considered wider ranges of wages, platform costs, and implementation times, the mean ICER was $43 418 per QALY and the probability of cost-effectiveness was 87% at the commonly used $150 000 per QALY threshold. WebMFT increased QALYs but did not produce greater increases in device-measured PA compared with MVPA Tracking.\nCONCLUSION: At a $150 000 per QALY threshold, webMFT appears cost-effective for improving QALYs among breast cancer survivors. Larger studies are needed to confirm these findings.\nCLINICAL TRIAL INFORMATION: This underlying clinical trial was registered at clinicaltrials.gov (NCT05409664).",
+   "journal": "Translational behavioral medicine",
+   "journalAbbr": "Transl Behav Med",
+   "year": "2026",
+   "authors": "Chen BK i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42811427/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Opłacalność internetowego programu aktywności fizycznej wspieranego przez rówieśników dla kobiet po raku piersi",
+    "summary": "W randomizowanym badaniu (N=61) kobiety po raku piersi otrzymały internetowy program mentoringu rówieśniczego (webMFT) ze wsparciem coacha przez 12 tygodni lub samodzielne śledzenie aktywności. WebMFT poprawiła jakość życia (QALY) z kosztem 38 430 USD za QALY w porównaniu z grupą kontrolną, z 87% prawdopodobieństwem opłacalności przy progu 150 000 USD.",
+    "takeaway": "Program niezmienia praktyki trenera personalnego – dotyczy kobiet po raku piersi wymagających wsparcia medycznego i skupia się na jakości życia, a nie na zwiększeniu aktywności fizycznej.",
+    "population": "Kobiety po raku piersi (n=61), średnio wyleczeni pacjenci",
+    "limits": "Brak zwiększenia urządzeniowo-zmierzonej aktywności fizycznej pomimo poprawy QALY; małe liczny próby; populacja specjalistyczna (onkologia), a nie populacja typowych klientów siłowni",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42828469",
+   "doi": "10.1111/sms.70377",
+   "title": "Resistance Training for Cyclists: Scientific Evidence and Practical Recommendations.",
+   "abstract": "Growing evidence supports strength or resistance training (RT) as an effective method for enhancing cycling performance, but many cyclists remain reluctant to incorporate it due to perceived detrimental effects, such as excessive residual fatigue and unwanted hypertrophy. Furthermore, controversy persists regarding optimal training methodologies. This narrative review aims to summarize current evidence on the effects of RT on cycling performance, as well as to address its potential impact on body composition and bone health. We also provide evidence-based recommendations on best practices for RT implementation. Overall, the addition of 1-2 weekly sessions of RT with moderate-to-high loads (60%-85% 1RM), 2-4 sets per exercise across 3-5 compound lower-body movements, and limited intra-set fatigue (10%-20% velocity loss) has proven beneficial for improving key cycling performance indicators. Recent evidence also suggests that high-load on-bike torque training may serve as an effective strategy when conventional RT is not feasible. When implemented as described, RT does not appear to negatively affect performance through unwanted hypertrophy. Although further research is warranted, RT also emerges as a potentially effective strategy to counteract the low bone mineral density commonly observed in competitive cyclists. However, the magnitude of these benefits largely depends on precise programming, particularly intensity, proximity to failure, and temporal separation from endurance training sessions. In summary, current evidence supports the role of RT for improving both health and performance in cyclists, but further research is warranted to determine the optimal training parameters to maximize its benefits.",
+   "journal": "Scandinavian journal of medicine & science in sports",
+   "journalAbbr": "Scand J Med Sci Sports",
+   "year": "2026",
+   "authors": "de Pablos R i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42828469/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Trening siłowy dla kolarzy: dowody naukowe i praktyczne rekomendacje",
+    "summary": "Przegląd dowodów na efektywność treningu siłowego (1-2 sesji tygodniowo) dla poprawy wydajności kolarzy. Optymalny program to 60-85% 1RM, 2-4 serie na ćwiczeniu, 3-5 wielostawowych ruchów dolnym ciałem i ograniczona zmęczalność (10-20% ubytek prędkości). Trening siłowy nie powoduje niepożądanej hipertrofii i może poprawiać gęstość mineralną kości.",
+    "takeaway": "Trener może dodać 1-2 sesje treningu siłowego tygodniowo do cyklistów bez obawy o zbyteczną masę lub zmęczenie, przestrzegając zalecanego zakresu obciążenia (60-85% 1RM) i ograniczając zmęczenie intra-setowe.",
+    "population": "Kolarze, w tym zawodnicy konkurencyjni; przegląd literatury (brak konkretnego n)",
+    "limits": "Przegląd narracyjny bez metaanalizy; wiele badań wymaga dalszych badań; optymalne parametry treningu nie w pełni określone",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42826929",
+   "doi": "10.1123/jpah.2026-0466",
+   "title": "Wearables for Physical Activity Guideline Development and Health Surveillance: Converging Research and Practice Agendas.",
+   "abstract": "OBJECTIVE: Etiological epidemiology and health surveillance are interdependent foundations of physical activity research, yet wearable devices have been adopted disproportionately across these 2 pillars of policy and practice. As physical activity research transitions from mostly self-reports toward a combination of mostly wearables and some self-reports, alignment between etiological evidence generation and surveillance systems is becoming increasingly important. We examine the goals, methods, and emerging convergence between wearable-based policy, surveillance, and etiological epidemiology.\nMETHODS: This narrative review compares the wearable-based methods and metrics used for physical activity surveillance and for etiological research and draws on 2 contrasting case studies: the World Health Organization's surveillance-oriented standardization work and the harmonized research infrastructure of the Prospective Physical Activity, Sitting, and Sleep consortium. Building on these case studies and emerging evidence, we outline a 10-year roadmap toward a globally harmonized and translation-ready wearable evidence ecosystem.\nRESULTS: Wearables capture high-resolution dimensions of physical activity including the intensity, accumulation patterns, and 24-hour composition of movement that questionnaires cannot resolve. Wearable-based studies have identified strong dose-response associations at substantially lower absolute activity volumes than currently recommended in national and global guidelines and enabled the emergence of novel behavioral phenotypes including activity fragmentation, movement timing, and physical activity micropatterns. However, substantial challenges remain, including methodological heterogeneity, incompatibility between questionnaire- and wearable-derived evidence, limited representation of low- and middle-income countries, and uncertainty around translation into surveillance and guideline frameworks. World Health Organization surveillance initiatives prioritize simple, scalable, and internationally comparable metrics, whereas etiological epidemiology can accommodate greater complexity and methodological innovation.\nCONCLUSIONS: Convergence between surveillance and etiological epidemiology is both feasible and necessary, but requires harmonized wear protocols and reporting standards, capacity building and equitable infrastructure in underrepresented communities, and clear translation pathways between research-grade and policy-grade wearable metrics.",
+   "journal": "Journal of physical activity & health",
+   "journalAbbr": "J Phys Act Health",
+   "year": "2026",
+   "authors": "Stamatakis E i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42826929/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 0,
+   "ai": {
+    "titlePl": "Urządzenia noszone w badaniach aktywności fizycznej: standaryzacja naukowa i praktyka zdrowotna",
+    "summary": "Przegląd analizuje rozbieżności między użyciem urządzeń noszonych w badaniach etiologicznych a w systemach nadzoru zdrowotnego dotyczących aktywności fizycznej. Urządzenia noszone ujawniają efekty zdrowotne przy znacznie niższych wielkościach aktywności niż obecne wytyczne, oraz identyfikują nowe fenotypy behawioralne takie jak fragmentaryzacja aktywności i mikrowzorce ruchu. Głównym wyzwaniem pozostaje brak harmonizacji metodologicznej między badaniami a systemami nadzoru.",
+    "takeaway": "Dla trenera: przegląd nie sugeruje zmian w praktyce, ale wskazuje, że przyszłe wytyczne mogą być bardziej precyzyjne; obecnie można polegać na istniejących wytycznych dotyczących aktywności fizycznej.",
+    "population": "Przegląd narratywny - analiza standardów WHO i badań populacyjnych (Prospective Physical Activity, Sitting, and Sleep consortium); różne grupy demograficzne globalne",
+    "limits": "Przegląd narratywny, nie przegląd systematyczny; brak bezpośrednich danych na reprezentatywnych próbach klientów siłowni; wciąż wiele wyzwań metodologicznych bez rozwiązań",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42816672",
+   "doi": "10.1007/s00223-026-01618-3",
+   "title": "Objective Physical Performance Predicts 10-Year Fracture Risk Without Densitometry in Older Men and Women: Development and Head-to-Head Comparison with FRAX in MrOS and SOF.",
+   "abstract": "FRAX estimates 10-year fracture probability from clinical risk factors and, for best performance, DXA-derived bone mineral density (BMD), limiting its use where densitometry is unavailable. We tested whether a five-variable, laboratory- and imaging-free model (age, body-mass index, grip strength, gait speed and chair-stand rate; M5) predicts incident fracture and how it compares with FRAX. In community-dwelling older men (Osteoporotic Fractures in Men Study, n = 5994; 73.7 years) and women (Study of Osteoporotic Fractures, n = 9704; 71.6 years) with baseline physical-performance measures and adjudicated incident major osteoporotic fracture (848 and 2522 events), M5 was developed by five-fold cross-validation; we assessed time-dependent AUC at 5, 10 and 15 years, calibration and decision-curve net benefit. Comparators were FRAX in men and a conservative FRAX-surrogate model (in-cohort clinical risk factors) in women, since individually linked, licensed FRAX scores were not available for SOF. In men, M5 discriminated fracture better than FRAX without BMD (10-year ΔAUC + 0.052, 95% CI + 0.023 to + 0.080) and did not differ significantly from FRAX with BMD (+ 0.029, - 0.005 to + 0.063) in this cross-validated, in-cohort comparison; adding BMD to M5 gave the highest discrimination. In women, M5 did not differ significantly from the FRAX-surrogate comparator (- 0.008, - 0.018 to + 0.002), and BMD-based models performed best. M5 was well calibrated (calibration slope 0.97-0.98) and gave higher (men) or equivalent (women) net benefit. Death was a major competing event (72.7% of men, 61.4% of women) but changed 10-year incidence by ~ 1 percentage point. A five-variable, laboratory- and imaging-free model incorporating physical performance stratifies 10-year fracture risk at least as well as FRAX without BMD in men, without requiring imaging, laboratory tests or fracture history. Because M5 was developed within these cohorts whereas FRAX is an external, fixed algorithm, part of this margin reflects development asymmetry; the findings are promising but require external validation before clinical use, and do not replace measured BMD.",
+   "journal": "Calcified tissue international",
+   "journalAbbr": "Calcif Tissue Int",
+   "year": "2026",
+   "authors": "Carvalho FR i in.",
+   "authorCount": 2,
+   "pubTypes": [
+    "Journal Article",
+    "Comparative Study"
+   ],
+   "evidence": "other",
+   "evidenceLabel": "Inne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42816672/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-10-05T10:57:24.332Z",
+   "score": 0,
+   "ai": {
+    "titlePl": "Fizyczna wydolność przewiduje ryzyko złamań przez 10 lat bez densytometrii u starszych osób",
+    "summary": "Badanie porównało model M5 (wiek, BMI, siła chwytu, szybkość chodu, test wставania ze stołka) z FRAX w przewidywaniu złamań osteoporotycznych w ciągu 10 lat u 5994 mężczyzn (73,7 lat) i 9704 kobiet (71,6 lat). U mężczyzn M5 dyskryminował złamania lepiej niż FRAX bez BMD (AUC +0,052), a nie odbiegał znacząco od FRAX z BMD; u kobiet wyniki były zbliżone do modelu porównawczego FRAX.",
+    "takeaway": "Model oparty na testach fizycznych może służyć do wstępnej oceny ryzyka złamań u starszych klientów, gdy brak dostępu do DXA, ale nie powinien zastępować zmierzonej gęstości minerału kostnego w praktyce klinicznej.",
+    "population": "Starsze osoby mieszkające w społeczności, mężczyźni n=5994 (73,7 lat), kobiety n=9704 (71,6 lat), z incydentnymi złamaniami (848 u mężczyzn, 2522 u kobiet)",
+    "limits": "Model M5 został opracowany w obrębie badanych kohort (brak zewnętrznej walidacji); asymetria metodologiczna w porównaniu z zewnętrznym algorytmem FRAX",
+    "relevance": 3
    }
   },
   {
@@ -187,6 +871,105 @@
    }
   },
   {
+   "pmid": "42798093",
+   "doi": "10.1097/MD.0000000000050799",
+   "title": "Systematic review and meta-analysis of biomarkers of sarcopenia and sarcopenic obesity.",
+   "abstract": "OBJECTIVE: Sarcopenia and sarcopenic obesity (SO) are geriatric syndromes characterized by reduced skeletal muscle mass and impaired muscle strength, whose specific biomarkers and underlying mechanisms remain unclear. This study aimed to conduct a meta-analysis and literature review on the associations between biomarkers and sarcopenia/SO by collecting relevant publications over the past 15 years. We intended to further identify the shared and differential biomarkers of these disorders, thereby revealing their distinct pathophysiological processes and providing a basis for precise diagnosis and targeted intervention.\nMETHODS: A comprehensive literature search was performed in PubMed, Embase databases for all publications from December 2010 to December 2025. We included English articles describing the associations between serum biomarkers and sarcopenia/SO, including cross-sectional studies, prospective cohort studies, and retrospective case studies, with no restrictions on race, population, or sample size. Literature screening was conducted in accordance with predefined inclusion and exclusion criteria. Relevant study data were extracted, and the quality of included studies was assessed. The mean difference and 95% confidence interval were used to calculate the pooled effect size.\nRESULTS: A total of 43 English articles investigating the associations between biomarkers and sarcopenia/SO were finally included. Compared with non-sarcopenic patients, sarcopenic patients had elevated serum levels of C-reactive protein (CRP), interleukins, tumor necrosis factor, cystatin C, blood urea nitrogen, and high-density lipoprotein cholesterol (HDL-C). In contrast, higher serum levels of vitamin D, alanine transaminase, albumin, hemoglobin, TG, uric acid, blood glucose, and fasting insulin were associated with a lower incidence of sarcopenia. No significant differences were observed in WBC count, platelet count, aspartate transaminase, alkaline phosphatase, bilirubin, total cholesterol (TC), creatinine, erythrocyte sedimentation rate, low-density lipoprotein cholesterol (LDL-C), or thyroid-stimulating hormone levels between sarcopenic and non-sarcopenic patients. Compared with healthy individuals, SO patients had higher serum levels of CRP, LDL-C, TC, TG, WBC, creatinine, uric acid, fasting blood glucose, and fasting insulin, while higher levels of HDL-C and vitamin D were associated with a lower risk of SO. SO patients had lower TG levels than patients with simple obesity, with no significant differences in CRP, HDL-C, LDL-C, TC, vitamin D, blood glucose, or interleukin-6 levels between the 2 groups.",
+   "journal": "Medicine",
+   "journalAbbr": "Medicine (Baltimore)",
+   "year": "2026",
+   "authors": "Yang Y i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Meta-Analysis",
+    "Systematic Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42798093/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Biomarkery sarkopenii i sarkopenii otyłości – metaanaliza i przegląd systematyczny",
+    "summary": "Metaanaliza 43 badań z ostatnich 15 lat porównała markery biochemiczne między pacjentami ze sarkopenia, sarkopenią otyłości a osobami zdrowymi. U pacjentów ze sarkopenia stwierdzono podwyższone poziomy CRP, cytokin, cystatyny C i obniżoną witaminę D; u pacjentów z sarkopenią otyłości potwierdzono wyższe markery zapalenia, lipidy i glukozę oraz obniżoną witaminę D.",
+    "takeaway": "Trener powinien rozważyć monitorowanie statusu witaminy D u starszych klientów lub tych z otyłością, gdyż jej niedobory korelują ze zwiększonym ryzykiem sarkopenii, jednak sam trening siłowy pozostaje najskuteczniejszą interwencją.",
+    "population": "Badania heterogenne – głównie osoby starsze i pacjenci z chorobami przewlekłymi, brak danych szczegółowych na liczebności",
+    "limits": "Populacja geriatryczna, przewaga obserwacyjnych badań przekrojowych, brak standaryzacji metodologicznej między badaniami, niepewna przyczynowość biomarkerów",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42797082",
+   "doi": "10.3390/nu18183099",
+   "title": "Effects of Carbohydrate Mouth Rinse on Human Capacity and Performance-A Systematic Review and Meta-Analysis of 90 Controlled Trials.",
+   "abstract": "Objective: The aim of the current systematic review and meta-analysis was to examine the acute effects of carbohydrate (CHO) mouth rinse on exercise capacity and performance in humans of any health and fitness status. Methods: We registered our systematic review with PROSPERO (CRD42018085308). Eligibility criteria included adult humans > 18 years old at any health and fitness status undertaking any CHO mouth rinse prior and during of any type of acute exercise session. Results: We included 90 crossover design-controlled trials. We found improvements in distance covered (Hedges' g = 0.17; 95% CI 0.03 to 0.30, p = 0.02; τ2 = 0.00; I2 = 0%; Q(14) = 9.61, p > 0.05), performance time (Hedges' g = -0.15; 95% CI -0.25 to -0.05, p < 0.01; τ2 = 0.008; I2 = 9.3%; Q(34) = 76.48, p < 0.01), speed performance (Hedges' g = 0.17; 95% CI 0.05 to 0.30, p < 0.01; τ2 ≈ 0; I2 = 0%; Q(23) = 22.73, p > 0.05), workload (Hedges' g = 0.25; 95% CI 0.08 to 0.41, p < 0.01, τ2 = 0; I2 = 0%; (Q(9) = 7.37, p > 0.05) and maximum voluntary contraction (MVC) (Hedges' g = 0.18, 95% CI 0.02 to 0.34, p = 0.03; τ2 = 0; I2 = 0%; (Q(10) = 7.73, p > 0.05). No effect of CHO mouth rinse on muscular endurance, maximum power output, or maximum oxygen consumption (VO2max) was found (p > 0.05). Conclusions: The available evidence suggests that CHO mouth rinse can produce a small, outcome-dependent ergogenic effect in distance covered, performance time and speed performance as well as small improvements in workload, with less robust evidence for MVC-evidence that mainly applies to male participants. The practical importance of these findings is likely to vary according to the exercise context and competitive context.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Zalagkitis C i in.",
+   "authorCount": 14,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797082/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Wpływ płukania ust węglowodanami na wydolność i wyniki – metaanaliza 90 badań kontrolowanych",
+    "summary": "Metaanaliza 90 badań krzyżowych wykazała, że płukanie ust roztworem węglowodanów podczas wysiłku fizycznego daje małe, zależne od celu polepszenia w dystansie (g=0,17), czasie wysiłku (g=-0,15), prędkości (g=0,17) i obciążeniu (g=0,25), oraz nieznaczne zwiększenie siły maksymalnej (MVC, g=0,18). Nie wykazano efektu na wydolność mięśniową, maksymalną moc ani VO2max.",
+    "takeaway": "Trener może próbować płukania ust węglowodanami podczas wysiłków aerobowych (bieg, rower), szczególnie u mężczyzn, gdy kluczowe są dystans lub prędkość, ale efekt jest marginalny i zależy od kontekstu konkurencji.",
+    "population": "Dorośli > 18 lat, różny status treningu i zdrowia",
+    "limits": "Małe rozmiary efektu (0,15–0,25), większość dowodów dotyczy mężczyzn, brak efektu na siłę maksymalną i VO2max, znacząca heterogenność metodyk badań",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42796273",
+   "doi": "10.3390/medicina62091666",
+   "title": "The Effects of Thoracic Flexibility Exercise on Pain, Range of Motion, Spinal Alignment, Proprioception, and Neck Disability Index in Neck Pain Patients with Forward Head Posture: A Randomized Controlled Trial.",
+   "abstract": "Background and Objectives: Thoracic dysfunction may contribute to neck pain, restricted mobility, and altered spinal alignment in individuals with forward head posture (FHP). This study compared thoracic flexibility exercise (TFE) with cervical stabilization exercise (CSE) in terms of their effects on pain, range of motion (ROM), spinal alignment, proprioception, and neck-related disability in patients with chronic neck pain and FHP. Materials and Methods: Twenty-four participants were randomly assigned to either the TFE group (n = 12) or the CSE group (n = 12). Both groups performed their assigned intervention once per day, three days per week, for four weeks. The outcome measures included pain intensity, cervical and thoracic ROM, craniovertebral angle (CVA), cranio-rotation angle (CRA), thoracic kyphosis angle (TKA), proprioception, and the Neck Disability Index (NDI). Paired t-tests were used for within-group comparisons, and independent t-tests were used to compare change scores between groups. The Benjamini-Hochberg false discovery rate (FDR) procedure was applied to the between-group comparisons to account for multiple testing. Results: The TFE group showed significant improvements in all outcome measures following the intervention (p < 0.001). The CSE group showed significant improvements in pain, cervical flexion, extension, and right and left rotation, CVA, CRA, proprioception during extension and right and left rotation, and NDI (p < 0.05); however, no significant improvements were observed in thoracic ROM, TKA, or proprioception during flexion (p > 0.05). After FDR correction, between-group comparisons demonstrated significantly greater improvements in the TFE group than in the CSE group across all outcome measures (q < 0.05). Conclusions: TFE may be more effective than CSE in improving pain, ROM, spinal alignment, proprioception, and neck-related disability in patients with neck pain and FHP.",
+   "journal": "Medicina (Kaunas, Lithuania)",
+   "journalAbbr": "Medicina (Kaunas)",
+   "year": "2026",
+   "authors": "Kim C i in.",
+   "authorCount": 2,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42796273/",
+   "topics": [
+    "prehab"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Wpływ ćwiczeń elastyczności klatki piersiowej na ból, zakres ruchu i wyrównanie kręgosłupa u pacjentów z bólem szyi i przepukliną głowy",
+    "summary": "Badanie porównało ćwiczenia elastyczności klatki piersiowej (TFE) z ćwiczeniami stabilizacyjnymi szyi (CSE) u 24 pacjentów z przewlekłym bólem szyi i nieprawidłową postawą głowy przez 4 tygodnie (3x na tydzień). Grupa TFE wykazała znaczące poprawy we wszystkich miarach wyników (p < 0,001), podczas gdy CSE poprawiła ból i zakres ruchu szyi, ale nie wpłynęła znacząco na zakres ruchu klatki piersiowej ani kątowość kifotyczną.",
+    "takeaway": "Dla pacjentów z bólem szyi i przepukliną głowy warto włączyć ćwiczenia elastyczności klatki piersiowej jako główny komponent programu, szczególnie jeśli ćwiczenia stabilizacyjne szyi nie przynoszą oczekiwanych rezultatów.",
+    "population": "Pacjenci z przewlekłym bólem szyi i przepukliną głowy, n=24 (12 w każdej grupie)",
+    "limits": "Mała próba (n=24), krótki okres obserwacji (4 tygodnie), brak grupy kontrolnej bez interwencji",
+    "relevance": 4
+   }
+  },
+  {
    "pmid": "42796420",
    "doi": "10.3390/medicina62091814",
    "title": "Behavioral and Psychosocial Effects of Participant-Visible Continuous Glucose Monitoring in Adults Without Diabetes: A Systematic Review.",
@@ -220,38 +1003,6 @@
    }
   },
   {
-   "pmid": "42791433",
-   "doi": "10.1007/s40265-026-02380-4",
-   "title": "GLP-1 Receptor Agonists in Heart Failure: A Systematic Review and Meta-analysis with Phenotype-Specific Effects and Dual Analytical Frameworks.",
-   "abstract": "BACKGROUND: Although glucagon-like peptide-1 receptor agonists (GLP-1 RAs) reduce cardiovascular risk in patients with type 2 diabetes mellitus (T2D), evidence in heart failure (HF) has expanded across diverse trial populations and HF phenotypes but remains fragmented. We therefore performed an integrated systematic review and meta-analysis to evaluate the effects of GLP-1 RAs across the spectrum of HF using complementary trial-level and phenotype-based analyses.\nMETHODS: PubMed, Embase, and Web of Science were systematically searched for studies published from inception to August 10, 2025. To provide an integrated assessment across heterogeneous HF populations, treatment effects were evaluated using dual analytical frameworks: trial-level analyses according to study design (dedicated HF with preserved ejection fraction [HFpEF] trials, HF with reduced ejection fraction [HFrEF] trials, and HF subgroups from cardiovascular outcome trials [CVOTs]) and phenotype-based analyses according to left ventricular ejection fraction (HFpEF vs HFrEF using a pragmatic threshold of 40%). A prespecified targeted analysis was conducted to specifically assess the efficacy of semaglutide. The primary outcomes were major adverse cardiovascular events (MACE), and the secondary outcomes included hospitalization for HF (HHF), the composite of cardiovascular death or any worsening HF events, cardiovascular death alone, and all-cause mortality. Pooled hazard ratios (HRs) with 95% confidence intervals (CIs) were calculated using random‑effects models.\nRESULTS: This meta-analysis included 14 trials, with a pooled total of 15,882 patients with HF. In phenotype‑based analyses for HFpEF, GLP‑1 RAs significantly reduced MACE (HR 0.79; 95% CI 0.66-0.94; p = 0.010), HHF (HR 0.48; 95% CI 0.27-0.85; p = 0.012), the composite of cardiovascular death or worsening HF (HR 0.57; 95% CI 0.37-0.89; p = 0.013), and all‑cause mortality (HR 0.75; 95% CI 0.62-0.89; p = 0.001). In contrast, in HFrEF, no significant reductions were observed for HHF, the composite of cardiovascular death or worsening HF, all-cause mortality, or MACE, although a reduction in cardiovascular death was noted (HR 0.71; 95% CI 0.54-0.95; p = 0.019). Trial-level analyses showed that cardiovascular benefits were primarily observed in HF subgroups from CVOTs, including reductions in MACE (HR 0.82; 95% CI 0.73-0.92; p = 0.001), cardiovascular death (HR 0.88; 95% CI 0.77-1.00; p = 0.05) and myocardial infarction (MI)/non-fatal MI (HR 0.84; 95% CI 0.70-1.00; p = 0.046). Semaglutide showed benefits in HHF and the composite of cardiovascular death or worsening HF events predominantly among overweight or obese patients with HFpEF. GLP-1 RAs also improved functional capacity and quality of life in HFpEF.\nCONCLUSION: GLP-1 RAs were associated with favorable cardiovascular and HF-related outcomes in HFpEF, predominantly among overweight or obese individuals, whereas evidence of benefit in HFrEF remains limited. In trial-level analyses, benefits were primarily observed for atherosclerotic endpoints in HF subgroups from CVOTs. By integrating evidence, this study provides a unified overview of the effects of GLP-1 RAs across the spectrum of HF and supports further phenotype-specific randomized trials, particularly dedicated studies in HFrEF.\nTRIAL REGISTRATION: Protocol registration PROSPERO (CRD420251079970).",
-   "journal": "Drugs",
-   "journalAbbr": "Drugs",
-   "year": "2026",
-   "authors": "Yuan Y i in.",
-   "authorCount": 8,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review"
-   ],
-   "evidence": "sr",
-   "evidenceLabel": "Przegląd systematyczny",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42791433/",
-   "topics": [
-    "redukcja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-28T10:16:47.635Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Agoniści receptora GLP-1 w niewydolności serca: przegląd systematyczny i meta-analiza ze zróżnicowanymi efektami zależnymi od fenotypu",
-    "summary": "Meta-analiza 14 badań obejmujących 15 882 pacjentów z niewydolnością serca wykazała, że agoniści GLP-1 istotnie redukowały poważne zdarzenia sercowo-naczyniowe (HR 0,79), hospitalizacje z powodu HF (HR 0,48) i śmiertelność (HR 0,75) u pacjentów z zachowaną frakcją wyrzutową (HFpEF), szczególnie u osób z nadwagą/otyłością. W przypadku zmniejszonej frakcji wyrzutowej (HFrEF) korzyści były ograniczone, z istotną redukcją tylko śmiertelności sercowo-naczyniowej (HR 0,71).",
-    "takeaway": "Dla klientów na siłowni badanie nie zmienia praktyki treningowej – GLP-1 RAs to leki kardiologiczne dla pacjentów z niewydolnością serca, nie interwencja treningowa; trener powinien być świadomy, że tacy pacjenci mogą być mniej wydolni.",
-    "population": "Pacjenci z niewydolnością serca (HFpEF i HFrEF), część z cukrzycą typu 2, wiele osób z nadwagą/otyłością, średni wiek nie podany",
-    "limits": "Heterogeniczna populacja pacjentów, większość badań to subgrupy z prób kardiologicznych (CVOTs), brak danych z czystych badań na HFrEF",
-    "relevance": 1
-   }
-  },
-  {
    "pmid": "42761483",
    "doi": "10.3389/fnut.2026.1893033",
    "title": "Acute caffeine supplementation as a nutrition-based strategy to mitigate sleep-loss-related cognitive and operational performance impairments in military personnel: a systematic review and meta-analysis.",
@@ -281,39 +1032,6 @@
     "population": "Personel wojskowy lub populacje związane z wojskiem, n=7 badań (liczba uczestników niesprecyzowana w abstrakcie)",
     "limits": "Badania przeprowadzono wyłącznie w populacji wojskowej; wyniki mogą być mniej stosowalne do cywilnych sportowców; brakuje szczegółów dotyczących optymalnej dawki i czasu podania kofeiny",
     "relevance": 2
-   }
-  },
-  {
-   "pmid": "42740463",
-   "doi": "10.1002/jper.70104",
-   "title": "Autogenous grafts versus substitute scaffolds for soft tissue augmentation in implant therapy: A systematic review.",
-   "abstract": "BACKGROUND: To analyze the effect of autogenous soft tissue grafts or substitute scaffolds on the outcomes of soft tissue augmentation (STA) performed in the context of implant therapy.\nMETHODS: The protocol of this PRISMA 2020-compliant systematic review was registered in PROSPERO (CRD42024611477). Articles reporting the findings of randomized controlled trials (RCTs) that met the eligibility criteria were identified through a literature search. Following final article selection, data were extracted, including relevant clinician- and patient-reported outcomes and experiences (CROs and PROs/PREs). Risk of bias assessment was performed using the RoB2 tool. Network meta-analyses (NMA) were performed when feasible to compare the performance of different techniques.\nRESULTS: Forty RCTs were selected. Risk of bias assessment revealed that the methodological quality of the selected studies was generally high. Although CROs and PROs/PREs were inconsistently reported, it was possible to conduct five sets of NMA regarding mucosal thickness (MT) and keratinized mucosa width (KMW) changes. These analyses revealed that the use of an autogenous connective tissue graft in a bilaminar approach is the best treatment for MT augmentation regardless of the timing, while the application of a free mucosal graft over a partial-thickness vascular bed is generally the best to obtain KMW gains. Alternatively, other treatment options involving the use of specific types of substitute scaffolds were considered as viable alternatives given their similar performance, particularly in terms of MT gain. Additionally, it was found that, compared with autogenous soft tissue grafts, the use of substitute scaffolds is consistently associated with lower postoperative discomfort.\nCONCLUSIONS: Autogenous soft tissue grafts should be considered as the primary choice to achieve predictable MT and KMW gains in the context of implant therapy. The use of specific substitute scaffolds may render similar STA outcomes with lower postoperative morbidity.",
-   "journal": "Journal of periodontology",
-   "journalAbbr": "J Periodontol",
-   "year": "2026",
-   "authors": "Avila-Ortiz G i in.",
-   "authorCount": 8,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Comparative Study"
-   ],
-   "evidence": "sr",
-   "evidenceLabel": "Przegląd systematyczny",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42740463/",
-   "topics": [
-    "suplementy"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-28T10:16:47.635Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Przeszczepy autologiczne versus substytuty w augmentacji tkanek miękkich wokół implantów: przegląd systematyczny",
-    "summary": "Przegląd 40 badań RCT porównujących efektywność przeszczepiania autologicznej tkanki łącznej versus substytutów sztucznych w augmentacji tkanek miękkich wokół implantów dentystycznych. Przeszczepy autologiczne w technice dwuwarstwowej wykazały najlepsze wyniki w zwiększaniu grubości śluzówki (MT), natomiast wolne przeszczepy śluzówki osiągały największe przyrosty szerokości keratynizowanej śluzówki (KMW); substytuty sztuczne wykazały porównywalne wyniki w MT przy mniejszym dyskomforcie pooperacyjnym.",
-    "takeaway": "Dla klientów wymagających implantów z wskazaniem do augmentacji tkanek miękkich: przeszczepy autologiczne pozostają najniezawodniejszym wyborem, ale substytuty sztuczne mogą być alternatywą przy mniejszym bólu pooperacyjnym i gorsze zagoją się bardziej przewidywalnie.",
-    "population": "Pacjenci wymagający implantów dentystycznych z potrzebą augmentacji tkanek miękkich (przegląd 40 RCT)",
-    "limits": "Niespójna raportacja wyników klinicznych i poddanych leczeniu; badania dotyczą procedur dentystycznych, nie bezpośrednio treningu",
-    "relevance": 1
    }
   },
   {
@@ -350,38 +1068,6 @@
    }
   },
   {
-   "pmid": "42797058",
-   "doi": "10.3390/nu18183074",
-   "title": "Effects of Heat-Killed Bifidobacterium breve B-3, a Postbiotic, on Muscle Mass-Related Parameters in Patients with Sarcopenia: A Randomized, Double-Blind, Placebo-Controlled Pilot Trial.",
-   "abstract": "Background/Objectives: Sarcopenia contributes to frailty and functional decline in older adults; however, effective adjunctive strategies remain limited. Heat-killed Bifidobacterium breve B-3 (B-3HK), a postbiotic, has shown muscle-related effects in preclinical studies; however, clinical evidence in patients with established sarcopenia is scarce. This pilot trial aimed to evaluate these clinical effects. Methods: In this 24-week randomized, double-blind, placebo-controlled trial, adults aged 50-89 years with Asian Working Group for Sarcopenia (AWGS) 2019-defined sarcopenia received B-3HK (2 × 1010 cells/day) or placebo daily. The primary outcome was the change in knee extension strength at week 24. Secondary outcomes included body composition measured using bioelectrical impedance analysis (BIA), dual-energy X-ray absorptiometry (DXA), physical performance, Eating Assessment Tool-10 (EAT-10), serum biomarkers, gut microbiota, and safety. Secondary outcomes were exploratory with nominal p-values and no adjustment for multiple comparisons. Results: Fifty participants were randomized, and 49 were included in the full analysis set. Compared with placebo, B-3HK did not significantly improve knee extension strength. Exploratory analyses showed between-group differences favoring B-3HK in the BIA-derived skeletal muscle mass index, limb muscle mass, EAT-10 score, and serum insulin-like growth factor-1 and 25-hydroxyvitamin D levels. These differences were primarily driven by the attenuation of the decline in the placebo group and were not corroborated by DXA-derived indices or functional outcomes. The gut microbiota composition did not differ between groups. No serious adverse events were observed. Conclusions: B-3HK did not improve muscle strength in patients with sarcopenia. Exploratory analyses identified nominal between-group differences in body composition and endocrine outcomes; however, these findings were unadjusted for multiplicity and should be regarded as hypothesis-generating rather than confirmatory evidence of efficacy. These data may help inform the design of future adequately powered trials, but confirmation is required before any therapeutic benefit can be inferred.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2026",
-   "authors": "Asaoka D i in.",
-   "authorCount": 12,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42797058/",
-   "topics": [
-    "pomiary"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-28T10:16:47.635Z",
-   "score": 1,
-   "ai": {
-    "titlePl": "Wpływ martwych komórek Bifidobacterium breve B-3 (postbiotyk) na parametry masy mięśniowej u pacjentów z sarkopenią",
-    "summary": "Badanie RCT na 49 dorosłych 50–89 lat z sarkopenią porównało suplement postbiotykowy B-3HK (2×10¹⁰ komórek/dzień) z placebo przez 24 tygodnie. B-3HK nie poprawił istotnie siły mięśni w rozciąganiu kolana (główny wynik), choć analizy eksploracyjne wykazały nominalne różnice na korzyść B-3HK w BIA-mierzonej masy mięśniowej kończyn, wynikach EAT-10 oraz poziomach IGF-1 i witaminy D.",
-    "takeaway": "Bifidobacterium breve B-3 nie wykazało klinicznych efektów na siłę mięśni u sarkopenicznych, więc nie należy polecać jako uzupełnienie treningowego programu budowania masy mięśniowej.",
-    "population": "Osoby starsze 50–89 lat z sarkopenią (wg AWGS 2019), n=49",
-    "limits": "Badanie pilotażowe, wyniki wtórne bez korekcji na wielokrotne porównania (hipoteza generująca), brak potwierdzenia w DXA-mierzonej masy mięśniowej ani funkcjonalnych wynikach",
-    "relevance": 1
-   }
-  },
-  {
    "pmid": "42797046",
    "doi": "10.3390/nu18183063",
    "title": "Individual and Additive Effects of Acute Intake of New Zealand Blackcurrant Powder and Caffeine on High-Intensity Intermittent Running Performance.",
@@ -411,6 +1097,103 @@
     "population": "Rekreacyjnie aktywni mężczyźni, n=14",
     "limits": "Mała próba (n=14), tylko mężczyźni, jedna ostra dawka NZBP (brak danych o dawkowaniu optymalnym), krótki czas suplementacji",
     "relevance": 2
+   }
+  },
+  {
+   "pmid": "42791433",
+   "doi": "10.1007/s40265-026-02380-4",
+   "title": "GLP-1 Receptor Agonists in Heart Failure: A Systematic Review and Meta-analysis with Phenotype-Specific Effects and Dual Analytical Frameworks.",
+   "abstract": "BACKGROUND: Although glucagon-like peptide-1 receptor agonists (GLP-1 RAs) reduce cardiovascular risk in patients with type 2 diabetes mellitus (T2D), evidence in heart failure (HF) has expanded across diverse trial populations and HF phenotypes but remains fragmented. We therefore performed an integrated systematic review and meta-analysis to evaluate the effects of GLP-1 RAs across the spectrum of HF using complementary trial-level and phenotype-based analyses.\nMETHODS: PubMed, Embase, and Web of Science were systematically searched for studies published from inception to August 10, 2025. To provide an integrated assessment across heterogeneous HF populations, treatment effects were evaluated using dual analytical frameworks: trial-level analyses according to study design (dedicated HF with preserved ejection fraction [HFpEF] trials, HF with reduced ejection fraction [HFrEF] trials, and HF subgroups from cardiovascular outcome trials [CVOTs]) and phenotype-based analyses according to left ventricular ejection fraction (HFpEF vs HFrEF using a pragmatic threshold of 40%). A prespecified targeted analysis was conducted to specifically assess the efficacy of semaglutide. The primary outcomes were major adverse cardiovascular events (MACE), and the secondary outcomes included hospitalization for HF (HHF), the composite of cardiovascular death or any worsening HF events, cardiovascular death alone, and all-cause mortality. Pooled hazard ratios (HRs) with 95% confidence intervals (CIs) were calculated using random‑effects models.\nRESULTS: This meta-analysis included 14 trials, with a pooled total of 15,882 patients with HF. In phenotype‑based analyses for HFpEF, GLP‑1 RAs significantly reduced MACE (HR 0.79; 95% CI 0.66-0.94; p = 0.010), HHF (HR 0.48; 95% CI 0.27-0.85; p = 0.012), the composite of cardiovascular death or worsening HF (HR 0.57; 95% CI 0.37-0.89; p = 0.013), and all‑cause mortality (HR 0.75; 95% CI 0.62-0.89; p = 0.001). In contrast, in HFrEF, no significant reductions were observed for HHF, the composite of cardiovascular death or worsening HF, all-cause mortality, or MACE, although a reduction in cardiovascular death was noted (HR 0.71; 95% CI 0.54-0.95; p = 0.019). Trial-level analyses showed that cardiovascular benefits were primarily observed in HF subgroups from CVOTs, including reductions in MACE (HR 0.82; 95% CI 0.73-0.92; p = 0.001), cardiovascular death (HR 0.88; 95% CI 0.77-1.00; p = 0.05) and myocardial infarction (MI)/non-fatal MI (HR 0.84; 95% CI 0.70-1.00; p = 0.046). Semaglutide showed benefits in HHF and the composite of cardiovascular death or worsening HF events predominantly among overweight or obese patients with HFpEF. GLP-1 RAs also improved functional capacity and quality of life in HFpEF.\nCONCLUSION: GLP-1 RAs were associated with favorable cardiovascular and HF-related outcomes in HFpEF, predominantly among overweight or obese individuals, whereas evidence of benefit in HFrEF remains limited. In trial-level analyses, benefits were primarily observed for atherosclerotic endpoints in HF subgroups from CVOTs. By integrating evidence, this study provides a unified overview of the effects of GLP-1 RAs across the spectrum of HF and supports further phenotype-specific randomized trials, particularly dedicated studies in HFrEF.\nTRIAL REGISTRATION: Protocol registration PROSPERO (CRD420251079970).",
+   "journal": "Drugs",
+   "journalAbbr": "Drugs",
+   "year": "2026",
+   "authors": "Yuan Y i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42791433/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Agoniści receptora GLP-1 w niewydolności serca: przegląd systematyczny i meta-analiza ze zróżnicowanymi efektami zależnymi od fenotypu",
+    "summary": "Meta-analiza 14 badań obejmujących 15 882 pacjentów z niewydolnością serca wykazała, że agoniści GLP-1 istotnie redukowały poważne zdarzenia sercowo-naczyniowe (HR 0,79), hospitalizacje z powodu HF (HR 0,48) i śmiertelność (HR 0,75) u pacjentów z zachowaną frakcją wyrzutową (HFpEF), szczególnie u osób z nadwagą/otyłością. W przypadku zmniejszonej frakcji wyrzutowej (HFrEF) korzyści były ograniczone, z istotną redukcją tylko śmiertelności sercowo-naczyniowej (HR 0,71).",
+    "takeaway": "Dla klientów na siłowni badanie nie zmienia praktyki treningowej – GLP-1 RAs to leki kardiologiczne dla pacjentów z niewydolnością serca, nie interwencja treningowa; trener powinien być świadomy, że tacy pacjenci mogą być mniej wydolni.",
+    "population": "Pacjenci z niewydolnością serca (HFpEF i HFrEF), część z cukrzycą typu 2, wiele osób z nadwagą/otyłością, średni wiek nie podany",
+    "limits": "Heterogeniczna populacja pacjentów, większość badań to subgrupy z prób kardiologicznych (CVOTs), brak danych z czystych badań na HFrEF",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42740463",
+   "doi": "10.1002/jper.70104",
+   "title": "Autogenous grafts versus substitute scaffolds for soft tissue augmentation in implant therapy: A systematic review.",
+   "abstract": "BACKGROUND: To analyze the effect of autogenous soft tissue grafts or substitute scaffolds on the outcomes of soft tissue augmentation (STA) performed in the context of implant therapy.\nMETHODS: The protocol of this PRISMA 2020-compliant systematic review was registered in PROSPERO (CRD42024611477). Articles reporting the findings of randomized controlled trials (RCTs) that met the eligibility criteria were identified through a literature search. Following final article selection, data were extracted, including relevant clinician- and patient-reported outcomes and experiences (CROs and PROs/PREs). Risk of bias assessment was performed using the RoB2 tool. Network meta-analyses (NMA) were performed when feasible to compare the performance of different techniques.\nRESULTS: Forty RCTs were selected. Risk of bias assessment revealed that the methodological quality of the selected studies was generally high. Although CROs and PROs/PREs were inconsistently reported, it was possible to conduct five sets of NMA regarding mucosal thickness (MT) and keratinized mucosa width (KMW) changes. These analyses revealed that the use of an autogenous connective tissue graft in a bilaminar approach is the best treatment for MT augmentation regardless of the timing, while the application of a free mucosal graft over a partial-thickness vascular bed is generally the best to obtain KMW gains. Alternatively, other treatment options involving the use of specific types of substitute scaffolds were considered as viable alternatives given their similar performance, particularly in terms of MT gain. Additionally, it was found that, compared with autogenous soft tissue grafts, the use of substitute scaffolds is consistently associated with lower postoperative discomfort.\nCONCLUSIONS: Autogenous soft tissue grafts should be considered as the primary choice to achieve predictable MT and KMW gains in the context of implant therapy. The use of specific substitute scaffolds may render similar STA outcomes with lower postoperative morbidity.",
+   "journal": "Journal of periodontology",
+   "journalAbbr": "J Periodontol",
+   "year": "2026",
+   "authors": "Avila-Ortiz G i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Comparative Study"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42740463/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Przeszczepy autologiczne versus substytuty w augmentacji tkanek miękkich wokół implantów: przegląd systematyczny",
+    "summary": "Przegląd 40 badań RCT porównujących efektywność przeszczepiania autologicznej tkanki łącznej versus substytutów sztucznych w augmentacji tkanek miękkich wokół implantów dentystycznych. Przeszczepy autologiczne w technice dwuwarstwowej wykazały najlepsze wyniki w zwiększaniu grubości śluzówki (MT), natomiast wolne przeszczepy śluzówki osiągały największe przyrosty szerokości keratynizowanej śluzówki (KMW); substytuty sztuczne wykazały porównywalne wyniki w MT przy mniejszym dyskomforcie pooperacyjnym.",
+    "takeaway": "Dla klientów wymagających implantów z wskazaniem do augmentacji tkanek miękkich: przeszczepy autologiczne pozostają najniezawodniejszym wyborem, ale substytuty sztuczne mogą być alternatywą przy mniejszym bólu pooperacyjnym i gorsze zagoją się bardziej przewidywalnie.",
+    "population": "Pacjenci wymagający implantów dentystycznych z potrzebą augmentacji tkanek miękkich (przegląd 40 RCT)",
+    "limits": "Niespójna raportacja wyników klinicznych i poddanych leczeniu; badania dotyczą procedur dentystycznych, nie bezpośrednio treningu",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42797058",
+   "doi": "10.3390/nu18183074",
+   "title": "Effects of Heat-Killed Bifidobacterium breve B-3, a Postbiotic, on Muscle Mass-Related Parameters in Patients with Sarcopenia: A Randomized, Double-Blind, Placebo-Controlled Pilot Trial.",
+   "abstract": "Background/Objectives: Sarcopenia contributes to frailty and functional decline in older adults; however, effective adjunctive strategies remain limited. Heat-killed Bifidobacterium breve B-3 (B-3HK), a postbiotic, has shown muscle-related effects in preclinical studies; however, clinical evidence in patients with established sarcopenia is scarce. This pilot trial aimed to evaluate these clinical effects. Methods: In this 24-week randomized, double-blind, placebo-controlled trial, adults aged 50-89 years with Asian Working Group for Sarcopenia (AWGS) 2019-defined sarcopenia received B-3HK (2 × 1010 cells/day) or placebo daily. The primary outcome was the change in knee extension strength at week 24. Secondary outcomes included body composition measured using bioelectrical impedance analysis (BIA), dual-energy X-ray absorptiometry (DXA), physical performance, Eating Assessment Tool-10 (EAT-10), serum biomarkers, gut microbiota, and safety. Secondary outcomes were exploratory with nominal p-values and no adjustment for multiple comparisons. Results: Fifty participants were randomized, and 49 were included in the full analysis set. Compared with placebo, B-3HK did not significantly improve knee extension strength. Exploratory analyses showed between-group differences favoring B-3HK in the BIA-derived skeletal muscle mass index, limb muscle mass, EAT-10 score, and serum insulin-like growth factor-1 and 25-hydroxyvitamin D levels. These differences were primarily driven by the attenuation of the decline in the placebo group and were not corroborated by DXA-derived indices or functional outcomes. The gut microbiota composition did not differ between groups. No serious adverse events were observed. Conclusions: B-3HK did not improve muscle strength in patients with sarcopenia. Exploratory analyses identified nominal between-group differences in body composition and endocrine outcomes; however, these findings were unadjusted for multiplicity and should be regarded as hypothesis-generating rather than confirmatory evidence of efficacy. These data may help inform the design of future adequately powered trials, but confirmation is required before any therapeutic benefit can be inferred.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Asaoka D i in.",
+   "authorCount": 12,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797058/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Wpływ martwych komórek Bifidobacterium breve B-3 (postbiotyk) na parametry masy mięśniowej u pacjentów z sarkopenią",
+    "summary": "Badanie RCT na 49 dorosłych 50–89 lat z sarkopenią porównało suplement postbiotykowy B-3HK (2×10¹⁰ komórek/dzień) z placebo przez 24 tygodnie. B-3HK nie poprawił istotnie siły mięśni w rozciąganiu kolana (główny wynik), choć analizy eksploracyjne wykazały nominalne różnice na korzyść B-3HK w BIA-mierzonej masy mięśniowej kończyn, wynikach EAT-10 oraz poziomach IGF-1 i witaminy D.",
+    "takeaway": "Bifidobacterium breve B-3 nie wykazało klinicznych efektów na siłę mięśni u sarkopenicznych, więc nie należy polecać jako uzupełnienie treningowego programu budowania masy mięśniowej.",
+    "population": "Osoby starsze 50–89 lat z sarkopenią (wg AWGS 2019), n=49",
+    "limits": "Badanie pilotażowe, wyniki wtórne bez korekcji na wielokrotne porównania (hipoteza generująca), brak potwierdzenia w DXA-mierzonej masy mięśniowej ani funkcjonalnych wynikach",
+    "relevance": 1
    }
   },
   {
@@ -446,35 +1229,35 @@
    }
   },
   {
-   "pmid": "42796273",
-   "doi": "10.3390/medicina62091666",
-   "title": "The Effects of Thoracic Flexibility Exercise on Pain, Range of Motion, Spinal Alignment, Proprioception, and Neck Disability Index in Neck Pain Patients with Forward Head Posture: A Randomized Controlled Trial.",
-   "abstract": "Background and Objectives: Thoracic dysfunction may contribute to neck pain, restricted mobility, and altered spinal alignment in individuals with forward head posture (FHP). This study compared thoracic flexibility exercise (TFE) with cervical stabilization exercise (CSE) in terms of their effects on pain, range of motion (ROM), spinal alignment, proprioception, and neck-related disability in patients with chronic neck pain and FHP. Materials and Methods: Twenty-four participants were randomly assigned to either the TFE group (n = 12) or the CSE group (n = 12). Both groups performed their assigned intervention once per day, three days per week, for four weeks. The outcome measures included pain intensity, cervical and thoracic ROM, craniovertebral angle (CVA), cranio-rotation angle (CRA), thoracic kyphosis angle (TKA), proprioception, and the Neck Disability Index (NDI). Paired t-tests were used for within-group comparisons, and independent t-tests were used to compare change scores between groups. The Benjamini-Hochberg false discovery rate (FDR) procedure was applied to the between-group comparisons to account for multiple testing. Results: The TFE group showed significant improvements in all outcome measures following the intervention (p < 0.001). The CSE group showed significant improvements in pain, cervical flexion, extension, and right and left rotation, CVA, CRA, proprioception during extension and right and left rotation, and NDI (p < 0.05); however, no significant improvements were observed in thoracic ROM, TKA, or proprioception during flexion (p > 0.05). After FDR correction, between-group comparisons demonstrated significantly greater improvements in the TFE group than in the CSE group across all outcome measures (q < 0.05). Conclusions: TFE may be more effective than CSE in improving pain, ROM, spinal alignment, proprioception, and neck-related disability in patients with neck pain and FHP.",
-   "journal": "Medicina (Kaunas, Lithuania)",
-   "journalAbbr": "Medicina (Kaunas)",
+   "pmid": "42791366",
+   "doi": "10.1038/s41581-026-01128-3",
+   "title": "Recommendations for the management of frailty in chronic kidney disease: a consensus report.",
+   "abstract": "Frailty is highly prevalent in patients with chronic kidney disease (CKD) and is associated with increased mortality, hospitalization and disability and with poorer quality of life. Despite its prognostic importance, substantial knowledge gaps remain with regard to the optimal tools for assessing frailty in CKD settings, the extent to which frailty can be reversed through targeted interventions, and how frailty should inform decision-making between conservative kidney management and kidney replacement therapy (KRT). This consensus report provides 63 consensus statements across four domains covering the assessment of frailty, interventions aimed at targeting the modifiable contributors to frailty in patients with CKD, considerations related to conservative kidney management and KRT, and the management of stage 5 CKD in the presence of frailty. Key recommendations include the need for routine frailty screening using multi-dimensional tools; the implementation of interventions to target physical activity with a focus on resistance training, adequate dietary protein intake, medication optimization and comprehensive geriatric assessment; a frailty-informed, person-centred framework for shared decision-making that emphasizes transparent communication, goal elicitation and cultural safety; and flexible KRT delivery - including less intensive dialysis schedules, assisted home dialysis and transplant eligibility assessment - guided by serial frailty measurement. The report concludes with priority research questions and a patient partner's reflections on the co-production of consensus statements.",
+   "journal": "Nature reviews. Nephrology",
+   "journalAbbr": "Nat Rev Nephrol",
    "year": "2026",
-   "authors": "Kim C i in.",
-   "authorCount": 2,
+   "authors": "Li PK i in.",
+   "authorCount": 29,
    "pubTypes": [
     "Journal Article",
-    "Randomized Controlled Trial"
+    "Review"
    ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42796273/",
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42791366/",
    "topics": [
-    "prehab"
+    "stanowiska"
    ],
    "topJournal": false,
    "firstSeen": "2026-09-28T10:16:47.635Z",
-   "score": 4,
+   "score": 0,
    "ai": {
-    "titlePl": "Wpływ ćwiczeń elastyczności klatki piersiowej na ból, zakres ruchu i wyrównanie kręgosłupa u pacjentów z bólem szyi i przepukliną głowy",
-    "summary": "Badanie porównało ćwiczenia elastyczności klatki piersiowej (TFE) z ćwiczeniami stabilizacyjnymi szyi (CSE) u 24 pacjentów z przewlekłym bólem szyi i nieprawidłową postawą głowy przez 4 tygodnie (3x na tydzień). Grupa TFE wykazała znaczące poprawy we wszystkich miarach wyników (p < 0,001), podczas gdy CSE poprawiła ból i zakres ruchu szyi, ale nie wpłynęła znacząco na zakres ruchu klatki piersiowej ani kątowość kifotyczną.",
-    "takeaway": "Dla pacjentów z bólem szyi i przepukliną głowy warto włączyć ćwiczenia elastyczności klatki piersiowej jako główny komponent programu, szczególnie jeśli ćwiczenia stabilizacyjne szyi nie przynoszą oczekiwanych rezultatów.",
-    "population": "Pacjenci z przewlekłym bólem szyi i przepukliną głowy, n=24 (12 w każdej grupie)",
-    "limits": "Mała próba (n=24), krótki okres obserwacji (4 tygodnie), brak grupy kontrolnej bez interwencji",
-    "relevance": 4
+    "titlePl": "Zalecenia postępowania w kruchości u pacjentów z przewlekłą chorobą nerek",
+    "summary": "Przegląd konsensusu omawiający kruchość u pacjentów z przewlekłą chorobą nerek (CKD), która jest związana ze zwiększoną śmiertelnością, hospitalizacją i niepełnosprawnością. Raport zawiera 63 stwierdzenia konsensusu dotyczące oceny kruchości, interwencji (trening siłowy, odpowiednia ilość białka, optymalizacja leków) oraz personalizowanego podejmowania decyzji dotyczących terapii nerkozastępczej.",
+    "takeaway": "Dla pacjentów z CKD warto rutynowo screenować kruchość i wdrażać trening siłowy oraz zapewniać adekwatne spożycie białka, ale znaczenie praktyczne zależy od stopnia CKD i ogólnego stanu pacjenta.",
+    "population": "Pacjenci z przewlekłą chorobą nerek (CKD) w różnych stadiach, w tym przed i po transplantacji; przegląd obejmuje całą populację nerkową",
+    "limits": "Przegląd konsensusu – brak oryginalnych danych badawczych; zalecenia oparte na opinii ekspertów; populacja kliniczna (chorzy nerkowi), nie typowi klienci siłowni",
+    "relevance": 2
    }
   },
   {
@@ -507,38 +1290,6 @@
     "population": "Pacjenci z przewlekłym zespołem wieńcowym i chorobą wieńcową, różne zaburzenia funkcji lewej komory",
     "limits": "Przegląd narracyjny; brak zwalidowania efektów na funkcję lewej komory w dużych współczesnych badaniach; rzadkie działania niepożądane neurologiczne ograniczają stosowanie",
     "relevance": 1
-   }
-  },
-  {
-   "pmid": "42791366",
-   "doi": "10.1038/s41581-026-01128-3",
-   "title": "Recommendations for the management of frailty in chronic kidney disease: a consensus report.",
-   "abstract": "Frailty is highly prevalent in patients with chronic kidney disease (CKD) and is associated with increased mortality, hospitalization and disability and with poorer quality of life. Despite its prognostic importance, substantial knowledge gaps remain with regard to the optimal tools for assessing frailty in CKD settings, the extent to which frailty can be reversed through targeted interventions, and how frailty should inform decision-making between conservative kidney management and kidney replacement therapy (KRT). This consensus report provides 63 consensus statements across four domains covering the assessment of frailty, interventions aimed at targeting the modifiable contributors to frailty in patients with CKD, considerations related to conservative kidney management and KRT, and the management of stage 5 CKD in the presence of frailty. Key recommendations include the need for routine frailty screening using multi-dimensional tools; the implementation of interventions to target physical activity with a focus on resistance training, adequate dietary protein intake, medication optimization and comprehensive geriatric assessment; a frailty-informed, person-centred framework for shared decision-making that emphasizes transparent communication, goal elicitation and cultural safety; and flexible KRT delivery - including less intensive dialysis schedules, assisted home dialysis and transplant eligibility assessment - guided by serial frailty measurement. The report concludes with priority research questions and a patient partner's reflections on the co-production of consensus statements.",
-   "journal": "Nature reviews. Nephrology",
-   "journalAbbr": "Nat Rev Nephrol",
-   "year": "2026",
-   "authors": "Li PK i in.",
-   "authorCount": 29,
-   "pubTypes": [
-    "Journal Article",
-    "Review"
-   ],
-   "evidence": "review",
-   "evidenceLabel": "Przegląd",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42791366/",
-   "topics": [
-    "stanowiska"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-28T10:16:47.635Z",
-   "score": 0,
-   "ai": {
-    "titlePl": "Zalecenia postępowania w kruchości u pacjentów z przewlekłą chorobą nerek",
-    "summary": "Przegląd konsensusu omawiający kruchość u pacjentów z przewlekłą chorobą nerek (CKD), która jest związana ze zwiększoną śmiertelnością, hospitalizacją i niepełnosprawnością. Raport zawiera 63 stwierdzenia konsensusu dotyczące oceny kruchości, interwencji (trening siłowy, odpowiednia ilość białka, optymalizacja leków) oraz personalizowanego podejmowania decyzji dotyczących terapii nerkozastępczej.",
-    "takeaway": "Dla pacjentów z CKD warto rutynowo screenować kruchość i wdrażać trening siłowy oraz zapewniać adekwatne spożycie białka, ale znaczenie praktyczne zależy od stopnia CKD i ogólnego stanu pacjenta.",
-    "population": "Pacjenci z przewlekłą chorobą nerek (CKD) w różnych stadiach, w tym przed i po transplantacji; przegląd obejmuje całą populację nerkową",
-    "limits": "Przegląd konsensusu – brak oryginalnych danych badawczych; zalecenia oparte na opinii ekspertów; populacja kliniczna (chorzy nerkowi), nie typowi klienci siłowni",
-    "relevance": 2
    }
   },
   {
