@@ -4661,9 +4661,13 @@ async function liveSaveSessionWithPackage(sess){
     const res=await window._runTransaction(window._db,async tx=>{
       const pref=window._doc(window._db,'packages',local._fbId||local.id);
       const sref=window._doc(window._db,'sessions',sess._fbId||sess.id);
+      // Najpierw stan treningu w bazie: ponowienie po zgubionym potwierdzeniu nie odlicza drugi raz.
+      const sSnap=await tx.get(sref);
+      const prev=sSnap&&sSnap.exists()?sSnap.data():null;
       const snap=await tx.get(pref);
       const d=snap&&snap.exists()?snap.data():null;
       const payload={...sess};delete payload._fbId;
+      if(prev&&prev.pkgTick){tx.set(sref,{...payload,pkgTick:true,pkgId:prev.pkgId||local.id},{merge:true});return{used:d?Number(d.sessionsUsed)||0:null,already:true,pkgId:prev.pkgId||local.id};}
       const usable=d&&d.trainerId===sess.trainerId&&d.clientId===sess.clientId&&d.payStatus==='paid'&&(Number(d.sessionsUsed)||0)<(Number(d.sessions)||0);
       if(!usable){tx.set(sref,payload,{merge:true});return{used:null};}
       const used=(Number(d.sessionsUsed)||0)+1;
@@ -4674,7 +4678,10 @@ async function liveSaveSessionWithPackage(sess){
     if(window._uid!==uid||window.tenantSessionGeneration!==gen)return{saved:null,pkg:null};
     if(!sess._fbId)sess._fbId=sess.id;
     if(!res||res.used==null)return{saved:sess,pkg:null};
-    sess.pkgTick=true;sess.pkgId=local.id;local.sessionsUsed=res.used;
+    sess.pkgTick=true;sess.pkgId=res.pkgId||local.id;
+    if(res.pkgId&&res.pkgId!==local.id)return{saved:sess,pkg:null};
+    local.sessionsUsed=res.used;
+    if(res.already)return{saved:sess,pkg:local};
     const left=Math.max(0,(local.sessions||0)-res.used);
     if(left<=1&&typeof addNotification==='function'){
       const c=(window.CL||[]).find(x=>x&&x.id===sess.clientId);

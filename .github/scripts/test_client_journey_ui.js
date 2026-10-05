@@ -83,6 +83,7 @@ const CLIENTS = [
       const out = await fn(tx);
       if (window.__failNextCommit) { window.__failNextCommit = false; throw Object.assign(new Error('commit lost'), { code: 'unavailable' }); }
       staged.forEach(w => w());
+      if (window.__failNextCommitAfterApply) { window.__failNextCommitAfterApply = false; throw Object.assign(new Error('ack lost'), { code: 'unavailable' }); }
       return out;
     };
     window.confirm = () => true;
@@ -225,6 +226,23 @@ const CLIENTS = [
   const pkgBack = await page.evaluate(async () => { await new Promise(r => setTimeout(r, 50)); return { used: window.PACKAGES[0].sessionsUsed, db: (window.__store.get('packages/pkB') || {}).sessionsUsed }; });
   ok('back online: package counted once for the recovered workout', pkgBack.used === 4 && pkgBack.db === 4, JSON.stringify(pkgBack));
   ok('back online: queued workout saved once and queue cleared', back.stored === 10 && back.pending === 0 && back.notes.some(n => /Zapisano 1 trening/.test(n)), JSON.stringify(back));
+  // Zgubione potwierdzenie: transakcja zapisała się, ale odpowiedź nie dotarła → ponowienie nie odlicza drugi raz.
+  await page.clock.setFixedTime(new Date('2026-10-02T09:00:00'));
+  const lost = await page.evaluate(async () => {
+    window.__notes = [];
+    const before = (window.__store.get('packages/pkB') || {}).sessionsUsed;
+    window.__failNextCommitAfterApply = true;
+    liveClientSetField('cB', 'Bartek Średni', false, 0);
+    liveSelectPlan('plB', 0);
+    liveSetKg(0, 0, '82.5', 0); liveSetReps(0, 0, '10', 0); liveSetRir(0, 0, '2', 0); liveToggleSet(0, 0, 0);
+    liveAskEndSession(0); liveConfirmEnd();
+    await new Promise(r => setTimeout(r, 100));
+    const queued = JSON.parse(localStorage.getItem('pl_live_pending_sessions_v1') || '[]').length;
+    await Promise.all([window.liveFlushPendingSessions(), window.liveFlushPendingSessions()]);
+    return { before, after: (window.__store.get('packages/pkB') || {}).sessionsUsed, local: window.PACKAGES[0].sessionsUsed, queued,
+      left: JSON.parse(localStorage.getItem('pl_live_pending_sessions_v1') || '[]').length };
+  });
+  ok('lost confirmation: retry charges the package once', lost.after === lost.before + 1 && lost.local === lost.after && lost.queued === 1 && lost.left === 0, JSON.stringify(lost));
   const reload = await page.evaluate(async () => {
     // Inny trener na tym samym urządzeniu nie wysyła cudzych treningów.
     localStorage.setItem('pl_live_pending_sessions_v1', JSON.stringify([{ id: 'foreign-s', trainerId: 'someone-else', clientId: 'x', date: '2026-10-01', exercises: [] }]));
