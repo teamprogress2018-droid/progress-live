@@ -3530,6 +3530,9 @@ body,
 .live-ex-cue-why .live-ex-cue-v{font-weight:500;color:var(--text-secondary);}
 @media (max-width:640px){.live-ex-cue-why{display:none;}.live-ex-cue.why-open .live-ex-cue-why{display:flex;}}
 .live-suggestion[role="button"]{cursor:pointer;}
+.cp-ov-next-count{text-transform:none;letter-spacing:0;font-weight:600;color:var(--text-secondary);}
+.live-ex-cue-limit{flex-basis:100%;}
+.live-ex-cue-limit .live-ex-cue-v{color:var(--accent);font-weight:700;}
 .live-ex-cue-note{font-weight:500;color:var(--text-secondary);}
 .live-ex-cue-more{color:var(--text-secondary);font-weight:500;}
 @media (min-width:641px){.live-ex-cue-more{display:none;}}

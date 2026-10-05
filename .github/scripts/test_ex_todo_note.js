@@ -22,10 +22,10 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=126'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=90'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=91'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=82'));
 ok('cache 10', html.includes('10-client-app.js?v=42'));
-ok('cache styles', html.includes('styles.css?v=121'));
+ok('cache styles', html.includes('styles.css?v=122'));
 ok('CI unit', wf.includes('test_ex_todo_note.js'));
 ok('CI readable ui', wf.includes('test_live_readable_ui.js'));
 
