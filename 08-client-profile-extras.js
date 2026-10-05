@@ -2596,6 +2596,8 @@ function cpOverviewRecs(c,opts){
       cta:{label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`}
     });
   }
+  const owed=typeof payActionItems==='function'?payActionItems().find(it=>it.clientId===id&&it.kind==='overdue'):null;
+  if(owed)recs.push({priority:2,order:3.8,kind:'payment',tone:'watch',title:'Zaległa płatność — '+owed.tag.toLowerCase(),reason:owed.meta+'.',cta:{label:'Płatności',onclick:`setCPTab('payments')`}});
   const report=typeof cpOverviewReportDue==='function'?cpOverviewReportDue(c):null;
   if(report)recs.push({priority:3,order:6,kind:'report',tone:'info',title:report.title,reason:report.reason,cta:{label:'Przygotuj raport',onclick:`openReportForClient('${id}',28)`}});
   const plan2=typeof latestClientPlan==='function'?latestClientPlan(id):null;

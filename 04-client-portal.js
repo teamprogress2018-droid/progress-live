@@ -6583,7 +6583,19 @@ function renderDashOps(){
     },`<div class="dash-ops-empty">Brak niedawno ukończonych treningów.</div>`);
   }
 
-  if(expEl){
+  if(expEl&&typeof payActionItems==='function'){
+    // Zaległe płatności, wykorzystane i kończące się pakiety, wygasające — każdy pakiet raz, najpilniejsze pierwsze.
+    const acts=payActionItems().filter(it=>it.kind!=='pending');
+    const col={overdue:'var(--red)',usedup:'var(--orange)',low:'var(--orange)',expiring:'var(--orange)'};
+    expEl.innerHTML=dashListSection('dash-expiring',acts,it=>`<div class="dash-ops-item" data-pay-action="${esc(it.kind)}">
+      <span class="dash-ops-tag" style="background:${col[it.kind]}22;color:${col[it.kind]};">${esc(it.tag)}</span>
+      <div class="dash-ops-item-body">
+        <div class="dash-ops-item-title">${esc(it.name)}</div>
+        <div class="dash-ops-item-meta">${esc(it.meta)}</div>
+      </div>
+      ${payActionButtonHTML(it)}
+    </div>`,`<div class="dash-ops-empty">Brak zaległości i pakietów do odnowienia.</div>`);
+  }else if(expEl){
     const pkgs=dashOpsExpiringPackages(7);
     expEl.innerHTML=dashListSection('dash-expiring',pkgs,p=>{
       const name=esc(p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient');
@@ -6909,7 +6921,7 @@ function dashClientBrief(c){
   try{
     const recs=typeof cpOverviewRecs==='function'?cpOverviewRecs(c,{all:true}):[];
     // Przed treningiem najważniejsze: ograniczenie vs plan, potem decyzja o ciężarze, potem reszta.
-    const order=['limit','lift','sleep','massgoal','adherence','checkin','nolog'];
+    const order=['limit','lift','payment','sleep','massgoal','adherence','checkin','nolog'];
     const r=(recs||[]).filter(x=>x&&order.includes(x.kind)).sort((a,b)=>order.indexOf(a.kind)-order.indexOf(b.kind))[0];
     if(r)out.attn={title:r.title,reason:r.reason||'',tone:r.kind==='limit'?'act':'watch'};
   }catch(e){}

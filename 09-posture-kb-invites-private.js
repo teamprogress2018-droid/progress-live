@@ -564,14 +564,72 @@ function setPayTab(t){
   if(t==='history')renderPayHistory();
 }
 
+/* ETAP 9: jedna lista „do zrobienia” w płatnościach — zaległości, wykorzystane, kończące się wejścia, wygasające pakiety.
+   Każdy pakiet raz, z najpilniejszym powodem. */
+const PAY_OVERDUE_DAYS=7;
+function payYmd(d){const p=x=>String(x).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function payDaysBetween(a,b){const x=new Date(String(a).slice(0,10)+'T12:00:00'),y=new Date(String(b).slice(0,10)+'T12:00:00');return isNaN(x)||isNaN(y)?null:Math.round((y-x)/86400000);}
+function payActionItems(opts){
+  opts=opts||{};
+  const today=opts.today||(typeof todayYmd==='function'?todayYmd():payYmd(new Date()));
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  const items=[];
+  (typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).forEach(p=>{
+    if(!p||p.archived||p.deleted||p.status==='archived')return;
+    if(p.clientId&&live.size&&!live.has(p.clientId))return;
+    const name=p.clientName||((window.CL||[]).find(c=>c&&c.id===p.clientId)||{}).name||'Klient';
+    const sessions=Number(p.sessions)||0,used=Number(p.sessionsUsed)||0,left=Math.max(0,sessions-used);
+    const expired=p.status==='expired'||p.payStatus==='expired'||(p.expiresDate&&String(p.expiresDate)<today);
+    const exDays=p.expiresDate?payDaysBetween(today,p.expiresDate):null;
+    const unpaid=p.payStatus==='pending'||p.payStatus==='partial';
+    const since=unpaid?payDaysBetween(String(p.date||p.createdAt||today).slice(0,10),today):null;
+    const asked=p.paymentRequestedAt?payDaysBetween(String(p.paymentRequestedAt).slice(0,10),today):null;
+    const askedTxt=asked==null?'prośba nie wysłana':asked===0?'prośba wysłana dziś':asked===1?'prośba wysłana wczoraj':'prośba wysłana '+asked+' dni temu';
+    const price=(Number(p.price)||0).toLocaleString('pl')+' zł';
+    let it=null;
+    if(unpaid&&since!=null&&since>=PAY_OVERDUE_DAYS)it={kind:'overdue',rank:0,urgency:since,tag:'Zaległość '+since+' dni',meta:(p.title||'Pakiet')+' · '+price+' · '+askedTxt,cta:'remind'};
+    else if(!expired&&sessions>0&&left===0)it={kind:'usedup',rank:1,urgency:0,tag:'Wykorzystany',meta:(p.title||'Pakiet')+' · '+used+'/'+sessions+' wejść',cta:'renew'};
+    else if(!expired&&sessions>0&&left<=2)it={kind:'low',rank:2,urgency:-left,tag:left===1?'Zostało 1 wejście':'Zostały '+left+' wejścia',meta:(p.title||'Pakiet')+' · '+used+'/'+sessions+' wejść',cta:'renew'};
+    else if(!expired&&exDays!=null&&exDays>=0&&exDays<=7)it={kind:'expiring',rank:3,urgency:-exDays,tag:exDays===0?'Wygasa dziś':'Wygasa za '+exDays+' '+(exDays===1?'dzień':'dni'),meta:(p.title||'Pakiet')+' · '+price+' · '+p.expiresDate,cta:'renew'};
+    else if(unpaid)it={kind:'pending',rank:4,urgency:since||0,tag:'Do zapłaty',meta:(p.title||'Pakiet')+' · '+price+' · '+askedTxt,cta:'remind'};
+    if(it)items.push({...it,pkgId:p.id,clientId:p.clientId,name,remindable:unpaid&&(asked==null||asked>=2)});
+  });
+  return items.sort((a,b)=>(a.rank-b.rank)||(b.urgency-a.urgency)||String(a.name).localeCompare(String(b.name)));
+}
+window.payActionItems=payActionItems;
+function payActionButtonHTML(it){
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  if(it.cta==='remind')return it.remindable
+    ?`<button class="btn btn-ghost btn-sm" data-pay-remind="${esc(it.pkgId)}" onclick="requestPayment('${esc(it.pkgId)}')">Przypomnij</button>`
+    :`<button class="btn btn-ghost btn-sm" disabled title="Ostatnia prośba była niedawno">Przypomniano</button>`;
+  return `<button class="btn btn-primary btn-sm" data-pay-renew="${esc(it.pkgId)}" onclick="payRenewPackage('${esc(it.pkgId)}')">Odnów</button>`;
+}
+window.payActionButtonHTML=payActionButtonHTML;
+/** „Odnów”: formularz nowego pakietu z tym samym klientem, nazwą, typem, wejściami, ceną i ważnością. */
+function payRenewPackage(pkgId){
+  const p=(typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).find(x=>x&&x.id===pkgId);
+  if(!p)return;
+  if(typeof openPackageForClient==='function')openPackageForClient(p.clientId);
+  window._onboardResumeAfterPackage=null;
+  const bar=document.getElementById('pkg-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!=='')el.value=String(v);};
+  set('pkg-title',p.title);set('pkg-type',p.type);set('pkg-sessions',p.sessions);set('pkg-price',p.price);
+  const valid=p.date&&p.expiresDate?payDaysBetween(p.date,p.expiresDate):null;
+  if(valid&&valid>0)set('pkg-validity',valid);
+  set('pkg-date',typeof todayYmd==='function'?todayYmd():payYmd(new Date()));
+  set('pkg-pay-status','pending');
+  if(typeof notify==='function')notify('Nowy pakiet na podstawie: '+(p.title||'pakiet')+' — sprawdź i zapisz.');
+}
+window.payRenewPackage=payRenewPackage;
+
 function renderPayOverview(){
   const all=allPackages();
   const today=new Date();
   const thisMonth=today.toISOString().slice(0,7);
 
   // stats
-  const monthly=all.filter(p=>p.date&&p.date.startsWith(thisMonth)&&p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
-  const annual=all.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+  const monthly=all.filter(p=>p.date&&p.date.startsWith(thisMonth)&&p.payStatus==='paid').reduce((s,p)=>s+(Number(p.price)||0),0);
+  const annual=all.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+(Number(p.price)||0),0);
   const active=all.filter(p=>p.expiresDate&&p.expiresDate>=today.toISOString().split('T')[0]&&p.sessionsUsed<p.sessions).length;
   const expiring=all.filter(p=>{
     if(!p.expiresDate)return false;
@@ -599,7 +657,7 @@ function renderPayOverview(){
       <div style="font-size:11px;color:var(--muted);">${p.title}</div>
     </div>
     <div style="color:var(--muted);align-self:center;">${p.date||'—'}</div>
-    <div style="font-weight:700;color:var(--accent);align-self:center;">${p.price.toLocaleString('pl')} zł</div>
+    <div style="font-weight:700;color:var(--accent);align-self:center;">${(Number(p.price)||0).toLocaleString('pl')} zł</div>
     <div style="align-self:center;"><span class="pill ${PAY_STATUS_PILL[p.payStatus]||'pill-muted'}" style="font-size:10px;">${PAY_STATUS_LABEL[p.payStatus]||p.payStatus}</span></div>
   </div>`).join('');
 
@@ -607,7 +665,7 @@ function renderPayOverview(){
   const pal=document.getElementById('pay-active-list');
   const activePkgs=all.filter(p=>p.expiresDate&&p.expiresDate>=today.toISOString().split('T')[0]&&p.sessionsUsed<p.sessions).slice(0,4);
   pal.innerHTML=activePkgs.length?activePkgs.map(p=>{
-    const pct=Math.round(p.sessionsUsed/p.sessions*100);
+    const pct=Number(p.sessions)>0?Math.round((Number(p.sessionsUsed)||0)/Number(p.sessions)*100):0;
     const col=PKG_TYPE_COLOR[p.type]||'var(--accent)';
     const daysLeft=p.expiresDate?Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24)):null;
     return `<div class="card-sm" style="margin-bottom:8px;border-left:3px solid ${col};">
@@ -621,32 +679,14 @@ function renderPayOverview(){
     </div>`;
   }).join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px;">Brak aktywnych pakietów</div>';
 
-  // alerts
+  // alerts: jedna lista do zrobienia (zaległości → wykorzystane → kończące się → wygasające → do zapłaty)
   const alerts=document.getElementById('pay-alerts-list');
-  const expPkgs=all.filter(p=>{
-    if(!p.expiresDate)return false;
-    const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
-    return diff>=0&&diff<=7;
-  });
-  const pendPkgs=all.filter(p=>p.payStatus==='pending');
-  let alertsHTML='';
-  expPkgs.forEach(p=>{
-    const d=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
-    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">⏰</span><div><div style="font-weight:600;">${p.clientName}</div><div style="color:var(--orange);">Pakiet wygasa za ${d} ${d===1?'dzień':'dni'}</div></div></div>`;
-  });
-  const lowPkgs=all.filter(p=>{
-    const left=(p.sessions||0)-(p.sessionsUsed||0);
-    return p.payStatus!=='expired'&&left>0&&left<=2;
-  });
-  lowPkgs.forEach(p=>{
-    const left=(p.sessions||0)-(p.sessionsUsed||0);
-    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">📉</span><div><div style="font-weight:600;">${escHtml(p.clientName||'')}</div><div style="color:var(--orange);">Został${left===1?'a':'o'} ${left} ${left===1?'sesja':'sesje'}</div></div></div>`;
-  });
-  pendPkgs.forEach(p=>{
-    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">💳</span><div style="flex:1;"><div style="font-weight:600;">${escHtml(p.clientName||'')}</div><div style="color:var(--red);">Oczekująca płatność — ${(p.price||0).toLocaleString('pl')} zł</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś</button></div>`;
-  });
-  alerts.innerHTML=alertsHTML||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Brak alertów ✓</div>';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const icons={overdue:'💳',usedup:'🔁',low:'📉',expiring:'⏰',pending:'🧾'};
+  const tone={overdue:'var(--red)',usedup:'var(--orange)',low:'var(--orange)',expiring:'var(--orange)',pending:'var(--muted)'};
+  const acts=payActionItems();
+  if(alerts)alerts.innerHTML=acts.length?acts.map(it=>`<div class="pay-alert" data-pay-action="${esc(it.kind)}" data-pkg-id="${esc(it.pkgId)}"><span style="font-size:18px;">${icons[it.kind]||'•'}</span><div style="flex:1;"><div style="font-weight:600;">${esc(it.name)}</div><div style="color:${tone[it.kind]};">${esc(it.tag)}</div><div style="font-size:11px;color:var(--muted);">${esc(it.meta)}</div></div>${payActionButtonHTML(it)}</div>`).join('')
+    :'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Brak alertów ✓</div>';
 }
 
 function renderPayChart(){
@@ -699,7 +739,7 @@ function renderPayPackages(){
   if(!grid)return;
   grid.innerHTML=all.map((p,i)=>{
     const col=PKG_TYPE_COLOR[p.type]||'var(--accent)';
-    const pct=Math.round(p.sessionsUsed/p.sessions*100);
+    const pct=Number(p.sessions)>0?Math.round((Number(p.sessionsUsed)||0)/Number(p.sessions)*100):0;
     const isExpired=p.expiresDate&&p.expiresDate<today;
     const daysLeft=p.expiresDate?Math.ceil((new Date(p.expiresDate)-new Date())/(1000*60*60*24)):null;
     return `<div class="pkg-card" data-client-id="${escHtml(p.clientId||'')}" data-pkg-id="${escHtml(p.id||'')}" style="animation-delay:${i*0.04}s">
@@ -714,7 +754,7 @@ function renderPayPackages(){
         </div>
         <div style="display:flex;gap:10px;margin-bottom:10px;">
           <div style="text-align:center;flex:1;background:var(--s3);border-radius:8px;padding:8px;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${col};">${p.price.toLocaleString('pl')}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${col};">${(Number(p.price)||0).toLocaleString('pl')}</div>
             <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">PLN</div>
           </div>
           <div style="text-align:center;flex:1;background:var(--s3);border-radius:8px;padding:8px;">
