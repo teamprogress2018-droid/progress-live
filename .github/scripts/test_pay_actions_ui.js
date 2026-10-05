@@ -57,7 +57,6 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     window.__writes = []; window.__msgs = [];
     document.querySelector('#pay-alerts-list [data-pay-remind="p-over"]').click();
     await new Promise(r => setTimeout(r, 50));
-    renderPayOverview();
     const w = window.__writes.find(x => x.c === 'packages');
     const btn = document.querySelector('#pay-alerts-list [data-pkg-id="p-over"] button');
     return { msg: window.__msgs.length, keys: w ? Object.keys(w.o).sort() : [], btn: btn ? btn.innerText + (btn.disabled ? ':disabled' : '') : '', text: (document.querySelector('#pay-alerts-list [data-pkg-id="p-over"]') || {}).innerText || '' };
@@ -76,6 +75,15 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   });
   await page.screenshot({ path: path.join(shotDir, 'pay_renew.png') });
   ok('Odnów: new package form prefilled from the old one', renew.open && renew.client === 'd' && renew.title === '10 wejść' && renew.sessions === '10' && renew.price === '1500' && renew.validity === '90' && renew.date === '2026-10-06' && renew.pay === 'pending', JSON.stringify(renew));
+  const draft = await page.evaluate(() => {
+    if (typeof closeM === 'function') closeM('m-package');
+    packageSaveDrafts.set('b', { values: { client: 'b', title: 'Niedokończony', sessions: '8' }, client: { id: 'b' } });
+    document.getElementById('pkg-title').value = 'X';
+    payRenewPackage('p-used');
+    const t = document.getElementById('pkg-title').value; packageSaveDrafts.delete('b');
+    return t;
+  });
+  ok('Odnów keeps an unfinished package save for that client', draft !== '10 wejść', draft);
   ok('Odnów: no onboarding banner or resume', renew.banner === 'none' && !renew.onboard, JSON.stringify(renew));
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await browser.close();

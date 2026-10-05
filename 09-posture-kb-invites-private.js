@@ -611,6 +611,11 @@ function payRenewPackage(pkgId){
   if(!p)return;
   if(typeof openPackageForClient==='function')openPackageForClient(p.clientId);
   window._onboardResumeAfterPackage=null;
+  // Niedokończony zapis pakietu tego klienta ma pierwszeństwo — nie nadpisujemy go nowymi wartościami.
+  if(typeof packageSaveDrafts!=='undefined'&&packageSaveDrafts.has(p.clientId)){
+    if(typeof notify==='function')notify('Ten klient ma niedokończony zapis pakietu — najpierw go zapisz albo anuluj.');
+    return;
+  }
   const bar=document.getElementById('pkg-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!=='')el.value=String(v);};
   set('pkg-title',p.title);set('pkg-type',p.type);set('pkg-sessions',p.sessions);set('pkg-price',p.price);
@@ -859,6 +864,9 @@ function clientNotifyPaid(pkgId){
 window.clientNotifyPaid=clientNotifyPaid;
 
 function refreshPaySurfaces(){
+  // Lista „do zrobienia” w Płatnościach i na pulpicie od razu pokazuje nowy stan (np. zablokowane „Przypomnij”).
+  try{if(document.getElementById('pay-alerts-list')&&typeof renderPayOverview==='function')renderPayOverview();}catch(e){}
+  try{if(document.getElementById('d-ops-expiring')&&typeof renderDashOps==='function')renderDashOps();}catch(e){}
   try{if(typeof renderDashPayFollowup==='function')renderDashPayFollowup();}catch(e){}
   try{if(typeof renderClientLive==='function'&&window._clientAppMode)renderClientLive();}catch(e){}
   try{if(typeof updateClientLiveNavBadges==='function'&&window._clientAppMode){
