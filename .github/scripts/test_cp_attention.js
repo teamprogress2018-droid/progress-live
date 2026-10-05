@@ -32,6 +32,8 @@ c=ctx(metrics([['2026-09-20',80],['2026-09-24',80],['2026-09-28',80]]));
 assert.equal(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),null);ok('under 14 days → too early, quiet');
 c=ctx(metrics([['2026-09-01',80],['2026-09-15',80],['2026-09-29',79.9]]));
 assert.ok(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),'biweekly');ok('biweekly weigh-ins (28 days) still flagged');
+c=ctx(metrics([['2026-08-21',80],['2026-09-04',80],['2026-09-18',79.9]]));
+assert.ok(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),'biweekly 12 days old');ok('biweekly series with last weigh-in 12 days ago still flagged');
 c=ctx(Object.assign(metrics([['2026-07-01',80],['2026-07-10',80],['2026-07-20',80]]),{}));
 assert.equal(c.cpOverviewMassGoalFact({id:'a',goal:'redukcja'}),null);ok('stale data (last weigh-in >14 days ago) → quiet');
 assert.equal(c.cpClientLimitConflicts({notes:'ból przedramienia, przedramię'},['OHP']).length,0);ok('forearm is not shoulder');

@@ -2479,10 +2479,10 @@ function cpOverviewMassGoalFact(c){
   if(series.length<3)return null;
   const last=series[series.length-1];
   const today=typeof cpOverviewTodayYmd==='function'?cpOverviewTodayYmd():String(last.d).slice(0,10);
-  // Tylko aktualne dane: ostatni pomiar ≤14 dni temu, okno 5 tygodni od dziś (łapie też pomiary co 2 tyg.).
+  // Tylko aktualne dane: ostatni pomiar ≤14 dni temu; okno 5 tygodni wstecz od ostatniego pomiaru (łapie pomiary co 2 tyg.).
   const fresh=typeof cpOverviewDaysBetween==='function'?cpOverviewDaysBetween(String(last.d).slice(0,10),today):0;
   if(fresh==null||fresh>14)return null;
-  const cutoff=typeof cpOverviewYmdAdd==='function'?cpOverviewYmdAdd(today,-35):'';
+  const cutoff=typeof cpOverviewYmdAdd==='function'?cpOverviewYmdAdd(String(last.d).slice(0,10),-35):'';
   const win=series.filter(p=>String(p.d||'')>=cutoff);
   if(win.length<3)return null;
   const first=win[0];
