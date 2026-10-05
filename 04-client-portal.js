@@ -4901,8 +4901,9 @@ function clientReportSummary(clientId,from,to){
   // Kalendarz liczy się tylko, gdy pokrywa cały okres; inaczej oczekiwane treningi z planu (dni/tydz. × tygodnie).
   const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):null;
   const perWeek=((plan&&plan.days)||[]).filter(d=>d&&!d.rest&&(d.exercises||[]).length).length;
-  const firstPlanned=[...planned].sort()[0]||'';
-  const calendarCovers=planned.size&&firstPlanned<=repYmdAdd(from,7);
+  const plannedSorted=[...planned].sort();
+  const firstPlanned=plannedSorted[0]||'',lastPlanned=plannedSorted[plannedSorted.length-1]||'';
+  const calendarCovers=planned.size&&firstPlanned<=repYmdAdd(from,7)&&lastPlanned>=repYmdAdd(to,-7);
   let expected=calendarCovers?planned.size:(perWeek?Math.round(perWeek*days/7):planned.size);
   const training={done:loggedDays.size,expected:expected||null,text:expected?(loggedDays.size+'/'+expected+' wykonanych'):(loggedDays.size+' treningów')};
   const regularity=expected?Math.min(100,Math.round(loggedDays.size/expected*100)):null;

@@ -25,4 +25,8 @@ c.latestClientPlan=()=>({days:[{exercises:[{name:'A'}]},{exercises:[{name:'B'}]}
 c.SE.push({clientId:'c',date:'2026-10-20',source:'planned'});
 const long=c.clientReportSummary('c','2026-08-01','2026-10-24');
 assert.equal(long.training.expected,24);assert.equal(long.training.text,'2/24 wykonanych');assert.equal(long.regularity,8);ok('long window with partial calendar uses plan frequency');
+c.SE=c.SE.filter(x=>x.date!=='2026-10-20');
+['2026-08-03','2026-08-05','2026-08-10','2026-08-12'].forEach(d=>c.SE.push({clientId:'c',date:d,source:'planned'}));
+const early=c.clientReportSummary('c','2026-08-01','2026-10-24');
+assert.equal(early.training.expected,24);ok('calendar filled only at the start of a long period → plan frequency');
 console.log('PASS report summary: '+n+' checks');
