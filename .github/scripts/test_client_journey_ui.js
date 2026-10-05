@@ -246,6 +246,40 @@ const CLIENTS = [
   });
   ok('plan edited elsewhere → no overwrite, clear message, button stays', conflict.db === '85' && /zmienił się/.test(conflict.msg) && conflict.retry, JSON.stringify(conflict));
   await page.evaluate(() => { const row = window.__store.get('plans/plB'); row.days[0].exercises[0].kg = '80'; });
+  // Ten sam ruch w dwóch dniach z różnym ciężarem + tygodniowe nadpisania: zmienia się tylko wystąpienie z ciężarem z sugestii.
+  const multi = await page.evaluate(async () => {
+    const days = [
+      { day: 'Push', exercises: [{ name: 'Wyciskanie sztangi na ławce płaskiej', sets: '3', reps: '8-10', kg: '80', rir: '2', w1: { kg: '80' }, w2: { kg: '80' } }] },
+      { day: 'Push lekki', exercises: [{ name: 'Wyciskanie sztangi na ławce płaskiej', sets: '3', reps: '8-10', kg: '70' }] }];
+    const remote = window.__store.get('plans/plB'); remote.days = JSON.parse(JSON.stringify(days)); remote.weekKeys = ['w1', 'w2']; remote.currentWeek = 'w1';
+    const local = window.PL.find(p => p.id === 'plB'); local.days = JSON.parse(JSON.stringify(days)); local.weekKeys = ['w1', 'w2']; local.currentWeek = 'w1';
+    openClientProfile('cB'); const z = [...document.querySelectorAll('button')].find(x => x.innerText.trim() === 'Zamknij'); if (z) z.click();
+    setCPTab('progress');
+    const btn = document.querySelector('[data-pd-apply]');
+    const label = btn ? btn.innerText : '';
+    if (btn) await cpApplyPlanKg(btn);
+    const d = window.__store.get('plans/plB').days;
+    const after = { label, d0: d[0].exercises[0].kg, w1: d[0].exercises[0].w1.kg, w2: d[0].exercises[0].w2.kg, d1: d[1].exercises[0].kg };
+    const undoBtn = document.querySelector('[data-pd-undo]');
+    if (undoBtn) await cpApplyPlanKg(undoBtn, true);
+    const u = window.__store.get('plans/plB').days;
+    after.undo = { d0: u[0].exercises[0].kg, w1: u[0].exercises[0].w1.kg, d1: u[1].exercises[0].kg };
+    return after;
+  });
+  ok('multi-day plan: only the 80 kg day and its current/later week loads change', multi.d0 === '82.5' && multi.w2 === '82.5' && multi.d1 === '70', JSON.stringify(multi));
+  ok('multi-day plan: undo restores 80 kg there, 70 kg day untouched', multi.undo.d0 === '80' && multi.undo.w1 === '80' && multi.undo.d1 === '70', JSON.stringify(multi));
+  const fromEmpty = await page.evaluate(async () => {
+    const days = [{ day: 'Push', exercises: [{ name: 'Wyciskanie sztangi na ławce płaskiej', sets: '3', reps: '8-10', kg: '' }] }];
+    for (const p of [window.__store.get('plans/plB'), window.PL.find(x => x.id === 'plB')]) { p.days = JSON.parse(JSON.stringify(days)); delete p.weekKeys; delete p.currentWeek; }
+    setCPTab('progress');
+    const btn = document.querySelector('[data-pd-apply]'); if (btn) await cpApplyPlanKg(btn);
+    const set = window.__store.get('plans/plB').days[0].exercises[0].kg;
+    const undoBtn = document.querySelector('[data-pd-undo]'); if (undoBtn) await cpApplyPlanKg(undoBtn, true);
+    const back = window.__store.get('plans/plB').days[0].exercises[0].kg;
+    for (const p of [window.__store.get('plans/plB'), window.PL.find(x => x.id === 'plB')]) p.days[0].exercises[0].kg = '80';
+    return { set, back };
+  });
+  ok('plan without kg: apply sets it, undo clears it again', fromEmpty.set === '82.5' && fromEmpty.back === '', JSON.stringify(fromEmpty));
   await openProgress('cA');
   await page.waitForTimeout(200);
   const pdA = await page.evaluate(() => [...document.querySelectorAll('.cp-pd-row')].map(r => ({ name: r.dataset.pdEx, btn: (r.querySelector('[data-pd-apply]') || {}).innerText || '' })));

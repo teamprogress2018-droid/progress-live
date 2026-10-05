@@ -69,6 +69,7 @@ console.log('PASS cp attention: '+n+' checks');
   assert.equal(t.cpProgressTargetKg(r('down',80),'Wyciskanie sztangi'),77.5);
   assert.equal(t.cpProgressTargetKg(r('deload',100),'Przysiad ze sztangą'),90);
   assert.equal(t.cpProgressTargetKg(r('hold',80),'Wyciskanie sztangi'),null);
+  assert.equal(t.cpProgressTargetKg(r('deload',14),'Przysiad goblet'),12);assert.equal(t.cpProgressTargetKg(r('deload',13),'Wyciskanie hantli'),12);
   ok('plan target kg: up / down / deload ~10% / hold = no change');
   const plan={days:[{exercises:[{name:'Wyciskanie sztangi',sets:'3',reps:'8-10',kg:'80'},{name:'Wiosłowanie',sets:'3',reps:'10',kg:'60'}]},{exercises:[{name:'Wyciskanie sztangi',sets:'3',reps:'5',kg:'85'}]}]};
   const t2={Math,Number,String,parseFloat,console};t2.window=t2;vm.createContext(t2);
