@@ -106,9 +106,9 @@ function eq(name, got, want) {
 }
 
 ok('cache 01 frozen', html.includes('01-core.js?v=126'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=87'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=88'));
 ok('cache 08 caller', html.includes('08-client-profile-extras.js?v=88'));
-ok('cache styles', html.includes('styles.css?v=119'));
+ok('cache styles', html.includes('styles.css?v=120'));
 ok('CI 1e0z8', wf.includes('test_live_ex_cue.js') && wf.includes('1e0z8'));
 ok('CI cue UI', wf.includes('test_live_ex_cue_ui.js'));
 ok('CSS cue', styles.includes('.live-ex-cue') && styles.includes('.live-ex-cue-k') && styles.includes('.live-ns-posture'));
@@ -580,7 +580,7 @@ livePaintTodayCue(0, 0);
 ok('paint starts at session kg', /62\.5 kg/.test(painted), painted);
 ctx._liveSlot.exercises[0].sets[0].kg = '75';
 livePaintTodayCue(0, 0);
-ok('paint 75 kg immediately', /75 kg/.test(painted) && /8-10/.test(painted), painted);
+ok('paint 75 kg immediately', /75 kg/.test(painted) && /8[-–]10/.test(painted), painted);
 eq('paint did not run pipeline', packDuringPaint, 0);
 ctx.liveExCuePack = origPack;
 windowObj.liveExCuePack = origPack;

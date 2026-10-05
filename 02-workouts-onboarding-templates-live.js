@@ -3712,7 +3712,7 @@ function liveExTodayLine(ex,slot){
   const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
   const todayBits=[];
   if(todayKg!==''&&todayKg!=null)todayBits.push(String(todayKg)+(suf?(' '+suf):''));
-  if(plannedReps)todayBits.push(plannedReps);
+  if(plannedReps)todayBits.push(/^\d+(\s*[-–]\s*\d+)?$/.test(plannedReps.trim())?('zakres '+plannedReps.trim().replace(/\s*-\s*/,'–')+' powt.'):plannedReps);
   return todayBits.length?todayBits.join(' · '):'—';
 }
 window.liveExTodayLine=liveExTodayLine;
@@ -3790,6 +3790,48 @@ function liveExSuggestView(rec,todayKg){
 }
 window.liveExSuggestView=liveExSuggestView;
 
+/** Konkret do Sugestii: na jakim ciężarze i dlaczego — trener nie zgaduje, skąd liczba. Nie zmienia decyzji 7B. */
+function liveExSuggestDetail(rec,ex){
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
+  const fmt=v=>{const s=Number.isInteger(v)?String(v):String(Math.round(v*100)/100).replace('.',',');return s+(suf?' '+suf:'');};
+  const f=rec&&rec.facts||{};
+  const lastKg=Number.isFinite(f.lastKg)?f.lastKg:null;
+  const levers=rec&&rec.levers||{};
+  const step=typeof progressLoadStep==='function'?progressLoadStep(ex):2.5;
+  const rir=f.rirKnown&&Number.isFinite(f.lastRir)?' przy RIR '+f.lastRir:'';
+  const reps=Number.isFinite(f.lastReps)?f.lastReps+' powt.':'';
+  if(!rec||levers.load==='none'||rec.action==='ZA MAŁO DANYCH')
+    return{detail:'',why:'potrzebne min. 2 porównywalne treningi tego ćwiczenia w tym planie'};
+  if(levers.load==='up'){
+    const next=lastKg!=null?lastKg+step:null;
+    return{nextKg:next,detail:next!=null?'→ '+fmt(next):'',why:reps?'ostatnio górny zakres ('+reps+')'+rir+' na wszystkich seriach':'górny zakres osiągnięty z zapasem'};
+  }
+  if(levers.load==='deload')return{detail:lastKg!=null?'lżej niż '+fmt(lastKg):'',why:'kilka treningów bez postępu przy RIR 0–1 — czas na lżejszy trening'};
+  if(levers.load==='down'){
+    const next=lastKg!=null&&lastKg-step>0?lastKg-step:null;
+    return{nextKg:next,detail:next!=null?'→ '+fmt(next):'',why:'powtórzenia spadają przy tym samym ciężarze'+rir};
+  }
+  const at=lastKg!=null?fmt(lastKg):'';
+  if(levers.reps==='up')return{detail:(at?at+' · ':'')+'spróbuj dodać powtórzenie',why:rir?'zapas'+rir.replace(' przy','')+' — najpierw powtórzenia, potem ciężar':'najpierw powtórzenia, potem ciężar'};
+  const whyMap={D4:'ciężar już zszedł — utrwal go',D6:'słabszy wynik — nie tnę ciężaru po jednym treningu',D7:'jeden słabszy dzień — bez zmian',D8:'RIR 0 po podniesieniu ciężaru — najpierw go utrwal',
+    D9:'zmieniła się liczba serii — porównuję dalej',D10:'blisko limitu — nie dokładam',D11:'ciężar świeżo podniesiony — najpierw go utrwal',D12:'ciężar świeżo obniżony — najpierw go utrwal',
+    D14:'brak górnej granicy powtórzeń w planie',D17:'brak przesłanki do zmiany',D18:'za mało pewnych danych — obserwuj',D2:'brak RIR albo niejednoznaczne dane — obserwuj'};
+  const reason=String(rec.reasons&&rec.reasons[0]||'');
+  const gate=Object.keys(whyMap).find(g=>liveExReasonGate(reason)===g);
+  return{detail:at,why:gate?whyMap[gate]:''};
+}
+window.liveExSuggestDetail=liveExSuggestDetail;
+/** Mapuje tekst powodu rekomendacji na bramkę (D2–D18) po charakterystycznym fragmencie. */
+function liveExReasonGate(reason){
+  const r=String(reason||'');
+  const keys=[['D2','niska pewność'],['D4','już zszedł z kg'],['D6','sam nie każe tnąć'],['D7','słabszy trening'],['D8','(grind)'],
+    ['D9','liczba serii już się zmieniła'],['D10','nearLimit bez pełnego'],['D11','ostatnio poszedł ciężar'],['D12','ostatnio spadł ciężar'],
+    ['D14','brak zadanego stropu'],['D17','brak przesłanki do zmiany'],['D18','brak jednoznacznej przesłanki']];
+  for(const [g,k] of keys)if(r.indexOf(k)>=0)return g;
+  return '';
+}
+
 function liveExLastSummary(sets){
   const rows=Array.isArray(sets)?sets.filter(s=>s&&((s.kg!=null&&s.kg!=='')||(s.reps!=null&&s.reps!==''))):[];
   if(!rows.length)return '';
@@ -3828,12 +3870,14 @@ function liveExCueStripHtml(ex,slot,cue){
   }).join(' / ');
   const todayKg=liveExTodayKg(ex);
   const todayLine=liveExTodayLine(ex,n);
-  const suggest=liveExSuggestView(rec,todayKg);
+  const detail=liveExSuggestDetail(rec,ex);
+  const suggest=liveExSuggestView(rec&&detail.nextKg!=null&&!Number.isFinite(rec.suggestKg)?Object.assign({},rec,{suggestKg:detail.nextKg}):rec,todayKg);
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
     <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>
-    <span class="live-ex-cue-row" data-cue="today" hidden><span class="live-ex-cue-v">${esc(todayLine)}</span></span>
-    <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}</span></span>
+    <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">Dzisiaj:</span> <span class="live-ex-cue-v">${esc(todayLine)}</span></span>
+    <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}"${detail.why?' title="Dlaczego: '+esc(detail.why)+'"':''}><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}${detail.detail?' <span class="live-ex-cue-detail">'+esc(detail.detail)+'</span>':''}</span></span>
+    ${detail.why?'<span class="live-ex-cue-row live-ex-cue-why" data-cue="why"><span class="live-ex-cue-v">Dlaczego: '+esc(detail.why)+'</span></span>':''}
   </div>`;
 }
 window.liveExCueStripHtml=liveExCueStripHtml;
