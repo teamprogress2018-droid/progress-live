@@ -79,7 +79,7 @@ const CLIENTS = [
     const app = document.getElementById('app-root'); if (app) app.style.display = '';
     window.CL = CLIENTS.map(c => ({ id: c.id, trainerId: window._uid, name: c.name, goal: c.goal, level: c.level, status: 'active', notes: c.limits || '' }));
     window.PL = CLIENTS.map(c => ({ id: c.plan, trainerId: window._uid, clientId: c.id, name: 'Plan ' + c.name, goal: c.goal, level: c.level, days: c.days }));
-    window.SE = []; window.TASKS = []; window.PACKAGES = []; window.CHECKINS = {}; window.METRIC_ENTRIES = [];
+    window.SE = []; window.TASKS = []; window.PACKAGES = [{ id: 'pkB', trainerId: window._uid, clientId: 'cB', title: '10 wejść', payStatus: 'paid', status: 'active', sessions: 10, sessionsUsed: 0, expiresDate: '2027-12-31' }]; window.CHECKINS = {}; window.METRIC_ENTRIES = [];
     if (typeof goTo === 'function') goTo('live');
   }, { CLIENTS });
 
@@ -121,6 +121,10 @@ const CLIENTS = [
     ok(c.id + ': logged sets match what was done', want.every(([kg, reps, rir], ei) => lastSaved.ex[ei] && lastSaved.ex[ei].n === reps.length &&
       lastSaved.ex[ei].kg.every(k => Number(k) === kg) && lastSaved.ex[ei].reps.map(Number).join() === reps.join() && lastSaved.ex[ei].rir.every(r => String(r) === String(rir))), JSON.stringify(lastSaved.ex));
   }
+  await page.waitForTimeout(100);
+  const pkgOnline = await page.evaluate(() => ({ used: window.PACKAGES[0].sessionsUsed, db: (window.__store.get('packages/pkB') || {}).sessionsUsed,
+    ticks: [...window.__store.entries()].filter(([k, v]) => k.startsWith('sessions/') && v.clientId === 'cB' && v.pkgTick).length }));
+  ok('B: package counts 3 confirmed workouts', pkgOnline.used === 3 && pkgOnline.db === 3 && pkgOnline.ticks === 3, JSON.stringify(pkgOnline));
   const stored = await page.evaluate(() => [...window.__store.keys()].filter(k => k.startsWith('sessions/')).length);
   ok('all 9 sessions reached the database', stored === 9, String(stored));
 
@@ -194,6 +198,8 @@ const CLIENTS = [
   console.log('offline', JSON.stringify(offline));
   ok('offline save: no success message before the database confirms', !offline.notes.some(n => /Sesja zapisana/.test(n)), JSON.stringify(offline.notes));
   ok('offline save: trainer told the workout is kept', offline.notes.some(n => /zachowany na tym urządzeniu/.test(n)), JSON.stringify(offline.notes));
+  const pkgOffline = await page.evaluate(() => window.PACKAGES[0].sessionsUsed);
+  ok('offline save: package not counted before the workout is saved', pkgOffline === 3, String(pkgOffline));
   ok('offline save: workout queued on the device', offline.pending === 1 && offline.seAdded === 1 && offline.stored === 9, JSON.stringify(offline));
   const back = await page.evaluate(async () => {
     window.__notes = [];
@@ -201,6 +207,8 @@ const CLIENTS = [
     return { stored: [...window.__store.keys()].filter(k => k.startsWith('sessions/')).length,
       pending: JSON.parse(localStorage.getItem('pl_live_pending_sessions_v1') || '[]').length, notes: window.__notes.slice() };
   });
+  const pkgBack = await page.evaluate(async () => { await new Promise(r => setTimeout(r, 50)); return { used: window.PACKAGES[0].sessionsUsed, db: (window.__store.get('packages/pkB') || {}).sessionsUsed }; });
+  ok('back online: package counted once for the recovered workout', pkgBack.used === 4 && pkgBack.db === 4, JSON.stringify(pkgBack));
   ok('back online: queued workout saved once and queue cleared', back.stored === 10 && back.pending === 0 && back.notes.some(n => /Zapisano 1 trening/.test(n)), JSON.stringify(back));
   const reload = await page.evaluate(async () => {
     // Inny trener na tym samym urządzeniu nie wysyła cudzych treningów.

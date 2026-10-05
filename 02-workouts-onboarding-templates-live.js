@@ -4365,6 +4365,8 @@ function liveSwapEx(i,name,slot){
       if(s.kind!=='amrap'&&nxt.reps!=null)s.reps=String(nxt.reps);
       if(nxt.hint&&!hint)hint=nxt.hint;
     });
+    const firstWork=work.find(s=>s&&s.kg!==''&&s.kg!=null);
+    cur.prefillKg=firstWork?String(firstWork.kg):'';
     cur.progHint=hint;
   }
   if(typeof resolveCoachMedia==='function'){
@@ -4589,14 +4591,14 @@ function liveEndSession(slot){
   const ix=SE.findIndex(s=>s&&s.id===newSession.id);
   if(ix>=0)SE[ix]=newSession;else SE.push(newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
-  const pkg=typeof consumeClientPackageSession==='function'?consumeClientPackageSession(st.clientId,{date:newSession.date,session:newSession}):null;
   // Sukces dopiero po potwierdzeniu bazy; do tego czasu trening czeka w kolejce na tym urządzeniu.
   liveQueuePendingSession(newSession);
-  const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
   const clientName=c?.name||'Klient';
   Promise.resolve().then(()=>persistById('sessions',newSession)).catch(()=>null).then(saved=>{
     if(saved){
       liveDropPendingSession(newSession.id);
+      const pkg=liveConsumePackageAfterSave(newSession);
+      const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
       addNotification('system','Sesja zapisana!','Trening '+clientName+' · '+durationMin+' min · '+totalSets+' serii','clients');
       notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.'+leftTxt);
     }else{
@@ -4642,6 +4644,19 @@ function liveDropPendingSession(id){
   liveWritePendingSessions(liveReadPendingSessions().filter(x=>x&&x.id!==id));
 }
 window.liveDropPendingSession=liveDropPendingSession;
+/** Odlicz wejście z pakietu dopiero po zapisanym treningu — także dla treningu z kolejki offline. */
+function liveConsumePackageAfterSave(sess){
+  if(!sess||sess.pkgTick||typeof consumeClientPackageSession!=='function')return null;
+  const pkg=consumeClientPackageSession(sess.clientId,{date:sess.date,session:sess});
+  if(pkg&&sess.pkgTick&&typeof persistById==='function'){
+    const patch={id:sess.id,clientId:sess.clientId,pkgTick:true};
+    if(sess.trainerId)patch.trainerId=sess.trainerId;
+    if(sess._fbId)patch._fbId=sess._fbId;
+    try{Promise.resolve(persistById('sessions',patch)).catch(()=>{});}catch(e){}
+  }
+  return pkg;
+}
+window.liveConsumePackageAfterSave=liveConsumePackageAfterSave;
 /** Ponawia zapis treningów zakończonych bez połączenia. Tylko własne treningi zalogowanego trenera. */
 let livePendingFlushing=null;
 function liveFlushPendingSessions(){
@@ -4658,7 +4673,7 @@ function liveFlushPendingSessions(){
       let ok=null;
       try{ok=await persistById('sessions',sess);}catch(e){ok=null;}
       if(window._uid!==uid)break;
-      if(ok){liveDropPendingSession(sess.id);saved++;}
+      if(ok){liveDropPendingSession(sess.id);liveConsumePackageAfterSave(list.find(s=>s&&s.id===sess.id)||sess);saved++;}
     }
     if(saved&&typeof notify==='function')notify('✅ Zapisano '+saved+(saved===1?' trening':' treningi')+' zakończone bez internetu');
     return saved;
