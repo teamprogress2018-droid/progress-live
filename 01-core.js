@@ -6877,7 +6877,9 @@ function syncClientNameCache(clientId,name){
     if(!rec||rec.clientName===nm)return;
     rec.clientName=nm;
     updated++;
-    try{persist(col,rec);}catch(e){}
+    // Pakiety i faktury: tylko nazwa — pełny rekord mógłby cofnąć potwierdzony status płatności.
+    const out=col==='packages'||col==='invoices'?Object.assign({id:rec.id,clientName:nm},rec.trainerId?{trainerId:rec.trainerId}:{},rec.clientId?{clientId:rec.clientId}:{},rec._fbId?{_fbId:rec._fbId}:{}):rec;
+    try{Promise.resolve(persist(col,out)).then(saved=>{if(out!==rec&&saved&&saved._fbId&&!rec._fbId)rec._fbId=saved._fbId;}).catch(()=>{});}catch(e){}
   }
   (window.PACKAGES||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('packages',p);});
   (window.PL||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('plans',p);});

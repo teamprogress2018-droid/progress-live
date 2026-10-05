@@ -6,6 +6,7 @@ const core=read('01-core.js'),mod09=read('09-posture-kb-invites-private.js');
 const slice=(src,start,end)=>{const a=src.indexOf(start),b=src.indexOf(end,a+start.length);assert.ok(a>=0&&b>a,'missing '+start);return src.slice(a,b);};
 const helperSrc=slice(core,'function persistPackageFields(','window.persistPackageFields=');
 const consumeSrc=slice(core,'function clientPaidPackageForSession(','  const left=Math.max(0,(pkg.sessions||0)-pkg.sessionsUsed);')+'  return pkg;\n}';
+const nameSrc=slice(core,'function syncClientNameCache(','window.syncClientNameCache=');
 const uiSrc=slice(mod09,'function usePackageSession(','function clientUnpaidPackages(')+slice(mod09,'var packagePaidUiStates=','function markPaid(')+slice(mod09,'function requestPayment(','function deletePackage(');
 
 function ctx(){
@@ -18,7 +19,7 @@ function ctx(){
     renderPayPackages:()=>{},refreshPaySurfaces:()=>{},escHtml:s=>String(s||''),todayYmd:()=>'2026-10-05',
     document:{querySelectorAll:()=>[]}};
   c.window=c;c.allPackages=()=>c.PACKAGES;
-  vm.createContext(c);vm.runInContext(helperSrc+consumeSrc+uiSrc+';this.packagePaidUiStates=packagePaidUiStates;',c);
+  vm.createContext(c);vm.runInContext(helperSrc+consumeSrc+nameSrc+uiSrc+';this.packagePaidUiStates=packagePaidUiStates;',c);
   return c;
 }
 const flush=()=>new Promise(r=>setImmediate(r));
@@ -64,6 +65,16 @@ let n=0;const ok=m=>{n++;console.log('OK '+m);};
   c=ctx();c.PACKAGES[0].payStatus='paid';
   assert.equal(c.requestPayment('p1'),false);assert.equal(c.messages.length,0);assert.equal(c.writes.length,0);
   ok('paid package does not send a new payment request');
+
+  // 7. Renaming a client updates package/invoice names without resending payment status.
+  c=ctx();c.INVOICES=[{id:'inv1',trainerId:'owner',clientId:'a',pkgId:'p1',clientName:'Alfa',status:'pending',amount:100}];c.PL=[];
+  const renamed=c.syncClientNameCache('a','Alfa Nowa');await flush();
+  assert.equal(renamed.updated,2);
+  const pkgWrite=c.writes.find(x=>x.col==='packages').obj,invWrite=c.writes.find(x=>x.col==='invoices').obj;
+  assert.deepEqual(Object.keys(pkgWrite).sort(),['_fbId','clientId','clientName','id','trainerId']);
+  assert.deepEqual(Object.keys(invWrite).sort(),['clientId','clientName','id','trainerId']);
+  assert.equal(pkgWrite.clientName,'Alfa Nowa');assert.equal(c.PACKAGES[0].clientName,'Alfa Nowa');
+  ok('client rename writes only clientName on packages and invoices');
 
   console.log('PASS package field writes: '+n+' checks');
 })().catch(e=>{console.error(e);process.exit(1);});
