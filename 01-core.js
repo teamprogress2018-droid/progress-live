@@ -96,6 +96,17 @@ async function persistById(colName,obj){
   return obj;
 }
 window.persistById=persistById;
+/** Zapis wybranych pól pakietu. Nie nadpisuje statusu płatności potwierdzonego w transakcji. */
+function persistPackageFields(pkg,fields){
+  if(!pkg||!pkg.id||typeof persistById!=='function')return Promise.resolve(null);
+  const patch={id:pkg.id};
+  if(pkg.trainerId)patch.trainerId=pkg.trainerId;
+  if(pkg.clientId)patch.clientId=pkg.clientId;
+  if(pkg._fbId)patch._fbId=pkg._fbId;
+  Object.keys(fields||{}).forEach(key=>{if(key!=='payStatus'&&key!=='status'&&key!=='paymentWriteId')patch[key]=fields[key];});
+  return Promise.resolve(persistById('packages',patch)).then(saved=>{if(saved&&saved._fbId&&!pkg._fbId)pkg._fbId=saved._fbId;return saved;});
+}
+window.persistPackageFields=persistPackageFields;
 
 /** Publiczny profil dla zalogowanych podopiecznych. Nigdy nie kopiuj całych SETTINGS. */
 function trainerPublicProfilePayload(settings,uid){
@@ -6620,7 +6631,7 @@ function consumeClientPackageSession(clientId,opts){
   pkg.sessionsUsed=(pkg.sessionsUsed||0)+1;
   if(opts.session)opts.session.pkgTick=true;
   if(opts.persist!==false&&typeof persistById==='function'){
-    try{persistById('packages',pkg);}catch(e){}
+    try{Promise.resolve(persistPackageFields(pkg,{sessionsUsed:pkg.sessionsUsed})).catch(e=>console.warn('package session',e));}catch(e){}
   }
   const left=Math.max(0,(pkg.sessions||0)-pkg.sessionsUsed);
   if(opts.notify!==false&&typeof addNotification==='function'&&left<=1){
@@ -6866,7 +6877,9 @@ function syncClientNameCache(clientId,name){
     if(!rec||rec.clientName===nm)return;
     rec.clientName=nm;
     updated++;
-    try{persist(col,rec);}catch(e){}
+    // Pakiety i faktury: tylko nazwa — pełny rekord mógłby cofnąć potwierdzony status płatności.
+    const out=col==='packages'||col==='invoices'?Object.assign({id:rec.id,clientName:nm},rec.trainerId?{trainerId:rec.trainerId}:{},rec.clientId?{clientId:rec.clientId}:{},rec._fbId?{_fbId:rec._fbId}:{}):rec;
+    try{Promise.resolve(persist(col,out)).then(saved=>{if(out!==rec&&saved&&saved._fbId&&!rec._fbId)rec._fbId=saved._fbId;}).catch(()=>{});}catch(e){}
   }
   (window.PACKAGES||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('packages',p);});
   (window.PL||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('plans',p);});

@@ -122,3 +122,109 @@
     }catch(error){return Promise.reject(error);}
   };
 })();
+
+/* Confirm a payment on the latest package and its linked invoice together. */
+(function(){
+  'use strict';
+  const states=new Map();
+  const copy=value=>JSON.parse(JSON.stringify(value));
+  const fail=message=>new Error(message);
+  const required=name=>{if(typeof window[name]!=='function')throw fail('Brak połączenia z bazą. Spróbuj ponownie.');return window[name];};
+  function assert(state,pkg){
+    if(!required('assignmentSessionCurrent')(state.auth))throw fail('Sesja zmieniła się. Otwórz ponownie płatności.');
+    const client=(window.CL||[]).find(c=>c&&c.id===state.client.id);
+    required('assertAssignmentSession')(state.auth,client);
+    if((client._fbId||client.id)!==(state.client._fbId||state.client.id))throw fail('Klient zmienił się. Otwórz ponownie płatności.');
+    const local=(window.PACKAGES||[]).find(p=>p&&p.id===state.pkg.id);
+    if(!local||local.trainerId!==state.auth.uid||local.clientId!==state.client.id||local.archived||local.deleted||local.status==='archived'||(local._fbId||local.id)!==state.docId)
+      throw fail('Pakiet zmienił się. Odśwież płatności.');
+    if(pkg&&(pkg.id!==state.pkg.id||pkg.trainerId!==state.auth.uid||pkg.clientId!==state.client.id||pkg.archived||pkg.deleted||pkg.status==='archived'||!['pending','partial','paid'].includes(pkg.payStatus)))
+      throw fail('Pakiet jest niedostępny. Odśwież płatności.');
+  }
+  function invoiceAssert(state,pkg,invoice,docId){
+    const freshLink=invoice&&(invoice.pkgId===pkg.id||pkg.invoiceDocId===docId&&invoice.clientId===pkg.clientId||
+      !pkg.invoiceDocId&&pkg.invoiceId&&(invoice.id===pkg.invoiceId||invoice.nr===pkg.invoiceId)&&invoice.clientId===pkg.clientId);
+    if(!invoice||!freshLink||invoice.trainerId!==state.auth.uid||invoice.pkgId&&invoice.pkgId!==pkg.id||invoice.clientId&&invoice.clientId!==pkg.clientId||!invoice.pkgId&&invoice.clientId!==pkg.clientId||invoice.archived||invoice.deleted||!['pending','partial','paid'].includes(invoice.status)||
+      pkg.invoiceDocId&&(pkg.invoiceDocId!==docId||invoice.id!==docId))
+      throw fail('Faktura nie odpowiada temu pakietowi. Odśwież płatności.');
+  }
+  async function pay(state){
+    assert(state);if(!window._db)throw fail('Brak połączenia z bazą. Spróbuj ponownie.');
+    const get=required('_getDocsFromServer'),query=required('_query'),col=required('_col'),where=required('_where'),doc=required('_doc');
+    // Legacy id/number fallbacks must be unique within the captured owner.
+    const lookups=[['pkgId',state.pkg.id]];
+    if(state.pkg.invoiceId)lookups.push(['id',state.pkg.invoiceId],['nr',state.pkg.invoiceId]);
+    const snapshots=await Promise.all(lookups.map(([field,value])=>get(query(col(window._db,'invoices'),where('trainerId','==',state.auth.uid),where(field,'==',value)))));
+    assert(state);
+    if(snapshots.some(found=>!found||!Array.isArray(found.docs)||found.metadata&&found.metadata.hasPendingWrites))throw fail('Nie udało się potwierdzić powiązanej faktury. Spróbuj ponownie.');
+    const docs=new Map();snapshots.forEach(found=>found.docs.forEach(row=>docs.set(row.id,row)));
+    const result=await required('_runTransaction')(window._db,async tx=>{
+      assert(state);
+      const packageRef=doc(window._db,'packages',state.docId),packageDoc=await tx.get(packageRef);
+      assert(state);
+      if(!packageDoc.exists())throw fail('Pakiet został usunięty. Odśwież płatności.');
+      const pkg={...packageDoc.data(),_fbId:state.docId};assert(state,pkg);
+      const clientDoc=await tx.get(doc(window._db,'clients',state.client._fbId||state.client.id));
+      assert(state);
+      if(!clientDoc.exists())throw fail('Klient został usunięty. Odśwież płatności.');
+      const client=clientDoc.data();required('assertAssignmentSession')(state.auth,client);
+      if(client.id!==state.client.id)throw fail('Klient zmienił się. Odśwież płatności.');
+      let invoiceId=pkg.invoiceDocId;
+      if(!invoiceId){
+        const linked=[...docs.values()].filter(row=>row.data().pkgId===pkg.id);
+        const candidates=linked.length?linked:[...docs.values()].filter(row=>pkg.invoiceId&&(row.data().id===pkg.invoiceId||row.data().nr===pkg.invoiceId));
+        if(candidates.length!==1)throw fail(candidates.length?'Znaleziono więcej niż jedną fakturę pakietu. Sprawdź faktury przed ponowieniem.':'Brak powiązanej faktury. Sprawdź faktury przed ponowieniem.');
+        invoiceId=candidates[0].id;
+      }
+      if(typeof invoiceId!=='string'||!invoiceId||invoiceId.includes('/'))throw fail('Nieprawidłowe powiązanie faktury. Odśwież płatności.');
+      const invoiceRef=doc(window._db,'invoices',invoiceId);
+      let invoiceDoc;
+      try{invoiceDoc=await tx.get(invoiceRef);}catch(error){assert(state);throw fail('Nie można odczytać powiązanej faktury. Sprawdź faktury i spróbuj ponownie.');}
+      assert(state);
+      if(!invoiceDoc.exists())throw fail('Powiązana faktura została usunięta. Odśwież płatności.');
+      const invoice={id:invoiceId,...invoiceDoc.data(),_fbId:invoiceId};invoiceAssert(state,pkg,invoice,invoiceId);
+      if(!state.invoiceMasks.has(invoiceId))state.invoiceMasks.set(invoiceId,invoice.status);
+      const packagePatch=pkg.payStatus==='paid'?{}:{payStatus:'paid',paymentWriteId:state.token};
+      const invoicePatch=invoice.status==='paid'?{}:{status:'paid',paymentWriteId:state.token};
+      // Only payment fields change; current usage, price, notes and numbering survive.
+      if(Object.keys(packagePatch).length)tx.update(packageRef,packagePatch);
+      if(Object.keys(invoicePatch).length)tx.update(invoiceRef,invoicePatch);
+      return {pkg:{...pkg,...packagePatch},invoice:{...invoice,...invoicePatch},paymentTransition:packagePatch.payStatus==='paid'||pkg.paymentWriteId===state.token};
+    });
+    assert(state);
+    if(!result||!result.pkg||!result.invoice||result.pkg.payStatus!=='paid'||result.invoice.status!=='paid')throw fail('Nie udało się potwierdzić płatności. Spróbuj ponownie.');
+    assert(state,result.pkg);invoiceAssert(state,result.pkg,result.invoice,result.invoice._fbId);
+    return result;
+  }
+  window.packagePaymentConfirmedRecord=function(record,collection){
+    for(const state of states.values()){
+      if(!state.masked||!required('assignmentSessionCurrent')(state.auth))continue;
+      if(collection==='packages'&&record.id===state.pkg.id&&record.trainerId===state.auth.uid)return {...record,payStatus:state.pkg.payStatus};
+      if(collection==='invoices'&&record.trainerId===state.auth.uid&&state.invoiceMasks.has(record._fbId||record.id))return {...record,status:state.invoiceMasks.get(record._fbId||record.id)};
+    }
+    return record;
+  };
+  window.clearPackagePaymentStates=function(){states.clear();};
+  // Non-async entry preserves promise identity for submissions from both payment views.
+  window.markPackagePaidConfirmed=function(pkg,auth){
+    try{
+      if(!pkg||typeof pkg.id!=='string'||!pkg.id||pkg.id.includes('/')||typeof (pkg._fbId||pkg.id)!=='string'||(pkg._fbId||pkg.id).includes('/')||!auth||!auth.uid)throw fail('Nieprawidłowy pakiet. Odśwież płatności.');
+      const key=JSON.stringify([auth.uid,auth.generation,pkg._fbId||pkg.id]);
+      let state=states.get(key);
+      if(!state){
+        const client=(window.CL||[]).find(c=>c&&c.id===pkg.clientId);
+        required('assertAssignmentSession')(auth,client);
+        state={auth:Object.freeze(copy(auth)),client:Object.freeze(copy(client)),pkg:Object.freeze(copy(pkg)),docId:pkg._fbId||pkg.id,token:required('newPackageSaveId')('ppw'),promise:null,acknowledged:false,masked:false,invoiceMasks:new Map()};
+        assert(state,pkg);states.set(key,state);
+      }
+      assert(state);
+      if(state.promise)return state.promise;
+      state.masked=true;
+      state.promise=Promise.resolve().then(()=>pay(state)).then(result=>{
+        assert(state,result.pkg);const transitioned=result.paymentTransition&&!state.acknowledged;
+        state.acknowledged=true;state.masked=false;if(states.get(key)===state)states.delete(key);return {...copy(result),transitioned};
+      }).finally(()=>{state.promise=null;});
+      return state.promise;
+    }catch(error){return Promise.reject(error);}
+  };
+})();

@@ -48,6 +48,9 @@ vm.runInNewContext(
   'function allPackages(){return window.PACKAGES;}\n'+
   'function paySeller(){return {bank:"12 3456",currency:"zł"};}\n'+
   'function refreshPaySurfaces(){}\n'+
+  'var packagePaidUiStates=new Map();\n'+
+  extract(src09,'packagePaymentBusy')+'\n'+
+  extract(fs.readFileSync(path.join(__dirname,'../../01-core.js'),'utf8'),'persistPackageFields')+'\n'+
   extract(src09,'requestPayment')+'\n'+
   extract(src05,'clientPendingPackage')+'\n'+
   extract(src10,'clientAppJoinedPatch')+'\n'+

@@ -23,6 +23,8 @@ function ok(name, cond, extra) {
   page.setDefaultTimeout(20000);
   page.on('dialog', d => d.accept());
   await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
+  // Widok profilu pokazuje bieżący tydzień: w poniedziałek „wczoraj” wypada poza nim. Stała środa = test niezależny od dnia.
+  await page.clock.setFixedTime(new Date('2026-09-30T10:00:00'));
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 

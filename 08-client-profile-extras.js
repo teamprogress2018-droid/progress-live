@@ -4808,9 +4808,10 @@ function renderCPPayments(c){
         </div>
         ${p.invoiceId?`<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;" onclick="viewInvoice('${p.invoiceDocId||p.invoiceId}')">🧾 Faktura ${p.invoiceId}</button>`:''}
         <div style="display:flex;gap:6px;margin-top:6px;">
-          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" style="flex:1;" onclick="markPaid('${p.id}')">Opłacony</button>
-          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="requestPayment('${p.id}')">${p.paymentRequestedAt?'Wyślij ponownie':'Poproś o wpłatę'}</button>`:''}
+          ${['pending','partial'].includes(p.payStatus)?packagePaidButtonHTML(p):''}
+          ${p.payStatus==='pending'?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="requestPayment('${p.id}')">${p.paymentRequestedAt?'Wyślij ponownie':'Poproś o wpłatę'}</button>`:''}
         </div>
+        ${packagePaidStatusHTML(p)}
         ${p.payStatus==='pending'&&p.paymentRequestedAt?`<div style="font-size:10px;color:var(--orange);margin-top:6px;">Prośba wysłana ${escHtml(String(p.paymentRequestedAt).slice(0,10))} — klient widzi dane w apce.</div>`:''}
       </div>`;
     }).join('')}`;
