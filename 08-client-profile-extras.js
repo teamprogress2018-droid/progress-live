@@ -4534,6 +4534,171 @@ function cpNextSessionBriefHtml(clientId){
 }
 window.cpNextSessionBriefHtml=cpNextSessionBriefHtml;
 
+/* ETAP 5: progres per ćwiczenie + propozycja zmiany ciężaru w planie, zatwierdzana przez trenera. */
+function cpProgNum(v){const n=parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(n)?n:null;}
+function cpProgFmtKg(v){return v==null?'':String(Math.round(v*100)/100).replace('.',',')+' kg';}
+function cpPlanExerciseRef(plan,name,exerciseId){
+  const key=s=>typeof exerciseNameKey==='function'?exerciseNameKey(s):String(s||'').toLowerCase().trim();
+  const want=key(name),eid=String(exerciseId||'').trim();
+  const out=[];
+  ((plan&&plan.days)||[]).forEach((d,di)=>((d&&d.exercises)||[]).forEach((e,ei)=>{
+    const p=typeof parsePlanExercise==='function'?parsePlanExercise(e):e;
+    if(!p)return;
+    const pid=String(p.exerciseId||'').trim();
+    if((eid&&pid&&eid===pid)||(!(eid&&pid)&&key(p.name)===want))out.push({di,ei,parsed:p,raw:e});
+  }));
+  return out;
+}
+window.cpPlanExerciseRef=cpPlanExerciseRef;
+/** Ciężar, który trener faktycznie widzi w tym tygodniu planu (uwzględnia tygodniowe nadpisania w1/w2…). */
+function cpPlanWeekIdx(clientId,plan){
+  try{return typeof planPeriodWeekIndex==='function'?planPeriodWeekIndex(clientId,plan):0;}catch(e){return 0;}
+}
+function cpPlanEffectiveKg(raw,plan,weekIdx){
+  if(raw&&typeof raw==='object'&&typeof exerciseForPlanWeek==='function'){
+    const w=exerciseForPlanWeek(raw,plan,weekIdx);
+    return cpProgNum(w&&w.kg);
+  }
+  const p=typeof parsePlanExercise==='function'?parsePlanExercise(raw):raw;
+  return cpProgNum(p&&p.kg);
+}
+window.cpPlanEffectiveKg=cpPlanEffectiveKg;
+/** Docelowy ciężar z decyzji (te same kroki co Live). null = brak zmiany ciężaru. */
+function cpProgressTargetKg(rec,name){
+  const f=rec&&rec.facts||{},last=Number.isFinite(f.lastKg)?f.lastKg:null;
+  if(last==null||!rec)return null;
+  const ex={name:name||rec.name||''};
+  const step=typeof progressLoadStep==='function'?progressLoadStep(ex):2.5;
+  const plate=v=>step===2.5&&typeof roundToPlate==='function'?cpProgNum(roundToPlate(v,2.5)):Math.round(v*10)/10;
+  const levers=rec.levers||{};
+  if(levers.load==='up'){const v=typeof addLoadStep==='function'?cpProgNum(addLoadStep(last,step,'kg')):null;return v!=null?v:last+step;}
+  if(levers.load==='down')return last-step>0?plate(last-step):null;
+  if(levers.load==='deload'){const v=step===2.5?plate(last*0.9):Math.round(last*0.9/step)*step;return v>0?v:null;}
+  return null;
+}
+window.cpProgressTargetKg=cpProgressTargetKg;
+function cpProgressDecisionsHtml(clientId){
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const built=typeof composeClientNextSessionBrief==='function'?composeClientNextSessionBrief(clientId):null;
+  const recs=built&&Array.isArray(built.recs)?built.recs:[];
+  if(!recs.length)return '';
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):null;
+  const undo=window._cpPlanKgUndo||{};
+  const labelTone={PROGRES:'good',STABILNIE:'flat',REGRES:'bad'};
+  const rows=recs.map(rec=>{
+    const name=rec.name||(rec.facts&&rec.facts.name)||'Ćwiczenie';
+    const f=rec.facts||{};
+    const hist=typeof exerciseLoadHistory==='function'?(exerciseLoadHistory(clientId,name,[],{limit:4,exerciseId:rec.exerciseId||'',planId:plan&&plan.id})||[]):[];
+    const line=hist.slice().reverse().map(h=>{
+      const work=(h.sets||[]).filter(s=>s&&(s.kg!==''||s.reps!==''));
+      const kg=work.length?work[0].kg:'';
+      const reps=work.map(s=>s.reps).filter(x=>x!==''&&x!=null).join(',');
+      const rirs=work.map(s=>s.rir).filter(x=>x!==''&&x!=null);
+      return (kg!==''?kg+'×':'')+reps+(rirs.length?' @'+rirs[rirs.length-1]:'');
+    }).join(' → ');
+    const det=typeof liveExSuggestDetail==='function'?liveExSuggestDetail(rec,{name}):{detail:'',why:''};
+    const target=cpProgressTargetKg(rec,name);
+    const view=typeof liveExSuggestView==='function'?liveExSuggestView(target!=null&&!Number.isFinite(rec.suggestKg)?Object.assign({},rec,{suggestKg:target}):rec):{label:rec.action||''};
+    const refs=plan?cpPlanExerciseRef(plan,name,rec.exerciseId):[];
+    const wIdx=plan?cpPlanWeekIdx(clientId,plan):0;
+    const planKg=refs.length?cpPlanEffectiveKg(refs[0].raw,plan,wIdx):null;
+    const pct=refs.some(r=>r.parsed.pct1rm);
+    const ukey=(plan&&plan.id)+'|'+name;
+    const u=undo[ukey];
+    let act='';
+    if(u)act=`<span class="cp-pd-done">Zmienione w planie: ${esc(cpProgFmtKg(u.from))} → ${esc(cpProgFmtKg(u.to))}</span> <button type="button" class="btn btn-ghost btn-sm" data-pd-undo="${esc(name)}" onclick="cpApplyPlanKg(this,true)" data-client="${esc(clientId)}" data-plan="${esc(plan.id)}" data-name="${esc(name)}" data-exid="${esc(rec.exerciseId||'')}" data-kg="${esc(u.from==null?'':String(u.from))}" data-expect="${esc(String(u.to))}">Cofnij</button>`;
+    else if(plan&&refs.length&&!pct&&target!=null&&(planKg==null||Math.abs(planKg-target)>0.001))
+      act=`<button type="button" class="btn btn-primary btn-sm" data-pd-apply="${esc(name)}" onclick="cpApplyPlanKg(this)" data-client="${esc(clientId)}" data-plan="${esc(plan.id)}" data-name="${esc(name)}" data-exid="${esc(rec.exerciseId||'')}" data-kg="${esc(String(target))}" data-expect="${esc(planKg==null?'':String(planKg))}">Ustaw w planie: ${esc(cpProgFmtKg(target))}</button>`;
+    const tone=labelTone[f.label]||'muted';
+    return `<div class="cp-pd-row" data-pd-ex="${esc(name)}" data-pd-action="${esc(rec.action||'')}">
+      <div class="cp-pd-head"><span class="cp-pd-name">${esc(name)}</span><span class="ex-prog-label is-${tone}" style="font-size:12px;">${esc(f.label||'ZA MAŁO DANYCH')}</span></div>
+      ${line?`<div class="cp-pd-hist" title="ostatnie treningi: kg × powtórzenia @RIR">${esc(line)}</div>`:''}
+      <div class="cp-pd-sug"><b>${esc(view.label||'')}</b>${det.detail?' '+esc(det.detail):''}${planKg!=null?` <span class="cp-pd-plan">· w planie: ${esc(cpProgFmtKg(planKg))}</span>`:''}</div>
+      ${det.why?`<div class="cp-pd-why">Dlaczego: ${esc(det.why)}</div>`:''}
+      <div class="cp-pd-act" data-pd-status>${act}<span class="cp-pd-msg" data-pd-msg role="status" aria-live="polite"></span></div>
+    </div>`;
+  }).join('');
+  return `<div data-cp-panel="train" class="stat-card cp-pd-panel" style="margin-bottom:14px;">
+    <div class="stat-card-hdr"><div>
+      <div class="stat-card-title">Progres ćwiczeń — decyzje</div>
+      <div class="stat-card-sub">Aplikacja sugeruje, Ty decydujesz. Zmiana w planie dopiero po kliknięciu.</div>
+    </div></div>
+    ${rows}
+  </div>`;
+}
+window.cpProgressDecisionsHtml=cpProgressDecisionsHtml;
+/** Zmienia ciężar ćwiczenia w planie klienta (wszystkie dni z tym ćwiczeniem) — w transakcji, z kontrolą, że plan się nie zmienił. */
+async function cpApplyPlanKg(btn,isUndo){
+  const d=btn&&btn.dataset||{};
+  const clientId=d.client,planId=d.plan,name=d.name,exerciseId=d.exid||'';
+  const kg=cpProgNum(d.kg),expect=d.expect===''?null:cpProgNum(d.expect);
+  const box=btn&&btn.closest?btn.closest('[data-pd-status]'):null;
+  const status=box&&box.querySelector?box.querySelector('[data-pd-msg]'):null;
+  const say=t=>{if(status)status.textContent=t;};
+  const plan=(window.PL||[]).find(p=>p&&p.id===planId);
+  const uid=window._uid,gen=window.tenantSessionGeneration;
+  if(!plan||(kg==null&&!isUndo)||!uid||plan.trainerId!==uid){say('Nie można zmienić tego planu.');return null;}
+  if(btn)btn.disabled=true;
+  say('Zapisywanie…');
+  const fmtKg=v=>v==null?'':String(Math.round(v*100)/100);
+  const same=(a,b)=>(a==null&&b==null)||(a!=null&&b!=null&&Math.abs(a-b)<=0.001);
+  // Zmienia tylko te wystąpienia ćwiczenia, które mają ciężar z sugestii (inne dni z innym ciężarem zostają).
+  const patchDays=(remote)=>{
+    const copy=JSON.parse(JSON.stringify(remote.days||[]));
+    const planCopy={...remote,days:copy};
+    const wIdx=cpPlanWeekIdx(clientId,planCopy);
+    const keys=Array.isArray(remote.weekKeys)?remote.weekKeys:[];
+    const curKey=keys[wIdx]||remote.currentWeek||keys[0]||'';
+    const startIdx=Math.max(0,keys.indexOf(curKey));
+    const refs=cpPlanExerciseRef(planCopy,name,exerciseId);
+    if(!refs.length)throw new Error('Ćwiczenia nie ma już w planie. Odśwież profil.');
+    let changed=0;
+    refs.forEach(r=>{
+      const eff=cpPlanEffectiveKg(r.raw,planCopy,wIdx);
+      if(!same(eff,expect))return;
+      changed++;
+      const day=copy[r.di];
+      if(typeof r.raw==='string'){const p=r.parsed;day.exercises[r.ei]=p.name+' '+p.sets+'x'+p.reps+(kg==null?'':' @ '+fmtKg(kg)+'kg');return;}
+      const obj={...r.raw,kg:fmtKg(kg)};
+      keys.forEach((k,i)=>{
+        if(i<startIdx||!obj[k]||typeof obj[k]!=='object')return;
+        const wk=cpProgNum(obj[k].kg);
+        if(wk!=null&&same(wk,expect))obj[k]={...obj[k],kg:fmtKg(kg)};
+      });
+      day.exercises[r.ei]=obj;
+    });
+    if(!changed)throw new Error('Plan zmienił się w międzyczasie. Odśwież profil i spróbuj ponownie.');
+    return copy;
+  };
+  try{
+    if(!window._db||typeof window._runTransaction!=='function'||typeof window._doc!=='function')throw new Error('Brak połączenia z bazą. Spróbuj ponownie.');
+    const ref=window._doc(window._db,'plans',plan._fbId||plan.id);
+    let newDays=null;
+    await window._runTransaction(window._db,async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error('Plan został usunięty.');
+      const remote=snap.data();
+      if(remote.trainerId!==uid||(remote.clientId&&remote.clientId!==clientId))throw new Error('Plan nie należy do tego klienta.');
+      newDays=patchDays(remote);
+      tx.set(ref,{days:newDays,updatedAt:new Date().toISOString()},{merge:true});
+    });
+    if(window._uid!==uid||window.tenantSessionGeneration!==gen)return null;
+    plan.days=newDays;plan.updatedAt=new Date().toISOString();
+    const undo=window._cpPlanKgUndo||(window._cpPlanKgUndo={});
+    const ukey=planId+'|'+name;
+    if(isUndo)delete undo[ukey];else undo[ukey]={from:expect,to:kg};
+    if(typeof notify==='function')notify(isUndo?'↩ Przywrócono ciężar w planie: '+name:'✓ Plan: '+name+' → '+cpProgFmtKg(kg));
+    const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+    if(c&&typeof renderCPProgress==='function'&&typeof cpClientId!=='undefined'&&cpClientId===clientId&&typeof cpTab!=='undefined'&&cpTab==='progress')try{renderCPProgress(c);}catch(e){}
+    return newDays;
+  }catch(e){
+    if(btn)btn.disabled=false;
+    say((e&&e.message)||'Nie udało się zapisać. Spróbuj ponownie.');
+    return null;
+  }
+}
+window.cpApplyPlanKg=cpApplyPlanKg;
+
 function renderCPProgress(c){
   if(c&&c.id&&typeof rememberClientExerciseProgress==='function')rememberClientExerciseProgress(c.id);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
@@ -4624,6 +4789,7 @@ function renderCPProgress(c){
     </div>
     ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie są liczone jako wykonany trening.</div>`:''}
 
+    ${logged.length&&typeof cpProgressDecisionsHtml==='function'?cpProgressDecisionsHtml(c.id):''}
     ${logged.length?`    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
