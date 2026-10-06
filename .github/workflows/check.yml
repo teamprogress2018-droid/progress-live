@@ -568,6 +568,7 @@ jobs:
           node .github/scripts/test_client_journey_ui.js
           node .github/scripts/test_apl_save_confirmed_ui.js
           node .github/scripts/test_apl_generate_complete_ui.js
+          node .github/scripts/test_apl_periodization.js
           node .github/scripts/test_dash_agenda_ui.js
           node .github/scripts/test_pay_actions_ui.js
           node .github/scripts/test_multiday_rep_target_ui.js
