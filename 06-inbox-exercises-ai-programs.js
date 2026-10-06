@@ -1548,7 +1548,13 @@ function exerciseBiomech(ex){
   if(ang) benchAngle=parseInt(ang[1],10);
   else if(/skos|incline/.test(name)) benchAngle=30;
 
-  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle};
+  const compound=['vertical_pull','horizontal_pull','vertical_push','horizontal_push','knee_dominant','hip_dominant'].includes(pattern);
+  const stable=/maszyna|machine|wyciag|brama|cable|smith|suwnica|hack|pec.?deck|butterfly/i.test(eq+' '+name);
+  const unilateral=/jednonoz|single.?leg|unilateral|na strone|naprzemien|wykrok|lunge|bulgarsk|split squat/i.test(name);
+  let lengthBias='mid-range';
+  if(/rdl|rumun|good morning|seated.*leg curl|uginanie nog.*siedz|incline curl|lawce skosnej.*curl|overhead.*triceps|triceps.*nad glow|rozpietk|fly|crossover/.test(name)) lengthBias='lengthened';
+  else if(/hip thrust|glute bridge|wspiec|calf raise|leg extension|wyprost nog/.test(name)) lengthBias='shortened';
+  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle,compound,stable,unilateral,lengthBias};
 }
 /** Klucz wzorca do kontroli redundancji w jednej jednostce: chwyt, przyrząd i maszyna NIE różnicują,
  *  kąt wyciskania, ruch jednonóż i izolacja (rozpiętki, wyprosty, łydki) — tak. */
@@ -1633,6 +1639,13 @@ function toggleExdSubEq(eq){
 function exdBiomechRow(label, value, extraClass){
   return `<div class="exd-biomech-row"><div class="exd-biomech-k">${exdEsc(label)}</div><div class="exd-biomech-v${extraClass?' '+extraClass:''}">${value}</div></div>`;
 }
+function exdPlanningTags(b){
+  const tags=[b.compound?'COMPOUND':'ISOLATION',b.stable?'STABLE':'LESS STABLE',b.unilateral?'UNILATERAL':'BILATERAL'];
+  if(b.lengthBias==='lengthened') tags.push('LENGTHENED BIAS');
+  else if(b.lengthBias==='shortened') tags.push('SHORTENED BIAS');
+  else tags.push('MID-RANGE BIAS');
+  return tags.map(t=>`<span class="chip">${exdEsc(t)}</span>`).join(' ');
+}
 function exdSubstituteBlockHtml(e){
   const b=exerciseBiomech(e);
   const pattern=EX_PATTERN_LABELS[b.pattern]||String(b.pattern||'').replace(/_/g,' ');
@@ -1658,6 +1671,7 @@ function exdSubstituteBlockHtml(e){
         ${exdBiomechRow('Profil oporu', exdEsc(profile), 'exd-biomech-accent')}
         ${exdBiomechRow('Stawy', exdEsc(joints), 'exd-biomech-joint')}
         ${exdBiomechRow('SFR', exdEsc(b.sfr), 'exd-biomech-sfr')}
+        ${exdBiomechRow('Tagi AI', exdPlanningTags(b), 'exd-biomech-accent')}
         ${e.muscle?exdBiomechRow('Mięśnie', exdEsc(e.muscle)):''}
       </div>
     </div>
