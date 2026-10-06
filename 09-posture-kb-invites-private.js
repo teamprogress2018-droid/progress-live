@@ -4195,6 +4195,7 @@ function renderKB(){
           ${typeof kbTagPillsHtml==='function'?kbTagPillsHtml(typeof kbTagsForEntry==='function'?kbTagsForEntry(k):k.tags):''}
         </div>
         <div class="kb-card-actions">
+          ${String(k.title||'').startsWith('Biomechanika:')?`<button type="button" onclick="openMuscleBiomech(${JSON.stringify(k.title)})" title="Pełny opis biomechaniki">Szczegóły</button>`:''}
           <button type="button" onclick="editKBEntry('${k.id}')" title="Edytuj wpis">Edytuj</button>
           <button type="button" onclick="duplicateKBEntry('${k.id}')" title="Utwórz kopię wpisu">Kopiuj</button>
           <button type="button" class="danger" onclick="delKBEntry('${k.id}')" title="Usuń wpis" aria-label="Usuń wpis">×</button>
