@@ -1472,6 +1472,9 @@ const EX_PATTERN_LABELS={
   shoulder_abduction:'Odwodzenie ramienia',
   elbow_flexion:'Zgięcie łokcia',
   elbow_extension:'Wyprost łokcia',
+  scapular_rear_delt:'Łopatka / tył barku',
+  shoulder_extension:'Wyprost ramienia',
+  knee_flexion:'Zgięcie kolana',
   core:'Core / tułów',
   cardio:'Cardio',
   other:'Inne'
@@ -1497,12 +1500,15 @@ function exerciseBiomech(ex){
   let pattern='other';
   if(/cardio/i.test(cat)) pattern='cardio';
   else if(/core|rozgrzewka|rozciagan|mobilnosc/i.test(exBiomechNorm(cat))) pattern='core';
-  else if(/biceps/i.test(cat)||/uginan/.test(name)) pattern='elbow_flexion';
+  else if(/face ?pull|do twarzy|odwrotn.*rozpietk|reverse (pec )?fly|rear delt|tyl.*bark/.test(name)) pattern='scapular_rear_delt';
+  else if(/prostymi rekami|straight.?arm|pull.?over/.test(name)) pattern='shoulder_extension';
+  else if(/uginan.*no[gz]|leg curl|hamstring curl|nordyck|nordic/.test(name)) pattern='knee_flexion';
+  else if(/biceps/i.test(cat)||/uginan|\bcurl/.test(name)) pattern='elbow_flexion';
   else if(/triceps/i.test(cat)||/prostowan|francusk|kickback|dipy|dip\b/.test(name)) pattern='elbow_extension';
   else if(/martwy|rdl|hip thrust|glute|mostek|rumun/.test(name)||/poslad/i.test(cat)&&/hip|biodr|thrust/.test(name)) pattern='hip_dominant';
   else if(/nogi|poslad/i.test(cat)||/przysiad|squat|hack|leg press|wyciskan.*nog|wypych/.test(name)) pattern='knee_dominant';
   else if(/bokiem|lateral|odwodzen|wznos.*bok|unoszen.*bok/.test(name)||(/barki/i.test(cat)&&/wznos|unoszen/.test(name))) pattern='shoulder_abduction';
-  else if(/podciagan|sciagan|lat pulldown|chin.?up|pull.?up/.test(name)) pattern='vertical_pull';
+  else if(/podciagan|sciagan|pull.?down|chin.?up|pull.?up/.test(name)) pattern='vertical_pull';
   else if(/zolnierskie|\bohp\b|overhead|wyciskan.*nad glow|wyciskan.*siedz/.test(name)) pattern='vertical_push';
   else if(/wioslow|przenoszen|face pull|sciaganie do twarzy/.test(name)||/plecy/i.test(cat)) pattern='horizontal_pull';
   else if(/klatka/i.test(cat)||/wyciskan|pompki|rozpietk|fly|butterfly/.test(name)) pattern='horizontal_push';
@@ -1544,6 +1550,36 @@ function exerciseBiomech(ex){
 
   return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle};
 }
+/** Klucz wzorca do kontroli redundancji w jednej jednostce: chwyt, przyrząd i maszyna NIE różnicują,
+ *  kąt wyciskania, ruch jednonóż i izolacja (rozpiętki, wyprosty, łydki) — tak. */
+function exercisePatternKey(ex){
+  const b=exerciseBiomech(ex);
+  const name=exBiomechNorm(ex&&ex.name);
+  const p=b.pattern;
+  if(p==='cardio'||p==='core'||p==='other')return '';
+  if(/szrug|wzrusz|shrug|unoszenie bark/.test(name))return 'scapular_elevation';
+  if(/hip thrust|wypychanie bioder|mostek|glute bridge/.test(name)&&(p==='hip_dominant'||p==='knee_dominant'||p==='shoulder_abduction'))return 'hip_bridge';
+  if(/odwodzen|przywodzen|abdukc|addukc|abduct|adduct/.test(name)&&/biodr|nog|udz|kostk|glute|hip|poslad|\bleg/.test(name+' '+exBiomechNorm(ex&&ex.cat))&&!/bark|ramie|ramion|shoulder/.test(name))return 'hip_ab_adduction';
+  if(p==='horizontal_push'){
+    if(/rozpietk|\bfly|flye|butterfly|peck|krzyzowan|crossover/.test(name))return 'chest_fly';
+    if(/ujemn|decline|skos\s*[−-]/.test(name))return 'press_decline';
+    if(/skos|incline|\d+\s*°/.test(name))return 'press_incline';
+    return 'press_flat';
+  }
+  if(p==='knee_dominant'){
+    if(/lyd(ek|ki|k)|wspiec|na palce|calf/.test(name))return 'calf';
+    if(/wyprost|prostowanie nog|leg extension|wyprosty/.test(name))return 'knee_extension';
+    if(/odwodzen|przywodzen|abdukc|addukc/.test(name))return 'hip_ab_adduction';
+    if(/wykrok|bulgarsk|split|lunge|wejsci|step.?up|jednonoz|single.?leg|pistol/.test(name))return 'knee_unilateral';
+    return 'knee_bilateral';
+  }
+  if(p==='hip_dominant'){
+    if(/hip thrust|mostek|glute bridge|bridge/.test(name))return 'hip_bridge';
+    return 'hip_hinge';
+  }
+  return p;
+}
+window.exercisePatternKey=exercisePatternKey;
 function findStaffSubstitutes(originalEx, opts){
   opts=opts||{};
   if(!originalEx||!originalEx.name) return [];
