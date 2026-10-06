@@ -1348,7 +1348,7 @@ ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/ks
 1. CZĘSTOTLIWOŚĆ: każda główna partia (klatka, plecy, barki, czworogłowe, dwugłowe/pośladki, ramiona) musi być zastymulowana CO NAJMNIEJ 2× w tygodniu (suma serii z wielu dni). Przy 3 dniach użyj struktury: Dzień 1 = Push + czworogłowe; Dzień 2 = Pull + dwugłowe; Dzień 3 = Upper (klatka+plecy+barki+ramiona) — chyba że trener wybrał inną metodę i liczbę dni.
 2. PRIORYTET SYLWETKOWY: jeśli podano weak points — 1–2 PIERWSZE ćwiczenia danej sesji (po rozgrzewce) MUSZĄ celować w te partie, gdy sesja je stymuluje. Nie chowaj priorytetu na koniec.
 2b. GRUPOWANIE PARTII (KRYTYCZNE): po ustaleniu kolejności ćwiczeń NIGDY nie wracaj do partii mięśniowej, która już się skończyła w tej sesji. Wszystkie ćwiczenia tej samej głównej partii (np. plecy) muszą stać RAZEM, jedno po drugim — dopiero potem przechodzisz do kolejnej partii i zostajesz przy niej do końca jej ćwiczeń. Błędny przykład (ZABRONIONE): Plecy, Plecy, Pośladki, Plecy, Nogi — bo "Plecy" wraca po przerwie na "Pośladki". Poprawny przykład: Plecy, Plecy, Plecy, Pośladki, Nogi, Nogi.
-3. DOBÓR ĆWICZEŃ: przy priorytetach i izolacjach preferuj wysoką stabilizację (maszyny, suwnica Smitha, wyciągi) oraz warianty w pozycji wydłużonej (lengthened / stretch-mediated hypertrophy) z pauzą 1s w rozciągnięciu.
+3. DOBÓR ĆWICZEŃ: przy priorytetach i izolacjach zwykle preferuj warianty stabilne (maszyny, Smith, wyciągi), jeśli pasują do celu i tolerancji. Różnicuj profil oporu: w planie mogą współistnieć warianty z większym napięciem w wydłużeniu, środku i skróceniu. Nie traktuj pozycji wydłużonej ani pauzy w rozciągnięciu jako obowiązku — używaj ich tylko przy pełnej kontroli, tolerowanym ROM i jasnym celu.
 4. PARAMETRY: 3–4 serie robocze na ćwiczenie; złożone 6–15 powt. (typowe 8–12), izolacje/maszyny 10–15 lub 15–20; intensywność blisko upadku wg fazy (RIR, nie 1–3 powt.). W JSON dodaj "tempo" "3-1-1-0" i "rir" (liczba) oraz "rest" (wielostawy 90–180 s, izolacje 60–90 s).
 5. W schema ćwiczenia: name, notes, muscleGroup, sets, reps, rest, rpe, rir, kg, tempo (opcjonalne ale wymagane dla priorytetów).
 ${hypertrophyGoal?`
@@ -1442,7 +1442,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 2. PRIORYTET SYLWETKOWY: 1–2 pierwsze ćwiczenia sesji (po rozgrzewce) na weak points, gdy sesja je stymuluje.
 2b. GRUPOWANIE PARTII: nigdy nie wracaj do partii, która już się skończyła w tej sesji — wszystkie ćwiczenia tej samej partii stoją razem, jedno po drugim (np. Plecy,Plecy,Plecy,Nogi,Nogi — NIE: Plecy,Nogi,Plecy).
 2c. WZORCE: w jednym dniu max 1 ćwiczenie na wzorzec ruchowy (np. podciąganie ALBO ściąganie drążka; wyciskanie płaskie hantlami ALBO sztangą). Chwyt/maszyna/przyrząd to nie inny wzorzec. Zróżnicuj: pion, poziom, łopatka/tył barku, prostymi rękami; płasko, skos, rozpiętki; obunóż, jednonóż, wyprost kolana, zgięcie kolana, zawias, hip thrust. Wyjątek: specjalizacja trenera (max 2, "specjalizacja" w notes).
-3. Preferuj maszyny / Smith / wyciągi i warianty lengthened / stretch-mediated z pauzą 1s w rozciągnięciu.
+3. Preferuj maszyny / Smith / wyciągi, gdy stabilność pomaga realizować cel, lecz zachowaj także ćwiczenia wolnym ciężarem, jeśli są potrzebne dla umiejętności lub preferencji. Różnicuj profil oporu (wydłużenie / środek / skrócenie); pauza w rozciągnięciu jest opcją, nie regułą.
 4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
 5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`;
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
@@ -2415,6 +2415,33 @@ function planToPdfModel(plan){
   };
 }
 
+function planPdfBiomechTip(ex){
+  if(!ex||!ex.name)return '';
+  let source=ex;
+  try{
+    const lib=typeof allExercises==='function'?allExercises():[].concat(window.DEF_EX||[],window.EX||[]);
+    source=lib.find(x=>String(x&&x.name||'').toLowerCase()===String(ex.name||'').toLowerCase())||ex;
+  }catch(_){ /* plan pozostaje czytelny także bez biblioteki */ }
+  if(typeof exerciseBiomech!=='function')return '';
+  const b=exerciseBiomech(source);
+  const n=String(ex.name||'').toLowerCase();
+  const cues={
+    vertical_pull:'Pozwól ramionom wydłużyć się u góry, potem prowadź łokcie w dół; nie odchylaj tułowia, aby zamienić ruch w wiosło.',
+    horizontal_pull:'Najpierw kontroluj sięgnięcie łopatki, potem prowadź łokieć do tułowia; nie nadrabiaj przeprostem lędźwi.',
+    horizontal_push:'Nadgarstek utrzymuj nad łokciem, a tor łokcia dobierz do komfortu barku; pełny ROM tylko przy kontroli.',
+    vertical_push:'Prowadź ramię w płaszczyźnie łopatki i nie wypychaj żeber do przodu, gdy tracisz kontrolę tułowia.',
+    knee_dominant:'Utrzymaj pełny kontakt stopy; kolano może iść w kierunku palców, jeśli ruch jest kontrolowany i tolerowany.',
+    hip_dominant:'Cofaj biodra przy stabilnym tułowiu; zakończ zakres zanim ruch przejmie przeprost lędźwi.',
+    shoulder_abduction:'Prowadź ruchem łokcia przy lekkim ugięciu; nie szarp tułowiem ani nie unoś barku bez potrzeby.',
+    elbow_flexion:'Zginaj łokieć bez kołysania tułowiem; wybierz chwyt, który nie drażni nadgarstka.',
+    elbow_extension:'Ustal ramię i prostuj łokieć w tolerowanym zakresie; nie wymuszaj bolesnego końca ruchu.',
+    core:'Oddychaj za napiętym tułowiem; celem jest kontrola ruchu, a nie maksymalne wciąganie brzucha.'
+  };
+  if(/wspiec|calf|lydk/.test(n))return 'Opuść piętę w kontrolowanym, tolerowanym zakresie i nie odbijaj od dołu.';
+  if(/rozpiet|fly|peck|butterfly|crossover/.test(n))return 'Kontroluj rozciągnięcie klatki bez wypychania barków do przodu; dobierz zakres do komfortu barku.';
+  return cues[b.pattern]||'';
+}
+
 function buildPlanPDFHTML(plan,client){
   plan=plan||{};
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
@@ -2479,10 +2506,11 @@ function buildPlanPDFHTML(plan,client){
           const pri=planPdfIsPriority(e,client)||ei===0;
           const rest=e.rest||((e.w1||{}).rest)||'90s';
           const tip=e.notes||e.note||e.tempo||'';
+          const biomechTip=planPdfBiomechTip(e);
           return `<tr>
             <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div></td>
             ${weekKeys.map((wk,wi)=>`<td>${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
-            <td class="plan-pdf-tip-cell"><div class="plan-pdf-rest">⏱ ${planPdfEsc(rest)}</div>${tip?planPdfEsc(tip):''}</td>
+            <td class="plan-pdf-tip-cell"><div class="plan-pdf-rest">⏱ ${planPdfEsc(rest)}</div>${tip?planPdfEsc(tip):''}${biomechTip?`<div style="margin-top:7px;color:#536b93;font-size:10px;line-height:1.35;"><b>🦴 Biomechanika:</b> ${planPdfEsc(biomechTip)}</div>`:''}</td>
           </tr>`;
         }).join('')}
         </tbody>
