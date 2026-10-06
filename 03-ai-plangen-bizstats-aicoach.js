@@ -65,6 +65,44 @@ function aplDefaultHypertrophySchema(weeksNum,weekKeys){
 }
 window.aplDefaultHypertrophySchema=aplDefaultHypertrophySchema;
 
+/** Przesuwa zakres powtórzeń o delta (np. "8-12", -2 → "6-10"). Czas, AMRAP i opisy zostają bez zmian. */
+function aplShiftReps(reps,delta,minLo,setLo){
+  const s=String(reps==null?'':reps).trim();
+  const m=/^(\d+)\s*[-–]\s*(\d+)$/.exec(s);
+  const one=/^(\d+)$/.exec(s);
+  if(!m&&!one)return s;
+  let lo=m?+m[1]:+one[1],hi=m?+m[2]:+one[1];
+  const floor=Math.max(1,minLo||1);
+  if(setLo!=null&&m){lo=Math.min(hi-1,Math.max(lo,setLo));return lo+'-'+hi;}
+  if(!delta)return s;
+  lo=lo+delta;hi=hi+delta;
+  if(lo<floor){const span=hi-lo;lo=floor;hi=Math.max(lo+(m?Math.min(span,2):0),hi);}
+  return m?lo+'-'+hi:String(lo);
+}
+window.aplShiftReps=aplShiftReps;
+/** Zmiana powtórzeń w tygodniu i (0 = baza) wg metody progresji. Deload = baza. */
+function aplWeekRepPlan(type,i,reps,isDeload){
+  if(!i||isDeload)return{reps:null,kgMul:1};
+  const s=String(reps||'');
+  const m=/^(\d+)\s*[-–]\s*(\d+)$/.exec(s);
+  if(type==='double'){
+    if(!m)return{reps:null,kgMul:1};
+    const lo=+m[1],hi=+m[2],span=Math.max(1,hi-lo);
+    const cycle=Math.floor(i/span),step=i%span;
+    return{setLo:lo+step,kgMul:1+0.025*cycle};
+  }
+  let off=0;
+  if(type==='wave')off=[2,0,-2][(i-1)%3];
+  else if(type==='dup')off=[0,-1,-2][i%3];
+  else if(type==='smolov')off=0;
+  else{
+    // Schodki: 4-tygodniowe fale (0, −1, −2, −3 powt.), każda kolejna fala z cięższym startem.
+    off=-(i%4);
+    return{delta:off,kgMul:(1-0.02*off)*(1+0.025*Math.floor(i/4))};
+  }
+  return{delta:off,kgMul:1-0.02*off};
+}
+window.aplWeekRepPlan=aplWeekRepPlan;
 function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
   const baseS=ex.sets,baseR=ex.reps,baseRest=ex.rest;
   const baseRpe=parseFloat(ex.rpe)||parseFloat(ex.rir)||7;
@@ -83,11 +121,14 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     const phase=(phasesMap[wk]||'').toLowerCase();
     const isDeload=phase.includes('deload');
     let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'',rir='';
+    const rp=aplWeekRepPlan(progressionType,i,baseR,isDeload||/deload/.test(String(phasesMap[wk]||'').toLowerCase()));
+    const repCyc=(rp.delta!=null||rp.setLo!=null)&&progressionType!=='smolov'&&/^\d+(\s*[-–]\s*\d+)?$/.test(String(baseR==null?'':baseR).trim());
+    if(repCyc)r=aplShiftReps(baseR,rp.delta||0,hyp?6:3,rp.setLo);
     if(hyp){
       rpe=hyp.rpe;
       rir=hyp.rir;
       s=String(Math.max(1,Math.round((parseInt(baseS)||3)*hyp.vol)));
-      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+0.015*i)*10)/10)+kgSuffix;
+      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+(repCyc?0.005:0.015)*i)*(rp.kgMul||1)*10)/10)+kgSuffix;
       ex[wk]={s,r,rest,rpe:String(rpe),rir:String(rir),kg};
       return;
     }
@@ -123,6 +164,10 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
           rpe=Math.min(9,baseRpe+Math.floor(i/2));
           if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
       }
+    }
+    // Gdy powtórzenia falują, ciężar liczymy jedną regułą (odwrotnie do powtórzeń + mały dryf), zamiast nakładać stare przyrosty kg.
+    if(!isDeload&&baseKgNum!=null&&repCyc&&rp.kgMul){
+      kg=(Math.round(baseKgNum*rp.kgMul*(1+0.01*i)*10)/10)+kgSuffix;
     }
     ex[wk]={s,r,rest,rpe:String(rpe),rir:rir===''?'':String(rir),kg};
   });
@@ -620,14 +665,22 @@ function aplPlanTokenBudget(dayCount,withPlanHeader){
   return Math.min((withPlanHeader?2400:500)+Math.max(1,dayCount)*1500,7000);
 }
 /** Objętość wg stażu i czasu sesji: liczba ćwiczeń głównych, serie, tygodniowe serie na partię. */
-function aplVolumeTarget(level,duration){
+function aplVolumeTarget(level,duration,pharma){
   const lv=String(level||'').toLowerCase();
   const adv=/zaaw|advanced/.test(lv),beg=/pocz|beginner/.test(lv);
+  const enh=pharma==='wspomagany',trt=pharma==='TRT';
   const dur=parseInt(duration,10)||60;
   let ex=adv?6:(beg?4:5);
   if(dur<=45)ex-=1;else if(dur>=75)ex+=1;
+  if(enh&&!beg&&dur>=75)ex+=1;
   ex=Math.max(3,ex);
-  return{exMin:ex,exMax:ex+1,sets:adv?(dur>=75?'3–5':'3–4'):(beg?'2–3':'3–4'),weekly:adv?'14–20':(beg?'8–12':'10–16'),weeklyMin:adv?12:(beg?6:10),label:adv?'zaawansowany':(beg?'początkujący':'średni')};
+  // Serie tygodniowo na główną partię. Natural: Schoenfeld 2017, Baz-Valle 2022 (12–20 u trenujących), Pelland 2024.
+  let lo=adv?14:(beg?8:10),hi=adv?20:(beg?12:16),min=adv?12:(beg?6:10);
+  if(enh&&!beg){lo=Math.round(lo*1.3);hi=Math.round(hi*1.3);min=Math.round(min*1.3);}
+  else if(trt&&!beg){lo+=2;hi+=2;min+=2;}
+  const sets=enh&&!beg?'3–5':(adv?(dur>=75?'3–5':'3–4'):(beg?'2–3':'3–4'));
+  const label=(adv?'zaawansowany':(beg?'początkujący':'średni'))+(enh?', wspomagany':(trt?', TRT':''));
+  return{exMin:ex,exMax:ex+1,sets,weekly:lo+'–'+hi,weeklyMin:min,label,enhanced:enh};
 }
 window.aplVolumeTarget=aplVolumeTarget;
 /** Odpowiedź AI ucięta albo niepełna: brakujące dni, ćwiczenia bez nazwy. */
@@ -643,6 +696,31 @@ function aplChunkProblem(chunkPlan,expectDays,truncated){
   return'';
 }
 window.aplChunkProblem=aplChunkProblem;
+/** Dokłada serie, gdy tygodniowa objętość dużej partii jest poniżej minimum dla stażu (AI często zaniża). */
+function aplEnforceWeeklyVolume(plan,vt){
+  const cats={klatka:'klatka',plecy:'plecy',nogi:'nogi',barki:'barki'};
+  const byCat={};
+  (plan&&plan.days||[]).forEach(d=>(d.exercises||[]).forEach(e=>{
+    if(!e||!/^\d+$/.test(String(e.sets||'').trim()))return;
+    const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(e):'';
+    if(cats[c])(byCat[c]=byCat[c]||[]).push(e);
+  }));
+  const out=[];
+  Object.keys(byCat).forEach(c=>{
+    const list=byCat[c];
+    const sum=()=>list.reduce((a,e)=>a+(parseInt(e.sets,10)||0),0);
+    const from=sum();
+    let guard=0;
+    while(sum()<vt.weeklyMin&&guard++<40){
+      const e=list.filter(x=>(parseInt(x.sets,10)||0)<5).sort((a,b)=>(parseInt(a.sets,10)||0)-(parseInt(b.sets,10)||0))[0];
+      if(!e)break;
+      e.sets=String((parseInt(e.sets,10)||0)+1);
+    }
+    if(sum()>from)out.push({cat:cats[c],from,to:sum()});
+  });
+  return out;
+}
+window.aplEnforceWeeklyVolume=aplEnforceWeeklyVolume;
 
 function aplExtractJsonObject(text){
   const s=String(text||'');
@@ -1042,7 +1120,7 @@ async function aplGenerate(){
   const weekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,weeksNum);
   const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys,goal):{};
   const hypertrophyGoal=typeof aplIsHypertrophyGoal==='function'&&aplIsHypertrophyGoal(goal);
-  const vt=aplVolumeTarget(level,duration);
+  const vt=aplVolumeTarget(level,duration,document.getElementById('apl-pharma-status')?.value||'');
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
@@ -1199,6 +1277,7 @@ Tyg. 8 Deload: objętość −40–50%, RIR 3–4.
 Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (tablica tygodni 1–${weeksNum} z phase/rir/reps/volume/notes). "days" = workout_plan.
 `:''}
 
+OBJĘTOŚĆ wg badań (Schoenfeld i wsp. 2017 — zależność dawka–odpowiedź, ≥10 serii/tydz. > <5; Baz-Valle i wsp. 2022 — 12–20 serii/tydz. u trenujących; Pelland i wsp. 2024 — przyrost rośnie z objętością, z malejącym zyskiem)${vt.enhanced?'; klient wspomagany: wyższa tolerancja objętości (Bhasin i wsp. 1996 — większe przyrosty przy suprafizjologicznym testosteronie), cel ok. +30% serii':''}.
 OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
 Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
   +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
@@ -1326,7 +1405,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
     aplLastClient=client;
     plan.phases=phasesMap;
     plan.weekKeys=weekKeys;
-    plan.progression=progression||plan.progression||'linear';
+    plan.progression=progression==='ai'?((effectiveProg&&effectiveProg!=='ai'?effectiveProg:'')||plan.progression||'linear'):(progression||'linear');
     plan.currentWeek=plan.currentWeek||weekKeys[0];
     if(hypertrophyGoal){
       if(!Array.isArray(plan.weekly_progression_schema)||!plan.weekly_progression_schema.length){
@@ -1334,10 +1413,13 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       }
       if(!plan.mezocycle_overview)plan.mezocycle_overview=plan.summary||'';
     }
+    (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';}));
+    plan.volumeTopUp=aplEnforceWeeklyVolume(plan,vt);
+    plan.volumeTarget={weekly:vt.weekly,min:vt.weeklyMin,label:vt.label};
     (plan.days||[]).forEach(d=>{
       (d.exercises||[]).forEach(ex=>{
         ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';ex.rir=ex.rir||ex.rpe||'7';
-        aplComputeProgression(ex,weekKeys,phasesMap,progression);
+        aplComputeProgression(ex,weekKeys,phasesMap,plan.progression);
       });
     });
     aplRegroupExercisesByMuscle(plan,client);
@@ -1961,8 +2043,9 @@ function aplPlanChecks(plan,ctx){
   if(missing.length)out.push({tone:'watch',kind:'fields',text:'Bez zakresu powtórzeń albo RIR: '+missing.slice(0,4).join(', ')+(missing.length>4?' i '+(missing.length-4)+' inne':'')+'.'});
   if(!plan||!plan.progression)out.push({tone:'watch',kind:'progression',text:'Brak zasady progresji — wybierz ją przed zapisem.'});
   if(plan&&plan.incompleteDays>0)out.push({tone:'act',kind:'days',text:'AI nie wygenerowało '+plan.incompleteDays+' '+(plan.incompleteDays===1?'dnia':'dni')+' planu — wygeneruj plan ponownie albo dodaj dzień ręcznie.'});
+  if(plan&&Array.isArray(plan.volumeTopUp)&&plan.volumeTopUp.length)out.push({tone:'watch',kind:'volume-topup',text:'Dołożono serie do minimum tygodniowego ('+(plan.volumeTarget&&plan.volumeTarget.label||'')+'): '+plan.volumeTopUp.map(x=>x.cat+' '+x.from+'→'+x.to).join(', ')+'.'});
   if(ctx.level&&typeof aplVolumeTarget==='function'&&days.length){
-    const vt=aplVolumeTarget(ctx.level,ctx.duration);
+    const vt=aplVolumeTarget(ctx.level,ctx.duration,ctx.pharma);
     const isCore=e=>typeof aplNormalizeMuscleCategory==='function'&&aplNormalizeMuscleCategory(e)==='core';
     const shortDays=[];
     const weekly={};
@@ -1989,13 +2072,14 @@ function aplPlanChecksHTML(plan){
   const cid=document.getElementById('apl-client')?.value||'';
   const c=cid?(window.CL||[]).find(x=>x&&x.id===cid):null;
   if(c&&typeof clientInjuriesText==='function')injuries.push(clientInjuriesText(c));
-  const checks=aplPlanChecks(plan,{injuries:injuries.filter(Boolean).join(' · '),duration:(typeof aplGetVal==='function'?aplGetVal('apl-duration'):'')||plan.sessionDuration||'',level:(typeof aplGetVal==='function'?aplGetVal('apl-levels'):'')||(c&&c.level)||''});
+  const checks=aplPlanChecks(plan,{injuries:injuries.filter(Boolean).join(' · '),duration:(typeof aplGetVal==='function'?aplGetVal('apl-duration'):'')||plan.sessionDuration||'',level:(typeof aplGetVal==='function'?aplGetVal('apl-levels'):'')||(c&&c.level)||'',pharma:document.getElementById('apl-pharma-status')?.value||''});
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const labels={progression:{linear:'liniowa (ciężar co tydzień)',double:'podwójna (najpierw powtórzenia, potem ciężar)',dup:'falowa dzienna (DUP)',wave:'falowa tygodniowa',block:'blokowa'}};
   const prog=plan&&plan.progression?(labels.progression[plan.progression]||plan.progression):'';
   return '<div data-apl-checks style="margin-top:12px;padding:12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);font-size:12px;">'
     +'<strong>Kontrola planu</strong>'
     +(prog?'<div style="margin-top:6px;">Zasada progresji: <b>'+esc(prog)+'</b> — w Live sugestie liczone tą samą zasadą.</div>':'')
+    +(plan&&plan.volumeTarget?'<div data-apl-volume-target style="margin-top:4px;">Cel objętości: <b>'+esc(plan.volumeTarget.weekly)+' serii/tydz.</b> na główną partię ('+esc(plan.volumeTarget.label)+')'+(/wspomagany|TRT/.test(plan.volumeTarget.label)?'':' — status farmakologiczny nieustawiony, liczone jak dla naturalnego')+'. Źródła: Schoenfeld 2017, Baz-Valle 2022, Pelland 2024.</div>':'')
     +(checks.length?'<ul style="margin:6px 0 0;padding-left:18px;">'+checks.map(c=>'<li data-apl-check="'+esc(c.kind)+'" style="color:'+(c.tone==='act'?'var(--accent)':'var(--text)')+';">'+esc(c.text)+'</li>').join('')+'</ul>'
       :'<div data-apl-check="ok" style="margin-top:6px;color:var(--teal);">✓ Bez kolizji z ograniczeniami, sesje mieszczą się w czasie, każde ćwiczenie ma zakres i RIR.</div>')
     +'</div>';
