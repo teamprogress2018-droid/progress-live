@@ -28,6 +28,13 @@ const wave = run('wave', '8-12');
 ok('wave: lighter high-rep week, heavier low-rep week', wave.w2.r === '10-14' && wave.w4.r === '6-10' && parseFloat(wave.w4.kg) > parseFloat(wave.w2.kg));
 const dbl = run('double', '8-12');
 ok('double: lower bound climbs, then resets with more load', dbl.w2.r === '9-12' && dbl.w4.r === '11-12' && dbl.w5.r === '8-12' && parseFloat(dbl.w5.kg) > parseFloat(dbl.w1.kg));
+const noPh = {}; keys.forEach(k => { noPh[k] = k === 'w8' ? 'Deload' : 'Siła'; });
+for (const t of ['linear', 'dup', 'block', 'double', 'wave']) {
+  const ex = { sets: '4', reps: '8-12', rest: '120s', rpe: '8', kg: '100' }; c.aplComputeProgression(ex, keys, noPh, t);
+  const kgs = keys.slice(0, 7).map(k => parseFloat(ex[k].kg));
+  ok(t + ' (strength path): one load rule, max +20% over 7 weeks', Math.max(...kgs) <= 120, kgs.join(' '));
+  if (t === 'wave') ok('wave (strength path): high-rep week lighter than low-rep week', ex.w2.r === '10-14' && ex.w4.r === '6-10' && parseFloat(ex.w2.kg) < parseFloat(ex.w4.kg), ex.w2.r + '@' + ex.w2.kg + ' ' + ex.w4.r + '@' + ex.w4.kg);
+}
 const timed = run('linear', '20s');
 ok('timed sets untouched', keys.every(k => timed[k].r === '20s'));
 

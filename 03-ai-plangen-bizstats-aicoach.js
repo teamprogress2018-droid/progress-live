@@ -164,8 +164,9 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
           if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
       }
     }
-    if(!isDeload&&baseKgNum!=null&&rp.kgMul&&rp.kgMul!==1&&progressionType!=='wave'){
-      const n=parseFloat(kg);if(Number.isFinite(n))kg=(Math.round(n*rp.kgMul*10)/10)+kgSuffix;
+    // Gdy powtórzenia falują, ciężar liczymy jedną regułą (odwrotnie do powtórzeń + mały dryf), zamiast nakładać stare przyrosty kg.
+    if(!isDeload&&baseKgNum!=null&&r!==baseR&&rp.kgMul){
+      kg=(Math.round(baseKgNum*rp.kgMul*(1+0.01*i)*10)/10)+kgSuffix;
     }
     ex[wk]={s,r,rest,rpe:String(rpe),rir:rir===''?'':String(rir),kg};
   });
