@@ -1306,6 +1306,9 @@ FAZY TYGODNI (skopiuj do "weekly_progression_schema"; aplikacja liczy serie/RIR 
 METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
 ${structureHint?`\nSTRUKTURA METODY (obowiązkowa): ${structureHint}`:''}
 
+PPL PRZY 4 SESJACH (OBOWIĄZKOWE): nie resetuj splitu po niedzieli. Zapisz w "periodization" i "summary" kolejkę Push → Pull → Legs: tydzień 1 Push/Pull/Legs/Push, tydzień 2 Pull/Legs/Push/Pull, tydzień 3 Legs/Push/Pull/Legs. Nie dokładaj drugiego Pull i Legs w tym samym tygodniu kosztem nadmiernej objętości Push.
+KONTROLA OBJĘTOŚCI DLA NATURALNEGO PLANU 4-SESYJNEGO / KLIENTA 50+: zacznij konserwatywnie. Klatka 12–16 serii bezpośrednich/tydzień, boczny bark jako priorytet 8–10, biceps 8–10, triceps 8–10, czworogłowe 8–12, tył uda 6–10, pośladki 8–12. Dzień nóg: maks. 6 głównych ćwiczeń plus core; akcesoria zwykle 2–3 serie. Nie używaj dwóch podobnych unoszeń bokiem ani trzech wyciskań klatki w jednym dniu bez jawnej specjalizacji.
+
 OBOWIĄZKOWE PROGI OBJĘTOŚCI (MEV/MAV/MRV) NA PARTIĘ NA TYDZIEŃ — liczba serii roboczych zsumowana ze WSZYSTKICH dni treningowych w całym tygodniu:
 Klatka: MEV 10 / MAV 14-18 / MRV 20
 Plecy: MEV 10 / MAV 14-20 / MRV 22
