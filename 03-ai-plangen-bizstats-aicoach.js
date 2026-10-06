@@ -1445,7 +1445,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       let chunkPlan=null;
       let chunkRaw='';
       let extraTokens=0;
-      let redundancyHint='',redundancyTries=0;
+      let redundancyHint='',redundancyTries=0,redundancyFallback=null;
       for(let parseTry=0;parseTry<3;parseTry++){
         try{
           const data=await aplAnthropicRequest({
@@ -1471,6 +1471,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
           if(redundant.length){
             redundancyTries++;
             redundancyHint=aplPatternRedundancyText(redundant);
+            redundancyFallback=chunkPlan;
             aplSetGenProgress('Poprawiam dobór ćwiczeń (powtórzony wzorzec ruchowy)…');
             throw new Error('Niepełny JSON planu: redundancja wzorców');
           }
@@ -1480,6 +1481,8 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
           const isJson=/JSON|parse|Expected|,|\]|Unexpected|Brak JSON|property name/i.test(msg);
           const isOverload=/przeciążon|429|503|524/i.test(msg);
           if(parseTry<2&&(isJson||isOverload))continue;
+          // Poprawka wzorców się nie udała — zostaje poprawny plan sprzed niej (ostrzeżenie w Kontroli planu).
+          if(redundancyFallback){chunkPlan=redundancyFallback;break;}
           throw parseErr;
         }
       }

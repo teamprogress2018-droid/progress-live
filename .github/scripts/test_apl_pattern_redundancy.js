@@ -48,6 +48,12 @@ const specOther = c.aplDayPatternRedundancy(day('Podciąganie na drążku', 'Śc
 ok('specialization of another muscle does not excuse back redundancy', specOther.length === 1, JSON.stringify(specOther));
 
 ok('classifier fixes: face pull, straight-arm, close-grip pulldown, leg curl', c.exerciseBiomech({ name: 'Ściąganie do twarzy (face pull)', cat: 'Plecy' }).pattern === 'scapular_rear_delt' && c.exerciseBiomech({ name: 'Ściąganie prostymi rękami', cat: 'Plecy' }).pattern === 'shoulder_extension' && c.exerciseBiomech({ name: 'Close-Grip Pulldown', cat: '' }).pattern === 'vertical_pull' && c.exerciseBiomech({ name: 'Uginanie nóg leżąc', cat: 'Nogi' }).pattern === 'knee_flexion');
+const k = n => c.exercisePatternKey({ name: n[0], cat: n[1] });
+ok('decline press (skos−) differs from incline', k(['Wyciskanie sztangi skos−', 'Klatka piersiowa']) === 'press_decline' && k(['Wyciskanie hantli na ławce skośnej', 'Klatka piersiowa']) === 'press_incline');
+ok('hip abduction is its own pattern, not hinge or lateral raise', k(['Odwodzenie biodra na wyciągu', 'Pośladki']) === 'hip_ab_adduction' && k(['Odwodzenie nóg TRX leżąc', 'Pośladki']) === 'hip_ab_adduction' && k(['Martwy ciąg rumuński', 'Nogi']) === 'hip_hinge' && k(['Unoszenie hantli bokiem', 'Barki']) === 'shoulder_abduction');
+ok('shrugs (Unoszenie barków) are not a horizontal pull', k(['Unoszenie barków sztangą', 'Plecy']) === 'scapular_elevation' && k(['Wiosłowanie sztangą', 'Plecy']) === 'horizontal_pull');
+ok('hip thrust with abduction band stays hip thrust', k(['Wypychanie bioder z odwodzeniem mini band', 'Pośladki']) === 'hip_bridge');
+ok('failed pattern rewrite keeps the already parsed plan', /if\(redundancyFallback\)\{chunkPlan=redundancyFallback;break;\}/.test(s03));
 ok('prompt tells AI to pick by pattern first, 1 per pattern', /DOBÓR ĆWICZEŃ WG WZORCA/.test(s03) && /2c\. WZORCE/.test(s03));
 ok('generator retries once with the redundancy list', /redundancyHint=aplPatternRedundancyText\(redundant\)/.test(s03) && /redundancyTries<1/.test(s03));
 if (failed) { console.error(failed + ' failed'); process.exit(1); }

@@ -1557,10 +1557,12 @@ function exercisePatternKey(ex){
   const name=exBiomechNorm(ex&&ex.name);
   const p=b.pattern;
   if(p==='cardio'||p==='core'||p==='other')return '';
-  if(/szrug|wzrusz|shrug/.test(name))return 'scapular_elevation';
+  if(/szrug|wzrusz|shrug|unoszenie bark/.test(name))return 'scapular_elevation';
+  if(/hip thrust|wypychanie bioder|mostek|glute bridge/.test(name)&&(p==='hip_dominant'||p==='knee_dominant'||p==='shoulder_abduction'))return 'hip_bridge';
+  if(/odwodzen|przywodzen|abdukc|addukc|abduct|adduct/.test(name)&&/biodr|nog|udz|kostk|glute|hip|poslad|\bleg/.test(name+' '+exBiomechNorm(ex&&ex.cat))&&!/bark|ramie|ramion|shoulder/.test(name))return 'hip_ab_adduction';
   if(p==='horizontal_push'){
     if(/rozpietk|\bfly|flye|butterfly|peck|krzyzowan|crossover/.test(name))return 'chest_fly';
-    if(/ujemn|decline/.test(name))return 'press_decline';
+    if(/ujemn|decline|skos\s*[−-]/.test(name))return 'press_decline';
     if(/skos|incline|\d+\s*°/.test(name))return 'press_incline';
     return 'press_flat';
   }
