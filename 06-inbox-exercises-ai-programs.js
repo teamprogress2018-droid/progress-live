@@ -1640,7 +1640,8 @@ function exdBiomechRow(label, value, extraClass){
   return `<div class="exd-biomech-row"><div class="exd-biomech-k">${exdEsc(label)}</div><div class="exd-biomech-v${extraClass?' '+extraClass:''}">${value}</div></div>`;
 }
 function exdPlanningTags(b){
-  const tags=[b.compound?'COMPOUND':'ISOLATION',b.stable?'STABLE':'LESS STABLE',b.unilateral?'UNILATERAL':'BILATERAL'];
+  const tags=['PRIMARY: '+String(b.prime||'—'),b.compound?'COMPOUND':'ISOLATION',b.stable?'STABLE':'LESS STABLE',b.unilateral?'UNILATERAL':'BILATERAL'];
+  (b.secondary||[]).slice(0,2).forEach(m=>tags.push('SECONDARY: '+m));
   if(b.lengthBias==='lengthened') tags.push('LENGTHENED BIAS');
   else if(b.lengthBias==='shortened') tags.push('SHORTENED BIAS');
   else tags.push('MID-RANGE BIAS');
