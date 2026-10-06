@@ -25,11 +25,12 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     const ex = (d, i, set) => ({ name: 'Ćw ' + d + '.' + i + ' ' + (set || NAMES)[i - 1][0], notes: 'x', muscleGroup: (set || NAMES)[i - 1][1], sets: '3', reps: '8-12', rest: '90s', rpe: '8', rir: '2', kg: '20', tempo: '3-1-1-0' });
     const day = (d, n, set) => ({ dayName: 'Dzień ' + d + ' — Test', focus: 'x', warmupExercises: [{ name: 'a' }, { name: 'b' }, { name: 'c' }], exercises: Array.from({ length: n }, (_, i) => ex(d, i + 1, set)) });
     window.fetch = async (url, opt) => {
+      if (mode === 'redundant-short' && calls.length >= 1 && calls.length <= 2) { calls.push({ max: 0, sys: '', user: 'short' }); const t2 = JSON.stringify({ planName: 'Test', days: [] }); return { ok: true, status: 200, json: async () => ({ content: [{ text: t2 }], stop_reason: 'end_turn' }), text: async () => t2 }; }
       if (mode === 'redundant-fail' && calls.length === 1) { calls.push({ max: 0, sys: '', user: 'fail' }); return { ok: false, status: 500, text: async () => 'boom', json: async () => ({}) }; }
       const body = JSON.parse(opt.body); calls.push({ max: body.max_tokens, sys: body.system, user: body.messages[0].content });
       const m = /(?:TYLKO dni|Dodaj dni) (\d+)–(\d+)/.exec(body.system + ' ' + body.messages[0].content);
       const from = m ? +m[1] : 1, to = m ? +m[2] : 1;
-      const days = []; for (let d = from; d <= to; d++) days.push(day(d, mode === 'short' ? 2 : 6, (mode === 'redundant' || mode === 'redundant-fail') && calls.length === 1 ? REDUNDANT : null));
+      const days = []; for (let d = from; d <= to; d++) days.push(day(d, mode === 'short' ? 2 : 6, (mode === 'redundant' || mode === 'redundant-fail' || mode === 'redundant-short') && calls.length === 1 ? REDUNDANT : null));
       let text = JSON.stringify(from === 1 ? { planName: 'Test', summary: 's', days } : { days });
       let stop = 'end_turn';
       if (mode === 'trunc' && calls.length === 1) { text = text.slice(0, text.indexOf('Ćw 1.2') + 12); stop = 'max_tokens'; }
@@ -58,6 +59,8 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   ok('varied plan: no pattern retry, no pattern warning', t.calls.length === 4 && !t.checks.some(c => /^pattern:/.test(c)), JSON.stringify(t.checks));
   const rf = await run('redundant-fail');
   ok('pattern rewrite fails → plan still generated, warning in Kontrola planu', rf.days.join() === '6,6,6,6' && rf.checks.some(c => /^pattern:/.test(c) && /przyciąganie pionowe/.test(c)), JSON.stringify({ days: rf.days, checks: rf.checks }));
+  const rs = await run('redundant-short');
+  ok('incomplete rewrites → keeps the complete first plan', rs.days.join() === '6,6,6,6' && rs.checks.some(c => /^pattern:/.test(c)), JSON.stringify({ days: rs.days, checks: rs.checks }));
   const s = await run('short');
   ok('too few exercises for advanced is flagged in plan check', s.checks.some(c => /^volume:/.test(c) && /zaawansowany/.test(c)), JSON.stringify(s.checks));
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));

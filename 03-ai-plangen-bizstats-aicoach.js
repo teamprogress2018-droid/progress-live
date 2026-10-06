@@ -1463,6 +1463,8 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
           if(problem){
             if(!truncated)extraTokens+=1500;
             if(parseTry<2)throw new Error('Niepełny JSON planu: '+problem);
+            // Ostatnia próba po poprawce wzorców jest niepełna — wracamy do kompletnego planu sprzed poprawki.
+            if(redundancyFallback){chunkPlan=redundancyFallback;break;}
             // Ostatnia próba: zostaw tylko kompletne dni i ćwiczenia z nazwą — nigdy „undefined”.
             (chunkPlan.days||[]).forEach(d=>{d.exercises=(d.exercises||[]).filter(e=>e&&String(e.name||'').trim());});
             chunkPlan.days=(chunkPlan.days||[]).filter(d=>(d.exercises||[]).length);
