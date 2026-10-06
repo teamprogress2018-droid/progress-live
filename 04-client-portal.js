@@ -4768,6 +4768,34 @@ function clearAllNotifs(){
   }
 }
 
+/** Stare powiadomienia czytane są przy każdym otwarciu aplikacji (1 dokument = 1 odczyt bazy).
+ *  Raz dziennie usuwa te starsze niż NOTIF_KEEP_DAYS — mniej odczytów, dłużej w darmowym limicie Firebase. */
+const NOTIF_KEEP_DAYS=21,NOTIF_PRUNE_BATCH=300;
+async function pruneOldNotifications(opts){
+  opts=opts||{};
+  if(window._clientAppMode||!window._uid||!window._db||typeof window._del!=='function'||typeof window._doc!=='function')return 0;
+  const today=new Date().toISOString().slice(0,10);
+  const flag='pl_notif_prune_'+window._uid;
+  try{if(!opts.force&&localStorage.getItem(flag)===today)return 0;}catch(e){}
+  const cutoff=new Date(Date.now()-NOTIF_KEEP_DAYS*86400000).toISOString();
+  const list=window.NOTIFICATIONS||[];
+  const old=list.filter(n=>n&&n.createdAt&&String(n.createdAt)<cutoff&&(n._fbId||n.id)).slice(0,NOTIF_PRUNE_BATCH);
+  let removed=0;
+  for(const n of old){
+    try{
+      await window._del(window._doc(window._db,'notifications',n._fbId||n.id));
+      const i=list.indexOf(n);if(i>=0)list.splice(i,1);
+      removed++;
+    }catch(e){
+      if(/resource-exhausted|quota/i.test(String(e&&(e.code||e.message))))break;
+    }
+  }
+  try{if(removed===old.length)localStorage.setItem(flag,today);}catch(e){}
+  if(removed&&typeof updateNotifBadge==='function')updateNotifBadge();
+  return removed;
+}
+window.pruneOldNotifications=pruneOldNotifications;
+
 // Dodaj powiadomienie programowo (używane przez inne moduły)
 function addNotification(type,title,body,action=null,fixedId=null){
   const n=withTrainer({

@@ -4562,6 +4562,7 @@ async function load(session=captureTenantSession()){
   window._tenantDataReady=true;
   window._tenantLoadedUid=session.uid;
   if(typeof window.liveFlushPendingSessions==='function')setTimeout(()=>{try{window.liveFlushPendingSessions();}catch(e){}},0);
+  if(typeof window.pruneOldNotifications==='function')setTimeout(()=>{try{window.pruneOldNotifications();}catch(e){}},5000);
   // No broad ownership migration and no seed after a failed query.
   if(typeof window.seedTenantDefaults==='function')await window.seedTenantDefaults(session,data);
   if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
@@ -4591,7 +4592,7 @@ async function load(session=captureTenantSession()){
 <script src="01-core.js?v=126&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&package-fields=1&load-step=2&week-rir=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=92"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2"></script>
-<script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1"></script>
+<script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1"></script>
 <script src="client-card-save.js?v=3"></script>
 <script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1"></script>
 <script src="calendar-refill.js?v=2"></script>
