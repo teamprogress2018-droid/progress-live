@@ -696,6 +696,84 @@ function aplChunkProblem(chunkPlan,expectDays,truncated){
   return'';
 }
 window.aplChunkProblem=aplChunkProblem;
+/* Redundancja wzorców ruchowych w jednej jednostce (exerciseBiomech / exercisePatternKey z biblioteki ćwiczeń).
+ * Domyślnie 1 ćwiczenie na wzorzec w dniu; 2 przy świadomej specjalizacji (słowo „specjalizacja” w uwagach trenera
+ * przy danej partii albo w notes ćwiczenia). Chwyt, przyrząd czy maszyna nie są różnicą wzorca. */
+const APL_PATTERN_INFO={
+  vertical_pull:['przyciąganie pionowe',/plec|szerok|najszersz|\blat/],
+  horizontal_pull:['przyciąganie poziome',/plec|grubo|srodk/],
+  scapular_rear_delt:['łopatka / tył barku',/tyl.*bark|rear|lopatk/],
+  shoulder_extension:['wyprost ramienia',/plec|najszersz/],
+  press_flat:['wyciskanie na ławce płaskiej',/klat/],
+  press_incline:['wyciskanie na skosie',/klat|gorn/],
+  press_decline:['wyciskanie na skosie ujemnym',/klat|doln/],
+  chest_fly:['rozpiętki / przywodzenie',/klat/],
+  vertical_push:['wyciskanie nad głowę',/bark/],
+  shoulder_abduction:['odwodzenie ramienia (bok barku)',/bark|bok/],
+  elbow_flexion:['zgięcie łokcia (biceps)',/biceps|ramion/],
+  elbow_extension:['wyprost łokcia (triceps)',/triceps|ramion/],
+  knee_bilateral:['przysiad / wypychanie obunóż',/nog|czworog|ud/],
+  knee_unilateral:['wykrok / ruch jednonóż',/nog|czworog|ud|poslad/],
+  knee_extension:['wyprost kolana (izolacja)',/nog|czworog/],
+  knee_flexion:['zgięcie kolana',/dwuglow|tyl.*ud|nog/],
+  hip_hinge:['zawias biodrowy',/dwuglow|poslad|tyl.*ud/],
+  hip_bridge:['wyprost biodra (hip thrust)',/poslad/],
+  hip_ab_adduction:['odwodzenie / przywodzenie uda',/poslad|ud/],
+  calf:['łydki',/lyd/],
+  scapular_elevation:['unoszenie barków (kaptur)',/kaptur|trapez|czworoboczn/]
+};
+let _aplLibIndex=null,_aplLibIndexSrc=null;
+function aplLibraryExercise(name){
+  const norm=typeof exBiomechNorm==='function'?exBiomechNorm:s=>String(s||'').toLowerCase().trim();
+  const lib=typeof allExercises==='function'?allExercises():[];
+  if(!_aplLibIndex||_aplLibIndexSrc!==lib.length){
+    _aplLibIndex=new Map();_aplLibIndexSrc=lib.length;
+    lib.forEach(ex=>{
+      if(!ex||!ex.name)return;
+      [ex.name].concat(String(ex.aka||'').split(',')).forEach(n=>{const k=norm(n);if(k&&!_aplLibIndex.has(k))_aplLibIndex.set(k,ex);});
+    });
+  }
+  const k=norm(name);
+  return _aplLibIndex.get(k)||_aplLibIndex.get(norm(String(name||'').replace(/\([^)]*\)/g,'')))||null;
+}
+function aplExercisePatternKey(ex){
+  if(!ex||!ex.name||typeof exercisePatternKey!=='function')return '';
+  const lib=aplLibraryExercise(ex.name);
+  return exercisePatternKey(lib?{name:ex.name,cat:lib.cat,eq:lib.eq,muscle:lib.muscle}:{name:ex.name,cat:ex.muscleGroup||'',muscle:ex.muscleGroup||''});
+}
+function aplDayPatternRedundancy(day,ctx){
+  ctx=ctx||{};
+  const norm=typeof exBiomechNorm==='function'?exBiomechNorm:s=>String(s||'').toLowerCase();
+  const notes=norm(ctx.notes||'');
+  const groups={};
+  ((day&&day.exercises)||[]).forEach(ex=>{
+    const key=aplExercisePatternKey(ex);
+    if(!key||!APL_PATTERN_INFO[key])return;
+    (groups[key]=groups[key]||[]).push(ex);
+  });
+  const out=[];
+  Object.keys(groups).forEach(key=>{
+    const list=groups[key];
+    const info=APL_PATTERN_INFO[key];
+    const spec=(/specjaliz/.test(notes)&&info[1].test(notes))||list.some(e=>/specjaliz/.test(norm(e.notes||'')));
+    const allowed=spec?2:1;
+    if(list.length>allowed)out.push({key,label:info[0],allowed,names:list.map(e=>e.name)});
+  });
+  return out;
+}
+function aplPlanPatternRedundancy(plan,ctx){
+  const out=[];
+  ((plan&&plan.days)||[]).forEach((d,i)=>{
+    aplDayPatternRedundancy(d,ctx).forEach(r=>out.push(Object.assign({day:i,dayName:(d&&d.dayName)||('Dzień '+(i+1))},r)));
+  });
+  return out;
+}
+function aplPatternRedundancyText(list){
+  return list.map(r=>String(r.dayName).split(/[—–]/)[0].trim()+': '+r.names.length+'× '+r.label+' ('+r.names.join(', ')+') — zostaw '+r.allowed).join('; ');
+}
+window.aplExercisePatternKey=aplExercisePatternKey;
+window.aplDayPatternRedundancy=aplDayPatternRedundancy;
+window.aplPlanPatternRedundancy=aplPlanPatternRedundancy;
 /** Dokłada serie, gdy tygodniowa objętość dużej partii jest poniżej minimum dla stażu (AI często zaniża). */
 function aplEnforceWeeklyVolume(plan,vt){
   const cats={klatka:'klatka',plecy:'plecy',nogi:'nogi',barki:'barki'};
@@ -1279,7 +1357,8 @@ Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (
 
 OBJĘTOŚĆ wg badań (Schoenfeld i wsp. 2017 — zależność dawka–odpowiedź, ≥10 serii/tydz. > <5; Baz-Valle i wsp. 2022 — 12–20 serii/tydz. u trenujących; Pelland i wsp. 2024 — przyrost rośnie z objętością, z malejącym zyskiem)${vt.enhanced?'; klient wspomagany: wyższa tolerancja objętości (Bhasin i wsp. 1996 — większe przyrosty przy suprafizjologicznym testosteronie), cel ok. +30% serii':''}.
 OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
-Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
+Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core.
+DOBÓR ĆWICZEŃ WG WZORCA (OBOWIĄZKOWE): najpierw ustal wzorzec ruchowy, kierunek oporu, dominującą funkcję mięśnia, płaszczyznę ruchu i partię — dopiero potem konkretny wariant. Zmiana chwytu, maszyny lub przyrządu NIE jest innym ćwiczeniem. W jednym dniu maksymalnie 1 ćwiczenie na wzorzec (np. podciąganie ALBO ściąganie drążka; wyciskanie na ławce płaskiej hantlami ALBO sztangą). Różne wzorce to np.: przyciąganie pionowe, przyciąganie poziome, łopatka/tył barku, wyprost ramienia prostymi rękami; wyciskanie płaskie, skos, rozpiętki; przysiad/wypychanie obunóż, wykrok jednonóż, wyprost kolana, zgięcie kolana, zawias biodrowy, hip thrust. Wyjątek: świadoma specjalizacja wpisana przez trenera — wtedy max 2 i napisz w notes "specjalizacja". Brakującą objętość dobieraj seriami, nie kolejnym wariantem tego samego wzorca. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
   +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
 
   const userMsg=`Stwórz plan treningowy:
@@ -1356,6 +1435,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 1. Każda główna partia ≥2×/tydzień (suma serii z wielu dni).
 2. PRIORYTET SYLWETKOWY: 1–2 pierwsze ćwiczenia sesji (po rozgrzewce) na weak points, gdy sesja je stymuluje.
 2b. GRUPOWANIE PARTII: nigdy nie wracaj do partii, która już się skończyła w tej sesji — wszystkie ćwiczenia tej samej partii stoją razem, jedno po drugim (np. Plecy,Plecy,Plecy,Nogi,Nogi — NIE: Plecy,Nogi,Plecy).
+2c. WZORCE: w jednym dniu max 1 ćwiczenie na wzorzec ruchowy (np. podciąganie ALBO ściąganie drążka; wyciskanie płaskie hantlami ALBO sztangą). Chwyt/maszyna/przyrząd to nie inny wzorzec. Zróżnicuj: pion, poziom, łopatka/tył barku, prostymi rękami; płasko, skos, rozpiętki; obunóż, jednonóż, wyprost kolana, zgięcie kolana, zawias, hip thrust. Wyjątek: specjalizacja trenera (max 2, "specjalizacja" w notes).
 3. Preferuj maszyny / Smith / wyciągi i warianty lengthened / stretch-mediated z pauzą 1s w rozciągnięciu.
 4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
 5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`;
@@ -1365,13 +1445,14 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       let chunkPlan=null;
       let chunkRaw='';
       let extraTokens=0;
+      let redundancyHint='',redundancyTries=0;
       for(let parseTry=0;parseTry<3;parseTry++){
         try{
           const data=await aplAnthropicRequest({
             model:'claude-sonnet-4-20250514',
             max_tokens:Math.min(aplPlanTokenBudget(chunkDays,isFirst)+extraTokens,8000),
             system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON z podwójnymi cudzysłowami przy kluczach i stringach. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown, bez komentarzy.': ''),
-            messages:[{role:'user',content:chunkUser+(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': '')}]
+            messages:[{role:'user',content:chunkUser+(redundancyHint?'\n\nPOPRAW DOBÓR ĆWICZEŃ (powtórzony wzorzec ruchowy): '+redundancyHint+'. Zamień nadmiarowe ćwiczenia na inny wzorzec tej samej partii (np. przyciąganie poziome, łopatka/tył barku, skos, rozpiętki, jednonóż), zachowaj liczbę serii i resztę dnia. Zwróć cały JSON.':(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': ''))}]
           });
           chunkRaw=data?.content?.[0]?.text||'';
           if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
@@ -1385,6 +1466,13 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
             // Ostatnia próba: zostaw tylko kompletne dni i ćwiczenia z nazwą — nigdy „undefined”.
             (chunkPlan.days||[]).forEach(d=>{d.exercises=(d.exercises||[]).filter(e=>e&&String(e.name||'').trim());});
             chunkPlan.days=(chunkPlan.days||[]).filter(d=>(d.exercises||[]).length);
+          }
+          const redundant=!problem&&redundancyTries<1&&parseTry<2?aplPlanPatternRedundancy(chunkPlan,{notes}):[];
+          if(redundant.length){
+            redundancyTries++;
+            redundancyHint=aplPatternRedundancyText(redundant);
+            aplSetGenProgress('Poprawiam dobór ćwiczeń (powtórzony wzorzec ruchowy)…');
+            throw new Error('Niepełny JSON planu: redundancja wzorców');
           }
           break;
         }catch(parseErr){
@@ -2042,6 +2130,10 @@ function aplPlanChecks(plan,ctx){
   }));
   if(missing.length)out.push({tone:'watch',kind:'fields',text:'Bez zakresu powtórzeń albo RIR: '+missing.slice(0,4).join(', ')+(missing.length>4?' i '+(missing.length-4)+' inne':'')+'.'});
   if(!plan||!plan.progression)out.push({tone:'watch',kind:'progression',text:'Brak zasady progresji — wybierz ją przed zapisem.'});
+  if(typeof aplPlanPatternRedundancy==='function'){
+    const red=aplPlanPatternRedundancy(plan,{notes:ctx.notes||''});
+    if(red.length)out.push({tone:'watch',kind:'pattern',text:'Powtórzony wzorzec ruchowy — '+aplPatternRedundancyText(red)+'. Zamień przyciskiem 🔄.'});
+  }
   if(plan&&plan.incompleteDays>0)out.push({tone:'act',kind:'days',text:'AI nie wygenerowało '+plan.incompleteDays+' '+(plan.incompleteDays===1?'dnia':'dni')+' planu — wygeneruj plan ponownie albo dodaj dzień ręcznie.'});
   if(plan&&Array.isArray(plan.volumeTopUp)&&plan.volumeTopUp.length)out.push({tone:'watch',kind:'volume-topup',text:'Dołożono serie do minimum tygodniowego ('+(plan.volumeTarget&&plan.volumeTarget.label||'')+'): '+plan.volumeTopUp.map(x=>x.cat+' '+x.from+'→'+x.to).join(', ')+'.'});
   if(ctx.level&&typeof aplVolumeTarget==='function'&&days.length){
@@ -2072,7 +2164,7 @@ function aplPlanChecksHTML(plan){
   const cid=document.getElementById('apl-client')?.value||'';
   const c=cid?(window.CL||[]).find(x=>x&&x.id===cid):null;
   if(c&&typeof clientInjuriesText==='function')injuries.push(clientInjuriesText(c));
-  const checks=aplPlanChecks(plan,{injuries:injuries.filter(Boolean).join(' · '),duration:(typeof aplGetVal==='function'?aplGetVal('apl-duration'):'')||plan.sessionDuration||'',level:(typeof aplGetVal==='function'?aplGetVal('apl-levels'):'')||(c&&c.level)||'',pharma:document.getElementById('apl-pharma-status')?.value||''});
+  const checks=aplPlanChecks(plan,{injuries:injuries.filter(Boolean).join(' · '),duration:(typeof aplGetVal==='function'?aplGetVal('apl-duration'):'')||plan.sessionDuration||'',level:(typeof aplGetVal==='function'?aplGetVal('apl-levels'):'')||(c&&c.level)||'',pharma:document.getElementById('apl-pharma-status')?.value||'',notes:document.getElementById('apl-notes')?.value||''});
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const labels={progression:{linear:'liniowa (ciężar co tydzień)',double:'podwójna (najpierw powtórzenia, potem ciężar)',dup:'falowa dzienna (DUP)',wave:'falowa tygodniowa',block:'blokowa'}};
   const prog=plan&&plan.progression?(labels.progression[plan.progression]||plan.progression):'';
