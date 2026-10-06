@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=124&ui=2">
+<link rel="stylesheet" href="styles.css?v=125&ui=2">
 </head>
 <body>
 
@@ -219,6 +219,7 @@
     </div>
 
     <div class="dash-ops-grid">
+      <div class="dash-ops-col">
       <div class="card" id="dash-ops-attention">
         <div class="dash-ops-hdr">
           <div>
@@ -227,16 +228,6 @@
           </div>
         </div>
         <div id="d-ops-attention"></div>
-      </div>
-      <div class="card" id="dash-ops-today">
-        <div class="dash-ops-hdr">
-          <div>
-            <div class="studio-hdr">Dzisiejszy plan</div>
-            <div class="studio-sub" id="d-date-lbl"></div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
-        </div>
-        <div id="d-today-sessions"></div>
       </div>
       <div class="card" id="dash-ops-reports">
         <div class="dash-ops-hdr">
@@ -248,6 +239,18 @@
         </div>
         <div id="d-ops-reports"></div>
       </div>
+      </div>
+      <div class="dash-ops-col">
+      <div class="card" id="dash-ops-today">
+        <div class="dash-ops-hdr">
+          <div>
+            <div class="studio-hdr">Dzisiejszy plan</div>
+            <div class="studio-sub" id="d-date-lbl"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
+        </div>
+        <div id="d-today-sessions"></div>
+      </div>
       <div class="card" id="dash-ops-pay">
         <div class="dash-ops-hdr">
           <div>
@@ -257,6 +260,7 @@
           <button class="btn btn-ghost btn-sm" onclick="goTo('payments')">Płatności →</button>
         </div>
         <div id="d-ops-expiring"></div>
+      </div>
       </div>
     </div>
 
