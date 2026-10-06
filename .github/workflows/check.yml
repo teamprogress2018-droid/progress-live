@@ -571,6 +571,7 @@ jobs:
           node .github/scripts/test_apl_periodization.js
           node .github/scripts/test_dash_agenda_ui.js
           node .github/scripts/test_pay_actions_ui.js
+          node .github/scripts/test_notif_prune_ui.js
           node .github/scripts/test_multiday_rep_target_ui.js
           node .github/scripts/test_live_readable_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
