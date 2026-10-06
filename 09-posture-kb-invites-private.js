@@ -548,6 +548,28 @@ const PKG_TYPE_COLOR={sessions:'var(--accent)',monthly:'var(--blue)',program:'va
 function allPackages(){return window.PACKAGES||[];}
 function allInvoices(){return window.INVOICES||[];}
 
+/* Older imports can contain the same package more than once under different IDs.
+   Billing views use one representative only; source records remain untouched. */
+function uniquePayPackages(packages){
+  const norm=v=>String(v==null?'':v).trim().toLowerCase().replace(/\s+/g,' ');
+  const groups=new Map();
+  (packages||[]).forEach(pkg=>{
+    if(!pkg)return;
+    const key=pkg.packageCreateId
+      ?'create:'+pkg.packageCreateId
+      :'package:'+[
+        norm(pkg.clientId),norm(pkg.title),norm(pkg.date),Number(pkg.price)||0,
+        Number(pkg.sessions)||0,Number(pkg.validity)||0,norm(pkg.payStatus)
+      ].join('|');
+    const existing=groups.get(key);
+    const stamp=item=>String(item.updatedAt||item.createdAt||item.paymentRequestedAt||item.id||'');
+    if(!existing||stamp(pkg)>stamp(existing))groups.set(key,pkg);
+  });
+  return [...groups.values()];
+}
+function payHiddenDuplicateCount(){return Math.max(0,allPackages().length-uniquePayPackages(allPackages()).length);}
+window.uniquePayPackages=uniquePayPackages;
+
 function setPayTab(t){
   payTab=t;
   ['overview','packages','invoices','history'].forEach(tab=>{
@@ -574,7 +596,7 @@ function payActionItems(opts){
   const today=opts.today||(typeof todayYmd==='function'?todayYmd():payYmd(new Date()));
   const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
   const items=[];
-  (typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).forEach(p=>{
+  uniquePayPackages(typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).forEach(p=>{
     if(!p||p.archived||p.deleted||p.status==='archived')return;
     if(p.clientId&&live.size&&!live.has(p.clientId))return;
     const name=p.clientName||((window.CL||[]).find(c=>c&&c.id===p.clientId)||{}).name||'Klient';
@@ -628,7 +650,7 @@ function payRenewPackage(pkgId){
 window.payRenewPackage=payRenewPackage;
 
 function renderPayOverview(){
-  const all=allPackages();
+  const all=uniquePayPackages(allPackages());
   const today=new Date();
   const thisMonth=today.toISOString().slice(0,7);
 
@@ -690,12 +712,14 @@ function renderPayOverview(){
   const icons={overdue:'💳',usedup:'🔁',low:'📉',expiring:'⏰',pending:'🧾'};
   const tone={overdue:'var(--red)',usedup:'var(--orange)',low:'var(--orange)',expiring:'var(--orange)',pending:'var(--muted)'};
   const acts=payActionItems();
-  if(alerts)alerts.innerHTML=acts.length?acts.map(it=>`<div class="pay-alert" data-pay-action="${esc(it.kind)}" data-pkg-id="${esc(it.pkgId)}"><span style="font-size:18px;">${icons[it.kind]||'•'}</span><div style="flex:1;"><div style="font-weight:600;">${esc(it.name)}</div><div style="color:${tone[it.kind]};">${esc(it.tag)}</div><div style="font-size:11px;color:var(--muted);">${esc(it.meta)}</div></div>${payActionButtonHTML(it)}</div>`).join('')
-    :'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Brak alertów ✓</div>';
+  const hidden=payHiddenDuplicateCount();
+  const duplicateNote=hidden?`<div class="pay-alert" style="border-left-color:var(--orange);"><span style="font-size:18px;">⚠️</span><div style="flex:1;"><div style="font-weight:600;">Ukryto powielone pakiety</div><div style="font-size:11px;color:var(--muted);">${hidden} wpis${hidden===1?'':'ów'} nie jest liczony w podsumowaniu ani alertach. Dane pozostają bez zmian do ręcznej weryfikacji.</div></div></div>`:'';
+  if(alerts)alerts.innerHTML=duplicateNote+(acts.length?acts.map(it=>`<div class="pay-alert" data-pay-action="${esc(it.kind)}" data-pkg-id="${esc(it.pkgId)}"><span style="font-size:18px;">${icons[it.kind]||'•'}</span><div style="flex:1;"><div style="font-weight:600;">${esc(it.name)}</div><div style="color:${tone[it.kind]};">${esc(it.tag)}</div><div style="font-size:11px;color:var(--muted);">${esc(it.meta)}</div></div>${payActionButtonHTML(it)}</div>`).join('')
+    :'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Brak alertów ✓</div>');
 }
 
 function renderPayChart(){
-  const all=allPackages();
+  const all=uniquePayPackages(allPackages());
   const months=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
   const now=new Date();
   const data=[];
@@ -729,7 +753,7 @@ function payClientsFromPackages(pkgs){
 }
 
 function renderPayPackages(){
-  const all=allPackages();
+  const all=uniquePayPackages(allPackages());
   const today=new Date().toISOString().split('T')[0];
 
   // client filter chips — po clientId, nie po imieniu
@@ -4159,11 +4183,30 @@ function kbKindColor(kind){
   return k==='evidence'?'var(--teal)':(k==='principle'?'var(--accent)':'var(--blue)');
 }
 
+/* One logical entry may exist more than once after an old import or a double click.
+   Keep the newest copy visible, but never send duplicate material to the planner. */
+function kbEntryIdentity(entry){
+  const norm=value=>String(value||'').trim().toLowerCase().replace(/\s+/g,' ');
+  if(entry&&entry.builtinId)return 'builtin:'+String(entry.builtinId);
+  return 'content:'+[norm(entry&&entry.kind),norm(entry&&entry.title),norm(entry&&entry.sourceUrl)].join('|');
+}
+function kbUniqueEntries(entries){
+  const seen=new Set();
+  return (entries||[]).slice().reverse().filter(entry=>{
+    const key=kbEntryIdentity(entry);
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  }).reverse();
+}
+window.kbUniqueEntries=kbUniqueEntries;
+
 function renderKB(){
   const el = document.getElementById('kb-list'); if(!el) return;
   const filter=window._kbFilter||'all';
   const query=((document.getElementById('kb-search')||{}).value||'').trim().toLowerCase();
-  const list=(KB||[]).slice().reverse().filter(k=>{
+  const unique=kbUniqueEntries(KB||[]);
+  const list=unique.slice().reverse().filter(k=>{
     const kind=typeof normalizeKbKind==='function'?normalizeKbKind(k):(k.kind||'note');
     if(filter!=='all'&&kind!==filter)return false;
     if(!query)return true;
@@ -4174,7 +4217,10 @@ function renderKB(){
   renderKbAiContextPreview();
   if(typeof renderKbFeed==='function')renderKbFeed();
   const countEl=document.getElementById('kb-result-count');
-  if(countEl)countEl.textContent=list.length+' z '+(KB||[]).length;
+  if(countEl){
+    const hidden=Math.max(0,(KB||[]).length-unique.length);
+    countEl.textContent=list.length+' z '+unique.length+(hidden?' · '+hidden+' duplikatów ukryto':'');
+  }
   if(!list.length){
     el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;opacity:0.3;">📚</div><div>Brak wpisów'+(filter!=='all'?' w tej kategorii':'')+'. Dodaj notatkę, badanie albo wczytaj pakiet startowy.</div></div>';
     return;
@@ -4227,8 +4273,8 @@ function renderKbBuiltinPreview(){
   if(!wrap)return;
   const pack=window.BUILTIN_PLANNING_EVIDENCE||[];
   if(!pack.length){wrap.innerHTML='';return;}
-  const imported=new Set((KB||[]).map(k=>k.builtinId).filter(Boolean));
-  const missing=pack.filter(b=>!imported.has(b.id));
+  const imported=new Set(kbUniqueEntries(KB||[]).map(k=>k.builtinId||kbEntryIdentity(k)).filter(Boolean));
+  const missing=pack.filter(b=>!imported.has(b.id)&&!imported.has(kbEntryIdentity(b)));
   if(!missing.length){wrap.innerHTML='';return;}
   wrap.innerHTML=`<div class="card-sm" style="border:1px dashed var(--border2);">
     <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Pakiet startowy (wbudowany)</div>
@@ -4247,16 +4293,18 @@ function renderKbBuiltinPreview(){
 async function kbImportBuiltinPack(){
   const pack=window.BUILTIN_PLANNING_EVIDENCE||[];
   if(!pack.length){notify('Brak pakietu startowego');return;}
-  const have=new Set((KB||[]).map(k=>k.builtinId).filter(Boolean));
+  const have=new Set(kbUniqueEntries(KB||[]).map(k=>k.builtinId||kbEntryIdentity(k)).filter(Boolean));
   let n=0;
   for(const b of pack){
-    if(have.has(b.id))continue;
+    if(have.has(b.id)||have.has(kbEntryIdentity(b)))continue;
     const entry=withTrainer({
       id:newId('kb'),kind:b.kind,title:b.title,text:b.text,
       citation:b.citation||'',sourceUrl:b.sourceUrl||'',
       useInPlanning:true,builtinId:b.id,tags:typeof kbTagsForEntry==='function'?kbTagsForEntry(b):(b.tags||[]),createdAt:new Date().toISOString()
     });
     KB.push(entry);
+    have.add(b.id);
+    have.add(kbEntryIdentity(b));
     n++;
     await persistById('kb',entry);
   }
@@ -4319,7 +4367,7 @@ async function delKBEntry(id){
 
 function kbContextForAI(opts){
   if(typeof planningEvidenceContext==='function')return planningEvidenceContext(3500,opts||{})+kbResearchContext(opts);
-  const on=(KB||[]).filter(k=>typeof kbEntryUsesInPlanning==='function'?kbEntryUsesInPlanning(k):k.useInPlanning!==false);
+  const on=kbUniqueEntries(KB||[]).filter(k=>typeof kbEntryUsesInPlanning==='function'?kbEntryUsesInPlanning(k):k.useInPlanning!==false);
   if(!on.length)return '';
   return '\n\n=== BADANIA I NOTATKI TRENERA ===\n'+on.map(k=>`### ${k.title}\n${(k.text||'').substring(0,500)}`).join('\n\n');
 }

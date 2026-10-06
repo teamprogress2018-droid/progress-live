@@ -7290,21 +7290,6 @@ const BUILTIN_PLANNING_EVIDENCE=[
     text:'Planuj obniżenie objętości/intensywności co kilka tygodni (sen, staw, RPE drift). Deload to narzędzie progresji, nie „przegrana”.',
     citation:'Praktyka periodyzacji (NSCA / coaching)',sourceUrl:'',useInPlanning:true,tags:['deload']}
 ];
-
-/* Fundament biomechaniki Progress Live. To są krótkie, wdrożeniowe wpisy
-   zawsze dostępne dla Generatora AI; pełny opis trenerski pozostaje w bazie
-   materiałów projektu i może być rozwijany bez zmiany promptów. */
-BUILTIN_PLANNING_EVIDENCE.push(
-  {id:'bmk_lats',kind:'principle',title:'Biomechanika: najszerszy grzbietu',tags:['plecy'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Funkcje: wyprost, przywiedzenie i rotacja wewnętrzna ramienia. W pionowym przyciąganiu głównym zadaniem jest sprowadzenie ramienia ku tułowiowi, a nie samo ściąganie łopatek. Ramię nad głową daje dłuższą pozycję; dobieraj ROM bez przeprostu lędźwi. Różnicuj pulldown/podciąganie, wiosło z łokciem ku biodru i pullover. Szeroki chwyt nie jest skrótem do szerszych pleców.'},
-  {id:'bmk_pec',kind:'principle',title:'Biomechanika: piersiowy większy',tags:['klatka'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Część obojczykowa i mostkowo-żebrowa wspólnie przywodzą poziomo oraz rotują ramię wewnętrznie; kąt ramienia zmienia ich warunki pracy. Wyciskanie, skos i rozpiętka nie izolują „góry/środka/dołu”, lecz różnicują tor i profil oporu. Zachowuj tolerowany ROM barku, stabilny nadgarstek nad łokciem i nie wymuszaj głębokości.'},
-  {id:'bmk_shoulders',kind:'principle',title:'Biomechanika: barki i łopatka',tags:['barki','plecy'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Przedni naramienny: zgięcie ramienia i wyciskania; boczny: odwiedzenie, zwykle praktyczne w unoszeniu w płaszczyźnie łopatki; tylny: wyprost i odwiedzenie poziome. Górny, środkowy i dolny czworoboczny oraz równoległoboczne sterują łopatką. Nie wymagaj stałej depresji/retrakcjii łopatki w ruchach nad głową; dobieraj tor bez unoszenia żeber i bólu.'},
-  {id:'bmk_arms',kind:'principle',title:'Biomechanika: biceps i triceps',tags:['ramiona'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Biceps zgina łokieć i supinuje, brachialis zgina niezależnie od chwytu, brachioradialis dobrze pracuje przy chwycie neutralnym. Głowa długa tricepsa przekracza bark: wyprosty nad głową dają jej dłuższą pozycję niż pressdown. Różnicuj chwyt i pozycję barku dla komfortu, nie deklarując pełnej izolacji. Ogranicz kołysanie tułowia i ruch barku zastępujący ruch łokcia.'},
-  {id:'bmk_glutes',kind:'principle',title:'Biomechanika: pośladki i przywodziciele',tags:['posladki','nogi'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Pośladkowy wielki prostuje biodro: hinge, przysiad/split squat i hip thrust różnicują zakres oraz profil oporu. Średni/mały odwodzą biodro i stabilizują miednicę w podporze jednonóż. Przywodziciele przywodzą biodro; tylna część przywodziciela wielkiego pomaga w wyproście. Nie zamieniaj końca hip thrust w przeprost lędźwi.'},
-  {id:'bmk_quads_hams',kind:'principle',title:'Biomechanika: czworogłowy i tył uda',tags:['nogi'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Vasti prostują kolano; rectus femoris przekracza biodro i kolano. Przysiad/leg press/split squat oraz leg extension to różne ekspozycje, nie duplikaty. Hamstringi rozdziel na wyprost biodra (RDL/hinge) i zgięcie kolana (leg curl); seated curl przy zgiętym biodrze jest sensownym uzupełnieniem hinge. Kolano może przejść przed palce, jeśli tor i obciążenie są tolerowane.'},
-  {id:'bmk_lower_leg',kind:'principle',title:'Biomechanika: łydka i goleń',tags:['lydki'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Gastrocnemius przekracza kolano i staw skokowy, dlatego wspięcia stojąc są praktycznym wariantem; soleus nie przekracza kolana, a wspięcia siedząc różnicują zadanie. Tibialis anterior wykonuje zgięcie grzbietowe. Stosuj kontrolowane rozciągnięcie bez odbijania i dobieraj ROM do tolerancji ścięgna.'},
-  {id:'bmk_trunk',kind:'principle',title:'Biomechanika: brzuch i prostowniki grzbietu',tags:['core'],useInPlanning:true,citation:'Progress Live · baza biomechaniki',text:'Prosty brzucha zgina tułów; skośne kontrolują rotację i zgięcie boczne; poprzeczny brzucha współtworzy napięcie ściany, ale nie daje się wiarygodnie „wyizolować” jednym cue. Prostowniki stabilizują lub prostują kręgosłup. Dobieraj crunch, antyruch, carry i hinge do celu; nie przedstawiaj neutralnego kręgosłupa jako jedynej poprawnej pozycji w każdym ćwiczeniu.'},
-  {id:'bmk_ai_rules',kind:'principle',title:'Reguły AI: tagowanie i redundancja ćwiczeń',tags:['mav'],useInPlanning:true,citation:'Progress Live · AI_RULES',text:'Taguj ćwiczenie: PRIMARY/SECONDARY/ACCESSORY, compound/isolation, stable/less stable, unilateral/bilateral, vertical/horizontal oraz lengthened/mid-range/shortened bias, gdy profil jest znany. Nie duplikuj ćwiczeń o tym samym celu, wzorcu, ROM i profilu oporu bez uzasadnienia. Nie uznawaj za redundantne: RDL + leg curl, pulldown + wiosło, hip thrust + split squat ani wyciskanie + rozpiętka. Używaj języka: „zwykle zwiększa wymaganie”, nigdy „izoluje w 100%” lub „naprawia ból”.'}
-);
 const KB_TAG_DEFS=[
   {id:'mev',label:'MEV',group:'landmark'},
   {id:'mav',label:'MAV',group:'landmark'},
@@ -7442,7 +7427,18 @@ function kbEntriesForBuilder(queryTags,opts){
 }
 /** Wpisy trenera + pakiet wbudowany do kontekstu planowania. Notatki trenera przed pakietem. */
 function getPlanningEvidenceEntries(){
-  const user=(window.KB||[]).filter(kbEntryUsesInPlanning);
+  const allUser=(window.KB||[]).filter(kbEntryUsesInPlanning);
+  const seenUser=new Set();
+  const normalizeEvidence=value=>String(value||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const user=allUser.filter(k=>{
+    /* Prefer the newest record loaded by Firestore and suppress duplicated imports. */
+    const key=k.builtinId
+      ?'builtin:'+String(k.builtinId)
+      :'content:'+normalizeEvidence(k.kind)+'|'+normalizeEvidence(k.title)+'|'+normalizeEvidence(k.sourceUrl);
+    if(seenUser.has(key))return false;
+    seenUser.add(key);
+    return true;
+  });
   const userTitles=new Set(user.map(k=>String(k.title||'').toLowerCase()));
   const userBuiltin=new Set(user.map(k=>k.builtinId).filter(Boolean));
   const builtins=BUILTIN_PLANNING_EVIDENCE.filter(b=>!userBuiltin.has(b.id)&&!userTitles.has(String(b.title).toLowerCase()));
