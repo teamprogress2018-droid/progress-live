@@ -33,6 +33,9 @@ for (const t of ['linear', 'dup', 'block', 'double', 'wave']) {
   const ex = { sets: '4', reps: '8-12', rest: '120s', rpe: '8', kg: '100' }; c.aplComputeProgression(ex, keys, noPh, t);
   const kgs = keys.slice(0, 7).map(k => parseFloat(ex[k].kg));
   ok(t + ' (strength path): one load rule, max +20% over 7 weeks', Math.max(...kgs) <= 120, kgs.join(' '));
+  const lo = k => parseInt(ex[k].r, 10);
+  const inverted = keys.slice(0, 7).some(a => keys.slice(0, 7).some(b => lo(a) < lo(b) && parseFloat(ex[a].kg) < parseFloat(ex[b].kg) && keys.indexOf(a) > keys.indexOf(b) && Math.floor(keys.indexOf(a) / 4) === Math.floor(keys.indexOf(b) / 4)));
+  ok(t + ' (strength path): within a wave fewer reps never means less load', !inverted, keys.slice(0, 7).map(k => ex[k].r + '@' + ex[k].kg).join(' '));
   if (t === 'wave') ok('wave (strength path): high-rep week lighter than low-rep week', ex.w2.r === '10-14' && ex.w4.r === '6-10' && parseFloat(ex.w2.kg) < parseFloat(ex.w4.kg), ex.w2.r + '@' + ex.w2.kg + ' ' + ex.w4.r + '@' + ex.w4.kg);
 }
 const timed = run('linear', '20s');

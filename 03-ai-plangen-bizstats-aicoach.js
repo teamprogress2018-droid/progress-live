@@ -122,12 +122,13 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     const isDeload=phase.includes('deload');
     let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'',rir='';
     const rp=aplWeekRepPlan(progressionType,i,baseR,isDeload||/deload/.test(String(phasesMap[wk]||'').toLowerCase()));
-    if(rp.delta!=null||rp.setLo!=null)r=aplShiftReps(baseR,rp.delta||0,hyp?6:3,rp.setLo);
+    const repCyc=(rp.delta!=null||rp.setLo!=null)&&progressionType!=='smolov'&&/^\d+(\s*[-–]\s*\d+)?$/.test(String(baseR==null?'':baseR).trim());
+    if(repCyc)r=aplShiftReps(baseR,rp.delta||0,hyp?6:3,rp.setLo);
     if(hyp){
       rpe=hyp.rpe;
       rir=hyp.rir;
       s=String(Math.max(1,Math.round((parseInt(baseS)||3)*hyp.vol)));
-      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+(rp.kgMul&&rp.kgMul!==1||rp.setLo!=null?0.005:0.015)*i)*(rp.kgMul||1)*10)/10)+kgSuffix;
+      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+(repCyc?0.005:0.015)*i)*(rp.kgMul||1)*10)/10)+kgSuffix;
       ex[wk]={s,r,rest,rpe:String(rpe),rir:String(rir),kg};
       return;
     }
@@ -165,7 +166,7 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
       }
     }
     // Gdy powtórzenia falują, ciężar liczymy jedną regułą (odwrotnie do powtórzeń + mały dryf), zamiast nakładać stare przyrosty kg.
-    if(!isDeload&&baseKgNum!=null&&r!==baseR&&rp.kgMul){
+    if(!isDeload&&baseKgNum!=null&&repCyc&&rp.kgMul){
       kg=(Math.round(baseKgNum*rp.kgMul*(1+0.01*i)*10)/10)+kgSuffix;
     }
     ex[wk]={s,r,rest,rpe:String(rpe),rir:rir===''?'':String(rir),kg};
