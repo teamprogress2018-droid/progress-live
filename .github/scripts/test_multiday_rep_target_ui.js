@@ -27,7 +27,8 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
       const b = composeClientNextSessionBrief('m');
       const it = b.pack.items[0];
       const o = progressRecOptsForItem(it, { planId: 'pm' });
-      return { repMax: o && o.target && o.target.repMax, action: b.recs[0] && b.recs[0].action };
+      const kgs = ((it.series && it.series.snapshots) || []).map(s => s.topSet && s.topSet.kg);
+      return { repMax: o && o.target && o.target.repMax, action: b.recs[0] && b.recs[0].action, kgs, day: it.planDayIdx };
     };
     // Ostatnio dzień B (3-5): 5 powt. = górna granica → dodaj ciężar.
     const heavy = run([sess('s1', '2026-09-28', 0, 80, 10), sess('s2', '2026-10-01', 1, 100, 5), sess('s3', '2026-10-03', 0, 80, 11), sess('s4', '2026-10-05', 1, 100, 5)]);
@@ -48,6 +49,9 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   });
   console.log(JSON.stringify(out));
   ok('last workout on heavy day B → target 5 reps', out.heavy.repMax === 5, JSON.stringify(out.heavy));
+  ok('mixed heavy/light history: only heavy-day sessions compared', JSON.stringify(out.heavy.kgs) === '[100,100]' && out.heavy.day === 1, JSON.stringify(out.heavy));
+  ok('mixed history gives the same call as heavy-day-only history (no false „OBSERWUJ”)', out.heavy.action === out.onlyB.action && out.heavy.action !== 'OBSERWUJ', JSON.stringify([out.heavy.action, out.onlyB.action]));
+  ok('light day last → only light-day sessions', JSON.stringify(out.light.kgs) === '[80]', JSON.stringify(out.light));
   ok('heavy day only: no „add reps” above 5, same as Live day B', out.onlyB.repMax === 5 && !/POWT/i.test(out.onlyB.action || '') && out.onlyB.action === out.onlyB.live, JSON.stringify(out.onlyB));
   ok('last workout on day A → target 12 reps', out.light.repMax === 12, JSON.stringify(out.light));
   ok('session without day: no guessed target', out.unknown.repMax == null, JSON.stringify(out.unknown));

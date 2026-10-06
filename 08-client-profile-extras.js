@@ -4425,6 +4425,7 @@ function composeClientNextSessionBrief(clientId,opts){
     ?rememberClientExerciseProgress(cid,recOpts)
     :{clientId:cid,items:[]};
   if(recOpts.planId)window._cpExerciseProgress=prevStore;
+  if(recOpts.planId)progressSplitPackByPlanDay(cid,pack,recOpts);
   const aggregate=typeof aggregateClientProgress==='function'
     ?aggregateClientProgress(pack)
     :{trend:'ZA MAŁO DANYCH',confidence:'low'};
@@ -4511,6 +4512,40 @@ function progressLastSessionDayIdx(item,plan){
     if(Number.isFinite(n))return n;
   }
   return null;
+}
+/** Ćwiczenie w kilku dniach planu z różnymi zakresami (np. przysiad 8-12 i 3-5):
+ *  historia tylko z jednego dnia — wybranego w Live albo dnia ostatniego treningu — żeby nie mieszać ciężkiego z lekkim. */
+function progressSplitPackByPlanDay(cid,pack,recOpts){
+  const plan=progressPlanForBrief(recOpts);
+  const items=pack&&Array.isArray(pack.items)?pack.items:null;
+  if(!plan||!items||!items.length||typeof exerciseProgressClass!=='function')return pack;
+  const days=Array.isArray(plan.days)?plan.days:[];
+  let aliasRows=[];
+  try{aliasRows=typeof listClientProgressExercises==='function'?listClientProgressExercises(cid,recOpts):[];}catch(e){aliasRows=[];}
+  const se=(typeof window!=='undefined'&&window.SE)||[];
+  pack.items=items.map(it=>{
+    const dayIdxs=[],his=[];
+    days.forEach((day,di)=>{
+      ((day&&day.exercises)||[]).forEach(raw=>{
+        const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(raw):raw;
+        if(!parsed||!progressPlanExMatchesItem(parsed,it))return;
+        if(dayIdxs.indexOf(di)<0)dayIdxs.push(di);
+        const hi=progressRepMaxFromPlanReps(parsed.reps,parsed);
+        if(hi!=null&&his.indexOf(hi)<0)his.push(hi);
+      });
+    });
+    if(dayIdxs.length<2||his.length<2)return it;
+    let di=recOpts.dayIdx!=null&&recOpts.dayIdx!==''?Number(recOpts.dayIdx):progressLastSessionDayIdx(it,plan);
+    if(di==null||!Number.isFinite(di)||dayIdxs.indexOf(di)<0)return it;
+    const sessions=se.filter(s=>s&&String(s.planId||'')===String(plan.id)&&s.dayIdx!=null&&s.dayIdx!==''&&Number(s.dayIdx)===di);
+    if(!sessions.length)return it;
+    const row=aliasRows.find(r=>r&&((it.exerciseId&&r.exerciseId===it.exerciseId)||r.name===it.name));
+    const one=exerciseProgressClass(cid,it.name,row&&row.aliases,Object.assign({},recOpts,{exerciseId:it.exerciseId,sessions:sessions}));
+    if(!(one&&one.series&&Array.isArray(one.series.snapshots)&&one.series.snapshots.length))return it;
+    one.planDayIdx=di;
+    return one;
+  });
+  return pack;
 }
 function progressRecOptsForItem(item,recOpts){
   const hi=progressTargetRepMaxForItem(item,recOpts);
