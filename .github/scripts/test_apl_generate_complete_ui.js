@@ -30,6 +30,7 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
       let text = JSON.stringify(from === 1 ? { planName: 'Test', summary: 's', days } : { days });
       let stop = 'end_turn';
       if (mode === 'trunc' && calls.length === 1) { text = text.slice(0, text.indexOf('Ćw 1.2') + 12); stop = 'max_tokens'; }
+      if (mode === 'garbled' && calls.length === 1) { text = '{"planName":"Te'; stop = 'max_tokens'; }
       return { ok: true, status: 200, json: async () => ({ content: [{ text }], stop_reason: stop }), text: async () => text };
     };
     await aplGenerate();
@@ -46,6 +47,8 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   ok('all 4 days present with full exercise lists', t.days.join() === '6,6,6,6', JSON.stringify(t.days));
   ok('no exercise without a name / no „undefined” on screen', t.names.every(Boolean) && !t.undef);
   ok('prompt asks for advanced volume (6–7 main exercises at 60 min)', t.calls.every(c => c.vol), JSON.stringify(t.calls));
+  const g = await run('garbled');
+  ok('unparseable cut-off answer also retries with a bigger budget', g.calls[1] && g.calls[1].max > g.calls[0].max && g.days.join() === '6,6,6,6', JSON.stringify({ calls: g.calls, days: g.days }));
   const s = await run('short');
   ok('too few exercises for advanced is flagged in plan check', s.checks.some(c => /^volume:/.test(c) && /zaawansowany/.test(c)), JSON.stringify(s.checks));
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));

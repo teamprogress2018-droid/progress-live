@@ -1297,10 +1297,11 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
           chunkRaw=data?.content?.[0]?.text||'';
           if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
           const truncated=data?.stop_reason==='max_tokens';
+          if(truncated)extraTokens+=1500;
           chunkPlan=aplParsePlanJson(chunkRaw);
           const problem=aplChunkProblem(chunkPlan,chunkDays,truncated);
           if(problem){
-            extraTokens+=1500;
+            if(!truncated)extraTokens+=1500;
             if(parseTry<2)throw new Error('Niepełny JSON planu: '+problem);
             // Ostatnia próba: zostaw tylko kompletne dni i ćwiczenia z nazwą — nigdy „undefined”.
             (chunkPlan.days||[]).forEach(d=>{d.exercises=(d.exercises||[]).filter(e=>e&&String(e.name||'').trim());});
