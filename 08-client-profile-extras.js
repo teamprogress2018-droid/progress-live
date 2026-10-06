@@ -4474,16 +4474,43 @@ function progressTargetRepMaxForItem(item,recOpts){
     const d=days[recOpts.dayIdx];
     use=d?[d]:[];
   }
-  const his=[];
-  use.forEach(day=>{
-    ((day&&day.exercises)||[]).forEach(raw=>{
-      const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(raw):raw;
-      if(!parsed||!progressPlanExMatchesItem(parsed,item))return;
-      const hi=progressRepMaxFromPlanReps(parsed.reps,parsed);
-      if(hi!=null&&his.indexOf(hi)<0)his.push(hi);
+  const collect=list=>{
+    const his=[];
+    list.forEach(day=>{
+      ((day&&day.exercises)||[]).forEach(raw=>{
+        const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(raw):raw;
+        if(!parsed||!progressPlanExMatchesItem(parsed,item))return;
+        const hi=progressRepMaxFromPlanReps(parsed.reps,parsed);
+        if(hi!=null&&his.indexOf(hi)<0)his.push(hi);
+      });
     });
-  });
-  return his.length===1?his[0]:null;
+    return his;
+  };
+  const his=collect(use);
+  if(his.length===1)return his[0];
+  if(his.length>1&&use===days){
+    // To samo ćwiczenie w kilku dniach z różnymi zakresami: bierz dzień ostatniego treningu tego ćwiczenia.
+    const di=progressLastSessionDayIdx(item,plan);
+    if(di!=null&&days[di]){
+      const own=collect([days[di]]);
+      if(own.length===1)return own[0];
+    }
+  }
+  return null;
+}
+function progressLastSessionDayIdx(item,plan){
+  const snaps=item&&item.series&&Array.isArray(item.series.snapshots)?item.series.snapshots:[];
+  const se=(typeof window!=='undefined'&&window.SE)||[];
+  for(let i=snaps.length-1;i>=0;i--){
+    const sid=snaps[i]&&snaps[i].sessionId;
+    if(!sid)continue;
+    const s=se.find(x=>x&&x.id===sid);
+    if(!s||s.dayIdx==null||s.dayIdx==='')continue;
+    if(s.planId&&plan&&plan.id&&String(s.planId)!==String(plan.id))continue;
+    const n=Number(s.dayIdx);
+    if(Number.isFinite(n))return n;
+  }
+  return null;
 }
 function progressRecOptsForItem(item,recOpts){
   const hi=progressTargetRepMaxForItem(item,recOpts);
