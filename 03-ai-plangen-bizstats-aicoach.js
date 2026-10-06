@@ -615,9 +615,34 @@ function aplPersistClientForm(){
   if(typeof persistById==='function')persistById('clients',c);
 }
 
-function aplPlanTokenBudget(dayCount){
-  return Math.min(2400+Math.max(1,dayCount)*480,4200);
+function aplPlanTokenBudget(dayCount,withPlanHeader){
+  // Pierwsza część niesie też nagłówek planu (podsumowanie, schemat tygodni) — za mały budżet ucinał dzień 1 w połowie.
+  return Math.min((withPlanHeader?2400:500)+Math.max(1,dayCount)*1500,7000);
 }
+/** Objętość wg stażu i czasu sesji: liczba ćwiczeń głównych, serie, tygodniowe serie na partię. */
+function aplVolumeTarget(level,duration){
+  const lv=String(level||'').toLowerCase();
+  const adv=/zaaw|advanced/.test(lv),beg=/pocz|beginner/.test(lv);
+  const dur=parseInt(duration,10)||60;
+  let ex=adv?6:(beg?4:5);
+  if(dur<=45)ex-=1;else if(dur>=75)ex+=1;
+  ex=Math.max(3,ex);
+  return{exMin:ex,exMax:ex+1,sets:adv?(dur>=75?'3–5':'3–4'):(beg?'2–3':'3–4'),weekly:adv?'14–20':(beg?'8–12':'10–16'),weeklyMin:adv?12:(beg?6:10),label:adv?'zaawansowany':(beg?'początkujący':'średni')};
+}
+window.aplVolumeTarget=aplVolumeTarget;
+/** Odpowiedź AI ucięta albo niepełna: brakujące dni, ćwiczenia bez nazwy. */
+function aplChunkProblem(chunkPlan,expectDays,truncated){
+  if(truncated)return'ucięta odpowiedź';
+  const days=(chunkPlan&&chunkPlan.days)||[];
+  if(days.length<expectDays)return'brak dni ('+days.length+'/'+expectDays+')';
+  for(const d of days){
+    const exs=(d&&d.exercises)||[];
+    if(!exs.length)return'dzień bez ćwiczeń';
+    if(exs.some(e=>!e||!String(e.name||'').trim()))return'ćwiczenie bez nazwy';
+  }
+  return'';
+}
+window.aplChunkProblem=aplChunkProblem;
 
 function aplExtractJsonObject(text){
   const s=String(text||'');
@@ -1017,6 +1042,7 @@ async function aplGenerate(){
   const weekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,weeksNum);
   const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys,goal):{};
   const hypertrophyGoal=typeof aplIsHypertrophyGoal==='function'&&aplIsHypertrophyGoal(goal);
+  const vt=aplVolumeTarget(level,duration);
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
@@ -1173,7 +1199,8 @@ Tyg. 8 Deload: objętość −40–50%, RIR 3–4.
 Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (tablica tygodni 1–${weeksNum} z phase/rir/reps/volume/notes). "days" = workout_plan.
 `:''}
 
-Każdy dzień: 4–6 ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
+OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
+Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
   +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
 
   const userMsg=`Stwórz plan treningowy:
@@ -1223,10 +1250,13 @@ STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
 
   try{
     const totalDays=parseInt(days)||4;
-    // Mniejsze chunki = krótsza odpowiedź JSON, mniej ucięć i błędów parse (4 dni naraz padało często).
-    const chunkSize=totalDays<=2?totalDays:2;
+    // Pierwsza część = 1 dzień + nagłówek planu, dalej po 2 dni. Mniejsze części = brak ucięć JSON.
     const chunks=[];
-    for(let i=0;i<totalDays;i+=chunkSize)chunks.push({from:i+1,to:Math.min(i+chunkSize,totalDays)});
+    if(totalDays<=1)chunks.push({from:1,to:1});
+    else{
+      chunks.push({from:1,to:1});
+      for(let i=1;i<totalDays;i+=2)chunks.push({from:i+1,to:Math.min(i+2,totalDays)});
+    }
     let plan=null;
     for(let ci=0;ci<chunks.length;ci++){
       const {from,to}=chunks[ci];
@@ -1241,7 +1271,7 @@ STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
         if(isFirst){
           chunkSystem+=`\n\nW TEJ ODPOWIEDZI wygeneruj TYLKO dni ${from}–${to} z ${totalDays}. Dołącz pełną strukturę planu (planName, summary, periodization itd.), ale w "days" tylko te ${chunkDays} dni.`;
         }else{
-          chunkSystem=`Kontynuuj plan treningowy w języku polskim. Zwróć TYLKO JSON (bez markdown): {"days":[...]} z DOKŁADNIE ${chunkDays} dniami (numeracja ${from}–${to} z ${totalDays}). Każdy dzień: dayName, focus, warmupExercises (3), exercises (4 główne + 1 core) z polami name, notes (max 60 znaków), muscleGroup, sets, reps, rest, rpe, kg, tempo.
+          chunkSystem=`Kontynuuj plan treningowy w języku polskim. Zwróć TYLKO JSON (bez markdown): {"days":[...]} z DOKŁADNIE ${chunkDays} dniami (numeracja ${from}–${to} z ${totalDays}). Każdy dzień: dayName, focus, warmupExercises (3), exercises (${vt.exMin}–${vt.exMax} głównych + opcjonalnie core, ${vt.sets} serii; staż ${vt.label}: tygodniowo ${vt.weekly} serii na główną partię) z polami name, notes (max 60 znaków), muscleGroup, sets, reps, rest, rpe, kg, tempo.
 
 ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 1. Każda główna partia ≥2×/tydzień (suma serii z wielu dni).
@@ -1255,17 +1285,27 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       }
       let chunkPlan=null;
       let chunkRaw='';
+      let extraTokens=0;
       for(let parseTry=0;parseTry<3;parseTry++){
         try{
           const data=await aplAnthropicRequest({
             model:'claude-sonnet-4-20250514',
-            max_tokens:aplPlanTokenBudget(chunkDays)-(parseTry?400*parseTry:0),
+            max_tokens:Math.min(aplPlanTokenBudget(chunkDays,isFirst)+extraTokens,8000),
             system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON z podwójnymi cudzysłowami przy kluczach i stringach. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown, bez komentarzy.': ''),
             messages:[{role:'user',content:chunkUser+(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': '')}]
           });
           chunkRaw=data?.content?.[0]?.text||'';
           if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
+          const truncated=data?.stop_reason==='max_tokens';
           chunkPlan=aplParsePlanJson(chunkRaw);
+          const problem=aplChunkProblem(chunkPlan,chunkDays,truncated);
+          if(problem){
+            extraTokens+=1500;
+            if(parseTry<2)throw new Error('Niepełny JSON planu: '+problem);
+            // Ostatnia próba: zostaw tylko kompletne dni i ćwiczenia z nazwą — nigdy „undefined”.
+            (chunkPlan.days||[]).forEach(d=>{d.exercises=(d.exercises||[]).filter(e=>e&&String(e.name||'').trim());});
+            chunkPlan.days=(chunkPlan.days||[]).filter(d=>(d.exercises||[]).length);
+          }
           break;
         }catch(parseErr){
           const msg=String(parseErr?.message||parseErr||'');
@@ -1279,6 +1319,8 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       if(isFirst)plan=chunkPlan;
       else plan.days=(plan.days||[]).concat(chunkPlan.days||[]);
     }
+    (plan.days||[]).forEach(d=>{d.exercises=(d.exercises||[]).filter(e=>e&&String(e.name||'').trim());});
+    if((plan.days||[]).length<totalDays)plan.incompleteDays=totalDays-(plan.days||[]).length;
     aplLastPlan=plan;
     aplLastClient=client;
     plan.phases=phasesMap;
@@ -1917,6 +1959,27 @@ function aplPlanChecks(plan,ctx){
   }));
   if(missing.length)out.push({tone:'watch',kind:'fields',text:'Bez zakresu powtórzeń albo RIR: '+missing.slice(0,4).join(', ')+(missing.length>4?' i '+(missing.length-4)+' inne':'')+'.'});
   if(!plan||!plan.progression)out.push({tone:'watch',kind:'progression',text:'Brak zasady progresji — wybierz ją przed zapisem.'});
+  if(plan&&plan.incompleteDays>0)out.push({tone:'act',kind:'days',text:'AI nie wygenerowało '+plan.incompleteDays+' '+(plan.incompleteDays===1?'dnia':'dni')+' planu — wygeneruj plan ponownie albo dodaj dzień ręcznie.'});
+  if(ctx.level&&typeof aplVolumeTarget==='function'&&days.length){
+    const vt=aplVolumeTarget(ctx.level,ctx.duration);
+    const isCore=e=>typeof aplNormalizeMuscleCategory==='function'&&aplNormalizeMuscleCategory(e)==='core';
+    const shortDays=[];
+    const weekly={};
+    days.forEach((d,i)=>{
+      const main=(d.exercises||[]).filter(e=>e&&!isCore(e));
+      if(main.length<vt.exMin)shortDays.push((d.dayName||('Dzień '+(i+1))).split(/[—–-]/)[0].trim()+' ('+main.length+' ćw.)');
+      main.forEach(e=>{
+        const cat=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(e):'inne';
+        if(cat==='inne')return;
+        const w=(wk&&e[wk])||{};
+        weekly[cat]=(weekly[cat]||0)+(parseInt(w.s||e.sets,10)||3);
+      });
+    });
+    if(shortDays.length)out.push({tone:'watch',kind:'volume',text:'Za mało ćwiczeń jak na staż '+vt.label+' (cel '+vt.exMin+'–'+vt.exMax+' głównych): '+shortDays.join(', ')+'.'});
+    const names={klatka:'klatka',plecy:'plecy',nogi:'nogi',barki:'barki',posladki:'pośladki'};
+    const low=Object.keys(names).filter(k=>weekly[k]>0&&weekly[k]<vt.weeklyMin).map(k=>names[k]+' '+weekly[k]);
+    if(low.length)out.push({tone:'watch',kind:'volume-week',text:'Mała objętość tygodniowa (cel '+vt.weekly+' serii): '+low.join(', ')+'.'});
+  }
   return out;
 }
 window.aplPlanChecks=aplPlanChecks;
@@ -1925,7 +1988,7 @@ function aplPlanChecksHTML(plan){
   const cid=document.getElementById('apl-client')?.value||'';
   const c=cid?(window.CL||[]).find(x=>x&&x.id===cid):null;
   if(c&&typeof clientInjuriesText==='function')injuries.push(clientInjuriesText(c));
-  const checks=aplPlanChecks(plan,{injuries:injuries.filter(Boolean).join(' · '),duration:(typeof aplGetVal==='function'?aplGetVal('apl-duration'):'')||plan.sessionDuration||''});
+  const checks=aplPlanChecks(plan,{injuries:injuries.filter(Boolean).join(' · '),duration:(typeof aplGetVal==='function'?aplGetVal('apl-duration'):'')||plan.sessionDuration||'',level:(typeof aplGetVal==='function'?aplGetVal('apl-levels'):'')||(c&&c.level)||''});
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const labels={progression:{linear:'liniowa (ciężar co tydzień)',double:'podwójna (najpierw powtórzenia, potem ciężar)',dup:'falowa dzienna (DUP)',wave:'falowa tygodniowa',block:'blokowa'}};
   const prog=plan&&plan.progression?(labels.progression[plan.progression]||plan.progression):'';
