@@ -47,6 +47,9 @@ assert(analysis.totalSets===11&&analysis.muscleSets.Klatka===7,'analizuje objęt
 assert(analysis.frequency.Klatka===1&&analysis.score<100,'analizuje częstotliwość i wynik kontrolny');
 assert(analysis.duplicates.length===1,'zaznacza podobny wzorzec w jednej jednostce');
 assert(analysis.warnings.some(item=>item.type==='redundancja'),'tworzy wyjaśnialne ostrzeżenie o redundancji');
+assert(analysis.dayStats.length===1&&analysis.dayStats[0].totalSets===11,'zachowuje statystyki pojedynczej jednostki do kontroli kosztu sesji');
+const highCost=api.manualPlanAnalyzeDays([{day:'WT',exercises:Array.from({length:9},(_,i)=>({name:'Ruch '+i,sets:'4',rest:'90s',biomech:{pattern:'other',prime:'Test'}}))}],{sessionMinutes:60});
+assert(highCost.warnings.some(item=>item.type==='koszt_sesji'&&item.level==='high'),'oznacza bardzo długą jednostkę jako duże ostrzeżenie');
 const programming=api.manualPlanExerciseProgramming({name:'Wiosłowanie',biomech:{prime:'Plecy',secondary:['Biceps'],accessory:['chwyt'],pattern:'horizontal_pull',plane:'sagittal',compound:true,stable:true,unilateral:false,lengthBias:'mid-range'}});
 assert(programming.primaryMuscles[0]==='Plecy'&&programming.tags.role==='compound','zapisuje rolę biomechaniczną ćwiczenia');
 assert(programming.tags.direction==='horizontal'&&programming.tags.stability==='stable','dodaje tagi do przyszłej analizy AI');

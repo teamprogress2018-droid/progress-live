@@ -365,7 +365,7 @@
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" id="b-save-btn" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" id="b-save-btn" onclick="manualPlanSaveFromBuilder()">Zapisz plan</button></div></div>
   <div id="builder-save-status" role="status" aria-live="polite" hidden style="margin:12px 24px;padding:12px;border:1px solid var(--border);border-radius:8px;"></div>
   <div id="builder-calendar-actions" hidden style="margin:0 24px 12px;"><button type="button" class="btn btn-primary btn-sm" id="b-calendar-retry" onclick="builderRetryCalendar()">Ponów dopełnienie kalendarza</button> <button type="button" class="btn btn-ghost btn-sm" id="b-calendar-continue" onclick="builderFinishSavedPlan()">Kontynuuj bez dopełnienia</button></div>
     <div id="builder-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
@@ -4608,9 +4608,9 @@ async function load(session=captureTenantSession()){
 <script src="package-save.js?v=3"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85&patterns=1"></script>
 <script src="07-forms-metrics-calculator.js?v=43&baseline-save=1&profile-save=1"></script>
-<script src="08-client-profile-extras.js?v=88&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
+<script src="08-client-profile-extras.js?v=89&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
-<script src="12-manual-plan-wizard.js?v=2"></script>
+<script src="12-manual-plan-wizard.js?v=3"></script>
 </body>
 </html>

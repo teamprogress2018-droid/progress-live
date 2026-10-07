@@ -3932,7 +3932,7 @@ function renderCPPlan(c){
     <div style="display:flex;align-items:flex-start;justify-content:flex-end;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
       ${showCreate||showContinueFitebo?`<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center;">
         ${showCreate?`<button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
-        <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="openManualPlanPicker('${c.id}')">✏ Stwórz własny plan</button>`:''}
         ${showContinueFitebo?`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
           <button class="btn btn-ghost btn-sm" onclick="cpContinueFiteboPlan('${c.id}')">${hasFiteboCont?'🔁 Przebuduj kontynuację Fitebo':'🔁 Kontynuuj plan z Fitebo'}</button>
           <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;align-items:center;">

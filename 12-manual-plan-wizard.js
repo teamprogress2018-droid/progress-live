@@ -298,9 +298,11 @@
     return clients.map(client=>`<option value="${esc(client.id)}"${String(client.id)===String(selected)?' selected':''}>${esc(client.name||client.email||client.id)}</option>`).join('');
   }
 
-  function openManualPlanPicker(){
+  function openManualPlanPicker(clientId){
     const modal=manualPlanEnsureModal('m-manual-plan-entry');
-    const selected=(document.getElementById('b-client')||{}).value||'';
+    // Wejście z karty klienta przekazuje jego ID. Wejście z ekranu planów
+    // zachowuje dotychczas zaznaczonego klienta w builderze.
+    const selected=clientId||(document.getElementById('b-client')||{}).value||'';
     modal.innerHTML=`<div class="modal" style="max-width:760px;">
       <div class="modal-hdr"><div class="modal-title">NOWY PLAN RĘCZNY</div><button class="modal-close" onclick="closeM('m-manual-plan-entry')">×</button></div>
       <div class="modal-body">
@@ -571,18 +573,21 @@
   }
 
   function manualPlanAnalyzeDays(days,profile){
-    const muscleSets={},frequency={},patterns={},duplicates=[],warnings=[];
+    const muscleSets={},frequency={},patterns={},duplicates=[],warnings=[],dayStats=[];
     const active=(days||[]).filter(day=>day&&!day.rest);
     let totalSets=0,totalExercises=0,estimatedSeconds=0;
     active.forEach((day,dayIndex)=>{
       const seen=new Set();
       const dayMuscles=new Set();
+      let daySets=0,dayExercises=0,daySeconds=0;
       (day.exercises||[]).forEach(raw=>{
         const ex=typeof raw==='string'?{name:raw}:raw||{};
         if(!text(ex.name))return;
         totalExercises++;
+        dayExercises++;
         const sets=manualPlanSetCount(ex.sets);
         totalSets+=sets;
+        daySets+=sets;
         const bio=manualPlanBio(ex);
         const primary=text(bio.prime)||'nieokreślona';
         muscleSets[primary]=(muscleSets[primary]||0)+sets;
@@ -594,18 +599,22 @@
         if(key)seen.add(key);
         const restMatch=String(ex.rest||'90').match(/\d+(?:[.,]\d+)?/);
         const restSeconds=restMatch?Math.min(300,Number(String(restMatch[0]).replace(',','.'))*(/min/i.test(ex.rest||'')?60:1)):90;
-        estimatedSeconds+=sets*(25+restSeconds);
+        const workSeconds=sets*(25+restSeconds);
+        estimatedSeconds+=workSeconds;
+        daySeconds+=workSeconds;
       });
       dayMuscles.forEach(primary=>{frequency[primary]=(frequency[primary]||0)+1;});
+      dayStats.push({day:day.day||('Dzień '+(dayIndex+1)),totalSets:daySets,exercises:dayExercises,estimatedMinutes:Math.round(daySeconds/60)});
     });
     const push=(patterns.horizontal_push||0)+(patterns.vertical_push||0)+(patterns.elbow_extension||0);
     const pull=(patterns.horizontal_pull||0)+(patterns.vertical_pull||0)+(patterns.elbow_flexion||0);
     const sessionMinutes=Number(profile&&profile.sessionMinutes)||60;
-    if(duplicates.length)warnings.push({type:'redundancja',text:'W tej samej jednostce powtarza się podobny wzorzec. Sprawdź, czy ćwiczenia mają inną funkcję, zakres lub profil oporu.'});
-    if(push>=8&&pull>0&&push>pull*1.8)warnings.push({type:'balans',text:'Objętość pchania wyraźnie przewyższa przyciąganie. To nie jest automatyczny błąd, ale warto potwierdzić intencję planu.'});
-    if(pull>=8&&push>0&&pull>push*1.8)warnings.push({type:'balans',text:'Objętość przyciągania wyraźnie przewyższa pchanie. Sprawdź, czy wynika to z priorytetu lub potrzeb klienta.'});
+    if(duplicates.length)warnings.push({level:'warning',type:'redundancja',text:'W tej samej jednostce powtarza się podobny wzorzec. Sprawdź, czy ćwiczenia mają inną funkcję, zakres lub profil oporu.'});
+    if(push>=8&&pull>0&&push>pull*1.8)warnings.push({level:'info',type:'balans',text:'Objętość pchania wyraźnie przewyższa przyciąganie. To nie jest automatyczny błąd, ale warto potwierdzić intencję planu.'});
+    if(pull>=8&&push>0&&pull>push*1.8)warnings.push({level:'info',type:'balans',text:'Objętość przyciągania wyraźnie przewyższa pchanie. Sprawdź, czy wynika to z priorytetu lub potrzeb klienta.'});
     const averageMinutes=active.length?Math.round(estimatedSeconds/60/active.length):0;
-    if(averageMinutes>sessionMinutes+10)warnings.push({type:'czas',text:'Szacowany czas jednostki przekracza deklarowany czas klienta. To szacunek — sprawdź realne przerwy, przejścia i rozgrzewkę.'});
+    if(averageMinutes>sessionMinutes+10)warnings.push({level:'warning',type:'czas',text:'Szacowany czas jednostki przekracza deklarowany czas klienta. To szacunek — sprawdź realne przerwy, przejścia i rozgrzewkę.'});
+    dayStats.filter(day=>day.totalSets>=30||day.exercises>=9).forEach(day=>warnings.push({level:'high',type:'koszt_sesji',text:`${day.day}: ${day.exercises} ćwiczeń i ${day.totalSets} serii roboczych. Wysoki koszt zmęczeniowy jednostki — rozważ rozłożenie objętości, mniej serii lub mniej metod intensyfikacyjnych.`}));
     const unknown=patterns.other||0;
     const deductions=[];
     if(!totalExercises)deductions.push({points:50,text:'Brak ćwiczeń do przeanalizowania.'});
@@ -614,7 +623,7 @@
     warnings.filter(item=>item.type==='balans').forEach(()=>deductions.push({points:5,text:'Wyraźna przewaga pchania lub przyciągania do potwierdzenia.'}));
     if(unknown)deductions.push({points:Math.min(15,unknown*3),text:'Część ćwiczeń nie została rozpoznana przez bibliotekę.'});
     const score=Math.max(0,100-deductions.reduce((sum,item)=>sum+item.points,0));
-    return {totalSets,totalExercises,muscleSets,frequency,patterns,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length};
+    return {totalSets,totalExercises,muscleSets,frequency,patterns,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
   }
 
   function manualPlanBuilderDays(){
@@ -636,14 +645,18 @@
     const patternLabels={horizontal_push:'pchanie poziome',vertical_push:'pchanie pionowe',horizontal_pull:'przyciąganie poziome',vertical_pull:'przyciąganie pionowe',knee_dominant:'dominacja kolana',hip_dominant:'dominacja biodra',knee_flexion:'zgięcie kolana',shoulder_abduction:'odwiedzenie barku',elbow_flexion:'zgięcie łokcia',elbow_extension:'wyprost łokcia',core:'core'};
     const patternRows=Object.entries(result.patterns).filter(([key])=>key!=='other').sort((a,b)=>b[1]-a[1]).slice(0,8);
     const frequencyRows=Object.entries(result.frequency).sort((a,b)=>b[1]-a[1]).slice(0,8);
-    const warningHtml=result.warnings.length?result.warnings.map(item=>`<div style="margin-top:7px;color:var(--warn);">⚠ ${esc(item.text)}</div>`).join(''):'<div style="margin-top:7px;color:var(--muted);">Brak oczywistych ostrzeżeń z prostych reguł. To nie jest ocena kliniczna ani gwarancja jakości.</div>';
+    const warningHtml=result.warnings.length?result.warnings.map(item=>{
+      const prefix=item.level==='high'?'⛔':item.level==='warning'?'⚠':'ℹ';
+      const color=item.level==='high'?'var(--accent)':item.level==='warning'?'var(--warn)':'var(--muted)';
+      return `<div style="margin-top:7px;color:${color};">${prefix} ${esc(item.text)}</div>`;
+    }).join(''):'<div style="margin-top:7px;color:var(--muted);">Brak oczywistych ostrzeżeń z prostych reguł. To nie jest ocena kliniczna ani gwarancja jakości.</div>';
     return `<div style="font-size:12px;line-height:1.55;">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><span class="kb-tag">${result.totalSets} serii roboczych</span><span class="kb-tag">${result.activeDays} jednostki</span><span class="kb-tag">~${result.averageMinutes} min / jednostkę</span><span class="kb-tag">kontrola struktury: ${result.score}/100</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><span class="kb-tag">${result.totalSets} serii roboczych</span><span class="kb-tag">${result.activeDays} jednostki</span><span class="kb-tag">~${result.averageMinutes} min / jednostkę</span><span class="kb-tag">${result.deductions.length?result.deductions.length+' sprawy do sprawdzenia':'kontrola struktury: bez odliczeń'}</span></div>
       <div><b>Objętość wg głównej partii</b><br>${muscleRows.length?muscleRows.map(([name,sets])=>`${esc(name)}: ${sets}`).join(' · '):'Dodaj ćwiczenia z biblioteki, aby rozpoznać partie.'}</div>
       <div style="margin-top:8px;"><b>Częstotliwość głównej partii</b><br>${frequencyRows.length?frequencyRows.map(([name,days])=>`${esc(name)}: ${days}×`).join(' · '):'Brak danych.'}</div>
       <div style="margin-top:8px;"><b>Wzorce ruchu</b><br>${patternRows.length?patternRows.map(([name,sets])=>`${esc(patternLabels[name]||name)}: ${sets}`).join(' · '):'Brak rozpoznanych wzorców.'}</div>
       <div style="margin-top:8px;"><b>Kontrola</b>${warningHtml}</div>
-      <div style="margin-top:7px;color:var(--muted);">Wynik kontrolny opisuje kompletność prostych heurystyk (${result.deductions.length?result.deductions.map(item=>esc(item.text)).join(' '):'brak odliczeń'}). Nie jest oceną jakości programu ani diagnozą.</div>
+      <div style="margin-top:7px;color:var(--muted);">To checklista prostych heurystyk (${result.deductions.length?result.deductions.map(item=>esc(item.text)).join(' '):'brak odliczeń'}), nie ocena jakości programu ani diagnoza.</div>
       ${result.duplicates.length?`<div style="margin-top:7px;color:var(--muted);">Podobne wzorce: ${result.duplicates.map(item=>esc(item.day+' — '+item.name)).join('; ')}</div>`:''}
       <button type="button" class="btn btn-ghost btn-sm" style="margin-top:11px;" onclick="manualPlanRefreshAnalysis()">Odśwież analizę</button>
     </div>`;
@@ -681,6 +694,46 @@
     manualPlanRefreshAnalysis();
   }
 
+  function manualPlanReviewItems(meta,result){
+    const complete=[];
+    const suggestions=[];
+    const profile=meta.clientProfile||{};
+    if(profile.goal)complete.push('określony cel');else suggestions.push({level:'warning',text:'Brak określonego celu programu.'});
+    if(meta.progression&&meta.progression.type)complete.push('ustalona progresja');else suggestions.push({level:'warning',text:'Brak zdefiniowanej zasady progresji.'});
+    if(meta.intensity&&meta.intensity.mode)complete.push('określona intensywność');else suggestions.push({level:'warning',text:'Brak sposobu sterowania intensywnością.'});
+    if(result.activeDays)complete.push(`${result.activeDays} jednostki do realizacji`);else suggestions.push({level:'high',text:'Dodaj co najmniej jedną jednostkę z ćwiczeniami przed zapisem.'});
+    if(result.activeDays&&profile.sessionsPerWeek&&result.activeDays!==Number(profile.sessionsPerWeek))suggestions.push({level:'info',text:`Zbudowano ${result.activeDays} jednostki, a profil zakłada ${profile.sessionsPerWeek} treningów tygodniowo. Potwierdź, że to zamierzone.`});
+    (result.warnings||[]).forEach(item=>suggestions.push(item));
+    const advanced=(meta.trainingMethods||[]).filter(method=>['drop_set','rest_pause','myo_reps','cluster_set','top_set_backoff','reverse_pyramid','amrap'].includes(method));
+    if(profile.level==='poczatkujacy'&&advanced.length>=2)suggestions.push({level:'warning',text:'Dla osoby początkującej wybrano kilka zaawansowanych metod intensyfikacyjnych. Rozważ pozostawienie prostszych serii jako bazy.'});
+    return {complete,suggestions};
+  }
+
+  function manualPlanOpenReview(){
+    const meta=window._manualPlanDraft;
+    if(!meta)return typeof savePlan==='function'?savePlan():null;
+    const result=manualPlanRefreshAnalysis()||manualPlanAnalyzeDays(manualPlanBuilderDays(),meta.clientProfile);
+    const review=manualPlanReviewItems(meta,result);
+    const levelLabel={high:'DUŻE OSTRZEŻENIE',warning:'OSTRZEŻENIE',info:'WSKAZÓWKA'};
+    const icon={high:'⛔',warning:'⚠',info:'ℹ'};
+    const color={high:'var(--accent)',warning:'var(--warn)',info:'var(--muted)'};
+    const completeHtml=review.complete.length?review.complete.map(item=>`<div style="margin-top:7px;color:var(--green,#2fbf71);">✓ ${esc(item)}</div>`).join(''):'<div style="margin-top:7px;color:var(--muted);">Uzupełnij ustawienia programu.</div>';
+    const suggestionHtml=review.suggestions.length?review.suggestions.map(item=>`<div style="margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:8px;"><div style="font-size:10px;font-weight:800;letter-spacing:.06em;color:${color[item.level]||color.info};">${icon[item.level]||icon.info} ${levelLabel[item.level]||levelLabel.info}</div><div style="margin-top:4px;line-height:1.5;">${esc(item.text)}</div></div>`).join(''):'<div style="margin-top:10px;color:var(--muted);">Brak sugestii z obecnych, prostych reguł. Nie zastępuje to oceny trenera.</div>';
+    const modal=manualPlanEnsureModal('m-manual-plan-review');
+    modal.innerHTML=`<div class="modal" style="max-width:760px;"><div class="modal-hdr"><div class="modal-title">ANALIZA PLANU</div><button class="modal-close" onclick="closeM('m-manual-plan-review')">×</button></div><div class="modal-body"><div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">To podsumowanie pomaga sprawdzić decyzje programowe. Nie blokuje zapisu ani nie zastępuje decyzji trenera.</div><div class="card" style="padding:13px;"><b>✓ Ustalono</b>${completeHtml}</div><div style="margin-top:14px;"><b>Sprawdź przed zapisem</b>${suggestionHtml}</div><div style="margin-top:14px;font-size:12px;color:var(--muted);">Plan można zapisać.${review.suggestions.length?' Sprawdź '+review.suggestions.length+' sugestie.':''}</div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-manual-plan-review')">Wróć do edycji</button><button class="btn btn-primary" onclick="manualPlanConfirmSave()">Zapisz mimo sugestii</button></div></div>`;
+    if(typeof openM==='function')openM('m-manual-plan-review');
+    return review;
+  }
+
+  function manualPlanConfirmSave(){
+    if(typeof closeM==='function')closeM('m-manual-plan-review');
+    return typeof savePlan==='function'?savePlan():null;
+  }
+
+  function manualPlanSaveFromBuilder(){
+    return window._manualPlanDraft?manualPlanOpenReview():(typeof savePlan==='function'?savePlan():null);
+  }
+
   window.MANUAL_PLAN_SCHEMA_VERSION=MANUAL_PLAN_SCHEMA_VERSION;
   window.MANUAL_PLAN_SPLITS=MANUAL_PLAN_SPLITS;
   window.MANUAL_PLAN_PERIODIZATION=MANUAL_PLAN_PERIODIZATION;
@@ -707,4 +760,7 @@
   window.manualPlanRefreshAnalysis=manualPlanRefreshAnalysis;
   window.manualPlanShowAnalysis=manualPlanShowAnalysis;
   window.manualPlanExerciseProgramming=manualPlanExerciseProgramming;
+  window.manualPlanOpenReview=manualPlanOpenReview;
+  window.manualPlanConfirmSave=manualPlanConfirmSave;
+  window.manualPlanSaveFromBuilder=manualPlanSaveFromBuilder;
 })();
