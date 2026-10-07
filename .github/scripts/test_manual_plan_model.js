@@ -61,4 +61,5 @@ assert(summary.primary==='Plecy'&&summary.pattern==='horizontal_pull','buduje cz
 assert(summary.tags.role==='compound'&&summary.tags.lengthBias==='mid-range','podsumowanie zachowuje tagi biomechaniczne');
 assert(typeof api.manualPlanOpenExerciseBiomech==='function'&&typeof api.manualPlanBiomechShowMore==='function','udostępnia biomechanikę na żądanie dla kreatora');
 assert(typeof api.manualPlanOpenAnalysis==='function','udostępnia analizę planu na żądanie');
+assert(typeof api.manualPlanToggleMethod==='function','obsługuje widoczny wybór metod w kreatorze');
 console.log('OK manual plan model');

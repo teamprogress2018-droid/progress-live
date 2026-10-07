@@ -12,4 +12,5 @@ assert(/onclick="openManualPlanPicker\('\$\{c\.id\}'\)"/.test(profile),'profil k
 assert(!/onclick="openBuilderForClient\('\$\{c\.id\}'\)"/.test(profile),'profil nie omija kreatora planu ręcznego');
 assert(index.includes('manual-plan-quickbar')&&index.includes('manual-plan-analysis-trigger'),'kreator ma skrót analizy zamiast stałego panelu');
 assert(!index.includes('manual-plan-analysis-card'),'kreator nie renderuje długiej analizy w bocznym panelu');
+assert(wizard.includes('manual-plan-method-option')&&wizard.includes('manualPlanToggleMethod'),'kreator renderuje klikalne kafelki metod');
 console.log('OK manual plan entrypoints');
