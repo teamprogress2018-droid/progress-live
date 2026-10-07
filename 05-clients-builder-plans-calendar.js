@@ -1510,22 +1510,22 @@ function builderRefreshKbHits(){
   document.querySelectorAll('#builder-days .builder-day').forEach(dayEl=>{
     const strip=dayEl.querySelector('.builder-day-kb');
     if(!strip)return;
-    if(dayEl.querySelector('.rc')&&dayEl.querySelector('.rc').checked){
-      strip.hidden=true;strip.innerHTML='';return;
-    }
-    const dayHits=hitsFn?hitsFn(builderCollectKbTags(dayEl),{limit:10}):[];
-    const muscleHits=dayHits.filter(h=>{
-      const mt=typeof kbMuscleTags==='function'?kbMuscleTags(h.tags||[]):[];
-      return mt.length>0;
-    });
-    const show=muscleHits.length?muscleHits:dayHits.filter(h=>h.score>0).slice(0,2);
-    if(!show.length){strip.hidden=true;strip.innerHTML='';return;}
-    strip.hidden=false;
-    strip.innerHTML=show.map(builderKbHitHtml).join('');
+    // Wiedza biomechaniczna jest dostępna na żądanie (ⓘ przy ćwiczeniu lub
+    // w panelu „Baza pomocnicza”), więc nie wydłuża kart jednostek.
+    strip.hidden=true;strip.innerHTML='';
   });
 }
 window.builderCollectKbTags=builderCollectKbTags;
 window.builderRefreshKbHits=builderRefreshKbHits;
+function builderToggleKnowledge(){
+  const box=document.getElementById('builder-kb-hits');
+  const button=document.getElementById('builder-kb-toggle');
+  if(!box)return;
+  const open=box.hasAttribute('hidden');
+  if(open)box.removeAttribute('hidden');else box.setAttribute('hidden','');
+  if(button){button.textContent=open?'Ukryj':'Pokaż';button.setAttribute('aria-expanded',open?'true':'false');}
+}
+window.builderToggleKnowledge=builderToggleKnowledge;
 
 function toggleBuilderSidebar(forceOpen){
   const layout=document.querySelector('#screen-builder .builder-layout');

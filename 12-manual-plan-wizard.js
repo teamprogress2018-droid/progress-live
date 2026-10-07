@@ -6,7 +6,7 @@
 (function(){
   'use strict';
 
-  const MANUAL_PLAN_SCHEMA_VERSION=1;
+  const MANUAL_PLAN_SCHEMA_VERSION=2;
   const MANUAL_PLAN_SPLITS=[
     'FBW','Upper Lower','PPL','Push Pull','Góra/dół + FBW','Trening dzielony','Własny split'
   ];
@@ -23,6 +23,7 @@
     'straight_sets','superset','combined_sets','circuit','drop_set','rest_pause','myo_reps',
     'cluster_set','top_set_backoff','pyramid','reverse_pyramid','tempo','pause_reps','amrap','własna'
   ];
+  const MANUAL_PLAN_PRIORITIES=['none','klatka','plecy','barki','ramiona','posladki','nogi','core','wlasny'];
 
   const copy=value=>JSON.parse(JSON.stringify(value));
   const text=value=>String(value==null?'':value).trim();
@@ -123,6 +124,7 @@
         customSplit:'',
         suggestion:manualPlanSuggestedSplit({level,sessionsPerWeek:sessions})
       },
+      priorities:{primary:'none',secondary:'',custom:''},
       periodization:{
         strategy:'stały',
         durationWeeks:duration,
@@ -176,6 +178,9 @@
       sessionsPerWeek:number(sourceProfile.sessionsPerWeek,base.clientProfile.sessionsPerWeek,1,7)
     };
     const split=text(sourceStructure.split)||base.structure.split;
+    const sourcePriorities=data.priorities&&typeof data.priorities==='object'?data.priorities:{};
+    const primaryPriority=MANUAL_PLAN_PRIORITIES.includes(text(sourcePriorities.primary))?text(sourcePriorities.primary):base.priorities.primary;
+    const secondaryPriority=MANUAL_PLAN_PRIORITIES.includes(text(sourcePriorities.secondary))&&text(sourcePriorities.secondary)!==primaryPriority?text(sourcePriorities.secondary):'';
     return {
       version:MANUAL_PLAN_SCHEMA_VERSION,
       mode:data.mode==='advanced'?'advanced':'guided',
@@ -192,6 +197,7 @@
         excludedExercises:list(sourceProfile.excludedExercises||base.clientProfile.excludedExercises)
       },
       structure:{split:MANUAL_PLAN_SPLITS.includes(split)?split:'Własny split',customSplit:text(sourceStructure.customSplit),suggestion:manualPlanSuggestedSplit(profile)},
+      priorities:{primary:primaryPriority,secondary:secondaryPriority,custom:text(sourcePriorities.custom)},
       periodization:{
         strategy:MANUAL_PLAN_PERIODIZATION.includes(sourcePeriod.strategy)?sourcePeriod.strategy:base.periodization.strategy,
         durationWeeks:duration,deloadEnabled,weeks,customRule:text(sourcePeriod.customRule)
@@ -359,6 +365,66 @@
     </div>`;
   }
 
+  const priorityLabels={none:'Brak szczególnego priorytetu',klatka:'Klatka piersiowa',plecy:'Plecy',barki:'Barki',ramiona:'Ramiona',posladki:'Pośladki',nogi:'Nogi',core:'Core',wlasny:'Własny priorytet'};
+
+  function manualPlanGoalFields(meta){
+    const p=meta.clientProfile;
+    const levelOptions=[['poczatkujacy','Początkujący'],['sredni','Średniozaawansowany'],['zaawansowany','Zaawansowany']];
+    return `<div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Główny cel</label><select class="form-select" id="mpw-goal">${Object.entries(goalLabels).map(([v,l])=>`<option value="${v}"${p.goal===v?' selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="form-field"><label class="form-lbl">Poziom doświadczenia</label><select class="form-select" id="mpw-level">${levelOptions.map(([v,l])=>`<option value="${v}"${p.level===v?' selected':''}>${l}</option>`).join('')}</select></div>
+    </div>
+    <div class="manual-plan-why"><b>Dlaczego to sugerujemy?</b> Cel i doświadczenie pozwalają dobrać prostotę struktury oraz bezpieczny punkt startowy objętości. Każdą decyzję później zmienisz.</div>
+    <details class="manual-plan-more"><summary>Więcej danych o kliencie</summary><div class="form-grid" style="margin-top:12px;"><div class="form-field"><label class="form-lbl">Staż treningowy</label><input class="form-input" id="mpw-training-age" value="${esc(p.trainingAge)}" placeholder="np. 18 miesięcy"></div><div class="form-field"><label class="form-lbl">Sprzęt</label><input class="form-input" id="mpw-equipment" value="${esc(p.equipment.join(', '))}" placeholder="np. hantle, wyciąg, maszyny"></div><div class="form-field"><label class="form-lbl">Preferencje</label><input class="form-input" id="mpw-preferences" value="${esc(p.preferences)}" placeholder="np. krótsze sesje"></div><div class="form-field"><label class="form-lbl">Ćwiczenia wykluczone</label><input class="form-input" id="mpw-excluded" value="${esc(p.excludedExercises.join(', '))}" placeholder="Rozdziel przecinkami"></div></div></details>`;
+  }
+
+  function manualPlanPrioritiesFields(meta){
+    const p=meta.priorities||{};
+    const options=allowNone=>MANUAL_PLAN_PRIORITIES.filter(value=>allowNone||value!=='none').map(value=>`<option value="${value}"${p[allowNone?'primary':'secondary']===value?' selected':''}>${priorityLabels[value]}</option>`).join('');
+    return `<div class="form-grid"><div class="form-field"><label class="form-lbl">PRIORYTET 1</label><select class="form-select" id="mpw-priority-primary">${options(true)}</select></div><div class="form-field"><label class="form-lbl">PRIORYTET 2 <span style="color:var(--muted);font-weight:400;">(opcjonalnie)</span></label><select class="form-select" id="mpw-priority-secondary"><option value="">Bez drugiego priorytetu</option>${options(false)}</select></div></div><div class="form-field"><label class="form-lbl">Własny priorytet <span style="color:var(--muted);font-weight:400;">(opcjonalnie)</span></label><input class="form-input" id="mpw-priority-custom" value="${esc(p.custom)}" placeholder="np. chwyt, przygotowanie do biegu"></div><div class="manual-plan-why"><b>Dlaczego to sugerujemy?</b> Priorytet pomaga ułożyć ważniejsze ćwiczenia wcześniej i kontrolować ich objętość. Nie jest sztywną regułą — regeneracja oraz reszta planu nadal mają znaczenie.</div>`;
+  }
+
+  function manualPlanWeekFields(meta){
+    const p=meta.clientProfile;
+    return `<div class="form-grid"><div class="form-field"><label class="form-lbl">Treningi w tygodniu</label><input class="form-input" id="mpw-sessions" type="number" min="1" max="7" value="${p.sessionsPerWeek}"></div><div class="form-field"><label class="form-lbl">Czas jednej jednostki (min)</label><input class="form-input" id="mpw-minutes" type="number" min="15" max="300" value="${p.sessionMinutes}"></div></div>${manualPlanStructureFields(meta)}<div class="manual-plan-why"><b>Dlaczego to sugerujemy?</b> Przy 3 treningach Full Body ułatwia częstsze bodźcowanie całego ciała. To punkt startowy, a nie obowiązek.</div>`;
+  }
+
+  function manualPlanExerciseStepFields(meta){
+    const p=meta.periodization||{};
+    return `<div class="card" style="padding:14px;background:var(--s3);"><b>Za chwilę przejdziesz do ćwiczeń.</b><div style="margin-top:6px;font-size:13px;line-height:1.55;color:var(--text-secondary);">W edytorze dodasz ćwiczenie, serie, powtórzenia, RIR i przerwę. Biomechanikę otworzysz ikoną ⓘ przy danym ćwiczeniu — nie będzie zasłaniała planu.</div></div><div class="form-grid" style="margin-top:14px;"><div class="form-field"><label class="form-lbl">Długość programu</label><select class="form-select" id="mpw-weeks">${[4,6,8,10,12].map(value=>`<option value="${value}"${p.durationWeeks===value?' selected':''}>${value} tygodni</option>`).join('')}</select></div><div class="form-field"><label class="form-lbl">Deload <span style="color:var(--muted);font-weight:400;">(opcjonalnie)</span></label><label class="manual-plan-check"><input type="checkbox" id="mpw-deload"${p.deloadEnabled?' checked':''}> Dodaj lżejszy tydzień</label></div></div><div class="manual-plan-why"><b>Dlaczego to sugerujemy?</b> Najpierw budujemy prostą strukturę, a szczegóły ćwiczeń dobieramy dopiero wtedy, gdy znamy cel, priorytety i dostępny czas.</div>`;
+  }
+
+  function manualPlanGuidedReview(meta){
+    const profile=meta.clientProfile||{},priority=meta.priorities||{};
+    const primary=priority.primary==='wlasny'?(priority.custom||'własny priorytet'):(priorityLabels[priority.primary]||priorityLabels.none);
+    const secondary=priority.secondary?(priority.secondary==='wlasny'?(priority.custom||'własny priorytet'):priorityLabels[priority.secondary]):'';
+    return `<div class="manual-plan-ready"><div class="manual-plan-ready-icon">✓</div><div><b>Plan ma poprawne podstawy.</b><div style="margin-top:4px;color:var(--text-secondary);font-size:13px;line-height:1.55;">W kolejnym widoku dodasz ćwiczenia i zobaczysz krótką analizę częstotliwości, objętości, priorytetów oraz regeneracji.</div></div></div><div class="manual-plan-summary"><div><span>Cel</span><b>${esc(goalLabels[profile.goal]||profile.goal)}</b></div><div><span>Priorytet</span><b>${esc(primary)}${secondary?' + '+esc(secondary):''}</b></div><div><span>Tydzień</span><b>${profile.sessionsPerWeek} treningi · ${esc(meta.structure&&meta.structure.split)}</b></div><div><span>Progresja</span><b>${esc(meta.progression&&meta.progression.type==='double'?'Podwójna progresja':meta.progression&&meta.progression.type||'do ustalenia')}</b></div></div>`;
+  }
+
+  function manualPlanWizardCoach(step,meta){
+    const p=meta.priorities||{};
+    const primary=p.primary==='wlasny'?(p.custom||'wybrany priorytet'):(priorityLabels[p.primary]||'wybrany priorytet');
+    const messages={
+      1:'Określ główny cel i poziom klienta. Na tej podstawie uprościmy kolejne rekomendacje.',
+      2:`Wybierz partię, na której klientowi najbardziej zależy. Uwzględnię „${primary}” przy kolejności ćwiczeń i analizie objętości.`,
+      3:'Dobieramy liczbę sesji i strukturę tygodnia. Sugestia ma pomagać, nie blokować Twojej decyzji.',
+      4:'Na start proste serie są najłatwiejsze do kontroli. Metody intensyfikacyjne dodawaj celowo, nie z rozpędu.',
+      5:'Dla większości osób podwójna progresja jest czytelna: najpierw powtórzenia, potem najmniejszy dostępny skok ciężaru.',
+      6:'Teraz przechodzimy do ćwiczeń. W edytorze zobaczysz tylko parametry potrzebne do pracy; szczegóły są pod „Więcej” i ⓘ.',
+      7:'Podstawy są gotowe. Analiza po dodaniu ćwiczeń sprawdzi strukturę, ale decyzja zawsze zostaje po stronie trenera.'
+    };
+    return `<aside class="manual-plan-coach"><div class="manual-plan-coach-label">ASYSTENT NA TYM KROKU</div><div>${esc(messages[step]||messages[1])}</div><button type="button" class="btn btn-ghost btn-sm" onclick="manualPlanOpenLearnMore()">Dowiedz się więcej</button></aside>`;
+  }
+
+  function manualPlanOpenLearnMore(){
+    const state=manualPlanWizardState();if(!state)return;
+    const modal=manualPlanEnsureModal('m-manual-plan-learn');
+    const p=state.meta.priorities||{};
+    const priority=p.primary==='wlasny'?(p.custom||'własnego priorytetu'):(priorityLabels[p.primary]||'braku szczególnego priorytetu');
+    modal.innerHTML=`<div class="modal" style="max-width:620px;"><div class="modal-hdr"><div class="modal-title">DLACZEGO TAKI KROK?</div><button class="modal-close" onclick="closeM('m-manual-plan-learn')">×</button></div><div class="modal-body" style="font-size:13px;line-height:1.6;">Asystent najpierw zbiera decyzje, które zmieniają cały plan: cel, częstotliwość i priorytety. Dla ${esc(priority)} może potem zasugerować wcześniejsze miejsce w sesji oraz sprawdzić, czy ta partia nie została przypadkowo pominięta. To wskazówka programowa, nie diagnoza ani sztywna norma.</div><div class="modal-footer"><button class="btn btn-primary" onclick="closeM('m-manual-plan-learn')">Rozumiem</button></div></div>`;
+    if(typeof openM==='function')openM('m-manual-plan-learn');
+  }
+
   function manualPlanStructureFields(meta){
     const p=meta.clientProfile,structure=meta.structure;
     const suggestion=manualPlanSuggestedSplit(p);
@@ -404,12 +470,12 @@
     <div class="card" style="padding:12px;background:var(--s3);font-size:12px;line-height:1.55;"><b>Dlaczego?</b> RIR, RPE i %1RM są różnymi narzędziami. Aplikacja zapisuje wybrany język wysiłku, ale nie udaje, że jeden wskaźnik idealnie opisuje każdą osobę i każde ćwiczenie.</div>`;
   }
 
-  function manualPlanMethodsFields(meta){
+  function manualPlanMethodsFields(meta,simple){
     const selected=new Set(meta.trainingMethods||[]);
     const labels={straight_sets:'Serie proste',superset:'Superserie',combined_sets:'Serie łączone',circuit:'Obwód',drop_set:'Drop set',rest_pause:'Rest-pause',myo_reps:'Myo-reps',cluster_set:'Cluster set',top_set_backoff:'Top set + back-off',pyramid:'Piramida',reverse_pyramid:'Odwrócona piramida',tempo:'Tempo kontrolowane',pause_reps:'Pauzy',amrap:'AMRAP',własna:'Własna metoda'};
-    return `<div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:12px;">Wybierz metody dostępne w tym programie. Zaznaczenie nie oznacza obowiązku użycia — pomaga opisać intencję i później ocenić koszt zmęczeniowy.</div>
-      <div class="manual-plan-method-grid">${MANUAL_PLAN_METHODS.map(method=>`<label class="manual-plan-method-option${selected.has(method)?' is-selected':''}"><input type="checkbox" data-mpw-method="${method}"${selected.has(method)?' checked':''} onchange="manualPlanToggleMethod(this)"><span>${esc(labels[method])}</span></label>`).join('')}</div>
-      <div class="card" style="padding:12px;background:var(--s3);font-size:12px;line-height:1.55;margin-top:14px;"><b>Wskazówka:</b> metody zwiększające gęstość lub pracę blisko upadku (np. drop set, rest-pause, myo-reps) trzymaj zwykle przy ćwiczeniach stabilnych i tam, gdzie technika pozostaje przewidywalna.</div>`;
+    const cards=methods=>`<div class="manual-plan-method-grid">${methods.map(method=>`<label class="manual-plan-method-option${selected.has(method)?' is-selected':''}"><input type="checkbox" data-mpw-method="${method}"${selected.has(method)?' checked':''} onchange="manualPlanToggleMethod(this)"><span>${esc(labels[method])}</span></label>`).join('')}</div>`;
+    const basic=['straight_sets','superset','circuit','tempo'];
+    return `<div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:12px;">Wybierz metody dostępne w tym programie. Zaznaczenie nie oznacza obowiązku użycia.</div>${cards(simple?basic:MANUAL_PLAN_METHODS)}${simple?`<details class="manual-plan-more"><summary>Więcej metod i ustawień</summary><div style="margin-top:10px;">${cards(MANUAL_PLAN_METHODS.filter(method=>!basic.includes(method)))}</div></details>`:''}<div class="manual-plan-why"><b>Dlaczego to sugerujemy?</b> Metody zwiększające gęstość lub pracę blisko upadku zachowaj zwykle dla ćwiczeń stabilnych, w których technika jest przewidywalna.</div>`;
   }
 
   function manualPlanToggleMethod(input){
@@ -418,9 +484,10 @@
   }
 
   function manualPlanProgress(mode,step){
-    const labels=['Profil','Split','Periodyzacja','Progresja','Intensywność','Metody','Jednostki','Objętość','Wzorce','Balans','Częstotliwość','Czas','Analiza','Zapis'];
-    const current=mode==='advanced'?6:step;
-    return `<div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted);"><span>KROK ${current}/14 — ${labels[current-1]}</span><span>${mode==='advanced'?'Tryb zaawansowany':'Kreator prowadzony'}</span></div><div style="height:6px;border-radius:99px;background:var(--s4);margin-top:7px;overflow:hidden;"><div style="width:${Math.round(current/14*100)}%;height:100%;background:var(--accent);"></div></div></div>`;
+    const labels=['Cel','Priorytet','Tydzień','Metoda','Progresja','Ćwiczenia','Gotowe'];
+    const current=mode==='advanced'?7:step;
+    const milestones=mode==='advanced'?'Ustawienia programu':labels.map((label,index)=>`<span class="${index+1===current?'is-current':index+1<current?'is-done':''}">${index+1<current?'✓ ':''}${label}</span>`).join('<i>→</i>');
+    return `<div class="manual-plan-progress"><div class="manual-plan-progress-top"><span>KROK ${current}/${mode==='advanced'?7:labels.length} — ${mode==='advanced'?'Ustawienia programu':labels[current-1]}</span><span>${mode==='advanced'?'Tryb zaawansowany':'Asystent krok po kroku'}</span></div><div class="manual-plan-progress-line"><div style="width:${Math.round(current/(mode==='advanced'?7:labels.length)*100)}%;"></div></div><div class="manual-plan-progress-labels">${milestones}</div></div>`;
   }
 
   function manualPlanRenderWizard(){
@@ -430,19 +497,20 @@
     const step=state.step||1;
     let content='';
     if(advanced){
-      content=`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;">Ustaw podstawy programu w jednym widoku. Każdy parametr możesz zmienić później.</div>${manualPlanProfileFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanStructureFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanPeriodFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanProgressionFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanIntensityFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanMethodsFields(meta)}`;
+      content=`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;">Ustaw podstawy programu w jednym widoku. Każdy parametr możesz zmienić później.</div>${manualPlanProfileFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanPrioritiesFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanStructureFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanPeriodFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanProgressionFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanIntensityFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanMethodsFields(meta)}`;
     }else if(step===1){
-      content=`<div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Na podstawie tych informacji zbudujemy strukturę programu. Każdą decyzję będzie można później zmienić.</div>${manualPlanProfileFields(meta)}`;
-    }else if(step===2){content=manualPlanStructureFields(meta);}
-    else if(step===3){content=manualPlanPeriodFields(meta);}
-    else if(step===4){content=manualPlanProgressionFields(meta);}
-    else if(step===5){content=manualPlanIntensityFields(meta);}
-    else{content=manualPlanMethodsFields(meta);}
+      content=manualPlanGoalFields(meta);
+    }else if(step===2){content=manualPlanPrioritiesFields(meta);}
+    else if(step===3){content=manualPlanWeekFields(meta);}
+    else if(step===4){content=manualPlanMethodsFields(meta,true);}
+    else if(step===5){content=manualPlanProgressionFields(meta)+`<details class="manual-plan-more"><summary>Więcej ustawień intensywności</summary><div style="margin-top:12px;">${manualPlanIntensityFields(meta)}</div></details>`;}
+    else if(step===6){content=manualPlanExerciseStepFields(meta);}
+    else{content=manualPlanGuidedReview(meta);}
     const footer=advanced
       ?`<button class="btn btn-ghost" onclick="closeM('m-manual-plan-wizard')">Anuluj</button><button class="btn btn-primary" onclick="manualPlanOpenBuilder()">Przejdź do budowania jednostek</button>`
-      :`<button class="btn btn-ghost" ${step===1?'disabled':''} onclick="manualPlanWizardBack()">Wstecz</button><button class="btn btn-primary" onclick="manualPlanWizardNext()">${step===6?'Przejdź do budowania jednostek':'Dalej'}</button>`;
+      :`<button class="btn btn-ghost" ${step===1?'disabled':''} onclick="manualPlanWizardBack()">Wstecz</button><button class="btn btn-primary" onclick="manualPlanWizardNext()">${step===7?'Przejdź do ćwiczeń':step===6?'Podsumowanie':'Dalej'}</button>`;
     const modal=manualPlanEnsureModal('m-manual-plan-wizard');
-    modal.innerHTML=`<div class="modal" style="max-width:900px;max-height:88vh;display:flex;flex-direction:column;"><div class="modal-hdr"><div class="modal-title">PLAN RĘCZNY — ${advanced?'USTAWIENIA PROGRAMU':'KREATOR'}</div><button class="modal-close" onclick="closeM('m-manual-plan-wizard')">×</button></div><div class="modal-body" style="overflow:auto;">${manualPlanProgress(meta.mode,step)}${content}</div><div class="modal-footer">${footer}</div></div>`;
+    modal.innerHTML=`<div class="modal" style="max-width:900px;max-height:88vh;display:flex;flex-direction:column;"><div class="modal-hdr"><div class="modal-title">PLAN RĘCZNY — ${advanced?'USTAWIENIA PROGRAMU':'KREATOR'}</div><button class="modal-close" onclick="closeM('m-manual-plan-wizard')">×</button></div><div class="modal-body" style="overflow:auto;">${manualPlanProgress(meta.mode,step)}${advanced?'':manualPlanWizardCoach(step,meta)}${content}</div><div class="modal-footer">${footer}</div></div>`;
     if(typeof openM==='function')openM('m-manual-plan-wizard');
   }
 
@@ -455,14 +523,20 @@
     if(read('mpw-level')){
       meta.clientProfile.level=manualPlanLevel(value('mpw-level'));
       meta.clientProfile.goal=manualPlanGoal(value('mpw-goal'));
-      meta.clientProfile.trainingAge=value('mpw-training-age');
-      meta.clientProfile.sessionsPerWeek=number(value('mpw-sessions'),meta.clientProfile.sessionsPerWeek,1,7);
-      meta.clientProfile.sessionMinutes=number(value('mpw-minutes'),meta.clientProfile.sessionMinutes,15,300);
-      meta.clientProfile.equipment=list(value('mpw-equipment'));
-      meta.clientProfile.mobilityLimits=value('mpw-mobility');
-      meta.clientProfile.reportedIssues=value('mpw-issues');
-      meta.clientProfile.preferences=value('mpw-preferences');
-      meta.clientProfile.excludedExercises=list(value('mpw-excluded'));
+      if(read('mpw-training-age'))meta.clientProfile.trainingAge=value('mpw-training-age');
+      if(read('mpw-equipment'))meta.clientProfile.equipment=list(value('mpw-equipment'));
+      if(read('mpw-mobility'))meta.clientProfile.mobilityLimits=value('mpw-mobility');
+      if(read('mpw-issues'))meta.clientProfile.reportedIssues=value('mpw-issues');
+      if(read('mpw-preferences'))meta.clientProfile.preferences=value('mpw-preferences');
+      if(read('mpw-excluded'))meta.clientProfile.excludedExercises=list(value('mpw-excluded'));
+    }
+    if(read('mpw-sessions'))meta.clientProfile.sessionsPerWeek=number(value('mpw-sessions'),meta.clientProfile.sessionsPerWeek,1,7);
+    if(read('mpw-minutes'))meta.clientProfile.sessionMinutes=number(value('mpw-minutes'),meta.clientProfile.sessionMinutes,15,300);
+    if(read('mpw-priority-primary')){
+      meta.priorities=meta.priorities||{};
+      meta.priorities.primary=value('mpw-priority-primary');
+      meta.priorities.secondary=value('mpw-priority-secondary');
+      meta.priorities.custom=value('mpw-priority-custom');
     }
     if(read('mpw-split')){
       meta.structure.split=value('mpw-split');
@@ -471,11 +545,11 @@
     }
     if(read('mpw-period')){
       meta.periodization.strategy=value('mpw-period');
-      meta.periodization.durationWeeks=number(value('mpw-weeks'),meta.periodization.durationWeeks,1,52);
-      meta.periodization.deloadEnabled=checked('mpw-deload');
       meta.periodization.customRule=value('mpw-period-rule');
-      meta.periodization.weeks=manualPlanDefaultWeeks(meta.periodization.durationWeeks,meta.periodization.deloadEnabled);
     }
+    if(read('mpw-weeks'))meta.periodization.durationWeeks=number(value('mpw-weeks'),meta.periodization.durationWeeks,1,52);
+    if(read('mpw-deload'))meta.periodization.deloadEnabled=checked('mpw-deload');
+    if(read('mpw-period')||read('mpw-weeks')||read('mpw-deload'))meta.periodization.weeks=manualPlanDefaultWeeks(meta.periodization.durationWeeks,meta.periodization.deloadEnabled);
     if(read('mpw-progression')){
       meta.progression.type=value('mpw-progression');
       meta.progression.repRange=value('mpw-rep-range');
@@ -500,7 +574,7 @@
   function manualPlanWizardNext(){
     const state=manualPlanWizardState();if(!state)return;
     manualPlanSyncWizard();
-    if(state.step>=6){manualPlanOpenBuilder();return;}
+    if(state.step>=7){manualPlanOpenBuilder();return;}
     state.step++;
     manualPlanRenderWizard();
   }
@@ -538,11 +612,23 @@
     const dayBox=document.getElementById('builder-days');
     if(dayBox&&!dayBox.querySelector('.builder-day')&&typeof addDay==='function'){
       for(let i=0;i<window._manualPlanDraft.clientProfile.sessionsPerWeek;i++)addDay();
+      const priorities=window._manualPlanDraft.priorities||{};
+      const focus=[priorities.primary,priorities.secondary].filter(value=>value&&value!=='none').map(value=>value==='wlasny'?(priorities.custom||'Priorytet'):priorityLabels[value]);
+      [...dayBox.querySelectorAll('.builder-day-focus')].forEach((input,index)=>{if(input&&!input.value&&focus[index])input.value=focus[index];});
     }
     if(typeof updatePeriod==='function')updatePeriod();
     if(typeof builderRefreshRationale==='function')builderRefreshRationale();
+    manualPlanUpdateBuilderAssistant();
     manualPlanShowAnalysis();
     window._manualPlanWizard=null;
+  }
+
+  function manualPlanUpdateBuilderAssistant(){
+    if(typeof document==='undefined'||!window._manualPlanDraft)return;
+    const priority=(window._manualPlanDraft.priorities||{}).primary;
+    const label=priority==='wlasny'?((window._manualPlanDraft.priorities||{}).custom||'wybrany priorytet'):(priorityLabels[priority]||'plan');
+    const bubble=document.querySelector('#ai-msgs .ai-msg.bot .ai-bubble');
+    if(bubble)bubble.textContent=priority&&priority!=='none'?`Priorytet: ${label}. Dodaj najważniejsze ćwiczenia tej partii wcześniej w odpowiedniej jednostce; potem sprawdź analizę planu.`:'Dodaj ćwiczenia, a na końcu otwórz Analizę planu. Pokaże krótkie wskazówki o objętości, wzorcach i regeneracji.';
   }
 
   function manualPlanSetCount(value){
@@ -813,7 +899,9 @@
     if(cycle){
       const labels={stały:'stały układ',liniowa:'liniowa',double:'podwójna progresja',dup:'falowa / DUP',blokowa:'blokowa',step_loading:'step loading',autoregulacja:'autoregulacja',własna:'własna'};
       const period=meta.periodization||{},progression=meta.progression||{};
-      cycle.textContent='Cykl: '+(period.durationWeeks||'—')+' tyg. · '+(labels[period.strategy]||period.strategy||'stały układ')+' · '+(labels[progression.type]||progression.type||'progresja do ustalenia')+(period.deloadEnabled?' · deload':'');
+      const priority=meta.priorities&&meta.priorities.primary;
+      const priorityText=priority&&priority!=='none'?' · priorytet: '+(priority==='wlasny'?(meta.priorities.custom||'własny'):priorityLabels[priority]):'';
+      cycle.textContent='Cykl: '+(period.durationWeeks||'—')+' tyg. · '+(labels[period.strategy]||period.strategy||'stały układ')+' · '+(labels[progression.type]||progression.type||'progresja do ustalenia')+(period.deloadEnabled?' · deload':'')+priorityText;
     }
     window._manualPlanLastAnalysis=result;
     return result;
@@ -854,6 +942,8 @@
     const suggestions=[];
     const profile=meta.clientProfile||{};
     if(profile.goal)complete.push('określony cel');else suggestions.push({level:'warning',text:'Brak określonego celu programu.'});
+    const priority=meta.priorities||{};
+    if(priority.primary&&priority.primary!=='none')complete.push('ustalony priorytet: '+(priority.primary==='wlasny'?(priority.custom||'własny'):priorityLabels[priority.primary]));
     if(meta.progression&&meta.progression.type)complete.push('ustalona progresja');else suggestions.push({level:'warning',text:'Brak zdefiniowanej zasady progresji.'});
     if(meta.intensity&&meta.intensity.mode)complete.push('określona intensywność');else suggestions.push({level:'warning',text:'Brak sposobu sterowania intensywnością.'});
     if(result.activeDays)complete.push(`${result.activeDays} jednostki do realizacji`);else suggestions.push({level:'high',text:'Dodaj co najmniej jedną jednostkę z ćwiczeniami przed zapisem.'});
@@ -909,6 +999,7 @@
   window.manualPlanStart=manualPlanStart;
   window.manualPlanWizardNext=manualPlanWizardNext;
   window.manualPlanWizardBack=manualPlanWizardBack;
+  window.manualPlanOpenLearnMore=manualPlanOpenLearnMore;
   window.manualPlanPeriodHelp=manualPlanPeriodHelp;
   window.manualPlanToggleMethod=manualPlanToggleMethod;
   window.manualPlanOpenBuilder=manualPlanOpenBuilder;
