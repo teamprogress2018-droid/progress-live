@@ -408,8 +408,13 @@
     const selected=new Set(meta.trainingMethods||[]);
     const labels={straight_sets:'Serie proste',superset:'Superserie',combined_sets:'Serie łączone',circuit:'Obwód',drop_set:'Drop set',rest_pause:'Rest-pause',myo_reps:'Myo-reps',cluster_set:'Cluster set',top_set_backoff:'Top set + back-off',pyramid:'Piramida',reverse_pyramid:'Odwrócona piramida',tempo:'Tempo kontrolowane',pause_reps:'Pauzy',amrap:'AMRAP',własna:'Własna metoda'};
     return `<div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:12px;">Wybierz metody dostępne w tym programie. Zaznaczenie nie oznacza obowiązku użycia — pomaga opisać intencję i później ocenić koszt zmęczeniowy.</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;">${MANUAL_PLAN_METHODS.map(method=>`<label class="builder-rest-toggle" style="display:flex;margin:0;"><input type="checkbox" data-mpw-method="${method}"${selected.has(method)?' checked':''}> ${labels[method]}</label>`).join('')}</div>
+      <div class="manual-plan-method-grid">${MANUAL_PLAN_METHODS.map(method=>`<label class="manual-plan-method-option${selected.has(method)?' is-selected':''}"><input type="checkbox" data-mpw-method="${method}"${selected.has(method)?' checked':''} onchange="manualPlanToggleMethod(this)"><span>${esc(labels[method])}</span></label>`).join('')}</div>
       <div class="card" style="padding:12px;background:var(--s3);font-size:12px;line-height:1.55;margin-top:14px;"><b>Wskazówka:</b> metody zwiększające gęstość lub pracę blisko upadku (np. drop set, rest-pause, myo-reps) trzymaj zwykle przy ćwiczeniach stabilnych i tam, gdzie technika pozostaje przewidywalna.</div>`;
+  }
+
+  function manualPlanToggleMethod(input){
+    const option=input&&input.closest?input.closest('.manual-plan-method-option'):null;
+    if(option)option.classList.toggle('is-selected',!!input.checked);
   }
 
   function manualPlanProgress(mode,step){
@@ -905,6 +910,7 @@
   window.manualPlanWizardNext=manualPlanWizardNext;
   window.manualPlanWizardBack=manualPlanWizardBack;
   window.manualPlanPeriodHelp=manualPlanPeriodHelp;
+  window.manualPlanToggleMethod=manualPlanToggleMethod;
   window.manualPlanOpenBuilder=manualPlanOpenBuilder;
   window.manualPlanAnalyzeDays=manualPlanAnalyzeDays;
   window.manualPlanRefreshAnalysis=manualPlanRefreshAnalysis;
