@@ -13,4 +13,7 @@ assert(!/onclick="openBuilderForClient\('\$\{c\.id\}'\)"/.test(profile),'profil 
 assert(index.includes('manual-plan-quickbar')&&index.includes('manual-plan-analysis-trigger'),'kreator ma skrót analizy zamiast stałego panelu');
 assert(!index.includes('manual-plan-analysis-card'),'kreator nie renderuje długiej analizy w bocznym panelu');
 assert(wizard.includes('manual-plan-method-option')&&wizard.includes('manualPlanToggleMethod'),'kreator renderuje klikalne kafelki metod');
+assert(wizard.includes('manualPlanPrioritiesFields')&&wizard.includes('PRIORYTET 1'),'kreator prowadzi przez wybór priorytetów');
+assert(wizard.includes("'Cel','Priorytet','Tydzień','Metoda','Progresja','Ćwiczenia','Gotowe'"),'kreator pokazuje prosty postęp dla początkującego');
+assert(index.includes('builderToggleKnowledge')&&index.includes('Baza pomocnicza'),'baza wiedzy w edytorze jest ukryta na żądanie');
 console.log('OK manual plan entrypoints');
