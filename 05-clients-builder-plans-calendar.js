@@ -181,6 +181,18 @@ window.renderSidebarClients=renderSidebarClients;
 window.filterSidebarClients=filterSidebarClients;
 window.openClientFromSidebar=openClientFromSidebar;
 
+function clientIdentityText(value){return String(value||'').trim().toLocaleLowerCase('pl').replace(/\s+/g,' ');}
+function clientPossibleDuplicates(fields,excludeId){
+  const name=clientIdentityText(fields&&fields.name);
+  const email=clientIdentityText(fields&&fields.email);
+  const all=(window.CL||[]).filter(c=>c&&c.id!==excludeId&&c.status!=='archived');
+  return {
+    email:email?all.filter(c=>clientIdentityText(c.email)===email):[],
+    name:name?all.filter(c=>clientIdentityText(c.name)===name):[]
+  };
+}
+window.clientPossibleDuplicates=clientPossibleDuplicates;
+
 function renderClients(){
   renderClientFilters();
   const search=(document.getElementById('client-search')||{}).value||'';
@@ -221,6 +233,7 @@ function renderClients(){
     const t30=clientTrainingWindowStats(c.id,30);
     const tasks7=clientTasksWindowStats(c.id,7);
     const archived=c.status==='archived';
+    const duplicateName=!archived&&clientPossibleDuplicates(c,c.id).name.length>0;
     const msgBtn=archived
       ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć">↩</button>`
       : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość">💬</button>`;
@@ -229,7 +242,7 @@ function renderClients(){
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
       <div class="cl-name-meta">
         <div class="cl-name">${escHtml(c.name)}</div>
-        <div class="cl-sub">${escHtml(c.email||'Brak e-maila')}${life&&life.key!=='active'&&life.key!=='onboarding'?' · '+escHtml(life.label):''}</div>
+        <div class="cl-sub">${escHtml(c.email||'Brak e-maila')}${duplicateName?' · ⚠ sprawdź duplikat imienia':''}${life&&life.key!=='active'&&life.key!=='onboarding'?' · '+escHtml(life.label):''}</div>
       </div>
       <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
     </div>
@@ -354,6 +367,20 @@ async function saveClient(){
           if(Object.prototype.hasOwnProperty.call(state.base,key))values[key]=state.base[key];
           else delete values[key];
         }
+      }
+    }
+    if(!state.editId){
+      const duplicates=clientPossibleDuplicates({name,email},null);
+      if(duplicates.email.length){
+        const names=duplicates.email.map(c=>c.name).join(', ');
+        state.message='Nie zapisano: ten e-mail jest już przypisany do klienta: '+names+'. Otwórz istniejącą kartę zamiast dodawać duplikat.';
+        state.error=true;renderClientModalSaveState(state);notify(state.message);return;
+      }
+      const duplicateNameKey=clientIdentityText(name);
+      if(duplicates.name.length&&state.nameDuplicateAcknowledged!==duplicateNameKey){
+        state.nameDuplicateAcknowledged=duplicateNameKey;
+        state.message='Istnieje już klient o tym samym imieniu. Sprawdź e-mail lub kliknij Zapisz klienta ponownie, jeśli to inna osoba.';
+        state.error=false;renderClientModalSaveState(state);notify(state.message);return;
       }
     }
     state.fields=fields;
@@ -787,6 +814,7 @@ function openBuilderForClient(clientId,fromOnboard){
 window.openBuilderForClient=openBuilderForClient;
 
 function openNewPlanPicker(){
+  if(typeof window.openManualPlanPicker==='function')return window.openManualPlanPicker();
   let m=document.getElementById('m-new-plan');
   if(!m){
     m=document.createElement('div');
@@ -1524,6 +1552,9 @@ window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
   builderResetSaveState();
   window._editingPlanId=null;
+  window._manualPlanDraft=null;
+  const manualAnalysisCard=document.getElementById('manual-plan-analysis-card');
+  if(manualAnalysisCard)manualAnalysisCard.hidden=true;
   window._builderPeriodWeek=0;
   if(!window._builderBack)window._builderBack='clients';
   const titleEl=document.querySelector('#screen-builder .topbar-title');
@@ -2415,6 +2446,10 @@ function editPlan(id){
   document.getElementById('b-name').value=plan.name||'';
   const clientSel=document.getElementById('b-client');
   if(clientSel)clientSel.value=plan.clientId||'';
+  if(plan.manualPlan&&typeof manualPlanRead==='function'){
+    const client=(window.CL||[]).find(item=>item&&item.id===plan.clientId)||{};
+    window._manualPlanDraft=manualPlanRead(plan,client);
+  }
   builderEnsureSelectValue(document.getElementById('b-method'),plan.method||'');
   builderEnsureSelectValue(document.getElementById('b-duration'),plan.duration||(plan.weekKeys&&plan.weekKeys.length)||'');
   const progSel=document.getElementById('b-progression');
@@ -2490,6 +2525,7 @@ function editPlan(id){
   if(titleEl)titleEl.textContent='Edytuj plan: '+(plan.name||'');
   window._editingPlanId=id;
   updatePeriod();
+  if(typeof manualPlanShowAnalysis==='function')manualPlanShowAnalysis();
 }
 function editPlanFromProfile(planId,clientId){
   const plan=(window.PL||[]).find(p=>p&&p.id===planId);
@@ -2700,6 +2736,10 @@ async function savePlan(){
         rp:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('rp'),2):(parseInt(g('rp'),10)||0)),
         amrap:g('amrap')==='1'
       };
+      if(window._manualPlanDraft&&typeof manualPlanExerciseProgramming==='function'){
+        const library=typeof libExerciseByName==='function'?libExerciseByName(n):null;
+        ex.programming=manualPlanExerciseProgramming(Object.assign({},library||{},ex));
+      }
       const loads=builderRowWeekLoads(r);
       (weekMeta.weekKeys||[]).forEach(wk=>{if(loads&&loads[wk])ex[wk]=loads[wk];});
       if(weekMeta.currentWeek){
@@ -2727,6 +2767,9 @@ async function savePlan(){
     level:c?c.level:(prev?prev.level:'sredni'),goal:c?c.goal:(prev?prev.goal:'masa'),
     days,...weekMeta,...(prev?{updatedAt:new Date().toISOString()}:{})
   };
+  if(window._manualPlanDraft&&typeof manualPlanApplyToPlan==='function'){
+    Object.assign(candidate,manualPlanApplyToPlan(candidate,window._manualPlanDraft,c||{}));
+  }
   if(prev&&prev.rationale&&builderPlanRationaleChanged(prev,candidate))candidate.rationale=null;
   state.candidate=candidate;
   if(prev&&!state.base)state.base=builderPlanClone(prev);

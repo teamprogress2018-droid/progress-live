@@ -1,0 +1,53 @@
+const fs=require('fs');
+const vm=require('vm');
+const path=require('path');
+const root=path.resolve(__dirname,'..','..');
+const source=fs.readFileSync(path.join(root,'12-manual-plan-wizard.js'),'utf8');
+const context={window:{},console};
+vm.createContext(context);
+vm.runInContext(source,context);
+const api=context.window;
+const assert=(ok,label)=>{if(!ok)throw new Error(label);};
+
+const legacy={id:'p1',method:'PPL',duration:'8',progression:'double',days:[{day:'PON',exercises:[{name:'Przysiad'}]}]};
+const legacyBefore=JSON.stringify(legacy);
+const meta=api.manualPlanRead(legacy,{level:'poczatkujacy',goal:'masa'});
+assert(meta.version===1,'nowy model ma wersję');
+assert(meta.clientProfile.level==='poczatkujacy','odczytuje poziom klienta');
+assert(meta.clientProfile.goal==='hipertrofia','mapuje cel klienta');
+assert(meta.periodization.deloadEnabled===false,'nie wymusza deloadu');
+assert(JSON.stringify(legacy)===legacyBefore,'nie modyfikuje starego planu');
+assert(api.manualPlanSuggestedSplit({level:'poczatkujacy',sessionsPerWeek:2}).split==='FBW','sugeruje FBW dla początkującego 2x');
+assert(api.manualPlanSuggestedSplit({level:'sredni',sessionsPerWeek:4}).split==='Upper Lower','sugeruje Upper/Lower dla 4 sesji');
+
+const custom=api.manualPlanNormalizeMeta({
+  mode:'advanced',
+  periodization:{strategy:'blokowa',durationWeeks:6,deloadEnabled:true},
+  progression:{type:'double',repRange:'6–10',loadStepKg:2.5},
+  intensity:{mode:'rir',globalTarget:'2'},
+  trainingMethods:['straight_sets','top_set_backoff']
+},legacy,{});
+assert(custom.mode==='advanced','zachowuje tryb zaawansowany');
+assert(custom.periodization.weeks.length===6,'tworzy wymaganą liczbę tygodni');
+assert(custom.periodization.weeks[5].deload===true,'dodaje deload tylko gdy wybrany');
+assert(custom.trainingMethods.includes('top_set_backoff'),'zachowuje metody treningowe');
+const attached=api.manualPlanAttach(legacy,custom,{});
+assert(attached.days.length===1&&attached.manualPlanSchemaVersion===1,'dołącza dane bez naruszania dni planu');
+const applied=api.manualPlanApplyToPlan(legacy,custom,{});
+assert(applied.days.length===1,'zapis planu ręcznego zachowuje dni');
+assert(applied.weekKeys.length===6&&applied.currentWeek==='w1','zapis tworzy kompatybilne tygodnie planu');
+assert(applied.phases.w6.includes('deload'),'zapis przenosi fazę tygodnia do starego widoku planu');
+assert(applied.duration==='6'&&applied.progression==='double','zapis synchronizuje pola wymagane przez istniejący kreator');
+const analysis=api.manualPlanAnalyzeDays([{day:'PON',exercises:[
+  {name:'Wyciskanie A',sets:'4',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka'}},
+  {name:'Wyciskanie B',sets:'3',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka'}},
+  {name:'Wiosłowanie',sets:'4',rest:'120s',biomech:{pattern:'horizontal_pull',prime:'Plecy'}}
+]}],{sessionMinutes:30});
+assert(analysis.totalSets===11&&analysis.muscleSets.Klatka===7,'analizuje objętość według głównej partii');
+assert(analysis.frequency.Klatka===1&&analysis.score<100,'analizuje częstotliwość i wynik kontrolny');
+assert(analysis.duplicates.length===1,'zaznacza podobny wzorzec w jednej jednostce');
+assert(analysis.warnings.some(item=>item.type==='redundancja'),'tworzy wyjaśnialne ostrzeżenie o redundancji');
+const programming=api.manualPlanExerciseProgramming({name:'Wiosłowanie',biomech:{prime:'Plecy',secondary:['Biceps'],accessory:['chwyt'],pattern:'horizontal_pull',plane:'sagittal',compound:true,stable:true,unilateral:false,lengthBias:'mid-range'}});
+assert(programming.primaryMuscles[0]==='Plecy'&&programming.tags.role==='compound','zapisuje rolę biomechaniczną ćwiczenia');
+assert(programming.tags.direction==='horizontal'&&programming.tags.stability==='stable','dodaje tagi do przyszłej analizy AI');
+console.log('OK manual plan model');
