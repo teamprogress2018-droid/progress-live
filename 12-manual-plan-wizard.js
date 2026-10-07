@@ -600,47 +600,60 @@
     };
   }
 
+  function manualPlanMuscleRecord(primary){
+    const records=Array.isArray(window.MUSCLE_BIOMECH_RECORDS)?window.MUSCLE_BIOMECH_RECORDS:[];
+    const normalize=value=>text(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l');
+    const key=normalize(primary);
+    return records.find(record=>normalize(record.name).includes(key)||list(record.tags).some(tag=>normalize(tag)===key))||null;
+  }
+
+  function manualPlanExerciseBiomechModal(ex,expanded){
+    const summary=manualPlanExerciseSummary(ex||{});
+    const record=manualPlanMuscleRecord(summary.primary);
+    const functionText=(record&&record.functions)||('Wzorzec: '+(manualPlanPatternLabels[summary.pattern]||summary.pattern)+'.');
+    const romText=(record&&record.rom)||'Pełny, kontrolowany i tolerowany zakres ruchu; ogranicz go, gdy technika lub komfort wyraźnie się pogarszają.';
+    const cueText=(record&&record.coach)||'Dobierz tor, ustawienie i obciążenie tak, aby utrzymać kontrolę ruchu oraz komfort klienta.';
+    const title=text(ex&&ex.name)||'Ćwiczenie';
+    const detailRows=record&&expanded?[
+      ['Funkcja',record.functions],['Biomechanika',record.biomechanics],['Płaszczyzna',record.plane],['ROM',record.rom],['Profil oporu',record.resistance],['Ustawienie / cue',record.setup],['Typowe błędy',record.errors],['Kiedy zmodyfikować wariant',record.modifications],['Dlaczego?',record.evidence]
+    ].filter(([,value])=>text(value)).map(([label,value])=>`<section style="padding:11px 0;border-top:1px solid var(--border);"><b style="font-size:11px;color:var(--accent);letter-spacing:.04em;text-transform:uppercase;">${esc(label)}</b><div style="margin-top:5px;font-size:13px;line-height:1.55;">${esc(value)}</div></section>`).join(''):'';
+    const modal=manualPlanEnsureModal('m-manual-plan-exercise-biomech');
+    modal.innerHTML=`<div class="modal" style="max-width:680px;"><div class="modal-hdr"><div class="modal-title">${expanded?'BIOMECHANIKA — SZCZEGÓŁY':'BIOMECHANIKA'}</div><button class="modal-close" onclick="closeM('m-manual-plan-exercise-biomech')">×</button></div><div class="modal-body"><div style="font-size:14px;font-weight:800;margin-bottom:12px;">${esc(title)}</div>${expanded?detailRows:`<div style="display:grid;gap:9px;"><div class="card-sm" style="padding:10px;"><b>Główna funkcja</b><div style="margin-top:4px;font-size:13px;line-height:1.5;">${esc(functionText)}</div></div><div class="card-sm" style="padding:10px;"><b>Zakres</b><div style="margin-top:4px;font-size:13px;line-height:1.5;">${esc(romText)}</div></div><div class="card-sm" style="padding:10px;"><b>Wskazówka</b><div style="margin-top:4px;font-size:13px;line-height:1.5;">${esc(cueText)}</div></div><div style="font-size:12px;color:var(--muted);">${esc(summary.primary)} · ${esc(manualPlanPatternLabels[summary.pattern]||summary.pattern)} · ${esc(manualPlanPlaneLabels[summary.plane]||summary.plane)}</div></div>`}</div><div class="modal-footer">${expanded?'<button class="btn btn-ghost" onclick="manualPlanBiomechShowQuick()">Wróć do skrótu</button>':'<button class="btn btn-ghost" onclick="manualPlanBiomechShowMore()">Dowiedz się więcej</button>'}<button class="btn btn-primary" onclick="closeM('m-manual-plan-exercise-biomech')">Gotowe</button></div></div>`;
+    if(typeof openM==='function')openM('m-manual-plan-exercise-biomech');
+  }
+
+  function manualPlanOpenExerciseBiomech(row){
+    const name=text((row&&row.querySelector('[data-f="name"]')||{}).value);
+    if(!name)return;
+    const library=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+    window._manualPlanBiomechExercise=Object.assign({},library||{},{name});
+    manualPlanExerciseBiomechModal(window._manualPlanBiomechExercise,false);
+  }
+
+  function manualPlanBiomechShowMore(){manualPlanExerciseBiomechModal(window._manualPlanBiomechExercise||{},true);}
+  function manualPlanBiomechShowQuick(){manualPlanExerciseBiomechModal(window._manualPlanBiomechExercise||{},false);}
+
   function manualPlanRenderExerciseProgramming(row){
     if(!row||typeof document==='undefined')return;
-    let card=row.querySelector('.manual-plan-exercise-programming');
-    if(!window._manualPlanDraft){if(card)card.remove();return;}
+    const card=row.querySelector('.manual-plan-exercise-programming');
+    const trigger=row.querySelector('.manual-plan-biomech-trigger');
+    if(!window._manualPlanDraft){if(card)card.remove();if(trigger)trigger.remove();return;}
     const name=text((row.querySelector('[data-f="name"]')||{}).value);
-    if(!name){if(card)card.remove();return;}
-    const library=typeof libExerciseByName==='function'?libExerciseByName(name):null;
-    const summary=manualPlanExerciseSummary(Object.assign({},library||{},{name}));
-    if(!card){
-      card=document.createElement('div');
-      card.className='manual-plan-exercise-programming';
-      const extra=row.querySelector('.ex-row-extra');
-      if(extra)extra.appendChild(card);else row.appendChild(card);
+    if(card)card.remove();
+    if(!name){if(trigger)trigger.remove();return;}
+    if(!trigger){
+      const tools=row.querySelector('.builder-row-tools');
+      if(!tools)return;
+      const button=document.createElement('button');
+      button.type='button';button.className='builder-biomech-trigger';button.title='Biomechanika ćwiczenia';button.setAttribute('aria-label','Biomechanika ćwiczenia');
+      button.innerHTML='ⓘ<span>Biomechanika</span>';
+      button.onclick=()=>manualPlanOpenExerciseBiomech(row);
+      tools.prepend(button);
     }
-    const tagValues=[summary.tags.role,summary.tags.stability,summary.tags.laterality,summary.tags.direction,summary.tags.lengthBias]
-      .filter(Boolean).map(tag=>manualPlanTagLabels[tag]||tag);
-    const chips=items=>items.length?items.map(item=>`<span class="kb-tag">${esc(item)}</span>`).join(' '):'<span style="color:var(--muted);">—</span>';
-    card.innerHTML=`<div style="margin-top:10px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.015);">
-      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;display:flex;justify-content:space-between;text-align:left;" onclick="manualPlanToggleExerciseProgramming(this.closest('.ex-row'))"><span>⌘ Programowanie ćwiczenia</span><span class="manual-plan-exercise-toggle">Pokaż</span></button>
-      <div class="manual-plan-exercise-details" hidden style="font-size:12px;line-height:1.55;margin-top:9px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:8px;">
-          <div><b>PRIMARY</b><br>${esc(summary.primary)}</div>
-          <div><b>SECONDARY</b><br>${chips(summary.secondary)}</div>
-          <div><b>ACCESSORY</b><br>${chips(summary.accessory)}</div>
-          <div><b>Wzorzec</b><br>${esc(manualPlanPatternLabels[summary.pattern]||summary.pattern)}</div>
-          <div><b>Płaszczyzna</b><br>${esc(manualPlanPlaneLabels[summary.plane]||summary.plane)}</div>
-          <div><b>Tagi</b><br>${tagValues.length?tagValues.map(esc).join(' · '):'—'}</div>
-        </div>
-        <div style="margin-top:9px;color:var(--muted);">Metodę ustawiasz przyciskami SS / DROP / KL / RP / AMRAP w wierszu, a intensywność przez RPE/RIR. Progresję dziedziczy z ustawień programu, chyba że trener świadomie ją nadpisze.</div>
-        <div style="margin-top:6px;color:var(--muted);">Dlaczego? ${esc(summary.evidenceNote||'Klasyfikacja pomaga analizować plan; sprawdź konkretny tor i sprzęt.')}</div>
-      </div>
-    </div>`;
   }
 
   function manualPlanToggleExerciseProgramming(row){
-    const details=row&&row.querySelector('.manual-plan-exercise-details');
-    if(!details)return;
-    const open=details.hasAttribute('hidden');
-    if(open)details.removeAttribute('hidden');else details.setAttribute('hidden','');
-    const label=row.querySelector('.manual-plan-exercise-toggle');
-    if(label)label.textContent=open?'Ukryj':'Pokaż';
+    manualPlanOpenExerciseBiomech(row);
   }
 
   function manualPlanAnalyzeDays(days,profile){
@@ -879,6 +892,9 @@
   window.manualPlanExerciseSummary=manualPlanExerciseSummary;
   window.manualPlanRenderExerciseProgramming=manualPlanRenderExerciseProgramming;
   window.manualPlanToggleExerciseProgramming=manualPlanToggleExerciseProgramming;
+  window.manualPlanOpenExerciseBiomech=manualPlanOpenExerciseBiomech;
+  window.manualPlanBiomechShowMore=manualPlanBiomechShowMore;
+  window.manualPlanBiomechShowQuick=manualPlanBiomechShowQuick;
   window.manualPlanOpenReview=manualPlanOpenReview;
   window.manualPlanConfirmSave=manualPlanConfirmSave;
   window.manualPlanSaveFromBuilder=manualPlanSaveFromBuilder;

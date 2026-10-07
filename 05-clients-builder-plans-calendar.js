@@ -1591,7 +1591,7 @@ function addDay(){
       <label class="builder-circuit-toggle"><input type="checkbox" class="circ" style="accent-color:var(--accent);" onchange="builderOnCircuitToggle('${id}')"> Obwód (stacje)</label>
       <input type="text" class="ex-inp builder-round-rest" data-f="roundRest" placeholder="90s rundy" title="Przerwa między rundami obwodu" hidden>
     </div>
-    <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER${tip('sets')}</span><span>POWT${tip('reps')}</span><span>KG/S${tip('kg')}</span><span>RPE${tip('rpe')}</span><span>RIR${tip('rir')}</span><span>PRZERWA${tip('rest')}</span><span>TEMPO${tip('tempo')}</span><span></span></div>
+    <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER${tip('sets')}</span><span>POWT${tip('reps')}</span><span>RIR${tip('rir')}</span><span>PRZERWA${tip('rest')}</span><span></span></div>
     <div class="ex-rows"></div>
     <button class="add-ex-btn" onclick="addRow('${id}')">+ DODAJ ĆWICZENIE</button>
   </div>`;
@@ -1636,12 +1636,13 @@ function addRow(dayId){
     +'</div>'
     +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" title="'+t('sets')+'" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" title="'+t('reps')+'" oninput="builderOnPeriodFieldEdit(this)">'
-    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="'+t('kg')+'" oninput="builderOnPeriodFieldEdit(this)">'
-    +'<input type="text" placeholder="8" class="ex-inp" data-f="rpe" inputmode="decimal" title="'+t('rpe')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="number" placeholder="kg" class="ex-inp ex-advanced-field" data-f="kg" title="'+t('kg')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="8" class="ex-inp ex-advanced-field" data-f="rpe" inputmode="decimal" title="'+t('rpe')+'" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="text" placeholder="2" class="ex-inp" data-f="rir" inputmode="decimal" title="'+t('rir')+'" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" title="'+t('rest')+'" oninput="builderRefreshPeriodPreview()">'
-    +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo" title="'+t('tempo')+'">'
+    +'<input type="text" placeholder="2-0-2" class="ex-inp ex-advanced-field" data-f="tempo" title="'+t('tempo')+'">'
     +'<div class="builder-row-tools">'
+    +'<button type="button" class="builder-row-more" onclick="builderToggleRowDetails(this.closest(\'.ex-row\'))" aria-expanded="false">Więcej</button>'
     +'<div class="builder-row-actions">'
     +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,-1)" title="Przenieś wyżej">▲</button>'
     +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,1)" title="Przenieś niżej">▼</button>'
@@ -1693,6 +1694,14 @@ function addRow(dayId){
   if(dayEl)builderPaintCircuitDay(dayEl);
   if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
 }
+function builderToggleRowDetails(row){
+  if(!row)return;
+  const open=!row.classList.contains('ex-advanced-open');
+  row.classList.toggle('ex-advanced-open',open);
+  const button=row.querySelector('.builder-row-more');
+  if(button){button.textContent=open?'Mniej':'Więcej';button.setAttribute('aria-expanded',String(open));}
+}
+window.builderToggleRowDetails=builderToggleRowDetails;
 function builderAltListForRow(row){
   if(!row)return[];
   const name=(row.querySelector('[data-f="name"]')||{}).value||'';
