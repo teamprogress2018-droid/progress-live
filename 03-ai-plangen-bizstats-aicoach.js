@@ -680,7 +680,7 @@ function aplVolumeTarget(level,duration,pharma){
   else if(trt&&!beg){lo+=2;hi+=2;min+=2;}
   const sets=enh&&!beg?'3–5':(adv?(dur>=75?'3–5':'3–4'):(beg?'2–3':'3–4'));
   const label=(adv?'zaawansowany':(beg?'początkujący':'średni'))+(enh?', wspomagany':(trt?', TRT':''));
-  return{exMin:ex,exMax:ex+1,sets,weekly:lo+'–'+hi,weeklyMin:min,label,enhanced:enh};
+  return{exMin:ex,exMax:ex+1,sets,weekly:lo+'–'+hi,weeklyMin:min,weeklyMax:hi,label,enhanced:enh};
 }
 window.aplVolumeTarget=aplVolumeTarget;
 /** Odpowiedź AI ucięta albo niepełna: brakujące dni, ćwiczenia bez nazwy. */
@@ -2205,6 +2205,8 @@ function aplPlanChecks(plan,ctx){
     const names={klatka:'klatka',plecy:'plecy',nogi:'nogi',barki:'barki',posladki:'pośladki'};
     const low=Object.keys(names).filter(k=>weekly[k]>0&&weekly[k]<vt.weeklyMin).map(k=>names[k]+' '+weekly[k]);
     if(low.length)out.push({tone:'watch',kind:'volume-week',text:'Mała objętość tygodniowa (cel '+vt.weekly+' serii): '+low.join(', ')+'.'});
+    const high=Object.keys(names).filter(k=>weekly[k]>vt.weeklyMax).map(k=>names[k]+' '+weekly[k]);
+    if(high.length)out.push({tone:'watch',kind:'volume-high',text:'Duża objętość bezpośrednia (powyżej startowego zakresu '+vt.weekly+' serii): '+high.join(', ')+'. Utrzymaj ją tylko przy dobrej regeneracji i celowej specjalizacji; w innym przypadku zmniejsz najpierw serie, nie dokładaj kolejnych ćwiczeń.'});
   }
   return out;
 }
