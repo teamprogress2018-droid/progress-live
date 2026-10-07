@@ -793,6 +793,26 @@ function aplPatternRedundancyText(list){
 window.aplExercisePatternKey=aplExercisePatternKey;
 window.aplDayPatternRedundancy=aplDayPatternRedundancy;
 window.aplPlanPatternRedundancy=aplPlanPatternRedundancy;
+function aplBiomechTips(plan){
+  const messages={
+    vertical_pull:'Przyciąganie pionowe: utrzymaj kontrolowane wydłużenie ramion u góry, a następnie prowadź łokcie w dół — bez zamieniania ruchu w odchylenie tułowia.',
+    horizontal_pull:'Wiosłowanie: pozwól łopatce kontrolowanie sięgnąć w przód, potem przyciągnij łokieć; nie nadrabiaj przeprostem lędźwi.',
+    press_flat:'Wyciskanie: wybierz chwyt i głębokość pozwalające utrzymać nadgarstek nad łokciem oraz komfort barku. Nie ma jednej obowiązkowej szerokości chwytu.',
+    press_incline:'Wyciskanie na skosie: umiarkowany skos zwykle pozwala zachować udział klatki; zbyt stromy przenosi więcej pracy na przedni bark.',
+    vertical_push:'Wyciskanie nad głowę: prowadź ramię w płaszczyźnie łopatki i nie wymuszaj końca zakresu, jeśli żebra lub bark tracą kontrolę.',
+    knee_bilateral:'Ruch kolanowy: utrzymaj pełny kontakt stopy i prowadź kolano w kierunku palców w zakresie tolerowanym — samo wyjście kolana przed palce nie jest błędem.',
+    hip_hinge:'Hinge/RDL: cofaj biodra i kończ zakres, zanim utracisz kontrolę miednicy lub tułowia. Niższe zejście nie jest automatycznie lepsze.',
+    knee_flexion:'Uginanie nóg: utrzymuj miednicę przy podporze; odrywanie bioder skraca ruch i często przenosi zadanie na inne segmenty.',
+    calf:'Wspięcia: kontroluj dół bez odbijania. Wariant z prostszym i zgiętym kolanem różnicuje zadanie dla mięśni łydki.'
+  };
+  const seen=new Set(),out=[];
+  ((plan&&plan.days)||[]).forEach(day=>((day&&day.exercises)||[]).forEach(ex=>{
+    const key=aplExercisePatternKey(ex);
+    if(messages[key]&&!seen.has(key)){seen.add(key);out.push(messages[key]);}
+  }));
+  return out.slice(0,3);
+}
+window.aplBiomechTips=aplBiomechTips;
 /** Dokłada serie, gdy tygodniowa objętość dużej partii jest poniżej minimum dla stażu (AI często zaniża). */
 function aplEnforceWeeklyVolume(plan,vt){
   const cats={klatka:'klatka',plecy:'plecy',nogi:'nogi',barki:'barki'};
@@ -2198,12 +2218,14 @@ function aplPlanChecksHTML(plan){
   const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const labels={progression:{linear:'liniowa (ciężar co tydzień)',double:'podwójna (najpierw powtórzenia, potem ciężar)',dup:'falowa dzienna (DUP)',wave:'falowa tygodniowa',block:'blokowa'}};
   const prog=plan&&plan.progression?(labels.progression[plan.progression]||plan.progression):'';
+  const tips=typeof aplBiomechTips==='function'?aplBiomechTips(plan):[];
   return '<div data-apl-checks style="margin-top:12px;padding:12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);font-size:12px;">'
     +'<strong>Kontrola planu</strong>'
     +(prog?'<div style="margin-top:6px;">Zasada progresji: <b>'+esc(prog)+'</b> — w Live sugestie liczone tą samą zasadą.</div>':'')
     +(plan&&plan.volumeTarget?'<div data-apl-volume-target style="margin-top:4px;">Cel objętości: <b>'+esc(plan.volumeTarget.weekly)+' serii/tydz.</b> na główną partię ('+esc(plan.volumeTarget.label)+')'+(/wspomagany|TRT/.test(plan.volumeTarget.label)?'':' — status farmakologiczny nieustawiony, liczone jak dla naturalnego')+'. Źródła: Schoenfeld 2017, Baz-Valle 2022, Pelland 2024.</div>':'')
     +(checks.length?'<ul style="margin:6px 0 0;padding-left:18px;">'+checks.map(c=>'<li data-apl-check="'+esc(c.kind)+'" style="color:'+(c.tone==='act'?'var(--accent)':'var(--text)')+';">'+esc(c.text)+'</li>').join('')+'</ul>'
       :'<div data-apl-check="ok" style="margin-top:6px;color:var(--teal);">✓ Bez kolizji z ograniczeniami, sesje mieszczą się w czasie, każde ćwiczenie ma zakres i RIR.</div>')
+    +(tips.length?'<div data-apl-biomech-tips style="margin-top:10px;padding:9px 10px;border-left:3px solid var(--teal);background:rgba(61,207,178,.07);"><b style="color:var(--teal);">Wskazówka biomechaniczna</b><ul style="margin:5px 0 0;padding-left:18px;">'+tips.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></div>':'')
     +'</div>';
 }
 window.aplPlanChecksHTML=aplPlanChecksHTML;
