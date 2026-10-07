@@ -697,6 +697,22 @@
     if(averageMinutes>sessionMinutes+10)warnings.push({level:'warning',type:'czas',text:'Szacowany czas jednostki przekracza deklarowany czas klienta. To szacunek — sprawdź realne przerwy, przejścia i rozgrzewkę.'});
     dayStats.filter(day=>day.totalSets>=30||day.exercises>=9).forEach(day=>warnings.push({level:'high',type:'koszt_sesji',text:`${day.day}: ${day.exercises} ćwiczeń i ${day.totalSets} serii roboczych. Wysoki koszt zmęczeniowy jednostki — rozważ rozłożenie objętości, mniej serii lub mniej metod intensyfikacyjnych.`}));
     const unknown=patterns.other||0;
+    // Mapa opisuje to, co jest w planie; brak wzorca nie jest błędem sam w sobie.
+    // Priorytety, ograniczenia sprzętu i etap treningu mogą uzasadniać celowe pominięcie.
+    const coverageDefinitions=[
+      {key:'upperPush',label:'Pchanie — góra',patterns:['horizontal_push','vertical_push']},
+      {key:'upperPull',label:'Przyciąganie — góra',patterns:['horizontal_pull','vertical_pull']},
+      {key:'kneeDominant',label:'Dominacja kolana',patterns:['knee_dominant']},
+      {key:'hipDominant',label:'Dominacja biodra',patterns:['hip_dominant']},
+      {key:'kneeFlexion',label:'Zgięcie kolana',patterns:['knee_flexion']},
+      {key:'core',label:'Core',patterns:['core']},
+      {key:'scapularRearDelt',label:'Łopatka / tylny bark',patterns:['scapular_rear_delt']}
+    ];
+    const coverage={};
+    coverageDefinitions.forEach(item=>{
+      const sets=item.patterns.reduce((sum,pattern)=>sum+(patterns[pattern]||0),0);
+      coverage[item.key]={label:item.label,sets,present:sets>0,patterns:item.patterns};
+    });
     const deductions=[];
     if(!totalExercises)deductions.push({points:50,text:'Brak ćwiczeń do przeanalizowania.'});
     if(duplicates.length)deductions.push({points:10,text:'Powtarzające się wzorce w pojedynczej jednostce.'});
@@ -704,7 +720,7 @@
     warnings.filter(item=>item.type==='balans').forEach(()=>deductions.push({points:5,text:'Wyraźna przewaga pchania lub przyciągania do potwierdzenia.'}));
     if(unknown)deductions.push({points:Math.min(15,unknown*3),text:'Część ćwiczeń nie została rozpoznana przez bibliotekę.'});
     const score=Math.max(0,100-deductions.reduce((sum,item)=>sum+item.points,0));
-    return {totalSets,totalExercises,muscleSets,secondaryExposure,frequency,secondaryFrequency,patterns,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
+    return {totalSets,totalExercises,muscleSets,secondaryExposure,frequency,secondaryFrequency,patterns,coverage,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
   }
 
   function manualPlanBuilderDays(){
@@ -727,6 +743,7 @@
     const patternLabels={horizontal_push:'pchanie poziome',vertical_push:'pchanie pionowe',horizontal_pull:'przyciąganie poziome',vertical_pull:'przyciąganie pionowe',knee_dominant:'dominacja kolana',hip_dominant:'dominacja biodra',knee_flexion:'zgięcie kolana',shoulder_abduction:'odwiedzenie barku',elbow_flexion:'zgięcie łokcia',elbow_extension:'wyprost łokcia',core:'core'};
     const patternRows=Object.entries(result.patterns).filter(([key])=>key!=='other').sort((a,b)=>b[1]-a[1]).slice(0,8);
     const frequencyRows=Object.entries(result.frequency).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const coverageRows=Object.values(result.coverage||{});
     const warningHtml=result.warnings.length?result.warnings.map(item=>{
       const prefix=item.level==='high'?'⛔':item.level==='warning'?'⚠':'ℹ';
       const color=item.level==='high'?'var(--accent)':item.level==='warning'?'var(--warn)':'var(--muted)';
@@ -738,6 +755,7 @@
       <div style="margin-top:8px;"><b>Udział wtórny — ekspozycja z ruchów złożonych</b><br>${secondaryRows.length?secondaryRows.map(([name,sets])=>`${esc(name)}: ${sets}`).join(' · '):'Brak rozpoznanego udziału wtórnego.'}<div style="margin-top:3px;color:var(--muted);">To nie są dodatkowe serie bezpośrednie i nie należy ich sumować z pierwszym wierszem. Informują tylko, gdzie dana partia może także pracować.</div></div>
       <div style="margin-top:8px;"><b>Częstotliwość głównej partii</b><br>${frequencyRows.length?frequencyRows.map(([name,days])=>`${esc(name)}: ${days}×`).join(' · '):'Brak danych.'}</div>
       <div style="margin-top:8px;"><b>Wzorce ruchu</b><br>${patternRows.length?patternRows.map(([name,sets])=>`${esc(patternLabels[name]||name)}: ${sets}`).join(' · '):'Brak rozpoznanych wzorców.'}</div>
+      <div style="margin-top:8px;"><b>Mapa pokrycia wzorców</b><br>${coverageRows.map(item=>`<span class="kb-tag" style="margin:3px 4px 0 0;${item.present?'':'opacity:.55;'}">${item.present?'✓':'—'} ${esc(item.label)}${item.present?': '+item.sets+' serii':''}</span>`).join('')}<div style="margin-top:3px;color:var(--muted);">„—” oznacza brak rozpoznanego wzorca, nie błąd. Potwierdź, czy wynika to z celu, priorytetów i ograniczeń klienta.</div></div>
       <div style="margin-top:8px;"><b>Kontrola</b>${warningHtml}</div>
       <div style="margin-top:7px;color:var(--muted);">To checklista prostych heurystyk (${result.deductions.length?result.deductions.map(item=>esc(item.text)).join(' '):'brak odliczeń'}), nie ocena jakości programu ani diagnoza.</div>
       ${result.duplicates.length?`<div style="margin-top:7px;color:var(--muted);">Podobne wzorce: ${result.duplicates.map(item=>esc(item.day+' — '+item.name)).join('; ')}</div>`:''}
@@ -754,7 +772,7 @@
     if(!meta){card.hidden=true;return null;}
     card.hidden=false;
     const result=manualPlanAnalyzeDays(manualPlanBuilderDays(),meta.clientProfile);
-    meta.analysis={volume:{direct:result.muscleSets,secondaryExposure:result.secondaryExposure},movement:result.patterns,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency,bySecondaryMuscle:result.secondaryFrequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
+    meta.analysis={volume:{direct:result.muscleSets,secondaryExposure:result.secondaryExposure},movement:result.patterns,coverage:result.coverage,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency,bySecondaryMuscle:result.secondaryFrequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
     box.innerHTML=manualPlanAnalysisHtml(result);
     return result;
   }
