@@ -39,6 +39,9 @@ ok('no empty film box', !src05.includes('Brak filmu techniki'));
 ok('lookup keys helper', core.includes('function exerciseLookupKeys'));
 ok('media popover', src05.includes('builderOpenExMedia')&&css.includes('builder-ex-media-pop'));
 ok('hist css', css.includes('builder-ex-hist-slot')&&css.includes('live-hist-ex-sets'));
+ok('advanced exercise fields are opt-in',src05.includes('ex-advanced-field')&&src05.includes('function builderToggleRowDetails'));
+ok('advanced exercise fields are hidden initially',css.includes('.ex-row>.ex-advanced-field{display:none;}')&&css.includes('.ex-row:not(.ex-advanced-open)>.ex-row-extra{display:none;}'));
+ok('simple card has more settings trigger',src05.includes('builder-row-more')&&src05.includes('>Więcej</button>'));
 
 const altsForExercise=(name)=>{
   if(/sztangi leż/i.test(name))return['Wyciskanie hantli','Pompki'];
