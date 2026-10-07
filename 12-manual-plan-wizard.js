@@ -644,12 +644,13 @@
   }
 
   function manualPlanAnalyzeDays(days,profile){
-    const muscleSets={},frequency={},patterns={},duplicates=[],warnings=[],dayStats=[];
+    const muscleSets={},secondaryExposure={},frequency={},secondaryFrequency={},patterns={},duplicates=[],warnings=[],dayStats=[];
     const active=(days||[]).filter(day=>day&&!day.rest);
     let totalSets=0,totalExercises=0,estimatedSeconds=0;
     active.forEach((day,dayIndex)=>{
       const seen=new Set();
       const dayMuscles=new Set();
+      const daySecondaryMuscles=new Set();
       let daySets=0,dayExercises=0,daySeconds=0;
       (day.exercises||[]).forEach(raw=>{
         const ex=typeof raw==='string'?{name:raw}:raw||{};
@@ -663,6 +664,14 @@
         const primary=text(bio.prime)||'nieokreślona';
         muscleSets[primary]=(muscleSets[primary]||0)+sets;
         dayMuscles.add(primary);
+        // Serie pomocnicze są ekspozycją, nie "połową serii" ani serią bezpośrednią.
+        // Nie dodajemy ich do głównej objętości, aby nie tworzyć pozornie precyzyjnego wyniku.
+        list(bio.secondary).forEach(muscle=>{
+          const name=text(muscle);
+          if(!name||name===primary||/chwyt|stabilizac|tuł[oó]w|core/i.test(name))return;
+          secondaryExposure[name]=(secondaryExposure[name]||0)+sets;
+          daySecondaryMuscles.add(name);
+        });
         const pattern=text(bio.pattern)||'other';
         patterns[pattern]=(patterns[pattern]||0)+sets;
         const key=typeof exercisePatternKey==='function'?exercisePatternKey(ex):pattern;
@@ -675,6 +684,7 @@
         daySeconds+=workSeconds;
       });
       dayMuscles.forEach(primary=>{frequency[primary]=(frequency[primary]||0)+1;});
+      daySecondaryMuscles.forEach(muscle=>{secondaryFrequency[muscle]=(secondaryFrequency[muscle]||0)+1;});
       dayStats.push({day:day.day||('Dzień '+(dayIndex+1)),totalSets:daySets,exercises:dayExercises,estimatedMinutes:Math.round(daySeconds/60)});
     });
     const push=(patterns.horizontal_push||0)+(patterns.vertical_push||0)+(patterns.elbow_extension||0);
@@ -694,7 +704,7 @@
     warnings.filter(item=>item.type==='balans').forEach(()=>deductions.push({points:5,text:'Wyraźna przewaga pchania lub przyciągania do potwierdzenia.'}));
     if(unknown)deductions.push({points:Math.min(15,unknown*3),text:'Część ćwiczeń nie została rozpoznana przez bibliotekę.'});
     const score=Math.max(0,100-deductions.reduce((sum,item)=>sum+item.points,0));
-    return {totalSets,totalExercises,muscleSets,frequency,patterns,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
+    return {totalSets,totalExercises,muscleSets,secondaryExposure,frequency,secondaryFrequency,patterns,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
   }
 
   function manualPlanBuilderDays(){
@@ -713,6 +723,7 @@
 
   function manualPlanAnalysisHtml(result){
     const muscleRows=Object.entries(result.muscleSets).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const secondaryRows=Object.entries(result.secondaryExposure||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
     const patternLabels={horizontal_push:'pchanie poziome',vertical_push:'pchanie pionowe',horizontal_pull:'przyciąganie poziome',vertical_pull:'przyciąganie pionowe',knee_dominant:'dominacja kolana',hip_dominant:'dominacja biodra',knee_flexion:'zgięcie kolana',shoulder_abduction:'odwiedzenie barku',elbow_flexion:'zgięcie łokcia',elbow_extension:'wyprost łokcia',core:'core'};
     const patternRows=Object.entries(result.patterns).filter(([key])=>key!=='other').sort((a,b)=>b[1]-a[1]).slice(0,8);
     const frequencyRows=Object.entries(result.frequency).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -723,7 +734,8 @@
     }).join(''):'<div style="margin-top:7px;color:var(--muted);">Brak oczywistych ostrzeżeń z prostych reguł. To nie jest ocena kliniczna ani gwarancja jakości.</div>';
     return `<div style="font-size:12px;line-height:1.55;">
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><span class="kb-tag">${result.totalSets} serii roboczych</span><span class="kb-tag">${result.activeDays} jednostki</span><span class="kb-tag">~${result.averageMinutes} min / jednostkę</span><span class="kb-tag">${result.deductions.length?result.deductions.length+' sprawy do sprawdzenia':'kontrola struktury: bez odliczeń'}</span></div>
-      <div><b>Objętość wg głównej partii</b><br>${muscleRows.length?muscleRows.map(([name,sets])=>`${esc(name)}: ${sets}`).join(' · '):'Dodaj ćwiczenia z biblioteki, aby rozpoznać partie.'}</div>
+      <div><b>Serie bezpośrednie — główna partia</b><br>${muscleRows.length?muscleRows.map(([name,sets])=>`${esc(name)}: ${sets}`).join(' · '):'Dodaj ćwiczenia z biblioteki, aby rozpoznać partie.'}</div>
+      <div style="margin-top:8px;"><b>Udział wtórny — ekspozycja z ruchów złożonych</b><br>${secondaryRows.length?secondaryRows.map(([name,sets])=>`${esc(name)}: ${sets}`).join(' · '):'Brak rozpoznanego udziału wtórnego.'}<div style="margin-top:3px;color:var(--muted);">To nie są dodatkowe serie bezpośrednie i nie należy ich sumować z pierwszym wierszem. Informują tylko, gdzie dana partia może także pracować.</div></div>
       <div style="margin-top:8px;"><b>Częstotliwość głównej partii</b><br>${frequencyRows.length?frequencyRows.map(([name,days])=>`${esc(name)}: ${days}×`).join(' · '):'Brak danych.'}</div>
       <div style="margin-top:8px;"><b>Wzorce ruchu</b><br>${patternRows.length?patternRows.map(([name,sets])=>`${esc(patternLabels[name]||name)}: ${sets}`).join(' · '):'Brak rozpoznanych wzorców.'}</div>
       <div style="margin-top:8px;"><b>Kontrola</b>${warningHtml}</div>
@@ -742,7 +754,7 @@
     if(!meta){card.hidden=true;return null;}
     card.hidden=false;
     const result=manualPlanAnalyzeDays(manualPlanBuilderDays(),meta.clientProfile);
-    meta.analysis={volume:result.muscleSets,movement:result.patterns,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
+    meta.analysis={volume:{direct:result.muscleSets,secondaryExposure:result.secondaryExposure},movement:result.patterns,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency,bySecondaryMuscle:result.secondaryFrequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
     box.innerHTML=manualPlanAnalysisHtml(result);
     return result;
   }

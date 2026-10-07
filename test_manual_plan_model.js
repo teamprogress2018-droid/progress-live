@@ -39,11 +39,12 @@ assert(applied.weekKeys.length===6&&applied.currentWeek==='w1','zapis tworzy kom
 assert(applied.phases.w6.includes('deload'),'zapis przenosi fazę tygodnia do starego widoku planu');
 assert(applied.duration==='6'&&applied.progression==='double','zapis synchronizuje pola wymagane przez istniejący kreator');
 const analysis=api.manualPlanAnalyzeDays([{day:'PON',exercises:[
-  {name:'Wyciskanie A',sets:'4',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka'}},
+  {name:'Wyciskanie A',sets:'4',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka',secondary:['Triceps','Barki przednie']}},
   {name:'Wyciskanie B',sets:'3',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka'}},
   {name:'Wiosłowanie',sets:'4',rest:'120s',biomech:{pattern:'horizontal_pull',prime:'Plecy'}}
 ]}],{sessionMinutes:30});
 assert(analysis.totalSets===11&&analysis.muscleSets.Klatka===7,'analizuje objętość według głównej partii');
+assert(analysis.secondaryExposure.Triceps===4&&analysis.secondaryFrequency.Triceps===1,'oddziela ekspozycję wtórną od serii bezpośrednich');
 assert(analysis.frequency.Klatka===1&&analysis.score<100,'analizuje częstotliwość i wynik kontrolny');
 assert(analysis.duplicates.length===1,'zaznacza podobny wzorzec w jednej jednostce');
 assert(analysis.warnings.some(item=>item.type==='redundancja'),'tworzy wyjaśnialne ostrzeżenie o redundancji');
