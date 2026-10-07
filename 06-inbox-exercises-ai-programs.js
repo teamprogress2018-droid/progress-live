@@ -1543,6 +1543,16 @@ function exerciseBiomech(ex){
   const parts=muscle.split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
   const prime=parts[0]||cat||'—';
   const secondary=parts.slice(1);
+  // ACCESSORY oznacza pomocniczy udział lub stabilizację w danym wzorcu,
+  // nie deklarację izolacji konkretnego mięśnia.
+  const accessoryByPattern={
+    vertical_pull:['chwyt / przedramiona'],horizontal_pull:['chwyt / przedramiona'],
+    vertical_push:['stabilizacja tułowia'],horizontal_push:['stabilizacja łopatki'],
+    knee_dominant:['stabilizacja tułowia'],hip_dominant:['chwyt / prostowniki'],
+    knee_flexion:['stabilizacja miednicy'],shoulder_abduction:['stabilizacja łopatki'],
+    elbow_flexion:['chwyt / przedramiona'],elbow_extension:['stabilizacja barku']
+  };
+  const accessory=accessoryByPattern[pattern]||[];
   let benchAngle=null;
   const ang=name.match(/(\d+)\s*°/);
   if(ang) benchAngle=parseInt(ang[1],10);
@@ -1556,7 +1566,7 @@ function exerciseBiomech(ex){
   let lengthBias='context_dependent';
   if(/rdl|rumun|good morning|seated.*leg curl|uginanie nog.*siedz|incline curl|lawce skosnej.*curl|overhead.*triceps|triceps.*nad glow|rozpietk|fly|crossover/.test(name)) lengthBias='lengthened';
   else if(/hip thrust|glute bridge|wspiec|calf raise|leg extension|wyprost nog/.test(name)) lengthBias='shortened';
-  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle,compound,stable,unilateral,lengthBias,biasSource:'heurystyka nazwy — potwierdź tor i konkretny sprzęt'};
+  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,accessory,benchAngle,compound,stable,unilateral,lengthBias,biasSource:'heurystyka nazwy — potwierdź tor i konkretny sprzęt'};
 }
 /** Klucz wzorca do kontroli redundancji w jednej jednostce: chwyt, przyrząd i maszyna NIE różnicują,
  *  kąt wyciskania, ruch jednonóż i izolacja (rozpiętki, wyprosty, łydki) — tak. */
@@ -1644,6 +1654,7 @@ function exdBiomechRow(label, value, extraClass){
 function exdPlanningTags(b){
   const tags=['PRIMARY: '+String(b.prime||'—'),b.compound?'COMPOUND':'ISOLATION',b.stable?'STABLE':'LESS STABLE',b.unilateral?'UNILATERAL':'BILATERAL'];
   (b.secondary||[]).slice(0,2).forEach(m=>tags.push('SECONDARY: '+m));
+  (b.accessory||[]).slice(0,1).forEach(m=>tags.push('ACCESSORY: '+m));
   if(b.lengthBias==='lengthened') tags.push('BIAS: WYDŁUŻENIE*');
   else if(b.lengthBias==='shortened') tags.push('BIAS: SKRÓCENIE*');
   else tags.push('BIAS: ZALEŻNY OD TORU');
