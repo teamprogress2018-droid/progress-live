@@ -1686,6 +1686,7 @@ function addRow(dayId){
   if(nameInp&&typeof exAcInitInput==='function')exAcInitInput(nameInp);
   builderRefreshAltChips(div);
   builderRefreshTechMedia(div);
+  if(typeof manualPlanRenderExerciseProgramming==='function')manualPlanRenderExerciseProgramming(div);
   builderRefreshPeriodPreview();
   builderPaintKinds(div);
   const dayEl=document.getElementById(dayId);
@@ -1886,6 +1887,7 @@ function builderOnExNameChange(row){
   builderFillExTodo(row);
   builderRefreshAltChips(row);
   builderRefreshTechMedia(row);
+  if(typeof manualPlanRenderExerciseProgramming==='function')manualPlanRenderExerciseProgramming(row);
   if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
   if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
 }

@@ -572,6 +572,77 @@
     };
   }
 
+  const manualPlanPatternLabels={
+    horizontal_push:'pchanie poziome',vertical_push:'pchanie pionowe',
+    horizontal_pull:'przyciąganie poziome',vertical_pull:'przyciąganie pionowe',
+    knee_dominant:'dominacja kolana',hip_dominant:'dominacja biodra',
+    knee_flexion:'zgięcie kolana',shoulder_abduction:'odwiedzenie barku',
+    elbow_flexion:'zgięcie łokcia',elbow_extension:'wyprost łokcia',
+    shoulder_extension:'wyprost ramienia',scapular_rear_delt:'łopatka / tylny bark',
+    core:'core',cardio:'cardio',other:'do określenia'
+  };
+  const manualPlanPlaneLabels={sagittal:'strzałkowa',frontal:'czołowa',transverse:'poprzeczna',context_dependent:'zależna od wariantu'};
+  const manualPlanTagLabels={
+    compound:'wielostawowe',isolation_or_accessory:'izolacja / dodatek',
+    stable:'stabilne',less_stable:'mniej stabilne',unilateral:'jednostronne',
+    bilateral_or_unspecified:'obustronne / bez doprecyzowania',vertical:'pion',horizontal:'poziom',local:'lokalny wzorzec',
+    lengthened:'akcent wydłużenia',mid_range:'środek zakresu',shortened:'akcent skrócenia',context_dependent:'profil zależny od wariantu'
+  };
+
+  function manualPlanExerciseSummary(ex){
+    const bio=manualPlanBio(ex||{});
+    const programming=manualPlanExerciseProgramming(ex||{});
+    return {
+      primary:text(bio.prime)||'nieokreślona',
+      secondary:list(bio.secondary),accessory:list(bio.accessory),
+      pattern:text(bio.pattern)||'other',plane:text(bio.plane)||'context_dependent',
+      tags:programming.tags||{},evidenceNote:programming.evidenceNote||''
+    };
+  }
+
+  function manualPlanRenderExerciseProgramming(row){
+    if(!row||typeof document==='undefined')return;
+    let card=row.querySelector('.manual-plan-exercise-programming');
+    if(!window._manualPlanDraft){if(card)card.remove();return;}
+    const name=text((row.querySelector('[data-f="name"]')||{}).value);
+    if(!name){if(card)card.remove();return;}
+    const library=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+    const summary=manualPlanExerciseSummary(Object.assign({},library||{},{name}));
+    if(!card){
+      card=document.createElement('div');
+      card.className='manual-plan-exercise-programming';
+      const extra=row.querySelector('.ex-row-extra');
+      if(extra)extra.appendChild(card);else row.appendChild(card);
+    }
+    const tagValues=[summary.tags.role,summary.tags.stability,summary.tags.laterality,summary.tags.direction,summary.tags.lengthBias]
+      .filter(Boolean).map(tag=>manualPlanTagLabels[tag]||tag);
+    const chips=items=>items.length?items.map(item=>`<span class="kb-tag">${esc(item)}</span>`).join(' '):'<span style="color:var(--muted);">—</span>';
+    card.innerHTML=`<div style="margin-top:10px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.015);">
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;display:flex;justify-content:space-between;text-align:left;" onclick="manualPlanToggleExerciseProgramming(this.closest('.ex-row'))"><span>⌘ Programowanie ćwiczenia</span><span class="manual-plan-exercise-toggle">Pokaż</span></button>
+      <div class="manual-plan-exercise-details" hidden style="font-size:12px;line-height:1.55;margin-top:9px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:8px;">
+          <div><b>PRIMARY</b><br>${esc(summary.primary)}</div>
+          <div><b>SECONDARY</b><br>${chips(summary.secondary)}</div>
+          <div><b>ACCESSORY</b><br>${chips(summary.accessory)}</div>
+          <div><b>Wzorzec</b><br>${esc(manualPlanPatternLabels[summary.pattern]||summary.pattern)}</div>
+          <div><b>Płaszczyzna</b><br>${esc(manualPlanPlaneLabels[summary.plane]||summary.plane)}</div>
+          <div><b>Tagi</b><br>${tagValues.length?tagValues.map(esc).join(' · '):'—'}</div>
+        </div>
+        <div style="margin-top:9px;color:var(--muted);">Metodę ustawiasz przyciskami SS / DROP / KL / RP / AMRAP w wierszu, a intensywność przez RPE/RIR. Progresję dziedziczy z ustawień programu, chyba że trener świadomie ją nadpisze.</div>
+        <div style="margin-top:6px;color:var(--muted);">Dlaczego? ${esc(summary.evidenceNote||'Klasyfikacja pomaga analizować plan; sprawdź konkretny tor i sprzęt.')}</div>
+      </div>
+    </div>`;
+  }
+
+  function manualPlanToggleExerciseProgramming(row){
+    const details=row&&row.querySelector('.manual-plan-exercise-details');
+    if(!details)return;
+    const open=details.hasAttribute('hidden');
+    if(open)details.removeAttribute('hidden');else details.setAttribute('hidden','');
+    const label=row.querySelector('.manual-plan-exercise-toggle');
+    if(label)label.textContent=open?'Ukryj':'Pokaż';
+  }
+
   function manualPlanAnalyzeDays(days,profile){
     const muscleSets={},frequency={},patterns={},duplicates=[],warnings=[],dayStats=[];
     const active=(days||[]).filter(day=>day&&!day.rest);
@@ -691,6 +762,7 @@
         target.addEventListener('change',schedule);
       }
     }
+    document.querySelectorAll('#builder-days .ex-row').forEach(manualPlanRenderExerciseProgramming);
     manualPlanRefreshAnalysis();
   }
 
@@ -760,6 +832,9 @@
   window.manualPlanRefreshAnalysis=manualPlanRefreshAnalysis;
   window.manualPlanShowAnalysis=manualPlanShowAnalysis;
   window.manualPlanExerciseProgramming=manualPlanExerciseProgramming;
+  window.manualPlanExerciseSummary=manualPlanExerciseSummary;
+  window.manualPlanRenderExerciseProgramming=manualPlanRenderExerciseProgramming;
+  window.manualPlanToggleExerciseProgramming=manualPlanToggleExerciseProgramming;
   window.manualPlanOpenReview=manualPlanOpenReview;
   window.manualPlanConfirmSave=manualPlanConfirmSave;
   window.manualPlanSaveFromBuilder=manualPlanSaveFromBuilder;

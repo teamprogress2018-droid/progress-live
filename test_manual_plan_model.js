@@ -53,4 +53,7 @@ assert(highCost.warnings.some(item=>item.type==='koszt_sesji'&&item.level==='hig
 const programming=api.manualPlanExerciseProgramming({name:'Wiosłowanie',biomech:{prime:'Plecy',secondary:['Biceps'],accessory:['chwyt'],pattern:'horizontal_pull',plane:'sagittal',compound:true,stable:true,unilateral:false,lengthBias:'mid-range'}});
 assert(programming.primaryMuscles[0]==='Plecy'&&programming.tags.role==='compound','zapisuje rolę biomechaniczną ćwiczenia');
 assert(programming.tags.direction==='horizontal'&&programming.tags.stability==='stable','dodaje tagi do przyszłej analizy AI');
+const summary=api.manualPlanExerciseSummary({name:'Wiosłowanie',biomech:{prime:'Plecy',secondary:['Biceps'],accessory:['chwyt'],pattern:'horizontal_pull',plane:'sagittal',compound:true,stable:true,unilateral:false,lengthBias:'mid-range'}});
+assert(summary.primary==='Plecy'&&summary.pattern==='horizontal_pull','buduje czytelne podsumowanie programowania ćwiczenia');
+assert(summary.tags.role==='compound'&&summary.tags.lengthBias==='mid-range','podsumowanie zachowuje tagi biomechaniczne');
 console.log('OK manual plan model');
