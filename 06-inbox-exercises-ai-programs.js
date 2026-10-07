@@ -1551,10 +1551,12 @@ function exerciseBiomech(ex){
   const compound=['vertical_pull','horizontal_pull','vertical_push','horizontal_push','knee_dominant','hip_dominant'].includes(pattern);
   const stable=/maszyna|machine|wyciag|brama|cable|smith|suwnica|hack|pec.?deck|butterfly/i.test(eq+' '+name);
   const unilateral=/jednonoz|single.?leg|unilateral|na strone|naprzemien|wykrok|lunge|bulgarsk|split squat/i.test(name);
-  let lengthBias='mid-range';
+  // Bias to praktyczna wskazówka oparta na nazwie ruchu, nie pomiar momentu siły
+  // konkretnej maszyny. Brak pewnego wzorca ma pozostać jawny zamiast być oznaczony jako „mid-range”.
+  let lengthBias='context_dependent';
   if(/rdl|rumun|good morning|seated.*leg curl|uginanie nog.*siedz|incline curl|lawce skosnej.*curl|overhead.*triceps|triceps.*nad glow|rozpietk|fly|crossover/.test(name)) lengthBias='lengthened';
   else if(/hip thrust|glute bridge|wspiec|calf raise|leg extension|wyprost nog/.test(name)) lengthBias='shortened';
-  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle,compound,stable,unilateral,lengthBias};
+  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle,compound,stable,unilateral,lengthBias,biasSource:'heurystyka nazwy — potwierdź tor i konkretny sprzęt'};
 }
 /** Klucz wzorca do kontroli redundancji w jednej jednostce: chwyt, przyrząd i maszyna NIE różnicują,
  *  kąt wyciskania, ruch jednonóż i izolacja (rozpiętki, wyprosty, łydki) — tak. */
@@ -1642,9 +1644,9 @@ function exdBiomechRow(label, value, extraClass){
 function exdPlanningTags(b){
   const tags=['PRIMARY: '+String(b.prime||'—'),b.compound?'COMPOUND':'ISOLATION',b.stable?'STABLE':'LESS STABLE',b.unilateral?'UNILATERAL':'BILATERAL'];
   (b.secondary||[]).slice(0,2).forEach(m=>tags.push('SECONDARY: '+m));
-  if(b.lengthBias==='lengthened') tags.push('LENGTHENED BIAS');
-  else if(b.lengthBias==='shortened') tags.push('SHORTENED BIAS');
-  else tags.push('MID-RANGE BIAS');
+  if(b.lengthBias==='lengthened') tags.push('BIAS: WYDŁUŻENIE*');
+  else if(b.lengthBias==='shortened') tags.push('BIAS: SKRÓCENIE*');
+  else tags.push('BIAS: ZALEŻNY OD TORU');
   return tags.map(t=>`<span class="chip">${exdEsc(t)}</span>`).join(' ');
 }
 function exdSubstituteBlockHtml(e){
@@ -1672,7 +1674,7 @@ function exdSubstituteBlockHtml(e){
         ${exdBiomechRow('Profil oporu', exdEsc(profile), 'exd-biomech-accent')}
         ${exdBiomechRow('Stawy', exdEsc(joints), 'exd-biomech-joint')}
         ${exdBiomechRow('SFR', exdEsc(b.sfr), 'exd-biomech-sfr')}
-        ${exdBiomechRow('Tagi AI', exdPlanningTags(b), 'exd-biomech-accent')}
+        ${exdBiomechRow('Tagi AI', exdPlanningTags(b)+'<div class="muted" style="margin-top:5px;font-size:11px;">* '+exdEsc(b.biasSource)+'</div>', 'exd-biomech-accent')}
         ${e.muscle?exdBiomechRow('Mięśnie', exdEsc(e.muscle)):''}
       </div>
     </div>
