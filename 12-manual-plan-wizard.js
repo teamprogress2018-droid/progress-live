@@ -727,7 +727,12 @@
   function manualPlanRenderExerciseProgramming(row){
     if(!row||typeof document==='undefined')return;
     const card=row.querySelector('.manual-plan-exercise-programming');
-    const trigger=row.querySelector('.manual-plan-biomech-trigger');
+    // Wcześniejsze wersje sprawdzały inną klasę niż ta nadawana przyciskowi.
+    // Po każdym odświeżeniu powstawał więc kolejny przycisk „Biomechanika”.
+    // Zachowujemy jeden istniejący przycisk i sprzątamy ewentualne stare kopie.
+    const triggers=[...row.querySelectorAll('.builder-biomech-trigger')];
+    const trigger=triggers.shift()||null;
+    triggers.forEach(item=>item.remove());
     if(!window._manualPlanDraft){if(card)card.remove();if(trigger)trigger.remove();return;}
     const name=text((row.querySelector('[data-f="name"]')||{}).value);
     if(card)card.remove();
