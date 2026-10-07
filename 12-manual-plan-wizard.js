@@ -644,7 +644,7 @@
   }
 
   function manualPlanAnalyzeDays(days,profile){
-    const muscleSets={},secondaryExposure={},frequency={},secondaryFrequency={},patterns={},duplicates=[],warnings=[],dayStats=[];
+    const muscleSets={},secondaryExposure={},frequency={},secondaryFrequency={},patterns={},resistanceProfiles={},lengthBiases={},duplicates=[],warnings=[],dayStats=[];
     const active=(days||[]).filter(day=>day&&!day.rest);
     let totalSets=0,totalExercises=0,estimatedSeconds=0;
     active.forEach((day,dayIndex)=>{
@@ -674,6 +674,10 @@
         });
         const pattern=text(bio.pattern)||'other';
         patterns[pattern]=(patterns[pattern]||0)+sets;
+        const resistanceProfile=text(bio.profile);
+        if(['ascending','descending','bell-shaped','constant'].includes(resistanceProfile))resistanceProfiles[resistanceProfile]=(resistanceProfiles[resistanceProfile]||0)+sets;
+        const lengthBias=text(bio.lengthBias);
+        if(['lengthened','mid-range','shortened'].includes(lengthBias))lengthBiases[lengthBias]=(lengthBiases[lengthBias]||0)+sets;
         const key=typeof exercisePatternKey==='function'?exercisePatternKey(ex):pattern;
         if(key&&seen.has(key))duplicates.push({day:day.day||('Dzień '+(dayIndex+1)),name:ex.name,key});
         if(key)seen.add(key);
@@ -713,6 +717,14 @@
       const sets=item.patterns.reduce((sum,pattern)=>sum+(patterns[pattern]||0),0);
       coverage[item.key]={label:item.label,sets,present:sets>0,patterns:item.patterns};
     });
+    const profileLabels={ascending:'rosnący',descending:'malejący','bell-shaped':'dzwonowy',constant:'stały'};
+    const biasLabels={lengthened:'wydłużenie',mid_range:'środek zakresu',shortened:'skrócenie'};
+    const biomechHints=[];
+    const profilesPresent=Object.keys(resistanceProfiles);
+    const biasesPresent=Object.keys(lengthBiases);
+    if(profilesPresent.length>=2)biomechHints.push(`Wskazówka biomechaniczna: plan wykorzystuje ${profilesPresent.length} profile oporu (${profilesPresent.map(key=>profileLabels[key]||key).join(', ')}). To różnicuje miejsce największego oporu, ale konkretny tor zawsze zależy od maszyny, linki i ustawienia.`);
+    else if(profilesPresent.length===1)biomechHints.push(`Wskazówka biomechaniczna: rozpoznany jest głównie profil oporu „${profileLabels[profilesPresent[0]]||profilesPresent[0]}”. Nie jest to błąd; przy powielaniu podobnych ćwiczeń sprawdź jednak, czy warianty rzeczywiście różnią bodziec.`);
+    if(biasesPresent.length)biomechHints.push(`Wskazówka biomechaniczna: rozpoznane akcenty zakresu: ${biasesPresent.map(key=>biasLabels[key]||key).join(', ')}. To heurystyka oparta na wariancie ćwiczenia, nie pomiar sił dla konkretnego stanowiska.`);
     const deductions=[];
     if(!totalExercises)deductions.push({points:50,text:'Brak ćwiczeń do przeanalizowania.'});
     if(duplicates.length)deductions.push({points:10,text:'Powtarzające się wzorce w pojedynczej jednostce.'});
@@ -720,7 +732,7 @@
     warnings.filter(item=>item.type==='balans').forEach(()=>deductions.push({points:5,text:'Wyraźna przewaga pchania lub przyciągania do potwierdzenia.'}));
     if(unknown)deductions.push({points:Math.min(15,unknown*3),text:'Część ćwiczeń nie została rozpoznana przez bibliotekę.'});
     const score=Math.max(0,100-deductions.reduce((sum,item)=>sum+item.points,0));
-    return {totalSets,totalExercises,muscleSets,secondaryExposure,frequency,secondaryFrequency,patterns,coverage,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
+    return {totalSets,totalExercises,muscleSets,secondaryExposure,frequency,secondaryFrequency,patterns,resistanceProfiles,lengthBiases,biomechHints,coverage,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
   }
 
   function manualPlanBuilderDays(){
@@ -744,6 +756,7 @@
     const patternRows=Object.entries(result.patterns).filter(([key])=>key!=='other').sort((a,b)=>b[1]-a[1]).slice(0,8);
     const frequencyRows=Object.entries(result.frequency).sort((a,b)=>b[1]-a[1]).slice(0,8);
     const coverageRows=Object.values(result.coverage||{});
+    const biomechHintHtml=(result.biomechHints||[]).map(item=>`<div style="margin-top:5px;color:var(--muted);">💡 ${esc(item)}</div>`).join('');
     const warningHtml=result.warnings.length?result.warnings.map(item=>{
       const prefix=item.level==='high'?'⛔':item.level==='warning'?'⚠':'ℹ';
       const color=item.level==='high'?'var(--accent)':item.level==='warning'?'var(--warn)':'var(--muted)';
@@ -756,6 +769,7 @@
       <div style="margin-top:8px;"><b>Częstotliwość głównej partii</b><br>${frequencyRows.length?frequencyRows.map(([name,days])=>`${esc(name)}: ${days}×`).join(' · '):'Brak danych.'}</div>
       <div style="margin-top:8px;"><b>Wzorce ruchu</b><br>${patternRows.length?patternRows.map(([name,sets])=>`${esc(patternLabels[name]||name)}: ${sets}`).join(' · '):'Brak rozpoznanych wzorców.'}</div>
       <div style="margin-top:8px;"><b>Mapa pokrycia wzorców</b><br>${coverageRows.map(item=>`<span class="kb-tag" style="margin:3px 4px 0 0;${item.present?'':'opacity:.55;'}">${item.present?'✓':'—'} ${esc(item.label)}${item.present?': '+item.sets+' serii':''}</span>`).join('')}<div style="margin-top:3px;color:var(--muted);">„—” oznacza brak rozpoznanego wzorca, nie błąd. Potwierdź, czy wynika to z celu, priorytetów i ograniczeń klienta.</div></div>
+      ${biomechHintHtml?`<div style="margin-top:8px;"><b>Biomechanika — kontekst ćwiczeń</b>${biomechHintHtml}</div>`:''}
       <div style="margin-top:8px;"><b>Kontrola</b>${warningHtml}</div>
       <div style="margin-top:7px;color:var(--muted);">To checklista prostych heurystyk (${result.deductions.length?result.deductions.map(item=>esc(item.text)).join(' '):'brak odliczeń'}), nie ocena jakości programu ani diagnoza.</div>
       ${result.duplicates.length?`<div style="margin-top:7px;color:var(--muted);">Podobne wzorce: ${result.duplicates.map(item=>esc(item.day+' — '+item.name)).join('; ')}</div>`:''}
@@ -772,7 +786,7 @@
     if(!meta){card.hidden=true;return null;}
     card.hidden=false;
     const result=manualPlanAnalyzeDays(manualPlanBuilderDays(),meta.clientProfile);
-    meta.analysis={volume:{direct:result.muscleSets,secondaryExposure:result.secondaryExposure},movement:result.patterns,coverage:result.coverage,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency,bySecondaryMuscle:result.secondaryFrequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
+    meta.analysis={volume:{direct:result.muscleSets,secondaryExposure:result.secondaryExposure},movement:result.patterns,biomechanics:{resistanceProfiles:result.resistanceProfiles,lengthBiases:result.lengthBiases,hints:result.biomechHints},coverage:result.coverage,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency,bySecondaryMuscle:result.secondaryFrequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
     box.innerHTML=manualPlanAnalysisHtml(result);
     return result;
   }

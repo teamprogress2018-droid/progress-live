@@ -39,13 +39,14 @@ assert(applied.weekKeys.length===6&&applied.currentWeek==='w1','zapis tworzy kom
 assert(applied.phases.w6.includes('deload'),'zapis przenosi fazę tygodnia do starego widoku planu');
 assert(applied.duration==='6'&&applied.progression==='double','zapis synchronizuje pola wymagane przez istniejący kreator');
 const analysis=api.manualPlanAnalyzeDays([{day:'PON',exercises:[
-  {name:'Wyciskanie A',sets:'4',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka',secondary:['Triceps','Barki przednie']}},
-  {name:'Wyciskanie B',sets:'3',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka'}},
-  {name:'Wiosłowanie',sets:'4',rest:'120s',biomech:{pattern:'horizontal_pull',prime:'Plecy'}}
+  {name:'Wyciskanie A',sets:'4',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka',secondary:['Triceps','Barki przednie'],profile:'bell-shaped',lengthBias:'shortened'}},
+  {name:'Wyciskanie B',sets:'3',rest:'90s',biomech:{pattern:'horizontal_push',prime:'Klatka',profile:'ascending',lengthBias:'mid-range'}},
+  {name:'Wiosłowanie',sets:'4',rest:'120s',biomech:{pattern:'horizontal_pull',prime:'Plecy',profile:'constant',lengthBias:'lengthened'}}
 ]}],{sessionMinutes:30});
 assert(analysis.totalSets===11&&analysis.muscleSets.Klatka===7,'analizuje objętość według głównej partii');
 assert(analysis.secondaryExposure.Triceps===4&&analysis.secondaryFrequency.Triceps===1,'oddziela ekspozycję wtórną od serii bezpośrednich');
 assert(analysis.coverage.upperPush.present===true&&analysis.coverage.upperPull.present===true,'tworzy mapę pokrycia wzorców bez oceniania braków jako błędów');
+assert(analysis.resistanceProfiles.constant===4&&analysis.lengthBiases.lengthened===4&&analysis.biomechHints.length>=2,'dodaje ostrożne wskazówki o profilu oporu i akcencie zakresu');
 assert(analysis.frequency.Klatka===1&&analysis.score<100,'analizuje częstotliwość i wynik kontrolny');
 assert(analysis.duplicates.length===1,'zaznacza podobny wzorzec w jednej jednostce');
 assert(analysis.warnings.some(item=>item.type==='redundancja'),'tworzy wyjaśnialne ostrzeżenie o redundancji');
