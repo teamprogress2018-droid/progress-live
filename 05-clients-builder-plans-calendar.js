@@ -1543,8 +1543,8 @@ function toggleBuilderSidebar(forceOpen){
   try{localStorage.setItem('pl_builder_sidebar',open?'1':'0');}catch(e){}
 }
 function restoreBuilderSidebarState(){
-  let open=true;
-  try{open=localStorage.getItem('pl_builder_sidebar')!=='0';}catch(e){}
+  let open=false;
+  try{open=localStorage.getItem('pl_builder_sidebar')==='1';}catch(e){}
   toggleBuilderSidebar(open);
 }
 window.toggleBuilderSidebar=toggleBuilderSidebar;
@@ -1553,8 +1553,8 @@ function initBuilder(){
   builderResetSaveState();
   window._editingPlanId=null;
   window._manualPlanDraft=null;
-  const manualAnalysisCard=document.getElementById('manual-plan-analysis-card');
-  if(manualAnalysisCard)manualAnalysisCard.hidden=true;
+  const manualQuickbar=document.getElementById('manual-plan-quickbar');
+  if(manualQuickbar)manualQuickbar.hidden=true;
   window._builderPeriodWeek=0;
   if(!window._builderBack)window._builderBack='clients';
   const titleEl=document.querySelector('#screen-builder .topbar-title');

@@ -786,28 +786,49 @@
       <div style="margin-top:8px;"><b>Kontrola</b>${warningHtml}</div>
       <div style="margin-top:7px;color:var(--muted);">To checklista prostych heurystyk (${result.deductions.length?result.deductions.map(item=>esc(item.text)).join(' '):'brak odliczeń'}), nie ocena jakości programu ani diagnoza.</div>
       ${result.duplicates.length?`<div style="margin-top:7px;color:var(--muted);">Podobne wzorce: ${result.duplicates.map(item=>esc(item.day+' — '+item.name)).join('; ')}</div>`:''}
-      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:11px;" onclick="manualPlanRefreshAnalysis()">Odśwież analizę</button>
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:11px;" onclick="manualPlanOpenAnalysis()">Odśwież analizę</button>
     </div>`;
   }
 
   function manualPlanRefreshAnalysis(){
     if(typeof document==='undefined')return null;
-    const card=document.getElementById('manual-plan-analysis-card');
-    const box=document.getElementById('manual-plan-analysis');
-    if(!card||!box)return null;
     const meta=window._manualPlanDraft;
-    if(!meta){card.hidden=true;return null;}
-    card.hidden=false;
+    const quickbar=document.getElementById('manual-plan-quickbar');
+    const trigger=document.getElementById('manual-plan-analysis-trigger');
+    const cycle=document.getElementById('manual-plan-cycle-summary');
+    if(!meta){if(quickbar)quickbar.hidden=true;return null;}
+    if(quickbar)quickbar.hidden=false;
     const result=manualPlanAnalyzeDays(manualPlanBuilderDays(),meta.clientProfile);
     meta.analysis={volume:{direct:result.muscleSets,secondaryExposure:result.secondaryExposure},movement:result.patterns,biomechanics:{resistanceProfiles:result.resistanceProfiles,lengthBiases:result.lengthBiases,hints:result.biomechHints},coverage:result.coverage,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency,bySecondaryMuscle:result.secondaryFrequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
-    box.innerHTML=manualPlanAnalysisHtml(result);
+    const actionItems=(result.warnings||[]).filter(item=>item.level==='high'||item.level==='warning').length+(result.duplicates||[]).length;
+    if(trigger){
+      trigger.textContent=actionItems?'⚠ Analiza planu · '+actionItems+' '+(actionItems===1?'uwaga':'uwagi'):'✓ Analiza planu · bez istotnych uwag';
+      trigger.classList.toggle('has-warning',actionItems>0);
+    }
+    if(cycle){
+      const labels={stały:'stały układ',liniowa:'liniowa',double:'podwójna progresja',dup:'falowa / DUP',blokowa:'blokowa',step_loading:'step loading',autoregulacja:'autoregulacja',własna:'własna'};
+      const period=meta.periodization||{},progression=meta.progression||{};
+      cycle.textContent='Cykl: '+(period.durationWeeks||'—')+' tyg. · '+(labels[period.strategy]||period.strategy||'stały układ')+' · '+(labels[progression.type]||progression.type||'progresja do ustalenia')+(period.deloadEnabled?' · deload':'');
+    }
+    window._manualPlanLastAnalysis=result;
+    return result;
+  }
+
+  function manualPlanOpenAnalysis(){
+    const meta=window._manualPlanDraft;
+    if(!meta)return null;
+    const result=manualPlanRefreshAnalysis()||window._manualPlanLastAnalysis;
+    if(!result)return null;
+    const modal=manualPlanEnsureModal('m-manual-plan-analysis');
+    modal.innerHTML=`<div class="modal" style="max-width:760px;"><div class="modal-hdr"><div class="modal-title">ANALIZA PLANU</div><button class="modal-close" onclick="closeM('m-manual-plan-analysis')">×</button></div><div class="modal-body"><div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">To zestaw wskazówek do decyzji trenera. Nie blokuje zapisu planu i nie zastępuje indywidualnej oceny.</div>${manualPlanAnalysisHtml(result)}</div><div class="modal-footer"><button class="btn btn-primary" onclick="closeM('m-manual-plan-analysis')">Gotowe</button></div></div>`;
+    if(typeof openM==='function')openM('m-manual-plan-analysis');
     return result;
   }
 
   function manualPlanShowAnalysis(){
     if(typeof document==='undefined')return;
-    const card=document.getElementById('manual-plan-analysis-card');
-    if(card)card.hidden=!window._manualPlanDraft;
+    const quickbar=document.getElementById('manual-plan-quickbar');
+    if(quickbar)quickbar.hidden=!window._manualPlanDraft;
     if(!window._manualPlanAnalysisObserver&&typeof MutationObserver!=='undefined'){
       let queued=false;
       const schedule=()=>{if(queued)return;queued=true;setTimeout(()=>{queued=false;manualPlanRefreshAnalysis();},80);};
@@ -887,6 +908,7 @@
   window.manualPlanOpenBuilder=manualPlanOpenBuilder;
   window.manualPlanAnalyzeDays=manualPlanAnalyzeDays;
   window.manualPlanRefreshAnalysis=manualPlanRefreshAnalysis;
+  window.manualPlanOpenAnalysis=manualPlanOpenAnalysis;
   window.manualPlanShowAnalysis=manualPlanShowAnalysis;
   window.manualPlanExerciseProgramming=manualPlanExerciseProgramming;
   window.manualPlanExerciseSummary=manualPlanExerciseSummary;
