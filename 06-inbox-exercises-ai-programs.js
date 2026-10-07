@@ -1660,6 +1660,15 @@ function exdPlanningTags(b){
   else tags.push('BIAS: ZALEŻNY OD TORU');
   return tags.map(t=>`<span class="chip">${exdEsc(t)}</span>`).join(' ');
 }
+function exdProfileNote(profile){
+  const notes={
+    ascending:'Wymaganie zwykle rośnie bliżej końca ruchu.',
+    descending:'Wymaganie zwykle jest większe w rozciągnięciu / na początku ruchu.',
+    'bell-shaped':'Wymaganie zwykle jest największe w środkowej części zakresu.',
+    constant:'Linka lub układ maszyny może utrzymywać opór przez większą część toru; zależy od ustawienia.'
+  };
+  return notes[profile]||'Profil opisuje tor i sprzęt, nie gwarantuje izolacji mięśnia.';
+}
 function exdSubstituteBlockHtml(e){
   const b=exerciseBiomech(e);
   const pattern=EX_PATTERN_LABELS[b.pattern]||String(b.pattern||'').replace(/_/g,' ');
@@ -1683,9 +1692,10 @@ function exdSubstituteBlockHtml(e){
         ${exdBiomechRow('Wzorzec', exdEsc(pattern))}
         ${exdBiomechRow('Płaszczyzna', exdEsc(plane))}
         ${exdBiomechRow('Profil oporu', exdEsc(profile), 'exd-biomech-accent')}
+        ${exdBiomechRow('Znaczenie profilu', exdEsc(exdProfileNote(b.profile)))}
         ${exdBiomechRow('Stawy', exdEsc(joints), 'exd-biomech-joint')}
         ${exdBiomechRow('SFR', exdEsc(b.sfr), 'exd-biomech-sfr')}
-        ${exdBiomechRow('Tagi AI', exdPlanningTags(b)+'<div class="muted" style="margin-top:5px;font-size:11px;">* '+exdEsc(b.biasSource)+'</div>', 'exd-biomech-accent')}
+        ${exdBiomechRow('Tagi AI', exdPlanningTags(b)+'<div class="muted" style="margin-top:5px;font-size:11px;line-height:1.45;">PRIMARY = główny cel; SECONDARY = istotne wsparcie; ACCESSORY = udział pomocniczy lub stabilizacja. STABLE opisuje warunki wykonania, nie jakość ćwiczenia. * '+exdEsc(b.biasSource)+'</div>', 'exd-biomech-accent')}
         ${e.muscle?exdBiomechRow('Mięśnie', exdEsc(e.muscle)):''}
       </div>
     </div>
