@@ -50,6 +50,53 @@
     make('transversus_abdominis','Poprzeczny brzucha',['brzuch','core'],{anatomy:'Najgłębsza warstwa ściany brzucha, której włókna biegną poziomo.',functions:'Współtworzy napięcie ściany brzucha i zarządzanie ciśnieniem śródbrzusznym.',biomechanics:'Działa w koordynacji z przeponą, skośnymi i dnem miednicy; nie jest przełącznikiem, który trzeba stale „włączyć”.',exercises:'Oddychanie z napięciem, dead bug, carry, plank oraz ruchy złożone dopasowane do umiejętności.',setup:'Oddychaj za napiętym tułowiem zamiast maksymalnie wciągać brzuch przez całą serię.',dosage:'Traktuj jako element jakości ruchu; 2–6 krótkich serii nauki lub praca w ćwiczeniach złożonych.',evidence:'Nie można wiarygodnie potwierdzić izolacji poprzecznego pojedynczym hasłem treningowym.'}),
     make('erector_spinae','Prostowniki grzbietu',['plecy','core'],{anatomy:'Grupa długich mięśni biegnących wzdłuż kręgosłupa; obejmuje m.in. biodrowo-żebrowy i najdłuższy.',functions:'Wyprost oraz opór wobec zgięcia i zgięcia bocznego tułowia.',biomechanics:'W hinge często pracują głównie izometrycznie, utrzymując pozycję; back extension umożliwia większy ruch biodra i/lub tułowia zależnie od wykonania.',exercises:'RDL, martwy ciąg, good morning, back extension i carry.',setup:'Dobierz zakres do kontroli miednicy i kręgosłupa; unikaj dokładania ruchu po utracie stabilności.',dosage:'Objętość często pochodzi z hinge; dodatki 2–6 serii po 6–15 powtórzeń dobieraj ostrożnie.',evidence:'Neutralny kręgosłup nie jest jedyną poprawną pozycją, lecz przy dużym obciążeniu kontrola i tolerancja są ważniejsze niż wymuszony ROM.'})
   ];
+  // Indywidualne cue są celowo krótkie: trener ma od razu wiedzieć, co obserwować i co zmienić.
+  const individualCoaches={
+    pectoralis_sternocostal:'Jeśli łopatki i barki tracą pozycję na dole wyciskania → skróć ROM lub zmniejsz ciężar; nie wymuszaj głębokości kosztem komfortu barku.',
+    deltoid_anterior:'Jeśli przy unoszeniu lub wyciskaniu żebra unoszą się szybciej niż ramię → zmniejsz ciężar i ustaw ruch w płaszczyźnie łopatki.',
+    deltoid_posterior:'Jeśli reverse fly staje się wiosłem → zmniejsz ciężar, podeprzyj klatkę i prowadź ramię szerzej, bez szarpania łopatką.',
+    trapezius_upper:'Jeśli shrug wywołuje napięcie szyi bez kontroli łopatki → ogranicz ciężar i zakres do spokojnej elewacji; nie krąż barkami.',
+    trapezius_middle:'Jeśli w wiosłowaniu klient blokuje łopatkę od startu → pozwól jej sięgnąć w przód, a dopiero potem wykonaj kontrolowane przyciągnięcie.',
+    trapezius_lower:'Jeśli w ruchu nad głowę trener wymusza barki w dół → przypomnij, że łopatka potrzebuje też rotacji ku górze; dobierz tolerowany zakres.',
+    rhomboids:'Jeśli retrakcja łopatki powoduje przeprost lędźwi → podeprzyj klatkę lub zmniejsz ciężar i oddziel ruch łopatki od ruchu tułowia.',
+    serratus_anterior:'Jeśli przy push-up plus zapada się klatka albo barki uciekają do uszu → skróć dźwignię i naucz kontrolowanej protrakcji łopatki.',
+    rotator_cuff:'Jeśli rotacja barku wymaga kołysania tułowiem → zmniejsz opór i ustal pozycję łokcia; nie używaj pieczenia jako testu skuteczności.',
+    brachialis:'Jeśli curl neutralny staje się ruchem całego ciała → użyj oparcia lub linki i utrzymaj nadgarstek neutralnie.',
+    brachioradialis:'Jeśli przedramię lub nadgarstek boli w reverse curl → zmniejsz obciążenie, skróć zakres albo wróć do chwytu neutralnego.',
+    triceps_lateral_head:'Jeśli pressdown kończy się ruchem barku lub tułowia → ustal pozycję ramienia i zmniejsz ciężar, zamiast wymuszać blokadę łokcia.',
+    triceps_medial_head:'Jeśli końcowy wyprost łokcia jest drażniący → zatrzymaj się przed bolesnym zakresem i wybierz łagodniejszy uchwyt na lince.',
+    gluteus_maximus:'Jeśli hip thrust kończy się przeprostem lędźwi → zatrzymaj powtórzenie przy wyproście biodra, gdy żebra i miednica nadal są pod kontrolą.',
+    gluteus_minimus:'Jeśli izolacja odwodzenia powoduje skręt miednicy → zmniejsz zakres i priorytetowo utrzymaj spokojną pozycję miednicy.',
+    rectus_femoris:'Jeśli kolano traci kontrolę w ruchu kolanowym → zmniejsz obciążenie lub użyj maszyny; nie wprowadzaj automatycznie zakazu ruchu kolana przed palce.',
+    vastus_lateralis:'Jeśli trener zmienia ustawienie stóp tylko po to, aby poczuć zewnętrzną część uda → wróć do ustawienia najbardziej stabilnego i komfortowego.',
+    vastus_medialis_intermedius:'Jeśli celem jest „łezka” → programuj cały wyprost kolana i tolerowany zakres, zamiast szukać izolującego ustawienia stopy.',
+    adductors:'Jeśli w wykroku bocznym pojawia się dyskomfort pachwiny → zmniejsz szerokość i głębokość, zwolnij tempo oraz nie dokładaj rozciągania na siłę.',
+    soleus:'Jeśli wspięcia siedząc skracają dolną pozycję → zmniejsz ciężar i zatrzymaj piętę w kontrolowanym rozciągnięciu.',
+    tibialis_anterior:'Jeśli tibialis raise powoduje kołysanie całym ciałem → oprzyj plecy, zmniejsz zakres i unos przodostopie bez odrywania pięt.',
+    transversus_abdominis:'Jeśli klient stale wciąga brzuch i nie może oddychać → naucz napięcia z oddechem, zamiast maksymalnego zasysania brzucha.',
+    erector_spinae:'Jeśli back extension przenosi ruch wyłącznie na lędźwie → ustaw biodra na podporze i ogranicz zakres do kontroli miednicy oraz tułowia.'
+  };
+  R.forEach(r=>{if(individualCoaches[r.id])r.coach=individualCoaches[r.id];});
+  const individualLengths={
+    trapezius_middle:'Wydłużony, gdy łopatka kontrolowanie przesuwa się w przód; skraca się podczas retrakcji.',
+    trapezius_lower:'Wydłużony, gdy łopatka jest uniesiona i rotuje ku górze; jego długość zależy od pozycji ramienia oraz łopatki.',
+    rhomboids:'Wydłużone przy protrakcji łopatki, skrócone przy retrakcji. Zakres powinien wynikać z kontroli łopatki, nie z wymuszonego ściskania.',
+    gluteus_medius:'Wydłużony przy przywiedzeniu biodra, skrócony przy odwiedzeniu; pozycja miednicy wpływa na odczucie bardziej niż sam obrót palców.',
+    gluteus_minimus:'Wydłużony przy przywiedzeniu biodra, skrócony przy odwiedzeniu. Praktycznie pracuje wspólnie z pośladkowym średnim.',
+    rectus_abdominis:'Wydłużony przy wyproście tułowia i oddaleniu żeber od miednicy, skrócony przy kontrolowanym zbliżeniu żeber oraz miednicy.',
+    obliques:'Długość zależy od rotacji i zgięcia bocznego tułowia; w ćwiczeniach antyruchu pracują często bez dużej zmiany długości.',
+    transversus_abdominis:'Nie ma praktycznie użytecznej pozycji maksymalnego skrócenia do trenowania jak w mięśniu jednokierunkowym; ważniejsza jest koordynacja napięcia i oddechu.',
+    erector_spinae:'Wydłużone przy zgięciu tułowia, skrócone przy wyproście; przy ciężkim hinge pracują często głównie izometrycznie, bez potrzeby maksymalnego ruchu kręgosłupa.'
+  };
+  R.forEach(r=>{if(individualLengths[r.id])r.length=individualLengths[r.id];});
+  const individualEvidence={
+    deltoid_posterior:'Face pull, reverse fly i wiosło mogą akcentować tył barku w różnym stopniu, ale żadne nie izoluje go całkowicie od mięśni łopatki.'
+  };
+  R.forEach(r=>{if(individualEvidence[r.id])r.evidence=individualEvidence[r.id];});
+  const requiredBiomechFields=['anatomy','functions','biomechanics','length','plane','rom','resistance','exercises','setup','dosage','tempo','progression','errors','compensations','coach','modifications','aiRules','evidence'];
+  const biomechAudit=R.map(r=>({id:r.id,missing:requiredBiomechFields.filter(k=>!String(r[k]||'').trim())}));
+  window.MUSCLE_BIOMECH_AUDIT={records:R.length,complete:biomechAudit.every(x=>!x.missing.length),missing:biomechAudit.filter(x=>x.missing.length)};
+  if(!window.MUSCLE_BIOMECH_AUDIT.complete)console.warn('Niepełna karta biomechaniki',window.MUSCLE_BIOMECH_AUDIT.missing);
   window.MUSCLE_BIOMECH_RECORDS=R;
   const labels={anatomy:'1. Anatomia funkcjonalna',functions:'2. Główne funkcje',biomechanics:'3. Biomechanika',length:'4. Pozycja wydłużona / skrócona',plane:'5. Płaszczyzny ruchu',rom:'6. Użyteczny ROM',resistance:'7. Profil oporu',exercises:'8. Rodziny ćwiczeń',setup:'9. Ustawienie ciała',dosage:'10. Serie, powtórzenia, RIR',tempo:'11. Tempo',progression:'12. Progresja',errors:'13. Najczęstsze błędy',compensations:'14. Kompensacje',coach:'15. Wskazówka dla trenera',modifications:'16. Kiedy zmodyfikować wariant',aiRules:'17. Reguły AI',evidence:'Dlaczego? / granice pewności'};
   const esc=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
