@@ -1,10 +1,11 @@
-// Pełna baza biomechaniki: każdy rekord otrzymuje 16 stałych pól.
+// Pełna baza biomechaniki: każdy rekord otrzymuje 17 stałych pól.
 (function(){
   const common={
     plane:'Dobieraj płaszczyznę do funkcji stawu i komfortu; nie wymuszaj jednego toru u każdej osoby.',
     rom:'Pełny, kontrolowany i tolerowany zakres. Ogranicz ROM, gdy technika lub komfort wyraźnie się pogarszają.',
     resistance:'Linka zmienia kierunek siły; maszyna zwiększa stabilność; hantle i sztanga wymagają więcej kontroli. Profil oporu zależy od konkretnego toru i sprzętu.',
     dosage:'Praktyczny start: 4–12 serii bezpośrednich tygodniowo, zwykle 1–3 RIR. Ruchy złożone: 5–10 powtórzeń; izolacje: 8–25. To zakresy startowe, nie normy.',
+    tempo:'Kontroluj ekscentrykę zwykle przez około 2–3 s, bez odbijania ani szarpania. Koncentryka może być dynamiczna, jeśli pozycja stawu pozostaje stabilna. Pauza ma sens tam, gdzie poprawia kontrolę lub odpowiada celowi; nie jest obowiązkiem w każdym powtórzeniu.',
     progression:'Najpierw dodaj powtórzenie przy tym samym ROM, technice i RIR; następnie mały wzrost oporu. Zmień wariant przy braku progresu lub słabej tolerancji.',
     errors:'Nie zwiększaj ciężaru kosztem ROM, pozycji tułowia lub kontroli stawu.',
     compensations:'Jeżeli seria kończy się przez inny segment, zmień stabilność, ustawienie, ROM albo wariant — nie dokładaj automatycznie serii.',
@@ -50,7 +51,7 @@
     make('erector_spinae','Prostowniki grzbietu',['plecy','core'],{anatomy:'Grupa długich mięśni biegnących wzdłuż kręgosłupa; obejmuje m.in. biodrowo-żebrowy i najdłuższy.',functions:'Wyprost oraz opór wobec zgięcia i zgięcia bocznego tułowia.',biomechanics:'W hinge często pracują głównie izometrycznie, utrzymując pozycję; back extension umożliwia większy ruch biodra i/lub tułowia zależnie od wykonania.',exercises:'RDL, martwy ciąg, good morning, back extension i carry.',setup:'Dobierz zakres do kontroli miednicy i kręgosłupa; unikaj dokładania ruchu po utracie stabilności.',dosage:'Objętość często pochodzi z hinge; dodatki 2–6 serii po 6–15 powtórzeń dobieraj ostrożnie.',evidence:'Neutralny kręgosłup nie jest jedyną poprawną pozycją, lecz przy dużym obciążeniu kontrola i tolerancja są ważniejsze niż wymuszony ROM.'})
   ];
   window.MUSCLE_BIOMECH_RECORDS=R;
-  const labels={anatomy:'1. Anatomia funkcjonalna',functions:'2. Główne funkcje',biomechanics:'3. Biomechanika',length:'4. Pozycja wydłużona / skrócona',plane:'5. Płaszczyzny ruchu',rom:'6. Użyteczny ROM',resistance:'7. Profil oporu',exercises:'8. Rodziny ćwiczeń',setup:'9. Ustawienie ciała',dosage:'10. Serie, powtórzenia, RIR',progression:'11. Progresja',errors:'12. Najczęstsze błędy',compensations:'13. Kompensacje',coach:'14. Wskazówka dla trenera',modifications:'15. Kiedy zmodyfikować wariant',aiRules:'16. Reguły AI',evidence:'Dlaczego? / granice pewności'};
+  const labels={anatomy:'1. Anatomia funkcjonalna',functions:'2. Główne funkcje',biomechanics:'3. Biomechanika',length:'4. Pozycja wydłużona / skrócona',plane:'5. Płaszczyzny ruchu',rom:'6. Użyteczny ROM',resistance:'7. Profil oporu',exercises:'8. Rodziny ćwiczeń',setup:'9. Ustawienie ciała',dosage:'10. Serie, powtórzenia, RIR',tempo:'11. Tempo',progression:'12. Progresja',errors:'13. Najczęstsze błędy',compensations:'14. Kompensacje',coach:'15. Wskazówka dla trenera',modifications:'16. Kiedy zmodyfikować wariant',aiRules:'17. Reguły AI',evidence:'Dlaczego? / granice pewności'};
   const esc=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   window.openMuscleBiomech=function(title){
     const r=R.find(x=>'Biomechanika: '+x.name===String(title||''));if(!r)return;
