@@ -769,7 +769,26 @@ function aplPlanPatternRedundancy(plan,ctx){
   return out;
 }
 function aplPatternRedundancyText(list){
-  return list.map(r=>String(r.dayName).split(/[—–]/)[0].trim()+': '+r.names.length+'× '+r.label+' ('+r.names.join(', ')+') — zostaw '+r.allowed).join('; ');
+  const alternatives={
+    vertical_pull:'wiosło poziome, wyprost ramienia albo tył barku',
+    horizontal_pull:'przyciąganie pionowe, wyprost ramienia albo tył barku',
+    press_flat:'skos, rozpiętki albo pracę barków',
+    press_incline:'wyciskanie płaskie, rozpiętki albo pracę barków',
+    press_decline:'wyciskanie płaskie, rozpiętki albo pracę barków',
+    chest_fly:'wyciskanie płaskie lub skos',
+    knee_bilateral:'ruch jednonóż, wyprost kolana albo hinge',
+    knee_unilateral:'ruch obunóż, wyprost kolana albo hinge',
+    knee_extension:'przysiad/wypychanie, ruch jednonóż albo zgięcie kolana',
+    hip_hinge:'zgięcie kolana, przysiad albo hip thrust',
+    hip_bridge:'hinge, ruch jednonóż albo zgięcie kolana',
+    elbow_flexion:'wariant o innym ustawieniu barku albo usuń nadmiar serii',
+    elbow_extension:'wariant nad głowę albo usuń nadmiar serii',
+    shoulder_abduction:'tył barku, wyciskanie albo usuń nadmiar serii'
+  };
+  return list.map(r=>{
+    const next=alternatives[r.key]||'inny wzorzec dla tej samej partii';
+    return String(r.dayName).split(/[—–]/)[0].trim()+': '+r.names.length+'× '+r.label+' ('+r.names.join(', ')+') — zostaw '+r.allowed+', nadmiar zamień na '+next;
+  }).join('; ');
 }
 window.aplExercisePatternKey=aplExercisePatternKey;
 window.aplDayPatternRedundancy=aplDayPatternRedundancy;
