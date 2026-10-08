@@ -1550,6 +1550,7 @@ function restoreBuilderSidebarState(){
 window.toggleBuilderSidebar=toggleBuilderSidebar;
 window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
+  if(window._builderPreserveOnReturn){window._builderPreserveOnReturn=false;builderRefreshRationale();return;}
   builderResetSaveState();
   window._editingPlanId=null;
   window._manualPlanDraft=null;

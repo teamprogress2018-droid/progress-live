@@ -12,6 +12,7 @@ const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js
 const src03=fs.readFileSync(path.join(root,'03-ai-plangen-bizstats-aicoach.js'),'utf8');
 const src02=fs.readFileSync(path.join(root,'02-workouts-onboarding-templates-live.js'),'utf8');
 const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
+const academy=fs.readFileSync(path.join(root,'11-progress-academy.js'),'utf8');
 
 let failed=0;
 function ok(name,cond){
@@ -43,7 +44,9 @@ ok('no cheat modal',!html.includes('id="m-method-rationale"')&&!html.includes('m
 ok('no cheat sheet fns',!core.includes('function renderTrainerCheatSheetHTML')&&!core.includes('function printTrainerCheatSheet')&&!core.includes('function openMethodRationaleModal'));
 ok('no builder topbar cheat',!html.includes('id="builder-cheat-btn"')&&!html.includes('openMethodRationaleModal()')&&!html.includes('id="builder-cheat-print-btn"'));
 ok('no cheat css',!css.includes('.trainer-cheat')&&!css.includes('#builder-cheat-btn')&&!css.includes('printing-cheat-sheet'));
-ok('builder keeps AI panel',html.includes('id="ai-q"')&&html.includes('askAI()')&&html.includes('Asystent AI'));
+ok('academy moves persistent coach help out of builder',!html.includes('id="builder-sidebar"')&&html.includes('builder-academy-nudge')&&html.includes('academyFromBuilder()'));
+ok('academy offers three help levels and keeps plan read-only',academy.includes("['quick','1 · Szybka odpowiedź']")&&academy.includes("['guide','2 · Przewodnik decyzji']")&&academy.includes("['context','3 · Mój plan']")&&academy.includes('Akademia nie zapisuje ani nie zmienia danych planu.'));
+ok('academy preserves the builder on return',src05.includes('window._builderPreserveOnReturn'));
 ok('aplEduCtx exported',src03.includes('function aplEduCtx')&&src03.includes('window.aplEduCtx'));
 ok('builder ctx clientName',src05.includes('clientName:c.name'));
 ok('personalized volume helper',core.includes('personalizedOnly')&&core.includes('mr-vol-personal'));
@@ -72,7 +75,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
-ok('cache bumps',html.includes('01-core.js?v=126')&&html.includes('02-workouts-onboarding-templates-live.js?v=92')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=82')&&html.includes('09-posture-kb-invites-private.js?v=54')&&html.includes('styles.css?v=124'));
+ok('cache references current build',html.includes('01-core.js?v=127')&&html.includes('02-workouts-onboarding-templates-live.js?v=92')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=85')&&html.includes('09-posture-kb-invites-private.js?v=54')&&html.includes('styles.css?v=132'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');
