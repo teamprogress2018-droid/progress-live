@@ -1138,6 +1138,13 @@ function restoreBuilderSidebarState(){
 window.toggleBuilderSidebar=toggleBuilderSidebar;
 window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
+  // Powrót z Progress Academy nie może wyczyścić niezapisanego szkicu planu.
+  if(window._builderPreserveOnReturn){
+    window._builderPreserveOnReturn=false;
+    builderRefreshRationale();
+    if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
+    return;
+  }
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
   if(!window._builderBack)window._builderBack='clients';
@@ -1153,7 +1160,6 @@ function initBuilder(){
   }
   updatePeriod();
   builderRefreshRationale();
-  if(typeof restoreBuilderSidebarState==='function')restoreBuilderSidebarState();
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
 }
 function addDay(){

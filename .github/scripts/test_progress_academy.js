@@ -1,0 +1,13 @@
+const fs=require('fs');
+const assert=require('assert');
+const root=process.cwd();
+const index=fs.readFileSync(root+'/index.html','utf8');
+const academy=fs.readFileSync(root+'/11-progress-academy.js','utf8');
+assert(index.includes('data-screen="academy"'),'Academy must be available in navigation');
+assert(index.includes('id="screen-academy"'),'Academy screen mount point is required');
+assert(index.includes('11-progress-academy.js'),'Academy script must load');
+assert(!index.includes('id="builder-sidebar"'),'The persistent coach column must not remain in the builder');
+assert(index.includes('academyFromBuilder()'),'Builder must expose a contextual Academy entry point');
+['quick','guide','context','academyBackToBuilder','_builderPreserveOnReturn'].forEach(token=>assert(academy.includes(token),'Missing Academy flow: '+token));
+['role="tablist"','aria-selected','<button type="button"'].forEach(token=>assert(academy.includes(token),'Missing accessible control: '+token));
+console.log('Progress Academy structure checks passed');

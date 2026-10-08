@@ -6,7 +6,7 @@ const path=require('path');
 const vm=require('vm');
 
 const root=path.join(__dirname,'../..');
-const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8');
+const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8').replace(/\r\n/g,'\n');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8');
 const src03=fs.readFileSync(path.join(root,'03-ai-plangen-bizstats-aicoach.js'),'utf8');
@@ -43,7 +43,7 @@ ok('no cheat modal',!html.includes('id="m-method-rationale"')&&!html.includes('m
 ok('no cheat sheet fns',!core.includes('function renderTrainerCheatSheetHTML')&&!core.includes('function printTrainerCheatSheet')&&!core.includes('function openMethodRationaleModal'));
 ok('no builder topbar cheat',!html.includes('id="builder-cheat-btn"')&&!html.includes('openMethodRationaleModal()')&&!html.includes('id="builder-cheat-print-btn"'));
 ok('no cheat css',!css.includes('.trainer-cheat')&&!css.includes('#builder-cheat-btn')&&!css.includes('printing-cheat-sheet'));
-ok('builder keeps AI panel',html.includes('id="ai-q"')&&html.includes('askAI()')&&html.includes('Asystent AI'));
+ok('builder moves coach help to Academy',!html.includes('id="ai-q"')&&html.includes('academyFromBuilder()')&&html.includes('Progress Academy'));
 ok('aplEduCtx exported',src03.includes('function aplEduCtx')&&src03.includes('window.aplEduCtx'));
 ok('builder ctx clientName',src05.includes('clientName:c.name'));
 ok('personalized volume helper',core.includes('personalizedOnly')&&core.includes('mr-vol-personal'));
@@ -72,7 +72,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
-ok('cache bumps',html.includes('01-core.js?v=126')&&html.includes('02-workouts-onboarding-templates-live.js?v=87')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=81')&&html.includes('09-posture-kb-invites-private.js?v=54')&&html.includes('styles.css?v=118'));
+ok('cache bumps',html.includes('01-core.js?v=127')&&html.includes('02-workouts-onboarding-templates-live.js?v=87')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=82')&&html.includes('09-posture-kb-invites-private.js?v=54')&&html.includes('styles.css?v=119'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');
