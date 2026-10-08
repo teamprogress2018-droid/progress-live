@@ -357,7 +357,7 @@ function goTo(n){
   closeMobileSidebar();
   if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
   const libraryScreens=['library','plans','programs','templates','tasks','forms','metrics'];
-  const moreScreens=['ondemand','forum','payments','calculator','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
+  const moreScreens=['ondemand','forum','payments','calculator','academy','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
   // builder + aiplangen celowo poza Więcej — wejście z profilu klienta (Plan)
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
@@ -426,6 +426,7 @@ function _goToRender(n){
   if(n==='templates'){initTemplates();}
   if(n==='onboarding'){initOnboarding();}
   if(n==='kb'){renderKB();}
+  if(n==='academy'&&typeof window.renderProgressAcademy==='function')window.renderProgressAcademy();
 }
 
 function initPriorSportsForm(prefix,selected,activities){

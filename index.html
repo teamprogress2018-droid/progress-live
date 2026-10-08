@@ -122,6 +122,7 @@
       <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
       <div class="nav-sec">Narzędzia</div>
       <button class="nav-item" data-screen="calculator" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
+      <button class="nav-item" data-screen="academy" onclick="goTo('academy')">📚 Progress Academy</button>
       <button class="nav-item" data-screen="kb" onclick="goTo('kb')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Baza wiedzy</button>
       <button class="nav-item" data-screen="integrations" onclick="goTo('integrations')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Integracje</button>
       <button class="nav-item" data-screen="resources" onclick="goTo('resources')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Zasoby</button>
@@ -404,32 +405,8 @@
       </div>
       <div id="builder-days"></div>
       <button type="button" class="add-day-btn" onclick="addDay()">+ Dodaj dzień treningowy</button>
+      <div class="builder-academy-nudge" role="note">Masz wątpliwość co do objętości, RIR lub splitu? <button type="button" class="btn btn-ghost btn-sm" onclick="academyFromBuilder()">Sprawdź w Progress Academy</button></div>
     </div>
-    <div class="builder-sidebar" id="builder-sidebar">
-      <div class="builder-sidebar-toolbar">
-        <span class="builder-sidebar-toolbar-lbl">Panel metodyki</span>
-        <button type="button" class="btn btn-ghost btn-sm builder-sidebar-collapse" id="builder-sidebar-collapse" onclick="toggleBuilderSidebar(false)" title="Zwiń panel">Zwiń ⟩</button>
-      </div>
-      <div class="builder-sidebar-scroll" id="builder-sidebar-scroll">
-      <div class="ai-panel">
-        <div class="ai-hdr"><div class="ai-dot"></div><div class="ai-panel-title">Asystent AI</div><div class="ai-panel-badge">NSCA / NASM / ACSM</div></div>
-        <div class="ai-body">
-          <div id="ai-watch-card" class="ai-watch-card" hidden></div>
-          <div class="ai-msgs" id="ai-msgs"><div class="ai-msg bot"><div class="ai-bubble">Witaj! Zapytaj mnie o dobór ćwiczeń, serie, RPE, przerwy lub korekty dla klienta.</div></div></div>
-          <div class="ai-input-row"><input type="text" class="ai-inp" id="ai-q" placeholder="Zapytaj o plan..." onkeydown="if(event.key==='Enter')askAI()"><button class="ai-send" onclick="askAI()">→</button></div>
-        </div>
-      </div>
-      <div class="card" id="builder-kb-card">
-        <div class="ui-section-hdr">Baza na ten plan</div>
-        <div id="builder-kb-hits" class="builder-kb-hits"><div class="ui-section-sub">Tagi MEV / partia z notatek pojawią się przy dniu i ćwiczeniu.</div></div>
-      </div>
-      <div class="card" id="builder-period-card">
-        <div class="ui-section-hdr">Harmonogram periodyzacji</div>
-        <div id="period-sched"><div class="ui-section-sub">Wybierz klienta</div></div>
-      </div>
-      </div>
-    </div>
-    <button type="button" class="builder-sidebar-expand" id="builder-sidebar-expand" hidden onclick="toggleBuilderSidebar(true)" title="Rozwiń asystenta AI">◀ Asystent AI</button>
   </div>
 </div>
 
@@ -1667,6 +1644,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- BAZA WIEDZY -->
+<div class="screen" id="screen-academy"></div>
+
 <div class="screen" id="screen-kb">
   <div class="topbar">
     <div class="topbar-title">Baza wiedzy</div>
@@ -4346,6 +4325,7 @@ function tenantSessionIsCurrent(session){
 window.tenantSessionIsCurrent=tenantSessionIsCurrent;
 
 function resetTenantRuntimeData(){
+  if(typeof clearPackagePaidUiStates==='function')clearPackagePaidUiStates();
   if(typeof clearPackageSaveDrafts==='function')clearPackageSaveDrafts();
   if(typeof builderSaveUnlock==='function')builderSaveUnlock(window._builderSaveState);
   window._builderSaveState=null;window._editingPlanId=null;
@@ -4476,7 +4456,10 @@ async function tenantReadOwnedCollection(name,session){
   result.forEach(d=>{
     const data=d.data()||{};
     if((name==='packages'||name==='invoices')&&typeof window.packageSaveRecordVisible==='function'&&!window.packageSaveRecordVisible(data,d.metadata))return;
-    if(data.trainerId===session.uid)rows.push(typeof window.mapFbDoc==='function'?window.mapFbDoc(d,name):{...data,id:d.id,_fbId:d.id});
+    if(data.trainerId===session.uid){
+      const row=typeof window.mapFbDoc==='function'?window.mapFbDoc(d,name):{...data,id:d.id,_fbId:d.id};
+      rows.push(typeof window.packagePaymentConfirmedRecord==='function'?window.packagePaymentConfirmedRecord(row,name):row);
+    }
   });
   return rows;
 }
@@ -4590,11 +4573,12 @@ async function load(session=captureTenantSession()){
 <script src="client-card-save.js?v=3"></script>
 <script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1"></script>
 <script src="calendar-refill.js?v=2"></script>
-<script src="package-save.js?v=2"></script>
+<script src="package-save.js?v=3"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=43&baseline-save=1&profile-save=1"></script>
-<script src="08-client-profile-extras.js?v=88&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1"></script>
-<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1"></script>
+<script src="08-client-profile-extras.js?v=88&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1"></script>
+<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
+<script src="11-progress-academy.js?v=1"></script>
 </body>
 </html>
