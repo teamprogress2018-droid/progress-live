@@ -1763,17 +1763,43 @@ function exGifMapLookup(name){
 }
 window.exGifMapLookup=exGifMapLookup;
 
+/** Nazwy bezpieczne do szukania medium: nazwa główna, potem wyłącznie jawne aliasy z biblioteki.
+ * Nie używamy `alt`, ponieważ alternatywa ćwiczenia nie jest tym samym ruchem. */
+function exerciseMediaCandidateNames(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  if(!ex||typeof ex!=='object')return typeof exOrName==='string'?[exOrName]:[];
+  const out=[];
+  const add=name=>{
+    const clean=String(name||'').trim();
+    if(clean&&!out.some(x=>exerciseMediaKey(x)===exerciseMediaKey(clean)))out.push(clean);
+  };
+  add(ex.name);
+  ['aka','alias','aliases'].forEach(key=>{
+    const value=ex[key];
+    (Array.isArray(value)?value:String(value||'').split(',')).forEach(add);
+  });
+  return out;
+}
+window.exerciseMediaCandidateNames=exerciseMediaCandidateNames;
+
 function assignedExVideoUrl(exOrName){
-  const name=typeof exOrName==='string'?exOrName:((exOrName&&exOrName.name)||'');
-  if(!name)return '';
+  const names=exerciseMediaCandidateNames(exOrName);
+  if(!names.length)return '';
   const asVid=(u,normalize)=>{
     if(!u)return '';
     const n=normalize?normalizeRemoteExerciseMediaUrl(u):String(u||'').trim();
     return (n&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n))?n:'';
   };
-  const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
-  if(remoteVid&&!mediaUrlLooksAssignedToOtherExercise(remoteVid,name))return remoteVid;
-  return asVid(mediaMapGet(window.EX_GIF_MANIFEST,name),false);
+  for(const name of names){
+    const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
+    if(remoteVid&&!mediaUrlLooksAssignedToOtherExercise(remoteVid,name))return remoteVid;
+  }
+  for(const name of names){
+    const localVid=asVid(mediaMapGet(window.EX_GIF_MANIFEST,name),false);
+    if(localVid)return localVid;
+  }
+  return '';
 }
 window.assignedExVideoUrl=assignedExVideoUrl;
 
@@ -1842,8 +1868,10 @@ function exGifUrl(exOrName){
     if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
     const img=String(ex.img||ex.thumb||ex.image||'').trim();
     if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
-    const mapped=exGifMapLookup(ex.name);
-    if(mapped)return mapped;
+    for(const name of exerciseMediaCandidateNames(ex)){
+      const mapped=exGifMapLookup(name);
+      if(mapped)return mapped;
+    }
     return '';
   }
   return exGifMapLookup(typeof exOrName==='string'?exOrName:'');
