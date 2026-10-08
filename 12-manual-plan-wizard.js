@@ -625,19 +625,21 @@
   }
 
   function manualPlanHypertrophyCheatsheetHtml(){
-    return `<details class="manual-plan-cheatsheet" id="manual-plan-cheatsheet" open><summary><span><b>Ściągawka: hipertrofia i objętość</b><small>Krótka podpowiedź podczas układania planu</small></span><span class="manual-plan-cheatsheet-toggle" aria-hidden="true">Zwiń</span></summary><div class="manual-plan-cheatsheet-body"><div class="manual-plan-builder-steps"><b>Układaj w tej kolejności</b><span>1. ćwiczenie</span><span>2. serie / powtórzenia / RIR</span><span>3. przerwa</span><span>4. analiza planu</span></div><div class="manual-plan-cheatsheet-grid"><section><b>Napięcie i technika</b><p>Dobieraj obciążenie oraz zakres ruchu, który klient kontroluje bez wyraźnego pogorszenia techniki. Wolniejsze tempo nie jest celem samym w sobie — ma pomagać kontrolować ruch.</p></section><section><b>Wysiłek: RIR / blisko upadku</b><p>Większość serii hipertroficznych może kończyć się z małym zapasem, zwykle około 0–3 RIR. Nie trzeba doprowadzać każdej serii złożonej do upadku.</p></section><section><b>Objętość tygodniowa</b><p>Licz tylko serie robocze dla danej partii. Jako punkt startowy często wystarcza 6–10 serii tygodniowo; wiele osób dobrze toleruje około 10–16. Zwiększaj dopiero, gdy jest progres i regeneracja.</p></section><section><b>Progresja i regeneracja</b><p>Gdy klient kontroluje technikę i osiąga górę zakresu powtórzeń, dodaj powtórzenie lub najmniejszy skok ciężaru. Zwracaj uwagę na sen, ból, spadek wyników i czas trwania sesji.</p></section><section><b>Przerwy</b><p>Dłuższe przerwy zwykle pomagają utrzymać jakość serii: orientacyjnie 2–3 min przy ćwiczeniach złożonych oraz 1–2 min przy izolacjach. Dostosuj do ćwiczenia i osoby.</p></section><section><b>Jak czytać analizę?</b><p>Analiza pokazuje wskazówki, nie wyrok. Brak wzorca lub „wysoka” objętość może być celowy — sprawdź priorytet, historię treningową i tolerancję klienta.</p></section></div><p class="manual-plan-cheatsheet-note">To praktyczne ramy, a nie sztywne normy ani zalecenia medyczne.</p></div></details>`;
+    return `<details class="manual-plan-cheatsheet" id="manual-plan-cheatsheet"><summary><span><b>Podstawy hipertrofii</b><small>Ściągawka o objętości, RIR i progresji — otwierasz tylko wtedy, gdy jej potrzebujesz</small></span><span class="manual-plan-cheatsheet-toggle" aria-hidden="true">Otwórz</span></summary><div class="manual-plan-cheatsheet-body"><div class="manual-plan-cheatsheet-grid"><section><b>Napięcie i technika</b><p>Dobieraj obciążenie oraz zakres ruchu, który klient kontroluje bez wyraźnego pogorszenia techniki. Wolniejsze tempo nie jest celem samym w sobie — ma pomagać kontrolować ruch.</p></section><section><b>Wysiłek: RIR / blisko upadku</b><p>Większość serii hipertroficznych może kończyć się z małym zapasem, zwykle około 0–3 RIR. Nie trzeba doprowadzać każdej serii złożonej do upadku.</p></section><section><b>Objętość tygodniowa</b><p>Licz tylko serie robocze dla danej partii. Jako punkt startowy często wystarcza 6–10 serii tygodniowo; wiele osób dobrze toleruje około 10–16. Zwiększaj dopiero, gdy jest progres i regeneracja.</p></section><section><b>Progresja i regeneracja</b><p>Gdy klient kontroluje technikę i osiąga górę zakresu powtórzeń, dodaj powtórzenie lub najmniejszy skok ciężaru. Zwracaj uwagę na sen, ból, spadek wyników i czas trwania sesji.</p></section><section><b>Przerwy</b><p>Dłuższe przerwy zwykle pomagają utrzymać jakość serii: orientacyjnie 2–3 min przy ćwiczeniach złożonych oraz 1–2 min przy izolacjach. Dostosuj do ćwiczenia i osoby.</p></section><section><b>Jak czytać analizę?</b><p>Analiza pokazuje wskazówki, nie wyrok. Brak wzorca lub „wysoka” objętość może być celowy — sprawdź priorytet, historię treningową i tolerancję klienta.</p></section></div><p class="manual-plan-cheatsheet-note">To praktyczne ramy, a nie sztywne normy ani zalecenia medyczne.</p></div></details>`;
   }
 
   function manualPlanEnsureBuilderCheatsheet(){
     if(typeof document==='undefined')return null;
     let sheet=document.getElementById('manual-plan-cheatsheet');
-    const quickbar=document.getElementById('manual-plan-quickbar');
-    if(!sheet&&quickbar){
-      quickbar.insertAdjacentHTML('afterend',manualPlanHypertrophyCheatsheetHtml());
+    const sidebar=document.getElementById('builder-sidebar-scroll');
+    const knowledge=document.getElementById('builder-kb-card');
+    if(!sheet&&sidebar){
+      if(knowledge)knowledge.insertAdjacentHTML('beforebegin',manualPlanHypertrophyCheatsheetHtml());
+      else sidebar.insertAdjacentHTML('beforeend',manualPlanHypertrophyCheatsheetHtml());
       sheet=document.getElementById('manual-plan-cheatsheet');
       if(sheet)sheet.addEventListener('toggle',()=>{
         const toggle=sheet.querySelector('.manual-plan-cheatsheet-toggle');
-        if(toggle)toggle.textContent=sheet.open?'Zwiń':'Rozwiń';
+        if(toggle)toggle.textContent=sheet.open?'Zwiń':'Otwórz';
       });
     }
     return sheet;

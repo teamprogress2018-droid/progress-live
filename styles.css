@@ -755,6 +755,10 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .manual-plan-cheatsheet-grid b{display:block;margin-bottom:4px;color:var(--text-primary);font-size:12px;}
 .manual-plan-cheatsheet-grid p{margin:0;color:var(--text-secondary);font-size:11px;line-height:1.48;}
 .manual-plan-cheatsheet-note{margin:10px 0 0;color:var(--text-tertiary);font-size:11px;line-height:1.45;}
+.builder-sidebar-scroll>.manual-plan-cheatsheet{flex-shrink:0;margin:0;}
+.builder-sidebar .manual-plan-cheatsheet-grid{grid-template-columns:1fr;}
+.builder-sidebar .manual-plan-cheatsheet-body{padding:0 12px 12px;}
+.builder-sidebar .manual-plan-cheatsheet summary{padding:11px 12px;}
 .manual-plan-ready{display:flex;gap:12px;align-items:flex-start;padding:14px;background:rgba(47,191,113,.09);border:1px solid rgba(47,191,113,.38);border-radius:10px;}
 .manual-plan-ready-icon{display:grid;place-items:center;width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:var(--green,#2fbf71);color:#07140d;font-weight:900;}
 .manual-plan-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px;}
