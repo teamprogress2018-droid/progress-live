@@ -122,6 +122,7 @@
       <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
       <div class="nav-sec">Narzędzia</div>
       <button class="nav-item" data-screen="calculator" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
+      <button class="nav-item" data-screen="academy" onclick="goTo('academy')">📚 Progress Academy</button>
       <button class="nav-item" data-screen="kb" onclick="goTo('kb')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Baza wiedzy</button>
       <button class="nav-item" data-screen="integrations" onclick="goTo('integrations')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Integracje</button>
       <button class="nav-item" data-screen="resources" onclick="goTo('resources')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Zasoby</button>
@@ -412,33 +413,8 @@
       </div>
       <div id="builder-days"></div>
       <button type="button" class="add-day-btn" onclick="addDay()">+ Dodaj dzień treningowy</button>
+      <div class="builder-academy-nudge" role="note">Masz wątpliwość co do objętości, RIR lub splitu? <button type="button" class="btn btn-ghost btn-sm" onclick="academyFromBuilder()">Sprawdź w Progress Academy</button></div>
     </div>
-    <div class="builder-sidebar" id="builder-sidebar">
-      <div class="builder-sidebar-toolbar">
-        <span class="builder-sidebar-toolbar-lbl">Pomoc trenera</span>
-        <button type="button" class="btn btn-ghost btn-sm builder-sidebar-collapse" id="builder-sidebar-collapse" onclick="toggleBuilderSidebar(false)" title="Zwiń pomoc trenera">Zwiń ⟩</button>
-      </div>
-      <div class="builder-sidebar-scroll" id="builder-sidebar-scroll">
-      <div class="ai-panel">
-        <div class="ai-hdr"><div class="ai-dot"></div><div class="ai-panel-title">Asystent AI</div><div class="ai-panel-badge">NSCA / NASM / ACSM</div></div>
-        <div class="ai-body">
-          <div id="ai-watch-card" class="ai-watch-card" hidden></div>
-          <div class="ai-msgs" id="ai-msgs"><div class="ai-msg bot"><div class="ai-bubble">Witaj! Zapytaj mnie o dobór ćwiczeń, serie, RPE, przerwy lub korekty dla klienta.</div></div></div>
-          <div class="ai-input-row"><input type="text" class="ai-inp" id="ai-q" placeholder="Zapytaj o plan..." onkeydown="if(event.key==='Enter')askAI()"><button class="ai-send" onclick="askAI()">→</button></div>
-        </div>
-      </div>
-      <div class="card" id="builder-kb-card">
-        <div class="builder-kb-header"><div class="ui-section-hdr">Biomechanika ćwiczeń</div><button type="button" class="btn btn-ghost btn-sm" id="builder-kb-toggle" aria-expanded="false" onclick="builderToggleKnowledge()">Pokaż</button></div>
-        <div class="ui-section-sub">Otwieraj wskazówki dopiero dla wybranego ćwiczenia lub problemu technicznego.</div>
-        <div id="builder-kb-hits" class="builder-kb-hits" hidden><div class="ui-section-sub">Tagi MEV / partia z notatek pojawią się przy dniu i ćwiczeniu.</div></div>
-      </div>
-      <div class="card" id="builder-period-card">
-        <div class="ui-section-hdr">Harmonogram periodyzacji</div>
-        <div id="period-sched"><div class="ui-section-sub">Wybierz klienta</div></div>
-      </div>
-      </div>
-    </div>
-    <button type="button" class="builder-sidebar-expand" id="builder-sidebar-expand" hidden onclick="toggleBuilderSidebar(true)" title="Pokaż pomoc trenera">☰ Pomoc trenera</button>
   </div>
 </div>
 
@@ -1674,6 +1650,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
   </div>
 </div>
+
+<div class="screen" id="screen-academy"></div>
 
 <!-- BAZA WIEDZY -->
 <div class="screen" id="screen-kb">
@@ -4612,6 +4590,7 @@ async function load(session=captureTenantSession()){
 <script src="08-client-profile-extras.js?v=89&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
+<script src="11-progress-academy.js?v=1"></script>
   <script src="12-manual-plan-wizard.js?v=14&biomech-button-fix=1"></script>
 </body>
 </html>
