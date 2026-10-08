@@ -1,0 +1,13 @@
+const fs=require('fs');
+const path=require('path');
+const root=path.resolve(__dirname,'..','..');
+const exercise=fs.readFileSync(path.join(root,'06-inbox-exercises-ai-programs.js'),'utf8');
+const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
+const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const assert=(ok,label)=>{if(!ok)throw new Error(label);};
+assert(exercise.includes('function exAcShowPreview')&&exercise.includes('function exAcHidePreview'),'autocomplete ma sterowanie podglądem techniki');
+assert(exercise.includes("dd.addEventListener('pointerover'")&&exercise.includes("dd.addEventListener('pointerleave'"),'podgląd reaguje na najechanie i opuszczenie listy');
+assert(exercise.includes('autoplay muted loop playsinline'),'podgląd wideo jest wyciszony');
+assert(css.includes('.ex-ac-preview'),'podgląd ma osobny, nieblokujący styl');
+assert(index.includes('exercise-preview=1'),'wersja zasobów podglądu jest odświeżona');
+console.log('OK exercise autocomplete preview');

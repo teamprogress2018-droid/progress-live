@@ -2014,9 +2014,74 @@ function exAcHide(input){
   const wrap=input&&input.closest('.ex-ac-wrap');
   const dd=wrap&&wrap.querySelector('.ex-ac-dropdown');
   if(dd)dd.style.display='none';
+  exAcHidePreview();
   const day=input&&input.closest('.builder-day');
   if(day)day.classList.remove('ex-ac-open');
   if(_exAcState&&(!input||_exAcState.input===input))_exAcState=null;
+}
+
+// Podgląd jest celowo wyciszony: podczas wyboru ćwiczenia trener może zobaczyć
+// technikę bez uruchamiania dźwięku ani osadzania zewnętrznego odtwarzacza.
+let _exAcPreviewName='';
+function exAcEnsurePreview(){
+  let preview=document.getElementById('ex-ac-preview');
+  if(preview)return preview;
+  preview=document.createElement('aside');
+  preview.id='ex-ac-preview';
+  preview.className='ex-ac-preview';
+  preview.hidden=true;
+  preview.setAttribute('aria-live','polite');
+  document.body.appendChild(preview);
+  return preview;
+}
+function exAcHidePreview(){
+  const preview=document.getElementById('ex-ac-preview');
+  if(preview){preview.hidden=true;preview.innerHTML='';}
+  _exAcPreviewName='';
+}
+function exAcPreviewHtml(media){
+  if(!media)return'';
+  const name=String(media.name||'Technika ćwiczenia');
+  const safe=typeof escHtml==='function'?escHtml(name):name;
+  const gif=String(media.gif||'').trim();
+  const video=String(media.video||'').trim();
+  const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
+  let visual='';let label='Podgląd techniki';
+  if(gif&&typeof exTechniqueMediaHtml==='function'){
+    visual=exTechniqueMediaHtml({gif,name},{compact:true});
+    label=/\.(mp4|webm)(\?|#|$)/i.test(gif)?'Wyciszony film techniki':'Animacja techniki';
+  }else if(video&&file){
+    visual=`<video src="${typeof escHtml==='function'?escHtml(video):video}" autoplay muted loop playsinline preload="metadata"></video>`;
+    label='Wyciszony film techniki';
+  }else if(media.img){
+    visual=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${safe}" loading="lazy" referrerpolicy="no-referrer">`;
+    label='Podgląd techniki';
+  }
+  if(!visual)return'';
+  const videoHint=video&&!file&&!sameMediaUrl(gif,video)?'<span>Pełny film po wyborze ćwiczenia</span>':'';
+  return `<div class="ex-ac-preview-media">${visual}</div><div class="ex-ac-preview-copy"><b>${safe}</b><small>${label}</small>${videoHint}</div>`;
+}
+function exAcShowPreview(item){
+  if(!item||!item.dataset)return;
+  if(typeof window!=='undefined'&&window.matchMedia&&!window.matchMedia('(hover: hover)').matches)return;
+  const name=String(item.dataset.name||'').trim();
+  if(!name||name===_exAcPreviewName)return;
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia({name}):null;
+  if(!media||(!media.gif&&!media.video&&!media.img)){exAcHidePreview();return;}
+  const html=exAcPreviewHtml(Object.assign({},media,{name}));
+  if(!html){exAcHidePreview();return;}
+  const preview=exAcEnsurePreview();
+  preview.innerHTML=html;
+  preview.hidden=false;
+  _exAcPreviewName=name;
+  const rect=item.getBoundingClientRect();
+  const gap=12,width=Math.min(300,Math.max(220,(window.innerWidth||0)-24));
+  let left=rect.right+gap;
+  if(left+width>(window.innerWidth||0)-12)left=Math.max(12,rect.left-width-gap);
+  const height=preview.offsetHeight||250;
+  const top=Math.max(12,Math.min(rect.top,(window.innerHeight||0)-height-12));
+  preview.style.left=Math.round(left)+'px';
+  preview.style.top=Math.round(top)+'px';
 }
 
 function exAcHighlight(dd,idx){
@@ -2024,6 +2089,7 @@ function exAcHighlight(dd,idx){
   items.forEach((el,i)=>el.classList.toggle('active',i===idx));
   const active=items[idx];
   if(active)active.scrollIntoView({block:'nearest'});
+  if(active)exAcShowPreview(active);
   return items;
 }
 
@@ -2168,7 +2234,16 @@ function exAcRender(input){
 function exAcInitInput(input){
   if(!input||input.dataset.exAcInit)return;
   input.dataset.exAcInit='1';
-  exAcEnsureWrap(input);
+  const wrap=exAcEnsureWrap(input);
+  const dd=wrap&&wrap.querySelector('.ex-ac-dropdown');
+  if(dd&&!dd.dataset.previewInit){
+    dd.dataset.previewInit='1';
+    dd.addEventListener('pointerover',e=>{
+      const item=e.target.closest&&e.target.closest('.ex-ac-item');
+      if(item&&dd.contains(item))exAcShowPreview(item);
+    });
+    dd.addEventListener('pointerleave',exAcHidePreview);
+  }
   input.addEventListener('focus',()=>{if(!_exAcPicking){exAcRememberSource(input);exAcRender(input);}});
   input.addEventListener('input',()=>{if(!_exAcPicking)exAcRender(input);});
   input.addEventListener('keydown',e=>{
