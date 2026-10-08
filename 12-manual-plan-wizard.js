@@ -391,29 +391,30 @@
 
   function manualPlanExerciseStepFields(meta){
     const p=meta.periodization||{};
-    return `<div class="card" style="padding:14px;background:var(--s3);"><b>Za chwilę przejdziesz do ćwiczeń.</b><div style="margin-top:6px;font-size:13px;line-height:1.55;color:var(--text-secondary);">W edytorze dodasz ćwiczenie, serie, powtórzenia, RIR i przerwę. Biomechanikę otworzysz ikoną ⓘ przy danym ćwiczeniu — nie będzie zasłaniała planu.</div></div><div class="form-grid" style="margin-top:14px;"><div class="form-field"><label class="form-lbl">Długość programu</label><select class="form-select" id="mpw-weeks">${[4,6,8,10,12].map(value=>`<option value="${value}"${p.durationWeeks===value?' selected':''}>${value} tygodni</option>`).join('')}</select></div><div class="form-field"><label class="form-lbl">Deload <span style="color:var(--muted);font-weight:400;">(opcjonalnie)</span></label><label class="manual-plan-check"><input type="checkbox" id="mpw-deload"${p.deloadEnabled?' checked':''}> Dodaj lżejszy tydzień</label></div></div><div class="manual-plan-why"><b>Dlaczego to sugerujemy?</b> Najpierw budujemy prostą strukturę, a szczegóły ćwiczeń dobieramy dopiero wtedy, gdy znamy cel, priorytety i dostępny czas.</div>`;
+    return `<div class="manual-plan-next-view"><span>NASTĘPNY EKRAN</span><b>Ułożysz treningi bez zgadywania kolejności.</b><ol><li>Wybierz ćwiczenie z biblioteki.</li><li>Ustaw serie, powtórzenia, RIR i przerwę.</li><li>Otwórz „Analizę planu”, aby sprawdzić objętość oraz wzorce ruchu.</li></ol><div>Biomechanikę otworzysz ikoną ⓘ przy ćwiczeniu. Podgląd filmu pojawi się przy nazwie ćwiczenia.</div></div><div class="form-grid" style="margin-top:14px;"><div class="form-field"><label class="form-lbl">Długość programu</label><select class="form-select" id="mpw-weeks">${[4,6,8,10,12].map(value=>`<option value="${value}"${p.durationWeeks===value?' selected':''}>${value} tygodni</option>`).join('')}</select></div><div class="form-field"><label class="form-lbl">Deload <span style="color:var(--muted);font-weight:400;">(opcjonalnie)</span></label><label class="manual-plan-check"><input type="checkbox" id="mpw-deload"${p.deloadEnabled?' checked':''}> Dodaj lżejszy tydzień</label></div></div><div class="manual-plan-why"><b>Dlaczego w tej kolejności?</b> Najpierw budujemy prostą strukturę, a szczegóły ćwiczeń dobieramy dopiero wtedy, gdy znamy cel, priorytety i dostępny czas.</div>`;
   }
 
   function manualPlanGuidedReview(meta){
     const profile=meta.clientProfile||{},priority=meta.priorities||{};
     const primary=priority.primary==='wlasny'?(priority.custom||'własny priorytet'):(priorityLabels[priority.primary]||priorityLabels.none);
     const secondary=priority.secondary?(priority.secondary==='wlasny'?(priority.custom||'własny priorytet'):priorityLabels[priority.secondary]):'';
-    return `<div class="manual-plan-ready"><div class="manual-plan-ready-icon">✓</div><div><b>Plan ma poprawne podstawy.</b><div style="margin-top:4px;color:var(--text-secondary);font-size:13px;line-height:1.55;">W kolejnym widoku dodasz ćwiczenia i zobaczysz krótką analizę częstotliwości, objętości, priorytetów oraz regeneracji.</div></div></div><div class="manual-plan-summary"><div><span>Cel</span><b>${esc(goalLabels[profile.goal]||profile.goal)}</b></div><div><span>Priorytet</span><b>${esc(primary)}${secondary?' + '+esc(secondary):''}</b></div><div><span>Tydzień</span><b>${profile.sessionsPerWeek} treningi · ${esc(meta.structure&&meta.structure.split)}</b></div><div><span>Progresja</span><b>${esc(meta.progression&&meta.progression.type==='double'?'Podwójna progresja':meta.progression&&meta.progression.type||'do ustalenia')}</b></div></div>`;
+    return `<div class="manual-plan-ready"><div class="manual-plan-ready-icon">✓</div><div><b>Plan ma poprawne podstawy.</b><div style="margin-top:4px;color:var(--text-secondary);font-size:13px;line-height:1.55;">Za moment ułożysz ćwiczenia. Potem aplikacja pokaże krótką analizę częstotliwości, objętości, priorytetów oraz regeneracji.</div></div></div><div class="manual-plan-summary"><div><span>Cel</span><b>${esc(goalLabels[profile.goal]||profile.goal)}</b></div><div><span>Priorytet</span><b>${esc(primary)}${secondary?' + '+esc(secondary):''}</b></div><div><span>Tydzień</span><b>${profile.sessionsPerWeek} treningi · ${esc(meta.structure&&meta.structure.split)}</b></div><div><span>Progresja</span><b>${esc(meta.progression&&meta.progression.type==='double'?'Podwójna progresja':meta.progression&&meta.progression.type||'do ustalenia')}</b></div></div><div class="manual-plan-review-next"><b>Co dalej:</b><span>1. dodaj ćwiczenia do każdego dnia</span><span>2. ustaw parametry pracy</span><span>3. sprawdź analizę zamiast traktować plan jako gotowy automatycznie</span></div>`;
   }
 
   function manualPlanWizardCoach(step,meta){
     const p=meta.priorities||{};
     const primary=p.primary==='wlasny'?(p.custom||'wybrany priorytet'):(priorityLabels[p.primary]||'wybrany priorytet');
     const messages={
-      1:'Określ główny cel i poziom klienta. Na tej podstawie uprościmy kolejne rekomendacje.',
-      2:`Wybierz partię, na której klientowi najbardziej zależy. Uwzględnię „${primary}” przy kolejności ćwiczeń i analizie objętości.`,
-      3:'Dobieramy liczbę sesji i strukturę tygodnia. Sugestia ma pomagać, nie blokować Twojej decyzji.',
-      4:'Na start proste serie są najłatwiejsze do kontroli. Metody intensyfikacyjne dodawaj celowo, nie z rozpędu.',
-      5:'Dla większości osób podwójna progresja jest czytelna: najpierw powtórzenia, potem najmniejszy dostępny skok ciężaru.',
-      6:'Teraz przechodzimy do ćwiczeń. W edytorze zobaczysz tylko parametry potrzebne do pracy; szczegóły są pod „Więcej” i ⓘ.',
-      7:'Podstawy są gotowe. Analiza po dodaniu ćwiczeń sprawdzi strukturę, ale decyzja zawsze zostaje po stronie trenera.'
+      1:{task:'Wybierz cel i poziom klienta.',why:'Na tej podstawie uprościmy kolejne rekomendacje.'},
+      2:{task:'Wybierz partię, na której klientowi najbardziej zależy.',why:`Uwzględnię „${primary}” przy kolejności ćwiczeń i analizie objętości.`},
+      3:{task:'Ustal realną liczbę sesji i strukturę tygodnia.',why:'Sugestia ma pomagać, nie blokować Twojej decyzji.'},
+      4:{task:'Zaznacz tylko metody, z których rzeczywiście chcesz korzystać.',why:'Na start proste serie są najłatwiejsze do kontroli; metody intensyfikacyjne dodawaj celowo.'},
+      5:{task:'Wybierz prostą regułę progresji.',why:'Dla większości osób podwójna progresja jest czytelna: najpierw powtórzenia, potem najmniejszy dostępny skok ciężaru.'},
+      6:{task:'Przygotuj przejście do układania ćwiczeń.',why:'W edytorze zobaczysz tylko parametry potrzebne do pracy; szczegóły są pod „Więcej” i ⓘ.'},
+      7:{task:'Sprawdź podsumowanie i przejdź do budowania treningów.',why:'Analiza po dodaniu ćwiczeń sprawdzi strukturę, ale decyzja zawsze zostaje po stronie trenera.'}
     };
-    return `<aside class="manual-plan-coach"><div class="manual-plan-coach-label">ASYSTENT NA TYM KROKU</div><div>${esc(messages[step]||messages[1])}</div><button type="button" class="btn btn-ghost btn-sm" onclick="manualPlanOpenLearnMore()">Dowiedz się więcej</button></aside>`;
+    const message=messages[step]||messages[1];
+    return `<aside class="manual-plan-coach"><div class="manual-plan-coach-label">ASYSTENT KROK PO KROKU</div><b>Teraz: ${esc(message.task)}</b><div>${esc(message.why)}</div><button type="button" class="btn btn-ghost btn-sm" onclick="manualPlanOpenLearnMore()">Dlaczego to ma znaczenie?</button></aside>`;
   }
 
   function manualPlanOpenLearnMore(){
@@ -621,6 +622,25 @@
     manualPlanUpdateBuilderAssistant();
     manualPlanShowAnalysis();
     window._manualPlanWizard=null;
+  }
+
+  function manualPlanHypertrophyCheatsheetHtml(){
+    return `<details class="manual-plan-cheatsheet" id="manual-plan-cheatsheet" open><summary><span><b>Ściągawka: hipertrofia i objętość</b><small>Krótka podpowiedź podczas układania planu</small></span><span class="manual-plan-cheatsheet-toggle" aria-hidden="true">Zwiń</span></summary><div class="manual-plan-cheatsheet-body"><div class="manual-plan-builder-steps"><b>Układaj w tej kolejności</b><span>1. ćwiczenie</span><span>2. serie / powtórzenia / RIR</span><span>3. przerwa</span><span>4. analiza planu</span></div><div class="manual-plan-cheatsheet-grid"><section><b>Napięcie i technika</b><p>Dobieraj obciążenie oraz zakres ruchu, który klient kontroluje bez wyraźnego pogorszenia techniki. Wolniejsze tempo nie jest celem samym w sobie — ma pomagać kontrolować ruch.</p></section><section><b>Wysiłek: RIR / blisko upadku</b><p>Większość serii hipertroficznych może kończyć się z małym zapasem, zwykle około 0–3 RIR. Nie trzeba doprowadzać każdej serii złożonej do upadku.</p></section><section><b>Objętość tygodniowa</b><p>Licz tylko serie robocze dla danej partii. Jako punkt startowy często wystarcza 6–10 serii tygodniowo; wiele osób dobrze toleruje około 10–16. Zwiększaj dopiero, gdy jest progres i regeneracja.</p></section><section><b>Progresja i regeneracja</b><p>Gdy klient kontroluje technikę i osiąga górę zakresu powtórzeń, dodaj powtórzenie lub najmniejszy skok ciężaru. Zwracaj uwagę na sen, ból, spadek wyników i czas trwania sesji.</p></section><section><b>Przerwy</b><p>Dłuższe przerwy zwykle pomagają utrzymać jakość serii: orientacyjnie 2–3 min przy ćwiczeniach złożonych oraz 1–2 min przy izolacjach. Dostosuj do ćwiczenia i osoby.</p></section><section><b>Jak czytać analizę?</b><p>Analiza pokazuje wskazówki, nie wyrok. Brak wzorca lub „wysoka” objętość może być celowy — sprawdź priorytet, historię treningową i tolerancję klienta.</p></section></div><p class="manual-plan-cheatsheet-note">To praktyczne ramy, a nie sztywne normy ani zalecenia medyczne.</p></div></details>`;
+  }
+
+  function manualPlanEnsureBuilderCheatsheet(){
+    if(typeof document==='undefined')return null;
+    let sheet=document.getElementById('manual-plan-cheatsheet');
+    const quickbar=document.getElementById('manual-plan-quickbar');
+    if(!sheet&&quickbar){
+      quickbar.insertAdjacentHTML('afterend',manualPlanHypertrophyCheatsheetHtml());
+      sheet=document.getElementById('manual-plan-cheatsheet');
+      if(sheet)sheet.addEventListener('toggle',()=>{
+        const toggle=sheet.querySelector('.manual-plan-cheatsheet-toggle');
+        if(toggle)toggle.textContent=sheet.open?'Zwiń':'Rozwiń';
+      });
+    }
+    return sheet;
   }
 
   function manualPlanUpdateBuilderAssistant(){
@@ -892,8 +912,11 @@
     const quickbar=document.getElementById('manual-plan-quickbar');
     const trigger=document.getElementById('manual-plan-analysis-trigger');
     const cycle=document.getElementById('manual-plan-cycle-summary');
-    if(!meta){if(quickbar)quickbar.hidden=true;return null;}
+    const cheatsheet=document.getElementById('manual-plan-cheatsheet');
+    if(!meta){if(quickbar)quickbar.hidden=true;if(cheatsheet)cheatsheet.hidden=true;return null;}
     if(quickbar)quickbar.hidden=false;
+    const activeCheatsheet=manualPlanEnsureBuilderCheatsheet();
+    if(activeCheatsheet)activeCheatsheet.hidden=false;
     const result=manualPlanAnalyzeDays(manualPlanBuilderDays(),meta.clientProfile);
     meta.analysis={volume:{direct:result.muscleSets,secondaryExposure:result.secondaryExposure},movement:result.patterns,biomechanics:{resistanceProfiles:result.resistanceProfiles,lengthBiases:result.lengthBiases,hints:result.biomechHints},coverage:result.coverage,frequency:{sessions:result.activeDays,byPrimaryMuscle:result.frequency,bySecondaryMuscle:result.secondaryFrequency},balance:null,time:{estimatedMinutes:result.estimatedMinutes,averageMinutes:result.averageMinutes},warnings:result.warnings,score:result.score,deductions:result.deductions};
     const actionItems=(result.warnings||[]).filter(item=>item.level==='high'||item.level==='warning').length+(result.duplicates||[]).length;

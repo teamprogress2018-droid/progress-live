@@ -2075,11 +2075,14 @@ function exAcShowPreview(item){
   preview.hidden=false;
   _exAcPreviewName=name;
   const rect=item.getBoundingClientRect();
-  const gap=12,width=Math.min(300,Math.max(220,(window.innerWidth||0)-24));
+  const viewportWidth=document.documentElement.clientWidth||window.innerWidth||0;
+  const viewportHeight=document.documentElement.clientHeight||window.innerHeight||0;
+  const gap=12,width=Math.min(300,Math.max(220,viewportWidth-24));
   let left=rect.right+gap;
-  if(left+width>(window.innerWidth||0)-12)left=Math.max(12,rect.left-width-gap);
-  const height=preview.offsetHeight||250;
-  const top=Math.max(12,Math.min(rect.top,(window.innerHeight||0)-height-12));
+  if(left+width>viewportWidth-12)left=Math.max(12,rect.left-width-gap);
+  const height=Math.max(preview.getBoundingClientRect().height||0,206);
+  let top=Math.min(rect.top,viewportHeight-height-12);
+  if(top<12)top=Math.max(12,rect.bottom-height);
   preview.style.left=Math.round(left)+'px';
   preview.style.top=Math.round(top)+'px';
 }
