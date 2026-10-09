@@ -6965,6 +6965,20 @@ function dashStartLive(sessionId){
 }
 window.dashStartLive=dashStartLive;
 
+// Start z prostego panelu: wykorzystaj najbliższą dzisiejszą sesję, a gdy jej
+// nie ma, otwórz bezpiecznie standardowy wybór klienta w Treningu Live.
+function dashStartPrimary(){
+  const now=new Date();
+  const rank={running:0,upcoming:1,unscheduled:2,unrecorded:3};
+  const candidate=(typeof dashTodaySessions==='function'?dashTodaySessions():[])
+    .map(session=>({session,state:typeof dashSessionState==='function'?dashSessionState(session,now):{kind:'upcoming'}}))
+    .filter(row=>row&&row.session&&row.session.clientId&&Object.prototype.hasOwnProperty.call(rank,row.state.kind))
+    .sort((a,b)=>rank[a.state.kind]-rank[b.state.kind]||Number(a.state.start||0)-Number(b.state.start||0))[0];
+  if(candidate)return dashStartLive(candidate.session.id);
+  if(typeof goTo==='function')goTo('live');
+}
+window.dashStartPrimary=dashStartPrimary;
+
 function renderDashToday(){
   const el=document.getElementById('d-today-sessions');if(!el)return;
   const now=new Date();
