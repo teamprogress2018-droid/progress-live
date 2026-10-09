@@ -4019,6 +4019,33 @@ function liveExTargetLine(ex,slot){
 }
 window.liveExTargetLine=liveExTargetLine;
 
+/** Najważniejsze dane ćwiczenia w widoku Live. Szczegóły progresu pozostają niżej, aby nie zasłaniały zapisu serii. */
+function liveExFocusInfoHtml(ex,slot,display){
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(ex&&ex.name):null;
+  const cat=String((lib&&lib.cat)||(ex&&ex.cat)||'').trim();
+  const muscle=String((lib&&lib.muscle)||(ex&&ex.muscle)||'').trim();
+  const sets=Array.isArray(ex&&ex.sets)?ex.sets.length:0;
+  const reps=(typeof liveExPlannedReps==='function'?liveExPlannedReps(ex,slot):'')||(ex&&ex.reps)||'';
+  const kg=typeof liveExTodayKg==='function'?liveExTodayKg(ex):'';
+  const rir=typeof plannedRir==='function'?plannedRir(ex):(ex&&ex.rir);
+  const hints=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex):{};
+  const meta=[];
+  if(sets)meta.push(['Serie',sets]);
+  if(reps)meta.push(['Powtórzenia',reps]);
+  if(kg!==''&&kg!=null)meta.push(['Ciężar',String(kg)+' kg']);
+  if(rir!==''&&rir!=null)meta.push(['Cel RIR',rir]);
+  if(hints&&hints.restLabel)meta.push(['Przerwa',hints.restLabel]);
+  const why=String((display&&display.description)||muscle||'').trim();
+  const label=(display&&display.priority)?'PRIORYTET':(cat?'PARTIA':'PLAN ĆWICZENIA');
+  const labelValue=cat||'Ćwiczenie z planu';
+  return `<section class="live-focus-info" aria-label="Plan ćwiczenia">
+    <div class="live-focus-label"><span>${escHtml(label)}</span><strong>${escHtml(labelValue)}</strong></div>
+    ${meta.length?`<div class="live-focus-metrics">${meta.map(x=>`<div><span>${escHtml(x[0])}</span><strong>${escHtml(x[1])}</strong></div>`).join('')}</div>`:''}
+    ${why?`<div class="live-focus-why"><strong>${display&&display.description?'Dlaczego to ćwiczenie?':'Cel ćwiczenia'}</strong><span>${escHtml(why)}</span></div>`:''}
+  </section>`;
+}
+window.liveExFocusInfoHtml=liveExFocusInfoHtml;
+
 function liveExCard(ex,i,slot,cue){
   const n=liveN(slot);
   const st=liveRef(n);
@@ -4054,11 +4081,18 @@ function liveExCard(ex,i,slot,cue){
   const targetRir=typeof plannedRir==='function'?plannedRir(ex):(ex.rir??'');
   const isCurrent=st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done);
   const currentSet=isCurrent?ex.sets.findIndex(s=>!s.done):-1;
+  // Przed startem pokazujemy pierwsze ćwiczenie jako punkt wejścia; w trakcie — aktualne ćwiczenie.
+  const isFocus=st.sessionActive?isCurrent:(!ex.done&&i===0);
   const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
-  const mediaOpen=!!ex.showVideo;
-  return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${showBody?'':' is-collapsed'}" id="${cardId}">
+  const media=typeof resolveCoachMedia==='function'?Object.assign({name:ex.name},resolveCoachMedia(ex)):ex;
+  const hasTechniqueMedia=!!(media&&(media.gif||media.video||media.videoEmbed));
+  const mediaOpen=!needsName&&(isFocus||!!ex.showVideo);
+  const mediaHtml=hasTechniqueMedia&&typeof coachMediaHtml==='function'
+    ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:true,showNote:false})
+    :`<div class="live-ex-media-empty"><strong>Brak filmu techniki</strong><span>Dodaj film lub GIF w Bibliotece ćwiczeń.</span></div>`;
+  return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${isFocus?' is-focus':''}${showBody?'':' is-collapsed'}" id="${cardId}">
     <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
-      ${thumb?`<button type="button" class="live-ex-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="Powiększ wizualizację"><img src="${escHtml(thumb)}" alt=""></button>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
+      ${thumb?`<button type="button" class="live-ex-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="Pokaż film lub obraz techniki"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
         ${liveExTitleHtml(ex,lastChip,histList)}
@@ -4072,15 +4106,15 @@ function liveExCard(ex,i,slot,cue){
         </div></details>
       </div>
     </div>
-    ${showBody&&!needsName?(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''):''}
+    ${showBody&&!needsName?(isFocus?`<details class="live-ex-progress-details"><summary>Progres, poprzedni trening i sugestia</summary>${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</details>`:(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):'')):''}
     ${showBody?`
     ${needsName?'':`<div class="live-ex-todo" onclick="event.stopPropagation()">
       <label class="live-ex-todo-lbl" for="live-ex-todo-${n}-${i}">Do zrobienia</label>
       <textarea id="live-ex-todo-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="${note?2:1}" placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte)" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
     </div>`}
-    ${needsName||(!target&&!display.description)?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`}
+    ${needsName||(!target&&!display.description)?'':(isFocus?liveExFocusInfoHtml(ex,n,display):`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`)}
     <div class="live-ex-body">
-      ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true,showNote:false}):''}</div>`:''}
+      ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${mediaHtml}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
         <div class="live-alts-lbl">Nazwa ćwiczenia</div>
