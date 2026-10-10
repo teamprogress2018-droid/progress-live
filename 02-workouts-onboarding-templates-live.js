@@ -4019,6 +4019,18 @@ function liveExTargetLine(ex,slot){
 }
 window.liveExTargetLine=liveExTargetLine;
 
+/** Jedna, łatwa do zastosowania wskazówka zamiast pełnej notatki biomechanicznej. */
+function liveShortCoachCue(note){
+  let text=String(note||'').replace(/^\s*PRIORYTET\s*:?\s*[^—–-]{0,48}\s*[—–-]\s*/i,'').trim();
+  text=text.split(/[;•\n]/)[0].trim();
+  if(text.length>96){
+    const cut=text.slice(0,93).replace(/\s+\S*$/,'').trim();
+    text=(cut||text.slice(0,93)).trim()+'…';
+  }
+  return text||'Utrzymaj spokojną, powtarzalną technikę.';
+}
+window.liveShortCoachCue=liveShortCoachCue;
+
 /** Najważniejsze dane ćwiczenia w widoku Live. Szczegóły progresu pozostają niżej, aby nie zasłaniały zapisu serii. */
 function liveExFocusInfoHtml(ex,slot,display){
   const lib=typeof libExerciseByName==='function'?libExerciseByName(ex&&ex.name):null;
@@ -4029,6 +4041,10 @@ function liveExFocusInfoHtml(ex,slot,display){
   const kg=typeof liveExTodayKg==='function'?liveExTodayKg(ex):'';
   const rir=typeof plannedRir==='function'?plannedRir(ex):(ex&&ex.rir);
   const hints=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex):{};
+  const restSec=Number(ex&&ex.restSec)||Number(hints&&hints.restSec)||0;
+  const restOptions=[30,45,60,75,90,120,180];
+  if(restSec>0&&!restOptions.includes(restSec))restOptions.push(restSec);
+  restOptions.sort((a,b)=>a-b);
   const meta=[];
   if(sets)meta.push(['Serie',sets]);
   if(reps)meta.push(['Powtórzenia',reps]);
@@ -4042,6 +4058,15 @@ function liveExFocusInfoHtml(ex,slot,display){
     <div class="live-focus-label"><span>${escHtml(label)}</span><strong>${escHtml(labelValue)}</strong></div>
     ${meta.length?`<div class="live-focus-metrics">${meta.map(x=>`<div><span>${escHtml(x[0])}</span><strong>${escHtml(x[1])}</strong></div>`).join('')}</div>`:''}
     ${why?`<div class="live-focus-why"><strong>${display&&display.description?'Dlaczego to ćwiczenie?':'Cel ćwiczenia'}</strong><span>${escHtml(why)}</span></div>`:''}
+    <div class="live-rest-choice" aria-label="Ustawienie przerwy po serii">
+      <div class="live-rest-choice-label"><span>PRZERWA PO SERII</span><strong>${restSec?restSec+' s':'Wybierz czas'}</strong></div>
+      <div class="live-rest-choice-controls">
+        <select aria-label="Wybierz długość przerwy po serii" onchange="liveSetFocusRest(this.value${liveSlotArg(slot)})">
+          ${restOptions.map(sec=>`<option value="${sec}"${sec===restSec?' selected':''}>${sec} s</option>`).join('')}
+        </select>
+        <label class="live-rest-custom-inline">Własna <input type="number" min="5" max="600" step="5" inputmode="numeric" value="${restSec||''}" placeholder="sek." aria-label="Własna długość przerwy w sekundach" onchange="liveSetFocusRest(this.value${liveSlotArg(slot)})"><span>s</span></label>
+      </div>
+    </div>
   </section>`;
 }
 window.liveExFocusInfoHtml=liveExFocusInfoHtml;
@@ -4106,14 +4131,27 @@ function liveExCard(ex,i,slot,cue){
         </div></details>
       </div>
     </div>
-    ${showBody&&!needsName?(isFocus?`<details class="live-ex-progress-details"><summary>Progres, poprzedni trening i sugestia</summary>${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</details>`:(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):'')):''}
+    ${showBody&&!needsName&&!isFocus&&typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}
     ${showBody?`
-    ${needsName?'':`<div class="live-ex-todo" onclick="event.stopPropagation()">
+    ${!needsName&&isFocus?`<div class="live-focus-cue live-focus-cue-simple"><span>NAJWAŻNIEJSZA WSKAZÓWKA</span><strong>${escHtml(liveShortCoachCue(note))}</strong></div>
+    <details class="live-ex-more-details" onclick="event.stopPropagation()">
+      <summary><strong>Szczegóły ćwiczenia</strong><span>progres · ustawienia · notatka</span></summary>
+      <div class="live-ex-more-body">
+        <div class="live-ex-more-section"><strong>Progres, poprzedni trening i sugestia</strong>${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</div>
+        ${liveExFocusInfoHtml(ex,n,display)}
+        <div class="live-ex-todo live-ex-todo-details">
+          <label class="live-ex-todo-lbl" for="live-ex-cue-${n}-${i}">Notatka trenera</label>
+          <textarea id="live-ex-cue-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="2" placeholder="Dodatkowa wskazówka techniczna" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
+        </div>
+      </div>
+    </details>`:''}
+    ${needsName||isFocus?'':`<div class="live-ex-todo" onclick="event.stopPropagation()">
       <label class="live-ex-todo-lbl" for="live-ex-todo-${n}-${i}">Do zrobienia</label>
       <textarea id="live-ex-todo-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="${note?2:1}" placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte)" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
     </div>`}
-    ${needsName||(!target&&!display.description)?'':(isFocus?liveExFocusInfoHtml(ex,n,display):`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`)}
+    ${needsName||(!target&&!display.description)||isFocus?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`}
     <div class="live-ex-body">
+      ${mediaOpen?'<span class="live-media-watch-label" aria-hidden="true">▶ Obejrzyj technikę</span>':''}
       ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${mediaHtml}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
@@ -4149,6 +4187,24 @@ function liveExCard(ex,i,slot,cue){
   </div>`;
 }
 window.liveExCard=liveExCard;
+
+function liveSetFocusRest(value,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ei=(st.exercises||[]).findIndex(ex=>ex&&!ex.done);
+  const ex=st.exercises&&st.exercises[ei>=0?ei:0];
+  const sec=typeof parseLiveRestCustomSec==='function'?parseLiveRestCustomSec(value):parseInt(value,10);
+  if(!ex||!sec){
+    if(typeof notify==='function')notify('Podaj przerwę od 5 do 600 sekund');
+    return;
+  }
+  ex.restSec=sec;
+  ex.rest=sec+'s';
+  liveSaveDraft(n);
+  renderLiveExercises(n);
+  if(typeof notify==='function')notify('Przerwa po serii: '+sec+' s');
+}
+window.liveSetFocusRest=liveSetFocusRest;
 
 function liveSetExTodo(i,val,slot){
   const n=liveN(slot);
@@ -4273,6 +4329,7 @@ function liveToggleSet(ei,si,slot){
       }else{
         if(prMsg&&typeof notify==='function')notify(prMsg);
         const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,next):(ex.restSec||90);
+        if(sec>0&&typeof notify==='function')notify('✓ Seria '+s.setNo+' zaliczona — start przerwy: '+sec+' s');
         liveStartRest(sec,n);
       }
     }

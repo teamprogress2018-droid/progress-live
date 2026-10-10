@@ -6063,7 +6063,6 @@ function renderDash(){
 
   document.getElementById('nb-clients').textContent=CL.length;
   try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
-  try{updateExDl();}catch(e){}
 
   set('d-revenue','0 zł');
   set('d-active-count',activeClients+' aktywnych');

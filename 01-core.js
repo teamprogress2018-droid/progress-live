@@ -350,6 +350,14 @@ function closeMobileSidebar(){
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
 
 function goTo(n){
+  // Gdy trener opuszcza kreator z bocznego menu, nie gubimy niezapisanego planu.
+  // Zatwierdzone wyjście z przycisku „Anuluj” ustawia jednorazowy bypass.
+  const builderScreen=document.getElementById('screen-builder');
+  if(n!=='builder'&&builderScreen&&builderScreen.classList.contains('active')&&typeof window.builderConfirmLeave==='function'){
+    const approved=!!window._builderNavigationConfirmed;
+    window._builderNavigationConfirmed=false;
+    if(!approved&&!window.builderConfirmLeave())return;
+  }
   if(window._onboardResumeTimer){
     clearTimeout(window._onboardResumeTimer);
     window._onboardResumeTimer=null;
@@ -368,7 +376,7 @@ function goTo(n){
   closeMobileSidebar();
   if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
   const libraryScreens=['library','plans','programs','templates','tasks','forms','metrics'];
-  const moreScreens=['ondemand','forum','payments','calculator','academy','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
+  const moreScreens=['ondemand','forum','payments','calculator','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
   // builder + aiplangen celowo poza Więcej — wejście z profilu klienta (Plan)
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
@@ -437,7 +445,6 @@ function _goToRender(n){
   if(n==='templates'){initTemplates();}
   if(n==='onboarding'){initOnboarding();}
   if(n==='kb'){renderKB();}
-  if(n==='academy'&&typeof window.renderProgressAcademy==='function')window.renderProgressAcademy();
 }
 
 function initPriorSportsForm(prefix,selected,activities){
@@ -607,8 +614,21 @@ document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>
 
 window.renderAll=function(){
   const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};
-  safe(renderDash);safe(renderClients);safe(renderPlans);
-  safe(renderCal);safe(renderLib);safe(renderInbox);
+  // Nie buduj wszystkich ekranów przy każdym starcie/zapisie. Widoki mają własne
+  // renderowanie w goTo(), więc odświeżamy wyłącznie ekran, który trener widzi.
+  // To szczególnie odciąża start: Biblioteka (setki ćwiczeń), Kalendarz i Skrzynka
+  // nie tworzą już DOM-u w tle na pulpicie.
+  const active=(document.querySelector('.screen.active')||{}).id||'screen-dashboard';
+  const activeScreen=active.replace(/^screen-/,'');
+  const renderers={
+    dashboard:()=>renderDash(),
+    clients:()=>{renderClientFilters();renderClients();},
+    plans:()=>renderPlans(),
+    calendar:()=>renderCal(),
+    library:()=>{if(typeof renderLibTab==='function')renderLibTab();else renderLib();},
+    inbox:()=>renderInbox()
+  };
+  if(renderers[activeScreen])safe(renderers[activeScreen]);
   try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
   try{
     const builder=document.getElementById('screen-builder');
@@ -617,7 +637,6 @@ window.renderAll=function(){
     if(select&&!(builder&&builder.classList.contains('active')))
       select.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
   }catch(e){}
-  safe(updateExDl);
   safe(generateAutoNotifs);
   safe(syncSidebarProfile);
 };
@@ -2005,11 +2024,28 @@ function coachMediaIcons(ex){
 }
 window.coachMediaIcons=coachMediaIcons;
 
-function hideBrokenTechniqueMedia(el){
+function showTechniqueMediaUnavailable(el){
   if(!el)return;
   const box=el.closest?el.closest('.cw-technique-media'):null;
-  if(box)box.setAttribute('hidden','');
+  if(!box||box.dataset.techniqueFallback==='1')return;
+  box.dataset.techniqueFallback='1';
+  box.classList.add('is-unavailable');
+  if(typeof el.pause==='function')try{el.pause();}catch(e){}
+  el.setAttribute('hidden','');
+  el.setAttribute('aria-hidden','true');
+  const fallback=document.createElement('div');
+  fallback.className='cw-technique-media-fallback';
+  const title=document.createElement('b');
+  title.textContent='Podgląd techniki niedostępny';
+  const copy=document.createElement('span');
+  copy.textContent='Wybierz ćwiczenie, aby otworzyć pełny film lub przypisać inne medium.';
+  fallback.append(title,copy);
+  box.insertBefore(fallback,box.firstChild);
 }
+window.showTechniqueMediaUnavailable=showTechniqueMediaUnavailable;
+
+// Zostawiamy nazwę dla już zapisanych kart i starszych widoków aplikacji.
+function hideBrokenTechniqueMedia(el){showTechniqueMediaUnavailable(el);}
 window.hideBrokenTechniqueMedia=hideBrokenTechniqueMedia;
 
 function exTechniqueMediaHtml(media,opts){
@@ -2023,9 +2059,11 @@ function exTechniqueMediaHtml(media,opts){
   const showCap=!compact&&opts.caption!==false&&!!rawName;
   const cap=showCap?`<div class="cw-technique-cap">${alt}</div>`:'';
   const imgAlt=showCap?'':alt;
-  const onErr='this.onerror=null;if(typeof hideBrokenTechniqueMedia===\'function\')hideBrokenTechniqueMedia(this);';
+  const onErr='this.onerror=null;if(typeof showTechniqueMediaUnavailable===\'function\')showTechniqueMediaUnavailable(this);';
   if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
-    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}" autoplay loop muted playsinline preload="metadata" title="${alt}" onerror="${onErr}"></video>${cap}</div>`;
+    const poster=String((media&&media.poster)||'').trim();
+    const posterAttr=poster&&isSafeMediaUrl(poster)&&!isVideoMediaUrl(poster)&&!sameMediaUrl(poster,gif)?` poster="${escHtml(poster)}"`:'';
+    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}"${posterAttr} autoplay loop muted playsinline preload="metadata" title="${alt}" onerror="${onErr}"></video>${cap}</div>`;
   }
   return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><img class="${cls}" src="${escHtml(gif)}" alt="${imgAlt}" title="${alt}" loading="lazy" referrerpolicy="no-referrer" onerror="${onErr}">${cap}</div>`;
 }

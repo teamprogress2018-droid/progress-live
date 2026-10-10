@@ -242,7 +242,7 @@ function renderClients(){
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
       <div class="cl-name-meta">
         <div class="cl-name">${escHtml(c.name)}</div>
-        <div class="cl-sub">${escHtml(c.email||'Brak e-maila')}${duplicateName?' · ⚠ sprawdź duplikat imienia':''}${life&&life.key!=='active'&&life.key!=='onboarding'?' · '+escHtml(life.label):''}</div>
+        <div class="cl-sub">${escHtml(c.email||'—')}${duplicateName?' · ⚠ sprawdź duplikat imienia':''}${life&&life.key!=='active'&&life.key!=='onboarding'&&life.key!=='noemail'?' · '+escHtml(life.label):''}</div>
       </div>
       <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
     </div>
@@ -598,7 +598,7 @@ function openClientNextStartStep(clientId){
   }
   if(step.key==='baseline')return openClientBaselineModal(clientId,true);
   if(step.key==='schedule')return openClientScheduleFromOnboard(clientId);
-  if(step.key==='plan')return openAiPlanForClient(clientId,true);
+  if(step.key==='plan')return openClientPlanChoice(clientId);
   // Calendar and billing require a choice; opening the checklist does not create entries.
   return openClientOnboardChecklist(clientId);
 }
@@ -677,11 +677,6 @@ function renderOnboardAplBanner(){
 }
 function resumeOnboardFromApl(){
   const cid=window._onboardResumeAfterApl;
-  if(cid&&typeof aplLastPlan!=='undefined'&&aplLastPlan&&typeof clientHasAssignedPlan==='function'&&!clientHasAssignedPlan(cid)&&typeof aplSavePlan==='function'){
-    const sel=document.getElementById('apl-client');
-    if(sel)sel.value=cid;
-    try{aplSavePlan();return;}catch(e){console.warn('onboard apl auto-save',e);}
-  }
   window._onboardResumeAfterApl=null;
   if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
@@ -703,22 +698,89 @@ function resumeOnboardFromBuilder(){
   if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
+// Ostrzeżenie jest celowo lekkie: nie zapisujemy roboczego planu w przeglądarce,
+// ale chronimy trenera przed przypadkowym odświeżeniem lub wyjściem z kreatora.
+function builderDraftFingerprint(){
+  const value=id=>String((document.getElementById(id)||{}).value||'').trim();
+  const field=(row,key)=>{const el=row.querySelector('[data-f="'+key+'"]');return String((el||{}).value||'').trim();};
+  const dayData=[...document.querySelectorAll('#builder-days .builder-day')].map(day=>({
+    day:String((day.querySelector('.builder-day-select')||{}).value||''),
+    focus:String((day.querySelector('.builder-day-focus')||{}).value||'').trim(),
+    rest:!!((day.querySelector('.rc')||{}).checked),
+    circuit:!!((day.querySelector('.circ')||{}).checked),
+    roundRest:String((day.querySelector('[data-f="roundRest"]')||{}).value||'').trim(),
+    exercises:[...day.querySelectorAll('.ex-row')].map(row=>{
+      const data={};
+      ['name','sets','reps','kg','rpe','rir','rest','tempo','alt','pct1rm','note','video','ss','wu','drop','dropStep','trans','cluster','rp','amrap','emom'].forEach(key=>{data[key]=field(row,key);});
+      return data;
+    })
+  }));
+  return JSON.stringify({name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),days:dayData});
+}
+function builderMarkInitialFormState(){
+  if(window._builderSaveState)window._builderSaveState.initialFingerprint=builderDraftFingerprint();
+  builderUpdateDirtyUi();
+}
+function builderHasUnsavedChanges(){
+  const state=window._builderSaveState;
+  const screen=document.getElementById('screen-builder');
+  if(!state||state.saved||state.pending||!screen||!screen.classList.contains('active'))return false;
+  return builderDraftFingerprint()!==String(state.initialFingerprint||'');
+}
+function builderConfirmLeave(){
+  return !builderHasUnsavedChanges()||window.confirm('Masz niezapisane zmiany w planie. Opuścić kreator bez zapisywania?');
+}
+function builderBeforeUnload(event){
+  if(!builderHasUnsavedChanges())return;
+  event.preventDefault();
+  event.returnValue='';
+  return '';
+}
+function builderUpdateDirtyUi(){
+  const state=window._builderSaveState;
+  const dirty=builderHasUnsavedChanges();
+  const mark=document.getElementById('builder-dirty-indicator');
+  if(mark)mark.hidden=!dirty;
+  const btn=document.getElementById('b-save-btn');
+  if(btn&&!state?.pending&&!state?.saved)btn.textContent=dirty?'Zapisz zmiany':'Zapisz plan';
+}
+function builderSetupDirtyUi(){
+  const screen=document.getElementById('screen-builder');
+  if(!screen||screen.dataset.dirtyUiBound==='1')return;
+  screen.dataset.dirtyUiBound='1';
+  const refresh=event=>{
+    const field=event&&event.target;
+    if(field&&field.classList&&field.classList.contains('builder-field-invalid')){
+      field.classList.remove('builder-field-invalid');
+      field.removeAttribute('aria-invalid');
+    }
+    return window.requestAnimationFrame?window.requestAnimationFrame(builderUpdateDirtyUi):builderUpdateDirtyUi();
+  };
+  screen.addEventListener('input',refresh);
+  screen.addEventListener('change',refresh);
+  if(typeof MutationObserver==='function')new MutationObserver(refresh).observe(document.getElementById('builder-days'),{childList:true,subtree:true});
+}
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('beforeunload',builderBeforeUnload);
 function builderLeaveToCaller(opts){
   opts=opts||{};
+  if(!opts.saved&&!builderConfirmLeave())return false;
   if(window._onboardResumeAfterBuilder&&!opts.saved){
     resumeOnboardFromBuilder();
-    return;
+    return true;
   }
   const cid=window._builderReturnClientId;
   const tab=window._builderReturnTab||'plan';
   window._builderReturnClientId=null;
   window._builderReturnTab=null;
   if(cid&&typeof openClientProfile==='function'){
+    window._builderNavigationConfirmed=true;
     goTo('clients');
     openClientProfile(cid,{tab:tab});
-    return;
+    return true;
   }
+  window._builderNavigationConfirmed=true;
   goTo(window._builderBack||'clients');
+  return true;
 }
 function builderGoBack(){
   builderLeaveToCaller();
@@ -813,6 +875,60 @@ function openBuilderForClient(clientId,fromOnboard){
 }
 window.openBuilderForClient=openBuilderForClient;
 
+// Checklista nie zakłada, że generator AI jest jedyną drogą do planu.
+// Każda z trzech opcji otwiera konkretny tryb, ale nie zapisuje żadnego planu.
+function openClientPlanChoice(clientId){
+  const client=(window.CL||[]).find(item=>item&&item.id===clientId);
+  if(!client)return;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  let modal=document.getElementById('m-client-plan-choice');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='m-client-plan-choice';
+    modal.className='modal-ov';
+    document.body.appendChild(modal);
+  }
+  const esc=typeof escHtml==='function'?escHtml:value=>String(value==null?'':value);
+  const idArg=String(clientId).replace(/'/g,"\\'");
+  modal.innerHTML=`<div class="modal" style="max-width:620px;">
+    <div class="modal-hdr"><div class="modal-title">JAK CHCESZ UTWORZYĆ PLAN?</div><button class="modal-close" onclick="closeClientPlanChoice('${idArg}')">×</button></div>
+    <div class="modal-body">
+      <p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:var(--muted);">Dla <b style="color:var(--text);">${esc(client.name||client.email||'tego klienta')}</b>. Wybierz sposób pracy — plan zostanie zapisany dopiero po Twoim potwierdzeniu.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;">
+        <button type="button" class="card" style="text-align:left;cursor:pointer;padding:14px;" onclick="startClientAiPlan('${idArg}')"><b>⚡ Generator AI</b><span style="display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45;">Szybki szkic na podstawie danych klienta.</span></button>
+        <button type="button" class="card" style="text-align:left;cursor:pointer;padding:14px;" onclick="startClientManualPlan('${idArg}')"><b>🧭 Plan krok po kroku</b><span style="display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45;">Prowadzony kreator dla trenera.</span></button>
+        <button type="button" class="card" style="text-align:left;cursor:pointer;padding:14px;" onclick="startClientBuilderPlan('${idArg}')"><b>✏️ Klasyczny kreator</b><span style="display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45;">Pełna ręczna edycja lub start od szablonu.</span></button>
+      </div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="closeClientPlanChoice('${idArg}')">Wróć do checklisty</button></div>
+  </div>`;
+  if(typeof openM==='function')openM('m-client-plan-choice');
+}
+function closeClientPlanChoice(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  if(clientId&&typeof openClientOnboardChecklist==='function')openClientOnboardChecklist(clientId);
+}
+function startClientAiPlan(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  return openAiPlanForClient(clientId,true);
+}
+function startClientManualPlan(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  // Flaga umożliwia bezpieczny powrót do checklisty po przejściu kreatora.
+  window._onboardResumeAfterBuilder=clientId;
+  if(typeof window.openManualPlanPicker==='function')return window.openManualPlanPicker(clientId);
+  return openBuilderForClient(clientId,true);
+}
+function startClientBuilderPlan(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  return openBuilderForClient(clientId,true);
+}
+window.openClientPlanChoice=openClientPlanChoice;
+window.closeClientPlanChoice=closeClientPlanChoice;
+window.startClientAiPlan=startClientAiPlan;
+window.startClientManualPlan=startClientManualPlan;
+window.startClientBuilderPlan=startClientBuilderPlan;
+
 function openNewPlanPicker(){
   if(typeof window.openManualPlanPicker==='function')return window.openManualPlanPicker();
   let m=document.getElementById('m-new-plan');
@@ -902,10 +1018,10 @@ function renderClientOnboardChecklist(){
       action:`openClientScheduleFromOnboard('${id}')`,cta:'Ustaw dni'},
     {done:st.plan,icon:'📋',title:'Przypisz plan treningowy',
       desc:st.plan
-        ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' (“'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
-        :'Najszybciej: generator AI z danymi klienta',
-      action:`openAiPlanForClient('${id}',true)`,cta:'⚡ Plan AI',
-      extra:st.plan?'':`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">Szablon / kreator</button>`},
+        ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' („'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
+        :'Wybierz generator AI, prowadzony plan krok po kroku albo klasyczny kreator.',
+      action:`openClientPlanChoice('${id}')`,cta:'Wybierz sposób',
+      extra:''},
     {key:'calendar',done:st.calendar,icon:'🗓',title:'Dodaj terminy do kalendarza',desc:'Dopełnij 4 tygodnie według planu. Istniejące treningi, zmiany terminów i pominięcia zostaną zachowane.',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Dodaj terminy na 4 tygodnie',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,
@@ -1530,6 +1646,7 @@ window.builderToggleKnowledge=builderToggleKnowledge;
 function toggleBuilderSidebar(forceOpen){
   const layout=document.querySelector('#screen-builder .builder-layout');
   const expand=document.getElementById('builder-sidebar-expand');
+  const collapse=document.getElementById('builder-sidebar-collapse');
   if(!layout)return;
   let open;
   if(forceOpen===true)open=true;
@@ -1539,6 +1656,11 @@ function toggleBuilderSidebar(forceOpen){
   if(expand){
     if(open)expand.setAttribute('hidden','');
     else expand.removeAttribute('hidden');
+  }
+  if(collapse){
+    collapse.setAttribute('aria-expanded',open?'true':'false');
+    collapse.textContent=open?'Zwiń ⟩':'Pokaż pomoc';
+    collapse.title=open?'Zwiń pomoc trenera':'Pokaż pomoc trenera';
   }
   try{localStorage.setItem('pl_builder_sidebar',open?'1':'0');}catch(e){}
 }
@@ -1550,7 +1672,6 @@ function restoreBuilderSidebarState(){
 window.toggleBuilderSidebar=toggleBuilderSidebar;
 window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
-  if(window._builderPreserveOnReturn){window._builderPreserveOnReturn=false;builderRefreshRationale();return;}
   builderResetSaveState();
   window._editingPlanId=null;
   window._manualPlanDraft=null;
@@ -1568,10 +1689,14 @@ function initBuilder(){
   if(sel){
     sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
+  // Lista sugestii ćwiczeń jest potrzebna dopiero w kreatorze, a nie na pulpicie.
+  try{updateExDl();}catch(e){}
   updatePeriod();
   builderRefreshRationale();
   if(typeof restoreBuilderSidebarState==='function')restoreBuilderSidebarState();
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
+  if(typeof builderSetupDirtyUi==='function')builderSetupDirtyUi();
+  if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
 }
 function addDay(){
   dayCount++;const id='bd-'+dayCount;
@@ -1692,7 +1817,11 @@ function addRow(dayId){
   builderRefreshPeriodPreview();
   builderPaintKinds(div);
   const dayEl=document.getElementById(dayId);
-  if(dayEl)builderPaintCircuitDay(dayEl);
+  if(dayEl){
+    builderPaintCircuitDay(dayEl);
+    const addButton=dayEl.querySelector('.add-ex-btn');
+    if(addButton){addButton.classList.remove('builder-field-invalid');addButton.removeAttribute('aria-invalid');}
+  }
   if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
 }
 function builderToggleRowDetails(row){
@@ -1795,11 +1924,12 @@ function builderRefreshTechMedia(row){
   const gif=media.gif||'';
   const video=media.video||'';
   const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
+  const poster=typeof exThumbUrl==='function'?exThumbUrl({name:media.name}):'';
   let html='';
   if(gif&&typeof exTechniqueMediaHtml==='function'){
-    html=exTechniqueMediaHtml({gif,name:media.name},{compact:true});
+    html=exTechniqueMediaHtml({gif,name:media.name,poster},{compact:true});
   }else if(video&&file){
-    html=`<video src="${typeof escHtml==='function'?escHtml(video):video}" muted loop playsinline preload="metadata"></video>`;
+    html=typeof exTechniqueMediaHtml==='function'?exTechniqueMediaHtml({gif:video,name:media.name,poster},{compact:true}):`<video src="${typeof escHtml==='function'?escHtml(video):video}" muted loop playsinline preload="metadata"></video>`;
   }else if(media.img){
     html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}" loading="lazy" referrerpolicy="no-referrer">`;
   }
@@ -1823,9 +1953,10 @@ function builderFillExMediaPop(media){
   const gif=media.gif||'';
   const video=media.video||'';
   const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
+  const poster=typeof exThumbUrl==='function'?exThumbUrl({name:media.name}):'';
   let html='';
-  if(gif&&typeof exTechniqueMediaHtml==='function')html=exTechniqueMediaHtml({gif,name:media.name},{});
-  else if(video&&file)html=`<video src="${typeof escHtml==='function'?escHtml(video):video}" controls playsinline muted loop></video>`;
+  if(gif&&typeof exTechniqueMediaHtml==='function')html=exTechniqueMediaHtml({gif,name:media.name,poster},{});
+  else if(video&&file)html=typeof exTechniqueMediaHtml==='function'?exTechniqueMediaHtml({gif:video,name:media.name,poster},{}):`<video src="${typeof escHtml==='function'?escHtml(video):video}" controls playsinline muted loop></video>`;
   else if(video&&media.videoEmbed)html=`<iframe src="${typeof escHtml==='function'?escHtml(media.videoEmbed):media.videoEmbed}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe>`;
   else if(media.img)html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}">`;
   pop.querySelector('.builder-ex-media-pop-body').innerHTML=html||'<div class="builder-alt-empty">Brak podglądu techniki w bibliotece.</div>';
@@ -2538,6 +2669,7 @@ function editPlan(id){
   window._editingPlanId=id;
   updatePeriod();
   if(typeof manualPlanShowAnalysis==='function')manualPlanShowAnalysis();
+  if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
 }
 function editPlanFromProfile(planId,clientId){
   const plan=(window.PL||[]).find(p=>p&&p.id===planId);
@@ -2570,13 +2702,27 @@ function builderSaveStatus(message,isError){
   const el=document.getElementById('builder-save-status');
   if(el){el.hidden=!message;el.textContent=message||'';el.style.color=isError?'var(--orange)':'var(--muted)';}
 }
+function builderFocusValidationField(field){
+  if(!field)return;
+  field.classList.add('builder-field-invalid');
+  field.setAttribute('aria-invalid','true');
+  try{field.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}
+  try{field.focus({preventScroll:true});}catch(e){try{field.focus();}catch(ignore){}}
+}
+function builderFocusEmptyTrainingDay(){
+  const day=[...document.querySelectorAll('#builder-days .builder-day')].find(item=>{
+    if((item.querySelector('.rc')||{}).checked)return false;
+    return ![...item.querySelectorAll('[data-f="name"]')].some(input=>String(input.value||'').trim());
+  });
+  builderFocusValidationField(day&&day.querySelector('.add-ex-btn'));
+}
 function builderSaveUnlock(state){
   (state&&state.controls||[]).forEach(item=>{item.el.disabled=item.disabled;});
   if(state)state.controls=[];
 }
 function builderResetSaveState(){
   builderSaveUnlock(window._builderSaveState);
-  window._builderSaveState={session:{uid:window._uid,generation:window.tenantSessionGeneration},pending:false,candidate:null,base:null,saved:false,controls:[]};
+  window._builderSaveState={session:{uid:window._uid,generation:window.tenantSessionGeneration},pending:false,candidate:null,base:null,saved:false,duplicateConfirmed:false,initialFingerprint:'',controls:[]};
   const btn=document.getElementById('b-save-btn');
   if(btn){btn.disabled=false;btn.textContent='Zapisz plan';}
   builderSaveStatus('');
@@ -2695,7 +2841,13 @@ async function savePlan(){
   const retry=state.candidate;
 
   const name=document.getElementById('b-name').value.trim();
-  if(!name){notify('Wpisz nazwę planu!');return;}
+  if(!name){
+    const field=document.getElementById('b-name');
+    builderFocusValidationField(field);
+    builderSaveStatus('Wpisz nazwę planu, aby kontynuować.',true);
+    notify('Wpisz nazwę planu!');
+    return;
+  }
   const cid=document.getElementById('b-client').value;
   const c=CL.find(x=>x.id===cid);
   const editingId=window._editingPlanId;
@@ -2711,7 +2863,7 @@ async function savePlan(){
   }
   const dur=parseInt((document.getElementById('b-duration')||{}).value,10)||4;
   const weekMeta=builderWeekMetaForSave(prev,dur);
-  const days=[];
+  const days=[],invalidExerciseValues=[];
   document.querySelectorAll('.builder-day').forEach(de=>{
     const inps=de.querySelectorAll('.builder-day-hdr select, .builder-day-hdr input[type=text]');
     const dn=inps[0].value,muscles=inps[1].value;const isRest=de.querySelector('.rc').checked;
@@ -2722,6 +2874,17 @@ async function savePlan(){
       const n=g('name').trim();
       if(!n)return;
       const setN=g('sets')||'3';
+      const setCount=Number(String(setN).trim().replace(',','.'));
+      const kgRaw=String(g('kg')||'').trim();
+      const kgValue=kgRaw?Number(kgRaw.replace(',','.')):0;
+      if(!Number.isInteger(setCount)||setCount<1){
+        invalidExerciseValues.push({message:dn+': '+n+' — liczba serii musi być dodatnią liczbą całkowitą.',field:r.querySelector('[data-f="sets"]')});
+        return;
+      }
+      if(kgRaw&&(!Number.isFinite(kgValue)||kgValue<0)){
+        invalidExerciseValues.push({message:dn+': '+n+' — ciężar nie może być ujemny.',field:r.querySelector('[data-f="kg"]')});
+        return;
+      }
       const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
       const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
       const ex={
@@ -2770,6 +2933,47 @@ async function savePlan(){
     days.push(row);
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
+  if(invalidExerciseValues.length){
+    const first=invalidExerciseValues[0];
+    const msg='Popraw dane ćwiczenia przed zapisem: '+first.message;
+    builderSaveStatus(msg,true);
+    builderFocusValidationField(first.field);
+    notify(msg);
+    return null;
+  }
+  const trainingExerciseCount=days.reduce((sum,day)=>sum+(!day.rest?(day.exercises||[]).length:0),0);
+  const trainingDayCount=days.filter(day=>!day.rest).length;
+  // Plan regeneracyjny (same dni odpoczynku) jest celową, poprawną strukturą.
+  // Blokujemy tylko pustą jednostkę, która wygląda jak przypadkowo niedokończony trening.
+  if(trainingDayCount&&!trainingExerciseCount){
+    const msg='Dodaj co najmniej jedno ćwiczenie w jednostce treningowej przed zapisem planu.';
+    builderSaveStatus(msg+' Puste dni możesz zostawić tylko wtedy, gdy inna jednostka zawiera trening.',true);
+    builderFocusEmptyTrainingDay();
+    notify(msg);
+    return null;
+  }
+  // To nie jest błąd sam w sobie (np. wariant ciężki + techniczny), dlatego pytamy,
+  // zamiast blokować zapis. Chroni to głównie przed przypadkowym podwójnym kliknięciem.
+  const duplicateExercises=[];
+  days.forEach(day=>{
+    if(day.rest)return;
+    const seen=new Set();
+    (day.exercises||[]).forEach(ex=>{
+      const key=String(ex&&ex.name||'').trim().toLocaleLowerCase('pl-PL').replace(/\s+/g,' ');
+      if(!key)return;
+      if(seen.has(key))duplicateExercises.push(day.day+': '+ex.name);
+      else seen.add(key);
+    });
+  });
+  if(!retry&&duplicateExercises.length&&!state.duplicateConfirmed){
+    const repeated=duplicateExercises.slice(0,3).join(', ');
+    const proceed=confirm('W tej samej jednostce powtarza się identyczne ćwiczenie: '+repeated+'.\n\nKontynuować zapis? Wybierz „Anuluj”, aby najpierw sprawdzić plan.');
+    if(!proceed){
+      builderSaveStatus('Zapis zatrzymany. Sprawdź powtórzone ćwiczenie albo zapisz ponownie, jeśli powtórzenie jest celowe.',true);
+      return null;
+    }
+    state.duplicateConfirmed=true;
+  }
   const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';
   const candidate=retry||{
     ...(prev?builderPlanClone(prev):{id:newId('p'),createdAt:new Date().toISOString(),trainerId:state.session.uid}),
@@ -3179,7 +3383,7 @@ function renderPlans(){
         <div class="plan-card-actions">${planActionButtons(p,client)}</div>
       </div>
       <div id="plan-detail-${p.id}" class="plan-card-detail" style="display:none;">
-        ${(p.days||[]).map(d=>planDayPreviewHtml(d,p.clientId)).join('')}
+        ${(p.days||[]).map((d,di)=>planDayPreviewHtml(d,p.clientId,p,di)).join('')}
       </div>
     </div>`;
   };
@@ -3203,7 +3407,7 @@ function renderPlans(){
           <span><span class="pill ${st.pill}"><span class="pill-dot"></span>${st.label}</span></span>
           <span class="plans-tbl-actions">${planActionButtons(p,client)}</span>
           <div id="plan-detail-${p.id}" class="plan-card-detail plans-tbl-detail" style="display:none;">
-            ${(p.days||[]).map(d=>planDayPreviewHtml(d,p.clientId)).join('')}
+            ${(p.days||[]).map((d,di)=>planDayPreviewHtml(d,p.clientId,p,di)).join('')}
           </div>
         </div>`;
       }).join('')}
@@ -3213,25 +3417,38 @@ function renderPlans(){
   el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>cardHtml(p,pi)).join('')+`</div>`;
 }
 
-function planDayPreviewHtml(d,clientId){
+function planDayPreviewHtml(d,clientId,plan,dayIndex){
   const dayName=escHtml(d.day||d.dayName||'—');
-  if(d.rest){
-    return `<div class="plan-day-row">
-      <div class="plan-day-name">${dayName}</div>
-      <div class="plan-day-rest">— Odpoczynek</div>
-    </div>`;
-  }
-  const focusRaw=String(d.muscles||d.focus||d.name||'');
-  const dayRaw=String(d.day||d.dayName||'');
+  const exs=Array.isArray(d.exercises)?d.exercises:[];
+  const focusRaw=String(d.muscles||d.focus||d.name||'').trim();
+  const dayRaw=String(d.day||d.dayName||'').trim();
   const showFocus=focusRaw&&focusRaw!==dayRaw;
-  const parts=typeof formatDayExerciseParts==='function'
-    ? formatDayExerciseParts(d.exercises,clientId)
-    : (d.exercises||[]).map(e=>typeof formatPlanExerciseLine==='function'?formatPlanExerciseLine(e,clientId):'').filter(Boolean);
-  return `<div class="plan-day-row">
-    <div class="plan-day-name">${dayName}</div>
-    ${showFocus?`<div class="plan-day-focus">${escHtml(focusRaw)}</div>`:''}
-    <div class="plan-day-ex">${parts.map(l=>`<div class="plan-ex-line">${escHtml(l)}</div>`).join('')}</div>
-  </div>`;
+  const weekKey=plan&&(plan.currentWeek||(plan.weekKeys&&plan.weekKeys[0]));
+  if(d.rest){
+    return `<details class="plan-preview-day is-rest">
+      <summary class="plan-preview-day-summary">
+        <span class="plan-preview-day-label">${dayName}</span>
+        <span class="plan-preview-day-focus">Odpoczynek / regeneracja</span>
+      </summary>
+    </details>`;
+  }
+  const rows=exs.map(e=>{
+    const raw=e&&typeof e==='object'?e:{name:e};
+    const view=typeof cpExWeekView==='function'?cpExWeekView(raw,weekKey):raw;
+    const sets=view.sets!=null&&view.sets!==''?String(view.sets):'';
+    const reps=view.reps!=null&&view.reps!==''?String(view.reps):'';
+    const kg=view.kg!=null&&view.kg!==''?String(view.kg)+' kg':'';
+    const meta=[sets&&reps?sets+'×'+reps:'',kg].filter(Boolean).join(' · ');
+    return `<div class="plan-preview-ex-row"><span>${escHtml(view.name||'Ćwiczenie')}</span>${meta?`<span>${escHtml(meta)}</span>`:''}</div>`;
+  }).join('');
+  return `<details class="plan-preview-day"${dayIndex===0?' open':''}>
+    <summary class="plan-preview-day-summary">
+      <span class="plan-preview-day-label">${dayName}</span>
+      <span class="plan-preview-day-focus">${showFocus?escHtml(focusRaw):'Trening'}</span>
+      <span class="plan-preview-day-count">${exs.length} ćw.</span>
+    </summary>
+    ${rows?`<div class="plan-preview-exercises">${rows}</div>`:''}
+  </details>`;
 }
 window.planDayPreviewHtml=planDayPreviewHtml;
 
