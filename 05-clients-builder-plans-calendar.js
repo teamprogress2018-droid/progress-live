@@ -715,7 +715,7 @@ function builderDraftFingerprint(){
       return data;
     })
   }));
-  return JSON.stringify({name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),days:dayData});
+  return JSON.stringify({name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),volume:window._builderVolumeControl||null,days:dayData});
 }
 function builderMarkInitialFormState(){
   if(window._builderSaveState)window._builderSaveState.initialFingerprint=builderDraftFingerprint();
@@ -1675,8 +1675,11 @@ function initBuilder(){
   builderResetSaveState();
   window._editingPlanId=null;
   window._manualPlanDraft=null;
+  window._builderVolumeControl=null;
   const manualQuickbar=document.getElementById('manual-plan-quickbar');
   if(manualQuickbar)manualQuickbar.hidden=true;
+  const volumeQuickbar=document.getElementById('builder-volume-quickbar');
+  if(volumeQuickbar)volumeQuickbar.hidden=true;
   window._builderPeriodWeek=0;
   if(!window._builderBack)window._builderBack='clients';
   const titleEl=document.querySelector('#screen-builder .topbar-title');
@@ -1708,7 +1711,7 @@ function addDay(){
     <select class="builder-day-select">${sel}</select>
     <input type="text" class="builder-day-focus" placeholder="Push, Pull, FBW…" oninput="builderRefreshKbHits()" title="${typeof eduTipText==='function'?eduTipText('focus').replace(/"/g,'&quot;'):''}">
     <label class="builder-rest-toggle"><input type="checkbox" class="rc" style="accent-color:var(--accent);" onchange="toggleR('${id}')"> Dzień odpoczynku</label>
-    <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove();builderRefreshAllDayFocus();builderRefreshRationale()">×</button>
+    <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove();builderRefreshAllDayFocus();builderRefreshRationale();if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume()">×</button>
   </div>
   <div class="builder-day-kb" hidden></div>
   <div class="rest-s builder-rest-state" style="display:none;">— Dzień odpoczynku / regeneracja aktywna</div>
@@ -1728,6 +1731,7 @@ function addDay(){
   }
   builderRefreshAllDayFocus();
   builderRefreshRationale();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
 }
 function builderOnCircuitToggle(id){
   const el=document.getElementById(id);
@@ -1749,7 +1753,7 @@ function builderPaintCircuitDay(dayEl){
   });
 }
 window.builderPaintCircuitDay=builderPaintCircuitDay;
-function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';builderRefreshAllDayFocus();builderRefreshRationale();}
+function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';builderRefreshAllDayFocus();builderRefreshRationale();if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();}
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
@@ -1760,7 +1764,7 @@ function addRow(dayId){
     +'<button type="button" class="builder-ex-thumb" hidden title="Podgląd techniki" onclick="builderOpenExMedia(this.closest(\'.ex-row\'))"></button>'
     +'<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
     +'</div>'
-    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" title="'+t('sets')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" title="'+t('sets')+'" oninput="builderOnPeriodFieldEdit(this);if(typeof manualPlanRefreshVolume===\'function\')manualPlanRefreshVolume()">'
     +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" title="'+t('reps')+'" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="number" placeholder="kg" class="ex-inp ex-advanced-field" data-f="kg" title="'+t('kg')+'" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="text" placeholder="8" class="ex-inp ex-advanced-field" data-f="rpe" inputmode="decimal" title="'+t('rpe')+'" oninput="builderOnPeriodFieldEdit(this)">'
@@ -1823,6 +1827,7 @@ function addRow(dayId){
     if(addButton){addButton.classList.remove('builder-field-invalid');addButton.removeAttribute('aria-invalid');}
   }
   if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
 }
 function builderToggleRowDetails(row){
   if(!row)return;
@@ -2031,6 +2036,7 @@ function builderOnExNameChange(row){
   if(typeof manualPlanRenderExerciseProgramming==='function')manualPlanRenderExerciseProgramming(row);
   if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
   if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
 }
 window.builderOnExNameChange=builderOnExNameChange;
 function builderRefreshExHist(row){
@@ -2072,6 +2078,7 @@ function builderRemoveRow(btn){
   if(box)builderPaintSs(box);
   if(dayEl)builderPaintCircuitDay(dayEl);
   if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
 }
 window.builderRemoveRow=builderRemoveRow;
 function builderMoveRow(btn,dir){
@@ -2300,6 +2307,7 @@ function builderOnPeriodFieldEdit(el){
     }
   }
   builderRefreshPeriodPreview();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
 }
 window.builderOnPeriodFieldEdit=builderOnPeriodFieldEdit;
 function builderShiftRepRange(val,delta){
@@ -2495,8 +2503,8 @@ function updateExDl(){
 function updatePeriod(){
   const cid=document.getElementById('b-client').value;const c=CL.find(x=>x.id===cid);
   const el=document.getElementById('period-sched');
-  if(!el)return;
-  if(!c){el.innerHTML='<div style="font-size:11px;color:var(--muted);">Wybierz klienta</div>';return;}
+  if(!el){if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();return;}
+  if(!c){el.innerHTML='<div style="font-size:11px;color:var(--muted);">Wybierz klienta</div>';if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();return;}
   const sch=builderPeriodSchedule(c);
   const rms=typeof officialLift1RMs==='function'?officialLift1RMs(c.id):{};
   const fmt=(v)=>v!=null?v+' kg':'—';
@@ -2523,6 +2531,7 @@ function updatePeriod(){
   builderRefreshPeriodPreview();
   builderRefreshRationale();
   if(typeof refreshBuilderAiCoachCard==='function')refreshBuilderAiCoachCard();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
 }
 function builderSelectPeriodWeek(idx){
   window._builderPeriodWeek=idx||0;
@@ -2593,6 +2602,7 @@ function editPlan(id){
     const client=(window.CL||[]).find(item=>item&&item.id===plan.clientId)||{};
     window._manualPlanDraft=manualPlanRead(plan,client);
   }
+  window._builderVolumeControl=plan.volumeControl||(plan.manualPlan&&plan.manualPlan.volumeControl)||null;
   builderEnsureSelectValue(document.getElementById('b-method'),plan.method||'');
   builderEnsureSelectValue(document.getElementById('b-duration'),plan.duration||(plan.weekKeys&&plan.weekKeys.length)||'');
   const progSel=document.getElementById('b-progression');
@@ -2669,6 +2679,7 @@ function editPlan(id){
   window._editingPlanId=id;
   updatePeriod();
   if(typeof manualPlanShowAnalysis==='function')manualPlanShowAnalysis();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
   if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
 }
 function editPlanFromProfile(planId,clientId){
@@ -2985,6 +2996,13 @@ async function savePlan(){
   };
   if(window._manualPlanDraft&&typeof manualPlanApplyToPlan==='function'){
     Object.assign(candidate,manualPlanApplyToPlan(candidate,window._manualPlanDraft,c||{}));
+  }
+  if(typeof manualPlanVolumeControlForSave==='function'){
+    const volumeControl=manualPlanVolumeControlForSave();
+    if(volumeControl){
+      candidate.volumeControl=volumeControl;
+      if(candidate.manualPlan)candidate.manualPlan.volumeControl=volumeControl;
+    }
   }
   if(prev&&prev.rationale&&builderPlanRationaleChanged(prev,candidate))candidate.rationale=null;
   state.candidate=candidate;
@@ -4014,23 +4032,31 @@ function renderRecordedExercises(s){
   const list=document.getElementById('as-recorded-exercises-list');
   if(!wrap||!list)return;
   const hasDetailedSets=(s.exercises||[]).some(e=>Array.isArray(e.sets)&&e.sets.length&&typeof e.sets[0]==='object');
+  const hasSkip=(s.exercises||[]).some(e=>e&&e.skipped);
+  const hasIssues=Array.isArray(s.issues)&&s.issues.length;
   const hasRating=Number(s.feedback)>=1&&Number(s.feedback)<=5;
-  if(!hasDetailedSets&&!hasRating&&!(s.note||s.notes)){wrap.style.display='none';list.innerHTML='';return;}
+  if(!hasDetailedSets&&!hasRating&&!hasSkip&&!hasIssues&&!(s.note||s.notes)){wrap.style.display='none';list.innerHTML='';return;}
   const src=s.source==='client'?'klienta':s.source==='live'?'Treningu Live':s.source==='planned'?'planu':'sesji';
   const titleEl=wrap.querySelector('[data-rec-ex-title]');
-  if(titleEl)titleEl.textContent='Zapisane serie i ocena (z '+src+')';
+  if(titleEl)titleEl.textContent='Wynik klienta (z '+src+')';
   const ratingLine=hasRating&&typeof sessionRatingLabel==='function'
     ?`<div class="as-recorded-rating">Ocena: ${sessionRatingLabel(s.feedback)}</div>`
     :'';
   const noteLine=(s.note||s.notes)?`<div class="as-recorded-note">Komentarz: <span>${escHtml(s.note||s.notes)}</span></div>`:'';
-  const exHtml=hasDetailedSets?s.exercises.map(e=>{
+  const status=s.status==='in_progress'?'W trakcie':s.status==='partial'?'Częściowo wykonana':s.status==='completed'?'Zakończona':'';
+  const statusLine=status?`<div class="as-recorded-note">Status: <span>${status}</span></div>`:'';
+  const difficulty=Number(s.difficulty)>0?`<div class="as-recorded-note">Trudność: <span>${Number(s.difficulty)}/10</span></div>`:'';
+  const issueLine=hasIssues?`<div class="as-recorded-note">Zgłoszone problemy: <span>${s.issues.map(x=>escHtml((x.exerciseName?x.exerciseName+': ':'')+(x.note||''))).join(' · ')}</span></div>`:'';
+  const exHtml=(hasDetailedSets||hasSkip)?s.exercises.map(e=>{
     const setsText=(e.sets||[]).map(st=>`${st.kg||0}kg × ${st.reps||0}`).join(' · ');
+    const planned=(e.plannedSets||[]).map(st=>`${st.kg||'—'}kg × ${st.reps||'—'}`).join(' · ');
     return `<div class="as-recorded-ex-card">
       <div class="as-recorded-ex-name">${escHtml(e.name||'')}</div>
-      <div class="as-recorded-ex-sets">${setsText||'brak zarejestrowanych serii'}</div>
+      ${planned?`<div class="as-recorded-ex-sets">Plan: ${planned}</div>`:''}
+      <div class="as-recorded-ex-sets">Wynik: ${setsText||'brak zatwierdzonych serii'}${e.skipped?' · pominięto'+(e.skipReason?': '+escHtml(e.skipReason):''):''}</div>
     </div>`;
   }).join(''):'';
-  list.innerHTML=ratingLine+noteLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'');
+  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'');
   wrap.style.display='block';
 }
 

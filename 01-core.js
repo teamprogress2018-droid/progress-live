@@ -5313,7 +5313,9 @@ window.exerciseHistoryByDay=exerciseHistoryByDay;
 function mapPlanExercisesForClient(rawEx,clientId,plan,day){
   const mapped=(rawEx||[]).map(raw=>{
     const ex=parsePlanExercise(raw);
-    const alts=altsForExercise(ex.name,ex.alt);
+    // Klient może zobaczyć wyłącznie zamienniki wpisane w jego planie przez trenera.
+    // Sugestie z biblioteki pozostają narzędziem trenera, nie automatyczną poradą.
+    const alts=String(ex.alt||'').split(/[,;/|]/).map(x=>x.trim()).filter((x,i,a)=>x&&x!==ex.name&&a.indexOf(x)===i);
     const exerciseId=resolveExerciseId(ex);
     const last=lastLoadForExercise(clientId,ex.name,alts,exerciseId?{exerciseId}:{});
     const rest=parseRestSeconds(ex.rest);
@@ -5330,6 +5332,7 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
       name:ex.name,
       plannedName:ex.name,
       alts,
+      approvedAlts:alts.slice(),
       restSec:rest,
       tempo:ex.tempo||'',
       rpe:ex.rpe||'',
@@ -5448,6 +5451,9 @@ window.isLiveDraftSession=isLiveDraftSession;
 
 function isLoggedWorkout(s){
   if(!s)return false;
+  // Sesja klienta staje się treningiem wykonanym dopiero po jej zakończeniu.
+  // Dzięki temu zapis w toku nie zawyża historii ani licznika treningów.
+  if(s.status==='in_progress')return false;
   if(s.source==='planned'||s.source==='garmin'||s.source==='live-draft')return false;
   if(s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework')return true;
   return Array.isArray(s.exercises)&&s.exercises.length>0;

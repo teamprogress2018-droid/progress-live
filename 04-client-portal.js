@@ -99,17 +99,11 @@ function capClientSectionVisible(id){
 
 function capLiveNavScreens(){
   return [
-    {id:'home',label:'Dziś',icon:'🏠'},
-    {id:'plan',label:'Plan',icon:'📋'},
-    {id:'homework',label:'Domowe',icon:'🏡'},
+    {id:'home',label:'Dzisiaj',icon:'🏠'},
+    {id:'plan',label:'Trening',icon:'🏋️'},
     {id:'progress',label:'Postępy',icon:'📈'},
-    {id:'checkin',label:'Check-in',icon:'✅'},
-    {id:'ondemand',label:'On-demand',icon:'▶️'},
-    {id:'resources',label:'Zasoby',icon:'📚'},
-    {id:'forum',label:'Forum',icon:'👥'},
-    {id:'messages',label:'Czat',icon:'💬'},
     {id:'profile',label:'Profil',icon:'👤'}
-  ].filter(s=>capClientSectionVisible(s.id));
+  ];
 }
 
 function capOdMsgId(text){
@@ -329,6 +323,34 @@ function capWorkoutHistoryList(c,list,live,accent){
     </button>`;
   }).join('');
 }
+
+/* Prawdziwy ekran startowy klienta: jedna decyzja, bez pulpitu trenera. */
+function capClientTodaySimple(c){
+  const slot=capTodaySlot(c);
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const weekStart=typeof mondayYmd==='function'?mondayYmd(today):today;
+  const finished=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.source==='client'&&
+    ['completed','partial','finished',''].includes(String(s.status||''))&&s.date>=weekStart&&s.date<=today);
+  const inProgress=typeof cwFindResumable==='function'&&slot.plan?cwFindResumable(slot.plan.id,slot.dayIdx):null;
+  const meeting=(slot.inPerson||[]).find(s=>s&&s.date>=today&&s.source!=='client');
+  let main='';
+  if(inProgress&&inProgress.completeLocal){
+    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Wynik czeka na wysłanie</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii na urządzeniu. Wyślemy je po odzyskaniu połączenia.</div></div>`;
+  }else if(inProgress){
+    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">TRENING W TOKU</div><div class="cap-client-today-title">${escHtml(inProgress.dayName||capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii${inProgress.syncState==='local'?' · na urządzeniu':''}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Wznów trening</button></div>`;
+  }else if(slot.kind==='workout'){
+    const count=((slot.day&&slot.day.exercises)||[]).length;
+    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">ZAPLANOWANY TRENING</div><div class="cap-client-today-title">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">${count} ${count===1?'ćwiczenie':'ćwiczeń'} · ${escHtml(slot.plan.name||'Plan')}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Rozpocznij trening</button></div>`;
+  }else if(slot.kind==='done'){
+    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Dobra robota</div><div class="cap-client-muted">Dzisiejszy trening jest w Twoich postępach.</div></div>`;
+  }else if(slot.kind==='rest'){
+    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Dzień bez treningu</div><div class="cap-client-muted">${slot.nextTrainingYmd?'Następny trening: '+escHtml(slot.nextTrainingYmd)+'.':'Plan nie przewiduje dziś treningu.'}</div></div>`;
+  }else{
+    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Brak przypisanego treningu</div><div class="cap-client-muted">Gdy trener przypisze plan, pojawi się tutaj.</div></div>`;
+  }
+  return `<div class="cap-section cap-client-today"><div class="cap-client-greeting">Cześć, ${escHtml((c.name||'').split(' ')[0]||'')}!</div>${main}${meeting?`<div class="cap-client-line"><b>Najbliższe spotkanie</b><span>${escHtml(meeting.date||'')} ${escHtml(meeting.time||'')} · ${escHtml(meeting.type||'Trening z trenerem')}</span></div>`:''}<div class="cap-client-line"><b>Ten tydzień</b><span>${finished.length} wykonanych treningów</span></div></div>`;
+}
+window.capClientTodaySimple=capClientTodaySimple;
 
 function capGarminEntries(c){
   const cid=c&&c.id;
@@ -609,6 +631,7 @@ function capScreenHTML(scr,c){
   const h=(html)=>html; // passthrough
 
   if(scr==='home'){
+    if(capIsLiveClient())return capClientTodaySimple(c);
     const slot=capTodaySlot(c);
     const live=capIsLiveClient();
     const today=typeof todayYmd==='function'?todayYmd():'';
@@ -1012,13 +1035,14 @@ function capScreenHTML(scr,c){
       </div>`;
     }
     const src=s.source==='garmin'?'Garmin':s.source==='client'?'Ty w apce':s.source==='live'?'Z trenerem (live)':s.source==='homework'?'Zadanie domowe':s.source==='sala'?'Na sali':'Sesja';
+    const status=s.status==='in_progress'?'w trakcie':s.status==='partial'?'częściowo wykonany':s.status==='completed'?'zakończony':'';
     const title=typeof sessionTitle==='function'?sessionTitle(s):(s.notes||s.type||s.title||'Trening');
     const gMetric=s.source==='garmin'?capGarminEntries(c).find(e=>e.date===s.date&&(e.notes||'')===(s.notes||'')):null;
     const gv=gMetric&&gMetric.values||{};
     return `<div class="cap-section" style="padding-bottom:90px;">
       <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="capGoScreen('progress')">← Postępy</button>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(title)}</div>
-      <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:14px;">${escHtml(s.date||'')} ${escHtml(s.time||'')} · ${escHtml(src)}${s.duration?' · '+escHtml(String(s.duration))+' min':''}</div>
+      <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:14px;">${escHtml(s.date||'')} ${escHtml(s.time||'')} · ${escHtml(src)}${status?' · '+escHtml(status):''}${s.duration?' · '+escHtml(String(s.duration))+' min':''}</div>
       ${s.source==='garmin'?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid rgba(0,124,195,0.35);">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#5ec8ff;">${escHtml(String(gv.m1||'—'))}</div>
@@ -1034,8 +1058,8 @@ function capScreenHTML(scr,c){
         </div>
       </div>`:`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
-          <div style="font-size:20px;">${escHtml(sessionRatingEmoji(s.feedback)||'—')}</div>
-          <div style="font-size:10px;color:${CAP_MUTED};margin-top:4px;">${escHtml((SESSION_RATING[Number(s.feedback)]||{}).label||'Brak oceny')}</div>
+          <div style="font-size:20px;">${Number(s.difficulty)||sessionRatingEmoji(s.feedback)||'—'}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-top:4px;">${Number(s.difficulty)?'trudność /10':escHtml((SESSION_RATING[Number(s.feedback)]||{}).label||'Brak oceny')}</div>
         </div>
         <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${(s.exercises||[]).length}</div>
@@ -1048,12 +1072,14 @@ function capScreenHTML(scr,c){
       </div>`}
       ${(s.exercises||[]).length?(s.exercises||[]).map(e=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(e.name||'')}</div>
-        <div style="font-size:11px;color:${CAP_MUTED};font-family:'DM Mono',monospace;">${escHtml(capSessionSetsText(e))}</div>
+        ${(e.plannedSets||[]).length?`<div style="font-size:10px;color:${CAP_MUTED};margin-bottom:3px;">Plan: ${escHtml((e.plannedSets||[]).map(x=>(x.kg||'—')+' × '+(x.reps||'—')).join(' · '))}</div>`:''}
+        <div style="font-size:11px;color:${CAP_MUTED};font-family:'DM Mono',monospace;">Wynik: ${escHtml(capSessionSetsText(e))}${e.skipped?' · pominięto'+(e.skipReason?': '+escHtml(e.skipReason):''):''}</div>
       </div>`).join(''):(s.source==='garmin'?`<div style="background:${CAP_S2};border:1px solid rgba(0,124,195,0.35);border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Import CSV z Garmin Connect — bez serii siłowych.</div>`:`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak zapisanych serii.</div>`)}
       ${s.note||s.notes?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-top:6px;">
         <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;margin-bottom:6px;">Komentarz</div>
         <div style="font-size:13px;color:${CAP_TEXT};line-height:1.5;">${escHtml(s.note||s.notes||'')}</div>
       </div>`:''}
+      ${Array.isArray(s.issues)&&s.issues.length?`<div style="background:${CAP_S2};border:1px solid rgba(201,123,63,.45);border-radius:14px;padding:14px;margin-top:6px;"><div style="font-size:10px;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">Zgłoszone problemy</div><div style="font-size:13px;color:${CAP_TEXT};line-height:1.5;">${s.issues.map(x=>escHtml((x.exerciseName?x.exerciseName+': ':'')+(x.note||''))).join(' · ')}</div></div>`:''}
       ${!live?'<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:12px;text-align:center;">Podgląd — klient otwiera to w swojej apce</div>':''}
     </div>`;
   }

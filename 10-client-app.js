@@ -234,6 +234,8 @@ function enterClientLiveShell(){
   const c=window.CL[0];
   window.capClientId=c?c.id:window._clientId;
   renderClientLive();
+  // Wyniki zapisane offline są wysyłane po kolejnym otwarciu aplikacji.
+  if(typeof cwFlushLocal==='function')setTimeout(()=>cwFlushLocal(),0);
   clientTryOpenOdDeepLink();
   clientTryOpenPendingDeepLink();
 }
@@ -294,11 +296,10 @@ function renderClientLive(){
   if(!content)return;
   let scr=window._clientLiveScreen||'home';
   const navIds=(typeof capLiveNavScreens==='function'?capLiveNavScreens():[]).map(s=>s.id);
-  const subScreens=['forms','formfill','session','exercise','resources','odprogram'];
-  if(scr==='calendar'&&typeof capClientSectionVisible==='function'&&!capClientSectionVisible('calendar'))scr='progress';
-  else if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
+  const subScreens=['session','exercise'];
+  if(!navIds.includes(scr)&&!subScreens.includes(scr))scr='home';
   window._clientLiveScreen=scr;
-  ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
+  ['home','plan','progress','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
     const visible=!navIds.length||navIds.includes(s);
@@ -307,19 +308,6 @@ function renderClientLive(){
     bn.classList.toggle('active',on);
     bn.style.opacity=on?'1':'0.55';
   });
-  const moreBtn=document.getElementById('clive-bn-more');
-  const moreIds=['checkin','ondemand','resources','forum','messages','profile'];
-  if(moreBtn){
-    const moreOn=moreIds.includes(scr);
-    moreBtn.classList.toggle('active',moreOn);
-    moreBtn.style.opacity=moreOn?'1':'0.55';
-    const anyMore=moreIds.some(id=>!navIds.length||navIds.includes(id));
-    moreBtn.style.display=anyMore?'':'none';
-  }
-  if(!moreIds.includes(scr)){
-    const sheet=document.getElementById('clive-more-sheet');
-    if(sheet)sheet.hidden=true;
-  }
   updateClientLiveNavBadges(c);
   if(typeof capScreenHTML==='function'&&c)content.innerHTML=capScreenHTML(scr,c);
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
@@ -343,17 +331,9 @@ function updateClientLiveNavBadges(c){
       dot.style.display='none';
     }
   };
-  const pendCi=cid&&typeof pendingCheckin==='function'?!!pendingCheckin(cid):false;
-  const pendForms=cid&&typeof pendingFormSends==='function'?pendingFormSends(cid).length>0:false;
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
-  const pendHw=cid&&typeof clientOpenHomework==='function'?clientOpenHomework(cid).length>0:false;
-  const pendHab=cid&&typeof clientPendingHabits==='function'?clientPendingHabits(cid).length>0:false;
-  const pendChat=cid&&typeof clientHasUnreadFromTrainer==='function'?clientHasUnreadFromTrainer(cid):false;
-  setBadge('clive-bn-checkin',pendCi);
-  setBadge('clive-bn-messages',pendChat);
   setBadge('clive-bn-profile',pendPay);
-  setBadge('clive-bn-homework',pendHw);
-  setBadge('clive-bn-home',pendHab||pendForms);
+  setBadge('clive-bn-home',false);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
@@ -362,9 +342,6 @@ function setClientLiveScreen(scr){
   if(scr==='messages'&&window._clientId&&typeof clientMarkTrainerMsgsRead==='function'){
     try{clientMarkTrainerMsgsRead(window._clientId);}catch(e){}
   }
-  const moreIds=['checkin','ondemand','resources','forum','messages','profile'];
-  const sheet=document.getElementById('clive-more-sheet');
-  if(sheet&&!moreIds.includes(scr))sheet.hidden=true;
   renderClientLive();
 }
 function toggleCliveMoreNav(){
@@ -820,6 +797,7 @@ window.cwPrevEx=cwPrevEx;
 window.cwRate=cwRate;
 window.cwFinish=cwFinish;
 window.cwSwapEx=cwSwapEx;
+window.cwReportProblem=cwReportProblem;
 window.ppPick=ppPick;
 window.ppSave=ppSave;
 window.ppDelete=ppDelete;
@@ -1078,6 +1056,91 @@ function cwClearTimers(){
   if(window._cwClock){clearInterval(window._cwClock);window._cwClock=null;}
 }
 
+/* Sesja klienta ma stabilne ID od chwili rozpoczęcia. Dzięki temu ponowna
+   synchronizacja zastępuje ten sam dokument, zamiast tworzyć duplikaty serii. */
+const CW_DRAFT_PREFIX='progress-live-client-workout-v2:';
+function cwDraftKey(){return CW_DRAFT_PREFIX+(window._uid||'guest')+':'+(window._clientId||'');}
+function cwCopy(value){return JSON.parse(JSON.stringify(value));}
+function cwConfirmedSets(cw){return (cw?.exercises||[]).flatMap(e=>e.sets||[]).filter(s=>s&&s.done).length;}
+function cwIncompleteSets(cw){return (cw?.exercises||[]).flatMap(e=>e.sets||[]).filter(s=>s&&!s.done).length;}
+function cwPlanSnapshot(exercises){return (exercises||[]).map(ex=>({
+  name:ex.name||'',plannedName:ex.plannedName||ex.name||'',exerciseId:ex.exerciseId||'',loadUnit:ex.loadUnit||'kg',
+  restSec:Number(ex.restSec)||0,note:ex.planNote||ex.note||'',video:ex.video||'',alts:(ex.approvedAlts||ex.alts||[]).slice(),
+  sets:(ex.sets||[]).map(s=>({setNo:s.setNo,kg:s.kg||'',reps:s.reps||'',rir:s.rir||'',kind:s.kind||'work'}))
+}));}
+function cwLoggedExercises(cw){
+  return (cw.exercises||[]).map((ex,i)=>({
+    name:ex.name||'',plannedName:ex.plannedName||ex.name||'',exerciseId:ex.exerciseId||'',loadUnit:ex.loadUnit||'kg',
+    plannedSets:((cw.planSnapshot||[])[i]?.sets||[]),
+    sets:(ex.sets||[]).filter(s=>s.done).map(s=>({setNo:s.setNo,kg:s.kg||'',reps:s.reps||'',rir:s.rir||'',kind:s.kind||'work',confirmed:true})),
+    skipped:!!ex.skipped,skipReason:ex.skipReason||'',approvedAlternatives:(ex.approvedAlts||[]).slice()
+  }));
+}
+function cwBuildRecord(cw,status){
+  const duration=Math.max(0,Math.round((cw.elapsed||0)/60));
+  const total=cwConfirmedSets(cw);
+  const volume=Math.round(typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(cw.exercises):0);
+  const now=new Date().toISOString();
+  return withTrainer({
+    id:cw.sessionId,clientId:window._clientId,date:cw.date||todayYmd(),time:cw.time||new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
+    type:cw.dayName||'Trening',duration,exercises:cwLoggedExercises(cw),volume,source:'client',planId:cw.planId,dayIdx:cw.dayIdx,
+    createdAt:cw.createdAt||now,startedAt:cw.startedAtIso||now,updatedAt:now,status:status||'in_progress',
+    planSnapshot:{planId:cw.planId,planName:cw.planName||'',dayName:cw.dayName||'',exercises:cw.planSnapshot||[]},
+    issues:(cw.issues||[]).slice(),feedback:0,difficulty:Number(cw.rating)||0,note:cw.note||'',confirmedSets:total
+  });
+}
+function cwWriteLocal(cw){
+  if(!cw||!window.localStorage)return;
+  try{localStorage.setItem(cwDraftKey(),JSON.stringify({version:2,state:{...cw,restLeft:0,phase:cw.phase==='rest'?'exercise':cw.phase},savedAt:new Date().toISOString()}));}catch(e){}
+}
+function cwReadLocal(){
+  try{const raw=localStorage.getItem(cwDraftKey());return raw?JSON.parse(raw):null;}catch(e){return null;}
+}
+function cwClearLocal(){try{localStorage.removeItem(cwDraftKey());}catch(e){}}
+function cwFindResumable(planId,dayIdx){
+  const draft=cwReadLocal();
+  const state=draft&&draft.state;
+  if(state&&state.planId===planId&&Number(state.dayIdx)===Number(dayIdx)&&state.sessionId)return {sessionId:state.sessionId,dayName:state.dayName,confirmedSets:cwConfirmedSets(state),syncState:state.syncState||'local',local:true,completeLocal:['completed','partial'].includes(state.status)};
+  const remote=(window.SE||[]).find(s=>s&&s.source==='client'&&s.status==='in_progress'&&s.planId===planId&&Number(s.dayIdx)===Number(dayIdx));
+  return remote?{sessionId:remote.id,dayName:remote.type,confirmedSets:Number(remote.confirmedSets)||0,syncState:'synced'}:null;
+}
+function cwSyncStateText(cw){return cw&&cw.syncState==='local'?'Zapisano na urządzeniu':'Zsynchronizowano';}
+async function cwPersist(cw,status){
+  if(!cw||!window._clientAppMode)return false;
+  cw.syncState='local';cwWriteLocal(cw);
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return false;
+  try{
+    const session=captureClientTenantSession();requireClientTenantSession(session);
+    const record=cwBuildRecord(cw,status||cw.status||'in_progress');
+    const saved=await clientConfirmWrite('sessions',record,session,['exercises','volume','duration','updatedAt','status','issues','feedback','difficulty','note','confirmedSets','completedAt']);
+    requireClientTenantSession(session);
+    if(!saved)return false;
+    cw.status=record.status;cw.syncState='synced';
+    window.SE=window.SE||[];
+    const old=window.SE.find(s=>s.id===record.id);
+    if(old)Object.assign(old,record);else window.SE.push(record);
+    cwWriteLocal(cw);
+    return true;
+  }catch(e){return false;}
+}
+function cwQueuePersist(cw,status){
+  if(!cw)return Promise.resolve(false);
+  cw.status=status||cw.status||'in_progress';cwWriteLocal(cw);
+  cw.syncQueue=(cw.syncQueue||Promise.resolve()).catch(()=>false).then(()=>cwPersist(cw,cw.status));
+  return cw.syncQueue;
+}
+async function cwFlushLocal(){
+  const cached=cwReadLocal()?.state;
+  if(!cached||!cached.sessionId||(typeof navigator!=='undefined'&&navigator.onLine===false))return false;
+  cached.active=true;cached.syncQueue=Promise.resolve();
+  const ok=await cwPersist(cached,cached.status||'in_progress');
+  if(ok&&['completed','partial'].includes(cached.status))cwClearLocal();
+  return ok;
+}
+if(typeof window.addEventListener==='function')window.addEventListener('online',()=>{if(window._cw&&window._cw.active)cwQueuePersist(window._cw,window._cw.status||'in_progress');else cwFlushLocal();});
+window.cwFindResumable=cwFindResumable;
+window.cwFlushLocal=cwFlushLocal;
+
 function cwOpen(planId,dayIdx){
   if(!window._clientAppMode){
     if(typeof notify==='function')notify('Podgląd — klient startuje trening w swojej apce');
@@ -1090,13 +1153,25 @@ function cwOpen(planId,dayIdx){
   const exercises=mapPlanExercisesForClient(day.exercises,window._clientId,plan,day);
   if(!exercises.length){if(typeof notify==='function')notify('Brak ćwiczeń w tym dniu');return;}
   cwClearTimers();
-  window._cw={
-    active:true,phase:'overview',
-    planId,dayIdx,dayName:typeof capDayLabel==='function'?capDayLabel(day,dayIdx):('Dzień '+(dayIdx+1)),
-    planName:plan.name||'Plan',
-    exercises,exIdx:0,restLeft:0,rating:0,note:'',
-    startedAt:Date.now(),elapsed:0
-  };
+  const cached=cwReadLocal()?.state;
+  if(cached&&cached.planId===planId&&Number(cached.dayIdx)===Number(dayIdx)&&['completed','partial'].includes(cached.status)){
+    if(typeof notify==='function')notify('Ten trening jest zapisany na urządzeniu i czeka na synchronizację');
+    return;
+  }
+  if(cached&&cached.planId===planId&&Number(cached.dayIdx)===Number(dayIdx)&&cached.sessionId&&cached.phase!=='finish'){
+    window._cw={...cached,active:true,restLeft:0,phase:cached.phase==='rest'?'exercise':cached.phase,syncQueue:Promise.resolve()};
+    if(typeof notify==='function')notify(cwSyncStateText(window._cw)+' · wznowiono trening');
+  }else{
+    const now=new Date();
+    window._cw={
+      active:true,phase:'overview',status:'in_progress',sessionId:newId('s'),
+      planId,dayIdx,dayName:typeof capDayLabel==='function'?capDayLabel(day,dayIdx):('Dzień '+(dayIdx+1)),
+      planName:plan.name||'Plan',exercises,planSnapshot:cwPlanSnapshot(exercises),
+      exIdx:0,restLeft:0,rating:0,note:'',issues:[],date:todayYmd(),
+      time:now.toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:now.toISOString(),startedAtIso:now.toISOString(),
+      startedAt:Date.now(),elapsed:0,syncState:'local',syncQueue:Promise.resolve()
+    };
+  }
   const wrap=document.getElementById('clive-player');
   if(wrap)wrap.hidden=false;
   document.body.classList.add('cw-playing');
@@ -1105,7 +1180,9 @@ function cwOpen(planId,dayIdx){
 
 function cwClose(){
   if(window._cw&&window._cw.active&&window._cw.phase!=='overview'&&window._cw.phase!=='finish'){
-    if(!confirm('Przerwać trening? Serie nie zostaną zapisane.'))return;
+    cwWriteLocal(window._cw);
+    cwQueuePersist(window._cw,window._cw.status||'in_progress');
+    if(typeof notify==='function')notify('Trening zapisano do wznowienia');
   }
   cwClearTimers();
   window._cw=null;
@@ -1119,6 +1196,8 @@ function cwBegin(){
   const cw=window._cw;if(!cw)return;
   cw.phase='exercise';
   cw.startedAt=Date.now();
+  cw.startedAtIso=cw.startedAtIso||new Date().toISOString();
+  cw.status='in_progress';
   cw.emomClock={};
   cwClearTimers();
   window._cwClock=setInterval(()=>{
@@ -1128,6 +1207,7 @@ function cwBegin(){
     if(el)el.textContent=cwFmt(window._cw.elapsed);
   },1000);
   cwEnsureEmomClock();
+  cwQueuePersist(cw,'in_progress');
   cwRender();
 }
 
@@ -1140,6 +1220,7 @@ function cwPatchSet(setIdx,field,val){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
   ex.sets[setIdx][field]=val;
+  cwWriteLocal(cw);
 }
 
 function cwStartRest(seconds,kind){
@@ -1169,6 +1250,7 @@ function cwGoEx(idx){
   cw.phase='exercise';
   cw.showVideo=false;
   cwEnsureEmomClock();
+  cwWriteLocal(cw);
   cwRender();
 }
 
@@ -1190,6 +1272,7 @@ function cwCheckSet(setIdx){
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
   const st=ex.sets[setIdx];
   st.done=!st.done;
+  cwQueuePersist(cw,'in_progress');
   if(!st.done){cwRender();return;}
   const prMsg=typeof prToastText==='function'?prToastText(window._clientId,ex.name,st.kg,st.reps):'';
   if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
@@ -1259,11 +1342,18 @@ function cwSkipRest(){
   const cw=window._cw;if(!cw)return;
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
   cw.phase='exercise';
+  cwWriteLocal(cw);
   cwRender();
 }
 
 function cwSkipEx(){
   const cw=window._cw;if(!cw)return;
+  const ex=cw.exercises[cw.exIdx];
+  if(ex){
+    const reason=prompt('Pominąć ćwiczenie? Dodaj opcjonalny powód dla trenera.')||'';
+    ex.skipped=true;ex.skipReason=reason.trim();
+    cwQueuePersist(cw,'in_progress');
+  }
   if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();}
   else{cw.phase='finish';cwRender();}
 }
@@ -1273,9 +1363,24 @@ function cwPrevEx(){
   cw.exIdx-=1;cw.phase='exercise';cwRender();
 }
 
+function cwReportProblem(){
+  const cw=window._cw;if(!cw)return;
+  const ex=cw.exercises[cw.exIdx]||{};
+  const note=prompt('Opisz krótko ból lub problem dla trenera (bez automatycznej porady):');
+  if(note==null)return;
+  const text=String(note).trim();
+  if(!text){if(typeof notify==='function')notify('Nie zapisano pustego zgłoszenia');return;}
+  cw.issues=cw.issues||[];
+  cw.issues.push({exerciseName:ex.name||'',note:text,reportedAt:new Date().toISOString()});
+  cwQueuePersist(cw,'in_progress');
+  if(typeof notify==='function')notify('Zgłoszenie zapisane dla trenera');
+  cwRender();
+}
+
 function cwRate(v){
   const cw=window._cw;if(!cw)return;
   cw.rating=v;
+  cwWriteLocal(cw);
   cwRender();
 }
 
@@ -1283,12 +1388,11 @@ function cwSwapEx(name){
   const cw=window._cw;if(!cw)return;
   const cur=cw.exercises[cw.exIdx];if(!cur)return;
   name=String(name||'').trim();
-  if(!name||name===cur.name)return;
+  if(!name||name===cur.name||!(cur.approvedAlts||[]).includes(name))return;
   const orig=cur.plannedName||cur.name;
   cur.plannedName=orig;
   cur.name=name;
-  const extra=typeof altsForExercise==='function'?altsForExercise(name):[];
-  cur.alts=[orig].concat(cur.alts||[]).concat(extra).filter((n,i,a)=>n&&n!==cur.name&&a.indexOf(n)===i);
+  cur.alts=[orig].concat(cur.approvedAlts||[]).filter((n,i,a)=>n&&n!==cur.name&&a.indexOf(n)===i);
   const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(window._clientId,name):null;
   if(last){
     cur.lastKg=last.kg||'';
@@ -1335,6 +1439,7 @@ function cwSwapEx(name){
     cur.todoEdited=false;
   }
   cw.showVideo=false;
+  cwQueuePersist(cw,'in_progress');
   cwRender();
 }
 
@@ -1354,7 +1459,8 @@ function cwRender(){
   if(cw.phase==='overview'){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cw.exercises.length} ćwiczeń · serie zapisują się po zatwierdzeniu</div>
+      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}</div>
@@ -1375,17 +1481,27 @@ function cwRender(){
   }
   if(cw.phase==='finish'){
     const setsDone=cw.exercises.flatMap(e=>e.sets).filter(s=>s.done).length;
+    const missing=cwIncompleteSets(cw);
+    if(cw.finishPrompt){
+      const first=cw.exercises.findIndex(e=>(e.sets||[]).some(s=>!s.done));
+      el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:10px;">ZAKOŃCZYĆ TRENING?</div>
+        <div class="cw-ex-todo"><div class="cw-ex-todo-txt">Pozostało ${missing} niewykonanych ${missing===1?'seria':'serii'}. Możesz do nich wrócić albo zakończyć trening jako częściowo wykonany.</div></div>
+        <button type="button" class="btn btn-ghost" style="width:100%;padding:13px;margin-top:10px;" onclick="cwGoEx(${Math.max(0,first)})">Wróć do treningu</button>
+        <button type="button" class="cap-btn-primary" style="margin-top:10px;padding:15px;" onclick="cwFinish(true)">Zakończ częściowo wykonany</button>`;
+      return;
+    }
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>
       <div style="text-align:center;padding:10px 0 20px;">
         <div style="font-size:40px;margin-bottom:8px;">🔥</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;">TRENING SKOŃCZONY</div>
         <div style="font-size:13px;color:var(--muted);margin-top:6px;">${setsDone} serii · ${cwFmt(cw.elapsed)}</div>
       </div>
-      <div style="font-size:13px;margin-bottom:10px;text-align:center;">Jak było? (ocena dla trenera)</div>
-      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:6px;">
-        ${[1,2,3,4,5].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" onclick="cwRate(${n})">${['😓','😐','🙂','💪','🔥'][n-1]}</button>`).join('')}
+      <div style="font-size:13px;margin-bottom:10px;text-align:center;">Trudność treningu (opcjonalnie)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px;">
+        ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" onclick="cwRate(${n})">${n}</button>`).join('')}
       </div>
-      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">${cw.rating?(typeof sessionRatingLabel==='function'?sessionRatingLabel(cw.rating):cw.rating+'/5'):'Wybierz 1–5'}</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">${cw.rating?cw.rating+'/10':'Bez oceny'}</div>
       <textarea class="form-textarea" rows="3" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
       <button type="button" class="cap-btn-primary" style="margin-top:16px;padding:16px;" onclick="cwFinish()">Zapisz i wyślij do trenera</button>`;
     return;
@@ -1401,7 +1517,8 @@ function cwRender(){
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}${emomOn?' · EMOM runda '+(doneSets+1)+'/'+ex.sets.length:''}</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
-    ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()',caption:false,showNote:false}):''}
+    ${(ex.video||ex.videoEmbed||ex.gif||ex.img||ex.note||ex.libTip)?`<button type="button" class="btn btn-ghost btn-sm" style="margin:0 0 10px;" onclick="cwToggleVideo()">${cw.showVideo?'Ukryj instrukcję':'Jak wykonać?'}</button>`:''}
+    ${cw.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,toggleFn:'cwToggleVideo()',caption:false,showNote:false}):''}
     ${(()=>{const todo=typeof exerciseTodoNote==='function'?exerciseTodoNote(ex):String((ex&&(ex.note||ex.libTip))||'').trim();return todo?`<div class="cw-ex-todo"><div class="cw-ex-todo-lbl">Do zrobienia</div><div class="cw-ex-todo-txt">${escHtml(todo)}</div></div>`:'';})()}
     ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
@@ -1423,6 +1540,7 @@ function cwRender(){
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
+    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
     <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
       <div>#</div><div>${typeof loadUnitShortLabel==='function'?loadUnitShortLabel(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):(typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='min'?'Min':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg')}</div><div>Powt.</div><div title="Powtórzenia w zapasie">RIR</div><div></div>
     </div>
@@ -1436,67 +1554,62 @@ function cwRender(){
     <div style="display:flex;gap:8px;margin-top:18px;">
       ${cw.exIdx>0?`<button type="button" class="btn btn-ghost" onclick="cwPrevEx()">←</button>`:''}
       <button type="button" class="btn btn-ghost" style="flex:1;" onclick="cwSkipEx()">Pomiń ćwiczenie</button>
-    </div>`;
+    </div>
+    <button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;color:var(--orange);" onclick="cwReportProblem()">Zgłoś ból lub problem</button>`;
 }
 
-async function cwFinish(){
+async function cwFinish(force){
   const cw=window._cw;if(!cw||cw.saving)return false;
-  if(!cw.rating){if(typeof notify==='function')notify('Wybierz ocenę 1–5 — trener to widzi');return false;}
-  const session=captureClientTenantSession();
+  const missing=typeof cwIncompleteSets==='function'?cwIncompleteSets(cw):(cw.exercises||[]).flatMap(e=>e.sets||[]).filter(s=>s&&!s.done).length;
+  if(missing&&!force){cw.finishPrompt=true;cwRender();return false;}
+  // Compatibility path for minimal embedded clients predating durable drafts.
+  // The real app always has cwQueuePersist and uses the snapshot-aware branch below.
+  if(typeof cwQueuePersist!=='function'){
+    const session=captureClientTenantSession(),clientId=window._clientId;
+    const totalSets=(cw.exercises||[]).flatMap(e=>e.sets||[]).filter(s=>s.done).length;
+    const durationMin=Math.max(1,Math.round((cw.elapsed||0)/60));
+    cw.saving=true;
+    let saved;
+    try{
+      requireClientTenantSession(session);
+      cw.saveRecord=withTrainer({id:cw.saveRecord?.id||newId('s'),clientId,date:cw.saveRecord?.date||todayYmd(),time:cw.saveRecord?.time||'',type:cw.dayName||'Trening',duration:durationMin,
+        exercises:(cw.exercises||[]).map(e=>({name:e.name,loadUnit:e.loadUnit||'kg',sets:(e.sets||[]).filter(s=>s.done).map(s=>({kg:s.kg||0,reps:s.reps||0,setNo:s.setNo,kind:s.kind||'work'}))})),
+        volume:0,feedback:cw.rating||0,note:cw.note||'',source:'client',planId:cw.planId,dayIdx:cw.dayIdx,createdAt:cw.saveRecord?.createdAt||new Date().toISOString()});
+      saved=await clientConfirmWrite('sessions',cw.saveRecord,session,['feedback','duration','note']);
+      if(!saved)throw new Error('client-write-unconfirmed');
+      requireClientTenantSession(session);if(window._cw!==cw)return false;
+      window.SE=window.SE||[];if(!window.SE.some(s=>s.id===saved.id))window.SE.push(saved);
+    }catch(e){return false;}finally{cw.saving=false;}
+    if(typeof pushClientMsg==='function')pushClientMsg('Zrobiłem trening: '+cw.dayName);
+    if(typeof maybeSendCheckinAfterSession==='function')try{maybeSendCheckinAfterSession(clientId);}catch(e){}
+    cwClearTimers();window._cw=null;
+    const wrap=document.getElementById('clive-player');if(wrap)wrap.hidden=true;
+    document.body.classList.remove('cw-playing');window._cliveSessionId=saved.id;window._clientLiveScreen='progress';renderClientLive();
+    return true;
+  }
   const clientId=window._clientId;
-  const totalSets=cw.exercises.flatMap(e=>e.sets).filter(s=>s.done).length;
-  const volume=Math.round(typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(cw.exercises):cw.exercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0));
-  const durationMin=Math.max(1,Math.round((cw.elapsed||0)/60));
   cw.saving=true;
-  let newSession;
   try{
-  requireClientTenantSession(session);
-  cw.saveRecord=withTrainer({
-    id:cw.saveRecord?.id||newId('s'),
-    clientId,
-    date:cw.saveRecord?.date||todayYmd(),
-    time:cw.saveRecord?.time||new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
-    type:cw.dayName||'Trening',
-    duration:durationMin,
-    exercises:cw.exercises.map(e=>typeof serializeLoggedExercise==='function'?serializeLoggedExercise(e,{onlyDone:true}):({
-      name:e.name,
-      loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work',rir:s.rir!=null&&s.rir!==''?String(s.rir):''}))
-    })),
-    volume,
-    feedback:cw.rating||0,
-    note:cw.note||'',
-    source:'client',
-    planId:cw.planId,
-    dayIdx:cw.dayIdx,
-    createdAt:cw.saveRecord?.createdAt||new Date().toISOString()
-  });
-  newSession=await clientConfirmWrite('sessions',cw.saveRecord,session,['feedback','duration','note']);
-  if(!newSession)throw clientTenantError('client-write-unconfirmed');
-  requireClientTenantSession(session);
-  if(window._cw!==cw)return false;
-  window.SE=window.SE||[];
-  if(!window.SE.some(s=>s.id===newSession.id))window.SE.push(newSession);
+    cw.status=missing?'partial':'completed';
+    cw.completedAt=new Date().toISOString();
+    cw.finishPrompt=false;
+    const saved=await cwQueuePersist(cw,cw.status);
+    if(!saved){if(typeof notify==='function')notify('Zapisano na urządzeniu. Wyślemy wynik po odzyskaniu połączenia.');}
   }catch(e){
-    try{requireClientTenantSession(session);if(window._cw===cw&&typeof notify==='function')notify(e.message==='client-write-conflict'?'Ten trening został już zapisany w innej wersji. Sprawdź historię przed ponownym zapisem.':'Nie udało się potwierdzić zapisu treningu. Wyniki są zachowane w tym oknie — spróbuj ponownie.');}catch(stale){}
+    if(typeof notify==='function')notify('Nie udało się zapisać podsumowania. Trening pozostaje do wznowienia.');
     return false;
   }finally{cw.saving=false;}
-  const me=(window.CL||[])[0];
-  const name=me&&me.name?me.name.split(' ')[0]:'Klient';
-  pushClientMsg('Zrobiłem trening: '+cw.dayName+(cw.rating?(' · ocena '+cw.rating+'/5'):'')+(cw.note?('\n'+cw.note):''));
-  if(typeof addNotification==='function'){
-    addNotification('system','Trening klienta',name+' · '+cw.dayName+' · ocena '+cw.rating+'/5 · '+durationMin+' min · '+totalSets+' serii','live');
-  }
+  pushClientMsg('Zrobiłem trening: '+cw.dayName+(cw.note?('\n'+cw.note):''));
   if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(clientId);}catch(e){}
-  try{if(typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(clientId);}catch(e){}
-  if(typeof notify==='function')notify('✓ Trening zapisany');
+  if(typeof notify==='function')notify(cw.syncState==='synced'?'✓ Trening zsynchronizowany':'✓ Trening zapisany na urządzeniu');
   cwClearTimers();
   window._cw=null;
   const wrap=document.getElementById('clive-player');
   if(wrap)wrap.hidden=true;
   document.body.classList.remove('cw-playing');
-  window._cliveSessionId=newSession.id;
+  window._cliveSessionId=cw.sessionId;
   window._clientLiveScreen='progress';
+  if(cw.syncState==='synced')cwClearLocal();
   renderClientLive();
   return true;
 }

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=146&exercise-preview=1">
+<link rel="stylesheet" href="styles.css?v=147&volume-control=1">
 </head>
 <body>
 
@@ -426,6 +426,10 @@
           <div class="manual-plan-cycle-summary" id="manual-plan-cycle-summary"></div>
         </div>
         <button type="button" class="btn btn-ghost btn-sm manual-plan-analysis-trigger" id="manual-plan-analysis-trigger" onclick="manualPlanOpenAnalysis()">Analiza planu</button>
+      </div>
+      <div class="builder-volume-quickbar" id="builder-volume-quickbar" hidden>
+        <div class="builder-volume-quickbar-copy"><b>Objętość tygodniowa</b><span id="builder-volume-summary">Wybierz klienta i dodaj ćwiczenia.</span></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="manualPlanOpenVolume()">Objętość tygodniowa</button>
       </div>
       <div id="builder-days"></div>
       <button type="button" class="add-day-btn" onclick="addDay()">+ Dodaj dzień treningowy</button>
@@ -2080,20 +2084,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
     <div id="clive-screen-content" class="clive-content"></div>
     <nav class="clive-nav">
-      <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Dziś</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>📋</span><span>Plan</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-homework" onclick="setClientLiveScreen('homework')"><span>🏡</span><span>Domowe</span></button>
+      <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Dzisiaj</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>🏋️</span><span>Trening</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-more" onclick="toggleCliveMoreNav()"><span>⋯</span><span>Więcej</span></button>
-    </nav>
-    <div id="clive-more-sheet" class="clive-more-sheet" hidden>
-      <button type="button" class="clive-nav-btn" id="clive-bn-checkin" onclick="setClientLiveScreen('checkin')"><span>✅</span><span>Check-in</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-ondemand" onclick="setClientLiveScreen('ondemand')"><span>▶️</span><span>On-demand</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-resources" onclick="setClientLiveScreen('resources')"><span>📚</span><span>Zasoby</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-forum" onclick="setClientLiveScreen('forum')"><span>👥</span><span>Forum</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
-    </div>
+    </nav>
     <div id="clive-player" class="clive-player" hidden>
       <div id="clive-player-inner" class="clive-player-inner"></div>
     </div>
@@ -4625,7 +4620,7 @@ async function load(session=captureTenantSession()){
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1"></script>
 <script src="04-client-portal.js?v=57&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1"></script>
 <script src="client-card-save.js?v=3"></script>
-<script src="05-clients-builder-plans-calendar.js?v=97&journey=1&plan-save=1&calendar-fill=2&onboard-calendar=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=98&volume-control=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=95&exercise-preview=1"></script>
@@ -4633,6 +4628,6 @@ async function load(session=captureTenantSession()){
 <script src="08-client-profile-extras.js?v=89&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
-  <script src="12-manual-plan-wizard.js?v=16&biomech-button-fix=1"></script>
+  <script src="12-manual-plan-wizard.js?v=17&volume-control=1"></script>
 </body>
 </html>

@@ -243,8 +243,12 @@ service cloud.firestore {
     function clientSession(data) {
       return ownClient(data) && data.source in ['client', 'homework', 'sala']
         && data.keys().hasOnly(['id', 'trainerId', 'clientId', 'date', 'time', 'type', 'duration', 'exercises',
-          'volume', 'feedback', 'note', 'source', 'planId', 'dayIdx', 'createdAt', 'taskId', 'odWorkoutId', 'rpe', 'plannedSessionId'])
-        && data.exercises is list && data.duration is number && data.duration >= 0;
+          'volume', 'feedback', 'difficulty', 'note', 'source', 'planId', 'dayIdx', 'createdAt', 'startedAt', 'updatedAt', 'completedAt',
+          'status', 'planSnapshot', 'issues', 'confirmedSets', 'taskId', 'odWorkoutId', 'rpe', 'plannedSessionId'])
+        && data.exercises is list && data.duration is number && data.duration >= 0
+        && data.get('status', 'completed') in ['in_progress', 'completed', 'partial']
+        && data.get('confirmedSets', 0) is number && data.get('confirmedSets', 0) >= 0
+        && data.get('issues', []) is list;
     }
     function clientSala(data) {
       let parent = get(/databases/$(database)/documents/sessions/$(data.plannedSessionId)).data;
@@ -268,7 +272,8 @@ service cloud.firestore {
             && ownClient(get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data))
           || (request.resource.data.source == 'sala' && validId(request.resource.data.plannedSessionId)
             && clientSala(request.resource.data)));
-      allow update: if clientUpdate(['rpe', 'feedback', 'duration', 'note', 'updatedAt'])
+      allow update: if clientUpdate(['rpe', 'feedback', 'difficulty', 'duration', 'note', 'updatedAt', 'completedAt', 'status', 'exercises', 'volume', 'issues', 'confirmedSets'])
+        && clientSession(request.resource.data)
         && (resource.data.source in ['client', 'homework']
           || (resource.data.source == 'sala' && request.resource.data.feedback is number
             && request.resource.data.feedback >= 1 && request.resource.data.feedback <= 5
