@@ -4331,7 +4331,7 @@ function renderSettingsContent(t,targetId){
 
       ${card('Eksport danych','Pobierz kopię swoich danych.',`
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('clients')">⬇ Eksportuj klientów (CSV)</button>
+          <div style="padding:12px;border:1px solid rgba(255,64,64,.35);border-radius:8px;background:rgba(255,64,64,.06);"><div style="font-size:13px;font-weight:700;margin-bottom:4px;">Eksport do Second Brain</div><div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:9px;">Jeden plik CSV: treningi z kalendarza i płatności.</div><button class="btn btn-primary btn-sm" style="justify-content:flex-start;" onclick="exportSecondBrainCsv()">⬇ Pobierz CSV do Second Brain</button></div><button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('clients')">⬇ Eksportuj klientów (CSV)</button>
           <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('sessions')">⬇ Eksportuj sesje (CSV)</button>
           <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('payments')">⬇ Eksportuj płatności (CSV)</button>
           <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('all')">⬇ Pełny eksport (JSON)</button>
