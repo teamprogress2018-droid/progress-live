@@ -3496,6 +3496,42 @@ const DEMO_PROGRAMS=[
   },
 ];
 
+/* Korekty merytoryczne gotowych bloków siłowych (audyt trenerski):
+ * – deload ≠ tydzień roboczy: RPE 5–6, ~−40% objętości, ~60–70% ciężaru;
+ * – 5/3/1 i nSuns: procenty od Training Max (TM = 90% 1RM);
+ * – rzeczywisty rozkład dni (Texas Method, nSuns 4 dni), poziom Texas = średniozaawansowany. */
+(function fixStrengthBlocks(){
+  const byId=id=>DEMO_PROGRAMS.find(p=>p.id===id);
+  const D=(d,name)=>({d,name});
+  ['dp26','dp27','dp28','dp29'].forEach(id=>{
+    const p=byId(id);if(!p)return;
+    p.weeks.forEach(w=>{
+      if(/deload|reset|utrzymanie/i.test(w.label)){w.rpe='RPE 5-6';if(!/%/.test(w.focus))w.focus=w.focus+' · ok. −40% objętości, ciężary ~60–70% roboczych';}
+      else if(/intensyf|intensity|peak/i.test(w.label))w.rpe='RPE 8-9';
+      else if(/test|realizac/i.test(w.label))w.rpe='RPE 9-10';
+    });
+  });
+  const texas=byId('dp27');
+  if(texas){
+    texas.level='sredni';
+    texas.weeks.forEach(w=>{w.days=/deload/i.test(w.label)
+      ?[D('PON','Volume Day — 3×5 @ ~80% (lżej)'),D('WT','REST'),D('ŚR','Recovery — lekko'),D('CZ','REST'),D('PT','Intensity Day — top set bez rekordu'),D('SO','REST'),D('ND','REST')]
+      :[D('PON','Volume Day — 5×5 @ ~90% 5RM'),D('WT','REST'),D('ŚR','Recovery Day — 2×5 @ ~80% poniedziałku'),D('CZ','REST'),D('PT','Intensity Day — top set 5RM (nowy rekord)'),D('SO','REST'),D('ND','REST')];});
+  }
+  const nsuns=byId('dp29');
+  if(nsuns){
+    nsuns.daysPerWeek=4;
+    nsuns.highlights=['4 dni / tydzień (T1 + T2)','Procenty od TM = 90% 1RM','TM +2,5–5 kg wg wyniku serii 1+','Deload co 4 tyg.'];
+    nsuns.weeks.forEach(w=>{w.days=[D('PON','Dzień 1 — Wyciskanie leżąc T1 + OHP T2'),D('WT','Dzień 2 — Przysiad T1 + Martwy sumo T2'),D('ŚR','REST'),D('CZ','Dzień 3 — OHP T1 + Wyciskanie wąsko T2'),D('PT','Dzień 4 — Martwy ciąg T1 + Przysiad przedni T2'),D('SO','REST'),D('ND','REST')];});
+  }
+  const w531=byId('dp11');
+  if(w531){
+    w531.desc+=' Wszystkie procenty liczone są od Training Max (TM) = 90% Twojego 1RM, nie od samego 1RM.';
+    w531.highlights=[...w531.highlights,'% od Training Max (90% 1RM)'];
+    w531.weeks.forEach(w=>{w.label=w.label.replace(/%\)/,'% TM)');w.days.forEach(d=>{d.name=d.name.replace(/(\d+)%/g,'$1% TM');});});
+  }
+})();
+
 function allPrograms(){return[...DEMO_PROGRAMS,...(window.USER_PROGRAMS||[])];}
 window.allPrograms=allPrograms;
 

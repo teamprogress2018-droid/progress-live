@@ -300,7 +300,7 @@ window.aplSyncProgressionFromMethod=aplSyncProgressionFromMethod;
 function aplMethodStructureHint(method){
   const hints={
     'Bro Split':'BRO SPLIT: 5–6 dni, 1 partia główna/dzień (np. klatka, plecy, barki, ramiona, nogi). Progresja liniowa +2.5 kg/tyg na wielostawach gdy RPE≤8.',
-    Smolov:'SMOLOV: priorytet PRZYSIAD — mikrocykl %1RM (T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6). Inne dni: utrzymanie góry ciała, max 2–3 ćwiczenia, niska objętość nóg poza przysiadami Smolova.',
+    Smolov:'SMOLOV: priorytet PRZYSIAD. Cykl bazowy = 3 tygodnie po 4 dni przysiadu w TYM SAMYM tygodniu: pon 4×9 @70%, śr 5×7 @75%, pt 7×5 @80%, sob 10×3 @85% 1RM; tydz. 2 i 3: te same schematy +5 kg (tydz. 3 kolejne +5 kg). Tydz. 4: lżej + test nowego 1RM. Potem faza przejściowa (2 tyg.) i intensywna. Inne dni: utrzymanie góry ciała, max 2–3 ćwiczenia, bez dodatkowej objętości nóg.',
     Arnold:'ARNOLD SPLIT: rotacja klatka+plecy / barki+ramiona / nogi (×2). Wysoka objętość sylwetkowa — periodyzacja blokowa lub falowa.',
     Blokowa:'BLOKOWA: tygodnie Akumulacja → Intensyfikacja → Realizacja (+ deload). Objętość i intensywność nie rosną naraz.',
     '531':'5/3/1: 4 główne wielostawy wg cyklu %1RM + asysty BBB. Progresja co tydzień wg tablic Wendlera.',
@@ -315,9 +315,10 @@ window.aplMethodStructureHint=aplMethodStructureHint;
 
 function aplPhasesForPlan(method,weeksNum,weekKeys,goal){
   const SMOLOV_PHASES={
-    4:{w1:'Smolov T1 70%',w2:'Smolov T2 75%',w3:'Smolov T3 80%',w4:'Smolov T4 85%'},
-    6:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Test/Realizacja'},
-    8:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Utrzymanie',w7:'Realizacja',w8:'Test PR'}
+    // Cykl bazowy: każdy tydzień zawiera WSZYSTKIE cztery dni (70/75/80/85%), kolejne tygodnie +5 kg.
+    4:{w1:'Smolov baza — tydz. 1 (4×9@70, 5×7@75, 7×5@80, 10×3@85)',w2:'Smolov baza — tydz. 2 (+5 kg)',w3:'Smolov baza — tydz. 3 (+5 kg)',w4:'Lżej + test 1RM'},
+    6:{w1:'Smolov baza — tydz. 1 (4×9@70, 5×7@75, 7×5@80, 10×3@85)',w2:'Smolov baza — tydz. 2 (+5 kg)',w3:'Smolov baza — tydz. 3 (+5 kg)',w4:'Lżej + test 1RM',w5:'Faza przejściowa — dynamika',w6:'Faza przejściowa — dynamika'},
+    8:{w1:'Smolov baza — tydz. 1 (4×9@70, 5×7@75, 7×5@80, 10×3@85)',w2:'Smolov baza — tydz. 2 (+5 kg)',w3:'Smolov baza — tydz. 3 (+5 kg)',w4:'Lżej + test 1RM',w5:'Faza przejściowa — dynamika',w6:'Faza przejściowa — dynamika',w7:'Faza intensywna — tydz. 1',w8:'Faza intensywna — tydz. 2'}
   };
   if(method==='Smolov'&&SMOLOV_PHASES[weeksNum])return SMOLOV_PHASES[weeksNum];
   if(typeof aplIsHypertrophyGoal==='function'?aplIsHypertrophyGoal(goal):false){
@@ -1269,7 +1270,7 @@ async function aplGenerate(){
       ?'BLOK HIPERTROFII: tyg. 1–3 Akumulacja I (RIR 2–3, 8–12 powt.), tyg. 4–6 Akumulacja II (RIR 1–2, drop-set/rest-pause na izolacjach), tyg. 7 Pik objętości (RIR 0–1), tyg. 8 Deload (objętość −40–50%, RIR 3–4). Bez faz 1–3 powt.'
       :'BLOKOWA: pierwsze tygodnie Akumulacja (10-15 powt. RPE 6-7), środkowe Intensyfikacja (6-8 powt. RPE 8-9), ostatni tydzień Deload, potem Realizacja.',
     double:'PODWÓJNA PROGRESJA: dodawaj 1 powt./tydzień do górnego zakresu, potem +2.5-5kg i reset do dolnego zakresu powtórzeń.',
-    smolov:'SMOLOV (przysiad): mikrocykl %1RM — T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6 (dostosuj do długości planu). Reszta ciała: utrzymanie, bez dokładania objętości nóg poza przysiadami Smolova. Deload po cyklu.',
+    smolov:'SMOLOV (przysiad): cykl bazowy 3 tyg., w KAŻDYM tygodniu 4 dni przysiadu — 4×9 @70%, 5×7 @75%, 7×5 @80%, 10×3 @85% 1RM; tydz. 2 i 3 po +5 kg; tydz. 4 lżej i test 1RM (dostosuj do długości planu). Reszta ciała: utrzymanie, bez dokładania objętości nóg poza przysiadami Smolova. Deload po cyklu.',
   };
   const methodDefaultProg=APL_METHOD_PROGRESSION[method]||'linear';
   const effectiveProg=progression==='ai'?methodDefaultProg:progression;
