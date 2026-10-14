@@ -1,4 +1,26 @@
 const W='https://anthropic-proxy.teamprogress2018.workers.dev/';
+/* Zabezpieczenie proxy AI: każde zapytanie do W dostaje nagłówek Authorization z tokenem Firebase
+ * zalogowanego użytkownika, a bezpośrednie wywołania api.anthropic.com są kierowane przez W.
+ * Worker powinien odrzucać zapytania bez ważnego tokenu (patrz docs/ai-proxy-worker.md). */
+(function installAiProxyAuth(){
+  if(typeof window==='undefined'||typeof window.fetch!=='function'||window.fetch._aiProxyAuth||typeof Headers!=='function')return;
+  const nativeFetch=window.fetch.bind(window);
+  const isAiUrl=u=>typeof u==='string'&&(u.indexOf(W)===0||u.indexOf('https://api.anthropic.com/')===0);
+  const wrapped=async function(input,init){
+    const url=typeof input==='string'?input:(input&&input.url)||'';
+    if(!isAiUrl(url))return nativeFetch(input,init);
+    const opts=Object.assign({},init||{});
+    const headers=new Headers(opts.headers||(typeof input!=='string'&&input.headers)||{});
+    // Klucz API nigdy nie jest wysyłany z przeglądarki — tylko token zalogowanego użytkownika.
+    headers.delete('x-api-key');headers.delete('anthropic-version');headers.delete('anthropic-dangerous-direct-browser-access');
+    const token=typeof window._authIdToken==='function'?await window._authIdToken():null;
+    if(token)headers.set('Authorization','Bearer '+token);
+    opts.headers=headers;
+    return nativeFetch(W,opts);
+  };
+  wrapped._aiProxyAuth=true;
+  window.fetch=wrapped;
+})();
 window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];
 /* Relacje CRM (Firestore = kolekcje, klucz = obj.id):
  * clients.id  ←  plans.clientId, sessions.clientId, packages.clientId,

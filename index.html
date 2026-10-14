@@ -4230,6 +4230,8 @@ window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;wi
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
 window._signInClient=function(email,pass){return signInWithEmailAndPassword(auth,email,pass);};
 window._Timestamp=Timestamp;window._serverTimestamp=serverTimestamp;
+/* Token Firebase zalogowanego użytkownika — dołączany do zapytań do proxy AI (patrz aiProxyFetch w 01-core.js). */
+window._authIdToken=async function(){try{return auth.currentUser?await auth.currentUser.getIdToken():null;}catch(e){return null;}};
 
 window.doSignIn=async function(){
   const email=document.getElementById('auth-email').value.trim();
