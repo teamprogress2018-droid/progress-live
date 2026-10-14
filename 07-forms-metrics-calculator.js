@@ -45,6 +45,23 @@ const DEMO_FORMS=[
     ]
   },
   {
+    id:'df6',type:'demo',status:'active',cat:'zdrowie',
+    name:'Gotowość do wysiłku (wzorowana na PAR-Q+)',
+    desc:'Przesiewowa ankieta przed rozpoczęciem treningu. Odpowiedź TAK na którekolwiek z pytań 1–8 oznacza: przed treningiem o większej intensywności klient powinien skonsultować się z lekarzem. Ankieta nie zastępuje badania lekarskiego.',
+    questions:[
+      {id:'q1',type:'yesno',text:'1. Czy lekarz kiedykolwiek stwierdził u Ciebie chorobę serca lub nadciśnienie tętnicze?',required:true},
+      {id:'q2',type:'yesno',text:'2. Czy odczuwasz ból w klatce piersiowej w spoczynku, w codziennych czynnościach lub podczas wysiłku?',required:true},
+      {id:'q3',type:'yesno',text:'3. Czy w ostatnich 12 miesiącach tracił(a)ś równowagę z powodu zawrotów głowy albo straciłeś/aś przytomność?',required:true},
+      {id:'q4',type:'yesno',text:'4. Czy masz zdiagnozowaną inną chorobę przewlekłą (np. cukrzyca, choroba płuc, nowotwór, osteoporoza)?',required:true},
+      {id:'q5',type:'yesno',text:'5. Czy przyjmujesz leki na choroby przewlekłe (w tym na ciśnienie lub serce)?',required:true},
+      {id:'q6',type:'yesno',text:'6. Czy masz problem z kośćmi, stawami lub tkankami miękkimi, który może się nasilić przy aktywności fizycznej?',required:true},
+      {id:'q7',type:'yesno',text:'7. Czy lekarz zalecił Ci aktywność fizyczną wyłącznie pod nadzorem medycznym?',required:true},
+      {id:'q8',type:'choice',text:'8. Ciąża i połóg',options:['Nie dotyczy','Jestem w ciąży','Jestem do 12 miesięcy po porodzie','Mam rozejście mięśnia prostego brzucha lub problem z dnem miednicy'],required:true},
+      {id:'q9',type:'text',text:'Jeśli na któreś pytanie odpowiedziałeś/aś TAK — opisz krótko (diagnoza, leki, zalecenia lekarza)'},
+      {id:'q10',type:'yesno',text:'Potwierdzam, że odpowiedzi są zgodne z prawdą i poinformuję trenera o zmianach stanu zdrowia',required:true},
+    ]
+  },
+  {
     id:'df3',type:'demo',status:'active',cat:'postepy',
     name:'Miesięczna ocena postępów',
     desc:'Formularz wysyłany co 30 dni. Mierzy postęp fizyczny, samopoczucie i satysfakcję z planu treningowego.',

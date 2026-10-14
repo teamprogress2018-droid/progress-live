@@ -1184,7 +1184,7 @@ function capScreenHTML(scr,c){
       return {out:!!m.out,text:display,time:m.time||'',odId,odProgId};
     };
     const msgs=realMsgs.length?realMsgs.map(fmtMsg):[
-      {out:false,text:escHtml('Hej! Napisz do mnie, gdy będziesz miał pytanie o trening 💪'),time:'',odId:null}
+      {out:false,text:escHtml('Hej! Napisz do mnie, gdy pojawi się pytanie o trening 💪'),time:'',odId:null}
     ];
     const liveOd=capIsLiveClient()&&capClientSectionVisible('ondemand');
     return `
@@ -7016,6 +7016,12 @@ function dashStartPrimary(){
     .filter(row=>row&&row.session&&row.session.clientId&&Object.prototype.hasOwnProperty.call(rank,row.state.kind))
     .sort((a,b)=>rank[a.state.kind]-rank[b.state.kind]||Number(a.state.start||0)-Number(b.state.start||0))[0];
   if(candidate)return dashStartLive(candidate.session.id);
+  // Bez klientów trening nie ma sensu — prowadzimy do dodania pierwszej osoby zamiast na pusty ekran.
+  if(!(window.CL||[]).some(c=>c&&c.status!=='archived')){
+    if(typeof notify==='function')notify('Najpierw dodaj pierwszego klienta');
+    if(typeof openM==='function')openM('m-client');
+    return;
+  }
   if(typeof goTo==='function')goTo('live');
 }
 window.dashStartPrimary=dashStartPrimary;

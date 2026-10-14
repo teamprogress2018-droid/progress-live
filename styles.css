@@ -1908,7 +1908,6 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 #screen-dashboard.dash-simple #dash-ops-reports,
 #screen-dashboard.dash-simple #dash-ops-pay,
 #screen-dashboard.dash-simple #dash-ops-activity,
-#screen-dashboard.dash-simple #dash-getting-started,
 #screen-dashboard.dash-simple #dash-client-pipeline,
 #screen-dashboard.dash-simple #dash-profile-setup{display:none;}
 #screen-dashboard.dash-simple .dash-ops-grid{grid-template-columns:1.15fr .85fr;}

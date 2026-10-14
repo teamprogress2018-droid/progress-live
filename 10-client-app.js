@@ -640,7 +640,7 @@ async function doClientRegister(){
         const msg={
           id:'msg_join_'+uid,
           clientId:inv.clientId,
-          text:'Założyłem konto w aplikacji Progress Live 👋',
+          text:'Konto w aplikacji Progress Live założone 👋',
           out:false,
           time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
           createdAt:joinedAt,
@@ -782,7 +782,7 @@ async function clientSubmitCheckin(){
   }catch(e){}
   if(typeof emitAppEvent==='function')try{emitAppEvent('checkin.submitted',{clientId,checkinId:ci.id,score:ci.score,filledBy:'client'});}catch(e){}
   window._cliveCheckin={};
-  pushClientMsg('Wypełniłem tygodniowy check-in'+(answers.weight?' (waga '+answers.weight+' kg)':'')+'.');
+  pushClientMsg('Ankieta tygodniowa wysłana'+(answers.weight?' (waga '+answers.weight+' kg)':'')+'.');
   if(typeof addNotification==='function'){
     const me=(window.CL||[]).find(x=>x.id===clientId)||(window.CL||[])[0];
     const wBit=answers.weight?' · waga '+answers.weight+' kg':'';

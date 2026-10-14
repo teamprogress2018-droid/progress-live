@@ -492,16 +492,23 @@ function restoreClient(id){
 }
 
 /** Trwałe usunięcie rekordu klienta (nie archiwum). */
-function deleteClientPermanently(id){
+async function deleteClientPermanently(id){
   const c=CL.find(x=>x.id===id);
   if(!c)return;
   if(!confirm('Usunąć klienta „'+(c.name||'')+'” na zawsze?\n\nTej operacji nie da się cofnąć. Jeśli chcesz tylko schować go z listy — anuluj i użyj „Zarchiwizuj”.'))return;
   if(!confirm('Na pewno usunąć „'+(c.name||'')+'”?'))return;
+  if(!(window._db&&window._del&&window._doc)){notify('⚠ Brak połączenia z bazą — klient nie został usunięty');return;}
+  // Najpierw potwierdzenie z bazy, dopiero potem znika z listy — inaczej po odświeżeniu „usunięty” klient wracał.
+  notify('Usuwam klienta…');
+  try{
+    await window._del(window._doc(window._db,'clients',c._fbId||id));
+  }catch(e){
+    console.warn('Firebase delete client:',e);
+    notify('⚠ Nie udało się usunąć klienta. Sprawdź internet i spróbuj ponownie.');
+    return;
+  }
   const idx=CL.findIndex(x=>x.id===id);
   if(idx>=0)CL.splice(idx,1);
-  if(window._db&&window._del&&window._doc){
-    window._del(window._doc(window._db,'clients',id)).catch(e=>console.warn('Firebase delete client:',e));
-  }
   if(typeof cpClientId!=='undefined'&&cpClientId===id&&typeof closeClientProfile==='function')closeClientProfile();
   try{renderClients();}catch(e){}
   try{renderClientFilters();}catch(e){}
