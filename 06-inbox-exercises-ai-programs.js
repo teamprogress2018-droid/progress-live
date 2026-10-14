@@ -92,6 +92,9 @@ function renderInbox(){
   const search=(document.getElementById('inbox-search')||{}).value||'';
   let list=CL.filter(c=>c&&c.status!=='archived'&&(!search||c.name.toLowerCase().includes(search.toLowerCase())));
   if(inboxTab==='unread')list=list.filter(c=>msgHasUnread(c.id));
+  // Najnowsza rozmowa na górze — przy kilkudziesięciu klientach nic nie ginie w środku listy.
+  const lastAt=c=>{const m=(MSGS[c.id]||[]).slice(-1)[0];return m?(m.createdAt||''):'';};
+  list=list.slice().sort((a,b)=>lastAt(b).localeCompare(lastAt(a)));
 
   const el=document.getElementById('msg-list');
   if(!el)return;
@@ -112,7 +115,13 @@ function renderInbox(){
     const msgs=MSGS[c.id]||[];
     const last=msgs.slice(-1)[0];
     const unread=msgHasUnread(c.id);
-    const time=last?last.time:'';
+    let time=last?last.time:'';
+    if(last&&last.createdAt){
+      const d=new Date(last.createdAt), today=new Date();
+      const dayDiff=Math.round((new Date(today.toDateString())-new Date(d.toDateString()))/86400000);
+      if(dayDiff===1)time='wczoraj';
+      else if(dayDiff>1)time=d.toLocaleDateString('pl-PL',{day:'numeric',month:'short'});
+    }
     const col=COLS[i%5];
     return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${escHtml(c.id)}')">
       <div class="msg-avatar" style="background:${col}22;color:${col};">${getInit(c.name)}</div>
@@ -3085,7 +3094,7 @@ async function askExAI(){
   try{
     const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:220,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
-    document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+    document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble">'+escHtml(ans).replace(/\n/g,'<br>')+'</div></div>';
   }catch(e){document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble is-err">Błąd</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
 }
@@ -3119,7 +3128,7 @@ async function askAI(){
       document.getElementById('ai-t')?.remove();
       await callStaffAgentsSequentially(staffIds, ctx+q, '', null, function(entry){
         const meta=(typeof STAFF_AGENT_META==='object'&&STAFF_AGENT_META[entry.agentId])||{icon:'💬',label:entry.agentId};
-        const body=entry.error?('Błąd: '+entry.error):(entry.text||'').replace(/\n/g,'<br>');
+        const body=entry.error?('Błąd: '+escHtml(entry.error)):escHtml(entry.text||'').replace(/\n/g,'<br>');
         msgs.innerHTML+='<div class="ai-msg bot" data-agent="'+entry.agentId+'"><div class="ai-bubble"><div style="font-size:10px;font-weight:700;margin-bottom:4px;">'+meta.icon+' '+meta.label+'</div>'+body+'</div></div>';
         msgs.scrollTop=msgs.scrollHeight;
       }, 400);
@@ -3127,7 +3136,7 @@ async function askAI(){
       const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:sys,messages:[{role:'user',content:ctx+q}]})});
       const d=await r.json();
       const ans=d.content.map(i=>i.text||'').join('');
-      document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+      document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+escHtml(ans).replace(/\n/g,'<br>')+'</div></div>';
     }
   }catch(e){const t=document.getElementById('ai-t');if(t)t.outerHTML='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';else msgs.innerHTML+='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;

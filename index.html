@@ -2083,11 +2083,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button type="button" class="btn btn-ghost btn-sm" onclick="doSignOut()">Wyloguj</button>
     </div>
     <div id="clive-screen-content" class="clive-content"></div>
-    <nav class="clive-nav">
+    <div class="clive-more-sheet" id="clive-more-sheet" hidden></div>
+    <nav class="clive-nav" id="clive-nav" aria-label="Nawigacja aplikacji">
       <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Dzisiaj</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>🏋️</span><span>Trening</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
-      <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
     </nav>
     <div id="clive-player" class="clive-player" hidden>
       <div id="clive-player-inner" class="clive-player-inner"></div>

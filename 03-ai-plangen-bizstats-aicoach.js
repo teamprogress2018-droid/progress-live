@@ -1617,7 +1617,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
         <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${plan.planName||'Plan treningowy AI'}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${escHtml(plan.planName||'Plan treningowy AI')}</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">

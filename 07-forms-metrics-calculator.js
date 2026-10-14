@@ -1601,7 +1601,7 @@ async function askMetricAI(){
   const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
   document.getElementById('metric-ai-q').value='';
   const msgs=document.getElementById('metric-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+escHtml(q)+'</div></div>';
   msgs.innerHTML+='<div id="mai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję dane...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const cid=(document.getElementById('metric-client-sel')||{}).value||'';
@@ -1613,7 +1613,7 @@ async function askMetricAI(){
   try{
     const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
-    document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:6px 9px;border-radius:8px;font-size:11px;line-height:1.5;">${ans.replace(/\n/g,'<br>')}</div></div>`;
+    document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:6px 9px;border-radius:8px;font-size:11px;line-height:1.5;">${escHtml(ans).replace(/\n/g,'<br>')}</div></div>`;
   }catch(e){document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd połączenia</div></div>`;}
   msgs.scrollTop=msgs.scrollHeight;
 }

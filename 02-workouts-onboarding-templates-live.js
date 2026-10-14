@@ -2596,7 +2596,8 @@ function liveReadLsDraft(key){
       return null;
     }
     if(!(window.CL||[]).find(x=>x&&x.id===draft.clientId)){
-      try{localStorage.removeItem(key);}catch(e){}
+      // Kasuj tylko, gdy lista klientów jest już wczytana — przy wolnym zasięgu szkic musi przetrwać.
+      if(window._tenantDataReady){try{localStorage.removeItem(key);}catch(e){}}
       return null;
     }
     return draft;
@@ -2667,9 +2668,12 @@ function livePromptRecoverDrafts(d0,d1){
     const c=(window.CL||[]).find(x=>x&&x.id===d.clientId);
     return c?c.name:'klient';
   };
+  // „Anuluj” przy wznowieniu nie kasuje od razu treningu — pytamy drugi raz, a odmowa zostawia szkic na później.
+  const confirmDiscard=()=>confirm('Usunąć niedokończony trening na stałe?\n\nOK — usuń\nAnuluj — zachowaj i zapytaj przy następnym wejściu');
   if(d0&&d1){
     if(!confirm('Masz niedokończone sesje ('+nameOf(d0)+' i '+nameOf(d1)+'). Wznowić obie na podzielonym ekranie?')){
-      liveClearDraft(0);liveClearDraft(1);return false;
+      if(confirmDiscard()){liveClearDraft(0);liveClearDraft(1);}
+      return false;
     }
     liveDual=true;
     liveApplyDraft(0,d0);
@@ -2681,7 +2685,8 @@ function livePromptRecoverDrafts(d0,d1){
   const d=d0||d1;
   const c=(window.CL||[]).find(x=>x&&x.id===d.clientId);
   if(!confirm('Masz niedokończoną sesję treningową ('+(c?c.name:'klient')+'). Wznowić?')){
-    liveClearDraft(n);return false;
+    if(confirmDiscard())liveClearDraft(n);
+    return false;
   }
   if(n===1)liveDual=true;
   liveApplyDraft(n,d);

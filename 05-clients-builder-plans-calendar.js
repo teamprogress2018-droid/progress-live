@@ -5,15 +5,22 @@ var clientSegment='all';
 const CLIENT_GOAL_LABELS={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
 const CLIENT_SEGMENT_TITLES={all:'Wszyscy klienci',active:'Aktywni klienci',inactive:'Nieaktywni klienci',archived:'Zarchiwizowani klienci'};
 
-// Zwraca datę (Date) ostatniej jakiejkolwiek aktywności klienta, albo null jeśli brak.
-// Sprawdza: sesje treningowe (SE), przypisane plany (PL), pomiary (METRIC_ENTRIES), ręczne wpisy osi czasu (CLIENT_TIMELINE).
+// Zwraca datę (Date) ostatniej aktywności KLIENTA, albo null jeśli brak.
+// Liczy tylko to, co klient faktycznie zrobił: odbyte sesje (nie zaplanowane), pomiary, check-iny, wpisy osi czasu.
+// Pomija sesje w przyszłości i daty utworzenia planów (to aktywność trenera) — inaczej „ryzyko odejścia” nigdy by się nie pojawiło.
 function getClientLastActivity(clientId){
   const dates=[];
-  (window.SE||[]).forEach(s=>{ if(s.clientId===clientId && s.date) dates.push(new Date(s.date+'T'+(s.time||'12:00')+':00')); });
-  (window.PL||[]).forEach(p=>{ if(p.clientId===clientId && p.createdAt) dates.push(new Date(p.createdAt)); });
+  const now=Date.now();
+  const sessions=window.SE||[];
+  sessions.forEach(s=>{
+    if(s.clientId!==clientId||!s.date)return;
+    const happened=typeof sessionHappened==='function'?sessionHappened(s,sessions):s.source!=='planned';
+    if(happened)dates.push(new Date(s.date+'T'+(s.time||'12:00')+':00'));
+  });
   (window.METRIC_ENTRIES||[]).forEach(m=>{ if(m.clientId===clientId && m.date) dates.push(new Date(m.date+'T10:00:00')); });
+  ((window.CHECKINS||{})[clientId]||[]).forEach(ci=>{ if(ci&&ci.filledAt) dates.push(new Date(ci.filledAt)); });
   (window.CLIENT_TIMELINE?.[clientId]||[]).forEach(e=>{ if(e.date) dates.push(new Date(e.date)); });
-  const valid=dates.filter(d=>!isNaN(d));
+  const valid=dates.filter(d=>!isNaN(d)&&d.getTime()<=now);
   if(!valid.length)return null;
   return new Date(Math.max(...valid.map(d=>d.getTime())));
 }
@@ -4165,6 +4172,21 @@ async function saveSess(){
   if(!date||!time){notify('Uzupełnij datę i godzinę!');return;}
   const editId=window._editingSessionId;
   const existing=editId&&(window.SE||[]).find(x=>x&&x.id===editId);
+  // Kolizja terminów: trener nie poprowadzi dwóch sesji naraz.
+  const toMin=t=>{const p=String(t||'').split(':');const h=+p[0],m=+(p[1]||0);return isFinite(h)?h*60+(isFinite(m)?m:0):null;};
+  const start=toMin(time),end=start==null?null:start+duration;
+  if(start!=null){
+    const clash=(window.SE||[]).find(o=>{
+      if(!o||o===existing||o.id===editId||String(o.date||'').slice(0,10)!==date||o.status==='cancelled'||o.archived)return false;
+      const os=toMin(o.time);if(os==null)return false;
+      const oe=os+(Number(o.duration)||60);
+      return start<oe&&os<end;
+    });
+    if(clash){
+      const who=((window.CL||[]).find(c=>c.id===clash.clientId)||{}).name||'inny klient';
+      if(!confirm(`O ${clash.time} masz już sesję (${who}). Terminy nakładają się. Zapisać mimo to?`)){window._saveGuard_saveSess=false;return;}
+    }
+  }
   const refresh=()=>{
     try{renderCal();}catch(e){}
     try{renderDash();}catch(e){}
@@ -4181,16 +4203,17 @@ async function saveSess(){
     closeM('m-session');
     window._editingSessionId=null;
     refresh();
-    notify('Sesja zapisana!');
-    await persistById('sessions',existing);
+    notify('Zapisuję sesję…');
+    // Potwierdzenie dopiero po zapisie w bazie — offline persistById sam pokaże ostrzeżenie.
+    if(await persistById('sessions',existing))notify('Sesja zapisana ✓');
     return;
   }
   const sess=withTrainer({id:newId('s'),clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()});
   SE.push(sess);
   closeM('m-session');
   refresh();
-  notify('Sesja dodana!');
-  await persistById('sessions',sess);
+  notify('Zapisuję sesję…');
+  if(await persistById('sessions',sess))notify('Sesja dodana ✓');
   if(typeof fireIntEvent==='function'){
     const cli=(window.CL||[]).find(x=>x.id===cid);
     fireIntEvent('session.created',{session:{id:sess.id,date:sess.date,time:sess.time,type:sess.type,duration:sess.duration},client:{id:cid,name:cli&&cli.name||'',email:cli&&cli.email||'',phone:cli&&cli.phone||''}});

@@ -218,7 +218,43 @@ async function loadClientApp(account,session=captureClientTenantSession()){
     if(typeof resetScreensaverIdle==='function')resetScreensaverIdle();
   }catch(e){}
   enterClientLiveShell();
+  startClientMessagePolling();
 }
+
+/* Nowe wiadomości od trenera bez przeładowania strony: co 20 s (tylko gdy karta jest widoczna). */
+let _clientMsgPoll=null;
+function startClientMessagePolling(){
+  if(typeof setInterval!=='function'||typeof document==='undefined'||!document.addEventListener)return;
+  if(_clientMsgPoll)clearInterval(_clientMsgPoll);
+  _clientMsgPoll=setInterval(()=>{if(document.visibilityState==='visible')clientRefreshMessages();},20000);
+  if(!window._clientMsgVisBound){
+    window._clientMsgVisBound=true;
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')clientRefreshMessages();});
+  }
+}
+async function clientRefreshMessages(){
+  const cid=window._clientId;
+  if(!cid||!window._clientAppMode||!window._tenantDataReady)return;
+  try{
+    const session=captureClientTenantSession();
+    const rows=await queryByClientId('messages',cid,window._clientAccount,session);
+    requireClientTenantSession(session);
+    const prev=(window.MSGS&&window.MSGS[cid])||[];
+    const byId=new Map(prev.map(m=>[m.id,m]));
+    let changed=false;
+    rows.forEach(m=>{if(!byId.has(m.id)){byId.set(m.id,m);changed=true;}});
+    if(!changed)return;
+    window.MSGS[cid]=[...byId.values()].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+    if(window._clientLiveScreen==='messages'){
+      if(typeof clientMarkTrainerMsgsRead==='function')clientMarkTrainerMsgsRead(cid);
+      renderClientLive();
+    }else{
+      const c=(window.CL||[]).find(x=>x.id===cid);
+      updateClientLiveNavBadges(c);
+    }
+  }catch(e){/* brak sieci lub zmiana konta — kolejna próba za 20 s */}
+}
+window.clientRefreshMessages=clientRefreshMessages;
 
 function enterClientLiveShell(){
   document.body.classList.add('client-app-mode');
@@ -295,23 +331,37 @@ function renderClientLive(){
   const content=document.getElementById('clive-screen-content');
   if(!content)return;
   let scr=window._clientLiveScreen||'home';
-  const navIds=(typeof capLiveNavScreens==='function'?capLiveNavScreens():[]).map(s=>s.id);
+  const navScreens=typeof capLiveNavScreens==='function'?capLiveNavScreens():[];
+  const moreScreens=typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[];
+  const navIds=navScreens.map(s=>s.id), moreIds=moreScreens.map(s=>s.id);
   const subScreens=['session','exercise'];
-  if(!navIds.includes(scr)&&!subScreens.includes(scr))scr='home';
+  if(scr==='calendar'&&!(typeof capClientSectionVisible==='function'&&capClientSectionVisible('calendar')))scr='progress';
+  const allowed=scr==='calendar'||navIds.includes(scr)||moreIds.includes(scr)||subScreens.includes(scr);
+  if(!allowed)scr='home';
   window._clientLiveScreen=scr;
-  ['home','plan','progress','profile'].forEach(s=>{
-    const bn=document.getElementById('clive-bn-'+s);
-    if(!bn)return;
-    const visible=!navIds.length||navIds.includes(s);
-    bn.style.display=visible?'':'none';
-    const on=s===scr;
-    bn.classList.toggle('active',on);
-    bn.style.opacity=on?'1':'0.55';
-  });
+  renderClientLiveNav(navScreens,moreScreens,scr);
   updateClientLiveNavBadges(c);
   if(typeof capScreenHTML==='function'&&c)content.innerHTML=capScreenHTML(scr,c);
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
 }
+
+/** Rysuje dolny pasek i arkusz „Więcej” z listy ekranów (zamiast stałych przycisków w HTML). */
+function renderClientLiveNav(navScreens,moreScreens,scr){
+  const nav=document.getElementById('clive-nav');
+  const sheet=document.getElementById('clive-more-sheet');
+  if(!nav)return;
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s));
+  const btn=(s,extra)=>{
+    const on=s.id===scr;
+    return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
+  };
+  const moreActive=moreScreens.some(s=>s.id===scr);
+  const sheetOpen=sheet&&!sheet.hidden;
+  nav.innerHTML=navScreens.map(s=>btn(s)).join('')+
+    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" onclick="toggleCliveMoreNav()"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
+  if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,"document.getElementById('clive-more-sheet').hidden=true;")).join('');
+}
+window.renderClientLiveNav=renderClientLiveNav;
 
 function updateClientLiveNavBadges(c){
   const cid=c&&c.id;
@@ -333,7 +383,9 @@ function updateClientLiveNavBadges(c){
   };
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
   setBadge('clive-bn-profile',pendPay);
+  setBadge('clive-bn-more',pendPay);
   setBadge('clive-bn-home',false);
+  setBadge('clive-bn-messages',!!(cid&&typeof clientHasUnreadFromTrainer==='function'&&clientHasUnreadFromTrainer(cid)));
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
@@ -348,6 +400,8 @@ function toggleCliveMoreNav(){
   const sheet=document.getElementById('clive-more-sheet');
   if(!sheet)return;
   sheet.hidden=!sheet.hidden;
+  const b=document.getElementById('clive-bn-more');
+  if(b)b.setAttribute('aria-expanded',sheet.hidden?'false':'true');
 }
 window.toggleCliveMoreNav=toggleCliveMoreNav;
 
@@ -668,8 +722,18 @@ async function clientSubmitCheckin(){
     if(typeof notify==='function')notify('Check-in z tego tygodnia już jest');
     return false;
   }
+  // Każda skala musi być zaznaczona — brak odpowiedzi nie może po cichu stać się „3” i fałszować wyniku.
+  const SCALE_LABELS={energy:'energia',sleep:'sen',stress:'stres',nutrition:'odżywianie'};
+  const missing=Object.keys(SCALE_LABELS).filter(k=>!(+a[k]>=1&&+a[k]<=5));
+  if(missing.length){
+    if(typeof notify==='function')notify('Zaznacz jeszcze: '+missing.map(k=>SCALE_LABELS[k]).join(', '));
+    a.missing=missing;
+    renderClientLive();
+    return false;
+  }
+  a.missing=null;
   const answers={
-    energy:+a.energy||3,sleep:+a.sleep||3,stress:+a.stress||3,nutrition:+a.nutrition||3,
+    energy:+a.energy,sleep:+a.sleep,stress:+a.stress,nutrition:+a.nutrition,
     workouts:a.workouts!=null?+a.workouts:0,weight:a.weight||'',notes:a.notes||''
   };
   const session=captureClientTenantSession();
