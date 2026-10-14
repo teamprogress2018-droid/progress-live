@@ -1,4 +1,26 @@
 const W='https://anthropic-proxy.teamprogress2018.workers.dev/';
+/* Zabezpieczenie proxy AI: każde zapytanie do W dostaje nagłówek Authorization z tokenem Firebase
+ * zalogowanego użytkownika, a bezpośrednie wywołania api.anthropic.com są kierowane przez W.
+ * Worker powinien odrzucać zapytania bez ważnego tokenu (patrz docs/ai-proxy-worker.md). */
+(function installAiProxyAuth(){
+  if(typeof window==='undefined'||typeof window.fetch!=='function'||window.fetch._aiProxyAuth||typeof Headers!=='function')return;
+  const nativeFetch=window.fetch.bind(window);
+  const isAiUrl=u=>typeof u==='string'&&(u.indexOf(W)===0||u.indexOf('https://api.anthropic.com/')===0);
+  const wrapped=async function(input,init){
+    const url=typeof input==='string'?input:(input&&input.url)||'';
+    if(!isAiUrl(url))return nativeFetch(input,init);
+    const opts=Object.assign({},init||{});
+    const headers=new Headers(opts.headers||(typeof input!=='string'&&input.headers)||{});
+    // Klucz API nigdy nie jest wysyłany z przeglądarki — tylko token zalogowanego użytkownika.
+    headers.delete('x-api-key');headers.delete('anthropic-version');headers.delete('anthropic-dangerous-direct-browser-access');
+    const token=typeof window._authIdToken==='function'?await window._authIdToken():null;
+    if(token)headers.set('Authorization','Bearer '+token);
+    opts.headers=headers;
+    return nativeFetch(W,opts);
+  };
+  wrapped._aiProxyAuth=true;
+  window.fetch=wrapped;
+})();
 window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];
 /* Relacje CRM (Firestore = kolekcje, klucz = obj.id):
  * clients.id  ←  plans.clientId, sessions.clientId, packages.clientId,
@@ -140,8 +162,11 @@ window.syncTrainerPublicProfile=syncTrainerPublicProfile;
 /** Prosty eksport CSV (UTF-8 BOM) — pobiera plik w przeglądarce. */
 function downloadCsv(filename,rows){
   const esc=v=>{
-    const s=String(v??'');
-    if(/[",\n\r]/.test(s))return '"'+s.replace(/"/g,'""')+'"';
+    let s=String(v??'');
+    // Ochrona przed formułami w Excelu (tekst od klienta zaczynający się od = + - @) — liczby zostają liczbami.
+    if(typeof v!=='number'&&/^[=+\-@\t\r]/.test(s))s="'"+s;
+    // Separatorem jest średnik, więc on też wymaga cudzysłowu.
+    if(/[",;\n\r]/.test(s))return '"'+s.replace(/"/g,'""')+'"';
     return s;
   };
   const csv='\uFEFF'+rows.map(r=>r.map(esc).join(';')).join('\n');
@@ -675,6 +700,9 @@ window.addEventListener('beforeunload',e=>{
 function parsePct1RM(v){
   if(v==null||v==='')return '';
   const s=String(v).trim().replace(',','.');
+  // „65% TM” (5/3/1, nSuns) = 65% z Training Max = 90% 1RM → 58,5% 1RM
+  const tm=s.match(/^(\d+(?:\.\d+)?)\s*%\s*TM$/i);
+  if(tm){const t=Math.round(parseFloat(tm[1])*0.9*10)/10;return Number.isFinite(t)&&t>0&&t<=150?String(t):'';}
   const m=s.match(/^(\d+(?:\.\d+)?)\s*%$/);
   const n=parseFloat(m?m[1]:s);
   if(!Number.isFinite(n)||n<=0||n>150)return '';
@@ -756,6 +784,8 @@ function epley1RMFromSessions(clientId,family,exactName){
       if(!match)continue;
       const logged=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[]);
       for(const set of logged){
+        // Wzór Epleya jest wiarygodny do ok. 10 powtórzeń — wyższe serie zawyżają lub zaniżają 1RM.
+        if(!(parseFloat(set.reps)>0&&parseFloat(set.reps)<=10))continue;
         const est=epley1RM(set.kg,set.reps);
         if(est!=null&&(best==null||est>best))best=est;
       }
@@ -766,13 +796,38 @@ function epley1RMFromSessions(clientId,family,exactName){
 }
 window.epley1RMFromSessions=epley1RMFromSessions;
 
+/**
+ * Jak dany wariant ma się do bojowego 1RM rodziny.
+ * {ratio:1} — wersja klasyczna; {ratio:0.8,label} — wariant z uznanym przelicznikiem;
+ * null — wariant nieporównywalny (maszyna, hantle, goblet): % liczymy tylko z wyników TEGO ćwiczenia.
+ */
+function liftVariantRatio(name,family){
+  const n=String(name||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[̀-ͯ]/g,'');
+  if(/hantl|dumbbell|\bdb\b|kettl|goblet|maszyn|machine|smith|hack|suwnic|leg press|wyciag|linka|jednonoz|bulgar|split|wykrok/.test(n))return null;
+  const R={
+    squat:[[/przedni|front/,0.8,'przedni'],[/pauz|pause/,0.9,'z pauzą'],[/box|skrzyn/,0.95,'na skrzynię'],[/tempo/,0.85,'tempo']],
+    deadlift:[[/rdl|rumunsk|romanian|prostych nog|stiff/,0.75,'RDL'],[/deficyt|deficit/,0.9,'z deficytu'],[/pauz|pause/,0.85,'z pauzą'],[/sumo/,1,'sumo'],[/trap|hex/,1,'trap bar']],
+    bench:[[/skos|incline/,0.8,'skos'],[/waski|wask|close grip/,0.9,'wąsko'],[/podlog|floor/,0.9,'z podłogi'],[/pauz|pause/,0.95,'z pauzą'],[/decline|ujemn/,1,'skos ujemny']],
+    ohp:[[/siedz|seated/,0.95,'siedząc'],[/push press/,1.15,'push press']]
+  }[family]||[];
+  for(const [re,ratio,label] of R)if(re.test(n))return{ratio,label};
+  return{ratio:1,label:''};
+}
+window.liftVariantRatio=liftVariantRatio;
+
 function client1RMforExercise(clientId,name){
   const family=guessLiftFamily(name);
   const official=officialLift1RMs(clientId);
   const meta=family?LIFT_1RM_META[family]:null;
-  if(meta&&official[family])return{kg:official[family],source:'metric',family,label:meta.label};
-  const est=epley1RMFromSessions(clientId,family,name);
-  if(est)return{kg:est,source:'epley',family,label:meta?meta.label:(name||'ćwiczenie')};
+  const variant=family?liftVariantRatio(name,family):null;
+  if(meta&&official[family]&&variant){
+    const label=variant.ratio===1?meta.label:(meta.label+' × '+String(variant.ratio).replace('.',',')+' ('+variant.label+')');
+    return{kg:official[family]*variant.ratio,source:'metric',family,label};
+  }
+  // Warianty nieporównywalne i ćwiczenia spoza rodzin: szacunek tylko z sesji z tym samym ćwiczeniem.
+  const exactOnly=!variant;
+  const est=epley1RMFromSessions(clientId,exactOnly?'':family,name);
+  if(est)return{kg:est,source:'epley',family,label:meta&&!exactOnly?meta.label:(name||'ćwiczenie')};
   return null;
 }
 window.client1RMforExercise=client1RMforExercise;
@@ -2888,10 +2943,16 @@ function formatDurationHint(sec){
 }
 window.formatDurationHint=formatDurationHint;
 
+/** Czas 1 powtórzenia z zapisu tempa: „3-1-1-0”, „3110”, „31X0” (X = eksplozywnie ≈ 0,5 s). */
 function parseTempoSeconds(tempo){
-  const parts=String(tempo||'').match(/\d+(?:[.,]\d+)?/g);
+  const s=String(tempo||'').trim().toUpperCase();
+  if(!s)return 0;
+  const val=t=>t==='X'?0.5:(parseFloat(String(t).replace(',','.'))||0);
+  // Zapis zwarty: dokładnie 4 znaki (cyfry lub X), każdy to jedna faza.
+  if(/^[0-9X]{4}$/.test(s))return s.split('').reduce((a,c)=>a+val(c),0);
+  const parts=s.match(/\d+(?:[.,]\d+)?|X/g);
   if(!parts||!parts.length)return 0;
-  return parts.reduce((a,x)=>a+(parseFloat(String(x).replace(',','.'))||0),0);
+  return parts.reduce((a,x)=>a+val(x),0);
 }
 window.parseTempoSeconds=parseTempoSeconds;
 

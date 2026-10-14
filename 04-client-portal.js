@@ -97,14 +97,27 @@ function capClientSectionVisible(id){
   return true;
 }
 
+/** Dolny pasek aplikacji klienta (4 główne zakładki + „Więcej”). Ukryte przez trenera sekcje są pomijane. */
 function capLiveNavScreens(){
   return [
     {id:'home',label:'Dzisiaj',icon:'🏠'},
     {id:'plan',label:'Trening',icon:'🏋️'},
-    {id:'progress',label:'Postępy',icon:'📈'},
-    {id:'profile',label:'Profil',icon:'👤'}
-  ];
+    {id:'messages',label:'Czat',icon:'💬'},
+    {id:'progress',label:'Postępy',icon:'📈'}
+  ].filter(s=>capClientSectionVisible(s.id));
 }
+/** Ekrany w arkuszu „Więcej” (kalendarz jest dostępny z Postępów). */
+function capLiveMoreScreens(){
+  return [
+    {id:'checkin',label:'Ankieta tygodniowa',icon:'✅'},
+    {id:'homework',label:'Zadania',icon:'🏡'},
+    {id:'ondemand',label:'Treningi nagrane',icon:'▶️'},
+    {id:'resources',label:'Materiały',icon:'📚'},
+    {id:'forum',label:'Forum',icon:'👥'},
+    {id:'profile',label:'Profil',icon:'👤'}
+  ].filter(s=>s.id==='profile'||capClientSectionVisible(s.id));
+}
+window.capLiveMoreScreens=capLiveMoreScreens;
 
 function capOdMsgId(text){
   const m=String(text||'').match(/\[od:([^\]]+)\]/);
@@ -1124,11 +1137,13 @@ function capScreenHTML(scr,c){
     }
     const qrow=(field,label,emoji)=>{
       const selected=st[field]!=null?st[field]:(live?null:2);
-      return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
-        <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:10px;">${label}</div>
+      const missing=Array.isArray(st.missing)&&st.missing.includes(field)&&selected==null;
+      return `<div style="background:${CAP_S2};border:1px solid ${missing?'var(--accent)':CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;" role="group" aria-label="${label}">
+        <div style="font-size:13px;color:${missing?'var(--accent)':CAP_MUTED};margin-bottom:10px;">${label}${missing?' — wybierz odpowiedź':''}</div>
         <div style="display:flex;justify-content:space-between;">
-          ${emoji.map((e,i)=>`<button type="button" class="clive-check-opt${selected===i+1?' on':''}" ${live?`onclick="capPickCheckin('${field}',${i+1})"`:''}>${e}</button>`).join('')}
+          ${emoji.map((e,i)=>`<button type="button" class="clive-check-opt${selected===i+1?' on':''}" aria-label="${label}: ${i+1} z 5" aria-pressed="${selected===i+1?'true':'false'}" ${live?`onclick="capPickCheckin('${field}',${i+1})"`:''}>${e}</button>`).join('')}
         </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:${CAP_MUTED};margin-top:6px;padding:0 6px;"><span>1</span><span>5</span></div>
       </div>`;
     };
     return `
@@ -1169,7 +1184,7 @@ function capScreenHTML(scr,c){
       return {out:!!m.out,text:display,time:m.time||'',odId,odProgId};
     };
     const msgs=realMsgs.length?realMsgs.map(fmtMsg):[
-      {out:false,text:escHtml('Hej! Napisz do mnie, gdy będziesz miał pytanie o trening 💪'),time:'',odId:null}
+      {out:false,text:escHtml('Hej! Napisz do mnie, gdy pojawi się pytanie o trening 💪'),time:'',odId:null}
     ];
     const liveOd=capIsLiveClient()&&capClientSectionVisible('ondemand');
     return `
@@ -7001,6 +7016,12 @@ function dashStartPrimary(){
     .filter(row=>row&&row.session&&row.session.clientId&&Object.prototype.hasOwnProperty.call(rank,row.state.kind))
     .sort((a,b)=>rank[a.state.kind]-rank[b.state.kind]||Number(a.state.start||0)-Number(b.state.start||0))[0];
   if(candidate)return dashStartLive(candidate.session.id);
+  // Bez klientów trening nie ma sensu — prowadzimy do dodania pierwszej osoby zamiast na pusty ekran.
+  if(!(window.CL||[]).some(c=>c&&c.status!=='archived')){
+    if(typeof notify==='function')notify('Najpierw dodaj pierwszego klienta');
+    if(typeof openM==='function')openM('m-client');
+    return;
+  }
   if(typeof goTo==='function')goTo('live');
 }
 window.dashStartPrimary=dashStartPrimary;

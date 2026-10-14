@@ -45,6 +45,23 @@ const DEMO_FORMS=[
     ]
   },
   {
+    id:'df6',type:'demo',status:'active',cat:'zdrowie',
+    name:'Gotowość do wysiłku (wzorowana na PAR-Q+)',
+    desc:'Przesiewowa ankieta przed rozpoczęciem treningu. Odpowiedź TAK na którekolwiek z pytań 1–8 oznacza: przed treningiem o większej intensywności klient powinien skonsultować się z lekarzem. Ankieta nie zastępuje badania lekarskiego.',
+    questions:[
+      {id:'q1',type:'yesno',text:'1. Czy lekarz kiedykolwiek stwierdził u Ciebie chorobę serca lub nadciśnienie tętnicze?',required:true},
+      {id:'q2',type:'yesno',text:'2. Czy odczuwasz ból w klatce piersiowej w spoczynku, w codziennych czynnościach lub podczas wysiłku?',required:true},
+      {id:'q3',type:'yesno',text:'3. Czy w ostatnich 12 miesiącach tracił(a)ś równowagę z powodu zawrotów głowy albo straciłeś/aś przytomność?',required:true},
+      {id:'q4',type:'yesno',text:'4. Czy masz zdiagnozowaną inną chorobę przewlekłą (np. cukrzyca, choroba płuc, nowotwór, osteoporoza)?',required:true},
+      {id:'q5',type:'yesno',text:'5. Czy przyjmujesz leki na choroby przewlekłe (w tym na ciśnienie lub serce)?',required:true},
+      {id:'q6',type:'yesno',text:'6. Czy masz problem z kośćmi, stawami lub tkankami miękkimi, który może się nasilić przy aktywności fizycznej?',required:true},
+      {id:'q7',type:'yesno',text:'7. Czy lekarz zalecił Ci aktywność fizyczną wyłącznie pod nadzorem medycznym?',required:true},
+      {id:'q8',type:'choice',text:'8. Ciąża i połóg',options:['Nie dotyczy','Jestem w ciąży','Jestem do 12 miesięcy po porodzie','Mam rozejście mięśnia prostego brzucha lub problem z dnem miednicy'],required:true},
+      {id:'q9',type:'text',text:'Jeśli na któreś pytanie odpowiedziałeś/aś TAK — opisz krótko (diagnoza, leki, zalecenia lekarza)'},
+      {id:'q10',type:'yesno',text:'Potwierdzam, że odpowiedzi są zgodne z prawdą i poinformuję trenera o zmianach stanu zdrowia',required:true},
+    ]
+  },
+  {
     id:'df3',type:'demo',status:'active',cat:'postepy',
     name:'Miesięczna ocena postępów',
     desc:'Formularz wysyłany co 30 dni. Mierzy postęp fizyczny, samopoczucie i satysfakcję z planu treningowego.',
@@ -1601,7 +1618,7 @@ async function askMetricAI(){
   const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
   document.getElementById('metric-ai-q').value='';
   const msgs=document.getElementById('metric-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+escHtml(q)+'</div></div>';
   msgs.innerHTML+='<div id="mai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję dane...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const cid=(document.getElementById('metric-client-sel')||{}).value||'';
@@ -1613,7 +1630,7 @@ async function askMetricAI(){
   try{
     const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
-    document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:6px 9px;border-radius:8px;font-size:11px;line-height:1.5;">${ans.replace(/\n/g,'<br>')}</div></div>`;
+    document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:6px 9px;border-radius:8px;font-size:11px;line-height:1.5;">${escHtml(ans).replace(/\n/g,'<br>')}</div></div>`;
   }catch(e){document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd połączenia</div></div>`;}
   msgs.scrollTop=msgs.scrollHeight;
 }
@@ -1691,13 +1708,22 @@ function calcLoadFromClient(){
   if(!cid){calcTDEE();return;}
   const c=CL.find(x=>x.id===cid);
   if(!c){calcTDEE();return;}
-  if(c.age)document.getElementById('calc-age').value=c.age;
-  if(c.weight)document.getElementById('calc-weight').value=c.weight;
-  if(c.height)document.getElementById('calc-height').value=c.height;
+  // Zawsze nadpisuj pola (także pustymi) — inaczej zostają dane poprzedniego klienta.
+  const latestW=typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null;
+  document.getElementById('calc-age').value=c.age||'';
+  document.getElementById('calc-weight').value=(latestW!=null&&latestW!=='')?latestW:(c.weight||'');
+  document.getElementById('calc-height').value=c.height||'';
   if(c.gender){
     const g=typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender;
     if(g)document.getElementById('calc-gender').value=g;
   }
+  // Aktywność z profilu klienta (ta sama skala co w szacunku z karty klienta).
+  const actMap={sedentary:1.2,light:1.375,moderate:1.55,active:1.725};
+  if(actMap[c.activityLevel]){
+    calcActivity=actMap[c.activityLevel];
+    document.querySelectorAll('.calc-act-btn').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.val)===calcActivity));
+  }
+  window._calcClientId=c.id;
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
   const delta=goalMap[c.goal]||0;
@@ -1754,10 +1780,10 @@ function syncSliders(changed){
   // normalize to 100
   if(sum!==100){
     const diff=100-sum;
-    if(changed==='p'){if(f+diff>=10&&f+diff<=60){f+=diff;}else{c+=diff;}}
+    if(changed==='p'){if(f+diff>=10&&f+diff<=75){f+=diff;}else{c+=diff;}}
     else if(changed==='f'){if(c+diff>=5&&c+diff<=65){c+=diff;}else{p+=diff;}}
     else{if(p+diff>=15&&p+diff<=55){p+=diff;}else{f+=diff;}}
-    p=Math.max(15,Math.min(55,p));f=Math.max(10,Math.min(60,f));c=Math.max(5,Math.min(65,c));
+    p=Math.max(15,Math.min(55,p));f=Math.max(10,Math.min(75,f));c=Math.max(5,Math.min(65,c));
     const s2=p+f+c;if(s2!==100)c+=100-s2;
     document.getElementById('sl-p').value=p;
     document.getElementById('sl-f').value=f;
@@ -1774,9 +1800,16 @@ function syncSliders(changed){
 
 function calcTDEE(){
   const gender=document.getElementById('calc-gender').value;
-  const age=parseInt(document.getElementById('calc-age').value)||25;
-  const weight=parseFloat(document.getElementById('calc-weight').value)||80;
-  const height=parseInt(document.getElementById('calc-height').value)||180;
+  const age=parseInt(document.getElementById('calc-age').value);
+  const weight=parseFloat(String(document.getElementById('calc-weight').value).replace(',','.'));
+  const height=parseInt(document.getElementById('calc-height').value);
+  // Bez pełnych danych nie pokazujemy wyniku — ciche wartości domyślne dawały wiarygodnie wyglądające, błędne liczby.
+  const missing=[!(age>=14&&age<=100)&&'wiek',!(weight>=30&&weight<=300)&&'wagę',!(height>=120&&height<=230)&&'wzrost'].filter(Boolean);
+  if(missing.length){
+    const elM=document.getElementById('calc-results');
+    if(elM)elM.innerHTML=`<div class="calc-col-main"><div class="calc-result-card" style="text-align:center;padding:28px 18px;"><div style="font-size:15px;font-weight:700;margin-bottom:6px;">Uzupełnij ${missing.join(', ')}</div><div style="font-size:13px;color:var(--muted);">Wynik pojawi się, gdy wszystkie dane będą wpisane.</div></div></div>`;
+    return;
+  }
 
   // Mifflin-St Jeor BMR
   let bmr;
@@ -1785,6 +1818,7 @@ function calcTDEE(){
 
   const tdee=Math.round(bmr*calcActivity);
   const target=tdee+calcGoalDelta;
+  const belowBmr=target<Math.round(bmr);
   const proteinG=Math.round(target*(calcMacroP/100)/4);
   const fatG=Math.round(target*(calcMacroF/100)/9);
   const carbG=Math.round(target*(calcMacroC/100)/4);
@@ -1793,8 +1827,11 @@ function calcTDEE(){
   const protPerKg=(proteinG/weight).toFixed(1);
   const isProtOk=parseFloat(protPerKg)>=1.6&&parseFloat(protPerKg)<=2.5;
 
-  // LBM (szacunkowa beztłuszczowa masa)
-  const lbm=Math.round(weight*0.82);
+  // LBM: ze zmierzonego %BF klienta (pomiary mg1/m2), a gdy go brak — szacunek 82% masy ciała.
+  const bfEntry=window._calcClientId?(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===window._calcClientId&&e.groupId==='mg1'&&e.values&&parseFloat(e.values.m2)>0&&parseFloat(e.values.m2)<70)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0]:null;
+  const bf=bfEntry?parseFloat(bfEntry.values.m2):null;
+  const lbm=Math.round(bf!=null?weight*(1-bf/100):weight*0.82);
 
   // meals plan
   const meals=[
@@ -1841,6 +1878,7 @@ function calcTDEE(){
           ${calcGoalDelta!==0?`<div style="font-size:11px;color:var(--muted);">≈ ${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień</div>`:''}
         </div>
       </div>
+      ${belowBmr?`<div role="alert" style="font-size:12px;line-height:1.5;color:var(--red);background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.35);border-radius:8px;padding:8px 10px;margin-bottom:10px;">⚠ Cel (${target} kcal) jest niższy niż BMR (${Math.round(bmr)} kcal). Taki deficyt rzadko jest zasadny — wybierz łagodniejszą redukcję albo prowadź klienta pod kontrolą dietetyka.</div>`:''}
 
       <!-- pasek makro -->
       <div class="calc-macro-bar">
@@ -1903,11 +1941,11 @@ function calcTDEE(){
     <!-- wskazówki i normy -->
     <div class="calc-result-card">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">NORMY I WSKAZÓWKI</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> Rekomendacja NSCA: 1.6–2.5 g/kg masy ciała. Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w normie':'⚠ poza normą, dostosuj'}.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> Stanowisko ISSN: 1,6–2,2 g/kg masy ciała (przy redukcji u osób trenujących do ok. 2,3–3,1 g/kg beztłuszczowej masy). Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w normie':'⚠ poza typowym zakresem, sprawdź'}.</div>
       <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> Min. ${Math.round(weight*0.035*10)/10} l/dzień (35ml/kg). Podczas treningu +500-1000ml.</div>
       <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> Zalecane 0.5-1% masy ciała/tydzień. Twój deficit/nadwyżka to ~${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">LBM (szacunkowa beztłuszczowa masa):</strong> ~${lbm} kg. Docelowo 1.8-2.2g białka na kg LBM = ${Math.round(lbm*1.8)}–${Math.round(lbm*2.2)}g białka.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Okno żywieniowe po treningu:</strong> Spożyj 20-40g białka + węglowodany w ciągu 2h po treningu (okno anaboliczne).</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">LBM (beztłuszczowa masa${bf!=null?', z pomiaru '+bf+'% BF':', szacunek bez pomiaru %BF'}):</strong> ~${lbm} kg. Docelowo 1.8-2.2g białka na kg LBM = ${Math.round(lbm*1.8)}–${Math.round(lbm*2.2)}g białka.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko w ciągu dnia:</strong> 20–40 g białka w 3–5 posiłkach. Ważniejsza jest dzienna suma niż dokładna pora — posiłek po treningu w ciągu kilku godzin w zupełności wystarczy.</div>
     </div>
     </div>`;
 }

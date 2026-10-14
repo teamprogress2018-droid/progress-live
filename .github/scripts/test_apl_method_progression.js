@@ -40,9 +40,10 @@ ok('aplSyncProgressionFromMethod', /function aplSyncProgressionFromMethod/.test(
 ok('toggle syncs on method', /groupId==='apl-methods'[\s\S]{0,160}aplSyncProgressionFromMethod/.test(src03));
 ok('init syncs progression', /function initAplangen[\s\S]{0,2500}aplSyncProgressionFromMethod/.test(src03));
 ok('smolov progression prompt', src03.includes("smolov:'SMOLOV"));
-ok('aplPhasesForPlan smolov', /function aplPhasesForPlan[\s\S]*Smolov T1/.test(src03));
+// Smolov: cykl bazowy to 3 tygodnie, w każdym 4 dni (70/75/80/85%) — nie „T1–T4” jako kolejne tygodnie.
+ok('aplPhasesForPlan smolov', /function aplPhasesForPlan[\s\S]*Smolov baza — tydz\. 1/.test(src03));
 ok('BUILDER_METHOD_DAYS Smolov', /Smolov:\['Smolov T1'/.test(src05));
-ok('cache bumps', html.includes('01-core.js?v=126') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=82'));
+ok('cache bumps', html.includes('01-core.js?v=126') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('05-clients-builder-plans-calendar.js?v=82'));
 ok('CI', wf.includes('test_apl_method_progression.js'));
 
 const start = src03.indexOf('const APL_METHOD_PROGRESSION=');
@@ -70,7 +71,7 @@ eq('Bro Split → linear', PROG['Bro Split'], 'linear');
 
 const phases = sandbox.aplPhasesForPlan || sandbox.window.aplPhasesForPlan;
 const phaseMap = phases('Smolov', 8, ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8']);
-ok('smolov 8w phases', phaseMap.w1 === 'Smolov T1' && phaseMap.w8 === 'Test PR');
+ok('smolov 8w phases', /^Smolov baza — tydz\. 1/.test(phaseMap.w1) && phaseMap.w3 === 'Smolov baza — tydz. 3 (+5 kg)' && phaseMap.w4 === 'Lżej + test 1RM' && /intensywna/.test(phaseMap.w8));
 
 if (failed) {
   console.error('\n' + failed + ' failed');

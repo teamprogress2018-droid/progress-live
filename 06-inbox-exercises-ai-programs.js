@@ -92,6 +92,9 @@ function renderInbox(){
   const search=(document.getElementById('inbox-search')||{}).value||'';
   let list=CL.filter(c=>c&&c.status!=='archived'&&(!search||c.name.toLowerCase().includes(search.toLowerCase())));
   if(inboxTab==='unread')list=list.filter(c=>msgHasUnread(c.id));
+  // Najnowsza rozmowa na górze — przy kilkudziesięciu klientach nic nie ginie w środku listy.
+  const lastAt=c=>{const m=(MSGS[c.id]||[]).slice(-1)[0];return m?(m.createdAt||''):'';};
+  list=list.slice().sort((a,b)=>lastAt(b).localeCompare(lastAt(a)));
 
   const el=document.getElementById('msg-list');
   if(!el)return;
@@ -112,7 +115,13 @@ function renderInbox(){
     const msgs=MSGS[c.id]||[];
     const last=msgs.slice(-1)[0];
     const unread=msgHasUnread(c.id);
-    const time=last?last.time:'';
+    let time=last?last.time:'';
+    if(last&&last.createdAt){
+      const d=new Date(last.createdAt), today=new Date();
+      const dayDiff=Math.round((new Date(today.toDateString())-new Date(d.toDateString()))/86400000);
+      if(dayDiff===1)time='wczoraj';
+      else if(dayDiff>1)time=d.toLocaleDateString('pl-PL',{day:'numeric',month:'short'});
+    }
     const col=COLS[i%5];
     return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${escHtml(c.id)}')">
       <div class="msg-avatar" style="background:${col}22;color:${col};">${getInit(c.name)}</div>
@@ -3085,7 +3094,7 @@ async function askExAI(){
   try{
     const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:220,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
-    document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+    document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble">'+escHtml(ans).replace(/\n/g,'<br>')+'</div></div>';
   }catch(e){document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble is-err">Błąd</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
 }
@@ -3119,7 +3128,7 @@ async function askAI(){
       document.getElementById('ai-t')?.remove();
       await callStaffAgentsSequentially(staffIds, ctx+q, '', null, function(entry){
         const meta=(typeof STAFF_AGENT_META==='object'&&STAFF_AGENT_META[entry.agentId])||{icon:'💬',label:entry.agentId};
-        const body=entry.error?('Błąd: '+entry.error):(entry.text||'').replace(/\n/g,'<br>');
+        const body=entry.error?('Błąd: '+escHtml(entry.error)):escHtml(entry.text||'').replace(/\n/g,'<br>');
         msgs.innerHTML+='<div class="ai-msg bot" data-agent="'+entry.agentId+'"><div class="ai-bubble"><div style="font-size:10px;font-weight:700;margin-bottom:4px;">'+meta.icon+' '+meta.label+'</div>'+body+'</div></div>';
         msgs.scrollTop=msgs.scrollHeight;
       }, 400);
@@ -3127,7 +3136,7 @@ async function askAI(){
       const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:sys,messages:[{role:'user',content:ctx+q}]})});
       const d=await r.json();
       const ans=d.content.map(i=>i.text||'').join('');
-      document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+      document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+escHtml(ans).replace(/\n/g,'<br>')+'</div></div>';
     }
   }catch(e){const t=document.getElementById('ai-t');if(t)t.outerHTML='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';else msgs.innerHTML+='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
@@ -3486,6 +3495,42 @@ const DEMO_PROGRAMS=[
     ]
   },
 ];
+
+/* Korekty merytoryczne gotowych bloków siłowych (audyt trenerski):
+ * – deload ≠ tydzień roboczy: RPE 5–6, ~−40% objętości, ~60–70% ciężaru;
+ * – 5/3/1 i nSuns: procenty od Training Max (TM = 90% 1RM);
+ * – rzeczywisty rozkład dni (Texas Method, nSuns 4 dni), poziom Texas = średniozaawansowany. */
+(function fixStrengthBlocks(){
+  const byId=id=>DEMO_PROGRAMS.find(p=>p.id===id);
+  const D=(d,name)=>({d,name});
+  ['dp26','dp27','dp28','dp29'].forEach(id=>{
+    const p=byId(id);if(!p)return;
+    p.weeks.forEach(w=>{
+      if(/deload|reset|utrzymanie/i.test(w.label)){w.rpe='RPE 5-6';if(!/%/.test(w.focus))w.focus=w.focus+' · ok. −40% objętości, ciężary ~60–70% roboczych';}
+      else if(/intensyf|intensity|peak/i.test(w.label))w.rpe='RPE 8-9';
+      else if(/test|realizac/i.test(w.label))w.rpe='RPE 9-10';
+    });
+  });
+  const texas=byId('dp27');
+  if(texas){
+    texas.level='sredni';
+    texas.weeks.forEach(w=>{w.days=/deload/i.test(w.label)
+      ?[D('PON','Volume Day — 3×5 @ ~80% (lżej)'),D('WT','REST'),D('ŚR','Recovery — lekko'),D('CZ','REST'),D('PT','Intensity Day — top set bez rekordu'),D('SO','REST'),D('ND','REST')]
+      :[D('PON','Volume Day — 5×5 @ ~90% 5RM'),D('WT','REST'),D('ŚR','Recovery Day — 2×5 @ ~80% poniedziałku'),D('CZ','REST'),D('PT','Intensity Day — top set 5RM (nowy rekord)'),D('SO','REST'),D('ND','REST')];});
+  }
+  const nsuns=byId('dp29');
+  if(nsuns){
+    nsuns.daysPerWeek=4;
+    nsuns.highlights=['4 dni / tydzień (T1 + T2)','Procenty od TM = 90% 1RM','TM +2,5–5 kg wg wyniku serii 1+','Deload co 4 tyg.'];
+    nsuns.weeks.forEach(w=>{w.days=[D('PON','Dzień 1 — Wyciskanie leżąc T1 + OHP T2'),D('WT','Dzień 2 — Przysiad T1 + Martwy sumo T2'),D('ŚR','REST'),D('CZ','Dzień 3 — OHP T1 + Wyciskanie wąsko T2'),D('PT','Dzień 4 — Martwy ciąg T1 + Przysiad przedni T2'),D('SO','REST'),D('ND','REST')];});
+  }
+  const w531=byId('dp11');
+  if(w531){
+    w531.desc+=' Wszystkie procenty liczone są od Training Max (TM) = 90% Twojego 1RM, nie od samego 1RM.';
+    w531.highlights=[...w531.highlights,'% od Training Max (90% 1RM)'];
+    w531.weeks.forEach(w=>{w.label=w.label.replace(/%\)/,'% TM)');w.days.forEach(d=>{d.name=d.name.replace(/(\d+)%/g,'$1% TM');});});
+  }
+})();
 
 function allPrograms(){return[...DEMO_PROGRAMS,...(window.USER_PROGRAMS||[])];}
 window.allPrograms=allPrograms;

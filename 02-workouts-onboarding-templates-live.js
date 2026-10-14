@@ -2386,14 +2386,36 @@ function livePaintTimer(slot){
     if(mt)mt.textContent=m+':'+s;
   }
 }
+/* Blokada wygaszania ekranu na czas aktywnej sesji Live (telefon w dłoni na sali). */
+let _liveWakeLock=null;
+async function liveWakeLock(on){
+  try{
+    if(on){
+      if(_liveWakeLock||typeof navigator==='undefined'||!navigator.wakeLock)return;
+      _liveWakeLock=await navigator.wakeLock.request('screen');
+      _liveWakeLock.addEventListener('release',()=>{_liveWakeLock=null;});
+    }else if(_liveWakeLock){
+      const l=_liveWakeLock;_liveWakeLock=null;await l.release();
+    }
+  }catch(e){_liveWakeLock=null;}
+}
+if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
+  // Przeglądarka zwalnia blokadę po ukryciu karty — odnów ją po powrocie, jeśli sesja trwa.
+  try{if(document.visibilityState==='visible'&&typeof liveRef==='function'&&(liveRef(0).sessionActive||liveRef(1).sessionActive))liveWakeLock(true);}catch(e){}
+});
+window.liveWakeLock=liveWakeLock;
+
 function liveArmTimer(slot){
   const n=liveN(slot);
   const st=liveRef(n);
   clearInterval(st.timerInterval);
+  // Czas liczony od znacznika startu, a nie „tyknięć” — zablokowany ekran nie zaniża czasu sesji.
+  const startedAt=Date.now()-(st.timerSec||0)*1000;
   st.timerInterval=setInterval(()=>{
-    st.timerSec=(st.timerSec||0)+1;
+    st.timerSec=Math.max(0,Math.floor((Date.now()-startedAt)/1000));
     livePaintTimer(n);
   },1000);
+  liveWakeLock(true);
 }
 function liveBindSessionButtons(slot){
   const n=liveN(slot);
@@ -2574,7 +2596,8 @@ function liveReadLsDraft(key){
       return null;
     }
     if(!(window.CL||[]).find(x=>x&&x.id===draft.clientId)){
-      try{localStorage.removeItem(key);}catch(e){}
+      // Kasuj tylko, gdy lista klientów jest już wczytana — przy wolnym zasięgu szkic musi przetrwać.
+      if(window._tenantDataReady){try{localStorage.removeItem(key);}catch(e){}}
       return null;
     }
     return draft;
@@ -2645,9 +2668,12 @@ function livePromptRecoverDrafts(d0,d1){
     const c=(window.CL||[]).find(x=>x&&x.id===d.clientId);
     return c?c.name:'klient';
   };
+  // „Anuluj” przy wznowieniu nie kasuje od razu treningu — pytamy drugi raz, a odmowa zostawia szkic na później.
+  const confirmDiscard=()=>confirm('Usunąć niedokończony trening na stałe?\n\nOK — usuń\nAnuluj — zachowaj i zapytaj przy następnym wejściu');
   if(d0&&d1){
     if(!confirm('Masz niedokończone sesje ('+nameOf(d0)+' i '+nameOf(d1)+'). Wznowić obie na podzielonym ekranie?')){
-      liveClearDraft(0);liveClearDraft(1);return false;
+      if(confirmDiscard()){liveClearDraft(0);liveClearDraft(1);}
+      return false;
     }
     liveDual=true;
     liveApplyDraft(0,d0);
@@ -2659,7 +2685,8 @@ function livePromptRecoverDrafts(d0,d1){
   const d=d0||d1;
   const c=(window.CL||[]).find(x=>x&&x.id===d.clientId);
   if(!confirm('Masz niedokończoną sesję treningową ('+(c?c.name:'klient')+'). Wznowić?')){
-    liveClearDraft(n);return false;
+    if(confirmDiscard())liveClearDraft(n);
+    return false;
   }
   if(n===1)liveDual=true;
   liveApplyDraft(n,d);
@@ -4656,6 +4683,7 @@ function liveEndSession(slot){
   if(ov)ov.hidden=true;
   clearInterval(st.timerInterval);
   st.sessionActive=false;
+  try{if(!liveRef(0).sessionActive&&!liveRef(1).sessionActive)liveWakeLock(false);}catch(e){liveWakeLock(false);}
   const draftId=st.draftSessionId;
   const draftCreated=st.draftCreatedAt;
   liveClearDraft(n,{keepRemote:true});
@@ -4668,7 +4696,7 @@ function liveEndSession(slot){
     date:(typeof todayYmd==='function'?todayYmd():(typeof dateStr==='function'?dateStr(new Date()):dateStrLocal(new Date()))),
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:'Trening personalny',
-    duration:durationMin||60,
+    duration:Math.max(1,durationMin||0),
     exercises:st.exercises.map(e=>typeof serializeLoggedExercise==='function'?serializeLoggedExercise(e,{onlyDone:true}):({
       name:e.name,
       loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
@@ -5050,6 +5078,9 @@ function liveStartRest(sec,slot){
   const gen=st.restGen;
   st.restSec=Number(sec)||0;
   st.restTotal=st.restSec;
+  // Koniec przerwy jako znacznik czasu — przerwa „nie zamarza” po zablokowaniu ekranu.
+  const endsAt=Date.now()+st.restSec*1000;
+  let lastShown=null;
   const el=liveEl('live-rest-timer',n);
   liveRestAudioCtx();
   if(typeof liveRestUnlockSpeech==='function')liveRestUnlockSpeech();
@@ -5063,7 +5094,10 @@ function liveStartRest(sec,slot){
   const update=()=>{
     if(st.restGen!==gen)return;
     if(!el)return;
-    const left=st.restSec;
+    const left=Math.max(0,Math.ceil((endsAt-Date.now())/1000));
+    st.restSec=left;
+    if(left===lastShown)return; // tik częściej niż co sekundę — rysuj i graj sygnał tylko przy zmianie
+    lastShown=left;
     const phase=liveRestPhase(left);
     const cue=liveRestCue(left);
     liveRestPaint(n,phase);
@@ -5078,10 +5112,9 @@ function liveStartRest(sec,slot){
       return;
     }
     el.textContent=typeof liveRestLabel==='function'?liveRestLabel(left):(left+'s');
-    st.restSec--;
   };
   update();
-  st.restInterval=setInterval(update,1000);
+  st.restInterval=setInterval(update,250);
 }
 
 function liveAdjustRest(delta,slot){

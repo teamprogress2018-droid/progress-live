@@ -30,7 +30,7 @@ function renderCPPosture(c){
   const _postureHtml=`
     <div style="margin-bottom:14px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--text);margin-bottom:4px;">🧍 OCENA POSTAWY — AI</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5;">Wgraj zdjęcie klienta i uruchom analizę AI. Wynik zawiera wady postawy, słabe i skrócone mięśnie oraz gotowy program korekcyjny.</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">Wgraj zdjęcie klienta i uruchom analizę AI. Wynik to wstępne obserwacje i hipotezy do sprawdzenia testami — nie diagnoza.</div>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
@@ -90,30 +90,24 @@ async function postureAnalyze(clientId){
   const base64=photo.split(',')[1];
   const mediaType=photo.split(';')[0].split(':')[1]||'image/jpeg';
 
-  const systemPrompt=`Jesteś doświadczonym fizjoterapeutą i trenerem personalnym. Analizujesz postawę ciała klientów na podstawie zdjęć. Odpowiadasz zawsze po polsku, konkretnie i profesjonalnie. Format odpowiedzi:
+  const systemPrompt=`Jesteś doświadczonym fizjoterapeutą i trenerem personalnym. Pomagasz trenerowi wstępnie ocenić postawę na podstawie JEDNEGO zdjęcia. Jedno zdjęcie nie wystarcza do diagnozy: opisuj obserwacje i hipotezy do sprawdzenia testami funkcjonalnymi, nie stawiaj rozpoznań. Odpowiadasz po polsku, konkretnie. Format odpowiedzi:
 
-🔍 WADY POSTAWY
-• [Lista wykrytych wad i dysfunkcji]
+🔍 OBSERWACJE NA ZDJĘCIU
+• [Co widać: ustawienie miednicy, barków, głowy, kolan, stóp]
 
-💪 MIĘŚNIE SŁABE (wymagają wzmocnienia)
-• [Mięsień] — [dlaczego słaby, objawy]
+🧪 HIPOTEZY DO SPRAWDZENIA TESTEM
+• [Możliwa przyczyna] — [jakim testem to zweryfikować]
 
-🔄 MIĘŚNIE SKRÓCONE/NAPIĘTE (wymagają rozciągnięcia)
-• [Mięsień] — [dlaczego skrócony]
+🏋️ PROPOZYCJE ĆWICZEŃ (po potwierdzeniu testem)
+• [Ćwiczenie] — [cel, przykładowa objętość]
 
-🏋️ ZALECANE ĆWICZENIA KORYGUJĄCE
-• [Ćwiczenie] — [cel, liczba serii/powtórzeń]
+⚠️ OSTROŻNIE / DO KONSULTACJI
+• [Ruchy, z którymi warto poczekać do weryfikacji; sygnały, przy których skierować do fizjoterapeuty lub lekarza]
 
-⚠️ OSTRZEŻENIA
-• [Ćwiczenia/ruchy których należy unikać]
-
-📋 PROGRAM KOREKCYJNY (3x/tydzień)
-• [Dzień 1, 2, 3 z konkretnymi ćwiczeniami]
-
-Bądź konkretny. Bazuj wyłącznie na tym co widzisz na zdjęciu.`;
+Bazuj wyłącznie na tym, co widać na zdjęciu. Jeśli zdjęcie jest nieczytelne (ubranie, kąt, oświetlenie), napisz to wprost.`;
 
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const resp=await fetch(W,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -124,7 +118,7 @@ Bądź konkretny. Bazuj wyłącznie na tym co widzisz na zdjęciu.`;
           role:'user',
           content:[
             {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
-            {type:'text',text:`Przeanalizuj postawę ciała klienta na tym zdjęciu (${viewLabels[view]||view}). Klient: ${c.name}, wiek: ${c.age||'nieznany'}, cel: ${c.goal||'nieznany'}. Podaj szczegółową analizę postawy.`}
+            {type:'text',text:`Oceń postawę na tym zdjęciu (${viewLabels[view]||view}). Wiek: ${c.age||'nieznany'}, cel treningowy: ${c.goal||'nieznany'}.`}
           ]
         }]
       })
@@ -153,6 +147,19 @@ Bądź konkretny. Bazuj wyłącznie na tym co widzisz na zdjęciu.`;
   }
 }
 
+function renderPostureResults(analyses){
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  const list=(Array.isArray(analyses)?analyses:[]).slice().reverse();
+  return `<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;padding:8px 10px;border-left:3px solid var(--border2);background:var(--s2);border-radius:0 8px 8px 0;">Analiza AI z jednego zdjęcia to wstępne obserwacje, nie diagnoza. Zweryfikuj je testami funkcjonalnymi, zanim wpłyną na plan.</div>`+
+    list.map(a=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12px;font-weight:700;">
+        <span>${esc(a.view||'')}</span><span style="color:var(--muted);font-weight:400;">${esc(a.date||'')}</span>
+      </div>
+      <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(a.result||'')}</div>
+    </div>`).join('');
+}
+
+window.renderPostureResults=renderPostureResults;
 window.postureUploadPhoto=postureUploadPhoto;
 window.postureSetActive=postureSetActive;
 window.postureAnalyze=postureAnalyze;
@@ -485,16 +492,23 @@ function restoreClient(id){
 }
 
 /** Trwałe usunięcie rekordu klienta (nie archiwum). */
-function deleteClientPermanently(id){
+async function deleteClientPermanently(id){
   const c=CL.find(x=>x.id===id);
   if(!c)return;
   if(!confirm('Usunąć klienta „'+(c.name||'')+'” na zawsze?\n\nTej operacji nie da się cofnąć. Jeśli chcesz tylko schować go z listy — anuluj i użyj „Zarchiwizuj”.'))return;
   if(!confirm('Na pewno usunąć „'+(c.name||'')+'”?'))return;
+  if(!(window._db&&window._del&&window._doc)){notify('⚠ Brak połączenia z bazą — klient nie został usunięty');return;}
+  // Najpierw potwierdzenie z bazy, dopiero potem znika z listy — inaczej po odświeżeniu „usunięty” klient wracał.
+  notify('Usuwam klienta…');
+  try{
+    await window._del(window._doc(window._db,'clients',c._fbId||id));
+  }catch(e){
+    console.warn('Firebase delete client:',e);
+    notify('⚠ Nie udało się usunąć klienta. Sprawdź internet i spróbuj ponownie.');
+    return;
+  }
   const idx=CL.findIndex(x=>x.id===id);
   if(idx>=0)CL.splice(idx,1);
-  if(window._db&&window._del&&window._doc){
-    window._del(window._doc(window._db,'clients',id)).catch(e=>console.warn('Firebase delete client:',e));
-  }
   if(typeof cpClientId!=='undefined'&&cpClientId===id&&typeof closeClientProfile==='function')closeClientProfile();
   try{renderClients();}catch(e){}
   try{renderClientFilters();}catch(e){}

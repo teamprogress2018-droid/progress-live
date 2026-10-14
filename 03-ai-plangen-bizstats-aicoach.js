@@ -300,7 +300,7 @@ window.aplSyncProgressionFromMethod=aplSyncProgressionFromMethod;
 function aplMethodStructureHint(method){
   const hints={
     'Bro Split':'BRO SPLIT: 5–6 dni, 1 partia główna/dzień (np. klatka, plecy, barki, ramiona, nogi). Progresja liniowa +2.5 kg/tyg na wielostawach gdy RPE≤8.',
-    Smolov:'SMOLOV: priorytet PRZYSIAD — mikrocykl %1RM (T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6). Inne dni: utrzymanie góry ciała, max 2–3 ćwiczenia, niska objętość nóg poza przysiadami Smolova.',
+    Smolov:'SMOLOV: priorytet PRZYSIAD. Cykl bazowy = 3 tygodnie po 4 dni przysiadu w TYM SAMYM tygodniu: pon 4×9 @70%, śr 5×7 @75%, pt 7×5 @80%, sob 10×3 @85% 1RM; tydz. 2 i 3: te same schematy +5 kg (tydz. 3 kolejne +5 kg). Tydz. 4: lżej + test nowego 1RM. Potem faza przejściowa (2 tyg.) i intensywna. Inne dni: utrzymanie góry ciała, max 2–3 ćwiczenia, bez dodatkowej objętości nóg.',
     Arnold:'ARNOLD SPLIT: rotacja klatka+plecy / barki+ramiona / nogi (×2). Wysoka objętość sylwetkowa — periodyzacja blokowa lub falowa.',
     Blokowa:'BLOKOWA: tygodnie Akumulacja → Intensyfikacja → Realizacja (+ deload). Objętość i intensywność nie rosną naraz.',
     '531':'5/3/1: 4 główne wielostawy wg cyklu %1RM + asysty BBB. Progresja co tydzień wg tablic Wendlera.',
@@ -315,9 +315,10 @@ window.aplMethodStructureHint=aplMethodStructureHint;
 
 function aplPhasesForPlan(method,weeksNum,weekKeys,goal){
   const SMOLOV_PHASES={
-    4:{w1:'Smolov T1 70%',w2:'Smolov T2 75%',w3:'Smolov T3 80%',w4:'Smolov T4 85%'},
-    6:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Test/Realizacja'},
-    8:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Utrzymanie',w7:'Realizacja',w8:'Test PR'}
+    // Cykl bazowy: każdy tydzień zawiera WSZYSTKIE cztery dni (70/75/80/85%), kolejne tygodnie +5 kg.
+    4:{w1:'Smolov baza — tydz. 1 (4×9@70, 5×7@75, 7×5@80, 10×3@85)',w2:'Smolov baza — tydz. 2 (+5 kg)',w3:'Smolov baza — tydz. 3 (+5 kg)',w4:'Lżej + test 1RM'},
+    6:{w1:'Smolov baza — tydz. 1 (4×9@70, 5×7@75, 7×5@80, 10×3@85)',w2:'Smolov baza — tydz. 2 (+5 kg)',w3:'Smolov baza — tydz. 3 (+5 kg)',w4:'Lżej + test 1RM',w5:'Faza przejściowa — dynamika',w6:'Faza przejściowa — dynamika'},
+    8:{w1:'Smolov baza — tydz. 1 (4×9@70, 5×7@75, 7×5@80, 10×3@85)',w2:'Smolov baza — tydz. 2 (+5 kg)',w3:'Smolov baza — tydz. 3 (+5 kg)',w4:'Lżej + test 1RM',w5:'Faza przejściowa — dynamika',w6:'Faza przejściowa — dynamika',w7:'Faza intensywna — tydz. 1',w8:'Faza intensywna — tydz. 2'}
   };
   if(method==='Smolov'&&SMOLOV_PHASES[weeksNum])return SMOLOV_PHASES[weeksNum];
   if(typeof aplIsHypertrophyGoal==='function'?aplIsHypertrophyGoal(goal):false){
@@ -1269,7 +1270,7 @@ async function aplGenerate(){
       ?'BLOK HIPERTROFII: tyg. 1–3 Akumulacja I (RIR 2–3, 8–12 powt.), tyg. 4–6 Akumulacja II (RIR 1–2, drop-set/rest-pause na izolacjach), tyg. 7 Pik objętości (RIR 0–1), tyg. 8 Deload (objętość −40–50%, RIR 3–4). Bez faz 1–3 powt.'
       :'BLOKOWA: pierwsze tygodnie Akumulacja (10-15 powt. RPE 6-7), środkowe Intensyfikacja (6-8 powt. RPE 8-9), ostatni tydzień Deload, potem Realizacja.',
     double:'PODWÓJNA PROGRESJA: dodawaj 1 powt./tydzień do górnego zakresu, potem +2.5-5kg i reset do dolnego zakresu powtórzeń.',
-    smolov:'SMOLOV (przysiad): mikrocykl %1RM — T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6 (dostosuj do długości planu). Reszta ciała: utrzymanie, bez dokładania objętości nóg poza przysiadami Smolova. Deload po cyklu.',
+    smolov:'SMOLOV (przysiad): cykl bazowy 3 tyg., w KAŻDYM tygodniu 4 dni przysiadu — 4×9 @70%, 5×7 @75%, 7×5 @80%, 10×3 @85% 1RM; tydz. 2 i 3 po +5 kg; tydz. 4 lżej i test 1RM (dostosuj do długości planu). Reszta ciała: utrzymanie, bez dokładania objętości nóg poza przysiadami Smolova. Deload po cyklu.',
   };
   const methodDefaultProg=APL_METHOD_PROGRESSION[method]||'linear';
   const effectiveProg=progression==='ai'?methodDefaultProg:progression;
@@ -1617,7 +1618,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
         <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${plan.planName||'Plan treningowy AI'}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${escHtml(plan.planName||'Plan treningowy AI')}</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -2686,50 +2687,95 @@ function renderBizStats(){
 }
 
 function bizGenerateData(period){
-  // base from real data or generate realistic demo
-  const clientCount=CL.length||12;
-  const sessionCount=SE.length||Math.round(clientCount*period/7*0.8);
-  const baseRevPerClient=800;
-  const revenue=Math.round(clientCount*baseRevPerClient*(period/30)*0.9+Math.random()*2000);
-  const months=period<=30?['Kwi','Maj']:period<=90?['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz']:
-    ['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
-  const cnt=months.length;
-  // revenue series — growing trend with noise
-  const revSeries=months.map((_,i)=>{
-    const base=Math.round((clientCount-2+i*0.4)*baseRevPerClient*(period<=30?1:period<=90?0.33:0.083));
-    return base+Math.round((Math.random()-0.4)*base*0.15);
-  });
-  const forecastSeries=[revSeries[cnt-1]*1.04,revSeries[cnt-1]*1.08,revSeries[cnt-1]*1.13].map(Math.round);
-  const newClients=months.map((_,i)=>Math.round(1.5+i*0.2+Math.random()*1.5));
-  const lostClients=months.map(()=>Math.round(Math.random()*1.2));
+  /* Statystyki liczone WYŁĄCZNIE z danych trenera: opłacone pakiety (PACKAGES, payStatus 'paid', pole date),
+   * odbyte sesje (SE + sessionHappened) i daty dołączenia klientów. Brak danych = null (UI pokazuje „brak danych”). */
+  const DAY=86400000;
+  const now=new Date();now.setHours(23,59,59,999);
+  const nowMs=now.getTime();
+  const toMs=v=>{if(!v)return NaN;const d=new Date(String(v).length<=10?String(v)+'T12:00:00':v);return d.getTime();};
+  const pctChange=(cur,prev)=>prev>0?Math.round((cur-prev)/prev*100):null;
+  const clients=(window.CL||[]).filter(c=>c&&!c.archived&&c.status!=='archived');
+  const sessions=(window.SE||[]).filter(s=>s&&s.date);
+  const done=sessions.filter(s=>typeof sessionHappened==='function'?sessionHappened(s,sessions):(s.source==='live'||s.source==='client'))
+    .map(s=>({s,ms:toMs(s.date)})).filter(x=>isFinite(x.ms)&&x.ms<=nowMs);
+  const paid=(window.PACKAGES||[]).filter(p=>p&&p.payStatus==='paid'&&!p.deleted&&Number.isFinite(Number(p.price)))
+    .map(p=>({p,ms:toMs(p.date||p.paidAt||p.createdAt),price:Number(p.price)})).filter(x=>isFinite(x.ms));
+  const inRange=(ms,a,b)=>ms>a&&ms<=b;
+  const curStart=nowMs-period*DAY, prevStart=curStart-period*DAY;
+  const sum=(arr,a,b)=>arr.filter(x=>inRange(x.ms,a,b)).reduce((t,x)=>t+x.price,0);
+  const activeIds=(a,b)=>new Set(done.filter(x=>inRange(x.ms,a,b)).map(x=>x.s.clientId).filter(Boolean));
+
+  const revenue=Math.round(sum(paid,curStart,nowMs)), prevRevenue=Math.round(sum(paid,prevStart,curStart));
+  const activeCur=activeIds(curStart,nowMs), activePrev=activeIds(prevStart,curStart);
+  const sessCur=done.filter(x=>inRange(x.ms,curStart,nowMs)).length, sessPrev=done.filter(x=>inRange(x.ms,prevStart,curStart)).length;
+  const retained=[...activePrev].filter(id=>activeCur.has(id)).length;
+  const retention=activePrev.size?Math.round(retained/activePrev.size*100):null;
+  const payingIds=new Set(paid.map(x=>x.p.clientId).filter(Boolean));
+  const ltv=payingIds.size?Math.round(paid.reduce((t,x)=>t+x.price,0)/payingIds.size):null;
+
+  // Przedziały wykresów: 30 dni → 4 tygodnie, 90 dni → 3 miesiące, dłużej → 12 miesięcy
+  const MONTHS=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
+  const buckets=[];
+  if(period<=30){
+    for(let i=3;i>=0;i--){const b=nowMs-i*7*DAY;buckets.push({a:b-7*DAY,b,label:new Date(b).toLocaleDateString('pl-PL',{day:'numeric',month:'numeric'})});}
+  }else{
+    const n=period<=90?3:12;
+    for(let i=n-1;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const e=new Date(d.getFullYear(),d.getMonth()+1,1);buckets.push({a:d.getTime()-1,b:Math.min(e.getTime()-1,nowMs),label:MONTHS[d.getMonth()]});}
+  }
+  const months=buckets.map(x=>x.label);
+  const revSeries=buckets.map(x=>Math.round(sum(paid,x.a,x.b)));
+  const last=revSeries.slice(-3), avg=last.length?Math.round(last.reduce((t,v)=>t+v,0)/last.length):0;
+  const forecastSeries=[avg,avg,avg];
+  const joinMs=c=>toMs(c.joinDate||c.createdAt);
+  const newClients=buckets.map(x=>clients.filter(c=>inRange(joinMs(c),x.a,x.b)).length);
+  const lastDone=new Map();done.forEach(x=>{const id=x.s.clientId;if(id&&(!lastDone.has(id)||lastDone.get(id)<x.ms))lastDone.set(id,x.ms);});
+  const isLost=ms=>ms<nowMs-30*DAY; // brak odbytej sesji od 30+ dni
+  const lostClients=buckets.map(x=>[...lastDone.values()].filter(ms=>isLost(ms)&&inRange(ms,x.a,x.b)).length);
+
+  const byType={};paid.filter(x=>inRange(x.ms,curStart,nowMs)).forEach(x=>{const k=x.p.type||x.p.title||'Inne';byType[k]=(byType[k]||0)+x.price;});
+  const COLS=['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--muted)'];
+  const breakdown=revenue>0?Object.entries(byType).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([label,v],i)=>({label,pct:Math.round(v/revenue*100),col:COLS[i]})):[];
+
+  const cohorts=[];
+  for(let k=1;k<=6;k++){
+    const elig=clients.filter(c=>{const j=joinMs(c);return isFinite(j)&&j<=nowMs-k*30*DAY;});
+    if(!elig.length)break;
+    const kept=elig.filter(c=>{const j=joinMs(c);return done.some(x=>x.s.clientId===c.id&&x.ms>j+(k-1)*30*DAY&&x.ms<=j+k*30*DAY);}).length;
+    cohorts.push(Math.round(kept/elig.length*100));
+  }
+
+  const revByClient={};paid.filter(x=>inRange(x.ms,curStart,nowMs)).forEach(x=>{revByClient[x.p.clientId]=(revByClient[x.p.clientId]||0)+x.price;});
+  const sessByClient={};done.filter(x=>inRange(x.ms,curStart,nowMs)).forEach(x=>{sessByClient[x.s.clientId]=(sessByClient[x.s.clientId]||0)+1;});
+  const topClients=clients.map(c=>({name:c.name,rev:Math.round(revByClient[c.id]||0),sessions:sessByClient[c.id]||0}))
+    .filter(c=>c.rev>0||c.sessions>0).sort((a,b)=>b.rev-a.rev||b.sessions-a.sessions).slice(0,6);
+
+  const hourDist=Array(24).fill(0);done.filter(x=>inRange(x.ms,curStart,nowMs)).forEach(x=>{const h=parseInt(String(x.s.time||'').split(':')[0],10);if(h>=0&&h<24)hourDist[h]++;});
+  const durs=done.filter(x=>inRange(x.ms,curStart,nowMs)).map(x=>Number(x.s.duration)).filter(v=>v>0&&v<300);
+  const lostInPeriod=[...lastDone.entries()].filter(([id,ms])=>activePrev.has(id)&&!activeCur.has(id)&&isLost(ms)).length;
+
   return{
-    revenue,revenueGrowth:12,
-    activeClients:clientCount,clientsGrowth:3,
-    sessions:sessionCount,sessionsGrowth:8,
-    retention:87,retentionDiff:2,
-    ltv:Math.round(baseRevPerClient*5.5),ltvGrowth:7,
+    revenue,revenueGrowth:pctChange(revenue,prevRevenue),
+    activeClients:activeCur.size,clientsGrowth:pctChange(activeCur.size,activePrev.size),
+    sessions:sessCur,sessionsGrowth:pctChange(sessCur,sessPrev),
+    retention,retentionDiff:null,
+    ltv,ltvGrowth:null,
     months,revSeries,forecastSeries,newClients,lostClients,
-    breakdown:[
-      {label:'Pakiety sesji',pct:55,col:'var(--accent)'},
-      {label:'Plany online',pct:24,col:'var(--blue)'},
-      {label:'On-demand',pct:13,col:'var(--purple)'},
-      {label:'Inne',pct:8,col:'var(--muted)'},
-    ],
-    cohorts:[92,87,81,75,70,65],
-    topClients:CL.slice(0,6).map((c,i)=>({name:c.name,rev:Math.round((8-i)*290+Math.random()*200),sessions:Math.round((8-i)*1.5+Math.random()*3)})),
-    hourDist:[0,0,1,2,4,6,8,5,3,2,3,5,6,4,3,2,4,6,8,7,5,3,1,0],
-    churnRate:6,nps:72,avgSessionLength:58,utilizationRate:83,
+    breakdown,cohorts,topClients,hourDist,
+    churnRate:activePrev.size?Math.round(lostInPeriod/activePrev.size*100):null,
+    nps:null,avgSessionLength:durs.length?Math.round(durs.reduce((t,v)=>t+v,0)/durs.length):null,utilizationRate:null,
   };
 }
 
 function bizKPI(icon,label,val,unit,growth,growthUnit='%'){
-  const pos=growth>=0;
-  const disp=typeof val==='number'&&val>1000?val.toLocaleString('pl'):val;
+  const hasVal=val!==null&&val!==undefined&&!(typeof val==='number'&&!isFinite(val));
+  const disp=!hasVal?'—':(typeof val==='number'&&val>1000?val.toLocaleString('pl'):val);
+  const hasGrowth=typeof growth==='number'&&isFinite(growth);
+  const pos=hasGrowth&&growth>=0;
   return `<div class="stat-kpi">
     <div style="font-size:20px;margin-bottom:6px;">${icon}</div>
-    <div class="stat-kpi-val">${disp}<span style="font-size:13px;font-weight:400;color:var(--muted);margin-left:3px;">${unit}</span></div>
+    <div class="stat-kpi-val">${disp}${hasVal?`<span style="font-size:13px;font-weight:400;color:var(--muted);margin-left:3px;">${unit}</span>`:''}</div>
     <div class="stat-kpi-label">${label}</div>
-    <div class="stat-kpi-growth ${pos?'pos':'neg'}">${pos?'↑':'↓'} ${Math.abs(growth)}${growthUnit} vs poprzedni okres</div>
+    ${hasGrowth?`<div class="stat-kpi-growth ${pos?'pos':'neg'}">${pos?'↑':'↓'} ${Math.abs(growth)}${growthUnit} vs poprzedni okres</div>`:`<div class="stat-kpi-growth" style="color:var(--muted);">${hasVal?'brak danych do porównania':'brak danych'}</div>`}
   </div>`;
 }
 
@@ -2797,6 +2843,7 @@ function bizRevenueBreakdown(D){
 function bizRetentionChart(D){
   const labels=['M1','M2','M3','M4','M5','M6'];
   return `<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+    ${D.cohorts.length?'':'<div style="font-size:11px;color:var(--muted);padding:8px 0;">Za mało danych — retencja pojawi się po pierwszym miesiącu pracy z klientami.</div>'}
     ${D.cohorts.map((pct,i)=>`<div style="display:flex;align-items:center;gap:8px;">
       <div style="width:24px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-align:right;">${labels[i]}</div>
       <div style="flex:1;height:22px;background:var(--s3);border-radius:5px;overflow:hidden;position:relative;">
@@ -2859,6 +2906,7 @@ function bizTopClients(D){
     <div style="display:grid;grid-template-columns:1fr 90px 70px 50px;gap:6px;padding:5px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
       <span>Klient</span><span style="text-align:right;">Przychód</span><span style="text-align:right;">Sesji</span><span></span>
     </div>
+    ${D.topClients.length?'':'<div style="font-size:11px;color:var(--muted);padding:8px 0;">Brak opłaconych pakietów i sesji w tym okresie.</div>'}
     ${D.topClients.map((c,i)=>`<div style="display:grid;grid-template-columns:1fr 90px 70px 50px;gap:6px;padding:9px 0;border-bottom:1px solid var(--border);align-items:center;">
       <div style="display:flex;align-items:center;gap:7px;">
         <div style="width:24px;height:24px;border-radius:6px;background:${['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--red)'][i%6]}22;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--red)'][i%6]};">${getInit(c.name)}</div>
@@ -2876,12 +2924,12 @@ function bizTopClients(D){
 
 function bizMetrics(D){
   const items=[
-    {label:'Wskaźnik churnu',val:D.churnRate+'%',icon:'📉',col:'var(--orange)',hint:'Cel: <5%'},
-    {label:'NPS (satysfakcja)',val:D.nps+' pkt',icon:'⭐',col:'var(--accent)',hint:'Świetny (>50)'},
-    {label:'Śr. długość sesji',val:D.avgSessionLength+' min',icon:'⏱',col:'var(--blue)',hint:'Standard 60 min'},
-    {label:'Wykorzystanie czasu',val:D.utilizationRate+'%',icon:'📊',col:'var(--teal)',hint:'Cel: >80%'},
-    {label:'Śr. przychód/sesję',val:Math.round(D.revenue/D.sessions)+' PLN',icon:'💰',col:'var(--accent)',hint:''},
-    {label:'Koszty pozyskania',val:'180 PLN',icon:'🎯',col:'var(--muted)',hint:'CAC'},
+    {label:'Wskaźnik churnu',val:D.churnRate==null?'brak danych':D.churnRate+'%',icon:'📉',col:'var(--orange)',hint:'Cel: <5%'},
+    {label:'NPS (satysfakcja)',val:D.nps==null?'brak danych':D.nps+' pkt',icon:'⭐',col:'var(--accent)',hint:D.nps==null?'Wymaga ankiety NPS':'Świetny (>50)'},
+    {label:'Śr. długość sesji',val:D.avgSessionLength==null?'brak danych':D.avgSessionLength+' min',icon:'⏱',col:'var(--blue)',hint:'Standard 60 min'},
+    {label:'Wykorzystanie czasu',val:D.utilizationRate==null?'brak danych':D.utilizationRate+'%',icon:'📊',col:'var(--teal)',hint:D.utilizationRate==null?'Wymaga ustawienia godzin pracy':'Cel: >80%'},
+    {label:'Śr. przychód/sesję',val:D.sessions?Math.round(D.revenue/D.sessions)+' PLN':'brak danych',icon:'💰',col:'var(--accent)',hint:''},
+    {label:'Koszty pozyskania',val:'brak danych',icon:'🎯',col:'var(--muted)',hint:'CAC — wymaga wpisania kosztów marketingu'},
   ];
   return `<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
     ${items.map(m=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
@@ -2917,7 +2965,7 @@ function bizHeatmap(D){
 
 function bizForecast(D){
   const months=['Lip','Sie','Wrz'];
-  const base=D.revSeries[D.revSeries.length-1]||3000;
+  const base=D.revSeries[D.revSeries.length-1]||0;
   const vals=[Math.round(base*1.04),Math.round(base*1.09),Math.round(base*1.14)];
   const max=Math.max(...vals)*1.1;
   return `<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
@@ -3070,7 +3118,7 @@ window.callStaffAgentsSequentially=callStaffAgentsSequentially;
 const AIC_MODES={
   coach:{
     label:'🧠 Analiza klienta',
-    system:`Jesteś AI Coach — zaawansowanym asystentem trenera personalnego Piotra Urbaniaka. Masz wiedzę na poziomie NSCA CSCS, NASM CPT i ACSM. Komunikujesz się po polsku. Analizujesz klientów, ich postępy, check-iny i plany treningowe. Dajesz konkretne, spersonalizowane rekomendacje.
+    system:`Jesteś AI Coach — zaawansowanym asystentem trenera personalnego (trener: {{TRAINER}}). Masz wiedzę na poziomie NSCA CSCS, NASM CPT i ACSM. Komunikujesz się po polsku. Analizujesz klientów, ich postępy, check-iny i plany treningowe. Dajesz konkretne, spersonalizowane rekomendacje.
 Gdy klient ma nadwagę lub otyłość (blok BEZPIECZEŃSTWO/NADWAGA), układaj trening pod stawy: maszyny, strefa 2, bez plyo, RPE 6–8.
 Gdy dostaniesz STRAŻNIK POSTĘPÓW — powiedz wprost czy idziemy w dobrą czy złą stronę i podaj 2–4 konkretne korekty.
 Formatuj odpowiedzi używając:
@@ -3418,7 +3466,8 @@ async function sendAICMsg(){
         aicAddMsgDOM('assistant',html,true,agentId);
       }
     } else {
-      const systemPrompt=(AIC_MODES[aicMode]?.system||AIC_MODES.coach.system)+extra;
+      const _aicTrainer=(typeof getTrainerName==='function'?getTrainerName(''):'')||'zalogowanego trenera';
+      const systemPrompt=(AIC_MODES[aicMode]?.system||AIC_MODES.coach.system).split('{{TRAINER}}').join(_aicTrainer)+extra;
       const resp=await fetch(staffWorkerUrl(),{
         method:'POST',
         headers:{'Content-Type':'application/json'},

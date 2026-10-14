@@ -191,7 +191,8 @@ async function test(label, run) { await run(); passed++; console.log('OK ' + lab
   });
   await test('permanent delete requires two confirmations and deletes only its client document', async () => {
     const h = harness(), before = h.ctx.CL.length;
-    h.ctx.deleteClientPermanently('c2');
+    // Usunięcie z listy następuje dopiero po potwierdzeniu z bazy.
+    await h.ctx.deleteClientPermanently('c2');
     assert.equal(h.ctx.CL.some(client => client.id === 'c2'), false); assert.equal(h.ctx.CL.length, before - 1);
     assert.equal(h.calls.confirms.length, 2); assert.deepEqual(h.calls.deletes, [{ collection: 'clients', id: 'c2' }]);
   });

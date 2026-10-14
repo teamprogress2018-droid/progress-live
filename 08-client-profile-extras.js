@@ -2441,9 +2441,14 @@ function revealCpOverviewCoop(){
 }
 /** Ograniczenia z karty klienta vs ćwiczenia: tylko wyraźne kolizje (słowa kluczowe), decyzja należy do trenera. */
 const CP_LIMIT_RULES=[
-  {area:'bark',match:/bark|(^|[^a-ząćęłńóśźż])rami[ęe]|rotator|stożk|obojczyk/i,ex:/nad gł|overhead|ohp|żołnier|zolnier|military|arnold|za kark|podrzut|rwanie|snatch|push press|handstand|pompki w staniu na rękach/i},
-  {area:'kolano',match:/kolan|łąkot|lakot|acl|rzepk/i,ex:/wykrok|bułgar|bulgar|pistol|skok|plyo|box jump|przysiad na jednej|sissy/i},
-  {area:'kręgosłup',match:/kręgosł|kregosl|lędźw|ledzw|dysk|przepuklin|rwa kulsz|plecy/i,ex:/martwy ciąg|martwy ciag|deadlift|skłon|sklon|good morning|wiosłowanie w opadzie|wioslowanie w opadzie|przysiad ze sztangą na plecach|back squat/i},
+  {area:'ciąża/połóg',match:/ciąż|ciaz|połóg|polog|po porodzie|poporod|rozejści|rozejsci|diastaz|dno miednicy/i,ex:/brzuszk|crunch|sit.?up|russian twist|skręty|skrety|v.?up|nożyce|nozyce|deska|plank|leżąc na plecach|lezac na plecach|skok|plyo|box jump|martwy ciąg|martwy ciag|deadlift|maksym|1rm/i},
+  {area:'nadciśnienie/serce',match:/nadciśn|nadcisn|ciśnien|cisnien|serc|kardio.*lek|arytmi|zawał|zawal/i,ex:/maksym|1rm|\bmax\b|izometr|deska|plank|valsalv|handstand|stanie na rękach|odwrócon|odwrocon|głową w dół|glowa w dol|rwanie|podrzut/i},
+  {area:'bark',match:/bark|(^|[^a-ząćęłńóśźż])rami[ęe]|rotator|stożk|obojczyk/i,ex:/nad gł|overhead|ohp|żołnier|zolnier|military|arnold|za kark|podrzut|rwanie|snatch|push press|handstand|pompki w staniu na rękach|dips|na poręczach|na poreczach/i},
+  {area:'łokieć',match:/łok(ie|c)|lok(ie|c)|tenisist|golfist/i,ex:/francusk|skull|prostowanie.*(triceps|ramion)|uginanie|curl|podciąg|podciag|pull.?up|chin.?up|dips|na poręczach|na poreczach/i},
+  {area:'kolano',match:/kolan|łąkot|lakot|acl|rzepk/i,ex:/wykrok|bułgar|bulgar|pistol|skok|plyo|box jump|przysiad na jednej|sissy|przysiad ze sztang|back squat|głęboki przysiad|gleboki przysiad|prostowanie nóg|prostowanie nog|leg extension|skakank|bieg|sprint/i},
+  {area:'biodro',match:/biodr|pachwin|labrum|endoprotez.*biodr/i,ex:/głęboki przysiad|gleboki przysiad|sumo|wykrok|bułgar|bulgar|pistol|hip thrust|skok|plyo|box jump|rozkrok|szpagat/i},
+  {area:'staw skokowy/ścięgno Achillesa',match:/kostk|skokow|achilles|piet|stop[ay]|ostrog/i,ex:/skok|plyo|box jump|skakank|bieg|sprint|wspięci|wspieci|na palce|łydk|lydk|calf/i},
+  {area:'kręgosłup',match:/kręgosł|kregosl|lędźw|ledzw|dysk|przepuklin|rwa kulsz|plec(y|ów|ow|ach)/i,ex:/martwy ciąg|martwy ciag|deadlift|skłon|sklon|good morning|wiosłowanie w opadzie|wioslowanie w opadzie|przysiad ze sztangą na plecach|back squat|brzuszk|crunch|sit.?up|russian twist|skręty|skrety|hiperekstens|prostowanie tułowia|prostowanie tulowia/i},
   {area:'nadgarstek',match:/nadgarst|cieśń|ciesn/i,ex:/pompk|front squat|przysiad przedni|zarzut|clean/i}
 ];
 function cpClientLimitConflicts(c,exNames){
