@@ -91,6 +91,24 @@ function persistWarn(msg){
   window._persistWarnAt=now;
   if(typeof notify==='function')notify(msg);
 }
+// Pola widoczne tylko dla trenera. Leżą w kolekcji clientPrivate, do której reguły bazy nie dają dostępu klientowi.
+// Do czasu wdrożenia reguł (odczyt clientPrivate odrzucony) zostają w karcie klienta, jak dotąd.
+const CLIENT_PRIVATE_FIELDS=Object.freeze(['notes','psycho','_posture','timeline']);
+window.CLIENT_PRIVATE_FIELDS=CLIENT_PRIVATE_FIELDS;
+function clientPrivateEnabled(){
+  return !window._clientAppMode&&window._clientPrivateReady===true&&typeof window._deleteField==='function';
+}
+window.clientPrivateEnabled=clientPrivateEnabled;
+/** Wyjmuje pola prywatne z zapisu karty (w karcie są usuwane) i zwraca dokument do clientPrivate. */
+function splitClientPrivate(payload,owner){
+  const priv={id:payload.id,clientId:payload.id,trainerId:owner,updatedAt:new Date().toISOString()};
+  CLIENT_PRIVATE_FIELDS.forEach(k=>{
+    if(payload[k]!==undefined)priv[k]=payload[k];
+    payload[k]=window._deleteField();
+  });
+  return priv;
+}
+window.splitClientPrivate=splitClientPrivate;
 /** Zapisuje dokument pod stałym id (setDoc), żeby lokalne id = Firestore id. */
 async function persistById(colName,obj){
   if(!obj||!obj.id)return null;
@@ -107,6 +125,11 @@ async function persistById(colName,obj){
     if(window._clientAppMode&&tenantCatalogCollections.includes(colName))throw new Error('Biblioteka jest edytowana przez trenera');
     const payload={...obj};
     delete payload._fbId;
+    if(colName==='clients'&&clientPrivateEnabled()){
+      const priv=splitClientPrivate(payload,owner);
+      await window._setDoc(window._doc(window._db,'clientPrivate',docId),priv,{merge:true});
+      if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return null;
+    }
     await window._setDoc(window._doc(window._db,colName,docId),payload,{merge:true});
     if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return null;
     obj._fbId=docId;
@@ -364,13 +387,21 @@ window.isTrainerProfileIncomplete=isTrainerProfileIncomplete;
 window.applyAuthToTrainerProfile=applyAuthToTrainerProfile;
 window.maybePromptTrainerProfile=maybePromptTrainerProfile;
 
+function syncMobileMenuBtn(open){
+  const btn=document.getElementById('mobile-menu-btn');
+  if(!btn)return;
+  btn.setAttribute('aria-expanded',open?'true':'false');
+  btn.setAttribute('aria-label',open?'Zamknij menu':'Otwórz menu');
+}
 function toggleMobileSidebar(){
-  document.querySelector('.sidebar').classList.toggle('mobile-open');
-  document.getElementById('mobile-sidebar-backdrop').classList.toggle('show');
+  const open=document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('mobile-sidebar-backdrop').classList.toggle('show',open);
+  syncMobileMenuBtn(open);
 }
 function closeMobileSidebar(){
   document.querySelector('.sidebar').classList.remove('mobile-open');
   document.getElementById('mobile-sidebar-backdrop').classList.remove('show');
+  syncMobileMenuBtn(false);
 }
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
 
@@ -6863,18 +6894,19 @@ function clientActivePackage(clientId){
  */
 function clientLifecycleStatus(c){
   if(!c)return{key:'unknown',label:'—',pri:9};
-  if(c.status==='archived')return{key:'archived',label:'Archiwum',pri:8};
+  // Jeden słownik statusów: lista klientów, profil i pulpit używają tych samych nazw.
+  if(c.status==='archived')return{key:'archived',label:'Zarchiwizowany',pri:8};
   if(c.status==='inactive')return{key:'inactive',label:'Nieaktywny',pri:3};
-  if(!clientHasEmail(c))return{key:'noemail',label:'Brak e-maila',pri:0};
+  if(!clientHasEmail(c))return{key:'noemail',label:'Bez e-maila',pri:0};
   const onboard=typeof clientOnboardStatus==='function'?clientOnboardStatus(c):null;
   if(onboard&&!onboard.complete){
-    return{key:'onboarding',label:'Onboarding '+onboard.done+'/'+onboard.total,pri:1,next:onboard.next};
+    return{key:'onboarding',label:'Start '+onboard.done+'/'+onboard.total,pri:1,next:onboard.next};
   }
   const pkg=clientActivePackage(c.id);
   if(pkg&&pkg.expiresDate){
     const d=Math.ceil((new Date(pkg.expiresDate+'T12:00:00')-Date.now())/86400000);
     if(d<0)return{key:'expired',label:'Pakiet wygasł',pri:0,expiresDate:pkg.expiresDate};
-    if(d<=7)return{key:'expiring',label:'Pakiet '+d+' d.',pri:2,expiresDate:pkg.expiresDate,pkg};
+    if(d<=7)return{key:'expiring',label:d===0?'Pakiet: ostatni dzień':'Pakiet: '+d+(d===1?' dzień':' dni'),pri:2,expiresDate:pkg.expiresDate,pkg};
   }
   let days=Infinity;
   if(typeof getClientLastActivity==='function'){
@@ -6890,7 +6922,7 @@ function clientLifecycleStatus(c){
       if(!isNaN(t)&&!isNaN(n))days=Math.floor((n-t)/86400000);
     }
   }
-  if(days>30)return{key:'idle',label:'Nieaktywny',pri:3,idleDays:days};
+  if(days>30)return{key:'idle',label:days===Infinity?'Bez aktywności':'Bez aktywności '+days+' dni',pri:3,idleDays:days};
   if(days>14)return{key:'atrisk',label:'Ryzyko odejścia',pri:4,idleDays:days};
   return{key:'active',label:'Aktywny',pri:5,idleDays:days,expiresDate:pkg&&pkg.expiresDate};
 }

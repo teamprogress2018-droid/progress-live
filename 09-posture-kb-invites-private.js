@@ -502,6 +502,9 @@ async function deleteClientPermanently(id){
   notify('Usuwam klienta…');
   try{
     await window._del(window._doc(window._db,'clients',c._fbId||id));
+    if(typeof clientPrivateEnabled==='function'&&clientPrivateEnabled()){
+      try{await window._del(window._doc(window._db,'clientPrivate',c._fbId||id));}catch(e){console.warn('clientPrivate delete:',e);}
+    }
   }catch(e){
     console.warn('Firebase delete client:',e);
     notify('⚠ Nie udało się usunąć klienta. Sprawdź internet i spróbuj ponownie.');
@@ -4928,6 +4931,79 @@ window.generateInviteLink = generateInviteLink;
 // ═══════════════════════════════════════
 var privateModeActive = false;
 
+// ── Maskowanie danych klientów na ekranie (pokazywanie aplikacji, nagrania, prezentacje) ──
+// Dane w bazie i w pamięci zostają bez zmian: podmieniamy tylko wyświetlany tekst i przywracamy go po wyłączeniu.
+const privMaskOriginals=new Map();
+let privMaskObserver=null,privMaskRules=null;
+function privMaskBuildRules(){
+  const list=(window.CL||[]).filter(c=>c&&c.name).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  const alias=i=>'Klient '+(i<26?String.fromCharCode(65+i):(i+1));
+  const pairs=[];
+  list.forEach((c,i)=>{
+    const name=String(c.name).trim();
+    if(name.length>=2)pairs.push([name,alias(i)]);
+    const first=name.split(/\s+/)[0];
+    if(first&&first.length>=3&&first!==name)pairs.push([first,alias(i)]);
+    if(c.email&&String(c.email).includes('@'))pairs.push([String(c.email).trim(),'•••@•••']);
+  });
+  pairs.sort((a,b)=>b[0].length-a[0].length);
+  const map=new Map();pairs.forEach(([k,v])=>{if(!map.has(k))map.set(k,v);});
+  if(!map.size)return null;
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const body=[...map.keys()].map(esc).join('|');
+  let re;
+  try{re=new RegExp('(?<![\\p{L}\\d])('+body+')(?![\\p{L}\\d])','gu');}
+  catch(e){re=new RegExp('('+body+')','g');}
+  return{re,map};
+}
+function privMaskText(s){
+  if(!privMaskRules||!s)return s;
+  privMaskRules.re.lastIndex=0;
+  return s.replace(privMaskRules.re,m=>privMaskRules.map.get(m)||m);
+}
+function privMaskNode(root){
+  if(!root||!privMaskRules)return;
+  const skip=n=>{const p=n.parentElement;return !p||p.closest('script,style,textarea,input,[contenteditable="true"]');};
+  if(root.nodeType===3){
+    if(skip(root))return;
+    const next=privMaskText(root.nodeValue);
+    if(next!==root.nodeValue){if(!privMaskOriginals.has(root))privMaskOriginals.set(root,root.nodeValue);root.nodeValue=next;}
+    return;
+  }
+  if(root.nodeType!==1)return;
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  for(let n=walker.nextNode();n;n=walker.nextNode())privMaskNode(n);
+  const withTitle=root.matches&&root.matches('[title]')?[root]:[];
+  withTitle.concat([...root.querySelectorAll('[title]')]).forEach(el=>{
+    const t=el.getAttribute('title'),next=privMaskText(t);
+    if(next!==t){if(!el.hasAttribute('data-priv-title'))el.setAttribute('data-priv-title',t);el.setAttribute('title',next);}
+  });
+}
+function privMaskStart(){
+  privMaskRules=privMaskBuildRules();
+  document.body.classList.add('priv-mode');
+  const root=document.getElementById('app-root')||document.body;
+  privMaskNode(root);
+  if(typeof MutationObserver==='function'){
+    privMaskObserver=new MutationObserver(muts=>{
+      muts.forEach(m=>{
+        if(m.type==='characterData')privMaskNode(m.target);
+        else m.addedNodes.forEach(n=>privMaskNode(n));
+      });
+    });
+    privMaskObserver.observe(document.body,{subtree:true,childList:true,characterData:true});
+  }
+}
+function privMaskStop(){
+  if(privMaskObserver){privMaskObserver.disconnect();privMaskObserver=null;}
+  privMaskRules=null;
+  privMaskOriginals.forEach((orig,node)=>{if(node.isConnected)node.nodeValue=orig;});
+  privMaskOriginals.clear();
+  document.querySelectorAll('[data-priv-title]').forEach(el=>{el.setAttribute('title',el.getAttribute('data-priv-title'));el.removeAttribute('data-priv-title');});
+  document.body.classList.remove('priv-mode');
+}
+window.privMaskText=privMaskText;
+
 function togglePrivateMode(){
   privateModeActive = !privateModeActive;
   const btn = document.getElementById('private-mode-btn');
@@ -4954,7 +5030,8 @@ function togglePrivateMode(){
     // Jeśli jesteśmy na Płatnościach — wróć
     const active = document.querySelector('.screen.active') || document.querySelector('.screen[style*="flex"]');
     if(active && active.id === 'screen-payments') goTo('dashboard');
-    notify('🔒 Tryb prywatny włączony');
+    try{ privMaskStart(); }catch(e){ console.warn('privMask:',e); }
+    notify('🔒 Tryb prywatny: finanse i dane klientów ukryte');
   } else {
     // Wyłącz
     if(bar) bar.classList.remove('on');
@@ -4973,6 +5050,7 @@ function togglePrivateMode(){
         delete b.dataset.privDisabled;
       }
     });
+    try{ privMaskStop(); }catch(e){}
     // Odśwież dashboard
     try{ renderDash(); }catch(e){}
     notify('👁 Tryb prywatny wyłączony');

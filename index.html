@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=148&volume-control=1">
+<link rel="stylesheet" href="styles.css?v=149&volume-control=1">
 </head>
 <body>
 
@@ -65,11 +65,11 @@
 </div>
 
 <div class="app" id="app-root" style="display:none;">
-<button id="mobile-menu-btn" onclick="toggleMobileSidebar()" style="display:none;">
+<button id="mobile-menu-btn" type="button" onclick="toggleMobileSidebar()" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
 <div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
-<aside class="sidebar">
+<aside class="sidebar" id="app-sidebar">
   <div class="sidebar-logo">
     <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
     <div class="logo-text">PROGRESS<span>LIVE</span></div>
@@ -134,7 +134,7 @@
   <div id="private-bar">
     <span style="font-size:12px;">🔒</span>
     <span style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--orange);letter-spacing:1px;">TRYB PRYWATNY</span>
-    <span style="font-size:10px;color:var(--muted);">Finanse ukryte</span>
+    <span style="font-size:10px;color:var(--muted);">Finanse i dane klientów ukryte</span>
     <button onclick="togglePrivateMode()" style="margin-left:auto;background:var(--orange);border:none;border-radius:4px;padding:2px 10px;font-size:10px;font-weight:700;color:#000;cursor:pointer;">Wyłącz</button>
   </div>
   <div class="sidebar-end">
@@ -337,6 +337,7 @@
       <input type="text" class="ui-search cl-filter-search" placeholder="Szukaj klienta…" id="client-search" oninput="filterClients()">
       <div id="client-filter-list" style="display:none;" aria-hidden="true"></div>
     </div>
+    <div class="cl-attn-chips" id="client-attn-chips" role="group" aria-label="Wymaga uwagi"></div>
     <div class="tbl-hdr cl-everfit-hdr">
       <span>Klient</span>
       <span></span>
@@ -511,9 +512,9 @@
       <!-- mini kalendarz -->
       <div class="cal-sidebar-section">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <button type="button" onclick="calMiniNav(-1)" style="background:none;border:none;color:var(--text-label);cursor:pointer;font-size:18px;padding:4px 8px;">‹</button>
+          <button type="button" class="cal-mini-nav" aria-label="Poprzedni miesiąc" onclick="calMiniNav(-1)" style="background:none;border:none;color:var(--text-label);cursor:pointer;font-size:18px;padding:4px 8px;">‹</button>
           <div class="ui-section-hdr" style="margin:0;font-size:var(--font-size-sm);" id="cal-mini-title"></div>
-          <button type="button" onclick="calMiniNav(1)" style="background:none;border:none;color:var(--text-label);cursor:pointer;font-size:18px;padding:4px 8px;">›</button>
+          <button type="button" class="cal-mini-nav" aria-label="Następny miesiąc" onclick="calMiniNav(1)" style="background:none;border:none;color:var(--text-label);cursor:pointer;font-size:18px;padding:4px 8px;">›</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;" id="cal-mini-dow">
           <div class="cal-mini-dow-label">Pn</div>
@@ -3305,7 +3306,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title">NOWY KLIENT</div><button class="modal-close" aria-label="Zamknij" onclick="closeM('m-client')">×</button></div>
     <div class="modal-body">
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input type="text" class="form-input" id="ac-name" placeholder="Jan Kowalski" required></div><div class="form-field"><label class="form-lbl">E-mail (wymagany — logowanie)</label><input type="email" class="form-input" id="ac-email" placeholder="jan@example.com" required autocomplete="email"></div></div>
+      <div class="form-grid"><div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input type="text" class="form-input" id="ac-name" placeholder="Jan Kowalski" required></div><div class="form-field"><label class="form-lbl">E-mail klienta (do zaproszenia do aplikacji)</label><input type="email" class="form-input" id="ac-email" placeholder="jan@example.com — możesz uzupełnić później" autocomplete="email"></div></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Telefon</label><input type="tel" class="form-input" id="ac-phone" placeholder="+48 123 456 789"></div><div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="form-input" id="ac-age" placeholder="25"></div></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Płeć</label><select class="form-select" id="ac-gender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></div><div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="ac-weight" placeholder="80"></div></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="form-input" id="ac-height" placeholder="180"></div><div class="form-field"></div></div>
@@ -4220,7 +4221,7 @@ window.doPasswordReset=window.doPasswordReset||authNetworkFallbackMsg;
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import{getFirestore,collection,getDocs,getDocsFromServer,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction,Timestamp,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,getDocsFromServer,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction,Timestamp,serverTimestamp,deleteField}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
@@ -4230,7 +4231,7 @@ window._storage=storage;window._storageRef=ref;window._uploadBytes=uploadBytes;w
 window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._getDocsFromServer=getDocsFromServer;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;window._runTransaction=runTransaction;
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
 window._signInClient=function(email,pass){return signInWithEmailAndPassword(auth,email,pass);};
-window._Timestamp=Timestamp;window._serverTimestamp=serverTimestamp;
+window._Timestamp=Timestamp;window._serverTimestamp=serverTimestamp;window._deleteField=deleteField;
 /* Token Firebase zalogowanego użytkownika — dołączany do zapytań do proxy AI (patrz aiProxyFetch w 01-core.js). */
 window._authIdToken=async function(){try{return auth.currentUser?await auth.currentUser.getIdToken():null;}catch(e){return null;}};
 
@@ -4548,6 +4549,12 @@ window.seedTenantDefaults=seedTenantDefaults;
 async function load(session=captureTenantSession()){
   if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
   window._tenantDataReady=false;
+  window._clientPrivateReady=false;
+  // Osobno i bez blokowania startu: przed wdrożeniem reguł ten odczyt jest odrzucany.
+  const privatePromise=tenantReadOwnedCollection('clientPrivate',session).catch(error=>{
+    if(String(error&&error.message)!=='tenant-session-stale')console.warn('clientPrivate niedostępne — pola prywatne zostają w karcie klienta:',error&&(error.code||error.message));
+    return null;
+  });
   const collections=['clients','clientAccounts','plans','sessions','exercises','exerciseGifs','coachVideos','workouts','tasks','kb','metricEntries','progressPhotos','metricGroups','messages','packages','invoices','formSends','reportHistory','forms','programs','checkins','clientNotes','clientDocs','onboardingFlows','planTemplates','settings','notifications','autoflows','automationState','integrationConfigs','forumGroups','forumPosts','forumComments','odWorkouts','odPrograms','odProgress','onboardingActive','clientGroups','resources'];
   // Stage every read. A denied or incomplete read must not look like an empty account.
   const rows=await Promise.all(collections.map(name=>tenantReadOwnedCollection(name,session)));
@@ -4558,6 +4565,16 @@ async function load(session=captureTenantSession()){
   Object.entries(direct).forEach(([collectionName,key])=>{snapshot[key]=data[collectionName];});
   const joined=new Set(data.clientAccounts.map(a=>a.clientId).filter(Boolean));
   snapshot.CL.forEach(c=>{if(joined.has(c.id))c.appJoined=true;});
+  const privateRows=await privatePromise;
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
+  const privateFields=window.CLIENT_PRIVATE_FIELDS||[];
+  const privateById=new Map((privateRows||[]).map(p=>[p._fbId||p.id,p]));
+  const privateMigration=[];
+  snapshot.CL.forEach(c=>{
+    if(privateRows&&privateFields.some(k=>c[k]!==undefined))privateMigration.push(c.id);
+    const p=privateById.get(c._fbId||c.id);
+    if(p)privateFields.forEach(k=>{if(p[k]!==undefined)c[k]=p[k];});
+  });
   snapshot.MSGS=tenantGroupBy(data.messages,'clientId',(a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   snapshot.CHECKINS=tenantGroupBy(data.checkins,'clientId',(a,b)=>(a.date||'').localeCompare(b.date||''));
   snapshot.CLIENT_NOTES=tenantGroupBy(data.clientNotes,'clientId',(a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
@@ -4588,9 +4605,25 @@ async function load(session=captureTenantSession()){
   window._afStateDocId=afState?afState.id:session.uid;
   window._afStateReady=true;
   window._tenantDataReady=true;
+  window._clientPrivateReady=privateRows!==null;
   window._tenantLoadedUid=session.uid;
   if(typeof window.liveFlushPendingSessions==='function')setTimeout(()=>{try{window.liveFlushPendingSessions();}catch(e){}},0);
   if(typeof window.pruneOldNotifications==='function')setTimeout(()=>{try{window.pruneOldNotifications();}catch(e){}},5000);
+  // Jednorazowo: stare pola prywatne z kart klientów do clientPrivate. Usuwamy je z karty dopiero po udanym zapisie kopii.
+  if(privateMigration.length&&typeof setTimeout==='function')setTimeout(async()=>{
+    for(const id of privateMigration){
+      if(!tenantSessionIsCurrent(session)||window._clientAppMode||window._clientPrivateReady!==true)return;
+      const c=(window.CL||[]).find(x=>x.id===id);
+      if(!c)continue;
+      const docId=c._fbId||c.id,priv={id:c.id,clientId:c.id,trainerId:session.uid,updatedAt:new Date().toISOString()},drop={};
+      privateFields.forEach(k=>{if(c[k]!==undefined)priv[k]=c[k];drop[k]=deleteField();});
+      try{
+        await setDoc(doc(db,'clientPrivate',docId),priv,{merge:true});
+        if(!tenantSessionIsCurrent(session))return;
+        await updateDoc(doc(db,'clients',docId),drop);
+      }catch(e){console.warn('Przeniesienie pól prywatnych klienta:',e&&(e.code||e.message));return;}
+    }
+  },4000);
   // No broad ownership migration and no seed after a failed query.
   if(typeof window.seedTenantDefaults==='function')await window.seedTenantDefaults(session,data);
   if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
@@ -4617,19 +4650,19 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=36"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=131&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1"></script>
+<script src="01-core.js?v=132&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=96"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=43&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1"></script>
-<script src="04-client-portal.js?v=59&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
-<script src="client-card-save.js?v=3"></script>
-<script src="05-clients-builder-plans-calendar.js?v=99&volume-control=1"></script>
+<script src="04-client-portal.js?v=60&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
+<script src="client-card-save.js?v=4"></script>
+<script src="05-clients-builder-plans-calendar.js?v=100&volume-control=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=96&exercise-preview=1"></script>
 <script src="07-forms-metrics-calculator.js?v=44&baseline-save=1&profile-save=1"></script>
-<script src="08-client-profile-extras.js?v=90&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
-<script src="09-posture-kb-invites-private.js?v=55&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1"></script>
+<script src="08-client-profile-extras.js?v=91&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
+<script src="09-posture-kb-invites-private.js?v=56&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1"></script>
 <script src="10-client-app.js?v=43&tenant-isolation=2"></script>
   <script src="12-manual-plan-wizard.js?v=17&volume-control=1"></script>
 </body>

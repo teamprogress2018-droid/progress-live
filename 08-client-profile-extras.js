@@ -1349,7 +1349,7 @@ async function fbImportSelected(){
       if(!window.CLIENT_TIMELINE) window.CLIENT_TIMELINE = {};
       if(!CLIENT_TIMELINE[target.id]) CLIENT_TIMELINE[target.id] = [];
       CLIENT_TIMELINE[target.id].push({ id:'fbn_'+Date.now(), text:'Import z Fitebo: '+c.notes, type:'notatka', date:new Date().toISOString() });
-      if(window._db){ try{ window._setDoc(window._doc(window._db,'clients',target.id), { timeline: CLIENT_TIMELINE[target.id] }, { merge:true }); }catch(e){} }
+      if(window._db){ try{ target.timeline=CLIENT_TIMELINE[target.id]; persistById('clients',target); }catch(e){} }
     }
 
     lastClient=target;

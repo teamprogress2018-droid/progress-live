@@ -2,8 +2,70 @@
 // KLIENCI
 // ════════════════════════════════════════
 var clientSegment='all';
+var clientAttention=null;
 const CLIENT_GOAL_LABELS={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
 const CLIENT_SEGMENT_TITLES={all:'Wszyscy klienci',active:'Aktywni klienci',inactive:'Nieaktywni klienci',archived:'Zarchiwizowani klienci'};
+
+// „Wymaga uwagi” — jedna definicja dla filtrów listy klientów i alertów na pulpicie.
+const CLIENT_ATTENTION_FILTERS=[
+  {id:'attn-checkin',label:'Brak check-inu >7 dni'},
+  {id:'attn-measure',label:'Brak pomiaru >30 dni'},
+  {id:'attn-regres',label:'Regres'},
+  {id:'attn-noworkout',label:'0 treningów (14 dni)'},
+  {id:'attn-onboard',label:'Niedokończony start'},
+];
+function attnShortDate(t){return new Date(t).toLocaleDateString('pl-PL',{day:'numeric',month:'numeric'});}
+function attnDaysAgo(t){return Math.floor((Date.now()-t)/86400000);}
+function attnTime(raw){
+  if(!raw)return NaN;
+  const s=String(raw);
+  const t=new Date(s.length===10?s+'T12:00:00':s).getTime();
+  return Number.isFinite(t)&&t<=Date.now()?t:NaN;
+}
+function attnAgoText(t){
+  const d=attnDaysAgo(t);
+  return (d<=0?'dziś':d===1?'wczoraj':d+' dni temu')+' ('+attnShortDate(t)+')';
+}
+/** Zwraca {id:{reason,days}} dla aktywnych klientów. Nowy klient (<7 dni) nie dostaje alarmów o braku danych. */
+function clientAttentionFlags(c){
+  const out={};
+  if(!c||c.status==='archived'||c.status==='inactive')return out;
+  const joinedT=attnTime(c.joinDate||c.createdAt);
+  const fresh=Number.isFinite(joinedT)&&attnDaysAgo(joinedT)<7;
+  const ci=typeof latestFilledCheckin==='function'?latestFilledCheckin(c.id):null;
+  const ciT=ci&&typeof checkinActivityTime==='function'?checkinActivityTime(ci):NaN;
+  if(Number.isFinite(ciT)){
+    if(attnDaysAgo(ciT)>7)out['attn-checkin']={days:attnDaysAgo(ciT),reason:'Ostatni check-in '+attnAgoText(ciT)};
+  }else if(!fresh)out['attn-checkin']={days:999,reason:'Nie wypełnił jeszcze check-inu'};
+  const mT=(window.METRIC_ENTRIES||[]).filter(m=>m&&m.clientId===c.id).map(m=>attnTime(m.date)).filter(Number.isFinite);
+  if(mT.length){
+    const last=Math.max(...mT);
+    if(attnDaysAgo(last)>30)out['attn-measure']={days:attnDaysAgo(last),reason:'Ostatni pomiar '+attnAgoText(last)};
+  }else if(!fresh)out['attn-measure']={days:999,reason:'Brak pomiarów'};
+  const logged=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&(typeof isLoggedWorkout==='function'?isLoggedWorkout(s):s.source!=='planned'))
+    .map(s=>attnTime(s.date)).filter(Number.isFinite);
+  const lastW=logged.length?Math.max(...logged):NaN;
+  if(!fresh&&!(Number.isFinite(lastW)&&attnDaysAgo(lastW)<=14)){
+    out['attn-noworkout']={days:Number.isFinite(lastW)?attnDaysAgo(lastW):999,reason:Number.isFinite(lastW)?'Ostatni trening '+attnAgoText(lastW):'Brak zapisanych treningów'};
+  }
+  if(typeof buildMonitorVerdict==='function'){
+    try{
+      const v=buildMonitorVerdict(c);
+      if(v&&v.verdict==='regres'){
+        const bad=(v.signals||[]).filter(s=>s&&s.tone==='bad').map(s=>s.label+': '+s.text);
+        out['attn-regres']={days:0,reason:bad.length?'Źródło — '+bad.slice(0,2).join(' · '):'Monitoring postępów wskazuje regres',signals:bad};
+      }
+    }catch(e){}
+  }
+  if(typeof clientOnboardStatus==='function'){
+    const st=clientOnboardStatus(c);
+    if(st&&!st.complete)out['attn-onboard']={days:0,reason:'Start '+st.done+'/'+st.total+(st.missingLabels&&st.missingLabels[0]?' — '+st.missingLabels[0]:'')};
+  }
+  return out;
+}
+window.CLIENT_ATTENTION_FILTERS=CLIENT_ATTENTION_FILTERS;
+window.clientAttentionFlags=clientAttentionFlags;
+window.attnAgoText=attnAgoText;
 
 // Zwraca datę (Date) ostatniej aktywności KLIENTA, albo null jeśli brak.
 // Liczy tylko to, co klient faktycznie zrobił: odbyte sesje (nie zaplanowane), pomiary, check-iny, wpisy osi czasu.
@@ -28,7 +90,7 @@ function getClientLastActivity(clientId){
 // Formatuje datę ostatniej aktywności do krótkiego, czytelnego tekstu + oznacza priorytet kolorem.
 function formatClientActivity(clientId){
   const last=getClientLastActivity(clientId);
-  if(!last)return{label:'Brak danych',color:'var(--red)',days:Infinity};
+  if(!last)return{label:'Brak aktywności',color:'var(--red)',days:Infinity};
   const days=Math.floor((Date.now()-last.getTime())/(1000*60*60*24));
   let label;
   if(days<=0)label='Dziś';
@@ -80,8 +142,18 @@ function clientTasksWindowStats(clientId,days){
   return{done,assigned,pct};
 }
 
-function clPctCell(stats){
-  if(!stats.assigned)return`<span class="cl-pct muted">—</span>`;
+function clientStatusPillClass(c,life){
+  if(c.status==='archived'||c.status==='inactive')return'pill-red';
+  const k=life&&life.key;
+  if(k==='expired')return'pill-red';
+  if(k==='noemail'||k==='onboarding'||k==='expiring'||k==='atrisk'||k==='idle')return'pill-orange';
+  return'pill-green';
+}
+function clPctCell(stats,emptyLabel){
+  if(!stats.assigned){
+    if(stats.done)return`<span class="cl-pct mid" title="Zapisane, ale nic nie było zaplanowane">${stats.done} poza planem</span>`;
+    return`<span class="cl-pct muted" title="Nic nie zaplanowano w tym okresie">${emptyLabel||'nic w planie'}</span>`;
+  }
   const ok=stats.pct>=80;
   const mid=stats.pct>=40;
   return`<span class="cl-pct ${ok?'ok':mid?'mid':'low'}">${stats.done}/${stats.assigned} · ${stats.pct}%</span>`;
@@ -120,7 +192,7 @@ function quickDeleteClient(e,clientId){
   if(typeof deleteClientPermanently==='function')deleteClientPermanently(clientId);
 }
 
-function renderClientFilters(){
+function renderClientFilters(attnMap){
   const sel=document.getElementById('client-status-filter');
   if(sel&&sel.value!==clientSegment)sel.value=clientSegment;
   const nonArchived=CL.filter(c=>c.status!=='archived');
@@ -130,6 +202,7 @@ function renderClientFilters(){
     {id:'inactive',label:'Nieaktywni',count:CL.filter(c=>c.status==='inactive').length},
     {id:'archived',label:'Zarchiwizowani',count:CL.filter(c=>c.status==='archived').length},
   ];
+  renderClientAttentionChips(attnMap);
   const el=document.getElementById('client-filter-list');
   if(!el)return;
   el.innerHTML=segments.map(s=>`<button onclick="setClientSegment('${s.id}')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:${clientSegment===s.id?'var(--adim)':'none'};border:none;border-left:2px solid ${clientSegment===s.id?'var(--accent)':'transparent'};color:${clientSegment===s.id?'var(--accent)':'var(--muted)'};font-size:12px;cursor:pointer;text-align:left;">
@@ -137,6 +210,29 @@ function renderClientFilters(){
   </button>`).join('');
 }
 function setClientSegment(seg){clientSegment=seg;renderClientFilters();renderClients();}
+/** Flagi liczone raz na render listy (monitoring postępów nie jest darmowy). */
+function clientAttentionMap(){
+  const map=new Map();
+  (window.CL||[]).forEach(c=>{if(c&&c.status!=='archived'&&c.status!=='inactive')map.set(c.id,clientAttentionFlags(c));});
+  return map;
+}
+function renderClientAttentionChips(map){
+  const el=document.getElementById('client-attn-chips');
+  if(!el)return;
+  const flags=map||clientAttentionMap();
+  const count=id=>[...flags.values()].filter(f=>f[id]).length;
+  el.innerHTML=`<span class="cl-attn-label">Wymaga uwagi:</span>`+CLIENT_ATTENTION_FILTERS.map(f=>{
+    const n=count(f.id),on=clientAttention===f.id;
+    return `<button type="button" class="cl-attn-chip${on?' active':''}${n?'':' empty'}" aria-pressed="${on}" onclick="setClientAttention('${f.id}')">${escHtml(f.label)} <span class="cl-attn-n">${n}</span></button>`;
+  }).join('');
+}
+function setClientAttention(id){
+  clientAttention=clientAttention===id?null:id;
+  // Filtr uwagi dotyczy klientów w trakcie współpracy, więc wraca do „wszyscy”.
+  if(clientAttention&&clientSegment==='archived')clientSegment='all';
+  renderClientFilters();renderClients();
+}
+window.setClientAttention=setClientAttention;
 function filterClients(){renderClients();}
 function getSidebarClientsFiltered(){
   const q=((document.getElementById('nav-client-search')||{}).value||'').trim().toLowerCase();
@@ -200,11 +296,142 @@ function clientPossibleDuplicates(fields,excludeId){
 }
 window.clientPossibleDuplicates=clientPossibleDuplicates;
 
+// ── Scalanie duplikatów: dane z jednej karty przechodzą do drugiej, a pusta karta trafia do archiwum ──
+const CLIENT_MERGE_ARRAYS=[['plans','PL'],['sessions','SE'],['tasks','TASKS'],['metricEntries','METRIC_ENTRIES'],['progressPhotos','PROGRESS_PHOTOS'],
+  ['packages','PACKAGES'],['invoices','INVOICES'],['formSends','FORM_SENDS'],['reportHistory','REP_HISTORY']];
+const CLIENT_MERGE_GROUPS=[['messages','MSGS'],['checkins','CHECKINS'],['clientNotes','CLIENT_NOTES'],['clientDocs','CLIENT_DOCS']];
+const CLIENT_MERGE_LABELS={plans:'plany',sessions:'treningi i sesje',tasks:'zadania',metricEntries:'pomiary',progressPhotos:'zdjęcia sylwetki',
+  packages:'pakiety',invoices:'faktury',formSends:'formularze',reportHistory:'raporty',messages:'wiadomości',checkins:'check-iny',clientNotes:'notatki',clientDocs:'dokumenty'};
+const CLIENT_MERGE_FILL=['email','phone','age','gender','weight','height','goal','level','trainingFreq','preferredTrainTime','activityLevel','injuries','sportNotes'];
+function clientMergeRecords(clientId){
+  const out=[];
+  CLIENT_MERGE_ARRAYS.forEach(([col,key])=>(window[key]||[]).forEach(r=>{if(r&&r.clientId===clientId)out.push({col,key,r});}));
+  CLIENT_MERGE_GROUPS.forEach(([col,key])=>(((window[key]||{})[clientId])||[]).forEach(r=>{if(r)out.push({col,key,r,group:true});}));
+  return out;
+}
+function clientMergeSummary(clientId){
+  const counts={};
+  clientMergeRecords(clientId).forEach(x=>{counts[x.col]=(counts[x.col]||0)+1;});
+  return Object.entries(counts).map(([col,n])=>(CLIENT_MERGE_LABELS[col]||col)+': '+n).join(', ')||'brak powiązanych danych';
+}
+/** Która karta zostaje: połączona z aplikacją, potem ta z większą liczbą danych, potem starsza. */
+function clientMergeKeep(a,b){
+  if(!!a.appJoined!==!!b.appJoined)return a.appJoined?a:b;
+  const na=clientMergeRecords(a.id).length,nb=clientMergeRecords(b.id).length;
+  if(na!==nb)return na>nb?a:b;
+  return String(a.joinDate||a.createdAt||'9')<=String(b.joinDate||b.createdAt||'9')?a:b;
+}
+function clientMergeCandidates(c){
+  if(!c)return[];
+  const d=clientPossibleDuplicates(c,c.id);
+  const trainerEmail=typeof normalizeClientEmail==='function'?normalizeClientEmail((typeof getTrainerEmail==='function'&&getTrainerEmail())||window._userEmail||''):'';
+  // Wspólny e-mail trenera nie oznacza tej samej osoby — takich kart nie proponujemy do scalenia.
+  const byEmail=clientIdentityText(c.email)&&clientIdentityText(c.email)!==trainerEmail?d.email:[];
+  const seen=new Set();
+  return [...d.name,...byEmail].filter(x=>x&&!seen.has(x.id)&&seen.add(x.id));
+}
+function openClientMerge(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  const cands=clientMergeCandidates(c);
+  if(!c||!cands.length){notify('Nie znaleziono podobnej karty do scalenia.');return;}
+  let m=document.getElementById('m-client-merge');
+  if(!m){
+    m=document.createElement('div');m.id='m-client-merge';m.className='modal-ov';
+    document.body.appendChild(m);
+  }
+  const card=x=>`<div class="cm-card"><div class="cm-name">${escHtml(x.name||'Klient')}${x.appJoined?' <span class="pill pill-green" style="font-size:10px;">aplikacja</span>':''}</div>
+    <div class="cm-sub">${escHtml(x.email||'bez e-maila')}${x.joinDate?' · od '+escHtml(x.joinDate):''}</div>
+    <div class="cm-sub">${escHtml(clientMergeSummary(x.id))}</div></div>`;
+  const rows=cands.map(o=>{
+    const keep=clientMergeKeep(c,o),drop=keep===c?o:c;
+    const both=c.appJoined&&o.appJoined;
+    return `<div class="cm-pair">
+      <div class="cm-cards">${card(c)}${card(o)}</div>
+      ${both?`<div class="cm-warn">Obie karty są połączone z aplikacją klienta — scal je ręcznie (przepisz dane i zarchiwizuj jedną).</div>`
+        :`<div class="cm-plan">Zostanie <b>${escHtml(keep.name||'')}</b>${keep.email?' ('+escHtml(keep.email)+')':''}. Dane z drugiej karty (${escHtml(clientMergeSummary(drop.id))}) przejdą do niej, a pusta karta trafi do archiwum.</div>
+      <button type="button" class="btn btn-primary" onclick="mergeClients('${escHtml(keep.id)}','${escHtml(drop.id)}')">Scal te karty</button>`}
+    </div>`;
+  }).join('');
+  m.innerHTML=`<div class="modal" style="max-width:560px;">
+    <div class="modal-hdr"><div class="modal-title">SCAL DUPLIKAT</div><button class="modal-close" type="button" aria-label="Zamknij" onclick="closeM('m-client-merge')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;">Scal tylko karty <b>tej samej osoby</b>. Treningi, plany, pomiary, wiadomości i płatności przejdą do jednej karty. Puste pola tej karty uzupełnimy danymi z drugiej.</div>
+      ${rows}
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" type="button" onclick="closeM('m-client-merge')">Anuluj</button></div>
+  </div>`;
+  if(typeof openM==='function')openM('m-client-merge');else m.classList.add('show');
+}
+async function mergeClients(keepId,dropId){
+  const keep=(window.CL||[]).find(c=>c.id===keepId),drop=(window.CL||[]).find(c=>c.id===dropId);
+  if(!keep||!drop||keepId===dropId)return;
+  if(window._clientMergeBusy)return;
+  if(keep.appJoined&&drop.appJoined){notify('Obie karty są połączone z aplikacją klienta — scal je ręcznie.');return;}
+  if(drop.appJoined){notify('Karta połączona z aplikacją musi zostać. Otwórz scalanie ponownie.');return;}
+  if(!window._db||typeof window._runTransaction!=='function'||typeof persistById!=='function'){notify('Brak połączenia z bazą. Spróbuj ponownie.');return;}
+  const recs=clientMergeRecords(dropId);
+  if(!confirm('Scalić karty?\n\nZostaje: '+(keep.name||'')+'\nPrzenosimy z karty „'+(drop.name||'')+'”: '+clientMergeSummary(dropId)+'.\n\nKarta „'+(drop.name||'')+'” trafi do archiwum.'))return;
+  window._clientMergeBusy=true;
+  let moved=0;
+  try{
+    for(const it of recs){
+      const copy={...it.r,clientId:keepId};
+      if(Object.prototype.hasOwnProperty.call(copy,'clientName'))copy.clientName=keep.name;
+      const saved=await persistById(it.col,copy);
+      if(!saved)throw new Error('zapis');
+      it.r.clientId=keepId;if(saved._fbId)it.r._fbId=saved._fbId;
+      if(Object.prototype.hasOwnProperty.call(it.r,'clientName'))it.r.clientName=keep.name;
+      if(it.group){
+        const map=window[it.key]||(window[it.key]={});
+        (map[keepId]||(map[keepId]=[])).push(it.r);
+        map[dropId]=(map[dropId]||[]).filter(x=>x!==it.r);
+      }
+      moved++;
+    }
+    CLIENT_MERGE_GROUPS.forEach(([,key])=>{const map=window[key];if(map&&map[dropId]&&!map[dropId].length)delete map[dropId];});
+    if(window.MSGS&&window.MSGS[keepId])window.MSGS[keepId].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+    // Karta docelowa: tylko puste pola dostają wartości z duplikatu. Duplikat: archiwum ze wskazaniem karty docelowej.
+    const keepRef=window._doc(window._db,'clients',keep._fbId||keep.id),dropRef=window._doc(window._db,'clients',drop._fbId||drop.id);
+    const mergedAt=new Date().toISOString();
+    const fill=await window._runTransaction(window._db,async tx=>{
+      const k=await tx.get(keepRef),d=await tx.get(dropRef);
+      if(!k.exists()||!d.exists())throw new Error('Jedna z kart została usunięta. Odśwież listę klientów.');
+      const kr=k.data(),dr=d.data(),patch={};
+      if(kr.trainerId!==window._uid||dr.trainerId!==window._uid)throw new Error('Brak dostępu do jednej z kart.');
+      CLIENT_MERGE_FILL.forEach(f=>{
+        const empty=v=>v==null||v===''||v===0||(Array.isArray(v)&&!v.length);
+        if(empty(kr[f])&&!empty(dr[f]))patch[f]=dr[f];
+      });
+      if(Object.keys(patch).length)tx.update(keepRef,patch);
+      tx.update(dropRef,{status:'archived',mergedInto:keepId,mergedAt});
+      return patch;
+    });
+    Object.assign(keep,fill);
+    Object.assign(drop,{status:'archived',mergedInto:keepId,mergedAt});
+    if(typeof closeM==='function')closeM('m-client-merge');
+    notify('✓ Scalono: '+(keep.name||'')+' ('+moved+' rekordów przeniesionych)');
+  }catch(e){
+    console.warn('mergeClients:',e);
+    notify(moved<recs.length
+      ?'Scalanie przerwane po '+moved+' z '+recs.length+' rekordów. Przeniesione dane są już w karcie „'+(keep.name||'')+'”. Spróbuj ponownie.'
+      :(e&&e.message&&e.message!=='zapis'?e.message:'Nie udało się zarchiwizować duplikatu. Spróbuj ponownie.'));
+  }finally{
+    window._clientMergeBusy=false;
+    try{renderClients();}catch(e){}
+    try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+  }
+}
+window.openClientMerge=openClientMerge;
+window.mergeClients=mergeClients;
+window.clientMergeCandidates=clientMergeCandidates;
+
 function renderClients(){
-  renderClientFilters();
+  const attnMap=clientAttentionMap();
+  renderClientFilters(attnMap);
   const search=(document.getElementById('client-search')||{}).value||'';
   let filtered=CL.filter(c=>{
     if(search&&!(c.name||'').toLowerCase().includes(search.toLowerCase()))return false;
+    if(clientAttention&&!(attnMap.get(c.id)||{})[clientAttention])return false;
     if(clientSegment==='active')return c.status==='active';
     if(clientSegment==='inactive')return c.status==='inactive';
     if(clientSegment==='archived')return c.status==='archived';
@@ -218,7 +445,8 @@ function renderClients(){
   if(countEl)countEl.textContent=filtered.length;
   const titleEl=document.getElementById('clients-segment-title');
   if(titleEl){
-    const base=CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci';
+    const attnDef=clientAttention&&CLIENT_ATTENTION_FILTERS.find(f=>f.id===clientAttention);
+    const base=attnDef?'Wymaga uwagi: '+escHtml(attnDef.label):(CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci');
     titleEl.innerHTML=`${base} <span class="nav-badge" id="clients-segment-count">${filtered.length}</span>`;
   }
   const el=document.getElementById('clients-tbl');
@@ -226,9 +454,9 @@ function renderClients(){
     const q=search.trim();
     el.innerHTML=`<div style="padding:48px 20px;text-align:center;">
       <div style="font-size:36px;margin-bottom:8px;opacity:0.4;">👥</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${q?'Brak wyników':'Brak klientów w tym widoku'}</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${q?'Brak wyników':clientAttention?'Nikt nie wymaga tu uwagi 👍':'Brak klientów w tym widoku'}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Dodaj pierwszego klienta — potem plan i Trening Live.'}</div>
-      ${!q&&clientSegment!=='archived'?`<button class="btn btn-primary" onclick="openM('m-client')">+ Dodaj klienta</button>`:''}
+      ${clientAttention?`<button class="btn btn-ghost" onclick="setClientAttention('${clientAttention}')">Pokaż wszystkich</button>`:!q&&clientSegment!=='archived'?`<button class="btn btn-primary" onclick="openM('m-client')">+ Dodaj klienta</button>`:''}
     </div>`;
     renderSidebarClients();
     return;
@@ -240,7 +468,9 @@ function renderClients(){
     const t30=clientTrainingWindowStats(c.id,30);
     const tasks7=clientTasksWindowStats(c.id,7);
     const archived=c.status==='archived';
-    const duplicateName=!archived&&clientPossibleDuplicates(c,c.id).name.length>0;
+    const duplicateName=!archived&&clientMergeCandidates(c).length>0;
+    const attnFlag=clientAttention&&(attnMap.get(c.id)||{})[clientAttention];
+    const attnLine=attnFlag?`<div class="cl-attn-reason">⚠ ${escHtml(attnFlag.reason)}</div>`:'';
     const msgBtn=archived
       ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć">↩</button>`
       : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość">💬</button>`;
@@ -249,7 +479,8 @@ function renderClients(){
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
       <div class="cl-name-meta">
         <div class="cl-name">${escHtml(c.name)}</div>
-        <div class="cl-sub">${escHtml(c.email||'—')}${duplicateName?' · ⚠ sprawdź duplikat imienia':''}${life&&life.key!=='active'&&life.key!=='onboarding'&&life.key!=='noemail'?' · '+escHtml(life.label):''}</div>
+        <div class="cl-sub">${c.appJoined?'📱 w aplikacji · ':''}${escHtml(c.email||'bez e-maila')}${duplicateName?` · <button type="button" class="cl-dup-btn" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ możliwy duplikat — Scal</button>`:''}</div>
+        ${attnLine}
       </div>
       <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
     </div>
@@ -257,10 +488,10 @@ function renderClients(){
     <div class="cl-act" style="color:${act.color};">${act.label}</div>
     <div>${clPctCell(t7)}</div>
     <div>${clPctCell(t30)}</div>
-    <div>${clPctCell(tasks7)}</div>
-    <div class="cl-goal">${CLIENT_GOAL_LABELS[c.goal]||c.goal||'—'}</div>
+    <div>${clPctCell(tasks7,'brak zadań')}</div>
+    <div class="cl-goal${c.goal?'':' muted'}">${CLIENT_GOAL_LABELS[c.goal]||escHtml(c.goal||'')||'cel nieustalony'}</div>
     <div class="cl-status">
-      <span class="pill ${archived?'pill-red':c.status==='inactive'?'pill-red':life&&(life.key==='noemail'||life.key==='expired')?'pill-red':life&&(life.key==='onboarding'||life.key==='expiring'||life.key==='atrisk')?'pill-orange':c.appJoined?'pill-green':'pill-green'}"><span class="pill-dot"></span>${archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':life&&life.key==='onboarding'?life.label:life&&life.key==='noemail'?'Brak e-maila':life&&life.key==='expired'?'Pakiet wygasł':c.appJoined?'Połączony':(life&&life.label)||'Aktywny'}</span>
+      <span class="pill ${clientStatusPillClass(c,life)}"><span class="pill-dot"></span>${escHtml(archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':(life&&life.label)||'Aktywny')}</span>
     </div>
   </div>`;
   }).join('');
@@ -361,7 +592,10 @@ async function saveClient(){
     const fields=clientModalFields(),name=fields.name.trim();
     if(!name){notify('Wpisz imię!');return;}
     const email=typeof normalizeClientEmail==='function'?normalizeClientEmail(fields.email):fields.email.trim().toLowerCase();
-    if(!clientEmailValid(email)){notify('Podaj prawidłowy e-mail — bez niego klient nie zaloguje się do aplikacji.');return;}
+    if(email&&!clientEmailValid(email)){notify('Sprawdź adres e-mail — wygląda na niepełny. Możesz też zostawić pole puste.');return;}
+    const trainerEmail=typeof normalizeClientEmail==='function'?normalizeClientEmail((typeof getTrainerEmail==='function'&&getTrainerEmail())||window._userEmail||''):'';
+    const emailChanged=!state.editId||JSON.stringify(fields.email)!==JSON.stringify((state.displayBase||{}).email);
+    if(email&&emailChanged&&trainerEmail&&email===trainerEmail){notify('To Twój e-mail, a nie klienta. Wpisz e-mail klienta albo zostaw pole puste — uzupełnisz go przed zaproszeniem do aplikacji.');return;}
     try{if(!assignmentSessionCurrent(state.auth))throw new Error('Zaloguj się ponownie przed zapisem.');
       if(state.editId)assertAssignmentSession(state.auth,CL.find(c=>c.id===state.editId));
     }catch(error){notify(error.message);return;}
@@ -376,11 +610,12 @@ async function saveClient(){
         }
       }
     }
-    if(!state.editId){
-      const duplicates=clientPossibleDuplicates({name,email},null);
+    {
+      const nameChanged=!state.editId||JSON.stringify(fields.name)!==JSON.stringify((state.displayBase||{}).name);
+      const duplicates=clientPossibleDuplicates({name:nameChanged?name:'',email:emailChanged?email:''},state.editId||null);
       if(duplicates.email.length){
         const names=duplicates.email.map(c=>c.name).join(', ');
-        state.message='Nie zapisano: ten e-mail jest już przypisany do klienta: '+names+'. Otwórz istniejącą kartę zamiast dodawać duplikat.';
+        state.message='Nie zapisano: ten e-mail jest już przypisany do klienta: '+names+'. '+(state.editId?'Jeśli to ta sama osoba, scal karty przyciskiem „Scal” na liście klientów.':'Otwórz istniejącą kartę zamiast dodawać duplikat.');
         state.error=true;renderClientModalSaveState(state);notify(state.message);return;
       }
       const duplicateNameKey=clientIdentityText(name);
