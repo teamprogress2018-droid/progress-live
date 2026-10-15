@@ -17,7 +17,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache styles', html.includes('styles.css?v=153'));
+ok('cache styles', html.includes('styles.css?v=154'));
 ok('CI unit', wf.includes('test_sidebar_footer.js'));
 ok('CI ui', wf.includes('test_sidebar_footer_ui.js'));
 
