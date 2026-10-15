@@ -116,5 +116,25 @@ const rules = read('firestore.rules');
     assert.ok(!/id="ac-email"[^>]*required/.test(html));
   });
 
+  await test('merge moves unique records and leaves repeated sessions and plans on the archived duplicate', async () => {
+    const ctx = { String, JSON, Object, Array, Set, Map,
+      CL: [{ id: 'keep', name: 'Adrian', status: 'active' }, { id: 'drop', name: 'Adrian', status: 'active' }],
+      SE: [
+        { id: 'k1', clientId: 'keep', date: '2026-09-07', time: '10:00', source: 'live', exercises: [{ name: 'Przysiad' }] },
+        { id: 'd1', clientId: 'drop', date: '2026-09-07', time: '10:00', source: 'live', exercises: [{ name: 'Przysiad' }] },
+        { id: 'd2', clientId: 'drop', date: '2026-10-13', time: '18:00', source: 'live', exercises: [{ name: 'Martwy ciąg' }] }],
+      PL: [{ id: 'kp', clientId: 'keep', name: 'PPL', days: [1] }, { id: 'dp1', clientId: 'drop', name: 'PPL', days: [1] },
+        { id: 'dp2', clientId: 'drop', name: 'PPL', days: [1, 2] }],
+      TASKS: [], METRIC_ENTRIES: [], PROGRESS_PHOTOS: [], PACKAGES: [], INVOICES: [], FORM_SENDS: [], REP_HISTORY: [],
+      MSGS: {}, CHECKINS: {}, CLIENT_NOTES: {}, CLIENT_DOCS: {} };
+    ctx.window = ctx;
+    vm.createContext(ctx);
+    vm.runInContext(slice(clients, 'function clientIdentityText(', 'window.clientMergePlan=clientMergePlan;'), ctx);
+    const plan = ctx.clientMergePlan('drop', 'keep');
+    assert.deepEqual([...plan.move.map(x => x.r.id)].sort(), ['d2', 'dp2']);
+    assert.deepEqual([...plan.skip.map(x => x.r.id)].sort(), ['d1', 'dp1']);
+    assert.match(ctx.clientMergeSummary('drop', 'keep'), /powtórzone, pomijamy: 2/);
+  });
+
   console.log('\n' + passed + ' round-2 scenarios passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

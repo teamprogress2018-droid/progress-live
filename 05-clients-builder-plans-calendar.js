@@ -309,10 +309,33 @@ function clientMergeRecords(clientId){
   CLIENT_MERGE_GROUPS.forEach(([col,key])=>(((window[key]||{})[clientId])||[]).forEach(r=>{if(r)out.push({col,key,r,group:true});}));
   return out;
 }
-function clientMergeSummary(clientId){
-  const counts={};
-  clientMergeRecords(clientId).forEach(x=>{counts[x.col]=(counts[x.col]||0)+1;});
-  return Object.entries(counts).map(([col,n])=>(CLIENT_MERGE_LABELS[col]||col)+': '+n).join(', ')||'brak powiązanych danych';
+/** Odcisk rekordu: ten sam trening, plan, pomiar czy wiadomość zapisane dwa razy nie trafiają drugi raz do karty docelowej. */
+function clientMergeSig(col,r){
+  if(!r)return null;
+  if(col==='sessions')return [r.date||'',r.time||'',r.source||'',(r.exercises||[]).map(e=>(e&&(e.name||e.exerciseName))||'').join('|')].join('#');
+  if(col==='plans')return [r.name||r.planName||'',JSON.stringify(r.days||r.weeks||r.exercises||[])].join('#');
+  if(col==='metricEntries')return [r.groupId||'',r.date||'',JSON.stringify(r.values||{})].join('#');
+  if(col==='checkins')return [r.date||'',r.status||'',JSON.stringify(r.answers||{})].join('#');
+  if(col==='messages')return [r.createdAt||r.time||'',r.text||'',r.out?1:0].join('#');
+  return null;
+}
+/** Co przejdzie do karty docelowej, a co zostanie (jako powtórzenie) przy zarchiwizowanym duplikacie. */
+function clientMergePlan(dropId,keepId){
+  const seen=new Set();
+  if(keepId)clientMergeRecords(keepId).forEach(x=>{const s=clientMergeSig(x.col,x.r);if(s!=null)seen.add(x.col+'@'+s);});
+  const move=[],skip=[];
+  clientMergeRecords(dropId).forEach(x=>{
+    const s=clientMergeSig(x.col,x.r),key=x.col+'@'+s;
+    if(s!=null&&seen.has(key))skip.push(x);
+    else{move.push(x);if(s!=null)seen.add(key);}
+  });
+  return{move,skip};
+}
+function clientMergeSummary(clientId,keepId){
+  const plan=clientMergePlan(clientId,keepId||null),counts={};
+  plan.move.forEach(x=>{counts[x.col]=(counts[x.col]||0)+1;});
+  const text=Object.entries(counts).map(([col,n])=>(CLIENT_MERGE_LABELS[col]||col)+': '+n).join(', ')||'brak powiązanych danych';
+  return plan.skip.length?text+'; powtórzone, pomijamy: '+plan.skip.length:text;
 }
 /** Która karta zostaje: połączona z aplikacją, potem ta z większą liczbą danych, potem starsza. */
 function clientMergeKeep(a,b){
@@ -348,7 +371,7 @@ function openClientMerge(clientId){
     return `<div class="cm-pair">
       <div class="cm-cards">${card(c)}${card(o)}</div>
       ${both?`<div class="cm-warn">Obie karty są połączone z aplikacją klienta — scal je ręcznie (przepisz dane i zarchiwizuj jedną).</div>`
-        :`<div class="cm-plan">Zostanie <b>${escHtml(keep.name||'')}</b>${keep.email?' ('+escHtml(keep.email)+')':''}. Dane z drugiej karty (${escHtml(clientMergeSummary(drop.id))}) przejdą do niej, a pusta karta trafi do archiwum.</div>
+        :`<div class="cm-plan">Zostanie <b>${escHtml(keep.name||'')}</b>${keep.email?' ('+escHtml(keep.email)+')':''}. Dane z drugiej karty (${escHtml(clientMergeSummary(drop.id,keep.id))}) przejdą do niej, a druga karta trafi do archiwum. Powtórzone treningi, plany i pomiary nie zostaną zdublowane.</div>
       <button type="button" class="btn btn-primary" onclick="mergeClients('${escHtml(keep.id)}','${escHtml(drop.id)}')">Scal te karty</button>`}
     </div>`;
   }).join('');
@@ -369,8 +392,8 @@ async function mergeClients(keepId,dropId){
   if(keep.appJoined&&drop.appJoined){notify('Obie karty są połączone z aplikacją klienta — scal je ręcznie.');return;}
   if(drop.appJoined){notify('Karta połączona z aplikacją musi zostać. Otwórz scalanie ponownie.');return;}
   if(!window._db||typeof window._runTransaction!=='function'||typeof persistById!=='function'){notify('Brak połączenia z bazą. Spróbuj ponownie.');return;}
-  const recs=clientMergeRecords(dropId);
-  if(!confirm('Scalić karty?\n\nZostaje: '+(keep.name||'')+'\nPrzenosimy z karty „'+(drop.name||'')+'”: '+clientMergeSummary(dropId)+'.\n\nKarta „'+(drop.name||'')+'” trafi do archiwum.'))return;
+  const plan=clientMergePlan(dropId,keepId),recs=plan.move;
+  if(!confirm('Scalić karty?\n\nZostaje: '+(keep.name||'')+'\nPrzenosimy z karty „'+(drop.name||'')+'”: '+clientMergeSummary(dropId,keepId)+'.\n\nKarta „'+(drop.name||'')+'” trafi do archiwum.'))return;
   window._clientMergeBusy=true;
   let moved=0;
   try{
@@ -409,7 +432,7 @@ async function mergeClients(keepId,dropId){
     Object.assign(keep,fill);
     Object.assign(drop,{status:'archived',mergedInto:keepId,mergedAt});
     if(typeof closeM==='function')closeM('m-client-merge');
-    notify('✓ Scalono: '+(keep.name||'')+' ('+moved+' rekordów przeniesionych)');
+    notify('✓ Scalono: '+(keep.name||'')+' ('+moved+' rekordów przeniesionych'+(plan.skip.length?', '+plan.skip.length+' powtórzonych zostało w archiwum':'')+')');
   }catch(e){
     console.warn('mergeClients:',e);
     notify(moved<recs.length
@@ -424,6 +447,7 @@ async function mergeClients(keepId,dropId){
 window.openClientMerge=openClientMerge;
 window.mergeClients=mergeClients;
 window.clientMergeCandidates=clientMergeCandidates;
+window.clientMergePlan=clientMergePlan;
 
 function renderClients(){
   const attnMap=clientAttentionMap();
