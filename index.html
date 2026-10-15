@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=152">
+<link rel="stylesheet" href="styles.css?v=153">
 </head>
 <body>
 
@@ -188,23 +188,42 @@
     </div>
   </div>
   <div class="content dash-content" id="dash-content">
-    <section class="dash-start-hero" aria-label="Start dnia">
-      <div class="dash-start-hero-copy">
-        <div class="dash-start-kicker">PROGRESS LIVE</div>
-        <h1>Progres zaczyna się dzisiaj.</h1>
-        <p>Mniejsze kroki. Lepsze rezultaty.</p>
+    <div class="dash-fire-layout">
+      <div class="dash-fire-main">
+        <section class="dash-start-hero" aria-label="Start dnia">
+          <div class="dash-start-hero-copy">
+            <div class="dash-start-kicker">PLANUJ · TRENUJ · ROZWIJAJ · OSIĄGAJ</div>
+            <h1>Witaj w Progress Live.</h1>
+            <p>Działaj dzisiaj lepiej niż wczoraj.</p>
+            <div class="dash-fire-quote">„Małe kroki. Wielkie zmiany.”</div>
+          </div>
+          <button type="button" class="btn btn-primary dash-start-live" onclick="dashStartPrimary()">▶ Rozpocznij trening</button>
+        </section>
+        <nav class="dash-launcher" aria-label="Najważniejsze obszary">
+          <button type="button" class="dash-launch-card dash-launch-live" onclick="dashStartPrimary()"><span class="dash-launch-icon">🏋️</span><span class="dash-launch-title">Trening Live</span><span class="dash-launch-copy">Rejestruj. Analizuj. Progresuj.</span><span class="dash-launch-arrow">→</span></button>
+          <button type="button" class="dash-launch-card" onclick="goTo('clients')"><span class="dash-launch-icon">👥</span><span class="dash-launch-title">Moi klienci</span><span class="dash-launch-copy">Trenuj. Wspieraj. Buduj efekty.</span><span class="dash-launch-arrow">→</span></button>
+          <button type="button" class="dash-launch-card" onclick="goTo('builder')"><span class="dash-launch-icon">▤</span><span class="dash-launch-title">Kreator planów</span><span class="dash-launch-copy">Twórz skuteczne plany.</span><span class="dash-launch-arrow">→</span></button>
+          <button type="button" class="dash-launch-card" onclick="goTo('calendar')"><span class="dash-launch-icon">▦</span><span class="dash-launch-title">Kalendarz</span><span class="dash-launch-copy">Pełna organizacja dnia.</span><span class="dash-launch-arrow">→</span></button>
+          <button type="button" class="dash-launch-card" onclick="goTo('bizstats')"><span class="dash-launch-icon">▥</span><span class="dash-launch-title">Statystyki</span><span class="dash-launch-copy">Mierz postępy. Wyciągaj wnioski.</span><span class="dash-launch-arrow">→</span></button>
+          <button type="button" class="dash-launch-card" onclick="goTo('library')"><span class="dash-launch-icon">▣</span><span class="dash-launch-title">Biblioteka ćwiczeń</span><span class="dash-launch-copy">Technika. Warianty. Inspiracje.</span><span class="dash-launch-arrow">→</span></button>
+        </nav>
+        <section class="dash-next-action" id="dash-next-action" aria-label="Następny krok"></section>
       </div>
-      <button type="button" class="btn btn-primary dash-start-live" onclick="dashStartPrimary()">▶ Rozpocznij trening</button>
-    </section>
-    <nav class="dash-launcher" aria-label="Najważniejsze obszary">
-      <button type="button" class="dash-launch-card dash-launch-live" onclick="dashStartPrimary()"><span class="dash-launch-icon">🏋️</span><span class="dash-launch-title">Trening</span><span class="dash-launch-copy">Rozpocznij</span></button>
-      <button type="button" class="dash-launch-card" onclick="goTo('clients')"><span class="dash-launch-icon">👥</span><span class="dash-launch-title">Klienci</span><span class="dash-launch-copy">Zarządzaj</span></button>
-      <button type="button" class="dash-launch-card" onclick="goTo('calendar')"><span class="dash-launch-icon">🗓️</span><span class="dash-launch-title">Kalendarz</span><span class="dash-launch-copy">Sprawdź</span></button>
-      <button type="button" class="dash-launch-card" onclick="goTo('library')"><span class="dash-launch-icon">📚</span><span class="dash-launch-title">Biblioteka</span><span class="dash-launch-copy">Ćwiczenia i plany</span></button>
-    </nav>
-    <section class="dash-next-action" id="dash-next-action" aria-label="Następny krok"></section>
+      <aside class="dash-fire-side" aria-label="Twój dzień">
+        <section class="dash-fire-motto">To, co robisz dzisiaj,<br>buduje Twoje jutro.</section>
+        <section class="dash-fire-day-preview" aria-label="Mój dzień">
+          <div class="dash-fire-day-title">Mój dzień <button type="button" onclick="goTo('calendar')">Zobacz cały dzień →</button></div>
+          <div class="dash-fire-day-row"><b>06:00</b><span>Trening z klientem</span><em>Klient</em></div>
+          <div class="dash-fire-day-row"><b>10:00</b><span>Własny trening</span><em>Trening</em></div>
+          <div class="dash-fire-day-row"><b>17:00</b><span>Spotkanie online</span><em>Online</em></div>
+        </section>
+        <section class="dash-fire-actions" aria-label="Szybkie akcje">
+          <h2>Szybkie akcje</h2>
+          <div><button type="button" onclick="openM('m-client')">＋ Nowy klient</button><button type="button" onclick="openNewPlanPicker()">▤ Nowy plan</button><button type="button" onclick="goToHomeworkQueue()">⌂ Nowa notatka</button><button type="button" onclick="dashStartPrimary()">✓ Nowy trening</button></div>
+        </section>
+      </aside>
+    </div>
     <section class="dash-today-focus" id="dash-today-focus" aria-label="Dzisiaj"></section>
-
     <div class="dash-kpi-row dash-kpi-secondary" id="d-kpi-row">
       <button type="button" class="dash-kpi-card dash-kpi-click" onclick="goTo('clients')">
         <div class="dash-kpi-icon">👥</div>
@@ -243,6 +262,16 @@
         </div>
         <div id="d-ops-attention"></div>
       </div>
+      <div class="card" id="dash-ops-today">
+        <div class="dash-ops-hdr">
+          <div>
+            <div class="studio-hdr">Dzisiejszy plan</div>
+            <div class="studio-sub" id="d-date-lbl"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
+        </div>
+        <div id="d-today-sessions"></div>
+      </div>
       <div class="card" id="dash-ops-reports">
         <div class="dash-ops-hdr">
           <div>
@@ -255,16 +284,6 @@
       </div>
       </div>
       <div class="dash-ops-col">
-      <div class="card" id="dash-ops-today">
-        <div class="dash-ops-hdr">
-          <div>
-            <div class="studio-hdr">Dzisiejszy plan</div>
-            <div class="studio-sub" id="d-date-lbl"></div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
-        </div>
-        <div id="d-today-sessions"></div>
-      </div>
       <div class="card" id="dash-ops-pay">
         <div class="dash-ops-hdr">
           <div>
