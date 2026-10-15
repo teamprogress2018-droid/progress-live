@@ -500,6 +500,47 @@ for (const helper of ['_getDocsFromServer', '_query', '_col', '_where']) {
   });
 }
 
+// Pola tylko dla trenera (uwagi, psychodietetyka, postawa, oś czasu) — zapis do clientPrivate.
+function privateOn(f) {
+  f.ctx.clientPrivateEnabled = () => true;
+  f.ctx.CLIENT_PRIVATE_FIELDS = ['notes', 'psycho', '_posture', 'timeline'];
+  f.ctx._deleteField = () => ({ __delete: true });
+}
+test('private fields: edited notes go to clientPrivate and the legacy copy leaves the client card', async () => {
+  const f = fixture(); privateOn(f);
+  const saved = clone(await f.ctx.saveClientCardConfirmed(f.edit({ notes: 'Nowa uwaga', phone: '333' }), f.op(true)));
+  const writes = f.calls.transactions[0].writes;
+  const priv = writes.find(w => w.path === 'clientPrivate/client-a'), card = writes.find(w => w.path === 'clients/client-a');
+  assert.ok(priv && priv.method === 'set' && priv.merge, 'private fields are merged into clientPrivate');
+  assert.equal(priv.value.notes, 'Nowa uwaga'); assert.equal(priv.value.trainerId, 'trainer-a'); assert.equal(priv.value.clientId, 'client-a');
+  assert.equal(card.value.phone, '333'); assert.deepEqual(card.value.notes, { __delete: true }, 'legacy notes are removed from the readable card');
+  assert.equal(saved.notes, 'Nowa uwaga'); assert.equal(saved.phone, '333');
+  assert.deepEqual(f.calls.transactions[0].reads, ['clients/client-a', 'clientPrivate/client-a']);
+  localUnchanged(f);
+});
+test('private fields: an unrelated edit moves untouched legacy notes into clientPrivate', async () => {
+  const f = fixture(); privateOn(f);
+  const saved = clone(await f.ctx.saveClientCardConfirmed(f.edit({ phone: '444' }), f.op(true)));
+  assert.equal(f.docs.get('clientPrivate/client-a').notes, 'Historia klienta');
+  assert.deepEqual(f.docs.get('clients/client-a').notes, { __delete: true });
+  assert.equal(saved.notes, 'Historia klienta'); assert.equal(saved.phone, '444');
+  localUnchanged(f);
+});
+test('private fields: a newer private value is a conflict, not an overwrite', async () => {
+  const f = fixture(); privateOn(f);
+  f.docs.set('clientPrivate/client-a', { trainerId: 'trainer-a', clientId: 'client-a', notes: 'Zmienione w innym oknie' });
+  await assert.rejects(f.ctx.saveClientCardConfirmed(f.edit({ notes: 'Moja wersja' }), f.op(true)), error => error.code === 'client-card-conflict');
+  assert.equal(f.calls.commits.length, 0); assert.equal(f.docs.get('clientPrivate/client-a').notes, 'Zmienione w innym oknie');
+  localUnchanged(f);
+});
+test('private fields stay in the card while clientPrivate is unavailable', async () => {
+  const f = fixture();
+  await f.ctx.saveClientCardConfirmed(f.edit({ notes: 'Bez nowych reguł' }), f.op(true));
+  assert.equal(f.docs.get('clients/client-a').notes, 'Bez nowych reguł'); assert.equal(f.docs.has('clientPrivate/client-a'), false);
+  assert.deepEqual(f.calls.transactions[0].reads, ['clients/client-a']);
+  localUnchanged(f);
+});
+
 (async () => {
   let passed = 0;
   for (const { name, run } of tests) {

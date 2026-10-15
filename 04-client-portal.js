@@ -6226,16 +6226,25 @@ function collectOpsEvents(force){
   if(!force&&cache.items&&(now-cache.at)<15000)return cache.items;
   const items=[];
   const clients=dashOpsLiveClients();
+  // Każdy alert mówi: co i kiedy (meta), skąd to wiadomo (src) i co zrobić (cta).
+  const ago=typeof attnAgoText==='function'?attnAgoText:(t=>new Date(t).toLocaleDateString('pl-PL'));
+  const ciTime=ci=>ci&&typeof checkinActivityTime==='function'?checkinActivityTime(ci):NaN;
+  const shortDate=ymd=>{const t=new Date(String(ymd).slice(0,10)+'T12:00:00');return isNaN(t)?String(ymd):t.toLocaleDateString('pl-PL',{day:'numeric',month:'numeric'});};
   clients.forEach(c=>{
     if(typeof ensureCheckins==='function')ensureCheckins(c.id);
     const st=typeof getCIStatus==='function'?getCIStatus(c.id):'none';
+    const pendT=ciTime(typeof pendingCheckin==='function'?pendingCheckin(c.id):null);
+    const lastT=ciTime(typeof latestFilledCheckin==='function'?latestFilledCheckin(c.id):null);
     if(st==='overdue'){
       items.push({channel:'attention',pri:0,clientId:c.id,name:c.name,tag:'Raport zaległy',col:'var(--red)',
-        meta:'Spóźniony check-in tygodniowy',
+        meta:Number.isFinite(pendT)?'Check-in wysłany '+ago(pendT)+' — bez odpowiedzi'
+          :Number.isFinite(lastT)?'Ostatni check-in '+ago(lastT):'Spóźniony check-in tygodniowy',
+        src:'Źródło: check-in tygodniowy',
         cta:`sendCheckinTo('${escHtml(c.id)}')`,ctaLbl:'Przypomnij'});
     }else if(st==='pending'){
       items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Czeka na raport',col:'var(--orange)',
-        meta:'Check-in wysłany — brak odpowiedzi',
+        meta:Number.isFinite(pendT)?'Check-in wysłany '+ago(pendT)+' — brak odpowiedzi':'Check-in wysłany — brak odpowiedzi',
+        src:'Źródło: check-in tygodniowy',
         cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`,ctaLbl:'Otwórz'});
     }
     if(typeof clientTrainingWindowStats==='function'){
@@ -6243,6 +6252,7 @@ function collectOpsEvents(force){
       if(st7.assigned>=2&&st7.pct!=null&&st7.pct<70){
         items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'<70% planu',col:'var(--orange)',
           meta:`Trening 7 dni: ${st7.done}/${st7.assigned} (${st7.pct}%)`,
+          src:'Źródło: kalendarz i zapisane treningi (ostatnie 7 dni)',
           cta:`openClientProfile('${escHtml(c.id)}')`,ctaLbl:'Profil'});
       }
       const today=typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10);
@@ -6253,8 +6263,10 @@ function collectOpsEvents(force){
         return typeof isLoggedWorkout==='function'?!isLoggedWorkout(s):!(s.source==='client'||s.source==='live');
       });
       if(missed.length>=2){
+        const days=missed.map(s=>s.date).sort().map(shortDate);
         items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--red)',
-          meta:missed.length+' zaplanowanych bez logu (14 dni)',
+          meta:missed.length+' zaplanowane bez zapisu: '+days.slice(-4).join(', '),
+          src:'Źródło: kalendarz (ostatnie 14 dni)',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('training');},150)`,ctaLbl:'Treningi'});
       }
     }
@@ -6263,12 +6275,15 @@ function collectOpsEvents(force){
       const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
       const late=hw.filter(t=>t.due&&t.due<today);
       if(late.length){
+        const oldest=late.map(t=>t.due).sort()[0];
         items.push({channel:'attention',pri:0,clientId:c.id,name:c.name,tag:'Domowe zaległe',col:'var(--red)',
-          meta:late.length+' zaległych zadań domowych',
+          meta:late.length+' zaległych zadań domowych — najstarsze z terminem '+shortDate(oldest),
+          src:'Źródło: zadania domowe',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)`,ctaLbl:'Domowe'});
       }else if(hw.length){
         items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'Domowe otwarte',col:'var(--teal)',
           meta:hw.length+' do zrobienia',
+          src:'Źródło: zadania domowe',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)`,ctaLbl:'Domowe'});
       }
     }
@@ -6276,16 +6291,19 @@ function collectOpsEvents(force){
     if(!hasPlan){
       items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Brak planu',col:'var(--orange)',
         meta:'Nie ma aktywnego planu treningowego',
+        src:'Źródło: plany treningowe',
         cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('plan');},150)`,ctaLbl:'Plan'});
     }
     if(typeof buildMonitorVerdict==='function'){
       try{
         const v=buildMonitorVerdict(c);
         if(v&&(v.verdict==='regres'||v.verdict==='ryzyko stagnacji')){
+          const why=(v.signals||[]).filter(s=>s&&(s.tone==='bad'||s.tone==='warn')).slice(0,2).map(s=>s.label+': '+s.text);
           items.push({channel:'attention',pri:v.verdict==='regres'?0:1,clientId:c.id,name:c.name,
             tag:v.verdict==='regres'?'Regres':'Ryzyko stagnacji',
             col:v.verdict==='regres'?'var(--red)':'var(--orange)',
-            meta:(v.next&&v.next[0])||'Sprawdź monitoring postępów',
+            meta:why.length?why.join(' · '):((v.next&&v.next[0])||'Sprawdź monitoring postępów'),
+            src:'Źródło: monitoring postępów (pomiary, treningi, check-iny)'+(why.length&&v.next&&v.next[0]?' · Co zrobić: '+v.next[0]:''),
             cta:`openClientMonitorSummary('${escHtml(c.id)}')`,ctaLbl:'Rada AI'});
         }
       }catch(e){}
@@ -6592,8 +6610,9 @@ function renderDashOps(){
     attEl.innerHTML=dashListSection('dash-attention',items,it=>`<div class="dash-ops-item">
       <span class="dash-ops-tag" style="background:${it.col}22;color:${it.col};">${esc(it.tag)}</span>
       <div class="dash-ops-item-body">
-        <div class="dash-ops-item-title">${esc(it.name)}</div>
+        <div class="dash-ops-item-title">${it.clientId?`<button type="button" class="dash-ops-client-link" onclick="openClientProfile('${esc(it.clientId)}')">${esc(it.name)}</button>`:esc(it.name)}</div>
         <div class="dash-ops-item-meta">${esc(it.meta)}</div>
+        ${it.src?`<div class="dash-ops-item-src">${esc(it.src)}</div>`:''}
       </div>
       <button class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl)}</button>
     </div>`,`<div class="dash-ops-empty">Wszystko na bieżąco — brak alertów.</div>`);
@@ -6659,8 +6678,9 @@ function renderDashOps(){
     expEl.innerHTML=dashListSection('dash-expiring',acts,it=>`<div class="dash-ops-item" data-pay-action="${esc(it.kind)}">
       <span class="dash-ops-tag" style="background:${col[it.kind]}22;color:${col[it.kind]};">${esc(it.tag)}</span>
       <div class="dash-ops-item-body">
-        <div class="dash-ops-item-title">${esc(it.name)}</div>
+        <div class="dash-ops-item-title">${it.clientId?`<button type="button" class="dash-ops-client-link" onclick="openClientProfile('${esc(it.clientId)}')">${esc(it.name)}</button>`:esc(it.name)}</div>
         <div class="dash-ops-item-meta">${esc(it.meta)}</div>
+        ${it.src?`<div class="dash-ops-item-src">${esc(it.src)}</div>`:''}
       </div>
       ${payActionButtonHTML(it)}
     </div>`,`<div class="dash-ops-empty">Brak zaległości i pakietów do odnowienia.</div>`);

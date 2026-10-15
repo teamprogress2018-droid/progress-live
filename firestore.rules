@@ -36,7 +36,7 @@ service cloud.firestore {
     // Explicit top-level trainer collections. No client, nested or special-schema
     // access is granted here: those have separate rules below.
     function ownedCollection(name) {
-      return name in ['clients', 'plans', 'sessions', 'exercises', 'exerciseGifs',
+      return name in ['clients', 'clientPrivate', 'plans', 'sessions', 'exercises', 'exerciseGifs',
         'coachVideos', 'workouts', 'tasks', 'kb', 'metricEntries', 'progressPhotos',
         'metricGroups', 'messages', 'packages', 'invoices', 'formSends', 'reportHistory',
         'forms', 'programs', 'checkins', 'clientNotes', 'clientDocs', 'onboardingFlows',

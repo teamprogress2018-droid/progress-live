@@ -126,28 +126,45 @@
     const transaction=required('_runTransaction'),doc=required('_doc');
     const docId=state.candidate._fbId||state.candidate.id;
     const ref=doc(window._db,'clients',docId);
+    // Pola prywatne (uwagi trenera) żyją w clientPrivate — klient nie może ich odczytać.
+    const privOn=typeof window.clientPrivateEnabled==='function'&&window.clientPrivateEnabled();
+    const privKeys=privOn?(window.CLIENT_PRIVATE_FIELDS||[]):[];
+    const privRef=privOn?doc(window._db,'clientPrivate',docId):null;
     assert(state);
     const saved=await transaction(window._db,async tx=>{
       assert(state);
       const found=await tx.get(ref);
+      const privFound=privRef?await tx.get(privRef):null;
       assert(state);
       if(!found.exists())throw fail('Klient został usunięty. Otwórz ponownie listę klientów.','client-card-unavailable');
-      const remote=snapshot(found.data(),docId,state);
+      const raw=found.data()||{};
+      const remote=snapshot(raw,docId,state);
+      const remotePriv=privFound&&privFound.exists()?(privFound.data()||{}):{};
+      privKeys.forEach(key=>{if(own(remotePriv,key))remote[key]=clone(remotePriv[key]);});
       assert(state,remote);
       if(remote.clientCardWriteId===state.token)return remote;
-      const patch={},conflicts=[];
+      const patch={},privPatch={},conflicts=[];
       for(const key of fields){
         if(!own(state.candidate,key)||state.candidate[key]===undefined)continue;
         const next=state.candidate[key],base=state.base[key];
         if(equal(next,base))continue;
         if(!equal(remote[key],base)&&!equal(remote[key],next))conflicts.push(labels[key]);
-        if(!equal(remote[key],next))patch[key]=clone(next);
+        if(!equal(remote[key],next))(privKeys.includes(key)?privPatch:patch)[key]=clone(next);
       }
       if(conflicts.length)throw conflict('Dane klienta zmieniły się w innym oknie ('+conflicts.join(', ')+'). Wczytaj aktualne dane przed kolejną edycją.',remote);
       patch.clientCardWriteId=state.token;
       assert(state,remote);
+      const legacy=privKeys.filter(key=>own(raw,key));
+      if(privOn&&(Object.keys(privPatch).length||legacy.length)){
+        const moved={};
+        legacy.forEach(key=>{if(!own(remotePriv,key))moved[key]=clone(raw[key]);});
+        tx.set(privRef,{...moved,...privPatch,id:state.candidate.id,clientId:state.candidate.id,
+          trainerId:state.auth.uid,updatedAt:new Date().toISOString()},{merge:true});
+      }
+      const applied=clone(patch);
+      legacy.forEach(key=>{patch[key]=window._deleteField();});
       tx.update(ref,patch);
-      return {...remote,...clone(patch)};
+      return {...remote,...applied,...clone(privPatch)};
     });
     assert(state);assert(state,saved);
     return clone(saved);

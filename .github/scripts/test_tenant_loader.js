@@ -41,13 +41,27 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 await test('every trainer collection is queried by owner; foreign and ownerless records are rejected',async()=>{
   const h=harness({rows:{clients:[['client-a',{trainerId:'trainer-a',name:'A'}],['client-b',{trainerId:'trainer-b'}],['ownerless',{name:'Legacy'}]],messages:[['m1',{trainerId:'trainer-a',clientId:'client-a',text:'Own'}],['m2',{trainerId:'trainer-b',clientId:'client-a',text:'Foreign'}]]}});
   const session=h.signIn();assert.equal(await h.ctx.load(session),true);
-  assert.equal(h.calls.queries.length,39);
+  assert.equal(h.calls.queries.length,40);
   h.calls.queries.forEach(q=>assert.deepEqual(q.filters,[{field:'trainerId',operator:'==',value:'trainer-a'}]));
   assert.deepEqual(Array.from(h.ctx.CL,c=>c.id),['client-a']);
   assert.deepEqual(Array.from(h.ctx.MSGS['client-a'],m=>m.text),['Own']);
   assert.equal(h.ctx._tenantDataReady,true);assert.equal(h.calls.renders,1);
   assert(!source.includes('migrateTrainerOwnership'));
   assert(!/getDocs\(collection\(/.test(source));
+});
+
+await test('trainer-only fields come from clientPrivate; a denied clientPrivate read does not block boot',async()=>{
+  const h=harness({rows:{clients:[['client-a',{trainerId:'trainer-a',name:'A',notes:'legacy'}],['client-b',{trainerId:'trainer-a',name:'B'}]],
+    clientPrivate:[['client-b',{trainerId:'trainer-a',clientId:'client-b',notes:'private B',psycho:{habits:{}}}]]},globals:{CLIENT_PRIVATE_FIELDS:['notes','psycho','_posture','timeline']}});
+  assert.equal(await h.ctx.load(h.signIn()),true);
+  assert.equal(h.ctx._clientPrivateReady,true);
+  assert.equal(h.ctx.CL.find(c=>c.id==='client-b').notes,'private B');
+  assert.deepEqual(h.ctx.CL.find(c=>c.id==='client-b').psycho,{habits:{}});
+  assert.equal(h.ctx.CL.find(c=>c.id==='client-a').notes,'legacy');
+  const denied=harness({read:q=>{if(q.collection==='clientPrivate')throw new Error('permission-denied');return snapshot(q.collection==='clients'?[['a',{trainerId:'trainer-a',notes:'kept'}]]:[]);},globals:{CLIENT_PRIVATE_FIELDS:['notes']}});
+  assert.equal(await denied.ctx.load(denied.signIn()),true);
+  assert.equal(denied.ctx._clientPrivateReady,false);assert.equal(denied.ctx._tenantDataReady,true);
+  assert.equal(denied.ctx.CL[0].notes,'kept');
 });
 
 await test('all reads complete before publishing one coherent snapshot or seeding',async()=>{

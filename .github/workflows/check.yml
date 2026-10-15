@@ -55,6 +55,7 @@ jobs:
           node .github/scripts/test_client_sala_write.js
           node .github/scripts/test_forum_reaction_persistence.js
           node .github/scripts/test_client_checkin_permissions.js
+          node .github/scripts/test_round2_trainer_fixes.js
 
       - name: 1c. Testy warstwy klienta dla coach media
         run: node .github/scripts/test_client_portal_coach_media.js
