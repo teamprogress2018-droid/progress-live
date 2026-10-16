@@ -4717,6 +4717,7 @@ function updateNotifBadge(){
   const badge=document.getElementById('notif-badge');
   const cnt=unreadCount();
   if(badge){badge.style.display=cnt>0?'block':'none';}
+  if(typeof renderDashBadges==='function')renderDashBadges();
 }
 
 function toggleNotifs(){
@@ -6116,6 +6117,7 @@ function renderDash(){
   renderDashGettingStarted();
   renderDashClientPipeline();
   renderProfileSetupBanner();
+  if(typeof renderDashHome==='function')try{renderDashHome();}catch(e){console.warn('renderDashHome',e);}
   applyDashSimpleMode();
 }
 

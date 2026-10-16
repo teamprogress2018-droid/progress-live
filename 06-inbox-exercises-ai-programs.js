@@ -50,6 +50,7 @@ function updateInboxNavBadge(){
   el.textContent=n?String(n):'';
   el.style.display=n?'inline-flex':'none';
   if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
+  if(typeof renderDashBadges==='function')renderDashBadges();
 }
 window.msgGetLastRead=msgGetLastRead;
 window.msgSetLastRead=msgSetLastRead;
