@@ -281,6 +281,8 @@ jobs:
         run: node .github/scripts/test_dash_forms_followup.js
       - name: 1n12b. Testy panelu operacyjnego (dashboard)
         run: node .github/scripts/test_dash_ops_panel.js
+      - name: 1n12b0. Testy strony głównej (makieta pulpitu)
+        run: node .github/scripts/test_dash_home_v3.js
       - name: 1n12b1. Testy snapshotu sytuacji klienta
         run: node .github/scripts/test_client_situation_snapshot.js
       - name: 1n12b2. Testy sytuacji w Przeglądzie (nagłówek + kolejny trening)
