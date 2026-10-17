@@ -963,7 +963,12 @@ function markPaid(id){
       for(const name of ['renderPayPackages','renderPayOverview','renderPayInvoices'])try{if(typeof window[name]==='function')window[name]();}catch(error){console.warn('payment view refresh',error);}
       if(cpCurrent&&typeof cpClientId!=='undefined'&&cpClientId===client.id&&typeof cpTab!=='undefined'&&cpTab==='payments'&&cpBody&&cpBody.firstElementChild===cpView&&typeof renderCPPayments==='function')try{renderCPPayments((window.CL||[]).find(c=>c&&c.id===client.id));}catch(error){console.warn('client payment refresh',error);}
       if(result.transitioned){
-        notify('✓ Pakiet oznaczony jako opłacony');
+        let budgetQueued=false;
+        if(typeof window.queueProgressLivePaidPackage==='function'){
+          const queued=window.queueProgressLivePaidPackage(result.pkg,new Date().toISOString().slice(0,10));
+          budgetQueued=!!(queued&&queued.queued);
+        }
+        notify(budgetQueued?'✓ Pakiet opłacony · wpłata czeka w Budżecie Domowym':'✓ Pakiet oznaczony jako opłacony');
         if(typeof fireIntEvent==='function')try{Promise.resolve(fireIntEvent('package.paid',{package:{id:result.pkg.id,title:result.pkg.title,price:result.pkg.price,clientId:result.pkg.clientId,clientName:result.pkg.clientName}})).catch(error=>console.warn('package.paid event',error));}catch(error){console.warn('package.paid event',error);}
       }
       if(typeof refreshPaySurfaces==='function')refreshPaySurfaces();return result;
@@ -1201,6 +1206,9 @@ async function savePackage(){
     // Existing confirmed rows may already contain newer usage/payment updates.
     if(!(window.PACKAGES||[]).some(p=>p.id===pkg.id))window.PACKAGES.push(pkg);
     if(!(window.INVOICES||[]).some(i=>i.id===inv.id))window.INVOICES.push(inv);
+    if(pkg.payStatus==='paid'&&typeof window.queueProgressLivePaidPackage==='function'){
+      window.queueProgressLivePaidPackage(pkg,pkg.date);
+    }
     const fromOnboard=state.resumeId&&window._onboardResumeAfterPackage===state.resumeId;
     packageSaveDrafts.delete(state.client.id);window._onboardResumeAfterPackage=null;
     closeM('m-package');if(typeof clearPackageOnboardBanner==='function')clearPackageOnboardBanner();
