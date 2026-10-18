@@ -52,12 +52,12 @@ ok('schedule repeat', src10.includes('function maybeScheduleNextHomework'));
 ok('strip od tags', portal.includes('function capStripOdTags') && portal.includes('capStripOdTags(raw)'));
 ok('homework filter render', src06.includes("taskFilter==='homework'"));
 ok('dash no-plan', portal.includes("tag:'Brak planu'") && portal.includes("tag:'Domowe zaległe'"));
-ok('cache 01', html.includes('01-core.js?v=136'));
+ok('cache 01', html.includes('01-core.js?v=137'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 04', html.includes('04-client-portal.js?v=61'));
+ok('cache 04', html.includes('04-client-portal.js?v=62'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=57'));
 ok('cache 10', html.includes('10-client-app.js?v=44'));
-ok('cache styles', html.includes('styles.css?v=161'));
+ok('cache styles', html.includes('styles.css?v=162'));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));
 
 const document = {

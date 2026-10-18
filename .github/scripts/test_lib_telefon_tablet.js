@@ -24,9 +24,9 @@ function ok(name, cond, extra) {
 
 ok('ci unit', wf.includes('test_lib_telefon_tablet.js'));
 ok('ci ui', wf.includes('test_lib_telefon_tablet_ui.js'));
-ok('cache styles', html.includes('styles.css?v=161'));
-ok('cache core', html.includes('01-core.js?v=136'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=101'));
+ok('cache styles', html.includes('styles.css?v=162'));
+ok('cache core', html.includes('01-core.js?v=137'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=102'));
 
 function section(id) {
   const a = html.indexOf('<div class="screen" id="screen-' + id + '">');

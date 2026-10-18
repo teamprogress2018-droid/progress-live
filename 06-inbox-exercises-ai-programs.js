@@ -3767,11 +3767,41 @@ function expandSessionFromDayFocus(focus){
 window.expandSessionFromDayFocus=expandSessionFromDayFocus;
 
 /** Dni planu treningowego z tygodnia programu (z ćwiczeniami, nie pustą skorupą). */
+// Ćwiczenia wypisane w nazwie dnia programu: „Upper A: Wyciskanie 4×8, Podciąganie 4×8”,
+// „FBW A — Przysiad 5×5, OHP 5×5”, „Przysiad: 5×65%, 5×75%, 5+×85% + akcesoria”.
+const PROG_EX_ALIASES={'przysiad':'Przysiad ze sztangą','ohp':'Wyciskanie żołnierskie OHP','martwy':'Martwy ciąg klasyczny','martwy ciąg':'Martwy ciąg klasyczny','wiosłowanie':'Wiosłowanie sztangą','wyciskanie':'Wyciskanie sztangi leżąc','wyciskanie leżąc':'Wyciskanie sztangi leżąc','podciąganie':'Podciąganie na drążku'};
+function progExName(raw){
+  const n=String(raw||'').trim().replace(/\s+/g,' ');
+  const alias=PROG_EX_ALIASES[n.toLowerCase()];
+  if(alias)return alias;
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(n):null;
+  return lib&&lib.name?lib.name:n;
+}
+function parseProgramDayExercises(focus){
+  const m=String(focus||'').match(/^([^:—–]+?)\s*[:—–]\s*(.+)$/);
+  if(!m)return null;
+  const head=m[1].trim();
+  const parts=m[2].replace(/\s*\+\s*akcesori\w*\s*$/i,'').split(/\s*,\s*/).filter(Boolean);
+  if(!parts.length)return null;
+  if(parts.every(p=>/^\d+\+?\s*[×x]\s*\d+%$/.test(p))){
+    return [{name:progExName(head),sets:String(parts.length),reps:parts.map(p=>p.replace(/\s*[×x]\s*/,' @ ')).join(' / '),rest:'3min'}];
+  }
+  const out=[];
+  for(const p of parts){
+    const x=p.match(/^(.*[a-ząćęłńóśźż].*?)\s+(\d+)\s*[×x]\s*(max|\d+(?:[-–]\d+)?(?:s|\/stronę)?)$/i);
+    if(!x)return null;
+    out.push({name:progExName(x[1]),sets:x[2],reps:x[3],rest:(parseInt(x[3],10)||99)<=5?'3min':'90s'});
+  }
+  return out;
+}
+window.parseProgramDayExercises=parseProgramDayExercises;
+
 function planDaysFromProgram(prog,weekIdx){
   if(!prog)return[];
   const weeks=prog.weeks||[];
   const week=weeks[weekIdx||0]||weeks[0]||{};
   const rawDays=week.days||prog.days||[];
+  const listedByHead={};
   return rawDays.map(d=>{
     const label=d.d||d.day||d.dayName||'Dzień';
     const focus=d.name||d.muscles||d.focus||'';
@@ -3791,13 +3821,74 @@ function planDaysFromProgram(prog,weekIdx){
           };
         });
       }else{
-        exercises=expandSessionFromDayFocus(focus||label);
+        let listed=typeof parseProgramDayExercises==='function'?parseProgramDayExercises(focus):null;
+        const head=String(focus).split(/\s*[:—–]\s*/)[0].trim().toLowerCase();
+        // „FBW A — powtórzenie” = ten sam trening co wcześniejszy dzień „FBW A — …”.
+        if(!listed&&/powt[óo]rz|powt[óo]rk/i.test(focus)&&listedByHead[head])listed=listedByHead[head].map(e=>Object.assign({},e));
+        if(listed&&head&&!listedByHead[head])listedByHead[head]=listed;
+        if(listed)exercises=listed;
+        else{
+          exercises=expandSessionFromDayFocus(focus||label);
+          return{day:label,muscles:focus,rest:isRest,exercises,autoEx:true};
+        }
       }
     }
     return{day:label,muscles:focus,rest:isRest,exercises};
   });
 }
 window.planDaysFromProgram=planDaysFromProgram;
+
+// Tydzień i programu; gdy program rozpisuje mniej tygodni niż trwa, cykl się powtarza.
+function programWeekAt(p,i){
+  const w=(p&&p.weeks)||[];
+  if(!w.length)return null;
+  return w[i]||w[i%w.length];
+}
+// Plan klienta ma maks. 12 tygodni (w1–w12).
+function programPlanWeekCount(p){
+  return Math.max(1,Math.min(12,parseInt(p&&p.duration,10)||((p&&p.weeks)||[]).length||4));
+}
+function programWeekIsDeload(w){
+  return !!(w&&(w.isDeload||/deload/i.test(String(w.label||''))));
+}
+function programWeekLabel(p,i){
+  const w=programWeekAt(p,i)||{};
+  const written=((p&&p.weeks)||[]).length;
+  const label=w.label||('Tydzień '+(i+1));
+  return written&&i>=written?label+' · cykl '+(Math.floor(i/written)+1):label;
+}
+function programRpeValue(s){
+  const m=String(s||'').match(/\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+(?:[.,]\d+)?)?/);
+  return m?m[0].replace(/\s/g,''):'';
+}
+/** Tygodnie planu z programu: fazy (z deloadem) i serie/powt./RPE każdego ćwiczenia na każdy tydzień. */
+function programPlanWeekMeta(p,days){
+  const n=programPlanWeekCount(p);
+  const weekKeys=Array.from({length:n},(_,i)=>'w'+(i+1));
+  const phases={};
+  const key=s=>progExName(s).toLowerCase();
+  weekKeys.forEach((wk,i)=>{
+    const w=programWeekAt(p,i)||{};
+    phases[wk]=programWeekLabel(p,i);
+    const deload=programWeekIsDeload(w);
+    const rpe=programRpeValue(w.rpe)||(deload?'6':'');
+    (days||[]).forEach((d,j)=>{
+      if(!d||d.rest)return;
+      const wd=(w.days||[])[j];
+      const listed=wd?(Array.isArray(wd.exercises)&&wd.exercises.length?wd.exercises:parseProgramDayExercises(wd.name||'')):null;
+      (d.exercises||[]).forEach((ex,k)=>{
+        const src=listed&&listed[k]&&key(listed[k].name||listed[k].n)===key(ex.name)?listed[k]:null;
+        let s=src?String(src.sets!=null?src.sets:src.s):String(ex.sets||'3');
+        const r=src?String(src.reps!=null?src.reps:src.r):String(ex.reps||'');
+        if(deload&&!src){const sn=parseInt(s,10);if(sn>1)s=String(Math.ceil(sn/2));}
+        ex[wk]={s,r,kg:'',rest:(src&&src.rest)||ex.rest||'',rpe:String((src&&src.rpe)||rpe||'')};
+      });
+    });
+  });
+  return {weekKeys,phases,currentWeek:'w1'};
+}
+window.programWeekAt=programWeekAt;
+window.programPlanWeekMeta=programPlanWeekMeta;
 
 function setProgNav(n){
   progNav=n;
@@ -3907,6 +3998,34 @@ function renderPrograms(){
   }).join('');
 }
 
+function progDetailPlanNote(p){
+  const days=planDaysFromProgram(p,0);
+  const train=days.filter(d=>!d.rest&&(d.exercises||[]).length);
+  const n=programPlanWeekCount(p);
+  if(!train.length)return `<div class="prog-plan-note is-warn">Ten program nie ma jeszcze treningów — dodaj ćwiczenia w kreatorze programu, zanim go przypiszesz.</div>`;
+  const auto=days.filter(d=>d.autoEx).length;
+  const capped=(parseInt(p.duration,10)||0)>12?' (plan klienta ma maks. 12 tygodni)':'';
+  return `<div class="prog-plan-note">Klient dostanie <b>${n} tyg.</b>${capped} z fazami, RPE i deloadem${auto?` · ćwiczenia w ${auto} ${auto===1?'dniu':'dniach'} dobierzemy z nazwy dnia — sprawdzisz je w kreatorze po przypisaniu`:' · ćwiczenia jak w programie'}.</div>`;
+}
+// Tygodnie, których program nie rozpisuje osobno – kolejne cykle tych samych tygodni.
+function progDetailRepeatWeeks(p,gc){
+  const written=(p.weeks||[]).length;
+  const total=parseInt(p.duration,10)||written;
+  if(!written||total<=written)return '';
+  const rows=[];
+  for(let i=written;i<total;i++){
+    const w=programWeekAt(p,i)||{};
+    const deload=programWeekIsDeload(w);
+    rows.push(`<div class="prog-detail-week is-repeat">
+      <div class="prog-detail-week-hdr">
+        <span class="prog-detail-week-num">TYG ${i+1}</span>
+        <div><span style="font-size:12px;font-weight:700;color:${deload?'var(--orange)':gc};">${escHtml(programWeekLabel(p,i))}</span>${w.rpe?`<span class="pill pill-muted" style="font-size:9px;margin-left:6px;">${escHtml(w.rpe)}</span>`:''}</div>
+      </div>
+    </div>`);
+  }
+  return `<div style="font-size:11px;color:var(--muted);margin:4px 0 8px;">Tygodnie ${written+1}–${total}: powtórka tygodni 1–${written} (kolejny cykl).</div>`+rows.join('');
+}
+
 function openProgDetail(id){
   const p=allPrograms().find(x=>x.id===id);if(!p)return;
   progSelId=id;
@@ -3926,8 +4045,9 @@ function openProgDetail(id){
     <div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;">${escHtml(p.desc||'')}</div>
     ${p.highlights&&p.highlights.length?`<div style="margin-bottom:16px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Kluczowe założenia</div>
-      ${p.highlights.map(h=>`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;font-size:12px;"><span style="color:${gc};flex-shrink:0;">✓</span><span>${h}</span></div>`).join('')}
+      ${p.highlights.map(h=>`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;font-size:12px;"><span style="color:${gc};flex-shrink:0;">✓</span><span>${escHtml(h)}</span></div>`).join('')}
     </div>`:''}
+    ${progDetailPlanNote(p)}
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Harmonogram tygodniowy</div>
     ${(p.weeks||[]).map(w=>{
       const isDeload=w.label&&w.label.includes('DELOAD');
@@ -3936,16 +4056,17 @@ function openProgDetail(id){
           <span class="prog-detail-week-num">TYG ${w.nr}</span>
           <div>
             <span style="font-size:12px;font-weight:700;color:${isDeload?'var(--orange)':gc};">${escHtml(w.label||'')}</span>
-            ${w.rpe?`<span class="pill pill-muted" style="font-size:9px;margin-left:6px;">${w.rpe}</span>`:''}
+            ${w.rpe?`<span class="pill pill-muted" style="font-size:9px;margin-left:6px;">${escHtml(w.rpe)}</span>`:''}
           </div>
         </div>
-        ${w.focus?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;padding-left:60px;">${w.focus}</div>`:''}
+        ${w.focus?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;padding-left:60px;">${escHtml(w.focus)}</div>`:''}
         ${(w.days||[]).map(d=>`<div class="prog-detail-day">
-          <span class="prog-detail-day-name">${d.d}</span>
+          <span class="prog-detail-day-name">${escHtml(d.d||'')}</span>
           <span style="font-size:12px;${d.name==='REST'?'color:var(--muted);font-style:italic;':''}">${escHtml(d.name)}</span>
         </div>`).join('')}
       </div>`;
-    }).join('')}`;
+    }).join('')}
+    ${progDetailRepeatWeeks(p,gc)}`;
   const footer=document.getElementById('prd-footer');
   const custom=findUserProgram(id);
   if(footer)footer.innerHTML=custom
@@ -4017,22 +4138,31 @@ async function confirmAssignProgram(){
   const c=CL.find(x=>x.id===cid);
   if(!c){notify('Wybierz klienta z listy!');return;}
 
-  // Buduj pełny obiekt planu z programu (z ćwiczeniami z tygodnia 1)
-  const newPlan=withTrainer({
+  // Plan z programu: dni z tygodnia 1 + wszystkie tygodnie (fazy, deload, serie/RPE na każdy tydzień).
+  const days=planDaysFromProgram(p,0);
+  if(!days.some(d=>!d.rest&&(d.exercises||[]).length)){
+    notify('Ten program nie ma jeszcze treningów. Otwórz go w kreatorze programu i dodaj ćwiczenia.');
+    return;
+  }
+  const weekMeta=programPlanWeekMeta(p,days);
+  const autoDays=days.filter(d=>d.autoEx).length;
+  days.forEach(d=>{delete d.autoEx;});
+  const newPlan=withTrainer(Object.assign({
     id:newId('p'),
     name:p.name,
     clientId:cid,
     clientName:c.name,
     method:p.method||'Własna',
-    duration:p.duration||8,
+    duration:weekMeta.weekKeys.length,
     level:p.level||'sredni',
     goal:p.goal||'masa',
     source:'program',
     programId:p.id,
     startDate,
     createdAt:new Date().toISOString(),
-    days:typeof planDaysFromProgram==='function'?planDaysFromProgram(p,0):[]
-  });
+    days
+  },weekMeta));
+  if(autoDays)newPlan.autoExerciseDays=autoDays;
 
   PL.push(newPlan);
   await persistById('plans',newPlan);
@@ -4040,13 +4170,16 @@ async function confirmAssignProgram(){
   closeM('m-assign-prog');
   closeProgDetail();
 
-  addNotification('system','Program przypisany!','"'+p.name+'" → '+c.name,'plans');
-  notify('✓ Program "'+p.name+'" przypisany do: '+c.name+'!');
+  const nWeeks=newPlan.weekKeys.length;
+  addNotification('system','Program przypisany!','"'+p.name+'" → '+c.name+' · '+nWeeks+' tyg.','plans');
+  notify(autoDays
+    ?('✓ "'+p.name+'" przypisany do: '+c.name+' ('+nWeeks+' tyg.). Ćwiczenia w '+autoDays+' '+(autoDays===1?'dniu':'dniach')+' dobrano z nazwy dnia – sprawdź plan w kreatorze.')
+    :('✓ Program "'+p.name+'" przypisany do: '+c.name+' ('+nWeeks+' tyg.)'));
 
-  if(typeof maybeSchedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
-    maybeSchedulePlanToCalendar(newPlan.id,{weeks:4});
-  }else if(typeof schedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
-    if(confirm('Dodać dni programu do kalendarza na 4 tygodnie?'))schedulePlanToCalendar(newPlan.id,{weeks:4});
+  if(typeof maybeSchedulePlanToCalendar==='function'){
+    maybeSchedulePlanToCalendar(newPlan.id,{weeks:nWeeks,confirmMsg:'Dodać dni programu do kalendarza na '+nWeeks+' tyg.?'});
+  }else if(typeof schedulePlanToCalendar==='function'){
+    if(confirm('Dodać dni programu do kalendarza na '+nWeeks+' tyg.?'))schedulePlanToCalendar(newPlan.id,{weeks:nWeeks});
   }
 
   // Jeśli profil klienta otwarty — odśwież zakładkę Plan
@@ -4062,6 +4195,8 @@ function findUserProgram(id){
 function editProgram(id){
   const p=findUserProgram(id);
   if(!p){notify('To program z biblioteki demo — nie można go edytować');return;}
+  // Tygodnie i ćwiczenia edytuje się w kreatorze programu.
+  if(typeof openProgramBuilder==='function'){closeProgDetail();openProgramBuilder(id);return;}
   openM('m-program'); // resetuje formularz
   document.getElementById('pm-name').value=p.name||'';
   document.getElementById('pm-goal').value=p.goal||'';

@@ -2835,6 +2835,9 @@ input[type=checkbox]{accent-color:var(--accent);}
 .prog-stat-lbl{font-size:9px;color:var(--muted);font-family:var(--font-ui);text-transform:uppercase;}
 .prog-card-actions{display:flex;gap:6px;padding:10px 16px;border-top:1px solid var(--border);background:rgba(0,0,0,0.15);}
 .prog-detail-week{padding:10px 0;border-bottom:1px solid var(--border);}
+.prog-detail-week.is-repeat{padding:6px 0;opacity:.75;}
+.prog-plan-note{font-size:12px;line-height:1.5;color:var(--text);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:14px;}
+.prog-plan-note.is-warn{border-color:rgba(255,159,10,.45);color:var(--orange);}
 .prog-detail-week:last-child{border-bottom:none;}
 .prog-detail-week-hdr{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .prog-detail-week-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);width:50px;}
