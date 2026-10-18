@@ -1940,6 +1940,8 @@ function restoreBuilderSidebarState(){
 window.toggleBuilderSidebar=toggleBuilderSidebar;
 window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
+  // Powrót z Progress Academy: plan w kreatorze zostaje bez zmian.
+  if(window._builderPreserveOnReturn){window._builderPreserveOnReturn=false;builderRefreshRationale();return;}
   builderResetSaveState();
   window._editingPlanId=null;
   window._manualPlanDraft=null;
