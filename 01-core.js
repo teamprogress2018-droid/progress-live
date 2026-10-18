@@ -432,7 +432,7 @@ function goTo(n){
   closeMobileSidebar();
   if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
   const libraryScreens=['library','plans','programs','templates','tasks','forms','metrics'];
-  const moreScreens=['ondemand','forum','payments','calculator','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
+  const moreScreens=['ondemand','forum','payments','calculator','academy','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
   // builder + aiplangen celowo poza Więcej — wejście z profilu klienta (Plan)
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
@@ -456,6 +456,9 @@ function goToHomeworkQueue(){
 }
 window.goToHomeworkQueue=goToHomeworkQueue;
 function _goToRender(n){
+  // Kreator zachowuje plan tylko na drodze kreator → Academy → kreator.
+  if(n!=='builder'&&n!=='academy')window._builderPreserveOnReturn=false;
+  if(n==='academy'&&typeof window.renderProgressAcademy==='function')window.renderProgressAcademy();
   if(n==='builder')initBuilder();
   if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();
