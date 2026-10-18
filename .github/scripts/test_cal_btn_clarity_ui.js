@@ -67,6 +67,7 @@ function lum([r, g, b]) {
       weekColor: week ? cs(week).color : '',
       monthColor: month ? cs(month).color : '',
       addBg: add ? cs(add).backgroundColor : '',
+      addImg: add ? cs(add).backgroundImage : '',
       weekActive: !!(week && week.classList.contains('active'))
     };
   });
@@ -77,7 +78,10 @@ function lum([r, g, b]) {
   ok('today fill brighter than wstecz', lum(rgb(styles.todayBg)) > lum(rgb(styles.backBg)), JSON.stringify(styles));
   ok('week tab active red', styles.weekActive && rgb(styles.weekBg)[0] > 200 && rgb(styles.weekBg)[1] < 90, JSON.stringify(styles));
   ok('week tab white label', rgb(styles.weekColor)[0] > 240 && rgb(styles.weekColor)[1] > 240, JSON.stringify(styles));
-  ok('add session still primary red', rgb(styles.addBg)[0] > 200 && rgb(styles.addBg)[1] < 90, JSON.stringify(styles));
+  // Motyw Fire Gym rysuje główny przycisk czerwonym gradientem (background-image), a nie kolorem tła.
+  const addRed = (c) => c[0] > 200 && c[1] < 90;
+  const addGradient = (String(styles.addImg).match(/rgba?\([^)]*\)/g) || []).map(rgb);
+  ok('add session still primary red', addRed(rgb(styles.addBg)) || (addGradient.length > 0 && addGradient.every(addRed)), JSON.stringify(styles));
 
   await page.click('#calv-month');
   await page.waitForTimeout(120);

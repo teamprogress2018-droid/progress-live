@@ -122,7 +122,8 @@ function ok(name, cond, extra) {
     if (live) live.classList.add('active');
     if (typeof renderClientLive === 'function') renderClientLive();
   });
-  await page.waitForSelector('#clive-bn-homework');
+  // Zadania są w arkuszu „Więcej” (ukrytym do kliknięcia), więc czekamy na sam przycisk w DOM.
+  await page.waitForSelector('#clive-bn-homework', { state: 'attached' });
   const hwCard = await page.evaluate(() => (document.getElementById('clive-screen-content') || {}).innerText || '');
   await page.screenshot({ path: path.join(shotDir, 'hw_client_card.png') });
   ok('client homework card', /HIIT 16 min/i.test(hwCard) && /RPE i czas/i.test(hwCard), hwCard.slice(0, 200));

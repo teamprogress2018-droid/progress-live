@@ -30,8 +30,8 @@ ok('idle draft remaps', /function liveRefreshPlanLoads/.test(live) && /liveApply
 ok('CI', wf.includes('test_plan_auto_progression.js'));
 ok('cache 01', html.includes('01-core.js?v=132'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=96'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=101'));
-ok('cache 10', html.includes('10-client-app.js?v=43'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=102'));
+ok('cache 10', html.includes('10-client-app.js?v=44'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = { addEventListener() {}, CL: [], PL: [], SE: [], EX: [], WO: [], METRIC_ENTRIES: [], document };

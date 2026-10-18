@@ -1136,6 +1136,8 @@ function openBuilderForClient(clientId,fromOnboard){
   if(sel){
     sel.value=clientId;
     if(typeof updatePeriod==='function')updatePeriod();
+    // Wybór klienta przy otwarciu to nie zmiana trenera — bez fałszywego „niezapisane zmiany”.
+    if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
   }
   if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
 }
@@ -3743,8 +3745,9 @@ function togglePlanExpand(id){
   const btn=document.getElementById('plan-toggle-'+id);
   const card=document.getElementById('plan-card-'+id);
   if(!detail)return;
-  const isOpen=detail.style.display==='block';
-  detail.style.display=isOpen?'none':'block';
+  const isOpen=detail.style.display!=='none';
+  // flex (nie block), żeby działał odstęp między dniami z .plan-card-detail.
+  detail.style.display=isOpen?'none':'flex';
   if(card)card.classList.toggle('is-open',!isOpen);
   if(btn)btn.textContent=isOpen?'👁️ Podgląd':'👁️ Ukryj';
 }

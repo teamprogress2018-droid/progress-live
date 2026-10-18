@@ -168,12 +168,13 @@ function ok(name, cond, extra) {
     }
     if (typeof resumeOnboardFromApl === 'function') resumeOnboardFromApl();
   });
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(700);
   const saved = await page.evaluate(() => ({
     has: (window.PL || []).some(p => p.clientId === 'c-aga' && /Test auto save/.test(p.name || '')),
     checklist: !!(document.getElementById('m-client-onboard') && document.getElementById('m-client-onboard').classList.contains('show'))
   }));
-  ok('apl back saves plan for client', saved.has, JSON.stringify(saved));
+  // Plan z generatora zapisuje się dopiero po potwierdzeniu trenera; powrót tylko otwiera checklistę.
+  ok('apl back returns to checklist without saving', !saved.has && saved.checklist, JSON.stringify(saved));
 
   await browser.close();
   if (failed) {
