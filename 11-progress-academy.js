@@ -65,7 +65,47 @@
     const topic=pick('titlepl','lawpl','title','category','group')||'Zasada do zastosowania';
     const fallback=String(text||'').replace(/\s+/g,' ').trim();
     const summary=rule||((condition&&action)?'Dopasuj decyzję do warunku klienta, zamiast stosować jedną regułę dla wszystkich.':fallback.substring(0,360));
-    return {topic,summary,condition,action,raw:fallback};
+    const practical=(String(text||'').match(/(?:trainerApplication|trainerapplication|application)\s*:\s*\{?text\s*:\s*([^}]+)/i)||[])[1]||'';
+    return {topic,summary,condition,action,practical:String(practical).trim(),raw:fallback};
+  }
+  function norm(s){return String(s||'').toLocaleLowerCase('pl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l');}
+  function studyWhy(part){
+    if(part.practical)return part.practical;
+    if(part.condition&&part.action)return `To nie jest zasada „zawsze”. Warunek (${part.condition}) wyznacza moment decyzji; dopiero wtedy stosujesz wskazaną zmianę. Dzięki temu nie kopiujesz rozwiązania na klienta o innym celu, stażu lub regeneracji.`;
+    return `Traktuj tę regułę jako wskazówkę do sprawdzenia, a nie gotową receptę. Zestaw ją z celem klienta, jakością techniki, RIR oraz tym, czy progres jest utrzymywany.`;
+  }
+  function studyEvidence(query,source){
+    const all=window.BUILTIN_PLANNING_EVIDENCE||[];
+    const blob=norm([query,source.text,source.cite].join(' '));
+    const keys=[];
+    if(/hipertrof|objetosc|serii/.test(blob))keys.push(/objętość|objetosc|volume|mav|mev|mrv/i);
+    if(/rir|rpe|upad/.test(blob))keys.push(/rir|rpe|upad/i);
+    if(/sil|1rm/.test(blob))keys.push(/sił|sil|1rm|przerw/i);
+    if(/bialk|protein/.test(blob))keys.push(/białk|bialk|protein/i);
+    return all.filter(entry=>keys.some(rx=>rx.test([entry.title,entry.text,entry.citation].join(' ')))).slice(0,2);
+  }
+  function studyExercises(query){
+    const q=norm(query);
+    const targets=[
+      {label:'mięśnie najszersze grzbietu',rx:/najszer|lats?|plecy/,prefer:/podciag|sciaganie|wioslowanie/i},
+      {label:'klatka piersiowa',rx:/klatk|chest|pec/,prefer:/wycisk|pompki|rozpiet/i},
+      {label:'barki',rx:/bark|shoulder|delt/,prefer:/wycisk|unoszenie/i},
+      {label:'czworogłowe uda',rx:/czworog|quad|przysiad/,prefer:/przysiad|leg press|hack/i},
+      {label:'tył uda',rx:/tyl uda|hamstring|dwuglow/,prefer:/rdl|martwy|uginanie/i},
+      {label:'pośladki',rx:/poslad|glute/,prefer:/hip thrust|most|rdl|przysiad/i}
+    ].find(t=>t.rx.test(q));
+    if(!targets||!Array.isArray(window.DEF_EX))return null;
+    const ranked=window.DEF_EX.filter(ex=>targets.rx.test(norm([ex.name,ex.muscle,ex.cat].join(' ')))).sort((a,b)=>Number(targets.prefer.test(b.name||''))-Number(targets.prefer.test(a.name||'')));
+    const out=[];const seen=new Set();
+    ranked.forEach(ex=>{if(out.length>=3||seen.has(ex.name))return;seen.add(ex.name);out.push(ex);});
+    return out.length?{label:targets.label,items:out}:null;
+  }
+  function practicePanel(query,sources){
+    const ex=studyExercises(query);
+    const evidence=sources.flatMap(s=>studyEvidence(query,s)).filter((x,i,a)=>a.findIndex(y=>y.title===x.title)===i).slice(0,2);
+    const exercises=ex?`<section class="academy-practice-block"><b>Przykład doboru ćwiczeń: ${esc(ex.label)}</b><p>Nie ma jednego „najlepszego” ruchu. Wybierz wariant bez bólu, który klient potrafi stabilnie progresować. Biblioteka sugeruje:</p><ul>${ex.items.map(item=>`<li><strong>${esc(item.name)}</strong><span>${esc(item.tip||item.muscle||'Sprawdź wykonanie w bibliotece ćwiczeń.')}</span></li>`).join('')}</ul></section>`:`<section class="academy-practice-block"><b>Przełóż wiedzę na plan</b><p>Podaj też partię, np. „hipertrofia najszerszego grzbietu” albo „objętość klatki”. Academy dobierze wtedy przykłady ćwiczeń z Twojej biblioteki.</p></section>`;
+    const citations=evidence.length?`<section class="academy-evidence"><b>Powiązane źródła w bazie</b>${evidence.map(item=>`<div><strong>${esc(item.title)}</strong><span>${esc(item.citation||'Źródło w Bazie wiedzy')}</span>${safeHref(item.sourceUrl)?`<a href="${esc(safeHref(item.sourceUrl))}" target="_blank" rel="noopener noreferrer">Otwórz publikację ↗</a>`:''}</div>`).join('')}</section>`:'';
+    return `<aside class="academy-practice-panel"><h3>Jak wyciągnąć wniosek dla klienta</h3><ol><li>Sprawdź, czy opisany warunek rzeczywiście dotyczy tego klienta.</li><li>Wprowadź jedną decyzję z karty, zamiast zmieniać cały plan naraz.</li><li>Po 2–4 tygodniach oceń progres, RIR, technikę i regenerację.</li></ol>${exercises}${citations}</aside>`;
   }
   function studyCard(source){
     const part=studyParts(source.text);
@@ -75,14 +115,14 @@
     const recall=part.action
       ?`Jaki sygnał u klienta uruchamia tę decyzję i co konkretnie zmienisz w planie?`
       :`Jak wyjaśnisz tę zasadę własnymi słowami i gdzie wykorzystasz ją w najbliższym planie?`;
-    return `<article class="academy-learning-card"><span>${esc(source.status||'źródło')}</span><h3>${esc(part.topic)}</h3><div class="academy-source-cite">${esc(source.cite||'Źródło')}</div><section class="academy-study-section"><b>Sedno zasady</b><p>${esc(part.summary)}</p></section>${part.condition?`<section class="academy-study-section"><b>Kiedy jej użyć</b><p>${esc(part.condition)}</p></section>`:''}${part.action?`<section class="academy-study-section academy-study-action"><b>Co zrobić</b><p>${esc(part.action)}</p></section>`:''}<section class="academy-conclusion"><b>Wniosek</b><p>${esc(conclusion)}</p></section><div class="academy-recall"><b>Sprawdź, czy rozumiesz</b><span>${esc(recall)}</span></div><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
+    return `<article class="academy-learning-card"><span>${esc(source.status||'źródło')}</span><h3>${esc(part.topic)}</h3><div class="academy-source-cite">Źródło: ${esc(source.cite||'Baza wiedzy')}</div><section class="academy-study-section"><b>Sedno zasady</b><p>${esc(part.summary)}</p></section>${part.condition?`<section class="academy-study-section"><b>Kiedy jej użyć</b><p>${esc(part.condition)}</p></section>`:''}${part.action?`<section class="academy-study-section academy-study-action"><b>Co zrobić</b><p>${esc(part.action)}</p></section>`:''}<section class="academy-study-section academy-study-why"><b>Dlaczego</b><p>${esc(studyWhy(part))}</p></section><section class="academy-conclusion"><b>Wniosek</b><p>${esc(conclusion)}</p></section><div class="academy-recall"><b>Sprawdź, czy rozumiesz</b><span>${esc(recall)}</span></div><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
   }
   function learn(){
     const selected=bookById(state.selectedBookId);
     const q=state.question.trim();
     const sources=selected?[{text:selected.text,book:selected.id,cite:(selected.bookAuthor?selected.bookAuthor+' — ':'')+selected.title,status:'moja notatka'}]:learningSources();
     const hasNotes=userBooks().some(b=>b.useInLearning!==false&&b.text);
-    const sourceHtml=sources.length?`<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>`:`<div class="academy-empty">${hasNotes?'Nie znaleziono notatek pasujących do pytania. Zmień sformułowanie lub dodaj syntezę do książki.':'Najpierw dodaj książkę wraz z własnymi notatkami. To z nich powstanie materiał do nauki.'}</div>`;
+    const sourceHtml=sources.length?`<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>${practicePanel(q,sources)}`:`<div class="academy-empty">${hasNotes?'Nie znaleziono notatek pasujących do pytania. Zmień sformułowanie lub dodaj syntezę do książki.':'Najpierw dodaj książkę wraz z własnymi notatkami. To z nich powstanie materiał do nauki.'}</div>`;
     return `<section class="academy-learn"><div class="academy-learn-intro"><span class="academy-eyebrow">Nauka oparta na źródłach</span><h2>Zapytaj swoje notatki i źródła Academy.</h2><p>Odpowiedzi pokazują, z której książki lub notatki pochodzą. To materiał edukacyjny, nie porada medyczna.</p></div>${selected?`<div class="academy-selected-book"><span>Uczysz się z: <b>${esc(selected.title)}</b></span><button class="btn btn-ghost btn-sm" type="button" onclick="academyClearSelectedBook()">Wróć do wszystkich źródeł</button></div>`:''}<form class="academy-question" onsubmit="academyAskBooks(event)"><label class="form-lbl" for="academy-question">Pytanie lub temat do powtórki</label><div><input id="academy-question" class="form-input" value="${esc(q)}" placeholder="np. hipertrofia klatki, białko na redukcji, RIR" maxlength="240" autocomplete="off"><button class="btn btn-primary" type="submit">Szukaj materiału</button></div></form>${!q&&!selected?`<div class="academy-empty">Wpisz temat, aby połączyć Twoje notatki ze źródłami Academy.</div>`:sourceHtml}</section>`;
   }
   function render(){const root=document.getElementById('screen-academy');if(!root)return;const body=state.level==='quick'?quick():state.level==='guide'?guide():state.level==='context'?context():state.level==='books'?books():learn();root.innerHTML=`<div class="topbar"><div><div class="topbar-title">Progress Academy</div><div class="academy-subtitle">Metodyka planowania i nauka na podstawie własnych źródeł</div></div></div><main class="content academy-content"><header class="academy-hero"><span class="academy-eyebrow">Dla trenera</span><h1>Decyzje treningowe, krok po kroku.</h1><p>Szybka odpowiedź, przewodnik, analiza planu i nauka z książek.</p></header>${tabs()}<div class="academy-panel">${body}</div></main>`;}
