@@ -61,7 +61,7 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'exd_tab_preview.png') });
   ok('default tab preview', preview.tabSelected === 'true' && !preview.previewHidden && preview.biomechHidden && preview.manageHidden, JSON.stringify(preview));
-  ok('preview cta', /Użyj w builderze/.test(preview.cta), preview.cta);
+  ok('preview cta', /Dodaj do planu/.test(preview.cta), preview.cta);
   ok('preview without chaotic pills', preview.pills === 0, String(preview.pills));
 
   await page.click('#exd-tab-biomech');

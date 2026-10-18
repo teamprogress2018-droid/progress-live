@@ -3233,6 +3233,18 @@ async function savePlan(){
     notify(msg);
     return null;
   }
+  // Pusta jednostka obok innych z treningiem: klient dostałby pusty trening, więc pytamy.
+  // OK = zapisz te dni jako odpoczynek; Anuluj = wróć i uzupełnij ćwiczenia.
+  const emptyTrainingDays=days.filter(day=>!day.rest&&!(day.exercises||[]).length);
+  if(emptyTrainingDays.length&&!retry){
+    const names=emptyTrainingDays.map(day=>day.day).join(', ');
+    if(!window.confirm('Dni bez ćwiczeń: '+names+'.\n\nOK — zapisz je jako dni odpoczynku.\nAnuluj — wróć i dodaj ćwiczenia.')){
+      builderSaveStatus('Uzupełnij ćwiczenia w dniach: '+names+' albo oznacz je jako dzień odpoczynku.',true);
+      builderFocusEmptyTrainingDay();
+      return null;
+    }
+    emptyTrainingDays.forEach(day=>{day.rest=true;day.muscles='';day.sets=0;delete day.weekday;});
+  }
   // To nie jest błąd sam w sobie (np. wariant ciężki + techniczny), dlatego pytamy,
   // zamiast blokować zapis. Chroni to głównie przed przypadkowym podwójnym kliknięciem.
   const duplicateExercises=[];

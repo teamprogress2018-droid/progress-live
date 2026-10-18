@@ -776,7 +776,10 @@
 
   function manualPlanAnalyzeDays(days,profile){
     const muscleSets={},secondaryExposure={},frequency={},secondaryFrequency={},patterns={},resistanceProfiles={},lengthBiases={},duplicates=[],warnings=[],dayStats=[];
-    const active=(days||[]).filter(day=>day&&!day.rest);
+    // Jednostka liczy się do realizacji dopiero wtedy, gdy ma choć jedno ćwiczenie.
+    const hasExercise=day=>(day.exercises||[]).some(ex=>ex&&String(ex.name||'').trim());
+    const active=(days||[]).filter(day=>day&&!day.rest&&hasExercise(day));
+    const emptyDays=(days||[]).filter(day=>day&&!day.rest&&!hasExercise(day)).map(day=>day.day);
     let totalSets=0,totalExercises=0,estimatedSeconds=0;
     active.forEach((day,dayIndex)=>{
       const seen=new Set();
@@ -863,7 +866,7 @@
     warnings.filter(item=>item.type==='balans').forEach(()=>deductions.push({points:5,text:'Wyraźna przewaga pchania lub przyciągania do potwierdzenia.'}));
     if(unknown)deductions.push({points:Math.min(15,unknown*3),text:'Część ćwiczeń nie została rozpoznana przez bibliotekę.'});
     const score=Math.max(0,100-deductions.reduce((sum,item)=>sum+item.points,0));
-    return {totalSets,totalExercises,muscleSets,secondaryExposure,frequency,secondaryFrequency,patterns,resistanceProfiles,lengthBiases,biomechHints,coverage,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,dayStats};
+    return {totalSets,totalExercises,muscleSets,secondaryExposure,frequency,secondaryFrequency,patterns,resistanceProfiles,lengthBiases,biomechHints,coverage,duplicates,warnings,deductions,score,estimatedMinutes:Math.round(estimatedSeconds/60),averageMinutes,activeDays:active.length,emptyDays,dayStats};
   }
 
   function manualPlanBuilderDays(){
@@ -977,6 +980,7 @@
     if(meta.progression&&meta.progression.type)complete.push('ustalona progresja');else suggestions.push({level:'warning',text:'Brak zdefiniowanej zasady progresji.'});
     if(meta.intensity&&meta.intensity.mode)complete.push('określona intensywność');else suggestions.push({level:'warning',text:'Brak sposobu sterowania intensywnością.'});
     if(result.activeDays)complete.push(`${result.activeDays} jednostki do realizacji`);else suggestions.push({level:'high',text:'Dodaj co najmniej jedną jednostkę z ćwiczeniami przed zapisem.'});
+    if(result.emptyDays&&result.emptyDays.length)suggestions.push({level:'high',text:'Dni bez ćwiczeń: '+result.emptyDays.join(', ')+'. Dodaj ćwiczenia albo oznacz je jako dzień odpoczynku — inaczej klient dostanie pusty trening.'});
     if(result.activeDays&&profile.sessionsPerWeek&&result.activeDays!==Number(profile.sessionsPerWeek))suggestions.push({level:'info',text:`Zbudowano ${result.activeDays} jednostki, a profil zakłada ${profile.sessionsPerWeek} treningów tygodniowo. Potwierdź, że to zamierzone.`});
     (result.warnings||[]).forEach(item=>suggestions.push(item));
     const advanced=(meta.trainingMethods||[]).filter(method=>['drop_set','rest_pause','myo_reps','cluster_set','top_set_backoff','reverse_pyramid','amrap'].includes(method));
