@@ -136,6 +136,8 @@ function ok(name, cond, extra) {
   ok('bieznia finds Bieżnia', biez.items.includes('Bieżnia'), JSON.stringify(biez));
 
   await page.evaluate(() => {
+    // Wyjście z kreatora z niezapisanymi zmianami wymaga potwierdzenia — tu świadomie je pomijamy.
+    window._builderNavigationConfirmed = true;
     if (typeof goTo === 'function') goTo('library');
     if (typeof renderLib === 'function') renderLib();
   });

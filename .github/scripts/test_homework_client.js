@@ -70,7 +70,7 @@ function ok(name, cond, extra) {
 ok('isHomework kind', ctx.isHomework({ kind: 'homework' }));
 ok('isHomework odWorkoutId', ctx.isHomework({ odWorkoutId: 'ow2' }));
 ok('isOneShot excludes homework', !ctx.isOneShot({ kind: 'homework', odWorkoutId: 'ow2' }));
-ok('nav has homework', ctx.capLiveNavScreens().some((s) => s.id === 'homework'));
+ok('nav has homework', [...ctx.capLiveNavScreens(), ...ctx.capLiveMoreScreens()].some((s) => s.id === 'homework'));
 
 ctx.ensureODWorkouts();
 const w = ctx.allODWorkouts().find((x) => x.id === 'ow2');
@@ -112,7 +112,7 @@ const prog = ctx.capClientProgressScreenHTML({ id: 'c1', name: 'Test' }, '#ff3b3
 ok('progress lists homework rpe', /Zadania domowe/.test(prog) && /RPE 8/.test(prog));
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-ok('cache 01/04/09/10', indexHtml.includes('01-core.js?v=132') && indexHtml.includes('04-client-portal.js?v=61') && indexHtml.includes('09-posture-kb-invites-private.js?v=56') && indexHtml.includes('10-client-app.js?v=43'));
+ok('cache 01/04/09/10', indexHtml.includes('01-core.js?v=132') && indexHtml.includes('04-client-portal.js?v=61') && indexHtml.includes('09-posture-kb-invites-private.js?v=56') && indexHtml.includes('10-client-app.js?v=44'));
 ok('CI guide ui', wf.includes('test_homework_guide_ui.js'));
 
 if (failed) {

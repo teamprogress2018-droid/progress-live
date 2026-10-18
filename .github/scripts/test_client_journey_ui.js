@@ -56,6 +56,17 @@ const CLIENTS = [
   await page.goto('http://127.0.0.1:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof liveSelectPlan === 'function' && typeof renderLiveExercises === 'function');
 
+  // Postęp (Ostatnio / Dzisiaj / Sugestia) jest w rozwijanym bloku „Szczegóły ćwiczenia”.
+  // Symulujemy trenera, który ma ten blok rozwinięty, także po każdym przerysowaniu.
+  await page.evaluate(() => {
+    const render = window.renderLiveExercises;
+    window.renderLiveExercises = function () {
+      const out = render.apply(this, arguments);
+      document.querySelectorAll('.live-ex-more-details').forEach((d) => { d.open = true; });
+      return out;
+    };
+  });
+
   await page.evaluate(({ CLIENTS }) => {
     window._uid = 'journey-trainer';
     window._clientAppMode = false;

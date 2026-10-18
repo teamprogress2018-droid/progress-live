@@ -106,7 +106,8 @@ function ok(name, cond, extra) {
   ok('snapshot wired', seeded.snap && seeded.snap.clientId === 'c1' && seeded.snap.facts, JSON.stringify(seeded.snap && seeded.snap.facts));
   if(await page.locator('#dash-simple-toggle').getAttribute('aria-pressed')!=='true')await page.locator('#dash-simple-toggle').click();
   ok('simple view hides extra statistics', !(await page.locator('#d-kpi-row').isVisible()));
-  ok('simple view keeps today and attention', await page.locator('#dash-today-focus').isVisible() && await page.locator('#dash-ops-attention').isVisible());
+  // Widok prosty pokazuje start dnia i „Wymagają uwagi”; pasek DZISIAJ jest w widoku pełnym.
+  ok('simple view keeps attention', !(await page.locator('#dash-today-focus').isVisible()) && await page.locator('#dash-ops-attention').isVisible());
   await page.locator('#dash-simple-toggle').click();
   const fullOrder = await page.evaluate(() => ['dash-today-focus','d-kpi-row','dash-ops-attention'].map(id=>{
     const el=document.getElementById(id);
@@ -115,6 +116,8 @@ function ok(name, cond, extra) {
   ok('full view order today then kpi then attention', fullOrder.every(x=>x.visible) && fullOrder[0].top<=fullOrder[1].top && fullOrder[1].top<=fullOrder[2].top, JSON.stringify(fullOrder));
   if(await page.locator('#dash-simple-toggle').getAttribute('aria-pressed')!=='true')await page.locator('#dash-simple-toggle').click();
   ok('return to simple view hides statistics', !(await page.locator('#d-kpi-row').isVisible()));
+  // Kafelki paska DZISIAJ klikamy w widoku pełnym, gdzie są widoczne.
+  await page.locator('#dash-simple-toggle').click();
 
   await page.click('[data-dash-focus="attention"]');
   await page.waitForTimeout(400);

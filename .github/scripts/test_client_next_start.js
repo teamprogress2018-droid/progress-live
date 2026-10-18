@@ -5,9 +5,9 @@ const code=src.slice(src.indexOf('function clientNextStartStep('),src.indexOf('f
 let status={next:'intake',done:1,total:7,complete:false},pending=null,calls=[];
 const c={id:"client'1",name:'Klient'};
 const ctx={window:{CL:[c]},clientOnboardStatus:()=>status,clientIntakeFormState:()=>({pending})};
-for(const name of ['openInviteFromOnboard','openClientProfileFromOnboard','openFormsLibraryFromOnboard','openClientBaselineModal','openClientScheduleFromOnboard','openAiPlanForClient','openClientOnboardChecklist'])ctx[name]=(...args)=>calls.push([name,...args]);
+for(const name of ['openInviteFromOnboard','openClientProfileFromOnboard','openFormsLibraryFromOnboard','openClientBaselineModal','openClientScheduleFromOnboard','openAiPlanForClient','openClientPlanChoice','openClientOnboardChecklist'])ctx[name]=(...args)=>calls.push([name,...args]);
 vm.createContext(ctx);vm.runInContext(code,ctx);
-const routes={invite:'openInviteFromOnboard',intake:'openFormsLibraryFromOnboard',baseline:'openClientBaselineModal',schedule:'openClientScheduleFromOnboard',plan:'openAiPlanForClient',calendar:'openClientOnboardChecklist',package:'openClientOnboardChecklist'};
+const routes={invite:'openInviteFromOnboard',intake:'openFormsLibraryFromOnboard',baseline:'openClientBaselineModal',schedule:'openClientScheduleFromOnboard',plan:'openClientPlanChoice',calendar:'openClientOnboardChecklist',package:'openClientOnboardChecklist'};
 for(const [key,route] of Object.entries(routes)){
   status.next=key;calls=[];const next=ctx.clientNextStartStep(c);
   assert(next.label&&next.why&&next.key===key);

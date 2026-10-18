@@ -35,13 +35,14 @@ ok('calendar refill loaded once', names.filter((n) => n === 'calendar-refill.js'
 ok('calendar refill follows the calendar builder', names.indexOf('calendar-refill.js') === names.indexOf('05-clients-builder-plans-calendar.js') + 1);
 const expected = [
   'ex-gif-manifest.js', 'ex-photo-manifest.js',
-  '01-core.js', '02-workouts-onboarding-templates-live.js', '03-ai-plangen-bizstats-aicoach.js',
-  '04-client-portal.js', 'client-card-save.js', '05-clients-builder-plans-calendar.js', 'calendar-refill.js', 'package-save.js',
+  '01-core.js', '11-muscle-biomechanics-kb.js', '02-workouts-onboarding-templates-live.js', 'books-kb.js', '03-ai-plangen-bizstats-aicoach.js',
+  '04-client-portal.js', 'client-card-save.js', 'dashboard-home.js', '05-clients-builder-plans-calendar.js', 'calendar-refill.js', 'package-save.js',
   '06-inbox-exercises-ai-programs.js', '07-forms-metrics-calculator.js', '08-client-profile-extras.js',
-  '09-posture-kb-invites-private.js', '10-client-app.js'
+  '09-posture-kb-invites-private.js', '10-client-app.js', '12-manual-plan-wizard.js', '13-budget-bridge.js'
 ];
-ok('exactly 15 expected app scripts in dependency order', JSON.stringify(names) === JSON.stringify(expected), 'got ' + names.length + ': ' + names.join(','));
-const moreTail = html.slice(html.lastIndexOf('data-screen="settings"'), html.indexOf('id="private-bar"'));
+ok('exactly 20 expected app scripts in dependency order', JSON.stringify(names) === JSON.stringify(expected), 'got ' + names.length + ': ' + names.join(','));
+const settingsAt = html.lastIndexOf('data-screen="settings"');
+const moreTail = html.slice(settingsAt, html.indexOf('</nav>', settingsAt));
 ok('nav-more single close before nav', (moreTail.match(/<\/div>/g) || []).length === 1, moreTail.replace(/\s+/g, ' ').slice(0, 160));
 
 const root = path.join(__dirname, '../..');

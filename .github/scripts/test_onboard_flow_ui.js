@@ -264,7 +264,9 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(700);
   ok('back from live→AI', await page.locator('#m-client-onboard.show').isVisible());
 
-  await page.click('#client-onboard-steps button:has-text("Szablon / kreator")');
+  // Krok planu otwiera okno wyboru: Generator AI / Plan krok po kroku / Klasyczny kreator.
+  await page.click('#client-onboard-steps button:has-text("Wybierz sposób")');
+  await page.click('#m-client-plan-choice button:has-text("Klasyczny kreator")');
   await page.waitForTimeout(350);
   const builder = await page.evaluate(() => {
     const screen = document.getElementById('screen-builder');
@@ -282,7 +284,8 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(700);
   ok('back from builder', await page.locator('#m-client-onboard.show').isVisible());
 
-  await page.click('#client-onboard-steps button:has-text("Plan AI")');
+  await page.click('#client-onboard-steps button:has-text("Wybierz sposób")');
+  await page.click('#m-client-plan-choice button:has-text("Generator AI")');
   await page.waitForTimeout(400);
   const apl = await page.evaluate(() => {
     const screen = document.getElementById('screen-aiplangen');

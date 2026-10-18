@@ -23,7 +23,7 @@ ok('eduTipMark helper',core.includes('function eduTipMark')&&core.includes('wind
 ok('hydrateEduTips',core.includes('function hydrateEduTips'));
 ok('css edu-tip',css.includes('.edu-tip')&&css.includes('attr(data-tip)'));
 ok('builder method tip',html.includes('b-method-tip-btn')&&html.includes('b-method-hint'));
-ok('builder headers tips',src05.includes("tip('sets')")&&src05.includes("tip('rpe')")&&src05.includes("tip('rir')"));
+ok('builder headers tips',src05.includes("tip('sets')")&&src05.includes("tip('rir')")&&src05.includes("title=\"'+t('rpe')+'\""));
 ok('addRow titles',src05.includes("t('sets')")&&src05.includes("t('rpe')"));
 ok('apl method tip',html.includes('data-edu="method"')&&html.includes('data-edu="days"'));
 ok('template tips',src02.includes('data-edu="goal"')&&src02.includes('data-edu="method"'));
@@ -45,7 +45,7 @@ ok('rpe mentions RIR',/RIR|RPE/.test(sandbox.eduTipText('rpe')));
 ok('method dynamic',sandbox.eduTipText('method',{method:'PPL'}).includes('Push'));
 ok('mark has data-tip',sandbox.eduTipMark('sets').includes('data-tip=')&&sandbox.eduTipMark('sets').includes('edu-tip'));
 
-ok('cache bumps',html.includes('01-core.js?v=132')&&html.includes('05-clients-builder-plans-calendar.js?v=101')&&html.includes('styles.css?v=158'));
+ok('cache bumps',html.includes('01-core.js?v=132')&&html.includes('05-clients-builder-plans-calendar.js?v=102')&&html.includes('styles.css?v=158'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll edu-tooltips tests passed');

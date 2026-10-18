@@ -40,7 +40,7 @@ ok('live circuit rest', live.includes('Stacja →') && live.includes('przejścia
 ok('live uses restSecAfterSet', live.includes('restSecAfterSet'));
 ok('live has custom rest parser', live.includes('parseLiveRestCustomSec'));
 ok('live has custom rest starter', live.includes('function liveStartRestCustom'));
-ok('live shows coach note without film toggle', /live-ex-todo/.test(live) && /live-ex-note/.test(live) && /livePolishCoachNote/.test(live) && /liveSetExTodo/.test(live) && /coachMediaHtml\(ex,\{showVideo:true,caption:false/.test(live));
+ok('live shows coach note without film toggle', /live-ex-todo/.test(live) && /live-ex-note/.test(live) && /livePolishCoachNote/.test(live) && /liveSetExTodo/.test(live) && /coachMediaHtml\((ex|media),\{showVideo:true,caption:false/.test(live));
 ok('client shows per-ex todo', /cw-ex-todo/.test(client) && /Do zrobienia/.test(client));
 ok('core exerciseTodoNote', /function exerciseTodoNote\(/.test(core));
 ok('client uses setKindBadge', client.includes('setKindBadge'));

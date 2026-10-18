@@ -77,6 +77,8 @@ function ok(name, cond, extra) {
   ok('todo label Do zrobienia', state.todoLabel);
   ok('todo filled from library tip', !!state.todoVal, state.todoVal);
 
+  // Zamienniki są w rozwinięciu „Więcej” wiersza ćwiczenia.
+  await page.click('.ex-row .builder-row-more');
   await page.click('.builder-alt-toggle');
   const opened = await page.evaluate(() => {
     const box = document.querySelector('.builder-alt-box');
