@@ -1,0 +1,6945 @@
+{
+ "meta": {
+  "base": "anatomia-fizjologia-thompson",
+  "version": "1.0",
+  "date": "2026-10-17",
+  "language": "pl",
+  "statusValues": [
+   "zrodlo",
+   "wniosek",
+   "brak_w_zrodle",
+   "poza_zrodlem"
+  ],
+  "pageConvention": "drukowane numery stron; PDF = druk + 17",
+  "note": "Podręcznik anatomii i fizjologii, nie treningu. Parametry treningowe przeważnie null. Wartość bazy: funkcje mięśni → wzorce ruchowe → ćwiczenia (anatomyRules, exerciseRules), fizjologia wysiłku (physiologyRules), bezpieczeństwo (safetyRules)."
+ },
+ "principles": [
+  {
+   "id": "P1",
+   "title": "Siła wymaga treningu oporowego; wytrzymałość jej nie zbuduje",
+   "rule": "Trening wytrzymałościowy (bieg, rower, pływanie) uczy mięśnie opierać się zmęczeniu, ale nie zwiększa istotnie siły. Wzrost siły i masy wymaga pracy przeciw oporowi (np. ciężary). Optymalny program łączy oba rodzaje treningu, bo dają różne efekty.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak parametrów: ile serii, jaki ciężar, ile minut cardio"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "P2",
+   "title": "Hipertrofia: uszkodzenie i naprawa oraz synteza miofilamentów",
+   "rule": "Intensywny wysiłek oporowy lekko uszkadza włókna; podczas naprawy włókna się powiększają (hipertrofia). Druga wersja w tym samym rozdziale: praca przeciw obciążeniu pobudza syntezę miofilamentów, miofibryle grubieją i jest ich więcej, więc mięsień jest większy i silniejszy.",
+   "appliesTo": [
+    "cel: hipertrofia",
+    "cel: siła"
+   ],
+   "conditions": [
+    "wymagany bodziec oporowy o odpowiedniej intensywności"
+   ],
+   "limitations": [
+    "książka nie podaje, jaka intensywność/objętość wystarcza",
+    "dwa opisy mechanizmu (s. 141 i s. 153) uzupełniają się; nie są sprzeczne"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "P3",
+   "title": "Brak użycia = zanik mięśni i kości",
+   "rule": "Nieużywane mięśnie kurczą się (atrofia). Bez obciążenia kości (unieruchomienie, leżenie, nieważkość) utrata kości przewyższa jej tworzenie.",
+   "appliesTo": [
+    "wszyscy",
+    "osoby po przerwie",
+    "osoby unieruchomione",
+    "seniorzy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak czasu, po jakim zanik staje się istotny"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "P4",
+   "title": "Obciążenie buduje kość",
+   "rule": "Gdy rośnie obciążenie kości, osteocyty pobudzają tworzenie nowej tkanki. Ćwiczenia z obciążeniem masą ciała, zwłaszcza podnoszenie ciężarów, są idealne dla osób zagrożonych osteoporozą. Chodzenie też jest wysiłkiem obciążającym kości. Beleczki kości spongiozowej układają się wzdłuż linii największych naprężeń i przestawiają się, gdy naprężenia się zmieniają.",
+   "appliesTo": [
+    "ryzyko osteoporozy",
+    "kobiety po menopauzie",
+    "seniorzy",
+    "wszyscy"
+   ],
+   "conditions": [
+    "przy rozpoznanej osteoporozie najpierw zgoda lekarza (POZA ŹRÓDŁEM)"
+   ],
+   "limitations": [
+    "brak dawki: ile, jak ciężko, jak często",
+    "książka nie opisuje bezpiecznych ćwiczeń przy już rozpoznanej osteoporozie"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "86"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "87"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "P5",
+   "title": "Ruch odżywia chrząstkę; rozgrzewka ją chroni",
+   "rule": "Chrząstka stawowa nie ma naczyń; tlen i składniki pobiera z mazi stawowej. Cykl ucisku i odciążenia podczas ćwiczeń przepompowuje maź przez chrząstkę. Bez ruchu chrząstka niszczy się szybciej. Rozgrzewka przed intensywnym wysiłkiem zmniejsza lepkość mazi, chrząstka nasiąka i lepiej amortyzuje.",
+   "appliesTo": [
+    "wszyscy",
+    "osoby z chorobą zwyrodnieniową (po konsultacji)"
+   ],
+   "conditions": [
+    "rozgrzewka przed intensywnym wysiłkiem"
+   ],
+   "limitations": [
+    "brak protokołu rozgrzewki (czas, ćwiczenia)",
+    "'may help' – autorka pisze ostrożnie"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "62"
+    }
+   ]
+  },
+  {
+   "id": "P6",
+   "title": "Systemy energetyczne zależą od czasu i intensywności",
+   "rule": "Zapas ATP w mięśniu wystarcza na kilka sekund. Fosfokreatyna (CP) daje paliwo na ok. 20 s wysiłku o wysokiej intensywności lub ok. 1 min umiarkowanego. Potem przeważa beztlenowy rozpad glukozy (szybki, ale z mleczanem i zmęczeniem). Po ok. 10 min umiarkowanego wysiłku serce i płuca dostarczają dość tlenu i mięśnie wracają do przemian tlenowych. W spoczynku mięśnie spalają głównie kwasy tłuszczowe.",
+   "appliesTo": [
+    "planowanie interwałów",
+    "dobór czasu serii",
+    "trening wytrzymałościowy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "książka nie przekłada tego na przerwy między seriami ani strefy tętna",
+    "opis 'mleczan powoduje zmęczenie i pieczenie' to uproszczenie dydaktyczne (POZA ŹRÓDŁEM: traktować ostrożnie)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "140"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "419"
+    }
+   ]
+  },
+  {
+   "id": "P7",
+   "title": "Dwa typy włókien: wolnokurczliwe i szybkokurczliwe",
+   "rule": "Włókna typu I (wolnokurczliwe) mają dużo mitochondriów i dobre ukrwienie, długo pracują bez zmęczenia (przewaga u maratończyków). Włókna typu II (szybkokurczliwe) dają krótkie zrywy szybkości i siły, ale szybko się męczą (przewaga u sprinterów). Trening wytrzymałościowy zwiększa liczbę mitochondriów, glikogen i ukrwienie włókien wolnokurczliwych.",
+   "appliesTo": [
+    "dobór charakteru treningu do celu"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak informacji, czy proporcje włókien można zmienić treningiem",
+    "brak przełożenia na zakresy powtórzeń"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "137"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "P8",
+   "title": "Siłę skurczu reguluje rekrutacja i częstotliwość pobudzeń",
+   "rule": "Silniejszy bodziec nerwowy angażuje więcej jednostek motorycznych (rekrutacja), więc skurcz jest silniejszy. Częstsze impulsy sumują skurcze (schodki/treppe, tężec niezupełny). Jednostki motoryczne pracują na zmianę, żeby mięsień mógł działać dłużej. Siła zależy też od wielkości mięśnia i stopnia rozciągnięcia.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "WNIOSEK: większe obciążenia wymagają rekrutacji większej liczby jednostek; książka nie mówi tego w kontekście treningu"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "137"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "138"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "139"
+    }
+   ]
+  },
+  {
+   "id": "P9",
+   "title": "Zależność długość–napięcie",
+   "rule": "Włókno generuje największe napięcie przy pośredniej (optymalnej) długości; zarówno nadmiernie skrócone, jak i nadmiernie rozciągnięte jest słabsze. Wykres: ok. 100% napięcia przy ok. 100% długości spoczynkowej, wyraźny spadek poniżej ok. 70% i powyżej ok. 130%.",
+   "appliesTo": [
+    "dobór zakresu ruchu",
+    "rozumienie słabych punktów ruchu"
+   ],
+   "conditions": [],
+   "limitations": [
+    "WNIOSEK: w skrajnych pozycjach zakresu mięsień jest słabszy, co tłumaczy 'martwe punkty'; książka tego nie wiąże z ćwiczeniami",
+    "wartości z wykresu odczytane na oko"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "136"
+    }
+   ]
+  },
+  {
+   "id": "P10",
+   "title": "Mięśnie pracują w zespołach: agonista, synergista, antagonista",
+   "rule": "Główny wykonawca (prime mover) wywołuje ruch, synergiści pomagają, antagonista się rozluźnia i kontroluje prędkość oraz zakres ruchu, chroniąc staw. Agonista jednego ruchu jest antagonistą ruchu przeciwnego (np. mięsień ramienny i dwugłowy zginają łokieć, trójgłowy go prostuje).",
+   "appliesTo": [
+    "dobór ćwiczeń",
+    "równowaga partii"
+   ],
+   "conditions": [],
+   "limitations": [
+    "WNIOSEK dla Progress Live: planuj pary ruchów przeciwnych (pchanie–ciąganie, zgięcie–wyprost); książka nie formułuje takiej reguły treningowej"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    }
+   ]
+  },
+  {
+   "id": "P11",
+   "title": "Skurcz izometryczny i izotoniczny",
+   "rule": "Izometryczny: napięcie rośnie, długość się nie zmienia (ciągnięcie za nieruchomy uchwyt). Izotoniczny: mięsień zmienia długość i przesuwa ciężar; przy podnoszeniu sztangi biceps się skraca, przy opuszczaniu wydłuża.",
+   "appliesTo": [
+    "dobór typu ćwiczeń (statyczne vs dynamiczne)"
+   ],
+   "conditions": [],
+   "limitations": [
+    "książka nie używa pojęć koncentryczny/ekscentryczny i nie porównuje ich efektów",
+    "brak zaleceń czasu napięcia"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "139"
+    }
+   ]
+  },
+  {
+   "id": "P12",
+   "title": "Ruchomość kosztem stabilności (bark) i stabilność kosztem ruchomości (biodro)",
+   "rule": "Bark ma największy zakres ruchu w ciele i jest bardziej ruchomy niż stabilny; najczęściej ulega zwichnięciu (zwykle w dół). Biodro to też staw kulisty, ale stabilniejszy, bo panewka jest głęboka. Kolano ma mało otaczających mięśni, więc jest kontuzjowane częściej niż biodro.",
+   "appliesTo": [
+    "dobór ćwiczeń nad głową",
+    "ćwiczenia z rotacją i nagłym hamowaniem"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak wskazówek technicznych"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "124"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "125"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  },
+  {
+   "id": "P13",
+   "title": "Słabo ukrwione tkanki goją się wolno",
+   "rule": "Ścięgna i więzadła (tkanka łączna zbita) mają mało naczyń, więc ich urazy goją się wolno. Chrząstka nie ma naczyń: goi się bardzo wolno lub wcale. Kość jest dobrze ukrwiona i goi się szybko; zwykłe złamania w 8–12 tygodni, dłużej u seniorów i przy złym odżywieniu. Mięśnie i nerwy regenerują się słabo i goją przez bliznowacenie (zwłóknienie).",
+   "appliesTo": [
+    "powrót po urazie",
+    "progresja obciążeń"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak protokołów powrotu do treningu"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "61"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "62"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "65"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "92"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "125"
+    }
+   ]
+  },
+  {
+   "id": "P14",
+   "title": "Serce przy wysiłku: rzut = tętno × objętość wyrzutowa",
+   "rule": "Rzut serca (ok. 5–6 l/min w spoczynku) rośnie z aktywnością. Wysiłek pobudza ośrodek przyspieszający; proprioceptory w mięśniach i stawach sygnalizują ruch, więc serce przyspiesza jeszcze zanim mięśnie zażądają krwi. Wytrenowane serce ma większą objętość wyrzutową, dlatego sportowcy mają wolniejsze tętno. Szybsze tętno skraca napełnianie komór (mniejsza objętość wyrzutowa).",
+   "appliesTo": [
+    "trening wytrzymałościowy",
+    "monitorowanie tętna"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak stref tętna, brak wzorów na HRmax"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "285"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "286"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "287"
+    }
+   ]
+  },
+  {
+   "id": "P15",
+   "title": "Ciśnienie rośnie w czasie wysiłku i spada po nim",
+   "rule": "Gdy serce pracuje mocniej (wysiłek), rośnie rzut i ciśnienie; po zakończeniu wysiłku ciśnienie spada. W czasie wysiłku zwieracze przedwłośniczkowe w mięśniach się otwierają, a układ współczulny rozszerza naczynia mięśni szkieletowych.",
+   "appliesTo": [
+    "osoby z nadciśnieniem",
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak liczb dla ciśnienia wysiłkowego"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "297"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "307"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "193"
+    }
+   ]
+  },
+  {
+   "id": "P16",
+   "title": "Ruch poprawia układ oddechowy i krążenia",
+   "rule": "Regularny wysiłek rozwija mięśnie oddechowe i zwiększa pojemność życiową; ćwiczenia i joga pomagają ją zwiększyć. Wysiłek wytrzymałościowy pobudza wzrost naczyń w mięśniach, zwiększa liczbę krwinek czerwonych i usprawnia układ krążenia, oddechowy i nerwowy. Regularny wysiłek sprzyja rozwojowi krążenia obocznego w sercu.",
+   "appliesTo": [
+    "zdrowie",
+    "seniorzy",
+    "osoby z chorobą wieńcową (po zgodzie lekarza)"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak dawki"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "350"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "281"
+    }
+   ]
+  },
+  {
+   "id": "P17",
+   "title": "Bilans energetyczny i masa mięśniowa",
+   "rule": "Masa ciała rośnie, gdy podaż energii przewyższa wydatek, i spada przy odwrotnym bilansie. Nadwyżka ok. 3500 kcal daje ok. 1 funt (0,45 kg) tłuszczu. Więcej mięśni i większe ciało = większy wydatek; z wiekiem masa mięśniowa spada i metabolizm zwalnia. Mięśnie szkieletowe odpowiadają za ok. 22% wydatku energii w spoczynku.",
+   "appliesTo": [
+    "cel: redukcja",
+    "seniorzy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "reguła 3500 kcal to przybliżenie (WNIOSEK); brak tempa redukcji"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "411"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "412"
+    }
+   ]
+  },
+  {
+   "id": "P18",
+   "title": "Kilka minut dziennie, kilka razy w tygodniu",
+   "rule": "Jedyne zdanie o dawce: kilka minut dziennie, kilka razy w tygodniu wystarcza, by pobudzić wzrost mięśni (trening oporowy).",
+   "appliesTo": [
+    "początkujący",
+    "cel: zdrowie"
+   ],
+   "conditions": [],
+   "limitations": [
+    "zdanie ogólnikowe, bez źródła, bez liczby serii i obciążenia; nie używać jako jedynej podstawy planu"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "P19",
+   "title": "Wysiłek w cieple: płyny i elektrolity",
+   "rule": "Pot przy intensywnym wysiłku lub upale może sięgać 1 litra na godzinę; niewyrównany prowadzi do odwodnienia, a nawet wstrząsu. Odwodnienie dotyka krwi, tkanek i komórek. Uzupełnianie dużych strat potu samą wodą może obniżyć sód (zatrucie wodne). Seniorzy mają słabsze pragnienie i gorszą termoregulację.",
+   "appliesTo": [
+    "trening w upale",
+    "długie sesje",
+    "seniorzy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "brak zaleceń ilości płynów na trening"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 5 Integumentary System",
+     "pages": "77"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "375"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "376"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "377"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "424"
+    }
+   ]
+  },
+  {
+   "id": "P20",
+   "title": "Starzenie: spadek mięśni, kości, wrażliwości na insulinę",
+   "rule": "Po ok. 40 r.ż. utrata kości rośnie, a tworzenie zwalnia. Spada wydzielanie hormonu wzrostu (mniej mięśni, więcej tłuszczu). Po 50 r.ż. komórki są mniej wrażliwe na insulinę (powolny wzrost glikemii na czczo). Maleje sprawność oddechowa i zdolność do intensywnego wysiłku, refleks i czucie, termoregulacja.",
+   "appliesTo": [
+    "seniorzy",
+    "klienci 40+"
+   ],
+   "conditions": [],
+   "limitations": [
+    "książka nie łączy tych zmian z zaleceniami treningu poza P3/P4"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "242"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "343"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "199"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "424"
+    }
+   ]
+  }
+ ],
+ "exerciseRules": [
+  {
+   "id": "E1",
+   "category": "wzorzec ruchowy",
+   "pattern": "przysiad",
+   "rule": "Zgięcie i wyprost biodra i kolana, zgięcie grzbietowe w stawie skokowym. Wyprost kolana: czworogłowy (główny wykonawca); wyprost biodra: pośladkowy wielki i kulszowo-goleniowe; przywodziciele pomagają.",
+   "muscles": [
+    "czworogłowy uda",
+    "pośladkowy wielki",
+    "kulszowo-goleniowe",
+    "przywodziciele"
+   ],
+   "exercises": [
+    {
+     "name": "przysiad z masą ciała",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "przysiad goblet z hantlem/kettlem",
+     "equipment": "hantel/kettlebell",
+     "level": "początkujący"
+    },
+    {
+     "name": "przysiad ze sztangą",
+     "equipment": "sztanga, stojak",
+     "level": "średni/zaawansowany"
+    },
+    {
+     "name": "wypychanie na suwnicy (leg press)",
+     "equipment": "maszyna",
+     "level": "każdy"
+    }
+   ],
+   "substitutes": [
+    "siad na krzesło i wstawanie (box squat)",
+    "leg press przy problemie z utrzymaniem tułowia"
+   ],
+   "status": "wniosek",
+   "note": "nazwy ruchów i mięśni ze źródła; zestawienie we wzorzec i ćwiczenia to WNIOSEK",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "E2",
+   "category": "wzorzec ruchowy",
+   "pattern": "zawias biodrowy (hip hinge)",
+   "rule": "Wyprost biodra przy niewielkim zgięciu kolan: pośladkowy wielki i kulszowo-goleniowe. Tułów stabilizują mięśnie ściany brzucha (i nienazwane w książce mięśnie grzbietu).",
+   "muscles": [
+    "pośladkowy wielki",
+    "kulszowo-goleniowe",
+    "ściana brzucha (stabilizacja)"
+   ],
+   "exercises": [
+    {
+     "name": "most biodrowy",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "hip thrust",
+     "equipment": "sztanga/ławka",
+     "level": "średni"
+    },
+    {
+     "name": "martwy ciąg rumuński",
+     "equipment": "sztanga/hantle",
+     "level": "średni"
+    },
+    {
+     "name": "martwy ciąg klasyczny",
+     "equipment": "sztanga",
+     "level": "średni/zaawansowany"
+    },
+    {
+     "name": "swing z kettlebell",
+     "equipment": "kettlebell",
+     "level": "średni"
+    }
+   ],
+   "substitutes": [
+    "most biodrowy zamiast martwego ciągu przy bólu krzyża (WNIOSEK; mniejsze obciążenie krążków)"
+   ],
+   "caution": [
+    "przepuklina krążka: nagły, duży nacisk np. przy podnoszeniu ciężaru 'plecami zamiast nogami' (s. 107)"
+   ],
+   "status": "wniosek",
+   "note": "książka nie opisuje mięśni prostowników grzbietu",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "107"
+    }
+   ]
+  },
+  {
+   "id": "E3",
+   "category": "wzorzec ruchowy",
+   "pattern": "wykrok / jednonóż / wejście na podwyższenie",
+   "rule": "Jak przysiad, plus stabilizacja miednicy w płaszczyźnie czołowej przez odwodziciele (pośladkowy średni i mały). Pośladkowy wielki daje większość mocy przy wchodzeniu po schodach.",
+   "muscles": [
+    "czworogłowy",
+    "pośladkowy wielki",
+    "pośladkowy średni/mały",
+    "przywodziciele"
+   ],
+   "exercises": [
+    {
+     "name": "wejścia na skrzynię (step-up)",
+     "equipment": "skrzynia/stopień",
+     "level": "początkujący"
+    },
+    {
+     "name": "wykroki w tył",
+     "equipment": "brak/hantle",
+     "level": "początkujący"
+    },
+    {
+     "name": "przysiad bułgarski",
+     "equipment": "ławka, hantle",
+     "level": "średni"
+    }
+   ],
+   "substitutes": [
+    "wejścia na schody jako wersja funkcjonalna dla seniorów"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "E4",
+   "category": "wzorzec ruchowy",
+   "pattern": "pchanie poziome",
+   "rule": "Zgięcie i przywodzenie ramienia (piersiowy większy), wyprost łokcia (trójgłowy), wysunięcie łopatki (zębaty przedni – 'napędza wszystkie ruchy pchania'), część przednia naramiennego.",
+   "muscles": [
+    "piersiowy większy",
+    "trójgłowy",
+    "zębaty przedni",
+    "naramienny"
+   ],
+   "exercises": [
+    {
+     "name": "pompki przy ścianie / na podwyższeniu",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "pompki",
+     "equipment": "brak",
+     "level": "początkujący/średni"
+    },
+    {
+     "name": "wyciskanie hantli leżąc",
+     "equipment": "hantle, ławka",
+     "level": "każdy"
+    },
+    {
+     "name": "wyciskanie sztangi leżąc",
+     "equipment": "sztanga, ławka",
+     "level": "średni"
+    },
+    {
+     "name": "wyciskanie na maszynie",
+     "equipment": "maszyna",
+     "level": "początkujący"
+    }
+   ],
+   "substitutes": [
+    "pompki ↔ wyciskanie hantli ↔ wyciskanie na maszynie (ten sam wzorzec)"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "E5",
+   "category": "wzorzec ruchowy",
+   "pattern": "pchanie pionowe",
+   "rule": "Odwodzenie i zgięcie ramienia (naramienny), wyprost łokcia (trójgłowy), stabilizacja i unoszenie łopatki (czworoboczny, zębaty przedni).",
+   "muscles": [
+    "naramienny",
+    "trójgłowy",
+    "czworoboczny",
+    "zębaty przedni",
+    "stożek rotatorów (stabilizacja)"
+   ],
+   "exercises": [
+    {
+     "name": "wyciskanie hantli nad głowę siedząc",
+     "equipment": "hantle",
+     "level": "początkujący"
+    },
+    {
+     "name": "wyciskanie żołnierskie",
+     "equipment": "sztanga",
+     "level": "średni"
+    },
+    {
+     "name": "pompki pike",
+     "equipment": "brak",
+     "level": "średni"
+    },
+    {
+     "name": "landmine press",
+     "equipment": "sztanga w uchwycie",
+     "level": "każdy"
+    }
+   ],
+   "substitutes": [
+    "landmine press lub wyciskanie skośne przy dolegliwościach barku przy pełnym uniesieniu (WNIOSEK)"
+   ],
+   "caution": [
+    "powtarzalna praca nad głową może uszkodzić stożek rotatorów (s. 147)"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "145"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    }
+   ]
+  },
+  {
+   "id": "E6",
+   "category": "wzorzec ruchowy",
+   "pattern": "ciągnięcie pionowe",
+   "rule": "Przywodzenie i wyprost ramienia (najszerszy grzbietu: przy chwycie nad głową podciąga ciało), zgięcie łokcia (ramienny, dwugłowy, ramienno-promieniowy).",
+   "muscles": [
+    "najszerszy grzbietu",
+    "ramienny",
+    "dwugłowy",
+    "ramienno-promieniowy",
+    "stożek rotatorów"
+   ],
+   "exercises": [
+    {
+     "name": "ściąganie drążka wyciągu",
+     "equipment": "wyciąg",
+     "level": "początkujący"
+    },
+    {
+     "name": "podciąganie z gumą/asystą",
+     "equipment": "drążek, guma",
+     "level": "początkujący/średni"
+    },
+    {
+     "name": "podciąganie nachwytem / podchwytem",
+     "equipment": "drążek",
+     "level": "średni/zaawansowany"
+    },
+    {
+     "name": "ściąganie gumy nad głową",
+     "equipment": "guma",
+     "level": "dom"
+    }
+   ],
+   "substitutes": [
+    "podciąganie ↔ ściąganie drążka ↔ ściąganie gumy"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "E7",
+   "category": "wzorzec ruchowy",
+   "pattern": "ciągnięcie poziome",
+   "rule": "Wyprost ramienia do tyłu (najszerszy grzbietu – przykład książki: wiosłowanie), stabilizacja łopatki (czworoboczny), zgięcie łokcia.",
+   "muscles": [
+    "najszerszy grzbietu",
+    "czworoboczny",
+    "ramienny",
+    "dwugłowy",
+    "stożek rotatorów"
+   ],
+   "exercises": [
+    {
+     "name": "wiosłowanie hantlem jednorącz",
+     "equipment": "hantel, ławka",
+     "level": "początkujący"
+    },
+    {
+     "name": "wiosłowanie siedząc na wyciągu",
+     "equipment": "wyciąg",
+     "level": "początkujący"
+    },
+    {
+     "name": "wiosłowanie sztangą w opadzie",
+     "equipment": "sztanga",
+     "level": "średni"
+    },
+    {
+     "name": "wiosłowanie australijskie (inverted row)",
+     "equipment": "drążek/TRX/stół",
+     "level": "dom"
+    },
+    {
+     "name": "wiosłowanie z gumą",
+     "equipment": "guma",
+     "level": "dom"
+    }
+   ],
+   "substitutes": [
+    "wiosłowanie w opadzie → wiosłowanie z podparciem klatki lub na wyciągu przy bólu krzyża (WNIOSEK)"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    }
+   ]
+  },
+  {
+   "id": "E8",
+   "category": "wzorzec ruchowy",
+   "pattern": "tułów: zgięcie, rotacja, antyrotacja, stabilizacja",
+   "rule": "Prosty brzucha zgina odcinek lędźwiowy; skośne rotują, zginają bocznie i stabilizują kręgosłup; poprzeczny uciska jamę brzuszną. Mięśnie ściany brzucha leżą w trzech warstwach o różnym przebiegu włókien.",
+   "muscles": [
+    "prosty brzucha",
+    "skośny zewnętrzny",
+    "skośny wewnętrzny",
+    "poprzeczny brzucha"
+   ],
+   "exercises": [
+    {
+     "name": "deska (plank)",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "deska bokiem",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "dead bug",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "spięcia brzucha",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "Pallof press",
+     "equipment": "guma/wyciąg",
+     "level": "średni"
+    },
+    {
+     "name": "woodchop",
+     "equipment": "wyciąg/guma",
+     "level": "średni"
+    }
+   ],
+   "substitutes": [
+    "przy osteoporozie unikać obciążonego zgięcia tułowia (POZA ŹRÓDŁEM; książka: złamanie może wywołać nawet pochylenie się)"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "E9",
+   "category": "wzorzec ruchowy",
+   "pattern": "wspięcia na palce (zgięcie podeszwowe)",
+   "rule": "Brzuchaty łydki i płaszczkowaty przez ścięgno Achillesa – najsilniejsze ścięgno ciała, ale częste miejsce urazów przy nagłym obciążeniu (sprint).",
+   "muscles": [
+    "brzuchaty łydki",
+    "płaszczkowaty"
+   ],
+   "exercises": [
+    {
+     "name": "wspięcia stojąc",
+     "equipment": "brak/stopień",
+     "level": "początkujący"
+    },
+    {
+     "name": "wspięcia siedząc",
+     "equipment": "maszyna/hantle na kolanach",
+     "level": "każdy"
+    },
+    {
+     "name": "wspięcia jednonóż",
+     "equipment": "stopień",
+     "level": "średni"
+    }
+   ],
+   "substitutes": [],
+   "caution": [
+    "ścięgno Achillesa wrażliwe na nagły stres (sprint) – stopniuj skoki i sprinty (WNIOSEK z s. 151)"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "151"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "E10",
+   "category": "wzorzec ruchowy",
+   "pattern": "odwodzenie i przywodzenie biodra",
+   "rule": "Odwodzenie: pośladkowy średni i mały; przywodzenie: przywodziciele (wielki, krótki, długi, smukły).",
+   "muscles": [
+    "pośladkowy średni",
+    "pośladkowy mały",
+    "przywodziciele"
+   ],
+   "exercises": [
+    {
+     "name": "odwodzenie w leżeniu bokiem",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "chód bokiem z gumą",
+     "equipment": "mini-band",
+     "level": "początkujący"
+    },
+    {
+     "name": "przywodzenie na maszynie",
+     "equipment": "maszyna",
+     "level": "każdy"
+    },
+    {
+     "name": "Copenhagen plank",
+     "equipment": "ławka",
+     "level": "zaawansowany"
+    }
+   ],
+   "substitutes": [],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "E11",
+   "category": "wzorzec ruchowy",
+   "pattern": "zginacze i prostowniki łokcia (izolacja)",
+   "rule": "Zgięcie łokcia: ramienny (główny), dwugłowy (synergista + supinacja), ramienno-promieniowy. Wyprost: trójgłowy.",
+   "muscles": [
+    "ramienny",
+    "dwugłowy",
+    "ramienno-promieniowy",
+    "trójgłowy"
+   ],
+   "exercises": [
+    {
+     "name": "uginanie z hantlami",
+     "equipment": "hantle",
+     "level": "każdy"
+    },
+    {
+     "name": "uginanie młotkowe",
+     "equipment": "hantle",
+     "level": "każdy"
+    },
+    {
+     "name": "prostowanie na wyciągu",
+     "equipment": "wyciąg/guma",
+     "level": "każdy"
+    },
+    {
+     "name": "prostowanie nad głową",
+     "equipment": "hantel",
+     "level": "każdy"
+    }
+   ],
+   "substitutes": [
+    "uginanie młotkowe akcentuje ramienny i ramienno-promieniowy (WNIOSEK: dwugłowy dodatkowo supinuje, więc chwyt neutralny zmniejsza jego udział)"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "E12",
+   "category": "wzorzec ruchowy",
+   "pattern": "noszenie (carry) i chwyt",
+   "rule": "Utrzymanie ciężaru: zginacze przedramienia (chwyt), czworoboczny (unoszenie barków), mięśnie skośne (stabilizacja tułowia przy noszeniu jednostronnym).",
+   "muscles": [
+    "zginacze nadgarstka i palców",
+    "czworoboczny",
+    "skośne brzucha"
+   ],
+   "exercises": [
+    {
+     "name": "spacer farmera",
+     "equipment": "hantle/kettle",
+     "level": "każdy"
+    },
+    {
+     "name": "noszenie jednorącz (suitcase carry)",
+     "equipment": "hantel/kettle",
+     "level": "każdy"
+    }
+   ],
+   "substitutes": [
+    "noszenie zakupów/torby jako wersja domowa"
+   ],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "145"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    }
+   ]
+  },
+  {
+   "id": "E13",
+   "category": "wzorzec ruchowy",
+   "pattern": "stabilizacja i rotacja barku",
+   "rule": "Stożek rotatorów utrzymuje głowę kości ramiennej w płytkiej panewce i rotuje ramię; czworoboczny stabilizuje łopatkę.",
+   "muscles": [
+    "stożek rotatorów",
+    "czworoboczny",
+    "zębaty przedni"
+   ],
+   "exercises": [
+    {
+     "name": "rotacja zewnętrzna z gumą",
+     "equipment": "guma",
+     "level": "każdy"
+    },
+    {
+     "name": "face pull",
+     "equipment": "wyciąg/guma",
+     "level": "każdy"
+    },
+    {
+     "name": "rotacja zewnętrzna leżąc bokiem",
+     "equipment": "lekki hantel",
+     "level": "każdy"
+    }
+   ],
+   "substitutes": [],
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "124"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    }
+   ]
+  },
+  {
+   "id": "E14",
+   "category": "priorytet mięśniowy",
+   "rule": "Seniorzy i osoby z ryzykiem upadków: priorytet dla wzorców chodu i schodów – pośladkowy wielki (moc przy wchodzeniu po schodach), czworogłowy (najsilniejszy, wyprost kolana), piszczelowy przedni (palce nie zahaczają przy chodzie), łydki (chód, stanie na palcach), plus ćwiczenia obciążające kości.",
+   "muscles": [
+    "pośladkowy wielki",
+    "czworogłowy",
+    "piszczelowy przedni",
+    "brzuchaty łydki",
+    "płaszczkowaty"
+   ],
+   "exercises": [
+    {
+     "name": "wstawanie z krzesła",
+     "equipment": "krzesło",
+     "level": "początkujący"
+    },
+    {
+     "name": "wejścia na stopień",
+     "equipment": "stopień",
+     "level": "początkujący"
+    },
+    {
+     "name": "wspięcia na palce przy oparciu",
+     "equipment": "oparcie",
+     "level": "początkujący"
+    },
+    {
+     "name": "unoszenie palców stóp",
+     "equipment": "ściana",
+     "level": "początkujący"
+    }
+   ],
+   "substitutes": [],
+   "status": "wniosek",
+   "note": "funkcje mięśni ze źródła; priorytet dla seniorów to WNIOSEK; książka wspomina o złamaniach biodra u starszych (s. 91, 114) i spowolnieniu refleksu (s. 199)",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "151"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "91"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "199"
+    }
+   ]
+  },
+  {
+   "id": "E15",
+   "category": "priorytet mięśniowy",
+   "rule": "Osoby zagrożone osteoporozą: ćwiczenia z obciążeniem kości, szczególnie trening z ciężarami, oraz chodzenie.",
+   "muscles": [
+    "całe ciało"
+   ],
+   "exercises": [
+    {
+     "name": "przysiad / wstawanie z krzesła",
+     "equipment": "różny",
+     "level": "każdy"
+    },
+    {
+     "name": "marsz",
+     "equipment": "brak",
+     "level": "każdy"
+    },
+    {
+     "name": "wyciskania i wiosłowania",
+     "equipment": "różny",
+     "level": "każdy"
+    }
+   ],
+   "substitutes": [],
+   "status": "zrodlo",
+   "note": "zasada ze źródła; wybór konkretnych ćwiczeń to WNIOSEK",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "86"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "E16",
+   "category": "priorytet mięśniowy",
+   "rule": "Postawa: napięcie spoczynkowe mięśni (tonus) utrzymuje postawę; mięśnie skośne brzucha stabilizują kręgosłup i postawę; czworoboczny stabilizuje łopatkę. Zła postawa może sprzyjać nieprawidłowym krzywiznom (kifoza, lordoza).",
+   "muscles": [
+    "skośne brzucha",
+    "poprzeczny brzucha",
+    "czworoboczny"
+   ],
+   "exercises": [
+    {
+     "name": "deska, deska bokiem",
+     "equipment": "brak",
+     "level": "początkujący"
+    },
+    {
+     "name": "wiosłowania, face pull",
+     "equipment": "guma/wyciąg",
+     "level": "każdy"
+    }
+   ],
+   "substitutes": [],
+   "status": "wniosek",
+   "note": "książka nie podaje ćwiczeń korekcyjnych; skolioza nie jest powodowana postawą wg opisu (wada rozwojowa kręgów)",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "136"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "106"
+    }
+   ]
+  },
+  {
+   "id": "E17",
+   "category": "sprzęt",
+   "rule": "Książka nie omawia sprzętu treningowego. Wspomina tylko sztangę (przykład skurczu izotonicznego) i linkę przymocowaną do nieruchomego obiektu (przykład izometrii). Dobór sprzętu w Progress Live wymaga innych źródeł.",
+   "muscles": [],
+   "exercises": [],
+   "substitutes": [],
+   "status": "brak_w_zrodle",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "139"
+    }
+   ]
+  },
+  {
+   "id": "E18",
+   "category": "poziom zaawansowania",
+   "rule": "Książka nie klasyfikuje ćwiczeń według poziomu zaawansowania. Poziomy przy ćwiczeniach w tej bazie to WNIOSEK (złożoność, obciążenie, wymagana stabilizacja).",
+   "muscles": [],
+   "exercises": [],
+   "substitutes": [],
+   "status": "brak_w_zrodle",
+   "sources": []
+  },
+  {
+   "id": "E19",
+   "category": "zamienniki",
+   "rule": "Zasada zamiany: zastąp ćwiczenie innym, które wykonuje ten sam ruch w tym samym stawie i angażuje tego samego głównego wykonawcę (prime mover); zmieniaj sprzęt, podparcie lub zakres, nie funkcję mięśnia.",
+   "muscles": [],
+   "exercises": [],
+   "substitutes": [
+    "patrz pola 'substitutes' w E1–E13"
+   ],
+   "status": "wniosek",
+   "note": "oparte na pojęciach prime mover/synergista (s. 141)",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    }
+   ]
+  }
+ ],
+ "progressionRules": [
+  {
+   "id": "PAR-sila",
+   "category": "parameters",
+   "goal": "sila",
+   "status": "brak_w_zrodle",
+   "note": "Podręcznik anatomii nie podaje parametrów treningu. Wartości null. Uzupełniać z innych baz (np. hipertrofia-schoenfeld, ukladanie-planow-treningowych) – POZA ŹRÓDŁEM.",
+   "frequency": {
+    "value": "kilka razy w tygodniu, kilka minut dziennie (ogólnikowo)",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     }
+    ],
+    "note": "jedyne zdanie o dawce; bez liczby serii i obciążenia"
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "intensity": {
+    "value": "praca przeciw obciążeniu, które stawia opór ruchowi; 'intensywny' wysiłek oporowy",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "141"
+     },
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     }
+    ],
+    "note": "bez %1RM, RIR, RPE"
+   },
+   "rir": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rpe": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "restSec": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "volume": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "progression": {
+    "value": "zwiększanie obciążenia (WNIOSEK z mechanizmów adaptacji mięśni i kości)",
+    "status": "wniosek",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     },
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 6 Bones & Bone Tissue",
+      "pages": "86"
+     }
+    ]
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "changeCriteria": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "sources": []
+  },
+  {
+   "id": "PAR-hipertrofia",
+   "category": "parameters",
+   "goal": "hipertrofia",
+   "status": "brak_w_zrodle",
+   "note": "Podręcznik anatomii nie podaje parametrów treningu. Wartości null. Uzupełniać z innych baz (np. hipertrofia-schoenfeld, ukladanie-planow-treningowych) – POZA ŹRÓDŁEM.",
+   "frequency": {
+    "value": "kilka razy w tygodniu, kilka minut dziennie (ogólnikowo)",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     }
+    ],
+    "note": "jedyne zdanie o dawce; bez liczby serii i obciążenia"
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "intensity": {
+    "value": "praca przeciw obciążeniu, które stawia opór ruchowi; 'intensywny' wysiłek oporowy",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "141"
+     },
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     }
+    ],
+    "note": "bez %1RM, RIR, RPE"
+   },
+   "rir": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rpe": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "restSec": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "volume": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "progression": {
+    "value": "zwiększanie obciążenia (WNIOSEK z mechanizmów adaptacji mięśni i kości)",
+    "status": "wniosek",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     },
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 6 Bones & Bone Tissue",
+      "pages": "86"
+     }
+    ]
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "changeCriteria": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "sources": []
+  },
+  {
+   "id": "PAR-redukcja",
+   "category": "parameters",
+   "goal": "redukcja",
+   "status": "brak_w_zrodle",
+   "note": "Podręcznik anatomii nie podaje parametrów treningu. Wartości null. Uzupełniać z innych baz (np. hipertrofia-schoenfeld, ukladanie-planow-treningowych) – POZA ŹRÓDŁEM. Książka: utrata masy wymaga ujemnego bilansu; więcej mięśni = większy wydatek (s. 412).",
+   "frequency": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "intensity": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rir": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rpe": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "restSec": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "volume": {
+    "value": "bilans energetyczny ujemny; ok. 3500 kcal deficytu ≈ 1 funt tłuszczu",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 21 Nutrition & Metabolism",
+      "pages": "412"
+     }
+    ],
+    "note": "zasada żywieniowa, nie treningowa"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "changeCriteria": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "sources": []
+  },
+  {
+   "id": "PAR-zdrowie",
+   "category": "parameters",
+   "goal": "zdrowie",
+   "status": "brak_w_zrodle",
+   "note": "Podręcznik anatomii nie podaje parametrów treningu. Wartości null. Uzupełniać z innych baz (np. hipertrofia-schoenfeld, ukladanie-planow-treningowych) – POZA ŹRÓDŁEM.",
+   "frequency": {
+    "value": "regularnie; łączyć trening oporowy i wytrzymałościowy",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     }
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "intensity": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rir": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rpe": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "restSec": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "volume": {
+    "value": "aerobowo: przewaga przemian tlenowych po ok. 10 min umiarkowanego wysiłku (fizjologia, nie zalecenie)",
+    "status": "wniosek",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "140"
+     }
+    ]
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "changeCriteria": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "sources": []
+  },
+  {
+   "id": "PAR-poczatkujacy",
+   "category": "parameters",
+   "goal": "poczatkujacy",
+   "status": "brak_w_zrodle",
+   "note": "Podręcznik anatomii nie podaje parametrów treningu. Wartości null. Uzupełniać z innych baz (np. hipertrofia-schoenfeld, ukladanie-planow-treningowych) – POZA ŹRÓDŁEM.",
+   "frequency": {
+    "value": "kilka razy w tygodniu (ogólnikowo)",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "anatomia-fizjologia-thompson",
+      "chapter": "Rozdz. 9 Muscular System",
+      "pages": "153"
+     }
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "intensity": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rir": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rpe": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "restSec": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "volume": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "changeCriteria": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "sources": []
+  },
+  {
+   "id": "PR1",
+   "category": "progression",
+   "rule": "Stopniowo zwiększaj obciążenie: mięśnie (synteza miofilamentów) i kości (osteocyty) adaptują się do rosnącego obciążenia.",
+   "status": "wniosek",
+   "note": "mechanizm ze źródła; reguła progresji to WNIOSEK; brak tempa przyrostu",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "86"
+    }
+   ]
+  },
+  {
+   "id": "PR2",
+   "category": "progression",
+   "rule": "Łącz trening oporowy (siła, masa) z wytrzymałościowym (odporność na zmęczenie, układ krążenia).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "PR3",
+   "category": "warm-up",
+   "rule": "Rozgrzewka przed intensywnym wysiłkiem: rozgrzana maź jest mniej lepka, chrząstka lepiej amortyzuje.",
+   "status": "zrodlo",
+   "note": "brak protokołu (czas, ćwiczenia)",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  },
+  {
+   "id": "PR4",
+   "category": "recovery",
+   "rule": "Wysiłek oporowy wywołuje mikrouszkodzenia, a mięsień rośnie podczas naprawy – potrzebny czas między bodźcami.",
+   "status": "wniosek",
+   "note": "książka nie podaje długości regeneracji",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    }
+   ]
+  },
+  {
+   "id": "PR5",
+   "category": "deload",
+   "rule": "Brak informacji o deloadzie i periodyzacji.",
+   "status": "brak_w_zrodle",
+   "sources": []
+  },
+  {
+   "id": "PR6",
+   "category": "change-criteria",
+   "rule": "Brak kryteriów zmiany planu. Jedyne sygnały z fizjologii: ból stawu, obrzęk, nawracający stan zapalny ścięgna (ryzyko zwyrodnienia i zerwania przy powtarzaniu – s. 147).",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    }
+   ]
+  },
+  {
+   "id": "PR7",
+   "category": "detraining",
+   "rule": "Przerwa w treningu → atrofia mięśni i utrata kości; wznawiaj stopniowo.",
+   "status": "wniosek",
+   "note": "atrofia i utrata kości ze źródła; 'wznawiaj stopniowo' to WNIOSEK",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "PR8",
+   "category": "endurance",
+   "rule": "Wysiłek wytrzymałościowy o umiarkowanej intensywności: pierwsze minuty opierają się na CP i przemianach beztlenowych; po ok. 10 min przeważają tlenowe. Zrywy do ok. 20 s – głównie CP.",
+   "status": "zrodlo",
+   "note": "przełożenie na długość interwałów to WNIOSEK",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "140"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S1",
+   "trigger": "ból w klatce piersiowej, ucisk, ból promieniujący do ręki, pleców, szyi, żuchwy lub brzucha, duszność, nudności, zlewne poty, lęk w trakcie wysiłku",
+   "action": "przerwij trening natychmiast; wezwij pomoc medyczną (możliwy zawał/dławica)",
+   "status": "zrodlo",
+   "priority": "stop",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "281"
+    }
+   ],
+   "note": "objawy ze źródła; 'przerwij i wezwij pomoc' to POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S2",
+   "trigger": "kobieta: nagłe skrajne zmęczenie niewyjaśnione brakiem snu, ból brzucha/'zgaga', zawroty głowy, osłabienie",
+   "action": "traktuj jak możliwe objawy zawału u kobiet: przerwij i skieruj do lekarza / wezwij pomoc",
+   "status": "zrodlo",
+   "priority": "stop",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "281"
+    }
+   ],
+   "note": "książka: objawy zawału u kobiet częściej nietypowe"
+  },
+  {
+   "id": "S3",
+   "trigger": "ciśnienie spoczynkowe ≥140/90 (nadciśnienie I st.) lub ≥160/100 (II st.)",
+   "action": "zalecenie konsultacji lekarskiej przed intensywnym treningiem; przy ≥160/100 nie rozpoczynaj intensywnego programu bez zgody lekarza",
+   "status": "poza_zrodlem",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "307"
+    }
+   ],
+   "note": "kategorie ciśnienia ze źródła; progi decyzyjne to POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S4",
+   "trigger": "ciśnienie 120–139/80–89 (stan przednadciśnieniowy)",
+   "action": "informuj klienta, zalecaj kontrolę u lekarza; trening umiarkowany dozwolony",
+   "status": "poza_zrodlem",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "307"
+    }
+   ]
+  },
+  {
+   "id": "S5",
+   "trigger": "cukrzyca (typ 1 lub 2)",
+   "action": "zgoda lekarza przed programem; kontrola stóp (neuropatia: brak czucia drobnych urazów, ryzyko zakażeń i amputacji); pamiętaj o 2–4× wyższym ryzyku zgonu z chorób serca",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "245"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "246"
+    }
+   ],
+   "note": "fakty ze źródła; 'zgoda lekarza' i 'kontrola stóp przed treningiem' to POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S6",
+   "trigger": "objawy niedocukrzenia lub skrajnej hiperglikemii (splątanie, nudności, wymioty, owocowy zapach z ust, głębokie szybkie oddechy)",
+   "action": "przerwij, wezwij pomoc (możliwa kwasica ketonowa / zaburzenia glikemii)",
+   "status": "zrodlo",
+   "priority": "stop",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "245"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "350"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "199"
+    }
+   ]
+  },
+  {
+   "id": "S7",
+   "trigger": "osteoporoza rozpoznana lub wysokie ryzyko (kobieta po menopauzie, palenie, cukrzyca, dieta uboga w wapń/białko/wit. C i D)",
+   "action": "ćwiczenia obciążające kości są wskazane (podnoszenie ciężarów, chodzenie), ale przy rozpoznanej osteoporozie: zgoda lekarza, unikanie gwałtownych skrętów, obciążonego zgięcia tułowia i ryzyka upadku",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "86"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ],
+   "note": "wskazanie ćwiczeń ze źródła; ograniczenia (skręty, zgięcie, upadki) to POZA ŹRÓDŁEM / WNIOSEK (złamanie może wywołać nawet pochylenie się lub kaszel)"
+  },
+  {
+   "id": "S8",
+   "trigger": "ból krzyża promieniujący do nogi, drętwienie, mrowienie, osłabienie nogi",
+   "action": "przerwij ćwiczenia obciążające kręgosłup; skieruj do lekarza/fizjoterapeuty (możliwa przepuklina krążka lub rwa kulszowa)",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "107"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "174"
+    }
+   ],
+   "note": "opis przepukliny i rwy ze źródła; skierowanie POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S9",
+   "trigger": "podnoszenie ciężaru z podłogi",
+   "action": "ucz podnoszenia z nóg (biodra i kolana), nie z zaokrąglonych pleców – nagły duży nacisk na krążek może go uszkodzić",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "107"
+    }
+   ]
+  },
+  {
+   "id": "S10",
+   "trigger": "ból barku przy ruchach nad głową, po upadku lub uderzeniu; sporty i treningi z powtarzalną pracą nad głową",
+   "action": "ogranicz pracę nad głową, wzmacniaj stożek rotatorów; przy utrzymującym się bólu – fizjoterapeuta (ryzyko zapalenia, zwyrodnienia i zerwania ścięgna)",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    }
+   ]
+  },
+  {
+   "id": "S11",
+   "trigger": "wcześniejsze zwichnięcie barku",
+   "action": "unikaj sił działających z góry na wyprostowaną rękę i skrajnych pozycji; konsultacja fizjoterapeuty",
+   "status": "wniosek",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "124"
+    }
+   ]
+  },
+  {
+   "id": "S12",
+   "trigger": "uraz kolana (skręt, nagłe zatrzymanie, uderzenie), obrzęk, blokowanie, niestabilność",
+   "action": "przerwij obciążanie kolana; skieruj do lekarza/fizjoterapeuty (łąkotka, ACL – gojenie wolne lub brak)",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "125"
+    }
+   ]
+  },
+  {
+   "id": "S13",
+   "trigger": "choroba zwyrodnieniowa stawów (biodra, kolana, kręgosłup, palce)",
+   "action": "regularny ruch może chronić chrząstkę; rozgrzewka obowiązkowa; ból kość o kość / nasilający się ból → lekarz",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  },
+  {
+   "id": "S14",
+   "trigger": "reumatoidalne zapalenie stawów (gorączka, zmęczenie, deformacje)",
+   "action": "plan tylko po konsultacji z lekarzem/fizjoterapeutą (leczenie farmakologiczne i fizjoterapia)",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  },
+  {
+   "id": "S15",
+   "trigger": "endoproteza biodra lub kolana",
+   "action": "konsultacja z chirurgiem/fizjoterapeutą przed planem",
+   "status": "poza_zrodlem",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "125"
+    }
+   ]
+  },
+  {
+   "id": "S16",
+   "trigger": "mrowienie, osłabienie, ból kciuka, palca wskazującego i środkowego; praca z powtarzalnym zgięciem nadgarstka",
+   "action": "ogranicz obciążenie nadgarstka, konsultacja (zespół cieśni nadgarstka / urazy przeciążeniowe)",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "111"
+    }
+   ]
+  },
+  {
+   "id": "S17",
+   "trigger": "nastolatek / osoba przed zamknięciem płytek wzrostu (do 16–25 lat)",
+   "action": "unikaj przeciążeń; obciążenia dobieraj ostrożnie (złamanie nasadowe może zaburzyć wzrost)",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "89"
+    }
+   ],
+   "note": "ryzyko ze źródła; dobór obciążeń POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S18",
+   "trigger": "nieprawidłowe krzywizny kręgosłupa (skolioza, kifoza, lordoza)",
+   "action": "kifoza u seniora może wskazywać na osteoporozę – konsultacja; skolioza u nastolatków – lekarz; ćwiczenia postawy jako uzupełnienie",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "106"
+    }
+   ]
+  },
+  {
+   "id": "S19",
+   "trigger": "trening w upale, długie sesje; skurcze mięśni, zawroty, ból głowy, nudności, omdlenie",
+   "action": "przerwij, chłodzenie, płyny z elektrolitami (kurcze cieplne / wyczerpanie cieplne)",
+   "status": "zrodlo",
+   "priority": "stop",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "424"
+    }
+   ],
+   "note": "objawy ze źródła; postępowanie (chłodzenie, płyny) to POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S20",
+   "trigger": "temperatura ≥40°C, gorąca sucha zaczerwieniona skóra, szybkie tętno, drgawki, splątanie, utrata przytomności",
+   "action": "udar cieplny: wezwij pomoc medyczną natychmiast",
+   "status": "zrodlo",
+   "priority": "stop",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "424"
+    }
+   ]
+  },
+  {
+   "id": "S21",
+   "trigger": "seniorzy, osoby z nadciśnieniem, praca/trening w gorącym otoczeniu",
+   "action": "większe ryzyko wyczerpania cieplnego i odwodnienia (słabsze pragnienie u seniorów) – planuj przerwy na picie i niższą intensywność w upale",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "424"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "375"
+    }
+   ],
+   "note": "grupy ryzyka ze źródła; środki zaradcze POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S22",
+   "trigger": "duże straty potu uzupełniane wyłącznie wodą",
+   "action": "uwzględnij sód/elektrolity (ryzyko zatrucia wodnego, obrzęku mózgu i płuc)",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "377"
+    }
+   ]
+  },
+  {
+   "id": "S23",
+   "trigger": "astma",
+   "action": "zgoda lekarza; leki wziewne pod ręką; unikaj alergenów i drażniących czynników (kurz, opary); przerwij przy świszczącym oddechu",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "342"
+    }
+   ],
+   "note": "opis astmy ze źródła; postępowanie POZA ŹRÓDŁEM"
+  },
+  {
+   "id": "S24",
+   "trigger": "duszność z używaniem mięśni pomocniczych w spoczynku, duszność w leżeniu ustępująca w pozycji siedzącej (orthopnoe), obrzęki kostek i stóp",
+   "action": "nie trenuj; skieruj do lekarza (możliwa niewydolność serca lub stan nagły)",
+   "status": "zrodlo",
+   "priority": "stop",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "344"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "350"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "289"
+    }
+   ]
+  },
+  {
+   "id": "S25",
+   "trigger": "kołatanie serca, nieregularne tętno, spoczynkowe tętno stale >100 lub <60 z objawami (zawroty, omdlenia)",
+   "action": "przerwij; konsultacja lekarska (zaburzenia rytmu)",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "283"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "285"
+    }
+   ],
+   "note": "książka: dodatkowe pobudzenia mogą wynikać z niewyspania, kofeiny, stresu, ale też choroby"
+  },
+  {
+   "id": "S26",
+   "trigger": "choroba wieńcowa, przebyty zawał, dławica",
+   "action": "trening tylko po zgodzie lekarza (najlepiej rehabilitacja kardiologiczna); regularny wysiłek sprzyja krążeniu obocznemu, ale wysiłek może wywołać niedokrwienie",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "281"
+    }
+   ]
+  },
+  {
+   "id": "S27",
+   "trigger": "tętniak (aorta, tętnice nerkowe, mózgowe) lub miażdżyca z nadciśnieniem",
+   "action": "brak treningu bez zgody lekarza",
+   "status": "poza_zrodlem",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "294"
+    }
+   ]
+  },
+  {
+   "id": "S28",
+   "trigger": "zakrzepica / leki przeciwkrzepliwe (heparyna, warfaryna) / hemofilia",
+   "action": "zgoda lekarza; unikaj ćwiczeń z ryzykiem urazu i upadku",
+   "status": "poza_zrodlem",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 13 Blood",
+     "pages": "266"
+    }
+   ]
+  },
+  {
+   "id": "S29",
+   "trigger": "przewlekłe zmęczenie, bladość (możliwa anemia, niedobór żelaza)",
+   "action": "konsultacja lekarska przed zwiększaniem objętości",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 13 Blood",
+     "pages": "259"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "418"
+    }
+   ]
+  },
+  {
+   "id": "S30",
+   "trigger": "zawroty głowy przy szybkim wstawaniu po ćwiczeniach w leżeniu",
+   "action": "wstawaj powoli; częste lub z omdleniem → lekarz",
+   "status": "wniosek",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "310"
+    }
+   ]
+  },
+  {
+   "id": "S31",
+   "trigger": "zespół Cushinga, długotrwała sterydoterapia",
+   "action": "ryzyko zaniku mięśni, utraty kości i nadciśnienia: plan po konsultacji lekarskiej",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "242"
+    }
+   ]
+  },
+  {
+   "id": "S32",
+   "trigger": "choroby tarczycy (niedoczynność: zmęczenie, przyrost masy; nadczynność: szybkie tętno, utrata masy)",
+   "action": "konsultacja lekarska przed intensywnym treningiem",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "238"
+    }
+   ]
+  },
+  {
+   "id": "S33",
+   "trigger": "kurcze, drżenia, tężyczka dłoni i stóp",
+   "action": "przerwij; możliwy niedobór wapnia – lekarz",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "240"
+    }
+   ]
+  },
+  {
+   "id": "S34",
+   "trigger": "miastenia lub inna choroba złącza nerwowo-mięśniowego / stwardnienie rozsiane",
+   "action": "plan wyłącznie po konsultacji lekarskiej",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "136"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "168"
+    }
+   ]
+  },
+  {
+   "id": "S35",
+   "trigger": "uraz ścięgna, więzadła, chrząstki",
+   "action": "gojenie wolne (słabe ukrwienie) lub brak; powrót do obciążeń tylko po zgodzie lekarza/fizjoterapeuty",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "61"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "62"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "125"
+    }
+   ]
+  },
+  {
+   "id": "S36",
+   "trigger": "złamanie w ostatnich 3 miesiącach",
+   "action": "zwykłe złamania goją się 8–12 tygodni, dłużej u seniorów i źle odżywionych: obciążanie po zgodzie lekarza",
+   "status": "zrodlo",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "92"
+    }
+   ]
+  },
+  {
+   "id": "S37",
+   "trigger": "otyłość brzuszna (WHR >0,9 M, >0,85 K)",
+   "action": "podwyższone ryzyko chorób serca, nadciśnienia, cukrzycy: rozważ badania lekarskie przed intensywnym programem",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "63"
+    }
+   ]
+  },
+  {
+   "id": "S38",
+   "trigger": "ciąża",
+   "action": "książka opisuje tylko zmiany krzywizny kręgosłupa w ciąży; plan treningowy wyłącznie po konsultacji z lekarzem prowadzącym",
+   "status": "poza_zrodlem",
+   "priority": "consult",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "106"
+    }
+   ]
+  },
+  {
+   "id": "S39",
+   "trigger": "intensywny trening a białko w moczu",
+   "action": "białkomocz może przejściowo wystąpić po intensywnym wysiłku; utrzymujący się – lekarz",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 18 Urinary System",
+     "pages": "361"
+    }
+   ]
+  },
+  {
+   "id": "S40",
+   "trigger": "uraz kręgosłupa szyjnego, mocne uderzenie w głowę",
+   "action": "natychmiastowa pomoc medyczna",
+   "status": "zrodlo",
+   "priority": "stop",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "108"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "173"
+    }
+   ]
+  }
+ ],
+ "planTemplates": [
+  {
+   "id": "FBW2",
+   "name": "FBW 2 dni",
+   "status": "brak_w_zrodle",
+   "goal": null,
+   "days": {
+    "count": 2,
+    "status": "poza_zrodlem"
+   },
+   "exerciseSkeleton": {
+    "A": [
+     "przysiad (E1)",
+     "pchanie poziome (E4)",
+     "ciągnięcie poziome (E7)",
+     "zawias biodrowy (E2)",
+     "tułów (E8)"
+    ],
+    "B": [
+     "wykrok/step-up (E3)",
+     "pchanie pionowe (E5)",
+     "ciągnięcie pionowe (E6)",
+     "most biodrowy (E2)",
+     "wspięcia (E9)",
+     "tułów (E8)"
+    ]
+   },
+   "exerciseSkeletonStatus": "wniosek",
+   "exercises": null,
+   "sets": null,
+   "reps": null,
+   "rir": null,
+   "rpe": null,
+   "restSec": null,
+   "progression": null,
+   "note": "Książka nie opisuje planów. Szkielet = pokrycie wszystkich funkcji głównych mięśni z tabeli s. 152–153 parami agonista–antagonista (s. 141). Serie, powtórzenia, RIR, przerwy: brak w źródle (null).",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "FBW3",
+   "name": "FBW 3 dni",
+   "status": "brak_w_zrodle",
+   "goal": null,
+   "days": {
+    "count": 3,
+    "status": "poza_zrodlem"
+   },
+   "exerciseSkeleton": {
+    "A": [
+     "przysiad",
+     "pchanie poziome",
+     "ciągnięcie poziome",
+     "tułów: antyrotacja"
+    ],
+    "B": [
+     "zawias biodrowy",
+     "pchanie pionowe",
+     "ciągnięcie pionowe",
+     "odwodzenie biodra (E10)"
+    ],
+    "C": [
+     "wykrok/step-up",
+     "pompki",
+     "wiosłowanie",
+     "wspięcia",
+     "stabilizacja barku (E13)"
+    ]
+   },
+   "exerciseSkeletonStatus": "wniosek",
+   "exercises": null,
+   "sets": null,
+   "reps": null,
+   "rir": null,
+   "rpe": null,
+   "restSec": null,
+   "progression": null,
+   "note": "Jak FBW2: tylko dobór wzorców (WNIOSEK). Liczba dni (3) wynika z polecenia, nie z książki.",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "UL4",
+   "name": "Góra/dół 4 dni",
+   "status": "brak_w_zrodle",
+   "goal": null,
+   "days": {
+    "count": 4,
+    "status": "poza_zrodlem"
+   },
+   "exerciseSkeleton": {
+    "G1": [
+     "pchanie poziome",
+     "ciągnięcie poziome",
+     "pchanie pionowe",
+     "ciągnięcie pionowe",
+     "zginacze/prostowniki łokcia (E11)"
+    ],
+    "D1": [
+     "przysiad",
+     "zawias biodrowy",
+     "wspięcia",
+     "tułów"
+    ],
+    "G2": [
+     "pchanie pionowe",
+     "ciągnięcie pionowe",
+     "pchanie poziome",
+     "ciągnięcie poziome",
+     "stabilizacja barku"
+    ],
+    "D2": [
+     "wykrok/step-up",
+     "most biodrowy",
+     "odwodzenie/przywodzenie (E10)",
+     "tułów"
+    ]
+   },
+   "exerciseSkeletonStatus": "wniosek",
+   "exercises": null,
+   "sets": null,
+   "reps": null,
+   "rir": null,
+   "rpe": null,
+   "restSec": null,
+   "progression": null,
+   "note": "Podział wg regionów anatomicznych z rozdz. 9 (WNIOSEK). Parametry: brak w źródle.",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "HYP",
+   "name": "Plan hipertroficzny",
+   "status": "brak_w_zrodle",
+   "goal": null,
+   "days": {
+    "count": null,
+    "status": "brak_w_zrodle"
+   },
+   "exerciseSkeleton": null,
+   "exerciseSkeletonStatus": "brak_w_zrodle",
+   "exercises": null,
+   "sets": null,
+   "reps": null,
+   "rir": null,
+   "rpe": null,
+   "restSec": null,
+   "progression": null,
+   "note": "Książka opisuje mechanizm hipertrofii (s. 141, 153), ale nie podaje żadnych parametrów. Szablonu nie da się zbudować z tego źródła.",
+   "sources": []
+  },
+  {
+   "id": "STR",
+   "name": "Plan siłowy",
+   "status": "brak_w_zrodle",
+   "goal": null,
+   "days": {
+    "count": null,
+    "status": "brak_w_zrodle"
+   },
+   "exerciseSkeleton": null,
+   "exerciseSkeletonStatus": "brak_w_zrodle",
+   "exercises": null,
+   "sets": null,
+   "reps": null,
+   "rir": null,
+   "rpe": null,
+   "restSec": null,
+   "progression": null,
+   "note": "Książka mówi tylko, że siła wymaga treningu oporowego (s. 153) i że siła zależy od rekrutacji jednostek motorycznych (s. 139). Brak parametrów – szablonu nie da się zbudować.",
+   "sources": []
+  },
+  {
+   "id": "HOME",
+   "name": "Plan domowy bez siłowni",
+   "status": "brak_w_zrodle",
+   "goal": null,
+   "days": {
+    "count": 3,
+    "status": "poza_zrodlem"
+   },
+   "exerciseSkeleton": {
+    "A": [
+     "przysiad z masą ciała / wstawanie z krzesła",
+     "pompki (przy ścianie → na podłodze)",
+     "wiosłowanie z gumą lub australijskie pod stołem",
+     "most biodrowy",
+     "deska"
+    ],
+    "B": [
+     "wykroki w tył / wejścia na schody",
+     "pompki pike",
+     "ściąganie gumy nad głową",
+     "wspięcia na schodku",
+     "deska bokiem"
+    ]
+   },
+   "exerciseSkeletonStatus": "wniosek",
+   "exercises": null,
+   "sets": null,
+   "reps": null,
+   "rir": null,
+   "rpe": null,
+   "restSec": null,
+   "progression": null,
+   "note": "Wybór ćwiczeń bez sprzętu to WNIOSEK. Książka podkreśla, że chodzenie obciąża kości (s. 90), a pośladkowy wielki daje moc na schodach (s. 150). Parametry: brak w źródle.",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  }
+ ],
+ "sourceReferences": [
+  {
+   "id": "anatomia-fizjologia-thompson",
+   "type": "book",
+   "author": "Gale Sloan Thompson, RN",
+   "title": "Understanding Anatomy & Physiology: A Visual, Auditory, Interactive Approach",
+   "edition": "2nd edition",
+   "publisher": "F. A. Davis Company, Philadelphia",
+   "year": 2015,
+   "isbn": "978-0-8036-4373-4 (ISBN-10: 0-8036-4373-X)",
+   "language": "angielski",
+   "audience": "studenci kierunków medycznych i pielęgniarskich (podręcznik A&P)",
+   "pages": 538,
+   "pagesNote": "PDF 538 stron; numeracja drukowana i–xvi + 1–535",
+   "scope": "anatomia i fizjologia całego ciała; brak treści o programowaniu treningu",
+   "fileUsed": "422378890.pdf (33 868 491 B) + 422378890.txt (pdftotext -layout)",
+   "personalDataOmitted": "brak danych osobowych w pliku"
+  },
+  {
+   "id": "page-method",
+   "type": "method",
+   "detail": "W bazie podawane są DRUKOWANE numery stron. Strona PDF = strona drukowana + 17 (stałe przesunięcie potwierdzone na nagłówkach plików składu 'Page N' od rozdz. 1 do indeksu). PDF 1–7: okładka i wkładka reklamowa; PDF 8–17: strony i–xvi (przedmowa, spis treści)."
+  },
+  {
+   "id": "chapter-map",
+   "type": "chapters",
+   "items": [
+    {
+     "chapter": 1,
+     "title": "Orientation to the Human Body",
+     "pages": "2-15"
+    },
+    {
+     "chapter": 2,
+     "title": "Chemistry of Life",
+     "pages": "16-35"
+    },
+    {
+     "chapter": 3,
+     "title": "Cells",
+     "pages": "36-54"
+    },
+    {
+     "chapter": 4,
+     "title": "Tissues",
+     "pages": "56-69"
+    },
+    {
+     "chapter": 5,
+     "title": "Integumentary System",
+     "pages": "70-81"
+    },
+    {
+     "chapter": 6,
+     "title": "Bones & Bone Tissue",
+     "pages": "82-95"
+    },
+    {
+     "chapter": 7,
+     "title": "Skeletal System",
+     "pages": "96-117"
+    },
+    {
+     "chapter": 8,
+     "title": "Joints",
+     "pages": "118-129"
+    },
+    {
+     "chapter": 9,
+     "title": "Muscular System",
+     "pages": "130-156"
+    },
+    {
+     "chapter": 10,
+     "title": "Nervous System",
+     "pages": "158-203"
+    },
+    {
+     "chapter": 11,
+     "title": "Sense Organs",
+     "pages": "204-227"
+    },
+    {
+     "chapter": 12,
+     "title": "Endocrine System",
+     "pages": "228-250"
+    },
+    {
+     "chapter": 13,
+     "title": "Blood",
+     "pages": "252-271"
+    },
+    {
+     "chapter": 14,
+     "title": "Heart",
+     "pages": "272-291"
+    },
+    {
+     "chapter": 15,
+     "title": "Vascular System",
+     "pages": "292-313"
+    },
+    {
+     "chapter": 16,
+     "title": "Lymphatic & Immune Systems",
+     "pages": "314-335"
+    },
+    {
+     "chapter": 17,
+     "title": "Respiratory System",
+     "pages": "336-355"
+    },
+    {
+     "chapter": 18,
+     "title": "Urinary System",
+     "pages": "356-371"
+    },
+    {
+     "chapter": 19,
+     "title": "Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "372-387"
+    },
+    {
+     "chapter": 20,
+     "title": "Digestive System",
+     "pages": "388-409"
+    },
+    {
+     "chapter": 21,
+     "title": "Nutrition & Metabolism",
+     "pages": "410-427"
+    },
+    {
+     "chapter": 22,
+     "title": "Human Microbiome",
+     "pages": "428-442"
+    },
+    {
+     "chapter": 23,
+     "title": "Reproductive Systems",
+     "pages": "443-463"
+    },
+    {
+     "chapter": 24,
+     "title": "Pregnancy & Human Development",
+     "pages": "464-481"
+    },
+    {
+     "chapter": 25,
+     "title": "Heredity",
+     "pages": "482-492"
+    },
+    {
+     "chapter": null,
+     "title": "Index",
+     "pages": "493-535"
+    }
+   ]
+  },
+  {
+   "id": "graphics-read",
+   "type": "figures",
+   "detail": "Wyrenderowane (pdftoppm, 70 dpi) i obejrzane strony drukowane: 8, 63, 86, 90, 106, 115, 121, 122, 123, 136, 138, 140, 141, 142, 143, 147, 149, 150, 152, 307, 349, 411.",
+   "items": [
+    {
+     "page": "8",
+     "content": "płaszczyzny ciała (strzałkowa, poprzeczna, czołowa) – rysunki"
+    },
+    {
+     "page": "121-123",
+     "content": "typy stawów maziowych i 12 par ruchów w stawach – ilustracje kończyn"
+    },
+    {
+     "page": "136",
+     "content": "wykres długość–napięcie: max ok. 100% napięcia przy ok. 100% długości; spadek poniżej ok. 70% i powyżej ok. 130%"
+    },
+    {
+     "page": "138",
+     "content": "wykresy skurczu: treppe, tężec niezupełny i zupełny (bez liczb)"
+    },
+    {
+     "page": "140",
+     "content": "schemat systemów energetycznych: spoczynek → CP → beztlenowe → tlenowe (rysunki biegnącego człowieka, 'Mile 2')"
+    },
+    {
+     "page": "142-143",
+     "content": "atlas mięśni powierzchownych przód/tył (nazwy zgodne z tekstem; m.in. obły większy, strzałkowy długi tylko na rycinie)"
+    },
+    {
+     "page": "147, 149-151",
+     "content": "mięśnie barku, uda, łydki z opisami funkcji"
+    },
+    {
+     "page": "152-153",
+     "content": "tabela 'Major Muscles of the Body' (przyczepy i funkcje) – w całości przeniesiona do anatomyRules"
+    },
+    {
+     "page": "106",
+     "content": "krzywizny kręgosłupa i rysunki skoliozy, kifozy, lordozy"
+    },
+    {
+     "page": "115",
+     "content": "łuki stopy, płaskostopie, wysokie obcasy"
+    },
+    {
+     "page": "307",
+     "content": "tabela kategorii ciśnienia tętniczego"
+    },
+    {
+     "page": "349",
+     "content": "spirogram z objętościami płuc"
+    },
+    {
+     "page": "411",
+     "content": "wykres kołowy wydatku energii narządów: mięśnie szkieletowe 22%, wątroba 21%, mózg 20%, serce 9%, nerki 8%, tkanka tłuszczowa 4%, reszta 16%"
+    },
+    {
+     "page": "63",
+     "content": "rysunek pomiaru WHR"
+    }
+   ]
+  }
+ ],
+ "anatomyRules": [
+  {
+   "id": "A1",
+   "muscle": "przepona",
+   "muscleLatin": "diaphragm",
+   "group": "tułów: oddychanie",
+   "origin": "dolny brzeg żeber; wyrostek mieczykowaty; kręgi lędźwiowe",
+   "insertion": "środek ścięgnisty przepony",
+   "functions": [
+    "powiększa klatkę piersiową, wywołuje wdech; główny mięsień oddechowy"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "klatka piersiowa",
+     "movement": "wdech"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "oddychanie"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "ćwiczenia oddechowe (oddech przeponowy)",
+    "praca wytrzymałościowa ogólnie (WNIOSEK z s. 350)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "książka: regularny wysiłek rozwija mięśnie oddechowe i zwiększa pojemność życiową (s. 350)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "344"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "350"
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "muscle": "mięśnie międzyżebrowe zewnętrzne i wewnętrzne",
+   "muscleLatin": "intercostales externi / interni",
+   "group": "tułów: oddychanie",
+   "origin": "żebro",
+   "insertion": "żebro",
+   "functions": [
+    "zewnętrzne unoszą żebra przy wdechu",
+    "wewnętrzne obniżają żebra przy wymuszonym wydechu"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "klatka piersiowa",
+     "movement": "wdech / wydech wymuszony"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "oddychanie"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "ćwiczenia oddechowe"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "344"
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "muscle": "mięsień prosty brzucha",
+   "muscleLatin": "rectus abdominis",
+   "group": "tułów: ściana brzucha",
+   "origin": "kość łonowa",
+   "insertion": "wyrostek mieczykowaty mostka",
+   "functions": [
+    "zgina odcinek lędźwiowy kręgosłupa (pochylenie w pasie)",
+    "przy wymuszonym wydechu ściąga żebra i mostek w dół (mięsień pomocniczy)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "kręgosłup lędźwiowy",
+     "movement": "zgięcie"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "zgięcie tułowia",
+    "stabilizacja tułowia (przeciw wyprostowi) – WNIOSEK"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "spięcia brzucha (crunch)",
+    "unoszenie tułowia na ławce",
+    "deska (plank) – izometrycznie",
+    "rollout z kółkiem (zaawansowani)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "pochylanie się do przodu w pasie",
+    "śpiew, krzyk (wymuszony wydech)"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "344"
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "muscle": "mięsień poprzeczny brzucha",
+   "muscleLatin": "transversus abdominis",
+   "group": "tułów: ściana brzucha (warstwa najgłębsza)",
+   "origin": "żebra; miednica",
+   "insertion": "kość łonowa; kresa biała",
+   "functions": [
+    "uciska zawartość jamy brzusznej"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "jama brzuszna",
+     "movement": "kompresja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "stabilizacja tułowia – WNIOSEK"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "wciąganie brzucha (drawing-in)",
+    "deska (plank)",
+    "dead bug"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "książka nie przypisuje mu stabilizacji kręgosłupa wprost; to WNIOSEK z funkcji kompresji"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146, 152"
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "muscle": "mięsień skośny wewnętrzny brzucha",
+   "muscleLatin": "obliquus internus abdominis",
+   "group": "tułów: ściana brzucha",
+   "origin": "miednica",
+   "insertion": "żebra",
+   "functions": [
+    "stabilizuje kręgosłup i utrzymuje postawę",
+    "pozwala na skręt w talii"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "kręgosłup",
+     "movement": "rotacja, stabilizacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "rotacja / antyrotacja tułowia",
+    "stabilizacja"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "Pallof press (antyrotacja)",
+    "skręty z linką wyciągu (woodchop)",
+    "deska bokiem (side plank)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146, 152"
+    }
+   ]
+  },
+  {
+   "id": "A6",
+   "muscle": "mięsień skośny zewnętrzny brzucha",
+   "muscleLatin": "obliquus externus abdominis",
+   "group": "tułów: ściana brzucha (warstwa powierzchowna)",
+   "origin": "żebra",
+   "insertion": "miednica",
+   "functions": [
+    "uciska narządy jamy brzusznej (wymuszony wydech)",
+    "zgięcie, rotacja i zgięcie boczne tułowia",
+    "stabilizuje kręgosłup"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "kręgosłup",
+     "movement": "zgięcie, rotacja, zgięcie boczne"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "rotacja / antyrotacja",
+    "zgięcie boczne",
+    "stabilizacja"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "deska bokiem (side plank)",
+    "skłony boczne z hantlem",
+    "woodchop",
+    "noszenie ciężaru w jednej ręce (suitcase carry)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "tabela s. 152 podaje tylko 'stabilizuje kręgosłup'; pełniejszy opis w tekście s. 146"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146, 152"
+    }
+   ]
+  },
+  {
+   "id": "A7",
+   "muscle": "mięsień mostkowo-obojczykowo-sutkowy",
+   "muscleLatin": "sternocleidomastoideus",
+   "group": "szyja",
+   "origin": "mostek; obojczyk",
+   "insertion": "wyrostek sutkowaty kości skroniowej",
+   "functions": [
+    "zgina głowę ('mięsień modlitewny')",
+    "jednostronnie obraca głowę w stronę przeciwną",
+    "pomocniczy przy głębokim wdechu"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "odcinek szyjny",
+     "movement": "zgięcie, rotacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "ruchy głowy"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "izometria szyi (ostrożnie) – tylko gdy jest wskazanie"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "145"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "344"
+    }
+   ]
+  },
+  {
+   "id": "A8",
+   "muscle": "mięsień czworoboczny",
+   "muscleLatin": "trapezius",
+   "group": "szyja / obręcz barkowa",
+   "origin": "kość potyliczna; kręgi",
+   "insertion": "obojczyk; łopatka",
+   "functions": [
+    "prostuje głowę (spojrzenie w górę) i zgina ją w bok",
+    "unosi i opuszcza barki",
+    "stabilizuje łopatkę podczas ruchów ramienia"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "łopatka",
+     "movement": "unoszenie, obniżanie, stabilizacja"
+    },
+    {
+     "joint": "odcinek szyjny",
+     "movement": "wyprost, zgięcie boczne"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "ciągnięcie poziome (stabilizacja łopatki)",
+    "pchanie pionowe (stabilizacja)",
+    "noszenie"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "szrugsy (wzruszanie barkami)",
+    "wiosłowanie",
+    "spacer farmera (farmer's walk)",
+    "face pull"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "podnoszenie barków"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "145"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    }
+   ]
+  },
+  {
+   "id": "A9",
+   "muscle": "mięsień naramienny",
+   "muscleLatin": "deltoideus",
+   "group": "bark",
+   "origin": "obojczyk; łopatka",
+   "insertion": "kość ramienna",
+   "functions": [
+    "odwodzi, zgina i rotuje ramię",
+    "udział w wymachu ramion (chód, kręgle)",
+    "unosi ramię do pracy nad głową"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "bark (staw ramienny)",
+     "movement": "odwodzenie, zgięcie, rotacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "pchanie pionowe",
+    "pchanie poziome (część przednia, WNIOSEK)",
+    "odwodzenie ramienia"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "wyciskanie nad głowę (overhead press)",
+    "unoszenie hantli bokiem (lateral raise)",
+    "unoszenie hantli przodem (front raise)",
+    "pompki w pozycji pike"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "pisanie na wysoko zawieszonej tablicy",
+    "wymach ramion przy chodzie"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [
+    "książka nie dzieli mięśnia na aktony (przedni, środkowy, tylny)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147, 152"
+    }
+   ]
+  },
+  {
+   "id": "A10",
+   "muscle": "mięsień piersiowy większy",
+   "muscleLatin": "pectoralis major",
+   "group": "klatka piersiowa / bark",
+   "origin": "obojczyk; mostek",
+   "insertion": "kość ramienna",
+   "functions": [
+    "zgina i przywodzi ramię (wspinanie, przytulanie)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "bark",
+     "movement": "zgięcie, przywodzenie"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "pchanie poziome",
+    "przywodzenie ramienia"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "wyciskanie sztangi/hantli leżąc",
+    "pompki",
+    "rozpiętki (fly)",
+    "wyciskanie na skosie"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "wspinanie się",
+    "przytulanie"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147, 152"
+    }
+   ]
+  },
+  {
+   "id": "A11",
+   "muscle": "mięsień zębaty przedni",
+   "muscleLatin": "serratus anterior",
+   "group": "klatka / łopatka",
+   "origin": "żebra",
+   "insertion": "łopatka",
+   "functions": [
+    "napędza wszystkie ruchy sięgania do przodu i pchania",
+    "ściąga bark w dół i do przodu"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "łopatka",
+     "movement": "wysunięcie (protrakcja), obniżenie"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "pchanie poziome",
+    "pchanie pionowe",
+    "sięganie"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "pompki z wypchnięciem łopatek (push-up plus)",
+    "wyciskanie leżąc / nad głowę",
+    "wypychanie łopatek w podporze"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "sięganie przed siebie",
+    "pchanie"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147, 152"
+    }
+   ]
+  },
+  {
+   "id": "A12",
+   "muscle": "mięsień najszerszy grzbietu",
+   "muscleLatin": "latissimus dorsi",
+   "group": "plecy",
+   "origin": "kręgi",
+   "insertion": "kość ramienna",
+   "functions": [
+    "przywodzi kość ramienną",
+    "prostuje ramię do tyłu (wiosłowanie, pływanie)",
+    "przy chwycie nad głową podciąga ciało (wspinanie)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "bark",
+     "movement": "przywodzenie, wyprost"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "ciągnięcie pionowe",
+    "ciągnięcie poziome"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "podciąganie na drążku (pull-up/chin-up)",
+    "ściąganie drążka wyciągu (lat pulldown)",
+    "wiosłowanie sztangą/hantlem/linką",
+    "pullover"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "wiosłowanie",
+    "pływanie",
+    "wspinanie się"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147, 152"
+    }
+   ]
+  },
+  {
+   "id": "A13",
+   "muscle": "stożek rotatorów (nadgrzebieniowy, podgrzebieniowy, obły mniejszy, podłopatkowy – 'SITS')",
+   "muscleLatin": "rotator cuff",
+   "group": "bark",
+   "origin": "łopatka",
+   "insertion": "kość ramienna",
+   "functions": [
+    "rotuje i przywodzi ramię",
+    "ścięgna zrastają się z torebką stawową i utrzymują głowę kości ramiennej w płytkiej panewce"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "bark",
+     "movement": "rotacja wewnętrzna i zewnętrzna, stabilizacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "rotacja ramienia",
+    "stabilizacja barku we wszystkich wzorcach górnych"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "rotacja zewnętrzna z gumą lub linką",
+    "rotacja wewnętrzna z gumą",
+    "rotacja zewnętrzna leżąc bokiem z hantlem"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "książka nie rozdziela funkcji czterech mięśni",
+    "ryzyko urazu przy powtarzalnej pracy nad głową, w tym u ciężarowców (s. 147)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147, 152"
+    }
+   ]
+  },
+  {
+   "id": "A14",
+   "muscle": "mięsień ramienny",
+   "muscleLatin": "brachialis",
+   "group": "ramię",
+   "origin": "kość ramienna",
+   "insertion": "kość łokciowa",
+   "functions": [
+    "główny wykonawca zgięcia łokcia (przedramienia)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "łokieć",
+     "movement": "zgięcie"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "ciągnięcie (zgięcie łokcia)",
+    "izolacja zginaczy łokcia"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "uginanie ramion młotkowe (hammer curl)",
+    "uginanie ramion nachwytem (reverse curl)",
+    "podciąganie"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "książka podkreśla: to ramienny, nie dwugłowy, jest głównym zginaczem łokcia (s. 148)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "A15",
+   "muscle": "mięsień dwugłowy ramienia",
+   "muscleLatin": "biceps brachii",
+   "group": "ramię",
+   "origin": "łopatka",
+   "insertion": "kość promieniowa",
+   "functions": [
+    "synergista zgięcia łokcia",
+    "supinuje przedramię (odkręcanie korkociągu)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "łokieć",
+     "movement": "zgięcie"
+    },
+    {
+     "joint": "przedramię",
+     "movement": "supinacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "ciągnięcie",
+    "zgięcie łokcia",
+    "supinacja"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "uginanie ramion ze sztangą/hantlami (curl)",
+    "uginanie z supinacją",
+    "podciąganie podchwytem (chin-up)",
+    "wiosłowanie podchwytem"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "podnoszenie sztangi (przykład skurczu izotonicznego, s. 139)",
+    "otwieranie butelki korkociągiem"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "139"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "A16",
+   "muscle": "mięsień trójgłowy ramienia",
+   "muscleLatin": "triceps brachii",
+   "group": "ramię",
+   "origin": "łopatka; kość ramienna",
+   "insertion": "kość łokciowa",
+   "functions": [
+    "główny wykonawca wyprostu łokcia (przedramienia)",
+    "antagonista zginaczy łokcia"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "łokieć",
+     "movement": "wyprost"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "pchanie poziome",
+    "pchanie pionowe",
+    "wyprost łokcia"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "prostowanie ramion na wyciągu (pushdown)",
+    "wyciskanie francuskie / prostowanie nad głową",
+    "pompki na poręczach (dipy)",
+    "wyciskanie wąskim chwytem",
+    "pompki wąskie"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "A17",
+   "muscle": "mięsień ramienno-promieniowy",
+   "muscleLatin": "brachioradialis",
+   "group": "przedramię",
+   "origin": "kość ramienna",
+   "insertion": "kość promieniowa",
+   "functions": [
+    "pomaga ramiennemu i dwugłowemu zginać przedramię"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "łokieć",
+     "movement": "zgięcie"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "zgięcie łokcia"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "uginanie młotkowe (hammer curl)",
+    "uginanie nachwytem"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148, 153"
+    }
+   ]
+  },
+  {
+   "id": "A18",
+   "muscle": "nawracacze i odwracacz przedramienia",
+   "muscleLatin": "pronator teres/quadratus; supinator",
+   "group": "przedramię",
+   "origin": "kość ramienna; kość łokciowa",
+   "insertion": "kość promieniowa",
+   "functions": [
+    "nawracacze: pronacja (dłoń w dół)",
+    "odwracacz: supinacja (dłoń w górę) razem z dwugłowym"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "przedramię (staw promieniowo-łokciowy)",
+     "movement": "pronacja / supinacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "rotacja przedramienia"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "rotacje przedramienia z hantlem trzymanym za jeden koniec"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148, 153"
+    }
+   ]
+  },
+  {
+   "id": "A19",
+   "muscle": "zginacze i prostowniki nadgarstka i palców",
+   "muscleLatin": "flexores / extensores carpi et digitorum",
+   "group": "przedramię",
+   "origin": "przedramię (strona przednia / tylna)",
+   "insertion": "nadgarstek, dłoń, palce",
+   "functions": [
+    "zginacze (przód przedramienia) zginają nadgarstek",
+    "prostowniki (tył przedramienia) prostują nadgarstek",
+    "razem z mięśniami dłoni wykonują precyzyjne ruchy palców"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "nadgarstek",
+     "movement": "zgięcie / wyprost"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "chwyt",
+    "noszenie"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "uginanie nadgarstków",
+    "prostowanie nadgarstków",
+    "spacer farmera (chwyt)",
+    "zwis na drążku"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "powtarzalne zgięcia i wyprosty nadgarstka mogą wywołać zespół cieśni nadgarstka (s. 148)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "148"
+    }
+   ]
+  },
+  {
+   "id": "A20",
+   "muscle": "mięsień biodrowo-lędźwiowy (biodrowy + lędźwiowy większy)",
+   "muscleLatin": "iliopsoas",
+   "group": "biodro",
+   "origin": "kość biodrowa (wg tabeli; lędźwiowy w rzeczywistości z kręgów – książka podaje 'ilium')",
+   "insertion": "kość udowa",
+   "functions": [
+    "zgina udo (antagonista pośladkowego wielkiego)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "biodro",
+     "movement": "zgięcie"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "zgięcie biodra"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "unoszenie kolan w zwisie (hanging knee raise)",
+    "unoszenie nóg w leżeniu",
+    "marsz z wysokim unoszeniem kolan"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "tabela s. 153 podaje przyczep początkowy m. lędźwiowego większego jako 'ilium'; to uproszczenie/nieścisłość źródła"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149, 153"
+    }
+   ]
+  },
+  {
+   "id": "A21",
+   "muscle": "mięsień krawiecki",
+   "muscleLatin": "sartorius",
+   "group": "udo",
+   "origin": "kolec biodrowy",
+   "insertion": "kość piszczelowa",
+   "functions": [
+    "najdłuższy mięsień ciała",
+    "pomaga zginać biodro i kolano (siadanie)",
+    "tekst: odwodzi i rotuje udo na zewnątrz (siad po turecku)",
+    "tabela: przywodzi i zgina nogę"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "biodro",
+     "movement": "zgięcie, odwodzenie, rotacja zewnętrzna"
+    },
+    {
+     "joint": "kolano",
+     "movement": "zgięcie"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "zgięcie biodra"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "brak ćwiczenia izolowanego; pracuje w ćwiczeniach zgięcia biodra"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "siad po turecku"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [
+    "SPRZECZNOŚĆ: tekst s. 149 'odwodzi', tabela s. 153 'przywodzi'"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149, 153"
+    }
+   ]
+  },
+  {
+   "id": "A22",
+   "muscle": "przywodziciele uda (wielki, krótki, długi, smukły)",
+   "muscleLatin": "adductor magnus/brevis/longus, gracilis",
+   "group": "udo (strona przyśrodkowa)",
+   "origin": "kość łonowa",
+   "insertion": "kość udowa",
+   "functions": [
+    "przywodzą udo i je rotują"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "biodro",
+     "movement": "przywodzenie, rotacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "przywodzenie biodra",
+    "przysiad (stabilizacja, WNIOSEK)"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "przywodzenie nóg na maszynie lub z gumą",
+    "przysiad szeroki (sumo)",
+    "deska kopenhaska (Copenhagen plank)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149, 153"
+    }
+   ]
+  },
+  {
+   "id": "A23",
+   "muscle": "mięsień czworogłowy uda (prosty, obszerny boczny, przyśrodkowy, pośredni)",
+   "muscleLatin": "quadriceps femoris",
+   "group": "udo (przód)",
+   "origin": "kość biodrowa; kość udowa",
+   "insertion": "kość piszczelowa (przez rzepkę)",
+   "functions": [
+    "najsilniejszy mięsień ciała",
+    "główny wykonawca wyprostu kolana",
+    "tabela: zgina udo (dotyczy m. prostego uda – WNIOSEK)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "kolano",
+     "movement": "wyprost"
+    },
+    {
+     "joint": "biodro",
+     "movement": "zgięcie (m. prosty uda)"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "przysiad",
+    "wykrok / wejście na podwyższenie",
+    "wyprost kolana"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "przysiad (ze sztangą, goblet, z masą ciała)",
+    "wykroki",
+    "wypychanie nóg na suwnicy (leg press)",
+    "wejścia na skrzynię (step-up)",
+    "prostowanie nóg na maszynie (leg extension)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149, 153"
+    }
+   ]
+  },
+  {
+   "id": "A24",
+   "muscle": "mięsień pośladkowy wielki",
+   "muscleLatin": "gluteus maximus",
+   "group": "biodro / pośladek",
+   "origin": "kość biodrowa",
+   "insertion": "kość udowa",
+   "functions": [
+    "najmasywniejszy mięsień ciała",
+    "prostuje udo i rotuje je na zewnątrz",
+    "daje wymach nogi do tyłu przy chodzie",
+    "dostarcza większości mocy przy wchodzeniu po schodach"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "biodro",
+     "movement": "wyprost, rotacja zewnętrzna"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "zawias biodrowy",
+    "przysiad",
+    "wykrok / wejście na podwyższenie",
+    "wyprost biodra"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "hip thrust / most biodrowy",
+    "martwy ciąg (klasyczny, rumuński)",
+    "przysiad",
+    "wejścia na skrzynię (step-up)",
+    "wykroki w tył",
+    "swing z kettlebell"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "chód (wymach nogi do tyłu)",
+    "wchodzenie po schodach"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150, 153"
+    }
+   ]
+  },
+  {
+   "id": "A25",
+   "muscle": "mięśnie pośladkowe średni i mały",
+   "muscleLatin": "gluteus medius / minimus",
+   "group": "biodro",
+   "origin": "kość biodrowa",
+   "insertion": "kość udowa",
+   "functions": [
+    "średni: odwodzi udo i rotuje je na zewnątrz",
+    "mały: odwodzi i rotuje udo"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "biodro",
+     "movement": "odwodzenie, rotacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "odwodzenie biodra",
+    "stabilizacja miednicy na jednej nodze (WNIOSEK)"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "odwodzenie nogi w leżeniu bokiem",
+    "chód bokiem z gumą (band walk)",
+    "odwodzenie na maszynie",
+    "ćwiczenia jednonóż (przysiad bułgarski, step-up)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "pośladkowy średni to także miejsce iniekcji domięśniowych (s. 150) – bez znaczenia treningowego"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150, 153"
+    }
+   ]
+  },
+  {
+   "id": "A26",
+   "muscle": "mięśnie kulszowo-goleniowe (dwugłowy uda, półścięgnisty, półbłoniasty)",
+   "muscleLatin": "hamstrings",
+   "group": "udo (tył)",
+   "origin": "kość kulszowa; kość udowa",
+   "insertion": "kość strzałkowa; kość piszczelowa",
+   "functions": [
+    "prostują udo w biodrze",
+    "zginają kolano",
+    "rotują nogę"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "biodro",
+     "movement": "wyprost"
+    },
+    {
+     "joint": "kolano",
+     "movement": "zgięcie, rotacja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "zawias biodrowy",
+    "zgięcie kolana"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "martwy ciąg rumuński",
+    "uginanie nóg na maszynie (leg curl)",
+    "nordic curl (zaawansowani)",
+    "most biodrowy jednonóż ze stopą daleko",
+    "skłon z obciążeniem (good morning)"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [],
+   "dailyExamplesStatus": null,
+   "notes": [
+    "tabela s. 153 podaje tylko 'prostuje udo'; tekst s. 150 dodaje zgięcie kolana i rotację"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150, 153"
+    }
+   ]
+  },
+  {
+   "id": "A27",
+   "muscle": "mięsień brzuchaty łydki",
+   "muscleLatin": "gastrocnemius",
+   "group": "łydka (warstwa powierzchowna)",
+   "origin": "kość udowa",
+   "insertion": "kość piętowa (przez ścięgno Achillesa)",
+   "functions": [
+    "zgięcie podeszwowe stopy (chód, stanie na palcach)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "staw skokowy",
+     "movement": "zgięcie podeszwowe"
+    },
+    {
+     "joint": "kolano",
+     "movement": "przechodzi przez staw (przyczep na kości udowej)"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "wspięcia na palce",
+    "lokomocja"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "wspięcia na palce stojąc (standing calf raise)",
+    "wspięcia na jednej nodze",
+    "skakanka"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "chodzenie",
+    "stanie na palcach"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [
+    "WNIOSEK z przyczepów: brzuchaty zaczyna się na kości udowej, więc pracuje najmocniej przy wyprostowanym kolanie"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "151, 153"
+    }
+   ]
+  },
+  {
+   "id": "A28",
+   "muscle": "mięsień płaszczkowaty",
+   "muscleLatin": "soleus",
+   "group": "łydka (warstwa głęboka)",
+   "origin": "kość piszczelowa; kość strzałkowa",
+   "insertion": "kość piętowa",
+   "functions": [
+    "zgięcie podeszwowe stopy"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "staw skokowy",
+     "movement": "zgięcie podeszwowe"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "wspięcia na palce"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "wspięcia na palce siedząc (seated calf raise)",
+    "wspięcia stojąc"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "chodzenie",
+    "stanie na palcach"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [
+    "WNIOSEK z przyczepów: nie przechodzi przez kolano, więc wspięcia z ugiętym kolanem kierują pracę bardziej na płaszczkowaty"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "151, 153"
+    }
+   ]
+  },
+  {
+   "id": "A29",
+   "muscle": "mięsień piszczelowy przedni i prostownik długi palców",
+   "muscleLatin": "tibialis anterior; extensor digitorum longus",
+   "group": "goleń (przód)",
+   "origin": "kość piszczelowa (i strzałkowa)",
+   "insertion": "kość stępu; paliczki",
+   "functions": [
+    "zgięcie grzbietowe stopy, dzięki czemu palce nie zahaczają o podłoże przy chodzie",
+    "prostownik palców prostuje palce i odwraca stopę na zewnątrz (ewersja)"
+   ],
+   "functionsStatus": "zrodlo",
+   "jointActions": [
+    {
+     "joint": "staw skokowy",
+     "movement": "zgięcie grzbietowe, ewersja"
+    }
+   ],
+   "jointActionsStatus": "wniosek",
+   "movementPatterns": [
+    "lokomocja",
+    "zgięcie grzbietowe"
+   ],
+   "movementPatternsStatus": "wniosek",
+   "exercises": [
+    "unoszenie palców stóp (tibialis raise) przy ścianie",
+    "chodzenie na piętach"
+   ],
+   "exercisesStatus": "wniosek",
+   "dailyExamples": [
+    "chód"
+   ],
+   "dailyExamplesStatus": "zrodlo",
+   "notes": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "151, 153"
+    }
+   ]
+  }
+ ],
+ "jointRules": [
+  {
+   "id": "J1",
+   "category": "typ stawu",
+   "name": "staw kulisty (ball-and-socket)",
+   "examples": [
+    "bark",
+    "biodro"
+   ],
+   "movements": [
+    "największy zakres ruchu: zgięcie/wyprost, odwodzenie/przywodzenie, rotacje, obwodzenie"
+   ],
+   "trainingImplication": "ćwiczenia wielopłaszczyznowe; bark wymaga pracy stabilizującej (WNIOSEK)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "121"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "124"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  },
+  {
+   "id": "J2",
+   "category": "typ stawu",
+   "name": "staw zawiasowy (hinge)",
+   "examples": [
+    "łokieć",
+    "kolano",
+    "stawy międzypaliczkowe"
+   ],
+   "movements": [
+    "tylko zgięcie i wyprost"
+   ],
+   "trainingImplication": "unikać skrętów pod obciążeniem w kolanie i łokciu (WNIOSEK; kolano podatne na nagłe skręty – s. 125)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "121"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "125"
+    }
+   ]
+  },
+  {
+   "id": "J3",
+   "category": "typ stawu",
+   "name": "staw obrotowy (pivot)",
+   "examples": [
+    "szczytowo-obrotowy (C1–C2)",
+    "promieniowo-łokciowy"
+   ],
+   "movements": [
+    "rotacja"
+   ],
+   "trainingImplication": "rotacja głowy; pronacja/supinacja przedramienia",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "121"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "108"
+    }
+   ]
+  },
+  {
+   "id": "J4",
+   "category": "typ stawu",
+   "name": "staw kłykciowy (condyloid)",
+   "examples": [
+    "promieniowo-nadgarstkowy",
+    "stawy u podstawy palców"
+   ],
+   "movements": [
+    "zgięcie/wyprost, ruch na boki"
+   ],
+   "trainingImplication": "nadgarstek: ćwiczenia zginaczy i prostowników",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "121"
+    }
+   ]
+  },
+  {
+   "id": "J5",
+   "category": "typ stawu",
+   "name": "staw siodełkowy (saddle)",
+   "examples": [
+    "kciuk"
+   ],
+   "movements": [
+    "przód-tył i na boki (ograniczone)",
+    "przeciwstawianie kciuka"
+   ],
+   "trainingImplication": "chwyt",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "121"
+    }
+   ]
+  },
+  {
+   "id": "J6",
+   "category": "typ stawu",
+   "name": "staw płaski / ślizgowy (gliding)",
+   "examples": [
+    "kości stępu",
+    "kości nadgarstka",
+    "wyrostki stawowe kręgów"
+   ],
+   "movements": [
+    "przesuwanie; najmniej ruchome stawy maziowe"
+   ],
+   "trainingImplication": "kręgosłup ma ograniczony ruch w każdym segmencie",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "121"
+    }
+   ]
+  },
+  {
+   "id": "J7",
+   "category": "typ stawu",
+   "name": "stawy chrząstkozrostowe (cartilaginous)",
+   "examples": [
+    "krążki międzykręgowe",
+    "spojenie łonowe"
+   ],
+   "movements": [
+    "niewielki ruch; amortyzacja"
+   ],
+   "trainingImplication": "krążki amortyzują; nagły duży nacisk może je uszkodzić (s. 107)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "119"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "107"
+    }
+   ]
+  },
+  {
+   "id": "M1",
+   "category": "ruch w stawie",
+   "name": "zgięcie (flexion)",
+   "definition": "zmniejszenie kąta w stawie",
+   "definitionStatus": "zrodlo",
+   "plane": "strzałkowa",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "przysiad (biodro, kolano)",
+    "uginanie ramion",
+    "spięcia brzucha"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M2",
+   "category": "ruch w stawie",
+   "name": "wyprost (extension)",
+   "definition": "zwiększenie kąta w stawie",
+   "definitionStatus": "zrodlo",
+   "plane": "strzałkowa",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "wstawanie z przysiadu",
+    "martwy ciąg",
+    "prostowanie ramion"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M3",
+   "category": "ruch w stawie",
+   "name": "przeprost (hyperextension)",
+   "definition": "wyprost poza normalną prostą pozycję",
+   "definitionStatus": "zrodlo",
+   "plane": "strzałkowa",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "unikać przeprostu kolana i łokcia pod obciążeniem (WNIOSEK; ACL chroni kolano przed przeprostem, s. 125)"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M4",
+   "category": "ruch w stawie",
+   "name": "zgięcie grzbietowe (dorsiflexion)",
+   "definition": "palce/stopa w górę",
+   "definitionStatus": "zrodlo",
+   "plane": "strzałkowa",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "unoszenie palców stóp",
+    "głęboki przysiad wymaga zgięcia grzbietowego (WNIOSEK)"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M5",
+   "category": "ruch w stawie",
+   "name": "zgięcie podeszwowe (plantar flexion)",
+   "definition": "palce/stopa w dół",
+   "definitionStatus": "zrodlo",
+   "plane": "strzałkowa",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "wspięcia na palce"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M6",
+   "category": "ruch w stawie",
+   "name": "odwodzenie (abduction)",
+   "definition": "ruch od linii środkowej ciała",
+   "definitionStatus": "zrodlo",
+   "plane": "czołowa",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "unoszenie hantli bokiem",
+    "odwodzenie nogi"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M7",
+   "category": "ruch w stawie",
+   "name": "przywodzenie (adduction)",
+   "definition": "ruch do linii środkowej",
+   "definitionStatus": "zrodlo",
+   "plane": "czołowa",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "podciąganie / ściąganie drążka",
+    "przywodzenie nóg"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M8",
+   "category": "ruch w stawie",
+   "name": "obwodzenie (circumduction)",
+   "definition": "dalszy koniec kończyny zatacza okrąg",
+   "definitionStatus": "zrodlo",
+   "plane": "kilka płaszczyzn",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "krążenia ramion w rozgrzewce"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M9",
+   "category": "ruch w stawie",
+   "name": "rotacja wewnętrzna / zewnętrzna",
+   "definition": "obrót kości do / od linii środkowej",
+   "definitionStatus": "zrodlo",
+   "plane": "poprzeczna",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "rotacje z gumą (stożek rotatorów)",
+    "rotacje biodra"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M10",
+   "category": "ruch w stawie",
+   "name": "supinacja / pronacja",
+   "definition": "obrót przedramienia: dłoń w górę / w dół",
+   "definitionStatus": "zrodlo",
+   "plane": "poprzeczna (wokół długiej osi przedramienia)",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "uginanie z supinacją",
+    "rotacje przedramienia"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M11",
+   "category": "ruch w stawie",
+   "name": "inwersja / ewersja",
+   "definition": "podeszwa do środka / na zewnątrz",
+   "definitionStatus": "zrodlo",
+   "plane": "czołowa (WNIOSEK)",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "stabilizacja stawu skokowego (WNIOSEK)"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "M12",
+   "category": "ruch w stawie",
+   "name": "protrakcja / retrakcja",
+   "definition": "przesunięcie części ciała do przodu / do tyłu",
+   "definitionStatus": "zrodlo",
+   "plane": "poprzeczna/pozioma (WNIOSEK)",
+   "planeStatus": "wniosek",
+   "planeNote": "książka definiuje płaszczyzny (s. 8) i ruchy (s. 122–123), ale nie łączy ich; przypisanie płaszczyzny to WNIOSEK",
+   "exerciseExamples": [
+    "książka ilustruje żuchwą; łopatki: push-up plus (protrakcja), wiosłowanie (retrakcja) – WNIOSEK"
+   ],
+   "exerciseExamplesStatus": "wniosek",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "122"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "123"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 1 Orientation to the Human Body",
+     "pages": "8"
+    }
+   ]
+  },
+  {
+   "id": "JK1",
+   "category": "staw kluczowy",
+   "name": "bark (staw ramienny)",
+   "facts": [
+    "staw kulisty o największym zakresie ruchu w ciele",
+    "bardziej ruchomy niż stabilny; 5 głównych więzadeł, 4 kaletki, stożek rotatorów",
+    "najczęściej zwichany staw, zwykle w dół (od siły z góry na wyprostowaną rękę)"
+   ],
+   "trainingImplication": [
+    "praca nad głową wymaga kontroli i stopniowania (WNIOSEK)",
+    "wzmacniaj stożek rotatorów (WNIOSEK)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "124"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "147"
+    }
+   ]
+  },
+  {
+   "id": "JK2",
+   "category": "staw kluczowy",
+   "name": "łokieć",
+   "facts": [
+    "staw zawiasowy: ramienno-łokciowy i ramienno-promieniowy w jednej torebce",
+    "więzadła po obu stronach stabilizują"
+   ],
+   "trainingImplication": [
+    "tylko zgięcie/wyprost; pronacja/supinacja w stawie promieniowo-łokciowym"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "124"
+    }
+   ]
+  },
+  {
+   "id": "JK3",
+   "category": "staw kluczowy",
+   "name": "kolano",
+   "facts": [
+    "największy i najbardziej złożony staw; 13 kaletek",
+    "więzadła poboczne chronią przed rotacją przy wyproście",
+    "ACL chroni przed przeprostem, PCL ogranicza ruch na boki (wg książki)",
+    "łąkotki amortyzują",
+    "mało otaczających mięśni – częściej kontuzjowane niż biodro; wrażliwe na uderzenia, nagłe zatrzymania i skręty"
+   ],
+   "trainingImplication": [
+    "nagłe hamowanie i zmiany kierunku wprowadzać stopniowo (WNIOSEK)",
+    "urazy łąkotki/więzadeł goją się wolno lub wcale – skierowanie do specjalisty (POZA ŹRÓDŁEM)"
+   ],
+   "notes": [
+    "opis funkcji PCL ('limits sideways motion') jest nietypowy; przyjęto dosłownie ze źródła"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "125"
+    }
+   ]
+  },
+  {
+   "id": "JK4",
+   "category": "staw kluczowy",
+   "name": "biodro",
+   "facts": [
+    "staw kulisty, stabilniejszy od barku dzięki głębokiej panewce",
+    "w staniu więzadła skręcają się i dociągają głowę kości udowej do panewki"
+   ],
+   "trainingImplication": [
+    "biodro dobrze znosi duże obciążenia w wzorcach przysiadu i zawiasu (WNIOSEK)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  },
+  {
+   "id": "JK5",
+   "category": "staw kluczowy",
+   "name": "kręgosłup",
+   "facts": [
+    "33 kręgi; krzywizny szyjna, piersiowa, lędźwiowa, krzyżowa (lekkie S)",
+    "zgina się w przód bardziej niż w tył; może się też skręcać",
+    "wiele mięśni i silne więzadła stabilizują kręgosłup (nienazwane)"
+   ],
+   "trainingImplication": [
+    "ćwiczenia stabilizacji tułowia; podnoszenie z nóg, nie z pleców (s. 107)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "106"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "107"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "108"
+    }
+   ]
+  },
+  {
+   "id": "JK6",
+   "category": "staw kluczowy",
+   "name": "stopa",
+   "facts": [
+    "26 kości",
+    "łuki: podłużny przyśrodkowy, podłużny boczny, poprzeczny – trzymane więzadłami",
+    "osłabienie więzadeł = płaskostopie",
+    "wysokie obcasy przenoszą ciężar na głowy kości śródstopia – ból i urazy"
+   ],
+   "trainingImplication": [
+    "brak ćwiczeń stopy w książce"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "98"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 7 Skeletal System",
+     "pages": "115"
+    }
+   ]
+  }
+ ],
+ "physiologyRules": [
+  {
+   "id": "F1",
+   "topic": "budowa mięśnia",
+   "rule": "Mięsień → pęczki (omięsna) → włókna (śródmięsna) → miofibryle → miofilamenty: grube (miozyna) i cienkie (aktyna, z tropomiozyną i troponiną). Całość otacza namięsna, która przechodzi w ścięgno lub rozcięgno; na zewnątrz powięź.",
+   "trainingImplication": "brak bezpośredniego; słownik dla trenera",
+   "trainingImplicationStatus": null,
+   "numbers": {
+    "fiberLengthCm": 3,
+    "fiberWidthMm": 0.05
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "132"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "133"
+    }
+   ]
+  },
+  {
+   "id": "F2",
+   "topic": "ścięgna",
+   "rule": "Ścięgna i rozcięgna są tak mocne, że rzadko się zrywają, nawet przy siłach łamiących kość; mogą jednak oderwać się od kości. Ścięgno Achillesa jest najsilniejsze, ale często ulega urazom przy nagłym obciążeniu (sprint).",
+   "trainingImplication": "stopniuj obciążenia gwałtowne (skoki, sprinty)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "132"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "151"
+    }
+   ]
+  },
+  {
+   "id": "F3",
+   "topic": "mechanizm skurczu",
+   "rule": "Impuls z neuronu ruchowego → acetylocholina → impuls w sarkolemie i kanalikach T → wapń z siateczki sarkoplazmatycznej → wapń wiąże troponinę → mostki miozyna–aktyna, 'uderzenia mocy', skracanie sarkomeru (model ślizgowy). Potrzebne ATP i wapń. Rozkurcz: wapń wraca do siateczki.",
+   "trainingImplication": "brak bezpośredniego",
+   "trainingImplicationStatus": null,
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "134"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "135"
+    }
+   ]
+  },
+  {
+   "id": "F4",
+   "topic": "długość–napięcie",
+   "rule": "Najsilniejszy skurcz przy częściowym nałożeniu filamentów (optymalna długość spoczynkowa); słaby przy nadmiernym skróceniu i rozciągnięciu.",
+   "trainingImplication": "w skrajnych częściach zakresu ruchu mięsień jest słabszy",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "peakTensionPctAtStretchPct": 100,
+    "graphXTicksPct": [
+     70,
+     100,
+     130
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "136"
+    }
+   ]
+  },
+  {
+   "id": "F5",
+   "topic": "tonus mięśniowy",
+   "rule": "Układ nerwowy stale utrzymuje częściowy skurcz mięśni (tonus) przy optymalnej długości; to pozwala stać, trzymać głowę, utrzymać postawę i szybko reagować (np. odzyskać równowagę po poślizgnięciu).",
+   "trainingImplication": "ćwiczenia równowagi i postawy opierają się na tym mechanizmie",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "136"
+    }
+   ]
+  },
+  {
+   "id": "F6",
+   "topic": "jednostka motoryczna",
+   "rule": "Neuron i wszystkie unerwiane przez niego włókna; od kilku do kilkuset włókien rozproszonych w mięśniu. Małe jednostki w mięśniach precyzyjnych (oko, palce), duże w mięśniach bez precyzji (plecy).",
+   "trainingImplication": "brak",
+   "trainingImplicationStatus": null,
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "137"
+    }
+   ]
+  },
+  {
+   "id": "F7",
+   "topic": "skurcz pojedynczy, treppe, tężec",
+   "rule": "Pojedynczy skurcz trwa ułamek sekundy. Kolejne szybkie skurcze są coraz silniejsze (treppe – wapń nie zdąży wrócić). Jeszcze szybsze impulsy: tężec niezupełny (normalny stan pracy mięśni), całkowity rzadko. Jednostki pracują asynchronicznie, by mięsień nie 'wiotczał' przy zmęczeniu.",
+   "trainingImplication": "książka NIE łączy treppe z rozgrzewką; nie wyciągać takiego wniosku jako pewnego",
+   "trainingImplicationStatus": "brak_w_zrodle",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "137"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "138"
+    }
+   ]
+  },
+  {
+   "id": "F8",
+   "topic": "rekrutacja",
+   "rule": "Silniejszy bodziec pobudza więcej włókien nerwu ruchowego, a więc więcej jednostek motorycznych – silniejszy skurcz.",
+   "trainingImplication": "cięższe obciążenia angażują więcej jednostek motorycznych",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "139"
+    }
+   ]
+  },
+  {
+   "id": "F9",
+   "topic": "izometria / izotonia",
+   "rule": "Izometryczny: napięcie rośnie, długość stała. Izotoniczny: zmiana długości, napięcie stałe; przy podnoszeniu ciężaru mięsień się skraca, przy opuszczaniu wydłuża.",
+   "trainingImplication": "deska, wytrzymanie w przysiadzie = izometria; większość ćwiczeń siłowych = izotonia",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "139"
+    }
+   ]
+  },
+  {
+   "id": "F10",
+   "topic": "energia: ATP i CP",
+   "rule": "ATP w mięśniu na kilka sekund. Fosfokreatyna: ok. 20 s wysiłku o wysokiej intensywności albo ok. 1 min umiarkowanego. Energia pochodzi ostatecznie z pożywienia.",
+   "trainingImplication": "krótkie, bardzo intensywne zrywy (do ok. 20 s) korzystają głównie z CP; książka nie podaje czasu odnowy CP, więc przerw z tego nie wyliczamy",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "cpHighIntensitySec": 20,
+    "cpModerateSec": 60
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "140"
+    }
+   ]
+  },
+  {
+   "id": "F11",
+   "topic": "energia: przemiany beztlenowe",
+   "rule": "Po wyczerpaniu CP, zanim dotrze dość tlenu, mięśnie rozkładają glukozę beztlenowo (z krwi i glikogenu mięśniowego). Szybko daje energię na intensywne zrywy; produkt uboczny – kwas mlekowy – według książki powoduje zmęczenie i 'pieczenie'. Po wysiłku część mleczanu wraca do wątroby i jest przetwarzana do glukozy; to zużywa tlen (dług tlenowy), stąd ciężki oddech po treningu.",
+   "trainingImplication": "pieczenie mięśni przy wysiłku to znak pracy beztlenowej (wg książki)",
+   "trainingImplicationStatus": "zrodlo",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "140"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "419"
+    }
+   ]
+  },
+  {
+   "id": "F12",
+   "topic": "energia: przemiany tlenowe",
+   "rule": "Po ok. 10 min umiarkowanego wysiłku mięśnie wracają do przemian tlenowych glukozy; dają więcej ATP, a produkty (CO2, woda) nie są toksyczne. W spoczynku mięśnie spalają głównie kwasy tłuszczowe. Tłuszcz daje ponad dwa razy więcej energii z grama niż węglowodany (9 vs 4 kcal/g).",
+   "trainingImplication": "trening wytrzymałościowy o umiarkowanej intensywności trwający dłużej niż ok. 10 min opiera się na przemianach tlenowych",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "aerobicShiftMin": 10,
+    "kcalPerGramFat": 9,
+    "kcalPerGramCarb": 4,
+    "kcalPerGramProtein": 4
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "140"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "412"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "421"
+    }
+   ]
+  },
+  {
+   "id": "F13",
+   "topic": "typy włókien",
+   "rule": "Typ I (wolnokurczliwe): dużo mitochondriów, bogate ukrwienie, wydajne tlenowo, odporne na zmęczenie. Typ II (szybkokurczliwe): mniej mitochondriów, słabsze ukrwienie, szybka gospodarka wapniem, krótkie zrywy siły i szybkości, szybko się męczą.",
+   "trainingImplication": "cel wytrzymałościowy → dłuższy wysiłek; cel siła/moc → krótkie zrywy (WNIOSEK bez liczb)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "137"
+    }
+   ]
+  },
+  {
+   "id": "F14",
+   "topic": "adaptacja do treningu oporowego",
+   "rule": "Praca przeciw oporowi pobudza syntezę miofilamentów; miofibryle grubieją i jest ich więcej – mięsień większy i silniejszy. Intensywny wysiłek oporowy lekko uszkadza włókna, a naprawa je powiększa.",
+   "trainingImplication": "potrzebny bodziec oporowy i czas na naprawę (WNIOSEK: regeneracja między sesjami; książka nie podaje ile)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "F15",
+   "topic": "adaptacja do treningu wytrzymałościowego",
+   "rule": "Wysiłek wytrzymałościowy zwiększa liczbę mitochondriów i zapas glikogenu we włóknach wolnokurczliwych, poprawia ich ukrwienie (nowe naczynia), zwiększa liczbę krwinek czerwonych, wzmacnia kości i usprawnia układy krążenia, oddechowy i nerwowy; nie zwiększa istotnie siły.",
+   "trainingImplication": "łącz trening oporowy z wytrzymałościowym",
+   "trainingImplicationStatus": "zrodlo",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "F16",
+   "topic": "atrofia",
+   "rule": "Brak użycia powoduje kurczenie się włókien i całego mięśnia.",
+   "trainingImplication": "planuj utrzymanie aktywności w przerwach (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    }
+   ]
+  },
+  {
+   "id": "F17",
+   "topic": "przebudowa kości",
+   "rule": "Osteoklasty usuwają kość, osteoblasty ją budują. W dzieciństwie przeważa tworzenie, w dorosłości równowaga, po ok. 40 r.ż. przeważa utrata. Obciążanie zwiększa gęstość, brak obciążenia przyspiesza utratę. Co roku przebudowuje się ok. 10% szkieletu. Kość jest odporna na rozciąganie i ściskanie, słabo na skręcanie (większość złamań to siły skręcające).",
+   "trainingImplication": "unikaj gwałtownych skrętów kończyn pod obciążeniem (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "boneLossOnsetAge": 40,
+    "skeletonRemodeledPerYearPct": 10
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "86"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "F18",
+   "topic": "płytki wzrostu",
+   "rule": "Wydłużanie kości trwa do zamknięcia płytek nasadowych między 16 a 25 r.ż. Przeciążona płytka może się oddzielić (złamanie nasadowe), co może zaburzyć dalszy wzrost.",
+   "trainingImplication": "u nastolatków unikaj przeciążeń (POZA ŹRÓDŁEM: dobór obciążeń u młodzieży konsultuj ze specjalistą)",
+   "trainingImplicationStatus": "poza_zrodlem",
+   "numbers": {
+    "growthPlateClosureAge": [
+     16,
+     25
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "89"
+    }
+   ]
+  },
+  {
+   "id": "F19",
+   "topic": "chrząstka i maź",
+   "rule": "Chrząstka stawowa odżywia się mazią; ucisk i odciążenie przy ruchu przepompowują maź. Rozgrzana maź jest mniej lepka; chrząstka nasiąka i lepiej amortyzuje.",
+   "trainingImplication": "rozgrzewka przed intensywnym wysiłkiem; regularny ruch dla zdrowia stawów",
+   "trainingImplicationStatus": "zrodlo",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  },
+  {
+   "id": "F20",
+   "topic": "serce: rzut i tętno",
+   "rule": "Rzut serca = tętno × objętość wyrzutowa (ok. 75 × 70 ml ≈ 5,25 l/min). Spoczynkowe tętno: młode kobiety 72–80, młodzi mężczyźni 64–72/min. Poniżej 60 = bradykardia (normalna we śnie i u sportowców), powyżej 100 w spoczynku = tachykardia. Większa objętość wyrzutowa wytrenowanego serca = wolniejsze tętno.",
+   "trainingImplication": "spadek tętna spoczynkowego może odzwierciedlać poprawę wydolności (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "restingHRFemale": [
+     72,
+     80
+    ],
+    "restingHRMale": [
+     64,
+     72
+    ],
+    "bradycardiaBelow": 60,
+    "tachycardiaAbove": 100,
+    "restingCardiacOutputL": [
+     5,
+     6
+    ],
+    "strokeVolumeMl": 70
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "285"
+    }
+   ]
+  },
+  {
+   "id": "F21",
+   "topic": "serce: regulacja w wysiłku",
+   "rule": "Wysiłek i stres pobudzają ośrodek przyspieszający serca (układ współczulny, noradrenalina): rośnie tętno i siła skurczu. Proprioceptory mięśni i stawów zgłaszają ruch, więc serce przyspiesza z wyprzedzeniem. Emocje (strach, złość, lęk) przyspieszają tętno. Adrenalina zwiększa kurczliwość i tętno.",
+   "trainingImplication": "tętno na treningu zależy też od emocji – nie traktować go jako jedynej miary intensywności (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "286"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "287"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "288"
+    }
+   ]
+  },
+  {
+   "id": "F22",
+   "topic": "serce: objętość wyrzutowa",
+   "rule": "Komory wyrzucają 60–80% krwi (frakcja wyrzutowa). Objętość wyrzutową wyznaczają obciążenie wstępne (prawo Starlinga: większe wypełnienie = silniejszy skurcz), kurczliwość i obciążenie następcze (np. wysokie ciśnienie zmniejsza objętość wyrzutową).",
+   "trainingImplication": "brak",
+   "trainingImplicationStatus": null,
+   "numbers": {
+    "ejectionFractionPct": [
+     60,
+     80
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "288"
+    }
+   ]
+  },
+  {
+   "id": "F23",
+   "topic": "naczynia wieńcowe i tętno",
+   "rule": "Naczynia wieńcowe wypełniają się w rozkurczu komór; książka pyta retorycznie, dlaczego długotrwale podwyższone tętno może szkodzić.",
+   "trainingImplication": "unikaj długotrwałego bardzo wysokiego tętna u osób z chorobą serca (POZA ŹRÓDŁEM)",
+   "trainingImplicationStatus": "poza_zrodlem",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "280"
+    }
+   ]
+  },
+  {
+   "id": "F24",
+   "topic": "krążenie w mięśniach",
+   "rule": "W wysiłku zwieracze przedwłośniczkowe w mięśniach otwierają się i krew wypełnia sieć naczyń włosowatych; w spoczynku się zamykają. Układ współczulny rozszerza naczynia mięśni szkieletowych. Po jedzeniu naczynia mięśni się zwężają, a przewodu pokarmowego rozszerzają.",
+   "trainingImplication": "intensywny trening tuż po obfitym posiłku konkuruje o przepływ krwi (WNIOSEK; książka nie daje zaleceń co do odstępu)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "297"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "309"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "193"
+    }
+   ]
+  },
+  {
+   "id": "F25",
+   "topic": "ciśnienie tętnicze",
+   "rule": "Ciśnienie zależy od rzutu serca, objętości krwi i oporu. Wysiłek → wzrost rzutu → wzrost ciśnienia; koniec wysiłku → spadek. Odwodnienie obniża objętość krwi i ciśnienie. Z wiekiem tętnice sztywnieją i ciśnienie rośnie.",
+   "trainingImplication": "mierz ciśnienie przed rozpoczęciem programu u osób 40+ i z czynnikami ryzyka (POZA ŹRÓDŁEM)",
+   "trainingImplicationStatus": "poza_zrodlem",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "307"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "308"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "311"
+    }
+   ]
+  },
+  {
+   "id": "F26",
+   "topic": "baroreceptory i zmiana pozycji",
+   "rule": "Szybkie wstanie z leżenia ściąga krew do nóg i może dać zawroty głowy; baroreceptory szybko to korygują. Nie kontrolują jednak przewlekłego nadciśnienia.",
+   "trainingImplication": "po ćwiczeniach w leżeniu wstawaj powoli, zwłaszcza seniorzy (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "310"
+    }
+   ]
+  },
+  {
+   "id": "F27",
+   "topic": "powrót żylny: pompa mięśniowa i oddechowa",
+   "rule": "Skurcze mięśni nóg masują żyły i pchają krew do serca; zastawki zapobiegają cofaniu. Oddychanie (ruch przepony) wspomaga powrót krwi z jamy brzusznej i klatki.",
+   "trainingImplication": "po intensywnym wysiłku nóg nie zatrzymuj się nagle w bezruchu – marsz wspiera powrót żylny (WNIOSEK; książka nie podaje tego wprost)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "311"
+    }
+   ]
+  },
+  {
+   "id": "F28",
+   "topic": "oddychanie w wysiłku",
+   "rule": "Przy wysiłku ośrodek wydechowy angażuje mięśnie brzucha i pomocnicze do silniejszego wydechu. Przy głębokim wdechu pomagają mostkowo-obojczykowo-sutkowe, pochyłe i piersiowy mniejszy. CO2 (nie tlen) jest głównym regulatorem oddychania. Normalna częstość oddechu u dorosłych 12–20/min.",
+   "trainingImplication": "używanie mięśni pomocniczych w spoczynku może oznaczać duszność – stan nagły (s. 344)",
+   "trainingImplicationStatus": "zrodlo",
+   "numbers": {
+    "respRateAdult": [
+     12,
+     20
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "344"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "345"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "346"
+    }
+   ]
+  },
+  {
+   "id": "F29",
+   "topic": "pojemność płuc",
+   "rule": "Typowe wartości młodego dorosłego: objętość oddechowa 500 ml, zapasowa wdechowa 3000 ml, zapasowa wydechowa 1200 ml, zalegająca 1300 ml, pojemność życiowa 4700 ml, całkowita 6000 ml. Pojemność życiową zwiększa wyprostowana postawa, zmniejsza garbienie się i leżenie; zwiększają ją programy ćwiczeń i joga.",
+   "trainingImplication": "ćwiczenia w pozycji wyprostowanej sprzyjają oddychaniu (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "tidalMl": 500,
+    "irvMl": 3000,
+    "ervMl": 1200,
+    "residualMl": 1300,
+    "vitalCapacityMl": 4700,
+    "totalLungCapacityMl": 6000,
+    "deadSpaceMl": 150
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "349"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "350"
+    }
+   ]
+  },
+  {
+   "id": "F30",
+   "topic": "wstrzymanie oddechu",
+   "rule": "Przy wstrzymaniu oddechu CO2 rośnie, aż ośrodki oddechowe wymuszą oddech.",
+   "trainingImplication": "książka nie omawia manewru Valsalvy ani oddychania przy dźwiganiu",
+   "trainingImplicationStatus": "brak_w_zrodle",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "345"
+    }
+   ]
+  },
+  {
+   "id": "F31",
+   "topic": "hormony stresu i wysiłku",
+   "rule": "Adrenalina i noradrenalina (rdzeń nadnerczy) przygotowują do wysiłku: rośnie tętno i ciśnienie, krążenie w mięśniach, rozszerzają się oskrzela, rośnie glukoza (rozpad glikogenu, glukoneogeneza); trawienie jest hamowane.",
+   "trainingImplication": "brak",
+   "trainingImplicationStatus": null,
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "241"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "193"
+    }
+   ]
+  },
+  {
+   "id": "F32",
+   "topic": "kortyzol",
+   "rule": "Kortyzol pomaga adaptować się do stresu i naprawiać tkanki: rozkłada tłuszcz i białko, zamienia je na glukozę, działa przeciwzapalnie; długotrwale wysoki tłumi odporność. Przewlekły stres podnosi kortyzol i osłabia układ odpornościowy. Nadmiar (zespół Cushinga) = zanik mięśni, utrata kości, nadciśnienie.",
+   "trainingImplication": "przewlekły stres może utrudniać regenerację (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "241"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "242"
+    }
+   ]
+  },
+  {
+   "id": "F33",
+   "topic": "hormon wzrostu",
+   "rule": "Hormon wzrostu działa na całe ciało: synteza białek, metabolizm tłuszczów i węglowodanów, wzrost kości i mięśni. Wydzielany głównie w nocy i np. po obfitym posiłku. Z wiekiem spada – mniej mięśni, więcej tłuszczu.",
+   "trainingImplication": "sen jest ważny dla procesów naprawczych (WNIOSEK; książka nie łączy GH z treningiem)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "233"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "235"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "242"
+    }
+   ]
+  },
+  {
+   "id": "F34",
+   "topic": "insulina i glukagon",
+   "rule": "Po posiłku insulina zwiększa wychwyt glukozy przez komórki i magazynowanie glikogenu w wątrobie; między posiłkami glukagon uwalnia glukozę z glikogenu. Po 50 r.ż. wrażliwość na insulinę spada.",
+   "trainingImplication": "brak bezpośredniego w źródle",
+   "trainingImplicationStatus": null,
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "243"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "244"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "242"
+    }
+   ]
+  },
+  {
+   "id": "F35",
+   "topic": "testosteron i estrogen",
+   "rule": "Hormon wzrostu, testosteron i estrogen wpływają na wzrost kości; spadek estrogenu po menopauzie przyspiesza utratę kości. Testosteron sprzyja odkładaniu tłuszczu na brzuchu, estrogen – na biodrach i udach.",
+   "trainingImplication": "kobiety po menopauzie: priorytet ćwiczeń obciążających kości (WNIOSEK z P4)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "89"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "63"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 23 Reproductive Systems",
+     "pages": "459"
+    }
+   ]
+  },
+  {
+   "id": "F36",
+   "topic": "wapń",
+   "rule": "Wapń jest potrzebny do skurczu mięśni, przewodnictwa nerwowego i krzepnięcia. Niedobór wapnia we krwi = nadpobudliwość, kurcze, tężyczka; nadmiar = osłabienie mięśni.",
+   "trainingImplication": "nawracające kurcze mięśni bez wyraźnej przyczyny → konsultacja lekarska (POZA ŹRÓDŁEM)",
+   "trainingImplicationStatus": "poza_zrodlem",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "238"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "240"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "418"
+    }
+   ]
+  },
+  {
+   "id": "F37",
+   "topic": "termoregulacja",
+   "rule": "Mięśnie dają 20–30% ciepła w spoczynku, dużo więcej w intensywnym wysiłku. Ciało traci ciepło przez promieniowanie, przewodzenie (konwekcję) i parowanie potu. Przy przegrzaniu rozszerzają się naczynia skóry i rośnie pocenie.",
+   "trainingImplication": "w upale zmniejsz intensywność i zadbaj o płyny (POZA ŹRÓDŁEM)",
+   "trainingImplicationStatus": "poza_zrodlem",
+   "numbers": {
+    "muscleHeatAtRestPct": [
+     20,
+     30
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "423"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "424"
+    }
+   ]
+  },
+  {
+   "id": "F38",
+   "topic": "płyny",
+   "rule": "Dorosły przyjmuje i traci ok. 2500 ml płynów na dobę. Pot przy intensywnym wysiłku lub upale do ok. 1 l/h. Ok. 500 ml dziennie traci się niezauważalnie przez skórę.",
+   "trainingImplication": "dłuższy trening w cieple wymaga uzupełniania płynów (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "dailyFluidMl": 2500,
+    "maxSweatLPerHour": 1,
+    "insensiblePerspirationMl": 500
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 5 Integumentary System",
+     "pages": "77"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "374"
+    }
+   ]
+  },
+  {
+   "id": "F39",
+   "topic": "białko",
+   "rule": "Białko służy głównie do budowy tkanek (w tym mięśni). Organizm nie magazynuje aminokwasów; u zdrowych dorosłych rozpad równa się syntezie (bilans białkowy/azotowy). Dodatni bilans azotowy: wzrost, ciąża, rekonwalescencja; ujemny: głodzenie, choroba wyniszczająca. Białka uzupełniające można łączyć w ciągu dnia (np. fasola + ryż).",
+   "trainingImplication": "przy celu budowy mięśni potrzebny dodatni bilans azotowy (WNIOSEK; książka nie podaje ilości białka)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "416"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "422"
+    }
+   ]
+  },
+  {
+   "id": "F40",
+   "topic": "metabolizm spoczynkowy",
+   "rule": "Podstawowa przemiana materii dorosłego mężczyzny ok. 2000 kcal/dobę, kobiety nieco mniej. Rośnie przy lęku, gorączce, jedzeniu, hormonach tarczycy; większe ciało i więcej mięśni = większy wydatek; mężczyźni mają mniej tłuszczu i więcej mięśni; z wiekiem mięśni ubywa. Ok. 2/3 wydatku energii dorosłego to utrzymanie funkcji ciała.",
+   "trainingImplication": "zachowanie masy mięśniowej wspiera wydatek energii (WNIOSEK)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {
+    "bmrMaleKcal": 2000,
+    "kcalPerLbFat": 3500
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "411"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "412"
+    }
+   ]
+  },
+  {
+   "id": "F41",
+   "topic": "głód i sytość",
+   "rule": "Grelina (żołądek, przy pustym żołądku) pobudza apetyt; leptyna (tkanka tłuszczowa), insulina, PYY i CCK go hamują. U osób otyłych rozwija się oporność na leptynę.",
+   "trainingImplication": "brak",
+   "trainingImplicationStatus": null,
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "413"
+    }
+   ]
+  },
+  {
+   "id": "F42",
+   "topic": "tkanki – gojenie",
+   "rule": "Rana: najpierw zakrzep, potem tkanka ziarninowa, kolagen, blizna. Mięśnie i nerwy regenerują się słabo, goją przez zwłóknienie z utratą funkcji. Złamanie: krwiak → kostnina miękka → twarda → przebudowa; 8–12 tygodni w prostych złamaniach.",
+   "trainingImplication": "powrót do obciążeń po urazie wymaga zgody lekarza/fizjoterapeuty (POZA ŹRÓDŁEM)",
+   "trainingImplicationStatus": "poza_zrodlem",
+   "numbers": {
+    "simpleFractureHealingWeeks": [
+     8,
+     12
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "65"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "92"
+    }
+   ]
+  },
+  {
+   "id": "F43",
+   "topic": "odruchy i równowaga",
+   "rule": "Receptory w mięśniach informują mózg o rozciągnięciu mięśnia i ruchu części ciała; mózg koryguje napięcie, ruch i postawę odruchowo (utrzymanie równowagi bez udziału świadomości). Z wiekiem odruchy i czucie mogą słabnąć.",
+   "trainingImplication": "ćwiczenia równowagi u seniorów (WNIOSEK; książka nie podaje ćwiczeń)",
+   "trainingImplicationStatus": "wniosek",
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "175"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "199"
+    }
+   ]
+  },
+  {
+   "id": "F44",
+   "topic": "układ współczulny i przywspółczulny",
+   "rule": "Współczulny przygotowuje do wysiłku: czujność, tętno, rozszerzenie oskrzeli i naczyń mięśni, pobudzenie potu, hamowanie trawienia. Przywspółczulny uspokaja i zwalnia tętno.",
+   "trainingImplication": "brak",
+   "trainingImplicationStatus": null,
+   "numbers": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 10 Nervous System",
+     "pages": "193"
+    }
+   ]
+  },
+  {
+   "id": "F45",
+   "topic": "rozkład mięśni w ciele",
+   "rule": "Ponad 600 mięśni, ok. 40% masy ciała dorosłego; kości ok. 14% masy ciała; 206 kości; ponad 300 stawów.",
+   "trainingImplication": "brak",
+   "trainingImplicationStatus": null,
+   "numbers": {
+    "muscleCount": 600,
+    "musclePctBodyMass": 40,
+    "bonePctBodyMass": 14,
+    "boneCount": 206,
+    "jointCount": 300
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "131"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "83"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "119"
+    }
+   ]
+  }
+ ],
+ "measurementRules": [
+  {
+   "id": "MR1",
+   "name": "ciśnienie tętnicze – kategorie",
+   "value": {
+    "normal": "<120/<80",
+    "prehypertension": "120-139/80-89",
+    "stage1": "140-159/90-99",
+    "stage2": ">=160/>=100"
+   },
+   "unit": "mm Hg",
+   "interpretation": "Norma skurczowego 90–120, rozkurczowego 60–80. Ryzyko zgonu z chorób serca i udaru rośnie już od 115/75 i podwaja się co każde +20/+10 mm Hg. Kategorie według stanu wiedzy z ok. 2014 r.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "307"
+    }
+   ]
+  },
+  {
+   "id": "MR2",
+   "name": "ciśnienie tętna (pulse pressure)",
+   "value": {
+    "example": "110/70 -> 40"
+   },
+   "unit": "mm Hg",
+   "interpretation": "Różnica skurczowe − rozkurczowe; odzwierciedla obciążenie małych tętnic.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "307"
+    }
+   ]
+  },
+  {
+   "id": "MR3",
+   "name": "tętno spoczynkowe",
+   "value": {
+    "youngFemale": [
+     72,
+     80
+    ],
+    "youngMale": [
+     64,
+     72
+    ],
+    "typical": 75,
+    "bradycardia": "<60",
+    "tachycardia": ">100"
+   },
+   "unit": "ud./min",
+   "interpretation": "Bradykardia bywa normalna we śnie i u sportowców; utrzymująca się tachykardia w spoczynku jest nieprawidłowa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 14 Heart",
+     "pages": "285"
+    }
+   ]
+  },
+  {
+   "id": "MR4",
+   "name": "częstość oddechów",
+   "value": {
+    "adult": [
+     12,
+     20
+    ]
+   },
+   "unit": "oddechów/min",
+   "interpretation": "Norma dorosłych w spoczynku.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "344"
+    }
+   ]
+  },
+  {
+   "id": "MR5",
+   "name": "wskaźnik talia–biodra (WHR)",
+   "value": {
+    "centralObesityMen": ">0.9",
+    "centralObesityWomen": ">0.85"
+   },
+   "unit": "obwód talii / obwód bioder",
+   "interpretation": "Talia w najwęższym miejscu, biodra w najszerszym. Otyłość brzuszna wiąże się z ryzykiem chorób serca, nadciśnienia i cukrzycy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 4 Tissues",
+     "pages": "63"
+    }
+   ]
+  },
+  {
+   "id": "MR6",
+   "name": "temperatura ciała",
+   "value": {
+    "coreC": [
+     37.2,
+     37.6
+    ],
+    "shellC": [
+     36.6,
+     37.0
+    ],
+    "dailyFluctuationC": 1,
+    "heatStrokeC": ">=40",
+    "hypothermiaC": "<35",
+    "lethalHypothermiaC": "<32.2"
+   },
+   "unit": "°C",
+   "interpretation": "Temperatura najniższa rano, najwyższa późnym popołudniem.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "423"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "424"
+    }
+   ]
+  },
+  {
+   "id": "MR7",
+   "name": "energia i masa ciała",
+   "value": {
+    "kcalPerLbFat": 3500,
+    "kcalPerGramCarbProtein": 4,
+    "kcalPerGramFat": 9,
+    "bmrMaleKcalPerDay": 2000
+   },
+   "unit": "kcal",
+   "interpretation": "Przybliżenia z podręcznika.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "412"
+    }
+   ]
+  },
+  {
+   "id": "MR8",
+   "name": "makroskładniki (ogólne zalecenia)",
+   "value": {
+    "carbsPctEnergy": [
+     40,
+     50
+    ],
+    "carbsActivePctEnergy": "do 60",
+    "fatMaxPctEnergy": 30,
+    "transFatMaxPctEnergy": 1,
+    "saturatedFat": "SPRZECZNOŚĆ: 'nie więcej niż 20%' vs '<10%'"
+   },
+   "unit": "% energii",
+   "interpretation": "Większość węglowodanów złożonych. Białka: brak liczby.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "414"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "415"
+    }
+   ]
+  },
+  {
+   "id": "MR9",
+   "name": "płyny",
+   "value": {
+    "dailyMl": 2500,
+    "sweatUpToLPerHour": 1
+   },
+   "unit": "ml / l",
+   "interpretation": "Bilans płynów i straty z potem.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "374"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 5 Integumentary System",
+     "pages": "77"
+    }
+   ]
+  },
+  {
+   "id": "MR10",
+   "name": "spirometria (młody dorosły)",
+   "value": {
+    "tidal": 500,
+    "IRV": 3000,
+    "ERV": 1200,
+    "residual": 1300,
+    "vitalCapacity": 4700,
+    "totalLungCapacity": 6000
+   },
+   "unit": "ml",
+   "interpretation": "Wartości typowe z wykresu spirograficznego.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 17 Respiratory System",
+     "pages": "349"
+    }
+   ]
+  },
+  {
+   "id": "MR11",
+   "name": "glikemia i cukrzyca – fakty",
+   "value": {
+    "type2ShareOfDiabetesPct": 90,
+    "type2OnsetUsuallyAfterAge": 40,
+    "type1OnsetBeforeAge": 30,
+    "neuropathyPctOfDiabetics": [
+     60,
+     70
+    ],
+    "heartDiseaseDeathRateMultiplier": [
+     2,
+     4
+    ]
+   },
+   "unit": "-",
+   "interpretation": "Typ 2: utrata receptorów insuliny; czynniki: dziedziczność, nadwaga, siedzący tryb życia; leczenie: zmiana stylu życia, potem leki/insulina.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "245"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "246"
+    }
+   ]
+  },
+  {
+   "id": "MR12",
+   "name": "kości – liczby",
+   "value": {
+    "bodyMassPct": 14,
+    "skeletonRemodeledPerYearPct": 10,
+    "boneLossAfterAge": 40,
+    "simpleFractureHealingWeeks": [
+     8,
+     12
+    ],
+    "growthPlateClosureAge": [
+     16,
+     25
+    ],
+    "osteoarthritisOver70Pct": 85
+   },
+   "unit": "-",
+   "interpretation": "Dane z rozdz. 6 i 8.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "83"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "89"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "92"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "126"
+    }
+   ]
+  }
+ ],
+ "nutritionRules": [
+  {
+   "id": "N1",
+   "rule": "Węglowodany to główne źródło energii: 40–50% energii u przeciętnego dorosłego, do 60% u bardzo aktywnych; głównie złożone (wolniejsze wchłanianie, mniej skoków glikemii).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "414"
+    }
+   ]
+  },
+  {
+   "id": "N2",
+   "rule": "Tłuszcz do 30% energii; tłuszcze trans do 1% energii; ograniczać nasycone (książka podaje sprzecznie 20% i <10%).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "415"
+    }
+   ]
+  },
+  {
+   "id": "N3",
+   "rule": "Białko buduje tkanki, w tym mięśnie; białka pełnowartościowe głównie zwierzęce; roślinne można łączyć w ciągu dnia. Brak zaleceń ilościowych (g/kg).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "416"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "422"
+    }
+   ]
+  },
+  {
+   "id": "N4",
+   "rule": "Sportowcy traktują dietę jako kluczową część treningu, bo energia do odbudowy ATP i CP pochodzi z pożywienia.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "140"
+    }
+   ]
+  },
+  {
+   "id": "N5",
+   "rule": "Dla kości potrzebne: wapń, fosfor, witaminy D, C i A (oraz białko – czynnik ryzyka osteoporozy przy niedoborze).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 6 Bones & Bone Tissue",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "N6",
+   "rule": "Niedobór żelaza → anemia, zmęczenie; niedobór potasu, magnezu, wapnia → osłabienie mięśni, kurcze, zaburzenia rytmu (tabela minerałów).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "418"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 13 Blood",
+     "pages": "259"
+    }
+   ]
+  },
+  {
+   "id": "N7",
+   "rule": "Duże straty potu uzupełniane samą wodą mogą obniżyć sód we krwi (zatrucie wodne).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 19 Fluid, Electrolyte, & Acid-Base Balance",
+     "pages": "377"
+    }
+   ]
+  },
+  {
+   "id": "N8",
+   "rule": "Alkohol i żywność bogata w cukier to 'puste kalorie'.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "412"
+    }
+   ]
+  }
+ ],
+ "contradictions": [
+  {
+   "id": "C1",
+   "topic": "liczba typów stawów maziowych",
+   "detail": "Cele rozdziału (s. 118): 'pięć typów'; tekst (s. 121): 'sześć typów' i opisuje sześć.",
+   "resolution": "przyjęto sześć (opisane w tekście)",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "118"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 8 Joints",
+     "pages": "121"
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "topic": "mięsień krawiecki",
+   "detail": "Tekst s. 149: odwodzi i rotuje udo na zewnątrz; tabela s. 153: przywodzi i zgina nogę.",
+   "resolution": "w bazie obie wersje; dla doboru ćwiczeń bez znaczenia",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "149"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "topic": "mięśnie kulszowo-goleniowe",
+   "detail": "Tekst s. 150: prostują biodro, zginają kolano, rotują; tabela s. 153: tylko prostują udo.",
+   "resolution": "przyjęto pełny opis z tekstu",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "150"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "C4",
+   "topic": "skośny zewnętrzny brzucha",
+   "detail": "Tekst s. 146: zgięcie, rotacja, zgięcie boczne, kompresja; tabela s. 152: tylko stabilizacja kręgosłupa.",
+   "resolution": "przyjęto pełny opis z tekstu",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "146"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "152"
+    }
+   ]
+  },
+  {
+   "id": "C5",
+   "topic": "aldosteron",
+   "detail": "s. 241: kora nadnerczy; s. 310: 'rdzeń nadnerczy'.",
+   "resolution": "przyjęto korę (opis rozdziału o hormonach); s. 310 to błąd",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 12 Endocrine System",
+     "pages": "241"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 15 Vascular System",
+     "pages": "310"
+    }
+   ]
+  },
+  {
+   "id": "C6",
+   "topic": "liczba aminokwasów egzogennych",
+   "detail": "s. 414: osiem; s. 416: dziewięć (z tabelą).",
+   "resolution": "przyjęto dziewięć (tabela)",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "414"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "416"
+    }
+   ]
+  },
+  {
+   "id": "C7",
+   "topic": "tłuszcze nasycone",
+   "detail": "s. 415: 'nie więcej niż 20%' i w tym samym akapicie 'mniej niż 10%'.",
+   "resolution": "nierozstrzygnięte; dla bezpieczeństwa niższa wartość",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "415"
+    }
+   ]
+  },
+  {
+   "id": "C8",
+   "topic": "los mleczanu",
+   "detail": "s. 140: mleczan w wątrobie przekształcany w glukozę; s. 419: mleczan 'magazynowany' w wątrobie i przekształcany z powrotem w pirogronian.",
+   "resolution": "oba opisy uproszczone; bez znaczenia praktycznego",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "140"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 21 Nutrition & Metabolism",
+     "pages": "419"
+    }
+   ]
+  },
+  {
+   "id": "C9",
+   "topic": "mechanizm hipertrofii",
+   "detail": "s. 141: mikrouszkodzenia i naprawa; s. 153: synteza miofilamentów, więcej i grubsze miofibryle.",
+   "resolution": "uzupełniające się opisy, nie sprzeczność",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "141"
+    },
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "C10",
+   "topic": "dawka treningu",
+   "detail": "s. 153: 'kilka minut dziennie, kilka razy w tygodniu wystarczy do wzrostu mięśni' – zdanie bez źródła i parametrów.",
+   "resolution": "niepewne; nie używać jako jedynej podstawy",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  },
+  {
+   "id": "C11",
+   "topic": "mięsień lędźwiowy większy",
+   "detail": "tabela s. 153 podaje przyczep początkowy 'ilium' (kość biodrowa).",
+   "resolution": "uproszczenie źródła; bez wpływu na dobór ćwiczeń",
+   "sources": [
+    {
+     "ref": "anatomia-fizjologia-thompson",
+     "chapter": "Rozdz. 9 Muscular System",
+     "pages": "153"
+    }
+   ]
+  }
+ ]
+}

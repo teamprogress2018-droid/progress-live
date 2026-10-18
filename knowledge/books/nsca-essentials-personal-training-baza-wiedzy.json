@@ -1,0 +1,4782 @@
+{
+  "meta": {
+    "title": "NSCA's Essentials of Personal Training, 3rd ed.",
+    "editors": [
+      "Brad J. Schoenfeld",
+      "Ronald L. Snarr"
+    ],
+    "publisher": "Human Kinetics, Champaign, IL",
+    "year": "2022 (copyright; dane CIP 2021)",
+    "isbn": {
+      "print": "978-1-4925-9672-1",
+      "pdf": "978-1-4925-9674-5",
+      "epub": "978-1-4925-9673-8"
+    },
+    "language_source": "en",
+    "language_base": "pl",
+    "version": "1.0",
+    "date": "2026-10-17",
+    "ref": "nsca-essentials-pt",
+    "pageNumbering": "Wszystkie strony = numeracja drukowana. Strona PDF = drukowana + 14 (stałe przesunięcie, zweryfikowane w wielu miejscach).",
+    "inputNote": "PDF jest skanem (Google Books) bez warstwy tekstowej; tekst uzyskano OCR (tesseract) w tej sesji; kluczowe tabele odczytano z obrazów stron.",
+    "statusValues": [
+      "zrodlo",
+      "wniosek",
+      "brak_w_zrodle",
+      "poza_zrodlem"
+    ],
+    "units": "Książka podaje funty (lb) i często kg; 1 lb = 0,4536 kg. Wartości w lb przeliczone tylko tam, gdzie książka sama podaje kg albo zaznaczono przeliczenie."
+  },
+  "principles": [
+    {
+      "id": "P01",
+      "rule": "Specyficzność: adaptacja jest specyficzna dla ćwiczonych mięśni, wzorców ruchu, prędkości, zakresu i systemu energetycznego; dobór ćwiczeń i parametrów musi wynikać z celu klienta.",
+      "status": "zrodlo",
+      "forWhom": "wszyscy klienci",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "393-394"
+        }
+      ]
+    },
+    {
+      "id": "P02",
+      "rule": "Przeciążenie (overload): aby wywołać adaptację, bodziec musi przekraczać to, do czego organizm jest przyzwyczajony (obciążenie, objętość, częstotliwość, gęstość).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "394"
+        }
+      ]
+    },
+    {
+      "id": "P03",
+      "rule": "Zmienność (variation): planowana zmiana bodźców (obciążenie, liczba powtórzeń, ćwiczenia, gęstość) ogranicza stagnację i monotonię; początkujący potrzebują jej niewiele.",
+      "status": "zrodlo",
+      "conditions": "Kilka miesięcy bez zmienności zwiększa ryzyko przetrenowania monotonnego.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "394, 413-415"
+        }
+      ]
+    },
+    {
+      "id": "P04",
+      "rule": "Progresja: bodziec trzeba stopniowo zwiększać, gdy klient się adaptuje; nie każda sesja musi być trudniejsza od poprzedniej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "394, 410-411"
+        }
+      ]
+    },
+    {
+      "id": "P05",
+      "rule": "Projektowanie programu oporowego wg 10 kroków: konsultacja/ocena → częstotliwość → dobór ćwiczeń → kolejność → obciążenie i powtórzenia → objętość (serie) → przerwy → zmienność → sekwencjonowanie (bloki) → progresja.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "395"
+        }
+      ]
+    },
+    {
+      "id": "P06",
+      "rule": "Status wytrenowania ustala się z 5 kryteriów (obecny program, staż, częstotliwość, intensywność, technika/typ ćwiczeń); klasyfikacja wymaga zgodności w 3 z 5 kolumn tego samego wiersza tabeli 15.1. Trening w ciągu ostatnich 4–6 tygodni liczy się jako 'aktualny'.",
+      "status": "zrodlo",
+      "details": {
+        "beginner": "brak aktualnego programu lub <2 mies.",
+        "toIntermediate": "≥2 mies./4–6 mies., 1–3×/tydz., intensywność niska–średnia, 3–5 ćw. na maszynach → 6–10 maszyn + 3–5 ćw. pomocniczych z wolnymi ciężarami",
+        "intermediate": "8–10 mies. (3×/tydz., średnia) do ~1 roku (4×/tydz., średnia–wysoka); 11–15 maszyn + 6–10 pomocniczych + 3–5 podstawowych z wolnymi ciężarami",
+        "advanced": "1–1,5 roku do >2 lat, 4 do ≥5×/tydz., intensywność wysoka–bardzo wysoka, >15 ćwiczeń + 3–5 ćwiczeń mocy"
+      },
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "396"
+        }
+      ]
+    },
+    {
+      "id": "P07",
+      "rule": "Cele treningu oporowego książka dzieli na: wytrzymałość mięśniową, hipertrofię, siłę i moc; dla seniorów korzystna jest zarówno siła, jak i moc.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "397"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "504-506"
+        }
+      ]
+    },
+    {
+      "id": "P08",
+      "rule": "Przetrenowanie najczęściej wynika ze zbyt szybkiego zwiększania objętości lub zbyt wielu dni wysokiej intensywności bez zmienności i odpoczynku; najskuteczniejszym 'lekarstwem' po wystąpieniu objawów jest odpoczynek (od dni do tygodni).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "5 Responses and Adaptations to Resistance Training",
+          "pages": "84-85"
+        }
+      ]
+    },
+    {
+      "id": "P09",
+      "rule": "Roztrenowanie: krótka przerwa (~14 dni) ma niewielki wpływ na siłę i moc u osób trenujących; już 1 sesja oporowa tygodniowo istotnie ogranicza utratę siły.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "5 Responses and Adaptations to Resistance Training",
+          "pages": "85-86"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "rule": "Roztrenowanie wytrzymałościowe: wytrzymałość mięśniowa spada już po ok. 2 tygodniach przerwy; zdolności tlenowe można utrzymać ≥2 sesjami/tydz. przy zachowanej intensywności, a objętość można ciąć nawet o ~70% przez kilka tygodni bez utraty VO2max.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "6 Physiological Responses and Adaptations to Aerobic Endurance Training",
+          "pages": "101-102"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "437"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "rule": "Zakres kompetencji trenera: ocenia, motywuje, edukuje i trenuje; NIE diagnozuje, nie leczy, nie przepisuje leków, diet leczniczych ani suplementów. Trener ma być 'podejrzewającym', nie diagnostą (\"suspectician, not diagnostician\").",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "25 Professional, Legal, and Ethical Responsibilities of Personal Trainers",
+          "pages": "664-668"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "104"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "120"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "rule": "Zasada ostrożnego startu: nieprzyzwyczajony wysiłek o dużej intensywności zwiększa ryzyko zdarzeń sercowych; u osób nieaktywnych progresja ma być stopniowa.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "147, 151-152"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "rule": "Pierwszym celem współpracy z nowym klientem jest regularność i przyjemność z treningu (adherence); pakiety 6–12 sesji, np. 6 sesji w 3 tygodnie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "415-416"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "rule": "Periodyzacja (makro-, mezo-, mikrocykle 1–4 tyg.) daje lepsze efekty niż trening niezmienny; modele tradycyjny (liniowy) i falujący (undulating) dają podobne wyniki siły i hipertrofii.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "623-629"
+        }
+      ]
+    },
+    {
+      "id": "P15",
+      "rule": "Sekwencja bloków: zwykle hipertrofia → siła → moc; po spadku tempa przyrostów zmiana bodźca (np. 2–5 tyg. siły) i powrót.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "415-417"
+        }
+      ]
+    },
+    {
+      "id": "P16",
+      "rule": "Dobór testów i ćwiczeń zależy od zdrowia, celu, doświadczenia klienta i umiejętności trenera; wynik testu porównuje się głównie z wcześniejszymi wynikami tego klienta, a cel zdrowotny to co najmniej poziom 'przeciętny' norm.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "176-177, 190-191"
+        }
+      ]
+    },
+    {
+      "id": "P17",
+      "rule": "Tryb ćwiczenia (maszyna, wolny ciężar, masa ciała, piłka) nie jest najważniejszy – liczy się osiągnięcie wystarczającej intensywności; trening z masą ciała jest realną opcją bez sprzętu, ale nie rozwija siły maksymalnej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "280-281"
+        }
+      ]
+    },
+    {
+      "id": "P18",
+      "rule": "Wieloskładnikowy wpływ: trening oporowy poprawia czynniki ryzyka CVD (HDL, LDL, TG, wrażliwość insulinowa, ciśnienie) nawet bez dużej utraty masy ciała.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "531"
+        }
+      ]
+    },
+    {
+      "id": "P19",
+      "rule": "Cele: SMART (Specific, Measurable, Action-oriented, Realistic, Time-bound); cel 'wyzwanie' ma ~50% szans powodzenia; łączyć cele procesu, wykonania i wyniku; cele krótkoterminowe prowadzą do długoterminowych.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "8 Exercise Psychology, Goal Setting, and Motivation",
+          "pages": "127-131"
+        }
+      ]
+    },
+    {
+      "id": "P20",
+      "rule": "Trening plyometryczny i szybkościowy wymaga bazy siłowej (≥3 mies. treningu oporowego) i jest stopniowany od niskiej do wysokiej intensywności.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "453-455"
+        }
+      ]
+    }
+  ],
+  "assessmentRules": [
+    {
+      "id": "A01",
+      "rule": "Kolejność procesu przyjęcia klienta: rozmowa wstępna → formularze (PAR-Q+, kwestionariusz zdrowia, zgoda) → ocena czynników ryzyka → interpretacja → ewentualne skierowanie → zgoda lekarska → testy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "139-154"
+        }
+      ]
+    },
+    {
+      "id": "A02",
+      "rule": "PAR-Q+ (2021) – 7 pytań: choroba serca/nadciśnienie; ból w klatce (w spoczynku, przy czynnościach, wysiłku); zawroty/utrata równowagi lub przytomności w 12 mies. (nie z hiperwentylacji); inna przewlekła choroba; leki na przewlekłą chorobę; problem kostno-stawowy/tkanek miękkich w 12 mies., który ruch może pogorszyć; lekarz zalecił tylko nadzorowaną aktywność.",
+      "status": "zrodlo",
+      "then": "Wszystkie NIE → można zaczynać powoli i stopniowo progresować; >45 lat bez nawyku wysiłków intensywnych/maksymalnych → konsultacja z wykwalifikowanym specjalistą ds. ćwiczeń. Którekolwiek TAK → kontakt z lekarzem przed zwiększeniem aktywności lub testami. Ciąża → rozmowa z lekarzem.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "153, 163"
+        }
+      ]
+    },
+    {
+      "id": "A03",
+      "rule": "Czynniki ryzyka CVD (tab. 9.1, ACSM 2022): wiek M ≥45, K ≥55; wywiad rodzinny (zawał/rewaskularyzacja/nagły zgon <55 r.ż. u ojca/krewnego I st. płci męskiej, <65 u matki/krewnej); palenie (obecne, rzucone <6 mies., bierne); brak aktywności (<500–1000 MET-min lub <75–150 min/tydz. MVPA); BMI ≥30 lub obwód talii >102 cm M / >88 cm K; ciśnienie ≥130 i/lub ≥80 mmHg (≥2 pomiary w ≥2 dniach) lub leki; lipidy: LDL ≥130 mg/dl lub HDL <40 M/<50 K lub non-HDL ≥160 lub leki (TC ≥200, jeśli to jedyny wynik); glukoza na czczo ≥100 mg/dl, OGTT ≥140 lub HbA1c ≥5,7%. HDL ≥60 mg/dl odejmuje 1 czynnik.",
+      "status": "zrodlo",
+      "note": "Czynnik nieujawniony/nieznany liczy się jako obecny. Tabela odczytana z obrazu strony.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "144"
+        }
+      ]
+    },
+    {
+      "id": "A04",
+      "rule": "Objawy wymagające skierowania do lekarza przed treningiem: ból/dyskomfort klatki, szyi, żuchwy, ramion (możliwe niedokrwienie); duszność w spoczynku lub przy lekkim wysiłku; zawroty głowy/omdlenie; ortopnoe lub napadowa duszność nocna; obrzęki kostek; kołatanie serca/tachykardia; chromanie przestankowe; znany szmer serca; nietypowe zmęczenie lub duszność przy zwykłych czynnościach.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "146-147"
+        }
+      ]
+    },
+    {
+      "id": "A05",
+      "rule": "Ryzyko nagłej śmierci sercowej – skierowanie na badanie kardiologiczne: ból w klatce przy wysiłku, nadmierna duszność wysiłkowa, omdlenie, nagły zgon z przyczyn sercowych <50 r.ż. u więcej niż jednego krewnego, niepełnosprawność z powodu choroby serca <50 r.ż. u bliskiego krewnego.",
+      "status": "zrodlo",
+      "uncertainty": "Sprzeczność: studium przypadku 9.4 (s. 155–156) dopuszcza kontynuację bez zgody lekarza mimo dwóch takich czynników, podczas gdy ramka na s. 147 zaleca skierowanie przy jednym lub więcej.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "147"
+        }
+      ]
+    },
+    {
+      "id": "A06",
+      "rule": "Schemat kwalifikacji ACSM (rys. 9.1): kluczowe pytania – czy klient obecnie ćwiczy (≥30 min umiarkowanie ≥3 dni/tydz. przez ≥3 mies.), czy ma rozpoznaną chorobę sercowo-naczyniową, metaboliczną lub nerek, czy ma objawy, jaka ma być intensywność.",
+      "status": "zrodlo",
+      "details": {
+        "nieaktywny_zdrowy_bez_objawow": "bez zgody lekarza; start lekko–umiarkowanie, stopniowo do intensywnego",
+        "nieaktywny_choroba_bez_objawow": "zalecana zgoda lekarska; potem lekko–umiarkowanie",
+        "nieaktywny_z_objawami": "zalecana zgoda lekarska",
+        "aktywny_zdrowy": "kontynuacja umiarkowanie/intensywnie",
+        "aktywny_choroba_bez_objawow": "umiarkowanie OK; przed wysiłkiem intensywnym zgoda (ważna 12 mies.)",
+        "aktywny_z_objawami": "przerwać ćwiczenia, uzyskać zgodę lekarską"
+      },
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "151-152"
+        }
+      ]
+    },
+    {
+      "id": "A07",
+      "rule": "Definicje intensywności (ACSM): lekka 30–39% HRR, 2–2,9 MET, RPE 9–11 (skala 6–20); umiarkowana 40–59% HRR, 3–5,9 MET, RPE 12–13; intensywna ≥60% HRR, ≥6 MET, RPE ≥14.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "151"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "427-428"
+        }
+      ]
+    },
+    {
+      "id": "A08",
+      "rule": "Ortopedia w wywiadzie (świeża operacja, endoproteza, osteoporoza, RZS itp.) → kontakt z lekarzem/zgoda i ograniczenia ruchowe na piśmie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "148"
+        }
+      ]
+    },
+    {
+      "id": "A09",
+      "rule": "Leki: beta-blokery tłumią tętno spoczynkowe i wysiłkowe → intensywność wg RPE, nie wg tętna; leki rozszerzające naczynia → dłuższe schłodzenie (ryzyko zastoju krwi).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "149"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "431"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "551"
+        }
+      ]
+    },
+    {
+      "id": "A10",
+      "rule": "Rodzaje programów po ocenie: samodzielny (bez nadzoru), nadzorowany przez trenera, nadzorowany medycznie (np. rehabilitacja kardiologiczna).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "153-154"
+        }
+      ]
+    },
+    {
+      "id": "A11",
+      "rule": "Dzieci: rodzic nie może skutecznie zrzec się w imieniu dziecka roszczeń z tytułu odpowiedzialności; dokumentacja i nadzór muszą to uwzględniać.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "143"
+        }
+      ]
+    },
+    {
+      "id": "A12",
+      "rule": "Testy wysiłkowe w terenie (bieg 1,5 mili, test 12-min) tylko po 4–6 tyg. wcześniejszego treningu tlenowego; u nietrenowanych zamiast 1RM – szacowanie z 10RM po okresie zapoznania.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "179-180"
+        }
+      ]
+    },
+    {
+      "id": "A13",
+      "rule": "Pompki: jeśli klient robi <6 powtórzeń, test traktować jako test siły, nie wytrzymałości.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "180-181"
+        }
+      ]
+    },
+    {
+      "id": "A14",
+      "rule": "Pomiar fałdów skórnych wymaga ok. 100 pomiarów treningowych, aby osiągnąć rzetelność; błąd standardowy ~±3,5%; 2 pomiary w miejscu, trzeci gdy różnica >2 mm; raportować zakres ±3%.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "181"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "205-208"
+        }
+      ]
+    },
+    {
+      "id": "A15",
+      "rule": "Warunki otoczenia testu: pokój 68–72°F (20–22°C), wilgotność ≤60%; ryzyko udaru cieplnego rośnie od 65–72°F przy wilgotności 65–72%; poniżej 25°F (~-4°C) ostrożność (seniorzy, kardiologiczni, astmatycy); wysokość >1900 stóp wpływa na normy, aklimatyzacja 7–12 dni; uwzględnić AQI.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "182"
+        }
+      ]
+    },
+    {
+      "id": "A16",
+      "rule": "Instrukcje przed testem: 6–8 h snu, brak intensywnego wysiłku 24 h przed, lekki posiłek 2–4 h przed, nawodnienie, bez stymulantów.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "188"
+        }
+      ]
+    },
+    {
+      "id": "A17",
+      "rule": "Kryteria przerwania testu: dławica/ból w klatce; spadek SBP >10 mmHg mimo rosnącego obciążenia; SBP >250 lub DBP >115 mmHg; duszność, świszczący oddech, kurcze nóg, chromanie; objawy złej perfuzji (bladość, sinica, zimna wilgotna skóra, zawroty); brak wzrostu tętna; zmiana rytmu; prośba klienta; skrajne zmęczenie; awaria sprzętu. Po nagłym przerwaniu 5–15 min schładzania (jeśli bezpieczne).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "188"
+        }
+      ]
+    },
+    {
+      "id": "A18",
+      "rule": "Kolejność testów (zdrowie/fitness): spoczynkowe (tętno, ciśnienie, skład ciała) → nieobciążające (gibkość, równowaga) → siła → wytrzymałość mięśniowa → submaksymalny test tlenowy. Przerwy: 3–5 min po testach fosfagenowych, ≥60 min po glikolitycznych.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "189"
+        }
+      ]
+    },
+    {
+      "id": "A19",
+      "rule": "Retest co ≥8 tygodni; częstsze testowanie daje efekt uczenia się zamiast obrazu adaptacji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "191"
+        }
+      ]
+    },
+    {
+      "id": "A20",
+      "rule": "Tętno spoczynkowe: norma 60–100 bpm (typowo 60–80); u kobiet o 7–10 bpm wyższe; <60 bradykardia, >100 tachykardia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "197"
+        }
+      ]
+    },
+    {
+      "id": "A21",
+      "rule": "Pomiar ciśnienia: 30 min bez kofeiny i palenia, 5 min siedzenia, spuszczanie 2–3 mmHg/s, 2 pomiary w odstępie 2 min, trzeci jeśli różnią się o >5 mmHg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "201"
+        }
+      ]
+    },
+    {
+      "id": "A22",
+      "rule": "Kategorie ciśnienia: prawidłowe <120/<80; podwyższone 120–129/<80; nadciśnienie st. 1: 130–139 lub 80–89; st. 2: ≥140 lub ≥90 mmHg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "201"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "550"
+        }
+      ]
+    },
+    {
+      "id": "A23",
+      "rule": "Monitorowanie obciążenia: sesyjne RPE = RPE (0–10) × minuty sesji; ankieta samopoczucia 1–5 (sen, bolesność, stres, zmęczenie); wysokie obciążenie wewnętrzne przy niskim zewnętrznym = sygnał negatywnej adaptacji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "203"
+        }
+      ]
+    },
+    {
+      "id": "A24",
+      "rule": "BMI: niedowaga <18,5; norma 18,5–24,9; nadwaga 25–29,9; otyłość I 30–34,9, II 35–39,9, III ≥40. Nie używać BMI samodzielnie do monitorowania efektów treningu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "205-206"
+        }
+      ]
+    },
+    {
+      "id": "A25",
+      "rule": "Analiza impedancji (BIA): 4 h bez jedzenia i picia, 12 h bez wysiłku, 48 h bez alkoholu, 7 dni bez diuretyków, oddać mocz ≤30 min przed.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "210"
+        }
+      ]
+    },
+    {
+      "id": "A26",
+      "rule": "Normy % tkanki tłuszczowej (kryterialne): mężczyźni przeciętnie 11–25%, nadmiar >31%; kobiety przeciętnie 16–30%, nadmiar >36%.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "210"
+        }
+      ]
+    },
+    {
+      "id": "A27",
+      "rule": "WHR – wysokie ryzyko: M 20–29 l. >0,94; 30–39 >0,96; 40–49 >1,00; 50–59 >1,02; 60–69 >1,03. K 20–29 >0,82; 30–39 >0,84; 40–49 >0,87; 50–59 >0,88; 60–69 >0,90. Obwód talii >102 cm (M)/>88 cm (K) zwiększa ryzyko chorób.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "211"
+        }
+      ]
+    },
+    {
+      "id": "A28",
+      "rule": "Szacowanie HRmax ze wzorów ma błąd ±10–12 (do 15) bpm; test rowerowy YMCA przerywa się przy 85% APMHR.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "213-219"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "429"
+        }
+      ]
+    },
+    {
+      "id": "A29",
+      "rule": "Test 5RM: rozgrzewka 8–10 powt., 1 min przerwy; kolejne próby +5–10 lb (góra) lub +15–20 lb (dół), przerwy 2–4 min; przy porażce −2,5–5 lb (góra) / −5–10 lb (dół); znaleźć 5RM w 3–5 seriach.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "227"
+        }
+      ]
+    },
+    {
+      "id": "A30",
+      "rule": "Przeliczenie RM → 1RM (nomogram, rys. 11.20, odczyt z obrazu): 5RM × ~1,17 ≈ 1RM; 10RM × ~1,33 ≈ 1RM.",
+      "status": "zrodlo",
+      "note": "Wartości przybliżone, odczytane z nomogramu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "228"
+        }
+      ]
+    },
+    {
+      "id": "A31",
+      "rule": "Test 1RM zajmuje ≥30 min na ćwiczenie; nie stosować u nietrenowanych, kontuzjowanych i pod nadzorem medycznym; nie wykonywać 1RM w ćwiczeniach pomocniczych, wykroku, wejściu na skrzynię i wiosłowaniu w opadzie – szacować z 6RM/10RM w ≤3 seriach.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "405-406"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "618-619"
+        }
+      ]
+    },
+    {
+      "id": "A32",
+      "rule": "Równania predykcji 1RM (tab. 23.4), np. Brown: 1RM = (powt. × 0,0338 + 0,9849) × ciężar; najdokładniejsze przy <10 powtórzeniach.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "619"
+        }
+      ]
+    },
+    {
+      "id": "A33",
+      "rule": "Przysiad na jednej nodze do 45–60° z utrzymaniem 5 s lub zejście w przód z 6-calowej (15 cm) skrzynki: zaliczenie, gdy w 5 z 6 kryteriów brak błędu (praca ramion, tułów, miednica, przywodzenie uda, koślawienie kolana, stabilna stopa).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "242-244"
+        }
+      ]
+    },
+    {
+      "id": "A34",
+      "rule": "Test siad-skłon (sit-and-reach) słabo przewiduje ból krzyża; obustronne uniesienie prostych nóg w leżeniu przodem ocenia wytrzymałość prostowników grzbietu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "233-234"
+        }
+      ]
+    },
+    {
+      "id": "A35",
+      "rule": "Zdarzenia niepożądane w czasie testów są rzadkie (ok. 0,06%), ale trener musi znać kryteria przerwania i plan ratunkowy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "187"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E01",
+      "rule": "Ćwiczenie podstawowe (core) = wielostawowe, angażujące duże grupy mięśni (np. przysiad, wyciskanie leżąc, wiosłowanie); ćwiczenie pomocnicze (assistance) = jednostawowe, mniejsze mięśnie. Jedno ćwiczenie podstawowe zastępuje ~4–8 jednostawowych.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "400-401"
+        }
+      ]
+    },
+    {
+      "id": "E02",
+      "rule": "Ćwiczenie strukturalne = obciąża kręgosłup (np. przysiad ze sztangą, martwy ciąg, wyciskanie stojąc); ćwiczenia mocy (np. zarzut) to szybkie ćwiczenia strukturalne o wyższym ryzyku urazu – wymagają analizy koszt–korzyść; bój olimpijski dla ogółu klientów jest 'wątpliwy'.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "401"
+        }
+      ]
+    },
+    {
+      "id": "E03",
+      "rule": "Początkujący: 1 ćwiczenie na grupę mięśniową – klatka, barki, górna część pleców, biodra/uda, biceps, triceps, brzuch, łydki; najpierw maszyny i proste ćwiczenia z wolnymi ciężarami (mniejsze wymagania techniczne).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "401-402"
+        }
+      ]
+    },
+    {
+      "id": "E04",
+      "rule": "Przed doborem ćwiczeń zrobić inwentaryzację dostępnego sprzętu i uwzględnić preferencje klienta (lepsze przestrzeganie planu).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "400-402"
+        }
+      ]
+    },
+    {
+      "id": "E05",
+      "rule": "Po urazie: konsultacja z profesjonalistą medycznym; przykład – po konflikcie podbarkowym unoszenie ramion bokiem zamiast wyciskania nad głowę.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "402"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "574-576"
+        }
+      ]
+    },
+    {
+      "id": "E06",
+      "rule": "Kolejność w sesji: ćwiczenia mocy → podstawowe → pomocnicze; wielostawowe przed jednostawowymi; duże grupy przed małymi.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "402-403"
+        }
+      ]
+    },
+    {
+      "id": "E07",
+      "rule": "Naprzemienność pchanie/ciągnięcie lub góra/dół pozwala skrócić przerwy – dobra do obwodów z przerwami <30 s i maszynami (szczególnie u początkujących).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "403"
+        }
+      ]
+    },
+    {
+      "id": "E08",
+      "rule": "Serie złożone (compound set: 2 ćwiczenia na ten sam mięsień) i superserie (mięśnie antagonistyczne) oszczędzają czas; brak dowodów, że dają lepsze efekty.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "403-404"
+        }
+      ]
+    },
+    {
+      "id": "E09",
+      "rule": "Najpierw nauka techniki; jeśli klient nie opanuje ruchu, stosować regresje lub maszyny wspomagane (np. podciąganie ze wspomaganiem).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "405"
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "rule": "Pozycja 5 punktów podparcia (siedząc/leżąc na plecach): tył głowy, górna część pleców i barki, dolna część pleców i pośladki, prawa stopa, lewa stopa. Leżenie przodem (np. uginanie nóg): broda, klatka i brzuch, biodra i przód ud, obie dłonie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "324"
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "rule": "Oddychanie: wydech w fazie najtrudniejszej (przez 'punkt martwy'), wdech w fazie łatwiejszej – dotyczy prawie wszystkich ćwiczeń.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "324"
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "rule": "Manewr Valsalvy: dopuszczalny tylko u wytrenowanych w ćwiczeniach strukturalnych z dużym obciążeniem i tylko krótko (1–2 s); zakazany u osób ze znaną lub podejrzewaną chorobą sercowo-naczyniową, metaboliczną lub oddechową.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "325"
+        }
+      ]
+    },
+    {
+      "id": "E13",
+      "rule": "Pas ciężarowy: zalecany tylko gdy jednocześnie (1) ćwiczenie jest strukturalne, wykonywane z podłoża (przysiad, wyciskanie stojąc, martwy ciąg) i (2) ciężar jest maksymalny lub bliski maksymalnemu; nie jest potrzebny przy ściąganiu drążka, wyciskaniu leżąc, uginaniu ramion, prostowaniu nóg. Stałe używanie pasa osłabia mięśnie tułowia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "325-326"
+        }
+      ]
+    },
+    {
+      "id": "E14",
+      "rule": "Asekuracja wymagana w 4 sytuacjach z wolnym ciężarem: nad głową (wyciskanie stojąc), nad twarzą (wyciskanie leżąc, francuskie leżąc), sztanga na plecach (przysiad tylny), sztanga na przodzie barków (przysiad przedni). Asekurujący przy ćwiczeniu nad głową musi być co najmniej tak wysoki jak klient – inaczej ćwiczenie na siedząco. Sztangę nad twarzą asekurować chwytem mieszanym między dłońmi klienta.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "326-327"
+        }
+      ]
+    },
+    {
+      "id": "E15",
+      "rule": "Ćwiczeń mocy (np. zarzut) nie asekuruje się – klient uczy się wypuszczać sztangę; wykonywać na platformie z dala od innych.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "327-328"
+        }
+      ]
+    },
+    {
+      "id": "E16",
+      "rule": "Powtórzenia wymuszone (forced reps) to nie to samo co asekuracja dla bezpieczeństwa.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "326"
+        }
+      ]
+    },
+    {
+      "id": "E17",
+      "rule": "Lista ćwiczeń z opisem techniki (wyszukiwarka ćwiczeń, s. 329): brzuch/tułów – spięcia brzucha (curl-up), spięcia na maszynie, 'drwal' (woodchop), wyprost tułowia na ławce rzymskiej i maszynie; plecy – wiosłowanie sztangą w opadzie, wiosłowanie hantlem jednorącz, ściąganie drążka (lat pulldown), wiosłowanie siedząc wyciągiem dolnym, wiosłowanie z gumą; biceps – uginanie ze sztangą, łamaną, z gumą, na modlitewniku, naprzemienne z hantlami; triceps – prostowanie z gumą, francuskie leżąc, prostowanie na wyciągu (pushdown), prostowanie nad głową; łydki – wspięcia stojąc i siedząc na maszynie; klatka – wyciskanie sztangi leżąc, wyciskanie hantli na skosie, rozpiętki, butterfly, wyciskanie z gumą, wyciskanie na maszynie; biodra/uda – suwnica (leg press), przysiad tylny, przysiad z gumą, przysiad przedni, przysiad bułgarski, wykrok w przód, hip thrust ze sztangą, RDL, prostowanie nóg, uginanie nóg leżąc; barki – wyciskanie sztangi, na maszynie, z gumą, unoszenie hantli bokiem, unoszenie bokiem z gumą, wiosłowanie pionowe; całe ciało – zarzut siłowy (power clean), przysiad z wyciśnięciem hantli, swing kettlebell.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "329-375"
+        }
+      ]
+    },
+    {
+      "id": "E18",
+      "rule": "Ćwiczenia z masą ciała opisane w książce: spięcia brzucha, wyprost grzbietu, pompka, wspięcie na palce, wejście na skrzynię (step-up), 'zombie squat' (przysiad z ramionami w przód), unoszenie bioder jednonóż (single-leg hip bridge); podwieszane (TRX): wiosłowanie odwrócone, Y-pull, 'ab fallout'; opór manualny: unoszenie bokiem, wiosłowanie ręcznikiem jednorącz, pompka z oporem.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "300-308"
+        }
+      ]
+    },
+    {
+      "id": "E19",
+      "rule": "Ćwiczenia na piłce gimnastycznej opisane w książce: spięcia brzucha z wydłużeniem, uginanie nóg w leżeniu tyłem na piłce, unoszenie bioder w leżeniu tyłem, wyprost grzbietu, odwrócony wyprost grzbietu, deska na łokciach na piłce, scyzoryk/pike roll out and in, skłony boczne na piłce.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "309-314"
+        }
+      ]
+    },
+    {
+      "id": "E20",
+      "rule": "Piłka gimnastyczna: dobra wielkość = siedząc na piłce stopy na podłodze, kolana pod kątem ok. 90° (nie niżej niż biodra); piłka w pełni napompowana; najpierw rozgrzewka; nacisk na technikę; ułożenie piłki wyżej pod plecami ułatwia spięcia brzucha (regresja), niżej utrudnia (progresja).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "285-286"
+        }
+      ]
+    },
+    {
+      "id": "E21",
+      "rule": "Ograniczenia piłki: w warunkach niestabilnych trenujący nie osiągną intensywności potrzebnej do wzrostu siły; poprawa stabilizacji tułowia nie przenosi się automatycznie na wyniki sportowe – piłka jest uzupełnieniem, nie podstawą.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "283-285"
+        }
+      ]
+    },
+    {
+      "id": "E22",
+      "rule": "Trening podwieszany: opór zależy od położenia środka ciężkości względem punktu zaczepienia; dobierać kąt tak, by zakres RM/RIR odpowiadał celowi (wytrzymałość ≥10 powt., siła <6 powt.); silniejsi mogą nie uzyskać przeciążenia – można dodać kamizelkę obciążeniową. Objętość liczy się jako serie × powtórzenia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "281-282"
+        }
+      ]
+    },
+    {
+      "id": "E23",
+      "rule": "Rower stacjonarny: wysokość siodełka tak, by w dolnym położeniu pedału kolano było lekko zgięte (~25–30°), bez blokowania; buty biegowe wymieniać co ~300–500 mil (500–800 km).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "14 Cardiovascular Exercise Technique",
+          "pages": "378, 382"
+        }
+      ]
+    },
+    {
+      "id": "E24",
+      "rule": "Bieżnia/stepper: ograniczać trzymanie się poręczy (zaburza technikę i zaniża koszt energetyczny) – stopniowo od trzymania obiema rękami do swobodnej pracy ramion.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "14 Cardiovascular Exercise Technique",
+          "pages": "379-381"
+        }
+      ]
+    },
+    {
+      "id": "E25",
+      "rule": "Ergometr wioślarski: początkujący startują od małego oporu i rytmu ok. 20–25 pociągnięć/min.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "14 Cardiovascular Exercise Technique",
+          "pages": "385"
+        }
+      ]
+    },
+    {
+      "id": "E26",
+      "rule": "Bezpieczne zamienniki przy urazie barku: wyciskanie nad głową sztangą opuszczaną przed głową; w wyciskaniu leżąc nie dotykać sztangą klatki (wałek/podkładka), ramiona blisko tułowia; w butterfly/rozpiętkach nie cofać łokci za linię tułowia; ściąganie drążka do przodu (przed głowę), nie za kark.",
+      "status": "zrodlo",
+      "note": "Tabela 21.5 odczytana z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "579"
+        }
+      ]
+    },
+    {
+      "id": "E27",
+      "rule": "Przy ćwiczeniach wielostawowych z wolnym ciężarem u osób ze stwardnieniem rozsianym – dopiero po zbudowaniu bazy na masie ciała, maszynach i oporze manualnym.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "604"
+        }
+      ]
+    },
+    {
+      "id": "E28",
+      "rule": "Gibkość: rozciąganie statyczne i dynamiczne; balistyczne – unikać. Przed treningiem preferowane rozciąganie dynamiczne (i PNF), statyczne po treningu, jeśli potrzebna dodatkowa gibkość.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "275-278"
+        }
+      ]
+    },
+    {
+      "id": "E29",
+      "rule": "Rozgrzewka RAMP (Raise – podniesienie temperatury, Activate & Mobilize – aktywacja i mobilizacja, Potentiate – potencjacja): 5–15 min, do lekkiego spocenia; nie może męczyć. Lepiej wytrenowani potrzebują dłuższej/intensywniejszej rozgrzewki.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "279-280"
+        }
+      ]
+    },
+    {
+      "id": "E30",
+      "rule": "Rozciąganie statyczne: po rozgrzewce 5–15 min; do lekkiego dyskomfortu, nigdy na siłę i nie do bólu; utrzymać 30 s (początkujący zaczynają od 15 s i wydłużają do 30 s), 3 powtórzenia; łączyć z treningiem oporowym; dostosować do potrzeb stawu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "276-277"
+        }
+      ]
+    },
+    {
+      "id": "E31",
+      "rule": "PNF (hold-relax): pozycja rozciągnięcia ~10 s → 6 s silnego skurczu izometrycznego → rozluźnienie i pogłębienie, utrzymanie 30 s; wymaga partnera i więcej czasu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "277"
+        }
+      ]
+    },
+    {
+      "id": "E32",
+      "rule": "Rozciąganie dynamiczne: 2–5 razy w tygodniu; każde ćwiczenie na dystansie 20–25 m (jardów); ćwiczenia: krążenia ramion, wymachy ramion, chód w wykrokach, 'hokejowy' wykrok, marsz z przyciąganiem kolana, przekładanie nogi nad płotkiem, odwrócone rozciąganie dwugłowych, dynamiczny 'gołąb', wymachy nóg w przód.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "278, 294-300"
+        }
+      ]
+    },
+    {
+      "id": "E33",
+      "rule": "Statyczne ćwiczenia gibkości opisane w książce: skręty głowy, skłon/wyprost szyi, ręce splecione za plecami, rozciąganie za karkiem (triceps), rozciąganie najszerszego z asekuracją, rozciąganie czworogłowego w leżeniu bokiem, 'precel' (pretzel), wykrok w przód (zginacze bioder), kolano do klatki w leżeniu, 'motyl', rozciąganie łydki przy ścianie, rozciąganie na stopniu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "288-294"
+        }
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "G01",
+      "rule": "Częstotliwość: między sesjami obciążającymi te same mięśnie co najmniej 1 dzień, ale nie więcej niż 3 dni przerwy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "398"
+        }
+      ]
+    },
+    {
+      "id": "G02",
+      "rule": "Częstotliwość wg statusu (tab. 15.2): początkujący 2–3 sesje/tydz. całego ciała w dni nienastępujące po sobie (pn/czw; wt/czw/sob; pn/śr/pt); średniozaawansowany 3 (całe ciało) lub 4 (split góra pn/czw, dół wt/pt; ≥48 h na grupę); zaawansowany 3–6 (możliwe 2 sesje dziennie), np. split 3 dni treningu / 1 wolny: pchanie / nogi / ciągnięcie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "398-399"
+        }
+      ]
+    },
+    {
+      "id": "G03",
+      "rule": "Obniżyć częstotliwość przy dużym stresie pozatreningowym (np. pracownik budowlany toleruje 2–3 dni); klient biegający 5×30 min/tydz. może tolerować tylko 2 dni treningu oporowego.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "399"
+        }
+      ]
+    },
+    {
+      "id": "G04",
+      "rule": "Metody ustalania obciążenia: %1RM, RM (powtórzenia maksymalne), RIR (powtórzenia w zapasie), RPE. Jeśli klient zrobiłby >3 powtórzenia ponad zakres docelowy – ciężar za lekki.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "404-408"
+        }
+      ]
+    },
+    {
+      "id": "G05",
+      "rule": "Test RM do ustalenia ciężaru: ograniczyć do 3 serii; najcięższe obciążenie w ćwiczeniach pomocniczych ok. 8RM; trening do upadku u początkujących jest nieprzyjemny, zwiększa DOMS i ryzyko przetrenowania.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "406"
+        }
+      ]
+    },
+    {
+      "id": "G06",
+      "rule": "Skala OMNI-RES 0–10 (rys. 15.1): szczególnie ważna dla seniorów, kobiet w ciąży i osób z przeciwwskazaniem do testów RM; początkujący zaniżają odczuwany wysiłek.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "406-407"
+        }
+      ]
+    },
+    {
+      "id": "G07",
+      "rule": "Nauka RIR: seria zakończona przy szacowanym 3 RIR, 1–2 min przerwy, potem ten sam ciężar do upadku – porównać szacunek z rzeczywistością. RIR jest mało dokładne daleko od upadku; początkujący szacują je słabo.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "407"
+        }
+      ]
+    },
+    {
+      "id": "G08",
+      "rule": "Zmienność międzyosobnicza: przy 75% 1RM w wyciskaniu nogami średnio ~14 powtórzeń, ale zakres indywidualny 7–24 – dlatego %1RM trzeba weryfikować RM/RIR/RPE.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "405"
+        }
+      ]
+    },
+    {
+      "id": "G09",
+      "rule": "Skala RPE↔RIR (rys. 15.2, Zourdos): RPE 10 = 0 RIR (maksimum); 9,5 = brak kolejnego powtórzenia, ale można by dodać ciężar; 9 = 1 RIR; 8,5 = 1–2; 8 = 2; 7,5 = 2–3; 7 = 3; 5–6 = 4–6; 3–4 = lekki wysiłek; 1–2 = minimalny. Przykład: znane 10RM → 2×10 przy RPE 8–9.",
+      "status": "zrodlo",
+      "note": "Odczytane z obrazu rysunku.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "407-408"
+        }
+      ]
+    },
+    {
+      "id": "G10",
+      "rule": "Korekta ciężaru po serii (tab. 15.5, lb; wiersz = zakres docelowy, kolumny = wykonane powtórzenia 18 / 16–17 / 14–15 / 12–13 / 10–11 / 8–9 / 6–7 / 4–5 / 2–3 / <2).",
+      "status": "zrodlo",
+      "details": {
+        "cel_14-15": [
+          10,
+          5,
+          0,
+          -5,
+          -10,
+          -15,
+          -15,
+          -20,
+          -25,
+          -30
+        ],
+        "cel_12-13": [
+          15,
+          10,
+          5,
+          0,
+          -5,
+          -10,
+          -15,
+          -15,
+          -20,
+          -25
+        ],
+        "cel_10-11": [
+          15,
+          15,
+          10,
+          5,
+          0,
+          -5,
+          -10,
+          -15,
+          -15,
+          -20
+        ],
+        "cel_8-9": [
+          20,
+          15,
+          15,
+          10,
+          5,
+          0,
+          -5,
+          -10,
+          -15,
+          -15
+        ],
+        "cel_6-7": [
+          25,
+          20,
+          15,
+          15,
+          10,
+          5,
+          0,
+          -5,
+          -10,
+          -15
+        ],
+        "cel_4-5": [
+          30,
+          25,
+          20,
+          15,
+          15,
+          10,
+          5,
+          0,
+          -5,
+          -10
+        ],
+        "cel_2-3": [
+          35,
+          30,
+          25,
+          20,
+          15,
+          15,
+          10,
+          5,
+          0,
+          -5
+        ],
+        "kolumny_wykonane_powtorzenia": [
+          "18",
+          "16-17",
+          "14-15",
+          "12-13",
+          "10-11",
+          "8-9",
+          "6-7",
+          "4-5",
+          "2-3",
+          "<2"
+        ],
+        "jednostka": "lb (1 lb ≈ 0,45 kg)",
+        "przyklad": "cel 8–9 powt., klient zrobił 6 przy 105 lb → −5 lb"
+      },
+      "note": "Tabela odczytana z obrazu strony; OCR był rozsypany.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "407-408"
+        }
+      ]
+    },
+    {
+      "id": "G11",
+      "rule": "Powtórzenia i serie wg celu i statusu (tab. 15.6).",
+      "status": "zrodlo",
+      "details": {
+        "wytrzymalosc": {
+          "poczatkujacy": "10–15RM, 1–3 serie",
+          "sredni": "10–30+RM, ≥3 serie",
+          "zaawansowany": "15–30+RM, ≥3 serie"
+        },
+        "hipertrofia": {
+          "poczatkujacy": "8–12RM, 1–3 serie",
+          "sredni": "5–30+RM, ≥3 serie",
+          "zaawansowany": "5–30+RM, ≥3 serie"
+        },
+        "sila": {
+          "poczatkujacy": "≤6RM, 1–3 serie",
+          "sredni": "≤3–6RM, ≥3 serie",
+          "zaawansowany": "≤1–6RM, ≥3 serie",
+          "uwaga": "dotyczy ćwiczeń podstawowych; pomocnicze lżej lub ≤6RM"
+        },
+        "moc": {
+          "poczatkujacy": "nie dotyczy",
+          "sredni": "3–6 powt., 1–3 serie",
+          "zaawansowany": "1–6 powt., 3–6 serii"
+        }
+      },
+      "note": "Tabela odczytana z obrazu strony.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "408-409"
+        }
+      ]
+    },
+    {
+      "id": "G12",
+      "rule": "Początkujący zaczynają od umiarkowanych/wyższych zakresów powtórzeń (nauka ruchu); siła wymaga regularnej pracy w 1–5RM, ale ciągłe ciężkie obciążenia grożą niefunkcjonalnym przeciążeniem – rotować obciążenia; wytrzymałość >15RM; hipertrofia możliwa od ~30% 1RM przy dużym wysiłku (poniżej 30% suboptymalnie); lżejsze ciężary przydatne przy chorobie zwyrodnieniowej i w rehabilitacji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "408-409"
+        }
+      ]
+    },
+    {
+      "id": "G13",
+      "rule": "Reguła 2-za-2 (2-for-2): jeśli klient w ostatniej serii zrobi o 2 powtórzenia więcej niż cel w 2 kolejnych treningach, zwiększyć ciężar we wszystkich seriach; typowy wzrost 2,5–10%, raczej ostrożnie.",
+      "status": "zrodlo",
+      "example": "Przysiad 135 lb, cel 3×10; dwa treningi z 12 powt. w ostatniej serii → 145 lb (tab. 15.8).",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "410-411"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "505-506"
+        }
+      ]
+    },
+    {
+      "id": "G14",
+      "rule": "Wielkość zwiększenia ciężaru (tab. 15.7, najlepiej dla 3 serii po 5–10 powt.).",
+      "status": "zrodlo",
+      "details": {
+        "poczatkujacy": {
+          "gora_podstawowe": "2,5–5 lb / 1–2 kg (~2,5%)",
+          "gora_pomocnicze": "1,25–2,5 lb / 0,5–1 kg (1–2%)",
+          "dol_podstawowe": "10–15 lb / 4–7 kg (~5%)",
+          "dol_pomocnicze": "5–10 lb / 2–4 kg (2,5–5%)"
+        },
+        "sredni_zaawansowany": {
+          "gora_podstawowe": "5–10+ lb / 2–4+ kg (2,5–5+%)",
+          "gora_pomocnicze": "5–10 lb / 2–4 kg (2,5–5%)",
+          "dol_podstawowe": "15–20+ lb / 7–9+ kg (5–10+%)",
+          "dol_pomocnicze": "10–15 lb / 4–7 kg (5–10%)"
+        }
+      },
+      "note": "Tabela odczytana z obrazu strony.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "410"
+        }
+      ]
+    },
+    {
+      "id": "G15",
+      "rule": "Początkujący robią postępy szybciej – częściej ponownie oceniać i korygować obciążenia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "410"
+        }
+      ]
+    },
+    {
+      "id": "G16",
+      "rule": "Objętość mierzyć liczbą serii (sensowne dla 6–20+RM); przy <5RM do hipertrofii potrzeba więcej serii. ≥10 serii/mięsień/tydz. (z kilku ćwiczeń) daje większą hipertrofię; początkującym i średnio zaawansowanym wystarcza mniejsza objętość; ~30-minutowe treningi są skuteczne przy braku czasu lub pieniędzy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "411-412"
+        }
+      ]
+    },
+    {
+      "id": "G17",
+      "rule": "Przerwy między seriami (tab. 15.9): wytrzymałość ≤30 s (do 3 min między ćwiczeniami na podobne mięśnie); hipertrofia ≥2–3 min w wielostawowych, 60–90 s w jednostawowych/maszynach; siła 2–5 min; moc 2–5 min. Nietrenowani uczący się techniki: 2–5 min. Gdy technika się psuje – wydłużyć przerwę.",
+      "status": "zrodlo",
+      "note": "Tabela odczytana z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "412-413"
+        }
+      ]
+    },
+    {
+      "id": "G18",
+      "rule": "Zmienność w sesji: różne zakresy dla różnych ćwiczeń, np. przysiad 5RM, wyciskanie nogami 10RM, prostowanie nóg 15RM; serie klastrowe – 5–45 s przerwy między powtórzeniami (tab. 15.10).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "413-414"
+        }
+      ]
+    },
+    {
+      "id": "G19",
+      "rule": "Zmienność między sesjami: dni lekkie/ciężkie; periodyzacja falująca dzienna (DUP), np. pn 3–5RM, śr 8–12RM, pt 15–20RM.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "414"
+        }
+      ]
+    },
+    {
+      "id": "G20",
+      "rule": "Zmienność między tygodniami: układ 3:1 (3 tyg. rosnącego obciążenia, 1 tydz. lżejszy); także 2:1, 4:1, 3:2, 4:2. Przykład (tab. 15.11): split 4-dniowy 3×10, tygodniowa objętość-obciążenie 79 500 → 82 650 → 85 950 → 79 950 lb (tydzień 4 = rozładowanie).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "414-415"
+        }
+      ]
+    },
+    {
+      "id": "G21",
+      "rule": "Długości bloków (tab. 15.12): wytrzymałość 2–4 tyg. (2–3 tyg. ciężkie / 1 lekki); hipertrofia 2–4 tyg. (2–3/1); siła 2–5 tyg. (2–4/1); moc 2–4 tyg. (2–3/1).",
+      "status": "zrodlo",
+      "note": "Odczyt z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "416"
+        }
+      ]
+    },
+    {
+      "id": "G22",
+      "rule": "Przykładowe sekwencje 16-tygodniowe (rys. 15.3): akcent wytrzymałość – 4 wytrz., 3 siła, 3 wytrz., 2 siła, 4 wytrz.; akcent hipertrofia – 4 hip., 3 siła, 4 hip., 2 siła, 3 hip.; akcent siła – 4 hip., 4 siła, 2 moc, 2 hip., 4 siła.",
+      "status": "zrodlo",
+      "note": "Odczyt z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "416-417"
+        }
+      ]
+    },
+    {
+      "id": "G23",
+      "rule": "Po spadku tempa przyrostów hipertrofii przejść na 2–5 tyg. siły, potem wrócić; przykład: 4 tyg. hipertrofii 3×10 → 3 tyg. siły → 4 tyg. hipertrofii.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "416"
+        }
+      ]
+    },
+    {
+      "id": "G24",
+      "rule": "%1RM a powtórzenia (tab. 23.2): 100%–1, 95–2, 93–3, 90–4, 87–5, 85–6, 83–7, 80–8, 77–9, 75–10, 70–11, 67–12, 65–15, 60–20. Dokładniejsze >75% i <10 powt.; trenujący i ćwiczenia na maszynach dają więcej powtórzeń; kolejne serie – mniej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "617-618"
+        }
+      ]
+    },
+    {
+      "id": "G25",
+      "rule": "Trening do upadku nie daje większych przyrostów siły, a zwiększa zmęczenie.",
+      "status": "zrodlo",
+      "uncertainty": "Napięcie z rozdz. 15, gdzie RM (z definicji do upadku) jest podstawową metodą ustalania ciężaru; w praktyce rozdz. 15 też używa RPE 6–9 w programach.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "618"
+        }
+      ]
+    },
+    {
+      "id": "G26",
+      "rule": "Periodyzacja tradycyjna (tab. 23.5, odczyt z obrazu): hipertrofia 2–3 tyg., 3–5 serii, 6–30+ powt., przerwy ≥2 min (60–90 s jednostawowe), ≤85% 1RM; siła 2–3 tyg., 3–5 serii, 1–6 powt., 2–5 min, ≥85%; siła/moc 2–3 tyg., 3–5 serii, 1–6 powt., 2–5 min, 85–95%; start/szczyt 2–3 tyg., 1–4 serie, 1–3 powt., 3–5 min, ≥93%; aktywny odpoczynek 1 tydz.",
+      "status": "zrodlo",
+      "uncertainty": "Tekst podaje fazy 2–4 tyg. i przerwy w fazie siły 3–5 min – niezgodne z tabelą.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "624-625"
+        }
+      ]
+    },
+    {
+      "id": "G27",
+      "rule": "Tradycyjne obciążenie tygodniowe: dzień ciężki 100%, średni ~90% (5–10% lżej), lekki ~80% (10–30% lżej).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "624-626"
+        }
+      ]
+    },
+    {
+      "id": "G28",
+      "rule": "12-tygodniowy program 3-dniowy (tab. 23.6): tyg. 1–3 hipertrofia 12→10→8 powt.; tyg. 4–6 siła 6–5–5; tyg. 7–9 siła/moc 4–3–3; tyg. 10–12 szczyt 2–2–1; tyg. 13 aktywny odpoczynek.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "626"
+        }
+      ]
+    },
+    {
+      "id": "G29",
+      "rule": "Periodyzacja falująca (tab. 23.7, odczyt z obrazu): dzień ciężki 3–4×3–6, 3–5 min, 85–93% 1RM; lekki 2–4×10–30, 1–2 min, ≤75%; mocy 3–4×1–6, 2–5 min (ćw. mocy 30–70% 1RM, inne podstawowe 85–95%); umiarkowany 2–4×6–10, ≥2 min, 75–85%. Przykłady: 4 dni – 3×5 @85%, 2×15 @60%, 4×3 @60% szybko, 3×8 @75%; 3 dni – 3×10 @70%, 5×3 @60%, 4×5 @85%.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "627-628"
+        }
+      ]
+    },
+    {
+      "id": "G30",
+      "rule": "Zmiana ćwiczeń co 2–3 tygodnie albo naprzemiennie między sesjami, z zachowaniem ćwiczeń podstawowych; faza bazowa 4–6 tyg. przy 15–20RM.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "623-624"
+        }
+      ]
+    },
+    {
+      "id": "G31",
+      "rule": "W sezonie startowym: niska objętość, utrzymanie siły.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "624, 626, 629"
+        }
+      ]
+    },
+    {
+      "id": "G32",
+      "rule": "Strefy RPE z 5RM (tab. 15.15): każdy stopień RPE w dół ≈ 5% mniej ciężaru; np. przysiad 5RM = 325 lb → RPE 9 ≈ 310–293 lb.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "423-424"
+        }
+      ]
+    },
+    {
+      "id": "G33",
+      "rule": "Kiedy zmienić plan: brak postępu mimo właściwej realizacji (malejące przyrosty) → zmiana bloku/bodźca; przyrost powyżej celu 2× z rzędu → zwiększ ciężar (2-za-2); spadek techniki → dłuższa przerwa lub mniejszy ciężar; objawy przetrenowania → odpoczynek i redukcja objętości; zmiana celu klienta → nowy blok.",
+      "status": "wniosek",
+      "note": "Zestawienie zasad z rozdz. 5 i 15; sama lista 'kryteriów zmiany planu' nie występuje w książce jako całość.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "410-417"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "5 Responses and Adaptations to Resistance Training",
+          "pages": "84-85"
+        }
+      ]
+    },
+    {
+      "id": "G34",
+      "rule": "Deload/rozładowanie: książka nie używa słowa 'deload' jako osobnej procedury; jego odpowiednikiem jest lżejszy tydzień w układzie 3:1 (2:1, 4:1) i tydzień aktywnego odpoczynku po makrocyklu.",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "414-416"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "625-626"
+        }
+      ]
+    },
+    {
+      "id": "G35",
+      "rule": "Tempo powtórzeń: książka nie podaje ogólnych zaleceń tempa (np. 2-0-2) dla zdrowych dorosłych; konkretne wskazania tylko dla seniorów (koncentryczna ≥2 s przy sile, ≤1 s przy mocy) i ćwiczeń mocy.",
+      "status": "brak_w_zrodle",
+      "value": null,
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "506"
+        }
+      ]
+    }
+  ],
+  "aerobicRules": [
+    {
+      "id": "AE01",
+      "rule": "Wytyczne aktywności: 150–300 min/tydz. umiarkowanie lub 75–150 min/tydz. intensywnie (lub kombinacja); MET: siedzący 1–1,5, lekki 1,6–2,9, umiarkowany 3–5,9, intensywny ≥6.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "425-428"
+        }
+      ]
+    },
+    {
+      "id": "AE02",
+      "rule": "Strefa treningowa umiarkowana–intensywna: 40–89% HRR = 64–95% APMHR (~46–90% VO2max). Bardzo słabo wytrenowani: 30–39% HRR lub 57–63% APMHR. Wytrenowani: górna połowa, 60–89% HRR.",
+      "status": "zrodlo",
+      "uncertainty": "Przykład klienta Floyda (52 l., nietrenowany) startuje od 70–80% APMHR – wyżej niż zalecane 57–63% dla zdekondycjonowanych.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "428-431"
+        }
+      ]
+    },
+    {
+      "id": "AE03",
+      "rule": "Odpowiedniki intensywności (tab. 16.1, %VO2max / %HRR / %HRmax): 37/30/57; 45/39/63; 46/40/64; 63/59/76; 64/60/77; 90/89/95; 91/90/96; 100/100/100.",
+      "status": "zrodlo",
+      "uncertainty": "W tabeli wydrukowano 64/60/70 – wartość 70 wygląda na błąd druku (powinno być ~77). Odczyt z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "429"
+        }
+      ]
+    },
+    {
+      "id": "AE04",
+      "rule": "Wzory HRmax (tab. 16.2): 220 − wiek; 216,6 − 0,84 × wiek; 206 − 0,88 × wiek (kobiety); 208 − 0,7 × wiek (Tanaka). Błąd APMHR ±10–15 bpm.",
+      "status": "zrodlo",
+      "uncertainty": "Przypisanie autorów w tabeli wydaje się zamienione (np. 220 − wiek przypisane Åstrandowi).",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "429"
+        }
+      ]
+    },
+    {
+      "id": "AE05",
+      "rule": "Metoda Karvonena: tętno docelowe = (HRmax − HRspocz.) × % + HRspocz.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "431"
+        }
+      ]
+    },
+    {
+      "id": "AE06",
+      "rule": "Łączyć RPE z tętnem: zaawansowany przy 80% HRR z RPE 4/10 → zwiększyć intensywność; nowy klient z RPE 9/10 przy 70% HRR → zmniejszyć. Przy beta-blokerach nie stosować stref tętna.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "431-433"
+        }
+      ]
+    },
+    {
+      "id": "AE07",
+      "rule": "ACSM: ≥30 min × 5 dni umiarkowanie lub ≥20 min × 3 dni intensywnie, lub 500–1000 MET-min/tydz., rozłożone na ≥3 dni.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "435"
+        }
+      ]
+    },
+    {
+      "id": "AE08",
+      "rule": "Początkujący (brak regularnej aktywności tlenowej przez 6 mies.) zaczyna od minimalnej częstotliwości; tab. 16.5: 2–6 dni/tydz. z dniami odpoczynku rozłożonymi między sesjami.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "435-436"
+        }
+      ]
+    },
+    {
+      "id": "AE09",
+      "rule": "Czas: 30–60 min lub odcinki ≥10 min; bardzo zdekondycjonowani – krótsze odcinki.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "436-437"
+        }
+      ]
+    },
+    {
+      "id": "AE10",
+      "rule": "Progresja: nie więcej niż 10% tygodniowo w częstotliwości, intensywności lub czasie (jedna zmienna naraz).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "437"
+        }
+      ]
+    },
+    {
+      "id": "AE11",
+      "rule": "Typy treningu: LSD 30 min–2 h, tempo konwersacyjne, max 2×/tydz.; tempo/próg mleczanowy 20–30 min ciągle lub odcinki 3–5 min z 30–90 s przerwy, 1–2×/tydz.; interwały/HIIT ≥90% VO2max, odcinki 5 s–8 min, sesja ~5–30 min, praca:odpoczynek 1:1–1:8 – tylko po zbudowaniu bazy tlenowej, a łączny czas sesji interwałowej nie dłuższy niż tolerowany czas wysiłku ciągłego.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "439-441"
+        }
+      ]
+    },
+    {
+      "id": "AE12",
+      "rule": "Obwody: poprawiają siłę, ale niewiele VO2max; dobre dla początkujących i utrzymania; hybrydowe – stacje 10–60 s, przerwy 10–30 s.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "441-442"
+        }
+      ]
+    },
+    {
+      "id": "AE13",
+      "rule": "Wysiłek ramionami: obniżyć APMHR o 10–13 bpm.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "443"
+        }
+      ]
+    },
+    {
+      "id": "AE14",
+      "rule": "Trening równoległy (tlen + siła) tłumi przyrosty siły i obwodów, nie VO2max; można sekwencjonować: 8–10 tyg. tlenowo (3–4 dni, 40–89% HRR, 30–60 min) + ewentualnie 2 dni × 30 min siłowo, potem odwrotnie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "444-445"
+        }
+      ]
+    },
+    {
+      "id": "AE15",
+      "rule": "Przykład progresji dla nietrenowanego (Floyd, 52 l., cel redukcja): tydz. 1 – 2 dni × 2 × 10–15 min marszu; w 6 tyg. do 5 dni × 25–30 min przy 70–80% APMHR (118–134 bpm).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "436-443"
+        }
+      ]
+    },
+    {
+      "id": "AE16",
+      "rule": "Rozgrzewka i schłodzenie przed/po sesji tlenowej – stopniowe narastanie i wygaszanie intensywności.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "437-438"
+        }
+      ]
+    },
+    {
+      "id": "AE17",
+      "rule": "Objawy przetrenowania wytrzymałościowego: spadek wyników, zwiększona bolesność, spadek tętna spoczynkowego i maksymalnego, wzrost tętna przy stałym obciążeniu submaksymalnym, zaburzenia nastroju i snu. Kontrola: tętno przy standardowym obciążeniu submaksymalnym. Przeciążenie (overreaching) ustępuje w kilka dni do 2 tyg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "6 Physiological Responses and Adaptations to Aerobic Endurance Training",
+          "pages": "100-101"
+        }
+      ]
+    }
+  ],
+  "plyometricRules": [
+    {
+      "id": "PL01",
+      "rule": "Warunki rozpoczęcia plyometrii: utrzymanie pozycji półprzysiadu i poprawny przysiad z masą ciała; testy równowagi po 30 s (stanie, ćwierć- i półprzysiad, obunóż i jednonóż); ≥3 mies. treningu oporowego; brak aktualnego urazu; czynności dnia codziennego bez bólu i obrzęku.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "453-455"
+        }
+      ]
+    },
+    {
+      "id": "PL02",
+      "rule": "Ćwiczenia zaawansowane (np. zeskoki/depth jumps): 1RM przysiadu ≥1,5 × masa ciała; dla niskiej/umiarkowanej intensywności nie jest to wymagane. Górna część ciała: 5 pompek z klaśnięciem. Szybkość: 5 przysiadów z 60% masy ciała w ≤5 s.",
+      "status": "zrodlo",
+      "uncertainty": "Kryterium 1,5 × BW bywa przedstawiane jako ogólny warunek, a jednocześnie książka zaznacza, że nie dotyczy ćwiczeń o niskiej/umiarkowanej intensywności.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "454"
+        }
+      ]
+    },
+    {
+      "id": "PL03",
+      "rule": "Masa ciała >220 lb (99,8 kg): ostrożność; brak zeskoków z wysokości >18 cali (~46 cm).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "454, 457"
+        }
+      ]
+    },
+    {
+      "id": "PL04",
+      "rule": "Zgoda lekarska przy: przebytych naderwaniach, wiotkości stawów, problemach z kręgosłupem, osteoporozie, zapaleniu stawów, cukrzycy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "454-455"
+        }
+      ]
+    },
+    {
+      "id": "PL05",
+      "rule": "Warunki: lądowanie na trawie, sztucznej murawie lub gumie (nie beton); maty ≤6 cali (15 cm); skrzynie 6–42 cale (15–107 cm), powierzchnia lądowania ≥18×24 cale (46×61 cm); stabilne buty.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "457"
+        }
+      ]
+    },
+    {
+      "id": "PL06",
+      "rule": "Intensywność ćwiczeń (tab. 17.4): niska – podskoki ze stawu skokowego, skip, wyskok z przysiadu, skok w dal z miejsca, wyskok obunóż, wskok na skrzynię, podanie piłki lekarskiej sprzed klatki; umiarkowana – skoki obunóż, wieloskoki, wyskoki z wykroku, skoki z kolanami do klatki, przeskoki przez płotek, 'drop freeze', pompki z zeskoku, skoki boczne; wysoka – wyskoki z wykroku ze zmianą (cycled), wyskok jednonóż, skoki jednonóż, zeskoki (depth jump).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "461"
+        }
+      ]
+    },
+    {
+      "id": "PL07",
+      "rule": "Kontakty stóp na sesję (tab. 17.6, odczyt z obrazu): ≤13 lat – nie zalecane; bez doświadczenia w treningu oporowym – nie zalecane. 18–30 lat: 60–80 (>3 mies. RT), 80–100 (>1 rok RT), 100–120 (>1 rok RT + ćw. mocy), 120–140 (plyometria w ostatnim roku). 14–17 lat: 40–60 → 80–100. 31–40 lat: 40–60 → 100–120. 41–60 lat: 40–60 → 80–100.",
+      "status": "zrodlo",
+      "details": {
+        "18-30": [
+          "60-80",
+          "60-80",
+          "80-100",
+          "100-120",
+          "80-100",
+          "100-120",
+          "120-140"
+        ],
+        "14-17": [
+          "40-60",
+          "40-60",
+          "60-80",
+          "80-100",
+          "40-60",
+          "60-80",
+          "80-100"
+        ],
+        "31-40": [
+          "40-60",
+          "60-80",
+          "60-80",
+          "80-100",
+          "60-80",
+          "80-100",
+          "100-120"
+        ],
+        "41-60": [
+          "40-60",
+          "40-60",
+          "60-80",
+          "60-80",
+          "40-60",
+          "60-80",
+          "80-100"
+        ],
+        "kolumny": [
+          ">3 mies. RT",
+          ">3 mies. RT + ćw. mocy",
+          ">1 rok RT",
+          ">1 rok RT + ćw. mocy",
+          "RT, bez plyometrii",
+          "plyometria >1 rok temu",
+          "plyometria w ostatnim roku"
+        ]
+      },
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "462-463"
+        }
+      ]
+    },
+    {
+      "id": "PL08",
+      "rule": "Częstotliwość: 1–3 sesje/tydz.; przy umiarkowanej intensywności 2×/tydz.; 48–72 h między sesjami.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "462"
+        }
+      ]
+    },
+    {
+      "id": "PL09",
+      "rule": "Przerwy: praca:odpoczynek 1:5–1:10; zeskoki 5–10 s między powtórzeniami i 2–3 min między seriami; 60–120 s między ćwiczeniami. Górna część ciała 8–12 powt./seria. Sesja początkującego ≤30 min. Plyometria na początku treningu (po rozgrzewce).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "461-462, 469"
+        }
+      ]
+    },
+    {
+      "id": "PL10",
+      "rule": "Progresja: najpierw obunóż, potem jednonóż; od niskiej do wysokiej intensywności. Test poziomu: zeskok z 12 cali (30 cm), podnoszenie o 6 cali (15 cm); podanie piłki lekarskiej sprzed klatki na 10–12 stóp (3–3,7 m) do doboru ciężaru piłki.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "459, 464"
+        }
+      ]
+    },
+    {
+      "id": "PL11",
+      "rule": "Wiek: dzieci – niska intensywność, w rozgrzewce, w formie zabawy, 1–2 × 6–8 powt.; młodzież – od niskiej do umiarkowanej; seniorzy – unikać wysokiej intensywności, niska/umiarkowana tylko za zgodą lekarza.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "452-454"
+        }
+      ]
+    },
+    {
+      "id": "PL12",
+      "rule": "Najczęstsze urazy: skręcenia stawu skokowego i kolana, zwykle w zmęczeniu. Alternatywą, gdy plyometria nie jest wskazana, jest trening ekscentryczny.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "450-452"
+        }
+      ]
+    },
+    {
+      "id": "PL13",
+      "rule": "Sprint: pochylenie ~45° na pierwszych 12–15 m, potem <5°; długość kroku 2,3–2,5 × długość nogi (K) / 2,5–2,7 × (M); ćwiczenia przy 60–105% tej długości.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "466-468"
+        }
+      ]
+    },
+    {
+      "id": "PL14",
+      "rule": "Sprint wspomagany max 10% powyżej prędkości maksymalnej; sprint z oporem: spadek wyniku ≤10% lub opór ≤15% masy ciała, na 10–30 m. Sportowcy 2–4 sesje/tydz., niesportowcy 1–2; regeneracja 24–48 h; uwaga na mięśnie kulszowo-goleniowe.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "468-471"
+        }
+      ]
+    },
+    {
+      "id": "PL15",
+      "rule": "Łączenie (tab. 17.8): w jednym dniu nie więcej niż jedno z: plyometria dolnych kończyn / sprint / trening oporowy dolnych kończyn; łączyć RT górnych z plyometrią dolnych i odwrotnie; plyometria przed treningiem tlenowym.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "471"
+        }
+      ]
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S01",
+      "rule": "Przed treningiem: PAR-Q+/kwestionariusz zdrowia; jakiekolwiek TAK w PAR-Q+ lub objawy z listy kardiologicznej → kontakt z lekarzem przed zwiększeniem aktywności. Aplikacja nie diagnozuje – jedynie kieruje do specjalisty.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "146-153"
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "rule": "Natychmiast przerwać ćwiczenie/test: ból w klatce/dławica, duszność nieadekwatna, zawroty, objawy złej perfuzji, SBP >250 lub DBP >115 mmHg (podczas testu), spadek SBP >10 mmHg przy rosnącym obciążeniu, zaburzenia rytmu, chromanie, prośba klienta.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "188"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "rule": "Nadciśnienie: SBP ≥220 lub DBP ≥105 mmHg to podstawa do przerwania treningu; osoby z niekontrolowanym nadciśnieniem – konsultacja z lekarzem przed ćwiczeniami; zakaz przedłużonego Valsalvy (>2 s).",
+      "status": "zrodlo",
+      "uncertainty": "Próg przerwania treningu (220/105) różni się od progu przerwania testu wysiłkowego z rozdz. 10 (250/115) – różne kontekty.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "552"
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "rule": "Po zawale serca: zgoda i zalecenia kardiologa, najlepiej wyniki próby wysiłkowej i ostatnia preskrypcja z rehabilitacji; monitorować ból w klatce, ramieniu, duszność, poty, kołatanie, ciśnienie przed, w trakcie i po sesji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "554"
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "rule": "Choroba tętnic obwodowych (PAD): przed programem zalecana próba wysiłkowa i zgoda kardiologiczna; nadzorowany trening na bieżni (SET) odbywa się w szpitalu/rehabilitacji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "557-558"
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "rule": "POChP: start w formalnej rehabilitacji pulmonologicznej; trener wchodzi po jej zakończeniu i zgodzie lekarza (utrzymanie programu domowego).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "558-559"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "rule": "Astma: plan działania (zielona/żółta/czerwona strefa), lek doraźny pod ręką; rozgrzewka ≥10–15 min o zmiennej intensywności; schłodzenie; kontrola intensywności skalą duszności 0–10 (cel 3–4); dłuższe przerwy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "559-561"
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "rule": "Cukrzyca – przeciwwskazania do ćwiczeń: glukoza >250 mg/dl z ketonami w moczu (typ 1); >300 mg/dl bez ketonów (typ 1 – nie ćwiczyć; typ 2 – ostrożność); złe samopoczucie lub odwodnienie; ostra choroba/infekcja/gorączka; niewyjaśnione objawy CVD; retinopatia proliferacyjna – unikać wysiłków intensywnych; ciężka choroba nerek; neuropatia obwodowa z utratą czucia stóp – zamiast chodu/biegu na zewnątrz pływanie lub rower.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "538-539"
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "rule": "Hipoglikemia (glukoza <70 mg/dl lub objawy u osoby z cukrzycą: pocenie, głód, kołatanie, ból głowy, drżenie, zawroty, zaburzenia widzenia, splątanie, drgawki, omdlenie): rozważyć wezwanie pogotowia; zmierzyć glukozę; podać 15 g węglowodanów (3–4 tabletki glukozy, ~120 ml słodkiego napoju/soku, ~6 krakersów, 1 łyżka cukru/miodu); po ~15 min ponowny pomiar; powtarzać do >70 mg/dl.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "539"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "rule": "Cukrzyca: pomiar glukozy przed i po wysiłku, co 30 min przy długim wysiłku; glukoza <100 mg/dl przed wysiłkiem – ryzyko hipoglikemii (przekąska); trener nigdy nie doradza w sprawie insuliny ani pory posiłków; bransoleta medyczna; powtarzające się epizody braku kontroli → powrót do lekarza.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "538-540"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "rule": "Ciąża – objawy przerwania: krwawienie z pochwy, ból brzucha, regularne bolesne skurcze, wyciek płynu owodniowego, duszność przed wysiłkiem, zawroty, ból głowy, ból w klatce, osłabienie mięśni wpływające na równowagę, ból lub obrzęk łydki.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "512-513"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "rule": "Ciąża – bezwzględne przeciwwskazania: istotna hemodynamicznie choroba serca, niewydolność szyjki/szew szyjkowy, ograniczenie wzrastania płodu, ciąża mnoga z ryzykiem porodu przedwczesnego, uporczywe krwawienia, łożysko przodujące po 26–28 tyg., stan przedrzucawkowy, przedwczesny poród, restrykcyjna choroba płuc, pęknięcie błon płodowych, ciężka anemia, niekontrolowane nadciśnienie, choroba tarczycy lub cukrzyca typu 1.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "513"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "rule": "Ciąża – względne przeciwwskazania: anemia, przewlekłe zapalenie oskrzeli, zaburzenia odżywiania, skrajna otyłość, intensywne palenie, skrajnie siedzący tryb życia, wcześniejszy poród przedwczesny, niedożywienie, łagodna CVD, ograniczenia ortopedyczne, źle kontrolowane napady padaczkowe lub cukrzyca typu 1, niezdiagnozowane arytmie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "513"
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "rule": "Ciąża – czego unikać: ćwiczeń w leżeniu na plecach po I trymestrze; Valsalvy; długich izometrii i stania bez ruchu; sportów z ryzykiem upadku/urazu (piłka nożna, koszykówka, jazda konna, nurkowanie, rolki, kolarstwo szosowe/terenowe); plyometrii; gorącej jogi i przegrzania; ćwiczeń przy gorączce.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "511-514"
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "rule": "Seniorzy: rozmowa z lekarzem przed rozpoczęciem programu; zakres ruchu bez bólu; unikać Valsalvy; przy słabej równowadze maszyny i rower stacjonarny, unikać wykroków i wejść na skrzynię, ćwiczyć na siedząco; przy upale trening rano i nawadnianie.",
+      "status": "zrodlo",
+      "uncertainty": "Zalecenie unikania wykroków przy słabej równowadze stoi w pewnym napięciu z zaleceniem progresywnego treningu równowagi i ćwiczeń funkcjonalnych.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "502-508"
+        }
+      ]
+    },
+    {
+      "id": "S16",
+      "rule": "Uraz – fazy gojenia: zapalna (zwykle 2–3 dni, do tygodnia) – kontrola bólu i obrzęku (PRICE), bez obciążania struktury; naprawcza (kilka tygodni do 2 mies.) – zakres ruchu, równowaga, propriocepcja, wzmacnianie bez bólu po konsultacji; przebudowy (do ponad roku) – utrzymanie zakresu, wzmacnianie funkcjonalne, powrót do aktywności.",
+      "status": "zrodlo",
+      "note": "Tab. 21.2 odczytana z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "566-568"
+        }
+      ]
+    },
+    {
+      "id": "S17",
+      "rule": "Objawy zbyt szybkiej progresji po urazie: ból, obrzęk, ucieplenie, zaczerwienienie, utrata zakresu i siły – cofnąć się i zmieniać tylko jeden parametr naraz, by wiedzieć, co wywołało reakcję.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "568"
+        }
+      ]
+    },
+    {
+      "id": "S18",
+      "rule": "Ból krzyża – przepuklina dysku: unikać zgięcia i rotacji lędźwi (brzuszki pełne, przyciąganie kolan do klatki, skręty, ćwiczenia nasilające objawy w kończynie); ostrożnie przysiad, wiosłowania, martwy ciąg, rower (pochylenie), ergometr wioślarski, skłony do palców; wskazane: wyprosty bierne, izometria brzucha i prostowników w neutralnej lordozie.",
+      "status": "zrodlo",
+      "note": "Tab. 21.3 z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "570-572"
+        }
+      ]
+    },
+    {
+      "id": "S19",
+      "rule": "Ból krzyża – naderwanie mięśnia: w fazie zapalnej brak biernego zgięcia i czynnego wyprostu lędźwi; potem łagodne rozciąganie w zgięciu, następnie wzmacnianie w wyproście. Przy naderwaniu prostowników unikać wyprostów na ławce rzymskiej i wiosłowania w opadzie do fazy przebudowy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "571-572"
+        }
+      ]
+    },
+    {
+      "id": "S20",
+      "rule": "Kręgozmyk/spondyloliza: unikać wyprostu lędźwi i ćwiczeń go wymagających (przysiad, wyciskanie nad głową, wyciskanie w pozycji stojącej – 'push press'); wskazane: kolana do klatki, spięcia brzucha, stabilizacja neutralnej miednicy, izometria pośladków; chodzenie i inne formy cardio stojąc nie są przeciwwskazane.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "572"
+        }
+      ]
+    },
+    {
+      "id": "S21",
+      "rule": "Bark – konflikt podbarkowy: przeciwwskazane wyciskanie nad głową, unoszenie bokiem z rotacją wewnętrzną, wiosłowanie pionowe powyżej barków, wyciskanie na skosie dodatnim; wskazane wzmacnianie stożka rotatorów i łopatki, ćwiczenia bezbólowe, rozciąganie tylnej części barku. Wyciskanie leżąc ostrożnie (najbezpieczniej na skosie ujemnym).",
+      "status": "zrodlo",
+      "note": "Tab. 21.4 z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "575-576"
+        }
+      ]
+    },
+    {
+      "id": "S22",
+      "rule": "Bark – niestabilność przednia: unikać rotacji zewnętrznej z odwiedzeniem >90° i odwodzenia horyzontalnego za płaszczyznę tułowia; ostrożnie wyciskanie leżąc (wąsko), butterfly, pompki (dłonie nie szerzej niż barki, bez ostatnich 10–20° wyprostu), unikać ściągania i wyciskania zza karku.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "576"
+        }
+      ]
+    },
+    {
+      "id": "S23",
+      "rule": "Po rekonstrukcji stożka rotatorów: unieruchomienie do ~6 tyg., zakończenie rehabilitacji zwykle 3–4 mies.; ćwiczenia stożka i łopatki od 8–12 tyg.; ograniczać ciężkie podnoszenie nad głowę, pompki, wyciskanie; cardio kończynami dolnymi (chód, bieg, stepper) dobrze tolerowane.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "578-579"
+        }
+      ]
+    },
+    {
+      "id": "S24",
+      "rule": "Skręcenie inwersyjne stawu skokowego: bez obciążania w inwersji; najpierw zakres ruchu i siła w łańcuchu otwartym, potem stopniowo pełne obciążanie, równowaga i propriocepcja (stabilne → niestabilne podłoże, oczy otwarte → zamknięte), plyometria i zmiany kierunku.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "580-581"
+        }
+      ]
+    },
+    {
+      "id": "S25",
+      "rule": "Ból przedniego przedziału kolana (PFPS): unikać pełnego przysiadu i wykroku, końcowego zakresu prostowania nóg (0–30°), steppera z dużymi krokami; zalecane ćwierć- i półprzysiady, suwnica w częściowym zakresie, wzmacnianie odwodzicieli i pośladków, rower, równowaga jednonóż.",
+      "status": "zrodlo",
+      "uncertainty": "Tekst mówi, że 'żadne ćwiczenia nie są jednoznacznie przeciwwskazane', a tabela 21.7 wymienia przeciwwskazania – książka wyjaśnia, że są względne i zależą od reakcji bólowej.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "583"
+        }
+      ]
+    },
+    {
+      "id": "S26",
+      "rule": "Po rekonstrukcji ACL: unikać ćwiczeń w łańcuchu otwartym w zakresie <45° zgięcia kolana (końcowy zakres prostowania nóg); wskazane: przysiad/suwnica do 3/4, wejście na skrzynię, uginanie nóg, martwy ciąg na prostych nogach, orbitrek.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "583-585"
+        }
+      ]
+    },
+    {
+      "id": "S27",
+      "rule": "Endoproteza kolana: unikać aktywności o dużym obciążeniu udarowym, pełnego przysiadu i wykroku; wskazane: ćwierć- do półprzysiadu, częściowy wykrok, prostowanie i uginanie nóg, rower, pływanie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "583"
+        }
+      ]
+    },
+    {
+      "id": "S28",
+      "rule": "Endoproteza biodra – dostęp tylno-boczny: zwykle ≥6 tyg. (czasem na stałe) bez zgięcia biodra >90°, przywodzenia poza linię środkową i rotacji wewnętrznej; unikać aktywności udarowych (bieg, step, plyometria); kontakt z chirurgiem obowiązkowy w razie wątpliwości.",
+      "status": "zrodlo",
+      "note": "Tab. 21.9 z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "587-588"
+        }
+      ]
+    },
+    {
+      "id": "S29",
+      "rule": "Choroba zwyrodnieniowa stawów: unikać aktywności o dużym obciążeniu udarowym (bieg, jogging, narciarstwo, plyometria); wskazane: rower, stepper, orbitrek, pływanie; trening z małym oporem i dużą liczbą powtórzeń (nawet 30% 1RM przy wysokim wysiłku); przy chorobie stawu rzepkowo-udowego prostowanie nóg w zakresie 90–45° lub 0–30°; pompki przeciwwskazane przy zmianach w obręczy barkowej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "589"
+        }
+      ]
+    },
+    {
+      "id": "S30",
+      "rule": "Reumatoidalne zapalenie stawów: unikać aktywności udarowych, ćwiczeń szyi z oporem, rozciągania górnej części czworobocznego, wyciskania zza karku, biegu; wskazane: tlenowo 60–80% HRmax (rower, orbitrek, stepper), zakres ruchu, izometria przy niestabilnym stawie, aerobik w wodzie, lekki opór z dużą liczbą powtórzeń; w okresie zaostrzenia odpoczynek; pogrubione uchwyty przy słabym chwycie.",
+      "status": "zrodlo",
+      "note": "Tab. 21.11 z obrazu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "590-591"
+        }
+      ]
+    },
+    {
+      "id": "S31",
+      "rule": "Uraz rdzenia kręgowego (poziom T6 i wyżej): dysrefleksja autonomiczna – nagły wzrost SBP >20 mmHg, pulsujący ból głowy, gęsia skórka, poty i zaczerwienienie powyżej poziomu uszkodzenia; to stan zagrożenia życia (najczęstsza przyczyna: pełny pęcherz, ucisk, ból poniżej uszkodzenia). Ryzyko przegrzania – chłodzenie, dostęp do wody.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "594-597"
+        }
+      ]
+    },
+    {
+      "id": "S32",
+      "rule": "Stwardnienie rozsiane: ciepło nasila objawy – chłodne pomieszczenie; unikać przemęczenia (ryzyko rzutu); monitorować RPE.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "602-604"
+        }
+      ]
+    },
+    {
+      "id": "S33",
+      "rule": "Padaczka: ćwiczenia są bezpieczne i mogą poprawiać kontrolę napadów; leki mogą powodować senność i zaburzenia równowagi – asekuracja, modyfikacja ćwiczeń równoważnych; unikać ćwiczeń przy niewyspaniu, gorączce, nadmiarze alkoholu; przy stresie/hiperwentylacji obniżyć intensywność.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "605-607"
+        }
+      ]
+    },
+    {
+      "id": "S34",
+      "rule": "Pierwsza pomoc przy napadzie: zdjąć okulary, poluzować ubranie przy szyi, nie krępować ruchów, usunąć przedmioty z drogi, nic nie wkładać do ust; po napadzie pozycja boczna ustalona; obserwować do pełnej przytomności; powiadomić lekarza i rodzinę; powrót do ćwiczeń indywidualnie po konsultacji lekarskiej.",
+      "status": "zrodlo",
+      "uncertainty": "Punkt 1 ramki brzmi 'utrzymywać klienta w pozycji leżącej przodem (twarzą w dół)', co jest nietypowe wobec zalecenia ułożenia na boku – zostawiono jako niepewne.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "607-608"
+        }
+      ]
+    },
+    {
+      "id": "S35",
+      "rule": "Ciepło i środowisko: ryzyko udaru cieplnego rośnie przy 65–72°F i wilgotności 65–72%; przy wysokim AQI ograniczyć wysiłek na zewnątrz; zimno <25°F – ostrożność u seniorów, kardiologicznych, astmatyków.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "182"
+        }
+      ]
+    },
+    {
+      "id": "S36",
+      "rule": "Plan ratunkowy: szybki dostęp do pogotowia, przypisane role (rozpoznanie, wezwanie pomocy, pierwsza pomoc, AED, prowadzenie służb), dokumentacja zdarzenia; trener z aktualnym CPR/AED.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "25 Professional, Legal, and Ethical Responsibilities of Personal Trainers",
+          "pages": "675-676"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "24 Facility and Equipment Layout and Maintenance",
+          "pages": "646"
+        }
+      ]
+    },
+    {
+      "id": "S37",
+      "rule": "Przetrenowanie z treningu oporowego – sygnały: stagnacja, a potem spadek siły; zaburzenia snu; spadek beztłuszczowej masy ciała (bez diety); spadek apetytu; uporczywe przeziębienie lub objawy grypopodobne; utrata zainteresowania treningiem; zmiany nastroju; nadmierna bolesność mięśni.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "5 Responses and Adaptations to Resistance Training",
+          "pages": "85"
+        }
+      ]
+    },
+    {
+      "id": "S38",
+      "rule": "Sygnały ostrzegawcze RED-S/niedoboru energii: zaburzenia odżywiania, skrajne metody odchudzania, bardzo niskie tętno lub ciśnienie spoczynkowe, utrata ≥10% masy w miesiąc, zaburzenia lub zanik miesiączki (nie z menopauzy), niski poziom żelaza, niska gęstość kości, BMI ≤17,5 → skierowanie do dietetyka lub lekarza; trener nie diagnozuje.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "110-111"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "546-547"
+        }
+      ]
+    },
+    {
+      "id": "S39",
+      "rule": "Złamanie zmęczeniowe u kobiety (możliwa triada) → skierowanie do fizjoterapeuty; podejrzenie zaburzeń odżywiania → skierowanie do specjalisty (lekarz, dietetyk, psycholog).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "546-547"
+        }
+      ]
+    },
+    {
+      "id": "S40",
+      "rule": "Klient z białkiem >4 g/kg/d a niewydolnością nerek, niskim spożyciem wapnia lub ograniczeniem płynów – to sytuacja do skonsultowania (wysokie białko niewskazane).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "113"
+        }
+      ]
+    },
+    {
+      "id": "S41",
+      "rule": "Zakaz rekomendowania suplementów i układania diet leczniczych; choroby zależne od żywienia (cukrzyca, choroba serca, zaburzenia odżywiania, osteoporoza, podwyższony cholesterol, choroby przewodu pokarmowego) → dietetyk/RD.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "104, 120"
+        }
+      ]
+    },
+    {
+      "id": "S42",
+      "rule": "Dane zdrowotne klienta są poufne (w USA reguła prywatności HIPAA).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "25 Professional, Legal, and Ethical Responsibilities of Personal Trainers",
+          "pages": "664"
+        }
+      ]
+    }
+  ],
+  "specialPopulationRules": [
+    {
+      "id": "SP01",
+      "rule": "Dzieci (przed okresem dojrzewania: dziewczęta 6–11, chłopcy 6–13 lat): ≥60 min umiarkowanej–intensywnej aktywności dziennie; trening oporowy bezpieczny pod nadzorem; siła +30–40% w 8–12 tyg.; brak minimalnego wieku (5–6 lat zabawy 'zwierzęce', 7–8 lat trening ustrukturyzowany).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "495-497"
+        }
+      ]
+    },
+    {
+      "id": "SP02",
+      "rule": "Dzieci – parametry: start <60% 1RM, 1–2 serie × 8–12 → 60–80% → ≥85% dla wprawnych młodych sportowców; zwiększanie ciężaru o 5–10%; 2–3 nienastępujące po sobie dni; 5–10 min dynamicznej rozgrzewki, statyczne rozciąganie w schłodzeniu; obwody 8–12 stacji; nieaktywna młodzież 6–8 tyg. przygotowania ogólnego przed sportem. Badanie lekarskie tylko przy objawach lub chorobie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "496-499"
+        }
+      ]
+    },
+    {
+      "id": "SP03",
+      "rule": "Seniorzy – spadki z wiekiem: masa mięśni −5–10%/dekadę, gęstość kości −10–30%/dekadę (wg książki), spoczynkowa przemiana materii −3%/dekadę, siła −10–20%/dekadę, moc −30–40%/dekadę.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "499"
+        }
+      ]
+    },
+    {
+      "id": "SP04",
+      "rule": "Seniorzy – efekty treningu oporowego: ok. +0,5 kg mięśni/mies., ok. +1% gęstości kości/rok, ok. +7% spoczynkowego wydatku energii (~100 kcal/d), ok. −0,7 kg tłuszczu/mies., spadek ciśnienia ~6/5 mmHg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "499-500"
+        }
+      ]
+    },
+    {
+      "id": "SP05",
+      "rule": "Seniorzy – ćwiczenia: 4 wielostawowe podstawowe (przysiad/suwnica, wyciskanie w siadzie/na maszynie, wiosłowanie/ściąganie drążka, wyciskanie nad głową) + jednostawowe (prostowanie i uginanie nóg, triceps, biceps, wyprost grzbietu, spięcia brzucha); wielostawowe przed jednostawowymi.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "504"
+        }
+      ]
+    },
+    {
+      "id": "SP06",
+      "rule": "Seniorzy – obciążenie: start 10–15 powt. → 8–12 (70–80% 1RM) → 4–8; do 85% 1RM (4–6 powt.) wg stanowiska NSCA 2019; akceptowalny zakres 60–90% 1RM, rekomendowane 8–12 powt.; 1 seria na start, potem 2–4 (korzyść maksymalna przy 3–4, >4 nic nie dodaje); przerwy 2–3 min; 2–3 nienastępujące po sobie dni (lub split: pn/czw góra, śr/sob dół); progresja 2-za-2 (np. 14 powt. dwa razy przy zakresie 8–12 → +5%).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "504-506"
+        }
+      ]
+    },
+    {
+      "id": "SP07",
+      "rule": "Seniorzy – moc: po zbudowaniu bazy siły 40–60% 1RM z szybką fazą koncentryczną (≤1 s), np. maszyny pneumatyczne, piłki lekarskie; dla siły faza koncentryczna umiarkowana (≥2 s); wydech w fazie koncentrycznej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "506"
+        }
+      ]
+    },
+    {
+      "id": "SP08",
+      "rule": "Seniorzy – tlenowo: 3–5 dni, 20–60 min; umiarkowanie 65–75% HRmax (RPE 5–6/10, można mówić zdaniami), intensywnie 75–95% (RPE 7–8); 150 min umiarkowanie lub 75 min intensywnie/tydz.; trening równowagi progresywnie; siła zmniejsza ryzyko upadków.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "507-508"
+        }
+      ]
+    },
+    {
+      "id": "SP09",
+      "rule": "Ciąża: ≥150 min umiarkowanie/tydz.; RPE 13–14 (skala 6–20) lub test mowy, bardzo aktywne do 14–17; po I trymestrze bez leżenia na plecach – leżenie bokiem, klęk podparty, wyciskanie na maszynie w siadzie, pompki przy ścianie; opór 12–15 powt.; ćwiczenia Kegla; dodatkowo ok. 300 kcal/d.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "510-514"
+        }
+      ]
+    },
+    {
+      "id": "SP10",
+      "rule": "Po porodzie: powrót 4–6 tyg. po porodzie naturalnym, 8–10 tyg. po cesarskim cięciu (za zgodą lekarza); trening mięśni dna miednicy; szybki marsz zmniejsza ryzyko depresji poporodowej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "514-515"
+        }
+      ]
+    },
+    {
+      "id": "SP11",
+      "rule": "Otyłość (tab. 19.2): tlenowo min. 30 min w większość dni (150 min/tydz.), ≥5 dni dla wydatku, docelowo 300 min/tydz.; 40–59% VO2R/HRR do ≥60%; niskoudarowo; najpierw wydłużać czas, nie intensywność; odcinki ≥10 min są równie skuteczne. Opór: 2–3 dni (nie po kolei), 1 seria → 2–4 serie × 8–12, start 60–70% 1RM, wszystkie główne grupy, można zacząć od masy ciała i przeplatać z cardio; sprzęt z szerszymi siedziskami. Gibkość 2–3 dni, 10–30 s × 2–4.",
+      "status": "zrodlo",
+      "note": "Tabela 19.2 z OCR, zweryfikowana kontekstowo.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "531"
+        }
+      ]
+    },
+    {
+      "id": "SP12",
+      "rule": "Redukcja masy ciała: cel początkowy ok. 10% masy w 6 mies.; już 3–5% (7–10%) zmniejsza ryzyko zdrowotne; deficyt 500–1000 kcal/d ≈ 0,5–0,9 kg/tydz.; kobiety nie mniej niż 1200–1500 kcal/d, mężczyźni nie mniej niż 1500–1800 kcal/d; tempo 0,5–1% masy ciała/tydz.; białko ≥1,6 g/kg (do 2,2 g/kg) przy redukcji; aktywność ≥250 min/tydz. dla utrzymania, czasem 60–90 min/d.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "522-525"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "117-118"
+        }
+      ]
+    },
+    {
+      "id": "SP13",
+      "rule": "Hiperlipidemia: ≥150 min/tydz. umiarkowanie lub 75 min intensywnie; jeśli niemożliwe – jakakolwiek aktywność jest korzystna; dieta prowadzona z dietetykiem, trener skupia się na ćwiczeniach.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "533-534"
+        }
+      ]
+    },
+    {
+      "id": "SP14",
+      "rule": "Zespół metaboliczny = ≥3 z: talia >102 cm M / >88 cm K; TG >150 mg/dl; HDL <40 M / <50 K; ciśnienie >130/85 mmHg; glukoza na czczo ≥100 mg/dl.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "536"
+        }
+      ]
+    },
+    {
+      "id": "SP15",
+      "rule": "Cukrzyca (tab. 19.4): tlenowo 3–7 dni/tydz. (max 2 dni z rzędu bez ruchu), ≥150 min umiarkowanie–intensywnie (60–89% VO2R/HRR, RPE 14–17) lub 75 min intensywnie u zdolnych do biegu 10 km/h przez 25 min; HIIT i wysiłek ciągły są odpowiednie; rozgrzewka/schłodzenie 5–10 min. Opór: min. 2, najlepiej 3 nienastępujące dni; 50–69% do 70–85% 1RM; 1–3 serie × ~10–15 do bliskiego zmęczenia, ≥8–10 ćwiczeń wielostawowych; ciężar zwiększać (8–10 powt.) dopiero gdy cel powtórzeń jest stale przekraczany; ≥50 lat lub nadciśnienie – 12–15+ powt. lżej. Gibkość i równowaga 2–3 dni.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "540-541"
+        }
+      ]
+    },
+    {
+      "id": "SP16",
+      "rule": "Nadciśnienie: tlenowo 5–7 dni × ≥30 min (odcinki po 10 min), 40–59% VO2R/HRR, RPE 12–13, docelowo >150 min/tydz.; opór 2–3 dni, 2–4 serie × 8–12 dla głównych grup (>20 min), 60–70% 1RM (seniorzy i początkujący 40–50%), przerwy 2–3 min lub dłużej; bez Valsalvy; dłuższe schłodzenie; pomiar ciśnienia przed, w szczycie i po.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "552-553"
+        }
+      ]
+    },
+    {
+      "id": "SP17",
+      "rule": "Po zawale: tlenowo 3–5 dni × 20–60 min, 40–80% VO2R/HRR, RPE 12–16 (można zacząć niżej); opór 2–3 dni, 8–10 ćwiczeń × 10–15 powt., 60–80% szacowanego 1RM lub RPE 11–13; wydłużona rozgrzewka i schłodzenie (kończyny górne i dolne); bez wstrzymywania oddechu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "554"
+        }
+      ]
+    },
+    {
+      "id": "SP18",
+      "rule": "Po udarze: tlenowo 3–5 dni × 20–60 min (lub wielokrotnie po 10 min), 40–70% VO2R/HRR, RPE 11–14; opór 2 nienastępujące dni, 1–3 serie × 8–15 przy 50–70% 1RM, 8–10 ćwiczeń, RPE 11–14; bez Valsalvy; trening zdrowej kończyny daje efekt przeniesienia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "555"
+        }
+      ]
+    },
+    {
+      "id": "SP19",
+      "rule": "Choroba tętnic obwodowych z chromaniem: chód przerywany do bólu 3–4 w skali 1–5, odpoczynek do ustąpienia (zwykle 2–5 min), powtarzać; sesje 10–30 → do 60 min; 3×/tydz. przez 12–26 tyg.; opór 6–8 ćwiczeń z akcentem na duże mięśnie kończyn dolnych.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "557-558"
+        }
+      ]
+    },
+    {
+      "id": "SP20",
+      "rule": "Astma: opór 2–3 dni, u nietrenowanych lżej (RPE 11–13), 2–4 serie × 10–15, przerwy 3–4 min; tlenowo krótsze odcinki i dłuższe przerwy; skala duszności 3–4/10; wielu astmatyków nie osiągnie standardowych stref tętna, a mimo to uzyska adaptacje.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "560-561"
+        }
+      ]
+    },
+    {
+      "id": "SP21",
+      "rule": "Uraz rdzenia (paraplegia/tetraplegia): tlenowo umiarkowanie 3–6 MET/RPE 12–13/40–59% HRR lub intensywnie 6–8,8 MET/RPE 14–15/60–89% HRR (wózek, ergometr ręczny, pływanie; chodzić, jeśli nogi pozwalają); opór ≥2 dni, 4–5 ćwiczeń kończyn górnych, 3 serie × 8–12, przerwy 2–3 min, 60–70% 1RM lub RPE 12–13; wzmacniać stabilizatory łopatki i tył obręczy barkowej; unikać rotacji wewnętrznej przy odwiedzeniu ≥90°; gibkość ≥2 dni, 10–30 s, łącznie 60 s na ćwiczenie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "600-601"
+        }
+      ]
+    },
+    {
+      "id": "SP22",
+      "rule": "Stwardnienie rozsiane: opór 2 dni/tydz., 1 seria × 10–15 przy 60–80% szacowanego 1RM (test wielopowtórzeniowy zamiast 1RM); tlenowo start 2 dni przy 40% HRR po ≥10 min → 30 min umiarkowanie 2 dni/tydz.; ruchy podobne do czynności codziennych.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "604-605"
+        }
+      ]
+    },
+    {
+      "id": "SP23",
+      "rule": "Padaczka: aerobowo 40–70% HRR, RPE 12–15, start od 10-min sesji; opór 1–2 serie × 10–15 (tabela przypadku).",
+      "status": "zrodlo",
+      "note": "Częściowy odczyt z OCR; szczegóły tabeli niepełne.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "22 Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "606"
+        }
+      ]
+    }
+  ],
+  "behaviorRules": [
+    {
+      "id": "B01",
+      "rule": "Zasady skutecznych celów: konkretne, mierzalne i obserwowalne; z jasnym terminem; umiarkowanie trudne; zapisane i monitorowane; zróżnicowane (proces, wykonanie, wynik); krótkoterminowe prowadzące do długoterminowych; uwewnętrznione (klient współtworzy).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "8 Exercise Psychology, Goal Setting, and Motivation",
+          "pages": "131"
+        }
+      ]
+    },
+    {
+      "id": "B02",
+      "rule": "Przy długiej liście celów wybrać 3 najważniejsze i ustalić kolejność; cele oceniać i korygować regularnie, np. co 2 tygodnie lub co miesiąc; sprawdzić, czy klient wierzy w ich osiągalność, i czy cele się nie wykluczają.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "8 Exercise Psychology, Goal Setting, and Motivation",
+          "pages": "130-131"
+        }
+      ]
+    },
+    {
+      "id": "B03",
+      "rule": "Cele procesu (np. technika, frekwencja) są w pełni pod kontrolą klienta i ważne dla utrzymania nawyku; cele wyniku (np. waga, wygląd) mniej kontrolowalne; cele wykonania pośrednie (np. 10 km < 60 min, wyciskanie 90 kg).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "8 Exercise Psychology, Goal Setting, and Motivation",
+          "pages": "128-130"
+        }
+      ]
+    },
+    {
+      "id": "B04",
+      "rule": "Nieosiągnięty cel krótkoterminowy w terminie → dostosować lub zastąpić innym; informacja zwrotna i wzmocnienie pozytywne zwiększają samoskuteczność.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "8 Exercise Psychology, Goal Setting, and Motivation",
+          "pages": "128"
+        }
+      ]
+    },
+    {
+      "id": "B05",
+      "rule": "Białko: RDA 0,8 g/kg (siedzący); sportowcy 1,4–2,0 g/kg; dla adaptacji do treningu oporowego ~1,6 g/kg, do 2,2 g/kg przy maksymalizacji siły/masy lub w deficycie kalorycznym.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "112-113"
+        }
+      ]
+    },
+    {
+      "id": "B06",
+      "rule": "Nawodnienie: 5–7 ml/kg ≥4 h przed wysiłkiem, dodatkowo 3–5 ml/kg 2 h przed, jeśli mocz ciemny i skąpy; pot >1,8 l/h możliwy; po wysiłku ~600–700 ml na każdy utracony funt (~1,25–1,5 l/kg); pragnienie nie jest wiarygodne.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "115-116"
+        }
+      ]
+    },
+    {
+      "id": "B07",
+      "rule": "Przyrost masy: nadwyżka ok. 350–500 kcal/d ponad zapotrzebowanie, białko ≥1,6 g/kg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "117"
+        }
+      ]
+    },
+    {
+      "id": "B08",
+      "rule": "Trener może udzielać ogólnych informacji żywieniowych (np. wytyczne organizacji zdrowia), edukować i korygować mity; nie układa diet leczniczych i nie rekomenduje suplementów – pomaga ocenić ich wiarygodność i kieruje do dietetyka.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "104, 120"
+        }
+      ]
+    },
+    {
+      "id": "B09",
+      "rule": "Wspieranie diety przy otyłości: edukacja (czytanie etykiet, niskokaloryczne wybory, strategie świąteczne, nawodnienie, warzywa i owoce) – bez preskrypcji dietetycznej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "523"
+        }
+      ]
+    }
+  ],
+  "ifThenRules": [
+    {
+      "id": "IF01",
+      "if": "W ostatniej serii klient przekracza górny zakres o ≥2 powt. w 2 kolejnych treningach",
+      "then": "Zwiększ ciężar we wszystkich seriach o 2,5–10% (wg tab. 15.7)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "410-411"
+        }
+      ]
+    },
+    {
+      "id": "IF02",
+      "if": "Klient wykonał mniej/więcej powtórzeń niż zakres docelowy",
+      "then": "Skoryguj ciężar wg tab. 15.5 (np. cel 8–9, wykonane 6 → −5 lb; wykonane 12–13 → +10 lb)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "407-408"
+        }
+      ]
+    },
+    {
+      "id": "IF03",
+      "if": "Klient zrobiłby >3 powtórzenia ponad zakres",
+      "then": "Ciężar za lekki – zwiększ",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "405"
+        }
+      ]
+    },
+    {
+      "id": "IF04",
+      "if": "Technika pogarsza się w kolejnych seriach",
+      "then": "Wydłuż przerwę (do 2–5 min) lub zmniejsz ciężar",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "412-413"
+        }
+      ]
+    },
+    {
+      "id": "IF05",
+      "if": "Początkujący nie opanował ruchu",
+      "then": "Regresja ćwiczenia lub maszyna (np. wspomagane podciąganie); najpierw technika",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "405"
+        }
+      ]
+    },
+    {
+      "id": "IF06",
+      "if": "Duży stres pozatreningowy (praca fizyczna, dużo biegania)",
+      "then": "Zmniejsz częstotliwość treningu oporowego do 2–3 (lub 2) dni",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "398-399"
+        }
+      ]
+    },
+    {
+      "id": "IF07",
+      "if": "Kilka miesięcy bez zmian w programie / malejące przyrosty",
+      "then": "Wprowadź zmienność lub nowy blok (np. 2–5 tyg. siły po hipertrofii)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "413-417"
+        }
+      ]
+    },
+    {
+      "id": "IF08",
+      "if": "Klient nietrenowany, kontuzjowany lub pod nadzorem medycznym",
+      "then": "Nie wykonuj testu 1RM – szacuj z 6–10RM lub stosuj RPE/OMNI-RES",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "405-407"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "618-619"
+        }
+      ]
+    },
+    {
+      "id": "IF09",
+      "if": "Klient przyjmuje beta-blokery",
+      "then": "Prowadź intensywność wg RPE, nie stref tętna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "149"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "431-433"
+        }
+      ]
+    },
+    {
+      "id": "IF10",
+      "if": "Wysokie RPE przy niskim %HRR (np. RPE 9/10 przy 70% HRR u nowego klienta)",
+      "then": "Zmniejsz intensywność; niskie RPE przy wysokim %HRR u zaawansowanego → zwiększ",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "431-433"
+        }
+      ]
+    },
+    {
+      "id": "IF11",
+      "if": "Klient chce zwiększyć objętość cardio",
+      "then": "Nie więcej niż +10% tygodniowo w jednej zmiennej",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "437"
+        }
+      ]
+    },
+    {
+      "id": "IF12",
+      "if": "Klient ma ograniczony czas (wyjazd, praca)",
+      "then": "Do utrzymania siły wystarczy 1 sesja oporowa/tydz.; wydolności ≥2 sesje z zachowaniem intensywności",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "5 Responses and Adaptations to Resistance Training",
+          "pages": "85-86"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "437"
+        }
+      ]
+    },
+    {
+      "id": "IF13",
+      "if": "Odpowiedź TAK w PAR-Q+ lub objawy kardiologiczne",
+      "then": "Kontakt z lekarzem przed zwiększeniem aktywności/testami; aplikacja nie diagnozuje",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "146-153"
+        }
+      ]
+    },
+    {
+      "id": "IF14",
+      "if": "Klient ma rozpoznaną chorobę sercowo-naczyniową/metaboliczną/nerek i chce ćwiczyć intensywnie",
+      "then": "Wymagana zgoda lekarska (nieaktywny – przed każdym programem; aktywny – przed wysiłkiem intensywnym)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "151-152"
+        }
+      ]
+    },
+    {
+      "id": "IF15",
+      "if": "Podczas wysiłku: ból w klatce, zawroty, nieadekwatna duszność, zimny pot",
+      "then": "Przerwij natychmiast; procedura ratunkowa; skierowanie do lekarza",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "188"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "554"
+        }
+      ]
+    },
+    {
+      "id": "IF16",
+      "if": "Klient z cukrzycą typu 1: glukoza >250 mg/dl z ketonami lub >300 mg/dl",
+      "then": "Nie ćwiczyć tego dnia; typ 2 >300 mg/dl bez ketonów – ostrożność i dobre samopoczucie/nawodnienie jako warunek",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "538-539"
+        }
+      ]
+    },
+    {
+      "id": "IF17",
+      "if": "Glukoza przed wysiłkiem <100 mg/dl",
+      "then": "Ryzyko hipoglikemii – przekąska węglowodanowa przed wysiłkiem (wg ustaleń klienta z lekarzem/dietetykiem)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "539"
+        }
+      ]
+    },
+    {
+      "id": "IF18",
+      "if": "Objawy hipoglikemii lub glukoza <70 mg/dl",
+      "then": "15 g węglowodanów, pomiar po 15 min, powtarzać do >70 mg/dl; rozważ wezwanie pogotowia",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "539"
+        }
+      ]
+    },
+    {
+      "id": "IF19",
+      "if": "Ciśnienie w trakcie treningu ≥220 skurczowe lub ≥105 rozkurczowe (klient z nadciśnieniem)",
+      "then": "Przerwij trening",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "552"
+        }
+      ]
+    },
+    {
+      "id": "IF20",
+      "if": "Klient z nadciśnieniem wstrzymuje oddech",
+      "then": "Koryguj oddychanie – zakaz Valsalvy >2 s; dłuższe przerwy 2–3 min",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "552-553"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "325"
+        }
+      ]
+    },
+    {
+      "id": "IF21",
+      "if": "Astmatyk w trakcie wysiłku przekracza 4/10 w skali duszności",
+      "then": "Obniż intensywność; wydłuż przerwy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "560-561"
+        }
+      ]
+    },
+    {
+      "id": "IF22",
+      "if": "Ciąża po I trymestrze",
+      "then": "Bez ćwiczeń w leżeniu na plecach – zamień na leżenie bokiem, klęk podparty, maszyny w siadzie, pompki przy ścianie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "511-512"
+        }
+      ]
+    },
+    {
+      "id": "IF23",
+      "if": "Ciąża – krwawienie, bolesne skurcze, wyciek płynu, ból/obrzęk łydki, zawroty, ból w klatce",
+      "then": "Przerwij i skieruj do lekarza",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "512-513"
+        }
+      ]
+    },
+    {
+      "id": "IF24",
+      "if": "Senior ze słabą równowagą",
+      "then": "Maszyny i rower stacjonarny, ćwiczenia w siadzie; odłóż wykroki i wejścia na skrzynię; progresywny trening równowagi",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "507-508"
+        }
+      ]
+    },
+    {
+      "id": "IF25",
+      "if": "Ból krzyża nasila się lub promieniuje przy danym ruchu",
+      "then": "Unikaj tego ruchu; ćwicz w kierunku bezbólowym; przy wątpliwościach – konsultacja (fizjoterapeuta/lekarz)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "569-571"
+        }
+      ]
+    },
+    {
+      "id": "IF26",
+      "if": "Konflikt podbarkowy w wywiadzie",
+      "then": "Zamień wyciskanie nad głową na unoszenie bokiem (bez rotacji wewnętrznej), ściąganie drążka przed głowę, wyciskanie bez dotykania klatki",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "402"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "576-579"
+        }
+      ]
+    },
+    {
+      "id": "IF27",
+      "if": "Ból przedniej części kolana",
+      "then": "Zamień pełny przysiad/wykrok na ćwierć–półprzysiad i częściowy wykrok; prostowanie nóg poza zakresem 0–30°; dodaj wzmacnianie pośladka średniego",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "583"
+        }
+      ]
+    },
+    {
+      "id": "IF28",
+      "if": "Po ćwiczeniu pojawia się ból, obrzęk, ucieplenie po urazie",
+      "then": "Zbyt szybka progresja – cofnij ostatnio zmieniony parametr (zmieniaj 1 naraz)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "568"
+        }
+      ]
+    },
+    {
+      "id": "IF29",
+      "if": "Objawy przetrenowania (spadek siły, sen, apetyt, nastrój, uporczywe infekcje)",
+      "then": "Odpoczynek (dni–tygodnie) i obniżenie objętości/intensywności; potem lepsza periodyzacja",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "5 Responses and Adaptations to Resistance Training",
+          "pages": "84-85"
+        }
+      ]
+    },
+    {
+      "id": "IF30",
+      "if": "Wysokie obciążenie wewnętrzne (sRPE, złe samopoczucie) przy niskim zewnętrznym",
+      "then": "Sygnał negatywnej adaptacji – zmniejsz obciążenie, zbadaj przyczyny (sen, stres)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "11 Fitness Evaluation Protocols and Norms",
+          "pages": "203"
+        }
+      ]
+    },
+    {
+      "id": "IF31",
+      "if": "Klient chce zacząć plyometrię bez ≥3 mies. treningu oporowego lub bez zaliczenia testów równowagi",
+      "then": "Najpierw trening oporowy i równowaga; ewentualnie trening ekscentryczny",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "452-455"
+        }
+      ]
+    },
+    {
+      "id": "IF32",
+      "if": "Klient >220 lb (99,8 kg) chce wykonywać zeskoki",
+      "then": "Ostrożność; bez zeskoków z >18 cali (~46 cm)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "454, 457"
+        }
+      ]
+    },
+    {
+      "id": "IF33",
+      "if": "Pompki w teście <6",
+      "then": "Traktuj wynik jako test siły; wybierz łatwiejszy wariant do testowania wytrzymałości",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "180-181"
+        }
+      ]
+    },
+    {
+      "id": "IF34",
+      "if": "Klient pyta o suplement lub dietę przy chorobie",
+      "then": "Udziel ogólnej informacji, skieruj do dietetyka (RD) – nie rekomenduj",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "104, 120"
+        }
+      ]
+    },
+    {
+      "id": "IF35",
+      "if": "Spadek masy ≥10% w miesiąc, zanik miesiączki, BMI ≤17,5, oznaki zaburzeń odżywiania",
+      "then": "Skierowanie do lekarza/dietetyka; nie zwiększać obciążeń treningowych",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "7 Nutrition Concepts and Strategies",
+          "pages": "110-111"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "546-547"
+        }
+      ]
+    },
+    {
+      "id": "IF36",
+      "if": "Klient z otyłością nie toleruje dłuższego wysiłku ciągłego",
+      "then": "Odcinki ≥10 min kilka razy dziennie; najpierw wydłużaj czas, potem intensywność; ewentualnie obwód marsz + gumy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "530-531"
+        }
+      ]
+    },
+    {
+      "id": "IF37",
+      "if": "Klient wykonuje strukturalne ćwiczenie z ciężarem bliskim maksymalnego",
+      "then": "Rozważ pas ciężarowy i asekurację; przy lżejszych ciężarach pas niepotrzebny",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "325-327"
+        }
+      ]
+    },
+    {
+      "id": "IF38",
+      "if": "Trener niższy od klienta przy wyciskaniu nad głową",
+      "then": "Wykonuj ćwiczenie w siadzie, aby asekuracja była skuteczna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "13 Resistance Exercise Technique",
+          "pages": "326"
+        }
+      ]
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T01",
+      "name": "FBW 2 dni – początkujący (wytrzymałość/ogólna sprawność, maszyny)",
+      "goal": "wytrzymałość mięśniowa i nauka techniki; zdrowie",
+      "level": "początkujący",
+      "daysPerWeek": 2,
+      "schedule": "wt/pt lub pn/czw (dni nienastępujące po sobie)",
+      "status": "zrodlo",
+      "days": [
+        {
+          "day": "A (oba dni ten sam trening)",
+          "exercises": [
+            {
+              "exercise": "Wyciskanie leżąc / wyciskanie na maszynie (bench press)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM; korekta wg tab. 15.5",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Suwnica – wyciskanie nogami (leg press)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Wiosłowanie siedząc (seated row)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Uginanie nóg na maszynie (leg curl)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Wyciskanie nad głową na maszynie (shoulder press)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Prostowanie nóg na maszynie (leg extension)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Uginanie ramion (biceps curl)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Wspięcia na palce siedząc (seated heel raise)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Prostowanie ramion na wyciągu (triceps pushdown)",
+              "sets": 2,
+              "reps": "15",
+              "effort": "15RM",
+              "rest": "30 s"
+            },
+            {
+              "exercise": "Spięcia brzucha (crunch)",
+              "sets": 2,
+              "reps": "25",
+              "rest": "30 s"
+            }
+          ]
+        }
+      ],
+      "warmup": "2–3 serie rozgrzewkowe przed pierwszymi ćwiczeniami; ogólna rozgrzewka 5–15 min",
+      "progression": "Test 15RM (max 3 serie) → ciężar korygowany po każdej sesji wg tab. 15.5; reguła 2-za-2; zwiększenia wg tab. 15.7 dla początkujących.",
+      "effortNote": "Książka nie podaje tu RIR/RPE – 15RM oznacza serie bliskie upadku; dla bezpieczeństwa początkującego można stosować ~2–3 RIR (wniosek z rozdz. 15, s. 406–408).",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "417-419"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "406-411"
+        }
+      ]
+    },
+    {
+      "id": "T02",
+      "name": "FBW 3 dni – początkujący (hipertrofia/ogólna siła)",
+      "goal": "ogólna siła i hipertrofia, nauka techniki",
+      "level": "początkujący",
+      "daysPerWeek": 3,
+      "schedule": "pn/śr/pt (lub wt/czw/sob)",
+      "status": "wniosek",
+      "days": [
+        {
+          "day": "A/B/C (ten sam zestaw, ewentualnie zmienne zakresy)",
+          "exercises": [
+            {
+              "exercise": "Suwnica (leg press) lub przysiad z masą ciała / goblet",
+              "sets": "1–3",
+              "reps": "8–12",
+              "effort": "8–12RM lub RPE 7–8 (2–3 RIR)",
+              "rest": "2–3 min (nauka techniki 2–5 min)"
+            },
+            {
+              "exercise": "Wyciskanie na maszynie / wyciskanie leżąc (chest press)",
+              "sets": "1–3",
+              "reps": "8–12",
+              "effort": "RPE 7–8",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Ściąganie drążka (lat pulldown) lub wiosłowanie siedząc",
+              "sets": "1–3",
+              "reps": "8–12",
+              "effort": "RPE 7–8",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Wyciskanie nad głową na maszynie (shoulder press)",
+              "sets": "1–3",
+              "reps": "8–12",
+              "effort": "RPE 7–8",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Uginanie nóg (leg curl)",
+              "sets": "1–3",
+              "reps": "10–12",
+              "effort": "RPE 7–8",
+              "rest": "60–90 s"
+            },
+            {
+              "exercise": "Uginanie ramion (biceps curl)",
+              "sets": "1–3",
+              "reps": "10–12",
+              "effort": "RPE 7–8",
+              "rest": "60–90 s"
+            },
+            {
+              "exercise": "Prostowanie ramion na wyciągu (triceps pushdown)",
+              "sets": "1–3",
+              "reps": "10–12",
+              "effort": "RPE 7–8",
+              "rest": "60–90 s"
+            },
+            {
+              "exercise": "Wspięcia na palce (heel raise)",
+              "sets": "1–3",
+              "reps": "12–15",
+              "effort": "RPE 7–8",
+              "rest": "60–90 s"
+            },
+            {
+              "exercise": "Spięcia brzucha (curl-up)",
+              "sets": "1–3",
+              "reps": "15–25",
+              "rest": "60 s"
+            }
+          ]
+        }
+      ],
+      "progression": "Reguła 2-za-2; zwiększenia wg tab. 15.7 (góra podst. ~2,5%, dół podst. ~5%); po 6–12 sesjach ocena; po kilku miesiącach przejście na split 4-dniowy lub zmienne zakresy (DUP: pn 8–10, śr 12–15, pt 6–8).",
+      "derivedFrom": "Częstotliwość i dobór 1 ćwiczenia na grupę (s. 398–402), zakresy 8–12RM i 1–3 serie dla hipertrofii u początkujących (tab. 15.6, s. 409), przerwy (tab. 15.9), RPE/RIR (rys. 15.2), progresja (s. 410–411). Książka nie podaje gotowego FBW 3 dni.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "398-413"
+        }
+      ]
+    },
+    {
+      "id": "T03",
+      "name": "Góra/dół 4 dni – średniozaawansowany (hipertrofia)",
+      "goal": "hipertrofia",
+      "level": "średniozaawansowany",
+      "daysPerWeek": 4,
+      "schedule": "pn – dół A, wt – góra A, czw – dół B, sob – góra B",
+      "status": "zrodlo",
+      "loading": "3×10; RPE w tygodniach 1–4: pn/wt 7, 8, 9, 6; czw/sob 6, 7, 8, 6 (tydzień 4 = lżejszy); przerwy 2–3 min; test 10RM",
+      "days": [
+        {
+          "day": "Poniedziałek – dół A",
+          "exercises": [
+            {
+              "exercise": "Przysiad ze sztangą z tyłu (back squat)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE 7→8→9→6",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Prostowanie nóg (leg extension)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Rumuński martwy ciąg (RDL)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Uginanie nóg (leg curl)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Wspięcia na palce stojąc + siedząc (seria złożona)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Unoszenie nóg w zwisie (hanging leg raise)",
+              "sets": 3,
+              "reps": 25
+            }
+          ]
+        },
+        {
+          "day": "Wtorek – góra A",
+          "exercises": [
+            {
+              "exercise": "Wyciskanie sztangi leżąc (bench press)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE 7→8→9→6",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Wyciskanie na skosie dodatnim (incline chest press)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Wiosłowanie sztangą w opadzie (bent-over row)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Ściąganie drążka (lat pulldown)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Wyciskanie nad głową (shoulder press)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Uginanie ramion + prostowanie na wyciągu (superseria)",
+              "sets": 3,
+              "reps": 10
+            }
+          ]
+        },
+        {
+          "day": "Czwartek – dół B",
+          "exercises": [
+            {
+              "exercise": "Suwnica (leg press)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE 6→7→8→6",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Wykrok (lunge)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Hip thrust ze sztangą",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Glute-ham raise",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Wspięcia na palce stojąc + siedząc",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Spięcia brzucha (crunch)",
+              "sets": 3,
+              "reps": 25
+            }
+          ]
+        },
+        {
+          "day": "Sobota – góra B",
+          "exercises": [
+            {
+              "exercise": "Wyciskanie hantli leżąc (DB chest press)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "RPE 6→7→8→6",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Rozpiętki na skosie (incline fly)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Wiosłowanie siedząc wyciągiem (seated cable row)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Podciąganie (pull-up; ewentualnie ze wspomaganiem)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Unoszenie hantli bokiem (lateral raise)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Uginanie młotkowe + prostowanie nad głową",
+              "sets": 3,
+              "reps": 10
+            }
+          ]
+        }
+      ],
+      "progression": "Falowanie RPE w mikrocyklu 4-tyg. (3:1); reguła 2-za-2; po 4 tyg. hipertrofii blok siły 2–5 tyg. (tab. 15.12, rys. 15.3).",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "420-422"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "414-417"
+        }
+      ]
+    },
+    {
+      "id": "T04",
+      "name": "Hipertrofia – wariant 4-dniowy z falowaniem objętości (tab. 15.11)",
+      "goal": "hipertrofia",
+      "level": "średniozaawansowany",
+      "daysPerWeek": 4,
+      "schedule": "pn/wt ciężkie (góra/dół), czw/sob lekkie",
+      "status": "zrodlo",
+      "loading": "3×10 we wszystkich ćwiczeniach; tygodniowa objętość-obciążenie rośnie 79 500 → 82 650 → 85 950 lb, tydzień 4 spadek do 79 950 lb (rozładowanie)",
+      "days": [
+        {
+          "day": "Struktura",
+          "exercises": [
+            {
+              "exercise": "Ćwiczenia jak w T03 (góra/dół)",
+              "sets": 3,
+              "reps": 10,
+              "effort": "dni ciężkie vs lekkie",
+              "rest": "60–90 s jednostawowe; 2–3 min wielostawowe"
+            }
+          ]
+        }
+      ],
+      "progression": "Układ 3:1 (3 tyg. wzrostu, 1 lżejszy); ≥10 serii/mięsień/tydz. sprzyja hipertrofii.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "414-415"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "411-413"
+        }
+      ]
+    },
+    {
+      "id": "T05",
+      "name": "Siła – zaawansowany, 4 dni (tab. 15.15)",
+      "goal": "siła maksymalna",
+      "level": "zaawansowany",
+      "daysPerWeek": 4,
+      "schedule": "pn i czw: przysiad/wyciskanie; wt i sob: martwy ciąg/plecy",
+      "status": "zrodlo",
+      "loading": "Ćw. podstawowe 3×5, pomocnicze 3×10; przerwy 2–5 min; testy 5RM/10RM; RPE w tyg. 1–4: pn/sob 7, 8, 9, 7; wt/czw 6, 7, 8, 6; strefy RPE z 5RM (−~5% na każdy stopień RPE)",
+      "days": [
+        {
+          "day": "Poniedziałek / Czwartek",
+          "exercises": [
+            {
+              "exercise": "Przysiad ze sztangą z tyłu",
+              "sets": 3,
+              "reps": 5,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–5 min"
+            },
+            {
+              "exercise": "Wyciskanie sztangi leżąc",
+              "sets": 3,
+              "reps": 5,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–5 min"
+            },
+            {
+              "exercise": "Uginanie ramion (biceps curl)",
+              "sets": 3,
+              "reps": 10,
+              "rest": "2–5 min"
+            },
+            {
+              "exercise": "Prostowanie ramion na wyciągu",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Spięcia brzucha",
+              "sets": 3,
+              "reps": 25
+            }
+          ]
+        },
+        {
+          "day": "Wtorek / Sobota",
+          "exercises": [
+            {
+              "exercise": "Martwy ciąg (deadlift)",
+              "sets": 3,
+              "reps": 5,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–5 min"
+            },
+            {
+              "exercise": "Wiosłowanie sztangą w opadzie",
+              "sets": 3,
+              "reps": 5,
+              "effort": "RPE wg tygodnia",
+              "rest": "2–5 min"
+            },
+            {
+              "exercise": "Szrugsy (shrug)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Rumuński martwy ciąg (RDL)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Ściąganie drążka (lat pulldown)",
+              "sets": 3,
+              "reps": 10
+            },
+            {
+              "exercise": "Spięcia brzucha",
+              "sets": 3,
+              "reps": 25
+            }
+          ]
+        }
+      ],
+      "progression": "Tydzień 4 lżejszy (RPE 6–7); po bloku siły 2–5 tyg. – blok hipertrofii lub mocy (rys. 15.3); alternatywnie 12-tyg. model tab. 23.6 lub falujący tab. 23.7.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "422-424"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "624-628"
+        }
+      ]
+    },
+    {
+      "id": "T06",
+      "name": "Siła – 12 tygodni, 3 dni, periodyzacja tradycyjna (tab. 23.6)",
+      "goal": "siła/moc (klient wytrenowany, sportowiec)",
+      "level": "zaawansowany",
+      "daysPerWeek": 3,
+      "schedule": "3 dni/tydz.",
+      "status": "zrodlo",
+      "phases": [
+        {
+          "weeks": "1–3",
+          "phase": "hipertrofia",
+          "reps": "12 → 10 → 8"
+        },
+        {
+          "weeks": "4–6",
+          "phase": "siła",
+          "reps": "6 → 5 → 5"
+        },
+        {
+          "weeks": "7–9",
+          "phase": "siła/moc",
+          "reps": "4 → 3 → 3"
+        },
+        {
+          "weeks": "10–12",
+          "phase": "szczyt",
+          "reps": "2 → 2 → 1"
+        },
+        {
+          "weeks": "13",
+          "phase": "aktywny odpoczynek",
+          "reps": "-"
+        }
+      ],
+      "loading": "Wg tab. 23.5: hipertrofia ≤85% 1RM, 3–5 serii; siła ≥85%; siła/moc 85–95%; szczyt ≥93%, 1–4 serie",
+      "progression": "Zmiana fazy co 3 tyg.; tygodniowo dni ciężki/średni/lekki (100/90/80%).",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "624-626"
+        }
+      ]
+    },
+    {
+      "id": "T07",
+      "name": "Trening w domu bez siłowni (masa ciała, piłka, gumy, TRX)",
+      "goal": "ogólna sprawność, wytrzymałość mięśniowa, hipertrofia u początkujących",
+      "level": "początkujący–średniozaawansowany",
+      "daysPerWeek": "2–3",
+      "schedule": "nienastępujące po sobie dni (np. pn/śr/pt)",
+      "status": "wniosek",
+      "days": [
+        {
+          "day": "Całe ciało",
+          "exercises": [
+            {
+              "exercise": "Przysiad z ramionami w przód (zombie squat) / przysiad z gumą",
+              "sets": "1–3",
+              "reps": "10–15+",
+              "effort": "2–3 RIR",
+              "rest": "30–90 s"
+            },
+            {
+              "exercise": "Pompka (od ściany/kolan do pełnej; manualny opór)",
+              "sets": "1–3",
+              "reps": "8–15",
+              "effort": "2–3 RIR",
+              "rest": "60–90 s"
+            },
+            {
+              "exercise": "Wiosłowanie odwrócone na taśmach (suspension inverted row) lub wiosłowanie gumą / ręcznikiem",
+              "sets": "1–3",
+              "reps": "8–15",
+              "effort": "2–3 RIR",
+              "rest": "60–90 s"
+            },
+            {
+              "exercise": "Wejście na stopień/krzesło (step-up)",
+              "sets": "1–3",
+              "reps": "10–12 na nogę",
+              "effort": "2–3 RIR",
+              "rest": "60 s"
+            },
+            {
+              "exercise": "Unoszenie bioder jednonóż (single-leg hip bridge) / unoszenie bioder na piłce",
+              "sets": "1–3",
+              "reps": "10–15",
+              "rest": "60 s"
+            },
+            {
+              "exercise": "Uginanie nóg na piłce (stability ball leg curl)",
+              "sets": "1–3",
+              "reps": "10–15",
+              "rest": "60 s"
+            },
+            {
+              "exercise": "Wyciskanie nad głową lub unoszenie bokiem z gumą",
+              "sets": "1–3",
+              "reps": "10–15",
+              "rest": "60 s"
+            },
+            {
+              "exercise": "Wspięcia na palce (heel raise)",
+              "sets": "1–3",
+              "reps": "15–20",
+              "rest": "30–60 s"
+            },
+            {
+              "exercise": "Spięcia brzucha / spięcia na piłce / deska na łokciach na piłce",
+              "sets": "1–3",
+              "reps": "10–20 lub 20–30 s",
+              "rest": "30–60 s"
+            },
+            {
+              "exercise": "Wyprost grzbietu (back extension)",
+              "sets": "1–3",
+              "reps": "10–15",
+              "rest": "30–60 s"
+            }
+          ]
+        }
+      ],
+      "warmup": "RAMP 5–15 min (np. marsz z kolanem do klatki, chód w wykrokach, unoszenie bioder)",
+      "progression": "Zwiększać trudność wariantu (kąt ciała w TRX, pompka z podwyższenia → z podłogi → jednorącz), dodać obciążenie (kamizelka), wydłużyć serie; dla celów siłowych masa ciała może nie wystarczyć (s. 280–282).",
+      "derivedFrom": "Lista ćwiczeń z masą ciała, piłką, TRX i oporem manualnym (rozdz. 12, s. 280–286, 300–314), gumy (rozdz. 13), parametry z tab. 15.6 i 15.9, częstotliwość z tab. 15.2, zakupy sprzętu domowego (rozdz. 24, s. 641). Książka nie podaje gotowego planu domowego.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "12 Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "280-286, 300-314"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "398-413"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "24 Facility and Equipment Layout and Maintenance",
+          "pages": "641"
+        }
+      ]
+    },
+    {
+      "id": "T08",
+      "name": "Redukcja tkanki tłuszczowej – klient z otyłością/nadwagą",
+      "goal": "redukcja masy i poprawa zdrowia",
+      "level": "początkujący",
+      "daysPerWeek": "5+ (cardio) + 2–3 (opór)",
+      "schedule": "cardio większość dni; opór 2–3 nienastępujące dni, może być w tym samym dniu",
+      "status": "wniosek",
+      "days": [
+        {
+          "day": "Cardio",
+          "exercises": [
+            {
+              "exercise": "Marsz/rower/orbitrek (niskoudarowo)",
+              "sets": "1–3 odcinki",
+              "reps": "≥10 min każdy → 30–60 min",
+              "effort": "40–59% HRR → ≥60% HRR",
+              "note": "Najpierw wydłużać czas, potem intensywność; docelowo 250–300 min/tydz."
+            }
+          ]
+        },
+        {
+          "day": "Opór (całe ciało)",
+          "exercises": [
+            {
+              "exercise": "Suwnica / przysiad z masą ciała",
+              "sets": "1 → 2–4",
+              "reps": "8–12",
+              "effort": "60–70% 1RM",
+              "rest": "60–120 s"
+            },
+            {
+              "exercise": "Wyciskanie na maszynie",
+              "sets": "1 → 2–4",
+              "reps": "8–12",
+              "effort": "60–70% 1RM"
+            },
+            {
+              "exercise": "Ściąganie drążka / wiosłowanie",
+              "sets": "1 → 2–4",
+              "reps": "8–12",
+              "effort": "60–70% 1RM"
+            },
+            {
+              "exercise": "Wyciskanie nad głową na maszynie",
+              "sets": "1 → 2–4",
+              "reps": "8–12",
+              "effort": "60–70% 1RM"
+            },
+            {
+              "exercise": "Wyprost grzbietu na maszynie",
+              "sets": "1 → 2–4",
+              "reps": "8–12"
+            },
+            {
+              "exercise": "Spięcia brzucha",
+              "sets": "1 → 2–4",
+              "reps": "12–15"
+            }
+          ]
+        }
+      ],
+      "progression": "Stopniowe zwiększanie obciążenia; obwód: marsz + ćwiczenia z gumą (np. pół okrążenia marszu, 10–20 powt.) z wydłużaniem odcinków marszu (s. 530–531).",
+      "derivedFrom": "Tab. 19.2 (s. 531) i zalecenia redukcji (s. 522–525). Szczegółowy dobór ćwiczeń to wniosek z rozdz. 15.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "19 Clients With Nutritional or Metabolic Concerns",
+          "pages": "522-531"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "398-413"
+        }
+      ]
+    },
+    {
+      "id": "T09",
+      "name": "Senior – siła i moc, 2–3 dni",
+      "goal": "siła, moc, funkcja, zapobieganie upadkom",
+      "level": "początkujący senior",
+      "daysPerWeek": "2–3",
+      "schedule": "nienastępujące dni lub split pn/czw góra, śr/sob dół",
+      "status": "zrodlo",
+      "days": [
+        {
+          "day": "Całe ciało",
+          "exercises": [
+            {
+              "exercise": "Przysiad lub suwnica",
+              "sets": "1 → 2–4",
+              "reps": "10–15 → 8–12 → 4–8",
+              "effort": "60–90% 1RM (rek. 8–12)",
+              "rest": "2–3 min"
+            },
+            {
+              "exercise": "Wyciskanie na maszynie (chest press)",
+              "sets": "1 → 2–4",
+              "reps": "10–15 → 8–12"
+            },
+            {
+              "exercise": "Wiosłowanie / ściąganie drążka",
+              "sets": "1 → 2–4",
+              "reps": "10–15 → 8–12"
+            },
+            {
+              "exercise": "Wyciskanie nad głową",
+              "sets": "1 → 2–4",
+              "reps": "10–15 → 8–12"
+            },
+            {
+              "exercise": "Prostowanie nóg, uginanie nóg",
+              "sets": "1 → 2–4",
+              "reps": "10–15"
+            },
+            {
+              "exercise": "Triceps, biceps, wyprost grzbietu, spięcia brzucha",
+              "sets": "1 → 2–4",
+              "reps": "10–15"
+            }
+          ]
+        }
+      ],
+      "power": "Po bazie siły: 40–60% 1RM, faza koncentryczna ≤1 s (maszyny pneumatyczne, piłki lekarskie)",
+      "progression": "2-za-2 (+5%); siła: koncentryczna ≥2 s; wydech w koncentrycznej; zakres bez bólu.",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "18 Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "503-508"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "id": "X01",
+      "topic": "Gotowy plan FBW 3 dni i plan domowy",
+      "status": "brak_w_zrodle",
+      "value": null,
+      "note": "Zbudowane jako wnioski (T02, T07)."
+    },
+    {
+      "id": "X02",
+      "topic": "Ogólne zalecenia tempa powtórzeń dla zdrowych dorosłych",
+      "status": "brak_w_zrodle",
+      "value": null
+    },
+    {
+      "id": "X03",
+      "topic": "Formalna procedura deload (słowo i kryteria)",
+      "status": "brak_w_zrodle",
+      "value": null,
+      "note": "Jest jedynie lżejszy tydzień 3:1 i aktywny odpoczynek."
+    },
+    {
+      "id": "X04",
+      "topic": "Objętość tygodniowa per mięsień dla siły/początkujących w liczbach (poza ≥10 serii dla hipertrofii)",
+      "status": "brak_w_zrodle",
+      "value": null
+    },
+    {
+      "id": "X05",
+      "topic": "Szczegółowe makroskładniki/jadłospisy",
+      "status": "poza_zrodlem",
+      "value": null,
+      "note": "Poza zakresem kompetencji trenera wg książki – dietetyk."
+    },
+    {
+      "id": "X06",
+      "topic": "Diagnozowanie urazów i chorób",
+      "status": "poza_zrodlem",
+      "value": null,
+      "note": "Wyłącznie skierowanie."
+    }
+  ],
+  "sourceReferences": [
+    {
+      "ref": "nsca-essentials-pt",
+      "title": "NSCA's Essentials of Personal Training",
+      "edition": "3",
+      "editors": "Brad J. Schoenfeld, Ronald L. Snarr",
+      "publisher": "Human Kinetics",
+      "place": "Champaign, IL",
+      "year": "2022",
+      "isbn": "978-1-4925-9672-1",
+      "pages": "xiv + 750 (25 rozdziałów + aneks 'The Business of Personal Training')",
+      "pageOffset": "PDF = drukowana + 14",
+      "inputFile": "833023900.pdf (skan, 762 strony PDF; OCR tesseract w tej sesji)",
+      "chapters": [
+        {
+          "n": 1,
+          "title": "Structure and Function of the Muscular, Nervous, and Skeletal Systems",
+          "pages": "1-14"
+        },
+        {
+          "n": 2,
+          "title": "Structure and Function of the Cardiorespiratory System",
+          "pages": "15-25"
+        },
+        {
+          "n": 3,
+          "title": "Bioenergetics",
+          "pages": "27-40"
+        },
+        {
+          "n": 4,
+          "title": "Biomechanics",
+          "pages": "41-68"
+        },
+        {
+          "n": 5,
+          "title": "Responses and Adaptations to Resistance Training",
+          "pages": "69-86"
+        },
+        {
+          "n": 6,
+          "title": "Physiological Responses and Adaptations to Aerobic Endurance Training",
+          "pages": "87-102"
+        },
+        {
+          "n": 7,
+          "title": "Nutrition Concepts and Strategies",
+          "pages": "103-122"
+        },
+        {
+          "n": 8,
+          "title": "Exercise Psychology, Goal Setting, and Motivation",
+          "pages": "123-138"
+        },
+        {
+          "n": 9,
+          "title": "Client Consultation and Health Appraisal",
+          "pages": "139-174"
+        },
+        {
+          "n": 10,
+          "title": "Fitness Evaluation, Selection, and Administration",
+          "pages": "175-194"
+        },
+        {
+          "n": 11,
+          "title": "Fitness Evaluation Protocols and Norms",
+          "pages": "195-270"
+        },
+        {
+          "n": 12,
+          "title": "Flexibility and Warm-Up Concepts and Bodyweight and Stability Ball Exercise Technique",
+          "pages": "271-316"
+        },
+        {
+          "n": 13,
+          "title": "Resistance Exercise Technique",
+          "pages": "317-376"
+        },
+        {
+          "n": 14,
+          "title": "Cardiovascular Exercise Technique",
+          "pages": "377-392"
+        },
+        {
+          "n": 15,
+          "title": "Resistance Training Program Design",
+          "pages": "393-424"
+        },
+        {
+          "n": 16,
+          "title": "Aerobic Training Program Design",
+          "pages": "425-446"
+        },
+        {
+          "n": 17,
+          "title": "Plyometric and Speed Training Program Design and Technique",
+          "pages": "447-492"
+        },
+        {
+          "n": 18,
+          "title": "Clients Who Are Preadolescent, Older, or Pregnant",
+          "pages": "493-516"
+        },
+        {
+          "n": 19,
+          "title": "Clients With Nutritional or Metabolic Concerns",
+          "pages": "517-548"
+        },
+        {
+          "n": 20,
+          "title": "Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "549-562"
+        },
+        {
+          "n": 21,
+          "title": "Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "563-592"
+        },
+        {
+          "n": 22,
+          "title": "Clients With Spinal Cord Injury, Multiple Sclerosis, Epilepsy, or Cerebral Palsy",
+          "pages": "593-614"
+        },
+        {
+          "n": 23,
+          "title": "Resistance Training for Clients Who Are Athletes",
+          "pages": "615-630"
+        },
+        {
+          "n": 24,
+          "title": "Facility and Equipment Layout and Maintenance",
+          "pages": "631-650"
+        },
+        {
+          "n": 25,
+          "title": "Professional, Legal, and Ethical Responsibilities of Personal Trainers",
+          "pages": "651-682"
+        },
+        {
+          "n": "Aneks",
+          "title": "The Business of Personal Training",
+          "pages": "683-694"
+        }
+      ]
+    }
+  ],
+  "contradictions": [
+    {
+      "id": "C01",
+      "topic": "Skierowanie przy czynnikach ryzyka nagłej śmierci sercowej",
+      "a": "Ramka s. 147: ≥1 czynnik → skierowanie",
+      "b": "Przypadek 9.4 s. 155–156: 2 czynniki, kontynuacja bez zgody",
+      "recommendation": "Stosować ostrożniejszą wersję (skierowanie).",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "9 Client Consultation and Health Appraisal",
+          "pages": "147, 155-156"
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "topic": "Trening do upadku",
+      "a": "Rozdz. 15: RM (do upadku) jako metoda doboru ciężaru",
+      "b": "Rozdz. 23: trening do upadku nie zwiększa siły bardziej",
+      "recommendation": "Testy RM ograniczone (≤3 serie), na co dzień RPE 6–9.",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "405-408"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "618"
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "topic": "Długość faz i przerwy w periodyzacji tradycyjnej",
+      "a": "Tab. 23.5: 2–3 tyg., siła 2–5 min",
+      "b": "Tekst: 2–4 tyg., siła 3–5 min",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "624-625"
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "topic": "Tab. 16.1 – 64% VO2max ↔ 70% HRmax",
+      "a": "Wydruk: 70",
+      "b": "Ciągłość tabeli sugeruje ~77",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "429"
+        }
+      ]
+    },
+    {
+      "id": "C05",
+      "topic": "Autorzy wzorów HRmax (tab. 16.2)",
+      "a": "220 − wiek przypisane Åstrandowi",
+      "b": "Powszechnie przypisywane Fox i wsp.",
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "430"
+        }
+      ]
+    },
+    {
+      "id": "C06",
+      "topic": "Start intensywności nietrenowanego",
+      "a": "57–63% APMHR / 30–39% HRR dla bardzo zdekondycjonowanych",
+      "b": "Przykład Floyda 70–80% APMHR",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "16 Aerobic Training Program Design",
+          "pages": "429-430, 443"
+        }
+      ]
+    },
+    {
+      "id": "C07",
+      "topic": "Przerwy w hipertrofii",
+      "a": "Rozdz. 15: ≥2–3 min wielostawowe",
+      "b": "Rozdz. 23: ≥2 min",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "15 Resistance Training Program Design",
+          "pages": "412"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "23 Resistance Training for Clients Who Are Athletes",
+          "pages": "625"
+        }
+      ]
+    },
+    {
+      "id": "C08",
+      "topic": "Kolano – przeciwwskazania",
+      "a": "Tekst: brak jednoznacznych przeciwwskazań przy PFPS",
+      "b": "Tab. 21.7 wymienia przeciwwskazania (względne)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "21 Clients With Orthopedic, Injury, or Rehabilitation Concerns",
+          "pages": "583"
+        }
+      ]
+    },
+    {
+      "id": "C09",
+      "topic": "Próg przerwania wysiłku przy ciśnieniu",
+      "a": "Test: SBP >250 / DBP >115 (rozdz. 10)",
+      "b": "Trening z nadciśnieniem: ≥220 / ≥105 (rozdz. 20)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "10 Fitness Evaluation, Selection, and Administration",
+          "pages": "188"
+        },
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "20 Clients With Cardiovascular or Respiratory Conditions",
+          "pages": "552"
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "topic": "Plyometria – 1RM przysiadu 1,5×BW",
+      "a": "Warunek dla zaawansowanych ćwiczeń",
+      "b": "Niewymagany dla niskiej/umiarkowanej intensywności",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "nsca-essentials-pt",
+          "chapter": "17 Plyometric and Speed Training Program Design and Technique",
+          "pages": "457-458"
+        }
+      ]
+    }
+  ]
+}

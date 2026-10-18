@@ -1191,6 +1191,25 @@ function aplRegroupExercisesByMuscle(plan,client){
   });
 }
 
+/** Reguły z książek (knowledge/books) dobrane do parametrów planu i ograniczeń klienta. */
+function aplBooksContext(p){
+  const empty={all:'',training:'',sources:[]};
+  if(typeof booksKbContext!=='function')return empty;
+  const levelWords={poczatkujacy:'początkujący',sredni:'średnio zaawansowany',zaawansowany:'zaawansowany'};
+  const ageNum=parseInt(p.age,10);
+  const w=parseFloat(p.weight),h=parseFloat(p.height);
+  const bmi=w>0&&h>0?w/Math.pow(h/100,2):0;
+  const query=[p.goal,levelWords[p.level]||p.level,p.method,p.days?p.days+' dni treningi w tygodniu':'',p.progression,
+    (p.equipment||[]).join(' '),(p.intensify||[]).join(' '),p.notes,p.client&&p.client.goal].filter(Boolean).join(' ');
+  const safetyQuery=[p.injuries,/kobiet/i.test(p.gender||'')?'kobiety':'',
+    ageNum>=50?'starsi wiek osoby starsze':'',ageNum&&ageNum<18?'młodzież dzieci':'',
+    bmi>=30?'otyłość nadwaga BMI':bmi>=25?'nadwaga':'',
+    p.level==='poczatkujacy'?'początkujący':''].filter(Boolean).join(' ');
+  const training=booksKbContext({mode:'training',reset:true,query,safetyQuery,maxChars:9000});
+  const nutrition=booksKbContext({mode:'nutrition',query:p.goal+' '+(p.notes||'')+' białko kalorie',maxChars:1600});
+  return{all:training+nutrition,training,sources:typeof booksKbUsedSources==='function'?booksKbUsedSources():[]};
+}
+
 async function aplGenerate(){
   if(aplGenerating)return;
   const goal=aplGetVal('apl-goals');
@@ -1282,7 +1301,9 @@ async function aplGenerate(){
   const wuEx = `[{"name":"Krążenia ramion","emoji":"🔄","sets":"2x","reps":"15","note":"mobilizacja"},{"name":"Aktywacja pośladków z gumą","emoji":"🍑","sets":"2x","reps":"12","note":"aktywacja"}]`;
 
   if(typeof kbPrepareResearch==='function')await kbPrepareResearch();
-  const systemPrompt=`Jesteś ekspertem programowania treningowego z certyfikatami NSCA CSCS i NASM CPT. Tworzysz szczegółowe plany treningowe w języku polskim.
+  if(typeof booksKbLoad==='function')await booksKbLoad();
+  const bookCtx=aplBooksContext({goal,level,method,days,duration,progression:effectiveProg,equipment,intensify,notes,injuries,age,gender,weight,height,pharmaStatus,client});
+  const systemPrompt=`Jesteś trenerem personalnym, który programuje trening na podstawie książek z bazy wiedzy trenera (sekcja WIEDZA Z KSIĄŻEK TRENERA poniżej). Tworzysz szczegółowe plany treningowe w języku polskim.
 
 WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
 {
@@ -1293,7 +1314,7 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
     "reasoning": ["Krótko: jaka decyzja, na podstawie którego faktu i dlaczego"],
     "uncertainties": ["Brakujące dane i założenia, które trener powinien sprawdzić"],
     "reviewTriggers": ["Kiedy ponownie ocenić plan na podstawie realizacji i informacji od klienta"],
-    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: tytuł i PMID, DOI lub adres. Jeśli brak pasującego źródła, pusta lista."]
+    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: książka (autor, tytuł, strony i oznaczenie reguły w nawiasie kwadratowym) albo badanie (tytuł i PMID, DOI lub adres). Jeśli brak pasującego źródła, pusta lista."]
   },
   "method": "Nazwa metody",
   "weeks": ${weeksNum},
@@ -1307,7 +1328,7 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "deload": "Opis tygodnia deload (co ile tygodni i jak)",
   "warmup": "Ogólny protokół rozgrzewki 5-8 min (opis tekstowy, ponad sesjami)",
   "cooldown": "Protokół cool-down / schłodzenia",
-  "nutritionTip": "Krótka wskazówka żywieniowa dopasowana do celu",
+  "nutritionTip": "Krótka wskazówka żywieniowa dopasowana do celu — tylko z reguł żywieniowych z książek (z oznaczeniem reguły); bez nich ogólna uwaga bez liczb",
   "days": [
     {
       "dayName": "Dzień 1 — Push / Klatka, barki, triceps",
@@ -1405,7 +1426,8 @@ OBJĘTOŚĆ wg badań (Schoenfeld i wsp. 2017 — zależność dawka–odpowied�
 OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
 Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core.
 DOBÓR ĆWICZEŃ WG WZORCA (OBOWIĄZKOWE): najpierw ustal wzorzec ruchowy, kierunek oporu, dominującą funkcję mięśnia, płaszczyznę ruchu i partię — dopiero potem konkretny wariant. Zmiana chwytu, maszyny lub przyrządu NIE jest innym ćwiczeniem. W jednym dniu maksymalnie 1 ćwiczenie na wzorzec (np. podciąganie ALBO ściąganie drążka; wyciskanie na ławce płaskiej hantlami ALBO sztangą). Różne wzorce to np.: przyciąganie pionowe, przyciąganie poziome, łopatka/tył barku, wyprost ramienia prostymi rękami; wyciskanie płaskie, skos, rozpiętki; przysiad/wypychanie obunóż, wykrok jednonóż, wyprost kolana, zgięcie kolana, zawias biodrowy, hip thrust. Wyjątek: świadoma specjalizacja wpisana przez trenera — wtedy max 2 i napisz w notes "specjalizacja". Brakującą objętość dobieraj seriami, nie kolejnym wariantem tego samego wzorca. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
-  +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
+  +bookCtx.all
+  +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes,books:false}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}
@@ -1484,7 +1506,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 2c. WZORCE: w jednym dniu max 1 ćwiczenie na wzorzec ruchowy (np. podciąganie ALBO ściąganie drążka; wyciskanie płaskie hantlami ALBO sztangą). Chwyt/maszyna/przyrząd to nie inny wzorzec. Zróżnicuj: pion, poziom, łopatka/tył barku, prostymi rękami; płasko, skos, rozpiętki; obunóż, jednonóż, wyprost kolana, zgięcie kolana, zawias, hip thrust. Wyjątek: specjalizacja trenera (max 2, "specjalizacja" w notes).
 3. Preferuj maszyny / Smith / wyciągi, gdy stabilność pomaga realizować cel, lecz zachowaj także ćwiczenia wolnym ciężarem, jeśli są potrzebne dla umiejętności lub preferencji. Różnicuj profil oporu (wydłużenie / środek / skrócenie); pauza w rozciągnięciu jest opcją, nie regułą.
 4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
-5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`;
+5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`+bookCtx.training;
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }
@@ -1553,6 +1575,10 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       if(!plan.mezocycle_overview)plan.mezocycle_overview=plan.summary||'';
     }
     (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';}));
+    if(bookCtx.sources.length){
+      if(!plan.rationale||typeof plan.rationale!=='object'||Array.isArray(plan.rationale))plan.rationale={};
+      plan.rationale.bookSources=bookCtx.sources;
+    }
     plan.volumeTopUp=aplEnforceWeeklyVolume(plan,vt);
     plan.volumeTarget={weekly:vt.weekly,min:vt.weeklyMin,label:vt.label};
     (plan.days||[]).forEach(d=>{
@@ -1600,7 +1626,8 @@ function aplPlanWhyHTML(plan){
     +section('reasoning','Uzasadnienie wyborów','Brak uzasadnienia — sprawdź dobór ćwiczeń i obciążeń.')
     +section('uncertainties','Założenia i niepewność','Nie podano ograniczeń. Nie oznacza to pełnej pewności.')
     +section('reviewTriggers','Kiedy ponownie ocenić plan','Ustal z klientem termin oceny realizacji planu.')
-    +section('sources','Źródła wskazane przez AI','Brak wskazanego źródła. Traktuj podpowiedź jako propozycję do weryfikacji.')+'</details>';
+    +section('sources','Źródła wskazane przez AI','Brak wskazanego źródła. Traktuj podpowiedź jako propozycję do weryfikacji.')
+    +(Array.isArray(r.bookSources)&&r.bookSources.length?section('bookSources','Książki z bazy wiedzy podane AI',''):'')+'</details>';
 }
 function aplRenderPlan(plan,client,goal,method,days,weeks){
   const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};

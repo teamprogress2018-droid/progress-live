@@ -1,0 +1,3070 @@
+{
+  "principles": [
+    {
+      "id": "N1",
+      "title": "Energia jest podstawą; liczy się dostępność energii (EA), nie tylko bilans",
+      "rule": "EA = (energia z jedzenia - wydatek na trening) / beztłuszczowa masa ciała (FFM). Około 45 kcal/kg FFM/dobę to stan optymalny; poniżej ok. 30 kcal/kg FFM większość parametrów zdrowia jest zaburzona. 30 nie jest ostrą granicą.",
+      "appliesTo": [
+        "wszyscy klienci trenujący",
+        "redukcja"
+      ],
+      "conditions": [
+        "FFM z pomiaru składu ciała"
+      ],
+      "limitations": [
+        "rutynowa ocena EA nie jest zalecana (brak protokołu, niepewne dane o spożyciu i wydatku)"
+      ],
+      "values": {
+        "eaOptimalKcalPerKgFFM": 45,
+        "eaLowBelowKcalPerKgFFM": 30,
+        "formula": "(EI - EEE) / FFM"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "21-23"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "title": "RED-S: względny niedobór energii dotyczy obu płci",
+      "rule": "Za mało energii względem treningu zaburza hormony, kości, metabolizm, krew, odporność, przewód pokarmowy, serce i wyniki. U mężczyzn ryzyko mają m.in. kolarze, biegacze, wioślarze i sporty z kategoriami wagowymi (spadek testosteronu).",
+      "appliesTo": [
+        "kobiety",
+        "mężczyźni",
+        "sporty wytrzymałościowe",
+        "kategorie wagowe",
+        "sporty sylwetkowe"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "definedBy": "MKOl 2014",
+        "koehlerStudy": "15 vs 40 kcal/kg FFM przez 4 dni: leptyna -53-56%, insulina -34-38%"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "22-31"
+        }
+      ]
+    },
+    {
+      "id": "N3",
+      "title": "Zapotrzebowanie: CPM = PPM + TEF + aktywność; przy dużej masie mięśniowej licz z FFM",
+      "rule": "Do szacowania używaj wzorów (Harris-Benedict, Cunningham). Przy dużej masie mięśniowej lepszy jest wzór Cunninghama: BMR = 22 x LBM + 500. Dzienniczki 3-7 dni zaniżają spożycie. Spadek masy mimo diety zwykle znaczy, że deficytu nie ma (niedoszacowanie jedzenia).",
+      "appliesTo": [
+        "siła",
+        "hipertrofia",
+        "redukcja"
+      ],
+      "conditions": [],
+      "limitations": [
+        "wzory to szacunek; trening siłowy trudno zmierzyć, stąd PAL"
+      ],
+      "values": {
+        "cunningham": "BMR = 22*LBM + 500",
+        "rmrShareOfTEESedentary": "60-80%",
+        "strengthTrainingKcalPerMin": [
+          2.3,
+          11
+        ],
+        "strengthTrainingKcalPerHour": [
+          138,
+          660
+        ],
+        "tonnage20000kgKcal": 500
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "19-20"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "421"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "505"
+        }
+      ]
+    },
+    {
+      "id": "N4",
+      "title": "Białko: 1,2-2,2 g/kg/dobę, rozłożone na posiłki",
+      "rule": "Dla sportowców 1,2-2,2 g/kg/dobę (ISSN 1,4-2,0; powyżej ok. 1,6 g/kg zwykle brak dodatkowego zysku, przedział ufności sięga 2,2). Umiarkowane porcje dobrego białka w kilku posiłkach i zaraz po ciężkim treningu. Większa ilość nie zwiększa przyrostu mięśni przy bilansie zerowym lub dodatnim.",
+      "appliesTo": [
+        "wszyscy trenujący"
+      ],
+      "conditions": [],
+      "limitations": [
+        "różne rozdziały podają różne widełki, patrz sourceReferences.contradictions"
+      ],
+      "values": {
+        "gPerKgDay": [
+          1.2,
+          2.2
+        ],
+        "issn": [
+          1.4,
+          2.0
+        ],
+        "noExtraBenefitAboveGPerKg": 1.6
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "90-92"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "424"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "482"
+        }
+      ]
+    },
+    {
+      "id": "N5",
+      "title": "Porcja białka: ok. 20-40 g (0,24-0,4 g/kg) co 3-5 h, 40 g przed snem",
+      "rule": "Ok. 20 g dobrego białka prawie maksymalnie pobudza syntezę białek mięśniowych (MPS); 40 g daje +10-20%, szczególnie po treningu całego ciała. Przy przerwach 3-5 h wystarczy ok. 20 g szybkiego białka, przy dłuższych co najmniej 40 g wolnego. Przed snem 40 g (np. kazeina); 30 g nie działało.",
+      "appliesTo": [
+        "hipertrofia",
+        "siła",
+        "redukcja"
+      ],
+      "conditions": [],
+      "limitations": [
+        "dane głównie od młodych mężczyzn"
+      ],
+      "values": {
+        "portionG": [
+          20,
+          40
+        ],
+        "portionGPerKg": [
+          0.24,
+          0.4
+        ],
+        "preSleepG": 40,
+        "leucineMg": [
+          700,
+          3000
+        ],
+        "mealsPerDay": [
+          4,
+          6
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "96-99"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "425"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "483-484"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "509"
+        }
+      ]
+    },
+    {
+      "id": "N6",
+      "title": "Węglowodany według obciążenia treningiem",
+      "rule": "Ilość węglowodanów zależy od objętości i intensywności treningu. Sporty siłowe 4-7 g/kg (w praktyce 4-6 wystarcza), piłka nożna 5-10 g/kg (3-12), pływanie ok. 6 g/kg, sporty walki 5-10 g/kg. Do odbudowy glikogenu w 24 h potrzeba 7-10 g/kg.",
+      "appliesTo": [
+        "wszyscy trenujący"
+      ],
+      "conditions": [
+        "dostosuj do dnia treningowego"
+      ],
+      "limitations": [],
+      "values": {
+        "strengthGPerKg": [
+          4,
+          7
+        ],
+        "physiquePracticalGPerKg": [
+          4,
+          6
+        ],
+        "footballGPerKg": [
+          5,
+          10
+        ],
+        "swimmingGPerKg": 6,
+        "combatGPerKg": [
+          5,
+          10
+        ],
+        "glycogenRefill24hGPerKg": [
+          7,
+          10
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 3 Węglowodany w diecie sportowca",
+          "pages": "58"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "pages": "328-329"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 18 Żywienie w sportach walki",
+          "pages": "407"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "427"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "pages": "452"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "485"
+        }
+      ]
+    },
+    {
+      "id": "N7",
+      "title": "Tłuszcz 20-35% energii, nie mniej niż 20%",
+      "rule": "Tłuszcz 20-35% energii, nasycone poniżej 10%. Poniżej 20% schodź tylko krótko (np. przed startem). Diety LCHF/keto nie pasują do wysiłków o wysokiej intensywności. Dla hormonów płciowych najważniejsza jest energia ogółem, nie sam tłuszcz.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "sylwetkowe: niektóre źródła dopuszczają 15% w okresie startowym"
+      ],
+      "values": {
+        "fatPctEnergy": [
+          20,
+          35
+        ],
+        "satFatPctMax": 10,
+        "bulkFatPct": [
+          25,
+          30
+        ],
+        "cutFatPct": [
+          20,
+          25
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 6 Tłuszcze w diecie sportowca",
+          "pages": "119-127"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "426"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "487, 492"
+        }
+      ]
+    },
+    {
+      "id": "N8",
+      "title": "Nawodnienie: nie trać więcej niż 2% masy ciała i nie przewadniaj",
+      "rule": "Pot 0,5-2 l/h. Utrata >2% masy ciała pogarsza wysiłek i myślenie (częściej przy 3-5%). Przed wysiłkiem 5-10 ml/kg 2-4 h wcześniej. Po wysiłku 125-150% utraconej masy (1 kg = 1 l), z sodem. Przy ok. 60 min umiarkowanego treningu nie trzeba specjalnych napojów.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "tempo pocenia indywidualne - zważ się przed i po treningu"
+      ],
+      "values": {
+        "sweatLPerH": [
+          0.5,
+          2
+        ],
+        "maxLossPctBM": 2,
+        "preMlPerKg": [
+          5,
+          10
+        ],
+        "preHoursBefore": [
+          2,
+          4
+        ],
+        "rehydratePct": [
+          125,
+          150
+        ],
+        "usgEuhydratedBelow": 1.02,
+        "uosmEuhydratedBelow": 700
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 7 Nawodnienie",
+          "pages": "132-141"
+        }
+      ]
+    },
+    {
+      "id": "N9",
+      "title": "Suplementy tylko jako dodatek; najpierw dieta, potem diagnoza niedoborów",
+      "rule": "Jedzenie jest podstawą. Najlepiej udokumentowane (AIS grupa A): kreatyna, kofeina, beta-alanina, wodorowęglan sodu, azotany (sok z buraka), białko serwatkowe, wit. D przy niedoborze, napoje i żele sportowe. Wiele popularnych środków nie działa (BCAA, karnityna, glukozamina, DAA, tribulus, ZMA). Minerały (Fe, Mg, Zn) tylko przy stwierdzonym niedoborze.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "10-15% suplementów może zawierać zakazane substancje"
+      ],
+      "values": {
+        "aisGroupA": [
+          "kreatyna",
+          "kofeina",
+          "beta-alanina",
+          "wodorowęglan sodu",
+          "azotany",
+          "białko serwatkowe",
+          "wapń",
+          "żelazo",
+          "witamina D",
+          "multiwitamina",
+          "probiotyki",
+          "elektrolity",
+          "napoje/żele/batony sportowe"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "222-277"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "547"
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "title": "Tempo redukcji: ok. 0,5-0,7% masy ciała tygodniowo, maksymalnie 1%",
+      "rule": "Im większy deficyt i szybsza utrata, tym większa utrata mięśni i siły. Przykłady: 0,98%/tydz. -> 43% utraconej masy to FFM; 0,7% -> 32%; 0,5% -> 21%. Deficyt 10-20% CPM (siłowe: ok. 300-600 kcal/dobę; sylwetkowe: start od 10-15%).",
+      "appliesTo": [
+        "redukcja",
+        "siła",
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [
+        "rozdziały podają nieco inne tempo, patrz contradictions"
+      ],
+      "values": {
+        "ratePctPerWeek": [
+          0.5,
+          0.7
+        ],
+        "maxRatePctPerWeek": 1.0,
+        "deficitPctTEE": [
+          10,
+          20
+        ],
+        "deficitKcalStrength": [
+          300,
+          600
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "422-423"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "489-490"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "506-507, 514"
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "title": "Na masie: mała nadwyżka wystarczy",
+      "rule": "Szybkość przyrostu mięśni nie rośnie proporcjonalnie do nadwyżki; duża nadwyżka może szkodzić. Siłowe: ok. +250 kcal/dobę daje +0,5-1% masy ciała miesięcznie bez wzrostu tłuszczu. Sylwetkowe: +10-15% CPM. Siła może rosnąć także bez nadwyżki, nawet w deficycie.",
+      "appliesTo": [
+        "hipertrofia",
+        "siła"
+      ],
+      "conditions": [],
+      "limitations": [
+        "wyjątki indywidualne (np. zawodnik 120 kg do 7500-7800 kcal)"
+      ],
+      "values": {
+        "surplusKcalStrength": 250,
+        "gainPctBMPerMonth": [
+          0.5,
+          1.0
+        ],
+        "surplusPctTEEPhysique": [
+          10,
+          15
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "421-422"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "481"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "108"
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "title": "Realizacja zaleceń jest ważniejsza niż ich doskonałość",
+      "rule": "Plan musi pasować do realiów klienta (czas, apetyt, praca, szkoła). Edukacja jest często ważniejsza niż rozpiska. Rozmowa bez oceny, cel SMART, nastawienie na proces (135 z 140 posiłków = 96% realizacji).",
+      "appliesTo": [
+        "wszyscy",
+        "początkujący"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "processExample": "135/140 posiłków = 96%"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 26 Psychologiczne aspekty w relacji dietetyk-sportowiec",
+          "pages": "583-590"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "pages": "461"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "504"
+        }
+      ]
+    },
+    {
+      "id": "N13",
+      "title": "Sen 7-9 h to część regeneracji",
+      "rule": "Poniżej 7 h snu rośnie ryzyko zdrowotne; sen wspiera adaptację, poziom androgenów, chroni przed kontuzjami i infekcjami. Higiena snu jest podstawą, suplementy na sen tylko dodatkiem.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "inny fragment podaje 6-8 h"
+      ],
+      "values": {
+        "sleepHours": [
+          7,
+          9
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "534-536, 557"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 14 Immunożywienie w sporcie",
+          "pages": "307-308"
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "title": "Dieta roślinna jest możliwa, ale wymaga planu",
+      "rule": "Białka tyle samo co na diecie tradycyjnej, łącząc źródła. Weganie zawsze suplementują B12. Monitoruj żelazo (szczególnie kobiety), wit. D, jod, wapń, cynk, selen, DHA (olej z alg min. 250 mg DHA). Kreatyna i beta-alanina mogą dać im więcej.",
+      "appliesTo": [
+        "wegetarianie",
+        "weganie"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "algaeDHAmgMin": 250,
+        "ironBioavailabilityVeganPct": 10,
+        "ironBioavailabilityMixedPct": 18
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 23 Dieta roślinna w sporcie",
+          "pages": "521-530"
+        }
+      ]
+    },
+    {
+      "id": "N15",
+      "title": "Dzieci i młodzież to nie mali dorośli",
+      "rule": "Brak oficjalnych zaleceń. Energia na kg wyższa niż u dorosłych; węglowodany ok. 50-55% energii; białko 1,0-1,4 g/kg (stabilny trening) lub 1,5-1,7 g/kg (intensywny trening, powrót po przerwie). Pomiary wzrostu i masy co 6 miesięcy na siatkach centylowych. Bez diet niskokalorycznych.",
+      "appliesTo": [
+        "młodzież",
+        "dzieci"
+      ],
+      "conditions": [],
+      "limitations": [
+        "Progress Live: klienci niepełnoletni tylko z opiekunem i lekarzem, patrz S-PL"
+      ],
+      "values": {
+        "carbPctEnergy": [
+          50,
+          55
+        ],
+        "proteinStableGPerKg": [
+          1.0,
+          1.4
+        ],
+        "proteinIntenseGPerKg": [
+          1.5,
+          1.7
+        ],
+        "measureEveryMonths": 6
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 25 Żywienie młodych sportowców",
+          "pages": "567-578"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E1",
+      "category": "dobor_cwiczen",
+      "rule": "Książka nie zawiera zasad doboru ćwiczeń, wzorców ruchowych ani zamienników.",
+      "values": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "E2",
+      "category": "kardio_redukcja",
+      "rule": "Przy redukcji osoby trenujące niewiele mogą dodać kardio o niskiej intensywności, by stworzyć deficyt bez cięcia jedzenia; mocno trenujący raczej obniżają kalorie.",
+      "values": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "505"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "category": "pora_treningu",
+      "rule": "Bardzo intensywny wysiłek późnym wieczorem może skracać sen; dowody mieszane - warto go ograniczać.",
+      "values": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "539-540, 557"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "mlodziez",
+      "rule": "Elementy treningu siłowego od ok. 10. r.ż., statyczne ćwiczenia siłowe w pełnym zakresie od 15. r.ż. (wg PTMS, przytoczone w rozdziale o żywieniu).",
+      "values": {
+        "strengthElementsFromAge": 10,
+        "fullStaticStrengthFromAge": 15
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 25 Żywienie młodych sportowców",
+          "pages": "575"
+        }
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PAR-sila",
+      "category": "parameters",
+      "goal": "sila",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "energia",
+          "value": "utrzymanie: bilans zerowy; budowa: +ok. 250 kcal/dobę (+0,5-1% mc/mies.); siła może rosnąć nawet w deficycie",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "421-422"
+            }
+          ]
+        },
+        {
+          "item": "białko",
+          "value": "1,4-2,2 g/kg/dobę; w praktyce >2 g/kg w 4-6 posiłkach po 20-40 g; 40 g kazeiny przed snem",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "424-425"
+            }
+          ]
+        },
+        {
+          "item": "węglowodany",
+          "value": "4-7 g/kg/dobę wg objętości; >1 g/kg przed sesją ≥2 h; w trakcie 30-60 g przy długich sesjach (opcjonalnie)",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "427"
+            }
+          ]
+        },
+        {
+          "item": "tłuszcz",
+          "value": "20-35% energii; na masie 25-30%; mniej w posiłku przedtreningowym",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "426"
+            }
+          ]
+        },
+        {
+          "item": "nawodnienie",
+          "value": "zasady ogólne (strata <2% mc)",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 7 Nawodnienie",
+              "pages": "132-134"
+            }
+          ]
+        },
+        {
+          "item": "suplementy",
+          "value": "wit. D, monohydrat kreatyny, kofeina 3-6 mg/kg ok. 1 h przed, beta-alanina przy seriach o wyższym zakresie powtórzeń",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "430, 437"
+            }
+          ]
+        },
+        {
+          "item": "obozy/dużo treningu",
+          "value": "odżywka białkowa i węglowodanowa, suszone owoce; 40 g białka po 1. jednostce i przed snem",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "437"
+            }
+          ]
+        }
+      ],
+      "note": "Rozdział 19 opiera się głównie na trójboju siłowym; badań jest mało, część zaleceń to praktyka autora."
+    },
+    {
+      "id": "PAR-hipertrofia",
+      "category": "parameters",
+      "goal": "hipertrofia",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "energia",
+          "value": "nadwyżka 10-15% CPM (sylwetkowe) lub ok. +250 kcal/dobę (siłowe); większa nadwyżka nie przyspiesza wzrostu mięśni; dopuszczalne wahania kalorii w dni treningowe/nietreningowe",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "481-482"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "421"
+            }
+          ]
+        },
+        {
+          "item": "białko",
+          "value": "1,4-2,0 (do 2,2) g/kg/dobę; porcje 20-40 g (0,24-0,4 g/kg) co najmniej 4x/dobę; całe białko się liczy, także roślinne",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "482-484"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 5 Białko w sporcie",
+              "pages": "92-99"
+            }
+          ]
+        },
+        {
+          "item": "węglowodany",
+          "value": "3-7 g/kg wg źródeł, w praktyce 4-6 g/kg wystarcza; pozwalają na większą objętość treningu; pora dnia bez znaczenia",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "484-486"
+            }
+          ]
+        },
+        {
+          "item": "tłuszcz",
+          "value": "20-35%; ogranicz nasycone przy nadwyżce; ryby, jaja (omega-3)",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "487-488"
+            }
+          ]
+        },
+        {
+          "item": "posiłki",
+          "value": "co najmniej 4; kobiety 4-5, mężczyźni 4-6",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "492-493"
+            }
+          ]
+        },
+        {
+          "item": "suplementy",
+          "value": "kreatyna, kofeina; wyrównawczo wit. D, czasem omega-3, wapń, magnez; odżywka białkowa dla wygody",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "497-498"
+            }
+          ]
+        },
+        {
+          "item": "nawodnienie",
+          "value": null,
+          "status": "brak_w_zrodle",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "471-499"
+            }
+          ],
+          "note": "rozdział sylwetkowy nie podaje osobnych wartości; użyj zasad ogólnych N8"
+        }
+      ]
+    },
+    {
+      "id": "PAR-redukcja",
+      "category": "parameters",
+      "goal": "redukcja",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "energia",
+          "value": "deficyt 10-20% CPM (przy 30% tkanki tłuszczowej max ok. 30%); siłowe: 300-600 kcal/dobę; sylwetkowe: start -10-15%, dalsze cięcia co 1-3 tyg.; kobiety EA ≥30 kcal/kg FFM",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+              "pages": "506"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "423"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "490"
+            }
+          ]
+        },
+        {
+          "item": "tempo",
+          "value": "0,5-0,7% mc/tydz. (sportowcy ok. 0,7%), nie więcej niż 1%",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "423"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "489"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+              "pages": "507, 514"
+            }
+          ]
+        },
+        {
+          "item": "białko",
+          "value": "1,3-1,8 g/kg mc (górna granica przy intensywnym treningu) lub 1,6-2,4 g/kg mc lub 2,3-3,1 g/kg FFM przy treningu oporowym; im głębszy deficyt i mniej tłuszczu, tym więcej",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+              "pages": "508"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "424"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "491"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 5 Białko w sporcie",
+              "pages": "104"
+            }
+          ]
+        },
+        {
+          "item": "węglowodany",
+          "value": "30-60% energii, nie w dolnej granicy u trenujących; ważne dla jakości treningu w deficycie",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+              "pages": "507-508"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "491-492"
+            }
+          ]
+        },
+        {
+          "item": "tłuszcz",
+          "value": "20-25% (siłowe), nie mniej niż 20%",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+              "pages": "426"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+              "pages": "492"
+            }
+          ]
+        },
+        {
+          "item": "przerwy i wyjście",
+          "value": "przerwa co 8-10 tyg. na 1-2 tyg.; wyjście stopniowe lub do CPM minus 10-15%",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+              "pages": "512-515"
+            }
+          ]
+        },
+        {
+          "item": "aktywność",
+          "value": "mniej trenujący mogą dodać kardio o niskiej intensywności zamiast cięcia jedzenia; mocno trenujący - raczej mniej kalorii",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+              "pages": "505"
+            }
+          ]
+        },
+        {
+          "item": "suplementy",
+          "value": "białko, kofeina (sporty walki - okres redukcji)",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 18 Żywienie w sportach walki",
+              "pages": "408"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PAR-zdrowie",
+      "category": "parameters",
+      "goal": "zdrowie",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "energia i EA",
+          "value": "unikaj długiej niskiej dostępności energii; ok. 45 kcal/kg FFM optymalnie",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+              "pages": "22"
+            }
+          ]
+        },
+        {
+          "item": "tłuszcz",
+          "value": "20-35%, nasycone <10%, omega-3 z ryb",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 6 Tłuszcze w diecie sportowca",
+              "pages": "119-122"
+            }
+          ]
+        },
+        {
+          "item": "mikroskładniki",
+          "value": "wapń 1000-1200 mg; wit. C ok. 200 mg (5 porcji warzyw i owoców); wit. D 800-2000 IU IX-IV; żelazo 6 mg/1000 kcal",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 8 Witaminy i składniki mineralne",
+              "pages": "153-156"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 9 Witamina D",
+              "pages": "179"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 11 Żelazo w diecie sportowca",
+              "pages": "208"
+            }
+          ]
+        },
+        {
+          "item": "sen",
+          "value": "7-9 h",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+              "pages": "534"
+            }
+          ]
+        },
+        {
+          "item": "odporność",
+          "value": "sen ≥7 h, unikaj gwałtownej utraty masy i alkoholu, higiena; węglowodany przy długim wysiłku",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 14 Immunożywienie w sporcie",
+              "pages": "306-308"
+            }
+          ]
+        },
+        {
+          "item": "białko",
+          "value": "1,2-2,2 g/kg dla trenujących; IŻŻ dla dorosłych nietrenujących niżej",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 5 Białko w sporcie",
+              "pages": "92"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PAR-poczatkujacy",
+      "category": "parameters",
+      "goal": "poczatkujacy",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "podejście",
+          "value": "zacznij od edukacji i nawyków, nie od rozpisek i suplementów; plan dopasowany do realiów",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+              "pages": "461"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 26 Psychologiczne aspekty w relacji dietetyk-sportowiec",
+              "pages": "583-588"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+              "pages": "504"
+            }
+          ]
+        },
+        {
+          "item": "białko",
+          "value": "osoby nietrenujące i rekreacyjne pokryją aminokwasy także dietą roślinną; trenujący 1,2-2,2 g/kg",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 23 Dieta roślinna w sporcie",
+              "pages": "523"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 5 Białko w sporcie",
+              "pages": "92"
+            }
+          ]
+        },
+        {
+          "item": "suplementy",
+          "value": "większości nie potrzeba przy dobrej diecie; HMB może mieć sens u nietrenujących w deficycie (dowody wątpliwe)",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 12 Suplementacja w sporcie",
+              "pages": "256-257"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 14 Immunożywienie w sporcie",
+              "pages": "297-298"
+            }
+          ]
+        },
+        {
+          "item": "wartości liczbowe dla początkujących",
+          "value": null,
+          "status": "brak_w_zrodle",
+          "sources": [],
+          "note": "książka nie wydziela grupy 'początkujący'; stosuj zasady ogólne"
+        }
+      ]
+    },
+    {
+      "id": "PAR-wytrzymalosc",
+      "category": "parameters",
+      "goal": "wytrzymalosc",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "węglowodany w trakcie",
+          "value": "<60 min brak; 60-120 min 30 g/h; 120-180 min 60 g/h; >150 min do 90 g/h (2:1); ultra elita 76-96 g/h",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 16 Żywienie w sportach wytrzymałościowych",
+              "pages": "348-350"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 17 Żywienie w wysiłkach ultra",
+              "pages": "370-371"
+            }
+          ]
+        },
+        {
+          "item": "białko",
+          "value": "1,5-1,8 g/kg (ultra)",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 17 Żywienie w wysiłkach ultra",
+              "pages": "369"
+            }
+          ]
+        },
+        {
+          "item": "wydatek",
+          "value": "300-1200 kcal/h; ultra 6000-8000, do 12000-18000 kcal/dobę",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 16 Żywienie w sportach wytrzymałościowych",
+              "pages": "344"
+            },
+            {
+              "ref": "dietetyka-sportowa-ads",
+              "chapter": "Rozdz. 17 Żywienie w wysiłkach ultra",
+              "pages": "367-368"
+            }
+          ]
+        }
+      ],
+      "note": "Cel dodatkowy, bo książka go szeroko opisuje."
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "objawy niskiej dostępności energii: brak/nieregularne miesiączki, spadek libido, częste kontuzje, złamania zmęczeniowe, ciągłe zmęczenie, częste infekcje, spadek wyników, BMI ≤17,5, utrata ≥10% masy w miesiącu",
+      "action": "podejrzenie RED-S: nie pogłębiaj deficytu, zwiększ jedzenie lub zmniejsz trening; skieruj do lekarza i dietetyka sportowego (S-PL1)",
+      "status": "zrodlo",
+      "priority": "high",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "22-35"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "poważne objawy: bardzo wolne tętno, niskie ciśnienie, zaburzenia elektrolitowe, zaburzenia odżywiania",
+      "action": "książka: opieka zespołu (lekarz, dietetyk, psycholog), w ciężkich przypadkach szpital; przy zaburzeniach odżywiania bez startów",
+      "status": "zrodlo",
+      "priority": "critical",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "34-35"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "szybka redukcja: >1% masy ciała tygodniowo lub >5% w ostatnim tygodniu przed startem, sauna, folia, diuretyki, środki przeczyszczające, wymioty, głodzenie",
+      "action": "ostrzeż: spadek mocy, drażliwość, zmęczenie, ryzyko urazu mózgu przy odwodnieniu, opisane zgony; nie wspieraj takich metod",
+      "status": "zrodlo",
+      "priority": "critical",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 18 Żywienie w sportach walki",
+          "pages": "397-401"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "429"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "494-496"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "zbyt głęboki lub zbyt długi deficyt",
+      "action": "utrata mięśni i siły, głód, adaptacje metaboliczne, przetrenowanie, kontuzje, infekcje, anemia; spowolnij tempo, zaplanuj przerwy",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "505"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "422"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "489"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "picie dużych ilości wody bez sodu w długim wysiłku",
+      "action": "ryzyko hiponatremii (sód <135 mmol/l; <130 to stan nagły); pij wg pragnienia, z sodem",
+      "status": "zrodlo",
+      "priority": "high",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 7 Nawodnienie",
+          "pages": "142"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 17 Żywienie w wysiłkach ultra",
+          "pages": "372"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "manipulacje wodą i sodem przed zawodami sylwetkowymi",
+      "action": "brak dowodów, niebezpieczne; łączenie z diuretykami szczególnie groźne; dietetyk/trener nie planuje farmakologii",
+      "status": "zrodlo",
+      "priority": "high",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "494-496"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "suplementacja żelaza, wit. D w dawkach leczniczych, magnezu, cynku bez badań",
+      "action": "dawkowanie lecznicze należy do lekarza; żelazo bez niedoboru może szkodzić (przeładowanie); badania żelaza 2x/rok u grup ryzyka",
+      "status": "zrodlo",
+      "priority": "high",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 9 Witamina D",
+          "pages": "180-182"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 11 Żelazo w diecie sportowca",
+          "pages": "210, 217"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "266-272"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "suplementy u sportowca startującego w zawodach",
+      "action": "ryzyko zanieczyszczenia zakazanymi substancjami (10-15% suplementów); AIS grupa D (np. tribulus, DMAA, prohormony) - unikać",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "225, 263"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "547"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "tryptofan przy lekach przeciwdepresyjnych (SSRI)",
+      "action": "konsultacja lekarska przed suplementacją",
+      "status": "zrodlo",
+      "priority": "high",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "550"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "dziecko lub nastolatek: brak przyrostu wzrostu/masy w 2 kolejnych pomiarach, odchudzanie, kategorie wagowe",
+      "action": "sygnał alarmowy (obciążenia, dieta); bez diet niskokalorycznych i odwadniania; edukacja rodziców; ryzyko zaburzeń odżywiania",
+      "status": "zrodlo",
+      "priority": "high",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 25 Żywienie młodych sportowców",
+          "pages": "571"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 18 Żywienie w sportach walki",
+          "pages": "404-405"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "trigger": "przegrzanie u dzieci",
+      "action": "dzieci szybciej się przegrzewają; edukacja nawadniania, chłodzone napoje, bez napojów energetycznych",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 25 Żywienie młodych sportowców",
+          "pages": "577"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "trigger": "objawy niedoboru: zmęczenie, niska hemoglobina, bladość, spadek wydolności",
+      "action": "badania krwi u lekarza; książka opisuje przypadek pływaka z niską Hb",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 11 Żelazo w diecie sportowca",
+          "pages": "214-217"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "pages": "465"
+        }
+      ]
+    },
+    {
+      "id": "S-PL0",
+      "trigger": "zasada ogólna komunikacji aplikacji",
+      "action": "Progress Live nie stawia diagnoz i nie dawkuje leczniczo; podaje zakresy z książki jako orientację i odsyła do specjalistów",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S-PL1",
+      "trigger": "S1 lub S2 albo klient zgłasza objawy zaburzeń odżywiania",
+      "action": "zatrzymaj automatyczne obniżanie kalorii; zaproponuj kontakt z lekarzem, dietetykiem klinicznym/sportowym i psychologiem",
+      "status": "poza_zrodlem",
+      "priority": "critical",
+      "sources": []
+    },
+    {
+      "id": "S-PL2",
+      "trigger": "choroby przewlekłe (cukrzyca, nadciśnienie, choroby nerek, tarczycy, serca), ciąża, karmienie, leki",
+      "action": "zalecenia żywieniowe i suplementy tylko po konsultacji z lekarzem; nie stosuj automatycznych zaleceń sodu, białka >2 g/kg ani suplementów",
+      "status": "poza_zrodlem",
+      "priority": "high",
+      "sources": []
+    },
+    {
+      "id": "S-PL3",
+      "trigger": "klient poniżej 18 lat",
+      "action": "bez deficytów kalorycznych generowanych przez aplikację; tylko ogólne zasady; z udziałem opiekuna i lekarza",
+      "status": "poza_zrodlem",
+      "priority": "high",
+      "sources": []
+    },
+    {
+      "id": "S-PL4",
+      "trigger": "klient chce 'zrobić wagę' do zawodów (szybka utrata masy, odwodnienie)",
+      "action": "aplikacja nie generuje protokołów odwadniania; skieruj do dietetyka sportowego",
+      "status": "poza_zrodlem",
+      "priority": "high",
+      "sources": []
+    },
+    {
+      "id": "S-PL5",
+      "trigger": "klient prosi o dawki suplementów",
+      "action": "podawaj zakresy z książki tylko dla suplementów sportowych (kreatyna, kofeina, beta-alanina) zdrowym dorosłym; witaminy/minerały w dawkach leczniczych - lekarz",
+      "status": "poza_zrodlem",
+      "priority": "warning",
+      "sources": []
+    },
+    {
+      "id": "S-PL6",
+      "trigger": "stałe zaburzenia snu, przewlekłe problemy jelitowe, nawracające infekcje",
+      "action": "zaproponuj lekarza (melatonina w dawkach klinicznych, dieta low FODMAP, diagnostyka)",
+      "status": "poza_zrodlem",
+      "priority": "warning",
+      "sources": []
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T3",
+      "name": "Góra/dół 4 dni",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T4",
+      "name": "Plan hipertroficzny",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T5",
+      "name": "Plan siłowy",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T6",
+      "name": "Plan domowy",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    }
+  ],
+  "nutritionRules": [
+    {
+      "id": "R1",
+      "category": "decision",
+      "if": "pytanie o parametry treningu (serie, powtórzenia, RIR, plan FBW itd.)",
+      "then": "brak danych w tej książce; użyj baz treningowych",
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "R2",
+      "category": "energy",
+      "if": "klient na redukcji",
+      "then": "deficyt 10-20% CPM, tempo 0,5-0,7%/tydz. (max 1%); białko 1,6-2,4 g/kg mc lub 2,3-3,1 g/kg FFM; tłuszcz 20-25%; węglowodany nie w dolnej granicy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "423-426"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "489-491"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "506-508, 514"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "104"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "energy",
+      "if": "klientka na redukcji",
+      "then": "energia dostępna nie mniej niż 30 kcal/kg FFM (plus kalorie treningu); poniżej rośnie ryzyko zaburzeń miesiączki",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "506"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "22"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "category": "energy",
+      "if": "masa ciała stoi mimo deklarowanej diety",
+      "then": "najczęściej klient je więcej, niż notuje; sprawdź dokładność notowania zanim obetniesz kalorie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "505"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "19"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "category": "energy",
+      "if": "redukcja się zatrzymała, a samopoczucie i trening słabną",
+      "then": "przerwa od deficytu co 8-10 tyg. na 1-2 tyg. (do poziomu zapotrzebowania, nie 'cheat'); sylwetkowe: co kilka tygodni kilka-kilkanaście dni normokalorii",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "512-513"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "490"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "category": "energy",
+      "if": "koniec redukcji",
+      "then": "albo reverse dieting (+max 5% kalorii/tydz.), albo od razu do aktualnego zapotrzebowania minus 10-15%, potem stopniowo do CPM; pierwszy wzrost masy to glikogen i woda",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "513-515"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "category": "energy",
+      "if": "cel: masa mięśniowa",
+      "then": "nadwyżka ok. 250 kcal/dobę (siłowe) lub 10-15% CPM (sylwetkowe); monitoruj masę: +0,5-1%/mies.; nie przesadzaj z tłuszczem i nadwyżką",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "421"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "481"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "108"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "category": "energy",
+      "if": "klient ma mały apetyt przy dużym zapotrzebowaniu",
+      "then": "ulubione produkty, produkty gęste energetycznie (masło orzechowe, suszone owoce, czekolada), płynne posiłki (koktajle), mniej błonnika; dopuszczalne produkty przetworzone",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "431"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "pages": "33"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 23 Dieta roślinna w sporcie",
+          "pages": "522"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "category": "energy",
+      "if": "klient na redukcji jest ciągle głodny",
+      "then": "produkty sycące, o dużej objętości (warzywa, owoce, ziemniaki, pełne ziarno), białko w każdym posiłku, ogranicz wysoko przetworzone 'nakręcające' produkty, nie podjadaj, mniej różnych smaków w jednym posiłku; zbyt małe posiłki nasilają głód",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "433"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "510-512"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "492-493"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "protein",
+      "if": "dowolny cel, klient trenuje siłowo",
+      "then": "białko 1,4-2,2 g/kg/dobę w 4-6 posiłkach po 20-40 g; 40 g przed snem; po treningu całego ciała ok. 40 g",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "92-99"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "424-425"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "482-484"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "protein",
+      "if": "klient myśli, że więcej białka = więcej mięśni (np. 2,5-3 g/kg na masie)",
+      "then": "brak dowodów na korzyść powyżej ok. 2,2 g/kg przy nadwyżce; nadmiar białka kosztem węglowodanów i tłuszczu pogarsza samopoczucie i trening",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "424"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "483, 491"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "protein",
+      "if": "klient po 50.-60. roku życia",
+      "then": "co najmniej 30 g białka w posiłku (ok. 0,4 g/kg), bo mięśnie słabiej reagują na białko",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "106"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "carbs",
+      "if": "dwa treningi dziennie lub przerwa 4-8 h",
+      "then": "zaraz po pierwszym treningu 1,0-1,2 g węglowodanów/kg/h przez ok. 4 h (częste małe porcje); siłowe: szejk 40 g białka + ok. 1 g/kg węglowodanów; przy przerwie >8 h wystarczy normalna dieta",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 3 Węglowodany w diecie sportowca",
+          "pages": "52, 58-59"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "427"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "pages": "458"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "carbs",
+      "if": "długi trening siłowy (≥2 h, duża objętość)",
+      "then": ">1 g/kg węglowodanów w posiłku przed treningiem; w trakcie można 30-60 g (izotonik, banan), jeśli klient czuje poprawę; dowody niejednoznaczne",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "427"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "category": "carbs",
+      "if": "wysiłek ciągły: <60 min / 60-120 min / 120-180 min / >150 min",
+      "then": "brak potrzeby / ok. 30 g/h / ok. 60 g/h / do 90 g/h (glukoza:fruktoza 2:1, trening jelita); powyżej 60 g/h kilka rodzajów cukrów; testuj na treningach",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 4 Węglowodany w trakcie wysiłku",
+          "pages": "80-85"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 16 Żywienie w sportach wytrzymałościowych",
+          "pages": "348-350"
+        }
+      ],
+      "note": "przedziały w źródle nakładają się (120-180 i >150 min)"
+    },
+    {
+      "id": "R16",
+      "category": "carbs",
+      "if": "start lub ważny wysiłek >90 min",
+      "then": "ładowanie węglowodanami >8 g/kg przez 36-48 h (masa +1-2% przez wodę); przy 45-90 min niepotrzebne",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 3 Węglowodany w diecie sportowca",
+          "pages": "55, 63-65"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "carbs",
+      "if": "klient pyta o węglowodany wieczorem / rano",
+      "then": "brak dowodów, że pora dnia węglowodanów ma znaczenie; mogą być w każdym posiłku, także przed kardio",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "485-486, 492"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "category": "carbs",
+      "if": "klient chce przejść na low-carb/keto przy treningu intensywnym",
+      "then": "odradź: LCHF ogranicza elastyczność metaboliczną i wydolność przy wysokiej intensywności; szybki spadek masy na low-carb to głównie glikogen i woda",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 6 Tłuszcze w diecie sportowca",
+          "pages": "124-127"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 18 Żywienie w sportach walki",
+          "pages": "395"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "pages": "508"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "category": "timing",
+      "if": "posiłek przed treningiem",
+      "then": "2-4 h przed: węglowodany 1-4 g/kg, białko 0,25-0,4 g/kg, mało tłuszczu i błonnika; mniej tłuszczu w posiłku przedtreningowym dla komfortu jelit",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "pages": "328-329"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "426"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 3 Węglowodany w diecie sportowca",
+          "pages": "66-67"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "category": "timing",
+      "if": "posiłek po treningu",
+      "then": "białko 0,25-0,4 g/kg (20-40 g); tłuszcz w posiłku potreningowym nie szkodzi; węglowodany zależnie od tego, kiedy następny trening",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "pages": "328-329"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "426"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "pages": "460"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "category": "hydration",
+      "if": "trening w upale lub silne pocenie",
+      "then": "zważ się przed i po: 1 kg = 1 l; uzupełnij 125-150% w 2-4 h, z sodem i posiłkiem; izotonik: sód 460-1150 mg/l, 4-8% węglowodanów",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 7 Nawodnienie",
+          "pages": "137-141"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "pages": "459"
+        }
+      ]
+    },
+    {
+      "id": "R22",
+      "category": "hydration",
+      "if": "bardzo długi wysiłek (ultra, >4 h)",
+      "then": "pij według pragnienia, ok. 300-600 ml/h z 10-25 mmol sodu; nie przepijaj (ryzyko hiponatremii)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 17 Żywienie w wysiłkach ultra",
+          "pages": "372-373"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 7 Nawodnienie",
+          "pages": "142"
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "category": "hydration",
+      "if": "kontrola nawodnienia",
+      "then": "mocz jasnosłomkowy; ciężar właściwy moczu <1,020; poranna masa ciała stabilna (<1% zmiany)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 7 Nawodnienie",
+          "pages": "135"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "541"
+        }
+      ]
+    },
+    {
+      "id": "R24",
+      "category": "supplements",
+      "if": "klient chce kreatynę",
+      "then": "monohydrat 3-5 g/dobę codziennie (efekt jak po ładowaniu po ok. 4 tyg.) albo ładowanie 20 g/dobę (0,3 g/kg) w 4-5 dawkach przez 5-7 dni; z posiłkiem z węglowodanami i białkiem",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "227-229"
+        }
+      ],
+      "values": {
+        "maintenanceG": [
+          3,
+          5
+        ],
+        "loadingG": 20,
+        "loadingGPerKg": 0.3,
+        "loadingDays": [
+          5,
+          7
+        ]
+      }
+    },
+    {
+      "id": "R25",
+      "category": "supplements",
+      "if": "klient chce kofeinę przed treningiem",
+      "then": "3-6 mg/kg 30-60 min przed; <3 mg/kg mało prawdopodobny efekt; osoby niepijące kawy: pojedyncza dawka <180 mg; skutki uboczne: wzrost ciśnienia, nerwowość, zaburzenia snu i jelit; unikaj po południu ze względu na sen",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "231-233"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "542"
+        }
+      ],
+      "values": {
+        "mgPerKg": [
+          3,
+          6
+        ],
+        "minutesBefore": [
+          30,
+          60
+        ],
+        "naiveMaxMg": 180
+      }
+    },
+    {
+      "id": "R26",
+      "category": "supplements",
+      "if": "klient chce beta-alaninę",
+      "then": "4-6 g/dobę (ok. 65 mg/kg) w podzielonych dawkach przez 10-12 tyg. (min. 2-4 tyg.); działa w wysiłkach 30 s-10 min; mrowienie skóry - dziel dawki",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "242-243"
+        }
+      ]
+    },
+    {
+      "id": "R27",
+      "category": "supplements",
+      "if": "klient pyta o BCAA, karnitynę, glukozaminę, DAA, tribulus, ZMA, HMB, przedtreningówki",
+      "then": "książka ocenia je jako nieskuteczne lub wątpliwe; przedtreningówki mają zaniżone dawki i niezgodne etykiety (kofeina 59-176% deklaracji) - lepsze pojedyncze składniki",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "235-277"
+        }
+      ]
+    },
+    {
+      "id": "R28",
+      "category": "supplements",
+      "if": "klient chce wysokie dawki wit. C/E 'na regenerację'",
+      "then": "odradź w okresie budowania formy - mogą osłabiać adaptacje; antyoksydanty z jedzenia (warzywa, owoce)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 10 Antyoksydanty a sport",
+          "pages": "197-201"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "101"
+        }
+      ]
+    },
+    {
+      "id": "R29",
+      "category": "supplements",
+      "if": "jesień-zima, mało słońca",
+      "then": "wit. D 800-2000 IU/dobę (wrzesień-kwiecień) to profilaktyka populacyjna wg książki; górna granica 4000 IU; leczenie niedoboru (<20 ng/ml) prowadzi lekarz",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 9 Witamina D",
+          "pages": "177-182"
+        }
+      ]
+    },
+    {
+      "id": "R30",
+      "category": "supplements",
+      "if": "klient chce żelazo, magnez lub cynk 'na wszelki wypadek'",
+      "then": "tylko po badaniach i przy stwierdzonym niedoborze; żelazo bez niedoboru nic nie daje i może szkodzić",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 11 Żelazo w diecie sportowca",
+          "pages": "210, 217"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "pages": "266-272"
+        }
+      ]
+    },
+    {
+      "id": "R31",
+      "category": "lifestyle",
+      "if": "klient pije alkohol po treningu",
+      "then": "alkohol (np. 1,5 g/kg) obniża syntezę białek i odbudowę glikogenu; ogranicz lub unikaj, gdy cel to regeneracja",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "pages": "103"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 3 Węglowodany w diecie sportowca",
+          "pages": "62"
+        }
+      ]
+    },
+    {
+      "id": "R32",
+      "category": "lifestyle",
+      "if": "problemy ze snem",
+      "then": "najpierw higiena snu: stała pora, ostatni posiłek ok. 2 h przed snem (lekki, nie pikantny), bez kofeiny po południu, alkoholu i nikotyny, drzemki przed 15:00 i <60 min; posiłek wieczorny z węglowodanami i białkiem",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "pages": "539-546, 557"
+        }
+      ]
+    },
+    {
+      "id": "R33",
+      "category": "lifestyle",
+      "if": "częste infekcje",
+      "then": "sprawdź energię i węglowodany, sen ≥7 h, unikaj gwałtownej utraty masy i alkoholu, higiena; diagnoza lekarska przed suplementami",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 14 Immunożywienie w sporcie",
+          "pages": "297-308"
+        }
+      ]
+    },
+    {
+      "id": "R34",
+      "category": "gi",
+      "if": "problemy żołądkowo-jelitowe w trakcie wysiłku",
+      "then": "najpierw podstawy: nawodnienie, węglowodany w trakcie, trening jelita, mniej błonnika i tłuszczu przed startem; dopiero potem krótkotrwała dieta low FODMAP ze specjalistą",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 13 Problemy żołądkowo-jelitowe",
+          "pages": "281-285"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 16 Żywienie w sportach wytrzymałościowych",
+          "pages": "346-347"
+        }
+      ]
+    },
+    {
+      "id": "R35",
+      "category": "adherence",
+      "if": "klient nie trzyma się planu żywieniowego",
+      "then": "nie pytaj 'dlaczego nie'; pytaj 'co pomogłoby w przyszłym tygodniu?'; dopasuj posiłki do realnych pór (np. koktajl zamiast śniadania, gotowanie dwóch takich samych posiłków); traktuj potknięcie jako doświadczenie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 26 Psychologiczne aspekty w relacji dietetyk-sportowiec",
+          "pages": "587-589"
+        }
+      ]
+    },
+    {
+      "id": "R36",
+      "category": "adherence",
+      "if": "klient ma sztywne przekonania żywieniowe (mity)",
+      "then": "nie podważaj wprost (reaktancja); pokaż korzyść zmiany i zapytaj o zdanie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 26 Psychologiczne aspekty w relacji dietetyk-sportowiec",
+          "pages": "585-586"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "pages": "473"
+        }
+      ]
+    },
+    {
+      "id": "R37",
+      "category": "weight-class",
+      "if": "klient musi zmieścić się w kategorii wagowej",
+      "then": "plan z wyprzedzeniem; utrata tłuszczu tylko przy jego nadmiarze, mały/umiarkowany deficyt; ostra utrata wagi to temat dla dietetyka sportowego, nie dla aplikacji (S-PL4)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 18 Żywienie w sportach walki",
+          "pages": "399-403"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "428-430"
+        }
+      ],
+      "note": "protokoły 'robienia wagi' z książki celowo nie są podawane jako zalecenie aplikacji"
+    },
+    {
+      "id": "R38",
+      "category": "plant",
+      "if": "klient na diecie wegańskiej",
+      "then": "B12 zawsze (np. 25-100 µg 1x/dobę lub 1000 µg 2x/tydz.); białko jak u innych, łącz strączki ze zbożami; produkty gęste energetycznie przy wysokim zapotrzebowaniu; badaj żelazo",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 23 Dieta roślinna w sporcie",
+          "pages": "522-526"
+        }
+      ]
+    },
+    {
+      "id": "R39",
+      "category": "youth",
+      "if": "klient niepełnoletni",
+      "then": "bez diet niskokalorycznych i 'uczenia odchudzania'; wartościowe przekąski w dni treningowe; zaangażuj rodziców i trenera; brak przyrostu wzrostu/masy w 2 pomiarach = sygnał alarmowy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 25 Żywienie młodych sportowców",
+          "pages": "570-578"
+        }
+      ]
+    },
+    {
+      "id": "H1",
+      "category": "day_template",
+      "name": "Dzień treningowy - siła/masa (przykład z książki)",
+      "status": "zrodlo",
+      "values": {
+        "bodyMassKg": 85,
+        "kcal": 4131,
+        "proteinG": 195,
+        "proteinGPerKg": 2.3,
+        "fatG": 108,
+        "fatPct": 28,
+        "carbsG": 560,
+        "meals": 4
+      },
+      "notes": "owsianka z dodatkami, szejk z kefirem, kasza z kurczakiem; produkty gęste energetycznie przy małym apetycie",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "431-432"
+        }
+      ]
+    },
+    {
+      "id": "H2",
+      "category": "day_template",
+      "name": "Dzień na redukcji - siła (przykład z książki)",
+      "status": "zrodlo",
+      "values": {
+        "bodyMassKg": 60,
+        "kcal": 2000,
+        "proteinG": 145,
+        "proteinGPerKg": 2.4,
+        "fatG": 45,
+        "fatPct": 21,
+        "carbsG": 230,
+        "ratePctPerWeek": 0.5
+      },
+      "notes": "produkty o dużej objętości, sycące",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "433"
+        }
+      ]
+    },
+    {
+      "id": "H3",
+      "category": "day_template",
+      "name": "Dzień meczowy (mecz o 18:00)",
+      "status": "zrodlo",
+      "values": {
+        "mealTimes": [
+          "9:00",
+          "12:30",
+          "15:00",
+          "20:45",
+          "22:45-0:00 szejk"
+        ]
+      },
+      "notes": "mało błonnika i tłuszczu w dniu meczu; po meczu szejk w 45 min (1-1,5 g/kg węglowodanów), pełny posiłek do 120 min, ok. 40 g białka przed snem",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "pages": "329-330, 335"
+        }
+      ]
+    },
+    {
+      "id": "H4",
+      "category": "day_template",
+      "name": "Szablon dnia: dwa treningi (WNIOSEK z reguł R13, R19, R20)",
+      "status": "wniosek",
+      "values": {
+        "preCarbGPerKg": [
+          1,
+          4
+        ],
+        "betweenCarbGPerKgPerH": [
+          1.0,
+          1.2
+        ],
+        "proteinPerMealG": [
+          20,
+          40
+        ]
+      },
+      "notes": "posiłek 2-4 h przed 1. treningiem; zaraz po: białko + węglowodany ok. 1 g/kg; dalej małe porcje węglowodanów co godzinę do 2. treningu; po 2. treningu posiłek z białkiem; 40 g białka przed snem",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 3 Węglowodany w diecie sportowca",
+          "pages": "58-59"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "pages": "328-329"
+        },
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "pages": "425, 427"
+        }
+      ]
+    },
+    {
+      "id": "TAB-EER-youth",
+      "category": "table",
+      "name": "Normy energii dla dzieci i młodzieży (EER, wybrane wiersze, Tabela 1)",
+      "status": "zrodlo",
+      "note": "nagłówki kolumn (płeć, poziom aktywności) częściowo utracone w tekście; kolejne kolumny to PAL niski/umiarkowany/wysoki",
+      "values": [
+        {
+          "age": "7-9",
+          "massKg": 27,
+          "kcal": [
+            1600,
+            1800,
+            2100
+          ],
+          "pal": [
+            1.35,
+            1.5,
+            1.85
+          ]
+        },
+        {
+          "age": "10-12",
+          "sex": "chłopcy (prawdopodobnie)",
+          "massKg": 38,
+          "kcal": [
+            2050,
+            2400,
+            2750
+          ],
+          "pal": [
+            1.5,
+            1.75,
+            2.0
+          ]
+        },
+        {
+          "age": "13-15",
+          "sex": "chłopcy (prawdopodobnie)",
+          "massKg": 53,
+          "kcal": [
+            2600,
+            3000,
+            3500
+          ],
+          "pal": [
+            1.55,
+            1.8,
+            2.05
+          ]
+        },
+        {
+          "age": "16-18",
+          "sex": "chłopcy (prawdopodobnie)",
+          "massKg": 67,
+          "kcal": [
+            2900,
+            3400,
+            3900
+          ],
+          "pal": [
+            1.6,
+            1.85,
+            2.15
+          ]
+        },
+        {
+          "age": "10-12",
+          "sex": "dziewczęta (prawdopodobnie)",
+          "massKg": 37,
+          "kcal": [
+            1800,
+            2100,
+            2400
+          ],
+          "pal": [
+            1.45,
+            1.7,
+            1.95
+          ]
+        },
+        {
+          "age": "13-15",
+          "sex": "dziewczęta (prawdopodobnie)",
+          "massKg": 51,
+          "kcal": [
+            2100,
+            2450,
+            2800
+          ],
+          "pal": [
+            1.5,
+            1.75,
+            2.0
+          ]
+        },
+        {
+          "age": "16-18",
+          "sex": "dziewczęta (prawdopodobnie)",
+          "massKg": 56,
+          "kcal": [
+            2150,
+            2500,
+            2900
+          ],
+          "pal": [
+            1.5,
+            1.75,
+            2.0
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 25 Żywienie młodych sportowców",
+          "pages": "570"
+        }
+      ]
+    },
+    {
+      "id": "TAB-football-7",
+      "category": "table",
+      "name": "Zalecenia dla piłkarzy (Tabela 7)",
+      "status": "zrodlo",
+      "values": {
+        "dailyCarbGPerKg": [
+          5,
+          10
+        ],
+        "dailyCarbRangeGPerKg": [
+          3,
+          12
+        ],
+        "dailyProteinGPerKg": [
+          1.2,
+          2.0
+        ],
+        "fluidsMlPerKgDay": [
+          30,
+          60
+        ],
+        "energyKcalPerKgLBM": 45,
+        "pre2to4hCarbGPerKg": [
+          1,
+          4
+        ],
+        "pre2to4hProteinGPerKg": [
+          0.25,
+          0.4
+        ],
+        "preFluids4hMlPerKg": [
+          5,
+          7
+        ],
+        "preFluids2hMlPerKg": [
+          3,
+          5
+        ],
+        "duringCarbGPerH": [
+          30,
+          60
+        ],
+        "postTrainingCarbGPerKgPerH": [
+          1.0,
+          1.2
+        ],
+        "postProteinGPerKg": [
+          0.25,
+          0.4
+        ],
+        "postFluidsPct": [
+          100,
+          150
+        ],
+        "postMatchCarbGPerKgPerH": [
+          1.0,
+          1.2
+        ],
+        "postMatchAlt": "0,8 g węglowodanów + 0,4 g białka /kg/h",
+        "postMatchProteinGPerKgDay": [
+          1.6,
+          2.0
+        ],
+        "postMatchFluidsPct": [
+          150,
+          200
+        ]
+      },
+      "note": "w źródle literówka '10-1,2 g/kg/h' (odczytane jako 1,0-1,2)",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "pages": "328-329"
+        }
+      ]
+    },
+    {
+      "id": "TAB-swim-4",
+      "category": "table",
+      "name": "Suplementy w pływaniu (Tabela 4)",
+      "status": "zrodlo",
+      "values": {
+        "caffeine": "3 mg/kg 1 h przed startem",
+        "creatine": "3 g/dobę min. 4 tyg.",
+        "bicarbonate": "300 mg/kg 1-2 h przed",
+        "betaAlanine": "6,4 g/dobę w 4-8 dawkach",
+        "nitrates": "6-8 mmol 150-180 min przed"
+      },
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "pages": "456"
+        }
+      ]
+    },
+    {
+      "id": "TAB-football-9",
+      "category": "table",
+      "name": "Suplementy w piłce nożnej (Tabela 9)",
+      "status": "zrodlo",
+      "values": {
+        "caffeine": "2-6 mg/kg 45-60 min przed",
+        "creatine": "0,1 g/kg lub 5 g/dobę po treningu",
+        "betaAlanine": "3,2-6,4 g/dobę 'co najmniej 24 tygodnie' (prawdopodobnie błąd)",
+        "nitrates": "6-8 mmol/dobę",
+        "bicarbonate": "0,2-0,3 g/kg 60-120 min przed"
+      },
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "pages": "332"
+        }
+      ]
+    },
+    {
+      "id": "TAB-vitD-scale",
+      "category": "table",
+      "name": "Skala 25(OH)D (ng/ml)",
+      "status": "zrodlo",
+      "values": {
+        "severeDeficiency": [
+          0,
+          10
+        ],
+        "deficiency": [
+          10,
+          20
+        ],
+        "suboptimal": [
+          20,
+          30
+        ],
+        "optimal": [
+          30,
+          50
+        ],
+        "high": [
+          50,
+          100
+        ],
+        "toxic": ">100",
+        "athletesTarget": [
+          40,
+          50
+        ],
+        "unitConversion": "1 ng/ml = 2,5 nmol/l; 1 µg = 40 IU"
+      },
+      "note": "tylko do rozmowy z lekarzem; aplikacja nie interpretuje wyników",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-ads",
+          "chapter": "Rozdz. 9 Witamina D",
+          "pages": "179-181"
+        }
+      ]
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "dietetyka-sportowa-ads",
+      "type": "book",
+      "title": "Dietetyka sportowa (e-book)",
+      "publisher": "Akademia Dietetyki Sportowej",
+      "author": "praca zbiorowa; m.in. mgr Łukasz Jaśkiewicz, Bartłomiej Pomorski (Akademia Dietetyki Sportowej) oraz autorzy rozdziałów 14-26",
+      "year": null,
+      "yearNote": "brak roku w pliku; najnowsze odwołania z początku 2019 r. (np. s. 86, 418), więc ok. 2019",
+      "isbn": null,
+      "language": "pl",
+      "pages": 592,
+      "pagesNote": "strony oznaczone stopką 'Strona N' na dole strony; tekst nad stopką należy do strony N; spis treści na s. 1",
+      "scope": "żywienie sportowców: energia i RED-S, makroskładniki, nawodnienie, mikroskładniki, suplementy, odporność, jelita, sen, dieta roślinna, młodzież, psychologia oraz rozdziały dyscyplinowe (piłka nożna, wytrzymałość, ultra, sporty walki, siłowe, pływanie, sylwetkowe, redukcja)",
+      "fileUsed": "bc6db4c2-742026705-EBOOK-DIETETYKA-SPORTOWA-copy.pdf.txt (tekst wyciągnięty z PDF, 14 204 linie)",
+      "personalDataOmitted": true,
+      "trainingContent": "brak parametrów treningowych"
+    },
+    {
+      "id": "chapters",
+      "type": "toc",
+      "items": [
+        {
+          "chapter": "Rozdz. 1 Fizjologia i biochemia wysiłku fizycznego okiem dietetyka",
+          "startPage": 2,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 2 Dostępność energii w sporcie",
+          "startPage": 13,
+          "author": "Bartłomiej Pomorski"
+        },
+        {
+          "chapter": "Rozdz. 3 Węglowodany w diecie sportowca",
+          "startPage": 47,
+          "author": "Bartłomiej Pomorski"
+        },
+        {
+          "chapter": "Rozdz. 4 Węglowodany w trakcie wysiłku",
+          "startPage": 78,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 5 Białko w sporcie",
+          "startPage": 88,
+          "author": "Bartłomiej Pomorski"
+        },
+        {
+          "chapter": "Rozdz. 6 Tłuszcze w diecie sportowca",
+          "startPage": 117,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 7 Nawodnienie",
+          "startPage": 129,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 8 Witaminy i składniki mineralne",
+          "startPage": 149,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 9 Witamina D",
+          "startPage": 174,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 10 Antyoksydanty a sport",
+          "startPage": 189,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 11 Żelazo w diecie sportowca",
+          "startPage": 206,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 12 Suplementacja w sporcie",
+          "startPage": 220,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 13 Problemy żołądkowo-jelitowe",
+          "startPage": 279,
+          "author": "mgr Łukasz Jaśkiewicz"
+        },
+        {
+          "chapter": "Rozdz. 14 Immunożywienie w sporcie",
+          "startPage": 290,
+          "author": "mgr Natalia Główka"
+        },
+        {
+          "chapter": "Rozdz. 15 Żywienie i suplementacja zawodnika piłki nożnej",
+          "startPage": 311,
+          "author": "mgr Wojciech Zep"
+        },
+        {
+          "chapter": "Rozdz. 16 Żywienie w sportach wytrzymałościowych",
+          "startPage": 340,
+          "author": "Mateusz Gawełczyk"
+        },
+        {
+          "chapter": "Rozdz. 17 Żywienie w wysiłkach ultra",
+          "startPage": 362,
+          "author": "mgr Marta Naczyk"
+        },
+        {
+          "chapter": "Rozdz. 18 Żywienie w sportach walki",
+          "startPage": 385,
+          "author": "dr inż. Katarzyna Janiszewska, mgr Igor Dzierżanowski"
+        },
+        {
+          "chapter": "Rozdz. 19 Żywienie w sportach siłowych",
+          "startPage": 416,
+          "author": "Arkadiusz Matras"
+        },
+        {
+          "chapter": "Rozdz. 20 Żywienie i suplementacja w pływaniu",
+          "startPage": 441,
+          "author": "mgr Natalia Główka"
+        },
+        {
+          "chapter": "Rozdz. 21 Przygotowanie do startu w sportach sylwetkowych",
+          "startPage": 471,
+          "author": "Tadeusz Sowiński"
+        },
+        {
+          "chapter": "Rozdz. 22 Skuteczna redukcja masy ciała",
+          "startPage": 500,
+          "author": "mgr Łukasz Subsar"
+        },
+        {
+          "chapter": "Rozdz. 23 Dieta roślinna w sporcie",
+          "startPage": 519,
+          "author": "dr Damian Parol"
+        },
+        {
+          "chapter": "Rozdz. 24 Wpływ diety na sen sportowca",
+          "startPage": 532,
+          "author": "mgr Paweł Szewczyk"
+        },
+        {
+          "chapter": "Rozdz. 25 Żywienie młodych sportowców",
+          "startPage": 565,
+          "author": "mgr Urszula Somow"
+        },
+        {
+          "chapter": "Rozdz. 26 Psychologiczne aspekty w relacji dietetyk-sportowiec",
+          "startPage": 581,
+          "author": "Magdalena Hajkiewicz, Mateusz Brela"
+        }
+      ]
+    },
+    {
+      "id": "lost-or-missing",
+      "items": [
+        {
+          "pages": "81-84",
+          "element": "ryciny: transport węglowodanów, czynniki ograniczające, zalety/wady źródeł",
+          "state": "utracone"
+        },
+        {
+          "pages": "143",
+          "element": "rycina: indeks nawodnienia napojów (BHI)",
+          "state": "utracona, opis w tekście"
+        },
+        {
+          "pages": "157-172",
+          "element": "tabela biomarkerów (Larson-Meyer)",
+          "state": "zachowana częściowo, rozbity tekst"
+        },
+        {
+          "pages": "282-287",
+          "element": "ryciny o problemach jelitowych, FODMAP, protokół; pusta strona podsumowania",
+          "state": "utracone"
+        },
+        {
+          "pages": "317, 320, 327, 333-334",
+          "element": "piłka: Tabela 3, Ryc. 1, Ryc. 3-4 (węglowodany w mikrocyklu), protokół regeneracji FIFA",
+          "state": "utracone"
+        },
+        {
+          "pages": "344-345, 351, 360",
+          "element": "wytrzymałość: Ryc. 1-2, Tabela 1 (źródła węglowodanów), Ryc. 3",
+          "state": "utracone"
+        },
+        {
+          "pages": "368-369",
+          "element": "ultra: Ryc. 1-2",
+          "state": "utracone"
+        },
+        {
+          "pages": "389-392",
+          "element": "kategorie wagowe (taekwondo, judo, KSW)",
+          "state": "zachowane częściowo"
+        },
+        {
+          "pages": "403",
+          "element": "sporty walki: Ryc. 1 algorytm redukcji",
+          "state": "utracona"
+        },
+        {
+          "pages": "423",
+          "element": "siłowe: Ryc. 2 utrata FFM vs tempo redukcji",
+          "state": "utracona (dane w tekście s. 422)"
+        },
+        {
+          "pages": "431-436",
+          "element": "siłowe: jadłospisy (Tabele 2-5)",
+          "state": "zachowane jako rozbity tekst, część posiłków nieczytelna"
+        },
+        {
+          "pages": "451",
+          "element": "pływanie: Tabela 3 dopasowanie energii do treningu",
+          "state": "utracona"
+        },
+        {
+          "pages": "511",
+          "element": "redukcja: rycina indeksu sytości",
+          "state": "utracona (wniosek w tekście: ziemniaki najwyższy)"
+        },
+        {
+          "pages": "536, 540, 543-544, 549",
+          "element": "sen: tabele objawów, wysiłek a sen, makroskładniki a sen, melatonina",
+          "state": "zachowane częściowo"
+        },
+        {
+          "pages": "570",
+          "element": "młodzież: Tabela 1 EER",
+          "state": "wiersze zachowane, nagłówki częściowo utracone"
+        }
+      ]
+    },
+    {
+      "id": "contradictions",
+      "items": [
+        "białko: 1,2-2,2 g/kg (s. 92), 1,2-2 (s. 328), 1,2-1,7 (s. 307), 1,4-2,0 ISSN (s. 424, 482), 1,5-1,8 ultra (s. 369), redukcja 1,3-1,8 g/kg mc (s. 508) vs 1,6-2,4 g/kg mc (s. 104, 424) vs 2,3-3,1 g/kg FFM (s. 491, 508); młodzi przy pełnym treningu siłowym 1,2-3,4 (s. 575)",
+        "tempo redukcji: 0,5% (s. 423), 0,5-0,7% (s. 489), 0,5-1% i ok. 0,7% (s. 507), 'nie więcej niż 1%' (s. 514)",
+        "kofeina: 3-6 mg/kg (s. 233, 430) vs 2-6 (s. 332) vs 1-3 / 3 mg/kg w pływaniu (s. 456)",
+        "beta-alanina: 10-12 tyg., min. 2-4 tyg. (s. 243) vs 'co najmniej 24 tygodnie' (s. 332, prawdopodobnie błąd)",
+        "kreatyna: 3-6 g (s. 229), 5 g lub 0,1 g/kg (s. 332), 3 g (s. 456)",
+        "glutamina: brak korzyści (s. 298, 301) vs na liście jesień-zima (s. 306)",
+        "wit. D: niedobór <30 nmol/l (s. 307, prawdopodobnie miało być ng/ml) vs cel >75 nmol/l (s. 305)",
+        "przedziały węglowodanów w trakcie wysiłku nakładają się: 120-180 min 60 g/h i >150 min 90 g/h (s. 348)",
+        "literówka '10-1,2 g/kg/h' (s. 329)",
+        "węglowodany o wysokim IG 30-45 min przed wysiłkiem: 75 g glukozy zwykle bez szkody (s. 67) vs ryzyko hipoglikemii reaktywnej (s. 452)",
+        "sen: 7-9 h (s. 534) vs 6-8 h (s. 535)",
+        "rozdz. 21 nazywa okres redukcji 'przygotowawczym' (s. 489), choć chodzi o okres startowy",
+        "redukcja: low-carb - spadek to 'glikogen i woda czyli spadek masy mięśniowej' (s. 508) - nieprecyzyjne sformułowanie",
+        "część zaleceń w rozdziałach dyscyplinowych to praktyka autorów, nie badania (np. 'robienie wagi' 5% bezpieczne, s. 428)"
+      ]
+    }
+  ]
+}

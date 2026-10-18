@@ -1,0 +1,2780 @@
+{
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Bez zaufania nie ma wpływu (buy-in)",
+      "rule": "Zaangażowanie klienta w plan opiera się na zaufaniu, budowanym z czasem przez relację i konsekwentne działania. Bez zaufania trener nie wpływa skutecznie na zachowanie.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "zaufanie to pierwsza zasada Conscious Coaching",
+        "relacja jest krucha, trzeba ją stale podtrzymywać"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 1 Maps & Meanings",
+          "pages": "lok. 110-326 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 4 The Archetypes",
+          "pages": "lok. 930-934 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 10 The Novice",
+          "pages": "lok. 984-996 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Cztery punkty kompasu: zaufanie, relacje, inteligencja społeczna, czas",
+      "rule": "Świadomy trener opiera się na zaufaniu, relacjach, inteligencji społecznej (dopasowanie stylu komunikacji) i czasie (cierpliwość, bez pośpiechu).",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "komunikacja = treść + relacja (ton, mowa ciała)",
+        "cierpliwość = jak się zachowujemy, gdy czekamy; powtarzanie komunikatu bez nacisku"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 1 Maps & Meanings (streszczenie, Q&A 4-6)",
+          "pages": "lok. 110-326 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Najpierw poznaj siebie",
+      "rule": "Trener zna swoje mocne i słabe strony, uprzedzenia i reakcje emocjonalne. Proces: refleksja, inspekcja, progresja. Tożsamość trenera przed filozofią treningu.",
+      "appliesTo": [
+        "trener"
+      ],
+      "conditions": [
+        "testy osobowości (MBTI, DISC) do rozmowy, nie jako etykiety",
+        "samoocena siebie i zespołu co najmniej 3 razy w roku (Q&A rozdz. 25)"
+      ],
+      "limitations": [
+        "komentarz Bookey: samoświadomość nie jest jedyną drogą do skutecznego coachingu"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 1 Maps & Meanings",
+          "pages": "lok. 110-326 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 2 Know Thyself to Know Thy Athletes",
+          "pages": "lok. 327-714 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 25 Be Authentic",
+          "pages": "lok. 1374-1380 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Ludzie najpierw; emocje wygrywają z logiką",
+      "rule": "Klient ma własne cele i problemy; emocje prawie zawsze wygrywają z logiką. Zmiana utrwalonego zachowania wymaga odkrycia, co nim kieruje.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "zawodnicy oceniają trening po odczuciach w trakcie i po nim, nie po nauce; wpływ rówieśników i wzorców (rozdz. 23)"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Cztery popędy (Lawrence i Nohria)",
+      "rule": "Zachowaniem kierują trwałe popędy: uczyć się, wiązać się z innymi, zdobywać, bronić. Motywacja jest chwilowa, popęd trwały.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "wniosek dla aplikacji: rozpoznawać dominujący popęd w ankiecie i odwoływać się do niego w komunikatach"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 2 Know Thyself to Know Thy Athletes",
+          "pages": "lok. 327-714 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Konflikt: zapobiegaj i rozwiązuj",
+      "rule": "Konflikt zadaniowy (o metody) może być twórczy, osobisty obniża morale. Proaktywnie: ustal oczekiwania i konsekwencje. Reaktywnie: otwarta rozmowa, kompromis, ochrona relacji.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "szczegółowa część rozdz. 3 urwana"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 2 Know Thyself to Know Thy Athletes",
+          "pages": "lok. 327-714 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Pierwsze wrażenie ustawia relację",
+      "rule": "Pierwszy kontakt na długo ustawia zaufanie: pewność siebie, mowa ciała, przystępność, autentyczność; przy grupie przyjdź wcześniej, przygotuj salę, wyglądaj profesjonalnie.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 2 Know Thyself to Know Thy Athletes",
+          "pages": "lok. 327-714 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 13 The Mouthpiece",
+          "pages": "lok. 1019-1029 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Archetypy to narzędzie, nie etykieta",
+      "rule": "Archetypy ułatwiają komunikację; lista niewyczerpująca; jedna osoba może pasować do kilku; każda cecha ma dwie strony.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "komentarz Bookey: ryzyko uproszczeń i stereotypów"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 4 The Archetypes",
+          "pages": "lok. 930-934 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "title": "Zasada zaufania 1: podstawy, nie ozdobniki",
+      "rule": "Zaufanie najsilniej buduje konkretny wynik klienta, nie modne gadżety. Wyjaśnij prosto, jak program prowadzi do celu. Proste nie znaczy łatwe. Trzymaj się swoich metod, nie zmieniaj ich z powodu pojedynczego przypadku lub mody.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "proste ćwiczenia mają być wyzwaniem: jasny cel każdego ćwiczenia, nowe bodźce na słabe strony"
+      ],
+      "limitations": [
+        "napięcie z błędem nr 4 (wciskanie metod) i autonomią"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Zasada zaufania 2: edukuj metodą 3R",
+      "rule": "Research (pytania otwarte, słuchanie refleksyjne) -> Relate (wspólna płaszczyzna, social proof) -> Reframe (przedstaw trening w języku świata klienta). Powtarzaj powiązanie z celem; bez sztucznych porównań.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Zasada zaufania 3: humor",
+      "rule": "Humor skraca dystans i poprawia naukę. Struktura: znana sytuacja, narastające oczekiwanie, zaskakujące zakończenie. Zaczynaj od drobnych żartów. Nie poniżaj, nie przekraczaj granic osobistych.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "korzyści zdrowotne humoru podane bez danych; nie używać jako argumentu zdrowotnego (wniosek)",
+        "pomysł z karą-tańcem za spóźnienie dotyczy drużyny młodzieżowej, nieodpowiedni dla dorosłych klientów (wniosek)"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 24 Make 'Em Laugh",
+          "pages": "lok. 1367-1373 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "Zasada zaufania 4: autentyczność",
+      "rule": "Spójność, jasność, bezpośredniość. Stabilny nastrój trenera. Szczerość ponad certyfikaty. Unikaj '4 jeźdźców': brak własnych zmagań, brak własnego treningu, ego, krytykowanie innych. Przyznawaj się do słabości, nie naśladuj innych.",
+      "appliesTo": [
+        "trener"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 25 Be Authentic",
+          "pages": "lok. 1374-1380 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Zasada zaufania 5: empatia i emocjonalne płatności",
+      "rule": "Empatia (druga po autentyczności) to zrozumienie uczuć z perspektywy drugiej osoby. Emocjonalna płatność = otwarte uznanie myśli, obaw i wkładu klienta; zwiększa wysiłek i zaangażowanie.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "pokora, odpowiednie dzielenie się sobą, prośba o opinię, wspólny grunt, uprzedzanie obaw",
+        "brak empatii prowadzi do mylnego odczytu zachowań jako braku zaangażowania"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 26 Empathy",
+          "pages": "lok. 1381-1387 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Zasada zaufania 6: przekaz i perswazja",
+      "rule": "Upraszczaj, używaj analogii i metafor. Droga centralna (fakty) dla zainteresowanych tematem, peryferyjna (obraz, skojarzenie) dla chcących prostego przekazu. Unikaj ogólnych wskazówek niepasujących do osoby.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "przykład: kolorowanie części treningu według tego, co poprawiają (Q&A 4)"
+      ],
+      "limitations": [
+        "część Implementation Strategies urwana"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 27 Delivery & Persuasion",
+          "pages": "lok. 1388-1395 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P15",
+      "title": "Zasada zaufania 7: autonomia",
+      "rule": "Autonomia jest podstawą motywacji; mikrozarządzanie prowadzi do buntu. Plan daje ramę z miejscem na wkład klienta; pytaj o zdanie.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "przykład mieszanek do ciast: klient sam dodaje jajka"
+      ],
+      "limitations": [
+        "komentarz Bookey: pełna autonomia może dać brak kierunku"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 28 Autonomy",
+          "pages": "lok. 1396-1431 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 9 The Politician",
+          "pages": "lok. 974-983 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P16",
+      "title": "Cierpliwość i stopniowość",
+      "rule": "Postęp wymaga czasu; nie oczekuj zbyt dużo zbyt szybko; świętuj małe postępy; zmiany nawyków wprowadzaj stopniowo.",
+      "appliesTo": [
+        "wszyscy",
+        "początkujący"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 10 The Novice",
+          "pages": "lok. 984-996 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 7 The Soldier",
+          "pages": "lok. 954-960 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P17",
+      "title": "Relacja profesjonalna, nie koleżeńska",
+      "rule": "Trener jest przewodnikiem, nie kolegą. Klient pracuje z trenerem, nie dla niego. Nie przejmuj złych nastrojów, nie bierz rzeczy do siebie.",
+      "appliesTo": [
+        "trener"
+      ],
+      "conditions": [],
+      "limitations": [
+        "napięcie z zaleceniem dzielenia się sobą (rozdz. 17, 26)"
+      ],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 21 Constructing Connections: Tools, Tenets & Strategies",
+          "pages": "lok. 1241-1346 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P18",
+      "title": "Ego trenera i jakość relacji (3+1C)",
+      "rule": "Panuj nad ego. Jakość komunikacji = jakość relacji = jakość życia. Model 3+1C (Jowett): bliskość, komplementarność, zaangażowanie, współorientacja.",
+      "appliesTo": [
+        "trener"
+      ],
+      "conditions": [
+        "KPI trenera: zarządzanie ego, mentoring, utrzymanie rodziny"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 28 Autonomy",
+          "pages": "lok. 1396-1431 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 29 Applying Conscious Coaching to Our Craft & Lives",
+          "pages": "lok. 1432-1481 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "P-ERR",
+      "title": "13 błędów trenera",
+      "status": "zrodlo",
+      "layer": "streszczenie",
+      "items": [
+        "forsowanie własnej agendy",
+        "chęć bycia ekspertem (żargon)",
+        "chęć bycia przyjacielem",
+        "wciskanie metod na siłę",
+        "zamknięcie we własnych uprzedzeniach",
+        "uleganie emocjom grupy",
+        "izolacja od innych trenerów",
+        "brak refleksji",
+        "trzymanie się 'czystego wizerunku'",
+        "kolekcjonowanie kursów zamiast praktyki",
+        "oczekiwanie zbyt dużo zbyt szybko",
+        "ignorowanie opinii zawodników",
+        "branie rzeczy do siebie"
+      ],
+      "note": "pełna lista w rozdz. 20; w rozdz. 21 urwana po punkcie 8",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 21 Constructing Connections: Tools, Tenets & Strategies",
+          "pages": "lok. 1241-1346 (Best Quotes)"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E0",
+      "category": "dobór_ćwiczeń",
+      "rule": null,
+      "status": "brak_w_zrodle",
+      "note": "brak celów, wzorców ruchowych, priorytetów, sprzętu i zamienników",
+      "sources": []
+    },
+    {
+      "id": "E1",
+      "category": "wybór_wariantu",
+      "rule": "Daj klientowi wybór wariantu ćwiczenia (np. odmiany przysiadu), by zwiększyć poczucie kontroli i realizację.",
+      "status": "zrodlo",
+      "layer": "qa",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 9 The Politician (Q&A 3)",
+          "pages": "lok. 974-983 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "podstawy",
+      "rule": "Ucz podstawowych ruchów i wyjaśniaj, że słaba technika to czynnik ryzyka urazów.",
+      "status": "zrodlo",
+      "layer": "qa",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff (Q&A 5)",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "category": "dawka",
+      "rule": "U Technika 'minimal effective dose' zamiast tradycyjnej dużej objętości; priorytet zdrowie i siła specyficzna dla sportu.",
+      "values": null,
+      "status": "zrodlo",
+      "layer": "qa",
+      "note": "wypowiedź gościa (Coaching Clinic), bez liczb",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 5 The Technician (Q&A 5)",
+          "pages": "lok. 935-943 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "uzasadnienie",
+      "rule": "Wyjaśniaj związek ćwiczenia z celem i aktywnością klienta.",
+      "status": "zrodlo",
+      "layer": "qa",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 8 The Specialist (Q&A 4-5)",
+          "pages": "lok. 961-973 (Best Quotes)"
+        }
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PAR-siła",
+      "category": "parameters",
+      "goal": "siła",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "changeCriteria": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-hipertrofia",
+      "category": "parameters",
+      "goal": "hipertrofia",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "changeCriteria": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-redukcja",
+      "category": "parameters",
+      "goal": "redukcja",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "changeCriteria": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-zdrowie",
+      "category": "parameters",
+      "goal": "zdrowie",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "changeCriteria": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-początkujący",
+      "category": "parameters",
+      "goal": "początkujący",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "changeCriteria": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-wzmianki",
+      "category": "wzmianki_bez_liczb",
+      "status": "zrodlo",
+      "items": [
+        {
+          "text": "minimal effective dose zamiast dużej objętości (Technik)",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 5 The Technician (Q&A 5)",
+              "pages": "lok. 935-943 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "text": "program łatwy do wykonania, ale z nowymi wyzwaniami na słabe strony",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff",
+              "pages": "lok. 1350-1355 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "text": "odpoczynek to część planu, nie słabość",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 7 The Soldier",
+              "pages": "lok. 954-960 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "text": "krótkie mikrocykle u Wolnego ducha",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 15 The Free-Spirit (Q&A 6)",
+              "pages": "lok. 1041-1050 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "text": "u Nowicjusza świętuj adaptacje nerwowe i wczesne postępy",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 10 The Novice (Q&A 9)",
+              "pages": "lok. 984-996 (Best Quotes)"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "klient trenuje ponad plan, lekceważy odpoczynek lub sygnały bólu (Żołnierz)",
+      "action": "monitoruj, promuj regenerację, wyjaśnij odpoczynek jako narzędzie",
+      "status": "zrodlo",
+      "priority": "warning",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 7 The Soldier (streszczenie, Q&A 3)",
+          "pages": "lok. 954-960 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "początkujący chce przekraczać możliwości zbyt szybko",
+      "action": "hamuj tempo; stopniowy rozwój; ryzyko cofnięcia ('nieodwracalna szkoda' wg Q&A)",
+      "status": "zrodlo",
+      "priority": "warning",
+      "layer": "qa",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 10 The Novice (Q&A 2)",
+          "pages": "lok. 984-996 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "klient ujawnia traumę lub problemy emocjonalne",
+      "action": "nie przekraczaj granic zawodowych; trener uczy umiejętności mentalnych, nie prowadzi terapii",
+      "status": "zrodlo",
+      "priority": "warning",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 12 The Self-Sabotager",
+          "pages": "lok. 1008-1018 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "klient nadmiernie skupiony na zdrowiu",
+      "action": "ucz odróżniać prawdziwe sygnały zagrożenia od normalnych reakcji ciała; najpierw S10-S12",
+      "status": "zrodlo",
+      "priority": "warning",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        }
+      ],
+      "note": "komentarz Bookey: namawianie do pokonania lęku nie zawsze właściwe"
+    },
+    {
+      "id": "S5",
+      "trigger": "ktoś namawia na niesprawdzone suplementy lub naginanie zasad",
+      "action": "twarde granice i konsekwencje",
+      "status": "zrodlo",
+      "priority": "warning",
+      "layer": "qa",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 16 The Manipulator (Q&A 3)",
+          "pages": "lok. 1051-1066 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "użycie humoru",
+      "action": "nigdy nie poniżaj i nie przekraczaj granic osobistych",
+      "status": "zrodlo",
+      "priority": "rule",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 24 Make 'Em Laugh",
+          "pages": "lok. 1367-1373 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "słaba technika podstawowych ruchów",
+      "action": "ucz podstaw; to czynnik ryzyka urazów",
+      "status": "zrodlo",
+      "priority": "warning",
+      "layer": "qa",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff (Q&A 5)",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "wczesna specjalizacja, kontuzja kończąca karierę",
+      "action": "świadomość ryzyka kontuzji i kryzysu tożsamości; rozmowa o tożsamości, wartościach, celach",
+      "status": "zrodlo",
+      "priority": "info",
+      "layer": "streszczenie",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 8 The Specialist",
+          "pages": "lok. 961-973 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "klient zgłasza ból, uraz lub objaw",
+      "action": "zawsze najpierw S11-S12; nie przypisuj archetypu 'Hipochondryk' na podstawie skarg zdrowotnych; nie odpowiadaj komunikatem motywacyjnym",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "layer": "streszczenie",
+      "sources": []
+    },
+    {
+      "id": "S11",
+      "trigger": "ból w klatce piersiowej, duszność nieadekwatna do wysiłku, kołatanie serca, omdlenie lub zawroty głowy; choroby serca, nadciśnienie, cukrzyca, ciąża lub inne choroby przewlekłe bez zgody lekarza; ciemny mocz z silnym bólem i obrzękiem mięśni",
+      "action": "przerwij trening, kontakt z lekarzem (pilnie przy objawach nagłych lub silnych)",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "layer": "streszczenie",
+      "sources": []
+    },
+    {
+      "id": "S12",
+      "trigger": "ostry ból stawu lub mięśnia podczas ćwiczenia; ból utrzymujący się lub narastający, obrzęk, ograniczenie ruchu, drętwienie, mrowienie; świeży uraz, operacja, rehabilitacja w toku",
+      "action": "konsultacja z fizjoterapeutą; nie programuj obciążenia tej okolicy",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "layer": "streszczenie",
+      "sources": []
+    },
+    {
+      "id": "S13",
+      "trigger": "klient wspomina o depresji, silnym lęku, traumie, zaburzeniach odżywiania, nadużywaniu substancji lub myślach o zrobieniu sobie krzywdy",
+      "action": "zalecenie kontaktu z psychologiem lub psychiatrą; przy bezpośrednim zagrożeniu życia numer 112; trener nie prowadzi terapii",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "layer": "streszczenie",
+      "sources": []
+    },
+    {
+      "id": "S14",
+      "trigger": "przypisanie archetypu",
+      "action": "archetyp to wewnętrzna notatka trenera; nie pokazuj klientowi etykiet; nie wyciągaj z nich wniosków o zdrowiu",
+      "status": "poza_zrodlem",
+      "priority": "rule",
+      "layer": "streszczenie",
+      "sources": []
+    },
+    {
+      "id": "S15",
+      "trigger": "komunikacja o objawach",
+      "action": "nie nazywaj przyczyny, nie sugeruj rozpoznania, nie zalecaj leków ani suplementów",
+      "status": "poza_zrodlem",
+      "priority": "rule",
+      "layer": "streszczenie",
+      "sources": []
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni",
+      "goal": null,
+      "level": null,
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "restSeconds": null,
+      "tempo": null,
+      "progression": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni",
+      "goal": null,
+      "level": null,
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "restSeconds": null,
+      "tempo": null,
+      "progression": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "T3",
+      "name": "Góra/dół 4 dni",
+      "goal": null,
+      "level": null,
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "restSeconds": null,
+      "tempo": null,
+      "progression": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "T4",
+      "name": "Plan hipertroficzny",
+      "goal": null,
+      "level": null,
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "restSeconds": null,
+      "tempo": null,
+      "progression": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "T5",
+      "name": "Plan siłowy",
+      "goal": null,
+      "level": null,
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "restSeconds": null,
+      "tempo": null,
+      "progression": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "T6",
+      "name": "Plan domowy",
+      "goal": null,
+      "level": null,
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "restSeconds": null,
+      "tempo": null,
+      "progression": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "conscious-coaching-bartholomew-bookey",
+      "type": "book_summary",
+      "author": "Brett Bartholomew (autor oryginału); streszczenie: Bookey",
+      "title": "Conscious Coaching",
+      "subtitleInFile": "Mastering Communication for Peak Performance in Coaching",
+      "originalTitleGeneralKnowledge": {
+        "value": "Conscious Coaching: The Art and Science of Building Buy-In, 2017",
+        "status": "poza_zrodlem",
+        "note": "wiedza ogólna, niesprawdzona w pliku"
+      },
+      "year": null,
+      "isbn": null,
+      "pages": null,
+      "language": "angielski",
+      "fileUsed": "c267253a-972511523-Conscious-Coaching-PDF.pdf.txt (tekst z PDF Bookey, 214651 B, 5487 linii)",
+      "isSummary": true,
+      "evidenceSummary": [
+        "'Written by Bookey'",
+        "'Summary Content List'",
+        "9x 'Install Bookey App to Unlock Full Text and Audio'",
+        "sekcje Q&A i Quiz z odsyłaczem do strony Bookey"
+      ],
+      "pagesNote": "brak numerów stron; 458 stopek 'Scan to Download' bez numerów; 'Quotes From Pages X-Y' do 1481 = najpewniej lokalizacje e-booka",
+      "scope": "komunikacja trenera, zaufanie, archetypy zawodników, 7 zasad zaufania, błędy trenera, ego i mentoring",
+      "personalDataOmitted": "brak danych osobowych w pliku"
+    },
+    {
+      "id": "layers",
+      "type": "file_structure",
+      "items": [
+        {
+          "layer": "streszczenie",
+          "trust": "parafraza Bookey"
+        },
+        {
+          "layer": "cytat",
+          "trust": "najbliżej oryginału (Best Quotes)"
+        },
+        {
+          "layer": "qa",
+          "trust": "Bookey; czasem szczegóły spoza streszczenia"
+        },
+        {
+          "layer": "przyklad_bookey",
+          "trust": "wymyślone scenki, nieużywane jako wiedza"
+        },
+        {
+          "layer": "komentarz_bookey",
+          "trust": "krytyka Bookey, nie autora"
+        },
+        {
+          "layer": "quiz",
+          "trust": "bez odpowiedzi, pominięty"
+        }
+      ]
+    },
+    {
+      "id": "chapters",
+      "type": "chapter_map",
+      "items": [
+        {
+          "chapter": 1,
+          "title": "Maps & Meanings",
+          "locations": "110-326"
+        },
+        {
+          "chapter": 2,
+          "title": "Know Thyself to Know Thy Athletes",
+          "locations": "327-714"
+        },
+        {
+          "chapter": 3,
+          "title": "Seek to Understand",
+          "locations": "715-929"
+        },
+        {
+          "chapter": 4,
+          "title": "The Archetypes",
+          "locations": "930-934"
+        },
+        {
+          "chapter": 5,
+          "title": "The Technician",
+          "locations": "935-943"
+        },
+        {
+          "chapter": 6,
+          "title": "The Royal",
+          "locations": "944-953"
+        },
+        {
+          "chapter": 7,
+          "title": "The Soldier",
+          "locations": "954-960"
+        },
+        {
+          "chapter": 8,
+          "title": "The Specialist",
+          "locations": "961-973"
+        },
+        {
+          "chapter": 9,
+          "title": "The Politician",
+          "locations": "974-983"
+        },
+        {
+          "chapter": 10,
+          "title": "The Novice",
+          "locations": "984-996"
+        },
+        {
+          "chapter": 11,
+          "title": "The Leader",
+          "locations": "997-1007"
+        },
+        {
+          "chapter": 12,
+          "title": "The Self-Sabotager",
+          "locations": "1008-1018"
+        },
+        {
+          "chapter": 13,
+          "title": "The Mouthpiece",
+          "locations": "1019-1029"
+        },
+        {
+          "chapter": 14,
+          "title": "The Wolverine",
+          "locations": "1030-1040"
+        },
+        {
+          "chapter": 15,
+          "title": "The Free-Spirit",
+          "locations": "1041-1050"
+        },
+        {
+          "chapter": 16,
+          "title": "The Manipulator",
+          "locations": "1051-1066"
+        },
+        {
+          "chapter": 17,
+          "title": "The Underdog",
+          "locations": "1067-1094"
+        },
+        {
+          "chapter": 18,
+          "title": "The Crusader",
+          "locations": "1095-1106"
+        },
+        {
+          "chapter": 19,
+          "title": "The Skeptic",
+          "locations": "1107-1128"
+        },
+        {
+          "chapter": 20,
+          "title": "The Hypochondriac",
+          "locations": "1129-1240"
+        },
+        {
+          "chapter": 21,
+          "title": "Constructing Connections: Tools, Tenets & Strategies",
+          "locations": "1241-1346"
+        },
+        {
+          "chapter": 22,
+          "title": "Fundamentals, Not Fluff",
+          "locations": "1350-1355"
+        },
+        {
+          "chapter": 23,
+          "title": "Educate & The 3R's",
+          "locations": "1356-1366"
+        },
+        {
+          "chapter": 24,
+          "title": "Make 'Em Laugh",
+          "locations": "1367-1373"
+        },
+        {
+          "chapter": 25,
+          "title": "Be Authentic",
+          "locations": "1374-1380"
+        },
+        {
+          "chapter": 26,
+          "title": "Empathy",
+          "locations": "1381-1387"
+        },
+        {
+          "chapter": 27,
+          "title": "Delivery & Persuasion",
+          "locations": "1388-1395"
+        },
+        {
+          "chapter": 28,
+          "title": "Autonomy",
+          "locations": "1396-1431"
+        },
+        {
+          "chapter": 29,
+          "title": "Applying Conscious Coaching to Our Craft & Lives",
+          "locations": "1432-1481"
+        }
+      ],
+      "note": "archetypy (rozdz. 4-20 Bookey) w oryginale prawdopodobnie część rozdz. 3 'Seek to Understand' (wniosek z numeracji tytułów)"
+    },
+    {
+      "id": "missing-text",
+      "type": "missing_data",
+      "items": [
+        {
+          "chapter": 3,
+          "cut": "od 'Types of Conflict'",
+          "kept": "tabela rozdziału, rozdz. 2, Q&A"
+        },
+        {
+          "chapter": 6,
+          "cut": "Coaching Clinic (David Joyce)",
+          "kept": "tabela z przypadkiem, Q&A 8"
+        },
+        {
+          "chapter": 9,
+          "cut": "Coaching Clinic (Dave Puloka)",
+          "kept": "Q&A 7-10"
+        },
+        {
+          "chapter": 12,
+          "cut": "Coaching Insights (techniki relaksacji)",
+          "kept": "Q&A 2-9"
+        },
+        {
+          "chapter": 15,
+          "cut": "po Coaching Insights (Matt Gifford)",
+          "kept": "Q&A 6-9"
+        },
+        {
+          "chapter": 18,
+          "cut": "Coaching Clinic (Barry Solan)",
+          "kept": "Q&A 5-10"
+        },
+        {
+          "chapter": 21,
+          "cut": "lista błędów po punkcie 8",
+          "kept": "pełna lista w rozdz. 20"
+        },
+        {
+          "chapter": 24,
+          "cut": "Implementing Trust Tenet #3 po 2 punktach",
+          "kept": "Q&A 6-8"
+        },
+        {
+          "chapter": 27,
+          "cut": "Implementation Strategies",
+          "kept": "Q&A 4-7"
+        }
+      ],
+      "structureIssues": [
+        "rozdz. 2 zawiera treść rozdz. 3 i skrót 7 archetypów",
+        "rozdz. 20 zawiera listę 13 błędów i 7 zasad zaufania (treść rozdz. 21); zgodne z szerokim zakresem lokalizacji 1129-1240",
+        "rozdz. 28 powtarza treść rozdz. 29"
+      ],
+      "toRecover": "oryginalna książka"
+    },
+    {
+      "id": "contradictions",
+      "type": "uncertainties",
+      "items": [
+        {
+          "topic": "streszczenie zamiast książki",
+          "detail": "nie da się oddzielić słów autora od parafrazy Bookey"
+        },
+        {
+          "topic": "trzymaj kurs vs nie wciskaj metod",
+          "detail": "rozdz. 22 vs błąd nr 4 i rozdz. 28",
+          "appDecision": "stałe zasady i cel, elastyczne warianty i forma"
+        },
+        {
+          "topic": "dystans vs ujawnianie siebie",
+          "detail": "błąd nr 3 vs rozdz. 15, 17, 26",
+          "appDecision": "dziel się tym, co pomaga klientowi, w roli prowadzącego"
+        },
+        {
+          "topic": "pokonywanie lęku vs uznanie lęku",
+          "detail": "rozdz. 12, 20 vs komentarz Bookey",
+          "appDecision": "przy zdrowiu najpierw S10-S12"
+        },
+        {
+          "topic": "kontrola vs wzmacnianie przy Tubie",
+          "detail": "komentarz Bookey rozdz. 13"
+        },
+        {
+          "topic": "empatia druga czy pierwsza",
+          "detail": "rozdz. 26: druga po autentyczności; quiz pyta o 'pierwszą', bez odpowiedzi"
+        },
+        {
+          "topic": "lista archetypów w rozdz. 2",
+          "detail": "7 pozycji, krótsze opisy; obowiązują rozdz. 5-20"
+        },
+        {
+          "topic": "kontekst sportu drużynowego",
+          "detail": "archetypy grupowe mają ograniczone zastosowanie u klienta indywidualnego (wniosek)"
+        }
+      ]
+    }
+  ],
+  "clientArchetypes": [
+    {
+      "id": "A1",
+      "name": "Technik",
+      "nameOriginal": "Technician",
+      "strengths": [
+        "analityczny perfekcjonista",
+        "dba o detal",
+        "ćwiczenie jako łamigłówka"
+      ],
+      "weaknesses": [
+        "spina się pod presją",
+        "przeanalizowuje",
+        "emocjonalne reakcje na błędy"
+      ],
+      "howToConnect": [
+        "daj informację i kontekst (dlaczego)",
+        "uznaj jego wiedzę",
+        "po zdobyciu zaufania bardzo lojalny"
+      ],
+      "appUse": {
+        "value": "uzasadnienie przy ćwiczeniach i zmianach; dane postępu",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 5 The Technician",
+          "pages": "lok. 935-943 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "name": "Królewski",
+      "nameOriginal": "Royal",
+      "strengths": [
+        "duża pewność siebie dzięki pochwałom"
+      ],
+      "weaknesses": [
+        "unika dyskomfortu i zadań, w których nie błyszczy",
+        "ukrywa słabości",
+        "maskuje niepewność"
+      ],
+      "howToConnect": [
+        "cierpliwość",
+        "zacznij od mocnych stron",
+        "nie wymuszaj pokory",
+        "social proof: chwal innych za unikane zadanie",
+        "uwagi prywatnie"
+      ],
+      "appUse": {
+        "value": "plan zaczyna od mocnych stron; trudne elementy stopniowo",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 6 The Royal",
+          "pages": "lok. 944-953 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "name": "Żołnierz",
+      "nameOriginal": "Soldier",
+      "strengths": [
+        "sumienny",
+        "wytrwały",
+        "łatwy do prowadzenia"
+      ],
+      "weaknesses": [
+        "zaniedbuje odpoczynek",
+        "ignoruje sygnały bólu",
+        "przetrenowanie"
+      ],
+      "howToConnect": [
+        "uznaj zaangażowanie",
+        "jasne oczekiwania",
+        "pokaż związek z jego celem",
+        "odpoczynek jako narzędzie",
+        "zmiany stopniowo"
+      ],
+      "appUse": {
+        "value": "dni regeneracji jako część planu; ostrzeżenie przy treningach ponad plan",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 7 The Soldier",
+          "pages": "lok. 954-960 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "name": "Specjalista",
+      "nameOriginal": "Specialist",
+      "strengths": [
+        "pasja do dyscypliny",
+        "intuicyjne opanowanie sportu"
+      ],
+      "weaknesses": [
+        "lekceważy trening przygotowawczy",
+        "wąskie umiejętności ruchowe",
+        "kryzys tożsamości po kontuzji"
+      ],
+      "howToConnect": [
+        "pokazuj przełożenie na jego sport",
+        "pytaj o tożsamość, wartości, cele",
+        "cele PIE: celowe, znaczące, przyjemne"
+      ],
+      "appUse": {
+        "value": "opis ćwiczeń przez korzyść w jego aktywności",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 8 The Specialist",
+          "pages": "lok. 961-973 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "name": "Polityk",
+      "nameOriginal": "Politician",
+      "strengths": [
+        "charyzmatyczny",
+        "rozmowny",
+        "wie, czego chce"
+      ],
+      "weaknesses": [
+        "omija powtórzenia i niewygodne zadania",
+        "wygoda ponad rozwój"
+      ],
+      "howToConnect": [
+        "dawaj opcje",
+        "po small talku wróć do pracy",
+        "nie bądź autorytarny",
+        "element nieodpuszczalny -> alternatywa później w sesji",
+        "rozmowy prywatne"
+      ],
+      "appUse": {
+        "value": "wybór wariantów w ramach planu; elementy nieodpuszczalne oznaczone i wyjaśnione",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 9 The Politician",
+          "pages": "lok. 974-983 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "name": "Nowicjusz",
+      "nameOriginal": "Novice",
+      "strengths": [
+        "chętny",
+        "bez złych nawyków",
+        "szybki rozwój przy dobrym prowadzeniu"
+      ],
+      "weaknesses": [
+        "chce za szybko",
+        "frustracja przy przekraczaniu możliwości"
+      ],
+      "howToConnect": [
+        "cierpliwość",
+        "empatia (własne początki)",
+        "obraz stałego powolnego postępu",
+        "świętuj małe postępy"
+      ],
+      "appUse": {
+        "value": "domyślny tryb komunikacji dla początkujących",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 10 The Novice",
+          "pages": "lok. 984-996 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A7",
+      "name": "Lider",
+      "nameOriginal": "Leader",
+      "strengths": [
+        "odpowiedzialny",
+        "wiarygodny",
+        "pracowity",
+        "podnosi innych"
+      ],
+      "weaknesses": [
+        "bierze winę i ciężar grupy",
+        "negatywny dialog wewnętrzny"
+      ],
+      "howToConnect": [
+        "uczciwość i cel",
+        "uzyskaj pozwolenie",
+        "zdefiniuj na nowo 'dobrze'",
+        "presja rówieśnicza na dobre",
+        "rozliczaj jak innych"
+      ],
+      "appUse": {
+        "value": "rola wzorca w grupie; uwaga na samokrytykę",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 11 The Leader",
+          "pages": "lok. 997-1007 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A8",
+      "name": "Samosabotażysta",
+      "nameOriginal": "Self-Sabotager",
+      "strengths": [
+        "talent",
+        "czasem duża pracowitość"
+      ],
+      "weaknesses": [
+        "lęk",
+        "wątpliwości",
+        "paraliż przez analizę",
+        "tożsamość związana z błędami"
+      ],
+      "howToConnect": [
+        "relacja osobista",
+        "stopniowe mierzenie się z lękiem",
+        "mocne strony",
+        "analiza błędów jako nauka",
+        "wizualizacja, oddech, uważność, pozytywny dialog",
+        "bez przekraczania granic kompetencji"
+      ],
+      "appUse": {
+        "value": "komunikaty o nauce, nie porażce; przy poważnych trudnościach S13",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 12 The Self-Sabotager",
+          "pages": "lok. 1008-1018 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A9",
+      "name": "Tuba (Mouthpiece)",
+      "nameOriginal": "Mouthpiece",
+      "strengths": [
+        "głośny",
+        "energiczny",
+        "ożywia grupę"
+      ],
+      "weaknesses": [
+        "dominuje",
+        "rozprasza",
+        "nie zawsze daje wyniki"
+      ],
+      "howToConnect": [
+        "nie zakładaj motywów",
+        "kompromis i granice",
+        "wysłuchaj próśb",
+        "odmowa z uzasadnieniem i alternatywą",
+        "nie wykorzystuj jego popularności"
+      ],
+      "appUse": {
+        "value": "odmowa zmiany planu zawsze z uzasadnieniem i alternatywą",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 13 The Mouthpiece",
+          "pages": "lok. 1019-1029 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A10",
+      "name": "Wolverine",
+      "nameOriginal": "Wolverine",
+      "strengths": [
+        "samodzielny",
+        "spokojny",
+        "twardy"
+      ],
+      "weaknesses": [
+        "gniew",
+        "nieufność",
+        "wybuchowość przy prowokacji"
+      ],
+      "howToConnect": [
+        "cierpliwość",
+        "empatia, nie litość",
+        "najpierw logika",
+        "szczerość, przyznawanie się do niepewności",
+        "prowadź, nie dominuj",
+        "dyscyplina = sensowna praca, nie kara"
+      ],
+      "appUse": {
+        "value": "żadnych kar za opuszczone treningi; każde zadanie z celem",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 14 The Wolverine",
+          "pages": "lok. 1030-1040 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A11",
+      "name": "Wolny duch",
+      "nameOriginal": "Free-Spirit",
+      "strengths": [
+        "radość",
+        "luz",
+        "rywalizacja z samym sobą"
+      ],
+      "weaknesses": [
+        "zapominalski",
+        "rozproszony"
+      ],
+      "howToConnect": [
+        "luźny styl",
+        "gamifikacja",
+        "łączenie z zainteresowaniami",
+        "krótkie mikrocykle",
+        "obrazowe wskazówki",
+        "struktura + swoboda",
+        "mów dlaczego"
+      ],
+      "appUse": {
+        "value": "wyzwania, odznaki, zmienność w ramach planu, przypomnienia",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 15 The Free-Spirit",
+          "pages": "lok. 1041-1050 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A12",
+      "name": "Manipulator",
+      "nameOriginal": "Manipulator",
+      "strengths": [
+        "czyta ludzi",
+        "wyczucie czasu",
+        "kreatywny"
+      ],
+      "weaknesses": [
+        "ukryty cel",
+        "gra na ego lub kompleksach"
+      ],
+      "howToConnect": [
+        "empatia + twarde granice i konsekwencje",
+        "otwarta komunikacja z zespołem",
+        "zrozum motywy"
+      ],
+      "appUse": {
+        "value": "nie przypisywać automatycznie (S14)",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 16 The Manipulator",
+          "pages": "lok. 1051-1066 (Best Quotes)"
+        }
+      ],
+      "subtypes": [
+        "szarlatan",
+        "czaruś (charismatic)",
+        "słuchacz (listener)"
+      ]
+    },
+    {
+      "id": "A13",
+      "name": "Underdog",
+      "nameOriginal": "Underdog",
+      "strengths": [
+        "robotnik: pracowity",
+        "śpiący olbrzym: warunki fizyczne"
+      ],
+      "weaknesses": [
+        "robotnik: przemęcza się",
+        "olbrzym: brak wiary w siebie"
+      ],
+      "howToConnect": [
+        "konsekwencja i zaufanie",
+        "indywidualna ścieżka",
+        "miejsce na porażkę bez krytyki",
+        "dziel się własnymi porażkami",
+        "nie niszcz odwagi i pewności siebie"
+      ],
+      "appUse": {
+        "value": "robotnik: pilnuj regeneracji; olbrzym: podkreślaj postępy",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 17 The Underdog",
+          "pages": "lok. 1067-1094 (Best Quotes)"
+        }
+      ],
+      "subtypes": [
+        "Blue Collar (robotnik)",
+        "Sleeping Giant (śpiący olbrzym)"
+      ]
+    },
+    {
+      "id": "A14",
+      "name": "Krzyżowiec",
+      "nameOriginal": "Crusader",
+      "strengths": [
+        "wyższy cel",
+        "jednoczy",
+        "często w tle"
+      ],
+      "weaknesses": [
+        "bierze ciężary innych",
+        "zaniedbuje siebie"
+      ],
+      "howToConnect": [
+        "poznaj ideały",
+        "pytaj o atmosferę w grupie",
+        "regularne rozmowy bez wścibstwa",
+        "zachęcaj do dbania o siebie"
+      ],
+      "appUse": {
+        "value": "treningi grupowe; przypomnienia o własnej regeneracji",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 18 The Crusader",
+          "pages": "lok. 1095-1106 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A15",
+      "name": "Sceptyk",
+      "nameOriginal": "Skeptic",
+      "strengths": [
+        "chce zrozumieć przed zaangażowaniem"
+      ],
+      "weaknesses": [
+        "ciągłe pytania hamują postęp",
+        "może zarażać grupę",
+        "Natural: trening zbędny",
+        "Follower: ulega trendom"
+      ],
+      "howToConnect": [
+        "poznaj przyczynę (dawna kontuzja, złe doświadczenia)",
+        "racjonalne wyjaśnienia",
+        "uzasadnienie i wyniki",
+        "włącz w decyzje",
+        "panuj nad emocjami",
+        "daj czas"
+      ],
+      "appUse": {
+        "value": "odpowiedź na 'dlaczego' przy elementach planu",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 19 The Skeptic",
+          "pages": "lok. 1107-1128 (Best Quotes)"
+        }
+      ],
+      "subtypes": [
+        "Natural",
+        "Follower"
+      ]
+    },
+    {
+      "id": "A16",
+      "name": "Hipochondryk",
+      "nameOriginal": "Hypochondriac",
+      "strengths": [
+        "uważny na sygnały ciała",
+        "wcześnie zauważa drobne urazy"
+      ],
+      "weaknesses": [
+        "przesadza z drobiazgami",
+        "wymówki",
+        "samospełniająca się przepowiednia"
+      ],
+      "howToConnect": [
+        "Acknowledge, Aim, Alter",
+        "przypominaj mocne strony",
+        "nie ma idealnego stanu"
+      ],
+      "appUse": {
+        "value": "każde zgłoszenie bólu najpierw przez S10-S12, potem rozmowa",
+        "status": "wniosek"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "A-USE",
+      "title": "Jak aplikacja korzysta z archetypów",
+      "status": "wniosek",
+      "rules": [
+        "archetyp to podpowiedź dla trenera, nie diagnoza ani etykieta dla klienta",
+        "można przypisać kilka archetypów lub żaden",
+        "sygnały z zachowania w planie (pytania 'dlaczego', treningi ponad plan); skargi zdrowotne najpierw do sekcji 5",
+        "trener może zmienić lub usunąć przypisanie"
+      ],
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 4 The Archetypes",
+          "pages": "lok. 930-934 (Best Quotes)"
+        }
+      ]
+    }
+  ],
+  "communicationRules": [
+    {
+      "id": "C-PAR",
+      "category": "parameters",
+      "status": "zrodlo",
+      "items": [
+        {
+          "element": "samoocena trenera i zespołu",
+          "value": "co najmniej 3 razy w roku",
+          "status": "zrodlo",
+          "layer": "qa",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 25 Be Authentic (Q&A 7)",
+              "pages": "lok. 1374-1380 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "element": "rozmowy kontrolne z klientem",
+          "value": null,
+          "note": "'regularne', bez liczby",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 18 The Crusader",
+              "pages": "lok. 1095-1106 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "element": "czas budowania zaufania",
+          "value": null,
+          "note": "'wymaga czasu', bez liczby",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 1 Maps & Meanings",
+              "pages": "lok. 110-326 (Best Quotes)"
+            },
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 10 The Novice",
+              "pages": "lok. 984-996 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "element": "kolejność rozmowy edukacyjnej",
+          "value": [
+            "Research",
+            "Relate",
+            "Reframe"
+          ],
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+              "pages": "lok. 1356-1366 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "element": "rozmowa z osobą zaniepokojoną",
+          "value": [
+            "Acknowledge",
+            "Aim",
+            "Alter"
+          ],
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 20 The Hypochondriac",
+              "pages": "lok. 1129-1240 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "element": "wprowadzanie zmian w nawykach",
+          "value": "stopniowo",
+          "status": "zrodlo",
+          "layer": "qa",
+          "sources": [
+            {
+              "ref": "conscious-coaching-bartholomew-bookey",
+              "chapter": "Bookey rozdz. 7 The Soldier (Q&A 6)",
+              "pages": "lok. 954-960 (Best Quotes)"
+            }
+          ]
+        },
+        {
+          "element": "częstotliwość wiadomości w aplikacji",
+          "value": null,
+          "status": "brak_w_zrodle",
+          "sources": []
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "category": "reguła",
+      "if": "klient początkujący, 3 treningi w tygodniu",
+      "then": "parametry planu: brak w tej książce; komunikacja w trybie Nowicjusz: proste wyjaśnienia, chwalenie regularności i małych postępów, hamowanie zbyt szybkiego wzrostu trudności",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 10 The Novice",
+          "pages": "lok. 984-996 (Best Quotes)"
+        }
+      ],
+      "note": "parametry treningowe = brak_w_zrodle"
+    },
+    {
+      "id": "R2",
+      "category": "reguła",
+      "if": "ograniczony sprzęt",
+      "then": "parametry: brak w źródle; wyjaśnij, że proste ćwiczenia działają (proste nie znaczy łatwe)",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "reguła",
+      "if": "cel hipertrofia",
+      "then": null,
+      "status": "brak_w_zrodle",
+      "sources": [],
+      "note": "użyj innej bazy"
+    },
+    {
+      "id": "R4",
+      "category": "reguła",
+      "if": "wynik, regeneracja lub ból wskazuje problem",
+      "then": "ból/objawy -> sekcja 5; trening ponad plan -> R13; spadek wyników -> zapytaj (R6), nie zakładaj lenistwa",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 7 The Soldier",
+          "pages": "lok. 954-960 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 26 Empathy",
+          "pages": "lok. 1381-1387 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "reguła",
+      "if": "klient trenuje ponad plan lub lekceważy odpoczynek",
+      "then": "doceń zaangażowanie, wyjaśnij odpoczynek jako narzędzie, zmiany stopniowo, monitoruj",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 7 The Soldier",
+          "pages": "lok. 954-960 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 17 The Underdog",
+          "pages": "lok. 1067-1094 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "reguła",
+      "if": "klient pyta 'dlaczego' lub podważa metody",
+      "then": "potraktuj jako potrzebę zrozumienia; uzasadnienie i wyniki; włącz w decyzje; zachowaj spokój",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 5 The Technician",
+          "pages": "lok. 935-943 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 19 The Skeptic",
+          "pages": "lok. 1107-1128 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "category": "reguła",
+      "if": "klient chce modnej metody bez uzasadnienia",
+      "then": "wyjaśnij, czy i jak pasuje do celu; trzymaj się zasad planu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 19 The Skeptic",
+          "pages": "lok. 1107-1128 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "category": "reguła",
+      "if": "nie można spełnić prośby o zmianę planu",
+      "then": "wyjaśnij powód i zaproponuj alternatywę zgodną z celem",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 13 The Mouthpiece (Q&A 8)",
+          "pages": "lok. 1019-1029 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "reguła",
+      "if": "klient unika ćwiczeń, w których słabo wypada",
+      "then": "zacznij od mocnych stron, trudne elementy stopniowo, uwagi prywatnie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 6 The Royal",
+          "pages": "lok. 944-953 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "category": "reguła",
+      "if": "klient się nudzi lub zapomina o treningach",
+      "then": "gamifikacja, powiązanie z zainteresowaniami, krótkie cykle, przypomnienia",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 15 The Free-Spirit",
+          "pages": "lok. 1041-1050 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "category": "reguła",
+      "if": "klient boi się porażki lub przeanalizowuje",
+      "then": "nauka zamiast błędów, mocne strony, stopniowe wyzwania; przy poważnych trudnościach psychicznych S13",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 12 The Self-Sabotager",
+          "pages": "lok. 1008-1018 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 17 The Underdog",
+          "pages": "lok. 1067-1094 (Best Quotes)"
+        }
+      ],
+      "note": "odesłanie do S13 = poza_zrodlem"
+    },
+    {
+      "id": "R20",
+      "category": "reguła",
+      "if": "początek współpracy",
+      "then": "ustal oczekiwania i konsekwencje, zadbaj o pierwsze wrażenie, zacznij od Research",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 2 Know Thyself to Know Thy Athletes",
+          "pages": "lok. 327-714 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "category": "reguła",
+      "if": "konflikt",
+      "then": "oddziel spór o metodę od konfliktu osobistego; otwarta rozmowa, kompromis; spokój i szacunek przy konfrontacji",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 14 The Wolverine",
+          "pages": "lok. 1030-1040 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R22",
+      "category": "reguła",
+      "if": "klient narusza zasady lub namawia innych na ryzykowne rzeczy",
+      "then": "empatia, twarde granice i konsekwencje",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 16 The Manipulator",
+          "pages": "lok. 1051-1066 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "category": "reguła",
+      "if": "klient przechodzi do innego trenera lub programu",
+      "then": "nie podważaj własnych zasad z powodu jednego przypadku; refleksja bez pochopnych zmian",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff (Q&A 7)",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R24",
+      "category": "reguła",
+      "if": "aplikacja wysyła komunikat do klienta",
+      "then": "prosto, bez żargonu, z analogią i odniesieniem do celu klienta; humor lekki, nigdy kosztem klienta",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 24 Make 'Em Laugh",
+          "pages": "lok. 1367-1373 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 27 Delivery & Persuasion",
+          "pages": "lok. 1388-1395 (Best Quotes)"
+        }
+      ]
+    }
+  ],
+  "adherenceRules": [
+    {
+      "id": "R5",
+      "category": "reguła",
+      "if": "klient nie realizuje planu",
+      "then": "zastosuj po kolei R6-R12",
+      "status": "wniosek",
+      "sources": [],
+      "note": "plik nie ma rozdziału o realizacji planu; ścieżka złożona z P4, P9, P10, P13, P15, P16"
+    },
+    {
+      "id": "R6",
+      "category": "reguła",
+      "if": "klient opuszcza treningi lub robi je niepełnie",
+      "then": "pytanie otwarte, wysłuchanie, nazwanie obaw (emocjonalna płatność); nie zakładaj złej woli",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 26 Empathy",
+          "pages": "lok. 1381-1387 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "category": "reguła",
+      "if": "problem z realizacją się powtarza",
+      "then": "ustal dominujący popęd i cel klienta; zmiana zachowania wymaga odkrycia jego przyczyny",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "category": "reguła",
+      "if": "klient nie widzi sensu ćwiczeń",
+      "then": "przeformułuj w jego języku (Reframe, analogia) i powtarzaj powiązanie z celem",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 8 The Specialist",
+          "pages": "lok. 961-973 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 27 Delivery & Persuasion",
+          "pages": "lok. 1388-1395 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "category": "reguła",
+      "if": "klient opiera się planowi",
+      "then": "wybór w ramach struktury (wariant, kolejność, dzień); element nieodpuszczalny wyjaśnij i daj alternatywę później; bez tonu autorytarnego",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 9 The Politician",
+          "pages": "lok. 974-983 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 28 Autonomy",
+          "pages": "lok. 1396-1431 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "reguła",
+      "if": "plan zbyt skomplikowany, klient się gubi",
+      "then": "wróć do podstaw: mniej elementów, jasny cel każdego ćwiczenia",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "reguła",
+      "if": "klient opuścił trening",
+      "then": "bez karnych serii i zawstydzania; dyscyplina to sensowna praca, nie kara",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 14 The Wolverine",
+          "pages": "lok. 1030-1040 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "reguła",
+      "if": "postęp wolniejszy niż oczekiwania",
+      "then": "pokaż małe postępy, przypomnij, że zmiana wymaga czasu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 10 The Novice",
+          "pages": "lok. 984-996 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        }
+      ]
+    }
+  ],
+  "communicationTemplates": [
+    {
+      "id": "K1",
+      "name": "Pierwsza rozmowa (Research + oczekiwania)",
+      "basedOn": [
+        "P5",
+        "P7",
+        "P10",
+        "R20"
+      ],
+      "steps": [
+        "cel i dlaczego teraz",
+        "co pomagało, a co przeszkadzało wcześniej",
+        "czego się obawiasz",
+        "jak plan prowadzi do celu",
+        "co się dzieje, gdy trening wypada"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 3 Seek to Understand",
+          "pages": "lok. 715-929 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "K2",
+      "name": "Wyjaśnienie planu",
+      "basedOn": [
+        "P9",
+        "P10",
+        "P14"
+      ],
+      "steps": [
+        "jedno zdanie celu przy każdym ćwiczeniu w języku klienta",
+        "analogia z zainteresowań klienta",
+        "proste ćwiczenia, ale wymagające"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 27 Delivery & Persuasion",
+          "pages": "lok. 1388-1395 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "K3",
+      "name": "Klient opuścił treningi",
+      "basedOn": [
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+        "R11",
+        "R12"
+      ],
+      "steps": [
+        "uznanie trudności i pytanie otwarte",
+        "ustalenie przeszkody (przy bólu sekcja 5)",
+        "wybór w ramach planu: krótsza sesja, inny dzień, inny wariant; bez kar",
+        "najbliższy mały krok i pochwała za wykonane treningi"
+      ],
+      "exampleOpening": "Widzę, że w tym tygodniu było trudno z treningami. Co się działo?",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 9 The Politician",
+          "pages": "lok. 974-983 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 14 The Wolverine",
+          "pages": "lok. 1030-1040 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 23 Educate & The 3R's",
+          "pages": "lok. 1356-1366 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 26 Empathy",
+          "pages": "lok. 1381-1387 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "K4",
+      "name": "Klient chce modnej metody",
+      "basedOn": [
+        "R14",
+        "R15"
+      ],
+      "steps": [
+        "wysłuchaj",
+        "zapytaj o oczekiwania",
+        "wyjaśnij dopasowanie do celu",
+        "zaproponuj element planu dający to, czego szuka"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 19 The Skeptic",
+          "pages": "lok. 1107-1128 (Best Quotes)"
+        },
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 22 Fundamentals, Not Fluff",
+          "pages": "lok. 1350-1355 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "K5",
+      "name": "Klient trenuje ponad plan",
+      "basedOn": [
+        "R13",
+        "S1"
+      ],
+      "steps": [
+        "doceń zaangażowanie",
+        "odpoczynek jako narzędzie",
+        "jedna mała zmiana naraz",
+        "obserwuj"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 7 The Soldier",
+          "pages": "lok. 954-960 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "K6",
+      "name": "Odmowa prośby z alternatywą",
+      "basedOn": [
+        "R16"
+      ],
+      "exampleOpening": "Tego nie zmienię, bo [powód związany z celem]. Mogę za to [alternatywa].",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 13 The Mouthpiece",
+          "pages": "lok. 1019-1029 (Best Quotes)"
+        }
+      ]
+    },
+    {
+      "id": "K7",
+      "name": "Klient zaniepokojony zdrowiem (Acknowledge, Aim, Alter)",
+      "basedOn": [
+        "S4",
+        "S10",
+        "S11",
+        "S12"
+      ],
+      "steps": [
+        "najpierw sprawdź S11-S12",
+        "uznaj obawę",
+        "zapytaj, co dokładnie niepokoi",
+        "przypomnij mocne strony i co jest normalnym zmęczeniem",
+        "w razie wątpliwości zalecenie konsultacji"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "conscious-coaching-bartholomew-bookey",
+          "chapter": "Bookey rozdz. 20 The Hypochondriac",
+          "pages": "lok. 1129-1240 (Best Quotes)"
+        }
+      ]
+    }
+  ]
+}

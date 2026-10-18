@@ -4391,7 +4391,10 @@ async function delKBEntry(id){
 }
 
 function kbContextForAI(opts){
-  if(typeof planningEvidenceContext==='function')return planningEvidenceContext(3500,opts||{})+kbResearchContext(opts);
+  opts=opts||{};
+  /* Generator planu dokłada książki sam (większy budżet + kontuzje klienta), stąd books:false. */
+  const books=opts.books!==false&&typeof booksKbContext==='function'?booksKbContext({mode:opts.mode,query:opts.query||'',maxChars:3500}):'';
+  if(typeof planningEvidenceContext==='function')return books+planningEvidenceContext(3500,opts||{})+kbResearchContext(opts);
   const on=kbUniqueEntries(KB||[]).filter(k=>typeof kbEntryUsesInPlanning==='function'?kbEntryUsesInPlanning(k):k.useInPlanning!==false);
   if(!on.length)return '';
   return '\n\n=== BADANIA I NOTATKI TRENERA ===\n'+on.map(k=>`### ${k.title}\n${(k.text||'').substring(0,500)}`).join('\n\n');
@@ -4434,7 +4437,8 @@ async function kbFeedLoad(force){
 }
 // Feed is supporting evidence, never an instruction or an approved client prescription.
 async function kbPrepareResearch(){
-  try{await Promise.race([kbFeedLoad(),new Promise(resolve=>setTimeout(resolve,5000))]);}catch(e){}
+  const books=typeof booksKbLoad==='function'?booksKbLoad():null;
+  try{await Promise.race([Promise.all([kbFeedLoad(),books]),new Promise(resolve=>setTimeout(resolve,5000))]);}catch(e){}
 }
 function kbResearchContext(opts){
   opts=opts||{};

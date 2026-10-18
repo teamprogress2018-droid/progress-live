@@ -1,0 +1,1695 @@
+{
+  "principles": [
+    {
+      "id": "N1",
+      "title": "Skład ciała ważniejszy niż masa ciała i BMI",
+      "rule": "BMI uwzględnia tylko wzrost i masę; w sporcie nie ma praktycznego zastosowania (kulturysta z ok. 6% tłuszczu wychodzi jako osoba z nadwagą). Oceniaj skład ciała.",
+      "appliesTo": [
+        "osoby trenujące",
+        "duża masa mięśniowa"
+      ],
+      "conditions": [],
+      "limitations": [
+        "fragment nie mówi, jak mierzyć skład ciała"
+      ],
+      "values": {
+        "bmiNorm": [
+          18.5,
+          24.9
+        ],
+        "bmiUnderweightBelow": 18.5,
+        "bmiOverweightFrom": 25,
+        "bmiObesityAbove": 30
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze, ramka BMI",
+          "pages": "87"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "title": "Optymalny poziom tkanki tłuszczowej zależy od płci, wieku, dyscypliny i poziomu",
+      "rule": "Wartości orientacyjne % tkanki tłuszczowej według płci, wieku i trenowania.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "nie każda dyscyplina wymaga bardzo niskiego tłuszczu",
+        "inaczej u amatora, inaczej u zawodowca"
+      ],
+      "limitations": [
+        "brak wartości po 35. r.ż.",
+        "dla klientów rekreacyjnych punktem odniesienia są wartości dla nietrenujących (wniosek)"
+      ],
+      "values": {
+        "womenCompetitive17to25": [
+          12,
+          16
+        ],
+        "womenCompetitive17to25Note": "przy dużych piersiach/pośladkach nawet ok. 20%",
+        "womenCompetitive25to35": "o 4-5 pkt proc. więcej niż 12-16%",
+        "womenNonTraining": "do 20-25%",
+        "menCompetitive15to25": [
+          7,
+          13
+        ],
+        "menCompetitive25to35Max": 16,
+        "menNonTraining20to30Max": 20
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze, Optymalna zawartość tłuszczu w organizmie",
+          "pages": "86"
+        }
+      ]
+    },
+    {
+      "id": "N3",
+      "title": "Zbyt niska tkanka tłuszczowa szkodzi zdrowiu",
+      "rule": "Kulturyści na zawodach ok. 5%, kolarki, tancerki, gimnastyczki, fitnesski czasem <10%; duże ryzyko: zaburzenia hormonalne, brak miesiączki, możliwa niepłodność.",
+      "appliesTo": [
+        "kobiety",
+        "sporty sylwetkowe i estetyczne"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "bodybuildersContestBF": 5,
+        "femaleAthletesSometimesBelow": 10
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "86-87"
+        }
+      ]
+    },
+    {
+      "id": "N4",
+      "title": "Tłuszcz spala się od pierwszych minut wysiłku (mit 30 minut)",
+      "rule": "Procesy tlenowe ruszają po kilku minutach; tłuszcz utlenia się od początku (na starcie mało). Dla sensownego odchudzania biegaj min. 30 min, najlepiej 60 min.",
+      "appliesTo": [
+        "redukcja",
+        "kardio"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak intensywności i częstotliwości sesji",
+        "część o interwałach (s. 22) niedostępna"
+      ],
+      "values": {
+        "cardioSessionMinMin": 30,
+        "cardioSessionOptimalMin": 60
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze, ramka Mit 30 minut",
+          "pages": "86"
+        }
+      ]
+    },
+    {
+      "id": "N5",
+      "title": "Cholesterol jest potrzebny; cholesterol z jedzenia ma u większości mały wpływ",
+      "rule": "Ok. 30% cholesterolu pochodzi z jedzenia; u większości dieta mało zmienia stężenie we krwi, ale są osoby nadwrażliwe. HDL i LDL to nośniki. Według autorów długotrwałe niedobory antyoksydantów są ważniejsze dla miażdżycy niż ilość tłuszczu.",
+      "appliesTo": [
+        "wiedza ogólna"
+      ],
+      "conditions": [
+        "stężenie zależy głównie od żywienia, trybu życia, aktywności, genów; wpływa tarczyca"
+      ],
+      "limitations": [
+        "aplikacja nie ocenia wyników badań krwi (poza źródłem)"
+      ],
+      "values": {
+        "dietaryShare": "ok. 30%",
+        "typicalIntakeFatGPerDay": [
+          50,
+          100
+        ],
+        "typicalIntakeCholMgPerDay": [
+          250,
+          500
+        ],
+        "absorptionMaxPercent": [
+          25,
+          30
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze, Cholesterol nie taki straszny; Dobry i zły cholesterol",
+          "pages": "87-89"
+        }
+      ]
+    },
+    {
+      "id": "N6",
+      "title": "Woda wysokozmineralizowana okołotreningowo, ale nie przez cały dzień",
+      "rule": "Aktywni piją wodę wysokozmineralizowaną przed, w trakcie i po treningu (potas, magnez, wodorowęglany), ale nie stale i nie w dużych ilościach; w ciągu dnia zmieniać wody.",
+      "appliesTo": [
+        "osoby aktywne"
+      ],
+      "conditions": [
+        "duże pocenie: sód >200 mg/l",
+        "podwyższone ciśnienie: woda niskosodowa <50 mg/l",
+        "przemęczenie, dużo kawy: magnez >50 mg/l",
+        "nadkwasota: wodorowęglany >500 mg/l",
+        "redukcja: dużo płynów, woda z wapniem i magnezem",
+        "woda źródlana <500 mg/l na co dzień"
+      ],
+      "limitations": [
+        "'oczyszczanie z toksyn' to twierdzenie autorów bez wyjaśnienia (wniosek)"
+      ],
+      "values": {
+        "highMineralMgPerL": ">1500",
+        "sodiumHeavySweatersMgPerL": ">200",
+        "lowSodiumHypertensionMgPerL": "<50",
+        "magnesiumMgPerL": ">50",
+        "bicarbonateMgPerL": ">500"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki), Która woda dla kogo?",
+          "pages": "108-109"
+        }
+      ]
+    },
+    {
+      "id": "N7",
+      "title": "Rodzaj napoju ważny przy długim wysiłku i w upale",
+      "rule": "Przy wysiłku >60 min, w upale lub wilgotności liczy się osmolalność napoju. Hipotoniki (<4 g węgl./100 ml) do nawadniania w upale, z dodatkiem elektrolitów; izotoniki (4-8 g/100 ml) przy wysiłku >60 min lub tuż po. Przy izotoniku dodatkowa woda nisko zmineralizowana. Izotonik nie zastępuje napojów w ciągu dnia.",
+      "appliesTo": [
+        "wysiłek >60 min",
+        "upał"
+      ],
+      "conditions": [
+        "sama czysta woda przy długim intensywnym wysiłku nie wystarcza (hiponatremia)"
+      ],
+      "limitations": [
+        "mechanizm hiponatremii opisany nietypowo; osmolalność napojów opisana jako 'osocza' (sprzeczność 2)"
+      ],
+      "values": {
+        "hypotonicCarbGPer100ml": "<4",
+        "isotonicCarbGPer100ml": [
+          4,
+          8
+        ],
+        "isotonicOsmolality": [
+          270,
+          330
+        ],
+        "hypotonicOsmolality": [
+          200,
+          250
+        ],
+        "plasmaOsmolality": [
+          275,
+          295
+        ],
+        "thresholdMin": 60
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki), Hipotonik, izotonik, hipertonik",
+          "pages": "110-111"
+        }
+      ]
+    },
+    {
+      "id": "N8",
+      "title": "Na redukcji bez izotoników i węglowodanów w trakcie treningu",
+      "rule": "Przy celu redukcyjnym w trakcie treningu nie pij izotoników; przy siła + kardio węglowodany dopiero po całym treningu.",
+      "appliesTo": [
+        "redukcja"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "111"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety, Odżywki węglowodanowe",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "N9",
+      "title": "Węglowodany wokół treningu: ile i kiedy",
+      "rule": "Posiłek przed treningiem wystarcza na ok. 60 min intensywnej pracy; napój węglowodanowy w 60-min umiarkowanym treningu nie poprawia wydolności. Po ok. 1 h treningu o średniej intensywności 0,8-1 g/kg w 2 dawkach co 30 min. Wysiłek >=90 min: od 45. min 40-50 g/h w płynie. Sporty siłowe (nie redukcja): napój węglowodanowy pod koniec ciężarów i w kardio.",
+      "appliesTo": [
+        "wszyscy trenujący"
+      ],
+      "conditions": [
+        "odżywki węglowodanowe mają znaczenie przy treningu >3 razy w tygodniu"
+      ],
+      "limitations": [
+        "dzienne zapotrzebowanie na makroskładniki poza fragmentem"
+      ],
+      "values": {
+        "postWorkoutCarbGPerKg": [
+          0.8,
+          1.0
+        ],
+        "postWorkoutDoses": 2,
+        "doseIntervalMin": 30,
+        "longEffortThresholdMin": 90,
+        "longEffortStartMin": 45,
+        "longEffortCarbGPerHour": [
+          40,
+          50
+        ],
+        "preMealCoversMin": 60,
+        "example": "kobieta 60 kg po 1 h zumby: 48-60 g"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety, Odżywki węglowodanowe",
+          "pages": "144-145"
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "title": "Odżywki z cukrami prostymi z umiarem",
+      "rule": "Maltoza i dekstroza mają wysoki IG i mogą dawać skoki insuliny; nadmiar insuliny sprzyja odkładaniu tłuszczu; odżywki bywają nadużywane.",
+      "appliesTo": [
+        "stosujący odżywki"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "144"
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "title": "Żele energetyczne tylko na zawodach, pod koniec, popite wodą",
+      "rule": "Odradzane na treningach; na zawodach pod koniec wysiłku; popić ok. 200 ml wody, nie izotonikiem.",
+      "appliesTo": [
+        "wytrzymałość"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "waterMl": 200
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "title": "L-karnityna nie działa u każdego",
+      "rule": "Uczestniczy w transporcie kwasów tłuszczowych; organizm ją syntetyzuje; najlepsze efekty u mężczyzn >17-18% i kobiet >25% tłuszczu trenujących tlenowo; u części podopiecznych autorów brak efektu.",
+      "appliesTo": [
+        "redukcja (informacyjnie)"
+      ],
+      "conditions": [
+        "dawki z książki: 250 mg-2 g/dzień w 2-3 dawkach, sportowcy do 6 g; na pusty żołądek, 1-2 h przed treningiem lub rano; efekt po ok. 3 tyg."
+      ],
+      "limitations": [
+        "badania niejednoznaczne, brak optymalnej dawki (wg autorów)",
+        "część twierdzeń bez cytowanego badania (wniosek)",
+        "autorzy polecają łączenie z fat burnerami, CLA, HCA, kofeiną; aplikacja tego nie zaleca (poza źródłem)"
+      ],
+      "values": {
+        "bookDoseG": [
+          0.25,
+          2
+        ],
+        "athleteMaxG": 6,
+        "bestResponderBFMen": "17-18%",
+        "bestResponderBFWomen": "25%",
+        "dietaryMgPerDay": [
+          20,
+          300
+        ],
+        "supplementAbsorptionPercent": [
+          5,
+          20
+        ],
+        "foodAbsorptionPercent": [
+          50,
+          85
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety, L-karnityna",
+          "pages": "142-144"
+        }
+      ]
+    },
+    {
+      "id": "N13",
+      "title": "Woda gazowana po wysiłku, nie w trakcie",
+      "rule": "W trakcie ćwiczeń woda niegazowana (gazowana gorzej gasi pragnienie, wzdęcia, gorsza wentylacja, diureza); gazowana po wysiłku.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "niegazowana także przy nadkwasocie, chorobie wrzodowej, problemach gardła/krtani"
+      ],
+      "limitations": [],
+      "values": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki), Woda gazowana czy niegazowana?",
+          "pages": "109-110"
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "title": "Woda destylowana i odwadnianie przed zawodami są niebezpieczne",
+      "rule": "Woda destylowana wypłukuje minerały, odwadnia; w większej ilości bardzo szkodliwa, nawet śmiertelnie; medycznie niezalecana.",
+      "appliesTo": [
+        "sporty sylwetkowe",
+        "kategorie wagowe"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki), Woda destylowana",
+          "pages": "109"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E1",
+      "category": "kardio_redukcja",
+      "rule": "Kardio na redukcji: treningi tlenowe (bieg ciągły, rower), sesja min. 30 min, najlepiej 60 min.",
+      "values": {
+        "sessionMin": [
+          30,
+          60
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "86"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "143"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "dobor_cwiczen",
+      "rule": "Wzorce ruchowe, progresje/regresje, sprzęt, zamienniki, priorytety mięśniowe: książka nie zawiera.",
+      "values": null,
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "E3",
+      "category": "interwaly",
+      "rule": "Interwały to wysiłek beztlenowy; podrozdział 'Interwały a odchudzanie' niedostępny (tylko spis treści).",
+      "values": null,
+      "status": "zrodlo",
+      "note": "tylko tytuł w spisie treści",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 1 Jak i skąd organizm pozyskuje energię? (spis treści)",
+          "pages": "19, 22"
+        }
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PAR-hipertrofia",
+      "category": "parameters",
+      "goal": "hipertrofia",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "węglowodany po ok. 1 h treningu",
+          "value": "0,8-1 g/kg m.c. w 2 dawkach co ok. 30 min",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 6 Suplementy diety",
+              "pages": "145"
+            }
+          ]
+        },
+        {
+          "item": "siła + kardio (cel nie redukcja)",
+          "value": "napój węglowodanowy od końcówki części siłowej",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 6 Suplementy diety",
+              "pages": "145"
+            }
+          ]
+        },
+        {
+          "item": "białko, kalorie, dieta na masę",
+          "value": null,
+          "status": "brak_w_zrodle",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 3 Białko; Rozdz. 7 Diety (spis treści)",
+              "pages": "55-74, 156-161"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PAR-sila",
+      "category": "parameters",
+      "goal": "sila",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "zasady okołotreningowe",
+          "value": "jak hipertrofia",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 6 Suplementy diety",
+              "pages": "144-145"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PAR-redukcja",
+      "category": "parameters",
+      "goal": "redukcja",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "kardio czas sesji",
+          "value": "min. 30 min, najlepiej 60 min",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 4 Tłuszcze",
+              "pages": "86"
+            }
+          ]
+        },
+        {
+          "item": "kardio intensywność i częstotliwość",
+          "value": null,
+          "status": "brak_w_zrodle",
+          "sources": []
+        },
+        {
+          "item": "napoje w trakcie",
+          "value": "woda, bez izotoników",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+              "pages": "111"
+            }
+          ]
+        },
+        {
+          "item": "węglowodany",
+          "value": "po całym treningu",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 6 Suplementy diety",
+              "pages": "145"
+            }
+          ]
+        },
+        {
+          "item": "płyny w ciągu dnia",
+          "value": "dużo; woda z wapniem i magnezem",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+              "pages": "109"
+            }
+          ]
+        },
+        {
+          "item": "ocena postępu",
+          "value": "skład ciała, nie BMI",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 4 Tłuszcze",
+              "pages": "87"
+            }
+          ]
+        },
+        {
+          "item": "granica",
+          "value": "bez dążenia do skrajnie niskiego % tłuszczu",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 4 Tłuszcze",
+              "pages": "86-87"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PAR-zdrowie",
+      "category": "parameters",
+      "goal": "zdrowie",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "% tłuszczu nietrenujący",
+          "value": {
+            "kobiety": "do 20-25%",
+            "mezczyzni20to30": "<20%"
+          },
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 4 Tłuszcze",
+              "pages": "86"
+            }
+          ]
+        },
+        {
+          "item": "normy lipidowe",
+          "value": "Tabele 11-13 jako wiedza; aplikacja nie interpretuje wyników",
+          "status": "poza_zrodlem",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 4 Tłuszcze",
+              "pages": "89"
+            }
+          ]
+        },
+        {
+          "item": "woda na co dzień",
+          "value": "źródlana lub o zróżnicowanej mineralizacji",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+              "pages": "108-109"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PAR-poczatkujacy",
+      "category": "parameters",
+      "goal": "poczatkujacy",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "trening do ok. 60 min",
+          "value": "posiłek przed wystarcza, w trakcie woda, po ewentualnie 0,8-1 g/kg węglowodanów",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 6 Suplementy diety",
+              "pages": "144-145"
+            }
+          ]
+        }
+      ],
+      "note": "książka nie wyróżnia początkujących"
+    },
+    {
+      "id": "PAR-wytrzymalosc",
+      "category": "parameters",
+      "goal": "wytrzymalosc",
+      "training": {
+        "frequency": null,
+        "sets": null,
+        "reps": null,
+        "rir": null,
+        "rpe": null,
+        "rest": null,
+        "tempo": null,
+        "volume": null,
+        "progression": null,
+        "deload": null,
+        "changeCriteria": null
+      },
+      "trainingStatus": "brak_w_zrodle",
+      "nutrition": [
+        {
+          "item": "wysiłek >60 min / upał",
+          "value": "izotonik w trakcie lub tuż po; w upale hipotonik z elektrolitami",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+              "pages": "110-111"
+            }
+          ]
+        },
+        {
+          "item": "wysiłek >=90 min",
+          "value": {
+            "startMin": 45,
+            "carbGPerHour": [
+              40,
+              50
+            ],
+            "form": "płyn"
+          },
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 6 Suplementy diety",
+              "pages": "145"
+            }
+          ]
+        },
+        {
+          "item": "żele",
+          "value": "tylko zawody, pod koniec, ok. 200 ml wody",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "dietetyka-sportowa-mizera",
+              "chapter": "Rozdz. 6 Suplementy diety",
+              "pages": "145"
+            }
+          ]
+        }
+      ],
+      "note": "cel dodatkowy, opisany w książce"
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "bardzo niski poziom tkanki tłuszczowej",
+      "action": "ryzyko zaburzeń hormonalnych, braku miesiączki, niepłodności; nie zaostrzaj redukcji, patrz S-PL3",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "86-87"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "woda destylowana / odwadnianie przed zawodami",
+      "action": "odradź; wypłukiwanie minerałów, odwodnienie, zagrożenie życia; patrz S-PL5",
+      "status": "zrodlo",
+      "priority": "stop",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "109"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "stałe picie dużych ilości wody wysokozmineralizowanej",
+      "action": "ryzyko przedawkowania minerałów; zmieniaj wody w ciągu dnia",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "108"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "długi intensywny wysiłek tylko na czystej wodzie",
+      "action": "ryzyko hiponatremii; nadmiar hipotoników rozcieńcza osocze",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "110"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "podwyższone ciśnienie",
+      "action": "książka: woda niskosodowa <50 mg/l; aplikacja: bez wskazówek o sodzie, S-PL2",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "109"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "nadkwasota, choroba wrzodowa, choroby nerek, problemy gardła/krtani",
+      "action": "woda niegazowana; patrz S-PL2",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "109-110"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "odżywki z dekstrozą/maltozą",
+      "action": "skoki insuliny; z umiarem; przy cukrzycy S-PL2",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "144"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "L-karnityna",
+      "action": "rzadko przejściowe nudności, bóle brzucha, biegunka",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "144"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "nadwrażliwość na cholesterol z diety",
+      "action": "część osób musi kontrolować cholesterol w diecie; decyzja lekarza",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "87"
+        }
+      ]
+    },
+    {
+      "id": "S-PL1",
+      "trigger": "ból w klatce piersiowej, duszność nieadekwatna, kołatanie serca, omdlenie, zawroty głowy podczas treningu",
+      "action": "przerwać trening, kontakt z lekarzem (pilnie przy objawach nagłych/silnych)",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "sources": []
+    },
+    {
+      "id": "S-PL2",
+      "trigger": "choroba nerek, nadciśnienie, cukrzyca, choroby serca, choroba wrzodowa, ciąża, inne choroby przewlekłe",
+      "action": "konsultacja z lekarzem/dietetykiem klinicznym przed wskazówkami o napojach, węglowodanach, wodach",
+      "status": "poza_zrodlem",
+      "priority": "refer_doctor",
+      "sources": []
+    },
+    {
+      "id": "S-PL3",
+      "trigger": "brak/zaburzenia miesiączki, szybki niezamierzony spadek masy, objawy zaburzeń odżywiania, dążenie do skrajnie niskiego tłuszczu",
+      "action": "nie zaostrzaj redukcji; konsultacja z lekarzem",
+      "status": "poza_zrodlem",
+      "priority": "refer_doctor",
+      "sources": []
+    },
+    {
+      "id": "S-PL4",
+      "trigger": "klient podaje wyniki badań krwi (cholesterol, glukoza)",
+      "action": "aplikacja nie interpretuje wyników wg Tabel 11-13; kieruje do lekarza",
+      "status": "poza_zrodlem",
+      "priority": "refer_doctor",
+      "sources": []
+    },
+    {
+      "id": "S-PL5",
+      "trigger": "odwadnianie przed zawodami/ważeniem, woda destylowana, objawy odwodnienia lub hiponatremii (silny ból głowy, splątanie, wymioty po długim wysiłku)",
+      "action": "odradź; pilny kontakt z lekarzem przy objawach",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "sources": []
+    },
+    {
+      "id": "S-PL6",
+      "trigger": "chęć stosowania suplementów (spalacze, L-karnityna, duże dawki kofeiny), zwłaszcza przy lekach lub chorobach",
+      "action": "aplikacja nie dobiera suplementów ani dawek; lekarz/dietetyk",
+      "status": "poza_zrodlem",
+      "priority": "refer_doctor",
+      "sources": []
+    },
+    {
+      "id": "S-PL0",
+      "trigger": "zasady komunikacji",
+      "action": "nie nazywaj przyczyny objawu, nie sugeruj rozpoznania, nie zalecaj leków, suplementów ani dawek; wskazówki dotyczą zdrowych dorosłych",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T3",
+      "name": "Góra/dół 4 dni",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T4",
+      "name": "Plan hipertroficzny",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T5",
+      "name": "Plan siłowy",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    },
+    {
+      "id": "T6",
+      "name": "Plan domowy",
+      "goal": null,
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "książka nie zawiera planów treningowych; użyj baz treningowych",
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null,
+      "sources": []
+    }
+  ],
+  "nutritionRules": [
+    {
+      "id": "R1",
+      "category": "decision",
+      "if": "pytanie o: początkującego 3x/tydz., ograniczony sprzęt, plan hipertroficzny, klient nie realizuje planu",
+      "then": "brak danych w tej książce; użyj baz treningowych",
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "R2",
+      "category": "decision",
+      "if": "trening do ok. 60 min",
+      "then": "w trakcie woda niegazowana (okołotreningowo może być wysokozmineralizowana); bez napoju węglowodanowego",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "108-110"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "144-145"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "decision",
+      "if": "wysiłek >60 min albo upał/duża wilgotność",
+      "then": "izotonik w trakcie lub tuż po (chyba że cel redukcja, R5); w upale także woda z elektrolitami",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "110-111"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "category": "decision",
+      "if": "klient pije izotonik",
+      "then": "dodatkowa woda źródlana lub niskozmineralizowana",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "111"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "category": "decision",
+      "if": "cel: redukcja tkanki tłuszczowej",
+      "then": "w trakcie tylko woda; węglowodany po całym treningu, także gdy po ciężarach jest kardio",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "111"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "category": "decision",
+      "if": "klient mocno się poci",
+      "then": "woda z sodem >200 mg/l; jeśli zgłasza nadciśnienie: bez tej wskazówki, S-PL2",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "108-109"
+        }
+      ],
+      "note": "część o nadciśnieniu: poza_zrodlem"
+    },
+    {
+      "id": "R7",
+      "category": "decision",
+      "if": "klient chce pić wodę gazowaną w trakcie treningu",
+      "then": "w trakcie niegazowana, gazowana po",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "109-110"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "category": "decision",
+      "if": "koniec ok. godzinnego treningu o średniej intensywności",
+      "then": "0,8-1 g węglowodanów/kg m.c. w 2 porcjach co ok. 30 min (np. 70 kg: 56-70 g)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ],
+      "note": "przykład 70 kg: wniosek"
+    },
+    {
+      "id": "R9",
+      "category": "decision",
+      "if": "wysiłek >=90 min",
+      "then": "węglowodany od ok. 45. min, 40-50 g/h, w płynie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "decision",
+      "if": "siła + kardio, cel nie redukcja",
+      "then": "napój węglowodanowy od końcówki części siłowej",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "decision",
+      "if": "klient chce żeli na treningach",
+      "then": "zostaw na zawody: pod koniec wysiłku, popite ok. 200 ml wody",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "decision",
+      "if": "klient pije odżywki z dekstrozą/maltozą do wszystkiego",
+      "then": "z umiarem, głównie po treningu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "144"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "decision",
+      "if": "cel lub postęp opisany przez BMI",
+      "then": "zaproponuj ocenę składu ciała",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "87"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "decision",
+      "if": "dążenie do bardzo niskiego % tłuszczu lub brak miesiączki",
+      "then": "nie zaostrzaj redukcji; S-PL3",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "86-87"
+        }
+      ],
+      "note": "skierowanie do lekarza: poza_zrodlem"
+    },
+    {
+      "id": "R15",
+      "category": "decision",
+      "if": "pytanie o L-karnitynę lub spalacze",
+      "then": "wg autorów działa nie u każdego, badania niejednoznaczne; aplikacja nie dobiera suplementów; S-PL6",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "142-144"
+        }
+      ],
+      "note": "brak zalecenia: poza_zrodlem"
+    },
+    {
+      "id": "R16",
+      "category": "decision",
+      "if": "zamiar odwodnienia przed ważeniem/zawodami (np. woda destylowana)",
+      "then": "odradź; S-PL5",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "109"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "decision",
+      "if": "pytanie o białko, kalorie, dietę na masę, jadłospis",
+      "then": "brak danych we fragmencie; dietetyk lub inna baza",
+      "status": "brak_w_zrodle",
+      "sources": []
+    },
+    {
+      "id": "H1",
+      "category": "protocol",
+      "name": "Trening do 60 min",
+      "goal": "ogólny/początkujący",
+      "before": "zwykły posiłek (wystarcza na ok. 60 min)",
+      "during": "woda niegazowana, okołotreningowo może być wysokozmineralizowana",
+      "after": "0,8-1 g węglowodanów/kg w 2 porcjach co 30 min; gazowana dopuszczalna",
+      "status": "zrodlo",
+      "statusNote": "wartości ze źródła, zestawienie: wniosek",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "108-110"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "144-145"
+        }
+      ]
+    },
+    {
+      "id": "H2",
+      "category": "protocol",
+      "name": "Siła + kardio, cel masa/wydolność",
+      "goal": "hipertrofia/wydolność",
+      "before": null,
+      "during": "napój węglowodanowy od końcówki części siłowej, dalej w kardio",
+      "after": "jak H1",
+      "status": "zrodlo",
+      "statusNote": "wartości ze źródła, zestawienie: wniosek",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "H3",
+      "category": "protocol",
+      "name": "Trening na redukcji",
+      "goal": "redukcja",
+      "before": null,
+      "during": "tylko woda, bez izotoników i węglowodanów",
+      "after": "węglowodany po całym treningu",
+      "status": "zrodlo",
+      "statusNote": "wartości ze źródła, zestawienie: wniosek",
+      "cardioMin": [
+        30,
+        60
+      ],
+      "daily": "dużo płynów, woda z wapniem i magnezem",
+      "monitoring": "skład ciała, nie BMI",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "86-87"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "109-111"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "H4",
+      "category": "protocol",
+      "name": "Wysiłek >60 min lub upał",
+      "goal": "wytrzymałość",
+      "before": null,
+      "during": "izotonik 4-8 g węgl./100 ml; w upale woda z elektrolitami; dodatkowa woda niskozmineralizowana",
+      "after": null,
+      "status": "zrodlo",
+      "statusNote": "wartości ze źródła, zestawienie: wniosek",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "110-111"
+        }
+      ]
+    },
+    {
+      "id": "H5",
+      "category": "protocol",
+      "name": "Wysiłek >=90 min",
+      "goal": "wytrzymałość",
+      "before": null,
+      "during": "od ok. 45. min 40-50 g węglowodanów/h w płynie; żele tylko na zawodach, pod koniec, z ok. 200 ml wody",
+      "after": "izotonik tuż po; dawka węglowodanów po wysiłku >=90 min nie podana (wniosek: jak H1)",
+      "status": "zrodlo",
+      "statusNote": "wartości ze źródła, zestawienie: wniosek",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "111"
+        },
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 6 Suplementy diety",
+          "pages": "145"
+        }
+      ]
+    },
+    {
+      "id": "TAB10",
+      "category": "table",
+      "name": "Cholesterol w 100 g produktu [mg]",
+      "data": {
+        "żółtko jaj": 1800,
+        "tran": 850,
+        "wątroba": 350,
+        "masło": 300,
+        "ser topiony": 100,
+        "śmietana 30%": 100,
+        "czekolada": 50,
+        "ser biały tłusty": 40,
+        "mleko 3,2%": 10,
+        "jogurt/kefir": "6-8"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "88"
+        }
+      ]
+    },
+    {
+      "id": "TAB11",
+      "category": "table",
+      "name": "Normy cholesterolu całkowitego [mg/dl]",
+      "data": [
+        {
+          "range": "<200",
+          "assessment": "wartość pożądana"
+        },
+        {
+          "range": "200-239",
+          "assessment": "poziom podwyższony"
+        },
+        {
+          "range": ">240",
+          "assessment": "wysokie ryzyko chorób serca"
+        }
+      ],
+      "appUse": "tylko wiedza; aplikacja nie interpretuje wyników (S-PL4)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "89"
+        }
+      ]
+    },
+    {
+      "id": "TAB12",
+      "category": "table",
+      "name": "HDL [mg/dl]",
+      "data": [
+        {
+          "range": "mężczyźni >=35, kobiety >=40",
+          "assessment": "niższy = duże ryzyko chorób serca"
+        },
+        {
+          "range": "60",
+          "assessment": "bardzo zdrowy"
+        }
+      ],
+      "note": "tekst: dolna granica 35, >70 szczególnie chroni (sprzeczność 1)",
+      "appUse": "tylko wiedza (S-PL4)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "88-89"
+        }
+      ]
+    },
+    {
+      "id": "TAB13",
+      "category": "table",
+      "name": "LDL [mg/dl]",
+      "data": [
+        {
+          "range": "<100",
+          "assessment": "optymalny"
+        },
+        {
+          "range": "100-129",
+          "assessment": "powyżej optymalnego"
+        },
+        {
+          "range": "130-159",
+          "assessment": "graniczny"
+        },
+        {
+          "range": "160-189",
+          "assessment": "wysoki"
+        },
+        {
+          "range": ">190",
+          "assessment": "bardzo wysoki"
+        }
+      ],
+      "appUse": "tylko wiedza (S-PL4)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 4 Tłuszcze",
+          "pages": "89"
+        }
+      ]
+    },
+    {
+      "id": "TAB14",
+      "category": "table",
+      "name": "Kategorie wód mineralnych [mg/l]",
+      "data": [
+        {
+          "type": "bardzo niskozmineralizowana",
+          "range": "<50"
+        },
+        {
+          "type": "niskozmineralizowana",
+          "range": "50-500"
+        },
+        {
+          "type": "średniozmineralizowana",
+          "range": "500-1500"
+        },
+        {
+          "type": "wysokozmineralizowana",
+          "range": ">1500"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "dietetyka-sportowa-mizera",
+          "chapter": "Rozdz. 5 Płyny (woda, napoje, soki)",
+          "pages": "108"
+        }
+      ]
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "dietetyka-sportowa-mizera",
+      "type": "book",
+      "author": "Justyna Mizera, Krzysztof Mizera",
+      "publisher": "Galaktyka, Łódź",
+      "title": "Dietetyka sportowa",
+      "year": 2017,
+      "isbn": "978-83-7579-640-7",
+      "language": "pl",
+      "pages": null,
+      "pagesNote": "pełna książka ok. 200 stron (indeks od s. 203); dostępny jest tylko fragment",
+      "consultant": "prof. Ewa Stachowska",
+      "scope": "żywienie sportowców: energia wysiłku, węglowodany, białko, tłuszcze, płyny, suplementy, diety dla 6 dyscyplin, przepisy",
+      "fileUsed": "e37cb4e2-731944804-dietetyka-sportowa.pdf (22 strony, podgląd wydawniczy) + tekst wyciągnięty pdftotext -layout",
+      "excerptOnly": true,
+      "excerptContent": "okładka, strona redakcyjna, spis treści s. 7-11, s. 86-89 (rozdz. 4), s. 108-111 (rozdz. 5), s. 142-145 (rozdz. 6), tylna okładka; brak pierwszych rozdziałów"
+    },
+    {
+      "id": "page-map",
+      "pageNumbering": "drukowana żywa pagina (np. '86 Dietetyka sportowa', 'Tłuszcze 87'); numery stron w bazie są dokładne",
+      "pdfToBook": {
+        "1": "okładka",
+        "2-3": "puste",
+        "4": "strona redakcyjna",
+        "5-9": "7-11 (spis treści)",
+        "10-13": "86-89",
+        "14-17": "108-111",
+        "18-21": "142-145",
+        "22": "tylna okładka"
+      }
+    },
+    {
+      "id": "lost-or-missing",
+      "items": [
+        {
+          "pages": "111-112",
+          "element": "Tabela 15: skład mineralny wody kokosowej",
+          "state": "poza fragmentem"
+        },
+        {
+          "pages": "85",
+          "element": "początek 'Tłuszcze w wysiłku fizycznym'",
+          "state": "poza fragmentem"
+        },
+        {
+          "pages": "145-146",
+          "element": "dalszy ciąg 'Odżywki węglowodanowe', 'Rodzaje cukrów w odżywkach'",
+          "state": "poza fragmentem"
+        },
+        {
+          "pages": "reszta",
+          "element": "Tabele 1-9 i od 16, menu s. 94, diety rozdz. 7, przepisy rozdz. 8",
+          "state": "poza fragmentem"
+        }
+      ],
+      "preserved": [
+        "Tabele 10-13 (s. 88-89)",
+        "Tabela 14 (s. 108)",
+        "spis treści"
+      ]
+    },
+    {
+      "id": "contradictions",
+      "items": [
+        "HDL: tekst 35 mg/dl i >70 ochronne; Tabela 12: M>=35, K>=40, 60 bardzo zdrowy (s. 88-89)",
+        "osmolalność napojów opisana jako 'osocza krwi' (s. 110-111)",
+        "woda wysokozmineralizowana w trakcie (s. 108) vs przy izotoniku niskozmineralizowana (s. 111): warunek, nie sprzeczność",
+        "nietypowy opis mechanizmu hiponatremii (s. 110)",
+        "L-karnityna nazywana aminokwasem, 'detoksykacja' (s. 143-144)",
+        "węglowodany w trakcie siły przed kardio tylko gdy cel nie redukcja (s. 145)",
+        "fragment: zasady mogą być doprecyzowane w niedostępnych rozdziałach"
+      ]
+    }
+  ]
+}

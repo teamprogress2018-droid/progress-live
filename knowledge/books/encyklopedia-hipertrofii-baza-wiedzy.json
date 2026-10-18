@@ -1,0 +1,4178 @@
+{
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Napięcie mechaniczne jest głównym bodźcem wzrostu",
+      "rule": "Wzrost mięśni zaczyna się od napięcia mechanicznego we włóknach; stres metaboliczny i uszkodzenia są czynnikami dodatkowymi.",
+      "appliesTo": [
+        "hipertrofia",
+        "wszyscy"
+      ],
+      "conditions": [
+        "napięcie musi trafić we włókna typu II; sama rekrutacja jednostek wysokoprogowych nie wystarczy"
+      ],
+      "limitations": [
+        "udział stresu metabolicznego i uszkodzeń nierozstrzygnięty"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "84, 89"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "91, 97"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Jednostka motoryczna",
+          "pages": "47-48"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Wysokie napięcie: ciężki ciężar albo seria blisko upadku",
+      "rule": "Ciężar powyżej ok. 85% CM angażuje jednostki wysokoprogowe od 1. powtórzenia; lżejszy ciężar robi to pod koniec serii blisko upadku.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [
+        "przy lekkim ciężarze seria musi dojść blisko upadku mięśniowego"
+      ],
+      "limitations": [
+        "brak wartości liczbowych RIR/RPE w źródle; schemat podsumowania (s. 120) używa tylko określeń 'wysokie RPE, niski RIR' dla pracy do zmęczenia średnim i małym ciężarem [poprawka v1.1: wcześniej podano, że RIR/RPE w ogóle nie występują]",
+        "rekrutacja z lekkim ciężarem może nie być pełna (K3)"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Jednostka motoryczna",
+          "pages": "47-48"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "95, 98"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "100-101"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Podsumowanie",
+          "pages": "120"
+        }
+      ],
+      "conflicts": [
+        "K3"
+      ],
+      "changedIn": "1.1"
+    },
+    {
+      "id": "P3",
+      "title": "Tempo: bez celowego zwalniania, bez ruchów balistycznych na masę",
+      "rule": "Napięcie rośnie, gdy ruch zwalnia z powodu oporu lub zmęczenia; celowe spowalnianie lekkiego ciężaru obniża rekrutację włókien typu II; szybkie ruchy z małym oporem (wyskoki) dają niskie napięcie.",
+      "appliesTo": [
+        "hipertrofia",
+        "siła"
+      ],
+      "conditions": [
+        "powtórzenie z zamiarem ruchu"
+      ],
+      "limitations": [
+        "brak liczbowego tempa"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "95-98"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Jednostka motoryczna",
+          "pages": "48"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Stymulować, a nie niszczyć",
+      "rule": "Nadzwyczaj ciężkie, wyniszczające treningi nie są najlepsze i mogą dać stagnację lub regres; nadmiar uszkodzeń obniża syntezę netto.",
+      "appliesTo": [
+        "wszyscy",
+        "redukcja",
+        "starsi"
+      ],
+      "conditions": [
+        "umiarkowane uszkodzenia mogą wspierać wzrost"
+      ],
+      "limitations": [
+        "brak liczbowej granicy"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "88-89"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "111-113"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Więcej objętości nie zawsze znaczy więcej wzrostu",
+      "rule": "Dodatkowa objętość nie zwiększa ani nie wydłuża podwyższonej syntezy białek; po optimum synteza przestaje rosnąć, a nadmiar zwiększa rozpad.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "zwiększać objętość tylko do momentu, w którym daje efekt"
+      ],
+      "limitations": [
+        "liczba serii jako optimum podana tylko na wykresie (s. 112): plateau syntezy białek przy ok. 10 seriach w jednej sesji; patrz P21"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "87-88"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "112"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "117"
+        }
+      ],
+      "changedIn": "1.1"
+    },
+    {
+      "id": "P6",
+      "title": "Ból (DOMS) i pompa nie są miarą skuteczności",
+      "rule": "Bolesność i pompa (przejściowy obrzęk) nie świadczą o lepszym bodźcu; uczucie zmęczenia bywa mylone ze skutecznością.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "67"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "103-104"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "113"
+        }
+      ],
+      "conflicts": [
+        "K2"
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Efekt początkującego",
+      "rule": "Po kilku–kilkunastu sesjach siła może wzrosnąć o 10–20% głównie z adaptacji nerwowych; widoczny przyrost mięśni po kilku tygodniach, znacząca akumulacja białka nawet miesiące; potem tempo spada.",
+      "appliesTo": [
+        "początkujący",
+        "zaawansowani zaczynający logiczny plan"
+      ],
+      "conditions": [
+        "u początkujących mniejsza ilość pracy daje duże efekty"
+      ],
+      "limitations": [
+        "brak czasu trwania okna początkującego"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "13-14"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Adaptacje nerwowe",
+          "pages": "50-52"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "68-69"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Technika od początku",
+      "rule": "Kontuzje częściej wynikają z kumulacji błędów niż z jednego ruchu; zła technika staje się nawykiem; długie przeładowanie objętością daje przemęczenie z opóźnieniem.",
+      "appliesTo": [
+        "początkujący",
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "15"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "title": "Regionalizacja: różne ćwiczenia na różne regiony",
+      "rule": "Regiony mięśnia (np. 3 części piersiowego, 3 aktony naramiennego) i mięśnie jednej partii (np. 4 głowy czworogłowego) dostają różne napięcie w różnych ćwiczeniach; potrzebne są wariacje ćwiczeń, ustawień i zakresów ruchu; nie ma jednego najlepszego ćwiczenia.",
+      "appliesTo": [
+        "hipertrofia",
+        "sylwetka"
+      ],
+      "conditions": [],
+      "limitations": [
+        "największa aktywacja nie zawsze daje największy wzrost"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "75-81"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Do siły maksymalnej lepszy duży ciężar",
+      "rule": "Praca z dużym ciężarem daje lepszy rozwój siły; powyżej ok. 85% CM wszystkie jednostki pracują od początku.",
+      "appliesTo": [
+        "siła"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak serii, przerw i schematu progresji"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Adaptacje nerwowe",
+          "pages": "52"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "95"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "64"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Po adaptacji niewielka zmiana bodźca, ale nie za często",
+      "rule": "Po osiągnięciu pułapu adaptacji zmień bodziec nawet nieznacznie; zmiany nie mogą być zbyt częste, potrzebny jest stały plan przez określony okres.",
+      "appliesTo": [
+        "średniozaawansowani",
+        "zaawansowani"
+      ],
+      "conditions": [
+        "u początkujących powtarzanie protokołu zmniejsza uszkodzenia"
+      ],
+      "limitations": [
+        "brak długości okresu w tygodniach"
+      ],
+      "evidence": "umiarkowana",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "Liczy się opór, nie jego źródło",
+      "rule": "Włókno reaguje na opór i oddawaną siłę, nie na rodzaj sprzętu, jeśli rodzaj skurczu, wektor i wartość siły są takie same.",
+      "appliesTo": [
+        "wszyscy",
+        "ograniczony sprzęt",
+        "trening domowy"
+      ],
+      "conditions": [
+        "zamiennik: ten sam region, trajektoria, możliwość dojścia blisko upadku"
+      ],
+      "limitations": [],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94, 97"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Atrofia możliwa mimo treningu",
+      "rule": "Masa spada, gdy rozpad przewyższa syntezę: długi deficyt, mało białka, mało snu, przetrenowanie, nadmierne uszkodzenia (wysoka objętość, długie ekscentryki), czynniki zdrowotne.",
+      "appliesTo": [
+        "redukcja",
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak wartości białka, kalorii, snu"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "116-118"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "86"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Przerwa: straty wolniejsze, ruch pomaga",
+      "rule": "Pierwsze niewielkie spadki (białka niefunkcjonalne, woda) po ok. 8 dniach i szybko wracają; jądra komórkowe utrzymują się bardzo długo (ok. 15 lat wg autora); nagły spadek aktywności obniża syntezę o 26–28%, więc w przerwie lekka aktywność.",
+      "appliesTo": [
+        "przerwa w treningu"
+      ],
+      "conditions": [],
+      "limitations": [
+        "pamięć mięśniowa nie jest pewnikiem (autor)"
+      ],
+      "evidence": "umiarkowana",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "64, 71"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "116-118"
+        }
+      ],
+      "conflicts": [
+        "K9"
+      ]
+    },
+    {
+      "id": "P15",
+      "title": "Duże partie są w dolnej części ciała",
+      "rule": "Kolejność: czworogłowe > pośladkowe, łydki > kulszowo-goleniowe; w górze naramienne > klatka, triceps, czworoboczny, najszerszy > biceps (ok. 16x mniejszy od czworogłowych). Kobiety: ok. 25% mniej masy w dole i 50% w górze.",
+      "appliesTo": [
+        "programowanie objętości",
+        "kobiety"
+      ],
+      "conditions": [],
+      "limitations": [
+        "autor nie mówi, jak przełożyć rozmiar na liczbę serii",
+        "objętości w cm3 odczytane z tabel s. 26-28 (E6); tabela górnej części ciała nie zawiera czworobocznego",
+        "'biceps ok. 16x mniejszy od czworogłowych' (s. 25) nie zgadza się z tabelami: 1790,9 / 143,7 = ok. 12,5x u mężczyzn (K11)"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Rozmiar mięśni",
+          "pages": "23-29"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Rozmiar mięśni",
+          "pages": "26-28"
+        }
+      ],
+      "changedIn": "1.1"
+    },
+    {
+      "id": "P16",
+      "title": "Trening siłowy dla każdego i w każdym wieku",
+      "rule": "Trening siłowy to jedna z najlepszych i najbezpieczniejszych form treningu; masa mięśniowa wspiera zdrowie metaboliczne, krążenie, psychikę, sprawność umysłową, chroni przed sarkopenią; rozwój mięśni możliwy w każdym wieku.",
+      "appliesTo": [
+        "zdrowie",
+        "starsi",
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "u starszych dłuższa regeneracja"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "6-7"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "103"
+        }
+      ]
+    },
+    {
+      "id": "P17",
+      "title": "Nie kopiuj objętości zawodowców",
+      "rule": "Osoby z dobrą genetyką mają do 25% większą tolerancję uszkodzeń; bardzo wysokie objętości mogą być niebezpieczne dla przeciętnej osoby; wynik zawodnika nie dowodzi skuteczności metody.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "7-8"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "89"
+        }
+      ]
+    },
+    {
+      "id": "P18",
+      "title": "Ekscentryka: dużo napięcia i dużo uszkodzeń",
+      "rule": "Skurcze ekscentryczne generują duże siły i najwięcej uszkodzeń, zwłaszcza we włóknach typu II; nieco większy wzrost przypisywany napięciu, nie uszkodzeniom.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "największe uszkodzenia u nieprzyzwyczajonych"
+      ],
+      "limitations": [
+        "regularne długie ekscentryki sprzyjają atrofii"
+      ],
+      "evidence": "mocna",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+          "pages": "20-21"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "108, 112, 117"
+        }
+      ]
+    },
+    {
+      "id": "P19",
+      "title": "Rozciąganie bierne jako uzupełnienie",
+      "rule": "Bierne rozciąganie też wywołuje napięcie, zwykle z niewielkim przyrostem; łączenie pracy aktywnej i pasywnej może dać dodatkowe korzyści.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [
+        "efekt niewielki"
+      ],
+      "evidence": "umiarkowana",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "93"
+        }
+      ]
+    },
+    {
+      "id": "P20",
+      "title": "Optymalna intensywność dla przyrostu siły rośnie ze stażem",
+      "rule": "Wykres (s. 69): największy przyrost siły daje u początkujących intensywność ok. 52-65% CM (szczyt ok. 55-60%), u średnio zaawansowanych ok. 75-80% CM, u zaawansowanych powyżej 80% CM. U początkujących przyrost siły jest też największy w liczbach bezwzględnych.",
+      "appliesTo": [
+        "siła",
+        "początkujący",
+        "średniozaawansowani",
+        "zaawansowani"
+      ],
+      "conditions": [
+        "intensywność = % ciężaru maksymalnego (CM)",
+        "wartości odczytane z podpisów wykresu"
+      ],
+      "limitations": [
+        "wykres bez podpisanego badania źródłowego i bez opisu w tekście",
+        "dotyczy przyrostu siły, nie hipertrofii",
+        "nie określa liczby serii ani powtórzeń"
+      ],
+      "evidence": "umiarkowana",
+      "status": "zrodlo",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "69"
+        }
+      ],
+      "addedIn": "1.1"
+    },
+    {
+      "id": "P21",
+      "title": "Plateau syntezy białek przy ok. 10 seriach na sesję",
+      "rule": "Wykres badania z 2017 r. (s. 112, oś X = liczba serii 0-20): synteza białek (MPS) rośnie szybko do ok. 4 serii (ok. 85% maksimum), osiąga plateau ok. 100% przy ok. 10-11 seriach i dalej nie rośnie ('brak wpływu na progres przy jednoczesnym potęgowaniu uszkodzeń'), choć sygnalizacja p70S6K rośnie dalej do 20 serii.",
+      "appliesTo": [
+        "hipertrofia",
+        "programowanie objętości"
+      ],
+      "conditions": [
+        "odczyt przybliżony z wykresu; dotyczy jednej sesji"
+      ],
+      "limitations": [
+        "książka nie podaje, czy chodzi o serie na jeden mięsień, ani kogo badano",
+        "nie jest to zalecenie autora w liczbach, tylko dane z wykresu"
+      ],
+      "evidence": "umiarkowana",
+      "status": "zrodlo",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "112"
+        }
+      ],
+      "addedIn": "1.1"
+    },
+    {
+      "id": "P22",
+      "title": "Różne partie regenerują się w różnym tempie",
+      "rule": "Wykresy (s. 110, badanie Chen i wsp. 2019, trening ekscentryczny): siła ud i łydek spada do ok. 77-78% i wraca do ok. 98% po 5 dniach; dwugłowy uda spada do ok. 60% i po 5 dniach ma ok. 84%. W górnej części ciała spadki są większe: piersiowy większy do ok. 40% (dzień 5: ok. 72%), biceps ok. 46% (ok. 82%), triceps ok. 53% (ok. 81%), najszerszy ok. 62% (ok. 83%), prostownik grzbietu ok. 68% (ok. 87%).",
+      "appliesTo": [
+        "wszyscy",
+        "planowanie przerw między treningami tej samej partii"
+      ],
+      "conditions": [
+        "dotyczy nieprzyzwyczajonego, ciężkiego treningu ekscentrycznego"
+      ],
+      "limitations": [
+        "przy regularnym treningu efekt powtórzonej sesji zmniejsza uszkodzenia (s. 109)",
+        "wartości przybliżone z wykresu"
+      ],
+      "evidence": "umiarkowana",
+      "status": "zrodlo",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109-110"
+        }
+      ],
+      "addedIn": "1.1"
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E1",
+      "category": "region",
+      "muscle": "klatka piersiowa (piersiowy większy)",
+      "regions": [
+        "obojczykowa (górna)",
+        "mostkowo-żebrowa (środkowa)",
+        "brzuszna (dolna)"
+      ],
+      "rule": "Wyciskanie na ławce skośnej głową w górę akcentuje część górną, głową w dół część dolną; dobierać ćwiczenia na kilka regionów.",
+      "exampleExercisesFromSource": [
+        "wyciskanie na ławce skośnej głową w górę",
+        "wyciskanie na ławce skośnej głową w dół"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "78"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "region",
+      "muscle": "naramienny",
+      "regions": [
+        "akton przedni (zginanie ramienia)",
+        "akton boczny (odwodzenie)",
+        "akton tylny (prostowanie)"
+      ],
+      "rule": "Aktony działają prawie niezależnie, czasem przeciwstawnie; ćwiczenia dobierać osobno dla każdego. Dokładniejszy podział ma 7 regionów (wykres s. 79): akton przedni = regiony 1-2 (zginanie + słabe odwodzenie), boczny = region 3 (najsilniej odwodzenie, ok. 35 j.), tylny = regiony 4-7 (prostowanie, do ok. -63 j. w regionie 7; regiony 4-6 także odwodzą, region 7 przywodzi).",
+      "exampleExercisesFromSource": [
+        "wznosy hantli przodem",
+        "wznosy hantli bokiem",
+        "wznosy hantli w opadzie tułowia"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "79-80"
+        }
+      ],
+      "figureData": {
+        "page": "79",
+        "unit": "moment siły mięśniowej (jednostki z wykresu, przybliżone)",
+        "regions": [
+          {
+            "region": 1,
+            "acton": "przedni",
+            "zgięcie": 18,
+            "odwodzenie": 2
+          },
+          {
+            "region": 2,
+            "acton": "przedni",
+            "zgięcie": 24,
+            "odwodzenie": 18
+          },
+          {
+            "region": 3,
+            "acton": "boczny",
+            "zgięcie": 8,
+            "odwodzenie": 35
+          },
+          {
+            "region": 4,
+            "acton": "tylny",
+            "prostowanie": -35,
+            "odwodzenie": 30
+          },
+          {
+            "region": 5,
+            "acton": "tylny",
+            "prostowanie": -45,
+            "odwodzenie": 17
+          },
+          {
+            "region": 6,
+            "acton": "tylny",
+            "prostowanie": -50,
+            "odwodzenie": 8
+          },
+          {
+            "region": 7,
+            "acton": "tylny",
+            "prostowanie": -63,
+            "przywodzenie": -10
+          }
+        ],
+        "functionsDiagram_s80": {
+          "przód": {
+            "główna": "zginanie w stawie ramiennym",
+            "dodatkowa": "odwodzenie"
+          },
+          "bok": {
+            "główna": "odwodzenie",
+            "dodatkowa": "zginanie"
+          },
+          "tył": {
+            "główna": "prostowanie",
+            "dodatkowa": "odwodzenie / przywodzenie"
+          }
+        },
+        "source": "Brown i wsp. 2007 (cytowane na s. 79)",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)"
+      },
+      "changedIn": "1.1"
+    },
+    {
+      "id": "E3",
+      "category": "region",
+      "muscle": "czworogłowy uda",
+      "regions": [
+        "cztery mięśnie składowe o różnej architekturze"
+      ],
+      "rule": "Ten sam ruch rozwija głowy w różnym stopniu; potrzebne różne kombinacje ćwiczeń i ustawień ciała.",
+      "exampleExercisesFromSource": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "80-81"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "region",
+      "muscle": "duże mięśnie o wielu przyczepach",
+      "regions": [
+        "piersiowy większy",
+        "naramienny",
+        "pośladkowy wielki",
+        "najszerszy grzbietu",
+        "czworoboczny"
+      ],
+      "rule": "Najbardziej korzystają z różnicowania kątów i wariacji ćwiczeń.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "79"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94"
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "category": "fiber_type",
+      "muscle": "łydki / najszerszy grzbietu / górne partie",
+      "rule": "Łydki: mało włókien typu II i jednostek wysokoprogowych (s. 45); wykres s. 38 precyzuje: płaszczkowaty tylko ok. 12% typu II, brzuchaty ok. 49-53%. Najszerszy: tekst (s. 45) mówi o stosunkowo dużej liczbie włókien typu II, ale wykres s. 37 podaje ok. 51%, czyli przeciętnie (K10). Górne partie: więcej typu II, większa dynamika wzrostu, większa podatność na uszkodzenia (s. 29, 110).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Jednostka motoryczna",
+          "pages": "45"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Rozmiar mięśni",
+          "pages": "29"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "110"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Włókna mięśniowe",
+          "pages": "37-38"
+        }
+      ],
+      "missingInSource": [
+        "przełożenie na serie/powtórzenia"
+      ],
+      "figureData": {
+        "pages": "37-38",
+        "unit": "% włókien typu II",
+        "source": "Johnson i wsp. 1973; Srinivasan i wsp. 2007 (cytowane na s. 37-38)",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "upper": {
+          "piersiowy większy – cały": 65,
+          "piersiowy – część brzuszna": 57,
+          "piersiowy – część obojczykowa": 58,
+          "naramienny – tylny": 43,
+          "naramienny – środkowy": 53,
+          "naramienny – przedni": 52,
+          "naramienny – anomalia w badaniach": 43,
+          "prostownik grzbietu": 43,
+          "czworoboczny": 46,
+          "nadgrzebieniowy": 50,
+          "obły większy": 52,
+          "obły mniejszy": 51,
+          "najszerszy grzbietu": 51,
+          "podgrzebieniowy": 52,
+          "podłopatkowy": 63,
+          "trójgłowy – głowa długa": 56,
+          "trójgłowy – anomalia": 67,
+          "dwugłowy – głowa długa": 61,
+          "dwugłowy – głowa krótka": 63,
+          "dwugłowy – anomalia": 54,
+          "ramienno-promieniowy": 60
+        },
+        "lower": {
+          "prosty uda": 62,
+          "obszerny boczny": 58,
+          "obszerny przyśrodkowy": 47,
+          "brzuchaty łydki – głowa długa (boczna)": 53,
+          "brzuchaty łydki – głowa środkowa": 49,
+          "płaszczkowaty": 12,
+          "pośladkowy wielki": 47,
+          "przywodziciel wielki": 42,
+          "dwugłowy uda": 33
+        },
+        "note": "'anomalia' = znacząco inne wyniki w części badań (różnice osobnicze, s. 37)"
+      },
+      "conflicts": [
+        "K10"
+      ],
+      "changedIn": "1.1",
+      "correction": "v1.1: 'Najszerszy: dużo typu II' doprecyzowano – wykres pokazuje ok. 51% (średnio), patrz K10."
+    },
+    {
+      "id": "E6",
+      "category": "muscle_size",
+      "rule": "Hierarchia rozmiaru (tabele s. 26-28): czworogłowe (M 1791 cm3, K 1044) > pośladkowe (M 1291, K 967) > łydki (M 849, K 642) > przywodziciele (M 772, K 479) > kulszowo-goleniowe (M 724, K 443); w górze naramienny (381) ≈ triceps (372) > klatka (290) > najszerszy (262) > biceps (144).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Rozmiar mięśni",
+          "pages": "24-29"
+        }
+      ],
+      "missingInSource": [
+        "przełożenie na objętość treningową",
+        "czworoboczny nie ma wartości w tabeli s. 26"
+      ],
+      "figureData": {
+        "pages": "26-28",
+        "unit": "cm3 (średnia ± różnice osobnicze)",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "upper_s26_srednia_K_i_M": {
+          "note": "wartość + odchylenie dodatnie dotyczą mężczyzn, wartość - odchylenie kobiet (s. 26); M: 29 lat, 177,8 cm, 81,6 kg; K: 28 lat, 165,1 cm, 56,7 kg",
+          "najszerszy grzbietu": [
+            262.3,
+            147.2
+          ],
+          "piersiowy większy": [
+            290.0,
+            169.0
+          ],
+          "naramienny": [
+            380.5,
+            157.7
+          ],
+          "nadgrzebieniowy": [
+            50.0,
+            20.4
+          ],
+          "podgrzebieniowy": [
+            118.6,
+            20.4
+          ],
+          "podłopatkowy": [
+            164.5,
+            63.9
+          ],
+          "obły mniejszy": [
+            28.0,
+            13.9
+          ],
+          "obły większy": [
+            32.7,
+            16.3
+          ],
+          "trójgłowy ramienia": [
+            372.1,
+            177.3
+          ],
+          "dwugłowy ramienia": [
+            143.7,
+            68.7
+          ],
+          "ramienny": [
+            143.7,
+            63.7
+          ],
+          "ramienno-promieniowy": [
+            65.1,
+            36.0
+          ],
+          "kruczo-ramienny": [
+            25.2,
+            16.6
+          ]
+        },
+        "lower_s27_mezczyzni": {
+          "krawiecki": [
+            136.0,
+            9.7
+          ],
+          "trójgłowy łydki": [
+            849.0,
+            159.1
+          ],
+          "grupa pośladkowa": [
+            1290.5,
+            null
+          ],
+          "pośladkowy wielki": [
+            871.1,
+            34.3
+          ],
+          "pośladkowy średni": [
+            332.0,
+            26.5
+          ],
+          "pośladkowy mniejszy": [
+            87.4,
+            24.8
+          ],
+          "czworogłowy uda": [
+            1790.9,
+            146.3
+          ],
+          "prosty uda": [
+            265.7,
+            30.8
+          ],
+          "obszerny pośredni": [
+            531.3,
+            34.9
+          ],
+          "obszerny boczny": [
+            627.7,
+            98.0
+          ],
+          "obszerny przyśrodkowy": [
+            366.3,
+            61.6
+          ],
+          "przywodziciele": [
+            772.4,
+            86.2
+          ],
+          "przywodziciel krótki": [
+            86.7,
+            38.9
+          ],
+          "przywodziciel długi": [
+            150.4,
+            21.1
+          ],
+          "przywodziciel wielki": [
+            485.7,
+            122.9
+          ],
+          "grupa kulszowo-goleniowa": [
+            723.6,
+            103.9
+          ],
+          "dwugłowy uda": [
+            341.3,
+            65.5
+          ],
+          "półbłoniasty": [
+            275.6,
+            123.2
+          ],
+          "półścięgnisty": [
+            106.7,
+            58.7
+          ]
+        },
+        "lower_s28_kobiety": {
+          "krawiecki": [
+            117.4,
+            28.3
+          ],
+          "trójgłowy łydki": [
+            642.1,
+            115.5
+          ],
+          "grupa pośladkowa": [
+            967.1,
+            null
+          ],
+          "pośladkowy wielki": [
+            657.2,
+            115.1
+          ],
+          "pośladkowy średni": [
+            243.2,
+            10.8
+          ],
+          "pośladkowy mniejszy": [
+            66.7,
+            26.0
+          ],
+          "czworogłowy uda": [
+            1043.8,
+            266.7
+          ],
+          "prosty uda": [
+            158.9,
+            23.5
+          ],
+          "obszerny pośredni": [
+            260.5,
+            174.6
+          ],
+          "obszerny boczny": [
+            378.7,
+            40.4
+          ],
+          "obszerny przyśrodkowy": [
+            245.7,
+            43.7
+          ],
+          "przywodziciele": [
+            479.3,
+            81.4
+          ],
+          "przywodziciel krótki": [
+            73.0,
+            37.9
+          ],
+          "przywodziciel długi": [
+            65.3,
+            29.6
+          ],
+          "przywodziciel wielki": [
+            292.2,
+            106.0
+          ],
+          "grupa kulszowo-goleniowa": [
+            442.5,
+            31.7
+          ],
+          "dwugłowy uda": [
+            341.3,
+            11.0
+          ],
+          "półbłoniasty": [
+            275.6,
+            26.3
+          ],
+          "półścięgnisty": [
+            106.7,
+            18.3
+          ]
+        },
+        "dataIssues": [
+          "s. 28: mięśnie składowe grupy kulszowo-goleniowej kobiet mają te same objętości co u mężczyzn (suma 723,6 ≠ 442,5 dla grupy) – prawdopodobny błąd składu (K12)",
+          "triceps (372,1) jest w tabeli prawie równy naramiennemu (380,5) i większy od klatki (290,0), a tekst (s. 24) stawia go na równi z klatką (K11)"
+        ]
+      },
+      "changedIn": "1.1"
+    },
+    {
+      "id": "E7",
+      "category": "movement_functions",
+      "functions": [
+        {
+          "function": "prostowanie łokcia",
+          "muscle": "triceps",
+          "pattern": "pchanie / izolacja tricepsu"
+        },
+        {
+          "function": "zginanie łokcia",
+          "muscle": "biceps, ramienny",
+          "pattern": "przyciąganie / izolacja bicepsu"
+        },
+        {
+          "function": "przywodzenie biodra",
+          "muscle": "przywodziciel wielki",
+          "pattern": "przywodzenie"
+        },
+        {
+          "function": "odwodzenie biodra",
+          "muscle": "pośladkowy średni",
+          "pattern": "odwodzenie"
+        },
+        {
+          "function": "rotacja zewnętrzna ramienia",
+          "muscle": "nadgrzebieniowy",
+          "pattern": "rotacja barku"
+        },
+        {
+          "function": "zginanie w stawie ramiennym",
+          "muscle": "akton przedni naramiennego",
+          "pattern": "pchanie nad głowę / wznosy przodem"
+        },
+        {
+          "function": "odwodzenie w stawie ramiennym",
+          "muscle": "akton boczny naramiennego",
+          "pattern": "wznosy bokiem"
+        },
+        {
+          "function": "prostowanie w stawie ramiennym",
+          "muscle": "akton tylny naramiennego",
+          "pattern": "przyciąganie / wznosy w opadzie"
+        },
+        {
+          "function": "praca ekscentryczna przy siadaniu",
+          "muscle": "czworogłowy",
+          "pattern": "wzorzec kolanowy"
+        }
+      ],
+      "rule": "Funkcje mięśni z książki; mapowanie na wzorce Progress Live jest wnioskiem.",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+          "pages": "19-20"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "79"
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "category": "substitution",
+      "rule": "Zamiennik jest równoważny, gdy: (1) ten sam region i podobna trajektoria, (2) podobny rodzaj skurczu, (3) da się wywołać wysokie napięcie (duży ciężar lub seria blisko upadku), (4) ruch kontrolowany, nie balistyczny.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94, 96-97"
+        }
+      ],
+      "examplePairs": [
+        {
+          "base": "wyciskanie na skosie (sztanga)",
+          "substitute": "wyciskanie hantli na skosie / pompki z nogami wyżej",
+          "status": "poza_zrodlem"
+        },
+        {
+          "base": "wznosy hantli bokiem",
+          "substitute": "wznosy bokiem z gumą lub na wyciągu",
+          "status": "poza_zrodlem"
+        },
+        {
+          "base": "wznosy w opadzie tułowia",
+          "substitute": "odwodzenie poziome z gumą",
+          "status": "poza_zrodlem"
+        },
+        {
+          "base": "uginanie przedramion ze sztangą",
+          "substitute": "uginanie z hantlami lub z gumą",
+          "status": "poza_zrodlem"
+        },
+        {
+          "base": "przysiad ze sztangą",
+          "substitute": "przysiad z hantlami / przysiad bułgarski z masą ciała do upadku",
+          "status": "poza_zrodlem"
+        }
+      ],
+      "notes": "Nie wybierać zamiennika tylko dlatego, że jest na tę samą partię: musi trafiać w ten sam region."
+    },
+    {
+      "id": "E9",
+      "category": "level",
+      "level": "początkujący",
+      "rule": "Proste ćwiczenia, nauka wzorca, te same ćwiczenia przez blok (bolesność spada po ok. 2 tyg.).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "15"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Adaptacje nerwowe",
+          "pages": "50"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109"
+        }
+      ],
+      "missingInSource": [
+        "kryteria przypisania poziomu"
+      ]
+    },
+    {
+      "id": "E10",
+      "category": "level",
+      "level": "zaawansowany",
+      "rule": "Świadomy dobór ćwiczeń pod regiony; zmiana bodźca po adaptacji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "14"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "category": "equipment",
+      "if": "klient ma ograniczony sprzęt i cel hipertrofia",
+      "then": "lekki opór, każda seria blisko upadku; zamienniki według E8",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94-95, 97"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "category": "equipment",
+      "if": "klient ma ograniczony sprzęt i cel siła",
+      "then": "poinformuj, że bez dużego ciężaru (>85% CM) rozwój siły maksymalnej będzie słabszy",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Adaptacje nerwowe",
+          "pages": "52"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "95"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "category": "goal",
+      "if": "cel = hipertrofia",
+      "then": "priorytet napięcia: serie blisko upadku dowolnym ciężarem, bez celowego zwalniania, kilka ćwiczeń na duże partie o wielu przyczepach; bez metod tylko 'na pompę'",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "78-81"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "95-98"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "104"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "goal",
+      "if": "klient chce rozwinąć konkretny region",
+      "then": "wybierz ćwiczenie akcentujące ten region (np. skos głową w górę dla górnej klatki, wznosy bokiem dla bocznego aktonu)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "78-79"
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "category": "equipment",
+      "rule": "Źródła oporu wymienione na schemacie (s. 95): sztanga, kettle, hantle, masa własnego ciała, gumy. Wszystkie prowadzą do oporu i napięcia mechanicznego; jednostki wysokoprogowe rekrutuje wysoki ciężar albo zmęczenie pracą.",
+      "status": "zrodlo",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "95"
+        }
+      ],
+      "addedIn": "1.1",
+      "appUse": "trening domowy z gumami i masą ciała jest zgodny ze źródłem, jeśli serie kończą się blisko upadku (R4, T6)"
+    },
+    {
+      "id": "E12",
+      "category": "fiber_type",
+      "muscle": "uda i łydki",
+      "rule": "Wykres s. 38: prosty uda ok. 62% typu II i obszerny boczny ok. 58% (najwięcej w nogach), obszerny przyśrodkowy i pośladkowy wielki ok. 47%, przywodziciel wielki ok. 42%, dwugłowy uda ok. 33%, płaszczkowaty ok. 12%.",
+      "status": "zrodlo",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Włókna mięśniowe",
+          "pages": "38"
+        }
+      ],
+      "addedIn": "1.1",
+      "missingInSource": [
+        "autor nie wyprowadza z tego zaleceń co do serii/powtórzeń dla poszczególnych mięśni"
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PAR-hipertrofia",
+      "category": "parameters",
+      "goal": "hipertrofia",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+            "pages": "87-88"
+          }
+        ],
+        "note": "Wniosek: synteza białek 24-48 h (zaawansowani), do 72 h (początkujący) (s. 87). Krzywa s. 88: wytrenowani – szczyt ok. 158% po ok. 4-5 h, ok. 35% po 10 h, ok. 15% po 28-36 h; niewytrenowani – ok. 110% po 3-4 h, szczyt ok. 170% po 16 h, ok. 65% po 24 h, ok. 35% po 48 h.",
+        "changedIn": "1.1"
+      },
+      "sets": {
+        "value": {
+          "perSessionMpsPlateauApprox": "ok. 10 serii",
+          "note": "odczyt z wykresu s. 112; powyżej brak dalszego wzrostu MPS"
+        },
+        "status": "wniosek",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "112"
+          }
+        ],
+        "note": "Książka nie zaleca liczby serii wprost; wartość to dane z wykresu (P21). Zasada: tylko tyle, ile daje efekt (s. 87-88, 112).",
+        "changedIn": "1.1"
+      },
+      "reps": {
+        "value": {
+          "examplesFromSource": [
+            "8-12",
+            "20-30",
+            "ciężkie serie >85% CM"
+          ],
+          "condition": "blisko upadku"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "68"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "intensity": {
+        "value": {
+          "description": "blisko upadku mięśniowego",
+          "rir": null,
+          "rpe": null,
+          "note": "RIR/RPE jako pojęcia na schemacie s. 120 ('wysokie RPE, niski RIR'), bez wartości liczbowych"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95, 98"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Podsumowanie",
+            "pages": "120"
+          }
+        ]
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": "bez celowego zwalniania; spowolnienie z oporu/zmęczenia; nie balistycznie",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "96-98"
+          }
+        ]
+      },
+      "volume": {
+        "value": "do poziomu optymalnego; więcej nie wydłuża syntezy",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+            "pages": "87-88"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "112"
+          }
+        ],
+        "note": "Wartość liczbowa brak."
+      },
+      "progression": {
+        "value": "po adaptacji niewielka zmiana bodźca; plan stały przez określony okres",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "94"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "changeCriteria": {
+        "value": [
+          "stagnacja po wyczerpaniu efektu początkującego",
+          "spadek siły i przedłużające się uszkodzenia",
+          "spadek masy mimo treningu"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "14"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "109"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Atrofia",
+            "pages": "117"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-sila",
+      "category": "parameters",
+      "goal": "sila",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": {
+          "examplesFromSource": [
+            "1-3",
+            "poniżej 5-8"
+          ],
+          "note": "autor opisuje to jako pracę ciężką, nie jako zalecenie planu"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "68"
+          }
+        ]
+      },
+      "intensity": {
+        "value": {
+          "percent1RM": ">85% CM (pełna rekrutacja)",
+          "optimumByLevel": {
+            "poczatkujacy": "52-65% CM",
+            "sredniozaawansowani": "75-80% CM",
+            "zaawansowani": ">80% CM"
+          },
+          "rir": null,
+          "rpe": null
+        },
+        "status": "zrodlo",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 2 Jednostka motoryczna",
+            "pages": "47"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 2 Adaptacje nerwowe",
+            "pages": "52"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ],
+        "note": "Optimum wg poziomu z wykresu s. 69 (P20).",
+        "changedIn": "1.1"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": "ruch z zamiarem, prędkość wynika z ciężaru",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95-96"
+          }
+        ]
+      },
+      "volume": {
+        "value": "trening siłowy (np. trójbój) zwykle o niższej objętości niż kulturystyczny - opis, nie zalecenie",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "66"
+          }
+        ]
+      },
+      "progression": {
+        "value": "wczesny wzrost siły 10-20% z adaptacji nerwowych, później wolniejszy i zależny od wzrostu mięśni",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "13-14"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 2 Adaptacje nerwowe",
+            "pages": "51"
+          }
+        ],
+        "note": "Schemat zwiększania ciężaru: brak."
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "changeCriteria": {
+        "value": [
+          "stagnacja siły po okresie początkującym",
+          "spadek siły z nadmiernych uszkodzeń"
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "14"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "109"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-redukcja",
+      "category": "parameters",
+      "goal": "redukcja",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "mainPrinciple": {
+        "value": "utrzymać trening oporowy z napięciem mechanicznym; długi deficyt, mało białka i snu sprzyjają atrofii; deficyt energii tłumi mTOR",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+            "pages": "86"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Atrofia",
+            "pages": "116-117"
+          }
+        ]
+      },
+      "volume": {
+        "value": "ostrożnie; wysoka objętość i metody mocno uszkadzające zwiększają rozpad białek",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Atrofia",
+            "pages": "117"
+          }
+        ]
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "changeCriteria": {
+        "value": [
+          "spadek siły lub masy mimo treningu -> przejrzeć objętość, sen, białko, długość deficytu"
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Atrofia",
+            "pages": "117"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-zdrowie",
+      "category": "parameters",
+      "goal": "zdrowie",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "mainPrinciple": {
+        "value": "trening siłowy jako jedna z najlepszych i najbezpieczniejszych form; profilaktyka sarkopenii i problemów metabolicznych",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "6-7"
+          }
+        ]
+      },
+      "caution": {
+        "value": "bez nadmiernej objętości; u starszych dłuższa regeneracja",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "7-8"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Stres metaboliczny",
+            "pages": "103"
+          }
+        ]
+      },
+      "offDays": {
+        "value": "lekka aktywność: spacer, basen, rower",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Atrofia",
+            "pages": "117-118"
+          }
+        ]
+      },
+      "changeCriteria": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      }
+    },
+    {
+      "id": "PAR-poczatkujacy",
+      "category": "parameters",
+      "goal": "poczatkujacy",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+            "pages": "87-88"
+          }
+        ],
+        "note": "Wniosek: synteza białek do 72 h, szczyt ok. 16 h po treningu (s. 87); na krzywej s. 88 po 48 h wciąż ok. 35% powyżej spoczynku."
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          }
+        ],
+        "note": "Zasada: mniejsza ilość pracy daje duże efekty."
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": {
+          "strengthOptimum": "ok. 52-65% CM"
+        },
+        "status": "zrodlo",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          }
+        ],
+        "note": "Wykres s. 69: u początkujących największy przyrost siły przy umiarkowanym ciężarze; RIR/RPE brak.",
+        "changedIn": "1.1"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": "kontrolowane, nacisk na technikę i wzorzec",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "15"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 2 Adaptacje nerwowe",
+            "pages": "50"
+          }
+        ]
+      },
+      "volume": {
+        "value": "niska na start",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          }
+        ]
+      },
+      "progression": {
+        "value": "szybki wzrost siły z adaptacji nerwowych w pierwszych sesjach; nie mylić z przyrostem mięśni",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "13-14"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 2 Adaptacje nerwowe",
+            "pages": "51"
+          }
+        ]
+      },
+      "expectations": {
+        "value": "przyrost mięśni widoczny po kilku tygodniach, akumulacja białka nawet miesiące; bolesność spada po ok. 2 tyg. tego samego protokołu",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 2 Adaptacje nerwowe",
+            "pages": "50"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "109"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "changeCriteria": {
+        "value": [
+          "spadek tempa postępów po wyczerpaniu okna początkującego"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "14"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R1",
+      "category": "beginner",
+      "if": "klient początkujący i trenuje 3x/tydz.",
+      "then": "plan całego ciała, mało prostych ćwiczeń, te same ćwiczenia przez blok, nacisk na technikę; nie zwiększać objętości z powodu szybkich postępów siłowych (to adaptacja nerwowa); 3 dni przedzielone dniem przerwy (wniosek z syntezy do 72 h); dla przyrostu siły wystarczy umiarkowany ciężar ok. 52-65% CM (wykres s. 69)",
+      "status": "zrodlo+wniosek",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "13-15"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Adaptacje nerwowe",
+          "pages": "50-51"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "69"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "87"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "69"
+        }
+      ],
+      "missingInSource": [
+        "serie",
+        "powtórzenia",
+        "RIR",
+        "przerwy"
+      ],
+      "changedIn": "1.1"
+    },
+    {
+      "id": "R2",
+      "category": "beginner",
+      "if": "początkujący zgłasza silną bolesność po pierwszych treningach",
+      "then": "poinformuj, że to typowe; nie zmieniaj ćwiczeń i nie zwiększaj obciążeń w tym okresie; bolesność spada po ok. 2 tyg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "advanced",
+      "if": "klient zaawansowany",
+      "then": "oczekuj wolniejszego progresu; świadomy dobór ćwiczeń pod regiony; synteza białek trwa krócej (24-48 h); krzywa MPS u wytrenowanych opada po ok. 10 h, a po ok. 28-36 h jest ok. 15% nad spoczynkiem (s. 88); dla siły ciężar >80% CM (s. 69)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "14"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "87"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "88"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "69"
+        }
+      ],
+      "missingInSource": [
+        "częstotliwość"
+      ],
+      "changedIn": "1.1"
+    },
+    {
+      "id": "R7",
+      "category": "goal",
+      "if": "cel = siła",
+      "then": "w głównych ćwiczeniach duże ciężary i niskie zakresy powtórzeń; intensywność dobrać do stażu: początkujący ok. 52-65% CM, średniozaawansowani ok. 75-80% CM, zaawansowani >80% CM (s. 69); >85% CM rekrutuje wszystkie jednostki (s. 95)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 2 Adaptacje nerwowe",
+          "pages": "52"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "68"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "95"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "69"
+        }
+      ],
+      "missingInSource": [
+        "serie",
+        "przerwy",
+        "progresja"
+      ],
+      "changedIn": "1.1"
+    },
+    {
+      "id": "R8",
+      "category": "goal",
+      "if": "cel = redukcja",
+      "then": "zachowaj trening oporowy; nie zwiększaj objętości ani metod mocno uszkadzających; przypomnij o śnie i białku",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "86"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "116-117"
+        }
+      ],
+      "missingInSource": [
+        "wartości liczbowe"
+      ]
+    },
+    {
+      "id": "R9",
+      "category": "goal",
+      "if": "cel = zdrowie lub klient starszy",
+      "then": "trening siłowy zalecany; dłuższa regeneracja, umiarkowana objętość",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "6-7"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "103"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "recovery",
+      "if": "siła/powtórzenia spadają przez kolejne treningi i długa bolesność",
+      "then": "traktuj jako możliwy nadmiar uszkodzeń: zmniejsz objętość lub ekscentrykę zamiast dokładać pracy",
+      "status": "zrodlo+wniosek",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "88"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109, 113"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "recovery",
+      "if": "klient trenuje regularnie, a traci masę lub siłę",
+      "then": "sprawdź długość deficytu, białko, sen, objętość; dopiero potem zmieniaj plan",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "116-117"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "plateau",
+      "if": "wyniki stoją po okresie szybkich postępów",
+      "then": "niewielka zmiana bodźca (wariant, kąt, zakres ruchu, zakres powtórzeń), nie całkowicie nowy plan",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "14"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "education",
+      "if": "klient ocenia trening po bolesności lub pompie",
+      "then": "wyjaśnij, że to nie są miary skuteczności; miarą jest progres ciężaru/powtórzeń przy tej samej technice; grubość mięśnia zaraz po treningu rośnie o ok. 19%, głównie przez wodę zewnątrzkomórkową (wykres s. 67), więc nie mierzyć obwodów zaraz po treningu",
+      "status": "zrodlo+wniosek",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "67"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "103"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "113"
+        }
+      ],
+      "changedIn": "1.1"
+    },
+    {
+      "id": "R15",
+      "category": "safety",
+      "if": "klient zgłasza ból (nie zwykłą bolesność), uraz lub objawy alarmowe",
+      "then": "stosuj safetyRules S5-S14",
+      "status": "poza_zrodlem",
+      "sources": []
+    },
+    {
+      "id": "R16",
+      "category": "adherence",
+      "if": "klient nie realizuje planu",
+      "then": "uprość plan: mniej ćwiczeń, krótsza sesja; zachowaj te same ćwiczenia",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "69"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "adherence",
+      "if": "klient ma przerwę w treningach",
+      "then": "lekka aktywność (spacery, basen, rower); spokojny powrót; masa wraca szybciej (pamięć mięśniowa, nie pewnik)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "71"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "116-118"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "category": "adherence",
+      "if": "klient chce zmieniać plan co tydzień",
+      "then": "zostaw stały plan na dany okres; zmieniaj szczegóły po adaptacji",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "94"
+        }
+      ],
+      "missingInSource": [
+        "długość okresu"
+      ]
+    },
+    {
+      "id": "R19",
+      "category": "education",
+      "if": "klient chce kopiować plan zawodowca o dużej objętości",
+      "then": "odradź: tolerancja zależy od genetyki; duża objętość może szkodzić przeciętnej osobie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "7-8"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "category": "intensity_by_level",
+      "if": "cel = siła lub ogólny przyrost siły; znany poziom zaawansowania",
+      "then": "początkujący: większość pracy ok. 52-65% CM; średniozaawansowani: ok. 75-80% CM; zaawansowani: >80% CM. Nie dawać początkującym ciężarów >85% CM tylko dlatego, że 'budują siłę'.",
+      "status": "zrodlo+wniosek",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "69"
+        }
+      ],
+      "addedIn": "1.1",
+      "missingInSource": [
+        "serie",
+        "powtórzenia",
+        "przerwy",
+        "kryteria poziomu"
+      ]
+    },
+    {
+      "id": "R21",
+      "category": "volume_cap",
+      "if": "generator planuje liczbę serii na partię w jednej sesji (hipertrofia)",
+      "then": "nie przekraczaj ok. 10 serii roboczych na sesję dla jednej partii bez wyraźnego powodu; dalsze serie nie podnoszą MPS, a zwiększają uszkodzenia (P5, P21, P17).",
+      "status": "wniosek",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "112"
+        },
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "87-88"
+        }
+      ],
+      "addedIn": "1.1",
+      "uncertainty": "wykres nie mówi, czy oś dotyczy jednego mięśnia; traktować jako górny limit ostrożności, nie cel"
+    },
+    {
+      "id": "R22",
+      "category": "recovery_by_muscle",
+      "if": "klient zaczyna nowe ćwiczenia z akcentem ekscentrycznym albo wraca po przerwie",
+      "then": "dla klatki, ramion (biceps, triceps), grzbietu i dwugłowych uda zaplanuj dłuższą przerwę przed kolejnym ciężkim treningiem tej partii niż dla czworogłowych i łydek; wprowadzaj pracę ekscentryczną stopniowo; jeśli siła partii nie wróciła, nie dokładaj objętości (R11).",
+      "status": "zrodlo+wniosek",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109-110"
+        }
+      ],
+      "addedIn": "1.1",
+      "data": {
+        "po_5_dniach_%_sily": {
+          "czworogłowy": 98,
+          "łydki": 98,
+          "dwugłowy uda": 84,
+          "prostownik grzbietu": 87,
+          "najszerszy": 83,
+          "biceps": 82,
+          "triceps": 81,
+          "piersiowy większy": 72
+        }
+      },
+      "missingInSource": [
+        "konkretna liczba dni przerwy dla planu"
+      ]
+    },
+    {
+      "id": "R23",
+      "category": "measurement",
+      "if": "klient lub trener mierzy obwody / grubość mięśni",
+      "then": "mierz w dniu bez treningu lub przed treningiem, nie bezpośrednio po; obrzęk po treningu ('pompa') zawyża wynik (ok. +19% grubości, s. 67) i znika w ciągu godzin do 72 h.",
+      "status": "zrodlo+wniosek",
+      "readFrom": "odczyt z grafiki w PDF (v1.1)",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "67"
+        }
+      ],
+      "addedIn": "1.1"
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "objawy przetrenowania lub długotrwałego przemęczenia",
+      "action": "zmniejsz obciążenie treningowe; nie dokładaj objętości",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "8"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "błędy techniki, nowe ćwiczenie, początkujący",
+      "action": "najpierw technika i wzorzec; nie zwiększaj obciążenia przy złej technice",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "15"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "spadek siły na treningu, długie DOMS, wyższe tętno przy tym samym obciążeniu",
+      "action": "traktuj jako nadmiar uszkodzeń; zmniejsz objętość/ekscentrykę",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "109, 113"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "utrata masy/siły mimo treningu przy deficycie, mało białka lub snu",
+      "action": "zmień obciążenie treningowe i zwróć uwagę na regenerację; bez zaleceń dietetycznych liczbowych",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "116-117"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "utrata masy mięśniowej bez wyjaśnienia treningowego lub dietetycznego",
+      "action": "zalecić konsultację lekarską; nie nazywać możliwej przyczyny",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "116"
+        }
+      ],
+      "referTo": "lekarz",
+      "notes": "Książka wymienia wśród przyczyn atrofii m.in. odnerwienie, niewydolność serca, nowotwory, zaburzenia hormonalne; aplikacja nie diagnozuje."
+    },
+    {
+      "id": "S6",
+      "trigger": "klientka zgłasza zaburzenia cyklu miesiączkowego lub podobne objawy",
+      "action": "nie zwiększać obciążeń; zalecić konsultację lekarską",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "8"
+        }
+      ],
+      "referTo": "lekarz",
+      "notes": "Autor wspomina o takich problemach w pytaniach retorycznych, bez danych; sygnał ostrzegawczy."
+    },
+    {
+      "id": "S7",
+      "trigger": "klient starszy",
+      "action": "dłuższa regeneracja, umiarkowana objętość; nie zalecać suplementów (temat dla lekarza)",
+      "status": "zrodlo+poza_zrodlem",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "103"
+        }
+      ],
+      "referTo": "lekarz (suplementacja)"
+    },
+    {
+      "id": "S8",
+      "trigger": "klient chce rutynowo 'zwalczać' stres oksydacyjny suplementami",
+      "action": "poinformuj, że u zdrowych trenujących może to ograniczać efekty; decyzja o suplementach do lekarza",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "encyklopedia-hipertrofii-2020",
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "103"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "ból w klatce piersiowej, duszność nieadekwatna do wysiłku, kołatanie serca, omdlenie lub zawroty głowy",
+      "action": "przerwać trening; zalecić pilny kontakt z lekarzem",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [],
+      "referTo": "lekarz (pilnie)"
+    },
+    {
+      "id": "S10",
+      "trigger": "znane choroby serca, nadciśnienie, cukrzyca, ciąża lub inne choroby przewlekłe bez zgody lekarza na trening",
+      "action": "nie generować planu bez potwierdzenia zgody lekarza",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [],
+      "referTo": "lekarz"
+    },
+    {
+      "id": "S11",
+      "trigger": "ciemny mocz, silny ból i obrzęk mięśni po bardzo ciężkim treningu",
+      "action": "przerwać trening; zalecić pilny kontakt z lekarzem",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [],
+      "referTo": "lekarz (pilnie)"
+    },
+    {
+      "id": "S12",
+      "trigger": "ostry ból stawu lub mięśnia podczas ćwiczenia (inny niż zmęczenie i bolesność mięśni)",
+      "action": "przerwać ćwiczenie; nie programować obciążenia tej okolicy; zalecić fizjoterapeutę",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [],
+      "referTo": "fizjoterapeuta"
+    },
+    {
+      "id": "S13",
+      "trigger": "ból utrzymujący się lub narastający między treningami, obrzęk, ograniczenie ruchu, drętwienie, mrowienie",
+      "action": "zalecić konsultację z fizjoterapeutą lub lekarzem; omijać obciążanie tej okolicy",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [],
+      "referTo": "fizjoterapeuta / lekarz"
+    },
+    {
+      "id": "S14",
+      "trigger": "świeży uraz, operacja lub rehabilitacja w toku",
+      "action": "plan tylko po zgodzie lekarza lub fizjoterapeuty",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": [],
+      "referTo": "lekarz / fizjoterapeuta"
+    },
+    {
+      "id": "S-COMM",
+      "trigger": "każda komunikacja o objawach",
+      "action": "nie nazywać przyczyny, nie sugerować rozpoznania, nie zalecać leków ani suplementów",
+      "status": "poza_zrodlem",
+      "priority": "blocking",
+      "sources": []
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni",
+      "goal": [
+        "zdrowie",
+        "początkujący z małą ilością czasu",
+        "powrót po przerwie"
+      ],
+      "days": {
+        "count": 2,
+        "layout": [
+          "A",
+          "B"
+        ],
+        "spacing": {
+          "value": "kilka dni między sesjami",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "encyklopedia-hipertrofii-2020",
+              "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+              "pages": "87"
+            }
+          ]
+        }
+      },
+      "sets": null,
+      "rest": null,
+      "rir": null,
+      "rpe": null,
+      "effort": {
+        "value": "blisko upadku mięśniowego",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "bez celowego zwalniania, bez ruchów balistycznych",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "96-97"
+          }
+        ]
+      },
+      "missingInSource": [
+        "sets",
+        "rest",
+        "rir",
+        "rpe",
+        "frequency"
+      ],
+      "reps": {
+        "value": {
+          "examplesFromSource": [
+            "8-12",
+            "20-30"
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "68"
+          }
+        ]
+      },
+      "exercises": {
+        "A": [
+          {
+            "slot": "wzorzec kolanowy",
+            "example": "przysiad",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "wzorzec biodrowy / pośladki",
+            "example": "hip thrust",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "pchanie poziome",
+            "example": "wyciskanie płasko",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "przyciąganie",
+            "example": "wiosłowanie",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "akton boczny barku",
+            "example": "wznosy hantli bokiem",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "ramię (opcjonalnie)",
+            "example": "uginanie przedramion z hantlami",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+                "pages": "20"
+              }
+            ]
+          }
+        ],
+        "B": [
+          {
+            "slot": "wzorzec kolanowy (wariant)",
+            "example": "przysiad bułgarski",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "wzorzec biodrowy",
+            "example": "martwy ciąg rumuński",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "pchanie pod kątem (górna klatka)",
+            "example": "wyciskanie na ławce skośnej głową w górę",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "78"
+              }
+            ]
+          },
+          {
+            "slot": "przyciąganie pionowe",
+            "example": "ściąganie drążka",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "akton tylny barku",
+            "example": "wznosy hantli w opadzie tułowia",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "triceps (opcjonalnie)",
+            "example": "prostowanie ramion",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ]
+      },
+      "progression": {
+        "value": "u początkującego szybki wzrost siły w pierwszych tygodniach; ćwiczenia bez zmian przez blok",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "13"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "94"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "109"
+          }
+        ]
+      },
+      "commonRules": [
+        "serie blisko upadku lub z dużym ciężarem (s. 95)",
+        "stały układ przez określony okres, po adaptacji niewielka zmiana (s. 94)",
+        "objętość do poziomu, który daje efekt; nie dokładać przy spadku siły (s. 87-88, 113)"
+      ],
+      "intensity": {
+        "value": "dla przyrostu siły u początkujących wystarczy ok. 52-65% CM; seria i tak blisko upadku dla hipertrofii",
+        "status": "zrodlo+wniosek",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          }
+        ],
+        "addedIn": "1.1"
+      }
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni",
+      "goal": [
+        "początkujący",
+        "hipertrofia ogólna"
+      ],
+      "days": {
+        "count": 3,
+        "layout": [
+          "A",
+          "B",
+          "A"
+        ],
+        "alternate": "kolejny tydzień B, A, B",
+        "spacing": {
+          "value": "dzień przerwy między sesjami",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "encyklopedia-hipertrofii-2020",
+              "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+              "pages": "87"
+            }
+          ]
+        }
+      },
+      "sets": null,
+      "rest": null,
+      "rir": null,
+      "rpe": null,
+      "effort": {
+        "value": "blisko upadku mięśniowego",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "bez celowego zwalniania, bez ruchów balistycznych",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "96-97"
+          }
+        ]
+      },
+      "missingInSource": [
+        "sets",
+        "rest",
+        "rir",
+        "rpe",
+        "frequency"
+      ],
+      "reps": {
+        "value": {
+          "examplesFromSource": [
+            "8-12",
+            "20-30"
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "68"
+          }
+        ]
+      },
+      "exercises": {
+        "A": [
+          {
+            "slot": "wzorzec kolanowy",
+            "example": "przysiad",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "przyciąganie poziome",
+            "example": "wiosłowanie",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "pchanie poziome",
+            "example": "wyciskanie płasko",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "akton boczny barku",
+            "example": "wznosy hantli bokiem",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "biceps",
+            "example": "uginanie przedramion z hantlami",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+                "pages": "20"
+              }
+            ]
+          }
+        ],
+        "B": [
+          {
+            "slot": "wzorzec biodrowy",
+            "example": "martwy ciąg rumuński lub hip thrust",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "przyciąganie pionowe",
+            "example": "ściąganie drążka / podciąganie",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "górna klatka",
+            "example": "wyciskanie na ławce skośnej głową w górę",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "78"
+              }
+            ]
+          },
+          {
+            "slot": "akton tylny barku",
+            "example": "wznosy hantli w opadzie tułowia",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "triceps",
+            "example": "prostowanie ramion",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ]
+      },
+      "progression": {
+        "value": "niewielka objętość na start; bolesność maleje po ok. 2 tyg.; po spadku tempa postępów zmiana wariantów",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "109"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "14"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "94"
+          }
+        ]
+      },
+      "commonRules": [
+        "serie blisko upadku lub z dużym ciężarem (s. 95)",
+        "stały układ przez określony okres, po adaptacji niewielka zmiana (s. 94)",
+        "objętość do poziomu, który daje efekt; nie dokładać przy spadku siły (s. 87-88, 113)"
+      ],
+      "intensity": {
+        "value": "dla przyrostu siły u początkujących wystarczy ok. 52-65% CM; seria i tak blisko upadku dla hipertrofii",
+        "status": "zrodlo+wniosek",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          }
+        ],
+        "addedIn": "1.1"
+      }
+    },
+    {
+      "id": "T3",
+      "name": "Góra/dół 4 dni",
+      "goal": [
+        "hipertrofia",
+        "średniozaawansowani"
+      ],
+      "days": {
+        "count": 4,
+        "layout": [
+          "Góra A",
+          "Dół A",
+          "Góra B",
+          "Dół B"
+        ]
+      },
+      "sets": null,
+      "rest": null,
+      "rir": null,
+      "rpe": null,
+      "effort": {
+        "value": "blisko upadku mięśniowego",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "bez celowego zwalniania, bez ruchów balistycznych",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "96-97"
+          }
+        ]
+      },
+      "missingInSource": [
+        "sets",
+        "rest",
+        "rir",
+        "rpe",
+        "frequency"
+      ],
+      "reps": {
+        "value": "szeroki zakres, blisko upadku",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "68"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "exercises": {
+        "Góra A": [
+          {
+            "slot": "środkowa klatka",
+            "example": "wyciskanie płasko",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "przyciąganie poziome",
+            "example": "wiosłowanie",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "akton przedni barku",
+            "example": "wznosy przodem / wyciskanie nad głowę",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "akton boczny barku",
+            "example": "wznosy bokiem",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "biceps",
+            "example": "uginanie przedramion",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+                "pages": "20"
+              }
+            ]
+          }
+        ],
+        "Dół A": [
+          {
+            "slot": "czworogłowy",
+            "example": "przysiad",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "kulszowo-goleniowe / pośladki",
+            "example": "martwy ciąg rumuński",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "jednonóż",
+            "example": "wykroki",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "łydki",
+            "example": "wspięcia na palce",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "Góra B": [
+          {
+            "slot": "górna klatka",
+            "example": "wyciskanie na skosie głową w górę",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "78"
+              }
+            ]
+          },
+          {
+            "slot": "przyciąganie pionowe",
+            "example": "ściąganie drążka",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "akton tylny barku",
+            "example": "wznosy w opadzie",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "dolna klatka",
+            "example": "wyciskanie głową w dół / pompki na poręczach",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "78"
+              }
+            ]
+          },
+          {
+            "slot": "triceps",
+            "example": "prostowanie ramion",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "Dół B": [
+          {
+            "slot": "pośladki",
+            "example": "hip thrust",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "czworogłowy (inne ustawienie)",
+            "example": "wariant przysiadu z innym ustawieniem",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "80"
+              }
+            ]
+          },
+          {
+            "slot": "kulszowo-goleniowe",
+            "example": "uginanie nóg",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "pośladkowy średni",
+            "example": "odwodzenie biodra",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+                "pages": "19"
+              }
+            ]
+          }
+        ]
+      },
+      "progression": {
+        "value": "regiony rozdzielone między dni A i B; zmiana wariantów po adaptacji",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "94"
+          }
+        ]
+      },
+      "commonRules": [
+        "serie blisko upadku lub z dużym ciężarem (s. 95)",
+        "stały układ przez określony okres, po adaptacji niewielka zmiana (s. 94)",
+        "objętość do poziomu, który daje efekt; nie dokładać przy spadku siły (s. 87-88, 113)"
+      ],
+      "intensity": {
+        "value": "średniozaawansowani: optimum siłowe ok. 75-80% CM (s. 69); serie hipertroficzne blisko upadku",
+        "status": "zrodlo+wniosek",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          }
+        ],
+        "addedIn": "1.1"
+      }
+    },
+    {
+      "id": "T4",
+      "name": "Plan hipertroficzny",
+      "goal": [
+        "maksymalny rozwój masy",
+        "symetria"
+      ],
+      "days": {
+        "count": null,
+        "layout": "jak T2 lub T3",
+        "status": "brak_w_zrodle"
+      },
+      "sets": null,
+      "rest": null,
+      "rir": null,
+      "rpe": null,
+      "effort": {
+        "value": "blisko upadku mięśniowego",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "bez celowego zwalniania, bez ruchów balistycznych",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "96-97"
+          }
+        ]
+      },
+      "missingInSource": [
+        "sets",
+        "rest",
+        "rir",
+        "rpe",
+        "frequency"
+      ],
+      "reps": {
+        "value": "mieszanie ciężkich i lżejszych serii, wszystkie blisko upadku",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ],
+        "conflicts": [
+          "K3"
+        ]
+      },
+      "exercises": {
+        "klatka": [
+          {
+            "slot": "płasko",
+            "example": "wyciskanie płasko",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "skos w górę",
+            "example": "wyciskanie na skosie głową w górę",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "78"
+              }
+            ]
+          },
+          {
+            "slot": "skos w dół",
+            "example": "wyciskanie głową w dół",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "78"
+              }
+            ]
+          }
+        ],
+        "barki": [
+          {
+            "slot": "przód",
+            "example": "wznosy przodem",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "bok",
+            "example": "wznosy bokiem",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          },
+          {
+            "slot": "tył",
+            "example": "wznosy w opadzie",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "79"
+              }
+            ]
+          }
+        ],
+        "czworogłowe": [
+          {
+            "slot": "różne ustawienia",
+            "example": "2 warianty ćwiczeń kolanowych z różnym ustawieniem ciała",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "80"
+              }
+            ]
+          }
+        ],
+        "pośladki": [
+          {
+            "slot": "prostowanie biodra",
+            "example": "hip thrust / martwy ciąg rumuński",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "odwodzenie",
+            "example": "odwodzenie biodra",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+                "pages": "19"
+              }
+            ]
+          }
+        ],
+        "grzbiet": [
+          {
+            "slot": "różne kąty przyciągania",
+            "example": "wiosłowanie + ściąganie drążka",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "uzupełnienie": [
+          {
+            "slot": "rozciąganie bierne",
+            "example": "rozciąganie trenowanych mięśni",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Napięcie mechaniczne",
+                "pages": "93"
+              }
+            ]
+          }
+        ]
+      },
+      "progression": {
+        "value": "objętość do poziomu, który daje efekt; bez metod 'na pompę' kosztem napięcia; po adaptacji niewielka zmiana bodźca",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "112"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Stres metaboliczny",
+            "pages": "104"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "94"
+          }
+        ]
+      },
+      "commonRules": [
+        "serie blisko upadku lub z dużym ciężarem (s. 95)",
+        "stały układ przez określony okres, po adaptacji niewielka zmiana (s. 94)",
+        "objętość do poziomu, który daje efekt; nie dokładać przy spadku siły (s. 87-88, 113)"
+      ],
+      "setsCap": {
+        "value": "ok. 10 serii roboczych na partię na sesję jako górny limit",
+        "status": "wniosek",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "112"
+          }
+        ],
+        "addedIn": "1.1"
+      },
+      "recoveryNote": {
+        "value": "klatka, ramiona i dwugłowe uda regenerują się wolniej niż czworogłowe i łydki (s. 110)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+            "pages": "110"
+          }
+        ],
+        "addedIn": "1.1"
+      }
+    },
+    {
+      "id": "T5",
+      "name": "Plan siłowy",
+      "goal": [
+        "siła maksymalna"
+      ],
+      "days": {
+        "count": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": null,
+      "rest": null,
+      "rir": null,
+      "rpe": null,
+      "effort": {
+        "value": "duży ciężar; RIR nieokreślony",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "prędkość wynika z ciężaru",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95-96"
+          }
+        ]
+      },
+      "missingInSource": [
+        "sets",
+        "rest",
+        "rir",
+        "rpe",
+        "frequency"
+      ],
+      "reps": {
+        "value": {
+          "examplesFromSource": [
+            "1-3",
+            "poniżej 5-8"
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "68"
+          }
+        ],
+        "note": "opis pracy ciężkiej, nie zalecenie planu"
+      },
+      "exercises": {
+        "główne": [
+          {
+            "slot": "wielostawowe z dużym ciężarem",
+            "example": "przysiad, wyciskanie, martwy ciąg",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "uzupełniające": [
+          {
+            "slot": "regiony",
+            "example": "ćwiczenia na regiony wg E1-E4",
+            "exampleStatus": "zrodlo",
+            "sources": [
+              {
+                "ref": "encyklopedia-hipertrofii-2020",
+                "chapter": "Rozdz. 3 Hipertrofia regionalna",
+                "pages": "78-80"
+              }
+            ]
+          }
+        ]
+      },
+      "progression": {
+        "value": "wczesny wzrost siły z adaptacji nerwowych, później wolniejszy",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 1 Wstęp",
+            "pages": "13-14"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 2 Adaptacje nerwowe",
+            "pages": "51"
+          }
+        ],
+        "missingInSource": [
+          "schemat zwiększania ciężaru"
+        ]
+      },
+      "commonRules": [
+        "serie blisko upadku lub z dużym ciężarem (s. 95)",
+        "stały układ przez określony okres, po adaptacji niewielka zmiana (s. 94)",
+        "objętość do poziomu, który daje efekt; nie dokładać przy spadku siły (s. 87-88, 113)"
+      ],
+      "intensity": {
+        "value": {
+          "poczatkujacy": "52-65% CM",
+          "sredniozaawansowani": "75-80% CM",
+          "zaawansowani": ">80% CM",
+          "pelna_rekrutacja": ">85% CM"
+        },
+        "status": "zrodlo",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "69"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ],
+        "changedIn": "1.1"
+      }
+    },
+    {
+      "id": "T6",
+      "name": "Plan domowy bez siłowni",
+      "goal": [
+        "hipertrofia przy ograniczonym sprzęcie",
+        "zdrowie"
+      ],
+      "days": {
+        "count": null,
+        "layout": "jak T1 lub T2",
+        "status": "brak_w_zrodle"
+      },
+      "sets": null,
+      "rest": null,
+      "rir": null,
+      "rpe": null,
+      "effort": {
+        "value": "blisko upadku mięśniowego",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "bez celowego zwalniania, bez ruchów balistycznych",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "96-97"
+          }
+        ]
+      },
+      "missingInSource": [
+        "sets",
+        "rest",
+        "rir",
+        "rpe",
+        "frequency"
+      ],
+      "reps": {
+        "value": {
+          "examplesFromSource": [
+            "20-30"
+          ],
+          "condition": "blisko upadku"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+            "pages": "68"
+          },
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ]
+      },
+      "exercises": {
+        "nogi": [
+          {
+            "slot": "wzorzec kolanowy",
+            "example": "przysiad z masą ciała lub plecakiem",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "jednonóż",
+            "example": "przysiad bułgarski",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "pośladki",
+            "example": "hip thrust / most biodrowy",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "pchanie": [
+          {
+            "slot": "klatka",
+            "example": "pompki",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "górna klatka",
+            "example": "pompki z nogami wyżej",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "przyciąganie": [
+          {
+            "slot": "grzbiet",
+            "example": "wiosłowanie z gumą lub plecakiem",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "barki": [
+          {
+            "slot": "akton boczny",
+            "example": "wznosy bokiem z gumą lub butelkami",
+            "exampleStatus": "poza_zrodlem"
+          },
+          {
+            "slot": "akton tylny",
+            "example": "odwodzenie poziome z gumą",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ],
+        "ramiona": [
+          {
+            "slot": "biceps",
+            "example": "uginanie z gumą",
+            "exampleStatus": "poza_zrodlem"
+          }
+        ]
+      },
+      "progression": {
+        "value": "więcej powtórzeń do upadku, trudniejszy wariant tego samego ruchu, większy opór gumy",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "94"
+          }
+        ]
+      },
+      "commonRules": [
+        "serie blisko upadku lub z dużym ciężarem (s. 95)",
+        "stały układ przez określony okres, po adaptacji niewielka zmiana (s. 94)",
+        "objętość do poziomu, który daje efekt; nie dokładać przy spadku siły (s. 87-88, 113)"
+      ],
+      "notes": "nie zamieniać ćwiczeń na szybkie podskoki (niskie napięcie, s. 96-97); dla celu siłowego ograniczenie R5",
+      "equipmentFromSource": {
+        "value": [
+          "masa własnego ciała",
+          "gumy",
+          "hantle",
+          "kettle"
+        ],
+        "status": "zrodlo",
+        "readFrom": "odczyt z grafiki w PDF (v1.1)",
+        "sources": [
+          {
+            "ref": "encyklopedia-hipertrofii-2020",
+            "chapter": "Rozdz. 3 Napięcie mechaniczne",
+            "pages": "95"
+          }
+        ],
+        "addedIn": "1.1"
+      }
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "encyklopedia-hipertrofii-2020",
+      "type": "book",
+      "author": "Paweł Głuchowski",
+      "title": "Encyklopedia Hipertrofii. Wszystko co musisz wiedzieć o wzroście mięśni",
+      "publisher": "Fundacja Promocji Sportu Pawła Głuchowskiego",
+      "place": "Warszawa",
+      "year": 2020,
+      "edition": "I",
+      "isbn": "978-83-959895-1-3",
+      "knowledgeDate": "2020-11-20",
+      "scientificEditor": "dr Amit Batra",
+      "pages": 132,
+      "scope": "fizjologia hipertrofii; autor zapowiada programowanie treningu w kolejnej publikacji (s. 5, 122)",
+      "fileUsed": "v1.0: Encyklopedia-Hipertrofii.txt (tekst bez grafik); v1.1: 811290341-eBook-Encyklopedia-Hipertrofii.pdf (132 s., z grafikami)",
+      "pdfPageOffset": 0,
+      "pageNumbering": "numer strony PDF = numer drukowany w stopce (przesunięcie 0)"
+    },
+    {
+      "id": "chapters",
+      "type": "chapter_map",
+      "chapters": [
+        {
+          "chapter": "Rozdz. 1 Wstęp",
+          "pages": "4-15",
+          "topics": [
+            "korzyści treningu siłowego",
+            "efekt początkującego",
+            "początkujący a wiedza"
+          ]
+        },
+        {
+          "chapter": "Rozdz. 2 Mięśnie szkieletowe",
+          "pages": "17-22"
+        },
+        {
+          "chapter": "Rozdz. 2 Rozmiar mięśni",
+          "pages": "23-30"
+        },
+        {
+          "chapter": "Rozdz. 2 Włókna mięśniowe",
+          "pages": "31-40"
+        },
+        {
+          "chapter": "Rozdz. 2 Jednostka motoryczna",
+          "pages": "41-49"
+        },
+        {
+          "chapter": "Rozdz. 2 Adaptacje nerwowe",
+          "pages": "50-54"
+        },
+        {
+          "chapter": "Rozdz. 3 Hipertrofia – jak rosną mięśnie",
+          "pages": "56-74"
+        },
+        {
+          "chapter": "Rozdz. 3 Hipertrofia regionalna",
+          "pages": "75-82"
+        },
+        {
+          "chapter": "Rozdz. 3 Główne czynniki wpływające na wzrost mięśni",
+          "pages": "83-90"
+        },
+        {
+          "chapter": "Rozdz. 3 Napięcie mechaniczne",
+          "pages": "91-98"
+        },
+        {
+          "chapter": "Rozdz. 3 Stres metaboliczny",
+          "pages": "99-106"
+        },
+        {
+          "chapter": "Rozdz. 3 Uszkodzenia mięśni",
+          "pages": "107-114"
+        },
+        {
+          "chapter": "Rozdz. 3 Atrofia",
+          "pages": "115-119"
+        },
+        {
+          "chapter": "Rozdz. 4 Co dalej",
+          "pages": "121-122"
+        }
+      ]
+    },
+    {
+      "id": "gaps",
+      "type": "missing_in_source",
+      "items": [
+        "częstotliwość treningów",
+        "liczba serii jako zalecenie (jest tylko wykres: plateau MPS ok. 10 serii/sesję, s. 112)",
+        "przerwy",
+        "RIR/RPE (wartości liczbowe; pojęcia 'wysokie RPE, niski RIR' tylko na schemacie s. 120)",
+        "tempo liczbowe",
+        "schemat progresji ciężaru",
+        "deload",
+        "parametry redukcji i planu zdrowotnego",
+        "gotowe plany i listy ćwiczeń",
+        "przeciwwskazania medyczne",
+        "kryteria poziomu zaawansowania"
+      ]
+    },
+    {
+      "id": "conflicts",
+      "type": "conflicts",
+      "items": [
+        {
+          "id": "K1",
+          "topic": "czas podwyższonej syntezy białek",
+          "a": "24-48 h zaawansowani, do 72 h początkujący (s. 87)",
+          "b": "72-96 h (wnioski, s. 89)",
+          "appDecision": "używać s. 87; 72-96 h to komórki satelitarne (s. 70)"
+        },
+        {
+          "id": "K2",
+          "topic": "pompa mięśniowa",
+          "a": "do 72 h (s. 67)",
+          "b": "72-96 h (s. 72)",
+          "appDecision": "tylko edukacja"
+        },
+        {
+          "id": "K3",
+          "topic": "lekki ciężar do upadku",
+          "a": "wysokie napięcie jak przy ciężkim (s. 95, 98)",
+          "b": "rekrutacja może nie być pełna (s. 48, 101)",
+          "appDecision": "lekki dopuszczalny dla hipertrofii, ciężki preferowany dla siły"
+        },
+        {
+          "id": "K4",
+          "topic": "uszkodzenia mięśni",
+          "a": "wciąż uznawane za niezbędne (s. 113 pkt 1)",
+          "b": "nie są niezbędne (s. 112, s. 113 pkt 4)",
+          "appDecision": "nie dążyć do uszkodzeń"
+        },
+        {
+          "id": "K5",
+          "topic": "hipertrofia sarkoplazmatyczna",
+          "a": "zależna od treningu, większa u kulturystów (s. 64)",
+          "b": "rośnie razem z miofibrylarną; 8-12 i 20-30 powt. podobnie (s. 64, 68)",
+          "appDecision": "nie programować pod sarkoplazmę (s. 68)"
+        },
+        {
+          "id": "K6",
+          "topic": "wzrost włókien typu I",
+          "a": "rosną w ograniczonym zakresie (s. 36, 38)",
+          "b": "nie podlegają wzrostowi (s. 65)",
+          "appDecision": "rosną mniej niż typu II"
+        },
+        {
+          "id": "K7",
+          "topic": "rodzaje skurczu",
+          "a": "dwa (s. 20)",
+          "b": "trzy (s. 21)",
+          "appDecision": "bez wpływu"
+        },
+        {
+          "id": "K8",
+          "topic": "stres metaboliczny",
+          "a": "może sprzyjać hipertrofii (s. 100, 103)",
+          "b": "rola niejasna (s. 100)",
+          "appDecision": "element dodatkowy, nie kosztem napięcia (s. 104)"
+        },
+        {
+          "id": "K9",
+          "topic": "utrzymanie jąder komórkowych",
+          "a": "długi czas (s. 71)",
+          "b": "ok. 15 lat (s. 116)",
+          "appDecision": "edukacja"
+        },
+        {
+          "id": "K10",
+          "topic": "włókna typu II w najszerszym grzbietu",
+          "a": "stosunkowo dużo typu II (tekst s. 45)",
+          "b": "ok. 51%, czyli przeciętnie (wykres s. 37)",
+          "appDecision": "nie traktować najszerszego jako mięśnia wyjątkowo 'szybkiego'",
+          "addedIn": "1.1"
+        },
+        {
+          "id": "K11",
+          "topic": "rozmiar bicepsa i tricepsa",
+          "a": "biceps prawie 16x mniejszy od czworogłowych; triceps zbliżony do klatki (s. 24-25)",
+          "b": "tabele: czworogłowy M 1790,9 / biceps 143,7 = ok. 12,5x; triceps 372,1 ≈ naramienny 380,5 > klatka 290,0 (s. 26-27)",
+          "appDecision": "używać liczb z tabel; tekst traktować jako przybliżenie",
+          "addedIn": "1.1"
+        },
+        {
+          "id": "K12",
+          "topic": "objętość kulszowo-goleniowych u kobiet",
+          "a": "grupa 442,5 cm3 (s. 28)",
+          "b": "mięśnie składowe 341,3 + 275,6 + 106,7 = 723,6 (te same liczby co u mężczyzn, s. 27)",
+          "appDecision": "używać wartości grupy 442,5; składowe kobiet niewiarygodne (błąd składu)",
+          "addedIn": "1.1"
+        },
+        {
+          "id": "K13",
+          "topic": "RIR/RPE w książce",
+          "a": "baza v1.0: skala RIR/RPE nie występuje",
+          "b": "schemat podsumowania s. 120: 'wysokie RPE, niski RIR' przy pracy do zmęczenia średnim/małym ciężarem",
+          "appDecision": "pojęcia występują, wartości liczbowe nadal brak (null)",
+          "addedIn": "1.1"
+        }
+      ]
+    },
+    {
+      "id": "lost_figures",
+      "type": "lost_figures",
+      "note": "v1.0: plik .txt bez grafik. v1.1: grafiki obejrzane w PDF (render 110-220 dpi); pole readInV11 opisuje, co odczytano.",
+      "items": [
+        {
+          "pages": "13",
+          "content": "krzywa 'okno adaptacji – efekt sufitu'",
+          "readInV11": "jakościowo: potencjał adaptacyjny maleje ze stażem; bez liczb",
+          "usedIn": [
+            "P7"
+          ]
+        },
+        {
+          "pages": "14, 51",
+          "content": "postęp adaptacji nerwowo-mięśniowych w czasie",
+          "readInV11": "jakościowo: adaptacje nerwowe szybko w pierwszych tygodniach, hipertrofia minimalna na początku, potem dynamiczna; bez liczb",
+          "usedIn": [
+            "P7"
+          ]
+        },
+        {
+          "pages": "26",
+          "content": "tabela objętości mięśni górnej części ciała (cm3)",
+          "readInV11": "13 mięśni z wartościami ± (E6)",
+          "usedIn": [
+            "E6",
+            "P15",
+            "K11"
+          ]
+        },
+        {
+          "pages": "27-28",
+          "content": "tabele objętości mięśni kończyn dolnych M i K",
+          "readInV11": "19 pozycji dla M i K (E6); błąd składu u K (K12)",
+          "usedIn": [
+            "E6",
+            "P15",
+            "K12"
+          ]
+        },
+        {
+          "pages": "32, 34",
+          "content": "budowa włókna i sarkomeru, hipertrofia równoległa/szeregowa",
+          "readInV11": "schemat anatomiczny, bez danych dla planu",
+          "usedIn": []
+        },
+        {
+          "pages": "35",
+          "content": "tabela cech włókien typu I, IIa, IIx",
+          "readInV11": "11 cech jakościowych (np. siła: mała/umiarkowana/duża; odporność na zmęczenie: wysoka/umiarkowana/niska)",
+          "usedIn": [
+            "sourceReferences"
+          ]
+        },
+        {
+          "pages": "37-38",
+          "content": "rozkład typów włókien w mięśniach",
+          "readInV11": "% włókien typu II dla 21 pozycji górnych i 9 dolnych (E5, E12)",
+          "usedIn": [
+            "E5",
+            "E12",
+            "K10"
+          ]
+        },
+        {
+          "pages": "42",
+          "content": "tabela jednostek nisko- i wysokoprogowych",
+          "readInV11": "niskoprogowe: kilka-kilkadziesiąt włókien, typ I, codzienna aktywność, mały potencjał wzrostu; wysokoprogowe: nawet >1000 włókien, typ II, duża siła, duży potencjał wzrostu",
+          "usedIn": [
+            "P2"
+          ]
+        },
+        {
+          "pages": "43",
+          "content": "siła i zmęczenie 120 jednostek motorycznych",
+          "readInV11": "MU 100: ok. 45x siła MU 1, ok. 1%/s spadku; MU 120: 100x, ok. 2,25%/s (liczby także w tekście)",
+          "usedIn": [
+            "P2"
+          ]
+        },
+        {
+          "pages": "46",
+          "content": "zasada Hennemana – liczba włókien na jednostkę",
+          "readInV11": "21-1770 włókien na motoneuron; ponad połowa włókien kontrolowana przez ok. 10% jednostek wysokoprogowych",
+          "usedIn": [
+            "P2"
+          ]
+        },
+        {
+          "pages": "59, 66, 69",
+          "content": "proporcje miofibryle/sarkoplazma",
+          "readInV11": "pułap startowy 75:25; hipertrofia sarkoplazmatyczna 65:35; zaawansowani 65:35 → 60:40, początkujący 75:25 bez zmian",
+          "usedIn": [
+            "K5"
+          ]
+        },
+        {
+          "pages": "67",
+          "content": "zmiana potreningowa: grubość mięśnia i woda",
+          "readInV11": "grubość ok. +19%, woda wewnątrzkomórkowa ok. -2%, zewnątrzkomórkowa ok. +7%, stosunek ok. +9%",
+          "usedIn": [
+            "R14",
+            "R23"
+          ]
+        },
+        {
+          "pages": "69",
+          "content": "przyrost siły vs intensywność (% CM) wg stażu",
+          "readInV11": "optimum: początkujący 52-65%, średnio zaawansowani 75-80%, zaawansowani >80% CM",
+          "usedIn": [
+            "P20",
+            "R20",
+            "R7",
+            "PAR-sila",
+            "T5"
+          ]
+        },
+        {
+          "pages": "71",
+          "content": "cykl komórek satelitarnych",
+          "readInV11": "5 etapów (aktywacja, migracja, przyłączenie, naprawa, odpoczynek); liczby 15%/26% są w tekście",
+          "usedIn": []
+        },
+        {
+          "pages": "78, 80",
+          "content": "schemat regionalizacji; regiony klatki i czworogłowego (ilustracje)",
+          "readInV11": "przyczyny: architektura, anatomia, unerwienie, aktywacja, typy włókien; ilustracje bez danych liczbowych (wykresu czworogłowego w PDF nie ma)",
+          "usedIn": [
+            "E1",
+            "E3"
+          ]
+        },
+        {
+          "pages": "79-80",
+          "content": "moment siły 7 regionów naramiennego; funkcje aktonów",
+          "readInV11": "wartości dla 7 regionów (E2)",
+          "usedIn": [
+            "E2"
+          ]
+        },
+        {
+          "pages": "85-86",
+          "content": "piramida bodźców; szlaki sygnałowe mTOR",
+          "readInV11": "napięcie mechaniczne jako podstawa; schemat szlaków bez danych dla planu",
+          "usedIn": [
+            "P1"
+          ]
+        },
+        {
+          "pages": "88",
+          "content": "krzywa syntezy białek po treningu (w v1.0 przypisana do s. 87)",
+          "readInV11": "wytrenowani: szczyt ok. 158% po 4-5 h, ok. 15% po 28-36 h; niewytrenowani: szczyt ok. 170% po 16 h, ok. 35% po 48 h",
+          "usedIn": [
+            "PAR-hipertrofia",
+            "PAR-poczatkujacy",
+            "R3"
+          ]
+        },
+        {
+          "pages": "92, 95, 96, 97",
+          "content": "mechanotransdukcja, źródła oporu, siła-prędkość, 3 wykresy rekrutacja/napięcie",
+          "readInV11": "jakościowo; źródła oporu: sztanga, kettle, hantle, masa ciała, gumy (E11)",
+          "usedIn": [
+            "P3",
+            "P12",
+            "E11"
+          ]
+        },
+        {
+          "pages": "110",
+          "content": "spadek siły po treningu ekscentrycznym: nogi i górna część ciała, dni 0-5",
+          "readInV11": "wartości min. i po 5 dniach dla 8 mięśni (P22, R22)",
+          "usedIn": [
+            "P22",
+            "R22"
+          ]
+        },
+        {
+          "pages": "112",
+          "content": "MPS i p70S6K vs liczba serii",
+          "readInV11": "plateau MPS ok. 10-11 serii (P21)",
+          "usedIn": [
+            "P21",
+            "R21",
+            "PAR-hipertrofia"
+          ]
+        },
+        {
+          "pages": "117",
+          "content": "przyczyny atrofii (schemat)",
+          "readInV11": "9 przyczyn – zgodne z tekstem (S4, S5)",
+          "usedIn": [
+            "S4",
+            "S5"
+          ]
+        },
+        {
+          "pages": "120",
+          "content": "podsumowanie: metody stymulacji mięśni",
+          "readInV11": "wysokie obciążenie (wysoki % CM) albo praca do zmęczenia średnim/małym ciężarem (wysokie RPE, niski RIR) → napięcie mechaniczne → MPS > MPB → hipertrofia",
+          "usedIn": [
+            "P2",
+            "K13"
+          ]
+        },
+        {
+          "pages": "brak",
+          "content": "nieodczytane",
+          "readInV11": "osie wykresów s. 79 i 110 bez dokładnej skali – wartości przybliżone (±2-3 j.); wykres s. 69 i s. 112 bez opisu metodyki badania; zdjęcia anatomiczne (s. 18-19, 26-28, 61-62, 75, 77, 94) bez danych"
+        }
+      ]
+    },
+    {
+      "id": "status_legend",
+      "type": "legend",
+      "values": {
+        "zrodlo": "wprost z książki",
+        "wniosek": "logiczny wniosek z treści, nie zalecenie autora",
+        "brak_w_zrodle": "książka tego nie podaje (wartość null)",
+        "poza_zrodlem": "reguła ostrożności Progress Live spoza książki",
+        "zrodlo+wniosek": "część z książki, część wniosek",
+        "zrodlo+poza_zrodlem": "część z książki, część reguła ostrożności"
+      }
+    },
+    {
+      "id": "kb_version",
+      "type": "version",
+      "version": "1.1",
+      "date": "2026-10-17",
+      "changelog": [
+        "1.0 (2026-10-16): baza z wersji tekstowej, bez grafik",
+        "1.1 (2026-10-17): dodano dane z rycin, wykresów i tabel PDF (objętości mięśni, typy włókien, intensywność wg stażu, plateau MPS ~10 serii, krzywe MPS i regeneracji, regiony naramiennego); poprawiono stwierdzenie o braku RIR/RPE i stronę krzywej MPS (s. 88)"
+      ]
+    }
+  ]
+}
