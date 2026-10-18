@@ -65,6 +65,38 @@ function exJsArg(s){
 }
 window.exJsArg=exJsArg;
 
+/** Biblioteka na wąskim ekranie: pokaż/schowaj panel filtrów (albo prawy panel) danego ekranu. */
+const LIB_PANEL_MQ='(max-width:760px)';
+function libTogglePanel(btn,kind){
+  const screen=btn&&btn.closest?btn.closest('.screen'):null;
+  if(!screen)return false;
+  const cls=kind==='aside'?'lib-open-aside':'lib-open-filters';
+  const open=!screen.classList.contains(cls);
+  libClosePanels(screen);
+  if(open){
+    screen.classList.add(cls);
+    btn.setAttribute('aria-expanded','true');
+  }
+  return open;
+}
+function libClosePanels(screen){
+  if(!screen)return;
+  screen.classList.remove('lib-open-filters','lib-open-aside');
+  screen.querySelectorAll('.lib-filters-btn').forEach(b=>b.setAttribute('aria-expanded','false'));
+}
+window.libTogglePanel=libTogglePanel;
+window.libClosePanels=libClosePanels;
+// Po wyborze filtra na telefonie panel się chowa, żeby od razu było widać wyniki.
+// Faza capture: kliknięty element bywa podmieniany przez render, zanim zdarzenie dojdzie do document.
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('click',e=>{
+  const t=e.target;
+  if(!t||!t.closest||!window.matchMedia||!window.matchMedia(LIB_PANEL_MQ).matches)return;
+  const item=t.closest('.lib-filters .ex-cat-nav-item,.lib-filters .prog-nav-item,.lib-filters .tpl-filter,.lib-filters .task-nav-item,.lib-filters .form-nav-item,.lib-filters .metric-group-nav');
+  if(!item)return;
+  const screen=item.closest('.screen');
+  if(screen&&screen.classList.contains('lib-open-filters'))setTimeout(()=>libClosePanels(screen),0);
+},true);
+
 /** Stabilne ID współdzielone lokalnie i w Firestore (doc id = obj.id). */
 function newId(prefix){
   return (prefix||'id')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);

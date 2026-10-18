@@ -2979,6 +2979,9 @@ function renderLibTab(){
   const vidBody=document.getElementById('lib-vid-body');
   if(exBody)exBody.style.display=videos?'none':'flex';
   if(vidBody)vidBody.style.display=videos?'block':'none';
+  const filtersBtn=document.getElementById('lib-filters-btn');
+  if(filtersBtn)filtersBtn.hidden=videos;
+  if(videos&&typeof libClosePanels==='function')libClosePanels(document.getElementById('screen-library'));
   const title=document.getElementById('lib-top-title');
   if(title)title.textContent=videos?'Moje filmy':'Biblioteka ćwiczeń';
   const tabEx=document.getElementById('lib-tab-ex');

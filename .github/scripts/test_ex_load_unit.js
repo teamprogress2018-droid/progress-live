@@ -26,9 +26,9 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=134'));
+ok('cache 01', html.includes('01-core.js?v=135'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=105'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=99'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=100'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
 ok('builder kg field', src05.includes('data-f="kg"'));
 ok('save loadUnit', src05.includes("loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg'"));

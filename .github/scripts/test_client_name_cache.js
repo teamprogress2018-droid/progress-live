@@ -39,7 +39,7 @@ ok('saveCPEdit syncs caches after confirmed service acknowledgement',
   inlineSave.indexOf('await saveClientCardConfirmed') < inlineSave.indexOf('syncClientNameCache(c.id,c.name)') &&
   !inlineSave.includes('persistById') && !inlineSave.includes('_setDoc'));
 ok('saveClient edit hooks sync', src05.includes("syncClientNameCache(c.id,c.name)"));
-ok('cache 01', html.includes('01-core.js?v=134'));
+ok('cache 01', html.includes('01-core.js?v=135'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=105'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=57'));
 ok('CI', wf.includes('test_client_name_cache.js'));

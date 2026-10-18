@@ -2844,6 +2844,34 @@ input[type=checkbox]{accent-color:var(--accent);}
 .lib-side{width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;min-height:0;}
 .lib-side-top{padding:10px;flex-shrink:0;}
 .lib-side-scroll{overflow-y:auto;flex:1;min-height:0;padding:4px 0 18px;}
+.lib-filters-btn{display:none;}
+/* Biblioteka na telefonie: panel filtrów (i prawy panel Pomiarów) chowany pod przyciskiem, lista na całą szerokość. */
+@media(max-width:760px){
+  .lib-filters-btn{display:inline-flex;align-items:center;}
+  .lib-filters-btn[hidden]{display:none!important;}
+  .lib-filters-btn[aria-expanded="true"]{background:var(--adim);color:var(--accent);border-color:rgba(225,31,46,0.3);}
+  .lib-split{flex-direction:column;}
+  .lib-split>.lib-filters,.lib-split>.lib-aside{display:none!important;}
+  .screen.lib-open-filters .lib-split>.lib-filters,
+  .screen.lib-open-aside .lib-split>.lib-aside{display:flex!important;flex-direction:column;width:auto!important;max-height:55vh;flex-shrink:0;border-right:0!important;border-left:0!important;border-bottom:1px solid var(--border);overflow-y:auto!important;}
+  /* Zamknięty panel: zostaje samo pole wyszukiwania / wyboru klienta. */
+  .screen:not(.lib-open-filters) .lib-split>.lib-filters.has-search{display:block!important;width:auto!important;flex-shrink:0;border-right:0!important;border-bottom:1px solid var(--border);overflow:visible!important;}
+  .screen:not(.lib-open-filters) .lib-split>.lib-filters.has-search>:not(.lib-search-row),
+  .screen:not(.lib-open-filters) .lib-search-row>button{display:none!important;}
+  .lib-split>.lib-filters{order:-2;}
+  .lib-split>.lib-aside{order:-1;}
+  .screen.lib-open-filters .lib-split>.lib-filters>*,
+  .screen.lib-open-aside .lib-split>.lib-aside>*{flex-shrink:0;}
+}
+/* Schowane panele szczegółów (Bloki, Formularze, Gotowy tydzień) nie mogą poszerzać strony na tablecie. */
+#screen-programs,#screen-forms,#screen-templates{position:relative;}
+#prog-detail,#form-detail,#tpl-detail{max-width:100%;}
+/* Ekran dotykowy: przyciski i filtry Biblioteki min. 44 px. */
+@media(pointer:coarse){
+  :is(#screen-library,#screen-plans,#screen-programs,#screen-templates,#screen-tasks,#screen-forms,#screen-metrics) :is(.btn-sm,.form-select,select,.prog-nav-item,.tpl-filter,.task-nav-item,.form-nav-item,.metric-group-nav,.ex-cat-nav-item,.ex-equip-chip){min-height:44px;}
+  :is(#screen-library,#screen-plans,#screen-programs,#screen-templates,#screen-tasks,#screen-forms,#screen-metrics) .tpl-filter{display:flex;align-items:center;}
+  .modal-close,.exd-close{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
+}
 .lib-equip{padding:10px 10px 4px;border-top:1px solid var(--border);margin-top:6px;}
 .lib-equip-lbl{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
 .ex-plan-filters{margin:6px 10px 0;border-top:1px solid var(--border);padding-top:8px;}
