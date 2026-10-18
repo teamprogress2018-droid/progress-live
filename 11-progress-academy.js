@@ -48,14 +48,41 @@
     const mine=customMatches(q);
     const domain=/żyw|zyw|diet|białk|bialk|kcal|kalor|makro|suplement/i.test(q)?'nutrition':'training';
     const built=q&&typeof window.booksKbSelect==='function'?window.booksKbSelect({mode:domain,query:q,maxChars:1800,perBook:2}):[];
-    return mine.concat(built).slice(0,6);
+    return mine.concat(built).slice(0,3);
+  }
+  function studyParts(text){
+    const fields=Object.create(null);
+    String(text||'').split(/;\s*/).forEach(piece=>{
+      const match=piece.match(/^\s*([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ_ ]+)\s*:\s*(.+)$/);
+      if(!match)return;
+      const key=match[1].trim().toLowerCase().replace(/\s+/g,'');
+      fields[key]=String(match[2]).replace(/^\{?text:\s*/i,'').replace(/\}\s*$/,'').trim();
+    });
+    const pick=(...keys)=>keys.map(key=>fields[key]).find(Boolean)||'';
+    const rule=pick('rule','zasada');
+    const condition=pick('if','trigger','warunek');
+    const action=pick('then','action','działanie','dzialanie');
+    const topic=pick('titlepl','lawpl','title','category','group')||'Zasada do zastosowania';
+    const fallback=String(text||'').replace(/\s+/g,' ').trim();
+    const summary=rule||((condition&&action)?'Dopasuj decyzję do warunku klienta, zamiast stosować jedną regułę dla wszystkich.':fallback.substring(0,360));
+    return {topic,summary,condition,action,raw:fallback};
+  }
+  function studyCard(source){
+    const part=studyParts(source.text);
+    const conclusion=part.action
+      ?`Wniosek dla praktyki: gdy ${part.condition||'pojawia się opisany sygnał'}, ${part.action.charAt(0).toLowerCase()+part.action.slice(1)}`
+      :`Wniosek dla praktyki: sprawdź tę zasadę w kontekście celu, stażu i regeneracji klienta przed wpisaniem jej do planu.`;
+    const recall=part.action
+      ?`Jaki sygnał u klienta uruchamia tę decyzję i co konkretnie zmienisz w planie?`
+      :`Jak wyjaśnisz tę zasadę własnymi słowami i gdzie wykorzystasz ją w najbliższym planie?`;
+    return `<article class="academy-learning-card"><span>${esc(source.status||'źródło')}</span><h3>${esc(part.topic)}</h3><div class="academy-source-cite">${esc(source.cite||'Źródło')}</div><section class="academy-study-section"><b>Sedno zasady</b><p>${esc(part.summary)}</p></section>${part.condition?`<section class="academy-study-section"><b>Kiedy jej użyć</b><p>${esc(part.condition)}</p></section>`:''}${part.action?`<section class="academy-study-section academy-study-action"><b>Co zrobić</b><p>${esc(part.action)}</p></section>`:''}<section class="academy-conclusion"><b>Wniosek</b><p>${esc(conclusion)}</p></section><div class="academy-recall"><b>Sprawdź, czy rozumiesz</b><span>${esc(recall)}</span></div><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
   }
   function learn(){
     const selected=bookById(state.selectedBookId);
     const q=state.question.trim();
     const sources=selected?[{text:selected.text,book:selected.id,cite:(selected.bookAuthor?selected.bookAuthor+' — ':'')+selected.title,status:'moja notatka'}]:learningSources();
     const hasNotes=userBooks().some(b=>b.useInLearning!==false&&b.text);
-    const sourceHtml=sources.length?`<div class="academy-learning-results" aria-live="polite">${sources.map(s=>`<article class="academy-learning-card"><span>${esc(s.status||'źródło')}</span><h3>${esc(s.cite||'Źródło')}</h3><p>${esc(String(s.text||'').substring(0,650))}${String(s.text||'').length>650?'…':''}</p><div class="academy-recall"><b>Powtórka aktywna</b><span>Jak zastosujesz tę zasadę w planie lub rozmowie z klientem?</span></div></article>`).join('')}</div>`:`<div class="academy-empty">${hasNotes?'Nie znaleziono notatek pasujących do pytania. Zmień sformułowanie lub dodaj syntezę do książki.':'Najpierw dodaj książkę wraz z własnymi notatkami. To z nich powstanie materiał do nauki.'}</div>`;
+    const sourceHtml=sources.length?`<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>`:`<div class="academy-empty">${hasNotes?'Nie znaleziono notatek pasujących do pytania. Zmień sformułowanie lub dodaj syntezę do książki.':'Najpierw dodaj książkę wraz z własnymi notatkami. To z nich powstanie materiał do nauki.'}</div>`;
     return `<section class="academy-learn"><div class="academy-learn-intro"><span class="academy-eyebrow">Nauka oparta na źródłach</span><h2>Zapytaj swoje notatki i źródła Academy.</h2><p>Odpowiedzi pokazują, z której książki lub notatki pochodzą. To materiał edukacyjny, nie porada medyczna.</p></div>${selected?`<div class="academy-selected-book"><span>Uczysz się z: <b>${esc(selected.title)}</b></span><button class="btn btn-ghost btn-sm" type="button" onclick="academyClearSelectedBook()">Wróć do wszystkich źródeł</button></div>`:''}<form class="academy-question" onsubmit="academyAskBooks(event)"><label class="form-lbl" for="academy-question">Pytanie lub temat do powtórki</label><div><input id="academy-question" class="form-input" value="${esc(q)}" placeholder="np. hipertrofia klatki, białko na redukcji, RIR" maxlength="240" autocomplete="off"><button class="btn btn-primary" type="submit">Szukaj materiału</button></div></form>${!q&&!selected?`<div class="academy-empty">Wpisz temat, aby połączyć Twoje notatki ze źródłami Academy.</div>`:sourceHtml}</section>`;
   }
   function render(){const root=document.getElementById('screen-academy');if(!root)return;const body=state.level==='quick'?quick():state.level==='guide'?guide():state.level==='context'?context():state.level==='books'?books():learn();root.innerHTML=`<div class="topbar"><div><div class="topbar-title">Progress Academy</div><div class="academy-subtitle">Metodyka planowania i nauka na podstawie własnych źródeł</div></div></div><main class="content academy-content"><header class="academy-hero"><span class="academy-eyebrow">Dla trenera</span><h1>Decyzje treningowe, krok po kroku.</h1><p>Szybka odpowiedź, przewodnik, analiza planu i nauka z książek.</p></header>${tabs()}<div class="academy-panel">${body}</div></main>`;}
