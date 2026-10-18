@@ -1,0 +1,5780 @@
+{
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Najpierw cel, potem program",
+      "rule": "Program zaczyna się od jasno określonego celu: zmiana sylwetki, redukcja tkanki tłuszczowej, wynik sportowy, utrzymanie zdrowia, przeciwdziałanie utracie sprawności z wiekiem. Konkretny cel = skuteczniejszy program.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "plik nie mówi, jak parametry różnią się między celami (poza obwodami dla redukcji)"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "goals": [
+        "zmiana sylwetki",
+        "redukcja tkanki tłuszczowej",
+        "wynik sportowy",
+        "zdrowie",
+        "sprawność z wiekiem"
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Częstotliwość wynika z czasu i poziomu",
+      "rule": "1 sesja/tydz. dla całkiem początkujących; 2 = minimum ogólnej sprawności; 3 = układ idealny; >3 tylko dla zaawansowanych z kontrolą przetrenowania.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "co najmniej 1 dzień odpoczynku po każdym dniu treningu siłowego",
+        "bez treningu sportowego obok: najpierw 1-2 miesiące po 2 sesje, potem 3",
+        "4 sesje, gdy trening 3x jest za długi"
+      ],
+      "limitations": [
+        "4 sesje przy regule dnia przerwy wymagają >7 dni (wniosek)",
+        "kobiety mają potrzebować dłuższych przerw między ciężkimi sesjami - tylko Q&A"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+          "pages": "345-348 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "values": {
+        "sessionsPerWeek": {
+          "absolutnie początkujący": 1,
+          "minimum ogólnej sprawności": 2,
+          "idealnie": 3,
+          "zaawansowani": ">3"
+        },
+        "restDaysAfterSession": 1,
+        "monthsAt2xBefore3x": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "P3",
+      "title": "Regularność ważniejsza niż objętość",
+      "rule": "Rzetelne trzymanie się programu daje postęp; krótki trening lepszy niż opuszczony; brak czasu na siłownię = trening w domu z minimalnym sprzętem.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program - cytaty",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Podział na partie, priorytet słabych miejsc, praca pośrednia",
+      "rule": "Dziel trening na regiony (nogi, brzuch, plecy, klatka, ramiona, barki); słabe partie mają pierwszeństwo; wykorzystuj pracę pośrednią; równoważ intensywność między partiami; łącz ćwiczenia podstawowe i izolowane.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "biceps pracuje w ćwiczeniach na plecy - mało ćwiczeń na biceps",
+        "górna część klatki daje wystarczający bodziec dolnej",
+        "przedramiona pracują w większości ćwiczeń",
+        "skos dodatni pośrednio trenuje barki - tylko Q&A"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 10 Enhance Your Chest",
+          "pages": "259-281 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Kolejność ćwiczeń",
+      "rule": "Duże grupy, ruchy wielostawowe i słabe partie na początku. Ćwiczenia startowe: przysiad (dół), wiosłowanie (plecy), wyciskanie (klatka).",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "łydki nie na początku, po innych ćwiczeniach na nogi",
+        "ćwiczenia na lędźwia na końcu treningu",
+        "przywodzenie ud jako ćwiczenie kończące"
+      ],
+      "limitations": [
+        "zasada 'duże i słabe najpierw' tylko w Q&A; ćwiczenia startowe w cytatach"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 5 Trim Your Calves",
+          "pages": "148-160 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 10 Enhance Your Chest",
+          "pages": "259-281 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Zostań przy programie, póki działa",
+      "rule": "Początkujący trzyma się programu, dopóki daje postępy, i dopiero wtedy go zmienia.",
+      "appliesTo": [
+        "początkujący"
+      ],
+      "conditions": [],
+      "limitations": [
+        "sprzeczne z rozdz. 12-13: 'po kilku tygodniach trudniejszy program'"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Progresja: ciężar, powtórzenia, techniki, objętość, stopniowo",
+      "rule": "Zwiększaj trudność: ciężar, powtórzenia, techniki intensyfikujące (palenie mięśnia, ciągłe napięcie, serie malejące, superserie) albo obwody. Intensywność = mniej powtórzeń z większym ciężarem; objętość = więcej ćwiczeń lub serii. Stopniowo, żeby uniknąć przetrenowania.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak liczb (o ile, co ile)"
+      ],
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "progressionMethods": [
+        "ciężar",
+        "powtórzenia",
+        "palenie mięśnia (muscle burn)",
+        "ciągłe napięcie",
+        "serie malejące",
+        "superserie",
+        "trening obwodowy",
+        "mniej powtórzeń + większy ciężar",
+        "więcej ćwiczeń",
+        "więcej serii"
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Ciągłe napięcie",
+      "rule": "Ciągłe napięcie (np. bez pełnego prostowania ramion w uginaniu) podnosi trudność bez dokładania ciężaru.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "title": "Spadek siły = przetrenowanie",
+      "rule": "Główny sygnał, że robisz za dużo, to spadek siły.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "w obwodach o dodaniu dnia decyduje obserwacja siły"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program - cytaty",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training - cytaty",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Przerwy i utrzymanie",
+      "rule": "Po kilku miesiącach treningu można zrobić przerwę; utrzymanie wymaga mniejszej intensywności niż budowa.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak długości przerwy i parametrów podtrzymania"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Rozgrzewka przed każdą partią",
+      "rule": "20-30 łatwych powtórzeń kilku lekkich ćwiczeń, bez przerw. Przed ramionami: 1 lekka seria planowanego ćwiczenia.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "uda: łydki, czworogłowe, dwugłowe",
+        "tył uda: lędźwia, tył uda, kolana, biodra, czworogłowe, łydki",
+        "góra pleców: stawy górnej części ciała, ścięgno bicepsa, triceps, lędźwia",
+        "lędźwia: pełna rozgrzewka przed"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 7 Curve Your Shoulders",
+          "pages": "198-225 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "values": {
+        "warmupReps": [
+          20,
+          30
+        ],
+        "warmupRest": 0,
+        "armsWarmup": "1 lekka seria"
+      }
+    },
+    {
+      "id": "P12",
+      "title": "Wariant pod budowę ciała",
+      "rule": "Każda kategoria ma kilka wersji; jeśli budowa nie pozwala poprawnie wykonać ćwiczenia (np. mocne pochylenie w przysiadzie), wybierz inne ćwiczenie zamiast forsować technikę.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "długie uda vs tułów: więcej pracy pośladków i tyłu uda, ryzyko dla krzyża; wysokim może być potrzebny pas",
+        "wąska klatka + długie ręce: ryzyko przeciągnięcia piersiowego przy dużym ciężarze"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty) - cytaty",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 10 Enhance Your Chest - cytaty",
+          "pages": "259-281 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Notuj i obserwuj",
+      "rule": "Dziennik (ciężar, powtórzenia, ćwiczenia, czas), nagrywanie techniki, zdjęcia sylwetki co miesiąc zamiast samej wagi.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Rozciąganie i cardio jako uzupełnienie",
+      "rule": "Rozciąganie uzupełnia trening, ale nie może osłabiać stabilności stawów; cardio dobierane do celu.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "czworogłowe 10-20 s/noga; tył uda i przywodziciele 20-30 s",
+        "siłowy + cardio sprzyja utracie tłuszczu przy zachowaniu mięśni - tylko Q&A"
+      ],
+      "limitations": [
+        "brak ilości cardio i jego umiejscowienia"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "values": {
+        "stretchHoldSec": {
+          "czworogłowe": [
+            10,
+            20
+          ],
+          "tył uda/przywodziciele": [
+            20,
+            30
+          ]
+        }
+      }
+    },
+    {
+      "id": "P15",
+      "title": "Pośladki: przeciążenie ciężarem, <25 powtórzeń",
+      "rule": "Ćwiczenia z masą ciała szybko stają się za łatwe; pośladki przeciążaj coraz większym ciężarem (np. obciążniki na kostki) i rób mniej niż 25 powtórzeń.",
+      "appliesTo": [
+        "pośladki"
+      ],
+      "conditions": [],
+      "limitations": [
+        "sprzeczne z obwodami domowymi 25-50 powt. i mostem 50-100 w programie 4x"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 2 Round Your Glutes",
+          "pages": "38-80 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "values": {
+        "repsMax": 24
+      }
+    },
+    {
+      "id": "P16",
+      "title": "Cel 'tonowania' u kobiet (preferencja estetyczna)",
+      "rule": "Autor zakłada, że większość kobiet chce ujędrnić, nie rozbudować: ramiona, triceps, łydki, przywodziciele lżej i na wysokich powtórzeniach; skośne bez dużych ciężarów; bez szrugsów; priorytet górnej części klatki i tylnych aktonów barków.",
+      "appliesTo": [
+        "kobiety deklarujące cel 'ujędrnienie'"
+      ],
+      "conditions": [
+        "stosować tylko, gdy klientka deklaruje taki cel (wniosek)"
+      ],
+      "limitations": [
+        "to założenie estetyczne, nie reguła fizjologiczna"
+      ],
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 5 Trim Your Calves",
+          "pages": "148-160 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 6 Flatten Your Abs (ucięty)",
+          "pages": "161-197 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E1",
+      "category": "partia",
+      "rule": "Pośladki: przeciążaj ciężarem, <25 powtórzeń; łącz izolowane i wielostawowe.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 2 Round Your Glutes",
+          "pages": "38-80 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "pośladki",
+      "muscles": [
+        "pośladek wielki",
+        "pośladek średni",
+        "pośladek mały"
+      ],
+      "exercises": [
+        {
+          "name": "wyprost biodra (hip extension)",
+          "equipment": "masa ciała / guma / obciążnik na kostkę / ławka / maszyna",
+          "type": "izolowane",
+          "targets": [
+            "pośladek wielki",
+            "tył uda",
+            "lędźwia"
+          ],
+          "notes": [
+            "wersje: stojąc, na ławce, z gumą, na kolanach"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "most (bridge)",
+          "equipment": "masa ciała / obciążenie",
+          "type": "wielostawowe",
+          "targets": [
+            "pośladki",
+            "lędźwia"
+          ],
+          "notes": [
+            "trudniej: obciążenie, jednonóż, stopy na podwyższeniu"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "wypychanie jednonóż (one-leg butt press)",
+          "equipment": "maszyna do wspomaganego podciągania",
+          "type": "izolowane",
+          "targets": [
+            "pośladki"
+          ],
+          "notes": [
+            "większy zakres niż inne wymachy"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "odwodzenie biodra w bok (lateral hip abduction)",
+          "equipment": "masa ciała / guma / maszyna",
+          "type": "izolowane",
+          "targets": [
+            "pośladek średni",
+            "pośladek mały"
+          ],
+          "notes": [
+            "według przytoczonych badań najlepsze na pośladek średni"
+          ],
+          "caution": [],
+          "reliability": "wysoka"
+        },
+        {
+          "name": "wejścia na podwyższenie (step-up)",
+          "equipment": "stopień / hantle",
+          "type": "wielostawowe",
+          "targets": [
+            "pośladki"
+          ],
+          "notes": [],
+          "caution": [],
+          "reliability": "niska"
+        }
+      ],
+      "tips": [
+        "lekkie pochylenie tułowia i delikatne wygięcie lędźwi zwiększa udział pośladków (cytat, ćwiczenie niejasne)",
+        "dotyk pracującego pośladka poprawia czucie mięśnia"
+      ],
+      "stretching": [
+        "wykroki",
+        "rozciąganie siedząc",
+        "rotatory biodra (ustawienie odcinka lędźwiowego)"
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "partia",
+      "rule": "Uda przód: przysiad, wypychanie, wykroki, prostowanie nóg; wersję dobierz do budowy ciała.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "czworogłowe uda",
+      "muscles": [
+        "obszerny boczny",
+        "prosty uda",
+        "obszerny przyśrodkowy",
+        "obszerny pośredni"
+      ],
+      "exercises": [
+        {
+          "name": "przysiad ze sztangą",
+          "equipment": "sztanga",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe",
+            "pośladki",
+            "tył uda"
+          ],
+          "notes": [
+            "lekka lordoza",
+            "głębokość wg budowy",
+            "ciągłe napięcie",
+            "ćwiczenie startowe na dół ciała"
+          ],
+          "caution": [
+            "sztanga nigdy na karku",
+            "długie uda = pochylenie = ryzyko dla krzyża; pas dla wysokich",
+            "głęboki przysiad obciąża kręgosłup wysokich osób"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "przysiad bez obciążenia",
+          "equipment": "masa ciała",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe"
+          ],
+          "notes": [
+            "trudno progresować"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "przysiad jednonóż",
+          "equipment": "masa ciała",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe",
+            "pośladki"
+          ],
+          "notes": [
+            "zaawansowany; mniej obciąża kręgosłup"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "przysiad z hantlami",
+          "equipment": "hantle",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe"
+          ],
+          "notes": [
+            "łatwiejsza równowaga, prostsze plecy; dla początkujących"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "przysiad przedni",
+          "equipment": "sztanga",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe"
+          ],
+          "notes": [
+            "proste plecy"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "przysiad na suwnicy Smitha",
+          "equipment": "suwnica Smitha",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe"
+          ],
+          "notes": [
+            "prowadzenie ruchu, dla początkujących"
+          ],
+          "caution": [
+            "nie każdemu pasuje do budowy"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "wypychanie nogami (leg press)",
+          "equipment": "maszyna",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe",
+            "pośladki"
+          ],
+          "notes": [
+            "bezpieczniejsze niż przysiad: oparcie pleców",
+            "ważne ustawienie stóp"
+          ],
+          "caution": [
+            "nie każda maszyna pasuje do budowy",
+            "uważaj na lędźwia"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "wykroki",
+          "equipment": "masa ciała / hantle",
+          "type": "wielostawowe",
+          "targets": [
+            "czworogłowe",
+            "pośladki"
+          ],
+          "notes": [
+            "równowaga i koordynacja"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "prostowanie nóg (leg extension)",
+          "equipment": "maszyna",
+          "type": "izolowane",
+          "targets": [
+            "czworogłowe"
+          ],
+          "notes": [
+            "dobre na rozgrzewkę"
+          ],
+          "caution": [
+            "nadużywane obciąża kolano",
+            "nie wyginaj lędźwi (Q&A)"
+          ],
+          "reliability": "srednia"
+        }
+      ],
+      "stretching": [
+        "rozciąganie czworogłowych stojąc 10-20 s/noga"
+      ]
+    },
+    {
+      "id": "E3",
+      "category": "partia",
+      "rule": "Tył uda i przywodziciele: martwy ciąg na prostych nogach, uginanie leżąc i siedząc, przywodzenie (wolno, krótki zakres).",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "tył uda i przywodziciele",
+      "muscles": [
+        "dwugłowy uda (głowa krótka i długa)",
+        "półbłoniasty",
+        "półścięgnisty",
+        "przywodziciele"
+      ],
+      "exercises": [
+        {
+          "name": "martwy ciąg na prostych nogach",
+          "equipment": "sztanga / hantle",
+          "type": "głównie biodro",
+          "targets": [
+            "tył uda",
+            "pośladki",
+            "lędźwia"
+          ],
+          "notes": [
+            "do tułowia równoległego do podłogi"
+          ],
+          "caution": [
+            "przy dużym napięciu kręgosłupa lub tyłu uda zatrzymaj ruch wcześniej"
+          ],
+          "reliability": "wysoka"
+        },
+        {
+          "name": "uginanie nóg leżąc",
+          "equipment": "maszyna",
+          "type": "izolowane",
+          "targets": [
+            "tył uda",
+            "łydki"
+          ],
+          "notes": [],
+          "caution": [
+            "bez wyginania pleców"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "uginanie nóg siedząc",
+          "equipment": "maszyna",
+          "type": "izolowane",
+          "targets": [
+            "tył uda"
+          ],
+          "notes": [
+            "wysoka skuteczność skurczu"
+          ],
+          "caution": [
+            "przy złej technice napina plecy"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "przywodzenie ud",
+          "equipment": "maszyna / masa ciała / piłka",
+          "type": "izolowane",
+          "targets": [
+            "przywodziciele"
+          ],
+          "notes": [
+            "ćwiczenie kończące; łatwe w zmęczeniu",
+            "lekko, wysokie powtórzenia"
+          ],
+          "caution": [
+            "bardzo wolno, krótki zakres - ryzyko naderwania"
+          ],
+          "reliability": "wysoka"
+        }
+      ],
+      "stretching": [
+        "skłony z chwytem nóg, nogi proste i ugięte",
+        "przywodziciele: wykrok w szerokim rozkroku",
+        "20-30 s"
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "partia",
+      "rule": "Łydki: wspięcia stojąc; 1-2 serie x 20 tygodniowo dla kobiet; po innych ćwiczeniach na nogi.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 5 Trim Your Calves",
+          "pages": "148-160 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "łydki",
+      "muscles": [
+        "brzuchaty łydki",
+        "płaszczkowaty"
+      ],
+      "exercises": [
+        {
+          "name": "wspięcia na palce stojąc",
+          "equipment": "stopień / masa ciała / maszyna",
+          "type": "izolowane",
+          "targets": [
+            "brzuchaty łydki",
+            "płaszczkowaty"
+          ],
+          "notes": [
+            "ciało proste",
+            "jednonóż: lepsze rozciągnięcie i skurcz",
+            "stopy prosto (Q&A)",
+            "50-100 powt. przy problemach z krążeniem"
+          ],
+          "caution": [
+            "sprzeczność: rada 'lekko ugnij kolana dla brzuchatego' vs 'brzuchaty pracuje przy prostych nogach'"
+          ],
+          "reliability": "srednia"
+        }
+      ],
+      "dosage": {
+        "setsPerWeek": [
+          1,
+          2
+        ],
+        "reps": 20,
+        "circulationReps": [
+          50,
+          100
+        ]
+      },
+      "notes": [
+        "płaszczkowaty pracuje we wszystkich wspięciach",
+        "przy nadmiarze tłuszczu na łydkach: dieta + cardio",
+        "seniorzy: silne łydki zmniejszają ryzyko upadków"
+      ],
+      "stretching": [
+        "noga prosta (brzuchaty)",
+        "noga ugięta (płaszczkowaty)",
+        "skręt (boczne)",
+        "ważne przy noszeniu obcasów"
+      ]
+    },
+    {
+      "id": "E5",
+      "category": "partia",
+      "rule": "Brzuch: zaokrąglone plecy, bez wyginania lędźwi; trenuj górną i dolną część; skośne bez dużych ciężarów.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 6 Flatten Your Abs (ucięty)",
+          "pages": "161-197 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "brzuch",
+      "muscles": [
+        "prosty brzucha",
+        "skośny zewnętrzny",
+        "skośny wewnętrzny",
+        "poprzeczny brzucha"
+      ],
+      "exerciseCategories": {
+        "value": [
+          "spięcia (górna część)",
+          "unoszenie nóg (dolna część)",
+          "spięcia boczne (skośne)",
+          "skręty",
+          "ćwiczenia statyczne stabilizujące",
+          "deska (plank)"
+        ],
+        "status": "zrodlo",
+        "reliability": "niska",
+        "note": "lista tylko z Q&A; rozdział ucięty"
+      },
+      "tips": [
+        "utrzymuj skurcz; głowa nie odchyla się do góry (Q&A)"
+      ],
+      "caution": [
+        "wiele popularnych ćwiczeń szkodliwych przy złej technice",
+        "mocne podkreślanie lordozy obciąża krążki"
+      ]
+    },
+    {
+      "id": "E6",
+      "category": "partia",
+      "rule": "Barki: wznosy bokiem, wiosłowanie stojąc, wznosy w opadzie; priorytet tylnego aktonu; wyciskania nad głowę głównie przód barku.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 7 Curve Your Shoulders",
+          "pages": "198-225 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "barki",
+      "muscles": [
+        "naramienny: akton przedni, boczny, tylny"
+      ],
+      "exercises": [
+        {
+          "name": "wznosy bokiem",
+          "equipment": "hantle / maszyna / wyciąg",
+          "type": "izolowane",
+          "targets": [
+            "akton boczny"
+          ],
+          "notes": [
+            "ramię proste, ruch kontrolowany",
+            "wyciąg: ciągłe napięcie, większy zakres, jednorącz",
+            "kciuk niżej niż mały palec (Q&A)"
+          ],
+          "caution": [
+            "bez bujania - obciąża krzyż (Q&A)"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "wiosłowanie stojąc (upright row)",
+          "equipment": "sztanga / hantle / wyciąg",
+          "type": "wielostawowe",
+          "targets": [
+            "barki",
+            "górny czworoboczny",
+            "biceps"
+          ],
+          "notes": [
+            "wysokość uniesienia przesuwa pracę z czworobocznego na barki"
+          ],
+          "caution": [
+            "ryzyko urazu przy złej technice"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "wznosy w opadzie",
+          "equipment": "hantle / wyciąg / maszyna",
+          "type": "izolowane",
+          "targets": [
+            "akton tylny",
+            "górna część pleców"
+          ],
+          "notes": [
+            "kluczowe dla postawy"
+          ],
+          "caution": [
+            "uważaj na obciążenie krzyża"
+          ],
+          "reliability": "srednia"
+        }
+      ],
+      "notes": [
+        "wyciskania nad głowę głównie pobudzają przedni akton (cytat); Q&A: kobiety powinny ich unikać - mocniej niż w streszczeniu",
+        "osoby siedzące: przewaga przednich aktonów, pochylone barki"
+      ],
+      "stretching": [
+        "przednie aktony: ramię za plecami",
+        "ramię przez klatkę"
+      ]
+    },
+    {
+      "id": "E7",
+      "category": "partia",
+      "rule": "Górna część pleców: wiosłowania, ściąganie, pullover; bez szrugsów przy celu estetycznym; dolny czworoboczny dla łopatek.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "górna część pleców",
+      "muscles": [
+        "najszerszy grzbietu",
+        "tylne aktony barków",
+        "czworoboczny środkowy i dolny",
+        "równoległoboczne"
+      ],
+      "exercises": [
+        {
+          "name": "wiosłowanie",
+          "equipment": "hantle / sztanga / wyciąg / maszyna",
+          "type": "wielostawowe",
+          "targets": [
+            "plecy",
+            "tylne aktony",
+            "biceps"
+          ],
+          "notes": [
+            "ćwiczenie startowe na górę ciała",
+            "chwyt neutralny najmocniejszy, mniej obciąża biceps (Q&A)"
+          ],
+          "caution": [],
+          "reliability": "wysoka"
+        },
+        {
+          "name": "ściąganie drążka wyciągu (pull-down)",
+          "equipment": "wyciąg",
+          "type": "wielostawowe",
+          "targets": [
+            "najszerszy",
+            "góra ciała"
+          ],
+          "notes": [
+            "chwyty zmieniają kąt pracy"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "pullover",
+          "equipment": "hantla / wyciąg",
+          "type": "izolowane (bark)",
+          "targets": [
+            "najszerszy"
+          ],
+          "notes": [
+            "ruchomość",
+            "wstępne zmęczenie pleców"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        }
+      ],
+      "avoid": [
+        "szrugsy (przy celu estetycznym)"
+      ],
+      "notes": [
+        "odstające łopatki u kobiet ze słabymi plecami",
+        "korekta nierównowagi: więcej wiosłowań i wznosów"
+      ],
+      "stretching": [
+        "skłony boczne",
+        "delikatne rozciąganie szyi"
+      ]
+    },
+    {
+      "id": "E8",
+      "category": "partia",
+      "rule": "Dolny odcinek pleców: martwy ciąg i hiperekstensja; profilaktycznie; na końcu treningu; zwis na drążku po treningu.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "dolny odcinek pleców",
+      "muscles": [
+        "mięśnie lędźwiowe (prostowniki)"
+      ],
+      "exercises": [
+        {
+          "name": "martwy ciąg",
+          "equipment": "sztanga / hantle",
+          "type": "wielostawowe",
+          "targets": [
+            "lędźwia",
+            "pośladki",
+            "tył uda"
+          ],
+          "notes": [
+            "neutralny kręgosłup, równa praca nóg i pleców (Q&A)"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "hiperekstensja",
+          "equipment": "ławka rzymska",
+          "type": "izolowane",
+          "targets": [
+            "lędźwia"
+          ],
+          "notes": [
+            "mniej nacisku na krążki niż martwy ciąg; dla delikatnego krzyża (Q&A)"
+          ],
+          "caution": [],
+          "reliability": "niska"
+        }
+      ],
+      "recovery": {
+        "value": "zwis na drążku po treningu",
+        "durationSec": {
+          "cytat": ">=30",
+          "Q&A": [
+            20,
+            30
+          ]
+        },
+        "status": "zrodlo"
+      }
+    },
+    {
+      "id": "E9",
+      "category": "partia",
+      "rule": "Klatka: wyciskania (start), rozpiętki (izolacja), pullover (rozciąganie, nie masa); skos dodatni = górna klatka; ogranicz zakres przy bólu ścięgien.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 10 Enhance Your Chest",
+          "pages": "259-281 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "klatka piersiowa",
+      "muscles": [
+        "piersiowy większy: głowa obojczykowa, mostkowo-żebrowa, brzuszna",
+        "piersiowy mniejszy"
+      ],
+      "exercises": [
+        {
+          "name": "wyciskanie",
+          "equipment": "sztanga / hantle / maszyna / suwnica Smitha",
+          "type": "wielostawowe",
+          "targets": [
+            "klatka",
+            "barki",
+            "triceps"
+          ],
+          "notes": [
+            "ćwiczenie startowe na górę ciała",
+            "wolne ciężary: więcej mięśni, wymagają równowagi; maszyna: stabilna, ogranicza tor",
+            "skos dodatni: górna klatka; skos ujemny: dolna"
+          ],
+          "caution": [
+            "skróć zakres przy bólu ścięgien lub 'luźnym' barku",
+            "wąska klatka + długie ręce + duży ciężar = przeciągnięcie"
+          ],
+          "reliability": "wysoka"
+        },
+        {
+          "name": "rozpiętki",
+          "equipment": "hantle / maszyna",
+          "type": "izolowane",
+          "targets": [
+            "klatka"
+          ],
+          "notes": [
+            "ławka płaska, skos dodatni, skos ujemny",
+            "mało tricepsa, dobre rozciągnięcie"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "pullover",
+          "equipment": "hantla",
+          "type": "izolowane",
+          "targets": [
+            "klatka",
+            "barki"
+          ],
+          "notes": [
+            "głównie rozciąganie, nie budowa mięśni"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        }
+      ],
+      "notes": [
+        "trening klatki nie zapobiega opadaniu piersi i ich nie powiększa"
+      ]
+    },
+    {
+      "id": "E10",
+      "category": "partia",
+      "rule": "Ramiona: jedna wersja uginania na trening; triceps lekko i na wysokich powtórzeniach; przedramion nie trenuj bezpośrednio bez potrzeby.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "muscleGroup": "ramiona",
+      "muscles": [
+        "biceps (głowa długa, krótka)",
+        "ramienny",
+        "ramienno-promieniowy",
+        "triceps (3 głowy)",
+        "przedramiona"
+      ],
+      "exercises": [
+        {
+          "name": "uginanie przedramion",
+          "equipment": "hantle / sztanga / wyciąg",
+          "type": "izolowane",
+          "targets": [
+            "biceps",
+            "ramienny",
+            "ramienno-promieniowy"
+          ],
+          "notes": [
+            "wersje: podchwyt, młotkowe, nachwyt, łokcie uniesione, łokcie za tułowiem",
+            "podchwyt najlepszy dla bicepsa; neutralny najmocniejszy; nachwyt najsłabszy",
+            "nie prostuj do końca (ciągłe napięcie)"
+          ],
+          "caution": [
+            "jedna wersja na trening",
+            "przy bólu pleców: leżąc"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "prostowanie ramion na wyciągu (push-down)",
+          "equipment": "wyciąg",
+          "type": "izolowane",
+          "targets": [
+            "triceps"
+          ],
+          "notes": [
+            "łokcie przy tułowiu"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "prostowanie ramion (triceps extension)",
+          "equipment": "hantle / sztanga / wyciąg",
+          "type": "izolowane",
+          "targets": [
+            "triceps"
+          ],
+          "notes": [
+            "siedząc, stojąc, leżąc; kontrola łokcia"
+          ],
+          "caution": [],
+          "reliability": "srednia"
+        },
+        {
+          "name": "odrzut w opadzie (kickback)",
+          "equipment": "hantla",
+          "type": "izolowane",
+          "targets": [
+            "triceps"
+          ],
+          "notes": [
+            "jednorącz lepsza kontrola"
+          ],
+          "caution": [
+            "obciąża krzyż"
+          ],
+          "reliability": "srednia"
+        },
+        {
+          "name": "wyciskanie wąskim chwytem",
+          "equipment": "sztanga",
+          "type": "wielostawowe",
+          "targets": [
+            "triceps"
+          ],
+          "notes": [],
+          "caution": [],
+          "reliability": "srednia"
+        }
+      ],
+      "caution": [
+        "łokcie delikatne: lekkie ciężary, wysokie powtórzenia",
+        "przy bólu łokci nie blokuj ramion",
+        "rozciąganie ramion delikatnie"
+      ],
+      "notes": [
+        "przedramiona bez bezpośredniego treningu, chyba że słabe ogniwo; rozciągać"
+      ]
+    },
+    {
+      "id": "E11",
+      "category": "zamienniki",
+      "rule": "Wybierz wariant pasujący do budowy i celu zamiast forsować technicznie niewykonalny.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 7 Curve Your Shoulders",
+          "pages": "198-225 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 10 Enhance Your Chest",
+          "pages": "259-281 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "substitutions": [
+        {
+          "problem": "mocne pochylenie w przysiadzie ze sztangą (długie uda)",
+          "replacement": [
+            "wypychanie nogami",
+            "przysiad z hantlami"
+          ],
+          "status": "wniosek",
+          "note": "zasada ze źródła, wybór zamiennika = wniosek"
+        },
+        {
+          "problem": "początkujący, niepewna technika przysiadu",
+          "replacement": [
+            "przysiad z hantlami",
+            "przysiad na suwnicy Smitha"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "odciążenie kręgosłupa w przysiadzie",
+          "replacement": [
+            "przysiad jednonóż (zaawansowani)",
+            "wypychanie nogami"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "przysiad z masą ciała za łatwy",
+          "replacement": [
+            "przysiad z hantlami",
+            "przysiad jednonóż"
+          ],
+          "status": "wniosek"
+        },
+        {
+          "problem": "wrażliwy krzyż przy martwym ciągu",
+          "replacement": [
+            "hiperekstensja"
+          ],
+          "status": "zrodlo",
+          "reliability": "niska"
+        },
+        {
+          "problem": "za duże napięcie w martwym ciągu na prostych nogach",
+          "replacement": [
+            "skrócony zakres"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "brak maszyny do przywodzenia",
+          "replacement": [
+            "przywodzenie z masą ciała",
+            "ściskanie piłki"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "ból pleców przy uginaniu przedramion",
+          "replacement": [
+            "uginanie leżąc"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "odrzut w opadzie obciąża krzyż",
+          "replacement": [
+            "odrzut jednorącz z podparciem",
+            "prostowanie na wyciągu"
+          ],
+          "status": "wniosek"
+        },
+        {
+          "problem": "ból łokci w ćwiczeniach na triceps",
+          "replacement": [
+            "lżej, więcej powtórzeń, bez blokowania łokci"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "ból ścięgien klatki lub luźny bark w wyciskaniu",
+          "replacement": [
+            "skrócony zakres",
+            "maszyna zamiast wolnych ciężarów (wniosek)"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "wyciskanie nad głowę przeciąża przód barku",
+          "replacement": [
+            "wznosy bokiem",
+            "wznosy w opadzie"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "szrugsy przy celu estetycznym",
+          "replacement": [
+            "wiosłowanie",
+            "wznosy"
+          ],
+          "status": "zrodlo"
+        },
+        {
+          "problem": "prostowanie nóg obciąża kolano",
+          "replacement": [
+            "ograniczyć do rozgrzewki; przysiad/wypychanie jako główne"
+          ],
+          "status": "wniosek"
+        },
+        {
+          "problem": "brak siłowni",
+          "replacement": [
+            "programy z minimalnym sprzętem (rozdz. 12, 13, 16)"
+          ],
+          "status": "zrodlo"
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "category": "kolejność",
+      "rule": "Wielostawowe/duże partie i słabe miejsca najpierw; łydki po innych ćwiczeniach na nogi; lędźwia na końcu; przywodzenie jako kończące.",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 5 Trim Your Calves",
+          "pages": "148-160 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "E13",
+      "category": "sprzęt",
+      "rule": "Programy istnieją w wersji: minimalny sprzęt (hantle), siłownia, tylko maszyny (ucięta), bez sprzętu (obwody domowe).",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "equipmentVariants": {
+        "minimalny": [
+          "hantle",
+          "obciążniki na kostki",
+          "guma",
+          "piłka",
+          "drążek",
+          "stopień"
+        ],
+        "bez sprzętu": [
+          "obwody domowe brzuch i pośladki"
+        ],
+        "siłownia": [
+          "sztanga",
+          "wyciągi",
+          "maszyny",
+          "suwnica Smitha"
+        ],
+        "tylko maszyny": null
+      }
+    },
+    {
+      "id": "R6",
+      "category": "decision",
+      "rule": "Hantle w domu -> programy 'minimal equipment' (T6, T7, T9) i obwody domowe.",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "if": "klient ma tylko hantle (dom)",
+      "then": "programy minimal equipment (T6, T7, T9) i obwody domowe (T8)"
+    },
+    {
+      "id": "R7",
+      "category": "decision",
+      "rule": "Brak sprzętu -> obwody domowe na brzuch i pośladki; na inne partie brak programu.",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "if": "klient nie ma żadnego sprzętu",
+      "then": "obwody domowe brzuch/pośladki (T8); na inne partie brak programu bez sprzętu w źródle"
+    },
+    {
+      "id": "R8",
+      "category": "decision",
+      "rule": "Ćwiczenie z masą ciała za łatwe -> dodaj ciężar lub wersję jednonóż (pośladki <25 powt.).",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 2 Round Your Glutes",
+          "pages": "38-80 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "if": "ćwiczenie z masą ciała jest za łatwe",
+      "then": "dodaj ciężar (hantle, obciążnik na kostkę) lub wersję jednonóż; pośladki <25 powtórzeń"
+    },
+    {
+      "id": "R13",
+      "category": "decision",
+      "rule": "Cel 'ujędrnienie' -> lżej, więcej powtórzeń, bez szrugsów i ciężkich skośnych; nie automatycznie dla wszystkich kobiet.",
+      "status": "wniosek",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 5 Trim Your Calves",
+          "pages": "148-160 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 6 Flatten Your Abs (ucięty)",
+          "pages": "161-197 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "if": "klientka chce ujędrnić, nie rozbudować partii",
+      "then": "dla tej partii lżej i 15-20+ powtórzeń, bez szrugsów, bez ciężkich ćwiczeń na skośne; nie stosować automatycznie"
+    },
+    {
+      "id": "R18",
+      "category": "decision",
+      "rule": "Budowa ciała uniemożliwia technikę -> zamień ćwiczenie (E11).",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty) - cytaty",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "if": "klient nie wykonuje ćwiczenia poprawnie z powodu budowy (np. mocne pochylenie w przysiadzie)",
+      "then": "zamień na inny wariant (E11) zamiast miesiącami uczyć techniki"
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PAR-hipertrofia",
+      "category": "parameters",
+      "goal": "hipertrofia / kształtowanie sylwetki",
+      "status": "wniosek",
+      "note": "utożsamienie z programami zaawansowanymi 3-4x to wniosek; książka mówi o 'tonowaniu' i kształtowaniu",
+      "frequency": {
+        "value": {
+          "sessionsPerWeek": [
+            3,
+            4
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+            "pages": "345-348 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "setsPerExercise": {
+        "value": [
+          2,
+          6
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+            "pages": "345-348 (zakres rozdziału wg Bookey)"
+          }
+        ],
+        "note": "2-3, 3-4, 4-5; w 4x do 5-6"
+      },
+      "setsPerWeekPerMuscle": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": {
+          "wielostawowe": [
+            8,
+            12
+          ],
+          "izolowane": [
+            12,
+            15
+          ],
+          "wypychanie nogami": [
+            12,
+            20
+          ],
+          "pośladki jednonóż / brzuch": 20
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+            "pages": "345-348 (zakres rozdziału wg Bookey)"
+          }
+        ],
+        "note": "zapis autora '12-8', '15-12', '20-12'"
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "note": "tylko: mniej powtórzeń, żeby wziąć większy ciężar"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "note": "zasada ciągłego napięcia"
+      },
+      "progression": {
+        "value": "mniej powtórzeń + większy ciężar; więcej ćwiczeń/serii; techniki intensyfikujące; stopniowo",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+            "pages": "9-36 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "note": "tylko 'przerwa po kilku miesiącach' (rozdz. 1)"
+      },
+      "changeCriteria": {
+        "value": [
+          "trening 3x za długi -> 4. sesja",
+          "postęp stoi -> zmiana programu"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+            "pages": "9-36 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+            "pages": "345-348 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-siła",
+      "category": "parameters",
+      "goal": "siła",
+      "status": "brak_w_zrodle",
+      "note": "plik nie opisuje treningu siłowego",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "related": {
+        "value": "spadek siły = sygnał przetrenowania",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+            "pages": "9-36 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-redukcja",
+      "category": "parameters",
+      "goal": "redukcja tkanki tłuszczowej (trening obwodowy)",
+      "status": "zrodlo",
+      "frequency": {
+        "value": {
+          "start": 1,
+          "rule": "dokładaj dni, gdy rośnie siła i mięśnie się regenerują",
+          "homeCircuitsPerWeek": [
+            1,
+            2
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "circuits": {
+        "value": {
+          "start": [
+            1,
+            2
+          ],
+          "afterFewWeeks": [
+            2,
+            3
+          ],
+          "homeCircuits": [
+            2,
+            4
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "reps": {
+        "value": {
+          "standard": [
+            20,
+            30
+          ],
+          "homeCircuits": [
+            25,
+            50
+          ],
+          "advancedQandA": [
+            15,
+            30
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ],
+        "note": "15-30 tylko w Q&A"
+      },
+      "rest": {
+        "value": {
+          "betweenExercises": 0,
+          "betweenCircuits": null
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "trochę dynamiczniej niż zwykle, bez szarpania (zwłaszcza lędźwi)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "blockLength": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "nutrition": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "complement": {
+        "value": [
+          "cardio dobierane do celu",
+          "łydki: dieta + cardio przy nadmiarze tłuszczu"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+            "pages": "9-36 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 5 Trim Your Calves",
+            "pages": "148-160 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-zdrowie",
+      "category": "parameters",
+      "goal": "zdrowie",
+      "status": "zrodlo",
+      "note": "tylko zalecenia jakościowe",
+      "frequency": {
+        "value": {
+          "minimumSessionsPerWeek": 2
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+            "pages": "9-36 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "spine": {
+        "value": [
+          "wzmacniaj lędźwia profilaktycznie",
+          "lędźwia na końcu treningu",
+          "zwis na drążku >=30 s po treningu"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+            "pages": "245-258 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "core": {
+        "value": [
+          "mięśnie głębokie chronią kręgosłup",
+          "zaokrąglone plecy w ćwiczeniach na brzuch",
+          "widoczne efekty w <1 miesiąc (Q&A)"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 6 Flatten Your Abs (ucięty)",
+            "pages": "161-197 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "seniors": {
+        "value": [
+          "silne łydki zmniejszają ryzyko upadków"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 5 Trim Your Calves",
+            "pages": "148-160 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "posture": {
+        "value": [
+          "tylne aktony barków",
+          "dolny czworoboczny",
+          "rozciąganie przodu barków"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 7 Curve Your Shoulders",
+            "pages": "198-225 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+            "pages": "226-244 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "boneDensity": {
+        "value": "trening siłowy zwiększa gęstość kości, ale może zagrażać kręgosłupowi",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+            "pages": "245-258 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      }
+    },
+    {
+      "id": "PAR-początkujący",
+      "category": "parameters",
+      "goal": "początkujący",
+      "status": "zrodlo",
+      "frequency": {
+        "value": {
+          "bez doświadczenia": 1,
+          "z niewielkim doświadczeniem": 2,
+          "restDaysAfterSession": 1
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+            "pages": "9-36 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+            "pages": "314-320 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+            "pages": "321-334 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "exercisesPerSession": {
+        "value": [
+          4,
+          5
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+            "pages": "314-320 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+            "pages": "321-334 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "setsPerExercise": {
+        "value": {
+          "start": [
+            2,
+            3
+          ],
+          "afterFewWeeks": [
+            3,
+            4
+          ],
+          "crunchSameDayFBW": [
+            1,
+            2
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+            "pages": "314-320 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+            "pages": "321-334 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "reps": {
+        "value": 20,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+            "pages": "314-320 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+            "pages": "321-334 (zakres rozdziału wg Bookey)"
+          }
+        ],
+        "note": "na nogę w ćwiczeniach jednostronnych"
+      },
+      "load": {
+        "value": "zacznij od zbyt lekkiego i stopniowo zwiększaj",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 1 Part 1 Developing Your Training Program - Q&A",
+            "pages": "9-36 (zakres rozdziału wg Bookey)"
+          }
+        ],
+        "reliability": "niska"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "po kilku tygodniach więcej serii i nowe ćwiczenie; potem 3x z 8-15 powtórzeniami",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+            "pages": "314-320 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+            "pages": "321-334 (zakres rozdziału wg Bookey)"
+          },
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "caution": {
+        "value": "nie za dużo i nie za szybko (długie, bolesne zakwasy)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+            "pages": "314-320 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R1",
+      "category": "decision",
+      "if": "klient całkiem początkujący, bez doświadczenia sportowego, mało czasu",
+      "then": "1 sesja/tydz. FBW: 4-5 ćwiczeń, 2-3 serie x 20 (T7)",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "category": "decision",
+      "if": "początkujący trenuje 2x/tydz.",
+      "then": "FBW 2 dni (T1) albo góra/dół w osobne dni (T9), 2-4 serie x 20, dzień przerwy między sesjami",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "decision",
+      "if": "początkujący chce trenować 3x/tydz.",
+      "then": "zalecenie autora: najpierw 1-2 miesiące po 2x, potem FBW 3 dni (T2); jeśli od razu 3x, T2 z 2-3 seriami i 15-20 powt.",
+      "status": "wniosek",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "note": "pierwsza część ze źródła, wariant 'od razu 3x' = wniosek"
+    },
+    {
+      "id": "R4",
+      "category": "decision",
+      "if": "sesje 3x trwają za długo",
+      "then": "4 sesje z mniejszą liczbą partii na sesję (T3)",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+          "pages": "345-348 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "category": "decision",
+      "if": "planowanie dni treningowych",
+      "then": "po każdym dniu treningu siłowego >=1 dzień odpoczynku; trening w porze największej siły (często po południu)",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "category": "decision",
+      "if": "cel: kształtowanie sylwetki / hipertrofia",
+      "then": "po fazie początkowej programy 3-4x (T2-T4): 2-6 serii, 8-20 powtórzeń; partia priorytetowa dostaje więcej ćwiczeń i serii",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+          "pages": "345-348 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "note": "przypisanie do 'hipertrofii' = wniosek"
+    },
+    {
+      "id": "R10",
+      "category": "decision",
+      "if": "cel: redukcja tłuszczu, mało czasu",
+      "then": "obwody: 1-2, 20-30 powt., bez przerw między ćwiczeniami; po kilku tyg. 2-3 obwody; plus cardio",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "decision",
+      "if": "cel: siła",
+      "then": "brak parametrów w źródle; użyj innej bazy",
+      "status": "brak_w_zrodle",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "R12",
+      "category": "decision",
+      "if": "cel: zdrowie lub senior",
+      "then": "lędźwia na końcu, brzuch z zaokrąglonymi plecami, wspięcia na palce (upadki), tylne aktony i wiosłowania (postawa); min. 2 sesje/tydz.; parametry brak",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 5 Trim Your Calves",
+          "pages": "148-160 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 6 Flatten Your Abs (ucięty)",
+          "pages": "161-197 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 7 Curve Your Shoulders",
+          "pages": "198-225 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "decision",
+      "if": "siła klienta spada z tygodnia na tydzień",
+      "then": "sygnał przetrenowania: zmniejsz objętość lub częstotliwość (ile - brak w źródle)",
+      "status": "wniosek",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "note": "sygnał ze źródła, reakcja = wniosek"
+    },
+    {
+      "id": "R15",
+      "category": "decision",
+      "if": "klient wykonuje program bez trudu, mięśnie nie są już zmęczone przez kilka dni",
+      "then": "po kilku tygodniach trudniejszy wariant (więcej serii, nowe ćwiczenie, mniej powt. z większym ciężarem) lub dodatkowy dzień (obwody)",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "category": "decision",
+      "if": "postęp stoi",
+      "then": "zmień program",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "decision",
+      "if": "silne, długie zakwasy po pierwszych treningach",
+      "then": "zmniejsz objętość; nie za dużo za szybko",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty) - cytaty",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "category": "decision",
+      "if": "ból (nie zwykłe zmęczenie), uraz albo objawy z S19-S25",
+      "then": "stosuj reguły bezpieczeństwa S19-S25",
+      "status": "poza_zrodlem",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "R20",
+      "category": "decision",
+      "if": "klient opuszcza treningi z braku czasu",
+      "then": "skróć sesję zamiast odwoływać; trening domowy lub obwód",
+      "status": "zrodlo",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program - cytaty",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training - cytaty",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "category": "decision",
+      "if": "ocena postępów sylwetkowych",
+      "then": "zdjęcia raz w miesiącu + dziennik (ciężar, powtórzenia), nie tylko waga",
+      "status": "zrodlo",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "przed każdą partią / bóle głowy w trakcie intensywnego treningu",
+      "action": "rozgrzewka 20-30 łatwych powtórzeń; przy bólach głowy wolniejsza rozgrzewka od lekkich izolacji (Q&A)",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 7 Curve Your Shoulders",
+          "pages": "198-225 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "przysiad ze sztangą",
+      "action": "sztanga nigdy na karku",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty) - cytaty",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "niebezpieczne pochylenie w przysiadzie (długie uda) / wysoka osoba",
+      "action": "zamień ćwiczenie; rozważ pas; ostrożnie z głębokością",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "prostowanie nóg",
+      "action": "nie nadużywać (kolano); bez wyginania lędźwi",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "martwy ciąg na prostych nogach z dużym napięciem kręgosłupa lub tyłu uda",
+      "action": "zatrzymaj ruch przed poziomem",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings - cytaty",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "przywodzenie ud",
+      "action": "wolno i w krótkim zakresie (ryzyko naderwania)",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings - cytaty",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "uginanie nóg leżąc/siedząc",
+      "action": "bez wyginania pleców",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "ćwiczenia na brzuch",
+      "action": "zaokrąglone plecy, bez wyginania lędźwi; mocna lordoza obciąża krążki",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 6 Flatten Your Abs (ucięty)",
+          "pages": "161-197 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "wiosłowanie stojąc, wznosy w opadzie, odrzut w opadzie, wznosy bokiem",
+      "action": "poprawna technika; ćwiczenia w opadzie obciążają krzyż; bez bujania",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 7 Curve Your Shoulders",
+          "pages": "198-225 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "ćwiczenia obciążające kręgosłup",
+      "action": "ostrożnie; lędźwia na końcu; zwis na drążku po treningu",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "trigger": "ból pleców przed rozpoczęciem treningu",
+      "action": "konsultacja ze specjalistą od kręgosłupa",
+      "status": "zrodlo",
+      "priority": "refer",
+      "reliability": "niska",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 9 Protect Your Lower Back (ucięty) - Q&A",
+          "pages": "245-258 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "trigger": "ból ścięgien klatki, luźny bark, wąska klatka + długie ręce",
+      "action": "skróć zakres ruchu; ostrożnie z dużym ciężarem",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 10 Enhance Your Chest",
+          "pages": "259-281 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "trigger": "ćwiczenia na triceps / ból łokci",
+      "action": "lekko, wysokie powtórzenia; przy bólu nie blokuj ramion",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms - cytaty",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "trigger": "spadek siły / szybkie zwiększanie obciążeń",
+      "action": "przetrenowanie; zwiększaj intensywność i objętość stopniowo",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "trigger": "początkujący",
+      "action": "nie za dużo i nie za szybko (długie, bolesne zakwasy)",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty) - cytaty",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S16",
+      "trigger": "ułożenie głowy, niepotrzebne ruchy",
+      "action": "kontroluj; przeciążają mięśnie i stawy",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S17",
+      "trigger": "rozciąganie",
+      "action": "nie kosztem stabilności stawów; ramiona delikatnie; (Q&A) kobiety bardziej narażone na urazy stawów",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "srednia",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36 (zakres rozdziału wg Bookey)"
+        },
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S18",
+      "trigger": "obwody",
+      "action": "bez szarpania, zwłaszcza w odcinku lędźwiowym",
+      "status": "zrodlo",
+      "priority": "warning",
+      "reliability": "wysoka",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training - cytaty",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ]
+    },
+    {
+      "id": "S19",
+      "trigger": "ból w klatce, duszność nieadekwatna do wysiłku, kołatanie serca, omdlenie, zawroty głowy",
+      "action": "przerwij trening, kontakt z lekarzem (pilnie przy nagłych/silnych objawach)",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "S20",
+      "trigger": "choroby serca, nadciśnienie, cukrzyca, ciąża, inne choroby przewlekłe bez zgody lekarza",
+      "action": "przed treningiem zgoda lekarza",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "S21",
+      "trigger": "silny, nagły ból głowy w trakcie wysiłku",
+      "action": "przerwij trening, kontakt z lekarzem",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "S22",
+      "trigger": "ciemny mocz z silnym bólem i obrzękiem mięśni po ciężkim treningu",
+      "action": "pilny kontakt z lekarzem",
+      "status": "poza_zrodlem",
+      "priority": "stop",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "S23",
+      "trigger": "ostry ból stawu lub mięśnia w trakcie ćwiczenia (inny niż zmęczenie)",
+      "action": "konsultacja z fizjoterapeutą; nie programuj obciążenia okolicy",
+      "status": "poza_zrodlem",
+      "priority": "refer",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "S24",
+      "trigger": "ból pleców przed programem lub ból utrzymujący się/narastający, obrzęk, ograniczenie ruchu, drętwienie, mrowienie",
+      "action": "konsultacja z fizjoterapeutą (zgodne z S11)",
+      "status": "poza_zrodlem",
+      "priority": "refer",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "S25",
+      "trigger": "świeży uraz, operacja, rehabilitacja w toku",
+      "action": "konsultacja z fizjoterapeutą/lekarzem; nie programuj obciążenia okolicy",
+      "status": "poza_zrodlem",
+      "priority": "refer",
+      "reliability": "wysoka",
+      "sources": []
+    },
+    {
+      "id": "S-COMM",
+      "trigger": "komunikacja z klientem",
+      "action": "nie nazywaj przyczyny objawu, nie sugeruj rozpoznania, nie zalecaj leków ani suplementów; nie obiecuj miejscowego spalania tłuszczu ani zmian kształtu piersi",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "reliability": "wysoka",
+      "sources": []
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni, minimalny sprzęt",
+      "goal": [
+        "oswojenie z treningiem siłowym"
+      ],
+      "level": "początkujący z niewielkim doświadczeniem",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 2,
+        "layout": [
+          "1",
+          "2"
+        ],
+        "spacing": {
+          "value": "co najmniej 1 dzień przerwy",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "delavier-sta-bookey",
+              "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+              "pages": "9-36 (zakres rozdziału wg Bookey)"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "1": [
+          {
+            "name": "przysiad z hantlami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wyprost biodra na kolanach",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              1,
+              2
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wznosy hantli w opadzie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "2": [
+          {
+            "name": "wyprost biodra na kolanach",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              1,
+              2
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie hantlą",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "po kilku tygodniach trudniejszy program; szczegóły dla tego wariantu brak",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+            "pages": "321-334 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "note": "wariant 'Lower Body and Upper Body on Same Day'; brak ćwiczenia pchającego - trener może dodać wyciskanie hantli na skosie (wniosek)"
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni, siłownia",
+      "goal": [
+        "rozwój całego ciała"
+      ],
+      "level": "zaawansowany (3x)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 3,
+        "layout": [
+          "1",
+          "2",
+          "3"
+        ],
+        "spacing": {
+          "value": "dzień przerwy, np. pon./śr./pt.",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "delavier-sta-bookey",
+              "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+              "pages": "9-36 (zakres rozdziału wg Bookey)"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "1": [
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              20
+            ],
+            "repsNotation": "20-12",
+            "perLeg": false
+          },
+          {
+            "name": "ściąganie drążka szerokim chwytem",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          }
+        ],
+        "2": [
+          {
+            "name": "wiosłowanie na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie na suwnicy Smitha",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              20
+            ],
+            "repsNotation": "20-12",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "3": [
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "wyciskanie na suwnicy Smitha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "stopniowo mniej powtórzeń z większym ciężarem lub więcej serii/ćwiczeń",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "note": "'Whole-Body Emphasis Program'; 'Smith Machine Press' najpewniej na klatkę (wniosek)"
+    },
+    {
+      "id": "T3",
+      "name": "Góra/dół 4 dni, akcent na dół ciała",
+      "goal": [
+        "kształtowanie pośladków i nóg"
+      ],
+      "level": "zaawansowany (4x)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+          "pages": "345-348 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 4,
+        "layout": [
+          "1 dół",
+          "2 góra",
+          "3 dół",
+          "4 tył nóg + ramiona"
+        ],
+        "spacing": {
+          "value": "np. pon./wt./czw./pt.",
+          "status": "wniosek",
+          "note": "reguła dnia przerwy po każdym treningu nie mieści 4 sesji w 7 dniach"
+        }
+      },
+      "exercises": {
+        "1 dół": [
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": [
+              10,
+              15
+            ],
+            "repsNotation": "15-10",
+            "perLeg": false
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "spięcia na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "2 góra": [
+          {
+            "name": "ściąganie drążka szerokim chwytem",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie sztangi na skosie dodatnim",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "3 dół": [
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": [
+              10,
+              15
+            ],
+            "repsNotation": "15-10",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie nóg na maszynie",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "uginanie nóg siedząc",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "unoszenie nóg leżąc",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "4 tył nóg + ramiona": [
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "uginanie nóg leżąc",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "most",
+            "sets": 2,
+            "reps": [
+              50,
+              100
+            ],
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "note": "dzień 4 ucięty po prostowaniu ramion; wariant 'akcent na górę' - tylko dzień 1 z Q&A",
+      "upperBodyEmphasisDay1_QandA": {
+        "reliability": "niska",
+        "exercises": [
+          {
+            "name": "ściąganie drążka szerokim chwytem",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              5,
+              6
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie sztangi na skosie dodatnim",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          }
+        ]
+      },
+      "truncated": true
+    },
+    {
+      "id": "T4a",
+      "name": "Plan hipertroficzny: akcent na dół ciała (3 dni)",
+      "goal": [
+        "kształtowanie sylwetki",
+        "priorytet nogi/pośladki"
+      ],
+      "level": "zaawansowany (3x)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 3,
+        "layout": [
+          "1",
+          "2",
+          "3"
+        ],
+        "spacing": {
+          "value": "dzień przerwy",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "delavier-sta-bookey",
+              "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+              "pages": "9-36 (zakres rozdziału wg Bookey)"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "1": [
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              20
+            ],
+            "repsNotation": "20-12",
+            "perLeg": false
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "uginanie nóg na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          }
+        ],
+        "2": [
+          {
+            "name": "ściąganie drążka szerokim chwytem",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie sztangi na skosie dodatnim",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          }
+        ],
+        "3": [
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wyprost biodra na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "uginanie nóg siedząc",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "jak T2",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "note": "'Lower-Body Emphasis Program'; nazwa 'hipertroficzny' = wniosek"
+    },
+    {
+      "id": "T4b",
+      "name": "Plan hipertroficzny: akcent na górę ciała (3 dni)",
+      "goal": [
+        "kształtowanie sylwetki",
+        "priorytet góra ciała"
+      ],
+      "level": "zaawansowany (3x)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 3,
+        "layout": [
+          "1",
+          "2",
+          "3"
+        ],
+        "spacing": {
+          "value": "dzień przerwy",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "delavier-sta-bookey",
+              "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+              "pages": "9-36 (zakres rozdziału wg Bookey)"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "1": [
+          {
+            "name": "ściąganie drążka szerokim chwytem",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie sztangi na skosie dodatnim",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          }
+        ],
+        "2": [
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              20
+            ],
+            "repsNotation": "20-12",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "3": [
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie sztangi na skosie dodatnim",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "jak T2",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "note": "'Upper-Body Emphasis Program'; nazwa 'hipertroficzny' = wniosek"
+    },
+    {
+      "id": "T5",
+      "name": "Plan siłowy",
+      "goal": [
+        "siła"
+      ],
+      "level": null,
+      "status": "brak_w_zrodle",
+      "note": "plik nie zawiera treningu siłowego; użyj innej bazy",
+      "sources": [],
+      "days": null,
+      "exercises": null,
+      "sets": null,
+      "reps": null,
+      "rir": null,
+      "rpe": null,
+      "rest": null,
+      "tempo": null,
+      "progression": null
+    },
+    {
+      "id": "T6",
+      "name": "Plan domowy (hantle), góra/dół 2 dni - wersja trudniejsza",
+      "goal": [
+        "trening w domu"
+      ],
+      "level": "początkujący z niewielkim doświadczeniem",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 2,
+        "layout": [
+          "1 dół",
+          "2 góra"
+        ],
+        "spacing": {
+          "value": "co najmniej 1 dzień przerwy; obwody domowe T8 w inne dni (wniosek)",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "delavier-sta-bookey",
+              "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+              "pages": "9-36 (zakres rozdziału wg Bookey)"
+            },
+            {
+              "ref": "delavier-sta-bookey",
+              "chapter": "Ch. 16 Circuit Training",
+              "pages": "349-356 (zakres rozdziału wg Bookey)"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "1 dół": [
+          {
+            "name": "przysiad z hantlami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wykroki",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "2 góra": [
+          {
+            "name": "wznosy hantli w opadzie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie hantlą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie hantli na skosie dodatnim",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion leżąc z hantlami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "następny krok: programy 3x (rozdz. 14)",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+            "pages": "335-344 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "note": "wersja początkowa = T9 (minimalny sprzęt)"
+    },
+    {
+      "id": "T7",
+      "name": "FBW 1 dzień w tygodniu",
+      "goal": [
+        "obudzenie mięśni i stawów"
+      ],
+      "level": "początkujący bez doświadczenia",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+          "pages": "314-320 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 1,
+        "layout": [
+          "1"
+        ]
+      },
+      "exercises": {
+        "minimalny sprzęt - start": [
+          {
+            "name": "wykroki",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "wiosłowanie hantlą",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wznosy hantli w opadzie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "minimalny sprzęt - po kilku tygodniach": [
+          {
+            "name": "wykroki",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie hantlą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wznosy hantli w opadzie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "siłownia - start": [
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie sztangą",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na wyciągu",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "siłownia - po kilku tygodniach": [
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "martwy ciąg na prostych nogach ze sztangą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie sztangą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na wyciągu",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "tylko maszyny": null
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "po kilku tygodniach wersja trudniejsza (więcej serii, dochodzi martwy ciąg na prostych nogach)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+            "pages": "314-320 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "note": "wariant 'Machines Only' ucięty"
+    },
+    {
+      "id": "T8",
+      "name": "Trening obwodowy",
+      "goal": [
+        "redukcja tkanki tłuszczowej",
+        "ujędrnienie",
+        "mało czasu"
+      ],
+      "level": "wszyscy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 16 Circuit Training",
+          "pages": "349-356 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "frequency": {
+        "value": {
+          "start": 1,
+          "homeCircuitsPerWeek": [
+            1,
+            2
+          ],
+          "rule": "dokładaj dni, obserwując siłę"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "circuits": [
+        {
+          "name": "minimalny sprzęt, całe ciało",
+          "exercises": [
+            "wykroki (naprzemiennie)",
+            "wiosłowanie hantlą",
+            "wznosy hantli w opadzie",
+            "spięcia"
+          ],
+          "rounds": {
+            "start": [
+              1,
+              2
+            ],
+            "afterFewWeeks": [
+              2,
+              3
+            ]
+          },
+          "reps": [
+            20,
+            30
+          ],
+          "restBetweenExercises": 0
+        },
+        {
+          "name": "siłownia, całe ciało",
+          "exercises": [
+            "przysiad ze sztangą",
+            "wiosłowanie hantlą",
+            "wznosy bokiem na maszynie",
+            "spięcia na maszynie"
+          ],
+          "rounds": {
+            "start": [
+              1,
+              2
+            ],
+            "afterFewWeeks": [
+              2,
+              3
+            ]
+          },
+          "reps": [
+            20,
+            30
+          ],
+          "restBetweenExercises": 0
+        },
+        {
+          "name": "akcent na dół",
+          "exercises": {
+            "minimalny": [
+              "przysiad z hantlami",
+              "wykroki",
+              "wyprost biodra na kolanach"
+            ],
+            "siłownia": [
+              "przysiad ze sztangą",
+              "uginanie nóg na maszynie"
+            ]
+          },
+          "rounds": {
+            "start": [
+              1,
+              2
+            ],
+            "afterFewWeeks": [
+              2,
+              3
+            ]
+          },
+          "reps": [
+            20,
+            30
+          ],
+          "restBetweenExercises": 0,
+          "note": "lista może być niepełna (wniosek)"
+        },
+        {
+          "name": "akcent na górę",
+          "exercises": {
+            "minimalny": [
+              "wyciskanie hantli",
+              "wiosłowania"
+            ],
+            "siłownia": [
+              "wyciskanie na maszynie",
+              "wiosłowanie na maszynie"
+            ]
+          },
+          "rounds": {
+            "start": [
+              1,
+              2
+            ],
+            "afterFewWeeks": [
+              2,
+              3
+            ]
+          },
+          "reps": [
+            20,
+            30
+          ],
+          "restBetweenExercises": 0,
+          "note": "lista może być niepełna (wniosek)"
+        },
+        {
+          "name": "dom: płaski brzuch - początkujący",
+          "exercises": [
+            "spięcia",
+            "spięcia skośne"
+          ],
+          "rounds": [
+            2,
+            4
+          ],
+          "reps": [
+            25,
+            50
+          ],
+          "restBetweenExercises": 0,
+          "equipment": "bez sprzętu"
+        },
+        {
+          "name": "dom: płaski brzuch - zaawansowany",
+          "exercises": [
+            "unoszenie nóg leżąc",
+            "spięcia",
+            "spięcia skośne"
+          ],
+          "rounds": [
+            2,
+            4
+          ],
+          "reps": [
+            25,
+            50
+          ],
+          "restBetweenExercises": 0,
+          "equipment": "bez sprzętu"
+        },
+        {
+          "name": "dom: pośladki - początkujący",
+          "exercises": [
+            "wyprost biodra na kolanach",
+            "most"
+          ],
+          "rounds": [
+            2,
+            4
+          ],
+          "reps": [
+            25,
+            50
+          ],
+          "restBetweenExercises": 0,
+          "equipment": "bez sprzętu"
+        },
+        {
+          "name": "dom: pośladki - zaawansowany",
+          "exercises": [
+            "wykroki",
+            "wyprost biodra na kolanach",
+            "most"
+          ],
+          "rounds": [
+            2,
+            4
+          ],
+          "reps": [
+            25,
+            50
+          ],
+          "restBetweenExercises": 0,
+          "equipment": "bez sprzętu"
+        }
+      ],
+      "restBetweenCircuits": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": "trochę dynamiczniej niż zwykle, bez szarpania (zwłaszcza lędźwi)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "progression": {
+        "value": "1-2 -> 2-3 obwody po kilku tygodniach; więcej dni, gdy rośnie siła",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 16 Circuit Training",
+            "pages": "349-356 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      },
+      "note": "Q&A podaje 15-30 powtórzeń dla zaawansowanych (niska wiarygodność)"
+    },
+    {
+      "id": "T9",
+      "name": "Góra/dół 2 dni, wersja początkowa",
+      "goal": [
+        "oswojenie z treningiem siłowym"
+      ],
+      "level": "początkujący z niewielkim doświadczeniem",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 2,
+        "layout": [
+          "1 dół",
+          "2 góra"
+        ],
+        "spacing": {
+          "value": "co najmniej 1 dzień przerwy",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "delavier-sta-bookey",
+              "chapter": "Ch. 1 Part 1 Developing Your Training Program",
+              "pages": "9-36 (zakres rozdziału wg Bookey)"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "minimalny sprzęt - 1 dół": [
+          {
+            "name": "wykroki",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wyprost biodra na kolanach",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "minimalny sprzęt - 2 góra": [
+          {
+            "name": "wznosy hantli w opadzie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie hantlą",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion leżąc z hantlami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "siłownia - 1 dół": [
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "uginanie nóg na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "siłownia - 2 góra": [
+          {
+            "name": "ściąganie drążka szerokim chwytem",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie sztangi na skosie dodatnim",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "uginanie na wyciągu dolnym",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "po kilku tygodniach wersja trudniejsza: minimalny sprzęt = T6; siłownia 'podobnie, z niewielkimi zmianami' (liczby brak)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "delavier-sta-bookey",
+            "chapter": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+            "pages": "321-334 (zakres rozdziału wg Bookey)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T10",
+      "name": "3 dni: tylko dół ciała",
+      "goal": [
+        "kształtowanie nóg i pośladków"
+      ],
+      "level": "zaawansowany (3x)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 3,
+        "layout": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "exercises": {
+        "1": [
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              20
+            ],
+            "repsNotation": "20-12",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie nóg",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "wspięcia na palce stojąc",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          },
+          {
+            "name": "spięcia na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "2": [
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie nóg leżąc na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie nóg siedząc na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "spięcia na maszynie",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "3": [
+          {
+            "name": "prostowanie nóg na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "wypychanie jednonóż (maszyna)",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": true
+          },
+          {
+            "name": "przysiad ze sztangą",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              15,
+              20
+            ],
+            "repsNotation": "20-15",
+            "perLeg": false
+          },
+          {
+            "name": "wypychanie nogami",
+            "sets": [
+              2,
+              3
+            ],
+            "reps": [
+              12,
+              20
+            ],
+            "repsNotation": "20-12",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "note": "'Lower Body Only Program'"
+    },
+    {
+      "id": "T11",
+      "name": "3 dni: tylko góra ciała",
+      "goal": [
+        "kształtowanie góry ciała"
+      ],
+      "level": "zaawansowany (3x)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "delavier-sta-bookey",
+          "chapter": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344 (zakres rozdziału wg Bookey)"
+        }
+      ],
+      "days": {
+        "count": 3,
+        "layout": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      "exercises": {
+        "1": [
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wznosy hantli w opadzie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie hantli na skosie dodatnim",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "2": [
+          {
+            "name": "wiosłowanie na maszynie",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              12,
+              15
+            ],
+            "repsNotation": "15-12",
+            "perLeg": false
+          },
+          {
+            "name": "spięcia brzucha",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": 20,
+            "repsNotation": null,
+            "perLeg": false
+          }
+        ],
+        "3": [
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": [
+              3,
+              4
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wyciskanie hantli na skosie dodatnim",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          },
+          {
+            "name": "wiosłowanie na maszynie",
+            "sets": [
+              4,
+              5
+            ],
+            "reps": [
+              8,
+              12
+            ],
+            "repsNotation": "12-8",
+            "perLeg": false
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "note": "'Upper Body Only Program'"
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "delavier-sta-bookey",
+      "type": "third_party_summary",
+      "summaryAuthor": "Bookey",
+      "bookAuthor": "Frédéric Delavier",
+      "titleAsLabelled": "Strength Training Anatomy",
+      "probableActualBook": {
+        "value": "Delavier's Women's Strength Training Anatomy Workouts (lub inna książka Delaviera o treningu kobiet)",
+        "status": "wniosek",
+        "note": "układ rozdziałów (Round Your Glutes, Take-Home Lesson for Women, programy 1-4 sesje, obwody) nie pasuje do klasycznego atlasu Strength Training Anatomy; nie do rozstrzygnięcia z pliku"
+      },
+      "year": null,
+      "isbn": null,
+      "publisher": null,
+      "language": "angielski",
+      "audience": "kobiety, cele sylwetkowe",
+      "pages": null,
+      "pagesNote": "plik bez stopek; jedyne numery stron to nagłówki 'Quotes From Pages X-Y' (zakres rozdziału w oryginale wg Bookey, niezweryfikowany)",
+      "illustrations": "brak (oryginał ma >600 ilustracji)",
+      "layers": [
+        {
+          "name": "streszczenie rozdziałów",
+          "used": true,
+          "reliability": "srednia/wysoka (programy)"
+        },
+        {
+          "name": "Best Quotes with Page Numbers",
+          "used": true,
+          "reliability": "wysoka"
+        },
+        {
+          "name": "Q&A",
+          "used": true,
+          "reliability": "niska",
+          "note": "oznaczone 'tylko Q&A'"
+        },
+        {
+          "name": "Example / Critical Thinking",
+          "used": false,
+          "note": "komentarz Bookey, nie autor"
+        },
+        {
+          "name": "Quiz and Test",
+          "used": false
+        }
+      ],
+      "fileUsed": "f7f85df4-934264836-Strength-Training-Anatomy-PDF.pdf.txt (tekst z PDF Bookey)",
+      "personalDataOmitted": "brak danych osobowych w pliku"
+    },
+    {
+      "id": "chapter-page-map",
+      "type": "page_map",
+      "items": [
+        {
+          "chapter": 1,
+          "title": "Ch. 1 Part 1 Developing Your Training Program",
+          "pages": "9-36",
+          "truncated": false
+        },
+        {
+          "chapter": 2,
+          "title": "Ch. 2 Round Your Glutes",
+          "pages": "38-80",
+          "truncated": false
+        },
+        {
+          "chapter": 3,
+          "title": "Ch. 3 Tone Your Quadriceps (ucięty)",
+          "pages": "81-116",
+          "truncated": true
+        },
+        {
+          "chapter": 4,
+          "title": "Ch. 4 Shape Your Hamstrings",
+          "pages": "117-147",
+          "truncated": false
+        },
+        {
+          "chapter": 5,
+          "title": "Ch. 5 Trim Your Calves",
+          "pages": "148-160",
+          "truncated": false
+        },
+        {
+          "chapter": 6,
+          "title": "Ch. 6 Flatten Your Abs (ucięty)",
+          "pages": "161-197",
+          "truncated": true
+        },
+        {
+          "chapter": 7,
+          "title": "Ch. 7 Curve Your Shoulders",
+          "pages": "198-225",
+          "truncated": false
+        },
+        {
+          "chapter": 8,
+          "title": "Ch. 8 Develop a Pain-Free Upper Back",
+          "pages": "226-244",
+          "truncated": false
+        },
+        {
+          "chapter": 9,
+          "title": "Ch. 9 Protect Your Lower Back (ucięty)",
+          "pages": "245-258",
+          "truncated": true
+        },
+        {
+          "chapter": 10,
+          "title": "Ch. 10 Enhance Your Chest",
+          "pages": "259-281",
+          "truncated": false
+        },
+        {
+          "chapter": 11,
+          "title": "Ch. 11 Firm Up Your Arms",
+          "pages": "282-312",
+          "truncated": false
+        },
+        {
+          "chapter": 12,
+          "title": "Ch. 12 Beginner Programs 1 Session Per Week (ucięty)",
+          "pages": "314-320",
+          "truncated": true
+        },
+        {
+          "chapter": 13,
+          "title": "Ch. 13 Beginner Programs 2 Sessions Per Week",
+          "pages": "321-334",
+          "truncated": false
+        },
+        {
+          "chapter": 14,
+          "title": "Ch. 14 Advanced Programs 3 Sessions Per Week",
+          "pages": "335-344",
+          "truncated": false
+        },
+        {
+          "chapter": 15,
+          "title": "Ch. 15 Advanced Programs 4 Sessions Per Week (ucięty)",
+          "pages": "345-348",
+          "truncated": true
+        },
+        {
+          "chapter": 16,
+          "title": "Ch. 16 Circuit Training",
+          "pages": "349-356",
+          "truncated": false
+        }
+      ]
+    },
+    {
+      "id": "lost-figures-tables",
+      "type": "missing_data",
+      "items": [
+        {
+          "pages": "całość",
+          "element": ">600 ilustracji anatomicznych i zdjęć technik",
+          "kept": "słowne nazwy mięśni, 1-3 zdania o technice"
+        },
+        {
+          "pages": "całość",
+          "element": "ewentualne tabele programów",
+          "kept": "listy ćwiczenie: serie x powtórzenia"
+        },
+        {
+          "pages": "81-116",
+          "element": "rozdz. 3 od 'Warm Up the Quadriceps'",
+          "kept": "punkty streszczenia, cytaty, Q&A"
+        },
+        {
+          "pages": "161-197",
+          "element": "rozdz. 6: ćwiczenia na brzuch i technika",
+          "kept": "kategorie tylko z Q&A"
+        },
+        {
+          "pages": "245-258",
+          "element": "rozdz. 9: martwy ciąg i hiperekstensja",
+          "kept": "dwie kategorie, cytaty o zwisie"
+        },
+        {
+          "pages": "314-320",
+          "element": "rozdz. 12: program 'Machines Only'",
+          "kept": null
+        },
+        {
+          "pages": "321-334",
+          "element": "rozdz. 13: progresja programu na siłowni",
+          "kept": null
+        },
+        {
+          "pages": "345-348",
+          "element": "rozdz. 15: koniec dnia 4 i pozostałe warianty 4x",
+          "kept": "dni 1-4 wariantu 'dół'; dzień 1 'góra' z Q&A"
+        },
+        {
+          "pages": "198-225, 282-312",
+          "element": "tabele 'Main exercises' z wersjami ćwiczeń",
+          "kept": "nazwy kategorii"
+        }
+      ]
+    },
+    {
+      "id": "contradictions",
+      "type": "contradictions",
+      "items": [
+        {
+          "topic": "kiedy zmienić program",
+          "detail": "rozdz. 1: póki są postępy; rozdz. 12-13: po kilku tygodniach"
+        },
+        {
+          "topic": "powtórzenia na pośladki",
+          "detail": "rozdz. 2: <25; rozdz. 16: 25-50; rozdz. 15: most 50-100"
+        },
+        {
+          "topic": "łydki proste/ugięte kolana",
+          "detail": "brzuchaty pracuje przy prostych nogach vs rada 'lekko ugnij kolana dla brzuchatego'"
+        },
+        {
+          "topic": "wyciskanie nad głowę",
+          "detail": "cytat: głównie przód barku; Q&A: kobiety powinny unikać"
+        },
+        {
+          "topic": "zwis na drążku",
+          "detail": "cytat >=30 s; Q&A 20-30 s"
+        },
+        {
+          "topic": "powtórzenia w obwodach",
+          "detail": "20-30 vs Q&A 15-30"
+        },
+        {
+          "topic": "częstotliwość u początkujących",
+          "detail": "1x (rozdz. 1) / 2x przez 1-2 mies. (rozdz. 14) / Q&A 3x"
+        },
+        {
+          "topic": "zapis '20-12'",
+          "detail": "nie wyjaśniony; zapisano jako zakres [12,20] z repsNotation"
+        },
+        {
+          "topic": "miejscowe spalanie tłuszczu",
+          "detail": "autor sugeruje, streszczenie zaznacza 'dyskutowane'; aplikacja nie obiecuje (poza_zrodlem)"
+        },
+        {
+          "topic": "martwy ciąg na prostych nogach 'jednostawowy'",
+          "detail": "chodzi o ruch głównie w biodrze (wniosek)"
+        },
+        {
+          "topic": "program 4x akcent na górę",
+          "detail": "dzień 1 tylko z Q&A, inne liczby serii niż w wariancie 'dół'"
+        }
+      ]
+    }
+  ]
+}

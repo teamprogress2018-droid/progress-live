@@ -1,0 +1,5679 @@
+{
+  "meta": {
+    "title": "Baza wiedzy Progress Live: Zaplanuj swój trening (Głuchowski)",
+    "version": "1.0",
+    "date": "2026-10-17",
+    "ref": "zaplanuj-swoj-trening-gluchowski",
+    "statuses": {
+      "zrodlo": "wprost z książki",
+      "wniosek": "wyliczone/wywnioskowane z treści",
+      "brak_w_zrodle": "książka tego nie mówi (null)",
+      "poza_zrodlem": "reguła ostrożności Progress Live"
+    },
+    "markdown": "zaplanuj-swoj-trening-gluchowski-baza-wiedzy.md"
+  },
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Cel wyznacza specyficzność bodźca",
+      "rule": "Trening ma odpowiadać celowi. W hipertrofii najważniejsze są w kolejności: napięcie mechaniczne, objętość, wysiłek blisko upadku, pełny zakres ruchu, metabolity, obrzęk komórek, połączenie mózg–mięsień, kontrola prędkości, uszkodzenia mięśni.",
+      "appliesTo": [
+        "hipertrofia",
+        "wszyscy"
+      ],
+      "conditions": [
+        "Im wyższy staż, tym bodziec musi być bardziej specyficzny.",
+        "Nowicjusz rośnie od prawie każdego bodźca, nawet aerobowego na nogi."
+      ],
+      "limitations": [
+        "Kolejność parametrów to ocena autora na podstawie przeglądu badań."
+      ],
+      "values": {
+        "keyHypertrophyFactorsOrdered": [
+          "napięcie mechaniczne",
+          "objętość",
+          "wysiłek (RIR/RPE)",
+          "pełny ROM",
+          "metabolity",
+          "obrzęk komórek",
+          "połączenie mózg–mięsień",
+          "kontrola prędkości",
+          "uszkodzenia mięśni"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "24-26"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "33"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Kontrola ciężaru",
+      "rule": "Powtórzenie ma być kontrolowane w całym zakresie, bez wybijania ciężaru impetem.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {},
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "33-36"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Uszkodzenia mięśni nie są celem",
+      "rule": "Zmęczenie powysiłkowe powinno ustępować w ok. 1 dzień. Dotkliwa bolesność przez kilka dni oznacza za duży bodziec.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "maxPostExerciseFatigueDays": 1
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "38"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Przeciążenie progresywne stopniowe",
+      "rule": "Bodziec zwiększa się systematycznie, stopniowo, a nie skokowo. Objętość rośnie o ok. 2,5–5% tygodniowo; najlepsza skala przeciążenia to mikrocykl.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "W hipertrofii główna metoda to przeciążenie objętościowe.",
+        "Okresowo: ciężar przy stałej objętości.",
+        "Początkujący i po kontuzji: jakość ruchu i ROM."
+      ],
+      "limitations": [
+        "Nie podwajać parametru z tygodnia na tydzień."
+      ],
+      "values": {
+        "weeklyVolumeIncreasePercent": {
+          "min": 2.5,
+          "max": 5
+        },
+        "overloadScale": "mikrocykl",
+        "overloadMethods": [
+          "zwiększenie ROM",
+          "jakość ruchu",
+          "trudniejszy wzorzec",
+          "więcej powtórzeń",
+          "więcej serii",
+          "wyższa częstotliwość",
+          "dodatkowe ćwiczenie",
+          "większy ciężar",
+          "prędkość ruchu",
+          "krótsze przerwy (3 warianty)",
+          "wynik względem masy ciała",
+          "metody zaawansowane: wymuszone powtórzenia, negatywy, drop sety, rest-pause, izometria, półruchy"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.4 Przeciążenie progresywne",
+          "pages": "50-57"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok II",
+          "pages": "200-203"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Zmienność ukierunkowana",
+      "rule": "Zmiany mają cel (opór adaptacyjny, profilaktyka przeciążeń). Blok trwa 4–8 tygodni przed zmianą; zbyt częste zmiany przeszkadzają w przeciążeniu.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "Przykład: wyciskanie płaskie → skos dodatni.",
+        "Kilka ćwiczeń na partię daje więcej niż jedno przy tej samej objętości."
+      ],
+      "limitations": [],
+      "values": {
+        "blockLengthWeeks": {
+          "min": 4,
+          "max": 8
+        },
+        "variationMethods": [
+          "rodzaj ćwiczenia",
+          "kolejność ćwiczeń",
+          "prędkość",
+          "obciążenie",
+          "objętość",
+          "metody treningowe"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.5 Zmienność",
+          "pages": "59-67"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Indywidualizacja",
+      "rule": "Ten sam program daje bardzo różne efekty. Plan dopasowuje się w 6 obszarach: staż i historia, mocne i słabe strony, wiek/płeć/zdrowie, styl życia i dieta, genetyka, możliwości treningowe.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "1 seria to za mało, 40 serii za dużo prawie dla każdego; jednej osobie wystarczy 5 serii na klatkę, innej 10."
+      ],
+      "limitations": [],
+      "values": {
+        "individualResponseCSAChangePercent": {
+          "min": -5,
+          "max": 55,
+          "note": "wykres s. 81 (Hubal 2005), odczyt z grafiki"
+        },
+        "individualizationAreas": [
+          "staż i historia",
+          "mocne i słabe strony",
+          "wiek, płeć, zdrowie",
+          "styl życia i dieta",
+          "genetyka",
+          "możliwości treningowe"
+        ],
+        "fiberCountDifferencePercentUpTo": 30
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "70-82"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Optymalna objętość = taka, po której się regenerujesz",
+      "rule": "Zależność efektu od objętości ma kształt odwróconego U. Objętość ogranicza zdolność regeneracji.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [
+        "Czynniki: tryb życia, praca i stres, sen, choroby, zmęczenie, dieta, genetyka."
+      ],
+      "limitations": [],
+      "values": {
+        "MRVrecoveryHours": {
+          "min": 48,
+          "max": 72
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "93-98"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "System treningowy jest drugorzędny",
+      "rule": "Liczy się suma parametrów, nie nazwa systemu (FBW, split). System ma znaczenie, gdy dni jest bardzo mało, gdy nie da się trenować całego ciała naraz albo z powodów motywacyjnych.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "trainingParametersCount": 9
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.1 Parametry i systemy treningowe",
+          "pages": "86-88"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "title": "Periodyzacja blokowa objętościowa",
+      "rule": "Dla osób rekreacyjnych: wariant blokowy z kilkoma blokami objętościowymi (akumulacji) i blokiem intensyfikacji, bez fazy realizacji (siły maksymalnej). Blok 5–6 tygodni, nie dłużej niż 8–12. Dla każdego bloku: metoda przeciążenia i priorytety.",
+      "appliesTo": [
+        "hipertrofia",
+        "osoby rekreacyjne"
+      ],
+      "conditions": [
+        "Zasada Pareto 80/20."
+      ],
+      "limitations": [
+        "Faza realizacji z dużymi ciężarami ryzykowna u rekreacyjnych."
+      ],
+      "values": {
+        "blockLengthWeeks": {
+          "typical": "5-6",
+          "max": "8-12"
+        },
+        "example15Weeks": [
+          {
+            "weeks": "1-4",
+            "block": "objętościowy I"
+          },
+          {
+            "weeks": "5",
+            "block": "deload"
+          },
+          {
+            "weeks": "6-9",
+            "block": "objętościowy II"
+          },
+          {
+            "weeks": "10",
+            "block": "deload"
+          },
+          {
+            "weeks": "11-15",
+            "block": "intensyfikacja"
+          }
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "194-197"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Priorytety i budżet objętości",
+      "rule": "Zdolność do regeneracji to ograniczony budżet: więcej serii na priorytet oznacza mniej na inne partie (kompensacja ok. 1:1). Partie dzieli się na priorytetowe, neutralne i na utrzymanie.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "compensationRatio": "1:1",
+        "categories": [
+          "priorytet",
+          "neutralna",
+          "utrzymanie"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "213-219"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Nie przerywać mezocyklu",
+      "rule": "2–3 tygodnie budowy masy dają mierny efekt, 6–8 tygodni znaczący. Przerywanie bloku z nudy lub z powodu wydarzeń to błąd.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "weakEffectWeeks": "2-3",
+        "significantEffectWeeks": "6-8"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.2 Fazy treningu",
+          "pages": "19-20"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "Planuj realnie liczbę treningów",
+      "rule": "Odejmij jedną jednostkę od liczby treningów, którą uważasz za realną.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "subtractSessions": 1
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "207"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Kolizja z innymi sportami",
+      "rule": "Sporty kolidują z hipertrofią w różnym stopniu; im te same mięśnie i dłuższy wysiłek, tym większa kolizja.",
+      "appliesTo": [
+        "osoby uprawiające inne sporty"
+      ],
+      "conditions": [
+        "Piłka 1–2× w tygodniu nie przeszkadza, 4–5× ma znaczący wpływ.",
+        "Maraton koliduje bardziej niż sprint.",
+        "W bloku hipertroficznym nie robić dużych ilości aerobów."
+      ],
+      "limitations": [],
+      "values": {
+        "compatibilityMostToLeastConflicting": [
+          {
+            "rank": 1,
+            "group": "sporty wytrzymałościowe",
+            "examples": [
+              "triathlon",
+              "długie biegi",
+              "kolarstwo szosowe"
+            ]
+          },
+          {
+            "rank": 2,
+            "group": "sporty walki",
+            "examples": [
+              "MMA",
+              "boks",
+              "BJJ",
+              "zapasy"
+            ]
+          },
+          {
+            "rank": 3,
+            "group": "sporty zespołowe",
+            "examples": [
+              "piłka nożna"
+            ]
+          },
+          {
+            "rank": 4,
+            "group": "sporty glikolityczne",
+            "examples": [
+              "bieg 400/800 m",
+              "pływanie 200 m"
+            ]
+          },
+          {
+            "rank": 5,
+            "group": "gimnastyczne",
+            "examples": []
+          },
+          {
+            "rank": 6,
+            "group": "siłowe",
+            "examples": [
+              "strongman",
+              "trójbój"
+            ]
+          },
+          {
+            "rank": 7,
+            "group": "mocy",
+            "examples": [
+              "podnoszenie ciężarów",
+              "skoki"
+            ]
+          },
+          {
+            "rank": 8,
+            "group": "techniczne",
+            "examples": [
+              "tenis stołowy",
+              "golf"
+            ]
+          },
+          {
+            "rank": 9,
+            "group": "hobby o niskim wpływie",
+            "examples": [
+              "piesze wycieczki",
+              "joga"
+            ]
+          }
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "30"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "40-44"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Fazy treningu – długości",
+      "rule": "Jednostka: kilkanaście–kilkadziesiąt minut (maks. 2–3 h). Mikrocykl: 2 dni (FBW) do 20–30 dni, najczęściej 7–10. Mezocykl: 4–12 tyg., w hipertrofii najczęściej 4–6. Makrocykl: rok i więcej, w hipertrofii 3–5 bloków przeplatanych roztrenowaniem.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "sessionMaxHours": "2-3",
+        "microcycleDays": {
+          "min": 2,
+          "max": "20-30",
+          "typical": "7-10"
+        },
+        "mesocycleWeeks": {
+          "min": 4,
+          "max": 12,
+          "hypertrophyTypical": "4-6"
+        },
+        "macrocycle": "rok i więcej; 3-5 bloków",
+        "diagramP16": "4 mezocykle × 3 mikrocykle × 4 jednostki"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.2 Fazy treningu",
+          "pages": "15-16"
+        }
+      ]
+    },
+    {
+      "id": "P15",
+      "title": "Definicja serii efektywnej",
+      "rule": "Seria liczona do objętości to 6–20 powtórzeń blisko upadku (maks. RIR 4), przy pozostałych zmiennych stałych. Seria w niepełnym zakresie ruchu liczy się jako ok. 0,7 serii.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [
+        "Sprzeczność z RIR 5 jako minimum (s. 108–110)."
+      ],
+      "values": {
+        "reps": "6-20",
+        "maxRIR": 4,
+        "partialROMSetValue": 0.7,
+        "practicalVolumeMeasure": "serie na partię na tydzień",
+        "progressTracking": "tonaż"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "90-92"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.11 Zakres ruchu",
+          "pages": "172"
+        }
+      ]
+    },
+    {
+      "id": "P16",
+      "title": "Progi objętości MV/MEV/MAV/MRV",
+      "rule": "Objętość dobiera się między MEV a MAV wg zaawansowania; MV utrzymuje, MRV to maksimum regenerowalne.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [
+        "MRV wysoko zaawansowanego (25–28) niższe niż zaawansowanego (30) – niespójność tabeli."
+      ],
+      "values": {
+        "unit": "serie na partię na tydzień",
+        "levels": [
+          {
+            "level": "nowicjusz",
+            "MV": 0,
+            "MEV": 1,
+            "MAV": 5,
+            "MRV": 10
+          },
+          {
+            "level": "początkujący",
+            "MV": 1,
+            "MEV": 3,
+            "MAV": "5-7",
+            "MRV": 15
+          },
+          {
+            "level": "średnio zaawansowany",
+            "MV": "2-3",
+            "MEV": "6-7",
+            "MAV": 10,
+            "MRV": 20
+          },
+          {
+            "level": "zaawansowany",
+            "MV": "4-5",
+            "MEV": "9-10",
+            "MAV": 15,
+            "MRV": 30
+          },
+          {
+            "level": "wysoko zaawansowany",
+            "MV": "5-6",
+            "MEV": 12,
+            "MAV": 20,
+            "MRV": "25-28"
+          }
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "94-98"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "222-223"
+        }
+      ]
+    },
+    {
+      "id": "P17",
+      "title": "Strefy intensywności",
+      "rule": "Ciężka 86–100% CM, średnia 71–85%, niska poniżej 70%, bardzo niska poniżej 60%. Skuteczny zakres dla hipertrofii 30–85% CM przy pracy blisko upadku.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "zonesPercent1RM": {
+          "heavy": "86-100",
+          "medium": "71-85",
+          "low": "<70",
+          "veryLow": "<60"
+        },
+        "hypertrophyEffectiveRange": "30-85",
+        "minimumPercent1RM": 30
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "104"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "75"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "108-110"
+        }
+      ]
+    },
+    {
+      "id": "P18",
+      "title": "RIR zamiast RPE",
+      "rule": "Autor zaleca skalę RIR (powtórzenia w zapasie), bo RPE słabo pasuje do treningu siłowego. Minimalny skuteczny wysiłek to RIR 5.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "effortBands": {
+          "low": "RIR>5",
+          "medium": "RIR 5-3",
+          "high": "RIR<=2"
+        },
+        "RIRbyLevel": {
+          "początkujący": "5-3",
+          "średnio zaawansowany": "5-1",
+          "zaawansowany": "5-0 (upadek okresowo)"
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "105-110"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.8 Przerwy",
+          "pages": "152"
+        }
+      ]
+    },
+    {
+      "id": "P19",
+      "title": "Częstotliwość zależna od objętości",
+      "rule": "Wyższa częstotliwość pomaga głównie wtedy, gdy pozwala zrobić większą objętość. Maks. 3× w tygodniu na partię.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "MPSelevationHours": {
+          "advanced": "24-48",
+          "beginner": 72
+        },
+        "centralFatigueDays": 2,
+        "localFatigue": "kilka godzin do 2-3 dni",
+        "fullReadinessDays": 3,
+        "tonnageGainPercentSameSets": "5-9, do 22",
+        "maxPerMusclePerWeek": 3,
+        "advancedTrainingOncePerWeekShare": ">2/3"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.4 Częstotliwość",
+          "pages": "114-121"
+        }
+      ]
+    },
+    {
+      "id": "P20",
+      "title": "Liczba treningów w tygodniu",
+      "rule": "Optymalnie 3–5. 1–2 może być za mało (1 ma sens zdrowotnie i u nowicjusza; 2 wystarczą początkującym na pierwsze efekty). Powyżej 5 problemy z regeneracją, bez sensu dla hipertrofii.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "optimalSessionsPerWeek": "3-5",
+        "beginnerMinimum": 2,
+        "maxSensible": 5
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "80"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "207"
+        }
+      ]
+    },
+    {
+      "id": "P21",
+      "title": "Zdolność do pracy",
+      "rule": "Osoba z małą zdolnością do pracy (szybki spadek powtórzeń w kolejnych seriach) lepiej reaguje na wyższą częstotliwość i mniej serii na sesję.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "exampleLow": "100 kg × 10,8,6,5 (przerwy 2 min)",
+        "exampleHigh": "100 kg × 10,9,9,8"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "72-74"
+        }
+      ]
+    },
+    {
+      "id": "P22",
+      "title": "Pełny zakres ruchu jako podstawa",
+      "rule": "Pełny ROM to podstawa, również dla bezpieczeństwa; ruch częściowy to dodatek w ćwiczeniach akcesoryjnych. Wyjątek: kontuzje.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {
+        "evidence": {
+          "przysiad": "pełny > ćwierćprzysiad",
+          "prostowanie nóg": "pełne > częściowe",
+          "uginanie ramion": "pełne ≈ częściowe",
+          "triceps": "częściowy lepszy w badaniu"
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.11 Zakres ruchu",
+          "pages": "169-174"
+        }
+      ]
+    },
+    {
+      "id": "P23",
+      "title": "Tempo i fazy ruchu",
+      "rule": "Optymalny czas powtórzenia 0,5–6 s; celowe zwalnianie daje gorsze efekty. Wolne tempo tylko przy nauce techniki. Stosować obie fazy ruchu; nadmiar ekscentryki zwiększa uszkodzenia.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "Zapis tempa w programie niezgodny z opisem konwencji (zob. contradictions)."
+      ],
+      "values": {
+        "repDurationSeconds": {
+          "min": 0.5,
+          "max": 6
+        },
+        "eccentricStrengthAdvantagePercent": "20-50",
+        "involuntarySlowdown": ">85% CM lub RIR<5",
+        "tempoNotation": "A-B-C: A koncentryka, B pauza w górze, C ekscentryka; 2-1-2 = 5 s"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.9 Fazy ruchu",
+          "pages": "157-161"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.10 Tempo",
+          "pages": "164-167"
+        }
+      ]
+    },
+    {
+      "id": "P24",
+      "title": "Kobiety",
+      "rule": "Kobiety mają wyższe MRV, większą zdolność do pracy i szybszą regenerację; zaczynają z mniejszą masą mięśniową i mają nieco mniejsze bezwzględne tempo przyrostu.",
+      "appliesTo": [
+        "kobiety"
+      ],
+      "conditions": [],
+      "limitations": [
+        "Jedyny fragment o płci w książce; brak liczb dla kobiet."
+      ],
+      "values": {},
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "76"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "EX-CHEST",
+      "category": "partia",
+      "muscle": "klatka piersiowa",
+      "exercises": [
+        {
+          "name": "wyciskanie sztangi na ławce poziomej",
+          "equipment": "sztanga, ławka",
+          "purpose": "główne wielostawowe, progresja seriami"
+        },
+        {
+          "name": "wyciskanie sztangi na ławce skośnej dodatniej",
+          "equipment": "sztanga, ławka skośna",
+          "purpose": "główne wielostawowe, progresja seriami (oznaczenie „(+)” odczytane jako skos dodatni – wniosek)"
+        },
+        {
+          "name": "wyciskanie hantli na ławce poziomej",
+          "equipment": "hantle, ławka",
+          "purpose": "część wstępna (aktywacja)"
+        },
+        {
+          "name": "rozpiętki na ławce poziomej",
+          "equipment": "hantle, ławka",
+          "purpose": "izolowane, progresja powtórzeniami"
+        },
+        {
+          "name": "floor fly (rozpiętki na podłodze)",
+          "equipment": "hantle",
+          "purpose": "izolowane, progresja powtórzeniami"
+        }
+      ],
+      "notes": "Priorytet w przykładowym programie: 11 serii/tydz. na start.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-GLUTES",
+      "category": "partia",
+      "muscle": "pośladki",
+      "exercises": [
+        {
+          "name": "hip thrust",
+          "equipment": "sztanga, ławka",
+          "purpose": "główne, progresja seriami"
+        },
+        {
+          "name": "martwy ciąg rumuński",
+          "equipment": "sztanga",
+          "purpose": "główne wielostawowe, progresja seriami"
+        },
+        {
+          "name": "lifty w bok",
+          "equipment": "wyciąg lub guma",
+          "purpose": "izolowane, progresja powtórzeniami"
+        },
+        {
+          "name": "lifty w tył",
+          "equipment": "wyciąg lub guma",
+          "purpose": "izolowane, progresja powtórzeniami"
+        },
+        {
+          "name": "martwy ciąg na jednej nodze",
+          "equipment": "hantle",
+          "purpose": "jednostronne akcesoryjne"
+        },
+        {
+          "name": "glute bridge",
+          "equipment": "masa ciała",
+          "purpose": "część wstępna"
+        },
+        {
+          "name": "hip hinge z gumą",
+          "equipment": "guma",
+          "purpose": "część wstępna"
+        },
+        {
+          "name": "monster walking",
+          "equipment": "guma",
+          "purpose": "część wstępna"
+        }
+      ],
+      "notes": "Priorytet w przykładowym programie: 11 serii/tydz. na start.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-HAMSTRINGS",
+      "category": "partia",
+      "muscle": "dwugłowe uda",
+      "exercises": [
+        {
+          "name": "uginanie podudzi na maszynie siedząc",
+          "equipment": "maszyna",
+          "purpose": "izolowane"
+        },
+        {
+          "name": "martwy ciąg na prostych nogach z hantlami",
+          "equipment": "hantle",
+          "purpose": "część wstępna"
+        },
+        {
+          "name": "uginanie podudzi z gumą",
+          "equipment": "guma",
+          "purpose": "część wstępna"
+        }
+      ],
+      "notes": "Partia neutralna.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-QUADS",
+      "category": "partia",
+      "muscle": "czworogłowe uda",
+      "exercises": [
+        {
+          "name": "przysiad przedni (frontalny)",
+          "equipment": "sztanga",
+          "purpose": "wielostawowe"
+        },
+        {
+          "name": "prostowanie nóg siedząc",
+          "equipment": "maszyna",
+          "purpose": "izolowane"
+        },
+        {
+          "name": "przysiad goblet",
+          "equipment": "hantla/kettlebell",
+          "purpose": "część wstępna"
+        }
+      ],
+      "notes": "Partia na utrzymanie w przykładzie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-BACK-LATS",
+      "category": "partia",
+      "muscle": "najszerszy grzbietu",
+      "exercises": [
+        {
+          "name": "wiosłowanie hantlą jednorącz z podparciem",
+          "equipment": "hantla, ławka",
+          "purpose": "wielostawowe"
+        },
+        {
+          "name": "ściąganie drążka do klatki szerokim nachwytem",
+          "equipment": "wyciąg",
+          "purpose": "wielostawowe na maszynie"
+        },
+        {
+          "name": "ściąganie linek do biodra",
+          "equipment": "wyciąg",
+          "purpose": "część wstępna"
+        },
+        {
+          "name": "wiosłowanie hantlami oburącz",
+          "equipment": "hantle",
+          "purpose": "część wstępna"
+        }
+      ],
+      "notes": "Partia neutralna.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-TRAPS",
+      "category": "partia",
+      "muscle": "czworoboczny grzbietu",
+      "exercises": [
+        {
+          "name": "Trap Y raise",
+          "equipment": "hantle",
+          "purpose": "dolna część czworobocznego"
+        },
+        {
+          "name": "szrugsy odwróconym chwytem",
+          "equipment": "sztanga",
+          "purpose": "górna część czworobocznego"
+        },
+        {
+          "name": "Cuban press",
+          "equipment": "hantle",
+          "purpose": "część wstępna"
+        }
+      ],
+      "notes": "Neutralna; objętość obniżona z 7 do 5 serii z powodu synergii przy plecach.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "234"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-DELTS",
+      "category": "partia",
+      "muscle": "naramienne",
+      "exercises": [
+        {
+          "name": "wznosy hantli bokiem",
+          "equipment": "hantle",
+          "purpose": "akton boczny"
+        },
+        {
+          "name": "odwodzenie horyzontalne z linką",
+          "equipment": "wyciąg",
+          "purpose": "akton tylny"
+        },
+        {
+          "name": "wznosy hantli przodem, pełny zakres do 120°",
+          "equipment": "hantle",
+          "purpose": "akton przedni"
+        },
+        {
+          "name": "rotacja zewnętrzna z hantlami",
+          "equipment": "hantle",
+          "purpose": "część wstępna (stożek rotatorów)"
+        }
+      ],
+      "notes": "Partia neutralna.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-BICEPS",
+      "category": "partia",
+      "muscle": "biceps",
+      "exercises": [
+        {
+          "name": "uginanie przedramion z hantlami na ławce 45° (ręce za tułowiem)",
+          "equipment": "hantle, ławka",
+          "purpose": "izolowane, długa głowa w rozciągnięciu"
+        },
+        {
+          "name": "uginanie przedramion z hantlami",
+          "equipment": "hantle",
+          "purpose": "izolowane"
+        }
+      ],
+      "notes": "Partia neutralna.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-TRICEPS",
+      "category": "partia",
+      "muscle": "triceps",
+      "exercises": [
+        {
+          "name": "prostowanie łokci z linkami wyciągu",
+          "equipment": "wyciąg",
+          "purpose": "izolowane"
+        }
+      ],
+      "notes": "Partia na utrzymanie: 1 ćwiczenie, 3 serie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-CALVES",
+      "category": "partia",
+      "muscle": "łydki",
+      "exercises": [
+        {
+          "name": "wspięcia na palce siedząc",
+          "equipment": "maszyna",
+          "purpose": "izolowane (płaszczkowaty)"
+        },
+        {
+          "name": "wspięcia na palce stojąc",
+          "equipment": "maszyna",
+          "purpose": "izolowane (brzuchaty)"
+        }
+      ],
+      "notes": "Partia neutralna.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "247-273"
+        }
+      ]
+    },
+    {
+      "id": "EX-R1",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "O bodźcu decydują kąt, płaszczyzna ruchu i pozycja kończyny.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "134"
+        }
+      ]
+    },
+    {
+      "id": "EX-R2",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Wielostawowe: duża masa mięśni naraz, efektywne czasowo, lepsze dla siły; wymagają techniki, mocniej męczą, łatwiej o kontuzję przy błędach.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "135-136"
+        }
+      ]
+    },
+    {
+      "id": "EX-R3",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Izolowane: precyzyjne ukierunkowanie, mniejszy koszt zmęczenia, omijają czynnik limitujący. Izolujemy ruch, nie mięsień.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "137"
+        }
+      ]
+    },
+    {
+      "id": "EX-R4",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Proporcja ok. 60% wielostawowe / 40% izolowane; doświadczeni mogą dać przewagę izolowanym. Dla hipertrofii efekt podobny, dla siły lepszy wolny ciężar.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "138, 142"
+        }
+      ]
+    },
+    {
+      "id": "EX-R5",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Z maszynami: 50% wielostawowe na wolnym ciężarze / 25% wielostawowe na maszynie / 25% izolowane; albo 60/40 lub 50/50.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "239"
+        }
+      ]
+    },
+    {
+      "id": "EX-R6",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Czynnik limitujący: agoniści, antagoniści, stabilizatory, chwyt. Przyczyny: styl życia, brak czucia mięśniowego, kontuzje, postawa (siedzenie), wcześniejsze sporty. Rozwiązanie: maszyna lub izolacja, długoterminowo wyrównanie dysproporcji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "139-141"
+        }
+      ]
+    },
+    {
+      "id": "EX-R7",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Kolejność: najpierw partia priorytetowa, w miarę możliwości wielostawowo. Spadek siły w trakcie sesji 22–32%. Hipoteza hormonalna (duże partie najpierw) obalona.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.7 Kolejność ćwiczeń",
+          "pages": "144-148"
+        }
+      ]
+    },
+    {
+      "id": "EX-R8",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Kolejność elementów: rozgrzewka → aktywacja → wielostawowe z wolnym ciężarem → wielostawowe na maszynach → izolowane.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.7 Kolejność ćwiczeń",
+          "pages": "146"
+        }
+      ]
+    },
+    {
+      "id": "EX-R9",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Model Contrerasa: ćwiczenia z maks. napięciem w rozciągnięciu (rozpiętki), w skurczu/końcu zakresu (hip thrust) lub w środku (wyprosty na ławce rzymskiej). Łączyć różne.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.11 Zakres ruchu",
+          "pages": "173"
+        }
+      ]
+    },
+    {
+      "id": "EX-R10",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "10 serii na partię na sesję pozwala na 2–3 ćwiczenia; 3 serie → 1 ćwiczenie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "238"
+        }
+      ]
+    },
+    {
+      "id": "EX-R11",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Priorytet, opcja 1: 4 serie (50%) wielostawowe + 2 (25%) izolowane uzupełniające + 2 (25%) izolowane omijające czynnik limitujący.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "242"
+        }
+      ]
+    },
+    {
+      "id": "EX-R12",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Priorytet, opcja 2: 3 serie (33%) wielostawowe + 2 (22%) wielostawowe na maszynie + 2 (22%) jednostronne + 2 (22%) omijające czynnik limitujący.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "243"
+        }
+      ]
+    },
+    {
+      "id": "EX-R13",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Średnio i wysoko zaawansowani: więcej izolacji i maszyn dla priorytetów (niższy koszt zmęczenia). Partie neutralne: maszyny i izolacje. Utrzymanie: 1 ćwiczenie izolowane; ramiona mogą okresowo nie mieć bezpośredniego treningu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "240-245"
+        }
+      ]
+    },
+    {
+      "id": "EX-R14",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Kilka ćwiczeń na partię daje więcej niż jedno przy tej samej liczbie serii; zmiana ćwiczeń ukierunkowana, co 4–8 tygodni.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.5 Zmienność",
+          "pages": "59-63"
+        }
+      ]
+    },
+    {
+      "id": "EX-R15",
+      "category": "zasada",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Gumy: wystarczają mniej zaawansowanym, nieoptymalne dla zaawansowanych.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "80"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "209-210"
+        }
+      ]
+    },
+    {
+      "id": "EX-GAP",
+      "category": "brak",
+      "muscle": null,
+      "exercises": [],
+      "notes": "Książka nie opisuje techniki ćwiczeń, nie podaje list zamienników ani przeciwwskazań dla konkretnych ćwiczeń.",
+      "status": "brak_w_zrodle",
+      "sources": []
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PAR-hipertrofia",
+      "goal": "hipertrofia",
+      "setsPerMuscleWeek": {
+        "value": "MEV–MAV wg poziomu (tabela MV/MEV/MAV/MRV)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.2 Objętość",
+            "pages": "95"
+          }
+        ]
+      },
+      "startingSets": {
+        "value": {
+          "priority": "górna granica MEV",
+          "neutral": "dolna granica MEV",
+          "maintenance": "MV"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "224-227"
+          }
+        ]
+      },
+      "setsPerMusclePerSessionMax": {
+        "value": 10,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "225"
+          }
+        ]
+      },
+      "setsPerSession": {
+        "value": {
+          "min": 20,
+          "max": 30,
+          "note": "dolna granica początkujący, górna zaawansowani"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "225-226"
+          }
+        ]
+      },
+      "daysPerWeek": {
+        "value": "3-5",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "80"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok III",
+            "pages": "207"
+          }
+        ]
+      },
+      "frequency": {
+        "value": "1-3× na partię wg objętości",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.4 Częstotliwość",
+            "pages": "121"
+          }
+        ]
+      },
+      "reps": {
+        "value": {
+          "recommended": "8-20",
+          "alsoEffective": "6-30, do 50"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "126-132"
+          }
+        ]
+      },
+      "intensityPercent1RM": {
+        "value": "30-85 (zalecane ok. 60-84)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "75"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "130"
+          }
+        ]
+      },
+      "rir": {
+        "value": {
+          "beginner": "5-3",
+          "intermediate": "5-1",
+          "advanced": "5-0"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.3 Intensywność",
+            "pages": "110"
+          }
+        ]
+      },
+      "rest": {
+        "value": {
+          "rangeSeconds": "60-180",
+          "programMinutes": "1-2,5"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.8 Przerwy",
+            "pages": "151"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258-273"
+          }
+        ]
+      },
+      "tempo": {
+        "value": {
+          "repDurationSeconds": "0,5-6",
+          "programDefault": "21x1"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.10 Tempo",
+            "pages": "165"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258"
+          }
+        ]
+      },
+      "blockWeeks": {
+        "value": "4-6 (maks. 8-12)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.2 Fazy treningu",
+            "pages": "15"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok I",
+            "pages": "194"
+          }
+        ]
+      },
+      "weeklyProgression": {
+        "value": "+1 seria/tydz. lub +2 powtórzenia/tydz. w ćwiczeniu progresywnym priorytetu; objętość ogólna +2,5-5%/tydz.",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.4 Przeciążenie progresywne",
+            "pages": "50"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "257"
+          }
+        ]
+      },
+      "deload": {
+        "value": "tydzień po bloku 4 tygodni (model s. 197); parametry nieopisane",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok I",
+            "pages": "197"
+          }
+        ]
+      },
+      "deloadParameters": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-sila",
+      "goal": "siła",
+      "intensityPercent1RM": {
+        "value": {
+          "beginner": "ok. 60",
+          "intermediate": "75-80",
+          "veryAdvanced": ">80"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.3 Intensywność",
+            "pages": "110"
+          }
+        ]
+      },
+      "reps": {
+        "value": {
+          "strength": "1-5",
+          "strengthAndMass": "6-8"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "125"
+          }
+        ]
+      },
+      "rest": {
+        "value": {
+          "minutes": "3-5",
+          "upTo10minAt90-100%": true
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.8 Przerwy",
+            "pages": "151"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.8 Przerwy",
+            "pages": "153"
+          }
+        ]
+      },
+      "exerciseType": {
+        "value": "wielostawowe z wolnym ciężarem",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.6 Dobór ćwiczeń",
+            "pages": "138"
+          }
+        ]
+      },
+      "intensificationBlock": {
+        "value": "ciężar +5% tygodniowo przy stałej objętości",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok II",
+            "pages": "201"
+          }
+        ]
+      },
+      "realizationPhase": {
+        "value": "niezalecana osobom rekreacyjnym",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok I",
+            "pages": "195"
+          }
+        ]
+      },
+      "setsPerMuscleWeek": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-redukcja",
+      "goal": "redukcja",
+      "volume": {
+        "value": "niższa, w kierunku dawki utrzymującej (MV)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "77-78"
+          }
+        ]
+      },
+      "weightLossRate": {
+        "value": "zbyt szybka utrata (ok. 1,4% masy ciała/tydz.) może obniżyć siłę",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.2 Fazy treningu",
+            "pages": "19"
+          }
+        ]
+      },
+      "aerobic": {
+        "value": "z umiarem; nadmiar obniża siłę",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "4. Konstrukcja jednostki treningowej",
+            "pages": "184-185"
+          }
+        ]
+      },
+      "calorieDeficit": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "setsPerMuscleWeek": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-zdrowie",
+      "goal": "zdrowie",
+      "diseases": {
+        "value": "insulinooporność, Hashimoto i inne: mniejsza objętość i intensyfikacja",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "76-77"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok III",
+            "pages": "205"
+          }
+        ]
+      },
+      "age50plus": {
+        "value": "wolniejsza progresja, niższe dawki, mało zmian ćwiczeń",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "76"
+          }
+        ]
+      },
+      "stress": {
+        "value": "mniejszy bodziec",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "77"
+          }
+        ]
+      },
+      "postInjury": {
+        "value": "przeciążanie jakością ruchu i ROM; dopuszczalny ograniczony zakres",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.4 Przeciążenie progresywne",
+            "pages": "53"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.11 Zakres ruchu",
+            "pages": "174"
+          }
+        ]
+      },
+      "daysPerWeek": {
+        "value": "nawet 1 trening ma sens zdrowotnie",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "80"
+          }
+        ]
+      },
+      "contraindications": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "PAR-poczatkujacy",
+      "goal": "początkujący",
+      "setsPerMuscleWeek": {
+        "value": {
+          "MEV": "1-3",
+          "MAV": "5-7",
+          "MRV": "10-15"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.2 Objętość",
+            "pages": "95"
+          }
+        ]
+      },
+      "frequency": {
+        "value": {
+          "upTo5sets": 1,
+          "upTo10sets": 2,
+          "upTo15sets": 3
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.4 Częstotliwość",
+            "pages": "121"
+          }
+        ]
+      },
+      "daysPerWeek": {
+        "value": "2 na pierwsze efekty, 3-5 optymalnie",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok III",
+            "pages": "207"
+          }
+        ]
+      },
+      "rir": {
+        "value": "5-3",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.3 Intensywność",
+            "pages": "110"
+          }
+        ]
+      },
+      "setsPerSession": {
+        "value": 20,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "226"
+          }
+        ]
+      },
+      "progressionVariables": {
+        "value": "1 zmienna naraz; jakość ruchu i ROM",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.4 Przeciążenie progresywne",
+            "pages": "53"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "252"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "wolniejsze tylko przy nauce techniki",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.10 Tempo",
+            "pages": "166"
+          }
+        ]
+      },
+      "warmupPotentiate": {
+        "value": "pominąć",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "6. Rozgrzewka (RAMP)",
+            "pages": "281"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-kobiety",
+      "goal": "kobiety",
+      "volumeTolerance": {
+        "value": "wyższe MRV, większa zdolność do pracy, szybsza regeneracja",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "76"
+          }
+        ]
+      },
+      "growthRate": {
+        "value": "nieco mniejszy bezwzględny przyrost (mniejsza masa startowa)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "76"
+          }
+        ]
+      },
+      "setsPerMuscleWeek": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "menstrualCycle": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "pregnancy": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      }
+    },
+    {
+      "id": "TAB-volume-landmarks",
+      "goal": "tabela",
+      "title": "Serie na partię na tydzień MV/MEV/MAV/MRV",
+      "value": [
+        {
+          "level": "nowicjusz",
+          "MV": 0,
+          "MEV": 1,
+          "MAV": 5,
+          "MRV": 10
+        },
+        {
+          "level": "początkujący",
+          "MV": 1,
+          "MEV": 3,
+          "MAV": "5-7",
+          "MRV": 15
+        },
+        {
+          "level": "średnio zaawansowany",
+          "MV": "2-3",
+          "MEV": "6-7",
+          "MAV": 10,
+          "MRV": 20
+        },
+        {
+          "level": "zaawansowany",
+          "MV": "4-5",
+          "MEV": "9-10",
+          "MAV": 15,
+          "MRV": 30
+        },
+        {
+          "level": "wysoko zaawansowany",
+          "MV": "5-6",
+          "MEV": 12,
+          "MAV": 20,
+          "MRV": "25-28"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "95, 98"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "222"
+        }
+      ]
+    },
+    {
+      "id": "TAB-frequency",
+      "goal": "tabela",
+      "title": "Objętość tygodniowa partii → częstotliwość",
+      "value": [
+        {
+          "beginnerSetsUpTo": 5,
+          "advancedSetsUpTo": 10,
+          "timesPerWeek": 1
+        },
+        {
+          "beginnerSetsUpTo": 10,
+          "advancedSetsUpTo": 20,
+          "timesPerWeek": 2
+        },
+        {
+          "beginnerSetsUpTo": 15,
+          "advancedSetsUpTo": 30,
+          "timesPerWeek": 3
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.4 Częstotliwość",
+          "pages": "121"
+        }
+      ]
+    },
+    {
+      "id": "TAB-percent-reps",
+      "goal": "tabela",
+      "title": "%CM → maks. powtórzeń (s. 104)",
+      "value": [
+        {
+          "percent": 100,
+          "reps": 1
+        },
+        {
+          "percent": 95,
+          "reps": 2
+        },
+        {
+          "percent": 92,
+          "reps": 3
+        },
+        {
+          "percent": 89,
+          "reps": 4
+        },
+        {
+          "percent": 86,
+          "reps": 5
+        },
+        {
+          "percent": 83,
+          "reps": 6
+        },
+        {
+          "percent": 81,
+          "reps": 7
+        },
+        {
+          "percent": 79,
+          "reps": 8
+        },
+        {
+          "percent": 77,
+          "reps": 9
+        },
+        {
+          "percent": 75,
+          "reps": 10
+        },
+        {
+          "percent": 73,
+          "reps": 11
+        },
+        {
+          "percent": 71,
+          "reps": 12
+        },
+        {
+          "percent": 70,
+          "reps": 13
+        },
+        {
+          "percent": 61,
+          "reps": 20
+        }
+      ],
+      "note": "Wartości dla 14–19 powtórzeń w grafice pomiędzy 70 a 61%.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "104"
+        }
+      ]
+    },
+    {
+      "id": "TAB-poliquin",
+      "goal": "tabela",
+      "title": "Tabela Poliquina: powtórzenia → %CM",
+      "value": [
+        {
+          "reps": 1,
+          "percent": 100,
+          "zone": "siła"
+        },
+        {
+          "reps": 2,
+          "percent": 94.3,
+          "zone": "siła"
+        },
+        {
+          "reps": 3,
+          "percent": 90.6,
+          "zone": "siła"
+        },
+        {
+          "reps": 4,
+          "percent": 88.1,
+          "zone": "siła"
+        },
+        {
+          "reps": 5,
+          "percent": 85.6,
+          "zone": "siła"
+        },
+        {
+          "reps": 6,
+          "percent": 83.1,
+          "zone": "siła i masa"
+        },
+        {
+          "reps": 7,
+          "percent": 80.7,
+          "zone": "siła i masa"
+        },
+        {
+          "reps": 8,
+          "percent": 78.6,
+          "zone": "siła i masa"
+        },
+        {
+          "reps": 9,
+          "percent": 76.5,
+          "zone": "masa"
+        },
+        {
+          "reps": 10,
+          "percent": 74.4,
+          "zone": "masa"
+        },
+        {
+          "reps": 11,
+          "percent": 72.3,
+          "zone": "masa"
+        },
+        {
+          "reps": 12,
+          "percent": 70.3,
+          "zone": "masa"
+        },
+        {
+          "reps": 13,
+          "percent": 68.8,
+          "zone": "wytrzymałość siłowa"
+        },
+        {
+          "reps": 20,
+          "percent": 60.6,
+          "zone": "wytrzymałość siłowa"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.5 Zakresy powtórzeń",
+          "pages": "125"
+        }
+      ]
+    },
+    {
+      "id": "TAB-rpe-rir",
+      "goal": "tabela",
+      "title": "RPE ↔ RIR",
+      "value": [
+        {
+          "rpe": 10,
+          "rir": "0"
+        },
+        {
+          "rpe": 9.5,
+          "rir": "0 (możliwe minimalne zwiększenie ciężaru)"
+        },
+        {
+          "rpe": 9,
+          "rir": "1"
+        },
+        {
+          "rpe": 8.5,
+          "rir": "1-2"
+        },
+        {
+          "rpe": 8,
+          "rir": "2"
+        },
+        {
+          "rpe": 7.5,
+          "rir": "2-3"
+        },
+        {
+          "rpe": 7,
+          "rir": "3"
+        },
+        {
+          "rpe": "5-6",
+          "rir": "4-6"
+        },
+        {
+          "rpe": "1-4",
+          "rir": "6+"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "106"
+        }
+      ]
+    },
+    {
+      "id": "TAB-rest-chart",
+      "goal": "tabela",
+      "title": "Przerwy wg typu ćwiczenia i wysiłku (odczyt przybliżony z wykresu)",
+      "value": [
+        {
+          "exercise": "izolowane",
+          "lowS": 15,
+          "mediumS": 60,
+          "highS": 90,
+          "veryHighS": 180
+        },
+        {
+          "exercise": "wielostawowe na maszynie",
+          "lowS": 30,
+          "mediumS": 90,
+          "highS": 120,
+          "veryHighS": 240
+        },
+        {
+          "exercise": "wielostawowe z wolnym ciężarem",
+          "lowS": 60,
+          "mediumS": 120,
+          "highS": 180,
+          "veryHighS": 300,
+          "at90-100%": "do 10 min"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.8 Przerwy",
+          "pages": "153"
+        }
+      ]
+    },
+    {
+      "id": "TAB-rest-reps",
+      "goal": "tabela",
+      "title": "Powtórzenia w 5 seriach po 10 przy różnych przerwach (odczyt przybliżony)",
+      "value": [
+        {
+          "restMin": 1,
+          "reps": [
+            10,
+            4,
+            2,
+            1,
+            1
+          ]
+        },
+        {
+          "restMin": 2,
+          "reps": [
+            10,
+            5,
+            4,
+            3,
+            3
+          ]
+        },
+        {
+          "restMin": 3,
+          "reps": [
+            10,
+            5,
+            5,
+            4,
+            4
+          ]
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.8 Przerwy",
+          "pages": "154"
+        }
+      ]
+    },
+    {
+      "id": "TAB-progression-variants",
+      "goal": "tabela",
+      "title": "Warianty progresji – wyciskanie, tydzień 1: 3 serie × 12,10,8, ciężar X, RIR 3; tydzień 2 wszędzie RIR 2",
+      "value": [
+        {
+          "method": "ciężar",
+          "week2": "3 serie × 12,10,8, X+5%"
+        },
+        {
+          "method": "powtórzenia",
+          "week2": "3 serie × 14,12,10, X"
+        },
+        {
+          "method": "serie",
+          "week2": "4 serie × 12,10,8,7, X"
+        },
+        {
+          "method": "ciężar + powtórzenia",
+          "week2": "3 serie × 13,11,9, X+2,5%"
+        },
+        {
+          "method": "ciężar + serie",
+          "week2": "4 serie × 12,10,7,6, X+2,5%"
+        },
+        {
+          "method": "powtórzenia + serie",
+          "week2": "4 serie × 14,12,10,8, X"
+        },
+        {
+          "method": "wszystkie trzy",
+          "week2": "4 serie × 13,11,9,7, X+2,5%"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "255"
+        }
+      ]
+    },
+    {
+      "id": "TAB-starting-sets-example",
+      "goal": "tabela",
+      "title": "Serie startowe w tygodniu – przykład (średnio zaawansowany, 4 dni)",
+      "value": {
+        "klatka": 11,
+        "pośladki": 11,
+        "czworoboczny": 7,
+        "najszerszy": 7,
+        "dwugłowe uda": 7,
+        "naramienne": 9,
+        "łydki": 7,
+        "biceps": 7,
+        "czworogłowe": 4,
+        "triceps": 3,
+        "suma": 73
+      },
+      "note": "Tekst s. 227 podaje sumę 72.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "226-228"
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "group": "planowanie bloku",
+      "if": "zaczynasz nowy blok",
+      "then": "ustal model (blokowy objętościowy), długość 4–6 tyg., metodę przeciążenia i priorytety",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "194-198"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "group": "planowanie bloku",
+      "if": "osoba trenuje rekreacyjnie",
+      "then": "pomiń fazę realizacji (siły maksymalnej z dużymi ciężarami)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "195"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "group": "planowanie bloku",
+      "if": "planujesz kilka bloków",
+      "then": "objętościowy I (4 tyg.) + deload, objętościowy II (4 tyg.) + deload, intensyfikacja (4–5 tyg.)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "197"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "group": "planowanie bloku",
+      "if": "blok objętościowy / blok intensyfikacji",
+      "then": "objętościowy: +1 seria/tydz. (lub powtórzenia); intensyfikacja: ciężar +5% przy stałej objętości",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok II",
+          "pages": "201-202"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "group": "planowanie bloku",
+      "if": "chęć przerwania bloku po 2–3 tygodniach",
+      "then": "doradź dokończenie; znaczący efekt po 6–8 tyg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.2 Fazy treningu",
+          "pages": "19-20"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "group": "objętość",
+      "if": "ustalasz liczbę treningów",
+      "then": "weź o 1 mniej niż deklarowana realna liczba",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "207"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "group": "objętość",
+      "if": "deklaracja >5 treningów siłowych z celem hipertrofii",
+      "then": "zaproponuj 3–5",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "80"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "207"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "group": "priorytety",
+      "if": "liczba dni treningowych",
+      "then": "3 dni → 1 priorytet; 4 → maks. 2; 5 → maks. 2 (jedna dominująca), wyjątkowo 3",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "216-217"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "group": "objętość",
+      "if": "liczysz budżet tygodnia",
+      "then": "serie na sesję (20 początk. … 30 zaaw.) × liczba sesji; np. 20×3=60, 30×5=150",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "225-226"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "group": "objętość",
+      "if": "dzielisz budżet",
+      "then": "priorytet = górna granica MEV, neutralne = dolna granica MEV, utrzymanie = MV",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "224-227"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "group": "priorytety",
+      "if": "zwiększasz objętość priorytetu",
+      "then": "odejmij podobną liczbę serii innym partiom (1:1)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "214-215"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "group": "priorytety",
+      "if": "brak priorytetów",
+      "then": "podziel objętość równo, nieco mniej na górę ciała",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "218"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "group": "priorytety",
+      "if": "partia na utrzymanie",
+      "then": "MV, 1 ćwiczenie (zwykle izolowane); ramiona mogą okresowo nie mieć bezpośredniego treningu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "218"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "245"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "group": "priorytety",
+      "if": "wybierasz partie na utrzymanie",
+      "then": "kandydaci: priorytet poprzedniego bloku, partia dominująca, synergista priorytetu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "218"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "group": "częstotliwość",
+      "if": "objętość partii ≤5 (początk.)/≤10 (zaaw.) serii",
+      "then": "1 trening/tydz.; do 10/20 → 2; do 15/30 → 3",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.4 Częstotliwość",
+          "pages": "121"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "group": "częstotliwość",
+      "if": "na partię wypada >10 serii na sesję",
+      "then": "rozłóż na kolejną jednostkę",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "225"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "group": "rozkład",
+      "if": "układasz tydzień",
+      "then": "priorytety na początku sesji i tygodnia; najcięższe sesje na początku mikrocyklu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "230-231"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "group": "rozkład",
+      "if": "partia jest synergistą innej",
+      "then": "licz pracę pośrednią ok. 0,3–0,5 serii; obniż bezpośrednią, czasem 1–2 serie albo nic",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "232-233"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "group": "rozkład",
+      "if": "dzień wcześniej mocno pracował synergista priorytetu",
+      "then": "przestaw sesje",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "231"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "group": "rozkład",
+      "if": "4 dni treningowe",
+      "then": "układ 2 treningi / 1 wolne / 2 treningi / 2 wolne",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "233"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "group": "ćwiczenia",
+      "if": "partia ma ok. 10 serii na sesję",
+      "then": "2–3 ćwiczenia; przy 3 seriach 1 ćwiczenie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "238"
+        }
+      ]
+    },
+    {
+      "id": "R22",
+      "group": "ćwiczenia",
+      "if": "partia priorytetowa",
+      "then": "opcja 1 (50/25/25) lub opcja 2 (33/22/22/22) rozkładu serii na ćwiczenia",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "242-243"
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "group": "ćwiczenia",
+      "if": "osoba średnio lub wysoko zaawansowana",
+      "then": "więcej izolacji i maszyn dla priorytetów",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "240"
+        }
+      ]
+    },
+    {
+      "id": "R24",
+      "group": "ćwiczenia",
+      "if": "mięsień docelowy męczy się później niż pomocnicze lub chwyt",
+      "then": "maszyna lub izolacja; długoterminowo wyrównanie dysproporcji",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "139-141"
+        }
+      ]
+    },
+    {
+      "id": "R25",
+      "group": "ćwiczenia",
+      "if": "zmieniasz ćwiczenie między blokami",
+      "then": "zmiana ukierunkowana, nie częściej niż co 4–8 tyg.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.5 Zmienność",
+          "pages": "59-63"
+        }
+      ]
+    },
+    {
+      "id": "R26",
+      "group": "ćwiczenia",
+      "if": "ćwiczenie wielostawowe z wolnym ciężarem / maszyna, izolacja",
+      "then": "niższy–średni zakres powtórzeń / średni–wyższy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.5 Zakresy powtórzeń",
+          "pages": "131-132"
+        }
+      ]
+    },
+    {
+      "id": "R27",
+      "group": "progresja",
+      "if": "progresujesz",
+      "then": "tylko na priorytetach, w 1 ćwiczeniu progresywnym na partię na sesję",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "251"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "262-273"
+        }
+      ]
+    },
+    {
+      "id": "R28",
+      "group": "progresja",
+      "if": "początkujący",
+      "then": "1 zmienna progresji; inni maks. 3 metody naraz",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "252"
+        }
+      ]
+    },
+    {
+      "id": "R29",
+      "group": "progresja",
+      "if": "wybór metody",
+      "then": "serie, powtórzenia, ciężar przy stałej objętości lub ich połączenia",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "253-255"
+        }
+      ]
+    },
+    {
+      "id": "R30",
+      "group": "progresja",
+      "if": "progresja seriami +1/tydz.",
+      "then": "pilnuj MRV; 3 serie → 8 w 5 tygodni to duży skok",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "252"
+        }
+      ]
+    },
+    {
+      "id": "R31",
+      "group": "progresja",
+      "if": "RIR w kolejnych tygodniach",
+      "then": "nie obniżaj celowo; spada maks. o 1 na tydzień; RIR 1–0 dopiero w ostatnim tygodniu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "255-256"
+        }
+      ]
+    },
+    {
+      "id": "R32",
+      "group": "progresja",
+      "if": "trzeba mocno obniżać ciężar lub brak progresu",
+      "then": "sygnał przemęczenia – za duży skok",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "256"
+        }
+      ]
+    },
+    {
+      "id": "R33",
+      "group": "progresja",
+      "if": "rośnie objętość",
+      "then": "ciężar może spaść o kilka %, przerwy +10–20%/tydz.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "256"
+        }
+      ]
+    },
+    {
+      "id": "R34",
+      "group": "progresja",
+      "if": "priorytet ma 2 sesje w tygodniu",
+      "then": "dzień 1: serie w wielostawowym + powtórzenia w izolowanym; dzień 2: serie w izolowanym/maszynie + powtórzenia w akcesoryjnym",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "257"
+        }
+      ]
+    },
+    {
+      "id": "R35",
+      "group": "progresja",
+      "if": "objętość ogólna rośnie",
+      "then": "o 2,5–5% tygodniowo, bez podwajania parametrów",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.4 Przeciążenie progresywne",
+          "pages": "50"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok II",
+          "pages": "201"
+        }
+      ]
+    },
+    {
+      "id": "R36",
+      "group": "indywidualizacja",
+      "if": "wiek >50 lat",
+      "then": "wolniejsza progresja, niższe dawki, mało zmian ćwiczeń, więcej czasu na technikę",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "76"
+        }
+      ]
+    },
+    {
+      "id": "R37",
+      "group": "indywidualizacja",
+      "if": "choroba metaboliczna lub autoimmunologiczna",
+      "then": "mniejsza objętość i intensyfikacja",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "76-77"
+        }
+      ]
+    },
+    {
+      "id": "R38",
+      "group": "indywidualizacja",
+      "if": "duży stres, mało snu",
+      "then": "mniejszy bodziec",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "77"
+        }
+      ]
+    },
+    {
+      "id": "R39",
+      "group": "indywidualizacja",
+      "if": "redukcja masy ciała",
+      "then": "niższa objętość (ku MV)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "77-78"
+        }
+      ]
+    },
+    {
+      "id": "R40",
+      "group": "indywidualizacja",
+      "if": "mała zdolność do pracy",
+      "then": "wyższa częstotliwość, mniej serii na sesję",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "72-74"
+        }
+      ]
+    },
+    {
+      "id": "R41",
+      "group": "indywidualizacja",
+      "if": "kobieta",
+      "then": "można zakładać nieco wyższą tolerancję objętości i szybszą regenerację",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "76"
+        }
+      ]
+    },
+    {
+      "id": "R42",
+      "group": "indywidualizacja",
+      "if": "tylko gumy",
+      "then": "mniej zaawansowanym wystarczy; zaawansowani bez bloków intensyfikacji, progresja seriami/powtórzeniami",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "80"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "209-210"
+        }
+      ]
+    },
+    {
+      "id": "R43",
+      "group": "indywidualizacja",
+      "if": "osoba uprawia inny sport",
+      "then": "oceń kolizję wg skali; przy wytrzymałościowych i walki obniż ambicje lub objętość nóg",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "40-44"
+        }
+      ]
+    },
+    {
+      "id": "R44",
+      "group": "objętość",
+      "if": "objawy przeładowania (lista s. 97)",
+      "then": "obniż objętość",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "97"
+        }
+      ]
+    },
+    {
+      "id": "R45",
+      "group": "sesja",
+      "if": "zaczynasz sesję",
+      "then": "część wstępna: maks. 4–5 ćwiczeń w parach A/B, 2–3 serie, ≤50% CM, RIR >5, ≤10–12 powt., przerwy 30–60 s",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "182-183"
+        }
+      ]
+    },
+    {
+      "id": "R46",
+      "group": "sesja",
+      "if": "kończysz sesję",
+      "then": "kilka–kilkanaście minut lekkiego rolowania; bez rozciągania statycznego i ciężkiej pracy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "184"
+        }
+      ]
+    },
+    {
+      "id": "R47",
+      "group": "sesja",
+      "if": "aeroby po treningu siłowym",
+      "then": "z umiarem; długie aeroby obniżają siłę",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "184-185"
+        }
+      ]
+    },
+    {
+      "id": "R48",
+      "group": "rozgrzewka",
+      "if": "zimno (np. zimą po wejściu z dworu)",
+      "then": "krótkie cardio w fazie Raise; inaczej wystarczą ćwiczenia docelowe",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "277"
+        }
+      ]
+    },
+    {
+      "id": "R49",
+      "group": "rozgrzewka",
+      "if": "początkujący, nadwaga/otyłość, świeżo po kontuzji",
+      "then": "pomiń fazę Potentiate",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "281"
+        }
+      ]
+    },
+    {
+      "id": "R50",
+      "group": "rozgrzewka",
+      "if": "ból, dyskomfort lub brak kontroli pełnego zakresu przed seriami roboczymi",
+      "then": "kontynuuj rozgrzewkę, nie przechodź do serii roboczych",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "282-283"
+        }
+      ]
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "objawy za dużej objętości: problemy z regeneracją, bolesność kilka dni, spadek siły, szybsze zmęczenie, ból stawów/ścięgien, bóle głowy, problemy z koncentracją, gorszy sen, spadek libido",
+      "action": "obniżyć objętość",
+      "status": "zrodlo",
+      "priority": "wysoki",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "97"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "bolesność mięśni trwająca kilka dni",
+      "action": "traktować jako za duży bodziec; zmęczenie ma ustępować w ok. 1 dzień",
+      "status": "zrodlo",
+      "priority": "średni",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.3 Specyficzność",
+          "pages": "38"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "choroby (zaburzenia gospodarki cukrowej, autoimmunologiczne)",
+      "action": "przede wszystkim nie szkodzić: mniejsza objętość i intensyfikacja",
+      "status": "zrodlo",
+      "priority": "wysoki",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "76-77"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "205"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "wiek powyżej 50 lat",
+      "action": "ostrożniejsza progresja, niższe dawki",
+      "status": "zrodlo",
+      "priority": "średni",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "76"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "duże obciążenia u osób rekreacyjnych (faza realizacji)",
+      "action": "nie stosować – ryzyko kontuzji",
+      "status": "zrodlo",
+      "priority": "wysoki",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "195"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "błędy techniczne w ćwiczeniach wielostawowych",
+      "action": "zwiększone ryzyko kontuzji; dbać o technikę, rozważyć maszynę",
+      "status": "zrodlo",
+      "priority": "wysoki",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "136"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "nadmiar pracy ekscentrycznej",
+      "action": "ograniczyć; stosować obie fazy ruchu",
+      "status": "zrodlo",
+      "priority": "średni",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.9 Fazy ruchu",
+          "pages": "160-161"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "okres po kontuzji",
+      "action": "przeciążać jakością ruchu i ROM; dopuszczalny ograniczony zakres",
+      "status": "zrodlo",
+      "priority": "wysoki",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.4 Przeciążenie progresywne",
+          "pages": "53"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.11 Zakres ruchu",
+          "pages": "174"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "początkujący, nadwaga lub otyłość, świeżo po kontuzji",
+      "action": "pominąć fazę Potentiate rozgrzewki (skoki, rzuty)",
+      "status": "zrodlo",
+      "priority": "wysoki",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "281"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "rozciąganie statyczne przed treningiem lub tuż po nim",
+      "action": "nie stosować",
+      "status": "zrodlo",
+      "priority": "niski",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "184"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "279"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "trigger": "utrata masy ciała ok. 1,4%/tydz. i szybciej",
+      "action": "spowolnić redukcję – ryzyko spadku siły i masy mięśniowej",
+      "status": "zrodlo",
+      "priority": "średni",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.2 Fazy treningu",
+          "pages": "19"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "trigger": "skokowy wzrost obciążenia (np. podwajanie serii)",
+      "action": "unikać – ryzyko przetrenowania (model GAS)",
+      "status": "zrodlo",
+      "priority": "średni",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "250-252"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "trigger": "upadek mięśniowy (RIR 0) u początkujących",
+      "action": "nie stosować; początkujący RIR 5–3, upadek okresowo tylko u zaawansowanych",
+      "status": "zrodlo",
+      "priority": "średni",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "110"
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "trigger": "brak rozgrzewki",
+      "action": "rozgrzewka 10–30 min (ponad 30% urazów to urazy mięśni)",
+      "status": "zrodlo",
+      "priority": "średni",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "275"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "282"
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "trigger": "ból w klatce piersiowej, duszność nieproporcjonalna do wysiłku, zawroty głowy, omdlenie",
+      "action": "przerwać trening, skierować do lekarza",
+      "status": "poza_zrodlem",
+      "priority": "krytyczny",
+      "sources": []
+    },
+    {
+      "id": "S16",
+      "trigger": "choroba przewlekła (cukrzyca, nadciśnienie, serce, tarczyca), ciąża, okres po porodzie lub operacji",
+      "action": "przed planem zalecić konsultację lekarską; aplikacja nie ustala dawek samodzielnie",
+      "status": "poza_zrodlem",
+      "priority": "wysoki",
+      "sources": []
+    },
+    {
+      "id": "S17",
+      "trigger": "ostry ból stawu lub ból narastający w trakcie ćwiczenia; ból trwający kilka dni",
+      "action": "przerwać ćwiczenie; przy utrzymującym się bólu fizjoterapeuta",
+      "status": "poza_zrodlem",
+      "priority": "wysoki",
+      "sources": []
+    },
+    {
+      "id": "S18",
+      "trigger": "pytanie o diagnozę urazu lub choroby",
+      "action": "aplikacja nie diagnozuje; kieruje do specjalisty",
+      "status": "poza_zrodlem",
+      "priority": "wysoki",
+      "sources": []
+    },
+    {
+      "id": "S19",
+      "trigger": "ciąża",
+      "action": "bez nowych ćwiczeń z dużym obciążeniem i bez progresji bez zgody lekarza (książka nie omawia ciąży)",
+      "status": "poza_zrodlem",
+      "priority": "wysoki",
+      "sources": []
+    },
+    {
+      "id": "S20",
+      "trigger": "choroby układu krążenia",
+      "action": "bez serii do upadku (RIR 0)",
+      "status": "poza_zrodlem",
+      "priority": "wysoki",
+      "sources": []
+    },
+    {
+      "id": "S21",
+      "trigger": "redukcja bez danych żywieniowych",
+      "action": "nie proponować deficytu ani tempa chudnięcia (książka nie omawia żywienia)",
+      "status": "poza_zrodlem",
+      "priority": "średni",
+      "sources": []
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni – początkujący",
+      "goal": [
+        "hipertrofia",
+        "zdrowie"
+      ],
+      "level": "początkujący",
+      "status": "wniosek",
+      "note": "Książka nie opisuje FBW 2 dni; szablon zbudowany z jej tabel i ćwiczeń z programu T4.",
+      "days": {
+        "count": 2,
+        "layout": [
+          "A",
+          "B"
+        ],
+        "spacing": "co najmniej 2 dni przerwy (np. pon., czw.)"
+      },
+      "exercises": {
+        "A": [
+          {
+            "name": "przysiad goblet",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie hantli na ławce poziomej",
+            "status": "wniosek"
+          },
+          {
+            "name": "wiosłowanie hantlą jednorącz z podparciem",
+            "status": "wniosek"
+          },
+          {
+            "name": "hip thrust lub glute bridge",
+            "status": "wniosek"
+          },
+          {
+            "name": "wznosy hantli bokiem",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "status": "wniosek"
+          }
+        ],
+        "B": [
+          {
+            "name": "martwy ciąg rumuński",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie sztangi na ławce skośnej dodatniej",
+            "status": "wniosek"
+          },
+          {
+            "name": "ściąganie drążka do klatki szerokim nachwytem",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie podudzi na maszynie siedząc",
+            "status": "wniosek"
+          },
+          {
+            "name": "prostowanie łokci z linkami wyciągu",
+            "status": "wniosek"
+          },
+          {
+            "name": "wspięcia na palce stojąc",
+            "status": "wniosek"
+          }
+        ]
+      },
+      "sets": {
+        "value": "2–3 serie na partię na sesję (4–6 tygodniowo); 16–20 serii na sesję",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.2 Objętość",
+            "pages": "95"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.4 Częstotliwość",
+            "pages": "121"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "226"
+          }
+        ]
+      },
+      "reps": {
+        "value": "10-15",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "130-132"
+          }
+        ]
+      },
+      "rir": {
+        "value": "4-3",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.3 Intensywność",
+            "pages": "110"
+          }
+        ]
+      },
+      "rest": {
+        "value": "1,5–2 min wielostawowe, 1 min izolowane",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.8 Przerwy",
+            "pages": "151-153"
+          }
+        ]
+      },
+      "progression": {
+        "value": "1 zmienna naraz (powtórzenia, potem ciężar); jakość ruchu i ROM",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.4 Przeciążenie progresywne",
+            "pages": "53"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "252"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "207"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "95"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.4 Częstotliwość",
+          "pages": "121"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "138"
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni z jednym priorytetem",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "początkujący–średnio zaawansowany",
+      "status": "wniosek",
+      "note": "Książka nie opisuje FBW 3 dni; szablon z reguł kroków IV–VIII.",
+      "days": {
+        "count": 3,
+        "layout": [
+          "A",
+          "B",
+          "C"
+        ],
+        "spacing": "dni nie po sobie"
+      },
+      "exercises": {
+        "pula": [
+          {
+            "name": "hip thrust",
+            "status": "wniosek"
+          },
+          {
+            "name": "martwy ciąg rumuński",
+            "status": "wniosek"
+          },
+          {
+            "name": "przysiad przedni lub goblet",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie sztangi lub hantli",
+            "status": "wniosek"
+          },
+          {
+            "name": "wiosłowanie hantlą jednorącz",
+            "status": "wniosek"
+          },
+          {
+            "name": "ściąganie drążka do klatki",
+            "status": "wniosek"
+          },
+          {
+            "name": "wznosy hantli bokiem",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "status": "wniosek"
+          },
+          {
+            "name": "prostowanie łokci z linkami wyciągu",
+            "status": "wniosek"
+          },
+          {
+            "name": "lifty w bok/tył",
+            "status": "wniosek"
+          },
+          {
+            "name": "wspięcia na palce",
+            "status": "wniosek"
+          }
+        ]
+      },
+      "sets": {
+        "value": "priorytet: górna granica MEV na 3 sesje; neutralne: dolna granica MEV w 1–2 sesjach; utrzymanie: MV; 20–25 serii na sesję",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok IV",
+            "pages": "216"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "224-226"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.4 Częstotliwość",
+            "pages": "121"
+          }
+        ]
+      },
+      "reps": {
+        "value": "8-20",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "130-132"
+          }
+        ]
+      },
+      "rir": {
+        "value": "4 → 1 w ćwiczeniu progresywnym; 2/1 w izolowanych",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.3 Intensywność",
+            "pages": "110"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "255-256"
+          }
+        ]
+      },
+      "rest": {
+        "value": "1–2 min",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.8 Przerwy",
+            "pages": "151"
+          }
+        ]
+      },
+      "progression": {
+        "value": "+1 seria/tydz. w jednym ćwiczeniu priorytetu na sesję; priorytet na początku sesji",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VI",
+            "pages": "230"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "251"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "216"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "225"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.4 Częstotliwość",
+          "pages": "121"
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "name": "Góra / dół 4 dni",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "średnio zaawansowany",
+      "status": "wniosek",
+      "note": "Książka nie opisuje układu góra/dół; ćwiczenia z programu T4, parametry z kroków V–VIII.",
+      "days": {
+        "count": 4,
+        "layout": [
+          "Góra 1",
+          "Dół 1",
+          "wolne",
+          "Góra 2",
+          "Dół 2",
+          "wolne",
+          "wolne"
+        ],
+        "spacing": "2/1/2/2"
+      },
+      "exercises": {
+        "Góra 1": [
+          {
+            "name": "wyciskanie sztangi na ławce poziomej",
+            "status": "wniosek"
+          },
+          {
+            "name": "wiosłowanie hantlą jednorącz z podparciem",
+            "status": "wniosek"
+          },
+          {
+            "name": "wznosy hantli bokiem",
+            "status": "wniosek"
+          },
+          {
+            "name": "Trap Y raise",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "status": "wniosek"
+          },
+          {
+            "name": "prostowanie łokci z linkami wyciągu",
+            "status": "wniosek"
+          }
+        ],
+        "Dół 1": [
+          {
+            "name": "martwy ciąg rumuński",
+            "status": "wniosek"
+          },
+          {
+            "name": "przysiad przedni",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie podudzi na maszynie siedząc",
+            "status": "wniosek"
+          },
+          {
+            "name": "lifty w bok",
+            "status": "wniosek"
+          },
+          {
+            "name": "wspięcia na palce siedząc",
+            "status": "wniosek"
+          }
+        ],
+        "Góra 2": [
+          {
+            "name": "wyciskanie sztangi na ławce skośnej dodatniej",
+            "status": "wniosek"
+          },
+          {
+            "name": "ściąganie drążka do klatki szerokim nachwytem",
+            "status": "wniosek"
+          },
+          {
+            "name": "rozpiętki na ławce poziomej",
+            "status": "wniosek"
+          },
+          {
+            "name": "odwodzenie horyzontalne z linką",
+            "status": "wniosek"
+          },
+          {
+            "name": "szrugsy odwróconym chwytem",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie przedramion z hantlami na ławce 45°",
+            "status": "wniosek"
+          }
+        ],
+        "Dół 2": [
+          {
+            "name": "hip thrust",
+            "status": "wniosek"
+          },
+          {
+            "name": "martwy ciąg na jednej nodze",
+            "status": "wniosek"
+          },
+          {
+            "name": "prostowanie nóg siedząc",
+            "status": "wniosek"
+          },
+          {
+            "name": "lifty w tył",
+            "status": "wniosek"
+          },
+          {
+            "name": "wspięcia na palce stojąc",
+            "status": "wniosek"
+          }
+        ]
+      },
+      "sets": {
+        "value": "ok. 20 serii na sesję, maks. 10 na partię na sesję; podział wg kategorii partii",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "225-226"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok IV",
+            "pages": "217-219"
+          }
+        ]
+      },
+      "reps": {
+        "value": "8-20 (wielostawowe 8-12, izolowane 12-20)",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "131-132"
+          }
+        ]
+      },
+      "rir": {
+        "value": "progresywne 4 → 1; izolowane 2/1",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258-273"
+          }
+        ]
+      },
+      "rest": {
+        "value": "1–2 min",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258-273"
+          }
+        ]
+      },
+      "progression": {
+        "value": "jak T4: +1 seria lub +2 powtórzenia/tydz. w ćwiczeniach progresywnych priorytetów",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "257"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "233"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "225"
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "name": "Split hipertroficzny 4 dni – priorytet klatka i pośladki (program z książki)",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "średnio zaawansowany",
+      "status": "zrodlo",
+      "note": "Jedyny pełny program w książce; odczytany z grafik s. 247–248 i 258–273. Oznaczenie „(+)” przy wyciskaniu w T III odczytano jako ławkę skośną dodatnią (wniosek).",
+      "days": {
+        "count": 4,
+        "layout": [
+          "T I",
+          "T II",
+          "wolne",
+          "T III",
+          "T IV",
+          "wolne",
+          "wolne"
+        ],
+        "spacing": "2 treningi / 1 wolny / 2 treningi / 2 wolne"
+      },
+      "muscleCategories": {
+        "value": {
+          "priority": [
+            "klatka piersiowa",
+            "pośladki"
+          ],
+          "neutral": [
+            "czworoboczny",
+            "najszerszy grzbietu",
+            "dwugłowe uda",
+            "naramienne",
+            "łydki",
+            "biceps"
+          ],
+          "maintenance": [
+            "czworogłowe",
+            "triceps"
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok IV",
+            "pages": "219"
+          }
+        ]
+      },
+      "weeklySetsStart": {
+        "value": {
+          "klatka": 11,
+          "pośladki": 11,
+          "czworoboczny": 7,
+          "najszerszy": 7,
+          "dwugłowe uda": 7,
+          "naramienne": 9,
+          "łydki": 7,
+          "biceps": 7,
+          "czworogłowe": 4,
+          "triceps": 3
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "228"
+          }
+        ]
+      },
+      "sessionDistribution": {
+        "value": {
+          "T I": {
+            "klatka": 6,
+            "czworoboczny": 5,
+            "naramienne": 5,
+            "biceps": 3,
+            "suma": 19
+          },
+          "T II": {
+            "pośladki": 6,
+            "dwugłowe uda": 5,
+            "łydki": 4,
+            "suma": 15
+          },
+          "T III": {
+            "klatka": 5,
+            "naramienne": 3,
+            "czworogłowe": 4,
+            "biceps": 3,
+            "suma": 15
+          },
+          "T IV": {
+            "pośladki": 5,
+            "najszerszy": 7,
+            "łydki": 3,
+            "triceps": 3,
+            "suma": 18
+          }
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VI",
+            "pages": "234"
+          }
+        ]
+      },
+      "warmupPart": {
+        "value": {
+          "rule": "RIR >5, przerwy 30 s, pary A/B",
+          "T I": [
+            "1A rotacja zewnętrzna z hantlami 2×10",
+            "1B wyciskanie hantli na ławce poziomej 2×8",
+            "2A Cuban press 2×5",
+            "2B Trap Y raise 2×5"
+          ],
+          "T II": [
+            "1A hip hinge z gumą 2×10",
+            "1B martwy ciąg na prostych nogach z hantlami 2×5",
+            "2A uginanie podudzi z gumą 2×5",
+            "2B monster walking 1×10"
+          ],
+          "T III": [
+            "1A rotacja zewnętrzna z hantlami 2×10",
+            "1B wyciskanie hantli na ławce poziomej 2×8",
+            "2A przysiad goblet 2×8 (tempo 22x1)",
+            "2B glute bridge 2×5"
+          ],
+          "T IV": [
+            "1A lifty w bok 2×10",
+            "1B ściąganie linek do biodra 2×8",
+            "2A wiosłowanie hantlami oburącz 2×6",
+            "2B glute bridge 2×8"
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VII",
+            "pages": "247"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258"
+          }
+        ]
+      },
+      "exercises": {
+        "T I": [
+          {
+            "name": "wyciskanie sztangi na ławce poziomej",
+            "sets": 3,
+            "reps": "12-10",
+            "rir": "4",
+            "rest": "1,5 min",
+            "tempo": "22x1",
+            "status": "zrodlo",
+            "progression": "serie"
+          },
+          {
+            "name": "rozpiętki na ławce poziomej",
+            "sets": 3,
+            "reps": "12",
+            "rir": "3/2",
+            "rest": "1 min",
+            "tempo": "21x1",
+            "status": "zrodlo",
+            "progression": "powtórzenia"
+          },
+          {
+            "name": "Trap Y raise",
+            "sets": 3,
+            "reps": "10-8",
+            "rir": "5/4",
+            "rest": "1,5 min",
+            "tempo": "1111",
+            "status": "zrodlo"
+          },
+          {
+            "name": "szrugsy odwróconym chwytem",
+            "sets": 2,
+            "reps": "18-15",
+            "rir": "2/1",
+            "rest": "1 min",
+            "tempo": "21x2",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wznosy hantli bokiem",
+            "sets": 3,
+            "reps": "15-10",
+            "rir": "2",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "odwodzenie horyzontalne z linką",
+            "sets": 2,
+            "reps": "12",
+            "rir": "2",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "uginanie przedramion z hantlami na ławce 45° (ręce za tułowiem)",
+            "sets": 3,
+            "reps": "15-10",
+            "rir": "2/1",
+            "rest": "1,5 min",
+            "tempo": "22x1",
+            "status": "zrodlo"
+          }
+        ],
+        "T II": [
+          {
+            "name": "martwy ciąg rumuński",
+            "sets": 3,
+            "reps": "12-10",
+            "rir": "4",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo",
+            "progression": "serie"
+          },
+          {
+            "name": "A: lifty w bok",
+            "sets": 3,
+            "reps": "15",
+            "rir": "2",
+            "rest": "1,5 min",
+            "tempo": "21x2",
+            "status": "zrodlo",
+            "progression": "powtórzenia"
+          },
+          {
+            "name": "B: lifty w tył",
+            "sets": 3,
+            "reps": "15-12",
+            "rir": "2",
+            "rest": "1,5 min",
+            "tempo": "21x2",
+            "status": "zrodlo",
+            "progression": "powtórzenia"
+          },
+          {
+            "name": "uginanie podudzi na maszynie siedząc",
+            "sets": 3,
+            "reps": "15-12",
+            "rir": "2/1",
+            "rest": "1,5 min",
+            "tempo": "21x2",
+            "status": "zrodlo"
+          },
+          {
+            "name": "martwy ciąg na jednej nodze",
+            "sets": 2,
+            "reps": "10-8",
+            "rir": "4/3",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wspięcia na palce siedząc",
+            "sets": 4,
+            "reps": "20-15",
+            "rir": "2/1",
+            "rest": "1 min",
+            "tempo": "21x2",
+            "status": "zrodlo"
+          }
+        ],
+        "T III": [
+          {
+            "name": "wyciskanie sztangi na ławce skośnej dodatniej (+)",
+            "sets": 3,
+            "reps": "10",
+            "rir": "4/3",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo",
+            "progression": "serie"
+          },
+          {
+            "name": "floor fly",
+            "sets": 2,
+            "reps": "12-8",
+            "rir": "3/2",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo",
+            "progression": "powtórzenia"
+          },
+          {
+            "name": "wznosy hantli przodem, pełny zakres do 120°",
+            "sets": 3,
+            "reps": "12-10",
+            "rir": "2/1",
+            "rest": "1 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "przysiad przedni",
+            "sets": 2,
+            "reps": "10",
+            "rir": "4",
+            "rest": "2 min",
+            "tempo": "22x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "prostowanie nóg siedząc",
+            "sets": 2,
+            "reps": "15-12",
+            "rir": "2/1",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "sets": 3,
+            "reps": "12-10",
+            "rir": "2/1",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          }
+        ],
+        "T IV": [
+          {
+            "name": "hip thrust",
+            "sets": 4,
+            "reps": "12-8",
+            "rir": "4/3",
+            "rest": "2 min",
+            "tempo": "21x1",
+            "status": "zrodlo",
+            "progression": "serie"
+          },
+          {
+            "name": "lifty w tył",
+            "sets": 2,
+            "reps": "15",
+            "rir": "3/2",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo",
+            "progression": "powtórzenia"
+          },
+          {
+            "name": "wiosłowanie hantlą jednorącz z podparciem",
+            "sets": 4,
+            "reps": "12-8",
+            "rir": "3/2",
+            "rest": "2 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "ściąganie drążka do klatki szerokim nachwytem",
+            "sets": 3,
+            "reps": "12-10",
+            "rir": "2/1",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wspięcia na palce stojąc",
+            "sets": 3,
+            "reps": "20-15",
+            "rir": "3/2",
+            "rest": "1 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          },
+          {
+            "name": "prostowanie łokci z linkami wyciągu",
+            "sets": 3,
+            "reps": "15-12",
+            "rir": "3/2",
+            "rest": "1,5 min",
+            "tempo": "21x1",
+            "status": "zrodlo"
+          }
+        ]
+      },
+      "sets": {
+        "value": "wg tabel tygodnia 1; ćwiczenia progresywne +1 seria/tydz.",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258-273"
+          }
+        ]
+      },
+      "reps": {
+        "value": "8-22 wg ćwiczenia; ćwiczenia progresywne powtórzeniami +2/tydz.",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258-273"
+          }
+        ]
+      },
+      "rir": {
+        "value": "wielostawowe progresywne 4 → 1; izolowane 2/1",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258-273"
+          }
+        ]
+      },
+      "rest": {
+        "value": "1–2,5 min",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258-273"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "domyślnie 21x1; zapis niezgodny z opisem konwencji s. 164",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "258"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.10 Tempo",
+            "pages": "164"
+          }
+        ]
+      },
+      "weeklyProgression": {
+        "value": [
+          {
+            "exercise": "wyciskanie płaskie (T I)",
+            "w2": "4 × 12-10, RIR 3, 1,5 min",
+            "w3": "5 × 12-8, RIR 2, 2 min",
+            "w4": "6 × 12-8, RIR 1, 2–2,5 min"
+          },
+          {
+            "exercise": "rozpiętki (T I)",
+            "w2": "3 × 14, RIR 2",
+            "w3": "3 × 16, RIR 2",
+            "w4": "3 × 18, RIR 2/1, 1,5 min"
+          },
+          {
+            "exercise": "martwy ciąg rumuński (T II)",
+            "w2": "4 × 12-10, RIR 3",
+            "w3": "5 × 12-10, RIR 3/2, 2 min",
+            "w4": "6 × 12-10, RIR 1, 2–2,5 min"
+          },
+          {
+            "exercise": "lifty w bok (T II)",
+            "w2": "3 × 17, RIR 2",
+            "w3": "3 × 20-18, RIR 2/1",
+            "w4": "3 × 22-20, RIR 2/1"
+          },
+          {
+            "exercise": "lifty w tył (T II)",
+            "w2": "3 × 17-14, RIR 2/1",
+            "w3": "3 × 19-16, RIR 2/1",
+            "w4": "3 × 21-18, RIR 1"
+          },
+          {
+            "exercise": "wyciskanie skos dodatni (T III)",
+            "w2": "4 × 10, RIR 3",
+            "w3": "5 × 10-8, RIR 3/2, 2 min",
+            "w4": "6 × 10-8, RIR 1, 2,5 min"
+          },
+          {
+            "exercise": "floor fly (T III)",
+            "w2": "2 × 14-10, RIR 2",
+            "w3": "2 × 16-12, RIR 2/1",
+            "w4": "2 × 18-14, RIR 2/1"
+          },
+          {
+            "exercise": "hip thrust (T IV)",
+            "w2": "5 × 12-8, RIR 3",
+            "w3": "6 × 12-8, RIR 3/2",
+            "w4": "7 × 12-8, RIR 2/1, 2–2,5 min"
+          },
+          {
+            "exercise": "lifty w tył (T IV)",
+            "w2": "2 × 17, RIR 2",
+            "w3": "2 × 20-19, RIR 2/1",
+            "w4": "2 × 22-20, RIR 2/1"
+          }
+        ],
+        "note": "Pozostałe ćwiczenia bez zmian przez 4 tygodnie. Schemat s. 257: serie +1/+2/+3, powtórzenia +2/+4/+6 względem tygodnia 1.",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – pełny program 4 tygodnie",
+            "pages": "262-273"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "257"
+          }
+        ]
+      },
+      "deload": {
+        "value": "tydzień 5 wg modelu s. 197; parametry nieopisane",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok I",
+            "pages": "197"
+          }
+        ]
+      },
+      "deloadParameters": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "219"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "228"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "234"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "247-248"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "258-273"
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "name": "Blok siłowy (intensyfikacja)",
+      "goal": [
+        "siła"
+      ],
+      "level": "średnio zaawansowany",
+      "status": "wniosek",
+      "note": "Książka opisuje blok intensyfikacji tylko ogólnie (ciężar +5% przy stałej objętości) i odradza fazę realizacji osobom rekreacyjnym.",
+      "days": {
+        "count": 4,
+        "layout": "jak T4 lub T3",
+        "spacing": "2/1/2/2"
+      },
+      "exercises": {
+        "główne": [
+          {
+            "name": "wyciskanie sztangi na ławce poziomej",
+            "status": "wniosek"
+          },
+          {
+            "name": "przysiad przedni",
+            "status": "wniosek"
+          },
+          {
+            "name": "martwy ciąg rumuński",
+            "status": "wniosek"
+          },
+          {
+            "name": "hip thrust",
+            "status": "wniosek"
+          }
+        ],
+        "dodatkowe": [
+          {
+            "name": "ćwiczenia z T4 jak w bloku objętościowym",
+            "status": "wniosek"
+          }
+        ]
+      },
+      "sets": {
+        "value": "stałe – jak w ostatnim tygodniu bloku objętościowego",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok II",
+            "pages": "201-202"
+          }
+        ]
+      },
+      "reps": {
+        "value": "6-8 w głównych",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "125"
+          }
+        ]
+      },
+      "intensity": {
+        "value": "75-80% CM (średnio zaawansowani), +5% tygodniowo",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.3 Intensywność",
+            "pages": "110"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok II",
+            "pages": "201"
+          }
+        ]
+      },
+      "rir": {
+        "value": "3 → 1",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "255-256"
+          }
+        ]
+      },
+      "rest": {
+        "value": "3–5 min główne, 1,5–2 min dodatkowe",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.8 Przerwy",
+            "pages": "151"
+          }
+        ]
+      },
+      "limitations": {
+        "value": "bez serii 1–3 powtórzeń przy 90–100% CM u osób rekreacyjnych",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok I",
+            "pages": "195"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok II",
+          "pages": "201-202"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "110"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.8 Przerwy",
+          "pages": "151"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "195"
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "name": "Plan domowy – gumy i hantle",
+      "goal": [
+        "hipertrofia",
+        "zdrowie"
+      ],
+      "level": "początkujący–średnio zaawansowany",
+      "status": "wniosek",
+      "note": "Książka wspomina tylko, że gumy wystarczą mniej zaawansowanym, a u zaawansowanych wykluczają bloki intensyfikacji.",
+      "days": {
+        "count": 3,
+        "layout": [
+          "A",
+          "B",
+          "C"
+        ],
+        "spacing": "dni nie po sobie"
+      },
+      "exercises": {
+        "pula": [
+          {
+            "name": "hip hinge z gumą",
+            "status": "wniosek"
+          },
+          {
+            "name": "martwy ciąg na prostych nogach z hantlami",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie podudzi z gumą",
+            "status": "wniosek"
+          },
+          {
+            "name": "monster walking",
+            "status": "wniosek"
+          },
+          {
+            "name": "glute bridge",
+            "status": "wniosek"
+          },
+          {
+            "name": "przysiad goblet",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie hantli (ławka lub podłoga)",
+            "status": "wniosek"
+          },
+          {
+            "name": "floor fly",
+            "status": "wniosek"
+          },
+          {
+            "name": "wiosłowanie hantlami oburącz",
+            "status": "wniosek"
+          },
+          {
+            "name": "rotacja zewnętrzna z hantlami",
+            "status": "wniosek"
+          },
+          {
+            "name": "wznosy hantli bokiem",
+            "status": "wniosek"
+          },
+          {
+            "name": "wznosy hantli przodem",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie przedramion z hantlami",
+            "status": "wniosek"
+          }
+        ]
+      },
+      "sets": {
+        "value": "jak T2",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok V",
+            "pages": "224-226"
+          }
+        ]
+      },
+      "reps": {
+        "value": "12-25",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.5 Zakresy powtórzeń",
+            "pages": "126-129"
+          }
+        ]
+      },
+      "rir": {
+        "value": "3-1",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.3 Intensywność",
+            "pages": "110"
+          }
+        ]
+      },
+      "rest": {
+        "value": "1–1,5 min",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "3.8 Przerwy",
+            "pages": "151-153"
+          }
+        ]
+      },
+      "progression": {
+        "value": "najpierw powtórzenia (+2/tydz.), potem serie (+1/tydz.) w ćwiczeniu priorytetu; bez bloków intensyfikacji",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "2.6 Indywidualizacja",
+            "pages": "80"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok III",
+            "pages": "209-210"
+          },
+          {
+            "ref": "zaplanuj-swoj-trening-gluchowski",
+            "chapter": "5. Strategia – Krok VIII",
+            "pages": "253"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "80"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "209-210"
+        }
+      ]
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "zaplanuj-swoj-trening-gluchowski",
+      "type": "książka (e-book PDF)",
+      "author": "Paweł Głuchowski",
+      "publisher": "Fundacja Promocji Sportu Pawła Głuchowskiego",
+      "title": "Zaplanuj swój trening – stwórz sama efektywny program treningowy",
+      "edition": "I",
+      "place": "Warszawa",
+      "year": 2021,
+      "isbn": "978-83-959895-2-0",
+      "language": "pl",
+      "editor": "Agata Szułczyńska",
+      "graphics": "Kamil Zaremba",
+      "pages": 300,
+      "contentPages": "5-286",
+      "bibliographyPages": "287-300 (także po każdym podrozdziale)",
+      "pagesNote": "Numer w stopce drukowanej = numer strony PDF (przesunięcie 0).",
+      "scope": "Planowanie treningu siłowego pod hipertrofię: zasady, zmienne treningowe, konstrukcja jednostki, metoda 8 kroków z pełnym programem 4-tygodniowym na 4 dni, rozgrzewka RAMP.",
+      "fileUsed": "PDF z warstwą tekstu (InDesign 16.2, 2.06.2021), 17,2 MB; tabele programu tylko jako obrazy, odczytane wizualnie.",
+      "personalDataOmitted": "w pliku nie znaleziono danych osobowych kupującego",
+      "audienceNote": "Forma żeńska tylko w tytule; treść w formie męskiej/neutralnej; jedna wzmianka o płci (s. 76).",
+      "graphicsRead": [
+        "s. 16 schemat makrocyklu",
+        "s. 26 specyficzność wg stażu",
+        "s. 33 parametry hipertrofii",
+        "s. 40–41 kompatybilność sportów",
+        "s. 81 zmienność osobnicza",
+        "s. 95/98/222 tabela MV/MEV/MAV/MRV",
+        "s. 96/223 krzywe objętości",
+        "s. 104 strefy i %CM",
+        "s. 106 RPE–RIR",
+        "s. 121 objętość–częstotliwość",
+        "s. 125 Poliquin",
+        "s. 129 twierdzenia vs rzeczywistość",
+        "s. 131 rozkład zakresów",
+        "s. 146 kolejność",
+        "s. 153 przerwy (przybliżone)",
+        "s. 154 powtórzenia vs przerwy (przybliżone)",
+        "s. 183 szablon jednostki",
+        "s. 185 aeroby a siła",
+        "s. 192 schemat 8 kroków",
+        "s. 197 model 15 tygodni",
+        "s. 215 kompensacja",
+        "s. 228 serie startowe",
+        "s. 231 mapa priorytetów",
+        "s. 234 rozkład na sesje",
+        "s. 242–243 opcje rozkładu serii",
+        "s. 251 GAS",
+        "s. 255 warianty progresji",
+        "s. 257 schemat progresji",
+        "s. 247–248, 258–273 program 4 tygodnie"
+      ],
+      "relatedKnowledgeBase": {
+        "file": "encyklopedia-hipertrofii-baza-wiedzy.md",
+        "relation": "ta sama fundacja i autor; Encyklopedia Hipertrofii (2020) to część teoretyczna, ta książka praktyczna z liczbami (serie, RIR, przerwy, tempo, progresja), których tam brakowało",
+        "status": "zrodlo"
+      },
+      "chapters": [
+        {
+          "chapter": "1. Wstęp",
+          "pages": "5-7"
+        },
+        {
+          "chapter": "2. Zasady treningowe",
+          "pages": "8-83"
+        },
+        {
+          "chapter": "2.1 Wprowadzenie",
+          "pages": "8-13"
+        },
+        {
+          "chapter": "2.2 Fazy treningu",
+          "pages": "14-22"
+        },
+        {
+          "chapter": "2.3 Specyficzność",
+          "pages": "23-48"
+        },
+        {
+          "chapter": "2.4 Przeciążenie progresywne",
+          "pages": "49-57"
+        },
+        {
+          "chapter": "2.5 Zmienność",
+          "pages": "58-68"
+        },
+        {
+          "chapter": "2.6 Indywidualizacja",
+          "pages": "69-83"
+        },
+        {
+          "chapter": "3. Zmienne treningowe",
+          "pages": "84-175"
+        },
+        {
+          "chapter": "3.1 Parametry i systemy",
+          "pages": "85-88"
+        },
+        {
+          "chapter": "3.2 Objętość",
+          "pages": "89-99"
+        },
+        {
+          "chapter": "3.3 Intensywność",
+          "pages": "100-112"
+        },
+        {
+          "chapter": "3.4 Częstotliwość",
+          "pages": "113-122"
+        },
+        {
+          "chapter": "3.5 Zakresy powtórzeń",
+          "pages": "123-132"
+        },
+        {
+          "chapter": "3.6 Dobór ćwiczeń",
+          "pages": "133-142"
+        },
+        {
+          "chapter": "3.7 Kolejność ćwiczeń",
+          "pages": "143-148"
+        },
+        {
+          "chapter": "3.8 Przerwy",
+          "pages": "149-155"
+        },
+        {
+          "chapter": "3.9 Fazy ruchu",
+          "pages": "156-162"
+        },
+        {
+          "chapter": "3.10 Tempo",
+          "pages": "163-167"
+        },
+        {
+          "chapter": "3.11 Zakres ruchu",
+          "pages": "168-175"
+        },
+        {
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "176-188"
+        },
+        {
+          "chapter": "5. Strategia – metoda 8 kroków",
+          "pages": "189-273"
+        },
+        {
+          "chapter": "Krok I",
+          "pages": "193-198"
+        },
+        {
+          "chapter": "Krok II",
+          "pages": "199-203"
+        },
+        {
+          "chapter": "Krok III",
+          "pages": "204-211"
+        },
+        {
+          "chapter": "Krok IV",
+          "pages": "212-219"
+        },
+        {
+          "chapter": "Krok V",
+          "pages": "220-228"
+        },
+        {
+          "chapter": "Krok VI",
+          "pages": "229-235"
+        },
+        {
+          "chapter": "Krok VII",
+          "pages": "236-248"
+        },
+        {
+          "chapter": "Krok VIII",
+          "pages": "249-257"
+        },
+        {
+          "chapter": "Pełny program 4 tygodnie",
+          "pages": "258-273"
+        },
+        {
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "274-284"
+        },
+        {
+          "chapter": "7. Zakończenie",
+          "pages": "285-286"
+        }
+      ],
+      "coverage": {
+        "hipertrofia": "bardzo dobre",
+        "siła": "słabe",
+        "redukcja": "słabe",
+        "zdrowie": "słabe, ogólne",
+        "początkujący": "średnie",
+        "kobiety": "jedna wzmianka",
+        "dom": "tylko uwaga o gumach",
+        "żywienie": "brak"
+      }
+    }
+  ],
+  "warmupRules": [
+    {
+      "id": "W1",
+      "rule": "Nie ma uniwersalnej rozgrzewki; dobiera się ją do treningu. Ponad 30% urazów sportowych to urazy mięśni.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "275-276"
+        }
+      ]
+    },
+    {
+      "id": "W2",
+      "rule": "Model RAMP: Raise (podniesienie temperatury), Activate & Mobilize (aktywacja i mobilizacja), Potentiate (potencjacja).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "276-281"
+        }
+      ]
+    },
+    {
+      "id": "W3",
+      "phase": "Raise",
+      "rule": "Temperaturę można podnieść ćwiczeniami docelowymi; cardio np. zimą po wejściu z dworu. Ok. +1 °C w 3 min, cel ok. +4 °C, co daje ok. +5% siły.",
+      "values": {
+        "tempRisePer3min": 1,
+        "targetTempRise": 4,
+        "strengthGainPercent": 5
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "277"
+        }
+      ]
+    },
+    {
+      "id": "W4",
+      "phase": "Activate & Mobilize",
+      "rule": "Mobilizacja ok. 90 s poprawia zakres ruchu; bez rozciągania statycznego.",
+      "values": {
+        "mobilizationSeconds": 90
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "278-279"
+        }
+      ]
+    },
+    {
+      "id": "W5",
+      "phase": "Potentiate",
+      "rule": "Ruchy balistyczne, skoki, rzuty. Już 30–33% siły izometrycznej rekrutuje wszystkie jednostki ruchowe.",
+      "values": {
+        "isometricPercentFullRecruitment": "30-33"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "280"
+        }
+      ]
+    },
+    {
+      "id": "W6",
+      "phase": "Potentiate",
+      "rule": "Pominąć u początkujących, osób z nadwagą lub otyłością i świeżo po kontuzji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "281"
+        }
+      ]
+    },
+    {
+      "id": "W7",
+      "rule": "Czas rozgrzewki 10–30 min.",
+      "values": {
+        "minutes": "10-30"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "282"
+        }
+      ]
+    },
+    {
+      "id": "W8",
+      "rule": "Checklista gotowości: temperatura ciała, zakres ruchu, brak bólu/dyskomfortu przy ćwiczeniu, kontrola pełnego zakresu, skupienie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "6. Rozgrzewka (RAMP)",
+          "pages": "282-283"
+        }
+      ]
+    },
+    {
+      "id": "W9",
+      "rule": "Część wstępna sesji: maks. 4–5 ćwiczeń aktywujących i stabilizujących w parach A/B, 2–3 serie, ≤50% CM, RIR >5, ≤10–12 powtórzeń, wolniejsze tempo, przerwy 30–60 s, pełny zakres.",
+      "values": {
+        "exercisesMax": "4-5",
+        "sets": "2-3",
+        "maxPercent1RM": 50,
+        "rir": ">5",
+        "repsMax": "10-12",
+        "restSeconds": "30-60"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "182-183"
+        }
+      ]
+    },
+    {
+      "id": "W10",
+      "rule": "Przykładowe części wstępne do programu 4-dniowego – zob. planTemplates T4.warmupPart.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "247"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "258"
+        }
+      ]
+    }
+  ],
+  "sessionStructureRules": [
+    {
+      "id": "SS1",
+      "rule": "Elementy treningu wg NSCA: mobilizacja, trening siłowy, żywienie, kondycja, core.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "177"
+        }
+      ]
+    },
+    {
+      "id": "SS2",
+      "rule": "Planowanie (co i kiedy), programowanie (parametry), periodyzacja (zmiany w czasie) to różne pojęcia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "178"
+        }
+      ]
+    },
+    {
+      "id": "SS3",
+      "rule": "Jednostka ma część wstępną, główną i końcową.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "181-184"
+        }
+      ]
+    },
+    {
+      "id": "SS4",
+      "rule": "Część główna: dla każdego ćwiczenia ustalić serie, powtórzenia, RIR, przerwę i tempo (szablon tabeli s. 183).",
+      "values": {
+        "columns": [
+          "ćwiczenie",
+          "serie",
+          "powtórzenia",
+          "RIR",
+          "przerwa",
+          "tempo"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "183"
+        }
+      ]
+    },
+    {
+      "id": "SS5",
+      "rule": "Część końcowa: kilka–kilkanaście minut delikatnego rolowania; bez rozciągania statycznego i bez ciężkiej pracy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "184"
+        }
+      ]
+    },
+    {
+      "id": "SS6",
+      "rule": "Aeroby po treningu z umiarem; długie aeroby obniżają siłę (5 h biegu przy 55% VO2max ok. −30%). Po treningu siłowym siła spada o 22–35%.",
+      "values": {
+        "strengthDropAfterLongRunPercent": 30,
+        "strengthDropAfterResistancePercent": "22-35"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "184-185"
+        }
+      ]
+    },
+    {
+      "id": "SS7",
+      "rule": "Przy planowaniu jednostki analizować poprzednią i następną jednostkę.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "4. Konstrukcja jednostki treningowej",
+          "pages": "186-187"
+        }
+      ]
+    },
+    {
+      "id": "SS8",
+      "rule": "Kolejność: rozgrzewka → aktywacja → wielostawowe z wolnym ciężarem → wielostawowe na maszynach → izolowane; partia priorytetowa najpierw.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.7 Kolejność ćwiczeń",
+          "pages": "146-148"
+        }
+      ]
+    },
+    {
+      "id": "SS9",
+      "rule": "Na sesję 20–30 serii, maks. 10 na partię.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "225-226"
+        }
+      ]
+    },
+    {
+      "id": "SS10",
+      "rule": "Czas trwania jednostki: od kilkunastu do kilkudziesięciu minut, maks. 2–3 h.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "2.2 Fazy treningu",
+          "pages": "15"
+        }
+      ]
+    }
+  ],
+  "methodSteps": [
+    {
+      "step": 1,
+      "title": "Model periodyzacji i plan bloków",
+      "summary": "Blokowa periodyzacja z blokami objętościowymi i intensyfikacji, bloki 5–6 tyg., priorytety i metoda przeciążenia na blok.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "193-198"
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "title": "Metoda przeciążenia",
+      "summary": "Blok I i II: +1 seria/tydz.; blok III: +5% ciężaru przy stałej objętości; autoregulacja.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok II",
+          "pages": "199-203"
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "title": "Możliwości i ograniczenia",
+      "summary": "Zdrowie, dni treningowe (odjąć 1), sprzęt; wpływ na ćwiczenia, częstotliwość, objętość, zakresy i wysiłek.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok III",
+          "pages": "204-211"
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "title": "Priorytety i budżet objętości",
+      "summary": "Kategorie: priorytet, neutralna, utrzymanie; liczba priorytetów wg liczby dni.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok IV",
+          "pages": "212-219"
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "title": "Objętość startowa",
+      "summary": "20–30 serii na sesję, maks. 10 na partię; priorytet górna granica MEV, neutralne dolna, utrzymanie MV.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "220-228"
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "title": "Rozkład na jednostki",
+      "summary": "Priorytety na początku; synergiści 0,3–0,5; układ 2/1/2/2.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "229-235"
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "title": "Dobór ćwiczeń i parametrów",
+      "summary": "2–3 ćwiczenia na 10 serii; opcje rozkładu 50/25/25 lub 33/22/22/22.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VII",
+          "pages": "236-248"
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "title": "Progresja",
+      "summary": "GAS; progresja tylko w priorytetach, 1 ćwiczenie progresywne na partię na sesję; serie/powtórzenia/ciężar; RIR spada maks. o 1/tydz.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VIII",
+          "pages": "249-257"
+        }
+      ]
+    }
+  ],
+  "contradictions": [
+    {
+      "id": "C1",
+      "topic": "liczba kroków",
+      "description": "Tekst s. 191 mówi o 7 krokach, schemat s. 192 i rozdziały pokazują 8.",
+      "resolution": "przyjęto 8",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia",
+          "pages": "191-192"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "topic": "RIR",
+      "description": "Seria efektywna maks. RIR 4 (s. 91) vs RIR 5 jako minimum skutecznego wysiłku i dolna granica zalecanych zakresów (s. 108–110).",
+      "resolution": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "91"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.3 Intensywność",
+          "pages": "108-110"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "topic": "zakres powtórzeń",
+      "description": "Różne zakresy: 5–65, 6–50, 5–50, 6–20, 8–20.",
+      "resolution": "8–20 jako zalecenie praktyczne",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "91"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.5 Zakresy powtórzeń",
+          "pages": "126-132"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "topic": "rozkład zakresów",
+      "description": "Tekst 70/15/15, diagram 60–70/15–20/15–20.",
+      "resolution": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.5 Zakresy powtórzeń",
+          "pages": "131"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "topic": "MRV",
+      "description": "MRV wysoko zaawansowanego (25–28) niższe niż zaawansowanego (30).",
+      "resolution": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.2 Objętość",
+          "pages": "95"
+        }
+      ]
+    },
+    {
+      "id": "C6",
+      "topic": "suma serii",
+      "description": "Tekst s. 227: 72 serie; tabela s. 228 sumuje się do 73.",
+      "resolution": "przyjęto wartości z tabeli",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "227-228"
+        }
+      ]
+    },
+    {
+      "id": "C7",
+      "topic": "zapis tempa",
+      "description": "Opis: A = koncentryka (s. 164); program: 21x1, 22x1, 21x2, 1111 – „x” na 3. miejscu sugeruje konwencję ekscentryka–pauza–koncentryka–pauza.",
+      "resolution": "zapisy przepisano bez interpretacji",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.10 Tempo",
+          "pages": "164"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "258-273"
+        }
+      ]
+    },
+    {
+      "id": "C8",
+      "topic": "długość bloku",
+      "description": "Bloki 5–6 tyg. w tekście vs program 4-tygodniowy (+ deload w modelu s. 197).",
+      "resolution": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok I",
+          "pages": "194-197"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – pełny program 4 tygodnie",
+          "pages": "258-273"
+        }
+      ]
+    },
+    {
+      "id": "C9",
+      "topic": "przerwy",
+      "description": "60–90 s jako „optymalne warunki” vs zalecany zakres 60–180 s vs 3–5 min dla siły.",
+      "resolution": "zakres zależny od ćwiczenia i wysiłku (wykres s. 153)",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "3.8 Przerwy",
+          "pages": "150-153"
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "topic": "czworoboczny",
+      "description": "Serie startowe 7 (s. 228), w rozkładzie 5 (s. 234) – świadoma korekta za synergię.",
+      "resolution": "wyjaśnione w książce",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok V",
+          "pages": "228"
+        },
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "5. Strategia – Krok VI",
+          "pages": "234"
+        }
+      ]
+    },
+    {
+      "id": "C11",
+      "topic": "odsyłacze",
+      "description": "W kilku miejscach puste odsyłacze „na stronie …”.",
+      "resolution": null,
+      "status": "zrodlo",
+      "sources": []
+    },
+    {
+      "id": "C12",
+      "topic": "adresat",
+      "description": "Tytuł w formie żeńskiej („stwórz sama”), treść w formie męskiej/neutralnej, s. 6 „stwórz sam”.",
+      "resolution": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "zaplanuj-swoj-trening-gluchowski",
+          "chapter": "1. Wstęp",
+          "pages": "6"
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "topic": "żywienie",
+      "value": null,
+      "status": "brak_w_zrodle",
+      "note": "autor celowo pomija"
+    },
+    {
+      "topic": "szczegółowy program redukcji",
+      "value": null,
+      "status": "brak_w_zrodle"
+    },
+    {
+      "topic": "plany FBW, góra/dół, siłowy, domowy",
+      "value": null,
+      "status": "brak_w_zrodle",
+      "note": "jest tylko split 4-dniowy z priorytetami"
+    },
+    {
+      "topic": "parametry deloadu",
+      "value": null,
+      "status": "brak_w_zrodle",
+      "note": "deload tylko w grafice modelu s. 197"
+    },
+    {
+      "topic": "przeciwwskazania",
+      "value": null,
+      "status": "brak_w_zrodle"
+    },
+    {
+      "topic": "technika i zdjęcia ćwiczeń",
+      "value": null,
+      "status": "brak_w_zrodle"
+    },
+    {
+      "topic": "zamienniki ćwiczeń",
+      "value": null,
+      "status": "brak_w_zrodle",
+      "note": "tylko ogólne zasady zmiany"
+    },
+    {
+      "topic": "kobiety: cykl, ciąża, menopauza",
+      "value": null,
+      "status": "brak_w_zrodle"
+    },
+    {
+      "topic": "trening kondycyjny, cardio – dawki",
+      "value": null,
+      "status": "brak_w_zrodle"
+    }
+  ]
+}

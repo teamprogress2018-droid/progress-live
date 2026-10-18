@@ -1,0 +1,4091 @@
+{
+ "principles": [
+  {
+   "id": "P1",
+   "title": "Seria robocza to jednostka objętości",
+   "rule": "Objętość licz w seriach roboczych. Seria jest robocza, gdy jednocześnie: 6-20 powtórzeń, 60-85% RM, RIR 1-4, przerwa 2-5 min. Praca poza tymi wartościami (np. 30 powtórzeń, RIR 5) to 'workload', według autora bez efektu hipertroficznego.",
+   "appliesTo": [
+    "hipertrofia",
+    "wszyscy"
+   ],
+   "conditions": [
+    "1 seria wstępna przed seriami roboczymi, niewliczana do objętości"
+   ],
+   "limitations": [
+    "sprzeczne z P6: autor pisze też, że każdy zakres powtórzeń buduje mięśnie blisko upadku"
+   ],
+   "values": {
+    "reps": [
+     6,
+     20
+    ],
+    "percent1RM": [
+     60,
+     85
+    ],
+    "rir": [
+     1,
+     4
+    ],
+    "restMin": [
+     2,
+     5
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "48"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 5 Objętość",
+     "pages": "70"
+    }
+   ]
+  },
+  {
+   "id": "P2",
+   "title": "Progresywne przeciążenie, głównie przez objętość",
+   "rule": "Stopniowo zwiększaj bodziec; głównym motorem postępu jest rosnąca objętość, ale serii nie da się dokładać bez końca, więc progresję planuje się długofalowo.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "progressionMethods": [
+    "ciężar",
+    "częstotliwość",
+    "liczba serii",
+    "liczba powtórzeń",
+    "trudniejszy wariant ćwiczenia",
+    "większy zakres ruchu",
+    "krótsze przerwy",
+    "zmiana tempa",
+    "siła względna (masa ciała)"
+   ],
+   "conditions": [
+    "sposób progresji zależy od zaawansowania (P3)"
+   ],
+   "limitations": [
+    "postęp nie jest liniowy; stagnacja się pojawi"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Jaki model periodyzacji wybrać",
+     "pages": "26"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Periodyzacja a progresywne przeładowanie",
+     "pages": "44-46"
+    }
+   ]
+  },
+  {
+   "id": "P3",
+   "title": "Zaawansowanie decyduje o złożoności planu",
+   "rule": "Początkujący: plan prosty, ciężar można dokładać co sesję małymi krokami (ok. 0,5 kg). Średnio zaawansowany: kilka metod progresji. Bardzo zaawansowany (>7 lat skutecznego treningu): złożone, długie periodyzacje.",
+   "appliesTo": [
+    "początkujący",
+    "średnio zaawansowany",
+    "zaawansowany"
+   ],
+   "conditions": [
+    "gwałtowny skok ciężaru zwiększa ryzyko kontuzji"
+   ],
+   "limitations": [
+    "brak kryteriów granicy początkujący/średnio zaawansowany"
+   ],
+   "values": {
+    "advancedYearsMin": 7,
+    "beginnerLoadStepKg": 0.5,
+    "intermediateDefinition": null
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Periodyzacja a progresywne przeładowanie",
+     "pages": "45"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Stwórz swój plan treningowy",
+     "pages": "65"
+    }
+   ]
+  },
+  {
+   "id": "P4",
+   "title": "Cztery zasady układania planów",
+   "rule": "Indywidualizacja, różnorodność, specyficzność, progresywne przeciążenie. Plan musi zawierać model progresji, zmian ćwiczeń i objętości w czasie; sama lista dni, serii i powtórzeń to tylko rozpiska.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [
+    "indywidualizacja kluczowa od poziomu średnio zaawansowanego"
+   ],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Czym jest periodyzacja",
+     "pages": "24"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Stwórz swój plan treningowy",
+     "pages": "65"
+    }
+   ]
+  },
+  {
+   "id": "P5",
+   "title": "Długość planu zależy od celu",
+   "rule": "Siła 8-10 tyg.; hipertrofia 10-16 tyg. (ze zmianami serii, powtórzeń i ćwiczeń w trakcie); redukcja i wytrzymałość 8-12 tyg., redukcja maks. 3 miesiące. Ten sam bodziec przez pół roku = adaptacja i brak efektów.",
+   "appliesTo": [
+    "siła",
+    "hipertrofia",
+    "redukcja",
+    "wytrzymałość siłowa"
+   ],
+   "values": {
+    "strengthWeeks": [
+     8,
+     10
+    ],
+    "hypertrophyWeeks": [
+     10,
+     16
+    ],
+    "fatLossWeeks": [
+     8,
+     12
+    ],
+    "fatLossMaxMonths": 3,
+    "enduranceWeeks": [
+     8,
+     12
+    ]
+   },
+   "conditions": [
+    "wytrzymałość siłową można trenować przy nadwyżce kalorycznej"
+   ],
+   "limitations": [
+    "wspólna wartość 8-12 tyg. dla redukcji i wytrzymałości odczytana z układu tabeli (wniosek)"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Jak długo powinien trwać plan",
+     "pages": "9-10 (Tabela 1)"
+    }
+   ]
+  },
+  {
+   "id": "P6",
+   "title": "Zakres powtórzeń 6-20, blisko upadku",
+   "rule": "Każdy zakres buduje mięśnie blisko upadku, ale bardzo długie serie dają duże zmęczenie centralne i wydłużają regenerację; optimum dla sylwetki 6-20. Ruchy globalne: mniej powtórzeń i progresja ciężarem; izolowane: progresja powtórzeniami.",
+   "appliesTo": [
+    "hipertrofia"
+   ],
+   "conditions": [],
+   "limitations": [
+    "patrz P1"
+   ],
+   "values": {
+    "reps": [
+     6,
+     20
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Powtórzenia",
+     "pages": "60-61"
+    }
+   ]
+  },
+  {
+   "id": "P7",
+   "title": "Intensywność: RIR 1-4, skala RPE",
+   "rule": "Praca blisko upadku: RIR 1-4. RPE 10=RIR 0, 9=RIR 1, 8=RIR 2, 7=RIR 3, 6=RIR 4; RPE 1-5 bez bodźca hipertroficznego. % maksimum dokładne, ale nie dla początkujących.",
+   "appliesTo": [
+    "hipertrofia",
+    "siła"
+   ],
+   "conditions": [],
+   "limitations": [
+    "RIR trudny do oceny dla osób bez doświadczenia, wytrzymałości siłowej, siły ogólnej, techniki i kontroli ruchu"
+   ],
+   "values": {
+    "rir": [
+     1,
+     4
+    ],
+    "rpeToRir": {
+     "10": 0,
+     "9": 1,
+     "8": 2,
+     "7": 3,
+     "6": 4
+    },
+    "rpeNoStimulus": [
+     1,
+     5
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Periodyzacja sprzężona",
+     "pages": "31"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Intensywność treningowa",
+     "pages": "54-55"
+    }
+   ]
+  },
+  {
+   "id": "P8",
+   "title": "Częstotliwość: partia co 2-3 dni",
+   "rule": "Daną partię trenuj co 2-3 dni. Początkujący regenerują się dłużej (dłuższa synteza białek), więc trenują rzadziej i mniejszą objętością; zaawansowani (MPS 24-48 h) mogą trenować partię często, nawet codziennie, małą objętością.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [
+    "im bardziej zaawansowany, tym więcej sesji o mniejszej objętości na sesję",
+    "72 h między treningami tej samej części ciała u początkujących"
+   ],
+   "limitations": [
+    "czas MPS u początkujących był na utraconym rysunku 9"
+   ],
+   "values": {
+    "muscleFrequencyDays": [
+     2,
+     3
+    ],
+    "advancedMpsHours": [
+     24,
+     48
+    ],
+    "beginnerSameRegionGapHours": 72
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Częstotliwość treningowa",
+     "pages": "56-59"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "53"
+    }
+   ]
+  },
+  {
+   "id": "P9",
+   "title": "Klasyczny split jest słabym wyborem",
+   "rule": "Partia raz w tygodniu dużą objętością jest gorsza niż częściej i mniejszą objętością; autor uważa split za złą metodę także u osób wytrenowanych.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Metody treningowe (Split)",
+     "pages": "38"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Częstotliwość treningowa",
+     "pages": "58-59"
+    }
+   ]
+  },
+  {
+   "id": "P10",
+   "title": "Ćwiczenia według możliwości, nie przyzwyczajeń",
+   "rule": "Oceń siłę, mobilność, stabilność i kontrolę ruchu; wybierz wariant (regresja/progresja), który klient wykona poprawnie. Zawsze sprawdź ćwiczenie w praktyce. U początkujących każde ćwiczenie jest skuteczne.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "etapy progresji są indywidualne"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "11-23"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 4 Ćwiczenia",
+     "pages": "68"
+    }
+   ]
+  },
+  {
+   "id": "P11",
+   "title": "Realny cel, jeden naraz",
+   "rule": "Nie łącz w jednym okresie celu masa i redukcja; cel musi odpowiadać możliwościom psychofizycznym klienta.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 1 Wybierz realny cel",
+     "pages": "66"
+    }
+   ]
+  },
+  {
+   "id": "P12",
+   "title": "Priorytet partii kosztem innych",
+   "rule": "Partia priorytetowa dostaje dużą objętość, pozostałe mniej. Najbezpieczniej pracować między MAV a MRV. Nie dawać maksymalnej objętości wszystkim partiom.",
+   "appliesTo": [
+    "hipertrofia"
+   ],
+   "conditions": [],
+   "limitations": [
+    "liczby MV/MEV/MAV/MRV (Tabela 29) utracone"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "49-52"
+    }
+   ]
+  },
+  {
+   "id": "P13",
+   "title": "Proste metody dla początkujących",
+   "rule": "Początkujący: ćwiczenia 'w seriach', bez piramid, ramp i drop setów; jakość ruchu i rzetelne serie blisko upadku. Metody zaawansowane dobiera się do poziomu.",
+   "appliesTo": [
+    "początkujący"
+   ],
+   "conditions": [
+    "super seria dopuszczalna dla antagonistów (biceps + triceps)"
+   ],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Metody treningowe",
+     "pages": "33-43"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 7 Metody treningowe",
+     "pages": "73"
+    }
+   ]
+  },
+  {
+   "id": "P14",
+   "title": "Deload po planie",
+   "rule": "Początkujący: 1-2 tyg. aktywnego wypoczynku po planie. Bardziej zaawansowani: pasywny deload (tydzień bez treningu). Zaawansowani zawodnicy: lokalny deload (lżejsze treningi), np. po 6 tyg. wysokiej objętości.",
+   "appliesTo": [
+    "początkujący",
+    "zaawansowany"
+   ],
+   "values": {
+    "beginnerActiveRestWeeks": [
+     1,
+     2
+    ],
+    "passiveDeloadWeeks": 1,
+    "localDeloadAfterWeeks": 6
+   },
+   "conditions": [],
+   "limitations": [
+    "brak opisu deloadu dla celu siłowego i redukcji"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 8 Roztrenowanie",
+     "pages": "73"
+    }
+   ]
+  }
+ ],
+ "exerciseRules": [
+  {
+   "id": "E1",
+   "category": "wzorzec_ruchowy",
+   "pattern": "przysiad",
+   "stages": {
+    "1": [
+     {
+      "name": "air squat",
+      "equipment": "masa ciała",
+      "purpose": "ćwiczenie wstępne"
+     },
+     {
+      "name": "TRX squat",
+      "equipment": "taśmy TRX",
+      "purpose": "większy zakres przy pionowym tułowiu"
+     },
+     {
+      "name": "box squat",
+      "equipment": "skrzynia + obciążenie",
+      "purpose": "druga faza ruchu, więcej pośladka wielkiego"
+     },
+     {
+      "name": "przysiad kolarski (cycle squat)",
+      "equipment": "podwyższenie pod pięty / sztanga",
+      "purpose": "ograniczone zgięcie w stawie skokowym"
+     }
+    ],
+    "2": [
+     {
+      "name": "goblet squat",
+      "equipment": "kettlebell/hantel",
+      "purpose": "stabilizacja tułowia"
+     },
+     {
+      "name": "back squat high bar",
+      "equipment": "sztanga",
+      "purpose": "klasyczny"
+     },
+     {
+      "name": "zercher squat",
+      "equipment": "sztanga",
+      "purpose": "stabilizacja centralna"
+     }
+    ],
+    "3": [
+     {
+      "name": "front squat",
+      "equipment": "sztanga",
+      "purpose": "wymaga mobilności, stabilności i kontroli"
+     },
+     {
+      "name": "OHS",
+      "equipment": "sztanga",
+      "purpose": "test diagnostyczny; sylwetkowo zbędny"
+     },
+     {
+      "name": "pistol squat",
+      "equipment": "masa ciała",
+      "purpose": "koordynacja; bez efektu sylwetkowego"
+     }
+    ]
+   },
+   "notes": [
+    "regresja przy: nadmiernym pochyleniu, braku pełnego zakresu, kolanach uciekających do środka"
+   ],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "11-12 (Tabela 2)"
+    }
+   ],
+   "stageAssignmentStatus": "etap 1 = wniosek z kolejności tekstu"
+  },
+  {
+   "id": "E2",
+   "category": "wzorzec_ruchowy",
+   "pattern": "martwy ciąg / zawias biodrowy",
+   "stages": {
+    "1": [
+     {
+      "name": "martwy ciąg z kettlebell",
+      "equipment": "kettlebell",
+      "purpose": "nauka ruchu; nie przechodzić w przysiad"
+     },
+     {
+      "name": "trap bar deadlift",
+      "equipment": "trap bar",
+      "purpose": "łatwiejszy; łatwo zamienić w przysiad"
+     },
+     {
+      "name": "martwy ciąg rumuński",
+      "equipment": "sztanga/hantle",
+      "purpose": "ciągłe napięcie, do połowy piszczeli"
+     },
+     {
+      "name": "rack pull",
+      "equipment": "sztanga + podwyższenie",
+      "purpose": "druga faza ruchu; przykurcz tylnej taśmy"
+     }
+    ],
+    "2": [
+     {
+      "name": "martwy ciąg klasyczny",
+      "equipment": "sztanga",
+      "purpose": "najwięcej problemów technicznych"
+     },
+     {
+      "name": "semi sumo / sumo",
+      "equipment": "sztanga",
+      "purpose": "krótszy zakres, bardziej pionowy tułów"
+     }
+    ],
+    "3": [
+     {
+      "name": "martwy ciąg rwaniowy",
+      "equipment": "sztanga",
+      "purpose": "szeroki chwyt"
+     },
+     {
+      "name": "martwy ciąg na jednej nodze",
+      "equipment": "hantle/kettlebell",
+      "purpose": "stabilizacja, słabe ogniwa"
+     }
+    ]
+   },
+   "notes": [],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "13-14 (Tabela 3)"
+    }
+   ],
+   "stageAssignmentStatus": "etap 3 = wniosek"
+  },
+  {
+   "id": "E3",
+   "category": "wzorzec_ruchowy",
+   "pattern": "hip thrust / wyprost biodra",
+   "stages": {
+    "1": [
+     {
+      "name": "hip hinge z kolan",
+      "equipment": "masa ciała",
+      "purpose": "nauka wyprostu biodra"
+     },
+     {
+      "name": "hip hinge z gumą",
+      "equipment": "guma + drabinki",
+      "purpose": "ruch zawiasowy"
+     },
+     {
+      "name": "glute bridge",
+      "equipment": "masa ciała / obciążenie",
+      "purpose": "sekwencja napięcia brzucha i pośladków"
+     }
+    ],
+    "2": [
+     {
+      "name": "hip thrust",
+      "equipment": "sztanga + ławka",
+      "purpose": "podwyższone ryzyko przy bardzo dużym ciężarze (siły ścinające na odcinek lędźwiowy)"
+     }
+    ],
+    "3": [
+     {
+      "name": "warianty hip thrust/glute bridge",
+      "equipment": "gumy, mini bandy",
+      "purpose": "zmiana rozstawu i wysokości stóp, praca jednostronna"
+     }
+    ]
+   },
+   "notes": [],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "15 (Tabela 4)"
+    }
+   ]
+  },
+  {
+   "id": "E4",
+   "category": "wzorzec_ruchowy",
+   "pattern": "wykroki",
+   "stages": {
+    "1": [
+     {
+      "name": "wykrok statyczny",
+      "equipment": "masa ciała / hantle",
+      "purpose": "nauka ruchu"
+     },
+     {
+      "name": "wykrok dostawny",
+      "equipment": "masa ciała / hantle",
+      "purpose": "jeden krok i powrót"
+     }
+    ],
+    "2": [
+     {
+      "name": "wykrok chodzony",
+      "equipment": "masa ciała / hantle",
+      "purpose": "kluczowa stabilizacja i kontrola"
+     }
+    ],
+    "3": [
+     {
+      "name": "przysiad bułgarski",
+      "equipment": "podwyższenie / hantle",
+      "purpose": "uda i pośladek wielki"
+     }
+    ]
+   },
+   "notes": [],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "16 (Tabela 5)"
+    }
+   ],
+   "stageAssignmentStatus": "etap 1 = wniosek"
+  },
+  {
+   "id": "E5",
+   "category": "wzorzec_ruchowy",
+   "pattern": "wiosłowanie poziome",
+   "stages": {
+    "1": [
+     {
+      "name": "wiosłowanie siedząc na bramie",
+      "equipment": "wyciąg",
+      "purpose": "hipertrofia lokalna grzbietu"
+     },
+     {
+      "name": "gorilla row",
+      "equipment": "kettlebelle",
+      "purpose": "w opadzie, naprzemiennie"
+     },
+     {
+      "name": "wiosłowanie hantlą w podporze",
+      "equipment": "hantel + ławka",
+      "purpose": "bez obciążania prostowników"
+     },
+     {
+      "name": "focze wiosło",
+      "equipment": "ławka 30-45° + hantle/sztanga",
+      "purpose": "leżąc na brzuchu"
+     }
+    ],
+    "2": [
+     {
+      "name": "wiosłowanie w opadzie",
+      "equipment": "sztanga",
+      "purpose": "obciąża prostowniki, podnosi ciśnienie tętnicze; topowe na grzbiet"
+     }
+    ],
+    "3": [
+     {
+      "name": "pendlay row",
+      "equipment": "sztanga",
+      "purpose": "z ziemi, nachwytem"
+     },
+     {
+      "name": "renegade row",
+      "equipment": "hantle",
+      "purpose": "w pozycji pompki"
+     },
+     {
+      "name": "ściąganie wyciągu górnego / narciarz",
+      "equipment": "wyciąg",
+      "purpose": "hipertrofia regionalna; w narciarzu łokieć zablokowany"
+     }
+    ]
+   },
+   "notes": [],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "17-18 (Tabela 6)"
+    }
+   ],
+   "stageAssignmentStatus": "etap 1 = wniosek"
+  },
+  {
+   "id": "E6",
+   "category": "wzorzec_ruchowy",
+   "pattern": "przyciąganie pionowe",
+   "stages": {
+    "1": [
+     {
+      "name": "podciąganie z gumą",
+      "equipment": "drążek + guma",
+      "purpose": "pomoc na starcie ruchu"
+     }
+    ],
+    "2": [
+     {
+      "name": "podciąganie negatywne",
+      "equipment": "drążek",
+      "purpose": "opuszczanie ok. 3-4 s"
+     }
+    ],
+    "3": [
+     {
+      "name": "podciąganie nachwytem/podchwytem/neutralnie",
+      "equipment": "drążek",
+      "purpose": "najlepsze na dolne partie grzbietu"
+     }
+    ]
+   },
+   "notes": [],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "19 (Tabela 7)"
+    }
+   ],
+   "stageAssignmentStatus": "kolejność etapów = wniosek"
+  },
+  {
+   "id": "E7",
+   "category": "wzorzec_ruchowy",
+   "pattern": "wyciskanie pionowe",
+   "stages": {
+    "1": [
+     {
+      "name": "wyciskanie w oparciu o ławkę",
+      "equipment": "ławka + hantle/sztanga",
+      "purpose": "stabilne; początkujący lub hipertrofia lokalna"
+     }
+    ],
+    "2": [
+     {
+      "name": "OHP stojąc sztangą",
+      "equipment": "sztanga",
+      "purpose": "klasyczny"
+     },
+     {
+      "name": "OHP stojąc hantlami",
+      "equipment": "hantle",
+      "purpose": "jednostronnie, większy zakres"
+     }
+    ],
+    "3": [
+     {
+      "name": "cuban press",
+      "equipment": "sztanga/hantle",
+      "purpose": "dla dużo bardziej zaawansowanych; stożek rotatorów"
+     }
+    ]
+   },
+   "notes": [
+    "autor woli wersję stojącą (więcej mięśni), ale stabilna pozycja lepiej buduje partię lokalnie; decyduje cel i umiejętności (s. 17)"
+   ],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "20 (Tabela 8)"
+    }
+   ]
+  },
+  {
+   "id": "E8",
+   "category": "wzorzec_ruchowy",
+   "pattern": "wyciskanie poziome",
+   "stages": {
+    "1": [
+     {
+      "name": "floor press",
+      "equipment": "hantle/sztanga, bez ławki",
+      "purpose": "stabilne, skrócony zakres"
+     },
+     {
+      "name": "floor fly",
+      "equipment": "hantle, bez ławki",
+      "purpose": "jak wyżej"
+     }
+    ],
+    "2": [
+     {
+      "name": "wyciskanie na ławce (płasko, skos dodatni/ujemny)",
+      "equipment": "sztanga + ławka",
+      "purpose": "podstawowe ćwiczenie górnej części ciała"
+     }
+    ],
+    "3": [
+     {
+      "name": "wyciskanie hantli",
+      "equipment": "hantle + ławka",
+      "purpose": "najmniej stabilne, największy zakres"
+     }
+    ]
+   },
+   "notes": [],
+   "rule": "Zacznij od etapu, który klient wykonuje poprawnie; przy błędach technicznych cofnij o etap.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "21 (Tabela 9)"
+    }
+   ],
+   "stageAssignmentStatus": "etap 1 = wniosek"
+  },
+  {
+   "id": "E9",
+   "category": "kolejność",
+   "rule": "Kolejność w treningu: wielostawowe na partię priorytetową → izolowane i akcesoryjne → uzupełniające na inne partie. U początkujących rozwój równomierny, później nacisk na najsłabsze ogniwa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 4 Ćwiczenia",
+     "pages": "68-69"
+    }
+   ]
+  },
+  {
+   "id": "E10",
+   "category": "objętość_ćwiczenia",
+   "rule": "Ćwiczenia uzupełniające: połowa objętości ćwiczeń głównych. Serie tygodniowe partii dziel przez liczbę ćwiczeń na tę partię (np. 10 serii / 4 ćwiczenia ≈ 3+3+2+2). Mniejsze partie górne mogą mieć mniej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 5 Objętość",
+     "pages": "70"
+    }
+   ]
+  },
+  {
+   "id": "E11",
+   "category": "zamienniki",
+   "rule": "Zamieniaj ćwiczenie na wariant tego samego wzorca z niższego etapu.",
+   "substitutions": [
+    {
+     "problem": "ograniczone zgięcie w stawie skokowym / krótki zakres w przysiadzie",
+     "replaceWith": [
+      "przysiad kolarski",
+      "TRX squat"
+     ],
+     "status": "zrodlo",
+     "pages": "11"
+    },
+    {
+     "problem": "błędy w back squacie",
+     "replaceWith": [
+      "goblet squat",
+      "box squat",
+      "TRX squat"
+     ],
+     "status": "zrodlo",
+     "pages": "12"
+    },
+    {
+     "problem": "brak mobilności/stabilności do front squata",
+     "replaceWith": [
+      "goblet squat",
+      "zercher squat"
+     ],
+     "status": "wniosek",
+     "pages": "12"
+    },
+    {
+     "problem": "problemy z klasycznym martwym ciągiem",
+     "replaceWith": [
+      "sumo / semi sumo",
+      "martwy ciąg z kettlebell",
+      "martwy ciąg rumuński",
+      "rack pull"
+     ],
+     "status": "zrodlo",
+     "pages": "13-14"
+    },
+    {
+     "problem": "przykurcz tylnej taśmy",
+     "replaceWith": [
+      "rack pull"
+     ],
+     "status": "zrodlo",
+     "pages": "13"
+    },
+    {
+     "problem": "nauka wyprostu biodra przed ciężkim hip thrustem",
+     "replaceWith": [
+      "hip hinge z kolan",
+      "hip hinge z gumą",
+      "glute bridge"
+     ],
+     "status": "zrodlo",
+     "pages": "15"
+    },
+    {
+     "problem": "odciążenie prostowników w wiosłowaniu",
+     "replaceWith": [
+      "wiosłowanie hantlą w podporze",
+      "focze wiosło",
+      "wiosłowanie siedząc na bramie"
+     ],
+     "status": "zrodlo",
+     "pages": "17-18"
+    },
+    {
+     "problem": "klient nie podciąga się",
+     "replaceWith": [
+      "podciąganie z gumą",
+      "podciąganie negatywne"
+     ],
+     "status": "zrodlo",
+     "pages": "19, 81"
+    },
+    {
+     "problem": "niestabilne wyciskanie nad głowę",
+     "replaceWith": [
+      "wyciskanie w oparciu o ławkę"
+     ],
+     "status": "zrodlo",
+     "pages": "20"
+    },
+    {
+     "problem": "brak ławki",
+     "replaceWith": [
+      "floor press",
+      "floor fly"
+     ],
+     "status": "zrodlo",
+     "pages": "21"
+    },
+    {
+     "problem": "brak kontroli w wykrokach",
+     "replaceWith": [
+      "wykrok statyczny",
+      "wykrok dostawny"
+     ],
+     "status": "zrodlo",
+     "pages": "16"
+    }
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "11-21"
+    }
+   ]
+  },
+  {
+   "id": "E12",
+   "category": "sprzęt",
+   "equipment": {
+    "bez_sprzetu": [
+     "air squat",
+     "hip hinge z kolan",
+     "glute bridge",
+     "wykroki (statyczny, dostawny, chodzony)",
+     "przysiad bułgarski",
+     "pistol squat"
+    ],
+    "kettlebell_hantle": [
+     "goblet squat",
+     "martwy ciąg z kettlebell",
+     "gorilla row",
+     "wiosłowanie hantlą w podporze",
+     "renegade row",
+     "wyciskanie hantli stojąc",
+     "wyciskanie hantli leżąc",
+     "floor press",
+     "floor fly"
+    ],
+    "gumy_trx_drazek": [
+     "TRX squat",
+     "hip hinge z gumą",
+     "mini bandy przy hip thruście",
+     "podciąganie z gumą",
+     "podciąganie negatywne"
+    ],
+    "silownia": [
+     "warianty przysiadu, martwego ciągu i wyciskania ze sztangą",
+     "hip thrust",
+     "trap bar",
+     "wyciągi (brama, ściąganie, narciarz, face pull)"
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "11-21"
+    }
+   ]
+  },
+  {
+   "id": "E13",
+   "category": "metody",
+   "methods": [
+    {
+     "name": "ćwiczenia w seriach",
+     "level": [
+      "początkujący"
+     ],
+     "rule": "podstawowa metoda",
+     "pages": "73"
+    },
+    {
+     "name": "serie łączone (2-3 ćwiczenia)",
+     "level": [
+      "średnio zaawansowany",
+      "zaawansowany"
+     ],
+     "rule": "ta sama partia, różne aktony; zaczynaj od najbardziej wymagającego",
+     "pages": "39",
+     "levelStatus": "wniosek"
+    },
+    {
+     "name": "super serie",
+     "level": [
+      "wszyscy"
+     ],
+     "rule": "mięśnie antagonistyczne; u początkujących tylko biceps+triceps",
+     "pages": "40, 73"
+    },
+    {
+     "name": "cluster sety",
+     "level": [
+      "zaawansowany"
+     ],
+     "rule": "zaplanowana liczba powtórzeń dzielona krótkimi przerwami; podbija objętość",
+     "pages": "40"
+    },
+    {
+     "name": "drop sety",
+     "level": [
+      "zaawansowany"
+     ],
+     "rule": "bardzo zaawansowane; nie dla początkujących",
+     "pages": "41"
+    },
+    {
+     "name": "gigant serie (4-6 ćwiczeń)",
+     "level": [
+      "zawodnicy"
+     ],
+     "rule": "końcówka redukcji; przeplatać złożone i izolowane",
+     "pages": "42"
+    },
+    {
+     "name": "wstępne zmęczenie",
+     "level": [
+      "średnio zaawansowany",
+      "zaawansowany"
+     ],
+     "rule": "izolacja, potem ciężki wielostaw; gdy klient jest bardzo mocny w ćwiczeniu",
+     "pages": "43"
+    }
+   ],
+   "forms": [
+    "FBW",
+    "push/pull",
+    "upper push / lower / upper pull",
+    "upper/lower",
+    "split (odradzany)"
+   ],
+   "formTemplatesLost": true,
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Metody treningowe",
+     "pages": "33-43"
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "category": "reguła",
+   "if": "klient ma ograniczony sprzęt",
+   "then": "dobierz warianty z E1-E8 wymagające tylko masy ciała, kettlebell/hantli, gum lub drążka (E12)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "11-21"
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "category": "reguła",
+   "if": "klient w domu robi więcej niż ok. 20 powtórzeń w serii",
+   "then": "przejdź na trudniejszy wariant (wyższy etap, jednostronnie, guma, ciężar), żeby wrócić do 6-20 powtórzeń",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Periodyzacja a progresywne przeładowanie",
+     "pages": "44"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "48"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Powtórzenia",
+     "pages": "60"
+    }
+   ]
+  },
+  {
+   "id": "R17",
+   "category": "reguła",
+   "if": "technika się sypie (pochylenie, kolana do środka, brak zakresu)",
+   "then": "cofnij ćwiczenie o etap zamiast dokładać ciężar",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "12, 22"
+    }
+   ]
+  },
+  {
+   "id": "R21",
+   "category": "reguła",
+   "if": "początkujący chce drop setów lub innych metod zaawansowanych",
+   "then": "zostaw serie proste",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Metody treningowe",
+     "pages": "41"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 7 Metody treningowe",
+     "pages": "73"
+    }
+   ]
+  }
+ ],
+ "progressionRules": [
+  {
+   "id": "PAR-hipertrofia",
+   "category": "parameters",
+   "goal": "hipertrofia",
+   "frequency": {
+    "value": {
+     "muscleEveryDays": [
+      2,
+      3
+     ],
+     "note": "zaawansowani częściej, nawet codziennie małą objętością; serie tygodniowe warto rozłożyć na 4 treningi"
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "51"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Częstotliwość treningowa",
+      "pages": "57"
+     }
+    ]
+   },
+   "setsPerWeekPriorityMuscle": {
+    "value": {
+     "początkujący": 10,
+     "średnio zaawansowany": 20,
+     "zaawansowany": 30
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "49-53"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 5 Objętość",
+      "pages": "70"
+     }
+    ],
+    "note": "wartość 30 dla zaawansowanych to wniosek (120 serii / 4 dni); 10 i 20 wprost"
+   },
+   "setsPerWeekTotal": {
+    "value": {
+     "formula": "dni_treningowe * serie_na_partie_priorytetowa, rozdzielone na 10 partii od najważniejszej",
+     "example4days": {
+      "początkujący": 40,
+      "średnio zaawansowany": 80,
+      "zaawansowany": 120
+     }
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "52-53"
+     }
+    ]
+   },
+   "reps": {
+    "value": [
+     6,
+     20
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "48"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Powtórzenia",
+      "pages": "60"
+     }
+    ]
+   },
+   "intensity": {
+    "value": {
+     "percent1RM": [
+      60,
+      85
+     ],
+     "rir": [
+      1,
+      4
+     ],
+     "rpe": [
+      6,
+      9
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja sprzężona",
+      "pages": "31"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "48"
+     }
+    ]
+   },
+   "rest": {
+    "value": {
+     "minutes": [
+      2,
+      3
+     ],
+     "workingSetDefinitionMinutes": [
+      2,
+      5
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "48"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+      "pages": "62"
+     }
+    ]
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Tempo treningowe",
+      "pages": "62-63"
+     }
+    ],
+    "note": "autor: szybkość ruchu nie daje korzyści hipertroficznych; tabele tempa (40-41) utracone"
+   },
+   "volume": {
+    "value": {
+     "range": "między MAV a MRV",
+     "MV": null,
+     "MEV": null,
+     "MAV": null,
+     "MRV": null
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "49"
+     }
+    ],
+    "note": "liczby z Tabeli 29 utracone"
+   },
+   "progression": {
+    "value": "zwiększanie objętości (serie), potem ciężaru; średnio zaawansowani: periodyzacja falująca",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Jaki model periodyzacji wybrać",
+      "pages": "26-30"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja a progresywne przeładowanie",
+      "pages": "44"
+     }
+    ]
+   },
+   "deload": {
+    "value": {
+     "local": "lżejszy okres np. po 6 tyg. wysokiej objętości (zaawansowani)",
+     "passive": "tydzień bez treningu"
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 8 Roztrenowanie",
+      "pages": "73"
+     }
+    ]
+   },
+   "planLengthWeeks": {
+    "value": [
+     10,
+     16
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     }
+    ]
+   },
+   "changeCriteria": {
+    "value": [
+     "zmieniaj serie, powtórzenia i ćwiczenia w trakcie 16 tyg.",
+     "ten sam bodziec przez pół roku = brak efektów"
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "9-10"
+     }
+    ]
+   },
+   "macrocycleExample": {
+    "value": [
+     {
+      "phase": "intensyfikacja",
+      "weeks": 4,
+      "focus": "duże ciężary"
+     },
+     {
+      "phase": "akumulacja",
+      "weeks": 8,
+      "focus": "wysoka objętość"
+     },
+     {
+      "phase": "realizacja lub roztrenowanie",
+      "weeks": 4
+     }
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Czym jest periodyzacja",
+      "pages": "25"
+     }
+    ]
+   }
+  },
+  {
+   "id": "PAR-siła",
+   "category": "parameters",
+   "goal": "siła",
+   "frequency": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": [
+     3,
+     6
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja blokowa",
+      "pages": "32 (Tabela 11)"
+     }
+    ],
+    "note": "nazwa bloku utracona; przypisanie do celu 'siła' to wniosek"
+   },
+   "intensity": {
+    "value": {
+     "rir": [
+      1,
+      2
+     ],
+     "percent1RM": "z tabeli RIR-%RM (PR-RIR-TABLE)",
+     "rpe": [
+      8,
+      9
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja blokowa",
+      "pages": "32"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Intensywność treningowa",
+      "pages": "54-55"
+     }
+    ],
+    "note": "RPE wyliczone z RIR (wniosek)"
+   },
+   "rest": {
+    "value": {
+     "minutes": [
+      3,
+      5
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+      "pages": "62"
+     }
+    ]
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "ruchy globalne głównie ciężarem; przy stagnacji powrót do ciężaru z poprzedniego tygodnia z większą liczbą powtórzeń",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Jaki model periodyzacji wybrać",
+      "pages": "28"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Powtórzenia",
+      "pages": "61"
+     }
+    ]
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "note": "tylko ogólne zasady P14"
+   },
+   "planLengthWeeks": {
+    "value": [
+     8,
+     10
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     }
+    ]
+   }
+  },
+  {
+   "id": "PAR-redukcja",
+   "category": "parameters",
+   "goal": "redukcja",
+   "frequency": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "intensity": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLengthWeeks": {
+    "value": {
+     "weeks": [
+      8,
+      12
+     ],
+     "maxMonths": 3
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     }
+    ]
+   },
+   "warnings": {
+    "value": [
+     "deficyt + trening uzupełniający szybko dają zmęczenie centralne i obwodowe",
+     "nie łączyć z budowaniem masy",
+     "gigant serie tylko dla zawodników w końcówce redukcji"
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Metody treningowe",
+      "pages": "42"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 1 Wybierz realny cel",
+      "pages": "66"
+     }
+    ]
+   },
+   "inference": {
+    "value": "nie dokładaj objętości ponad plan hipertroficzny; blok maks. 12 tyg.",
+    "status": "wniosek",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     }
+    ]
+   }
+  },
+  {
+   "id": "PAR-zdrowie",
+   "category": "parameters",
+   "goal": "zdrowie",
+   "frequency": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "note": "książka nie opisuje treningu prozdrowotnego"
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "intensity": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLengthWeeks": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "usableGeneralRules": {
+    "value": [
+     "ocena możliwości przed planem",
+     "regresje ćwiczeń",
+     "technika przed ciężarem"
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Tworzenie planu a możliwości",
+      "pages": "11-23"
+     }
+    ]
+   }
+  },
+  {
+   "id": "PAR-wytrzymałość siłowa",
+   "category": "parameters",
+   "goal": "wytrzymałość siłowa",
+   "rest": {
+    "value": {
+     "seconds": [
+      10,
+      90
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+      "pages": "62"
+     }
+    ]
+   },
+   "reps": {
+    "value": {
+     "min": 20,
+     "rir": [
+      4,
+      5
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja blokowa",
+      "pages": "32"
+     }
+    ],
+    "note": "kolumna Tabeli 11 z wyskokami i rzutami; przypisanie do celu niepewne (wniosek)"
+   },
+   "planLengthWeeks": {
+    "value": [
+     8,
+     12
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     }
+    ]
+   },
+   "energyBalance": {
+    "value": "można, a nawet należy przy nadwyżce kalorycznej",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     }
+    ]
+   },
+   "frequency": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   }
+  },
+  {
+   "id": "PAR-początkujący",
+   "category": "parameters",
+   "goal": "początkujący",
+   "frequency": {
+    "value": {
+     "options": [
+      "3x FBW",
+      "4x góra/dół"
+     ],
+     "sameRegionGapHours": 72
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Metody treningowe",
+      "pages": "36-37"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Częstotliwość treningowa",
+      "pages": "58"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 3 Jednostki treningowe",
+      "pages": "67"
+     }
+    ]
+   },
+   "sets": {
+    "value": {
+     "perWeekPriorityMuscle": 10,
+     "perExercise": [
+      2,
+      3
+     ],
+     "accessoryShareOfMain": 0.5,
+     "warmupSets": 1
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Częstotliwość treningowa",
+      "pages": "58"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 5 Objętość",
+      "pages": "70"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "reps": {
+    "value": {
+     "range": [
+      6,
+      20
+     ],
+     "inSourcePlan": [
+      8,
+      12
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "71-72"
+     }
+    ]
+   },
+   "intensity": {
+    "value": {
+     "rir": [
+      1,
+      4
+     ],
+     "inSourcePlan": {
+      "main": 2,
+      "accessory": 3
+     },
+     "percent1RM": "nie dla początkujących"
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Intensywność treningowa",
+      "pages": "54"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "rest": {
+    "value": {
+     "mainMinutes": [
+      2,
+      3
+     ],
+     "lessDemandingMaxMinutes": 2,
+     "inSourcePlan": {
+      "main": 2,
+      "accessory": 1
+     }
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": {
+     "model": "liniowa, co tydzień",
+     "main": "ciężar",
+     "isolationAccessory": "powtórzenia",
+     "loadStepKg": 0.5,
+     "variant2": {
+      "4": "+1 seria robocza",
+      "5": "wzrost ciężaru i powrót do mniejszej liczby serii",
+      "6": "+1 seria robocza",
+      "7": "wzrost ciężaru i powrót do mniejszej liczby serii",
+      "8": "+1 seria robocza"
+     }
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja a progresywne przeładowanie",
+      "pages": "45"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 2 Periodyzacja",
+      "pages": "67"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 7 Metody treningowe",
+      "pages": "73"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Gotowy plan dla początkujących",
+      "pages": "82-94"
+     }
+    ],
+    "note": "tygodnie 1-3 wariantu 2 w utraconych tabelach"
+   },
+   "deload": {
+    "value": {
+     "activeRestWeeks": [
+      1,
+      2
+     ],
+     "when": "po zakończeniu planu"
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 8 Roztrenowanie",
+      "pages": "73"
+     }
+    ]
+   },
+   "changeCriteria": {
+    "value": [
+     "stagnacja → R13",
+     "po zakończeniu planu: deload i nowy plan"
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Jaki model periodyzacji wybrać",
+      "pages": "28"
+     }
+    ]
+   }
+  },
+  {
+   "id": "PR-RIR-TABLE",
+   "category": "lookup",
+   "title": "RIR do %1RM (Tabela 35)",
+   "unit": "% 1RM",
+   "reps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "rows": {
+    "0": [
+     100,
+     97,
+     94,
+     90,
+     87,
+     84,
+     81,
+     78,
+     77,
+     75,
+     74,
+     72
+    ],
+    "1": [
+     [
+      97,
+      98
+     ],
+     [
+      94,
+      95
+     ],
+     [
+      90,
+      92
+     ],
+     [
+      87,
+      89
+     ],
+     [
+      84,
+      86
+     ],
+     [
+      81,
+      83
+     ],
+     [
+      78,
+      80
+     ],
+     [
+      77,
+      78
+     ],
+     [
+      75,
+      76
+     ],
+     [
+      74,
+      75
+     ],
+     [
+      72,
+      73
+     ],
+     [
+      71,
+      72
+     ]
+    ],
+    "2": [
+     [
+      94,
+      95
+     ],
+     [
+      90,
+      92
+     ],
+     [
+      87,
+      89
+     ],
+     [
+      84,
+      86
+     ],
+     [
+      81,
+      83
+     ],
+     [
+      78,
+      80
+     ],
+     [
+      77,
+      78
+     ],
+     [
+      75,
+      76
+     ],
+     [
+      74,
+      75
+     ],
+     [
+      72,
+      73
+     ],
+     [
+      71,
+      72
+     ],
+     [
+      69,
+      70
+     ]
+    ],
+    "3+": [
+     [
+      90,
+      92
+     ],
+     [
+      87,
+      89
+     ],
+     [
+      84,
+      86
+     ],
+     [
+      81,
+      83
+     ],
+     [
+      78,
+      80
+     ],
+     [
+      77,
+      78
+     ],
+     [
+      75,
+      76
+     ],
+     [
+      74,
+      75
+     ],
+     [
+      72,
+      73
+     ],
+     [
+      71,
+      72
+     ],
+     [
+      69,
+      70
+     ],
+     [
+      68,
+      69
+     ]
+    ]
+   },
+   "status": "zrodlo",
+   "layoutStatus": "wniosek",
+   "note": "w wierszach 1-3+ plik ma dwie wartości na komórkę; zapisane jako zakres [min, max]",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Intensywność treningowa",
+     "pages": "55"
+    }
+   ]
+  },
+  {
+   "id": "PR-RIR-VELOCITY",
+   "category": "lookup",
+   "title": "RIR z czasu fazy koncentrycznej",
+   "rows": [
+    {
+     "concentricSeconds": ">=5",
+     "rir": 0
+    },
+    {
+     "concentricSeconds": "3-5",
+     "rir": 1
+    },
+    {
+     "concentricSeconds": "2-3",
+     "rir": 2
+    },
+    {
+     "concentricSeconds": "~2",
+     "rir": 3
+    },
+    {
+     "concentricSeconds": "~1",
+     "rir": 4
+    }
+   ],
+   "condition": "prędkość spada sama ze zmęczenia, bez celowego zwalniania; ruch cały czas płynny = seria nie jest robocza",
+   "status": "zrodlo",
+   "note": "wartości teoretyczne; progi nachodzą na siebie",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Intensywność treningowa",
+     "pages": "54"
+    }
+   ]
+  },
+  {
+   "id": "PR-PERIODIZATION",
+   "category": "periodization",
+   "models": [
+    {
+     "name": "liniowa (zmodyfikowana)",
+     "for": [
+      "początkujący",
+      "osoby po sportach wytrzymałościowych"
+     ],
+     "rule": "dokładaj serie do 4, potem zwiększ ciężar i wróć do mniejszej liczby serii",
+     "pages": "26-28"
+    },
+    {
+     "name": "falująca",
+     "for": [
+      "średnio zaawansowany",
+      "zaawansowany"
+     ],
+     "rule": "na zmianę wyższa objętość/mniejszy ciężar i niższa objętość/większy ciężar (tydzień lub trening)",
+     "pages": "30",
+     "uncertainty": "autor pisze też, że każdy kolejny tydzień ma mieć wyższą objętość"
+    },
+    {
+     "name": "sprzężona",
+     "for": [],
+     "rule": "różne zakresy powtórzeń w obrębie tygodnia, z oceną RPE; szczegóły na utraconym rysunku",
+     "pages": "31"
+    },
+    {
+     "name": "blokowa",
+     "for": [],
+     "blocks": [
+      {
+       "reps": [
+        3,
+        6
+       ],
+       "rir": [
+        1,
+        2
+       ],
+       "exercises": "ciężkie boje, ruchy globalne"
+      },
+      {
+       "reps": [
+        6,
+        20
+       ],
+       "rir": [
+        2,
+        4
+       ],
+       "exercises": "wielostawy i izolacje"
+      },
+      {
+       "repsMin": 20,
+       "rir": [
+        4,
+        5
+       ],
+       "exercises": "wyskoki, rzuty"
+      }
+     ],
+     "blockNamesLost": true,
+     "pages": "32"
+    }
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Jaki model periodyzacji wybrać",
+     "pages": "26-32"
+    }
+   ]
+  },
+  {
+   "id": "R1",
+   "category": "reguła",
+   "if": "klient początkujący, 3 treningi w tygodniu",
+   "then": "FBW, ćwiczenia w seriach, progresja liniowa co tydzień, ok. 10 serii/tydz. na partię priorytetową; szablon T2",
+   "status": "zrodlo",
+   "note": "rozkład ćwiczeń na 3 sesje = wniosek (szablony FBW utracone)",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 2 Periodyzacja",
+     "pages": "67"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 5 Objętość",
+     "pages": "70"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 7 Metody",
+     "pages": "73"
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "category": "reguła",
+   "if": "klient początkujący, 4 treningi w tygodniu",
+   "then": "góra/dół A1 dół, B1 góra, A2 dół, B2 góra; 72 h między sesjami tej samej części; szablon T3",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Częstotliwość treningowa",
+     "pages": "58"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Stwórz swój plan treningowy",
+     "pages": "67-72"
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "category": "reguła",
+   "if": "klient początkujący, 2 treningi w tygodniu",
+   "then": "FBW 2 dni (T1); oznacz, że książka nie opisuje tego wariantu; limit 10 serii/tydz. na partię priorytetową",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Częstotliwość treningowa",
+     "pages": "57"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 5 Objętość",
+     "pages": "70"
+    }
+   ]
+  },
+  {
+   "id": "R4",
+   "category": "reguła",
+   "if": "klient średnio zaawansowany lub zaawansowany",
+   "then": "wylicz objętość tygodniową (dni × 20 lub ok. 30 serii), rozdziel na partie od najważniejszej, potem na sesje; więcej sesji, mniej serii na sesję",
+   "status": "zrodlo",
+   "note": "30 dla zaawansowanych = wniosek",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "52-53"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 3 Jednostki treningowe",
+     "pages": "67"
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "category": "reguła",
+   "if": "klient chce klasyczny split (partia raz w tygodniu)",
+   "then": "zaproponuj góra/dół lub FBW z częstszym treningiem partii mniejszą objętością",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Metody treningowe",
+     "pages": "38"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Częstotliwość treningowa",
+     "pages": "58-59"
+    }
+   ]
+  },
+  {
+   "id": "R8",
+   "category": "reguła",
+   "if": "cel: hipertrofia",
+   "then": "6-20 powtórzeń, 60-85% RM, RIR 1-4, przerwy 2-3 min, partia co 2-3 dni, objętość MAV-MRV, plan 10-16 tyg. ze zmianami",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Jak długo powinien trwać plan",
+     "pages": "10"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "48"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Częstotliwość treningowa",
+     "pages": "57"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+     "pages": "62"
+    }
+   ]
+  },
+  {
+   "id": "R9",
+   "category": "reguła",
+   "if": "cel: siła",
+   "then": "ruchy globalne 3-6 powtórzeń, RIR 1-2, przerwy 3-5 min, progresja ciężarem, blok 8-10 tyg.; serie i dni: brak w źródle",
+   "status": "zrodlo",
+   "note": "przypisanie bloku 3-6 do celu siła = wniosek",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Jak długo powinien trwać plan",
+     "pages": "10"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Periodyzacja blokowa",
+     "pages": "32"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+     "pages": "62"
+    }
+   ]
+  },
+  {
+   "id": "R10",
+   "category": "reguła",
+   "if": "cel: redukcja",
+   "then": "blok 8-12 tyg. (maks. 3 miesiące), nie łączyć z masą, bez gigant serii; pozostałe parametry: brak w źródle",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Jak długo powinien trwać plan",
+     "pages": "10"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Metody treningowe",
+     "pages": "42"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 1 Realny cel",
+     "pages": "66"
+    }
+   ]
+  },
+  {
+   "id": "R11",
+   "category": "reguła",
+   "if": "cel: wytrzymałość siłowa",
+   "then": "przerwy 10-90 s; plan 8-12 tyg.; można przy nadwyżce kalorycznej",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Jak długo powinien trwać plan",
+     "pages": "10"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+     "pages": "62"
+    }
+   ]
+  },
+  {
+   "id": "R12",
+   "category": "reguła",
+   "if": "cel: zdrowie",
+   "then": null,
+   "status": "brak_w_zrodle",
+   "note": "użyj innego źródła lub decyzji trenera; zastosuj ogólne zasady doboru ćwiczeń"
+  },
+  {
+   "id": "R13",
+   "category": "reguła",
+   "if": "klient nie wykonał zaplanowanych powtórzeń z nowym ciężarem (stagnacja)",
+   "then": "wróć do ciężaru z poprzedniego tygodnia i zrób więcej powtórzeń (np. 4×6×107,5 kg nieudane → 4×8-9×105 kg); po sukcesie zwiększ ciężar w kolejnym tygodniu",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Jaki model periodyzacji wybrać",
+     "pages": "28"
+    }
+   ]
+  },
+  {
+   "id": "R14",
+   "category": "reguła",
+   "if": "wszystkie powtórzenia płynne, bez spadku prędkości",
+   "then": "seria nie jest robocza; zwiększ ciężar lub powtórzenia",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Intensywność treningowa",
+     "pages": "54"
+    }
+   ]
+  },
+  {
+   "id": "R15",
+   "category": "reguła",
+   "if": "słaba regeneracja przy dużej objętości",
+   "then": "zmniejsz serie partii niepriorytetowych, nie przekraczaj MRV",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "49-52"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 3 Jednostki treningowe",
+     "pages": "67"
+    }
+   ]
+  },
+  {
+   "id": "R16",
+   "category": "reguła",
+   "if": "klient zakończył plan",
+   "then": "początkujący: 1-2 tyg. aktywnego wypoczynku; zaawansowany: tydzień bez treningu lub lokalny deload po ok. 6 tyg. wysokiej objętości",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 8 Roztrenowanie",
+     "pages": "73"
+    }
+   ]
+  },
+  {
+   "id": "R19",
+   "category": "reguła",
+   "if": "klient nie realizuje planu",
+   "then": "sprawdź realność celu (Krok 1) i uprość plan: mniej ćwiczeń, metoda w seriach, łatwiejsze warianty",
+   "status": "wniosek",
+   "note": "książka nie opisuje wprost opuszczania treningów",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Stwórz swój plan treningowy",
+     "pages": "65-66"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 7 Metody",
+     "pages": "73"
+    }
+   ]
+  },
+  {
+   "id": "R20",
+   "category": "reguła",
+   "if": "klient trenuje tym samym schematem dłużej niż długość planu dla celu",
+   "then": "zmień serie, powtórzenia lub ćwiczenia",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Jak długo powinien trwać plan",
+     "pages": "9-10"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S1",
+   "trigger": "początkujący zwiększa ciężar",
+   "action": "dokładaj małymi krokami (ok. 0,5 kg); gwałtowny skok grozi kontuzją",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Periodyzacja a progresywne przeładowanie",
+     "pages": "45"
+    }
+   ]
+  },
+  {
+   "id": "S2",
+   "trigger": "hip thrust z bardzo dużym ciężarem",
+   "action": "pilnuj techniki; siły ścinające na odcinek lędźwiowy",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "15"
+    }
+   ]
+  },
+  {
+   "id": "S3",
+   "trigger": "wiosłowanie w opadzie",
+   "action": "obciąża prostowniki i podnosi ciśnienie tętnicze; przy zgłoszonym nadciśnieniu lub problemach lędźwiowych wybierz wariant z podparciem i zastosuj S12",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "18"
+    }
+   ],
+   "note": "zamiana na wariant z podparciem = wniosek; S12 = poza źródłem"
+  },
+  {
+   "id": "S4",
+   "trigger": "błędy techniczne w back squacie lub klasycznym martwym ciągu",
+   "action": "regresja do prostszego wariantu",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "12-13"
+    }
+   ]
+  },
+  {
+   "id": "S5",
+   "trigger": "brak mobilności, stabilności lub kontroli",
+   "action": "nie programuj front squata",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "12"
+    }
+   ]
+  },
+  {
+   "id": "S6",
+   "trigger": "początkujący",
+   "action": "nie stosuj drop setów",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. II Metody treningowe",
+     "pages": "41"
+    }
+   ]
+  },
+  {
+   "id": "S7",
+   "trigger": "objętość powyżej MRV lub maksymalna objętość na wszystkie partie",
+   "action": "zmniejsz objętość; ryzyko nadmiernego zmęczenia obwodowego i centralnego",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. III Objętość treningowa",
+     "pages": "49"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 3 Jednostki treningowe",
+     "pages": "67"
+    }
+   ]
+  },
+  {
+   "id": "S8",
+   "trigger": "redukcja dłuższa niż 3 miesiące lub dużo treningu uzupełniającego w deficycie",
+   "action": "skróć blok; ryzyko zmęczenia centralnego i obwodowego",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Jak długo powinien trwać plan",
+     "pages": "10"
+    }
+   ]
+  },
+  {
+   "id": "S9",
+   "trigger": "zgłoszone ograniczenia ruchomości lub słabe ogniwa",
+   "action": "książka: testy funkcjonalne u trenera medycznego; aplikacja: zalecenie konsultacji z fizjoterapeutą",
+   "status": "zrodlo",
+   "priority": "refer",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "22-23"
+    }
+   ],
+   "note": "zalecenie fizjoterapeuty = poza źródłem"
+  },
+  {
+   "id": "S10",
+   "trigger": "ćwiczenie 'narciarz' na wyciągu",
+   "action": "łokieć stabilny i zablokowany",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. I Tworzenie planu a możliwości",
+     "pages": "18"
+    }
+   ]
+  },
+  {
+   "id": "S11",
+   "trigger": "ból w klatce piersiowej, duszność nieadekwatna do wysiłku, kołatanie serca, omdlenie lub zawroty głowy",
+   "action": "przerwij trening, zalecenie pilnego kontaktu z lekarzem",
+   "status": "poza_zrodlem",
+   "priority": "stop"
+  },
+  {
+   "id": "S12",
+   "trigger": "choroby serca, nadciśnienie, cukrzyca, ciąża lub inna choroba przewlekła bez zgody lekarza",
+   "action": "zalecenie konsultacji lekarskiej przed treningiem",
+   "status": "poza_zrodlem",
+   "priority": "refer"
+  },
+  {
+   "id": "S13",
+   "trigger": "ciemny mocz z silnym bólem i obrzękiem mięśni po bardzo ciężkim treningu",
+   "action": "przerwij trening, zalecenie pilnego kontaktu z lekarzem",
+   "status": "poza_zrodlem",
+   "priority": "stop"
+  },
+  {
+   "id": "S14",
+   "trigger": "ostry ból stawu lub mięśnia podczas ćwiczenia (inny niż zmęczenie)",
+   "action": "przerwij ćwiczenie, zalecenie konsultacji z fizjoterapeutą, nie programuj obciążenia tej okolicy",
+   "status": "poza_zrodlem",
+   "priority": "refer"
+  },
+  {
+   "id": "S15",
+   "trigger": "ból utrzymujący się lub narastający między treningami, obrzęk, ograniczenie ruchu, drętwienie, mrowienie",
+   "action": "zalecenie konsultacji z fizjoterapeutą lub lekarzem",
+   "status": "poza_zrodlem",
+   "priority": "refer"
+  },
+  {
+   "id": "S16",
+   "trigger": "świeży uraz, operacja, rehabilitacja w toku",
+   "action": "nie programuj obciążenia okolicy bez zgody fizjoterapeuty/lekarza",
+   "status": "poza_zrodlem",
+   "priority": "refer"
+  },
+  {
+   "id": "S-COMM",
+   "trigger": "każdy komunikat bezpieczeństwa",
+   "action": "nie nazywaj przyczyny, nie sugeruj rozpoznania, nie zalecaj leków ani suplementów",
+   "status": "poza_zrodlem",
+   "priority": "policy"
+  }
+ ],
+ "planTemplates": [
+  {
+   "id": "T1",
+   "name": "FBW 2 dni",
+   "goal": [
+    "początkujący z małą ilością czasu"
+   ],
+   "level": "początkujący",
+   "status": "wniosek",
+   "note": "wariant nieopisany w książce; autor zaleca 3-4 sesje dla początkujących (s. 67)",
+   "days": {
+    "count": 2,
+    "layout": [
+     "A",
+     "B"
+    ],
+    "spacing": {
+     "value": "co najmniej 2 dni przerwy",
+     "status": "wniosek",
+     "sources": [
+      {
+       "ref": "ukladanie-planow-stachurski",
+       "chapter": "Cz. III Częstotliwość treningowa",
+       "pages": "57"
+      }
+     ]
+    }
+   },
+   "exercises": {
+    "A": [
+     "przysiad kolarski lub goblet squat",
+     "martwy ciąg klasyczny lub rumuński",
+     "wyciskanie na ławce poziomej",
+     "wiosłowanie podchwytem",
+     "wznosy hantli bokiem",
+     "uginanie przedramion + prostowanie linek (super seria)"
+    ],
+    "B": [
+     "wykrok statyczny lub step up",
+     "hip thrust lub glute bridge",
+     "wyciskanie żołnierskie",
+     "podciąganie negatywne lub z gumą",
+     "face pull",
+     "spięcia brzucha na piłce"
+    ]
+   },
+   "exercisesStatus": "wniosek (ćwiczenia z planu s. 72)",
+   "sets": {
+    "value": {
+     "main": [
+      2,
+      3
+     ],
+     "accessory": 2,
+     "perPriorityMusclePerSession": 5
+    },
+    "status": "wniosek",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 5 Objętość",
+      "pages": "70"
+     }
+    ]
+   },
+   "reps": {
+    "value": [
+     8,
+     12
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "rir": {
+    "value": {
+     "main": 2,
+     "accessory": 3
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "rpe": {
+    "value": {
+     "main": 8,
+     "accessory": 7
+    },
+    "status": "wniosek"
+   },
+   "restSeconds": {
+    "value": {
+     "main": 120,
+     "accessory": 60
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "progression": {
+    "value": "liniowa co tydzień: ciężar w głównych, powtórzenia w akcesoriach; po planie 1-2 tyg. aktywnego wypoczynku",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 2 Periodyzacja",
+      "pages": "67"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 8 Roztrenowanie",
+      "pages": "73"
+     }
+    ]
+   },
+   "common": {
+    "order": "wielostawowe priorytetowe → izolowane/akcesoryjne → uzupełniające",
+    "warmupSets": 1,
+    "tempo": null
+   },
+   "missingInSource": [
+    "szablon 2-dniowy",
+    "tempo"
+   ]
+  },
+  {
+   "id": "T2",
+   "name": "FBW 3 dni",
+   "goal": [
+    "początkujący",
+    "hipertrofia ogólna"
+   ],
+   "level": "początkujący",
+   "status": "zrodlo",
+   "note": "forma i częstotliwość ze źródła; rozkład ćwiczeń = wniosek (Tabela 13 utracona)",
+   "days": {
+    "count": 3,
+    "layout": [
+     "A",
+     "B",
+     "C"
+    ],
+    "spacing": {
+     "value": "dzień przerwy między sesjami, np. pon./śr./pt.",
+     "status": "wniosek",
+     "sources": [
+      {
+       "ref": "ukladanie-planow-stachurski",
+       "chapter": "Cz. III Częstotliwość treningowa",
+       "pages": "57"
+      }
+     ]
+    }
+   },
+   "exercises": {
+    "A": [
+     "przysiad kolarski ze sztangą",
+     "martwy ciąg klasyczny",
+     "wyciskanie na ławce poziomej",
+     "wiosłowanie podchwytem",
+     "wspięcia na palce"
+    ],
+    "B": [
+     "hip thrust",
+     "wykrok statyczny",
+     "wyciskanie żołnierskie",
+     "podciąganie negatywne",
+     "uginanie przedramion + prostowanie linek (super seria)"
+    ],
+    "C": [
+     "goblet squat",
+     "rumuński martwy ciąg",
+     "rozpiętki na skosie dodatnim",
+     "pendlay row",
+     "wznosy hantli bokiem",
+     "spięcia brzucha na piłce"
+    ]
+   },
+   "exercisesStatus": "wniosek",
+   "sets": {
+    "value": {
+     "perExercise": [
+      2,
+      3
+     ],
+     "perWeekPriorityMuscle": 10
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 5 Objętość",
+      "pages": "70"
+     }
+    ],
+    "note": "autor: przy 3 treningach serii 'diametralnie' przybywa, bez liczb"
+   },
+   "reps": {
+    "value": [
+     8,
+     12
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "rir": {
+    "value": {
+     "main": 2,
+     "accessory": 3
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "rpe": {
+    "value": {
+     "main": 8,
+     "accessory": 7
+    },
+    "status": "wniosek"
+   },
+   "restSeconds": {
+    "value": {
+     "main": 120,
+     "accessory": 60
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+      "pages": "72"
+     }
+    ]
+   },
+   "progression": {
+    "value": "liniowa co tydzień jak T1 albo wariant 2 z T3",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 2 Periodyzacja",
+      "pages": "67"
+     }
+    ]
+   },
+   "common": {
+    "order": "wielostawowe priorytetowe → izolowane/akcesoryjne → uzupełniające",
+    "warmupSets": 1,
+    "tempo": null
+   },
+   "missingInSource": [
+    "szablon FBW (Tabela 13)",
+    "tempo"
+   ]
+  },
+  {
+   "id": "T3",
+   "name": "Góra/dół 4 dni (plan z książki)",
+   "goal": [
+    "początkujący",
+    "kształtowanie sylwetki"
+   ],
+   "level": "początkujący",
+   "status": "zrodlo",
+   "days": {
+    "count": 4,
+    "layout": [
+     "A1 dół",
+     "B1 góra",
+     "A2 dół",
+     "B2 góra"
+    ],
+    "spacing": {
+     "value": "72 h między sesjami tej samej części, np. pon. A1, wt. B1, czw. A2, pt. B2",
+     "status": "zrodlo",
+     "sources": [
+      {
+       "ref": "ukladanie-planow-stachurski",
+       "chapter": "Cz. III Częstotliwość treningowa",
+       "pages": "58"
+      }
+     ],
+     "note": "dokładne dni i przypisanie ćwiczeń do dni z kolejności listy = wniosek"
+    }
+   },
+   "exercises": {
+    "A1": [
+     {
+      "name": "przysiad kolarski ze sztangą",
+      "sets": 3,
+      "reps": 8,
+      "exampleLoadKg": 60,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo",
+      "role": "główne"
+     },
+     {
+      "name": "wykrok statyczny",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": 10,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "martwy ciąg klasyczny",
+      "sets": 3,
+      "reps": 8,
+      "exampleLoadKg": 60,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo",
+      "role": "główne"
+     },
+     {
+      "name": "hip thrust",
+      "sets": 2,
+      "reps": 10,
+      "exampleLoadKg": 70,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo",
+      "role": "główne"
+     },
+     {
+      "name": "wspięcia na palce ze sztangą stojąc",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": 60,
+      "rir": 3,
+      "restSeconds": 60,
+      "status": "zrodlo"
+     },
+     {
+      "name": "unoszenie kolan do klatki w zwisie",
+      "sets": 3,
+      "reps": 12,
+      "exampleLoadKg": null,
+      "rir": 3,
+      "restSeconds": 60,
+      "status": "zrodlo",
+      "note": "w źródle '60 kg' jak przy wspięciach; prawdopodobny błąd kopiowania"
+     }
+    ],
+    "B1": [
+     {
+      "name": "wyciskanie żołnierskie",
+      "sets": 3,
+      "reps": 8,
+      "exampleLoadKg": 40,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo",
+      "role": "główne"
+     },
+     {
+      "name": "wyciskanie na ławce poziomej",
+      "sets": 2,
+      "reps": 10,
+      "exampleLoadKg": 50,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo",
+      "role": "główne"
+     },
+     {
+      "name": "wiosłowanie podchwytem",
+      "sets": 3,
+      "reps": 8,
+      "exampleLoadKg": 50,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo",
+      "role": "główne"
+     },
+     {
+      "name": "Y-raise",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": 6,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "uginanie przedramion ze sztangą + prostowanie linek wyciągu górnego (super seria)",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": null,
+      "rir": 2,
+      "restSeconds": 60,
+      "status": "zrodlo"
+     }
+    ],
+    "A2": [
+     {
+      "name": "rumuński martwy ciąg",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": 40,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "glute bridge",
+      "sets": 3,
+      "reps": 12,
+      "exampleLoadKg": 70,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "goblet squat",
+      "sets": 2,
+      "reps": 10,
+      "exampleLoadKg": 14,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wejścia na skrzynię (step up)",
+      "sets": 3,
+      "reps": 12,
+      "exampleLoadKg": 8,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "X-walk",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": null,
+      "rir": 3,
+      "restSeconds": 60,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przywodzenie kopenhaskie",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": null,
+      "rir": 3,
+      "restSeconds": 60,
+      "status": "zrodlo"
+     },
+     {
+      "name": "spięcia brzucha na piłce",
+      "sets": 3,
+      "reps": 12,
+      "exampleLoadKg": null,
+      "rir": 3,
+      "restSeconds": 60,
+      "status": "zrodlo"
+     }
+    ],
+    "B2": [
+     {
+      "name": "podciąganie negatywne",
+      "sets": 2,
+      "reps": 8,
+      "exampleLoadKg": null,
+      "rir": 0,
+      "restSeconds": null,
+      "status": "zrodlo",
+      "note": "RIR 0 sprzeczne z zasadą RIR 1-4; brak przerwy w źródle; bez progresji ciężaru, z czasem guma i próby pełnego podciągania"
+     },
+     {
+      "name": "pendlay row",
+      "sets": 3,
+      "reps": 10,
+      "exampleLoadKg": 50,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo",
+      "role": "główne"
+     },
+     {
+      "name": "wznosy hantli bokiem stojąc",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": 10,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "rozpiętki na skosie dodatnim",
+      "sets": 3,
+      "reps": 12,
+      "exampleLoadKg": 12,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "face pull",
+      "sets": 3,
+      "reps": 12,
+      "exampleLoadKg": 40,
+      "rir": 2,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     },
+     {
+      "name": "uginanie przedramion z hantlami + wyciskanie wąskim chwytem (super seria)",
+      "sets": 2,
+      "reps": 12,
+      "exampleLoadKg": null,
+      "rir": 3,
+      "restSeconds": 120,
+      "status": "zrodlo"
+     }
+    ]
+   },
+   "exercisesSources": [
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 4 Ćwiczenia",
+     "pages": "69 (Tabela 45)"
+    },
+    {
+     "ref": "ukladanie-planow-stachurski",
+     "chapter": "Cz. IV Krok 6 Pozostałe parametry",
+     "pages": "72 (Tabela 48)"
+    }
+   ],
+   "roleNote": "oznaczenie kolorami (czerwony=główne, niebieski=uzupełniające) utracone; 'główne' = wielostawowe ze sztangą (wniosek)",
+   "loadNote": "ciężary tylko przykładowe; dopasuj do klienta (s. 72)",
+   "weeklySets": {
+    "value": {
+     "czworogłowe": 10,
+     "pośladki": 10,
+     "klatka": 5,
+     "barki": 5,
+     "najszersze": 5,
+     "czworoboczne": 5,
+     "biceps": 4,
+     "triceps": 4,
+     "dwugłowe uda": 4,
+     "łydki": 4
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Częstotliwość treningowa",
+      "pages": "58"
+     }
+    ]
+   },
+   "rpe": {
+    "value": {
+     "main": 8,
+     "accessory": 7
+    },
+    "status": "wniosek"
+   },
+   "progression": {
+    "value": {
+     "variant1": "liniowa co tydzień: ciężar w głównych, powtórzenia w uzupełniających",
+     "variant2": {
+      "1-3": null,
+      "4": "+1 seria robocza",
+      "5": "wzrost ciężaru i powrót do mniejszej liczby serii",
+      "6": "+1 seria robocza",
+      "7": "wzrost ciężaru i powrót do mniejszej liczby serii",
+      "8": "+1 seria robocza"
+     }
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 7 Metody",
+      "pages": "73"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Gotowy plan dla początkujących",
+      "pages": "74-94"
+     }
+    ],
+    "note": "tabele tygodni 1-3 utracone"
+   },
+   "deload": {
+    "value": {
+     "activeRestWeeks": [
+      1,
+      2
+     ]
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 8 Roztrenowanie",
+      "pages": "73"
+     }
+    ]
+   },
+   "common": {
+    "order": "wielostawowe priorytetowe → izolowane/akcesoryjne → uzupełniające",
+    "warmupSets": 1,
+    "tempo": null
+   },
+   "missingInSource": [
+    "tempo",
+    "tabele tygodniowe 49-68"
+   ]
+  },
+  {
+   "id": "T4",
+   "name": "Plan hipertroficzny (średnio zaawansowany)",
+   "goal": [
+    "hipertrofia"
+   ],
+   "level": "średnio zaawansowany",
+   "status": "wniosek",
+   "note": "złożony z zasad książki",
+   "days": {
+    "count": 4,
+    "layout": [
+     "góra/dół lub FBW"
+    ],
+    "spacing": {
+     "value": "każda partia co 2-3 dni",
+     "status": "zrodlo",
+     "sources": [
+      {
+       "ref": "ukladanie-planow-stachurski",
+       "chapter": "Cz. III Częstotliwość treningowa",
+       "pages": "57"
+      }
+     ]
+    }
+   },
+   "exercises": {
+    "compound": [
+     "back squat lub zercher",
+     "martwy ciąg klasyczny lub sumo",
+     "hip thrust",
+     "wykrok chodzony",
+     "wiosłowanie w opadzie",
+     "podciąganie",
+     "OHP stojąc",
+     "wyciskanie na ławce"
+    ],
+    "regional": [
+     "ściąganie wyciągu górnego",
+     "narciarz",
+     "wznosy bokiem"
+    ]
+   },
+   "exercisesStatus": "zrodlo (etap 2 wzorców)",
+   "sets": {
+    "value": {
+     "perWeekPriorityMuscle": 20,
+     "perWeekTotal4days": 80,
+     "perPriorityMusclePerSession": 5
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "52-53"
+     }
+    ],
+    "note": "5 na sesję = wniosek"
+   },
+   "reps": {
+    "value": [
+     6,
+     20
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Powtórzenia",
+      "pages": "60"
+     }
+    ]
+   },
+   "rir": {
+    "value": [
+     1,
+     4
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "48"
+     }
+    ]
+   },
+   "rpe": {
+    "value": [
+     6,
+     9
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja sprzężona",
+      "pages": "31"
+     }
+    ]
+   },
+   "percent1RM": {
+    "value": [
+     60,
+     85
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "48"
+     }
+    ]
+   },
+   "restSeconds": {
+    "value": [
+     120,
+     180
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+      "pages": "62"
+     }
+    ]
+   },
+   "methods": {
+    "value": [
+     "serie łączone",
+     "super serie",
+     "wstępne zmęczenie"
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Metody treningowe",
+      "pages": "39-43"
+     }
+    ]
+   },
+   "progression": {
+    "value": "falująca lub liniowa z dokładaniem serii; makrocykl 4 tyg. intensyfikacji → 8 tyg. akumulacji → 4 tyg. realizacji/roztrenowania; plan 10-16 tyg.",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Czym jest periodyzacja",
+      "pages": "25"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Jaki model periodyzacji wybrać",
+      "pages": "30"
+     }
+    ]
+   },
+   "deload": {
+    "value": "lokalny, np. po 6 tyg. wysokiej objętości",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 8 Roztrenowanie",
+      "pages": "73"
+     }
+    ]
+   },
+   "common": {
+    "order": "wielostawowe priorytetowe → izolowane/akcesoryjne → uzupełniające",
+    "warmupSets": 1,
+    "tempo": null
+   },
+   "missingInSource": [
+    "tempo",
+    "MEV/MAV/MRV liczbowo"
+   ]
+  },
+  {
+   "id": "T5",
+   "name": "Plan siłowy",
+   "goal": [
+    "siła ogólna"
+   ],
+   "level": null,
+   "status": "wniosek",
+   "note": "złożony z zasad książki",
+   "days": {
+    "count": null,
+    "layout": null
+   },
+   "exercises": {
+    "main": [
+     "przysiad",
+     "martwy ciąg",
+     "wyciskanie leżąc",
+     "wyciskanie stojąc"
+    ]
+   },
+   "exercisesStatus": "zrodlo (ciężkie boje i ruchy globalne, s. 32); dobór wariantu wg etapów s. 11-21",
+   "sets": null,
+   "reps": {
+    "value": [
+     3,
+     6
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja blokowa",
+      "pages": "32"
+     }
+    ]
+   },
+   "rir": {
+    "value": [
+     1,
+     2
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja blokowa",
+      "pages": "32"
+     }
+    ]
+   },
+   "rpe": {
+    "value": [
+     8,
+     9
+    ],
+    "status": "wniosek"
+   },
+   "percent1RM": {
+    "value": "z PR-RIR-TABLE, np. 5 powtórzeń przy RIR 2 ≈ 81-83%",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Intensywność treningowa",
+      "pages": "55"
+     }
+    ]
+   },
+   "restSeconds": {
+    "value": [
+     180,
+     300
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+      "pages": "62"
+     }
+    ]
+   },
+   "progression": {
+    "value": "ciężar; przy stagnacji powrót do ciężaru z poprzedniego tygodnia z większą liczbą powtórzeń",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Jaki model periodyzacji wybrać",
+      "pages": "28"
+     }
+    ]
+   },
+   "planLengthWeeks": {
+    "value": [
+     8,
+     10
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Jak długo powinien trwać plan",
+      "pages": "10"
+     }
+    ]
+   },
+   "deload": null,
+   "common": {
+    "order": "wielostawowe priorytetowe → izolowane/akcesoryjne → uzupełniające",
+    "warmupSets": 1,
+    "tempo": null
+   },
+   "missingInSource": [
+    "dni",
+    "serie",
+    "tempo",
+    "deload"
+   ]
+  },
+  {
+   "id": "T6",
+   "name": "Plan domowy bez siłowni",
+   "goal": [
+    "hipertrofia",
+    "ogólny rozwój"
+   ],
+   "level": "początkujący",
+   "status": "wniosek",
+   "note": "ćwiczenia ze źródła, układ = wniosek; zakłada kettlebell/hantle, gumę i drążek",
+   "days": {
+    "count": 3,
+    "layout": [
+     "A",
+     "B",
+     "C"
+    ],
+    "spacing": {
+     "value": "dzień przerwy",
+     "status": "wniosek",
+     "sources": [
+      {
+       "ref": "ukladanie-planow-stachurski",
+       "chapter": "Cz. III Częstotliwość treningowa",
+       "pages": "57"
+      }
+     ]
+    }
+   },
+   "exercises": {
+    "A": [
+     "goblet squat (lub air squat → TRX squat)",
+     "martwy ciąg z kettlebell",
+     "floor press",
+     "gorilla row",
+     "glute bridge"
+    ],
+    "B": [
+     "wykrok statyczny → chodzony → przysiad bułgarski",
+     "hip hinge z gumą lub z kolan",
+     "podciąganie z gumą lub negatywne",
+     "wyciskanie hantli stojąc",
+     "floor fly"
+    ],
+    "C": [
+     "przysiad kolarski lub goblet",
+     "martwy ciąg na jednej nodze",
+     "wiosłowanie hantlą w podporze",
+     "renegade row",
+     "glute bridge jednonóż"
+    ]
+   },
+   "exercisesStatus": "zrodlo (s. 11-21)",
+   "sets": {
+    "value": {
+     "perWeekPriorityMuscle": 10
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. IV Krok 5 Objętość",
+      "pages": "70"
+     }
+    ]
+   },
+   "reps": {
+    "value": {
+     "range": [
+      6,
+      20
+     ],
+     "ifAbove": 20,
+     "then": "trudniejszy wariant (R7)"
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Powtórzenia",
+      "pages": "60"
+     }
+    ]
+   },
+   "rir": {
+    "value": [
+     1,
+     4
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Objętość treningowa",
+      "pages": "48"
+     }
+    ]
+   },
+   "rpe": {
+    "value": [
+     6,
+     9
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja sprzężona",
+      "pages": "31"
+     }
+    ]
+   },
+   "restSeconds": {
+    "value": [
+     120,
+     180
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. III Przerwy między seriami (tytuł utracony w spisie treści)",
+      "pages": "62"
+     }
+    ]
+   },
+   "progression": {
+    "value": [
+     "wyższy etap ćwiczenia",
+     "praca jednostronna",
+     "guma / mini band",
+     "więcej powtórzeń",
+     "siła względna"
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. I Tworzenie planu a możliwości",
+      "pages": "15"
+     },
+     {
+      "ref": "ukladanie-planow-stachurski",
+      "chapter": "Cz. II Periodyzacja a progresywne przeładowanie",
+      "pages": "44"
+     }
+    ]
+   },
+   "common": {
+    "order": "wielostawowe priorytetowe → izolowane/akcesoryjne → uzupełniające",
+    "warmupSets": 1,
+    "tempo": null
+   },
+   "missingInSource": [
+    "tempo",
+    "dedykowany plan domowy"
+   ]
+  }
+ ],
+ "sourceReferences": [
+  {
+   "id": "ukladanie-planow-stachurski",
+   "type": "book",
+   "author": "Mateusz Stachurski",
+   "publisher": "Global Sport Academy",
+   "title": "Układanie planów treningowych od podstaw",
+   "year": null,
+   "isbn": null,
+   "pages": null,
+   "pagesNote": "ostatnia tabela na s. 94; plik bez stopek, strony ze spisu treści/tabel/rysunków",
+   "scope": "programowanie treningu sylwetkowego: periodyzacja, metody, objętość, intensywność, częstotliwość, powtórzenia, przerwy, tempo, plan 4-dniowy dla początkujących",
+   "fileUsed": "Ukladanie-planow-treningowych-od-podstaw.txt (tekst bez grafik)",
+   "personalDataOmitted": "pierwsza linia pliku zawiera imię i nazwisko (personalizacja e-booka), pominięte"
+  },
+  {
+   "id": "lost-figures-tables",
+   "type": "missing_data",
+   "items": [
+    {
+     "pages": "11-21",
+     "element": "Tabele 2-9 progresje/regresje (układ etapów)",
+     "kept": "opisy ćwiczeń, część nagłówków etapów"
+    },
+    {
+     "pages": "25, 27, 30, 31",
+     "element": "Rysunki 1-4 periodyzacja",
+     "kept": "opis słowny, skala RPE"
+    },
+    {
+     "pages": "28",
+     "element": "Tabela 10 periodyzacja liniowa martwy ciąg",
+     "kept": "zasada i przykład stagnacji"
+    },
+    {
+     "pages": "32",
+     "element": "Tabela 11 periodyzacja blokowa",
+     "kept": "zawartość kolumn bez nazw bloków"
+    },
+    {
+     "pages": "34-43",
+     "element": "Tabele 12-25 formy i metody, szablony FBW/Upper Push/Lower Body/Split; Rysunek 5",
+     "kept": "opisy metod"
+    },
+    {
+     "pages": "45-46",
+     "element": "Rysunek 6, Tabele 26-28 przykłady progresji",
+     "kept": "lista metod progresji"
+    },
+    {
+     "pages": "48-53",
+     "element": "Rysunek 7, Tabela 29 MV/MEV/MAV/MRV, Tabele 30-34, Rysunek 8",
+     "kept": "legenda, 40/80/120 serii przy 4 dniach, 20 serii średnio zaawansowany"
+    },
+    {
+     "pages": "57-58",
+     "element": "Rysunek 9 MPS, Tabele 36-38",
+     "kept": "tygodniowe serie planu góra/dół"
+    },
+    {
+     "pages": "61",
+     "element": "Rysunki 10-11 zakresy powtórzeń, Tabela 39",
+     "kept": "zasada progresji ciężarem/powtórzeniami"
+    },
+    {
+     "pages": "63",
+     "element": "Tabele 40-41 tempo",
+     "kept": "tylko informacja o starcie od ekscentryki w przysiadzie, dipach, wyciskaniu"
+    },
+    {
+     "pages": "66-68",
+     "element": "Tabele 42-44 założenia, periodyzacja, układ 4 dni",
+     "kept": "72 h pon.-czw."
+    },
+    {
+     "pages": "69",
+     "element": "Tabela 45/46 kolory główne/uzupełniające",
+     "kept": "lista ćwiczeń"
+    },
+    {
+     "pages": "74-94",
+     "element": "Tabele 49-68 plan tydzień po tygodniu",
+     "kept": "opis tygodni 4-8 wariantu 2"
+    }
+   ],
+   "keptComplete": [
+    "Tabela 1 (s. 10)",
+    "Tabela 35 (s. 55, układ niepewny)",
+    "Tabela 48 (s. 72)"
+   ],
+   "toRecover": "oryginalny PDF"
+  },
+  {
+   "id": "contradictions",
+   "type": "uncertainties",
+   "items": [
+    {
+     "topic": "zakres powtórzeń",
+     "detail": "s. 48: poza 6-20 i RIR 1-4 brak efektu; s. 60: każdy zakres blisko upadku działa",
+     "appDecision": "6-20 jako reguła, wyższe zakresy jako mniej efektywne"
+    },
+    {
+     "topic": "przerwy",
+     "detail": "definicja 2-5 min (s. 48) vs 1 min w planie dla akcesoriów (s. 72)"
+    },
+    {
+     "topic": "RIR 0",
+     "detail": "zasada RIR 1-4 vs podciąganie negatywne RIR 0 (s. 72)"
+    },
+    {
+     "topic": "periodyzacja liniowa",
+     "detail": "'na nic się nie przyda' (s. 26-27) vs najlepsza dla początkujących w wersji zmodyfikowanej (s. 67)"
+    },
+    {
+     "topic": "objętość początkującego",
+     "detail": "wzór 40 serii przy 4 dniach (s. 53) vs ok. 56 serii w przykładzie (s. 58); autor przyznaje lekkie przekroczenie dla nóg (s. 82)"
+    },
+    {
+     "topic": "FBW 3x",
+     "detail": "'serii diametralnie przybywa' bez liczb (s. 70)"
+    },
+    {
+     "topic": "periodyzacja falująca",
+     "detail": "tydzień niskiej objętości vs każdy kolejny tydzień z wyższą objętością (s. 30)"
+    },
+    {
+     "topic": "RIR z prędkości",
+     "detail": "progi nachodzą na siebie (s. 54)"
+    },
+    {
+     "topic": "błąd w danych",
+     "detail": "unoszenie kolan w zwisie '60 kg × 12' jak wspięcia na palce (s. 72)"
+    },
+    {
+     "topic": "stojąc vs siedząc",
+     "detail": "autor woli stojąc, ale stabilna pozycja lepsza dla hipertrofii lokalnej (s. 17)"
+    }
+   ]
+  },
+  {
+   "id": "chapters",
+   "type": "toc",
+   "items": [
+    {
+     "chapter": "Cz. I Wstęp do układania planów",
+     "pages": "9-23"
+    },
+    {
+     "chapter": "Cz. II Periodyzacja planów treningowych",
+     "pages": "24-47"
+    },
+    {
+     "chapter": "Cz. III Parametry treningu siłowego",
+     "pages": "48-64"
+    },
+    {
+     "chapter": "Cz. IV Stwórz swój plan treningowy",
+     "pages": "65-94"
+    }
+   ]
+  }
+ ]
+}

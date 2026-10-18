@@ -1,0 +1,4236 @@
+{
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Napięcie mechaniczne jest głównym bodźcem",
+      "rule": "Napięcie mechaniczne to najważniejszy czynnik hipertrofii; stres metaboliczny prawdopodobnie pomaga; nadmierne uszkodzenie mięśni szkodzi.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "przy lekkim ciężarze wysokie napięcie daje dopiero seria bliska upadku"
+      ],
+      "limitations": [
+        "mechanizmy częściowo hipotetyczne",
+        "skoki hormonów po treningu mają małe znaczenie"
+      ],
+      "values": {},
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "2 Mecanismos de hipertrofia",
+          "pages": "31, 41, 50, 56"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "1 Respostas e adaptações relacionadas à hipertrofia ao estresse do exercício",
+          "pages": "28"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Objętość 10–20 serii na mięsień na tydzień",
+      "rule": "Zależność dawka–odpowiedź; zalecane ok. 10–20 serii/mięsień/tydz., zaawansowani bliżej górnej granicy; mięśnie opóźnione selektywnie ~30+ serii.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [
+        "seria 6–20+ powtórzeń blisko upadku",
+        "serie wielo- i jednostawowe liczone 1:1",
+        "objętość zwiększana stopniowo, z okresami zmniejszonej objętości"
+      ],
+      "limitations": [
+        "duża zmienność osobnicza (ok. 44% lepiej na większej, 9% na mniejszej, 47% bez różnicy)",
+        "krzywa odwróconego U"
+      ],
+      "values": {
+        "setsPerMuscleWeek": {
+          "min": 10,
+          "max": 20
+        },
+        "laggingMuscleSetsWeek": 30,
+        "metaAnalysisGrowthPct": {
+          "<5": 5.4,
+          "5-9": 6.6,
+          "10+": 9.8
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "78-86, 134"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "183-184"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Częstotliwość rozkłada objętość",
+      "rule": "Przy równej objętości 1–4+ dni/tydz. dają podobny wzrost; do ok. 10 serii na mięsień na sesję; >10 serii/tydz. → ≥2 sesje, ~30 → ≥3.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "ten sam mięsień co ≥48 h (48–72 h przy dużej objętości)"
+      ],
+      "limitations": [
+        "limit 10 serii/sesję z niepublikowanej symulacji",
+        "6 dni nie lepsze od 3 przy równej objętości"
+      ],
+      "values": {
+        "maxSetsPerMuscleSession": 10,
+        "minHoursBetween": 48
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "86-91"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Ciężar: szeroki zakres przy dużym wysiłku",
+      "rule": "Lekkie ciężary (≤60% 1RM) do upadku dają podobną hipertrofię; minimum ok. 30% 1RM; zalecane spektrum 1–20+ powtórzeń z naciskiem na 6–12 RM.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [
+        "lekkie ciężary tylko blisko upadku",
+        "przeliczniki %1RM orientacyjne (80% = 6–15 RM)"
+      ],
+      "limitations": [
+        "bardzo ciężkie serie: bóle stawów, urazy, długi trening (70 vs 17 min)",
+        "przy celu siłowym nie schodzić poniżej ~70% 1RM poza deloadem"
+      ],
+      "values": {
+        "minLoadPct1RM": 30,
+        "focusReps": [
+          6,
+          12
+        ],
+        "zones": {
+          "heavy": "1-5RM",
+          "moderate": "6-12RM",
+          "light": "15+RM"
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "92-100"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Wysiłek: większość serii RIR 1–2",
+      "rule": "Większość serii z RIR 1–2; ostatnia seria może iść do upadku (śmielej w izolacjach); periodyzuj upadek.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "ciągły upadek grozi przetrenowaniem"
+      ],
+      "limitations": [
+        "badania sprzeczne (Carroll vs Martorelli)",
+        "brak skali RPE w książce"
+      ],
+      "values": {
+        "rir": [
+          1,
+          2
+        ],
+        "rpeEquivalent": {
+          "value": [
+            8,
+            9
+          ],
+          "status": "wniosek"
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "129-135"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Przerwy zależnie od ćwiczenia",
+      "rule": "≥2 min w wielostawowych z wolnym ciężarem; 60–90 s w izolacjach i na maszynach; bliżej upadku dłużej.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "kobiety mogą stosować nieco krótsze przerwy"
+      ],
+      "limitations": [
+        "sprzeczność: 60–90 s 'korzystne' vs ≥2 min 'lepsze'"
+      ],
+      "values": {
+        "compoundSecMin": 120,
+        "isolationSec": [
+          60,
+          90
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "111-114"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "175"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Tempo bez znaczenia w zakresie 0,5–6 s",
+      "rule": "0,5–6 s na powtórzenie daje podobny wzrost; superwolne >10 s gorsze; koncentryka 1–3 s, ekscentryka ≥2 s.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "skupienie na mięśniu pomaga w ramionach, nie w nogach"
+      ],
+      "values": {
+        "repDurationSec": [
+          0.5,
+          6
+        ],
+        "concentricSec": [
+          1,
+          3
+        ],
+        "eccentricSecMin": 2
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "115-123"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "181-182"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Różnorodność ćwiczeń bez losowości",
+      "rule": "Różne kąty, płaszczyzny, wolne ciężary i maszyny; wielostawowe stale, izolacje rotuj; losowe zmiany nie mają poparcia.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "początkujący: mniej ćwiczeń, rzadsze zmiany"
+      ],
+      "limitations": [
+        "ćwiczenia wybrane przez klienta dały nieco lepsze wyniki"
+      ],
+      "values": {},
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "100-103"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "210"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "title": "Kolejność i pełny zakres ruchu",
+      "rule": "Mięsień ćwiczony pierwszy rośnie bardziej; pełny zakres ruchu z naciskiem na pozycję rozciągnięcia.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "kolejność 'od dużych do małych' bez udowodnionej przewagi"
+      ],
+      "values": {
+        "stretchedVsShortDistalGrowthPct": [
+          53,
+          18
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "123-128"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Obie fazy ruchu",
+      "rule": "Ekscentryka nieco lepsza (ES 0,27), ale program zawiera koncentrykę i ekscentrykę.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak danych o dodawaniu izometrii",
+        "s. ok. 109–111 po angielsku w pliku"
+      ],
+      "values": {},
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "103-110"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Metody zaawansowane to dodatki",
+      "rule": "Drop sety i superserie bez przewagi przy równej objętości, ale oszczędzają czas; najlepiej poparte przeciążenie ekscentryczne; stosować oszczędnie.",
+      "appliesTo": [
+        "zaawansowani"
+      ],
+      "conditions": [],
+      "limitations": [
+        "metody bardzo męczące"
+      ],
+      "values": {},
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "136-149"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "Aerobowy osłabia hipertrofię przy dużej dawce",
+      "rule": "Trening równoległy zmniejsza efekt hipertrofii prawie o połowę; najsilniej działa długość sesji; bieganie gorsze od roweru; osobne dni.",
+      "appliesTo": [
+        "hipertrofia",
+        "siła"
+      ],
+      "conditions": [
+        "siła spada przy >3 sesjach aerobowych/tydz.",
+        "aerobowy przed siłowym zwiększa interferencję"
+      ],
+      "limitations": [
+        "u nietrenujących aerobowy (≥80% HRR) buduje trochę mięśni",
+        "interferencja może pojawić się po ok. 8 tyg."
+      ],
+      "values": {
+        "growthByAerobicDays": {
+          "0": 4.3,
+          "1": 2.8,
+          "3": 1.0
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "6 Papel do treinamento aeróbico na hipertrofia",
+          "pages": "150-165"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Czynniki osobnicze",
+      "rule": "Genetyka, wiek, płeć i staż zmieniają odpowiedź; prawie każdy rośnie przy właściwym treningu; starsi potrzebują więcej objętości tygodniowo przy mniejszej tolerancji na sesję.",
+      "appliesTo": [
+        "wszyscy",
+        "starsi",
+        "kobiety",
+        "zaawansowani"
+      ],
+      "conditions": [],
+      "limitations": [
+        "zdanie o dawce podtrzymującej u starszych urwane w tłumaczeniu"
+      ],
+      "values": {
+        "muscleLossPerYearPct": {
+          "40s": 0.5,
+          "50+": [
+            1,
+            2
+          ],
+          "60+": 3
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "166-177"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Periodyzacja logiczna, nie udowodniona",
+      "rule": "Liniowa i falowa równie dobre; objętość stopniowo do krótkiego przeciążenia, potem regeneracja; deload 3:1.",
+      "appliesTo": [
+        "średnio zaawansowani",
+        "zaawansowani"
+      ],
+      "conditions": [
+        "początkujący: ta sama rutyna 1–2 miesiące"
+      ],
+      "limitations": [
+        "przegląd 12 badań bez przewagi dla hipertrofii"
+      ],
+      "values": {
+        "trainToDeloadWeeks": [
+          3,
+          1
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "190-210"
+        }
+      ]
+    },
+    {
+      "id": "P15",
+      "title": "Żywienie: nadwyżka i białko",
+      "rule": "Dodatni bilans energii; białko 1,6–2,2 g/kg; węglowodany ≥3 g/kg; tłuszcz ≥1 g/kg; białko w ≥4 posiłkach.",
+      "appliesTo": [
+        "hipertrofia"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "values": {},
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "211-230"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E1",
+      "category": "miesien",
+      "muscle": "klatka",
+      "exercises": [
+        {
+          "name": "wyciskanie płaskie i na ławce skośnej w dół",
+          "equipment": "sztanga/hantle",
+          "purpose": "część mostkowa"
+        },
+        {
+          "name": "wyciskanie na skosie 30–45°",
+          "equipment": "sztanga/hantle",
+          "purpose": "część obojczykowa"
+        },
+        {
+          "name": "rozpiętki (hantle, linki, maszyna)",
+          "equipment": "hantle/wyciąg/maszyna",
+          "purpose": "izolacja"
+        },
+        {
+          "name": "pullover z hantlem",
+          "equipment": "hantel",
+          "purpose": "dodatkowy kąt"
+        }
+      ],
+      "notes": "łącz wolne ciężary z linkami i maszynami; gumy i łańcuchy jako dodatek",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "185-186"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "miesien",
+      "muscle": "plecy",
+      "exercises": [
+        {
+          "name": "podciąganie / ściąganie drążka nachwytem",
+          "equipment": "drążek/wyciąg",
+          "purpose": "najszerszy; chwyt od szerokości barków do 2×"
+        },
+        {
+          "name": "wiosłowania (sztanga, hantel, wyciąg)",
+          "equipment": "sztanga/hantel/wyciąg",
+          "purpose": "środek pleców, płaszczyzna strzałkowa"
+        },
+        {
+          "name": "pullover",
+          "equipment": "hantel/wyciąg",
+          "purpose": "najszerszy"
+        }
+      ],
+      "notes": "chwyt neutralny zmniejsza udział bicepsa; aktywne ściąganie łopatek nic nie dodaje",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "186"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "category": "miesien",
+      "muscle": "barki",
+      "exercises": [
+        {
+          "name": "wznosy przodem",
+          "equipment": "hantle",
+          "purpose": "przedni akton"
+        },
+        {
+          "name": "wznosy bokiem z lekką rotacją wewnętrzną",
+          "equipment": "hantle/wyciąg/maszyna",
+          "purpose": "środkowy akton"
+        },
+        {
+          "name": "podciąganie sztangi do brody szerokim chwytem",
+          "equipment": "sztanga",
+          "purpose": "środkowy akton"
+        },
+        {
+          "name": "odwrotne rozpiętki / wznosy w opadzie",
+          "equipment": "hantle/maszyna",
+          "purpose": "tylny akton"
+        }
+      ],
+      "notes": "wyciskanie nad głowę angażuje głównie przedni akton",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "186-187"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "miesien",
+      "muscle": "biceps",
+      "exercises": [
+        {
+          "name": "uginanie na ławce skośnej",
+          "equipment": "hantle",
+          "purpose": "głowa długa"
+        },
+        {
+          "name": "uginanie z ramieniem odwiedzionym ok. 90°",
+          "equipment": "wyciąg",
+          "purpose": "głowa krótka"
+        },
+        {
+          "name": "uginanie młotkowe",
+          "equipment": "hantle",
+          "purpose": "ramienno-promieniowy"
+        },
+        {
+          "name": "uginanie nachwytem",
+          "equipment": "sztanga",
+          "purpose": "ramienny"
+        }
+      ],
+      "notes": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "187"
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "category": "miesien",
+      "muscle": "triceps",
+      "exercises": [
+        {
+          "name": "prostowanie nad głową",
+          "equipment": "hantel/wyciąg",
+          "purpose": "głowa długa"
+        },
+        {
+          "name": "prostowanie na wyciągu w dół",
+          "equipment": "wyciąg",
+          "purpose": "głowy przyśrodkowa i boczna"
+        }
+      ],
+      "notes": "Stasinaki: 15% vs 10% wzrostu na korzyść prostowania nad głową",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "187"
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "category": "miesien",
+      "muscle": "pośladki",
+      "exercises": [
+        {
+          "name": "przysiad, wykroki, suwnica",
+          "equipment": "sztanga/hantle/maszyna",
+          "purpose": "ogólnie; głęboko"
+        },
+        {
+          "name": "hip thrust",
+          "equipment": "sztanga",
+          "purpose": "większa aktywacja niż przysiad"
+        },
+        {
+          "name": "odwodzenie",
+          "equipment": "maszyna/wyciąg",
+          "purpose": "pośladek średni i mały"
+        }
+      ],
+      "notes": "szeroki rozstaw stóp do ok. 140% szerokości barków",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "188"
+        }
+      ]
+    },
+    {
+      "id": "E7",
+      "category": "miesien",
+      "muscle": "czworogłowe",
+      "exercises": [
+        {
+          "name": "przysiad",
+          "equipment": "sztanga",
+          "purpose": "mięśnie obszerne"
+        },
+        {
+          "name": "prostowanie nóg na maszynie",
+          "equipment": "maszyna",
+          "purpose": "mięsień prosty uda"
+        }
+      ],
+      "notes": "sam przysiad nie rozwija mięśnia prostego uda; rotuj ćwiczenia; skrajna rotacja stóp wątpliwa dla rzepki",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "188-189"
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "category": "miesien",
+      "muscle": "dwugłowe uda",
+      "exercises": [
+        {
+          "name": "martwy ciąg rumuński / na prostych nogach",
+          "equipment": "sztanga/hantle",
+          "purpose": "prostowanie w biodrze"
+        },
+        {
+          "name": "uginanie nóg na maszynie",
+          "equipment": "maszyna",
+          "purpose": "zginanie w kolanie"
+        }
+      ],
+      "notes": "w wielostawowych ok. połowa aktywacji; stopy do środka → półścięgnisty/półbłoniasty, na zewnątrz → dwugłowy",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "189"
+        }
+      ]
+    },
+    {
+      "id": "E9",
+      "category": "miesien",
+      "muscle": "łydki",
+      "exercises": [
+        {
+          "name": "wspięcia stojąc",
+          "equipment": "maszyna/sztanga",
+          "purpose": "brzuchaty"
+        },
+        {
+          "name": "wspięcia siedząc",
+          "equipment": "maszyna",
+          "purpose": "płaszczkowaty"
+        }
+      ],
+      "notes": null,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "189"
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "category": "miesien",
+      "muscle": "brzuch",
+      "exercises": [
+        {
+          "name": "spięcia",
+          "equipment": "bez sprzętu/wyciąg",
+          "purpose": "prosty brzucha"
+        },
+        {
+          "name": "odwrotne spięcia z tyłopochyleniem miednicy",
+          "equipment": "bez sprzętu",
+          "purpose": "dolna część"
+        },
+        {
+          "name": "skłony boczne, rotacje",
+          "equipment": "wyciąg/hantel",
+          "purpose": "skośne"
+        },
+        {
+          "name": "deski z modyfikacjami",
+          "equipment": "bez sprzętu",
+          "purpose": "stabilizacja"
+        }
+      ],
+      "notes": "zgięcie kręgosłupa nie szkodzi osobom bez chorób kręgosłupa",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "189-190"
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "category": "biomechanika",
+      "rule": "Dobieraj ćwiczenia o różnych krzywych momentu (pozycja długa, krótka, środek zakresu), kątach i płaszczyznach; uwzględniaj niewydolność czynną i bierną.",
+      "examples": {
+        "long": "rozpiętki",
+        "short": "hip thrust",
+        "mid": "wyprosty na ławce 45°"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "178-182"
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "category": "priorytet",
+      "rule": "Mięsień priorytetowy na początku sesji i z większą objętością (1–2 mięśnie naraz, rotacyjnie); budżet objętości: dodając jednemu, odejmij innym.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "86, 124-125"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "209"
+        }
+      ]
+    },
+    {
+      "id": "E13",
+      "category": "poziom",
+      "rule": "Początkujący: mało ćwiczeń, maszyny przy słabej koordynacji, ta sama rutyna 1–2 miesiące. Zaawansowani: metody zaawansowane, periodyzacja upadku.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "102-103"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "193"
+        }
+      ]
+    },
+    {
+      "id": "E14",
+      "category": "rotacja",
+      "rule": "Złożone ćwiczenia wielostawowe trzymaj stale; maszyny i izolacje rotuj swobodniej; nie losuj ćwiczeń ('muscle confusion').",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "210"
+        }
+      ]
+    },
+    {
+      "id": "M1",
+      "category": "metoda",
+      "name": "rozciąganie z obciążeniem między seriami",
+      "how": "trzymaj pozycję rozciągnięcia 10–30 s",
+      "evidence": "obiecujące, słabe dane",
+      "level": "zaawansowani",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "136-137"
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "category": "metoda",
+      "name": "przerwy w serii (cluster, rest-pause)",
+      "how": "pauzy ok. 10–20 s z odłożeniem ciężaru",
+      "evidence": "niejasne",
+      "level": "zaawansowani",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "138-139"
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "category": "metoda",
+      "name": "drop sety",
+      "how": "zmniejsz ciężar o 20–25%",
+      "evidence": "bez przewagi przy równej objętości; oszczędza czas; ostatnia seria, maszyny",
+      "level": "zaawansowani",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "139-143"
+        }
+      ]
+    },
+    {
+      "id": "M4",
+      "category": "metoda",
+      "name": "superserie",
+      "how": "agonista–antagonista, przeplatane, wstępne zmęczenie",
+      "evidence": "bez przewagi; oszczędzają czas",
+      "level": "zaawansowani",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "143-145"
+        }
+      ]
+    },
+    {
+      "id": "M5",
+      "category": "metoda",
+      "name": "przeciążenie ekscentryczne",
+      "how": "2 kończyny w górę / 1 w dół; partner; flywheel; ok. +40% w ekscentryce",
+      "evidence": "najlepiej poparte",
+      "level": "zaawansowani",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "145-147"
+        }
+      ]
+    },
+    {
+      "id": "M6",
+      "category": "metoda",
+      "name": "izometria między seriami",
+      "how": "ok. 30 s napięcia",
+      "evidence": "jedno badanie (mięsień prosty uda)",
+      "level": "zaawansowani",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "148"
+        }
+      ]
+    },
+    {
+      "id": "SUB1",
+      "category": "zamienniki",
+      "pairs": [
+        [
+          "przysiad ze sztangą",
+          "przysiad przedni / hack squat / suwnica"
+        ],
+        [
+          "martwy ciąg rumuński",
+          "martwy ciąg na prostych nogach / hiperekstensja"
+        ],
+        [
+          "wyciskanie sztangi",
+          "hantle / maszyna"
+        ],
+        [
+          "ściąganie drążka",
+          "podciąganie"
+        ],
+        [
+          "wiosłowanie sztangą",
+          "wiosłowanie hantlem jednorącz / na wyciągu siedząc"
+        ]
+      ],
+      "rule": "Zamieniaj ćwiczenia o tej samej funkcji mięśnia; pary występują w Tab. 8.4–8.6 w tych samych rolach.",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "183-190, 203-208"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "category": "reguła",
+      "if": "brak sprzętu lub sprzęt ograniczony",
+      "then": "Książka nie podaje rozwiązań. Lekki opór ≥30% 1RM daje hipertrofię przy seriach blisko upadku (RIR 0–2).",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "95-96"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "category": "reguła",
+      "if": "słaba koordynacja",
+      "then": "zacznij od maszyn, wolne ciężary wielostawowe później",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "102-103"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "reguła",
+      "if": "mięsień opóźniony w rozwoju",
+      "then": "na początek sesji, więcej objętości (do ~30 serii) przez 1 cykl kosztem innych; potem rotacja",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "86, 124"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "209"
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "category": "reguła",
+      "if": "klient chce często zmieniać ćwiczenia",
+      "then": "stałe wielostawowe, rotacja izolacji i maszyn, bez losowania",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "210"
+        }
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PAR-hipertrofia",
+      "category": "parameters",
+      "goal": "hipertrofia",
+      "frequency": {
+        "value": "≥2×/tydz. na mięsień przy >10 serii; ≥3× przy ~30; ≥48 h przerwy",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "86-91"
+          }
+        ]
+      },
+      "daysPerWeek": {
+        "value": [
+          3,
+          4,
+          6
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203-209"
+          }
+        ]
+      },
+      "setsPerMuscleWeek": {
+        "value": {
+          "min": 10,
+          "max": 20,
+          "lagging": 30
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "84, 134"
+          }
+        ]
+      },
+      "setsPerMuscleSession": {
+        "value": 10,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "84-87"
+          }
+        ]
+      },
+      "setsPerExercise": {
+        "value": {
+          "main": [
+            3,
+            4
+          ],
+          "armsCalvesAbs": [
+            2,
+            3
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203-208"
+          }
+        ]
+      },
+      "reps": {
+        "value": {
+          "focus": [
+            6,
+            12
+          ],
+          "spectrum": [
+            1,
+            25
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "100"
+          }
+        ]
+      },
+      "loadPct1RMMin": {
+        "value": 30,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "96"
+          }
+        ]
+      },
+      "rir": {
+        "value": [
+          1,
+          2
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "129-135"
+          }
+        ]
+      },
+      "rpe": {
+        "value": [
+          8,
+          9
+        ],
+        "status": "wniosek",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": {
+          "compound": "≥120",
+          "isolation": [
+            60,
+            90
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "114"
+          }
+        ]
+      },
+      "tempo": {
+        "value": {
+          "repDurationSec": [
+            0.5,
+            6
+          ],
+          "concentricSec": [
+            1,
+            3
+          ],
+          "eccentricSecMin": 2
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "115-118"
+          }
+        ]
+      },
+      "progression": {
+        "value": "objętość stopniowo w górę; ciężary rosną/stoją → można dodać serie; spadają → zmniejsz",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "202-209"
+          }
+        ]
+      },
+      "deload": {
+        "value": "3:1; 1 tydz., 2 dni, 3 × 15–20",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "199-200, 205"
+          }
+        ]
+      },
+      "changeCriteria": {
+        "value": "spadek wyników przy tej samej pracy; koniec mezocyklu 1–3 mies.; brak postępu",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205, 209"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-sila",
+      "category": "parameters",
+      "goal": "sila",
+      "loadPct1RM": {
+        "value": {
+          "min": 70,
+          "phases": [
+            "80-90% (4-8)",
+            "≥95% (2-5)"
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "100"
+          },
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "193"
+          }
+        ]
+      },
+      "reps": {
+        "value": [
+          3,
+          5
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203-206"
+          }
+        ]
+      },
+      "setsPerExercise": {
+        "value": {
+          "fbw": 3,
+          "upperLower": [
+            4,
+            5
+          ],
+          "heavyDay": [
+            5,
+            6
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203-206"
+          }
+        ]
+      },
+      "restSeconds": {
+        "value": 180,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203-206"
+          }
+        ]
+      },
+      "frequency": {
+        "value": "FBW 3 dni → góra/dół 4 dni",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-206"
+          }
+        ]
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "aerobicLimit": {
+        "value": "siła spada przy >3 sesjach aerobowych/tydz., przy <2 nie",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "6 Papel do treinamento aeróbico na hipertrofia",
+            "pages": "162"
+          }
+        ]
+      },
+      "deload": {
+        "value": "1 tydz., 2 dni, 15–20 powt.",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-redukcja",
+      "category": "parameters",
+      "goal": "redukcja",
+      "training": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "energyDeficit": {
+        "value": "deficyt obniża syntezę białek (ok. 19% przy deficycie 20%; ok. 27% przy ~500 kcal)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "9 Nutrição para hipertrofia",
+            "pages": "211-212"
+          }
+        ]
+      },
+      "proteinGPerKg": {
+        "value": {
+          "bodyMassMax": 2.7,
+          "leanMassMax": 3.1
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "9 Nutrição para hipertrofia",
+            "pages": "215"
+          }
+        ]
+      },
+      "aerobic": {
+        "value": "krótko, rzadko, rower zamiast biegania, inny dzień",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "6 Papel do treinamento aeróbico na hipertrofia",
+            "pages": "161-165"
+          }
+        ]
+      },
+      "appDecision": {
+        "value": "utrzymaj objętość i ciężary; umiarkowany deficyt",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "9 Nutrição para hipertrofia",
+            "pages": "211-212"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-zdrowie",
+      "category": "parameters",
+      "goal": "zdrowie",
+      "training": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "relatedFacts": {
+        "value": [
+          "trening siłowy działa także po 75. r.ż.",
+          "aerobowy ≥80% HRR buduje trochę mięśni u siedzących",
+          "utrata mięśni 0,5–3%/rok po 40."
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+            "pages": "170-173"
+          },
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "6 Papel do treinamento aeróbico na hipertrofia",
+            "pages": "152-153"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-poczatkujacy",
+      "category": "parameters",
+      "goal": "poczatkujacy",
+      "frequency": {
+        "value": "do 4×/tydz. na mięsień korzystne; przykład FBW 3 dni",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "87"
+          },
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203"
+          }
+        ]
+      },
+      "exercises": {
+        "value": "mało; maszyny przy słabej koordynacji",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "102-103"
+          }
+        ]
+      },
+      "planChange": {
+        "value": "ta sama rutyna 1–2 miesiące",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "193"
+          }
+        ]
+      },
+      "setsPerMuscleWeek": {
+        "value": "dolna część 10–20",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "84"
+          }
+        ]
+      },
+      "reps": {
+        "value": [
+          6,
+          12
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "100"
+          }
+        ]
+      },
+      "rir": {
+        "value": [
+          1,
+          2
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "129-131"
+          }
+        ]
+      },
+      "surplus": {
+        "value": "większa nadwyżka możliwa (ok. 2000 kcal/dobę w badaniu)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "9 Nutrição para hipertrofia",
+            "pages": "212, 230"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PR-periodization",
+      "category": "periodyzacja",
+      "models": [
+        {
+          "name": "liniowa klasyczna",
+          "phases": [
+            "60–75% 1RM, 10–20 powt.",
+            "80–90%, 4–8",
+            "≥95%, 2–5"
+          ],
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "193"
+            }
+          ]
+        },
+        {
+          "name": "liniowa zmodyfikowana (Tab. 8.6)",
+          "phases": [
+            "siłowa",
+            "metaboliczna",
+            "hipertrofia"
+          ],
+          "mesocycleMonths": [
+            1,
+            3
+          ],
+          "microcycleWeeks": 3,
+          "deloadWeeks": 1,
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "205-208"
+            }
+          ]
+        },
+        {
+          "name": "falowa (DUP)",
+          "days": {
+            "heavy": "3-5",
+            "moderate": "8-12",
+            "light": "15-25"
+          },
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "203-204"
+            }
+          ]
+        },
+        {
+          "name": "odwrotna liniowa",
+          "note": "nie lepsza",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "194, 199"
+            }
+          ]
+        },
+        {
+          "name": "obciążanie schodkowe",
+          "note": "Ryc. 8.7 utracona",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "202"
+            }
+          ]
+        }
+      ],
+      "volume": "start od dawki podtrzymującej → stopniowy wzrost → krótkie przeciążenie funkcjonalne → aktywna regeneracja",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "202-209"
+        }
+      ]
+    },
+    {
+      "id": "PR-microcycles",
+      "category": "mikrocykle",
+      "layouts": {
+        "fbw3": "pon./śr./pt.",
+        "upperLower4": "2 dni treningu / 1 wolny / 2 treningu / 2 wolne",
+        "split3x6": "3 dni treningu / 1 wolny"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "208-209"
+        }
+      ]
+    },
+    {
+      "id": "PR-other",
+      "category": "inne",
+      "timeOfDay": "bez znaczenia",
+      "sleepHours": [
+        7,
+        9
+      ],
+      "breakWeeksSafe": 3,
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "192, 199-202"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "177"
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "category": "reguła",
+      "if": "początkujący trenuje 3×/tydz.",
+      "then": "FBW 3 dni (pon./śr./pt.), 1–2 ćwiczenia na partię, 3 serie × 8–12, RIR 1–2, ten sam zestaw 1–2 miesiące",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "102-103"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "193, 208"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "category": "reguła",
+      "if": "klient ma 2 dni/tydz.",
+      "then": "FBW 2 dni, ≥48–72 h odstępu, do ok. 10 serii/mięsień/sesję",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "86-91"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "reguła",
+      "if": "objętość na mięsień >10 serii/tydz.",
+      "then": "≥2 sesje; ~30 serii → ≥3 sesje",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "87, 91"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "category": "reguła",
+      "if": "klient ma 4 lub 6 dni",
+      "then": "4 dni: góra/dół; 6 dni (zaawansowany): split na 3",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "208-209"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "category": "reguła",
+      "if": "klient starszy (60+)",
+      "then": "więcej serii tygodniowo, mniej na sesję, więcej regeneracji; ok. 40 g białka na posiłek",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "172-173"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "223"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "category": "reguła",
+      "if": "cel hipertrofia",
+      "then": "10–20 serii/mięsień/tydz., 6–12 powt. (+1–5 i 15–25), RIR 1–2, przerwy ≥2 min / 60–90 s, pełny zakres, różne ćwiczenia",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "84-135"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "category": "reguła",
+      "if": "cel siła",
+      "then": "≥70% 1RM, 3–5 powt., 3 min, wielostawowe; aerobowy <2–3 sesje/tydz.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "100"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "6 Papel do treinamento aeróbico na hipertrofia",
+          "pages": "162"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "203-206"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "reguła",
+      "if": "klient łączy siłownię z aerobami",
+      "then": "osobne dni lub duży odstęp, aerobowy po siłowym, krótko, rower zamiast biegania",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "6 Papel do treinamento aeróbico na hipertrofia",
+          "pages": "161-165"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "reguła",
+      "if": "mało czasu",
+      "then": "superserie lub drop set na ostatniej serii; lekkie ciężary do upadku",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "95"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "139-145"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "reguła",
+      "if": "ciężary/powtórzenia rosną lub stoją, dobra regeneracja",
+      "then": "dodaj 1–2 serie na mięsień",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "209"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "reguła",
+      "if": "ciężary/powtórzenia spadają kilka sesji",
+      "then": "zmniejsz objętość lub deload (1 tydz., 2 dni, lekko)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "199-200, 209"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "category": "reguła",
+      "if": "minęły ok. 3 tyg. ciężkiego treningu",
+      "then": "tydzień deloadu (3:1)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "199-200"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "category": "reguła",
+      "if": "wszystkie serie do upadku od tygodni",
+      "then": "powrót do RIR 1–2",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "130-131"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "reguła",
+      "if": "zaawansowany stoi w miejscu",
+      "then": "krótki blok wyższej objętości, potem tydzień aktywnej regeneracji",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "202-209"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "177"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "category": "reguła",
+      "if": "ból stawów przy bardzo ciężkich seriach",
+      "then": "więcej pracy w 6–12 i 15–25 powt.; zastosuj S14–S15",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "94-95"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "category": "reguła",
+      "if": "silne zakwasy (DOMS)",
+      "then": "masaż; kompresja, aktywna regeneracja; nie rozciąganie; unikaj regularnych zimnych kąpieli",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "141-142, 147"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "category": "reguła",
+      "if": "słaba reakcja na trening",
+      "then": "zmień bodziec (objętość, zakres powtórzeń), daj więcej czasu",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "85"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "166-169"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "category": "reguła",
+      "if": "klient nie realizuje planu",
+      "then": "brak rozwiązań behawioralnych w książce; pozwól wybrać część ćwiczeń, skróć sesje, nie losuj ćwiczeń",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "143-145"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "210"
+        }
+      ]
+    },
+    {
+      "id": "R22",
+      "category": "reguła",
+      "if": "przerwa do ok. 3 tyg.",
+      "then": "wróć do planu; krótka przerwa nie szkodzi",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "177"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "199-200"
+        }
+      ]
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "bardzo ciężkie serie (np. 7×3) jako główny trening",
+      "action": "bóle stawów i urazy w badaniu; nie trenuj hipertrofii głównie w 1–5 RM",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "94-95"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "ciągły trening do upadku",
+      "action": "ryzyko przetrenowania; periodyzuj upadek, ostrożnie w ciężkich wielostawowych",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "130-131"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "za duża objętość",
+      "action": "pogarsza wyniki (odwrócone U); starsi gorzej tolerują duże objętości",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "80"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "173"
+        },
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "208"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "metody zaawansowane",
+      "action": "bardzo męczące; oszczędnie i z periodyzacją",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "148-149"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "duża ilość nowej ekscentryki",
+      "action": "nadmierne uszkodzenia szkodzą wzrostowi",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "2 Mecanismos de hipertrofia",
+          "pages": "50, 56"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "regularne zimne kąpiele (<15 °C, ≥10 min)",
+      "action": "osłabiają hipertrofię; unikaj regularnie",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "141-142"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "skrajna rotacja stóp w ćwiczeniach na czworogłowe",
+      "action": "wątpliwe dla rzepki; unikaj",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "189"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "spięcia brzucha (zgięcie kręgosłupa)",
+      "action": "bezpieczne bez chorób kręgosłupa; przy zgłoszonym problemie S15–S16",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "190"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "leki przeciwzapalne (NLPZ)",
+      "action": "w badaniu ibuprofen zmniejszył wzrost o połowę; aplikacja nie zaleca ani nie odradza leków, kieruje do lekarza",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "2 Mecanismos de hipertrofia",
+          "pages": "52-54"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "dieta ketogeniczna, duży deficyt",
+      "action": "utrudniają budowę mięśni",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "211-212, 217-220"
+        }
+      ]
+    },
+    {
+      "id": "S10a",
+      "trigger": "superwolne powtórzenia >10 s",
+      "action": "nieskuteczne (kwestia skuteczności)",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "116-118"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "trigger": "ból w klatce piersiowej, duszność nieadekwatna do wysiłku, kołatanie serca, omdlenie lub zawroty głowy",
+      "action": "przerwij trening, kontakt z lekarzem (pilnie przy objawach nagłych lub silnych)",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S12",
+      "trigger": "choroby serca, nadciśnienie, cukrzyca, ciąża lub inne choroby przewlekłe bez zgody lekarza",
+      "action": "zgoda lekarza przed treningiem",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S13",
+      "trigger": "ciemny mocz z silnym bólem i obrzękiem mięśni po ciężkim treningu",
+      "action": "pilny kontakt z lekarzem",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S14",
+      "trigger": "ostry ból stawu lub mięśnia podczas ćwiczenia",
+      "action": "przerwij; fizjoterapeuta; nie programuj obciążenia okolicy",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S15",
+      "trigger": "ból utrzymujący się lub narastający, obrzęk, ograniczenie ruchu, drętwienie, mrowienie",
+      "action": "fizjoterapeuta; nie programuj obciążenia okolicy",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S16",
+      "trigger": "świeży uraz, operacja, rehabilitacja w toku, choroba kręgosłupa",
+      "action": "fizjoterapeuta / lekarz przed programowaniem",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S17",
+      "trigger": "pytania o leki, suplementy, diety lecznicze",
+      "action": "lekarz lub dietetyk",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    },
+    {
+      "id": "S-COMM",
+      "trigger": "każdy zgłoszony objaw",
+      "action": "nie nazywaj przyczyny, nie sugeruj rozpoznania, nie zalecaj leków ani suplementów",
+      "status": "poza_zrodlem",
+      "priority": "policy",
+      "sources": []
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni",
+      "goal": [
+        "hipertrofia",
+        "siła ogólna"
+      ],
+      "level": "początkujący",
+      "status": "wniosek",
+      "note": "Wariant nieopisany w książce; ćwiczenia z Tab. 8.4 i 8.6.",
+      "days": {
+        "count": 2,
+        "layout": [
+          "A",
+          "B"
+        ],
+        "spacing": {
+          "value": "≥48–72 h (np. pon./czw.)",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+              "pages": "86"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "A": [
+          {
+            "name": "przysiad ze sztangą lub suwnica",
+            "status": "wniosek"
+          },
+          {
+            "name": "martwy ciąg rumuński",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie sztangi leżąc",
+            "status": "wniosek"
+          },
+          {
+            "name": "wiosłowanie na wyciągu siedząc",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie żołnierskie",
+            "status": "wniosek"
+          },
+          {
+            "name": "wspięcia stojąc",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie sztangą EZ",
+            "status": "wniosek"
+          }
+        ],
+        "B": [
+          {
+            "name": "suwnica lub przysiad przedni",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie nóg leżąc",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie na skosie",
+            "status": "wniosek"
+          },
+          {
+            "name": "ściąganie drążka",
+            "status": "wniosek"
+          },
+          {
+            "name": "wznosy bokiem",
+            "status": "wniosek"
+          },
+          {
+            "name": "wspięcia siedząc",
+            "status": "wniosek"
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "status": "wniosek"
+          },
+          {
+            "name": "odwrotne spięcia",
+            "status": "wniosek"
+          }
+        ]
+      },
+      "sets": {
+        "value": {
+          "main": [
+            3,
+            4
+          ],
+          "armsCalvesAbs": [
+            2,
+            3
+          ]
+        },
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203-208"
+          }
+        ]
+      },
+      "reps": {
+        "value": [
+          6,
+          12
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "100"
+          }
+        ]
+      },
+      "rir": {
+        "value": [
+          1,
+          2
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "129-131"
+          }
+        ]
+      },
+      "rpe": {
+        "value": [
+          8,
+          9
+        ],
+        "status": "wniosek",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": {
+          "compound": 120,
+          "isolation": [
+            60,
+            90
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "114"
+          }
+        ]
+      },
+      "progression": {
+        "value": "ten sam zestaw 1–2 mies.; powtórzenia, potem ciężar; brak postępu → 3. dzień lub seria",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "193"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni falowy (Tabela 8.4)",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "średnio zaawansowany",
+      "status": "zrodlo",
+      "note": "Tabela 8.4; wariant dla początkujących z Tab. 8.6 (faza hipertrofii, mikrocykl 1).",
+      "days": {
+        "count": 3,
+        "layout": [
+          "pon. ciężki",
+          "śr. średni",
+          "pt. lekki"
+        ],
+        "spacing": {
+          "value": "pon./śr./pt.",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "203"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "A_heavy": [
+          {
+            "name": "wyciskanie sztangi leżąc",
+            "sets": "4-5",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wiosłowanie sztangą w opadzie",
+            "sets": "4-5",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wyciskanie żołnierskie",
+            "sets": "4-5",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "przysiad",
+            "sets": "4-5",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "martwy ciąg rumuński",
+            "sets": "4-5",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          }
+        ],
+        "B_moderate": [
+          {
+            "name": "wyciskanie na skosie",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "ściąganie drążka",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "podciąganie sztangi wzdłuż tułowia",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "prostowanie ramion nad głową",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "suwnica",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "uginanie nóg siedząc",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "uginanie sztangą EZ",
+            "sets": "2-3",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wspięcia stojąc",
+            "sets": "2-3",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "spięcia na wyciągu klęcząc",
+            "sets": "2-3",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          }
+        ],
+        "C_light": [
+          {
+            "name": "rozpiętki z hantlami na skosie",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wiosłowanie na wyciągu siedząc",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "uginanie młotkowe",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "prostowanie ramion na wyciągu",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "prostowanie nóg na maszynie",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "hiperekstensja",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wspięcia siedząc",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "odwrotne spięcia",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          }
+        ]
+      },
+      "beginnerVariant": {
+        "source": "Tab. 8.6 faza hipertrofii mikrocykl 1",
+        "sets": "3-4 (ramiona 2-3)",
+        "reps": "6-12",
+        "restSeconds": 120,
+        "weeks": 3,
+        "days": {
+          "pon": [
+            "wyciskanie hantli leżąc",
+            "wiosłowanie na wyciągu siedząc",
+            "wyciskanie żołnierskie",
+            "uginanie hantli na skosie",
+            "prostowanie ramion na wyciągu",
+            "przysiad przedni",
+            "uginanie nóg siedząc",
+            "wspięcia stojąc"
+          ],
+          "sr": [
+            "wyciskanie sztangi na skosie",
+            "ściąganie drążka",
+            "wznosy bokiem na wyciągu",
+            "uginanie młotkowe",
+            "prostowanie ramion leżąc",
+            "hack squat",
+            "martwy ciąg rumuński",
+            "wspięcia siedząc"
+          ],
+          "pt": [
+            "rozpiętki na wyciągu",
+            "wiosłowanie hantlem jednorącz",
+            "wznosy w opadzie",
+            "uginanie EZ",
+            "prostowanie ramion nad głową",
+            "suwnica",
+            "uginanie nóg leżąc",
+            "wspięcia na suwnicy"
+          ]
+        },
+        "beginnerAdaptation": {
+          "value": "4–6 ćwiczeń na sesję, ten sam zestaw 1–2 mies.",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+              "pages": "102-103"
+            },
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "193"
+            }
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "207"
+          }
+        ]
+      },
+      "sets": {
+        "value": "4-5 / 3-4 / 2-3",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203"
+          }
+        ]
+      },
+      "reps": {
+        "value": "3-5 / 8-12 / 15-25",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203"
+          }
+        ]
+      },
+      "rir": {
+        "value": [
+          1,
+          2
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "95, 129-131"
+          }
+        ]
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": "180 / 120 / 30-60",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "203"
+          }
+        ]
+      },
+      "progression": {
+        "value": "po 3 tyg. 1 tydz. deloadu",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "199-200"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T3",
+      "name": "Góra/dół 4 dni falowy (Tabela 8.5)",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "średnio zaawansowany / zaawansowany",
+      "status": "zrodlo",
+      "note": "Końcówka 2. tygodnia urwana w pliku; w tekście tydzień 2 ma trwać '10 dni'.",
+      "days": {
+        "count": 4,
+        "layout": [
+          "pon. dół",
+          "wt. góra",
+          "czw. dół",
+          "pt. góra"
+        ],
+        "spacing": {
+          "value": "2 dni treningu / 1 wolny / 2 treningu / 2 wolne",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "208-209"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "W1_lower_heavy": [
+          {
+            "name": "przysiad",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "martwy ciąg",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "suwnica",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "glute-ham raise",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          }
+        ],
+        "W1_upper_heavy": [
+          {
+            "name": "wyciskanie leżąc",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "podciąganie z obciążeniem",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "push press stojąc",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wiosłowanie sztangą w opadzie",
+            "sets": "5-6",
+            "reps": "3-5",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 180,
+            "status": "zrodlo"
+          }
+        ],
+        "W1_lower_moderate": [
+          {
+            "name": "przysiad przedni",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "przysiad bułgarski",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "hip thrust ze sztangą",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "martwy ciąg rumuński",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "uginanie nóg leżąc",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wspięcia stojąc",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          }
+        ],
+        "W1_upper_moderate": [
+          {
+            "name": "wyciskanie na skosie",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "rozpiętki z hantlami płasko",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "ściąganie drążka",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wiosłowanie hantlem jednorącz",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wyciskanie żołnierskie",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "wznosy bokiem na maszynie",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          },
+          {
+            "name": "spięcia na wyciągu",
+            "sets": "3-4",
+            "reps": "8-12",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": 120,
+            "status": "zrodlo"
+          }
+        ],
+        "W2_lower_light": [
+          {
+            "name": "wykroki z hantlami",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "prostowanie nóg",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "odwodzenie nogi w tył na wyciągu",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "uginanie nóg siedząc",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "odwrotna hiperekstensja",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wspięcia siedząc",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          }
+        ],
+        "W2_upper_light": [
+          {
+            "name": "wyciskanie na maszynie Hammer",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "rozpiętki na wyciągu",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "ściąganie skrzyżowane na wyciągu",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wiosłowanie na wyciągu siedząc",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wyciskanie hantli siedząc",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "wznosy w opadzie",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          },
+          {
+            "name": "odwrotne spięcia",
+            "sets": "2-3",
+            "reps": "15-25",
+            "exampleLoadKg": null,
+            "rir": null,
+            "restSeconds": "30-60",
+            "status": "zrodlo"
+          }
+        ],
+        "W2_rest": null
+      },
+      "simpleVariant": {
+        "source": "Tab. 8.6 faza hipertrofii mikrocykl 3",
+        "sets": "3-4",
+        "reps": "6-12",
+        "restSeconds": 120,
+        "weeks": 3,
+        "days": {
+          "pon_gora": [
+            "wyciskanie sztangi płasko",
+            "wyciskanie hantli na skosie",
+            "ściąganie drążka podchwytem",
+            "wyciskanie hantli siedząc",
+            "wznosy bokiem na wyciągu",
+            "uginanie sztangą",
+            "prostowanie ramion z hantlem"
+          ],
+          "wt_dol": [
+            "przysiad bułgarski ze sztangą",
+            "prostowanie nóg",
+            "martwy ciąg na prostych nogach",
+            "uginanie nóg leżąc",
+            "wspięcia stojąc",
+            "wspięcia siedząc",
+            "spięcia z rotacją na wyciągu"
+          ],
+          "czw_gora": [
+            "wyciskanie na maszynie na skosie",
+            "pec deck",
+            "podciąganie podchwytem",
+            "wiosłowanie hantlem jednorącz",
+            "wyciskanie hantli",
+            "odwrotne rozpiętki na wyciągu",
+            "uginanie hantli",
+            "kickback"
+          ],
+          "pt_dol": [
+            "suwnica",
+            "wykrok boczny z hantlami",
+            "hiperekstensja",
+            "uginanie nóg siedząc",
+            "wspięcia siedząc",
+            "wspięcia na suwnicy",
+            "odwrotne spięcia"
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "207"
+          }
+        ]
+      },
+      "sets": {
+        "value": "5-6 / 3-4 / 2-3",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "204"
+          }
+        ]
+      },
+      "reps": {
+        "value": "3-5 / 8-12 / 15-25",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "204"
+          }
+        ]
+      },
+      "rir": {
+        "value": [
+          1,
+          2
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "130-131"
+          }
+        ]
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": "180 / 120 / 30-60",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "204"
+          }
+        ]
+      },
+      "progression": {
+        "value": "cykl ciężki → średni → lekki; deload co ok. 3 tyg.",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "199-204"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T4",
+      "name": "Hipertrofia: periodyzacja liniowa zmodyfikowana (Tabela 8.6)",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "średnio zaawansowany / zaawansowany",
+      "status": "zrodlo",
+      "note": "Faza hipertrofii ok. 16 tyg.; całość tabeli: siłowa → metaboliczna → hipertrofia. Liczba serii deloadu '3' odczytana z kontekstu (niepewne).",
+      "days": {
+        "count": [
+          3,
+          4,
+          6
+        ],
+        "layout": "mikrocykle",
+        "spacing": {
+          "value": "pon./śr./pt.; góra/dół; split 3×2",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "208-209"
+            }
+          ]
+        }
+      },
+      "microcycles": [
+        {
+          "n": 1,
+          "layout": "FBW 3 dni (jak T2 beginnerVariant)",
+          "weeks": 3,
+          "sets": "3-4 (ramiona 2-3)",
+          "reps": "6-12",
+          "restSeconds": 120
+        },
+        {
+          "n": 2,
+          "layout": "deload 2 dni (pon./czw.)",
+          "weeks": 1,
+          "exercises": [
+            {
+              "name": "rozpiętki na skosie",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "wznosy przodem",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "podciąganie sztangi wzdłuż tułowia",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "przysiad bułgarski",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "uginanie nóg",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "wspięcia stojąc",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "layout": "góra/dół 4 dni (jak T3 simpleVariant)",
+          "weeks": 3,
+          "sets": "3-4",
+          "reps": "6-12",
+          "restSeconds": 120
+        },
+        {
+          "n": 4,
+          "layout": "deload jak mikrocykl 2",
+          "weeks": 1
+        },
+        {
+          "n": 5,
+          "layout": "split na 3 przez 6 dni",
+          "weeks": 3,
+          "sets": "3-4 (ramiona 2-3)",
+          "reps": "6-12",
+          "restSeconds": 120,
+          "days": {
+            "pon_pt": [
+              "ściąganie drążka",
+              "wiosłowanie hantlem jednorącz",
+              "pullover",
+              "wyciskanie sztangi na skosie",
+              "wyciskanie hantli na skosie w dół",
+              "rozpiętki na wyciągu",
+              "rollout ze sztangą",
+              "spięcia z rotacją"
+            ],
+            "wt_sob": [
+              "przysiad",
+              "wykroki z hantlami",
+              "prostowanie nóg",
+              "hip thrust",
+              "martwy ciąg na prostych nogach",
+              "uginanie nóg",
+              "wspięcia stojąc",
+              "wspięcia siedząc"
+            ],
+            "sr_nd": [
+              "wyciskanie żołnierskie",
+              "wznosy bokiem na maszynie",
+              "odwrotne rozpiętki na maszynie",
+              "uginanie młotkowe",
+              "prostowanie ramion leżąc",
+              "uginanie w skupieniu",
+              "kickback",
+              "uginanie hantli na skosie"
+            ]
+          }
+        },
+        {
+          "n": 6,
+          "layout": "aktywna regeneracja: lekka aktywność rekreacyjna",
+          "weeks": 1
+        }
+      ],
+      "sets": {
+        "value": "3-4 (ramiona 2-3)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-208"
+          }
+        ]
+      },
+      "reps": {
+        "value": "6-12",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-208"
+          }
+        ]
+      },
+      "rir": {
+        "value": "1-2; na końcu mezocyklu więcej serii do upadku",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "131"
+          }
+        ]
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": 120,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-208"
+          }
+        ]
+      },
+      "progression": {
+        "value": "objętość rośnie (3 → 4 → 6 dni), na końcu przeciążenie, potem regeneracja",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "202-209"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T5",
+      "name": "Siłowy (faza siłowa Tabeli 8.6)",
+      "goal": [
+        "siła"
+      ],
+      "level": "średnio zaawansowany",
+      "status": "zrodlo",
+      "note": "Jako samodzielny plan: wniosek. Przypisanie serii do ćwiczeń w mikrocyklu 3 niepewne.",
+      "days": {
+        "count": [
+          3,
+          4
+        ],
+        "layout": "FBW 3 dni → deload → góra/dół 4 dni",
+        "spacing": {
+          "value": "pon./śr./pt.; pon./wt./czw./pt.",
+          "status": "zrodlo",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "205-209"
+            }
+          ]
+        }
+      },
+      "microcycles": [
+        {
+          "n": 1,
+          "layout": "FBW 3 dni",
+          "weeks": 3,
+          "exercises": [
+            {
+              "name": "wyciskanie leżąc",
+              "sets": 3,
+              "reps": "3-5",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": 180,
+              "status": "zrodlo"
+            },
+            {
+              "name": "wiosłowanie sztangą podchwytem w opadzie",
+              "sets": 3,
+              "reps": "3-5",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": 180,
+              "status": "zrodlo"
+            },
+            {
+              "name": "wyciskanie żołnierskie stojąc",
+              "sets": 3,
+              "reps": "3-5",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": 180,
+              "status": "zrodlo"
+            },
+            {
+              "name": "przysiad",
+              "sets": 3,
+              "reps": "3-5",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": 180,
+              "status": "zrodlo"
+            },
+            {
+              "name": "martwy ciąg",
+              "sets": 3,
+              "reps": "3-5",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": 180,
+              "status": "zrodlo"
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "layout": "deload 2 dni",
+          "weeks": 1,
+          "exercises": [
+            {
+              "name": "rozpiętki na skosie",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "wznosy przodem",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "podciąganie sztangi wzdłuż tułowia",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "przysiad bułgarski",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "uginanie nóg",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            },
+            {
+              "name": "wspięcia stojąc",
+              "sets": 3,
+              "reps": "15-20",
+              "exampleLoadKg": null,
+              "rir": null,
+              "restSeconds": "120-180",
+              "status": "zrodlo"
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "layout": "góra/dół 4 dni",
+          "weeks": 3,
+          "days": {
+            "pon_czw": [
+              "wyciskanie leżąc",
+              "wyciskanie hantli na skosie",
+              "wiosłowanie sztangą podchwytem",
+              "ściąganie drążka",
+              "wyciskanie żołnierskie",
+              "wznosy bokiem"
+            ],
+            "wt_pt": [
+              "przysiad",
+              "martwy ciąg",
+              "good morning",
+              "uginanie nóg",
+              "wspięcia stojąc"
+            ]
+          },
+          "main": {
+            "sets": "4-5",
+            "reps": "3-5",
+            "restSeconds": 180
+          },
+          "other": {
+            "sets": 3,
+            "reps": "6-8",
+            "restSeconds": 120
+          }
+        }
+      ],
+      "metabolicPhase": {
+        "weeks": 3,
+        "layout": "FBW 3 dni",
+        "exercises": [
+          "wyciskanie hantli na skosie",
+          "wiosłowanie hantlem jednorącz",
+          "wyciskanie hantli",
+          "uginanie hantli siedząc",
+          "prostowanie ramion z hantlem nad głową",
+          "uginanie nóg",
+          "wspięcia stojąc"
+        ],
+        "sets": 3,
+        "reps": "15-25",
+        "restSeconds": "30-60",
+        "note": "lista w pliku urwana",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "206"
+          }
+        ]
+      },
+      "loadPct1RM": {
+        "value": {
+          "min": 70,
+          "progression": "80-90% → ≥95%"
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "100"
+          },
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "193"
+          }
+        ]
+      },
+      "sets": {
+        "value": "3 / 4-5",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-208"
+          }
+        ]
+      },
+      "reps": {
+        "value": "3-5",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-208"
+          }
+        ]
+      },
+      "rir": {
+        "value": [
+          1,
+          3
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "130-131"
+          }
+        ]
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": 180,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-208"
+          }
+        ]
+      },
+      "progression": {
+        "value": "FBW → góra/dół; potem faza metaboliczna i hipertrofii",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "8 Projeto de programa para hipertrofia máxima",
+            "pages": "205-208"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T6",
+      "name": "Domowy",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "każdy",
+      "status": "brak_w_zrodle",
+      "note": "Książka nie opisuje treningu domowego; układ to wniosek z zasady lekkiego oporu do upadku (s. 95–96).",
+      "days": {
+        "count": 3,
+        "layout": [
+          "pon.",
+          "śr.",
+          "pt."
+        ],
+        "spacing": {
+          "value": "pon./śr./pt.",
+          "status": "wniosek",
+          "sources": [
+            {
+              "ref": "hipertrofia-schoenfeld",
+              "chapter": "8 Projeto de programa para hipertrofia máxima",
+              "pages": "208"
+            }
+          ]
+        }
+      },
+      "exercises": {
+        "A": [
+          {
+            "name": "wykroki z hantlami",
+            "status": "wniosek"
+          },
+          {
+            "name": "przysiad bułgarski",
+            "status": "wniosek"
+          },
+          {
+            "name": "martwy ciąg rumuński z hantlami",
+            "status": "wniosek"
+          },
+          {
+            "name": "hip thrust",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie hantli",
+            "status": "wniosek"
+          },
+          {
+            "name": "wiosłowanie hantlem jednorącz",
+            "status": "wniosek"
+          },
+          {
+            "name": "wyciskanie hantli nad głowę",
+            "status": "wniosek"
+          },
+          {
+            "name": "wznosy bokiem",
+            "status": "wniosek"
+          },
+          {
+            "name": "uginanie młotkowe",
+            "status": "wniosek"
+          },
+          {
+            "name": "prostowanie ramion z hantlem nad głową",
+            "status": "wniosek"
+          },
+          {
+            "name": "odwrotne spięcia",
+            "status": "wniosek"
+          }
+        ]
+      },
+      "sets": {
+        "value": "10-20 serii/mięsień/tydz.",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "84"
+          }
+        ]
+      },
+      "reps": {
+        "value": "15-25+",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "95-96, 100"
+          }
+        ]
+      },
+      "rir": {
+        "value": [
+          0,
+          2
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "95-96"
+          }
+        ]
+      },
+      "rpe": {
+        "value": null,
+        "status": "brak_w_zrodle",
+        "sources": []
+      },
+      "restSeconds": {
+        "value": [
+          60,
+          90
+        ],
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "114"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "2-0-2",
+        "status": "wniosek",
+        "sources": [
+          {
+            "ref": "hipertrofia-schoenfeld",
+            "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+            "pages": "115-118"
+          }
+        ]
+      },
+      "progression": {
+        "value": "powtórzenia do ok. 25–30, potem trudniejszy wariant lub cięższe hantle",
+        "status": "wniosek",
+        "sources": []
+      }
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "hipertrofia-schoenfeld",
+      "type": "book",
+      "author": "Brad Schoenfeld",
+      "publisher": "Human Kinetics",
+      "title": "Science and Development of Muscle Hypertrophy (wyd. 2); tłumaczenie: Ciência e Desenvolvimento da Hipertrofia Muscular",
+      "year": 2021,
+      "isbn": "978-1-4925-9767-4",
+      "pages": "1-230 (treść), bibliografia od 231",
+      "pagesNote": "Strony to drukowane strony książki ze stopek w pliku .txt; kilku stopek brak; liczby w tabelach/osiach to fałszywe stopki.",
+      "scope": "hipertrofia: zmienne treningowe, metody, aerobowy, czynniki osobnicze, projektowanie programu, żywienie, pomiar",
+      "fileUsed": "1cb905cc-818140842-Science-and-Development-of-Muscle-Hypertrophy-by-Brad-Schoenfeld-TRADUZIDO.pdf.txt",
+      "personalDataOmitted": true,
+      "translationNotes": [
+        "tłumaczenie maszynowe na portugalski",
+        "powtórzone i urwane akapity, przemieszane kolumny",
+        "s. ok. 109–111 po angielsku",
+        "'jogos/partidas' = serie, 'recarregamento' = deload, 'mosca' = rozpiętki, 'onda' = uginanie"
+      ]
+    },
+    {
+      "id": "chapters",
+      "type": "toc",
+      "items": [
+        {
+          "chapter": "1 Respostas e adaptações relacionadas à hipertrofia ao estresse do exercício",
+          "pages": "1-29"
+        },
+        {
+          "chapter": "2 Mecanismos de hipertrofia",
+          "pages": "30-56"
+        },
+        {
+          "chapter": "3 A medição da hipertrofia muscular",
+          "pages": "57-77"
+        },
+        {
+          "chapter": "4 Papel das variáveis de treinamento de resistência na hipertrofia",
+          "pages": "78-135"
+        },
+        {
+          "chapter": "5 Práticas de treinamento avançado",
+          "pages": "136-149"
+        },
+        {
+          "chapter": "6 Papel do treinamento aeróbico na hipertrofia",
+          "pages": "150-165"
+        },
+        {
+          "chapter": "7 Fatores no desenvolvimento hipertrófico máximo",
+          "pages": "166-177"
+        },
+        {
+          "chapter": "8 Projeto de programa para hipertrofia máxima",
+          "pages": "178-210"
+        },
+        {
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "211-230"
+        }
+      ]
+    },
+    {
+      "id": "lost-tables",
+      "type": "lost",
+      "items": [
+        {
+          "element": "Ryc. 1.1–1.12, 2.1–2.6, 3.1–3.14, 5.1–5.2, 6.1–6.2, 7.1–7.3, 8.1–8.6",
+          "pages": "1-189",
+          "remains": "podpisy częściowo"
+        },
+        {
+          "element": "Ryc. 4.1 dawka–odpowiedź objętości",
+          "pages": "79-80",
+          "remains": "opis w tekście"
+        },
+        {
+          "element": "Ryc. 4.2 reagujący na 1/3/5 serii",
+          "pages": "85",
+          "remains": "wartości osi"
+        },
+        {
+          "element": "Tabele 4.1–4.10, 6.1, 8.1–8.3 (zestawienia badań)",
+          "pages": "81-199",
+          "remains": "przemieszane, nieużywalne"
+        },
+        {
+          "element": "Ryc. 8.7 obciążanie schodkowe",
+          "pages": "202",
+          "remains": "wartości osi"
+        },
+        {
+          "element": "Tabela 8.5 końcówka tygodnia 2",
+          "pages": "204",
+          "remains": "urwana"
+        },
+        {
+          "element": "Tabela 9.2 kolumny BV i PER",
+          "pages": "216",
+          "remains": "PDCAAS zachowany"
+        }
+      ]
+    },
+    {
+      "id": "contradictions",
+      "type": "uncertainties",
+      "items": [
+        {
+          "topic": "przerwy",
+          "detail": "60–90 s 'korzystne' vs ≥2 min 'lepsze' (s. 111–114)",
+          "appDecision": "≥2 min wielostawowe, 60–90 s izolacje"
+        },
+        {
+          "topic": "objętość",
+          "detail": "10–20 ogólnie; badania z korzyścią przy 30+ i z plateau ≤10 (s. 80–85)",
+          "appDecision": "start 10–12, zwiększaj wg R13–R14"
+        },
+        {
+          "topic": "starsi",
+          "detail": "niższa tolerancja na sesję vs większa potrzeba tygodniowa; zdanie o dawce podtrzymującej urwane (s. 172–173)",
+          "appDecision": "więcej serii tygodniowo, mniej na sesję"
+        },
+        {
+          "topic": "upadek",
+          "detail": "Carroll vs Martorelli (s. 130–131)",
+          "appDecision": "RIR 1–2, upadek na ostatniej serii izolacji"
+        },
+        {
+          "topic": "periodyzacja",
+          "detail": "nieudowodniona dla hipertrofii, ale zalecana (s. 193–194)",
+          "appDecision": "stosuj proste mikrocykle z deloadem"
+        },
+        {
+          "topic": "lekkie ciężary",
+          "detail": "do upadku równe vs minimum ~30% 1RM (s. 95–96)",
+          "appDecision": "dolna granica 30% 1RM"
+        },
+        {
+          "topic": "szybkie podnoszenie",
+          "detail": "mniejszy stres metaboliczny vs większa rekrutacja (s. 115–118)",
+          "appDecision": "tempo 0,5–6 s obojętne"
+        },
+        {
+          "topic": "Assis-Pereira",
+          "detail": "liczby 6,3% vs 16,6% odwrócone w tłumaczeniu (s. ok. 117)",
+          "appDecision": "nie używać tych liczb"
+        },
+        {
+          "topic": "Tabela 8.5",
+          "detail": "tydzień 2 '10 dni', tabela urwana (s. 204)",
+          "appDecision": "cykl ciężki/średni/lekki rotacyjnie"
+        },
+        {
+          "topic": "białko w deficycie",
+          "detail": "2,7 g/kg masy ciała vs 3,1 g/kg beztłuszczowej masy ciała; akapity zdublowane (s. 214–215)",
+          "appDecision": "górna granica 2,7 g/kg masy ciała"
+        }
+      ]
+    }
+  ],
+  "nutritionRules": [
+    {
+      "id": "N1",
+      "topic": "Tabela 9.3",
+      "values": {
+        "proteinGPerKgDay": [
+          1.6,
+          2.2
+        ],
+        "carbsGPerKgDayMin": 3,
+        "fatGPerKgDayMin": 1,
+        "omega3GDay": {
+          "men": 1.6,
+          "women": 1.1
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "217"
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "topic": "nadwyżka",
+      "rule": "Dobrze wytrenowani ≤500 kcal/dobę (nawet 200–300); początkujący większa bez dużego przyrostu tłuszczu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "212, 230"
+        }
+      ]
+    },
+    {
+      "id": "N3",
+      "topic": "deficyt",
+      "rule": "Deficyt obniża syntezę białek; białko do 2,7 g/kg masy ciała lub 3,1 g/kg beztłuszczowej masy ciała.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "211-212, 215"
+        }
+      ]
+    },
+    {
+      "id": "N4",
+      "topic": "rozkład białka",
+      "rule": "0,4–0,55 g/kg na posiłek w ≥4 posiłkach; próg leucyny ok. 2 g (ok. 20 g białka), u starszych ok. 40 g; >4 posiłki bez dodatkowej korzyści; limit '20–30 g na posiłek' przesadzony.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "214, 222-225"
+        }
+      ]
+    },
+    {
+      "id": "N5",
+      "topic": "timing",
+      "rule": "Białko 0,4–0,5 g/kg beztłuszczowej masy ciała przed i po treningu w odstępie ok. 4–6 h; po treningu na czczo jak najszybciej (do 45 min); dwa treningi tych samych mięśni dziennie → węglowodany 1,0–1,5 g/kg beztłuszczowej masy ciała w ciągu 1 h.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "227-229"
+        }
+      ]
+    },
+    {
+      "id": "N6",
+      "topic": "białko przed snem",
+      "rule": "Pomaga głównie przez uzupełnienie dziennej normy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "223-225"
+        }
+      ]
+    },
+    {
+      "id": "N7",
+      "topic": "post przerywany",
+      "rule": "Okno 8 h dało podobne przyrosty u trenujących; okno 4 h gorsze u nietrenujących; dane wstępne.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "223"
+        }
+      ]
+    },
+    {
+      "id": "N8",
+      "topic": "keto",
+      "rule": "Dieta ketogeniczna nieoptymalna dla hipertrofii (zakłócenie przez deficyt).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "217-220"
+        }
+      ]
+    },
+    {
+      "id": "N9",
+      "topic": "jakość białka",
+      "rule": "PDCAAS: kazeina, serwatka, jajko, soja 1,00; wołowina 0,92; czarna fasola 0,75; orzeszki ziemne 0,52; gluten 0,25. Weganie: łącz zboża i strączki w ciągu dnia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "215-216, 230"
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "topic": "tłuszcz",
+      "rule": "Reszta kalorii po białku i węglowodanach; ≥1 g/kg zapobiega niekorzystnym zmianom hormonalnym; przewaga tłuszczów nienasyconych (PUFA).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "9 Nutrição para hipertrofia",
+          "pages": "220-222"
+        }
+      ]
+    }
+  ],
+  "measurementRules": [
+    {
+      "id": "MS1",
+      "method": "fałdy skórne + obwody",
+      "rule": "praktyczne, interpretuj sceptycznie; same obwody słabe",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "3 A medição da hipertrofia muscular",
+          "pages": "59, 70"
+        }
+      ]
+    },
+    {
+      "id": "MS2",
+      "method": "BIA",
+      "rule": "wiarygodność zależy od urządzenia",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "3 A medição da hipertrofia muscular",
+          "pages": "66"
+        }
+      ]
+    },
+    {
+      "id": "MS3",
+      "method": "USG / MRI / CT",
+      "rule": "USG dobre; MRI i CT wzorcowe",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "3 A medição da hipertrofia muscular",
+          "pages": "72-74"
+        }
+      ]
+    },
+    {
+      "id": "MS4",
+      "method": "ogólnie",
+      "rule": "żadna metoda sama nie wystarcza",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "3 A medição da hipertrofia muscular",
+          "pages": "77"
+        }
+      ]
+    },
+    {
+      "id": "MS5",
+      "method": "obwody po treningu",
+      "rule": "obrzęk po ekscentryce zwiększał obwód ramienia do 9% przez do 9 dni; nie mierz zaraz po ciężkim lub nowym treningu partii",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "hipertrofia-schoenfeld",
+          "chapter": "2 Mecanismos de hipertrofia",
+          "pages": "53-54"
+        }
+      ]
+    }
+  ]
+}

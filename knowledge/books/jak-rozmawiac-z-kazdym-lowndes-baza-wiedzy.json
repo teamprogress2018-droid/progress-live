@@ -1,0 +1,5039 @@
+{
+  "meta": {
+    "slug": "jak-rozmawiac-z-kazdym-lowndes",
+    "version": "1.0",
+    "date": "2026-10-17",
+    "language": "pl",
+    "adaptation": "Książka nietreningowa (komunikacja interpersonalna): sekcje 1–7 dostosowano do komunikacji trener–klient; listy treningowe są puste ze statusem brak_w_zrodle.",
+    "pageNote": "Plik źródłowy nie ma numerów stron (ebook). Odniesienia: część + numer techniki (#N) + numer linii w pliku tekstowym; pages zawsze null."
+  },
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Pierwsze wrażenie powstaje w sekundach i w większości przez ciało",
+      "rule": "Autor twierdzi, że zanim padnie pierwsze słowo, wygląd, postawa, uśmiech i kontakt wzrokowy budują ponad 80% pierwszego wrażenia. Liczba nie ma podanego źródła badawczego.",
+      "appliesTo": "każdy pierwszy kontakt (konsultacja, event, wideo)",
+      "conditions": null,
+      "limitations": "dotyczy kultury zachodniej (USA lat 90.)",
+      "values": null,
+      "uncertainty": "statystyka niezweryfikowana (N8)",
+      "techniques": [
+        1,
+        2,
+        4,
+        5,
+        11
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+          "pages": null,
+          "lines": "500"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 2 (Yeux collants)",
+          "pages": null,
+          "lines": "614"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 4 (Accrochez-vous à vos dents)",
+          "pages": null,
+          "lines": "786"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 5 (Le pivot du grand bébé)",
+          "pages": null,
+          "lines": "938"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 11 (Prosaïque et passionné)",
+          "pages": null,
+          "lines": "1651"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I, wstęp (L'essence incroyable…)",
+          "pages": null,
+          "lines": "295-400"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Pokaż, że lubisz człowieka, zanim cokolwiek powiesz",
+      "rule": "Nastawienie „to stary przyjaciel” zmienia mimikę i postawę; ludzie odwzajemniają sympatię, którą czują, że ich darzysz.",
+      "appliesTo": "pierwsze spotkanie, klient zestresowany lub nieufny",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": "autor powołuje się na badanie Curtis i Miller (lata 80.)",
+      "techniques": [
+        6,
+        5,
+        1
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 6 (Bonjour, cher ami)",
+          "pages": null,
+          "lines": "1013"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 5 (Le pivot du grand bébé)",
+          "pages": null,
+          "lines": "938"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+          "pages": null,
+          "lines": "500"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Ton i nastrój ważniejsze od treści pierwszych słów",
+      "rule": "Zanim zaczniesz, dopasuj się do nastroju rozmówcy (1–2 zdania); pierwsze słowa mogą być zwyczajne, liczy się pasja i empatia.",
+      "appliesTo": "start sesji, rozmowa telefoniczna",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        10,
+        11
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 10 (Le match des humeurs)",
+          "pages": null,
+          "lines": "1555"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 11 (Prosaïque et passionné)",
+          "pages": null,
+          "lines": "1651"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Reflektor na rozmówcy",
+      "rule": "Ludzie najchętniej mówią o sobie; słuchaj słów-wskazówek, papuguj ostatnie słowa, nie przejmuj tematu („ja też”).",
+      "appliesTo": "wywiad wstępny, odkrywanie motywacji, obiekcje",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        18,
+        19,
+        20,
+        27
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 18 (Soyez un détective des mots)",
+          "pages": null,
+          "lines": "2100"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 19 (Le projecteur orientable)",
+          "pages": null,
+          "lines": "2154"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 20 (Paralogisme)",
+          "pages": null,
+          "lines": "2223"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 27 (Ne vous contentez pas d'un « moi aussi » rapide)",
+          "pages": null,
+          "lines": "2869"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Mów językiem rozmówcy – podobieństwo buduje zaufanie",
+      "rule": "Powtarzaj jego słowa (echo), dopasuj tempo ruchów, używaj obrazów z jego pasji i żargonu jego środowiska; ludzie lubią podobnych do siebie.",
+      "appliesTo": "tłumaczenie planu, motywowanie",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": "autor przywołuje badania Byrne’a o podobieństwie; część (#48 VAK) słabo udokumentowana",
+      "techniques": [
+        44,
+        45,
+        46,
+        39,
+        40
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 44 (Être un imitateur)",
+          "pages": null,
+          "lines": "4316"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 45 (L'écho)",
+          "pages": null,
+          "lines": "4476"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 46 (Imagerie puissante)",
+          "pages": null,
+          "lines": "4581"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 39 (Apprendre un peu de charabia)",
+          "pages": null,
+          "lines": "3815"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 40 (Afficher son point sensible)",
+          "pages": null,
+          "lines": "3873"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Najpierw „ty”, potem „ja” – język korzyści",
+      "rule": "Formułuj zdania od „ty” i z perspektywy korzyści rozmówcy; w propozycjach otwarcie mów, co obie strony zyskują (WIIFM/WIIFY).",
+      "appliesTo": "omawianie planu, sprzedaż pakietu, prośba o polecenie",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        28,
+        80
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 28 (Comm-YOU-nication)",
+          "pages": null,
+          "lines": "2978"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 80 (Mettre à nu le WIIFM enfoui)",
+          "pages": null,
+          "lines": "7208"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Pochwała: szczera, konkretna, natychmiastowa, często pośrednia",
+      "rule": "Chwal od razu po sukcesie, często drobnymi słowami, a rzadko – ale celnie – „zabójczym komplementem”; pochwała przez osobę trzecią działa mocniej; unikaj komplementów z zadrą.",
+      "appliesTo": "feedback w trakcie i po treningu, utrzymanie klienta",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": "autor dopuszcza „białe kłamstwo” (#57) – sprzeczność z P7/N1",
+      "techniques": [
+        51,
+        52,
+        53,
+        55,
+        56,
+        57
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 51 (La gloire de Grapevine)",
+          "pages": null,
+          "lines": "4993"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 52 (Félicitations aux pigeons voyageurs)",
+          "pages": null,
+          "lines": "5040"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 53 (Magnificence implicite)",
+          "pages": null,
+          "lines": "5092"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 56 (Petits coups)",
+          "pages": null,
+          "lines": "5257"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 57 (Le réflexe « wow ! »)",
+          "pages": null,
+          "lines": "5322"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Chroń godność rozmówcy",
+      "rule": "Bez docinków, nie zauważaj drobnych wpadek, przyłapanemu zostaw wyjście z twarzą, złą wiadomość podawaj z myślą o odbiorcy.",
+      "appliesTo": "błędy klienta, zła informacja, kłamstwa o realizacji planu",
+      "conditions": null,
+      "limitations": "nie dotyczy objawów zdrowotnych ani błędów techniki (N2)",
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        33,
+        34,
+        78,
+        89
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 33 (Mettez à la poubelle l'aguichage)",
+          "pages": null,
+          "lines": "3331"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 34 (C'est le ballon du receveur)",
+          "pages": null,
+          "lines": "3385"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 78 (Ne pas voir de bêtisier, ne pas entendre de bêtisier)",
+          "pages": null,
+          "lines": "7072"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 89 (Laisser une issue de secours)",
+          "pages": null,
+          "lines": "7703"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "title": "Wybieraj moment: pytaj o czas i szanuj „sanktuaria”",
+      "rule": "Zawsze pytaj, czy rozmówca ma czas; trudne sprawy i sprzedaż nie na przyjęciu, przy posiłku ani przy przypadkowym spotkaniu.",
+      "appliesTo": "telefon, wiadomości, spotkania poza salą",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        65,
+        83,
+        84,
+        85
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 65 (Quelle est la couleur de votre temps ?)",
+          "pages": null,
+          "lines": "5922"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 83 (Les fêtes sont pour les prêtres)",
+          "pages": null,
+          "lines": "7367"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 84 (Dîner pour dîner)",
+          "pages": null,
+          "lines": "7417"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 85 (Les rencontres fortuites sont l'occasion de bavarder)",
+          "pages": null,
+          "lines": "7455"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Najpierw emocje, potem fakty",
+      "rule": "W sytuacji emocjonalnej pozwól się rozmówcy wygadać do końca i współczuj emocjom; dopiero wtedy przyjmie fakty i rozwiązania.",
+      "appliesTo": "frustracja brakiem efektów, skargi, konflikty",
+      "conditions": null,
+      "limitations": "wyjątek: niepokojące objawy – działaj od razu (S13)",
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        86,
+        87
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 87 (L'écho de l'OMU)",
+          "pages": null,
+          "lines": "7599"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Pamiętaj szczegóły z życia rozmówcy",
+      "rule": "Notuj zaraz po rozmowie i nawiązuj do szczegółów przy kolejnym kontakcie – to daje poczucie bycia ważnym.",
+      "appliesTo": "utrzymanie klienta, follow-up po konsultacji",
+      "conditions": null,
+      "limitations": "dane o zdrowiu to dane wrażliwe (S11)",
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        75,
+        76,
+        50
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 75 (Suivi)",
+          "pages": null,
+          "lines": "6736"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 50 (Histoire instantanée)",
+          "pages": null,
+          "lines": "4875"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "Wzajemność i „tablica wyników”",
+      "rule": "Każda relacja ma niewidzialny bilans dawania i brania; nie żądaj rewanżu od razu, a własny błąd zamień w korzyść dla poszkodowanego.",
+      "appliesTo": "polecenia, przysługi, błędy trenera",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        81,
+        82,
+        88,
+        92
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 81 (Laissez-les savourer la faveur)",
+          "pages": null,
+          "lines": "7254"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 82 (Un peu d'argent pour un peu d'argent (attendez ... attendez))",
+          "pages": null,
+          "lines": "7300"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 88 (Ma gaffe, ton gain)",
+          "pages": null,
+          "lines": "7635"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 92 (Le grand tableau de bord dans le ciel)",
+          "pages": null,
+          "lines": "7931"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Przez telefon słowa muszą zastąpić ciało",
+      "rule": "Uśmiech, kiwanie głową i gesty trzeba przełożyć na dźwięki i słowa; autor: przez telefon traci się ok. 30% energii, więc dodaj 30%.",
+      "appliesTo": "konsultacje online, telefon, wiadomości głosowe",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": "statystyka 30% bez źródła (N8)",
+      "techniques": [
+        60,
+        61,
+        62
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 60 (Les gestes de la parole)",
+          "pages": null,
+          "lines": "5613"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 61 (Douche nominative)",
+          "pages": null,
+          "lines": "5646"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 62 (Oh wow, c'est toi !)",
+          "pages": null,
+          "lines": "5757"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Małe, powtarzane nawyki i przygotowanie",
+      "rule": "Sukces w kontaktach to suma drobnych technik ćwiczonych po kilka naraz, aż staną się naturalne; przygotowanie (wizualizacja, wiadomości, autoprezentacja) zmniejsza stres.",
+      "appliesTo": "rozwój kompetencji miękkich trenera",
+      "conditions": null,
+      "limitations": null,
+      "values": null,
+      "uncertainty": null,
+      "techniques": [
+        9,
+        23,
+        25,
+        40
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 9 (Regardez la scène avant de faire la scène)",
+          "pages": null,
+          "lines": "1346"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 23 (Les dernières nouvelles ... à ne pas manquer !)",
+          "pages": null,
+          "lines": "2455"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 25 (Le résumé en quelques mots)",
+          "pages": null,
+          "lines": "2696"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 40 (Afficher son point sensible)",
+          "pages": null,
+          "lines": "3873"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Un dernier mot : votre destin (Ostatnie słowo: twoje przeznaczenie)",
+          "pages": null,
+          "lines": "7950-8023"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Préface : Tout avoir (Przedmowa: Mieć wszystko)",
+          "pages": null,
+          "lines": "150-294"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [],
+  "exerciseRulesStatus": "brak_w_zrodle",
+  "progressionRules": [],
+  "progressionRulesStatus": "brak_w_zrodle",
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "kontakt wzrokowy, gesty, dotyk w pracy z osobami z różnych kultur",
+      "action": "Intensywny kontakt wzrokowy (#2, #3) może onieśmielać lub być niegrzeczny w niektórych kulturach; sprawdź zwyczaje i obserwuj reakcję.",
+      "priority": "warning",
+      "techniques": [
+        2,
+        3,
+        42
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 2 (Yeux collants)",
+          "pages": null,
+          "lines": "614"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 3 (Yeux en époxy)",
+          "pages": null,
+          "lines": "685"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 42 (Effacer 'custom')",
+          "pages": null,
+          "lines": "4087"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "pokusa żartu z wyglądu, wagi, wieku lub słabości klienta",
+      "action": "Nie żartuj kosztem klienta; docinki ludzie pamiętają.",
+      "priority": "policy",
+      "techniques": [
+        33
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 33 (Mettez à la poubelle l'aguichage)",
+          "pages": null,
+          "lines": "3331"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "komplement dotyczący ciała, wieku, wagi",
+      "action": "Unikaj komplementów z zadrą i porównań („jak na…”); chwal wysiłek, systematyczność, postęp.",
+      "priority": "policy",
+      "techniques": [
+        53,
+        55
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 53 (Magnificence implicite)",
+          "pages": null,
+          "lines": "5092"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "techniki opisane przez autora w kontekście romantycznym (#3, #74 „uwodzicielskie nadgarstki”, komplementy wyglądu)",
+      "action": "Nie stosuj w relacji trener–klient; relacja zawodowa, bez podtekstów.",
+      "priority": "policy",
+      "techniques": [
+        3,
+        74
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 3 (Yeux en époxy)",
+          "pages": null,
+          "lines": "685"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 74 (Les mains en l'air)",
+          "pages": null,
+          "lines": "6629"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "korekta techniki wymagająca dotyku",
+      "action": "Dotykaj tylko po zapytaniu o zgodę i z wyjaśnieniem, w co i po co.",
+      "priority": "policy",
+      "techniques": [],
+      "status": "poza_zrodlem",
+      "sources": []
+    },
+    {
+      "id": "S6",
+      "trigger": "słyszysz rozmowy klientów na sali",
+      "action": "Nie podsłuchuj i nie wykorzystuj tego do zagajania (#14 dotyczy przyjęć).",
+      "priority": "policy",
+      "techniques": [
+        14
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 14 (Écouter aux portes)",
+          "pages": null,
+          "lines": "1790"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "techniki oparte na zwodzeniu (#43 blef, #68 udawana zażyłość)",
+      "action": "Nie stosuj wobec klientów ani współpracowników.",
+      "priority": "policy",
+      "techniques": [
+        43,
+        68
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 43 (Bluffer pour obtenir de bonnes affaires)",
+          "pages": null,
+          "lines": "4216"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 68 (Une comédie sans intérêt)",
+          "pages": null,
+          "lines": "6134"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "pokusa „białego kłamstwa” w pochwale (#57)",
+      "action": "Nigdy nie kłam o technice, bezpieczeństwie ani postępach; chwal prawdziwy wysiłek.",
+      "priority": "policy",
+      "techniques": [
+        57,
+        55
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 57 (Le réflexe « wow ! »)",
+          "pages": null,
+          "lines": "5322"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "„nie zauważaj wpadek” (#78) a objawy",
+      "action": "Zasada #78 nie dotyczy objawów zdrowotnych (zawroty, ból, duszność, bladość) ani błędów techniki – je zawsze zauważ i reaguj.",
+      "priority": "warning",
+      "techniques": [
+        78
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 78 (Ne pas voir de bêtisier, ne pas entendre de bêtisier)",
+          "pages": null,
+          "lines": "7072"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "slogany typu „no pain, no gain”",
+      "action": "Unikaj; mogą zachęcać do ignorowania bólu.",
+      "priority": "warning",
+      "techniques": [
+        30
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 30 (Ne touchez pas à un cliché avec une perche de dix pieds)",
+          "pages": null,
+          "lines": "3109"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "trigger": "notatki o klientach (#75, #76)",
+      "action": "Zapisuj tylko potrzebne informacje, przechowuj bezpiecznie; dane o zdrowiu to dane szczególnej kategorii (RODO) – wymagają podstawy prawnej i zgody.",
+      "priority": "policy",
+      "techniques": [
+        75,
+        76
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 75 (Suivi)",
+          "pages": null,
+          "lines": "6736"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "trigger": "nagrywanie rozmów (#70)",
+      "action": "Tylko za wyraźną zgodą i zgodnie z prawem; autor sam zaznacza, że legalność zależy od miejsca.",
+      "priority": "policy",
+      "techniques": [
+        70
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 70 (Reprise instantanée)",
+          "pages": null,
+          "lines": "6260"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "trigger": "ból w klatce, duszność nieproporcjonalna do wysiłku, omdlenie, kołatanie serca",
+      "action": "Przerwij trening; w nagłej sytuacji wezwij pomoc (112); bez dalszego treningu do konsultacji z lekarzem.",
+      "priority": "warning",
+      "techniques": [],
+      "status": "poza_zrodlem",
+      "sources": []
+    },
+    {
+      "id": "S14",
+      "trigger": "znane choroby (serce, nadciśnienie, cukrzyca), ciąża, świeży uraz bez zgody lekarza",
+      "action": "Zalecaj konsultację lekarską przed rozpoczęciem lub zwiększeniem wysiłku.",
+      "priority": "warning",
+      "techniques": [],
+      "status": "poza_zrodlem",
+      "sources": []
+    },
+    {
+      "id": "S15",
+      "trigger": "ostry lub utrzymujący się ból stawu, obrzęk, drętwienie, świeży uraz",
+      "action": "Przerwij ćwiczenie i zalecaj fizjoterapeutę lub lekarza.",
+      "priority": "warning",
+      "techniques": [],
+      "status": "poza_zrodlem",
+      "sources": []
+    },
+    {
+      "id": "S16",
+      "trigger": "ciemny mocz, silny ból mięśni nieproporcjonalny do treningu",
+      "action": "Zalecaj pilny kontakt z lekarzem.",
+      "priority": "warning",
+      "techniques": [],
+      "status": "poza_zrodlem",
+      "sources": []
+    },
+    {
+      "id": "S17",
+      "trigger": "klient zdradza silny stres, objawy depresji, zaburzeń odżywiania lub myśli samobójcze",
+      "action": "Wysłuchaj z empatią (#86–87), nie diagnozuj; zachęć do kontaktu z psychologiem lub lekarzem; w zagrożeniu życia 112.",
+      "priority": "warning",
+      "techniques": [
+        86,
+        87
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 87 (L'écho de l'OMU)",
+          "pages": null,
+          "lines": "7599"
+        }
+      ]
+    },
+    {
+      "id": "S-COMM",
+      "trigger": "każda komunikacja trenera o zdrowiu",
+      "action": "Trener nie diagnozuje, nie nazywa przyczyn objawów, nie zaleca leków ani suplementów; kieruje do specjalisty. Na naciski – „zdarta płyta” (#35).",
+      "priority": "policy",
+      "techniques": [
+        35
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 35 (Le disque rayé)",
+          "pages": null,
+          "lines": "3430"
+        }
+      ]
+    }
+  ],
+  "planTemplates": [],
+  "planTemplatesStatus": "brak_w_zrodle",
+  "communicationRules": [
+    {
+      "id": "R1",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "klient wchodzi na pierwszą konsultację",
+      "then": "Odłóż telefon, odwróć się do niego całym ciałem, popatrz ok. 1 s na twarz i dopiero wtedy szeroko się uśmiechnij; utrzymuj kontakt wzrokowy, ale bez wpatrywania się.",
+      "techniques": [
+        1,
+        2,
+        5
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+          "pages": null,
+          "lines": "500"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 2 (Yeux collants)",
+          "pages": null,
+          "lines": "614"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 5 (Le pivot du grand bébé)",
+          "pages": null,
+          "lines": "938"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "trener jest zestresowany lub klient wydaje się trudny",
+      "then": "Przed spotkaniem nastaw się „to stary znajomy” i przećwicz w myślach powitanie; wejdź wyprostowany, z otwartymi rękami.",
+      "techniques": [
+        6,
+        9,
+        4,
+        74
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 6 (Bonjour, cher ami)",
+          "pages": null,
+          "lines": "1013"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 9 (Regardez la scène avant de faire la scène)",
+          "pages": null,
+          "lines": "1346"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 4 (Accrochez-vous à vos dents)",
+          "pages": null,
+          "lines": "786"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 74 (Les mains en l'air)",
+          "pages": null,
+          "lines": "6629"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "klient przychodzi zmęczony, smutny lub zdenerwowany",
+      "then": "Pierwsze 1–2 zdania dopasuj do jego nastroju (spokojniej, ciszej), dopiero potem stopniowo podnoś energię.",
+      "techniques": [
+        10,
+        11
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 10 (Le match des humeurs)",
+          "pages": null,
+          "lines": "1555"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 11 (Prosaïque et passionné)",
+          "pages": null,
+          "lines": "1651"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "prowadzisz wywiad o celach",
+      "then": "Mów mniej niż klient; łap słowa-wskazówki (dzieci, góry, ślub, ból pleców przy pracy) i dopytuj o nie; używaj papugowania ostatnich słów.",
+      "techniques": [
+        18,
+        19,
+        20
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 18 (Soyez un détective des mots)",
+          "pages": null,
+          "lines": "2100"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 19 (Le projecteur orientable)",
+          "pages": null,
+          "lines": "2154"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 20 (Paralogisme)",
+          "pages": null,
+          "lines": "2223"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "potrzebujesz informacji o pracy i trybie życia",
+      "then": "Zamiast „czym się zajmujesz?” zapytaj „jak wygląda twój typowy dzień?” lub „jak spędzasz większość czasu?”.",
+      "techniques": [
+        24
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 24 (Que faites-vous - PAS !)",
+          "pages": null,
+          "lines": "2536"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "masz z klientem coś wspólnego (sport, miasto, przeszłość)",
+      "then": "Nie przerywaj „ja też”; pozwól mu skończyć i powiedz o tym później.",
+      "techniques": [
+        27
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 27 (Ne vous contentez pas d'un « moi aussi » rapide)",
+          "pages": null,
+          "lines": "2869"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "klient opisuje cel własnymi słowami",
+      "then": "Używaj jego słów przy omawianiu planu (echo) i metafor z jego pasji; nie zamieniaj ich na żargon trenerski.",
+      "techniques": [
+        45,
+        46
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 45 (L'écho)",
+          "pages": null,
+          "lines": "4476"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 46 (Imagerie puissante)",
+          "pages": null,
+          "lines": "4581"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "klient pyta, kim jesteś i co robisz",
+      "then": "Krótka, prawdziwa autoprezentacja dopasowana do jego sytuacji z korzyścią: „Pomagam osobom takim jak ty…”, zamiast „nagiego zawodu”.",
+      "techniques": [
+        16,
+        25
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 16 (Jamais le travail nu)",
+          "pages": null,
+          "lines": "1966"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 25 (Le résumé en quelques mots)",
+          "pages": null,
+          "lines": "2696"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "kończysz pierwszą konsultację",
+      "then": "Na koniec powiedz jedną konkretną, prawdziwą pochwałę cechy klienta (np. szczerość, determinacja), patrząc w oczy i używając imienia; nie dotyczy wyglądu ciała.",
+      "techniques": [
+        55
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "rozmowa się skończyła",
+      "then": "Zaraz po niej zapisz szczegóły (cele, preferencje, wydarzenia życiowe) – minimalnie i bezpiecznie (S11).",
+      "techniques": [
+        76
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "reguła",
+      "group": "Pierwsze spotkanie / konsultacja",
+      "if": "nie zacząłeś jeszcze współpracy",
+      "then": "Nie zaczynaj od własnych problemów, narzekania na konkurencję czy wyznań o słabościach – zostaw je na później.",
+      "techniques": [
+        22
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 22 (Ac-cen-tu-ate la pos-i-tive)",
+          "pages": null,
+          "lines": "2404"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "klient zrobił dobrą serię, pobił rekord, dotrwał do końca",
+      "then": "Pochwal natychmiast i spontanicznie („Wow, świetnie!”); chwal prawdziwy wysiłek, nie kłam o jakości techniki.",
+      "techniques": [
+        57
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 57 (Le réflexe « wow ! »)",
+          "pages": null,
+          "lines": "5322"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "klient regularnie przychodzi i wykonuje plan",
+      "then": "Doceniaj często drobnymi słowami („dobra robota”, „widać postęp”), nie czekaj tylko na duże sukcesy.",
+      "techniques": [
+        56
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 56 (Petits coups)",
+          "pages": null,
+          "lines": "5257"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "chwalisz klienta",
+      "then": "Mów konkretnie, za co (#37 „dziękuję za…”), urozmaicaj słowa; unikaj komplementów z zadrą („jak na swój wiek / wagę…”).",
+      "techniques": [
+        26,
+        37,
+        53
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 26 (Votre thésaurus personnel)",
+          "pages": null,
+          "lines": "2801"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 37 (Jamais la nudité merci)",
+          "pages": null,
+          "lines": "3549"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 53 (Magnificence implicite)",
+          "pages": null,
+          "lines": "5092"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "chcesz wzmocnić pochwałę",
+      "then": "Pochwal klienta przy innej osobie (współćwiczący, inny trener) lub przekaż mu miłą opinię kogoś innego.",
+      "techniques": [
+        51,
+        52
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 51 (La gloire de Grapevine)",
+          "pages": null,
+          "lines": "4993"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 52 (Félicitations aux pigeons voyageurs)",
+          "pages": null,
+          "lines": "5040"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "musisz poprawić technikę",
+      "then": "Mów językiem korzyści klienta („twoje kolana będą bezpieczniejsze, gdy…”), nie wplataj korekty w zdanie z komplementem (po komplemencie klient słabiej słucha).",
+      "techniques": [
+        28,
+        54
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 28 (Comm-YOU-nication)",
+          "pages": null,
+          "lines": "2978"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 54 (Adulation accidentelle)",
+          "pages": null,
+          "lines": "5129"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "klient kiwa „tak”, a mowa ciała mówi „nie” (kręcenie głową, cofanie się)",
+      "then": "Zatrzymaj się i dopytaj („Widzę wahanie – co cię niepokoi?”); planuj dalej według reakcji, a nie słów.",
+      "techniques": [
+        8,
+        77
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 8 (Le sens du cheval de Hans)",
+          "pages": null,
+          "lines": "1281"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 77 (Vente des globes oculaires)",
+          "pages": null,
+          "lines": "6907"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "klient zaliczy drobną wpadkę (potknięcie, głośny oddech, niezręczność)",
+      "then": "Nie komentuj i nie żartuj. Wyjątek: objawy zdrowotne i błędy techniki zawsze odnotuj spokojnie.",
+      "techniques": [
+        78,
+        33
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 78 (Ne pas voir de bêtisier, ne pas entendre de bêtisier)",
+          "pages": null,
+          "lines": "7072"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 33 (Mettez à la poubelle l'aguichage)",
+          "pages": null,
+          "lines": "3331"
+        }
+      ]
+    },
+    {
+      "id": "R19",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "klient chwali ciebie lub plan",
+      "then": "Krótko podziękuj i oddaj zasługę jemu („to twoja konsekwencja”).",
+      "techniques": [
+        58
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 58 (Le boomerang)",
+          "pages": null,
+          "lines": "5405"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "category": "reguła",
+      "group": "Feedback i motywacja",
+      "if": "budujesz poczucie zespołu",
+      "then": "Mów „nasz plan”, „nasz cel”, ale nie udawaj zażyłości, której nie ma.",
+      "techniques": [
+        49
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 49 (La prématurité que nous)",
+          "pages": null,
+          "lines": "4814"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "musisz przekazać złą wiadomość (brak postępu, odwołanie, podwyżka cen)",
+      "then": "Pomyśl, jak odbierze to klient, podaj informację z adekwatną emocją i od razu z planem.",
+      "techniques": [
+        34
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 34 (C'est le ballon du receveur)",
+          "pages": null,
+          "lines": "3385"
+        }
+      ]
+    },
+    {
+      "id": "R22",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "klient naciska na diagnozę, leki, suplementy, rabat lub informacje o innych klientach",
+      "then": "Odpowiedz raz jasno, a przy kolejnych naciskach powtarzaj tę samą odpowiedź spokojnie (zdarta płyta) i wskaż specjalistę (S-COMM).",
+      "techniques": [
+        35
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 35 (Le disque rayé)",
+          "pages": null,
+          "lines": "3430"
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "klient jest sfrustrowany, zły lub płacze (waga, brak efektów)",
+      "then": "Daj mu się wygadać do końca, nazwij emocje („to frustrujące, rozumiem”), dopiero potem fakty i rozwiązania.",
+      "techniques": [
+        86,
+        87,
+        47
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 87 (L'écho de l'OMU)",
+          "pages": null,
+          "lines": "7599"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 47 (Employer des personnes empathiques)",
+          "pages": null,
+          "lines": "4637"
+        }
+      ]
+    },
+    {
+      "id": "R24",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "klient zgłasza ból, zawroty, duszność",
+      "then": "Nie stosuj „najpierw wysłuchaj do końca”: przerwij trening i postępuj według S13–S16.",
+      "techniques": [
+        86
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        }
+      ]
+    },
+    {
+      "id": "R25",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "popełniłeś błąd (spóźnienie, pomyłka w grafiku, zły plan)",
+      "then": "Przeproś, napraw i daj coś ekstra (np. dodatkowe minuty, analiza), by klient zyskał na twojej gafie.",
+      "techniques": [
+        88,
+        92
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 88 (Ma gaffe, ton gain)",
+          "pages": null,
+          "lines": "7635"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 92 (Le grand tableau de bord dans le ciel)",
+          "pages": null,
+          "lines": "7931"
+        }
+      ]
+    },
+    {
+      "id": "R26",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "klient zawyża realizację planu lub diety",
+      "then": "Nie konfrontuj wprost; zapytaj neutralnie, przyjmij część winy („może źle to rozpisałem”) i zaproponuj realny plan.",
+      "techniques": [
+        89
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 89 (Laisser une issue de secours)",
+          "pages": null,
+          "lines": "7703"
+        }
+      ]
+    },
+    {
+      "id": "R27",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "spotykasz klienta na imprezie, przy posiłku lub przypadkiem w sklepie",
+      "then": "Tylko miła, krótka rozmowa; bez zaległości, płatności, nieobecności i sprzedaży.",
+      "techniques": [
+        83,
+        84,
+        85
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 83 (Les fêtes sont pour les prêtres)",
+          "pages": null,
+          "lines": "7367"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 84 (Dîner pour dîner)",
+          "pages": null,
+          "lines": "7417"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 85 (Les rencontres fortuites sont l'occasion de bavarder)",
+          "pages": null,
+          "lines": "7455"
+        }
+      ]
+    },
+    {
+      "id": "R28",
+      "category": "reguła",
+      "group": "Trudne sytuacje",
+      "if": "klient nie realizuje planu",
+      "then": "Zapytaj, czy ma teraz czas na rozmowę; wysłuchaj powodów do końca, papuguj, by wydobyć prawdziwą przyczynę; połącz plan z jego słowami i korzyściami; doceń każdy zrealizowany element. Książka nie omawia tego przypadku wprost.",
+      "techniques": [
+        65,
+        86,
+        87,
+        20,
+        45,
+        28,
+        56
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 65 (Quelle est la couleur de votre temps ?)",
+          "pages": null,
+          "lines": "5922"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 87 (L'écho de l'OMU)",
+          "pages": null,
+          "lines": "7599"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 20 (Paralogisme)",
+          "pages": null,
+          "lines": "2223"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 45 (L'écho)",
+          "pages": null,
+          "lines": "4476"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 28 (Comm-YOU-nication)",
+          "pages": null,
+          "lines": "2978"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 56 (Petits coups)",
+          "pages": null,
+          "lines": "5257"
+        }
+      ]
+    },
+    {
+      "id": "R29",
+      "category": "reguła",
+      "group": "Sprzedaż, polecenia",
+      "if": "proponujesz pakiet lub przedłużenie",
+      "then": "Powiedz otwarcie, co zyskuje klient i co ty (WIIFM/WIIFY); ukryte intencje odkryte później niszczą zaufanie.",
+      "techniques": [
+        80
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 80 (Mettre à nu le WIIFM enfoui)",
+          "pages": null,
+          "lines": "7208"
+        }
+      ]
+    },
+    {
+      "id": "R30",
+      "category": "reguła",
+      "group": "Sprzedaż, polecenia",
+      "if": "prosisz o polecenie lub opinię",
+      "then": "Proś przejrzyście, w dobrym momencie, a po zgodzie odczekaj (≥24 h) z dalszymi prośbami; po wyświadczonej przysłudze nie żądaj rewanżu od razu.",
+      "techniques": [
+        80,
+        81,
+        82
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 80 (Mettre à nu le WIIFM enfoui)",
+          "pages": null,
+          "lines": "7208"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 81 (Laissez-les savourer la faveur)",
+          "pages": null,
+          "lines": "7254"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 82 (Un peu d'argent pour un peu d'argent (attendez ... attendez))",
+          "pages": null,
+          "lines": "7300"
+        }
+      ]
+    },
+    {
+      "id": "R31",
+      "category": "reguła",
+      "group": "Utrzymanie klienta",
+      "if": "klient wspomniał o ważnym wydarzeniu (egzamin dziecka, urlop, zawody)",
+      "then": "Zapisz i zapytaj o to na kolejnej sesji; pamiętaj o rocznicy współpracy.",
+      "techniques": [
+        75,
+        76
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 75 (Suivi)",
+          "pages": null,
+          "lines": "6736"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        }
+      ]
+    },
+    {
+      "id": "R32",
+      "category": "reguła",
+      "group": "Utrzymanie klienta",
+      "if": "macie zabawną lub miłą wspólną chwilę z pierwszych treningów",
+      "then": "Wracaj do niej krótkim hasłem – tworzy wspólną historię.",
+      "techniques": [
+        50
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 50 (Histoire instantanée)",
+          "pages": null,
+          "lines": "4875"
+        }
+      ]
+    },
+    {
+      "id": "R33",
+      "category": "reguła",
+      "group": "Utrzymanie klienta",
+      "if": "trafisz na materiał w temacie pasji klienta",
+      "then": "Wyślij „do wiadomości” bez oczekiwań (z zachowaniem granic kontaktu).",
+      "techniques": [
+        52
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 52 (Félicitations aux pigeons voyageurs)",
+          "pages": null,
+          "lines": "5040"
+        }
+      ]
+    },
+    {
+      "id": "R34",
+      "category": "reguła",
+      "group": "Utrzymanie klienta",
+      "if": "chcesz znać głębsze wartości klienta",
+      "then": "Zapytaj na wywiadzie, co jest dla niego naprawdę ważne, i po kilku tygodniach odwołaj się do tych słów (łagodna wersja „gry w nagrobek”).",
+      "techniques": [
+        59
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 59 (Le jeu de la pierre tombale)",
+          "pages": null,
+          "lines": "5494"
+        }
+      ]
+    },
+    {
+      "id": "R35",
+      "category": "reguła",
+      "group": "Trening grupowy",
+      "if": "prowadzisz zajęcia grupowe",
+      "then": "Przywitaj każdego osobno uśmiechem i imieniem; przedstawiając uczestników, dodaj temat do rozmowy.",
+      "techniques": [
+        29,
+        17
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 29 (Le sourire exclusif)",
+          "pages": null,
+          "lines": "3051"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 17 (Jamais l'introduction nue)",
+          "pages": null,
+          "lines": "2017"
+        }
+      ]
+    },
+    {
+      "id": "R36",
+      "category": "reguła",
+      "group": "Trening grupowy",
+      "if": "opowieść uczestnika zostanie przerwana",
+      "then": "Po przerwie poproś „dokończ, co mówiłeś”.",
+      "techniques": [
+        79
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 79 (Donner un coup de pouce)",
+          "pages": null,
+          "lines": "7124"
+        }
+      ]
+    },
+    {
+      "id": "R37",
+      "category": "reguła",
+      "group": "Trening grupowy",
+      "if": "chcesz pochwalić w grupie",
+      "then": "Drobne pochwały publicznie; zabójczy komplement i uwagi krytyczne – prywatnie.",
+      "techniques": [
+        55,
+        56
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 56 (Petits coups)",
+          "pages": null,
+          "lines": "5257"
+        }
+      ]
+    },
+    {
+      "id": "R38",
+      "category": "reguła",
+      "group": "Telefon i online",
+      "if": "dzwonisz lub piszesz do klienta",
+      "then": "Zacznij od „Masz teraz chwilę?”; jeśli „czerwony/żółty” – umów inny termin, nic nie sprzedawaj.",
+      "techniques": [
+        65
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 65 (Quelle est la couleur de votre temps ?)",
+          "pages": null,
+          "lines": "5922"
+        }
+      ]
+    },
+    {
+      "id": "R39",
+      "category": "reguła",
+      "group": "Telefon i online",
+      "if": "prowadzisz konsultację telefoniczną lub wideo",
+      "then": "Przekładaj gesty na słowa („mhm”, „rozumiem”, „świetnie”), dodaj energii w głosie, częściej używaj imienia.",
+      "techniques": [
+        60,
+        61
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 60 (Les gestes de la parole)",
+          "pages": null,
+          "lines": "5613"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 61 (Douche nominative)",
+          "pages": null,
+          "lines": "5646"
+        }
+      ]
+    },
+    {
+      "id": "R40",
+      "category": "reguła",
+      "group": "Telefon i online",
+      "if": "odbierasz telefon od klienta",
+      "then": "Odbierz ciepło i profesjonalnie, a gdy rozpoznasz osobę – okaż radość.",
+      "techniques": [
+        62
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 62 (Oh wow, c'est toi !)",
+          "pages": null,
+          "lines": "5757"
+        }
+      ]
+    },
+    {
+      "id": "R41",
+      "category": "reguła",
+      "group": "Telefon i online",
+      "if": "w tle rozmowy słyszysz dziecko, telefon, domofon",
+      "then": "Przerwij i zapytaj, czy klient musi się tym zająć; zaproponuj przerwę.",
+      "techniques": [
+        69
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 69 (J'entends votre autre ligne)",
+          "pages": null,
+          "lines": "6158"
+        }
+      ]
+    },
+    {
+      "id": "R42",
+      "category": "reguła",
+      "group": "Telefon i online",
+      "if": "klient mieszka w innej strefie czasowej lub ma święta",
+      "then": "Sprawdź godzinę i kalendarz, zanim zadzwonisz.",
+      "techniques": [
+        69
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 69 (J'entends votre autre ligne)",
+          "pages": null,
+          "lines": "6158"
+        }
+      ]
+    },
+    {
+      "id": "R43",
+      "category": "reguła",
+      "group": "Telefon i online",
+      "if": "nagrywasz wiadomość głosową do klienta",
+      "then": "Krótko, konkretnie, z energią (10-sekundowe „przesłuchanie”); powitanie w poczcie głosowej lub autoodpowiedzi aktualne.",
+      "techniques": [
+        66,
+        67
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 66 (Changement constant du message sortant)",
+          "pages": null,
+          "lines": "6035"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 67 (Votre audition de dix secondes)",
+          "pages": null,
+          "lines": "6086"
+        }
+      ]
+    },
+    {
+      "id": "R44",
+      "category": "reguła",
+      "group": "Telefon i online",
+      "if": "chcesz nagrać rozmowę lub sesję",
+      "then": "Tylko za wyraźną zgodą klienta i zgodnie z prawem (S12).",
+      "techniques": [
+        70
+      ],
+      "status": "poza_zrodlem",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 70 (Reprise instantanée)",
+          "pages": null,
+          "lines": "6260"
+        }
+      ]
+    },
+    {
+      "id": "R45",
+      "category": "reguła",
+      "group": "Marketing i networking",
+      "if": "idziesz na event, targi, bieg, spotkanie branżowe",
+      "then": "Przygotuj się według sześciu punktów (kto, kiedy, co zabrać, dlaczego, gdzie, jak follow-up); rozejrzyj się w drzwiach, ręce wolne od jedzenia, sam wybieraj rozmówców, notuj po każdej rozmowie.",
+      "techniques": [
+        71,
+        72,
+        73,
+        76
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 71 (Munching ou mingling)",
+          "pages": null,
+          "lines": "6435"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 72 (Rubberneck the room)",
+          "pages": null,
+          "lines": "6489"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 73 (Soyez l'élu, pas l'élu)",
+          "pages": null,
+          "lines": "6555"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        }
+      ]
+    },
+    {
+      "id": "R46",
+      "category": "reguła",
+      "group": "Marketing i networking",
+      "if": "pracujesz z klientami z konkretnego sportu lub zawodu",
+      "then": "Poznaj ich żargon i „gorące tematy” (np. biegacz: „życiówka”), spróbuj raz ich aktywności.",
+      "techniques": [
+        38,
+        39,
+        40
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 38 (Thérapie de l'embrouille)",
+          "pages": null,
+          "lines": "3710"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 39 (Apprendre un peu de charabia)",
+          "pages": null,
+          "lines": "3815"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 40 (Afficher son point sensible)",
+          "pages": null,
+          "lines": "3873"
+        }
+      ]
+    },
+    {
+      "id": "R47",
+      "category": "reguła",
+      "group": "Marketing i networking",
+      "if": "współpracujesz z fizjoterapeutą, dietetykiem, recepcją",
+      "then": "Chwal ich dobrą pracę przed szefem lub klientami i dbaj o równowagę przysług.",
+      "techniques": [
+        90,
+        92
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 90 (Des boutons d'or pour leur patron)",
+          "pages": null,
+          "lines": "7780"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 92 (Le grand tableau de bord dans le ciel)",
+          "pages": null,
+          "lines": "7931"
+        }
+      ]
+    },
+    {
+      "id": "R48",
+      "category": "reguła",
+      "group": "Przypadki treningowe z briefu",
+      "if": "początkujący 3×/tydz., ograniczony sprzęt, hipertrofia, regeneracja wskazuje problem",
+      "then": "Książka nie zawiera zasad programowania treningu – użyj innych baz Progress Live (np. ukladanie-planow-treningowych).",
+      "techniques": [],
+      "status": "brak_w_zrodle",
+      "sources": []
+    }
+  ],
+  "communicationParameters": [
+    {
+      "id": "C1",
+      "parameter": "Opóźnienie uśmiechu przy powitaniu",
+      "value": "ok. 1 s patrzenia na twarz przed uśmiechem",
+      "techniques": [
+        1
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+          "pages": null,
+          "lines": "500"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "parameter": "Dopasowanie nastroju",
+      "value": "pierwsze 1–2 zdania w nastroju rozmówcy",
+      "techniques": [
+        10
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 10 (Le match des humeurs)",
+          "pages": null,
+          "lines": "1555"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "parameter": "Dodatkowa energia przez telefon",
+      "value": "+30% (autor: tyle energii ginie przez telefon; bez źródła)",
+      "techniques": [
+        60
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 60 (Les gestes de la parole)",
+          "pages": null,
+          "lines": "5613"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "parameter": "Zabójczy komplement",
+      "value": "najwyżej raz na ok. pół roku tej samej osobie (w przekładzie „par semestre”), na koniec rozmowy, prywatnie",
+      "techniques": [
+        55
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "parameter": "Pochwała po sukcesie",
+      "value": "natychmiast",
+      "techniques": [
+        57
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 57 (Le réflexe « wow ! »)",
+          "pages": null,
+          "lines": "5322"
+        }
+      ]
+    },
+    {
+      "id": "C6",
+      "parameter": "„Gra w nagrobek”",
+      "value": "użycie słów po kilku (≥3) tygodniach",
+      "techniques": [
+        59
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 59 (Le jeu de la pierre tombale)",
+          "pages": null,
+          "lines": "5494"
+        }
+      ]
+    },
+    {
+      "id": "C7",
+      "parameter": "Po zgodzie na przysługę",
+      "value": "odczekaj co najmniej 24 h",
+      "techniques": [
+        81
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 81 (Laissez-les savourer la faveur)",
+          "pages": null,
+          "lines": "7254"
+        }
+      ]
+    },
+    {
+      "id": "C8",
+      "parameter": "Prośba o rewanż",
+      "value": "odczekaj kilka tygodni",
+      "techniques": [
+        82
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 82 (Un peu d'argent pour un peu d'argent (attendez ... attendez))",
+          "pages": null,
+          "lines": "7300"
+        }
+      ]
+    },
+    {
+      "id": "C9",
+      "parameter": "Tezaurus",
+      "value": "1 nowe słowo dziennie przez ok. 2 miesiące; ok. 50 słów",
+      "techniques": [
+        26
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 26 (Votre thésaurus personnel)",
+          "pages": null,
+          "lines": "2801"
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "parameter": "„Terapia przetasowania”",
+      "value": "raz w miesiącu; jedno doświadczenie = ok. 80% żargonu",
+      "techniques": [
+        38
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 38 (Thérapie de l'embrouille)",
+          "pages": null,
+          "lines": "3710"
+        }
+      ]
+    },
+    {
+      "id": "C11",
+      "parameter": "Wiadomość w poczcie głosowej",
+      "value": "zmieniaj codziennie",
+      "techniques": [
+        66
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 66 (Changement constant du message sortant)",
+          "pages": null,
+          "lines": "6035"
+        }
+      ]
+    },
+    {
+      "id": "C12",
+      "parameter": "Notatka po rozmowie",
+      "value": "zaraz po rozmowie",
+      "techniques": [
+        76
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        }
+      ]
+    },
+    {
+      "id": "C13",
+      "parameter": "Złość rozmówcy",
+      "value": "w rozmowie o silnych emocjach pozwól skończyć; w razie potrzeby policz do dziesięciu, zanim się odezwiesz",
+      "techniques": [
+        86
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        }
+      ]
+    }
+  ],
+  "communicationTemplates": [
+    {
+      "id": "K1",
+      "name": "Pierwsza konsultacja",
+      "steps": [
+        "Przed: nastaw się „stary znajomy”, przejrzyj notatkę z formularza (#6, #9).",
+        "Powitanie: odwrócenie całym ciałem, 1 s spojrzenia, uśmiech, imię (#1, #5).",
+        "Dopasuj nastrój na 1–2 zdania (#10).",
+        "Wywiad: „Jak wygląda twój typowy dzień?”, słowa-wskazówki, papugowanie, słowa klienta zapisane dosłownie (#18–20, #24, #45).",
+        "Autoprezentacja z korzyścią, gdy zapyta (#25).",
+        "Propozycja z przejrzystym WIIFM/WIIFY (#80); obserwuj mowę ciała (#77).",
+        "Zakończenie: konkretna pochwała cechy, podziękowanie „za…” (#55, #37).",
+        "Po: notatka (S11) (#76)."
+      ],
+      "techniques": [
+        1,
+        5,
+        6,
+        9,
+        10,
+        18,
+        19,
+        20,
+        24,
+        25,
+        37,
+        45,
+        55,
+        76,
+        77,
+        80
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+          "pages": null,
+          "lines": "500"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 5 (Le pivot du grand bébé)",
+          "pages": null,
+          "lines": "938"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 6 (Bonjour, cher ami)",
+          "pages": null,
+          "lines": "1013"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 9 (Regardez la scène avant de faire la scène)",
+          "pages": null,
+          "lines": "1346"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 10 (Le match des humeurs)",
+          "pages": null,
+          "lines": "1555"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 18 (Soyez un détective des mots)",
+          "pages": null,
+          "lines": "2100"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 19 (Le projecteur orientable)",
+          "pages": null,
+          "lines": "2154"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 20 (Paralogisme)",
+          "pages": null,
+          "lines": "2223"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 24 (Que faites-vous - PAS !)",
+          "pages": null,
+          "lines": "2536"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 25 (Le résumé en quelques mots)",
+          "pages": null,
+          "lines": "2696"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 37 (Jamais la nudité merci)",
+          "pages": null,
+          "lines": "3549"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 45 (L'écho)",
+          "pages": null,
+          "lines": "4476"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 77 (Vente des globes oculaires)",
+          "pages": null,
+          "lines": "6907"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 80 (Mettre à nu le WIIFM enfoui)",
+          "pages": null,
+          "lines": "7208"
+        }
+      ]
+    },
+    {
+      "id": "K2",
+      "name": "Początek każdej sesji",
+      "steps": [
+        "Powitanie uśmiechem i imieniem; nawiąż do zapisanego szczegółu (#1, #75).",
+        "„Jak się dziś czujesz?” – dopasuj energię do odpowiedzi (#10).",
+        "Pytanie o samopoczucie i dolegliwości – odpowiedzi niepokojące → S13–S16."
+      ],
+      "techniques": [
+        1,
+        10,
+        75
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+          "pages": null,
+          "lines": "500"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 10 (Le match des humeurs)",
+          "pages": null,
+          "lines": "1555"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 75 (Suivi)",
+          "pages": null,
+          "lines": "6736"
+        }
+      ]
+    },
+    {
+      "id": "K3",
+      "name": "Feedback w trakcie serii i po niej",
+      "steps": [
+        "Natychmiastowa, krótka pochwała wysiłku (#57, #56).",
+        "Korekta osobno, językiem korzyści: „Gdy … zyskasz …” (#28).",
+        "Bez docinków, bez komentarzy wpadek; objawy zawsze zauważ (#33, #78, S9).",
+        "Na koniec: „Dziękuję za…” i jedna rzecz, która wyszła najlepiej (#37)."
+      ],
+      "techniques": [
+        28,
+        33,
+        37,
+        56,
+        57,
+        78
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 28 (Comm-YOU-nication)",
+          "pages": null,
+          "lines": "2978"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 33 (Mettez à la poubelle l'aguichage)",
+          "pages": null,
+          "lines": "3331"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 37 (Jamais la nudité merci)",
+          "pages": null,
+          "lines": "3549"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 56 (Petits coups)",
+          "pages": null,
+          "lines": "5257"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 57 (Le réflexe « wow ! »)",
+          "pages": null,
+          "lines": "5322"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 78 (Ne pas voir de bêtisier, ne pas entendre de bêtisier)",
+          "pages": null,
+          "lines": "7072"
+        }
+      ]
+    },
+    {
+      "id": "K4",
+      "name": "Trudna informacja lub skierowanie do specjalisty",
+      "steps": [
+        "Zapytaj, czy to dobry moment (#65); nie na imprezie ani przypadkiem (#83–85).",
+        "Podaj informację z perspektywy klienta (#34).",
+        "Wysłuchaj reakcji do końca, nazwij emocje (#86–87).",
+        "Przy naciskach o diagnozę – ta sama odpowiedź i wskazanie specjalisty (#35, S-COMM)."
+      ],
+      "techniques": [
+        34,
+        35,
+        65,
+        83,
+        86,
+        87
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 34 (C'est le ballon du receveur)",
+          "pages": null,
+          "lines": "3385"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 35 (Le disque rayé)",
+          "pages": null,
+          "lines": "3430"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 65 (Quelle est la couleur de votre temps ?)",
+          "pages": null,
+          "lines": "5922"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 83 (Les fêtes sont pour les prêtres)",
+          "pages": null,
+          "lines": "7367"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 87 (L'écho de l'OMU)",
+          "pages": null,
+          "lines": "7599"
+        }
+      ]
+    },
+    {
+      "id": "K5",
+      "name": "Telefon, wiadomość, wideo",
+      "steps": [
+        "„Masz chwilę?” (#65); sprawdź strefę czasową (#69).",
+        "Gesty zamień w słowa, więcej energii i imienia (#60–61).",
+        "Hałas w tle → zaproponuj przerwę (#69).",
+        "Wiadomość głosowa: 10 s, konkret, prośba o kontakt (#67).",
+        "Nagranie tylko za zgodą (#70, S12)."
+      ],
+      "techniques": [
+        60,
+        61,
+        65,
+        67,
+        69,
+        70
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 60 (Les gestes de la parole)",
+          "pages": null,
+          "lines": "5613"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 61 (Douche nominative)",
+          "pages": null,
+          "lines": "5646"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 65 (Quelle est la couleur de votre temps ?)",
+          "pages": null,
+          "lines": "5922"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 67 (Votre audition de dix secondes)",
+          "pages": null,
+          "lines": "6086"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 69 (J'entends votre autre ligne)",
+          "pages": null,
+          "lines": "6158"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 70 (Reprise instantanée)",
+          "pages": null,
+          "lines": "6260"
+        }
+      ]
+    },
+    {
+      "id": "K6",
+      "name": "Klient zniknął lub nie realizuje planu",
+      "steps": [
+        "Krótka, ciepła wiadomość bez wyrzutów, z pytaniem o dogodny czas (#65).",
+        "Rozmowa: najpierw wysłuchanie i papugowanie przyczyn (#20, #86).",
+        "Zostaw wyjście z twarzą, przyjmij część winy (#89).",
+        "Nowy, realny krok w słowach klienta i z jego korzyścią (#45, #28); doceń każdy zrealizowany element (#56).",
+        "Brak źródła dla progów (ile nieobecności = interwencja)."
+      ],
+      "techniques": [
+        20,
+        28,
+        45,
+        56,
+        65,
+        86,
+        89
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 20 (Paralogisme)",
+          "pages": null,
+          "lines": "2223"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 28 (Comm-YOU-nication)",
+          "pages": null,
+          "lines": "2978"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 45 (L'écho)",
+          "pages": null,
+          "lines": "4476"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 56 (Petits coups)",
+          "pages": null,
+          "lines": "5257"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 65 (Quelle est la couleur de votre temps ?)",
+          "pages": null,
+          "lines": "5922"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 89 (Laisser une issue de secours)",
+          "pages": null,
+          "lines": "7703"
+        }
+      ]
+    },
+    {
+      "id": "K7",
+      "name": "Prośba o polecenie",
+      "steps": [
+        "Po sukcesie klienta, nie na „przypadkowym spotkaniu” (#85).",
+        "Przejrzyście: co zyskuje polecany i co ty (#80).",
+        "Po zgodzie odczekaj co najmniej 24 h (#81); nie wypominaj przysług (#82)."
+      ],
+      "techniques": [
+        80,
+        81,
+        82,
+        85
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 80 (Mettre à nu le WIIFM enfoui)",
+          "pages": null,
+          "lines": "7208"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 81 (Laissez-les savourer la faveur)",
+          "pages": null,
+          "lines": "7254"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 82 (Un peu d'argent pour un peu d'argent (attendez ... attendez))",
+          "pages": null,
+          "lines": "7300"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 85 (Les rencontres fortuites sont l'occasion de bavarder)",
+          "pages": null,
+          "lines": "7455"
+        }
+      ]
+    },
+    {
+      "id": "K8",
+      "name": "Autoprezentacja trenera („kim jestem”)",
+      "steps": [
+        "Nazwa zawodu + konkretna korzyść dla tej grupy (#16).",
+        "Krótka, prawdziwa historia dopasowana do słuchacza (#25).",
+        "Bez frazesów i przechwałek (#30, #22)."
+      ],
+      "techniques": [
+        16,
+        22,
+        25,
+        30
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 16 (Jamais le travail nu)",
+          "pages": null,
+          "lines": "1966"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 22 (Ac-cen-tu-ate la pos-i-tive)",
+          "pages": null,
+          "lines": "2404"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 25 (Le résumé en quelques mots)",
+          "pages": null,
+          "lines": "2696"
+        },
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 30 (Ne touchez pas à un cliché avec une perche de dix pieds)",
+          "pages": null,
+          "lines": "3109"
+        }
+      ]
+    }
+  ],
+  "techniqueMap": [
+    {
+      "n": 1,
+      "part": "I",
+      "nameFr": "Le sourire de l'inondation",
+      "namePl": "Uśmiech, który zalewa",
+      "summary": "Nie uśmiechaj się od razu do wszystkich; popatrz na twarz rozmówcy ok. 1 s, potem pozwól, by szeroki, ciepły uśmiech „zalał” twarz – wtedy wygląda na przeznaczony tylko dla tej osoby.",
+      "trainerUse": "Powitanie nowego klienta na pierwszej konsultacji i na początku każdej sesji: chwila uwagi, potem uśmiech.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+          "pages": null,
+          "lines": "500"
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "part": "I",
+      "nameFr": "Yeux collants",
+      "namePl": "Lepkie oczy",
+      "summary": "Utrzymuj kontakt wzrokowy dłużej niż zwykle, także gdy rozmówca skończył mówić; odrywaj wzrok powoli.",
+      "trainerUse": "Wywiad wstępny, omawianie celów, feedback po serii. Ostrożnie: zbyt intensywne patrzenie może onieśmielać, a normy kulturowe są różne (zob. S1).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 2 (Yeux collants)",
+          "pages": null,
+          "lines": "614"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "part": "I",
+      "nameFr": "Yeux en époxy",
+      "namePl": "Oczy z epoksydu",
+      "summary": "W grupie patrz na osobę, na której ci zależy, nawet gdy mówi ktoś inny (lub wersja łagodna: na mówiącego, ale wracaj wzrokiem do „celu”). Autor opisuje też użycie romantyczne.",
+      "trainerUse": "Słaba przydatność; w treningu grupowym lepiej rozdzielać uwagę równo. Wątek romantyczny nie dotyczy pracy trenera (S4).",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 3 (Yeux en époxy)",
+          "pages": null,
+          "lines": "685"
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "part": "I",
+      "nameFr": "Accrochez-vous à vos dents",
+      "namePl": "Wisząc na zębach",
+      "summary": "Wyobraź sobie, że wisisz na gryzaku cyrkowym: wyprostowana sylwetka, broda w górę, ciało rozciągnięte – postawa „kogoś ważnego”.",
+      "trainerUse": "Postawa trenera na sali i przy pierwszym spotkaniu; spójna z wizerunkiem osoby dbającej o ciało.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 4 (Accrochez-vous à vos dents)",
+          "pages": null,
+          "lines": "786"
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "part": "I",
+      "nameFr": "Le pivot du grand bébé",
+      "namePl": "Obrót „wielkiego dziecka”",
+      "summary": "Przy przedstawieniu obróć się do nowej osoby całym ciałem i daj jej pełną uwagę, jak małemu dziecku, które do ciebie przyczłapało.",
+      "trainerUse": "Gdy klient wchodzi lub zaczyna mówić: odwróć się od telefonu i innych osób całym ciałem.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 5 (Le pivot du grand bébé)",
+          "pages": null,
+          "lines": "938"
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "part": "I",
+      "nameFr": "Bonjour, cher ami",
+      "namePl": "Dzień dobry, stary przyjacielu",
+      "summary": "Przy poznaniu wyobraź sobie, że to stary przyjaciel; ciało samo wyśle sygnały sympatii (autor powołuje się na badanie Curtis i Miller o tym, że oczekiwanie sympatii zmienia zachowanie).",
+      "trainerUse": "Nastawienie przed pierwszym spotkaniem z klientem, także trudnym lub zestresowanym.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 6 (Bonjour, cher ami)",
+          "pages": null,
+          "lines": "1013"
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "part": "I",
+      "nameFr": "Limiter la bougeotte",
+      "namePl": "Ogranicz wiercenie się",
+      "summary": "W ważnej rozmowie nie wierć się, nie drap, nie dotykaj twarzy – takie ruchy odbierane są jako nieszczerość.",
+      "trainerUse": "Rozmowa o cenie, wynikach, trudnych tematach; mniej istotne w trakcie ćwiczeń.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 7 (Limiter la bougeotte)",
+          "pages": null,
+          "lines": "1162"
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "part": "I",
+      "nameFr": "Le sens du cheval de Hans",
+      "namePl": "Zmysł konia Hansa",
+      "summary": "Mów „dwutorowo”: wyrażaj się, ale stale obserwuj, jak rozmówca reaguje, i dostosuj się (historia konia Mądrego Hansa).",
+      "trainerUse": "Obserwuj mowę ciała klienta przy tłumaczeniu ćwiczeń i planu; ciała nie zastąpi pytanie wprost o samopoczucie (S9).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 8 (Le sens du cheval de Hans)",
+          "pages": null,
+          "lines": "1281"
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "part": "I",
+      "nameFr": "Regardez la scène avant de faire la scène",
+      "namePl": "Obejrzyj scenę, zanim ją odegrasz",
+      "summary": "Przed wydarzeniem przećwicz w wyobraźni siebie z dobrą postawą, uśmiechem i kontaktem wzrokowym. Autor podaje anegdotę o wizualizacji przed maratonem.",
+      "trainerUse": "Przygotowanie trenera do konsultacji, prezentacji, eventu. Anegdota maratońska nie jest zaleceniem treningowym.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 9 (Regardez la scène avant de faire la scène)",
+          "pages": null,
+          "lines": "1346"
+        }
+      ]
+    },
+    {
+      "n": 10,
+      "part": "II",
+      "nameFr": "Le match des humeurs",
+      "namePl": "Dopasuj nastrój",
+      "summary": "Zanim zaczniesz mówić, „zbadaj” głos i minę rozmówcy i dopasuj się do jego nastroju na pierwsze zdanie lub dwa; dopiero potem prowadź w swoją stronę.",
+      "trainerUse": "Klient przychodzi zmęczony lub zły: nie zaczynaj od entuzjastycznego okrzyku; najpierw spokojnie, potem motywacja.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 10 (Le match des humeurs)",
+          "pages": null,
+          "lines": "1555"
+        }
+      ]
+    },
+    {
+      "n": 11,
+      "part": "II",
+      "nameFr": "Prosaïque et passionné",
+      "namePl": "Prozaicznie, ale z pasją",
+      "summary": "Pierwsze słowa mają małe znaczenie (autor: 80% wrażenia nie zależy od słów); liczy się ton, empatia i pasja.",
+      "trainerUse": "Nie trzeba idealnego „otwarcia” konsultacji; ważniejszy jest ciepły, zaangażowany ton.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 11 (Prosaïque et passionné)",
+          "pages": null,
+          "lines": "1651"
+        }
+      ]
+    },
+    {
+      "n": 12,
+      "part": "II",
+      "nameFr": "Toujours porter un Whatzit",
+      "namePl": "Zawsze noś „Whatzit”",
+      "summary": "Na spotkanie załóż lub weź coś nietypowego, by inni mieli pretekst, by zagadać.",
+      "trainerUse": "Eventy, targi, networking (np. wyróżniający element stroju lub gadżet). Marketing, nie praca z klientem.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 12 (Toujours porter un Whatzit)",
+          "pages": null,
+          "lines": "1731"
+        }
+      ]
+    },
+    {
+      "n": 13,
+      "part": "II",
+      "nameFr": "Whoozat ?",
+      "namePl": "Whoozat?",
+      "summary": "Poproś gospodarza o przedstawienie lub informację o osobie, którą możesz wykorzystać do zagajenia.",
+      "trainerUse": "Networking: poproś organizatora lub recepcję klubu o przedstawienie.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 13 (Whoozat ?)",
+          "pages": null,
+          "lines": "1761"
+        }
+      ]
+    },
+    {
+      "n": 14,
+      "part": "II",
+      "nameFr": "Écouter aux portes",
+      "namePl": "Podsłuchaj",
+      "summary": "Stań przy grupie, posłuchaj i dołącz z „przepraszam, nie mogłem nie usłyszeć…”.",
+      "trainerUse": "Najwyżej na eventach. Nie podsłuchuj rozmów klientów na sali (S6).",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 14 (Écouter aux portes)",
+          "pages": null,
+          "lines": "1790"
+        }
+      ]
+    },
+    {
+      "n": 15,
+      "part": "II",
+      "nameFr": "Jamais la ville nue",
+      "namePl": "Nigdy „nagie miasto”",
+      "summary": "Pytany, skąd jesteś, nie odpowiadaj jednym słowem; dodaj ciekawy szczegół, którego rozmówca może się chwycić.",
+      "trainerUse": "Small talk przy poznaniu; niska przydatność.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 15 (Jamais la ville nue)",
+          "pages": null,
+          "lines": "1865"
+        }
+      ]
+    },
+    {
+      "n": 16,
+      "part": "II",
+      "nameFr": "Jamais le travail nu",
+      "namePl": "Nigdy „nagi zawód”",
+      "summary": "Na pytanie, czym się zajmujesz, dodaj do nazwy zawodu „haczyk”, który ułatwi rozmowę osobie spoza branży.",
+      "trainerUse": "„Jestem trenerem personalnym – pomagam zapracowanym osobom wrócić do formy bez spędzania pół życia na siłowni”. Ważne w marketingu.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 16 (Jamais le travail nu)",
+          "pages": null,
+          "lines": "1966"
+        }
+      ]
+    },
+    {
+      "n": 17,
+      "part": "II",
+      "nameFr": "Jamais l'introduction nue",
+      "namePl": "Nigdy „nagie przedstawienie”",
+      "summary": "Przedstawiając dwie osoby, podaj coś, o czym mogą porozmawiać.",
+      "trainerUse": "Przedstawianie klientów sobie w grupie lub na evencie klubu.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 17 (Jamais l'introduction nue)",
+          "pages": null,
+          "lines": "2017"
+        }
+      ]
+    },
+    {
+      "n": 18,
+      "part": "II",
+      "nameFr": "Soyez un détective des mots",
+      "namePl": "Bądź detektywem słów",
+      "summary": "Słuchaj słów-wskazówek, które zdradzają ulubiony temat rozmówcy, i podążaj za nimi.",
+      "trainerUse": "Wywiad: z drobnych wzmianek (pies, wnuki, wyjazd w góry) poznasz prawdziwą motywację klienta.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 18 (Soyez un détective des mots)",
+          "pages": null,
+          "lines": "2100"
+        }
+      ]
+    },
+    {
+      "n": 19,
+      "part": "II",
+      "nameFr": "Le projecteur orientable",
+      "namePl": "Obrotowy reflektor",
+      "summary": "Wyobraź sobie reflektor między wami: kiedy mówi rozmówca, świeci na niego; trzymaj go jak najdłużej z dala od siebie.",
+      "trainerUse": "Konsultacja i sesje: klient mówi więcej niż trener; trener nie opowiada o własnych rekordach.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 19 (Le projecteur orientable)",
+          "pages": null,
+          "lines": "2154"
+        }
+      ]
+    },
+    {
+      "n": 20,
+      "part": "II",
+      "nameFr": "Paralogisme",
+      "namePl": "Papugowanie (w przekładzie błędnie „Paralogisme”)",
+      "summary": "Powtórz ostatnie słowa rozmówcy z intonacją pytającą; to oddaje mu głos i wydobywa ukryte obiekcje.",
+      "trainerUse": "„…nie mam czasu?” – wydobywa prawdziwe powody rezygnacji lub braku realizacji planu.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 20 (Paralogisme)",
+          "pages": null,
+          "lines": "2223"
+        }
+      ]
+    },
+    {
+      "n": 21,
+      "part": "II",
+      "nameFr": "Encore !",
+      "namePl": "Bis!",
+      "summary": "W grupie poproś znajomego, by opowiedział swoją dobrą historię („opowiedz im, jak…”).",
+      "trainerUse": "Zajęcia grupowe, eventy; poprawia atmosferę.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 21 (Encore !)",
+          "pages": null,
+          "lines": "2354"
+        }
+      ]
+    },
+    {
+      "n": 22,
+      "part": "II",
+      "nameFr": "Ac-cen-tu-ate la pos-i-tive",
+      "namePl": "Akcentuj pozytywy",
+      "summary": "Przy pierwszym spotkaniu nie wyciągaj „szkieletów z szafy”; słabości ujawniaj później w relacji.",
+      "trainerUse": "Trener nie zaczyna od narzekania na klub, innych trenerów, własne kłopoty. Uwaga: autor odwołuje się do efektu Aronsona – przyznanie się do wpadki pomaga tylko osobie o wysokim statusie.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 22 (Ac-cen-tu-ate la pos-i-tive)",
+          "pages": null,
+          "lines": "2404"
+        }
+      ]
+    },
+    {
+      "n": 23,
+      "part": "II",
+      "nameFr": "Les dernières nouvelles ... à ne pas manquer !",
+      "namePl": "Najświeższe wiadomości",
+      "summary": "Przed wyjściem przejrzyj wiadomości, by mieć tematy do rozmowy.",
+      "trainerUse": "Niska; small talk. Unikaj polityki i tematów dzielących.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 23 (Les dernières nouvelles ... à ne pas manquer !)",
+          "pages": null,
+          "lines": "2455"
+        }
+      ]
+    },
+    {
+      "n": 24,
+      "part": "III",
+      "nameFr": "Que faites-vous - PAS !",
+      "namePl": "Czym się zajmujesz – NIE!",
+      "summary": "Nie pytaj od razu „czym się zajmujesz?” (etykietuje i może zawstydzić); zapytaj „jak spędzasz większość czasu?”.",
+      "trainerUse": "Trener potrzebuje danych o pracy (siedząca, zmianowa), ale pytaj otwarcie: „Jak wygląda twój typowy dzień?” (R5).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 24 (Que faites-vous - PAS !)",
+          "pages": null,
+          "lines": "2536"
+        }
+      ]
+    },
+    {
+      "n": 25,
+      "part": "III",
+      "nameFr": "Le résumé en quelques mots",
+      "namePl": "Życiorys w pigułce",
+      "summary": "Przygotuj krótką, prawdziwą historię o swojej pracy dopasowaną do słuchacza; najpierw zapytaj siebie, co go zainteresuje.",
+      "trainerUse": "Krótka autoprezentacja trenera dopasowana do klienta (seniorka, sportowiec, mama po ciąży) (K8).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 25 (Le résumé en quelques mots)",
+          "pages": null,
+          "lines": "2696"
+        }
+      ]
+    },
+    {
+      "n": 26,
+      "part": "III",
+      "nameFr": "Votre thésaurus personnel",
+      "namePl": "Twój osobisty tezaurus",
+      "summary": "Zastępuj codzienne, oklepane słowa bogatszymi; autor sugeruje ok. 50 słów i jedno słowo dziennie.",
+      "trainerUse": "Bogatszy język pochwał zamiast ciągłego „super”; pomaga w R20.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 26 (Votre thésaurus personnel)",
+          "pages": null,
+          "lines": "2801"
+        }
+      ]
+    },
+    {
+      "n": 27,
+      "part": "III",
+      "nameFr": "Ne vous contentez pas d'un « moi aussi » rapide",
+      "namePl": "Nie mów szybko „ja też”",
+      "summary": "Kiedy masz coś wspólnego z rozmówcą, nie ujawniaj tego od razu; im później, tym większe wrażenie.",
+      "trainerUse": "Nie przerywaj klientowi „ja też biegałem maraton”; najpierw jego historia.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 27 (Ne vous contentez pas d'un « moi aussi » rapide)",
+          "pages": null,
+          "lines": "2869"
+        }
+      ]
+    },
+    {
+      "n": 28,
+      "part": "III",
+      "nameFr": "Comm-YOU-nication",
+      "namePl": "Komun-TY-kacja",
+      "summary": "Zaczynaj zdania od „ty/pan/pani”; mów językiem korzyści rozmówcy („Zyskasz…” zamiast „Chcę, żebyś…”).",
+      "trainerUse": "Tłumaczenie planu: „Twoje kolana odczują…”, „Będziesz mieć więcej siły na…”.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 28 (Comm-YOU-nication)",
+          "pages": null,
+          "lines": "2978"
+        }
+      ]
+    },
+    {
+      "n": 29,
+      "part": "III",
+      "nameFr": "Le sourire exclusif",
+      "namePl": "Wyłączny uśmiech",
+      "summary": "W grupie daj każdemu osobny uśmiech; najważniejszej osobie – największy i na końcu.",
+      "trainerUse": "Zajęcia grupowe: indywidualne powitanie każdego uczestnika.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 29 (Le sourire exclusif)",
+          "pages": null,
+          "lines": "3051"
+        }
+      ]
+    },
+    {
+      "n": 30,
+      "part": "III",
+      "nameFr": "Ne touchez pas à un cliché avec une perche de dix pieds",
+      "namePl": "Nie dotykaj frazesu",
+      "summary": "Unikaj frazesów; twórz własne obrazy.",
+      "trainerUse": "Unikaj „no pain, no gain” i podobnych sloganów; mogą też zachęcać do ignorowania bólu (S10).",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 30 (Ne touchez pas à un cliché avec une perche de dix pieds)",
+          "pages": null,
+          "lines": "3109"
+        }
+      ]
+    },
+    {
+      "n": 31,
+      "part": "III",
+      "nameFr": "Utiliser le jive de Jawsmith",
+      "namePl": "Styl Jawsmitha",
+      "summary": "Ucz się od mówców: zbieraj cytaty, anegdoty i dowcipy do wystąpień.",
+      "trainerUse": "Prezentacje, warsztaty, social media.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 31 (Utiliser le jive de Jawsmith)",
+          "pages": null,
+          "lines": "3257"
+        }
+      ]
+    },
+    {
+      "n": 32,
+      "part": "III",
+      "nameFr": "Appeler un chat un chat",
+      "namePl": "Nazywaj rzeczy po imieniu",
+      "summary": "Nie chowaj się za eufemizmami, ale mów kulturalnie.",
+      "trainerUse": "Jasno mów o celu i ryzyku (np. „nadwaga” vs eufemizmy) – ale z taktem; wybór słowa ustal z klientem.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 32 (Appeler un chat un chat)",
+          "pages": null,
+          "lines": "3293"
+        }
+      ]
+    },
+    {
+      "n": 33,
+      "part": "III",
+      "nameFr": "Mettez à la poubelle l'aguichage",
+      "namePl": "Wyrzuć do kosza docinki",
+      "summary": "Docinki i żarty kosztem innych to znak „małego gracza”; ludzie to zapamiętują.",
+      "trainerUse": "Nie żartuj z wagi, wyglądu, wieku ani słabości klienta (S2).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 33 (Mettez à la poubelle l'aguichage)",
+          "pages": null,
+          "lines": "3331"
+        }
+      ]
+    },
+    {
+      "n": 34,
+      "part": "III",
+      "nameFr": "C'est le ballon du receveur",
+      "namePl": "Piłka po stronie odbierającego",
+      "summary": "Zanim przekażesz wiadomość, pomyśl o odbiorcy i podaj ją z odpowiednią emocją (uśmiech, westchnienie), zgodną z tym, jak on ją odbierze.",
+      "trainerUse": "Złe wiadomości (brak postępu, odwołanie, podwyżka) podaj z empatią i z perspektywy klienta.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 34 (C'est le ballon du receveur)",
+          "pages": null,
+          "lines": "3385"
+        }
+      ]
+    },
+    {
+      "n": 35,
+      "part": "III",
+      "nameFr": "Le disque rayé",
+      "namePl": "Zdarta płyta",
+      "summary": "Na natarczywe niewygodne pytania powtarzaj tę samą odpowiedź tymi samymi słowami i tonem.",
+      "trainerUse": "Prośby o diagnozę, leki, suplementy, rabaty lub plotki o innych klientach: powtórz spokojnie tę samą granicę.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 35 (Le disque rayé)",
+          "pages": null,
+          "lines": "3430"
+        }
+      ]
+    },
+    {
+      "n": 36,
+      "part": "III",
+      "nameFr": "Les gros bonnets ne bavent pas",
+      "namePl": "Grube ryby nie zachwycają się",
+      "summary": "Rozmawiając z VIP-em, nie zachwycaj się jego dziełem; powiedz, jak ono wpłynęło na ciebie (box w przekładzie ma odwrócony sens).",
+      "trainerUse": "Klient-celebryta: traktuj normalnie. Niska.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 36 (Les gros bonnets ne bavent pas)",
+          "pages": null,
+          "lines": "3499"
+        }
+      ]
+    },
+    {
+      "n": 37,
+      "part": "III",
+      "nameFr": "Jamais la nudité merci",
+      "namePl": "Nigdy samo „dziękuję”",
+      "summary": "Do „dziękuję” zawsze dodaj „za…” – konkretnie za co.",
+      "trainerUse": "„Dziękuję, że przyszedłeś mimo zmęczenia”, „dziękuję za szczerość w dzienniczku”.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 37 (Jamais la nudité merci)",
+          "pages": null,
+          "lines": "3549"
+        }
+      ]
+    },
+    {
+      "n": 38,
+      "part": "IV",
+      "nameFr": "Thérapie de l'embrouille",
+      "namePl": "Terapia przetasowania",
+      "summary": "Raz w miesiącu zrób coś zupełnie nowego (sport, wystawa, wykład); jedno doświadczenie daje ok. 80% żargonu i pytań „wtajemniczonych”.",
+      "trainerUse": "Poznaj świat klientów (np. spróbuj wspinaczki, którą uprawia klient).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 38 (Thérapie de l'embrouille)",
+          "pages": null,
+          "lines": "3710"
+        }
+      ]
+    },
+    {
+      "n": 39,
+      "part": "IV",
+      "nameFr": "Apprendre un peu de charabia",
+      "namePl": "Naucz się trochę żargonu",
+      "summary": "Poznaj język innych zawodów i pasji; daje wrażenie bycia „swoim”.",
+      "trainerUse": "Język sportu klienta (biegacz, golfista) ułatwia tłumaczenie planu.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 39 (Apprendre un peu de charabia)",
+          "pages": null,
+          "lines": "3815"
+        }
+      ]
+    },
+    {
+      "n": 40,
+      "part": "IV",
+      "nameFr": "Afficher son point sensible",
+      "namePl": "Pokaż, że znasz czułe punkty",
+      "summary": "Przed spotkaniem z branżą dowiedz się o jej gorących tematach.",
+      "trainerUse": "Pytaj o „gorące problemy” sportu lub zawodu klienta (np. biegacz: „zrobić życiówkę”).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 40 (Afficher son point sensible)",
+          "pages": null,
+          "lines": "3873"
+        }
+      ]
+    },
+    {
+      "n": 41,
+      "part": "IV",
+      "nameFr": "Lisez leurs chiffons",
+      "namePl": "Czytaj ich gazety",
+      "summary": "Czytaj pisma z dziedziny zainteresowań klienta.",
+      "trainerUse": "Niska; zamiast tego zapytaj klienta.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 41 (Lisez leurs chiffons)",
+          "pages": null,
+          "lines": "3994"
+        }
+      ]
+    },
+    {
+      "n": 42,
+      "part": "IV",
+      "nameFr": "Effacer 'custom'",
+      "namePl": "Wymaż „obyczaje”",
+      "summary": "Przed kontaktem z obcą kulturą poznaj zwyczaje i tabu (gesty, uścisk dłoni, prezenty).",
+      "trainerUse": "Klienci z innych kultur: kontakt wzrokowy, dotyk, płeć trenera (S1, S5).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 42 (Effacer 'custom')",
+          "pages": null,
+          "lines": "4087"
+        }
+      ]
+    },
+    {
+      "n": 43,
+      "part": "IV",
+      "nameFr": "Bluffer pour obtenir de bonnes affaires",
+      "namePl": "Blef dla dobrych interesów",
+      "summary": "Techniki targowania się przy dużych zakupach.",
+      "trainerUse": "Nie dotyczy pracy z klientem; elementy oparte na blefie są nieetyczne w relacji usługowej (S7).",
+      "relevance": "nie dotyczy",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 43 (Bluffer pour obtenir de bonnes affaires)",
+          "pages": null,
+          "lines": "4216"
+        }
+      ]
+    },
+    {
+      "n": 44,
+      "part": "V",
+      "nameFr": "Être un imitateur",
+      "namePl": "Bądź naśladowcą",
+      "summary": "Obserwuj ruchy rozmówcy (szybkie, wolne, duże) i dopasuj się do jego stylu.",
+      "trainerUse": "Tempo mówienia i energii dopasuj do klienta (spokojny senior vs energiczny nastolatek).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 44 (Être un imitateur)",
+          "pages": null,
+          "lines": "4316"
+        }
+      ]
+    },
+    {
+      "n": 45,
+      "part": "V",
+      "nameFr": "L'écho",
+      "namePl": "Echo",
+      "summary": "Powtarzaj słowa (rzeczowniki, czasowniki) używane przez rozmówcę; daje poczucie wspólnych wartości.",
+      "trainerUse": "Jeśli klient mówi „chcę się czuć lżej”, mów o „lekkości”, nie o „redukcji tkanki tłuszczowej”.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 45 (L'écho)",
+          "pages": null,
+          "lines": "4476"
+        }
+      ]
+    },
+    {
+      "n": 46,
+      "part": "V",
+      "nameFr": "Imagerie puissante",
+      "namePl": "Mocne obrazy",
+      "summary": "Używaj metafor z dziedziny pasji rozmówcy (ogród, łódź, tenis).",
+      "trainerUse": "Tłumacz progresję językiem hobby klienta (ogrodnik: „sianie i zbiory”).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 46 (Imagerie puissante)",
+          "pages": null,
+          "lines": "4581"
+        }
+      ]
+    },
+    {
+      "n": 47,
+      "part": "V",
+      "nameFr": "Employer des personnes empathiques",
+      "namePl": "Empatyczne zwroty",
+      "summary": "Nie odpowiadaj samym „mhm”; używaj pełnych zdań empatii: „rozumiem, co masz na myśli”.",
+      "trainerUse": "Reagowanie na relacje klienta o zmęczeniu, stresie, porażkach.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 47 (Employer des personnes empathiques)",
+          "pages": null,
+          "lines": "4637"
+        }
+      ]
+    },
+    {
+      "n": 48,
+      "part": "V",
+      "nameFr": "Des empathes anatomiquement corrects",
+      "namePl": "Anatomicznie poprawne empatyzery",
+      "summary": "Ludzie mówią „wzrokowo”, „słuchowo” lub „czuciowo”; odpowiadaj tym samym typem słów. Autor przyznaje, że trudno to rozpoznać.",
+      "trainerUse": "Dopasuj słowa („widzisz różnicę?” vs „czujesz?”). Koncepcja pochodzi z NLP i nie ma mocnych dowodów [POZA ŹRÓDŁEM].",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 48 (Des empathes anatomiquement corrects)",
+          "pages": null,
+          "lines": "4735"
+        }
+      ]
+    },
+    {
+      "n": 49,
+      "part": "V",
+      "nameFr": "La prématurité que nous",
+      "namePl": "Przedwczesne „my”",
+      "summary": "Używaj „my”, „nas”, „nasz”, by szybko stworzyć poczucie bliskości.",
+      "trainerUse": "„Nasz plan”, „nasz cel” – sensowne w relacji trener–klient. Uważaj, bo intencja manipulacji może razić (N4).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 49 (La prématurité que nous)",
+          "pages": null,
+          "lines": "4814"
+        }
+      ]
+    },
+    {
+      "n": 50,
+      "part": "V",
+      "nameFr": "Histoire instantanée",
+      "namePl": "Natychmiastowa historia",
+      "summary": "Znajdź wspólny, miły moment z pierwszego spotkania i przypominaj go krótkim hasłem.",
+      "trainerUse": "Wspólne „hasło” z pierwszego treningu (zabawna sytuacja) buduje relację.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. V Nous sommes tous pareils !, technika 50 (Histoire instantanée)",
+          "pages": null,
+          "lines": "4875"
+        }
+      ]
+    },
+    {
+      "n": 51,
+      "part": "VI",
+      "nameFr": "La gloire de Grapevine",
+      "namePl": "Chwała z poczty pantoflowej",
+      "summary": "Komplement przekazany przez osobę trzecią jest skuteczniejszy niż powiedziany wprost.",
+      "trainerUse": "Pochwal klienta przed współpracownikiem lub bliską osobą (za jego zgodą na rozmowę o nim).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 51 (La gloire de Grapevine)",
+          "pages": null,
+          "lines": "4993"
+        }
+      ]
+    },
+    {
+      "n": 52,
+      "part": "VI",
+      "nameFr": "Félicitations aux pigeons voyageurs",
+      "namePl": "Gratulacje gołębiem pocztowym",
+      "summary": "Zamiast plotek przekazuj dobre wieści i komplementy; wysyłaj też artykuły „do wiadomości”.",
+      "trainerUse": "Przekaż klientowi miłą uwagę innego trenera; wyślij ciekawy materiał (R39).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 52 (Félicitations aux pigeons voyageurs)",
+          "pages": null,
+          "lines": "5040"
+        }
+      ]
+    },
+    {
+      "n": 53,
+      "part": "VI",
+      "nameFr": "Magnificence implicite",
+      "namePl": "Domniemana wspaniałość",
+      "summary": "Wplataj uwagi zakładające coś dobrego o rozmówcy; uważaj na komplementy z „zadrą” (np. „jak na grubą…”).",
+      "trainerUse": "Nigdy „jak na swój wiek / wagę dobrze ci idzie” (S3).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 53 (Magnificence implicite)",
+          "pages": null,
+          "lines": "5092"
+        }
+      ]
+    },
+    {
+      "n": 54,
+      "part": "VI",
+      "nameFr": "Adulation accidentelle",
+      "namePl": "Przypadkowa adoracja",
+      "summary": "Wplataj komplement w nawias zdania; po nim rozmówca chwilowo „głuchnie” na resztę.",
+      "trainerUse": "Nie łącz pochwały z ważną instrukcją techniczną w jednym zdaniu (R20).",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 54 (Adulation accidentelle)",
+          "pages": null,
+          "lines": "5129"
+        }
+      ]
+    },
+    {
+      "n": 55,
+      "part": "VI",
+      "nameFr": "Le compliment qui tue",
+      "namePl": "Zabójczy komplement",
+      "summary": "Znajdź konkretną, wyjątkową cechę osoby; pod koniec rozmowy, patrząc w oczy i mówiąc imię, powiedz komplement. Prywatnie, wiarygodnie, rzadko (autor: raz na pół roku).",
+      "trainerUse": "Raz na jakiś czas konkretna pochwała charakteru (wytrwałość, systematyczność), nie ciała (S4).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+          "pages": null,
+          "lines": "5190"
+        }
+      ]
+    },
+    {
+      "n": 56,
+      "part": "VI",
+      "nameFr": "Petits coups",
+      "namePl": "Małe pogłaskania",
+      "summary": "Często doceniaj drobnymi słowami („świetna robota”, „dobrze”).",
+      "trainerUse": "Drobna pochwała po każdej dobrej serii lub zrealizowanym tygodniu.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 56 (Petits coups)",
+          "pages": null,
+          "lines": "5257"
+        }
+      ]
+    },
+    {
+      "n": 57,
+      "part": "VI",
+      "nameFr": "Le réflexe « wow ! »",
+      "namePl": "Odruch „wow!”",
+      "summary": "Gratuluj natychmiast po sukcesie, spontanicznie; autor dopuszcza „białe kłamstwo” w euforii.",
+      "trainerUse": "Natychmiast chwal wysiłek i postęp. Nie kłam o technice ani bezpieczeństwie (N1, S8).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 57 (Le réflexe « wow ! »)",
+          "pages": null,
+          "lines": "5322"
+        }
+      ]
+    },
+    {
+      "n": 58,
+      "part": "VI",
+      "nameFr": "Le boomerang",
+      "namePl": "Bumerang",
+      "summary": "Gdy ktoś cię chwali, krótko podziękuj i odwróć komplement do niego.",
+      "trainerUse": "Klient dziękuje za plan: „To twoja konsekwencja zrobiła robotę”.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 58 (Le boomerang)",
+          "pages": null,
+          "lines": "5405"
+        }
+      ]
+    },
+    {
+      "n": 59,
+      "part": "VI",
+      "nameFr": "Le jeu de la pierre tombale",
+      "namePl": "Gra w nagrobek",
+      "summary": "Zapytaj bliskich, co chcieliby mieć na nagrobku; zapamiętaj i po kilku tygodniach użyj tych słów w uznaniu.",
+      "trainerUse": "Bardzo osobiste; lepiej zapytać o wartości i cel życiowy na wywiadzie. Niska.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 59 (Le jeu de la pierre tombale)",
+          "pages": null,
+          "lines": "5494"
+        }
+      ]
+    },
+    {
+      "n": 60,
+      "part": "VII",
+      "nameFr": "Les gestes de la parole",
+      "namePl": "Gesty w głosie",
+      "summary": "Przez telefon zamień uśmiechy i kiwanie głową na dźwięki; autor: ludzie tracą ok. 30% energii przez telefon, więc dodaj 30% „wigoru”.",
+      "trainerUse": "Rozmowy telefoniczne i wideo z klientem online.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 60 (Les gestes de la parole)",
+          "pages": null,
+          "lines": "5613"
+        }
+      ]
+    },
+    {
+      "n": 61,
+      "part": "VII",
+      "nameFr": "Douche nominative",
+      "namePl": "Prysznic z imienia",
+      "summary": "Przez telefon używaj imienia częściej niż na żywo; na żywo częste powtarzanie wygląda na manipulację.",
+      "trainerUse": "Konsultacja telefoniczna; na żywo z umiarem.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 61 (Douche nominative)",
+          "pages": null,
+          "lines": "5646"
+        }
+      ]
+    },
+    {
+      "n": 62,
+      "part": "VII",
+      "nameFr": "Oh wow, c'est toi !",
+      "namePl": "„O, to ty!”",
+      "summary": "Odbierz telefon ciepło i profesjonalnie, a dopiero po rozpoznaniu rozmówcy pozwól radości wejść w głos.",
+      "trainerUse": "Odbieranie telefonów od klientów.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 62 (Oh wow, c'est toi !)",
+          "pages": null,
+          "lines": "5757"
+        }
+      ]
+    },
+    {
+      "n": 63,
+      "part": "VII",
+      "nameFr": "L'écran furtif",
+      "namePl": "Dyskretne filtrowanie",
+      "summary": "Jeśli ktoś filtruje twoje rozmowy, niech nie zdradza, że pyta o nazwisko po to, by zdecydować.",
+      "trainerUse": "Recepcja klubu; niska.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 63 (L'écran furtif)",
+          "pages": null,
+          "lines": "5794"
+        }
+      ]
+    },
+    {
+      "n": 64,
+      "part": "VII",
+      "nameFr": "Saluer le conjoint",
+      "namePl": "Pozdrów współmałżonka",
+      "summary": "Dzwoniąc do domu, przywitaj osobę, która odbiera; zaprzyjaźnij się z sekretarką.",
+      "trainerUse": "Bliscy klienta (np. opiekun seniora, rodzic nastolatka) wpływają na decyzje.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 64 (Saluer le conjoint)",
+          "pages": null,
+          "lines": "5846"
+        }
+      ]
+    },
+    {
+      "n": 65,
+      "part": "VII",
+      "nameFr": "Quelle est la couleur de votre temps ?",
+      "namePl": "Jakiego koloru jest twój czas?",
+      "summary": "Zawsze zaczynaj rozmowę od pytania, czy rozmówca ma czas; „zielony/żółty/czerwony”.",
+      "trainerUse": "Każdy telefon, wiadomość głosowa, rozmowa o planie lub płatności: „Masz teraz chwilę?”.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 65 (Quelle est la couleur de votre temps ?)",
+          "pages": null,
+          "lines": "5922"
+        }
+      ]
+    },
+    {
+      "n": 66,
+      "part": "VII",
+      "nameFr": "Changement constant du message sortant",
+      "namePl": "Codziennie nowa wiadomość powitalna",
+      "summary": "Poczta głosowa: krótka, profesjonalna, zmieniana codziennie, bez muzyki i żartów.",
+      "trainerUse": "Niska; ewentualnie autoodpowiedź w komunikatorze z godzinami dostępności.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 66 (Changement constant du message sortant)",
+          "pages": null,
+          "lines": "6035"
+        }
+      ]
+    },
+    {
+      "n": 67,
+      "part": "VII",
+      "nameFr": "Votre audition de dix secondes",
+      "namePl": "Twoje dziesięciosekundowe przesłuchanie",
+      "summary": "Nagrywając wiadomość, mów krótko, zwięźle i z energią, jak na castingu.",
+      "trainerUse": "Wiadomości głosowe i krótkie nagrania do klientów online.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 67 (Votre audition de dix secondes)",
+          "pages": null,
+          "lines": "6086"
+        }
+      ]
+    },
+    {
+      "n": 68,
+      "part": "VII",
+      "nameFr": "Une comédie sans intérêt",
+      "namePl": "Komedia bez znaczenia",
+      "summary": "Udawaj zażyłość z szefem, mówiąc o nim „on/ona” do sekretarki, by cię przełączono.",
+      "trainerUse": "Nie dotyczy; to trik oparty na zwodzeniu (S7).",
+      "relevance": "nie dotyczy",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 68 (Une comédie sans intérêt)",
+          "pages": null,
+          "lines": "6134"
+        }
+      ]
+    },
+    {
+      "n": 69,
+      "part": "VII",
+      "nameFr": "J'entends votre autre ligne",
+      "namePl": "Słyszę twoją drugą linię",
+      "summary": "Gdy słyszysz w tle telefon, psa lub dziecko, przerwij i zapytaj, czy rozmówca musi się tym zająć.",
+      "trainerUse": "Rozmowy online: dziecko, kurier, praca w tle – przerwij i zaproponuj przerwę lub inny termin.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 69 (J'entends votre autre ligne)",
+          "pages": null,
+          "lines": "6158"
+        }
+      ]
+    },
+    {
+      "n": 70,
+      "part": "VII",
+      "nameFr": "Reprise instantanée",
+      "namePl": "Natychmiastowa powtórka",
+      "summary": "Nagrywaj rozmowy służbowe i odsłuchuj je, by wychwycić szczegóły.",
+      "trainerUse": "Tylko za zgodą klienta i zgodnie z prawem (S12).",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VII La composition directe de leurs cœurs, technika 70 (Reprise instantanée)",
+          "pages": null,
+          "lines": "6260"
+        }
+      ]
+    },
+    {
+      "n": 71,
+      "part": "VIII",
+      "nameFr": "Munching ou mingling",
+      "namePl": "Jedzenie albo rozmowy",
+      "summary": "Na przyjęciu nie trzymaj jedzenia i napojów, bo tworzą barierę; najpierw kontakty, potem jedzenie.",
+      "trainerUse": "Eventy, targi; niska.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 71 (Munching ou mingling)",
+          "pages": null,
+          "lines": "6435"
+        }
+      ]
+    },
+    {
+      "n": 72,
+      "part": "VIII",
+      "nameFr": "Rubberneck the room",
+      "namePl": "Rozejrzyj się po sali",
+      "summary": "Zatrzymaj się w drzwiach i rozejrzyj, zanim wejdziesz.",
+      "trainerUse": "Eventy; także szybka ocena sali przed zajęciami grupowymi.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 72 (Rubberneck the room)",
+          "pages": null,
+          "lines": "6489"
+        }
+      ]
+    },
+    {
+      "n": 73,
+      "part": "VIII",
+      "nameFr": "Soyez l'élu, pas l'élu",
+      "namePl": "Bądź wybierającym, nie wybieranym",
+      "summary": "Nie czekaj, aż ktoś do ciebie podejdzie; sam wybieraj, z kim rozmawiać. Każde przyjęcie to próba.",
+      "trainerUse": "Aktywny networking (np. podejdź do organizatora biegu).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 73 (Soyez l'élu, pas l'élu)",
+          "pages": null,
+          "lines": "6555"
+        }
+      ]
+    },
+    {
+      "n": 74,
+      "part": "VIII",
+      "nameFr": "Les mains en l'air",
+      "namePl": "Ręce w górę",
+      "summary": "Stój w otwartej pozycji (otwarte dłonie, bez skrzyżowanych rąk); autor opisuje też „uwodzicielskie nadgarstki”.",
+      "trainerUse": "Otwarta postawa przy rozmowie z klientem. Wątek uwodzenia pomiń (S4).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 74 (Les mains en l'air)",
+          "pages": null,
+          "lines": "6629"
+        }
+      ]
+    },
+    {
+      "n": 75,
+      "part": "VIII",
+      "nameFr": "Suivi",
+      "namePl": "Śledzenie",
+      "summary": "Jak kontroler lotów śledź szczegóły z życia rozmówcy i nawiązuj do nich.",
+      "trainerUse": "Notuj i przypominaj (egzamin dziecka, wyjazd, rocznica współpracy) – mocne narzędzie utrzymania klienta (R40). Dane wrażliwe: S11.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 75 (Suivi)",
+          "pages": null,
+          "lines": "6736"
+        }
+      ]
+    },
+    {
+      "n": 76,
+      "part": "VIII",
+      "nameFr": "Le dossier de la carte de visite",
+      "namePl": "Teczka wizytówek",
+      "summary": "Zaraz po rozmowie zapisz na wizytówce szczegóły (ulubiony sport, miejsce urodzenia).",
+      "trainerUse": "Notatka po każdej sesji i konsultacji: samopoczucie, ważne wydarzenia, preferencje (R41, S11).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 76 (Le dossier de la carte de visite)",
+          "pages": null,
+          "lines": "6786"
+        }
+      ]
+    },
+    {
+      "n": 77,
+      "part": "VIII",
+      "nameFr": "Vente des globes oculaires",
+      "namePl": "Sprzedaż gałek ocznych",
+      "summary": "Ciało stale nadaje sygnały („podoba mi się”, „nudzi mnie”); obserwuj je i planuj ruchy, np. potrząsanie głową przy „tak” znaczy „nie”.",
+      "trainerUse": "Podczas prezentacji oferty i planu: zauważ wahanie i dopytaj.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. VIII Comment gérer un parti comme un politicien gère une salle ?, technika 77 (Vente des globes oculaires)",
+          "pages": null,
+          "lines": "6907"
+        }
+      ]
+    },
+    {
+      "n": 78,
+      "part": "IX",
+      "nameFr": "Ne pas voir de bêtisier, ne pas entendre de bêtisier",
+      "namePl": "Nie widź wpadki, nie słysz wpadki",
+      "summary": "Nie zauważaj drobnych wpadek, potknięć i „funkcji biologicznych” innych.",
+      "trainerUse": "Ignoruj czknięcie, potknięcie, drobne niezręczności – ale nie objawy zdrowotne ani błędy techniki (N2, S9).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 78 (Ne pas voir de bêtisier, ne pas entendre de bêtisier)",
+          "pages": null,
+          "lines": "7072"
+        }
+      ]
+    },
+    {
+      "n": 79,
+      "part": "IX",
+      "nameFr": "Donner un coup de pouce",
+      "namePl": "Daj szturchańca",
+      "summary": "Gdy czyjaś opowieść zostanie przerwana, po przerwie poproś „opowiedz, co było dalej”.",
+      "trainerUse": "Zajęcia grupowe; przerwana opowieść klienta na sesji.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 79 (Donner un coup de pouce)",
+          "pages": null,
+          "lines": "7124"
+        }
+      ]
+    },
+    {
+      "n": 80,
+      "part": "IX",
+      "nameFr": "Mettre à nu le WIIFM enfoui",
+      "namePl": "Odkryj ukryte WIIFM (i WIIFY)",
+      "summary": "Proponując spotkanie lub prosząc o przysługę, powiedz otwarcie, co ty z tego masz i co ma druga strona.",
+      "trainerUse": "Przejrzysta sprzedaż pakietów i prośby o polecenie (R33, R34).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 80 (Mettre à nu le WIIFM enfoui)",
+          "pages": null,
+          "lines": "7208"
+        }
+      ]
+    },
+    {
+      "n": 81,
+      "part": "IX",
+      "nameFr": "Laissez-les savourer la faveur",
+      "namePl": "Pozwól nacieszyć się przysługą",
+      "summary": "Gdy ktoś zgodzi się na przysługę, poczekaj co najmniej 24 godziny, zanim „obciążysz” go ciężarem.",
+      "trainerUse": "Gdy klient zgodzi się na polecenie lub opinię, nie bombarduj go od razu szczegółami.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 81 (Laissez-les savourer la faveur)",
+          "pages": null,
+          "lines": "7254"
+        }
+      ]
+    },
+    {
+      "n": 82,
+      "part": "IX",
+      "nameFr": "Un peu d'argent pour un peu d'argent (attendez ... attendez)",
+      "namePl": "Coś za coś (poczekaj… poczekaj)",
+      "summary": "Gdy ktoś jest ci winien przysługę, odczekaj, zanim poprosisz o rewanż.",
+      "trainerUse": "Po dodatkowej pomocy klientowi nie proś od razu o polecenie.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 82 (Un peu d'argent pour un peu d'argent (attendez ... attendez))",
+          "pages": null,
+          "lines": "7300"
+        }
+      ]
+    },
+    {
+      "n": 83,
+      "part": "IX",
+      "nameFr": "Les fêtes sont pour les prêtres",
+      "namePl": "Przyjęcia są dla kapłanów",
+      "summary": "Przyjęcie to „sanktuarium”: tylko miła rozmowa, bez konfrontacji i interesów.",
+      "trainerUse": "Spotkanie klienta na imprezie klubowej: bez rozmów o zaległościach i płatnościach.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 83 (Les fêtes sont pour les prêtres)",
+          "pages": null,
+          "lines": "7367"
+        }
+      ]
+    },
+    {
+      "n": 84,
+      "part": "IX",
+      "nameFr": "Dîner pour dîner",
+      "namePl": "Kolacja dla kolacji",
+      "summary": "Przy stole nie poruszaj nieprzyjemnych tematów; tylko pozytywne plany.",
+      "trainerUse": "Niska; wspólne posiłki zdarzają się rzadko.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 84 (Dîner pour dîner)",
+          "pages": null,
+          "lines": "7417"
+        }
+      ]
+    },
+    {
+      "n": 85,
+      "part": "IX",
+      "nameFr": "Les rencontres fortuites sont l'occasion de bavarder",
+      "namePl": "Przypadkowe spotkania służą pogawędce",
+      "summary": "Przypadkowego spotkania nie wykorzystuj do sprzedaży ani trudnych spraw; trzymaj je lekkie.",
+      "trainerUse": "Klient spotkany w sklepie: krótko i miło, bez pytania „czemu nie było cię na treningu?”.",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 85 (Les rencontres fortuites sont l'occasion de bavarder)",
+          "pages": null,
+          "lines": "7455"
+        }
+      ]
+    },
+    {
+      "n": 86,
+      "part": "IX",
+      "nameFr": "Vider les réservoirs",
+      "namePl": "Opróżnij zbiorniki",
+      "summary": "Gdy potrzebujesz informacji, najpierw pozwól rozmówcy całkowicie się wygadać; dopiero wtedy przyjmie twoje racje.",
+      "trainerUse": "Klient sfrustrowany brakiem efektów: najpierw wysłuchaj do końca, potem dane i plan.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 86 (Vider les réservoirs)",
+          "pages": null,
+          "lines": "7522"
+        }
+      ]
+    },
+    {
+      "n": 87,
+      "part": "IX",
+      "nameFr": "L'écho de l'OMU",
+      "namePl": "Echo EMO",
+      "summary": "W emocjonalnej sytuacji słuchaj faktów, ale mocno współczuj emocjom; to uspokaja burzę.",
+      "trainerUse": "Złość po odwołanej sesji, płacz po wadze: najpierw nazwij emocje, potem fakty.",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 87 (L'écho de l'OMU)",
+          "pages": null,
+          "lines": "7599"
+        }
+      ]
+    },
+    {
+      "n": 88,
+      "part": "IX",
+      "nameFr": "Ma gaffe, ton gain",
+      "namePl": "Moja gafa, twój zysk",
+      "summary": "Gdy popełnisz błąd, nie tylko go napraw, ale zrób coś, by poszkodowany był zadowolony, że się zdarzył.",
+      "trainerUse": "Spóźnienie, pomyłka w grafiku: przeprosiny i dodatkowa wartość (R27).",
+      "relevance": "wysoka",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 88 (Ma gaffe, ton gain)",
+          "pages": null,
+          "lines": "7635"
+        }
+      ]
+    },
+    {
+      "n": 89,
+      "part": "IX",
+      "nameFr": "Laisser une issue de secours",
+      "namePl": "Zostaw drogę ucieczki",
+      "summary": "Gdy przyłapiesz kogoś na kłamstwie lub przesadzie, nie konfrontuj wprost (chyba że to twój obowiązek), daj mu wyjście z twarzą.",
+      "trainerUse": "Klient zawyża realizację planu lub diety: zapytaj neutralnie, weź winę na siebie („może źle wytłumaczyłem”) (R28).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 89 (Laisser une issue de secours)",
+          "pages": null,
+          "lines": "7703"
+        }
+      ]
+    },
+    {
+      "n": 90,
+      "part": "IX",
+      "nameFr": "Des boutons d'or pour leur patron",
+      "namePl": "Złote guziki dla ich szefa",
+      "summary": "Pochwal dobrego pracownika przed jego szefem; zyskasz jego szczególną uwagę.",
+      "trainerUse": "Napisz pozytywną opinię o fizjoterapeucie, recepcji; buduje sieć poleceń.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 90 (Des boutons d'or pour leur patron)",
+          "pages": null,
+          "lines": "7780"
+        }
+      ]
+    },
+    {
+      "n": 91,
+      "part": "IX",
+      "nameFr": "Diriger les auditeurs",
+      "namePl": "Prowadź słuchaczy",
+      "summary": "Na wystąpieniu ważnej osoby bądź pierwszy, który klaszcze lub się śmieje.",
+      "trainerUse": "Zajęcia grupowe; niska.",
+      "relevance": "niska",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 91 (Diriger les auditeurs)",
+          "pages": null,
+          "lines": "7837"
+        }
+      ]
+    },
+    {
+      "n": 92,
+      "part": "IX",
+      "nameFr": "Le grand tableau de bord dans le ciel",
+      "namePl": "Wielka tablica wyników w niebie",
+      "summary": "Każda para ma niewidzialną „tablicę wyników”; strona, która ma mniej, okazuje szacunek; utrzymuj równowagę wzajemności.",
+      "trainerUse": "Równowaga dawania i brania z klientem i partnerami (fizjoterapeuta, dietetyk).",
+      "relevance": "średnia",
+      "summaryStatus": "zrodlo",
+      "trainerUseStatus": "wniosek",
+      "sources": [
+        {
+          "ref": "lowndes-jak-rozmawiac",
+          "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 92 (Le grand tableau de bord dans le ciel)",
+          "pages": null,
+          "lines": "7931"
+        }
+      ]
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "lowndes-jak-rozmawiac",
+      "type": "book",
+      "author": "Leil Lowndes",
+      "title": "How to Talk to Anyone: 92 Little Tricks for Big Success in Relationships",
+      "titleInFile": "Comment parler à n'importe qui – 92 petits trucs pour réussir ses relations (przekład francuski)",
+      "publisher": "HarperElement (HarperCollins)",
+      "year": 2014,
+      "firstPublished": 1999,
+      "firstPublisher": "Thorsons",
+      "isbnSource": "9780722538074",
+      "isbnEbook": "9780007369867",
+      "pages": null,
+      "language": "fr",
+      "fileUsed": "2f7ba5b2-740656615-Leil-Lowndes-How-to-Talk-to-Anyone-EnglishOnlineClubcom-fr.pdf.txt",
+      "fileStats": {
+        "bytes": 577448,
+        "lines": 8395,
+        "encoding": "UTF-8"
+      },
+      "translationNote": "Przekład francuski o charakterze maszynowym; część nazw technik przetłumaczona błędnie."
+    },
+    {
+      "id": "toc",
+      "type": "toc",
+      "items": [
+        {
+          "part": "I",
+          "titleFr": "Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un",
+          "titlePl": "Masz tylko dziesięć sekund, by pokazać, że jesteś kimś",
+          "techniques": "1–9",
+          "lines": "295-1369"
+        },
+        {
+          "part": "II",
+          "titleFr": "Que dois-je dire après avoir dit « bonjour » ?",
+          "titlePl": "Co powiedzieć po „dzień dobry”?",
+          "techniques": "10–23",
+          "lines": "1370-2465"
+        },
+        {
+          "part": "III",
+          "titleFr": "Comment parler comme les grands garçons et les grandes filles",
+          "titlePl": "Jak rozmawiać jak „wielcy gracze”",
+          "techniques": "24–37",
+          "lines": "2466-3556"
+        },
+        {
+          "part": "IV",
+          "titleFr": "Comment être un initié dans n'importe quelle foule ?",
+          "titlePl": "Jak być „swoim” w każdym towarzystwie",
+          "techniques": "38–43",
+          "lines": "3557-4234"
+        },
+        {
+          "part": "V",
+          "titleFr": "Nous sommes tous pareils !",
+          "titlePl": "Wszyscy jesteśmy tacy sami!",
+          "techniques": "44–50",
+          "lines": "4235-4904"
+        },
+        {
+          "part": "VI",
+          "titleFr": "Le pouvoir de l'éloge, la folie de la flatterie",
+          "titlePl": "Siła pochwały, szaleństwo pochlebstwa",
+          "techniques": "51–59",
+          "lines": "4905-5510"
+        },
+        {
+          "part": "VII",
+          "titleFr": "La composition directe de leurs cœurs",
+          "titlePl": "dosł. „Bezpośrednie wybieranie ich serc” – rozmowy telefoniczne",
+          "techniques": "60–70",
+          "lines": "5511-6301"
+        },
+        {
+          "part": "VIII",
+          "titleFr": "Comment gérer un parti comme un politicien gère une salle ?",
+          "titlePl": "Jak poruszać się po przyjęciu jak polityk po sali; „parti” to błędny przekład „party”",
+          "techniques": "71–77",
+          "lines": "6302-6951"
+        },
+        {
+          "part": "IX",
+          "titleFr": "Les petits trucs des grands gagnants",
+          "titlePl": "Małe sztuczki wielkich zwycięzców",
+          "techniques": "78–92",
+          "lines": "6952-7949"
+        },
+        {
+          "part": "Préface",
+          "titleFr": "Préface : Tout avoir",
+          "titlePl": "Przedmowa: Mieć wszystko",
+          "techniques": null,
+          "lines": "150-294"
+        },
+        {
+          "part": "Fin",
+          "titleFr": "Un dernier mot : votre destin",
+          "titlePl": "Ostatnie słowo: twoje przeznaczenie",
+          "techniques": null,
+          "lines": "7950-8023"
+        },
+        {
+          "part": "Notes",
+          "titleFr": "Notes / Bibliographie sélective",
+          "titlePl": "Przypisy / Bibliografia (pominięte)",
+          "techniques": null,
+          "lines": "8025-8330"
+        }
+      ]
+    },
+    {
+      "id": "coverage",
+      "type": "coverage",
+      "items": [
+        {
+          "area": "Zasady treningowe, dobór ćwiczeń, parametry, progresja, deload",
+          "status": "brak_w_zrodle"
+        },
+        {
+          "area": "Szablony planów (FBW, góra/dół, siłowy, domowy)",
+          "status": "brak_w_zrodle"
+        },
+        {
+          "area": "Przeciwwskazania medyczne",
+          "status": "brak_w_zrodle"
+        },
+        {
+          "area": "Pierwsze wrażenie, mowa ciała",
+          "status": "zrodlo"
+        },
+        {
+          "area": "Rozmowa, słuchanie, pytania",
+          "status": "zrodlo"
+        },
+        {
+          "area": "Pochwała i feedback",
+          "status": "zrodlo"
+        },
+        {
+          "area": "Trudne rozmowy, emocje, błędy",
+          "status": "zrodlo"
+        },
+        {
+          "area": "Telefon i kontakt zdalny",
+          "status": "zrodlo"
+        },
+        {
+          "area": "Networking, marketing osobisty",
+          "status": "zrodlo"
+        },
+        {
+          "area": "Utrzymanie relacji (retencja)",
+          "status": "zrodlo"
+        },
+        {
+          "area": "Klient nie realizuje planu",
+          "status": "wniosek"
+        }
+      ]
+    },
+    {
+      "id": "uncertainties",
+      "type": "uncertainties",
+      "items": [
+        {
+          "id": "N1",
+          "text": "#57 dopuszcza „białe kłamstwo” w gratulacjach, a #55 wymaga wiarygodności komplementu. W Progress Live: chwal prawdziwy wysiłek, nie kłam o technice i bezpieczeństwie (S8).",
+          "techniques": [
+            57,
+            55
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 57 (Le réflexe « wow ! »)",
+              "pages": null,
+              "lines": "5322"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 55 (Le compliment qui tue)",
+              "pages": null,
+              "lines": "5190"
+            }
+          ]
+        },
+        {
+          "id": "N2",
+          "text": "#78 każe „nie zauważać” wpadek i funkcji ciała; trener ma obowiązek obserwować objawy i technikę (S9).",
+          "techniques": [
+            78
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. IX Les petits trucs des grands gagnants, technika 78 (Ne pas voir de bêtisier, ne pas entendre de bêtisier)",
+              "pages": null,
+              "lines": "7072"
+            }
+          ]
+        },
+        {
+          "id": "N3",
+          "text": "#24 zakazuje pytania o zawód, a trener potrzebuje danych o pracy – rozwiązanie: pytanie otwarte o typowy dzień (R5).",
+          "techniques": [
+            24
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 24 (Que faites-vous - PAS !)",
+              "pages": null,
+              "lines": "2536"
+            }
+          ]
+        },
+        {
+          "id": "N4",
+          "text": "#49 (przedwczesne „my”) i #68 (udawana zażyłość) mają charakter manipulacyjny; #61 sam autor zastrzega, że częste powtarzanie imienia na żywo wygląda na manipulację.",
+          "techniques": [
+            49,
+            61,
+            68
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. V Nous sommes tous pareils !, technika 49 (La prématurité que nous)",
+              "pages": null,
+              "lines": "4814"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. VII La composition directe de leurs cœurs, technika 61 (Douche nominative)",
+              "pages": null,
+              "lines": "5646"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. VII La composition directe de leurs cœurs, technika 68 (Une comédie sans intérêt)",
+              "pages": null,
+              "lines": "6134"
+            }
+          ]
+        },
+        {
+          "id": "N5",
+          "text": "Kontakt wzrokowy: autor zaleca intensywny (#2, #3), ale sam przyznaje różnice kulturowe i płciowe; #3 może być odbierane jako natarczywość.",
+          "techniques": [
+            2,
+            3,
+            42
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 2 (Yeux collants)",
+              "pages": null,
+              "lines": "614"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 3 (Yeux en époxy)",
+              "pages": null,
+              "lines": "685"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. IV Comment être un initié dans n'importe quelle foule ?, technika 42 (Effacer 'custom')",
+              "pages": null,
+              "lines": "4087"
+            }
+          ]
+        },
+        {
+          "id": "N6",
+          "text": "#29 (osobny uśmiech dla każdego) a #1 (powolny, „zalewający” uśmiech) – w grupie trudno stosować obie naraz; to kwestia praktyki, nie reguła.",
+          "techniques": [
+            1,
+            29
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+              "pages": null,
+              "lines": "500"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 29 (Le sourire exclusif)",
+              "pages": null,
+              "lines": "3051"
+            }
+          ]
+        },
+        {
+          "id": "N7",
+          "text": "#48 (typy wzrokowy, słuchowy, czuciowy) wywodzi się z NLP; autor przyznaje, że trudno je rozpoznać. Brak mocnych dowodów naukowych [POZA ŹRÓDŁEM].",
+          "techniques": [
+            48
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. V Nous sommes tous pareils !, technika 48 (Des empathes anatomiquement corrects)",
+              "pages": null,
+              "lines": "4735"
+            }
+          ]
+        },
+        {
+          "id": "N8",
+          "text": "Liczby bez podanego źródła lub z dawnych badań (lata 60.–90.): 80% wrażenia z wyglądu, 85% sukcesu finansowego z umiejętności ludzkich, 30% utraty energii przez telefon, 60%/20% podejść w badaniu uśmiechu, „10 000 jednostek informacji na sekundę”. Traktuj jako opinię autora.",
+          "techniques": [
+            1,
+            11,
+            29,
+            60
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 1 (Le sourire de l'inondation)",
+              "pages": null,
+              "lines": "500"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 11 (Prosaïque et passionné)",
+              "pages": null,
+              "lines": "1651"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 29 (Le sourire exclusif)",
+              "pages": null,
+              "lines": "3051"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. VII La composition directe de leurs cœurs, technika 60 (Les gestes de la parole)",
+              "pages": null,
+              "lines": "5613"
+            }
+          ]
+        },
+        {
+          "id": "N9",
+          "text": "#22 odradza wczesne ujawnianie słabości, a przywołany efekt Aronsona („wpadka” zwiększa sympatię) działa tylko u osób o wysokim statusie.",
+          "techniques": [
+            22
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 22 (Ac-cen-tu-ate la pos-i-tive)",
+              "pages": null,
+              "lines": "2404"
+            }
+          ]
+        },
+        {
+          "id": "N10",
+          "text": "Uwagi o różnicach płci (np. przy kontakcie wzrokowym, komplementach) to opinie autora i stereotypy z lat 90.; nie stosuj ich jako reguł.",
+          "techniques": [
+            2,
+            58
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 2 (Yeux collants)",
+              "pages": null,
+              "lines": "614"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. VI Le pouvoir de l'éloge, la folie de la flatterie, technika 58 (Le boomerang)",
+              "pages": null,
+              "lines": "5405"
+            }
+          ]
+        },
+        {
+          "id": "N11",
+          "text": "#70 (nagrywanie rozmów) – legalność zależy od kraju; w Polsce i UE dodatkowo RODO.",
+          "techniques": [
+            70
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. VII La composition directe de leurs cœurs, technika 70 (Reprise instantanée)",
+              "pages": null,
+              "lines": "6260"
+            }
+          ]
+        },
+        {
+          "id": "N12",
+          "text": "Anegdota o wizualizacji przed maratonem (#9) nie jest zaleceniem treningowym ani dowodem na skuteczność wizualizacji w sporcie.",
+          "techniques": [
+            9
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. I Vous n'avez que dix secondes pour montrer que vous êtes quelqu'un, technika 9 (Regardez la scène avant de faire la scène)",
+              "pages": null,
+              "lines": "1346"
+            }
+          ]
+        },
+        {
+          "id": "N13",
+          "text": "Błędy przekładu: „Paralogisme” = parroting (papugowanie, #20), „parti” = party (przyjęcie, cz. VIII), „La composition directe de leurs cœurs” = Direct Dialing Their Hearts (cz. VII), ramka #36 ma odwrócony sens; zdania zdublowane lub urwane (np. ok. linii 838–840, 851–855, 1427–1428). Interpretowano z kontekstu.",
+          "techniques": [
+            20,
+            36
+          ],
+          "sources": [
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. II Que dois-je dire après avoir dit « bonjour » ?, technika 20 (Paralogisme)",
+              "pages": null,
+              "lines": "2223"
+            },
+            {
+              "ref": "lowndes-jak-rozmawiac",
+              "chapter": "Cz. III Comment parler comme les grands garçons et les grandes filles, technika 36 (Les gros bonnets ne bavent pas)",
+              "pages": null,
+              "lines": "3499"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lost",
+      "type": "lostElements",
+      "items": [
+        "Brak tabel i rysunków merytorycznych w oryginale; utracone są tylko okładki innych książek autorki (odnośniki „Cliquez sur la couverture”).",
+        "Brak numerów stron i stopek – nie da się podać stron.",
+        "Nagłówki części nie występują w treści (są tylko w spisie treści i we wstępach); granice części ustalono po numerach technik.",
+        "Kursywy i ramki podsumowań technik zachowane jako zwykły tekst; czasem zdublowane lub urwane."
+      ]
+    }
+  ]
+}

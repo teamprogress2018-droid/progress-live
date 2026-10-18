@@ -1,0 +1,2238 @@
+{
+  "principles": [
+    {
+      "id": "P1",
+      "law": "The Law of Leadership",
+      "lawPl": "Prawo przywództwa",
+      "title": "Lepiej być pierwszym niż lepszym",
+      "rule": "Łatwiej wejść do umysłu klienta jako pierwszy, niż przekonywać, że ma się lepszy produkt od tego, który był pierwszy. Pierwsza marka w kategorii zwykle zostaje liderem, kolejność sprzedaży marek często odpowiada kolejności wejścia, a nazwa pierwszej marki często staje się nazwą kategorii. Benchmarking i strategia lepszego produktu nie działają.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Zamiast 'jestem lepszym trenerem niż inni' szukaj obszaru, w którym możesz być pierwszy w głowie klientów (P2).",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Komunikat 'lepszy generator planów niż X' jest słabszy niż bycie pierwszym w wyraźnie nazwanej kategorii.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "nie każdy pierwszy wygra: można wejść za późno albo z pomysłem, którego klient nie chce (s. 4)",
+        "P3 modyfikuje to prawo: liczy się pierwszeństwo w umyśle, nie na rynku"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 1 The Law of Leadership (Prawo przywództwa)",
+          "pages": "2-9"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 1 The Law of Leadership (Prawo przywództwa)",
+          "pages": "2-3",
+          "note": "teza"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 1 The Law of Leadership (Prawo przywództwa)",
+          "pages": "4",
+          "note": "zastrzeżenia"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 1 The Law of Leadership (Prawo przywództwa)",
+          "pages": "6-7",
+          "note": "nazwa generyczna"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 1 The Law of Leadership (Prawo przywództwa)",
+          "pages": "8",
+          "note": "benchmarking"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "law": "The Law of the Category",
+      "lawPl": "Prawo kategorii",
+      "title": "Jeśli nie możesz być pierwszy, stwórz kategorię, w której będziesz pierwszy",
+      "rule": "Przy nowym produkcie pierwsze pytanie to 'pierwszy w czym?', nie 'czym jest lepszy?'. Klienci bronią się przed markami, ale są otwarci na nowe kategorie. Gdy jesteś pierwszy w kategorii, promuj kategorię, nie markę.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Nowa kategoria może wynikać z grupy klientów, problemu, miejsca lub formy usługi (analogie z książki: pierwszy magazyn dla dojrzałej kobiety, pierwszy sprzedający komputery przez telefon). Książka nie podaje przykładów z fitnessu.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Zdefiniuj kategorię, w której aplikacja jest pierwsza, i tłumacz trenerom, dlaczego potrzebują tej kategorii narzędzia.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "wykonanie w praktyce jest trudne (s. 12)",
+        "brak metody oceny wielkości nowej kategorii; por. P7: czasem lepiej nr 3 na dużej drabinie (s. 43)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 2 The Law of the Category (Prawo kategorii)",
+          "pages": "10-13"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 2 The Law of the Category (Prawo kategorii)",
+          "pages": "13",
+          "note": "First what?; promocja kategorii"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "law": "The Law of the Mind",
+      "lawPl": "Prawo umysłu",
+      "title": "Lepiej być pierwszym w umyśle niż na rynku",
+      "rule": "Raz wyrobionej opinii prawie nie da się zmienić; próba zmiany cudzego zdania to najbardziej marnotrawne działanie w marketingu. Do umysłu trzeba wejść szybko i wyraźnie, nie budować opinii powoli. Pomaga prosta nazwa. Przy otwartym umyśle nawet mała kwota może wiele zdziałać.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Pierwszy jasny komunikat decyduje; późniejsza zmiana wizerunku będzie bardzo trudna. Nazwa marki trenera powinna być prosta.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Prosta nazwa i jedno wyraźne skojarzenie od startu; późniejsza zmiana pozycji jest kosztowna.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "napięcie z P22 (bez pieniędzy pomysł nie wystartuje), patrz sprzeczności"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 3 The Law of the Mind (Prawo umysłu)",
+          "pages": "14-17"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 3 The Law of the Mind (Prawo umysłu)",
+          "pages": "16",
+          "note": "zmiana zdania"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 3 The Law of the Mind (Prawo umysłu)",
+          "pages": "17",
+          "note": "blast not worm; mała kwota; prosta nazwa"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "law": "The Law of Perception",
+      "lawPl": "Prawo percepcji",
+      "title": "Marketing to walka percepcji, nie produktów",
+      "rule": "Liczy się to, co klient myśli o marce, nie obiektywne cechy. Ekspert to ktoś postrzegany jako ekspert. Klienci często kupują na podstawie cudzej opinii ('wszyscy wiedzą'), a własne doświadczenie dopasowują do niej.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Kompetencje nie wystarczą; liczy się to, jak trener jest postrzegany. Opinie innych klientów działają silniej niż opis usług.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Porównania funkcji nie wygrają same; liczy się skojarzenie aplikacji w środowisku trenerów i opinie innych trenerów.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "autorzy nazywają marketing 'manipulacją percepcjami' (s. 20); dla Progress Live nie usprawiedliwia to nieprawdziwych twierdzeń (S10-S17)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 4 The Law of Perception (Prawo percepcji)",
+          "pages": "18-25"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 4 The Law of Perception (Prawo percepcji)",
+          "pages": "18",
+          "note": "percepcja to rzeczywistość"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 4 The Law of Perception (Prawo percepcji)",
+          "pages": "20",
+          "note": "manipulacja"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 4 The Law of Perception (Prawo percepcji)",
+          "pages": "21",
+          "note": "ekspert"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 4 The Law of Perception (Prawo percepcji)",
+          "pages": "24",
+          "note": "everybody knows"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "law": "The Law of Focus",
+      "lawPl": "Prawo skupienia",
+      "title": "Posiadaj jedno słowo w umyśle klienta",
+      "rule": "Najsilniejsze pojęcie w marketingu to posiadanie jednego słowa w umyśle klienta: prostego, ze słownika, najlepiej związanego z korzyścią. Jedno słowo zamiast kilku. Efekt aureoli. Słowa dotyczą korzyści, usługi, grupy odbiorców lub sprzedaży. Słowo musi być wolne i mieć sensowne przeciwieństwo (nie 'jakość'). Raz zdobyte słowo trzeba chronić i nie porzucać dla cudzego.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Wybierz jedno słowo lub krótki koncept. 'Profesjonalizm', 'jakość', 'indywidualne podejście' nie wyróżniają, bo każdy trener tak o sobie mówi.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Jedno słowo-korzyść dla aplikacji, konsekwentnie wszędzie; 'wszystko dla trenera' osłabia to słowo.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "czasem trzeba zmienić słowo, ale to trudne (s. 29)",
+        "brak metody wyboru słowa poza warunkami: proste, z korzyścią, wolne, z przeciwieństwem"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "26-33"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "26",
+          "note": "teza"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "28",
+          "note": "proste słowa, aureola"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "29",
+          "note": "lista marek i rodzaje słów"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "30",
+          "note": "cudze słowo"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "31-32",
+          "note": "jakość"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "32-33",
+          "note": "ochrona słowa"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "law": "The Law of Exclusivity",
+      "lawPl": "Prawo wyłączności",
+      "title": "Dwie firmy nie mogą mieć tego samego słowa",
+      "rule": "Próba przejęcia słowa konkurenta jest daremna i często wzmacnia jego pozycję. Badania rynku dają listę pożądanych cech, ale nie mówią, że ktoś już je posiada.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Jeśli ktoś w okolicy jest już znany z danego hasła, nie walcz o nie; wybierz inne.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Przed wyborem hasła sprawdź, czy inna aplikacja dla trenerów nie kojarzy się już z tym słowem.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "brak metody pomiaru, kto posiada słowo (poza testem skojarzeń, s. 27)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 6 The Law of Exclusivity (Prawo wyłączności)",
+          "pages": "34-37"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 6 The Law of Exclusivity (Prawo wyłączności)",
+          "pages": "36",
+          "note": "badania jako lista życzeń"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 6 The Law of Exclusivity (Prawo wyłączności)",
+          "pages": "37",
+          "note": "przykład fast"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "law": "The Law of the Ladder",
+      "lawPl": "Prawo drabiny",
+      "title": "Strategia zależy od szczebla na drabinie w umyśle",
+      "rule": "Dla każdej kategorii klient ma w głowie drabinę marek i przyjmuje tylko informacje z nią zgodne. Nr 2 zyskuje, przyznając pozycję i odnosząc się do lidera. Liczba szczebli zależy od zaangażowania (częste zakupy i produkty związane z dumą: wiele; rzadkie i nieprzyjemne: mało), zwykle nie więcej niż siedem. Udział rynkowy często wynosi połowę udziału marki wyżej (4-2-1). Czasem lepiej być nr 3 na dużej drabinie niż nr 1 na małej.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Określ uczciwie swój szczebel lokalnie; 'najlepszy trener w mieście' nie zadziała, jeśli klient ma kogoś innego na górze. Usługa trenera może przypominać kategorię 'z dumą' (niepewne).",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Sprawdź, z czym trenerzy porównują aplikację i jak wysoko ją stawiają; potem dobierz strategię lidera, nr 2 albo nowej kategorii.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "4-2-1 i reguła siedmiu to obserwacje z rynków konsumenckich USA, nie prawo dla usług lokalnych"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "38-43"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "38-40",
+          "note": "Avis"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "40",
+          "note": "umysł selektywny"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "41",
+          "note": "liczba szczebli"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "41-42",
+          "note": "4-2-1"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "42",
+          "note": "reguła siedmiu"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "43",
+          "note": "duża drabina"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "law": "The Law of Duality",
+      "lawPl": "Prawo dwoistości",
+      "title": "W długim okresie każdy rynek to wyścig dwóch koni",
+      "rule": "Rynek z czasem sprowadza się do starej marki i pretendenta; trzecie miejsce na dojrzałym rynku jest trudne. Słaby nr 3 powinien wyciąć zyskowną niszę zamiast atakować liderów. Tempo procesu bywa różne. Nowi klienci wybierają marki nr 3-4, ale z czasem przechodzą do liderów.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Jeśli nie jesteś jednym z dwóch najbardziej znanych trenerów w szerokiej kategorii, buduj niszę.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Celuj w nr 1 lub nr 2 w jasno określonej kategorii; trzecia aplikacja 'do wszystkiego' będzie w trudnej sytuacji.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "wynik nie jest przesądzony; inne prawa i dobre programy też działają (s. 47)",
+        "brak informacji, czy prawo dotyczy lokalnych rynków usług"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 8 The Law of Duality (Prawo dwoistości)",
+          "pages": "44-49"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 8 The Law of Duality (Prawo dwoistości)",
+          "pages": "47",
+          "note": "nisza dla nr 3"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 8 The Law of Duality (Prawo dwoistości)",
+          "pages": "48-49",
+          "note": "nowi klienci"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "law": "The Law of the Opposite",
+      "lawPl": "Prawo przeciwieństwa",
+      "title": "Jeśli celujesz w drugie miejsce, strategię wyznacza lider",
+      "rule": "Znajdź istotę siły lidera i zaproponuj przeciwieństwo: nie lepszy, tylko inny. Nr 2 zwraca się do klientów, którzy nie chcą kupować u lidera. Wytykana słabość lidera musi być od razu uznana przez klienta i mieć pierwiastek prawdy; potem szybko własna korzyść. Nr 2 nie może być nieśmiały.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Jeśli lider kojarzy się np. z dużą siłownią i zajęciami grupowymi, alternatywą może być kameralność lub praca jeden na jeden (przykład wymyślony, nie z książki).",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Jeśli najbardziej znane narzędzie kojarzy się z czymś konkretnym, pozycja przeciwna może być skuteczniejsza niż kopiowanie.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "miecz obosieczny (s. 52)",
+        "ataki na konkurentów mają ograniczenia etyczne i prawne (S12, poza źródłem)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "50-55"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "50",
+          "note": "teza"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "51",
+          "note": "dwa typy klientów"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "52",
+          "note": "miecz obosieczny"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "54",
+          "note": "prawda negatywu, legitymacja"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "54-55",
+          "note": "nieśmiałość"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "law": "The Law of Division",
+      "lawPl": "Prawo podziału",
+      "title": "Z czasem kategoria dzieli się na dwie lub więcej",
+      "rule": "Każdy segment ma własnego lidera, rzadko tego samego co w kategorii pierwotnej. Kategorie się dzielą, nie łączą. Lider powinien wchodzić w nowe segmenty z nową marką. Można wejść za wcześnie, ale lepiej wcześnie niż późno.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Trening personalny dzieli się na podkategorie; nowy segment to szansa na pozycję lidera. Usługę z innego segmentu lepiej oznaczyć osobno.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Oprogramowanie dla trenerów może się dzielić; aplikacja może wybrać jeden segment, a wyraźnie inny segment obsłużyć osobną nazwą.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "brak kryteriów, kiedy segment jest osobną kategorią, a kiedy tylko funkcją"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "56-61"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "56-58",
+          "note": "podział"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "59",
+          "note": "usługi finansowe; nowa marka"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "59-61",
+          "note": "VW, Acura"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "61",
+          "note": "czas"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "law": "The Law of Perspective",
+      "lawPl": "Prawo perspektywy",
+      "title": "Efekty marketingu pojawiają się w długim czasie",
+      "rule": "Długoterminowe efekty bywają odwrotne do krótkoterminowych. Wyprzedaże, kupony i rabaty krótko podnoszą sprzedaż, ale uczą kupować tylko na promocji i sugerują, że zwykła cena jest za wysoka. Rozszerzenie linii krótko zwiększa sprzedaż, długo osłabia markę.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Ciągłe promocje na pakiety treningów mogą przyzwyczaić klientów do niskiej ceny.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Częste kody rabatowe na subskrypcję mogą uczyć trenerów czekania na promocję.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "dowody to przykłady z handlu i piwowarstwa USA, bez podanych badań (s. 63)",
+        "brak wskazówek, kiedy promocja jest bezpieczna"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "62-67"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "63",
+          "note": "wyprzedaże"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "64",
+          "note": "kupony"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "65-67",
+          "note": "rozszerzenie linii"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "law": "The Law of Line Extension",
+      "lawPl": "Prawo rozszerzenia linii",
+      "title": "Istnieje nieodparta presja, by rozciągać markę",
+      "rule": "To najczęściej łamane prawo. Kto chce być wszystkim dla wszystkich, wpada w kłopoty. Więcej znaczy mniej. Liderem kategorii jest zwykle marka nierozszerzona. Nowa marka potrzebuje nowej kategorii albo pozycji alternatywy. Lekarstwem jest odwaga.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Dokładanie pod jedną marką diety, masażu, jogi, suplementów i treningów online rozmywa to, z czym trener się kojarzy.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Dodawanie modułów (dieta, płatności, sklep, CRM) pod jednym hasłem może rozmyć główne skojarzenie. Książka nie mówi, czy funkcja programu to rozszerzenie linii (brak w źródle).",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "rozszerzenie działa krótkoterminowo; 'w długim okresie i przy silnej konkurencji prawie nigdy nie działa' (s. 72)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "68-75"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "68",
+          "note": "najczęściej łamane"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "71",
+          "note": "wszystko dla wszystkich"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "72",
+          "note": "lider nierozszerzony"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "73-74",
+          "note": "more is less"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "75",
+          "note": "odwaga"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "law": "The Law of Sacrifice",
+      "lawPl": "Prawo poświęcenia",
+      "title": "Trzeba z czegoś zrezygnować, żeby coś zyskać",
+      "rule": "Trzy rzeczy do poświęcenia: szerokość oferty, rynek docelowy i ciągłe zmiany strategii. Specjaliści wygrywają z ogólnikami. Cel to nie rynek: wąski przekaz przyciąga też ludzi spoza grupy. Najlepszy sposób na stałą pozycję to jej nie zmieniać.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Wąska oferta, jasno określona grupa i stały przekaz przez lata; wąska grupa w komunikacji nie oznacza odmowy innym klientom.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Wybierz jeden typ trenera jako cel komunikacji i trzymaj stały przekaz; inni trenerzy i tak mogą korzystać.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "napięcie z P17 (elastyczność), patrz sprzeczności"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "76-83"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "77",
+          "note": "trzy poświęcenia"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "77-80",
+          "note": "oferta"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "80",
+          "note": "specjaliści"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "80-82",
+          "note": "rynek docelowy"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "82",
+          "note": "cel to nie rynek"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "82-83",
+          "note": "stała pozycja"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "law": "The Law of Attributes",
+      "lawPl": "Prawo atrybutów",
+      "title": "Każdy atrybut ma przeciwny, skuteczny atrybut",
+      "rule": "Nie naśladuj lidera; szukaj przeciwnego atrybutu. Bez własnego atrybutu zostaje bardzo niska cena. Gdy najważniejszy atrybut jest zajęty, weź mniej ważny i podkreśl jego wartość. Nie wyśmiewaj nowych atrybutów.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Bez wyraźnego atrybutu trener konkuruje tylko ceną.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Jeśli najważniejszy atrybut kategorii zajmuje konkurent, wybierz inny i zbuduj wokół niego komunikację.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "brak metody wyboru atrybutu",
+        "propozycja dla Burger Kinga (s. 87) to pomysł autorów, nie sprawdzony wynik"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 14 The Law of Attributes (Prawo atrybutów)",
+          "pages": "84-87"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 14 The Law of Attributes (Prawo atrybutów)",
+          "pages": "85",
+          "note": "niska cena"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 14 The Law of Attributes (Prawo atrybutów)",
+          "pages": "85-86",
+          "note": "mniej ważny atrybut"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 14 The Law of Attributes (Prawo atrybutów)",
+          "pages": "86-87",
+          "note": "nigdy się nie śmiej"
+        }
+      ]
+    },
+    {
+      "id": "P15",
+      "law": "The Law of Candor",
+      "lawPl": "Prawo szczerości",
+      "title": "Gdy przyznasz się do wady, klient przyzna ci zaletę",
+      "rule": "Negatywne zdanie o sobie klient przyjmuje jako prawdę, pozytywne trzeba udowodnić. Przyznanie problemu otwiera umysł. Wada musi być powszechnie postrzegana i od razu rozpoznana; trzeba szybko przejść do korzyści, celem nie są przeprosiny. Złą nazwę trzeba zmienić albo obrócić w żart.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Uczciwie przyznaj oczywiste ograniczenie, które klient i tak widzi, i szybko pokaż wynikającą z niego korzyść.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Można przyznać oczywiste ograniczenie aplikacji, jeśli wynika z niego korzyść dla trenera.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "stosować ostrożnie i z dużą umiejętnością (s. 91)",
+        "wada musi być prawdziwa; zmyślona szczerość łamie sens prawa i S12 (poza źródłem)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 15 The Law of Candor (Prawo szczerości)",
+          "pages": "88-91"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 15 The Law of Candor (Prawo szczerości)",
+          "pages": "88-89",
+          "note": "mechanizm"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 15 The Law of Candor (Prawo szczerości)",
+          "pages": "89-90",
+          "note": "zła nazwa"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 15 The Law of Candor (Prawo szczerości)",
+          "pages": "91",
+          "note": "warunki"
+        }
+      ]
+    },
+    {
+      "id": "P16",
+      "law": "The Law of Singularity",
+      "lawPl": "Prawo jedyności",
+      "title": "W każdej sytuacji tylko jeden ruch da znaczący efekt",
+      "rule": "Sukces to nie suma wielu małych działań ani bardziej się staranie. Działa jeden śmiały, nieoczekiwany ruch w miejscu słabości konkurenta (zwykle jest jedno takie miejsce). Decydujący muszą znać rynek z pierwszej ręki i nie delegować ważnych decyzji.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Zamiast wielu drobnych akcji naraz wybierz jeden wyraźny ruch; trener sam jest 'na froncie'.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Jeden główny ruch na etap; właściciel powinien sam znać rozmowy z trenerami.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "napięcie z P19 (ready, fire, aim)",
+        "brak metody rozpoznania tego jednego ruchu"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+          "pages": "92-97"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+          "pages": "93",
+          "note": "staranie się"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+          "pages": "93-94",
+          "note": "jeden ruch"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+          "pages": "95",
+          "note": "przypadkowe pomysły"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+          "pages": "96-97",
+          "note": "front i delegowanie"
+        }
+      ]
+    },
+    {
+      "id": "P17",
+      "law": "The Law of Unpredictability",
+      "lawPl": "Prawo nieprzewidywalności",
+      "title": "Nie przewidzisz przyszłości, jeśli nie piszesz planów konkurenta",
+      "rule": "Plany zakładające konkretną przyszłość zwykle zawodzą, często przez reakcję konkurencji. Zamiast planu długoterminowego: krótkoterminowy wyróżnik i długoterminowy kierunek. Śledź trendy, ale nie ekstrapoluj ich za daleko i nie zakładaj, że nic się nie zmieni. Badania mierzą przeszłość. Potrzebna elastyczność i gotowość, by zaatakować siebie nowym pomysłem. Ryzykować to nie to samo co przewidywać.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Jasny kierunek zamiast planu na lata; obserwuj trendy (książka podaje rosnące zainteresowanie zdrowiem jako trend, s. 101).",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Uwzględniaj reakcję konkurencji; nie opieraj decyzji o nowych funkcjach tylko na ankietach.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "napięcie z P13 (nie zmieniaj pozycji)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "98-103"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "99",
+          "note": "reakcja konkurencji"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "100",
+          "note": "kierunek"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "101",
+          "note": "trendy"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "102",
+          "note": "badania, elastyczność"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "103",
+          "note": "samoatak, ryzyko"
+        }
+      ]
+    },
+    {
+      "id": "P18",
+      "law": "The Law of Success",
+      "lawPl": "Prawo sukcesu",
+      "title": "Sukces prowadzi do arogancji, a arogancja do porażki",
+      "rule": "Ego popycha do rozszerzania linii, choć sukces dała strategia, nie nazwa. Dobry marketer myśli jak klient. Szefowie tracą kontakt z frontem; trzeba samemu sprawdzać rynek, także anonimowo, i nie delegować marketingu. Małe firmy są bliżej frontu.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Po sukcesie nie przenoś automatycznie nazwiska na wszystko; regularnie słuchaj klientów.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Właściciel powinien sam rozmawiać z trenerami-użytkownikami; sukces jednej funkcji nie przeniesie się automatycznie na nową.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "ego bywa siłą napędową firmy; szkodzi w procesie marketingowym (s. 106)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "104-109"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "105",
+          "note": "ego"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "105-106",
+          "note": "nazwa a sukces"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "106",
+          "note": "myśl jak klient"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "107-109",
+          "note": "front"
+        }
+      ]
+    },
+    {
+      "id": "P19",
+      "law": "The Law of Failure",
+      "lawPl": "Prawo porażki",
+      "title": "Porażki trzeba się spodziewać i ją akceptować",
+      "rule": "Lepiej wcześnie rozpoznać błąd i ograniczyć straty niż ratować projekt reorganizacją. Pomaga kultura bez karania za eksperymenty (ready, fire, aim), ale bez powtarzania błędu. Szkodzi osobisty interes decydentów.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Nową usługę, która nie chwyta, szybko zamknij i zapisz wniosek.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Testuj komunikaty i funkcje, ale zamykaj nieudane szybko.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "brak kryteriów, kiedy coś jest porażką, a kiedy potrzebuje czasu (por. P11, P22)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 19 The Law of Failure (Prawo porażki)",
+          "pages": "110-113"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 19 The Law of Failure (Prawo porażki)",
+          "pages": "111",
+          "note": "wczesne cięcie, ready fire aim"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 19 The Law of Failure (Prawo porażki)",
+          "pages": "112-113",
+          "note": "osobisty interes"
+        }
+      ]
+    },
+    {
+      "id": "P20",
+      "law": "The Law of Hype",
+      "lawPl": "Prawo szumu medialnego",
+      "title": "Sytuacja jest często odwrotna do opisywanej w prasie",
+      "rule": "Firma, której dobrze idzie, nie potrzebuje szumu; gdy go potrzebuje, zwykle ma kłopoty. Wiele głośnych produktów przegrało. Sprawdzian: pierwszy w jakiej nowej kategorii? Prawdziwe rewolucje przychodzą po cichu.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Rozgłos (np. viralowy post) nie zastąpi pozycji.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Nie przeceniaj zapowiedzi 'rewolucji w treningu'; komunikuj kategorię i konkretną korzyść.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "część przykładów się zestarzała (NeXT, wideotelefon) - wiedza spoza książki"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 20 The Law of Hype (Prawo szumu medialnego)",
+          "pages": "114-119"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 20 The Law of Hype (Prawo szumu medialnego)",
+          "pages": "115",
+          "note": "teza"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 20 The Law of Hype (Prawo szumu medialnego)",
+          "pages": "116",
+          "note": "first in a new category of what?"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 20 The Law of Hype (Prawo szumu medialnego)",
+          "pages": "119",
+          "note": "ciche rewolucje"
+        }
+      ]
+    },
+    {
+      "id": "P21",
+      "law": "The Law of Acceleration",
+      "lawPl": "Prawo przyspieszenia",
+      "title": "Udane programy opierają się na trendach, nie modach",
+      "rule": "Moda jest głośna i krótka, trend prawie niewidoczny, ale silny. Firmy błędnie rozbudowują się pod modę. Szybki wzrost o cechach mody warto wytłumić; nie przenosić hitu na wszystko, kontrolować liczbę wystąpień, nigdy w pełni nie zaspokajać popytu.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Nie przebudowuj oferty pod modny rodzaj treningu; ograniczona dostępność terminów może wzmacniać popyt.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Nie przebudowuj aplikacji pod chwilową modę w fitnessie; buduj na trwałych trendach.",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "brak sposobu odróżnienia mody od trendu w chwili, gdy się pojawia"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 21 The Law of Acceleration (Prawo przyspieszenia)",
+          "pages": "120-123"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 21 The Law of Acceleration (Prawo przyspieszenia)",
+          "pages": "121",
+          "note": "moda a trend"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 21 The Law of Acceleration (Prawo przyspieszenia)",
+          "pages": "122",
+          "note": "wytłumienie"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 21 The Law of Acceleration (Prawo przyspieszenia)",
+          "pages": "122-123",
+          "note": "występy"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 21 The Law of Acceleration (Prawo przyspieszenia)",
+          "pages": "123",
+          "note": "niezaspokojony popyt"
+        }
+      ]
+    },
+    {
+      "id": "P22",
+      "law": "The Law of Resources",
+      "lawPl": "Prawo zasobów",
+      "title": "Bez odpowiednich pieniędzy pomysł nie wystartuje",
+      "rule": "Pieniądze są potrzebne, żeby wejść do umysłu i w nim zostać. PR nie jest darmowy. Najpierw pomysł, potem pieniądze; pomysłem zdobywa się finansowanie (np. franczyza). Produkt techniczny lub biznesowy potrzebuje mniej pieniędzy, bo lista klientów krótsza i media tańsze. Bogate firmy powinny wydawać wystarczająco i inwestować z góry przez 2-3 lata.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Marketing usług wymaga budżetu (czas lub pieniądze); jeden pomysł łatwiej sfinansować niż wiele. Brak kwot dla małych usług.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Jako produkt dla firm (trenerów) aplikacja potrzebuje mniejszego budżetu niż produkt konsumencki, ale nadal materiałów, prezentacji i obecności w branży (s. 127).",
+        "status": "wniosek"
+      },
+      "limitations": [
+        "kwoty (np. PR 5-10-20 tys. USD/mies., s. 126) to realia USA ok. 1992 r.",
+        "napięcie z P3 (mała kwota przy otwartym umyśle)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "124-129"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "125",
+          "note": "teza"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "126",
+          "note": "PR"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "127",
+          "note": "produkt biznesowy"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "127-128",
+          "note": "finansowanie"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "129",
+          "note": "inwestycja z góry"
+        }
+      ]
+    },
+    {
+      "id": "P-WARNING",
+      "law": "Warning",
+      "lawPl": "Ostrzeżenie",
+      "title": "Stosowanie praw wywoła opór",
+      "rule": "Kierownictwo woli strategię lepszego produktu, nikt nie chce się skupić, pracownicy chcą ulepszać ofertę, księgowi chcą szybkich wyników, rozszerzanie linii wydaje się logiczne. Łamiąc prawa ryzykujesz porażkę, stosując je - krytykę lub ignorowanie.",
+      "appliesTo": [
+        "marketing usług trenera personalnego",
+        "marketing Progress Live"
+      ],
+      "trainerApplication": {
+        "text": "Zawężenie oferty jest trudne psychicznie także dla jednej osoby; spodziewaj się pokusy powrotu do 'wszystkiego dla wszystkich'.",
+        "status": "wniosek"
+      },
+      "appApplication": {
+        "text": "Jak wyżej, dla decyzji o zakresie aplikacji.",
+        "status": "wniosek"
+      },
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "Warning (Ostrzeżenie)",
+          "pages": "130-132"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [],
+  "progressionRules": [],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "category": "ryzyko_marketingowe",
+      "trigger": "komunikat wytyka słabość konkurenta",
+      "action": "negatyw musi być prawdziwy i od razu uznany przez klienta; inaczej to miecz obosieczny",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "52"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "54"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "category": "ryzyko_marketingowe",
+      "trigger": "komunikat przyznaje się do wady",
+      "action": "wada musi być prawdziwa i powszechnie widoczna; szybko przejdź do korzyści, bez przeprosin",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 15 The Law of Candor (Prawo szczerości)",
+          "pages": "91"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "category": "ryzyko_marketingowe",
+      "trigger": "rozszerzanie marki na nowe produkty",
+      "action": "szybki wzrost, potem spadek, często niezauważalny przy patrzeniu na krótkie okresy",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "65-67"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "68-75"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "category": "ryzyko_marketingowe",
+      "trigger": "stałe promocje i kupony",
+      "action": "działają jak narkotyk: po odstawieniu sprzedaż spada",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "64"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "category": "ryzyko_marketingowe",
+      "trigger": "rozbudowa pod modę",
+      "action": "firma zostaje z kosztami, gdy moda minie",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 21 The Law of Acceleration (Prawo przyspieszenia)",
+          "pages": "121"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "category": "ryzyko_marketingowe",
+      "trigger": "duży szum medialny",
+      "action": "może maskować brak pozycji; potrzeba szumu bywa sygnałem kłopotów",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 20 The Law of Hype (Prawo szumu medialnego)",
+          "pages": "115"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "category": "ryzyko_marketingowe",
+      "trigger": "sukces i ego",
+      "action": "prowadzą do złych decyzji i utraty kontaktu z klientem",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "104-109"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "category": "ryzyko_marketingowe",
+      "trigger": "brak pieniędzy na marketing",
+      "action": "może zatrzymać nawet dobry pomysł; PR nie jest darmowy",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "125-126"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "category": "ryzyko_marketingowe",
+      "trigger": "stosowanie praw w organizacji",
+      "action": "spodziewaj się krytyki lub ignorowania",
+      "status": "zrodlo",
+      "priority": "info",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "Warning (Ostrzeżenie)",
+          "pages": "130-132"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "category": "etyka_marketingu",
+      "trigger": "autorzy nazywają marketing 'manipulacją percepcjami'",
+      "action": "Progress Live interpretuje to jako dbanie o prawdziwy, jasny obraz usługi, nie zgodę na wprowadzanie w błąd (S11-S17)",
+      "status": "poza_zrodlem",
+      "quoteStatus": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 4 The Law of Perception (Prawo percepcji)",
+          "pages": "20"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "category": "etyka_marketingu",
+      "trigger": "treść marketingowa obiecuje efekt",
+      "action": "nie obiecuj konkretnych efektów zdrowotnych, sylwetkowych ani terminów i nie przypisuj treningowi działania leczniczego",
+      "status": "poza_zrodlem",
+      "priority": "block",
+      "sources": []
+    },
+    {
+      "id": "S12",
+      "category": "etyka_marketingu",
+      "trigger": "twierdzenie o trenerze, aplikacji lub konkurencji",
+      "action": "tylko prawdziwe i sprawdzalne; porównania z konkurencją bez dyskredytowania; w razie wątpliwości sprawdź zgodność z prawem reklamy",
+      "status": "poza_zrodlem",
+      "priority": "block",
+      "sources": []
+    },
+    {
+      "id": "S13",
+      "category": "etyka_marketingu",
+      "trigger": "opinie, wyniki, zdjęcia przed/po",
+      "action": "bez zmyśleń; prawdziwe opinie i zdjęcia tylko za wyraźną zgodą klienta",
+      "status": "poza_zrodlem",
+      "priority": "block",
+      "sources": []
+    },
+    {
+      "id": "S14",
+      "category": "etyka_marketingu",
+      "trigger": "dane klientów z aplikacji (wyniki, zdjęcia, pomiary, zdrowie)",
+      "action": "nie używaj do marketingu bez zgody klienta",
+      "status": "poza_zrodlem",
+      "priority": "block",
+      "sources": []
+    },
+    {
+      "id": "S15",
+      "category": "etyka_marketingu",
+      "trigger": "przekaz o wyglądzie, wadze, wieku",
+      "action": "nie buduj go na zawstydzaniu",
+      "status": "poza_zrodlem",
+      "priority": "block",
+      "sources": []
+    },
+    {
+      "id": "S16",
+      "category": "etyka_marketingu",
+      "trigger": "kwalifikacje trenera w komunikacji",
+      "action": "nie podawaj kwalifikacji, których trener nie ma (np. medycznych, fizjoterapeutycznych)",
+      "status": "poza_zrodlem",
+      "priority": "block",
+      "sources": []
+    },
+    {
+      "id": "S17",
+      "category": "etyka_marketingu",
+      "trigger": "usługa dla osób z chorobami, w ciąży lub po urazach",
+      "action": "nie sugeruj, że trening zastępuje opiekę lekarza lub fizjoterapeuty",
+      "status": "poza_zrodlem",
+      "priority": "block",
+      "sources": []
+    }
+  ],
+  "planTemplates": [],
+  "sourceReferences": [
+    {
+      "id": "22-prawa-marketingu-ries-trout",
+      "type": "book",
+      "author": "Al Ries, Jack Trout",
+      "publisher": null,
+      "title": "The 22 Immutable Laws of Marketing. Violate Them at Your Own Risk",
+      "titlePl": "22 niezmienne prawa marketingu. Łam je na własne ryzyko",
+      "language": "en",
+      "year": null,
+      "yearNote": "brak w pliku; najpóźniejsze daty w tekście: 1991 (s. 66) i 'early 1992' (s. 70), więc najwcześniej 1992 (wniosek)",
+      "isbn": null,
+      "pages": 132,
+      "pagesNote": "numery stron drukowanych zachowane w tekście jako osobne linie (czasem sklejone ze słowem, np. 'prod21'); wstęp od s. ix; prawa s. 2-129; Warning s. 130-132",
+      "scope": "strategia marki i pozycjonowanie: kategoria, pierwszeństwo w umyśle, jedno słowo, drabina konkurencji, rozszerzanie linii, poświęcenie, szczerość, trendy, budżet",
+      "fileUsed": "41ce4b91-556642791-Al-Ries-Jack-Trout-The-22-Immutable-Laws-of-Marketing-En.pdf.txt (tekst z PDF)",
+      "personalDataOmitted": "brak danych osobowych w pliku",
+      "missingInFile": [
+        "Credits",
+        "Copyright",
+        "About the Publisher",
+        "Cover (tylko w spisie treści)"
+      ],
+      "tablesFigures": "książka nie ma tabel ani rysunków; zachowane listy: marki i słowa (s. 29), sieci specjalistyczne (s. 80), przykłady rozszerzeń (s. 72-73), stawki PR 5-10-20 (s. 126)",
+      "ocrIssues": [
+        "numery stron sklejone ze słowami",
+        "'renta-cars'",
+        "'Al Reis' w notce o autorach"
+      ],
+      "datedExamples": {
+        "status": "poza_zrodlem",
+        "note": "przykłady z USA lat 70.-90.; część prognoz się nie sprawdziła (np. USA Today s. 4, NeXT s. 116, wideotelefon s. 118); nie przytaczać jako aktualnych faktów"
+      }
+    },
+    {
+      "id": "contradictions",
+      "type": "contradictions",
+      "items": [
+        {
+          "id": "C1",
+          "topic": "pieniądze a otwarty umysł",
+          "detail": "P3: mała kwota może zdziałać cud przy otwartym umyśle (s. 17); P22: przeciętny pomysł z milionem lepszy niż świetny bez pieniędzy (s. 125); oba z przykładem Apple 91 000 USD",
+          "resolution": "mały budżet tylko przy nowej, niezajętej kategorii",
+          "resolutionStatus": "wniosek",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 3 The Law of the Mind (Prawo umysłu)",
+              "pages": "17"
+            },
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+              "pages": "125"
+            }
+          ]
+        },
+        {
+          "id": "C2",
+          "topic": "stała pozycja a elastyczność",
+          "detail": "P13: nie zmieniaj strategii (s. 82-83); P17: zmieniaj się szybko (s. 102)",
+          "resolution": "stała pozycja, elastyczne środki, nowy segment nową marką (P10)",
+          "resolutionStatus": "wniosek",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+              "pages": "82-83"
+            },
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+              "pages": "102"
+            }
+          ]
+        },
+        {
+          "id": "C3",
+          "topic": "jeden ruch a wiele prób",
+          "detail": "P16: tylko jeden ruch, przypadkowe pomysły nieefektywne (s. 93, 95); P19: ready, fire, aim (s. 111)",
+          "resolution": "P19 dotyczy kultury organizacji, P16 strategii wobec konkurenta",
+          "resolutionStatus": "wniosek",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+              "pages": "93-95"
+            },
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 19 The Law of Failure (Prawo porażki)",
+              "pages": "111"
+            }
+          ]
+        },
+        {
+          "id": "C4",
+          "topic": "pierwszy na rynku a w umyśle",
+          "detail": "P1 vs P3; autorzy sami rozstrzygają: P3 modyfikuje P1 (s. 15)",
+          "resolution": "liczy się pierwszeństwo w umyśle",
+          "resolutionStatus": "zrodlo",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 3 The Law of the Mind (Prawo umysłu)",
+              "pages": "15"
+            }
+          ]
+        },
+        {
+          "id": "C5",
+          "topic": "Avis",
+          "detail": "sukces przez przyznanie pozycji nr 2 (s. 39, 90) vs 'staranie się' nie jest sekretem (s. 93)",
+          "resolution": "autorzy: sukces dało odniesienie do lidera (s. 40); brak sprzeczności",
+          "resolutionStatus": "zrodlo",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+              "pages": "39-40"
+            },
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+              "pages": "93"
+            }
+          ]
+        },
+        {
+          "id": "C6",
+          "topic": "Gillette",
+          "detail": "pochwała wejścia w jednorazowe maszynki (s. 86-87) mimo P12",
+          "resolution": "użyto osobnej nazwy Good News, zgodnie z P10",
+          "resolutionStatus": "wniosek",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 14 The Law of Attributes (Prawo atrybutów)",
+              "pages": "86-87"
+            }
+          ]
+        },
+        {
+          "id": "C7",
+          "topic": "marka a funkcja programu",
+          "detail": "książka mówi o markach i liniach produktów, nie o funkcjach aplikacji",
+          "resolution": null,
+          "resolutionStatus": "brak_w_zrodle",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+              "pages": "68-75"
+            }
+          ]
+        },
+        {
+          "id": "C8",
+          "topic": "skala",
+          "detail": "przykłady dużych marek z USA; o małych firmach tylko s. 109 i 124-129",
+          "resolution": "przeniesienie na trenera to wniosek",
+          "resolutionStatus": "wniosek",
+          "sources": [
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+              "pages": "109"
+            },
+            {
+              "ref": "22-prawa-marketingu-ries-trout",
+              "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+              "pages": "124-129"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "marketingRules": [
+    {
+      "id": "M1",
+      "if": "trener lub aplikacja wyróżnia się hasłem 'lepszy niż inni'",
+      "then": "zamień je na odpowiedź na pytanie 'pierwszy w czym?' i promuj kategorię, nie markę",
+      "audience": "oba",
+      "basedOn": [
+        "P1",
+        "P2"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 1 The Law of Leadership (Prawo przywództwa)",
+          "pages": "2"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 2 The Law of the Category (Prawo kategorii)",
+          "pages": "13"
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "if": "w szerokiej kategorii jest już wyraźny lider",
+      "then": "nie atakuj go tym samym hasłem; wybierz nową kategorię albo pozycję przeciwną (alternatywę)",
+      "audience": "oba",
+      "basedOn": [
+        "P2",
+        "P9"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 2 The Law of the Category (Prawo kategorii)",
+          "pages": "10-13"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 9 The Law of the Opposite (Prawo przeciwieństwa)",
+          "pages": "50-51"
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "if": "trener nie jest jednym z dwóch najbardziej znanych w swojej kategorii",
+      "then": "zbuduj niszę zamiast walczyć frontalnie",
+      "audience": "trener",
+      "basedOn": [
+        "P8"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 8 The Law of Duality (Prawo dwoistości)",
+          "pages": "47"
+        }
+      ]
+    },
+    {
+      "id": "M4",
+      "if": "trener chce zmienić wizerunek, z którym klienci już go kojarzą",
+      "then": "uprzedź, że to bardzo trudne i drogie; rozważ nową, osobno nazwaną usługę dla nowej grupy",
+      "audience": "trener",
+      "basedOn": [
+        "P3",
+        "P10"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 3 The Law of the Mind (Prawo umysłu)",
+          "pages": "16"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "59-61"
+        }
+      ]
+    },
+    {
+      "id": "M5",
+      "if": "trener jest lokalnie nr 2 lub niżej",
+      "then": "odnieś się w komunikacji do pozycji lidera zamiast twierdzić, że jesteś najlepszy",
+      "audience": "trener",
+      "basedOn": [
+        "P7"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 7 The Law of the Ladder (Prawo drabiny)",
+          "pages": "38-40"
+        }
+      ]
+    },
+    {
+      "id": "M6",
+      "if": "opis oferty zawiera kilka korzyści naraz",
+      "then": "wybierz jedną, prostą, związaną z korzyścią i używaj jej wszędzie",
+      "audience": "oba",
+      "basedOn": [
+        "P5"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "28"
+        }
+      ]
+    },
+    {
+      "id": "M7",
+      "if": "wybrane słowo to 'jakość', 'profesjonalizm', 'indywidualne podejście' lub inne, którego nikt nie zaneguje",
+      "then": "oznacz je jako niewyróżniające i zaproponuj słowo z sensownym przeciwieństwem",
+      "audience": "oba",
+      "basedOn": [
+        "P5"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "31-32"
+        }
+      ]
+    },
+    {
+      "id": "M8",
+      "if": "słowo lub atrybut kojarzy się już z konkurentem",
+      "then": "nie walcz o nie; wybierz inny, najlepiej przeciwny atrybut i podkreśl jego wartość",
+      "audience": "oba",
+      "basedOn": [
+        "P6",
+        "P14"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 6 The Law of Exclusivity (Prawo wyłączności)",
+          "pages": "34-37"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 14 The Law of Attributes (Prawo atrybutów)",
+          "pages": "84-86"
+        }
+      ]
+    },
+    {
+      "id": "M9",
+      "if": "trener nie ma wyróżniającego atrybutu",
+      "then": "zaznacz, że zostaje konkurowanie niską ceną, i zachęć do wyboru atrybutu",
+      "audience": "trener",
+      "basedOn": [
+        "P14"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 14 The Law of Attributes (Prawo atrybutów)",
+          "pages": "85"
+        }
+      ]
+    },
+    {
+      "id": "M10",
+      "if": "trener ma oczywiste ograniczenie, które klienci i tak widzą",
+      "then": "można je przyznać i od razu pokazać wynikającą z niego korzyść; tylko prawdziwe ograniczenie, bez przepraszania",
+      "audience": "oba",
+      "basedOn": [
+        "P15",
+        "S2",
+        "S12"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 15 The Law of Candor (Prawo szczerości)",
+          "pages": "88-91"
+        }
+      ]
+    },
+    {
+      "id": "M11",
+      "if": "zadowoleni klienci chcą polecać trenera",
+      "then": "wykorzystaj to, bo kupujący opierają się na cudzej opinii; tylko prawdziwe opinie za zgodą klienta",
+      "audience": "trener",
+      "basedOn": [
+        "P4",
+        "S13"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 4 The Law of Perception (Prawo percepcji)",
+          "pages": "24"
+        }
+      ],
+      "note": "zgoda i prawdziwość opinii: poza_zrodlem"
+    },
+    {
+      "id": "M12",
+      "if": "trener chce dodać pod tą samą marką usługę z innej kategorii (dieta, masaż, suplementy, inne zajęcia)",
+      "then": "ostrzeż przed rozszerzeniem linii: krótko może pomóc, długo osłabia skojarzenie; rozważ rezygnację albo osobną nazwę",
+      "audience": "trener",
+      "basedOn": [
+        "P10",
+        "P11",
+        "P12"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "65-67"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "68-75"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "59-61"
+        }
+      ]
+    },
+    {
+      "id": "M13",
+      "if": "oferta trenera jest 'dla każdego'",
+      "then": "zaproponuj zawężenie grupy docelowej w komunikacji; inni klienci i tak mogą przyjść (cel to nie rynek)",
+      "audience": "trener",
+      "basedOn": [
+        "P13"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "80-82"
+        }
+      ]
+    },
+    {
+      "id": "M14",
+      "if": "trener zmienia hasło lub grupę docelową co kilka miesięcy",
+      "then": "zaleć utrzymanie jednej pozycji; zmieniaj środki, nie pozycję",
+      "audience": "oba",
+      "basedOn": [
+        "P13",
+        "P17"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 13 The Law of Sacrifice (Prawo poświęcenia)",
+          "pages": "82-83"
+        }
+      ],
+      "note": "sprzeczność z P17 (elastyczność), patrz sourceReferences"
+    },
+    {
+      "id": "M15",
+      "if": "trener po sukcesie chce przenieść nazwisko na wiele nowych produktów",
+      "then": "przypomnij, że sukces dała strategia, nie nazwa",
+      "audience": "trener",
+      "basedOn": [
+        "P18",
+        "P12"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "105-106"
+        }
+      ]
+    },
+    {
+      "id": "M16",
+      "if": "trener chce stale stosować rabaty lub promocje",
+      "then": "ostrzeż, że w długim okresie uczą kupować tylko na promocji i sugerują, że zwykła cena jest za wysoka; zasad ustalania cen brak w źródle",
+      "audience": "oba",
+      "basedOn": [
+        "P11"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 11 The Law of Perspective (Prawo perspektywy)",
+          "pages": "63-64"
+        }
+      ]
+    },
+    {
+      "id": "M17",
+      "if": "trener nie ma budżetu na marketing",
+      "then": "skup wysiłek na jednym pomyśle i nowej, niezajętej kategorii; przy zajętej kategorii bez budżetu szanse są małe",
+      "audience": "trener",
+      "basedOn": [
+        "P3",
+        "P22"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 3 The Law of the Mind (Prawo umysłu)",
+          "pages": "17"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "125"
+        }
+      ],
+      "note": "niepewne: sprzeczność P3/P22"
+    },
+    {
+      "id": "M18",
+      "if": "prowadzonych jest wiele drobnych akcji marketingowych naraz",
+      "then": "wybierz jeden główny ruch tam, gdzie konkurencja jest słaba",
+      "audience": "oba",
+      "basedOn": [
+        "P16"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+          "pages": "93-94"
+        }
+      ]
+    },
+    {
+      "id": "M19",
+      "if": "nowa usługa lub kampania wyraźnie nie działa",
+      "then": "zakończ ją wcześnie, zapisz wniosek, nie powtarzaj błędu",
+      "audience": "oba",
+      "basedOn": [
+        "P19"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 19 The Law of Failure (Prawo porażki)",
+          "pages": "111-112"
+        }
+      ],
+      "note": "próg czasu ani wyniku: brak_w_zrodle"
+    },
+    {
+      "id": "M20",
+      "if": "pojawia się modny rodzaj treningu lub głośny temat w mediach",
+      "then": "nie przebudowuj pod niego całej oferty; dodaj ostrożnie albo pomiń, pozycję opieraj na trwałych trendach",
+      "audience": "oba",
+      "basedOn": [
+        "P20",
+        "P21"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 20 The Law of Hype (Prawo szumu medialnego)",
+          "pages": "114-119"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 21 The Law of Acceleration (Prawo przyspieszenia)",
+          "pages": "120-123"
+        }
+      ]
+    },
+    {
+      "id": "M21",
+      "if": "decyzja opiera się na ankiecie 'czego chcesz od trenera/aplikacji'",
+      "then": "sprawdź, czy cecha nie jest już zajęta przez konkurenta; badania słabo oceniają nowe pomysły",
+      "audience": "oba",
+      "basedOn": [
+        "P6",
+        "P17"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 6 The Law of Exclusivity (Prawo wyłączności)",
+          "pages": "36"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "102"
+        }
+      ]
+    },
+    {
+      "id": "M22",
+      "if": "plan marketingowy zakłada konkretną przyszłość rynku na lata",
+      "then": "zamień go na kierunek: jedno słowo teraz i program, który je wzmacnia; uwzględnij reakcję konkurencji",
+      "audience": "oba",
+      "basedOn": [
+        "P17"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 17 The Law of Unpredictability (Prawo nieprzewidywalności)",
+          "pages": "99-100"
+        }
+      ]
+    },
+    {
+      "id": "M23",
+      "if": "Progress Live opisuje się wieloma funkcjami naraz",
+      "then": "wybierz kategorię, w której jest pierwsza, i jedno słowo-korzyść dla trenerów",
+      "audience": "progress_live",
+      "basedOn": [
+        "P2",
+        "P5"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 2 The Law of the Category (Prawo kategorii)",
+          "pages": "13"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 5 The Law of Focus (Prawo skupienia)",
+          "pages": "26-28"
+        }
+      ]
+    },
+    {
+      "id": "M24",
+      "if": "zespół chce dodać moduł z innej kategorii (dieta, płatności, sklep)",
+      "then": "oceń, czy rozmywa główne skojarzenie aplikacji; dla innego segmentu książka sugerowałaby osobną nazwę",
+      "audience": "progress_live",
+      "basedOn": [
+        "P10",
+        "P12"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 10 The Law of Division (Prawo podziału)",
+          "pages": "59-61"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 12 The Law of Line Extension (Prawo rozszerzenia linii)",
+          "pages": "68-75"
+        }
+      ],
+      "note": "niepewne: książka nie rozstrzyga, czy funkcja to rozszerzenie linii"
+    },
+    {
+      "id": "M25",
+      "if": "planowany jest budżet marketingu aplikacji",
+      "then": "produkt dla firm potrzebuje mniej pieniędzy niż konsumencki, ale potrzebuje materiałów, prezentacji i obecności w branży; lepiej zainwestować z góry niż oszczędzać",
+      "audience": "progress_live",
+      "basedOn": [
+        "P22"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "127"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 22 The Law of Resources (Prawo zasobów)",
+          "pages": "129"
+        }
+      ]
+    },
+    {
+      "id": "M26",
+      "if": "właściciel aplikacji podejmuje decyzje marketingowe",
+      "then": "powinien sam regularnie rozmawiać z trenerami i nie delegować kluczowych decyzji",
+      "audience": "progress_live",
+      "basedOn": [
+        "P16",
+        "P18"
+      ],
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 16 The Law of Singularity (Prawo jedyności)",
+          "pages": "96-97"
+        },
+        {
+          "ref": "22-prawa-marketingu-ries-trout",
+          "chapter": "rozdz. 18 The Law of Success (Prawo sukcesu)",
+          "pages": "108-109"
+        }
+      ]
+    },
+    {
+      "id": "M27",
+      "if": "klient nie realizuje planu treningowego",
+      "then": null,
+      "audience": "trener",
+      "basedOn": [],
+      "status": "brak_w_zrodle",
+      "sources": [],
+      "note": "książka dotyczy marketingu, nie pracy z klientem; użyj innej bazy"
+    },
+    {
+      "id": "M28",
+      "if": "pytanie dotyczy treningu, bólu, regeneracji lub wyników klienta",
+      "then": null,
+      "audience": "trener",
+      "basedOn": [],
+      "status": "brak_w_zrodle",
+      "sources": [],
+      "note": "książka nie ma zastosowania"
+    }
+  ],
+  "coverage": {
+    "adaptation": "książka marketingowa: sekcja 1 = 22 prawa w zastosowaniu do trenera i Progress Live; sekcja 4 = reguły marketingowe; sekcja 5 = ryzyka i etyka marketingu; sekcje 2, 3, 6 puste",
+    "section1_principles": {
+      "status": "zrodlo",
+      "note": "tezy z książki, zastosowania jako wniosek"
+    },
+    "section2_exerciseRules": {
+      "status": "brak_w_zrodle",
+      "value": null
+    },
+    "section3_progressionRules": {
+      "status": "brak_w_zrodle",
+      "value": null
+    },
+    "section4_decisionRules": {
+      "status": "wniosek",
+      "note": "marketingRules M1-M26; M27-M28 brak_w_zrodle"
+    },
+    "section5_safety": {
+      "status": "zrodlo",
+      "note": "S1-S9 ryzyka z książki, S10 interpretacja, S11-S17 etyka poza źródłem; brak ostrzeżeń medycznych"
+    },
+    "section6_planTemplates": {
+      "status": "brak_w_zrodle",
+      "value": null
+    },
+    "topics": {
+      "pozycjonowanie_kategoria_nisza": {
+        "status": "zrodlo",
+        "pages": "2-17, 26-43, 56-61, 76-83"
+      },
+      "konkurencja": {
+        "status": "zrodlo",
+        "pages": "38-55, 84-87"
+      },
+      "marka_rozszerzanie": {
+        "status": "zrodlo",
+        "pages": "56-61, 68-83, 104-109"
+      },
+      "promocje": {
+        "status": "zrodlo",
+        "pages": "62-64",
+        "note": "brak zasad ustalania cen"
+      },
+      "budzet": {
+        "status": "zrodlo",
+        "pages": "124-129"
+      },
+      "badania_rynku": {
+        "status": "zrodlo",
+        "pages": "36, 102",
+        "note": "krytyka"
+      },
+      "male_firmy_uslugi_lokalne": {
+        "status": "brak_w_zrodle",
+        "note": "tylko s. 109 i 124-129"
+      },
+      "b2b": {
+        "status": "zrodlo",
+        "pages": "127",
+        "note": "śladowo"
+      },
+      "internet_social_media": {
+        "status": "brak_w_zrodle",
+        "value": null
+      },
+      "komunikacja_z_klientem_realizacja_planu": {
+        "status": "brak_w_zrodle",
+        "value": null
+      },
+      "trening": {
+        "status": "brak_w_zrodle",
+        "value": null
+      },
+      "etyka_prawo_reklamy": {
+        "status": "poza_zrodlem",
+        "note": "w książce tylko ostrzeżenia praktyczne s. 52-54, 88-91, 130-132"
+      }
+    }
+  }
+}

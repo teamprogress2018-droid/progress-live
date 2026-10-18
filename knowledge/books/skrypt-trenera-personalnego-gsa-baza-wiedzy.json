@@ -1,0 +1,3406 @@
+{
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Najpierw wywiad i diagnostyka, potem plan",
+      "rule": "Plan dobiera się na podstawie wywiadu (aktywność, cele, doświadczenie, dyskomfort, ból, kontuzje) i oceny wzorców ruchowych; przed planowaniem analiza potrzeb klienta.",
+      "appliesTo": [
+        "wszyscy",
+        "po urazach i operacjach",
+        "ból lub nawracające kontuzje",
+        "sportowcy",
+        "osoby zaczynające aktywność"
+      ],
+      "conditions": [
+        "test to ostatni element ścieżki: najpierw wywiad, potem kombinacja kilku testów",
+        "trener nigdy nie ma 100% pewności"
+      ],
+      "limitations": [
+        "skrypt mówi o diagnozie przez trenera; Progress Live nie diagnozuje (poza_zrodlem)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny",
+          "pages": "7"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny Postępowanie",
+          "pages": "10"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł II Diagnostyka funkcjonalna",
+          "pages": "23-24"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Cele treningowe",
+          "pages": "97"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Mobilność → stabilność → siła",
+      "rule": "Mobilność (aktywny zakres ruchu) jest podstawą piramidy; bez niej trudno rozwijać inne cechy motoryczne.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "po zwiększeniu zakresu: kilkanaście-kilkadziesiąt powtórzeń utrwalających we wzorcu i wyraźnie mniejsze obciążenie"
+      ],
+      "limitations": [
+        "trener pracuje tylko nad ograniczeniami tkanek miękkich, nie zmianami strukturalnymi"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "42-43"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility Tworzenie planu mobilizacyjnego",
+          "pages": "60"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Kolejność pracy wyrównującej",
+      "rule": "Najpierw dysfunkcja blokująca (ból utrudniający codzienne czynności), potem asymetria prawa-lewa, potem najbardziej wyraźna kompensacja; budowanie od stóp w górę. Przy zespołach skrzyżowania najpierw rozluźniaj skrócone mięśnie, potem wzmacniaj osłabione.",
+      "appliesTo": [
+        "trening medyczny",
+        "korekcja"
+      ],
+      "conditions": [
+        "praca nad wszystkimi elementami zespołu skrzyżowania naraz"
+      ],
+      "limitations": [
+        "dysfunkcja blokująca wiąże się z bólem: w aplikacji uruchamia S17-S19 (poza_zrodlem)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny Jak zaplanować trening medyczny",
+          "pages": "11"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility Wybrane wady postawy",
+          "pages": "46"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Trzy poziomy treningu personalnego",
+      "rule": "Poziom medyczny (pozycje niskie, niska intensywność, zakres ruchu, brak bólu, oddech, słabe ogniwa), funkcjonalny (pozycje wysokie, średnia intensywność, wzorce z progresją, obciążenie), sportowy (wysoka intensywność, dynamika, perturbacje, tranzycje, siła maksymalna).",
+      "appliesTo": [
+        "medyczny: po urazach, z bólem, nowicjusze, trudność ze wskazówkami",
+        "funkcjonalny: większość klientów",
+        "sportowy: osoby dobrze wytrenowane"
+      ],
+      "conditions": [
+        "z poziomu medycznego wyjdź jak najszybciej",
+        "nie szukaj regresji na siłę"
+      ],
+      "limitations": [
+        "brak liczbowych kryteriów przejścia (brak_w_zrodle)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego Elementy treningu personalnego",
+          "pages": "88-90"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Progresja i regresja ruchu",
+      "rule": "Kolejność: poprawny świadomy ruch (wersja ćwiczenia) → tolerancja na powtarzanie (serie, powtórzenia, TUT) → obciążenie zewnętrzne → dynamika. Trudność zmieniają też: łańcuch otwarty/zamknięty, dźwignia krótka/długa, bilateralnie/unilateralnie/kontrlateralnie/ipsilateralnie, rezyliencja (perturbacje), tranzycja.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "samo 'wzorzec + ciężar' skrypt uznaje za niewystarczające"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego Nabywanie umiejętności ruchowych",
+          "pages": "84-86"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Wzorce ruchowe jako szkielet planu",
+      "rule": "Wielostawy grupuje się w: zawias biodrowy, dominacja kolana, wypychanie poziome/pionowe, przyciąganie poziome/pionowe. Izolacje są poza wzorcami, ale uzupełniają trening na masę i wyrównują balans.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "granice wzorców umowne (low bar squat pośredni)"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Trening siłowy a wzorce ruchowe",
+          "pages": "104-106"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Cele siłowe się nie wykluczają",
+      "rule": "Cele: hipertrofia, siła, wytrzymałość siłowa; pośrednio redukcja, prewencja urazów, powrót do sprawności, kondycja. Praca nad hipertrofią może zwiększać siłę.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak różnic parametrów między celami (brak_w_zrodle)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "93"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Cele treningowe",
+          "pages": "97"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Planowanie w cyklach",
+      "rule": "Jednostka → mikrocykl (np. tydzień) → mezocykl (zwykle 12-16 tygodni, jeden cel) → makrocykl (np. rok). Periodyzacja: liniowa, blokowa, falowa.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "modele periodyzacji tylko wymienione",
+        "12-16 tyg. jak na mezocykl to dużo; może chodzić o cały blok celu (wniosek)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Planowanie w treningu siłowym",
+          "pages": "93"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+          "pages": "96"
+        }
+      ],
+      "values": {
+        "mesocycleWeeks": [
+          12,
+          16
+        ]
+      }
+    },
+    {
+      "id": "P9",
+      "title": "Intensywność: RPE, RIR lub % 1RM",
+      "rule": "Intensywność to obciążenie wyrażone % 1RM albo skalą RIR/RPE; tabela łączy te miary (PR-RPE-TABLE).",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "% w tabeli nie zależy od liczby powtórzeń: uproszczenie (wniosek)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+          "pages": "94-95"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Technika przed obciążeniem",
+      "rule": "Nauka: pozycja startowa i pokaz → zakres dopasowany do klienta → wolna ekscentryka → 1, maks. 2 wskazówki naraz. Zasady: neutralne krzywizny kręgosłupa, kolano w osi stopy, rytm ramienno-łopatkowy.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "odstępstwo dopuszczalne, gdy trener zna cel i konsekwencje"
+      ],
+      "limitations": [
+        "Moduł IV pyta, czy koślawienie kolan i 'zła' pozycja pleców to błędy, bez odpowiedzi"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Strategie nauczania wzorców",
+          "pages": "107"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "83-84"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Rozgrzewka RAMP przed każdym treningiem",
+      "rule": "Raise (temperatura, tętno), Activate, Mobilise (aktywny stretching), Potentiate; część ogólna i ukierunkowana.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Rozgrzewka",
+          "pages": "108-110"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "Kontrola postępów i elastyczność",
+      "rule": "Rozwój rzadko jest liniowy; uwzględnij dyspozycję dnia i zmieniaj trening doraźnie. Bez sprawdzania postępów nie da się poprawić programu.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł II Diagnostyka funkcjonalna",
+          "pages": "40"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "88"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility Główne zasady mobilizacji",
+          "pages": "59"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Indywidualizacja norm",
+      "rule": "Normy zakresu ruchu to punkt odniesienia; oceniaj je z historią klienta, nie goń ideału. Nie każdy zrobi pełny przysiad z powodu budowy: inny wariant lub regresja.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "44-45"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Przysiad",
+          "pages": "122"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Trening siłowy to długi, przemyślany proces",
+      "rule": "Nie 'ćwiczenia z listy, 4 serie po 8-12'; plan ma być przemyślany, obliczony i konsekwentny; trener edukuje klienta.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "'4×8-12' to przykład naiwnego podejścia, nie zalecenie"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "153"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E-PATTERNS",
+      "category": "wzorce_ruchowe",
+      "patterns": {
+        "zawias biodrowy": [
+          "martwy ciąg klasyczny",
+          "RDL",
+          "dzień dobry",
+          "martwy ciąg jednonóż",
+          "hip thrust obunóż/jednonóż",
+          "swing, clean, snatch z kettlebell"
+        ],
+        "dominacja kolana": [
+          "przysiad high bar/low bar/front",
+          "zercher",
+          "goblet squat",
+          "przysiad dzielony",
+          "przysiad bułgarski",
+          "wykroki przód/tył/bok/chodzone"
+        ],
+        "wypychanie poziome": [
+          "pompki",
+          "wyciskanie leżąc sztangą/hantlami/kettlebell",
+          "wyciskanie w klęku na bramie"
+        ],
+        "wypychanie pionowe": [
+          "OHP sztangą/hantlami/kettlebell/talerzem"
+        ],
+        "przyciąganie poziome": [
+          "wiosłowanie sztangą/hantlami/kettlebell",
+          "odwrócone wiosłowanie",
+          "wiosłowanie TRX/kółka"
+        ],
+        "przyciąganie pionowe": [
+          "podciąganie na drążku i odmiany",
+          "wyciąg górny"
+        ]
+      },
+      "notes": [
+        "izolacje poza wzorcami, uzupełniają trening na masę",
+        "brak progresji dla przyciągania pionowego i wykroków"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Trening siłowy a wzorce ruchowe",
+          "pages": "105-106"
+        }
+      ]
+    },
+    {
+      "id": "E1",
+      "category": "progresja",
+      "pattern": "przysiad",
+      "progression": [
+        {
+          "order": 1,
+          "name": "TRX squat"
+        },
+        {
+          "order": 2,
+          "name": "box squat"
+        },
+        {
+          "order": 3,
+          "name": "air squat"
+        },
+        {
+          "order": 4,
+          "name": "goblet squat (też na podwyższeniu)"
+        },
+        {
+          "order": 5,
+          "name": "przysiad z jednym kettlebell"
+        },
+        {
+          "order": 6,
+          "name": "przysiad z kettlebell w front rack"
+        },
+        {
+          "order": 7,
+          "name": "zercher squat"
+        },
+        {
+          "order": 8,
+          "name": "front/back squat"
+        },
+        {
+          "order": 9,
+          "name": "OHS"
+        }
+      ],
+      "extraVariants": [
+        "Frankenstein squat",
+        "split squat",
+        "przysiad bułgarski"
+      ],
+      "notes": [
+        "kolejność air squat po box squat to kolejność skryptu (sprzeczność)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Przysiad ze sztangą na karku",
+          "pages": "112-121"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "progresja",
+      "pattern": "martwy ciąg",
+      "progression": [
+        {
+          "order": 1,
+          "name": "martwy ciąg z kettlebell"
+        },
+        {
+          "order": 2,
+          "name": "rack pull"
+        },
+        {
+          "order": 3,
+          "name": "RDL"
+        },
+        {
+          "order": 4,
+          "name": "trap bar"
+        },
+        {
+          "order": 5,
+          "name": "sumo / semi sumo"
+        },
+        {
+          "order": 6,
+          "name": "klasyczny"
+        },
+        {
+          "order": 7,
+          "name": "snatch deadlift"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Martwy ciąg",
+          "pages": "125-132"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "category": "progresja",
+      "pattern": "hip thrust",
+      "progression": [
+        {
+          "order": 1,
+          "name": "glute bridge"
+        },
+        {
+          "order": 2,
+          "name": "glute bridge jednonóż"
+        },
+        {
+          "order": 3,
+          "name": "hip thrust"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Hip Thrust",
+          "pages": "136"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "progresja",
+      "pattern": "wyciskanie poziome",
+      "progression": [
+        {
+          "order": 1,
+          "name": "pompki na podwyższeniu"
+        },
+        {
+          "order": 2,
+          "name": "pompki"
+        },
+        {
+          "order": 3,
+          "name": "pompki z nogami wyżej (inverted, wniosek z nazwy)"
+        },
+        {
+          "order": 4,
+          "name": "pompki z obciążeniem"
+        },
+        {
+          "order": 5,
+          "name": "wyciskanie hantli leżąc"
+        },
+        {
+          "order": 6,
+          "name": "wyciskanie sztangi leżąc"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Wyciskanie sztangi na ławce",
+          "pages": "142"
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "category": "progresja",
+      "pattern": "wyciskanie pionowe",
+      "progression": [
+        {
+          "order": 1,
+          "name": "wyciskanie jednorącz w klęku"
+        },
+        {
+          "order": 2,
+          "name": "wyciskanie jednorącz kettlebell bottom up"
+        },
+        {
+          "order": 3,
+          "name": "wyciskanie hantli stojąc"
+        },
+        {
+          "order": 4,
+          "name": "OHP"
+        },
+        {
+          "order": 5,
+          "name": "push press"
+        }
+      ],
+      "notes": [
+        "przypis do 'Push Press*' utracony"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego OHP",
+          "pages": "146"
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "category": "progresja",
+      "pattern": "wiosłowanie",
+      "progression": [
+        {
+          "order": 1,
+          "name": "wiosłowanie z podparciem klatki"
+        },
+        {
+          "order": 2,
+          "name": "z podparciem kolana"
+        },
+        {
+          "order": 3,
+          "name": "tripod stance row"
+        },
+        {
+          "order": 4,
+          "name": "hantlami w opadzie"
+        },
+        {
+          "order": 5,
+          "name": "sztangą w opadzie"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Wiosłowanie sztangą w opadzie",
+          "pages": "150"
+        }
+      ]
+    },
+    {
+      "id": "E-RULE-STAGE",
+      "category": "reguła",
+      "if": "dobór wariantu ćwiczenia",
+      "then": "zacznij od najniższego wariantu wykonywanego poprawnie; wyżej po opanowaniu; przy błędach regresja",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "85"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "122, 134, 148"
+        }
+      ]
+    },
+    {
+      "id": "E-TECH",
+      "category": "technika",
+      "items": [
+        {
+          "exercise": "back squat",
+          "keyPoints": "stopy minimalnie szerzej niż biodra, 3 punkty podparcia, biodra poniżej kolan, kolana w linii stóp (mogą wyjść za palce)",
+          "errors": [
+            {
+              "error": "kolana do środka",
+              "fix": "wskazówka 'rozpychaj kolana', opór dłonią lub gumą"
+            },
+            {
+              "error": "nadmierne pochylenie",
+              "fix": "mobilizacja stawu skokowego, podkładki pod pięty, inny wariant lub regresja"
+            },
+            {
+              "error": "rozluźnienie tułowia",
+              "fix": "oddech przeponowy, wzmacnianie tułowia"
+            }
+          ],
+          "pages": "111-123"
+        },
+        {
+          "exercise": "martwy ciąg",
+          "keyPoints": "stopy na szerokość bioder, sztanga nad śródstopiem, chwyt minimalnie szerzej niż barki, naturalna krzywizna, sztanga przy ciele",
+          "errors": [
+            {
+              "error": "zaokrąglone plecy (najczęstszy)",
+              "fix": "wskazówka, kij PCV, 'ściskaj coś pod pachą', mniejszy ciężar lub regresja"
+            },
+            {
+              "error": "kolana do środka",
+              "fix": "jak w przysiadzie"
+            }
+          ],
+          "pages": "124-134"
+        },
+        {
+          "exercise": "hip thrust",
+          "keyPoints": "ławka na wysokości połowy łopatek, kąt prosty w kolanie w górze, miednica podwinięta, brzuch napięty",
+          "errors": [
+            {
+              "error": "zła pozycja miednicy, luźny brzuch",
+              "fix": "mniejszy ciężar, nauka bez ciężaru"
+            },
+            {
+              "error": "złe ustawienie stóp",
+              "fix": "środek stopy na wysokości kolana drugiej nogi; kąt prosty w górze"
+            },
+            {
+              "error": "kolana za bardzo w przód",
+              "fix": "'biodra w stronę twarzy', blokada kolana dłonią"
+            }
+          ],
+          "pages": "135-138"
+        },
+        {
+          "exercise": "RDL",
+          "keyPoints": "kolana odblokowane, stały kąt w kolanie, sztanga do kolan lub lekko niżej",
+          "errors": [
+            {
+              "error": "zaokrąglone plecy",
+              "fix": "kij PCV, mniejszy ciężar"
+            },
+            {
+              "error": "zginanie kolan",
+              "fix": "'dotknij pośladkami ściany za sobą'"
+            }
+          ],
+          "pages": "139-141"
+        },
+        {
+          "exercise": "wyciskanie leżąc",
+          "keyPoints": "3 punkty podporu, łopatki w retrakcji i depresji, chwyt ok. 1,5 szerokości barków, nadgarstki proste, łokcie pod sztangą",
+          "errors": [
+            {
+              "error": "łopatki nieściągnięte",
+              "fix": "'złam sztangę', ponowne ułożenie"
+            },
+            {
+              "error": "łokcie za sztangą",
+              "fix": "spięcie najszerszego, mniejszy ciężar"
+            },
+            {
+              "error": "kąt łokieć-tułów < 30°",
+              "fix": "'łokcie szerzej', mniejszy ciężar"
+            },
+            {
+              "error": "wygięte nadgarstki",
+              "fix": "ponowny chwyt"
+            }
+          ],
+          "pages": "142-145"
+        },
+        {
+          "exercise": "OHP",
+          "keyPoints": "brzuch i pośladki spięte, łokcie pod sztangą, sztanga pionowo blisko twarzy",
+          "errors": [
+            {
+              "error": "brak napięcia brzucha",
+              "fix": "mniejszy ciężar, regresja"
+            },
+            {
+              "error": "sztanga w przód",
+              "fix": "ustawienie łokci, 'celuj w nos'"
+            },
+            {
+              "error": "krzywe nadgarstki",
+              "fix": "poprawa pozycji startowej"
+            }
+          ],
+          "pages": "146-149"
+        },
+        {
+          "exercise": "wiosłowanie w opadzie",
+          "keyPoints": "im bardziej poziomo, tym więcej pracy pleców; ruch zaczyna łopatka; podchwyt: najszersze, nachwyt: wyżej na łopatkach",
+          "errors": [
+            {
+              "error": "brak pracy łopatki",
+              "fix": "nauka bez ciężaru, mniejszy ciężar"
+            },
+            {
+              "error": "prostowanie się",
+              "fix": "wskazówka, mniejszy ciężar"
+            }
+          ],
+          "pages": "150-152"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Trening siłowy - ćwiczenia",
+          "pages": "111-152"
+        }
+      ]
+    },
+    {
+      "id": "E-UNIT",
+      "category": "kolejność",
+      "rule": "budowa jednostki: przygotowanie ruchowe (RAMP lub globalny ruch środowiskowy) → część główna (blok mocy: skoki/rzuty lub złożone wzorce, maks. intensywność dla osoby) → część funkcjonalna (wzorce i progresje) → akcesoryjna/medyczna (słabe ogniwa, izolacje) → wydolność → cooldown",
+      "musclePriorityOrder": null,
+      "musclePriorityStatus": "brak_w_zrodle",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego Budowa jednostki treningu funkcjonalnego",
+          "pages": "91"
+        }
+      ]
+    },
+    {
+      "id": "E-WEAKLINKS",
+      "category": "słabe_ogniwa",
+      "items": [
+        {
+          "region": "kolano",
+          "focus": "pośladkowy średni (koślawienie), kulszowo-goleniowe, pośladki, przywodziciele",
+          "pages": "14-15"
+        },
+        {
+          "region": "stopa",
+          "focus": "brzuchaty, płaszczkowaty, piszczelowy przedni; propriocepcja; praca jednonóż",
+          "pages": "13"
+        },
+        {
+          "region": "biodro",
+          "focus": "kulszowo-goleniowe, pośladki, przywodziciele, brzuch; ergonomia siedzenia",
+          "pages": "16-17"
+        },
+        {
+          "region": "odcinek lędźwiowy",
+          "focus": "pośladkowy wielki i średni, kulszowo-goleniowe, core, nauka hip hinge, oddech",
+          "pages": "18-19"
+        },
+        {
+          "region": "bark",
+          "focus": "mięśnie łopatki, stożek rotatorów, zębaty przedni, ruchy 'pull'",
+          "pages": "20"
+        },
+        {
+          "region": "szyja",
+          "focus": "oddech, izometria szyi, ustawienie głowy",
+          "pages": "21-22"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny Postępowanie w poszczególnych rejonach ciała",
+          "pages": "12-22"
+        }
+      ]
+    },
+    {
+      "id": "E-LEVELS",
+      "category": "poziom",
+      "levels": {
+        "medyczny": {
+          "exercises": "pozycje niskie, mobilność, oddech, aktywacje, najniższe etapy",
+          "intensity": "niska"
+        },
+        "funkcjonalny": {
+          "exercises": "pozycje wysokie, wzorce z progresją, obciążenie zewnętrzne",
+          "intensity": "średnia"
+        },
+        "sportowy": {
+          "exercises": "skoki, rzuty, perturbacje, tranzycje, siła maksymalna",
+          "intensity": "wysoka"
+        }
+      },
+      "notes": [
+        "Valsalva nie dla początkujących (s. 108)"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "88-90"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "108"
+        }
+      ]
+    },
+    {
+      "id": "E-EQUIPMENT",
+      "category": "sprzęt",
+      "equipment": {
+        "brak": [
+          "air squat",
+          "box squat (skrzynia/krzesło: wniosek)",
+          "pompki w progresji",
+          "glute bridge obunóż/jednonóż",
+          "wykroki",
+          "split squat",
+          "przysiad bułgarski",
+          "mobilizacje i rozgrzewka"
+        ],
+        "kettlebell/hantle": [
+          "goblet",
+          "przysiad KB front rack",
+          "martwy ciąg z KB",
+          "swing",
+          "wyciskanie jednorącz w klęku",
+          "bottom up press",
+          "hantle stojąc/leżąc",
+          "wiosłowanie z podparciem kolana",
+          "tripod",
+          "hantlami w opadzie"
+        ],
+        "TRX/kółka/gumy/drążek": [
+          "TRX squat",
+          "wiosłowanie TRX/kółka",
+          "podciąganie",
+          "minibandy, power bandy"
+        ],
+        "siłownia": [
+          "sztanga",
+          "trap bar",
+          "stojaki (rack pull)",
+          "wyciąg górny",
+          "brama",
+          "ławka skośna (chest supported row: wniosek)"
+        ],
+        "mobilizacja": [
+          "rollery",
+          "duo-ball",
+          "piłki (lacrosse)",
+          "power bandy",
+          "Voodoo Floss",
+          "kij PCV"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "105-150"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility Sprzęt",
+          "pages": "48-58"
+        }
+      ]
+    },
+    {
+      "id": "E-SUBST",
+      "category": "zamienniki",
+      "items": [
+        {
+          "problem": "budowa nie pozwala na pełny przysiad / pochylenie",
+          "substitute": "podkładki pod pięty, goblet na podwyższeniu, inny wariant lub regresja",
+          "status": "zrodlo",
+          "pages": "116, 122"
+        },
+        {
+          "problem": "słaba ruchomość stawu skokowego",
+          "substitute": "mobilizacja stawu skokowego + podkładki pod pięty",
+          "status": "zrodlo",
+          "pages": "61-62, 122"
+        },
+        {
+          "problem": "zaokrąglone plecy w martwym ciągu",
+          "substitute": "mniejszy ciężar, rack pull, martwy ciąg z kettlebell",
+          "status": "wniosek",
+          "pages": "125, 134"
+        },
+        {
+          "problem": "nie utrzymuje miednicy w hip thruście",
+          "substitute": "glute bridge, nauka bez ciężaru",
+          "status": "zrodlo",
+          "pages": "136-137"
+        },
+        {
+          "problem": "za słaby na pompki",
+          "substitute": "pompki na podwyższeniu",
+          "status": "zrodlo",
+          "pages": "142"
+        },
+        {
+          "problem": "brak stabilizacji w OHP",
+          "substitute": "wyciskanie jednorącz w klęku, bottom up press, hantle stojąc",
+          "status": "zrodlo",
+          "pages": "146-148"
+        },
+        {
+          "problem": "odciążenie odcinka lędźwiowego w wiosłowaniu",
+          "substitute": "wiosłowanie z podparciem klatki lub kolana",
+          "status": "wniosek",
+          "pages": "150"
+        },
+        {
+          "problem": "brak kontroli wzorca na stojąco",
+          "substitute": "poziom medyczny: pozycje niskie, potem wysokie",
+          "status": "zrodlo",
+          "pages": "88-89"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "116-150"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "88-89"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "category": "reguła",
+      "if": "ograniczony sprzęt",
+      "then": "warianty bez sztangi z progresji E1-E6 (TRX/box/air squat, goblet, martwy ciąg z KB, glute bridge, pompki, wyciskania KB/hantlami, wiosłowania z podparciem/tripod/hantlami)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "112-150"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "category": "reguła",
+      "if": "brak jakiegokolwiek sprzętu",
+      "then": "progresuj przez dźwignię, pracę jednostronną, łańcuch kinematyczny, dynamikę i perturbacje zamiast ciężaru",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "85-86"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "category": "reguła",
+      "if": "cel: hipertrofia",
+      "then": "wielostawy z wzorców + izolacje jako uzupełnienie; liczby: brak w źródle",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "106"
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "category": "reguła",
+      "if": "technika się sypie (kolana do środka, zaokrąglone plecy, pochylenie, luźny brzuch, łopatki bez pracy)",
+      "then": "najpierw wskazówka (1-2 naraz), potem mniejszy ciężar, potem regresja",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "107, 122-152"
+        }
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PR-RPE-TABLE",
+      "category": "lookup",
+      "rows": [
+        {
+          "rpe": 10,
+          "label": "wysiłek maksymalny",
+          "rir": 0,
+          "percent1RM": 100
+        },
+        {
+          "rpe": 9,
+          "label": "bardzo duży",
+          "rir": 1,
+          "percent1RM": 90
+        },
+        {
+          "rpe": 8,
+          "label": "duży",
+          "rir": 2,
+          "percent1RM": 80
+        },
+        {
+          "rpe": 7,
+          "label": "spory",
+          "rir": 3,
+          "percent1RM": 70
+        },
+        {
+          "rpe": 6,
+          "label": "umiarkowany",
+          "rir": 4,
+          "percent1RM": 60
+        },
+        {
+          "rpe": 5,
+          "label": "umiarkowany",
+          "rir": 5,
+          "percent1RM": 50
+        },
+        {
+          "rpe": 4,
+          "label": "lekki/umiarkowany",
+          "rir": null,
+          "percent1RM": null
+        },
+        {
+          "rpe": 3,
+          "label": "lekki",
+          "rir": null,
+          "percent1RM": null
+        },
+        {
+          "rpe": 2,
+          "label": "bardzo lekki",
+          "rir": null,
+          "percent1RM": null
+        },
+        {
+          "rpe": 1,
+          "label": "brak wysiłku",
+          "rir": null,
+          "percent1RM": null
+        }
+      ],
+      "note": "% nie zależy od liczby powtórzeń; używaj RIR/RPE, nie kolumny % do wyliczania ciężaru (wniosek)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+          "pages": "95"
+        }
+      ]
+    },
+    {
+      "id": "PR-DEFINITIONS",
+      "category": "definitions",
+      "definitions": {
+        "objętość": "liczba serii roboczych na partię w jednostce i mikrocyklu",
+        "intensywność": "obciążenie: % 1RM, RIR lub RPE",
+        "przerwy": "zależne od trudności ćwiczenia i obciążenia",
+        "regeneracja": "czas na odbudowę i nadbudowę mikrouszkodzeń",
+        "tempo": "czas każdej fazy ruchu, liczbowo",
+        "periodyzacja": [
+          "liniowa",
+          "blokowa",
+          "falowa"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+          "pages": "94-96"
+        }
+      ]
+    },
+    {
+      "id": "PAR-siła",
+      "category": "parameters",
+      "goal": "siła",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": "wysoka na poziomie sportowym",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "90"
+          }
+        ]
+      },
+      "rest": {
+        "value": "zależne od trudności ćwiczenia i obciążenia (bez liczb)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+            "pages": "96"
+          }
+        ]
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "progresja wariantu (E1-E6), potem obciążenie i dynamika",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "changeCriteria": {
+        "value": "brak postępu w ponownych testach → zmiana programu; 'zmieniaj plan'",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł II Diagnostyka funkcjonalna",
+            "pages": "40"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "59"
+          }
+        ]
+      },
+      "extra": {
+        "value": "Valsalva przy dużych ciężarach i rekordach; nie dla początkujących, osób z chorobami krążenia i problemami dna miednicy",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-108"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-hipertrofia",
+      "category": "parameters",
+      "goal": "hipertrofia",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": "zależne od trudności ćwiczenia i obciążenia (bez liczb)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+            "pages": "96"
+          }
+        ]
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "jak siła + izolacje jako uzupełnienie",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "106"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "changeCriteria": {
+        "value": "brak postępu w ponownych testach → zmiana programu; 'zmieniaj plan'",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł II Diagnostyka funkcjonalna",
+            "pages": "40"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "59"
+          }
+        ]
+      },
+      "extra": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      }
+    },
+    {
+      "id": "PAR-redukcja",
+      "category": "parameters",
+      "goal": "redukcja",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": "zależne od trudności ćwiczenia i obciążenia (bez liczb)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+            "pages": "96"
+          }
+        ]
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "changeCriteria": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "extra": {
+        "value": "redukcja tylko jako pośredni cel treningu siłowego",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Cele treningowe",
+            "pages": "97"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-zdrowie",
+      "category": "parameters",
+      "goal": "zdrowie",
+      "frequency": {
+        "value": "mobilność codziennie, min. 10-15 min; 'nie ma dni wolnych' (mobilność)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "59-60"
+          }
+        ]
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": "aktywacje/mobilizacje min. 5-10 powt. (na stronę) w rozgrzewce; po poprawie zakresu kilkanaście-kilkadziesiąt powtórzeń utrwalających",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "109"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "60"
+          }
+        ]
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": "niska na poziomie medycznym",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "88"
+          }
+        ]
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "wyjście z poziomu medycznego jak najszybciej; mobilność → stabilność → siła",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "89"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "42"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "changeCriteria": {
+        "value": "brak postępu w ponownych testach → zmiana programu; 'zmieniaj plan'",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł II Diagnostyka funkcjonalna",
+            "pages": "40"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "59"
+          }
+        ]
+      },
+      "extra": {
+        "value": "trening medyczny dla osób po wstępnej rehabilitacji; kolejność pracy wyrównującej P3",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł I Trening medyczny",
+            "pages": "7, 11"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PAR-początkujący",
+      "category": "parameters",
+      "goal": "początkujący",
+      "frequency": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "intensity": {
+        "value": "niska → średnia (poziom medyczny → funkcjonalny)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "88-90"
+          }
+        ]
+      },
+      "rest": {
+        "value": "zależne od trudności ćwiczenia i obciążenia (bez liczb)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Parametry treningowe",
+            "pages": "96"
+          }
+        ]
+      },
+      "tempo": {
+        "value": "wolna ekscentryka przy nauce ruchu (bez liczb)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107"
+          }
+        ]
+      },
+      "volume": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "od najniższego poprawnego wariantu; po zwiększeniu zakresu mniejszy ciężar",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "60"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "changeCriteria": {
+        "value": "brak postępu w ponownych testach → zmiana programu; 'zmieniaj plan'",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł II Diagnostyka funkcjonalna",
+            "pages": "40"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł III Mobility",
+            "pages": "59"
+          }
+        ]
+      },
+      "extra": {
+        "value": "bez Valsalvy",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "108"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PR-WARMUP",
+      "category": "warmup",
+      "model": "RAMP",
+      "phases": [
+        "Raise: temperatura, tętno",
+        "Activate: kluczowe mięśnie",
+        "Mobilise: aktywny stretching",
+        "Potentiate: narastająca intensywność"
+      ],
+      "general": {
+        "durationMin": [
+          5,
+          10
+        ],
+        "intensity": "niska → średnia",
+        "examples": [
+          "bieg",
+          "airbike",
+          "wioślarz",
+          "masa ciała i pusta sztanga z rosnącym tempem"
+        ]
+      },
+      "activationRepsMin": [
+        5,
+        10
+      ],
+      "activationNote": "na stronę przy ćwiczeniach asymetrycznych",
+      "exampleExercises": [
+        "pies z głową w dół",
+        "WGS",
+        "rozciąganie przywodzicieli",
+        "rozciąganie pośladków",
+        "aktywne rozciąganie kulszowo-goleniowych",
+        "unoszenie bioder",
+        "Y/T/odwrócone V w pozycji martwego ciągu"
+      ],
+      "checklist": [
+        "podniesiona temperatura",
+        "przygotowane zakresy i intensywność",
+        "element nauki",
+        "wyłapanie błędów",
+        "skalowanie ćwiczeń"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Rozgrzewka",
+          "pages": "108-110"
+        }
+      ]
+    },
+    {
+      "id": "PR-MOBILITY",
+      "category": "mobility",
+      "techniques": [
+        {
+          "name": "rolowanie pełne",
+          "durationSec": 120,
+          "durationNote": "minimum",
+          "when": "nie przed treningiem z dużym obciążeniem; osobna jednostka lub po treningu"
+        },
+        {
+          "name": "przerolowanie",
+          "durationSec": 30,
+          "durationNote": "około",
+          "when": "przed treningiem"
+        },
+        {
+          "name": "automasaż 'wbij i rozruszaj'",
+          "durationSec": null,
+          "when": "osobna jednostka (wniosek)"
+        },
+        {
+          "name": "'wciśnij i przekręć'",
+          "durationSec": null,
+          "when": null
+        },
+        {
+          "name": "rozciąganie dynamiczne",
+          "holdSec": 5,
+          "when": "przed treningiem",
+          "note": "bez pulsowania"
+        },
+        {
+          "name": "PIR",
+          "isometricSec": 8,
+          "when": "nie bezpośrednio przed treningiem",
+          "note": "wykonuje trener"
+        },
+        {
+          "name": "rozciąganie statyczne",
+          "durationSec": null,
+          "when": "osobna jednostka"
+        },
+        {
+          "name": "Voodoo Floss",
+          "stretchPercent": [
+            50,
+            75
+          ],
+          "overlapCm": 1,
+          "durationMin": [
+            2,
+            3
+          ],
+          "direction": "dosercowo, nad i pod stawem"
+        }
+      ],
+      "order": [
+        "torebka stawowa",
+        "powierzchnie ślizgowe",
+        "rozciąganie mięśni",
+        "aktywacja"
+      ],
+      "beforeTraining": [
+        "technika ruchu",
+        "torebka stawowa",
+        "odciąganie taśmą",
+        "przerolowanie",
+        "stretching dynamiczny",
+        "aktywacja"
+      ],
+      "separateSession": [
+        "pełne rolowanie i techniki ślizgowe",
+        "PIR",
+        "rozciąganie statyczne"
+      ],
+      "dailyPlan": {
+        "minutesPerDay": [
+          10,
+          15
+        ],
+        "holdMinMin": 2,
+        "techniques": [
+          3,
+          4
+        ],
+        "focus": "obszary bólowe: tkanki nad i pod"
+      },
+      "principles": [
+        "testuj",
+        "słuchaj siebie",
+        "ustal realny cel",
+        "mobilizuj tylko w poprawnej pozycji",
+        "zmieniaj plan",
+        "nie ma dni wolnych"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "50-60"
+        }
+      ]
+    },
+    {
+      "id": "PR-NORMS",
+      "category": "lookup",
+      "note": "tylko dla trenera na spotkaniu; aplikacja nie wykonuje testów i nie diagnozuje (poza_zrodlem)",
+      "tests": [
+        {
+          "test": "rozcięgno podeszwowe (palce do ściany)",
+          "norm": "90° w stawie śródstopno-palcowym",
+          "pages": "28"
+        },
+        {
+          "test": "ankle wall",
+          "norm": "stopa na odległość pięści z kciukiem; kolano dotyka ściany bez odrywania pięty i bez pronacji",
+          "pages": "29-30"
+        },
+        {
+          "test": "ASLR w 3 pozycjach",
+          "norm": "90° (prosto, 45° odwiedzenia, pełne odwiedzenie)",
+          "pages": "31"
+        },
+        {
+          "test": "zmodyfikowany test Thomasa",
+          "norm": "linia prosta głowa kości udowej-rzepka; kostka pod rzepką",
+          "pages": "32-33"
+        },
+        {
+          "test": "test Patricka",
+          "norm": "zgięta noga równolegle do podłoża",
+          "pages": "34"
+        },
+        {
+          "test": "test kolców",
+          "norm": "PSIS przesuwa się 0,5-2 cm doogonowo",
+          "pages": "36"
+        },
+        {
+          "test": "rotacja odcinka piersiowego",
+          "norm": "60-70° w każdą stronę",
+          "pages": "37"
+        },
+        {
+          "test": "rotacja zewnętrzna barku",
+          "norm": "90° rekreacyjnie; 120-170° zawodowcy",
+          "pages": "38"
+        },
+        {
+          "test": "rotacja wewnętrzna barku",
+          "norm": "60-70°; 90° ciężarowcy (s. 44: 80°)",
+          "pages": "39, 44"
+        },
+        {
+          "test": "głęboki przysiad z tyczką",
+          "norm": "kolana w linii stóp, bez pochylenia, bez buttwinku, bez przesunięć bocznych",
+          "pages": "26-28"
+        }
+      ],
+      "romNorms": {
+        "bark (s. 44)": {
+          "zgięcie": 170,
+          "wyprost": 50,
+          "przywiedzenie": 0,
+          "odwodzenie": 170,
+          "rotacjaZewn": 90,
+          "rotacjaWewn": 80
+        },
+        "biodro (s. 44)": {
+          "zgięcie": 125,
+          "wyprost": 15,
+          "przywiedzenie": 25,
+          "odwodzenie": 45,
+          "rotacjaZewn": 45,
+          "rotacjaWewn": 45
+        },
+        "biodro (s. 98)": {
+          "zgięcieWyprost": "do 135 (165 w lekkim odwiedzeniu)",
+          "odwodzeniePrzywodzenie": 40,
+          "rotacjaZewn": 15,
+          "rotacjaWewn": 35
+        },
+        "kolano (s. 44)": {
+          "wyprost": 0,
+          "zgięcie": 130
+        },
+        "skokowy (s. 44)": {
+          "zgięcie": "45-50",
+          "wyprost": 20,
+          "nawracanie": 20,
+          "odwracanie": 40
+        }
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł II Diagnostyka funkcjonalna",
+          "pages": "25-40"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "44"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Anatomia stawów",
+          "pages": "98"
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "category": "reguła",
+      "if": "początkujący, 3 treningi w tygodniu",
+      "then": "jednostka wg E-UNIT, ćwiczenia od najniższego poprawnego etapu, wolna ekscentryka, bez Valsalvy; serie/powtórzenia/przerwy z innego źródła",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "91"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "107-108, 112-150"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "category": "reguła",
+      "if": "brak doświadczenia ruchowego, dyskomfort, trudność ze wskazówkami",
+      "then": "poziom medyczny (pozycje niskie, niska intensywność, oddech, mobilność, aktywacje), jak najszybciej przejście do pozycji wysokich; ból/uraz: najpierw S17-S19",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "88-89"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "reguła",
+      "if": "klient opanował podstawowe wzorce",
+      "then": "dodaj obciążenie, dynamikę, perturbacje, tranzycje (poziom funkcjonalny → sportowy)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "85-90"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "category": "reguła",
+      "if": "potrzebna częstotliwość treningu siłowego",
+      "then": null,
+      "status": "brak_w_zrodle",
+      "note": "użyj innego źródła"
+    },
+    {
+      "id": "R5",
+      "category": "reguła",
+      "if": "ograniczenia mobilności",
+      "then": "codzienny plan mobilizacyjny 10-15 min, 3-4 techniki, min. 2 min w pozycji",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "60"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "category": "reguła",
+      "if": "cel: siła",
+      "then": "opanowane wzorce; siła maksymalna to poziom sportowy; Valsalva tylko przy dużych ciężarach u zaawansowanych bez przeciwwskazań; liczby brak",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "90"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "107-108"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "category": "reguła",
+      "if": "cel: redukcja",
+      "then": null,
+      "status": "brak_w_zrodle",
+      "note": "skrypt podaje tylko, że trening siłowy pośrednio służy redukcji (s. 97)",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "97"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "category": "reguła",
+      "if": "cel: zdrowie lub powrót po urazie (po wstępnej rehabilitacji)",
+      "then": "trening medyczny: kolejność P3, mobilność → stabilność → siła, słabe ogniwa wg regionu; zgoda lekarza/fizjoterapeuty po urazie lub operacji (poza_zrodlem)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny",
+          "pages": "7, 11-22"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "category": "reguła",
+      "if": "ustalanie długości bloku",
+      "then": "mezocykl 12-16 tygodni nastawiony na jeden cel",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "93"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "category": "reguła",
+      "if": "zakres ruchu klienta się poprawił",
+      "then": "zmniejsz ciężar we wzorcu i dodaj powtórzenia utrwalające nowy zakres",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "60"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "category": "reguła",
+      "if": "asymetria prawa-lewa",
+      "then": "priorytet w początkowej fazie; więcej pracy jednostronnej (wniosek)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny",
+          "pages": "11"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "category": "reguła",
+      "if": "ponowne testy bez postępu",
+      "then": "zmień program",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł II Diagnostyka funkcjonalna",
+          "pages": "40"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "59"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "category": "reguła",
+      "if": "słabsza dyspozycja dnia",
+      "then": "zmień jednostkę doraźnie (niższa intensywność, łatwiejsze warianty)",
+      "status": "wniosek",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "88"
+        }
+      ]
+    },
+    {
+      "id": "R18",
+      "category": "reguła",
+      "if": "ból (nie zmęczenie), uraz lub objawy z sekcji 5.2",
+      "then": "reguły bezpieczeństwa S14-S19",
+      "status": "poza_zrodlem"
+    },
+    {
+      "id": "R19",
+      "category": "reguła",
+      "if": "planowane pełne rolowanie",
+      "then": "nie przed treningiem z dużym obciążeniem; przed treningiem tylko ok. 30 s przerolowania",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "54"
+        }
+      ]
+    },
+    {
+      "id": "R20",
+      "category": "reguła",
+      "if": "klient nie realizuje planu",
+      "then": "sprawdź realność celu, dostosuj jednostkę do dyspozycji dnia, buduj samodzielność i przekonanie o gotowości, edukuj",
+      "status": "wniosek",
+      "note": "skrypt nie opisuje wprost opuszczania treningów",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "59"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "88-89"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "153"
+        }
+      ]
+    },
+    {
+      "id": "R21",
+      "category": "reguła",
+      "if": "klient uważa, że wystarczy '4 serie po 8-12'",
+      "then": "wyjaśnij, że plan wymaga kontroli wielu parametrów i konsekwencji w czasie",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "153"
+        }
+      ]
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "manewr Valsalvy",
+      "action": "nie dla początkujących, osób z chorobami układu krążenia i zaburzeniami dna miednicy",
+      "status": "zrodlo",
+      "priority": "contraindication",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "107-108"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "trigger": "hip thrust z dużym ciężarem",
+      "action": "ćwiczenie podwyższonego ryzyka; zła miednica i luźny brzuch obciążają odcinek lędźwiowy; zawsze pilnuj techniki",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego Hip Thrust",
+          "pages": "137"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "OHP niedokładnie lub za ciężko",
+      "action": "ryzyko przeciążenia odcinka lędźwiowego",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego OHP",
+          "pages": "146, 148"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "wyciskanie leżąc: błędy łopatek, łokci, nadgarstków",
+      "action": "nieściągnięte łopatki i łokcie za sztangą destabilizują bark; kąt < 30° przeciąża nadgarstki i łokcie",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "144-145"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "martwy ciąg: zaokrąglone plecy",
+      "action": "najczęstszy błąd, często od zbyt dużego ciężaru; zmniejsz ciężar lub regresja",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "134"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "pełne rolowanie przed treningiem",
+      "action": "zwiększa ryzyko urazu przy dużym obciążeniu; przed treningiem tylko przerolowanie",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "54"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "PIR",
+      "action": "nie bezpośrednio przed treningiem",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "56"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "Voodoo Floss: silne drętwienie, mrowienie, uczucie duszności",
+      "action": "natychmiast zdjąć taśmę",
+      "status": "zrodlo",
+      "priority": "stop",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "58"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "trigger": "rozciąganie dynamiczne",
+      "action": "bez pulsowania w końcu zakresu",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "56"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "nowy zakres ruchu",
+      "action": "wyraźnie mniejsze obciążenie",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "60"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "trigger": "zakres pracy trenera",
+      "action": "tylko ograniczenia tkanek miękkich, nie zmiany strukturalne; trening medyczny po wstępnej rehabilitacji; praca zgodnie z kompetencjami. Aplikacja: podejrzenie problemu strukturalnego, świeży uraz, rehabilitacja w toku → fizjoterapeuta/lekarz (poza_zrodlem)",
+      "status": "zrodlo",
+      "priority": "referral",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny",
+          "pages": "7"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "43"
+        },
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "89"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "trigger": "objawy ze skryptu: ból biodra w pachwinie/kolanie, dolegliwości w wysiłku narastające aż do spoczynku; ból i zawroty głowy w okolicy szyi",
+      "action": "w aplikacji: powód konsultacji (S14, S17-S18, poza_zrodlem)",
+      "status": "zrodlo",
+      "priority": "referral",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł I Trening medyczny",
+          "pages": "16, 21"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "trigger": "ocena klienta",
+      "action": "testy nie dają pewności; łącz wywiad i kilka testów",
+      "status": "zrodlo",
+      "priority": "policy",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł II Diagnostyka funkcjonalna",
+          "pages": "24"
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "trigger": "ból w klatce piersiowej, duszność nieadekwatna do wysiłku, kołatanie serca, omdlenie lub zawroty głowy podczas treningu",
+      "action": "przerwij trening; kontakt z lekarzem (pilnie przy objawach nagłych lub silnych)",
+      "status": "poza_zrodlem",
+      "priority": "stop"
+    },
+    {
+      "id": "S15",
+      "trigger": "choroby serca, nadciśnienie, cukrzyca, ciąża, inne choroby przewlekłe bez zgody lekarza",
+      "action": "wymagaj zgody lekarza na trening (w tym na wysiłek ze wstrzymaniem oddechu)",
+      "status": "poza_zrodlem",
+      "priority": "referral"
+    },
+    {
+      "id": "S16",
+      "trigger": "ciemny mocz z silnym bólem i obrzękiem mięśni po bardzo ciężkim treningu",
+      "action": "pilny kontakt z lekarzem",
+      "status": "poza_zrodlem",
+      "priority": "stop"
+    },
+    {
+      "id": "S17",
+      "trigger": "ostry ból stawu lub mięśnia podczas ćwiczenia (inny niż zmęczenie)",
+      "action": "przerwij ćwiczenie; konsultacja z fizjoterapeutą; nie programuj obciążenia okolicy",
+      "status": "poza_zrodlem",
+      "priority": "referral"
+    },
+    {
+      "id": "S18",
+      "trigger": "ból utrzymujący się lub narastający, ból w spoczynku, obrzęk, ograniczenie ruchu, drętwienie lub mrowienie",
+      "action": "konsultacja z fizjoterapeutą; nie programuj obciążenia okolicy",
+      "status": "poza_zrodlem",
+      "priority": "referral"
+    },
+    {
+      "id": "S19",
+      "trigger": "świeży uraz, operacja, rehabilitacja w toku",
+      "action": "konsultacja z fizjoterapeutą/lekarzem przed planem",
+      "status": "poza_zrodlem",
+      "priority": "referral"
+    },
+    {
+      "id": "S-COMM",
+      "trigger": "każdy komunikat bezpieczeństwa",
+      "action": "nie nazywaj przyczyny, nie sugeruj rozpoznania (także ze skryptu, np. 'zablokowany staw', 'przykurcz'), nie zalecaj leków, suplementów ani technik manualnych",
+      "status": "poza_zrodlem",
+      "priority": "policy"
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "FBW 2 dni",
+      "goal": [
+        "początkujący",
+        "ogólna sprawność"
+      ],
+      "level": "początkujący",
+      "status": "wniosek",
+      "note": "skrypt nie zawiera gotowych planów; szablon złożony ze struktury jednostki, wzorców i progresji",
+      "days": {
+        "count": 2,
+        "layout": [
+          "A",
+          "B"
+        ],
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "exercises": {
+        "A": [
+          "rozgrzewka RAMP",
+          "goblet squat",
+          "martwy ciąg z kettlebell",
+          "pompki w progresji",
+          "wiosłowanie z podparciem klatki",
+          "akcesoria: pośladek średni, core"
+        ],
+        "B": [
+          "rozgrzewka RAMP",
+          "glute bridge → jednonóż",
+          "split squat",
+          "wyciskanie jednorącz w klęku",
+          "wyciąg górny",
+          "akcesoria: mięśnie łopatki, stożek rotatorów"
+        ]
+      },
+      "exercisesStatus": "wniosek (ćwiczenia ze źródła, rozkład na dni: wniosek)",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "kolejny etap ćwiczenia po opanowaniu techniki → tolerancja (serie, powtórzenia) → obciążenie → dynamika",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "common": {
+        "warmup": "RAMP: 5-10 min ogólna + aktywacje min. 5-10 powt.",
+        "unitStructure": "E-UNIT",
+        "stageRule": "od najniższego poprawnego wariantu",
+        "noValsalvaBeginners": true,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85, 91"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-110"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T2",
+      "name": "FBW 3 dni",
+      "goal": [
+        "początkujący",
+        "poziom medyczny → funkcjonalny"
+      ],
+      "level": "początkujący",
+      "status": "wniosek",
+      "note": "skrypt nie zawiera gotowych planów; szablon złożony ze struktury jednostki, wzorców i progresji",
+      "days": {
+        "count": 3,
+        "layout": [
+          "A",
+          "B",
+          "C"
+        ],
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "exercises": {
+        "A": [
+          "box/air squat → goblet",
+          "pompki",
+          "wiosłowanie z podparciem kolana"
+        ],
+        "B": [
+          "martwy ciąg z kettlebell → RDL",
+          "bottom up press",
+          "przyciąganie pionowe (wyciąg/podciąganie)"
+        ],
+        "C": [
+          "hip thrust w progresji",
+          "wykroki",
+          "tripod row",
+          "część funkcjonalna: praca jednostronna"
+        ],
+        "all": [
+          "akcesoria: słabe ogniwa z wywiadu (E-WEAKLINKS)"
+        ]
+      },
+      "exercisesStatus": "wniosek (ćwiczenia ze źródła, rozkład na dni: wniosek)",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "kolejny etap ćwiczenia po opanowaniu techniki → tolerancja (serie, powtórzenia) → obciążenie → dynamika",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "common": {
+        "warmup": "RAMP: 5-10 min ogólna + aktywacje min. 5-10 powt.",
+        "unitStructure": "E-UNIT",
+        "stageRule": "od najniższego poprawnego wariantu",
+        "noValsalvaBeginners": true,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85, 91"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-110"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T3",
+      "name": "Góra/dół 4 dni",
+      "goal": [
+        "sylwetka lub siła"
+      ],
+      "level": "funkcjonalny",
+      "status": "wniosek",
+      "note": "skrypt nie zawiera gotowych planów; szablon złożony ze struktury jednostki, wzorców i progresji",
+      "days": {
+        "count": 4,
+        "layout": [
+          "A dół",
+          "B góra",
+          "A2 dół",
+          "B2 góra"
+        ],
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "exercises": {
+        "A dół": [
+          "back squat lub zercher",
+          "RDL",
+          "split squat",
+          "akcesoria: pośladek średni, łydki"
+        ],
+        "B góra": [
+          "wyciskanie leżąc (hantle → sztanga)",
+          "wiosłowanie hantlami w opadzie",
+          "podciąganie lub wyciąg",
+          "akcesoria: stożek rotatorów, łopatki"
+        ],
+        "A2 dół": [
+          "martwy ciąg sumo lub klasyczny",
+          "hip thrust",
+          "przysiad bułgarski"
+        ],
+        "B2 góra": [
+          "OHP",
+          "wiosłowanie sztangą w opadzie",
+          "pompki z obciążeniem",
+          "izolacje"
+        ]
+      },
+      "exercisesStatus": "wniosek (ćwiczenia ze źródła, rozkład na dni: wniosek)",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "kolejny etap ćwiczenia po opanowaniu techniki → tolerancja (serie, powtórzenia) → obciążenie → dynamika",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "common": {
+        "warmup": "RAMP: 5-10 min ogólna + aktywacje min. 5-10 powt.",
+        "unitStructure": "E-UNIT",
+        "stageRule": "od najniższego poprawnego wariantu",
+        "noValsalvaBeginners": true,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85, 91"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-110"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T4",
+      "name": "Plan hipertroficzny",
+      "goal": [
+        "hipertrofia"
+      ],
+      "level": "funkcjonalny",
+      "status": "wniosek",
+      "note": "skrypt nie zawiera gotowych planów; szablon złożony ze struktury jednostki, wzorców i progresji",
+      "days": {
+        "count": null,
+        "layout": null,
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "exercises": {
+        "all": [
+          "wielostawy z sześciu wzorców (E-PATTERNS)",
+          "izolacje jako uzupełnienie"
+        ]
+      },
+      "exercisesStatus": "wniosek (ćwiczenia ze źródła, rozkład na dni: wniosek)",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "wariant → obciążenie; mezocykl 12-16 tyg. 'na objętości'",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "93, 106"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "common": {
+        "warmup": "RAMP: 5-10 min ogólna + aktywacje min. 5-10 powt.",
+        "unitStructure": "E-UNIT",
+        "stageRule": "od najniższego poprawnego wariantu",
+        "noValsalvaBeginners": true,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85, 91"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-110"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T5",
+      "name": "Plan siłowy",
+      "goal": [
+        "siła"
+      ],
+      "level": "funkcjonalny → sportowy",
+      "status": "wniosek",
+      "note": "skrypt nie zawiera gotowych planów; szablon złożony ze struktury jednostki, wzorców i progresji",
+      "days": {
+        "count": null,
+        "layout": null,
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "exercises": {
+        "all": [
+          "najwyższe poprawnie wykonywane etapy: back/front squat, klasyczny martwy ciąg, wyciskanie sztangi leżąc, OHP → push press, wiosłowanie sztangą",
+          "blok mocy: skoki, rzuty"
+        ]
+      },
+      "exercisesStatus": "wniosek (ćwiczenia ze źródła, rozkład na dni: wniosek)",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "kolejny etap ćwiczenia po opanowaniu techniki → tolerancja (serie, powtórzenia) → obciążenie → dynamika",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "common": {
+        "warmup": "RAMP: 5-10 min ogólna + aktywacje min. 5-10 powt.",
+        "unitStructure": "E-UNIT",
+        "stageRule": "od najniższego poprawnego wariantu",
+        "noValsalvaBeginners": true,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85, 91"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-110"
+          }
+        ]
+      },
+      "intensity": {
+        "value": "wysoka (poziom sportowy); RPE celu siłowego nie podano",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "90"
+          }
+        ]
+      },
+      "breathing": {
+        "value": "Valsalva przy dużych ciężarach u osób bez przeciwwskazań",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-108"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T6",
+      "name": "Plan domowy",
+      "goal": [
+        "ogólna sprawność przy minimalnym sprzęcie"
+      ],
+      "level": "początkujący/funkcjonalny",
+      "status": "wniosek",
+      "note": "zakładam kettlebell lub hantle i TRX; bez nich zostaje masa ciała",
+      "days": {
+        "count": 3,
+        "layout": [
+          "A",
+          "B",
+          "C"
+        ],
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "exercises": {
+        "A": [
+          "TRX/air squat → goblet",
+          "martwy ciąg z kettlebell",
+          "pompki (podwyższenie → zwykłe → nogi wyżej)",
+          "wiosłowanie TRX"
+        ],
+        "B": [
+          "glute bridge → jednonóż",
+          "split squat → bułgarski",
+          "wyciskanie jednorącz w klęku → bottom up press",
+          "wiosłowanie z podparciem kolana"
+        ],
+        "C": [
+          "swing z kettlebell (po opanowaniu zawiasu: wniosek)",
+          "wykroki w różnych kierunkach",
+          "wyciskanie hantli stojąc",
+          "tripod row"
+        ],
+        "daily": [
+          "mobilizacja 10-15 min"
+        ]
+      },
+      "exercisesStatus": "wniosek (ćwiczenia ze źródła, rozkład na dni: wniosek)",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "dźwignia, praca jednostronna, dynamika, perturbacje",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85-86"
+          }
+        ]
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "planLength": {
+        "value": {
+          "mesocycleWeeks": [
+            12,
+            16
+          ]
+        },
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego Planowanie",
+            "pages": "93"
+          }
+        ]
+      },
+      "common": {
+        "warmup": "RAMP: 5-10 min ogólna + aktywacje min. 5-10 powt.",
+        "unitStructure": "E-UNIT",
+        "stageRule": "od najniższego poprawnego wariantu",
+        "noValsalvaBeginners": true,
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+            "pages": "85, 91"
+          },
+          {
+            "ref": "skrypt-trenera-gsa-2022",
+            "chapter": "Moduł V Metodyka treningu siłowego",
+            "pages": "107-110"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T7",
+      "name": "Jednostka treningowa",
+      "status": "zrodlo",
+      "structure": [
+        "przygotowanie ruchowe (RAMP lub globalny ruch środowiskowy)",
+        "część główna: blok mocy lub złożone wzorce, maks. intensywność dla osoby",
+        "część funkcjonalna: wzorce i progresje/regresje",
+        "część akcesoryjna/medyczna: słabe ogniwa, izolacje",
+        "wydolność wysiłkowa",
+        "cooldown: relaksacja, uzupełnienie diagnostyki, relacja trener-klient"
+      ],
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł IV Metodyka treningu funkcjonalnego",
+          "pages": "91"
+        }
+      ]
+    },
+    {
+      "id": "T8",
+      "name": "Rozgrzewka RAMP",
+      "status": "zrodlo",
+      "structure": [
+        "Raise 5-10 min, niska → średnia intensywność",
+        "Activate + Mobilise: min. 5-10 powt. (na stronę)",
+        "Potentiate: wzorce dnia z rosnącą intensywnością"
+      ],
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł V Metodyka treningu siłowego",
+          "pages": "108-110"
+        }
+      ]
+    },
+    {
+      "id": "T9",
+      "name": "Codzienny plan mobilizacyjny",
+      "status": "zrodlo",
+      "minutesPerDay": [
+        10,
+        15
+      ],
+      "techniques": [
+        3,
+        4
+      ],
+      "holdMinMin": 2,
+      "order": [
+        "torebka stawowa",
+        "powierzchnie ślizgowe",
+        "rozciąganie",
+        "aktywacja",
+        "powtórzenia utrwalające we wzorcu"
+      ],
+      "exerciseLibrary": {
+        "staw skokowy": [
+          "trakcja z gumą i KB",
+          "Ankle CARs",
+          "aktywacja piszczelowego przedniego",
+          "RDL dorsiflexion"
+        ],
+        "zginacze biodra": [
+          "couch stretch",
+          "hip flexors + QL stretch",
+          "reverse Nordic curl",
+          "seated hip flexor raises"
+        ],
+        "kulszowo-goleniowe": [
+          "active hamstring stretch",
+          "sprinter stretch",
+          "hamstring PIR",
+          "Jefferson curl"
+        ],
+        "przywodziciele": [
+          "adductor rock back",
+          "frog stretch",
+          "cossack squat"
+        ],
+        "rotacje biodra": [
+          "pigeon stretch",
+          "90/90 ER rotation",
+          "90/90 IR lift off",
+          "seated hip IR foam roller",
+          "side lying hip IR + miniband",
+          "90/90 to bear sit",
+          "90/90 rear leg ER to IR"
+        ],
+        "kręgosłup": [
+          "cat-camel",
+          "zgięcie/wyprost lędźwiowy",
+          "zgięcie/wyprost piersiowy",
+          "mobilizacja do wyprostu Th",
+          "open book",
+          "wall Th rotation"
+        ],
+        "bark": [
+          "banana stretch",
+          "lat stretch powerband",
+          "pullover shoulder",
+          "prone shoulder raise",
+          "PIR pec",
+          "DB/plates fly stretch",
+          "passive ER stretch stick",
+          "prone shoulder ER lift off",
+          "side lying shoulder IR",
+          "prone shoulder swimmer"
+        ]
+      },
+      "libraryNote": "tylko nazwy; opisy, powtórzenia i czasy utracone (zdjęcia); Jefferson curl: ostrożnie, zgięcie kręgosłupa z obciążeniem (poza_zrodlem)",
+      "sources": [
+        {
+          "ref": "skrypt-trenera-gsa-2022",
+          "chapter": "Moduł III Mobility",
+          "pages": "59-79"
+        }
+      ]
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "skrypt-trenera-gsa-2022",
+      "type": "book",
+      "author": "Global Sport Academy (zespół szkoleniowców)",
+      "publisher": "Global Sport Academy Sp. z o.o., Wrocław",
+      "title": "Skrypt Kursu Trenera Personalnego",
+      "year": 2022,
+      "isbn": null,
+      "pages": 156,
+      "language": "pl",
+      "pagesNote": "numer strony jako osobna linia przed nagłówkiem 'GLOBAL SPORT ACADEMY©'; zgodny ze spisem treści",
+      "scope": "trening medyczny, diagnostyka funkcjonalna, mobility, trening funkcjonalny, metodyka treningu siłowego (wzorce, progresje, technika, rozgrzewka); bez liczb programowania i bez gotowych planów",
+      "fileUsed": "ab4123e7-1026444597-SKRYPT-Kursu-Trenera-Personalnego-GSA.pdf.txt (tekst bez grafik)",
+      "personalDataOmitted": "brak personalizacji; nazwiska szkoleniowców z podziękowań pominięte"
+    },
+    {
+      "id": "lost-figures-tables",
+      "type": "missing_data",
+      "items": [
+        {
+          "pages": "27-40",
+          "element": "zdjęcia testów funkcjonalnych (s. 35 pusta)",
+          "kept": "opisy i normy"
+        },
+        {
+          "pages": "42",
+          "element": "piramida mobilność-stabilność-siła, lista 'Kiedy pracować nad mobilnością?'",
+          "kept": "słowa piramidy; lista pusta"
+        },
+        {
+          "pages": "48-53",
+          "element": "zdjęcia sprzętu i mobilizacji torebki gumą",
+          "kept": "nazwy, podpisy"
+        },
+        {
+          "pages": "61-79",
+          "element": "zdjęcia ok. 45 ćwiczeń mobilizacyjnych",
+          "kept": "tylko nazwy; brak opisu, powtórzeń, czasu; brak poz. 3 (skokowy) i 4 (kulszowo-goleniowe)"
+        },
+        {
+          "pages": "83-84",
+          "element": "odpowiedzi na pytania o pozycję pleców, koślawienie kolan, dociążanie ruchów",
+          "kept": "same pytania"
+        },
+        {
+          "pages": "97, 101-103",
+          "element": "ryciny anatomii (K. Ashwell, Anatomia ruchu, 2021)",
+          "kept": "podpisy źródła"
+        },
+        {
+          "pages": "99, 104",
+          "element": "tabele mięśni wykonujących ruchy w biodrze i barku",
+          "kept": "nazwy mięśni, przypisanie nieczytelne"
+        },
+        {
+          "pages": "113-121, 126-132",
+          "element": "zdjęcia wariantów przysiadu i martwego ciągu",
+          "kept": "nazwy"
+        },
+        {
+          "pages": "146",
+          "element": "przypis do 'Push Press*'",
+          "kept": "brak"
+        }
+      ],
+      "keptComplete": [
+        "tabela kolejności pracy wyrównującej (s. 11)",
+        "tabela RPE/RIR/%1RM (s. 95)"
+      ],
+      "toRecover": "oryginalny PDF"
+    },
+    {
+      "id": "contradictions",
+      "type": "uncertainties",
+      "items": [
+        {
+          "topic": "normy biodra",
+          "detail": "s. 44 (zgięcie 125, ER 45, IR 45) vs s. 98 (do 135, ER 15, IR 35)",
+          "appDecision": "nie oceniać klienta tymi liczbami"
+        },
+        {
+          "topic": "rotacja wewnętrzna barku",
+          "detail": "s. 44: 80° vs s. 39: 60-70°"
+        },
+        {
+          "topic": "kolejność progresji przysiadu",
+          "detail": "air squat po box squat (s. 112)",
+          "appDecision": "kolejność orientacyjna"
+        },
+        {
+          "topic": "koślawienie kolan i pozycja pleców",
+          "detail": "Moduł V: błędy do korekty (s. 122, 134); Moduł IV: pytanie, czy to błędy, bez odpowiedzi (s. 83-84)",
+          "appDecision": "korekty z Modułu V"
+        },
+        {
+          "topic": "oddech w przysiadzie",
+          "detail": "wydech w koncentryce (s. 107) vs wydech po pełnym powtórzeniu (s. 112)"
+        },
+        {
+          "topic": "tabela RPE/RIR/%",
+          "detail": "% nie zależy od liczby powtórzeń (s. 95)",
+          "appDecision": "nie wyliczać ciężaru z kolumny %"
+        },
+        {
+          "topic": "'nie ma dni wolnych'",
+          "detail": "dotyczy mobilności (s. 59-60), nie treningu siłowego"
+        },
+        {
+          "topic": "rolowanie przed treningiem",
+          "detail": "pełne ≥120 s nie przed treningiem; przerolowanie ~30 s tak (s. 54-55, 59)"
+        },
+        {
+          "topic": "zależności przyczynowe dysfunkcji",
+          "detail": "np. rotacja Th jako 'główna przyczyna' problemów lędźwiowych (s. 37), bez badań",
+          "appDecision": "nie komunikować klientowi jako faktów"
+        },
+        {
+          "topic": "mezocykl",
+          "detail": "12-16 tyg. (s. 93), bez opisu mikrocykli"
+        }
+      ]
+    }
+  ]
+}
