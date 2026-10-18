@@ -2838,6 +2838,13 @@ input[type=checkbox]{accent-color:var(--accent);}
 .prog-detail-week.is-repeat{padding:6px 0;opacity:.75;}
 .prog-plan-note{font-size:12px;line-height:1.5;color:var(--text);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:14px;}
 .prog-plan-note.is-warn{border-color:rgba(255,159,10,.45);color:var(--orange);}
+/* Ulubione ćwiczenia */
+.ex-fav-btn{background:none;border:0;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:6px;}
+.ex-fav-btn:hover,.ex-fav-btn:focus-visible{color:#FFD60A;background:rgba(255,255,255,.06);}
+.ex-fav-btn.is-on{color:#FFD60A;}
+.ex-card>.ex-fav-btn{position:absolute;top:6px;right:6px;z-index:2;}
+.ex-card .ex-card-name{padding-right:22px;}
+@media(pointer:coarse){.ex-fav-btn{min-width:44px;min-height:44px;}}
 .prog-detail-week:last-child{border-bottom:none;}
 .prog-detail-week-hdr{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .prog-detail-week-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);width:50px;}

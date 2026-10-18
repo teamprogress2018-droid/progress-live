@@ -1442,6 +1442,72 @@ function persistHiddenExercises(list){
 }
 window.persistHiddenExercises=persistHiddenExercises;
 
+// Ulubione ćwiczenia trenera (gwiazdka na karcie) – w ustawieniach konta, jak ukryte ćwiczenia.
+function favExNames(){
+  const s=(window.SETTINGS&&window.SETTINGS.favoriteExercises)||[];
+  return Array.isArray(s)?s.map(n=>String(n||'').trim()).filter(Boolean):[];
+}
+function isFavEx(name){
+  return favExNames().includes(String(name||'').trim());
+}
+function toggleFavEx(name,btn){
+  const n=String(name||'').trim();
+  if(!n)return false;
+  const list=favExNames();
+  const on=!list.includes(n);
+  if(!window.SETTINGS)window.SETTINGS={};
+  window.SETTINGS.favoriteExercises=on?[...list,n]:list.filter(x=>x!==n);
+  const persist=typeof persistSettingsDoc==='function'?persistSettingsDoc:(window.persistSettingsDoc||null);
+  if(typeof persist==='function')persist();
+  if(exCatFilter==='__fav'||!btn){renderLib();}
+  else{
+    document.querySelectorAll('.ex-fav-btn').forEach(b=>{if(b.dataset.exName===n)exFavPaint(b,on);});
+    const cnt=document.getElementById('ex-nav-count-fav');
+    if(cnt)cnt.textContent=String(favExNames().length);
+  }
+  notify(on?'★ Dodano do ulubionych':'Usunięto z ulubionych');
+  return on;
+}
+function exFavPaint(btn,on){
+  btn.classList.toggle('is-on',on);
+  btn.textContent=on?'★':'☆';
+  btn.setAttribute('aria-pressed',String(on));
+  btn.title=on?'Usuń z ulubionych':'Dodaj do ulubionych';
+}
+function exFavBtnHtml(e){
+  const on=isFavEx(e.name);
+  return `<button type="button" class="ex-fav-btn${on?' is-on':''}" data-ex-name="${escHtml(e.name)}" aria-pressed="${on}" title="${on?'Usuń z ulubionych':'Dodaj do ulubionych'}" onclick="event.stopPropagation();toggleFavEx(${exJsArg(e.name)},this)">${on?'★':'☆'}</button>`;
+}
+window.favExNames=favExNames;
+window.isFavEx=isFavEx;
+window.toggleFavEx=toggleFavEx;
+
+// Ostatnio używane: ćwiczenia z planów trenera, od najnowszego planu.
+function recentExNames(limit){
+  const lib=typeof allExercises==='function'?allExercises():[];
+  const byName=new Map(lib.map(e=>[e.name,e]));
+  const plans=(window.PL||[]).filter(p=>p&&Array.isArray(p.days))
+    .slice().sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
+  const out=[];
+  const seen=new Set();
+  for(const p of plans){
+    for(const d of p.days){
+      for(const ex of (d&&d.exercises)||[]){
+        const raw=String((ex&&typeof ex==='object'?(ex.name||ex.n):ex)||'').trim();
+        if(!raw)continue;
+        const hit=byName.get(raw)||(typeof libExerciseByName==='function'?libExerciseByName(raw):null);
+        const name=hit&&hit.name;
+        if(!name||seen.has(name))continue;
+        seen.add(name);
+        out.push(name);
+        if(out.length>=(limit||40))return out;
+      }
+    }
+  }
+  return out;
+}
+window.recentExNames=recentExNames;
+
 function allExercises(){
   // Własne ćwiczenia trenera (EX) mają PIERWSZEŃSTWO nad domyślnymi (DEF_EX) o tej samej nazwie —
   // wcześniej było odwrotnie, przez co własne ćwiczenie znikało bez ostrzeżenia.
@@ -2615,6 +2681,11 @@ function exerciseMatchesTokens(e,tokens){
 window.exerciseSearchTokens=exerciseSearchTokens;
 window.exerciseMatchesTokens=exerciseMatchesTokens;
 
+function exEmptyListText(){
+  if(exCatFilter==='__fav')return 'Nie masz jeszcze ulubionych ćwiczeń. Kliknij ☆ na karcie ćwiczenia, żeby je tu dodać.';
+  if(exCatFilter==='__recent')return 'Tu pojawią się ćwiczenia z Twoich zapisanych planów.';
+  return 'Brak ćwiczeń pasujących do filtrów';
+}
 function exLibSortFn(){
   const sort=(document.getElementById('ex-sort')||{}).value||'az';
   const byName=(a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pl');
@@ -2654,6 +2725,7 @@ function exCardHtml(e,i){
   }
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${Math.min(i||0,12)*0.025}s" data-ex-name="${escHtml(e.name)}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="ex-card-accent" style="background:${col};"></div>
+    ${exFavBtnHtml(e)}
     <div class="ex-card-body">
       ${media}
       <div>
@@ -2715,7 +2787,7 @@ function renderLibGroupedSections(filtered,mode){
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.cat)}</span>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.eq)}</span>
         <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${escHtml((e.tip||'').substring(0,60))}${(e.tip||'').length>60?'…':''}</div>
-        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">${exFavBtnHtml(e)}
           <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail(${exJsArg(e.name)})">Szczegóły</button>
           ${exDelBtnHtml(e,'')}
         </div>
@@ -2745,9 +2817,15 @@ function renderLib(){
 
   // build category nav
   const cats=['Wszystkie',...Object.keys(CAT_COLORS_EX)];
+  const favNames=favExNames();
+  const recent=recentExNames(40);
   const catNav=document.getElementById('ex-cat-nav');
   if(catNav){
-    catNav.innerHTML=cats.map(c=>{
+    const special=[['__fav','★ Ulubione',all.filter(e=>favNames.includes(e.name)).length,'fav'],['__recent','🕘 Ostatnio używane',recent.length,'recent']];
+    catNav.innerHTML=special.map(([key,label,count,id])=>`<div class="ex-cat-nav-item ex-cat-nav-special${exCatFilter===key?' active':''}" onclick="exCatFilter='${key}';renderLib()">
+        <span>${label}</span>
+        <span id="ex-nav-count-${id}" style="font-family:'DM Mono',monospace;font-size:10px;">${count}</span>
+      </div>`).join('')+cats.map(c=>{
       const count=c==='Wszystkie'?all.length:all.filter(e=>e.cat===c).length;
       const col=CAT_COLORS_EX[c]||'var(--muted)';
       return `<div class="ex-cat-nav-item${exCatFilter===c?' active':''}" onclick="exCatFilter='${c}';renderLib()">
@@ -2772,14 +2850,17 @@ function renderLib(){
   // filter
   const searchTokens=exerciseSearchTokens(search);
   let filtered=all.filter(e=>{
-    if(exCatFilter!=='Wszystkie'&&e.cat!==exCatFilter)return false;
+    if(exCatFilter==='__fav'){if(!favNames.includes(e.name))return false;}
+    else if(exCatFilter==='__recent'){if(!recent.includes(e.name))return false;}
+    else if(exCatFilter!=='Wszystkie'&&e.cat!==exCatFilter)return false;
     if(exEquipFilter&&e.eq!==exEquipFilter)return false;
     if(searchTokens.length&&!exerciseMatchesTokens(e,searchTokens))return false;
     return true;
   });
 
-  // sort (w widoku „Wszystkie” – wewnątrz każdej kategorii)
-  filtered.sort(exLibSortFn());
+  // sort (w widoku „Wszystkie” – wewnątrz każdej kategorii); „Ostatnio używane” zostają od najnowszych
+  if(exCatFilter==='__recent')filtered.sort((a,b)=>recent.indexOf(a.name)-recent.indexOf(b.name));
+  else filtered.sort(exLibSortFn());
 
   const countEl=document.getElementById('ex-results-count');
   if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń');
@@ -2794,7 +2875,7 @@ function renderLib(){
       return;
     }
     grid.classList.remove('ex-lib-grouped');
-    if(!filtered.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Brak ćwiczeń pasujących do filtrów</div>';return;}
+    if(!filtered.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">${exEmptyListText()}</div>`;return;}
     grid.innerHTML=filtered.map((e,i)=>exCardHtml(e,i)).join('');
   } else {
     if(useGrouped){
@@ -2802,7 +2883,7 @@ function renderLib(){
       return;
     }
     const body=document.getElementById('ex-list-body');
-    if(!filtered.length){body.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak ćwiczeń</div>';return;}
+    if(!filtered.length){body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted);">${exEmptyListText()}</div>`;return;}
     body.innerHTML=filtered.map((e,i)=>{
       const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
       return `<div class="ex-list-row" style="animation-delay:${Math.min(i,12)*0.02}s" onclick="openExDetail(${exJsArg(e.name)})">
@@ -2813,7 +2894,7 @@ function renderLib(){
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.cat)}</span>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.eq)}</span>
         <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${escHtml((e.tip||'').substring(0,60))}${(e.tip||'').length>60?'…':''}</div>
-        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">${exFavBtnHtml(e)}
           <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail(${exJsArg(e.name)})">Szczegóły</button>
           <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
         </div>

@@ -427,6 +427,8 @@ jobs:
         run: node .github/scripts/test_lib_porzadki.js
       - name: 1n31b10. Testy Bloków 4–16 tyg. (wszystkie tygodnie, kreator programu)
         run: node .github/scripts/test_lib_bloki.js
+      - name: 1n31b11. Testy nowych funkcji Biblioteki (ulubione, ostatnio używane, duplikuj plan)
+        run: node .github/scripts/test_lib_nowe_funkcje.js
       - name: 1n31c. Testy podsumowania start + monitoring klienta
         run: node .github/scripts/test_client_journey_summary.js
       - name: 1n32. Testy periodyzacji RPE/RIR w kreatorze
@@ -572,6 +574,9 @@ jobs:
       - name: 6b3b1e. Testy UI Bloków 4–16 tyg.
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_lib_bloki_ui.js
+      - name: 6b3b1f. Testy UI nowych funkcji Biblioteki
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_lib_nowe_funkcje_ui.js
       - name: 6b3b2. Testy UI importu MP4 do biblioteki
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_gif_import_ui.js
