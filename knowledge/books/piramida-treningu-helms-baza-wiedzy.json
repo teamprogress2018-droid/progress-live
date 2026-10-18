@@ -1,0 +1,3463 @@
+{
+ "principles": [
+  {
+   "id": "P1",
+   "title": "Piramida priorytetów: najpierw podstawy",
+   "rule": "Elementy treningu mają różną wagę. Kolejność od najważniejszego: przestrzeganie planu, objętość/intensywność/częstotliwość, progresja, dobór ćwiczeń, przerwy, tempo. Ok. 80% efektów daje dopracowanie 3–4 pierwszych poziomów; periodyzacja obejmuje wszystkie poziomy.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [
+    "„80%” to szacunek autora, nie wynik badania"
+   ],
+   "values": {
+    "levels": [
+     "przestrzeganie planu",
+     "VIF",
+     "progresja",
+     "dobór ćwiczeń",
+     "przerwy",
+     "tempo"
+    ],
+    "shareFromTop3to4Levels": 0.8
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Wprowadzenie (Giới thiệu)",
+     "pages": "24-25"
+    }
+   ]
+  },
+  {
+   "id": "P2",
+   "title": "Plan realistyczny, przyjemny i elastyczny",
+   "rule": "Plan ma pasować do życia klienta: tyle dni, ile faktycznie może trenować (jeśli ma 4 dni, planuj 4), z ćwiczeniami, które lubi, i z elastycznością na gorsze dni. Konsekwencja wygrywa z perfekcyjnym, ale nierealnym planem. Skupienie na procesie daje lepsze wyniki niż skupienie na wyniku.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "30-34"
+    }
+   ]
+  },
+  {
+   "id": "P3",
+   "title": "Elastyczność: gorszy dzień i opuszczony trening",
+   "rule": "W dzień słabszej formy wykonaj najłatwiejszą z sesji zaplanowanych na ten tydzień (elastyczna periodyzacja dała w badaniu większy przyrost siły i lepsze przestrzeganie planu). Opuszczony trening: kontynuuj od miejsca, w którym przerwano (np. przy pon./śr./pt. opuszczona środa → sesja środowa w piątek). Jeśli trzeba coś pominąć, pomiń sesję o najmniejszym stresie (np. akcesoria, single ok. 80%). Trening w kolejne dni daje podobne efekty jak z dniem przerwy; w drugi dzień z rzędu zmniejsz obciążenie.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "35-38"
+    }
+   ]
+  },
+  {
+   "id": "P4",
+   "title": "Objętość: 10–20 serii na mięsień lub wzorzec ruchu tygodniowo",
+   "rule": "Objętość licz w trudnych seriach (ok. 6–20 powtórzeń, blisko upadku). Startowo 10–20 serii na grupę mięśniową lub wzorzec ruchu na tydzień. Rób tyle, ile trzeba do postępu, a nie tyle, ile się da. Objętość zwiększaj dopiero, gdy postęp stanie, a regeneracja jest dobra. Powyżej ok. 20 serii bywa za dużo; więcej niż 20 tylko gdy wszystko inne jest optymalne i trzeba przełamać zastój.",
+   "appliesTo": [
+    "hipertrofia",
+    "siła"
+   ],
+   "conditions": [
+    "serie z mniej niż ok. 6 powtórzeniami dają słabszy bodziec hipertroficzny na serię"
+   ],
+   "limitations": [
+    "zależność dawka–efekt ma kształt odwróconego U",
+    "zakresy to wskazówki; zacznij od dolnej granicy"
+   ],
+   "values": {
+    "setsPerMuscleWeek": {
+     "min": 10,
+     "max": 20
+    },
+    "hardSetRepRange": [
+     6,
+     20
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "46-62, 81"
+    }
+   ]
+  },
+  {
+   "id": "P5",
+   "title": "Intensywność dla hipertrofii",
+   "rule": "Ok. ⅔–¾ objętości w zakresie 6–12 powtórzeń (w podsumowaniu 6–15), resztę dziel między 1–6 i 12–20 powtórzeń; serie przy RPE 5–10. Ciężar powyżej ok. 30% 1RM i serie co najmniej przy RPE 5. 6–12 nie jest magiczne, tylko wygodne; bardzo lekkie ciężary (15–35 RM) działają, ale są niewygodne i bardziej męczące.",
+   "appliesTo": [
+    "hipertrofia"
+   ],
+   "conditions": [],
+   "limitations": [
+    "s. 74 podaje 6–12, s. 81 podaje 6–15"
+   ],
+   "values": {
+    "mainShare": [
+     0.67,
+     0.75
+    ],
+    "mainRepRange": [
+     6,
+     12
+    ],
+    "otherRepRanges": [
+     [
+      1,
+      6
+     ],
+     [
+      12,
+      20
+     ]
+    ],
+    "rpe": [
+     5,
+     10
+    ],
+    "minLoadPct1RM": 30
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "72-74, 81"
+    }
+   ]
+  },
+  {
+   "id": "P6",
+   "title": "Intensywność dla siły",
+   "rule": "Ok. ⅔–¾ objętości w zakresie 1–6 powtórzeń, resztę w 6–15 powtórzeniach; RPE 5–10. Nie trenuj wyłącznie singli, dubli i trójek; siła to masa mięśniowa, układ nerwowy i umiejętność.",
+   "appliesTo": [
+    "siła",
+    "trójbój"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "mainShare": [
+     0.67,
+     0.75
+    ],
+    "mainRepRange": [
+     1,
+     6
+    ],
+    "otherRepRange": [
+     6,
+     15
+    ],
+    "rpe": [
+     5,
+     10
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "68-75, 81"
+    }
+   ]
+  },
+  {
+   "id": "P7",
+   "title": "Częstotliwość: co najmniej 2× w tygodniu",
+   "rule": "Każdą grupę mięśniową lub wzorzec ruchu trenuj co najmniej 2× w tygodniu. Najczęściej 3–6 sesji tygodniowo; 2 sesje wystarczą zapracowanemu początkującemu. Częstotliwość służy do rozłożenia objętości: im więcej serii, tym więcej dni. Dla 90% osób: 3–5 dni, każdy mięsień lub ruch 2–4× w tygodniu.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "minPerMusclePerWeek": 2,
+    "sessionsPerWeek": [
+     3,
+     6
+    ],
+    "typical": {
+     "days": [
+      3,
+      5
+     ],
+     "musclePerWeek": [
+      2,
+      4
+     ]
+    }
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "76-80"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "207"
+    }
+   ]
+  },
+  {
+   "id": "P8",
+   "title": "RPE oparte na RIR jako miara wysiłku",
+   "rule": "Wysiłek mierz skalą RPE opartą na liczbie powtórzeń w zapasie (RIR): RPE 10 = brak zapasu, 9 = 1 powtórzenie, 8 = 2, 7 = 3, 5–6 = 4–6, 1–4 = bardzo lekko. Łącz RPE z %1RM. Trafność oceny poprawiają: nagrywanie serii, krótki blok (3–6 tyg.) z seriami do upadku w izolacjach, ocena partnera lub trenera.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [
+    "dokładna ocena RPE wymaga kilku miesięcy praktyki"
+   ],
+   "limitations": [],
+   "values": {
+    "rpeToRir": {
+     "10": 0,
+     "9.5": "0 (może więcej ciężaru)",
+     "9": 1,
+     "8.5": "1–2",
+     "8": 2,
+     "7.5": "2–3",
+     "7": 3,
+     "5-6": "4–6",
+     "1-4": "bardzo lekko"
+    }
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "64-65"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "217"
+    }
+   ]
+  },
+  {
+   "id": "P9",
+   "title": "Upadek mięśniowy tylko z celem",
+   "rule": "Nie doprowadzaj ćwiczeń wielostawowych z wolnym ciężarem (przysiad, martwy ciąg, wyciskanie nad głowę) do upadku mięśniowego. Upadek jest bezpieczniejszy w izolacjach i na maszynach, na ostatniej serii ostatniego ćwiczenia, przy teście 1RM lub AMRAP. Nie w tygodniu deloadu. Upadek na każdej serii nie daje przewagi siłowej i spowalnia regenerację.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "example": "8RM do upadku: 8,6,5 = 19 powt.; stop przy 7: 7,7,7 = 21 powt."
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "66-68"
+    }
+   ]
+  },
+  {
+   "id": "P10",
+   "title": "Tempo progresji zależy od stażu (liczonego po postępach)",
+   "rule": "Staż oceniaj po tempie postępów, a nie po latach czy wynikach. Początkujący progresuje z sesji na sesję, średniozaawansowany z tygodnia na tydzień, zaawansowany z miesiąca na miesiąc. Średniozaawansowany to zwykle >6 miesięcy i <2 lata mądrego treningu; zaawansowany >2 lata, 80–90% potencjału genetycznego.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "novice": "sesja→sesja",
+    "intermediate": "tydzień→tydzień (zwykle 6 mies.–2 lata)",
+    "advanced": "miesiąc→miesiąc (>2 lata)"
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "100-103, 109, 114"
+    }
+   ]
+  },
+  {
+   "id": "P11",
+   "title": "Model fitness–zmęczenie: deload i taper",
+   "rule": "Wynik = forma − zmęczenie. Planowane przeciążenie funkcjonalne rozładowuje deload (zwykle tydzień z mniejszą objętością); taper to deload przed zawodami. Przetrenowanie jest rzadkie, ale wymaga długiej regeneracji; spotyka się je np. w przygotowaniach do zawodów sylwetkowych.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "52-56"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "103-104"
+    }
+   ]
+  },
+  {
+   "id": "P12",
+   "title": "Periodyzacja zintegrowana",
+   "rule": "Periodyzacja to układanie treningu w fazy: mikrocykl (tydzień), mezocykl (1–2 miesiące), makrocykl (sezon/rok). U początkujących model periodyzacji nie ma znaczenia; u średniozaawansowanych i zaawansowanych ma. Modele (liniowy, blokowy, falowy dzienny DUP, falowy tygodniowy) się przenikają; najlepsze jest podejście łączone.",
+   "appliesTo": [
+    "średniozaawansowani",
+    "zaawansowani"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "126-132"
+    }
+   ]
+  },
+  {
+   "id": "P13",
+   "title": "Dobór ćwiczeń: specyficzność, stałość i biegłość",
+   "rule": "Siła jest specyficzna dla ruchu, więc trenuj ruch docelowy. Trójboista: boje startowe 50–75% objętości, akcesoria 25–50%. Hipertrofia: 1–2 ćwiczenia wielostawowe i 1–3 izolacje na dużą grupę mięśniową. Główne ćwiczenia wielostawowe trzymaj stałe przez wiele mezocykli; izolacje można rotować. „Zaskakiwanie mięśni” szkodzi; nowe ćwiczenia działają słabiej, dopóki nie opanujesz techniki.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "powerliftingCompetitionShare": [
+     0.5,
+     0.75
+    ],
+    "powerliftingAccessoryShare": [
+     0.25,
+     0.5
+    ],
+    "hypertrophyCompoundsPerMuscle": [
+     1,
+     2
+    ],
+    "hypertrophyIsolationPerMuscle": [
+     1,
+     3
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "146-154"
+    }
+   ]
+  },
+  {
+   "id": "P14",
+   "title": "Przerwy: odpoczywaj, aż będziesz gotowy",
+   "rule": "Odpoczywaj tyle, by kolejną serię zrobić najlepiej. Jeśli trzeba mierzyć: co najmniej 1,5 min w izolacjach i małych grupach, co najmniej 2,5 min w ćwiczeniach wielostawowych. Krótkie przerwy „dla hormonów” nie mają podstaw; dłuższe przerwy wydają się lepsze dla siły i hipertrofii.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "minRestIsolationMin": 1.5,
+    "minRestCompoundMin": 2.5
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 5: Przerwy między seriami",
+     "pages": "172-177, 184"
+    }
+   ]
+  },
+  {
+   "id": "P15",
+   "title": "Tempo: kontrolowana ekscentryka, koncentryka z maksymalną intencją",
+   "rule": "Po prostu podnoś: faza opuszczania kontrolowana, ale nie celowo wolna; faza podnoszenia z zamiarem jak najszybszego ruchu (ciężar sam spowolni tempo). Powtórzenia dłuższe niż ok. 10 s szkodzą. Celowo wolne tempo tylko u początkujących dla techniki. To najmniej ważny poziom piramidy.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "maxRepDurationS": 10
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 6: Tempo",
+     "pages": "189-200"
+    }
+   ]
+  },
+  {
+   "id": "P16",
+   "title": "Cardio a trening siłowy",
+   "rule": "Efekt interferencji spowalnia, ale nie zatrzymuje postępów. Cardio tuż przed siłownią pogarsza trening; po nim mniej. Lepiej: siłownia co najmniej 6 h przed cardio, najlepiej osobne dni. Przy kilku sportach ustal priorytet.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {
+    "minHoursLiftBeforeCardio": 6
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "39-40"
+    }
+   ]
+  },
+  {
+   "id": "P17",
+   "title": "Kolejność ćwiczeń i zakres ruchu",
+   "rule": "Ćwiczenia wielostawowe zwykle na początku sesji. Słaby mięsień, którego nie trenują ćwiczenia wielostawowe, można zmęczyć wcześniej, jeśli to nie psuje ćwiczeń głównych (biceps przed wyciskaniem, łydki przed przysiadem). Trenuj w pełnym zakresie ruchu, jaki masz przy neutralnym kręgosłupie; półprzysiady słabo przenoszą się na pełny ruch.",
+   "appliesTo": [
+    "wszyscy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "values": {},
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "164-165"
+    }
+   ]
+  }
+ ],
+ "exerciseRules": [
+  {
+   "id": "E1",
+   "category": "wzorce_ruchu_hipertrofia",
+   "muscle": "wszystkie",
+   "exercises": [
+    {
+     "name": "przysiad (wszystkie warianty, suwnica, jednonóż)",
+     "equipment": "różny",
+     "purpose": "główne: czworogłowe, pośladki; dodatkowe: prostowniki grzbietu (wolny ciężar)"
+    },
+    {
+     "name": "zawias biodrowy (martwy ciąg i warianty, skłony good morning, wyprosty grzbietu)",
+     "equipment": "różny",
+     "purpose": "główne: pośladki, dwugłowe uda, prostowniki; dodatkowe: mięśnie ściągające łopatki"
+    },
+    {
+     "name": "przyciąganie pionowe (podciąganie, ściąganie drążka)",
+     "equipment": "drążek/wyciąg",
+     "purpose": "główne: najszersze, biceps; dodatkowe: tylne aktony barków"
+    },
+    {
+     "name": "wyciskanie pionowe (warianty OHP)",
+     "equipment": "sztanga/hantle",
+     "purpose": "główne: przednie aktony barków, triceps; dodatkowe: środkowe aktony"
+    },
+    {
+     "name": "przyciąganie poziome (wiosłowania)",
+     "equipment": "różny",
+     "purpose": "główne: najszersze, ściągające łopatki; dodatkowe: tylne aktony, biceps, środkowe aktony"
+    },
+    {
+     "name": "wyciskanie poziome (płasko, skos, skos w dół)",
+     "equipment": "różny",
+     "purpose": "główne: klatka, przednie aktony; dodatkowe: triceps (wąski chwyt/dipy: główny), środkowe aktony (skos)"
+    },
+    {
+     "name": "poziomy wyprost bioder (hip thrust, mostek biodrowy)",
+     "equipment": "sztanga/maszyna",
+     "purpose": "główne: pośladki; dodatkowe: dwugłowe uda"
+    },
+    {
+     "name": "pullover (hantel, sztanga, ściąganie prostymi rękami)",
+     "equipment": "różny",
+     "purpose": "główne: najszersze; dodatkowe: triceps, klatka"
+    },
+    {
+     "name": "rozpiętki (linki, hantle)",
+     "equipment": "wyciąg/hantle",
+     "purpose": "główne: klatka; dodatkowe: przednie aktony"
+    },
+    {
+     "name": "ćwiczenia izolowane",
+     "equipment": "różny",
+     "purpose": "mięsień docelowy"
+    }
+   ],
+   "notes": "Serie liczone 1:1 dla mięśni głównych i dodatkowych, ale nie cała objętość mięśnia powinna pochodzić z pracy pośredniej. Środkowe aktony barków pracują we wiosłowaniu i wyciskaniu pionowym; izolację dodaj, gdy są słabym punktem.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "83-85"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "147"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "213-214"
+    }
+   ]
+  },
+  {
+   "id": "E2",
+   "category": "kategorie_silowe",
+   "muscle": "wszystkie",
+   "exercises": [
+    {
+     "name": "góra – pchanie: wyciskanie leżąc i warianty (wąski chwyt, board press), wyciskania poziome i pionowe, triceps",
+     "equipment": "różny",
+     "purpose": "kategoria objętości siłowej"
+    },
+    {
+     "name": "góra – ciągnięcie: martwy ciąg i warianty (rumuński, z pauzą), przyciągania poziome i pionowe",
+     "equipment": "różny",
+     "purpose": "kategoria objętości siłowej"
+    },
+    {
+     "name": "dół: martwy ciąg, przysiad i warianty (przedni, z drążkiem safety bar), wszystkie akcesoria dołu",
+     "equipment": "różny",
+     "purpose": "kategoria objętości siłowej"
+    }
+   ],
+   "notes": "Martwy ciąg liczy się do dołu i do ciągnięcia górnej części ciała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "148"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "215"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "227"
+    }
+   ]
+  },
+  {
+   "id": "E3",
+   "category": "zakresy_wg_typu_cwiczenia",
+   "muscle": "wszystkie",
+   "goal": "hipertrofia",
+   "exercises": [
+    {
+     "name": "wielostawowe dołu z wolnym ciężarem (przysiad, martwy ciąg, RDL)",
+     "reps": "3–8",
+     "rpe": "5–8"
+    },
+    {
+     "name": "wielostawowe dołu na maszynach (suwnica, hack)",
+     "reps": "6–12",
+     "rpe": "6–9"
+    },
+    {
+     "name": "izolacje dołu (łydki, prostowanie i uginanie nóg)",
+     "reps": "8–20",
+     "rpe": "7–10"
+    },
+    {
+     "name": "wielostawowe góry z wolnym ciężarem (OHP, wyciskanie leżąc, wiosłowanie sztangą)",
+     "reps": "3–12",
+     "rpe": "6–9"
+    },
+    {
+     "name": "wielostawowe góry na maszynach (ściąganie drążka, wiosłowanie na wyciągu)",
+     "reps": "6–15",
+     "rpe": "6–10"
+    },
+    {
+     "name": "izolacje góry (uginanie ramion, prostowanie na wyciągu, wznosy bokiem)",
+     "reps": "8–20",
+     "rpe": "7–10"
+    }
+   ],
+   "notes": "Im bardziej męczące i technicznie trudne ćwiczenie, tym niższe zakresy powtórzeń i RPE. Ciężką, niskopowtórzeniową część objętości realizuj ćwiczeniami wielostawowymi, wysokopowtórzeniową izolacjami i maszynami.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "209-210"
+    }
+   ]
+  },
+  {
+   "id": "E4",
+   "category": "zakresy_wg_typu_cwiczenia",
+   "muscle": "wszystkie",
+   "goal": "siła",
+   "exercises": [
+    {
+     "name": "bój główny – siła (bój lub główny wariant)",
+     "reps": "1–5",
+     "rpe": "7–10"
+    },
+    {
+     "name": "bój główny – objętość (hipertrofia specyficzna, wydolność)",
+     "reps": "4–8",
+     "rpe": "5–8"
+    },
+    {
+     "name": "bój główny – technika/„moc”/regeneracja",
+     "reps": "1–3",
+     "rpe": "4–7"
+    },
+    {
+     "name": "akcesoria wielostawowe (OHP, good morning, wiosłowanie sztangą)",
+     "reps": "4–8",
+     "rpe": "6–9"
+    },
+    {
+     "name": "akcesoria maszynowe i izolacje (prostowanie na wyciągu, wiosłowanie hantlem)",
+     "reps": "8–15",
+     "rpe": "7–10"
+    }
+   ],
+   "notes": "Zakres i RPE zależą od roli ćwiczenia w programie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "210"
+    }
+   ]
+  },
+  {
+   "id": "E5",
+   "category": "slabe_punkty",
+   "muscle": "różne",
+   "exercises": [
+    {
+     "name": "długie kości udowe, mocne pochylenie w przysiadzie → przysiad przedni lub suwnica + RDL",
+     "purpose": "więcej bodźca dla czworogłowych, mniej dla dolnego grzbietu"
+    },
+    {
+     "name": "ból łokci/barków przy wyciskaniu leżąc → tolerowana objętość wyciskania, resztę: wąski chwyt, wyciskanie żołnierskie, hantle",
+     "purpose": "utrzymanie objętości pchania"
+    },
+    {
+     "name": "słaby chwyt → trzymanie sztangi z wysokości kolan przy zamknięciu ruchu 10–20 s przy 90–110% maksimum albo zwis na jednej ręce z hantlem 3 × 10–20 s",
+     "purpose": "siła chwytu w martwym ciągu"
+    },
+    {
+     "name": "wąskie barki, szerokie biodra → priorytet barków i najszerszych",
+     "purpose": "proporcje sylwetki"
+    }
+   ],
+   "notes": "Warianty dobieraj świadomie, nie losowo. Czasem wystarczy po prostu więcej praktyki boju startowego.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "155-158"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "253"
+    }
+   ]
+  },
+  {
+   "id": "E6",
+   "category": "warianty_specjalne",
+   "muscle": "boje trójbojowe",
+   "exercises": [
+    {
+     "name": "pauzy",
+     "purpose": "nauka techniki (np. pauza pod kolanem w martwym ciągu, pauza w przysiadzie), nie trening punktu krytycznego"
+    },
+    {
+     "name": "izometria w słabym kącie",
+     "purpose": "możliwa, ale trudno trafić w punkt"
+    },
+    {
+     "name": "warianty karzące błędy (np. przysiad przedni)",
+     "purpose": "błędy techniczne przy ciężarach bliskich maksimum"
+    },
+    {
+     "name": "trening eksplozywny",
+     "purpose": "unikanie hamowania przy zamknięciu"
+    },
+    {
+     "name": "gumy i łańcuchy",
+     "purpose": "metaanaliza: średnio bez przewagi nad tradycyjnym oporem; może pomóc przy słabym zamknięciu"
+    }
+   ],
+   "notes": "Połączenie umysł–mięsień zwiększa aktywację przy lekkich ciężarach, zanika od ok. 80% 1RM w wyciskaniu; przydatne w izolacjach.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "159-163"
+    }
+   ]
+  },
+  {
+   "id": "E7",
+   "category": "akcesoria_w_programach",
+   "muscle": "plecy",
+   "exercises": [
+    {
+     "name": "przyciąganie pionowe: podciąganie (z obciążeniem, jeśli trzeba), ściąganie drążka lub maszyna, podciąganie z gumą",
+     "purpose": "wybierz wariant mieszczący się w zadanym zakresie powtórzeń i RPE"
+    },
+    {
+     "name": "przyciąganie poziome: wiosłowanie na wyciągu, jednorącz hantlem, z podparciem klatki, seal row, maszyna",
+     "purpose": "nie męczy dolnego grzbietu (ważne w trójboju)"
+    },
+    {
+     "name": "przy niskich powtórzeniach i dużym ciężarze: Pendlay row, seal row, podciąganie z obciążeniem",
+     "purpose": "wolny ciężar"
+    }
+   ],
+   "notes": null,
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "248-249"
+    }
+   ]
+  },
+  {
+   "id": "E8",
+   "category": "akcesoria_w_programach",
+   "muscle": "klatka, barki, triceps",
+   "exercises": [
+    {
+     "name": "wyciskanie poziome: płasko, skos lub skos w dół (bez skrajnych kątów)",
+     "purpose": "pchanie poziome"
+    },
+    {
+     "name": "wyciskanie pionowe: stojąc lub siedząc",
+     "purpose": "pchanie pionowe"
+    },
+    {
+     "name": "warianty wyciskania leżąc: wąski chwyt (nie skrajnie wąski: ok. szerokość pompki z łokciami przy tułowiu), board press, ze stopami w górze, dłuższa pauza",
+     "purpose": "trójbój"
+    },
+    {
+     "name": "dipy na poręczach (z obciążeniem, jeśli trzeba); przy bólu zamiast nich wyciskanie na skosie w dół",
+     "purpose": "klatka, triceps"
+    },
+    {
+     "name": "rozpiętki: linki, hantle lub maszyna, dowolny kąt",
+     "purpose": "klatka"
+    }
+   ],
+   "notes": "Przy progresji opartej na %1RM lepsza sztanga: mniejsze skoki obciążenia i dokładniejsza ocena 1RM z AMRAP. Przy urazie hantle lub maszyna albo samo RPE.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "249, 252-253"
+    }
+   ]
+  },
+  {
+   "id": "E9",
+   "category": "akcesoria_w_programach",
+   "muscle": "nogi, pośladki",
+   "exercises": [
+    {
+     "name": "warianty przysiadu: wysoka lub niska sztanga, przedni, Zercher, safety bar, z pauzą",
+     "purpose": "wybierz bezbolesny, w pełnym zakresie, pasujący do budowy"
+    },
+    {
+     "name": "warianty suwnicy: suwnica, hack przysiad, przysiad na Smithie ze stopami z przodu",
+     "purpose": "ruch przysiadu bez dźwigania ciężaru na tułowiu; mniej zmęczenia grzbietu i bioder"
+    },
+    {
+     "name": "warianty martwego ciągu: klasyczny, sumo (nie za szeroko u kulturysty), rumuński, good morning, ze zmienionym zakresem",
+     "purpose": "przy 6+ powtórzeniach polecany RDL lub good morning"
+    },
+    {
+     "name": "zawias biodrowy: glute-ham raise, wyprosty grzbietu z obciążeniem, reverse hyper, hip thrust, mostek biodrowy, przyciąganie linki między nogami",
+     "purpose": "tylny łańcuch bez obciążania tułowia"
+    },
+    {
+     "name": "jednonóż: przysiad bułgarski, wykroki, wejścia na skrzynię, przysiad jednonóż",
+     "purpose": "równy rozwój i rozkład siły między nogami"
+    },
+    {
+     "name": "wspięcia na palce: proste kolana (stojąc lub na suwnicy) i siedząc",
+     "purpose": "łydki"
+    }
+   ],
+   "notes": "Przy urazie uniemożliwiającym przysiad ze sztangą: suwnica; przy urazie uniemożliwiającym martwy ciąg: zawias biodrowy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "249-253"
+    }
+   ]
+  },
+  {
+   "id": "E10",
+   "category": "akcesoria_w_programach",
+   "muscle": "ramiona, brzuch, kaptury",
+   "exercises": [
+    {
+     "name": "izolacje (uginanie ramion, prostowanie, prostowanie i uginanie nóg)",
+     "purpose": "pełny zakres, bez bólu, sprzęt dowolny"
+    },
+    {
+     "name": "„Leg Curl 1” / „Leg Curl 2” w programie",
+     "purpose": "dwa różne warianty tego samego ruchu"
+    }
+   ],
+   "notes": "Programy kulturystyczne nie mają bezpośredniego treningu brzucha ani szrugsów: przy wielu ćwiczeniach wielostawowych autor nie widział, by dodawały wiele. Jeśli brzuch lub kaptury są słabe, dodaj kilka serii tygodniowo. Zamiana akcesoriów dozwolona, jeśli zamiennik ma podobny wzorzec ruchu i mięśnie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "253-254"
+    }
+   ]
+  },
+  {
+   "id": "E11",
+   "category": "metody",
+   "muscle": "wszystkie",
+   "exercises": [
+    {
+     "name": "serie łączone antagonistów (APS): prostowanie + uginanie nóg, wyciskanie leżąc + wiosłowanie, uginanie + prostowanie ramion, wyciskanie nad głowę + ściąganie drążka",
+     "purpose": "oszczędność czasu bez straty wyników; ok. 2 min między ćwiczeniami wielostawowymi góry, ok. 1 min między izolacjami"
+    },
+    {
+     "name": "rest-pause: do upadku, 20–30 s przerwy, powtarzaj do docelowej liczby powtórzeń",
+     "purpose": "oszczędność czasu; autor woli od drop setów"
+    },
+    {
+     "name": "drop sety",
+     "purpose": "dla zabieganych, na ostatnie akcesorium lub gdy rest-pause psuje technikę (np. wznosy bokiem)"
+    }
+   ],
+   "notes": "APS nie z przysiadem, martwym ciągiem ani wykrokami. Rest-pause i drop sety (do upadku) tylko w akcesoriach, w dniu z najdłuższą przerwą przed kolejnym treningiem tego mięśnia.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 5: Przerwy między seriami",
+     "pages": "177-184"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "240"
+    }
+   ]
+  }
+ ],
+ "progressionRules": [
+  {
+   "id": "PAR-hipertrofia",
+   "category": "parameters",
+   "goal": "hipertrofia",
+   "frequency": {
+    "value": "≥2×/tydz. na mięsień",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "80"
+     }
+    ]
+   },
+   "daysPerWeek": {
+    "value": [
+     3,
+     5
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Szybki start: budowa programu",
+      "pages": "207"
+     }
+    ]
+   },
+   "setsPerMuscleWeek": {
+    "value": {
+     "min": 10,
+     "max": 20
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "47, 81"
+     }
+    ]
+   },
+   "reps": {
+    "value": "⅔–¾ objętości 6–12 (6–15), reszta 1–6 i 12–20",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "74, 81"
+     }
+    ]
+   },
+   "rpe": {
+    "value": [
+     5,
+     10
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "74"
+     }
+    ]
+   },
+   "restMin": {
+    "value": {
+     "isolationMin": 1.5,
+     "compoundMin": 2.5
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 5: Przerwy między seriami",
+      "pages": "184"
+     }
+    ]
+   }
+  },
+  {
+   "id": "PAR-sila",
+   "category": "parameters",
+   "goal": "siła",
+   "frequency": {
+    "value": "≥2×/tydz. na bój lub wzorzec",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "80"
+     }
+    ]
+   },
+   "daysPerWeek": {
+    "value": [
+     3,
+     5
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Szybki start: budowa programu",
+      "pages": "207"
+     }
+    ]
+   },
+   "setsPerMuscleWeek": {
+    "value": {
+     "min": 10,
+     "max": 20
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "47, 81"
+     }
+    ]
+   },
+   "reps": {
+    "value": "⅔–¾ objętości 1–6, reszta 6–15",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "75, 81"
+     }
+    ]
+   },
+   "rpe": {
+    "value": [
+     5,
+     10
+    ],
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+      "pages": "75"
+     }
+    ]
+   },
+   "restMin": {
+    "value": {
+     "isolationMin": 1.5,
+     "compoundMin": 2.5
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Poziom 5: Przerwy między seriami",
+      "pages": "184"
+     }
+    ]
+   }
+  },
+  {
+   "id": "PAR-redukcja",
+   "category": "parameters",
+   "goal": "redukcja",
+   "frequency": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "daysPerWeek": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "setsPerMuscleWeek": {
+    "value": "o jedną kategorię objętości niżej niż poza redukcją",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Szybki start: budowa programu",
+      "pages": "219"
+     }
+    ]
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "rpe": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "restMin": {
+    "value": null,
+    "status": "brak_w_zrodle",
+    "sources": []
+   },
+   "note": "Książka (szybki start, s. 219) zaleca na redukcji: zejść o jeden poziom objętości, częściej robić deload i używać autoregulacji. Dietę omawia osobny tom (Nutrition), którego tu nie ma. Strona przeczytana częściowo (urwane tłumaczenie)."
+  },
+  {
+   "id": "PAR-staz",
+   "category": "parameters",
+   "goal": "wszystkie",
+   "byTrainingAge": {
+    "value": {
+     "poczatkujacy": {
+      "setsPerMuscleWeek": [
+       10,
+       12
+      ],
+      "musclePerWeek": [
+       2,
+       3
+      ]
+     },
+     "sredniozaawansowany": {
+      "setsPerMuscleWeek": [
+       13,
+       15
+      ],
+      "musclePerWeek": [
+       3,
+       4
+      ]
+     },
+     "zaawansowany": {
+      "setsPerMuscleWeek": [
+       16,
+       20
+      ],
+      "musclePerWeek": [
+       3,
+       5
+      ]
+     }
+    },
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "piramida-treningu-helms",
+      "chapter": "Szybki start: budowa programu",
+      "pages": "208"
+     }
+    ]
+   },
+   "note": "Rozdział VIF (s. 86) podaje start: początkujący ok. 10–13 serii, średniozaawansowany/zaawansowany ok. 14–20; tabela szybkiego startu (s. 208) jest dokładniejsza. Im większa objętość, tym więcej sesji."
+  },
+  {
+   "id": "PR1",
+   "category": "progresja_poczatkujacy",
+   "level": "początkujący",
+   "rule": "Progresja liniowa: dodawaj ciężar z sesji na sesję przy zachowanym zapasie powtórzeń: +2,5 kg (5 lb), w przysiadzie i martwym ciągu +5 kg (10 lb). W przykładowych programach każdy dzień progresuje tydzień do tygodnia osobno: +5 kg przysiad i martwy ciąg (w kulturystyce też zawias biodrowy i suwnica), +2,5 kg pozostałe, akcesoria najmniejszy dostępny skok. Gdy nie da się dodać 2,5 kg: mikrotalerze (ok. 0,5–1 kg) albo dokładanie co drugą sesję.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "107-108"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "240"
+    }
+   ]
+  },
+  {
+   "id": "PR2",
+   "category": "progresja_poczatkujacy",
+   "level": "początkujący",
+   "rule": "Nieudana sesja (nie wszystkie serie i powtórzenia) → następnym razem ten sam ciężar. Dwie nieudane sesje z rzędu → −10% przy tych samych seriach i powtórzeniach, potem odbudowa (do ciężaru, przy którym nastąpił zastój). Kolejny zastój → ta sama metoda, ale połowa skoku (przysiad/martwy ciąg/suwnica/zawias +2,5 zamiast +5 kg; inne ćwiczenia ok. +1 kg lub co drugą sesję). Gdy mimo tego większość bojów stoi → przejście na progresję średniozaawansowaną.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "105-109"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "241"
+    }
+   ]
+  },
+  {
+   "id": "PR3",
+   "category": "progresja_poczatkujacy",
+   "level": "początkujący",
+   "rule": "Pierwszy tydzień programu: główne boje wg %1RM (np. 3×8 przy 70% 1RM), pozostałe wg „RPE pierwszej serii 8”: dobierz ciężar tak, by pierwsza seria była ok. RPE 8 i by ten sam ciężar wystarczył na wszystkie serie. Nieudane powtórzenia w kolejnych seriach = za ciężki start, za krótka przerwa albo błąd techniczny. Notuj RPE także w bojach prowadzonych procentowo, by nauczyć się oceny.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "236-240"
+    }
+   ]
+  },
+  {
+   "id": "PR4",
+   "category": "progresja_sredniozaawansowany",
+   "level": "średniozaawansowany",
+   "rule": "Ćwiczenia wielostawowe: fala liniowa 3-tygodniowa. Np. 3 serie 6–8: tydz. 1 3×8, tydz. 2 +2,5–5 kg i 3×7, tydz. 3 kolejne +2,5–5 kg i 3×6; tydz. 4 deload, jeśli potrzebny (lista kontrolna); następna fala startuje od 3×8 z ciężarem o jeden najmniejszy skok wyższym niż poprzednio. Inne zakresy: 3–5, 4–6, 5–7. Przy 8–12 powtórzeniach odejmuj po 2 powtórzenia (12, 10, 8). W programach: +5 kg/tydz. przysiad, martwy ciąg i warianty, +2,5 kg pozostałe.",
+   "values": {
+    "example": [
+     {
+      "week": 1,
+      "sets": 3,
+      "reps": 8,
+      "kg": 100
+     },
+     {
+      "week": 2,
+      "sets": 3,
+      "reps": 7,
+      "kg": 102.5
+     },
+     {
+      "week": 3,
+      "sets": 3,
+      "reps": 6,
+      "kg": 105
+     },
+     {
+      "week": 4,
+      "sets": 3,
+      "reps": 8,
+      "kg": 102.5
+     }
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "109-110"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "211"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "242-243"
+    }
+   ]
+  },
+  {
+   "id": "PR5",
+   "category": "progresja_sredniozaawansowany",
+   "level": "średniozaawansowany",
+   "rule": "Zastój na fali: dokończ bieżący cykl, zmniejszając ciężar tak, by zrobić wszystkie serie i powtórzenia. Po deloadzie zacznij kolejny cykl 5–10% lżej niż ciężar zastoju i stosuj mniejsze skoki (2,5 zamiast 5 kg). Kolejny zastój → poszerz zakres o 1 powtórzenie z obu stron (3–5 → 2–6, 6–8 → 5–9; przy 8–12 o 2: 6–14); wtedy deload obowiązkowy co 2 cykle zamiast co 3. Gdy większość bojów stoi nawet przy +2,5 kg → progresja zaawansowana.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "243-245"
+    }
+   ]
+  },
+  {
+   "id": "PR6",
+   "category": "progresja_izolacje",
+   "level": "średniozaawansowany, zaawansowany (izolacje)",
+   "rule": "Podwójna progresja: wybierz ciężar na co najmniej 3×12 bez upadku; dodawaj powtórzenia co tydzień aż do 3×15, potem najmniejszy skok ciężaru i znów od dołu zakresu. Deload: 2 serie po dolnej granicy (2×12). Jeśli skok ciężaru jest za duży (np. wznosy bokiem), poszerz zakres (np. 8–15). Działa też dla ćwiczeń wielostawowych z hantlami u lżejszych osób.",
+   "values": {
+    "repRange": [
+     12,
+     15
+    ],
+    "sets": 3,
+    "example": "40 lb: 13,12,12 → 14,13,12 → 14,14,13 → deload 12,12 → 15,15,14 → 15,15,15 → 45 lb: 14,14,12"
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "111-113"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "211"
+    }
+   ]
+  },
+  {
+   "id": "PR7",
+   "category": "progresja_zaawansowany",
+   "level": "zaawansowany",
+   "rule": "Periodyzacja blokowa. Akumulacja (6 tyg., hipertrofia i wydolność): 12→22 serie na mięsień (+2 serie/tydz.; 2 sesje/tydz., od tygodnia 4 3 sesje), 4–15 powtórzeń wg celu, RPE ok. 5–8, ciężar rośnie tylko gdy łatwo. Intensyfikacja (4 tyg., siła specyficzna): 22→18→15→12 serii, ciężar co tydzień w górę, ciężkie serie 5→2 powtórzenia, lżejsze 10→6, RPE do 9–10. Realizacja: tydzień taperu (10 serii na mięsień, te same zakresy, RPE 7–9), potem tydzień testu. Wariant z tabeli szybkiego startu: akumulacja 15→20 serii, 10–20 powtórzeń, RPE 6–8; intensyfikacja 14 serii, fala 12→6 powtórzeń (−2/tydz.), RPE 8–10.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "133-136"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "211"
+    }
+   ]
+  },
+  {
+   "id": "PR8",
+   "category": "progresja_zaawansowany",
+   "level": "zaawansowany",
+   "rule": "W programach zaawansowanych zakresy RPE zamiast „RPE pierwszej serii”: pierwsza seria wg %1RM, kolejne korygowane w górę lub w dół, by zmieścić się w zakresie. Bloki 3-tygodniowe (akumulacja, intensyfikacja); objętość spada, intensywność rośnie. Po każdym bloku lista kontrolna deloadu; deload = powtórz tydzień 3 z ⅔ serii, RPE o 1 niżej, %1RM o 5% niżej. Po 3 blokach bez deloadu zrób deload profilaktycznie. 2–4 cykle bloków, potem opcjonalnie test 1RM lub AMRAP.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "246-247"
+    }
+   ]
+  },
+  {
+   "id": "PR9",
+   "category": "deload",
+   "level": "po etapie początkującego",
+   "rule": "Deload = tydzień o niskim stresie: ok. połowa objętości przy podobnej intensywności, np. −1–2 serie na ćwiczenie i −2 powtórzenia przy tym samym ciężarze (3×10×90 kg → 2×8×90 kg), RPE ok. 2 niżej. W fali średniozaawansowanej: najniższe powtórzenia i najniższy ciężar z 3 tygodni, ⅔ serii (3–4 serie → 2, 5–6 → 3). Deload co najmniej po 3 cyklach (9 tyg.) bez deloadu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "106, 124"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "243"
+    }
+   ]
+  },
+  {
+   "id": "PR10",
+   "category": "deload",
+   "level": "średniozaawansowany, zaawansowany",
+   "rule": "Lista kontrolna deloadu po każdym cyklu (poza redukcją): Czy trenujesz regularnie? Czy sen się pogorszył? Czy ciężary lub powtórzenia spadają? Czy stres życiowy wzrósł? Czy bolesność i bóle są większe niż zwykle (w tygodniu wysokich powtórzeń liczy się tylko bolesność)? 0–1 odpowiedzi „tak” → zacznij kolejny cykl; ≥2 → tydzień deloadu.",
+   "values": {
+    "deloadIfYesCount": 2
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "123"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "218"
+    }
+   ]
+  },
+  {
+   "id": "PR11",
+   "category": "objetosc",
+   "level": "wszyscy",
+   "rule": "Zmniejsz objętość o ok. 20% serii na mięsień lub ruch (np. 15 → 12), gdy dieta, sen, stres, układ treningu i RPE są w porządku, a mimo to brak regeneracji (deload pomaga, ale zmęczenie szybko wraca). Zwiększaj o 1–2 serie na mięsień lub wzorzec (ok. 10%), gdy postęp stoi przy dobrej regeneracji; najpierw sprawdź technikę. Dodaj dzień treningowy, gdy sesje są za długie lub wyniki spadają pod koniec sesji.",
+   "values": {
+    "reducePct": 20,
+    "increaseSets": [
+     1,
+     2
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "124-126"
+    }
+   ]
+  },
+  {
+   "id": "PR12",
+   "category": "zastoj",
+   "level": "wszyscy",
+   "rule": "Schemat „gdy nie wiesz, co dalej”: brak zastoju → nic nie zmieniaj. Zastój → czy się regenerujesz (gorszy sen, spadające ciężary/powtórzenia, większy stres, większa bolesność; ≥2 „tak” = nie)? Brak regeneracji → tymczasowo mniej objętości, lekki tydzień; jeśli zmęczenie szybko wraca, zmniejsz objętość na stałe lub przeorganizuj trening. Regeneracja OK → sprawdź: sen >8 h, nadwyżka energetyczna, białko ≥1,6 g/kg, każdy mięsień/bój ≥2×/tydz., solidna technika, trafne RPE. Któreś „nie” → popraw, zrób kolejny mezocykl, oceń ponownie. Wszystko „tak” → czas zwiększyć objętość. U zaawansowanych stosuj, gdy brak postępu 8–12 tyg.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "87"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "121-122"
+    }
+   ]
+  },
+  {
+   "id": "PR13",
+   "category": "tydzien_wprowadzajacy",
+   "level": "wszyscy",
+   "rule": "Tydzień wprowadzający przed nowym blokiem: ok. 75% planowanej objętości przy nieco niższym RPE (np. z 10 serii 3–6 powt. RPE 8–10 na planowane 16 serii 6–12 RPE 7–9 → wprowadzenie 13 serii 6–12 RPE 6–8). Kolejność: blok objętościowy → deload → blok intensywności; blok intensywności → tydzień wprowadzający → blok objętościowy.",
+   "values": {
+    "volumePctOfPlanned": 75
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "104-105"
+    }
+   ]
+  },
+  {
+   "id": "PR14",
+   "category": "periodyzacja_DUP",
+   "level": "średniozaawansowany, zaawansowany",
+   "rule": "Falowanie dzienne (DUP) w kolejności hipertrofia → moc → siła (HPS) lepsze dla trójboju niż HSP. Dzień hipertrofii: 6–12 powt., RPE 5–8. Dzień siły: 1–6 powt., RPE 7–9 (lub 8–10). Dzień mocy: 1–3 powt. przy 75–90% 1RM, RPE 5–7, maks. 3–5 serii na bój. Martwy ciąg 2×/tydz., nie w dniu hipertrofii; wyciskanie i przysiad 3×/tydz.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "136-139"
+    }
+   ]
+  },
+  {
+   "id": "PR15",
+   "category": "taper",
+   "level": "trójboiści",
+   "rule": "Taper 1–4 tyg. (dłuższy po większym przeciążeniu): objętość −⅓ do −⅔, intensywność utrzymana lub obniżona maks. o 10%. 1–3 dni wolnego przed startem możliwe. Sesja „przygotowująca” 24–48 h przed: single przy RPE 4–5 w trzech bojach. Prosty taper 2-tyg.: 1–3 powt. przy 75–85%, objętość bojów −50–70%, akcesoria o połowę serii, w sobotę przed zawodami trening otwarć (single RPE 7,5–8,5). Podejścia: otwarcie = obecne 3RM, drugie = 2RM, trzecie = kolejny rekord (+2,5 kg).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "140-141"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "245"
+    }
+   ]
+  },
+  {
+   "id": "PR16",
+   "category": "peak_week",
+   "level": "kulturyści",
+   "rule": "Tydzień szczytowy kulturysty: te same ćwiczenia, split i serie, ale 8–20 powtórzeń we wszystkie dni przy RPE 6–8,5. Bez nowych ćwiczeń i ciężkiej ekscentryki w rozciągnięciu (np. RDL). Split zakończ 2–3 dni przed występem; 1–2 dni przed: FBW „na pompę” do RPE 6, ok. 30 min. Na zawodach nie rób wysokopowtórzeniowych przysiadów ani martwych ciągów, tylko izolacje lub suwnicę.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "142"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "256"
+    }
+   ]
+  },
+  {
+   "id": "PR17",
+   "category": "autoregulacja",
+   "level": "wszyscy",
+   "rule": "Autoregulacja: programuj %1RM razem z zakresem RPE, pozwól na elastyczne dni treningowe i wolne. Samo RPE dopiero po kilku miesiącach praktyki oceny.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "217"
+    }
+   ]
+  },
+  {
+   "id": "PR18",
+   "category": "rozklad_objetosci",
+   "level": "wszyscy",
+   "rule": "Rozplanuj objętość na tydzień: np. średniozaawansowany, 13–15 serii, 4 dni (nogi, pchanie, ciągnięcie, całe ciało): 4–6 serii na mięsień w dniu FBW, 9–11 w pozostałych. Wyznacz objętość tygodniową, potem częstotliwość dzielącą ją na sesje do udźwignięcia; za męczący dzień → przenieś pracę lub dodaj sesję; krótki dzień → dołóż tam więcej. Przysiad 3× i martwy ciąg 3× ciężko w tygodniu nie jest dobre dla 90% osób (dolny grzbiet); przysiad częściej, martwy ciąg rzadziej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "79, 82"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "209"
+    }
+   ]
+  },
+  {
+   "id": "R1",
+   "category": "jesli_wtedy",
+   "if": "początkujący (postęp z sesji na sesję)",
+   "then": "progresja liniowa: +2,5 kg na sesję (przysiad/martwy ciąg +5 kg), mało ćwiczeń, głównie wielostawowe, 10–12 serii/mięsień/tydz., 2–3× w tygodniu",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "107"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "208"
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "category": "jesli_wtedy",
+   "if": "klient ma realnie 2 dni w tygodniu",
+   "then": "FBW 2× w tygodniu (dopuszczalne u zapracowanego początkującego); z czasem większość potrzebuje ≥3 dni",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "79"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "204"
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "category": "jesli_wtedy",
+   "if": "klient ma 3–5 dni",
+   "then": "dla 90% osób: każdy mięsień lub ruch 2–4× w tygodniu; 4 dni: góra/dół lub nogi/pchanie/ciągnięcie/FBW",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "207-209"
+    }
+   ]
+  },
+  {
+   "id": "R4",
+   "category": "jesli_wtedy",
+   "if": "nieudana sesja (nie wszystkie powtórzenia)",
+   "then": "następnym razem ten sam ciężar",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "241"
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "category": "jesli_wtedy",
+   "if": "dwie nieudane sesje z rzędu w tym samym dniu",
+   "then": "−10% ciężaru, potem odbudowa; przy kolejnym zastoju połowa skoku",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "106"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "241"
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "category": "jesli_wtedy",
+   "if": "początkujący stoi mimo resetu i mniejszych skoków na większości bojów",
+   "then": "przejście na falę średniozaawansowaną (PR4)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "241"
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "category": "jesli_wtedy",
+   "if": "koniec 3-tygodniowej fali lub bloku",
+   "then": "lista kontrolna deloadu: ≥2 „tak” → tydzień deloadu, inaczej kolejny cykl",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "123"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "218"
+    }
+   ]
+  },
+  {
+   "id": "R8",
+   "category": "jesli_wtedy",
+   "if": "3 cykle (ok. 9 tyg.) bez deloadu",
+   "then": "deload niezależnie od listy kontrolnej (przy poszerzonym zakresie powtórzeń co 2 cykle)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "124"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "243-244"
+    }
+   ]
+  },
+  {
+   "id": "R9",
+   "category": "jesli_wtedy",
+   "if": "tylko ból stawów lub ścięgien",
+   "then": "tydzień z 12–20 powtórzeniami albo BFR 20–30% 1RM w jednostawowych; jeśli nie mija kilka tygodni → specjalista",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "42"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "124"
+    }
+   ]
+  },
+  {
+   "id": "R10",
+   "category": "jesli_wtedy",
+   "if": "zastój przy dobrej regeneracji i spełnionych podstawach (sen >8 h, nadwyżka, białko ≥1,6 g/kg, ≥2×/tydz., technika, RPE)",
+   "then": "dodaj 1–2 serie na mięsień lub wzorzec",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "87"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "125"
+    }
+   ]
+  },
+  {
+   "id": "R11",
+   "category": "jesli_wtedy",
+   "if": "zastój bez regeneracji (≥2 „tak”: sen gorszy, wyniki spadają, stres, bolesność)",
+   "then": "lekki tydzień; jeśli zmęczenie szybko wraca → −20% serii lub przeorganizowanie",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "87"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "124"
+    }
+   ]
+  },
+  {
+   "id": "R12",
+   "category": "jesli_wtedy",
+   "if": "sesje są za długie albo wyniki spadają pod koniec sesji",
+   "then": "dodaj dzień treningowy i rozłóż objętość",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "126"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "79"
+    }
+   ]
+  },
+  {
+   "id": "R13",
+   "category": "jesli_wtedy",
+   "if": "klient ma gorszy dzień",
+   "then": "zrób najłatwiejszą sesję z tego tygodnia",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "36"
+    }
+   ]
+  },
+  {
+   "id": "R14",
+   "category": "jesli_wtedy",
+   "if": "klient opuścił trening",
+   "then": "kontynuuj od opuszczonej sesji; jeśli trzeba skrócić tydzień, pomiń sesję o najmniejszym stresie",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "37-38"
+    }
+   ]
+  },
+  {
+   "id": "R15",
+   "category": "jesli_wtedy",
+   "if": "klient łączy siłownię z cardio",
+   "then": "siłownia ≥6 h przed cardio lub osobne dni; cardio tuż przed siłownią najgorsze",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "39-40"
+    }
+   ]
+  },
+  {
+   "id": "R16",
+   "category": "jesli_wtedy",
+   "if": "klient na redukcji",
+   "then": "objętość o jedną kategorię niżej, częstszy deload, autoregulacja",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "219"
+    }
+   ]
+  },
+  {
+   "id": "R17",
+   "category": "jesli_wtedy",
+   "if": "klient ma mało czasu",
+   "then": "serie łączone antagonistów (nie z przysiadem/martwym ciągiem/wykrokami), rest-pause lub drop set w ostatnim akcesorium",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 5: Przerwy między seriami",
+     "pages": "177-184"
+    }
+   ]
+  },
+  {
+   "id": "R18",
+   "category": "jesli_wtedy",
+   "if": "klient chce często zmieniać ćwiczenia",
+   "then": "główne wielostawowe stałe przez wiele mezocykli; rotuj izolacje",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "152-153"
+    }
+   ]
+  },
+  {
+   "id": "R19",
+   "category": "jesli_wtedy",
+   "if": "trójboista 2–4 tyg. przed zawodami",
+   "then": "taper: objętość −⅓ do −⅔, intensywność maks. −10%, sesja przygotowująca 24–48 h przed; podejścia 3RM, 2RM, rekord",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "140-141"
+    }
+   ]
+  },
+  {
+   "id": "R20",
+   "category": "jesli_wtedy",
+   "if": "kulturysta w tygodniu zawodów",
+   "then": "8–20 powt. przy RPE 6–8,5, bez nowych ćwiczeń, split kończy 2–3 dni przed",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "142"
+    }
+   ]
+  },
+  {
+   "id": "R21",
+   "category": "jesli_wtedy",
+   "if": "klient nie umie jeszcze oceniać RPE",
+   "then": "główne boje wg %1RM, RPE tylko notuj; samo RPE po kilku miesiącach praktyki",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "217"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "236-239"
+    }
+   ]
+  },
+  {
+   "id": "R22",
+   "category": "jesli_wtedy",
+   "if": "klient bez sprzętu / trening w domu",
+   "then": "książka tego nie omawia",
+   "status": "brak_w_zrodle",
+   "sources": []
+  },
+  {
+   "id": "R23",
+   "category": "jesli_wtedy",
+   "if": "przysiad z długimi kośćmi udowymi daje słaby rozwój czworogłowych",
+   "then": "dodaj przysiad przedni lub suwnicę; trójboista zostawia przysiad startowy z mniejszą objętością",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 4: Dobór ćwiczeń",
+     "pages": "155-158"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S1",
+   "trigger": "ból przy ćwiczeniu",
+   "action": "jeśli boli, nie rób tego w tej formie: zmień zakres ruchu, zmniejsz ciężar albo zamień na bezbolesne ćwiczenie; ból utrzymujący się kilka tygodni → specjalista",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "42"
+    }
+   ]
+  },
+  {
+   "id": "S2",
+   "trigger": "poważny uraz",
+   "action": "fizjoterapeuta lub lekarz sportowy, najlepiej pracujący ze sportowcami; trener nie diagnozuje (autor podkreśla, że nie jest fizjoterapeutą)",
+   "status": "zrodlo",
+   "priority": "critical",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "41"
+    }
+   ]
+  },
+  {
+   "id": "S3",
+   "trigger": "ćwiczenia wielostawowe z wolnym ciężarem",
+   "action": "bez upadku mięśniowego (przysiad, martwy ciąg, OHP); ryzyko urazu i nadmierne zmęczenie",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "66-67"
+    }
+   ]
+  },
+  {
+   "id": "S4",
+   "trigger": "początkujący w bojach głównych",
+   "action": "nie wychodź poza upadek techniczny (przysiad, martwy ciąg, wyciskania, OHP, przysiad przedni, RDL); powtórzenia „na siłę” z rozpadem techniki szkodzą długoterminowo",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "240-241"
+    }
+   ]
+  },
+  {
+   "id": "S5",
+   "trigger": "test maksimum",
+   "action": "3–5RM z asekuracją i pod okiem doświadczonej osoby; całkowicie początkujący bez testów; w ćwiczeniach bez %1RM bez testów maksimum",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "237"
+    }
+   ]
+  },
+  {
+   "id": "S6",
+   "trigger": "AMRAP w przysiadzie lub martwym ciągu",
+   "action": "do RPE 9 lub upadku technicznego, nie absolutnego",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "120"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "237"
+    }
+   ]
+  },
+  {
+   "id": "S7",
+   "trigger": "serie łączone antagonistów",
+   "action": "nie z przysiadem, martwym ciągiem, wykrokami i ich wariantami; ostrożnie z wyciskaniem w trójboju",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 5: Przerwy między seriami",
+     "pages": "179-181"
+    }
+   ]
+  },
+  {
+   "id": "S8",
+   "trigger": "drop sety i rest-pause",
+   "action": "tylko akcesoria, nie główne ćwiczenia wielostawowe; wymagają dłuższej regeneracji",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 5: Przerwy między seriami",
+     "pages": "183-184"
+    }
+   ]
+  },
+  {
+   "id": "S9",
+   "trigger": "ból stawu lub ścięgna (bez innych objawów przemęczenia)",
+   "action": "normalny tydzień z 12–20 powtórzeniami albo BFR w ćwiczeniach jednostawowych przy 20–30% 1RM, opaska zaciśnięta na ok. 7/10, bez mrowienia i przebarwienia kończyny, serie bez upadku",
+   "status": "zrodlo",
+   "priority": "warning",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "124"
+    }
+   ]
+  },
+  {
+   "id": "S10",
+   "trigger": "ekscentryka supramaksymalna",
+   "action": "nie zalecana obecnie: trudna, ryzykowna z wolnym ciężarem, duża bolesność; zaawansowani najwyżej w krótkim bloku z asekuracją",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 6: Tempo",
+     "pages": "197-198"
+    }
+   ]
+  },
+  {
+   "id": "S11",
+   "trigger": "bardzo wolne powtórzenia",
+   "action": "powtórzenia ≥10 s szkodzą wynikom; nie zwalniaj celowo (poza nauką techniki)",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 6: Tempo",
+     "pages": "196, 199"
+    }
+   ]
+  },
+  {
+   "id": "S12",
+   "trigger": "bardzo lekkie serie do upadku (15–35 RM) w ćwiczeniach wielostawowych",
+   "action": "duży dyskomfort (nudności), zmęczenie ogólne, trudniej ocenić upadek, dłuższa regeneracja; lekkie ciężary raczej w izolacjach i przy bolących stawach",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "72-73"
+    }
+   ]
+  },
+  {
+   "id": "S13",
+   "trigger": "objętość powyżej ok. 20 serii na mięsień tygodniowo",
+   "action": "tylko gdy regeneracja, sen, dieta i technika są optymalne i trzeba przełamać zastój",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "62"
+    }
+   ]
+  },
+  {
+   "id": "S14",
+   "trigger": "kontekst ryzyka",
+   "action": "urazowość na 1000 h: kulturystyka 0,24–1; trójbój 1,0–5,8 (lub 1,0–4,4); podnoszenie ciężarów 2,4–3,3; CrossFit 3,1; strongman 4,5–6,1; highland games 7,5; dla porównania koszykówka 8,5–11,1 — trening siłowy jest względnie bezpieczny",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "40-41"
+    }
+   ]
+  },
+  {
+   "id": "S15",
+   "trigger": "początkujący chce startować jednocześnie w trójboju i kulturystyce",
+   "action": "autor odradza; łączenie startów dopiero od poziomu średniozaawansowanego",
+   "status": "zrodlo",
+   "priority": "info",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "255"
+    }
+   ]
+  },
+  {
+   "id": "S16",
+   "trigger": "ostry, kłujący ból, drętwienie, ból w klatce piersiowej, zawroty lub duszność podczas treningu",
+   "action": "przerwij trening i skieruj do lekarza",
+   "status": "poza_zrodlem",
+   "priority": "critical",
+   "sources": []
+  },
+  {
+   "id": "S17",
+   "trigger": "choroby układu krążenia, nadciśnienie, ciąża, cukrzyca, osteoporoza lub świeży uraz",
+   "action": "przed treningiem zgoda lekarza; książka tego nie omawia",
+   "status": "poza_zrodlem",
+   "priority": "critical",
+   "sources": []
+  },
+  {
+   "id": "S18",
+   "trigger": "propozycja treningu BFR (okluzyjnego)",
+   "action": "książka nie podaje przeciwwskazań; w aplikacji tylko po instruktażu trenera, nie u osób z problemami naczyniowymi, zakrzepicą, nadciśnieniem ani w ciąży",
+   "status": "poza_zrodlem",
+   "priority": "warning",
+   "sources": []
+  },
+  {
+   "id": "S19",
+   "trigger": "klient aplikacji bez doświadczenia, starszy lub po urazie",
+   "action": "nie zlecaj prawdziwych testów 1RM; szacuj z RPE lub z 3–5RM pod okiem trenera",
+   "status": "poza_zrodlem",
+   "priority": "warning",
+   "sources": []
+  },
+  {
+   "id": "S20",
+   "trigger": "redukcja masy ciała z dużym deficytem",
+   "action": "obserwuj regenerację, zmniejsz objętość wcześniej; dietę ustala dietetyk lub osobny tom serii",
+   "status": "poza_zrodlem",
+   "priority": "info",
+   "sources": []
+  }
+ ],
+ "planTemplates": [
+  {
+   "id": "T1",
+   "name": "Rutyna siłowa 4 dni (przykład z rozdz. VIF)",
+   "goal": [
+    "siła"
+   ],
+   "level": "średniozaawansowany",
+   "status": "zrodlo",
+   "note": "„Rutyna”, nie program: zmienne nie zmieniają się w czasie. Ok. ¾ objętości w 1–6 powtórzeniach. Przysiad i martwy ciąg zamieniają się co tydzień (przysiad z RDL, martwy ciąg z przysiadem przednim). Wyciskanie 10 serii, przysiad+zawias 9, plecy 9.",
+   "days": {
+    "count": 4,
+    "layout": [
+     "pon A",
+     "wt B",
+     "czw C",
+     "pt D"
+    ]
+   },
+   "exercises": {
+    "A": [
+     {
+      "name": "wyciskanie leżąc",
+      "sets": 5,
+      "reps": "5",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "pullover na wyciągu",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wiosłowanie",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ],
+    "B": [
+     {
+      "name": "przysiad / martwy ciąg (na zmianę co tydzień)",
+      "sets": 5,
+      "reps": "5",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "RDL / przysiad przedni",
+      "sets": 4,
+      "reps": "6",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ],
+    "C": [
+     {
+      "name": "wyciskanie leżąc",
+      "sets": 5,
+      "reps": "3",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie nad głowę (OHP)",
+      "sets": 4,
+      "reps": "6",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "podciąganie z obciążeniem",
+      "sets": 3,
+      "reps": "6",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ],
+    "D": [
+     {
+      "name": "martwy ciąg / przysiad",
+      "sets": 5,
+      "reps": "3",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przysiad przedni / RDL",
+      "sets": 4,
+      "reps": "6",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ]
+   },
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "89-90"
+    }
+   ]
+  },
+  {
+   "id": "T2",
+   "name": "Rutyna hipertroficzna góra/dół 4 dni",
+   "goal": [
+    "hipertrofia"
+   ],
+   "level": "średniozaawansowany",
+   "status": "zrodlo",
+   "note": "Objętość: pośladki 15, klatka/czworogłowe/dwugłowe 13, biceps/triceps 12, barki 12–16, łydki 8 serii/tydz.",
+   "days": {
+    "count": 4,
+    "layout": [
+     "pon góra",
+     "wt dół",
+     "czw góra",
+     "pt dół"
+    ]
+   },
+   "exercises": {
+    "A": [
+     {
+      "name": "wyciskanie leżąc",
+      "sets": 4,
+      "reps": "4–6",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wiosłowanie",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie hantli na skosie",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "podciąganie",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "triceps",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "biceps",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wznosy bokiem",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ],
+    "B": [
+     {
+      "name": "przysiad",
+      "sets": 4,
+      "reps": "4–6",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "RDL",
+      "sets": 4,
+      "reps": "4–6",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "prostowanie nóg",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "uginanie nóg",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "hip thrust",
+      "sets": 3,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wspięcia na palce",
+      "sets": 4,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ],
+    "C": [
+     {
+      "name": "wyciskanie hantli płasko",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "ściąganie drążka",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie nad głowę",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wiosłowanie",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "rozpiętki",
+      "sets": 3,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "triceps",
+      "sets": 3,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "biceps",
+      "sets": 3,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ],
+    "D": [
+     {
+      "name": "suwnica",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyprosty grzbietu z obciążeniem",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "prostowanie nóg",
+      "sets": 3,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "uginanie nóg",
+      "sets": 3,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wspięcia na palce siedząc",
+      "sets": 4,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     }
+    ]
+   },
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "91-93"
+    }
+   ]
+  },
+  {
+   "id": "T3",
+   "name": "Trójbój – początkujący, 3 dni (DUP)",
+   "goal": [
+    "siła",
+    "trójbój"
+   ],
+   "level": "początkujący (w trójboju, nie całkowicie nowy na siłowni)",
+   "status": "zrodlo",
+   "note": "Falowanie dzienne: dzień objętości, dzień techniczny (wyciskanie 3×3 przy 80% = 4–6 powt. zapasu, nie progresuje się na nim), dzień siły. Progresja co tydzień osobno dla każdego dnia (PR1–PR2). Istnieje też wersja 4-dniowa (s. 261), nieopisana tu szczegółowo. Mały glif w kolumnie powtórzeń/RPE odczytany jako 8 (warstwa tekstowa: „số 8”).",
+   "days": {
+    "count": 3,
+    "layout": [
+     "Dzień 1",
+     "Dzień 2",
+     "Dzień 3"
+    ]
+   },
+   "exercises": {
+    "1": [
+     {
+      "name": "przysiad",
+      "sets": 3,
+      "reps": "8",
+      "pct1RM": 70,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie leżąc",
+      "sets": 3,
+      "reps": "8",
+      "pct1RM": 70,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie pionowe",
+      "sets": 4,
+      "reps": "10",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "2": [
+     {
+      "name": "wyciskanie leżąc",
+      "sets": 3,
+      "reps": "3",
+      "pct1RM": 80,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "martwy ciąg",
+      "sets": 3,
+      "reps": "3",
+      "pct1RM": 85,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie pionowe",
+      "sets": 4,
+      "reps": "10",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "jednonóż (wariant dowolny)",
+      "sets": 3,
+      "reps": "8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "3": [
+     {
+      "name": "przysiad",
+      "sets": 3,
+      "reps": "4",
+      "pct1RM": 85,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie leżąc",
+      "sets": 3,
+      "reps": "4",
+      "pct1RM": 85,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie poziome",
+      "sets": 4,
+      "reps": "10",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "jednonóż (wariant dowolny)",
+      "sets": 3,
+      "reps": "8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ]
+   },
+   "volume": {
+    "upperPushSetsWeek": 12,
+    "upperPullSetsWeek": 11,
+    "lowerSetsWeek": 12,
+    "mainLiftsShare": 0.56,
+    "mainLiftSetsAtMost6Reps": 0.67,
+    "totalSetsWeek": 32
+   },
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "224-227, 238-240, 260"
+    }
+   ]
+  },
+  {
+   "id": "T4",
+   "name": "Kulturystyka – początkujący, 4 dni dół/góra",
+   "goal": [
+    "hipertrofia"
+   ],
+   "level": "początkujący",
+   "status": "zrodlo",
+   "note": "Model falowy: dni 1–2 cięższe (siła), dni 3–4 objętościowe. Ok. 65% objętości w 6–12 powtórzeniach, 35% w cięższych i lżejszych. Wszystkie ćwiczenia bez %1RM: RPE pierwszej serii 8. Progresja: +5 kg przysiad/martwy ciąg/zawias/suwnica, +2,5 kg reszta, tydzień do tygodnia. Mały glif w kolumnie powtórzeń odczytany jako 8.",
+   "days": {
+    "count": 4,
+    "layout": [
+     "Dzień 1 dół",
+     "Dzień 2 góra",
+     "Dzień 3 dół",
+     "Dzień 4 góra"
+    ]
+   },
+   "exercises": {
+    "1": [
+     {
+      "name": "przysiad (wariant)",
+      "sets": 3,
+      "reps": "5",
+      "pct1RM": 82.5,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "martwy ciąg (wariant)",
+      "sets": 3,
+      "reps": "5",
+      "pct1RM": 82.5,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "jednonóż (wariant)",
+      "sets": 3,
+      "reps": "8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wspięcia na palce stojąc",
+      "sets": 4,
+      "reps": "8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "2": [
+     {
+      "name": "wyciskanie poziome",
+      "sets": 3,
+      "reps": "5",
+      "pct1RM": 82.5,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie poziome",
+      "sets": 3,
+      "reps": "5",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie pionowe",
+      "sets": 2,
+      "reps": "8",
+      "pct1RM": 72.5,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie pionowe",
+      "sets": 2,
+      "reps": "8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "rozpiętki",
+      "sets": 2,
+      "reps": "15",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "3": [
+     {
+      "name": "zawias biodrowy (wariant)",
+      "sets": 3,
+      "reps": "8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "suwnica (wariant)",
+      "sets": 3,
+      "reps": "8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "prostowanie nóg",
+      "sets": 3,
+      "reps": "12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "uginanie nóg",
+      "sets": 3,
+      "reps": "12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wspięcia na palce siedząc",
+      "sets": 4,
+      "reps": "15",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "4": [
+     {
+      "name": "wyciskanie poziome",
+      "sets": 3,
+      "reps": "10",
+      "pct1RM": 67.5,
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie poziome",
+      "sets": 3,
+      "reps": "10",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie na skosie",
+      "sets": 2,
+      "reps": "12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie pionowe",
+      "sets": 2,
+      "reps": "12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "triceps",
+      "sets": 2,
+      "reps": "12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "biceps",
+      "sets": 2,
+      "reps": "12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ]
+   },
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "231-232, 240, 262"
+    }
+   ]
+  },
+  {
+   "id": "T5",
+   "name": "Kulturystyka – średniozaawansowany, 5 dni (dół, góra, dół, pchanie, ciągnięcie)",
+   "goal": [
+    "hipertrofia"
+   ],
+   "level": "średniozaawansowany",
+   "status": "zrodlo",
+   "note": "Każda partia 2×/tydz.; 10–20 serii/tydz. na mięsień. Ćwiczenia wielostawowe: fala liniowa (PR4, zakres jako fala, np. 3–5 = 5,4,3); izolacje: podwójna progresja (PR6). RPE pierwszej serii 8. Nazwę pierwszego ćwiczenia w dniach 2 i 4 („wyciskanie pionowe”) odczytano z małego napisu na obrazie, odczyt niepewny.",
+   "days": {
+    "count": 5,
+    "layout": [
+     "Dzień 1 dół",
+     "Dzień 2 góra",
+     "Dzień 3 dół",
+     "Dzień 4 pchanie",
+     "Dzień 5 ciągnięcie"
+    ]
+   },
+   "exercises": {
+    "1": [
+     {
+      "name": "przysiad (wariant)",
+      "sets": 4,
+      "reps": "3–5",
+      "pct1RM": "82,5–87,5",
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "martwy ciąg (wariant)",
+      "sets": 4,
+      "reps": "3–5",
+      "pct1RM": "82,5–87,5",
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "jednonóż (wariant)",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "uginanie nóg",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wspięcia na palce stojąc",
+      "sets": 5,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "2": [
+     {
+      "name": "wyciskanie poziome",
+      "sets": 4,
+      "reps": "3–5",
+      "pct1RM": "82,5–87,5",
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie poziome",
+      "sets": 4,
+      "reps": "4–6",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie pionowe",
+      "sets": 3,
+      "reps": "5–7",
+      "pct1RM": "77,5–82,5",
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie pionowe",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "triceps",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "biceps",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "3": [
+     {
+      "name": "zawias biodrowy (wariant)",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "suwnica (wariant)",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "prostowanie nóg",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "uginanie nóg",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wspięcia na palce siedząc",
+      "sets": 5,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "4": [
+     {
+      "name": "wyciskanie pionowe",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": "75–80",
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyciskanie poziome",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": "75–80",
+      "firstSetRPE": null,
+      "status": "zrodlo"
+     },
+     {
+      "name": "dipy",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "rozpiętki",
+      "sets": 3,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ],
+    "5": [
+     {
+      "name": "przyciąganie poziome",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "przyciąganie pionowe",
+      "sets": 3,
+      "reps": "6–8",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "wyprosty grzbietu z obciążeniem",
+      "sets": 3,
+      "reps": "8–12",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     },
+     {
+      "name": "face pull",
+      "sets": 2,
+      "reps": "12–15",
+      "pct1RM": null,
+      "firstSetRPE": 8,
+      "status": "zrodlo"
+     }
+    ]
+   },
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "232-233, 242-243, 264"
+    }
+   ]
+  },
+  {
+   "id": "T6",
+   "name": "Szablon średniozaawansowany hipertrofia 4 dni (nogi, pchanie, ciągnięcie, całe ciało)",
+   "goal": [
+    "hipertrofia"
+   ],
+   "level": "średniozaawansowany",
+   "status": "zrodlo",
+   "note": "Struktura z tabeli szybkiego startu; konkretnych ćwiczeń tabela nie podaje (dobierz z E1). Każdy mięsień 2×/tydz., 13–15 serii.",
+   "days": {
+    "count": 4,
+    "layout": [
+     "nogi (6–20 powt., ~9 serii/mięsień)",
+     "pchanie (6–20, ~9)",
+     "ciągnięcie (6–20, ~9)",
+     "całe ciało (4–8, ~6)"
+    ]
+   },
+   "exercises": {
+    "wielostawowe": [
+     {
+      "name": "fala 8–12 powt. (w dniu FBW fala 4–6)",
+      "status": "zrodlo"
+     }
+    ],
+    "izolacje": [
+     {
+      "name": "podwójna progresja 12–15 (w dniu FBW 6–8)",
+      "status": "zrodlo"
+     }
+    ],
+    "konkretne_cwiczenia": [
+     {
+      "name": null,
+      "status": "brak_w_zrodle"
+     }
+    ]
+   },
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "209, 213"
+    }
+   ]
+  },
+  {
+   "id": "T7",
+   "name": "Szablon średniozaawansowany siła 4 dni (przysiad, wyciskanie, martwy ciąg, wyciskanie)",
+   "goal": [
+    "siła",
+    "trójbój"
+   ],
+   "level": "średniozaawansowany",
+   "status": "zrodlo",
+   "note": "13–15 serii na kategorię; łącznie 36 serii, z czego 19 z trzech bojów (>50%).",
+   "days": {
+    "count": 4,
+    "layout": [
+     "przysiad 4–6 powt.",
+     "wyciskanie 4–6",
+     "martwy ciąg 3–5",
+     "wyciskanie 8–12"
+    ]
+   },
+   "exercises": {
+    "przysiad": [
+     {
+      "name": "przysiad 5 serii, fala 4–6",
+      "status": "zrodlo"
+     },
+     {
+      "name": "ciągnięcie góra – 4 serie, podwójna progresja 6–8",
+      "status": "zrodlo"
+     }
+    ],
+    "wyciskanie_ciezkie": [
+     {
+      "name": "wyciskanie leżąc 5 serii, fala 4–6",
+      "status": "zrodlo"
+     },
+     {
+      "name": "pchanie góra – 3 serie, podwójna progresja 6–8",
+      "status": "zrodlo"
+     }
+    ],
+    "martwy_ciag": [
+     {
+      "name": "martwy ciąg 5 serii, fala 3–5",
+      "status": "zrodlo"
+     },
+     {
+      "name": "dół – 3 serie, podwójna progresja 6–8",
+      "status": "zrodlo"
+     }
+    ],
+    "wyciskanie_lzejsze": [
+     {
+      "name": "wyciskanie leżąc 4 serie, fala 8–12",
+      "status": "zrodlo"
+     },
+     {
+      "name": "pchanie góra 3 serie + ciągnięcie góra 4 serie, podwójna progresja 8–12",
+      "status": "zrodlo"
+     }
+    ]
+   },
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Szybki start: budowa programu",
+     "pages": "215-216"
+    }
+   ]
+  },
+  {
+   "id": "T8",
+   "name": "Blok zaawansowany: akumulacja → intensyfikacja → realizacja",
+   "goal": [
+    "hipertrofia",
+    "siła"
+   ],
+   "level": "zaawansowany",
+   "status": "zrodlo",
+   "note": "Schemat periodyzacji (PR7), nie lista ćwiczeń.",
+   "days": {
+    "count": null,
+    "layout": [
+     "akumulacja 6 tyg.: 12→22 serii, 2→3 sesje/tydz., RPE 5–8",
+     "intensyfikacja 4 tyg.: 22→12 serii, RPE do ~10",
+     "taper 1 tydz.: 10 serii, RPE 7–9",
+     "test 1 tydz.: AMRAP (hipertrofia) lub 1RM (siła) po 2–3 dniach singli RPE 7→5"
+    ]
+   },
+   "exercises": {},
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "133-136"
+    }
+   ]
+  },
+  {
+   "id": "T9",
+   "name": "Plan domowy / bez sprzętu",
+   "goal": [],
+   "level": null,
+   "status": "brak_w_zrodle",
+   "note": "Książka nie podaje planu domowego ani bez sprzętu.",
+   "days": null,
+   "exercises": {},
+   "sources": []
+  }
+ ],
+ "sourceReferences": [
+  {
+   "id": "piramida-treningu-helms",
+   "type": "book",
+   "author": "Eric Helms, Andy Morgan, Andrea Valdez",
+   "publisher": null,
+   "title": "The Muscle and Strength Pyramid: Training (wyd. 2); plik: tłumaczenie maszynowe Google na wietnamski („Kim tự tháp cơ bắp và sức mạnh: Đào tạo”)",
+   "titlePl": "Piramida mięśni i siły: Trening (Helms, Morgan, Valdez)",
+   "year": null,
+   "isbn": null,
+   "edition": 2,
+   "pages": "9-272 (treść); 273-288 puste w pliku (urwane pobieranie)",
+   "pagesNote": "Strona PDF = drukowana strona książki. Puste strony-przekładki rozdziałów (9, 13, 17, 18, 21, 29, 45, 99, 145, 171, 188, 203, 220). Brak s. 273–288: zasoby (s. 273) i słowo końcowe autora (s. 281).",
+   "scope": "trening siłowy i hipertroficzny: przestrzeganie planu, objętość/intensywność/częstotliwość, progresja i periodyzacja, dobór ćwiczeń, przerwy, tempo, szybki start, programy przykładowe (trójbój i kulturystyka, 3 poziomy)",
+   "fileUsed": "Helms-Muscle-and-Strength-Pyramid-Training.pdf.crdownload (19 095 812 B; niedokończone pobieranie, PDF bez tablicy xref)",
+   "personalDataOmitted": true,
+   "translationNotes": [
+    "Plik to tłumaczenie maszynowe Google na wietnamski („Machine Translated by Google” na każdej stronie). Nazwy i liczby oddano wg znaczenia angielskiego oryginału.",
+    "Terminy zniekształcone: „bộ” = seria, „đại diện” = powtórzenie (rep), „hủy tải/xóa/dỡ bỏ tải” = deload, „thang máy” = bój (lift), „băng ghế (dự bị)” = wyciskanie leżąc (bench), „bản lề hông” = zawias biodrowy, „dăm bông/Hams” = dwugłowe uda, „Bê” = łydki, „Con kiến. Delts / Với. Delts” = przednie / boczne aktony barków, „côn” = taper, „cuộc họp/gặp mặt” = zawody (meet), „tải sóng” = fala (wave loading).",
+    "Tabele w warstwie tekstowej są poszatkowane; wartości tabel odczytano z obrazów stron (s. 41, 64, 65, 84, 87, 124, 208–211, 213, 215, 224, 227, 260, 262, 264). Małe glify „8” w kolumnach RPE/powtórzeń są na obrazie nieczytelne, odczytano je z warstwy tekstowej („số 8”).",
+    "Rozbieżności w źródle: zakres hipertrofii 6–12 (s. 74) vs 6–15 (s. 81); objętość startowa 10–13 / 14–20 (s. 86) vs 10–12 / 13–15 / 16–20 (s. 208); RPE akumulacji 6–8 (s. 133) vs 5–8 (s. 134)."
+   ]
+  },
+  {
+   "id": "piramida-treningu-helms-rozdzialy",
+   "type": "chapters",
+   "chapters": [
+    {
+     "name": "Przedmowy (Zourdos, autor), Co nowego",
+     "pages": "9-20"
+    },
+    {
+     "name": "Wprowadzenie",
+     "pages": "21-28"
+    },
+    {
+     "name": "Poziom 1: Przestrzeganie planu (Adherence)",
+     "pages": "29-44"
+    },
+    {
+     "name": "Poziom 2: Objętość, intensywność, częstotliwość (VIF)",
+     "pages": "45-98"
+    },
+    {
+     "name": "Poziom 3: Progresja",
+     "pages": "99-144"
+    },
+    {
+     "name": "Poziom 4: Dobór ćwiczeń",
+     "pages": "145-170"
+    },
+    {
+     "name": "Poziom 5: Przerwy między seriami",
+     "pages": "171-187"
+    },
+    {
+     "name": "Poziom 6: Tempo",
+     "pages": "188-202"
+    },
+    {
+     "name": "Szybki start: budowa programu",
+     "pages": "203-219"
+    },
+    {
+     "name": "Przykładowe programy",
+     "pages": "220-272 (końcówka urwana)"
+    }
+   ]
+  }
+ ],
+ "testingRules": [
+  {
+   "id": "TS1",
+   "rule": "Ocena postępu: test 1RM, AMRAP z szacowaniem 1RM (z ok. 5RM lub cięższych: 5RM, 3RM, 2 przy RPE 9, 3 przy RPE 8) albo (preferowane) RPE, np. 2 powt. przy RPE 9 ≈ 3RM, 2 przy RPE 8 ≈ 4RM, trójka przy RPE 8–9 ≈ 4–5RM. AMRAP-y na 6, 8, 10RM nie szacują dobrze 1RM.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "115-120"
+    }
+   ]
+  },
+  {
+   "id": "TS2",
+   "rule": "Zaawansowani testują 1RM co 6–12 tyg. (w programach: co 8–16 tyg.), lub ok. 3× w roku po cyklu akumulacja → intensyfikacja → taper. Test można zastąpić śledzeniem ciężaru przy tym samym RPE. Testy do RPE 8–9 zamiast 10; w ryzykownych bojach (martwy ciąg, przysiad) AMRAP do RPE 9.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "116-120"
+    },
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "248"
+    }
+   ]
+  },
+  {
+   "id": "TS3",
+   "rule": "Start programu: w bojach z %1RM zrób 3–5RM pod okiem doświadczonej osoby z asekuracją i oszacuj 1RM kalkulatorem; trójboista może zrobić 1RM. Przysiad i martwy ciąg do upadku technicznego, nie absolutnego. Całkowicie początkujący nie robi żadnych testów: lekki–średni ciężar, nauka techniki, progresja co sesję przez kilka tygodni. W ćwiczeniach bez %1RM nie testuj maksimum, używaj RPE.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "236-237"
+    }
+   ]
+  },
+  {
+   "id": "TS4",
+   "rule": "Zaawansowany kulturysta ocenia postęp zmianami siły w głównych ćwiczeniach (AMRAP), a nie wyglądem, fałdami czy taśmą; DXA ma błąd ok. ±5%.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Poziom 3: Progresja",
+     "pages": "118-119"
+    }
+   ]
+  }
+ ],
+ "warmupRules": [
+  {
+   "id": "W1",
+   "rule": "Opcjonalnie ok. 5 min aerobowo. Rozgrzewka dynamiczna: po 10 wymachów nóg przód–tył i bok–bok, krążenia ramion w tył i w przód, klaśnięcia skrzyżne, wykroki chodzone ze skrętem. Potem serie rozgrzewkowe.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "221-223"
+    }
+   ]
+  },
+  {
+   "id": "W2",
+   "rule": "Rozciąganie statyczne przed treningiem: poniżej 60 s na mięsień i nie do dyskomfortu; najlepiej tylko mięśni, których nie będziesz trenować. Rolowanie jest w porządku (zwiększa zakres bez utraty siły).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "222-223"
+    }
+   ]
+  },
+  {
+   "id": "W3",
+   "rule": "Serie rozgrzewkowe przy seriach roboczych 1–5 powt.: pusty gryf 5–10 (opcjonalnie), 5 × 50%, 4 × 60%, 3 × 70%, 2 × 80%, 1 × 90% ciężaru roboczego. Przy seriach 6+: 8 × 50%, 4 × 70%, 2 × 90%.",
+   "values": {
+    "low": [
+     [
+      null,
+      "5-10",
+      "gryf"
+     ],
+     [
+      2,
+      5,
+      50
+     ],
+     [
+      3,
+      4,
+      60
+     ],
+     [
+      4,
+      3,
+      70
+     ],
+     [
+      5,
+      2,
+      80
+     ],
+     [
+      6,
+      1,
+      90
+     ]
+    ],
+    "high": [
+     [
+      1,
+      8,
+      50
+     ],
+     [
+      2,
+      4,
+      70
+     ],
+     [
+      3,
+      2,
+      90
+     ]
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "piramida-treningu-helms",
+     "chapter": "Przykładowe programy",
+     "pages": "224"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  {
+   "topic": "żywienie",
+   "note": "Osobny tom serii (Nutrition); tu tylko białko ≥1,6 g/kg i nadwyżka w schemacie zastoju (s. 87)."
+  },
+  {
+   "topic": "plan domowy / bez sprzętu",
+   "note": "Brak."
+  },
+  {
+   "topic": "osoby starsze, kobiety w ciąży, choroby",
+   "note": "Brak zaleceń."
+  },
+  {
+   "topic": "przeciwwskazania BFR",
+   "note": "Brak; dodano S18 poza źródłem."
+  },
+  {
+   "topic": "s. 273–288",
+   "note": "Zasoby i słowo końcowe autora nie trafiły do pliku (urwane pobieranie)."
+  },
+  {
+   "topic": "programy s. 261, 263, 265–272",
+   "note": "Tabele obecne w pliku (wersja 4-dniowa trójbój początkujący, trójbój średniozaawansowany i zaawansowany, kulturystyka zaawansowana), w bazie opisane tylko zasadami (PR4–PR8); szczegółowe tabele do uzupełnienia."
+  }
+ ]
+}
