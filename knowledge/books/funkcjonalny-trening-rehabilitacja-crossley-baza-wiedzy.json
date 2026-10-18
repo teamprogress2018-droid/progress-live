@@ -1,0 +1,3193 @@
+{
+  "meta": {
+    "base": "funkcjonalny-trening-rehabilitacja-crossley",
+    "version": "1.0",
+    "date": "2026-10-18",
+    "language": "pl",
+    "statusValues": [
+      "zrodlo",
+      "wniosek",
+      "brak_w_zrodle",
+      "poza_zrodlem"
+    ],
+    "title": "Functional Exercise and Rehabilitation: The Neuroscience of Movement, Pain and Performance",
+    "titlePl": "Ćwiczenia funkcjonalne i rehabilitacja: neuronauka ruchu, bólu i sprawności (Crossley)",
+    "pageConvention": "drukowane numery stron; PDF = druk + 9 (stałe od s. 1 do indeksu)",
+    "note": "Książka o filozofii treningu funkcjonalnego (zasady STRIVE), projektowaniu ćwiczeń i rehabilitacji bólu z perspektywy neuronauki. Prawie bez liczb programowania (brak serii, powtórzeń, %1RM, przerw, tempa). Wartość: zasady doboru i progresji ćwiczeń, ocena strategii ruchu, struktura sesji, reguły bólu i urazu, ćwiczenia korekcyjne dla regionów ciała. Klucze glossary i figures są pomocnicze (nie do indeksu AI).",
+    "figuresNote": "Opisy rycin i tabel (30) są tylko w prywatnej wersji bazy w folderze projektu (licencja tylko_wlasciciel, Moduł 9); repozytorium jest publiczne."
+  },
+  "principles": [
+    {
+      "id": "P1",
+      "title": "Transfer z siłowni do funkcji jest słaby",
+      "rule": "Siła zbudowana w klasycznych ćwiczeniach (np. przysiad) przenosi się na sprawność w zadaniach (np. sprint) w niewielkim stopniu. Autor cytuje badania: ok. 21% wzrostu w przysiadzie dało ok. 2,2% poprawy sprintu; +12,4% 1RM dało +4,3% przyspieszenia i +1,9% prędkości maksymalnej; przysiady z wyskokiem z 4 kg dały +16,8% w ćwiczeniu i +1,1% w sprincie na 30 m. Transfer może być dodatni, neutralny albo ujemny.",
+      "appliesTo": [
+        "wszyscy",
+        "sportowcy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "liczby to cytowane badania, nie własne pomiary autora",
+        "autor nie neguje treningu siłowego, tylko jego transfer"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 1 Introduction to Function",
+          "pages": "8-11"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Sprawność zależy głównie od układu nerwowego",
+      "rule": "Wyniki zależą od czynników strukturalnych, fizjologicznych, biomechanicznych, neurologicznych i behawioralnych. Według autora na początku treningu tylko ok. 2% wzrostu siły ma podłoże fizjologiczne (u zaawansowanych do 65%), a przekrój mięśnia tłumaczy tylko ok. 50% siły czworogłowego. Trening powinien rozwijać koordynację: organizowanie ruchu, integrację i synergię mięśni.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "liczby przytoczone bez szczegółów metodyki"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 1 Introduction to Function",
+          "pages": "11-16"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Podobieństwo i specyficzność ćwiczenia do zadania",
+      "rule": "Im ćwiczenie bardziej przypomina zadanie z życia lub sportu (koordynacyjnie, kontekstowo i emocjonalnie), tym lepszy transfer. Najlepiej trenować „wewnątrz zadania” (within-task), np. ćwiczyć wstawanie z krzesła zamiast izolowanego prostowania nóg.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 1 Introduction to Function",
+          "pages": "14"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 1 Introduction to Function",
+          "pages": "19-21"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "STRIVE: pięć zasad ćwiczenia funkcjonalnego",
+      "rule": "Ćwiczenie angażuje mózg, gdy jest: Subconscious (sterowane podświadomie, uwaga na zewnątrz), Task-orientated (oparte na użytecznym zadaniu), Reactive (reakcja na bodźce zewnętrzne), Intelligently varied (inteligentnie zmienne), Emotional (z ładunkiem emocjonalnym: zabawa, rywalizacja, presja).",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 1 Introduction to Function",
+          "pages": "23"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "In Conclusion",
+          "pages": "269"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Zewnętrzne skupienie uwagi zamiast instrukcji o technice",
+      "rule": "Świadomy umysł utrzyma najwyżej 2–3 wskazówki naraz. Lepiej dawać cel zewnętrzny (narzędzie, przeszkoda, cel do dotknięcia), niż mówić, co ma robić mięsień lub staw. Dalszy cel daje bardziej zewnętrzne skupienie. Skupienie wewnętrzne (np. na pośladku) jest dopuszczalne w rehabilitacji do aktywacji, ale potem trzeba wykonać ćwiczenie z celem zewnętrznym.",
+      "appliesTo": [
+        "wszyscy",
+        "rehabilitacja"
+      ],
+      "conditions": [],
+      "limitations": [
+        "autor opiera się na badaniach Wulf i Zachry, bez liczb efektu"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "92"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "111-119"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Wzorce ruchowe jako alfabet programu",
+      "rule": "Ruchy dzielą się na: podstawowe (dla wszystkich: podnieś, usiądź, skłoń się, krok/wykrok, skręt, pchnij, przyciągnij, sięgnij, przenieś ciężar), drugorzędne (specyficzne dla pracy lub sportu klienta), lokomocyjne (chód, bieg, skok, skip, podskok jednonóż, czworakowanie, wejście/zejście, wstawanie z podłogi, siad z leżenia, obrót), zabawowe (zbieranie, rzut, chwyt, uderzenie, unik, podążanie, wspinanie, zapasy, kopnięcie) i wzorce bólowe (zadania wywołujące ból klienta).",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "106-108"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Inteligentna zmienność",
+      "rule": "Zmienność ruchu buduje adaptacyjność, rezerwę (redundancję) i zdolność odzyskania równowagi. Cel ma być stały (mała zmienność wyniku), a sposób wykonania elastyczny (duża zmienność procesu). Zmienność wprowadza się systematycznie: sekwencja (zmiana między seriami), seria (narastanie w obrębie serii), matryca (zmiana co kilka powtórzeń), łączenie ruchów.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "zmienność ma być progresywna i dopasowana do klienta"
+      ],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "120-131"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Emocja i poczucie zagrożenia sterują sprawnością",
+      "rule": "Podświadomość chroni priorytety biologiczne (homeostaza, przetrwanie, łatwość, dziedzictwo). Ruch nowy, nieoczekiwany, złożony, niekontrolowany, przeciążony lub niestabilny jest odbierany jako zagrożenie i wywołuje sztywność, napięcie ochronne, skurcz albo osłabienie. Trener ma budować pewność siebie klienta (self-efficacy).",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "95-101"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "132-138"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "title": "Szczepienie przeciw zagrożeniu (threat inoculation) i stopniowana ekspozycja",
+      "rule": "Klienta stopniowo wystawia się na coraz bardziej „groźne” ruchy. Progresja nie tylko przez serie, powtórzenia i ciężar, ale też przez typ obciążenia, prędkość, zakres, kierunek i złożoność. Ekspozycja ma: nawiązywać do złych doświadczeń klienta, budzić lekką obawę, postępować szybko, kończyć się sukcesem, a przy bólu lub niestabilności być cofnięta.",
+      "appliesTo": [
+        "wszyscy",
+        "klienci z bólem lub lękiem przed ruchem"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "101-103"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "138"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "Zadanie z ok. 80% szansą sukcesu",
+      "rule": "Klient powinien oceniać swoje szanse powodzenia na ok. 80%. Za łatwe zadanie nie buduje poczucia skuteczności, za trudne podkopuje pewność siebie.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "138"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "164"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "Zacznij nisko, progresuj szybko",
+      "rule": "Lepiej zacząć od łatwego obciążenia i szybko podnosić trudność, niż zacząć za ciężko i cofać ćwiczenie (cofanie pokazuje klientowi, że trener źle ocenił jego możliwości).",
+      "appliesTo": [
+        "wszyscy",
+        "nowi klienci"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "157"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "164"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "Ocena strategii ruchu: funkcjonalna, dysfunkcyjna, przeciążona",
+      "rule": "Trener obserwuje, jak klient wykonuje zadanie, bez poprawiania techniki. Strategia funkcjonalna (swobodna, pewna, płynna) → informacja zwrotna i progresja. Dysfunkcyjna (sztywność, niestabilność, wiercenie się, dyskomfort, szybkie zmęczenie) → informacja zwrotna, zmiana strategii przez bodźce zewnętrzne, zmienność, praca z emocją. Przeciążona (klient nie kończy zadania, szuka podparcia, nagła zmiana pozycji, ból lub rozdrażnienie) → regresja.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "157-159"
+        }
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "Informacja zwrotna o wyniku, nie o technice",
+      "rule": "Podświadomość lepiej reaguje na informację o wyniku (np. „sięgnąłeś 20 cm dalej niż ostatnio”) niż o procesie. Wyniki zapisuj, pokazuj rekordy. Informację zwrotną z czasem wygaszaj.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 3 Functional Neurology",
+          "pages": "83-84"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "159"
+        }
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "Zasady programowania",
+      "rule": "Przeciążenie (bodziec większy niż zwykle, także neurologiczny), progresja (bez niej plateau zwykle w ciągu 4–8 tygodni stałego bodźca), regeneracja (superkompensacja; brak regeneracji prowadzi do przetrenowania), zmienność, periodyzacja (cykliczna zmiana zmiennych zwykle co 4–8 tygodni), indywidualizacja.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "brak konkretnych wartości obciążenia"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "167-169"
+        }
+      ]
+    },
+    {
+      "id": "P15",
+      "title": "Równowaga w programie",
+      "rule": "Program ma równoważyć: wzorce ruchowe (bez nadużywania jednego), ruchy przeciwstawne (tyle samo pchania co ciągnięcia, zginania co prostowania), płaszczyzny ruchu (strzałkowa, czołowa, poprzeczna) i objętość (bez nadmiernego zmęczenia jednego obszaru). Musi też zapewnić przeciążenie, progresję i odpoczynek.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "176"
+        }
+      ]
+    },
+    {
+      "id": "P16",
+      "title": "Ból nie mierzy uszkodzenia",
+      "rule": "Ból i uraz rzadko są proporcjonalne. Ból powstaje w mózgu z podświadomej oceny zagrożenia, a nie z „receptorów bólu” (są nocyceptory). Ból utrzymujący się po ok. 12 tygodniach (po wygojeniu) jest zaburzeniem przetwarzania (błąd predykcji, neurotagi bólowe), dotyczy ok. 1 na 5 osób i nie pełni funkcji ochronnej. Nasilają go negatywne oczekiwania, lęk, stres i nadmierna uwaga.",
+      "appliesTo": [
+        "klienci z bólem przewlekłym"
+      ],
+      "conditions": [],
+      "limitations": [
+        "trener nie diagnozuje; to model wyjaśniający, nie leczenie"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "203-215"
+        }
+      ]
+    },
+    {
+      "id": "P17",
+      "title": "Najpierw ból, potem siła",
+      "rule": "Siła rzadko rośnie na podłożu bólu. Program zaczyna się od opanowania bólu; często siła wraca, gdy ból mija. Ból zaburza czucie, aktywację mięśni i koordynację (ruchy antalgiczne, mniejsza zmienność, utrata dysocjacji).",
+      "appliesTo": [
+        "klienci z bólem"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "215"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "220-221"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "In Conclusion",
+          "pages": "270"
+        }
+      ]
+    },
+    {
+      "id": "P18",
+      "title": "Jeśli boli, nie rób tego, ale ruszaj się jak najwięcej",
+      "rule": "Ruch jest potrzebny do gojenia i odczulenia układu nerwowego. Celem jest ruszać się jak najwięcej bez wywoływania bólu. Ćwiczenie nie może prowokować ani nasilać objawów. Zaostrzenie (flare-up) to sygnał, że było za dużo: odpocząć, cofnąć intensywność, potem znów stopniowo budować.",
+      "appliesTo": [
+        "klienci z bólem lub po urazie"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "192"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "217-218"
+        }
+      ]
+    },
+    {
+      "id": "P19",
+      "title": "Postawa i „błędy” biomechaniczne słabo przewidują ból",
+      "rule": "Autor (za Ledermanem 2010 i cytowanymi badaniami) twierdzi, że lordoza, kifoza, skolioza, różnica długości nóg czy wynik testów przesiewowych (np. FMS) słabo przewidują ból i uraz. Ok. 90% ludzi ma różnicę długości nóg. Zmienność budowy jest normalna. Zamiast poprawiać postawę instrukcją, trener zmienia zadanie, otoczenie, buduje możliwości i pracuje z emocją.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [
+        "przy bardzo ciężkich ciężarach neutralny kręgosłup nadal ma sens"
+      ],
+      "limitations": [
+        "stanowisko autora; część środowiska się z nim nie zgadza"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "226-236"
+        }
+      ]
+    },
+    {
+      "id": "P20",
+      "title": "Ćwiczenie „ekstrafunkcjonalne” zawsze łącz z zadaniem funkcjonalnym",
+      "rule": "Mapowanie, hamowanie (rozciąganie, rolowanie), aktywacja i mobilizacja muszą być od razu sprawdzone zadaniem funkcjonalnym (test – interwencja – retest). Jeśli nie poprawiają ruchu od razu, prawdopodobnie nie działają; zmień strategię.",
+      "appliesTo": [
+        "rehabilitacja",
+        "przygotowanie do ruchu"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "224-225"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "265-266"
+        }
+      ]
+    },
+    {
+      "id": "P21",
+      "title": "Nauka ruchu wymaga snu i stylu życia",
+      "rule": "Do nauki ruchu potrzebne jest 8–9 godzin snu. Autor wymienia czynniki wspierające BDNF, m.in. ok. 15 minut słońca dziennie.",
+      "appliesTo": [
+        "wszyscy"
+      ],
+      "conditions": [],
+      "limitations": [
+        "autor wymienia też post >12 h jako czynnik BDNF; to nie jest zalecenie żywieniowe dla aplikacji"
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 3 Functional Neurology",
+          "pages": "79"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 3 Functional Neurology",
+          "pages": "86"
+        }
+      ]
+    },
+    {
+      "id": "P22",
+      "title": "Rywalizacja tylko dla przygotowanych",
+      "rule": "Rywalizacja (lustrzana, z samym sobą, kontrolowana, z partnerem, z przeciwnikiem) podnosi zaangażowanie, ale utrudnia naukę nowego ruchu. Stosuj ją u doświadczonych, wytrenowanych klientów. Zabawa (play) to ruch z emocją, dobry sposób na zmienność i reakcję.",
+      "appliesTo": [
+        "zaawansowani",
+        "sportowcy"
+      ],
+      "conditions": [],
+      "limitations": [],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "142-145"
+        }
+      ]
+    }
+  ],
+  "exerciseRules": [
+    {
+      "id": "E1",
+      "category": "projektowanie ćwiczenia",
+      "pattern": "sieć funkcjonalna (functional web)",
+      "rule": "Ćwiczenie buduje się z „czynników napędzających” (drivers): otoczenie (narzędzia, przeszkody, cele), zadanie (wzorzec podstawowy, drugorzędny, lokomocyjny, zabawowy), tor ruchu (prędkość, kierunek, wysokość, odległość, obciążenie), emocja (wsparcie, zabawa, rywalizacja).",
+      "patterns": {
+        "narzędzia": [
+          "hantle",
+          "sztanga",
+          "piłka lekarska",
+          "ViPR",
+          "Rip Trainer",
+          "wyciąg",
+          "gumy",
+          "taśmy TRX",
+          "bungee"
+        ],
+        "przeszkody": [
+          "stopień",
+          "płotek",
+          "piłka szwajcarska",
+          "BOSU"
+        ],
+        "cele": [
+          "znacznik",
+          "pachołek",
+          "tarcza (pad)"
+        ],
+        "chwyt": [
+          "podchwyt",
+          "nachwyt",
+          "szeroki",
+          "wąski",
+          "za koniec"
+        ],
+        "zaczep obciążenia": [
+          "dłoń",
+          "talia",
+          "kolano"
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "150-151"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "projektowanie ćwiczenia",
+      "pattern": "kroki tworzenia ćwiczenia",
+      "rule": "Wybierz narzędzie → zadanie → drobne zmiany (tweaks) → połącz czynniki napędzające → dodaj zmienność → dodaj emocję. Przykład: siad-wstań z hantlem, potem trzymanie nad głową, ustawienie w rozkroku, powolne siadanie i szybkie wstawanie.",
+      "progression": [
+        {
+          "order": 1,
+          "name": "wybór narzędzia"
+        },
+        {
+          "order": 2,
+          "name": "wybór zadania"
+        },
+        {
+          "order": 3,
+          "name": "zmiany (pozycja, chwyt, prędkość)"
+        },
+        {
+          "order": 4,
+          "name": "połączenie czynników napędzających"
+        },
+        {
+          "order": 5,
+          "name": "zmienność"
+        },
+        {
+          "order": 6,
+          "name": "emocja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "151-155"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "category": "zmienne ćwiczenia",
+      "pattern": "co można zmieniać",
+      "rule": "Pozycja wyjściowa (stanie, rozkrok, klęk, siad, podpór, leżenie), ustawienie stóp (footprint) i dłoni (handprint), wysokość pracy (od kostki do nad głową), kierunek, prędkość, zakres, obciążenie i jego typ, stabilność podłoża, złożoność, dźwignia, pęd, siła reakcji podłoża.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "114-117"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "127-130"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "zmienność",
+      "pattern": "sekwencja, seria, matryca",
+      "rule": "Sekwencja: zmiana między seriami (przysiad: seria 1 normalnie, 2 wąsko, 3 w rozkroku, 4 rozkrok na drugą nogę). Seria: trudność rośnie w obrębie serii (wykrok coraz dalej, sięganie coraz szybciej). Matryca: zmiana co kilka powtórzeń (pompki: 1–3 normalnie, 4–6 dłonie do środka, 7–10 dłonie na zewnątrz, 11–13 wąsko, 14–16 szeroko). Łączenie: skok–przysiad, krok–sięgnięcie, skłon–wymach, przysiad–krok–pchnięcie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "131"
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "category": "nazewnictwo",
+      "pattern": "język zadań zamiast żargonu",
+      "rule": "Ćwiczenia nazywa się zadaniami: martwy ciąg → podnoszenie, wyciskanie → pchanie/sięganie, wiosłowanie → przyciąganie. Ułatwia to klientowi zewnętrzne skupienie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "109"
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "category": "strategie ruchu",
+      "pattern": "podnoszenie",
+      "rule": "Bądź blisko ciężaru. Przy ciężkim ciężarze utrzymaj długi kręgosłup i naturalną lordozę; przy lekkim (np. ołówek z podłogi) ruch kręgosłupa jest w porządku. Nie wypychaj brzucha przy podnoszeniu („wciągnij brzuch”). Przy obrocie barki obracają się przed biodrami.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "161-162"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "244"
+        }
+      ]
+    },
+    {
+      "id": "E7",
+      "category": "rozgrzewka",
+      "pattern": "rozciąganie dynamiczne",
+      "rule": "Ćwiczenia ogólnego rozciągania przed sesją: długi krok z sięgnięciem nad głowę, krok w bok z sięgnięciem nad głowę, krok z dotknięciem palców stopy.",
+      "exercises": [
+        {
+          "name": "długi krok i sięgnięcie nad głowę"
+        },
+        {
+          "name": "krok w bok i sięgnięcie nad głowę"
+        },
+        {
+          "name": "krok i dotknięcie palców stopy"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "175-176"
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "category": "rehabilitacja",
+      "pattern": "kategorie ćwiczeń ekstrafunkcjonalnych",
+      "rule": "Mapowanie (odbudowa czucia i mapy ciała), hamowanie (inhibition: rozciąganie statyczne, ucisk/SMR), aktywacja (krótki skurcz mięśnia zahamowanego, potem zadanie), mobilizacja (ruch stawu w pełnym, bezbolesnym zakresie).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "221-225"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "240-242"
+        }
+      ]
+    },
+    {
+      "id": "E9",
+      "category": "ćwiczenia regionalne",
+      "pattern": "dolny odcinek kręgosłupa",
+      "rule": "Mapowanie i mobilizacja: przechylanie miednicy, krążenie kolan, zgięcie i wyprost w podporze (koci grzbiet). Hamowanie: zgięcie w klęku (biodra do pięt), wyprost w leżeniu przodem, wyprost na piłce, skłon boczny na piłce, rolowanie głębokich mięśni grzbietu. Aktywacja: sięganie w leżeniu przodem, sięganie nogą w leżeniu tyłem, progresja sięgania w leżeniu (3 etapy), czworakowanie do celu. Mobilizacja funkcjonalna: głęboki przysiad (z podparciem w razie potrzeby).",
+      "exercises": [
+        {
+          "name": "przechylanie miednicy (pelvic tilt)",
+          "type": "mapowanie"
+        },
+        {
+          "name": "krążenie kolan (knee rolls)",
+          "type": "mapowanie"
+        },
+        {
+          "name": "zgięcie i wyprost w podporze",
+          "type": "mapowanie"
+        },
+        {
+          "name": "zgięcie w klęku",
+          "type": "hamowanie"
+        },
+        {
+          "name": "wyprost w leżeniu przodem",
+          "type": "hamowanie"
+        },
+        {
+          "name": "wyprost na piłce",
+          "type": "hamowanie"
+        },
+        {
+          "name": "skłon boczny na piłce",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rolowanie głębokich mięśni grzbietu",
+          "type": "hamowanie"
+        },
+        {
+          "name": "sięganie w leżeniu przodem",
+          "type": "aktywacja"
+        },
+        {
+          "name": "sięganie nogą w leżeniu tyłem",
+          "type": "aktywacja"
+        },
+        {
+          "name": "czworakowanie do celu",
+          "type": "aktywacja"
+        },
+        {
+          "name": "głęboki przysiad",
+          "type": "mobilizacja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "244-247"
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "category": "ćwiczenia regionalne",
+      "pattern": "odcinek piersiowy",
+      "rule": "Mapowanie: oddech (wydech przez zasznurowane usta ok. 6–10 s, relaksacja progresywna, rozpoznanie złego toru oddechu), mapowanie postawy w siadzie (unoszenie mostka), ściąganie łopatek. Hamowanie: rolowanie odcinka piersiowego (z progresją: przytrzymaj, kołysz, wygnij się, ręce nad głową). Aktywacja: wyprost w leżeniu przodem z rotacją zewnętrzną barków. Mobilizacja: skręt z gumą w różnych pozycjach.",
+      "exercises": [
+        {
+          "name": "oddech z długim wydechem",
+          "type": "mapowanie"
+        },
+        {
+          "name": "mapowanie postawy w siadzie",
+          "type": "mapowanie"
+        },
+        {
+          "name": "ściąganie łopatek",
+          "type": "mapowanie"
+        },
+        {
+          "name": "rolowanie odcinka piersiowego",
+          "type": "hamowanie"
+        },
+        {
+          "name": "wyprost w leżeniu przodem",
+          "type": "aktywacja"
+        },
+        {
+          "name": "skręt z gumą",
+          "type": "mobilizacja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "249-250"
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "category": "ćwiczenia regionalne",
+      "pattern": "szyja",
+      "rule": "Mapowanie: przyciąganie brody w leżeniu tyłem (ok. 60 s z oddechem), skręty głowy, skłon boczny z rozluźnionymi barkami. Hamowanie: rozciąganie szyi z ustabilizowanym przeciwnym barkiem. Aktywacja: unoszenie głowy w leżeniu z podwiniętą brodą i językiem przy podniebieniu. Progresja: obrót głowy do celu bez ruchu barków.",
+      "exercises": [
+        {
+          "name": "przyciąganie brody",
+          "type": "mapowanie"
+        },
+        {
+          "name": "skręty głowy",
+          "type": "mapowanie"
+        },
+        {
+          "name": "skłon boczny głowy",
+          "type": "mapowanie"
+        },
+        {
+          "name": "rozciąganie szyi",
+          "type": "hamowanie"
+        },
+        {
+          "name": "unoszenie głowy",
+          "type": "aktywacja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "240-241"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "251-252"
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "category": "ćwiczenia regionalne",
+      "pattern": "biodro i miednica",
+      "rule": "Mapowanie: krążenie kolana w leżeniu (trudność z dociągnięciem kolana do klatki sugeruje problem kompleksu lędźwiowo-miedniczno-biodrowego). Hamowanie: rozciąganie zginaczy biodra w klęku (bez wyginania pleców), rozciąganie „czwórka”, rolowanie bocznej części biodra, sięganie do palców stopy z nogą na podwyższeniu. Aktywacja: „muszelka”, unoszenie nogi w leżeniu przodem, odwodzenie w leżeniu bokiem, mostek, krok w tył i w bok z gumą. Mobilizacja: wykrok z sięgnięciem nad głowę, krok i sięgnięcie do palców.",
+      "exercises": [
+        {
+          "name": "krążenie kolana",
+          "type": "mapowanie"
+        },
+        {
+          "name": "rozciąganie zginaczy biodra w klęku",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rozciąganie „czwórka”",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rolowanie bocznej części biodra",
+          "type": "hamowanie"
+        },
+        {
+          "name": "sięganie do palców ze stopą na podwyższeniu",
+          "type": "hamowanie"
+        },
+        {
+          "name": "muszelka (clam)",
+          "type": "aktywacja"
+        },
+        {
+          "name": "unoszenie nogi w leżeniu przodem",
+          "type": "aktywacja"
+        },
+        {
+          "name": "odwodzenie w leżeniu bokiem",
+          "type": "aktywacja"
+        },
+        {
+          "name": "mostek biodrowy",
+          "type": "aktywacja"
+        },
+        {
+          "name": "krok w tył z gumą",
+          "type": "aktywacja"
+        },
+        {
+          "name": "krok w bok z gumą",
+          "type": "aktywacja"
+        },
+        {
+          "name": "wykrok z sięgnięciem nad głowę",
+          "type": "mobilizacja"
+        },
+        {
+          "name": "krok i sięgnięcie do palców",
+          "type": "mobilizacja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "253-256"
+        }
+      ]
+    },
+    {
+      "id": "E13",
+      "category": "ćwiczenia regionalne",
+      "pattern": "kolano",
+      "rule": "Mapowanie: wymachy podudzia w siadzie. Hamowanie: rolowanie pasma biodrowo-piszczelowego i przywodzicieli. Aktywacja: wyprost kolana w końcowym zakresie (wałek pod kolanem), przysiad jednonóż/zejście ze stopnia z rzepką nad drugim palcem stopy.",
+      "exercises": [
+        {
+          "name": "wymachy podudzia",
+          "type": "mapowanie"
+        },
+        {
+          "name": "rolowanie pasma biodrowo-piszczelowego",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rolowanie przywodzicieli",
+          "type": "hamowanie"
+        },
+        {
+          "name": "wyprost kolana w końcowym zakresie",
+          "type": "aktywacja"
+        },
+        {
+          "name": "przysiad jednonóż / single leg dip",
+          "type": "aktywacja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "258"
+        }
+      ]
+    },
+    {
+      "id": "E14",
+      "category": "ćwiczenia regionalne",
+      "pattern": "stopa i staw skokowy",
+      "rule": "Mapowanie: zgięcie/wyprost, odwracanie/nawracanie i krążenie stopy. Hamowanie: rozciąganie łydki na prostej nodze (brzuchaty), na ugiętej (płaszczkowaty), rolowanie łydki, rolowanie rozcięgna podeszwowego piłeczką. Aktywacja: wspięcia na palce ze stopnia (progresja do jednej nogi), chód na palcach i na piętach. Mobilizacja: głęboki przysiad z wypychaniem kolana w przód.",
+      "exercises": [
+        {
+          "name": "krążenie stopy",
+          "type": "mapowanie"
+        },
+        {
+          "name": "rozciąganie łydki na prostej nodze",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rozciąganie łydki na ugiętej nodze",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rolowanie łydki",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rolowanie rozcięgna podeszwowego",
+          "type": "hamowanie"
+        },
+        {
+          "name": "wspięcia na palce",
+          "type": "aktywacja"
+        },
+        {
+          "name": "chód na palcach i piętach",
+          "type": "aktywacja"
+        },
+        {
+          "name": "głęboki przysiad z wypychaniem kolana",
+          "type": "mobilizacja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "241"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "260-261"
+        }
+      ]
+    },
+    {
+      "id": "E15",
+      "category": "ćwiczenia regionalne",
+      "pattern": "bark i kończyna górna",
+      "rule": "Mapowanie: krążenie barków, krążenie ramion, protrakcja i retrakcja przy ścianie. Hamowanie: rozciąganie w wyproście ramienia, ślizg tylny barku na wałku, rolowanie okolicy pachy (najszerszy, podłopatkowy, obłe). Aktywacja: odwodzenie z gumą (nadgrzebieniowy), wyprost horyzontalny z gumą (podgrzebieniowy), stabilizacja w podporze z uniesieniem ręki, ściąganie łopatek. Mobilizacja: zwis (na palcach lub z uniesionymi nogami, progresja do jednej ręki).",
+      "exercises": [
+        {
+          "name": "krążenie barków",
+          "type": "mapowanie"
+        },
+        {
+          "name": "krążenie ramion",
+          "type": "mapowanie"
+        },
+        {
+          "name": "protrakcja/retrakcja przy ścianie",
+          "type": "mapowanie"
+        },
+        {
+          "name": "rozciąganie w wyproście ramienia",
+          "type": "hamowanie"
+        },
+        {
+          "name": "ślizg tylny barku na wałku",
+          "type": "hamowanie"
+        },
+        {
+          "name": "rolowanie okolicy pachy",
+          "type": "hamowanie"
+        },
+        {
+          "name": "odwodzenie z gumą",
+          "type": "aktywacja"
+        },
+        {
+          "name": "wyprost horyzontalny z gumą",
+          "type": "aktywacja"
+        },
+        {
+          "name": "stabilizacja w podporze",
+          "type": "aktywacja"
+        },
+        {
+          "name": "ściąganie łopatek",
+          "type": "aktywacja"
+        },
+        {
+          "name": "zwis",
+          "type": "mobilizacja"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "262-264"
+        }
+      ]
+    },
+    {
+      "id": "E16",
+      "category": "dobór ćwiczeń",
+      "pattern": "ściąganie drążka vs zwis",
+      "rule": "Autor odradza ściąganie drążka do równowagi z wyciskaniem: najszerszy grzbietu rotuje ramię do wewnątrz i zamyka bark. Zamiast tego zaleca zwis (i wspinanie), który rozciąga bark i mobilizuje żebra.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 2 Functional Anatomy",
+          "pages": "31"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "262"
+        }
+      ],
+      "note": "opinia autora, sprzeczna z typowym programowaniem; patrz contradictions C2"
+    },
+    {
+      "id": "E17",
+      "category": "dobór ćwiczeń",
+      "pattern": "deska (plank) i izolacja",
+      "rule": "Autor krytykuje deskę i ćwiczenia izolowane jako mało podobne do zadań z życia (współskurcz, brak reakcji, słaby transfer). Woli zadania z celem zewnętrznym.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 3 Functional Neurology",
+          "pages": "62-64"
+        }
+      ]
+    },
+    {
+      "id": "E18",
+      "category": "dobór ćwiczeń",
+      "pattern": "obciążenie osiowe dla kości",
+      "rule": "Obciążenie wzdłuż osi kości (ćwiczenia w pozycji stojącej z ciężarem) pobudza odkładanie kości; przydatne w grupach ryzyka osteoporozy: kobiety po menopauzie, osoby starsze, osoby długo przyjmujące sterydy.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 2 Functional Anatomy",
+          "pages": "27"
+        }
+      ]
+    },
+    {
+      "id": "E19",
+      "category": "postawa",
+      "pattern": "bodźce zewnętrzne zamiast instrukcji",
+      "rule": "Postawę zmienia się zadaniem i bodźcem zewnętrznym, nie poleceniem „wyprostuj się”. Przykłady: przysiad z rękami nad głową wymusza bardziej pionowy tułów; guma wokół kolan zmienia ich ustawienie w przysiadzie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "233-234"
+        }
+      ]
+    },
+    {
+      "id": "E20",
+      "category": "mobilność",
+      "pattern": "mobilność funkcjonalna",
+      "rule": "Zamiast biernego rozciągania ćwicz ruch w zadaniu: różne pozycje, kierunki, prędkości, narzędzia i cele (np. przy ograniczonym wyproście piersiowym: skręt i sięganie nad głowę do celu). Ruch w ograniczenie i z niego, bez bólu; więcej pracy po stronie ograniczonej. Ograniczenia nerwowe mogą zniknąć od razu, fizjologiczne potrzebują dni lub tygodni, strukturalne mogą się nie zmienić.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "237-239"
+        }
+      ]
+    }
+  ],
+  "progressionRules": [
+    {
+      "id": "PR1",
+      "category": "kolejność progresji",
+      "rule": "Od wolnego do szybkiego, od bliskiego do dalekiego, od prostego do złożonego, od mniejszego do większego obciążenia, od mniejszej do większej intensywności. Zacznij od łatwego oporu i daj klientowi kontrolę nad prędkością i zakresem.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "159"
+        }
+      ]
+    },
+    {
+      "id": "PR2",
+      "category": "zmienne progresji",
+      "rule": "Progresuj przez: opór (ciężar lub typ), objętość (powtórzenia lub czas), prędkość, zakres, stabilność podłoża, złożoność. Autor zaznacza, że opór i objętość to metody typowe i nie zawsze najlepsze dla umiejętności ruchowej.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "159"
+        }
+      ]
+    },
+    {
+      "id": "PR3",
+      "category": "regresja",
+      "rule": "Gdy klient jest przeciążony: zmień pozycję (szersza podstawa), daj podparcie, zmniejsz ciężar, zmień prędkość (wolniej albo z użyciem pędu).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "163-164"
+        }
+      ]
+    },
+    {
+      "id": "PR4",
+      "category": "rehabilitacja: stopniowana ekspozycja",
+      "rule": "Intensywność wzorca bólowego zmniejsza się przez: obciążenie (np. częściowe odciążenie pasami przy wstawaniu z krzesła), prędkość, wykorzystanie pędu, zmianę strategii. W ciężkich przypadkach: bierna mobilizacja z oddechem i relaksacją albo wizualizacja ruchu bez bólu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "218-219"
+        }
+      ]
+    },
+    {
+      "id": "PR5",
+      "category": "rehabilitacja: zmiana pozycji",
+      "rule": "Przykład dla bólu przy skłonie do palców: kolejno z szerszego rozstawu, z ugiętymi kolanami, z rozkroku, w siadzie, w leżeniu, aż do braku bólu; potem systematycznie wracaj do zadania wyjściowego.",
+      "progression": [
+        {
+          "order": 1,
+          "name": "szerszy rozstaw stóp"
+        },
+        {
+          "order": 2,
+          "name": "ugięte kolana"
+        },
+        {
+          "order": 3,
+          "name": "rozkrok"
+        },
+        {
+          "order": 4,
+          "name": "siad"
+        },
+        {
+          "order": 5,
+          "name": "leżenie"
+        }
+      ],
+      "note": "kolejność to regresja (od zadania wyjściowego w dół)",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "219"
+        }
+      ]
+    },
+    {
+      "id": "PR6",
+      "category": "rehabilitacja: zmiana otoczenia i strategii",
+      "rule": "Otoczenie: bodźce zewnętrzne i gra odwracają uwagę, zmiana kontekstu (np. bieg w wodzie przy bólu kolana), bodźce czuciowe (muzyka, platforma wibracyjna). Strategia: zmiana kierunku, prędkości, złożoności ruchu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "219-220"
+        }
+      ]
+    },
+    {
+      "id": "PR7",
+      "category": "powrót do sportu",
+      "rule": "Etapy: rehabilitacja na siłowni → ze sprzętem sportowym → z wizualizacją gry → przy boisku → z innymi zawodnikami → zabawa o niskiej intensywności → coraz bardziej wymagająca gra. Sama siłownia słabo przenosi się na powrót do gry.",
+      "progression": [
+        {
+          "order": 1,
+          "name": "rehabilitacja funkcjonalna na siłowni"
+        },
+        {
+          "order": 2,
+          "name": "ze sprzętem sportowym"
+        },
+        {
+          "order": 3,
+          "name": "z wizualizacją gry"
+        },
+        {
+          "order": 4,
+          "name": "przy boisku"
+        },
+        {
+          "order": 5,
+          "name": "z innymi zawodnikami"
+        },
+        {
+          "order": 6,
+          "name": "gra o niskiej intensywności"
+        },
+        {
+          "order": 7,
+          "name": "coraz bardziej wymagająca gra"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "220"
+        }
+      ]
+    },
+    {
+      "id": "PR8",
+      "category": "progresja ćwiczeń korekcyjnych wg STRIVE",
+      "rule": "Każde ćwiczenie korekcyjne progresuj do: użytecznego zadania, narzędzi i przeszkód, celów zewnętrznych, zmienności (pozycja, kierunek, prędkość, odległość), kontekstu związanego z bólem. Przykład barku: krążenie barków → odwodzenie z gumą → sięganie z gumą na wysokości barku → cel stopniowo wyżej → różne kierunki → uderzanie ruchomego celu → codzienne narzędzia.",
+      "progression": [
+        {
+          "order": 1,
+          "name": "mapowanie (krążenie barków)"
+        },
+        {
+          "order": 2,
+          "name": "aktywacja (odwodzenie z gumą)"
+        },
+        {
+          "order": 3,
+          "name": "sięganie z gumą na wysokości barku"
+        },
+        {
+          "order": 4,
+          "name": "sięganie do celu coraz wyżej"
+        },
+        {
+          "order": 5,
+          "name": "różne kierunki, prędkości, odległości"
+        },
+        {
+          "order": 6,
+          "name": "uderzanie ruchomego celu"
+        },
+        {
+          "order": 7,
+          "name": "narzędzia z codziennego życia"
+        }
+      ],
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "245"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "265"
+        }
+      ]
+    },
+    {
+      "id": "PR9",
+      "category": "plateau i periodyzacja",
+      "rule": "Przy stałym bodźcu postęp zwykle słabnie w ciągu 4–8 tygodni. Zmienne programu zmieniaj cyklicznie co ok. 4–8 tygodni; fazy: wytrzymałość (więcej powtórzeń, czasu pod napięciem, dystansu), siła (większe ciężary), szybkość i moc (skoki, podskoki, rzuty, praca szybka).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "167-168"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "178"
+        }
+      ]
+    },
+    {
+      "id": "PR10",
+      "category": "aktywna regeneracja",
+      "rule": "Aktywny odpoczynek: po zawodach lub treningu o wysokiej intensywności 1–5 dni; po każdym mikrocyklu 1 dzień; między mezocyklami 2–5 dni; między makrocyklami od 5 dni do 3 miesięcy. Zawsze z jakąś aktywnością, by uniknąć regresu.",
+      "value": {
+        "afterCompetitionOrHighIntensityDays": [
+          1,
+          5
+        ],
+        "afterMicrocycleDays": 1,
+        "betweenMesocyclesDays": [
+          2,
+          5
+        ],
+        "betweenMacrocycles": "5 dni – 3 miesiące"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "179"
+        }
+      ],
+      "note": "uwaga: autor nazywa mikrocyklem pojedynczą sesję, mezocyklem tydzień (patrz contradictions C1)"
+    },
+    {
+      "id": "PR11",
+      "category": "intensywność: RPE",
+      "rule": "Skala 0–10: 0 spoczynek, 4 komfortowo, 6 ciężko, 7 bardzo ciężko, 9 zaraz trzeba przerwać, 10 granica. Odpowiedzi są indywidualne; trener musi poznać, co dana ocena znaczy u klienta.",
+      "value": {
+        "0": "spoczynek",
+        "4": "komfortowo",
+        "6": "ciężka praca",
+        "7": "bardzo ciężka praca",
+        "9": "zaraz trzeba przerwać",
+        "10": "granica"
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "157"
+        }
+      ]
+    },
+    {
+      "id": "PR12",
+      "category": "intensywność: tętno",
+      "rule": "Tętno maksymalne szacowane jako 220 minus wiek. Powyżej ok. 85% HRmax praca jest zwykle beztlenowa. Test rozmowy: jeśli klient nie może swobodnie rozmawiać, prawdopodobnie przekroczył 85% HRmax. Duża zmienność osobnicza; dobrze zestawić tętno z RPE.",
+      "value": {
+        "hrMaxFormula": "220 - wiek",
+        "anaerobicAbovePctHrMax": 85
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "157"
+        }
+      ]
+    },
+    {
+      "id": "PR13",
+      "category": "pacing",
+      "rule": "Bilans: aktywność (lekka do umiarkowanej), ćwiczenia (intensywne), zabawa (ruch z emocją), regeneracja (sen, jedzenie, odpoczynek). Ramka autora: ok. 30 minut intensywnego wysiłku 2–3 razy w tygodniu i aktywność odpowiadająca ok. 10 000 kroków dziennie.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "179"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "199"
+        }
+      ]
+    },
+    {
+      "id": "PAR-parametry",
+      "category": "parameters",
+      "goal": "wszystkie",
+      "status": "brak_w_zrodle",
+      "note": "Książka nie podaje serii, powtórzeń, %1RM, RIR, przerw, tempa ani objętości tygodniowej. Wartości null; uzupełniać z innych baz jako POZA ŹRÓDŁEM.",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rir": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rpe": {
+        "value": "skala 0–10 jako miara subiektywna, bez docelowych wartości dla celów",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 5 Functional Exercise Design",
+            "pages": "157"
+          }
+        ]
+      },
+      "restSec": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "weeklyVolume": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "strengthReps": {
+        "value": "1–6 powtórzeń blisko maksimum buduje siłę (wzmianka w części o neurologii)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 3 Functional Neurology",
+            "pages": "60"
+          }
+        ]
+      },
+      "frequency": {
+        "value": "spotkania z trenerem raz w tygodniu przy budowaniu nawyków",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "171"
+          }
+        ]
+      }
+    }
+  ],
+  "safetyRules": [
+    {
+      "id": "S1",
+      "trigger": "czerwone flagi: ból nieustający, ból niezwiązany z ruchem, ból nocny, szybka lub niewyjaśniona utrata masy ciała, gorączka, niedawny ciężki uraz, nowa deformacja, ostry ból promieniujący wzdłuż nogi, ból przy kaszlu lub parciu, utrata czucia w okolicy krocza (siodła), ból brzucha, zmiana nawyków oddawania moczu lub stolca, nieustający ból w odcinku piersiowym; także ból w wielu miejscach i rozlany",
+      "action": "natychmiast skieruj do lekarza; nie zaczynaj programu",
+      "status": "zrodlo",
+      "priority": "contraindication",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "184"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "189-190"
+        }
+      ],
+      "note": "trener nie diagnozuje (s. 181, 190)"
+    },
+    {
+      "id": "S2",
+      "trigger": "klient z bólem lub urazem; klient zaniepokojony swoim stanem; stan się pogarsza lub nie poprawia; poważniejszy uraz i utrata funkcji",
+      "action": "trener nie diagnozuje; kieruje do lekarza; trening funkcjonalny po dopuszczeniu, równolegle z leczeniem (najbardziej przydatny w fazie naprawy, przebudowy i w bólu przewlekłym)",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "181"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "190"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "trigger": "ćwiczenie wywołuje ból lub obrzęk",
+      "action": "przerwij lub zmień ćwiczenie (regresja); „jeśli boli, nie rób tego”",
+      "status": "zrodlo",
+      "priority": "contraindication",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "192"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "217-218"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "trigger": "ostry uraz, faza zapalna (ok. 0–3 dni)",
+      "action": "PRICE; zimno ok. 3 min × 3 z przerwami; bez ciepła na początku; ruch tylko bezbolesny, wzorce antalgiczne dopuszczalne; więcej bólu lub obrzęku = za dużo; chodzić, gdy obciążanie nogi jest bezbolesne",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "185"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "188"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "192-196"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "trigger": "faza naprawy (ok. 72 h – 21 dni)",
+      "action": "ruch funkcjonalny o niskim obciążeniu (np. przy naderwaniu kulszowo-goleniowych: przysiad, skłon, sięganie zamiast uginania nóg na maszynie), stopniowana ekspozycja; regresja przy wzroście bólu lub obrzęku",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "185"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "196-197"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "trigger": "zaostrzenie bólu (flare-up) po ćwiczeniach",
+      "action": "odpoczynek, zmniejszenie intensywności, potem ponowna stopniowa odbudowa; wytłumacz klientowi, że to normalna część procesu",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "218"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "trigger": "ból przewlekły (powyżej ok. 12 tygodni) z katastrofizowaniem lub lękiem przed ruchem",
+      "action": "wytłumacz ból (explain pain) ostrożnie, bez mówienia „to tylko w głowie”; daj kontrolę i wybór; stopniowana ekspozycja wzorców bólowych bez bólu",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "197"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "210"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "216-218"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "trigger": "plyometria, skoki",
+      "action": "przy lądowaniu każda noga może przyjąć do ok. 11× masy ciała; wprowadzać ostrożnie i stopniowo",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 3 Functional Neurology",
+          "pages": "60-62"
+        }
+      ],
+      "note": "„stopniowo” to WNIOSEK z ostrzeżenia autora o ryzyku urazu w plyometrii"
+    },
+    {
+      "id": "S9",
+      "trigger": "podnoszenie bardzo ciężkiego ciężaru",
+      "action": "blisko ciężaru, długi kręgosłup z naturalną lordozą, bez wypychania brzucha",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "230"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "244"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "trigger": "rolowanie (SMR) lub ucisk",
+      "action": "pozycja wygodna, ucisk na najbardziej tkliwe miejsce do odczucia głębokiego nacisku, nie bólu; trzymaj do zelżenia; nie dłużej niż 3 minuty; nie więcej niż 3–4 miejsca",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "241"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "trigger": "objawy rwy kulszowej: ostry, promieniujący ból w tylnej części uda, mrowienie, drętwienie, osłabienie nogi",
+      "action": "skieruj do lekarza (ostry ból promieniujący wzdłuż nogi jest na liście czerwonych flag)",
+      "status": "zrodlo",
+      "priority": "contraindication",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "189"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "253"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "trigger": "podejrzenie przepukliny (wyczuwalny guzek, ostry ból w pachwinie lub brzuchu nasilany przy dźwiganiu, kaszlu, parciu)",
+      "action": "nie obciążaj, skieruj do lekarza (ból przy kaszlu lub parciu jest na liście czerwonych flag)",
+      "status": "zrodlo",
+      "priority": "contraindication",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "189"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "253"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "trigger": "blokowanie, przeskakiwanie, uciekanie kolana, ostry kłujący ból (podejrzenie uszkodzenia chrząstki/łąkotki)",
+      "action": "nie obciążaj kolana, skieruj do specjalisty",
+      "status": "poza_zrodlem",
+      "priority": "contraindication",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "257"
+        }
+      ],
+      "note": "objawy ze źródła; działanie POZA ŹRÓDŁEM"
+    },
+    {
+      "id": "S14",
+      "trigger": "klient z bólem (typ „Hurt”) albo wyczerpany",
+      "action": "z bólem: uspokój, unikaj ruchów nasilających, daj kontrolę, ruch łagodny, powolny, lekki; wyczerpany: unikaj dużej ilości pracy o wysokiej intensywności",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "140-142"
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "trigger": "obrazowanie (RTG, MRI) pokazuje zmiany, np. wypuklinę krążka",
+      "action": "nie zakładaj automatycznie, że to przyczyna bólu; nie strasz klienta wynikiem",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "203"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "229"
+        }
+      ],
+      "note": "autor: ok. 1 na 5 osób ma przepuklinę krążka bez bólu; zmiany zwyrodnieniowe są częste po pewnym wieku. „Nie strasz” to WNIOSEK"
+    },
+    {
+      "id": "S16",
+      "trigger": "nowy klient",
+      "action": "kwestionariusz PAR-Q i umowa przed rozpoczęciem treningów",
+      "status": "zrodlo",
+      "priority": "warning",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "171"
+        }
+      ]
+    }
+  ],
+  "planTemplates": [
+    {
+      "id": "T1",
+      "name": "Sesja funkcjonalna (struktura)",
+      "goal": [
+        "ogólna sprawność",
+        "funkcja"
+      ],
+      "level": "wszyscy",
+      "status": "zrodlo",
+      "note": "Książka podaje strukturę sesji, nie gotowy plan z ćwiczeniami i parametrami.",
+      "days": {
+        "count": null,
+        "layout": null,
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "sessionStructure": {
+        "value": [
+          "ocena przed sesją (PSA, ok. 5 min, może być w trakcie rozgrzewki)",
+          "rozgrzewka ogólna: wzorzec lokomocyjny (chód → bieg, skip, czworakowanie, lekkie skoki)",
+          "rozciąganie dynamiczne: długi krok z sięgnięciem nad głowę, krok w bok z sięgnięciem, krok z dotknięciem palców",
+          "przygotowanie do ruchu: mobilizacja, aktywacja, hamowanie, rolowanie (też między seriami)",
+          "część główna: wzorce podstawowe, drugorzędne, lokomocyjne, zabawowe i bólowe",
+          "schłodzenie: lokomocja o niskiej intensywności"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "175-177"
+          },
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "180"
+          }
+        ]
+      },
+      "exercises": null,
+      "exercisesStatus": "brak_w_zrodle",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "przeciążenie i progresja (PR1–PR3), zmiana zmiennych co 4–8 tygodni",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 5 Functional Exercise Design",
+            "pages": "159"
+          },
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "167-168"
+          },
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "176"
+          }
+        ]
+      },
+      "planLength": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      }
+    },
+    {
+      "id": "T2",
+      "name": "Platforma funkcjonalna (plan długoterminowy)",
+      "goal": [
+        "wytrzymałość",
+        "siła",
+        "moc"
+      ],
+      "level": "wszyscy",
+      "status": "zrodlo",
+      "note": "Plan długoterminowy: fazy (wytrzymałość, siła, moc/szybkość), tygodniowy rozkład, okresy odpoczynku. Książka nie podaje długości faz poza cyklem 4–8 tygodni.",
+      "days": {
+        "count": {
+          "value": null,
+          "status": "brak_w_zrodle",
+          "note": "zależy od czasu i potrzeb klienta; z trenerem zalecane raz w tygodniu"
+        },
+        "layout": null,
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "phases": {
+        "value": [
+          "wytrzymałość: więcej powtórzeń, czasu pod napięciem, dystansu",
+          "siła: większe ciężary",
+          "szybkość i moc: skoki, podskoki, rzuty, praca szybka"
+        ],
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "178"
+          }
+        ]
+      },
+      "exercises": null,
+      "exercisesStatus": "brak_w_zrodle",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "deload": {
+        "value": "aktywna regeneracja: 1 dzień po mikrocyklu, 2–5 dni między mezocyklami (patrz PR10)",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "179"
+          }
+        ]
+      },
+      "progression": {
+        "value": "cykliczna zmiana zmiennych co ok. 4–8 tygodni",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 6 Functional Program Design",
+            "pages": "168"
+          }
+        ]
+      },
+      "planLength": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      }
+    },
+    {
+      "id": "T3",
+      "name": "Program rehabilitacji funkcjonalnej (szkielet)",
+      "goal": [
+        "rehabilitacja",
+        "ból przewlekły"
+      ],
+      "level": "klienci z bólem",
+      "status": "wniosek",
+      "note": "Szkielet złożony z rozdz. 7: ocena funkcjonalna → przygotowanie (mapowanie/hamowanie/aktywacja/mobilizacja) → zadanie funkcjonalne do retestu → wzorce bólowe w stopniowanej ekspozycji → kontekst. Autor nie podaje gotowego planu z liczbami.",
+      "days": {
+        "count": {
+          "value": null,
+          "status": "brak_w_zrodle",
+          "note": "ćwiczenia ekstrafunkcjonalne można wykonywać codziennie (s. 225)"
+        },
+        "layout": null,
+        "spacing": {
+          "value": null,
+          "status": "brak_w_zrodle"
+        }
+      },
+      "exercises": {
+        "A": [
+          "mapowanie regionu (30 s – 2 min, wolno, bez bólu)",
+          "hamowanie: rozciąganie >30 s lub ucisk 30–60 s",
+          "aktywacja zahamowanego mięśnia",
+          "retest: zadanie funkcjonalne",
+          "wzorzec bólowy w regresji (pozycja, obciążenie, prędkość)",
+          "zadanie z celem zewnętrznym i kontekstem"
+        ]
+      },
+      "exercisesStatus": "wniosek (elementy ze źródła s. 223-225, 240-242; kolejność: wniosek)",
+      "sets": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "reps": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rirRpe": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "rest": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "tempo": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "deload": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      },
+      "progression": {
+        "value": "PR4–PR8",
+        "status": "zrodlo",
+        "sources": [
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 7 Functional Rehabilitation",
+            "pages": "218-220"
+          },
+          {
+            "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+            "chapter": "Rozdz. 7 Functional Rehabilitation",
+            "pages": "265"
+          }
+        ]
+      },
+      "planLength": {
+        "value": null,
+        "status": "brak_w_zrodle"
+      }
+    }
+  ],
+  "sourceReferences": [
+    {
+      "id": "funkcjonalny-trening-rehabilitacja-crossley",
+      "type": "book",
+      "author": "James Crossley",
+      "title": "Functional Exercise and Rehabilitation: The Neuroscience of Movement, Pain and Performance",
+      "publisher": "Routledge (Taylor & Francis), Abingdon / New York",
+      "year": 2021,
+      "edition": "1st",
+      "isbn": "978-1-138-59160-8 (hbk); 978-1-4822-3235-6 (pbk); 978-1-315-15684-2 (ebk)",
+      "pages": 287,
+      "language": "angielski",
+      "pagesNote": "PDF 287 stron; numeracja drukowana 1–(ok.) 278; PDF = druk + 9 (sprawdzone na s. 11, 41, 91, 191, 271)",
+      "scope": "filozofia treningu funkcjonalnego (STRIVE), anatomia i neurologia funkcjonalna, projektowanie ćwiczeń i sesji, periodyzacja ogólna, ból i urazy, ćwiczenia korekcyjne dla regionów ciała; bez liczb programowania (serie, powtórzenia, %1RM, przerwy) i bez gotowych planów",
+      "fileUsed": "731408930-Functional-Exercise-and-Rehabilitation-the-Neuroscience-of-Movement-Pain-and-Performance-James-Crossley-Z-Library.pdf (warstwa tekstowa + podgląd wybranych stron jako obrazy)",
+      "personalDataOmitted": "brak danych osobowych klientów; nazwiska modeli ze zdjęć nie występują"
+    },
+    {
+      "id": "lost-figures-tables",
+      "type": "missing_data",
+      "items": [
+        {
+          "pages": "107, 110, 112, 116-117, 156, 175-176",
+          "element": "zdjęcia ćwiczeń i wzorców (rozdz. 4–6)",
+          "kept": "podpisy i opisy w tekście"
+        },
+        {
+          "pages": "195, 202, 218, 224, 234, 238-239",
+          "element": "zdjęcia mobilizacji, równoważni, strap-sit, rolowania, przysiadów",
+          "kept": "podpisy, opis w tekście"
+        },
+        {
+          "pages": "244-265",
+          "element": "zdjęcia ok. 48 ćwiczeń korekcyjnych (ryc. 7.20–7.67)",
+          "kept": "nazwy i wskazówki wykonania z tekstu; brak liczby powtórzeń i czasu"
+        },
+        {
+          "pages": "27, 31, 38, 40, 44-45, 51, 71, 206, 242, 247, 252, 256, 261",
+          "element": "ryciny anatomiczne i schematy",
+          "kept": "podpisy; etykiety ryc. 7.13 i 7.19 czytelne w tekście"
+        },
+        {
+          "pages": "59, 168, 210",
+          "element": "wykresy (skurcz/sumowanie, superkompensacja, ból a uraz)",
+          "kept": "opis kształtu krzywych (odczytany z obrazu)"
+        },
+        {
+          "pages": "157",
+          "element": "skala RPE w ramce",
+          "kept": "pełna, w tekście"
+        }
+      ],
+      "keptComplete": [
+        "tabela typów kości (s. 27)",
+        "tabele odchyleń w testach przesiewowych (s. 230-231)",
+        "sieć funkcjonalna (ryc. 5.1, s. 150) – odczytana z obrazu",
+        "zespół skrzyżowania górnego (ryc. 7.13) – etykiety w tekście"
+      ]
+    }
+  ],
+  "rehabRules": [
+    {
+      "id": "RH1",
+      "topic": "klasyfikacja urazów",
+      "rule": "Naderwanie mięśnia (strain), skręcenie więzadła (sprain), złamanie, neuropatia, konflikt (impingement), podwichnięcie. Stopnie I–III. Mechanizm ostry lub przewlekły. Czas: ostry 0–3 dni, podostry 72 h – 21 dni, przewlekły 21 dni – 2 lata.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "183-185"
+        }
+      ]
+    },
+    {
+      "id": "RH2",
+      "topic": "przyczyny urazów",
+      "rule": "Przeciążenie, dezorientacja (zaskoczenie, zła koordynacja), przeciążenie powtarzalne, niedociążenie (brak ruchu).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "185-186"
+        }
+      ]
+    },
+    {
+      "id": "RH3",
+      "topic": "fazy gojenia",
+      "rule": "Zapalna → naprawy → przebudowy. W fazie przebudowy stopniowy powrót do normalnej funkcji (przykład: naderwanie mięśni grzbietu I stopnia).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "187-189"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "197-198"
+        }
+      ]
+    },
+    {
+      "id": "RH4",
+      "topic": "ruch a obrzęk",
+      "rule": "Przepływ chłonki przy ruchu jest według autora do 40 razy większy niż w spoczynku; ruch wspiera usuwanie obrzęku.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "194-196"
+        }
+      ]
+    },
+    {
+      "id": "RH5",
+      "topic": "zapobieganie urazom",
+      "rule": "Dostosuj zadania, zmień otoczenie, buduj możliwości, przywracaj zmienność ruchu (osoby po urazach mają mniejszą zmienność), rozwijaj adaptacyjność, poprawiaj reakcje.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "198-202"
+        }
+      ]
+    },
+    {
+      "id": "RH6",
+      "topic": "mapowanie",
+      "rule": "Wolno, przez 30 s – 2 min, z uwagą skierowaną do środka, w bezpiecznym otoczeniu, w stabilnej pozycji, bez rozproszeń, bez bólu. Przykłady: koci grzbiet dla odcinka lędźwiowego, przyciąganie brody dla szyi (ok. 60 s z oddechem). Mapowanie obejmuje też dotyk terapeutyczny, czucie pozycji, ćwiczenia dysocjacji i dokładności ruchu.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "221-223"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "240-241"
+        }
+      ]
+    },
+    {
+      "id": "RH7",
+      "topic": "hamowanie (inhibition)",
+      "rule": "Rozciąganie statyczne trzymane ponad 30 s albo ucisk na mięsień nadmiernie napięty przez 30–60 s lub do odczucia ulgi, z oddechem i rozluźnieniem na wydechu. Potem retest zadania (np. skłon w przód).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "223-224"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "241"
+        }
+      ]
+    },
+    {
+      "id": "RH8",
+      "topic": "aktywacja",
+      "rule": "Wykorzystuje potencjalizację poaktywacyjną (PAP): krótki skurcz (maksymalny lub submaksymalny) zahamowanego mięśnia z uwagą na nim, można dotykiem; zaraz potem zadanie funkcjonalne, które powinno się od razu poprawić. Szczególnie podatne na zahamowanie: mięśnie pośladkowe i głębokie mięśnie brzucha.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "224-225"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "241"
+        }
+      ]
+    },
+    {
+      "id": "RH9",
+      "topic": "mobilizacja",
+      "rule": "Wolno, nisko, kontrolowanie; w użytecznym wzorcu; wielokrotnie w pełny zakres fizjologiczny i z powrotem (od wygodnego napięcia do środka zakresu); w różnych kierunkach, pozycjach, z różną prędkością i obciążeniem.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "241-242"
+        }
+      ]
+    },
+    {
+      "id": "RH10",
+      "topic": "ruch złożony i przepływ ruchu",
+      "rule": "Nietypowe, złożone wyzwania ruchowe w wielu kierunkach mobilizują stawy, rozciągają tkanki i odczulają na nowość. Movement flow: płynne przejścia między pozycjami (jak tai chi, qigong).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "239"
+        }
+      ]
+    },
+    {
+      "id": "RH11",
+      "topic": "oddech",
+      "rule": "Przy spokojnym oddechu pierwsza połowa wdechu idzie do brzucha, druga rozszerza dolne żebra; górne żebra unoszą się tylko przy dużym wysiłku. Ruch mostka bez ruchu brzucha lub unoszenie barków przy wdechu to dysfunkcyjny wzorzec. Długi wydech (ok. 6–10 s) uspokaja.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "248-249"
+        }
+      ]
+    },
+    {
+      "id": "RH12",
+      "topic": "kręgosłup piersiowy a lędźwiowy",
+      "rule": "Brak wyprostu i rotacji w odcinku piersiowym jest często kompensowany wyprostem lędźwiowym, co może dawać ból krzyża; mobilizacja odcinka piersiowego często pomaga przy bólu krzyża.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "248"
+        }
+      ]
+    },
+    {
+      "id": "RH13",
+      "topic": "obciążenia biodra",
+      "rule": "Chód 1–1,5× masy ciała, bieg 2–5×, skok 4–12×; mężczyzna 80 kg w biegu przyjmuje na jedną nogę 160–400 kg.",
+      "value": {
+        "walkingBW": [
+          1,
+          1.5
+        ],
+        "runningBW": [
+          2,
+          5
+        ],
+        "jumpingBW": [
+          4,
+          12
+        ]
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "252"
+        }
+      ]
+    },
+    {
+      "id": "RH14",
+      "topic": "stopa",
+      "rule": "Wkładki ortopedyczne ograniczają ruch stopy i mogą wyłączać łańcuch aktywujący mięśnie biodra. Problemy stopy wywołuje m.in. nagły wzrost aktywności (np. rozpoczęcie biegania) i obuwie (wysokie obcasy).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "259-260"
+        }
+      ]
+    }
+  ],
+  "assessmentRules": [
+    {
+      "id": "A1",
+      "name": "ocena funkcjonalna (pierwsza sesja)",
+      "rule": "Pierwsza sesja to luźna obserwacja naturalnego ruchu, nie ocena błędów. Obejmuje wzorce podstawowe, drugorzędne, lokomocyjne i bólowe. Mów o mocnych stronach, nie strasz „dysfunkcjami”. Dobrze obserwować klienta nieświadomego oceny (np. nagrania z domu, pracy).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "172-173"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "name": "testy wzorców",
+      "rule": "Siad (biodra do ziemi, pięty na podłodze), krok/wykrok (tylne kolano do ziemi), podnoszenie ciężaru, sięganie w rozkroku z gumą, pompka z podporu na kolanach, przyciąganie z gumą lub wyciągiem, rotacja głowy, głęboki oddech, chód i bieg, czworakowanie. Obserwuj sztywność, niestabilność, asymetrię, kompensacje (unoszenie barku, odstawanie łopatki).",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "173-174"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "name": "miara wyniku",
+      "rule": "Wynik mierz obiektywnie zadaniem związanym z celem, np. liczba powtórzeń w 45 s, czas biegu na 800 m, odległość sięgnięcia.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 5 Functional Exercise Design",
+          "pages": "156"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "172"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "name": "skąd asymetria",
+      "rule": "Strukturalna: stała, niezależna od kontekstu, nie reaguje na interwencję (trenuj kompensację). Fizjologiczna: zmienia się wolno, reaguje na zmianę pozycji i użycie. Nerwowa: niestała, reaguje na interwencję i uwagę. Behawioralna: niestała, zależy od kontekstu, oczekiwań i edukacji.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "235"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "237"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "name": "test zgięcia grzbietowego stopy",
+      "rule": "Palce przy ścianie, pięta na podłodze, dotknij kolanem ściany; odsuwaj stopę o 2 cm i powtarzaj do granicy. Chód wymaga ok. 20° zgięcia grzbietowego; zdrowi dorośli mają zwykle ok. 25°.",
+      "value": {
+        "stepCm": 2,
+        "walkingDorsiflexionDeg": 20,
+        "typicalDorsiflexionDeg": 25
+      },
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "237"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "259"
+        }
+      ]
+    },
+    {
+      "id": "A6",
+      "name": "ocena przed sesją (PSA)",
+      "rule": "Ok. 5 minut rozmowy: jak minął tydzień, postępy, reakcja na poprzednią sesję, samopoczucie, ból, na co klient ma ochotę, czego unikać, cele sesji, tematy edukacyjne. Sesję dostosuj do odpowiedzi.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "177"
+        }
+      ]
+    },
+    {
+      "id": "A7",
+      "name": "typy klientów",
+      "rule": "Nowicjusz: buduj relację, uspokój, wyjaśnij plan sesji, znany sprzęt, łatwe sukcesy, lekkie cardio na start, uczyć krótko. Zestresowany: zabawa i gry, np. uderzanie w tarcze, bez uczenia, słuchaj, bez stresujących celów i sztywnej struktury. Gaduła: rozmowa przy cardio, gry, nietypowe ćwiczenia, mniej struktury. Sportowiec: ambitne cele, stopniowo rosnąca rywalizacja. Wyczerpany: medytacja, oddech, rozluźnianie, zachęta do snu i regeneracji, mało pracy o wysokiej intensywności. Z bólem: zapewnij bezpieczeństwo, wyjaśnij, że ruch złagodzi objawy, unikaj ruchów prowokujących ból, daj kontrolę, ruch łagodny, wolny, lekki. Myśliciel: ucz nowych umiejętności (bez wielu wskazówek naraz), plany, cele, ścieżka rozwoju.",
+      "status": "zrodlo",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 4 STRIVE Principles",
+          "pages": "140-142"
+        }
+      ]
+    }
+  ],
+  "contradictions": [
+    {
+      "id": "C1",
+      "topic": "nazwy cykli periodyzacji",
+      "detail": "Autor nazywa mikrocyklem pojedynczy program (sesję), mezocyklem plan tygodniowy, makrocyklem plan miesięczny lub roczny (s. 178). W typowej terminologii mikrocykl to zwykle tydzień, mezocykl kilka tygodni.",
+      "resolution": "w aplikacji używać standardowych nazw; wartości z PR10 tłumaczyć według definicji autora (np. 1 dzień odpoczynku po mikrocyklu = po sesji?) – niepewne",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 6 Functional Program Design",
+          "pages": "178-179"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "topic": "ściąganie drążka",
+      "detail": "Autor odradza ściąganie drążka (lat pulldown) jako ćwiczenie tworzące nierównowagę i zaleca zwis. Inne bazy (np. GSA, NSCA) traktują pionowe przyciąganie jako standardowy wzorzec.",
+      "resolution": "zapisane jako opinia autora; nie wykluczać ściągania w generatorze na tej podstawie",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 2 Functional Anatomy",
+          "pages": "31"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "262"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "topic": "postawa i technika",
+      "detail": "Autor kwestionuje związek postawy, testów przesiewowych i „poprawnej techniki” z bólem i urazem (s. 229-231), ale przy ciężkim dźwiganiu zaleca neutralny kręgosłup (s. 230, 244).",
+      "resolution": "technika ma znaczenie przy dużych obciążeniach; przy lekkich zadaniach ruch kręgosłupa jest dopuszczalny",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "229-231"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "244"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "topic": "kolejność aktywacji mięśni",
+      "detail": "Autor przytacza tezy z innych tekstów (poprzeczny brzucha ok. 150 ms przed ruchem kończyn, pośladek przed kulszowo-goleniowymi) jako przykład nadmiernie sztywnych modeli, a jednocześnie poleca aktywację pośladków i głębokich mięśni brzucha w rehabilitacji.",
+      "resolution": "aktywacja jako narzędzie z retestem, bez twierdzeń o „prawidłowej kolejności” odpaleń",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "224-225"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "231"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "topic": "co aktywuje „muszelka”",
+      "detail": "Tekst (s. 241) mówi, że ćwiczenie muszelki aktywuje mięsień pośladkowy wielki; ćwiczenie jest zwykle opisywane jako praca rotatorów zewnętrznych i pośladkowego średniego (autor na s. 254 pisze ogólnie o bocznej części biodra).",
+      "resolution": "w aplikacji opisywać jako boczna część biodra / pośladkowy średni (WNIOSEK)",
+      "sources": [
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "241"
+        },
+        {
+          "ref": "funkcjonalny-trening-rehabilitacja-crossley",
+          "chapter": "Rozdz. 7 Functional Rehabilitation",
+          "pages": "254"
+        }
+      ]
+    }
+  ],
+  "glossary": [
+    {
+      "en": "functional training (FT)",
+      "pl": "trening funkcjonalny; FT = trener funkcjonalny",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "7"
+    },
+    {
+      "en": "transfer",
+      "pl": "przeniesienie (efektu treningu na zadanie)",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "9-11"
+    },
+    {
+      "en": "similarity / specificity",
+      "pl": "podobieństwo / specyficzność",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "14"
+    },
+    {
+      "en": "within-task training",
+      "pl": "trening wewnątrz zadania",
+      "category": "pojęcie",
+      "uncertain": true,
+      "pages": "19-20"
+    },
+    {
+      "en": "STRIVE",
+      "pl": "STRIVE: podświadomie sterowane, zadaniowe, reaktywne, inteligentnie zmienne, emocjonalne",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "23"
+    },
+    {
+      "en": "subconscious mind (subCM)",
+      "pl": "umysł podświadomy",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "13, 92"
+    },
+    {
+      "en": "conscious mind (CM)",
+      "pl": "umysł świadomy",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "92"
+    },
+    {
+      "en": "self-organized / consciously-organized skills (SC / CO)",
+      "pl": "umiejętności samoorganizujące się / organizowane świadomie",
+      "category": "pojęcie",
+      "uncertain": true,
+      "pages": "18"
+    },
+    {
+      "en": "Alien / Student / Chimp",
+      "pl": "Obcy / Uczeń / Szympans (metafory części umysłu)",
+      "category": "pojęcie",
+      "uncertain": true,
+      "pages": "95-97"
+    },
+    {
+      "en": "biological priorities",
+      "pl": "priorytety biologiczne (homeostaza, przetrwanie, łatwość, dziedzictwo)",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "97"
+    },
+    {
+      "en": "threat inoculation",
+      "pl": "szczepienie przeciw zagrożeniu (stopniowe oswajanie)",
+      "category": "pojęcie",
+      "uncertain": true,
+      "pages": "101-103"
+    },
+    {
+      "en": "graded exposure",
+      "pl": "stopniowana ekspozycja",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "138, 218"
+    },
+    {
+      "en": "primary movement pattern (PMP)",
+      "pl": "podstawowy wzorzec ruchowy",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "106"
+    },
+    {
+      "en": "secondary movement pattern (SMP)",
+      "pl": "drugorzędny wzorzec ruchowy",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "107"
+    },
+    {
+      "en": "travel pattern (TP)",
+      "pl": "wzorzec lokomocyjny",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "107"
+    },
+    {
+      "en": "play pattern",
+      "pl": "wzorzec zabawowy",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "108"
+    },
+    {
+      "en": "pain pattern",
+      "pl": "wzorzec bólowy (zadanie wywołujące ból)",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "108, 218"
+    },
+    {
+      "en": "shift",
+      "pl": "przeniesienie ciężaru ciała",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "107"
+    },
+    {
+      "en": "get-up",
+      "pl": "wstawanie (z podłogi lub siedzenia)",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "107"
+    },
+    {
+      "en": "crawl",
+      "pl": "czworakowanie",
+      "category": "wzorzec",
+      "uncertain": false,
+      "pages": "107"
+    },
+    {
+      "en": "drivers",
+      "pl": "czynniki napędzające ruch",
+      "category": "projektowanie",
+      "uncertain": true,
+      "pages": "114-117, 150"
+    },
+    {
+      "en": "tools / obstacles / targets",
+      "pl": "narzędzia / przeszkody / cele",
+      "category": "projektowanie",
+      "uncertain": false,
+      "pages": "117"
+    },
+    {
+      "en": "handprint / footprint",
+      "pl": "ustawienie dłoni / ustawienie stóp",
+      "category": "projektowanie",
+      "uncertain": true,
+      "pages": "115-116"
+    },
+    {
+      "en": "functional web",
+      "pl": "sieć funkcjonalna",
+      "category": "projektowanie",
+      "uncertain": false,
+      "pages": "150"
+    },
+    {
+      "en": "tweak",
+      "pl": "drobna zmiana ćwiczenia",
+      "category": "projektowanie",
+      "uncertain": false,
+      "pages": "153"
+    },
+    {
+      "en": "external / internal focus of attention",
+      "pl": "zewnętrzne / wewnętrzne skupienie uwagi",
+      "category": "nauka ruchu",
+      "uncertain": false,
+      "pages": "111-119"
+    },
+    {
+      "en": "cue",
+      "pl": "wskazówka (słowna)",
+      "category": "nauka ruchu",
+      "uncertain": false,
+      "pages": "118"
+    },
+    {
+      "en": "intelligent variation",
+      "pl": "inteligentna zmienność",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "120"
+    },
+    {
+      "en": "outcome / process variability",
+      "pl": "zmienność wyniku / zmienność procesu",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "123"
+    },
+    {
+      "en": "redundancy",
+      "pl": "redundancja (rezerwa sposobów wykonania)",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "122"
+    },
+    {
+      "en": "sequence / series / matrix",
+      "pl": "sekwencja / seria / matryca (sposoby wprowadzania zmienności)",
+      "category": "projektowanie",
+      "uncertain": false,
+      "pages": "131"
+    },
+    {
+      "en": "inverted-U",
+      "pl": "odwrócone U (pobudzenie a wynik)",
+      "category": "psychologia",
+      "uncertain": false,
+      "pages": "134"
+    },
+    {
+      "en": "handbrakes and accelerators",
+      "pl": "hamulce i przyspieszacze (czynniki emocjonalne)",
+      "category": "psychologia",
+      "uncertain": true,
+      "pages": "135"
+    },
+    {
+      "en": "self-efficacy",
+      "pl": "poczucie własnej skuteczności",
+      "category": "psychologia",
+      "uncertain": false,
+      "pages": "137"
+    },
+    {
+      "en": "movement strategy: functional / dysfunctional / overloaded",
+      "pl": "strategia ruchu: funkcjonalna / dysfunkcyjna / przeciążona",
+      "category": "ocena",
+      "uncertain": false,
+      "pages": "157-159"
+    },
+    {
+      "en": "observational analysis",
+      "pl": "analiza obserwacyjna",
+      "category": "ocena",
+      "uncertain": false,
+      "pages": "157"
+    },
+    {
+      "en": "RPE / verbal analogue scale (VAS)",
+      "pl": "skala odczuwanego wysiłku",
+      "category": "intensywność",
+      "uncertain": false,
+      "pages": "157"
+    },
+    {
+      "en": "talk test",
+      "pl": "test rozmowy",
+      "category": "intensywność",
+      "uncertain": false,
+      "pages": "157"
+    },
+    {
+      "en": "super-compensation",
+      "pl": "superkompensacja",
+      "category": "programowanie",
+      "uncertain": false,
+      "pages": "168"
+    },
+    {
+      "en": "plateau",
+      "pl": "plateau (zastój)",
+      "category": "programowanie",
+      "uncertain": false,
+      "pages": "167"
+    },
+    {
+      "en": "negative adaptation / burnout",
+      "pl": "adaptacja negatywna / wypalenie",
+      "category": "programowanie",
+      "uncertain": false,
+      "pages": "168"
+    },
+    {
+      "en": "active / complete recovery",
+      "pl": "regeneracja aktywna / całkowita",
+      "category": "programowanie",
+      "uncertain": false,
+      "pages": "168, 179"
+    },
+    {
+      "en": "functional platform",
+      "pl": "platforma funkcjonalna (plan długoterminowy)",
+      "category": "programowanie",
+      "uncertain": true,
+      "pages": "178, 180"
+    },
+    {
+      "en": "pre-session appraisal (PSA)",
+      "pl": "ocena przed sesją",
+      "category": "ocena",
+      "uncertain": false,
+      "pages": "177"
+    },
+    {
+      "en": "client appraisal",
+      "pl": "wywiad z klientem",
+      "category": "ocena",
+      "uncertain": false,
+      "pages": "170"
+    },
+    {
+      "en": "movement preparation",
+      "pl": "przygotowanie do ruchu",
+      "category": "sesja",
+      "uncertain": false,
+      "pages": "176, 225"
+    },
+    {
+      "en": "pacing",
+      "pl": "rozkładanie obciążeń (bilans aktywności i odpoczynku)",
+      "category": "programowanie",
+      "uncertain": true,
+      "pages": "179"
+    },
+    {
+      "en": "strain / sprain",
+      "pl": "naderwanie mięśnia / skręcenie (uraz więzadła)",
+      "category": "uraz",
+      "uncertain": false,
+      "pages": "183"
+    },
+    {
+      "en": "impingement",
+      "pl": "konflikt (ciasnota)",
+      "category": "uraz",
+      "uncertain": false,
+      "pages": "184"
+    },
+    {
+      "en": "subluxation",
+      "pl": "podwichnięcie",
+      "category": "uraz",
+      "uncertain": false,
+      "pages": "184"
+    },
+    {
+      "en": "red flags",
+      "pl": "czerwone flagi",
+      "category": "bezpieczeństwo",
+      "uncertain": false,
+      "pages": "189"
+    },
+    {
+      "en": "PRICE",
+      "pl": "ochrona, odpoczynek, lód, ucisk, uniesienie",
+      "category": "uraz",
+      "uncertain": false,
+      "pages": "188"
+    },
+    {
+      "en": "antalgic movement",
+      "pl": "ruch przeciwbólowy (antalgiczny)",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "192, 221"
+    },
+    {
+      "en": "nociceptor / nociception",
+      "pl": "nocyceptor / nocycepcja",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "205-206"
+    },
+    {
+      "en": "persistent pain (PP)",
+      "pl": "ból przetrwały (przewlekły)",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "210"
+    },
+    {
+      "en": "prediction error",
+      "pl": "błąd predykcji",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "210"
+    },
+    {
+      "en": "neurotag",
+      "pl": "neurotag (wzorzec aktywności mózgu)",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "211"
+    },
+    {
+      "en": "explain pain",
+      "pl": "edukacja o bólu („wyjaśnij ból”)",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "217"
+    },
+    {
+      "en": "flare-up",
+      "pl": "zaostrzenie",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "218"
+    },
+    {
+      "en": "hyperalgesia / allodynia",
+      "pl": "przeczulica bólowa / allodynia",
+      "category": "ból",
+      "uncertain": false,
+      "pages": "221"
+    },
+    {
+      "en": "extra-functional exercise",
+      "pl": "ćwiczenie ekstrafunkcjonalne (poza zadaniem)",
+      "category": "rehabilitacja",
+      "uncertain": true,
+      "pages": "221"
+    },
+    {
+      "en": "mapping",
+      "pl": "mapowanie (odbudowa mapy ciała)",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "221, 240"
+    },
+    {
+      "en": "dissociation",
+      "pl": "dysocjacja (rozdzielenie ruchu części ciała)",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "222"
+    },
+    {
+      "en": "inhibition",
+      "pl": "hamowanie (rozluźnianie mięśnia nadmiernie napiętego)",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "223"
+    },
+    {
+      "en": "activation",
+      "pl": "aktywacja",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "224"
+    },
+    {
+      "en": "self-myofascial release (SMR)",
+      "pl": "autorozluźnianie mięśniowo-powięziowe (rolowanie)",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "223"
+    },
+    {
+      "en": "post-activation potentiation (PAP)",
+      "pl": "potencjalizacja poaktywacyjna",
+      "category": "fizjologia",
+      "uncertain": false,
+      "pages": "224"
+    },
+    {
+      "en": "hypertonic",
+      "pl": "nadmiernie napięty (hipertoniczny)",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "223"
+    },
+    {
+      "en": "gluteal amnesia",
+      "pl": "„amnezja” pośladków (zahamowanie)",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "225"
+    },
+    {
+      "en": "movement screen",
+      "pl": "test przesiewowy ruchu",
+      "category": "ocena",
+      "uncertain": false,
+      "pages": "230"
+    },
+    {
+      "en": "corrective exercise",
+      "pl": "ćwiczenie korekcyjne",
+      "category": "rehabilitacja",
+      "uncertain": false,
+      "pages": "231"
+    },
+    {
+      "en": "upper crossed syndrome",
+      "pl": "zespół skrzyżowania górnego",
+      "category": "postawa",
+      "uncertain": false,
+      "pages": "228"
+    },
+    {
+      "en": "hyper-lordosis / hyper-kyphosis / scoliosis",
+      "pl": "hiperlordoza / hiperkifoza / skolioza",
+      "category": "postawa",
+      "uncertain": false,
+      "pages": "228"
+    },
+    {
+      "en": "adaptation vs compensation",
+      "pl": "adaptacja vs kompensacja",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "235"
+    },
+    {
+      "en": "path of least resistance / positions of ease",
+      "pl": "droga najmniejszego oporu / pozycje łatwości",
+      "category": "pojęcie",
+      "uncertain": true,
+      "pages": "233-235"
+    },
+    {
+      "en": "movement ability",
+      "pl": "sprawność ruchowa (umiejętność ruchu)",
+      "category": "pojęcie",
+      "uncertain": true,
+      "pages": "237-238"
+    },
+    {
+      "en": "movement flow",
+      "pl": "przepływ ruchu",
+      "category": "pojęcie",
+      "uncertain": true,
+      "pages": "239"
+    },
+    {
+      "en": "lumbo-pelvic hip complex (LPHC)",
+      "pl": "kompleks lędźwiowo-miedniczno-biodrowy",
+      "category": "anatomia",
+      "uncertain": false,
+      "pages": "252"
+    },
+    {
+      "en": "scapulo-humeral rhythm (SHR)",
+      "pl": "rytm łopatkowo-ramienny",
+      "category": "anatomia",
+      "uncertain": false,
+      "pages": "262"
+    },
+    {
+      "en": "vastus medialis oblique (VMO)",
+      "pl": "część skośna mięśnia obszernego przyśrodkowego",
+      "category": "anatomia",
+      "uncertain": false,
+      "pages": "257"
+    },
+    {
+      "en": "iliotibial band (ITB)",
+      "pl": "pasmo biodrowo-piszczelowe",
+      "category": "anatomia",
+      "uncertain": false,
+      "pages": "257"
+    },
+    {
+      "en": "Golgi tendon organ (GTO)",
+      "pl": "narząd ścięgnisty Golgiego",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "50"
+    },
+    {
+      "en": "muscle spindle",
+      "pl": "wrzeciono mięśniowe",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "49"
+    },
+    {
+      "en": "homunculus",
+      "pl": "homunkulus (mapa ciała w korze)",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "51"
+    },
+    {
+      "en": "rate coding / size principle",
+      "pl": "kodowanie częstotliwością / zasada wielkości (rekrutacja)",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "59"
+    },
+    {
+      "en": "stretch-shortening cycle",
+      "pl": "cykl rozciągnięcie-skurcz",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "61"
+    },
+    {
+      "en": "reciprocal inhibition / co-contraction",
+      "pl": "hamowanie zwrotne / współskurcz",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "62"
+    },
+    {
+      "en": "generalized motor program (GMP)",
+      "pl": "uogólniony program ruchowy",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "64-65"
+    },
+    {
+      "en": "Hick's law",
+      "pl": "prawo Hicka (czas reakcji rośnie z liczbą wyborów)",
+      "category": "neurologia",
+      "uncertain": false,
+      "pages": "68"
+    },
+    {
+      "en": "dynamic systems theory (DST) / attractor state",
+      "pl": "teoria systemów dynamicznych / stan atraktora",
+      "category": "pojęcie",
+      "uncertain": false,
+      "pages": "75-77"
+    },
+    {
+      "en": "chunking",
+      "pl": "grupowanie (łączenie elementów ruchu w całość)",
+      "category": "nauka ruchu",
+      "uncertain": false,
+      "pages": "81"
+    },
+    {
+      "en": "open / closed chain",
+      "pl": "łańcuch otwarty / zamknięty",
+      "category": "anatomia",
+      "uncertain": false,
+      "pages": "38"
+    },
+    {
+      "en": "tilt / spin / roll / glide",
+      "pl": "przechylenie / obrót / toczenie / ślizg (artrokinematyka)",
+      "category": "anatomia",
+      "uncertain": false,
+      "pages": "39-40"
+    },
+    {
+      "en": "periostitis (shin splints)",
+      "pl": "zapalenie okostnej (bóle goleni)",
+      "category": "uraz",
+      "uncertain": false,
+      "pages": "28"
+    }
+  ]
+}
