@@ -34,7 +34,7 @@ ok('summary hides empty wellbeing habits and streaks',/data-cp-panel="checkin"\$
 ok('empty photos are a short photos link',/Brak zdjęć/.test(progress)&&/onclick="setCPTab\('photos'\)">Zdjęcia<\/button>/.test(progress)&&/Otwórz porównanie/.test(progress));
 ok('plan realization shows no data without assignments',/adh30\.assigned\?`\$\{adh30\.pct\}%`:'Brak danych'/.test(progress)&&/Realizacja planu · 30 dni/.test(progress));
 ok('timeline heading says Historia aktywności',/class="cp-section-title">Historia aktywności<\/div>/.test(src08));
-ok('updated app script caches',/07-forms-metrics-calculator\.js\?v=44/.test(html)&&/08-client-profile-extras\.js\?v=91/.test(html));
+ok('updated app script caches',/07-forms-metrics-calculator\.js\?v=45/.test(html)&&/08-client-profile-extras\.js\?v=91/.test(html));
 ok('CI runs navigation regression test',wf.includes('test_cp_nav_terms.js'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}

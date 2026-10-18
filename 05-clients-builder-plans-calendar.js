@@ -4381,8 +4381,8 @@ function asClientSearchInput(){
     return;
   }
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="asSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:13px;">${c.name}</span>
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="asSetClientField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';

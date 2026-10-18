@@ -1956,14 +1956,14 @@ function renderTemplates(){
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
     ${list.map((t,i)=>`<div class="tpl-card" style="animation-delay:${i*0.03}s;border-top:3px solid ${t.color};" onclick="openTplDetail('${t.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-        <div style="font-size:14px;font-weight:700;line-height:1.3;flex:1;padding-right:8px;">${t.name}</div>
+        <div style="font-size:14px;font-weight:700;line-height:1.3;flex:1;padding-right:8px;">${escHtml(t.name)}</div>
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap;">${t.days}×/tydzień</div>
       </div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${t.desc.slice(0,80)}${t.desc.length>80?'…':''}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${escHtml(t.desc.slice(0,80))}${t.desc.length>80?'…':''}</div>
       <div style="margin-bottom:10px;">
         <span class="tpl-tag" style="background:${t.color}22;color:${t.color};">${goalLabels[t.goal]||t.goal}</span>
         <span class="tpl-tag">${levelLabels[t.level]||t.level}</span>
-        <span class="tpl-tag">${t.method}</span>
+        <span class="tpl-tag">${escHtml(t.method)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;gap:3px;">
@@ -1984,17 +1984,17 @@ function openTplDetail(id){
   const el=document.getElementById('tpl-detail');
   el.innerHTML=`
     <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;background:var(--s1);z-index:1;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;">${t.name}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;">${escHtml(t.name)}</div>
       <button onclick="closeTplDetail()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
     </div>
     <div style="padding:20px;">
       <!-- header info -->
       <div style="background:linear-gradient(135deg,${t.color}15,transparent);border:1px solid ${t.color}33;border-radius:12px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">${t.desc}</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">${escHtml(t.desc)}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
           <span class="tpl-tag" style="background:${t.color}22;color:${t.color};">${goalLabels[t.goal]||t.goal}</span>
           <span class="tpl-tag">${levelLabels[t.level]||t.level}</span>
-          <span class="tpl-tag">🔁 ${t.method}</span>
+          <span class="tpl-tag">🔁 ${escHtml(t.method)}</span>
           <span class="tpl-tag">📅 ${t.days}× /tydzień</span>
           <span class="tpl-tag">📆 Mikrocykl (1 tydzień)</span>
         </div>
@@ -2004,7 +2004,7 @@ function openTplDetail(id){
       <div style="margin-bottom:16px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Harmonogram tygodnia</div>
         ${(t.schedule||[]).map(s=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
-          <span style="color:${t.color};">→</span><span>${s}</span>
+          <span style="color:${t.color};">→</span><span>${escHtml(s)}</span>
         </div>`).join('')}
       </div>
 
@@ -2014,10 +2014,10 @@ function openTplDetail(id){
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Dni treningowe (${t.days_detail.length})</div>
         ${t.days_detail.map(d=>`
           <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;">
-            <div style="font-size:12px;font-weight:700;margin-bottom:8px;">${d.name}</div>
+            <div style="font-size:12px;font-weight:700;margin-bottom:8px;">${escHtml(d.name)}</div>
             ${(d.exercises||[]).map((ex,i)=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;align-items:center;">
               <span style="width:16px;height:16px;border-radius:4px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">${i+1}</span>
-              <span style="flex:1;">${ex.n}</span>
+              <span style="flex:1;">${escHtml(ex.n)}</span>
               <span style="font-family:'DM Mono',monospace;color:var(--accent);">${ex.s}×${ex.r}</span>
             </div>`).join('')}
           </div>`).join('')}

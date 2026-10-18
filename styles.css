@@ -147,7 +147,8 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   .nav-clients-list{max-height:min(22vh,160px);}
 }
 @media(max-width:900px){
-  .nav-flyout{left:12px;right:12px;min-width:0;width:auto;top:auto;bottom:72px;max-height:60vh;}
+  /* nad otwartym menu mobilnym (500) i jego tłem (450) — inaczej podstron Biblioteki nie da się stuknąć */
+  .nav-flyout{left:12px;right:12px;min-width:0;width:auto;top:auto;bottom:72px;max-height:60vh;z-index:600;}
 }
 /* Everfit All Clients table */
 .cl-everfit{flex:1;overflow:auto;display:flex;flex-direction:column;min-height:0;}
@@ -2684,7 +2685,9 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .toggle-mini::after{content:'';width:10px;height:10px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;}
 input[type=checkbox]:checked+.toggle-mini{background:var(--accent);}
 input[type=checkbox]:checked+.toggle-mini::after{left:14px;background:#000;}
-input[type=checkbox]{display:none;}
+/* Ukryty tylko checkbox pod przełącznikiem .toggle-mini; pozostałe pola wyboru muszą być widoczne. */
+.osc-toggle input[type=checkbox]{display:none;}
+input[type=checkbox]{accent-color:var(--accent);}
 .af-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:12px;animation:fadeUp 0.18s ease both;}
 .af-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .af-step-row{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--s3);border-radius:8px;margin-bottom:6px;font-size:12px;}

@@ -39,6 +39,32 @@ function escHtml(s){
 }
 window.escHtml=escHtml;
 
+/** Pole „wpisz i wybierz klienta”: ukryte id musi pasować do tekstu w polu.
+ *  Gdy trener zmieni tekst bez kliknięcia na liście, stare id jest czyszczone;
+ *  pełne imię i nazwisko jednego klienta wybiera go bez klikania. */
+function clientPickSync(hiddenId,searchId){
+  const hid=document.getElementById(hiddenId);
+  const vis=document.getElementById(searchId);
+  if(!hid)return '';
+  if(!vis)return hid.value||'';
+  const norm=s=>String(s||'').trim().replace(/\s+/g,' ').toLowerCase();
+  const txt=norm(vis.value);
+  const live=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  const label=c=>norm(c.name||c.email);
+  const cur=live.find(c=>c.id===hid.value);
+  if(cur&&txt&&label(cur)===txt)return hid.value;
+  const hits=txt?live.filter(c=>label(c)===txt):[];
+  hid.value=hits.length===1?hits[0].id:'';
+  return hid.value;
+}
+window.clientPickSync=clientPickSync;
+
+/** Argument tekstowy do onclick="fn(...)" w atrybucie HTML: działa z apostrofem i cudzysłowem w nazwie. */
+function exJsArg(s){
+  return escHtml(JSON.stringify(String(s??'')));
+}
+window.exJsArg=exJsArg;
+
 /** Stabilne ID współdzielone lokalnie i w Firestore (doc id = obj.id). */
 function newId(prefix){
   return (prefix||'id')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
