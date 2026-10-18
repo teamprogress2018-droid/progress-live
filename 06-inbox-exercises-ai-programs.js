@@ -1746,18 +1746,18 @@ function renderExdSubstitutes(){
   }
   const cards=results.map(({ex,score})=>{
     const pct=Math.max(4,Math.round((score/STAFF_SUB_MAX)*100));
-    const safe=String(ex.name).replace(/'/g,"\\'");
+    const safe=exJsArg(ex.name);
     return `<div class="exd-sub-card">
       <div class="exd-sub-card-h">
-        <button type="button" class="exd-sub-name" onclick="openExDetail('${safe}')">${exdEsc(ex.name)}</button>
+        <button type="button" class="exd-sub-name" onclick="openExDetail(${safe})">${exdEsc(ex.name)}</button>
         <span class="exd-sub-score">${score}/${STAFF_SUB_MAX}</span>
       </div>
       <div class="exd-sub-bar" aria-hidden="true"><div class="exd-sub-bar-fill" style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
   const justifies=results.map(({ex})=>{
-    const safe=String(ex.name).replace(/'/g,"\\'");
-    return `<button type="button" class="btn btn-ghost btn-sm exd-justify-btn" onclick="askExStaffJustify('${safe}')">🦴 Uzasadnij ten zamiennik — ${exdEsc(ex.name)}</button>`;
+    const safe=exJsArg(ex.name);
+    return `<button type="button" class="btn btn-ghost btn-sm exd-justify-btn" onclick="askExStaffJustify(${safe})">🦴 Uzasadnij ten zamiennik — ${exdEsc(ex.name)}</button>`;
   }).join('');
   list.innerHTML=cards+`<details class="exd-acc" id="exd-acc-justify">
     <summary class="exd-acc-sum">Uzasadnienia zamienników</summary>
@@ -2435,8 +2435,20 @@ function restoreHiddenExercises(){
 }
 window.restoreHiddenExercises=restoreHiddenExercises;
 
+// Kopia z importu = ćwiczenie o nazwie z katalogu bez własnego opisu trenera.
+// Ćwiczenie, do którego trener dopisał własny opis lub wskazówkę, nigdy nie jest traktowane jak duplikat.
+function isImportedCatalogCopy(ex,card){
+  if(!ex||!ex.name||!card)return false;
+  const norm=s=>String(s||'').trim().replace(/\s+/g,' ').toLowerCase();
+  const own=[ex.desc,ex.tip].map(norm).filter(Boolean);
+  const cardText=new Set([card.desc,card.tip].map(norm).filter(Boolean));
+  return !own.some(t=>!cardText.has(t));
+}
+window.isImportedCatalogCopy=isImportedCatalogCopy;
+
 async function sweepImportedCatalogDuplicates(opts){
   const silent=!!(opts&&opts.silent);
+  const dryRun=!!(opts&&opts.dryRun);
   if(window._sweepExDupBusy)return {removed:0,copied:0};
   window._sweepExDupBusy=true;
   try{
@@ -2446,11 +2458,16 @@ async function sweepImportedCatalogDuplicates(opts){
     customs.forEach(ex=>{
       if(!ex||!ex.name)return;
       const card=idx.get(catalogDedupeKey(ex.name));
-      if(!card)return;
+      if(!card||!isImportedCatalogCopy(ex,card))return;
       const key=card.name;
       if(!groups.has(key))groups.set(key,{card,copies:[]});
       groups.get(key).copies.push(ex);
     });
+    if(dryRun){
+      const names=[];
+      groups.forEach(({copies})=>copies.forEach(ex=>names.push(ex.name)));
+      return {removed:0,copied:0,names};
+    }
     const removed=[];
     let copied=0;
     for(const {card,copies} of groups.values()){
@@ -2471,8 +2488,8 @@ async function sweepImportedCatalogDuplicates(opts){
       return {removed:0,copied:0};
     }
     const dropIds=new Set(removed.map(e=>e.id).filter(Boolean));
-    const dropNames=new Set(removed.map(e=>e.name));
-    const next=(window.EX||[]).filter(e=>e&&!dropIds.has(e.id)&&!dropNames.has(e.name));
+    const dropNoId=new Set(removed.filter(e=>!e.id).map(e=>e.name));
+    const next=(window.EX||[]).filter(e=>e&&!(e.id?dropIds.has(e.id):dropNoId.has(e.name)));
     window.EX=next;
     if(window._db&&typeof window._del==='function'&&typeof window._doc==='function'){
       for(const ex of removed){
@@ -2494,7 +2511,11 @@ async function sweepImportedCatalogDuplicates(opts){
 window.sweepImportedCatalogDuplicates=sweepImportedCatalogDuplicates;
 
 async function removeImportedCatalogDuplicates(){
-  if(!confirm('Usunąć z biblioteki importy, które duplikują karty z katalogu? Film z kopii trafi na polską kartę, a kopia zniknie z konta.'))return;
+  const preview=await sweepImportedCatalogDuplicates({dryRun:true});
+  const names=(preview&&preview.names)||[];
+  if(!names.length){notify('Brak duplikatów importu');return;}
+  const shown=names.slice(0,12).map(n=>'• '+n).join('\n')+(names.length>12?('\n… i '+(names.length-12)+' więcej'):'');
+  if(!confirm('Usunąć '+names.length+' kopii z importu, które dublują karty z katalogu?\n\n'+shown+'\n\nFilm z kopii trafi na kartę z katalogu. Jeśli któraś z nich to Twoje własne ćwiczenie, kliknij Anuluj.'))return;
   return sweepImportedCatalogDuplicates({silent:false});
 }
 window.removeImportedCatalogDuplicates=removeImportedCatalogDuplicates;
@@ -2502,15 +2523,27 @@ window.removeImportedCatalogDuplicates=removeImportedCatalogDuplicates;
 async function saveEx(){
   if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
 
-  const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
+  const unguard=()=>{window._saveGuard_saveEx=false;};
+  const name=document.getElementById('ex-name').value.trim().replace(/\s+/g,' ');if(!name){unguard();notify('Wpisz nazwę!');return;}
+  const editingName0=window._editingExName;
+  const nameKey=exerciseSearchNorm(name);
+  const clash=[...(window.EX||EX||[]),...(window.DEF_EX||DEF_EX||[])].find(x=>x&&x.name&&x.name!==editingName0&&exerciseSearchNorm(String(x.name).trim().replace(/\s+/g,' '))===nameKey);
+  if(clash){
+    unguard();
+    const own=(window.EX||EX||[]).some(x=>x===clash);
+    notify('Ćwiczenie „'+clash.name+'” już jest w '+(own?'Twoich ćwiczeniach':'bibliotece')+'. Zmień nazwę albo otwórz istniejące.');
+    return;
+  }
   const videoRaw=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'');
   const video=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(videoRaw):videoRaw;
   const imgRaw=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl((document.getElementById('ex-img')||{}).value):String((document.getElementById('ex-img')||{}).value||'').trim();
   if((typeof isLocalDiskMediaPath==='function')&&(isLocalDiskMediaPath(imgRaw)||isLocalDiskMediaPath(video))){
+    unguard();
     notify('Ścieżka z dysku (D:\\…) nie zapisze się dla klienta. Wklej plik z folderu progress-live-video-assets albo link https://…mp4');
     return;
   }
   const mediaUrl=(imgRaw&&!/^(javascript|data|vbscript):/i.test(imgRaw)&&(/^(https?:\/\/)/i.test(imgRaw)||imgRaw.startsWith('assets/')||/\.(png|jpe?g|gif|webp|svg|mp4|webm)(\?.*)?$/i.test(imgRaw)))?imgRaw:'';
+  if(imgRaw&&!mediaUrl){unguard();notify('Link do animacji / grafiki jest nieprawidłowy. Wklej adres zaczynający się od https://');return;}
   const isGif=/\.(gif|webp|mp4|webm)(\?.*)?$/i.test(mediaUrl);
   const gif=isGif?mediaUrl:'';
   const img=mediaUrl&&!isGif?mediaUrl:'';
@@ -2559,20 +2592,20 @@ function exCardHtml(e,i){
   }else{
     media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${esc(part)}</span></div>`;
   }
-  return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${(i||0)*0.025}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+  return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${Math.min(i||0,12)*0.025}s" data-ex-name="${escHtml(e.name)}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="ex-card-accent" style="background:${col};"></div>
     <div class="ex-card-body">
       ${media}
       <div>
-        <div class="ex-card-name">${e.name}</div>
+        <div class="ex-card-name">${escHtml(e.name)}</div>
         <div class="ex-card-tags">
-          <span class="pill pill-muted" style="font-size:9px;">${e.cat}</span>
-          <span class="pill pill-muted" style="font-size:9px;">${e.eq}</span>
+          <span class="pill pill-muted" style="font-size:9px;">${escHtml(e.cat)}</span>
+          <span class="pill pill-muted" style="font-size:9px;">${escHtml(e.eq)}</span>
           ${filmBadge}
         </div>
-        ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
-        ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
-        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);margin-top:6px;" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+        ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${escHtml(e.muscle)}</div>`:''}
+        ${e.tip?`<div class="ex-card-tip">${escHtml(e.tip.substring(0,80))}${e.tip.length>80?'…':''}</div>`:''}
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);margin-top:6px;" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
       </div>
     </div>
   </div>`;
@@ -2597,7 +2630,7 @@ function renderLibGroupedSections(filtered,mode){
       items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
       const col=CAT_COLORS_EX[cat]||'var(--muted)';
       html+=`<div class="ex-cat-section">
-        <div class="ex-cat-section-hdr"><span class="ex-cat-dot" style="background:${col};"></span><span>${cat}</span><span class="ex-cat-section-count">${items.length}</span></div>
+        <div class="ex-cat-section-hdr"><span class="ex-cat-dot" style="background:${col};"></span><span>${escHtml(cat)}</span><span class="ex-cat-section-count">${items.length}</span></div>
         <div class="ex-cat-section-grid">${items.map(e=>exCardHtml(e,idx++)).join('')}</div>
       </div>`;
     });
@@ -2612,19 +2645,19 @@ function renderLibGroupedSections(filtered,mode){
     if(!items?.length)return;
     items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
     const col=CAT_COLORS_EX[cat]||'var(--muted2)';
-    html+=`<div class="ex-cat-section-hdr ex-cat-section-hdr-list"><span class="ex-cat-dot" style="background:${col};"></span><span>${cat}</span><span class="ex-cat-section-count">${items.length}</span></div>`;
+    html+=`<div class="ex-cat-section-hdr ex-cat-section-hdr-list"><span class="ex-cat-dot" style="background:${col};"></span><span>${escHtml(cat)}</span><span class="ex-cat-section-count">${items.length}</span></div>`;
     items.forEach((e,i)=>{
-      html+=`<div class="ex-list-row" style="animation-delay:${i*0.02}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+      html+=`<div class="ex-list-row" style="animation-delay:${Math.min(i,12)*0.02}s" onclick="openExDetail(${exJsArg(e.name)})">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="width:4px;height:32px;border-radius:2px;background:${col};flex-shrink:0;"></div>
-          <div><div style="font-size:13px;font-weight:600;color:var(--text);">${e.name}</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">${e.muscle||''}</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);">${escHtml(e.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">${escHtml(e.muscle||'')}</div></div>
         </div>
-        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
-        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
-        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.cat)}</span>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.eq)}</span>
+        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${escHtml((e.tip||'').substring(0,60))}${(e.tip||'').length>60?'…':''}</div>
         <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
-          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail(${exJsArg(e.name)})">Szczegóły</button>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
         </div>
       </div>`;
     });
@@ -2707,17 +2740,17 @@ function renderLib(){
     if(!filtered.length){body.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak ćwiczeń</div>';return;}
     body.innerHTML=filtered.map((e,i)=>{
       const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
-      return `<div class="ex-list-row" style="animation-delay:${i*0.02}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+      return `<div class="ex-list-row" style="animation-delay:${Math.min(i,12)*0.02}s" onclick="openExDetail(${exJsArg(e.name)})">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="width:4px;height:32px;border-radius:2px;background:${col};flex-shrink:0;"></div>
-          <div><div style="font-size:13px;font-weight:600;">${e.name}</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">${e.muscle||''}</div></div>
+          <div><div style="font-size:13px;font-weight:600;">${escHtml(e.name)}</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">${escHtml(e.muscle||'')}</div></div>
         </div>
-        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
-        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
-        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.cat)}</span>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${escHtml(e.eq)}</span>
+        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${escHtml((e.tip||'').substring(0,60))}${(e.tip||'').length>60?'…':''}</div>
         <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
-          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail(${exJsArg(e.name)})">Szczegóły</button>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
         </div>
       </div>`;
     }).join('');
@@ -2861,22 +2894,22 @@ function exdPreviewMediaHtml(e){
 window.exdPreviewMediaHtml=exdPreviewMediaHtml;
 
 function exdPreviewHtml(e){
-  const safe=String(e.name||'').replace(/'/g,"\\'");
+  const safe=exJsArg(e.name||'');
   const desc=e.tip||'';
   const yt=typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button type="button" class="exd-yt-btn" onclick="event.stopPropagation();window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank')">&#9654; Szukaj na YouTube — technika</button>`;
   return `<p class="exd-preview-meta">${exdEsc(e.cat||'')}${e.eq?' <span aria-hidden="true">·</span> '+exdEsc(e.eq):''}</p>
     ${exdPreviewMediaHtml(e)}
     ${desc?`<div class="exd-preview-desc">${exdEsc(desc)}</div>`:''}
-    <button type="button" class="btn btn-primary exd-preview-cta" onclick="prefillExInBuilder('${safe}')">Użyj w builderze</button>
+    <button type="button" class="btn btn-primary exd-preview-cta" onclick="prefillExInBuilder(${safe})">Użyj w builderze</button>
     ${yt}`;
 }
 
 function exdManageHtml(e){
-  const safe=String(e.name||'').replace(/'/g,"\\'");
+  const safe=exJsArg(e.name||'');
   return `${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
     <div class="exd-manage-actions">
-      ${findCustomEx(e.name)?`<button type="button" class="btn btn-ghost" onclick="editEx('${safe}')">✏ Edytuj dane ćwiczenia</button>`:''}
-      <button type="button" class="btn btn-ghost exd-del-btn" id="exd-del" onclick="delEx('${safe}')">🗑 Usuń ćwiczenie</button>
+      ${findCustomEx(e.name)?`<button type="button" class="btn btn-ghost" onclick="editEx(${safe})">✏ Edytuj dane ćwiczenia</button>`:''}
+      <button type="button" class="btn btn-ghost exd-del-btn" id="exd-del" onclick="delEx(${safe})">🗑 Usuń ćwiczenie</button>
     </div>`;
 }
 
@@ -2925,7 +2958,9 @@ function openExDetail(name){
     play.addEventListener('canplay',go,{once:true});
     go();
   }
-  renderLib();
+  // Tylko przestaw podświetlenie — przebudowa 900+ kart chowała listę i gubiła miejsce przewijania.
+  document.querySelectorAll('#screen-library .ex-card.selected').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('#screen-library .ex-card[data-ex-name]').forEach(el=>{if(el.dataset.exName===name)el.classList.add('selected');});
 }
 
 window.EX=window.EX||[];
@@ -3730,7 +3765,7 @@ function renderPrograms(){
       return `<div class="prog-week-bar">
         <span class="prog-week-num">TYG ${w.nr}</span>
         <div class="prog-week-fill" style="background:${col};opacity:${isDeload?0.6:0.8};width:${fillPct}%;max-width:100%;"></div>
-        <span class="prog-week-label">${w.label||''}</span>
+        <span class="prog-week-label">${escHtml(w.label||'')}</span>
       </div>`;
     }).join('')+(weeks.length>MAX_WEEK_BARS?`<div class="prog-week-more">+${weeks.length-MAX_WEEK_BARS} tyg. w szczegółach</div>`:'');
 
@@ -3738,16 +3773,16 @@ function renderPrograms(){
       <div class="prog-card-top" style="background:${gc};"></div>
       <div class="prog-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
-          <div class="prog-card-title">${p.name}</div>
+          <div class="prog-card-title">${escHtml(p.name)}</div>
           ${p.type==='demo'?'<span class="pill pill-blue" style="font-size:9px;white-space:nowrap;flex-shrink:0;">DEMO</span>':'<span class="pill pill-green" style="font-size:9px;white-space:nowrap;flex-shrink:0;">MOJE</span>'}
         </div>
-        <div class="prog-card-sub">${p.method} · ${gl} · ${ll}</div>
+        <div class="prog-card-sub">${escHtml(p.method)} · ${gl} · ${ll}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
           <span class="pill" style="background:${gc}22;color:${gc};font-size:10px;">${gl}</span>
           <span class="pill" style="background:${lc}22;color:${lc};font-size:10px;">${ll}</span>
-          <span class="pill pill-muted" style="font-size:10px;">${p.equip}</span>
+          <span class="pill pill-muted" style="font-size:10px;">${escHtml(p.equip)}</span>
         </div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.desc||''}</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(p.desc||'')}</div>
         <div class="prog-card-weeks">${weekBars}</div>
       </div>
       <div class="prog-stats-row">
@@ -3775,11 +3810,11 @@ function openProgDetail(id){
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
       <span class="pill" style="background:${gc}22;color:${gc};">${gl}</span>
       <span class="pill pill-muted">${ll}</span>
-      <span class="pill pill-muted">${p.equip}</span>
-      <span class="pill pill-muted">${p.method}</span>
+      <span class="pill pill-muted">${escHtml(p.equip)}</span>
+      <span class="pill pill-muted">${escHtml(p.method)}</span>
       ${p.type==='demo'?'<span class="pill pill-blue">DEMO</span>':''}
     </div>
-    <div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;">${p.desc||''}</div>
+    <div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;">${escHtml(p.desc||'')}</div>
     ${p.highlights&&p.highlights.length?`<div style="margin-bottom:16px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Kluczowe założenia</div>
       ${p.highlights.map(h=>`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;font-size:12px;"><span style="color:${gc};flex-shrink:0;">✓</span><span>${h}</span></div>`).join('')}
@@ -3791,14 +3826,14 @@ function openProgDetail(id){
         <div class="prog-detail-week-hdr">
           <span class="prog-detail-week-num">TYG ${w.nr}</span>
           <div>
-            <span style="font-size:12px;font-weight:700;color:${isDeload?'var(--orange)':gc};">${w.label||''}</span>
+            <span style="font-size:12px;font-weight:700;color:${isDeload?'var(--orange)':gc};">${escHtml(w.label||'')}</span>
             ${w.rpe?`<span class="pill pill-muted" style="font-size:9px;margin-left:6px;">${w.rpe}</span>`:''}
           </div>
         </div>
         ${w.focus?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;padding-left:60px;">${w.focus}</div>`:''}
         ${(w.days||[]).map(d=>`<div class="prog-detail-day">
           <span class="prog-detail-day-name">${d.d}</span>
-          <span style="font-size:12px;${d.name==='REST'?'color:var(--muted);font-style:italic;':''}">${d.name}</span>
+          <span style="font-size:12px;${d.name==='REST'?'color:var(--muted);font-style:italic;':''}">${escHtml(d.name)}</span>
         </div>`).join('')}
       </div>`;
     }).join('')}`;
@@ -3844,6 +3879,7 @@ function assignProgSetClientField(clientId,clientName){
 }
 
 function assignProgClientSearchInput(){
+  clientPickSync('assign-prog-client','assign-prog-client-search');
   const q=(document.getElementById('assign-prog-client-search')?.value||'').trim().toLowerCase();
   const res=document.getElementById('assign-prog-client-results');
   if(!res)return;
@@ -3857,8 +3893,8 @@ function assignProgClientSearchInput(){
     return;
   }
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="assignProgSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:13px;">${c.name}</span>
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="assignProgSetClientField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';
@@ -3867,10 +3903,10 @@ function assignProgClientSearchInput(){
 async function confirmAssignProgram(){
   const p=allPrograms().find(x=>x.id===progSelId);
   if(!p)return;
-  const cid=document.getElementById('assign-prog-client').value;
+  const cid=clientPickSync('assign-prog-client','assign-prog-client-search');
   const startDate=document.getElementById('assign-prog-date').value||new Date().toISOString().split('T')[0];
   const c=CL.find(x=>x.id===cid);
-  if(!c){notify('Wybierz klienta!');return;}
+  if(!c){notify('Wybierz klienta z listy!');return;}
 
   // Buduj pełny obiekt planu z programu (z ćwiczeniami z tygodnia 1)
   const newPlan=withTrainer({
@@ -4003,6 +4039,7 @@ function taskSetClientField(clientId,clientName){
 
 // Filtruje i pokazuje klientów pod polem wyszukiwania w oknie zadania.
 function taskClientSearchInput(){
+  clientPickSync('task-client','task-client-search');
   const q=(document.getElementById('task-client-search')?.value||'').trim().toLowerCase();
   const res=document.getElementById('task-client-results');
   if(!res)return;
@@ -4016,8 +4053,8 @@ function taskClientSearchInput(){
     return;
   }
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="taskSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:13px;">${c.name}</span>
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="taskSetClientField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';
@@ -4109,7 +4146,7 @@ function renderTasks(){
   let html=banner;
   Object.entries(groups).forEach(([cid,tasks])=>{
     const c=CL.find(x=>x.id===cid);const cname=c?c.name:'Ogólne';const ci=CL.indexOf(c);
-    html+=`<div style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">${c?`<div style="width:24px;height:24px;border-radius:50%;background:${COLS[ci%5]}22;color:${COLS[ci%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;flex-shrink:0;">${getInit(cname)}</div>`:'<div style="width:24px;height:24px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:12px;">📋</div>'}<span style="font-size:13px;font-weight:700;">${cname}</span><span class="pill pill-muted" style="font-size:10px;">${tasks.length}</span><div style="flex:1;height:1px;background:var(--border);"></div></div>`;
+    html+=`<div style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">${c?`<div style="width:24px;height:24px;border-radius:50%;background:${COLS[ci%5]}22;color:${COLS[ci%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;flex-shrink:0;">${getInit(cname)}</div>`:'<div style="width:24px;height:24px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:12px;">📋</div>'}<span style="font-size:13px;font-weight:700;">${escHtml(cname)}</span><span class="pill pill-muted" style="font-size:10px;">${tasks.length}</span><div style="flex:1;height:1px;background:var(--border);"></div></div>`;
     tasks.forEach((t,i)=>{
       const habit=isHabit(t);
       const ch=isCh(t);
@@ -4124,7 +4161,7 @@ function renderTasks(){
       html+=`<div class="task-card${isDone?' done':''}${habit?' habit':''}${ch?' challenge':''}" style="animation-delay:${i*0.03}s;border-left:3px solid ${isDone?'var(--muted2)':ch?'var(--gold)':habit?'var(--orange)':catCol};">
         <div class="task-check${isDone||doneToday?' checked':''}" onclick="toggleTask('${t.id}')">${isDone||doneToday?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
         <div class="task-body" onclick="editTask('${t.id}')" style="cursor:pointer;">
-          <div class="task-title${isDone?' done':''}">${t.title}</div>
+          <div class="task-title${isDone?' done':''}">${escHtml(t.title)}</div>
           <div class="task-meta">
             ${habit?`<span class="pill" style="background:rgba(201,123,63,0.18);color:var(--orange);font-size:9px;">🔥 Nawyk${t.xp?' · +'+t.xp+' XP':''}</span>`:''}
             ${habit&&t.phase?`<span class="pill" style="background:var(--s3);color:var(--muted);font-size:9px;">${escHtml((t.emoji?t.emoji+' ':'')+(typeof habitPhaseLabel==='function'?habitPhaseLabel(t.phase).replace(/^[^ ]+ /,'') :t.phase))}</span>`:''}
@@ -4186,6 +4223,9 @@ async function saveTask(){
   if(window._saveGuard_saveTask)return;window._saveGuard_saveTask=true;setTimeout(()=>window._saveGuard_saveTask=false,1500);
 
   const title=document.getElementById('task-title').value.trim();if(!title){notify('Wpisz zadanie!');return;}
+  // Wpisany tekst bez wybrania klienta z listy nie może po cichu zapisać zadania „bez klienta”.
+  const taskCid=clientPickSync('task-client','task-client-search');
+  if(!taskCid&&String((document.getElementById('task-client-search')||{}).value||'').trim()){window._saveGuard_saveTask=false;notify('Wybierz klienta z listy albo wyczyść pole klienta');return;}
   const catEl=document.getElementById('task-cat');
   const isH=!!document.getElementById('task-habit')?.checked;
   const isC=!!document.getElementById('task-challenge')?.checked;

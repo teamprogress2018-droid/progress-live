@@ -20,9 +20,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=97'));
-ok('cache styles v91', html.includes('styles.css?v=159'));
-ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=44'));
+ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=98'));
+ok('cache styles v91', html.includes('styles.css?v=160'));
+ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=45'));
 ok('CI unit', wf.includes('test_staff_subs_rir.js'));
 ok('CI ui', wf.includes('test_staff_subs_rir_ui.js'));
 ok('rir tab markup', html.includes('id="calc-tab-rir"') && html.includes('Obciążenie RIR') && html.includes('id="rir-weight"'));

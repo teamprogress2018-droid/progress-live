@@ -29,8 +29,8 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=133'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=96'));
+ok('cache 01', html.includes('01-core.js?v=134'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=97'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
 ok('cache 10', html.includes('10-client-app.js?v=44'));
 ok('CI', wf.includes('test_ex_progress_history.js'));

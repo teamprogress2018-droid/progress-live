@@ -269,10 +269,10 @@ function renderForms(){
       <div class="form-card-top" style="background:${col};"></div>
       <div class="form-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
-          <div class="form-card-title">${f.name}</div>
+          <div class="form-card-title">${escHtml(f.name)}</div>
           ${f.type==='demo'?'<span class="pill pill-blue" style="font-size:9px;white-space:nowrap;">DEMO</span>':'<span class="pill pill-green" style="font-size:9px;white-space:nowrap;">MOJE</span>'}
         </div>
-        <div class="form-card-desc">${f.desc||''}</div>
+        <div class="form-card-desc">${escHtml(f.desc||'')}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
           <span class="pill" style="background:${col}22;color:${col};font-size:10px;">${cl}</span>
           <span class="pill pill-muted" style="font-size:10px;">${(f.questions||[]).length} pytań</span>
@@ -307,7 +307,7 @@ function openFormDetail(id){
       <span class="pill pill-muted">${(f.questions||[]).length} pytań</span>
       ${f.type==='demo'?'<span class="pill pill-blue">DEMO</span>':''}
     </div>
-    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${f.desc||''}</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${escHtml(f.desc||'')}</div>
 
     ${sends.length?`<div style="margin-bottom:16px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Wysyłki i odpowiedzi</div>
@@ -333,7 +333,7 @@ function openFormDetail(id){
     <div id="fd-questions-preview">
       ${(f.questions||[]).map((q,i)=>`
         <div class="fd-question">
-          <div class="fd-q-text">${i+1}. ${q.text}${q.required?'<span style="color:var(--red);margin-left:4px;">*</span>':''}</div>
+          <div class="fd-q-text">${i+1}. ${escHtml(q.text)}${q.required?'<span style="color:var(--red);margin-left:4px;">*</span>':''}</div>
           ${q.type==='text'?`<input type="text" class="fd-q-input" placeholder="Odpowiedź tekstowa..." disabled>`:''}
           ${q.type==='number'?`<input type="number" class="fd-q-input" placeholder="Wpisz liczbę..." disabled>`:''}
           ${q.type==='scale'?`<div class="fd-scale">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="fd-scale-btn" onclick="selectScale(this,'${q.id}')">${n}</button>`).join('')}</div>`:''}
@@ -494,6 +494,7 @@ function sendFormSetClientField(clientId,clientName){
 }
 
 function sendFormClientSearchInput(){
+  clientPickSync('send-form-client','send-form-client-search');
   const q=(document.getElementById('send-form-client-search')?.value||'').trim().toLowerCase();
   const res=document.getElementById('send-form-client-results');
   if(!res)return;
@@ -508,8 +509,8 @@ function sendFormClientSearchInput(){
     return;
   }
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="sendFormSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:13px;">${c.name}</span>
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="sendFormSetClientField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';
@@ -517,8 +518,8 @@ function sendFormClientSearchInput(){
 
 function confirmSendForm(){
   if(!sendFormId)return;
-  const cid=document.getElementById('send-form-client').value;
-  if(!cid){notify('Wybierz klienta!');return;}
+  const cid=clientPickSync('send-form-client','send-form-client-search');
+  if(!cid){notify('Wybierz klienta z listy!');return;}
   const c=CL.find(x=>x.id===cid);
   const f=allForms().find(x=>x.id===sendFormId);
   if(!f){notify('Nie znaleziono formularza');return;}
@@ -756,6 +757,7 @@ function meClientSetField(clientId,clientName){
 }
 
 function meClientSearchInput(){
+  clientPickSync('me-client','me-client-search');
   const q=(document.getElementById('me-client-search')?.value||'').trim().toLowerCase();
   const res=document.getElementById('me-client-results');
   if(!res)return;
@@ -770,8 +772,8 @@ function meClientSearchInput(){
     return;
   }
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="meClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:13px;">${c.name}</span>
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="meClientSetField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';
@@ -789,6 +791,8 @@ function metricClientSetField(clientId,clientName){
 }
 
 function metricClientSearchInput(){
+  const prevCid=(document.getElementById('metric-client-sel')||{}).value||'';
+  if(clientPickSync('metric-client-sel','metric-client-sel-search')!==prevCid)renderMetrics();
   const q=(document.getElementById('metric-client-sel-search')?.value||'').trim().toLowerCase();
   const res=document.getElementById('metric-client-sel-results');
   if(!res)return;
@@ -803,8 +807,8 @@ function metricClientSearchInput(){
     return;
   }
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="metricClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:13px;">${c.name}</span>
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="metricClientSetField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';
@@ -908,8 +912,8 @@ function renderMetrics(){
   const nav=document.getElementById('metric-groups-nav');
   if(nav){
     nav.innerHTML=groups.map(g=>`<div class="metric-group-nav${metricActiveGroup===g.id?' active':''}" onclick="setMetricGroup('${g.id}')">
-      <span style="font-size:16px;">${g.icon}</span>
-      <span>${g.name}</span>
+      <span style="font-size:16px;">${escHtml(g.icon)}</span>
+      <span>${escHtml(g.name)}</span>
       <span style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId===g.id).length}</span>
     </div>`).join('');
   }
@@ -964,7 +968,7 @@ function renderMetricData(cid,gid){
   const qf=document.getElementById('metric-quick-form');
   if(qf&&cid){
     qf.innerHTML=`
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">${group.icon} ${group.name}</div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">${escHtml(group.icon)} ${escHtml(group.name)}</div>
       <div style="margin-bottom:8px;"><input type="date" id="quick-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;"></div>
       ${group.metrics.map(m=>`<div style="margin-bottom:6px;">
         <label style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;display:block;margin-bottom:3px;">${m.name}${m.unit?' ('+m.unit+')':''}</label>
@@ -979,7 +983,7 @@ function renderMetricData(cid,gid){
   // table
   const tbody=document.getElementById('metric-table-body');
   if(!entries.length){
-    tbody.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;opacity:0.3;">${group.icon}</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak pomiarów</div><div style="font-size:12px;margin-bottom:20px;">Dodaj pierwszy pomiar klikając "+ Dodaj pomiar"</div><button class="btn btn-primary btn-sm" onclick="openM(\'m-metric-entry\')">+ Dodaj pomiar</button></div>';
+    tbody.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;opacity:0.3;">'+escHtml(group.icon||'📊')+'</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak pomiarów</div><div style="font-size:12px;margin-bottom:20px;">Dodaj pierwszy pomiar klikając "+ Dodaj pomiar"</div><button class="btn btn-primary btn-sm" onclick="openM(\'m-metric-entry\')">+ Dodaj pomiar</button></div>';
   } else {
     tbody.innerHTML=entries.map((e,i)=>{
       const prev=entries[i+1];
@@ -1037,7 +1041,7 @@ function renderMetricChart(entries,group){
   // dots+tooltips
   const dots=pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="${col}" stroke="var(--bg)" stroke-width="2"><title>${p.d}: ${p.v} ${m.unit||''}</title></circle>`).join('');
   container.innerHTML=`
-    <div style="font-size:13px;font-weight:700;margin-bottom:12px;">${group.icon} ${m.name} ${m.unit?'('+m.unit+')':''} — trend</div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px;">${escHtml(group.icon)} ${escHtml(m.name)} ${m.unit?'('+escHtml(m.unit)+')':''} — trend</div>
     <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;overflow:visible;">
       <defs><linearGradient id="aGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.25"/><stop offset="100%" stop-color="${col}" stop-opacity="0.02"/></linearGradient></defs>
       <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${pad.t+iH}" stroke="var(--border)" stroke-width="1"/>
@@ -1192,7 +1196,7 @@ function updateMetricEntryForm(){
 async function saveMetricEntry(){
   if(window._saveGuard_saveMetricEntry)return;window._saveGuard_saveMetricEntry=true;setTimeout(()=>window._saveGuard_saveMetricEntry=false,1500);
 
-  const cid=document.getElementById('me-client').value;
+  const cid=clientPickSync('me-client','me-client-search');
   const gid=document.getElementById('me-group').value;
   const date=document.getElementById('me-date').value;
   if(!cid||!gid||!date){notify('Uzupełnij wszystkie pola!');return;}
@@ -1696,8 +1700,8 @@ function calcClientSearchInput(){
     return;
   }
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="calcSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:13px;">${c.name}</span>
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="calcSetClientField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';
