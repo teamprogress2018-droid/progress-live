@@ -502,6 +502,7 @@ function goTo(n){
   if(activeBtn)activeBtn.classList.add('active');
   const flyItem=document.querySelector('.nav-flyout-item[data-screen="'+n+'"]');
   if(flyItem)flyItem.classList.add('active');
+  if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();
   if(libraryScreens.includes(n)){
     const libBtn=document.getElementById('nav-library-btn');
     if(libBtn)libBtn.classList.add('active');
