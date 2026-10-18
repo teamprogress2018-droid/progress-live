@@ -15,7 +15,7 @@ const ctx={window:{},console,PL:slots.map((s,n)=>({id:s.planId,clientId:s.client
   liveAltsHtml:()=>'<div>Zamienniki</div>',renderLivePeriod:()=>{},liveSyncRestRecommend:()=>{},liveSaveDraft:()=>{},liveStartRest:()=>{}
 };
 vm.createContext(ctx);
-for(const name of ['liveExDisplayName','liveExTitleHtml','liveMapPlanExercises','liveAddSet','liveToggleSet','renderLivePlanPicker','renderLiveExercises','liveExCard','liveToggleCollapse','liveToggleSwap','liveSkipEx']){
+for(const name of ['liveShortCoachCue','liveExFocusInfoHtml','liveExDisplayName','liveExTitleHtml','liveMapPlanExercises','liveAddSet','liveToggleSet','renderLivePlanPicker','renderLiveExercises','liveExCard','liveToggleCollapse','liveToggleSwap','liveSkipEx']){
  const m=src.match(new RegExp('function '+name+'\\([^]*?\\n}'));
  assert(m,name);vm.runInContext(m[0],ctx);
 }
@@ -31,8 +31,8 @@ assert.equal(calls,1,'one shared cue pack per render');
 assert(markup.includes('4 serie × 8–12 powt.')&&markup.includes('6 serii × 8–12 powt.'));
 assert.equal((markup.match(/class="live-set-row/g)||[]).length,4,'first exercise rows visible before start');
 assert(markup.includes('Wykonano 0/4'));
-assert(markup.includes('class="live-ex-todo"')&&markup.includes('Do zrobienia')&&markup.includes('Kontroluj ruch'),'todo note visible on card');
-assert(/<details class="live-ex-details"><summary>/.test(markup),'details closed by default');
+assert(/class="live-focus-cue[^"]*"><span>NAJWAŻNIEJSZA WSKAZÓWKA<\/span><strong>Kontroluj ruch<\/strong>/.test(markup)&&markup.includes('class="live-ex-todo live-ex-todo-details"'),'coach note visible on card');
+assert(/<details class="live-ex-more-details"[^>]*>\s*<summary>/.test(markup),'details closed by default');
 slots[0].sessionActive=true;
 ctx.renderLiveExercises(0);ctx.liveToggleCollapse(1,0);ctx.renderLiveExercises(0);
 assert.equal(slots[0].exercises[1].collapsed,false,'manually opened next exercise stays open');

@@ -71,7 +71,8 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'builder_kb_hits.png') });
   ok('sidebar has chest note', /Priorytet klatki/.test(builder.side), builder.side.slice(0, 240));
   ok('sidebar hides quad note', !/Tylko quady/.test(builder.side), builder.side.slice(0, 240));
-  ok('day strip shows chest', /Priorytet klatki/.test(builder.day) && !builder.dayHidden, builder.day.slice(0, 240));
+  // Od uproszczenia kreatora wpisy bazy są tylko w panelu bocznym (na żądanie), nie na kartach dni.
+  ok('day strip stays hidden', builder.dayHidden && !builder.day, builder.day.slice(0, 240));
   ok('day strip hides quad', !/Tylko quady/.test(builder.day), builder.day.slice(0, 240));
 
   await browser.close();

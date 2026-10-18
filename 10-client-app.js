@@ -334,7 +334,8 @@ function renderClientLive(){
   const navScreens=typeof capLiveNavScreens==='function'?capLiveNavScreens():[];
   const moreScreens=typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[];
   const navIds=navScreens.map(s=>s.id), moreIds=moreScreens.map(s=>s.id);
-  const subScreens=['session','exercise'];
+  // Podekrany otwierane z innych ekranów (np. program on-demand z „Treningi nagrane”).
+  const subScreens=['session','exercise','odprogram'];
   if(scr==='calendar'&&!(typeof capClientSectionVisible==='function'&&capClientSectionVisible('calendar')))scr='progress';
   const allowed=scr==='calendar'||navIds.includes(scr)||moreIds.includes(scr)||subScreens.includes(scr);
   if(!allowed)scr='home';

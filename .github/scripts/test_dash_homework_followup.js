@@ -25,7 +25,7 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
 if(html.includes('id="dash-hw-followup"')){console.error('FAIL dead dash-hw-followup should be gone');process.exit(1);}
 if(!src04.includes('function refreshDashOps')){console.error('FAIL missing refreshDashOps');process.exit(1);}
-if(!src10.includes("setBadge('clive-bn-homework'")&&!src10.includes('clive-bn-homework')){console.error('FAIL homework badge missing');process.exit(1);}
+if(!/function capLiveMoreScreens[\s\S]*?id:'homework'/.test(src04)){console.error('FAIL homework missing from client navigation');process.exit(1);}
 
 const msgs=[];
 const notes=[];

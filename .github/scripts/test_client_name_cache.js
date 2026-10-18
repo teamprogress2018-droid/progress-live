@@ -40,7 +40,7 @@ ok('saveCPEdit syncs caches after confirmed service acknowledgement',
   !inlineSave.includes('persistById') && !inlineSave.includes('_setDoc'));
 ok('saveClient edit hooks sync', src05.includes("syncClientNameCache(c.id,c.name)"));
 ok('cache 01', html.includes('01-core.js?v=132'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=101'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=102'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=56'));
 ok('CI', wf.includes('test_client_name_cache.js'));
 

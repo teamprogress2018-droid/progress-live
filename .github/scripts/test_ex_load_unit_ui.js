@@ -130,6 +130,8 @@ function ok(name, cond, extra) {
   ok('airbike placeholder min', air.ph === 'min' && air.unit === 'min', JSON.stringify(air));
 
   await page.evaluate(() => {
+    // Wyjście z kreatora z niezapisanymi zmianami wymaga potwierdzenia — tu świadomie je pomijamy.
+    window._builderNavigationConfirmed = true;
     if (typeof goTo === 'function') goTo('live');
     window.liveClientId = 'c1';
     window.liveExercises = [{

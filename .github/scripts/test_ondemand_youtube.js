@@ -143,7 +143,7 @@ const homeContinue = ctx.capScreenHTML('home', { id: 'c-anna', name: 'Anna Nowak
 ok('home continue card when partial', /KONTYNUUJ PROGRAM/i.test(homeContinue) && /openODProgramContinue/.test(homeContinue));
 
 ok('cap od msg id', ctx.capOdMsgId('[od:ow1]\nTrening') === 'ow1');
-ok('cap live nav has ondemand', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'ondemand'));
+ok('cap live nav has ondemand', [...(ctx.capLiveNavScreens() || []), ...(ctx.capLiveMoreScreens() || [])].some((s) => s.id === 'ondemand'));
 
 if (typeof ctx.ensureODPrograms === 'function') ctx.ensureODPrograms();
 const progs = ctx.allODPrograms();
@@ -174,7 +174,7 @@ ok('openODCollection exported', typeof ctx.openODCollection === 'function');
 ok('html collection films mount', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="od-collection-films"'));
 ok('html coll options tabata hiit', /id="odw-coll"[\s\S]*value="hiit"[\s\S]*value="tabata"[\s\S]*value="oddech"/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('cache 09', /09-posture-kb-invites-private\.js\?v=56/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
-ok('cache 04', /04-client-portal\.js\?v=55/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('cache 04', /04-client-portal\.js\?v=61/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('collections include tabata', /id:'tabata'/.test(fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8')));
 windowObj._cliveOdProgId = 'op2';
 const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
@@ -182,7 +182,7 @@ ok('client odprogram play buttons', /openODWorkout\('ow1'\)/.test(odProgHtml2));
 ok('client odprogram toggle day', /toggleODProgramDay\('op2',0,0\)/.test(odProgHtml2));
 ok('ondemand workouts tab removed', !fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="odtab-workouts"'));
 ok('cap odprog msg id', ctx.capOdProgMsgId('[odprog:op2]\nProgram') === 'op2');
-ok('live nav has resources', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'resources'));
+ok('live nav has resources', [...(ctx.capLiveNavScreens() || []), ...(ctx.capLiveMoreScreens() || [])].some((s) => s.id === 'resources'));
 
 const op2 = progs.find((p) => p.id === 'op2');
 ok('week complete helper', !ctx.odProgramWeekComplete('c-anna', op2, 0));

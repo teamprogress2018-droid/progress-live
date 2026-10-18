@@ -38,6 +38,8 @@ function ok(name, cond, extra) {
     const day = document.querySelector('.builder-day');
     if (day && typeof addRow === 'function') addRow(day.id);
   });
+  // Typy serii są w rozwinięciu „Więcej” wiersza ćwiczenia.
+  await page.click('.ex-row .builder-row-more');
   await page.waitForSelector('.ex-kind-btn.drop');
   await page.click('.ex-kind-btn.drop');
   await page.click('.ex-kind-btn.drop');
