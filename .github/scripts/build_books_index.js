@@ -18,8 +18,8 @@ const BOOKS_DIR = path.join(ROOT, 'knowledge', 'books');
 const OUT = path.join(ROOT, 'knowledge', 'books-index.json');
 
 const MAX_TEXT = 700;
-/** Sekcje, które nie są regułami (metadane, pokrycie, braki). */
-const SKIP_SECTIONS = new Set(['meta', 'coverage', 'sourceReferences', 'gaps']);
+/** Sekcje, które nie są regułami (metadane, pokrycie, braki, słowniczek, opisy grafik). */
+const SKIP_SECTIONS = new Set(['meta', 'coverage', 'sourceReferences', 'gaps', 'glossary', 'figures']);
 /** Sekcje z innej dziedziny niż trening — trafiają do AI tylko w swoim trybie. */
 const SECTION_DOMAIN = {
   nutritionRules: 'nutrition', recipes: 'nutrition', lifestyleRules: 'nutrition',

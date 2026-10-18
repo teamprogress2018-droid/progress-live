@@ -1,0 +1,4204 @@
+{
+ "meta": {
+  "base": "advances-functional-training-boyle",
+  "version": "1.0",
+  "date": "2026-10-18",
+  "language": "pl",
+  "title": "Advances in Functional Training",
+  "titlePl": "Postępy w treningu funkcjonalnym (Advances in Functional Training)",
+  "author": "Michael Boyle",
+  "year": 2010,
+  "statusValues": [
+   "zrodlo",
+   "wniosek",
+   "brak_w_zrodle",
+   "poza_zrodlem"
+  ],
+  "pageConvention": "Plik .txt (konwersja e-booka) nie ma numerów stron. Odwołania = rozdział + nagłówek sekcji z książki (pole pages zaczyna się od '§'). Odsyłacze 'page N' z tekstu książki nie dają się zweryfikować.",
+  "unitsNote": "Jednostki oryginalne (funty lb, cale in, jardy yd). Przeliczenia metryczne w nawiasach z '≈' są dodane przez bazę (poza_zrodlem); wartości z książki bez zmian.",
+  "license": "tylko_wlasciciel",
+  "licenseNote": "Synteza własnymi słowami do użytku właściciela (Progress Live). Oryginalne tabele, zdjęcia i cytaty nie są do automatycznej publikacji trenerom (Moduł 9, pkt 6).",
+  "note": "Książka trenera przygotowania motorycznego (MBSC, Boston). Mocne strony: trening jednonóż, core jako zapobieganie ruchowi, joint-by-joint, interwały zamiast długiego aerobu, struktura sesji i szablony 4/3/2 dni. Słabe: brak RIR/RPE, mało %1RM, brak deloadów w szablonach; część tabel utracona w konwersji .txt."
+ },
+ "principles": [
+  {
+   "id": "P1",
+   "title": "Trening funkcjonalny = trening celowy",
+   "rule": "Trening funkcjonalny to zastosowanie anatomii funkcjonalnej do doboru ćwiczeń: kontinuum ćwiczeń uczących kontroli masy własnego ciała we wszystkich płaszczyznach. Niestabilne podłoże to jedna z możliwych progresji, nie istota metody.",
+   "appliesTo": [
+    "dobór ćwiczeń"
+   ],
+   "conditions": [],
+   "limitations": [
+    "Autor przyznaje, że dowody na brak urazów ACL są anegdotyczne (6 lat piłki nożnej bez zerwań ACL)."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Reconsidering Functional Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Using Functional Exercises"
+    }
+   ]
+  },
+  {
+   "id": "P2",
+   "title": "Najpierw redukcja kontuzji, potem wynik",
+   "rule": "Cel nr 1 programu to ograniczenie urazów (autor celowo mówi 'redukcja', nie 'zapobieganie'), dopiero potem poprawa wyników. Kolejność celów programu: (1) brak urazów na treningu, (2) mniej urazów w sporcie, (3) lepsze wyniki. Urazy powstałe na treningu to odpowiedzialność trenera; każde ćwiczenie ocenia się stosunkiem ryzyka do korzyści, który zmienia się z wiekiem i stażem.",
+   "appliesTo": [
+    "wszyscy klienci"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ More is Not Better"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Program Design Basics"
+    }
+   ]
+  },
+  {
+   "id": "P3",
+   "title": "Bodziec i odpowiedź; więcej nie znaczy lepiej",
+   "rule": "Trening jest bodźcem, adaptacja zachodzi po nim i zależy od regeneracji oraz odżywiania. Dokładanie serii może przeciążyć i zaburzyć regenerację. U zaawansowanych mniej objętości daje więcej postępu (doświadczenie autora z wyciskaniem).",
+   "appliesTo": [
+    "planowanie objętości"
+   ],
+   "conditions": [],
+   "limitations": [
+    "Wniosek o objętości oparty na doświadczeniu autora, nie na badaniach."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ More is Not Better"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Pressing Exercises"
+    }
+   ]
+  },
+  {
+   "id": "P4",
+   "title": "Upadek techniczny kończy serię",
+   "rule": "Seria kończy się w momencie, gdy nie da się wykonać kolejnego poprawnego technicznie powtórzenia (technical failure, za Poliquinem). Liczą się tylko dobre powtórzenia. Lepiej niedotrenować niż przetrenować.",
+   "appliesTo": [
+    "każde ćwiczenie siłowe i olimpijskie"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Techniques"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Technical Failure"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Technique Points"
+    }
+   ]
+  },
+  {
+   "id": "P5",
+   "title": "Kontinuum funkcjonalne",
+   "rule": "Ćwiczenia kolanowo-dominujące układa się od najmniej do najbardziej funkcjonalnych: wypychanie nogami leżąc (maszyna) → przysiad na maszynie stojąc → przysiad obunóż ze stabilizacją własną → przysiad jednonóż → przysiad jednonóż na niestabilnym podłożu. Tę samą logikę stosuje się do pchania, ciągnięcia, ćwiczeń biodrowych i tułowia.",
+   "appliesTo": [
+    "progresje ćwiczeń"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Choosing Functional Exercises"
+    }
+   ]
+  },
+  {
+   "id": "P6",
+   "title": "Podejście staw po stawie (joint-by-joint)",
+   "rule": "Stawy na przemian potrzebują mobilności i stabilności: skokowy — mobilność (strzałkowa), kolanowy — stabilność, biodrowy — mobilność (wielopłaszczyznowa), lędźwiowy odc. kręgosłupa — stabilność, piersiowy — mobilność, łopatka — stabilność, ramienny (glenohumeralny) — mobilność. Utrata mobilności stawu poniżej daje ból stawu powyżej: sztywny staw skokowy → ból kolana; sztywne biodro → ból krzyża; sztywny odc. piersiowy → ból szyi/barku lub krzyża. Szukaj przyczyny w stawie powyżej i poniżej bólu.",
+   "appliesTo": [
+    "ocena",
+    "rozgrzewka",
+    "dobór ćwiczeń"
+   ],
+   "conditions": [
+    "Wyjątek: biodro może być jednocześnie mało ruchome i niestabilne (kolano — niestabilność, krzyż — sztywność)."
+   ],
+   "limitations": [
+    "Koncepcja klinicznie-praktyczna Cooka i Boyle'a, bez badań w książce."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ The Joint-by-Joint Approach"
+    }
+   ]
+  },
+  {
+   "id": "P7",
+   "title": "Nie zwiększaj zakresu rotacji lędźwiowej",
+   "rule": "Odcinek lędźwiowy ma być stabilny. Rotację trenuje się w biodrach i odcinku piersiowym. Za Sahrmann: całkowita rotacja lędźwiowa ok. 13°, między segmentami T10–L5 po 2°, L5–S1 5°. Autor usunął rozciąganie rotacyjne tułowia (np. 'wycieraczki'), dynamiczne skręty tułowia i 'skorpiona' i obserwował mniej skarg na ból krzyża.",
+   "appliesTo": [
+    "rozgrzewka",
+    "rozciąganie",
+    "trening rotacyjny"
+   ],
+   "conditions": [],
+   "limitations": [
+    "Spadek bólu krzyża po usunięciu ćwiczeń to obserwacja autora."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ The Joint-by-Joint Approach"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Awareness in Rotational Training"
+    }
+   ]
+  },
+  {
+   "id": "P8",
+   "title": "Mobilność → stabilność → ruch",
+   "rule": "Kolejność wg Cooka: mobilność, potem stabilność (najpierw statyczna, potem dynamiczna), potem ruch z obciążeniem. Stały brak zakresu (także biernie, np. leżąc) = problem mobilności. Brak niespójny (biernie zakres jest, w staniu go nie ma) = problem stabilności; pracy nad stabilnością nie zastąpi praca nad mobilnością. Progresje siłowe zaczynają się w pozycjach przejściowych: klęk obunóż → półklęk → wysoki wykrok → stanie.",
+   "appliesTo": [
+    "progresje",
+    "ocena"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Influence of the Functional Movement Screen"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Movement"
+    }
+   ]
+  },
+  {
+   "id": "P9",
+   "title": "Nie dodawaj siły do dysfunkcji",
+   "rule": "Kto nie wykona przysiadu (overhead squat w FMS przynajmniej na 2/3), ten nie przysiada z obciążeniem. Najpierw mobilność i wzorzec przysiadu (dopuszczalne podniesienie pięt), równolegle siła jednonóż. 'Jeśli nie możesz zejść nisko, nie przysiadaj ciężko.'",
+   "appliesTo": [
+    "przysiad",
+    "początkujący"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Adding Strength to Dysfunction"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Squats"
+    }
+   ]
+  },
+  {
+   "id": "P10",
+   "title": "Źródło bólu, nie miejsce bólu",
+   "rule": "Urazy przeciążeniowe rzadko wynikają z mięśnia, który boli. Przy naderwaniu szukaj słabego lub mało aktywnego synergisty (Sahrmann): naderwanie mięśni kulszowo-goleniowych → słabe pośladki; ból przedniej części kolana → słaby mięsień pośladkowy średni i niska mobilność stawu skokowego; ból krzyża → słabe pośladki i sztywne biodra. Każdy niekontaktowy, nieurazowy uraz ma przyczynę w programie albo w słabym synergiście.",
+   "appliesTo": [
+    "urazy przeciążeniowe"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injuries"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Glute Activation and the Core"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Pain Site versus Pain Source"
+    }
+   ]
+  },
+  {
+   "id": "P11",
+   "title": "Core = zapobieganie ruchowi",
+   "rule": "Funkcją mięśni tułowia jest przeciwdziałanie ruchowi: anty-wyprost, anty-rotacja, anty-zgięcie boczne. Autor nie stosuje brzuszków ani rotacji tułowia, trenuje deski, rollouty, chop/lift, landmine. Aktywacja pośladków (pośladkowy wielki i średni) na początku każdego treningu. Przysiady i martwe ciągi nie wystarczą jako trening przedniej ściany tułowia.",
+   "appliesTo": [
+    "trening tułowia"
+   ],
+   "conditions": [
+    "Klienci z bólem krzyża i po urazach: ćwiczenia izolowane (wciąganie brzucha, quadruped, mostki) są nadal potrzebne."
+   ],
+   "limitations": [
+    "Autor sam pisze, że może to być 'faza nadreakcji' i za kilka lat może wrócić trochę zgięć i rotacji."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Anterior Core Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Core Advances"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Glute Activation and the Core"
+    }
+   ]
+  },
+  {
+   "id": "P12",
+   "title": "Siła jednonóż to podstawa siły nóg",
+   "rule": "Bieg i większość sportu odbywa się na jednej nodze. Ćwiczenia jednonóż angażują podsystem boczny (mięsień pośladkowy średni, przywodziciele, mięsień czworoboczny lędźwi) jako stabilizatory, czego przysiad obunóż nie robi. Siła obunóż nie przenosi się na siłę jednonóż. Jednonóż pozwala mocno obciążyć nogi przy małym obciążeniu kręgosłupa.",
+   "appliesTo": [
+    "dolna część ciała",
+    "prewencja kolana i krzyża"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Developing Single-Leg Strength"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Pelvic Stabilizers"
+    }
+   ]
+  },
+  {
+   "id": "P13",
+   "title": "Równowaga wzorców 1:1",
+   "rule": "Program ma pokrywać: moc, tułów, kolano-dominujące, biodro-dominujące, pchanie poziome, pchanie pionowe, ciągnięcie poziome, ciągnięcie pionowe — każdy wzorzec co najmniej raz, najlepiej dwa razy w tygodniu. Stosunek serii ciągnięć do wyciskań co najmniej 1:1, kolano- do biodro-dominujących 1:1. Nadmiar wyciskań → problemy ze stożkiem rotatorów; nadmiar ćwiczeń kolanowych → naderwania mięśni kulszowo-goleniowych.",
+   "appliesTo": [
+    "układanie planu"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Upper-Body Pulling and Pressing"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Essentials of a Sound Program"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Ratio of Exercises"
+    }
+   ]
+  },
+  {
+   "id": "P14",
+   "title": "Interwały zamiast długiego aerobu",
+   "rule": "U sportowców drużynowych (i większości klientów) kondycję buduje się interwałami; wydolność tlenowa ma być produktem ubocznym pracy beztlenowej (tętno w przerwach > 120/min). Długie, wolne biegi zmieniają włókna pośrednie w kierunku wolnokurczliwych i spowalniają. Zamiast 'bazy tlenowej' — model odwróconej piramidy (pojemność pracy): zaczynać od krótkich odcinków o docelowym tempie i je wydłużać. Łatwiej wytrenować kondycję u szybkiego zawodnika niż zrobić szybkiego z wytrzymałego.",
+   "appliesTo": [
+    "kondycja",
+    "redukcja tkanki tłuszczowej"
+   ],
+   "conditions": [
+    "Wyjątek: zawodnicy wytrzymałościowi i osoby nieprzygotowane (3–4 tygodnie pracy ciągłej przed interwałami)."
+   ],
+   "limitations": [
+    "Teza o przemianie typu włókien oparta na cytacie Charliego Francisa; badania Tabaty i Gibali cytowane bez szczegółów metodycznych."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Conditioning for Athletics"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Fiber Type"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Work Capacity Model"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Long Cardio versus Interval Training"
+    }
+   ]
+  },
+  {
+   "id": "P15",
+   "title": "Testy wyników, nie fizjologii",
+   "rule": "Wydolność sportowca ocenia się testem wyniku (kto pierwszy na mecie), a nie VO2max czy mleczanem. Ważniejsza od wysokiego VO2max jest wysoki próg (efektywność) i szybki powrót tętna. Zawodnicy trenują pod test, więc test musi mierzyć to, czego chcemy: np. sprint 10 jardów i skok dosiężny zamiast wyciskania leżąc.",
+   "appliesTo": [
+    "testowanie"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Physiological versus Performance Testing"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Using Physiological Testing"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Pressing Exercises"
+    }
+   ]
+  },
+  {
+   "id": "P16",
+   "title": "Moc spada z wiekiem szybciej niż siła",
+   "rule": "Między 65. a 89. rokiem życia moc prostowników kończyn dolnych spada ok. 3,5% rocznie, siła 1–2% rocznie; maksymalna moc beztlenowa u mężczyzn spada ok. 8,3% na dekadę między 20. a 70. r.ż. (dane cytowane za prof. Signorile, 2003). Starsi klienci powinni trenować z intencją prędkości (np. piłki lekarskie, swing kettlebell, maszyny pneumatyczne), w granicach swoich możliwości.",
+   "appliesTo": [
+    "starsi klienci"
+   ],
+   "conditions": [],
+   "limitations": [
+    "Dane z prezentacji konferencyjnej, nie z publikacji."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Losing Power with Age"
+    }
+   ]
+  },
+  {
+   "id": "P17",
+   "title": "Kucharz czy szef kuchni",
+   "rule": "Początkujący trener powinien wiernie kopiować jeden dobry program ('przepis') i dobrze go prowadzić, zamiast mieszać kilka systemów. Po kilku latach (autor: ok. 3–4) można modyfikować składniki, po ok. 5 latach skutecznego programowania — tworzyć własne. Przy każdym ćwiczeniu pytaj, po co jest w programie.",
+   "appliesTo": [
+    "trenerzy"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Program Design Basics"
+    }
+   ]
+  },
+  {
+   "id": "P18",
+   "title": "Hipertrofia u sportowców",
+   "rule": "Autor nie trenuje sportowców metodą kulturystyczną: masa ma być 'napędowa' (nogi, plecy, prostowniki grzbietu) i przyjść z ćwiczeń podstawowych (przysiady, martwe ciągi, wyciskania, wiosłowania, podciągania) oraz diety. Typ budowy decyduje: mezomorfik rośnie na każdym programie; ektomorfik — niska objętość, wysoka intensywność i nadwyżka kaloryczna; endomorfik — umiarkowana objętość, dieta wysokobiałkowa z ograniczonymi węglowodanami. Hipertrofia zależy w dużej mierze od diety i genetyki (opinia autora).",
+   "appliesTo": [
+    "masa mięśniowa"
+   ],
+   "conditions": [],
+   "limitations": [
+    "Teza o roli genetyki i diety to opinia autora."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Hypertrophy Training for Athletes"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Body Types"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ The Mythology of Hypertrophy"
+    }
+   ]
+  },
+  {
+   "id": "P19",
+   "title": "Pytanie o ból ma odpowiedź tak/nie",
+   "rule": "Przy kontuzji pytaj 'Czy boli?'. Każda odpowiedź niejednoznaczna ('po rozgrzewce przechodzi', 'tylko na końcu') znaczy 'tak' — wtedy klient nie jest gotowy na to ćwiczenie. Progresja tylko w pełnym, bezbolesnym zakresie, z bolesnością mięśni, a bez bólu stawów.",
+   "appliesTo": [
+    "kontuzje",
+    "progresja"
+   ],
+   "conditions": [
+    "Wyjątek: rehabilitacja tendinozy (zob. S2)."
+   ],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Painful Exercise"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Reality Therapy"
+    }
+   ]
+  },
+  {
+   "id": "P20",
+   "title": "Przygotowanie tkanek przed treningiem",
+   "rule": "Stała kolejność: rolowanie (gęstość tkanek) → rozciąganie statyczne (długość) → aktywacja (gotowość) → rozgrzewka dynamiczna → moc/szybkość → siła. Przygotowanie tkanek to 10–20% czasu treningu młodego zdrowego sportowca (6–12 min na godzinę); u starszych klientów więcej. W programie prewencyjnym żaden element nie jest opcjonalny.",
+   "appliesTo": [
+    "struktura sesji"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Static Stretching"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Sports Hernia Prevention"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Program Structure"
+    }
+   ]
+  },
+  {
+   "id": "P21",
+   "title": "Wolne ciężary zamiast maszyn",
+   "rule": "Jedyne potrzebne maszyny to wyciągi/functional trainer (rotacje, chop/lift, wiosłowania w staniu). Ćwiczenia jednostawowe dla stawów zawiasowych (prostowanie i uginanie nóg na maszynie, prostowanie ramion na wyciągu) są stratą czasu. Wyjątki: izolacja dla stawów o dużej swobodzie lub potrzebie stabilności (odwodzenie/przywodzenie biodra, łopatka, stożek rotatorów).",
+   "appliesTo": [
+    "dobór sprzętu i ćwiczeń"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Equipment Choices"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Strength Programming"
+    }
+   ]
+  },
+  {
+   "id": "P22",
+   "title": "Trenuj wszystkie cechy równolegle",
+   "rule": "Trening sportowca jest zawsze równoległy (concurrent), czasem sprzężony (conjugate): siła, moc, szybkość i kondycja w każdym okresie, ze zmianą akcentu (np. w okresie przedstartowym więcej kondycji). 'Zostaw w programie nitkę wszystkiego' (Al Vermeil).",
+   "appliesTo": [
+    "periodyzacja"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Concurrent or Conjugated Periodization"
+    }
+   ]
+  },
+  {
+   "id": "P23",
+   "title": "Gęstość treningu: pary i trisety",
+   "rule": "Poza trójbojem nie robi się wielu serii jednego ćwiczenia z 2–5 min przerwy. Ćwiczenia łączy się w pary, trisety lub quad-sety; przerwy wypełnia tułów i rozciąganie (rozciąganie w trakcie treningu tylko aktywno-izolowane). Ćwiczeń olimpijskich nie łączy się w pary z innymi ciężkimi ćwiczeniami (triset: ćw. eksplozywne + tułów + mobilność).",
+   "appliesTo": [
+    "struktura sesji"
+   ],
+   "conditions": [],
+   "limitations": [],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Program Design Points"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Developing Power and Speed"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Four-Day Workout Programs"
+    }
+   ]
+  },
+  {
+   "id": "P24",
+   "title": "Konsekwencja ważniejsza od szczegółów",
+   "rule": "Słaby trening jest lepszy niż opuszczony. Dla początkujących wykonanie i technika są ważniejsze niż schemat serii i powtórzeń (KISS). Środowisko i wysiłek grupy (obwody, presja rówieśnicza) potrafią dać przyrosty siły mimo 'gorszego' programu.",
+   "appliesTo": [
+    "prowadzenie klientów"
+   ],
+   "conditions": [],
+   "limitations": [
+    "Efekt obwodów opisany na jednej drużynie (hokej BU); autor odradza ten styl przy innych grupach."
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Program Design Points"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Choosing a Training System"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Circuit Training"
+    }
+   ]
+  }
+ ],
+ "exerciseRules": [
+  {
+   "id": "E1",
+   "category": "zamiana",
+   "pattern": "nogi i klatka",
+   "rule": "Zamiast prostowania nóg na maszynie — przysiad bułgarski/wykrok w miejscu lub inny przysiad jednonóż; zamiast uginania nóg — martwy ciąg na prostych nogach na jednej nodze (mięśnie kulszowo-goleniowe są głównie prostownikami biodra); zamiast wyciskania hantli — wyciskanie naprzemienne z utrzymaniem drugiej hantli u góry.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Using Functional Exercises"
+    }
+   ]
+  },
+  {
+   "id": "E2",
+   "category": "przysiad",
+   "pattern": "kolano-dominujące obunóż",
+   "rule": "Przysiad przedni zamiast tylnego (mniej momentu siły, kompresji i zgięcia kręgosłupa). Głębokość: kość udowa równolegle do podłogi (głębokość trójbojowa); bez półprzysiadów i ćwierćprzysiadów. Miernik głębokości: lekkie dotknięcie skrzyni 12 in (≈30 cm), bez siadania i odbijania. Wolno podłożyć pod pięty deskę 1×4, krążek 10 lb lub klin. Nauka: przysiad z masą ciała → przysiad przedni bez trzymania sztangi rękami → przysiad przedni chwytem jak do zarzutu (bez chwytu skrzyżnego; paski do podnoszenia przy słabej gibkości nadgarstków).",
+   "technique": [
+    "guma (ok. 20 in) tuż pod kolanami, kolana rozpychane na zewnątrz nad palce",
+    "stopy na szerokość barków, palce 10–15° na zewnątrz",
+    "głęboki wdech przed zejściem, ciężar na piętach",
+    "ruch w górę: klatka do przodu, pięty w podłogę, powolny wydech"
+   ],
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Techniques"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injury Prevention Suggestions"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Gauging Depth"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Front Squats"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Developing a Safe Squatting Style"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Coaching the Bodyweight Squat"
+    }
+   ]
+  },
+  {
+   "id": "E3",
+   "category": "unikać",
+   "pattern": "dolna część ciała",
+   "rule": "Bez maszyny do wypychania nogami (leg press) i bez owijek na kolana (rękawy neoprenowe dopuszczalne). Klasyczny martwy ciąg sztangą prostą — unikać; zamiast niego martwy ciąg z trap bar (priorytet od lata 2007), martwy ciąg sumo z kettlebell u początkujących dorosłych, martwy ciąg jednonóż. Przy bólu pleców: przysiad z pasem (belt squat), przysiad bułgarski przedni, ćwiczenia jednonóż.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injury Prevention Suggestions"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Deadlifts"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Trap-Bar Deadlifts"
+    }
+   ]
+  },
+  {
+   "id": "E4",
+   "category": "moc",
+   "pattern": "dźwignięcia olimpijskie",
+   "rule": "Zarzut z zwisu (sztanga nad kolanami) zamiast z podłogi. Rwanie chwytem wąskim (jak do zarzutu), nie szerokim. Kolejność nauki: rwanie hantlą jednorącz → rwanie sztangą wąskim chwytem z zwisu → zarzut z zwisu. Rwanie używa ok. 50–60% ciężaru zarzutu z zwisu, więc mniej obciąża krzyż (u osób z bólem krzyża autor używa tylko rwań). Gdy nie umiesz uczyć i nadzorować dźwignięć — moc z piłek lekarskich, plyometrii i skoków z obciążeniem.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injury Prevention Suggestions"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Cleans versus Snatches"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Teaching the Olympic Lifts"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ The Hang Clean and Close-Grip Snatch"
+    }
+   ]
+  },
+  {
+   "id": "E5",
+   "category": "ciągnięcie",
+   "pattern": "ciągnięcie pionowe i poziome",
+   "rule": "Tygodniowo co najmniej 3 serie każdego z 2 wariantów podciągania i co najmniej 3 serie każdego z 2 wiosłowań. Co 3 tygodnie zmień wariant albo liczbę powtórzeń (czasem oba). Podciąganie cykluj tak jak wyciskanie leżąc (trójki do trójek, piramidy do piramid), podchwytem, z pełnego zwisu. Wiosłowania wykonuj stojąc na jednej nodze z ciężarem w ręce przeciwnej (łańcuch skośny: m. dwugłowy uda i pośladkowy wielki → staw krzyżowo-biodrowy → przeciwny m. najszerszy grzbietu), poza wiosłowaniem w zwisie (inverted row) i rotacyjnym.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Vertical Pulling Movements"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Horizontal Pulling Movements"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Upper-Body Strength Program"
+    }
+   ]
+  },
+  {
+   "id": "E6",
+   "category": "bark",
+   "pattern": "stożek rotatorów i łopatka",
+   "rule": "Seria barkowa: faza 1 — Y, T, W, L leżąc na brzuchu (2×8 w każdej pozycji bez ciężaru i bez przerw, dokładanie powtórzeń co tydzień do 16, potem znów 8 z bardzo lekkimi hantlami); faza 2 — YTWL w półklęku, potem stojąc; faza 3 — ćwiczenia 90/90 na wyciągu (przywodzenie poziome leżąc, rotacja zewnętrzna 90/90, retrakcja łopatki), bez unoszenia barków. Opór z maszyny z przyrostem co 1 lb lepszy niż guma (opór rośnie z rozciągnięciem) i hantle (stały ciężar).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Rotator Cuff Support"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Upper-Body Strength Program"
+    }
+   ]
+  },
+  {
+   "id": "E7",
+   "category": "bark",
+   "pattern": "sportowcy z ruchami nad głową",
+   "rule": "Pływacy, baseballiści, rozgrywający, tenisiści, siatkarze: ograniczyć ćwiczenia nad głową; wyciskanie nad głowę tylko hantlami (nie sztangą); bez rwań i przysiadu ze sztangą nad głową; ćwiczeń zza karku nie robi nikt. Moc: swing kettlebell nad głowę, zarzut z zwisu, rzuty piłką lekarską nad głową. Gibkość: rozciąganie 'sleeper' (rotacja zewnętrzna w leżeniu bokiem) i wall slides.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Overhead Athletes and Overhead Lifts"
+    }
+   ]
+  },
+  {
+   "id": "E8",
+   "category": "klasyfikacja",
+   "pattern": "jednonóż",
+   "rule": "Ćwiczenia jednonóż: (a) statyczne podparte — przysiad bułgarski/wykrok w miejscu (split squat), przysiad z tylną stopą na ławce (RFESS), przysiad boczny, przysiad rotacyjny; (b) statyczne niepodparte — przysiad jednonóż (tylko ten rodzaj zmusza pośladkowy średni, przywodziciele i rotatory biodra do pracy we wszystkich trzech płaszczyznach); (c) dynamiczne hamujące — wykrok klasyczny, boczny, rotacyjny; (d) dynamiczne przyspieszające — wykrok chodzony, wykrok na slideboardzie/Valslide (wyglądają na kolanowe, ale są biodro-dominujące). Ćwiczenia podparte nie przenoszą się dobrze na przysiad jednonóż. Wersja statyczna przez co najmniej 3 tygodnie przed dynamiczną.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Classifications of Single-Leg Exercise"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Accelerative and Decelerative Patterns"
+    }
+   ]
+  },
+  {
+   "id": "E9",
+   "category": "progresja zakresu",
+   "pattern": "przysiad jednonóż",
+   "rule": "Progresywny zakres ruchu: przysiad jednonóż tylko do bezbolesnej głębokości, w której klient kontroluje udo (bez przywodzenia i rotacji wewnętrznej). Obciążenie (masa ciała) stałe, zwiększa się zakres; po uzyskaniu pełnego zakresu wraca zwykła progresja oporu. Hantle 5 lb w rękach ułatwiają (przeciwwaga), 10 lb już utrudniają. Głębokość: dotknięcie skrzyni 12–14 in; stanie na drugiej skrzyni, żeby noga wolna opadała pionowo.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Single-Leg Training and Knee Pain"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Progressive Range of Motion"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Challenging Single-Leg Strength"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Single-Leg Strength"
+    }
+   ]
+  },
+  {
+   "id": "E10",
+   "category": "technika",
+   "pattern": "RFESS",
+   "rule": "Przysiad z tylną stopą na ławce: grzbiet stopy (nie palce) na ławce lub niższym stopniu u niskich osób; mata Airex pod tylnym kolanem jako stały miernik głębokości; udo przedniej nogi równolegle do podłogi; napięty brzuch i pośladek, żeby nie przeprostowywać lędźwi. Nauka 'od dołu': start z kolanem na macie, każde powtórzenie od pozycji dolnej. Jako ćwiczenie siłowe: 3×5 na nogę z hantlami lub sztangą.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Single-Leg Strength"
+    }
+   ]
+  },
+  {
+   "id": "E11",
+   "category": "biodro-dominujące",
+   "pattern": "wyprost biodra",
+   "rule": "Trzy wzorce wyprostu biodra: (1) na prostych nogach — martwy ciąg jednonóż z kolanem zgiętym ok. 20° (pośladek pracuje mocniej, można użyć większego ciężaru); (2) na zgiętych nogach — mostki/hip lift; (3) uginanie nóg z wyprostem biodra (slideboard). Program musi zawierać ćwiczenia z prostą i zgiętą nogą. Progresja hip lift: Cook hip lift → stopa na stopniu 4 in (poz. 2) → stopień 6 in lub balance board (poz. 3) → wałek (poz. 4) → piłka lekarska (poz. 5), każda wg schematu 8-10-12 z masą ciała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Anterior Knee Pain"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ Hip-Extension Exercises"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ Single-Leg Straight-Leg Deadlift"
+    }
+   ]
+  },
+  {
+   "id": "E12",
+   "category": "biodro-dominujące",
+   "pattern": "uginanie nóg z wyprostem biodra",
+   "rule": "Uginanie nóg na slideboardzie: biodra przez cały czas w wyproście (każde zgięcie biodra niszczy pracę pośladka). Gdy klient nie utrzyma bioder przy powrocie — tylko faza ekscentryczna: 5 s wysuwania z mostka do wyprostu nóg, opuszczenie, powrót do mostka, 3–5 powtórzeń. Progresja: wersja koncentryczna → uginanie na TRX → na piłce (poz. 3) → na piłce jednonóż (poz. 4).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ Slideboard Leg Curl"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ TRX Leg Curl"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ Stability-Ball Leg Curl"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Lower-Body Strength and Balance Progressions"
+    }
+   ]
+  },
+  {
+   "id": "E13",
+   "category": "tułów",
+   "pattern": "anty-wyprost",
+   "rule": "Progresja: deska przodem — jeśli klient nie utrzyma idealnej deski 40 s, zacznij od niej → rollout na piłce (im słabszy, tym większa piłka; początkujący 75 cm; 2× w tygodniu przez pierwsze 3 tygodnie u każdego) → ab dolly → kółko → slideboard/Valslide → rollout ze sztangą lub TRX → bodysaw. Zaczynanie od kółka grozi naderwaniem mięśni brzucha.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Anterior Core Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Core Training"
+    }
+   ]
+  },
+  {
+   "id": "E14",
+   "category": "tułów",
+   "pattern": "anty-rotacja (chop i lift)",
+   "rule": "Poziom 1: chop i lift w półklęku 'stabilnościowy' — drążek Cooka (ok. 20 in), dłonie ok. 14 in od siebie, tułów nieruchomy, napięty pośladek nogi klęczącej; 3×10 ze wzrostem ciężaru w 2. tygodniu albo stały ciężar i 8-10-12 powtórzeń; na start nie więcej niż 20–30 lb. Poziom 2: chop/lift sekwencyjny w półklęku z liną (ciągnij–obróć–pchnij). Dalej: pozycja wykroku, stojący dynamiczny (przysiad–obrót–wypchnięcie), lift z wejściem na podwyższenie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Diagonal Pattern"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Rotational Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Core Training"
+    }
+   ]
+  },
+  {
+   "id": "E15",
+   "category": "tułów/pośladki",
+   "pattern": "quadruped",
+   "rule": "Wciąganie brzucha w klęku podpartym 5×5 s → wyprost biodra przez ławkę (zgięta noga, 5×5 s) → wyprost biodra z kijem wzdłuż kręgosłupa, kolano nogi podporowej na Airex (5-8-10 powtórzeń po 5 s) → + obciążniki 2,5 lb na kostki → kij poprzecznie na biodrach (anty-rotacja) → + obciążniki → naprzemiennie ręka i noga. Jakikolwiek ruch lędźwi = kompensacja słabego pośladka.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Quadruped Progression"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Program for Clients with Back Pain"
+    }
+   ]
+  },
+  {
+   "id": "E16",
+   "category": "tułów/pośladki",
+   "pattern": "mostki (supine)",
+   "rule": "Cook hip lift: jedno kolano przyciągnięte do klatki (piłka tenisowa przy dolnych żebrach nie może wypaść), druga stopa na pięcie, 3 serie po 10/12/14 na nogę; zakres to tylko 2–3 in. Skurcz mięśni kulszowo-goleniowych = słabe pośladki. Dalej: wersja bez rąk → mostek izometryczny 3×30 s → mostek jednonóż 3×15 s na stronę → mostek z naprzemiennym 'marszem' 5→8→10 × 5 s (poziomica na kolcach biodrowych).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Supine Progression"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Program for Clients with Back Pain"
+    }
+   ]
+  },
+  {
+   "id": "E17",
+   "category": "biodro",
+   "pattern": "zginacze biodra (m. lędźwiowy i biodrowy)",
+   "rule": "Tylko m. lędźwiowy i m. biodrowy unoszą udo powyżej 90°. Test (Sahrmann): stojąc na jednej nodze przyciągnij kolano do klatki i puść — kto nie utrzyma kolana powyżej 90° przez 10–15 s, ma słaby m. lędźwiowy/biodrowy (też: skurcz przy m. napinaczu powięzi szerokiej, odchylenie tułowia, przesunięcie miednicy, opadanie). Test i ćwiczenie (Wood): stopa na skrzyni 24 in, ręce za głowę, unieś stopę i utrzymaj 5 s. Wzmacnianie: zgięcie biodra w siadzie z nogami w powietrzu, od 3×10 s do 10×10 s. Rozciąganie: półklęk z kolanem na Airex, przednia stopa na skrzyni 12 in, tułów ok. 45° do skrzyni.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ The Psoas and Iliacus"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ Dysfunctional Hip Flexors"
+    }
+   ]
+  },
+  {
+   "id": "E18",
+   "category": "biodro",
+   "pattern": "mięsień pośladkowy średni",
+   "rule": "Aktywacja: guma (Theratube ok. 20 in) nad kolanami podczas przysiadów obunóż i jednonóż — ciągnie kolana do środka i 'włącza' odwodziciele (reaktywny trening nerwowo-mięśniowy wg Cooka). Izolacja: odwodzenie w leżeniu bokiem ze zgiętymi nogami (biodra 45°, kolana 90°; 10 powtórzeń w 1. tygodniu, +2 co tydzień; bez rotacji lędźwi), odwodzenie prostej nogi (półwałek pod talią, guma na pięcie), chód bokiem z mini-gumą na prostych nogach (kolana ok. 5°, kroki ok. 6 in), X-walk z Superband.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Facilitating the Glute Medius"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Anterior Knee Pain"
+    }
+   ]
+  },
+  {
+   "id": "E19",
+   "category": "mobilność",
+   "pattern": "rozgrzewka",
+   "rule": "Osiem ćwiczeń mobilności: (1) odcinek piersiowy — dwie sklejone piłki tenisowe, mini-brzuszki, 5 powtórzeń na poziom od przejścia piersiowo-lędźwiowego do szyjnego (bez odc. lędźwiowego i szyjnego); (2) staw skokowy przy ścianie, 15 powtórzeń: 5 na zewnątrz, 5 prosto, 5 do środka, pięta na podłodze; (3) wymachy nóg (mobilność stawu skokowego w płaszczyźnie poprzecznej); (4–6) przysiad w wykroku, przysiad boczny (stopy 3,5–4 stopy od siebie, prosto), przysiad rotacyjny — w miejscu przez 3 tygodnie przed 'lunge matrix'; (7) wall slides; (8) Big X Band. Całość 5–10 min.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Mobility Drills"
+    }
+   ]
+  },
+  {
+   "id": "E20",
+   "category": "mobilność",
+   "pattern": "staw skokowy",
+   "rule": "Mobilizacja stawu skokowego: palce kilka cali od ściany, kolano dotyka ściany, pięta na podłodze; 10 razy na stronę, stopniowo odsuwając stopę. Gorszej strony nie ćwiczyć w większej odległości niż lepszej — wyrównywać. Jeśli przy biernym zgięciu grzbietowym zakres jest mały, a klient nie czuje rozciągania łydki — problem mobilności stawu, nie gibkości mięśnia.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Assessing Strength, Flexibility and Mobility"
+    }
+   ]
+  },
+  {
+   "id": "E21",
+   "category": "tkanki",
+   "pattern": "rolowanie",
+   "rule": "Rolowanie przed rozciąganiem (zmniejsza gęstość tkanek, 'prasowanie mięśni'). Zwykle ok. 10 wolnych przetoczeń na pozycję; przywodziciele w trzech częściach po 10 krótkich przetoczeń (nad kolanem, środek, przy spojeniu łonowym). 5–10 min na początku sesji. Stopa: piłka (od tenisowej do golfowej) 1–2 min dziennie. Rolowanie nie może powodować siniaków; ostrożnie u osób z małą masą mięśniową.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Foam Rolling"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Rolling versus Massage"
+    }
+   ]
+  },
+  {
+   "id": "E22",
+   "category": "rozciąganie",
+   "pattern": "statyczne i aktywno-izolowane",
+   "rule": "Rozciąganie statyczne na początku treningu, na zimno, po rolowaniu, potem rozgrzewka dynamiczna (ma zniwelować spadek mocy). Rozciąganie po treningu słabo zwiększa gibkość (opinia autora). W trakcie treningu, w przerwach między seriami, tylko rozciąganie aktywno-izolowane: 1–2 s z napięciem antagonisty. Ograniczać ćwiczenia, które klient robi dobrze, więcej czasu na te, których nie lubi.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Static Stretching"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Active-Isolated Stretching"
+    }
+   ]
+  },
+  {
+   "id": "E23",
+   "category": "moc",
+   "pattern": "piłka lekarska",
+   "rule": "20–30 rzutów danego typu (2–3 serie po 10) 2 razy w tygodniu. Rzuty rotacyjne o ścianę piłką 4–5 kg; rzuty nad głową 2–3 kg. Progresja pozycji: półklęk bokiem do ściany (2–3 stopy) → stojąc przodem/bokiem → z krokiem → na jednej nodze. Miotacze: rzuty rotacyjne 2–3 razy w tygodniu. Piłki niesprężyste (Dynamax, D-Ball) uczą siły koncentrycznej. Nie łapać ciężkich piłek rzucanych przez partnera.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Medicine Ball Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Rotation Progression"
+    }
+   ]
+  },
+  {
+   "id": "E24",
+   "category": "szybkość",
+   "pattern": "sanki",
+   "rule": "Pchanie ciężkich sanek to jednonożny 'leg press' w pozycji przyspieszenia, z pracą tułowia i obręczy barkowej. Marsz z sankami (siła specjalna) może iść z obciążeniem równym masie ciała lub większym, jeśli wzorzec i postawa są poprawne. Bieg z sankami lżej, ale nie według reguły 10% spadku prędkości/10% masy ciała: kryterium jest wzorzec ruchu. Ciężar zależy od nawierzchni (trawa: mniej) i typu sanek (płaskie: mniej).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Sled Training for Athletics"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Sled Pushing"
+    }
+   ]
+  },
+  {
+   "id": "E25",
+   "category": "sprzęt",
+   "pattern": "kettlebell, TRX",
+   "rule": "Kettlebell: tak dla swingów (moc dla początkujących i starszych), martwego ciągu jednonóż, spaceru z jednym ciężarem w ręce (suitcase carry = 'chodząca deska boczna'), spaceru z kettlebell do góry dnem, tureckiego wstawania; nie dla zarzutów i rwań (obijanie przedramion). TRX: wiosłowania (od podchwytu do nachwytu), przysiad z tylną stopą na pasku, uginanie nóg, rollouty.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Kettlebells"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ TRX Suspension Training"
+    }
+   ]
+  },
+  {
+   "id": "E26",
+   "category": "pchanie",
+   "pattern": "wyciskanie i pompki",
+   "rule": "Wyciskanie leżąc raz w tygodniu, najwyżej dwa treningi wyciskań w tygodniu. Dotknięcie klatki, bez odbicia i łuku; pauza lub wolne opuszczanie jako ćwiczenie korekcyjne. Talerze 1,25 lb dla osób wyciskających mniej niż 200 lb. Pompki: z kamizelką; gdy 20 powtórzeń bez 'foki' — stopy wyżej; pompki ze stopami na podwyższeniu 18 in na BOSU z kamizelką 20 lb. Wyciskanie nad głowę: siedząc bez oparcia → półklęk → stojąc.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Pressing Exercises"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Overhead Pressing"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ The Core Exercises"
+    }
+   ]
+  },
+  {
+   "id": "E27",
+   "category": "obciążenie",
+   "pattern": "przysiad z wyskokiem",
+   "rule": "Ciężar do przysiadu z wyskokiem = (1RM przysiadu + masa ciała) × 0,4 − masa ciała. Przykład: 500 lb i 200 lb → 80 lb; 500 lb i 350 lb → −10 (wystarczy masa ciała). Wzór zastępuje '25% 1RM', który przeciąża ciężkich zawodników.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Alternatives to Olympic Lifting"
+    }
+   ]
+  },
+  {
+   "id": "E28",
+   "category": "obciążenie",
+   "pattern": "przysiad jednonóż",
+   "rule": "Masa układu = masa ciała + 1RM przysiadu przedniego. Ciężar hantli = (0,4 × masa układu − masa ciała) / 2. Przykład: 200 lb, przysiad przedni 400 lb → 20-funtowe hantle na serie po 5. Wynik ujemny → hantle 5 lb jako przeciwwaga. Przy dużych ciężarach łącz kamizelkę z hantlami.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Determining Weight for Single-Leg Squats"
+    }
+   ]
+  },
+  {
+   "id": "E29",
+   "category": "obciążenie",
+   "pattern": "martwy ciąg jednonóż",
+   "rule": "Start od 20% 1RM zarzutu z zwisu (okazało się za lekko, szybka progresja). Większość sportowców udźwignie 80–100 lb w jednej ręce; powyżej ok. 80 lb przejście na dwie hantle lub sztangę, do ok. 50% 1RM zarzutu (np. para 70 lb przy zarzucie 275 lb). Progresja: tyg. 1–3 z sięganiem (piłka 2–3 kg; 8–10 powtórzeń), tyg. 4–6 jedna hantla, tyg. 7–9 dwie hantle.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Posterior Chain Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Determining Weight for Single-Leg Squats"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 5 The Hips",
+     "pages": "§ Reaching Single-Leg Straight-Leg Deadlift"
+    }
+   ]
+  },
+  {
+   "id": "E30",
+   "category": "szybkość",
+   "pattern": "start i przyspieszenie",
+   "rule": "Testuj i trenuj 10 jardów (ponad 80% pracy na 10 jardach, poniżej 20% na 15–20); nie biegaj 40 jardów na treningu (ryzyko naderwania mm. kulszowo-goleniowych). Cel: 5 jardów w 3 krokach, 10 w 5 (dobry sprinter: 10 jardów w 5–6 krokach, 20 w 9–10). Siła odbicia (pchanie), nie częstotliwość kroków. Start: ciężar na przedniej ręce i stopie, biodra nisko, wzrok między ręką a stopą. Ćwiczenia: starty do skoku na materac, mierzone dziesiątki (powiedz 3 próby, zrób 5), starty z jednej nogi. Czas ręczny 10 jardów u dorosłych mężczyzn: 1,5 s szybko, 1,8 s przeciętnie. Każdy pomiar 3 razy: średnia lub środkowy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Training for Speed"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Speed or Acceleration"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Start Tips and Drills"
+    }
+   ]
+  },
+  {
+   "id": "E31",
+   "category": "ocena",
+   "pattern": "przysiad nad głową",
+   "rule": "Minimum oceny: przysiad nad głową. Do równoległej z palcami prosto → wolno przejść do każdego wariantu przysiadu. Jeśli podniesienie pięt (deska 1×4) rozwiązuje problem — ograniczenie w stawie skokowym. Zalecany pełny Functional Movement Screen (7 testów, poniżej 10 min) u każdego klienta i każdego kontuzjowanego sportowca; w drużynie szukaj trendów i dodawaj korekcję do rozgrzewki.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Assessing Strength, Flexibility and Mobility"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Using the Functional Movement Screen"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ FMS and the Strength Coach"
+    }
+   ]
+  }
+ ],
+ "progressionRules": [
+  {
+   "id": "PR1",
+   "name": "Progresja z masą ciała 8-10-12",
+   "rule": "Tydzień 1: 3×8, tydzień 2: 3×10, tydzień 3: 3×12 bez obciążenia; od tygodnia 4 obciążenie zewnętrzne +5 lb tygodniowo (jeśli się nie da — maszyna lub odciążenie gumą). Potem obciążenie i/lub niestabilność, zwykle nie mniej niż 5 powtórzeń. Każdy zaczyna jednonóż od poziomu 1 przez pierwsze 3 tygodnie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Program Design Principles"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Single-Leg Exercises"
+    }
+   ]
+  },
+  {
+   "id": "PR2",
+   "name": "Progressive Resistance Exercise (PRE)",
+   "rule": "Początkujący: +5 lb tygodniowo do sztangi przy idealnej technice; bardziej zaawansowani: +2,5 lb do najcięższej serii. 2–3 serie robocze: rozgrzewkowa, ciężka, ciężka ±5–10 lb (decyzja w górę/w dół/bez zmian). Przez pierwszy rok wystarcza; potem periodyzacja.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Progressive Resistance Exercise"
+    }
+   ]
+  },
+  {
+   "id": "PR3",
+   "name": "Test 20 powtórzeń",
+   "rule": "W 3. tygodniu ciężar serii 2 (najcięższej, ok. 10RM) — 20 powtórzeń w jak najmniejszej liczbie serii, do upadku technicznego; liczba powtórzeń w pierwszej serii koryguje ciężar. Przykład z książki: 200 lb na 14 powtórzeń zamiast 10 → następny tydzień 225×10 zamiast 205. Pełna tabela przeliczeń utracona w .txt.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Twenty-Rep Tests"
+    }
+   ]
+  },
+  {
+   "id": "PR4",
+   "name": "Schemat 5-10-20",
+   "rule": "W fazie hipertrofii jedno ćwiczenie wielostawowe dziennie: 5 powt. @82%, 10 @70%, 20 @58% 1RM, w tej kolejności (od najcięższej). Każdy kolejny ciężar = poprzedni −12%, w dół do pełnej liczby. Przykład: 200×5 → 175×10 → 155×20. Wariant programu 6-12-24 Poliquina.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Strength Programming"
+    }
+   ]
+  },
+  {
+   "id": "PR5",
+   "name": "Zakres powtórzeń i serii",
+   "rule": "Dla siły zwykle nie więcej niż 8 powtórzeń przez większość roku; nie więcej niż 3 serie ćwiczenia (także u początkujących). ~20 serii na godzinny trening (1 min na serię + min. 1 min przerwy). Trening siłowy do ok. 1 godziny.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Strength Programming"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Daily Leg Training"
+    }
+   ]
+  },
+  {
+   "id": "PR6",
+   "name": "Trening ekscentryczny",
+   "rule": "Za Thibaudeau: 75% 1RM — opuszczanie 8 s, 2 powtórzenia w serii; 80% — 6 s, 1 powt.; 85% — 4 s, 1 powt. Reguła: liczba sekund kontrolowanego opuszczania ≈ liczba powtórzeń koncentrycznych tym ciężarem (225 lb na 5 powt. → 5 s opuszczania). Autor nie wierzy w 120% 1RM ekscentrycznie u swoich sportowców. Przykłady faz: wyciskanie i podciąganie z 5-s opuszczaniem, RFESS 5-5-5 (pauzy 5 s u góry, w środku, na dole).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Strength Programming"
+    }
+   ]
+  },
+  {
+   "id": "PR7",
+   "name": "Tempo i czas pod napięciem",
+   "rule": "Normalne kontrolowane powtórzenie trwa ok. 1-0-1, więc 8–12 powtórzeń to 16–24 s, a nie 30–70 s (Poliquin). Dla hipertrofii przy 10 powtórzeniach — wolniejsze opuszczanie 2-0-1 (≈30 s); autor nie lubi wolnej fazy koncentrycznej. Dla mniejszej hipertrofii: 5–6 powtórzeń, większy ciężar, mniej serii.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Time Under Tension"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ The Mythology of Hypertrophy"
+    }
+   ]
+  },
+  {
+   "id": "PR8",
+   "name": "Plyometria — fazy",
+   "rule": "Każda faza co najmniej 3 tygodnie. Faza 1: skok/hop na skrzynię (mniejsze siły ekscentryczne), pojedyncze odbicia ze stabilizacją; faza 2: nad przeszkodą (płotki 6–30 in) z zatrzymaniem; faza 3: to samo z odbiciem (element sprężysty); faza 4: reaktywna plyometria. Jeśli jakość spada — wróć do poprzedniej fazy ('im większy lub słabszy zawodnik, tym niższa przeszkoda'). Hopy (z nogi na tę samą nogę) do przodu, do środka i na boki — klucz do prewencji ACL. Liniowo 3–5 serii po 5 skoków, bocznie 3 serie po 5 lądowań na nogę, w parze z rzutami piłką.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ ACL Injury Prevention"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Progressions"
+    }
+   ]
+  },
+  {
+   "id": "PR9",
+   "name": "Progresja kondycji 10% i 20%",
+   "rule": "Bieg i inne ćwiczenia wytrzymałościowe: nie zwiększaj czasu ani dystansu o więcej niż 10% z sesji na sesję (rozdz. o urazach) i nie więcej niż 20% z tygodnia na tydzień (rozdz. o kondycji). Przykład tygodniowy: 5×150 jardów wahadłowo = 750 jardów, ok. 2:30 pracy → maksymalnie +150 jardów i +30 s (np. 1×300 + 4×150).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Painful Exercise"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Twenty-Percent Rule"
+    }
+   ]
+  },
+  {
+   "id": "PR10",
+   "name": "Przerwy w interwałach (czas)",
+   "rule": "Im dłuższy odcinek, tym krótsza przerwa względem pracy. 15 s pracy: początkujący co najmniej 45 s przerwy (3:1), zaawansowani 30 s (2:1). 30 s: 1–1,5 min (2:1–3:1). 60 s: 1–2 min (1:1–2:1). 2 min: ok. 2 min (1:1). Praktyczna progresja dla 30 s: 1. odcinek 30 s przerwy, 2–3. po 45 s, 4–5. po 60 s.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Interval Training Methods"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Implementing Interval Training"
+    }
+   ]
+  },
+  {
+   "id": "PR11",
+   "name": "Przerwy w interwałach (tętno)",
+   "rule": "Preferowana metoda: przerwa trwa do powrotu tętna do zadanej wartości. Tętno docelowe metodą Karvonena: (HRmax − HRspocz) × % + HRspocz; przykład (200−60)×0,8+60=172. Autor używa 60% (HRR) jako tętna powrotu. Hokeiści z progiem 160–170/min: powrót o 40 uderzeń; z progiem >170: o 50. Bieżnia: 15 s sprintu i odpoczynek do 120/min (przy HRmax 200). Wzór 220−wiek nie pasuje do ok. 70% ludzi (u studentów rozrzut 180–211).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Heart Rate"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Karvonen Formula"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Implementing Interval Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Interval Training Modes in Detail"
+    }
+   ]
+  },
+  {
+   "id": "PR12",
+   "name": "Slideboard",
+   "rule": "Start: 5 odcinków po 15–30 s (dla początkujących 5–30 s), przerwy 2–3 razy dłuższe od pracy (45 s–1:30). Wprowadzenie: 15 s pracy / 45 s przerwy × 8–10 (tętno 160–190/min). Postęp przez więcej odcinków lub krótsze przerwy, nie przez dłuższą pracę (powyżej 30 s technika się psuje). Proporcja 1:3 dla szybkości: hokeista 30/90, shortstop 15/45; 1:1 bardziej wytrzymałościowo (np. piłka nożna). Wszyscy sportowcy 2 razy w tygodniu w 4-dniowym planie poza sezonem.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Slideboard Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Setting Up Workouts"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Off-Season Training"
+    }
+   ]
+  },
+  {
+   "id": "PR13",
+   "name": "Bieganie poza sezonem",
+   "rule": "Tempo runs: 110 jardów w 75–80% maksymalnego tempa (ok. 18–20 s na 100 jardów), powrót marszem przez szerokość boiska; w 3-tygodniowej fazie od 10 do 14 powtórzeń. Następnie biegi wahadłowe: 150 jardów w 25–30 s + 60 s przerwy (na odcinku 25 lub 50 jardów; 25 trudniej), do 300 jardów w < 60 s. Rower zamiast biegu: dwa razy dłuższy odcinek (6×150 jardów → 6×1 min).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Off-Season Conditioning"
+    }
+   ]
+  },
+  {
+   "id": "PR14",
+   "name": "Ćwiczenia jednonóż w rozgrzewce i sile",
+   "rule": "Tygodnie 1–3: przysiad w wykroku, boczny i rotacyjny po 1×3-4-5 (powtórzenie więcej co tydzień); przy rozgrzewce w ruchu tylko wykroki w tył przez 3 tygodnie (wykroki do przodu dają silne zakwasy przywodzicieli). Tygodnie 4–6: wersje dynamiczne, jedna na trening: wykrok → wykrok boczny → wykrok rotacyjny (płaszczyzna strzałkowa → czołowa → poprzeczna, za Pallofem). Rozgrzewka liniowa: wykrok chodzony w tył od 2. tygodnia, do przodu od 4.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Single-Leg Progressions"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Warm-Ups"
+    }
+   ]
+  },
+  {
+   "id": "PR15",
+   "name": "Szybkość — fazy MBSC",
+   "rule": "Faza I (tyg. 1–3): szybkość bez rywalizacji — lean-fall-run 6×10 jardów. Faza II (tyg. 4–6): krótka rywalizacja — łapanie upuszczonej piłki z wysokości barków, 5–7 jardów. Faza III (tyg. 7–9): dłuższa rywalizacja — gonitwy z partnerem ze strefą 10–20 jardów; zwiększaj intensywność albo objętość, nigdy oba naraz. Zwinność i szybkość boczna: poziomy 1–4 (one-two stick → cut → assisted → 45°; bieg przez 3 → 5 → 7 obręczy → 2 obręcze z powrotem), każdy poziom pierwszy przez 3 tygodnie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Speed Development"
+    }
+   ]
+  },
+  {
+   "id": "PR16",
+   "name": "Periodyzacja",
+   "rule": "Początkujący: PRE + test 20 powtórzeń w 3. tygodniu (procenty u początkujących to zgadywanie). Liniowa: fazy 4-tygodniowe — 3 tygodnie ciężkie + 1 odciążający. Falowa (Poliquin): 3-tygodniowe fazy akumulacji i intensyfikacji bez tygodni odciążenia, maks. 6 ćwiczeń dziennie w 3 parach, trening do 1 godziny. Zaawansowani: falowa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Linear Periodization"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Undulating Periodization"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Program Design Principles"
+    }
+   ]
+  },
+  {
+   "id": "PR17",
+   "name": "Elastyczność vs moc",
+   "rule": "Test 4 skoków (mata Just Jump): czas kontaktu, wskaźnik ELPF i średnia wysokość. 'Wskaźnik elastyczności' autora = skok dosiężny / średnia z 4 skoków (przykład: 21,8 in i 19,5 in). Moc i elastyczność trenuje się osobno: w 2 pierwszych fazach poza sezonem 2 dni dźwignięć olimpijskich + 2 dni treningu elastyczności z natychmiastową informacją z maty.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Testing Elasticity versus Power"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Developing Elasticity"
+    }
+   ]
+  },
+  {
+   "id": "PR18",
+   "name": "Standardy siły (mężczyźni bez dopingu)",
+   "rule": "Silny zawodnik: wyciskanie leżąc 1,25–1,5 × masa ciała (250–300 lb przy 200 lb); zarzut 1,25–1,5 × masa ciała; przysiad przedni 1,5–1,75 × masa ciała (300–350 lb przy 200 lb); przysiad jednonóż 0,5 × masa ciała na 5 powtórzeń (dobrze 80 lb × 5, bardzo dobrze 110 lb × 5); podciąganie 0,5 × masa ciała na 1 powtórzenie (silny mężczyzna: +135 lb na 3 powtórzenia; kobieta: +45 lb na 3). Proporcje: skos 80% płaskiego; wyciskanie hantli nad głowę 40–50% wyciskania leżąc; hantle = 80% ciężaru sztangi / 2 (300 lb → para 95 lb na 6); wiosłowanie hantlą ≈80% wyciskania hantli; wyciskanie ≈ zarzut; podciąganie (masa + obciążenie) ≥ 1RM wyciskania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Strength Comparisons"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ The Strength Chart"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Upper-Body Injuries"
+    }
+   ]
+  },
+  {
+   "id": "PR19",
+   "name": "Ciągnięcie a pchanie — normy",
+   "rule": "200-funtowy zawodnik wyciskający 300 lb powinien zrobić 12–15 podciągnięć; 300-funtowy wyciskający 400 lb — 5–8. Kobiety wyciskające masę ciała: 5–10 podciągnięć. Każdy docelowo 10–15 wiosłowań w zwisie (drążek na wysokości ławki, stopy 18 in w górze, klatka dotyka drążka).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 1 Advances in Functional Training",
+     "pages": "§ Upper-Body Pulling and Pressing"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Upper-Body Injuries"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S1",
+   "trigger": "Ćwiczenie boli (także 'tylko na rozgrzewce', 'tylko na końcu')",
+   "action": "Nie wykonywać tego ćwiczenia; szukać wariantu bez bólu. Ból na początku ćwiczenia nie jest normalny. Zakwasy (DOMS) mają trwać do 2 dni i dotyczyć mięśni, nie stawów ani ścięgien.",
+   "priority": "contraindication",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Painful Exercise"
+    }
+   ]
+  },
+  {
+   "id": "S2",
+   "trigger": "Przewlekły ból ścięgna (tendinoza)",
+   "action": "To nie zapalenie: lód i leki przeciwzapalne niewiele dają, a długotrwałe NLPZ mogą osłabiać ścięgno (opinia dr. Stracka). W rehabilitacji dopuszczalny ból lokalny w ścięgnie, bolesny przy dotyku, bez obrzęku i ograniczenia ruchu, mijający w 2–3 dni; jeśli brak bolesności — zwiększyć powtórzenia lub ciężar.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Tendinitis or Tendinosis"
+    }
+   ]
+  },
+  {
+   "id": "S3",
+   "trigger": "Brak wzorca przysiadu (overhead squat < 2 w FMS, brak równoległej)",
+   "action": "Nie obciążać przysiadu; mobilność stawów skokowych i bioder w rozgrzewce, ewentualnie podniesienie pięt, równolegle trening jednonóż.",
+   "priority": "contraindication",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Adding Strength to Dysfunction"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Squats"
+    }
+   ]
+  },
+  {
+   "id": "S4",
+   "trigger": "Historia bólu krzyża",
+   "action": "Bez przysiadu tylnego i klasycznego martwego ciągu; przysiad przedni, przysiad bułgarski przedni, jednonóż, przysiad z pasem; z dźwignięć tylko rwania (50–60% zarzutu). Na początek program dla bólu pleców (szablon T8).",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injury Prevention Suggestions"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Cleans versus Snatches"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Lower-Body Strength and Balance Progressions"
+    }
+   ]
+  },
+  {
+   "id": "S5",
+   "trigger": "Tyłopochylenie miednicy na dole przysiadu ('podwijanie')",
+   "action": "Nie obciążać, dopóki gibkość bocznych mięśni kulszowo-goleniowych nie pozwoli utrzymać lekkiego przodopochylenia; obciążanie kręgosłupa wchodzącego w zgięcie to 'przepis na katastrofę'.",
+   "priority": "contraindication",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Pelvic Position during Squatting"
+    }
+   ]
+  },
+  {
+   "id": "S6",
+   "trigger": "Ćwiczenia zwiększające zakres rotacji lędźwi",
+   "action": "Usunąć rozciągania typu 'wycieraczki', dynamiczne skręty tułowia na prostych i zgiętych nogach, 'skorpiona'. Rotacja z bioder i odcinka piersiowego.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Awareness in Rotational Training"
+    }
+   ]
+  },
+  {
+   "id": "S7",
+   "trigger": "Ćwiczenia zza karku",
+   "action": "Nie stosować u nikogo (skrajne odwiedzenie i rotacja zewnętrzna barku). U sportowców z ruchami nad głową dodatkowo bez sztangi nad głową, rwań i przysiadu nad głową.",
+   "priority": "contraindication",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Overhead Athletes and Overhead Lifts"
+    }
+   ]
+  },
+  {
+   "id": "S8",
+   "trigger": "Rwanie szerokim chwytem",
+   "action": "U sportowców powodowało ból barków w ciągu 1–2 tygodni; stosować chwyt jak do zarzutu i rwanie hantlą.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injury Prevention Suggestions"
+    }
+   ]
+  },
+  {
+   "id": "S9",
+   "trigger": "Klientka/klient zaczyna biegać długie dystanse dla redukcji wagi",
+   "action": "Autor cytuje, że ok. 6 na 10 osób zaczynających bieganie doznaje urazu; u kobiet większy kąt Q zwiększa ryzyko. Proponuje interwały na rowerze (Airdyne), wioślarzu lub schodach zamiast długiego biegu. 'Trzeba być sprawnym, żeby biegać' (Diane Lee).",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Implementing Interval Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Running and the Female Athlete"
+    }
+   ]
+  },
+  {
+   "id": "S10",
+   "trigger": "Slideboard w sezonie startowym",
+   "action": "Slideboard tylko poza sezonem (ryzyko przeciążeń zginaczy, przywodzicieli i odwodzicieli); odcinki dłuższe niż 30 s tylko dla zaawansowanych. Klienta uprzedzić, że powierzchnia jest śliska.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Off-Season Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Interval Training Modes in Detail"
+    }
+   ]
+  },
+  {
+   "id": "S11",
+   "trigger": "Ciężkie piłki lekarskie, Convertaball",
+   "action": "Nie łapać ciężkich piłek rzucanych przez partnera (palce, barki). Autor wstrzymał ćwiczenie Convertaball, bo piłki odrywały się od liny.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Medicine Ball Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ The Core Exercises"
+    }
+   ]
+  },
+  {
+   "id": "S12",
+   "trigger": "Zarzuty i rwania kettlebell u młodzieży i klientów",
+   "action": "Unikać (obijanie przedramion); swing zamiast nich.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Kettlebells"
+    }
+   ]
+  },
+  {
+   "id": "S13",
+   "trigger": "Pierwsze wykroki chodzone/slideboardowe",
+   "action": "Mogą dać silne zakwasy m. przywodziciela wielkiego, mylone z naderwaniem pachwiny. Najpierw co najmniej 3 tygodnie wersji statycznych; w rozgrzewce w ruchu przez 3 tygodnie tylko wykroki w tył.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Progressions"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Single-Leg Progressions"
+    }
+   ]
+  },
+  {
+   "id": "S14",
+   "trigger": "Rollout kółkiem u nowego klienta",
+   "action": "Zacznij od piłki (2× w tygodniu przez 3 tygodnie), kółko na start grozi naderwaniem mięśni brzucha.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Anterior Core Training"
+    }
+   ]
+  },
+  {
+   "id": "S15",
+   "trigger": "Powtarzane sprinty na 40 jardów przed testem",
+   "action": "Najczęstsza przyczyna naderwań mm. kulszowo-goleniowych u sprinterów przygotowujących się do testów; trenuj 10 jardów.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Training for Speed"
+    }
+   ]
+  },
+  {
+   "id": "S16",
+   "trigger": "Przygotowanie kondycyjne bez przyspieszeń, hamowań i zmian kierunku (rower, bieg po prostej)",
+   "action": "Wiąże się z naderwaniami pachwiny i mm. kulszowo-goleniowych na początku sezonu; dodaj biegi wahadłowe i slideboard. W okresie przedstartowym dodatkowa kondycja raczej na rowerze (przeciążenia), poza sezonem — bieganie.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Specific Conditioning for Athletics"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Preseason Conditioning"
+    }
+   ]
+  },
+  {
+   "id": "S17",
+   "trigger": "Dźwignięcia olimpijskie bez umiejętności nauczania lub nadzoru",
+   "action": "Nie stosować; moc z piłek lekarskich, plyometrii, przysiadów z wyskokiem. Trener stoi za zawodnikiem (przy przysiadzie z boku); start i lądowanie w tej samej pozycji; przy wątpliwości zmniejsz ciężar.",
+   "priority": "contraindication",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Teaching the Olympic Lifts"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 7 Developing Athleticism",
+     "pages": "§ Coaching the Olympic Lifts"
+    }
+   ]
+  },
+  {
+   "id": "S18",
+   "trigger": "Przepuklina sportowa / przewlekły ból pachwiny",
+   "action": "Najpierw terapia manualna (m. grzebieniowy, m. przywodziciel krótki) i rehabilitacja ze stopniowym wzrostem prędkości; chirurgię traktować jako ostateczność, unikać operacji 'żeby zajrzeć'. Ocena kierowana przez lekarza i fizjoterapeutę; trener przygotowania nie diagnozuje.",
+   "priority": "warning",
+   "status": "zrodlo+poza_zrodlem",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Understanding Sports Hernia"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Things to Avoid"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Sports Hernia Rehab"
+    }
+   ]
+  },
+  {
+   "id": "S19",
+   "trigger": "Osoba nieprzygotowana zaczyna interwały",
+   "action": "3–4 tygodnie pracy ciągłej i treningu siłowego przed interwałami; nieprzygotowani mogą potrzebować przerw do 8 razy dłuższych niż praca. Interwały na bieżni nie dla przeciętnego klienta (wsiadanie i zsiadanie z ruchomej taśmy).",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Beginning the Program"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Interval Training Modes in Detail"
+    }
+   ]
+  },
+  {
+   "id": "S20",
+   "trigger": "Rolowanie",
+   "action": "Nie może powodować siniaków; z rozwagą u osób słabszych, z nadwagą i z małą masą mięśniową.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 2 Mobility and Flexibility",
+     "pages": "§ Rolling versus Massage"
+    }
+   ]
+  },
+  {
+   "id": "S21",
+   "trigger": "Wiek, staż, wcześniejsze urazy",
+   "action": "Stosunek ryzyka do korzyści zmienia się z wiekiem: starsi zawodnicy często bez przysiadów klasycznych i dźwignięć; przysiady z wyskokiem, swingi, dużo jednonóż.",
+   "priority": "warning",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injury Reduction"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Program Design Basics"
+    }
+   ]
+  }
+ ],
+ "planTemplates": [
+  {
+   "id": "T1",
+   "name": "MBSC 4 dni (wersja po zmianach, kumulacja pracy nóg)",
+   "goal": [
+    "siła",
+    "moc",
+    "sport"
+   ],
+   "level": "zaawansowany sportowiec",
+   "status": "zrodlo",
+   "days": {
+    "count": 4,
+    "layout": "pon–czw kolejno (lato)",
+    "spacing": {
+     "value": "dni 1 i 3 = cała dolna część ciała; dni 2 i 4 = wyciskania i tułów",
+     "status": "zrodlo"
+    }
+   },
+   "exercises": {
+    "A_pon": [
+     "przysiad z wyskokiem",
+     "ciągnięcie pionowe",
+     "kolano-dominujące obunóż",
+     "ciągnięcie poziome",
+     "biodro-dominujące na prostej nodze"
+    ],
+    "B_wt": [
+     "wyciskanie poziome",
+     "tułów — stabilność",
+     "wyciskanie pionowe",
+     "stabilność rotacyjna",
+     "triceps",
+     "prehab barku"
+    ],
+    "C_sr": [
+     "zarzut z zwisu (ciężki)",
+     "ciągnięcie pionowe",
+     "kolano-dominujące jednonóż",
+     "ciągnięcie poziome",
+     "biodro-dominujące na zgiętej nodze"
+    ],
+    "D_czw": [
+     "wyciskanie poziome",
+     "tułów — stabilność",
+     "wyciskanie pionowe",
+     "stabilność rotacyjna",
+     "triceps",
+     "prehab barku"
+    ]
+   },
+   "sets": {
+    "value": "zwykle ≤ 3 serie ćwiczenia; ok. 20 serii na godzinę",
+    "status": "zrodlo"
+   },
+   "reps": {
+    "value": "zwykle ≤ 8 dla siły",
+    "status": "zrodlo"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": "ćw. eksplozywne 3–4 min (triset z tułowiem i mobilnością); pary/trisety 60–90 s",
+    "status": "zrodlo"
+   },
+   "tempo": {
+    "value": "normalnie 1-0-1; fazy ekscentryczne wg PR6",
+    "status": "zrodlo"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "PRE dla początkujących, falowa dla zaawansowanych",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "advances-functional-training-boyle",
+      "chapter": "Rozdz. 11 Sample Programs from MBSC",
+      "pages": "§ Program Design Principles"
+     }
+    ]
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Przed częścią siłową: rolowanie, rozciąganie, aktywacja, rozgrzewka, plyometria w parze z piłką lekarską, krótkie sprinty (5–6 × 5–20 jardów). Zmiana wprowadzona po radach Jasona Ferrugii, bo pracy CNS dla nóg (dźwignięcia, sprinty, plyo, sanki, interwały) było za dużo. Tylko w poniedziałek obciążenie osiowe kręgosłupa.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Training and the Central Nervous System"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Developing Power and Speed"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Strength Programming"
+    }
+   ]
+  },
+  {
+   "id": "T2",
+   "name": "MBSC 4 dni (wersja klasyczna, każdy wzorzec 2×/tydz.)",
+   "goal": [
+    "siła",
+    "moc"
+   ],
+   "level": "sportowiec",
+   "status": "zrodlo",
+   "days": {
+    "count": 4,
+    "layout": "pon/śr i wt/czw",
+    "spacing": {
+     "value": "dni kolanowe i biodrowe na przemian",
+     "status": "zrodlo"
+    }
+   },
+   "exercises": {
+    "A_pon_sr": [
+     "rwanie",
+     "ciągnięcie pionowe",
+     "kolano-dominujące obunóż",
+     "ciągnięcie poziome",
+     "kolano-dominujące jednonóż"
+    ],
+    "B_wt_czw": [
+     "zarzut",
+     "wyciskanie poziome",
+     "biodro-dominujące na prostej nodze",
+     "wyciskanie pionowe",
+     "biodro-dominujące na zgiętej nodze"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Tułów codziennie, piłka lekarska 2× w tygodniu; dźwignięć olimpijskich nie łączy się w pary. Pełne arkusze (worksheets) dla 4/3/2 dni utracone w .txt.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Training and the Central Nervous System"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Four-Day Workout Programs"
+    }
+   ]
+  },
+  {
+   "id": "T3",
+   "name": "3 dni w tygodniu",
+   "goal": [
+    "siła ogólna"
+   ],
+   "level": "każdy",
+   "status": "zrodlo",
+   "days": {
+    "count": 3,
+    "layout": "pon–śr–pt: każdy trening całe ciało; albo pon–wt–czw: dni 1–2 jak w planie 4-dniowym + czwartek całe ciało",
+    "spacing": {
+     "value": "—",
+     "status": "zrodlo"
+    }
+   },
+   "exercises": null,
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Kompromis: wyciskanie pionowe i biodro-dominujące często tylko raz w tygodniu, kolano-dominujące obunóż i wyciskanie poziome dwa razy. Ok. 25% mniej 'pól' niż w planie 4-dniowym. Kondycja: na przemian dni liniowe i boczne (3 i 3 na dwa tygodnie). Arkusz utracony.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Three-Day Workout Programs"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Setting Up Workouts"
+    }
+   ]
+  },
+  {
+   "id": "T4",
+   "name": "2 dni w tygodniu",
+   "goal": [
+    "utrzymanie w sezonie",
+    "sportowcy wytrzymałościowi"
+   ],
+   "level": "każdy",
+   "status": "zrodlo",
+   "days": {
+    "count": 2,
+    "layout": "każdy dzień: kolano-dominujące, biodro-dominujące, pchanie, ciągnięcie",
+    "spacing": {
+     "value": null,
+     "status": "brak_w_zrodle"
+    }
+   },
+   "exercises": {
+    "przykłady": [
+     "kompleks: zarzut + przysiad przedni + push press",
+     "albo rwanie + przysiad tylny + push press",
+     "wyciskanie na wysokim skosie",
+     "hantle: uginanie + wyciskanie",
+     "pompki na poręczach",
+     "podciąganie V-uchwytem / do mostka"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Tylko w sezonie lub dla sportowców wytrzymałościowych bez czasu i regeneracji na 3–4 treningi.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Two-Day Workout Programs"
+    }
+   ]
+  },
+  {
+   "id": "T5",
+   "name": "Program bez budżetu (drużyna przy lodowisku)",
+   "goal": [
+    "siła ogólna",
+    "nauka techniki"
+   ],
+   "level": "początkujący (20 osób)",
+   "status": "zrodlo",
+   "days": {
+    "count": 3,
+    "layout": "3× w tygodniu bezpośrednio po treningu na lodzie",
+    "spacing": {
+     "value": null,
+     "status": "brak_w_zrodle"
+    }
+   },
+   "exercises": {
+    "A": [
+     "przysiad z wyskokiem 3×5",
+     "pompki 2×max (do 10) w parze z przysiadem bułgarskim z masą ciała 2×10",
+     "martwy ciąg jednonóż z sięganiem w parze z wiosłowaniem hantlą",
+     "finisz: półprzysiad + uginanie młotkowe + wyciskanie nad głowę"
+    ]
+   },
+   "sets": {
+    "value": "2–3",
+    "status": "zrodlo"
+   },
+   "reps": {
+    "value": "5–10",
+    "status": "zrodlo"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "przysiad bułgarski: hantle od tyg. 2, przysiad z tylną stopą na podwyższeniu od tyg. 4; pompki ze stopami na trybunach; martwy ciąg jednonóż: z sięganiem → jedna hantla → dwie; finisz docelowo przysiad + cheat curl + push press",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "advances-functional-training-boyle",
+      "chapter": "Rozdz. 10 Program Design",
+      "pages": "§ Low-Budget Programming"
+     }
+    ]
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Pierwszy trening ok. 12 min. Cele: regularność (3 razy w tygodniu) i technika.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Low-Budget Programming"
+    }
+   ]
+  },
+  {
+   "id": "T6",
+   "name": "Obwód 10 powtórzeń (Survivor Circuit)",
+   "goal": [
+    "siła",
+    "integracja drużyny"
+   ],
+   "level": "grupa z dobrą techniką",
+   "status": "zrodlo",
+   "days": {
+    "count": null,
+    "layout": "obwód w parach, zegar 50 s pracy / 10 s zmiany",
+    "spacing": {
+     "value": null,
+     "status": "brak_w_zrodle"
+    }
+   },
+   "exercises": {
+    "wersja_1": [
+     "martwy ciąg trap bar ×10",
+     "wiosłowanie TRX ×10",
+     "wyciskanie hantli naprzemienne ×10",
+     "rollout kółkiem ×20",
+     "przysiad przedni ×10",
+     "podciąganie ×10",
+     "wyciskanie wąsko ×10",
+     "martwy ciąg jednonóż ×10",
+     "wyciskanie leżąc ×10",
+     "deska 30 s"
+    ],
+    "wersja_2": [
+     "wyciskanie hantli",
+     "wiosłowanie w desce",
+     "martwy ciąg trap bar",
+     "wiosłowanie hantlą",
+     "wyciskanie hantli nad głowę",
+     "martwy ciąg jednonóż",
+     "wyciskanie hantli na skosie",
+     "rollout sztangą",
+     "przysiad z tylną stopą na podwyższeniu",
+     "podciąganie"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": "10",
+    "status": "zrodlo"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": "ok. 3–4 min dla danej grupy mięśni, praca ciągła",
+    "status": "zrodlo"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Ciężar ok. 60% 1RM (wersja 1). Kolejność 'peripheral heart action' (na przemian dół–góra–tułów). Autor stosuje to tylko z hokejem BU, nie z klientami NFL/NHL ani klientami indywidualnymi — inni bez takiej grupy powinni trzymać się normalnego programowania.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Circuit Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Ten-Rep Circuit"
+    }
+   ]
+  },
+  {
+   "id": "T7",
+   "name": "Obwód z talerzem 35 lb",
+   "goal": [
+    "wytrzymałość mięśniowa",
+    "kondycja"
+   ],
+   "level": "dorośli sportowcy",
+   "status": "zrodlo",
+   "days": {
+    "count": null,
+    "layout": "30 s pracy / 30 s przerwy z partnerem (przekazanie talerza)",
+    "spacing": {
+     "value": null,
+     "status": "brak_w_zrodle"
+    }
+   },
+   "exercises": {
+    "A": [
+     "przysiad z talerzem nisko",
+     "pompka z obciążeniem",
+     "wiosłowanie jednorącz",
+     "brzuszek z talerzem",
+     "taczka",
+     "wykrok chodzony z talerzem nad głową",
+     "pompka w rozkroku",
+     "wiosłowanie jednorącz",
+     "deski P-F-L po 10 s",
+     "martwy ciąg jednonóż",
+     "wyciskanie Neidera",
+     "przysiad boczny",
+     "rwanie",
+     "'kierownica' (car)",
+     "unoszenie talerza po przekątnej"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": "maks. w 30 s z dobrą techniką",
+    "status": "zrodlo"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": "30 s",
+    "status": "zrodlo"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Talerz 35 lb dla wysportowanych mężczyzn, mniej dla młodszych i kobiet.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Plate Circuit"
+    }
+   ]
+  },
+  {
+   "id": "T8",
+   "name": "Program dla klientów z bólem pleców",
+   "goal": [
+    "ból krzyża",
+    "stabilizacja tułowia"
+   ],
+   "level": "klient z bólem pleców",
+   "status": "zrodlo",
+   "days": {
+    "count": null,
+    "layout": "progresje w klęku podpartym, w leżeniu tyłem i deski boczne",
+    "spacing": {
+     "value": null,
+     "status": "brak_w_zrodle"
+    }
+   },
+   "exercises": {
+    "quadruped": [
+     "wyprost biodra przez ławkę 5 × 5 s",
+     "kij wzdłuż kręgosłupa 5-8-10 × 5 s",
+     "+2,5 lb na kostki",
+     "kij poprzecznie 5-8-10 × 5 s",
+     "+2,5 lb",
+     "naprzemiennie ręka/noga 5-8-10 × 5 s"
+    ],
+    "supine": [
+     "Cook hip lift 3 × 10-12-14 na nogę",
+     "Cook hip lift bez rąk",
+     "mostek 3 × 30 s",
+     "mostek jednonóż 3 × 15 s",
+     "mostek z marszem 5-8-10 × 5 s"
+    ],
+    "lateral": [
+     "deska boczna krótka dźwignia",
+     "długa dźwignia",
+     "ze stopami na podwyższeniu"
+    ]
+   },
+   "sets": {
+    "value": "jak wyżej",
+    "status": "zrodlo"
+   },
+   "reps": {
+    "value": "jak wyżej",
+    "status": "zrodlo"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": "izometria 5 s / 15 s / 30 s",
+    "status": "zrodlo"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "każdy poziom po opanowaniu; po nauczeniu mostków i quadruped przenieść funkcję na ćwiczenia jednonóż",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "advances-functional-training-boyle",
+      "chapter": "Rozdz. 4 The Core",
+      "pages": "§ The Core Exercises"
+     }
+    ]
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Ćwiczenia stabilizacyjne u zdrowych klientów tylko jako aktywacja w rozgrzewce.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Program for Clients with Back Pain"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Quadruped Progression"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Supine Progression"
+    }
+   ]
+  },
+  {
+   "id": "T9",
+   "name": "Ból rzepkowo-udowy (przednia część kolana)",
+   "goal": [
+    "ból kolana"
+   ],
+   "level": "klient z bólem rzepkowo-udowym",
+   "status": "zrodlo",
+   "days": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "exercises": {
+    "krok_1": [
+     "praca tkanek miękkich m. pośladkowego średniego (piłka tenisowa, wałek, terapeuta)"
+    ],
+    "krok_2": [
+     "reaktywny trening nerwowo-mięśniowy odwodzicieli (guma ciągnąca kolano do środka) + siła prostowników kolana i biodra, głównie jednonóż bez podparcia, progresywny zakres ruchu"
+    ],
+    "krok_3": [
+     "wyprost biodra w 3 wzorcach: martwy ciąg jednonóż (z sięganiem, zwykły, z wyciągiem; kolano 20°), mostki jednonóż (do hip lift z ławki/skrzyni 12 in), uginanie nóg na slideboardzie"
+    ],
+    "krok_4": [
+     "koncentryczne odwodzenie biodra (unoszenie nogi w leżeniu bokiem, odwodzenie stojąc)"
+    ],
+    "dodatkowo": [
+     "quadruped i mostki (pośladkowy wielki i średni)",
+     "chód tyłem na bieżni pod górę → z sankami",
+     "plyometria jednonóż: skoki do przodu, hopy do przodu, do środka i na boki, nauka lądowania"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": "przysiad jednonóż ekscentryczny 5–6 s w krótkim bezbolesnym zakresie, powrót na dwóch nogach",
+    "status": "zrodlo"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "zakres przed obciążeniem; pełny bezbolesny zakres z masą ciała przed obciążeniem (wyjątek: hantle 5 lb)",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "advances-functional-training-boyle",
+      "chapter": "Rozdz. 3 Injuries",
+      "pages": "§ Single-Leg Training and Knee Pain"
+     }
+    ]
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Autor: u wszystkich jego zawodników z bólem przedniej części kolana m. pośladkowy średni był tkliwy po tej samej stronie (obserwacja, nie badanie). Cytuje Ireland i in. 2003 (osłabienie odwodzenia i rotacji zewnętrznej biodra u kobiet z bólem rzepkowo-udowym).",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Anterior Knee Pain"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Glute Medius and Adductors in Knee Pain"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Single-Leg Training and Knee Pain"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Single-Leg Stability Training"
+    }
+   ]
+  },
+  {
+   "id": "T10",
+   "name": "Rehabilitacja po operacji przepukliny sportowej",
+   "goal": [
+    "powrót do sportu"
+   ],
+   "level": "po zabiegu, pod nadzorem lekarza/fizjoterapeuty",
+   "status": "zrodlo",
+   "days": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "exercises": {
+    "faza_1_tyg_2_4": [
+     "Cook hip lift (izometria)",
+     "quadruped wyprost biodra (bird dog)",
+     "deska boczna krótka",
+     "trzymanie m. lędźwiowego w leżeniu",
+     "ściskanie Airex/ringu (jeśli bez bólu)",
+     "rollout na piłce (jedyna praca brzucha, jeśli bez bólu)",
+     "przysiad z masą ciała → kamizelka → sztanga",
+     "martwy ciąg jednonóż z sięganiem",
+     "mini-guma w rozgrzewce"
+    ],
+    "faza_2_tyg_5_7": [
+     "przysiad bułgarski krótki 3×10 (tydzień 1)",
+     "przysiad przedni 3×10 (po bułgarskim — wyjątek rehabilitacyjny)",
+     "martwy ciąg jednonóż z hantlą/kettlebell",
+     "uginanie nóg na slideboardzie",
+     "przysiad boczny 2×10 (tydzień 2)",
+     "przysiad rotacyjny 2×10 (tydzień 3)",
+     "drabinka niskiej intensywności",
+     "skoki na skrzynię 12–18 in"
+    ],
+    "faza_3_tyg_8_10": [
+     "przysiad jednonóż 3×10 od hantli 5 lb (dzień 1)",
+     "wykrok do przodu zamiast przysiadu jednonóż (dzień 2)",
+     "przysiad przedni 3×10",
+     "martwy ciąg jednonóż +5–10 lb/tydz.",
+     "uginanie na slideboardzie z obciążeniem",
+     "plyo fazy 1 (skrzynia, hopy boczne, bounds)",
+     "slideboard z gumą boczną",
+     "pchanie sanek, crossover",
+     "lean-fall-run: 3 szybkie kroki i wybieg, 1 seria × 5, powrót marszem"
+    ],
+    "faza_4_tyg_11_plus": [
+     "lunge matrix zamiast przysiadów w miejscu",
+     "trening z drużyną pod obserwacją",
+     "plyo i szybkość dalej (2 fazy w tyle)"
+    ]
+   },
+   "sets": {
+    "value": "izometria 3 serie po 10 s, +10 s/tydzień; ściskanie i rollout 2×10, +2 powt./tydzień; siła 3×10, +2 powt./tydzień lub dzień",
+    "status": "zrodlo"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "stopniowy wzrost prędkości wydłużania tkanek: od statycznych podpartych przez niepodparte do dynamicznych; płaszczyzna strzałkowa → czołowa → poprzeczna",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "advances-functional-training-boyle",
+      "chapter": "Rozdz. 3 Injuries",
+      "pages": "§ Rehabilitation Concepts"
+     },
+     {
+      "ref": "advances-functional-training-boyle",
+      "chapter": "Rozdz. 3 Injuries",
+      "pages": "§ Sports Hernia Rehab"
+     }
+    ]
+   },
+   "planLength": {
+    "value": "ok. 11 tygodni do treningu z drużyną",
+    "status": "zrodlo"
+   },
+   "note": "Tygodnie 0–2/3: gojenie i ból — decyduje lekarz/fizjoterapeuta. W fazie 1 unikać podciągania i ćwiczeń jednonóż kolanowych. Każde ćwiczenie tylko bez bólu. Plan z dwóch przypadków hokeistów (2006), nie z badań.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Sports Hernia Rehab"
+    }
+   ]
+  },
+  {
+   "id": "T11",
+   "name": "Redukcja ryzyka urazu ACL",
+   "goal": [
+    "prewencja ACL"
+   ],
+   "level": "każdy, szczególnie kobiety",
+   "status": "zrodlo",
+   "days": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "exercises": {
+    "skladniki_obowiazkowe": [
+     "aktywna rozgrzewka (marsz z wysokim kolanem, kołyska nogi, pięta do pośladka w marszu, wykrok w tył)",
+     "stabilność i siła ekscentryczna — nauka lądowania, szczególnie na jednej nodze (hopy)",
+     "siła z akcentem na jedną nogę, bez maszyn, kolanowe i biodrowe",
+     "nauka zmiany kierunku i hamowania",
+     "kondycja ze zmianami kierunku (biegi wahadłowe; slideboard w dni bez biegów)"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "plyometria wg PR8; cel: przysiad jednonóż bez podparcia i martwy ciąg jednonóż z obciążeniem",
+    "status": "zrodlo",
+    "sources": [
+     {
+      "ref": "advances-functional-training-boyle",
+      "chapter": "Rozdz. 3 Injuries",
+      "pages": "§ ACL Injury Prevention"
+     }
+    ]
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "To 'przepis', nie menu: żaden składnik nie jest opcjonalny. Autor podaje szacunek >100 000 zerwań ACL rocznie, ok. 1/3 u licealistek (bez źródła).",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ ACL Injury Prevention"
+    }
+   ]
+  },
+  {
+   "id": "T12",
+   "name": "Zmiany w planie sportowca wytrzymałościowego",
+   "goal": [
+    "mniej kontuzji",
+    "wydolność"
+   ],
+   "level": "biegacze, triathloniści, wioślarze",
+   "status": "zrodlo",
+   "days": {
+    "count": 2,
+    "layout": "trening siłowy 2× w tygodniu",
+    "spacing": {
+     "value": null,
+     "status": "brak_w_zrodle"
+    }
+   },
+   "exercises": {
+    "kolejne_zmiany": [
+     "zastąp jedną sesję wytrzymałościową interwałami",
+     "rolowanie",
+     "rozciąganie",
+     "krótki trening siłowy: mobilność stawów skokowych, bioder, odc. piersiowego w rozgrzewce; stabilność kolan i lędźwi; głównie jednonóż; dolne partie ważniejsze niż górne"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "zmiany wprowadzać powoli",
+    "status": "zrodlo"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Ból 'tak/nie' jak w P19; urazy nieurazowe są skutkiem treningu.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ The Endurance Athlete’s Program"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Training Endurance Athletes"
+    }
+   ]
+  },
+  {
+   "id": "T13",
+   "name": "MBSC lato 2007 / 2008 — przebieg sesji (faza 1)",
+   "goal": [
+    "sportowcy poza sezonem"
+   ],
+   "level": "sportowiec",
+   "status": "zrodlo",
+   "days": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "exercises": {
+    "2007": [
+     "rolowanie 5 min (pośladki i rotatory, plecy, tylna część barku, przywodziciele)",
+     "rozciąganie 5–10 min",
+     "mobilność (min 15–20): odc. piersiowy w siadzie, staw skokowy w półklęku, wymachy, X-band, przysiady w wykroku/boczny/rotacyjny ×5",
+     "aktywna rozgrzewka (min 20–25)",
+     "drabinka (min 25–30)",
+     "plyo: dzień 2 box hop jednonóż 3×3; dzień 4 bound boczny + zatrzymanie 3×5; piłka nad głowę 2×10 i skręt w półklęku 2×10",
+     "ćwiczenia ruchowe (min 35–40)",
+     "kondycja: slideboard 30 s × 6/7/8 w tyg. 1/2/3"
+    ],
+    "2008": [
+     "rolowanie 5 min",
+     "rozciąganie na wałku 5–10 min",
+     "aktywacja 10–15 min: m. lędźwiowy 3–5×10 s, rotacja zewnętrzna 3–5×10 s, izometria przywodzicieli/odwodzicieli 3–5×10 s, pompki na łokciach 3×8/10/12",
+     "aktywna rozgrzewka 15–25 min",
+     "moc: box jump 3×5 (dz. 1), jednonóż 3×5 (dz. 3), piłka z klęku 2×10",
+     "szybkość: lean-fall-run ×3, marsz z sankami ×5/6/7, crossover z sankami ×4/5/6",
+     "kondycja dni 1 i 3: tempo runs ×10/12/14"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "tygodniowe przyrosty liczby powtórzeń/odcinków jak w nawiasach",
+    "status": "zrodlo"
+   },
+   "planLength": {
+    "value": "faza 3 tygodnie",
+    "status": "zrodlo"
+   },
+   "note": "Część siłowa tych faz nie jest rozpisana w .txt.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ MBSC Summer 2007"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ MBSC Summer 2008"
+    }
+   ]
+  },
+  {
+   "id": "T14",
+   "name": "Interwały wg tętna — przykład",
+   "goal": [
+    "kondycja"
+   ],
+   "level": "dobrze przygotowany",
+   "status": "zrodlo",
+   "days": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "exercises": {
+    "A": [
+     "60 s pracy / 45 s przerwy",
+     "60 / 60",
+     "60 / 75",
+     "60 / 90"
+    ]
+   },
+   "sets": {
+    "value": "4 odcinki",
+    "status": "zrodlo"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": "do powrotu tętna",
+    "status": "zrodlo"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Przy sztywnym 2:1 przerwy w pierwszych trzech odcinkach byłyby za długie; u osób nieprzygotowanych odwrotnie.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Karvonen Formula"
+    }
+   ]
+  },
+  {
+   "id": "T15",
+   "name": "Test 225 lb na powtórzenia (Combine)",
+   "goal": [
+    "wytrzymałość siłowa w wyciskaniu"
+   ],
+   "level": "zawodnik 400 lb / 20 powt. z 225",
+   "status": "zrodlo",
+   "days": {
+    "count": 2,
+    "layout": "dzień 1 siła + seria na max powtórzeń; dzień 2 wytrzymałość",
+    "spacing": {
+     "value": null,
+     "status": "brak_w_zrodle"
+    }
+   },
+   "exercises": {
+    "dzien_1": [
+     "135×5",
+     "225×3",
+     "275×1",
+     "315×1",
+     "340×5",
+     "300×10",
+     "225×max"
+    ],
+    "dzien_2": [
+     "skos 135×5, 185×3, 225×5",
+     "drop set: 225×max → 185×max → 135×max"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": "na teście jak najszybciej, 'miękki' wyprost łokci, szybkie opuszczenie bez odbicia",
+    "status": "zrodlo"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": "6–8 tygodni przed testem 225×max na końcu 1. dnia, cel +1 powtórzenie tygodniowo",
+    "status": "zrodlo"
+   },
+   "planLength": {
+    "value": "6–8 tygodni",
+    "status": "zrodlo"
+   },
+   "note": "Rozgrzewka przed testem: 135×5, 185×2. Technika testowa dotyczy tylko testu.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Training the Combine Bench"
+    }
+   ]
+  },
+  {
+   "id": "T16",
+   "name": "Trzeci dzień — warianty",
+   "goal": [
+    "siła",
+    "kondycja"
+   ],
+   "level": "sportowiec",
+   "status": "zrodlo",
+   "days": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "exercises": {
+    "wariant_1": [
+     "dźwignięcie olimpijskie + kompleksy hantli bez odkładania (ok. 1 min, wiosłowanie jako 2. ćwiczenie)"
+    ],
+    "wariant_2": [
+     "zarzut z zwisu + obwód z masą ciała (wg Ballantyne'a)"
+    ],
+    "wariant_3": [
+     "chop w półklęku",
+     "lift w półklęku",
+     "sięganie do przodu z wyciągiem",
+     "przysiad Keiser",
+     "landmine",
+     "ściąganie Keiser ze skrzyżowaniem",
+     "pchanie-ciągnięcie w klęku",
+     "przytrzymanie przysiadu na platformie wibracyjnej",
+     "pompka na platformie",
+     "przysiad bułgarski na platformie"
+    ]
+   },
+   "sets": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "reps": {
+    "value": "wariant 3: 10 powtórzeń, zegar 50/10",
+    "status": "zrodlo"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Hantle do kompleksów: 30% 1RM zarzutu z zwisu / 2 (zarzut 300 lb → hantle 45 lb). Treść ćwiczeń wariantów 1 i 2 utracona w .txt.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Day Three Workout Variations"
+    }
+   ]
+  },
+  {
+   "id": "T17",
+   "name": "Obwód rozciągania i mobilności (hokej BU)",
+   "goal": [
+    "przygotowanie do treningu"
+   ],
+   "level": "sportowiec",
+   "status": "zrodlo",
+   "days": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "exercises": {
+    "rozciaganie_zmiana_co_minute": [
+     "mm. kulszowo-goleniowe P/L",
+     "zginacze biodra P/L",
+     "rotatory biodra na stole P/L",
+     "pachwina na stole P/L",
+     "zginacze biodra na skrzyni P/L",
+     "m. najszerszy grzbietu (zmiana po 30 s)",
+     "m. piersiowy",
+     "rotatory biodra przy ścianie P/L",
+     "m. prosty uda przy ścianie P/L",
+     "odc. piersiowy z piłkami tenisowymi"
+    ],
+    "mobilnosc": [
+     "przysiad boczny",
+     "przysiad w wykroku",
+     "przysiad rotacyjny",
+     "martwy ciąg jednonóż",
+     "zgięcie biodra na Valslide",
+     "rotacja wewnętrzna z piłką",
+     "staw skokowy w półklęku",
+     "odc. piersiowy w siadzie",
+     "wall slides",
+     "pompka"
+    ]
+   },
+   "sets": {
+    "value": "1 obwód przed każdym treningiem",
+    "status": "zrodlo"
+   },
+   "reps": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rirRpe": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "rest": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "tempo": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "deload": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "progression": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "planLength": {
+    "value": null,
+    "status": "brak_w_zrodle"
+   },
+   "note": "Po rolowaniu; nagrania 50/10.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Static Stretching and Mobility Circuits"
+    }
+   ]
+  }
+ ],
+ "sourceReferences": [
+  {
+   "id": "advances-functional-training-boyle",
+   "type": "book",
+   "author": "Michael Boyle",
+   "title": "Advances in Functional Training: Training Techniques for Coaches, Personal Trainers and Athletes",
+   "contributors": "wstęp: Mark Verstegen; przedmowa: Alwyn Cosgrove",
+   "publisher": "On Target Publications, Aptos/Santa Cruz (Kalifornia)",
+   "year": 2010,
+   "isbn": "978-1-931046-01-5",
+   "language": "angielski",
+   "audience": "trenerzy przygotowania motorycznego, trenerzy personalni, sportowcy",
+   "pages": null,
+   "pagesNote": "Plik .txt bez numeracji stron (konwersja e-booka). Odwołania: rozdział + nagłówek sekcji.",
+   "scope": "trening funkcjonalny, mobilność i stabilność, urazy i rehabilitacja ruchowa, core, biodra, kondycja interwałowa, moc i szybkość, sprzęt, ćwiczenia jednonóż, programowanie, przykładowe programy MBSC",
+   "fileUsed": "uploads/hearth/015e702b-3470-40d1-836b-2523976a85c9 (.txt, 11 064 linie)",
+   "personalDataOmitted": "brak danych osobowych klientów; nazwiska sportowców z książki pominięte"
+  },
+  {
+   "id": "chapter-map",
+   "type": "chapters",
+   "items": [
+    {
+     "chapter": 1,
+     "title": "Advances in Functional Training"
+    },
+    {
+     "chapter": 2,
+     "title": "Mobility and Flexibility"
+    },
+    {
+     "chapter": 3,
+     "title": "Injuries"
+    },
+    {
+     "chapter": 4,
+     "title": "The Core"
+    },
+    {
+     "chapter": 5,
+     "title": "The Hips"
+    },
+    {
+     "chapter": 6,
+     "title": "Cardiovascular Training"
+    },
+    {
+     "chapter": 7,
+     "title": "Developing Athleticism"
+    },
+    {
+     "chapter": 8,
+     "title": "Equipment Choices"
+    },
+    {
+     "chapter": 9,
+     "title": "Exercise Choices: The Basics and Single-Leg Training"
+    },
+    {
+     "chapter": 10,
+     "title": "Program Design"
+    },
+    {
+     "chapter": 11,
+     "title": "Sample Programs from MBSC"
+    },
+    {
+     "chapter": 12,
+     "title": "In Closing"
+    }
+   ]
+  },
+  {
+   "id": "lost-figures-tables",
+   "type": "missing_data",
+   "items": [
+    {
+     "pages": "Rozdz. 6 § Work Capacity Model",
+     "element": "schemat odwróconej piramidy pojemności pracy",
+     "kept": "tylko opis słowny"
+    },
+    {
+     "pages": "Rozdz. 6 § Physiological versus Performance Testing",
+     "element": "tabela case study VO2 (zawodnik 1 vs 2)",
+     "kept": "w tekście: efektywność 93% vs 77%, spadek tętna 50 vs 25/min w 1. minucie; wartości VO2 peak — brak"
+    },
+    {
+     "pages": "Rozdz. 6 § Slideboard Training",
+     "element": "2-dniowy program slideboard",
+     "kept": "nie"
+    },
+    {
+     "pages": "Rozdz. 7 § The Hang Clean and Close-Grip Snatch",
+     "element": "tabele: zarzut z zwisu do masy ciała, rwanie z zwisu do masy ciała (mężczyźni), stosunek siły do mocy (zarzut/przysiad przedni)",
+     "kept": "tylko tytuły tabel"
+    },
+    {
+     "pages": "Rozdz. 7 § Training for Speed",
+     "element": "tabela NFL Combine 2003: międzyczasy dwóch zawodników",
+     "kept": "w tekście: 188 lb 4,59 s vs 236 lb 4,70 s, różnica 0,11 s w całości na pierwszych 10 jardach"
+    },
+    {
+     "pages": "Rozdz. 7 § Accuracy in Sprint Times",
+     "element": "statystyki Combine z kilku lat",
+     "kept": "częściowo w tekście"
+    },
+    {
+     "pages": "Rozdz. 9 § Pelvic Stabilizers",
+     "element": "rycina: mięśnie w treningu obunóż vs jednonóż",
+     "kept": "tylko opis"
+    },
+    {
+     "pages": "Rozdz. 10 § Twenty-Rep Tests",
+     "element": "tabela korekty ciężaru po teście 20 powtórzeń",
+     "kept": "jeden przykład 200×14 → 225×10"
+    },
+    {
+     "pages": "Rozdz. 10 § Linear Periodization",
+     "element": "diagram periodyzacji liniowej",
+     "kept": "opis: 3 tygodnie ciężkie + 1 odciążenie"
+    },
+    {
+     "pages": "Rozdz. 10 § Four-Day / Three-Day / Two-Day Workout Programs",
+     "element": "tabele-szablony (worksheets) 4/3/2 dni",
+     "kept": "tylko opis struktury"
+    },
+    {
+     "pages": "Rozdz. 10 § Day Three Workout Variations",
+     "element": "treść wariantów 1 i 2",
+     "kept": "nie"
+    },
+    {
+     "pages": "cała książka",
+     "element": "zdjęcia ćwiczeń",
+     "kept": "nie"
+    }
+   ]
+  }
+ ],
+ "glossary": [
+  {
+   "en": "gluteus maximus / glute max",
+   "pl": "mięsień pośladkowy wielki",
+   "status": "zrodlo"
+  },
+  {
+   "en": "gluteus medius / glute med",
+   "pl": "mięsień pośladkowy średni",
+   "status": "zrodlo"
+  },
+  {
+   "en": "psoas",
+   "pl": "mięsień lędźwiowy (większy)",
+   "status": "zrodlo",
+   "note": "w książce 'psoas' bez rozróżnienia większy/mniejszy; chodzi o m. lędźwiowy większy (wniosek)"
+  },
+  {
+   "en": "iliacus",
+   "pl": "mięsień biodrowy",
+   "status": "zrodlo"
+  },
+  {
+   "en": "tensor fascia latae (TFL)",
+   "pl": "mięsień napinacz powięzi szerokiej",
+   "status": "zrodlo"
+  },
+  {
+   "en": "rectus femoris",
+   "pl": "mięsień prosty uda",
+   "status": "zrodlo"
+  },
+  {
+   "en": "sartorius",
+   "pl": "mięsień krawiecki",
+   "status": "zrodlo"
+  },
+  {
+   "en": "adductor magnus / longus / brevis",
+   "pl": "mięsień przywodziciel wielki / długi / krótki",
+   "status": "zrodlo"
+  },
+  {
+   "en": "gracilis",
+   "pl": "mięsień smukły",
+   "status": "zrodlo"
+  },
+  {
+   "en": "pectineus",
+   "pl": "mięsień grzebieniowy",
+   "status": "zrodlo"
+  },
+  {
+   "en": "hamstrings / biceps femoris",
+   "pl": "mięśnie kulszowo-goleniowe / mięsień dwugłowy uda",
+   "status": "zrodlo"
+  },
+  {
+   "en": "quadratus lumborum",
+   "pl": "mięsień czworoboczny lędźwi",
+   "status": "zrodlo"
+  },
+  {
+   "en": "transverse abdominis",
+   "pl": "mięsień poprzeczny brzucha",
+   "status": "zrodlo"
+  },
+  {
+   "en": "internal / external oblique",
+   "pl": "mięsień skośny wewnętrzny / zewnętrzny brzucha",
+   "status": "zrodlo"
+  },
+  {
+   "en": "rectus abdominis",
+   "pl": "mięsień prosty brzucha",
+   "status": "zrodlo"
+  },
+  {
+   "en": "multifidus",
+   "pl": "mięśnie wielodzielne",
+   "status": "zrodlo"
+  },
+  {
+   "en": "longissimus",
+   "pl": "mięsień najdłuższy",
+   "status": "zrodlo"
+  },
+  {
+   "en": "latissimus dorsi",
+   "pl": "mięsień najszerszy grzbietu",
+   "status": "zrodlo"
+  },
+  {
+   "en": "lower / upper trapezius",
+   "pl": "część dolna / górna mięśnia czworobocznego",
+   "status": "zrodlo"
+  },
+  {
+   "en": "rhomboids",
+   "pl": "mięśnie równoległoboczne",
+   "status": "zrodlo"
+  },
+  {
+   "en": "rotator cuff",
+   "pl": "stożek rotatorów",
+   "status": "zrodlo"
+  },
+  {
+   "en": "anterior tibialis / peroneals",
+   "pl": "mięsień piszczelowy przedni / mięśnie strzałkowe",
+   "status": "zrodlo"
+  },
+  {
+   "en": "vastus medialis (VMO)",
+   "pl": "mięsień obszerny przyśrodkowy (część skośna)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "pes anserine",
+   "pl": "gęsia stopka",
+   "status": "zrodlo"
+  },
+  {
+   "en": "thoracolumbar fascia",
+   "pl": "powięź piersiowo-lędźwiowa",
+   "status": "zrodlo"
+  },
+  {
+   "en": "gleno-humeral joint",
+   "pl": "staw ramienny (ramienno-łopatkowy)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "scapulo-thoracic joint",
+   "pl": "połączenie łopatkowo-piersiowe",
+   "status": "zrodlo"
+  },
+  {
+   "en": "sacro-iliac joint",
+   "pl": "staw krzyżowo-biodrowy",
+   "status": "zrodlo"
+  },
+  {
+   "en": "patella-femoral syndrome / chondromalacia patella / patella tendinosis",
+   "pl": "zespół bólu rzepkowo-udowego / chondromalacja rzepki / tendinopatia więzadła rzepki",
+   "status": "zrodlo"
+  },
+  {
+   "en": "sports hernia",
+   "pl": "przepuklina sportowa (pachwina sportowca)",
+   "status": "zrodlo",
+   "note": "polska terminologia niejednolita — do weryfikacji"
+  },
+  {
+   "en": "lateral subsystem",
+   "pl": "podsystem boczny (m. pośladkowy średni, przywodziciele, m. czworoboczny lędźwi)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "deep longitudinal / posterior oblique subsystem",
+   "pl": "głęboki podsystem podłużny / tylny podsystem skośny (wg Jandy)",
+   "status": "zrodlo",
+   "note": "tłumaczenie robocze — do weryfikacji"
+  },
+  {
+   "en": "drawing in / hollowing / bracing",
+   "pl": "wciąganie brzucha / 'wydrążanie' / usztywnienie (napięcie wszystkich mięśni brzucha bez zmiany obwodu)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "anti-extension / anti-rotation / anti-lateral flexion",
+   "pl": "przeciwdziałanie wyprostowi / rotacji / zgięciu bocznemu",
+   "status": "zrodlo"
+  },
+  {
+   "en": "gluteal amnesia (McGill)",
+   "pl": "'amnezja pośladkowa' — słaba aktywacja pośladków",
+   "status": "zrodlo"
+  },
+  {
+   "en": "synergistic dominance",
+   "pl": "dominacja synergistyczna (synergista przejmuje pracę słabego mięśnia głównego)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "reactive neuromuscular training (RNT, Cook)",
+   "pl": "reaktywny trening nerwowo-mięśniowy (opór wymuszający ruch przeciwny, np. guma ciągnąca kolano do środka)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "static supported / static unsupported / dynamic",
+   "pl": "statyczne podparte / statyczne niepodparte / dynamiczne (ćwiczenia jednonóż)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "split squat / RFESS (rear-foot-elevated split squat)",
+   "pl": "przysiad w wykroku w miejscu / przysiad z tylną stopą na podwyższeniu ('bułgarski')",
+   "status": "zrodlo"
+  },
+  {
+   "en": "single-leg straight-leg deadlift (1L SLDL)",
+   "pl": "martwy ciąg na jednej nodze (kolano ok. 20°)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "Cook hip lift",
+   "pl": "unoszenie bioder Cooka (mostek jednonóż z drugim kolanem przy klatce)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "chop / lift",
+   "pl": "'rąbanie' (zgięcie z rotacją) / 'unoszenie' (wyprost z rotacją) — wzorce diagonalne",
+   "status": "zrodlo"
+  },
+  {
+   "en": "hop / jump / bound / skip",
+   "pl": "hop: z nogi na tę samą nogę; jump: z dwóch na dwie; bound: z nogi na drugą; skip: dwa kontakty na stopę",
+   "status": "zrodlo"
+  },
+  {
+   "en": "technical failure",
+   "pl": "upadek techniczny (koniec serii, gdy nie ma kolejnego poprawnego powtórzenia)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "total system weight",
+   "pl": "masa układu (masa ciała + 1RM przysiadu przedniego)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "work capacity / energy system development (ESD)",
+   "pl": "pojemność pracy / rozwój systemów energetycznych",
+   "status": "zrodlo"
+  },
+  {
+   "en": "PRE (progressive resistance exercise)",
+   "pl": "progresywne zwiększanie oporu",
+   "status": "zrodlo"
+  },
+  {
+   "en": "Peripheral Heart Action (PHA)",
+   "pl": "obwód 'peryferyjnej akcji serca' (naprzemiennie góra–dół ciała)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "mobility vs flexibility",
+   "pl": "mobilność (ruch w stawie) vs gibkość (długość mięśni)",
+   "status": "zrodlo"
+  },
+  {
+   "en": "stability",
+   "pl": "stabilność — kontrola ruchu segmentu pod obciążeniem (statyczna i dynamiczna)",
+   "status": "zrodlo"
+  }
+ ],
+ "figures": [
+  {
+   "id": "F1",
+   "title": "Tabela potrzeb stawów (joint-by-joint)",
+   "titleEn": "Joint / Primary Needs",
+   "location": "Rozdz. 2 § The Joint-by-Joint Approach",
+   "type": "tabela",
+   "data": [
+    {
+     "joint": "staw skokowy (ankle)",
+     "need": "mobilność (strzałkowa)"
+    },
+    {
+     "joint": "kolano (knee)",
+     "need": "stabilność"
+    },
+    {
+     "joint": "biodro (hip)",
+     "need": "mobilność (wielopłaszczyznowa)"
+    },
+    {
+     "joint": "odcinek lędźwiowy (lumbar spine)",
+     "need": "stabilność"
+    },
+    {
+     "joint": "odcinek piersiowy (thoracic spine)",
+     "need": "mobilność"
+    },
+    {
+     "joint": "łopatka (scapula)",
+     "need": "stabilność"
+    },
+    {
+     "joint": "staw ramienny (gleno-humeral)",
+     "need": "mobilność"
+    }
+   ],
+   "readVerified": true,
+   "license": "tylko_wlasciciel",
+   "status": "zrodlo"
+  },
+  {
+   "id": "F2",
+   "title": "Tabela siły (strength chart, mężczyźni bez dopingu)",
+   "location": "Rozdz. 9 § The Strength Chart",
+   "type": "tabela",
+   "data": [
+    {
+     "exercise": "wyciskanie leżąc",
+     "ratio": "1,25–1,5 × BW",
+     "example": "250–300 lb przy 200 lb"
+    },
+    {
+     "exercise": "zarzut",
+     "ratio": "1,25–1,5 × BW",
+     "example": "jw."
+    },
+    {
+     "exercise": "przysiad przedni",
+     "ratio": "1,5–1,75 × BW",
+     "example": "300–350 lb przy 200 lb"
+    },
+    {
+     "exercise": "przysiad jednonóż",
+     "ratio": "0,5 × BW × 5 powt.",
+     "example": null
+    },
+    {
+     "exercise": "podciąganie",
+     "ratio": "0,5 × BW × 1 powt. (obciążenie dodatkowe)",
+     "example": null
+    }
+   ],
+   "readVerified": true,
+   "license": "tylko_wlasciciel",
+   "status": "zrodlo"
+  },
+  {
+   "id": "F3",
+   "title": "Porównania siły względem wyciskania leżąc",
+   "location": "Rozdz. 9 § Strength Comparisons",
+   "type": "tabela",
+   "data": [
+    {
+     "exercise": "wyciskanie leżąc",
+     "percentOfBench": 100,
+     "example1RM_lb": 300
+    },
+    {
+     "exercise": "wyciskanie na skosie",
+     "percentOfBench": 80,
+     "example1RM_lb": 240
+    },
+    {
+     "exercise": "wyciskanie hantli nad głowę (para)",
+     "percentOfBench": "40–50",
+     "example_lb": "60–75 każda"
+    }
+   ],
+   "readVerified": true,
+   "license": "tylko_wlasciciel",
+   "status": "zrodlo"
+  },
+  {
+   "id": "F4",
+   "title": "Międzyczasy Bena Johnsona i Carla Lewisa (40 m)",
+   "location": "Rozdz. 7 § Accuracy in Sprint Times",
+   "type": "tabela",
+   "data": [
+    {
+     "distance_m": 10,
+     "time_s": 1.84
+    },
+    {
+     "distance_m": 20,
+     "time_s": 2.86,
+     "split_s": 1.02
+    },
+    {
+     "distance_m": 30,
+     "time_s": 3.8,
+     "split_s": 0.94
+    },
+    {
+     "distance_m": 40,
+     "time_s": 4.67,
+     "split_s": 0.87
+    }
+   ],
+   "readVerified": true,
+   "license": "tylko_wlasciciel",
+   "status": "zrodlo"
+  },
+  {
+   "id": "F5",
+   "title": "Szacowanie czasu na 40 jardów z czasu na 10 jardów",
+   "location": "Rozdz. 7 § Training for Speed",
+   "type": "tabela (z tekstu)",
+   "data": [
+    {
+     "bodyweight_lb": "< 200",
+     "add_s": "2,8–3,0"
+    },
+    {
+     "bodyweight_lb": "200–250",
+     "add_s": "3,0–3,2"
+    },
+    {
+     "bodyweight_lb": "250–350",
+     "add_s": "3,0–3,4"
+    }
+   ],
+   "readVerified": true,
+   "license": "tylko_wlasciciel",
+   "status": "zrodlo"
+  },
+  {
+   "id": "F6",
+   "title": "Systemy pomiaru czasu sprintu",
+   "location": "Rozdz. 7 § Training for Speed",
+   "type": "lista",
+   "data": [
+    {
+     "system": "start i meta elektroniczne",
+     "vs_handheld_s": "+0,22 (najdokładniejszy, najwolniejszy)"
+    },
+    {
+     "system": "start ręczny, meta elektroniczna (NFL Combine)",
+     "vs_handheld_s": "ok. +0,1"
+    },
+    {
+     "system": "ręczny",
+     "vs_handheld_s": "0 (najszybszy, najmniej dokładny)"
+    }
+   ],
+   "readVerified": true,
+   "license": "tylko_wlasciciel",
+   "status": "zrodlo"
+  },
+  {
+   "id": "F7",
+   "title": "Odwrócona piramida pojemności pracy",
+   "location": "Rozdz. 6 § Work Capacity Model",
+   "type": "schemat",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle",
+   "note": "utracony w .txt"
+  },
+  {
+   "id": "F8",
+   "title": "Case study VO2: zawodnik 1 vs 2",
+   "location": "Rozdz. 6 § Physiological versus Performance Testing",
+   "type": "tabela",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle",
+   "note": "w tekście tylko 93% vs 77% efektywności i 50 vs 25 uderzeń powrotu"
+  },
+  {
+   "id": "F9",
+   "title": "Zarzut i rwanie z zwisu względem masy ciała (mężczyźni); stosunek siły do mocy",
+   "location": "Rozdz. 7 § The Hang Clean and Close-Grip Snatch",
+   "type": "tabele",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle"
+  },
+  {
+   "id": "F10",
+   "title": "NFL Combine 2003 — międzyczasy 10/20/40",
+   "location": "Rozdz. 7 § Training for Speed",
+   "type": "tabela",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle"
+  },
+  {
+   "id": "F11",
+   "title": "Mięśnie w treningu obunóż vs jednonóż",
+   "location": "Rozdz. 9 § Pelvic Stabilizers",
+   "type": "rycina anatomiczna",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle"
+  },
+  {
+   "id": "F12",
+   "title": "Tabela korekty po teście 20 powtórzeń",
+   "location": "Rozdz. 10 § Twenty-Rep Tests",
+   "type": "tabela",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle",
+   "note": "zachowany jeden przykład (PR3)"
+  },
+  {
+   "id": "F13",
+   "title": "Diagram periodyzacji liniowej",
+   "location": "Rozdz. 10 § Linear Periodization",
+   "type": "wykres",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle"
+  },
+  {
+   "id": "F14",
+   "title": "Arkusze planów 4/3/2 dni",
+   "location": "Rozdz. 10 § Four-Day / Three-Day / Two-Day Workout Programs",
+   "type": "tabele",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle"
+  },
+  {
+   "id": "F15",
+   "title": "Program slideboard 2 dni w tygodniu",
+   "location": "Rozdz. 6 § Slideboard Training",
+   "type": "tabela",
+   "data": null,
+   "readVerified": false,
+   "license": "tylko_wlasciciel",
+   "status": "brak_w_zrodle"
+  }
+ ],
+ "contradictions": [
+  {
+   "id": "C1",
+   "topic": "Numeracja poziomów chop/lift",
+   "detail": "Rozdz. 4: poziom 3 = chop/lift w pozycji wykroku, poziom 4 = stojący dynamiczny. Rozdz. 11 (MBSC): poziom 3 = stojący dynamiczny, lift przechodzi na jedną nogę.",
+   "resolution": "Kolejność jest ta sama (półklęk stabilny → sekwencyjny → wykrok/stojąc → jednonóż); numery poziomów traktować orientacyjnie.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Rotational Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Core Training"
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "topic": "Wykrok chodzony: poziom 3 czy 1",
+   "detail": "Rozdz. 9 nazywa wykrok chodzony ćwiczeniem poziomu 3 (wymaga hamowania). Rozdz. 11 wymienia go jako poziom 1 ćwiczeń dynamicznych przyspieszających.",
+   "resolution": "Numeracja w obrębie różnych kategorii. W obu miejscach obowiązuje zasada: najpierw ≥3 tygodnie wersji statycznych.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Single-Leg Strength"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Lower-Body Strength and Balance Progressions"
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "topic": "Przysiad na skrzynię",
+   "detail": "'Nigdy nie używamy box squats' (rozdz. 10) vs 'box front squats' na liście ćwiczeń korygujących i dotyk skrzyni 12 in jako miernik głębokości.",
+   "resolution": "Skrzynia tylko jako miernik głębokości (lekkie dotknięcie), bez siadania i odbicia jak w Westside.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Gauging Depth"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Box Squat History"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Program Design Basics"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Strength Programming"
+    }
+   ]
+  },
+  {
+   "id": "C4",
+   "topic": "Martwy ciąg",
+   "detail": "Rozdz. 3: 'zrezygnuj z klasycznego martwego ciągu'. Rozdz. 9: martwy ciąg wypada biomechanicznie lepiej niż przysiad, trap bar od 2007 jako priorytet.",
+   "resolution": "Bez klasycznego martwego ciągu prostą sztangą; trap bar i sumo z kettlebell — tak, maks. raz w tygodniu obunóż.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Injury Prevention Suggestions"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Deadlifts"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Trap-Bar Deadlifts"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 9 Exercise Choices: The Basics and Single-Leg Training",
+     "pages": "§ Posterior Chain Training"
+    }
+   ]
+  },
+  {
+   "id": "C5",
+   "topic": "Częstotliwość plyometrii",
+   "detail": "Rozdz. 3: skoki i hopy 2× w tygodniu, plyometria w każdy dzień treningowy bez powtarzania ćwiczenia. Rozdz. 11: plyometria 2–4× w tygodniu.",
+   "resolution": "Ćwiczenie tego samego typu najwyżej 2× w tygodniu; plyometria ogółem 2–4 dni.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ ACL Injury Prevention"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Training Program Flow"
+    }
+   ]
+  },
+  {
+   "id": "C6",
+   "topic": "Długość treningu na slideboardzie i przerwy",
+   "detail": "Rozdz. 6: odcinki 15–30 s, przerwy 45 s–1:30, sesja 10–50 min. Rozdz. 8: odcinki 5–30 s, przerwy 15–90 s, sesja 10–20 min.",
+   "resolution": "Wersja z rozdz. 8 dla początku programu; dłuższe sesje dla zaawansowanych.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Slideboard Training"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 8 Equipment Choices",
+     "pages": "§ Setting Up Workouts"
+    }
+   ]
+  },
+  {
+   "id": "C7",
+   "topic": "Progresja objętości kondycji",
+   "detail": "10% z sesji na sesję (rozdz. 3) vs 20% z tygodnia na tydzień (rozdz. 6).",
+   "resolution": "Różne jednostki czasu; stosować oba limity.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 3 Injuries",
+     "pages": "§ Painful Exercise"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 6 Cardiovascular Training",
+     "pages": "§ Twenty-Percent Rule"
+    }
+   ]
+  },
+  {
+   "id": "C8",
+   "topic": "Liczba serii",
+   "detail": "'Nigdy więcej niż 3 serie ćwiczenia' vs plyometria liniowa 3–5 serii po 5 skoków.",
+   "resolution": "Limit 3 serii dotyczy ćwiczeń siłowych.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 10 Program Design",
+     "pages": "§ Strength Programming"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 11 Sample Programs from MBSC",
+     "pages": "§ Progressions"
+    }
+   ]
+  },
+  {
+   "id": "C9",
+   "topic": "Wciąganie brzucha",
+   "detail": "Rozdz. 4 broni wciągania jako nauki aktywacji, potem pisze, że u zdrowych sportowców wciągania 'praktycznie wypadły'.",
+   "resolution": "Wciąganie u klientów z bólem krzyża i po urazach; zdrowi — anty-wyprost i anty-rotacja.",
+   "sources": [
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Terminology"
+    },
+    {
+     "ref": "advances-functional-training-boyle",
+     "chapter": "Rozdz. 4 The Core",
+     "pages": "§ Core Advances"
+    }
+   ]
+  }
+ ]
+}
