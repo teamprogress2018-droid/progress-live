@@ -35,7 +35,7 @@ ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
 ok('cache 10', html.includes('10-client-app.js?v=43'));
 ok('CI', wf.includes('test_ex_progress_history.js'));
 ok('live serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.test(live));
-ok('client serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.test(client));
+ok('client serialize', /function cwLoggedExercises[\s\S]*?exerciseId:ex\.exerciseId[\s\S]*?\.filter\(s=>s\.done\)/.test(client) && /exercises:cwLoggedExercises\(cw\)/.test(client));
 ok('live swap identity', /applyExerciseIdentity\(cur\)/.test(live));
 ok('fitebo log identity', /applyExerciseIdentity==='function'\?applyExerciseIdentity\(mapped\)/.test(fitebo));
 ok('core helpers', /function exerciseProgressVolume\(/.test(coreSrc) && /function exerciseMatchesProgress\(/.test(coreSrc));

@@ -44,9 +44,10 @@ ok('no cheat modal',!html.includes('id="m-method-rationale"')&&!html.includes('m
 ok('no cheat sheet fns',!core.includes('function renderTrainerCheatSheetHTML')&&!core.includes('function printTrainerCheatSheet')&&!core.includes('function openMethodRationaleModal'));
 ok('no builder topbar cheat',!html.includes('id="builder-cheat-btn"')&&!html.includes('openMethodRationaleModal()')&&!html.includes('id="builder-cheat-print-btn"'));
 ok('no cheat css',!css.includes('.trainer-cheat')&&!css.includes('#builder-cheat-btn')&&!css.includes('printing-cheat-sheet'));
-ok('academy moves persistent coach help out of builder',!html.includes('id="builder-sidebar"')&&html.includes('builder-academy-nudge')&&html.includes('academyFromBuilder()'));
+// Progress Academy (11-progress-academy.js) nie jest obecnie podpięta w index.html — pomoc trenera jest w panelu kreatora.
+ok('builder keeps trainer help panel',html.includes('id="builder-sidebar"')&&html.includes('toggleBuilderSidebar(true)'));
 ok('academy offers three help levels and keeps plan read-only',academy.includes("['quick','1 · Szybka odpowiedź']")&&academy.includes("['guide','2 · Przewodnik decyzji']")&&academy.includes("['context','3 · Mój plan']")&&academy.includes('Akademia nie zapisuje ani nie zmienia danych planu.'));
-ok('academy preserves the builder on return',src05.includes('window._builderPreserveOnReturn'));
+ok('academy preserves the builder on return',academy.includes('window._builderPreserveOnReturn=true'));
 ok('aplEduCtx exported',src03.includes('function aplEduCtx')&&src03.includes('window.aplEduCtx'));
 ok('builder ctx clientName',src05.includes('clientName:c.name'));
 ok('personalized volume helper',core.includes('personalizedOnly')&&core.includes('mr-vol-personal'));

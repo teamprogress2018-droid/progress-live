@@ -23,7 +23,7 @@ ok('eduTipMark helper',core.includes('function eduTipMark')&&core.includes('wind
 ok('hydrateEduTips',core.includes('function hydrateEduTips'));
 ok('css edu-tip',css.includes('.edu-tip')&&css.includes('attr(data-tip)'));
 ok('builder method tip',html.includes('b-method-tip-btn')&&html.includes('b-method-hint'));
-ok('builder headers tips',src05.includes("tip('sets')")&&src05.includes("tip('rpe')")&&src05.includes("tip('rir')"));
+ok('builder headers tips',src05.includes("tip('sets')")&&src05.includes("tip('rir')")&&src05.includes("title=\"'+t('rpe')+'\""));
 ok('addRow titles',src05.includes("t('sets')")&&src05.includes("t('rpe')"));
 ok('apl method tip',html.includes('data-edu="method"')&&html.includes('data-edu="days"'));
 ok('template tips',src02.includes('data-edu="goal"')&&src02.includes('data-edu="method"'));

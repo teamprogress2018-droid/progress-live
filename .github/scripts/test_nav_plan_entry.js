@@ -29,7 +29,7 @@ ok('plans library new plan picker',html.includes('openNewPlanPicker()')&&src05.i
 ok('builder cancel uses back',src05.includes('function builderGoBack')&&src05.includes("_builderBack||'clients'")&&html.includes('builderGoBack()'));
 
 ok('cache bumps',html.includes('01-core.js?v=132')&&html.includes('05-clients-builder-plans-calendar.js?v=101'));
-ok('onboard plan CTAs only when missing',src05.includes("cta:'⚡ Plan AI'")&&src05.includes('Szablon / kreator')&&!/doneExtra:`<div[\s\S]*Nowy plan AI/.test(src05));
+ok('onboard plan CTAs only when missing',src05.includes("cta:'Wybierz sposób'")&&src05.includes('⚡ Generator AI')&&src05.includes('✏️ Klasyczny kreator')&&!/doneExtra:`<div[\s\S]*Nowy plan AI/.test(src05));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll nav-plan-entry tests passed');

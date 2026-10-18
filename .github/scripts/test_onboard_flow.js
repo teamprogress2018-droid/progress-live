@@ -30,12 +30,12 @@ ok('forms library helper', src05.includes('function openFormsLibraryFromOnboard'
 ok('forms banner', html.includes('id="forms-onboard-banner"') && html.includes('z-index:30') && src07.includes('function resumeOnboardFromForms'));
 ok('send form prefills onboard client', src07.includes('_onboardResumeAfterForms') && src07.includes('sendFormSetClientField(resumeC.id'));
 ok('schedule modal', html.includes('id="m-onboard-schedule"') && src05.includes('function saveClientScheduleFromOnboard'));
-ok('builder from onboard not profile tab', src05.includes("openBuilderForClient('${id}',true)") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
+ok('builder from onboard not profile tab', src05.includes("openBuilderForClient(clientId,true)") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
 ok('live from onboard', src05.includes('function openLiveFromOnboard') && src05.includes("openLiveFromOnboard('${id}'") && html.includes('id="live-onboard-banner"'));
 ok('live end clears onboard flag', src02.includes('_onboardResumeAfterLive===st.savedClientId'));
 ok('live empty plan uses liveOpenAiPlan', src02.includes('function liveOpenAiPlan') && src02.includes("liveOpenAiPlan('${st.clientId}')") && !src02.includes("goTo('aiplangen');document.getElementById('apl-client')"));
 ok('live empty day uses liveOpenBuilder', src02.includes('function liveOpenBuilder') && src02.includes("liveOpenBuilder('${st.clientId||''}')"));
-ok('openAiPlanForClient fromOnboard', src05.includes('function openAiPlanForClient(clientId,fromOnboard)') && src05.includes("openAiPlanForClient('${id}',true)"));
+ok('openAiPlanForClient fromOnboard', src05.includes('function openAiPlanForClient(clientId,fromOnboard)') && src05.includes("openAiPlanForClient(clientId,true)"));
 ok('apl/builder resume banners', html.includes('id="apl-onboard-banner"') && html.includes('id="builder-onboard-banner"') && src05.includes('function resumeOnboardFromApl') && src05.includes('function builderGoBack'));
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
 ok('overview uses real checklist', src02.includes('function onbOpenChecklist') && src02.includes('function onbStatusFor') && src02.includes("onbOpenChecklist('") && !src02.includes('Potwierdź krok'));

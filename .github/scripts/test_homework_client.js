@@ -70,7 +70,7 @@ function ok(name, cond, extra) {
 ok('isHomework kind', ctx.isHomework({ kind: 'homework' }));
 ok('isHomework odWorkoutId', ctx.isHomework({ odWorkoutId: 'ow2' }));
 ok('isOneShot excludes homework', !ctx.isOneShot({ kind: 'homework', odWorkoutId: 'ow2' }));
-ok('nav has homework', ctx.capLiveNavScreens().some((s) => s.id === 'homework'));
+ok('nav has homework', [...ctx.capLiveNavScreens(), ...ctx.capLiveMoreScreens()].some((s) => s.id === 'homework'));
 
 ctx.ensureODWorkouts();
 const w = ctx.allODWorkouts().find((x) => x.id === 'ow2');

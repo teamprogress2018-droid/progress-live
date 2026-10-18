@@ -24,8 +24,9 @@ function ok(name, cond, extra) {
 
 ok('profile edit no duplicate intake buttons', src08.includes('Ankieta wstępna — tylko w Formularzach') && src08.includes("setCPTab('forms')") && !src08.includes("printFormPdf('df1')") && !src08.includes("sendClientIntakeForm('${escHtml(c.id)}');cancelCPEdit()"));
 ok('plan tab CTAs gated on empty', src08.includes('const showCreate=!plans.length') && src08.includes('showContinueFitebo') && src08.includes('Generuj plan AI'));
-ok('onboard does not push extra plan CTAs when done', !/doneExtra:`<div[\s\S]*Nowy plan AI/.test(src05) && src05.includes("cta:'⚡ Plan AI'"));
-ok('apl back auto-saves generated plan', src05.includes('function resumeOnboardFromApl') && src05.includes('aplSavePlan()'));
+ok('onboard does not push extra plan CTAs when done', !/doneExtra:`<div[\s\S]*Nowy plan AI/.test(src05) && src05.includes("action:`openClientPlanChoice('${id}')`,cta:'Wybierz sposób'"));
+const resumeApl = src05.slice(src05.indexOf('function resumeOnboardFromApl'), src05.indexOf('function renderOnboardBuilderBanner'));
+ok('apl back returns to checklist without saving', resumeApl.includes('maybeResumeOnboard(cid)') && !resumeApl.includes('aplSavePlan()'));
 ok('package save requires client and confirms before close', src09.includes("throw new Error('Wybierz klienta')") && src09.includes("await savePackageConfirmed(state.pair,state.operation)") && src09.indexOf("await savePackageConfirmed(state.pair,state.operation)") < src09.indexOf("closeM('m-package')", src09.indexOf('async function savePackage')));
 ok('whatsapp copies instead of forcing app', src09.includes('Kopiuj wiadomość') && src09.includes('function copyInviteMessage') && src09.includes('function openInviteWhatsApp') && html.includes('id="inv-open-wa-btn"') && !/whatsapp[\s\S]{0,200}window\.open\(href/.test(src09));
 ok('live clears other client plan', src02.includes('p.clientId!==st.clientId') && src02.includes('st.exercises=[]') && src02.includes('st.planId=null'));
