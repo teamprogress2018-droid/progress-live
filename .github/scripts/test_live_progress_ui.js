@@ -25,6 +25,17 @@ function ok(name, cond, extra) {
   await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
+  // Postęp (Ostatnio / Dzisiaj / Sugestia) jest w rozwijanym bloku „Szczegóły ćwiczenia”.
+  // Symulujemy trenera, który ma ten blok rozwinięty, także po każdym przerysowaniu.
+  await page.evaluate(() => {
+    const render = window.renderLiveExercises;
+    window.renderLiveExercises = function () {
+      const out = render.apply(this, arguments);
+      document.querySelectorAll('.live-ex-more-details').forEach((d) => { d.open = true; });
+      return out;
+    };
+  });
+
   await page.evaluate(() => {
     window._uid = 'live-progress-ui-trainer';
     window._clientAppMode = false;

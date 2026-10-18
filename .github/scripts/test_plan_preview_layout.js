@@ -154,14 +154,14 @@ const SAMPLE_PLAN = {
 
   await page.waitForSelector('#plan-toggle-plan-fbw-rado');
   await page.click('#plan-toggle-plan-fbw-rado');
-  await page.waitForSelector('#plan-detail-plan-fbw-rado >> .plan-day-row');
+  await page.waitForSelector('#plan-detail-plan-fbw-rado >> .plan-preview-day');
   await page.waitForTimeout(300);
 
   const metrics = await page.evaluate(() => {
     const overlap = (a, b) => !(a.bottom <= b.top + 0.5 || a.top >= b.bottom - 0.5 || a.right <= b.left + 0.5 || a.left >= b.right - 0.5);
     const card = document.getElementById('plan-card-plan-fbw-rado');
     const detail = document.getElementById('plan-detail-plan-fbw-rado');
-    const rows = [...document.querySelectorAll('#plan-detail-plan-fbw-rado .plan-day-row')];
+    const rows = [...document.querySelectorAll('#plan-detail-plan-fbw-rado .plan-preview-day')];
     const box = (el) => {
       if (!el) return null;
       const r = el.getBoundingClientRect();
@@ -178,9 +178,9 @@ const SAMPLE_PLAN = {
     };
     const overlaps = [];
     const boxes = rows.map((row, ri) => {
-      const name = row.querySelector('.plan-day-name');
+      const name = row.querySelector('.plan-preview-day-summary');
       const nameBox = box(name);
-      const lines = [...row.querySelectorAll('.plan-ex-line')].map(box);
+      const lines = [...row.querySelectorAll('.plan-preview-ex-row')].map(box);
       const others = [...row.querySelectorAll('div, span')].filter((el) => el !== name && !name.contains(el) && !el.contains(name));
       others.forEach((el) => {
         const b = box(el);
@@ -191,7 +191,7 @@ const SAMPLE_PLAN = {
       for (let i = 1; i < lines.length; i++) {
         if (lines[i].top + 0.5 < lines[i - 1].bottom) overlaps.push('day ' + ri + ' exercise lines are not stacked');
       }
-      return { name: nameBox, lines, focus: box(row.querySelector('.plan-day-focus')) };
+      return { name: nameBox, lines, focus: box(row.querySelector('.plan-preview-day-focus')) };
     });
     return {
       open: !!(card && card.classList.contains('is-open')),

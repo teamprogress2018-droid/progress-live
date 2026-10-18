@@ -32,7 +32,7 @@ ok('sequential for-of', /for\s*\(\s*const agentId of (ids|agentIds)\s*\)/.test(s
 ok('no Promise.all staff', !/Promise\.all\s*\(\s*agentIds/.test(src03));
 ok('sztab mode in AIC_MODES', /sztab:\{[\s\S]*label:'🦴 Sztab ekspercki'/.test(src03));
 ok('exercise uses biomech staff', /staffAgentsForAicMode[\s\S]*mode==='exercise'\) return \['biomechanika'\]/.test(src03));
-ok('builder keeps NSCA fallback', /staffAgentsForBuilderQuery/.test(src06) && /NSCA: hipertrofia/.test(src06));
+ok('builder keeps hypertrophy fallback', /staffAgentsForBuilderQuery/.test(src06) && /Dla hipertrofii szeroki zakres powtórzeń/.test(src06));
 ok('askExAI uses biomech prompt', /STAFF_SYSTEM_PROMPTS\.biomechanika/.test(src06));
 
 const start = src03.indexOf('const STAFF_AGENT_IDS=');

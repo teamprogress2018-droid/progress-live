@@ -27,10 +27,10 @@ function eq(name, got, want) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=132'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=101'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=102'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=97'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
-ok('builder header KG/S', src05.includes('KG/S'));
+ok('builder kg field', src05.includes('data-f="kg"'));
 ok('save loadUnit', src05.includes("loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg'"));
 ok('liny tagged sec', /name:'Liny treningowe'[\s\S]{0,280}load:'sec'/.test(six));
 ok('deska tagged sec', /name:'Deska',aka:'Plank[\s\S]{0,400}load:'sec'/.test(six));

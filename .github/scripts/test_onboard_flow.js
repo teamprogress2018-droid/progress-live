@@ -30,12 +30,12 @@ ok('forms library helper', src05.includes('function openFormsLibraryFromOnboard'
 ok('forms banner', html.includes('id="forms-onboard-banner"') && html.includes('z-index:30') && src07.includes('function resumeOnboardFromForms'));
 ok('send form prefills onboard client', src07.includes('_onboardResumeAfterForms') && src07.includes('sendFormSetClientField(resumeC.id'));
 ok('schedule modal', html.includes('id="m-onboard-schedule"') && src05.includes('function saveClientScheduleFromOnboard'));
-ok('builder from onboard not profile tab', src05.includes("openBuilderForClient('${id}',true)") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
+ok('builder from onboard not profile tab', src05.includes("openBuilderForClient(clientId,true)") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
 ok('live from onboard', src05.includes('function openLiveFromOnboard') && src05.includes("openLiveFromOnboard('${id}'") && html.includes('id="live-onboard-banner"'));
 ok('live end clears onboard flag', src02.includes('_onboardResumeAfterLive===st.savedClientId'));
 ok('live empty plan uses liveOpenAiPlan', src02.includes('function liveOpenAiPlan') && src02.includes("liveOpenAiPlan('${st.clientId}')") && !src02.includes("goTo('aiplangen');document.getElementById('apl-client')"));
 ok('live empty day uses liveOpenBuilder', src02.includes('function liveOpenBuilder') && src02.includes("liveOpenBuilder('${st.clientId||''}')"));
-ok('openAiPlanForClient fromOnboard', src05.includes('function openAiPlanForClient(clientId,fromOnboard)') && src05.includes("openAiPlanForClient('${id}',true)"));
+ok('openAiPlanForClient fromOnboard', src05.includes('function openAiPlanForClient(clientId,fromOnboard)') && src05.includes("openAiPlanForClient(clientId,true)"));
 ok('apl/builder resume banners', html.includes('id="apl-onboard-banner"') && html.includes('id="builder-onboard-banner"') && src05.includes('function resumeOnboardFromApl') && src05.includes('function builderGoBack'));
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
 ok('overview uses real checklist', src02.includes('function onbOpenChecklist') && src02.includes('function onbStatusFor') && src02.includes("onbOpenChecklist('") && !src02.includes('Potwierdź krok'));
@@ -47,7 +47,7 @@ ok('new client stamps default flow', src05.includes("onboardingFlow:((window.SET
 ok('dead wizard removed', !src02.includes('function renderOnbNew') && !src02.includes('ONB_WIZARD_STEPS') && !src02.includes('function onbCreateClient') && !html.includes('id="onb-new-tab"'));
 ok('settings legend is real checklist', src02.includes('function renderOnbSettings') && src02.includes("goTo('automation')") && src02.includes('ONB_CHECKLIST_IDS') && !src02.includes('onb-msg-step') && !src02.includes("id:'welcome'") && !src02.includes('Wiadomości wysyłane automatycznie na każdym etapie'));
 ok('flow steps match checklist', src02.includes("['invite','intake','baseline','schedule','plan','calendar','package']") && !src02.includes("steps:['welcome'"));
-ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=132') && html.includes('02-workouts-onboarding-templates-live.js?v=96') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('05-clients-builder-plans-calendar.js?v=101') && html.includes('07-forms-metrics-calculator.js?v=44') && html.includes('09-posture-kb-invites-private.js?v=56'));
+ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=132') && html.includes('02-workouts-onboarding-templates-live.js?v=96') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('05-clients-builder-plans-calendar.js?v=102') && html.includes('07-forms-metrics-calculator.js?v=44') && html.includes('09-posture-kb-invites-private.js?v=56'));
 ok('package cancel resumes', src05.includes('function closePackageModal') && html.includes('closePackageModal()') && html.includes('id="pkg-onboard-banner"'));
 ok('package save skips confirm from onboard', src09.includes('fromOnboard&&typeof maybeResumeOnboard') && src09.includes('!fromOnboard&&pkg.payStatus'));
 ok('invite overlay resumes', html.includes('id="m-invite"') && html.includes('closeInviteModal(false)'));
