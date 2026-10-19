@@ -24,7 +24,7 @@ function ok(name, cond, extra) {
 
 ok('ci unit', wf.includes('test_lib_telefon_tablet.js'));
 ok('ci ui', wf.includes('test_lib_telefon_tablet_ui.js'));
-ok('cache styles', html.includes('styles.css?v=165'));
+ok('cache styles', html.includes('styles.css?v=166'));
 ok('cache core', html.includes('01-core.js?v=137'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
 

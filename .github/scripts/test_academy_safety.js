@@ -188,6 +188,25 @@ async function answerTests(){
   ctx.academyRetryAnswer();await tick();await tick();await tick();
   ok('retry asks again',/Zacznij od kilku serii tygodniowo/.test(screen.innerHTML));
 
+  /* 12. Książki nie odpowiadają → blok „Z badań” z bazy modułu Badania, oddzielony od książek. */
+  vm.runInContext(read('research-answer.js'),ctx);
+  vm.runInContext(read('research-academy.js'),ctx);
+  ctx.ResearchAcademy.setData(JSON.parse(read('knowledge/research-base.json')));
+  reply={data:{content:[{type:'text',text:'{"answered":false,"answer":[],"missing":"Książki nie podają, czy rozciąganie przed treningiem obniża siłę."}'}]}};
+  ask('czy rozciąganie statyczne przed treningiem zmniejsza siłę');await tick();await tick();await tick();
+  const rb=screen.innerHTML;
+  ok('research block shown when books have no answer',/academy-research-block/.test(rb)&&/Z badań, nie z książek/.test(rb)&&/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\//.test(rb));
+  ok('research block links open safely',/target="_blank" rel="noopener noreferrer"/.test(rb.split('academy-research-block')[1]||''));
+  reply={data:{content:[{type:'text',text:'{"answered":true,"answer":[{"text":"Odpoczywaj tyle, by kolejna seria była dobra.","sources":[1]}],"missing":""}'}]}};
+  ask('jak długie przerwy między seriami odpoczynek');await tick();await tick();await tick();
+  ok('no research block when books answer fully',!/academy-research-block/.test(screen.innerHTML));
+  reply={data:{content:[{type:'text',text:'{"answered":false,"answer":[],"missing":"Brak."}'}]}};
+  ask('lataniu samolotem trening klatki szybowiec');await tick();await tick();await tick();
+  ok('no research block when research base has nothing',!/academy-research-block/.test(screen.innerHTML)&&/W książkach z bazy nie ma odpowiedzi/.test(screen.innerHTML));
+  ctx.academyResearchFromLearn();
+  ok('link moves the question to research tab',ctx.ResearchAcademy.state.query==='lataniu samolotem trening klatki szybowiec');
+  delete ctx.ResearchAcademy;ctx.academySetLevel('learn');
+
   ok('broken JSON is rejected',ctx.academyParseAnswerForTest('to nie jest json',3)===null);
   delete ctx.fetch;delete ctx.W;
 }
@@ -195,7 +214,7 @@ async function answerTests(){
 answerTests().then(()=>{
   const css=read('styles.css');
   ok('safety css present',css.includes('.academy-safety{')&&css.includes('.academy-learning-card.is-safety'));
-  ok('answer css present',css.includes('.academy-answer{')&&css.includes('.academy-answer-refs{'));
+  ok('answer css present',css.includes('.academy-answer{')&&css.includes('.academy-answer-refs{')&&css.includes('.academy-research-block{'));
   if(failed){console.error('\n'+failed+' test(s) failed');process.exit(1);}
   console.log('\nAll academy safety tests passed');
 }).catch(e=>{console.error(e);process.exit(1);});

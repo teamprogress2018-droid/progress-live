@@ -328,6 +328,18 @@ Zwróć wyłącznie JSON bez komentarza: {"answered":true,"answer":[{"text":"aka
     const list=order.map(n=>{const s=entry.sources[n-1];return `<li><span class="academy-answer-cite">${esc(s.cite||'Baza wiedzy')}</span> <small>${esc(statusText(s.status))}</small><details><summary>Co mówi ta reguła</summary><p>${esc(sourceSentence(s))}</p></details></li>`;}).join('');
     return `<article class="academy-answer" aria-live="polite">${head}<div class="academy-answer-body">${paras}</div>${r.missing?`<p class="academy-answer-missing"><b>Czego książki nie mówią:</b> ${esc(r.missing)}</p>`:''}<section class="academy-answer-sources"><b>Źródła</b><ol>${list}</ol></section><small class="academy-answer-note">Odpowiedź ułożyła AI wyłącznie z fragmentów książek wymienionych w źródłach. Przed decyzją u klienta zajrzyj na podaną stronę.</small></article>`;
   }
+  /* Gdy książki nie odpowiadają (albo tylko częściowo): publikacje z bazy badań (research-academy.js), wyraźnie oddzielone od książek. */
+  function researchBlock(q){
+    const R=window.ResearchAcademy;
+    if(!R||!R.state||!q)return '';
+    if(R.state.status==='idle'){Promise.resolve(R.load()).then(()=>{if(state.level==='learn')render();});return '';}
+    if(R.state.status!=='ok')return '';
+    const res=R.search(R.state.data,q,{limit:3});
+    if(!res||!(res.studies||[]).length)return '';
+    const item=s=>{const y=s.synth||null;const links=R.studyLinks(s);return `<li><b>${esc(y&&y.titlePl?y.titlePl:s.title)}</b><small>${esc([s.evidenceLabel,s.year,s.journal].filter(Boolean).join(' · '))}</small>${y&&y.dlaTrenera?`<p>${esc(y.dlaTrenera)}</p>`:''}${links.length?`<span>${links.map(l=>`<a href="${esc(l.href)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`).join(' ')}</span>`:''}</li>`;};
+    const synth=res.studies.some(s=>s.synth);
+    return `<section class="academy-research-block" aria-label="Z badań"><span class="academy-eyebrow">Z badań, nie z książek</span><p>Książki z bazy nie odpowiadają w pełni na to pytanie. Te publikacje z bazy badań dotyczą tematu${synth?'':'. Bez opracowania po polsku widać tylko tytuł i link, więc przeczytaj źródło, zanim wyciągniesz wniosek'}.</p><ul>${res.studies.map(item).join('')}</ul><button type="button" class="academy-link" onclick="academyResearchFromLearn()">Więcej w zakładce Badania</button></section>`;
+  }
   const EXAMPLE_QUESTIONS=['Jakie ćwiczenia na klatkę piersiową?','Ile serii na partię w tygodniu?','Kiedy zrobić deload?','Ile białka na redukcji?','Jak długie przerwy między seriami?','Czy kreatyna działa?','RIR u początkującego','ból kolana przysiad'];
   function examples(){return `<div class="academy-examples"><b>Przykładowe pytania</b><div>${EXAMPLE_QUESTIONS.map((x,i)=>`<button type="button" class="academy-chip" onclick="academyAskExample(${i})">${esc(x)}</button>`).join('')}</div></div>`;}
   function learn(){
@@ -342,8 +354,10 @@ Zwróć wyłącznie JSON bez komentarza: {"answered":true,"answer":[{"text":"aka
     const candidates=q&&!selected&&ready&&canAnswer()?answerSources(q):[];
     const entry=candidates.length?requestAnswer(q,candidates):null;
     const retry=entry&&entry.status==='failed'?`<div class="academy-answer is-failed" role="status"><p>Nie udało się teraz ułożyć odpowiedzi (brak połączenia z AI albo trzeba zalogować się ponownie). Poniżej fragmenty z książek, które najlepiej pasują do pytania.</p><button type="button" class="btn btn-ghost btn-sm" onclick="academyRetryAnswer()">Spróbuj ponownie</button></div>`:'';
-    const answerView=entry&&entry.status!=='failed'?`${safetyHtml}${answerHtml(entry)}${!safetyTopics(q).length&&exerciseBlock(q)?`<aside class="academy-practice-panel">${exerciseBlock(q).replace('Biblioteka sugeruje:','Twoja biblioteka ćwiczeń (to nie cytat z książki) sugeruje:')}</aside>`:''}`:'';
-    const sourceHtml=answerView||(sources.length?`${safetyHtml}${retry}<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>${practicePanel(q,sources)}`:hintHtml?safetyHtml:`${safetyHtml}<div class="academy-empty">${hasNotes?'Nie znalazłem w Twoich notatkach ani w książkach z bazy reguł pasujących do pytania. Użyj jednego konkretnego słowa, np. „objętość”, „RIR” albo „białko”.':state.booksLoading&&!(typeof window.booksKbList==='function'&&window.booksKbList().length)?'Wczytuję książki z bazy…':'Nie znalazłem w książkach z bazy reguł pasujących do pytania. Użyj jednego konkretnego słowa, np. „objętość”, „RIR” albo „białko”, albo wybierz przykład poniżej.'}</div>`);
+    const research=entry&&entry.status==='ok'&&(!entry.result.answered||entry.result.missing)?researchBlock(q):'';
+    const answerView=entry&&entry.status!=='failed'?`${safetyHtml}${answerHtml(entry)}${research}${!safetyTopics(q).length&&exerciseBlock(q)?`<aside class="academy-practice-panel">${exerciseBlock(q).replace('Biblioteka sugeruje:','Twoja biblioteka ćwiczeń (to nie cytat z książki) sugeruje:')}</aside>`:''}`:'';
+    const emptyResearch=q&&!selected&&ready&&!sources.length&&!candidates.length?researchBlock(q):'';
+    const sourceHtml=answerView||(sources.length?`${safetyHtml}${retry}<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>${practicePanel(q,sources)}`:hintHtml?safetyHtml:`${safetyHtml}<div class="academy-empty">${hasNotes?'Nie znalazłem w Twoich notatkach ani w książkach z bazy reguł pasujących do pytania. Użyj jednego konkretnego słowa, np. „objętość”, „RIR” albo „białko”.':state.booksLoading&&!(typeof window.booksKbList==='function'&&window.booksKbList().length)?'Wczytuję książki z bazy…':'Nie znalazłem w książkach z bazy reguł pasujących do pytania. Użyj jednego konkretnego słowa, np. „objętość”, „RIR” albo „białko”, albo wybierz przykład poniżej.'}</div>${emptyResearch}`);
     return `<section class="academy-learn"><div class="academy-learn-intro"><span class="academy-eyebrow">Nauka oparta na źródłach</span><h2>Zadaj pytanie. Odpowiedź z Twoich książek.</h2><p>Academy szuka odpowiedzi w książkach z bazy i w Twoich notatkach, a pod odpowiedzią podaje książkę i stronę. Gdy książki czegoś nie mówią, napisze to wprost. To materiał edukacyjny, nie porada medyczna.</p></div>${selected?`<div class="academy-selected-book"><span>Uczysz się z: <b>${esc(selected.title)}</b></span><button class="btn btn-ghost btn-sm" type="button" onclick="academyClearSelectedBook()">Wróć do wszystkich źródeł</button></div>`:''}<form class="academy-question" onsubmit="academyAskBooks(event)"><label class="form-lbl" for="academy-question">Twoje pytanie</label><div><input id="academy-question" class="form-input" value="${esc(q)}" placeholder="np. Jakie ćwiczenia na klatkę piersiową? Ile białka na redukcji?" maxlength="240" autocomplete="off"><button class="btn btn-primary" type="submit">Zapytaj książki</button></div></form>${!q&&!selected?`<div class="academy-empty">Wpisz pytanie tak, jak zadałbyś je koledze trenerowi.</div>${examples()}`:sourceHtml}${q&&!selected&&!sources.length&&!hintHtml?examples():''}</section>`;
   }
   /* Tematy Academy z knowledge/academy-topics.json: treści z książek z bazy, każda z podanym źródłem. */
@@ -424,6 +438,8 @@ Zwróć wyłącznie JSON bez komentarza: {"answered":true,"answer":[{"text":"aka
   window.academyLearnBook=id=>{state.selectedBookId=id;state.question='';state.level='learn';prepareBooks();render();};
   window.academyClearSelectedBook=()=>{state.selectedBookId='';render();};
   window.academyParseAnswerForTest=parseAnswer;
+  /* Przejście do zakładki Badania z tym samym pytaniem. */
+  window.academyResearchFromLearn=()=>{const R=window.ResearchAcademy;if(R&&R.state){R.state.query=state.question;R.state.sub='search';}window.academySetLevel('research');};
   window.academyRetryAnswer=()=>{answers.delete(norm(state.question));render();};
   window.academyAskExample=i=>{const q=EXAMPLE_QUESTIONS[i];if(!q)return;state.selectedBookId='';state.question=q;render();};
   window.academyAskBooks=event=>{event.preventDefault();state.selectedBookId='';state.question=((document.getElementById('academy-question')||{}).value||'').trim();render();};
