@@ -1,0 +1,1142 @@
+{
+ "version": 1,
+ "note": "Treści Progress Academy. Każda liczba ma źródło z książek w bazie (knowledge/books). Weryfikacja cytatów: audyty/academy-2026-10-18/tematy-weryfikacja.json w plikach projektu.",
+ "newClientPath": [
+  "kwalifikacja-przed-startem",
+  "bezpieczenstwo",
+  "pierwszy-plan-nowego-klienta",
+  "rozgrzewka-i-serie-wstepne",
+  "technika-glownych-wzorcow-bledy-i-korekty",
+  "rir-w-praktyce",
+  "progresja-liniowa-i-podwojna",
+  "przerwy-miedzy-seriami",
+  "zywienie-kompetencje-trenera",
+  "poczatkujacy-3-dni"
+ ],
+ "topics": [
+  {
+   "id": "kwalifikacja-przed-startem",
+   "level": "podstawy",
+   "title": "Kwalifikacja przed startem",
+   "sedno": "Przed pierwszym treningiem: wywiad (cel, aktywność, staż, ból, urazy) i PAR-Q+ (7 pytań). Same „nie” = start powoli i stopniowo. Każde „tak” = pytania uzupełniające PAR-Q+ i/lub rozmowa z lekarzem lub wykwalifikowanym specjalistą przed zwiększeniem aktywności. Trener nie diagnozuje.",
+   "dlaczego": "Bezpieczeństwo idzie przed intensywnością. Decyzja o zgodzie lekarza zależy od 3 rzeczy: czy klient ćwiczy regularnie, czy ma rozpoznaną chorobę serca, metaboliczną lub nerek, czy ma objawy. PAR-Q wystarcza tylko przed wysiłkiem lekkim lub umiarkowanym, nie intensywnym.",
+   "dlaKogo": "Każdy nowy klient. Ponownie, gdy zmieni się stan zdrowia: deklaracja PAR-Q+ jest ważna maksymalnie 12 miesięcy i traci ważność przy zmianie stanu zdrowia.",
+   "kiedy": "Przed pierwszą sesją, przed testami sprawności i przed przejściem do treningu intensywnego. Odłóż start przy chwilowej chorobie (przeziębienie, gorączka).",
+   "coZrobic": [
+    "Wywiad: cel, staż, ból, urazy. „Regularnie aktywny” = ≥30 min umiarkowanie, ≥3 dni/tydz., przez ≥3 miesiące.",
+    "PAR-Q+: wszystkie „nie” → start powoli, stopniowe zwiększanie. Nieaktywny i zdrowy nie potrzebuje zgody lekarza.",
+    "„Tak” w PAR-Q+ lub objaw (ból w klatce, duszność przy lekkim wysiłku, zawroty, omdlenie, obrzęki kostek, kołatanie) → lekarz przed zwiększeniem aktywności i testami.",
+    "Nieaktywny z chorobą serca, metaboliczną lub nerek → zgoda lekarza przed programem. Aktywny bez objawów → umiarkowanie OK, zgoda przed intensywnym.",
+    "Wiek >45 lat bez nawyku intensywnych wysiłków → konsultacja z wykwalifikowanym specjalistą przed takim wysiłkiem."
+   ],
+   "przyklad": "Klientka 52 l., praca biurowa, nie ćwiczy, w PAR-Q+ zaznacza „tak” przy pytaniu o leki na chorobę przewlekłą. Trener nie ocenia choroby ani leków. Prosi o konsultację z lekarzem przed startem programu i do tego czasu nie robi testów wysiłkowych.",
+   "poczatkujacy": "Nieaktywny i zdrowy (same „nie”): start lekko lub umiarkowanie, bez zgody lekarza, potem stopniowo do wyższej intensywności. Bez testu 1RM u nietrenowanych.",
+   "zaawansowany": "Aktywny z chorobą bez objawów: umiarkowany wysiłek dozwolony, przed intensywnym zgoda lekarza ważna 12 miesięcy. Aktywny, u którego pojawiły się objawy: przerwać ćwiczenia i uzyskać zgodę.",
+   "specjalista": "Lekarz: każde „tak” w PAR-Q+, objawy z listy kardiologicznej, rozpoznana choroba u osoby nieaktywnej. Dietetyk: choroby zależne od żywienia. Trener nie interpretuje badań i nie stawia rozpoznań.",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 146–147",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 151–153",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 163",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 239–241",
+    "Crossley — Ćwiczenia funkcjonalne i rehabilitacja, s. 171"
+   ],
+   "pytanie": "Klient zaznacza w PAR-Q+ „tak” przy problemie kostno-stawowym z ostatnich 12 miesięcy. Co robisz?",
+   "odpowiedz": "Nie zaczynasz planu „jak zwykle”. Klient wypełnia pytania uzupełniające PAR-Q+ i/lub rozmawia z lekarzem lub wykwalifikowanym specjalistą przed zwiększeniem aktywności. Ty nie oceniasz, czy uraz jest już wyleczony.",
+   "keywords": [
+    "PAR-Q",
+    "wywiad",
+    "zgoda lekarza"
+   ]
+  },
+  {
+   "id": "osteoporoza-niska-gestosc-kosci",
+   "level": "sredni",
+   "title": "Osteoporoza i niska gęstość kości",
+   "sedno": "Kość reaguje na obciążenie: trening oporowy i ćwiczenia z obciążeniem ciała (marsz) zwiększają gęstość kości. Przy osteoporozie lub jej czynnikach ryzyka: bez zgięć i skrętów kręgosłupa, bez obciążenia nad głową i ruchów balistycznych, z profilaktyką upadków i nadzorem. Program po zgodzie lekarza.",
+   "dlaczego": "Starsi dorośli bez treningu oporowego tracą 10–30% gęstości kości na dekadę. Trening oporowy daje średnio ok. +1% na rok. Osłabione kości łamią się łatwiej, zwłaszcza kręgosłup i biodro.",
+   "dlaKogo": "Kobiety po menopauzie, seniorzy, osoby z rozpoznaną osteopenią lub osteoporozą. Wynik densytometrii (osteopenia −1 do −2,5 SD, osteoporoza poniżej −2,5 SD) interpretuje lekarz, nie trener.",
+   "kiedy": "Klient zgłasza osteoporozę, złamanie spowodowane osteoporozą albo przyjmowanie sterydów regularnie przez ponad 3 miesiące. O to pytają pytania uzupełniające PAR-Q+.",
+   "coZrobic": [
+    "Rozpoznana osteoporoza → zgoda lekarza przed programem, z informacją, jakie obciążenie jest dopuszczalne.",
+    "Usuń z planu: zgięcia i skręty kręgosłupa, obciążenie nad głową, ruchy balistyczne.",
+    "Dawka dla kości wg Chandlera: 75–80% 1RM, 2–3 serie × 8–12, 3×/tydz., przez ≥4–6 mies. Stosuj tylko za zgodą lekarza, po nauce techniki na lżejszym ciężarze.",
+    "Dodaj marsz i ćwiczenia z obciążeniem ciała. W treningu oporowym akcentuj fazę ekscentryczną.",
+    "Profilaktyka upadków: trening równowagi, uporządkowana sala, nadzór."
+   ],
+   "przyklad": "Klientka 60 l. z osteopenią i zgodą lekarza. Zamiast brzuszków i skrętów tułowia robi izometrię tułowia. Do tego suwnica i wiosłowanie siedząc z neutralnym kręgosłupem oraz marsz. Ciężar rośnie stopniowo, bez testu 1RM. Dobór ćwiczeń jest przykładem (wniosek), nie gotowym planem z książki.",
+   "poczatkujacy": "Start lekko: nauka wzorców z neutralnym kręgosłupem, maszyny i ćwiczenia z podparciem. Bez testu 1RM.",
+   "zaawansowany": "Jeśli lekarz dopuszcza duże obciążenia: dąż do ok. 80% 1RM, bo taki ciężar skutecznie pobudza mięśnie i kości (NSCA). Ciężki, progresywny trening nóg najlepiej działa na szyjkę kości udowej (Chandler).",
+   "specjalista": "Lekarz: rozpoznanie, zgoda i limit obciążeń. Ta decyzja jest potrzebna, bo Chandler podaje 75–80% 1RM dla kości (s. 595), ale przy osteoporozie każe unikać dużych obciążeń (s. 550–551). Fizjoterapeuta: po złamaniu lub przy bólu. Dietetyk: żywienie przy osteoporozie.",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 14",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 78",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 164",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 498–499",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 104, 120",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 550–551",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 595",
+    "Thompson — Understanding Anatomy & Physiology, s. 86, 90"
+   ],
+   "pytanie": "Czy klientce z osteoporozą dasz brzuszki i skręty tułowia „na mięśnie głębokie”?",
+   "odpowiedz": "Nie. Zgięcia i skręty kręgosłupa są na liście ćwiczeń do unikania przy osteoporozie (Chandler, s. 551). Tułów trenuj bez ruchu kręgosłupa, a cały program ustal po zgodzie lekarza.",
+   "keywords": [
+    "osteoporoza",
+    "kości"
+   ]
+  },
+  {
+   "id": "senior-starszy-dorosly",
+   "level": "sredni",
+   "title": "Senior (starszy dorosły)",
+   "sedno": "Priorytety: siła i moc, trening oporowy 2–3 nienastępujące po sobie dni, wysiłek tlenowy 3–5 dni, progresywny trening równowagi. Start od 1 serii × 10–15, potem 2–4 serie × 8–12. Przed programem senior rozmawia z lekarzem.",
+   "dlaczego": "Bez treningu siła spada o 10–20%, a moc o 30–40% na dekadę. Upadki to najczęstsza przyczyna urazów u starszych osób, a słabe mięśnie zwiększają ich ryzyko. Trening oporowy poprawia równowagę, kontrolę ruchu i szybkość chodu.",
+   "dlaKogo": "Starsi dorośli, zwłaszcza osoby z ryzykiem upadku lub z problemami z poruszaniem się.",
+   "kiedy": "Po rozmowie z lekarzem i po PAR-Q+. Zawsze, gdy celem jest samodzielność i sprawność w codziennych czynnościach.",
+   "coZrobic": [
+    "Rozmowa z lekarzem przed programem. W wywiadzie zapytaj o zawroty, utratę równowagi i upadki.",
+    "Najpierw 4 wielostawowe (przysiad lub suwnica, wyciskanie na maszynie, wiosłowanie lub ściąganie drążka, wyciskanie nad głową), potem jednostawowe.",
+    "Start 1 seria × 10–15, potem 2–4 serie × 8–12 (70–80% 1RM). Przerwy 2–3 min. Największa korzyść przy 3–4 seriach, powyżej 4 nic nie dodaje.",
+    "Słaba równowaga: maszyny z podparciem, rower stacjonarny, ćwiczenia w siadzie. Bez wykroków i wejść na skrzynię.",
+    "Równowaga progresywnie: obunóż → jednonóż, chód prosto → po okręgu, oczy otwarte → zamknięte."
+   ],
+   "przyklad": "Senior 70 l. ćwiczy 2 razy w tygodniu (wt/pt): suwnica, wyciskanie na maszynie, ściąganie drążka, wyciskanie nad głową na maszynie, po 1 serii × 10–15. Do tego stanie obunóż i jednonóż przy oparciu. Rower stacjonarny 3 dni po 20 min przy RPE 5–6/10.",
+   "poczatkujacy": "Na początku 1 seria na ćwiczenie daje podobne efekty jak kilka serii. Przy treningu siły faza koncentryczna ≥2 s. Ciężar dobieraj skalą OMNI-RES zamiast testu 1RM.",
+   "zaawansowany": "Dobrze przygotowany senior może przejść do 4–8 powtórzeń, maksymalnie 85% 1RM. Moc po zbudowaniu bazy siły: 40–60% 1RM, faza koncentryczna ≤1 s. Plyometria tylko o niskiej lub umiarkowanej intensywności i za zgodą lekarza.",
+   "specjalista": "Lekarz: przed startem programu. Także przy zawrotach, utracie równowagi lub przytomności (pytanie 3 PAR-Q+), bólu w klatce lub duszności. Fizjoterapeuta: ból stawu w trakcie lub po ćwiczeniu, powrót po złamaniu.",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 498",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 504–508",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 452–454",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 406–407",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 549, 592–593"
+   ],
+   "pytanie": "Senior ma słabą równowagę. Czy dajesz wykroki, żeby ją poprawić?",
+   "odpowiedz": "Nie na start. NSCA (tab. 18.1, s. 508) zaleca najpierw maszyny z podparciem i ćwiczenia w siadzie, bez wykroków i wejść na skrzynię. Równowagę ćwiczysz osobno i progresywnie, od stabilnych pozycji do mniej stabilnych.",
+   "keywords": [
+    "senior",
+    "starszy"
+   ]
+  },
+  {
+   "id": "mlodziez-trening-oporowy",
+   "level": "sredni",
+   "title": "Młodzież",
+   "sedno": "Trening oporowy dzieci i młodzieży jest bezpieczny i skuteczny, jeśli prowadzi go wykwalifikowana osoba, otoczenie jest bezpieczne, a obciążenie pasuje do umiejętności. Start: 1–2 serie × 8–12 przy <60% szacowanego 1RM. Ciężar rośnie o ok. 5–10% wraz z techniką. Trening 2–3 nienastępujące po sobie dni.",
+   "dlaczego": "W nadzorowanych programach nie stwierdzono zahamowania wzrostu. W żadnym opublikowanym badaniu prospektywnym nie opisano złamania chrząstki wzrostowej. Siła rośnie o ok. 30–40% po 8–12 tygodniach. Urazy grożą przy treningu bez instrukcji i niewłaściwym użyciu sprzętu.",
+   "dlaKogo": "NSCA (rozdz. 18) opisuje dzieci przed okresem dojrzewania: dziewczęta 6–11, chłopcy 6–13 lat. Chandler (s. 552–553) obejmuje dzieci i młodzież. Osobnych zaleceń dla starszych nastolatków w bazie książek brak.",
+   "kiedy": "Gdy dziecko jest dojrzałe emocjonalnie: słucha poleceń i rozumie korzyści i ryzyko. Minimalnego wieku nie ma. 5–6 lat: zabawy ruchowe, 7–8 lat: trening ustrukturyzowany.",
+   "coZrobic": [
+    "Badanie lekarskie nie jest obowiązkowe u zdrowych dzieci; zalecane przy objawach lub znanej chorobie. Formularz PAR-Q+ podpisuje też rodzic lub opiekun.",
+    "5–10 min rozgrzewki dynamicznej. Na koniec lżejsze ćwiczenia i rozciąganie statyczne.",
+    "1–2 serie × 8–12 przy <60% szacowanego 1RM; ćwiczenia na górę, dół i tułów. Obciążenie dobieraj każdemu dziecku osobno, nie jedno dla grupy.",
+    "Najpierw rosną powtórzenia, potem ciężar. Ciężar dokładaj o ok. 5–10%, gdy poprawia się technika. Przysiadu ucz w tempie 5-5-5.",
+    "60–80% szacowanego 1RM i więcej serii dopiero przy dobrej technice; ≥85% tylko u wprawnych młodych sportowców."
+   ],
+   "przyklad": "12-latek na pierwszym treningu chce sprawdzić, ile podniesie. Trener nie robi testu maksimum, tylko kieruje jego energię na technikę. Daje 1–2 serie × 8–12 lekkim ciężarem (maszyny dla dzieci, hantle, piłka lekarska, gumy, masa ciała), 2–3 dni w tygodniu z dniem przerwy.",
+   "poczatkujacy": "<60% szacowanego 1RM, 1–2 serie × 8–12. Lepiej nie docenić możliwości dziecka niż je przecenić. Skup się na sukcesach i nauce, a nie na rywalizacji.",
+   "zaawansowany": "Wprawny młody sportowiec: ≥85% szacowanego 1RM. Zmieniaj intensywność i objętość w czasie, bo długie okresy dużych obciążeń zwiększają ryzyko przetrenowania i przeciążeń. Chandler: w metaanalizie u wytrenowanych 80–89% 1RM, 5 serii × 6–8.",
+   "specjalista": "Lekarz: przed startem przy objawach choroby lub znanej chorobie. Rodzic lub opiekun: zgoda na trening; rodzic nie może zrzec się roszczeń w imieniu dziecka. Ból stawu w trakcie lub po treningu: fizjoterapeuta lub lekarz (wniosek, nie z książki).",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 495–498",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 143",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 163",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 365, 552–553"
+   ],
+   "pytanie": "Czy 10-latek może trenować z ciężarami?",
+   "odpowiedz": "Tak, pod okiem wykwalifikowanej osoby. Minimalnego wieku nie ma, ale dziecko musi rozumieć i wykonywać polecenia. Start <60% szacowanego 1RM, 1–2 serie × 8–12, 2–3 nienastępujące po sobie dni. Dziecko nie trenuje samo bez instrukcji (NSCA s. 495–497).",
+   "keywords": [
+    "młodzież",
+    "dzieci"
+   ]
+  },
+  {
+   "id": "przepuklina-dyskopatia-w-wywiadzie",
+   "level": "sredni",
+   "title": "Przepuklina i dyskopatia w wywiadzie",
+   "sedno": "Przepuklinę krążka rozpoznaje lekarz. NSCA: klient z przepukliną powinien być leczony przez wykwalifikowanego profesjonalistę medycznego, a trener trzyma się jego zaleceń. Ogólna zasada z książki: unikać zgięcia odcinka lędźwiowego, wzmacniać w neutralnej lordozie. Liczb serii i obciążeń dla przepukliny brak w bazie książek.",
+   "dlaczego": "Nadmierne zgięcie lędźwi przesuwa materiał krążka do tyłu, w stronę kanału kręgowego i korzeni nerwowych. Z drugiej strony ok. 1 na 5 osób ma przepuklinę krążka bez bólu, więc sam wynik MRI nie tłumaczy bólu.",
+   "dlaKogo": "Klient z przepukliną lub dyskopatią w wywiadzie albo z opisem obrazowania (RTG, MRI).",
+   "kiedy": "Gdy klient zgłosi to w wywiadzie, odpowie „tak” na pytanie 6 PAR-Q+ (problem kostno-stawowy w ostatnich 12 mies.) albo na pytanie uzupełniające o problemy z plecami.",
+   "coZrobic": [
+    "Czerwone flagi: ostry ból promieniujący wzdłuż nogi, ból przy kaszlu lub parciu, utrata czucia w kroczu → lekarz, bez obciążania.",
+    "Ustal z lekarzem lub fizjoterapeutą, co wolno. Bez tych ustaleń nie programuj obciążenia kręgosłupa.",
+    "Unikaj: pełnych brzuszków, przyciągania kolan do klatki, skrętów, skłonu do palców, ćwiczeń nasilających objawy w nodze.",
+    "Ostrożnie: przysiad, wiosłowania, martwy ciąg, rower (pochylenie tułowia), ergometr wioślarski.",
+    "Wskazane: izometria brzucha i prostowników w neutralnej lordozie, wyprosty bierne. Wszystko bez bólu („jeśli boli, nie rób tego”)."
+   ],
+   "przyklad": "Klient 40 l.: „dyskopatia L5-S1 dwa lata temu”, po rehabilitacji, teraz bez objawów. Trener prosi o zalecenia fizjoterapeuty. Zamiast brzuszków daje izometrię tułowia, zamiast skłonu do palców rozciąganie bez zgięcia lędźwi. Przysiad i wiosłowanie dopiero po ustaleniach, z kontrolą objawów w nodze.",
+   "poczatkujacy": "Najpierw izometria tułowia w neutralnym ustawieniu kręgosłupa i ćwiczenia bez bólu. Bez ćwiczeń, które nasilają objawy w kończynie.",
+   "zaawansowany": "Boyle przy historii bólu krzyża (ogólnie, nie tylko przy przepuklinie): bez przysiadu tylnego i klasycznego martwego ciągu. W zamian przysiad przedni, przysiad bułgarski przedni, ćwiczenia jednonóż, przysiad z pasem.",
+   "specjalista": "Lekarz: czerwone flagi, nowe lub narastające objawy w nodze (ból, drętwienie, osłabienie). Fizjoterapeuta: plan ćwiczeń terapeutycznych oraz każda sytuacja, gdy objawy się nasilają albo trener ma wątpliwości (NSCA s. 569).",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 569–572",
+    "Crossley — Ćwiczenia funkcjonalne i rehabilitacja, s. 184, 189",
+    "Crossley — Ćwiczenia funkcjonalne i rehabilitacja, s. 203, 229",
+    "Thompson — Understanding Anatomy & Physiology, s. 107, 174",
+    "Boyle — Advances in Functional Training, rozdz. 3 Injuries, § Injury Prevention Suggestions (baza nie ma numerów stron)"
+   ],
+   "pytanie": "Klient pokazuje MRI z „przepukliną krążka”, ale nic go nie boli. Co robisz?",
+   "odpowiedz": "Nie interpretujesz wyniku i nie straszysz klienta: ok. 1 na 5 osób ma przepuklinę bez bólu (Crossley s. 203, 229). Prosisz o zalecenia lekarza lub fizjoterapeuty, unikasz obciążonego zgięcia lędźwi i obserwujesz objawy w nodze.",
+   "keywords": [
+    "przepuklina",
+    "dyskopatia",
+    "kręgosłup"
+   ]
+  },
+  {
+   "id": "rozgrzewka-i-serie-wstepne",
+   "level": "podstawy",
+   "title": "Rozgrzewka i serie wstępne",
+   "sedno": "Rozgrzewka ma podnieść temperaturę mięśni i nie męczyć. Ma dwie części: ogólną (ok. 5–15 min, do lekkiego potu) i specyficzną, czyli stopniowane serie danego ćwiczenia aż do ciężaru roboczego. Serie wstępne nie wliczają się do objętości.",
+   "dlaczego": "NSCA: zmęczenie w rozgrzewce może pogorszyć wynik i zwiększyć ryzyko urazu. Najlepsza jest rozgrzewka specyficzna, bo grzeje te mięśnie, które zaraz pracują. Chandler: rozciąganie statyczne obniża siłę i moc o 4–30% na 30–60 min, więc nie należy do rozgrzewki.",
+   "dlaKogo": "Każdy klient przed każdą sesją. Liczba serii wstępnych zależy od ciężaru: im cięższe serie robocze, tym więcej stopni.",
+   "kiedy": "Na początku sesji. Serie wstępne robisz przed pierwszym ćwiczeniem wielostawowym. Dalsze ćwiczenia na rozgrzane już partie potrzebują mniej stopni.",
+   "coZrobic": [
+    "Część ogólna 5–10 min (rower, wioślarz) albo ćwiczenia z masą ciała o rosnącym tempie.",
+    "Aktywacja i mobilizacja: rozciąganie dynamiczne, po 5–10 powtórzeń na ćwiczenie, bez statycznego rozciągania.",
+    "Serie wstępne do ciężaru roboczego według tabeli Helmsa (s. 224).",
+    "Sprawdź gotowość: brak bólu, kontrola pełnego zakresu ruchu. Jeśli coś boli, nie przechodź do serii roboczych.",
+    "U początkujących, osób z otyłością i świeżo po urazie pomiń fazę potencjacji (skoki, rzuty)."
+   ],
+   "przyklad": "Przysiad 3×8 na 80 kg (serie 6+ powtórzeń, Helms s. 224): 8×40 kg (50%), 4×56 kg (70%), 2×72 kg (90%), potem serie robocze. Przy seriach 1–5 powtórzeń Helms daje więcej stopni: 5×50%, 4×60%, 3×70%, 2×80%, 1×90%.",
+   "poczatkujacy": "Stachurski: wystarczy 1 seria wstępna przed seriami roboczymi. NSCA w programach przykładowych podaje 2–3 serie rozgrzewkowe. Bez fazy potencjacji (Głuchowski s. 281).",
+   "zaawansowany": "Przy ciężkich seriach (1–5 powtórzeń) pełna drabinka 5–6 stopni (Helms s. 224). NSCA: lepiej wytrenowany klient zwykle potrzebuje dłuższej lub intensywniejszej rozgrzewki.",
+   "specjalista": "Ból, który nie mija po rozgrzewce, nie jest powodem, żeby ją wydłużać. Głuchowski s. 282–283: rozgrzewka nie jest zakończona przy bólu. Ból utrzymujący się kilka tygodni: fizjoterapeuta lub lekarz sportowy (Helms s. 41–42).",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 279–280",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 421–422",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 221–224",
+    "Głuchowski — Zaplanuj swój trening, s. 182–183, 274–283",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 70",
+    "Global Sport Academy — Skrypt Kursu Trenera Personalnego, s. 108–110",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 214–225"
+   ],
+   "pytanie": "Ile trwa rozgrzewka według NSCA i czym różni się od zaleceń Głuchowskiego?",
+   "odpowiedz": "NSCA: ok. 5–15 min, do lekkiego potu, bez zmęczenia. Głuchowski: 10–30 min w modelu RAMP. GSA i Chandler: część ogólna 5–10 min. Różnica wynika z zakresu: Głuchowski wlicza aktywację i serie przygotowawcze. Wspólne jest to, że nie rozciąga się statycznie przed treningiem.",
+   "keywords": [
+    "rozgrzewka",
+    "serie wstępne"
+   ]
+  },
+  {
+   "id": "pierwszy-plan-nowego-klienta",
+   "level": "podstawy",
+   "title": "Pierwszy plan nowego klienta",
+   "sedno": "Nowemu klientowi daj FBW 2–3× w tygodniu w dni nie po sobie: jedno ćwiczenie na grupę mięśni, wielostawowe przed izolacjami, 1–3 serie po 8–12 powtórzeń z zapasem. Ciężar dobierz próbami w pierwszych sesjach, bez testu 1RM.",
+   "dlaczego": "Początkujący robi postępy od prostego bodźca i progresuje z sesji na sesję (Helms s. 100–103). Test 1RM zajmuje ponad pół godziny na ćwiczenie i NSCA zostawia go zaawansowanym. Serie do upadku u nowicjusza zwiększają zakwasy (NSCA s. 406).",
+   "dlaKogo": "Osoby bez aktualnego treningu siłowego albo wracające po długiej przerwie, zdrowe lub po kwalifikacji zdrowotnej.",
+   "kiedy": "Pierwsze 6–12 sesji (NSCA każe potem ponownie ocenić plan). Dalej rozbudowa: więcej serii, potem Upper/Lower albo DUP.",
+   "coZrobic": [
+    "Kwalifikacja: PAR-Q+. Każde „tak” oznacza kontakt z lekarzem przed testami i zwiększeniem aktywności (NSCA s. 146–153).",
+    "Wybierz liczbę dni realnie: Głuchowski radzi wziąć o 1 mniej, niż klient deklaruje (s. 207).",
+    "Ułóż ok. 8 ćwiczeń, po jednym na grupę (klatka, barki, plecy, biodra i uda, biceps, triceps, brzuch, łydki): wielostawowe na początku, izolacje na końcu.",
+    "Ciężar: zacznij ostrożnie i koryguj po każdej serii. Gdy klient zrobiłby ponad 3 powtórzenia więcej niż zakres, ciężar jest za lekki.",
+    "Zostaw 2–3 powtórzenia w zapasie i nie prowadź serii do upadku."
+   ],
+   "przyklad": "FBW 3× (pn/śr/pt), wniosek bazy NSCA z tab. 15.6: suwnica lub przysiad goblet, wyciskanie na maszynie, ściąganie drążka, wyciskanie nad głową na maszynie, potem uginanie nóg, biceps, triceps, łydki. Każde 1–3×8–12 przy RPE 7–8. Tygodnie 1–2: 1 seria, 3–4: 2 serie, od 5.: 3 serie.",
+   "poczatkujacy": "NSCA: głównie maszyny i proste wolne ciężary, 3–5 maszyn na start. Helms: 10–12 serii na mięsień tygodniowo, 2–3×, bez testu maksimum. Głuchowski: 2 treningi wystarczą na pierwsze efekty, 3 są lepsze; RIR 5–3.",
+   "zaawansowany": "Nie dotyczy pierwszego planu. Osoba z historią treningu może zacząć od testu 3–5RM z asekuracją (Helms s. 237) albo od 5RM/10RM w ćwiczeniach podstawowych (NSCA).",
+   "specjalista": "Lekarz: „tak” w PAR-Q+, rozpoznana choroba serca, metaboliczna lub nerek u osoby nieaktywnej (NSCA s. 151–152), ciąża. Fizjoterapeuta: świeży uraz albo ból przy ruchu. Takim osobom nie rób testów RM.",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 398–410",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 146–153",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 79, 100–107, 208, 236–241",
+    "Głuchowski — Zaplanuj swój trening, s. 110, 207, 226",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 67–70"
+   ],
+   "pytanie": "Jak dobrać ciężar w pierwszym treningu bez testu 1RM?",
+   "odpowiedz": "Ustal zakres powtórzeń (np. 8–12), zacznij od ostrożnego ciężaru i koryguj po serii. Jeśli klient zrobiłby ponad 3 powtórzenia więcej, dołóż. NSCA: u początkujących ustalenie ciężarów może zająć kilka sesji, a test RM ogranicz do 3 serii; w izolacjach nie ciężej niż ok. 8RM.",
+   "keywords": [
+    "nowy klient",
+    "pierwszy plan",
+    "FBW",
+    "początkujący"
+   ]
+  },
+  {
+   "id": "progresja-liniowa-i-podwojna",
+   "level": "sredni",
+   "title": "Progresja liniowa i podwójna progresja",
+   "sedno": "Progresja liniowa: te same serie i powtórzenia, co sesję lub tydzień trochę więcej ciężaru. Podwójna progresja: najpierw powtórzenia do górnej granicy zakresu we wszystkich seriach, potem najmniejszy skok ciężaru. Liniowa pasuje początkującym w wielostawowych, podwójna izolacjom.",
+   "dlaczego": "Początkujący rośnie w siłę z sesji na sesję, więc stały skok działa (Helms s. 100–107). W izolacjach skoki ciężaru są duże względem obciążenia, więc łatwiej dodawać powtórzenia. Stachurski: ruchy globalne progresuj ciężarem, izolowane powtórzeniami (s. 61).",
+   "dlaKogo": "Liniowa: początkujący (wg Helmsa staż to tempo postępu, nie lata). Podwójna: izolacje u średniozaawansowanych i zaawansowanych, u Helmsa także akcesoria w szablonach.",
+   "kiedy": "Liniowa kończy się, gdy mimo resetu i mniejszych skoków klient stoi na większości bojów. Wtedy Helms przechodzi na falę 3-tygodniową (3×8 → 3×7 → 3×6).",
+   "coZrobic": [
+    "Wielostawowe u początkującego: Helms +2,5 kg na sesję (przysiad, martwy ciąg +5 kg). NSCA dla początkujących: góra 1–2 kg, dół 4–7 kg.",
+    "Sesja nieudana (nie wszystkie powtórzenia): następnym razem ten sam ciężar.",
+    "Dwie nieudane sesje z rzędu: −10% i odbudowa, dalej skoki o połowę mniejsze.",
+    "Izolacje: ustal zakres (np. 8–15), dokładaj powtórzenia; przy górnej granicy we wszystkich seriach dołóż najmniejszy skok.",
+    "Alternatywa NSCA (2-za-2): +2 powtórzenia ponad cel w ostatniej serii w 2 kolejnych sesjach = +2,5–10% ciężaru."
+   ],
+   "przyklad": "Helms s. 211, liniowa: tydzień 1 3×8×100 kg, tydzień 2 3×8×102,5 kg. Podwójna: 25 kg w zakresie 8–15, np. 12/11/10 → … → 15/15/15, potem najmniejszy skok. NSCA tab. 15.8: przysiad 3×10 przy 135 lb → 145 lb.",
+   "poczatkujacy": "Wielkość skoku różni się między książkami: Helms +2,5 kg co sesję, Chandler +2,5 kg na tydzień, Stachurski co tydzień po ok. 0,5 kg. Helms opisuje progresję trójboisty z %1RM, Stachurski plan sylwetkowy. Bezpieczniej zacząć od mniejszego skoku.",
+   "zaawansowany": "Średniozaawansowany: fala w wielostawowych, podwójna w izolacjach; zaawansowany: bloki (Helms s. 208). Głuchowski w bloku objętościowym progresuje seriami (+1/tydz.) albo powtórzeniami (+2/tydz.) w jednym ćwiczeniu na partię priorytetową.",
+   "specjalista": "Ból stawów lub ścięgien przy dokładaniu ciężaru: Helms daje tydzień 12–20 powtórzeń, a przy bólu trwającym kilka tygodni każe iść do specjalisty. Obrzęk, ucieplenie, utrata zakresu ruchu: sygnał za szybkiej progresji (NSCA s. 568).",
+   "sources": [
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 100–110, 208, 211, 241",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 410–411",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 28, 45, 61, 67",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 426–427",
+    "Głuchowski — Zaplanuj swój trening, s. 257"
+   ],
+   "pytanie": "Klient w uginaniu ramion z 12 kg zrobił 15, 15, 15 przy zakresie 10–15. Co dalej?",
+   "odpowiedz": "Podwójna progresja: dołóż najmniejszy dostępny skok ciężaru i zacznij znów od dolnej części zakresu, potem dokładaj powtórzenia. Według NSCA dla pomocniczych ćwiczeń góry u początkującego to 0,5–1 kg (1–2%).",
+   "keywords": [
+    "progresja",
+    "podwójna progresja",
+    "obciążenie"
+   ]
+  },
+  {
+   "id": "rir-w-praktyce",
+   "level": "sredni",
+   "title": "RIR w praktyce",
+   "sedno": "RIR to liczba powtórzeń, które klient zrobiłby jeszcze w dobrej technice. Nowicjusze szacują go źle, więc RIR trzeba ćwiczyć: najpierw seria z planowanym zapasem, potem kontrolna seria do upadku tym samym ciężarem. Docelowy RIR zależy od stażu i ćwiczenia.",
+   "dlaczego": "%1RM nie uwzględnia formy dnia i różnic między ludźmi (przy 75% 1RM od 7 do 24 powtórzeń). RIR pozwala korygować ciężar między seriami. NSCA: RIR jest niedokładny daleko od upadku, a nowicjusze słabiej go oceniają.",
+   "dlaKogo": "Wszyscy, ale u początkujących RIR uzupełnia plan, a nie jest jedynym sposobem doboru ciężaru (NSCA s. 407; Helms: samo RPE dopiero po kilku miesiącach praktyki).",
+   "kiedy": "Od pierwszych tygodni jako zapis po serii. Kalibrację do upadku rób w bezpiecznych ćwiczeniach: maszyny i izolacje. Nie w przysiadzie, martwym ciągu ani wyciskaniu nad głową ze sztangą.",
+   "coZrobic": [
+    "Test NSCA: seria z poleceniem „zatrzymaj się 3 powtórzenia przed upadkiem”, zapisz powtórzenia, 1–2 min przerwy, ten sam ciężar do upadku.",
+    "Porównaj: jeśli w drugiej serii wyszło wyraźnie więcej niż szacunek, klient zaniża RIR.",
+    "Helms: nagrywaj serie i zrób blok 3–6 tygodni z seriami do upadku w izolacjach; pomaga ocena trenera.",
+    "Ustaw docelowy RIR według stażu (Głuchowski s. 110) i typu ćwiczenia (Helms s. 209–210).",
+    "Stachurski: obserwuj tempo. Jeśli cała seria idzie płynnie, bez zwolnienia, ciężar jest za mały."
+   ],
+   "przyklad": "Wyciskanie na maszynie 40 kg, cel RIR 3: klient robi 10 i ocenia „3 w zapasie”. Po 2 min do upadku robi 16, czyli realnie miał ok. 6 w zapasie. Następna seria: cięższa. Stachurski (s. 54): faza koncentryczna ok. 2 s ≈ RIR 3, 3–5 s ≈ RIR 1.",
+   "poczatkujacy": "Głuchowski: RIR 5–3. NSCA (wniosek bazy dla FBW): RPE 7–8, czyli 2–3 RIR. Stachurski: RIR 1–4, ale przyznaje, że osobom bez doświadczenia trudno go ocenić. Różnica: Głuchowski za minimum skuteczne uznaje RIR 5, Stachurski stawia granicę na RIR 4.",
+   "zaawansowany": "Głuchowski: średnio zaawansowani 5–1, zaawansowani 5–0, upadek tylko okresowo; RIR spada maks. o 1 na tydzień, a 1–0 dopiero w ostatnim tygodniu bloku. Schoenfeld: większość serii RIR 1–2, upadek na ostatniej serii, śmielej w izolacjach. Helms: bez upadku w przysiadzie, MC i OHP.",
+   "specjalista": "Bez serii do upadku i bez testu do upadku u osób po świeżym urazie i pod nadzorem medycznym (NSCA s. 405). Choroby krążenia: zgoda lekarza i bez RIR 0 (reguła ostrożności Progress Live, spoza książek).",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 405–408",
+    "Głuchowski — Zaplanuj swój trening, s. 106–110, 255–256",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 64–68, 209–210, 217",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 48, 54–55",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 129–135"
+   ],
+   "pytanie": "Jakie zakresy RIR podaje Głuchowski dla poszczególnych poziomów zaawansowania?",
+   "odpowiedz": "Początkujący 5–3, średnio zaawansowani 5–1, zaawansowani 5–0, z upadkiem tylko okresowo (s. 110). Inni autorzy stawiają niżej: Stachurski RIR 1–4, Schoenfeld większość serii RIR 1–2. Wartości ze s. 110 potwierdza baza Głuchowskiego; oryginału książki nie ma w źródłach.",
+   "keywords": [
+    "RIR",
+    "RPE"
+   ]
+  },
+  {
+   "id": "objetosc-tygodniowa-i-na-sesje",
+   "level": "sredni",
+   "title": "Objętość tygodniowa i na sesję",
+   "sedno": "Objętość licz w trudnych seriach na partię na tydzień. Liczby z książek się różnią, bo autorzy inaczej liczą serie pośrednie. Helms: 10–12 / 13–15 / 16–20 wg stażu. Głuchowski (MEV–MAV): od 3–7 u początkującego do 9–15 u zaawansowanego. Na jedną sesję maks. ok. 10 serii na partię.",
+   "dlaczego": "Zależność efektu od objętości ma kształt odwróconego U: za mało i za dużo daje gorszy wynik (Głuchowski s. 93–98, Helms s. 46–62). W metaanalizie omawianej przez Schoenfelda <5, 5–9 i 10+ serii/tydz. dało średnio 5,4%, 6,6% i 9,8% wzrostu (s. 78–86).",
+   "dlaKogo": "Klienci z celem hipertrofii lub ogólnej siły, trenujący co najmniej 2 razy w tygodniu. Osoby z chorobą przewlekłą: dopiero po zgodzie lekarza.",
+   "kiedy": "Na starcie bloku (ustalasz objętość startową), przy zastoju (zwiększasz) i przy objawach przeładowania (zmniejszasz). Helms: objętość zwiększaj dopiero przy zastoju i dobrej regeneracji (s. 46–62).",
+   "coZrobic": [
+    "Ustal staż po tempie postępów (Helms s. 100–103): postęp z sesji na sesję = początkujący, z tygodnia na tydzień = średniozaawansowany, z miesiąca na miesiąc = zaawansowany.",
+    "Wybierz jedną metodę liczenia serii i trzymaj się jej: 1:1 dla mięśni głównych i dodatkowych (Helms tab. s. 84, Schoenfeld s. 183–184) albo 0,3–0,5 serii dla synergisty (Głuchowski s. 232–233).",
+    "Zacznij od dołu zakresu. Helms: 10–12 serii u początkującego (s. 208). Głuchowski: partia priorytetowa = górna granica MEV, neutralne = dolna granica MEV, partie na utrzymaniu = MV (s. 224–227).",
+    "Na sesję daj maks. 10 serii na partię i 20–30 serii łącznie (Głuchowski s. 225–226). Gdy partia ma więcej niż 10 serii, rozłóż je na kolejną sesję.",
+    "Objętość zwiększaj o ok. 2,5–5% tygodniowo albo +1 seria na tydzień w ćwiczeniu priorytetowym (Głuchowski s. 50, 201–202). Przy objawach przeładowania (s. 97) zmniejsz objętość."
+   ],
+   "przyklad": "Plan Głuchowskiego (s. 226–234), średniozaawansowany, 4 dni, priorytet klatka i pośladki. Budżet: 20 serii × 4 sesje = 80. Klatka ma 11 serii/tydz. (6 w treningu I + 5 w treningu III). Czworoboczny ma 5 serii zamiast 7, bo pracuje też przy plecach. Czworogłowe (4) i triceps (3) są na utrzymaniu.",
+   "poczatkujacy": "Helms: 10–12 serii/mięsień/tydz., mało ćwiczeń, progresja ciężarem (s. 107, 208). Głuchowski: MEV 3, MAV 5–7, MRV 15 (tab. s. 95), ok. 20 serii na sesję (s. 226). NSCA: wystarcza mniejsza objętość, 1–3 serie na ćwiczenie (tab. 15.6, s. 409). Różnicę Helms–Głuchowski tłumaczy prawdopodobnie liczenie serii pośrednich (wniosek).",
+   "zaawansowany": "Helms: 16–20 serii (s. 208); ponad ok. 20 tylko wtedy, gdy regeneracja jest optymalna (s. 62). Głuchowski: zaawansowany MEV 9–10, MAV 15, MRV 30 (s. 95). Schoenfeld: mięsień opóźniony w rozwoju selektywnie do ok. 30 serii, 1–2 mięśnie naraz, kosztem serii innych partii (s. 86, 209).",
+   "specjalista": "Objawy przeładowania (ból stawów i ścięgien, gorszy sen, bóle głowy; Głuchowski s. 97): najpierw zmniejsz objętość. Ból stawu trwający kilka dni → fizjoterapeuta. Insulinooporność, Hashimoto → mniejsza dawka (Głuchowski s. 76–77) i konsultacja lekarska (reguła Progress Live, nie z książki).",
+   "sources": [
+    "Głuchowski — Zaplanuj swój trening, s. 93–98",
+    "Głuchowski — Zaplanuj swój trening, s. 95",
+    "Głuchowski — Zaplanuj swój trening, s. 97",
+    "Głuchowski — Zaplanuj swój trening, s. 225–226",
+    "Głuchowski — Zaplanuj swój trening, s. 232–233",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 46–62",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 84",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 208",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 78–86",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 183–184",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 411–412"
+   ],
+   "pytanie": "Średniozaawansowany klient robi w tygodniu 4 serie wyciskania leżąc, 3 serie rozpiętek i 3 serie wyciskania nad głowę. Ile serii ma przedni akton barku?",
+   "odpowiedz": "Według Helmsa (licz 1:1, przedni akton jako mięsień główny w wyciskaniu poziomym i pionowym, dodatkowy w rozpiętkach; tab. s. 84): 4 + 3 + 3 = 10. Według Głuchowskiego: 3 serie bezpośrednie + 0,3–0,5 × 7 = ok. 5–6,5 (s. 232–233). W planie używaj jednej metody.",
+   "keywords": [
+    "objętość",
+    "serie",
+    "MEV",
+    "MAV"
+   ]
+  },
+  {
+   "id": "czestotliwosc-i-wybor-splitu",
+   "level": "sredni",
+   "title": "Częstotliwość i wybór splitu",
+   "sedno": "Przy tej samej objętości trening mięśnia 1–4 razy w tygodniu daje podobny wzrost (Schoenfeld s. 86–91). Częstotliwość służy do rozłożenia serii: im więcej serii na partię, tym więcej sesji. Split dobierasz do realnej liczby dni, stażu i serii na partię.",
+   "dlaczego": "Na jedną sesję przypada sensownie ok. 10 serii na mięsień (Schoenfeld s. 84–87, Głuchowski s. 225), więc większa objętość wymaga więcej dni. Głuchowski: nazwa systemu (FBW, split) jest drugorzędna, liczy się suma parametrów (s. 86–88).",
+   "dlaKogo": "Każdy klient trenujący siłowo. Najwięcej zyskują osoby, którym rośnie objętość i którym wydłużają się sesje.",
+   "kiedy": "Na starcie współpracy, przy zmianie liczby dni i przy przejściu na wyższy staż. Helms: jeśli klient ma 4 dni, planuj 4, a nie „optymalne” 6 (s. 30–34). Głuchowski: zaplanuj o 1 trening mniej, niż klient deklaruje (s. 207).",
+   "coZrobic": [
+    "Ustal realną liczbę dni treningowych (Głuchowski s. 207: o 1 mniej, niż klient deklaruje).",
+    "Policz serie na partię i dobierz częstotliwość z tabeli Głuchowskiego (s. 121): początkujący do 5 / 10 / 15 serii → 1 / 2 / 3 razy w tygodniu; zaawansowany do 10 / 20 / 30 serii → 1 / 2 / 3 razy.",
+    "2–3 dni: FBW w dni nienastępujące po sobie, np. pn/czw, wt/czw/sob, pn/śr/pt (NSCA s. 398).",
+    "4 dni: góra/dół, np. góra w pn i czw, dół we wt i pt; każdy mięsień ma wtedy co najmniej 48 h przerwy (NSCA s. 399).",
+    "Zaawansowany, 5–6 dni: pchanie / nogi / ciągnięcie, 3 dni treningu i 1 dzień wolny (NSCA s. 399; Schoenfeld s. 208–209)."
+   ],
+   "przyklad": "Początkujący, 3 dni, 10 serii/tydz. na klatkę. Tabela Głuchowskiego (s. 121) daje 2 sesje klatki w tygodniu, np. FBW pn/śr/pt z klatką 2 razy po 5 serii. Po przejściu na 4 dni i 13–15 serii (Helms s. 208): góra/dół, klatka 2 razy po 6–8 serii, czyli poniżej limitu 10 serii na sesję (wyliczenie z liczb książek).",
+   "poczatkujacy": "NSCA: 2–3 sesje całego ciała w tygodniu (tab. 15.2, s. 399) i 1–3 dni przerwy, najlepiej nie więcej niż 3 (s. 398). Helms: 2–3 razy w tygodniu (s. 208). 2 dni wystarczą zapracowanemu początkującemu, ale z czasem większość potrzebuje co najmniej 3 (s. 79, 204). Stachurski: 3 dni FBW albo 4 dni góra/dół (s. 67).",
+   "zaawansowany": "NSCA: 3–6 sesji w tygodniu (tab. 15.2). Helms: 3–5 (s. 208). Głuchowski: 3–5 treningów, partia maks. 3 razy w tygodniu, powyżej 5 dni pojawiają się problemy z regeneracją (s. 80, 121, 207). Schoenfeld: przy tej samej objętości 6 dni nie daje więcej niż 3 (s. 91).",
+   "specjalista": "",
+   "sources": [
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 86–91",
+    "Głuchowski — Zaplanuj swój trening, s. 86–88",
+    "Głuchowski — Zaplanuj swój trening, s. 114",
+    "Głuchowski — Zaplanuj swój trening, s. 121",
+    "Głuchowski — Zaplanuj swój trening, s. 207",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 398–399",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 30–34",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 79–80",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 208",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 38, 58–59, 67",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 424"
+   ],
+   "pytanie": "Kiedy przejść z FBW na góra/dół?",
+   "odpowiedz": "Gdy klient ma realnie 4 dni (NSCA tab. 15.2: średniozaawansowany 3 dni FBW albo 4 dni splitu, s. 399). Albo gdy sesje FBW są za długie lub wyniki spadają pod koniec sesji: wtedy dodaj dzień (Helms s. 79, 126). Sam wzrost stażu nie wymaga zmiany częstotliwości (NSCA s. 399).",
+   "keywords": [
+    "częstotliwość",
+    "split",
+    "Upper/Lower",
+    "FBW"
+   ]
+  },
+  {
+   "id": "przerwy-miedzy-seriami",
+   "level": "podstawy",
+   "title": "Przerwy między seriami",
+   "sedno": "Przerwa ma wystarczyć, by kolejną serię zrobić z planowanym ciężarem i dobrą techniką. Wielostawowe: ≥2–3 min (NSCA) lub ≥2,5 min (Helms). Jednostawowe i maszyny: 60–90 s (NSCA, Schoenfeld) lub ≥1,5 min (Helms). Siła: 2–5 min (NSCA), 3–5 min (Głuchowski, Stachurski).",
+   "dlaczego": "Za krótkie przerwy obniżają objętość-obciążenie, a przez to wzrost (NSCA s. 412). Głuchowski (wykres s. 154, odczyt przybliżony), 5 serii po 10: przy 1 min przerwy wyszło 10, 4, 2, 1, 1 powtórzeń, przy 3 min 10, 5, 5, 4, 4. Helms: krótkie przerwy „dla hormonów” nie mają podstaw (s. 172–177).",
+   "dlaKogo": "Wszyscy klienci. Początkujący, którzy uczą się nowego lub technicznego ćwiczenia, mają osobne wartości: 2–5 min (NSCA s. 412).",
+   "kiedy": "Przy pisaniu planu i w trakcie sesji. Jeśli przy wybranej przerwie technika się pogarsza, wydłuż przerwę (NSCA, przypis do tab. 15.9, s. 412).",
+   "coZrobic": [
+    "Przypisz ćwiczenie do typu: wielostawowe z wolnym ciężarem, wielostawowe na maszynie, izolowane.",
+    "Hipertrofia: wielostawowe 2–3 min, izolowane 60–90 s (NSCA tab. 15.9). Jeśli klient nie odzyskuje powtórzeń w kolejnych seriach, użyj wartości Helmsa: ≥2,5 min i ≥1,5 min (s. 184).",
+    "Siła i moc: 2–5 min (NSCA tab. 15.9). Przy 90–100% CM nawet do 10 min (Głuchowski s. 153).",
+    "Wytrzymałość mięśniowa (obwody): poniżej 30 s; między ćwiczeniami na te same mięśnie do 3 min (NSCA s. 412).",
+    "Brak czasu: łącz w pary antagonistów, np. wyciskanie + wiosłowanie, z ok. 2 min przerwy między wielostawowymi ćwiczeniami góry. Nie łącz tak przysiadu, martwego ciągu ani wykroków (Helms s. 177–184)."
+   ],
+   "przyklad": "Średniozaawansowany, hipertrofia. Przysiad 3×8: przerwa 2,5–3 min (NSCA ≥2–3 min, Helms ≥2,5 min). Suwnica 3×12: ok. 2 min (Głuchowski s. 153: maszyna wielostawowa, wysoki wysiłek ok. 120 s). Prostowanie nóg 3×15: 60–90 s (NSCA) albo co najmniej 90 s (Helms).",
+   "poczatkujacy": "NSCA: przy nauce nowego lub technicznego ćwiczenia przerwy 2–5 min. Wartości z tab. 15.9 stosuj dopiero po opanowaniu techniki (s. 412). Wyjątek: FBW wytrzymałościowe dla początkującego, 2×15 na maszynach z przerwami 30 s (tab. 15.13, s. 417–419).",
+   "zaawansowany": "Głuchowski: przerwa zależy od wysiłku i typu ćwiczenia. Przy bardzo wysokim wysiłku w wielostawowych z wolnym ciężarem ok. 300 s (wykres s. 153, odczyt przybliżony). Przy rosnącej objętości przerwy można wydłużać o 10–20% tygodniowo (s. 256). Rest-pause (20–30 s) tylko w akcesoriach (Helms s. 177–184).",
+   "specjalista": "",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 412",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 625",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 172–177",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 184",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 111–114",
+    "Głuchowski — Zaplanuj swój trening, s. 150–154",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 48, 62",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 424–425"
+   ],
+   "pytanie": "Dlaczego NSCA podaje dla izolacji 60–90 s, a Helms co najmniej 1,5 min?",
+   "odpowiedz": "Liczby się prawie stykają: NSCA (tab. 15.9, s. 412) daje zakres 60–90 s, a Helms (s. 184) minimum 90 s i zasadę „odpoczywaj, aż będziesz gotowy na najlepszą serię”. Górna granica NSCA to dolna granica Helmsa. W wielostawowych: NSCA ≥2–3 min, Helms ≥2,5 min; NSCA w rozdz. 23: ≥2 min (tab. 23.5, s. 625). Schoenfeld: ≥2 min i 60–90 s (s. 111–114).",
+   "keywords": [
+    "przerwy",
+    "odpoczynek"
+   ]
+  },
+  {
+   "id": "dobor-cwiczen-do-partii",
+   "level": "sredni",
+   "title": "Dobór ćwiczeń do partii",
+   "sedno": "Zacznij od wzorca ruchu i mięśnia docelowego. Potem sprawdź sprzęt, ból i to, czy w ćwiczeniu da się progresować. Na dużą partię: 1–2 ćwiczenia wielostawowe i 1–3 izolacje (Helms s. 152). Jednego najlepszego ćwiczenia nie ma: mięśnie rosną regionalnie, więc różne kąty dają więcej (Schoenfeld s. 100–103).",
+   "dlaczego": "Przy tej samej liczbie serii kilka ćwiczeń na partię daje więcej niż jedno (Głuchowski s. 59–67). W badaniu przytoczonym przez Helmsa 4 różne ćwiczenia dały równiejszy rozwój głów czworogłowego (s. 146–154). Gdy pierwszy męczy się chwyt albo synergista, mięsień docelowy nie dostaje pełnego bodźca (Głuchowski s. 139–141).",
+   "dlaKogo": "Każdy klient. Liczba ćwiczeń, które klient może dobrze wykonywać, rośnie ze stażem (NSCA tab. 15.1, s. 396).",
+   "kiedy": "Przy budowie planu, przy zmianie bloku (nie częściej niż co 4–8 tyg., Głuchowski s. 59–63) i od razu, gdy ćwiczenie boli. Główne ćwiczenia wielostawowe zostają przez wiele mezocykli, izolacje można rotować (Helms s. 146–154).",
+   "coZrobic": [
+    "Sprawdź, czy plan ma każdy wzorzec: przysiad, zawias biodrowy, wyciskanie poziome i pionowe, przyciąganie poziome i pionowe (GSA s. 104–106; Helms tab. s. 84).",
+    "Spisz dostępny sprzęt (NSCA s. 400). Bez siłowni: masa ciała, gumy, TRX (NSCA s. 280–286) i progresje z GSA (s. 112–150).",
+    "Gdy ćwiczenie boli: zmieniaj pozycję, obciążenie, zakres lub wariant, aż ruch będzie bez bólu (Crossley s. 217–220). Przykład: ból łokci lub barków przy wyciskaniu leżąc → wąski chwyt, wyciskanie żołnierskie lub hantle (Helms s. 155–163).",
+    "Wybierz wariant, w którym klient może dokładać ciężar lub powtórzenia. Do progresji na %1RM lepsza jest sztanga (Helms s. 248–254). Gdy chwyt lub synergista kończy serię przed mięśniem docelowym → maszyna albo izolacja (Głuchowski s. 139–141).",
+    "Ustal kolejność: wielostawowe przed jednostawowymi (NSCA s. 402–404), partia priorytetowa na początku sesji (Głuchowski s. 144–148)."
+   ],
+   "przyklad": "Najszerszy: podciąganie lub ściąganie nachwytem (chwyt 1–2× szer. barków); za słaby na podciąganie → ściąganie lub podciąganie z gumą. Klatka: wyciskanie płasko + skos 30–45° + rozpiętki. Czworogłowe: przysiad + prostowanie nóg. Dwugłowe: RDL + uginanie nóg. Pośladki: głęboki przysiad, hip thrust, odwodzenie (Schoenfeld s. 183–190; Helms s. 248–254).",
+   "poczatkujacy": "NSCA: 1 ćwiczenie na grupę (klatka, barki, górna część pleców, biodra i uda, biceps, triceps, brzuch, łydki), najpierw maszyny i proste ćwiczenia z wolnym ciężarem (s. 401–402). GSA: zacznij od wariantu, który klient robi poprawnie, np. przysiad TRX → box → air → goblet; przy błędach krok w tył (s. 112–122).",
+   "zaawansowany": "Głuchowski: więcej izolacji i maszyn dla priorytetów, bo mniej męczą (s. 240); serie partii priorytetowej np. 50% wielostawowe, 25% izolacja uzupełniająca, 25% izolacja omijająca czynnik limitujący (s. 242–243). Schoenfeld: łącz ćwiczenia z maksimum oporu w rozciągnięciu (rozpiętki), w skurczu (hip thrust) i w środku zakresu (s. 178–182).",
+   "specjalista": "Przy urazie dobór ćwiczeń uzgodnij z profesjonalistą medycznym (NSCA s. 402). Czerwone flagi: ból nocny, niezwiązany z ruchem, promieniujący wzdłuż nogi, ból przy kaszlu, utrata czucia w okolicy krocza → od razu lekarz (Crossley s. 184, 189–190). Konflikt podbarkowy: zamienniki z NSCA (s. 575–576) dopiero po zgodzie fizjoterapeuty.",
+   "sources": [
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 84",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 146–154",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 155–163",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 248–254",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 100–103",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 178–190",
+    "Głuchowski — Zaplanuj swój trening, s. 59–67",
+    "Głuchowski — Zaplanuj swój trening, s. 139–148",
+    "Głuchowski — Zaplanuj swój trening, s. 240–243",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 396",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 400–404",
+    "Global Sport Academy — Skrypt Kursu Trenera Personalnego, s. 104–106",
+    "Global Sport Academy — Skrypt Kursu Trenera Personalnego, s. 112–150",
+    "Crossley — Ćwiczenia funkcjonalne i rehabilitacja, s. 217–220",
+    "Boyle — Advances in Functional Training, rozdz. 1 § Using Functional Exercises; rozdz. 8 § Equipment Choices (e-book bez numerów stron)"
+   ],
+   "pytanie": "Czy prostowanie i uginanie nóg na maszynie to strata czasu?",
+   "odpowiedz": "To zależy od celu. Boyle (trening sportowców) uważa izolacje dla stawów zawiasowych za stratę czasu i zamiast uginania nóg daje martwy ciąg jednonóż (rozdz. 1, 8). Schoenfeld (hipertrofia): sam przysiad nie rozwija mięśnia prostego uda, a dwugłowe uda pracują w wielostawowych mniej więcej w połowie, więc izolacje są potrzebne (s. 183–190).",
+   "keywords": [
+    "dobór ćwiczeń",
+    "ćwiczenia"
+   ]
+  },
+  {
+   "id": "technika-glownych-wzorcow-bledy-i-korekty",
+   "level": "podstawy",
+   "title": "Technika głównych wzorców — typowe błędy i korekty",
+   "sedno": "Seria kończy się, gdy kolejnego powtórzenia nie da się zrobić poprawnie, czyli przy upadku technicznym (Boyle). Przy błędzie najpierw daj 1–2 wskazówki, potem zmniejsz ciężar, a na końcu przejdź na łatwiejszy wariant (GSA s. 107, 122–152).",
+   "dlaczego": "Błędy w ćwiczeniach wielostawowych zwiększają ryzyko kontuzji (Głuchowski s. 136). Zaokrąglone plecy to najczęstszy błąd w martwym ciągu, często od zbyt dużego ciężaru (GSA s. 134). Crossley zastrzega, że postawa i „błędy” słabo przewidują ból, ale przy bardzo dużych ciężarach neutralny kręgosłup ma sens (s. 226–236).",
+   "dlaKogo": "Wszyscy klienci, najbardziej początkujący i osoby wracające po przerwie.",
+   "kiedy": "Przy nauce ruchu, w każdej serii roboczej i przy zwiększaniu ciężaru. Gdy przy wybranej przerwie technika się pogarsza: dłuższa przerwa lub mniejszy ciężar (NSCA s. 412).",
+   "coZrobic": [
+    "Przysiad, kolana uciekają do środka → wskazówka „rozpychaj kolana”, opór dłonią lub gumą (GSA s. 122). NSCA też wymienia ruch kolan do środka lub na zewnątrz jako błąd (s. 357).",
+    "Przysiad, pięty się odrywają, tułów opada w przód → zatrzymaj zejście wyżej. NSCA: dół ruchu to pierwsze z trzech: udo równolegle do podłogi, tułów zaczyna się zaokrąglać, pięty się unoszą (s. 356). Dalej podkładki pod pięty, mobilizacja stawu skokowego, goblet (GSA s. 116, 122).",
+    "Zawias biodrowy, zaokrąglone plecy → wskazówka, kij PCV wzdłuż pleców, mniejszy ciężar albo regresja do rack pull lub martwego ciągu z kettlebell (GSA s. 125, 134; NSCA s. 363).",
+    "RDL, skłon tułowia zamiast cofania bioder albo zginanie kolan → wskazówka „dotknij pośladkami ściany za sobą”, kąt w kolanie stały (GSA s. 139–141; NSCA s. 363).",
+    "RDL, sztanga odjeżdża od ciała → sztanga przez cały ruch w kontakcie z udami, w dół do poziomu tuż pod kolanem (NSCA s. 363).",
+    "Wyciskanie leżąc, łopatki nieściągnięte, łokcie za sztangą → wskazówka „złam sztangę”, ponowne ułożenie, mniejszy ciężar (GSA s. 144–145). Odbijanie sztangi od klatki, unoszenie pośladków lub głowy → mniejszy ciężar, 5 punktów podparcia (NSCA s. 324, 348–349).",
+    "Wyciskanie nad głowę, luźny brzuch, mocno wygięte lędźwie → mniejszy ciężar albo regresja do wyciskania jednorącz w klęku (GSA s. 146–148; NSCA s. 366). Sztanga ucieka w przód → popraw ustawienie łokci, wskazówka „celuj w nos” (GSA s. 146–149).",
+    "Przyciąganie: szarpanie tułowiem, odchylanie się, ściąganie drążka za kark, brak pełnego wyprostu łokci (NSCA s. 333, 335) → mniejszy ciężar, drążek do obojczyków. Łopatka nie pracuje → nauka ruchu bez ciężaru (GSA s. 150–152)."
+   ],
+   "przyklad": "Klient robi RDL 3×10 przy RIR 2. W 8. powtórzeniu sztanga odjeżdża od ud i plecy się zaokrąglają. Kończysz serię (upadek techniczny, Boyle). Następną serię robi z mniejszym ciężarem. Jeśli błąd wraca, przechodzi na martwy ciąg z kettlebell (GSA s. 125–134) albo dostaje dłuższą przerwę (NSCA s. 412).",
+   "poczatkujacy": "GSA: zakres ruchu dopasowany do klienta, wolna faza ekscentryczna, 1, maksymalnie 2 wskazówki naraz (s. 107). Głuchowski: RIR 5–3, wolniejsze tempo tylko przy nauce techniki (s. 110, 166). NSCA: przy nauce techniki przerwy 2–5 min (s. 412). Boyle: kto nie zrobi przysiadu nad głową w FMS co najmniej na 2/3, nie przysiada z obciążeniem (rozdz. 2).",
+   "zaawansowany": "Helms: przysiadu, martwego ciągu i OHP nie doprowadzaj do upadku mięśniowego. Upadek jest dopuszczalny w izolacjach i na maszynach, na ostatniej serii ostatniego ćwiczenia (s. 66–68). AMRAP w przysiadzie i martwym ciągu rób do RPE 9 albo do upadku technicznego (s. 115–120).",
+   "specjalista": "Ból w trakcie ruchu (a nie zmęczenie mięśnia): według Boyle'a każda niejednoznaczna odpowiedź na „czy boli?” znaczy „tak” i klient nie jest gotowy na to ćwiczenie (rozdz. 3). Ból promieniujący do nogi, mrowienie, drętwienie → lekarz (Crossley s. 189). Manewr Valsalvy jest zakazany przy chorobie sercowo-naczyniowej (NSCA s. 325).",
+   "sources": [
+    "Global Sport Academy — Skrypt Kursu Trenera Personalnego, s. 107",
+    "Global Sport Academy — Skrypt Kursu Trenera Personalnego, s. 111–123",
+    "Global Sport Academy — Skrypt Kursu Trenera Personalnego, s. 124–134",
+    "Global Sport Academy — Skrypt Kursu Trenera Personalnego, s. 139–152",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 324–325",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 333, 335",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 348–349",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 356–357",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 363",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 366",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 412",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 66–68",
+    "Głuchowski — Zaplanuj swój trening, s. 136",
+    "Crossley — Ćwiczenia funkcjonalne i rehabilitacja, s. 226–236",
+    "Boyle — Advances in Functional Training, rozdz. 1 § Techniques; rozdz. 3 § Technical Failure (e-book bez numerów stron)"
+   ],
+   "pytanie": "Klientowi w przysiadzie kolana uciekają do środka w ostatnich 2 powtórzeniach serii. Co robisz?",
+   "odpowiedz": "NSCA uznaje ruch kolan do środka za błąd (s. 357). Daj wskazówkę „rozpychaj kolana”, opór dłonią lub gumą (GSA s. 122); Boyle zakłada gumę tuż pod kolanami (rozdz. 9). Jeśli błąd zostaje, skończ serię wcześniej albo zmniejsz ciężar. Uwaga: GSA w module IV (s. 83–84) pyta, czy koślawienie kolan zawsze jest błędem, ale nie daje odpowiedzi.",
+   "keywords": [
+    "technika",
+    "błędy",
+    "przysiad",
+    "martwy ciąg"
+   ]
+  },
+  {
+   "id": "zywienie-kompetencje-trenera",
+   "level": "podstawy",
+   "title": "Żywienie w kompetencjach trenera",
+   "sedno": "Masą ciała rządzi bilans energii: deficyt = spadek, nadwyżka = wzrost. Białko dla trenujących: 1,4–2,0 g/kg/dobę (NSCA, Chandler); e-book podaje szerzej 1,2–2,2 g/kg. Trener edukuje ogólnie; diet leczniczych nie układa i suplementów nie poleca.",
+   "dlaczego": "NSCA: trener może prostować mity i dawać ogólne porady żywieniowe dla wyników, profilaktyki, redukcji i masy (s. 104). Choroba zależna od diety to terapia żywieniowa, czyli zadanie dietetyka. Powyżej ok. 1,6 g/kg białka zwykle nie ma dodatkowego zysku, a powyżej ok. 2,2 g/kg korzyści brak (e-book, s. 424, 483).",
+   "dlaKogo": "Każdy trener, który dostaje od klienta pytania o kalorie, białko i „dietę”. Dotyczy zdrowych dorosłych; młodzież ma osobne normy białka (e-book, s. 570–575).",
+   "kiedy": "Na wywiadzie, przy ustalaniu celu (redukcja/masa) i za każdym razem, gdy klient pyta o jedzenie albo zgłasza chorobę, leki, ciążę lub niepokojące objawy.",
+   "coZrobic": [
+    "Zapytaj o choroby i leki; przy chorobie zależnej od diety skieruj do dietetyka (NSCA, s. 104).",
+    "Wyjaśnij bilans energii; jeśli zdrowa osoba nie chudnie, zwykle nie ma deficytu (e-book, s. 505).",
+    "Podaj orientacyjne białko: ok. 1,6 g/kg, do 2,2 g/kg przy deficycie lub maks. masie (NSCA, s. 111).",
+    "Sprawdzaj notowanie jedzenia; dzienniczki zaniżają spożycie (e-book, s. 19; NSCA, s. 104–105).",
+    "Jadłospis i kaloryczność zostaw dietetykowi."
+   ],
+   "przyklad": "Klient 80 kg, cel: masa mięśniowa. Wg NSCA ok. 1,6 g/kg = 128 g białka/dobę, górna granica 2,2 g/kg = 176 g (s. 111). E-book: porcje 20–40 g, 4–6 posiłków (s. 425). Np. 4 posiłki po ok. 32–44 g.",
+   "poczatkujacy": "Wystarczą dolne widełki białka (wg bazy e-booka ok. 1,2–1,6 g/kg; to wniosek autorów bazy, nie książki) i nawyki: białko w każdym posiłku, regularne posiłki. Najpierw edukacja, nie rozpiski i suplementy (e-book, s. 461, 583).",
+   "zaawansowany": "Do 2,2 g/kg przy maks. sile/masie albo w deficycie (NSCA, s. 111). Dawki 2,5–2,8 g/kg to praktyka bez dowodów, także przy dopingu (e-book, s. 483). Rozbieżność: NSCA i Chandler 1,4–2,0, e-book 1,2–2,2 g/kg, bo e-book obejmuje szersze grupy.",
+   "specjalista": "Dietetyk: cukrzyca, choroby serca, przewodu pokarmowego, osteoporoza, podwyższony cholesterol, zaburzenia odżywiania (NSCA, s. 104). Białko >4 g/kg nie przy chorobie nerek (NSCA, s. 111). Psycholog: poważnie zaburzone zachowania żywieniowe (e-book, s. 590). Ciąża, leki: lekarz.",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 104",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 111",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 118",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 92",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 424",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 483",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 505",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 590",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 169",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 586"
+   ],
+   "pytanie": "Klient z cukrzycą typu 2 prosi o rozpisanie diety na redukcję. Co robisz?",
+   "odpowiedz": "Choroba zależna od żywienia oznacza terapię żywieniową, czyli zadanie dietetyka (NSCA, s. 104). Trener może przekazać ogólne zasady (bilans energii, białko, czytanie etykiet), ale jadłospis i kaloryczność ustala dietetyk we współpracy z lekarzem.",
+   "keywords": [
+    "żywienie",
+    "białko",
+    "dietetyk"
+   ]
+  },
+  {
+   "id": "nawodnienie",
+   "level": "podstawy",
+   "title": "Nawodnienie",
+   "sedno": "Cel: nie tracić więcej niż ok. 2% masy ciała na treningu i nie przepijać. Przy treningu do ok. 60 min o umiarkowanej intensywności wystarczy woda. Przy dłuższym wysiłku i w upale napój z elektrolitami/węglowodanami. Ważenie przed i po pokazuje, ile uzupełnić.",
+   "dlaczego": "Utrata >2% masy pogarsza wysiłek (e-book, s. 132–141); Chandler: 2–3% obniża siłę (s. 587). Pot może przekraczać 1,8 l/h, a pijąc „do woli” uzupełnia się tylko ok. 2/3 strat; pragnienie nie jest wiarygodne (NSCA, s. 116). Picie dużo samej wody przy długim wysiłku grozi hiponatremią.",
+   "dlaKogo": "Wszyscy klienci; szczególnie trening w upale, silnie pocący się, sesje >60 min, wytrzymałość.",
+   "kiedy": "Przed treningiem (stan wyjściowy), w trakcie sesji >60 min lub w upale, po treningu (uzupełnienie). Ważenie zwłaszcza przy upale i silnym poceniu.",
+   "coZrobic": [
+    "Przed: 5–7 ml/kg min. 4 h przed; +3–5 ml/kg 2 h przed, jeśli mocz ciemny i skąpy (NSCA, s. 115).",
+    "W trakcie, do ok. 60 min: woda niegazowana (Mizera, s. 109–110; e-book, s. 132–141).",
+    ">60 min, upał: izotonik 4–8 g węglowodanów/100 ml (Mizera, s. 110–111); na redukcji Mizera radzi samą wodę (s. 111).",
+    "Zważ klienta przed i po (bez mokrych ubrań); 1 kg straty ≈ 1 l.",
+    "Po: 125–150% straty z sodem (e-book, s. 137–141)."
+   ],
+   "przyklad": "Klient 75 kg: przed treningiem 5–7 ml/kg = 375–525 ml min. 4 h wcześniej (NSCA, s. 115). Po sesji w upale waży 1 kg mniej: 1,25–1,5 l płynu z sodem lub posiłkiem w ciągu 2–4 h (e-book, s. 137–141). Strata 1,5 kg = 2% masy, czyli granica.",
+   "poczatkujacy": "Typowy trening do 60 min: posiłek przed wystarcza, w trakcie woda, specjalne napoje niepotrzebne (e-book, s. 132–141; Mizera, s. 144–145). Woda gazowana po treningu, nie w trakcie (Mizera, s. 109–110).",
+   "zaawansowany": "Wysiłek >4 h: pić według pragnienia ok. 300–600 ml/h z sodem, nie przepijać (e-book, s. 372). Rozbieżność: przed wysiłkiem e-book 5–10 ml/kg 2–4 h, NSCA 5–7 ml/kg ≥4 h plus 3–5 ml/kg 2 h. Po: NSCA 600–700 ml/funt (≈1,3–1,5 l/kg) i e-book 125–150% dają podobne liczby.",
+   "specjalista": "Pilnie lekarz: silny ból głowy, splątanie, wymioty po długim wysiłku (reguła ostrożności bazy Mizera S-PL5, poza źródłem). Sód <130 mmol/l to stan nagły (e-book, s. 142). Nadciśnienie, choroby nerek lub serca: wskazówki o sodzie tylko po konsultacji z lekarzem (poza źródłem). Odwadnianie przed ważeniem: odradzić (Mizera, s. 109).",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 115",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 116",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 117",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 132–141",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 142",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 372",
+    "J. i K. Mizera — Dietetyka sportowa, s. 109–111",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 170",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 587"
+   ],
+   "pytanie": "Klient po 90-minutowym biegu w upale waży 1,2 kg mniej i przez cały bieg pił tylko wodę. Co mu powiesz?",
+   "odpowiedz": "Uzupełnij ok. 1,5–1,8 l (125–150% straty) w ciągu 2–4 h, z sodem: słony posiłek albo napój sportowy (e-book, s. 137–141; NSCA, s. 116). Przy długim wysiłku sama woda nie wystarcza, bo grozi hiponatremią (NSCA, s. 117; Mizera, s. 110). Jeśli ma splątanie, wymioty lub silny ból głowy: lekarz.",
+   "keywords": [
+    "nawodnienie",
+    "woda",
+    "picie"
+   ]
+  },
+  {
+   "id": "redukcja-tempo-trening",
+   "level": "sredni",
+   "title": "Redukcja: tempo i co utrzymać w treningu",
+   "sedno": "Tempo: e-book 0,5–0,7% masy ciała/tydz., maks. 1%; NSCA 0,5–1%/tydz. (deficyt 500–1000 kcal ≈ 0,5–0,9 kg/tydz.). Im szybciej, tym więcej traconych mięśni. Trening oporowy zostaje; objętość o kategorię niżej i częstszy deload (Helms).",
+   "dlaczego": "Przy 0,98%/tydz. 43% utraconej masy to FFM, przy 0,7% 32%, przy 0,5% 21% (e-book, s. 422). Duże ograniczenie kalorii obniża wyniki i zabiera beztłuszczową masę (NSCA, s. 118). Siła w 1RM spada już przy zejściu z 14,8% do 12,1% tkanki tłuszczowej (e-book, s. 422).",
+   "dlaKogo": "Zdrowi dorośli na redukcji. Nie dla osób poniżej 18 lat: bez diet niskokalorycznych (e-book, s. 570–575).",
+   "kiedy": "Co tydzień przy kontroli masy; przy zastoju i słabnącym treningu; przy każdym sygnale RED-S.",
+   "coZrobic": [
+    "Sprawdzaj tempo co tydzień: cel 0,5–0,7%/tydz., nie więcej niż 1% (e-book, s. 489, 514; NSCA, s. 118).",
+    "Utrzymaj trening oporowy; objętość o kategorię niżej, częstszy deload, autoregulacja (Helms, s. 219).",
+    "Białko z górnych widełek: NSCA do 2,2 g/kg (s. 111, 118); e-book 1,6–2,4 g/kg (s. 104, 424).",
+    "Zastój + słaby trening: przerwa od deficytu na 1–2 tyg. co 8–10 tyg., do zapotrzebowania (e-book, s. 512–513).",
+    "Sygnały RED-S: zatrzymaj progresję obciążeń i skieruj (NSCA, s. 110–111)."
+   ],
+   "przyklad": "Klientka 70 kg: 0,5–0,7%/tydz. = 0,35–0,49 kg/tydz.; górna granica 1% = 0,7 kg (e-book, s. 489, 514). NSCA podaje: przy 1% osoba 49,9 kg traci ok. 0,5 kg/tydz., a 150,1 kg ok. 1,4 kg/tydz. (s. 118).",
+   "poczatkujacy": "Osoby wcześniej nietrenujące mogą jednocześnie tracić tłuszcz i budować beztłuszczową masę (NSCA, s. 118). Dorzuć kardio o niskiej intensywności zamiast dalszego cięcia jedzenia u osób, które trenują mało (e-book, s. 505).",
+   "zaawansowany": "Szczupłym, wytrenowanym coraz trudniej zredukować tłuszcz bez utraty FFM (NSCA, s. 118). Rozbieżność: e-book 0,5–0,7% (do 1%), NSCA 0,5–1%; e-book pisze o sportowcach siłowych i sylwetkowych, NSCA o ogólnej populacji. Dla wytrenowanych bliżej dolnej granicy.",
+   "specjalista": "Lekarz/dietetyk: utrata ≥10% masy w miesiąc, BMI ≤17,5, zaburzenia miesiączki, bardzo niskie tętno lub ciśnienie, niskie żelazo lub gęstość kości (NSCA, s. 110–111). Ciężkie przypadki: szpital (e-book, s. 22–35). Zaburzenia odżywiania: psycholog (e-book, s. 590). Dietę <800 kcal prowadzi tylko lekarz (NSCA, s. 522).",
+   "sources": [
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 422",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 489",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 505",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 512–514",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 22–35",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 110–111",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 117–118",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 522",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 219"
+   ],
+   "pytanie": "Klient 90 kg chudnie 1,3 kg tygodniowo, a ciężary w przysiadzie spadają. Co robisz?",
+   "odpowiedz": "1,3 kg to ok. 1,4% masy/tydz., czyli powyżej górnej granicy 1% (e-book, s. 514; NSCA, s. 118). Przy szybkim tempie rośnie udział utraconych mięśni (e-book, s. 422). Odeślij do dietetyka po zmniejszenie deficytu, utrzymaj trening oporowy z mniejszą objętością (Helms, s. 219) i sprawdź sygnały RED-S.",
+   "keywords": [
+    "redukcja",
+    "odchudzanie",
+    "deficyt"
+   ]
+  },
+  {
+   "id": "masa-nadwyzka-tempo",
+   "level": "sredni",
+   "title": "Masa: nadwyżka i tempo przyrostu",
+   "sedno": "Masa mięśniowa wymaga nadwyżki kalorycznej, progresywnego treningu oporowego i co najmniej 1,6 g/kg białka. Liczby się różnią: e-book ok. +250 kcal/dobę albo +10–15% CPM; NSCA +350–500 kcal na 0,5 kg tkanki beztłuszczowej/tydz. Zaawansowanym wystarczy mniejsza nadwyżka.",
+   "dlaczego": "Większa nadwyżka nie przyspiesza wzrostu mięśni (e-book, s. 481), a u zaawansowanych zwiększa przyrost tłuszczu (NSCA, s. 116–117). NSCA: 0,5 kg mięśni to tylko 500–600 kcal, ale dochodzi koszt syntezy, treningu i termogenezy, stąd 350–500 kcal.",
+   "dlaKogo": "Zdrowi dorośli z celem hipertrofii lub poprawy wyników. Okres „na masę” zwykle nie krótszy niż 12–16 tyg. (e-book, s. 481).",
+   "kiedy": "Przy planowaniu bloku hipertrofii, przy zastoju, gdy klient nie przybiera mimo progresji (Helms: nadwyżka w liście kontrolnej zastoju, s. 87).",
+   "coZrobic": [
+    "Ustal z klientem okres min. 12–16 tyg. (e-book, s. 481).",
+    "Nadwyżkę kalorii ustala dietetyk; trener podaje orientacyjnie: +250 kcal lub +10–15% CPM (e-book, s. 421, 481).",
+    "Białko co najmniej 1,6 g/kg; więcej przy białku głównie roślinnym (NSCA, s. 117).",
+    "Mierz masę: cel w sportach siłowych +0,5–1% masy/mies. (e-book, s. 421).",
+    "Przy małym apetycie: większe porcje, częstsze posiłki, posiłki w płynie (NSCA, s. 117; e-book, s. 33, 431)."
+   ],
+   "przyklad": "Klient 80 kg: +0,5–1%/mies. = 0,4–0,8 kg miesięcznie (e-book, s. 421). Przy CPM 2800 kcal nadwyżka 10–15% to +280–420 kcal (e-book, s. 481; wyliczenie z widełek). Białko min. 1,6 g/kg = 128 g/dobę (NSCA, s. 117).",
+   "poczatkujacy": "NSCA: do ok. 0,5 kg tkanki beztłuszczowej tygodniowo może być potrzebne +350–500 kcal ponad zapotrzebowanie (s. 116–117). Postęp zależy od genetyki, budowy i regularności (NSCA, s. 116).",
+   "zaawansowany": "Mniejsza nadwyżka i wolniejszy przyrost, żeby ograniczyć tłuszcz (NSCA, s. 116–117). E-book: +250 kcal daje +0,5–1%/mies. bez przyrostu tłuszczu (s. 421). Rozbieżność: NSCA zakłada 0,5 kg/tydz., e-book ok. 0,5–1%/mies.; e-book opisuje trenujących siłowo, NSCA ogólnie.",
+   "specjalista": "Dietetyk: rozpisanie nadwyżki, choroby przewlekłe, białko >2 g/kg przy chorobach (reguła ostrożności bazy, poza źródłem). Psycholog: obsesja na punkcie masy mięśniowej; NSCA wskazuje ryzyko dysmorfii mięśniowej u mężczyzn (s. 546–547). Młodzież: bez manipulacji kalorycznych, lekarz.",
+   "sources": [
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 421",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 481",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 33",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 431",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 116–117",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 546–547",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 87"
+   ],
+   "pytanie": "Zaawansowany klient chce jeść +1000 kcal dziennie, „żeby szybciej rosnąć”. Co mu powiesz?",
+   "odpowiedz": "Większa nadwyżka nie przyspiesza wzrostu mięśni (e-book, s. 481). Zaawansowanym NSCA zaleca mniejszą nadwyżkę i wolniejszy przyrost, żeby nie odkładać tłuszczu (s. 116–117). Orientacyjnie +250 kcal albo +10–15% CPM; dokładną wartość ustali dietetyk.",
+   "keywords": [
+    "masa",
+    "nadwyżka"
+   ]
+  },
+  {
+   "id": "suplementy-kreatyna-kofeina",
+   "level": "zaawansowany",
+   "title": "Suplementy: kreatyna i kofeina (informacyjnie)",
+   "sedno": "Kreatyna i kofeina należą do suplementów o potwierdzonej skuteczności (e-book). Kreatyna: 3–5 g/dobę albo ładowanie 20 g/dobę przez 5–7 dni. Kofeina: 3–6 mg/kg 30–60 min przed. NSCA: polecanie suplementów to poza zakresem trenera; trener informuje i kieruje do dietetyka.",
+   "dlaczego": "Suplementy bywają zanieczyszczone: 10–15% może zawierać substancje zakazane (e-book, s. 225); w Chandlerze ponad połowa z 28 próbek kreatyny była zanieczyszczona (s. 648). Zawodnik z kontrolą antydopingową ryzykuje wynik pozytywny (NSCA, s. 119).",
+   "dlaKogo": "Zdrowi dorośli trenujący, którzy sami pytają o te suplementy. Najpierw jedzenie, potem diagnoza niedoborów, suplementy na końcu (e-book, s. 297–298, 504).",
+   "kiedy": "Gdy klient pyta o kreatynę lub kofeinę albo już je stosuje; przed startami z kontrolą antydopingową.",
+   "coZrobic": [
+    "Powiedz, że decyzję o suplemencie podejmuje klient z dietetykiem (NSCA, s. 120).",
+    "Podaj informacyjnie dawki z książek, z numerem strony, bez zalecania.",
+    "Zawodnikom: produkty z certyfikatem Informed Choice lub NSF; regulamin federacji (NSCA, s. 119–120).",
+    "Kofeina: nie po południu ze względu na sen (e-book, s. 542).",
+    "Choroby, leki, ciąża, nadciśnienie: lekarz przed jakimkolwiek suplementem."
+   ],
+   "przyklad": "Klient 80 kg: kofeina 3–6 mg/kg = 240–480 mg, 30–60 min przed treningiem (e-book, s. 231–233). Osoba niepijąca kawy: pojedyncza dawka <180 mg. Kreatyna: 3–5 g/dobę albo 20 g/dobę (0,3 g/kg = 24 g) przez 5–7 dni (e-book, s. 227–229).",
+   "poczatkujacy": "Przy dobrej diecie większość suplementów jest zbędna (e-book, s. 297–298, 331). U początkującego najpierw sen, jedzenie i regularny trening. Przedtreningówki mają niezgodne etykiety: kofeina 59–176% deklaracji (e-book, s. 235–277).",
+   "zaawansowany": "Rozbieżności: kofeina 3–6 mg/kg (e-book, s. 233), 2–6 mg/kg (s. 332), 200–400 mg lub 5 mg/kg (Chandler, s. 645–659). Kreatyna: Chandler w ramce odradza ładowanie i radzi cykle 4–8 tyg. z 4 tyg. przerwy (s. 648), a w Tab. 23.2 dopuszcza 20–25 g/dzień (s. 659). E-book dopuszcza ładowanie. NSCA nie podaje dawek: brak w bazie książek.",
+   "specjalista": "Dietetyk (najlepiej sportowy): zawsze, gdy klient decyduje się na suplement (NSCA, s. 120). Lekarz: choroby przewlekłe, leki, ciąża, nadciśnienie; skutki uboczne kofeiny to wzrost ciśnienia, nerwowość, zaburzenia snu i jelit (e-book, s. 231–233). Pytania o doping: lekarz lub dietetyk (Chandler, baza S36, poza źródłem).",
+   "sources": [
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 225",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 227–229",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 231–233",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 297–298",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 332",
+    "praca zbiorowa — Dietetyka sportowa (e-book), s. 542",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 119",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 120",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 648",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 659",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 645–659"
+   ],
+   "pytanie": "Zawodniczka trójboju przed zawodami z kontrolą antydopingową pyta, którą kreatynę kupić i ile brać. Co odpowiesz?",
+   "odpowiedz": "Polecanie suplementów to poza zakresem trenera (NSCA, s. 120). Mogę powiedzieć, że e-book podaje 3–5 g/dobę (s. 227–229) i że produkty bywają zanieczyszczone (e-book, s. 225; Chandler, s. 648). Niech wybierze produkt z certyfikatem Informed Choice lub NSF i skonsultuje się z dietetykiem sportowym (NSCA, s. 119–120).",
+   "keywords": [
+    "kreatyna",
+    "kofeina",
+    "suplementy"
+   ]
+  },
+  {
+   "id": "deload",
+   "level": "sredni",
+   "title": "Deload",
+   "sedno": "Deload to tydzień z mniejszą objętością, który rozładowuje zmęczenie po okresie przeciążenia. Według Helmsa decyzję podejmujesz listą kontrolną po każdym cyklu, a nie stałym kalendarzem: ≥2 odpowiedzi „tak” oznaczają deload.",
+   "dlaczego": "Planowane przeciążenie kumuluje zmęczenie, które maskuje formę. Deload je rozładowuje (Helms, s. 52–56, 103–104). Inne książki dają stały rytm: NSCA i Schoenfeld 3:1, czyli co 4. tydzień; Chandler po 2–4 tyg. wzrostu; Głuchowski po bloku 4 tyg.",
+   "dlaKogo": "Średniozaawansowani i zaawansowani: Helms opisuje deload dla etapu po początkującym, czyli po okresie postępu z sesji na sesję (PR9, s. 106, 124). Stachurski u początkujących daje 1–2 tyg. aktywnego wypoczynku dopiero po zakończeniu planu (s. 73).",
+   "kiedy": "Po każdej fali lub bloku przejdź listę 5 pytań (Helms, s. 123, 218). Niezależnie od wyniku listy deload po 3 cyklach (ok. 9 tyg.) bez deloadu, a po poszerzeniu zakresu powtórzeń co 2 cykle (s. 124, 243–244). Na redukcji deload częściej (s. 219).",
+   "coZrobic": [
+    "Po ostatnim tygodniu cyklu zadaj 5 pytań: regularność treningów, gorszy sen, spadek ciężarów lub powtórzeń, większy stres, większa bolesność.",
+    "0–1 „tak” → zacznij kolejny cykl; ≥2 „tak” → tydzień deloadu.",
+    "Deload: ok. połowa objętości przy podobnym ciężarze, np. 3×10×90 kg → 2×8×90 kg, RPE ok. 2 niżej (Helms, s. 106).",
+    "W bloku zaawansowanym: powtórz tydzień 3 z ⅔ serii, RPE −1, %1RM −5% (Helms, s. 246).",
+    "Gdy minęły 3 cykle bez deloadu, zrób go profilaktycznie, nawet przy 0–1 „tak”."
+   ],
+   "przyklad": "Klient po fali 3×8 → 3×7 → 3×6 w przysiadzie. Sen gorszy i ciężary spadają: 2 „tak”, więc deload. Wariant falowy Helmsa: ⅔ serii (3–4 serie → 2) przy najniższych powtórzeniach i ciężarze z tych 3 tygodni (s. 243). Izolacja w podwójnej progresji: 2 serie po dolnej granicy, np. 2×12 (PR6, s. 111–113).",
+   "poczatkujacy": "Helms opisuje deload dla etapu „po początkującym” (PR9); dla progresji liniowej podaje reset −10% po 2 nieudanych sesjach (s. 106, 241). Po zakończeniu planu dla początkujących: 1–2 tyg. aktywnego wypoczynku (Stachurski, s. 73). W deloadzie nigdy serii do upadku (Helms, s. 66–68).",
+   "zaawansowany": "Lista po każdym bloku, deload jako tydzień 3 z ⅔ serii, RPE −1, %1RM −5%; po 3 blokach deload obowiązkowo (Helms, s. 246–247). Stachurski: lokalny deload np. po 6 tyg. wysokiej objętości albo tydzień bez treningu (s. 73).",
+   "specjalista": "Jeśli bóle stawów lub ścięgien nie mijają mimo deloadu przez kilka tygodni → fizjoterapeuta lub lekarz sportowy (Helms, s. 41–42, 124). Ból w klatce, duszność, omdlenie → lekarz (reguła ostrożności Progress Live, poza źródłem).",
+   "sources": [
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 106",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 123",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 124",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 243–246",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 414–415",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 199–200, 205",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 362, 381–382",
+    "Głuchowski — Zaplanuj swój trening, s. 197",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 73"
+   ],
+   "pytanie": "Progress Live podaje trzy różne częstotliwości deloadu. Którą stosować?",
+   "odpowiedz": "Regułą z bazy jest lista kontrolna Helmsa po każdym cyklu (≥2 „tak” = deload), z limitem: deload najpóźniej po 3 cyklach (ok. 9 tyg.). Stały rytm 3:1 (NSCA s. 414–415, Schoenfeld s. 199–200) to prostszy wariant startowy. Ok. 6 tyg. Stachurskiego dotyczy lokalnego deloadu u zaawansowanych.",
+   "keywords": [
+    "deload",
+    "roztrenowanie"
+   ]
+  },
+  {
+   "id": "periodyzacja-liniowa-falowa-blokowa",
+   "level": "sredni",
+   "title": "Periodyzacja: liniowa, falowa (DUP), blokowa",
+   "sedno": "Liniowa: ciężar rośnie, a powtórzenia maleją z tygodnia na tydzień (u Helmsa fala 3-tygodniowa). Falowa dzienna (DUP): w tygodniu dni ciężki, średni i lekki. Blokowa: kolejne bloki o innym akcencie, np. akumulacja (objętość) → intensyfikacja (ciężar) → realizacja.",
+   "dlaczego": "NSCA: modele tradycyjny i falowy dają podobne przyrosty siły i hipertrofii; każdy periodyzowany plan jest lepszy od stałego (s. 627–629). Schoenfeld: przegląd 12 badań nie wykazał przewagi periodyzacji dla hipertrofii, ale poprawia ona siłę (s. 190–210).",
+   "dlaKogo": "Helms (s. 208, 211): początkujący – progresja liniowa z sesji na sesję; średniozaawansowany – fala w wielostawowych, podwójna progresja w izolacjach; zaawansowany – bloki. Chandler: blokowa i koniugowana tylko dla zaawansowanych (s. 375–390). Stachurski: falująca dla średnio zaawansowanych i zaawansowanych (s. 30).",
+   "kiedy": "Zmiana modelu, gdy obecny przestaje dawać postęp: początkujący stoi na większości bojów mimo resetu i mniejszych skoków → fala (Helms, s. 109–110, 241). Większość bojów stoi w fali nawet przy +2,5 kg → progresja zaawansowana (s. 243–245).",
+   "coZrobic": [
+    "Ustal staż po tempie postępów (sesja / tydzień / miesiąc), nie po latach treningu (Helms, s. 100–103).",
+    "Dobierz model do stażu według tabeli Helmsa (s. 208).",
+    "Kolejność bloków: objętościowy → deload → intensywności; po bloku intensywności tydzień wprowadzający (ok. 75% planowanej objętości, nieco niższe RPE) → objętościowy (Helms, s. 104–105).",
+    "Bloki 4–6 tyg., nie przerywaj ich bez powodu (Głuchowski, s. 19–20, 194).",
+    "Rekreacyjnie trenującym pomiń fazę realizacji z dużymi ciężarami (Głuchowski, s. 195)."
+   ],
+   "przyklad": "Fala Helmsa: 3×8×100 kg → 3×7×102,5 → 3×6×105 → nowa fala 3×8×102,5 (s. 211). DUP NSCA: pn 3–5RM, śr 8–12RM, pt 15–20RM (s. 414). Bloki Głuchowskiego: objętościowy I (4 tyg.) + deload, objętościowy II (4 tyg.) + deload, intensyfikacja 4–5 tyg. z ciężarem +5% przy stałej objętości (s. 197, 201).",
+   "poczatkujacy": "Model periodyzacji u początkujących nie ma znaczenia (Helms, s. 126–132). Liniowo: +2,5 kg na sesję, przysiad i martwy ciąg +5 kg (Helms, s. 107). Stachurski: liniowa zmodyfikowana, czyli serie do 4, potem ciężar i powrót do mniejszej liczby serii (s. 26–28, 67).",
+   "zaawansowany": "Blok Helmsa: akumulacja 6 tyg. (12→22 serie na mięsień, RPE 5–8), intensyfikacja 4 tyg. (22→18→15→12 serii, RPE do 9–10), tydzień taperu, tydzień testu (s. 133–136). DUP w kolejności hipertrofia → moc → siła (Helms, s. 136–139).",
+   "specjalista": "Brak w bazie książek dla samego wyboru modelu. Zasada ogólna: ból trwający kilka tygodni → fizjoterapeuta lub lekarz sportowy (Helms, s. 41–42).",
+   "sources": [
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 104–105",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 126–139",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 208, 211",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 414",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 625–629",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 190–210",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 375–390",
+    "Głuchowski — Zaplanuj swój trening, s. 194–201",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 26–32"
+   ],
+   "pytanie": "Czy DUP jest lepsza od periodyzacji liniowej przy celu sylwetkowym?",
+   "odpowiedz": "Według bazy nie. NSCA (s. 627–629) i Schoenfeld (s. 190–210) piszą, że modele liniowy i falowy dają podobne efekty. Wybór zależy od stażu i wygody klienta. Ważniejsze jest, żeby plan w ogóle był zmienny i progresywny.",
+   "keywords": [
+    "periodyzacja",
+    "DUP",
+    "blok"
+   ]
+  },
+  {
+   "id": "autoregulacja-rir-w-bloku",
+   "level": "zaawansowany",
+   "title": "Autoregulacja i progresja RIR w bloku",
+   "sedno": "W bloku akumulacji RIR startuje wysoko i schodzi o najwyżej 1 na tydzień, a RIR 1–0 pojawia się dopiero w ostatnim tygodniu (Głuchowski). Autoregulacja oznacza, że ciężar i wybór sesji dopasowujesz do gotowości klienta w danym dniu.",
+   "dlaczego": "Rosnąca objętość podnosi zmęczenie, więc wysiłek trzeba dawkować stopniowo. Mocny spadek ciężaru przy dokładaniu serii to sygnał za dużego skoku (Głuchowski, s. 256). W badaniu elastyczna periodyzacja dała więcej siły i lepsze przestrzeganie planu (Helms, s. 35–38).",
+   "dlaKogo": "Osoby, które umieją oceniać RIR. Samo RPE do ustalania ciężaru dopiero po kilku miesiącach praktyki (Helms, s. 64–65, 217). RIR wg stażu: początkujący 5–3, średnio zaawansowani 5–1, zaawansowani 5–0 (Głuchowski, s. 110).",
+   "kiedy": "Na każdym tygodniu bloku objętościowego i przed każdą ciężką sesją. Chandler przed ciężką sesją sprawdza: wyniki z poprzedniej sesji, chorobę lub uraz, wysoką ocenę zmęczenia, a przed sesją mocy także skok pionowy ≥90% najlepszego (s. 387–388).",
+   "coZrobic": [
+    "Tydzień 1 bloku: ćwiczenia progresywne przy RIR ok. 4 (Głuchowski, program s. 258).",
+    "Co tydzień +1 seria w ćwiczeniu progresywnym priorytetu; RIR spada o maks. 1 na tydzień (s. 255–257).",
+    "RIR 1–0 tylko w ostatnim tygodniu bloku (s. 255–256).",
+    "Przed sesją sprawdź gotowość; przy złych sygnałach zrób najłatwiejszą sesję z tego tygodnia (Helms, s. 36) albo lżejszą sesję lub odpoczynek (Chandler, s. 387–388).",
+    "Ćwiczenia wg %1RM prowadź razem z zakresem RPE i koryguj kolejne serie (Helms, s. 217, 246)."
+   ],
+   "przyklad": "Wyciskanie płaskie (Głuchowski, s. 258–273): tydz. 1 3×12-10 RIR 4; tydz. 2 4×12-10 RIR 3; tydz. 3 5×12-8 RIR 2; tydz. 4 6×12-8 RIR 1. Helms, akumulacja 6 tyg.: 12→22 serie na mięsień, RPE 5–8, ciężar rośnie tylko, gdy jest łatwo (s. 133–136).",
+   "poczatkujacy": "RIR 5–3, bez upadku (Głuchowski, s. 110). Boje główne prowadź procentowo, a RPE tylko notuj (Helms, s. 217, 236–239). Naukę RIR NSCA opisuje tak: seria do szacowanego 3 RIR, 1–2 min przerwy, ten sam ciężar do upadku, porównanie (s. 407).",
+   "zaawansowany": "Zakresy RPE zamiast „RPE pierwszej serii”: pierwsza seria wg %1RM, kolejne korygowane (Helms, s. 246). W intensyfikacji RPE do 9–10 (s. 133–136). Rozbieżność w źródle: RPE w akumulacji 6–8 (s. 133) wobec 5–8 (s. 134).",
+   "specjalista": "Przy chorobie lub urazie wykrytym w kontroli gotowości Chandler kieruje do trenera medycznego (athletic trainer) (s. 387–388). Upadek mięśniowy (RIR 0) nie dla osób z chorobami krążenia (reguła Progress Live, poza źródłem).",
+   "sources": [
+    "Głuchowski — Zaplanuj swój trening, s. 110",
+    "Głuchowski — Zaplanuj swój trening, s. 255–273",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 35–38",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 133–136",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 217, 246",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 387–388",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 407"
+   ],
+   "pytanie": "Klient w tygodniu 2 bloku ma już RIR 1 na planowanym ciężarze. Co zrobić?",
+   "odpowiedz": "RIR ma spadać o najwyżej 1 na tydzień, a RIR 1–0 dopiero w ostatnim tygodniu (Głuchowski, s. 255–256). Obniż ciężar, żeby wrócić do planowanego RIR 3. Jeśli przy dokładaniu serii trzeba mocno obniżać ciężar albo postęp stoi, to sygnał za dużego skoku objętości (s. 256).",
+   "keywords": [
+    "autoregulacja",
+    "RIR",
+    "blok"
+   ]
+  },
+  {
+   "id": "specjalizacja-plateau-test-1rm",
+   "level": "zaawansowany",
+   "title": "Specjalizacja, plateau i test 1RM",
+   "sedno": "Specjalizacja to podział ograniczonego budżetu objętości: partie priorytetowe dostają więcej serii, neutralne mniej, a partie na utrzymaniu minimum. Główne ćwiczenia wielostawowe zostają między blokami, izolacje się rotuje. Przed testem 1RM robisz taper, a bez testu 1RM szacujesz z RM lub RPE.",
+   "dlaczego": "Zdolność regeneracji to ograniczony budżet: więcej serii na priorytet oznacza mniej na inne partie, w proporcji ok. 1:1 (Głuchowski, s. 213–219). Test 1RM zajmuje ponad pół godziny na ćwiczenie (NSCA, s. 405).",
+   "dlaKogo": "Średnio zaawansowani i zaawansowani z konkretnym słabym punktem. Liczba priorytetów: 3 dni → 1; 4 dni → maks. 2; 5 dni → maks. 2, wyjątkowo 3 (Głuchowski, s. 216–217). Test 1RM głównie dla zaawansowanych trenujących ciężko (NSCA, s. 405).",
+   "kiedy": "Priorytety ustalasz na początku każdego bloku (Głuchowski, s. 194–198). Ćwiczenia zmieniasz nie częściej niż co 4–8 tyg. (Głuchowski, s. 59–63). Zaawansowani testują co 6–12 tyg., w programach co 8–16 (Helms, s. 115–120).",
+   "coZrobic": [
+    "Budżet tygodnia = serie na sesję (20–30) × liczba sesji (Głuchowski, s. 225–226).",
+    "Priorytet: górna granica MEV; neutralne: dolna granica MEV; utrzymanie: MV, 1 ćwiczenie, zwykle izolacja (s. 218, 224–227).",
+    "Między blokami zostaw główne wielostawowe, rotuj izolacje (Helms, s. 152–153). Zmiana ma mieć cel, np. ławka płaska → skośna (Głuchowski, s. 59–63).",
+    "Przed testem: tydzień taperu (10 serii na mięsień, RPE 7–9), potem tydzień testu z 2–3 dniami singli przy RPE 7, 6, 5 (Helms, s. 133–136).",
+    "Bez testu: 6RM lub 10RM i tabela albo wzór Browna (NSCA, s. 619, 623); AMRAP na ok. 5RM lub cięższym (Helms, s. 115–120)."
+   ],
+   "przyklad": "Głuchowski, 4 dni, budżet 20×4 = 80 serii: priorytet klatka 11 i pośladki 11; neutralne 7–9; utrzymanie czworogłowe 4, triceps 3 (s. 226–228). NSCA: 6RM na suwnicy 140 lb (63,5 kg) → szacowany 1RM 165 lb (74,8 kg) (s. 619). Wzór Browna: 1RM = (powt. × 0,0338 + 0,9849) × ciężar (tab. 23.4).",
+   "poczatkujacy": "Całkowicie początkujący nie testuje maksimum (Helms, s. 237). Bez testu 1RM u nietrenowanych (NSCA, s. 405–406); można użyć „technicznego 1RM” albo testu na suwnicy zamiast przysiadu (Chandler, s. 365). Specjalizacji ani rotacji ćwiczeń u początkującego baza nie zaleca.",
+   "zaawansowany": "Schoenfeld: mięśnie opóźnione w rozwoju można trenować bardzo dużą objętością (~30+ serii), jeden–dwa naraz, rotacyjnie co cykl (s. 78–86). Głuchowski podaje dla zaawansowanych MRV 30 serii (s. 95). Kandydaci na utrzymanie: priorytet poprzedniego bloku, synergista priorytetu (s. 218).",
+   "specjalista": "Klienci świeżo po urazie lub pod nadzorem medycznym nie robią testu 1RM (NSCA, s. 405). Test 3–5RM z asekuracją i pod okiem doświadczonej osoby (Helms, s. 237).",
+   "sources": [
+    "Głuchowski — Zaplanuj swój trening, s. 59–63",
+    "Głuchowski — Zaplanuj swój trening, s. 213–228",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 115–120",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 133–136",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 152–153",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 405–406",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 619, 623",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 78–86",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 365"
+   ],
+   "pytanie": "Jak oszacować 1RM klienta bez testu maksymalnego?",
+   "odpowiedz": "Wyznacz 6RM albo 10RM w maks. 3 seriach testowych i przelicz tabelą lub wzorem, np. Browna (NSCA, s. 619, 623). Wzory są dokładniejsze przy cięższych ciężarach i mniejszej liczbie powtórzeń niż 10RM (s. 619). Helms: AMRAP na ok. 5RM albo cięższym, np. 2 powt. przy RPE 9 ≈ 3RM (s. 115–120).",
+   "keywords": [
+    "specjalizacja",
+    "1RM",
+    "taper"
+   ]
+  },
+  {
+   "id": "plateau-sredniozaawansowany",
+   "level": "sredni",
+   "title": "Plateau u średniozaawansowanego",
+   "sedno": "Średniozaawansowany powinien robić postęp z tygodnia na tydzień, więc 3 tygodnie bez postępu to realny zastój. Najpierw sprawdź regenerację i podstawy (sen, jedzenie, częstotliwość, technika, trafność RPE). Dopiero gdy wszystko jest w porządku, dodaj 1–2 serie. Przy złej regeneracji zmniejsz obciążenie.",
+   "dlaczego": "Według schematu Helmsa „gdy nie wiesz, co dalej” (s. 87) dokładanie objętości przy złej regeneracji pogłębia zmęczenie. Zależność dawka–efekt ma kształt odwróconego U (Helms, s. 46–62; Głuchowski, s. 93–98).",
+   "dlaKogo": "Średniozaawansowani: zwykle >6 miesięcy i <2 lata mądrego treningu, postęp z tygodnia na tydzień (Helms, s. 100–103). U zaawansowanych Helms stosuje ten schemat dopiero przy braku postępu przez 8–12 tyg. (s. 121–122).",
+   "kiedy": "Gdy ciężary lub powtórzenia stoją albo spadają przez kolejne tygodnie mimo realizacji planu. Schoenfeld: spadki przez kolejne sesje → mniej objętości albo deload (s. 209). Stachurski: nieudane powtórzenia z nowym ciężarem (s. 28).",
+   "coZrobic": [
+    "Regeneracja (≥2 „tak” = źle): gorszy sen, spadające ciężary lub powtórzenia, większy stres, większa bolesność (Helms, s. 87).",
+    "Źle → lekki tydzień; jeśli zmęczenie szybko wraca, zetnij ok. 20% serii, np. 15 → 12 (Helms, s. 124–126).",
+    "Dobrze → sprawdź podstawy: sen >8 h, nadwyżka kaloryczna, białko ≥1,6 g/kg, każdy mięsień ≥2×/tydz., technika, trafne RPE. Popraw braki i oceń po kolejnym mezocyklu (s. 87).",
+    "Wszystko spełnione → +1–2 serie na mięsień, ok. 10% (Helms, s. 124–126).",
+    "Zastój na fali: dokończ cykl lżej, po deloadzie start 5–10% poniżej ciężaru zastoju i mniejsze skoki, 2,5 zamiast 5 kg (s. 243–245)."
+   ],
+   "przyklad": "Stachurski (s. 28): 4×6 przy 107,5 kg nieudane → wróć do 105 kg i zrób 4×8–9; gdy się uda, w kolejnym tygodniu zwiększ ciężar. Helms, kolejny zastój na fali: poszerz zakres o 1 powtórzenie z obu stron (6–8 → 5–9), wtedy deload co 2 cykle (s. 243–245).",
+   "poczatkujacy": "Inna procedura: nieudana sesja → ten sam ciężar; 2 nieudane z rzędu → −10% i odbudowa; kolejny zastój → połowa skoku. Gdy większość bojów stoi mimo tego → fala 3-tygodniowa (Helms, s. 105–110, 241). Początkujący zmienia tylko 1 zmienną naraz (Głuchowski, s. 252).",
+   "zaawansowany": "Helms: schemat zastoju dopiero po 8–12 tyg. bez postępu (s. 121–122). Schoenfeld: krótki blok wyższej objętości (przeciążenie funkcjonalne), potem tydzień aktywnej regeneracji (s. 177, 202–209). NSCA: przy stagnacji od kilku miesięcy zmień blok, np. 2–5 tyg. siły po hipertrofii (s. 413–417).",
+   "specjalista": "Ból stawów lub ścięgien → tydzień z 12–20 powtórzeniami; jeśli nie mija przez kilka tygodni, skieruj do specjalisty (Helms, s. 42, 124). Dietę na nadwyżkę ustala dietetyk (reguła Progress Live, poza źródłem; Helms nie podaje kalorii).",
+   "sources": [
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 87",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 100–103",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 121–126",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 243–245",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 28",
+    "Schoenfeld — Science and Development of Muscle Hypertrophy, s. 201–202, 209",
+    "Głuchowski — Zaplanuj swój trening, s. 97, 256",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 413–417"
+   ],
+   "pytanie": "Klient średniozaawansowany od 3 tygodni nie poprawia wyników. Dodać serie czy ciężar?",
+   "odpowiedz": "Najpierw ani jedno, ani drugie. Sprawdź regenerację i podstawy według Helmsa (s. 87). Normę snu książki podają różnie: Helms >8 h (s. 87), Schoenfeld 7–9 h z potrzebami indywidualnymi (s. 201–202). Serie (+1–2) dodajesz dopiero przy dobrej regeneracji. Ciężar korygujesz według planu fali: mniejsze skoki, start 5–10% niżej.",
+   "keywords": [
+    "plateau",
+    "zastój"
+   ]
+  }
+ ],
+ "cases": [
+  {
+   "id": "poczatkujacy-3-dni",
+   "title": "Początkujący, 3 dni w tygodniu",
+   "client": "Dorosły, zdrowy (w PAR-Q+ same „nie”), bez doświadczenia z treningiem siłowym, 3 dni w tygodniu, cel: ogólna siła i sylwetka.",
+   "steps": [
+    {
+     "label": "Etap",
+     "text": "Początkujący: nie ma aktualnego programu (NSCA tab. 15.1, s. 396) i robi postępy z sesji na sesję (Helms s. 100–103). Bez testu 1RM (NSCA s. 405–406). Pierwsze tygodnie służą nauce techniki: głównie maszyny i proste ćwiczenia wielostawowe."
+    },
+    {
+     "label": "Dni i split",
+     "text": "FBW pn/śr/pt. Między treningami tej samej grupy ≥1 dzień i ≤3 dni przerwy (NSCA s. 398–399). 1 ćwiczenie na grupę mięśni (s. 401–402): suwnica lub przysiad goblet, wyciskanie, ściąganie lub wiosłowanie, wyciskanie nad głową, uginanie nóg, uginanie ramion. Taki zestaw to wniosek bazy NSCA, nie gotowy plan z książki."
+    },
+    {
+     "label": "Objętość i RIR",
+     "text": "1–3 serie × 8–12 (NSCA s. 408–409), łącznie 10–12 serii na mięsień tygodniowo (Helms s. 208). RIR 5–3 (Głuchowski s. 110). Bez upadku w ćwiczeniach wielostawowych (Helms s. 66–68). Przerwy 2–3 min, podczas nauki techniki do 5 min (NSCA s. 412)."
+    },
+    {
+     "label": "Progresja i obserwacja",
+     "text": "Reguła 2-za-2: 2 powtórzenia ponad cel w ostatniej serii na 2 treningach z rzędu → większy ciężar. Początkujący: góra, ćw. podstawowe +1–2 kg; dół, ćw. podstawowe +4–7 kg (NSCA s. 410–411). Nieudana sesja → ten sam ciężar; 2 nieudane z rzędu → −10% (Helms s. 106, 241). Obserwuj technikę i ból stawów."
+    }
+   ],
+   "specjalista": "Nowy ból stawu (inny niż zakwasy mięśni) albo objaw z listy PAR-Q+ → fizjoterapeuta lub lekarz. Trener nie diagnozuje.",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 396",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 398–412",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 66–68",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 100–106",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 208, 241",
+    "Głuchowski — Zaplanuj swój trening, s. 110",
+    "Stachurski — Układanie planów treningowych od podstaw, s. 57, 67"
+   ]
+  },
+  {
+   "id": "powrot-po-przerwie",
+   "title": "Powrót po przerwie (6+ miesięcy)",
+   "client": "Klient 35 l., wcześniej ok. 2 lata treningu siłowego, od 7 miesięcy bez treningu, zdrowy, ma 3 dni w tygodniu.",
+   "steps": [
+    {
+     "label": "Etap",
+     "text": "Klient nie ćwiczył w ostatnich 4–6 tygodniach, więc w tab. 15.1 nie ma aktualnego programu; ostateczną ocenę statusu zostawia się trenerowi (NSCA s. 396). Ile siły zostaje po 6+ miesiącach przerwy: brak w bazie książek (14 dni prawie nie wpływa na siłę, NSCA s. 84–86). Staż ustalasz po tempie postępów (Helms s. 100–103)."
+    },
+    {
+     "label": "Dni i split",
+     "text": "FBW 3× w tygodniu (pn/śr/pt), każdy mięsień ≥2× w tygodniu (Helms s. 76–80). Gdy postęp jest już tylko z tygodnia na tydzień, przy 4 dniach możesz przejść na góra/dół (Helms s. 207–209)."
+    },
+    {
+     "label": "Objętość i RIR",
+     "text": "Cykl wprowadzający: pierwsze 1–2 tygodnie lżej, bo pierwsze sesje dają silniejsze zakwasy (Chandler s. 424). Start 10–12 serii na mięsień tygodniowo (Helms s. 208), RIR 5–3 (Głuchowski s. 110). Bez testu 1RM na starcie: ciężar szacuj z 6–10RM albo RPE (NSCA s. 405–407)."
+    },
+    {
+     "label": "Progresja i obserwacja",
+     "text": "Koryguj ciężar po serii według tab. 15.5 (NSCA s. 407–408), potem stosuj regułę 2-za-2 (s. 410–411). Gdy postęp zwolni do tygodniowego, zwiększ do 13–15 serii (Helms s. 208). Obserwuj zakwasy, sen i ból stawów oraz sygnały przetrenowania: spadek siły, zaburzenia snu, utratę motywacji (NSCA s. 85)."
+    }
+   ],
+   "specjalista": "Ponów PAR-Q+, bo deklaracja jest ważna maksymalnie 12 miesięcy i traci ważność przy zmianie stanu zdrowia (NSCA s. 163). Jeśli przerwa była z powodu urazu: zgoda lekarza lub fizjoterapeuty przed obciążaniem tej okolicy.",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 85",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 163",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 396",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 405–411",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 76–80, 100–103",
+    "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 207–209",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 424",
+    "Głuchowski — Zaplanuj swój trening, s. 110"
+   ]
+  },
+  {
+   "id": "senior-65-sprawnosc",
+   "title": "Senior 65+ z celem sprawności",
+   "client": "Kobieta 68 l., nieaktywna, chce sprawniej radzić sobie w codziennych czynnościach, ma nieco słabszą równowagę; po rozmowie z lekarzem.",
+   "steps": [
+    {
+     "label": "Etap",
+     "text": "Początkująca seniorka. Przed programem rozmowa z lekarzem (NSCA s. 508) i PAR-Q+. Bez testu 1RM: ciężar dobierasz skalą OMNI-RES (NSCA s. 406–407). Przy słabej równowadze najpierw maszyny z podparciem i rower stacjonarny, bez wykroków i wejść na skrzynię (tab. 18.1, s. 508)."
+    },
+    {
+     "label": "Dni i split",
+     "text": "Trening oporowy całego ciała 2–3 nienastępujące po sobie dni, np. pn/śr/pt (NSCA s. 506). Tlenowo 3–5 dni po 20–60 min przy 65–75% HRmax, czyli RPE 5–6/10 (s. 507). Trening równowagi progresywnie (s. 508)."
+    },
+    {
+     "label": "Objętość i RIR",
+     "text": "Na start 1 seria × 10–15 na ćwiczenie, później 2–4 serie × 8–12 (70–80% 1RM), przerwy 2–3 min (NSCA s. 504–505). Najpierw 4 wielostawowe na maszynach, potem jednostawowe (s. 504). Konkretnego RIR dla seniora brak w bazie książek. Chandler: bez wysiłku do całkowitego wyczerpania (s. 549, 592–593)."
+    },
+    {
+     "label": "Progresja i obserwacja",
+     "text": "2-za-2: przy zakresie 8–12, gdy klientka zrobi 14 powtórzeń w ostatniej serii na 2 treningach z rzędu → ciężar +ok. 5% (NSCA s. 505–506). Równowaga: siad z podparciem → siad bez podparcia → stanie obunóż → jednonóż → chód → zaburzenia równowagi (Chandler s. 593). Prowadź zapis treningów (NSCA s. 508)."
+    }
+   ],
+   "specjalista": "Lekarz: przed startem; zawroty, utrata równowagi, ból w klatce, duszność → przerwać trening i skierować. Fizjoterapeuta: ból stawu w trakcie lub po ćwiczeniu; takiej aktywności się nie wykonuje (Chandler s. 592).",
+   "sources": [
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 504–508",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 406–407",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 549, 592–593"
+   ]
+  },
+  {
+   "id": "bol-kolana-przysiad",
+   "title": "Klient z bólem kolana przy przysiadzie (bez czerwonych flag)",
+   "client": "Klient 30 l., ból z przodu kolana przy głębokim przysiadzie; bez urazu, obrzęku, blokowania ani uciekania kolana.",
+   "steps": [
+    {
+     "label": "Etap",
+     "text": "Najpierw ból, potem siła (Crossley s. 215, 220–221). Zadaj pytanie Boyle'a „Czy boli?”: odpowiedź jest tylko tak albo nie, a „po rozgrzewce przechodzi” znaczy „tak” (Boyle, rozdz. 3, § Painful Exercise). Trener nie nazywa przyczyny bólu."
+    },
+    {
+     "label": "Dni i split",
+     "text": "Liczba dni się nie zmienia (wniosek). Zamieniasz bolesne ćwiczenie. NSCA (s. 583): zamiast pełnego przysiadu i wykroku — ćwierć- i półprzysiad, suwnica w części zakresu, częściowy wykrok, rower, wzmacnianie pośladków. Chandler (s. 618): przysiad 0–50° (do ~60°) i wzmacnianie biodra."
+    },
+    {
+     "label": "Objętość i RIR",
+     "text": "Liczb serii i RIR dla bólu kolana brak w bazie książek (Boyle T9: brak). Pozostałe parametry zostają jak w planie klienta. Ćwiczenia kolanowe tylko w zakresie bez bólu. Zmieniaj pozycję, obciążenie, prędkość lub strategię, aż ból zniknie (Crossley s. 217–220)."
+    },
+    {
+     "label": "Progresja i obserwacja",
+     "text": "Najpierw zakres, potem ciężar: pełny zakres bez bólu z masą ciała przed dodaniem obciążenia (Boyle T9). Zmieniaj jeden parametr naraz; ból, obrzęk lub ucieplenie = cofnij ostatnią zmianę (NSCA s. 568). Zaostrzenie po treningu: odpoczynek, mniejsza intensywność, potem stopniowo w górę (Crossley s. 218)."
+    }
+   ],
+   "specjalista": "Fizjoterapeuta: ból trwa lub narasta mimo zmian, pojawia się obrzęk albo ból w spoczynku. Blokowanie, przeskakiwanie, uciekanie kolana lub kłujący ból → nie obciążać, skierować do specjalisty (Crossley s. 257; to działanie jest poza źródłem). Czerwone flagi (Crossley s. 184, 189–190) → lekarz.",
+   "sources": [
+    "Crossley — Ćwiczenia funkcjonalne i rehabilitacja, s. 215–221",
+    "Crossley — Ćwiczenia funkcjonalne i rehabilitacja, s. 257",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 568",
+    "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 583",
+    "Chandler, Brown (red.) — Conditioning for Strength and Human Performance, s. 618",
+    "Boyle — Advances in Functional Training, rozdz. 3 Injuries, § Painful Exercise, § Anterior Knee Pain (baza nie ma numerów stron)"
+   ]
+  }
+ ],
+ "glossary": [
+  {
+   "term": "Seria robocza",
+   "def": "Seria, którą liczysz do objętości. Stachurski: 6–20 powtórzeń, 60–85% RM, RIR 1–4 i przerwa 2–5 min jednocześnie. Helms liczy „trudne serie” ok. 6–20 powtórzeń blisko upadku.",
+   "practice": "Serie rozgrzewkowe i lekkie serie daleko od upadku zapisuj osobno i nie wliczaj ich do tygodniowej liczby serii.",
+   "source": "Stachurski — Układanie planów treningowych od podstaw, s. 48; Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 46–62"
+  },
+  {
+   "term": "Seria efektywna (stymulująca)",
+   "def": "Głuchowski: seria liczona do objętości, czyli 6–20 powtórzeń zakończonych najwyżej przy RIR 4, przy pozostałych zmiennych bez zmian. Seria w niepełnym zakresie ruchu to ok. 0,7 serii.",
+   "practice": "Jeśli klient kończy serię z 6 lub więcej powtórzeniami w zapasie, ta seria nie wchodzi do bilansu tygodnia.",
+   "source": "Głuchowski — Zaplanuj swój trening, s. 91, 172"
+  },
+  {
+   "term": "RIR",
+   "def": "Repetitions in reserve: ile powtórzeń w dobrej technice klient zrobiłby jeszcze do upadku. RIR 0 to upadek, RIR 2 to dwa powtórzenia w zapasie. NSCA: metoda jest niedokładna daleko od upadku i u nowicjuszy.",
+   "practice": "Po serii pytaj „ile jeszcze byś zrobił?” i zapisuj odpowiedź obok ciężaru i powtórzeń.",
+   "source": "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 406–407; Głuchowski — Zaplanuj swój trening, s. 106"
+  },
+  {
+   "term": "RPE",
+   "def": "Ocena wysiłku w skali 1–10. W wersji opartej na RIR: RPE 10 = RIR 0, 9 = 1, 8 = 2, 7 = 3, 5–6 = 4–6 powtórzeń w zapasie. Głuchowski woli zapis w RIR, bo RPE słabo pasuje do treningu siłowego.",
+   "practice": "„RPE 8” w planie czytaj jako „skończ serię z 2 powtórzeniami w zapasie”.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 64–65; Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 408; Głuchowski — Zaplanuj swój trening, s. 105–107"
+  },
+  {
+   "term": "1RM i %1RM",
+   "def": "1RM to największy ciężar na jedno powtórzenie. %1RM to ciężar jako procent 1RM. Przelicznik na powtórzenia jest orientacyjny: przy 75% 1RM na suwnicy wyniki wahały się od 7 do 24 powtórzeń.",
+   "practice": "Test 1RM zajmuje pół godziny lub więcej na ćwiczenie; NSCA zostawia go zaawansowanym. Nie rób go osobom świeżo po urazie i pod nadzorem medycznym.",
+   "source": "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 405–406"
+  },
+  {
+   "term": "MEV",
+   "def": "Minimalna objętość skuteczna: najmniejsza liczba serii na partię w tygodniu, która daje przyrost. Głuchowski podaje: nowicjusz 1, początkujący 3, średnio zaawansowany 6–7, zaawansowany 9–10, zawodowiec 12.",
+   "practice": "Partie „neutralne” zaczynają blok od dolnej granicy MEV, partia priorytetowa od górnej.",
+   "source": "Głuchowski — Zaplanuj swój trening, s. 95, 224–227"
+  },
+  {
+   "term": "MAV",
+   "def": "Objętość optymalna, która daje największy przyrost. Głuchowski: nowicjusz 5, początkujący 5–7, średnio zaawansowany 10, zaawansowany 15, zawodowiec 20 serii na partię w tygodniu.",
+   "practice": "Traktuj MAV jako orientacyjny cel w środku bloku, a nie jako start.",
+   "source": "Głuchowski — Zaplanuj swój trening, s. 95"
+  },
+  {
+   "term": "MRV",
+   "def": "Maksymalna objętość, po której partia wciąż się regeneruje (Głuchowski: w 48–72 h). Wartości: nowicjusz 10, początkujący 15, średnio zaawansowany 20, zaawansowany 30, zawodowiec 25–28 (autor nie wyjaśnia, dlaczego mniej).",
+   "practice": "Gdy rośnie liczba serii, a ciężary spadają, klient prawdopodobnie przekroczył MRV i trzeba zdjąć serie.",
+   "source": "Głuchowski — Zaplanuj swój trening, s. 94–95; Schoenfeld — Science and Development of Muscle Hypertrophy, s. 209"
+  },
+  {
+   "term": "Objętość tygodniowa",
+   "def": "Suma serii roboczych na partię mięśniową w tygodniu. Helms: 10–20 serii; według stażu 10–12 / 13–15 / 16–20. NSCA: u średniozaawansowanych co najmniej 10 serii na mięsień tygodniowo.",
+   "practice": "Policz serie każdej partii z całego tygodnia, a nie z jednej sesji, i porównaj z zakresem dla stażu klienta.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 47, 62, 208; Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 411–412"
+  },
+  {
+   "term": "Seria pośrednia (np. triceps w wyciskaniu)",
+   "def": "Seria, w której partia pracuje jako pomocnicza. Helms liczy ją 1:1 (wyciskanie poziome = seria dla tricepsu), ale nie cała objętość może z niej pochodzić. Głuchowski liczy synergistę jako ok. 0,3–0,5 serii.",
+   "practice": "Przy 9 seriach wyciskań tygodniowo triceps ma 9 serii według Helmsa albo ok. 3–4,5 według Głuchowskiego. Wybierz jedną metodę i trzymaj się jej w całym planie.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 84, 213; Głuchowski — Zaplanuj swój trening, s. 232–233"
+  },
+  {
+   "term": "Deload",
+   "def": "Zaplanowany lżejszy okres, który zdejmuje zmęczenie. Helms: ok. połowa objętości przy podobnym ciężarze, np. 3×10×90 kg → 2×8×90 kg. NSCA i Schoenfeld: układ 3:1, czyli 3 tygodnie pracy i 1 lżejszy.",
+   "practice": "Helms zaleca deload, gdy z 5 pytań kontrolnych (sen, wyniki, stres, bóle, regularność) co najmniej 2 dają „tak”.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 106, 123; Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 414–415; Schoenfeld — Science and Development of Muscle Hypertrophy, s. 199–200"
+  },
+  {
+   "term": "FBW",
+   "def": "Full Body Workout: każda sesja obejmuje całe ciało. NSCA zaleca początkującym 2–3 takie treningi w nienastępujące po sobie dni, z co najmniej 1 i najwyżej 3 dniami przerwy między treningami tej samej grupy.",
+   "practice": "Przy 3 dniach ustaw np. pn/śr/pt; przy 2 dniach pn/czw.",
+   "source": "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 398–399; Stachurski — Układanie planów treningowych od podstaw, s. 34–38"
+  },
+  {
+   "term": "Upper/Lower",
+   "def": "Podział na dni góry i dołu ciała, zwykle 4 dni w tygodniu, każda partia 2×. Schoenfeld i Głuchowski podają układ: 2 dni treningu, 1 wolny, 2 dni treningu, 2 wolne.",
+   "practice": "Typowy krok po FBW, gdy klient ma 4 dni i sesje całego ciała robią się za długie.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 91–93, 207–209; Schoenfeld — Science and Development of Muscle Hypertrophy, s. 208–209; Głuchowski — Zaplanuj swój trening, s. 233"
+  },
+  {
+   "term": "PPL",
+   "def": "Push/Pull/Legs: dni pchania, ciągnięcia i nóg. Książki w bazie nie podają definicji ani gotowego 3-dniowego PPL. Helms ma szablon 4-dniowy: nogi, pchanie, ciągnięcie i całe ciało, z ok. 9 seriami na mięsień w dniach nogi/pchanie/ciągnięcie.",
+   "practice": "Jeśli PPL robi się raz w tygodniu, każda partia ma 1 sesję, a Helms zaleca co najmniej 2.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 213; Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 76–80"
+  },
+  {
+   "term": "DUP",
+   "def": "Daily undulating periodization: w tym samym tygodniu zmienia się zakres powtórzeń między sesjami. NSCA: pn 3–5RM, śr 8–12RM, pt 15–20RM. Schoenfeld: dzień ciężki 3–5, średni 8–12, lekki 15–25.",
+   "practice": "NSCA i Schoenfeld uznają modele liniowy i falowy za równie dobre dla hipertrofii; DUP to opcja, nie obowiązek.",
+   "source": "Schoenfeld, Snarr (red.) — NSCA's Essentials of Personal Training, 3rd ed., s. 414–417; Schoenfeld — Science and Development of Muscle Hypertrophy, s. 203–204"
+  },
+  {
+   "term": "Progresja liniowa",
+   "def": "Regularne dokładanie ciężaru przy tych samych seriach i powtórzeniach. Helms: początkujący +2,5 kg na sesję, w przysiadzie i martwym ciągu +5 kg. Stachurski: co tydzień, po ok. 0,5 kg, albo najpierw serie do 4, potem ciężar.",
+   "practice": "Helms, s. 211: tydzień 1 3×8×100 kg, tydzień 2 3×8×102,5 kg.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 107, 211; Stachurski — Układanie planów treningowych od podstaw, s. 28, 45, 67"
+  },
+  {
+   "term": "Podwójna progresja",
+   "def": "Najpierw dokładasz powtórzenia w zakresie, a gdy wszystkie serie dojdą do górnej granicy, zwiększasz ciężar o najmniejszy skok. Helms stosuje ją głównie w izolacjach u średniozaawansowanych i zaawansowanych.",
+   "practice": "Helms, s. 211: 25 kg w zakresie 8–15; gdy wyjdzie 15, 15, 15, dokładasz najmniejszy możliwy ciężar.",
+   "source": "Helms, Morgan, Valdez — Piramida mięśni i siły: Trening, s. 208, 211"
+  }
+ ]
+}
