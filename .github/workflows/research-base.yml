@@ -55,18 +55,19 @@ jobs:
             echo "Baza bez zmian."
             exit 0
           fi
+          # Część plików jest w repo z CRLF mimo eol=lf w .gitattributes — bez tego git widzi fałszywe zmiany.
+          echo '* -text' > .git/info/attributes
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add knowledge/research-base.json
           git commit -m "Baza badań: $(date -u +%Y-%m-%d)"
           for i in 1 2 3; do
-            if ! out=$(git pull --rebase --autostash origin "${GITHUB_REF_NAME}" 2>&1); then
-              echo "::warning::git pull: $(echo "$out" | tail -4 | tr '\n' ' ')"
-              git rebase --abort 2>/dev/null
-              sleep 5; continue
-            fi
             if out=$(git push origin "HEAD:${GITHUB_REF_NAME}" 2>&1); then exit 0; fi
             echo "::warning::git push: $(echo "$out" | tail -4 | tr '\n' ' ')"
             sleep 5
+            if ! out=$(git pull --rebase origin "${GITHUB_REF_NAME}" 2>&1); then
+              echo "::warning::git pull: $(echo "$out" | tail -4 | tr '\n' ' ')"
+              git rebase --abort 2>/dev/null
+            fi
           done
           exit 1
