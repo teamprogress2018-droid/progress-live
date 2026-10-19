@@ -210,10 +210,10 @@ jobs:
       - name: 1i5c. Testy feedu Nowe badania (PubMed)
         run: node .github/scripts/test_research_feed.js
 
-      - name: 1i5d. Testy bazy badań Academy (serwer: walidacja kart, brak zmyślonych cytowań, cache)
+      - name: 1i5e. Testy bazy badań Academy – walidacja kart, brak zmyślonych cytowań, cache
         run: node .github/scripts/test_research_base.js
 
-      - name: 1i5e. Testy zakładki Badania w Academy
+      - name: 1i5f. Testy zakładki Badania w Academy
         run: node .github/scripts/test_research_academy.js
 
       - name: 1i5d. Testy bazy wiedzy z książek
