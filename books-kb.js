@@ -101,10 +101,20 @@ function expandQuery(q){
   return out;
 }
 
+/** Rdzenie słów pytających i ogólników, które nie mówią, o czym jest pytanie. */
+const QUESTION_STOP=new Set(['jakie','jakim','jakic','jakie','ktore','ktory','ktora','ktore','dlacz','kiedy','gdzie','czego','czemu','moze','mozna','lubi','lubia','powin','trzeb','najle','najlepsz','sposo','jesli','zeby','bede','jestem','mam','moja','moje','moj','klien','prosz','powie','wytlu']);
+/** Waga rdzenia = log(liczba reguł w dziedzinie / liczba reguł z tym rdzeniem). */
+function idfWeights(data,q,mode){
+  const pool=data.chunks.filter(c=>c.d===mode);
+  const out={};
+  q.forEach(s=>{let df=0;pool.forEach(c=>{if(c._n.indexOf(s)>=0)df++;});out[s]=Math.log(1+pool.length/(1+df));});
+  return out;
+}
+
 /**
  * Wybiera reguły z książek pod zapytanie.
  * opts: mode ('training'|'nutrition'|'coaching'|…), query, safetyQuery (kontuzje, wiek, BMI),
- * maxChars, perBook, data (do testów).
+ * maxChars, perBook, question (pytanie trenera: pomija słowa pytające, waży rzadkie słowa), data (do testów).
  */
 function booksKbSelect(opts){
   opts=opts||{};
@@ -113,12 +123,15 @@ function booksKbSelect(opts){
   const mode=booksKbDomain(opts.mode,opts.query);
   if(!mode)return[];
   const q=stems(expandQuery(opts.query));
+  /* Pytanie trenera: bez słów pytających, a rzadkie słowa („klatka”) ważą więcej niż częste („ćwiczenia”). */
+  if(opts.question)QUESTION_STOP.forEach(s=>q.delete(s));
+  const weight=opts.question?idfWeights(data,q,mode):null;
   const sq=stems(opts.safetyQuery||'');
   const perBook=opts.perBook||(mode==='training'?5:4);
   const general=[],safety=[];
   data.chunks.forEach(c=>{
     if(c.d!==mode)return;
-    let hits=0;q.forEach(s=>{if(c._n.indexOf(s)>=0)hits++;});
+    let hits=0;q.forEach(s=>{if(c._n.indexOf(s)>=0)hits+=weight?weight[s]:1;});
     const safeSection=c.s==='safetyRules'||c.s==='specialPopulationRules'||c.s==='ifThenRules';
     let safe=0;if(safeSection)sq.forEach(s=>{if(c._n.indexOf(s)>=0)safe++;});
     /* Długi tekst łapie więcej słów — trafienia ważone długością. */
