@@ -628,6 +628,11 @@ async function main(opts) {
   fs.writeFileSync(basePath, JSON.stringify(base, null, 1) + '\n');
   console.log(`Badania: ${Object.keys(base.studies).length} · pytania z odpowiedzią: ${questions.filter((q) => q.answer).length}/${questions.length}`);
   if (errors.length) console.warn('Problemy (' + errors.length + '):\n' + errors.slice(0, 30).join('\n'));
+  if (env.GITHUB_ACTIONS) {
+    const st = Object.values(base.studies);
+    console.log(`::notice::Baza badań: ${st.length} publikacji, karty AI ${st.filter((s) => s.synth).length}, odpowiedzi ${questions.filter((q) => q.answer).length}/${questions.length}, źródła ${JSON.stringify(status)}`);
+    base.problems.forEach((p) => console.log('::warning::' + p.replace(/[\r\n]+/g, ' ')));
+  }
   return base;
 }
 
