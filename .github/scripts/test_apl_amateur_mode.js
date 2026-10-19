@@ -1,6 +1,7 @@
 const fs=require('fs'),vm=require('vm');
 const src=fs.readFileSync('14-amateur-plan-wizard.js','utf8');
 const plansSrc=fs.readFileSync('05-clients-builder-plans-calendar.js','utf8');
+const generatorSrc=fs.readFileSync('03-ai-plangen-bizstats-aicoach.js','utf8');
 const ctx={window:{},document:{getElementById:()=>null,querySelectorAll:()=>[]},console};vm.createContext(ctx);vm.runInContext(src,ctx);
 let failures=0;function ok(name,condition){if(condition)console.log('OK ',name);else{console.error('FAIL',name);failures++;}}
 const clear=ctx.aplAmateurAssessment({parq:'no',pain:'no',consent:true,sleep:3,stress:3});
@@ -23,4 +24,5 @@ ctx.window._aplAmateurIntake={prescription:{days:'2',targetRir:'3'}};
 ok('candidate validator rejects advanced methods and excess intensity',ctx.aplAmateurPlanIssues({days:[{exercises:[{name:'Tabata',rir:'1'}]},{exercises:[]}],periodization:''}).length>=2);
 ok('editor limits are enforced before save',!ctx.aplAmateurMayAddDay({days:[{},{}]})&&!ctx.aplAmateurMayAddExercise({days:[{exercises:[{},{},{},{},{}]}]},0));
 ok('saved-plan library marks Amateur plans',plansSrc.includes('function planAmateurMetaHtml')&&plansSrc.includes('const amateurMeta=planAmateurMetaHtml(p)'));
+ok('save is blocked for an unsafe Amateur candidate',generatorSrc.includes("if(issues.length){notify('Popraw plan Amator przed zapisem: '+issues[0]);return null;}")&&generatorSrc.includes('aplAmateurConfirmReview'));
 if(failures)process.exit(1);console.log('\nAll amateur mode tests passed');
