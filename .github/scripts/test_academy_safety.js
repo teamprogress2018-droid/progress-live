@@ -119,6 +119,25 @@ const plan=text(screen.innerHTML);
 ok('my plan shows goal label and no null days',/Budowa masy \(hipertrofia\)/.test(plan)&&!/null/.test(plan)&&/Dni —/.test(plan));
 ok('my plan shows several signals',/Sygnał 1/.test(plan)&&/Sygnał 3/.test(plan));
 
+/* 9. Tematy Academy (pakiet E): każdy temat ma źródło, ścieżka nowego klienta działa, słowniczek w wyszukiwaniu. */
+const topicsJson=JSON.parse(read('knowledge/academy-topics.json'));
+const allTopics=topicsJson.topics.concat(topicsJson.cases);
+ok('topics have sources with page or explicit gap',topicsJson.topics.length>=20&&allTopics.every(t=>(t.sources||[]).length&&t.sources.every(x=>/s\. \d|rozdz\.|brak w bazie/.test(x))));
+ok('topics have the card structure',topicsJson.topics.every(t=>t.sedno&&t.dlaczego&&t.dlaKogo&&t.kiedy&&(t.coZrobic||[]).length&&t.pytanie&&t.odpowiedz&&['podstawy','sredni','zaawansowany'].includes(t.level)));
+ok('glossary entries have sources',topicsJson.glossary.length>=15&&topicsJson.glossary.every(g=>g.def&&g.source));
+ok('new client path resolves',topicsJson.newClientPath.every(id=>id==='bezpieczenstwo'||allTopics.some(t=>t.id===id)));
+ok('no single best exercise claims',!/najlepsze ćwiczenie|najlepszym ćwiczeniem|najskuteczniejsz/i.test(JSON.stringify(topicsJson)));
+ctx.academySetTopics(topicsJson);
+ctx.academySetLevel('topics');
+const tv=screen.innerHTML;
+ok('topics tab renders levels, path, cases and glossary',/Ścieżka: nowy klient/.test(tv)&&/Średni poziom/.test(tv)&&/Przypadki klientów/.test(tv)&&/Słowniczek/.test(tv)&&/Objawy STOP i czerwone flagi/.test(tv));
+ctx.academyTopicsFilter('zaawansowany');
+ok('level filter hides other levels',!/<h3>Podstawy<\/h3>/.test(screen.innerHTML)&&/<h3>Zaawansowany<\/h3>/.test(screen.innerHTML));
+ctx.academyOpenTopic('deload');
+ok('open topic expands it',/id="academy-topic-deload" open/.test(screen.innerHTML));
+ok('glossary term shows in search',/academy-topic-hint/.test(ask('MEV'))&&/Minimalna objętość/.test(ask('MEV')));
+ok('topic link shows in search',/Temat: Deload/.test(ask('deload')));
+
 const css=read('styles.css');
 ok('safety css present',css.includes('.academy-safety{')&&css.includes('.academy-learning-card.is-safety'));
 
