@@ -969,6 +969,24 @@ function aplRegroupExercisesByMuscle(plan,client){
     day.exercises=seenOrder.flatMap(cat=>groups[cat]);
   });
 }
+function aplLinkPlanExercisesToLibrary(plan){
+  (plan&&plan.days||[]).forEach(day=>(day&&day.exercises||[]).forEach(ex=>{
+    if(!ex)return;
+    const ref=typeof window.plResolveExercise==='function'?window.plResolveExercise(ex.name):null;
+    ex.exerciseId=ref?ref.id:'';
+  }));
+  return plan;
+}
+function aplGenerationReadiness(data){
+  const missing=[];
+  if(!data.client)missing.push('wybrana karta klienta');
+  if(!data.age||!data.weight||!data.height)missing.push('wiek, masa lub wzrost');
+  if(!data.hasSportBackground)missing.push('tło sportowe / aktywność');
+  if(!data.hasMetrics)missing.push('pomiary klienta');
+  if(!data.hasLiveContext)missing.push('historia z Trening Live');
+  if(!data.hasLimitationsDeclaration)missing.push('informacja o ograniczeniach');
+  return {complete:missing.length===0,missing,checkedAt:new Date().toISOString()};
+}
 
 async function aplGenerate(){
   if(aplGenerating)return;
@@ -1025,6 +1043,14 @@ async function aplGenerate(){
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
+  }
+  const readiness=aplGenerationReadiness({
+    client,age,weight,height,hasSportBackground,hasMetrics,hasLiveContext,
+    hasLimitationsDeclaration:!!String(injuries||'').trim()
+  });
+  if(!readiness.complete){
+    const proceed=confirm('Kontekst do generowania jest niepełny. Brakuje: '+readiness.missing.join(', ')+'.\n\nMożesz wygenerować propozycję, ale przed akceptacją sprawdź Plan Health i uzupełnij dane klienta. Kontynuować?');
+    if(!proceed)return;
   }
 
   aplGenerating=true;
@@ -1291,8 +1317,10 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       clientId:cid||null,goal,level,method,daysPerWeek:Number(days)||null,
       durationMinutes:Number(duration)||null,weeks:weeksNum,equipment:[...equipment],
       sleep,stress,physiquePriorities:physiquePriorityLabels,hasSportBackground,
-      hasMetrics,hasLiveContext,hasLimitations:!!String(injuries||'').trim(),hasAdditionalNotes:!!notes
+      hasMetrics,hasLiveContext,hasLimitations:!!String(injuries||'').trim(),hasAdditionalNotes:!!notes,
+      inputReadiness:{...readiness,proceededWithGaps:!readiness.complete}
     };
+    plan.goal=plan.goal||goal;
     plan.phases=phasesMap;
     plan.weekKeys=weekKeys;
     plan.progression=progression||plan.progression||'linear';
@@ -1309,6 +1337,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
         aplComputeProgression(ex,weekKeys,phasesMap,progression);
       });
     });
+    aplLinkPlanExercisesToLibrary(plan);
     aplRegroupExercisesByMuscle(plan,client);
     if(typeof window.plValidatePlan==='function')plan.validation=window.plValidatePlan(plan,{client,source:'ai'});
     aplRenderPlan(plan,client,goal,method,days,weeks);
@@ -1354,6 +1383,8 @@ function aplPlanWhyHTML(plan){
 function aplGenerationContextHTML(context){
   if(!context||typeof context!=='object')return'';
   const esc=v=>typeof escHtml==='function'?escHtml(String(v==null?'':v)):String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const readiness=context.inputReadiness||null;
+  const readinessText=readiness?(readiness.complete?'pełny zestaw danych':'częściowy — brak: '+((readiness.missing||[]).join(', ')||'nieokreślono')):'';
   const rows=[
     ['Cel',context.goal],['Poziom',context.level],['Metoda',context.method],
     ['Dni / tydzień',context.daysPerWeek?context.daysPerWeek+'×':''],['Czas sesji',context.durationMinutes?context.durationMinutes+' min':''],
@@ -1363,10 +1394,23 @@ function aplGenerationContextHTML(context){
     ['Tło sportowe',context.hasSportBackground?'uwzględnione':'brak dodatkowych danych'],
     ['Pomiary klienta',context.hasMetrics?'uwzględnione':'brak danych'],
     ['Sygnały z Progress Live',context.hasLiveContext?'uwzględnione':'brak danych'],
+    ['Gotowość danych',readinessText],
     ['Ograniczenia zgłoszone',context.hasLimitations?'tak — sprawdź Plan Health':'nie zgłoszono'],
     ['Dodatkowe uwagi',context.hasAdditionalNotes?'tak':'brak']
   ].filter(([,value])=>value!==''&&value!=null);
   return '<details style="margin-top:12px;padding:10px 12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);"><summary style="cursor:pointer;font-size:12px;font-weight:700;">Dane użyte do wygenerowania</summary><p style="font-size:11px;color:var(--muted);margin:7px 0;line-height:1.5;">To jest zapis kontekstu wejściowego propozycji. Sprawdź go przed akceptacją.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:6px 14px;font-size:11px;">'+rows.map(([label,value])=>'<div><span style="color:var(--muted);">'+esc(label)+': </span><b>'+esc(value)+'</b></div>').join('')+'</div></details>';
+}
+function aplApprovalHistoryHTML(history){
+  const items=(Array.isArray(history)?history:[]).filter(Boolean);
+  if(items.length<2)return'';
+  const esc=v=>typeof escHtml==='function'?escHtml(String(v==null?'':v)):String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  return '<details style="margin-top:8px;font-size:11px;color:var(--muted);"><summary style="cursor:pointer;font-weight:600;">Historia akceptacji ('+items.length+')</summary><ol style="margin:7px 0 0;padding-left:18px;line-height:1.6;">'+items.slice().reverse().map(item=>'<li>'+esc(String(item.acceptedAt||'—').slice(0,16).replace('T',' '))+' · walidator '+esc(item.validatorVersion||'—')+' · polityka '+esc(item.policyVersion||'—')+' · '+Number(item.warnings||0)+' ostrz.</li>').join('')+'</ol></details>';
+}
+function aplOpenExerciseInLibrary(name){
+  const target=String(name||'').trim();
+  if(!target)return;
+  if(typeof goTo==='function')goTo('library');
+  setTimeout(()=>{if(typeof openExDetail==='function')openExDetail(target);},0);
 }
 
 function aplRenderPlan(plan,client,goal,method,days,weeks){
@@ -1382,10 +1426,16 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   const pendingApproval=approval.state==='pending_trainer_approval';
   const approved=approval.state==='approved';
   const validationErrors=(plan.validation&&plan.validation.issues||[]).filter(issue=>issue&&issue.severity==='error');
-  const acceptanceBlocked=pendingApproval&&validationErrors.length>0;
+  const requiresTrainerReview=!!(plan.validation&&plan.validation.requiresTrainerReview);
+  const reviewAcknowledged=!!approval.reviewAcknowledgedAt;
+  const reviewAcknowledgementRequired=pendingApproval&&requiresTrainerReview&&!reviewAcknowledged;
+  const acceptanceBlocked=pendingApproval&&(validationErrors.length>0||reviewAcknowledgementRequired);
+  const acceptanceBlockedTitle=validationErrors.length?'Popraw błędy oznaczone w Plan Health przed akceptacją':'Potwierdź zapoznanie się z ostrzeżeniem Plan Health przed akceptacją';
   const generationContextHtml=aplGenerationContextHTML(plan.generationContext);
   const review=approval.review||null;
   const approvalAuditHtml=approved&&review?'<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5;">Ślad akceptacji: walidator '+String(review.validatorVersion||'—')+' · polityka '+String(review.policyVersion||'—')+' · '+Number(review.warnings||0)+' ostrz. · '+String(review.acceptedAt||'').slice(0,16).replace('T',' ')+'</div>':'';
+  const approvalHistoryHtml=aplApprovalHistoryHTML(approval.reviewHistory);
+  const reviewAcknowledgementHtml=pendingApproval&&requiresTrainerReview?'<label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:10px 12px;border:1px solid rgba(245,185,66,.45);border-radius:10px;background:rgba(245,185,66,.06);font-size:12px;line-height:1.5;cursor:pointer;"><input type="checkbox" onchange="aplSetReviewAcknowledgement(this.checked)"'+(reviewAcknowledged?' checked':'')+' style="margin-top:3px;accent-color:var(--accent);"><span>Potwierdzam, że zapoznałem(-am) się z ostrzeżeniami Plan Health dotyczącymi ograniczeń lub regeneracji klienta. To nie jest diagnoza medyczna.</span></label>':'';
 
   let html=`
     <!-- plan header -->
@@ -1397,7 +1447,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          ${pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplAcceptPlan()"'+(acceptanceBlocked?' disabled aria-disabled="true" title="Popraw błędy oznaczone w Plan Health przed akceptacją"':'')+'>✓ Akceptuję propozycję</button>':''}
+          ${pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplAcceptPlan()"'+(acceptanceBlocked?' disabled aria-disabled="true" title="'+acceptanceBlockedTitle+'"':'')+'>✓ Akceptuję propozycję</button>':''}
           ${!pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz zatwierdzony plan</button>':''}
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlanPDF()">📄 PDF</button>
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ JSON</button>
@@ -1414,7 +1464,10 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       </div>
       ${pendingApproval?'<div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(245,185,66,.45);border-radius:10px;background:rgba(245,185,66,.08);font-size:12px;line-height:1.55;"><b>Propozycja AI — oczekuje na Twoją akceptację.</b> Sprawdź Plan Health, edytuj ćwiczenia lub parametry, a następnie kliknij „Akceptuję propozycję”. AI nie zapisze tego planu samodzielnie.</div>':approved?'<div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(61,207,178,.4);border-radius:10px;background:rgba(61,207,178,.08);font-size:12px;line-height:1.55;"><b>✓ Propozycja zaakceptowana przez trenera.</b> Możesz ją teraz zapisać jako plan klienta.</div>':''}
       ${approvalAuditHtml}
+      ${approvalHistoryHtml}
       ${acceptanceBlocked?'<div role="alert" style="margin-top:8px;padding:9px 12px;border:1px solid rgba(230,0,0,.42);border-radius:10px;background:rgba(230,0,0,.08);font-size:12px;line-height:1.5;"><b>Akceptacja zablokowana:</b> Plan Health wykrył '+validationErrors.length+' '+(validationErrors.length===1?'błąd':'błędy')+'. Popraw je w edycji planu.</div>':''}
+      ${reviewAcknowledgementRequired?'<div role="alert" style="margin-top:8px;padding:9px 12px;border:1px solid rgba(245,185,66,.5);border-radius:10px;background:rgba(245,185,66,.08);font-size:12px;line-height:1.5;"><b>Wymagane potwierdzenie trenera:</b> zaznacz oświadczenie dotyczące ostrzeżeń Plan Health.</div>':''}
+      ${reviewAcknowledgementHtml}
       ${generationContextHtml}
       ${aplPlanWhyHTML(plan)}
       ${typeof window.plRenderPlanValidation==='function'?window.plRenderPlanValidation(plan.validation):''}
@@ -1548,6 +1601,10 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       const kg=wp.kg||'';
       const tempo=ex.tempo||wp.tempo||'';
       const isLast=ei===(d.exercises.length-1);
+      const libraryRef=typeof window.plResolveExercise==='function'?window.plResolveExercise(ex.name):null;
+      const libraryName=libraryRef&&libraryRef.name||'';
+      const safeLibraryName=typeof escHtml==='function'?escHtml(libraryName):String(libraryName).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      const libraryLink=libraryRef?'<button type="button" class="btn btn-ghost btn-sm" data-apl-library-name="'+safeLibraryName+'" onclick="aplOpenExerciseInLibrary(this.dataset.aplLibraryName)" style="margin-top:6px;padding:3px 7px;font-size:10px;">📚 Karta w bibliotece</button>':'<span title="Wybierz istniejące ćwiczenie lub dodaj jego kartę wraz z techniką i filmem." style="display:inline-block;margin-top:6px;font-size:10px;color:var(--gold);">⚠ Poza biblioteką</span>';
       const intPill=rir!==''&&parseFloat(rir)<=4
         ?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RIR ${rir}</span>`
         :(rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:'');
@@ -1556,6 +1613,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:14px;font-weight:700;line-height:1.3;">${ex.name}</div>
+            ${libraryLink}
             ${ex.notes?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;line-height:1.6;">💡 ${ex.notes}</div>`:''}
             ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 6px;margin-top:5px;display:inline-block;">${ex.muscleGroup}</span>`:''}
           </div>
@@ -1694,6 +1752,8 @@ function aplSaveExerciseEdit(di,ei){
   const nameEl=document.getElementById(`apl-edit-name-${di}-${ei}`);
   ex.name=(nameEl&&nameEl.value.trim())||ex.name||'Ćwiczenie';
   const picked=typeof libExerciseByName==='function'?libExerciseByName(ex.name):null;
+  const libraryRef=typeof window.plResolveExercise==='function'?window.plResolveExercise(ex.name):null;
+  ex.exerciseId=libraryRef?libraryRef.id:'';
   if(picked&&picked.cat)ex.muscleGroup=picked.cat;
   ex.notes=document.getElementById(`apl-edit-notes-${di}-${ei}`).value.trim();
   if(!ex[curWeek])ex[curWeek]={};
@@ -1719,7 +1779,7 @@ function aplRerenderCurrent(){
   aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
 }
 
-function aplApprovalReview(report,acceptedAt){
+function aplApprovalReview(report,acceptedAt,reviewAcknowledgedAt){
   const summary=report&&report.summary||{};
   return {
     acceptedAt,
@@ -1728,7 +1788,8 @@ function aplApprovalReview(report,acceptedAt){
     validationGeneratedAt:report&&report.generatedAt||null,
     errors:Number(summary.errors)||0,
     warnings:Number(summary.warnings)||0,
-    requiresTrainerReview:!!(report&&report.requiresTrainerReview)
+    requiresTrainerReview:!!(report&&report.requiresTrainerReview),
+    trainerReviewAcknowledgedAt:reviewAcknowledgedAt||null
   };
 }
 function aplMarkPlanEdited(){
@@ -1736,8 +1797,17 @@ function aplMarkPlanEdited(){
   const cid=(document.getElementById('apl-client')||{}).value||aplLastPlan.clientId||'';
   const client=cid?(window.CL||[]).find(x=>x.id===cid):aplLastClient;
   if(typeof window.plValidatePlan==='function')aplLastPlan.validation=window.plValidatePlan(aplLastPlan,{client,source:'ai-edit'});
-  if(!aplLastPlan.approval||aplLastPlan.approval.state!=='approved')return;
+  if(!aplLastPlan.approval)return;
+  if(aplLastPlan.approval.state!=='approved'){
+    if(aplLastPlan.approval.reviewAcknowledgedAt)aplLastPlan.approval={...aplLastPlan.approval,reviewAcknowledgedAt:null};
+    return;
+  }
   aplLastPlan.approval={...aplLastPlan.approval,state:'pending_trainer_approval',acceptedAt:null,review:null,changedAfterApprovalAt:new Date().toISOString()};
+}
+function aplSetReviewAcknowledgement(checked){
+  if(!aplLastPlan||!aplLastPlan.approval)return;
+  aplLastPlan.approval={...aplLastPlan.approval,reviewAcknowledgedAt:checked?new Date().toISOString():null};
+  aplRerenderCurrent();
 }
 function aplAcceptPlan(){
   if(!aplLastPlan){notify('Brak propozycji do akceptacji.');return;}
@@ -1751,8 +1821,13 @@ function aplAcceptPlan(){
       return;
     }
   }
+  if(aplLastPlan.validation&&aplLastPlan.validation.requiresTrainerReview&&!aplLastPlan.approval?.reviewAcknowledgedAt){
+    aplRerenderCurrent();
+    notify('⚠️ Potwierdź zapoznanie się z ostrzeżeniami Plan Health przed akceptacją.');
+    return;
+  }
   const acceptedAt=new Date().toISOString();
-  const review=aplApprovalReview(aplLastPlan.validation,acceptedAt);
+  const review=aplApprovalReview(aplLastPlan.validation,acceptedAt,aplLastPlan.approval&&aplLastPlan.approval.reviewAcknowledgedAt);
   const reviewHistory=[...((aplLastPlan.approval&&aplLastPlan.approval.reviewHistory)||[]),review].slice(-10);
   aplLastPlan.approval={...(aplLastPlan.approval||{}),state:'approved',acceptedAt,review,reviewHistory};
   aplRerenderCurrent();
@@ -2171,6 +2246,15 @@ function buildPlanPDFHTML(plan,client){
   const sessions=plan.daysPerWeek||(plan.days||[]).length||'—';
   const weeks=plan.weeks||weekKeys.length||'—';
   const prog=planPdfProgressionLabel(plan);
+  const approval=plan.approval||{};
+  const review=approval.review||{};
+  const pdfIsApproved=approval.state==='approved';
+  const pdfIsProposal=approval.state==='pending_trainer_approval';
+  const pdfApprovalLabel=pdfIsApproved?'ZATWIERDZONY PLAN':pdfIsProposal?'PROPOZYCJA AI — WYMAGA AKCEPTACJI':'PLAN RĘCZNY / ARCHIWALNY';
+  const pdfApprovalNote=pdfIsApproved
+    ?'Zatwierdzono: '+String(approval.acceptedAt||review.acceptedAt||'—').slice(0,16).replace('T',' ')+' · walidator '+String(review.validatorVersion||'—')+' · '+Number(review.warnings||0)+' ostrz.'
+    :pdfIsProposal?'Nie traktuj tego PDF jako finalnego planu przed akceptacją trenera.':'Brak zapisanego śladu akceptacji AI.';
+  const pdfApprovalTone=pdfIsApproved?'#177a5d':pdfIsProposal?'#9a6500':'#555';
   const rules=(plan.progressionRules&&plan.progressionRules.length)?plan.progressionRules:(
     plan.periodization?String(plan.periodization).split(/[.;]\s+/).map(s=>s.trim()).filter(s=>s.length>8):[
       'Progresja liniowa: co tydzień +2.5 kg na wielostawach, gdy RPE ≤ 8.',
@@ -2192,6 +2276,7 @@ function buildPlanPDFHTML(plan,client){
         <div class="plan-pdf-sub">${client&&client.name?planPdfEsc(client.name)+' · ':''}${planPdfEsc(plan.planName||'Progress Live')} · ${today}</div>
       </div>
     </div>
+    <div style="margin:0 0 14px;padding:9px 11px;border:1px solid ${pdfApprovalTone};border-radius:7px;color:${pdfApprovalTone};font-size:10px;line-height:1.45;"><b>${planPdfEsc(pdfApprovalLabel)}</b><br>${planPdfEsc(pdfApprovalNote)}</div>
     <div class="plan-pdf-kpis">
       <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Split</div><div class="plan-pdf-kpi-val is-red">${planPdfEsc(split)}</div></div>
       <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Sesje / tydzień</div><div class="plan-pdf-kpi-val">${planPdfEsc(sessions)}</div></div>
@@ -2260,7 +2345,7 @@ window.aplToggleMulti=aplToggleMulti;window.aplSetEquipment=aplSetEquipment;wind
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplClientCardSummaryHtml=aplClientCardSummaryHtml;window.aplSyncClientDupUi=aplSyncClientDupUi;
 window.aplEditClientFromCard=aplEditClientFromCard;window.aplRefreshFromSavedClient=aplRefreshFromSavedClient;
-window.aplSavePlan=aplSavePlan;window.aplAcceptPlan=aplAcceptPlan;window.aplMarkPlanEdited=aplMarkPlanEdited;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
+window.aplSavePlan=aplSavePlan;window.aplAcceptPlan=aplAcceptPlan;window.aplMarkPlanEdited=aplMarkPlanEdited;window.aplSetReviewAcknowledgement=aplSetReviewAcknowledgement;window.aplOpenExerciseInLibrary=aplOpenExerciseInLibrary;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
 window.buildPlanPDFHTML=buildPlanPDFHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 

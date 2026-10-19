@@ -7,6 +7,7 @@
     version:'2026.1',
     minSetsPerExercise:1,maxSetsPerExercise:8,maxWorkingSetsPerDay:30,minReps:1,maxReps:50,
     minRir:0,maxRir:10,minRestSeconds:30,maxRestSeconds:600,
+    minHypertrophyFrequency:2,minHypertrophyVolumeForFrequency:3,minWeeksForDeloadReview:6,
     maxWeeklyLoadChange:0.15,highEffortAverageRir:0.75,fallingRirDelta:1,
     minLiveEffortSets:6,minLiveEffortSessions:2
   });
@@ -46,6 +47,57 @@
     const key=norm(typeof value==='string'?value:value&&value.name);
     if(!key)return null;
     return exerciseCatalog().find(ex=>ex.aliases.includes(key))||null;
+  }
+  // Keep this mapping intentionally narrow. A missing or ambiguous library label must
+  // not turn into a false alarm; it is simply left for the trainer to classify.
+  const EQUIPMENT_FAMILIES=[
+    {selection:'Sztanga i wolne ciężary',match:/sztang|barbell|gryf|kettlebell|odwaznik/},
+    {selection:'Maszyny siłowe',match:/maszyn|machine|suwnic|leg press/},
+    {selection:'Wyciągi i linki',match:/wyciag|cable|linka|brama/},
+    {selection:'Hantle',match:/hantel|dumbbell/},
+    {selection:'Drążek i poręcze',match:/drazek|porecz|pull up|pullup|dip station/},
+    {selection:'Bez sprzętu',match:/bez sprzet|bodyweight|masa ciala/}
+  ];
+  function equipmentFamily(value){
+    const key=norm(value);
+    return EQUIPMENT_FAMILIES.find(row=>row.match.test(key))||null;
+  }
+  function selectedEquipment(plan,options){
+    const fromOptions=options&&Array.isArray(options.availableEquipment)?options.availableEquipment:null;
+    const fromPlan=plan&&plan.generationContext&&Array.isArray(plan.generationContext.equipment)?plan.generationContext.equipment:[];
+    return (fromOptions||fromPlan).map(value=>String(value||'').trim()).filter(Boolean);
+  }
+  function addEquipmentCompatibilityIssues(issues,exerciseRefs,plan,options){
+    const selected=selectedEquipment(plan,options);
+    // No selection means no declared restriction (for example, a full gym).
+    if(!selected.length)return {selected:[],mismatches:[]};
+    const allowed=new Set(selected);
+    const mismatches=[];
+    exerciseRefs.forEach(ref=>{
+      const family=equipmentFamily(ref.equipment);
+      if(!family||allowed.has(family.selection))return;
+      const mismatch={name:ref.name,equipment:ref.equipment,required:family.selection,path:ref.path};
+      mismatches.push(mismatch);
+      issues.push(issue('warning','EQUIPMENT_NOT_SELECTED','Ćwiczenie „'+ref.name+'” wymaga kategorii sprzętu „'+family.selection+'”, której nie zaznaczono dla tej propozycji. Zamień ćwiczenie albo świadomie zaktualizuj dostępny sprzęt.',ref.path+'.name',mismatch));
+    });
+    return {selected,mismatches};
+  }
+  function declaredSessionsPerWeek(plan,options){
+    const candidates=[options&&options.daysPerWeek,plan&&plan.daysPerWeek];
+    for(const value of candidates){
+      const count=numberFrom(value);
+      if(Number.isInteger(count)&&count>0)return count;
+    }
+    return null;
+  }
+  function addScheduleConsistencyIssue(issues,days,plan,options){
+    const declared=declaredSessionsPerWeek(plan,options);
+    const actual=days.filter(day=>day&&!day.rest).length;
+    if(declared==null)return {declared:null,actual};
+    if(actual!==declared){
+      issues.push(issue('warning','SCHEDULE_FREQUENCY_MISMATCH','Plan deklaruje '+declared+' treningi/tydz., ale zawiera '+actual+' dni treningowe. Uzgodnij częstotliwość przed akceptacją.','days',{declared,actual}));
+    }
+    return {declared,actual};
   }
 
   const MUSCLE_ALIASES=[
@@ -133,6 +185,34 @@
     });
     return {level,label:guide.label||level,note:guide.note||'',priorityMuscles,ranges};
   }
+  function addHypertrophyFrequencyIssues(issues,weeklyFrequency,weeklyVolume,plan,options,policy){
+    const goal=norm(plan&&plan.goal||options&&options.goal||'');
+    if(!/(masa|hipertrof)/.test(goal))return null;
+    const target=policy.minHypertrophyFrequency;
+    const minimumVolume=policy.minHypertrophyVolumeForFrequency;
+    const checked={};
+    Object.entries(weeklyVolume||{}).forEach(([muscle,volume])=>{
+      const frequency=weeklyFrequency[muscle]||0;
+      checked[muscle]={frequency,volume};
+      if(volume<minimumVolume||frequency>=target)return;
+      const label=GUIDE_PART_BY_MUSCLE[muscle]||muscle;
+      issues.push(issue('warning','FREQUENCY_BELOW_HYPERTROPHY_TARGET','Partia „'+label+'” ma '+volume+' serii/tydz. w '+frequency+' dniu(-ach). Dla celu hipertrofia rozważ rozłożenie objętości na co najmniej '+target+' dni, jeśli regeneracja i harmonogram na to pozwalają.','computed.weeklyFrequency.'+muscle,{muscle,volume,frequency,target}));
+    });
+    return {target,minimumVolume,byMuscle:checked};
+  }
+  function addDeloadPresenceIssue(issues,plan,weekKeys,options,policy){
+    const goal=norm(plan&&plan.goal||options&&options.goal||'');
+    if(!/(masa|hipertrof)/.test(goal)||weekKeys.length<policy.minWeeksForDeloadReview)return null;
+    const schema=Array.isArray(plan&&plan.weekly_progression_schema)?plan.weekly_progression_schema:[];
+    const deloadWeeks=weekKeys.filter((week,index)=>{
+      const phase=String(plan&&plan.phases&&plan.phases[week]||schema[index]&&schema[index].phase||'');
+      return /deload|odciaz|odciąż/i.test(phase);
+    });
+    if(!deloadWeeks.length){
+      issues.push(issue('warning','HYPERTROPHY_DELOAD_MISSING','Blok hipertrofii ma '+weekKeys.length+' tygodni, ale nie wskazuje tygodnia deload. Ustal świadomie miejsce odciążenia lub uzasadnij jego brak.','phases',{weeks:weekKeys.length,minWeeksForDeloadReview:policy.minWeeksForDeloadReview}));
+    }
+    return {weeks:weekKeys.length,minimumWeeks:policy.minWeeksForDeloadReview,deloadWeeks};
+  }
   function liveEffortTrend(client,policy){
     const clientId=client&&client.id;
     if(!clientId||!Array.isArray(window.SE))return null;
@@ -201,6 +281,7 @@
     const issues=[];
     const days=Array.isArray(p.days)?p.days:[];
     const weeklyVolume={};
+    const weeklyFrequency={};
     const phaseVolume={};
     const exerciseRefs=[];
     const dayWorkSets=[];
@@ -210,6 +291,7 @@
       if(day&&day.rest)return;
       const exercises=Array.isArray(day&&day.exercises)?day.exercises:[];
       const seen={};
+      const dayMuscles=new Set();
       let daySets=0;
       if(!exercises.length)issues.push(issue('error','DAY_EXERCISES_REQUIRED','Dzień treningowy nie zawiera ćwiczeń.','days['+di+'].exercises'));
       exercises.forEach((ex,ei)=>{
@@ -237,8 +319,12 @@
         if(Number.isFinite(rest)&&(rest<policy.minRestSeconds||rest>policy.maxRestSeconds))issues.push(issue('warning','REST_UNUSUAL','Przerwa poza zakresem '+policy.minRestSeconds+'–'+policy.maxRestSeconds+' s — sprawdź zapis.',path+'.rest',{value:rest}));
         const contributions=muscleContributions(ex);
         if(!contributions.length)issues.push(issue('warning','MUSCLE_UNCLASSIFIED','Brak rozpoznanej grupy mięśniowej; objętość tego ćwiczenia nie może być przypisana.',path+'.muscleGroup'));
-        else contributions.forEach(row=>addVolume(weeklyVolume,row.muscle,sets*row.weight));
+        else contributions.forEach(row=>{
+          addVolume(weeklyVolume,row.muscle,sets*row.weight);
+          if(Number.isFinite(sets)&&sets>0&&row.weight>=0.5)dayMuscles.add(row.muscle);
+        });
       });
+      dayMuscles.forEach(muscle=>{weeklyFrequency[muscle]=(weeklyFrequency[muscle]||0)+1;});
       dayWorkSets.push({dayIndex:di,label:day&&((day.name||day.dayName||day.title))||'Dzień '+(di+1),sets:daySets});
       if(daySets>policy.maxWorkingSetsPerDay)issues.push(issue('warning','DAY_VOLUME_HIGH','Dzień ma '+daySets+' serii roboczych; przekracza ustawiony próg '+policy.maxWorkingSetsPerDay+'. Sprawdź czas sesji, regenerację i rozkład objętości.', 'days['+di+']',{dayIndex:di,sets:daySets,max:policy.maxWorkingSetsPerDay}));
     });
@@ -269,6 +355,10 @@
       });
     }
     const volumeGuide=addVolumeGuideIssues(issues,weeklyVolume,opts.client);
+    const hypertrophyFrequency=addHypertrophyFrequencyIssues(issues,weeklyFrequency,weeklyVolume,p,opts,policy);
+    const deloadReview=addDeloadPresenceIssue(issues,p,keys,opts,policy);
+    const equipmentCompatibility=addEquipmentCompatibilityIssues(issues,exerciseRefs,p,opts);
+    const scheduleConsistency=addScheduleConsistencyIssue(issues,days,p,opts);
     const liveEffort=addLiveEffortIssues(issues,opts.client,policy);
     const limitationReviews=addLimitationReviewIssues(issues,days,opts.client);
     const errors=issues.filter(x=>x.severity==='error');
@@ -282,7 +372,7 @@
       source:opts.source||'manual',
       generatedAt:new Date().toISOString(),
       summary:{errors:errors.length,warnings:warnings.length,info:issues.length-errors.length-warnings.length},
-      computed:{weeklyVolume,phaseVolume,exerciseRefs,days:days.length,dayWorkSets,volumeGuide,liveEffort,limitationReviews,policy},
+      computed:{weeklyVolume,weeklyFrequency,phaseVolume,exerciseRefs,days:days.length,dayWorkSets,volumeGuide,hypertrophyFrequency,deloadReview,equipmentCompatibility,scheduleConsistency,liveEffort,limitationReviews,policy},
       issues
     };
   }
@@ -295,14 +385,22 @@
     const rows=(report.issues||[]).slice(0,8).map(i=>'<li style="margin:4px 0"><b>'+esc(i.code)+'</b> — '+esc(i.message)+'</li>').join('');
     const volume=Object.entries(report.computed&&report.computed.weeklyVolume||{}).map(([k,v])=>esc(k)+': '+esc(v)+' s.').join(' · ');
     const guide=report.computed&&report.computed.volumeGuide;
+    const frequency=report.computed&&report.computed.hypertrophyFrequency;
+    const deload=report.computed&&report.computed.deloadReview;
+    const equipment=report.computed&&report.computed.equipmentCompatibility;
+    const schedule=report.computed&&report.computed.scheduleConsistency;
     const effort=report.computed&&report.computed.liveEffort;
     const guideLine=guide?'<p style="font-size:11px;line-height:1.55;margin:7px 0"><b>Zakres poziomu:</b> '+esc(guide.label||guide.level)+' — '+esc(guide.note||'orientacyjna wskazówka dla trenera.')+(guide.priorityMuscles&&guide.priorityMuscles.length?' · priorytet: '+esc(guide.priorityMuscles.join(', ')): '')+'</p>':'';
     const effortLine=effort?'<p style="font-size:11px;line-height:1.55;margin:7px 0"><b>Ostatnie sesje Live:</b> RIR śr. '+esc(effort.avgRir.toFixed(1))+' (≈ RPE '+esc(effort.estimatedRpe.toFixed(1))+') z '+esc(effort.sessions)+' sesji / '+esc(effort.sets)+' serii.</p>':'';
+    const frequencyLine=frequency?'<p style="font-size:11px;line-height:1.55;margin:7px 0"><b>Częstotliwość hipertrofii:</b> cel ≥'+esc(frequency.target)+' dni dla partii z ≥'+esc(frequency.minimumVolume)+' seriami/tydz. · '+Object.entries(frequency.byMuscle||{}).map(([muscle,row])=>esc(muscle)+': '+esc(row.frequency)+'×').join(' · ')+'</p>':'';
+    const deloadLine=deload?'<p style="font-size:11px;line-height:1.55;margin:7px 0"><b>Deload w bloku:</b> '+(deload.deloadWeeks.length?'tydzień '+esc(deload.deloadWeeks.join(', ')): '<b style="color:#f5b942">nie wskazano — oceń przed akceptacją</b>')+'</p>':'';
+    const equipmentLine=equipment&&equipment.selected&&equipment.selected.length?'<p style="font-size:11px;line-height:1.55;margin:7px 0"><b>Sprzęt propozycji:</b> '+esc(equipment.selected.join(' · '))+(equipment.mismatches&&equipment.mismatches.length?' · <b style="color:#f5b942">poza wyborem: '+esc(equipment.mismatches.map(row=>row.name).join(', '))+'</b>':'')+'</p>':'';
+    const scheduleLine=schedule&&schedule.declared!=null?'<p style="font-size:11px;line-height:1.55;margin:7px 0"><b>Częstotliwość planu:</b> '+esc(schedule.actual)+' dni treningowe / deklaracja '+esc(schedule.declared)+'× tygodniowo'+(schedule.actual!==schedule.declared?' · <b style="color:#f5b942">wymaga uzgodnienia</b>':'')+'</p>':'';
     return '<details class="apl-plan-validation" open style="margin-top:14px;padding:12px 14px;border:1px solid '+tone+'55;border-radius:10px;background:var(--s3);">'
       +'<summary style="cursor:pointer;font-weight:700;color:'+tone+'">Plan Health — '+label+' ('+(s.errors||0)+' błędów, '+(s.warnings||0)+' ostrz.)</summary>'
       +'<p style="font-size:11px;color:var(--muted);line-height:1.55;margin:8px 0">Wynik obliczony lokalnie przez walidator '+VERSION+'; nie jest oceną AI ani poradą medyczną.</p>'
       +(volume?'<p style="font-size:11px;line-height:1.55;margin:7px 0"><b>Objętość wyliczona:</b> '+volume+'</p>':'')
-      +guideLine+effortLine
+      +guideLine+frequencyLine+deloadLine+equipmentLine+scheduleLine+effortLine
       +review
       +(rows?'<ul style="font-size:11px;color:var(--muted);padding-left:18px;margin:8px 0">'+rows+'</ul>':'')
       +'</details>';

@@ -22,6 +22,12 @@ ok('catalog resolves aliases',resolved&&resolved.id==='bench-1'&&resolved.equipm
 const known=sandbox.window.plValidatePlan({days:[{exercises:[{name:'Bench press',sets:'3',reps:'8',rir:'2'}]}]});
 ok('catalog resolves muscle and removes unknown warning',known.computed.weeklyVolume.klatka===3&&!known.issues.some(x=>x.code==='EXERCISE_UNKNOWN'));
 ok('catalog counts secondary muscle fraction',known.computed.weeklyVolume.triceps===1.5);
+const equipmentMismatch=sandbox.window.plValidatePlan({generationContext:{equipment:['Hantle']},days:[{exercises:[{name:'Bench press',sets:'3',reps:'8',rir:'2'}]}]});
+ok('equipment outside the declared setup warns without blocking',equipmentMismatch.valid&&equipmentMismatch.issues.some(x=>x.code==='EQUIPMENT_NOT_SELECTED')&&equipmentMismatch.computed.equipmentCompatibility.mismatches.length===1);
+const equipmentMatch=sandbox.window.plValidatePlan({generationContext:{equipment:['Sztanga i wolne ciężary']},days:[{exercises:[{name:'Bench press',sets:'3',reps:'8',rir:'2'}]}]});
+ok('declared matching equipment passes compatibility check',!equipmentMatch.issues.some(x=>x.code==='EQUIPMENT_NOT_SELECTED'));
+const scheduleMismatch=sandbox.window.plValidatePlan({daysPerWeek:3,days:[{exercises:[{name:'Bench press',sets:'3',reps:'8',rir:'2'}]},{exercises:[{name:'Bench press',sets:'3',reps:'8',rir:'2'}]}]});
+ok('declared session frequency mismatch is visible without blocking',scheduleMismatch.valid&&scheduleMismatch.computed.scheduleConsistency.actual===2&&scheduleMismatch.issues.some(x=>x.code==='SCHEDULE_FREQUENCY_MISMATCH'));
 sandbox.window.volumeGuideForLevel=()=>({label:'Średni',note:'Zakres orientacyjny.',parts:{Klatka:'10–16',Plecy:'12–18',Barki:'12–18',Biceps:'8–12',Triceps:'8–12',Quady:'12–18','Tył uda':'10–16',Pośladki:'10–14',Brzuch:'6–10',Łydki:'8–14'}});
 const guided=sandbox.window.plValidatePlan(valid,{client:{level:'sredni',physiquePriority:['upper_chest']}});
 ok('priority volume below guide is a warning, not a block',guided.valid&&guided.issues.some(x=>x.code==='PRIORITY_VOLUME_BELOW_GUIDE'));
@@ -41,6 +47,16 @@ ok('reported limitation asks for trainer review, without blocking save',limitati
 ok('high-risk warnings set explicit trainer-review status',limitations.requiresTrainerReview&&fatigued.requiresTrainerReview);
 ok('valid plan accepted',report.valid===true&&report.summary.errors===0);
 ok('counts direct weekly volume',report.computed.weeklyVolume.quady===3&&report.computed.weeklyVolume.klatka===3);
+const sparseHypertrophy={goal:'masa',days:[{dayName:'Push',exercises:[{name:'Bench press',sets:'6',reps:'8',rir:'2'}]}]};
+const sparseFrequency=sandbox.window.plValidatePlan(sparseHypertrophy);
+ok('hypertrophy frequency warns when weekly volume is concentrated in one day',sparseFrequency.computed.weeklyFrequency.klatka===1&&sparseFrequency.issues.some(x=>x.code==='FREQUENCY_BELOW_HYPERTROPHY_TARGET'));
+const splitHypertrophy={goal:'masa',days:[{dayName:'Push A',exercises:[{name:'Bench press',sets:'3',reps:'8',rir:'2'}]},{dayName:'Push B',exercises:[{name:'Bench press',sets:'3',reps:'10',rir:'2'}]}]};
+ok('hypertrophy frequency accepts volume distributed across two days',!sandbox.window.plValidatePlan(splitHypertrophy).issues.some(x=>x.code==='FREQUENCY_BELOW_HYPERTROPHY_TARGET'));
+const hypertrophyWithoutDeload={goal:'masa',weekKeys:['w1','w2','w3','w4','w5','w6'],phases:{w1:'Akumulacja',w2:'Akumulacja',w3:'Akumulacja',w4:'Pik',w5:'Pik',w6:'Pik'},days:[{exercises:[{name:'Bench press',sets:'3',reps:'8',rir:'2'}]}]};
+const missingDeload=sandbox.window.plValidatePlan(hypertrophyWithoutDeload);
+ok('long hypertrophy block without deload gets a trainer warning',missingDeload.valid&&missingDeload.issues.some(x=>x.code==='HYPERTROPHY_DELOAD_MISSING')&&missingDeload.computed.deloadReview.deloadWeeks.length===0);
+const hypertrophyWithDeload={...hypertrophyWithoutDeload,phases:{...hypertrophyWithoutDeload.phases,w6:'Deload'}};
+ok('declared deload clears the long-block review warning',!sandbox.window.plValidatePlan(hypertrophyWithDeload).issues.some(x=>x.code==='HYPERTROPHY_DELOAD_MISSING'));
 ok('phase volume exists',report.computed.phaseVolume.w3.quady===2);
 ok('deload is lower',!report.issues.some(x=>x.code==='DELOAD_VOLUME_NOT_REDUCED'));
 const broken={days:[{exercises:[{name:'',sets:'0',reps:'0',rir:'14'},{name:'',sets:'3',reps:'10'}]}]};
@@ -53,5 +69,5 @@ const tolerant=sandbox.window.plValidatePlan(jump,{policy:{version:'test-policy'
 ok('approved policy override is local and versioned',tolerant.policyVersion==='test-policy'&&!tolerant.issues.some(x=>x.code==='LOAD_CHANGE_HIGH'));
 const withRest={days:[{rest:true,exercises:[]},{dayName:'B',exercises:[{name:'Wiosłowanie',muscleGroup:'Plecy',sets:'3',reps:'8',rir:'2'}]}]};
 ok('rest day does not require exercises',sandbox.window.plValidatePlan(withRest).valid===true);
-ok('html report is deterministic surface',/Plan Health/.test(sandbox.window.plRenderPlanValidation(report))&&/Objętość wyliczona/.test(sandbox.window.plRenderPlanValidation(report))&&/Ostatnie sesje Live/.test(sandbox.window.plRenderPlanValidation(fatigued))&&/Zakres poziomu/.test(sandbox.window.plRenderPlanValidation(guided))&&/Potwierdzenie trenera wymagane/.test(sandbox.window.plRenderPlanValidation(limitations)));
+ok('html report is deterministic surface',/Plan Health/.test(sandbox.window.plRenderPlanValidation(report))&&/Objętość wyliczona/.test(sandbox.window.plRenderPlanValidation(report))&&/Częstotliwość hipertrofii/.test(sandbox.window.plRenderPlanValidation(sparseFrequency))&&/Deload w bloku/.test(sandbox.window.plRenderPlanValidation(missingDeload))&&/Sprzęt propozycji/.test(sandbox.window.plRenderPlanValidation(equipmentMismatch))&&/Częstotliwość planu/.test(sandbox.window.plRenderPlanValidation(scheduleMismatch))&&/Ostatnie sesje Live/.test(sandbox.window.plRenderPlanValidation(fatigued))&&/Zakres poziomu/.test(sandbox.window.plRenderPlanValidation(guided))&&/Potwierdzenie trenera wymagane/.test(sandbox.window.plRenderPlanValidation(limitations)));
 if(failed){console.error(failed+' failed');process.exit(1);}console.log('Plan validator tests passed');
