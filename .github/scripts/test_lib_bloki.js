@@ -31,7 +31,7 @@ ok('ci ui', wf.includes('test_lib_bloki_ui.js'));
 ok('cache 01', html.includes('01-core.js?v=137'));
 ok('cache 04', html.includes('04-client-portal.js?v=62'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles', html.includes('styles.css?v=164'));
+ok('cache styles', html.includes('styles.css?v=165'));
 
 ok('+ Własny program opens builder', html.includes('onclick="openProgramBuilder()">+ Własny program</button>'));
 ok('builder has way back', html.includes("onclick=\"goTo('programs')\">← Bloki 4–16 tyg.</button>"));
