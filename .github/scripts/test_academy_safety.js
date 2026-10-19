@@ -48,8 +48,8 @@ function section(html,label){
 
 /* 1. Reguła nie jest ucinana na pierwszym średniku. */
 const valsalva=learnNote('trigger: wstrzymywanie oddechu; action: Valsalva tylko krótko; >2–4 s → zawroty i omdlenie; przy chorobach serca, nadciśnieniu, po udarze – unikaj; priority: warning');
-const action=section(valsalva,'Co zrobić');
-ok('action keeps text after semicolons',/Valsalva tylko krótko/.test(action)&&/po udarze – unikaj/.test(action));
+const action=section(valsalva,'Sedno zasady');
+ok('action keeps text after semicolons',/Valsalva tylko krótko/i.test(action)&&/po udarze – unikaj/.test(action));
 ok('priority is not shown as part of action',!/priority/.test(action));
 ok('warning rule is labelled as safety rule',/academy-learning-card is-safety/.test(valsalva)&&/reguła bezpieczeństwa/.test(valsalva));
 ok('safety rule has no reassuring template',!/To nie jest zasada „zawsze”/.test(valsalva)&&/To reguła bezpieczeństwa/.test(valsalva));
@@ -81,6 +81,22 @@ ok('missing period shows RED-S referral',/RED-S/.test(ask('brak miesiączki'))&&
 const chest=ask('hipertrofia klatki');
 ok('training question has no safety block',!/Najpierw bezpieczeństwo/.test(chest)&&/academy-learning-card/.test(chest));
 ok('word inside another word does not trigger pregnancy',!/Najpierw bezpieczeństwo/.test(ask('progresja obciążenia')));
+
+/* 7. Karta nauki (pakiet C): bez ogólnej formułki, uczciwe „Dlaczego”, statusy po polsku, poprawni autorzy. */
+const paired=learnNote('trigger: klient zgłasza spadek siły trzy sesje z rzędu; action: Zrób tydzień lżejszy: połowa serii przy podobnym ciężarze.; appliesTo: średniozaawansowani');
+ok('paired rule shows condition and action as core',/Gdy klient zgłasza spadek siły trzy sesje z rzędu – zrób tydzień lżejszy/.test(section(paired,'Sedno zasady')));
+ok('no generic placeholder',!/Dopasuj decyzję do warunku klienta/.test(paired));
+ok('generic category replaced by condition in title',/<h3>Klient zgłasza spadek siły/.test(paired));
+ok('for whom shown',/średniozaawansowani/.test(section(paired,'Dla kogo')));
+ok('recall question has answer',/<details class="academy-recall"><summary><b>Pytanie sprawdzające<\/b>Co robisz, gdy klient zgłasza/.test(paired)&&/połowa serii/.test(paired.split('academy-recall')[1]||''));
+ok('honest why when note has none',/Notatka nie podaje uzasadnienia/.test(section(paired,'Dlaczego')));
+const kneeCard=ask('objętość treningowa hipertrofia');
+ok('book status in Polish',!/<span>(zrodlo|wniosek|poza_zrodlem)<\/span>/.test(kneeCard)&&/<span>(reguła bezpieczeństwa · )?(z książki|wniosek z książki|reguła ostrożności Progress Live)<\/span>/.test(kneeCard));
+const sel=ctx.booksKbSelect({mode:'training',query:'trening ciąża',safetyQuery:'ciąża',maxChars:20000,perBook:10});
+const nsca=sel.find(r=>r.book==='nsca-essentials-personal-training');
+ok('NSCA cited as editors',!!nsca&&/^Schoenfeld, Snarr \(red\.\) — /.test(nsca.cite));
+const outside=ctx.booksKbSelect({mode:'training',query:'nadciśnienie ciśnienie endoproteza',safetyQuery:'nadciśnienie ciśnienie endoproteza',maxChars:40000,perBook:20}).filter(r=>r.status==='poza_zrodlem');
+ok('rule outside source has no page',outside.length>0&&outside.every(r=>/^Progress Live, reguła ostrożności/.test(r.cite)&&!/, s\. /.test(r.cite)));
 
 const css=read('styles.css');
 ok('safety css present',css.includes('.academy-safety{')&&css.includes('.academy-learning-card.is-safety'));
