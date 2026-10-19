@@ -266,6 +266,50 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
   await limit.ctx.academyResearchAi();
   ok('AI: limit 429 → czytelny komunikat', limit.screen.innerHTML.includes('Limit zapytań AI'));
 
+  /* 9d. Samokontrola na żywo: drugi przebieg AI ocenia zdania — „brak” znika, „czesciowo” dostaje etykietę. */
+  const checked = { krotko: 'Zacznij od spokojnego cardio [S1].', dlaczego: 'HIIT daje identyczny efekt u wszystkich [S1]. Ciągły wysiłek łatwiej dawkować [S1].', praktyka: ['Kontroluj RPE [S1].'], dla_kogo: 'Początkujący [S1].', ostroznie: 'Choroby serca: lekarz [S1].', pewnosc: 'umiarkowane' };
+  const verdicts = { oceny: [{ nr: 1, ocena: 'pokryte' }, { nr: 2, ocena: 'brak' }, { nr: 3, ocena: 'czesciowo' }, { nr: 4, ocena: 'pokryte' }] };
+  let verifyBody = null;
+  const twoPass = (verifyStatus) => async (url, init) => {
+    if (String(url).includes('research-base.json')) return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(BASE)) };
+    const b = JSON.parse(init.body);
+    const isVerify = /Sprawdzasz odpowiedź/.test(b.system);
+    if (isVerify) verifyBody = b;
+    const st = isVerify ? verifyStatus : 200;
+    return { ok: st === 200, status: st, json: async () => ({ content: [{ type: 'text', text: JSON.stringify(isVerify ? verdicts : checked) }] }) };
+  };
+  const ver = makeCtx(twoPass(200));
+  ver.ctx.academySetLevel('research'); await flush(); await flush();
+  ver.ctx.academyResearchAsk('Od czego zacząć HIIT z osobą otyłą?');
+  await ver.ctx.academyResearchAi();
+  const vh = ver.screen.innerHTML;
+  ok('kontrola: drugi przebieg dostaje ponumerowane zdania i kartę [S1]', verifyBody && /1\. Zacznij od spokojnego cardio \[S1\]/.test(verifyBody.messages[0].content) && verifyBody.messages[0].content.includes('[S1] '));
+  ok('kontrola: zdanie „brak” usunięte', vh.includes('Krótka odpowiedź') && !vh.includes('identyczny efekt'));
+  ok('kontrola: zdanie „częściowo” ma etykietę „do sprawdzenia”', /łatwiej dawkować[^<]*<a[^>]*>S1<\/a>\.? ?<span class="research-check"/.test(vh) || (vh.includes('łatwiej dawkować') && vh.includes('class="research-check"')));
+  ok('kontrola: notka o wyniku kontroli', vh.includes('Usunięto 1 niepotwierdzone zdanie'));
+  const verFail = makeCtx(twoPass(500));
+  verFail.ctx.academySetLevel('research'); await flush(); await flush();
+  verFail.ctx.academyResearchAsk('Od czego zacząć HIIT z osobą otyłą?');
+  await verFail.ctx.academyResearchAi();
+  ok('kontrola: błąd drugiego przebiegu → odpowiedź z ostrzeżeniem', verFail.screen.innerHTML.includes('Krótka odpowiedź') && verFail.screen.innerHTML.includes('kontrola zdań nie powiodła się'));
+
+  /* 9e. Sprzeczności książka–badania: tylko z [K#] i [S#], osobna sekcja tylko gdy coś jest. */
+  const RAx = ver.ctx.ResearchAnswer;
+  const withConflict = RAx.validateAnswer({ ...checked, sprzecznosci: [
+    { temat: 'Przerwy na masę', ksiazka: 'Książka: 60–90 s [K1]', badania: 'Dłuższe przerwy dały więcej mięśni [S1]', ocena: 'nowsze_badania' },
+    { temat: 'Bez książki', ksiazka: 'coś bez źródła', badania: 'x [S1]', ocena: 'nowsze_badania' },
+    { temat: '<img src=x onerror=alert(1)>', ksiazka: 'a [K1]', badania: 'b [S1]', ocena: 'cokolwiek' }
+  ] }, ['S1'], ['K1']);
+  ok('sprzeczności: wpis bez [K#] odrzucony, zła ocena → nierozstrzygnięte', withConflict.sprzecznosci.length === 2 && withConflict.sprzecznosci[1].ocena === 'nierozstrzygniete');
+  withConflict.sources = { S: [Object.keys(BASE.studies)[0]], K: [{ cite: 'Głuchowski, s. 95', status: 'zrodlo' }] };
+  const ch = ver.ctx.ResearchAcademy.renderAnswer(withConflict, BASE.studies);
+  ok('sprzeczności: sekcja „Książka mówi co innego niż badania”', ch.includes('Książka mówi co innego niż badania') && ch.includes('Przerwy na masę') && ch.includes('Nowsze badania mają mocniejsze dowody'));
+  ok('sprzeczności: XSS w temacie zneutralizowany', !ch.includes('<img src=x'));
+  const noConflict = RAx.validateAnswer(checked, ['S1'], []);
+  noConflict.sources = { S: [Object.keys(BASE.studies)[0]], K: [] };
+  ok('sprzeczności: bez sprzeczności sekcji nie ma', !ver.ctx.ResearchAcademy.renderAnswer(noConflict, BASE.studies).includes('research-conflicts'));
+  ok('kontrola: zdanie z wnioskiem bez własnego źródła usunięte', RAx.validateAnswer({ ...checked, dlaczego: 'Mechanizm A [S1]. Zawsze rób 40 serii. Źródła tego nie rozstrzygają.' }, ['S1'], []).dlaczego === 'Mechanizm A [S1]. Źródła tego nie rozstrzygają.');
+
   /* 9. Prawdziwa baza w repo (gdy już zbudowana). */
   const realPath = path.join(root, 'knowledge/research-base.json');
   if (fs.existsSync(realPath)) {

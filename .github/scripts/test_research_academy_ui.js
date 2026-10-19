@@ -89,7 +89,7 @@ async function openApp(browser, viewport, routeBase) {
     await page.screenshot({ path: path.join(shotDir, 'badania-porownanie.png'), fullPage: true });
   }
   /* Odpowiedź AI dla pytania spoza opracowanych (proxy zastąpione atrapą). */
-  await page.route('https://anthropic-proxy.teamprogress2018.workers.dev/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify({ krotko: 'Zacznij od spokojnego wysiłku [S1].', dlaczego: 'Wyniki są podobne [S1] [S9].', praktyka: ['Kontroluj RPE [S1].'], dla_kogo: 'Początkujący [S1].', ostroznie: 'Choroby serca: lekarz [S1].', ksiazka_vs_badania: 'Brak reguły w bazie książek.', pytanie_kontrolne: { pytanie: 'Od czego zacząć?', odpowiedz: 'Od spokojnego cardio [S1].' }, porownanie: {}, pewnosc: 'mocne' }) }] }) }));
+  await page.route('https://anthropic-proxy.teamprogress2018.workers.dev/**', (route) => /Sprawdzasz odpowiedź/.test(route.request().postData() || '') ? route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify({ oceny: [{ nr: 1, ocena: 'pokryte' }, { nr: 2, ocena: 'czesciowo' }, { nr: 3, ocena: 'pokryte' }] }) }] }) }) : route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify({ krotko: 'Zacznij od spokojnego wysiłku [S1].', dlaczego: 'Wyniki są podobne [S1] [S9].', praktyka: ['Kontroluj RPE [S1].'], dla_kogo: 'Początkujący [S1].', ostroznie: 'Choroby serca: lekarz [S1].', ksiazka_vs_badania: 'Brak reguły w bazie książek.', pytanie_kontrolne: { pytanie: 'Od czego zacząć?', odpowiedz: 'Od spokojnego cardio [S1].' }, porownanie: {}, pewnosc: 'mocne' }) }] }) }));
   await page.fill('#academy-research-q', 'Od czego zacząć interwały z osobą otyłą po długiej przerwie?');
   await page.click('.research-question button[type="submit"]');
   await page.waitForSelector('.research-card');
@@ -99,6 +99,7 @@ async function openApp(browser, viewport, routeBase) {
     if (await page.$('.research-answer .research-steps')) {
       const t = await page.textContent('.research-answer');
       ok('AI: odpowiedź z kart, bez zmyślonego [S9]', t.includes('Krótka odpowiedź') && !t.includes('S9'));
+      ok('AI: samokontrola zdań pokazana', t.includes('sprawdzone z kartami') && (await page.$$('.research-answer .research-check')).length >= 1);
     } else {
       ok('AI: karty bez opracowania → uczciwy komunikat, karty zostają', (await page.textContent('.research-state-error')).includes('nie mają opracowania') && (await page.$$('.research-card')).length > 0);
     }
@@ -122,6 +123,34 @@ async function openApp(browser, viewport, routeBase) {
   await page.screenshot({ path: path.join(shotDir, 'badania-zapisane.png'), fullPage: true });
   ok('brak błędów JS', errors.length === 0, errors.join(' | '));
   await page.close();
+
+  /* 1b. Odpowiedź AI z samokontrolą i sprzecznością książka–badania na kartach z opracowaniem (atrapa bazy i proxy). */
+  const realBase = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'knowledge', 'research-base.json'), 'utf8'));
+  Object.values(realBase.studies).forEach((st) => { st.synth = st.synth || { titlePl: st.title, coZbadano: 'Porównano HIIT i ciągły wysiłek.', coZnaleziono: 'Podobna poprawa wydolności.', dlaTrenera: 'Zacznij od spokojnego wysiłku.', czegoNieDowodzi: 'Nie dotyczy osób z chorobami serca.', populacja: 'dorośli', liczebnosc: null, pewnosc: 'umiarkowane', uzytecznosc: 'wysoka' }; });
+  const synthRoute = (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(realBase) });
+  const live = await openApp(browser, { width: 1280, height: 900 }, synthRoute);
+  await live.page.evaluate(() => { window.booksKbSelect = () => [{ cite: 'Głuchowski, Zaplanuj swój trening, s. 120', status: 'zrodlo', text: 'Interwały dopiero po 4–6 tygodniach bazy tlenowej.' }]; });
+  await live.page.route('https://anthropic-proxy.teamprogress2018.workers.dev/**', (route) => {
+    const verify = /Sprawdzasz odpowiedź/.test(route.request().postData() || '');
+    const text = verify
+      ? { oceny: [{ nr: 1, ocena: 'pokryte' }, { nr: 2, ocena: 'brak' }, { nr: 3, ocena: 'czesciowo' }, { nr: 4, ocena: 'pokryte' }] }
+      : { krotko: 'Zacznij od spokojnego wysiłku [S1].', dlaczego: 'HIIT działa identycznie u każdego [S1]. Ciągły wysiłek łatwiej dawkować [S2].', praktyka: ['Kontroluj RPE [S1].'], dla_kogo: 'Początkujący [S1].', ostroznie: 'Choroby serca: lekarz [S1].', ksiazka_vs_badania: 'Książka każe czekać [K1], badania są łagodniejsze [S1].', pytanie_kontrolne: { pytanie: 'Od czego zacząć?', odpowiedz: 'Od spokojnego wysiłku [S1].' }, porownanie: {}, sprzecznosci: [{ temat: 'Kiedy wprowadzić interwały', ksiazka: 'Po 4–6 tygodniach bazy [K1]', badania: 'Krótkie interwały są możliwe wcześniej [S1]', ocena: 'zalezy_od_kontekstu' }], pewnosc: 'umiarkowane' };
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(text) }] }) });
+  });
+  await live.page.click('.academy-tab:has-text("Badania")');
+  await live.page.waitForSelector('.research-chips');
+  await live.page.fill('#academy-research-q', 'Od czego zacząć interwały z osobą otyłą po długiej przerwie?');
+  await live.page.click('.research-question button[type="submit"]');
+  await live.page.waitForSelector('.research-ai-cta button');
+  await live.page.click('.research-ai-cta button');
+  await live.page.waitForSelector('.research-answer .research-steps, .research-state-error');
+  const lt = await live.page.textContent('.research');
+  ok('AI na żywo: niepotwierdzone zdanie usunięte', lt.includes('Krótka odpowiedź') && !lt.includes('identycznie u każdego'), lt.slice(0, 300));
+  ok('AI na żywo: „do sprawdzenia” przy zdaniu częściowo potwierdzonym', (await live.page.$$('.research-answer .research-check')).length === 1);
+  ok('AI na żywo: sekcja „Książka mówi co innego niż badania”', (await live.page.$$('.research-conflicts .research-conflict')).length === 1 && lt.includes('Kiedy wprowadzić interwały'));
+  await live.page.locator('.research-answer').screenshot({ path: path.join(shotDir, 'badania-kontrola.png') });
+  ok('AI na żywo: brak błędów JS', live.errors.length === 0, live.errors.join(' | '));
+  await live.page.close();
 
   /* 2. Źródło niedostępne: komunikat, Academy działa. */
   const down = await openApp(browser, { width: 1280, height: 900 }, (route) => route.fulfill({ status: 503, body: 'down' }));
