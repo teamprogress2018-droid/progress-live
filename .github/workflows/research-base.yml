@@ -1,0 +1,74 @@
+name: Baza badań Academy (PubMed, Europe PMC, Crossref)
+
+on:
+  schedule:
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      only_questions:
+        description: 'Tylko te pytania (id po przecinku, puste = wszystkie)'
+        required: false
+        default: ''
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/research_base_queries.json'
+      - '.github/scripts/build_research_base.js'
+      - '.github/workflows/research-base.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research-base-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  base:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ustaw Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Testy bazy badań
+        run: node .github/scripts/test_research_base.js
+
+      - name: Pobierz badania i opracuj karty
+        env:
+          ONLY_QUESTIONS: ${{ github.event.inputs.only_questions || '' }}
+          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+          NCBI_EMAIL: ${{ secrets.NCBI_EMAIL }}
+          CROSSREF_MAILTO: ${{ secrets.NCBI_EMAIL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node .github/scripts/build_research_base.js
+
+      - name: Zapisz bazę w repo
+        run: |
+          if git diff --quiet -- knowledge/research-base.json && ! git ls-files --others --exclude-standard -- knowledge/research-base.json | grep -q .; then
+            echo "Baza bez zmian."
+            exit 0
+          fi
+          # Część plików jest w repo z CRLF mimo eol=lf w .gitattributes — bez tego git widzi fałszywe zmiany.
+          echo '* -text' > .git/info/attributes
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add knowledge/research-base.json
+          git commit -m "Baza badań: $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            if out=$(git push origin "HEAD:${GITHUB_REF_NAME}" 2>&1); then exit 0; fi
+            echo "::warning::git push: $(echo "$out" | tail -4 | tr '\n' ' ')"
+            sleep 5
+            if ! out=$(git pull --rebase origin "${GITHUB_REF_NAME}" 2>&1); then
+              echo "::warning::git pull: $(echo "$out" | tail -4 | tr '\n' ' ')"
+              git rebase --abort 2>/dev/null
+            fi
+          done
+          exit 1
