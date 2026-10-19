@@ -315,7 +315,7 @@
   function entryType(k){return k.academyBook?'ksiazka':k.kind==='evidence'?'badanie':'notatka';}
   function reliabilityLabel(k){
     const t=entryType(k);
-    if(t==='badanie')return CERTAINTY_LABEL[k.reliability]||(k.pmid?'Nieoceniona':'Nieoceniona');
+    if(t==='badanie')return CERTAINTY_LABEL[k.reliability]||'Pewność nieoceniona — przeczytaj źródło';
     if(t==='ksiazka')return 'Książka — sprawdź wydanie i autora';
     return 'Własna notatka — niezweryfikowana';
   }
@@ -339,7 +339,7 @@
     const tags=(k.topics||[]).map(c=>labels[c]).filter(Boolean).concat((k.tags||[]).filter(x=>typeof x==='string').slice(0,3));
     const idArg=esc(JSON.stringify(String(k.id||'')));
     return `<article class="research-saved-row research-type-${t}">
-      <div class="research-card-pills"><span class="research-pill">${esc((SAVED_TYPES.find(x=>x[0]===t)||[,''])[1].replace(/^Moje |^Zapisane /,'').replace(/^./,c=>c.toUpperCase()))}</span>${t==='badanie'?`<span class="research-pill">${esc(statusLabel(k.researchStatus))}</span>`:''}<span class="research-pill research-cert-${esc(k.reliability||'brak')}">${esc(reliabilityLabel(k))}</span></div>
+      <div class="research-card-pills"><span class="research-pill">${esc({ksiazka:'Książka',notatka:'Notatka',badanie:'Badanie'}[t])}</span>${t==='badanie'?`<span class="research-pill">${esc(statusLabel(k.researchStatus))}</span>`:''}<span class="research-pill research-cert-${esc(k.reliability||'brak')}">${esc(reliabilityLabel(k))}</span></div>
       <h3>${esc(k.title)}</h3>
       <div class="research-meta">${esc(k.citation||[k.bookAuthor].filter(Boolean).join(' ')||'Bez opisu źródła')} · dodano ${esc(date)}</div>
       ${tags.length?`<div class="research-cats">${tags.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
@@ -487,7 +487,7 @@
       title:y.titlePl||s.title,text,citation:[s.authors,s.year?'('+s.year+')':'',s.journalAbbr||s.journal,'· '+(EVIDENCE_LABEL[s.evidence]||'')].filter(Boolean).join(' '),
       sourceUrl:(links.find(l=>l.label==='DOI')||links[0]||{}).href||'',pmid:String(s.pmid||''),doi:s.doi||'',topics:s.categories||[],evidenceLevel:s.evidence||'',
       originalTitle:s.title,year:String(s.year||''),journal:s.journal||'',authors:s.authors||'',
-      researchStatus:status||'do_przeczytania',reliability:y.pewnosc||'brak',trainerNote:'',trainerConclusion:'',useInPlanning:false,tags:[],
+      researchStatus:status||'do_przeczytania',reliability:y.pewnosc||'nieoceniona',trainerNote:'',trainerConclusion:'',useInPlanning:false,tags:[],
       createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()
     };
   }
