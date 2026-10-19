@@ -23,10 +23,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=135'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=97'));
+ok('cache 01', html.includes('01-core.js?v=136'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=105'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=100'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=101'));
 ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43'));
 ok('apl swap altFor', src03.includes('dataset.altFor') && src03.includes('sztanga / hantle / brama / ławka'));
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamień ćwiczenie') && /function liveToggleAltSearch\(/.test(live));

@@ -1495,7 +1495,7 @@ window.sessionExercisesForFocus=sessionExercisesForFocus;
 const PLAN_TEMPLATES=[
   // Mikrocykle / schematy tygodnia (bez periodyzacji — ta jest w Programach)
   {id:'t01',name:'Schemat PPL 3× — Push / Pull / Legs',goal:'masa',level:'sredni',method:'PPL',days:3,weeks:1,
-   desc:'Mikrocykl tygodnia: Push, Pull, Legs. Przypisz i zapętlaj w kalendarzu. Pełna periodyzacja 8–12 tyg. → Biblioteka programów.',
+   desc:'Mikrocykl tygodnia: Push, Pull, Legs. Przypisz i zapętlaj w kalendarzu. Pełna periodyzacja → Bloki 4–16 tyg.',
    tags:['mikrocykl','schemat tygodnia','masa','PPL','3×/tydzień','sztanga'],
    color:'var(--accent)',popularity:98,
    schedule:['Pon: Push','Śr: Pull','Pt: Legs'],

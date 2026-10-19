@@ -481,7 +481,7 @@ function sendBroadcast(){
 // ════════════════════════════════════════
 // EXERCISE LIBRARY — ENHANCED
 // ════════════════════════════════════════
-var exView='grid';var exCatFilter='Wszystkie';var exEquipFilter='';var exSelId=null;
+var exView=(()=>{try{return localStorage.getItem('pl_ex_view_v1')==='list'?'list':'grid';}catch(e){return 'grid';}})();var exCatFilter='Wszystkie';var exEquipFilter='';var exSelId=null;
 
 const CAT_COLORS_EX={
   'Klatka piersiowa':'var(--blue)',
@@ -2520,6 +2520,19 @@ async function removeImportedCatalogDuplicates(){
 }
 window.removeImportedCatalogDuplicates=removeImportedCatalogDuplicates;
 
+// Ile własnych rekordów to tylko kopie kart z katalogu (stare importy) – przycisk sprzątania widać tylko wtedy.
+function importedCatalogDupCount(){
+  const customs=window.EX||[];
+  if(!customs.length||typeof catalogDedupeIndex!=='function')return 0;
+  const idx=catalogDedupeIndex(window.DEF_EX||[]);
+  return customs.filter(ex=>{
+    if(!ex||!ex.name)return false;
+    const card=idx.get(catalogDedupeKey(ex.name));
+    return !!card&&isImportedCatalogCopy(ex,card);
+  }).length;
+}
+window.importedCatalogDupCount=importedCatalogDupCount;
+
 async function saveEx(){
   if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
 
@@ -2564,17 +2577,64 @@ async function saveEx(){
   await persistById('exercises',ex);
 }
 
+function syncExViewUi(){
+  const v=exView==='list'?'list':'grid';
+  const grid=document.getElementById('ex-grid-view');
+  const list=document.getElementById('ex-list-view');
+  if(grid)grid.style.display=v==='grid'?'block':'none';
+  if(list){list.style.display=v==='list'?'flex':'none';list.style.flexDirection='column';}
+  const gb=document.getElementById('ex-view-grid-btn');
+  const lb=document.getElementById('ex-view-list-btn');
+  if(gb){gb.className='btn btn-sm '+(v==='grid'?'btn-primary':'btn-ghost');gb.setAttribute('aria-pressed',String(v==='grid'));}
+  if(lb){lb.className='btn btn-sm '+(v==='list'?'btn-primary':'btn-ghost');lb.setAttribute('aria-pressed',String(v==='list'));}
+}
 function setExView(v){
-  exView=v;
-  document.getElementById('ex-grid-view').style.display=v==='grid'?'block':'none';
-  document.getElementById('ex-list-view').style.display=v==='list'?'flex':'none';
-  document.getElementById('ex-list-view').style.flexDirection='column';
-  document.getElementById('ex-view-grid-btn').className='btn btn-sm '+(v==='grid'?'btn-primary':'btn-ghost');
-  document.getElementById('ex-view-list-btn').className='btn btn-sm '+(v==='list'?'btn-primary':'btn-ghost');
+  exView=v==='list'?'list':'grid';
+  try{localStorage.setItem('pl_ex_view_v1',exView);}catch(e){}
   renderLib();
+}
+window.syncExViewUi=syncExViewUi;
+
+// Wyszukiwarka ćwiczeń: render dopiero po krótkiej pauzie w pisaniu (lista ma setki kart).
+let _renderLibTimer=null;
+function renderLibSoon(){
+  clearTimeout(_renderLibTimer);
+  _renderLibTimer=setTimeout(renderLib,160);
+}
+window.renderLibSoon=renderLibSoon;
+
+// Słowa zapytania w dowolnej kolejności; spacje i myślniki nie mają znaczenia.
+function exerciseSearchTokens(q){
+  return exerciseSearchNorm(q).replace(/[-–—_/]+/g,' ').split(/\s+/).filter(Boolean);
+}
+function exerciseMatchesTokens(e,tokens){
+  if(!tokens.length)return true;
+  const blob=exerciseSearchBlob(e).replace(/[-–—_/]+/g,' ');
+  return tokens.every(t=>blob.includes(t));
+}
+window.exerciseSearchTokens=exerciseSearchTokens;
+window.exerciseMatchesTokens=exerciseMatchesTokens;
+
+function exLibSortFn(){
+  const sort=(document.getElementById('ex-sort')||{}).value||'az';
+  const byName=(a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pl');
+  if(sort==='eq')return (a,b)=>String(a.eq||'').localeCompare(String(b.eq||''),'pl')||byName(a,b);
+  return byName;
 }
 
 window.exercisesGroupedByCat=exercisesGroupedByCat;
+
+// Dla karty z katalogu przycisk tylko ukrywa ją z biblioteki (do przywrócenia); własne ćwiczenie usuwa.
+function exIsOwn(e){
+  return !!(e&&e.name&&typeof findCustomEx==='function'&&findCustomEx(e.name));
+}
+function exDelBtnHtml(e,extraStyle){
+  const own=exIsOwn(e);
+  const style=(own?'color:var(--red);':'color:var(--muted);')+(extraStyle||'');
+  const title=own?'Usuń własne ćwiczenie':'Ukryj ćwiczenie z katalogu (możesz je przywrócić)';
+  return `<button type="button" class="btn btn-ghost btn-sm" style="${style}" title="${title}" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">${own?'Usuń':'Ukryj'}</button>`;
+}
+window.exDelBtnHtml=exDelBtnHtml;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
@@ -2605,7 +2665,7 @@ function exCardHtml(e,i){
         </div>
         ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${escHtml(e.muscle)}</div>`:''}
         ${e.tip?`<div class="ex-card-tip">${escHtml(e.tip.substring(0,80))}${e.tip.length>80?'…':''}</div>`:''}
-        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);margin-top:6px;" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
+        ${exDelBtnHtml(e,'margin-top:6px;')}
       </div>
     </div>
   </div>`;
@@ -2627,7 +2687,7 @@ function renderLibGroupedSections(filtered,mode){
     order.forEach(cat=>{
       const items=byCat[cat];
       if(!items?.length)return;
-      items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+      items.sort(exLibSortFn());
       const col=CAT_COLORS_EX[cat]||'var(--muted)';
       html+=`<div class="ex-cat-section">
         <div class="ex-cat-section-hdr"><span class="ex-cat-dot" style="background:${col};"></span><span>${escHtml(cat)}</span><span class="ex-cat-section-count">${items.length}</span></div>
@@ -2643,7 +2703,7 @@ function renderLibGroupedSections(filtered,mode){
   order.forEach(cat=>{
     const items=byCat[cat];
     if(!items?.length)return;
-    items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+    items.sort(exLibSortFn());
     const col=CAT_COLORS_EX[cat]||'var(--muted2)';
     html+=`<div class="ex-cat-section-hdr ex-cat-section-hdr-list"><span class="ex-cat-dot" style="background:${col};"></span><span>${escHtml(cat)}</span><span class="ex-cat-section-count">${items.length}</span></div>`;
     items.forEach((e,i)=>{
@@ -2657,7 +2717,7 @@ function renderLibGroupedSections(filtered,mode){
         <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${escHtml((e.tip||'').substring(0,60))}${(e.tip||'').length>60?'…':''}</div>
         <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
           <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail(${exJsArg(e.name)})">Szczegóły</button>
-          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
+          ${exDelBtnHtml(e,'')}
         </div>
       </div>`;
     });
@@ -2674,8 +2734,14 @@ function renderLib(){
     restoreBtn.style.display=hiddenN?'block':'none';
     restoreBtn.textContent=hiddenN?('Przywróć ukryte ('+hiddenN+')'):'Przywróć ukryte';
   }
+  const sweepBtn=document.getElementById('lib-sweep-dups');
+  if(sweepBtn){
+    const dupN=importedCatalogDupCount();
+    sweepBtn.style.display=dupN?'block':'none';
+    sweepBtn.textContent='Usuń duplikaty importu ('+dupN+')';
+  }
+  syncExViewUi();
   const search=(document.getElementById('ex-search')||{}).value||'';
-  const sort=(document.getElementById('ex-sort')||{}).value||'az';
 
   // build category nav
   const cats=['Wszystkie',...Object.keys(CAT_COLORS_EX)];
@@ -2704,17 +2770,16 @@ function renderLib(){
   }
 
   // filter
+  const searchTokens=exerciseSearchTokens(search);
   let filtered=all.filter(e=>{
     if(exCatFilter!=='Wszystkie'&&e.cat!==exCatFilter)return false;
     if(exEquipFilter&&e.eq!==exEquipFilter)return false;
-    if(search){const s=exerciseSearchNorm(search);if(!exerciseSearchBlob(e).includes(s))return false;}
+    if(searchTokens.length&&!exerciseMatchesTokens(e,searchTokens))return false;
     return true;
   });
 
-  // sort
-  if(sort==='az')filtered.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
-  else if(sort==='cat')filtered.sort((a,b)=>a.cat.localeCompare(b.cat,'pl'));
-  else if(sort==='eq')filtered.sort((a,b)=>(a.eq||'').localeCompare(b.eq||'','pl'));
+  // sort (w widoku „Wszystkie” – wewnątrz każdej kategorii)
+  filtered.sort(exLibSortFn());
 
   const countEl=document.getElementById('ex-results-count');
   if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń');
@@ -2944,7 +3009,12 @@ function openExDetail(name){
   const aiAcc=document.getElementById('exd-acc-ai');
   if(aiAcc)aiAcc.open=false;
   const hdrDel=document.getElementById('exd-del-hdr');
-  if(hdrDel)hdrDel.style.display='';
+  if(hdrDel){
+    const own=exIsOwn({name});
+    hdrDel.style.display='';
+    hdrDel.textContent=own?'🗑 Usuń':'🙈 Ukryj';
+    hdrDel.title=own?'Usuń własne ćwiczenie':'Ukryj ćwiczenie z katalogu (możesz je przywrócić)';
+  }
   const detail=document.getElementById('ex-detail');
   if(detail)detail.style.transform='translateX(0)';
   if(!same)exdTab='preview';
@@ -3101,7 +3171,8 @@ function closeExDetail(){
   document.getElementById('ex-detail').style.transform='translateX(100%)';
   const hdrDel=document.getElementById('exd-del-hdr');
   if(hdrDel)hdrDel.style.display='none';
-  exSelId=null;renderLib();
+  exSelId=null;
+  document.querySelectorAll('#lib-grid .ex-card.selected').forEach(el=>el.classList.remove('selected'));
 }
 
 // Czy w kreatorze został rozpoczęty, niezapisany plan (kreator nie musi być teraz otwarty).
@@ -4102,8 +4173,18 @@ function setTaskFilter(f){
   taskFilter=f;
   document.querySelectorAll('.task-nav-item').forEach(el=>el.classList.remove('active'));
   const el=document.getElementById('tn-'+f);if(el)el.classList.add('active');
+  syncTaskFlyout();
   renderTasks();
 }
+// Menu Biblioteki: „Zadania domowe” i „Wszystkie zadania” to ten sam ekran – podświetl pozycję zgodną z filtrem.
+function syncTaskFlyout(){
+  const scr=document.getElementById('screen-tasks');
+  if(!scr||!scr.classList.contains('active'))return;
+  document.querySelectorAll('.nav-flyout-item[data-screen="tasks"]').forEach(b=>{
+    b.classList.toggle('active',taskFilter==='homework'?b.dataset.taskFilter==='homework':!b.dataset.taskFilter);
+  });
+}
+window.syncTaskFlyout=syncTaskFlyout;
 
 function renderTasks(){
   const clf=document.getElementById('task-client-filter');

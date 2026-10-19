@@ -97,7 +97,7 @@
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" data-task-filter="homework" onclick="closeLibraryFlyout();goToHomeworkQueue()">Zadania domowe</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="closeLibraryFlyout();goTo('tasks');setTaskFilter('all')">Wszystkie zadania</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="forms" onclick="closeLibraryFlyout();goTo('forms')">Formularze i ankiety</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="metrics" onclick="closeLibraryFlyout();goTo('metrics')">Grupy pomiarów</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="metrics" onclick="closeLibraryFlyout();goTo('metrics')">Pomiary ciała</button>
       </div>
     </div>
 
@@ -408,7 +408,7 @@
 
 <!-- PLANS -->
 <div class="screen" id="screen-plans">
-    <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openNewPlanPicker()">+ Nowy plan</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Gotowy tydzień</button></div></div>
+    <div class="topbar"><div class="topbar-title">Treningi</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openNewPlanPicker()">+ Nowy plan</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Gotowy tydzień</button></div></div>
   <div class="plans-toolbar">
     <input type="text" class="form-input plans-search" id="plans-search" placeholder="🔍 Szukaj nazwy lub nazwiska..." oninput="renderPlans()">
     <div class="plans-chips" id="plans-status-chips" role="tablist" aria-label="Status planu">
@@ -695,11 +695,11 @@
         <button class="btn btn-ghost btn-sm" id="lib-tab-vid" onclick="setLibTab('videos')">Moje filmy</button>
       </div>
       <div style="display:flex;gap:6px;" id="lib-ex-view-btns">
-        <button class="btn btn-ghost btn-sm" id="ex-view-grid-btn" onclick="setExView('grid')">⊞ Karty</button>
-        <button class="btn btn-primary btn-sm" id="ex-view-list-btn" onclick="setExView('list')">☰ Lista</button>
+        <button class="btn btn-primary btn-sm" id="ex-view-grid-btn" aria-pressed="true" onclick="setExView('grid')">⊞ Karty</button>
+        <button class="btn btn-ghost btn-sm" id="ex-view-list-btn" aria-pressed="false" onclick="setExView('list')">☰ Lista</button>
       </div>
-      <button class="btn btn-primary btn-sm" id="lib-import-gif" onclick="openExGifImport()" title="Masowy import GIF / MP4 techniki">🎞 Import GIF / MP4</button>
-      <button class="btn btn-ghost btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Ćwiczenie</button>
+      <button class="btn btn-ghost btn-sm" id="lib-import-gif" onclick="openExGifImport()" title="Masowy import GIF / MP4 techniki">🎞 Import GIF / MP4</button>
+      <button class="btn btn-primary btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Ćwiczenie</button>
       <button class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
     </div>
   </div>
@@ -707,9 +707,8 @@
     <!-- lewy panel: kategorie + sprzęt w jednym scrollu, żeby dół nie był ucięty -->
     <div class="lib-side lib-filters has-search">
       <div class="lib-side-top lib-search-row">
-        <input type="text" id="ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderLib()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
-        <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="openExGifImport()">🎞 Import GIF / MP4</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="lib-sweep-dups" style="width:100%;margin-top:6px;" onclick="removeImportedCatalogDuplicates()">Usuń duplikaty</button>
+        <input type="text" id="ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderLibSoon()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
+        <button type="button" class="btn btn-ghost btn-sm" id="lib-sweep-dups" style="width:100%;margin-top:8px;display:none;" onclick="removeImportedCatalogDuplicates()">Usuń duplikaty</button>
         <button type="button" class="btn btn-ghost btn-sm" id="lib-restore-hidden" style="width:100%;margin-top:6px;display:none;color:var(--red);" onclick="restoreHiddenExercises()">Przywróć ukryte</button>
       </div>
       <div class="lib-side-scroll" id="lib-side-scroll">
@@ -718,10 +717,6 @@
           <div class="lib-equip-lbl">Sprzęt</div>
           <div id="ex-equip-filters"></div>
         </div>
-        <details class="ex-plan-filters">
-          <summary>Filtry dla planu <span>zaawansowane</span></summary>
-          <div id="ex-plan-filters"></div>
-        </details>
       </div>
     </div>
 
@@ -730,11 +725,9 @@
       <!-- toolbar -->
       <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
         <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="ex-results-count">0 ćwiczeń</span>
-        <div style="display:flex;gap:6px;" id="ex-muscle-chips"></div>
         <div style="margin-left:auto;">
           <select class="form-select" style="padding:4px 8px;font-size:11px;width:auto;" id="ex-sort" onchange="renderLib()">
             <option value="az">A–Z</option>
-            <option value="cat">Kategoria</option>
             <option value="eq">Sprzęt</option>
           </select>
         </div>
@@ -996,7 +989,7 @@
 <!-- FORMS — ENHANCED -->
 <div class="screen" id="screen-forms">
   <div class="topbar">
-    <div class="topbar-title">Formularze i kwestionariusze</div>
+    <div class="topbar-title">Formularze i ankiety</div>
     <div class="topbar-actions">
       <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" aria-expanded="false" onclick="libTogglePanel(this,'filters')">☰ Filtry</button>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-form')">+ Własny formularz</button>
@@ -2993,7 +2986,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="topbar">
     <div>
       <div class="topbar-title">Gotowy tydzień</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>schematy tygodnia</b> (mikrocykle: PPL, FBW, Upper/Lower…). Bez faz i deloadów — te są w <button type="button" class="linkish" onclick="goTo('programs')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Blokach 8–16 tyg.</button>.</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>schematy tygodnia</b> (mikrocykle: PPL, FBW, Upper/Lower…). Bez faz i deloadów — te są w <button type="button" class="linkish" onclick="goTo('programs')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Blokach 4–16 tyg.</button>.</div>
     </div>
     <div class="topbar-actions">
       <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" aria-expanded="false" onclick="libTogglePanel(this,'filters')">☰ Filtry</button>
@@ -3571,8 +3564,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ex-name" placeholder="np. Wyciskanie sztangi leżąc"></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Kategoria</label><select class="form-select" id="ex-cat"><option>Klatka piersiowa</option><option>Plecy</option><option>Barki</option><option>Nogi</option><option>Biceps</option><option>Triceps</option><option>Core</option><option>Pośladki</option><option>Olimpijskie</option><option>Cardio</option><option>Rozgrzewka</option><option>Rozciąganie</option><option>Mobilność</option></select></div><div class="form-field"><label class="form-lbl">Sprzęt</label><select class="form-select" id="ex-eq"><option>Sztanga</option><option>Hantle</option><option>Maszyna</option><option>Wyciąg</option><option>Własna masa</option><option>Kettlebell</option><option>Piłka lekarska</option><option>Taśmy</option></select></div></div>
       <div class="form-field"><label class="form-lbl">Wskazówka techniczna</label><textarea class="form-textarea" id="ex-desc" rows="2" placeholder="np. Łopatki ściągnięte, pełny ROM..."></textarea></div>
-      <div class="form-field"><label class="form-lbl">Animacja / grafika techniki (opcjonalnie)</label><input type="text" inputmode="url" class="form-input" id="ex-img" placeholder="https://…mp4 albo D:/progress-live-video-assets/…mp4"><div style="font-size:11px;color:var(--muted);margin-top:6px;">https, plik z folderu <b>progress-live-video-assets</b> (zamienimy na CDN) albo Import GIF / MP4. Ćwiczenia z biblioteki domyślnej edytujesz importem, nie tym formularzem.</div></div>
-      <div class="form-field"><label class="form-lbl">Film techniki (opcjonalnie)</label><input type="text" inputmode="url" class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=... albo D:/progress-live-video-assets/…mp4"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Przy filmie YouTube miniatura generuje się automatycznie, jeśli nie podasz osobnej grafiki.</div></div>
+      <div class="form-field"><label class="form-lbl">Animacja / grafika techniki (opcjonalnie)</label><input type="text" inputmode="url" class="form-input" id="ex-img" placeholder="https://…gif albo https://…mp4"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Link https do GIF-a, obrazka albo filmu MP4. Filmy do wielu ćwiczeń naraz dodasz przez „Import GIF / MP4”.</div></div>
+      <div class="form-field"><label class="form-lbl">Film techniki (opcjonalnie)</label><input type="text" inputmode="url" class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=... albo https://…mp4"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Przy filmie YouTube miniatura generuje się automatycznie, jeśli nie podasz osobnej grafiki.</div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-ex')">Anuluj</button><button class="btn btn-primary" onclick="saveEx()">Zapisz</button></div>
   </div>
@@ -3597,9 +3590,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button type="button" class="btn btn-sm btn-ghost" id="exgif-tab-files" onclick="setExGifImportTab('files')">📁 Pliki z dysku</button>
       </div>
       <div id="exgif-panel-paste">
-        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;">Wklej <b>całą listę naraz</b> — jedna linia = jedno ćwiczenie. Działa GIF, WEBP, <b>MP4</b> i WEBM (https albo ścieżka z folderu <code>progress-live-video-assets</code>). Potem od razu <b>Zapisz masowo</b>.</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;">Wklej <b>całą listę naraz</b> — jedna linia = jedno ćwiczenie. Działa GIF, WEBP, <b>MP4</b> i WEBM (link https). Potem <b>Sprawdź listę</b> i <b>Zapisz masowo</b>.</div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;font-family:'DM Mono',monospace;background:rgba(0,0,0,0.25);padding:10px 12px;border-radius:8px;">
-          Butterfly (peck deck) | D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4<br>
+          Butterfly (peck deck) | https://twoj-serwer.pl/filmy/butterfly.mp4<br>
           Nazwa ćwiczenia | https://link-do-filmu.mp4<br>
           # linie z # są ignorowane
         </div>
@@ -3607,7 +3600,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <label class="form-lbl">Lista ćwiczeń + linki (wklej tutaj)</label>
           <textarea class="form-textarea" id="exgif-paste" rows="12" placeholder="Wyciskanie sztangi leżąc | https://twoj-serwer.pl/filmy/bench.mp4&#10;Podciąganie na drążku | https://.../pull.gif&#10;Martwy ciąg klasyczny | https://.../deadlift.mp4"></textarea>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="onExGifBulkPastePreview()">Parsuj listę</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="onExGifBulkPastePreview()">Sprawdź listę</button>
       </div>
       <div id="exgif-panel-files" style="display:none;">
         <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">Wybierz pliki <b>.gif / .webp / .mp4 / .webm</b> — nazwy jak slug ćwiczenia (<code style="color:var(--text);">wyciskanie-sztangi-lezac.mp4</code>) albo przypisz ręcznie z listy.</div>
@@ -3619,7 +3612,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;">
         <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);" id="exgif-match-count">0 dopasowanych</span>
-        <span style="font-size:11px;color:var(--muted);">Sprawdź listę — popraw niedopasowane w select</span>
+        <span style="font-size:11px;color:var(--muted);">Popraw niedopasowane, wybierając ćwiczenie z listy</span>
       </div>
       <div id="exgif-preview" class="exgif-preview"></div>
       <div id="exgif-progress-wrap" style="display:none;margin-top:12px;height:6px;background:var(--s3);border-radius:99px;overflow:hidden;">
@@ -3638,7 +3631,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ov-name" placeholder="np. Przysiad — technika"></div>
       <div class="form-field"><label class="form-lbl">Link</label><input type="text" inputmode="url" class="form-input" id="ov-url" placeholder="YouTube / Vimeo / bezpośredni .mp4"></div>
       <div class="form-field"><label class="form-lbl">Ćwiczenie (opcjonalnie)</label><input type="text" class="form-input ex-ac-input" id="ov-ex" autocomplete="off" placeholder="Podpnij pod ćwiczenie z biblioteki"></div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5;">YouTube (niewidoczny), https://…mp4 albo ścieżka z folderu <b>progress-live-video-assets</b> — nie wklejaj zwykłego D:\\Desktop, klient tego nie otworzy.</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">YouTube (link niepubliczny), Vimeo albo bezpośredni link https do pliku .mp4. Plik z Twojego dysku musi być najpierw wgrany do internetu, inaczej klient go nie otworzy.</div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-own-video')">Anuluj</button><button class="btn btn-primary" onclick="saveOwnVideo()">Zapisz film</button></div>
   </div>
@@ -4714,9 +4707,9 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=36"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=135&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1"></script>
+<script src="01-core.js?v=136&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=97"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=98"></script>
 <script src="books-kb.js?v=1"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=43&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1"></script>
 <script src="04-client-portal.js?v=61&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
@@ -4725,7 +4718,7 @@ async function load(session=captureTenantSession()){
 <script src="05-clients-builder-plans-calendar.js?v=105&volume-control=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=100&exercise-preview=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=101&exercise-preview=1"></script>
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=91&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=57&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1"></script>

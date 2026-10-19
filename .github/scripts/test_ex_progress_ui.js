@@ -28,7 +28,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=135'));
+ok('cache 01', html.includes('01-core.js?v=136'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
 ok('cache styles', html.includes('styles.css?v=161'));
 ok('CI', wf.includes('test_ex_progress_ui.js'));
