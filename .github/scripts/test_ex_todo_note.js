@@ -25,7 +25,7 @@ ok('cache 01', html.includes('01-core.js?v=137'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
 ok('cache 10', html.includes('10-client-app.js?v=44'));
-ok('cache styles', html.includes('styles.css?v=163'));
+ok('cache styles', html.includes('styles.css?v=164'));
 ok('CI unit', wf.includes('test_ex_todo_note.js'));
 ok('CI readable ui', wf.includes('test_live_readable_ui.js'));
 

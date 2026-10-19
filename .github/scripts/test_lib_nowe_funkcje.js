@@ -30,7 +30,7 @@ ok('ci unit', wf.includes('test_lib_nowe_funkcje.js'));
 ok('ci ui', wf.includes('test_lib_nowe_funkcje_ui.js'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles', html.includes('styles.css?v=163'));
+ok('cache styles', html.includes('styles.css?v=164'));
 
 ok('star on card and list row', six.includes('${exFavBtnHtml(e)}') && (six.match(/\$\{exFavBtnHtml\(e\)\}/g) || []).length === 3);
 ok('favourites saved in settings', /window\.SETTINGS\.favoriteExercises=/.test(six) && /persistSettingsDoc/.test(slice(six, 'function toggleFavEx', 'function exFavPaint')));
