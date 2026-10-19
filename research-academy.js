@@ -9,7 +9,7 @@
   const LOAD_TIMEOUT_MS=10000;
   const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   const norm=s=>String(s||'').toLocaleLowerCase('pl').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l');
-  const state={status:'idle',data:null,error:'',query:'',category:'all',sort:'quality',limit:3,compare:false,warning:'',saving:{}};
+  const state={status:'idle',data:null,error:'',sub:'search',query:'',category:'all',sort:'quality',limit:3,compare:false,warning:'',saving:{},editing:'',saved:{type:'all',category:'all',status:'all'},ai:{status:'idle',question:'',answer:null,error:''}};
   const resultCache=new Map();
 
   const EVIDENCE_WEIGHT={guideline:6,meta:6,sr:5,rct:3,review:1,other:0};
@@ -153,13 +153,14 @@
     const body=y
       ?section('Co zbadano?',esc(y.coZbadano))+section('Co znaleziono?',esc(y.coZnaleziono))+section('Co to oznacza dla trenera?',esc(y.dlaTrenera||'Źródło nie daje praktycznego wniosku.'))+section('Czego to badanie nie dowodzi?',esc(y.czegoNieDowodzi||'Abstrakt nie opisuje ograniczeń — sprawdź pełny tekst.'))
       :`<p class="research-nosynth">${s.hasAbstract===false?'Brak opracowania: PubMed nie udostępnia abstraktu tej publikacji.':'Ta karta nie ma jeszcze opracowania.'} Pokazujemy tylko metadane i link — przeczytaj źródło, zanim wyciągniesz wnioski.</p>`;
-    return `<article class="research-card" id="research-src-${esc(key||'')}">
+    return `<article class="research-card"${key?` id="research-src-${esc(key)}"`:''}>
       <div class="research-card-pills">${key?`<span class="research-key">${esc(key)}</span>`:''}<span class="research-pill research-ev-${esc(s.evidence)}">${esc(EVIDENCE_LABEL[s.evidence]||s.evidenceLabel||'Badanie')}</span>${y?`<span class="research-pill research-cert-${esc(cert)}">${esc(CERTAINTY_LABEL[cert])}</span><span class="research-pill">Użyteczność: ${esc(USEFULNESS_LABEL[y.uzytecznosc]||'—')}</span>`:''}${s.openAccess?'<span class="research-pill research-oa">Otwarty dostęp</span>':''}</div>
       <h3>${esc(y&&y.titlePl?y.titlePl:s.title)}</h3>
       ${y&&y.titlePl?`<div class="research-orig" lang="en">${esc(s.title)}</div>`:''}
       <div class="research-meta">${metaLine(s)}</div>
       ${body}
       <div class="research-actions">${saved?`<span class="research-saved">✓ W moich źródłach</span>`:`<button type="button" class="btn btn-primary btn-sm" onclick="academyResearchSave(${pid})"${state.saving[s.pmid]?' disabled':''}>Zapisz do „Do przeczytania”</button>`}${links.map(l=>linkHtml(l)).join('')}</div>
+      ${saved?trainerBlock(saved):''}
     </article>`;
   }
 
@@ -269,18 +270,184 @@
     return '';
   }
 
+  /* ── Status, notatka i wniosek trenera przy zapisanym badaniu ── */
+  const RESEARCH_STATUS=[['do_przeczytania','Do przeczytania'],['przeczytane','Przeczytane'],['do_sprawdzenia','Do sprawdzenia'],['wykorzystane','Wykorzystane w Academy']];
+  const statusLabel=k=>(RESEARCH_STATUS.find(x=>x[0]===k)||[,'Do przeczytania'])[1];
+  function trainerBlock(e){
+    const id=esc(JSON.stringify(String(e.id)));
+    const chips=`<div class="research-status" role="group" aria-label="Status badania">${RESEARCH_STATUS.map(([k,l])=>`<button type="button" class="research-sort-btn${(e.researchStatus||'do_przeczytania')===k?' is-active':''}" aria-pressed="${(e.researchStatus||'do_przeczytania')===k}" onclick='academyResearchSetStatus(${id},${esc(JSON.stringify(k))})'>${l}</button>`).join('')}</div>`;
+    if(state.editing===e.id)return `<form class="research-note-form" onsubmit='academyResearchSaveNote(event,${id})'>${chips}<label class="form-lbl" for="research-note-${esc(e.id)}">Moja notatka</label><textarea id="research-note-${esc(e.id)}" class="form-textarea" rows="3" maxlength="3000" placeholder="Co warto zapamiętać, pytania do sprawdzenia w pełnym tekście.">${esc(e.trainerNote||'')}</textarea><label class="form-lbl" for="research-concl-${esc(e.id)}">Mój wniosek dla klientów</label><textarea id="research-concl-${esc(e.id)}" class="form-textarea" rows="2" maxlength="1500" placeholder="Jak to zmieni moją pracę (albo dlaczego nie zmieni).">${esc(e.trainerConclusion||'')}</textarea><div class="research-note-actions"><button class="btn btn-primary btn-sm" type="submit">Zapisz notatkę</button><button class="btn btn-ghost btn-sm" type="button" onclick="academyResearchEdit('')">Anuluj</button></div></form>`;
+    return `<div class="research-trainer">${chips}${e.trainerNote?`<p><b>Moja notatka:</b> ${esc(e.trainerNote)}</p>`:''}${e.trainerConclusion?`<p><b>Mój wniosek:</b> ${esc(e.trainerConclusion)}</p>`:''}<button type="button" class="research-link-btn" onclick='academyResearchEdit(${id})'>${e.trainerNote||e.trainerConclusion?'Edytuj notatkę i wniosek':'+ Dodaj notatkę i własny wniosek'}</button></div>`;
+  }
+  async function updateEntry(id,patch){
+    const list=root.KB||[];
+    const i=list.findIndex(k=>k&&k.id===id);
+    if(i<0)return null;
+    if(!root._db||typeof root.persistById!=='function'){notifySafe('Zaloguj się i sprawdź połączenie, aby zapisać zmiany');return null;}
+    const next={...list[i],...patch,updatedAt:new Date().toISOString()};
+    let saved=null;
+    try{saved=await root.persistById('kb',next);}catch(e){saved=null;}
+    if(!saved){notifySafe('Nie udało się zapisać — spróbuj ponownie');return null;}
+    list[i]=saved;
+    rerender();
+    return saved;
+  }
+
+  /* ── Nowe badania: publikacje z ostatnich 12 miesięcy w kategoriach ── */
+  function recentStudies(data,category,now){
+    const year=(now||new Date()).getFullYear();
+    const seen=new Set(),out=[];
+    Object.keys(data.recent||{}).forEach(cat=>{
+      if(category!=='all'&&cat!==category)return;
+      (data.recent[cat]||[]).forEach(id=>{const s=data.studies[id];if(s&&!seen.has(id)&&Number(s.year)>=year-1){seen.add(id);out.push(s);}});
+    });
+    return out.sort((a,b)=>(Number(b.year)||0)-(Number(a.year)||0)||qualityScore(b)-qualityScore(a));
+  }
+  function newView(){
+    const list=recentStudies(state.data,state.category);
+    const labels=Object.fromEntries((state.data.categories||[]).map(c=>[c.id,c.label]));
+    const cards=list.slice(0,state.category==='all'?12:8).map(s=>renderCard(s,'').replace('<h3>',`<div class="research-cats">${(s.categories||[]).map(c=>labels[c]?`<span>${esc(labels[c])}</span>`:'').join('')}</div><h3>`)).join('');
+    return `<div class="research-sub-intro">Publikacje z ostatnich 12 miesięcy (metaanalizy, przeglądy, stanowiska, RCT), przypisane do kategorii. Zapisz badanie do „Do przeczytania”, dodaj notatkę i własny wniosek, a potem oznacz je jako przeczytane, do sprawdzenia albo wykorzystane w Academy.</div>${categoryChips()}${list.length?`<div class="research-cards">${cards}</div>`:'<div class="research-state">Brak nowych publikacji w tej kategorii w ostatnich 12 miesiącach.</div>'}`;
+  }
+
+  /* ── Zapisane źródła: książki, notatki, badania i własne wnioski trenera ── */
+  const SAVED_TYPES=[['all','Wszystkie'],['ksiazka','Moje książki'],['notatka','Moje notatki'],['badanie','Zapisane badania'],['wniosek','Moje wnioski']];
+  function entryType(k){return k.academyBook?'ksiazka':k.kind==='evidence'?'badanie':'notatka';}
+  function reliabilityLabel(k){
+    const t=entryType(k);
+    if(t==='badanie')return CERTAINTY_LABEL[k.reliability]||'Pewność nieoceniona — przeczytaj źródło';
+    if(t==='ksiazka')return 'Książka — sprawdź wydanie i autora';
+    return 'Własna notatka — niezweryfikowana';
+  }
+  function anyHttps(v){try{const u=new URL(String(v||''));return u.protocol==='https:'?u.href:'';}catch(e){return '';}}
+  function savedEntries(){
+    const f=state.saved;
+    return (root.KB||[]).filter(k=>k&&k.title&&!k.builtinId).filter(k=>{
+      const t=entryType(k);
+      if(f.type==='wniosek'){if(!k.trainerConclusion)return false;}
+      else if(f.type!=='all'&&t!==f.type)return false;
+      if(f.category!=='all'&&!(k.topics||[]).includes(f.category))return false;
+      if(f.status!=='all'&&(t!=='badanie'||(k.researchStatus||'do_przeczytania')!==f.status))return false;
+      return true;
+    }).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  }
+  function savedRow(k){
+    const t=entryType(k);
+    const labels=Object.fromEntries(((state.data&&state.data.categories)||[]).map(c=>[c.id,c.label]));
+    const href=t==='badanie'?safeHref(k.sourceUrl):anyHttps(k.sourceUrl);
+    const date=k.createdAt?new Date(k.createdAt).toLocaleDateString('pl-PL'):'—';
+    const tags=(k.topics||[]).map(c=>labels[c]).filter(Boolean).concat((k.tags||[]).filter(x=>typeof x==='string').slice(0,3));
+    const idArg=esc(JSON.stringify(String(k.id||'')));
+    return `<article class="research-saved-row research-type-${t}">
+      <div class="research-card-pills"><span class="research-pill">${esc({ksiazka:'Książka',notatka:'Notatka',badanie:'Badanie'}[t])}</span>${t==='badanie'?`<span class="research-pill">${esc(statusLabel(k.researchStatus))}</span>`:''}<span class="research-pill research-cert-${esc(k.reliability||'brak')}">${esc(reliabilityLabel(k))}</span></div>
+      <h3>${esc(k.title)}</h3>
+      <div class="research-meta">${esc(k.citation||[k.bookAuthor].filter(Boolean).join(' ')||'Bez opisu źródła')} · dodano ${esc(date)}</div>
+      ${tags.length?`<div class="research-cats">${tags.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}
+      ${t!=='badanie'&&k.text?`<p class="research-saved-text">${esc(String(k.text).slice(0,220))}${String(k.text).length>220?'…':''}</p>`:''}
+      ${t==='badanie'?trainerBlock(k):(k.trainerConclusion?`<p class="research-saved-text"><b>Mój wniosek:</b> ${esc(k.trainerConclusion)}</p>`:'')}
+      <div class="research-actions">${href?linkHtml({label:t==='badanie'?'Źródło':'Link',href}):''}${t==='ksiazka'?`<button type="button" class="btn btn-ghost btn-sm" onclick='academyLearnBook(${idArg})'>Ucz się z notatek</button>`:''}</div>
+    </article>`;
+  }
+  function savedView(){
+    const f=state.saved;
+    const list=savedEntries();
+    const cats=(state.data&&state.data.categories)||[];
+    const chip=(group,k,l)=>`<button type="button" class="academy-chip${f[group]===k?' is-active':''}" aria-pressed="${f[group]===k}" onclick='academyResearchSavedFilter(${esc(JSON.stringify(group))},${esc(JSON.stringify(k))})'>${esc(l)}</button>`;
+    return `<div class="research-sub-intro">Wszystko, na czym opierasz decyzje: własne książki, notatki, zapisane badania i własne wnioski. Dane są prywatne (Twoja Baza wiedzy) i nie zawierają danych klientów.</div>
+      <div class="research-chips" role="group" aria-label="Rodzaj źródła">${SAVED_TYPES.map(([k,l])=>chip('type',k,l)).join('')}</div>
+      <div class="research-chips" role="group" aria-label="Kategoria">${chip('category','all','Każda kategoria')}${cats.map(c=>chip('category',c.id,c.label)).join('')}</div>
+      ${f.type==='badanie'||f.type==='all'?`<div class="research-chips" role="group" aria-label="Status badania">${chip('status','all','Każdy status')}${RESEARCH_STATUS.map(([k,l])=>chip('status',k,l)).join('')}</div>`:''}
+      ${list.length?`<div class="research-cards">${list.map(savedRow).join('')}</div>`:'<div class="research-state">Brak źródeł dla tego filtra. Zapisz badanie z wyszukiwania lub z „Nowych badań”, a książki dodasz w zakładce „Moje książki”.</div>'}`;
+  }
+
+  /* ── Odpowiedź AI dla pytania spoza opracowanych (proxy aplikacji, bez kluczy w przeglądarce) ── */
+  const AI_CACHE_KEY='pl_research_ai_v1';
+  const AI_TTL_MS=7*24*3600*1000;
+  const aiMemory=new Map();
+  function strHash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
+  function aiCacheGet(key){
+    if(aiMemory.has(key))return aiMemory.get(key);
+    try{const all=JSON.parse(root.localStorage.getItem(AI_CACHE_KEY)||'{}');const hit=all[key];if(hit&&Date.now()-hit.at<AI_TTL_MS){aiMemory.set(key,hit.answer);return hit.answer;}}catch(e){}
+    return null;
+  }
+  function aiCacheSet(key,answer){
+    aiMemory.set(key,answer);
+    try{const all=JSON.parse(root.localStorage.getItem(AI_CACHE_KEY)||'{}');all[key]={at:Date.now(),answer};const keys=Object.keys(all).sort((a,b)=>all[b].at-all[a].at).slice(0,40);const keep={};keys.forEach(k=>keep[k]=all[k]);root.localStorage.setItem(AI_CACHE_KEY,JSON.stringify(keep));}catch(e){}
+  }
+  function proxyUrl(){try{if(typeof W==='string'&&W)return W;}catch(e){}return 'https://anthropic-proxy.teamprogress2018.workers.dev/';}
+  async function aiAnswer(question,studies){
+    const RA=root.ResearchAnswer;
+    if(!RA)throw new Error('Moduł odpowiedzi nie jest wczytany.');
+    const usable=studies.filter(s=>s&&s.synth);
+    if(!usable.length)throw new Error('Karty nie mają opracowania — AI nie ma na czym oprzeć odpowiedzi.');
+    const key=strHash(norm(question).trim()+'|'+usable.map(s=>s.pmid+(s.synthAt||'')).join(','));
+    const cached=aiCacheGet(key);
+    if(cached)return cached;
+    if(typeof root.booksKbLoad==='function'){try{await root.booksKbLoad();}catch(e){}}
+    const cat=(classify(question,state.data.categories)[0]||{}).id;
+    const books=typeof root.booksKbSelect==='function'?(root.booksKbSelect({mode:cat==='zywienie'?'nutrition':'training',query:question,maxChars:2600,perBook:2})||[]).slice(0,4):[];
+    const studyKeys=usable.map((_,i)=>'S'+(i+1)),bookKeys=books.map((_,i)=>'K'+(i+1));
+    const ctrl=typeof AbortController==='function'?new AbortController():null;
+    const timer=ctrl?setTimeout(()=>ctrl.abort(),45000):null;
+    let r;
+    try{
+      r=await root.fetch(proxyUrl(),{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl?ctrl.signal:undefined,body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2600,system:RA.ANSWER_SYSTEM,messages:[{role:'user',content:RA.buildAnswerPrompt(question,'',usable,books)}]})});
+    }catch(e){throw new Error(e&&e.name==='AbortError'?'AI nie odpowiedziało w czasie.':'Brak połączenia z AI.');}
+    finally{if(timer)clearTimeout(timer);}
+    if(r.status===429)throw new Error('Limit zapytań AI na dziś — spróbuj później.');
+    if(r.status===401||r.status===403)throw new Error('Zaloguj się ponownie, aby korzystać z AI.');
+    if(!r.ok)throw new Error('AI chwilowo niedostępne.');
+    const data=await r.json();
+    const text=(data.content||[]).map(b=>b&&b.type==='text'?b.text:'').join('');
+    const answer=RA.capAnswerCertainty(RA.validateAnswer(text,studyKeys,bookKeys),Object.fromEntries(usable.map((s,i)=>[studyKeys[i],s])));
+    if(!answer)throw new Error('AI nie oparło odpowiedzi na źródłach, więc jej nie pokazujemy. Skorzystaj z kart poniżej.');
+    answer.sources={S:usable.map(s=>s.pmid),K:books.map(b=>({cite:b.cite,status:b.status,text:String(b.text||'').slice(0,400)}))};
+    answer.live=true;
+    aiCacheSet(key,answer);
+    return answer;
+  }
+  async function runAi(){
+    const q=state.query;
+    if(!q||state.ai.status==='loading')return;
+    if(mentionsClient(q))return;
+    const res=search(state.data,q,{category:state.category,sort:'relevance',limit:5});
+    state.ai={status:'loading',question:q,answer:null,error:''};rerender();
+    try{
+      const answer=await aiAnswer(q,res.studies);
+      if(state.query!==q)return;
+      state.ai={status:'ok',question:q,answer,error:''};
+    }catch(e){
+      if(state.query!==q)return;
+      state.ai={status:'error',question:q,answer:null,error:e.message||'AI chwilowo niedostępne.'};
+    }
+    rerender();
+  }
+  function aiBlock(){
+    const a=state.ai;
+    if(a.question===state.query&&a.status==='loading')return '<div class="research-state" role="status" aria-live="polite"><span class="research-spinner" aria-hidden="true"></span> Opracowuję odpowiedź z kart badań i reguł z książek…</div>';
+    if(a.question===state.query&&a.status==='error')return `<div class="research-state research-state-error" role="alert"><b>Odpowiedź AI niedostępna.</b> ${esc(a.error)} Karty badań poniżej działają normalnie. <button type="button" class="btn btn-ghost btn-sm" onclick="academyResearchAi()">Spróbuj ponownie</button></div>`;
+    return `<div class="research-ai-cta"><button type="button" class="btn btn-primary btn-sm" onclick="academyResearchAi()">Opracuj pełną odpowiedź z tych badań</button><small>AI użyje tylko kart poniżej i reguł z Twoich książek; każde zdanie dostanie źródło.</small></div>`;
+  }
+
+  function subTabs(){
+    const tabs=[['search','Szukaj'],['new','Nowe badania'],['saved','Zapisane źródła']];
+    return `<div class="research-subtabs" role="tablist" aria-label="Badania">${tabs.map(([k,l])=>`<button type="button" role="tab" aria-selected="${state.sub===k}" class="research-subtab${state.sub===k?' is-active':''}" onclick="academyResearchSub('${k}')">${l}</button>`).join('')}</div>`;
+  }
+
   function view(){
     if(state.status==='idle')load();
     const intro=`<div class="research-intro"><div><span class="academy-eyebrow">Baza badań</span><h2>Zadaj pytanie, zobacz najlepsze dowody i co z nich wynika dla klienta.</h2><p>Priorytet mają metaanalizy, przeglądy systematyczne i stanowiska organizacji, potem badania randomizowane. Pokazujemy najwyżej 5 publikacji. Karty powstają z abstraktów z PubMed — pełne teksty otwierasz w źródle.</p></div></div>`;
     const form=`<form class="academy-question research-question" onsubmit="academyResearchSubmit(event)"><label class="form-lbl" for="academy-research-q">Pytanie</label><div><input id="academy-research-q" class="form-input" maxlength="300" autocomplete="off" value="${esc(state.query)}" placeholder="np. Czy trening do upadku jest konieczny?"><button class="btn btn-primary" type="submit">Szukaj</button></div><small class="academy-help">Pytaj ogólnie (np. „kobieta 45 lat z nadwagą”), bez imion i danych zdrowotnych klientów — moduł badań ich nie zapisuje.</small></form>`;
     const box=statusBox();
-    if(box)return `<section class="research">${intro}${form}${box}</section>`;
+    if(state.sub==='saved')return `<section class="research">${intro}${subTabs()}${savedView()}</section>`;
+    if(box)return `<section class="research">${intro}${subTabs()}${state.sub==='search'?form:''}${box}</section>`;
+    if(state.sub==='new')return `<section class="research">${intro}${subTabs()}${newView()}</section>`;
     const meta=`<div class="research-updated">Baza: ${Object.keys(state.data.studies).length} publikacji · aktualizacja ${esc(new Date(state.data.generatedAt).toLocaleDateString('pl-PL'))}${state.data.sources&&state.data.sources.pubmed!=='ok'?' · część źródeł była chwilowo niedostępna':''}</div>`;
     let content='';
     if(state.warning)content=`<div class="research-state research-state-warn" role="alert">${esc(state.warning)}</div>`;
     else if(!state.query)content=questionList()+(state.category!=='all'?resultsBlock(search(state.data,'',{category:state.category,sort:state.sort,limit:state.limit})):'');
     else content=resultsBlock(search(state.data,state.query,{category:state.category,sort:state.sort,limit:state.limit}));
-    return `<section class="research">${intro}${form}${categoryChips()}${meta}${content}</section>`;
+    return `<section class="research">${intro}${subTabs()}${form}${categoryChips()}${meta}${content}</section>`;
   }
 
   function resultsBlock(res){
@@ -292,17 +459,19 @@
     const studies=state.data.studies;
     let answer='';
     let keys;
-    if(res.matched&&res.matched.answer){
-      const src=res.matched.answer.sources&&res.matched.answer.sources.S||[];
+    const live=!res.matched&&state.ai.status==='ok'&&state.ai.question===state.query?state.ai.answer:null;
+    const given=res.matched&&res.matched.answer||live;
+    if(given){
+      const src=given.sources&&given.sources.S||[];
       /* Karty pod odpowiedzią mają te same klucze S1… co odpowiedź. */
       const ordered=src.map(id=>studies[id]).filter(Boolean);
       const shown=sortStudies(ordered.map(s=>({study:s,score:0})),state.sort).slice(0,state.limit).map(x=>x.study);
       keys=new Map(src.map((id,i)=>[id,'S'+(i+1)]));
-      answer=`<div class="research-matched">Opracowane pytanie: <b>${esc(res.matched.q)}</b></div>`+renderAnswer(res.matched.answer,studies);
+      answer=(live?`<div class="research-matched">Odpowiedź opracowana teraz przez AI wyłącznie z kart poniżej i reguł z książek — sprawdź źródła.</div>`:`<div class="research-matched">Opracowane pytanie: <b>${esc(res.matched.q)}</b></div>`)+renderAnswer(given,studies);
       res={...res,studies:shown,total:ordered.length};
     }else{
       keys=new Map(res.studies.map((s,i)=>[s.pmid,'S'+(i+1)]));
-      answer=cardsSummary(res.studies);
+      answer=cardsSummary(res.studies)+aiBlock();
     }
     const sugg=!res.matched&&res.suggestions.length?`<div class="academy-examples research-examples"><b>Podobne opracowane pytania</b><div>${res.suggestions.map(q=>`<button type="button" class="academy-chip" onclick='academyResearchAsk(${esc(JSON.stringify(q.q))})'>${esc(q.q)}</button>`).join('')}</div></div>`:'';
     return catLabel+answer+sugg+sortBar(res)+`<div class="research-cards">${res.studies.map(s=>renderCard(s,keys.get(s.pmid))).join('')}</div>`;
@@ -318,7 +487,7 @@
       title:y.titlePl||s.title,text,citation:[s.authors,s.year?'('+s.year+')':'',s.journalAbbr||s.journal,'· '+(EVIDENCE_LABEL[s.evidence]||'')].filter(Boolean).join(' '),
       sourceUrl:(links.find(l=>l.label==='DOI')||links[0]||{}).href||'',pmid:String(s.pmid||''),doi:s.doi||'',topics:s.categories||[],evidenceLevel:s.evidence||'',
       originalTitle:s.title,year:String(s.year||''),journal:s.journal||'',authors:s.authors||'',
-      researchStatus:status||'do_przeczytania',reliability:y.pewnosc||'brak',trainerNote:'',trainerConclusion:'',useInPlanning:false,tags:[],
+      researchStatus:status||'do_przeczytania',reliability:y.pewnosc||'nieoceniona',trainerNote:'',trainerConclusion:'',useInPlanning:false,tags:[],
       createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()
     };
   }
@@ -340,7 +509,7 @@
   function notifySafe(m){if(typeof root.notify==='function')root.notify(m);}
 
   function ask(q){
-    state.query=String(q||'').trim().slice(0,300);state.limit=3;state.warning='';
+    state.query=String(q||'').trim().slice(0,300);state.limit=3;state.warning='';state.sub='search';
     if(state.query&&mentionsClient(state.query)){state.warning='Pytanie zawiera imię i nazwisko klienta. Moduł badań nie przyjmuje danych klientów — zapytaj ogólnie, np. „mężczyzna 50 lat po przerwie w treningu”.';state.query='';}
     rerender();
   }
@@ -354,5 +523,16 @@
   root.academyResearchCompare=()=>{state.compare=!state.compare;rerender();};
   root.academyResearchReload=()=>load(true);
   root.academyResearchSave=pmid=>saveStudy(pmid);
-  root.ResearchAcademy={classify,search,matchQuestions,safeHref,studyLinks,renderCard,renderAnswer,refsHtml,setData,load,saveStudy,entryFromStudy,mentionsClient,state,_cache:resultCache};
+  root.academyResearchSub=k=>{state.sub=['search','new','saved'].includes(k)?k:'search';state.editing='';if(state.sub==='saved'&&typeof root.booksKbLoad==='function'){try{root.booksKbLoad();}catch(e){}}rerender();};
+  root.academyResearchAi=()=>runAi();
+  root.academyResearchEdit=id=>{state.editing=id||'';rerender();};
+  root.academyResearchSetStatus=(id,status)=>updateEntry(id,{researchStatus:RESEARCH_STATUS.some(x=>x[0]===status)?status:'do_przeczytania'});
+  root.academyResearchSaveNote=async(e,id)=>{
+    if(e&&e.preventDefault)e.preventDefault();
+    const val=x=>String(((root.document.getElementById(x)||{}).value)||'').trim();
+    const saved=await updateEntry(id,{trainerNote:val('research-note-'+id).slice(0,3000),trainerConclusion:val('research-concl-'+id).slice(0,1500)});
+    if(saved){state.editing='';notifySafe('✓ Notatka zapisana');rerender();}
+  };
+  root.academyResearchSavedFilter=(group,v)=>{if(['type','category','status'].includes(group)){state.saved[group]=v||'all';rerender();}};
+  root.ResearchAcademy={classify,search,matchQuestions,safeHref,studyLinks,renderCard,renderAnswer,refsHtml,setData,load,saveStudy,entryFromStudy,mentionsClient,recentStudies,savedEntries,updateEntry,aiAnswer,state,_cache:resultCache,_aiMemory:aiMemory};
 })(typeof window!=='undefined'?window:globalThis);

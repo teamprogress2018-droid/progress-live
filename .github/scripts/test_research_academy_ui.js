@@ -88,6 +88,38 @@ async function openApp(browser, viewport, routeBase) {
     ok('tryb „Porównaj źródła”', (await page.$$('.research-compare > div')).length === 5);
     await page.screenshot({ path: path.join(shotDir, 'badania-porownanie.png'), fullPage: true });
   }
+  /* Odpowiedź AI dla pytania spoza opracowanych (proxy zastąpione atrapą). */
+  await page.route('https://anthropic-proxy.teamprogress2018.workers.dev/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify({ krotko: 'Zacznij od spokojnego wysiłku [S1].', dlaczego: 'Wyniki są podobne [S1] [S9].', praktyka: ['Kontroluj RPE [S1].'], dla_kogo: 'Początkujący [S1].', ostroznie: 'Choroby serca: lekarz [S1].', ksiazka_vs_badania: 'Brak reguły w bazie książek.', pytanie_kontrolne: { pytanie: 'Od czego zacząć?', odpowiedz: 'Od spokojnego cardio [S1].' }, porownanie: {}, pewnosc: 'mocne' }) }] }) }));
+  await page.fill('#academy-research-q', 'Od czego zacząć interwały z osobą otyłą po długiej przerwie?');
+  await page.click('.research-question button[type="submit"]');
+  await page.waitForSelector('.research-card');
+  if (await page.$('.research-ai-cta button')) {
+    await page.click('.research-ai-cta button');
+    await page.waitForSelector('.research-answer .research-steps, .research-state-error');
+    if (await page.$('.research-answer .research-steps')) {
+      const t = await page.textContent('.research-answer');
+      ok('AI: odpowiedź z kart, bez zmyślonego [S9]', t.includes('Krótka odpowiedź') && !t.includes('S9'));
+    } else {
+      ok('AI: karty bez opracowania → uczciwy komunikat, karty zostają', (await page.textContent('.research-state-error')).includes('nie mają opracowania') && (await page.$$('.research-card')).length > 0);
+    }
+  }
+  /* Nowe badania → zapis → status → Zapisane źródła. */
+  await page.click('.research-subtab:has-text("Nowe badania")');
+  await page.waitForSelector('.research-sub-intro');
+  ok('Nowe badania: karty z ostatnich 12 miesięcy', (await page.$$('.research-card')).length > 0);
+  const firstNew = await page.$('.research-card button:has-text("Zapisz")');
+  if (firstNew) {
+    await firstNew.click();
+    await page.waitForSelector('.research-trainer');
+    await page.click('.research-trainer button:has-text("Przeczytane")');
+    await page.waitForTimeout(200);
+    const last = await page.evaluate(() => window.__saved[window.__saved.length - 1][1].researchStatus);
+    ok('Nowe badania: status „przeczytane” zapisany', last === 'przeczytane', last);
+  }
+  await page.click('.research-subtab:has-text("Zapisane źródła")');
+  await page.waitForSelector('.research-sub-intro');
+  ok('Zapisane źródła: zapisane badania widoczne', (await page.$$('.research-saved-row')).length >= 1);
+  await page.screenshot({ path: path.join(shotDir, 'badania-zapisane.png'), fullPage: true });
   ok('brak błędów JS', errors.length === 0, errors.join(' | '));
   await page.close();
 
