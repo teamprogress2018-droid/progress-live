@@ -48,6 +48,20 @@ const onlyFake = rb.validateAnswer({ ...rawAnswer, krotko: 'Tak [S7].', dlaczego
 ok('answer: same zmyślone klucze → odrzucona', onlyFake === null);
 const capped = rb.capAnswerCertainty(rb.validateAnswer(rawAnswer, ['S1', 'S2'], ['K1']), { S1: { evidence: 'rct', synth: { pewnosc: 'umiarkowane' } }, S2: { evidence: 'other', synth: null } });
 ok('answer: pewność nie wyższa niż najlepsze badanie', capped.pewnosc === 'umiarkowane');
+ok('answer: zdanie z wnioskiem bez własnego źródła (po usunięciu [K7]) wypada', ans && !ans.dlaczego.includes('Smitha') && ans.bezZrodla >= 1);
+const conflicts = rb.validateAnswer({ ...rawAnswer, sprzecznosci: [{ temat: 'Objętość', ksiazka: '10–20 serii [K1]', badania: 'więcej pomaga [S2]', ocena: 'zalezy_od_kontekstu' }, { temat: 'Bez badań', ksiazka: 'x [K1]', badania: 'y', ocena: 'nowsze_badania' }] }, ['S1', 'S2'], ['K1']);
+ok('answer: sprzeczność wymaga [K#] i [S#]', conflicts.sprzecznosci.length === 1 && conflicts.sprzecznosci[0].ocena === 'zalezy_od_kontekstu');
+
+/* 2b. Samokontrola: „brak” usuwa zdanie, „czesciowo” i brak oceny → [?], nieczytelny wynik → sprawdzone:false. */
+const ra = require('../../research-answer.js');
+const toCheck = rb.validateAnswer(rawAnswer, ['S1', 'S2'], ['K1']);
+const vp = ra.buildVerifyPrompt(toCheck, [{ title: 'A', synth: { coZnaleziono: 'więcej serii pomaga' } }, { title: 'B' }], [{ cite: 'Głuchowski', text: '10–20 serii' }]);
+ok('kontrola: prompt ma zdania i tylko cytowane źródła', /^ZDANIA:\n1\. /.test(vp.prompt) && vp.prompt.includes('[K1] Głuchowski') && vp.items.length === 4);
+const after = ra.applyVerification(JSON.parse(JSON.stringify(toCheck)), { oceny: [{ nr: 1, ocena: 'pokryte' }, { nr: 2, ocena: 'czesciowo' }, { nr: 3, ocena: 'brak' }] }, vp.items);
+ok('kontrola: „brak” usunięte, „czesciowo” i bez oceny oznaczone', after && after.praktyka.length === 1 && after.dlaczego.endsWith('[?]') && after.praktyka[0].endsWith('[?]') && after.usunieteZdania === 1 && after.doSprawdzenia === 2);
+ok('kontrola: lista źródeł przeliczona po usunięciu zdań', after && after.refs.join(',') === 'K1,S1,S2');
+ok('kontrola: wszystko „brak” → odpowiedź odrzucona', ra.applyVerification(JSON.parse(JSON.stringify(toCheck)), { oceny: [1, 2, 3, 4].map((nr) => ({ nr, ocena: 'brak' })) }, vp.items) === null);
+ok('kontrola: nieczytelny wynik → sprawdzone:false, treść bez zmian', ra.applyVerification(JSON.parse(JSON.stringify(toCheck)), 'nie wiem', vp.items).sprawdzone === false);
 
 /* 3. Zapytanie PubMed: filtry typów, ludzi, języka; stanowiska osobno. */
 const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'research_base_queries.json'), 'utf8'));
@@ -104,7 +118,8 @@ function fakeClients(log) {
 const fakeAi = (log) => ({
   label: 'test',
   async synth() { log.synth++; return rb.validateSynth(goodSynth, ABSTRACT, 'meta'); },
-  async answer(prompt, sk, bk) { log.answer++; log.prompt = prompt; return rb.validateAnswer(rawAnswer, sk, bk); }
+  async answer(prompt, sk, bk) { log.answer++; log.prompt = prompt; return rb.validateAnswer(rawAnswer, sk, bk); },
+  async verify(prompt) { log.verify = (log.verify || 0) + 1; return JSON.stringify({ oceny: prompt.split('\n').filter((l) => /^\d+\. /.test(l)).map((l, i) => ({ nr: i + 1, ocena: 'pokryte' })) }); }
 });
 (async () => {
   const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'rb-')), 'research-base.json');
@@ -123,6 +138,7 @@ const fakeAi = (log) => ({
   ok('flow: odpowiedź ma źródła z bazy', q1.answer && q1.answer.sources.S.every((id) => base.studies[id]));
   ok('flow: prompt zawiera regułę z książki', /\[K1\] Głuchowski/.test(log.prompt));
   ok('flow: odpowiedź bez zmyślonych kluczy', !/\[S9\]|\[K7\]/.test(JSON.stringify(q1.answer)));
+  ok('flow: odpowiedź przeszła samokontrolę', q1.answer && q1.answer.sprawdzone === true && log.verify === 1);
 
   /* Cache: drugi przebieg nie pobiera ponownie kart ani odpowiedzi. */
   const log2 = { search: 0, fetched: [], crossref: [], synth: 0, answer: 0 };
