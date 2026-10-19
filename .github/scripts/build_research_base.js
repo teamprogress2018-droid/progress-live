@@ -190,7 +190,7 @@ function rankCandidates(cands, nowYear) {
 
 /**
  * Odcina wyniki spoza tematu: publikacja musi mieć w tytule jedno ze słów pytania (titleAny).
- * Gdy takich jest mniej niż 3, dobieramy zwykłe wyniki wyszukiwania, ale nigdy niepasujące stanowiska.
+ * Lepiej pokazać 1–2 trafne publikacje niż dopełniać listę wynikami z innych tematów.
  */
 function onTopic(list, titleAny, studies, exclude) {
   const lower = (c) => String(studies[c.pmid].title || '').toLowerCase();
@@ -198,8 +198,7 @@ function onTopic(list, titleAny, studies, exclude) {
   list = list.filter((c) => !ex.some((w) => lower(c).includes(w)));
   if (!Array.isArray(titleAny) || !titleAny.length) return list;
   const hit = (c) => titleAny.some((w) => lower(c).includes(String(w).toLowerCase()));
-  const good = list.filter(hit);
-  return good.length >= 3 ? good : good.concat(list.filter((c) => !hit(c) && !c.guide));
+  return list.filter(hit);
 }
 
 /** Usuwa z bazy badania, których nie używa żadne pytanie ani panel „Nowe badania”. */

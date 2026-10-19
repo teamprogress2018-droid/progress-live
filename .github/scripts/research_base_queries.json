@@ -429,7 +429,10 @@
           "q": "Ćwiczenia wielostawowe czy izolowane?",
           "query": "(\"multi-joint\"[tiab] OR \"single-joint\"[tiab] OR \"compound exercise\"[tiab] OR \"isolation exercise\"[tiab] OR \"multi-joint exercises\"[tiab]) AND (hypertrophy[tiab] OR strength[tiab] OR \"muscle thickness\"[tiab])",
           "titleAny": [
-            "joint",
+            "multi-joint",
+            "single-joint",
+            "multi joint",
+            "single joint",
             "compound",
             "isolation"
           ]
@@ -627,10 +630,9 @@
           "titleAny": [
             "overtraining",
             "overreaching",
+            "training load",
             "fatigue",
-            "load monitoring",
-            "heart rate variability",
-            "training load"
+            "monitoring"
           ]
         }
       ],
@@ -766,6 +768,14 @@
     "insomnia",
     "depression",
     "dementia",
-    "autism"
+    "autism",
+    "academic performance",
+    "social media",
+    "inpatient",
+    "hospital",
+    "cardiac rehabilitation",
+    "fibromyalgia",
+    "osteoarthritis",
+    "biofeedback"
   ]
 }

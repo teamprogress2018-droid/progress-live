@@ -74,12 +74,12 @@ const st = { 1: { title: 'Sleep loss and performance' }, 2: { title: 'Guideline 
 const topic = rb.onTopic([{ pmid: '1' }, { pmid: '2', guide: true }, { pmid: '3' }, { pmid: '4' }], ['sleep'], st).map((c) => c.pmid);
 ok('temat: niepasujące stanowisko odcięte', topic.join(',') === '1,3,4');
 const few = rb.onTopic([{ pmid: '1' }, { pmid: '2', guide: true }, { pmid: '5' }], ['sleep'], st).map((c) => c.pmid);
-ok('temat: przy małej liczbie dobiera zwykłe wyniki, nie stanowiska', few.join(',') === '1,5');
+ok('temat: lepiej mniej wyników niż wyniki z innego tematu', few.join(',') === '1');
 const clin = rb.onTopic([{ pmid: '1' }, { pmid: '6' }], ['sleep'], { ...st, 6: { title: 'Sleep after stroke rehabilitation' } }, ['stroke']).map((c) => c.pmid);
 ok('temat: populacje kliniczne (excludeTitle) odrzucone', clin.join(',') === '1');
 
 /* 5. Pełny przebieg z atrapami: błędy API, wynik bez DOI, cache. */
-const XML = (pmid, doi, abs, types) => `<PubmedArticle><MedlineCitation><PMID>${pmid}</PMID><Article><Journal><JournalIssue><PubDate><Year>2024</Year></PubDate></JournalIssue><Title>Sports Medicine</Title><ISOAbbreviation>Sports Med</ISOAbbreviation></Journal><ArticleTitle>Study ${pmid}</ArticleTitle>${abs ? `<Abstract><AbstractText>${abs}</AbstractText></Abstract>` : ''}<AuthorList><Author><LastName>Kowalski</LastName><Initials>J</Initials></Author><Author><LastName>Nowak</LastName><Initials>A</Initials></Author></AuthorList>${doi ? `<ELocationID EIdType="doi">${doi}</ELocationID>` : ''}<PublicationTypeList>${types.map((t) => `<PublicationType>${t}</PublicationType>`).join('')}</PublicationTypeList></Article></MedlineCitation></PubmedArticle>`;
+const XML = (pmid, doi, abs, types) => `<PubmedArticle><MedlineCitation><PMID>${pmid}</PMID><Article><Journal><JournalIssue><PubDate><Year>2024</Year></PubDate></JournalIssue><Title>Sports Medicine</Title><ISOAbbreviation>Sports Med</ISOAbbreviation></Journal><ArticleTitle>Training volume study ${pmid}</ArticleTitle>${abs ? `<Abstract><AbstractText>${abs}</AbstractText></Abstract>` : ''}<AuthorList><Author><LastName>Kowalski</LastName><Initials>J</Initials></Author><Author><LastName>Nowak</LastName><Initials>A</Initials></Author></AuthorList>${doi ? `<ELocationID EIdType="doi">${doi}</ELocationID>` : ''}<PublicationTypeList>${types.map((t) => `<PublicationType>${t}</PublicationType>`).join('')}</PublicationTypeList></Article></MedlineCitation></PubmedArticle>`;
 const mini = { ...cfg, categories: [{ ...cfg.categories[0], questions: cfg.categories[0].questions.slice(0, 2) }] };
 function fakeClients(log) {
   return {
