@@ -49,7 +49,7 @@ ok('academy wired in index',html.includes('11-progress-academy.js?v=')&&html.inc
 ok('builder links to academy',html.includes('builder-academy-nudge')&&html.includes('academyFromBuilder()'));
 ok('dashboard academy tile opens academy',/data-tile="academy"[^>]*goTo\('academy'\)/.test(html));
 ok('builder keeps plan after academy',src05.includes('window._builderPreserveOnReturn')&&core.includes("n==='academy'&&typeof window.renderProgressAcademy"));
-ok('academy offers three help levels and keeps plan read-only',academy.includes("['quick','1 · Szybka odpowiedź']")&&academy.includes("['guide','2 · Przewodnik decyzji']")&&academy.includes("['context','3 · Mój plan']")&&academy.includes('Akademia nie zapisuje ani nie zmienia danych planu.'));
+ok('academy offers three help levels and keeps plan read-only',academy.includes("['quick','Szybka odpowiedź']")&&academy.includes("['guide','Przewodnik decyzji']")&&academy.includes("['context','Mój plan']")&&academy.includes('Akademia nie zapisuje ani nie zmienia danych planu.'));
 ok('academy preserves the builder on return',academy.includes('window._builderPreserveOnReturn=true'));
 ok('aplEduCtx exported',src03.includes('function aplEduCtx')&&src03.includes('window.aplEduCtx'));
 ok('builder ctx clientName',src05.includes('clientName:c.name'));
