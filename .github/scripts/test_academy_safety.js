@@ -138,8 +138,56 @@ ok('open topic expands it',/id="academy-topic-deload" open/.test(screen.innerHTM
 ok('glossary term shows in search',/academy-topic-hint/.test(ask('MEV'))&&/Minimalna objętość/.test(ask('MEV')));
 ok('topic link shows in search',/Temat: Deload/.test(ask('deload')));
 
-const css=read('styles.css');
-ok('safety css present',css.includes('.academy-safety{')&&css.includes('.academy-learning-card.is-safety'));
+/* 10. Surowe pola zapisu (readFrom, addedIn, data) nie trafiają na kartę. */
+const recovery=learnNote('category: recovery_by_muscle; if: klient zaczyna nowe ćwiczenia ekscentryczne; then: dłuższa przerwa dla klatki niż dla czworogłowych; readFrom: odczyt z grafiki w PDF (v1.1); addedIn: 1.1; data: {po_5_dniach_%_sily: {czworogłowy: 98; łydki: 98}}');
+ok('technical fields hidden',!/readFrom|addedIn|po_5_dniach|odczyt z grafiki/.test(recovery)&&/dłuższa przerwa dla klatki/.test(recovery));
+ok('raw record toggle removed',!/Pokaż zapis źródłowy/.test(recovery));
 
-if(failed){console.error('\n'+failed+' test(s) failed');process.exit(1);}
-console.log('\nAll academy safety tests passed');
+/* 11. Pytanie → odpowiedź AI zbudowana tylko z reguł z książek, ze źródłami. */
+const tick=()=>new Promise(r=>setTimeout(r,0));
+async function answerTests(){
+  const calls=[];
+  let reply=null;
+  ctx.W='https://proxy.test/';
+  ctx.fetch=async(url,init)=>{calls.push({url,body:JSON.parse(init.body)});const r=reply;return {ok:r.ok!==false,status:r.ok===false?500:200,json:async()=>r.data};};
+  const qs=['jakie cwiczania lubi klatka piersiowa','co mówią książki o lataniu samolotem xyzqw','ile serii na partię w tygodniu?'];
+  reply={data:{content:[{type:'text',text:JSON.stringify({answered:true,answer:[{text:'Na klatkę zacznij od wyciskań, potem dodaj rozpiętki jako izolację [2].',sources:[2]},{text:'Akapit bez źródła ma zniknąć.',sources:[]},{text:'Akapit z nieistniejącym źródłem też.',sources:[99]}],missing:'Książki nie mówią, które ćwiczenie klient „lubi” najbardziej.'})}]}};
+  const loading=ask(qs[0]);
+  ok('answer shows loading state first',/Szukam odpowiedzi w książkach/.test(loading));
+  await tick();await tick();await tick();
+  const html=screen.innerHTML;
+  const req=calls[0]&&calls[0].body;
+  ok('one AI call with numbered fragments',calls.length===1&&/Pytanie trenera: jakie cwiczania lubi klatka piersiowa/.test(req.messages[0].content)&&/\[1\] Źródło: /.test(req.messages[0].content)&&/WYŁĄCZNIE/.test(req.system));
+  ok('fragments sent to AI are about the chest',/klatk/i.test(req.messages[0].content));
+  ok('answer paragraph rendered with source number',/Na klatkę zacznij od wyciskań/.test(html)&&/academy-answer-refs[^>]*>\[1\]/.test(html)&&!/\[2\]\./.test(text(html)));
+  ok('paragraphs without valid source dropped',!/Akapit bez źródła/.test(html)&&!/nieistniejącym źródłem/.test(html));
+  ok('missing part said plainly',/Czego książki nie mówią:/.test(html)&&/lubi/.test(html));
+  const srcList=(html.match(/<section class="academy-answer-sources">[\s\S]*?<\/section>/)||[''])[0];
+  ok('sources list shows book and page',/<li>/.test(srcList)&&/, s\. /.test(srcList)&&(srcList.match(/<li>/g)||[]).length===1);
+  ok('no raw record fields in answer',!/readFrom|addedIn|category:|\bif:|then:/.test(html));
+  ok('no fallback cards while answer shown',!/academy-learning-card/.test(html));
+  ask(qs[0]);await tick();
+  ok('same question is not asked twice',calls.length===1);
+
+  reply={data:{content:[{type:'text',text:'{"answered":false,"answer":[],"missing":"Książki z bazy nie piszą o lataniu."}'}]}};
+  ask('lataniu samolotem trening klatki');await tick();await tick();await tick();
+  ok('no answer in books said plainly',/W książkach z bazy nie ma odpowiedzi na to pytanie/.test(screen.innerHTML)&&/nie piszą o lataniu/.test(screen.innerHTML)&&!/academy-answer-sources/.test(screen.innerHTML));
+
+  reply={ok:false,data:{error:{message:'Unauthorized'}}};
+  ask(qs[2]);await tick();await tick();await tick();
+  ok('AI failure falls back to book cards with retry',/Nie udało się teraz ułożyć odpowiedzi/.test(screen.innerHTML)&&/academyRetryAnswer\(\)/.test(screen.innerHTML)&&/academy-learning-card/.test(screen.innerHTML));
+  reply={data:{content:[{type:'text',text:'{"answered":true,"answer":[{"text":"Zacznij od kilku serii tygodniowo.","sources":[1]}],"missing":""}'}]}};
+  ctx.academyRetryAnswer();await tick();await tick();await tick();
+  ok('retry asks again',/Zacznij od kilku serii tygodniowo/.test(screen.innerHTML));
+
+  ok('broken JSON is rejected',ctx.academyParseAnswerForTest('to nie jest json',3)===null);
+  delete ctx.fetch;delete ctx.W;
+}
+
+answerTests().then(()=>{
+  const css=read('styles.css');
+  ok('safety css present',css.includes('.academy-safety{')&&css.includes('.academy-learning-card.is-safety'));
+  ok('answer css present',css.includes('.academy-answer{')&&css.includes('.academy-answer-refs{'));
+  if(failed){console.error('\n'+failed+' test(s) failed');process.exit(1);}
+  console.log('\nAll academy safety tests passed');
+}).catch(e=>{console.error(e);process.exit(1);});
