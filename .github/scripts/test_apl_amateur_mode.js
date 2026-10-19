@@ -1,5 +1,6 @@
 const fs=require('fs'),vm=require('vm');
 const src=fs.readFileSync('14-amateur-plan-wizard.js','utf8');
+const plansSrc=fs.readFileSync('05-clients-builder-plans-calendar.js','utf8');
 const ctx={window:{},document:{getElementById:()=>null,querySelectorAll:()=>[]},console};vm.createContext(ctx);vm.runInContext(src,ctx);
 let failures=0;function ok(name,condition){if(condition)console.log('OK ',name);else{console.error('FAIL',name);failures++;}}
 const clear=ctx.aplAmateurAssessment({parq:'no',pain:'no',consent:true,sleep:3,stress:3});
@@ -14,4 +15,12 @@ ok('amateur limits frequency and duration',cautious.days==='3'&&cautious.duratio
 const standard=ctx.aplAmateurPrescription({parq:'no',pain:'no',consent:true,days:2,duration:45});
 ok('starter prescription is FBW and double progression',standard.method==='FBW'&&standard.progression==='double'&&standard.weeks==='4'&&standard.level==='poczatkujacy');
 ok('trainer review helpers exported',typeof ctx.window.aplAmateurReviewHtml==='function'&&typeof ctx.window.aplAmateurConfirmReview==='function');
+ok('adaptive-step helper exported',typeof ctx.window.aplAmateurSetStep==='function');
+ok('step validation requires equipment',ctx.aplAmateurStepErrors({equipment:[]},1).length===1);
+ok('step validation requires pain details',ctx.aplAmateurStepErrors({pain:'yes',painDetails:''},2).length===1);
+ok('equipment validator maps library categories',ctx.aplAmateurEquipmentAllowed('Hantle',['Sztanga i wolne ciężary'])&&ctx.aplAmateurEquipmentAllowed('Wyciąg',['Wyciągi i linki'])&&!ctx.aplAmateurEquipmentAllowed('Maszyna',['Bez sprzętu']));
+ctx.window._aplAmateurIntake={prescription:{days:'2',targetRir:'3'}};
+ok('candidate validator rejects advanced methods and excess intensity',ctx.aplAmateurPlanIssues({days:[{exercises:[{name:'Tabata',rir:'1'}]},{exercises:[]}],periodization:''}).length>=2);
+ok('editor limits are enforced before save',!ctx.aplAmateurMayAddDay({days:[{},{}]})&&!ctx.aplAmateurMayAddExercise({days:[{exercises:[{},{},{},{},{}]}]},0));
+ok('saved-plan library marks Amateur plans',plansSrc.includes('function planAmateurMetaHtml')&&plansSrc.includes('const amateurMeta=planAmateurMetaHtml(p)'));
 if(failures)process.exit(1);console.log('\nAll amateur mode tests passed');

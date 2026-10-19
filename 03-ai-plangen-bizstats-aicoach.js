@@ -1587,6 +1587,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
         aplComputeProgression(ex,weekKeys,phasesMap,plan.progression);
       });
     });
+    window._aplAmateurPlanIssues=typeof aplAmateurPlanIssues==='function'?aplAmateurPlanIssues(plan):[];
     aplRegroupExercisesByMuscle(plan,client);
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
@@ -1974,6 +1975,7 @@ function aplRerenderCurrent(){
 
 function aplAddExercise(di){
   if(!aplLastPlan||!aplLastPlan.days[di])return;
+  if(typeof aplAmateurMayAddExercise==='function'&&!aplAmateurMayAddExercise(aplLastPlan,di)){notify('Plan Amator może mieć maksymalnie 5 ćwiczeń na sesję.');return;}
   aplLastPlan.days[di].exercises.push({name:'Nowe ćwiczenie',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''});
   aplRerenderCurrent();
   const ei=aplLastPlan.days[di].exercises.length-1;
@@ -2012,6 +2014,7 @@ function aplSwapExercise(di,ei){
 }
 function aplAddDay(){
   if(!aplLastPlan)return;
+  if(typeof aplAmateurMayAddDay==='function'&&!aplAmateurMayAddDay(aplLastPlan)){notify('Plan Amator może mieć tylko tyle sesji, ile zadeklarowano w formularzu.');return;}
   const n=(aplLastPlan.days||[]).length+1;
   aplLastPlan.days.push({dayName:'Dzień '+n+' — Nowy',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]});
   aplLastPlan.daysPerWeek=aplLastPlan.days.length;
@@ -2124,6 +2127,10 @@ let aplSaveState=null;
 /** Zapis planu AI potwierdzany przez bazę; ponowienie używa tego samego id (bez duplikatów). */
 async function aplSavePlan(){
   if(!aplLastPlan){notify('Brak planu do zapisania!');return null;}
+  if(window._aplAmateurIntake&&typeof aplAmateurPlanIssues==='function'){
+    const issues=aplAmateurPlanIssues(aplLastPlan);window._aplAmateurPlanIssues=issues;
+    if(issues.length){notify('Popraw plan Amator przed zapisem: '+issues[0]);return null;}
+  }
   if(window._aplAmateurIntake&&typeof aplAmateurConfirmReview==='function'&&!aplAmateurConfirmReview())return null;
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
