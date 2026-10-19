@@ -53,6 +53,7 @@ function makeCtx(fetchImpl) {
   ctx.fetch = fetchImpl || (async () => ({ ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(BASE)) }));
   vm.createContext(ctx);
   vm.runInContext(read('11-progress-academy.js'), ctx);
+  vm.runInContext(read('research-answer.js'), ctx);
   vm.runInContext(read('research-academy.js'), ctx);
   return { ctx, screen, inputs, notes };
 }
@@ -184,6 +185,86 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
   limited.ctx.academySetLevel('research');
   await flush(); await flush();
   ok('limit (429): czytelny błąd', limited.screen.innerHTML.includes('Źródło chwilowo niedostępne'));
+
+  /* 9a. Nowe badania: tylko ostatnie 12 miesięcy, kategorie, zapis i statusy. */
+  const nb = makeCtx();
+  nb.ctx.ResearchAcademy.setData(JSON.parse(JSON.stringify({ ...BASE, recent: { hiit: ['301'], hipertrofia: ['101', '102'] } })));
+  const recent = nb.ctx.ResearchAcademy.recentStudies(nb.ctx.ResearchAcademy.state.data, 'all', new Date('2026-10-19'));
+  ok('nowe badania: bez publikacji starszych niż 12 miesięcy', recent.every((st) => Number(st.year) >= 2025) && recent.map((st) => st.pmid).includes('301') && !recent.map((st) => st.pmid).includes('102'));
+  nb.ctx.academySetLevel('research');
+  nb.ctx.academyResearchSub('new');
+  ok('nowe badania: panel z kategoriami', nb.screen.innerHTML.includes('ostatnich 12 miesięcy') && nb.screen.innerHTML.includes('HIIT i Tabata'));
+  nb.ctx._db = {};
+  const nbSaved = [];
+  nb.ctx.persistById = async (c, o) => { nbSaved.push(JSON.parse(JSON.stringify(o))); return { ...o }; };
+  await nb.ctx.academyResearchSave('301');
+  ok('nowe badania: zapis do „Do przeczytania”', nbSaved.length === 1 && nbSaved[0].researchStatus === 'do_przeczytania');
+  ok('nowe badania: po zapisie statusy przy karcie', ['Przeczytane', 'Do sprawdzenia', 'Wykorzystane w Academy'].every((x) => nb.screen.innerHTML.includes(x)));
+  const savedId = nb.ctx.KB[0].id;
+  await nb.ctx.academyResearchSetStatus(savedId, 'wykorzystane');
+  ok('status: „wykorzystane w Academy” zapisany', nbSaved[1] && nbSaved[1].researchStatus === 'wykorzystane' && nb.ctx.KB[0].researchStatus === 'wykorzystane');
+  await nb.ctx.academyResearchSetStatus(savedId, '<script>');
+  ok('status: nieznana wartość → do przeczytania', nbSaved[2].researchStatus === 'do_przeczytania');
+  nb.ctx.academyResearchEdit(savedId);
+  nb.inputs['research-note-' + savedId] = { value: 'Sprawdzić protokół <b>HIIT</b>' };
+  nb.inputs['research-concl-' + savedId] = { value: 'Najpierw baza tlenowa.' };
+  await nb.ctx.academyResearchSaveNote({ preventDefault() {} }, savedId);
+  ok('notatka i własny wniosek zapisane', nbSaved[3].trainerNote.includes('Sprawdzić') && nbSaved[3].trainerConclusion === 'Najpierw baza tlenowa.');
+  ok('notatka escapowana w widoku', nb.screen.innerHTML.includes('&lt;b&gt;HIIT') && !nb.screen.innerHTML.includes('<b>HIIT'));
+
+  /* 9b. Zapisane źródła: książki, notatki, badania, wnioski; tagi, data, wiarygodność. */
+  nb.ctx.KB.push({ id: 'kb_b1', academyBook: true, kind: 'note', title: 'Zaplanuj swój trening', bookAuthor: 'Głuchowski', text: 'Moje notatki', createdAt: '2026-10-01T10:00:00Z', sourceUrl: 'javascript:alert(1)' });
+  nb.ctx.KB.push({ id: 'kb_n1', kind: 'note', title: 'Moja zasada rozgrzewki', text: 'Zawsze 10 minut', tags: ['rozgrzewka'], createdAt: '2026-10-05T10:00:00Z' });
+  nb.ctx.academyResearchSub('saved');
+  const sv = nb.screen.innerHTML;
+  ok('zapisane: książka, notatka i badanie na liście', sv.includes('Zaplanuj swój trening') && sv.includes('Moja zasada rozgrzewki') && sv.includes('HIIT u dorosłych'));
+  ok('zapisane: data dodania i status wiarygodności', sv.includes('dodano') && sv.includes('Mocne dowody') && sv.includes('Własna notatka — niezweryfikowana') && sv.includes('Książka — sprawdź'));
+  ok('zapisane: tag kategorii', sv.includes('HIIT i Tabata') && sv.includes('rozgrzewka'));
+  ok('zapisane: link javascript: nie jest renderowany', !sv.includes('javascript:'));
+  nb.ctx.academyResearchSavedFilter('type', 'wniosek');
+  ok('zapisane: filtr „Moje wnioski”', nb.screen.innerHTML.includes('Najpierw baza tlenowa') && !nb.screen.innerHTML.includes('Moja zasada rozgrzewki'));
+  nb.ctx.academyResearchSavedFilter('type', 'ksiazka');
+  ok('zapisane: filtr książek', nb.screen.innerHTML.includes('Zaplanuj swój trening') && !nb.screen.innerHTML.includes('HIIT u dorosłych'));
+  nb.ctx.academyResearchSavedFilter('type', 'all');
+  nb.ctx.academyResearchSavedFilter('status', 'do_przeczytania');
+  ok('zapisane: filtr statusu', nb.screen.innerHTML.includes('HIIT u dorosłych') && !nb.screen.innerHTML.includes('Zaplanuj swój trening'));
+
+  /* 9c. Odpowiedź AI dla pytania spoza opracowanych: tylko źródła z kart, cache, błędy. */
+  let aiCalls = 0;
+  let lastBody = null;
+  const aiReply = (payload, status) => async (url, init) => {
+    if (String(url).includes('research-base.json')) return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(BASE)) };
+    aiCalls++; lastBody = JSON.parse(init.body);
+    return { ok: status === 200, status, json: async () => ({ content: [{ type: 'text', text: JSON.stringify(payload) }] }) };
+  };
+  const goodAi = { krotko: 'Zacznij od spokojnego cardio, HIIT później [S1].', dlaczego: 'HIIT i ciągły wysiłek dały podobny efekt [S1]. Wg badania Smitha (2020) [S4] ...', praktyka: ['Sprawdź tolerancję wysiłku i RPE [S1].'], dla_kogo: 'Początkujący z nadwagą [S1].', ostroznie: 'Przy chorobach serca konsultacja [S1].', ksiazka_vs_badania: 'Brak reguły w bazie książek.', pytanie_kontrolne: { pytanie: 'Od czego zacząć?', odpowiedz: 'Od spokojnego cardio [S1].' }, porownanie: {}, pewnosc: 'mocne' };
+  const ai = makeCtx(aiReply(goodAi, 200));
+  ai.ctx.localStorage = { _d: {}, getItem(k) { return this._d[k] || null; }, setItem(k, v) { this._d[k] = v; } };
+  ai.ctx.academySetLevel('research');
+  await flush(); await flush();
+  ai.ctx.academyResearchAsk('Od czego zacząć HIIT z osobą otyłą?');
+  ok('AI: przycisk „Opracuj pełną odpowiedź”', ai.screen.innerHTML.includes('Opracuj pełną odpowiedź'));
+  await ai.ctx.academyResearchAi();
+  ok('AI: odpowiedź z 8 częściami', ai.screen.innerHTML.includes('Odpowiedź opracowana teraz przez AI') && ai.screen.innerHTML.includes('Krótka odpowiedź'));
+  ok('AI: zmyślone [S4] usunięte', !ai.screen.innerHTML.includes('S4'));
+  ok('AI: prompt bez danych klienta i z kartą', lastBody && lastBody.messages[0].content.includes('[S1]') && !/Anna|Kowalsk/.test(lastBody.messages[0].content));
+  ai.ctx.ResearchAcademy._aiMemory.clear();
+  ai.ctx.academyResearchAsk('Jak ustawić HIIT dla osoby z otyłością?');
+  ai.ctx.academyResearchAsk('Od czego zacząć HIIT z osobą otyłą?');
+  const before = aiCalls;
+  await ai.ctx.academyResearchAi();
+  ok('AI: cache (localStorage) — bez drugiego zapytania', aiCalls === before && ai.screen.innerHTML.includes('Krótka odpowiedź'));
+  const noRef = makeCtx(aiReply({ ...goodAi, krotko: 'Tak.', dlaczego: 'Bo tak.', praktyka: ['Rób HIIT.'] }, 200));
+  noRef.ctx.academySetLevel('research'); await flush(); await flush();
+  noRef.ctx.academyResearchAsk('Od czego zacząć HIIT z osobą otyłą?');
+  await noRef.ctx.academyResearchAi();
+  ok('AI: odpowiedź bez źródeł nie jest pokazywana', noRef.screen.innerHTML.includes('nie oparło odpowiedzi na źródłach') && !noRef.screen.innerHTML.includes('Krótka odpowiedź'));
+  ok('AI: karty działają mimo błędu AI', noRef.screen.innerHTML.includes('research-card'));
+  const limit = makeCtx(aiReply(goodAi, 429));
+  limit.ctx.academySetLevel('research'); await flush(); await flush();
+  limit.ctx.academyResearchAsk('Od czego zacząć HIIT z osobą otyłą?');
+  await limit.ctx.academyResearchAi();
+  ok('AI: limit 429 → czytelny komunikat', limit.screen.innerHTML.includes('Limit zapytań AI'));
 
   /* 9. Prawdziwa baza w repo (gdy już zbudowana). */
   const realPath = path.join(root, 'knowledge/research-base.json');

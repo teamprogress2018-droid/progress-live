@@ -28,6 +28,8 @@ const path = require('path');
 const crypto = require('crypto');
 const vm = require('vm');
 const feed = require('./fetch_research_feed.js');
+const shared = require('../../research-answer.js');
+const { CERTAINTY, capCertainty, parseJsonObject, str, asciiKey, keepKnownRefs, validateAnswer, capAnswerCertainty, ANSWER_SYSTEM, buildAnswerPrompt } = shared;
 
 const ROOT = path.join(__dirname, '..', '..');
 const EUTILS = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
@@ -35,9 +37,6 @@ const EUROPEPMC = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search';
 const CROSSREF = 'https://api.crossref.org/works/';
 
 const EVIDENCE_WEIGHT = { guideline: 6, meta: 6, sr: 5, rct: 3, review: 1, other: 0 };
-const CERTAINTY = ['brak', 'wstepne', 'umiarkowane', 'mocne'];
-/** Najwyższy poziom pewności, jaki może dostać dany typ badania (AI może go tylko obniżyć). */
-const CERTAINTY_CAP = { guideline: 'mocne', meta: 'mocne', sr: 'mocne', rct: 'umiarkowane', review: 'wstepne', other: 'wstepne' };
 const USEFULNESS = ['niska', 'srednia', 'wysoka'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -58,20 +57,6 @@ function numbersGrounded(field, abstract) {
   const allowed = new Set(numbersIn(abstract));
   return numbersIn(field).every((n) => allowed.has(n) || allowed.has(n.replace(/\.0+$/, '')) || (/^\d+$/.test(n) && Number(n) <= 4));
 }
-function capCertainty(evidence, level) {
-  const cap = CERTAINTY_CAP[evidence] || 'wstepne';
-  const want = CERTAINTY.includes(level) ? level : 'brak';
-  return CERTAINTY.indexOf(want) > CERTAINTY.indexOf(cap) ? cap : want;
-}
-function parseJsonObject(text) {
-  const clean = String(text || '').replace(/```json|```/g, '').trim();
-  const start = clean.indexOf('{');
-  const end = clean.lastIndexOf('}');
-  if (start < 0 || end < start) return null;
-  try { return JSON.parse(clean.slice(start, end + 1)); } catch (e) { return null; }
-}
-const str = (v, max) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, max || 700);
-const asciiKey = (v) => String(v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').trim();
 
 /**
  * Karta badania z odpowiedzi AI. Pola z liczbami spoza abstraktu są zerowane, a karta bez
@@ -99,69 +84,6 @@ function validateSynth(raw, abstract, evidence) {
   if (Number.isInteger(n) && n > 0 && numbersIn(abstract).includes(String(n))) s.liczebnosc = n;
   if (!s.coZbadano || !s.coZnaleziono) return null;
   return s;
-}
-
-const REF_RE = /\[(S\d+|K\d+)\]/g;
-/** Usuwa odwołania do źródeł spoza listy. Zwraca tekst i użyte klucze. */
-function keepKnownRefs(text, known) {
-  const used = new Set();
-  const out = String(text || '').replace(REF_RE, (m, k) => {
-    if (known.has(k)) { used.add(k); return m; }
-    return '';
-  }).replace(/\s+([.,;])/g, '$1').replace(/\s{2,}/g, ' ').trim();
-  return { text: out, used };
-}
-/**
- * Odpowiedź Academy (8 części + porównanie źródeł). Każde zdanie opiera się na kluczach S1…/K1…
- * z przekazanej listy; nieznane klucze są usuwane, a odpowiedź bez źródła w częściach
- * „krótko”, „dlaczego” i „praktyka” jest odrzucana.
- */
-function validateAnswer(raw, studyKeys, bookKeys) {
-  const o = typeof raw === 'string' ? parseJsonObject(raw) : raw;
-  if (!o || typeof o !== 'object') return null;
-  const known = new Set([...(studyKeys || []), ...(bookKeys || [])]);
-  const used = new Set();
-  const clean = (v, max) => {
-    const r = keepKnownRefs(str(v, max || 900), known);
-    r.used.forEach((k) => used.add(k));
-    return r.text;
-  };
-  const hasRef = (t) => /\[(S|K)\d+\]/.test(t);
-  const practice = (Array.isArray(o.praktyka) ? o.praktyka : [o.praktyka]).map((x) => clean(x, 400)).filter(Boolean).slice(0, 6);
-  const quiz = o.pytanie_kontrolne && typeof o.pytanie_kontrolne === 'object' ? o.pytanie_kontrolne : {};
-  const cmp = o.porownanie && typeof o.porownanie === 'object' ? o.porownanie : {};
-  const a = {
-    krotko: clean(o.krotko, 500),
-    dlaczego: clean(o.dlaczego),
-    praktyka: practice,
-    dlaKogo: clean(o.dla_kogo, 600),
-    ostroznie: clean(o.ostroznie, 700),
-    ksiazkaVsBadania: clean(o.ksiazka_vs_badania, 700),
-    pytanie: { q: str(quiz.pytanie, 300), a: clean(quiz.odpowiedz, 500) },
-    porownanie: {
-      ksiazka: clean(cmp.ksiazka, 700),
-      badania: clean(cmp.badania, 700),
-      wspolne: clean(cmp.wspolne, 600),
-      roznice: clean(cmp.roznice, 600),
-      rekomendacja: clean(cmp.rekomendacja, 600)
-    },
-    pewnosc: CERTAINTY.includes(asciiKey(o.pewnosc)) ? asciiKey(o.pewnosc) : 'brak'
-  };
-  if (!a.krotko || !a.dlaczego || !practice.length) return null;
-  if (!hasRef(a.krotko + a.dlaczego) || !practice.some(hasRef)) return null;
-  if (!a.pytanie.q) a.pytanie = null;
-  a.refs = Array.from(used).sort();
-  return a;
-}
-
-/** Odpowiedź nie może deklarować większej pewności niż najlepsze cytowane badanie. */
-function capAnswerCertainty(answer, studiesByKey) {
-  if (!answer) return answer;
-  const best = answer.refs.filter((k) => k[0] === 'S').map((k) => studiesByKey[k]).filter(Boolean)
-    .map((s) => (s.synth && s.synth.pewnosc) || capCertainty(s.evidence, 'wstepne'))
-    .reduce((m, c) => (CERTAINTY.indexOf(c) > CERTAINTY.indexOf(m) ? c : m), 'brak');
-  if (CERTAINTY.indexOf(answer.pewnosc) > CERTAINTY.indexOf(best)) answer.pewnosc = best;
-  return answer;
 }
 
 function buildTerm(query, cfg, opts) {
@@ -307,24 +229,6 @@ Odpowiadasz WYŁĄCZNIE obiektem JSON:
 "pewnosc":"mocne|umiarkowane|wstepne|brak"}
 uzytecznosc = przydatność dla trenera pracującego z typowymi klientami siłowni. pewnosc = siła dowodów według abstraktu (pojedyncze RCT co najwyżej „umiarkowane”, małe lub krótkie badania „wstepne”, sprzeczne wyniki „brak”).`;
 
-const ANSWER_SYSTEM = `Jesteś Progress Academy – edukujesz trenera personalnego. Odpowiadasz po polsku, spokojnie, konkretnie, bez pseudonauki i bez obietnic efektów.
-Dostajesz pytanie, karty badań [S1]…[S5] (opracowane z abstraktów) i reguły z książek trenera [K1]…
-Zasady:
-- Opieraj się WYŁĄCZNIE na tych kartach i regułach. Po każdym zdaniu z wnioskiem dopisz klucz źródła w nawiasie kwadratowym, np. [S2] albo [K1]. Nie wymyślaj badań, autorów, liczb ani DOI.
-- Jeśli źródła się różnią albo są słabe, powiedz to wprost. Jeśli czegoś w źródłach nie ma, napisz „źródła tego nie rozstrzygają”.
-- Trener nie diagnozuje i nie leczy: przy bólu, chorobie, ciąży lub lekach wskaż konsultację z lekarzem lub fizjoterapeutą.
-- Gdy nie ma reguł z książek, w polach o książkach napisz „Brak reguły w bazie książek”.
-Odpowiadasz WYŁĄCZNIE obiektem JSON:
-{"krotko":"1–2 zdania",
-"dlaczego":"2–4 zdania o mechanizmie i dowodach",
-"praktyka":["2–5 konkretnych kroków z klientem"],
-"dla_kogo":"dla kogo to ma sens",
-"ostroznie":"kiedy nie stosować lub zachować ostrożność",
-"ksiazka_vs_badania":"czym wiedza z książek różni się od nowszych badań (lub że są zgodne)",
-"pytanie_kontrolne":{"pytanie":"pytanie sprawdzające zrozumienie","odpowiedz":"krótka poprawna odpowiedź"},
-"porownanie":{"ksiazka":"co mówią książki/notatki","badania":"co mówią badania","wspolne":"wspólny wniosek","roznice":"różnice lub niepewność","rekomendacja":"praktyczna rekomendacja dla trenera"},
-"pewnosc":"mocne|umiarkowane|wstepne|brak"}`;
-
 function aiClient(env, fetchImpl) {
   const f = fetchImpl || fetch;
   const conn = feed.aiConnection(env);
@@ -398,18 +302,6 @@ function loadBooks() {
     console.warn('Książki niedostępne: ' + e.message);
     return () => [];
   }
-}
-
-function studyForPrompt(key, s) {
-  const syn = s.synth || {};
-  return [
-    '[' + key + '] ' + (syn.titlePl || s.title) + ' — ' + [s.authors, s.year, s.journalAbbr || s.journal, s.evidenceLabel].filter(Boolean).join(', '),
-    syn.populacja ? 'Populacja: ' + syn.populacja + (syn.liczebnosc ? ' (n=' + syn.liczebnosc + ')' : '') : '',
-    syn.coZbadano ? 'Co zbadano: ' + syn.coZbadano : '',
-    syn.coZnaleziono ? 'Co znaleziono: ' + syn.coZnaleziono : '',
-    syn.czegoNieDowodzi ? 'Ograniczenia: ' + syn.czegoNieDowodzi : '',
-    'Pewność: ' + (syn.pewnosc || 'brak')
-  ].filter(Boolean).join('\n');
 }
 
 // ─────────────────────────── main ───────────────────────────
@@ -592,9 +484,7 @@ async function main(opts) {
       const bookKeys = books.map((_, i) => 'K' + (i + 1));
       const key = hash(JSON.stringify([q.q, q.hint, list.map((s) => s.pmid + s.synthAt), books.map((b) => b.ref)]));
       if (q.answer && q.answerKey === key) continue;
-      const prompt = 'PYTANIE TRENERA: ' + q.q + (q.hint ? '\nDODATKOWE WYMAGANIA: ' + q.hint : '')
-        + '\n\nKARTY BADAŃ:\n' + list.map((s, i) => studyForPrompt(studyKeys[i], s)).join('\n\n')
-        + '\n\nREGUŁY Z KSIĄŻEK TRENERA:\n' + (books.length ? books.map((b, i) => '[' + bookKeys[i] + '] ' + b.cite + ': ' + str(b.text, 500)).join('\n') : 'brak');
+      const prompt = buildAnswerPrompt(q.q, q.hint, list, books);
       try {
         const answer = capAnswerCertainty(await ai.answer(prompt, studyKeys, bookKeys), Object.fromEntries(list.map((s, i) => [studyKeys[i], s])));
         if (answer) {
