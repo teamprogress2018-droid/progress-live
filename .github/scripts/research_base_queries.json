@@ -1,0 +1,125 @@
+{
+  "_info": "Baza badań Progress Academy. Każde pytanie ma zapytanie PubMed (składnia PubMed, [tiab] = tytuł/abstrakt). Filtr typów badań, ludzi, języka i lat dokleja skrypt build_research_base.js. 'hint' to dodatkowe wymagania do odpowiedzi Academy. Nowe pytanie = nowy wpis; id musi być unikalne.",
+  "defaultPublicationTypes": ["Meta-Analysis", "Systematic Review", "Randomized Controlled Trial", "Practice Guideline", "Guideline"],
+  "guidelineFilter": "(\"position stand\"[ti] OR \"position statement\"[ti] OR \"consensus statement\"[ti] OR consensus[ti] OR guideline*[ti] OR recommendations[ti] OR \"Practice Guideline\"[pt] OR \"Guideline\"[pt])",
+  "humansFilter": "NOT (animals[mh] NOT humans[mh])",
+  "languageFilter": "(english[la] OR polish[la])",
+  "yearsBack": 16,
+  "perQuestion": 5,
+  "recentPerCategory": 8,
+  "categories": [
+    {
+      "id": "hipertrofia",
+      "label": "Hipertrofia",
+      "keywords": ["hipertrof", "mies", "masa miesniow", "budowa mas", "objetosc", "upadek", "upadk", "serie", "serii", "pompa", "przyrost mies", "rir", "rpe"],
+      "recentQuery": "(\"resistance training\"[tiab] OR \"resistance exercise\"[tiab] OR \"strength training\"[tiab]) AND (hypertrophy[tiab] OR \"muscle growth\"[tiab] OR \"muscle thickness\"[tiab] OR \"muscle mass\"[tiab])",
+      "questions": [
+        {"id": "h-objetosc", "q": "Czy większa objętość zawsze zwiększa hipertrofię?", "query": "(\"training volume\"[tiab] OR \"number of sets\"[tiab] OR \"weekly sets\"[tiab] OR \"set volume\"[tiab] OR \"volume load\"[tiab]) AND (hypertrophy[tiab] OR \"muscle growth\"[tiab] OR \"muscle thickness\"[tiab] OR \"muscle size\"[tiab])"},
+        {"id": "h-upadek", "q": "Czy trening do upadku jest konieczny?", "query": "(\"muscle failure\"[tiab] OR \"muscular failure\"[tiab] OR \"momentary failure\"[tiab] OR \"proximity to failure\"[tiab] OR \"repetitions in reserve\"[tiab] OR \"training to failure\"[tiab]) AND (hypertrophy[tiab] OR strength[tiab] OR \"muscle growth\"[tiab])"},
+        {"id": "h-czestotliwosc", "q": "Ile razy w tygodniu trenować daną partię mięśniową?", "query": "(\"training frequency\"[tiab] OR \"resistance training frequency\"[tiab] OR \"weekly frequency\"[tiab]) AND (hypertrophy[tiab] OR \"muscle mass\"[tiab] OR \"muscle growth\"[tiab])"},
+        {"id": "h-ciezar", "q": "Czy liczba powtórzeń i ciężar zmieniają przyrost mięśni?", "query": "(\"low-load\"[tiab] OR \"high-load\"[tiab] OR \"loading zone\"[tiab] OR \"repetition range\"[tiab] OR \"load intensity\"[tiab] OR \"light loads\"[tiab] OR \"heavy loads\"[tiab]) AND (hypertrophy[tiab] OR \"muscle growth\"[tiab] OR \"muscle mass\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab])"},
+        {"id": "h-zakres", "q": "Czy pełny zakres ruchu daje lepszą hipertrofię niż częściowy?", "query": "(\"range of motion\"[tiab] OR \"partial range\"[tiab] OR \"partial repetitions\"[tiab] OR \"lengthened partial\"[tiab]) AND (hypertrophy[tiab] OR \"muscle growth\"[tiab] OR \"muscle size\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab])"}
+      ]
+    },
+    {
+      "id": "sila",
+      "label": "Trening siłowy",
+      "keywords": ["sila", "silow", "1rm", "max", "ciezar", "przerw", "odpoczyn", "periodyzac", "progresj", "trojbo", "przysiad", "martwy ciag", "wyciskan", "autoregulac", "senior"],
+      "recentQuery": "(\"resistance training\"[tiab] OR \"strength training\"[tiab]) AND (\"maximal strength\"[tiab] OR \"muscle strength\"[tiab] OR \"one repetition maximum\"[tiab] OR 1RM[tiab])",
+      "questions": [
+        {"id": "s-przerwy", "q": "Jakie przerwy stosować przy treningu siłowym?", "query": "(\"rest interval\"[tiab] OR \"rest intervals\"[tiab] OR \"inter-set rest\"[tiab] OR \"rest period\"[tiab] OR \"rest periods\"[tiab] OR \"rest between sets\"[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"resistance exercise\"[tiab])"},
+        {"id": "s-ciezar", "q": "Jaki ciężar i ile powtórzeń najlepiej buduje siłę?", "query": "(\"heavy load\"[tiab] OR \"high-load\"[tiab] OR \"low-load\"[tiab] OR \"training intensity\"[tiab] OR \"loading\"[tiab]) AND (\"maximal strength\"[tiab] OR 1RM[tiab] OR \"one repetition maximum\"[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab])"},
+        {"id": "s-periodyzacja", "q": "Czy periodyzacja daje lepsze wyniki siłowe niż stały plan?", "query": "(periodization[tiab] OR periodisation[tiab] OR periodized[tiab] OR periodised[tiab] OR undulating[tiab]) AND (strength[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab])"},
+        {"id": "s-seniorzy", "q": "Jak bezpiecznie budować siłę u osób starszych?", "query": "(\"older adults\"[tiab] OR elderly[tiab] OR \"older people\"[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"progressive resistance\"[tiab]) AND (strength[tiab] OR \"physical function\"[tiab] OR \"physical performance\"[tiab])"},
+        {"id": "s-autoregulacja", "q": "Czy RPE, RIR i autoregulacja pomagają w progresji siły?", "query": "(autoregulation[tiab] OR autoregulated[tiab] OR \"rating of perceived exertion\"[tiab] OR \"repetitions in reserve\"[tiab] OR \"velocity-based training\"[tiab]) AND (strength[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab])"}
+      ]
+    },
+    {
+      "id": "cardio",
+      "label": "Cardio i wydolność",
+      "keywords": ["cardio", "kardio", "wydolnos", "vo2", "tlen", "bieg", "rower", "aerob", "tlenow", "kroki", "krokow", "kondycj", "wytrzymal", "spalanie", "tluszcz", "redukcj"],
+      "recentQuery": "(\"aerobic training\"[tiab] OR \"endurance training\"[tiab] OR \"aerobic exercise\"[tiab] OR \"concurrent training\"[tiab]) AND (\"cardiorespiratory fitness\"[tiab] OR VO2max[tiab] OR \"VO2 max\"[tiab] OR \"body composition\"[tiab] OR \"fat mass\"[tiab])",
+      "questions": [
+        {"id": "c-laczenie", "q": "Jak łączyć cardio z treningiem siłowym?", "query": "(\"concurrent training\"[tiab] OR \"interference effect\"[tiab] OR \"combined aerobic and resistance\"[tiab] OR \"combined endurance and strength\"[tiab])", "hint": "Wyjaśnij efekt interferencji i od czego zależy (rodzaj cardio, objętość, odstęp czasowy, cel klienta)."},
+        {"id": "c-vo2", "q": "Jak najskuteczniej poprawić wydolność (VO2max)?", "query": "(VO2max[tiab] OR \"VO2 max\"[tiab] OR \"maximal oxygen uptake\"[tiab] OR \"cardiorespiratory fitness\"[tiab]) AND (\"endurance training\"[tiab] OR \"aerobic training\"[tiab] OR \"interval training\"[tiab])"},
+        {"id": "c-redukcja", "q": "Czy cardio jest potrzebne do redukcji tkanki tłuszczowej?", "query": "(\"aerobic exercise\"[tiab] OR \"aerobic training\"[tiab] OR \"endurance training\"[tiab]) AND (\"fat mass\"[tiab] OR \"body fat\"[tiab] OR \"weight loss\"[tiab] OR \"visceral fat\"[tiab]) AND (overweight[tiab] OR obesity[tiab] OR adults[tiab])"},
+        {"id": "c-kroki", "q": "Ile kroków dziennie ma znaczenie dla zdrowia?", "query": "(\"steps per day\"[tiab] OR \"daily steps\"[tiab] OR \"step count\"[tiab] OR \"daily step\"[tiab]) AND (mortality[tiab] OR cardiovascular[tiab] OR health[tiab])"}
+      ]
+    },
+    {
+      "id": "hiit",
+      "label": "HIIT i Tabata",
+      "keywords": ["hiit", "tabata", "interwal", "sprint", "intensywn", "emom", "amrap", "metcon", "crossfit"],
+      "recentQuery": "(\"high-intensity interval training\"[tiab] OR HIIT[tiab] OR \"sprint interval training\"[tiab] OR Tabata[tiab])",
+      "questions": [
+        {"id": "i-poczatkujacy", "q": "Czy HIIT jest dobry dla początkującego z nadwagą?", "query": "(\"high-intensity interval training\"[tiab] OR HIIT[tiab] OR \"interval training\"[tiab]) AND (overweight[tiab] OR obesity[tiab] OR obese[tiab] OR sedentary[tiab] OR inactive[tiab])", "hint": "Nie odpowiadaj samym protokołem (np. „zrób Tabatę”). Wyjaśnij: czym HIIT różni się od Tabaty, jak sprawdzić bazę wydolnościową i gotowość klienta, jaki prostszy wariant wybrać na start, jak kontrolować RPE, tętno i regenerację oraz kiedy zacząć od spokojnego cardio."},
+        {"id": "i-vs-mict", "q": "HIIT czy spokojne cardio – co wybrać?", "query": "(\"high-intensity interval training\"[tiab] OR HIIT[tiab] OR \"sprint interval training\"[tiab]) AND (\"moderate-intensity continuous training\"[tiab] OR MICT[tiab] OR \"continuous training\"[tiab] OR \"moderate-intensity continuous\"[tiab])"},
+        {"id": "i-tabata", "q": "Czym jest Tabata i kiedy ma sens?", "query": "(Tabata[tiab] OR \"sprint interval training\"[tiab] OR supramaximal[tiab] OR \"low-volume high-intensity\"[tiab] OR \"low-volume HIIT\"[tiab])", "hint": "Oryginalny protokół Tabaty to wysiłek supramaksymalny (ok. 170% VO2max) – odróżnij go od popularnych „tabat” z ćwiczeniami. Opisz tylko to, co podają źródła."},
+        {"id": "i-bezpieczenstwo", "q": "Czy HIIT jest bezpieczny i jak kontrolować intensywność?", "query": "(\"high-intensity interval training\"[tiab] OR HIIT[tiab]) AND (\"adverse events\"[tiab] OR safety[tiab] OR \"rating of perceived exertion\"[tiab] OR \"heart rate\"[tiab] OR enjoyment[tiab] OR adherence[tiab])"}
+      ]
+    },
+    {
+      "id": "zywienie",
+      "label": "Żywienie",
+      "keywords": ["zywien", "diet", "bialk", "kalor", "kcal", "makro", "kreatyn", "kofein", "suplement", "posil", "weglowodan", "deficyt", "nadwyzk", "jedzen", "okno anabol"],
+      "recentQuery": "(\"protein intake\"[tiab] OR \"dietary protein\"[tiab] OR creatine[tiab] OR caffeine[tiab] OR \"energy deficit\"[tiab] OR \"energy restriction\"[tiab] OR \"nutrient timing\"[tiab]) AND (\"resistance training\"[tiab] OR \"exercise\"[tiab] OR \"lean mass\"[tiab] OR \"fat-free mass\"[tiab])",
+      "questions": [
+        {"id": "z-bialko", "q": "Ile białka potrzebuje osoba trenująca siłowo?", "query": "(\"protein supplementation\"[tiab] OR \"protein intake\"[tiab] OR \"dietary protein\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab]) AND (\"lean mass\"[tiab] OR \"fat-free mass\"[tiab] OR \"muscle mass\"[tiab] OR strength[tiab])"},
+        {"id": "z-kreatyna", "q": "Czy kreatyna działa i komu ją rozważyć?", "query": "(creatine[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab] OR \"muscle strength\"[tiab] OR \"lean mass\"[tiab] OR \"lean tissue\"[tiab])"},
+        {"id": "z-redukcja", "q": "Jak utrzymać mięśnie na redukcji?", "query": "(\"energy deficit\"[tiab] OR \"energy restriction\"[tiab] OR \"caloric restriction\"[tiab] OR \"calorie restriction\"[tiab] OR \"weight loss\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab]) AND (\"lean mass\"[tiab] OR \"fat-free mass\"[tiab] OR \"muscle mass\"[tiab])"},
+        {"id": "z-kofeina", "q": "Czy kofeina poprawia wyniki treningowe?", "query": "(caffeine[tiab]) AND (\"exercise performance\"[tiab] OR \"muscle strength\"[tiab] OR \"muscular endurance\"[tiab] OR \"resistance exercise\"[tiab] OR \"endurance performance\"[tiab])"},
+        {"id": "z-timing", "q": "Czy pora posiłku po treningu (okno anaboliczne) ma znaczenie?", "query": "(\"protein timing\"[tiab] OR \"nutrient timing\"[tiab] OR \"anabolic window\"[tiab] OR \"meal timing\"[tiab] OR \"protein distribution\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab] OR hypertrophy[tiab] OR \"muscle protein synthesis\"[tiab])"}
+      ]
+    },
+    {
+      "id": "anatomia",
+      "label": "Anatomia, biomechanika i dobór ćwiczeń",
+      "keywords": ["anatom", "biomechan", "dobor cwicz", "wybor cwicz", "cwiczen", "maszyn", "wolne ciezar", "wielostaw", "izolac", "rozciagn", "dlugosc mies", "zakres ruch", "wariac", "aktywac", "emg"],
+      "recentQuery": "(\"exercise selection\"[tiab] OR \"muscle length\"[tiab] OR \"free weight\"[tiab] OR \"machine-based\"[tiab] OR \"multi-joint\"[tiab] OR \"single-joint\"[tiab] OR \"regional hypertrophy\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab])",
+      "questions": [
+        {"id": "a-wielostawy", "q": "Ćwiczenia wielostawowe czy izolowane?", "query": "(\"multi-joint\"[tiab] OR \"single-joint\"[tiab] OR \"compound exercise\"[tiab] OR \"isolation exercise\"[tiab] OR \"multi-joint exercises\"[tiab]) AND (hypertrophy[tiab] OR strength[tiab] OR \"muscle thickness\"[tiab])"},
+        {"id": "a-maszyny", "q": "Maszyny czy wolne ciężary?", "query": "(\"free weight\"[tiab] OR \"free-weight\"[tiab] OR \"free weights\"[tiab] OR \"machine-based\"[tiab] OR \"weight machines\"[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab]) AND (hypertrophy[tiab] OR strength[tiab])"},
+        {"id": "a-dlugosc", "q": "Czy trening w rozciągnięciu mięśnia daje więcej?", "query": "(\"long muscle length\"[tiab] OR \"long muscle lengths\"[tiab] OR \"longer muscle length\"[tiab] OR lengthened[tiab] OR \"stretch-mediated\"[tiab] OR \"muscle length\"[tiab]) AND (hypertrophy[tiab] OR \"muscle growth\"[tiab])"},
+        {"id": "a-wariacja", "q": "Czy warto zmieniać ćwiczenia w planie?", "query": "(\"exercise variation\"[tiab] OR \"exercise variety\"[tiab] OR \"exercise selection\"[tiab] OR \"varied exercise\"[tiab] OR \"exercise rotation\"[tiab]) AND (hypertrophy[tiab] OR strength[tiab] OR \"resistance training\"[tiab])"}
+      ]
+    },
+    {
+      "id": "funkcjonalny",
+      "label": "Trening funkcjonalny i motoryka",
+      "keywords": ["funkcjonal", "motoryk", "rownowag", "upadk", "plyometr", "skocz", "szybkos", "zwinnos", "core", "korpus", "stabiliz", "mobilnos", "rozciagan", "rozgrzewk", "koordynac", "moc"],
+      "recentQuery": "(\"functional training\"[tiab] OR \"balance training\"[tiab] OR plyometric*[tiab] OR \"core training\"[tiab] OR \"neuromuscular training\"[tiab] OR stretching[tiab] OR \"fall prevention\"[tiab])",
+      "questions": [
+        {"id": "f-rownowaga", "q": "Czy trening równowagi zmniejsza ryzyko upadków u seniorów?", "query": "(balance[tiab] OR \"fall prevention\"[tiab] OR falls[tiab]) AND (\"exercise\"[tiab] OR training[tiab]) AND (\"older adults\"[tiab] OR elderly[tiab] OR \"older people\"[tiab])"},
+        {"id": "f-plyometria", "q": "Czy trening plyometryczny poprawia skoczność i szybkość?", "query": "(plyometric*[tiab] OR \"jump training\"[tiab]) AND (sprint[tiab] OR jump[tiab] OR \"change of direction\"[tiab] OR power[tiab])"},
+        {"id": "f-core", "q": "Czy trening mięśni core poprawia sprawność?", "query": "(\"core stability\"[tiab] OR \"core training\"[tiab] OR \"core strength\"[tiab] OR \"trunk stability\"[tiab] OR \"core exercise\"[tiab]) AND (performance[tiab] OR function[tiab] OR \"physical fitness\"[tiab])"},
+        {"id": "f-rozciaganie", "q": "Czy rozciąganie przed treningiem obniża siłę?", "query": "(\"static stretching\"[tiab] OR \"dynamic stretching\"[tiab] OR \"warm-up\"[tiab]) AND (strength[tiab] OR \"muscle performance\"[tiab] OR power[tiab] OR performance[tiab])"}
+      ]
+    },
+    {
+      "id": "regeneracja",
+      "label": "Regeneracja, sen i zmęczenie",
+      "keywords": ["regenerac", "sen", "snu", "spani", "zmeczen", "przemeczen", "przetrenow", "deload", "rozladow", "zakwas", "doms", "bolesnosc mies", "zimn", "krioterap", "masaz", "rolowan", "hrv"],
+      "recentQuery": "(sleep[tiab] OR recovery[tiab] OR \"delayed onset muscle soreness\"[tiab] OR overreaching[tiab] OR deload*[tiab] OR \"cold water immersion\"[tiab] OR fatigue[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR athletes[tiab] OR \"exercise performance\"[tiab])",
+      "questions": [
+        {"id": "r-sen", "q": "Jak sen wpływa na wyniki treningowe i regenerację?", "query": "(\"sleep deprivation\"[tiab] OR \"sleep restriction\"[tiab] OR \"sleep extension\"[tiab] OR \"sleep quality\"[tiab] OR \"sleep duration\"[tiab] OR \"sleep loss\"[tiab]) AND (performance[tiab] OR recovery[tiab] OR strength[tiab])"},
+        {"id": "r-deload", "q": "Czy deload lub przerwa w treningu są potrzebne?", "query": "(deload*[tiab] OR \"training cessation\"[tiab] OR detraining[tiab] OR \"training break\"[tiab] OR \"training interruption\"[tiab] OR tapering[tiab]) AND (strength[tiab] OR hypertrophy[tiab] OR \"resistance training\"[tiab] OR performance[tiab])"},
+        {"id": "r-zimno", "q": "Czy zimna kąpiel po treningu przeszkadza w przyroście mięśni?", "query": "(\"cold water immersion\"[tiab] OR cryotherapy[tiab] OR \"cold-water immersion\"[tiab]) AND (\"resistance training\"[tiab] OR hypertrophy[tiab] OR strength[tiab] OR recovery[tiab])"},
+        {"id": "r-doms", "q": "Jak radzić sobie z zakwasami (DOMS)?", "query": "(\"delayed onset muscle soreness\"[tiab] OR DOMS[tiab] OR \"exercise-induced muscle damage\"[tiab]) AND (recovery[tiab] OR massage[tiab] OR \"foam rolling\"[tiab] OR intervention*[tiab])"},
+        {"id": "r-przetrenowanie", "q": "Jak rozpoznać przemęczenie i przetrenowanie?", "query": "(overtraining[tiab] OR overreaching[tiab] OR \"fatigue monitoring\"[tiab] OR \"training load monitoring\"[tiab] OR \"heart rate variability\"[tiab]) AND (athletes[tiab] OR training[tiab])"}
+      ]
+    },
+    {
+      "id": "bezpieczenstwo",
+      "label": "Ból, bezpieczeństwo i granice kompetencji trenera",
+      "keywords": ["bol", "bolu", "boli", "kontuz", "uraz", "bezpieczen", "ciaz", "nadcisnien", "cisnien", "kregoslup", "krzyz", "lędźw", "ledzw", "kolan", "bark", "sciegn", "tendinop", "lekarz", "fizjoterap", "choroba", "cukrzyc", "rehabilit", "przeciwwskaz"],
+      "recentQuery": "(\"low back pain\"[tiab] OR tendinopathy[tiab] OR \"injury prevention\"[tiab] OR \"injury risk\"[tiab] OR pregnan*[tiab] OR hypertension[tiab] OR \"adverse events\"[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"exercise therapy\"[tiab] OR exercise[tiab])",
+      "questions": [
+        {"id": "b-krzyz", "q": "Czy ćwiczenia pomagają przy bólu krzyża?", "query": "(\"low back pain\"[tiab]) AND (\"exercise therapy\"[tiab] OR \"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"motor control exercise\"[tiab])", "hint": "Trener nie diagnozuje i nie leczy. Wskaż czerwone flagi i kiedy odesłać do lekarza lub fizjoterapeuty."},
+        {"id": "b-ciaza", "q": "Czy kobieta w ciąży może trenować siłowo?", "query": "(pregnancy[tiab] OR pregnant[tiab]) AND (exercise[tiab] OR \"physical activity\"[tiab] OR \"resistance training\"[tiab] OR \"resistance exercise\"[tiab])", "hint": "Zgoda lekarza prowadzącego jest warunkiem. Wymień przeciwwskazania i objawy przerwania wysiłku tylko, jeśli podają je źródła."},
+        {"id": "b-sciegna", "q": "Jak trenować przy bólu ścięgna (tendinopatii)?", "query": "(tendinopathy[tiab] OR tendinitis[tiab] OR \"tendon pain\"[tiab]) AND (\"heavy slow resistance\"[tiab] OR eccentric[tiab] OR \"exercise therapy\"[tiab] OR loading[tiab])", "hint": "Trener nie diagnozuje. Praca przy bólu ścięgna wymaga diagnozy i współpracy z fizjoterapeutą."},
+        {"id": "b-kontuzje", "q": "Czy trening siłowy zmniejsza ryzyko kontuzji?", "query": "(\"injury prevention\"[tiab] OR \"injury risk\"[tiab] OR \"sports injuries\"[tiab]) AND (\"strength training\"[tiab] OR \"resistance training\"[tiab] OR \"neuromuscular training\"[tiab])"},
+        {"id": "b-nadcisnienie", "q": "Czy osoba z nadciśnieniem może trenować siłowo?", "query": "(hypertension[tiab] OR \"blood pressure\"[tiab]) AND (\"resistance training\"[tiab] OR \"isometric training\"[tiab] OR \"isometric exercise\"[tiab] OR \"strength training\"[tiab])", "hint": "Klient z nadciśnieniem potrzebuje zgody lekarza; trener nie zmienia leczenia."}
+      ]
+    }
+  ]
+}
