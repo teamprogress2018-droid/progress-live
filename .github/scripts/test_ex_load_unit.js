@@ -27,8 +27,8 @@ function eq(name, got, want) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=134'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=104'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=98'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=105'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=99'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
 ok('builder kg field', src05.includes('data-f="kg"'));
 ok('save loadUnit', src05.includes("loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg'"));

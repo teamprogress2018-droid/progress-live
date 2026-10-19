@@ -2900,7 +2900,7 @@ function exdPreviewHtml(e){
   return `<p class="exd-preview-meta">${exdEsc(e.cat||'')}${e.eq?' <span aria-hidden="true">·</span> '+exdEsc(e.eq):''}</p>
     ${exdPreviewMediaHtml(e)}
     ${desc?`<div class="exd-preview-desc">${exdEsc(desc)}</div>`:''}
-    <button type="button" class="btn btn-primary exd-preview-cta" onclick="prefillExInBuilder(${safe})">Użyj w builderze</button>
+    <button type="button" class="btn btn-primary exd-preview-cta" onclick="prefillExInBuilder(${safe})">+ Dodaj do planu</button>
     ${yt}`;
 }
 
@@ -3101,13 +3101,48 @@ function closeExDetail(){
   exSelId=null;renderLib();
 }
 
+// Czy w kreatorze został rozpoczęty, niezapisany plan (kreator nie musi być teraz otwarty).
+function builderHasOpenDraft(){
+  const st=window._builderSaveState;
+  if(!st||st.saved||typeof builderDraftFingerprint!=='function')return false;
+  const days=document.querySelectorAll('#builder-days .builder-day').length;
+  return days>0&&builderDraftFingerprint()!==String(st.initialFingerprint||'');
+}
+window.builderHasOpenDraft=builderHasOpenDraft;
+
+// Wstawia ćwiczenie do ostatniego dnia kreatora (pusty wiersz albo nowy); bez dni – tworzy pierwszy dzień.
+function builderInsertExercise(name){
+  const daysWrap=document.getElementById('builder-days');
+  if(!daysWrap||typeof addDay!=='function'||typeof addRow!=='function')return null;
+  let days=[...daysWrap.querySelectorAll('.builder-day')].filter(d=>!(d.querySelector('.rc')||{}).checked);
+  if(!days.length){addDay();days=[...daysWrap.querySelectorAll('.builder-day')];}
+  const day=days[days.length-1];
+  if(!day)return null;
+  let inp=[...day.querySelectorAll('.ex-row [data-f="name"]')].find(i=>!String(i.value||'').trim());
+  if(!inp){
+    addRow(day.id);
+    const rows=day.querySelectorAll('.ex-row');
+    inp=rows.length?rows[rows.length-1].querySelector('[data-f="name"]'):null;
+  }
+  if(!inp)return null;
+  inp.value=name;
+  const row=inp.closest('.ex-row');
+  if(typeof builderOnExNameChange==='function')builderOnExNameChange(row);
+  try{row.scrollIntoView({block:'center'});}catch(e){}
+  const sets=row.querySelector('[data-f="sets"]');
+  if(sets)sets.focus();
+  return row;
+}
+window.builderInsertExercise=builderInsertExercise;
+
 function prefillExInBuilder(name){
-  closeExDetail();goTo('builder');
-  setTimeout(()=>{
-    const rows=document.querySelectorAll('.ex-inp-name');
-    for(const r of rows){if(!r.value){r.value=name;r.focus();return;}}
-    notify(name+' — dodaj ćwiczenie w builderze');
-  },300);
+  const keep=builderHasOpenDraft()&&confirm('Dodać „'+name+'” do planu, który masz otwarty w kreatorze?\n\nAnuluj = zacznij nowy plan.');
+  closeExDetail();
+  window._builderBack='library';
+  if(keep)window._builderPreserveOnReturn=true;
+  goTo('builder');
+  const row=builderInsertExercise(name);
+  notify(row?('Dodano „'+name+'” — uzupełnij serie i powtórzenia'):(name+' — dodaj ćwiczenie w kreatorze'));
 }
 
 function prefillExInWorkout(name){

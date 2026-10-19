@@ -422,6 +422,8 @@ jobs:
         run: node .github/scripts/test_ex_import_dedupe.js
       - name: 1n31b6. Testy pilnych błędów Biblioteki (audyt)
         run: node .github/scripts/test_lib_pilne_bledy.js
+      - name: 1n31b7. Testy przejścia ćwiczenie → plan
+        run: node .github/scripts/test_lib_ex_to_plan.js
       - name: 1n31c. Testy podsumowania start + monitoring klienta
         run: node .github/scripts/test_client_journey_summary.js
       - name: 1n32. Testy periodyzacji RPE/RIR w kreatorze
@@ -555,6 +557,9 @@ jobs:
       - name: 6b3b1. Testy UI pilnych błędów Biblioteki (audyt)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_lib_pilne_bledy_ui.js
+      - name: 6b3b1b. Testy UI ćwiczenie → plan
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_lib_ex_to_plan_ui.js
       - name: 6b3b2. Testy UI importu MP4 do biblioteki
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_gif_import_ui.js

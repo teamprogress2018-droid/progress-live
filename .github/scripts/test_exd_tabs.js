@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=98'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=99'));
 ok('cache styles', html.includes('styles.css?v=160'));
 ok('CI unit', wf.includes('test_exd_tabs.js'));
 ok('CI ui', wf.includes('test_exd_tabs_ui.js'));
@@ -31,7 +31,7 @@ ok('panels exist', html.includes('id="exd-panel-preview"') && html.includes('id=
 ok('ai accordion', html.includes('id="exd-acc-ai"') && html.includes('id="exd-ask-biomech"') && /Zapytaj Biomechanika/.test(html));
 ok('setExdTab helper', /function setExdTab\(/.test(six) && /EXD_TABS=\['preview','biomech','manage'\]/.test(six));
 ok('keyboard tabs', /function onExdTabsKeydown\(/.test(six) && /ArrowRight/.test(six));
-ok('preview has media+cta', /function exdPreviewHtml\(/.test(six) && /Użyj w builderze/.test(six) && /exdPreviewMediaHtml/.test(six));
+ok('preview has media+cta', /function exdPreviewHtml\(/.test(six) && /Dodaj do planu/.test(six) && /exdPreviewMediaHtml/.test(six));
 ok('manage has assign+edit+del', /function exdManageHtml\(/.test(six) && /exDetailAssignHtml\(e\)/.test(six) && /id="exd-del"/.test(six) && /findCustomEx\(e\.name\)\?`<button[^>]*editEx/.test(six));
 ok('biomech info block', /Profil biomechaniczny/.test(six) && /exd-biomech-row/.test(six) && /Płaszczyzna/.test(six) && /Profil oporu/.test(six) && /SFR/.test(six));
 ok('justify accordion', /id="exd-acc-justify"/.test(six) && /Uzasadnienia zamienników/.test(six) && /Uzasadnij ten zamiennik/.test(six));
