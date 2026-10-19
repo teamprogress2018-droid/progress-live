@@ -992,6 +992,11 @@ async function aplGenerate(){
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
   const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('apl'):null;
+  const physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('apl'):(client?.physiquePriority||[]);
+  const physiquePriorityLabels=(physiquePriority||[]).map(id=>typeof window.physiquePriorityLabel==='function'?window.physiquePriorityLabel(id):id).filter(Boolean);
+  const hasSportBackground=!!((sportBg&&((sportBg.priorSports||[]).length||(sportBg.additional_activities||[]).length))||document.getElementById('apl-sport-notes')?.value||client?.sportNotes);
+  const hasMetrics=!!(cid&&typeof clientMetricsContextForAI==='function'&&clientMetricsContextForAI(cid));
+  const hasLiveContext=!!(cid&&typeof sfrGetContextForAI==='function'&&sfrGetContextForAI(cid));
   if(typeof aplPersistClientForm==='function')aplPersistClientForm();
 
   // anatomia i biomechanika
@@ -1285,7 +1290,8 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
     plan.generationContext={
       clientId:cid||null,goal,level,method,daysPerWeek:Number(days)||null,
       durationMinutes:Number(duration)||null,weeks:weeksNum,equipment:[...equipment],
-      sleep,stress,hasLimitations:!!String(injuries||'').trim(),hasAdditionalNotes:!!notes
+      sleep,stress,physiquePriorities:physiquePriorityLabels,hasSportBackground,
+      hasMetrics,hasLiveContext,hasLimitations:!!String(injuries||'').trim(),hasAdditionalNotes:!!notes
     };
     plan.phases=phasesMap;
     plan.weekKeys=weekKeys;
@@ -1345,6 +1351,24 @@ function aplPlanWhyHTML(plan){
     +section('reviewTriggers','Kiedy ponownie ocenić plan','Ustal z klientem termin oceny realizacji planu.')
     +section('sources','Źródła wskazane przez AI','Brak wskazanego źródła. Traktuj podpowiedź jako propozycję do weryfikacji.')+'</details>';
 }
+function aplGenerationContextHTML(context){
+  if(!context||typeof context!=='object')return'';
+  const esc=v=>typeof escHtml==='function'?escHtml(String(v==null?'':v)):String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const rows=[
+    ['Cel',context.goal],['Poziom',context.level],['Metoda',context.method],
+    ['Dni / tydzień',context.daysPerWeek?context.daysPerWeek+'×':''],['Czas sesji',context.durationMinutes?context.durationMinutes+' min':''],
+    ['Długość',context.weeks?context.weeks+' tyg.':''],['Sprzęt',(context.equipment||[]).join(', ')],
+    ['Sen',context.sleep],['Stres',context.stress],
+    ['Priorytety sylwetkowe',(context.physiquePriorities||[]).join(', ')],
+    ['Tło sportowe',context.hasSportBackground?'uwzględnione':'brak dodatkowych danych'],
+    ['Pomiary klienta',context.hasMetrics?'uwzględnione':'brak danych'],
+    ['Sygnały z Progress Live',context.hasLiveContext?'uwzględnione':'brak danych'],
+    ['Ograniczenia zgłoszone',context.hasLimitations?'tak — sprawdź Plan Health':'nie zgłoszono'],
+    ['Dodatkowe uwagi',context.hasAdditionalNotes?'tak':'brak']
+  ].filter(([,value])=>value!==''&&value!=null);
+  return '<details style="margin-top:12px;padding:10px 12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);"><summary style="cursor:pointer;font-size:12px;font-weight:700;">Dane użyte do wygenerowania</summary><p style="font-size:11px;color:var(--muted);margin:7px 0;line-height:1.5;">To jest zapis kontekstu wejściowego propozycji. Sprawdź go przed akceptacją.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:6px 14px;font-size:11px;">'+rows.map(([label,value])=>'<div><span style="color:var(--muted);">'+esc(label)+': </span><b>'+esc(value)+'</b></div>').join('')+'</div></details>';
+}
+
 function aplRenderPlan(plan,client,goal,method,days,weeks){
   const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
   const res=document.getElementById('apl-result');
@@ -1357,6 +1381,11 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   const approval=plan.approval||{};
   const pendingApproval=approval.state==='pending_trainer_approval';
   const approved=approval.state==='approved';
+  const validationErrors=(plan.validation&&plan.validation.issues||[]).filter(issue=>issue&&issue.severity==='error');
+  const acceptanceBlocked=pendingApproval&&validationErrors.length>0;
+  const generationContextHtml=aplGenerationContextHTML(plan.generationContext);
+  const review=approval.review||null;
+  const approvalAuditHtml=approved&&review?'<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5;">Ślad akceptacji: walidator '+String(review.validatorVersion||'—')+' · polityka '+String(review.policyVersion||'—')+' · '+Number(review.warnings||0)+' ostrz. · '+String(review.acceptedAt||'').slice(0,16).replace('T',' ')+'</div>':'';
 
   let html=`
     <!-- plan header -->
@@ -1368,7 +1397,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          ${pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplAcceptPlan()">✓ Akceptuję propozycję</button>':''}
+          ${pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplAcceptPlan()"'+(acceptanceBlocked?' disabled aria-disabled="true" title="Popraw błędy oznaczone w Plan Health przed akceptacją"':'')+'>✓ Akceptuję propozycję</button>':''}
           ${!pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz zatwierdzony plan</button>':''}
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlanPDF()">📄 PDF</button>
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ JSON</button>
@@ -1384,6 +1413,9 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
       ${pendingApproval?'<div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(245,185,66,.45);border-radius:10px;background:rgba(245,185,66,.08);font-size:12px;line-height:1.55;"><b>Propozycja AI — oczekuje na Twoją akceptację.</b> Sprawdź Plan Health, edytuj ćwiczenia lub parametry, a następnie kliknij „Akceptuję propozycję”. AI nie zapisze tego planu samodzielnie.</div>':approved?'<div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(61,207,178,.4);border-radius:10px;background:rgba(61,207,178,.08);font-size:12px;line-height:1.55;"><b>✓ Propozycja zaakceptowana przez trenera.</b> Możesz ją teraz zapisać jako plan klienta.</div>':''}
+      ${approvalAuditHtml}
+      ${acceptanceBlocked?'<div role="alert" style="margin-top:8px;padding:9px 12px;border:1px solid rgba(230,0,0,.42);border-radius:10px;background:rgba(230,0,0,.08);font-size:12px;line-height:1.5;"><b>Akceptacja zablokowana:</b> Plan Health wykrył '+validationErrors.length+' '+(validationErrors.length===1?'błąd':'błędy')+'. Popraw je w edycji planu.</div>':''}
+      ${generationContextHtml}
       ${aplPlanWhyHTML(plan)}
       ${typeof window.plRenderPlanValidation==='function'?window.plRenderPlanValidation(plan.validation):''}
       ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
@@ -1687,9 +1719,25 @@ function aplRerenderCurrent(){
   aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
 }
 
+function aplApprovalReview(report,acceptedAt){
+  const summary=report&&report.summary||{};
+  return {
+    acceptedAt,
+    validatorVersion:report&&report.version||'nieznana',
+    policyVersion:report&&report.policyVersion||'nieznana',
+    validationGeneratedAt:report&&report.generatedAt||null,
+    errors:Number(summary.errors)||0,
+    warnings:Number(summary.warnings)||0,
+    requiresTrainerReview:!!(report&&report.requiresTrainerReview)
+  };
+}
 function aplMarkPlanEdited(){
-  if(!aplLastPlan||!aplLastPlan.approval||aplLastPlan.approval.state!=='approved')return;
-  aplLastPlan.approval={...aplLastPlan.approval,state:'pending_trainer_approval',acceptedAt:null,changedAfterApprovalAt:new Date().toISOString()};
+  if(!aplLastPlan)return;
+  const cid=(document.getElementById('apl-client')||{}).value||aplLastPlan.clientId||'';
+  const client=cid?(window.CL||[]).find(x=>x.id===cid):aplLastClient;
+  if(typeof window.plValidatePlan==='function')aplLastPlan.validation=window.plValidatePlan(aplLastPlan,{client,source:'ai-edit'});
+  if(!aplLastPlan.approval||aplLastPlan.approval.state!=='approved')return;
+  aplLastPlan.approval={...aplLastPlan.approval,state:'pending_trainer_approval',acceptedAt:null,review:null,changedAfterApprovalAt:new Date().toISOString()};
 }
 function aplAcceptPlan(){
   if(!aplLastPlan){notify('Brak propozycji do akceptacji.');return;}
@@ -1703,7 +1751,10 @@ function aplAcceptPlan(){
       return;
     }
   }
-  aplLastPlan.approval={...(aplLastPlan.approval||{}),state:'approved',acceptedAt:new Date().toISOString()};
+  const acceptedAt=new Date().toISOString();
+  const review=aplApprovalReview(aplLastPlan.validation,acceptedAt);
+  const reviewHistory=[...((aplLastPlan.approval&&aplLastPlan.approval.reviewHistory)||[]),review].slice(-10);
+  aplLastPlan.approval={...(aplLastPlan.approval||{}),state:'approved',acceptedAt,review,reviewHistory};
   aplRerenderCurrent();
   notify('✓ Propozycja AI została zaakceptowana. Możesz ją zapisać.');
 }
