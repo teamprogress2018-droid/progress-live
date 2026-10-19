@@ -47,29 +47,104 @@
     const q=state.question.trim();
     const mine=customMatches(q);
     const domain=/żyw|zyw|diet|białk|bialk|kcal|kalor|makro|suplement/i.test(q)?'nutrition':'training';
-    const built=q&&typeof window.booksKbSelect==='function'?window.booksKbSelect({mode:domain,query:q,maxChars:1800,perBook:2}):[];
-    return mine.concat(built).slice(0,3);
+    const topics=SAFETY_TOPICS.filter(t=>safetyTopics(q).includes(t.id));
+    const safe=topics.length>0;
+    const built=q&&typeof window.booksKbSelect==='function'?window.booksKbSelect({mode:domain,query:q,safetyQuery:safe?q:'',maxChars:safe?8000:1800,perBook:safe?3:2}):[];
+    /* Przy pytaniu o ból, ciążę lub chorobę: tylko karty o tym temacie, bez progresji obciążenia i gotowych planów. */
+    const relevant=built.filter(s=>safe
+      ?!SAFETY_SKIP_SECTIONS.has(s.section)&&topics.some(t=>t.rx.test(norm(s.text)))
+      :matchesWordStart(q,s.text));
+    return mine.concat(relevant).slice(0,3);
   }
+  /* Indeks dopasowuje rdzenie w środku słowa („ciąża” w „obciążenie”); karta musi mieć słowo z pytania na początku wyrazu. */
+  function matchesWordStart(query,text){
+    const words=norm(query).split(/[^a-z0-9]+/).filter(w=>w.length>=4||/^(rir|rpe|fbw|ppl|\d+rm)$/.test(w)).map(w=>w.slice(0,5));
+    if(!words.length)return true;
+    const t=' '+norm(text).replace(/[^a-z0-9]+/g,' ');
+    return words.some(w=>t.indexOf(' '+w)>=0);
+  }
+  /* Klucze pól z knowledge/books-index.json; fragment bez znanego klucza należy do poprzedniego pola. */
+  const STUDY_KEYS=new Set(['rule','zasada','category','then','if','trigger','warunek','action','działanie','dzialanie','priority','title','titlepl','name','namepl','nameoriginal','law','lawpl','topic','group','appliesto','equipment','exercises','level','note','notes','limitations','goal','values','value','purpose','muscle','muscles','muscleslatin','musclelatin','reps','sets','rest','tempo','rir','rpe','rirrpe','summary','techniques','conditions','part','traineruse','reliability','pattern','days','daysperweek','pages','printpage','trainingimplication','trainerapplication','appapplication','appuse','application','phase','layout','key','progression','spacing','numbers','evidence','servings','type','layer','movement','movementpatterns','frequency','basedon','resolution','functions','jointactions','origin','insertion','deload','lines','audience','detail','intensity','unit','uncertainty','missinginsource','planlength','examples','strengths','weaknesses','howtoconnect','contraindications','referto','n','g','id','source','status']);
+  const SAFETY_SKIP_SECTIONS=new Set(['progressionRules','planTemplates','methodSteps','sessionStructureRules']);
+  function emptyValue(v){return /^(\{\s*\}|\[\s*\]|null|undefined|-|—)?$/i.test(String(v==null?'':v).trim());}
+  function cleanValue(v){return String(v||'').replace(/^\{?text:\s*/i,'').replace(/\}\s*$/,'').trim();}
   function studyParts(text){
     const fields=Object.create(null);
+    const kept=[];
+    let last='';
     String(text||'').split(/;\s*/).forEach(piece=>{
-      const match=piece.match(/^\s*([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ_ ]+)\s*:\s*(.+)$/);
-      if(!match)return;
-      const key=match[1].trim().toLowerCase().replace(/\s+/g,'');
-      fields[key]=String(match[2]).replace(/^\{?text:\s*/i,'').replace(/\}\s*$/,'').trim();
+      const match=piece.match(/^\s*([A-Za-z_]+)\s*:\s*([\s\S]*)$/);
+      const key=match&&match[1].toLowerCase();
+      if(key&&(STUDY_KEYS.has(key)||/status$/.test(key))){
+        last=key;
+        if(emptyValue(match[2]))return;
+        fields[key]=fields[key]?fields[key]+'; '+cleanValue(match[2]):cleanValue(match[2]);
+        kept.push(piece.trim());
+        return;
+      }
+      const extra=piece.trim();
+      if(!extra)return;
+      kept.push(extra);
+      if(last&&fields[last]!=null)fields[last]+='; '+cleanValue(extra);
+      else if(!last)fields._lead=fields._lead?fields._lead+'; '+extra:extra;
     });
     const pick=(...keys)=>keys.map(key=>fields[key]).find(Boolean)||'';
-    const rule=pick('rule','zasada');
+    const rule=pick('rule','zasada','_lead');
     const condition=pick('if','trigger','warunek');
     const action=pick('then','action','działanie','dzialanie');
-    const topic=pick('titlepl','lawpl','title','category','group')||'Zasada do zastosowania';
-    const fallback=String(text||'').replace(/\s+/g,' ').trim();
+    const topic=pick('titlepl','lawpl','namepl','topic','title','name','category','group')||'Zasada do zastosowania';
+    const fallback=kept.join('; ').replace(/\s+/g,' ').trim();
     const summary=rule||((condition&&action)?'Dopasuj decyzję do warunku klienta, zamiast stosować jedną regułę dla wszystkich.':fallback.substring(0,360));
-    const practical=(String(text||'').match(/(?:trainerApplication|trainerapplication|application)\s*:\s*\{?text\s*:\s*([^}]+)/i)||[])[1]||'';
-    return {topic,summary,condition,action,practical:String(practical).trim(),raw:fallback};
+    const practical=pick('trainingimplication','trainerapplication','application');
+    const priority=String(fields.priority||'').toLowerCase();
+    return {topic,summary,condition,action,practical,priority,raw:fallback};
+  }
+  /* Reguła STOP / skierowania: stosuje się ją zawsze, nie „testuje” przez kilka tygodni. */
+  function isSafetyRule(part,source){
+    if(/stop|warning|blocking|consult|critical|high/.test(part.priority))return true;
+    if(source&&(source.section==='safetyRules'||source.section==='specialPopulationRules'))return true;
+    return /przerwij|przerwać|skieruj|skierować|wezwij|lekarz|fizjoterapeut|przeciwwskaz|unikaj|zakaz|natychmiast/i.test(part.action+' '+part.summary);
+  }
+  /* Tematy, przy których nad kartami zawsze pokazujemy blok „Najpierw bezpieczeństwo”. */
+  const SAFETY_TOPICS=[
+    {id:'pain',rx:/\bbol|\buraz|\bkontuz|\bdretw|\bmrowi|\bdyskopat|\bprzepuklin|\brwa\b|\bnaderw|\bskrec|\bzwichn|\bobrzek|\bpain\b|\binjur/},
+    {id:'pregnancy',rx:/\bciaz|\bciezarn|\btrymestr|\bpolog|\bpoporod|\bpregnan/},
+    {id:'medical',rx:/nadcisn|\bcisnieni|\bserc|\bzawal|\budar|\bcukrzyc|\binsulin|\bglikem|\bhipoglik|\bomdl|\bzawrot|\bduszno|\bastm|\bkolatani/},
+    {id:'reds',rx:/miesiacz|\bred-?s\b|niedobor energ|\banoreks|\bbulimi|zaburzeni\w* odzyw|\bwymiot|\bprzeczyszcz|\bdysmorfi/}
+  ];
+  function safetyTopics(query){const q=norm(query);return q?SAFETY_TOPICS.filter(t=>t.rx.test(q)).map(t=>t.id):[];}
+  const SAFETY_BLOCKS={
+    pain:{title:'Ból lub uraz',items:[
+      ['Przerwij trening i wezwij pomoc medyczną','ból lub ucisk w klatce piersiowej (także promieniujący do ręki, szyi, żuchwy lub pleców), duszność, nudności, zlewne poty w trakcie wysiłku.'],
+      ['Nie zaczynaj ćwiczeń i skieruj do lekarza','ból stały, nocny lub niezwiązany z ruchem; gorączka; szybka, niewyjaśniona utrata masy ciała; niedawny ciężki uraz lub nowa deformacja; ostry ból promieniujący wzdłuż nogi, drętwienie lub osłabienie; ból przy kaszlu lub parciu; utrata czucia w okolicy krocza; zmiana oddawania moczu lub stolca. Kieruj też, gdy stan się pogarsza albo klient jest zaniepokojony.'],
+      ['Bez tych objawów','nie wykonuj ćwiczenia w formie, która boli. Zmień pozycję, obciążenie, zakres, tempo lub wariant aż do braku bólu, potem stopniowo wracaj do pierwotnego ćwiczenia. Pytanie „czy boli?” ma odpowiedź tak albo nie: „trochę” i „tylko na końcu” znaczą „tak”.'],
+      ['Skieruj do fizjoterapeuty lub lekarza','gdy ból narasta albo utrzymuje się mimo zmian, pojawia się obrzęk, staw się blokuje lub „ucieka”. Do tego czasu nie programuj obciążenia tej okolicy.'],
+      ['Nie diagnozuj','nie nazywaj przyczyny bólu. Opisz klientowi, co widzisz, i zaproponuj konsultację.']
+    ],sources:['Crossley, Ćwiczenia funkcjonalne i rehabilitacja, s. 181–190, 217–220 (źródło)','Boyle, Advances in Functional Training, reguła P19 „czy boli? tak/nie” (źródło)','Thompson, Understanding Anatomy & Physiology, s. 281: objawy przerwania wysiłku (źródło)','Blokowanie lub „uciekanie” kolana: reguła ostrożności Progress Live (poza źródłem)']},
+    pregnancy:{title:'Ciąża',items:[
+      ['Zanim zaczniesz','trening w ciąży wymaga zgody lekarza prowadzącego. Przeciwwskazania bezwzględne i względne (m.in. niekontrolowane nadciśnienie, stan przedrzucawkowy, krwawienie w II–III trymestrze, ryzyko porodu przedwczesnego) ocenia lekarz.'],
+      ['Przerwij trening i skieruj do lekarza, gdy wystąpi','krwawienie z dróg rodnych, ból brzucha, regularne bolesne skurcze, wyciek płynu owodniowego, duszność przed wysiłkiem, zawroty głowy, ból głowy, ból w klatce piersiowej, osłabienie mięśni zaburzające równowagę, ból lub obrzęk łydki.'],
+      ['Jak trenować','obciążenie pozwalające na 12–15 powtórzeń; unikaj długich skurczów izometrycznych i długiego stania bez ruchu. Po I trymestrze bez ćwiczeń w leżeniu na plecach: zamień je na leżenie bokiem, klęk podparty lub wyciskanie na maszynie w siadzie. Intensywność dobieraj według odczuć (skala RPE lub OMNI-RES), bez testów maksymalnych.']
+    ],sources:['NSCA’s Essentials of Personal Training, 3rd ed. (red. Schoenfeld, Snarr), rozdz. 18, s. 510–512 (źródło)']},
+    medical:{title:'Choroba serca, nadciśnienie, cukrzyca',items:[
+      ['Przerwij trening i wezwij pomoc medyczną','ból lub ucisk w klatce piersiowej, duszność nieproporcjonalna do wysiłku, omdlenie, zlewne poty w trakcie wysiłku.'],
+      ['Przed startem','przy znanej chorobie sercowo-naczyniowej, metabolicznej lub oddechowej potrzebna jest kwalifikacja i zgoda lekarza. Taki klient nie wstrzymuje oddechu w serii: wydech w fazie wysiłku.'],
+      ['Nadciśnienie','mierz ciśnienie przed treningiem, w szczycie wysiłku i po schłodzeniu. Przerwij trening przy ciśnieniu skurczowym 220 mmHg lub rozkurczowym 105 mmHg. Progresja stopniowa, umiarkowana intensywność, dłuższe schłodzenie.'],
+      ['Cukrzyca','glukoza przed treningiem poniżej 100 mg/dl: przekąska węglowodanowa przed wysiłkiem. Poniżej 70 mg/dl lub objawy hipoglikemii: 15 g węglowodanów, pomiar po ok. 15 min, powtarzaj do wyniku powyżej 70 mg/dl; rozważ wezwanie pomocy. Powyżej 300 mg/dl bez ketonów: zachowaj ostrożność.']
+    ],sources:['NSCA’s Essentials of Personal Training, 3rd ed. (red. Schoenfeld, Snarr), s. 325 (wstrzymywanie oddechu), s. 538–539 (cukrzyca), s. 552 (nadciśnienie) (źródło)','Thompson, Understanding Anatomy & Physiology, s. 281 (źródło)']},
+    reds:{title:'Sygnały niedoboru energii (RED-S) lub zaburzeń odżywiania',items:[
+      ['To sygnał alarmowy, nie temat do planowania','brak lub zaburzenia miesiączki, utrata co najmniej 10% masy ciała w miesiąc, BMI ≤17,5, stałe zmęczenie, częste infekcje, kontuzje lub złamania zmęczeniowe, objawy zaburzeń odżywiania. Dotyczy kobiet i mężczyzn.'],
+      ['Co zrobić','nie zaostrzaj redukcji ani cardio. Porozmawiaj spokojnie i bez oceniania. Zaproponuj konsultację z lekarzem i dietetykiem, a przy podejrzeniu zaburzeń odżywiania także z psychologiem. Dalszy plan prowadź w porozumieniu ze specjalistą.'],
+      ['Czego nie robić','nie diagnozuj, nie licz samodzielnie dostępności energii i nie układaj diety leczniczej.']
+    ],sources:['Dietetyka sportowa (e-book), rozdz. 2, s. 22–35 oraz s. 590 (źródło)','NSCA’s Essentials of Personal Training, 3rd ed. (red. Schoenfeld, Snarr), s. 110–111 (źródło)','J. i K. Mizera, Dietetyka sportowa, s. 86–87 (źródło)']}
+  };
+  function safetyPanel(topics){
+    if(!topics.length)return '';
+    return `<section class="academy-safety" role="note" aria-label="Najpierw bezpieczeństwo"><h3>Najpierw bezpieczeństwo</h3><p class="academy-safety-lead">To pytanie dotyczy zdrowia klienta. Zanim przeczytasz karty z książek, sprawdź poniższe sygnały. Academy nie stawia diagnozy i nie zastępuje lekarza ani fizjoterapeuty.</p>${topics.map(id=>{const b=SAFETY_BLOCKS[id];return `<div class="academy-safety-block"><b>${esc(b.title)}</b><ul>${b.items.map(([head,body])=>`<li><strong>${esc(head)}:</strong> ${esc(body)}</li>`).join('')}</ul><small>Źródło: ${b.sources.map(esc).join(' · ')}</small></div>`;}).join('')}</section>`;
   }
   function norm(s){return String(s||'').toLocaleLowerCase('pl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l');}
-  function studyWhy(part){
+  function studyWhy(part,source){
+    if(isSafetyRule(part,source))return `To reguła bezpieczeństwa. Stosujesz ją zawsze, gdy pojawi się opisany sygnał, bez czekania na efekty. Jeśli każe przerwać trening albo skierować klienta do lekarza lub fizjoterapeuty, zrób to przed jakąkolwiek zmianą planu.`;
     if(part.practical)return part.practical;
     if(part.condition&&part.action)return `To nie jest zasada „zawsze”. Warunek (${part.condition}) wyznacza moment decyzji; dopiero wtedy stosujesz wskazaną zmianę. Dzięki temu nie kopiujesz rozwiązania na klienta o innym celu, stażu lub regeneracji.`;
     return `Traktuj tę regułę jako wskazówkę do sprawdzenia, a nie gotową receptę. Zestaw ją z celem klienta, jakością techniki, RIR oraz tym, czy progres jest utrzymywany.`;
@@ -101,6 +176,7 @@
     return out.length?{label:targets.label,items:out}:null;
   }
   function practicePanel(query,sources){
+    if(safetyTopics(query).length)return `<aside class="academy-practice-panel"><h3>Jak wyciągnąć wniosek dla klienta</h3><ol><li>Najpierw sprawdź sygnały z bloku „Najpierw bezpieczeństwo”. Jeśli któryś występuje, nie zmieniaj planu, tylko przerwij trening albo skieruj klienta do specjalisty.</li><li>Bez tych sygnałów zmieniaj tylko ćwiczenie, które boli lub budzi wątpliwość, i obserwuj objawy z sesji na sesję.</li><li>Nie zwiększaj obciążenia tej okolicy, dopóki objawy nie ustąpią albo specjalista nie da zgody.</li></ol></aside>`;
     const ex=studyExercises(query);
     const evidence=sources.flatMap(s=>studyEvidence(query,s)).filter((x,i,a)=>a.findIndex(y=>y.title===x.title)===i).slice(0,2);
     const exercises=ex?`<section class="academy-practice-block"><b>Przykład doboru ćwiczeń: ${esc(ex.label)}</b><p>Nie ma jednego „najlepszego” ruchu. Wybierz wariant bez bólu, który klient potrafi stabilnie progresować. Biblioteka sugeruje:</p><ul>${ex.items.map(item=>`<li><strong>${esc(item.name)}</strong><span>${esc(item.tip||item.muscle||'Sprawdź wykonanie w bibliotece ćwiczeń.')}</span></li>`).join('')}</ul></section>`:`<section class="academy-practice-block"><b>Przełóż wiedzę na plan</b><p>Podaj też partię, np. „hipertrofia najszerszego grzbietu” albo „objętość klatki”. Academy dobierze wtedy przykłady ćwiczeń z Twojej biblioteki.</p></section>`;
@@ -109,20 +185,26 @@
   }
   function studyCard(source){
     const part=studyParts(source.text);
-    const conclusion=part.action
+    const safety=isSafetyRule(part,source);
+    const conclusion=safety&&part.action
+      ?`Wniosek dla praktyki: ${part.action}`
+      :part.action
       ?`Wniosek dla praktyki: gdy ${part.condition||'pojawia się opisany sygnał'}, ${part.action.charAt(0).toLowerCase()+part.action.slice(1)}`
       :`Wniosek dla praktyki: sprawdź tę zasadę w kontekście celu, stażu i regeneracji klienta przed wpisaniem jej do planu.`;
-    const recall=part.action
+    const recall=safety
+      ?`Jaki objaw u klienta uruchamia tę regułę i co robisz od razu?`
+      :part.action
       ?`Jaki sygnał u klienta uruchamia tę decyzję i co konkretnie zmienisz w planie?`
       :`Jak wyjaśnisz tę zasadę własnymi słowami i gdzie wykorzystasz ją w najbliższym planie?`;
-    return `<article class="academy-learning-card"><span>${esc(source.status||'źródło')}</span><h3>${esc(part.topic)}</h3><div class="academy-source-cite">Źródło: ${esc(source.cite||'Baza wiedzy')}</div><section class="academy-study-section"><b>Sedno zasady</b><p>${esc(part.summary)}</p></section>${part.condition?`<section class="academy-study-section"><b>Kiedy jej użyć</b><p>${esc(part.condition)}</p></section>`:''}${part.action?`<section class="academy-study-section academy-study-action"><b>Co zrobić</b><p>${esc(part.action)}</p></section>`:''}<section class="academy-study-section academy-study-why"><b>Dlaczego</b><p>${esc(studyWhy(part))}</p></section><section class="academy-conclusion"><b>Wniosek</b><p>${esc(conclusion)}</p></section><div class="academy-recall"><b>Sprawdź, czy rozumiesz</b><span>${esc(recall)}</span></div><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
+    return `<article class="academy-learning-card${safety?' is-safety':''}"><span>${esc(safety?'reguła bezpieczeństwa · '+(source.status||'źródło'):(source.status||'źródło'))}</span><h3>${esc(part.topic)}</h3><div class="academy-source-cite">Źródło: ${esc(source.cite||'Baza wiedzy')}</div><section class="academy-study-section"><b>Sedno zasady</b><p>${esc(part.summary)}</p></section>${part.condition?`<section class="academy-study-section"><b>Kiedy jej użyć</b><p>${esc(part.condition)}</p></section>`:''}${part.action?`<section class="academy-study-section academy-study-action"><b>Co zrobić</b><p>${esc(part.action)}</p></section>`:''}<section class="academy-study-section academy-study-why"><b>Dlaczego</b><p>${esc(studyWhy(part,source))}</p></section><section class="academy-conclusion"><b>Wniosek</b><p>${esc(conclusion)}</p></section><div class="academy-recall"><b>Sprawdź, czy rozumiesz</b><span>${esc(recall)}</span></div><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
   }
   function learn(){
     const selected=bookById(state.selectedBookId);
     const q=state.question.trim();
     const sources=selected?[{text:selected.text,book:selected.id,cite:(selected.bookAuthor?selected.bookAuthor+' — ':'')+selected.title,status:'moja notatka'}]:learningSources();
     const hasNotes=userBooks().some(b=>b.useInLearning!==false&&b.text);
-    const sourceHtml=sources.length?`<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>${practicePanel(q,sources)}`:`<div class="academy-empty">${hasNotes?'Nie znaleziono notatek pasujących do pytania. Zmień sformułowanie lub dodaj syntezę do książki.':'Najpierw dodaj książkę wraz z własnymi notatkami. To z nich powstanie materiał do nauki.'}</div>`;
+    const safetyHtml=selected?'':safetyPanel(safetyTopics(q));
+    const sourceHtml=sources.length?`${safetyHtml}<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>${practicePanel(q,sources)}`:`${safetyHtml}<div class="academy-empty">${hasNotes?'Nie znaleziono notatek pasujących do pytania. Zmień sformułowanie lub dodaj syntezę do książki.':'Najpierw dodaj książkę wraz z własnymi notatkami. To z nich powstanie materiał do nauki.'}</div>`;
     return `<section class="academy-learn"><div class="academy-learn-intro"><span class="academy-eyebrow">Nauka oparta na źródłach</span><h2>Zapytaj swoje notatki i źródła Academy.</h2><p>Odpowiedzi pokazują, z której książki lub notatki pochodzą. To materiał edukacyjny, nie porada medyczna.</p></div>${selected?`<div class="academy-selected-book"><span>Uczysz się z: <b>${esc(selected.title)}</b></span><button class="btn btn-ghost btn-sm" type="button" onclick="academyClearSelectedBook()">Wróć do wszystkich źródeł</button></div>`:''}<form class="academy-question" onsubmit="academyAskBooks(event)"><label class="form-lbl" for="academy-question">Pytanie lub temat do powtórki</label><div><input id="academy-question" class="form-input" value="${esc(q)}" placeholder="np. hipertrofia klatki, białko na redukcji, RIR" maxlength="240" autocomplete="off"><button class="btn btn-primary" type="submit">Szukaj materiału</button></div></form>${!q&&!selected?`<div class="academy-empty">Wpisz temat, aby połączyć Twoje notatki ze źródłami Academy.</div>`:sourceHtml}</section>`;
   }
   function render(){const root=document.getElementById('screen-academy');if(!root)return;const body=state.level==='quick'?quick():state.level==='guide'?guide():state.level==='context'?context():state.level==='books'?books():learn();root.innerHTML=`<div class="topbar"><div><div class="topbar-title">Progress Academy</div><div class="academy-subtitle">Metodyka planowania i nauka na podstawie własnych źródeł</div></div></div><main class="content academy-content"><header class="academy-hero"><span class="academy-eyebrow">Dla trenera</span><h1>Decyzje treningowe, krok po kroku.</h1><p>Szybka odpowiedź, przewodnik, analiza planu i nauka z książek.</p></header>${tabs()}<div class="academy-panel">${body}</div></main>`;}
