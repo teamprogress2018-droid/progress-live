@@ -66,6 +66,11 @@
   /* Klucze pól z knowledge/books-index.json; fragment bez znanego klucza należy do poprzedniego pola. */
   const STUDY_KEYS=new Set(['rule','zasada','category','then','if','trigger','warunek','action','działanie','dzialanie','priority','title','titlepl','name','namepl','nameoriginal','law','lawpl','topic','group','appliesto','equipment','exercises','level','note','notes','limitations','goal','values','value','purpose','muscle','muscles','muscleslatin','musclelatin','reps','sets','rest','tempo','rir','rpe','rirrpe','summary','techniques','conditions','part','traineruse','reliability','pattern','days','daysperweek','pages','printpage','trainingimplication','trainerapplication','appapplication','appuse','application','phase','layout','key','progression','spacing','numbers','evidence','servings','type','layer','movement','movementpatterns','frequency','basedon','resolution','functions','jointactions','origin','insertion','deload','lines','audience','detail','intensity','unit','uncertainty','missinginsource','planlength','examples','strengths','weaknesses','howtoconnect','contraindications','referto','n','g','id','source','status']);
   const SAFETY_SKIP_SECTIONS=new Set(['progressionRules','planTemplates','methodSteps','sessionStructureRules']);
+  function lowerFirst(v){const t=String(v||'').trim();return t&&!/^[A-ZĄĆĘŁŃÓŚŹŻ]{2}/.test(t)?t.charAt(0).toLocaleLowerCase('pl')+t.slice(1):t;}
+  /* Statusy z knowledge/books-index.json opisane słowami trenera. */
+  const STATUS_TEXT={zrodlo:'z książki',wniosek:'wniosek z książki',poza_zrodlem:'reguła ostrożności Progress Live'};
+  const STATUS_HINT={zrodlo:'Reguła opisana w książce.',wniosek:'Wniosek wyciągnięty z treści książki; w książce nie jest podany wprost.',poza_zrodlem:'Reguła ostrożności dodana w Progress Live; książka jej nie podaje.','moja notatka':'Twoja notatka z książki.'};
+  function statusText(s){return STATUS_TEXT[s]||s||'źródło';}
   function emptyValue(v){return /^(\{\s*\}|\[\s*\]|null|undefined|-|—)?$/i.test(String(v==null?'':v).trim());}
   function cleanValue(v){return String(v||'').replace(/^\{?text:\s*/i,'').replace(/\}\s*$/,'').trim();}
   function studyParts(text){
@@ -90,14 +95,23 @@
     });
     const pick=(...keys)=>keys.map(key=>fields[key]).find(Boolean)||'';
     const rule=pick('rule','zasada','_lead');
-    const condition=pick('if','trigger','warunek');
+    const condition=pick('if','trigger','warunek','conditions');
     const action=pick('then','action','działanie','dzialanie');
-    const topic=pick('titlepl','lawpl','namepl','topic','title','name','category','group')||'Zasada do zastosowania';
+    const named=pick('titlepl','lawpl','namepl','topic','title','name','category','group').replace(/_/g,' ');
+    /* Kategoria „reguła” nic nie mówi: tytułem zostaje warunek albo początek reguły. */
+    const generic=!named||/^(reguła|regula|zasada|rule|ogólne|inne)$/i.test(named);
+    const head=generic?(condition||rule||''):named;
+    const topic=head?(head.length>80?head.slice(0,77).trim()+'…':head.charAt(0).toLocaleUpperCase('pl')+head.slice(1)):'Zasada do zastosowania';
     const fallback=kept.join('; ').replace(/\s+/g,' ').trim();
-    const summary=rule||((condition&&action)?'Dopasuj decyzję do warunku klienta, zamiast stosować jedną regułę dla wszystkich.':fallback.substring(0,360));
-    const practical=pick('trainingimplication','trainerapplication','application');
+    /* Bez pola rule sednem jest sam warunek i decyzja, a nie ogólna formułka. */
+    const paired=!rule&&!!(condition&&action);
+    const summary=rule||(paired?`Gdy ${lowerFirst(condition)} – ${lowerFirst(action)}`:fallback.substring(0,360));
+    const practical=pick('trainingimplication','trainerapplication','application','traineruse');
+    const forWhom=[pick('appliesto','audience'),pick('level'),pick('goal')].filter(Boolean).join('; ');
+    const caveat=pick('limitations','note','notes');
+    const example=pick('examples','exercises');
     const priority=String(fields.priority||'').toLowerCase();
-    return {topic,summary,condition,action,practical,priority,raw:fallback};
+    return {topic,summary,paired,condition,action,practical,forWhom,caveat,example,priority,raw:fallback};
   }
   /* Reguła STOP / skierowania: stosuje się ją zawsze, nie „testuje” przez kilka tygodni. */
   function isSafetyRule(part,source){
@@ -146,8 +160,9 @@
   function studyWhy(part,source){
     if(isSafetyRule(part,source))return `To reguła bezpieczeństwa. Stosujesz ją zawsze, gdy pojawi się opisany sygnał, bez czekania na efekty. Jeśli każe przerwać trening albo skierować klienta do lekarza lub fizjoterapeuty, zrób to przed jakąkolwiek zmianą planu.`;
     if(part.practical)return part.practical;
-    if(part.condition&&part.action)return `To nie jest zasada „zawsze”. Warunek (${part.condition}) wyznacza moment decyzji; dopiero wtedy stosujesz wskazaną zmianę. Dzięki temu nie kopiujesz rozwiązania na klienta o innym celu, stażu lub regeneracji.`;
-    return `Traktuj tę regułę jako wskazówkę do sprawdzenia, a nie gotową receptę. Zestaw ją z celem klienta, jakością techniki, RIR oraz tym, czy progres jest utrzymywany.`;
+    if(source&&source.status==='poza_zrodlem')return `Książka nie podaje tej reguły. Progress Live dodaje ją jako margines ostrożności, więc stosuj ją, dopóki lekarz, fizjoterapeuta lub aktualne wytyczne nie mówią inaczej.`;
+    if(source&&source.status==='moja notatka')return `Notatka nie podaje uzasadnienia. Dopisz je w polu „trainingImplication: …”, a pojawi się tutaj.`;
+    return `Zapis tej reguły w bazie nie podaje uzasadnienia. Zanim wyjaśnisz ją klientowi, przeczytaj fragment książki ze strony podanej w źródle.`;
   }
   function studyEvidence(query,source){
     const all=window.BUILTIN_PLANNING_EVIDENCE||[];
@@ -186,17 +201,16 @@
   function studyCard(source){
     const part=studyParts(source.text);
     const safety=isSafetyRule(part,source);
-    const conclusion=safety&&part.action
-      ?`Wniosek dla praktyki: ${part.action}`
-      :part.action
-      ?`Wniosek dla praktyki: gdy ${part.condition||'pojawia się opisany sygnał'}, ${part.action.charAt(0).toLowerCase()+part.action.slice(1)}`
-      :`Wniosek dla praktyki: sprawdź tę zasadę w kontekście celu, stażu i regeneracji klienta przed wpisaniem jej do planu.`;
     const recall=safety
-      ?`Jaki objaw u klienta uruchamia tę regułę i co robisz od razu?`
-      :part.action
-      ?`Jaki sygnał u klienta uruchamia tę decyzję i co konkretnie zmienisz w planie?`
-      :`Jak wyjaśnisz tę zasadę własnymi słowami i gdzie wykorzystasz ją w najbliższym planie?`;
-    return `<article class="academy-learning-card${safety?' is-safety':''}"><span>${esc(safety?'reguła bezpieczeństwa · '+(source.status||'źródło'):(source.status||'źródło'))}</span><h3>${esc(part.topic)}</h3><div class="academy-source-cite">Źródło: ${esc(source.cite||'Baza wiedzy')}</div><section class="academy-study-section"><b>Sedno zasady</b><p>${esc(part.summary)}</p></section>${part.condition?`<section class="academy-study-section"><b>Kiedy jej użyć</b><p>${esc(part.condition)}</p></section>`:''}${part.action?`<section class="academy-study-section academy-study-action"><b>Co zrobić</b><p>${esc(part.action)}</p></section>`:''}<section class="academy-study-section academy-study-why"><b>Dlaczego</b><p>${esc(studyWhy(part,source))}</p></section><section class="academy-conclusion"><b>Wniosek</b><p>${esc(conclusion)}</p></section><div class="academy-recall"><b>Sprawdź, czy rozumiesz</b><span>${esc(recall)}</span></div><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
+      ?{q:'Jaki sygnał u klienta uruchamia tę regułę i co robisz od razu?',a:part.condition&&part.action?`${part.condition}: ${part.action}`:part.summary}
+      :part.condition&&part.action
+      ?{q:`Co robisz, gdy ${lowerFirst(part.condition)}?`,a:part.action}
+      :{q:'Jak streścisz tę zasadę jednym zdaniem i u którego klienta jej użyjesz?',a:part.summary+(part.forWhom?` Dotyczy: ${part.forWhom}.`:'')};
+    const sec=(label,body,cls)=>body?`<section class="academy-study-section${cls?' '+cls:''}"><b>${label}</b><p>${esc(body)}</p></section>`:'';
+    const label=(safety?'reguła bezpieczeństwa · ':'')+statusText(source.status);
+    const hint=STATUS_HINT[source.status]||'';
+    /* Układ karty: Sedno → Dlaczego → Dla kogo → Kiedy użyć → Co zrobić → Przykład → Źródło → Pytanie sprawdzające. */
+    return `<article class="academy-learning-card${safety?' is-safety':''}"><span>${esc(label)}</span><h3>${esc(part.topic)}</h3>${sec('Sedno zasady',part.summary)}${sec('Dlaczego',studyWhy(part,source),'academy-study-why')}${sec('Dla kogo',part.forWhom)}${part.paired?'':sec('Kiedy użyć',part.condition)}${part.paired?'':sec('Co zrobić',part.action,'academy-study-action')}${sec('Ograniczenia',part.caveat)}${sec('Przykład',part.example)}<div class="academy-source-cite"><b>Źródło:</b> ${esc(source.cite||'Baza wiedzy')}${hint?` <span>${esc(hint)}</span>`:''}</div><details class="academy-recall"><summary><b>Pytanie sprawdzające</b>${esc(recall.q)}</summary><p>${esc(recall.a)}</p></details><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
   }
   function learn(){
     const selected=bookById(state.selectedBookId);
