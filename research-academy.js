@@ -132,7 +132,7 @@
       const k=t+n;
       if(!known.has(k))return '';
       return t==='S'?`<a class="research-ref" href="#research-src-${k}" title="Źródło ${k}">${k}</a>`:`<span class="research-ref research-ref-book" title="Reguła z książki ${k}">${k}</span>`;
-    }).replace(/\s+([.,;])/g,'$1');
+    }).replace(/\s*\[\?\]/g,' <span class="research-check" title="Kontrola AI: źródło potwierdza to zdanie tylko częściowo. Sprawdź w karcie.">do sprawdzenia</span>').replace(/\s+([.,;])/g,'$1');
   }
 
   function metaLine(s){
@@ -170,6 +170,23 @@
   }
 
   /** Odpowiedź Academy w 8 częściach (+ tryb „Porównaj źródła”). */
+  const CONFLICT_LABEL={nowsze_badania:'Nowsze badania mają mocniejsze dowody',zalezy_od_kontekstu:'Zależy od kontekstu — obie strony mogą mieć rację',nierozstrzygniete:'Nierozstrzygnięte'};
+  /** Sekcja tylko wtedy, gdy AI wskazało sprzeczność popartą i [K#], i [S#] (sprawdza research-answer.js). */
+  function conflictsHtml(list,r){
+    if(!Array.isArray(list)||!list.length)return '';
+    return `<section class="research-conflicts" aria-label="Książka mówi co innego niż badania"><b>Książka mówi co innego niż badania</b>${list.map(c=>`<div class="research-conflict"><p class="research-conflict-topic">${esc(c.temat)} <span class="research-pill">${esc(CONFLICT_LABEL[c.ocena]||CONFLICT_LABEL.nierozstrzygniete)}</span></p><p><span class="research-conflict-side">Książka:</span> ${r(c.ksiazka)}</p><p><span class="research-conflict-side">Badania:</span> ${r(c.badania)}</p></div>`).join('')}</section>`;
+  }
+  /** Wynik samokontroli odpowiedzi (drugi przebieg AI). Starsze odpowiedzi bez kontroli nie mają notki. */
+  function checkNote(a){
+    if(a.sprawdzone===true){
+      const parts=['Każde zdanie z wnioskiem sprawdzone z kartami.'];
+      if(a.usunieteZdania)parts.push(`Usunięto ${a.usunieteZdania} niepotwierdzon${a.usunieteZdania===1?'e zdanie':'ych zdań'}.`);
+      if(a.doSprawdzenia)parts.push('Zdania z oznaczeniem „do sprawdzenia” źródło potwierdza tylko częściowo.');
+      return `<p class="research-check-note">${esc(parts.join(' '))}</p>`;
+    }
+    if(a.sprawdzone===false)return `<p class="research-check-note research-check-warn">Automatyczna kontrola zdań nie powiodła się. Czytaj tę odpowiedź razem z kartami badań.</p>`;
+    return '';
+  }
   function renderAnswer(answer,studies){
     if(!answer)return '';
     const keyed={};(answer.sources&&answer.sources.S||[]).forEach((id,i)=>{if(studies[id])keyed['S'+(i+1)]=studies[id];});
@@ -196,6 +213,8 @@
         <li><b>Książka a nowsze badania</b><p>${r(answer.ksiazkaVsBadania||'Brak reguły w bazie książek.')}</p></li>
         ${answer.pytanie?`<li><b>Pytanie kontrolne</b><details class="research-quiz"><summary>${esc(answer.pytanie.q)}</summary><p>${r(answer.pytanie.a)}</p></details></li>`:''}
       </ol>
+      ${conflictsHtml(answer.sprzecznosci,r)}
+      ${checkNote(answer)}
       <div class="research-answer-foot"><button type="button" class="btn btn-ghost btn-sm" aria-pressed="${state.compare}" onclick="academyResearchCompare()">${state.compare?'Ukryj porównanie':'Porównaj źródła'}</button><small>Opracowanie abstraktów i reguł z książek, nie pełnych tekstów. Nie zastępuje oceny klienta ani konsultacji medycznej.</small></div>
       ${compare}
     </section>`;
@@ -361,7 +380,7 @@
   }
 
   /* ── Odpowiedź AI dla pytania spoza opracowanych (proxy aplikacji, bez kluczy w przeglądarce) ── */
-  const AI_CACHE_KEY='pl_research_ai_v1';
+  const AI_CACHE_KEY='pl_research_ai_v2';
   const AI_TTL_MS=7*24*3600*1000;
   const aiMemory=new Map();
   function strHash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
@@ -375,6 +394,20 @@
     try{const all=JSON.parse(root.localStorage.getItem(AI_CACHE_KEY)||'{}');all[key]={at:Date.now(),answer};const keys=Object.keys(all).sort((a,b)=>all[b].at-all[a].at).slice(0,40);const keep={};keys.forEach(k=>keep[k]=all[k]);root.localStorage.setItem(AI_CACHE_KEY,JSON.stringify(keep));}catch(e){}
   }
   function proxyUrl(){try{if(typeof W==='string'&&W)return W;}catch(e){}return 'https://anthropic-proxy.teamprogress2018.workers.dev/';}
+  /** Samokontrola odpowiedzi na żywo: drugi przebieg AI ocenia każde zdanie; błąd kontroli nie blokuje odpowiedzi. */
+  async function verifyLive(RA,answer,studies,books){
+    if(!answer)return answer;
+    const v=RA.buildVerifyPrompt(answer,studies,books);
+    const ctrl=typeof AbortController==='function'?new AbortController():null;
+    const timer=ctrl?setTimeout(()=>ctrl.abort(),30000):null;
+    try{
+      const r=await root.fetch(proxyUrl(),{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl?ctrl.signal:undefined,body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:RA.VERIFY_SYSTEM,messages:[{role:'user',content:v.prompt}]})});
+      if(!r.ok)return Object.assign(answer,{sprawdzone:false});
+      const data=await r.json();
+      return RA.applyVerification(answer,(data.content||[]).map(b=>b&&b.type==='text'?b.text:'').join(''),v.items);
+    }catch(e){return Object.assign(answer,{sprawdzone:false});}
+    finally{if(timer)clearTimeout(timer);}
+  }
   async function aiAnswer(question,studies){
     const RA=root.ResearchAnswer;
     if(!RA)throw new Error('Moduł odpowiedzi nie jest wczytany.');
@@ -399,7 +432,7 @@
     if(!r.ok)throw new Error('AI chwilowo niedostępne.');
     const data=await r.json();
     const text=(data.content||[]).map(b=>b&&b.type==='text'?b.text:'').join('');
-    const answer=RA.capAnswerCertainty(RA.validateAnswer(text,studyKeys,bookKeys),Object.fromEntries(usable.map((s,i)=>[studyKeys[i],s])));
+    const answer=RA.capAnswerCertainty(await verifyLive(RA,RA.validateAnswer(text,studyKeys,bookKeys),usable,books),Object.fromEntries(usable.map((s,i)=>[studyKeys[i],s])));
     if(!answer)throw new Error('AI nie oparło odpowiedzi na źródłach, więc jej nie pokazujemy. Skorzystaj z kart poniżej.');
     answer.sources={S:usable.map(s=>s.pmid),K:books.map(b=>({cite:b.cite,status:b.status,text:String(b.text||'').slice(0,400)}))};
     answer.live=true;
