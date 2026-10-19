@@ -152,7 +152,7 @@
     const cert=y?y.pewnosc:'brak';
     const body=y
       ?section('Co zbadano?',esc(y.coZbadano))+section('Co znaleziono?',esc(y.coZnaleziono))+section('Co to oznacza dla trenera?',esc(y.dlaTrenera||'Źródło nie daje praktycznego wniosku.'))+section('Czego to badanie nie dowodzi?',esc(y.czegoNieDowodzi||'Abstrakt nie opisuje ograniczeń — sprawdź pełny tekst.'))
-      :`<p class="research-nosynth">Brak opracowania: PubMed nie udostępnia abstraktu tej publikacji. Pokazujemy tylko metadane — przeczytaj źródło, zanim wyciągniesz wnioski.</p>`;
+      :`<p class="research-nosynth">${s.hasAbstract===false?'Brak opracowania: PubMed nie udostępnia abstraktu tej publikacji.':'Ta karta nie ma jeszcze opracowania.'} Pokazujemy tylko metadane i link — przeczytaj źródło, zanim wyciągniesz wnioski.</p>`;
     return `<article class="research-card" id="research-src-${esc(key||'')}">
       <div class="research-card-pills">${key?`<span class="research-key">${esc(key)}</span>`:''}<span class="research-pill research-ev-${esc(s.evidence)}">${esc(EVIDENCE_LABEL[s.evidence]||s.evidenceLabel||'Badanie')}</span>${y?`<span class="research-pill research-cert-${esc(cert)}">${esc(CERTAINTY_LABEL[cert])}</span><span class="research-pill">Użyteczność: ${esc(USEFULNESS_LABEL[y.uzytecznosc]||'—')}</span>`:''}${s.openAccess?'<span class="research-pill research-oa">Otwarty dostęp</span>':''}</div>
       <h3>${esc(y&&y.titlePl?y.titlePl:s.title)}</h3>
@@ -284,7 +284,8 @@
   }
 
   function resultsBlock(res){
-    const catLabel=res.categories.length?`<div class="research-detected">Rozpoznana kategoria: ${res.categories.slice(0,2).map(c=>`<b>${esc(c.label)}</b>`).join(', ')}</div>`:'';
+    const topCats=res.categories.filter(c=>c.score===res.categories[0].score).slice(0,2);
+    const catLabel=topCats.length?`<div class="research-detected">Rozpoznana kategoria: ${topCats.map(c=>`<b>${esc(c.label)}</b>`).join(', ')}</div>`:'';
     if(!res.studies.length){
       return catLabel+`<div class="research-state">Brak wyników w bazie badań dla tego pytania.${res.suggestions.length?' Może chodziło o:':' Spróbuj innych słów albo wybierz kategorię.'}</div>${res.suggestions.length?`<div class="academy-examples research-examples"><div>${res.suggestions.map(q=>`<button type="button" class="academy-chip" onclick='academyResearchAsk(${esc(JSON.stringify(q.q))})'>${esc(q.q)}</button>`).join('')}</div></div>`:''}`;
     }
