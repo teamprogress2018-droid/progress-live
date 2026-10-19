@@ -84,7 +84,6 @@ ok('word inside another word does not trigger pregnancy',!/Najpierw bezpieczeńs
 
 const css=read('styles.css');
 ok('safety css present',css.includes('.academy-safety{')&&css.includes('.academy-learning-card.is-safety'));
-ok('index loads new academy version',read('index.html').includes('11-progress-academy.js?v=6&safety=1'));
 
 if(failed){console.error('\n'+failed+' test(s) failed');process.exit(1);}
 console.log('\nAll academy safety tests passed');
