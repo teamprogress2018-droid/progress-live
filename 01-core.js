@@ -7375,16 +7375,16 @@ if(typeof document!=='undefined'&&document.documentElement){
 // bez live PubMed; cytowania to punkty startowe do dalszej nauki.
 // ════════════════════════════════════════
 const METHOD_WHY={
-  PPL:{label:'Push / Pull / Legs',why:'Dzieli ciało na wzorce push, pull i nogi — każda partia ~2×/tydzień przy 6 dniach (lub 1–2× przy 3–4 dniach). Dobrze skaluje objętość hipertrofii bez „bro-splitu” 1×/tydzień.',best:'4–6 dni/tydzień, masa i kształtowanie'},
-  FBW:{label:'Full Body (FBW)',why:'Całe ciało w każdej sesji → wysoka częstotliwość stymulacji (3×/tydzień na partie). Idealne przy 2–3 dniach i dla początkujących (adaptacja nerwowo-mięśniowa).',best:'2–3 dni/tydzień, nowicjusze, utrzymanie'},
+  PPL:{label:'Push / Pull / Legs',why:'Dzieli ciało na wzorce push, pull i nogi. Przy 6 dniach każda partia pracuje 2× w tygodniu, przy 3 dniach tylko 1×. Druga sesja na partię pomaga rozłożyć objętość, gdy wypada ponad ok. 10 serii tygodniowo.',best:'4–6 dni/tydzień, średnio zaawansowani i zaawansowani, masa'},
+  FBW:{label:'Full Body (FBW)',why:'Całe ciało w każdej sesji, więc każda partia pracuje 2–3× w tygodniu przy małej liczbie serii na sesję. Najprostszy start dla początkujących i dobry wybór przy 2–3 dniach.',best:'2–3 dni/tydzień, początkujący, utrzymanie'},
   'Upper Lower':{label:'Upper / Lower',why:'Góra i dół na przemian — zwykle 4 dni, każda partia 2×/tydzień. Kompromis między FBW a PPL: więcej objętości na sesję niż FBW, mniej dni niż pełne PPL 6×.',best:'3–4 dni/tydzień, masa lub siła'},
   UL:{label:'Upper / Lower',why:'Góra i dół na przemian — zwykle 4 dni, każda partia 2×/tydzień. Kompromis między FBW a PPL.',best:'3–4 dni/tydzień'},
-  Arnold:{label:'Arnold Split',why:'Klatka+plecy, barki+ramiona, nogi (×2) — wysoka objętość na partie sylwetkowe. Wymaga dobrej regeneracji i doświadczenia z objętością.',best:'5–6 dni, zaawansowani, hipertrofia'},
-  'Bro Split':{label:'Bro Split',why:'Jedna partia / dzień — wysoka objętość lokalna, ale niska częstotliwość (~1×/tydzień). Używaj świadomie; przy hipertrofii częściej lepsze 2×/tydzień.',best:'5–6 dni, zaawansowani z priorytetami'},
-  Smolov:{label:'Smolov (przysiad)',why:'Specjalizacja siłowa na przysiadzie — mikrocykl %1RM (T1–T4+), wysoka częstotliwość przysiadu, reszta ciała w utrzymaniu. Tylko dla zaawansowanych z solidną techniką przysiadu.',best:'4–8 tyg. cykl, cel siła/przysiad, zaawansowany'},
+  Arnold:{label:'Arnold Split',why:'Klatka+plecy, barki+ramiona, nogi (×2): duża objętość na partie sylwetkowe. Wymaga dobrej regeneracji i doświadczenia; pilnuj limitu ok. 10 serii na partię w jednej sesji.',best:'5–6 dni, zaawansowani, hipertrofia; nie dla początkujących'},
+  'Bro Split':{label:'Bro Split',why:'Jedna partia dziennie, każda ok. 1× w tygodniu. Przy tej samej liczbie serii daje podobny przyrost jak częstszy trening, ale cała objętość partii trafia do jednej sesji: powyżej ok. 10 serii na partię jakość kolejnych serii spada.',best:'5 dni, średnio zaawansowani i zaawansowani z umiarkowaną objętością na partię'},
+  Smolov:{label:'Smolov (przysiad)',why:'Specjalizacja siłowa na przysiadzie: wysoka częstotliwość przysiadu przy wysokim %1RM, reszta ciała w utrzymaniu. Tylko dla zaawansowanych z solidną techniką przysiadu i bez bólu kolan, bioder i pleców. Książki w bazie nie opisują tego programu, więc parametry sprawdź w źródle autora.',best:'cel siła/przysiad, zaawansowany'},
   '531':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach (przysiad, bench, deadlift, OHP) + asysty. Priorytet siły i długoterminowej progresji, nie maksymalnej objętości sylwetkowej.',best:'3–4 dni, cel siła'},
   '5/3/1':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach + asysty. Priorytet siły.',best:'3–4 dni, cel siła'},
-  Blokowa:{label:'Periodyzacja blokowa',why:'Bloki akumulacji → intensyfikacji → realizacji (+ deload). Objętość i intensywność nie rosną naraz — chroni przed stagnacją i przetrenowaniem.',best:'8–12+ tygodni, średni/zaawansowany'},
+  Blokowa:{label:'Periodyzacja blokowa',why:'Bloki akumulacji → intensyfikacji → realizacji (+ deload). Objętość i intensywność nie rosną naraz, a każdy blok ma jeden główny cel. Faza realizacji (szczyt formy) ma sens przed testem lub zawodami.',best:'8–12+ tygodni, zaawansowany'},
   Obwodowy:{label:'Trening obwodowy (circuit)',why:'Stacje / rundy z krótkimi przerwami (lub bez) — wysoka gęstość pracy, tętno i wydatek energetyczny. Dobry do kondycji, redukcji i ograniczonego czasu sesji; słabszy wybór pod maksymalne 1RM.',best:'2–4 dni, redukcja, kondycja, sesje 30–45 min'},
   Circuit:{label:'Trening obwodowy (circuit)',why:'Stacje / rundy z krótkimi przerwami — wysoka gęstość pracy i wydatek energetyczny. Dobry do kondycji i redukcji.',best:'2–4 dni, redukcja, kondycja'},
   Custom:{label:'Dostosowana',why:'Struktura pod klienta — uzasadnij częstotliwość partii (≥2×/tydzień przy hipertrofii) i objętość względem MEV/MAV.',best:'gdy sztywny split nie pasuje'},
@@ -7395,19 +7395,19 @@ const GOAL_WHY={
     label:'Budowa masy (hipertrofia)',
     sets:'3–4 serie robocze / ćwiczenie',
     reps:'złożone 6–10 · izolacje 8–15',
-    rpe:'RPE 7–9 (RIR 1–3)',
-    rest:'60–120 s (izolacje krócej, wielostawy dłużej)',
-    why:'Hipertrofia reaguje na tygodniową objętość blisko upadku. Celuj w MEV–MAV na partię; częstotliwość ≥2×/tydzień na główne partie.',
-    volume:'Klatka/plecy ~10–18 serii/tyg · barki ~12–20 · nogi ~12–20 · ramiona ~8–14'
+    rpe:'RIR wg stażu: początkujący 5→3, średni 5→1, zaawansowany 5→0 (upadek tylko okresowo)',
+    rest:'wielostawy ≥2–3 min, izolacje i maszyny 60–90 s',
+    why:'Hipertrofia rośnie z tygodniową liczbą serii wykonanych blisko upadku. Liczbę serii dobierz do stażu (tabela „Serie na partię wg stażu”); przy ponad ok. 10 seriach na partię tygodniowo rozłóż je na co najmniej 2 sesje.',
+    volume:'Wg stażu (tabela serii na partię); u trenujących zwykle 10–20 serii na mięsień tygodniowo, max ok. 10 w jednej sesji'
   },
   sila:{
     label:'Wzrost siły',
     sets:'3–6 serii / ćwiczenie główne',
     reps:'główne 1–6 · asysty 6–10',
-    rpe:'RPE 7–9 (ciężkie serie), zapas na technikę',
+    rpe:'RPE 7–9, bez upadku w bojach; początkujący: ciężar procentowo, RPE tylko notuj',
     rest:'2–5 min na wielostawach',
     why:'Siła wymaga wysokiej intensywności (%1RM) i pełnej regeneracji między seriami. Objętość niższa niż przy masie; priorytet: przysiad, wyciskanie, martwy, OHP.',
-    volume:'Główne ruchy 10–20 ciężkich serii/tyg łącznie · asysty umiarkowanie'
+    volume:'Początkujący 1–3 serie na ćwiczenie, średni i zaawansowani ≥3 serie; łącznie mniej serii niż przy masie'
   },
   redukcja:{
     label:'Redukcja (zachowanie mięśni)',
@@ -7415,8 +7415,8 @@ const GOAL_WHY={
     reps:'6–12 (utrzymaj ciężar, nie „cardio na siłowni”)',
     rpe:'RPE 7–8 — unikaj ciągłego RPE 10 przy deficycie',
     rest:'60–120 s',
-    why:'Przy deficycie kalorycznym trening siłowy chroni masę mięśniową. Nie tnij drastycznie objętości na starcie; dodaj NEAT/cardio osobno.',
-    volume:'Utrzymaj blisko MEV–dolne MAV; deload wcześniej przy słabym śnie/stresie'
+    why:'Przy deficycie trening siłowy chroni masę mięśniową. Priorytet to utrzymanie ciężaru; objętość możesz obniżyć, gdy regeneracja słabnie. Deficyt energii buduje głównie dieta, a ruch w ciągu dnia i cardio go wspierają.',
+    volume:'Utrzymaj ciężary; serie w dolnej części zakresu dla stażu, mniej przy słabym śnie i stresie'
   },
   kondycja:{
     label:'Kondycja ogólna',
@@ -7439,26 +7439,26 @@ const GOAL_WHY={
   rehab:{
     label:'Rehabilitacja / powrót',
     sets:'2–3 serie kontrolowane',
-    reps:'8–15, bez bólu ostrego',
+    reps:'8–15, bez bólu w trakcie i po treningu',
     rpe:'RPE 5–7',
     rest:'60–90 s',
-    why:'Priorytet: zakres ruchu, kontrola i tolerancja obciążenia. Unikaj maksymalnych ciężarów i metod intensyfikacji do konsultacji z fizjo.',
-    volume:'Poniżej typowego MEV na obszar kontuzji; buduj stopniowo'
+    why:'Tylko w porozumieniu z fizjoterapeutą lub lekarzem. Priorytet: zakres ruchu, kontrola i tolerancja obciążenia. Ćwiczenie, które boli, zmieniasz (pozycja, zakres, obciążenie, tempo). Bez maksymalnych ciężarów i metod intensyfikacji.',
+    volume:'Mało serii na obszar urazu; zwiększaj tylko, gdy objawy nie narastają'
   }
 };
 const LEVEL_WHY={
-  poczatkujacy:'Nowicjusz: dolna połowa MEV–MAV, nauka wzorców, progresja liniowa. Scięgna adaptują się wolniej niż mięśnie — nie skacz objętością co tydzień.',
-  sredni:'Średni: środek/góra MAV, możliwa DUP lub falowanie. Deload co 4–6 tygodni.',
-  zaawansowany:'Zaawansowany: góra MAV, blisko MRV na priorytetach, bloki i specjalizacja. Wymaga snu, białka i monitorowania RPE.'
+  poczatkujacy:'Początkujący: mało serii (tabela wg stażu), nauka techniki, RIR 5→3. Progresja liniowa: najpierw dokładaj ciężar lub powtórzenia, serie dopiero przy zastoju.',
+  sredni:'Średnio zaawansowany: RIR 5→1 w bloku, progresja falowa lub podwójna, możliwa DUP. Deload wg listy kontrolnej (co najmniej 2 odpowiedzi „tak”).',
+  zaawansowany:'Zaawansowany: RIR 5→0 (upadek okresowo, głównie w izolacjach), bloki i specjalizacja: priorytety wyżej, reszta na utrzymaniu. Wymaga snu, białka i monitorowania RIR.'
 };
 
-/** Tygodniowa liczba serii roboczych na partię wg stażu (orientacja MEV–MAV; hipertrofia). */
+/** Tygodniowa liczba serii roboczych na partię wg stażu: zakres startowy Progress Live (hipertrofia), nie tabela z książki. */
 const VOLUME_PART_ORDER=['Klatka','Plecy','Barki','Biceps','Triceps','Quady','Tył uda','Pośladki','Brzuch','Łydki'];
 const VOLUME_BY_LEVEL={
   poczatkujacy:{
     label:'Początkujący',
-    tenure:'0–1 rok',
-    note:'Startuj nisko (MEV). +1–2 serie/partię co 1–2 tyg. tylko gdy regeneracja OK.',
+    tenure:'postęp z sesji na sesję',
+    note:'Zakres startowy Progress Live. Progresuj ciężarem i powtórzeniami; serie dokładaj dopiero, gdy postęp z sesji na sesję się zatrzyma. Głuchowski podaje dla początkującego MEV 3 i MAV 5–7 serii (Zaplanuj swój trening, s. 95).',
     parts:{
       Klatka:'6–10',Plecy:'8–12',Barki:'8–12',Biceps:'6–8',Triceps:'6–8',
       Quady:'8–12','Tył uda':'6–10',Pośladki:'6–10',Brzuch:'4–8',Łydki:'6–10'
@@ -7466,8 +7466,8 @@ const VOLUME_BY_LEVEL={
   },
   sredni:{
     label:'Średni',
-    tenure:'1–3 lata',
-    note:'Środek MAV. Priorytety +2–4 serie vs. utrzymanie. Deload co 4–6 tyg.',
+    tenure:'postęp z tygodnia na tydzień',
+    note:'Zakres startowy Progress Live. Priorytety +2–4 serie kosztem partii na utrzymaniu; max ok. 10 serii na partię w jednej sesji. Deload wg listy kontrolnej.',
     parts:{
       Klatka:'10–16',Plecy:'12–18',Barki:'12–18',Biceps:'8–12',Triceps:'8–12',
       Quady:'12–18','Tył uda':'10–16',Pośladki:'10–14',Brzuch:'6–10',Łydki:'8–14'
@@ -7475,8 +7475,8 @@ const VOLUME_BY_LEVEL={
   },
   zaawansowany:{
     label:'Zaawansowany',
-    tenure:'3+ lata',
-    note:'Góra MAV / lokalnie blisko MRV na priorytetach. Specjalizacja + bloki; nie trzymaj wszystkich partii na suficie naraz.',
+    tenure:'postęp z miesiąca na miesiąc',
+    note:'Zakres startowy Progress Live. Priorytety wyżej, reszta na utrzymaniu; nie trzymaj wszystkich partii na suficie naraz. Max ok. 10 serii na partię w jednej sesji.',
     parts:{
       Klatka:'12–20',Plecy:'14–22',Barki:'14–22',Biceps:'10–16',Triceps:'10–16',
       Quady:'14–22','Tył uda':'12–20',Pośladki:'12–18',Brzuch:'6–12',Łydki:'10–16'
@@ -7493,30 +7493,31 @@ function volumeGuideForLevel(levelKey){
 window.volumeGuideForLevel=volumeGuideForLevel;
 
 const RATIONALE_SOURCES=[
-  'NSCA — Essentials of Strength Training and Conditioning (serie/powt./%1RM)',
-  'ACSM — Guidelines: częstotliwość i progresja oporu',
-  'Schoenfeld i in. — metaanalizy objętości i częstotliwości hipertrofii (punkty orientacyjne MEV/MAV)',
-  'Israetel / RP — landmarks objętości (MEV / MAV / MRV) jako ramy, nie sztywne normy',
+  'NSCA’s Essentials of Personal Training, 3rd ed. (red. Schoenfeld, Snarr): serie, powtórzenia, przerwy (tab. 15.6, 15.9)',
+  'Schoenfeld — Science and Development of Muscle Hypertrophy: objętość i częstotliwość',
+  'Głuchowski — Zaplanuj swój trening: MEV/MAV/MRV i RIR wg stażu',
+  'Helms, Morgan, Valdez — Piramida mięśni i siły: progresja i deload',
+  'ACSM (2009) — Progression models in resistance training for healthy adults (stanowisko)',
   'Twoja Baza wiedzy w apce — dopisz własne zasady i doświadczenie'
 ];
 
 /** Wbudowany pakiet dowodów / zasad — zawsze dostępny przy planowaniu (bez live PubMed). */
 const BUILTIN_PLANNING_EVIDENCE=[
-  {id:'bev_freq',kind:'evidence',title:'Częstotliwość ≥2×/partię (hipertrofia)',
-    text:'Przy hipertrofii stymulacja głównych partii co najmniej 2× w tygodniu zwykle daje lepszy efekt niż 1× przy tej samej objętości tygodniowej — stąd PPL/UL/FBW zamiast klasycznego bro-splitu.',
-    citation:'Schoenfeld et al., frequency meta-analyses',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/30558493/',useInPlanning:true,tags:['freq']},
+  {id:'bev_freq',kind:'evidence',title:'Częstotliwość: rozłóż objętość (hipertrofia)',
+    text:'Przy tej samej liczbie serii tygodniowo trening partii 1–3× w tygodniu daje podobny przyrost mięśni. Częstotliwość ≥2× stosuj, żeby rozłożyć objętość: przy ponad ok. 10 seriach na partię tygodniowo jedna sesja robi się za długa i serie tracą jakość. Bro split nie jest błędem, jeśli objętość i jakość serii są w porządku.',
+    citation:'Schoenfeld, Grgic, Krieger 2019, J Sports Sci 37(11) (metaanaliza); Schoenfeld, Science and Development of Muscle Hypertrophy, s. 86–91',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/30558493/',useInPlanning:true,tags:['freq']},
   {id:'bev_vol',kind:'evidence',title:'Objętość tygodniowa (MEV→MAV)',
-    text:'Hipertrofia skaluje się z tygodniową liczbą serii roboczych blisko upadku. Celuj między MEV a MAV; MRV to sufit, nie domyślny cel. Początkujący: dolna połowa zakresu.',
-    citation:'Schoenfeld / Israetel volume landmarks (ramy praktyczne)',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/27433992/',useInPlanning:true,tags:['mev','mav','mrv']},
+    text:'Hipertrofia rośnie z tygodniową liczbą serii wykonanych blisko upadku (seria efektywna: do ok. RIR 4). Celuj między MEV a MAV; MRV to sufit, nie cel. U trenujących zwykle 10–20 serii na mięsień tygodniowo, u początkujących mniej (Głuchowski: MEV 3, MAV 5–7). W jednej sesji ok. 10 serii na partię.',
+    citation:'Schoenfeld, Science and Development of Muscle Hypertrophy, s. 78–86; Głuchowski, Zaplanuj swój trening, s. 91, 95',sourceUrl:'',useInPlanning:true,tags:['mev','mav','mrv']},
   {id:'bev_prox',kind:'evidence',title:'Bliskość upadku (RIR/RPE)',
-    text:'Serie hipertroficzne powinny kończyć się blisko upadku (ok. 0–3 RIR). Zbyt duży zapas ogranicza bodziec; ciągłe RPE 10 utrudnia progresję i regenerację.',
-    citation:'Refalo / proximity to failure reviews',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/33497853/',useInPlanning:true,tags:['rir','rpe']},
+    text:'Zapas powtórzeń zależy od stażu i maleje w bloku o najwyżej 1 na tydzień: początkujący RIR 5→3, średnio zaawansowani 5→1, zaawansowani 5→0. Upadek tylko okresowo: w izolacjach i na maszynach, na ostatniej serii, nigdy w deloadzie ani w ciężkich wielostawach. Ciągłe RPE 10 utrudnia regenerację i progresję.',
+    citation:'Głuchowski, Zaplanuj swój trening, s. 108–110, 255–256; Helms, Morgan, Valdez, Piramida mięśni i siły',sourceUrl:'',useInPlanning:true,tags:['rir','rpe']},
   {id:'bev_str',kind:'evidence',title:'Siła: intensywność i przerwy',
-    text:'Rozwój siły maksymalnej opiera się na wysokim %1RM, niższych powtórzeniach i dłuższych przerwach (2–5 min) na wielostawach — objętość niższa niż w czystej hipertrofii.',
-    citation:'NSCA Essentials; ACSM resistance guidelines',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/19204579/',useInPlanning:true,tags:[]},
-  {id:'bev_deload',kind:'principle',title:'Deload co 4–6 tygodni',
-    text:'Planuj obniżenie objętości/intensywności co kilka tygodni (sen, staw, RPE drift). Deload to narzędzie progresji, nie „przegrana”.',
-    citation:'Praktyka periodyzacji (NSCA / coaching)',sourceUrl:'',useInPlanning:true,tags:['deload']}
+    text:'Siła: ćwiczenia główne w zakresie ok. 1–6 powtórzeń (początkujący ≤6RM, 1–3 serie; średni i zaawansowani ≥3 serie), przerwy 2–5 min na wielostawach. Łącznie mniej serii niż w treningu na masę.',
+    citation:'NSCA’s Essentials of Personal Training, tab. 15.6, 15.9 (s. 409–412); ACSM 2009, Progression models in resistance training',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/19204579/',useInPlanning:true,tags:[]},
+  {id:'bev_deload',kind:'principle',title:'Deload: lista kontrolna',
+    text:'Po każdym cyklu zadaj 5 pytań: czy trening był regularny, czy pogorszył się sen, czy spadają ciężary lub powtórzenia, czy wzrósł stres, czy bolesność i bóle są większe niż zwykle. Co najmniej 2 odpowiedzi „tak” → tydzień deloadu, inaczej kolejny cykl; najpóźniej po ok. 9 tygodniach bez deloadu. Deload: ok. połowa serii przy podobnym ciężarze (np. 3×10×90 kg → 2×8×90 kg).',
+    citation:'Helms, Morgan, Valdez, Piramida mięśni i siły, s. 106, 123–124, 218',sourceUrl:'',useInPlanning:true,tags:['deload']}
 ];
 const KB_TAG_DEFS=[
   {id:'mev',label:'MEV',group:'landmark'},
@@ -7753,7 +7754,7 @@ function buildClientTalkPlain(opts){
   const weight=parseFloat(o.weight);
   const methodTalk={
     PPL:'Trenujemy Push / Pull / Nogi — dzielimy ciało na trzy dni ruchu, żeby mięśnie pracowały częściej niż raz w tygodniu.',
-    FBW:'Trenujemy całe ciało na każdej sesji — przy mniejszej liczbie dni w tygodniu to najprostszy i najskuteczniejszy układ.',
+    FBW:'Trenujemy całe ciało na każdej sesji — przy mniejszej liczbie dni w tygodniu to najprostszy układ.',
     'Upper Lower':'Trenujemy na przemian górę i dół ciała — każda partia dostaje bodziec zwykle dwa razy w tygodniu.',
     UL:'Trenujemy na przemian górę i dół ciała — każda partia dostaje bodziec zwykle dwa razy w tygodniu.',
     Arnold:'Plan jest bardziej „sylwetkowy”: osobne dni na klatkę+plecy, barki+ramiona i nogi — dużo pracy na kształt.',
@@ -7770,13 +7771,13 @@ function buildClientTalkPlain(opts){
   const goalTalk={
     masa:'Cel: budować mięśnie. Robimy kilka solidnych serii i stopniowo dokładamy ciężar, gdy idzie łatwiej.',
     sila:'Cel: rosnąć w sile. Na początku sesji ciężkie ruchy główne, potem lżejsze uzupełnienia — bez pośpiechu między seriami.',
-    redukcja:'Cel: schudnąć bez gubienia mięśni. Na siłowni trzymamy solidne ciężary; tłuszcz schodzi głównie z diety.',
+    redukcja:'Cel: schudnąć bez gubienia mięśni. Na siłowni trzymamy solidne ciężary; na wagę najmocniej działa jedzenie, a ruch w ciągu dnia je wspiera.',
     kondycja:'Cel: lepsza kondycja. Łączymy siłę z pracą oddechową / interwałami, bez przeciążania każdej sesji.',
     atletyzm:'Cel: moc i atletyzm. Najpierw skoki / szybkie ruchy na świeżo, potem siła — jakość ważniejsza niż liczba serii.',
     rehab:'Cel: bezpieczny powrót. Ćwiczymy z kontrolą, bez ostrego bólu i bez maksymalnych ciężarów.'
   };
   const levelTalk={
-    poczatkujacy:'Zaczynamy spokojnie: nauka ruchu i stały, mały postęp — nie skaczemy objętością co tydzień.',
+    poczatkujacy:'Zaczynamy spokojnie: nauka ruchu i stały, mały postęp — kończysz serię, kiedy czujesz zapas kilku powtórzeń, a ból (nie zmęczenie) zawsze zgłaszasz.',
     sredni:'Masz już bazę — dokładamy obciążenie lub serie w tempie, które dasz radę regenerować.',
     zaawansowany:'Masz doświadczenie — trzymamy wysoką jakość serii i zostawiamy zapas (nie musisz co raz iść na maksa).'
   };
@@ -7876,7 +7877,7 @@ function renderVolumeByLevelTable(r,esc,tableOpts){
     const compare=`<details class="mr-vol-compare"><summary class="mr-block-title" style="font-size:11px;cursor:pointer;margin-top:8px;">Porównaj z innymi stażami</summary>${renderVolumeByLevelTable(r,esc,{innerOnly:true})}</details>`;
     if(innerOnly)return table;
     return `<div class="mr-vol-wrap mr-vol-personal">
-      <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (MEV–MAV) dopasowane do${esc(who)} · staż <b>${esc(r.levelVolumeLabel||labels[cur]||cur)}</b>.</div>
+      <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (zakres startowy) dopasowane do${esc(who)} · staż <b>${esc(r.levelVolumeLabel||labels[cur]||cur)}</b>.</div>
       ${table}
       <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
       ${compare}
@@ -7896,7 +7897,7 @@ function renderVolumeByLevelTable(r,esc,tableOpts){
     return `<div class="mr-meta" style="margin:8px 0 6px;">Pełna tabela — kolumna <b>${esc(r.levelVolumeLabel||'')}</b> to wybrany staż.</div>${table}`;
   }
   return `<div class="mr-vol-wrap">
-    <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (hipertrofia · MEV–MAV). Kolumna <b>${esc(r.levelVolumeLabel||'')}</b> = wybrany staż klienta.</div>
+    <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (hipertrofia · zakres startowy). Kolumna <b>${esc(r.levelVolumeLabel||'')}</b> = wybrany staż klienta.</div>
     ${table}
     <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
     <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio. Nie sumuj „wszystkie partie na MRV” naraz.</div>
@@ -8003,17 +8004,17 @@ window.normalizeRationaleMethod=normalizeRationaleMethod;
 // TOOLTIPY EDUKACYJNE (Serie / RPE / Metoda…)
 // ════════════════════════════════════════
 const EDU_TIPS={
-  method:'Metoda = jak dzielisz ciało na dni (PPL, FBW, Upper/Lower…). Przy hipertrofii celuj w ≥2 stymulacje partii/tydzień. Szczegóły zapytaj Asystenta AI w panelu metodyki.',
-  goal:'Cel ustala zakresy: masa → objętość i RIR 0–3; siła → wyższy %1RM i dłuższe przerwy; redukcja → utrzymaj ciężar, nie tnij od razu objętości.',
-  sets:'Serie robocze na ćwiczenie. Hipertrofia zwykle 3–4; siła 3–6 na głównych. Sumę tygodniową partii (MEV–MAV) wg stażu zobaczysz w przewodniku „Serie na partię”.',
-  reps:'Powtórzenia: hipertrofia złożone ~6–10, izolacje ~8–15; siła główne ~1–6. Dobierz tak, by ostatnie powt. były blisko upadku (patrz RPE/RIR).',
+  method:'Metoda = jak dzielisz ciało na dni (PPL, FBW, Upper/Lower…). Przy hipertrofii co najmniej 2 sesje na partię pomagają rozłożyć objętość, gdy wypada ponad ok. 10 serii tygodniowo. Szczegóły zapytaj Asystenta AI w panelu metodyki.',
+  goal:'Cel ustala zakresy: masa → serie wg stażu i RIR (początkujący 5→3, zaawansowani do 0); siła → wyższy %1RM, bez upadku w bojach, przerwy 2–5 min; redukcja → utrzymaj ciężar, objętość można obniżyć.',
+  sets:'Serie robocze na ćwiczenie. Hipertrofia zwykle 3–4; siła 3–6 na głównych. Sumę tygodniową partii (zakres startowy) wg stażu zobaczysz w przewodniku „Serie na partię”.',
+  reps:'Powtórzenia: hipertrofia złożone ~6–10, izolacje ~8–15; siła główne ~1–6. Na masę kończ serię z zapasem zależnym od stażu (patrz RIR); w siłowych bojach bez upadku (RPE 7–9).',
   kg:'Ciężar roboczy. Możesz liczyć z %1RM (Pomiary → Siła bazowa). Zostaw puste, jeśli klient dobiera wg RPE.',
-  rpe:'RPE 1–10: jak trudna była seria. RPE 8 ≈ zostały ~2 powtórzenia (RIR 2). Hipertrofia często RPE 7–9; unikaj ciągłego RPE 10.',
+  rpe:'RPE 1–10: jak trudna była seria. RPE 8 ≈ zostały ~2 powtórzenia (RIR 2). Hipertrofia u trenujących zwykle RPE 7–9, u początkujących niżej; unikaj ciągłego RPE 10.',
   rir:'RIR = powtórzenia w zapasie. RIR 0 = upadek; RIR 2 ≈ RPE 8. Łatwiejsze w komunikacji z klientem niż samo RPE.',
-  rest:'Przerwa: izolacje ~60–90 s; wielostawy hipertrofia ~90–120 s; siła 2–5 min. Za krótka przerwa psuje jakość kolejnej serii.',
-  tempo:'Tempo np. 3-1-1-0 = ekscentryka 3 s – pauza w rozciągnięciu 1 s – koncentryka 1 s – pauza 0. Pomaga w kontroli i stretch-mediated hypertrophy.',
+  rest:'Przerwa: odpoczywaj, aż następna seria będzie dobra. Orientacyjnie: izolacje i maszyny 60–90 s, wielostawy ≥2–3 min (także na masę), siła 2–5 min.',
+  tempo:'Tempo np. 3-1-1-0 = ekscentryka 3 s – pauza 1 s – koncentryka 1 s – pauza 0. Opuszczaj pod kontrolą, podnoś z zamiarem szybkiego ruchu; celowo bardzo wolne powtórzenia nie dają lepszych efektów.',
   focus:'Etykieta dnia (Push/Pull/FBW…). Uzupełnia się z metody — możesz nadpisać własną nazwą.',
-  days:'Liczba dni/tydzień musi pasować do metody: FBW 2–3, Upper/Lower 3–4, PPL 4–6. Za mało dni przy PPL = słaba częstotliwość partii.'
+  days:'Liczba dni/tydzień musi pasować do metody i stażu: FBW 2–3, Upper/Lower 4, PPL 3–6 (przy 3 dniach każda partia 1×). Początkującym zwykle wystarcza FBW 2–3×.'
 };
 function eduTipText(key,ctx){
   const k=String(key||'');
