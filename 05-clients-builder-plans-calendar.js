@@ -3688,6 +3688,7 @@ function renderPlans(){
     const dayChips=(p.days||[]).map(d=>d.rest?'💤':(d.day||d.dayName||d.muscles||d.focus||d.name||'—')).slice(0,6);
     const accentCol=PLAN_METHOD_COLORS[p.method]||'var(--muted)';
     const st=planStatusMeta(p);
+    const amateurMeta=planAmateurMetaHtml(p);
     const nm=typeof escHtml==='function'?escHtml(p.name||''):String(p.name||'');
     const cn=typeof escHtml==='function'?escHtml(clientName):String(clientName);
     return `<div class="plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.03}s;">
@@ -3701,6 +3702,7 @@ function renderPlans(){
               <span class="pill ${st.pill}"><span class="pill-dot"></span>${st.label}</span>
             </div>
             <div style="font-size:12px;color:var(--muted);margin-top:3px;">${hasClient?'👤 '+cn:'Brak klienta'} · ⏱️ ${p.duration||'?'} tyg. · ${planDateLabel(p)}</div>
+            ${amateurMeta}
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
@@ -3723,11 +3725,12 @@ function renderPlans(){
         const client=clients.find(c=>c.id===p.clientId);
         const clientName=client?.name||p.clientName||'—';
         const st=planStatusMeta(p);
+        const amateurMeta=planAmateurMetaHtml(p);
         const nm=typeof escHtml==='function'?escHtml(p.name||''):String(p.name||'');
         const cn=typeof escHtml==='function'?escHtml(clientName):String(clientName);
         return `<div class="plans-tbl-row plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.02}s;">
           <span class="plans-tbl-date">${planDateLabel(p)}</span>
-          <span class="plans-tbl-name">${nm}</span>
+          <span class="plans-tbl-name">${nm}${amateurMeta}</span>
           <span class="plans-tbl-client">${client?'👤 '+cn:'—'}</span>
           <span>${p.duration||'—'} tyg.</span>
           <span><span class="pill ${st.pill}"><span class="pill-dot"></span>${st.label}</span></span>
@@ -3742,6 +3745,16 @@ function renderPlans(){
   }
   el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>cardHtml(p,pi)).join('')+`</div>`;
 }
+
+function planAmateurMetaHtml(plan){
+  const intake=plan&&plan.amateurIntake;
+  if(!intake)return'';
+  const prescription=intake.prescription||{};
+  const days=Number(prescription.days)||'?';
+  const rir=Number(prescription.targetRir)||'?';
+  return `<div style="margin-top:5px;font-size:10px;font-weight:700;color:var(--teal);">TRYB AMATOR · ${days} sesje/tydz. · RIR ≥ ${rir}</div>`;
+}
+window.planAmateurMetaHtml=planAmateurMetaHtml;
 
 function planDayPreviewHtml(d,clientId,plan,dayIndex){
   const dayName=escHtml(d.day||d.dayName||'—');
