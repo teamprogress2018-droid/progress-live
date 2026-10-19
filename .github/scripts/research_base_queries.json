@@ -37,7 +37,7 @@
     {
       "id": "cardio",
       "label": "Cardio i wydolność",
-      "keywords": ["cardio", "kardio", "wydolnos", "vo2", "tlen", "bieg", "rower", "aerob", "tlenow", "kroki", "krokow", "kondycj", "wytrzymal", "spalanie", "tluszcz", "redukcj"],
+      "keywords": ["cardio", "kardio", "wydolnos", "vo2", "tlen", "bieg", "rower", "aerob", "tlenow", "kroki", "krokow", "kondycj", "wytrzymal", "spalanie"],
       "recentQuery": "(\"aerobic training\"[tiab] OR \"endurance training\"[tiab] OR \"aerobic exercise\"[tiab] OR \"concurrent training\"[tiab]) AND (\"cardiorespiratory fitness\"[tiab] OR VO2max[tiab] OR \"VO2 max\"[tiab] OR \"body composition\"[tiab] OR \"fat mass\"[tiab])",
       "questions": [
         {"id": "c-laczenie", "q": "Jak łączyć cardio z treningiem siłowym?", "query": "(\"concurrent training\"[tiab] OR \"interference effect\"[tiab] OR \"combined aerobic and resistance\"[tiab] OR \"combined endurance and strength\"[tiab])", "hint": "Wyjaśnij efekt interferencji i od czego zależy (rodzaj cardio, objętość, odstęp czasowy, cel klienta)."},
@@ -61,7 +61,7 @@
     {
       "id": "zywienie",
       "label": "Żywienie",
-      "keywords": ["zywien", "diet", "bialk", "kalor", "kcal", "makro", "kreatyn", "kofein", "suplement", "posil", "weglowodan", "deficyt", "nadwyzk", "jedzen", "okno anabol"],
+      "keywords": ["zywien", "diet", "bialk", "kalor", "kcal", "makro", "kreatyn", "kofein", "suplement", "posil", "weglowodan", "deficyt", "nadwyzk", "jedzen", "okno anabol", "redukcj", "tluszcz"],
       "recentQuery": "(\"protein intake\"[tiab] OR \"dietary protein\"[tiab] OR creatine[tiab] OR caffeine[tiab] OR \"energy deficit\"[tiab] OR \"energy restriction\"[tiab] OR \"nutrient timing\"[tiab]) AND (\"resistance training\"[tiab] OR \"exercise\"[tiab] OR \"lean mass\"[tiab] OR \"fat-free mass\"[tiab])",
       "questions": [
         {"id": "z-bialko", "q": "Ile białka potrzebuje osoba trenująca siłowo?", "query": "(\"protein supplementation\"[tiab] OR \"protein intake\"[tiab] OR \"dietary protein\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab]) AND (\"lean mass\"[tiab] OR \"fat-free mass\"[tiab] OR \"muscle mass\"[tiab] OR strength[tiab])"},
@@ -74,7 +74,7 @@
     {
       "id": "anatomia",
       "label": "Anatomia, biomechanika i dobór ćwiczeń",
-      "keywords": ["anatom", "biomechan", "dobor cwicz", "wybor cwicz", "cwiczen", "maszyn", "wolne ciezar", "wielostaw", "izolac", "rozciagn", "dlugosc mies", "zakres ruch", "wariac", "aktywac", "emg"],
+      "keywords": ["anatom", "biomechan", "dobor cwicz", "wybor cwicz", "dobor", "maszyn", "wolne ciezar", "wielostaw", "izolac", "rozciagn", "dlugosc mies", "zakres ruch", "wariac", "aktywac", "emg"],
       "recentQuery": "(\"exercise selection\"[tiab] OR \"muscle length\"[tiab] OR \"free weight\"[tiab] OR \"machine-based\"[tiab] OR \"multi-joint\"[tiab] OR \"single-joint\"[tiab] OR \"regional hypertrophy\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab])",
       "questions": [
         {"id": "a-wielostawy", "q": "Ćwiczenia wielostawowe czy izolowane?", "query": "(\"multi-joint\"[tiab] OR \"single-joint\"[tiab] OR \"compound exercise\"[tiab] OR \"isolation exercise\"[tiab] OR \"multi-joint exercises\"[tiab]) AND (hypertrophy[tiab] OR strength[tiab] OR \"muscle thickness\"[tiab])"},
@@ -86,7 +86,7 @@
     {
       "id": "funkcjonalny",
       "label": "Trening funkcjonalny i motoryka",
-      "keywords": ["funkcjonal", "motoryk", "rownowag", "upadk", "plyometr", "skocz", "szybkos", "zwinnos", "core", "korpus", "stabiliz", "mobilnos", "rozciagan", "rozgrzewk", "koordynac", "moc"],
+      "keywords": ["funkcjonal", "motoryk", "rownowag", "upadk", "plyometr", "skocz", "szybkos", "zwinnos", "core", "korpus", "stabiliz", "mobilnos", "rozciagan", "rozgrzewk", "koordynac", "moc", "senior"],
       "recentQuery": "(\"functional training\"[tiab] OR \"balance training\"[tiab] OR plyometric*[tiab] OR \"core training\"[tiab] OR \"neuromuscular training\"[tiab] OR stretching[tiab] OR \"fall prevention\"[tiab])",
       "questions": [
         {"id": "f-rownowaga", "q": "Czy trening równowagi zmniejsza ryzyko upadków u seniorów?", "query": "(balance[tiab] OR \"fall prevention\"[tiab] OR falls[tiab]) AND (\"exercise\"[tiab] OR training[tiab]) AND (\"older adults\"[tiab] OR elderly[tiab] OR \"older people\"[tiab])"},
