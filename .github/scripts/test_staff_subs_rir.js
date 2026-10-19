@@ -20,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=102'));
-ok('cache styles v91', html.includes('styles.css?v=162'));
+ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache styles v91', html.includes('styles.css?v=163'));
 ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=45'));
 ok('CI unit', wf.includes('test_staff_subs_rir.js'));
 ok('CI ui', wf.includes('test_staff_subs_rir_ui.js'));

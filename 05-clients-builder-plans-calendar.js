@@ -3592,6 +3592,31 @@ window.setPlansLibSort=setPlansLibSort;
 window.setPlansLibClient=setPlansLibClient;
 window.setPlansLibView=setPlansLibView;
 
+/** Kopia planu (np. dla innego klienta): nowy plan bez klienta, otwarty w kreatorze. */
+async function duplicatePlan(id){
+  const src=(window.PL||[]).find(p=>p&&p.id===id);
+  if(!src){notify('Nie znaleziono planu');return null;}
+  const copy=JSON.parse(JSON.stringify(src));
+  ['clientId','clientName','startDate','archived','archivedAt','updatedAt','calendarScheduledAt'].forEach(k=>{delete copy[k];});
+  if(copy.status==='archived')delete copy.status;
+  copy.id=newId('p');
+  copy.name=String(src.name||'Plan')+' (kopia)';
+  copy.createdAt=new Date().toISOString();
+  copy.copiedFrom=src.id;
+  if(Array.isArray(copy.weekKeys)&&copy.weekKeys.length)copy.currentWeek=copy.weekKeys[0];
+  delete copy.trainerId;
+  let saved;
+  try{saved=withTrainer(copy);}catch(e){notify(e.message||'Nie udało się zapisać kopii');return null;}
+  PL.push(saved);
+  await persistById('plans',saved);
+  if(typeof renderPlans==='function')renderPlans();
+  window._builderBack='plans';
+  editPlan(saved.id);
+  notify('Kopia zapisana. Wybierz klienta w kreatorze i zapisz plan.');
+  return saved;
+}
+window.duplicatePlan=duplicatePlan;
+
 function planActionButtons(p,client){
   const hasClient=!!client;
   const arch=planIsArchived(p);
@@ -3599,6 +3624,7 @@ function planActionButtons(p,client){
   return `<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();togglePlanExpand('${id}')" id="plan-toggle-${id}">👁️ Podgląd</button>
     <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();exportSavedPlanPDF('${id}')" title="PDF" id="plan-pdf-${id}">📄</button>
     <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();editPlan('${id}')" title="Edytuj">✏️</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();duplicatePlan('${id}')" title="Duplikuj – np. dla innego klienta">⧉</button>
     ${hasClient?`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();openClientProfile('${client.id}')" title="Profil">👤</button>`:''}
     ${arch
       ?`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();restorePlan('${id}')" title="Przywróć">↩</button>`

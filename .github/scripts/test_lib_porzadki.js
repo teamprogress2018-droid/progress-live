@@ -26,7 +26,7 @@ ok('ci unit', wf.includes('test_lib_porzadki.js'));
 ok('ci ui', wf.includes('test_lib_porzadki_ui.js'));
 ok('cache 01', html.includes('01-core.js?v=137'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=102'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
 
 const a = html.indexOf('<div class="screen" id="screen-library">');
 const lib = html.slice(a, html.indexOf('<div class="screen"', a + 10));
