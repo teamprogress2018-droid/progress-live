@@ -74,12 +74,24 @@ function booksKbLoad(){
 
 function booksKbSetData(json){state.data=prepare(json);state.status='ok';return state.data;}
 
+/** Autorzy do cytatu, gdy pierwsze nazwisko z pola author wprowadza w błąd (redaktorzy, praca zbiorowa, kilku autorów). */
+const AUTHOR_SHORT={
+  'nsca-essentials-personal-training':'Schoenfeld, Snarr (red.)',
+  'conditioning-for-strength-chandler-brown':'Chandler, Brown (red.)',
+  'dietetyka-sportowa-ebook':'praca zbiorowa',
+  'dietetyka-sportowa-mizera':'J. i K. Mizera',
+  'piramida-treningu-helms':'Helms, Morgan, Valdez',
+  '22-prawa-marketingu-ries-trout':'Ries, Trout',
+  'conscious-coaching-bartholomew':'Bartholomew (streszczenie Bookey)'
+};
 function bookLabel(b){
-  const author=String(b.author||'').split(/[;,(]/)[0].trim();
+  const author=AUTHOR_SHORT[b.id]||String(b.author||'').split(/[;,(]/)[0].trim();
   return (author?author+' — ':'')+b.title;
 }
 function chunkCite(c,books){
   const b=books[c.b];
+  /* Reguła poza źródłem nie ma strony w książce. */
+  if(c.st==='poza_zrodlem')return 'Progress Live, reguła ostrożności (nie z książki); temat: '+bookLabel(b);
   return bookLabel(b)+(c.p?', s. '+c.p:'');
 }
 
