@@ -29,7 +29,7 @@ const crypto = require('crypto');
 const vm = require('vm');
 const feed = require('./fetch_research_feed.js');
 const shared = require('../../research-answer.js');
-const { CERTAINTY, capCertainty, parseJsonObject, str, asciiKey, keepKnownRefs, validateAnswer, capAnswerCertainty, ANSWER_SYSTEM, buildAnswerPrompt } = shared;
+const { CERTAINTY, capCertainty, parseJsonObject, str, asciiKey, keepKnownRefs, validateAnswer, capAnswerCertainty, ANSWER_SYSTEM, buildAnswerPrompt, VERIFY_SYSTEM, buildVerifyPrompt, applyVerification } = shared;
 
 const ROOT = path.join(__dirname, '..', '..');
 const EUTILS = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
@@ -284,8 +284,30 @@ function aiClient(env, fetchImpl) {
       });
       answerModel = r.model;
       return r.value;
+    },
+    /* Samokontrola odpowiedzi: ten sam model co odpowiedź, zwraca surowy JSON ocen zdań. */
+    async verify(prompt) {
+      const r = await withModels(answerModels, answerModel, (model) => call(model, VERIFY_SYSTEM, prompt, 1200));
+      return r.value;
     }
   };
+}
+
+/**
+ * Drugi przebieg AI: każde zdanie „krótko/dlaczego/praktyka” porównane z kartami.
+ * Gdy kontrola się nie uda, odpowiedź zostaje z flagą sprawdzone:false (UI to pokazuje).
+ */
+async function verifyAnswer(ai, answer, studies, books, errors, id) {
+  if (!answer || !ai.verify) return answer;
+  const { items, prompt } = buildVerifyPrompt(answer, studies, books);
+  try {
+    const checked = applyVerification(answer, await ai.verify(prompt), items);
+    if (checked && checked.sprawdzone === false) errors.push('AI kontrola ' + id + ': nieczytelna odpowiedź');
+    return checked;
+  } catch (e) {
+    errors.push('AI kontrola ' + id + ': ' + e.message);
+    return Object.assign(answer, { sprawdzone: false });
+  }
 }
 
 // ─────────────────────────── książki ───────────────────────────
@@ -482,11 +504,11 @@ async function main(opts) {
       const books = selectBooks(q.q, q.category).slice(0, 4);
       const studyKeys = list.map((_, i) => 'S' + (i + 1));
       const bookKeys = books.map((_, i) => 'K' + (i + 1));
-      const key = hash(JSON.stringify([q.q, q.hint, list.map((s) => s.pmid + s.synthAt), books.map((b) => b.ref)]));
+      const key = hash(JSON.stringify(['kontrola-1', q.q, q.hint, list.map((s) => s.pmid + s.synthAt), books.map((b) => b.ref)]));
       if (q.answer && q.answerKey === key) continue;
       const prompt = buildAnswerPrompt(q.q, q.hint, list, books);
       try {
-        const answer = capAnswerCertainty(await ai.answer(prompt, studyKeys, bookKeys), Object.fromEntries(list.map((s, i) => [studyKeys[i], s])));
+        const answer = capAnswerCertainty(await verifyAnswer(ai, await ai.answer(prompt, studyKeys, bookKeys), list, books, errors, q.id), Object.fromEntries(list.map((s, i) => [studyKeys[i], s])));
         if (answer) {
           answer.sources = { S: list.map((s) => s.pmid), K: books.map((b) => ({ cite: b.cite, status: b.status, text: str(b.text, 400) })) };
           q.answer = answer; q.answerKey = key; q.answeredAt = now.toISOString();
@@ -527,7 +549,7 @@ async function main(opts) {
 
 module.exports = {
   numbersIn, numbersGrounded, capCertainty, validateSynth, validateAnswer, capAnswerCertainty, keepKnownRefs,
-  buildTerm, rankCandidates, onTopic, pruneStudies, makeClients, aiClient, main
+  buildTerm, rankCandidates, onTopic, pruneStudies, makeClients, aiClient, verifyAnswer, main
 };
 
 if (require.main === module) {
