@@ -60,7 +60,7 @@ jobs:
           git add knowledge/research-base.json
           git commit -m "Baza badań: $(date -u +%Y-%m-%d)"
           for i in 1 2 3; do
-            if ! out=$(git pull --rebase origin "${GITHUB_REF_NAME}" 2>&1); then
+            if ! out=$(git pull --rebase --autostash origin "${GITHUB_REF_NAME}" 2>&1); then
               echo "::warning::git pull: $(echo "$out" | tail -4 | tr '\n' ' ')"
               git rebase --abort 2>/dev/null
               sleep 5; continue
