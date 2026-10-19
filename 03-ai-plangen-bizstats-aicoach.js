@@ -1664,6 +1664,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
       ${aplPlanWhyHTML(plan)}
+      ${typeof aplAmateurReviewHtml==='function'?aplAmateurReviewHtml():''}
       ${typeof aplPlanChecksHTML==='function'?aplPlanChecksHTML(plan):''}
       ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
@@ -2085,6 +2086,7 @@ function aplBuildSavedPlan(src,cid,client,id){
     method:src.method||'Custom',
     duration:src.weeks||8,
     progression:src.progression||'',
+    amateurIntake:window._aplAmateurIntake?JSON.parse(JSON.stringify(window._aplAmateurIntake)):null,
     weekKeys:weekKeys,
     currentWeek:curWeek,
     phases:src.phases||null,
@@ -2122,6 +2124,7 @@ let aplSaveState=null;
 /** Zapis planu AI potwierdzany przez bazę; ponowienie używa tego samego id (bez duplikatów). */
 async function aplSavePlan(){
   if(!aplLastPlan){notify('Brak planu do zapisania!');return null;}
+  if(window._aplAmateurIntake&&typeof aplAmateurConfirmReview==='function'&&!aplAmateurConfirmReview())return null;
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
   if(aplSaveState&&aplSaveState.src===aplLastPlan&&aplSaveState.cid===cid){
@@ -2604,6 +2607,7 @@ function buildPlanPDFHTML(plan,client){
 
 function aplReset(){
   aplLastPlan=null;
+  window._aplAmateurIntake=null;
   aplShowWelcome();
 }
 
