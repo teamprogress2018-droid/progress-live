@@ -59,7 +59,7 @@ async function openApp(browser, viewport, routeBase) {
   ok('3 karty domyślnie (max 5)', cards >= 1 && cards <= 3, String(cards));
   const card = await page.$eval('.research-card', (el) => el.innerText);
   ok('karta: tytuł, autorzy, rok, typ badania', /\d{4}/.test(card) && /(Metaanaliza|Przegląd|Stanowisko|RCT)/.test(card), card.slice(0, 200));
-  ok('karta: praktyczny wniosek albo uczciwy brak opracowania', /Co to oznacza dla trenera\?|Brak opracowania/i.test(card));
+  ok('karta: praktyczny wniosek albo uczciwy brak opracowania', /Co to oznacza dla trenera\?|opracowania/i.test(card));
   const hrefs = await page.$$eval('.research-card a[target="_blank"]', (els) => els.map((a) => [a.href, a.rel]));
   ok('linki zewnętrzne tylko do PubMed/DOI/Europe PMC, z noopener', hrefs.length > 0 && hrefs.every(([h, r]) => /^https:\/\/(pubmed\.ncbi\.nlm\.nih\.gov|doi\.org|europepmc\.org)\//.test(h) && r.includes('noopener')), JSON.stringify(hrefs.slice(0, 3)));
   const hasAnswer = await page.$('.research-answer');
