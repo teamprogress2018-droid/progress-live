@@ -98,6 +98,27 @@ ok('NSCA cited as editors',!!nsca&&/^Schoenfeld, Snarr \(red\.\) — /.test(nsca
 const outside=ctx.booksKbSelect({mode:'training',query:'nadciśnienie ciśnienie endoproteza',safetyQuery:'nadciśnienie ciśnienie endoproteza',maxChars:40000,perBook:20}).filter(r=>r.status==='poza_zrodlem');
 ok('rule outside source has no page',outside.length>0&&outside.every(r=>/^Progress Live, reguła ostrożności/.test(r.cite)&&!/, s\. /.test(r.cite)));
 
+/* 8. Wyszukiwanie i dobór ćwiczeń (pakiet D). */
+const exBlock=html=>{const m=html.match(/Przykład doboru ćwiczeń: ([^<]+)<\/b>[\s\S]*?<\/ul>/);return m?m[0]:'';};
+const chestEx=exBlock(chest);
+ok('chest query lists chest exercises, not lats',/klatka piersiowa/.test(chestEx)&&!/najszersze/.test(chestEx)&&/Wyciskanie/.test(chestEx));
+const backEx=exBlock(ask('hipertrofia pleców najszerszy'));
+ok('back query prefers pulls',/Podciąganie|Ściąganie|Wiosłowanie/.test(backEx));
+ok('biomechanics records are not cited as evidence',!/Biomechanika:/.test(chest));
+ok('creatine searches nutrition books',/kreatyn/i.test(ask('kreatyna'))&&/Dietetyka sportowa/.test(ask('kreatyna')));
+const none=ask('xyzqw');
+ok('empty result explains what to type and offers examples',/Nie znalazłem w książkach z bazy/.test(none)&&/academyAskExample\(0\)/.test(none));
+ctx.academyAskExample(2);
+ok('example question runs a search',/Deload|deload/.test(screen.innerHTML)&&/academy-learning-card/.test(screen.innerHTML));
+
+ctx.builderEduCtx=()=>({clientId:'c1',clientName:'Ania',goal:'masa',method:'PPL'});
+ctx.GOAL_WHY={masa:{label:'Budowa masy (hipertrofia)'}};
+ctx.buildMethodRationale=()=>({tips:['Sygnał 1','Sygnał 2','Sygnał 3']});
+ctx.academySetLevel('context');
+const plan=text(screen.innerHTML);
+ok('my plan shows goal label and no null days',/Budowa masy \(hipertrofia\)/.test(plan)&&!/null/.test(plan)&&/Dni —/.test(plan));
+ok('my plan shows several signals',/Sygnał 1/.test(plan)&&/Sygnał 3/.test(plan));
+
 const css=read('styles.css');
 ok('safety css present',css.includes('.academy-safety{')&&css.includes('.academy-learning-card.is-safety'));
 

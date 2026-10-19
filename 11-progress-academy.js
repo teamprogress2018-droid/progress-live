@@ -12,7 +12,8 @@
   function tabs(){return `<div class="academy-tabs" role="tablist" aria-label="Sekcje Progress Academy">${[['quick','Szybka odpowiedź'],['guide','Przewodnik decyzji'],['context','Mój plan'],['books','Moje książki'],['learn','Ucz się z książek']].map(x=>`<button type="button" role="tab" aria-selected="${state.level===x[0]}" class="academy-tab${state.level===x[0]?' is-active':''}" onclick="academySetLevel('${x[0]}')">${x[1]}</button>`).join('')}</div>`;}
   function quick(){return `<section class="academy-grid"><article class="academy-card"><b>Objętość</b><p>Liczba serii na partię zależy od stażu: początkujący zaczynają od kilku serii tygodniowo, trenujący zwykle robią 10–20. Serie dokładaj dopiero przy zastoju i dobrej regeneracji; w jednej sesji max ok. 10 serii na partię.</p><small class="academy-source-cite">Źródło: Głuchowski, Zaplanuj swój trening, s. 95; Schoenfeld, Science and Development of Muscle Hypertrophy, s. 78–86</small></article><article class="academy-card"><b>RIR / RPE</b><p>RIR to powtórzenia w zapasie (RIR 2 ≈ RPE 8). W bloku RIR maleje o najwyżej 1 na tydzień: początkujący 5→3, średnio zaawansowany 5→1, zaawansowany 5→0. Upadek tylko okresowo, w izolacjach, nie w ciężkich wielostawach.</p><small class="academy-source-cite">Źródło: Głuchowski, s. 106–110; Helms, Morgan, Valdez, Piramida mięśni i siły</small></article><article class="academy-card"><b>Częstotliwość</b><p>Przy tej samej liczbie serii 1× i 2× w tygodniu dają podobny przyrost. Druga sesja na partię służy do rozłożenia objętości: powyżej ok. 10 serii tygodniowo jedna sesja jest za długa.</p><small class="academy-source-cite">Źródło: Schoenfeld, s. 86–91; Helms, Piramida, s. 76–80</small></article><article class="academy-card"><b>Przerwy</b><p>Odpoczywaj, aż następna seria będzie dobra: wielostawy ≥2–3 min (także na masę), izolacje i maszyny 60–90 s, siła 2–5 min.</p><small class="academy-source-cite">Źródło: NSCA’s Essentials of Personal Training, tab. 15.9 (s. 412); Helms, Piramida, s. 172–177</small></article></section>`;}
   function guide(){return `<section class="academy-guide"><article class="academy-step"><span>01</span><div><b>Ustal ograniczenia</b><p>Sprawdź staż, realną liczbę dni, sen, stres i ból. Ból, choroba lub ciąża: najpierw kwalifikacja i konsultacja (w „Ucz się z książek” zobaczysz sygnały STOP).</p></div></article><article class="academy-step"><span>02</span><div><b>Dobierz strukturę</b><p>Najpierw staż, potem dni. Początkujący: FBW 2–3×. Średnio zaawansowany: Upper/Lower 4× lub PPL. Zaawansowany: split pod priorytety. Ponad 5 sesji pod masę rzadko coś dodaje.</p></div></article><article class="academy-step"><span>03</span><div><b>Ustaw dawkę</b><p>Dobierz ćwiczenia, serie, powtórzenia i RIR pod cel i staż (karty „Szybka odpowiedź”).</p></div></article><article class="academy-step"><span>04</span><div><b>Sprawdź trend</b><p>Początkujący: zmieniaj jedną rzecz i oceniaj po 2–4 tyg. Średnio zaawansowani i zaawansowani: zmiany planujesz w bloku (np. spadek RIR co tydzień), a korekty poza planem wprowadzasz po trendzie z 2–3 tygodni.</p></div></article><small class="academy-source-cite">Źródło: Głuchowski, Zaplanuj swój trening, s. 80, 207, 252; NSCA’s Essentials of Personal Training, tab. 15.2</small></section>`;}
-  function context(){const c=state.context||builderContext(),has=!!(c.clientId||c.planName||c.daysPerWeek),r=typeof window.buildMethodRationale==='function'?window.buildMethodRationale(c):null;return `<section class="academy-context"><div class="academy-context-head"><div><span class="academy-eyebrow">Kontekst tylko do odczytu</span><h2>${has?'Sprawdzenie założeń planu':'Brak otwartego planu'}</h2><p>Akademia nie zapisuje ani nie zmienia danych planu.</p></div>${state.back?'<button type="button" class="btn btn-ghost btn-sm" onclick="academyBackToBuilder()">Wróć do kreatora</button>':''}</div>${has?`<dl class="academy-context-data"><div><dt>Klient</dt><dd>${esc(c.clientName||'Nie wybrano')}</dd></div><div><dt>Cel</dt><dd>${esc(c.goal||'—')}</dd></div><div><dt>Metoda</dt><dd>${esc(c.method||'—')}</dd></div><div><dt>Dni</dt><dd>${c.daysPerWeek}</dd></div></dl><aside class="academy-signal"><b>Sygnał dla tego planu</b><p>${esc(r&&r.tips&&r.tips[0]||'Sprawdź regenerację i trend RPE.')}</p></aside>`:''}</section>`;}
+  function goalName(key){const g=window.GOAL_WHY&&window.GOAL_WHY[String(key||'').toLowerCase()];return g&&g.label||key||'—';}
+  function context(){const c=state.context||builderContext(),has=!!(c.clientId||c.planName||c.daysPerWeek),r=typeof window.buildMethodRationale==='function'?window.buildMethodRationale(c):null;return `<section class="academy-context"><div class="academy-context-head"><div><span class="academy-eyebrow">Kontekst tylko do odczytu</span><h2>${has?'Sprawdzenie założeń planu':'Brak otwartego planu'}</h2><p>Akademia nie zapisuje ani nie zmienia danych planu.</p></div>${state.back?'<button type="button" class="btn btn-ghost btn-sm" onclick="academyBackToBuilder()">Wróć do kreatora</button>':''}</div>${has?`<dl class="academy-context-data"><div><dt>Klient</dt><dd>${esc(c.clientName||'Nie wybrano')}</dd></div><div><dt>Cel</dt><dd>${esc(goalName(c.goal))}</dd></div><div><dt>Metoda</dt><dd>${esc(c.method||'—')}</dd></div><div><dt>Dni</dt><dd>${esc(c.daysPerWeek||'—')}</dd></div></dl><aside class="academy-signal"><b>Sygnały dla tego planu</b>${(r&&r.tips&&r.tips.length?r.tips.slice(0,4):['Sprawdź regenerację i trend RPE.']).map(t=>`<p>${esc(t)}</p>`).join('')}</aside>`:''}</section>`;}
 
   function userBooks(){return (window.KB||[]).filter(x=>x&&x.academyBook===true).slice().sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));}
   function sourceBooks(){return typeof window.booksKbList==='function'?window.booksKbList():[];}
@@ -46,7 +47,7 @@
   function learningSources(){
     const q=state.question.trim();
     const mine=customMatches(q);
-    const domain=/żyw|zyw|diet|białk|bialk|kcal|kalor|makro|suplement/i.test(q)?'nutrition':'training';
+    const domain=/zyw|diet|bialk|kcal|kalor|makro|suplement|kreatyn|kofein|nawodn|weglowodan|posil|witamin|elektrolit|nutri/.test(norm(q))?'nutrition':'training';
     const topics=SAFETY_TOPICS.filter(t=>safetyTopics(q).includes(t.id));
     const safe=topics.length>0;
     const built=q&&typeof window.booksKbSelect==='function'?window.booksKbSelect({mode:domain,query:q,safetyQuery:safe?q:'',maxChars:safe?8000:1800,perBook:safe?3:2}):[];
@@ -165,30 +166,38 @@
     return `Zapis tej reguły w bazie nie podaje uzasadnienia. Zanim wyjaśnisz ją klientowi, przeczytaj fragment książki ze strony podanej w źródle.`;
   }
   function studyEvidence(query,source){
-    const all=window.BUILTIN_PLANNING_EVIDENCE||[];
-    const blob=norm([query,source.text,source.cite].join(' '));
+    /* muscle_* to opisy biomechaniki, nie dowody do decyzji o objętości czy intensywności. */
+    const all=(window.BUILTIN_PLANNING_EVIDENCE||[]).filter(entry=>!/^muscle_/.test(String(entry.id||'')));
+    const blob=' '+norm([query,source.text].join(' '));
     const keys=[];
-    if(/hipertrof|objetosc|serii/.test(blob))keys.push(/objętość|objetosc|volume|mav|mev|mrv/i);
-    if(/rir|rpe|upad/.test(blob))keys.push(/rir|rpe|upad/i);
-    if(/sil|1rm/.test(blob))keys.push(/sił|sil|1rm|przerw/i);
+    if(/hipertrof|objetosc|\bseri/.test(blob))keys.push(/objętość|objetosc|volume|\bmav\b|\bmev\b|\bmrv\b/i);
+    if(/\brir\b|\brpe\b|upad/.test(blob))keys.push(/\brir\b|\brpe\b|upad/i);
+    if(/\bsil[aey]\b|\bsilow|\b1rm\b/.test(blob))keys.push(/\bsił[aeyo]?\b|\bsiłow|\b1rm\b/i);
     if(/bialk|protein/.test(blob))keys.push(/białk|bialk|protein/i);
-    return all.filter(entry=>keys.some(rx=>rx.test([entry.title,entry.text,entry.citation].join(' ')))).slice(0,2);
-  }
+    if(/czestotliw|frequen/.test(blob))keys.push(/częstotliw|czestotliw|frequen/i);
+    if(/deload|roztrenow/.test(blob))keys.push(/deload|roztrenow/i);
+    return all.filter(entry=>keys.some(rx=>rx.test([entry.title,entry.text].join(' ')))).slice(0,2);
+  }  /* Partia z pytania → kategoria i główny mięsień z biblioteki (pierwszy na liście „muscle”). */
+  const EXERCISE_TARGETS=[
+    {label:'mięśnie najszersze grzbietu',rx:/najszer|\blats?\b|\bplec|grzbiet/,cat:'Plecy',muscle:/najszer/,prefer:/podciag|sciagani|wioslow/},
+    {label:'klatka piersiowa',rx:/klatk|\bchest\b|piersiow/,cat:'Klatka piersiowa',muscle:/piersiow|klatk/,prefer:/wycisk|pompk|rozpietk/},
+    {label:'barki',rx:/\bbark|shoulder|\bdelt|naramien/,cat:'Barki',muscle:/bark|naramien/,prefer:/wycisk|unoszeni/},
+    {label:'tył uda',rx:/tyl uda|hamstring|dwuglow\w* ud|kulszow/,cat:'Nogi',muscle:/kulszow|dwuglow\w* ud/,prefer:/rumun|rdl|martwy|uginani/},
+    {label:'czworogłowe uda',rx:/czworog|\bquad|przysiad|\budo\b|\buda\b/,cat:'Nogi',muscle:/czworog/,prefer:/przysiad|wyciskanie nogami|suwnic|hack|wykrok/},
+    {label:'pośladki',rx:/poslad|glute/,cat:'Pośladki',muscle:/poslad/,prefer:/hip thrust|wypychani|most|rdl|przysiad/}
+  ];
+  const NON_STRENGTH_CATS=new Set(['Rozgrzewka','Rozciąganie','Mobilność','Cardio','Olimpijskie']);
   function studyExercises(query){
     const q=norm(query);
-    const targets=[
-      {label:'mięśnie najszersze grzbietu',rx:/najszer|lats?|plecy/,prefer:/podciag|sciaganie|wioslowanie/i},
-      {label:'klatka piersiowa',rx:/klatk|chest|pec/,prefer:/wycisk|pompki|rozpiet/i},
-      {label:'barki',rx:/bark|shoulder|delt/,prefer:/wycisk|unoszenie/i},
-      {label:'czworogłowe uda',rx:/czworog|quad|przysiad/,prefer:/przysiad|leg press|hack/i},
-      {label:'tył uda',rx:/tyl uda|hamstring|dwuglow/,prefer:/rdl|martwy|uginanie/i},
-      {label:'pośladki',rx:/poslad|glute/,prefer:/hip thrust|most|rdl|przysiad/i}
-    ].find(t=>t.rx.test(q));
-    if(!targets||!Array.isArray(window.DEF_EX))return null;
-    const ranked=window.DEF_EX.filter(ex=>targets.rx.test(norm([ex.name,ex.muscle,ex.cat].join(' ')))).sort((a,b)=>Number(targets.prefer.test(b.name||''))-Number(targets.prefer.test(a.name||'')));
+    const target=EXERCISE_TARGETS.find(t=>t.rx.test(q));
+    if(!target||!Array.isArray(window.DEF_EX))return null;
+    const primary=ex=>norm(String(ex.muscle||'').split(',')[0]);
+    const ranked=window.DEF_EX
+      .filter(ex=>!NON_STRENGTH_CATS.has(ex.cat)&&target.muscle.test(primary(ex))&&(ex.cat===target.cat||target.cat==='Nogi'||target.cat==='Pośladki'))
+      .sort((a,b)=>Number(target.prefer.test(norm(b.name)))-Number(target.prefer.test(norm(a.name))));
     const out=[];const seen=new Set();
     ranked.forEach(ex=>{if(out.length>=3||seen.has(ex.name))return;seen.add(ex.name);out.push(ex);});
-    return out.length?{label:targets.label,items:out}:null;
+    return out.length?{label:target.label,items:out}:null;
   }
   function practicePanel(query,sources){
     if(safetyTopics(query).length)return `<aside class="academy-practice-panel"><h3>Jak wyciągnąć wniosek dla klienta</h3><ol><li>Najpierw sprawdź sygnały z bloku „Najpierw bezpieczeństwo”. Jeśli któryś występuje, nie zmieniaj planu, tylko przerwij trening albo skieruj klienta do specjalisty.</li><li>Bez tych sygnałów zmieniaj tylko ćwiczenie, które boli lub budzi wątpliwość, i obserwuj objawy z sesji na sesję.</li><li>Nie zwiększaj obciążenia tej okolicy, dopóki objawy nie ustąpią albo specjalista nie da zgody.</li></ol></aside>`;
@@ -212,14 +221,16 @@
     /* Układ karty: Sedno → Dlaczego → Dla kogo → Kiedy użyć → Co zrobić → Przykład → Źródło → Pytanie sprawdzające. */
     return `<article class="academy-learning-card${safety?' is-safety':''}"><span>${esc(label)}</span><h3>${esc(part.topic)}</h3>${sec('Sedno zasady',part.summary)}${sec('Dlaczego',studyWhy(part,source),'academy-study-why')}${sec('Dla kogo',part.forWhom)}${part.paired?'':sec('Kiedy użyć',part.condition)}${part.paired?'':sec('Co zrobić',part.action,'academy-study-action')}${sec('Ograniczenia',part.caveat)}${sec('Przykład',part.example)}<div class="academy-source-cite"><b>Źródło:</b> ${esc(source.cite||'Baza wiedzy')}${hint?` <span>${esc(hint)}</span>`:''}</div><details class="academy-recall"><summary><b>Pytanie sprawdzające</b>${esc(recall.q)}</summary><p>${esc(recall.a)}</p></details><details class="academy-raw-source"><summary>Pokaż zapis źródłowy</summary><p>${esc(part.raw.substring(0,1200))}${part.raw.length>1200?'…':''}</p></details></article>`;
   }
+  const EXAMPLE_QUESTIONS=['objętość hipertrofia','RIR początkujący','deload','częstotliwość treningu','białko redukcja','kreatyna','hipertrofia klatki','ból kolana przysiad'];
+  function examples(){return `<div class="academy-examples"><b>Przykładowe pytania</b><div>${EXAMPLE_QUESTIONS.map((x,i)=>`<button type="button" class="academy-chip" onclick="academyAskExample(${i})">${esc(x)}</button>`).join('')}</div></div>`;}
   function learn(){
     const selected=bookById(state.selectedBookId);
     const q=state.question.trim();
     const sources=selected?[{text:selected.text,book:selected.id,cite:(selected.bookAuthor?selected.bookAuthor+' — ':'')+selected.title,status:'moja notatka'}]:learningSources();
     const hasNotes=userBooks().some(b=>b.useInLearning!==false&&b.text);
     const safetyHtml=selected?'':safetyPanel(safetyTopics(q));
-    const sourceHtml=sources.length?`${safetyHtml}<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>${practicePanel(q,sources)}`:`${safetyHtml}<div class="academy-empty">${hasNotes?'Nie znaleziono notatek pasujących do pytania. Zmień sformułowanie lub dodaj syntezę do książki.':'Najpierw dodaj książkę wraz z własnymi notatkami. To z nich powstanie materiał do nauki.'}</div>`;
-    return `<section class="academy-learn"><div class="academy-learn-intro"><span class="academy-eyebrow">Nauka oparta na źródłach</span><h2>Zapytaj swoje notatki i źródła Academy.</h2><p>Odpowiedzi pokazują, z której książki lub notatki pochodzą. To materiał edukacyjny, nie porada medyczna.</p></div>${selected?`<div class="academy-selected-book"><span>Uczysz się z: <b>${esc(selected.title)}</b></span><button class="btn btn-ghost btn-sm" type="button" onclick="academyClearSelectedBook()">Wróć do wszystkich źródeł</button></div>`:''}<form class="academy-question" onsubmit="academyAskBooks(event)"><label class="form-lbl" for="academy-question">Pytanie lub temat do powtórki</label><div><input id="academy-question" class="form-input" value="${esc(q)}" placeholder="np. hipertrofia klatki, białko na redukcji, RIR" maxlength="240" autocomplete="off"><button class="btn btn-primary" type="submit">Szukaj materiału</button></div></form>${!q&&!selected?`<div class="academy-empty">Wpisz temat, aby połączyć Twoje notatki ze źródłami Academy.</div>`:sourceHtml}</section>`;
+    const sourceHtml=sources.length?`${safetyHtml}<div class="academy-learning-results academy-study-results" aria-live="polite">${sources.map(studyCard).join('')}</div>${practicePanel(q,sources)}`:`${safetyHtml}<div class="academy-empty">${hasNotes?'Nie znalazłem w Twoich notatkach ani w książkach z bazy reguł pasujących do pytania. Użyj jednego konkretnego słowa, np. „objętość”, „RIR” albo „białko”.':state.booksLoading&&!(typeof window.booksKbList==='function'&&window.booksKbList().length)?'Wczytuję książki z bazy…':'Nie znalazłem w książkach z bazy reguł pasujących do pytania. Użyj jednego konkretnego słowa, np. „objętość”, „RIR” albo „białko”, albo wybierz przykład poniżej.'}</div>`;
+    return `<section class="academy-learn"><div class="academy-learn-intro"><span class="academy-eyebrow">Nauka oparta na źródłach</span><h2>Zapytaj swoje notatki i źródła Academy.</h2><p>Odpowiedzi pokazują, z której książki lub notatki pochodzą. To materiał edukacyjny, nie porada medyczna.</p></div>${selected?`<div class="academy-selected-book"><span>Uczysz się z: <b>${esc(selected.title)}</b></span><button class="btn btn-ghost btn-sm" type="button" onclick="academyClearSelectedBook()">Wróć do wszystkich źródeł</button></div>`:''}<form class="academy-question" onsubmit="academyAskBooks(event)"><label class="form-lbl" for="academy-question">Pytanie lub temat do powtórki</label><div><input id="academy-question" class="form-input" value="${esc(q)}" placeholder="np. hipertrofia klatki, białko na redukcji, RIR" maxlength="240" autocomplete="off"><button class="btn btn-primary" type="submit">Szukaj materiału</button></div></form>${!q&&!selected?`<div class="academy-empty">Wpisz temat, aby połączyć Twoje notatki ze źródłami Academy.</div>${examples()}`:sourceHtml}${q&&!selected&&!sources.length?examples():''}</section>`;
   }
   function render(){const root=document.getElementById('screen-academy');if(!root)return;const body=state.level==='quick'?quick():state.level==='guide'?guide():state.level==='context'?context():state.level==='books'?books():learn();root.innerHTML=`<div class="topbar"><div><div class="topbar-title">Progress Academy</div><div class="academy-subtitle">Metodyka planowania i nauka na podstawie własnych źródeł</div></div></div><main class="content academy-content"><header class="academy-hero"><span class="academy-eyebrow">Dla trenera</span><h1>Decyzje treningowe, krok po kroku.</h1><p>Szybka odpowiedź, przewodnik, analiza planu i nauka z książek.</p></header>${tabs()}<div class="academy-panel">${body}</div></main>`;}
   async function prepareBooks(){
@@ -246,6 +257,7 @@
   };
   window.academyLearnBook=id=>{state.selectedBookId=id;state.question='';state.level='learn';prepareBooks();render();};
   window.academyClearSelectedBook=()=>{state.selectedBookId='';render();};
+  window.academyAskExample=i=>{const q=EXAMPLE_QUESTIONS[i];if(!q)return;state.selectedBookId='';state.question=q;render();};
   window.academyAskBooks=event=>{event.preventDefault();state.selectedBookId='';state.question=((document.getElementById('academy-question')||{}).value||'').trim();render();};
   window.academyFromBuilder=()=>{state.context=builderContext();state.back=true;window._builderPreserveOnReturn=true;window._builderNavigationConfirmed=true;state.level='context';goTo('academy');};
   window.academyBackToBuilder=()=>{window._builderPreserveOnReturn=true;goTo('builder');};
