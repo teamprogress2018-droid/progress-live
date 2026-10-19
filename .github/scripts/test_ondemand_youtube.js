@@ -97,6 +97,18 @@ ok('hiit is madfit', demo.some(w => w.id === 'ow2' && /HhdYlniTjvg/.test(w.url))
 ok('hips is adriene', demo.some(w => w.id === 'ow5' && /zwoVcrdmLOE/.test(w.url)));
 ok('tabata collection', demo.filter((w) => w.coll === 'tabata').length >= 3 && demo.some((w) => w.id === 'ow8' && w.coll === 'tabata' && w.format === 'tabata'));
 ok('hiit collection films', demo.filter((w) => w.coll === 'hiit').length >= 4);
+const ids = demo.map((w) => w.id);
+ok('demo ids unique', new Set(ids).size === ids.length);
+const ytIds = videoDemo.map((w) => ctx.odYoutubeId(w.url));
+ok('demo youtube films unique', new Set(ytIds).size === ytIds.length, ytIds.filter((x, i) => ytIds.indexOf(x) !== i).join(','));
+ok('added youtube films', demo.filter((w) => /^ow(2[5-9]|[3-6]\d|7[0-4])$/.test(w.id) && w.url).length === 50);
+ok('all levels covered', ['poczatkujacy', 'sredni', 'zaawansowany'].every((l) => demo.filter((w) => w.level === l).length >= 10));
+ok('levels and collections valid', demo.every((w) => vm.runInContext('LEVEL_MAP', ctx)[w.level] && vm.runInContext('OD_COLLECTIONS', ctx).some((c) => c.id === w.coll)));
+const bw = demo.filter((w) => w.bodyweight);
+ok('bodyweight films marked', bw.length >= 30 && bw.every((w) => w.equipment !== 'dumbbells'));
+ok('bodyweight chip', /Ciężar ciała/.test(ctx.odWorkoutMetaChipsHTML(bw[0])) && !/Ciężar ciała/.test(ctx.odWorkoutMetaChipsHTML(demo.find((w) => w.id === 'ow1'))));
+ok('pull-up bar label', demo.some((w) => w.equipment === 'bar') && /Drążek/.test(ctx.odWorkoutMetaChipsHTML(demo.find((w) => w.equipment === 'bar'))));
+ok('sync adds new films to old tenants', (() => { windowObj.OD_WORKOUTS = demo.slice(0, 24).map((w) => Object.assign({}, w)); ctx.syncMissingODDemoWorkouts(); return windowObj.OD_WORKOUTS.length === demo.length; })());
 ok('assign to client on cards', /openAssignHomeworkModal/.test(ctx.odWorkoutCardHTML(demo.find((w) => w.id === 'ow15') || demo[0], 0)));
 
 windowObj.OD_WORKOUTS = [];
