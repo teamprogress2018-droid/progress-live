@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-10-19T09:32:06.905Z",
+ "generatedAt": "2026-10-19T11:36:21.685Z",
  "sources": {
   "pubmed": "ok",
   "europepmc": "ok",
@@ -214,8 +214,8 @@
    "q": "Czy większa objętość zawsze zwiększa hipertrofię?",
    "hint": "",
    "studyIds": [
-    "35015560",
     "41343037",
+    "35015560",
     "27433992",
     "35044672",
     "20300012"
@@ -230,9 +230,9 @@
    "q": "Czy trening do upadku jest konieczny?",
    "hint": "",
    "studyIds": [
-    "36334240",
-    "38970765",
     "33497853",
+    "38970765",
+    "36334240",
     "40249908",
     "37144554"
    ],
@@ -247,7 +247,9 @@
    "hint": "",
    "studyIds": [
     "27102172",
-    "30558493"
+    "30558493",
+    "32948100",
+    "29324578"
    ],
    "answer": null,
    "answerKey": "",
@@ -306,10 +308,10 @@
    "hint": "",
    "studyIds": [
     "28834797",
+    "34769755",
     "39558011",
     "29564973",
-    "35187867",
-    "24714538"
+    "35187867"
    ],
    "answer": null,
    "answerKey": "",
@@ -336,11 +338,11 @@
    "q": "Jak bezpiecznie budować siłę u osób starszych?",
    "hint": "",
    "studyIds": [
+    "36497565",
     "34911483",
     "31343601",
-    "36497565",
-    "37571361",
-    "36361073"
+    "36361073",
+    "32483625"
    ],
    "answer": null,
    "answerKey": "",
@@ -368,11 +370,11 @@
    "q": "Jak łączyć cardio z treningiem siłowym?",
    "hint": "Wyjaśnij efekt interferencji i od czego zależy (rodzaj cardio, objętość, odstęp czasowy, cel klienta).",
    "studyIds": [
-    "34757594",
     "38887616",
+    "34757594",
     "22002517",
-    "40405489",
-    "37875170"
+    "37875170",
+    "40405489"
    ],
    "answer": null,
    "answerKey": "",
@@ -384,10 +386,9 @@
    "q": "Jak najskuteczniej poprawić wydolność (VO2max)?",
    "hint": "",
    "studyIds": [
-    "26243014",
-    "38878596",
     "36981649",
-    "38760916",
+    "30733142",
+    "26243014",
     "30649897"
    ],
    "answer": null,
@@ -403,8 +404,8 @@
     "39724371",
     "37695493",
     "40405489",
-    "37028708",
-    "38784482"
+    "39275322",
+    "37028708"
    ],
    "answer": null,
    "answerKey": "",
@@ -432,11 +433,11 @@
    "q": "Czy HIIT jest dobry dla początkującego z nadwagą?",
    "hint": "Nie odpowiadaj samym protokołem (np. „zrób Tabatę”). Wyjaśnij: czym HIIT różni się od Tabaty, jak sprawdzić bazę wydolnościową i gotowość klienta, jaki prostszy wariant wybrać na start, jak kontrolować RPE, tętno i regenerację oraz kiedy zacząć od spokojnego cardio.",
    "studyIds": [
-    "39003682",
-    "28401638",
     "36981649",
-    "32344773",
-    "30733142"
+    "30733142",
+    "28401638",
+    "40259289",
+    "38638032"
    ],
    "answer": null,
    "answerKey": "",
@@ -448,11 +449,11 @@
    "q": "HIIT czy spokojne cardio – co wybrać?",
    "hint": "",
    "studyIds": [
-    "28401638",
     "36981649",
-    "32344773",
+    "30733142",
     "30685470",
-    "30733142"
+    "28401638",
+    "35232402"
    ],
    "answer": null,
    "answerKey": "",
@@ -464,11 +465,11 @@
    "q": "Czym jest Tabata i kiedy ma sens?",
    "hint": "Oryginalny protokół Tabaty to wysiłek supramaksymalny (ok. 170% VO2max) – odróżnij go od popularnych „tabat” z ćwiczeniami. Opisz tylko to, co podają źródła.",
    "studyIds": [
-    "32344773",
     "26243014",
     "28513103",
-    "39986351",
-    "31904713"
+    "31904713",
+    "38760916",
+    "38638032"
    ],
    "answer": null,
    "answerKey": "",
@@ -480,8 +481,8 @@
    "q": "Czy HIIT jest bezpieczny i jak kontrolować intensywność?",
    "hint": "",
    "studyIds": [
-    "30685470",
     "29127602",
+    "30685470",
     "39977401",
     "31904713",
     "34886337"
@@ -499,8 +500,8 @@
     "35187864",
     "28698222",
     "28642676",
-    "33670701",
-    "37196876"
+    "37196876",
+    "33670701"
    ],
    "answer": null,
    "answerKey": "",
@@ -512,10 +513,10 @@
    "q": "Czy kreatyna działa i komu ją rozważyć?",
    "hint": "",
    "studyIds": [
-    "37432300",
-    "39519498",
     "34199420",
     "39074168",
+    "37432300",
+    "39519498",
     "40265319"
    ],
    "answer": null,
@@ -585,8 +586,7 @@
    "q": "Maszyny czy wolne ciężary?",
    "hint": "",
    "studyIds": [
-    "39232439",
-    "41316621"
+    "39232439"
    ],
    "answer": null,
    "answerKey": "",
@@ -602,7 +602,7 @@
     "30580468",
     "38637473",
     "37015016",
-    "40911904"
+    "33977835"
    ],
    "answer": null,
    "answerKey": "",
@@ -626,8 +626,8 @@
    "q": "Czy trening równowagi zmniejsza ryzyko upadków u seniorów?",
    "hint": "",
    "studyIds": [
-    "30703272",
     "27707740",
+    "30703272",
     "38833257",
     "22972103",
     "34910151"
@@ -644,8 +644,8 @@
    "studyIds": [
     "37897637",
     "33359798",
+    "40469857",
     "31426481",
-    "22240550",
     "36625965"
    ],
    "answer": null,
@@ -674,10 +674,10 @@
    "q": "Czy rozciąganie przed treningiem obniża siłę?",
    "hint": "",
    "studyIds": [
-    "42476526",
     "38455430",
-    "26642915",
+    "42476526",
     "22316148",
+    "26642915",
     "34025459"
    ],
    "answer": null,
@@ -735,10 +735,10 @@
    "q": "Jak radzić sobie z zakwasami (DOMS)?",
    "hint": "",
    "studyIds": [
+    "34365084",
     "33493991",
-    "33201156",
     "38970118",
-    "38999792",
+    "33201156",
     "34025459"
    ],
    "answer": null,
@@ -783,10 +783,10 @@
    "hint": "Zgoda lekarza prowadzącego jest warunkiem. Wymień przeciwwskazania i objawy przerwania wysiłku tylko, jeśli podają je źródła.",
    "studyIds": [
     "32217980",
-    "37372656",
     "38140841",
     "40610191",
-    "30337460"
+    "30337460",
+    "37372656"
    ],
    "answer": null,
    "answerKey": "",
@@ -814,8 +814,8 @@
    "q": "Czy trening siłowy zmniejsza ryzyko kontuzji?",
    "hint": "",
    "studyIds": [
-    "24100287",
     "35384731",
+    "24100287",
     "30001501",
     "26772611",
     "30131332"
@@ -846,41 +846,41 @@
    "41343037",
    "41877354",
    "41212331",
-   "40570881",
    "41712097",
-   "41668861",
+   "40570881",
+   "42141930",
    "41192799",
-   "41365305"
+   "41668861"
   ],
   "sila": [
    "41212331",
-   "41086999",
-   "41668861",
-   "40925820",
    "41106502",
-   "41205420",
    "41192799",
-   "41305674"
+   "41668861",
+   "41086999",
+   "40632222",
+   "42366614",
+   "42141930"
   ],
   "cardio": [
    "40405489",
    "40632222",
    "41135244",
-   "42144246",
+   "41543030",
    "41731443",
-   "41376381",
-   "41927192",
-   "42267276"
+   "42713583",
+   "42144246",
+   "40259503"
   ],
   "hiit": [
-   "42297097",
-   "41587299",
-   "41755367",
    "41810896",
-   "42211454",
+   "41349798",
+   "41488923",
    "42656449",
-   "42291733",
-   "41988464"
+   "41695770",
+   "41988464",
+   "41326383",
+   "41370222"
   ],
   "zywienie": [
    "41328071",
@@ -904,23 +904,23 @@
   ],
   "funkcjonalny": [
    "41175154",
-   "40957586",
    "40260904",
    "41566097",
-   "41981489",
+   "40957586",
    "40643578",
-   "42764178",
-   "41110662"
+   "41110662",
+   "41877399",
+   "39918027"
   ],
   "regeneracja": [
    "41891174",
    "40784513",
+   "41578562",
    "41433039",
    "41901084",
    "41160949",
    "40498100",
-   "40839339",
-   "41601207"
+   "40839339"
   ],
   "bezpieczenstwo": [
    "41363159",
@@ -986,33 +986,6 @@
    "abstractHash": "bd45536da330",
    "categories": [
     "cardio"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "22240550": {
-   "pmid": "22240550",
-   "doi": "10.1519/JSC.0b013e318220fd03",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 154,
-   "title": "The effects of plyometric training on sprint performance: a meta-analysis.",
-   "journal": "Journal of strength and conditioning research",
-   "journalAbbr": "J Strength Cond Res",
-   "year": "2012",
-   "authors": "Sáez de Villarreal E, Requena B, Cronin JB",
-   "authorCount": 3,
-   "pubTypes": [
-    "Journal Article",
-    "Meta-Analysis"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "7b44fee54345",
-   "categories": [
-    "funkcjonalny"
    ],
    "synth": null,
    "synthAt": null
@@ -1214,35 +1187,6 @@
    "abstractHash": "eff99a99a089",
    "categories": [
     "zywienie"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "24714538": {
-   "pmid": "24714538",
-   "doi": "10.1519/JSC.0000000000000480",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 115,
-   "title": "Effects of different volume-equated resistance training loading strategies on muscular adaptations in well-trained men.",
-   "journal": "Journal of strength and conditioning research",
-   "journalAbbr": "J Strength Cond Res",
-   "year": "2014",
-   "authors": "Schoenfeld BJ, Ratamess NA, Peterson MD i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Comparative Study",
-    "Journal Article",
-    "Randomized Controlled Trial",
-    "Research Support, Non-U.S. Gov't"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "hasAbstract": true,
-   "abstractHash": "88404db2cc2c",
-   "categories": [
-    "sila"
    ],
    "synth": null,
    "synthAt": null
@@ -1862,6 +1806,33 @@
    "synth": null,
    "synthAt": null
   },
+  "29324578": {
+   "pmid": "29324578",
+   "doi": "10.1519/JSC.0000000000002414",
+   "doiVerified": true,
+   "pmcid": "",
+   "openAccess": false,
+   "citedBy": 52,
+   "title": "Training Volume, Not Frequency, Indicative of Maximal Strength Adaptations to Resistance Training.",
+   "journal": "Journal of strength and conditioning research",
+   "journalAbbr": "J Strength Cond Res",
+   "year": "2018",
+   "authors": "Colquhoun RJ, Gai CM, Aguilar D i in.",
+   "authorCount": 9,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "hasAbstract": true,
+   "abstractHash": "6c6572abed0e",
+   "categories": [
+    "hipertrofia"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "29527137": {
    "pmid": "29527137",
    "doi": "10.1186/s12970-018-0216-0",
@@ -2366,19 +2337,19 @@
    "synth": null,
    "synthAt": null
   },
-  "32344773": {
-   "pmid": "32344773",
-   "doi": "10.3390/ijerph17082955",
+  "32483625": {
+   "pmid": "32483625",
+   "doi": "10.1093/nutrit/nuaa011",
    "doiVerified": true,
-   "pmcid": "PMC7215828",
-   "openAccess": true,
-   "citedBy": 94,
-   "title": "High Intensity Interval Training (HIIT) Improves Cardiorespiratory Fitness (CRF) in Healthy, Overweight and Obese Adolescents: A Systematic Review and Meta-Analysis of Controlled Studies.",
-   "journal": "International journal of environmental research and public health",
-   "journalAbbr": "Int J Environ Res Public Health",
-   "year": "2020",
-   "authors": "Martin-Smith R, Cox A, Buchan DS i in.",
-   "authorCount": 6,
+   "pmcid": "",
+   "openAccess": false,
+   "citedBy": 203,
+   "title": "Nutritional interventions to improve muscle mass, muscle strength, and physical performance in older people: an umbrella review of systematic reviews and meta-analyses.",
+   "journal": "Nutrition reviews",
+   "journalAbbr": "Nutr Rev",
+   "year": "2021",
+   "authors": "Gielen E, Beckwée D, Delaere A i in.",
+   "authorCount": 7,
    "pubTypes": [
     "Journal Article",
     "Meta-Analysis",
@@ -2387,10 +2358,10 @@
    "evidence": "meta",
    "evidenceLabel": "Metaanaliza",
    "hasAbstract": true,
-   "abstractHash": "3bd86dc80e0d",
+   "abstractHash": "4e92a8a3898e",
    "categories": [
-    "hiit",
-    "cardio"
+    "sila",
+    "zywienie"
    ],
    "synth": null,
    "synthAt": null
@@ -2447,6 +2418,34 @@
    "abstractHash": "1e26197c9cd8",
    "categories": [
     "cardio"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "32948100": {
+   "pmid": "32948100",
+   "doi": "10.1080/02640414.2020.1822595",
+   "doiVerified": true,
+   "pmcid": "",
+   "openAccess": false,
+   "citedBy": 24,
+   "title": "A meta-regression of the effects of resistance training frequency on muscular strength and hypertrophy in adults over 60 years of age.",
+   "journal": "Journal of sports sciences",
+   "journalAbbr": "J Sports Sci",
+   "year": "2021",
+   "authors": "Kneffel Z, Murlasits Z, Reed J i in.",
+   "authorCount": 4,
+   "pubTypes": [
+    "Journal Article",
+    "Meta-Analysis",
+    "Systematic Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "hasAbstract": true,
+   "abstractHash": "dd2f910905ed",
+   "categories": [
+    "hipertrofia"
    ],
    "synth": null,
    "synthAt": null
@@ -2898,6 +2897,34 @@
    "synth": null,
    "synthAt": null
   },
+  "34365084": {
+   "pmid": "34365084",
+   "doi": "10.1016/j.ptsp.2021.07.005",
+   "doiVerified": true,
+   "pmcid": "",
+   "openAccess": false,
+   "citedBy": 28,
+   "title": "Physical therapy interventions for the treatment of delayed onset muscle soreness (DOMS): Systematic review and meta-analysis.",
+   "journal": "Physical therapy in sport : official journal of the Association of Chartered Physiotherapists in Sports Medicine",
+   "journalAbbr": "Phys Ther Sport",
+   "year": "2021",
+   "authors": "Nahon RL, Silva Lopes JS, Monteiro de Magalhães Neto A",
+   "authorCount": 3,
+   "pubTypes": [
+    "Journal Article",
+    "Meta-Analysis",
+    "Systematic Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "hasAbstract": true,
+   "abstractHash": "0e00cfaf8737",
+   "categories": [
+    "regeneracja"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "34580864": {
    "pmid": "34580864",
    "doi": "10.1002/14651858.CD009790.pub2",
@@ -3034,7 +3061,8 @@
    "hasAbstract": true,
    "abstractHash": "8864cec95069",
    "categories": [
-    "hipertrofia"
+    "hipertrofia",
+    "sila"
    ],
    "synth": null,
    "synthAt": null
@@ -3263,6 +3291,34 @@
    "abstractHash": "cab5d3b8148b",
    "categories": [
     "sila"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "35232402": {
+   "pmid": "35232402",
+   "doi": "10.1186/s12887-021-03079-z",
+   "doiVerified": true,
+   "pmcid": "PMC8886768",
+   "openAccess": true,
+   "citedBy": 98,
+   "title": "Effects of school-based high-intensity interval training on body composition, cardiorespiratory fitness and cardiometabolic markers in adolescent boys with obesity: a randomized controlled trial.",
+   "journal": "BMC pediatrics",
+   "journalAbbr": "BMC Pediatr",
+   "year": "2022",
+   "authors": "Meng C, Yucheng T, Shu L i in.",
+   "authorCount": 4,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Research Support, Non-U.S. Gov't"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "hasAbstract": true,
+   "abstractHash": "d188cb6c2fed",
+   "categories": [
+    "hiit"
    ],
    "synth": null,
    "synthAt": null
@@ -4224,35 +4280,6 @@
    "synth": null,
    "synthAt": null
   },
-  "37571361": {
-   "pmid": "37571361",
-   "doi": "10.3390/nu15153424",
-   "doiVerified": true,
-   "pmcid": "PMC10421506",
-   "openAccess": true,
-   "citedBy": 49,
-   "title": "Effectiveness of Whey Protein Supplementation during Resistance Exercise Training on Skeletal Muscle Mass and Strength in Older People with Sarcopenia: A Systematic Review and Meta-Analysis.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2023",
-   "authors": "Cuyul-Vásquez I, Pezo-Navarrete J, Vargas-Arriagada C i in.",
-   "authorCount": 7,
-   "pubTypes": [
-    "Meta-Analysis",
-    "Systematic Review",
-    "Journal Article"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "8b2ef698b932",
-   "categories": [
-    "sila",
-    "zywienie"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
   "37662911": {
    "pmid": "37662911",
    "doi": "10.3389/fimmu.2023.1193835",
@@ -4647,6 +4674,34 @@
    "synth": null,
    "synthAt": null
   },
+  "38638032": {
+   "pmid": "38638032",
+   "doi": "10.2337/dc24-0241",
+   "doiVerified": true,
+   "pmcid": "PMC11116924",
+   "openAccess": true,
+   "citedBy": 24,
+   "title": "Effect of 5:2 Regimens: Energy-Restricted Diet or Low-Volume High-Intensity Interval Training Combined With Resistance Exercise on Glycemic Control and Cardiometabolic Health in Adults With Overweight/Obesity and Type 2 Diabetes: A Three-Arm Randomized Controlled Trial.",
+   "journal": "Diabetes care",
+   "journalAbbr": "Diabetes Care",
+   "year": "2024",
+   "authors": "Li M, Li J, Xu Y i in.",
+   "authorCount": 30,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Research Support, Non-U.S. Gov't"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "hasAbstract": true,
+   "abstractHash": "d0ee3f2809e2",
+   "categories": [
+    "hiit"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "38684137": {
    "pmid": "38684137",
    "doi": "10.1097/PHM.0000000000002513",
@@ -4703,34 +4758,6 @@
    "synth": null,
    "synthAt": null
   },
-  "38784482": {
-   "pmid": "38784482",
-   "doi": "10.4314/ejhs.v33i6.17",
-   "doiVerified": true,
-   "pmcid": "PMC11111269",
-   "openAccess": true,
-   "citedBy": 21,
-   "title": "Effectiveness of Aerobic, Resistance, and Combined Training for Hypertensive Patients: A Randomized Controlled Trial.",
-   "journal": "Ethiopian journal of health sciences",
-   "journalAbbr": "Ethiop J Health Sci",
-   "year": "2023",
-   "authors": "Alemayehu A, Teferi G",
-   "authorCount": 2,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "hasAbstract": true,
-   "abstractHash": "ee08f9d0ef07",
-   "categories": [
-    "cardio",
-    "bezpieczenstwo"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
   "38833257": {
    "pmid": "38833257",
    "doi": "10.1001/jama.2024.4166",
@@ -4756,35 +4783,6 @@
    "abstractHash": "c3001cbad2b4",
    "categories": [
     "funkcjonalny"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "38878596": {
-   "pmid": "38878596",
-   "doi": "10.1016/j.archger.2024.105530",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 17,
-   "title": "Effect of aerobic training versus resistance training for improving cardiorespiratory fitness and body composition in middle-aged to older adults: A systematic review and meta-analysis of randomized controlled trials.",
-   "journal": "Archives of gerontology and geriatrics",
-   "journalAbbr": "Arch Gerontol Geriatr",
-   "year": "2024",
-   "authors": "An J, Su Z, Meng S",
-   "authorCount": 3,
-   "pubTypes": [
-    "Journal Article",
-    "Meta-Analysis",
-    "Systematic Review",
-    "Research Support, Non-U.S. Gov't"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "bb77f7b5983d",
-   "categories": [
-    "cardio"
    ],
    "synth": null,
    "synthAt": null
@@ -4875,61 +4873,6 @@
    "synth": null,
    "synthAt": null
   },
-  "38999792": {
-   "pmid": "38999792",
-   "doi": "10.3390/nu16132044",
-   "doiVerified": true,
-   "pmcid": "PMC11243702",
-   "openAccess": true,
-   "citedBy": 51,
-   "title": "Omega-3 Fatty Acid Supplementation on Post-Exercise Inflammation, Muscle Damage, Oxidative Response, and Sports Performance in Physically Healthy Adults-A Systematic Review of Randomized Controlled Trials.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2024",
-   "authors": "Fernández-Lázaro D, Arribalzaga S, Gutiérrez-Abejón E i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review"
-   ],
-   "evidence": "sr",
-   "evidenceLabel": "Przegląd systematyczny",
-   "hasAbstract": true,
-   "abstractHash": "bbeb8177ba0b",
-   "categories": [
-    "regeneracja"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "39003682": {
-   "pmid": "39003682",
-   "doi": "10.1007/s40279-024-02070-9",
-   "doiVerified": true,
-   "pmcid": "PMC11560999",
-   "openAccess": true,
-   "citedBy": 38,
-   "title": "Efficacy of Interval Training in Improving Body Composition and Adiposity in Apparently Healthy Adults: An Umbrella Review with Meta-Analysis.",
-   "journal": "Sports medicine (Auckland, N.Z.)",
-   "journalAbbr": "Sports Med",
-   "year": "2024",
-   "authors": "Poon ET, Li HY, Little JP i in.",
-   "authorCount": 5,
-   "pubTypes": [
-    "Journal Article",
-    "Meta-Analysis",
-    "Systematic Review"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "6bf93f731309",
-   "categories": [
-    "hiit"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
   "39045713": {
    "pmid": "39045713",
    "doi": "10.1002/ksa.12367",
@@ -5009,6 +4952,35 @@
    "abstractHash": "3ec45dd4bfd7",
    "categories": [
     "anatomia"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "39275322": {
+   "pmid": "39275322",
+   "doi": "10.3390/nu16173007",
+   "doiVerified": true,
+   "pmcid": "PMC11397086",
+   "openAccess": true,
+   "citedBy": 27,
+   "title": "Effects of Different Exercises Combined with Different Dietary Interventions on Body Composition: A Systematic Review and Network Meta-Analysis.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2024",
+   "authors": "Xie Y, Gu Y, Li Z i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Network Meta-Analysis"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "hasAbstract": true,
+   "abstractHash": "8f1826634db7",
+   "categories": [
+    "cardio",
+    "zywienie"
    ],
    "synth": null,
    "synthAt": null
@@ -5127,6 +5099,34 @@
    "synth": null,
    "synthAt": null
   },
+  "39918027": {
+   "pmid": "39918027",
+   "doi": "10.1080/07853890.2025.2459818",
+   "doiVerified": true,
+   "pmcid": "PMC11809163",
+   "openAccess": true,
+   "citedBy": 12,
+   "title": "Home-based strength and balance exercises for fall prevention among older individuals of advanced age: a randomized controlled single-blind study.",
+   "journal": "Annals of medicine",
+   "journalAbbr": "Ann Med",
+   "year": "2025",
+   "authors": "Zhou J, Liu B, Xu JF i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Research Support, Non-U.S. Gov't"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "hasAbstract": true,
+   "abstractHash": "9d7ce347e3ab",
+   "categories": [
+    "funkcjonalny"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "39959841": {
    "pmid": "39959841",
    "doi": "10.7717/peerj.18904",
@@ -5178,34 +5178,6 @@
    "evidenceLabel": "Metaanaliza",
    "hasAbstract": true,
    "abstractHash": "361b5d88ec2a",
-   "categories": [
-    "hiit"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "39986351": {
-   "pmid": "39986351",
-   "doi": "10.1016/j.jshs.2025.101030",
-   "doiVerified": true,
-   "pmcid": "PMC12134606",
-   "openAccess": true,
-   "citedBy": 30,
-   "title": "Physiological adaptations and performance enhancement with combined blood flow restricted and interval training: A systematic review with meta-analysis.",
-   "journal": "Journal of sport and health science",
-   "journalAbbr": "J Sport Health Sci",
-   "year": "2025",
-   "authors": "Yin M, Deng S, Deng J i in.",
-   "authorCount": 7,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "039291e11ab3",
    "categories": [
     "hiit"
    ],
@@ -5265,6 +5237,61 @@
    "categories": [
     "hipertrofia",
     "sila"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "40259289": {
+   "pmid": "40259289",
+   "doi": "10.1186/s12891-025-08275-x",
+   "doiVerified": true,
+   "pmcid": "PMC12010601",
+   "openAccess": true,
+   "citedBy": 3,
+   "title": "Concurrent effects of high-intensity interval training and vitamin D supplementation on bone metabolism among women diagnosed with osteoporosis: a randomized controlled trial.",
+   "journal": "BMC musculoskeletal disorders",
+   "journalAbbr": "BMC Musculoskelet Disord",
+   "year": "2025",
+   "authors": "Alghadir AH, Gabr SA, Iqbal A",
+   "authorCount": 3,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "hasAbstract": true,
+   "abstractHash": "dd47b9f8c50c",
+   "categories": [
+    "hiit"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "40259503": {
+   "pmid": "40259503",
+   "doi": "10.1080/15502783.2025.2494839",
+   "doiVerified": true,
+   "pmcid": "PMC12016275",
+   "openAccess": true,
+   "citedBy": 1,
+   "title": "Impact of carbohydrate timing on glucose metabolism and substrate oxidation following high-intensity evening aerobic exercise in athletes: a randomized controlled study.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
+   "year": "2025",
+   "authors": "Mattsson S, Edin F, Trinh J i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "hasAbstract": true,
+   "abstractHash": "1fecf9fe2260",
+   "categories": [
+    "cardio",
+    "zywienie"
    ],
    "synth": null,
    "synthAt": null
@@ -5404,6 +5431,34 @@
    "abstractHash": "8d7e4bf79a85",
    "categories": [
     "regeneracja"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "40469857": {
+   "pmid": "40469857",
+   "doi": "10.52082/jssm.2025.406",
+   "doiVerified": true,
+   "pmcid": "PMC12131141",
+   "openAccess": false,
+   "citedBy": 7,
+   "title": "Effects of Strength and Plyometric Training on Vertical Jump, Linear Sprint, and Change-of-Direction Speed in Female Adolescent Team Sport Athletes: A Systematic Review and Meta-Analysis.",
+   "journal": "Journal of sports science & medicine",
+   "journalAbbr": "J Sports Sci Med",
+   "year": "2025",
+   "authors": "Luo H, Zhu X, Nasharuddin NA i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "hasAbstract": true,
+   "abstractHash": "e9615a48335f",
+   "categories": [
+    "funkcjonalny"
    ],
    "synth": null,
    "synthAt": null
@@ -5748,62 +5803,6 @@
    "synth": null,
    "synthAt": null
   },
-  "40911904": {
-   "pmid": "40911904",
-   "doi": "10.1139/apnm-2025-0238",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 2,
-   "title": "The effects of long muscle length isometric versus full range of motion isotonic training on regional quadriceps femoris hypertrophy in resistance-trained individuals.",
-   "journal": "Applied physiology, nutrition, and metabolism = Physiologie appliquee, nutrition et metabolisme",
-   "journalAbbr": "Appl Physiol Nutr Metab",
-   "year": "2025",
-   "authors": "Varovic D, Zganjer K, Wolf M i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Comparative Study",
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "hasAbstract": true,
-   "abstractHash": "c9f6d073017a",
-   "categories": [
-    "anatomia"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "40925820": {
-   "pmid": "40925820",
-   "doi": "10.1016/j.jsams.2025.08.005",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 1,
-   "title": "Lumbo-pelvic-hip complex strengthening with and without isolated pelvic floor muscle training for postpartum pelvic floor health: a systematic review and meta-analysis.",
-   "journal": "Journal of science and medicine in sport",
-   "journalAbbr": "J Sci Med Sport",
-   "year": "2026",
-   "authors": "Walsh SJ, Ashcroft SK, Starc LC i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "c18001847e4b",
-   "categories": [
-    "sila"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
   "40957586": {
    "pmid": "40957586",
    "doi": "10.1123/japa.2024-0390",
@@ -6144,36 +6143,6 @@
    "synth": null,
    "synthAt": null
   },
-  "41205420": {
-   "pmid": "41205420",
-   "doi": "10.1016/j.jnha.2025.100718",
-   "doiVerified": true,
-   "pmcid": "PMC12639618",
-   "openAccess": true,
-   "citedBy": 10,
-   "title": "Comparative Effectiveness of Exercise and Protein-Based Interventions on Muscle Strength, Mass, and Function in Sarcopenia: A Systematic Review and Network Meta-Analysis.",
-   "journal": "The journal of nutrition, health & aging",
-   "journalAbbr": "J Nutr Health Aging",
-   "year": "2025",
-   "authors": "Yan R, Jia S, Lu D i in.",
-   "authorCount": 7,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Network Meta-Analysis"
-   ],
-   "evidence": "sr",
-   "evidenceLabel": "Przegląd systematyczny",
-   "hasAbstract": true,
-   "abstractHash": "a6f4671fec33",
-   "categories": [
-    "hipertrofia",
-    "sila",
-    "funkcjonalny"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
   "41212331": {
    "pmid": "41212331",
    "doi": "10.1007/s40520-025-03235-w",
@@ -6287,34 +6256,6 @@
    "synth": null,
    "synthAt": null
   },
-  "41305674": {
-   "pmid": "41305674",
-   "doi": "10.3390/nu17223624",
-   "doiVerified": true,
-   "pmcid": "PMC12655442",
-   "openAccess": true,
-   "citedBy": 4,
-   "title": "The Role of HMB Supplementation in Enhancing the Effects of Resistance Training in Older Adults: A Systematic Review and Meta-Analysis on Muscle Quality, Body Composition, and Physical Function.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2025",
-   "authors": "García-Alonso A, Sánchez-González JL, Navarro-López V i in.",
-   "authorCount": 5,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "46dce180fe14",
-   "categories": [
-    "sila"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
   "41316621": {
    "pmid": "41316621",
    "doi": "10.1016/j.jbmt.2025.09.027",
@@ -6339,6 +6280,33 @@
    "abstractHash": "bb8cbea0c847",
    "categories": [
     "anatomia"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "41326383": {
+   "pmid": "41326383",
+   "doi": "10.1038/s41467-025-66625-8",
+   "doiVerified": true,
+   "pmcid": "PMC12769668",
+   "openAccess": true,
+   "citedBy": 14,
+   "title": "Sprint interval exercise disrupts mitochondrial ultrastructure driving a unique mitochondrial stress response and remodelling in men.",
+   "journal": "Nature communications",
+   "journalAbbr": "Nat Commun",
+   "year": "2025",
+   "authors": "Botella J, Perri E, Caruana NJ i in.",
+   "authorCount": 17,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "hasAbstract": true,
+   "abstractHash": "8bf9c5eee682",
+   "categories": [
+    "hiit"
    ],
    "synth": null,
    "synthAt": null
@@ -6399,6 +6367,35 @@
    "synth": null,
    "synthAt": null
   },
+  "41349798": {
+   "pmid": "41349798",
+   "doi": "10.1016/j.jaip.2025.11.032",
+   "doiVerified": true,
+   "pmcid": "",
+   "openAccess": false,
+   "citedBy": 1,
+   "title": "High-Intensity Interval Training in Adults With Asthma: Systematic Review and Meta-Analysis.",
+   "journal": "The journal of allergy and clinical immunology. In practice",
+   "journalAbbr": "J Allergy Clin Immunol Pract",
+   "year": "2026",
+   "authors": "Regalado-Cabello P, Pérez-Gisbert L, Brea-Gómez B i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Research Support, Non-U.S. Gov't"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "hasAbstract": true,
+   "abstractHash": "2df72a6756cd",
+   "categories": [
+    "hiit"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "41363159": {
    "pmid": "41363159",
    "doi": "10.1002/14651858.CD011225.pub2",
@@ -6427,58 +6424,30 @@
    "synth": null,
    "synthAt": null
   },
-  "41365305": {
-   "pmid": "41365305",
-   "doi": "10.1002/jcsm.70162",
+  "41370222": {
+   "pmid": "41370222",
+   "doi": "10.1371/journal.pone.0336898",
    "doiVerified": true,
-   "pmcid": "PMC12688407",
+   "pmcid": "PMC12694805",
    "openAccess": true,
-   "citedBy": 5,
-   "title": "Influence of Resistance Training Variables to Improve Muscle Mass Outcomes in Sarcopenia: A Systematic Review With Meta-Regressions.",
-   "journal": "Journal of cachexia, sarcopenia and muscle",
-   "journalAbbr": "J Cachexia Sarcopenia Muscle",
+   "citedBy": 4,
+   "title": "Comparative effects of combined aerobic and resistance training versus high-intensity interval training on insulin resistance, glycaemic control, body composition and quality of life in type 2 diabetes: A 12-week randomised controlled trial.",
+   "journal": "PloS one",
+   "journalAbbr": "PLoS One",
    "year": "2025",
-   "authors": "Delaire L, Courtay-Breuil A, Humblot J i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "d4150469e03e",
-   "categories": [
-    "hipertrofia"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "41376381": {
-   "pmid": "41376381",
-   "doi": "10.1515/jpem-2025-0166",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 0,
-   "title": "Effects of exercise training on cardiorespiratory fitness in children and adolescents with overweight or obesity: a systematic review.",
-   "journal": "Journal of pediatric endocrinology & metabolism : JPEM",
-   "journalAbbr": "J Pediatr Endocrinol Metab",
-   "year": "2026",
-   "authors": "Cao Y, Xu R, Hu Q",
+   "authors": "Amaravadi SK, Ferreira AS, Vigário PDS",
    "authorCount": 3,
    "pubTypes": [
     "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis"
+    "Randomized Controlled Trial",
+    "Comparative Study"
    ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
    "hasAbstract": true,
-   "abstractHash": "b76177c0ef1f",
+   "abstractHash": "394fde3ebb36",
    "categories": [
-    "cardio",
+    "hipertrofia",
     "hiit"
    ],
    "synth": null,
@@ -6569,6 +6538,61 @@
    "synth": null,
    "synthAt": null
   },
+  "41488923": {
+   "pmid": "41488923",
+   "doi": "10.3389/fphys.2025.1736441",
+   "doiVerified": true,
+   "pmcid": "PMC12757267",
+   "openAccess": true,
+   "citedBy": 0,
+   "title": "Is low-volume high intensity interval training a time-efficient strategy for improving body composition and cardiovascular health in children and adolescents? Evidence from a systematic review and three-level meta-analysis.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2025",
+   "authors": "Zheng W, Xing Y, Yin M i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "hasAbstract": true,
+   "abstractHash": "e203a4ea7611",
+   "categories": [
+    "hiit"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "41543030": {
+   "pmid": "41543030",
+   "doi": "10.1111/sms.70208",
+   "doiVerified": true,
+   "pmcid": "PMC12810095",
+   "openAccess": true,
+   "citedBy": 3,
+   "title": "Effects of Low-Intensity Endurance Training on Aerobic Fitness and Risk Factors of Cardiometabolic Health in Working-Age Adults: A Systematic Review and Meta-Analysis.",
+   "journal": "Scandinavian journal of medicine & science in sports",
+   "journalAbbr": "Scand J Med Sci Sports",
+   "year": "2026",
+   "authors": "Nuuttila OP, Matomäki P, Raitanen J i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "hasAbstract": true,
+   "abstractHash": "65a9f2e5d630",
+   "categories": [
+    "cardio"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "41566097": {
    "pmid": "41566097",
    "doi": "10.1007/s40520-025-03303-1",
@@ -6597,19 +6621,19 @@
    "synth": null,
    "synthAt": null
   },
-  "41587299": {
-   "pmid": "41587299",
-   "doi": "10.1093/bmb/ldag002",
+  "41578562": {
+   "pmid": "41578562",
+   "doi": "10.1097/MD.0000000000046781",
    "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
+   "pmcid": "PMC12851776",
+   "openAccess": true,
    "citedBy": 0,
-   "title": "Adiponectin response to high-intensity interval training in overweight and obese individuals: a systematic review and meta-analysis.",
-   "journal": "British medical bulletin",
-   "journalAbbr": "Br Med Bull",
+   "title": "Effects of cold water immersion vs body cryotherapy on delayed onset muscle soreness and jump performance following acute strenuous exercise in physically active participants: A systematic review and meta-analysis.",
+   "journal": "Medicine",
+   "journalAbbr": "Medicine (Baltimore)",
    "year": "2026",
-   "authors": "Saedmocheshi S, Racil G, Mehdipour A i in.",
-   "authorCount": 10,
+   "authors": "Liu S, Ma Y",
+   "authorCount": 2,
    "pubTypes": [
     "Journal Article",
     "Systematic Review",
@@ -6618,34 +6642,7 @@
    "evidence": "meta",
    "evidenceLabel": "Metaanaliza",
    "hasAbstract": true,
-   "abstractHash": "14f50ed44aec",
-   "categories": [
-    "hiit"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "41601207": {
-   "pmid": "41601207",
-   "doi": "10.1002/ejsc.70119",
-   "doiVerified": true,
-   "pmcid": "PMC12848314",
-   "openAccess": true,
-   "citedBy": 3,
-   "title": "Distinct Roles of Dopamine and Noradrenaline in Physical Fatigue.",
-   "journal": "European journal of sport science",
-   "journalAbbr": "Eur J Sport Sci",
-   "year": "2026",
-   "authors": "Arauz YLA, Mali A, Lathouwers E i in.",
-   "authorCount": 9,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "hasAbstract": true,
-   "abstractHash": "a5f80803147d",
+   "abstractHash": "68bbc9b73c5e",
    "categories": [
     "regeneracja"
    ],
@@ -6735,6 +6732,33 @@
    "synth": null,
    "synthAt": null
   },
+  "41695770": {
+   "pmid": "41695770",
+   "doi": "10.3389/fphys.2025.1732253",
+   "doiVerified": true,
+   "pmcid": "PMC12900728",
+   "openAccess": true,
+   "citedBy": 0,
+   "title": "Time-efficient and beneficial strategy: low-volume high-intensity interval training for cardiometabolic health and body composition outcomes in children and adolescents with overweight or obesity-a systematic review and meta-analysis.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2025",
+   "authors": "Ye C, Fu H, Zhou X i in.",
+   "authorCount": 4,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "hasAbstract": true,
+   "abstractHash": "ee45863781d1",
+   "categories": [
+    "hiit"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "41712097": {
    "pmid": "41712097",
    "doi": "10.1007/s40279-025-02341-z",
@@ -6787,35 +6811,6 @@
    "abstractHash": "9c95d1034a4a",
    "categories": [
     "cardio"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "41755367": {
-   "pmid": "41755367",
-   "doi": "10.1111/obr.70115",
-   "doiVerified": true,
-   "pmcid": "PMC13371801",
-   "openAccess": false,
-   "citedBy": 0,
-   "title": "Effects and Dose-Response Relationship of High-Intensity Interval Training on Cardiometabolic Risk in Individuals With Overweight and Obesity: A Systematic Review and Meta-Analysis.",
-   "journal": "Obesity reviews : an official journal of the International Association for the Study of Obesity",
-   "journalAbbr": "Obes Rev",
-   "year": "2026",
-   "authors": "Zhang G, Zhang M, Peng P i in.",
-   "authorCount": 10,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis",
-    "Research Support, Non-U.S. Gov't"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "72224e84fb7f",
-   "categories": [
-    "hiit"
    ],
    "synth": null,
    "synthAt": null
@@ -6878,6 +6873,33 @@
    "synth": null,
    "synthAt": null
   },
+  "41877399": {
+   "pmid": "41877399",
+   "doi": "10.1155/jonm/1740588",
+   "doiVerified": true,
+   "pmcid": "PMC13140816",
+   "openAccess": true,
+   "citedBy": 1,
+   "title": "A Systematic Review of Multivariate Models for Predicting Fall-Related Injuries in Older Adults.",
+   "journal": "Journal of nursing management",
+   "journalAbbr": "J Nurs Manag",
+   "year": "2026",
+   "authors": "Cai Y, Zhu W, Zhang X i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "hasAbstract": true,
+   "abstractHash": "9a14632756fb",
+   "categories": [
+    "funkcjonalny"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
   "41891174": {
    "pmid": "41891174",
    "doi": "10.1096/fj.202504783R",
@@ -6932,61 +6954,6 @@
    "abstractHash": "00bdf1303e17",
    "categories": [
     "regeneracja"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "41927192": {
-   "pmid": "41927192",
-   "doi": "10.1016/j.jbmt.2025.11.025",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 0,
-   "title": "Blood pressure responses after different interval configurations in aerobic exercise: a systematic review in adolescents and adults with type-1 diabetes.",
-   "journal": "Journal of bodywork and movement therapies",
-   "journalAbbr": "J Bodyw Mov Ther",
-   "year": "2026",
-   "authors": "Gomes JAF, Nascimento RLD, de Brito Gomes JL",
-   "authorCount": 3,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review"
-   ],
-   "evidence": "sr",
-   "evidenceLabel": "Przegląd systematyczny",
-   "hasAbstract": true,
-   "abstractHash": "2da44decf500",
-   "categories": [
-    "cardio"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "41981489": {
-   "pmid": "41981489",
-   "doi": "10.1186/s12877-026-07471-1",
-   "doiVerified": true,
-   "pmcid": "PMC13200400",
-   "openAccess": true,
-   "citedBy": 0,
-   "title": "Standalone commercial exergame training to improve balance in older adults in care facilities: a systematic review and meta-analysis of recent 10-year randomized controlled trials.",
-   "journal": "BMC geriatrics",
-   "journalAbbr": "BMC Geriatr",
-   "year": "2026",
-   "authors": "Leung WKC, Yau CYC, Chan BCL i in.",
-   "authorCount": 8,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "1a9d1bc08c1b",
-   "categories": [
-    "funkcjonalny"
    ],
    "synth": null,
    "synthAt": null
@@ -7072,7 +7039,8 @@
    "hasAbstract": true,
    "abstractHash": "579e670ccc19",
    "categories": [
-    "cardio"
+    "cardio",
+    "hipertrofia"
    ],
    "synth": null,
    "synthAt": null
@@ -7105,120 +7073,6 @@
    "synth": null,
    "synthAt": null
   },
-  "42211454": {
-   "pmid": "42211454",
-   "doi": "10.3389/fendo.2026.1833684",
-   "doiVerified": true,
-   "pmcid": "PMC13212182",
-   "openAccess": true,
-   "citedBy": 0,
-   "title": "Comparative effectiveness of high-intensity interval training versus moderate-intensity continuous training in patients with type 2 diabetes mellitus: a systematic review and meta-analysis.",
-   "journal": "Frontiers in endocrinology",
-   "journalAbbr": "Front Endocrinol (Lausanne)",
-   "year": "2026",
-   "authors": "Ren P, Zhang J, Li S i in.",
-   "authorCount": 4,
-   "pubTypes": [
-    "Comparative Study",
-    "Journal Article",
-    "Meta-Analysis",
-    "Systematic Review"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "5f95caa7b9b7",
-   "categories": [
-    "cardio",
-    "hiit"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "42267276": {
-   "pmid": "42267276",
-   "doi": "10.3389/fpubh.2026.1818686",
-   "doiVerified": true,
-   "pmcid": "PMC13243112",
-   "openAccess": true,
-   "citedBy": 1,
-   "title": "Comparative effects of different intensities of aerobic and resistance exercise on glycemic control and cardiorespiratory fitness in middle-aged older patients with type 2 diabetes: a network meta-analysis.",
-   "journal": "Frontiers in public health",
-   "journalAbbr": "Front Public Health",
-   "year": "2026",
-   "authors": "Yu J, Li X, Yu H i in.",
-   "authorCount": 4,
-   "pubTypes": [
-    "Journal Article",
-    "Network Meta-Analysis",
-    "Systematic Review",
-    "Comparative Study"
-   ],
-   "evidence": "sr",
-   "evidenceLabel": "Przegląd systematyczny",
-   "hasAbstract": true,
-   "abstractHash": "bfa7d01ce551",
-   "categories": [
-    "cardio"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "42291733": {
-   "pmid": "42291733",
-   "doi": "10.3389/fphys.2026.1791740",
-   "doiVerified": true,
-   "pmcid": "PMC13259680",
-   "openAccess": true,
-   "citedBy": 0,
-   "title": "The independent effects of isolated high-intensity interval training modalities on body composition and adiposity indices in overweight or obese adults: a systematic review and meta-analysis.",
-   "journal": "Frontiers in physiology",
-   "journalAbbr": "Front Physiol",
-   "year": "2026",
-   "authors": "Zhong J, Wang Y, Wu H i in.",
-   "authorCount": 5,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review"
-   ],
-   "evidence": "sr",
-   "evidenceLabel": "Przegląd systematyczny",
-   "hasAbstract": true,
-   "abstractHash": "a7670a4fb043",
-   "categories": [
-    "hiit"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
-  "42297097": {
-   "pmid": "42297097",
-   "doi": "10.1016/j.metabol.2026.156677",
-   "doiVerified": true,
-   "pmcid": "",
-   "openAccess": false,
-   "citedBy": 2,
-   "title": "High-intensity interval training and moderate-intensity continuous training are effective, feasible, and safe for patients with metabolic dysfunction-associated steatotic liver disease (MASLD): A systematic review and meta-analysis.",
-   "journal": "Metabolism: clinical and experimental",
-   "journalAbbr": "Metabolism",
-   "year": "2026",
-   "authors": "Wang B, Zeng X, Deng H i in.",
-   "authorCount": 23,
-   "pubTypes": [
-    "Journal Article",
-    "Systematic Review",
-    "Meta-Analysis"
-   ],
-   "evidence": "meta",
-   "evidenceLabel": "Metaanaliza",
-   "hasAbstract": true,
-   "abstractHash": "65df98c8523f",
-   "categories": [
-    "hiit"
-   ],
-   "synth": null,
-   "synthAt": null
-  },
   "42315811": {
    "pmid": "42315811",
    "doi": "10.1186/s40798-026-01031-y",
@@ -7242,6 +7096,35 @@
    "abstractHash": "f34adfb3a2d3",
    "categories": [
     "anatomia"
+   ],
+   "synth": null,
+   "synthAt": null
+  },
+  "42366614": {
+   "pmid": "42366614",
+   "doi": "10.1111/ggi.70607",
+   "doiVerified": true,
+   "pmcid": "",
+   "openAccess": false,
+   "citedBy": 3,
+   "title": "Effectiveness of High-Intensity Versus Low-To-Moderate-Intensity Resistance Training in Improving Muscle Strength and Bone Mineral Density in Older Adults: A Systematic Review and Meta-Analysis of Randomized Controlled Trials.",
+   "journal": "Geriatrics & gerontology international",
+   "journalAbbr": "Geriatr Gerontol Int",
+   "year": "2026",
+   "authors": "Shen YC, Chen KH, Hou WH i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "hasAbstract": true,
+   "abstractHash": "cf5d53bd31b2",
+   "categories": [
+    "sila",
+    "bezpieczenstwo"
    ],
    "synth": null,
    "synthAt": null
@@ -7300,19 +7183,19 @@
    "synth": null,
    "synthAt": null
   },
-  "42764178": {
-   "pmid": "42764178",
-   "doi": "10.1002/14651858.CD012221.pub3",
+  "42713583": {
+   "pmid": "42713583",
+   "doi": "10.52082/jssm.2026.637",
    "doiVerified": true,
-   "pmcid": "",
+   "pmcid": "PMC13552867",
    "openAccess": false,
    "citedBy": 0,
-   "title": "Multifactorial and multiple component interventions for preventing falls in older people living in the community.",
-   "journal": "The Cochrane database of systematic reviews",
-   "journalAbbr": "Cochrane Database Syst Rev",
+   "title": "Comparative Effectiveness of Aerobic Exercise versus Resistance Training on Cardiometabolic Health in Patients with Diabesity: A Systematic Review and Meta-Analysis of Randomized Controlled Trials.",
+   "journal": "Journal of sports science & medicine",
+   "journalAbbr": "J Sports Sci Med",
    "year": "2026",
-   "authors": "Swarnalatha C, Wood L, Newell P i in.",
-   "authorCount": 8,
+   "authors": "Al-Mhanna SB, Franklin BA, Papadakis Z i in.",
+   "authorCount": 20,
    "pubTypes": [
     "Journal Article",
     "Systematic Review",
@@ -7321,9 +7204,9 @@
    "evidence": "meta",
    "evidenceLabel": "Metaanaliza",
    "hasAbstract": true,
-   "abstractHash": "398c893f546d",
+   "abstractHash": "5b0cc15dfb8f",
    "categories": [
-    "funkcjonalny"
+    "cardio"
    ],
    "synth": null,
    "synthAt": null
