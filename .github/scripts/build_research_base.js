@@ -188,6 +188,20 @@ function rankCandidates(cands, nowYear) {
   }).sort((a, b) => b.score - a.score);
 }
 
+/**
+ * Odcina wyniki spoza tematu: publikacja musi mieć w tytule jedno ze słów pytania (titleAny).
+ * Gdy takich jest mniej niż 3, dobieramy zwykłe wyniki wyszukiwania, ale nigdy niepasujące stanowiska.
+ */
+function onTopic(list, titleAny, studies, exclude) {
+  const lower = (c) => String(studies[c.pmid].title || '').toLowerCase();
+  const ex = (exclude || []).map((w) => String(w).toLowerCase());
+  list = list.filter((c) => !ex.some((w) => lower(c).includes(w)));
+  if (!Array.isArray(titleAny) || !titleAny.length) return list;
+  const hit = (c) => titleAny.some((w) => lower(c).includes(String(w).toLowerCase()));
+  const good = list.filter(hit);
+  return good.length >= 3 ? good : good.concat(list.filter((c) => !hit(c) && !c.guide));
+}
+
 /** Usuwa z bazy badania, których nie używa żadne pytanie ani panel „Nowe badania”. */
 function pruneStudies(base) {
   const used = new Set();
@@ -319,42 +333,54 @@ function aiClient(env, fetchImpl) {
   async function call(model, system, user, maxTokens) {
     const r = await f(conn.url, { method: 'POST', headers: conn.headers, body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] }) });
     if (!r.ok) {
-      const err = new Error(conn.label + ' HTTP ' + r.status);
+      const err = new Error(conn.label + ' HTTP ' + r.status + ' (' + model + '): ' + (await r.text()).replace(/\s+/g, ' ').slice(0, 160));
       err.status = r.status;
       throw err;
     }
     const data = await r.json();
     return (data.content || []).map((b) => (b.type === 'text' ? b.text : '')).join('');
   }
-  const studyModel = env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001';
-  const answerModels = String(env.ANSWER_MODELS || 'claude-sonnet-4-5-20250929,claude-sonnet-4-20250514,' + studyModel).split(',').map((x) => x.trim()).filter(Boolean);
+  /* Proxy aplikacji może przepuszczać tylko wybrane modele — przy 400/403/404 próbujemy następnego. */
+  const list = (v, d) => String(v || d).split(',').map((x) => x.trim()).filter(Boolean);
+  const studyModels = list(env.ANTHROPIC_MODEL, 'claude-haiku-4-5-20251001,claude-sonnet-4-20250514');
+  const answerModels = list(env.ANSWER_MODELS, 'claude-sonnet-4-5-20250929,claude-sonnet-4-20250514,claude-haiku-4-5-20251001');
+  let studyModel = null;
   let answerModel = null;
+  async function withModels(models, pinned, run) {
+    let lastErr = null;
+    for (const model of pinned ? [pinned] : models) {
+      try { return { model, value: await run(model) }; } catch (e) {
+        lastErr = e;
+        if (!pinned && (e.status === 400 || e.status === 403 || e.status === 404)) continue;
+        throw e;
+      }
+    }
+    throw lastErr || new Error('brak modelu');
+  }
   return {
     label: conn.label,
     async synth(study, abstract) {
       const user = 'TYTUŁ: ' + study.title + '\nTYP: ' + study.evidenceLabel + '\nCZASOPISMO: ' + study.journal + ' ' + study.year + '\n\nABSTRAKT:\n' + String(abstract || '').slice(0, 7000);
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const s = validateSynth(await call(studyModel, SYNTH_SYSTEM, user, 900), abstract, study.evidence);
-        if (s) return s;
-      }
-      return null;
+      const r = await withModels(studyModels, studyModel, async (model) => {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const s = validateSynth(await call(model, SYNTH_SYSTEM, user, 900), abstract, study.evidence);
+          if (s) return s;
+        }
+        return null;
+      });
+      studyModel = r.model;
+      return r.value;
     },
     async answer(prompt, studyKeys, bookKeys) {
-      const models = answerModel ? [answerModel] : answerModels;
-      for (const model of models) {
-        try {
-          for (let attempt = 0; attempt < 2; attempt++) {
-            const a = validateAnswer(await call(model, ANSWER_SYSTEM, prompt, 2600), studyKeys, bookKeys);
-            if (a) { answerModel = model; a.model = model; return a; }
-          }
-          answerModel = model;
-          return null;
-        } catch (e) {
-          if (e.status === 400 || e.status === 403 || e.status === 404) continue; // model niedostępny w proxy — następny
-          throw e;
+      const r = await withModels(answerModels, answerModel, async (model) => {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const a = validateAnswer(await call(model, ANSWER_SYSTEM, prompt, 2600), studyKeys, bookKeys);
+          if (a) { a.model = model; return a; }
         }
-      }
-      return null;
+        return null;
+      });
+      answerModel = r.model;
+      return r.value;
     }
   };
 }
@@ -432,7 +458,7 @@ async function main(opts) {
         const guide = await clients.pubmedSearch(buildTerm(q.query, cfg, { guidelines: true }) + dateFilter, { retmax: '4' });
         const list = [];
         main.forEach((pmid, i) => list.push({ pmid, rank: i }));
-        guide.forEach((pmid, i) => { if (!main.includes(pmid)) list.push({ pmid, rank: i + 2 }); });
+        guide.forEach((pmid, i) => { if (!main.includes(pmid)) list.push({ pmid, rank: i + 2, guide: true }); });
         list.forEach((c) => tagCat(c.pmid, cat.id));
         candidates.set(q.id, list);
         console.log(`[${q.id}] ${list.length} kandydatów`);
@@ -444,7 +470,7 @@ async function main(opts) {
     }
     if (only.length) continue;
     try {
-      const ids = await clients.pubmedSearch(buildTerm(cat.recentQuery, cfg), { retmax: '15', datetype: 'pdat', reldate: '365' });
+      const ids = await clients.pubmedSearch(buildTerm(cat.recentQuery, cfg), { retmax: '40', datetype: 'pdat', reldate: '365' });
       ids.forEach((pmid) => tagCat(pmid, cat.id));
       recentCands[cat.id] = ids.map((pmid, i) => ({ pmid, rank: i }));
     } catch (e) {
@@ -526,11 +552,12 @@ async function main(opts) {
       const prev = oldQuestions.get(q.id) || {};
       const list = candidates.get(q.id);
       if (!list) { if (prev.id) questions.push({ ...prev, q: q.q, category: cat.id, hint: q.hint || '' }); continue; }
-      const ranked = rankCandidates(list.filter((c) => studies[c.pmid]).map((c) => ({ ...c, study: studies[c.pmid] })), nowYear);
+      const ranked = rankCandidates(onTopic(list.filter((c) => studies[c.pmid]), q.titleAny, studies, cfg.excludeTitle).map((c) => ({ ...c, study: studies[c.pmid] })), nowYear);
       questions.push({ id: q.id, category: cat.id, q: q.q, hint: q.hint || '', studyIds: ranked.slice(0, cfg.perQuestion || 5).map((c) => c.pmid), answer: prev.answer || null, answerKey: prev.answerKey || '', answeredAt: prev.answeredAt || null });
     }
     if (recentCands[cat.id]) {
-      const ranked = rankCandidates(recentCands[cat.id].filter((c) => studies[c.pmid]).map((c) => ({ ...c, study: studies[c.pmid] })), nowYear);
+      const topical = onTopic(recentCands[cat.id].filter((c) => studies[c.pmid]), cat.recentTitleAny, studies, cfg.excludeTitle);
+      const ranked = rankCandidates(topical.map((c) => ({ ...c, study: studies[c.pmid] })), nowYear);
       recent[cat.id] = ranked.slice(0, cfg.recentPerCategory || 8).map((c) => c.pmid);
     } else if (old.recent && old.recent[cat.id]) recent[cat.id] = old.recent[cat.id];
   }
@@ -591,6 +618,7 @@ async function main(opts) {
     generatedAt: now.toISOString(),
     sources: status,
     note: 'Metadane z PubMed, Europe PMC i Crossref. Karty i odpowiedzi to opracowania abstraktów, nie pełnych tekstów.',
+    problems: Array.from(new Set(errors.map((e) => e.replace(/\b\d{6,9}\b/g, '…')))).slice(0, 8),
     categories: cfg.categories.map((c) => ({ id: c.id, label: c.label, keywords: c.keywords })),
     questions,
     recent,
@@ -605,7 +633,7 @@ async function main(opts) {
 
 module.exports = {
   numbersIn, numbersGrounded, capCertainty, validateSynth, validateAnswer, capAnswerCertainty, keepKnownRefs,
-  buildTerm, rankCandidates, pruneStudies, makeClients, aiClient, main
+  buildTerm, rankCandidates, onTopic, pruneStudies, makeClients, aiClient, main
 };
 
 if (require.main === module) {

@@ -69,6 +69,15 @@ const ranked = rb.rankCandidates([
 ok('ranking: metaanaliza z abstraktem pierwsza', ranked[0].pmid === '2');
 ok('ranking: bez abstraktu za RCT', ranked.map((x) => x.pmid).indexOf('3') > ranked.map((x) => x.pmid).indexOf('1'));
 
+/* 4b. Temat: wynik z innej dziedziny (np. „tapering” leków) odpada. */
+const st = { 1: { title: 'Sleep loss and performance' }, 2: { title: 'Guideline for rheumatoid arthritis' }, 3: { title: 'Sleep extension in athletes' }, 4: { title: 'Sleep hygiene' }, 5: { title: 'Caffeine position stand' } };
+const topic = rb.onTopic([{ pmid: '1' }, { pmid: '2', guide: true }, { pmid: '3' }, { pmid: '4' }], ['sleep'], st).map((c) => c.pmid);
+ok('temat: niepasujące stanowisko odcięte', topic.join(',') === '1,3,4');
+const few = rb.onTopic([{ pmid: '1' }, { pmid: '2', guide: true }, { pmid: '5' }], ['sleep'], st).map((c) => c.pmid);
+ok('temat: przy małej liczbie dobiera zwykłe wyniki, nie stanowiska', few.join(',') === '1,5');
+const clin = rb.onTopic([{ pmid: '1' }, { pmid: '6' }], ['sleep'], { ...st, 6: { title: 'Sleep after stroke rehabilitation' } }, ['stroke']).map((c) => c.pmid);
+ok('temat: populacje kliniczne (excludeTitle) odrzucone', clin.join(',') === '1');
+
 /* 5. Pełny przebieg z atrapami: błędy API, wynik bez DOI, cache. */
 const XML = (pmid, doi, abs, types) => `<PubmedArticle><MedlineCitation><PMID>${pmid}</PMID><Article><Journal><JournalIssue><PubDate><Year>2024</Year></PubDate></JournalIssue><Title>Sports Medicine</Title><ISOAbbreviation>Sports Med</ISOAbbreviation></Journal><ArticleTitle>Study ${pmid}</ArticleTitle>${abs ? `<Abstract><AbstractText>${abs}</AbstractText></Abstract>` : ''}<AuthorList><Author><LastName>Kowalski</LastName><Initials>J</Initials></Author><Author><LastName>Nowak</LastName><Initials>A</Initials></Author></AuthorList>${doi ? `<ELocationID EIdType="doi">${doi}</ELocationID>` : ''}<PublicationTypeList>${types.map((t) => `<PublicationType>${t}</PublicationType>`).join('')}</PublicationTypeList></Article></MedlineCitation></PubmedArticle>`;
 const mini = { ...cfg, categories: [{ ...cfg.categories[0], questions: cfg.categories[0].questions.slice(0, 2) }] };
