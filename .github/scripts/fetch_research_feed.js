@@ -121,7 +121,7 @@ function parseArticle(block) {
   const evidence = classifyEvidence(pubTypes, title);
   return {
     pmid, doi, title, abstract, journal, journalAbbr,
-    year: year || '', authors: authorsShort, authorCount: authors.length,
+    year: year || '', authors: authorsShort, authorCount: authors.length, authorList: authors.slice(0, 6),
     pubTypes, evidence, evidenceLabel: EVIDENCE_LABEL[evidence],
     url: 'https://pubmed.ncbi.nlm.nih.gov/' + pmid + '/'
   };
