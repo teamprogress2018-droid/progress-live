@@ -2679,6 +2679,7 @@ async function savePlan(){
       const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
       const ex={
         name:n,
+        exerciseId:typeof window.plResolveExercise==='function'&&(window.plResolveExercise(n)||{}).id||'',
         sets:setN,
         reps:g('reps')||'10',
         kg:g('kg'),
@@ -2729,6 +2730,15 @@ async function savePlan(){
     days,...weekMeta,...(prev?{updatedAt:new Date().toISOString()}:{})
   };
   if(prev&&prev.rationale&&builderPlanRationaleChanged(prev,candidate))candidate.rationale=null;
+  if(typeof window.plValidatePlan==='function'){
+    candidate.validation=window.plValidatePlan(candidate,{client:c,source:'builder-save'});
+    if(!candidate.validation.valid){
+      const count=candidate.validation.summary&&candidate.validation.summary.errors||0;
+      builderSaveStatus('Plan ma '+count+' błędów strukturalnych. Popraw je przed zapisem.',true);
+      notify('⚠️ Plan wymaga poprawek przed zapisem.');
+      return null;
+    }
+  }
   state.candidate=candidate;
   if(prev&&!state.base)state.base=builderPlanClone(prev);
   state.pending=true;

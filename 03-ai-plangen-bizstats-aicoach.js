@@ -1281,6 +1281,12 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
     }
     aplLastPlan=plan;
     aplLastClient=client;
+    plan.approval={state:'pending_trainer_approval',generatedAt:new Date().toISOString(),acceptedAt:null};
+    plan.generationContext={
+      clientId:cid||null,goal,level,method,daysPerWeek:Number(days)||null,
+      durationMinutes:Number(duration)||null,weeks:weeksNum,equipment:[...equipment],
+      sleep,stress,hasLimitations:!!String(injuries||'').trim(),hasAdditionalNotes:!!notes
+    };
     plan.phases=phasesMap;
     plan.weekKeys=weekKeys;
     plan.progression=progression||plan.progression||'linear';
@@ -1298,6 +1304,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       });
     });
     aplRegroupExercisesByMuscle(plan,client);
+    if(typeof window.plValidatePlan==='function')plan.validation=window.plValidatePlan(plan,{client,source:'ai'});
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
     console.error('aplGenerate błąd:',e);
@@ -1347,6 +1354,9 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   const curWeekIdx=weekKeys.indexOf(curWeek);
   const phaseColors={'Adaptacja':'var(--blue)','Akumulacja I':'var(--teal)','Akumulacja II':'var(--teal)','Hipertrofia I':'var(--teal)','Hipertrofia II':'var(--teal)','Pik objętości':'var(--accent)','Siła':'var(--gold)','Deload':'var(--muted)','Intensyfikacja':'var(--orange)','Szczyt':'var(--accent)','Test/Realizacja':'var(--accent)'};
   const phaseColor=(ph)=>{for(const k in phaseColors){if((ph||'').includes(k))return phaseColors[k];}return 'var(--accent)';};
+  const approval=plan.approval||{};
+  const pendingApproval=approval.state==='pending_trainer_approval';
+  const approved=approval.state==='approved';
 
   let html=`
     <!-- plan header -->
@@ -1358,7 +1368,8 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz plan</button>
+          ${pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplAcceptPlan()">✓ Akceptuję propozycję</button>':''}
+          ${!pendingApproval?'<button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz zatwierdzony plan</button>':''}
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlanPDF()">📄 PDF</button>
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ JSON</button>
           <button class="btn btn-ghost btn-sm" onclick="aplGenerate()">↺ Regeneruj</button>
@@ -1372,7 +1383,9 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">📆 ${plan.weeks||weeks} tygodni</span>
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
+      ${pendingApproval?'<div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(245,185,66,.45);border-radius:10px;background:rgba(245,185,66,.08);font-size:12px;line-height:1.55;"><b>Propozycja AI — oczekuje na Twoją akceptację.</b> Sprawdź Plan Health, edytuj ćwiczenia lub parametry, a następnie kliknij „Akceptuję propozycję”. AI nie zapisze tego planu samodzielnie.</div>':approved?'<div style="margin-top:12px;padding:10px 12px;border:1px solid rgba(61,207,178,.4);border-radius:10px;background:rgba(61,207,178,.08);font-size:12px;line-height:1.55;"><b>✓ Propozycja zaakceptowana przez trenera.</b> Możesz ją teraz zapisać jako plan klienta.</div>':''}
       ${aplPlanWhyHTML(plan)}
+      ${typeof window.plRenderPlanValidation==='function'?window.plRenderPlanValidation(plan.validation):''}
       ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
         <div style="font-size:12px;color:var(--text);line-height:1.65;">${plan.adaptation_notes}</div>
@@ -1664,6 +1677,7 @@ function aplSaveExerciseEdit(di,ei){
   if(curWeek===(aplLastPlan.weekKeys||['w1'])[0]){
     ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;ex.rpe=ex[curWeek].rpe;
   }
+  aplMarkPlanEdited();
   notify('✓ Ćwiczenie zaktualizowane');
   aplRerenderCurrent();
 }
@@ -1673,9 +1687,31 @@ function aplRerenderCurrent(){
   aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
 }
 
+function aplMarkPlanEdited(){
+  if(!aplLastPlan||!aplLastPlan.approval||aplLastPlan.approval.state!=='approved')return;
+  aplLastPlan.approval={...aplLastPlan.approval,state:'pending_trainer_approval',acceptedAt:null,changedAfterApprovalAt:new Date().toISOString()};
+}
+function aplAcceptPlan(){
+  if(!aplLastPlan){notify('Brak propozycji do akceptacji.');return;}
+  const cid=(document.getElementById('apl-client')||{}).value||'';
+  const client=cid?(window.CL||[]).find(x=>x.id===cid):null;
+  if(typeof window.plValidatePlan==='function'){
+    aplLastPlan.validation=window.plValidatePlan(aplLastPlan,{client,source:'ai-approval'});
+    if(!aplLastPlan.validation.valid){
+      aplRerenderCurrent();
+      notify('⚠️ Popraw błędy Plan Health przed akceptacją.');
+      return;
+    }
+  }
+  aplLastPlan.approval={...(aplLastPlan.approval||{}),state:'approved',acceptedAt:new Date().toISOString()};
+  aplRerenderCurrent();
+  notify('✓ Propozycja AI została zaakceptowana. Możesz ją zapisać.');
+}
+
 function aplAddExercise(di){
   if(!aplLastPlan||!aplLastPlan.days[di])return;
   aplLastPlan.days[di].exercises.push({name:'Nowe ćwiczenie',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''});
+  aplMarkPlanEdited();
   aplRerenderCurrent();
   const ei=aplLastPlan.days[di].exercises.length-1;
   setTimeout(()=>aplEditExercise(di,ei),80);
@@ -1683,6 +1719,7 @@ function aplAddExercise(di){
 function aplRemoveExercise(di,ei){
   if(!aplLastPlan||!aplLastPlan.days[di])return;
   aplLastPlan.days[di].exercises.splice(ei,1);
+  aplMarkPlanEdited();
   aplRerenderCurrent();
   notify('Ćwiczenie usunięte');
 }
@@ -1692,6 +1729,7 @@ function aplMoveExercise(di,ei,dir){
   const ni=ei+dir;
   if(ni<0||ni>=exs.length)return;
   [exs[ei],exs[ni]]=[exs[ni],exs[ei]];
+  aplMarkPlanEdited();
   aplRerenderCurrent();
 }
 function aplSwapExercise(di,ei){
@@ -1716,6 +1754,7 @@ function aplAddDay(){
   const n=(aplLastPlan.days||[]).length+1;
   aplLastPlan.days.push({dayName:'Dzień '+n+' — Nowy',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]});
   aplLastPlan.daysPerWeek=aplLastPlan.days.length;
+  aplMarkPlanEdited();
   aplRerenderCurrent();
 }
 function aplRemoveDay(di){
@@ -1723,13 +1762,14 @@ function aplRemoveDay(di){
   if(!confirm('Usunąć dzień '+(di+1)+'?'))return;
   aplLastPlan.days.splice(di,1);
   aplLastPlan.daysPerWeek=aplLastPlan.days.length;
+  aplMarkPlanEdited();
   aplRerenderCurrent();
   notify('Dzień usunięty');
 }
 function aplEditDayName(di){
   const d=aplLastPlan?.days[di];if(!d)return;
   const v=prompt('Nazwa dnia:',d.dayName);
-  if(v&&v.trim()){d.dayName=v.trim();aplRerenderCurrent();}
+  if(v&&v.trim()){d.dayName=v.trim();aplMarkPlanEdited();aplRerenderCurrent();}
 }
 function aplCreateBlankPlan(){
   const cid=(document.getElementById('apl-client')||{}).value||'';
@@ -1773,15 +1813,35 @@ function aplSavePlan(){
   if(!aplLastPlan){notify('Brak planu do zapisania!');return;}
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
+  if(aplLastPlan.approval&&aplLastPlan.approval.state==='pending_trainer_approval'){
+    notify('Najpierw sprawdź propozycję i kliknij „Akceptuję propozycję”.');
+    return;
+  }
+  if(typeof window.plValidatePlan==='function'){
+    aplLastPlan.validation=window.plValidatePlan(aplLastPlan,{client,source:'ai-save'});
+    if(!aplLastPlan.validation.valid){
+      aplRenderPlan(aplLastPlan,client,aplLastPlan.goal||'',aplLastPlan.method||'',aplLastPlan.daysPerWeek||'',aplLastPlan.weeks||'');
+      notify('⚠️ Plan ma błędy strukturalne. Popraw je przed zapisem.');
+      return;
+    }
+  }
   const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
   const newPlan=withTrainer({
     id:newId('p'),
     name:aplLastPlan.planName||'Plan AI',
     rationale:aplLastPlan.rationale||null,
+    approval:aplLastPlan.approval||{state:'manual'},
+    generationContext:aplLastPlan.generationContext||null,
+    validation:aplLastPlan.validation||null,
     clientId:cid||null,
     clientName:client?client.name:'',
     method:aplLastPlan.method||'Custom',
     duration:aplLastPlan.weeks||8,
+    progression:aplLastPlan.progression||'linear',
+    weekKeys:aplLastPlan.weekKeys||[],
+    phases:aplLastPlan.phases||{},
+    currentWeek:curWeek,
+    weekly_progression_schema:aplLastPlan.weekly_progression_schema||[],
     days:(aplLastPlan.days||[]).map(d=>({
       day:d.dayName,
       muscles:d.focus||'',
@@ -1790,6 +1850,7 @@ function aplSavePlan(){
         const name=e.name||'Ćwiczenie';
         return{
           name,
+          exerciseId:typeof window.plResolveExercise==='function'&&(window.plResolveExercise(name)||{}).id||'',
           sets:wp.s||e.sets||'3',
           reps:wp.r||e.reps||'10',
           rest:wp.rest||e.rest||'90s',
@@ -1798,7 +1859,8 @@ function aplSavePlan(){
           tempo:e.tempo||wp.tempo||'',
           kg:wp.kg||e.kg||'',
           note:e.notes||e.note||'',
-          alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):'')
+          alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):''),
+          ...Object.fromEntries((aplLastPlan.weekKeys||[]).filter(wk=>e[wk]).map(wk=>[wk,e[wk]]))
         };
       })
     })),
@@ -2147,7 +2209,7 @@ window.aplToggleMulti=aplToggleMulti;window.aplSetEquipment=aplSetEquipment;wind
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplClientCardSummaryHtml=aplClientCardSummaryHtml;window.aplSyncClientDupUi=aplSyncClientDupUi;
 window.aplEditClientFromCard=aplEditClientFromCard;window.aplRefreshFromSavedClient=aplRefreshFromSavedClient;
-window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
+window.aplSavePlan=aplSavePlan;window.aplAcceptPlan=aplAcceptPlan;window.aplMarkPlanEdited=aplMarkPlanEdited;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
 window.buildPlanPDFHTML=buildPlanPDFHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 

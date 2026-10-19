@@ -7,10 +7,32 @@
     let days=0;document.querySelectorAll('#builder-days .builder-day').forEach(d=>{if(!d.querySelector('.rc:checked'))days++;});
     return Object.assign({},base,{planName:(document.getElementById('b-name')||{}).value||'',daysPerWeek:days||null});
   }
+  function builderDraftPlan(context){
+    const days=[];
+    document.querySelectorAll('#builder-days .builder-day').forEach((day,di)=>{
+      const inputs=day.querySelectorAll('.builder-day-hdr select, .builder-day-hdr input[type=text]');
+      const rest=!!day.querySelector('.rc:checked');
+      const exercises=[];
+      if(!rest)day.querySelectorAll('.ex-row').forEach(row=>{
+        const value=key=>(row.querySelector('[data-f="'+key+'"]')||{}).value||'';
+        const name=String(value('name')).trim();
+        if(name)exercises.push({name,sets:value('sets')||'3',reps:value('reps')||'10',kg:value('kg'),rpe:value('rpe'),rir:value('rir'),rest:value('rest')||'90s'});
+      });
+      days.push({day:inputs[0]&&inputs[0].value||'Dzień '+(di+1),rest,exercises});
+    });
+    return {name:context.planName||'Szkic planu',level:context.level,goal:context.goal,clientId:context.clientId,days};
+  }
   function tabs(){return `<div class="academy-tabs" role="tablist" aria-label="Poziom pomocy">${[['quick','1 · Szybka odpowiedź'],['guide','2 · Przewodnik decyzji'],['context','3 · Mój plan']].map(x=>`<button type="button" role="tab" aria-selected="${state.level===x[0]}" class="academy-tab${state.level===x[0]?' is-active':''}" onclick="academySetLevel('${x[0]}')">${x[1]}</button>`).join('')}</div>`;}
   function quick(){return `<section class="academy-grid"><article class="academy-card"><b>Objętość</b><p>Zacznij od dolnej części MEV–MAV. Dodaj 1–2 serie na partię tylko, gdy jakość serii i regeneracja są stabilne.</p></article><article class="academy-card"><b>RIR / RPE</b><p>Dla hipertrofii zwykle 0–3 RIR. RPE 8 to około 2 powtórzenia w zapasie; nie planuj stale RPE 10.</p></article><article class="academy-card"><b>Częstotliwość</b><p>Przy hipertrofii rozłóż pracę głównych partii na około 2 ekspozycje tygodniowo.</p></article><article class="academy-card"><b>Przerwy</b><p>Wielostawy: zwykle 90–120 s przy hipertrofii i 2–5 min przy sile.</p></article></section>`;}
   function guide(){return `<section class="academy-guide"><article class="academy-step"><span>01</span><div><b>Ustal ograniczenia</b><p>Sprawdź realną liczbę dni, sen, stres i ból.</p></div></article><article class="academy-step"><span>02</span><div><b>Dobierz strukturę</b><p>2–3 dni: FBW; 3–4: Upper/Lower; 4–6: PPL lub priorytet.</p></div></article><article class="academy-step"><span>03</span><div><b>Ustaw dawkę</b><p>Dobierz ćwiczenia, serie, powtórzenia i RIR pod cel.</p></div></article><article class="academy-step"><span>04</span><div><b>Sprawdź trend</b><p>Po 2–4 tygodniach zmieniaj jedną zmienną naraz.</p></div></article></section>`;}
-  function context(){const c=state.context||builderContext(),has=!!(c.clientId||c.planName||c.daysPerWeek),r=typeof window.buildMethodRationale==='function'?window.buildMethodRationale(c):null;return `<section class="academy-context"><div class="academy-context-head"><div><span class="academy-eyebrow">Kontekst tylko do odczytu</span><h2>${has?'Sprawdzenie założeń planu':'Brak otwartego planu'}</h2><p>Akademia nie zapisuje ani nie zmienia danych planu.</p></div>${state.back?'<button type="button" class="btn btn-ghost btn-sm" onclick="academyBackToBuilder()">Wróć do kreatora</button>':''}</div>${has?`<dl class="academy-context-data"><div><dt>Klient</dt><dd>${esc(c.clientName||'Nie wybrano')}</dd></div><div><dt>Cel</dt><dd>${esc(c.goal||'—')}</dd></div><div><dt>Metoda</dt><dd>${esc(c.method||'—')}</dd></div><div><dt>Dni</dt><dd>${c.daysPerWeek}</dd></div></dl><aside class="academy-signal"><b>Sygnał dla tego planu</b><p>${esc(r&&r.tips&&r.tips[0]||'Sprawdź regenerację i trend RPE.')}</p></aside>`:''}</section>`;}
+  function context(){
+    const c=state.context||builderContext(),has=!!(c.clientId||c.planName||c.daysPerWeek),r=typeof window.buildMethodRationale==='function'?window.buildMethodRationale(c):null;
+    const client=(window.CL||[]).find(x=>x&&x.id===c.clientId)||null;
+    const draft=builderDraftPlan(c);
+    const health=has&&typeof window.plValidatePlan==='function'?window.plValidatePlan(draft,{client,source:'academy-preview'}):null;
+    const healthHtml=health&&typeof window.plRenderPlanValidation==='function'?window.plRenderPlanValidation(health):'';
+    return `<section class="academy-context"><div class="academy-context-head"><div><span class="academy-eyebrow">Kontekst tylko do odczytu</span><h2>${has?'Sprawdzenie założeń planu':'Brak otwartego planu'}</h2><p>Akademia nie zapisuje ani nie zmienia danych planu.</p></div>${state.back?'<button type="button" class="btn btn-ghost btn-sm" onclick="academyBackToBuilder()">Wróć do kreatora</button>':''}</div>${has?`<dl class="academy-context-data"><div><dt>Klient</dt><dd>${esc(c.clientName||'Nie wybrano')}</dd></div><div><dt>Cel</dt><dd>${esc(c.goal||'—')}</dd></div><div><dt>Metoda</dt><dd>${esc(c.method||'—')}</dd></div><div><dt>Dni</dt><dd>${c.daysPerWeek}</dd></div></dl><aside class="academy-signal"><b>Sygnał dla tego planu</b><p>${esc(r&&r.tips&&r.tips[0]||'Sprawdź regenerację i trend RPE.')}</p></aside>${healthHtml}`:''}</section>`;
+  }
   function render(){const root=document.getElementById('screen-academy');if(!root)return;const body=state.level==='quick'?quick():state.level==='guide'?guide():context();root.innerHTML=`<div class="topbar"><div><div class="topbar-title">Progress Academy</div><div class="academy-subtitle">Metodyka planowania bez przeciążania kreatora</div></div></div><main class="content academy-content"><header class="academy-hero"><span class="academy-eyebrow">Dla trenera</span><h1>Decyzje treningowe, krok po kroku.</h1><p>Szybka odpowiedź, przewodnik i analiza kontekstu planu.</p></header>${tabs()}<div class="academy-panel">${body}</div></main>`;}
   window.academySetLevel=l=>{state.level=l;render();};
   window.academyFromBuilder=()=>{state.context=builderContext();state.back=true;window._builderPreserveOnReturn=true;state.level='context';goTo('academy');};
