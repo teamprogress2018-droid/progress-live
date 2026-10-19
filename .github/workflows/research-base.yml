@@ -10,6 +10,7 @@ on:
         required: false
         default: ''
   push:
+    branches: [main]
     paths:
       - '.github/scripts/research_base_queries.json'
       - '.github/scripts/build_research_base.js'
