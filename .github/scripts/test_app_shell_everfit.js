@@ -44,7 +44,7 @@ ok('flyout not clipped by absolute-in-scroll', /\.nav-flyout\{[^}]*position:fixe
 ok('flyout js race guard', /function\s+toggleLibraryFlyout/.test(nine) && /_libFlyIgnoreUntil/.test(nine));
 ok('flyout positions from trigger rect', /function\s+_positionLibraryFlyout/.test(nine) && /getBoundingClientRect/.test(nine));
 ok('flyout portals to body', /document\.body\.appendChild\(fly\)/.test(nine));
-ok('goTo marks library group', /libraryScreens=\['library','plans','programs','templates','tasks','forms','metrics'\]/.test(core) && core.includes('nav-library-btn'));
+ok('goTo marks library group', /libraryScreens=\['library','plans','programs','templates','tasks','forms','metrics','progbuilder'\]/.test(core) && core.includes('nav-library-btn'));
 ok('moreScreens without builder/ai', /moreScreens=\[[^\]]*\]/.test(core) && !/moreScreens=\[[^\]]*aiplangen/.test(core) && !/moreScreens=\[[^\]]*builder/.test(core));
 ok('moreScreens has ondemand payments', /moreScreens=\[[^\]]*ondemand[^\]]*forum[^\]]*payments/.test(core));
 ok('plans library new-plan picker', html.includes('openNewPlanPicker()') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));

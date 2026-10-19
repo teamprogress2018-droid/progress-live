@@ -35,7 +35,7 @@ ok('measurement empty state is shown once', /activeGroup&&last/.test(src08) && /
 ok('loader does not silently rewrite stored metric groups', !html.includes('migrateEnsureMetricGroups') && html.includes("['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS"));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=45'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache 04', html.includes('04-client-portal.js?v=61'));
+ok('cache 04', html.includes('04-client-portal.js?v=62'));
 ok('CI unit', wf.includes('test_mass_inbody_metrics.js'));
 ok('CI ui', wf.includes('test_mass_inbody_ui.js'));
 

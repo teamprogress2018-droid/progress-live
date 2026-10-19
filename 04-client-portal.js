@@ -2942,7 +2942,8 @@ function pbRebuildWeeks(){
     const ex=existingWeeks[i];
     const rpe=rpeMap[i]||['',''];
     const isDeload=rpe[0].includes('DELOAD');
-    return ex?{...ex,nr:i+1,label:rpe[0],rpe:rpe[1],isDeload}:{
+    // Istniejący tydzień zachowuje swoją nazwę, RPE i deload (np. po „Ustaw deload” albo edycji zapisanego programu).
+    return ex?{...ex,nr:i+1,label:ex.label||rpe[0],rpe:ex.rpe||rpe[1],isDeload:ex.isDeload!=null?!!ex.isDeload:isDeload}:{
       nr:i+1,label:rpe[0],rpe:rpe[1],isDeload,
       days:Array.from({length:dpw},(_,j)=>({
         name:dayNames[j]||'Dzień '+(j+1),
@@ -3012,7 +3013,7 @@ function renderPBDays(week){
       <div class="pb-day-header" style="color:${day.rest?'var(--muted)':'var(--accent)'};">
         <div>
           <div>${PB_DAYS[di]}</div>
-          <input type="text" value="${day.name}" id="pb-day-name-${week.nr}-${di}" onchange="pbUpdateDayName(${week.nr},${di},this.value)" style="background:none;border:none;color:inherit;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;width:100%;padding:0;" placeholder="Nazwa dnia...">
+          <input type="text" value="${escHtml(day.name||'')}" id="pb-day-name-${week.nr}-${di}" onchange="pbUpdateDayName(${week.nr},${di},this.value)" style="background:none;border:none;color:inherit;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;width:100%;padding:0;" placeholder="Nazwa dnia...">
         </div>
         <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;color:var(--muted);">
           <input type="checkbox" ${day.rest?'checked':''} onchange="pbToggleRest(${week.nr},${di},this.checked)" style="accent-color:var(--accent);"> REST
@@ -3032,13 +3033,13 @@ function renderPBExItems(weekNr,dayIdx,exercises){
   return exercises.map((ex,ei)=>`
     <div class="pb-ex-item" id="pb-ex-${weekNr}-${dayIdx}-${ei}">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${ex.name}</div>
+        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${escHtml(ex.name)}</div>
         <div class="pb-ex-inputs">
-          <input type="text" class="pb-ex-inp" value="${ex.sets||'4'}" title="Serie" placeholder="4" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'sets',this.value)" style="width:30px;">
+          <input type="text" class="pb-ex-inp" value="${escHtml(ex.sets||'4')}" title="Serie" placeholder="4" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'sets',this.value)" style="width:30px;">
           <span style="font-size:10px;color:var(--muted);align-self:center;">×</span>
-          <input type="text" class="pb-ex-inp" value="${ex.reps||'10'}" title="Powt." placeholder="10" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'reps',this.value)" style="width:40px;">
-          <input type="text" class="pb-ex-inp" value="${ex.rest||'90s'}" title="Przerwa" placeholder="90s" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rest',this.value)" style="width:36px;">
-          <input type="text" class="pb-ex-inp" value="${ex.rpe||'8'}" title="RPE" placeholder="8" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rpe',this.value)" style="width:28px;border-color:rgba(225,31,46,0.3);">
+          <input type="text" class="pb-ex-inp" value="${escHtml(ex.reps||'10')}" title="Powt." placeholder="10" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'reps',this.value)" style="width:40px;">
+          <input type="text" class="pb-ex-inp" value="${escHtml(ex.rest||'90s')}" title="Przerwa" placeholder="90s" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rest',this.value)" style="width:36px;">
+          <input type="text" class="pb-ex-inp" value="${escHtml(ex.rpe||'8')}" title="RPE" placeholder="8" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rpe',this.value)" style="width:28px;border-color:rgba(225,31,46,0.3);">
         </div>
       </div>
       <button class="pb-ex-remove" onclick="pbRemoveEx(${weekNr},${dayIdx},${ei})">×</button>
@@ -3124,11 +3125,11 @@ function renderPBExList(){
   const el=document.getElementById('pb-ex-list');if(!el)return;
   el.innerHTML=exs.slice(0,40).map(e=>{
     const col=CAT_COLORS_EX[e.cat]||'var(--muted)';
-    return `<div class="pb-lib-item" onclick="pbAddExFromLib('${e.name.replace(/'/g,"\\'")}')">
+    return `<div class="pb-lib-item" onclick="pbAddExFromLib(${exJsArg(e.name)})">
       <div class="pb-lib-dot" style="background:${col};"></div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
-        <div style="font-size:10px;color:var(--muted);">${e.cat} · ${e.eq||''}</div>
+        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(e.name)}</div>
+        <div style="font-size:10px;color:var(--muted);">${escHtml(e.cat)} · ${escHtml(e.eq||'')}</div>
       </div>
       <span style="font-size:14px;color:var(--accent);flex-shrink:0;">+</span>
     </div>`;
@@ -3189,34 +3190,25 @@ async function pbAssign(){
   if(nameEl&&!nameEl.value.trim())nameEl.value='Program';
   const prog=await pbSave(true);
   if(!prog){notify('Najpierw zapisz program (wpisz nazwę)');return;}
-  window._assignProgId=prog.id;
-  const sel=document.getElementById('assign-prog-client');
-  if(sel){
-    sel.innerHTML=CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
-    const dateEl=document.getElementById('assign-prog-date');
-    if(dateEl)dateEl.value=new Date().toISOString().split('T')[0];
-    openM('m-assign-prog');
-    return;
-  }
-  const cid=prompt('Wpisz imię lub ID klienta:');
-  if(!cid)return;
-  const c=CL.find(x=>x.id===cid||x.name.toLowerCase().includes(cid.toLowerCase()));
-  if(!c){notify('Nie znaleziono klienta');return;}
-  const newPlan=withTrainer({
-    id:newId('p'),name:prog.name,clientId:c.id,clientName:c.name,
-    method:prog.method||'Własna',duration:prog.duration||8,level:prog.level||'sredni',goal:prog.goal||'masa',
-    source:'program',programId:prog.id,startDate:new Date().toISOString().split('T')[0],
-    createdAt:new Date().toISOString(),
-    days:(prog.weeks&&prog.weeks[0]&&prog.weeks[0].days
-      ?prog.weeks[0].days.map(d=>{
-          const isRest=d.name==='REST'||d.rest||/^rest$/i.test(d.name||'');
-          return{day:d.d||d.name||'',muscles:d.name||'',rest:isRest,exercises:isRest?[]:[{name:d.name||'Trening wg planu',sets:'3',reps:'wg planu'}]};
-        }):[])
-  });
-  PL.push(newPlan);
-  await persistById('plans',newPlan);
-  notify('✓ Program "'+prog.name+'" przypisany do: '+c.name);
+  if(typeof openAssignProg==='function')openAssignProg(prog.id);
 }
+
+// Tygodnie programu z kreatora razem z ćwiczeniami (seriami, powt., przerwą, RPE) i deloadem.
+function pbWeeksForSave(weeks){
+  return (weeks||[]).map(w=>({
+    nr:w.nr,label:w.label,rpe:w.rpe,isDeload:!!w.isDeload,
+    days:(w.days||[]).map((d,j)=>{
+      const rest=!!d.rest;
+      return{
+        d:PB_DAYS[j]||String(d.name||'').substring(0,3),
+        name:rest?'REST':(d.name||('Dzień '+(j+1))),
+        rest,
+        exercises:rest?[]:(d.exercises||[]).map(e=>({name:e.name,sets:String(e.sets||''),reps:String(e.reps||''),rest:e.rest||'',rpe:String(e.rpe||'')}))
+      };
+    })
+  }));
+}
+window.pbWeeksForSave=pbWeeksForSave;
 
 async function pbSave(silent){
   const name=document.getElementById('pb-name').value.trim();
@@ -3224,30 +3216,57 @@ async function pbSave(silent){
   pbProgram.name=name;
   pbProgram.goal=document.getElementById('pb-goal').value;
   pbProgram.level=document.getElementById('pb-level').value;
+  const prev=pbProgram._savedId?(window.USER_PROGRAMS||[]).find(x=>x.id===pbProgram._savedId):null;
   const prog=withTrainer({
     id:pbProgram._savedId||newId('pb'),type:'moje',
     name,goal:pbProgram.goal,level:pbProgram.level,
     duration:pbProgram.duration,daysPerWeek:pbProgram.daysPerWeek,
-    equip:'Siłownia',method:'Własna',
-    desc:'Program stworzony w Program Builder v2.',
-    highlights:[],
-    weeks:pbProgram.weeks.map(w=>({
-      nr:w.nr,label:w.label,rpe:w.rpe,
-      days:w.days.map(d=>({d:d.name.substring(0,3),name:d.rest?'REST':d.name}))
-    })),
-    createdAt:pbProgram.createdAt||new Date().toISOString(),
+    equip:(prev&&prev.equip)||'Siłownia',method:(prev&&prev.method)||'Własna',
+    desc:(prev&&prev.desc)||'Własny program z kreatora programu.',
+    highlights:(prev&&prev.highlights)||[],
+    weeks:pbWeeksForSave(pbProgram.weeks),
+    createdAt:(prev&&prev.createdAt)||pbProgram.createdAt||new Date().toISOString(),
     updatedAt:new Date().toISOString()
   });
   pbProgram._savedId=prog.id;
-  const idx=(window.USER_PROGRAMS||[]).findIndex(x=>x.id===prog.id);
+  if(!Array.isArray(window.USER_PROGRAMS))window.USER_PROGRAMS=[];
+  const idx=window.USER_PROGRAMS.findIndex(x=>x.id===prog.id);
   if(idx>=0)window.USER_PROGRAMS[idx]=prog;
   else window.USER_PROGRAMS.push(prog);
   await persistById('programs',prog);
   if(typeof renderPrograms==='function')renderPrograms();
   document.getElementById('pb-title').textContent=name;
-  if(!silent)notify('✓ Program "'+name+'" zapisany do biblioteki programów!');
+  if(!silent)notify('✓ Program "'+name+'" zapisany w Blokach 4–16 tyg.');
   return prog;
 }
+
+/** Otwiera kreator programu: nowy program albo edycja własnego (tygodnie, dni, ćwiczenia). */
+function openProgramBuilder(id){
+  const src=id?(window.USER_PROGRAMS||[]).find(x=>x.id===id):null;
+  const dur=src?([4,8,12].find(n=>n>=(parseInt(src.duration,10)||8))||12):8;
+  const firstDays=src&&src.weeks&&src.weeks[0]&&src.weeks[0].days;
+  const dpw=src?Math.max(3,Math.min(6,(firstDays&&firstDays.length)||parseInt(src.daysPerWeek,10)||4)):4;
+  pbProgram={name:src?src.name:'',goal:(src&&src.goal)||'masa',level:(src&&src.level)||'sredni',duration:dur,daysPerWeek:dpw,
+    weeks:src?(src.weeks||[]).map((w,i)=>({
+      nr:i+1,label:w.label||('Tydzień '+(i+1)),rpe:w.rpe||'',isDeload:!!(w.isDeload||/deload/i.test(String(w.label||''))),
+      days:(w.days||[]).map(d=>{
+        const rest=!!d.rest||/^rest$/i.test(String(d.name||''));
+        return{name:rest?'REST':(d.name||''),rest,exercises:rest?[]:(d.exercises||[]).map(e=>({name:e.name||e.n||'',sets:String(e.sets||e.s||'3'),reps:String(e.reps||e.r||'10'),rest:e.rest||'90s',rpe:String(e.rpe||'8')}))};
+      })
+    })).filter(w=>w.days.length):[]};
+  if(src){pbProgram._savedId=src.id;pbProgram.createdAt=src.createdAt;}
+  const set=(elId,v)=>{const el=document.getElementById(elId);if(el)el.value=v;};
+  set('pb-name',pbProgram.name);
+  set('pb-goal',pbProgram.goal);
+  set('pb-level',pbProgram.level);
+  set('pb-duration',String(dur));
+  set('pb-days-per-week',String(dpw));
+  const title=document.getElementById('pb-title');
+  if(title)title.textContent=src?src.name:'Nowy program';
+  pbActiveWeek=1;
+  goTo('progbuilder');
+}
+window.openProgramBuilder=openProgramBuilder;
 var ciFilter='all';var ciActiveClient=null;
 window.CHECKINS={};// clientId -> [{week, date, answers, score}]
 
