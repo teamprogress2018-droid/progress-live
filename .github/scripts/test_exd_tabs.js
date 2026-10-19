@@ -18,11 +18,11 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=99'));
-ok('cache styles', html.includes('styles.css?v=160'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=100'));
+ok('cache styles', html.includes('styles.css?v=161'));
 ok('CI unit', wf.includes('test_exd_tabs.js'));
 ok('CI ui', wf.includes('test_exd_tabs_ui.js'));
-ok('lib side scroll', html.includes('id="lib-side-scroll"') && html.includes('class="lib-side"') && /id="ex-cat-nav"[\s\S]*id="ex-equip-filters"/.test(html));
+ok('lib side scroll', html.includes('id="lib-side-scroll"') && /class="lib-side[ "]/.test(html) && /id="ex-cat-nav"[\s\S]*id="ex-equip-filters"/.test(html));
 ok('sidebar end not clipped', html.includes('class="sidebar-end"') && html.includes('class="sidebar-logout"') && css.includes('.lib-side-scroll') && css.includes('.sidebar-end{flex-shrink:0'));
 
 ok('three tabs in markup', html.includes('id="exd-tab-preview"') && html.includes('>Podgląd<') && html.includes('>Biomechanika<') && html.includes('>Zarządzanie<'));

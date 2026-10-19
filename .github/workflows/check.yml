@@ -424,6 +424,8 @@ jobs:
         run: node .github/scripts/test_lib_pilne_bledy.js
       - name: 1n31b7. Testy przejścia ćwiczenie → plan
         run: node .github/scripts/test_lib_ex_to_plan.js
+      - name: 1n31b8. Testy Biblioteki na telefonie i tablecie
+        run: node .github/scripts/test_lib_telefon_tablet.js
       - name: 1n31c. Testy podsumowania start + monitoring klienta
         run: node .github/scripts/test_client_journey_summary.js
       - name: 1n32. Testy periodyzacji RPE/RIR w kreatorze
@@ -560,6 +562,9 @@ jobs:
       - name: 6b3b1b. Testy UI ćwiczenie → plan
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_lib_ex_to_plan_ui.js
+      - name: 6b3b1c. Testy UI Biblioteki na telefonie i tablecie
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_lib_telefon_tablet_ui.js
       - name: 6b3b2. Testy UI importu MP4 do biblioteki
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_gif_import_ui.js
