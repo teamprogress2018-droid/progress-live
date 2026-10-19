@@ -25,4 +25,5 @@ ok('candidate validator rejects advanced methods and excess intensity',ctx.aplAm
 ok('editor limits are enforced before save',!ctx.aplAmateurMayAddDay({days:[{},{}]})&&!ctx.aplAmateurMayAddExercise({days:[{exercises:[{},{},{},{},{}]}]},0));
 ok('saved-plan library marks Amateur plans',plansSrc.includes('function planAmateurMetaHtml')&&plansSrc.includes('const amateurMeta=planAmateurMetaHtml(p)'));
 ok('save is blocked for an unsafe Amateur candidate',generatorSrc.includes("if(issues.length){notify('Popraw plan Amator przed zapisem: '+issues[0]);return null;}")&&generatorSrc.includes('aplAmateurConfirmReview'));
+ok('prepare uses the public generator entry point',src.includes("typeof window.aplGenerate==='function'?window.aplGenerate:aplGenerate"));
 if(failures)process.exit(1);console.log('\nAll amateur mode tests passed');

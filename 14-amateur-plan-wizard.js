@@ -116,7 +116,8 @@ function aplAmateurPrepare(){
   const input=aplAmateurRead(),result=aplAmateurApply(input),feedback=document.getElementById('apl-amateur-feedback');
   if(!result.ok){if(feedback)feedback.innerHTML='<b style="color:var(--red);">Wymagana weryfikacja człowieka.</b> '+result.assessment.message;return;}
   if(feedback)feedback.innerHTML='<b style="color:var(--teal);">Gotowe.</b> '+result.assessment.message+' Ustawiliśmy FBW, 2–3 sesje, 4 tygodnie i podwójną progresję. Teraz generujemy kandydat do sprawdzenia przez trenera.';
-  aplGenerate();
+  const generate=typeof window.aplGenerate==='function'?window.aplGenerate:aplGenerate;
+  generate();
 }
 
 function aplAmateurPlanIssues(plan){
