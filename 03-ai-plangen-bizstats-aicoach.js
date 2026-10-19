@@ -1587,7 +1587,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
         aplComputeProgression(ex,weekKeys,phasesMap,plan.progression);
       });
     });
-    window._aplAmateurPlanIssues=typeof aplAmateurPlanIssues==='function'?aplAmateurPlanIssues(plan):[];
+  window._aplAmateurPlanIssues=typeof aplAmateurPlanIssues==='function'?aplAmateurPlanIssues(plan):[];
     aplRegroupExercisesByMuscle(plan,client);
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
@@ -1666,6 +1666,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       </div>
       ${aplPlanWhyHTML(plan)}
       ${typeof aplAmateurReviewHtml==='function'?aplAmateurReviewHtml():''}
+      ${typeof aplProReviewHtml==='function'?aplProReviewHtml():''}
       ${typeof aplPlanChecksHTML==='function'?aplPlanChecksHTML(plan):''}
       ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
@@ -2090,6 +2091,7 @@ function aplBuildSavedPlan(src,cid,client,id){
     duration:src.weeks||8,
     progression:src.progression||'',
     amateurIntake:window._aplAmateurIntake?JSON.parse(JSON.stringify(window._aplAmateurIntake)):null,
+    proIntake:window._aplProIntake?JSON.parse(JSON.stringify(window._aplProIntake)):null,
     weekKeys:weekKeys,
     currentWeek:curWeek,
     phases:src.phases||null,
@@ -2615,6 +2617,7 @@ function buildPlanPDFHTML(plan,client){
 function aplReset(){
   aplLastPlan=null;
   window._aplAmateurIntake=null;
+  window._aplProIntake=null;
   aplShowWelcome();
 }
 

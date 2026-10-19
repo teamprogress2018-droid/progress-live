@@ -1,0 +1,39 @@
+// Tryb Zawodowiec — kwalifikacja i parametryzacja planu pod okres przygotowań.
+const APL_PRO_SCHEMA_VERSION=1;
+
+function aplProAssessment(input){
+  const d=input||{},flags=[];
+  if(d.medical==='yes')flags.push('medical-clearance');
+  if(d.pain==='yes')flags.push('pain-or-injury');
+  if(['preparation','competition'].includes(d.phase)&&!d.eventDate)flags.push('event-date-missing');
+  if(!d.consent)flags.push('consent-missing');
+  return {status:flags.length?'review':'clear',blockers:flags,message:flags.length?'Wymagana weryfikacja trenera przed automatycznym planem zawodniczym.':'Dane gotowe do przygotowania planu zawodniczego.'};
+}
+
+function aplProPrescription(input){
+  const d=input||{},assessment=aplProAssessment(d),discipline=d.discipline||'bodybuilding';
+  const defaults={bodybuilding:{method:'PPL',days:'5',progression:'wave',weeks:'8'},powerlifting:{method:'531',days:'4',progression:'block',weeks:'8'},sport:{method:'Upper/Lower',days:'4',progression:'wave',weeks:'6'}}[discipline]||{};
+  const phase=d.phase||'offseason';
+  return {level:'zaawansowany',discipline,phase,method:defaults.method,days:String(Math.max(4,Math.min(6,parseInt(d.days,10)||parseInt(defaults.days,10)||4))),duration:String(Math.max(60,Math.min(120,parseInt(d.duration,10)||90))),weeks:phase==='competition'?'4':defaults.weeks,progression:defaults.progression,needsReview:assessment.status==='review'};
+}
+
+function aplProSetOpt(groupId,value){const root=document.getElementById(groupId);if(root)root.querySelectorAll('.apl-opt').forEach(b=>b.classList.toggle('active',b.dataset.val===String(value)));}
+function aplProApply(input){
+  const d=input||{},assessment=aplProAssessment(d),p=aplProPrescription(d);
+  if(p.needsReview)return{ok:false,assessment};
+  ['apl-levels','apl-methods','apl-days','apl-duration','apl-weeks','apl-progression'].forEach((id,i)=>aplProSetOpt(id,[p.level,p.method,p.days,p.duration,p.weeks,p.progression][i]));
+  const notes=document.getElementById('apl-notes');
+  if(notes)notes.value=['TRYB ZAWODOWIEC — plan pod okres przygotowań.','Dyscyplina: '+p.discipline+'. Faza: '+p.phase+'.',d.eventDate?'Start docelowy: '+d.eventDate+'.':'',d.trainingAge?'Staż: '+d.trainingAge+' lat.':'',d.weeklyLoad?'Obecne obciążenie: '+d.weeklyLoad+'/5.':'',d.notes?'Uwagi sztabu: '+d.notes+'.':''].filter(Boolean).join('\n');
+  window._aplProIntake={schemaVersion:APL_PRO_SCHEMA_VERSION,createdAt:new Date().toISOString(),answers:{...d},assessment,prescription:p};
+  return{ok:true,assessment,prescription:p};
+}
+
+function aplProRead(){const v=id=>document.getElementById(id)?.value||'';return{discipline:v('apl-pro-discipline'),phase:v('apl-pro-phase'),eventDate:v('apl-pro-event'),days:v('apl-pro-days'),duration:v('apl-pro-duration'),trainingAge:v('apl-pro-age'),weeklyLoad:v('apl-pro-load'),medical:v('apl-pro-medical'),pain:v('apl-pro-pain'),notes:v('apl-pro-notes'),consent:document.getElementById('apl-pro-consent')?.checked===true};}
+function aplProRender(){
+  const mount=document.getElementById('apl-pro-mount');if(!mount)return;mount.hidden=false;
+  mount.innerHTML=`<section style="margin:0 0 16px;padding:14px;border:1px solid rgba(255,184,77,.5);border-radius:12px;background:rgba(255,184,77,.07);"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start;"><div><div style="font-size:12px;font-weight:800;color:var(--yellow);">TRYB ZAWODOWIEC</div><div style="font-size:11px;color:var(--muted);margin-top:3px;">Parametry dla sportowca z periodyzacją pod start. Nie zastępuje decyzji trenera prowadzącego.</div></div><button type="button" class="btn btn-ghost btn-sm" onclick="aplProClose()">Formularz ekspercki</button></div><div class="form-grid" style="margin-top:12px;"><div class="form-field"><label class="form-lbl">Dyscyplina</label><select id="apl-pro-discipline" class="form-select"><option value="bodybuilding">Kulturystyka / sylwetka</option><option value="powerlifting">Trójbój siłowy</option><option value="sport">Sport zespołowy / indywidualny</option></select></div><div class="form-field"><label class="form-lbl">Faza sezonu</label><select id="apl-pro-phase" class="form-select"><option value="offseason">Okres bazowy</option><option value="preparation">Przygotowanie do startu</option><option value="competition">Okres startowy</option><option value="recovery">Przejściowy / regeneracja</option></select></div><div class="form-field"><label class="form-lbl">Data startu (dla przygotowania/startu)</label><input id="apl-pro-event" type="date" class="form-input"></div><div class="form-field"><label class="form-lbl">Dni treningowe</label><select id="apl-pro-days" class="form-select"><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option></select></div><div class="form-field"><label class="form-lbl">Czas sesji</label><select id="apl-pro-duration" class="form-select"><option value="60">60 min</option><option value="75">75 min</option><option value="90" selected>90 min</option><option value="120">120 min</option></select></div><div class="form-field"><label class="form-lbl">Staż treningowy (lata)</label><input id="apl-pro-age" type="number" min="1" max="30" value="3" class="form-input"></div><div class="form-field"><label class="form-lbl">Obciążenie ostatnich 2 tygodni (1–5)</label><select id="apl-pro-load" class="form-select"><option value="1">1 — niskie</option><option value="2">2</option><option value="3" selected>3 — średnie</option><option value="4">4</option><option value="5">5 — wysokie</option></select></div></div><div class="form-field"><label class="form-lbl">Bezpieczeństwo</label><select id="apl-pro-medical" class="form-select"><option value="no">Brak nowych przeciwwskazań medycznych</option><option value="yes">Nowe zalecenie medyczne / niepewność</option></select><select id="apl-pro-pain" class="form-select" style="margin-top:6px;"><option value="no">Brak bólu ograniczającego trening</option><option value="yes">Ból lub świeży uraz</option></select></div><div class="form-field"><label class="form-lbl">Uwagi sztabu / priorytety</label><input id="apl-pro-notes" class="form-input" placeholder="np. sprint 2× tyg., priorytet przysiad, limit objętości nóg"></div><label style="display:flex;gap:8px;font-size:11px;color:var(--muted);"><input id="apl-pro-consent" type="checkbox"> Potwierdzam aktualność danych i akceptuję weryfikację trenera.</label><button type="button" class="btn btn-primary" style="width:100%;margin-top:12px;" onclick="aplProPrepare()">Przygotuj plan zawodniczy</button><div id="apl-pro-feedback" role="status" style="margin-top:9px;font-size:11px;"></div></section>`;
+}
+function aplProPrepare(){const r=aplProApply(aplProRead()),f=document.getElementById('apl-pro-feedback');if(!r.ok){if(f)f.innerHTML='<b style="color:var(--red);">Wymagana weryfikacja.</b> '+r.assessment.message;return;}if(f)f.innerHTML='<b style="color:var(--teal);">Gotowe.</b> Generator otrzyma parametry fazy sezonu i obciążeń.';(typeof window.aplGenerate==='function'?window.aplGenerate:aplGenerate)();}
+function aplProReviewHtml(){const i=window._aplProIntake;if(!i)return'';const p=i.prescription||{};return`<section style="margin-top:14px;padding:12px;border:1px solid rgba(255,184,77,.4);border-radius:10px;font-size:12px;"><b style="color:var(--yellow);">TRYB ZAWODOWIEC · RAPORT</b><div style="color:var(--muted);margin-top:4px;">${p.discipline} · ${p.phase} · ${p.days} sesji · ${p.weeks} tyg. · progresja ${p.progression}</div></section>`;}
+function aplProOpen(){aplProRender();}function aplProClose(){const m=document.getElementById('apl-pro-mount');if(m){m.hidden=true;m.innerHTML='';}window._aplProIntake=null;}
+window.aplProAssessment=aplProAssessment;window.aplProPrescription=aplProPrescription;window.aplProApply=aplProApply;window.aplProOpen=aplProOpen;window.aplProClose=aplProClose;window.aplProPrepare=aplProPrepare;window.aplProReviewHtml=aplProReviewHtml;

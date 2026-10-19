@@ -2269,6 +2269,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" type="button" onclick="aplAmateurOpen()">🌱 Tryb Amator</button>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="aplProOpen()">🏆 Tryb Zawodowiec</button>
       <button class="btn btn-ghost btn-sm" onclick="aplReset()">↺ Reset</button>
       <button class="btn btn-ghost btn-sm" onclick="aplCreateBlankPlan()">✏️ Stwórz od podstaw</button>
       <button class="btn btn-primary btn-sm" id="apl-gen-btn" onclick="aplGenerate()">✨ Generuj plan</button>
@@ -2281,6 +2282,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <!-- lewy panel — formularz -->
     <div class="apl-form">
       <div id="apl-amateur-mount" hidden></div>
+      <div id="apl-pro-mount" hidden></div>
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Parametry planu</div>
 
       <!-- klient -->
@@ -4733,5 +4735,6 @@ async function load(session=captureTenantSession()){
   <script src="12-manual-plan-wizard.js?v=18&volume-control=1"></script>
   <script src="13-budget-bridge.js?v=1"></script>
   <script src="14-amateur-plan-wizard.js?v=1"></script>
+  <script src="15-pro-plan-wizard.js?v=1"></script>
 </body>
 </html>
