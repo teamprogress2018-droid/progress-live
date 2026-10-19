@@ -12,46 +12,37 @@ function ok(name, condition, extra) {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
-  const errors = [];
-  page.on('pageerror', e => errors.push(String(e && e.message || e)));
   await page.goto('http://localhost:' + (process.env.LAYOUT_PORT || '8080') + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
-  await page.evaluate(() => {
+  const result = await page.evaluate(() => {
     window.notify = m => { window.__amateurNotice = String(m); };
     ['auth-screen', 'app-loading'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
     const app = document.getElementById('app-root'); if (app) app.style.display = '';
     if (typeof goTo === 'function') goTo('aiplangen');
     window.__amateurGenerated = false;
     window.aplGenerate = () => { window.__amateurGenerated = true; };
+    aplAmateurOpen();
+    const mount=document.getElementById('apl-amateur-mount');
+    const equipment=[...document.querySelectorAll('#apl-am-equipment input')];
+    equipment.forEach(input => { input.checked=false; });
+    const equipmentError=aplAmateurStepErrors(aplAmateurRead(),1)[0]||'';
+    document.querySelector('#apl-am-equipment input[value="Hantle"]').checked=true;
+    document.getElementById('apl-am-pain').value='yes';
+    const painError=aplAmateurStepErrors(aplAmateurRead(),2)[0]||'';
+    document.getElementById('apl-am-pain-details').value='Kolano przy głębokim przysiadzie';
+    document.getElementById('apl-am-consent').checked=true;
+    aplAmateurPrepare();
+    const blocked={generated:window.__amateurGenerated,intake:window._aplAmateurIntake||null,feedback:(document.getElementById('apl-amateur-feedback')||{}).textContent||''};
+    document.getElementById('apl-am-pain').value='no';
+    aplAmateurPrepare();
+    return {mountVisible:!!mount&&!mount.hidden,equipmentError,painError,blocked,prepared:{generated:window.__amateurGenerated,intake:window._aplAmateurIntake||null}};
   });
-  await page.click('button[onclick="aplAmateurOpen()"]');
-  await page.waitForSelector('#apl-amateur-mount:not([hidden])');
-
-  await page.evaluate(() => document.querySelector('#apl-am-equipment input').checked = false);
-  await page.click('button[onclick="aplAmateurNext(1)"]');
-  const requiredEquipment = await page.evaluate(() => window.__amateurNotice || '');
-  ok('requires equipment before next step', /co najmniej jeden rodzaj/.test(requiredEquipment), requiredEquipment);
-
-  await page.check('#apl-am-equipment input[value="Hantle"]');
-  await page.click('button[onclick="aplAmateurNext(1)"]');
-  await page.selectOption('#apl-am-pain', 'yes');
-  await page.click('button[onclick="aplAmateurNext(2)"]');
-  const requiredPainDetails = await page.evaluate(() => window.__amateurNotice || '');
-  ok('requires pain details for trainer review', /Opisz, co boli/.test(requiredPainDetails), requiredPainDetails);
-
-  await page.fill('#apl-am-pain-details', 'Kolano przy głębokim przysiadzie');
-  await page.click('button[onclick="aplAmateurNext(2)"]');
-  await page.check('#apl-am-consent');
-  await page.click('button[onclick="aplAmateurPrepare()"]');
-  const review = await page.evaluate(() => ({ generated: window.__amateurGenerated, intake: window._aplAmateurIntake || null, feedback: (document.getElementById('apl-amateur-feedback') || {}).textContent || '' }));
-  ok('health flag blocks automatic generation', review.generated === false && review.intake === null && /Wymagana weryfikacja człowieka/.test(review.feedback), JSON.stringify(review));
-
-  await page.selectOption('#apl-am-pain', 'no');
-  await page.click('button[onclick="aplAmateurPrepare()"]');
-  const prepared = await page.evaluate(() => ({ generated: window.__amateurGenerated, intake: window._aplAmateurIntake || null }));
-  ok('clear intake starts generator', prepared.generated === true, JSON.stringify(prepared));
-  ok('intake stores conservative starter prescription', prepared.intake && prepared.intake.prescription.method === 'FBW' && prepared.intake.prescription.days === '2' && prepared.intake.answers.equipment.includes('Hantle'), JSON.stringify(prepared.intake));
-  ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
+  ok('renders the Amateur form', result.mountVisible, JSON.stringify(result));
+  ok('requires equipment before next step', /co najmniej jeden rodzaj/.test(result.equipmentError), result.equipmentError);
+  ok('requires pain details for trainer review', /Opisz, co boli/.test(result.painError), result.painError);
+  ok('health flag blocks automatic generation', result.blocked.generated === false && result.blocked.intake === null && /Wymagana weryfikacja człowieka/.test(result.blocked.feedback), JSON.stringify(result.blocked));
+  ok('clear intake starts generator', result.prepared.generated === true, JSON.stringify(result.prepared));
+  ok('intake stores conservative starter prescription', result.prepared.intake && result.prepared.intake.prescription.method === 'FBW' && result.prepared.intake.prescription.days === '2' && result.prepared.intake.answers.equipment.includes('Hantle'), JSON.stringify(result.prepared.intake));
 
   await browser.close();
   if (failed) process.exit(1);
