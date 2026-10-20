@@ -2117,7 +2117,8 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   #screen-calendar .topbar-actions{width:100%;display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;}
   #screen-calendar .topbar-actions .btn{min-height:44px;padding:8px 10px;}
   #screen-calendar .cal-layout{display:block!important;overflow-y:auto!important;}
-  #screen-calendar #cal-week-view{min-height:520px;overflow:hidden!important;}
+  #screen-calendar #cal-week-view{min-height:520px;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;}
+  #screen-calendar #cal-week-header,#screen-calendar #cal-week-scroll,#screen-calendar #cal-week-grid{width:720px!important;min-width:720px!important;}
   #screen-calendar .cal-sidebar{width:100%;display:block;overflow:visible;border-left:0;border-top:1px solid var(--border-subtle);background:var(--bg-elevated);}
   #screen-calendar .cal-sidebar-section{padding:16px;}
   #screen-calendar .cal-sidebar-section[style*="flex:1"]{overflow:visible!important;}

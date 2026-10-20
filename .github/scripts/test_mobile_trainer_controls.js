@@ -20,4 +20,5 @@ ok('LIVE keeps technique above the full-width series log on a phone',theme.inclu
 ok('LIVE offers real recently active clients as a shortcut before searching',live.includes('function liveRecentClientChoices')&&live.includes('function liveQuickPickClient')&&live.includes("Ostatnio aktywni")&&theme.includes('.live-quick-client'));
 ok('settings use one readable column on a phone',html.includes('class="settings-layout"')&&html.includes('class="settings-sidebar"')&&html.includes('class="settings-content"')&&fs.readFileSync('styles.css','utf8').includes('#screen-settings .settings-layout{display:block!important;overflow:auto!important;}'));
 ok('calendar uses one full-width phone column',html.includes('class="cal-layout"')&&fs.readFileSync('styles.css','utf8').includes('#screen-calendar .cal-layout{display:block!important;overflow-y:auto!important;}'));
+ok('weekly calendar preserves readable day columns on a phone',fs.readFileSync('styles.css','utf8').includes('#screen-calendar #cal-week-header,#screen-calendar #cal-week-scroll,#screen-calendar #cal-week-grid{width:720px!important;min-width:720px!important;}'));
 if(failed)process.exit(1);
