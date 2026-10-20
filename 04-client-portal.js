@@ -351,7 +351,7 @@ function capClientTodaySimple(c){
   const planShortcut='<button type="button" class="cap-client-swipe-action" onclick="capGoScreen(\'plan\')">Pokaż plan</button>';
   let main='';
   if(inProgress&&inProgress.completeLocal){
-    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Wynik czeka na wysłanie</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii na urządzeniu. Wyślemy je po odzyskaniu połączenia.</div></div>`;
+    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Wynik czeka na wysłanie</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii na urządzeniu. Wyślemy je po odzyskaniu połączenia.</div><button type="button" class="cap-btn-secondary cap-client-today-action" onclick="setClientLiveScreen('plan')">Pokaż plan</button></div>`;
   }else if(inProgress){
     main=`<div class="cap-client-today-card cap-client-next" data-cap-swipe-plan><div class="cap-client-eyebrow">TRENING W TOKU</div><div class="cap-client-today-title">${escHtml(inProgress.dayName||capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii${inProgress.syncState==='local'?' · na urządzeniu':''}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Wznów trening</button>${planShortcut}</div>`;
   }else if(slot.kind==='workout'){

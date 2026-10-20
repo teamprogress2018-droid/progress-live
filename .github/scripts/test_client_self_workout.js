@@ -25,5 +25,5 @@ ok('trainer session panel shows plan and actual result',/Plan: \$\{planned\}/.te
 ok('rules limit client session statuses and mutable fields',/\['in_progress', 'completed', 'partial'\]/.test(rules)&&/confirmedSets/.test(rules)&&/planSnapshot/.test(rules));
 ok('today screen is deliberately compact',/function capClientTodaySimple\(c\)/.test(portal)&&/Wznów trening/.test(portal)&&/Najbliższe spotkanie/.test(portal));
 ok('client without a plan gets a visible contact path',/Brak przypisanego treningu/.test(portal)&&/Napisz do trenera/.test(portal)&&/setClientLiveScreen\('messages'\)/.test(portal));
-ok('today always gives one clear next action',/Dobra robota/.test(portal)&&/Zobacz postępy/.test(portal)&&/Dzień bez treningu/.test(portal)&&/Pokaż plan/.test(portal));
+ok('today always gives one clear next action',/Wynik czeka na wysłanie/.test(portal)&&/Dobra robota/.test(portal)&&/Zobacz postępy/.test(portal)&&/Dzień bez treningu/.test(portal)&&/Pokaż plan/.test(portal));
 console.log('\nAll client self-workout contract checks passed.');
