@@ -3722,6 +3722,7 @@ body,
 .live-top-progress-lbl{font-size:12px;color:var(--text-secondary);margin-bottom:4px;}
 .live-more-wrap{position:relative;}
 .live-more-btn{min-width:44px;font-size:20px;font-weight:700;}
+.live-prep-more-btn{display:none;}
 .live-more-menu{
   position:absolute;right:0;top:calc(100% + 6px);z-index:60;min-width:240px;
   background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;
@@ -3887,6 +3888,13 @@ body,
   .live-prep-summary strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .live-prep-summary-day{display:inline;flex-shrink:0;margin:0;font-size:12px;white-space:nowrap;}
   .live-prep-change{font-size:12px;}
+  /* Przygotowanie LIVE: główne pole to klient i Start. Rzadkie opcje są pod … . */
+  #screen-live:not(.live-session-on):not(.live-history-view) .live-view-tabs,
+  #screen-live:not(.live-session-on):not(.live-history-view) #live-dual-btn{display:none;}
+  #screen-live:not(.live-session-on) .live-prep-more-btn{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;}
+  #screen-live.live-history-view .live-view-tabs{display:flex;flex:0 0 auto;}
+  #screen-live.live-history-view #live-tab-trainer{display:inline-flex;}
+  #screen-live.live-history-view #live-tab-history{display:none;}
   .live-prep-days{grid-template-columns:1fr;}
   .live-set-head{font-size:11px;}
   .live-kg-input{padding:8px 4px;}

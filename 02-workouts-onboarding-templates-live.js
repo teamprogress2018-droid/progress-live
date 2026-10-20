@@ -2753,6 +2753,16 @@ function liveToggleMoreMenu(force){
 }
 window.liveToggleMoreMenu=liveToggleMoreMenu;
 
+function liveTogglePrepMoreMenu(force){
+  const menu=document.getElementById('live-prep-more-menu');
+  const btn=document.getElementById('live-prep-more-btn');
+  if(!menu)return;
+  const open=force===false?false:force===true?true:menu.hidden;
+  menu.hidden=!open;
+  if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+}
+window.liveTogglePrepMoreMenu=liveTogglePrepMoreMenu;
+
 function liveDayLabel(slot){
   const n=liveN(slot);
   const st=liveRef(n);
@@ -2892,6 +2902,8 @@ function initLive(){
 
 function setLiveTab(t){
   liveTab=t;
+  const screen=document.getElementById('screen-live');
+  if(screen)screen.classList.toggle('live-history-view',t==='history');
   const floor=document.getElementById('live-floor');
   if(floor)floor.style.display=t==='trainer'?'flex':'none';
   const trainer=document.getElementById('live-trainer-tab');
