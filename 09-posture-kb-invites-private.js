@@ -5268,6 +5268,9 @@ function _navFlyHoverIn(e){
   const group=_navFlyGroupOf(e.target);
   if(!group)return;
   clearTimeout(_navFlyCloseTimer);
+  // Po wyborze pozycji kursor wciąż stoi nad tym menu — nie otwieraj go od razu ponownie.
+  const picked=window._navFlyPicked;
+  if(picked&&picked.group===group&&Date.now()<picked.until)return;
   if(_navFlyOpen!==group){
     window._navFlyHoverAt=Date.now();
     openNavFlyout(group);
@@ -5309,6 +5312,11 @@ function _navFlyKeydown(e){
   }
 }
 document.addEventListener('click',_navFlyoutOutside);
+document.addEventListener('click',e=>{
+  const item=e.target&&e.target.closest&&e.target.closest('.nav-flyout-item');
+  const group=item&&_navFlyGroupOf(item);
+  if(group)window._navFlyPicked={group,until:Date.now()+600};
+},true);
 document.addEventListener('mouseover',_navFlyHoverIn);
 document.addEventListener('mouseout',_navFlyHoverOut);
 document.addEventListener('keydown',_navFlyKeydown);
