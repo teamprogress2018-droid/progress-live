@@ -3909,6 +3909,11 @@ body,
   .live-prep-days{grid-template-columns:1fr;}
   .live-set-head{font-size:11px;}
   .live-kg-input{padding:8px 4px;}
+  /* Zakończenie sesji: przycisk zapisu zostaje w zasięgu kciuka, nawet gdy formularz jest dłuższy. */
+  .live-end-overlay{align-items:flex-end;padding:12px 12px calc(12px + env(safe-area-inset-bottom));}
+  .live-end-card{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;border-radius:18px;}
+  .live-end-actions{position:sticky;bottom:-20px;margin:16px -20px -20px;padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:var(--bg-card);border-top:1px solid var(--border-subtle);}
+  .live-end-actions .btn{flex:1;min-height:48px;}
 }
 
 /* Live: compact actions, current set and target vs measured RIR. */
