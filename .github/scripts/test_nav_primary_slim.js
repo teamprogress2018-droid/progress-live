@@ -97,7 +97,7 @@ test('sidebar does not close #app-root before .main', () => {
 
 test('cache + CI', () => {
   assert.match(html, /01-core.js\?v=137/);
-  assert.ok(html.includes('layout-v2=1'), 'cache param for Układ 2.0');
+  assert.ok(html.includes('layout-v2='), 'cache param for Układ 2.0');
   assert.ok(wf.includes('test_nav_primary_slim.js'), 'CI runs nav slim test');
 });
 

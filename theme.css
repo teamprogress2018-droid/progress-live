@@ -910,3 +910,113 @@ html[data-theme] #screen-clients .tbl-row.cl-everfit-row:hover { background: var
   /* Grafika ciemnego motywu (.sidebar::after) zostaje w pasku bocznym */
   .app .sidebar { position: relative; }
 }
+
+/* ============================================================
+   Czysty pulpit (Układ 2.0) — bez kafelków, haseł i grafik.
+   Białe sekcje, cienkie linie, stonowana typografia; jedynym
+   akcentowanym przyciskiem jest „+ Szybka akcja” w nagłówku.
+   ============================================================ */
+html[data-theme] #screen-dashboard { background: var(--bg-main); }
+html[data-theme] #screen-dashboard .dash3-topbar {
+  min-height: 72px; padding: 16px 32px; gap: 16px;
+  background: var(--bg-card); border-bottom: 1px solid var(--border-subtle);
+}
+html[data-theme] #screen-dashboard .dash3-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+html[data-theme] #screen-dashboard .dash3-title .topbar-title {
+  margin: 0; font-family: var(--font-ui, inherit); font-size: 24px; font-weight: 600;
+  letter-spacing: 0; text-transform: none; color: var(--text-primary); text-shadow: none;
+}
+html[data-theme] #screen-dashboard .dash-topbar-sub { font-size: 13px; font-weight: 400; color: var(--text-label); }
+html[data-theme] #screen-dashboard .dash3-search { max-width: 360px; }
+html[data-theme] #screen-dashboard .dash3-search input {
+  height: 38px; border: 1px solid var(--border-subtle); border-radius: 8px;
+  background: var(--bg-card); box-shadow: none; font-size: 13px;
+}
+html[data-theme] #screen-dashboard .dash3-icon-btn,
+html[data-theme] #screen-dashboard .dash3-date {
+  height: 38px; min-width: 38px; border: 1px solid var(--border-subtle); border-radius: 8px;
+  background: var(--bg-card); box-shadow: none; color: var(--text-secondary); font-size: 13px; font-weight: 500;
+}
+html[data-theme] #screen-dashboard .dash3-date { padding: 0 12px; }
+html[data-theme] #screen-dashboard .dash3-date b { font-size: 12px; font-weight: 600; }
+html[data-theme] #screen-dashboard .dash3-date span { font-size: 11px; color: var(--text-label); }
+html[data-theme] #screen-dashboard #dash-qa-btn { height: 38px; padding: 0 16px; border-radius: 8px; box-shadow: none; font-weight: 600; }
+
+html[data-theme] #screen-dashboard .dash-content { max-width: 1320px; padding: 28px 32px 40px; }
+html[data-theme] #screen-dashboard .dash-fire-layout { grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; margin: 0; }
+html[data-theme] #screen-dashboard .dash-fire-main,
+html[data-theme] #screen-dashboard .dash-fire-side { display: flex; flex-direction: column; gap: 16px; }
+html[data-theme] #screen-dashboard .dash-fire-main > *,
+html[data-theme] #screen-dashboard .dash-ops-col > .card,
+html[data-theme] #screen-dashboard .dash-setup-card,
+html[data-theme] #screen-dashboard .dash-pipeline-card { margin: 0; }
+html[data-theme] #screen-dashboard .dash-ops-grid { gap: 16px; }
+html[data-theme] #screen-dashboard .dash-ops-col { display: flex; flex-direction: column; gap: 16px; }
+
+/* Sekcje: płaskie, białe, cienka linia, bez cieni i gradientów */
+html[data-theme] #screen-dashboard .card,
+html[data-theme] #screen-dashboard .dash3-card,
+html[data-theme] #screen-dashboard .dash-next-action,
+html[data-theme] #screen-dashboard .dash-today-focus,
+html[data-theme] #screen-dashboard .dash-kpi-card {
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px;
+  box-shadow: none; background-image: none;
+}
+/* styles.css nadaje kartom różową ramkę z !important — na pulpicie zostaje neutralna linia */
+html[data-theme] #screen-dashboard .card,
+html[data-theme] #screen-dashboard .dash-kpi-card { border-color: var(--border-subtle) !important; }
+html[data-theme] #screen-dashboard .card,
+html[data-theme] #screen-dashboard .dash3-card { padding: 20px 24px; }
+html[data-theme] #screen-dashboard.dash-simple .dash-ops-grid { grid-template-columns: minmax(0, 1fr); }
+html[data-theme] #screen-dashboard.dash-simple .dash-ops-grid > .dash-ops-col:last-child { display: none; } /* w widoku prostym ta kolumna ma tylko ukryte płatności */
+html[data-theme] #screen-dashboard .dash-next-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .02em; text-transform: none; }
+html[data-theme] #screen-dashboard .dash-next-urgent .dash-next-eyebrow { color: var(--danger); }
+html[data-theme] #screen-dashboard .dash-next-title { font-size: 15px; font-weight: 600; }
+html[data-theme] #screen-dashboard .card:hover,
+html[data-theme] #screen-dashboard .dash-kpi-card:hover { box-shadow: none; transform: none; }
+html[data-theme] #screen-dashboard .dash-next-action { padding: 16px 24px; }
+
+/* Typografia: bez wielkich napisów i wersalików */
+html[data-theme] #screen-dashboard .studio-hdr,
+html[data-theme] #screen-dashboard .dash3-card-hd h2 {
+  font-family: var(--font-ui, inherit); font-size: 15px; font-weight: 600;
+  letter-spacing: 0; text-transform: none; color: var(--text-primary);
+}
+html[data-theme] #screen-dashboard .studio-sub { font-size: 12px; color: var(--text-label); }
+html[data-theme] #screen-dashboard .dash3-card-hd { margin-bottom: 12px; }
+html[data-theme] #screen-dashboard .dash3-card-hd button { font-size: 12px; font-weight: 500; color: var(--text-label); }
+html[data-theme] #screen-dashboard .dash3-card-hd button:hover { color: var(--text-primary); }
+html[data-theme] #screen-dashboard .dash-ops-hdr { padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid var(--border-subtle); }
+
+/* Jeden akcent: przyciski w treści pulpitu są neutralne */
+html[data-theme] #screen-dashboard .dash-content .btn-primary,
+html[data-theme] #screen-dashboard .dash-content .btn-ghost {
+  background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-default);
+  box-shadow: none; font-weight: 500;
+}
+html[data-theme] #screen-dashboard .dash-content .btn-primary:hover,
+html[data-theme] #screen-dashboard .dash-content .btn-ghost:hover { background: var(--bg-hover); border-color: var(--text-label); }
+
+/* Szybkie akcje i cele: ikony neutralne zamiast kolorowych */
+html[data-theme] #screen-dashboard .dash3-qa-grid button {
+  border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-card);
+  box-shadow: none; color: var(--text-secondary); font-weight: 500;
+}
+html[data-theme] #screen-dashboard .dash3-qa-grid button:hover { background: var(--bg-hover); }
+html[data-theme] #screen-dashboard .dash3-qa-grid i {
+  background: var(--bg-subtle); color: var(--text-secondary); box-shadow: none;
+}
+
+@media (max-width: 1100px) {
+  html[data-theme] #screen-dashboard .dash-fire-layout { grid-template-columns: 1fr; }
+  html[data-theme] #screen-dashboard .dash-fire-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  html[data-theme] #screen-dashboard .dash3-topbar { padding: 12px 16px 12px 64px; }
+  html[data-theme] #screen-dashboard .dash3-search { max-width: none; }
+  html[data-theme] #screen-dashboard .dash-content { padding: 16px; }
+  html[data-theme] #screen-dashboard .dash-fire-side { display: flex; }
+  html[data-theme] #screen-dashboard .card,
+  html[data-theme] #screen-dashboard .dash3-card { padding: 16px; }
+  html[data-theme] #screen-dashboard .gs-steps { grid-template-columns: 1fr !important; }
+}
