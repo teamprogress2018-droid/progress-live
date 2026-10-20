@@ -999,6 +999,15 @@ html[data-theme="light"] #screen-live .live-pane {
 }
 html[data-theme="light"] #screen-live .live-side-left,
 html[data-theme="light"] #screen-live .live-ex-col { background: transparent; }
+
+/* Telefon: technika i serie nie mogą dzielić jednego wiersza.
+   Pełna szerokość logu serii usuwa poziome przewijanie widoczne podczas LIVE. */
+@media (max-width: 600px) {
+  #screen-live .live-ex-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  #screen-live .live-ex-card .live-ex-media { flex: 1 1 100%; width: 100%; min-width: 0; max-width: 100%; }
+  #screen-live .live-ex-log { flex: 1 1 100%; width: 100%; min-width: 0; }
+  #screen-live .live-ex-media-empty { width: 100%; }
+}
 @media (min-width: 861px) {
   /* Grafika ciemnego motywu (.sidebar::after) zostaje w pasku bocznym */
   .app .sidebar { position: relative; }
