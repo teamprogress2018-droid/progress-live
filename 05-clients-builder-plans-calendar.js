@@ -4097,8 +4097,14 @@ function updateCalTitle(){
     const ws=getWeekStart(calCurrentDate);
     const we=new Date(ws);we.setDate(we.getDate()+6);
     const sm=ws.getMonth();const em=we.getMonth();
-    if(sm===em)el.textContent=CAL_DAYS_PL[0]+' '+ws.getDate()+' — '+CAL_DAYS_PL[6]+' '+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear();
-    else el.textContent=ws.getDate()+' '+CAL_MONTHS_PL[sm]+' — '+we.getDate()+' '+CAL_MONTHS_PL[em]+' '+ws.getFullYear();
+    const full=sm===em
+      ?CAL_DAYS_PL[0]+' '+ws.getDate()+' — '+CAL_DAYS_PL[6]+' '+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear()
+      :ws.getDate()+' '+CAL_MONTHS_PL[sm]+' — '+we.getDate()+' '+CAL_MONTHS_PL[em]+' '+ws.getFullYear();
+    const phone=typeof matchMedia==='function'&&matchMedia('(max-width:600px)').matches;
+    el.textContent=phone
+      ?(sm===em?ws.getDate()+'–'+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear():ws.getDate()+' '+CAL_MONTHS_PL[sm].slice(0,3)+'. – '+we.getDate()+' '+CAL_MONTHS_PL[em].slice(0,3)+'. '+ws.getFullYear())
+      :full;
+    el.title=full;
   } else if(calView==='month'){
     el.textContent=CAL_MONTHS_PL[calCurrentDate.getMonth()]+' '+calCurrentDate.getFullYear();
   } else {

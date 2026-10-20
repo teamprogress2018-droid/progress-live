@@ -21,4 +21,5 @@ ok('LIVE offers real recently active clients as a shortcut before searching',liv
 ok('settings use one readable column on a phone',html.includes('class="settings-layout"')&&html.includes('class="settings-sidebar"')&&html.includes('class="settings-content"')&&fs.readFileSync('styles.css','utf8').includes('#screen-settings .settings-layout{display:block!important;overflow:auto!important;}'));
 ok('calendar uses one full-width phone column',html.includes('class="cal-layout"')&&fs.readFileSync('styles.css','utf8').includes('#screen-calendar .cal-layout{display:block!important;overflow-y:auto!important;}'));
 ok('weekly calendar preserves readable day columns on a phone',fs.readFileSync('styles.css','utf8').includes('#screen-calendar #cal-week-header,#screen-calendar #cal-week-scroll,#screen-calendar #cal-week-grid{width:720px!important;min-width:720px!important;}'));
+ok('calendar shortens the weekly date range on a phone',clients.includes("matchMedia('(max-width:600px)').matches")&&clients.includes("ws.getDate()+'–'+we.getDate()"));
 if(failed)process.exit(1);
