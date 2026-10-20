@@ -33,12 +33,12 @@
 html[data-theme="light"] {
   color-scheme: light;
 
-  --bg-main: #f7f8fa;
+  --bg-main: #f4f7fb;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
   --bg-input: #ffffff;
-  --bg-hover: #f1f3f6;
-  --bg-subtle: #f3f4f6;
+  --bg-hover: #eef2f7;
+  --bg-subtle: #edf2f7;
 
   --text-primary: #111827;
   --text-secondary: #374151;
@@ -170,7 +170,7 @@ html[data-theme="light"] .academy-safety {
 /* ═══ Szkielet: tło, sidebar, topbar ═══ */
 html[data-theme="light"] body { background: var(--bg-main); }
 html[data-theme="light"] .sidebar {
-  background: #ffffff;
+  background: linear-gradient(180deg, #e9f2ff 0%, #f5f8ff 48%, #fff1ed 100%);
   border-right: 1px solid var(--border-subtle);
 }
 html[data-theme="light"] .sidebar::after { display: none; }
@@ -952,6 +952,32 @@ html[data-theme] #screen-clients .tbl-row.cl-everfit-row.has-attention { padding
 }
 @media (max-width: 900px) {
   #cl-cols-btn { display: none; }
+}
+
+/* Telefon: menu i główna akcja mają osobne, pewne pola dotyku. */
+#mobile-menu-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+body.mobile-menu-open { overscroll-behavior: none; }
+.cl-list-toggle-wrap { display: flex; justify-content: center; padding: 2px 12px 20px; background: var(--bg-main); }
+.cl-list-toggle-wrap[hidden] { display: none; }
+.cl-list-toggle {
+  min-height: 40px; padding: 8px 14px; border: 1px solid var(--border-default); border-radius: 999px;
+  background: var(--bg-card); color: var(--text-primary); font: 600 13px var(--font-ui); cursor: pointer;
+}
+.cl-list-toggle:hover { background: var(--bg-hover); border-color: var(--accent); }
+@media (max-width: 600px) {
+  #mobile-menu-btn { z-index: 700; box-shadow: 0 2px 8px rgba(16, 24, 40, 0.12); }
+  #screen-clients .cl-topbar {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+    min-height: 68px; padding: max(8px, env(safe-area-inset-top)) 12px 8px 68px;
+  }
+  #screen-clients .cl-topbar-l { min-width: 0; }
+  #screen-clients .topbar-title { font-size: 17px; }
+  #screen-clients .cl-top-icons { min-width: auto; }
+  #screen-clients .cl-top-cta { min-height: 44px; padding: 8px 12px; white-space: nowrap; position: relative; z-index: 1; }
+  .cl-list-toggle { width: 100%; min-height: 48px; }
 }
 @media (min-width: 861px) {
   /* Grafika ciemnego motywu (.sidebar::after) zostaje w pasku bocznym */

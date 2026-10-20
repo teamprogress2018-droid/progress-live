@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="globals.css?v=17">
 <link rel="stylesheet" href="styles.css?v=166">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=1&layout-v2=2">
+<link rel="stylesheet" href="theme.css?v=2&layout-v2=2">
 <script>/* Motyw przed pierwszym malowaniem: bez mignięcia ciemnego/jasnego tła. */try{var t=JSON.parse(localStorage.getItem('pl_theme_v2')||'null');if(t&&(t.mode==='dark'||t.mode==='light'))document.documentElement.setAttribute('data-theme',t.mode);if(t&&/^#[0-9a-f]{6}$/i.test(t.accent||''))document.documentElement.style.setProperty('--accent',t.accent);}catch(e){}</script>
 <script>/* Powłoka PWA działa wyłącznie w bezpiecznym kontekście HTTPS/localhost. */if('serviceWorker'in navigator&&window.isSecureContext){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
 </head>
@@ -69,10 +69,10 @@
 </div>
 
 <div class="app" id="app-root" style="display:none;">
-<button id="mobile-menu-btn" type="button" onclick="toggleMobileSidebar()" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
+<button id="mobile-menu-btn" type="button" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
-<div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
+<div id="mobile-sidebar-backdrop"></div>
 <aside class="sidebar" id="app-sidebar" aria-label="Menu główne">
   <div class="sidebar-logo">
     <svg class="pl-mark" viewBox="0 0 40 44" aria-hidden="true"><path d="M4 6 14 2v40L4 38z" fill="#e5231b"/><path d="M17 2h10c7.7 0 13 5 13 12.5S34.7 27 27 27h-3v-9h2.6c2.4 0 4-1.4 4-3.6s-1.6-3.6-4-3.6H17z" fill="#ff2d20"/><path d="M17 30h7v12l-7-3z" fill="#b5130d"/></svg>
@@ -416,7 +416,7 @@
       <button type="button" class="cl-top-icon" onclick="goTo('calendar')" aria-label="Kalendarz" title="Kalendarz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
       <button type="button" class="cl-top-icon" onclick="goTo('tasks');setTaskFilter('all')" aria-label="Zadania" title="Zadania"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
       <button type="button" class="cl-top-icon" onclick="toggleNotifs()" aria-label="Powiadomienia" title="Powiadomienia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
-      <button type="button" class="btn btn-primary btn-sm cl-top-cta" onclick="goTo('live')">Trening LIVE</button>
+      <button type="button" class="btn btn-primary btn-sm cl-top-cta" onclick="openLiveFromMobile()">Trening LIVE</button>
     </div>
   </div>
   <div class="cl-everfit" id="cl-everfit">
@@ -489,6 +489,9 @@
       <span>Status</span>
     </div>
     <div id="clients-tbl" class="cl-everfit-tbl"></div>
+    <div class="cl-list-toggle-wrap" id="client-list-toggle-wrap" hidden>
+      <button type="button" class="cl-list-toggle" id="client-list-toggle" onclick="toggleClientListCompact()" aria-controls="clients-tbl" aria-expanded="false"></button>
+    </div>
   </div>
   </div>
   </div>
@@ -4802,7 +4805,7 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=36"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=137&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
+<script src="01-core.js?v=138&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=98"></script>
 <script src="books-kb.js?v=2"></script>
@@ -4810,7 +4813,7 @@ async function load(session=captureTenantSession()){
 <script src="04-client-portal.js?v=62&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
 <script src="client-card-save.js?v=4"></script>
 <script src="dashboard-home.js?v=1"></script>
-<script src="05-clients-builder-plans-calendar.js?v=106&volume-control=1&layout-v2=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=107&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=103&exercise-preview=1"></script>

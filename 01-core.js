@@ -452,15 +452,42 @@ function syncMobileMenuBtn(open){
   btn.setAttribute('aria-label',open?'Zamknij menu':'Otwórz menu');
 }
 function toggleMobileSidebar(){
-  const open=document.querySelector('.sidebar').classList.toggle('mobile-open');
-  document.getElementById('mobile-sidebar-backdrop').classList.toggle('show',open);
+  const sidebar=document.getElementById('app-sidebar')||document.querySelector('.sidebar');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(!sidebar||!backdrop)return;
+  const open=!sidebar.classList.contains('mobile-open');
+  sidebar.classList.toggle('mobile-open',open);
+  backdrop.classList.toggle('show',open);
+  document.body.classList.toggle('mobile-menu-open',open);
   syncMobileMenuBtn(open);
 }
 function closeMobileSidebar(){
-  document.querySelector('.sidebar').classList.remove('mobile-open');
-  document.getElementById('mobile-sidebar-backdrop').classList.remove('show');
+  const sidebar=document.getElementById('app-sidebar')||document.querySelector('.sidebar');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(sidebar)sidebar.classList.remove('mobile-open');
+  if(backdrop)backdrop.classList.remove('show');
+  document.body.classList.remove('mobile-menu-open');
   syncMobileMenuBtn(false);
 }
+function bindMobileSidebarControls(){
+  const button=document.getElementById('mobile-menu-btn');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(button&&!button.dataset.boundMobileMenu){
+    button.dataset.boundMobileMenu='1';
+    button.addEventListener('click',toggleMobileSidebar);
+  }
+  if(backdrop&&!backdrop.dataset.boundMobileMenu){
+    backdrop.dataset.boundMobileMenu='1';
+    backdrop.addEventListener('click',closeMobileSidebar);
+  }
+}
+bindMobileSidebarControls();
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeMobileSidebar();
+});
+window.addEventListener('resize',()=>{
+  if(!window.matchMedia('(max-width: 860px)').matches)closeMobileSidebar();
+});
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
 
 function goTo(n){
@@ -510,6 +537,15 @@ function goTo(n){
   if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();
   try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
 }
+function openLiveFromMobile(){
+  closeMobileSidebar();
+  goTo('live');
+  // Po wejściu z małego ekranu pierwszy krok jest od razu dostępny z klawiatury.
+  if(window.matchMedia('(max-width: 860px)').matches){
+    setTimeout(()=>document.getElementById('live-client-sel-search')?.focus({preventScroll:true}),0);
+  }
+}
+window.openLiveFromMobile=openLiveFromMobile;
 function goToHomeworkQueue(){
   goTo('tasks');
   if(typeof setTaskFilter==='function')setTaskFilter('homework');

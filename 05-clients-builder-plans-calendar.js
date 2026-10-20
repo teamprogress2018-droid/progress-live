@@ -384,6 +384,27 @@ window.toggleClientMenu=toggleClientMenu;
 window.closeClientMenus=closeClientMenus;
 window.toggleClientColumn=toggleClientColumn;
 window.copyClientAppLink=copyClientAppLink;
+function clientListCompactDefault(){
+  return window.matchMedia&&window.matchMedia('(max-width: 600px)').matches;
+}
+function clientListIsCompact(){
+  const saved=clientUiPref('pl_clients_compact','');
+  return saved===''?clientListCompactDefault():saved==='1';
+}
+function updateClientListToggle(total,compact){
+  const wrap=document.getElementById('client-list-toggle-wrap');
+  const btn=document.getElementById('client-list-toggle');
+  if(!wrap||!btn)return;
+  const hidden=Math.max(0,total-3);
+  wrap.hidden=hidden===0;
+  btn.setAttribute('aria-expanded',compact?'false':'true');
+  btn.textContent=compact?`Pokaż pozostałych (${hidden})`:'Zwiń listę do 3 klientów';
+}
+function toggleClientListCompact(){
+  setClientUiPref('pl_clients_compact',clientListIsCompact()?'0':'1');
+  renderClients();
+}
+window.toggleClientListCompact=toggleClientListCompact;
 function filterClients(){renderClients();}
 function getSidebarClientsFiltered(){
   const q=((document.getElementById('nav-client-search')||{}).value||'').trim().toLowerCase();
@@ -641,10 +662,13 @@ function renderClients(){
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Dodaj pierwszego klienta — potem plan i Trening Live.'}</div>
       ${clientAttention?`<button class="btn btn-ghost" onclick="setClientAttention('${clientAttention}')">Pokaż wszystkich</button>`:!q&&clientSegment!=='archived'?`<button class="btn btn-primary" onclick="openM('m-client')">+ Dodaj klienta</button>`:''}
     </div>`;
+    updateClientListToggle(0,false);
     renderSidebarClients();
     return;
   }
-  el.innerHTML=filtered.map((c,i)=>{
+  const compact=clientListIsCompact();
+  const displayed=compact?filtered.slice(0,3):filtered;
+  el.innerHTML=displayed.map((c,i)=>{
     const act=formatClientActivity(c.id);
     const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
     const t7=clientTrainingWindowStats(c.id,7);
@@ -680,6 +704,7 @@ function renderClients(){
     </div>
   </div>`;
   }).join('');
+  updateClientListToggle(filtered.length,compact);
   renderSidebarClients();
 }
 
