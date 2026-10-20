@@ -39,7 +39,7 @@ function test(name, fn) {
 
 test('primary order like the reference layout', () => {
   assert.deepStrictEqual(topLevel, [
-    'dashboard', 'group:clients', 'group:library', 'inbox', 'live', 'calendar',
+    'group:clients', 'dashboard', 'group:library', 'inbox', 'live', 'calendar',
     'group:automation', 'group:ondemand', 'forum', 'group:business', 'group:knowledge',
   ]);
   assert.ok(!html.includes('nav-more-items') && !html.includes('toggleMoreNav'), 'no Więcej section');

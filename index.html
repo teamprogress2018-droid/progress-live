@@ -81,11 +81,10 @@
     </button>
   </div>
   <nav class="sidebar-nav" aria-label="Moduły aplikacji">
-    <!-- Układ 2.0: pozycje główne + menu wysuwane (najechanie, kliknięcie albo strzałka w prawo) -->
-    <button class="nav-item active" data-screen="dashboard" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg><span class="nav-lbl">Strona główna</span></button>
+    <!-- Ekran startowy = Klienci (jak we wzorze); dawna strona główna to „Pulpit”. Układ 2.0: pozycje główne + menu wysuwane (najechanie, kliknięcie albo strzałka w prawo) -->
 
     <div class="nav-flyout-wrap" id="nav-clients-wrap" data-nav-group="clients">
-      <button type="button" class="nav-item nav-flyout-trigger" id="nav-clients-btn" data-screen="clients" data-nav-group="clients" onclick="navGroupClick('clients',event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-clients-flyout"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-lbl">Klienci</span><span class="nav-badge" id="nb-clients">0</span></button>
+      <button type="button" class="nav-item nav-flyout-trigger active" id="nav-clients-btn" data-screen="clients" data-nav-group="clients" onclick="navGroupClick('clients',event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-clients-flyout"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-lbl">Klienci</span><span class="nav-badge" id="nb-clients">0</span></button>
       <div class="nav-flyout" id="nav-clients-flyout" hidden role="menu" aria-label="Klienci">
         <div class="nav-flyout-hd"><span>Klienci</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
         <button type="button" class="nav-flyout-item" role="menuitem" data-client-seg="all" onclick="openClientSegment('all')">Wszyscy klienci</button>
@@ -95,6 +94,8 @@
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="checkin" onclick="closeNavFlyouts();goTo('checkin')">Check-iny</button>
       </div>
     </div>
+
+    <button class="nav-item" data-screen="dashboard" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="nav-lbl">Pulpit</span></button>
 
     <div class="nav-flyout-wrap" id="nav-library-wrap" data-nav-group="library">
       <button type="button" class="nav-item nav-flyout-trigger" id="nav-library-btn" data-nav-group="library" onclick="toggleLibraryFlyout(event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-library-flyout">
@@ -206,7 +207,7 @@
 
 <!-- DASHBOARD -->
 <!-- DASHBOARD V2 -->
-<div class="screen active" id="screen-dashboard">
+<div class="screen" id="screen-dashboard">
   <div class="topbar dash3-topbar">
     <div class="dash3-sr"><div class="topbar-title">Dzisiaj</div><div class="dash-topbar-sub">Najważniejsze działania trenera w jednym miejscu</div></div>
     <div class="dash3-search" role="search">
@@ -408,7 +409,7 @@
 </div>
 
 <!-- CLIENTS — układ jak Everfit All Clients -->
-<div class="screen" id="screen-clients">
+<div class="screen active" id="screen-clients">
   <div class="cl-shell" id="cl-shell">
   <aside class="cl-subnav" id="cl-subnav" aria-label="Widoki listy klientów">
     <div class="cl-subnav-hd">Klienci</div>

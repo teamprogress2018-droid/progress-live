@@ -21,6 +21,7 @@ async function openApp(browser, viewport) {
     document.getElementById('app-root').style.display = 'flex';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
+    window._startScreen = (document.querySelector('.screen.active') || {}).id;
     window.CL.length = 0;
     window.CL.push({ id: 'u1', name: 'Anna Nowak', email: 'a@x.pl', status: 'active', goal: 'redukcja' },
       { id: 'u2', name: 'Jan Kowalski', email: '', status: 'inactive', goal: 'sila' });
@@ -34,6 +35,7 @@ async function openApp(browser, viewport) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   let page = await openApp(browser, { width: 1440, height: 900 });
 
+  ok('app starts on the client list', await page.evaluate(() => window._startScreen === 'screen-clients'));
   ok('second column visible', await page.locator('#cl-subnav').isVisible());
   ok('title counts clients', (await page.locator('#clients-segment-title').textContent()).replace(/\s+/g, ' ').trim() === 'Wszyscy klienci (2)');
   ok('Klienci active in sidebar', await page.locator('#nav-clients-btn.active').count() === 1);
