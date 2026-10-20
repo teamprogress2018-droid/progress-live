@@ -95,6 +95,13 @@ ok('login lands on client list', loginTail.includes("goTo('clients')") && !login
 const core01 = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const exitPrev = core01.slice(core01.indexOf('function exitClientPreviewMode'), core01.indexOf('window.exitClientPreviewMode='));
 ok('leaving client preview returns to client list', exitPrev.includes("goTo('clients')") && !exitPrev.includes("goTo('dashboard')"));
+// Czytelna lista: bez podpisu „bez e-maila” w każdym wierszu, status jako tekst z kropką, dane bez kolorów
+const rowSrc = src05.slice(src05.indexOf('el.innerHTML=filtered.map((c,i)=>{'), src05.indexOf('renderSidebarClients();', src05.indexOf('el.innerHTML=filtered.map((c,i)=>{')));
+ok('no per-row "bez e-maila" caption', !rowSrc.includes("c.email||'bez e-maila'"));
+ok('status as quiet text', rowSrc.includes('class="cl-st cl-st-') && !rowSrc.includes('class="pill '));
+ok('activity cell without inline colour', !rowSrc.includes('style="color:${act.color}'));
+ok('attention list folds under "Pokaż więcej"', src05.includes('function toggleClientAttnMore') && src05.includes('Pokaż więcej'));
+ok('quiet data colours in CSS', theme.includes('.cl-st-danger') && theme.includes('#screen-clients .cl-pct.low { font-weight: 500; color: var(--danger); }'));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll layout-v2 tests passed');
