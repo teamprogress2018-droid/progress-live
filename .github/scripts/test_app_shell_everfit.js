@@ -26,15 +26,15 @@ ok('library flyout items', /Ćwiczenia/.test(html) && />Treningi</.test(html) &&
 const libFly = html.slice(html.indexOf('id="nav-library-flyout"'), html.indexOf('data-screen="inbox"'));
 ok('library has programs templates', /data-screen="programs"/.test(libFly) && /data-screen="templates"/.test(libFly));
 ok('library trimmed tools', !/data-screen="aiplangen"/.test(libFly) && !/data-screen="builder"/.test(libFly) && !/data-screen="calculator"/.test(libFly) && !/data-screen="kb"/.test(libFly));
-ok('plan tools not in more nav', !/nav-more-items[\s\S]*data-screen="aiplangen"/.test(html) && !/nav-more-items[\s\S]*data-screen="builder"/.test(html));
-ok('calculator kb still under more', /nav-more-items[\s\S]*data-screen="calculator"[\s\S]*data-screen="kb"/.test(html));
-ok('inbox top-level', /data-screen="inbox"[\s\S]*?Wiadomości/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
+const sidebar = html.slice(html.indexOf('<aside class="sidebar"'), html.indexOf('</aside>'));
+ok('plan tools not in sidebar', !/data-screen="aiplangen"/.test(sidebar) && !/data-screen="builder"/.test(sidebar));
+ok('calculator kb under Progress Academy', /id="nav-knowledge-flyout"[\s\S]*data-screen="kb"[\s\S]*data-screen="calculator"/.test(html));
+ok('inbox top-level', /class="nav-item" data-screen="inbox"[\s\S]*?Wiadomości/.test(sidebar));
 ok('live calendar automation top-level', (()=>{
-  const primary=html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'));
-  return /data-screen="live"/.test(primary)&&/data-screen="calendar"/.test(primary)&&/data-screen="automation"/.test(primary);
+  return /class="nav-item" data-screen="live"/.test(sidebar)&&/class="nav-item" data-screen="calendar"/.test(sidebar)&&/id="nav-automation-btn" data-screen="automation"/.test(sidebar);
 })());
-ok('ondemand forum payments in more', /nav-more-items[\s\S]*data-screen="ondemand"[\s\S]*data-screen="forum"[\s\S]*data-screen="payments"/.test(html));
-ok('ondemand not primary', !/data-screen="ondemand"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
+ok('ondemand forum payments in sidebar', /data-screen="ondemand"[\s\S]*data-screen="forum"[\s\S]*data-screen="payments"/.test(sidebar));
+ok('no Więcej section', !html.includes('nav-more-items'));
 ok('single inbox badge', (html.match(/id="nb-inbox"/g) || []).length === 1);
 ok('clients screen everfit layout', html.includes('cl-everfit') && html.includes('cl-everfit-hdr'));
 ok('clients training columns', html.includes('Trening 7 dni') && html.includes('Trening 30 dni') && html.includes('Zadania 7 dni'));
@@ -42,11 +42,10 @@ ok('clients default active screen', /class="screen active" id="screen-dashboard"
 ok('flyout css panel', css.includes('.nav-flyout') && css.includes('.nav-flyout-hd') && css.includes('.cl-everfit-row'));
 ok('flyout not clipped by absolute-in-scroll', /\.nav-flyout\{[^}]*position:fixed/.test(css));
 ok('flyout js race guard', /function\s+toggleLibraryFlyout/.test(nine) && /_libFlyIgnoreUntil/.test(nine));
-ok('flyout positions from trigger rect', /function\s+_positionLibraryFlyout/.test(nine) && /getBoundingClientRect/.test(nine));
+ok('flyout positions from trigger rect', /function\s+_positionNavFlyout/.test(nine) && /getBoundingClientRect/.test(nine));
 ok('flyout portals to body', /document\.body\.appendChild\(fly\)/.test(nine));
-ok('goTo marks library group', /libraryScreens=\['library','plans','programs','templates','tasks','forms','metrics','progbuilder'\]/.test(core) && core.includes('nav-library-btn'));
-ok('moreScreens without builder/ai', /moreScreens=\[[^\]]*\]/.test(core) && !/moreScreens=\[[^\]]*aiplangen/.test(core) && !/moreScreens=\[[^\]]*builder/.test(core));
-ok('moreScreens has ondemand payments', /moreScreens=\[[^\]]*ondemand[^\]]*forum[^\]]*payments/.test(core));
+ok('goTo marks library group', /library:\['library','plans','programs','templates','tasks','forms','metrics','progbuilder'\]/.test(core) && core.includes("'nav-'+g+'-btn'"));
+ok('nav groups without builder/ai', /navGroupScreens=\{/.test(core) && !/navGroupScreens=\{[^}]*'aiplangen'/.test(core) && !/navGroupScreens=\{[^}]*'builder'/.test(core));
 ok('plans library new-plan picker', html.includes('openNewPlanPicker()') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
 ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));

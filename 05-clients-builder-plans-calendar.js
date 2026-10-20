@@ -3,6 +3,7 @@
 // ════════════════════════════════════════
 var clientSegment='all';
 var clientAttention=null;
+var clientGoalFilter='';
 const CLIENT_GOAL_LABELS={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
 const CLIENT_SEGMENT_TITLES={all:'Wszyscy klienci',active:'Aktywni klienci',inactive:'Nieaktywni klienci',archived:'Zarchiwizowani klienci'};
 
@@ -195,6 +196,8 @@ function quickDeleteClient(e,clientId){
 function renderClientFilters(attnMap){
   const sel=document.getElementById('client-status-filter');
   if(sel&&sel.value!==clientSegment)sel.value=clientSegment;
+  const goalSel=document.getElementById('client-goal-filter');
+  if(goalSel&&goalSel.value!==clientGoalFilter)goalSel.value=clientGoalFilter;
   const nonArchived=CL.filter(c=>c.status!=='archived');
   const segments=[
     {id:'all',label:'Wszyscy klienci',count:nonArchived.length},
@@ -203,13 +206,31 @@ function renderClientFilters(attnMap){
     {id:'archived',label:'Zarchiwizowani',count:CL.filter(c=>c.status==='archived').length},
   ];
   renderClientAttentionChips(attnMap);
+  syncClientFlyout();
+  const link=document.getElementById('cl-app-link');
+  if(link&&typeof clientAppUrl==='function')link.textContent=clientAppUrl().replace(/^https?:\/\//,'');
   const el=document.getElementById('client-filter-list');
   if(!el)return;
-  el.innerHTML=segments.map(s=>`<button onclick="setClientSegment('${s.id}')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:${clientSegment===s.id?'var(--adim)':'none'};border:none;border-left:2px solid ${clientSegment===s.id?'var(--accent)':'transparent'};color:${clientSegment===s.id?'var(--accent)':'var(--muted)'};font-size:12px;cursor:pointer;text-align:left;">
-    <span>${s.label}</span><span style="font-family:'DM Mono',monospace;font-size:11px;">${s.count}</span>
-  </button>`).join('');
+  el.innerHTML=segments.map(s=>{
+    const on=clientSegment===s.id&&!clientAttention;
+    return `<button type="button" class="cl-seg-item${on?' active':''}" aria-pressed="${on}" onclick="pickClientSegment('${s.id}')"><span>${s.label}</span><span class="cl-seg-n">${s.count}</span></button>`;
+  }).join('');
 }
 function setClientSegment(seg){clientSegment=seg;renderClientFilters();renderClients();}
+/** Panel widoków i menu „Klienci”: wybór widoku zdejmuje filtr „Wymaga uwagi”. */
+function pickClientSegment(seg){clientAttention=null;setClientSegment(seg);}
+function setClientGoalFilter(goal){clientGoalFilter=goal||'';renderClients();}
+function openClientSegment(seg){
+  if(typeof closeNavFlyouts==='function')closeNavFlyouts();
+  goTo('clients');
+  pickClientSegment(seg);
+}
+/** Menu „Klienci” w pasku bocznym pokazuje, który widok listy jest otwarty. */
+function syncClientFlyout(){
+  document.querySelectorAll('#nav-clients-flyout [data-client-seg]').forEach(b=>{
+    b.classList.toggle('active',!clientAttention&&b.dataset.clientSeg===clientSegment);
+  });
+}
 /** Flagi liczone raz na render listy (monitoring postępów nie jest darmowy). */
 function clientAttentionMap(){
   const map=new Map();
@@ -218,13 +239,18 @@ function clientAttentionMap(){
 }
 function renderClientAttentionChips(map){
   const el=document.getElementById('client-attn-chips');
-  if(!el)return;
+  const sel=document.getElementById('client-attn-filter');
+  if(!el&&!sel)return;
   const flags=map||clientAttentionMap();
   const count=id=>[...flags.values()].filter(f=>f[id]).length;
-  el.innerHTML=`<span class="cl-attn-label">Wymaga uwagi:</span>`+CLIENT_ATTENTION_FILTERS.map(f=>{
+  if(el)el.innerHTML=CLIENT_ATTENTION_FILTERS.map(f=>{
     const n=count(f.id),on=clientAttention===f.id;
-    return `<button type="button" class="cl-attn-chip${on?' active':''}${n?'':' empty'}" aria-pressed="${on}" onclick="setClientAttention('${f.id}')">${escHtml(f.label)} <span class="cl-attn-n">${n}</span></button>`;
+    return `<button type="button" class="cl-seg-item cl-attn-chip${on?' active':''}${n?'':' empty'}" aria-pressed="${on}" onclick="setClientAttention('${f.id}')"><span>${escHtml(f.label)}</span><span class="cl-seg-n cl-attn-n">${n}</span></button>`;
   }).join('');
+  if(sel){
+    sel.innerHTML=`<option value="">Wszyscy</option>`+CLIENT_ATTENTION_FILTERS.map(f=>`<option value="${f.id}">${escHtml(f.label)} (${count(f.id)})</option>`).join('');
+    sel.value=clientAttention||'';
+  }
 }
 function setClientAttention(id){
   clientAttention=clientAttention===id?null:id;
@@ -232,7 +258,132 @@ function setClientAttention(id){
   if(clientAttention&&clientSegment==='archived')clientSegment='all';
   renderClientFilters();renderClients();
 }
+function setClientAttentionValue(id){
+  if((id||null)===clientAttention)return;
+  setClientAttention(id||clientAttention);
+}
 window.setClientAttention=setClientAttention;
+window.setClientAttentionValue=setClientAttentionValue;
+window.setClientGoalFilter=setClientGoalFilter;
+window.openClientSegment=openClientSegment;
+window.pickClientSegment=pickClientSegment;
+window.syncClientFlyout=syncClientFlyout;
+
+// ── Układ 2.0: panel widoków, filtry, menu i kolumny listy klientów ──
+const CLIENT_TABLE_COLUMNS=[
+  {n:3,label:'Ostatnia aktywność',w:'minmax(110px,1fr)'},
+  {n:4,label:'Trening 7 dni',w:'minmax(90px,1fr)'},
+  {n:5,label:'Trening 30 dni',w:'minmax(90px,1fr)'},
+  {n:6,label:'Zadania 7 dni',w:'minmax(90px,1fr)'},
+  {n:7,label:'Cel',w:'minmax(90px,.9fr)'},
+  {n:8,label:'Status',w:'minmax(110px,1fr)'},
+];
+function clientUiPref(key,fallback){
+  try{const v=localStorage.getItem(key);return v===null?fallback:v;}catch(e){return fallback;}
+}
+function setClientUiPref(key,val){
+  try{localStorage.setItem(key,val);}catch(e){}
+}
+function clientHiddenColumns(){
+  return clientUiPref('pl_clients_hidden_cols','').split(',').map(Number).filter(Boolean);
+}
+function applyClientColumns(){
+  const box=document.getElementById('cl-everfit');
+  if(!box)return;
+  const hidden=clientHiddenColumns();
+  CLIENT_TABLE_COLUMNS.forEach(c=>box.classList.toggle('cl-hide-'+c.n,hidden.includes(c.n)));
+  const cols=['minmax(220px,2.2fr)','44px'].concat(CLIENT_TABLE_COLUMNS.filter(c=>!hidden.includes(c.n)).map(c=>c.w));
+  box.style.setProperty('--cl-cols',cols.join(' '));
+  const pop=document.getElementById('cl-cols-menu');
+  if(pop)pop.innerHTML=`<div class="cl-pop-hd">Widoczne kolumny</div>`+CLIENT_TABLE_COLUMNS.map(c=>
+    `<label class="cl-pop-check"><input type="checkbox" ${hidden.includes(c.n)?'':'checked'} onchange="toggleClientColumn(${c.n},this.checked)"> ${c.label}</label>`).join('');
+}
+function toggleClientColumn(n,visible){
+  const hidden=clientHiddenColumns().filter(x=>x!==n);
+  if(!visible)hidden.push(n);
+  setClientUiPref('pl_clients_hidden_cols',hidden.join(','));
+  applyClientColumns();
+}
+function applyClientSubnav(open){
+  const shell=document.getElementById('cl-shell');
+  if(shell)shell.classList.toggle('cl-subnav-off',!open);
+  const btn=document.getElementById('cl-subnav-toggle');
+  if(btn){
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    const lbl=open?'Ukryj panel widoków':'Pokaż panel widoków';
+    btn.setAttribute('aria-label',lbl);btn.title=lbl;
+  }
+}
+function toggleClientSubnav(){
+  const shell=document.getElementById('cl-shell');
+  const open=!!(shell&&shell.classList.contains('cl-subnav-off'));
+  applyClientSubnav(open);
+  setClientUiPref('pl_clients_subnav',open?'1':'0');
+}
+function applyClientFiltersVisible(show){
+  const chips=document.getElementById('cl-filter-chips');
+  if(chips)chips.hidden=!show;
+  const btn=document.getElementById('cl-filters-toggle');
+  if(btn){
+    btn.textContent=show?'Ukryj filtry':'Pokaż filtry';
+    btn.setAttribute('aria-expanded',show?'true':'false');
+  }
+}
+function toggleClientFilters(){
+  const chips=document.getElementById('cl-filter-chips');
+  const show=!!(chips&&chips.hidden);
+  applyClientFiltersVisible(show);
+  setClientUiPref('pl_clients_filters',show?'1':'0');
+}
+function focusClientSearch(){
+  const inp=document.getElementById('client-search');
+  if(inp){inp.focus();inp.select();}
+}
+function closeClientMenus(){
+  document.querySelectorAll('#screen-clients .cl-pop').forEach(p=>{p.hidden=true;});
+  document.querySelectorAll('#screen-clients [aria-controls^="cl-"][aria-haspopup]').forEach(b=>b.setAttribute('aria-expanded','false'));
+}
+function toggleClientMenu(id,btn){
+  const pop=document.getElementById(id);
+  if(!pop)return;
+  const open=pop.hidden;
+  closeClientMenus();
+  if(!open)return;
+  pop.hidden=false;
+  if(btn)btn.setAttribute('aria-expanded','true');
+  const first=pop.querySelector('button,input');
+  if(first)first.focus();
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest&&e.target.closest('#screen-clients .cl-split'))return;
+  closeClientMenus();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const pop=document.querySelector('#screen-clients .cl-pop:not([hidden])');
+  if(!pop)return;
+  const btn=document.querySelector(`[aria-controls="${pop.id}"]`);
+  closeClientMenus();
+  if(btn)btn.focus();
+});
+function copyClientAppLink(){
+  if(typeof clientAppUrl!=='function'||typeof copyInviteText!=='function')return;
+  copyInviteText(clientAppUrl(),'✓ Link do aplikacji klienta skopiowany','Skopiuj link ręcznie');
+}
+function initClientLayout(){
+  applyClientSubnav(clientUiPref('pl_clients_subnav','1')!=='0');
+  applyClientFiltersVisible(clientUiPref('pl_clients_filters','1')!=='0');
+  applyClientColumns();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initClientLayout);
+else initClientLayout();
+window.toggleClientSubnav=toggleClientSubnav;
+window.toggleClientFilters=toggleClientFilters;
+window.focusClientSearch=focusClientSearch;
+window.toggleClientMenu=toggleClientMenu;
+window.closeClientMenus=closeClientMenus;
+window.toggleClientColumn=toggleClientColumn;
+window.copyClientAppLink=copyClientAppLink;
 function filterClients(){renderClients();}
 function getSidebarClientsFiltered(){
   const q=((document.getElementById('nav-client-search')||{}).value||'').trim().toLowerCase();
@@ -456,6 +607,7 @@ function renderClients(){
   let filtered=CL.filter(c=>{
     if(search&&!(c.name||'').toLowerCase().includes(search.toLowerCase()))return false;
     if(clientAttention&&!(attnMap.get(c.id)||{})[clientAttention])return false;
+    if(clientGoalFilter&&c.goal!==clientGoalFilter)return false;
     if(clientSegment==='active')return c.status==='active';
     if(clientSegment==='inactive')return c.status==='inactive';
     if(clientSegment==='archived')return c.status==='archived';
@@ -471,7 +623,7 @@ function renderClients(){
   if(titleEl){
     const attnDef=clientAttention&&CLIENT_ATTENTION_FILTERS.find(f=>f.id===clientAttention);
     const base=attnDef?'Wymaga uwagi: '+escHtml(attnDef.label):(CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci');
-    titleEl.innerHTML=`${base} <span class="nav-badge" id="clients-segment-count">${filtered.length}</span>`;
+    titleEl.innerHTML=`${base} <span class="cl-title-count">(<span id="clients-segment-count">${filtered.length}</span>)</span>`;
   }
   const el=document.getElementById('clients-tbl');
   if(!filtered.length){

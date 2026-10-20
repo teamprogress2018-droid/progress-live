@@ -41,9 +41,12 @@ const expected = [
   '09-posture-kb-invites-private.js', '10-client-app.js', '11-progress-academy.js', 'research-answer.js', 'research-academy.js', '12-manual-plan-wizard.js', '13-budget-bridge.js', '14-amateur-plan-wizard.js', '15-pro-plan-wizard.js'
 ];
 ok('exactly 25 expected app scripts in dependency order', JSON.stringify(names) === JSON.stringify(expected), 'got ' + names.length + ': ' + names.join(','));
-const settingsAt = html.lastIndexOf('data-screen="settings"');
-const moreTail = html.slice(settingsAt, html.indexOf('</nav>', settingsAt));
-ok('nav-more single close before nav', (moreTail.match(/<\/div>/g) || []).length === 1, moreTail.replace(/\s+/g, ' ').slice(0, 160));
+// Pasek boczny nie może domknąć #app-root przed .main (zbalansowane <div> w <aside>).
+const asideAt = html.indexOf('<aside class="sidebar"');
+const asideBlock = html.slice(asideAt, html.indexOf('</aside>', asideAt));
+const opens = (asideBlock.match(/<div\b/g) || []).length;
+const closes = (asideBlock.match(/<\/div>/g) || []).length;
+ok('sidebar divs balanced before .main', asideAt > 0 && opens === closes && html.indexOf('</aside>') < html.indexOf('class="main"'), opens + ' open / ' + closes + ' close');
 
 const root = path.join(__dirname, '../..');
 ok('no leftover trener_ai_v2.html', !fs.existsSync(path.join(root, 'trener_ai_v2.html')));

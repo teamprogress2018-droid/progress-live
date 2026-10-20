@@ -5084,7 +5084,7 @@ function togglePrivateMode(){
     const chart = document.getElementById('dash-revenue-chart');
     if(chart) chart.classList.add('priv-hidden');
     // Zablokuj nawigację do Płatności
-    document.querySelectorAll('.nav-item').forEach(b=>{
+    document.querySelectorAll('.nav-item, .nav-flyout-item').forEach(b=>{
       if(b.textContent.trim().includes('Płatności')){
         b.dataset.privDisabled='1';
         b.style.opacity='0.3';
@@ -5107,7 +5107,7 @@ function togglePrivateMode(){
     const chart = document.getElementById('dash-revenue-chart');
     if(chart) chart.classList.remove('priv-hidden');
     // Przywróć nawigację
-    document.querySelectorAll('.nav-item').forEach(b=>{
+    document.querySelectorAll('.nav-item, .nav-flyout-item').forEach(b=>{
       if(b.dataset.privDisabled){
         b.style.opacity='';
         b.style.pointerEvents='';
@@ -5123,20 +5123,26 @@ function togglePrivateMode(){
 
 window.togglePrivateMode = togglePrivateMode;
 
-function toggleMoreNav(){
-  const el=document.getElementById('nav-more-items');
-  const arrow=document.getElementById('nav-more-arrow');
-  if(!el)return;
-  const open=el.style.display==='block';
-  el.style.display=open?'none':'block';
-  if(arrow)arrow.style.transform=open?'':'rotate(180deg)';
+// ── Menu wysuwane w pasku bocznym (Układ 2.0) ──
+// Każda grupa: .nav-flyout-wrap[data-nav-group] z przyciskiem #nav-{grupa}-btn
+// i panelem #nav-{grupa}-flyout. Na komputerze panel otwiera się po najechaniu,
+// kliknięciem (ekrany dotykowe) albo strzałką w prawo z klawiatury.
+// Grupa z domyślnym ekranem (data-screen na przycisku) po kliknięciu przechodzi
+// na ten ekran; Biblioteka i Biznes nie mają domyślnego ekranu, więc klik otwiera panel.
+var _navFlyOpen=null;
+var _navFlyCloseTimer=null;
+function _navFlyEls(group){
+  return {
+    wrap:document.getElementById('nav-'+group+'-wrap'),
+    btn:document.getElementById('nav-'+group+'-btn'),
+    fly:document.getElementById('nav-'+group+'-flyout'),
+  };
 }
-window.toggleMoreNav=toggleMoreNav;
-
-function closeLibraryFlyout(){
-  const fly=document.getElementById('nav-library-flyout');
-  const btn=document.getElementById('nav-library-btn');
-  const wrap=document.getElementById('nav-library-wrap');
+function _navCanHover(){
+  return !!(window.matchMedia&&window.matchMedia('(hover:hover) and (pointer:fine)').matches&&!window.matchMedia('(max-width:900px)').matches);
+}
+function closeNavFlyout(group){
+  const {wrap,btn,fly}=_navFlyEls(group);
   if(fly){
     fly.setAttribute('hidden','');
     fly.style.left='';fly.style.top='';fly.style.right='';fly.style.bottom='';
@@ -5144,10 +5150,15 @@ function closeLibraryFlyout(){
     if(wrap&&fly.parentElement!==wrap)wrap.appendChild(fly);
   }
   if(btn)btn.setAttribute('aria-expanded','false');
+  if(_navFlyOpen===group)_navFlyOpen=null;
 }
-function _positionLibraryFlyout(){
-  const fly=document.getElementById('nav-library-flyout');
-  const btn=document.getElementById('nav-library-btn');
+function closeNavFlyouts(){
+  clearTimeout(_navFlyCloseTimer);
+  document.querySelectorAll('.nav-flyout-wrap[data-nav-group]').forEach(w=>closeNavFlyout(w.dataset.navGroup));
+}
+function closeLibraryFlyout(){closeNavFlyout('library');}
+function _positionNavFlyout(group){
+  const {btn,fly}=_navFlyEls(group);
   if(!fly||!btn||fly.hasAttribute('hidden'))return;
   // Portal to body so sidebar-nav overflow cannot clip the menu
   if(fly.parentElement!==document.body)document.body.appendChild(fly);
@@ -5178,7 +5189,7 @@ function _positionLibraryFlyout(){
   let left=r.right+gap;
   const maxW=Math.min(280,window.innerWidth-pad*2);
   if(left+maxW>window.innerWidth-pad)left=Math.max(pad,r.left-maxW-gap);
-  let top=Math.max(pad,r.top-8);
+  let top=Math.max(pad,r.top);
   fly.style.left=left+'px';
   fly.style.top=top+'px';
   fly.style.maxHeight=(window.innerHeight-top-pad)+'px';
@@ -5192,42 +5203,158 @@ function _positionLibraryFlyout(){
     fly.style.maxHeight=(window.innerHeight-t-pad)+'px';
   });
 }
-function toggleLibraryFlyout(ev){
+function _positionLibraryFlyout(){_positionNavFlyout('library');}
+function openNavFlyout(group,opts){
+  const {btn,fly}=_navFlyEls(group);
+  if(!fly)return;
+  clearTimeout(_navFlyCloseTimer);
+  if(_navFlyOpen&&_navFlyOpen!==group)closeNavFlyout(_navFlyOpen);
+  if(group==='clients'&&typeof syncClientFlyout==='function')syncClientFlyout();
+  fly.removeAttribute('hidden');
+  if(btn)btn.setAttribute('aria-expanded','true');
+  _navFlyOpen=group;
+  _positionNavFlyout(group);
+  if(opts&&opts.focus){
+    const first=fly.querySelector('.nav-flyout-item');
+    if(first)first.focus();
+  }
+}
+function toggleNavFlyout(group,ev){
   if(ev&&typeof ev==='object'){
     try{ev.preventDefault();}catch(e){}
     try{ev.stopPropagation();}catch(e){}
     try{ev.stopImmediatePropagation&&ev.stopImmediatePropagation();}catch(e){}
   }
-  const fly=document.getElementById('nav-library-flyout');
-  const btn=document.getElementById('nav-library-btn');
+  const {fly}=_navFlyEls(group);
   if(!fly)return;
-  const open=fly.hasAttribute('hidden');
-  if(open){
-    fly.removeAttribute('hidden');
-    if(btn)btn.setAttribute('aria-expanded','true');
+  // Najechanie myszą otworzyło panel tuż przed kliknięciem — klik go nie zamyka.
+  const hoverJustOpened=window._navFlyHoverAt&&Date.now()-window._navFlyHoverAt<600;
+  if(fly.hasAttribute('hidden')){
     window._libFlyIgnoreUntil=Date.now()+280;
-    _positionLibraryFlyout();
-  }else closeLibraryFlyout();
+    openNavFlyout(group);
+  }else if(!hoverJustOpened)closeNavFlyout(group);
 }
-function _libraryFlyoutOutside(e){
+function toggleLibraryFlyout(ev){toggleNavFlyout('library',ev);}
+function navGroupClick(group,ev){
+  const {btn}=_navFlyEls(group);
+  const screen=btn&&btn.dataset.screen;
+  if(screen&&_navCanHover()){
+    closeNavFlyouts();
+    goTo(screen);
+    return;
+  }
+  toggleNavFlyout(group,ev);
+}
+function _navFlyoutOutside(e){
   if(window._libFlyIgnoreUntil&&Date.now()<window._libFlyIgnoreUntil)return;
-  const wrap=document.getElementById('nav-library-wrap');
-  const fly=document.getElementById('nav-library-flyout');
-  if(!wrap||!fly||fly.hasAttribute('hidden'))return;
-  if(wrap.contains(e.target)||fly.contains(e.target))return;
-  closeLibraryFlyout();
-}
-function _libraryFlyoutReposition(){
-  const fly=document.getElementById('nav-library-flyout');
+  if(!_navFlyOpen)return;
+  const {wrap,fly}=_navFlyEls(_navFlyOpen);
   if(!fly||fly.hasAttribute('hidden'))return;
-  _positionLibraryFlyout();
+  if((wrap&&wrap.contains(e.target))||fly.contains(e.target))return;
+  closeNavFlyout(_navFlyOpen);
 }
-document.addEventListener('click',_libraryFlyoutOutside);
-window.addEventListener('resize',_libraryFlyoutReposition);
-document.addEventListener('scroll',_libraryFlyoutReposition,true);
+function _navFlyoutReposition(){
+  if(_navFlyOpen)_positionNavFlyout(_navFlyOpen);
+}
+function _navFlyGroupOf(el){
+  const host=el&&el.closest&&el.closest('.nav-flyout-wrap[data-nav-group], .nav-flyout');
+  if(!host)return null;
+  if(host.dataset.navGroup)return host.dataset.navGroup;
+  const m=(host.id||'').match(/^nav-(.+)-flyout$/);
+  return m?m[1]:null;
+}
+function _navFlyHoverIn(e){
+  if(!_navCanHover())return;
+  const group=_navFlyGroupOf(e.target);
+  if(!group)return;
+  clearTimeout(_navFlyCloseTimer);
+  // Po wyborze pozycji kursor wciąż stoi nad tym menu — nie otwieraj go od razu ponownie.
+  const picked=window._navFlyPicked;
+  if(picked&&picked.group===group&&Date.now()<picked.until)return;
+  if(_navFlyOpen!==group){
+    window._navFlyHoverAt=Date.now();
+    openNavFlyout(group);
+  }
+}
+function _navFlyHoverOut(e){
+  if(!_navCanHover()||!_navFlyOpen)return;
+  const group=_navFlyGroupOf(e.target);
+  if(group!==_navFlyOpen)return;
+  if(_navFlyGroupOf(e.relatedTarget)===group)return;
+  clearTimeout(_navFlyCloseTimer);
+  _navFlyCloseTimer=setTimeout(()=>closeNavFlyout(group),220);
+}
+function _navFlyKeydown(e){
+  const group=_navFlyGroupOf(e.target);
+  if(!group)return;
+  const {btn,fly}=_navFlyEls(group);
+  if(!fly)return;
+  const onTrigger=e.target===btn;
+  if(onTrigger&&(e.key==='ArrowRight'||(e.key==='ArrowDown'&&fly.hasAttribute('hidden')))){
+    e.preventDefault();
+    openNavFlyout(group,{focus:true});
+    return;
+  }
+  if(!fly.contains(e.target))return;
+  const items=[...fly.querySelectorAll('.nav-flyout-item')];
+  const i=items.indexOf(e.target);
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    const next=items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length];
+    if(next)next.focus();
+  }else if(e.key==='Escape'||e.key==='ArrowLeft'){
+    e.preventDefault();
+    closeNavFlyout(group);
+    if(btn)btn.focus();
+  }else if(e.key==='Tab'){
+    closeNavFlyout(group);
+    if(btn)btn.focus();
+  }
+}
+document.addEventListener('click',_navFlyoutOutside);
+document.addEventListener('click',e=>{
+  const item=e.target&&e.target.closest&&e.target.closest('.nav-flyout-item');
+  const group=item&&_navFlyGroupOf(item);
+  if(group)window._navFlyPicked={group,until:Date.now()+600};
+},true);
+document.addEventListener('mouseover',_navFlyHoverIn);
+document.addEventListener('mouseout',_navFlyHoverOut);
+document.addEventListener('keydown',_navFlyKeydown);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&_navFlyOpen&&!_navFlyGroupOf(document.activeElement))closeNavFlyout(_navFlyOpen);
+});
+window.addEventListener('resize',_navFlyoutReposition);
+document.addEventListener('scroll',_navFlyoutReposition,true);
+
+// Zwinięty pasek boczny = same ikony; wybór pamiętany w przeglądarce.
+function applySidebarCollapsed(on){
+  const app=document.getElementById('app-root');
+  if(app)app.classList.toggle('sidebar-collapsed',!!on);
+  const btn=document.getElementById('sidebar-collapse-btn');
+  if(btn){
+    btn.setAttribute('aria-pressed',on?'true':'false');
+    const lbl=on?'Rozwiń menu boczne':'Zwiń menu boczne';
+    btn.setAttribute('aria-label',lbl);btn.title=lbl;
+  }
+}
+function toggleSidebarCollapsed(){
+  const app=document.getElementById('app-root');
+  const on=!(app&&app.classList.contains('sidebar-collapsed'));
+  applySidebarCollapsed(on);
+  try{localStorage.setItem('pl_sidebar_collapsed',on?'1':'0');}catch(e){}
+  closeNavFlyouts();
+}
+try{applySidebarCollapsed(localStorage.getItem('pl_sidebar_collapsed')==='1');}catch(e){}
+
 window.toggleLibraryFlyout=toggleLibraryFlyout;
 window.closeLibraryFlyout=closeLibraryFlyout;
 window._positionLibraryFlyout=_positionLibraryFlyout;
+window.openNavFlyout=openNavFlyout;
+window.closeNavFlyout=closeNavFlyout;
+window.closeNavFlyouts=closeNavFlyouts;
+window.toggleNavFlyout=toggleNavFlyout;
+window.navGroupClick=navGroupClick;
+window.toggleSidebarCollapsed=toggleSidebarCollapsed;
 
 window.goTo=goTo;window.openM=openM;window.closeM=closeM;
 window.saveClient=saveClient;window.saveSess=saveSess;window.saveEx=saveEx;window.savePlan=savePlan;window.delPlan=delPlan;

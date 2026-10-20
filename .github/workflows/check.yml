@@ -381,6 +381,8 @@ jobs:
         run: node .github/scripts/test_plans_library.js
       - name: 1n27c. Testy skróconego primary nav
         run: node .github/scripts/test_nav_primary_slim.js
+      - name: Układ 2.0 (lista klientów)
+        run: node .github/scripts/test_layout_v2.js
       - name: 1n27c2. Testy domyślnego Panelu głównego
         run: node .github/scripts/test_nav_home_default.js
       - name: 1n27d. Testy mini-listy klientów w sidebarze
@@ -530,6 +532,9 @@ jobs:
       - name: 6. Poczekaj aż serwer wystartuje
         run: sleep 2
 
+      - name: 6a. Testy UI układu 2.0 (menu wysuwane, klienci, telefon)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_layout_v2_ui.js
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b0z. Testy UI kafelek dni w zakładce Plan

@@ -488,25 +488,26 @@ function goTo(n){
   document.querySelectorAll('.nav-flyout-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
-  const libraryScreens=['library','plans','programs','templates','tasks','forms','metrics','progbuilder'];
-  const moreScreens=['ondemand','forum','payments','calculator','academy','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
-  // builder + aiplangen celowo poza Więcej — wejście z profilu klienta (Plan)
-  if(moreScreens.includes(n)){
-    const moreEl=document.getElementById('nav-more-items');
-    const arrow=document.getElementById('nav-more-arrow');
-    if(moreEl)moreEl.style.display='block';
-    if(arrow)arrow.style.transform='rotate(180deg)';
-  }
+  if(typeof closeNavFlyouts==='function')closeNavFlyouts();
+  // Ekran z menu wysuwanego podświetla przycisk swojej grupy w pasku bocznym.
+  const navGroupScreens={
+    clients:['clients','checkin'],
+    library:['library','plans','programs','templates','tasks','forms','metrics','progbuilder'],
+    automation:['automation','onboarding'],
+    ondemand:['ondemand','resources'],
+    business:['payments','bizstats'],
+    knowledge:['academy','kb','aicoach','calculator'],
+  };
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
   const flyItem=document.querySelector('.nav-flyout-item[data-screen="'+n+'"]');
   if(flyItem)flyItem.classList.add('active');
+  Object.keys(navGroupScreens).forEach(g=>{
+    if(!navGroupScreens[g].includes(n))return;
+    const groupBtn=document.getElementById('nav-'+g+'-btn');
+    if(groupBtn)groupBtn.classList.add('active');
+  });
   if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();
-  if(libraryScreens.includes(n)){
-    const libBtn=document.getElementById('nav-library-btn');
-    if(libBtn)libBtn.classList.add('active');
-  }
   try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
 }
 function goToHomeworkQueue(){
