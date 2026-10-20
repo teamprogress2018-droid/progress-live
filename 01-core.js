@@ -541,7 +541,7 @@ function openLiveFromMobile(){
   closeMobileSidebar();
   goTo('live');
   // Po wejściu z małego ekranu pierwszy krok jest od razu dostępny z klawiatury.
-  if(window.matchMedia('(max-width: 860px)').matches){
+  if(window.matchMedia('(max-width: 860px)').matches&&!document.getElementById('live-client-sel')?.value){
     setTimeout(()=>document.getElementById('live-client-sel-search')?.focus({preventScroll:true}),0);
   }
 }

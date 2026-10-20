@@ -9,8 +9,9 @@ function ok(name,pass){
   else{console.error('✗ '+name);failed=true;}
 }
 ok('mobile menu is bound as a real button action',core.includes('function bindMobileSidebarControls()')&&core.includes("button.addEventListener('click',toggleMobileSidebar)")&&html.includes('id="mobile-menu-btn" type="button" aria-label="Otwórz menu"'));
-ok('mobile navigation closes safely and opens the LIVE workspace',core.includes('function openLiveFromMobile()')&&html.includes('onclick="openLiveFromMobile()"'));
+ok('mobile navigation closes safely and opens the LIVE workspace without reopening a selected client picker',core.includes('function openLiveFromMobile()')&&core.includes("&&!document.getElementById('live-client-sel')?.value")&&html.includes('onclick="openLiveFromMobile()"'));
 ok('the compact client list keeps a visible reversible action',clients.includes('function toggleClientListCompact()')&&clients.includes("filtered.slice(0,3)")&&html.includes('id="client-list-toggle"'));
 ok('the light surface uses a restrained cool background and separate white cards',theme.includes('--bg-main: #f4f7fb')&&theme.includes('background: linear-gradient(180deg, #e9f2ff'));
 ok('phone header reserves separate space for navigation and LIVE',theme.includes('grid-template-columns: minmax(0, 1fr) auto')&&theme.includes('padding: max(8px, env(safe-area-inset-top)) 12px 8px 68px'));
+ok('iPhone safe areas keep the trainer menu and LIVE header below the system status bar',theme.includes('body:not(.client-app-mode) #app-root { padding-top: env(safe-area-inset-top); }')&&theme.includes('#mobile-menu-btn { top: max(8px, env(safe-area-inset-top)); }'));
 if(failed)process.exit(1);

@@ -979,6 +979,14 @@ body.mobile-menu-open { overscroll-behavior: none; }
   #screen-clients .cl-top-cta { min-height: 44px; padding: 8px 12px; white-space: nowrap; position: relative; z-index: 1; }
   .cl-list-toggle { width: 100%; min-height: 48px; }
 }
+
+/* PWA na iPhonie może rysować stronę pod paskiem systemowym.
+   Rezerwujemy tę przestrzeń, aby menu i nagłówki zawsze pozostały dotykalne. */
+@media (max-width: 860px) {
+  body:not(.client-app-mode) #app-root { padding-top: env(safe-area-inset-top); }
+  body:not(.client-app-mode) #mobile-menu-btn { top: max(8px, env(safe-area-inset-top)); }
+  body:not(.client-app-mode) .sidebar { padding-top: env(safe-area-inset-top); }
+}
 @media (min-width: 861px) {
   /* Grafika ciemnego motywu (.sidebar::after) zostaje w pasku bocznym */
   .app .sidebar { position: relative; }
