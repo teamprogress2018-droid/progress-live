@@ -1633,6 +1633,18 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .color-swatch:hover{transform:scale(1.1);}
 .color-swatch.active{border-color:var(--text);}
 .settings-avatar-big{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;flex-shrink:0;border:3px solid var(--accent);}
+@media(max-width:600px){
+  /* Ustawienia na telefonie: sekcje są przewijanymi zakładkami, a nie drugim panelem. */
+  #screen-settings .settings-layout{display:block!important;overflow:auto!important;}
+  #screen-settings .settings-sidebar{display:flex!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;padding:8px 10px!important;gap:4px;border-right:0!important;border-bottom:1px solid var(--border)!important;white-space:nowrap;scrollbar-width:none;}
+  #screen-settings .settings-sidebar::-webkit-scrollbar{display:none;}
+  #screen-settings .settings-sidebar>div[style*="font-size:9px"]{display:none!important;}
+  #screen-settings .settings-nav{flex:0 0 auto;border-left:0;border-bottom:2px solid transparent;border-radius:8px;padding:10px 12px;}
+  #screen-settings .settings-nav.active{border-left-color:transparent;border-bottom-color:var(--accent);}
+  #screen-settings .settings-content{overflow:visible!important;padding:16px 12px calc(24px + env(safe-area-inset-bottom))!important;}
+  #screen-settings .settings-section{max-width:none;}
+  #screen-settings .settings-card{padding:18px 16px;}
+}
 /* ── NOTIFICATIONS ── */
 .notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;position:relative;}
 .notif-item:hover{background:rgba(255,255,255,0.02);}

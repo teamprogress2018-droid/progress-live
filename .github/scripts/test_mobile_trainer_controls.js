@@ -18,4 +18,5 @@ ok('iPhone safe areas keep the trainer menu and LIVE header below the system sta
 ok('the trainer canvas stays visibly cool behind white cards, including LIVE',theme.includes('html[data-theme="light"] .main { background: #edf3fb; }')&&theme.includes('#screen-live .live-floor'));
 ok('LIVE keeps technique above the full-width series log on a phone',theme.includes('#screen-live .live-ex-body { display: flex; flex-direction: column')&&theme.includes('#screen-live .live-ex-log { flex: 1 1 100%; width: 100%; min-width: 0; }'));
 ok('LIVE offers real recently active clients as a shortcut before searching',live.includes('function liveRecentClientChoices')&&live.includes('function liveQuickPickClient')&&live.includes("Ostatnio aktywni")&&theme.includes('.live-quick-client'));
+ok('settings use one readable column on a phone',html.includes('class="settings-layout"')&&html.includes('class="settings-sidebar"')&&html.includes('class="settings-content"')&&fs.readFileSync('styles.css','utf8').includes('#screen-settings .settings-layout{display:block!important;overflow:auto!important;}'));
 if(failed)process.exit(1);

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=177">
+<link rel="stylesheet" href="styles.css?v=178">
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=5&layout-v2=2">
 <script>/* Motyw przed pierwszym malowaniem: bez mignięcia ciemnego/jasnego tła. */try{var t=JSON.parse(localStorage.getItem('pl_theme_v2')||'null');if(t&&(t.mode==='dark'||t.mode==='light'))document.documentElement.setAttribute('data-theme',t.mode);if(t&&/^#[0-9a-f]{6}$/i.test(t.accent||''))document.documentElement.style.setProperty('--accent',t.accent);}catch(e){}</script>
@@ -630,7 +630,7 @@
     </div>
   </div>
 
-  <div style="display:flex;flex:1;overflow:hidden;">
+  <div class="settings-layout" style="display:flex;flex:1;overflow:hidden;">
 
     <!-- WIDOK TYGODNIOWY -->
     <div id="cal-week-view" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
@@ -1901,7 +1901,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div style="display:flex;flex:1;overflow:hidden;">
 
     <!-- lewy panel — nawigacja -->
-    <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;">
+    <div class="settings-sidebar" style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;">
       <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Aplikacja</div>
       <div class="settings-nav active" id="sn-brand" onclick="setSettingsTab('brand')">🎨 Marka i wygląd</div>
       <div class="settings-nav" id="sn-company" onclick="setSettingsTab('company')">🏢 Dane firmy</div>
@@ -1916,7 +1916,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
 
     <!-- prawa treść -->
-    <div style="flex:1;overflow-y:auto;padding:24px;" id="settings-content"></div>
+    <div class="settings-content" style="flex:1;overflow-y:auto;padding:24px;" id="settings-content"></div>
   </div>
 </div>
 
