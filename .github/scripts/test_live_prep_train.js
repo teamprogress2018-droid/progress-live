@@ -19,11 +19,11 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=100'));
 ok('cache styles', html.includes('styles.css?v=166'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
-ok('end label', html.includes('Zakończ trening') && /function liveAskEndSession\(/.test(live));
+ok('save training action is explicit', html.includes('Zapisz trening') && /function liveAskEndSession\(/.test(live) && live.includes("end.textContent='Zapisz trening'"));
 ok('more menu', html.includes('id="live-more-menu"') && html.includes('liveToggleMoreMenu()') && html.includes('Dwie osoby') && html.includes('Harmonogram periodyzacji'));
 ok('client view in train bar', html.includes('id="live-client-view-btn"') && html.includes('Widok klienta'));
 ok('left picker hidden in session', css.includes('#screen-live.live-session-on .live-side-left') && css.includes('display:none !important'));

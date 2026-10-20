@@ -2438,7 +2438,8 @@ function liveBindSessionButtons(slot){
   }
   if(end){
     end.style.display=st.sessionActive?'':'none';
-    end.textContent='Zakończ trening';
+    end.textContent='Zapisz trening';
+    end.title='Zapisz wykonane serie, notatkę i feedback, a następnie zakończ sesję';
   }
   if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
   livePaintTimer(n);
@@ -4704,7 +4705,7 @@ function liveEndSession(slot){
   window._liveEndFromOverlay=false;
   if(!fromOv){
     const msg=totalSets
-      ?'Zakończyć i zapisać sesję?'
+      ?'Zapisać trening i zakończyć sesję?'
       :'Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów. Zapisać mimo to?';
     if(!confirm(msg))return;
   }

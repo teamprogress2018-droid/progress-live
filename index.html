@@ -2847,7 +2847,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <input type="hidden" id="live-client-sel">
           <div id="live-client-sel-results" class="live-client-sel-results"></div>
         </div>
-        <button class="btn btn-danger btn-sm live-session-btn live-train-only" id="live-end-btn" onclick="liveAskEndSession()" style="display:none;">Zakończ trening</button>
+        <button class="btn btn-primary btn-sm live-session-btn live-train-only" id="live-end-btn" onclick="liveAskEndSession()" style="display:none;">Zapisz trening</button>
         <button class="btn btn-primary btn-sm live-session-btn live-prep-only" id="live-start-btn" onclick="liveStartSession()">▶ Start</button>
       </div>
       <div class="live-slot-controls live-slot-b" data-live-slot="1">
@@ -2861,7 +2861,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div class="live-timer-val" id="live-b-timer">00:00</div>
           <div class="live-dock-sub" id="live-b-timer-status" hidden>Nieaktywny</div>
         </div>
-        <button class="btn btn-danger btn-sm live-session-btn live-train-only" id="live-b-end-btn" onclick="liveAskEndSession(1)" style="display:none;">Zakończ trening</button>
+        <button class="btn btn-primary btn-sm live-session-btn live-train-only" id="live-b-end-btn" onclick="liveAskEndSession(1)" style="display:none;">Zapisz trening</button>
         <button class="btn btn-primary btn-sm live-session-btn live-prep-only" id="live-b-start-btn" onclick="liveStartSession(1)">▶ Start</button>
       </div>
       <button type="button" class="btn btn-ghost btn-sm live-train-only" id="live-client-view-btn" onclick="setLiveTab('client')">Widok klienta</button>
@@ -3031,7 +3031,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
   <div id="live-end-overlay" class="live-end-overlay" hidden>
     <div class="live-end-card">
-      <div class="live-end-title">Zakończ trening</div>
+      <div class="live-end-title">Zapisz trening</div>
       <div class="live-end-summary" id="live-end-summary"></div>
       <div class="live-end-warn" id="live-end-warn" hidden>Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów.</div>
       <div class="live-dock-card live-note-card">
@@ -3062,8 +3062,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="live-dock-sub live-fb-text" id="live-b-feedback-text">Brak oceny</div>
       </div>
       <div class="live-end-actions">
-        <button type="button" class="btn btn-ghost" onclick="liveCancelEnd()">Wróć</button>
-        <button type="button" class="btn btn-danger" id="live-end-save-btn" onclick="liveConfirmEnd()">Zapisz sesję</button>
+        <button type="button" class="btn btn-ghost" onclick="liveCancelEnd()">Wróć do treningu</button>
+        <button type="button" class="btn btn-primary" id="live-end-save-btn" onclick="liveConfirmEnd()">Zapisz trening</button>
       </div>
     </div>
   </div>
@@ -4807,7 +4807,7 @@ async function load(session=captureTenantSession()){
 <script src="ex-photo-manifest.js?v=6"></script>
 <script src="01-core.js?v=139&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=99"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=100"></script>
 <script src="books-kb.js?v=2"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=43&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1"></script>
 <script src="04-client-portal.js?v=62&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
