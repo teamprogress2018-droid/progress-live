@@ -47,7 +47,7 @@ ok('no cheat css',!css.includes('.trainer-cheat')&&!css.includes('#builder-cheat
 ok('builder keeps trainer help panel',html.includes('id="builder-sidebar"')&&html.includes('toggleBuilderSidebar(true)'));
 ok('academy wired in index',html.includes('11-progress-academy.js?v=')&&html.includes('id="screen-academy"')&&html.includes('data-screen="academy"'));
 ok('builder links to academy',html.includes('builder-academy-nudge')&&html.includes('academyFromBuilder()'));
-ok('dashboard academy tile opens academy',/data-tile="academy"[^>]*goTo\('academy'\)/.test(html));
+ok('sidebar opens academy',/data-screen="academy"[^>]*goTo\('academy'\)|goTo\('academy'\)[^>]*data-screen="academy"/.test(html));
 ok('builder keeps plan after academy',src05.includes('window._builderPreserveOnReturn')&&core.includes("n==='academy'&&typeof window.renderProgressAcademy"));
 ok('academy offers three help levels and keeps plan read-only',academy.includes("['quick','Szybka odpowiedź']")&&academy.includes("['guide','Przewodnik decyzji']")&&academy.includes("['context','Mój plan']")&&academy.includes('Akademia nie zapisuje ani nie zmienia danych planu.'));
 ok('academy preserves the builder on return',academy.includes('window._builderPreserveOnReturn=true'));

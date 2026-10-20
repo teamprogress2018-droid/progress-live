@@ -6815,10 +6815,10 @@ function renderProfileSetupBanner(){
   try{dismissed=localStorage.getItem('pl_profile_prompt')==='1';}catch(e){}
   if(dismissed||!isTrainerProfileIncomplete()){el.style.display='none';el.innerHTML='';return;}
   el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.45);background:linear-gradient(135deg,rgba(201,123,63,0.1),var(--s2));">
+  el.innerHTML=`<div class="card dash-setup-card">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:4px;">👤 UZUPEŁNIJ PROFIL TRENERA</div>
+        <div class="studio-hdr">Uzupełnij profil trenera</div>
         <div style="font-size:12px;color:var(--muted);line-height:1.5;">Twoje imię i tytuł pojawią się w sidebarze, raportach, fakturach i wiadomościach do klientów.</div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
@@ -6850,10 +6850,10 @@ function renderDashGettingStarted(){
     {done:hasSess,icon:'▶',title:'Odpal Trening Live',desc:'Wybierz klienta, start sesji, zapis ciężarów',action:"goTo('live')",cta:'Trening Live'},
   ];
   el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(225,31,46,0.25);background:linear-gradient(135deg,var(--adim),var(--s2));">
+  el.innerHTML=`<div class="card dash-setup-card">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">START DNIA</div>
+        <div class="studio-hdr">Pierwsze kroki</div>
         <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">Trzy kroki, żeby aplikacja była gotowa do pracy z klientem.</div>
       </div>
       <button onclick="dismissGettingStarted()" class="btn btn-ghost btn-sm">Ukryj</button>
@@ -6887,7 +6887,7 @@ function renderDashClientPipeline(){
   el.innerHTML=`<div class="card dash-pipeline-card">
     <div class="dash-ops-hdr">
       <div>
-        <div class="studio-hdr">START WSPÓŁPRACY</div>
+        <div class="studio-hdr">Start współpracy</div>
         <div class="studio-sub">${rows.length===1?'1 klient wymaga dokończenia.':rows.length+' klientów: pomiary → dni → plan → kalendarz → pakiet'}</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Lista →</button>

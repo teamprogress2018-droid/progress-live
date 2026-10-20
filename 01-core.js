@@ -309,7 +309,7 @@ function exitClientPreviewMode(){
     banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;font-size:12px;color:var(--orange);';
     banner.textContent='To jest podgląd UI. Prawdziwe logowanie klienta jest w linku z zaproszenia.';
   }
-  goTo('dashboard');
+  goTo('clients');
 }
 window.exitClientPreviewMode=exitClientPreviewMode;
 

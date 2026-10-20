@@ -76,7 +76,7 @@ const { chromium } = require('playwright');
     await page.evaluate(() => { closeM('m-client-onboard'); goTo('dashboard'); window._onboardResumeAfterInvite = 'skip-a';
       _skipUi.localBefore = JSON.stringify(CL); _skipUi.savesBefore = _skipUi.saves.length;
       _skipUi.resumeBefore = _skipUi.resume.length; _skipUi.noticeBefore = _skipUi.notices.length; toggleDashQuickActions(true); });
-    await page.locator('button[onclick*="openInviteFromDashboard"]').click(); let quick = await state();
+    await page.locator('#dash-qa-menu button[onclick*="openInviteFromDashboard"]').click(); let quick = await state();
     ok('dashboard invitation action requires a fresh client choice and clears old A context', await page.locator('#screen-clients').isVisible() &&
       !(await invite.isVisible()) && await page.evaluate(() => !window._inviteModalView && !window.inviteClientId &&
       !window._onboardResumeAfterInvite && JSON.stringify(CL) === _skipUi.localBefore &&

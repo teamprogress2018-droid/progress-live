@@ -89,6 +89,12 @@ vm.runInContext("toggleClientSubnav()", ctx);
 ok('panel hides and remembers', els['cl-shell'].classList.contains('cl-subnav-off') && store.pl_clients_subnav === '0' && els['cl-subnav-toggle']['aria-expanded'] === 'false');
 vm.runInContext("toggleClientFilters()", ctx);
 ok('filters hide and remember', els['cl-filter-chips'].hidden === true && store.pl_clients_filters === '0' && els['cl-filters-toggle'].textContent === 'Pokaż filtry');
+// Po zalogowaniu (wczytaniu danych trenera) aplikacja ma wejść na listę klientów, nie na Pulpit
+const loginTail = html.slice(html.indexOf("window.applyAuthToTrainerProfile();"), html.indexOf("window.consumeClientPreviewHash();"));
+ok('login lands on client list', loginTail.includes("goTo('clients')") && !loginTail.includes("goTo('dashboard')"));
+const core01 = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
+const exitPrev = core01.slice(core01.indexOf('function exitClientPreviewMode'), core01.indexOf('window.exitClientPreviewMode='));
+ok('leaving client preview returns to client list', exitPrev.includes("goTo('clients')") && !exitPrev.includes("goTo('dashboard')"));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll layout-v2 tests passed');

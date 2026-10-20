@@ -12,16 +12,23 @@ const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const src = fs.readFileSync(path.join(root, 'dashboard-home.js'), 'utf8');
 const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
 
-const dash = html.slice(html.indexOf('id="screen-dashboard"'), html.indexOf('id="dash-today-focus"'));
+const dashFull = html.slice(html.indexOf('id="screen-dashboard"'), html.indexOf('id="screen-clients"'));
+const dash = dashFull.slice(0, dashFull.indexOf('id="dash-today-focus"'));
 assert.ok(html.includes('<script src="dashboard-home.js?v=1"></script>'), 'skrypt pulpitu podpięty');
 assert.ok(dash.includes('id="dash-search"') && dash.includes('dashSearchInput('), 'wyszukiwarka');
 assert.ok(dash.includes('id="dash-notif-badge"') && dash.includes('id="dash-msg-badge"'), 'odznaki powiadomień i wiadomości');
 assert.ok(dash.includes('id="dash-hello"') && dash.includes('id="dash-date-full"'), 'powitanie i data');
-['clients', 'plans', 'live', 'calendar', 'stats', 'academy', 'library', 'inbox', 'finance'].forEach(t =>
-  assert.ok(dash.includes('data-tile="' + t + '"'), 'kafelek ' + t));
-assert.ok(dash.includes('id="dash-day-list"') && dash.includes('id="dash-goals-list"'), 'Mój dzień + cele z danych');
-assert.ok(!dash.includes('Trening z klientem') && !dash.includes('12 / 16'), 'bez danych przykładowych');
-assert.ok(dash.includes('TWOJE CELE. NASZE NARZĘDZIA. REALNE EFEKTY.'), 'baner');
+// Czysty pulpit: bez kafelków, haseł i cytatów; skróty kafelków są w pasku bocznym i w nagłówku listy klientów
+assert.ok(!dashFull.includes('data-tile='), 'bez kafelków');
+assert.ok(!/TWOJE CELE\. NASZE NARZĘDZIA|Małe kroki|Lepsza wersja|buduje Twoje jutro/.test(dashFull), 'bez haseł i cytatów');
+assert.ok(!dashFull.includes('dash-start-hero') && !dashFull.includes('dash3-banner') && !dashFull.includes('dash-fire-endquote'), 'bez banera i hero');
+['clients', 'library', 'inbox', 'live', 'calendar', 'business', 'academy'].forEach(s =>
+  assert.ok(html.includes('data-screen="' + s + '"') || html.includes('id="nav-' + s + '-btn"'), 'skrót w pasku bocznym: ' + s));
+const addMenu = html.slice(html.indexOf('id="cl-add-menu"'), html.indexOf('id="cl-add-menu"') + 2500);
+['openNewPlanPicker()', 'openInviteFromDashboard()', "openM('m-broadcast')"].forEach(f =>
+  assert.ok(addMenu.includes(f), 'skrót w nagłówku listy klientów: ' + f));
+assert.ok(dashFull.indexOf('id="dash-day-list"') > 0 && dashFull.indexOf('id="dash-goals-list"') > 0, 'Mój dzień + cele z danych');
+assert.ok(!dashFull.includes('Trening z klientem') && !dashFull.includes('12 / 16'), 'bez danych przykładowych');
 assert.ok(css.includes("assets/brand/web/progress-fire-hero.jpg") && fs.existsSync(path.join(root, 'assets/brand/web/progress-fire-hero.jpg')), 'lekkie grafiki');
 assert.ok(src04.includes("typeof renderDashHome==='function'"), 'renderDash odświeża pulpit');
 
