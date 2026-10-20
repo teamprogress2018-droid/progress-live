@@ -3906,6 +3906,8 @@ body,
   #screen-live.live-history-view .live-view-tabs{display:flex;flex:0 0 auto;}
   #screen-live.live-history-view #live-tab-trainer{display:inline-flex;}
   #screen-live.live-history-view #live-tab-history{display:none;}
+  /* Widok klienta jest dostępny pod …; nie powielamy go w już ciasnym pasku sesji. */
+  #screen-live.live-session-on #live-client-view-btn{display:none;}
   .live-prep-days{grid-template-columns:1fr;}
   .live-set-head{font-size:11px;}
   .live-kg-input{padding:8px 4px;}

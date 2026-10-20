@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=107'));
-ok('cache styles', html.includes('styles.css?v=176'));
+ok('cache styles', html.includes('styles.css?v=177'));
 ok('mobile end sheet keeps save action reachable', css.includes('.live-end-actions{position:sticky') && css.includes('.live-end-actions .btn{flex:1;min-height:48px;}'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
@@ -28,6 +28,7 @@ ok('save training action is explicit', html.includes('Zapisz trening') && /funct
 ok('more menu', html.includes('id="live-more-menu"') && html.includes('liveToggleMoreMenu()') && html.includes('Dwie osoby') && html.includes('Harmonogram periodyzacji'));
 ok('mobile preparation keeps history and two-person mode behind a reversible more menu', html.includes('id="live-prep-more-menu"') && html.includes('id="live-prep-more-btn"') && /function liveTogglePrepMoreMenu\(/.test(live) && live.includes("live-history-view") && css.includes('#screen-live:not(.live-session-on):not(.live-history-view) .live-view-tabs'));
 ok('client view in train bar', html.includes('id="live-client-view-btn"') && html.includes('Widok klienta'));
+ok('mobile train bar keeps client view in the more menu', /id="live-more-menu"[\s\S]*📱 Widok klienta/.test(html) && css.includes('#screen-live.live-session-on #live-client-view-btn{display:none;}'));
 ok('left picker hidden in session', css.includes('#screen-live.live-session-on .live-side-left') && css.includes('display:none !important'));
 ok('sidebar collapsed in session', css.includes('#app-root:has(#screen-live.active.live-session-on) .sidebar'));
 ok('timer hidden before start', /live-train-only[\s\S]*id="live-timer"|id="live-timer"/.test(html) && html.includes('id="live-timer-status" hidden'));
