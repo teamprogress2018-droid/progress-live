@@ -86,7 +86,8 @@ function bypassAuth() {
   ok('preview shows overlay', shown.on && shown.aria === 'false');
   ok('logo visible src', /progress-logo\.jpg/.test(shown.src));
   ok('clock text', shown.clock.length >= 4);
-  ok('clock color red', /rgb\(\s*255\s*,\s*59\s*,\s*48\s*\)/.test(shown.color), shown.color);
+  // Zegar w kolorze akcentu (domyślnie czerwony #e60000 z Ustawień → Marka i wygląd).
+  ok('clock color red', /rgb\(\s*230\s*,\s*0\s*,\s*0\s*\)/.test(shown.color), shown.color);
   ok('covers viewport', shown.w >= 1400 && shown.h >= 850);
 
   const layout = await page.evaluate(() => {

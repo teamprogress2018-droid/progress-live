@@ -5,12 +5,13 @@ var capScreen='home';var capDevice='phone';var capTab='preview';
 var capClientId=null;
 
 const CAP_ACCENT='#e60000';
-const CAP_BG='#1a1a1a';
-const CAP_S1='#121212';
-const CAP_S2='#252525';
-const CAP_S3='rgba(255,255,255,0.07)';
-const CAP_TEXT='#f5f5f5';
-const CAP_MUTED='rgba(255,255,255,0.4)';
+// Kolory widoku klienta jako zmienne CSS (theme.css): jasne lub ciemne zależnie od motywu.
+const CAP_BG='var(--cap-bg,#1a1a1a)';
+const CAP_S1='var(--cap-s1,#121212)';
+const CAP_S2='var(--cap-s2,#252525)';
+const CAP_S3='var(--cap-s3,rgba(255,255,255,0.07))';
+const CAP_TEXT='var(--cap-text,#f5f5f5)';
+const CAP_MUTED='var(--cap-muted,rgba(255,255,255,0.4))';
 
 function initClientApp(){
   const sel=document.getElementById('cap-client-sel');
@@ -437,8 +438,8 @@ function capSparklineSVG(points,color,w,h){
   const path='M'+xs.map((x,i)=>x+','+ys[i]).join('L');
   const area=path+' L'+xs[xs.length-1]+','+(pad.t+iH)+' L'+xs[0]+','+(pad.t+iH)+' Z';
   const col=color||CAP_ACCENT;
-  const dots=xs.map((x,i)=>'<circle cx="'+x+'" cy="'+ys[i]+'" r="3.5" fill="'+col+'" stroke="'+CAP_BG+'" stroke-width="1.5"><title>'+escHtml(String(pts[i].d||''))+': '+pts[i].v+'</title></circle>').join('');
-  const xLab=(d,i)=>{if(i!==0&&i!==pts.length-1&&i!==Math.floor(pts.length/2))return'';const x=xs[i];return '<text x="'+x+'" y="'+(H-4)+'" text-anchor="middle" font-size="8" fill="'+CAP_MUTED+'">'+escHtml(String(d||'').slice(5))+'</text>';};
+  const dots=xs.map((x,i)=>'<circle cx="'+x+'" cy="'+ys[i]+'" r="3.5" fill="'+col+'" style="stroke:'+CAP_BG+'" stroke-width="1.5"><title>'+escHtml(String(pts[i].d||''))+': '+pts[i].v+'</title></circle>').join('');
+  const xLab=(d,i)=>{if(i!==0&&i!==pts.length-1&&i!==Math.floor(pts.length/2))return'';const x=xs[i];return '<text x="'+x+'" y="'+(H-4)+'" text-anchor="middle" font-size="8" style="fill:'+CAP_MUTED+'">'+escHtml(String(d||'').slice(5))+'</text>';};
   return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="cap-chart-svg" style="width:100%;display:block;">'+
     '<defs><linearGradient id="capGrad'+String(col).replace(/[^a-z0-9]/gi,'')+'" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity="0.28"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0.02"/></linearGradient></defs>'+
     '<path d="'+area+'" fill="url(#capGrad'+String(col).replace(/[^a-z0-9]/gi,'')+')"/>'+
@@ -457,7 +458,7 @@ function capBarChartSVG(data,color,w,h){
     const bh=Math.round(((d.v||0)/max)*(H-28));
     const x=pad+i*(bw+3);const y=H-16-bh;
     return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="4" fill="'+col+'" opacity="'+(d.v?0.88:0.15)+'"/>'+
-      '<text x="'+(x+bw/2)+'" y="'+(H-2)+'" text-anchor="middle" font-size="8" fill="'+CAP_MUTED+'">'+escHtml(String(d.l||''))+'</text>'+
+      '<text x="'+(x+bw/2)+'" y="'+(H-2)+'" text-anchor="middle" font-size="8" style="fill:'+CAP_MUTED+'">'+escHtml(String(d.l||''))+'</text>'+
       (d.v?'<text x="'+(x+bw/2)+'" y="'+(y-3)+'" text-anchor="middle" font-size="7" fill="'+col+'">'+d.v+'</text>':'');
   }).join('');
   return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="cap-chart-svg" style="width:100%;display:block;">'+bars+'</svg>';
@@ -4033,7 +4034,7 @@ window.SETTINGS={
   },
   brand:{
     accentColor:'#e60000',
-    theme:'dark',
+    themeMode:'light',
     appName:'PROGRESS LIVE',
     logo:null,
     font:'DM Sans',
@@ -4162,23 +4163,39 @@ function renderSettingsContent(t,targetId){
   else if(t==='brand'){
     if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
     const ss=S.screensaver||{enabled:true,idleMinutes:3};
-    const colors=['#e60000','#b80000','#0055a4','#ffd700','#2ecc71','#3e3e3e','#ffffff','#121212'];
+    const accentNow=(typeof normalizeHexColor==='function'&&normalizeHexColor(S.brand.accentColor))||'#e60000';
+    const themeMode=typeof resolveThemeMode==='function'?resolveThemeMode(S.brand):'light';
+    const presets=window.ACCENT_PRESETS||[];
+    const isPreset=presets.some(p=>p.hex===accentNow);
     el.innerHTML=`<div class="settings-section">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">MARKA I WYGLĄD</div>
 
-      ${card('Kolor akcentu','Główny kolor aplikacji używany w przyciskach, nagłówkach i akcentach.',`
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-          ${colors.map(c=>`<div class="color-swatch${c===S.brand.accentColor?' active':''}" style="background:${c};" onclick="setAccentColor('${c}')" title="${c}"></div>`).join('')}
+      ${card('Kolor akcentu','Kolor przycisków, aktywnej zakładki i wyróżnień. Ostrzeżenia, błędy i statusy mają własne, stałe kolory — nie zmieniają się razem z akcentem.',`
+        <div class="accent-presets" role="radiogroup" aria-label="Kolor akcentu">
+          ${presets.map(p=>`<button type="button" class="accent-preset${p.hex===accentNow?' active':''}" role="radio" aria-checked="${p.hex===accentNow}" data-accent="${p.hex}" onclick="setAccentColor('${p.hex}')">
+            <span class="accent-preset-dot" style="background:${p.hex};"></span>${p.label}
+          </button>`).join('')}
         </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <input type="color" id="set-custom-color" value="${S.brand.accentColor}" oninput="setAccentColor(this.value)" style="width:40px;height:32px;border:1px solid var(--border2);border-radius:8px;cursor:pointer;background:none;padding:2px;">
-          <span style="font-size:12px;color:var(--muted);">Własny kolor</span>
-          <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);" id="accent-color-val">${S.brand.accentColor}</span>
+        <div class="accent-custom">
+          <label class="accent-custom-lbl" for="set-custom-hex">Własny kolor (HEX)</label>
+          <div class="accent-custom-row">
+            <input type="color" id="set-custom-color" value="${accentNow}" aria-label="Wybierz własny kolor" oninput="setAccentColor(this.value,{quiet:true})" onchange="setAccentColor(this.value)">
+            <input type="text" class="form-input" id="set-custom-hex" value="${accentNow}" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#e60000" aria-describedby="accent-contrast" onkeydown="if(event.key==='Enter')applyCustomAccentHex()" onblur="applyCustomAccentHex()">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="applyCustomAccentHex()">Zastosuj</button>
+            ${!isPreset||accentNow!=='#e60000'?`<button type="button" class="btn btn-ghost btn-sm" onclick="setAccentColor('#e60000')">Przywróć czerwony</button>`:''}
+          </div>
+          <div id="accent-contrast" class="accent-contrast" aria-live="polite">${accentContrastHTML(accentNow,themeMode)}</div>
+        </div>
+        <div class="accent-preview" aria-hidden="true">
+          <button type="button" class="btn btn-primary btn-sm" tabindex="-1">Przycisk główny</button>
+          <span class="pill" style="background:var(--adim);color:var(--accent);">Aktywny filtr</span>
+          <span class="accent-preview-status" style="color:var(--danger);">● Ostrzeżenie</span>
+          <span class="accent-preview-status" style="color:var(--success);">● Zrobione</span>
         </div>
       `)}
 
       ${card('Motyw','',`
-        ${row('Tryb ciemny','Ciemne tło — domyślne dla Progress Live',toggle('theme',S.brand.theme==='dark'))}
+        ${row('Tryb ciemny','Domyślnie jasny, minimalistyczny motyw. Ciemny przydaje się np. na tablecie na sali.',toggle('theme',themeMode==='dark'))}
         ${row('Nazwa aplikacji','Widoczna w nagłówku i raportach',`<input type="text" class="form-input" id="set-appname" value="${S.brand.appName}" style="width:200px;font-size:13px;">`)}
       `)}
 
@@ -4426,7 +4443,13 @@ function toggleSetting(id){
   // Przełącz faktyczną wartość w window.SETTINGS — wcześniej przełącznik był tylko wizualny.
   const S=window.SETTINGS;
   const map={
-    'theme':()=>{S.brand.theme=S.brand.theme==='dark'?'light':'dark';},
+    'theme':()=>{
+      const cur=typeof resolveThemeMode==='function'?resolveThemeMode(S.brand):'light';
+      S.brand.themeMode=cur==='dark'?'light':'dark';
+      if(typeof applyBrandTheme==='function')applyBrandTheme(S);
+      const box=document.getElementById('accent-contrast');
+      if(box)box.innerHTML=accentContrastHTML(S.brand.accentColor,S.brand.themeMode);
+    },
     'vat-payer':()=>{S.payments.vatPayer=!S.payments.vatPayer;},
     'sess-reminder':()=>{S.notifications.sessionReminder=!S.notifications.sessionReminder;},
     'inactive-alert':()=>{S.notifications.inactiveClient=!S.notifications.inactiveClient;},
@@ -4448,19 +4471,53 @@ function toggleSetting(id){
   if(typeof persistSettingsDoc==='function')persistSettingsDoc();
 }
 
-function setAccentColor(color){
-  window.SETTINGS.brand.accentColor=color;
+function accentContrastHTML(hex,mode){
+  if(typeof accentContrastInfo!=='function')return '';
+  const info=accentContrastInfo(hex,mode);
+  const fmt=v=>v.toFixed(1).replace('.',',')+':1';
+  const bgName=mode==='dark'?'ciemnym tle':'białym tle';
+  if(info.ok)return `<span style="color:var(--success);">✓ Dobry kontrast</span> · na ${bgName} ${fmt(info.onBg)}, tekst na przycisku ${fmt(info.onText)}`;
+  const tip=info.usable?'Czytelny dla dużych elementów, ale drobny tekst w tym kolorze może być słabo widoczny.':'Ten kolor będzie słabo widoczny — wybierz ciemniejszy lub jeden z gotowych kolorów.';
+  return `<span style="color:var(--warning);">⚠ Niski kontrast</span> · na ${bgName} ${fmt(info.onBg)}, tekst na przycisku ${fmt(info.onText)}. ${tip}`;
+}
+
+let _accentSaveTimer=null;
+function setAccentColor(color,opts){
+  const hex=(typeof normalizeHexColor==='function'?normalizeHexColor(color):color)||null;
+  if(!hex){notify('Podaj kolor w formacie HEX, np. #e60000');return false;}
+  window.SETTINGS.brand.accentColor=hex;
   if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
   else{
-    document.documentElement.style.setProperty('--accent',color);
-    const rgb=typeof hexToRgbStr==='function'?hexToRgbStr(color):'230,0,0';
+    document.documentElement.style.setProperty('--accent',hex);
+    const rgb=typeof hexToRgbStr==='function'?hexToRgbStr(hex):'230,0,0';
     document.documentElement.style.setProperty('--accent-rgb',rgb);
     document.documentElement.style.setProperty('--adim','rgba('+rgb+',0.14)');
   }
-  const valEl=document.getElementById('accent-color-val');
-  if(valEl)valEl.textContent=color;
-  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.style.background===color||s.style.backgroundColor===color));
-  notify('✓ Kolor akcentu zmieniony na '+color);
+  const hexEl=document.getElementById('set-custom-hex');
+  if(hexEl&&document.activeElement!==hexEl)hexEl.value=hex;
+  const pick=document.getElementById('set-custom-color');
+  if(pick&&pick.value!==hex)pick.value=hex;
+  document.querySelectorAll('.accent-preset').forEach(b=>{const on=b.dataset.accent===hex;b.classList.toggle('active',on);b.setAttribute('aria-checked',on?'true':'false');});
+  const box=document.getElementById('accent-contrast');
+  if(box)box.innerHTML=accentContrastHTML(hex,typeof resolveThemeMode==='function'?resolveThemeMode(window.SETTINGS.brand):'light');
+  clearTimeout(_accentSaveTimer);
+  _accentSaveTimer=setTimeout(()=>{if(typeof persistSettingsDoc==='function')persistSettingsDoc();},700);
+  if(!(opts&&opts.quiet)){
+    const preset=(window.ACCENT_PRESETS||[]).find(p=>p.hex===hex);
+    notify('✓ Kolor akcentu: '+(preset?preset.label.toLowerCase():hex));
+  }
+  return true;
+}
+
+function applyCustomAccentHex(){
+  const el=document.getElementById('set-custom-hex');
+  if(!el)return;
+  const raw=el.value.trim();
+  const hex=typeof normalizeHexColor==='function'?normalizeHexColor(raw):raw;
+  if(!hex){el.setAttribute('aria-invalid','true');notify('Podaj kolor w formacie HEX, np. #e60000');return;}
+  el.removeAttribute('aria-invalid');
+  el.value=hex;
+  if(hex!==window.SETTINGS.brand.accentColor)setAccentColor(hex);
 }
 
 function setScreensaverIdleMinutes(v){

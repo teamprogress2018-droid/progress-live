@@ -221,7 +221,7 @@ function trainerPublicProfilePayload(settings,uid){
   }
   return {trainerId:uid,schemaVersion:1,updatedAt:new Date().toISOString(),
     profile:pick(settings.profile,['name','title','avatar','avatarUrl']),
-    brand:pick(settings.brand,['accentColor','theme','appName','logo','font']),
+    brand:{...pick(settings.brand,['accentColor','appName','logo','font']),theme:(settings.brand?.themeMode==='dark'||(!settings.brand?.themeMode&&settings.brand?.theme==='dark-v2'))?'dark-v2':'light'},
     clientApp:{...pick(settings.clientApp,['appName']),visibleSections:sections},
     paymentInstructions:{name:String(settings.company?.name||settings.profile?.name||''),bank:String(settings.payments?.bankAccount||''),currency:String(settings.payments?.currency||'PLN'),footer:String(settings.company?.invoice_footer||'')}
   };
@@ -7335,34 +7335,102 @@ window.mapGoalFromIntakeText=mapGoalFromIntakeText;
 window.mapLevelFromIntakeChoice=mapLevelFromIntakeChoice;
 window.syncClientFromIntakeForm=syncClientFromIntakeForm;
 
-// ── Motyw studia (czerwień + grafit) ──
+// ── Motyw Progress Live 2.0: jasny domyślnie, akcent do wyboru ──
+// Kolory ostrzeżeń i statusów (--danger/--warning/--success/--info, --red…)
+// są w theme.css i NIE zależą od akcentu.
 const STUDIO_THEME={
   accent:'#e60000',
   accent2:'#b80000',
   bg:'#1a1a1a',
   blue:'#0055a4',
-  yellow:'#ffd700'
+  yellow:'#ffd700',
+  mode:'light'
 };
+// Presety mają kontrast min. 4.5:1 z białym (tekst na przycisku i akcent na białym tle).
+const ACCENT_PRESETS=[
+  {id:'red',label:'Czerwony',hex:'#e60000'},
+  {id:'orange',label:'Pomarańczowy',hex:'#c2410c'},
+  {id:'blue',label:'Niebieski',hex:'#2563eb'},
+  {id:'green',label:'Zielony',hex:'#15803d'},
+  {id:'purple',label:'Fioletowy',hex:'#7c3aed'},
+  {id:'pink',label:'Różowy',hex:'#db2777'}
+];
+function normalizeHexColor(hex){
+  let h=String(hex||'').trim().replace(/^#/,'');
+  if(/^[0-9a-f]{3}$/i.test(h))h=h.split('').map(c=>c+c).join('');
+  return /^[0-9a-f]{6}$/i.test(h)?'#'+h.toLowerCase():null;
+}
 function hexToRgbStr(hex){
-  const h=String(hex||'').replace('#','');
-  if(h.length!==6)return '230,0,0';
-  return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(5,7),16);
+  const n=normalizeHexColor(hex);
+  if(!n)return '230,0,0';
+  const h=n.slice(1);
+  return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16);
+}
+function colorLuminance(hex){
+  const n=normalizeHexColor(hex);
+  if(!n)return 0;
+  const c=[1,3,5].map(i=>parseInt(n.slice(i,i+2),16)/255).map(v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4));
+  return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];
+}
+function colorContrast(a,b){
+  const x=colorLuminance(a),y=colorLuminance(b);
+  return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);
+}
+function shadeHex(hex,amount){
+  const n=normalizeHexColor(hex)||STUDIO_THEME.accent;
+  const t=amount<0?0:255,p=Math.abs(amount);
+  return '#'+[1,3,5].map(i=>{const v=parseInt(n.slice(i,i+2),16);return Math.round((t-v)*p+v).toString(16).padStart(2,'0');}).join('');
+}
+// Tekst na tle akcentu: biały albo grafitowy — ten, który ma lepszy kontrast.
+function accentOnColor(hex){
+  return colorContrast(hex,'#ffffff')>=colorContrast(hex,'#111827')?'#ffffff':'#111827';
+}
+// Nowe pole themeMode (prywatne ustawienia). Stare „theme: 'dark'” było
+// zapisywane domyślnie i nic nie zmieniało, więc nie wymusza ciemnego motywu.
+// Publiczny profil klienta niesie wybór jako theme:'dark-v2'.
+function resolveThemeMode(brand){
+  const b=brand||{};
+  if(b.themeMode==='dark'||b.themeMode==='light')return b.themeMode;
+  if(b.theme==='dark-v2')return 'dark';
+  return STUDIO_THEME.mode;
+}
+function accentContrastInfo(hex,mode){
+  const n=normalizeHexColor(hex)||STUDIO_THEME.accent;
+  const bg=mode==='dark'?'#111318':'#ffffff';
+  const onBg=colorContrast(n,bg),onText=colorContrast(n,accentOnColor(n));
+  return {hex:n,onBg,onText,ok:onBg>=4.5&&onText>=4.5,usable:onBg>=3&&onText>=3};
 }
 function applyBrandTheme(settings){
   const root=typeof document!=='undefined'?document.documentElement:null;
   if(!root)return;
   const s=settings||window.SETTINGS||{};
   const brand=s.brand||{};
-  const accent=brand.accentColor||STUDIO_THEME.accent;
+  const accent=normalizeHexColor(brand.accentColor)||STUDIO_THEME.accent;
+  const mode=resolveThemeMode(brand);
   const rgb=hexToRgbStr(accent);
+  const hover=shadeHex(accent,-0.14);
+  root.setAttribute('data-theme',mode);
+  root.style.colorScheme=mode;
   root.style.setProperty('--accent',accent);
-  root.style.setProperty('--accent2',brand.accentDark||STUDIO_THEME.accent2);
+  root.style.setProperty('--accent-red',accent);
+  root.style.setProperty('--accent-red-hover',hover);
+  root.style.setProperty('--fire-red',accent);
+  root.style.setProperty('--accent2',normalizeHexColor(brand.accentDark)||hover);
   root.style.setProperty('--accent-rgb',rgb);
-  root.style.setProperty('--adim','rgba('+rgb+',0.14)');
+  root.style.setProperty('--on-accent',accentOnColor(accent));
+  root.style.setProperty('--adim','rgba('+rgb+','+(mode==='light'?'0.10':'0.14')+')');
   root.style.setProperty('--glow','0 0 0 1px rgba('+rgb+',0.35), 0 0 18px rgba('+rgb+',0.18)');
+  try{localStorage.setItem('pl_theme_v2',JSON.stringify({mode,accent}));}catch(e){}
   const meta=typeof document!=='undefined'?document.querySelector('meta[name="theme-color"]'):null;
-  if(meta)meta.setAttribute('content',accent);
+  if(meta)meta.setAttribute('content',mode==='light'?'#ffffff':'#111318');
 }
+window.ACCENT_PRESETS=ACCENT_PRESETS;
+window.normalizeHexColor=normalizeHexColor;
+window.hexToRgbStr=hexToRgbStr;
+window.colorContrast=colorContrast;
+window.accentOnColor=accentOnColor;
+window.accentContrastInfo=accentContrastInfo;
+window.resolveThemeMode=resolveThemeMode;
 window.STUDIO_THEME=STUDIO_THEME;
 window.applyBrandTheme=applyBrandTheme;
 if(typeof document!=='undefined'&&document.documentElement){
