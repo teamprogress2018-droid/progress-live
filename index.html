@@ -16,17 +16,46 @@
 <link rel="stylesheet" href="styles.css?v=166">
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=1&layout-v2=2">
+<link rel="stylesheet" href="landing.css?v=1">
 <script>/* Motyw przed pierwszym malowaniem: bez mignięcia ciemnego/jasnego tła. */try{var t=JSON.parse(localStorage.getItem('pl_theme_v2')||'null');if(t&&(t.mode==='dark'||t.mode==='light'))document.documentElement.setAttribute('data-theme',t.mode);if(t&&/^#[0-9a-f]{6}$/i.test(t.accent||''))document.documentElement.style.setProperty('--accent',t.accent);}catch(e){}</script>
 </head>
 <body>
 
-<!-- EKRAN LOGOWANIA -->
-<div id="auth-screen" style="position:fixed;inset:0;background:var(--bg-main);z-index:2000;display:flex;align-items:center;justify-content:center;">
-  <div style="width:100%;max-width:360px;padding:32px 28px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--panel-glow);">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;">
-      <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
-      <div class="logo-text" style="font-size:20px;">PROGRESS<span>LIVE</span></div>
+<!-- STRONA STARTOWA + LOGOWANIE (landing.css, landing.js) -->
+<div id="auth-screen" class="pl-landing" style="display:flex;">
+  <header class="pl-land-top">
+    <div class="pl-land-brand"><svg viewBox="0 0 40 44" aria-hidden="true"><path d="M4 6 14 2v40L4 38z" fill="#e5231b"/><path d="M17 2h10c7.7 0 13 5 13 12.5S34.7 27 27 27h-3v-9h2.6c2.4 0 4-1.4 4-3.6s-1.6-3.6-4-3.6H17z" fill="#ff2d20"/><path d="M17 30h7v12l-7-3z" fill="#b5130d"/></svg><div><b>PROGRESS <span>LIVE</span></b><small>TRENER. PLAN. EFEKTY.</small></div></div>
+    <div class="pl-land-top-actions">
+      <button type="button" class="pl-land-btn pl-land-btn-ghost pl-land-top-invite" onclick="landingOpenAuth('register')">Mam zaproszenie</button>
+      <button type="button" class="pl-land-btn pl-land-btn-dark" id="pl-land-login-top" onclick="landingOpenAuth('login')">Zaloguj się</button>
     </div>
+  </header>
+  <main class="pl-land-hero">
+    <section class="pl-land-copy" aria-labelledby="pl-land-title">
+      <div class="pl-land-eyebrow">TRENER. PLAN. <span>EFEKTY.</span></div>
+      <h1 class="pl-land-title" id="pl-land-title">Prowadź klientów, plany i treningi <em>w&nbsp;jednym miejscu</em></h1>
+      <p class="pl-land-lead">Progress Live to aplikacja dla trenera personalnego: klienci, plany treningowe, trening LIVE, kalendarz i płatności. Twoi podopieczni dostają własną aplikację z planem i postępami.</p>
+      <form class="pl-land-start" onsubmit="landingStart(event)">
+        <label for="pl-land-email" class="sr-only">Twój e-mail</label>
+        <input type="email" id="pl-land-email" placeholder="Twój e-mail" autocomplete="email" inputmode="email">
+        <button type="submit" class="pl-land-btn pl-land-btn-primary" id="pl-land-start-btn">Zaloguj się →</button>
+      </form>
+      <div class="pl-land-invite">Jesteś klientem i masz zaproszenie od trenera? <button type="button" class="pl-land-link" onclick="landingOpenAuth('register')">Załóż konto z zaproszenia</button></div>
+      <ul class="pl-land-points">
+        <li>Plan treningowy z progresją w kilka minut</li>
+        <li>Trening LIVE z klientem i aplikacja dla podopiecznego</li>
+        <li>Klienci, kalendarz, pakiety i płatności w jednym panelu</li>
+      </ul>
+    </section>
+    <div class="pl-land-photos" aria-label="Zdjęcia z treningów">
+      <div class="pl-land-col"><div class="pl-land-track"></div></div>
+      <div class="pl-land-col"><div class="pl-land-track"></div></div>
+    </div>
+  </main>
+  <div class="pl-auth-backdrop" onclick="landingCloseAuth()"></div>
+  <div class="pl-auth-card" id="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-card-title" aria-hidden="true">
+    <button type="button" class="pl-auth-close" onclick="landingCloseAuth()" aria-label="Zamknij">×</button>
+    <div class="pl-auth-card-head"><svg viewBox="0 0 40 44" aria-hidden="true"><path d="M4 6 14 2v40L4 38z" fill="#e5231b"/><path d="M17 2h10c7.7 0 13 5 13 12.5S34.7 27 27 27h-3v-9h2.6c2.4 0 4-1.4 4-3.6s-1.6-3.6-4-3.6H17z" fill="#ff2d20"/><path d="M17 30h7v12l-7-3z" fill="#b5130d"/></svg><b id="auth-card-title">PROGRESS <span>LIVE</span></b></div>
 
     <div id="auth-login-view">
       <div id="auth-role-hint" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się — trener do panelu, klient do swojej aplikacji</div>
@@ -66,6 +95,7 @@
     </div>
   </div>
 </div>
+<script src="landing.js?v=1"></script>
 
 <div class="app" id="app-root" style="display:none;">
 <button id="mobile-menu-btn" type="button" onclick="toggleMobileSidebar()" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
@@ -4458,6 +4488,7 @@ onAuthStateChanged(auth,(user)=>{
     window._userEmail=user.email||'';
     window._userDisplayName=user.displayName||'';
     authScreen.style.display='none';
+    authScreen.classList.remove('pl-auth-open');
     document.getElementById('auth-email').value='';
     document.getElementById('auth-password').value='';
     if(typeof window.showAppLoading==='function')window.showAppLoading(true);
@@ -4483,6 +4514,7 @@ function showTenantBootError(error,session){
   const box=document.getElementById('auth-error');
   box.textContent='Nie udało się bezpiecznie wczytać danych konta. Odśwież aplikację, aby ponowić.';
   box.style.display='block';
+  if(typeof window.landingOpenAuth==='function')window.landingOpenAuth();
 }
 
 async function bootApp(session=captureTenantSession()){
@@ -4814,7 +4846,7 @@ async function load(session=captureTenantSession()){
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=91&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=57&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
-<script src="10-client-app.js?v=44&tenant-isolation=2"></script>
+<script src="10-client-app.js?v=44&tenant-isolation=2&landing=1"></script>
 <script src="11-progress-academy.js?v=8&study-explanations=1&book-answers=1&research=1"></script>
 <script src="research-answer.js?v=2"></script>
 <script src="research-academy.js?v=3"></script>

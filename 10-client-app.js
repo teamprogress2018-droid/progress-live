@@ -530,6 +530,8 @@ function authShowRegister(){
   if(login)login.style.display='none';
   if(reset)reset.style.display='none';
   if(reg)reg.style.display='block';
+  // Strona startowa: formularz jest w oknie, które trzeba pokazać (np. link z zaproszeniem).
+  if(typeof window.landingOpenAuth==='function')window.landingOpenAuth();
 }
 function authShowLoginFromClient(){
   const login=document.getElementById('auth-login-view');
