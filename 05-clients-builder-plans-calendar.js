@@ -619,6 +619,13 @@ function renderClients(){
     .map(x=>x.c);
   const countEl=document.getElementById('clients-segment-count');
   if(countEl)countEl.textContent=filtered.length;
+  const summaryEl=document.getElementById('client-view-summary');
+  if(summaryEl){
+    const attentionDefinition=clientAttention&&CLIENT_ATTENTION_FILTERS.find(filter=>filter.id===clientAttention);
+    const viewLabel=attentionDefinition?attentionDefinition.label:(CLIENT_SEGMENT_TITLES[clientSegment]||'Wszyscy klienci');
+    const countLabel=filtered.length===1?'klient':(filtered.length%10>=2&&filtered.length%10<=4&&!(filtered.length%100>=12&&filtered.length%100<=14)?'klienci':'klientów');
+    summaryEl.textContent=`${filtered.length} ${countLabel} · ${viewLabel}`;
+  }
   const titleEl=document.getElementById('clients-segment-title');
   if(titleEl){
     const attnDef=clientAttention&&CLIENT_ATTENTION_FILTERS.find(f=>f.id===clientAttention);
@@ -645,16 +652,18 @@ function renderClients(){
     const tasks7=clientTasksWindowStats(c.id,7);
     const archived=c.status==='archived';
     const duplicateName=!archived&&clientMergeCandidates(c).length>0;
-    const attnFlag=clientAttention&&(attnMap.get(c.id)||{})[clientAttention];
+    const clientAttentionFlags=attnMap.get(c.id)||{};
+    const attnFlag=clientAttention&&clientAttentionFlags[clientAttention];
+    const hasAttention=Object.values(clientAttentionFlags).some(Boolean);
     const attnLine=attnFlag?`<div class="cl-attn-reason">⚠ ${escHtml(attnFlag.reason)}</div>`:'';
     const msgBtn=archived
       ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć">↩</button>`
       : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość">💬</button>`;
-    return `<div class="tbl-row cl-everfit-row" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
+    return `<div class="tbl-row cl-everfit-row${hasAttention?' has-attention':''}" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
     <div class="cl-name-cell">
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
       <div class="cl-name-meta">
-        <div class="cl-name">${escHtml(c.name)}</div>
+        <button type="button" class="cl-client-open" onclick="event.stopPropagation();openClientProfile('${c.id}')">${escHtml(c.name)}</button>
         <div class="cl-sub">${c.appJoined?'📱 w aplikacji · ':''}${escHtml(c.email||'bez e-maila')}${duplicateName?` · <button type="button" class="cl-dup-btn" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ możliwy duplikat — Scal</button>`:''}</div>
         ${attnLine}
       </div>
