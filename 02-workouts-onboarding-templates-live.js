@@ -3560,7 +3560,10 @@ function renderLiveExercises(slot){
     const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
     if(needsName){ex.collapsed=false;return;}
     if(st.sessionActive)ex.collapsed=typeof ex.uiExpanded==='boolean'?!ex.uiExpanded:i!==curIdx&&!(curIdx<0&&i===st.exercises.length-1);
-    else if(ex.collapsed==null)ex.collapsed=i!==0;
+    // W przygotowaniu trener najpierw widzi cały plan do szybkiego skanowania.
+    // Rozwinięcie wybranej karty pozostaje zapamiętane, a w aktywnej sesji
+    // bieżące ćwiczenie nadal otwiera się samo.
+    else if(ex.collapsed==null)ex.collapsed=true;
   });
 
   el.innerHTML=`
@@ -4174,8 +4177,9 @@ function liveExCard(ex,i,slot,cue){
   const targetRir=typeof plannedRir==='function'?plannedRir(ex):(ex.rir??'');
   const isCurrent=st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done);
   const currentSet=isCurrent?ex.sets.findIndex(s=>!s.done):-1;
-  // Przed startem pokazujemy pierwsze ćwiczenie jako punkt wejścia; w trakcie — aktualne ćwiczenie.
-  const isFocus=st.sessionActive?isCurrent:(!ex.done&&i===0);
+  // W trakcie sesji podkreślamy wyłącznie aktualne ćwiczenie. Przed startem
+  // karty są równorzędnym, krótkim przeglądem planu.
+  const isFocus=st.sessionActive&&isCurrent;
   const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
   const media=typeof resolveCoachMedia==='function'?Object.assign({name:ex.name},resolveCoachMedia(ex)):ex;
   const hasTechniqueMedia=!!(media&&(media.gif||media.video||media.videoEmbed));

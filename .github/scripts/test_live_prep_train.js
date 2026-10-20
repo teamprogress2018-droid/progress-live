@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=103'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=104'));
 ok('cache styles', html.includes('styles.css?v=170'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
@@ -43,7 +43,7 @@ ok('last cue one line', /Ostatnio:/.test(live) && /live-suggestion/.test(live));
 ok('no ZA MAŁO on strip', /function liveExCueStripHtml\(/.test(live)
   && !/ZA MAŁO DANYCH/.test(live.slice(live.indexOf('function liveExCueStripHtml'), live.indexOf('window.liveExCueStripHtml'))));
 ok('coach note polish', /function livePolishCoachNote\(/.test(live) && live.includes('akcent na rozciągnięcie mięśnia'));
-ok('collapsed next ex', /live-ex-collapsed-meta/.test(live) && /st\.sessionActive\)ex\.collapsed=/.test(live));
+ok('prep scans compact cards while the live session opens the current exercise', /else if\(ex\.collapsed==null\)ex\.collapsed=true/.test(live) && /const isFocus=st\.sessionActive&&isCurrent/.test(live) && /st\.sessionActive\)ex\.collapsed=/.test(live));
 ok('set row 5 cols', css.includes('grid-template-columns:minmax(64px,0.8fr) minmax(72px,1fr) minmax(72px,1fr) minmax(56px,0.8fr) 64px'));
 ok('big check', css.includes('min-height:56px') && /live-set-check/.test(live) && /liveToggleSet\(/.test(live));
 ok('delete in set menu', /function liveToggleSetMenu\(/.test(live) && /function liveSetHoldStart\(/.test(live) && live.includes('Usuń serię'));
