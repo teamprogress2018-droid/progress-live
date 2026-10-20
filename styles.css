@@ -3840,6 +3840,7 @@ body,
 .live-ex-collapsed-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;margin-top:5px;}
 .live-ex-collapsed-meta strong{color:var(--text-primary);font-weight:600;}
 .live-ex-collapsed-meta span{font-size:12px;align-self:center;}
+.live-ex-collapsed-meta .live-session-progress{color:var(--text-primary);font-weight:700;font-variant-numeric:tabular-nums;}
 .live-expand-btn{min-height:44px;padding:8px 12px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-input);color:var(--text-primary);cursor:pointer;font:inherit;font-size:13px;}
 .live-ex-details{font-size:12px;color:var(--text-secondary);margin-bottom:6px;}
 .live-ex-cue{gap:6px 16px;margin:8px 0;}

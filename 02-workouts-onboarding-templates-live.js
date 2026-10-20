@@ -3573,7 +3573,7 @@ function renderLiveExercises(slot){
       </div>
       <button class="btn btn-ghost btn-sm live-add-exercise" onclick="liveAddExercise(${n})" aria-label="Dodaj ćwiczenie"><span class="live-add-exercise-full">+ Dodaj ćwiczenie</span><span class="live-add-exercise-short" aria-hidden="true">+ Ćwiczenie</span></button>
     </div>`}
-    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue)).join('')}
+    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue,stats)).join('')}
     ${st.sessionActive&&doneCnt===total&&total>0?`
     <div class="live-ex-done-banner">
       <div class="live-ex-done-title">Trening ukończony</div>
@@ -4142,7 +4142,7 @@ function liveExFocusInfoHtml(ex,slot,display){
 }
 window.liveExFocusInfoHtml=liveExFocusInfoHtml;
 
-function liveExCard(ex,i,slot,cue){
+function liveExCard(ex,i,slot,cue,progress){
   const n=liveN(slot);
   const st=liveRef(n);
   const sl=liveSlotArg(n);
@@ -4195,7 +4195,7 @@ function liveExCard(ex,i,slot,cue){
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
         ${liveExTitleHtml(ex,lastChip,histList)}
-        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span>${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
+        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong>${isCurrent&&progress?`<span class="live-session-progress">Trening ${progress.doneCnt}/${progress.total} · ${progress.setsDone} serii</span>`:`<span>Wykonano ${setsDone}/${ex.sets.length}</span>`}${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
         <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}"><span aria-hidden="true">${showBody?'▴':'▾'}</span></button>

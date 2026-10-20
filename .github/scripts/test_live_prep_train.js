@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=105'));
-ok('cache styles', html.includes('styles.css?v=171'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=106'));
+ok('cache styles', html.includes('styles.css?v=172'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
 ok('save training action is explicit', html.includes('Zapisz trening') && /function liveAskEndSession\(/.test(live) && live.includes("end.textContent='Zapisz trening'"));
@@ -54,6 +54,7 @@ ok('presets in more menu', /id="live-more-menu"[\s\S]*liveStartRest\(30\)/.test(
 ok('end overlay notes', html.includes('id="live-end-overlay"') && html.includes('Notatka do sesji') && html.includes('Feedback klienta') && /function liveConfirmEnd\(/.test(live));
 ok('exercise history, trainer note and settings stay on demand in the three-dot menu', live.includes("liveToggleExPanel(${i},'history'") && live.includes("liveToggleExPanel(${i},'coach'") && live.includes("liveToggleExPanel(${i},'settings'") && /function liveToggleExPanel\(/.test(live) && !live.includes('live-focus-cue-simple'));
 ok('technique media is opt-in and only appears when it exists', /const mediaOpen=!needsName&&hasTechniqueMedia&&!!ex\.showVideo/.test(live) && live.includes('live-ex-technique-thumb') && live.includes("if(!media||!(media.gif||media.video||media.videoEmbed))return;") && css.includes('.live-ex-technique-thumb::after'));
+ok('current exercise shows compact whole-session progress', /liveExCard\(ex,i,n,cue,stats\)/.test(live) && /function liveExCard\(ex,i,slot,cue,progress\)/.test(live) && live.includes('live-session-progress') && css.includes('.live-ex-collapsed-meta .live-session-progress'));
 ok('first hint once', html.includes('id="live-first-hint"') && /pl_live_first_hint/.test(live));
 ok('end keeps serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.test(live));
 ok('CI unit', wf.includes('test_live_prep_train.js'));
