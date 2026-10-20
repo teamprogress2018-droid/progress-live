@@ -4183,6 +4183,10 @@ function liveExCard(ex,i,slot,cue){
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
         <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}"><span aria-hidden="true">${showBody?'▴':'▾'}</span></button>
         <details class="live-ex-actions-menu"><summary aria-label="Opcje ćwiczenia">⋯</summary><div class="live-ex-actions-popover">
+        ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'history'${sl})" aria-pressed="${ex.detailPanel==='history'}">Historia i progres</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'coach'${sl})" aria-pressed="${ex.detailPanel==='coach'}">Notatka trenera</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'settings'${sl})" aria-pressed="${ex.detailPanel==='settings'}">Ustawienia ćwiczenia</button>
+        <div class="live-ex-actions-separator" role="separator"></div>`}
         ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm live-swap-open" onclick="liveToggleSwap(${i}${sl})">Zamień</button>`}
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="liveSkipEx(${i}${sl})">Pomiń</button>`:''}
         </div></details>
@@ -4190,18 +4194,12 @@ function liveExCard(ex,i,slot,cue){
     </div>
     ${showBody&&!needsName&&!isFocus&&typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}
     ${showBody?`
-    ${!needsName&&isFocus?`<div class="live-focus-cue live-focus-cue-simple"><span>NAJWAŻNIEJSZA WSKAZÓWKA</span><strong>${escHtml(liveShortCoachCue(note))}</strong></div>
-    <details class="live-ex-more-details" onclick="event.stopPropagation()">
-      <summary><strong>Szczegóły ćwiczenia</strong><span>progres · ustawienia · notatka</span></summary>
-      <div class="live-ex-more-body">
-        <div class="live-ex-more-section"><strong>Progres, poprzedni trening i sugestia</strong>${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</div>
-        ${liveExFocusInfoHtml(ex,n,display)}
-        <div class="live-ex-todo live-ex-todo-details">
-          <label class="live-ex-todo-lbl" for="live-ex-cue-${n}-${i}">Notatka trenera</label>
-          <textarea id="live-ex-cue-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="2" placeholder="Dodatkowa wskazówka techniczna" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
-        </div>
-      </div>
-    </details>`:''}
+    ${!needsName&&ex.detailPanel?`<section class="live-ex-context" aria-label="${ex.detailPanel==='history'?'Historia i progres ćwiczenia':ex.detailPanel==='coach'?'Notatka trenera':'Ustawienia ćwiczenia'}">
+      <div class="live-ex-context-head"><strong>${ex.detailPanel==='history'?'Historia i progres':ex.detailPanel==='coach'?'Notatka trenera':'Ustawienia ćwiczenia'}</strong><button type="button" onclick="liveToggleExPanel(${i},'${ex.detailPanel}'${sl})" aria-label="Zamknij panel szczegółów">×</button></div>
+      ${ex.detailPanel==='history'?`<div class="live-ex-context-body">${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</div>`:''}
+      ${ex.detailPanel==='coach'?`<div class="live-ex-context-body"><label class="live-ex-todo-lbl" for="live-ex-cue-${n}-${i}">Wskazówka dla trenera</label><textarea id="live-ex-cue-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="2" placeholder="Np. ustawienie maszyny lub ważna wskazówka techniczna" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea></div>`:''}
+      ${ex.detailPanel==='settings'?`<div class="live-ex-context-body">${liveExFocusInfoHtml(ex,n,display)}</div>`:''}
+    </section>`:''}
     ${needsName||isFocus?'':`<div class="live-ex-todo" onclick="event.stopPropagation()">
       <label class="live-ex-todo-lbl" for="live-ex-todo-${n}-${i}">Do zrobienia</label>
       <textarea id="live-ex-todo-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="${note?2:1}" placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte)" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
@@ -4244,6 +4242,18 @@ function liveExCard(ex,i,slot,cue){
   </div>`;
 }
 window.liveExCard=liveExCard;
+
+// Dodatkowe informacje są dostępne z menu „…”, ale nie zasłaniają serii
+// podczas prowadzenia treningu. Ponowne wybranie tej samej pozycji ją zamyka.
+function liveToggleExPanel(i,panel,slot){
+  const n=liveN(slot);
+  const ex=(liveRef(n).exercises||[])[i];
+  if(!ex)return;
+  ex.collapsed=false;
+  ex.detailPanel=ex.detailPanel===panel?'':panel;
+  renderLiveExercises(n);
+}
+window.liveToggleExPanel=liveToggleExPanel;
 
 function liveSetFocusRest(value,slot){
   const n=liveN(slot);

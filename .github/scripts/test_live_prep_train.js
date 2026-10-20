@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=100'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=101'));
+ok('cache styles', html.includes('styles.css?v=167'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
 ok('save training action is explicit', html.includes('Zapisz trening') && /function liveAskEndSession\(/.test(live) && live.includes("end.textContent='Zapisz trening'"));
@@ -49,6 +49,7 @@ ok('toggle set starts rest', /function liveToggleSet\(/.test(live) && /liveStart
 ok('rest strip', html.includes('id="live-rest-strip"') && html.includes('liveAdjustRest(-15)') && html.includes('Pomiń') && /function liveShowRestStrip\(/.test(live));
 ok('presets in more menu', /id="live-more-menu"[\s\S]*liveStartRest\(30\)/.test(html) && html.includes('live-rest-preset'));
 ok('end overlay notes', html.includes('id="live-end-overlay"') && html.includes('Notatka do sesji') && html.includes('Feedback klienta') && /function liveConfirmEnd\(/.test(live));
+ok('exercise history, trainer note and settings stay on demand in the three-dot menu', live.includes("liveToggleExPanel(${i},'history'") && live.includes("liveToggleExPanel(${i},'coach'") && live.includes("liveToggleExPanel(${i},'settings'") && /function liveToggleExPanel\(/.test(live) && !live.includes('live-focus-cue-simple'));
 ok('first hint once', html.includes('id="live-first-hint"') && /pl_live_first_hint/.test(live));
 ok('end keeps serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.test(live));
 ok('CI unit', wf.includes('test_live_prep_train.js'));
