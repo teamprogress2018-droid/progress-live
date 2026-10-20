@@ -362,7 +362,7 @@ function capClientTodaySimple(c){
   }else if(slot.kind==='rest'){
     main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Dzień bez treningu</div><div class="cap-client-muted">${slot.nextTrainingYmd?'Następny trening: '+escHtml(slot.nextTrainingYmd)+'.':'Plan nie przewiduje dziś treningu.'}</div></div>`;
   }else{
-    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Brak przypisanego treningu</div><div class="cap-client-muted">Gdy trener przypisze plan, pojawi się tutaj.</div></div>`;
+    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Brak przypisanego treningu</div><div class="cap-client-muted">Gdy trener przypisze plan, pojawi się tutaj.</div><button type="button" class="cap-btn-secondary cap-client-contact-action" onclick="setClientLiveScreen('messages')">Napisz do trenera</button></div>`;
   }
   return `<div class="cap-section cap-client-today"><div class="cap-client-greeting">Cześć, ${escHtml((c.name||'').split(' ')[0]||'')}!</div>${main}${meeting?`<div class="cap-client-line"><b>Najbliższe spotkanie</b><span>${escHtml(meeting.date||'')} ${escHtml(meeting.time||'')} · ${escHtml(meeting.type||'Trening z trenerem')}</span></div>`:''}<div class="cap-client-line"><b>Ten tydzień</b><span>${finished.length} wykonanych treningów</span></div></div>`;
 }

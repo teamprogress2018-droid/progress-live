@@ -24,4 +24,5 @@ ok('client replacements come only from the trainer plan',/const alts=String\(ex\
 ok('trainer session panel shows plan and actual result',/Plan: \$\{planned\}/.test(fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8'))&&/Wynik: \$\{setsText/.test(fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8')));
 ok('rules limit client session statuses and mutable fields',/\['in_progress', 'completed', 'partial'\]/.test(rules)&&/confirmedSets/.test(rules)&&/planSnapshot/.test(rules));
 ok('today screen is deliberately compact',/function capClientTodaySimple\(c\)/.test(portal)&&/Wznów trening/.test(portal)&&/Najbliższe spotkanie/.test(portal));
+ok('client without a plan gets a visible contact path',/Brak przypisanego treningu/.test(portal)&&/Napisz do trenera/.test(portal)&&/setClientLiveScreen\('messages'\)/.test(portal));
 console.log('\nAll client self-workout contract checks passed.');
