@@ -87,6 +87,7 @@ function setCapScreen(scr,btn){
   const content=document.getElementById('cap-screen-content');
   if(!content)return;
   content.innerHTML=capScreenHTML(scr,c);
+  if(typeof capBindTodaySwipe==='function')capBindTodaySwipe(content);
   renderCapInfo();
 }
 
@@ -347,14 +348,15 @@ function capClientTodaySimple(c){
     ['completed','partial','finished',''].includes(String(s.status||''))&&s.date>=weekStart&&s.date<=today);
   const inProgress=typeof cwFindResumable==='function'&&slot.plan?cwFindResumable(slot.plan.id,slot.dayIdx):null;
   const meeting=(slot.inPerson||[]).find(s=>s&&s.date>=today&&s.source!=='client');
+  const planShortcut='<button type="button" class="cap-client-swipe-action" onclick="capGoScreen(\'plan\')">Pokaż plan</button>';
   let main='';
   if(inProgress&&inProgress.completeLocal){
     main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Wynik czeka na wysłanie</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii na urządzeniu. Wyślemy je po odzyskaniu połączenia.</div></div>`;
   }else if(inProgress){
-    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">TRENING W TOKU</div><div class="cap-client-today-title">${escHtml(inProgress.dayName||capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii${inProgress.syncState==='local'?' · na urządzeniu':''}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Wznów trening</button></div>`;
+    main=`<div class="cap-client-today-card cap-client-next" data-cap-swipe-plan><div class="cap-client-eyebrow">TRENING W TOKU</div><div class="cap-client-today-title">${escHtml(inProgress.dayName||capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii${inProgress.syncState==='local'?' · na urządzeniu':''}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Wznów trening</button>${planShortcut}</div>`;
   }else if(slot.kind==='workout'){
     const count=((slot.day&&slot.day.exercises)||[]).length;
-    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">ZAPLANOWANY TRENING</div><div class="cap-client-today-title">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">${count} ${count===1?'ćwiczenie':'ćwiczeń'} · ${escHtml(slot.plan.name||'Plan')}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Rozpocznij trening</button></div>`;
+    main=`<div class="cap-client-today-card cap-client-next" data-cap-swipe-plan><div class="cap-client-eyebrow">ZAPLANOWANY TRENING</div><div class="cap-client-today-title">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">${count} ${count===1?'ćwiczenie':'ćwiczeń'} · ${escHtml(slot.plan.name||'Plan')}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Rozpocznij trening</button>${planShortcut}</div>`;
   }else if(slot.kind==='done'){
     main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Dobra robota</div><div class="cap-client-muted">Dzisiejszy trening jest w Twoich postępach.</div></div>`;
   }else if(slot.kind==='rest'){
@@ -365,6 +367,28 @@ function capClientTodaySimple(c){
   return `<div class="cap-section cap-client-today"><div class="cap-client-greeting">Cześć, ${escHtml((c.name||'').split(' ')[0]||'')}!</div>${main}${meeting?`<div class="cap-client-line"><b>Najbliższe spotkanie</b><span>${escHtml(meeting.date||'')} ${escHtml(meeting.time||'')} · ${escHtml(meeting.type||'Trening z trenerem')}</span></div>`:''}<div class="cap-client-line"><b>Ten tydzień</b><span>${finished.length} wykonanych treningów</span></div></div>`;
 }
 window.capClientTodaySimple=capClientTodaySimple;
+
+/* Dotykowy skrót: odsłania plan, ale nie uruchamia żadnej akcji samym przesunięciem. */
+function capBindTodaySwipe(root=document){
+  (root||document).querySelectorAll('[data-cap-swipe-plan]').forEach(card=>{
+    if(card.dataset.swipeBound)return;
+    card.dataset.swipeBound='1';
+    let startX=null;
+    card.addEventListener('pointerdown',event=>{
+      if(event.pointerType==='mouse')return;
+      startX=event.clientX;
+    });
+    card.addEventListener('pointerup',event=>{
+      if(startX===null)return;
+      const delta=event.clientX-startX;
+      if(delta<-56)card.classList.add('is-swipe-revealed');
+      if(delta>36)card.classList.remove('is-swipe-revealed');
+      startX=null;
+    });
+    card.addEventListener('pointercancel',()=>{startX=null;});
+  });
+}
+window.capBindTodaySwipe=capBindTodaySwipe;
 
 function capGarminEntries(c){
   const cid=c&&c.id;
@@ -1572,6 +1596,11 @@ function renderCapCustomize(){
       <input type="text" class="form-input" value="${appName}" id="cap-app-name" style="font-size:13px;">
     </div>
     <div class="settings-card">
+      <div class="settings-card-title">⚡ Prosty widok klienta</div>
+      <div class="settings-card-desc">Zostawia tylko: Dzisiaj, Trening, Czat, Postępy i Profil. Klient nie widzi biblioteki materiałów, forum, kategorii ćwiczeń ani danych innych klientów.</div>
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="applyClientMinimalPreset()">Ustaw prosty widok klienta</button>
+    </div>
+    <div class="settings-card">
       <div class="settings-card-title">👁 Widoczne sekcje dla klienta</div>
       <div class="settings-card-desc">Wybierz które sekcje są dostępne w aplikacji klienta.</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -1615,6 +1644,20 @@ function saveCapAppSettings(){
   persistSettingsDoc().then(saved=>{if(saved)notify('✓ Ustawienia aplikacji klienta zapisane');});
 }
 window.saveCapAppSettings=saveCapAppSettings;
+
+/* Celowo nie zmienia danych ani planów. To tylko gotowy, odwracalny układ
+   mobilny dla trenera, który chce dać klientowi jeden prosty punkt wejścia. */
+function applyClientMinimalPreset(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  S.clientApp=S.clientApp||{};
+  const visible=S.clientApp.visibleSections=S.clientApp.visibleSections||{};
+  const allowed=new Set(['home','plan','messages','progress','profile']);
+  ['home','plan','homework','progress','calendar','checkin','ondemand','resources','forum','messages','profile']
+    .forEach(id=>{visible[id]=allowed.has(id);});
+  renderCapCustomize();
+  if(typeof notify==='function')notify('Prosty widok ustawiony — zapisz ustawienia, aby udostępnić go klientom');
+}
+window.applyClientMinimalPreset=applyClientMinimalPreset;
 
 function capShowQr(){
   const url='https://app.progresslive.pl/client/'+encodeURIComponent((window.SETTINGS?.profile?.name||'trener').toLowerCase().replace(/\s+/g,'-'));
@@ -1700,7 +1743,7 @@ function shareAppLink(){
   if(!c){notify('Wybierz klienta!');return;}
   const go=async()=>{
     const link=typeof ensureClientInvite==='function'?await ensureClientInvite(c):buildClientInviteLink(c);
-    pushMsg(c.id,'📱 Aplikacja Progress Live:\n\n'+link+'\n\nOtwórz link, ustaw hasło i zobaczysz swój plan.');
+    pushMsg(c.id,'📱 Aplikacja Progress Live:\n\n'+link+'\n\nOtwórz link, ustaw hasło i od razu zobaczysz swój trening. Na iPhonie możesz potem wybrać Udostępnij → Do ekranu początkowego.');
     if(navigator.clipboard){try{navigator.clipboard.writeText(link);}catch(e){}}
     notify('✓ Link do aplikacji skopiowany i zapisany w wiadomościach');
   };
@@ -1720,7 +1763,7 @@ function inviteClientToApp(cid){
     const link=typeof ensureClientInvite==='function'?await ensureClientInvite(c):buildClientInviteLink(c);
     c.appInvited=true;c.inviteSent=true;c.inviteSentAt=new Date().toISOString();
     persistById('clients',c);
-    pushMsg(c.id,'📱 Zaproszenie do Progress Live:\n'+link+'\n\nOtwórz link, ustaw hasło (e-mail: '+(c.email||'z karty klienta')+') i wejdź do swojej aplikacji.');
+    pushMsg(c.id,'📱 Zaproszenie do Progress Live:\n'+link+'\n\nOtwórz link, ustaw hasło (e-mail: '+(c.email||'z karty klienta')+') i wejdź do swojej aplikacji. Na iPhonie możesz potem wybrać Udostępnij → Do ekranu początkowego.');
     if(navigator.clipboard){try{navigator.clipboard.writeText(link);}catch(e){}}
     notify('✓ Zaproszenie zapisane w czacie + link skopiowany');
     if(typeof renderClientApp==='function')renderClientApp();

@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=1&layout-v2=2">
 <script>/* Motyw przed pierwszym malowaniem: bez mignięcia ciemnego/jasnego tła. */try{var t=JSON.parse(localStorage.getItem('pl_theme_v2')||'null');if(t&&(t.mode==='dark'||t.mode==='light'))document.documentElement.setAttribute('data-theme',t.mode);if(t&&/^#[0-9a-f]{6}$/i.test(t.accent||''))document.documentElement.style.setProperty('--accent',t.accent);}catch(e){}</script>
+<script>/* Powłoka PWA działa wyłącznie w bezpiecznym kontekście HTTPS/localhost. */if('serviceWorker'in navigator&&window.isSecureContext){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
 </head>
 <body>
 
@@ -4389,6 +4390,7 @@ window.doSignIn=async function(){
   const pass=document.getElementById('auth-password').value;
   const errEl=document.getElementById('auth-error');
   const btn=document.getElementById('auth-login-btn');
+  const idleLabel=btn.textContent||'Zaloguj się';
   errEl.style.display='none';
   if(!email||!pass){errEl.textContent='Wpisz e-mail i hasło.';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='Logowanie...';
@@ -4406,7 +4408,7 @@ window.doSignIn=async function(){
     errEl.textContent=msgs[e.code]||('Błąd logowania: '+e.message);
     errEl.style.display='block';
   }
-  btn.disabled=false;btn.textContent='Zaloguj się';
+  btn.disabled=false;btn.textContent=idleLabel;
 };
 
 window.doSignOut=async function(){

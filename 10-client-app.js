@@ -183,30 +183,41 @@ async function loadClientApp(account,session=captureClientTenantSession()){
   emptyClientCollections();
   window.SETTINGS=clientPublicSettings({},account.trainerName);
   const cid=account.clientId;
-  const [profileSnap,publicSnap,privateRows,sharedRows,forum]=await Promise.all([
+  const [profileSnap,publicSnap,privateRows]=await Promise.all([
     window._getDoc(window._doc(window._db,'clients',cid)),
     window._getDoc(window._doc(window._db,'trainerPublicProfiles',account.trainerId)),
-    Promise.all(CLIENT_PRIVATE_COLLECTIONS.map(name=>queryByClientId(name,cid,account,session))),
-    Promise.all(CLIENT_SHARED_COLLECTIONS.map(name=>queryByTrainerId(name,account.trainerId,account,session))),
-    queryClientForum(account,session)
+    Promise.all(CLIENT_PRIVATE_COLLECTIONS.map(name=>queryByClientId(name,cid,account,session)))
   ]);
   requireClientTenantSession(session);
   if(!profileSnap.exists()||profileSnap.id!==cid||profileSnap.data().trainerId!==account.trainerId)throw clientTenantError('client-profile-invalid');
   const publicData=publicSnap.exists()?publicSnap.data():{};
   if(publicSnap.exists()&&(publicSnap.id!==account.trainerId||publicData.trainerId!==account.trainerId))throw clientTenantError('client-public-profile-invalid');
+  const publicSettings=clientPublicSettings(publicData,account.trainerName);
+  const visible=publicSettings.clientApp.visibleSections||{};
+  // Plan i wskazówki techniczne są potrzebne zawsze. Opcjonalne biblioteki
+  // pobieramy wyłącznie, gdy trener udostępnił odpowiadający im ekran.
+  const clientSharedNames=CLIENT_SHARED_COLLECTIONS.filter(name=>
+    !['resources','odWorkouts','odPrograms'].includes(name)||
+    (name==='resources'?visible.resources!==false:visible.ondemand!==false)
+  );
+  const [sharedRows,forum]=await Promise.all([
+    Promise.all(clientSharedNames.map(name=>queryByTrainerId(name,account.trainerId,account,session))),
+    visible.forum===false?Promise.resolve({groups:[],posts:[],comments:[]}):queryClientForum(account,session)
+  ]);
+  requireClientTenantSession(session);
   const privateData=Object.fromEntries(CLIENT_PRIVATE_COLLECTIONS.map((name,i)=>[name,privateRows[i]]));
-  const sharedData=Object.fromEntries(CLIENT_SHARED_COLLECTIONS.map((name,i)=>[name,sharedRows[i]]));
+  const sharedData=Object.fromEntries(clientSharedNames.map((name,i)=>[name,sharedRows[i]]));
   // Publish one complete, current-account snapshot; late requests cannot restore a previous account.
   window.CL=[{...profileSnap.data(),id:profileSnap.id,_fbId:profileSnap.id}];
   Object.assign(window,{PL:privateData.plans,SE:privateData.sessions,TASKS:privateData.tasks,PACKAGES:privateData.packages,
     METRIC_ENTRIES:privateData.metricEntries,PROGRESS_PHOTOS:privateData.progressPhotos,OD_PROGRESS:privateData.odProgress,
     FORM_SENDS:privateData.formSends,EX:sharedData.exercises,METRIC_GROUPS:sharedData.metricGroups,COACH_VIDEOS:sharedData.coachVideos,
-    USER_RESOURCES:sharedData.resources,OD_WORKOUTS:sharedData.odWorkouts,OD_PROGRAMS:sharedData.odPrograms,
-    FORUM_GROUPS:forum.groups,FORUM_POSTS:forum.posts,SETTINGS:clientPublicSettings(publicData,account.trainerName)});
+    USER_RESOURCES:sharedData.resources||[],OD_WORKOUTS:sharedData.odWorkouts||[],OD_PROGRAMS:sharedData.odPrograms||[],
+    FORUM_GROUPS:forum.groups,FORUM_POSTS:forum.posts,SETTINGS:publicSettings});
   window.MSGS=window.MSGS||{};window.MSGS[cid]=privateData.messages.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   window.CHECKINS={[cid]:privateData.checkins.sort((a,b)=>(a.date||'').localeCompare(b.date||''))};
   indexForumComments(forum.comments);
-  sharedData.exerciseGifs.forEach(x=>{
+  (sharedData.exerciseGifs||[]).forEach(x=>{
     if(!x.gifUrl)return;
     const name=x.exerciseName||x.name||'';
     const key=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(name):String(name).toLowerCase().replace(/\s+/g,' ').trim();
@@ -342,7 +353,10 @@ function renderClientLive(){
   window._clientLiveScreen=scr;
   renderClientLiveNav(navScreens,moreScreens,scr);
   updateClientLiveNavBadges(c);
-  if(typeof capScreenHTML==='function'&&c)content.innerHTML=capScreenHTML(scr,c);
+  if(typeof capScreenHTML==='function'&&c){
+    content.innerHTML=capScreenHTML(scr,c);
+    if(typeof capBindTodaySwipe==='function')capBindTodaySwipe(content);
+  }
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
 }
 
@@ -538,6 +552,10 @@ function authShowLoginFromClient(){
   if(reg)reg.style.display='none';
   if(reset)reset.style.display='none';
   if(login)login.style.display='block';
+  const hint=document.getElementById('auth-role-hint');
+  if(hint)hint.textContent='Aplikacja klienta — zaloguj się i od razu zobacz swój trening';
+  const button=document.getElementById('auth-login-btn');
+  if(button)button.textContent='Wejdź do swojej aplikacji';
 }
 
 function authSetError(id,msg){

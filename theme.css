@@ -524,9 +524,50 @@ html[data-theme="light"] .clive-more-sheet {
   border-top-color: var(--border-subtle);
 }
 html[data-theme="light"] .cw-set-row input {
+  background: var(--bg-input);
   border-color: var(--border-default);
   color: var(--text-primary);
 }
+html[data-theme="light"] .clive-player-inner { background: var(--bg-main); }
+html[data-theme="light"] .cw-set-done {
+  background: var(--success-bg);
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border-default));
+  color: var(--text-primary);
+}
+html[data-theme="light"] .cw-sync-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--success-bg);
+  color: var(--success);
+}
+html[data-theme="light"] .cw-sync-state.is-local {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+html[data-theme="light"] .cw-ex-todo {
+  background: var(--bg-subtle);
+  border-color: var(--border-subtle);
+}
+html[data-theme="light"] .cw-ss-badge {
+  background: var(--warning-bg);
+  border-color: color-mix(in srgb, var(--warning) 32%, var(--border-subtle));
+  color: var(--warning);
+}
+html[data-theme="light"] .clive-check-opt {
+  background: var(--bg-card);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+html[data-theme="light"] .clive-check-opt.on {
+  background: var(--adim);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+html[data-theme="light"] .cw-rest { color: var(--text-primary); }
 html[data-theme="light"] #screen-dashboard .dash-launch-card *,
 html[data-theme="light"] #screen-dashboard .dash3-hero *,
 html[data-theme="light"] .dash-fire-quote { text-shadow: none !important; }
@@ -1011,6 +1052,26 @@ html[data-theme] #screen-dashboard .dash3-qa-grid button {
 html[data-theme] #screen-dashboard .dash3-qa-grid button:hover { background: var(--bg-hover); }
 html[data-theme] #screen-dashboard .dash3-qa-grid i {
   background: var(--bg-subtle); color: var(--text-secondary); box-shadow: none;
+}
+
+/* Klient na telefonie: jedna decyzja na ekranie, wyraźny następny krok i bezpieczny skrót swipe. */
+html[data-theme] .cap-client-today { padding: 20px 16px max(28px, env(safe-area-inset-bottom)); }
+html[data-theme] .cap-client-greeting { margin: 0 0 16px; color: var(--text-primary); font-family: var(--font-ui); font-size: 24px; font-weight: 650; letter-spacing: -.02em; }
+html[data-theme] .cap-client-today-card { position: relative; overflow: hidden; margin-bottom: 14px; padding: 18px 16px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-card); box-shadow: none; }
+html[data-theme] .cap-client-today-card.cap-client-today-done { border-color: color-mix(in srgb, var(--success) 30%, var(--border-subtle)); background: var(--success-bg); }
+html[data-theme] .cap-client-eyebrow { color: var(--text-label); font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+html[data-theme] .cap-client-today-title { margin: 6px 0; color: var(--text-primary); font-size: 20px; font-weight: 700; }
+html[data-theme] .cap-client-muted { color: var(--text-secondary); line-height: 1.5; }
+html[data-theme] .cap-client-main-action { min-height: 52px; margin: 18px 0 0; border-radius: 10px; }
+.cap-client-swipe-action { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .cap-client-next { padding-right: 116px !important; transition: padding .18s ease, background .18s ease; touch-action: pan-y; }
+  .cap-client-next.is-swipe-revealed { background: var(--adim) !important; }
+  .cap-client-swipe-action { position: absolute; top: 50%; right: 12px; display: block; min-height: 42px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--accent); color: var(--on-accent); font: 700 12px var(--font-ui); transform: translate(130%,-50%); opacity: 0; pointer-events: none; transition: transform .18s ease, opacity .18s ease; }
+  .cap-client-next.is-swipe-revealed .cap-client-swipe-action { transform: translate(0,-50%); opacity: 1; pointer-events: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cap-client-next, .cap-client-swipe-action { transition: none !important; }
 }
 
 @media (max-width: 1100px) {
