@@ -3146,7 +3146,7 @@ body.client-app-mode #screen-clientlive{display:flex!important;flex:1;overflow:h
 .cap-client-today-title{font-size:21px;font-weight:800;color:var(--text-primary);line-height:1.2;margin-bottom:6px;}
 .cap-client-muted{font-size:13px;color:var(--text-secondary);line-height:1.45;}
 .cap-client-main-action{width:100%;margin-top:18px;padding:15px;font-size:16px;min-height:52px;}
-.cap-client-contact-action{width:100%;min-height:48px;margin:16px 0 0;font-weight:700;}
+.cap-client-today-action{width:100%;min-height:48px;margin:16px 0 0;font-weight:700;}
 .cap-client-line{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid rgba(255,255,255,.07);padding:14px 2px;color:var(--text-primary);font-size:13px;}
 .cap-client-line span{color:var(--text-secondary);text-align:right;line-height:1.35;}
 body.cw-playing .clive-nav,
