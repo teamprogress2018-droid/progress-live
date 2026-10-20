@@ -1,5 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const root=require('path').join(__dirname,'../..');
 const src=fs.readFileSync(require('path').join(__dirname,'../../04-client-portal.js'),'utf8');
+const theme=fs.readFileSync(require('path').join(root,'theme.css'),'utf8');
 const fn=src.slice(src.indexOf('function dashNextAction(){'),src.indexOf('function renderDashNextAction(){'));
 const ctx={window:{CL:[{id:'c1',name:'Klient'}],CLIENT_ONBOARD_STEPS:[{id:'intake',label:'Ankieta'}]},escHtml:s=>s,dashOpsAttentionItems:()=>[],dashOpsRecentReports:()=>[],dashTodaySessions:()=>[],clientOnboardStatus:()=>({complete:false,next:'intake',done:1,total:7})};
 vm.createContext(ctx);vm.runInContext(fn,ctx);
@@ -12,6 +14,7 @@ ctx.dashOpsRecentReports=()=>[{kind:'checkin',clientId:'c1',clientName:'Klient'}
 assert(ctx.dashNextAction().cta.includes('openCIClient'));
 ctx.dashOpsRecentReports=()=>[];ctx.window.CL=[];
 assert.equal(ctx.dashNextAction().ctaLbl,'Dodaj klienta');
+assert(theme.includes('#screen-dashboard .dash-next-action .btn-primary'),'next action remains the single visual primary action on dashboard');
 console.log('PASS: onboarding, archived client, form, check-in, first client');
 
 // A passed calendar time is not a completed workout. Use the real domain helpers.

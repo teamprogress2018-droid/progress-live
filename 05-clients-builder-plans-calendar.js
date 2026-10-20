@@ -88,10 +88,11 @@ function getClientLastActivity(clientId){
   return new Date(Math.max(...valid.map(d=>d.getTime())));
 }
 
-// Formatuje datę ostatniej aktywności do krótkiego, czytelnego tekstu + oznacza priorytet kolorem.
+// Formatuje datę ostatniej aktywności do krótkiego, czytelnego tekstu.
+// Brak historii sam w sobie nie jest alarmem — pilność pokazuje osobny filtr „Wymaga uwagi”.
 function formatClientActivity(clientId){
   const last=getClientLastActivity(clientId);
-  if(!last)return{label:'Brak aktywności',color:'var(--red)',days:Infinity};
+  if(!last)return{label:'Brak aktywności',color:'var(--text-label)',tone:'neutral',days:Infinity};
   const days=Math.floor((Date.now()-last.getTime())/(1000*60*60*24));
   let label;
   if(days<=0)label='Dziś';
@@ -100,8 +101,9 @@ function formatClientActivity(clientId){
   else if(days<14)label='Tydzień temu';
   else if(days<31)label=Math.floor(days/7)+' tyg. temu';
   else label=Math.floor(days/30)+' mies. temu';
-  const color=days<=3?'var(--teal)':days<=7?'var(--gold)':'var(--red)';
-  return{label,color,days};
+  const tone=days<=3?'positive':days<=14?'neutral':'watch';
+  const color=tone==='positive'?'var(--success, var(--teal))':tone==='watch'?'var(--warning, var(--orange))':'var(--text-label)';
+  return{label,color,tone,days};
 }
 
 /** Everfit-style tracked / assigned for last N days. */
@@ -144,10 +146,11 @@ function clientTasksWindowStats(clientId,days){
 }
 
 function clientStatusPillClass(c,life){
-  if(c.status==='archived'||c.status==='inactive')return'pill-red';
+  if(c.status==='archived'||c.status==='inactive')return'pill-muted';
   const k=life&&life.key;
   if(k==='expired')return'pill-red';
-  if(k==='noemail'||k==='onboarding'||k==='expiring'||k==='atrisk'||k==='idle')return'pill-orange';
+  if(k==='expiring'||k==='atrisk')return'pill-orange';
+  if(k==='noemail'||k==='onboarding'||k==='idle')return'pill-muted';
   return'pill-green';
 }
 function clPctCell(stats,emptyLabel){
@@ -694,7 +697,7 @@ function renderClients(){
       <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
     </div>
     <div class="cl-msg-cell" onclick="event.stopPropagation()">${msgBtn}</div>
-    <div class="cl-act" style="color:${act.color};">${act.label}</div>
+    <div class="cl-act cl-act-${act.tone||'neutral'}">${act.label}</div>
     <div>${clPctCell(t7)}</div>
     <div>${clPctCell(t30)}</div>
     <div>${clPctCell(tasks7,'brak zadań')}</div>

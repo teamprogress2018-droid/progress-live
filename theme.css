@@ -895,7 +895,16 @@ html[data-theme] #screen-clients .tbl-row.cl-everfit-row.has-attention { padding
 #screen-clients .cl-act,
 #screen-clients .cl-pct,
 #screen-clients .cl-goal { font-size: 14px; }
-#screen-clients .cl-act { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#screen-clients .cl-act { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-label); }
+#screen-clients .cl-act-positive { color: var(--success); }
+#screen-clients .cl-act-watch { color: var(--warning); }
+#screen-clients .cl-pct { text-align: right; font-variant-numeric: tabular-nums; }
+#screen-clients .cl-everfit-hdr > :nth-child(4),
+#screen-clients .cl-everfit-hdr > :nth-child(5),
+#screen-clients .cl-everfit-hdr > :nth-child(6) { text-align: right; }
+/* Stan konta nie jest ostrzeżeniem. Czerwony pozostaje dla realnie wygasłego dostępu. */
+#screen-clients .pill-muted { background: var(--bg-subtle); color: var(--text-label); border: 1px solid var(--border-subtle); }
+#screen-clients .pill-orange { background: var(--warning-bg); color: var(--warning); border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border-subtle)); }
 @media (min-width: 901px) {
   html[data-theme] #screen-clients .cl-everfit-hdr,
   html[data-theme] #screen-clients .cl-everfit-row { grid-template-columns: var(--cl-cols, minmax(220px,2.2fr) 44px repeat(6, minmax(90px,1fr))); }
@@ -1118,6 +1127,16 @@ html[data-theme] #screen-dashboard .dash-content .btn-ghost {
 }
 html[data-theme] #screen-dashboard .dash-content .btn-primary:hover,
 html[data-theme] #screen-dashboard .dash-content .btn-ghost:hover { background: var(--bg-hover); border-color: var(--text-label); }
+
+/* Na pulpicie tylko kolejny krok jest akcją główną. Dzięki temu trener
+   widzi od razu, co zrobić, a pozostałe skróty nie konkurują z decyzją. */
+html[data-theme] #screen-dashboard .dash-next-action .btn-primary {
+  background: var(--accent); color: var(--on-accent); border-color: var(--accent);
+  box-shadow: none; font-weight: 650;
+}
+html[data-theme] #screen-dashboard .dash-next-action .btn-primary:hover {
+  background: var(--accent2); border-color: var(--accent2);
+}
 
 /* Szybkie akcje i cele: ikony neutralne zamiast kolorowych */
 html[data-theme] #screen-dashboard .dash3-qa-grid button {
