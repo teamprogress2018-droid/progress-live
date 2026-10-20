@@ -1,23 +1,38 @@
-/* Strona startowa przed zalogowaniem: ruchome zdjęcia + okno logowania/zaproszenia. */
+/* Strona startowa przed zalogowaniem: ruchome kafelki z wynikami + okno logowania/zaproszenia. */
 (function(){
   'use strict';
-  var LANDING_PHOTOS=[
-    [{f:'hero',t:'Twoi klienci, Twoja marka'},{f:'clients',t:'Trening z klientem'},{f:'live',t:'Trening LIVE'},{f:'stats',t:'Postępy i wykresy'}],
-    [{f:'plans',t:'Plany treningowe'},{f:'calendar',t:'Kalendarz i check-iny'},{f:'academy',t:'Progress Academy'},{f:'finance',t:'Pakiety i płatności'}]
+  // Przykładowe wyniki, jakie klient widzi w swojej aplikacji (nie są to dane prawdziwych klientów).
+  var LANDING_STATS=[
+    [
+      {tone:'dark',label:'W tym tygodniu',value:'10 240',unit:'kg',text:'przerzucone na treningach',spark:[42,55,48,70,62,84,100]},
+      {tone:'light',label:'Martwy ciąg',chip:'Rekord',value:'100',unit:'kg',text:'+5 kg od ostatniego rekordu'},
+      {tone:'accent',label:'Seria',value:'21',unit:'dni',text:'bez opuszczonego treningu'},
+      {tone:'light',label:'Plan na ten miesiąc',value:'11/12',unit:'',text:'treningów zrobionych',meter:92}
+    ],
+    [
+      {tone:'light',label:'Przysiad',value:'+15',unit:'kg',text:'w 6 tygodni',spark:[60,64,66,72,76,84,100]},
+      {tone:'dark',label:'Obwód w pasie',value:'−6',unit:'cm',text:'od pierwszego pomiaru'},
+      {tone:'light',label:'Masa ciała',value:'−4,2',unit:'kg',text:'w 8 tygodni',spark:[100,94,90,86,80,76,70]},
+      {tone:'dark',label:'Wyciskanie leżąc',chip:'Rekord',value:'80',unit:'kg',text:'pierwsze 5 powtórzeń'}
+    ]
   ];
 
-  function landingPhotoHTML(p,copy){
-    return '<figure class="pl-land-photo"'+(copy?' aria-hidden="true"':'')+'>'+
-      '<img src="assets/brand/landing/'+p.f+'.jpg" alt="" width="420" height="560" decoding="async"'+(copy?' loading="lazy"':'')+'>'+
-      '<figcaption>'+p.t+'</figcaption></figure>';
+  function landingStatHTML(st,copy){
+    var viz='';
+    if(st.spark)viz='<div class="pl-land-spark" aria-hidden="true">'+st.spark.map(function(h){return '<i style="height:'+h+'%"></i>';}).join('')+'</div>';
+    else if(st.meter)viz='<div class="pl-land-meter" aria-hidden="true"><i style="width:'+st.meter+'%"></i></div>';
+    return '<div class="pl-land-stat pl-land-stat--'+st.tone+'"'+(copy?' aria-hidden="true"':'')+'>'+
+      '<div class="pl-land-stat-top"><span class="pl-land-stat-label">'+st.label+'</span>'+(st.chip?'<span class="pl-land-stat-chip">'+st.chip+'</span>':'')+'</div>'+
+      '<div class="pl-land-stat-value">'+st.value+(st.unit?'<small>'+st.unit+'</small>':'')+'</div>'+
+      '<div class="pl-land-stat-text">'+st.text+'</div>'+viz+'</div>';
   }
-  // Każda ścieżka ma zdjęcia dwa razy: animacja przesuwa o połowę, więc pętla nie ma szwu.
-  function renderLandingPhotos(){
+  // Każda ścieżka ma kafelki dwa razy: animacja przesuwa o połowę, więc pętla nie ma szwu.
+  function renderLandingStats(){
     var tracks=document.querySelectorAll('#auth-screen .pl-land-track');
-    for(var i=0;i<tracks.length&&i<LANDING_PHOTOS.length;i++){
-      var set=LANDING_PHOTOS[i];
-      tracks[i].innerHTML=set.map(function(p){return landingPhotoHTML(p,false);}).join('')+
-        set.map(function(p){return landingPhotoHTML(p,true);}).join('');
+    for(var i=0;i<tracks.length&&i<LANDING_STATS.length;i++){
+      var set=LANDING_STATS[i];
+      tracks[i].innerHTML=set.map(function(st){return landingStatHTML(st,false);}).join('')+
+        set.map(function(st){return landingStatHTML(st,true);}).join('');
     }
   }
 
@@ -68,10 +83,10 @@
     if(screen&&screen.classList.contains('pl-auth-open')&&screen.style.display!=='none')landingCloseAuth();
   });
 
-  window.LANDING_PHOTOS=LANDING_PHOTOS;
-  window.renderLandingPhotos=renderLandingPhotos;
+  window.LANDING_STATS=LANDING_STATS;
+  window.renderLandingStats=renderLandingStats;
   window.landingOpenAuth=landingOpenAuth;
   window.landingCloseAuth=landingCloseAuth;
   window.landingStart=landingStart;
-  renderLandingPhotos();
+  renderLandingStats();
 })();

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** Strona startowa (przed zalogowaniem): znaczniki, lekkie zdjęcia, brak ruchu przy prefers-reduced-motion, okno logowania. */
+/** Strona startowa (przed zalogowaniem): znaczniki, kafelki z wynikami, brak ruchu przy prefers-reduced-motion, okno logowania. */
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -25,15 +25,16 @@ ok('headline is h1', /<h1 class="pl-land-title" id="pl-land-title">/.test(landin
 ok('login entry points', landing.includes("onclick=\"landingOpenAuth('login')\"") && landing.includes('onsubmit="landingStart(event)"'));
 ok('invite entry points', (landing.match(/landingOpenAuth\('register'\)/g) || []).length === 2);
 ok('email field labelled', /<label for="pl-land-email" class="sr-only">/.test(landing));
-ok('two photo tracks', (landing.match(/class="pl-land-track"/g) || []).length === 2);
+ok('two stat tracks', (landing.match(/class="pl-land-track"/g) || []).length === 2);
+ok('stats marked as example data', /id="pl-land-stats-note">Tak klient widzi swoje postępy w aplikacji <span>· przykładowe dane<\/span>/.test(landing) && landing.includes('aria-labelledby="pl-land-stats-note"'));
 ok('auth card is a dialog', /id="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-card-title" aria-hidden="true"/.test(landing));
 ok('login, register and reset forms kept', ['auth-login-view', 'auth-register-view', 'auth-reset-view', 'auth-email', 'auth-password', 'auth-reg-token', 'auth-error'].every((id) => landing.includes('id="' + id + '"')));
 ok('old cup icon gone', !landing.includes('logo-mark'));
-ok('landing.js loaded right after the landing', /<\/div>\r?\n<script src="landing\.js\?v=1"><\/script>/.test(html));
-ok('landing.css loaded after theme.css', html.indexOf('landing.css?v=1') > html.indexOf('theme.css?v=1'));
+ok('landing.js loaded right after the landing', /<\/div>\r?\n<script src="landing\.js\?v=2"><\/script>/.test(html));
+ok('landing.css loaded after theme.css', html.indexOf('landing.css?v=2') > html.indexOf('theme.css?v=1'));
 ok('no external scripts for the landing', !/https?:\/\//.test(js) && !/@import|https?:\/\//.test(css.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '')));
 
-ok('reduced motion stops the photos', /@media \(prefers-reduced-motion: reduce\) \{\s*\.pl-land-track \{ animation: none !important; \}/.test(css));
+ok('reduced motion stops the tiles', /@media \(prefers-reduced-motion: reduce\) \{\s*\.pl-land-track \{ animation: none !important; \}/.test(css));
 ok('seamless loop keyframes', css.includes('@keyframes pl-land-up') && css.includes('@keyframes pl-land-down') && css.includes('@keyframes pl-land-left') && css.includes('@keyframes pl-land-right'));
 ok('phone layout', css.includes('@media (max-width: 900px)') && css.includes('@media (max-width: 560px)'));
 ok('readable text sizes', /\.pl-land-lead \{[^}]*font-size: clamp\(17px/.test(css) && /\.pl-land-points li \{[^}]*font-size: 16px/.test(css));
@@ -44,17 +45,12 @@ ok('invite flow opens the dialog', /function authShowRegister\(\)\{[\s\S]*?windo
 ok('boot error opens the dialog', /function showTenantBootError[\s\S]*?window\.landingOpenAuth\(\);/.test(html));
 ok('CI runs landing tests', wf.includes('test_landing.js') && wf.includes('test_landing_ui.js'));
 
-// Zdjęcia: istnieją, są lekkie
-const photos = [...js.matchAll(/\{f:'([a-z]+)',t:'([^']+)'\}/g)].map((m) => m[1]);
-ok('8 photos listed', photos.length === 8, photos.join(','));
-let total = 0;
-for (const f of photos) {
-  const p = path.join(root, 'assets', 'brand', 'landing', f + '.jpg');
-  const exists = fs.existsSync(p);
-  ok('photo ' + f + ' exists', exists);
-  if (exists) total += fs.statSync(p).size;
-}
-ok('photos under 400 KB together', total > 0 && total < 400 * 1024, Math.round(total / 1024) + ' KB');
+// Kafelki z wynikami: 8 sztuk, bez obrazków
+const statLabels = [...js.matchAll(/\{tone:'(dark|light|accent)',label:'([^']+)'/g)].map((m) => m[2]);
+ok('8 stat tiles listed', statLabels.length === 8, statLabels.join(','));
+ok('weekly volume and deadlift record shown', js.includes("label:'W tym tygodniu',value:'10 240',unit:'kg'") && js.includes("label:'Martwy ciąg',chip:'Rekord',value:'100',unit:'kg'"));
+ok('no landing images to download', !/<img|\.jpg|\.png/.test(js) && !fs.existsSync(path.join(root, 'assets', 'brand', 'landing')));
+ok('tile text is readable', /\.pl-land-stat-text \{[^}]*font-size: 15px/.test(css) && /\.pl-land-stat-value \{[^}]*font-weight: 800/.test(css));
 
 // Logika okna na atrapie DOM
 function makeEl(id) {
@@ -80,9 +76,9 @@ ctx.window = ctx;
 vm.createContext(ctx);
 vm.runInContext(js, ctx, { filename: 'landing.js' });
 
-ok('tracks filled twice for the loop', (tracks[0].innerHTML.match(/<figure/g) || []).length === 8 && (tracks[1].innerHTML.match(/<figure/g) || []).length === 8);
-ok('copies hidden from screen readers', (tracks[0].innerHTML.match(/aria-hidden="true"/g) || []).length === 4);
-ok('photos are decorative with captions', /alt=""/.test(tracks[0].innerHTML) && tracks[0].innerHTML.includes('<figcaption>Trening LIVE</figcaption>'));
+ok('tracks filled twice for the loop', (tracks[0].innerHTML.match(/class="pl-land-stat pl-land-stat--/g) || []).length === 8 && (tracks[1].innerHTML.match(/class="pl-land-stat pl-land-stat--/g) || []).length === 8);
+ok('copies hidden from screen readers', (tracks[0].innerHTML.match(/pl-land-stat--[a-z]+" aria-hidden="true"/g) || []).length === 4);
+ok('tile renders value, unit and chart', tracks[0].innerHTML.includes('<div class="pl-land-stat-value">10 240<small>kg</small></div>') && tracks[0].innerHTML.includes('class="pl-land-spark" aria-hidden="true"') && tracks[0].innerHTML.includes('<span class="pl-land-stat-chip">Rekord</span>'));
 
 els['pl-land-email'] = makeEl('pl-land-email');
 els['pl-land-email'].value = '  trener@przyklad.pl ';

@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="styles.css?v=166">
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=1&layout-v2=2">
-<link rel="stylesheet" href="landing.css?v=1">
+<link rel="stylesheet" href="landing.css?v=2">
 <script>/* Motyw przed pierwszym malowaniem: bez mignięcia ciemnego/jasnego tła. */try{var t=JSON.parse(localStorage.getItem('pl_theme_v2')||'null');if(t&&(t.mode==='dark'||t.mode==='light'))document.documentElement.setAttribute('data-theme',t.mode);if(t&&/^#[0-9a-f]{6}$/i.test(t.accent||''))document.documentElement.style.setProperty('--accent',t.accent);}catch(e){}</script>
 </head>
 <body>
@@ -47,9 +47,12 @@
         <li>Klienci, kalendarz, pakiety i płatności w jednym panelu</li>
       </ul>
     </section>
-    <div class="pl-land-photos" aria-label="Zdjęcia z treningów">
-      <div class="pl-land-col"><div class="pl-land-track"></div></div>
-      <div class="pl-land-col"><div class="pl-land-track"></div></div>
+    <div class="pl-land-showcase">
+      <p class="pl-land-showcase-note" id="pl-land-stats-note">Tak klient widzi swoje postępy w aplikacji <span>· przykładowe dane</span></p>
+      <div class="pl-land-stats" aria-labelledby="pl-land-stats-note">
+        <div class="pl-land-col"><div class="pl-land-track"></div></div>
+        <div class="pl-land-col"><div class="pl-land-track"></div></div>
+      </div>
     </div>
   </main>
   <div class="pl-auth-backdrop" onclick="landingCloseAuth()"></div>
@@ -95,7 +98,7 @@
     </div>
   </div>
 </div>
-<script src="landing.js?v=1"></script>
+<script src="landing.js?v=2"></script>
 
 <div class="app" id="app-root" style="display:none;">
 <button id="mobile-menu-btn" type="button" onclick="toggleMobileSidebar()" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** UI: strona startowa — ruchome zdjęcia, okno logowania i zaproszenia, telefon, prefers-reduced-motion. */
+/** UI: strona startowa — ruchome kafelki z wynikami, okno logowania i zaproszenia, telefon, prefers-reduced-motion. */
 const { chromium } = require('playwright');
 
 let failed = 0;
@@ -15,7 +15,7 @@ async function open(browser, opts, query) {
   const page = await ctx.newPage();
   page.setDefaultTimeout(20000);
   await page.goto(base + (query || ''), { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('#auth-screen .pl-land-photo img');
+  await page.waitForSelector('#auth-screen .pl-land-stat');
   await page.waitForTimeout(600);
   return { ctx, page };
 }
@@ -34,9 +34,12 @@ const trackX = (page, i) => page.evaluate((n) => {
     // Komputer
     let { ctx, page } = await open(browser, { viewport: { width: 1440, height: 900 } });
     ok('landing visible', await page.isVisible('#pl-land-title'));
-    ok('16 photos in two tracks', (await page.locator('#auth-screen .pl-land-photo').count()) === 16);
-    const loaded = await page.evaluate(() => Promise.all([...document.querySelectorAll('#auth-screen .pl-land-photo img')].slice(0, 4).map((img) => img.decode().then(() => img.naturalWidth > 0, () => false))));
-    ok('photos load', loaded.every(Boolean), JSON.stringify(loaded));
+    ok('16 stat tiles in two tracks', (await page.locator('#auth-screen .pl-land-stat').count()) === 16);
+    ok('example data note visible', await page.isVisible('#pl-land-stats-note'));
+    const valueSize = await page.$eval('#auth-screen .pl-land-stat-value', (e) => parseFloat(getComputedStyle(e).fontSize));
+    ok('big numbers on tiles', valueSize >= 34, String(valueSize));
+    const darkContrast = await page.$eval('#auth-screen .pl-land-stat--dark .pl-land-stat-text', (e) => [getComputedStyle(e).color, getComputedStyle(e.parentElement).backgroundColor]);
+    ok('dark tile text is light on dark', darkContrast[0] === 'rgb(201, 201, 201)' && darkContrast[1] === 'rgb(22, 22, 22)', darkContrast.join(' on '));
     const y1 = await trackY(page, 0); const y2 = await trackY(page, 1);
     await page.waitForTimeout(1200);
     const y1b = await trackY(page, 0); const y2b = await trackY(page, 1);
@@ -88,7 +91,7 @@ const trackX = (page, i) => page.evaluate((n) => {
     ok('phone: invite button in header hidden', !(await page.isVisible('.pl-land-top-invite')));
     const x1 = await trackX(page, 0); const x2 = await trackX(page, 1);
     await page.waitForTimeout(1200);
-    ok('phone: photo rows move sideways in opposite directions', (await trackX(page, 0)) < x1 && (await trackX(page, 1)) > x2);
+    ok('phone: tile rows move sideways in opposite directions', (await trackX(page, 0)) < x1 && (await trackX(page, 1)) > x2);
     await page.click('#pl-land-login-top');
     const box = await page.$eval('#auth-card', (e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right }; });
     ok('phone: dialog fits screen', box.l >= 0 && box.r <= 390, JSON.stringify(box));
