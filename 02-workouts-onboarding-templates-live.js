@@ -4190,7 +4190,7 @@ function liveExCard(ex,i,slot,cue,progress){
     ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:true,showNote:false})
     :`<div class="live-ex-media-empty"><strong>Brak filmu techniki</strong><span>Dodaj film lub GIF w Bibliotece ćwiczeń.</span></div>`;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${isFocus?' is-focus':''}${showBody?'':' is-collapsed'}" id="${cardId}">
-    <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
+    <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})" onpointerdown="liveSwipeStart(event,${i}${sl})" onpointerup="liveSwipeEnd(event,${i}${sl})" onpointercancel="liveSwipeCancel(${i}${sl})">
       ${thumb&&hasTechniqueMedia?`<button type="button" class="live-ex-thumb live-ex-technique-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="${ex.showVideo?'Ukryj':'Pokaż'} technikę" aria-label="${ex.showVideo?'Ukryj':'Pokaż'} technikę dla: ${escHtml(ex.name)}" aria-pressed="${ex.showVideo?'true':'false'}"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:thumb?`<div class="live-ex-thumb"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></div>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
@@ -4335,10 +4335,41 @@ window.liveToggleExVideo=liveToggleExVideo;
 function liveToggleCollapse(i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
-  st.exercises[i].collapsed=!st.exercises[i].collapsed;
-  st.exercises[i].uiExpanded=!st.exercises[i].collapsed;
+  const ex=st.exercises[i];
+  if(!ex)return;
+  if(ex.suppressCollapse){ex.suppressCollapse=false;return;}
+  ex.collapsed=!ex.collapsed;
+  ex.uiExpanded=!ex.collapsed;
   renderLiveExercises(n);
 }
+
+// Gest jest wyłącznie skrótem dotykowym: przesunięcie w lewo odsłania
+// istniejący, odwracalny wybór zamiennika. Nie podmienia ćwiczenia samo.
+function liveSwipeStart(ev,i,slot){
+  if(!ev||ev.pointerType!=='touch'||(ev.target&&ev.target.closest&&ev.target.closest('button,input,textarea,select,summary')))return;
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  if(ex)ex.swipeStart={x:ev.clientX,y:ev.clientY};
+}
+window.liveSwipeStart=liveSwipeStart;
+function liveSwipeCancel(i,slot){
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  if(ex)ex.swipeStart=null;
+}
+window.liveSwipeCancel=liveSwipeCancel;
+function liveSwipeEnd(ev,i,slot){
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  const start=ex&&ex.swipeStart;
+  if(!start||!ev||ev.pointerType!=='touch')return false;
+  ex.swipeStart=null;
+  const dx=ev.clientX-start.x,dy=ev.clientY-start.y;
+  if(dx<-64&&Math.abs(dy)<44){
+    ex.suppressCollapse=true;
+    if(!ex.swapOpen)liveToggleSwap(i,slot);
+    return true;
+  }
+  return false;
+}
+window.liveSwipeEnd=liveSwipeEnd;
 function liveToggleSetMenu(ei,si,slot){
   const n=liveN(slot);
   const st=liveRef(n);

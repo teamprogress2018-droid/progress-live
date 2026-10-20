@@ -3837,6 +3837,7 @@ body,
 .live-ex-thumb{width:44px;height:44px;border-radius:8px;}
 .live-ex-num{display:none;}
 .live-ex-head{align-items:flex-start;}
+.live-ex-head{touch-action:pan-y;}
 .live-ex-collapsed-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;margin-top:5px;}
 .live-ex-collapsed-meta strong{color:var(--text-primary);font-weight:600;}
 .live-ex-collapsed-meta span{font-size:12px;align-self:center;}
