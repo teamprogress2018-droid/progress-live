@@ -2,14 +2,27 @@
    Cache obejmuje wyłącznie pliki interfejsu z tej samej domeny. Dane klienta,
    logowanie i zapisy treningu pozostają w ich istniejących, bezpiecznych
    mechanizmach; aktywny trening dodatkowo zapisuje się lokalnie w aplikacji. */
-const CACHE_NAME='progress-live-shell-v1';
+const CACHE_NAME='progress-live-shell-v2';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
 ];
 
+async function cacheAppShell(){
+  const cache=await caches.open(CACHE_NAME);
+  // Odczytujemy tylko publiczny dokument aplikacji i zapisujemy wymienione
+  // w nim lokalne pliki interfejsu z ich aktualnymi wersjami ?v=….
+  const page=await fetch('./index.html',{cache:'no-store'});
+  const html=await page.text();
+  const dynamicAssets=[...html.matchAll(/(?:src|href)="([^"]+)"/g)]
+    .map(match=>match[1])
+    .filter(ref=>!/^https?:|^data:|^#/.test(ref)&&/\.(?:js|css|json|png|svg)(?:[?#]|$)/i.test(ref))
+    .map(ref=>new URL(ref,self.registration.scope).toString());
+  await cache.addAll([...new Set([...APP_SHELL,...dynamicAssets])]);
+}
+
 self.addEventListener('install',event=>{
-  event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
+  event.waitUntil(cacheAppShell().then(()=>self.skipWaiting()));
 });
 
 self.addEventListener('activate',event=>{

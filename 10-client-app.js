@@ -1538,12 +1538,12 @@ function cwRender(){
   const cw=window._cw;
   if(!el||!cw)return;
   const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e60000';
-  const back=`<button type="button" class="btn btn-ghost btn-sm" onclick="cwClose()">✕</button>`;
+  const back=`<button type="button" class="btn btn-ghost btn-sm" aria-label="Zapisz trening do wznowienia i zamknij" onclick="cwClose()">✕</button>`;
   if(cw.phase==='overview'){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cw.exercises.length} ćwiczeń · serie zapisują się po zatwierdzeniu</div>
-      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
+      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}</div>
@@ -1556,7 +1556,7 @@ function cwRender(){
     const emom=cw.restKind==='emom';
     el.innerHTML=`<div class="cw-rest">
       <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${emom?'EMOM — czekaj na minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
-      <div class="cw-rest-num" id="cw-rest-num">${cw.restLeft}</div>
+      <div class="cw-rest-num" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy: ${cw.restLeft} sekund">${cw.restLeft}</div>
       <div style="font-size:13px;color:var(--muted);">${emom?'Następna runda':'Następna seria'} · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
       <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
     </div>`;
@@ -1582,10 +1582,10 @@ function cwRender(){
       </div>
       <div style="font-size:13px;margin-bottom:10px;text-align:center;">Trudność treningu (opcjonalnie)</div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px;">
-        ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" onclick="cwRate(${n})">${n}</button>`).join('')}
+        ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" aria-label="Trudność treningu: ${n} na 10" aria-pressed="${cw.rating===n?'true':'false'}" onclick="cwRate(${n})">${n}</button>`).join('')}
       </div>
       <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">${cw.rating?cw.rating+'/10':'Bez oceny'}</div>
-      <textarea class="form-textarea" rows="3" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
+      <textarea class="form-textarea" rows="3" aria-label="Komentarz dla trenera, opcjonalnie" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
       <button type="button" class="cap-btn-primary" style="margin-top:16px;padding:16px;" onclick="cwFinish()">Zapisz i wyślij do trenera</button>`;
     return;
   }
@@ -1596,7 +1596,7 @@ function cwRender(){
   const emomWait=emomOn&&typeof emomRestSec==='function'?emomRestSec(doneSets+1,cwEmomElapsed()):0;
   el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       ${back}
-      <div id="cw-clock" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
+      <div id="cw-clock" role="timer" aria-label="Czas treningu" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}${emomOn?' · EMOM runda '+(doneSets+1)+'/'+ex.sets.length:''}</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
@@ -1623,16 +1623,16 @@ function cwRender(){
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
-    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
+    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
     <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
       <div>#</div><div>${typeof loadUnitShortLabel==='function'?loadUnitShortLabel(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):(typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='min'?'Min':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg')}</div><div>Powt.</div><div title="Powtórzenia w zapasie">RIR</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
       <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}${s.kind&&s.kind!=='work'?`<div class="cw-set-kind ${s.kind}">${escHtml((typeof setKindBadge==='function'&&setKindBadge(s.kind))||s.kind)}</div>`:''}</div>
-      <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="decimal" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" ${s.done?'disabled':''} placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" oninput="cwPatchSet(${i},'rir',this.value)" class="${s.done?'cw-set-done':''}" title="RIR">
-      <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
+      <input type="number" inputmode="decimal" aria-label="Seria ${s.setNo}: ciężar" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="numeric" aria-label="Seria ${s.setNo}: powtórzenia" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="decimal" aria-label="Seria ${s.setNo}: RIR" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" ${s.done?'disabled':''} placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" oninput="cwPatchSet(${i},'rir',this.value)" class="${s.done?'cw-set-done':''}" title="RIR">
+      <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" aria-label="${s.done?'Cofnij zatwierdzenie serii':'Zatwierdź serię'} ${s.setNo}" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
     </div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:18px;">
       ${cw.exIdx>0?`<button type="button" class="btn btn-ghost" onclick="cwPrevEx()">←</button>`:''}
