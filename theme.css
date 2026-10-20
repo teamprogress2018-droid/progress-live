@@ -801,6 +801,7 @@ html[data-theme] #screen-clients .cl-everfit-filters {
 }
 #app-root #screen-clients .cl-filter-search:focus { border-color: var(--border-focus, var(--accent)); background: var(--bg-card); }
 .cl-toolbar-r { display: flex; align-items: center; gap: 10px; }
+.cl-view-summary { margin: 0 0 0 auto; color: var(--text-label); font: 600 12px var(--font-ui); white-space: nowrap; }
 .cl-split { position: relative; display: inline-flex; }
 .cl-split-main,
 .cl-split-caret,
@@ -841,7 +842,11 @@ html[data-theme] #screen-clients .tbl-row.cl-everfit-row {
   border-radius: 0; box-shadow: none; background: transparent; animation: none;
 }
 html[data-theme] #screen-clients .tbl-row.cl-everfit-row:hover { background: var(--bg-hover); }
+html[data-theme] #screen-clients .tbl-row.cl-everfit-row.has-attention { padding-left: 9px; border-left: 3px solid var(--warning); }
 #screen-clients .cl-name { font-size: 15px; font-weight: 600; }
+.cl-client-open { display: block; max-width: 100%; padding: 0; border: 0; background: transparent; color: var(--text-primary); font: 600 15px/1.25 var(--font-ui); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-client-open:hover { color: var(--accent); }
+.cl-client-open:focus-visible { outline: 2px solid var(--focus, var(--accent)); outline-offset: 3px; border-radius: 3px; }
 #screen-clients .cl-sub { font-size: 12px; }
 #screen-clients .cl-av { width: 30px; height: 30px; font-size: 11px; }
 #screen-clients .cl-msg-btn { border: none; background: transparent; color: var(--text-label); }
@@ -880,6 +885,7 @@ html[data-theme] #screen-clients .tbl-row.cl-everfit-row:hover { background: var
   html[data-theme] #screen-clients .cl-everfit-filters { padding: 4px 12px 0; }
   .cl-toolbar { padding: 10px 12px; }
   .cl-search-wrap { flex: 1 1 100%; }
+  .cl-view-summary { margin-right: auto; }
   .cl-toolbar-r { width: 100%; justify-content: flex-end; }
   html[data-theme] #screen-clients .cl-everfit-hdr { margin: 0 12px; }
   #screen-clients .cl-everfit-tbl { padding: 0 12px 20px; }
