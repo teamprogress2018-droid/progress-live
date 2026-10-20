@@ -3883,6 +3883,10 @@ body,
   .live-ex-head-actions{max-width:none;width:100%;justify-content:flex-end;}
   .live-ex-thumb{width:36px;height:36px;}
   .live-prep-summary{padding:10px;gap:8px;}
+  .live-prep-summary>span:first-child{display:flex;align-items:baseline;gap:6px;min-width:0;overflow:hidden;white-space:nowrap;}
+  .live-prep-summary strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .live-prep-summary-day{display:inline;flex-shrink:0;margin:0;font-size:12px;white-space:nowrap;}
+  .live-prep-change{font-size:12px;}
   .live-prep-days{grid-template-columns:1fr;}
   .live-set-head{font-size:11px;}
   .live-kg-input{padding:8px 4px;}

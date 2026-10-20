@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=101'));
-ok('cache styles', html.includes('styles.css?v=167'));
+ok('cache styles', html.includes('styles.css?v=168'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
 ok('save training action is explicit', html.includes('Zapisz trening') && /function liveAskEndSession\(/.test(live) && live.includes("end.textContent='Zapisz trening'"));
@@ -30,6 +30,7 @@ ok('left picker hidden in session', css.includes('#screen-live.live-session-on .
 ok('sidebar collapsed in session', css.includes('#app-root:has(#screen-live.active.live-session-on) .sidebar'));
 ok('timer hidden before start', /live-train-only[\s\S]*id="live-timer"|id="live-timer"/.test(html) && html.includes('id="live-timer-status" hidden'));
 ok('suggested day not red fill', css.includes('.live-prep-day.is-today') && /box-shadow:0 0 0 1px rgba\(255,255,255/.test(css));
+ok('mobile plan summary stays on one compact line and keeps the plan picker available', css.includes('.live-prep-summary>span:first-child{display:flex;align-items:baseline') && css.includes('.live-prep-summary strong{min-width:0;overflow:hidden;text-overflow:ellipsis') && /live-prep-board/.test(live));
 ok('timer color neutral', /\.live-timer-val\{[^}]*color:var\(--text-primary\)/.test(css.replace(/\s+/g, '')));
 
 ok('swap under one button', /live-swap-open/.test(live) && /function liveToggleSwap\(/.test(live) && live.includes('>Zamień</button>'));
