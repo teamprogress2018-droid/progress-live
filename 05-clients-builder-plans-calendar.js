@@ -143,17 +143,19 @@ function clientTasksWindowStats(clientId,days){
   return{done,assigned,pct};
 }
 
-function clientStatusPillClass(c,life){
-  if(c.status==='archived'||c.status==='inactive')return'pill-red';
+/** Status na liście: zwykły tekst z kropką; kolor tylko gdy coś naprawdę wymaga reakcji. */
+function clientStatusTone(c,life){
+  if(c.status==='archived')return'muted';
   const k=life&&life.key;
-  if(k==='expired')return'pill-red';
-  if(k==='noemail'||k==='onboarding'||k==='expiring'||k==='atrisk'||k==='idle')return'pill-orange';
-  return'pill-green';
+  if(c.status==='inactive'||k==='expired')return'danger';
+  if(k==='expiring'||k==='atrisk')return'warning';
+  if(k==='noemail'||k==='onboarding'||k==='idle')return'muted';
+  return'success';
 }
 function clPctCell(stats,emptyLabel){
   if(!stats.assigned){
     if(stats.done)return`<span class="cl-pct mid" title="Zapisane, ale nic nie było zaplanowane">${stats.done} poza planem</span>`;
-    return`<span class="cl-pct muted" title="Nic nie zaplanowano w tym okresie">${emptyLabel||'nic w planie'}</span>`;
+    return`<span class="cl-pct muted" title="${emptyLabel||'Nic nie zaplanowano w tym okresie'}" aria-label="${emptyLabel||'nic w planie'}">—</span>`;
   }
   const ok=stats.pct>=80;
   const mid=stats.pct>=40;
@@ -237,16 +239,24 @@ function clientAttentionMap(){
   (window.CL||[]).forEach(c=>{if(c&&c.status!=='archived'&&c.status!=='inactive')map.set(c.id,clientAttentionFlags(c));});
   return map;
 }
+let clientAttnExpanded=false;
+function toggleClientAttnMore(){clientAttnExpanded=!clientAttnExpanded;renderClientAttentionChips();}
+window.toggleClientAttnMore=toggleClientAttnMore;
 function renderClientAttentionChips(map){
   const el=document.getElementById('client-attn-chips');
   const sel=document.getElementById('client-attn-filter');
   if(!el&&!sel)return;
   const flags=map||clientAttentionMap();
   const count=id=>[...flags.values()].filter(f=>f[id]).length;
-  if(el)el.innerHTML=CLIENT_ATTENTION_FILTERS.map(f=>{
-    const n=count(f.id),on=clientAttention===f.id;
-    return `<button type="button" class="cl-seg-item cl-attn-chip${on?' active':''}${n?'':' empty'}" aria-pressed="${on}" onclick="setClientAttention('${f.id}')"><span>${escHtml(f.label)}</span><span class="cl-seg-n cl-attn-n">${n}</span></button>`;
-  }).join('');
+  if(el){
+    // Jak we wzorze: kilka pozycji, reszta pod „Pokaż więcej”
+    const limit=3,open=clientAttnExpanded||CLIENT_ATTENTION_FILTERS.findIndex(f=>f.id===clientAttention)>=limit;
+    el.innerHTML=CLIENT_ATTENTION_FILTERS.map((f,i)=>{
+      const n=count(f.id),on=clientAttention===f.id;
+      const hide=!open&&i>=limit;
+      return `<button type="button" class="cl-seg-item cl-attn-chip${on?' active':''}${n?'':' empty'}"${hide?' hidden':''} aria-pressed="${on}" onclick="setClientAttention('${f.id}')"><span>${escHtml(f.label)}</span><span class="cl-seg-n cl-attn-n">${n}</span></button>`;
+    }).join('')+(CLIENT_ATTENTION_FILTERS.length>limit?`<button type="button" class="cl-attn-more" aria-expanded="${open}" onclick="toggleClientAttnMore()">${open?'Pokaż mniej':'Pokaż więcej'} <span aria-hidden="true">${open?'▴':'▾'}</span></button>`:'');
+  }
   if(sel){
     sel.innerHTML=`<option value="">Wszyscy</option>`+CLIENT_ATTENTION_FILTERS.map(f=>`<option value="${f.id}">${escHtml(f.label)} (${count(f.id)})</option>`).join('');
     sel.value=clientAttention||'';
@@ -649,25 +659,27 @@ function renderClients(){
     const attnLine=attnFlag?`<div class="cl-attn-reason">⚠ ${escHtml(attnFlag.reason)}</div>`:'';
     const msgBtn=archived
       ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć">↩</button>`
-      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość">💬</button>`;
-    return `<div class="tbl-row cl-everfit-row" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
+      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość" aria-label="Wiadomość do: ${escHtml(c.name)}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>`;
+    const statusLbl=archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':c.appJoined&&(!life||life.key==='active'||life.key==='noemail')?'W aplikacji':(life&&life.label)||'Aktywny';
+    const rowTitle=c.email?escHtml(c.email):'Bez e-maila';
+    return `<div class="tbl-row cl-everfit-row" style="animation-delay:${i*0.03}s;" title="${rowTitle}" onclick="openClientProfile('${c.id}')">
     <div class="cl-name-cell">
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
       <div class="cl-name-meta">
         <div class="cl-name">${escHtml(c.name)}</div>
-        <div class="cl-sub">${c.appJoined?'📱 w aplikacji · ':''}${escHtml(c.email||'bez e-maila')}${duplicateName?` · <button type="button" class="cl-dup-btn" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ możliwy duplikat — Scal</button>`:''}</div>
+        ${duplicateName?`<div class="cl-sub"><button type="button" class="cl-dup-btn" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ możliwy duplikat — Scal</button></div>`:''}
         ${attnLine}
       </div>
       <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
     </div>
     <div class="cl-msg-cell" onclick="event.stopPropagation()">${msgBtn}</div>
-    <div class="cl-act" style="color:${act.color};">${act.label}</div>
+    <div class="cl-act${act.days===Infinity?' muted':''}" title="Ostatnia aktywność: ${act.label}">${act.days===Infinity?'—':act.label}</div>
     <div>${clPctCell(t7)}</div>
     <div>${clPctCell(t30)}</div>
     <div>${clPctCell(tasks7,'brak zadań')}</div>
     <div class="cl-goal${c.goal?'':' muted'}">${CLIENT_GOAL_LABELS[c.goal]||escHtml(c.goal||'')||'cel nieustalony'}</div>
     <div class="cl-status">
-      <span class="pill ${clientStatusPillClass(c,life)}"><span class="pill-dot"></span>${escHtml(archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':(life&&life.label)||'Aktywny')}</span>
+      <span class="cl-st cl-st-${clientStatusTone(c,life)}"><span class="cl-st-dot" aria-hidden="true"></span>${escHtml(statusLbl)}</span>
     </div>
   </div>`;
   }).join('');
