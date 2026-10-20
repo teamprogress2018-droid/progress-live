@@ -987,6 +987,18 @@ body.mobile-menu-open { overscroll-behavior: none; }
   body:not(.client-app-mode) #mobile-menu-btn { top: max(8px, env(safe-area-inset-top)); }
   body:not(.client-app-mode) .sidebar { padding-top: env(safe-area-inset-top); }
 }
+
+/* Jasna powierzchnia aplikacji: tło pozostaje widoczne między białymi kartami.
+   Dzięki temu nie zamienia się w jednolitą, płaską biel na ekranie LIVE. */
+html[data-theme="light"] .main { background: #edf3fb; }
+html[data-theme="light"] #screen-clients .cl-main,
+html[data-theme="light"] #screen-clients .cl-everfit,
+html[data-theme="light"] #screen-live .live-floor,
+html[data-theme="light"] #screen-live .live-pane {
+  background: #edf3fb;
+}
+html[data-theme="light"] #screen-live .live-side-left,
+html[data-theme="light"] #screen-live .live-ex-col { background: transparent; }
 @media (min-width: 861px) {
   /* Grafika ciemnego motywu (.sidebar::after) zostaje w pasku bocznym */
   .app .sidebar { position: relative; }
