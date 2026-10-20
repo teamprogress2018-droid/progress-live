@@ -68,14 +68,18 @@ function lum([r, g, b]) {
       monthColor: month ? cs(month).color : '',
       addBg: add ? cs(add).backgroundColor : '',
       addImg: add ? cs(add).backgroundImage : '',
-      weekActive: !!(week && week.classList.contains('active'))
+      weekActive: !!(week && week.classList.contains('active')),
+      theme: document.documentElement.getAttribute('data-theme') || 'dark'
     };
   });
 
   await page.screenshot({ path: path.join(shotDir, 'cal_topbar_buttons.png') });
 
   ok('ghost has visible border', parseFloat(styles.backBorder) >= 1, JSON.stringify(styles));
-  ok('today fill brighter than wstecz', lum(rgb(styles.todayBg)) > lum(rgb(styles.backBg)), JSON.stringify(styles));
+  // Jasny motyw (domyślny): „Dziś” wyróżnione innym tłem niż „Wstecz”; ciemny: jaśniejsze tło.
+  ok('today fill differs from wstecz', styles.theme === 'light'
+    ? styles.todayBg !== styles.backBg
+    : lum(rgb(styles.todayBg)) > lum(rgb(styles.backBg)), JSON.stringify(styles));
   ok('week tab active red', styles.weekActive && rgb(styles.weekBg)[0] > 200 && rgb(styles.weekBg)[1] < 90, JSON.stringify(styles));
   ok('week tab white label', rgb(styles.weekColor)[0] > 240 && rgb(styles.weekColor)[1] > 240, JSON.stringify(styles));
   // Motyw Fire Gym rysuje główny przycisk czerwonym gradientem (background-image), a nie kolorem tła.

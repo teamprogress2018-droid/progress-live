@@ -5272,7 +5272,7 @@ window.openCIFill=openCIFill;window.ciFillPick=ciFillPick;window.saveCheckinFill
 window.sendCheckinTo=sendCheckinTo;window.sendCheckin=sendCheckin;
 window.replyToCheckin=replyToCheckin;
 window.setSettingsTab=setSettingsTab;window.toggleSetting=toggleSetting;
-window.setAccentColor=setAccentColor;window.addSpecialty=addSpecialty;
+window.setAccentColor=setAccentColor;window.applyCustomAccentHex=applyCustomAccentHex;window.addSpecialty=addSpecialty;
 window.setScreensaverIdleMinutes=setScreensaverIdleMinutes;
 window.removeSpecialty=removeSpecialty;window.exportData=exportData;
 window.confirmDeleteAll=confirmDeleteAll;window.saveSettings=saveSettings;
