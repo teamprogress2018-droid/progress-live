@@ -2763,6 +2763,27 @@ function liveTogglePrepMoreMenu(force){
 }
 window.liveTogglePrepMoreMenu=liveTogglePrepMoreMenu;
 
+/* Menu ma zawsze prostą drogę wyjścia także z klawiatury. */
+function liveCloseMoreMenusOnEscape(event){
+  if(event.key!=='Escape')return;
+  const sessionMenu=document.getElementById('live-more-menu');
+  const prepMenu=document.getElementById('live-prep-more-menu');
+  let returnFocus=null;
+  if(sessionMenu&&!sessionMenu.hidden){
+    liveToggleMoreMenu(false);
+    returnFocus=document.getElementById('live-more-btn');
+  }
+  if(prepMenu&&!prepMenu.hidden){
+    liveTogglePrepMoreMenu(false);
+    returnFocus=document.getElementById('live-prep-more-btn');
+  }
+  if(returnFocus){
+    event.preventDefault();
+    returnFocus.focus();
+  }
+}
+document.addEventListener('keydown',liveCloseMoreMenusOnEscape);
+
 function liveDayLabel(slot){
   const n=liveN(slot);
   const st=liveRef(n);
