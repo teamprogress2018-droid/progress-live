@@ -3925,7 +3925,10 @@ body,
 .live-rir-target{display:block;font-size:11px;font-weight:400;margin-top:2px;}
 .live-ex-card .live-ex-media{position:relative;flex:0 1 220px;max-width:260px;}
 .live-ex-card.is-focus{border-color:rgba(255,59,48,.52);box-shadow:0 0 0 1px rgba(255,59,48,.11),0 14px 34px rgba(0,0,0,.18);}
-.live-ex-card.is-focus .live-ex-thumb{display:none;}
+.live-ex-card.is-focus .live-ex-thumb{display:block;}
+.live-ex-technique-thumb{position:relative;}
+.live-ex-technique-thumb::after{content:'▶';position:absolute;right:3px;bottom:3px;width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:10px;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.35);}
+.live-ex-technique-thumb[aria-pressed="true"]::after{content:'×';font-size:15px;}
 .live-ex-thumb.is-unavailable{display:flex;align-items:center;justify-content:center;}
 .live-ex-thumb.is-unavailable::after{content:'▶';font-size:17px;color:var(--text-secondary);}
 .live-ex-progress-details{margin:8px 0 12px;border:1px solid var(--border-subtle);border-radius:10px;background:rgba(255,255,255,.025);}

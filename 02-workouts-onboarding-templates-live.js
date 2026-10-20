@@ -4183,13 +4183,15 @@ function liveExCard(ex,i,slot,cue){
   const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
   const media=typeof resolveCoachMedia==='function'?Object.assign({name:ex.name},resolveCoachMedia(ex)):ex;
   const hasTechniqueMedia=!!(media&&(media.gif||media.video||media.videoEmbed));
-  const mediaOpen=!needsName&&(isFocus||!!ex.showVideo);
+  // Film jest pomocą na żądanie: nie zasłania serii ani nie pokazuje pustego
+  // pola, gdy trener nie dodał materiału techniki.
+  const mediaOpen=!needsName&&hasTechniqueMedia&&!!ex.showVideo;
   const mediaHtml=hasTechniqueMedia&&typeof coachMediaHtml==='function'
     ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:true,showNote:false})
     :`<div class="live-ex-media-empty"><strong>Brak filmu techniki</strong><span>Dodaj film lub GIF w Bibliotece ćwiczeń.</span></div>`;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${isFocus?' is-focus':''}${showBody?'':' is-collapsed'}" id="${cardId}">
     <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
-      ${thumb?`<button type="button" class="live-ex-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="Pokaż film lub obraz techniki"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
+      ${thumb&&hasTechniqueMedia?`<button type="button" class="live-ex-thumb live-ex-technique-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="${ex.showVideo?'Ukryj':'Pokaż'} technikę" aria-label="${ex.showVideo?'Ukryj':'Pokaż'} technikę dla: ${escHtml(ex.name)}" aria-pressed="${ex.showVideo?'true':'false'}"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:thumb?`<div class="live-ex-thumb"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></div>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
         ${liveExTitleHtml(ex,lastChip,histList)}
@@ -4221,7 +4223,7 @@ function liveExCard(ex,i,slot,cue){
     </div>`}
     ${needsName||(!target&&!display.description)||isFocus?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`}
     <div class="live-ex-body">
-      ${mediaOpen?'<span class="live-media-watch-label" aria-hidden="true">▶ Obejrzyj technikę</span>':''}
+      ${mediaOpen?'<span class="live-media-watch-label" aria-hidden="true">▶ Technika ćwiczenia</span>':''}
       ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${mediaHtml}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
@@ -4319,10 +4321,13 @@ window.liveSetKey=liveSetKey;
 function liveToggleExVideo(i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
-  if(!st.exercises[i])return;
-  st.exercises[i].showVideo=!st.exercises[i].showVideo;
-  st.exercises[i].collapsed=false;
-  st.exercises[i].uiExpanded=true;
+  const ex=st.exercises[i];
+  if(!ex)return;
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):ex;
+  if(!media||!(media.gif||media.video||media.videoEmbed))return;
+  ex.showVideo=!ex.showVideo;
+  ex.collapsed=false;
+  ex.uiExpanded=true;
   renderLiveExercises(n);
 }
 window.liveToggleExVideo=liveToggleExVideo;
