@@ -1008,6 +1008,26 @@ html[data-theme="light"] #screen-live .live-ex-col { background: transparent; }
   #screen-live .live-ex-log { flex: 1 1 100%; width: 100%; min-width: 0; }
   #screen-live .live-ex-media-empty { width: 100%; }
 }
+
+/* LIVE przed startem: trzy realnie ostatnie kontakty skracają drogę do sesji,
+   ale pełny wybór klienta zawsze pozostaje dostępny wyżej. */
+.live-quick-picks { max-width: 420px; margin: 22px auto 0; text-align: left; }
+.live-quick-picks-label { margin: 0 0 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.live-quick-picks-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.live-quick-client {
+  display: flex; flex-direction: column; gap: 3px; min-width: 0; min-height: 52px; padding: 9px 10px;
+  border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-card); color: var(--text-primary);
+  font: 600 13px var(--font-ui, inherit); text-align: left; cursor: pointer;
+}
+.live-quick-client:hover { border-color: var(--accent); background: var(--bg-hover); }
+.live-quick-client:focus-visible { outline: 3px solid rgba(var(--accent-rgb), .25); outline-offset: 2px; }
+.live-quick-client span,.live-quick-client small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-quick-client small { font-size: 11px; font-weight: 500; color: var(--text-label); }
+@media (max-width: 420px) {
+  .live-quick-picks { max-width: none; }
+  .live-quick-picks-list { grid-template-columns: 1fr; }
+  .live-quick-client { flex-direction: row; align-items: center; justify-content: space-between; min-height: 46px; }
+}
 @media (min-width: 861px) {
   /* Grafika ciemnego motywu (.sidebar::after) zostaje w pasku bocznym */
   .app .sidebar { position: relative; }

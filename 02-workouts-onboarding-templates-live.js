@@ -2919,6 +2919,34 @@ function liveFocusClientPicker(slot){
 }
 window.liveFocusClientPicker=liveFocusClientPicker;
 
+// Szybki wybór na ekranie startowym LIVE. Lista opiera się wyłącznie na
+// realnej aktywności klienta, więc nie sugeruje trenerowi sztucznych danych.
+function liveRecentClientChoices(slot){
+  const n=liveN(slot);
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  const choices=clients.map(c=>{
+    const activity=typeof getClientLastActivity==='function'?getClientLastActivity(c.id):null;
+    return{client:c,activity,at:activity&&activity.getTime?activity.getTime():0};
+  }).filter(x=>x.at>0).sort((a,b)=>b.at-a.at||String(a.client.name||'').localeCompare(String(b.client.name||''),'pl')).slice(0,3);
+  if(!choices.length)return'';
+  return`<div class="live-quick-picks" role="group" aria-label="Ostatnio aktywni klienci">
+    <div class="live-quick-picks-label">Ostatnio aktywni</div>
+    <div class="live-quick-picks-list">${choices.map(({client})=>{
+      const activity=typeof formatClientActivity==='function'?formatClientActivity(client.id):{label:''};
+      const id=encodeURIComponent(String(client.id||''));
+      return`<button type="button" class="live-quick-client" onclick="event.stopPropagation();liveQuickPickClient('${id}',${n})"><span>${escHtml(client.name||'Klient')}</span><small>${escHtml(activity.label||'')}</small></button>`;
+    }).join('')}</div>
+  </div>`;
+}
+function liveQuickPickClient(encodedId,slot){
+  let id='';
+  try{id=decodeURIComponent(String(encodedId||''));}catch(e){id=String(encodedId||'');}
+  const client=(window.CL||[]).find(c=>c&&String(c.id)===id);
+  if(!client)return;
+  liveClientSetField(client.id,client.name,false,liveN(slot));
+}
+window.liveQuickPickClient=liveQuickPickClient;
+
 function liveSyncClientChrome(slot){
   const n=liveN(slot);
   const pane=document.getElementById(n===1?'live-pane-1':'live-pane-0');
@@ -3487,6 +3515,7 @@ function renderLiveExercises(slot){
       <div class="live-empty-state-title">${title}</div>
       <div class="live-empty-state-sub">Plan i kg z poprzedniego treningu wczytają się po wyborze klienta.</div>
       <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="event.stopPropagation();liveFocusClientPicker(${n})">Wybierz klienta</button>
+      ${n===0?liveRecentClientChoices(n):''}
     </div>`;
     const zero=(id,v)=>{const e=liveEl(id,n);if(e)e.textContent=v;};
     zero('live-ex-done','0');zero('live-ex-total','0');zero('live-sets-done','0');zero('live-volume','0');

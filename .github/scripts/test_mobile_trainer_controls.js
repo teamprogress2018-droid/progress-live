@@ -1,5 +1,6 @@
 const fs=require('fs');
 const core=fs.readFileSync('01-core.js','utf8');
+const live=fs.readFileSync('02-workouts-onboarding-templates-live.js','utf8');
 const clients=fs.readFileSync('05-clients-builder-plans-calendar.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
 const theme=fs.readFileSync('theme.css','utf8');
@@ -16,4 +17,5 @@ ok('phone header reserves separate space for navigation and LIVE',theme.includes
 ok('iPhone safe areas keep the trainer menu and LIVE header below the system status bar',theme.includes('body:not(.client-app-mode) #app-root { padding-top: env(safe-area-inset-top); }')&&theme.includes('#mobile-menu-btn { top: max(8px, env(safe-area-inset-top)); }'));
 ok('the trainer canvas stays visibly cool behind white cards, including LIVE',theme.includes('html[data-theme="light"] .main { background: #edf3fb; }')&&theme.includes('#screen-live .live-floor'));
 ok('LIVE keeps technique above the full-width series log on a phone',theme.includes('#screen-live .live-ex-body { display: flex; flex-direction: column')&&theme.includes('#screen-live .live-ex-log { flex: 1 1 100%; width: 100%; min-width: 0; }'));
+ok('LIVE offers real recently active clients as a shortcut before searching',live.includes('function liveRecentClientChoices')&&live.includes('function liveQuickPickClient')&&live.includes("Ostatnio aktywni")&&theme.includes('.live-quick-client'));
 if(failed)process.exit(1);
