@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** Panel główny = domyślny ekran; bez mini-listy klientów w sidebarze. */
+/** Ekran startowy = lista klientów (jak we wzorze); dawny panel główny to „Pulpit”. */
 const fs = require('fs');
 const path = require('path');
 
@@ -22,10 +22,10 @@ function ok(name, cond) {
   } else console.log('OK  ', name);
 }
 
-ok('dashboard default screen', /class="screen active" id="screen-dashboard"/.test(html));
-ok('clients not default', !/class="screen active" id="screen-clients"/.test(html));
-ok('dashboard first in primary nav', primary.indexOf('data-screen="dashboard"') < primary.indexOf('data-screen="clients"'));
-ok('dashboard active nav', /nav-item active" data-screen="dashboard"/.test(primary));
+ok('clients default screen', /class="screen active" id="screen-clients"/.test(html));
+ok('dashboard not default', !/class="screen active" id="screen-dashboard"/.test(html) && (html.match(/class="screen active"/g) || []).length === 1);
+ok('clients first, Pulpit right after', primary.indexOf('data-screen="clients"') < primary.indexOf('data-screen="dashboard"') && /data-screen="dashboard"[^>]*>[\s\S]{0,400}?Pulpit</.test(primary));
+ok('clients active nav', /nav-item nav-flyout-trigger active" id="nav-clients-btn"/.test(primary) && !/nav-item active" data-screen="dashboard"/.test(primary));
 ok('no sidebar client panel', !html.includes('id="nav-clients-panel"'));
 ok('dashboard not in account area', !more.includes('data-screen="dashboard"'));
 ok('nav groups without dashboard', /navGroupScreens=\{[^}]*ondemand/.test(core) && !/navGroupScreens=\{[^}]*dashboard/.test(core));
