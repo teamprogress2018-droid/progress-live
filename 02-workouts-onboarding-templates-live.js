@@ -3565,11 +3565,10 @@ function renderLiveExercises(slot){
 
   el.innerHTML=`
     ${st.sessionActive?'':`<div class="live-ex-toolbar">
-      <div>
-        <div class="live-ex-toolbar-title">Plan treningu</div>
-        <div class="live-ex-toolbar-sub">${total} ćwiczeń</div>
+      <div class="live-ex-toolbar-meta">
+        <div class="live-ex-toolbar-title">Plan treningu <span class="live-ex-toolbar-count">${total} ćwiczeń</span></div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="liveAddExercise(${n})">+ Dodaj ćwiczenie</button>
+      <button class="btn btn-ghost btn-sm live-add-exercise" onclick="liveAddExercise(${n})" aria-label="Dodaj ćwiczenie"><span class="live-add-exercise-full">+ Dodaj ćwiczenie</span><span class="live-add-exercise-short" aria-hidden="true">+ Ćwiczenie</span></button>
     </div>`}
     ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue)).join('')}
     ${st.sessionActive&&doneCnt===total&&total>0?`
