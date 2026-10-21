@@ -4765,13 +4765,24 @@ function liveAskEndSession(slot){
   if(fb0)fb0.hidden=n===1;
   if(fb1)fb1.hidden=n!==1;
   ov.hidden=false;
+  const title=document.getElementById('live-end-title');
+  if(title)title.focus();
 }
 window.liveAskEndSession=liveAskEndSession;
 function liveCancelEnd(){
   const ov=document.getElementById('live-end-overlay');
   if(ov)ov.hidden=true;
+  const trigger=liveEl('live-end-btn',window._liveEndSlot||0);
+  if(trigger)trigger.focus();
 }
 window.liveCancelEnd=liveCancelEnd;
+document.addEventListener('keydown',event=>{
+  const ov=document.getElementById('live-end-overlay');
+  if(event.key==='Escape'&&ov&&!ov.hidden){
+    event.preventDefault();
+    liveCancelEnd();
+  }
+});
 function liveConfirmEnd(){
   window._liveEndFromOverlay=true;
   liveEndSession(window._liveEndSlot||0);

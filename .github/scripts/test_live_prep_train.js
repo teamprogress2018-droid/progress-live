@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=108'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=109'));
 ok('cache styles', html.includes('styles.css?v=184'));
 ok('mobile end sheet keeps save action reachable', css.includes('.live-end-actions{position:sticky') && css.includes('.live-end-actions .btn{flex:1;min-height:48px;}'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
@@ -55,6 +55,7 @@ ok('toggle set starts rest', /function liveToggleSet\(/.test(live) && /liveStart
 ok('rest strip', html.includes('id="live-rest-strip"') && html.includes('liveAdjustRest(-15)') && html.includes('Pomiń') && /function liveShowRestStrip\(/.test(live));
 ok('presets in more menu', /id="live-more-menu"[\s\S]*liveStartRest\(30\)/.test(html) && html.includes('live-rest-preset'));
 ok('end overlay notes', html.includes('id="live-end-overlay"') && html.includes('Notatka do sesji') && html.includes('Feedback klienta') && /function liveConfirmEnd\(/.test(live));
+ok('end overlay restores focus and closes safely with Escape', html.includes('role="dialog" aria-modal="true" aria-labelledby="live-end-title"') && live.includes("if(title)title.focus();") && live.includes("if(trigger)trigger.focus();") && live.includes("event.key==='Escape'&&ov&&!ov.hidden"));
 ok('exercise history, trainer note and settings stay on demand in the three-dot menu', live.includes("liveToggleExPanel(${i},'history'") && live.includes("liveToggleExPanel(${i},'coach'") && live.includes("liveToggleExPanel(${i},'settings'") && /function liveToggleExPanel\(/.test(live) && !live.includes('live-focus-cue-simple'));
 ok('technique media is opt-in and only appears when it exists', /const mediaOpen=!needsName&&hasTechniqueMedia&&!!ex\.showVideo/.test(live) && live.includes('live-ex-technique-thumb') && live.includes("if(!media||!(media.gif||media.video||media.videoEmbed))return;") && css.includes('.live-ex-technique-thumb::after'));
 ok('current exercise shows compact whole-session progress', /liveExCard\(ex,i,n,cue,stats\)/.test(live) && /function liveExCard\(ex,i,slot,cue,progress\)/.test(live) && live.includes('live-session-progress') && css.includes('.live-ex-collapsed-meta .live-session-progress'));
