@@ -2125,6 +2125,8 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   #screen-calendar #cal-week-track{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:thin;}
   #screen-calendar #cal-week-track:focus-visible{outline:3px solid rgba(var(--accent-rgb),.45);outline-offset:-3px;}
   #screen-calendar #cal-week-header,#screen-calendar #cal-week-scroll,#screen-calendar #cal-week-grid{width:720px!important;min-width:720px!important;}
+  /* Dodatkowy margines toru pozwala wyrównać także czw. — niedz. do lewej krawędzi. */
+  #screen-calendar #cal-week-header,#screen-calendar #cal-week-scroll,#screen-calendar #cal-week-grid{width:744px!important;min-width:744px!important;}
   #screen-calendar #cal-week-scroll{flex:1;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;}
   #screen-calendar .cal-week-day-hdr{scroll-snap-align:start;padding:9px 5px;}
   #screen-calendar .cal-week-sess{padding:5px 6px;}

@@ -2,7 +2,7 @@
    Cache obejmuje wyłącznie pliki interfejsu z tej samej domeny. Dane klienta,
    logowanie i zapisy treningu pozostają w ich istniejących, bezpiecznych
    mechanizmach; aktywny trening dodatkowo zapisuje się lokalnie w aplikacji. */
-const CACHE_NAME='progress-live-shell-v51';
+const CACHE_NAME='progress-live-shell-v52';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

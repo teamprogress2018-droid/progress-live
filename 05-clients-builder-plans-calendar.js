@@ -4407,6 +4407,28 @@ window.calSessionStartMin=calSessionStartMin;
 window.calSessionEndMin=calSessionEndMin;
 window.calWeekHourBucket=calWeekHourBucket;
 
+/** Telefon: po geście tydzień zatrzymuje się na początku pełnego dnia.
+ *  Zostawia to widoczną i równą kolumnę zamiast urwanej karty z dnia obok. */
+function bindCalMobileWeekSnap(){
+  const track=document.getElementById('cal-week-track');
+  const grid=document.getElementById('cal-week-grid');
+  if(!track||!grid||track.dataset.calSnapBound)return;
+  track.dataset.calSnapBound='1';
+  let timer=0;
+  track.addEventListener('scroll',()=>{
+    if(typeof matchMedia!=='function'||!matchMedia('(max-width:600px)').matches)return;
+    clearTimeout(timer);
+    timer=setTimeout(()=>{
+      const dayWidth=(grid.scrollWidth-60)/7;
+      if(!isFinite(dayWidth)||dayWidth<=0)return;
+      const firstDay=Math.max(0,Math.min(3,Math.round((track.scrollLeft-60)/dayWidth)));
+      const target=Math.min(track.scrollWidth-track.clientWidth,Math.max(0,60+firstDay*dayWidth));
+      if(Math.abs(track.scrollLeft-target)>2)track.scrollTo({left:target,behavior:'smooth'});
+    },130);
+  },{passive:true});
+}
+window.bindCalMobileWeekSnap=bindCalMobileWeekSnap;
+
 function renderCalWeek(){
   const ws=getWeekStart(calCurrentDate);
   const today=new Date();today.setHours(0,0,0,0);
@@ -4466,6 +4488,7 @@ function renderCalWeek(){
 
   grid.innerHTML=gridHTML;
   grid.style.position='relative';
+  bindCalMobileWeekSnap();
 
   const scroll=document.getElementById('cal-week-scroll');
   if(scroll){
