@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=110'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=111'));
 ok('cache styles', html.includes('styles.css?v=184'));
 ok('mobile end sheet keeps save action reachable', css.includes('.live-end-actions{position:sticky') && css.includes('.live-end-actions .btn{flex:1;min-height:48px;}'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
