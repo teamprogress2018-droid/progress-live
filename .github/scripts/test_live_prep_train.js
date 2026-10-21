@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=109'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=110'));
 ok('cache styles', html.includes('styles.css?v=184'));
 ok('mobile end sheet keeps save action reachable', css.includes('.live-end-actions{position:sticky') && css.includes('.live-end-actions .btn{flex:1;min-height:48px;}'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
@@ -27,6 +27,7 @@ ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /
 ok('save training action is explicit', html.includes('Zapisz trening') && /function liveAskEndSession\(/.test(live) && live.includes("end.textContent='Zapisz trening'"));
 ok('more menu', html.includes('id="live-more-menu"') && html.includes('liveToggleMoreMenu()') && html.includes('Dwie osoby') && html.includes('Harmonogram periodyzacji'));
 ok('more menus close with Escape and restore focus', /function liveCloseMoreMenusOnEscape\(event\)/.test(live) && live.includes("if(event.key!=='Escape')return;") && live.includes("returnFocus.focus();"));
+ok('more menus focus the first action, close after tapping outside and expose their purpose', live.includes("if(first)first.focus();") && live.includes("target.closest('.live-more-wrap')") && html.includes('aria-controls="live-more-menu"') && html.includes('aria-label="Dodatkowe akcje treningu"'));
 ok('mobile preparation keeps history and two-person mode behind a reversible more menu', html.includes('id="live-prep-more-menu"') && html.includes('id="live-prep-more-btn"') && /function liveTogglePrepMoreMenu\(/.test(live) && live.includes("live-history-view") && css.includes('#screen-live:not(.live-session-on):not(.live-history-view) .live-view-tabs'));
 ok('client view in train bar', html.includes('id="live-client-view-btn"') && html.includes('Widok klienta'));
 ok('mobile train bar keeps client view in the more menu', /id="live-more-menu"[\s\S]*📱 Widok klienta/.test(html) && css.includes('#screen-live.live-session-on #live-client-view-btn{display:none;}'));

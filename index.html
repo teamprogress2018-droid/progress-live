@@ -2866,8 +2866,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <button type="button" class="btn btn-ghost btn-sm live-train-only" id="live-client-view-btn" onclick="setLiveTab('client')">Widok klienta</button>
       <div class="live-more-wrap">
-        <button type="button" class="btn btn-ghost btn-sm live-more-btn live-train-only" id="live-more-btn" onclick="liveToggleMoreMenu()" aria-haspopup="true" aria-expanded="false" title="Więcej">…</button>
-        <div id="live-more-menu" class="live-more-menu" hidden>
+        <button type="button" class="btn btn-ghost btn-sm live-more-btn live-train-only" id="live-more-btn" onclick="liveToggleMoreMenu()" aria-haspopup="true" aria-expanded="false" aria-controls="live-more-menu" title="Więcej">…</button>
+        <div id="live-more-menu" class="live-more-menu" role="region" aria-label="Dodatkowe akcje treningu" hidden>
           <button type="button" class="live-more-item" onclick="setLiveTab('trainer');liveToggleMoreMenu(false)">🏋️ Trener</button>
           <button type="button" class="live-more-item" onclick="setLiveTab('client');liveToggleMoreMenu(false)">📱 Widok klienta</button>
           <button type="button" class="live-more-item" onclick="setLiveTab('history');liveToggleMoreMenu(false)">📊 Historia</button>
@@ -2896,8 +2896,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
       <div class="live-more-wrap live-prep-only live-prep-more-wrap">
-        <button type="button" class="btn btn-ghost btn-sm live-more-btn live-prep-more-btn" id="live-prep-more-btn" onclick="liveTogglePrepMoreMenu()" aria-haspopup="true" aria-expanded="false" title="Więcej opcji przygotowania">…</button>
-        <div id="live-prep-more-menu" class="live-more-menu" hidden>
+        <button type="button" class="btn btn-ghost btn-sm live-more-btn live-prep-more-btn" id="live-prep-more-btn" onclick="liveTogglePrepMoreMenu()" aria-haspopup="true" aria-expanded="false" aria-controls="live-prep-more-menu" title="Więcej opcji przygotowania">…</button>
+        <div id="live-prep-more-menu" class="live-more-menu" role="region" aria-label="Dodatkowe opcje przygotowania" hidden>
           <button type="button" class="live-more-item" onclick="setLiveTab('history');liveTogglePrepMoreMenu(false)">📊 Historia treningów</button>
           <button type="button" class="live-more-item" onclick="liveToggleDual();liveTogglePrepMoreMenu(false)">👥 Dwie osoby</button>
         </div>
@@ -4814,7 +4814,7 @@ async function load(session=captureTenantSession()){
 <script src="ex-photo-manifest.js?v=6"></script>
 <script src="01-core.js?v=139&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=109"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=110"></script>
 <script src="books-kb.js?v=2"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=43&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1"></script>
 <script src="04-client-portal.js?v=65&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>

@@ -2750,6 +2750,10 @@ function liveToggleMoreMenu(force){
   const open=force===false?false:force===true?true:menu.hidden;
   menu.hidden=!open;
   if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+  if(open){
+    const first=menu.querySelector('button');
+    if(first)first.focus();
+  }
 }
 window.liveToggleMoreMenu=liveToggleMoreMenu;
 
@@ -2760,6 +2764,10 @@ function liveTogglePrepMoreMenu(force){
   const open=force===false?false:force===true?true:menu.hidden;
   menu.hidden=!open;
   if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+  if(open){
+    const first=menu.querySelector('button');
+    if(first)first.focus();
+  }
 }
 window.liveTogglePrepMoreMenu=liveTogglePrepMoreMenu;
 
@@ -2783,6 +2791,12 @@ function liveCloseMoreMenusOnEscape(event){
   }
 }
 document.addEventListener('keydown',liveCloseMoreMenusOnEscape);
+document.addEventListener('click',event=>{
+  const target=event.target;
+  if(!target||!target.closest||target.closest('.live-more-wrap'))return;
+  liveToggleMoreMenu(false);
+  liveTogglePrepMoreMenu(false);
+});
 
 function liveDayLabel(slot){
   const n=liveN(slot);
