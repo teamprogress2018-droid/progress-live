@@ -500,6 +500,50 @@ const CAT_COLORS_EX={
 };
 window.CAT_COLORS_EX=CAT_COLORS_EX;
 
+// Krótkie, celowe wejścia do biblioteki. Nie są nową bazą danych ani drugim
+// katalogiem: wskazują wyłącznie ćwiczenia już obecne w bibliotece. Dzięki temu
+// trener najpierw widzi ruchy używane najczęściej w planach, a materiały z Dysku
+// mogą być bezpiecznie przypinane do tych samych nazw bez mnożenia duplikatów.
+const EX_LIBRARY_FOCUS={
+  core:[
+    'Przysiad ze sztangą','Przysiad Goblet','Przysiad bułgarski','Wykrok chodzony','Wyciskanie nogami',
+    'Martwy ciąg klasyczny','Martwy ciąg RDL','Wypychanie bioder (hip thrust)','Wyciskanie sztangi leżąc',
+    'Wyciskanie hantli leżąc','Pompki','Wiosłowanie sztangą','Wiosłowanie hantlem','Podciąganie na drążku',
+    'Ściąganie drążka wyciąg','Wyciskanie żołnierskie OHP','Unoszenie bokiem','Uginanie biceps sztangą',
+    'Prostowanie tricepsa wyciąg','Deska','Martwy robak','Bird dog'
+  ],
+  functional:[
+    'Przysiad Goblet','Wykrok chodzony','Wykrok wsteczny','Wejścia na skrzynię','Martwy ciąg RDL',
+    'Wypychanie bioder (hip thrust)','Pompki','Burpees','Przysiad z wyskokiem','Mountain climbers',
+    'Gąsienica (inchworm)','Chód niedźwiedzia','Chód niedźwiedzia bokiem','Spacer farmera','Spacer walizkowy',
+    'Wyciskanie Pallofa','Deska','Deska z unoszeniem ramienia','Bird dog','Donkey kick','Fire hydrant'
+  ],
+  mobilityCats:['Mobilność','Rozgrzewka','Rozciąganie']
+};
+function exLibraryFocusKind(e,kind){
+  if(!e)return false;
+  if(kind==='__plan_core')return EX_LIBRARY_FOCUS.core.includes(e.name);
+  if(kind==='__functional')return EX_LIBRARY_FOCUS.functional.includes(e.name);
+  if(kind==='__mobility')return EX_LIBRARY_FOCUS.mobilityCats.includes(e.cat);
+  return false;
+}
+function exLibraryFocusRank(e,kind){
+  const list=kind==='__plan_core'?EX_LIBRARY_FOCUS.core:EX_LIBRARY_FOCUS.functional;
+  const rank=list.indexOf(e?.name);
+  return rank<0?Number.MAX_SAFE_INTEGER:rank;
+}
+// Materiał jest kompletny dopiero, gdy ma lekki podgląd karty oraz osobny film
+// techniki. Stary obrazek z katalogu nie ukrywa tego braku — dzięki temu lista
+// prowadzi import z Dysku do kompletnej, spójnej biblioteki.
+function exNeedsCuratedMedia(e){
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(e):'';
+  const technique=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  return !preview||!technique;
+}
+window.EX_LIBRARY_FOCUS=EX_LIBRARY_FOCUS;
+window.exLibraryFocusKind=exLibraryFocusKind;
+window.exNeedsCuratedMedia=exNeedsCuratedMedia;
+
 const DEF_EX=[
 {name:'Wyciskanie sztangi leżąc',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Piersiowy większy, triceps, przedni bark',tip:'Ustaw stabilną pozycję na ławce. Stosuj pełny, kontrolowany i tolerowany zakres — nie pogłębiaj ruchu kosztem barku lub utraty napięcia.',nsca:'Hipertrofia: 3-4x8-12, RPE 8. Siła: 4-6x3-5.',alt:'Wyciskanie hantli, Pompki',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie hantli leżąc',aka:'DB Bench Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (główna), Triceps',tip:'Hantle w jednej linii z klatką.',nsca:'3x10-12.',alt:'Wyciskanie sztangi, Pompki',img:'assets/ex/bench.svg'},
@@ -2718,6 +2762,10 @@ window.exerciseSearchTokens=exerciseSearchTokens;
 window.exerciseMatchesTokens=exerciseMatchesTokens;
 
 function exEmptyListText(){
+  if(exCatFilter==='__plan_core')return 'Brak ćwiczeń z fundamentu planów pasujących do pozostałych filtrów.';
+  if(exCatFilter==='__functional')return 'Brak ćwiczeń funkcjonalnych pasujących do pozostałych filtrów.';
+  if(exCatFilter==='__mobility')return 'Brak ćwiczeń mobilizacyjnych pasujących do pozostałych filtrów.';
+  if(exCatFilter==='__media_gap')return 'Każde ćwiczenie ma już jasny podgląd oraz osobny film techniki.';
   if(exCatFilter==='__fav')return 'Nie masz jeszcze ulubionych ćwiczeń. Kliknij ☆ na karcie ćwiczenia, żeby je tu dodać.';
   if(exCatFilter==='__recent')return 'Tu pojawią się ćwiczenia z Twoich zapisanych planów.';
   return 'Brak ćwiczeń pasujących do filtrów';
@@ -2862,7 +2910,14 @@ function renderLib(){
   const recent=recentExNames(40);
   const catNav=document.getElementById('ex-cat-nav');
   if(catNav){
-    const special=[['__fav','★ Ulubione',all.filter(e=>favNames.includes(e.name)).length,'fav'],['__recent','🕘 Ostatnio używane',recent.length,'recent']];
+    const special=[
+      ['__plan_core','★ Fundament planów',all.filter(e=>exLibraryFocusKind(e,'__plan_core')).length,'plan-core'],
+      ['__functional','⚡ Funkcjonalne',all.filter(e=>exLibraryFocusKind(e,'__functional')).length,'functional'],
+      ['__mobility','🧘 Mobilizacja',all.filter(e=>exLibraryFocusKind(e,'__mobility')).length,'mobility'],
+      ['__media_gap','◌ Materiały do uzupełnienia',all.filter(exNeedsCuratedMedia).length,'media-gap'],
+      ['__fav','★ Ulubione',all.filter(e=>favNames.includes(e.name)).length,'fav'],
+      ['__recent','🕘 Ostatnio używane',recent.length,'recent']
+    ];
     catNav.innerHTML=special.map(([key,label,count,id])=>`<div class="ex-cat-nav-item ex-cat-nav-special${exCatFilter===key?' active':''}" onclick="exCatFilter='${key}';renderLib()">
         <span>${label}</span>
         <span id="ex-nav-count-${id}" style="font-family:'DM Mono',monospace;font-size:10px;">${count}</span>
@@ -2891,7 +2946,11 @@ function renderLib(){
   // filter
   const searchTokens=exerciseSearchTokens(search);
   let filtered=all.filter(e=>{
-    if(exCatFilter==='__fav'){if(!favNames.includes(e.name))return false;}
+    if(exCatFilter==='__plan_core'||exCatFilter==='__functional'||exCatFilter==='__mobility'){
+      if(!exLibraryFocusKind(e,exCatFilter))return false;
+    }
+    else if(exCatFilter==='__media_gap'){if(!exNeedsCuratedMedia(e))return false;}
+    else if(exCatFilter==='__fav'){if(!favNames.includes(e.name))return false;}
     else if(exCatFilter==='__recent'){if(!recent.includes(e.name))return false;}
     else if(exCatFilter!=='Wszystkie'&&e.cat!==exCatFilter)return false;
     if(exEquipFilter&&e.eq!==exEquipFilter)return false;
@@ -2901,6 +2960,7 @@ function renderLib(){
 
   // sort (w widoku „Wszystkie” – wewnątrz każdej kategorii); „Ostatnio używane” zostają od najnowszych
   if(exCatFilter==='__recent')filtered.sort((a,b)=>recent.indexOf(a.name)-recent.indexOf(b.name));
+  else if(exCatFilter==='__plan_core'||exCatFilter==='__functional')filtered.sort((a,b)=>exLibraryFocusRank(a,exCatFilter)-exLibraryFocusRank(b,exCatFilter)||exLibSortFn()(a,b));
   else filtered.sort(exLibSortFn());
 
   const countEl=document.getElementById('ex-results-count');
@@ -5491,6 +5551,14 @@ function setExGifImportRole(i,role){
   renderExGifImportPreview();
 }
 
+/** Ustawia przeznaczenie całej zaznaczonej paczki, np. jasnych GIF-ów do kart. */
+function setAllExGifImportRoles(role){
+  const next=role==='preview'?'preview':'technique';
+  _exGifImportRows.forEach(row=>{if(row.selected&&row.exerciseName)row.role=next;});
+  renderExGifImportPreview();
+  if(typeof notify==='function')notify(next==='preview'?'Jasne materiały ustawione jako podglądy kart':'Materiały ustawione jako filmy techniki');
+}
+
 function openExGifImport(){
   _exGifImportRows=[];
   _exGifImportMode='paste';
@@ -5602,6 +5670,7 @@ window.ensureExGifPasteParsed=ensureExGifPasteParsed;
 window.toggleExGifImportRow=toggleExGifImportRow;
 window.setExGifImportExercise=setExGifImportExercise;
 window.setExGifImportRole=setExGifImportRole;
+window.setAllExGifImportRoles=setAllExGifImportRoles;
 
 function countExercisesWithGif(){
   const all=typeof allExercises==='function'?allExercises():[];

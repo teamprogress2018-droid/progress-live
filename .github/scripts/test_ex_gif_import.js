@@ -17,7 +17,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v109', html.includes('06-inbox-exercises-ai-programs.js?v=109'));
+ok('cache 06 v111', html.includes('06-inbox-exercises-ai-programs.js?v=111'));
 ok('cache 01 v144', html.includes('01-core.js?v=144'));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));
@@ -27,6 +27,9 @@ ok('file accept mp4', /id="exgif-files"[^>]*accept="[^"]*mp4/.test(html));
 ok('ex-img is text', /id="ex-img"[^>]*type="text"/.test(html) || /type="text"[^>]*id="ex-img"/.test(html));
 ok('ov-url is text', /id="ov-url"[^>]*type="text"/.test(html) || /type="text"[^>]*id="ov-url"/.test(html));
 ok('import button label', html.includes('Import GIF / MP4'));
+ok('bulk preview role control', html.includes("setAllExGifImportRoles('preview')"));
+ok('bulk technique role control', html.includes("setAllExGifImportRoles('technique')"));
+ok('bulk role helper', six.includes('function setAllExGifImportRoles(role)'));
 
 const documentStub = {
   querySelectorAll: () => [],
