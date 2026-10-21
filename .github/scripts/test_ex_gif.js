@@ -106,5 +106,7 @@ windowObj.EX_DRIVE_MEDIA_VERSION = 1;
 windowObj.EX_DRIVE_PREVIEW_MANIFEST = {};
 windowObj.EX_PHOTO_MANIFEST = { 'pompki podchwytem': 'https://example.com/old-wrong-photo.jpg' };
 ok('Drive library hides unverified legacy card photo', ctx.exThumbUrl({ name: 'Pompki podchwytem' }) === '');
+windowObj.EX_GIF_MANIFEST = { 'pompki plyometryczne': 'https://example.com/old-dark-plyo.gif' };
+ok('Drive library hides unverified legacy card gif', ctx.exThumbUrl({ name: 'Pompki plyometryczne' }) === '');
 
 process.exit(failed ? 1 : 0);

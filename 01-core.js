@@ -2175,6 +2175,9 @@ function exThumbUrl(exOrName){
   const previewDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(preview);
   if(previewDrive&&typeof googleDriveThumbnailUrl==='function')return googleDriveThumbnailUrl(preview,480);
   if(preview&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(preview):/\.(mp4|webm)(\?|#|$)/i.test(preview)))return preview;
+  // W bibliotece Drive karta ma pokazywać tylko jasny, zweryfikowany podgląd.
+  // Stare GIF-y pozostają materiałem techniki, a nie miniaturą innego wariantu.
+  if(Number(window.EX_DRIVE_MEDIA_VERSION||0)>=1)return '';
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
   const drive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif);
   if(drive){
@@ -2183,10 +2186,6 @@ function exThumbUrl(exOrName){
   }
   if(gif&&!drive&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
-  // Gdy aktywna jest nowa biblioteka z Dysku, nie pokazujemy starego zdjęcia
-  // katalogowego dla ćwiczenia bez pewnego dopasowania. Neutralny placeholder
-  // jest uczciwszy niż fotografia innego wariantu ruchu.
-  if(Number(window.EX_DRIVE_MEDIA_VERSION||0)>=1)return '';
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;
   if(isGenericExerciseMediaName(name))return '';

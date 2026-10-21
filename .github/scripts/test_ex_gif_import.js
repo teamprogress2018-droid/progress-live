@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 06 v111', html.includes('06-inbox-exercises-ai-programs.js?v=111'));
-ok('cache 01 v146', html.includes('01-core.js?v=146&drive-media=2'));
+ok('cache 01 v147', html.includes('01-core.js?v=147&drive-media=3'));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));
 ok('placeholder mp4', html.includes('bench.mp4'));
