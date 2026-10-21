@@ -279,3 +279,20 @@ window.EX_GIF_MANIFEST={
   "przysiad-z-wlasnym-ciezarem-ciala": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view",
   "bodyweight squat": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view"
 };
+
+/*
+ * Zweryfikowane, opisane GIF-y z białego katalogu trenera.
+ * Znacznik #pl-preview mówi bibliotece, aby użyła jasnej miniatury na karcie;
+ * pełny film techniki pozostaje dostępny na żądanie w szczegółach ćwiczenia.
+ */
+Object.assign(window.EX_GIF_MANIFEST,{
+  "butterfly (peck deck)":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
+  "butterfly-peck-deck":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
+  "dipy na poręczach":"https://drive.google.com/file/d/1EQ_BUsSLxKNAA6WeST7lMu6A4PKQ2DR2/view#pl-preview",
+  "dipy-na-poreczach":"https://drive.google.com/file/d/1EQ_BUsSLxKNAA6WeST7lMu6A4PKQ2DR2/view#pl-preview",
+  "pompki":"https://drive.google.com/file/d/1wApO80p7-7oNfgvTIf2f_ZFBHBuzZyK6/view#pl-preview",
+  "wyciskanie sztangi leżąc":"https://drive.google.com/file/d/12FpFiza1zKMruTFKUH0KEUijHclis-7N/view#pl-preview",
+  "wyciskanie-sztangi-lezac":"https://drive.google.com/file/d/12FpFiza1zKMruTFKUH0KEUijHclis-7N/view#pl-preview",
+  "wyciskanie hantli leżąc":"https://drive.google.com/file/d/1Vq3vVDvN4LydaDZLtlEceIoKA_86cigZ/view#pl-preview",
+  "wyciskanie-hantli-lezac":"https://drive.google.com/file/d/1Vq3vVDvN4LydaDZLtlEceIoKA_86cigZ/view#pl-preview"
+});
