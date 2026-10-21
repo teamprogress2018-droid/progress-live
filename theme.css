@@ -531,6 +531,28 @@ html[data-theme="light"] .clive-nav {
   background: rgba(255, 255, 255, 0.98);
   border-top-color: var(--border-subtle);
 }
+/* Dolna nawigacja klienta: czytelny stan aktywny i wygodne cele dotykowe. */
+html[data-theme="light"] .clive-nav-btn {
+  min-height: 56px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  color: var(--text-label);
+  opacity: 1;
+}
+html[data-theme="light"] .clive-nav-btn.active {
+  background: var(--adim);
+  color: var(--accent);
+  font-weight: 700;
+}
+html[data-theme="light"] .clive-nav-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+html[data-theme="light"] .clive-content { overscroll-behavior-y: contain; }
+@media (max-width: 380px) {
+  html[data-theme="light"] .clive-nav { gap: 0; padding-left: 2px; padding-right: 2px; }
+  html[data-theme="light"] .clive-nav-btn { min-width: 0; padding-left: 4px; padding-right: 4px; font-size: 10px; }
+}
 html[data-theme="light"] .clive-more-sheet {
   background: #ffffff;
   border-top-color: var(--border-subtle);
