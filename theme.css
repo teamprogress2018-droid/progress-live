@@ -33,19 +33,19 @@
 html[data-theme="light"] {
   color-scheme: light;
 
-  --bg-main: #f4f7fb;
+  --bg-main: #edf5ff;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
   --bg-input: #ffffff;
-  --bg-hover: #eef2f7;
-  --bg-subtle: #edf2f7;
+  --bg-hover: #f3f7fc;
+  --bg-subtle: #e8f0fa;
 
   --text-primary: #111827;
   --text-secondary: #374151;
   --text-label: #6b7280;
 
-  --border-subtle: #e5e7eb;
-  --border-default: #d1d5db;
+  --border-subtle: #dce6f1;
+  --border-default: #cad8e7;
   --border-focus: var(--accent);
 
   --panel-glow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.04);
@@ -170,7 +170,7 @@ html[data-theme="light"] .academy-safety {
 /* ═══ Szkielet: tło, sidebar, topbar ═══ */
 html[data-theme="light"] body { background: var(--bg-main); }
 html[data-theme="light"] .sidebar {
-  background: linear-gradient(180deg, #e9f2ff 0%, #f5f8ff 48%, #fff1ed 100%);
+  background: linear-gradient(180deg, #fff7f5 0%, #fff0ed 100%);
   border-right: 1px solid var(--border-subtle);
 }
 html[data-theme="light"] .sidebar::after { display: none; }
@@ -1018,13 +1018,14 @@ body.mobile-menu-open { overscroll-behavior: none; }
 
 /* Jasna powierzchnia aplikacji: tło pozostaje widoczne między białymi kartami.
    Dzięki temu nie zamienia się w jednolitą, płaską biel na ekranie LIVE. */
-html[data-theme="light"] .main { background: #edf3fb; }
+html[data-theme="light"] .main { background: #edf5ff; }
 html[data-theme="light"] #screen-clients .cl-main,
 html[data-theme="light"] #screen-clients .cl-everfit,
 html[data-theme="light"] #screen-live .live-floor,
 html[data-theme="light"] #screen-live .live-pane {
-  background: #edf3fb;
+  background: #edf5ff;
 }
+html[data-theme="light"] .cl-subnav { background: #f7faff; }
 html[data-theme="light"] #screen-live .live-side-left,
 html[data-theme="light"] #screen-live .live-ex-col { background: transparent; }
 
