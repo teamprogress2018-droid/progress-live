@@ -3160,7 +3160,16 @@ function renderOwnVideos(){
   const el=document.getElementById('own-videos-grid');
   if(!el)return;
   const list=(window.COACH_VIDEOS||[]).slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  if(!list.length){
+  const drive=[];
+  const seenDrive=new Set();
+  (typeof allExercises==='function'?allExercises():[]).forEach(ex=>{
+    const url=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(ex):'';
+    const premium=!!url&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(url)
+      &&(!window.googleDriveMediaRole||window.googleDriveMediaRole(url)!=='preview');
+    const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(ex.name):String(ex.name||'').toLowerCase();
+    if(premium&&!seenDrive.has(key)){seenDrive.add(key);drive.push({name:ex.name,url});}
+  });
+  if(!list.length&&!drive.length){
     el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px 16px;color:var(--muted);">
       <div style="font-size:32px;margin-bottom:8px;opacity:.4;">▶</div>
       <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak własnych filmów</div>
@@ -3169,7 +3178,7 @@ function renderOwnVideos(){
     </div>`;
     return;
   }
-  el.innerHTML=list.map(v=>{
+  const ownHtml=list.map(v=>{
     const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(v.url):v.url;
     const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(url):'';
     const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(url);
@@ -3187,6 +3196,13 @@ function renderOwnVideos(){
       </div>
     </div>`;
   }).join('');
+  const driveHtml=drive.map(v=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;">
+      <div style="width:100%;min-height:102px;display:grid;place-items:center;margin-bottom:8px;border-radius:8px;background:#111827;color:#fff;font-size:28px;">▶</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(v.name)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Film techniki premium · Google Drive</div>
+      <button type="button" class="btn btn-primary btn-sm" style="width:100%;" onclick="openExDetail(${exJsArg(v.name)});if(typeof setExdTab==='function')setExdTab('preview')">▶ Otwórz technikę</button>
+    </div>`).join('');
+  el.innerHTML=`${driveHtml?`<div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--text);margin:2px 0 0;">Filmy techniki premium z Google Drive</div>${driveHtml}`:''}${ownHtml}`;
 }
 window.renderOwnVideos=renderOwnVideos;
 
