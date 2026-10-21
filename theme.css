@@ -265,6 +265,17 @@ html[data-theme="light"] .cal-week-day-hdr.today {
   color: var(--text-primary);
 }
 html[data-theme="light"] #cal-week-grid { background: #ffffff; }
+/* Potwierdzenie odbytej sesji jest stanem sukcesu, nie kolejnym alarmem/CTA. */
+html[data-theme="light"] #screen-calendar .cal-sala-done {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(6, 118, 71, 0.28);
+  box-shadow: none;
+}
+html[data-theme="light"] #screen-calendar .cal-sala-done:hover {
+  background: #d1fadf;
+  border-color: var(--success);
+}
 
 /* ═══ Pulpit (Strona główna) — jasna, czysta wersja bez zdjęć ═══ */
 html[data-theme="light"] #screen-dashboard { background: var(--bg-main); }
