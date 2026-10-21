@@ -170,7 +170,7 @@ html[data-theme="light"] .academy-safety {
 /* ═══ Szkielet: tło, sidebar, topbar ═══ */
 html[data-theme="light"] body { background: var(--bg-main); }
 html[data-theme="light"] .sidebar {
-  background: linear-gradient(180deg, #fff7f5 0%, #fff0ed 100%);
+  background: linear-gradient(180deg, #dcecff 0%, #edf5ff 48%, #fff0ea 100%);
   border-right: 1px solid var(--border-subtle);
 }
 html[data-theme="light"] .sidebar::after { display: none; }
@@ -182,8 +182,8 @@ html[data-theme="light"] .pl-logo-text span { color: var(--accent); }
 html[data-theme="light"] .pl-logo-text small { color: var(--text-label); }
 html[data-theme="light"] .sidebar-slogan { color: var(--text-secondary); }
 html[data-theme="light"] .sidebar-slogan::after { background: var(--accent); }
-html[data-theme="light"] .nav-item { color: var(--text-secondary); }
-html[data-theme="light"] .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+html[data-theme="light"] .nav-item { color: var(--text-secondary); font-weight: 400; }
+html[data-theme="light"] .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); font-weight: 600; }
 /* Aktywna pozycja: delikatne podświetlenie akcentem, ciemny tekst (czytelne dla każdego akcentu) */
 html[data-theme="light"] .nav-item.active,
 html[data-theme="light"] .sidebar .nav-item.active {
@@ -692,7 +692,7 @@ html[data-theme="light"] #cap-phone-frame > div[style*="height:44px"] { color: v
 .app .sidebar .nav-item,
 .app .sidebar .nav-item.active {
   margin: 2px 12px; width: calc(100% - 24px); padding: 10px 12px; gap: 12px;
-  border-left: 0; border-radius: 10px; font-size: 15px; font-weight: 500; line-height: 1.25;
+  border-left: 0; border-radius: 10px; font-size: 15px; font-weight: 400; line-height: 1.25;
 }
 .app .sidebar .nav-item svg { width: 20px; height: 20px; }
 .nav-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -789,16 +789,18 @@ html[data-theme="light"] .nav-flyout-item.active { color: #ffffff; background: r
 #app-root .cl-subnav .cl-seg-item {
   display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
   padding: 10px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent;
-  color: var(--text-secondary); font: 500 15px/1.3 var(--font-ui); text-align: left; cursor: pointer;
+  color: var(--text-secondary); font: 400 15px/1.3 var(--font-ui); text-align: left; cursor: pointer;
 }
-#app-root .cl-subnav .cl-seg-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+#app-root .cl-subnav .cl-seg-item:hover { background: var(--bg-hover); color: var(--text-primary); font-weight: 600; }
 #app-root .cl-subnav .cl-seg-item.active {
   background: var(--bg-card); border-color: var(--border-subtle); color: var(--text-primary); font-weight: 600;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
 }
 #app-root .cl-subnav .cl-seg-item.empty { color: var(--text-label); }
 .cl-seg-n,
-#app-root .cl-subnav .cl-attn-n { font-family: var(--font-ui); font-size: 14px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+#app-root .cl-subnav .cl-attn-n { font-family: var(--font-ui); font-size: 14px; font-weight: 400; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+#app-root .cl-subnav .cl-seg-item.active .cl-seg-n,
+#app-root .cl-subnav .cl-seg-item.active .cl-attn-n { font-weight: 600; }
 .cl-seg-item.empty .cl-seg-n { color: var(--text-label); font-weight: 500; }
 .cl-subnav-invite { margin-top: auto; padding: 22px 12px 4px; }
 .cl-subnav-invite-lbl { text-align: center; font-size: 12px; font-weight: 600; color: var(--text-label); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px; }
@@ -1025,7 +1027,7 @@ html[data-theme="light"] #screen-live .live-floor,
 html[data-theme="light"] #screen-live .live-pane {
   background: #edf5ff;
 }
-html[data-theme="light"] .cl-subnav { background: #f7faff; }
+html[data-theme="light"] .cl-subnav { background: #fbfbfc; }
 html[data-theme="light"] #screen-live .live-side-left,
 html[data-theme="light"] #screen-live .live-ex-col { background: transparent; }
 
