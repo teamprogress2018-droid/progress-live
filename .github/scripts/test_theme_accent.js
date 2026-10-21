@@ -78,4 +78,10 @@ assert.match(html,/<html lang="pl" data-theme="light">/);
 assert.ok(html.indexOf('theme.css?v=')>html.indexOf('styles.css?v='));
 assert.ok(html.includes("localStorage.getItem('pl_theme_v2')"));
 
+// Wybór akcentu zachowuje natywną obsługę radiogroup: strzałki zmieniają kolor i fokus.
+const portal=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
+assert.ok(portal.includes('function moveAccentPreset(event,current)'));
+assert.ok(portal.includes("['ArrowLeft','ArrowUp','ArrowRight','ArrowDown','Home','End']"));
+assert.ok(portal.includes('tabindex="${p.hex===accentNow?\'0\':\'-1\'}"'));
+
 console.log('OK motyw: jasny domyślnie, presety akcentu z kontrastem, własny HEX, statusy niezależne');

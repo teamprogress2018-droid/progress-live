@@ -4215,7 +4215,7 @@ function renderSettingsContent(t,targetId){
 
       ${card('Kolor akcentu','Kolor przycisków, aktywnej zakładki i wyróżnień. Ostrzeżenia, błędy i statusy mają własne, stałe kolory — nie zmieniają się razem z akcentem.',`
         <div class="accent-presets" role="radiogroup" aria-label="Kolor akcentu">
-          ${presets.map(p=>`<button type="button" class="accent-preset${p.hex===accentNow?' active':''}" role="radio" aria-checked="${p.hex===accentNow}" data-accent="${p.hex}" onclick="setAccentColor('${p.hex}')">
+          ${presets.map(p=>`<button type="button" class="accent-preset${p.hex===accentNow?' active':''}" role="radio" aria-checked="${p.hex===accentNow}" tabindex="${p.hex===accentNow?'0':'-1'}" data-accent="${p.hex}" onclick="setAccentColor('${p.hex}')" onkeydown="moveAccentPreset(event,this)">
             <span class="accent-preset-dot" style="background:${p.hex};"></span>${p.label}
           </button>`).join('')}
         </div>
@@ -4525,6 +4525,22 @@ function accentContrastHTML(hex,mode){
 }
 
 let _accentSaveTimer=null;
+function moveAccentPreset(event,current){
+  const keys=['ArrowLeft','ArrowUp','ArrowRight','ArrowDown','Home','End'];
+  if(!keys.includes(event.key))return;
+  const presets=[...document.querySelectorAll('.accent-preset')];
+  const index=presets.indexOf(current);
+  if(index<0||!presets.length)return;
+  let next=index;
+  if(event.key==='Home')next=0;
+  else if(event.key==='End')next=presets.length-1;
+  else next=(index+(event.key==='ArrowLeft'||event.key==='ArrowUp'?-1:1)+presets.length)%presets.length;
+  event.preventDefault();
+  const button=presets[next];
+  button.focus();
+  setAccentColor(button.dataset.accent);
+}
+window.moveAccentPreset=moveAccentPreset;
 function setAccentColor(color,opts){
   const hex=(typeof normalizeHexColor==='function'?normalizeHexColor(color):color)||null;
   if(!hex){notify('Podaj kolor w formacie HEX, np. #e60000');return false;}
