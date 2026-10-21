@@ -5,10 +5,14 @@
  */
 window.EX_DRIVE_MEDIA_VERSION=1;
 window.EX_DRIVE_PREVIEW_MANIFEST={
+  "dipy na poręczach": "https://drive.google.com/file/d/1xw_EEabe4cULpzVEJmdG0-v83qRQn_pe/view?usp=drive_web#pl-preview",
   "wypychanie bioder (hip thrust)": "https://drive.google.com/file/d/1ZKy9Pkmbi4edLZzQFwgVpIUh6EGCwdjU/view?usp=drive_web#pl-preview",
   "podciągnięcie z wyjściem (muscle-up)": "https://drive.google.com/file/d/1KmMrfDcsBUMDlRkOX3-052ny_7zSN2Sj/view?usp=drive_web#pl-preview",
   "przysiad jednonóż (pistol)": "https://drive.google.com/file/d/1p5Eyk9yHGYFFQtkoManvJnNoMmAMDMpR/view?usp=drive_web#pl-preview",
   "podciąganie podchwytem": "https://drive.google.com/file/d/14RUdzuoYzCrnDvxANKqDie1lH3tDy-QV/view?usp=drive_web#pl-preview",
+  "pompki diamentowe": "https://drive.google.com/file/d/1M9zjkgsZNFYONfiRZThDG2rVfJex4hhU/view?usp=drive_web#pl-preview",
+  "pompki": "https://drive.google.com/file/d/1nUu4xnYNS3x0Gv_8vt67LUdcUDxzm35C/view?usp=drive_web#pl-preview",
+  "pompki plyometryczne": "https://drive.google.com/file/d/15yvXPfuMVtJXN4uDiMueNT0uyAb2TopE/view?usp=drive_web#pl-preview",
   "przysiad bułgarski z wyskokiem": "https://drive.google.com/file/d/1k_E0gBFNdlsb2tdSKNjEzaExwDxvO6a4/view?usp=drive_web#pl-preview",
   "przysiad z wyskokiem": "https://drive.google.com/file/d/1hnh6sguwWyNIQLGYFmX__AtePGxHWZcY/view?usp=drive_web#pl-preview",
   "wspięcia na palce jednonóż": "https://drive.google.com/file/d/1PMfHAXuiRFGSu2f0_LKG1xalYLJzaaMt/view?usp=drive_web#pl-preview",
