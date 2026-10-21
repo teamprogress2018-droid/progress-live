@@ -323,6 +323,11 @@ function toggleClientSubnav(){
   applyClientSubnav(open);
   setClientUiPref('pl_clients_subnav',open?'1':'0');
 }
+function clientFiltersDefaultVisible(){
+  // Na telefonie najpierw pokazujemy wyszukiwarkę i listę. Filtry pozostają
+  // jednym dotknięciem dalej; na większym ekranie zachowujemy pełny widok.
+  return !(window.matchMedia&&window.matchMedia('(max-width: 600px)').matches);
+}
 function applyClientFiltersVisible(show){
   const chips=document.getElementById('cl-filter-chips');
   if(chips)chips.hidden=!show;
@@ -330,6 +335,7 @@ function applyClientFiltersVisible(show){
   if(btn){
     btn.textContent=show?'Ukryj filtry':'Pokaż filtry';
     btn.setAttribute('aria-expanded',show?'true':'false');
+    btn.setAttribute('aria-label',show?'Ukryj filtry listy klientów':'Pokaż filtry listy klientów');
   }
 }
 function toggleClientFilters(){
@@ -375,7 +381,8 @@ function copyClientAppLink(){
 }
 function initClientLayout(){
   applyClientSubnav(clientUiPref('pl_clients_subnav','1')!=='0');
-  applyClientFiltersVisible(clientUiPref('pl_clients_filters','1')!=='0');
+  const savedFilters=clientUiPref('pl_clients_filters','');
+  applyClientFiltersVisible(savedFilters===''?clientFiltersDefaultVisible():savedFilters!=='0');
   applyClientColumns();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initClientLayout);

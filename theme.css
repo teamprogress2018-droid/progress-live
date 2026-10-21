@@ -986,6 +986,10 @@ body.mobile-menu-open { overscroll-behavior: none; }
   #screen-clients .topbar-title { font-size: 17px; }
   #screen-clients .cl-top-icons { min-width: auto; }
   #screen-clients .cl-top-cta { min-height: 44px; padding: 8px 12px; white-space: nowrap; position: relative; z-index: 1; }
+  /* Pierwszy ekran listy: szukaj i działaj. Rozbudowane filtry rozwijają się na żądanie. */
+  html[data-theme] #screen-clients .cl-everfit-filters { min-height: 44px; justify-content: flex-start; }
+  #screen-clients .cl-filters-toggle { min-height: 44px; padding: 8px 10px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-card); }
+  #screen-clients .cl-filters-toggle:hover { text-decoration: none; background: var(--bg-hover); }
   .cl-list-toggle { width: 100%; min-height: 48px; }
 }
 
