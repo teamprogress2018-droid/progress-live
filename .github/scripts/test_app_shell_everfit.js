@@ -49,6 +49,7 @@ ok('nav groups without builder/ai', /navGroupScreens=\{/.test(core) && !/navGrou
 ok('plans library new-plan picker', html.includes('openNewPlanPicker()') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
 ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));
+ok('row actions have accessible client labels', clients.includes('aria-label="Napisz wiadomość do ${escHtml(c.name)}"') && clients.includes('aria-label="Edytuj dane klienta ${escHtml(c.name)}"'));
 ok('neutral client states are not rendered as alarms', clients.includes("if(c.status==='archived'||c.status==='inactive')return'pill-muted'") && clients.includes("if(k==='noemail'||k==='onboarding'||k==='idle')return'pill-muted'"));
 ok('client activity uses semantic, non-alarm tones', clients.includes("tone:'neutral'") && clients.includes('cl-act-${act.tone||\'neutral\'}'));
 ok('no action button spam in rows', !/quickStartWorkout\(event/.test(clients.slice(clients.indexOf('function renderClients'), clients.indexOf('function openClientModal'))));

@@ -684,8 +684,8 @@ function renderClients(){
     const hasAttention=Object.values(clientAttentionFlags).some(Boolean);
     const attnLine=attnFlag?`<div class="cl-attn-reason">⚠ ${escHtml(attnFlag.reason)}</div>`:'';
     const msgBtn=archived
-      ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć">↩</button>`
-      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość">💬</button>`;
+      ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć klienta" aria-label="Przywróć klienta ${escHtml(c.name)}">↩</button>`
+      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Napisz wiadomość" aria-label="Napisz wiadomość do ${escHtml(c.name)}">💬</button>`;
     return `<div class="tbl-row cl-everfit-row${hasAttention?' has-attention':''}" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
     <div class="cl-name-cell">
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
@@ -694,10 +694,10 @@ function renderClients(){
         <div class="cl-sub">${c.appJoined?'📱 w aplikacji · ':''}${escHtml(c.email||'bez e-maila')}${duplicateName?` · <button type="button" class="cl-dup-btn" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ możliwy duplikat — Scal</button>`:''}</div>
         ${attnLine}
       </div>
-      <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
+      <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta" aria-label="Edytuj dane klienta ${escHtml(c.name)}">Edycja</button>
     </div>
     <div class="cl-msg-cell" onclick="event.stopPropagation()">${msgBtn}</div>
-    <div class="cl-act cl-act-${act.tone||'neutral'}">${act.label}</div>
+    <div class="cl-act cl-act-${act.tone||'neutral'}" title="${escHtml(act.label)}">${act.label}</div>
     <div>${clPctCell(t7)}</div>
     <div>${clPctCell(t30)}</div>
     <div>${clPctCell(tasks7,'brak zadań')}</div>
