@@ -4084,6 +4084,8 @@ function renderCPMetrics(c){
       </div>
     </div>
 
+    <div class="cp-metrics-layout">
+      <section class="cp-metrics-summary" aria-label="Ostatni pomiar">
     ${activeGroup&&last?`<div class="card-sm" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">${activeGroup.icon}</span>
@@ -4110,8 +4112,10 @@ function renderCPMetrics(c){
         }).join('')}
       </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':''}</div>`}
     </div>`:''}
+      </section>
 
-    <div style="margin-top:8px;">
+      <section class="cp-metrics-history" aria-label="Historia pomiarów">
+    <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div class="cp-section-title" style="margin:0;">HISTORIA — ${activeGroup?escHtml(activeGroup.name):''}</div>
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisów</span>
@@ -4134,6 +4138,8 @@ function renderCPMetrics(c){
             </div>`;
           }).join('')}
         </div>`}
+    </div>
+      </section>
     </div>
     <div class="cp-crosslink-note">
       Rekordy, tonaż i regularność treningów są w zakładce <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Postępy</button>

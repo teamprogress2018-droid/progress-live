@@ -23,6 +23,7 @@ ok('progress analytics hub', /POSTĘPY/.test(progressFn) && /Realizacja planu ·
 ok('progress explains calendar-only entries', /same terminy nie są liczone jako wykonany trening/.test(progressFn));
 ok('progress has focused filters', /Podsumowanie/.test(progressFn) && /Trening/.test(progressFn) && /Check-in/.test(progressFn) && /Nawyki/.test(progressFn));
 ok('metrics is single measurement history', /Jedyne miejsce do dodawania, edycji i przeglądania historii pomiarów/.test(metricsFn));
+ok('metrics use desktop summary and history layout', /cp-metrics-layout/.test(metricsFn) && /cp-metrics-summary/.test(metricsFn) && /cp-metrics-history/.test(metricsFn));
 ok('index has progress tab', /cpt-progress/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
 ok('setCPTab wires progress', /t==='progress'/.test(fs.readFileSync(path.join(__dirname, '..', '..', '07-forms-metrics-calculator.js'), 'utf8')));
 ok('index slim header', /cp-hdr-actions/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));

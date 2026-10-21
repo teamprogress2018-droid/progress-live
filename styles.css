@@ -2544,6 +2544,10 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cp-metrics-chip.active{border-color:var(--accent);background:var(--adim);}
 .cp-metrics-chip span{color:var(--muted);font-family:'DM Mono',monospace;}
 .cp-metrics-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.cp-metrics-layout{display:grid;grid-template-columns:minmax(280px,.86fr) minmax(0,1.14fr);gap:16px;align-items:start;}
+.cp-metrics-summary,.cp-metrics-history{min-width:0;}
+.cp-metrics-history{padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r2);box-shadow:var(--panel-glow);}
+@media(max-width:720px){.cp-metrics-layout{grid-template-columns:1fr;gap:12px;}.cp-metrics-history{padding:12px;}}
 .cp-cal-day{min-height:120px;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--s2);cursor:pointer;}
 .cp-cal-day.is-today{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.04);}
 .cp-cal-day.is-past{background:rgba(0,0,0,0.1);}
