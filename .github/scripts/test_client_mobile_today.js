@@ -20,4 +20,5 @@ ok('client sign-in has an explicit mobile-app entry label',app.includes("Aplikac
 ok('the invite explains how to keep the client app on an iPhone home screen',portal.includes('Udostępnij → Do ekranu początkowego'));
 ok('more navigation restores focus and closes with Escape',app.includes("function closeCliveMoreNav(returnFocus)")&&app.includes("event.key==='Escape'")&&app.includes("if(first)first.focus()"));
 ok('more navigation closes after tapping outside and has a screen-reader label',app.includes("target.closest('#clive-more-sheet,#clive-bn-more')")&&index.includes('aria-label="Pozostałe obszary aplikacji"'));
+ok('bottom navigation supports predictable keyboard movement without changing the selected screen',app.includes('function moveClientLiveNav(event,current)')&&app.includes("['ArrowLeft','ArrowRight','Home','End']")&&app.includes('buttons[next].focus()')&&app.includes('onkeydown="moveClientLiveNav(event,this)"'));
 if(failures)process.exit(1);

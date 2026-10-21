@@ -368,15 +368,31 @@ function renderClientLiveNav(navScreens,moreScreens,scr){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s));
   const btn=(s,extra)=>{
     const on=s.id===scr;
-    return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
+    return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
   };
   const moreActive=moreScreens.some(s=>s.id===scr);
   const sheetOpen=sheet&&!sheet.hidden;
   nav.innerHTML=navScreens.map(s=>btn(s)).join('')+
-    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" onclick="toggleCliveMoreNav()"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
+    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" aria-haspopup="true" onclick="toggleCliveMoreNav()" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
   if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,'closeCliveMoreNav();')).join('');
 }
 window.renderClientLiveNav=renderClientLiveNav;
+
+/** Strzałki umożliwiają przejście po dolnym pasku bez odbierania Enterowi roli akcji. */
+function moveClientLiveNav(event,current){
+  const keys=['ArrowLeft','ArrowRight','Home','End'];
+  if(!keys.includes(event.key))return;
+  const buttons=[...document.querySelectorAll('#clive-nav .clive-nav-btn')];
+  const index=buttons.indexOf(current);
+  if(index<0||!buttons.length)return;
+  let next=index;
+  if(event.key==='Home')next=0;
+  else if(event.key==='End')next=buttons.length-1;
+  else next=(index+(event.key==='ArrowLeft'?-1:1)+buttons.length)%buttons.length;
+  event.preventDefault();
+  buttons[next].focus();
+}
+window.moveClientLiveNav=moveClientLiveNav;
 
 function updateClientLiveNavBadges(c){
   const cid=c&&c.id;
