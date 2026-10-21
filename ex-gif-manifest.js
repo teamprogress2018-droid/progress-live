@@ -272,5 +272,8 @@ window.EX_GIF_MANIFEST={
   "wspięcia na palce stojąc": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
   "wspiecia-na-palce-stojac": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
   "standing calf raise": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
-  "standing-calf-raise": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4"
+  "standing-calf-raise": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
+  "przysiad z własnym ciężarem": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view",
+  "przysiad-z-wlasnym-ciezarem": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view",
+  "bodyweight squat": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view"
 };

@@ -1155,9 +1155,40 @@ function normalizeCoachVideoUrl(raw){
 }
 window.normalizeCoachVideoUrl=normalizeCoachVideoUrl;
 
+/** Linki z Dysku Google nie kończą się na .mp4, mimo że wskazują na film. */
+function googleDriveFileId(url){
+  const raw=String(url||'').trim();
+  if(!raw)return '';
+  let parsed;
+  try{parsed=new URL(raw);}catch(e){return '';}
+  const host=String(parsed.hostname||'').toLowerCase();
+  if(!/(^|\.)drive\.google\.com$/.test(host))return '';
+  const fromPath=(parsed.pathname||'').match(/\/file\/d\/([A-Za-z0-9_-]{10,})/i);
+  const id=(fromPath&&fromPath[1])||parsed.searchParams.get('id')||'';
+  return /^[A-Za-z0-9_-]{10,}$/.test(id)?id:'';
+}
+window.googleDriveFileId=googleDriveFileId;
+function isGoogleDriveMediaUrl(url){return !!googleDriveFileId(url);}
+window.isGoogleDriveMediaUrl=isGoogleDriveMediaUrl;
+/** #pl-preview oznacza jasny materiał do karty; zwykły link Drive jest techniką na żądanie. */
+function googleDriveMediaRole(url){return /(?:[?#&]pl-preview(?:[=&]|$)|[?#&]pl-media=preview(?:[&#]|$))/i.test(String(url||''))?'preview':'technique';}
+window.googleDriveMediaRole=googleDriveMediaRole;
+function googleDrivePreviewUrl(url){
+  const id=googleDriveFileId(url);
+  return id?'https://drive.google.com/file/d/'+id+'/preview':'';
+}
+window.googleDrivePreviewUrl=googleDrivePreviewUrl;
+function googleDriveThumbnailUrl(url,size){
+  const id=googleDriveFileId(url);
+  return id?'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w'+Math.max(160,Math.min(Number(size)||480,1200)):'';
+}
+window.googleDriveThumbnailUrl=googleDriveThumbnailUrl;
+
 function coachVideoEmbed(url){
   const u=normalizeCoachVideoUrl(url);
   if(!u)return '';
+  const drivePreview=googleDrivePreviewUrl(u);
+  if(drivePreview)return drivePreview;
   let id='';
   let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
   if(m)id=m[1];
@@ -2088,7 +2119,12 @@ function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
-  if(gif&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
+  const drive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif);
+  if(drive){
+    const role=typeof googleDriveMediaRole==='function'?googleDriveMediaRole(gif):'technique';
+    return role==='preview'&&typeof googleDriveThumbnailUrl==='function'?googleDriveThumbnailUrl(gif,480):'';
+  }
+  if(gif&&!drive&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;
@@ -2245,6 +2281,11 @@ function exTechniqueMediaHtml(media,opts){
   const cap=showCap?`<div class="cw-technique-cap">${alt}</div>`:'';
   const imgAlt=showCap?'':alt;
   const onErr='this.onerror=null;if(typeof showTechniqueMediaUnavailable===\'function\')showTechniqueMediaUnavailable(this);';
+  const drivePreview=typeof googleDrivePreviewUrl==='function'?googleDrivePreviewUrl(gif):'';
+  if(drivePreview){
+    if(compact)return `<div class="cw-technique-media cw-technique-gif is-compact cw-technique-drive-compact" title="Film techniki z Google Drive" aria-label="Film techniki z Google Drive">▶</div>`;
+    return `<div class="cw-technique-media cw-technique-gif cw-technique-drive"><iframe class="${cls}" src="${escHtml(drivePreview)}" title="${alt}" allow="autoplay" allowfullscreen loading="lazy"></iframe>${cap}</div>`;
+  }
   if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
     const poster=String((media&&media.poster)||'').trim();
     const posterAttr=poster&&isSafeMediaUrl(poster)&&!isVideoMediaUrl(poster)&&!sameMediaUrl(poster,gif)?` poster="${escHtml(poster)}"`:'';

@@ -2710,11 +2710,16 @@ window.exDelBtnHtml=exDelBtnHtml;
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
   const gif=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
-  const isVid=!!gif;
+  // Materiał premium z Drive jest dostępny po kliknięciu „FILM”, ale nie robi
+  // ciemnej, ciężkiej miniatury na każdej karcie biblioteki.
+  const isDriveTechnique=!!gif&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif)
+    &&(!window.googleDriveMediaRole||window.googleDriveMediaRole(gif)!=='preview');
+  const isVid=!!gif&&!isDriveTechnique;
+  const hasTechnique=!!gif;
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
   const part=e.cat||'Ćwiczenie';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
-  const filmBadge=isVid?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
+  const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
   if(thumb){
     media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
@@ -4901,7 +4906,7 @@ function splitPasteNameUrl(line){
   }
   const assets=s.match(/^(.*?)\s+((?:assets\/|\.?\.?\/)[^\s].+\.(?:gif|webp|mp4|webm|png|jpe?g|svg))$/i);
   if(assets)return{name:assets[1].trim(),url:assets[2].trim()};
-  if(/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(s))return{name:'',url:s};
+  if(/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(s)||(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(s)))return{name:'',url:s};
   return{name:s,url:''};
 }
 window.splitPasteNameUrl=splitPasteNameUrl;
@@ -4927,7 +4932,7 @@ function parseExGifBulkPaste(text){
     const parts=splitPasteNameUrl(line);
     let name=parts.name;
     let url=parts.url;
-    if(!url&&name&&(/^(https?:\/\/|assets\/)/i.test(name)||/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(name))){url=normalizeImportedMediaUrl(name);name='';}
+    if(!url&&name&&(/^(https?:\/\/|assets\/)/i.test(name)||/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(name)||(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(name)))){url=normalizeImportedMediaUrl(name);name='';}
     if(!url)return;
     url=normalizeImportedMediaUrl(url);
     const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));

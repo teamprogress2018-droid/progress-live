@@ -3697,15 +3697,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button type="button" class="btn btn-sm btn-ghost" id="exgif-tab-files" onclick="setExGifImportTab('files')">📁 Pliki z dysku</button>
       </div>
       <div id="exgif-panel-paste">
-        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;">Wklej <b>całą listę naraz</b> — jedna linia = jedno ćwiczenie. Działa GIF, WEBP, <b>MP4</b> i WEBM (link https). Potem <b>Sprawdź listę</b> i <b>Zapisz masowo</b>.</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;">Wklej <b>całą listę naraz</b> — jedna linia = jedno ćwiczenie. Działa GIF, WEBP, <b>MP4</b>, WEBM oraz link do pliku <b>Google Drive</b>. Potem <b>Sprawdź listę</b> i <b>Zapisz masowo</b>.</div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;font-family:'DM Mono',monospace;background:rgba(0,0,0,0.25);padding:10px 12px;border-radius:8px;">
           Butterfly (peck deck) | https://twoj-serwer.pl/filmy/butterfly.mp4<br>
+          Przysiad z własnym ciężarem | https://drive.google.com/file/d/ID_PLIKU/view<br>
           Nazwa ćwiczenia | https://link-do-filmu.mp4<br>
           # linie z # są ignorowane
         </div>
         <div class="form-field">
           <label class="form-lbl">Lista ćwiczeń + linki (wklej tutaj)</label>
           <textarea class="form-textarea" id="exgif-paste" rows="12" placeholder="Wyciskanie sztangi leżąc | https://twoj-serwer.pl/filmy/bench.mp4&#10;Podciąganie na drążku | https://.../pull.gif&#10;Martwy ciąg klasyczny | https://.../deadlift.mp4"></textarea>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px;">Przy Google Drive zachowaj nazwę ćwiczenia po lewej stronie. Zwykły link staje się filmem „Technika” na żądanie; dla jasnego obrazu karty dopisz na końcu <code>#pl-preview</code>. Klient otworzy film, gdy plik ma dostęp „Każdy, kto ma link — wyświetlanie”.</div>
         </div>
         <button type="button" class="btn btn-ghost btn-sm" onclick="onExGifBulkPastePreview()">Sprawdź listę</button>
       </div>
@@ -4814,9 +4816,9 @@ async function load(session=captureTenantSession()){
 
 </script>
 
-<script src="ex-gif-manifest.js?v=36"></script>
+<script src="ex-gif-manifest.js?v=37"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=139&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
+<script src="01-core.js?v=141&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=111"></script>
 <script src="books-kb.js?v=2"></script>
@@ -4827,7 +4829,7 @@ async function load(session=captureTenantSession()){
 <script src="05-clients-builder-plans-calendar.js?v=119&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=103&exercise-preview=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=105&exercise-preview=1"></script>
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=93&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=57&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
