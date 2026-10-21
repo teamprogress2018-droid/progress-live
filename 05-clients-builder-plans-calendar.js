@@ -346,11 +346,13 @@ function applyClientFiltersToggleLabel(show){
   const btn=document.getElementById('cl-filters-toggle');
   if(!btn)return;
   const active=clientActiveFilterLabels();
+  const clear=document.getElementById('cl-filters-clear');
   btn.textContent=show?'Ukryj filtry':(active.length?`Filtry (${active.length})`:'Pokaż filtry');
   btn.setAttribute('aria-expanded',show?'true':'false');
   btn.setAttribute('aria-label',show
     ?'Ukryj filtry listy klientów'
     :(active.length?`Pokaż filtry listy klientów. Aktywne filtry: ${active.join(', ')}.`:'Pokaż filtry listy klientów'));
+  if(clear)clear.hidden=!active.length;
 }
 function applyClientFiltersVisible(show){
   const chips=document.getElementById('cl-filter-chips');
@@ -362,6 +364,13 @@ function toggleClientFilters(){
   const show=!!(chips&&chips.hidden);
   applyClientFiltersVisible(show);
   setClientUiPref('pl_clients_filters',show?'1':'0');
+}
+function clearClientFilters(){
+  clientSegment='all';
+  clientAttention=null;
+  clientGoalFilter='';
+  renderClientFilters();
+  renderClients();
 }
 function focusClientSearch(){
   const inp=document.getElementById('client-search');
@@ -408,6 +417,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 else initClientLayout();
 window.toggleClientSubnav=toggleClientSubnav;
 window.toggleClientFilters=toggleClientFilters;
+window.clearClientFilters=clearClientFilters;
 window.focusClientSearch=focusClientSearch;
 window.toggleClientMenu=toggleClientMenu;
 window.closeClientMenus=closeClientMenus;

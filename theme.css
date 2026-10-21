@@ -833,6 +833,9 @@ html[data-theme] #screen-clients .cl-everfit-filters {
 .cl-chip-select:focus { outline: none; }
 .cl-filters-toggle { border: none; background: transparent; color: var(--accent); font: 600 13px var(--font-ui); padding: 8px 6px; cursor: pointer; }
 .cl-filters-toggle:hover { text-decoration: underline; }
+.cl-filters-clear { border: none; background: transparent; color: var(--text-secondary); font: 600 13px var(--font-ui); padding: 8px 6px; cursor: pointer; }
+.cl-filters-clear:hover { color: var(--text-primary); text-decoration: underline; }
+.cl-filters-clear[hidden] { display: none; }
 .cl-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px 10px; flex-wrap: wrap; }
 .cl-search-wrap { position: relative; flex: 0 1 300px; min-width: 180px; color: var(--text-label); }
 .cl-search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
@@ -990,6 +993,7 @@ body.mobile-menu-open { overscroll-behavior: none; }
   html[data-theme] #screen-clients .cl-everfit-filters { min-height: 44px; justify-content: flex-start; }
   #screen-clients .cl-filters-toggle { min-height: 44px; padding: 8px 10px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-card); }
   #screen-clients .cl-filters-toggle:hover { text-decoration: none; background: var(--bg-hover); }
+  #screen-clients .cl-filters-clear { min-height: 44px; padding: 8px 10px; }
   .cl-list-toggle { width: 100%; min-height: 48px; }
 }
 
