@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
 }
 
 ok('cache manifest v41', html.includes('ex-gif-manifest.js?v=41'));
-ok('cache Drive v2', html.includes('ex-drive-media-manifest.js?v=2'));
-ok('cache 01 v148', html.includes('01-core.js?v=148&drive-media=4'));
+ok('cache Drive v3', html.includes('ex-drive-media-manifest.js?v=3'));
+ok('cache 01 v149', html.includes('01-core.js?v=149&drive-media=5'));
 ok('cache 06 v111', html.includes('06-inbox-exercises-ai-programs.js?v=111'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -109,6 +109,7 @@ ok(
   hit('Wyciskanie sztangi wąskim chwytem (Close-Grip Barbell Bench Press).mp4') !== 'Wyciskanie sztangi leżąc'
 );
 ok('dips', hit('Dipy na poręczach (Parallel Bar Dips).mp4') === 'Dipy na poręczach');
+ok('machine shrugs Polish maps', hit('Szrugsy na maszynie (1).gif') === 'Unoszenie barków na maszynie');
 ok('generic chest name', ctx.isGenericExerciseMediaName('Klatka piersiowa') === true);
 ok('dips name not generic', ctx.isGenericExerciseMediaName('Dipy na poręczach') === false);
 ok(

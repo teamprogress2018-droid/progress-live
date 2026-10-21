@@ -70,6 +70,7 @@ window.EX_DRIVE_PREVIEW_MANIFEST={
   "rotacja zewnętrzna": "https://drive.google.com/file/d/1sCj5Kn-4AnFsKv6q3gUkAN1RvvE-v0Jk/view?usp=drive_web#pl-preview",
   "wyciskanie landmine": "https://drive.google.com/file/d/1dzym4CmhL0MzaRPpD97UAbHBofZac68y/view?usp=drive_web#pl-preview",
   "ściąganie do twarzy (face pull)": "https://drive.google.com/file/d/1NjE5cDOC1dk4N0gYz1j7hl_QGa1c89uF/view?usp=drive_web#pl-preview",
+  "unoszenie barków na maszynie": "https://drive.google.com/file/d/1ONW6lG8234uvWCxq0To5krPKdXSIZ9m7/view?usp=drive_web#pl-preview",
   "wiosłowanie hantlem": "https://drive.google.com/file/d/1gjYTXVb_Uif_7dclYY2ufu6ivho8wJnc/view?usp=drive_web#pl-preview",
   "wiosłowanie na maszynie": "https://drive.google.com/file/d/1IL1qs2kf0iuUW1T3w_UJbyn_KQ7Po8PX/view?usp=drive_web#pl-preview",
   "wiosłowanie t-bar": "https://drive.google.com/file/d/1QCFXDvpwpn8ELCfhyB3O5a-8g7HgNCZj/view?usp=drive_web#pl-preview",

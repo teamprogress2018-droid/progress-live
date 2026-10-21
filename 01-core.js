@@ -1827,6 +1827,7 @@ const EX_MEDIA_FILE_ALIASES={
   'Pompki na kolanach':{include:[/knee push[- ]?up/i,/kneeling push[- ]?up/i,/pompki? na kolanach/i],exclude:[/incorrect/i,/błędn/i]},
   'Pompki plyometryczne':{include:[/plyo(?:metric)? push[- ]?up/i,/pompk[ai] pli?ometryczn/i,/pompka z klaśnięciem/i],exclude:[/pike/i,/nogami na podwyższeniu/i]},
   'Pompki z nogami na podwyższeniu':{include:[/feet elevated push[- ]?up/i,/pompka z nogami na podwyższeniu/i],exclude:[/plyo/i,/pliometrycz/i,/klaśni/i]},
+  'Unoszenie barków na maszynie':{include:[/machine shrug/i,/shrugs? na maszynie/i,/szrugsy na maszynie/i],exclude:[/suwnic/i,/smith/i,/hantl/i,/dumbbell/i,/sztang/i,/barbell/i]},
   'Dipy na poręczach':{include:[/parallel bar dips/i,/dips na poręczach/i],exclude:[/bench dip/i,/ławc/i]},
   'Dipy na ławce':{include:[/bench dips?/i],exclude:[/parallel bar/i,/incline/i]},
   'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/odwrotn/i,/rear delt/i,/pulldown/i,/lat pulldown/i,/cable/i,/lunge/i]},
