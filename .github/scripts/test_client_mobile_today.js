@@ -18,4 +18,5 @@ ok('the swipe action has a touch-only visible reveal and reduced-motion support'
 ok('the coach can apply a reversible minimal client navigation preset',portal.includes('function applyClientMinimalPreset()')&&portal.includes("const allowed=new Set(['home','plan','messages','progress','profile'])")&&portal.includes('Ustaw prosty widok klienta'));
 ok('client sign-in has an explicit mobile-app entry label',app.includes("Aplikacja klienta — zaloguj się i od razu zobacz swój trening")&&index.includes("const idleLabel=btn.textContent||'Zaloguj się';"));
 ok('the invite explains how to keep the client app on an iPhone home screen',portal.includes('Udostępnij → Do ekranu początkowego'));
+ok('more navigation restores focus and closes with Escape',app.includes("function closeCliveMoreNav(returnFocus)")&&app.includes("event.key==='Escape'")&&app.includes("if(first)first.focus()"));
 if(failures)process.exit(1);

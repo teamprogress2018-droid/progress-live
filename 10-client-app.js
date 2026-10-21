@@ -374,7 +374,7 @@ function renderClientLiveNav(navScreens,moreScreens,scr){
   const sheetOpen=sheet&&!sheet.hidden;
   nav.innerHTML=navScreens.map(s=>btn(s)).join('')+
     (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" onclick="toggleCliveMoreNav()"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
-  if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,"document.getElementById('clive-more-sheet').hidden=true;")).join('');
+  if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,'closeCliveMoreNav();')).join('');
 }
 window.renderClientLiveNav=renderClientLiveNav;
 
@@ -414,11 +414,28 @@ function setClientLiveScreen(scr){
 function toggleCliveMoreNav(){
   const sheet=document.getElementById('clive-more-sheet');
   if(!sheet)return;
-  sheet.hidden=!sheet.hidden;
+  const opening=sheet.hidden;
+  sheet.hidden=!opening;
   const b=document.getElementById('clive-bn-more');
-  if(b)b.setAttribute('aria-expanded',sheet.hidden?'false':'true');
+  if(b)b.setAttribute('aria-expanded',opening?'true':'false');
+  if(opening){
+    const first=sheet.querySelector('button');
+    if(first)first.focus();
+  }
 }
 window.toggleCliveMoreNav=toggleCliveMoreNav;
+function closeCliveMoreNav(returnFocus){
+  const sheet=document.getElementById('clive-more-sheet');
+  const b=document.getElementById('clive-bn-more');
+  if(!sheet||sheet.hidden)return;
+  sheet.hidden=true;
+  if(b)b.setAttribute('aria-expanded','false');
+  if(returnFocus&&b)b.focus();
+}
+window.closeCliveMoreNav=closeCliveMoreNav;
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeCliveMoreNav(true);
+});
 
 function capGoScreen(scr){
   if(window._clientAppMode){setClientLiveScreen(scr);return;}
