@@ -218,11 +218,12 @@ function renderClientFilters(attnMap){
     const on=clientSegment===s.id&&!clientAttention;
     return `<button type="button" class="cl-seg-item${on?' active':''}" aria-pressed="${on}" onclick="pickClientSegment('${s.id}')"><span>${s.label}</span><span class="cl-seg-n">${s.count}</span></button>`;
   }).join('');
+  syncClientFiltersToggle();
 }
 function setClientSegment(seg){clientSegment=seg;renderClientFilters();renderClients();}
 /** Panel widoków i menu „Klienci”: wybór widoku zdejmuje filtr „Wymaga uwagi”. */
 function pickClientSegment(seg){clientAttention=null;setClientSegment(seg);}
-function setClientGoalFilter(goal){clientGoalFilter=goal||'';renderClients();}
+function setClientGoalFilter(goal){clientGoalFilter=goal||'';syncClientFiltersToggle();renderClients();}
 function openClientSegment(seg){
   if(typeof closeNavFlyouts==='function')closeNavFlyouts();
   goTo('clients');
@@ -328,15 +329,33 @@ function clientFiltersDefaultVisible(){
   // jednym dotknięciem dalej; na większym ekranie zachowujemy pełny widok.
   return !(window.matchMedia&&window.matchMedia('(max-width: 600px)').matches);
 }
+function clientActiveFilterLabels(){
+  const labels=[];
+  if(clientSegment!=='all')labels.push(CLIENT_SEGMENT_TITLES[clientSegment]||'status');
+  const attention=clientAttention&&CLIENT_ATTENTION_FILTERS.find(filter=>filter.id===clientAttention);
+  if(attention)labels.push(attention.label);
+  if(clientGoalFilter)labels.push(clientGoalFilter);
+  return labels;
+}
+function syncClientFiltersToggle(){
+  const chips=document.getElementById('cl-filter-chips');
+  if(!chips)return;
+  applyClientFiltersToggleLabel(!chips.hidden);
+}
+function applyClientFiltersToggleLabel(show){
+  const btn=document.getElementById('cl-filters-toggle');
+  if(!btn)return;
+  const active=clientActiveFilterLabels();
+  btn.textContent=show?'Ukryj filtry':(active.length?`Filtry (${active.length})`:'Pokaż filtry');
+  btn.setAttribute('aria-expanded',show?'true':'false');
+  btn.setAttribute('aria-label',show
+    ?'Ukryj filtry listy klientów'
+    :(active.length?`Pokaż filtry listy klientów. Aktywne filtry: ${active.join(', ')}.`:'Pokaż filtry listy klientów'));
+}
 function applyClientFiltersVisible(show){
   const chips=document.getElementById('cl-filter-chips');
   if(chips)chips.hidden=!show;
-  const btn=document.getElementById('cl-filters-toggle');
-  if(btn){
-    btn.textContent=show?'Ukryj filtry':'Pokaż filtry';
-    btn.setAttribute('aria-expanded',show?'true':'false');
-    btn.setAttribute('aria-label',show?'Ukryj filtry listy klientów':'Pokaż filtry listy klientów');
-  }
+  applyClientFiltersToggleLabel(show);
 }
 function toggleClientFilters(){
   const chips=document.getElementById('cl-filter-chips');
