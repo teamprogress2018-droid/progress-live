@@ -2121,7 +2121,7 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   #screen-calendar .topbar-actions{width:100%;display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;}
   #screen-calendar .topbar-actions .btn{min-height:44px;padding:8px 10px;}
   #screen-calendar .cal-layout{display:block!important;overflow-y:auto!important;}
-  #screen-calendar #cal-week-view{min-height:520px;overflow:hidden!important;}
+  #screen-calendar #cal-week-view{height:clamp(440px,calc(100dvh - 170px),620px);min-height:440px;overflow:hidden!important;}
   #screen-calendar #cal-week-track{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:thin;}
   #screen-calendar #cal-week-track:focus-visible{outline:3px solid rgba(var(--accent-rgb),.45);outline-offset:-3px;}
   #screen-calendar #cal-week-header,#screen-calendar #cal-week-scroll,#screen-calendar #cal-week-grid{width:720px!important;min-width:720px!important;}

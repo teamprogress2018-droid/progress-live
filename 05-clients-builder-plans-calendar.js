@@ -4469,7 +4469,15 @@ function renderCalWeek(){
 
   const scroll=document.getElementById('cal-week-scroll');
   if(scroll){
-    const lab=grid.querySelector('.cal-hour-label[data-cal-hour="8"]')||grid.querySelector('.cal-hour-label[data-cal-hour="7"]');
+    // Na telefonie zaczynamy tuż przed pierwszą zaplanowaną sesją. Dzięki temu
+    // trener nie musi przewijać od 06:00, gdy pierwszy termin jest w południe.
+    const phone=typeof matchMedia==='function'&&matchMedia('(max-width:600px)').matches;
+    const scheduledHour=phone?byDay.reduce((first,day)=>day.list.reduce((current,s)=>{
+      const hour=calWeekHourBucket(s,h0,h1);
+      return current==null||hour<current?hour:current;
+    },first),null):null;
+    const targetHour=phone&&scheduledHour!=null?Math.max(h0,scheduledHour-1):8;
+    const lab=grid.querySelector('.cal-hour-label[data-cal-hour="'+targetHour+'"]')||grid.querySelector('.cal-hour-label[data-cal-hour="8"]')||grid.querySelector('.cal-hour-label[data-cal-hour="7"]');
     if(lab)scroll.scrollTop=Math.max(0,lab.offsetTop-8);
   }
 
