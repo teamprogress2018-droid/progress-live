@@ -302,7 +302,7 @@ Object.assign(window.EX_GIF_MANIFEST,{
  * starszym polem img/gif zapisanym przy ćwiczeniu, a film techniki zachowuje
  * swoje źródło w EX_GIF_MANIFEST. Dodawaj tu wyłącznie zweryfikowane pliki.
  */
-window.EX_PREVIEW_REMOTE=Object.assign(window.EX_PREVIEW_REMOTE||{}, {
+window.EX_PREVIEW_FALLBACKS=Object.assign(window.EX_PREVIEW_FALLBACKS||{}, {
   "butterfly (peck deck)":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
   "butterfly-peck-deck":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
   "dipy na poręczach":"https://drive.google.com/file/d/1EQ_BUsSLxKNAA6WeST7lMu6A4PKQ2DR2/view#pl-preview",

@@ -2054,10 +2054,13 @@ function assignedExPreviewUrl(exOrName){
     const own=String(ex.previewUrl||ex.preview||ex.cardImage||'').trim();
     if(own&&isSafeMediaUrl(own))return own;
   }
+  const previewMaps=[window.EX_PREVIEW_REMOTE,window.EX_PREVIEW_FALLBACKS];
   for(const name of exerciseMediaCandidateNames(ex||exOrName)){
-    const remote=mediaMapGet(window.EX_PREVIEW_REMOTE,name);
-    const url=normalizeRemoteExerciseMediaUrl(remote);
-    if(url&&isSafeMediaUrl(url))return url;
+    for(const previewMap of previewMaps){
+      const remote=mediaMapGet(previewMap,name);
+      const url=normalizeRemoteExerciseMediaUrl(remote);
+      if(url&&isSafeMediaUrl(url))return url;
+    }
   }
   return '';
 }
