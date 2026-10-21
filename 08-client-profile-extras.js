@@ -4881,7 +4881,7 @@ function renderCPProgress(c){
     ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie są liczone jako wykonany trening.</div>`:''}
 
     ${logged.length&&typeof cpProgressDecisionsHtml==='function'?cpProgressDecisionsHtml(c.id):''}
-    ${logged.length?`    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
+    ${logged.length?`    <div data-cp-panel="train" class="cp-progress-trend-grid">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -4908,7 +4908,7 @@ function renderCPProgress(c){
     </div>
 
 `:`<div data-cp-panel="train" class="stat-card cp-progress-empty"><strong>Brak zapisanych treningów</strong><p>Zakończ pierwszy trening, aby zobaczyć wyniki i wskazówki progresji.</p><button type="button" class="btn btn-primary btn-sm" onclick="cpStartLive()">Rozpocznij trening</button></div>`}
-    <div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="body" class="cp-progress-body-grid">
       <div class="stat-card${lastM?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
@@ -4954,7 +4954,7 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="train" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="train" class="cp-progress-strength-grid">
       ${lastS||strengthAsc.length>=2?`<div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -5004,7 +5004,7 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="habits"${habits.length?'':' data-cp-summary-hide="empty"'} style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="habits" class="cp-progress-habits-grid"${habits.length?'':' data-cp-summary-hide="empty"'}>
       <div class="stat-card${habits.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
