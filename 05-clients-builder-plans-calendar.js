@@ -1250,10 +1250,10 @@ function builderSetDraftField(row,key,value){
   const el=row&&row.querySelector('[data-f="'+key+'"]');
   if(el)el.value=value==null?'':value;
 }
-function builderRestoreStoredDraft(){
-  const entry=builderReadStoredDraft();
-  const draft=entry&&entry.data;
+function builderApplyDraftData(draft,opts){
+  opts=opts||{};
   if(!draft||window._editingPlanId)return false;
+  window._builderUndoMuted=true;
   const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value==null?'':value;};
   builderEnsureSelectValue(document.getElementById('b-method'),draft.method||'');
   builderEnsureSelectValue(document.getElementById('b-duration'),draft.duration||'');
@@ -1287,9 +1287,17 @@ function builderRestoreStoredDraft(){
   if(typeof builderRefreshRationale==='function')builderRefreshRationale();
   if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
   const offer=document.getElementById('builder-draft-offer');if(offer)offer.remove();
+  window._builderUndoMuted=false;
+  window._builderUndoSkipNext=true;
   builderUpdateDirtyUi();builderQueueDraftSave();
-  if(typeof notify==='function')notify('✓ Przywrócono szkic planu z tej karty');
+  if(opts.notify&&typeof notify==='function')notify(opts.notify);
   return true;
+}
+function builderRestoreStoredDraft(){
+  const entry=builderReadStoredDraft();
+  const restored=builderApplyDraftData(entry&&entry.data,{notify:'✓ Przywrócono szkic planu z tej karty'});
+  if(restored)builderUndoReset();
+  return restored;
 }
 function builderRenderDraftOffer(){
   const old=document.getElementById('builder-draft-offer');if(old)old.remove();
@@ -1306,8 +1314,46 @@ function builderRenderDraftOffer(){
 }
 window.builderRestoreStoredDraft=builderRestoreStoredDraft;
 window.builderClearStoredDraft=builderClearStoredDraft;
+function builderUndoUpdateUi(){
+  const btn=document.getElementById('builder-undo-btn');
+  const count=(window._builderUndo&&window._builderUndo.stack||[]).length;
+  if(btn){btn.disabled=!count;btn.setAttribute('aria-label',count?'Cofnij ostatnią zmianę w kreatorze':'Brak zmian do cofnięcia');}
+}
+function builderUndoReset(data){
+  window._builderUndo={stack:[],current:JSON.stringify(data||builderDraftData())};
+  builderUndoUpdateUi();
+}
+function builderTrackUndo(){
+  if(window._builderUndoMuted)return;
+  const now=JSON.stringify(builderDraftData());
+  if(window._builderUndoSkipNext){
+    window._builderUndoSkipNext=false;
+    if(window._builderUndo){window._builderUndo.current=now;builderUndoUpdateUi();}
+    else builderUndoReset(JSON.parse(now));
+    return;
+  }
+  const undo=window._builderUndo;
+  if(!undo){builderUndoReset(JSON.parse(now));return;}
+  if(now===undo.current)return;
+  try{undo.stack.push(JSON.parse(undo.current));}catch(e){undo.stack=[];}
+  if(undo.stack.length>20)undo.stack.shift();
+  undo.current=now;builderUndoUpdateUi();
+}
+function builderUndo(){
+  const undo=window._builderUndo;
+  if(!undo||!undo.stack.length)return false;
+  const previous=undo.stack.pop();
+  if(!builderApplyDraftData(previous))return false;
+  undo.current=JSON.stringify(builderDraftData());
+  window._builderUndoSkipNext=true;
+  builderUndoUpdateUi();
+  if(typeof notify==='function')notify('↩ Cofnięto ostatnią zmianę');
+  return true;
+}
+window.builderUndo=builderUndo;
 function builderMarkInitialFormState(){
   if(window._builderSaveState)window._builderSaveState.initialFingerprint=builderDraftFingerprint();
+  builderUndoReset();
   builderUpdateDirtyUi();
 }
 function builderHasUnsavedChanges(){
@@ -1346,7 +1392,7 @@ function builderSetupDirtyUi(){
       field.classList.remove('builder-field-invalid');
       field.removeAttribute('aria-invalid');
     }
-    const update=()=>{builderUpdateDirtyUi();builderQueueDraftSave();};
+    const update=()=>{builderTrackUndo();builderUpdateDirtyUi();builderQueueDraftSave();};
     return window.requestAnimationFrame?window.requestAnimationFrame(update):update();
   };
   screen.addEventListener('input',refresh);

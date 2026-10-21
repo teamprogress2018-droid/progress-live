@@ -44,6 +44,7 @@ ok('advanced exercise fields are hidden initially',css.includes('.ex-row>.ex-adv
 ok('simple card has more settings trigger',src05.includes('builder-row-more')&&src05.includes('>Więcej</button>'));
 ok('swap clearly keeps previous exercise as alternative',src05.includes('Poprzednie ćwiczenie pozostaje w zamiennikach'));
 ok('new-plan draft stays in the current browser tab',src05.includes("BUILDER_DRAFT_PREFIX='pl_builder_draft_v1:'")&&src05.includes('sessionStorage')&&src05.includes('Przywróć szkic'));
+ok('builder can undo local changes without touching the saved plan',src05.includes('function builderUndo()')&&src05.includes('undo.stack.length>20')&&src05.includes('Cofnięto ostatnią zmianę'));
 
 const altsForExercise=(name)=>{
   if(/sztangi leż/i.test(name))return['Wyciskanie hantli','Pompki'];
