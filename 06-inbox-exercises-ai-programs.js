@@ -4969,6 +4969,33 @@ async function persistExerciseGifUrl(exerciseName,gifUrl){
 }
 window.persistExerciseGifUrl=persistExerciseGifUrl;
 
+async function persistExercisePreviewUrl(exerciseName,previewUrl){
+  const url=normalizeImportedMediaUrl(previewUrl);
+  if(!url||!exerciseName)return false;
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url))return false;
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url))return false;
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(exerciseName):exerciseName.toLowerCase();
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
+  window.EX_PREVIEW_REMOTE=window.EX_PREVIEW_REMOTE||{};
+  window.EX_PREVIEW_REMOTE[key]=url;
+  window._exPreviewPersistCloudErr=null;
+  if(window._db&&window._setDoc&&window._doc&&window._uid){
+    try{
+      await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
+        exerciseName,
+        previewUrl:url,
+        trainerId:window._uid,
+        updatedAt:new Date().toISOString()
+      },{merge:true});
+    }catch(err){
+      console.warn('persistExercisePreviewUrl',err);
+      window._exPreviewPersistCloudErr=err;
+    }
+  }
+  return true;
+}
+window.persistExercisePreviewUrl=persistExercisePreviewUrl;
+
 function hostBlocksFirebaseStorageUpload(){
   try{
     const h=String((typeof location!=='undefined'&&location&&location.hostname)||'');
@@ -5036,6 +5063,7 @@ function exDetailAssignHtml(e){
   const name=e&&e.name?e.name:'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(e):'';
   const currentIsDrive=!!current&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(current);
   const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current)||currentIsDrive;
   const currentHint=currentIsVideo
@@ -5064,6 +5092,10 @@ function exDetailAssignHtml(e){
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
     <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>
     <input type="file" class="form-input" id="exd-mp4-file" accept=".mp4,.webm,video/mp4,video/webm" onchange="assignExTechniqueFromFile(currentExDetail,this)">
+    <div class="exd-sec-h" style="margin-top:18px;">Jasny podgląd karty</div>
+    <div class="exd-assign-hint">${preview?'Podgląd karty: <code>'+esc(preview)+'</code>':'Opcjonalnie: wklej jasny obraz lub link Google Drive do pierwszego widoku karty. Nie zastępuje filmu techniki premium.'}</div>
+    <textarea class="form-input" id="exd-preview-url" rows="2" placeholder="Jasny obraz lub link Google Drive" style="margin-top:6px;margin-bottom:6px;font-size:12px;min-height:52px;resize:vertical;"></textarea>
+    <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExPreviewFromPaste(currentExDetail)">Zapisz podgląd karty</button>
     ${msgHtml}
     ${ownBlock}
   </div>`;
@@ -5157,6 +5189,40 @@ async function assignExTechniqueFromPaste(name){
   return saveAssignedExTechnique(n,'');
 }
 window.assignExTechniqueFromPaste=assignExTechniqueFromPaste;
+
+async function assignExPreviewFromPaste(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const inp=document.getElementById('exd-preview-url');
+  const raw=inp?String(inp.value||'').trim().replace(/^["']+|["']+$/g,''):'';
+  if(!n){notify('Najpierw wybierz ćwiczenie');return false;}
+  if(!raw){exAssignSetMsg('Wklej jasny obraz lub pełny link Google Drive do podglądu karty.',false);return false;}
+  if(typeof isTruncatedAssignUrl==='function'&&isTruncatedAssignUrl(raw)){
+    exAssignSetMsg('Link jest ucięty. Wklej pełny adres obrazu lub Google Drive.',false);return false;
+  }
+  const url=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(raw):raw;
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
+    exAssignSetMsg('Podgląd musi być dostępny przez link, a nie przez ścieżkę na komputerze trenera.',false);return false;
+  }
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url)){
+    exAssignSetMsg('Wklej bezpieczny adres https:// do obrazu lub Google Drive.',false);return false;
+  }
+  if(!window._uid){exAssignSetMsg('Zaloguj się, aby zapisać podgląd karty',false);return false;}
+  const saved=await persistExercisePreviewUrl(n,url);
+  if(!saved){exAssignSetMsg('Nie udało się zapisać podglądu karty',false);return false;}
+  const custom=typeof findCustomEx==='function'?findCustomEx(n):null;
+  if(custom){
+    custom.previewUrl=url;
+    if(typeof persistById==='function')try{await persistById('exercises',custom);}catch(e){}
+  }
+  window._exAssignFlash=window._exPreviewPersistCloudErr
+    ?{text:'Podgląd widać teraz, ale chmura nie zapisała — po odświeżeniu zniknie',ok:false}
+    :{text:'Jasny podgląd zapisany dla: '+n,ok:true};
+  if(typeof renderLib==='function')renderLib();
+  if(typeof openExDetail==='function')openExDetail(n);
+  else exAssignSetMsg(window._exAssignFlash.text,window._exAssignFlash.ok);
+  return true;
+}
+window.assignExPreviewFromPaste=assignExPreviewFromPaste;
 
 function previewAssignedExOwnVideo(){
   const sel=document.getElementById('exd-mp4-own');

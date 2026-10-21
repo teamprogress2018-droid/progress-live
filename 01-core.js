@@ -2046,6 +2046,23 @@ function exPhotoMapLookup(name){
 }
 window.exPhotoMapLookup=exPhotoMapLookup;
 
+/** Jasny podgląd karty jest niezależny od filmu techniki. */
+function assignedExPreviewUrl(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  if(ex&&typeof ex==='object'){
+    const own=String(ex.previewUrl||ex.preview||ex.cardImage||'').trim();
+    if(own&&isSafeMediaUrl(own))return own;
+  }
+  for(const name of exerciseMediaCandidateNames(ex||exOrName)){
+    const remote=mediaMapGet(window.EX_PREVIEW_REMOTE,name);
+    const url=normalizeRemoteExerciseMediaUrl(remote);
+    if(url&&isSafeMediaUrl(url))return url;
+  }
+  return '';
+}
+window.assignedExPreviewUrl=assignedExPreviewUrl;
+
 /** Placeholdery SVG z assets/ex/*.svg nie są prawdziwymi zdjęciami techniki. */
 function isDecorativeExAsset(url){
   const s=String(url||'').trim();
@@ -2120,6 +2137,10 @@ window.exGifUrl=exGifUrl;
 function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(ex||exOrName):'';
+  const previewDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(preview);
+  if(previewDrive&&typeof googleDriveThumbnailUrl==='function')return googleDriveThumbnailUrl(preview,480);
+  if(preview&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(preview):/\.(mp4|webm)(\?|#|$)/i.test(preview)))return preview;
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
   const drive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif);
   if(drive){
@@ -2225,7 +2246,7 @@ function resolveCoachMedia(parsed){
   }
   let embed=coachVideoEmbed(video);
   const gif=exGifUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',gif:(ex.gif||(lib&&lib.gif)||''),img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
-  const img=gif||exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  const img=exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')})||gif;
   if(gif&&video&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(gif)&&sameMediaUrl(gif,video)){
     video='';
     embed='';
