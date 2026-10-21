@@ -19,4 +19,5 @@ ok('the coach can apply a reversible minimal client navigation preset',portal.in
 ok('client sign-in has an explicit mobile-app entry label',app.includes("Aplikacja klienta — zaloguj się i od razu zobacz swój trening")&&index.includes("const idleLabel=btn.textContent||'Zaloguj się';"));
 ok('the invite explains how to keep the client app on an iPhone home screen',portal.includes('Udostępnij → Do ekranu początkowego'));
 ok('more navigation restores focus and closes with Escape',app.includes("function closeCliveMoreNav(returnFocus)")&&app.includes("event.key==='Escape'")&&app.includes("if(first)first.focus()"));
+ok('more navigation closes after tapping outside and has a screen-reader label',app.includes("target.closest('#clive-more-sheet,#clive-bn-more')")&&index.includes('aria-label="Pozostałe obszary aplikacji"'));
 if(failures)process.exit(1);

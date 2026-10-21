@@ -436,6 +436,10 @@ window.closeCliveMoreNav=closeCliveMoreNav;
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape')closeCliveMoreNav(true);
 });
+document.addEventListener('click',event=>{
+  const target=event.target;
+  if(target&&target.closest&&!target.closest('#clive-more-sheet,#clive-bn-more'))closeCliveMoreNav(false);
+});
 
 function capGoScreen(scr){
   if(window._clientAppMode){setClientLiveScreen(scr);return;}
