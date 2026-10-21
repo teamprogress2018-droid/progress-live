@@ -3027,13 +3027,14 @@ window.openExdAiAcc=openExdAiAcc;
 function exdPreviewMediaHtml(e){
   const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;
   const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  const assignedIsDrive=!!assigned&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(assigned);
   const assignedIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(assigned);
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   let h='';
   if(assignedIsVideo){
     h+=`<div class="exd-preview-media"><video id="exd-mp4-player" class="cw-technique-gif-img" src="${esc(assigned)}" autoplay loop muted playsinline controls preload="auto"></video></div>`;
   }else if(media){
-    const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));
+    const skipGif=!!(assigned&&!assignedIsDrive&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));
     if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});
     else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${esc(media.img)}" alt="Technika: ${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"></div>`;}
     const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));
@@ -5019,6 +5020,7 @@ function isTruncatedAssignUrl(s){
   if(!/^https?:\/\//i.test(t))return false;
   if(/\.(mp4|webm|gif|webp)(\?|#|$)/i.test(t))return false;
   if(/youtu\.be|youtube\.com|vimeo\.com/i.test(t))return false;
+  if(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(t))return false;
   return true;
 }
 window.isTruncatedAssignUrl=isTruncatedAssignUrl;
@@ -5034,10 +5036,11 @@ function exDetailAssignHtml(e){
   const name=e&&e.name?e.name:'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
-  const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
+  const currentIsDrive=!!current&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(current);
+  const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current)||currentIsDrive;
   const currentHint=currentIsVideo
-    ?`<div id="exd-mp4-current" class="exd-assign-hint is-ok">Dopasowany film: <code>${esc(current)}</code></div>`
-    :'<div id="exd-mp4-current" class="exd-assign-hint">Brak filmu MP4 przy tym ćwiczeniu — wklej ścieżkę albo wybierz plik YouCan.</div>';
+    ?`<div id="exd-mp4-current" class="exd-assign-hint is-ok">${currentIsDrive?'Dopasowany film Google Drive':'Dopasowany film'}: <code>${esc(current)}</code></div>`
+    :'<div id="exd-mp4-current" class="exd-assign-hint">Brak filmu przy tym ćwiczeniu — wklej ścieżkę, link Google Drive albo wybierz plik YouCan.</div>';
   const own=(window.COACH_VIDEOS||[]).filter(v=>{
     const u=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(v.url):String(v.url||'');
     return typeof coachVideoIsFile==='function'?coachVideoIsFile(u):/\.(mp4|webm)(\?|#|$)/i.test(u);
@@ -5055,8 +5058,8 @@ function exDetailAssignHtml(e){
   return `<div id="exd-assign" class="exd-card exd-assign">
     <div class="exd-sec-h">Dopasuj film / GIF</div>
     ${currentHint}
-    <div style="font-size:13px;color:#D1D5DB;line-height:1.5;margin-bottom:12px;">Do <b>${esc(name)}</b> — wybierz film z listy albo plik YouCan, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
-    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Opcjonalnie wklej ścieżkę (Shift+PPM → Kopiuj jako ścieżkę)" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
+    <div style="font-size:13px;color:#D1D5DB;line-height:1.5;margin-bottom:12px;">Do <b>${esc(name)}</b> — wybierz film z listy, plik YouCan albo wklej pełny link Google Drive, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
+    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Ścieżka MP4 lub pełny link Google Drive" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
     ${isPecDeckAssignExercise(name)?'<button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>':''}
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
     <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>

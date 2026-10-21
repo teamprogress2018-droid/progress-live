@@ -2025,7 +2025,9 @@ function assignedExVideoUrl(exOrName){
   const asVid=(u,normalize)=>{
     if(!u)return '';
     const n=normalize?normalizeRemoteExerciseMediaUrl(u):String(u||'').trim();
-    return (n&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n))?n:'';
+    const isFile=typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n);
+    const isDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(n);
+    return n&&(isFile||isDrive)?n:'';
   };
   for(const name of names){
     const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
