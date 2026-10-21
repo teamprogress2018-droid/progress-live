@@ -402,6 +402,11 @@ function updateClientListToggle(total,compact){
   wrap.hidden=hidden===0;
   btn.setAttribute('aria-expanded',compact?'false':'true');
   btn.textContent=compact?`Pokaż pozostałych (${hidden})`:'Zwiń listę do 3 klientów';
+  btn.setAttribute('aria-label',compact
+    ?`Pokaż pozostałych ${hidden} klientów. Widoczne 3 z ${total}.`
+    :`Zwiń listę do 3 klientów. Widoczne wszystkie ${total}.`);
+  const summary=document.getElementById('client-view-summary');
+  if(summary&&compact&&hidden)summary.textContent+=` · widoczne 3 z ${total}`;
 }
 function toggleClientListCompact(){
   setClientUiPref('pl_clients_compact',clientListIsCompact()?'0':'1');
