@@ -170,7 +170,8 @@ html[data-theme="light"] .academy-safety {
 /* ═══ Szkielet: tło, sidebar, topbar ═══ */
 html[data-theme="light"] body { background: var(--bg-main); }
 html[data-theme="light"] .sidebar {
-  background: linear-gradient(180deg, #dcecff 0%, #edf5ff 48%, #fff0ea 100%);
+  background-color: #ebf4ff;
+  background: linear-gradient(180deg, #e3eeff 0%, #f7f9fc 50%, #ffeae6 100%);
   border-right: 1px solid var(--border-subtle);
 }
 html[data-theme="light"] .sidebar::after { display: none; }
@@ -708,11 +709,10 @@ html[data-theme="light"] #cap-phone-frame > div[style*="height:44px"] { color: v
 }
 .app .sidebar-logout:hover { background: var(--bg-hover); color: var(--danger); }
 
-/* ── Pasek boczny: kolory jasnego motywu (miękki gradient akcentu) ── */
+/* ── Pasek boczny: jasne, spokojne przejście tła ── */
 html[data-theme="light"] .app .sidebar {
-  background:
-    linear-gradient(180deg, rgba(var(--accent-rgb), 0.10) 0%, rgba(var(--accent-rgb), 0.04) 48%, rgba(var(--accent-rgb), 0.12) 100%),
-    #ffffff;
+  background-color: #ebf4ff;
+  background: linear-gradient(180deg, #e3eeff 0%, #f7f9fc 50%, #ffeae6 100%);
   border-right: 1px solid var(--border-subtle);
 }
 html[data-theme="light"] .app .sidebar .nav-item { color: var(--text-secondary); }
