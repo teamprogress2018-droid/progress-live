@@ -2039,6 +2039,13 @@ function assignedExVideoUrl(exOrName){
     const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
     if(remoteVid&&!mediaUrlLooksAssignedToOtherExercise(remoteVid,name))return remoteVid;
   }
+  // Materiały Premium z publicznej biblioteki Dysku są celowo osobne od
+  // jasnych podglądów kart. Dzięki temu karta pozostaje lekka i czytelna,
+  // a pełny materiał biomechaniczny jest dostępny dopiero po wejściu w technikę.
+  for(const name of names){
+    const driveVid=asVid(mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name),false);
+    if(driveVid&&!mediaUrlLooksAssignedToOtherExercise(driveVid,name))return driveVid;
+  }
   for(const name of names){
     const localVid=asVid(mediaMapGet(window.EX_GIF_MANIFEST,name),false);
     if(localVid)return localVid;
@@ -2056,17 +2063,20 @@ window.exPhotoMapLookup=exPhotoMapLookup;
 function assignedExPreviewUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
-  if(ex&&typeof ex==='object'){
-    const own=String(ex.previewUrl||ex.preview||ex.cardImage||'').trim();
-    if(own&&isSafeMediaUrl(own))return own;
-  }
-  const previewMaps=[window.EX_PREVIEW_REMOTE,window.EX_PREVIEW_FALLBACKS];
+  // Import trenera ma pierwszeństwo, potem używamy jasnego materiału z
+  // biblioteki Drive. Stary obraz zapisany w rekordzie ćwiczenia to wyłącznie
+  // bezpieczny fallback — nie może przykrywać nowego podglądu karty.
+  const previewMaps=[window.EX_PREVIEW_REMOTE,window.EX_DRIVE_PREVIEW_MANIFEST,window.EX_PREVIEW_FALLBACKS];
   for(const name of exerciseMediaCandidateNames(ex||exOrName)){
     for(const previewMap of previewMaps){
       const remote=mediaMapGet(previewMap,name);
       const url=normalizeRemoteExerciseMediaUrl(remote);
       if(url&&isSafeMediaUrl(url))return url;
     }
+  }
+  if(ex&&typeof ex==='object'){
+    const own=String(ex.previewUrl||ex.preview||ex.cardImage||'').trim();
+    if(own&&isSafeMediaUrl(own))return own;
   }
   return '';
 }
@@ -2128,17 +2138,32 @@ function exGifUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   if(ex&&typeof ex==='object'){
-    const gif=String(ex.gif||'').trim();
-    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
-    const img=String(ex.img||ex.thumb||ex.image||'').trim();
-    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
+    // Nowa biblioteka techniki jest ważniejsza niż historyczne linki w
+    // rekordach startowych. Ręcznie importowane linki nadal wygrywają.
+    for(const name of exerciseMediaCandidateNames(ex)){
+      const remote=normalizeRemoteExerciseMediaUrl(mediaMapGet(window.EX_GIF_REMOTE,name));
+      if(remote&&isSafeMediaUrl(remote)&&!mediaUrlLooksAssignedToOtherExercise(remote,name))return remote;
+    }
+    for(const name of exerciseMediaCandidateNames(ex)){
+      const drive=mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name);
+      if(drive&&isSafeMediaUrl(drive)&&!mediaUrlLooksAssignedToOtherExercise(drive,name))return drive;
+    }
     for(const name of exerciseMediaCandidateNames(ex)){
       const mapped=exGifMapLookup(name);
       if(mapped)return mapped;
     }
+    const gif=String(ex.gif||'').trim();
+    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
+    const img=String(ex.img||ex.thumb||ex.image||'').trim();
+    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
     return '';
   }
-  return exGifMapLookup(typeof exOrName==='string'?exOrName:'');
+  const name=typeof exOrName==='string'?exOrName:'';
+  const remote=normalizeRemoteExerciseMediaUrl(mediaMapGet(window.EX_GIF_REMOTE,name));
+  if(remote&&isSafeMediaUrl(remote)&&!mediaUrlLooksAssignedToOtherExercise(remote,name))return remote;
+  const drive=mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name);
+  if(drive&&isSafeMediaUrl(drive)&&!mediaUrlLooksAssignedToOtherExercise(drive,name))return drive;
+  return exGifMapLookup(name);
 }
 window.exGifUrl=exGifUrl;
 
