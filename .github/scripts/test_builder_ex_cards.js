@@ -15,7 +15,7 @@ if(!src05.includes('builderApplyAlt')||!src05.includes('builderRefreshTechMedia'
 if(!css.includes('.builder-alt-chip')||!css.includes('.ex-rows{display:flex')){
   console.error('FAIL missing builder card CSS');process.exit(1);
 }
-if(!src05.includes('builder-ex-thumb')||!src05.includes('builder-alt-toggle')||!src05.includes('Zamienniki gdy nie ma maszyny')||!src05.includes('builder-ex-hist-slot')){
+if(!src05.includes('builder-ex-thumb')||!src05.includes('builder-alt-toggle')||!src05.includes('Zamienniki — kliknij, aby podmienić ćwiczenie')||!src05.includes('builder-ex-hist-slot')){
   console.error('FAIL addRow markup missing');process.exit(1);
 }
 
@@ -42,6 +42,7 @@ ok('hist css', css.includes('builder-ex-hist-slot')&&css.includes('live-hist-ex-
 ok('advanced exercise fields are opt-in',src05.includes('ex-advanced-field')&&src05.includes('function builderToggleRowDetails'));
 ok('advanced exercise fields are hidden initially',css.includes('.ex-row>.ex-advanced-field{display:none;}')&&css.includes('.ex-row:not(.ex-advanced-open)>.ex-row-extra{display:none;}'));
 ok('simple card has more settings trigger',src05.includes('builder-row-more')&&src05.includes('>Więcej</button>'));
+ok('swap clearly keeps previous exercise as alternative',src05.includes('Poprzednie ćwiczenie pozostaje w zamiennikach'));
 
 const altsForExercise=(name)=>{
   if(/sztangi leż/i.test(name))return['Wyciskanie hantli','Pompki'];

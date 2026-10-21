@@ -2281,7 +2281,7 @@ function addRow(dayId){
     +'</div>'
     +'<div class="ex-row-extra">'
     +'<div class="builder-alt-box" hidden>'
-    +'<div class="builder-alt-label">Zamienniki gdy nie ma maszyny — sztanga / hantle / brama / ławka — kliknij, żeby podmienić w planie</div>'
+    +'<div class="builder-alt-label">Zamienniki — kliknij, aby podmienić ćwiczenie w planie.</div>'
     +'<div class="builder-alt-chips"></div>'
     +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
     +'</div>'
@@ -2371,7 +2371,7 @@ function builderRefreshAltChips(row){
   box.innerHTML=alts.map(a=>{
     const safe=typeof escHtml==='function'?escHtml(a):a;
     const attr=String(a).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    return `<button type="button" class="builder-alt-chip" data-alt="${attr}" onclick="builderApplyAlt(this)" title="Podmień to ćwiczenie w planie">↻ ${safe}</button>`;
+    return `<button type="button" class="builder-alt-chip" data-alt="${attr}" onclick="builderApplyAlt(this)" title="Zamień ćwiczenie na ${attr}. Poprzednie ćwiczenie pozostanie jako zamiennik.">↻ ${safe}</button>`;
   }).join('');
 }
 window.builderRefreshAltChips=builderRefreshAltChips;
@@ -2390,7 +2390,7 @@ function builderApplyAlt(btn){
     if(prev&&prev.toLowerCase()!==next.toLowerCase()&&!keep.some(a=>a.toLowerCase()===prev.toLowerCase()))keep.unshift(prev);
     altInp.value=keep.join(', ');
   }
-  if(typeof notify==='function')notify('✓ Podmieniono na: '+next);
+  if(typeof notify==='function')notify('✓ Podmieniono na: '+next+'. Poprzednie ćwiczenie pozostaje w zamiennikach.');
   builderOnExNameChange(row);
   return true;
 }
