@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v47', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache 01 v64', html.includes('01-core.js?v=137'));
+ok('cache 06 v109', html.includes('06-inbox-exercises-ai-programs.js?v=109'));
+ok('cache 01 v144', html.includes('01-core.js?v=144'));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));
 ok('placeholder mp4', html.includes('bench.mp4'));
@@ -96,6 +96,9 @@ ok('url spaces encoded', rowsSpace[0] && rowsSpace[0].presetUrl === 'https://cdn
 
 const rowsGif = ctx.parseExGifBulkPaste('Podciąganie na drążku;https://cdn.example.com/pull.gif');
 ok('semicolon gif still works', rowsGif.length === 1 && /\.gif$/.test(rowsGif[0].presetUrl) && rowsGif[0].selected);
+
+const rowsPreview = ctx.parseExGifBulkPaste('Wyciskanie sztangi leżąc | https://cdn.example.com/bench-white.gif#pl-preview');
+ok('preview marker selects card preview', rowsPreview[0] && rowsPreview[0].role === 'preview', JSON.stringify(rowsPreview[0]));
 
 const jsonRows = ctx.parseExGifBulkPaste(JSON.stringify([{ name: 'Martwy ciąg klasyczny', mp4: 'https://cdn.example.com/dead.mp4' }]));
 ok('json mp4 field', jsonRows.length === 1 && jsonRows[0].presetUrl.endsWith('dead.mp4') && jsonRows[0].selected);

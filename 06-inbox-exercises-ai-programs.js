@@ -2444,7 +2444,7 @@ window.catalogCardForImport=catalogCardForImport;
 
 function importedExFilmUrl(ex){
   if(!ex||typeof ex!=='object')return '';
-  const cands=[ex.video,ex.gif,ex.img,ex.thumb,ex.image];
+  const cands=[ex.video,ex.gif];
   for(let i=0;i<cands.length;i++){
     let u=String(cands[i]||'').trim();
     if(!u)continue;
@@ -2458,6 +2458,30 @@ function importedExFilmUrl(ex){
   return '';
 }
 window.importedExFilmUrl=importedExFilmUrl;
+
+// Główny obraz karty nie jest filmem techniki. Przy scalaniu starego importu
+// zachowujemy go osobno, aby jasny podgląd nie trafił do zakładki „Technika”.
+function importedExPreviewUrl(ex){
+  if(!ex||typeof ex!=='object')return '';
+  const cands=[ex.preview,ex.img,ex.thumb,ex.image];
+  for(let i=0;i<cands.length;i++){
+    let u=String(cands[i]||'').trim();
+    if(!u)continue;
+    if(typeof normalizeImportedMediaUrl==='function')u=normalizeImportedMediaUrl(u);
+    if(!u)continue;
+    if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(u))continue;
+    if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(u))continue;
+    return u;
+  }
+  return '';
+}
+window.importedExPreviewUrl=importedExPreviewUrl;
+
+function importedExerciseRemoteMedia(ex,mapName){
+  const map=window[mapName]||{};
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(ex&&ex.name):catalogDedupeKey(ex&&ex.name);
+  return String(map[key]||'').trim();
+}
 
 async function delEx(name){
   if(!name||window._delExBusy)return;
@@ -2535,16 +2559,25 @@ async function sweepImportedCatalogDuplicates(opts){
       return {removed:0,copied:0,names};
     }
     const removed=[];
-    let copied=0;
+    let copiedFilms=0;
+    let copiedPreviews=0;
     for(const {card,copies} of groups.values()){
       if(!copies.length)continue;
-      const film=copies.map(importedExFilmUrl).find(Boolean)||'';
+      const film=copies.map(ex=>importedExerciseRemoteMedia(ex,'EX_GIF_REMOTE')||importedExFilmUrl(ex)).find(Boolean)||'';
+      const preview=copies.map(ex=>importedExerciseRemoteMedia(ex,'EX_PREVIEW_REMOTE')||importedExPreviewUrl(ex)).find(Boolean)||'';
       const mediaKey=typeof exerciseMediaKey==='function'?exerciseMediaKey(card.name):catalogDedupeKey(card.name);
-      const already=window.EX_GIF_REMOTE&&window.EX_GIF_REMOTE[mediaKey];
-      if(film&&!already&&typeof persistExerciseGifUrl==='function'){
+      const alreadyFilm=window.EX_GIF_REMOTE&&window.EX_GIF_REMOTE[mediaKey];
+      const alreadyPreview=window.EX_PREVIEW_REMOTE&&window.EX_PREVIEW_REMOTE[mediaKey];
+      if(preview&&!alreadyPreview&&typeof persistExercisePreviewUrl==='function'){
+        try{
+          const ok=await persistExercisePreviewUrl(card.name,preview);
+          if(ok)copiedPreviews++;
+        }catch(e){console.warn('sweepImportedCatalogDuplicates preview:',e);}
+      }
+      if(film&&!alreadyFilm&&typeof persistExerciseGifUrl==='function'){
         try{
           const ok=await persistExerciseGifUrl(card.name,film);
-          if(ok)copied++;
+          if(ok)copiedFilms++;
         }catch(e){console.warn('sweepImportedCatalogDuplicates film:',e);}
       }
       copies.forEach(ex=>removed.push(ex));
@@ -2567,9 +2600,12 @@ async function sweepImportedCatalogDuplicates(opts){
     if(typeof notify==='function'){
       const n=removed.length;
       const word=n===1?'duplikat':(n>=2&&n<=4?'duplikaty':'duplikatów');
-      notify('Usunięto '+n+' '+word+' importu'+(copied?(' · film na '+copied+' '+(copied===1?'karcie':'kartach')):''));
+      const media=[];
+      if(copiedPreviews)media.push('podgląd na '+copiedPreviews+' '+(copiedPreviews===1?'karcie':'kartach'));
+      if(copiedFilms)media.push('film na '+copiedFilms+' '+(copiedFilms===1?'karcie':'kartach'));
+      notify('Usunięto '+n+' '+word+' importu'+(media.length?(' · '+media.join(' · ')):''));
     }
-    return {removed:removed.length,copied};
+    return {removed:removed.length,copied:copiedFilms+copiedPreviews,copiedFilms,copiedPreviews};
   }finally{
     window._sweepExDupBusy=false;
   }
@@ -4892,6 +4928,12 @@ function resolveExerciseName(input){
   return raw;
 }
 
+/** #pl-preview oznacza jasny GIF wyświetlany na karcie ćwiczenia, nie film techniki. */
+function exGifImportRole(url){
+  return /#pl-preview(?:[?&]|$)/i.test(String(url||''))?'preview':'technique';
+}
+window.exGifImportRole=exGifImportRole;
+
 function mediaFilenameFromUrl(url){
   const raw=String(url||'').trim().split('#')[0].split('?')[0];
   const pop=raw.split('/').pop()||'';
@@ -4939,7 +4981,7 @@ function parseExGifBulkPaste(text){
         const url=normalizeImportedMediaUrl(o.url||o.gif||o.video||o.mp4||o.link||o.href||'');
         const name=String(o.name||o.exercise||o.exerciseName||'').trim();
         const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
-        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''};
+        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,role:exGifImportRole(url),selected:!!(exerciseName&&url),status:'',url:''};
       }).filter(r=>r.presetUrl);
     }catch(e){/* fall through to lines */}
   }
@@ -4953,7 +4995,7 @@ function parseExGifBulkPaste(text){
     if(!url)return;
     url=normalizeImportedMediaUrl(url);
     const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
-    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''});
+    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,role:exGifImportRole(url),selected:!!(exerciseName&&url),status:'',url:''});
   });
   return rows;
 }
@@ -5348,7 +5390,7 @@ window.matchGifFileToExercise=matchGifFileToExercise;
 function buildExGifImportRows(files){
   return (files||[]).filter(f=>/\.(gif|webp|mp4|webm)$/i.test(f.name||'')).map(file=>{
     const exerciseName=matchGifFileToExercise(file.name);
-    return{file,exerciseName,selected:!!exerciseName,status:'',url:''};
+    return{file,exerciseName,role:'technique',selected:!!exerciseName,status:'',url:''};
   }).sort((a,b)=>(b.selected?1:0)-(a.selected?1:0)||a.file.name.localeCompare(b.file.name,'pl'));
 }
 
@@ -5376,6 +5418,10 @@ function renderExGifImportPreview(){
       <div class="exgif-row-file" title="${typeof escHtml==='function'?escHtml(String(label)):String(label)}">${typeof escHtml==='function'?escHtml(short):short}</div>
       <select class="form-select exgif-row-select" onchange="setExGifImportExercise(${i},this.value)">
         <option value="">— wybierz ćwiczenie —</option>${opts}
+      </select>
+      <select class="form-select exgif-row-role" aria-label="Przeznaczenie pliku" onchange="setExGifImportRole(${i},this.value)">
+        <option value="preview" ${r.role==='preview'?'selected':''}>Podgląd karty</option>
+        <option value="technique" ${r.role!=='preview'?'selected':''}>Technika</option>
       </select>
       <span class="exgif-row-status">${st}</span>
     </div>`;
@@ -5439,6 +5485,12 @@ function setExGifImportExercise(i,name){
   syncExGifImportBtnLabel();
 }
 
+function setExGifImportRole(i,role){
+  if(!_exGifImportRows[i])return;
+  _exGifImportRows[i].role=role==='preview'?'preview':'technique';
+  renderExGifImportPreview();
+}
+
 function openExGifImport(){
   _exGifImportRows=[];
   _exGifImportMode='paste';
@@ -5485,6 +5537,7 @@ async function runExGifImport(){
   if(progWrap)progWrap.style.display='block';
   window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
   let ok=0;
+  let previews=0;
   const total=rows.length;
   let step=0;
   for(let i=0;i<rows.length;i++){
@@ -5493,8 +5546,9 @@ async function runExGifImport(){
     renderExGifImportPreview();
     try{
       if(row.presetUrl){
-        const saved=await persistExerciseGifUrl(row.exerciseName,row.presetUrl);
-        if(saved){row.url=row.presetUrl;row.status='done';ok++;}
+        const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
+        const saved=await saveMedia(row.exerciseName,row.presetUrl);
+        if(saved){row.url=row.presetUrl;row.status='done';ok++;if(row.role==='preview')previews++;}
         else{
           row.status='err';
           if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(row.presetUrl)){
@@ -5513,14 +5567,16 @@ async function runExGifImport(){
         await window._uploadBytes(ref,row.file,{contentType:row.file.type||mime[ext]||'application/octet-stream'});
         const url=await window._getDownloadURL(ref);
         row.url=url;
-        await persistExerciseGifUrl(row.exerciseName,url);
+        const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
+        await saveMedia(row.exerciseName,url);
         row.status='done';
-        ok++;
+        ok++;if(row.role==='preview')previews++;
         }
       }else if(row.url){
-        await persistExerciseGifUrl(row.exerciseName,row.url);
+        const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
+        await saveMedia(row.exerciseName,row.url);
         row.status='done';
-        ok++;
+        ok++;if(row.role==='preview')previews++;
       }else row.status='err';
     }catch(e){
       console.warn('GIF/MP4 import',row.label||row.file&&row.file.name,e);
@@ -5532,7 +5588,7 @@ async function runExGifImport(){
   }
   if(btn){btn.disabled=false;syncExGifImportBtnLabel();}
   if(typeof renderLib==='function')renderLib();
-  notify('✓ Zapisano '+ok+' / '+total+' animacji / filmów techniki');
+  notify('✓ Zapisano '+ok+' / '+total+' plików · '+previews+' podglądów kart · '+(ok-previews)+' filmów techniki');
   if(ok===total)closeM('m-ex-gif-import');
 }
 
@@ -5545,6 +5601,7 @@ window.parseExGifBulkPaste=parseExGifBulkPaste;
 window.ensureExGifPasteParsed=ensureExGifPasteParsed;
 window.toggleExGifImportRow=toggleExGifImportRow;
 window.setExGifImportExercise=setExGifImportExercise;
+window.setExGifImportRole=setExGifImportRole;
 
 function countExercisesWithGif(){
   const all=typeof allExercises==='function'?allExercises():[];

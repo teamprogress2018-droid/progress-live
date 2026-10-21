@@ -689,10 +689,11 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   .live-ex-media{flex:1 1 100%;max-width:100%;}
 }
 .exgif-preview{max-height:320px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,0,0,0.2);}
-.exgif-row{display:grid;grid-template-columns:28px 1fr minmax(180px,1.2fr) 24px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px;}
+.exgif-row{display:grid;grid-template-columns:28px 1fr minmax(180px,1.2fr) minmax(110px,.6fr) 24px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px;}
 .exgif-row:last-child{border-bottom:none;}
 .exgif-row-file{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .exgif-row-select{padding:4px 6px;font-size:11px;min-width:0;}
+.exgif-row-role{padding:4px 6px;font-size:11px;min-width:0;}
 .exgif-row-status{text-align:center;font-weight:700;color:var(--teal);}
 .ex-ac-group-hdr{display:flex;align-items:center;gap:8px;padding:8px 12px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;background:rgba(0,0,0,0.25);border-bottom:1px solid rgba(255,255,255,0.05);position:sticky;top:0;z-index:2;}
 .ex-ac-more{padding:6px 12px 8px;font-size:10px;color:var(--muted);font-style:italic;}

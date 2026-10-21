@@ -17,9 +17,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v36', html.includes('ex-gif-manifest.js?v=36'));
-ok('cache 01 v60', html.includes('01-core.js?v=137'));
-ok('cache 06 v42', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache manifest v41', html.includes('ex-gif-manifest.js?v=41'));
+ok('cache 01 v144', html.includes('01-core.js?v=144'));
+ok('cache 06 v109', html.includes('06-inbox-exercises-ai-programs.js?v=109'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
 ok('DEF_EX block', !!m);
