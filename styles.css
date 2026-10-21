@@ -3087,6 +3087,9 @@ body.priv-mode .cap-client-today-card img{filter:blur(10px)!important;}
   .live-view-tabs .auto-tab-btn{padding:10px 12px;min-height:40px;}
   .live-tab-client-view{display:none;}
   .live-session-btn{min-height:44px;flex:1 1 auto;}
+  /* Po rozpoczęciu treningu zapis pozostaje pełnym, łatwym do trafienia CTA. */
+  #screen-live.live-session-on .live-slot-controls[data-live-slot="0"]{width:100%;}
+  #screen-live.live-session-on .live-slot-controls[data-live-slot="0"] .live-session-btn{width:100%;min-height:48px;font-size:15px;}
   #screen-live.live-session-on .live-plan-toggle{display:inline-flex;min-height:44px;align-items:center;}
   #screen-live.live-dual .live-floor{flex-direction:column;padding:0 8px 8px;gap:8px;}
   #screen-live.live-dual .live-pane{min-height:42vh;flex:1 1 42vh;}

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=183">
+<link rel="stylesheet" href="styles.css?v=184">
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=7&layout-v2=2">
 <script>/* Motyw przed pierwszym malowaniem: bez mignięcia ciemnego/jasnego tła. */try{var t=JSON.parse(localStorage.getItem('pl_theme_v2')||'null');if(t&&(t.mode==='dark'||t.mode==='light'))document.documentElement.setAttribute('data-theme',t.mode);if(t&&/^#[0-9a-f]{6}$/i.test(t.accent||''))document.documentElement.style.setProperty('--accent',t.accent);}catch(e){}</script>
@@ -2847,7 +2847,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <input type="hidden" id="live-client-sel">
           <div id="live-client-sel-results" class="live-client-sel-results"></div>
         </div>
-        <button class="btn btn-primary btn-sm live-session-btn live-train-only" id="live-end-btn" onclick="liveAskEndSession()" style="display:none;">Zapisz trening</button>
+        <button class="btn btn-primary btn-sm live-session-btn live-train-only" id="live-end-btn" onclick="liveAskEndSession()" aria-label="Zapisz trening i zakończ sesję" style="display:none;">Zapisz trening</button>
         <button class="btn btn-primary btn-sm live-session-btn live-prep-only" id="live-start-btn" onclick="liveStartSession()">▶ Start</button>
       </div>
       <div class="live-slot-controls live-slot-b" data-live-slot="1">
@@ -2861,7 +2861,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div class="live-timer-val" id="live-b-timer">00:00</div>
           <div class="live-dock-sub" id="live-b-timer-status" hidden>Nieaktywny</div>
         </div>
-        <button class="btn btn-primary btn-sm live-session-btn live-train-only" id="live-b-end-btn" onclick="liveAskEndSession(1)" style="display:none;">Zapisz trening</button>
+        <button class="btn btn-primary btn-sm live-session-btn live-train-only" id="live-b-end-btn" onclick="liveAskEndSession(1)" aria-label="Zapisz trening i zakończ sesję drugiej osoby" style="display:none;">Zapisz trening</button>
         <button class="btn btn-primary btn-sm live-session-btn live-prep-only" id="live-b-start-btn" onclick="liveStartSession(1)">▶ Start</button>
       </div>
       <button type="button" class="btn btn-ghost btn-sm live-train-only" id="live-client-view-btn" onclick="setLiveTab('client')">Widok klienta</button>
