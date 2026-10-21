@@ -102,5 +102,9 @@ const driveThumb = ctx.exThumbUrl({ name: 'Dipy na poręczach', img: 'assets/ex/
 ok('Drive preview replaces old card image', driveThumb.includes('preview-dips') && driveThumb.includes('thumbnail'));
 windowObj.EX_DRIVE_TECHNIQUE_MANIFEST = { 'dipy na poręczach': 'https://drive.google.com/file/d/premium-dips/view' };
 ok('Drive premium is technique before legacy manifest', ctx.assignedExVideoUrl('Dipy na poręczach').includes('premium-dips'));
+windowObj.EX_DRIVE_MEDIA_VERSION = 1;
+windowObj.EX_DRIVE_PREVIEW_MANIFEST = {};
+windowObj.EX_PHOTO_MANIFEST = { 'pompki podchwytem': 'https://example.com/old-wrong-photo.jpg' };
+ok('Drive library hides unverified legacy card photo', ctx.exThumbUrl({ name: 'Pompki podchwytem' }) === '');
 
 process.exit(failed ? 1 : 0);

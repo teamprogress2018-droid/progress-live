@@ -2183,6 +2183,10 @@ function exThumbUrl(exOrName){
   }
   if(gif&&!drive&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
+  // Gdy aktywna jest nowa biblioteka z Dysku, nie pokazujemy starego zdjęcia
+  // katalogowego dla ćwiczenia bez pewnego dopasowania. Neutralny placeholder
+  // jest uczciwszy niż fotografia innego wariantu ruchu.
+  if(Number(window.EX_DRIVE_MEDIA_VERSION||0)>=1)return '';
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;
   if(isGenericExerciseMediaName(name))return '';

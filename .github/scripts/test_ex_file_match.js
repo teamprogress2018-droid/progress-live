@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache manifest v41', html.includes('ex-gif-manifest.js?v=41'));
-ok('cache 01 v145', html.includes('01-core.js?v=145&drive-media=1'));
+ok('cache 01 v146', html.includes('01-core.js?v=146&drive-media=2'));
 ok('cache 06 v111', html.includes('06-inbox-exercises-ai-programs.js?v=111'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
