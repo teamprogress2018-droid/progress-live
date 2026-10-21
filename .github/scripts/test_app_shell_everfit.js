@@ -7,6 +7,7 @@ const path = require('path');
 const root = path.join(__dirname, '../..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
+const theme = fs.readFileSync(path.join(root, 'theme.css'), 'utf8');
 const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const clients = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
 const nine = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
@@ -52,6 +53,7 @@ ok('row message button', clients.includes('cl-msg-btn') && clients.includes('qui
 ok('row actions have accessible client labels', clients.includes('aria-label="Napisz wiadomość do ${escHtml(c.name)}"') && clients.includes('aria-label="Edytuj dane klienta ${escHtml(c.name)}"'));
 ok('neutral client states are not rendered as alarms', clients.includes("if(c.status==='archived'||c.status==='inactive')return'pill-muted'") && clients.includes("if(k==='noemail'||k==='onboarding'||k==='idle')return'pill-muted'"));
 ok('client activity uses semantic, non-alarm tones', clients.includes("tone:'neutral'") && clients.includes('cl-act-${act.tone||\'neutral\'}'));
+ok('clients use cool canvas, white rows and semantic status surfaces', theme.includes('#screen-clients .tbl-row.cl-everfit-row') && theme.includes('background: var(--bg-card)') && theme.includes('#screen-clients .pill-green') && theme.includes('#screen-clients .pill-muted') && theme.includes('#screen-clients .pill-red'));
 ok('no action button spam in rows', !/quickStartWorkout\(event/.test(clients.slice(clients.indexOf('function renderClients'), clients.indexOf('function openClientModal'))));
 ok('openBuilderForClient sets back', /openBuilderForClient[\s\S]{0,200}_builderBack\s*=\s*'clients'/.test(clients));
 

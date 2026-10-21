@@ -1009,6 +1009,46 @@ html[data-theme="light"] #screen-live .live-pane {
 html[data-theme="light"] #screen-live .live-side-left,
 html[data-theme="light"] #screen-live .live-ex-col { background: transparent; }
 
+/* Klienci i profil: chłodne tło aplikacji, białe powierzchnie danych.
+   Akcent pozostaje wyłącznie przy głównych CTA; statusy korzystają z własnej palety. */
+html[data-theme="light"] #screen-clients .tbl-row.cl-everfit-row {
+  margin: 0 0 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  box-shadow: var(--panel-glow);
+}
+html[data-theme="light"] #screen-clients .tbl-row.cl-everfit-row:hover {
+  background: var(--bg-card);
+  border-color: var(--border-default);
+}
+html[data-theme="light"] #screen-clients .cl-everfit-hdr { color: var(--text-secondary); }
+html[data-theme="light"] #screen-clients .cl-sub,
+html[data-theme="light"] #screen-clients .cl-goal,
+html[data-theme="light"] #screen-clients .cl-act { color: var(--text-secondary); }
+html[data-theme="light"] #screen-clients .cl-act-positive { color: var(--success); }
+html[data-theme="light"] #screen-clients .cl-act-watch { color: var(--warning); }
+html[data-theme="light"] #screen-clients .pill-green {
+  background: var(--success-bg); color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 26%, var(--border-subtle));
+}
+html[data-theme="light"] #screen-clients .pill-muted {
+  background: var(--bg-subtle); color: var(--text-secondary); border-color: var(--border-subtle);
+}
+html[data-theme="light"] #screen-clients .pill-orange {
+  background: var(--warning-bg); color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border-subtle));
+}
+html[data-theme="light"] #screen-clients .pill-red {
+  background: var(--danger-bg); color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--border-subtle));
+}
+html[data-theme="light"] .cp-drawer > div:first-child,
+html[data-theme="light"] .cp-tabs-bar {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+
 /* Telefon: technika i serie nie mogą dzielić jednego wiersza.
    Pełna szerokość logu serii usuwa poziome przewijanie widoczne podczas LIVE. */
 @media (max-width: 600px) {
