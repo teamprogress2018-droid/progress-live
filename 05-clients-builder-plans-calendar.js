@@ -1194,9 +1194,11 @@ function resumeOnboardFromBuilder(){
   if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
-// Ostrzeżenie jest celowo lekkie: nie zapisujemy roboczego planu w przeglądarce,
-// ale chronimy trenera przed przypadkowym odświeżeniem lub wyjściem z kreatora.
-function builderDraftFingerprint(){
+// Szkic zostaje wyłącznie w sessionStorage bieżącej karty. Nie trafia do danych
+// klienta ani nie przechodzi do kolejnej sesji przeglądarki bez potwierdzenia.
+const BUILDER_DRAFT_PREFIX='pl_builder_draft_v1:';
+const BUILDER_DRAFT_MAX_AGE=24*60*60*1000;
+function builderDraftData(){
   const value=id=>String((document.getElementById(id)||{}).value||'').trim();
   const field=(row,key)=>{const el=row.querySelector('[data-f="'+key+'"]');return String((el||{}).value||'').trim();};
   const dayData=[...document.querySelectorAll('#builder-days .builder-day')].map(day=>({
@@ -1211,8 +1213,99 @@ function builderDraftFingerprint(){
       return data;
     })
   }));
-  return JSON.stringify({name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),volume:window._builderVolumeControl||null,days:dayData});
+  return {name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),volume:window._builderVolumeControl||null,days:dayData};
 }
+function builderDraftFingerprint(){
+  return JSON.stringify(builderDraftData());
+}
+function builderDraftStorageKey(){
+  return BUILDER_DRAFT_PREFIX+String(window._uid||'anon')+':new';
+}
+function builderReadStoredDraft(){
+  try{
+    const raw=sessionStorage.getItem(builderDraftStorageKey());
+    const entry=raw?JSON.parse(raw):null;
+    if(!entry||!entry.data||!entry.savedAt||Date.now()-entry.savedAt>BUILDER_DRAFT_MAX_AGE){
+      if(raw)sessionStorage.removeItem(builderDraftStorageKey());
+      return null;
+    }
+    return entry;
+  }catch(e){return null;}
+}
+function builderClearStoredDraft(){
+  if(window._builderDraftTimer){clearTimeout(window._builderDraftTimer);window._builderDraftTimer=null;}
+  try{sessionStorage.removeItem(builderDraftStorageKey());}catch(e){}
+  const offer=document.getElementById('builder-draft-offer');if(offer)offer.remove();
+}
+function builderQueueDraftSave(){
+  if(window._editingPlanId||!builderHasUnsavedChanges())return;
+  if(window._builderDraftTimer)clearTimeout(window._builderDraftTimer);
+  window._builderDraftTimer=setTimeout(()=>{
+    window._builderDraftTimer=null;
+    if(window._editingPlanId||!builderHasUnsavedChanges())return;
+    try{sessionStorage.setItem(builderDraftStorageKey(),JSON.stringify({version:1,savedAt:Date.now(),data:builderDraftData()}));}catch(e){}
+  },450);
+}
+function builderSetDraftField(row,key,value){
+  const el=row&&row.querySelector('[data-f="'+key+'"]');
+  if(el)el.value=value==null?'':value;
+}
+function builderRestoreStoredDraft(){
+  const entry=builderReadStoredDraft();
+  const draft=entry&&entry.data;
+  if(!draft||window._editingPlanId)return false;
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value==null?'':value;};
+  builderEnsureSelectValue(document.getElementById('b-method'),draft.method||'');
+  builderEnsureSelectValue(document.getElementById('b-duration'),draft.duration||'');
+  set('b-name',draft.name||'');set('b-client',draft.client||'');set('b-progression',draft.progression||'double');
+  window._builderVolumeControl=draft.volume||null;
+  const days=document.getElementById('builder-days');if(!days)return false;
+  days.innerHTML='';dayCount=0;
+  (draft.days||[]).forEach(savedDay=>{
+    addDay();
+    const dayEl=document.getElementById('bd-'+dayCount);if(!dayEl)return;
+    builderSetDayHeader(dayEl,savedDay);
+    if(savedDay.rest){const rc=dayEl.querySelector('.rc');if(rc){rc.checked=true;toggleR(dayEl.id);}return;}
+    const circ=dayEl.querySelector('.circ');if(circ&&savedDay.circuit)circ.checked=true;
+    builderSetDraftField(dayEl,'roundRest',savedDay.roundRest||'');
+    if(savedDay.circuit)builderPaintCircuitDay(dayEl);
+    (savedDay.exercises||[]).forEach(values=>{
+      addRow(dayEl.id);
+      const row=[...dayEl.querySelectorAll('.ex-row')].pop();if(!row)return;
+      Object.keys(values||{}).forEach(key=>builderSetDraftField(row,key,values[key]));
+      if(typeof builderFillExTodo==='function')builderFillExTodo(row);
+      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
+      if(typeof builderPaintEmom==='function')builderPaintEmom(row);
+      if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+      if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
+    });
+    if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
+    if(typeof builderPaintCircuitDay==='function')builderPaintCircuitDay(dayEl);
+  });
+  if(typeof updatePeriod==='function')updatePeriod();
+  if(typeof builderRefreshRationale==='function')builderRefreshRationale();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+  const offer=document.getElementById('builder-draft-offer');if(offer)offer.remove();
+  builderUpdateDirtyUi();builderQueueDraftSave();
+  if(typeof notify==='function')notify('✓ Przywrócono szkic planu z tej karty');
+  return true;
+}
+function builderRenderDraftOffer(){
+  const old=document.getElementById('builder-draft-offer');if(old)old.remove();
+  if(window._editingPlanId||window._builderSkipDraftOffer)return;
+  const entry=builderReadStoredDraft();
+  const draft=entry&&entry.data;
+  if(!draft||!(draft.name||draft.client||(draft.days||[]).length))return;
+  const topbar=document.querySelector('#screen-builder .topbar');if(!topbar)return;
+  const box=document.createElement('div');box.id='builder-draft-offer';box.className='builder-draft-offer';box.setAttribute('role','status');
+  const text=document.createElement('span');text.textContent='Masz szkic planu zapisany w tej karcie.';
+  const restore=document.createElement('button');restore.type='button';restore.className='btn btn-ghost btn-sm';restore.textContent='Przywróć szkic';restore.onclick=builderRestoreStoredDraft;
+  const discard=document.createElement('button');discard.type='button';discard.className='btn btn-ghost btn-sm';discard.textContent='Usuń';discard.onclick=builderClearStoredDraft;
+  box.append(text,restore,discard);topbar.insertAdjacentElement('afterend',box);
+}
+window.builderRestoreStoredDraft=builderRestoreStoredDraft;
+window.builderClearStoredDraft=builderClearStoredDraft;
 function builderMarkInitialFormState(){
   if(window._builderSaveState)window._builderSaveState.initialFingerprint=builderDraftFingerprint();
   builderUpdateDirtyUi();
@@ -1236,7 +1329,10 @@ function builderUpdateDirtyUi(){
   const state=window._builderSaveState;
   const dirty=builderHasUnsavedChanges();
   const mark=document.getElementById('builder-dirty-indicator');
-  if(mark)mark.hidden=!dirty;
+  if(mark){
+    mark.hidden=!dirty;
+    mark.textContent=dirty&&!window._editingPlanId?'• Szkic w tej karcie · niezapisane zmiany':'• Niezapisane zmiany';
+  }
   const btn=document.getElementById('b-save-btn');
   if(btn&&!state?.pending&&!state?.saved)btn.textContent=dirty?'Zapisz zmiany':'Zapisz plan';
 }
@@ -1250,7 +1346,8 @@ function builderSetupDirtyUi(){
       field.classList.remove('builder-field-invalid');
       field.removeAttribute('aria-invalid');
     }
-    return window.requestAnimationFrame?window.requestAnimationFrame(builderUpdateDirtyUi):builderUpdateDirtyUi();
+    const update=()=>{builderUpdateDirtyUi();builderQueueDraftSave();};
+    return window.requestAnimationFrame?window.requestAnimationFrame(update):update();
   };
   screen.addEventListener('input',refresh);
   screen.addEventListener('change',refresh);
@@ -2172,6 +2269,8 @@ window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
   // Powrót z Progress Academy: plan w kreatorze zostaje bez zmian.
   if(window._builderPreserveOnReturn){window._builderPreserveOnReturn=false;builderRefreshRationale();return;}
+  const skipDraftOffer=!!window._builderSkipDraftOffer;
+  window._builderSkipDraftOffer=false;
   builderResetSaveState();
   window._editingPlanId=null;
   window._manualPlanDraft=null;
@@ -2200,6 +2299,7 @@ function initBuilder(){
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
   if(typeof builderSetupDirtyUi==='function')builderSetupDirtyUi();
   if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
+  if(!skipDraftOffer&&typeof builderRenderDraftOffer==='function')builderRenderDraftOffer();
 }
 function addDay(){
   dayCount++;const id='bd-'+dayCount;
@@ -3092,6 +3192,7 @@ function editPlan(id){
   const plan=PL.find(p=>p.id===id);
   if(!plan){notify('Nie znaleziono planu');return;}
   if(!window._builderReturnClientId)window._builderBack='plans';
+  window._builderSkipDraftOffer=true;
   goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
   window._editingPlanId=id;
   window._builderSaveState.base=builderPlanClone(plan);
@@ -3532,6 +3633,7 @@ async function savePlan(){
     if(idx>=0)PL[idx]=saved;else PL.push(saved);
     state.saved=true;
     state.savedPlan=saved;
+    if(!window._editingPlanId&&typeof builderClearStoredDraft==='function')builderClearStoredDraft();
   }catch(e){
     if(builderSaveFormCurrent(state)){
       console.warn('Zapis planu niepotwierdzony:',e);
