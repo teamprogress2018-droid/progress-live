@@ -5561,10 +5561,41 @@ function matchGifFileToExercise(filename){
 }
 window.matchGifFileToExercise=matchGifFileToExercise;
 
+function exImportCleanFileName(filename){
+  return String(filename||'').replace(/\.(gif|webp|mp4|webm)$/i,'').replace(/\s*\(\d+\)\s*/g,' ').replace(/\s+\d{1,2}\s*$/,'').replace(/\s+/g,' ').trim();
+}
+function exImportInferCategory(filename){
+  const n=typeof exerciseSearchNorm==='function'?exerciseSearchNorm(filename):String(filename||'').toLowerCase();
+  if(/biceps|ramion|mlotkow|modlitewnik|nadgarstk|handgrip|zottman|bayesian|spider/.test(n))return 'Biceps';
+  if(/triceps|prostowanie/.test(n))return 'Triceps';
+  if(/klatk|wyciskanie|rozpiet/.test(n))return 'Klatka piersiowa';
+  if(/plec|wioslow|sciaganie|podciag/.test(n))return 'Plecy';
+  if(/bark|unoszenie|ohp/.test(n))return 'Barki';
+  if(/przysiad|wykrok|nogi|lydk|dwuglow|czworoglow/.test(n))return 'Nogi';
+  if(/brzuch|core|deska/.test(n))return 'Core';
+  return '';
+}
+function exImportCategories(all){
+  return [...new Set((all||[]).map(ex=>String(ex&&ex.cat||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl'));
+}
+function exImportEquipment(filename){
+  const n=typeof exerciseSearchNorm==='function'?exerciseSearchNorm(filename):String(filename||'').toLowerCase();
+  if(/hantl|zottman|mlotkow/.test(n))return 'Hantle';
+  if(/sztang|gryf/.test(n))return 'Sztanga';
+  if(/wyciag|lina/.test(n))return 'Wyciąg';
+  if(/maszyn/.test(n))return 'Maszyna';
+  if(/handgrip/.test(n))return 'Handgrip';
+  if(/talerz/.test(n))return 'Talerz';
+  return 'Własna masa';
+}
+window.exImportCleanFileName=exImportCleanFileName;
+
 function buildExGifImportRows(files){
   return (files||[]).filter(f=>/\.(gif|webp|mp4|webm)$/i.test(f.name||'')).map(file=>{
     const detail=typeof matchFilenameToExerciseDetailed==='function'?matchFilenameToExerciseDetailed(file.name):{name:matchGifFileToExercise(file.name),confidence:'medium',score:0};
-    return{file,exerciseName:detail.name||'',role:'technique',selected:!!detail.name,status:'',url:'',confidence:detail.confidence,score:detail.score};
+    const all=typeof allExercises==='function'?allExercises():[];
+    const hit=all.find(ex=>ex&&ex.name===detail.name);
+    return{file,exerciseName:detail.name||'',category:(hit&&hit.cat)||exImportInferCategory(file.name),role:'technique',selected:!!detail.name,status:'',url:'',confidence:detail.confidence,score:detail.score};
   }).sort((a,b)=>(b.selected?1:0)-(a.selected?1:0)||a.file.name.localeCompare(b.file.name,'pl'));
 }
 
@@ -5583,16 +5614,24 @@ function renderExGifImportPreview(){
   }
   el.innerHTML=_exGifImportRows.map((r,i)=>{
     const all=typeof allExercises==='function'?allExercises():[];
-    const opts=all.map(e=>`<option value="${typeof escHtml==='function'?escHtml(e.name):e.name}" ${r.exerciseName===e.name?'selected':''}>${typeof escHtml==='function'?escHtml(e.name):e.name}</option>`).join('');
+    const categories=exImportCategories(all);
+    const selectedEx=all.find(e=>e&&e.name===r.exerciseName);
+    const category=r.category||(selectedEx&&selectedEx.cat)||exImportInferCategory(r.file?r.file.name:r.label||'');
+    const inCategory=category?all.filter(e=>e&&e.cat===category):[];
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    const catOpts=['<option value="">— partia mięśniowa —</option>'].concat(categories.map(cat=>`<option value="${esc(cat)}" ${category===cat?'selected':''}>${esc(cat)}</option>`)).join('');
+    const opts=['<option value="">— wybierz ćwiczenie —</option>'].concat(inCategory.map(e=>`<option value="${esc(e.name)}" ${r.exerciseName===e.name?'selected':''}>${esc(e.name)}</option>`)).join('');
     const st=r.status==='done'?'✓':r.status==='err'?'✗':r.status==='upload'?'…':'';
     const label=r.file?(r.file.name):(r.label||r.presetUrl||'');
     const short=String(label).length>56?String(label).slice(0,53)+'…':label;
-    return `<div class="exgif-row" data-i="${i}">
+    return `<div class="exgif-row" style="grid-template-columns:28px minmax(155px,1fr) minmax(120px,.7fr) minmax(245px,1.5fr) minmax(110px,.6fr) 24px;" data-i="${i}">
       <label class="exgif-row-check"><input type="checkbox" ${r.selected?'checked':''} onchange="toggleExGifImportRow(${i},this.checked)"></label>
-      <div class="exgif-row-file" title="${typeof escHtml==='function'?escHtml(String(label)):String(label)}">${typeof escHtml==='function'?escHtml(short):short}</div>
-      <select class="form-select exgif-row-select" onchange="setExGifImportExercise(${i},this.value)">
-        <option value="">— wybierz ćwiczenie —</option>${opts}
-      </select>
+      <div class="exgif-row-file" title="${esc(String(label))}">${esc(short)}</div>
+      <select class="form-select exgif-row-category" aria-label="Partia mięśniowa" onchange="setExGifImportCategory(${i},this.value)">${catOpts}</select>
+      <div style="display:flex;gap:6px;min-width:0;">
+        <select class="form-select exgif-row-select" onchange="setExGifImportExercise(${i},this.value)">${opts}</select>
+        <button type="button" class="btn btn-ghost btn-sm" title="Dodaj brakujące ćwiczenie do wybranej partii" onclick="addExGifImportExercise(${i})">+ Ćwiczenie</button>
+      </div>
       <select class="form-select exgif-row-role" aria-label="Przeznaczenie pliku" onchange="setExGifImportRole(${i},this.value)">
         <option value="preview" ${r.role==='preview'?'selected':''}>Podgląd karty</option>
         <option value="technique" ${r.role!=='preview'?'selected':''}>Technika</option>
@@ -5656,12 +5695,56 @@ function toggleExGifImportRow(i,on){
 function setExGifImportExercise(i,name){
   if(!_exGifImportRows[i])return;
   _exGifImportRows[i].exerciseName=name||'';
+  const found=(typeof allExercises==='function'?allExercises():[]).find(ex=>ex&&ex.name===name);
+  if(found)_exGifImportRows[i].category=found.cat||'';
   _exGifImportRows[i].selected=!!name;
   _exGifImportRows[i].confidence=name?'manual':'unmatched';
   saveExMediaImportJournal('review');
   renderExGifImportPreview();
   syncExGifImportBtnLabel();
 }
+
+function setExGifImportCategory(i,category){
+  const row=_exGifImportRows[i];
+  if(!row)return;
+  row.category=category||'';
+  const found=(typeof allExercises==='function'?allExercises():[]).find(ex=>ex&&ex.name===row.exerciseName);
+  if(found&&found.cat!==row.category){row.exerciseName='';row.selected=false;row.confidence='unmatched';}
+  saveExMediaImportJournal('review');
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+}
+
+async function addExGifImportExercise(i){
+  const row=_exGifImportRows[i];
+  if(!row)return;
+  const label=row.file?row.file.name:(row.label||'');
+  const suggested=exImportCleanFileName(label);
+  const name=String(prompt('Nazwa nowego ćwiczenia:',suggested)||'').trim().replace(/\s+/g,' ');
+  if(!name)return;
+  const all=typeof allExercises==='function'?allExercises():[];
+  const norm=typeof exerciseSearchNorm==='function'?exerciseSearchNorm:s=>String(s||'').toLowerCase();
+  const duplicate=all.find(ex=>ex&&norm(ex.name)===norm(name));
+  if(duplicate){
+    row.exerciseName=duplicate.name;row.category=duplicate.cat||'';row.selected=true;row.confidence='manual';
+    saveExMediaImportJournal('review');renderExGifImportPreview();syncExGifImportBtnLabel();
+    notify('To ćwiczenie już istnieje — wybrano „'+duplicate.name+'”.');return;
+  }
+  const category=String(prompt('Partia mięśniowa:',row.category||exImportInferCategory(label)||'Inne')||'').trim()||'Inne';
+  const equipment=String(prompt('Sprzęt:',exImportEquipment(label))||'').trim()||'Własna masa';
+  const ex=withTrainer({id:newId('ex'),name,cat:category,eq:equipment,muscle:category,tip:'Dodane podczas importu materiału.',nsca:'3x8–12.',alt:'',gif:'',img:''});
+  EX.push(ex);
+  try{if(typeof persistById==='function')await persistById('exercises',ex);}catch(e){
+    EX=EX.filter(item=>item!==ex);window.EX=EX;
+    notify('Nie udało się zapisać ćwiczenia. Spróbuj ponownie.');return;
+  }
+  row.exerciseName=ex.name;row.category=ex.cat;row.selected=true;row.confidence='manual';
+  saveExMediaImportJournal('review');renderExGifImportPreview();syncExGifImportBtnLabel();
+  if(typeof renderLib==='function')renderLib();
+  notify('Dodano „'+ex.name+'” do biblioteki.');
+}
+window.setExGifImportCategory=setExGifImportCategory;
+window.addExGifImportExercise=addExGifImportExercise;
 
 function setExGifImportRole(i,role){
   if(!_exGifImportRows[i])return;
