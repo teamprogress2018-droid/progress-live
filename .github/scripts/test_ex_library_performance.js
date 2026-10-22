@@ -18,7 +18,9 @@ ok('catalog result is cached', library.includes("let _allExercisesCacheKey='';")
 ok('catalog cache reacts to hidden and custom names', library.includes('hiddenList.join') && library.includes("custom.map(e=>String((e&&e.id)||'')+'|'+String((e&&e.name)||''))"));
 ok('repeated media ownership checks are cached', core.includes('const _mediaOwnershipCheckCache=new Map();') && core.includes('_mediaOwnershipCheckCache.has(key)'));
 ok('large exercise datalist is not rebuilt every render', library.includes("if(dlSignature!==_exLibraryDlSignature){") && library.includes('updateExDl();'));
-ok('cached core and library scripts have a new browser URL', html.includes('01-core.js?v=150&drive-media=5') && html.includes('media-gap-groups=1&library-cache=1'));
+ok('media facts are resolved once and reused by all library filters', library.includes('let _exLibraryMediaFacts=new WeakMap();') && library.includes('function exLibraryMediaFacts(e)') && library.includes('const facts=exLibraryMediaFacts(ex);'));
+ok('first library page is limited to 24 cards', library.includes('const EX_LIB_PAGE_SIZE=24;') && library.includes('var exLibVisible=24;'));
+ok('cached core and library scripts have a new browser URL', html.includes('01-core.js?v=150&drive-media=5') && html.includes('media-gap-groups=1') && html.includes('library-media-facts=1') && html.includes('library-cache=1'));
 
 if (failed) {
   console.error('\n' + failed + ' failed');

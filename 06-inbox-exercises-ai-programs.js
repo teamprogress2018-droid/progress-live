@@ -485,8 +485,8 @@ var exView=(()=>{try{return localStorage.getItem('pl_ex_view_v1')==='list'?'list
 // Katalog może mieć setki pozycji. Domyślnie pokazujemy tylko te z realnym
 // materiałem techniki; pozostałe nie są kasowane i nadal można je przywrócić.
 var exMediaOnly=(()=>{try{return localStorage.getItem('pl_ex_media_only_v1')!=='0';}catch(e){return true;}})();
-var exLibVisible=48;
-const EX_LIB_PAGE_SIZE=48;
+var exLibVisible=24;
+const EX_LIB_PAGE_SIZE=24;
 let _exLibraryDlSignature='';
 
 const CAT_COLORS_EX={
@@ -543,8 +543,10 @@ function exLibraryFocusRank(e,kind){
 // techniki. Stary obrazek z katalogu nie ukrywa tego braku — dzięki temu lista
 // prowadzi import z Dysku do kompletnej, spójnej biblioteki.
 function exNeedsCuratedMedia(e){
+  const facts=typeof exLibraryMediaFacts==='function'?exLibraryMediaFacts(e):null;
+  if(facts)return !facts.preview||!facts.technique;
   const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(e):'';
-  const technique=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  const technique=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
   return !preview||!technique;
 }
 window.EX_LIBRARY_FOCUS=EX_LIBRARY_FOCUS;
@@ -2964,12 +2966,39 @@ function exCardHtml(e,i){
   </div>`;
 }
 
-function exHasLibraryMedia(e){
-  if(!e)return false;
+let _exLibraryMediaFacts=new WeakMap();
+let _exLibraryMediaMapRefs=null;
+let _exLibraryMediaMapSizes='';
+function exLibraryMediaMapSignature(){
+  const maps=[window.EX_GIF_REMOTE,window.EX_PREVIEW_REMOTE,window.EX_GIF_MANIFEST,window.EX_PREVIEW_FALLBACKS,window.EX_DRIVE_TECHNIQUE_MANIFEST,window.EX_DRIVE_PREVIEW_MANIFEST];
+  return {maps,sizes:maps.map(map=>map&&typeof map==='object'?Object.keys(map).length:0).join('|')};
+}
+function ensureExLibraryMediaFacts(){
+  const next=exLibraryMediaMapSignature();
+  const sameRefs=Array.isArray(_exLibraryMediaMapRefs)&&next.maps.every((map,index)=>map===_exLibraryMediaMapRefs[index]);
+  if(!sameRefs||next.sizes!==_exLibraryMediaMapSizes){
+    _exLibraryMediaFacts=new WeakMap();
+    _exLibraryMediaMapRefs=next.maps;
+    _exLibraryMediaMapSizes=next.sizes;
+  }
+}
+function invalidateExLibraryMediaFacts(){
+  _exLibraryMediaFacts=new WeakMap();
+  _exLibraryMediaMapRefs=null;
+  _exLibraryMediaMapSizes='';
+}
+function exLibraryMediaFacts(e){
+  if(!e)return {technique:'',preview:'',has:false};
+  const cached=_exLibraryMediaFacts.get(e);
+  if(cached)return cached;
   const technique=typeof exGifUrl==='function'?exGifUrl(e):String(e.gif||e.video||'');
   const preview=typeof exThumbUrl==='function'?exThumbUrl(e):String(e.img||e.previewUrl||'');
-  return !!(technique||preview);
+  const facts={technique,preview,has:!!(technique||preview)};
+  _exLibraryMediaFacts.set(e,facts);
+  return facts;
 }
+function exHasLibraryMedia(e){return exLibraryMediaFacts(e).has;}
+window.invalidateExLibraryMediaFacts=invalidateExLibraryMediaFacts;
 function exLoadMoreHtml(total,shown,mode){
   if(shown>=total)return '';
   const remaining=total-shown;
@@ -3038,6 +3067,7 @@ function renderLibGroupedSections(filtered,mode){
 
 function renderLib(){
   const all=allExercises();
+  ensureExLibraryMediaFacts();
   // Datalist ma setki opcji, a wcześniej był przebudowywany przy każdym
   // kliknięciu filtra lub wejściu do biblioteki. Aktualizujemy go tylko wtedy,
   // kiedy rzeczywiście zmienił się katalog nazw.
@@ -3046,11 +3076,16 @@ function renderLib(){
     updateExDl();
     _exLibraryDlSignature=dlSignature;
   }
-  const withMedia=all.filter(exHasLibraryMedia);
+  // Jedno przejście po katalogu zamiast wielokrotnych, kosztownych rozwiązań
+  // adresów mediów dla filtrów, licznika i kolejki materiałów.
+  const withMedia=[];
+  const mediaGaps=[];
+  all.forEach(ex=>{
+    const facts=exLibraryMediaFacts(ex);
+    if(facts.has)withMedia.push(ex);
+    if(!facts.preview||!facts.technique)mediaGaps.push(ex);
+  });
   const library=exMediaOnly?withMedia:all;
-  // The completion queue must also expose new exercises before their first
-  // upload; otherwise they disappear while the default media-only view is on.
-  const mediaGaps=all.filter(exNeedsCuratedMedia);
   const hiddenN=hiddenExNames().length;
   const restoreBtn=document.getElementById('lib-restore-hidden');
   if(restoreBtn){
@@ -3075,6 +3110,8 @@ function renderLib(){
 
   // build category nav
   const cats=['Wszystkie',...Object.keys(CAT_COLORS_EX)];
+  const categoryCounts={};
+  library.forEach(ex=>{const cat=String(ex&&ex.cat||'');categoryCounts[cat]=(categoryCounts[cat]||0)+1;});
   const favNames=favExNames();
   const recent=recentExNames(40);
   const catNav=document.getElementById('ex-cat-nav');
@@ -3091,7 +3128,7 @@ function renderLib(){
         <span>${label}</span>
         <span id="ex-nav-count-${id}" style="font-family:'DM Mono',monospace;font-size:10px;">${count}</span>
       </div>`).join('')+cats.map(c=>{
-      const count=c==='Wszystkie'?library.length:library.filter(e=>e.cat===c).length;
+      const count=c==='Wszystkie'?library.length:(categoryCounts[c]||0);
       const col=CAT_COLORS_EX[c]||'var(--muted)';
       return `<div class="ex-cat-nav-item${exCatFilter===c?' active':''}" onclick="exCatFilter='${c}';resetExLibPage();renderLib()">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -5270,6 +5307,7 @@ async function persistExerciseGifUrl(exerciseName,gifUrl){
   const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
   window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
   window.EX_GIF_REMOTE[key]=url;
+  if(typeof invalidateExLibraryMediaFacts==='function')invalidateExLibraryMediaFacts();
   window._exGifPersistCloudErr=null;
   if(window._db&&window._setDoc&&window._doc&&window._uid){
     try{
@@ -5297,6 +5335,7 @@ async function persistExercisePreviewUrl(exerciseName,previewUrl){
   const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
   window.EX_PREVIEW_REMOTE=window.EX_PREVIEW_REMOTE||{};
   window.EX_PREVIEW_REMOTE[key]=url;
+  if(typeof invalidateExLibraryMediaFacts==='function')invalidateExLibraryMediaFacts();
   window._exPreviewPersistCloudErr=null;
   if(window._db&&window._setDoc&&window._doc&&window._uid){
     try{
