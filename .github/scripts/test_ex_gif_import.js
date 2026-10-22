@@ -17,12 +17,12 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v111', html.includes('06-inbox-exercises-ai-programs.js?v=111'));
-ok('cache 01 v149', html.includes('01-core.js?v=149&drive-media=5'));
+ok('cache 06 v112', html.includes('06-inbox-exercises-ai-programs.js?v=112'));
+ok('cache 01 v150', html.includes('01-core.js?v=150&drive-media=5'));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));
 ok('placeholder mp4', html.includes('bench.mp4'));
-ok('no webkitdirectory', !/id="exgif-files"[^>]*webkitdirectory/.test(html));
+ok('folder picker enabled', /id="exgif-files"[^>]*webkitdirectory/.test(html));
 ok('file accept mp4', /id="exgif-files"[^>]*accept="[^"]*mp4/.test(html));
 ok('ex-img is text', /id="ex-img"[^>]*type="text"/.test(html) || /type="text"[^>]*id="ex-img"/.test(html));
 ok('ov-url is text', /id="ov-url"[^>]*type="text"/.test(html) || /type="text"[^>]*id="ov-url"/.test(html));

@@ -1470,6 +1470,22 @@ function matchFilenameToExercise(filename,exercises){
 }
 window.matchFilenameToExercise=matchFilenameToExercise;
 
+/* The importer must never silently choose between similarly named exercises.
+   Keep the candidates and an explainable confidence for the review screen. */
+function matchFilenameToExerciseDetailed(filename,exercises){
+  const parsed=parseExerciseMediaFilename(filename);
+  const list=exercises||window.DEF_EX||[];
+  if(!parsed||parsed.junk)return {name:'',confidence:'blocked',score:0,candidates:[],reason:'Nazwa pliku nie opisuje ćwiczenia'};
+  const candidates=list.map(ex=>({name:ex.name,score:scoreFilenameAgainstExercise(parsed,ex)}))
+    .filter(x=>x.score>=80).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'pl')).slice(0,5);
+  if(!candidates.length)return {name:'',confidence:'unmatched',score:0,candidates:[],reason:'Brak pewnego dopasowania'};
+  const top=candidates[0], next=candidates[1];
+  const ambiguous=!!(next&&top.score-next.score<12&&next.score>=90);
+  const confidence=ambiguous?'conflict':top.score>=200?'high':top.score>=135?'medium':'low';
+  return {name:ambiguous?'':top.name,confidence,score:top.score,candidates,reason:ambiguous?'Dwa podobne dopasowania — wybierz ręcznie':''};
+}
+window.matchFilenameToExerciseDetailed=matchFilenameToExerciseDetailed;
+
 /** Pliki, których treść (klatki) nie zgadza się z etykietą. Matcher ich nie przypisuje. */
 const EX_MEDIA_FILENAME_LIES={
   'Wiosłowanie sztangą w opadzie tułowia (Barbell Bent-Over Row).mp4':1,

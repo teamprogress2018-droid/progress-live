@@ -40,7 +40,7 @@ service cloud.firestore {
         'coachVideos', 'workouts', 'tasks', 'kb', 'metricEntries', 'progressPhotos',
         'metricGroups', 'messages', 'packages', 'invoices', 'formSends', 'reportHistory',
         'forms', 'programs', 'checkins', 'clientNotes', 'clientDocs', 'onboardingFlows',
-        'planTemplates', 'settings', 'notifications', 'integrationConfigs', 'forumGroups',
+        'planTemplates', 'settings', 'notifications', 'integrationConfigs', 'exerciseMediaImports', 'forumGroups',
         'forumPosts', 'forumComments', 'odWorkouts', 'odPrograms', 'odProgress',
         'onboardingActive', 'clientGroups', 'resources', 'automationState', 'autoflows'];
     }

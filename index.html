@@ -3715,8 +3715,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">Wybierz pliki <b>.gif / .webp / .mp4 / .webm</b> — nazwy jak slug ćwiczenia (<code style="color:var(--text);">wyciskanie-sztangi-lezac.mp4</code>) albo przypisz ręcznie z listy. Dla folderu z jasnymi GIF-ami po dopasowaniu wybierz niżej „Jasne materiały → podglądy kart”.</div>
         <div class="form-field">
           <label class="form-lbl">Pliki z dysku</label>
-          <input type="file" class="form-input" id="exgif-files" accept=".gif,.webp,.mp4,.webm,image/gif,image/webp,video/mp4,video/webm" multiple onchange="onExGifFilesPicked(this)">
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Możesz zaznaczyć wiele plików naraz (Ctrl / Cmd). Chrome: też cały folder, jeśli wkleisz listę URL-i — zakładka obok.</div>
+          <input type="file" class="form-input" id="exgif-files" accept=".gif,.webp,.mp4,.webm,image/gif,image/webp,video/mp4,video/webm" multiple webkitdirectory directory onchange="onExGifFilesPicked(this)">
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Wybierz cały folder lub wiele plików. Zachowywane są tylko GIF, WEBP, MP4 i WEBM; po odświeżeniu wybierz folder ponownie, aby wznowić lokalne pliki.</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;">
@@ -3726,6 +3726,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;">
         <button type="button" class="btn btn-ghost btn-sm" onclick="setAllExGifImportRoles('preview')">☀ Jasne materiały → podglądy kart</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="setAllExGifImportRoles('technique')">▶ Materiały premium → technika</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="resumeExMediaImport()">↻ Wznów paczkę</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="rollbackExMediaImport()">↶ Wycofaj publikację</button>
       </div>
       <div id="exgif-preview" class="exgif-preview"></div>
       <div id="exgif-progress-wrap" style="display:none;margin-top:12px;height:6px;background:var(--s3);border-radius:99px;overflow:hidden;">
@@ -4825,7 +4827,7 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=149&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
+<script src="01-core.js?v=150&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=111"></script>
 <script src="books-kb.js?v=2"></script>
@@ -4836,7 +4838,7 @@ async function load(session=captureTenantSession()){
 <script src="05-clients-builder-plans-calendar.js?v=119&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=111&exercise-library-focus=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=112&exercise-library-focus=1"></script>
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=93&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=57&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>

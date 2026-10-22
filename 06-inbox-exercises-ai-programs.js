@@ -4965,6 +4965,32 @@ async function delTask(id){
 // ════════════════════════════════════════
 let _exGifImportRows=[];
 let _exGifImportMode='files';
+let _exMediaImportBatchId='';
+
+function exMediaImportId(){return 'emi_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);}
+function exMediaImportStorageKey(){return 'pl_ex_media_import_v1_'+(window._uid||'anonymous');}
+function exMediaImportSnapshot(){
+  return {id:_exMediaImportBatchId,updatedAt:new Date().toISOString(),rows:_exGifImportRows.map(r=>({
+    label:r.label||(r.file&&r.file.name)||'',presetUrl:r.presetUrl||'',exerciseName:r.exerciseName||'',role:r.role,
+    selected:!!r.selected,status:r.status||'',confidence:r.confidence||'',score:r.score||0,storagePath:r.storagePath||'',url:r.url||'',previousUrl:r.previousUrl||''
+  }))};
+}
+async function saveExMediaImportJournal(state){
+  const snapshot=exMediaImportSnapshot(); snapshot.state=state||'draft';
+  try{localStorage.setItem(exMediaImportStorageKey(),JSON.stringify(snapshot));}catch(e){}
+  if(window._db&&window._setDoc&&window._doc&&window._uid&&snapshot.id){
+    try{await window._setDoc(window._doc(window._db,'exerciseMediaImports',snapshot.id),{id:snapshot.id,trainerId:window._uid,state:snapshot.state,updatedAt:snapshot.updatedAt,rows:snapshot.rows},{merge:true});}catch(e){console.warn('media import journal',e);}
+  }
+}
+function loadExMediaImportJournal(){
+  try{const saved=JSON.parse(localStorage.getItem(exMediaImportStorageKey())||'null');if(saved&&Array.isArray(saved.rows)){_exMediaImportBatchId=saved.id||exMediaImportId();_exGifImportRows=saved.rows;return true;}}catch(e){}
+  return false;
+}
+function exMediaConfidenceLabel(row){return ({high:'wysoka',medium:'średnia',low:'niska',conflict:'konflikt',unmatched:'brak',blocked:'zablokowane'})[row.confidence]||'ręcznie';}
+async function exMediaFileDigest(file){
+  if(!file||!window.crypto||!window.crypto.subtle)return '';
+  try{const hash=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');}catch(e){return '';}
+}
 
 function resolveExerciseName(input){
   const raw=String(input||'').trim();
@@ -5041,7 +5067,8 @@ function parseExGifBulkPaste(text){
         const url=normalizeImportedMediaUrl(o.url||o.gif||o.video||o.mp4||o.link||o.href||'');
         const name=String(o.name||o.exercise||o.exerciseName||'').trim();
         const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
-        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,role:exGifImportRole(url),selected:!!(exerciseName&&url),status:'',url:''};
+        const detail=typeof matchFilenameToExerciseDetailed==='function'?matchFilenameToExerciseDetailed(name||mediaFilenameFromUrl(url)):{name:exerciseName,confidence:exerciseName?'medium':'unmatched',score:0};
+        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName:exerciseName||detail.name,role:exGifImportRole(url),selected:!!((exerciseName||detail.name)&&url),status:'',url:'',confidence:detail.confidence,score:detail.score};
       }).filter(r=>r.presetUrl);
     }catch(e){/* fall through to lines */}
   }
@@ -5055,7 +5082,8 @@ function parseExGifBulkPaste(text){
     if(!url)return;
     url=normalizeImportedMediaUrl(url);
     const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
-    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,role:exGifImportRole(url),selected:!!(exerciseName&&url),status:'',url:''});
+    const detail=typeof matchFilenameToExerciseDetailed==='function'?matchFilenameToExerciseDetailed(name||mediaFilenameFromUrl(url)):{name:exerciseName,confidence:exerciseName?'medium':'unmatched',score:0};
+    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName:exerciseName||detail.name,role:exGifImportRole(url),selected:!!((exerciseName||detail.name)&&url),status:'',url:'',confidence:detail.confidence,score:detail.score});
   });
   return rows;
 }
@@ -5409,7 +5437,8 @@ async function assignExTechniqueFromFile(name,input){
   try{
     const slug=typeof exerciseSlug==='function'?exerciseSlug(n):String(n).toLowerCase();
     const ext=(file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','mp4'])[1].toLowerCase();
-    const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+    // Keep ad-hoc uploads compatible with the immutable bulk-import layout.
+    const path='exercise-media/'+window._uid+'/single/'+slug+'-'+Date.now().toString(36)+'.'+ext;
     const ref=window._storageRef(window._storage,path);
     const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
     await window._uploadBytes(ref,file,{contentType:file.type||mime[ext]||'application/octet-stream'});
@@ -5449,8 +5478,8 @@ window.matchGifFileToExercise=matchGifFileToExercise;
 
 function buildExGifImportRows(files){
   return (files||[]).filter(f=>/\.(gif|webp|mp4|webm)$/i.test(f.name||'')).map(file=>{
-    const exerciseName=matchGifFileToExercise(file.name);
-    return{file,exerciseName,role:'technique',selected:!!exerciseName,status:'',url:''};
+    const detail=typeof matchFilenameToExerciseDetailed==='function'?matchFilenameToExerciseDetailed(file.name):{name:matchGifFileToExercise(file.name),confidence:'medium',score:0};
+    return{file,exerciseName:detail.name||'',role:'technique',selected:!!detail.name,status:'',url:'',confidence:detail.confidence,score:detail.score};
   }).sort((a,b)=>(b.selected?1:0)-(a.selected?1:0)||a.file.name.localeCompare(b.file.name,'pl'));
 }
 
@@ -5483,7 +5512,7 @@ function renderExGifImportPreview(){
         <option value="preview" ${r.role==='preview'?'selected':''}>Podgląd karty</option>
         <option value="technique" ${r.role!=='preview'?'selected':''}>Technika</option>
       </select>
-      <span class="exgif-row-status">${st}</span>
+      <span class="exgif-row-status" title="Pewność dopasowania: ${exMediaConfidenceLabel(r)}">${st} ${exMediaConfidenceLabel(r)}</span>
     </div>`;
   }).join('');
 }
@@ -5493,6 +5522,7 @@ function onExGifFilesPicked(input){
   if(typeof setExGifImportTab==='function')setExGifImportTab('files',true);
   const files=input&&input.files?[...input.files]:[];
   _exGifImportRows=buildExGifImportRows(files);
+  _exMediaImportBatchId=exMediaImportId(); saveExMediaImportJournal('review');
   renderExGifImportPreview();
   syncExGifImportBtnLabel();
 }
@@ -5501,6 +5531,7 @@ function onExGifBulkPastePreview(){
   _exGifImportMode='paste';
   const ta=document.getElementById('exgif-paste');
   _exGifImportRows=parseExGifBulkPaste(ta?ta.value:'');
+  _exMediaImportBatchId=exMediaImportId(); saveExMediaImportJournal('review');
   renderExGifImportPreview();
   syncExGifImportBtnLabel();
   if(_exGifImportRows.length&&typeof notify==='function')notify('Sparsowano '+_exGifImportRows.length+' pozycji — sprawdź dopasowanie');
@@ -5541,6 +5572,8 @@ function setExGifImportExercise(i,name){
   if(!_exGifImportRows[i])return;
   _exGifImportRows[i].exerciseName=name||'';
   _exGifImportRows[i].selected=!!name;
+  _exGifImportRows[i].confidence=name?'manual':'unmatched';
+  saveExMediaImportJournal('review');
   renderExGifImportPreview();
   syncExGifImportBtnLabel();
 }
@@ -5560,7 +5593,7 @@ function setAllExGifImportRoles(role){
 }
 
 function openExGifImport(){
-  _exGifImportRows=[];
+  _exGifImportRows=[]; _exMediaImportBatchId='';
   _exGifImportMode='paste';
   const inp=document.getElementById('exgif-files');
   if(inp)inp.value='';
@@ -5572,6 +5605,12 @@ function openExGifImport(){
   const bar=document.getElementById('exgif-progress');
   if(bar){bar.style.width='0%';bar.parentElement.style.display='none';}
   openM('m-ex-gif-import');
+}
+
+function resumeExMediaImport(){
+  if(!loadExMediaImportJournal()){notify('Nie ma zapisanej paczki do wznowienia');return;}
+  _exGifImportMode='paste'; renderExGifImportPreview(); syncExGifImportBtnLabel();
+  notify('Wznowiono paczkę. Dla plików z dysku wybierz je ponownie — przeglądarka nie może ich zachować po odświeżeniu.');
 }
 
 function ensureExGifPasteParsed(){
@@ -5593,6 +5632,8 @@ async function runExGifImport(){
   if(!rows.length){notify('Wybierz ćwiczenie z listy przy każdym filmie — potem Zapisz masowo');return;}
   if(!window._uid){notify('Zaloguj się, aby zapisać GIF-y i filmy MP4');return;}
   const fileRows=rows.filter(r=>r.file&&!r.presetUrl);
+  if(!_exMediaImportBatchId)_exMediaImportBatchId=exMediaImportId();
+  await saveExMediaImportJournal('uploading');
   const storageBlocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
   if(fileRows.length&&(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
     notify('Z GitHub Pages nie wgramy plików (CORS). Wklej ścieżki D:/progress-live-video-assets/…mp4 i Zapisz masowo');
@@ -5610,10 +5651,16 @@ async function runExGifImport(){
   let step=0;
   for(let i=0;i<rows.length;i++){
     const row=rows[i];
+    const wasDone=row.status==='done';
     row.status='upload';
     renderExGifImportPreview();
     try{
-      if(row.presetUrl){
+      if(wasDone){row.status='done';ok++;if(row.role==='preview')previews++;}
+      else if(row.presetUrl){
+        if(!Object.prototype.hasOwnProperty.call(row,'previousUrl')){
+          const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+          row.previousUrl=row.role==='preview'?((window.EX_PREVIEW_REMOTE||{})[key]||''):((window.EX_GIF_REMOTE||{})[key]||'');
+        }
         const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
         const saved=await saveMedia(row.exerciseName,row.presetUrl);
         if(saved){row.url=row.presetUrl;row.status='done';ok++;if(row.role==='preview')previews++;}
@@ -5627,14 +5674,20 @@ async function runExGifImport(){
         if(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
           row.status='err';
         }else{
+        if(!Object.prototype.hasOwnProperty.call(row,'previousUrl')){
+          const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+          row.previousUrl=row.role==='preview'?((window.EX_PREVIEW_REMOTE||{})[key]||''):((window.EX_GIF_REMOTE||{})[key]||'');
+        }
         const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):String(row.exerciseName).toLowerCase();
         const ext=(row.file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','gif'])[1].toLowerCase();
-        const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+        const digest=await exMediaFileDigest(row.file);
+        const fingerprint=digest||((row.file.size||0).toString(36)+'-'+(row.file.lastModified||0).toString(36)+'-'+slug);
+        const path='exercise-media/'+window._uid+'/'+_exMediaImportBatchId+'/'+fingerprint+'.'+ext;
         const ref=window._storageRef(window._storage,path);
         const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
         await window._uploadBytes(ref,row.file,{contentType:row.file.type||mime[ext]||'application/octet-stream'});
         const url=await window._getDownloadURL(ref);
-        row.url=url;
+        row.url=url;row.storagePath=path;row.digest=digest;
         const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
         await saveMedia(row.exerciseName,url);
         row.status='done';
@@ -5653,11 +5706,31 @@ async function runExGifImport(){
     step++;
     if(prog)prog.style.width=Math.round((step/total)*100)+'%';
     renderExGifImportPreview();
+    await saveExMediaImportJournal(step===total?'published':'uploading');
   }
   if(btn){btn.disabled=false;syncExGifImportBtnLabel();}
   if(typeof renderLib==='function')renderLib();
   notify('✓ Zapisano '+ok+' / '+total+' plików · '+previews+' podglądów kart · '+(ok-previews)+' filmów techniki');
   if(ok===total)closeM('m-ex-gif-import');
+}
+
+async function rollbackExMediaImport(){
+  if(!loadExMediaImportJournal()){notify('Nie ma paczki do wycofania');return;}
+  // Rollback is metadata-only: uploaded immutable objects are retained for an
+  // audit trail and can be lifecycle-deleted by Storage, never reused silently.
+  for(const row of _exGifImportRows.filter(r=>r.status==='done'&&r.exerciseName)){
+    const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+    const map=row.role==='preview'?(window.EX_PREVIEW_REMOTE=window.EX_PREVIEW_REMOTE||{}):(window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{});
+    map[key]=row.previousUrl||'';
+    if(window._db&&window._setDoc&&window._doc&&window._uid){
+      const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):key;
+      const field=row.role==='preview'?'previewUrl':'gifUrl';
+      try{await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{exerciseName:row.exerciseName,trainerId:window._uid,[field]:row.previousUrl||null,updatedAt:new Date().toISOString()},{merge:true});}catch(e){console.warn('media import rollback',e);}
+    }
+  }
+  await saveExMediaImportJournal('rolled_back');
+  if(typeof renderLib==='function')renderLib();
+  notify('Wycofano przypisania tej paczki. Pliki pozostają poza publikacją do czasu reguły retencji Storage.');
 }
 
 window.openExGifImport=openExGifImport;
@@ -5671,6 +5744,8 @@ window.toggleExGifImportRow=toggleExGifImportRow;
 window.setExGifImportExercise=setExGifImportExercise;
 window.setExGifImportRole=setExGifImportRole;
 window.setAllExGifImportRoles=setAllExGifImportRoles;
+window.resumeExMediaImport=resumeExMediaImport;
+window.rollbackExMediaImport=rollbackExMediaImport;
 
 function countExercisesWithGif(){
   const all=typeof allExercises==='function'?allExercises():[];
