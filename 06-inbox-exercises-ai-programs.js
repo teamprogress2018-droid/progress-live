@@ -5468,6 +5468,9 @@ function exDetailAssignHtml(e){
   const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
   const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(e):'';
   const youtube=typeof assignedExYoutubeUrl==='function'?assignedExYoutubeUrl(e):'';
+  const youtubeKey=typeof exerciseMediaKey==='function'?exerciseMediaKey(name):String(name).toLowerCase();
+  const youtubeSuggestions=((window._youtubeSuggestions||{})[youtubeKey]||{}).candidates||[];
+  const youtubeSuggestionsHtml=youtubeSuggestions.length?`<div style="margin-top:10px;display:grid;gap:7px;">${youtubeSuggestions.map(item=>`<div class="exd-assign-hint" style="padding:9px;"><b>${esc(item.title||'Film YouTube')}</b><br><span style="font-size:11px;">${esc(item.channel||'YouTube')} · ${Number(item.views||0).toLocaleString('pl-PL')} wyświetleń · ${Number(item.likes||0).toLocaleString('pl-PL')} polubień</span><div style="display:flex;gap:6px;margin-top:7px;"><a class="btn btn-ghost btn-sm" href="${esc(item.url||'#')}" target="_blank" rel="noopener noreferrer">Podgląd</a><button type="button" class="btn btn-primary btn-sm" onclick="assignExYoutubeCandidate(currentExDetail,${exJsArg(item.url||'')})">Przypisz film</button></div></div>`).join('')}</div>`:'';
   const currentIsDrive=!!current&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(current);
   const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current)||currentIsDrive;
   const currentHint=currentIsVideo
@@ -5504,6 +5507,8 @@ function exDetailAssignHtml(e){
     <div class="exd-assign-hint">${youtube?'Przypisany film: <code>'+esc(youtube)+'</code>':'Wklej publiczny link YouTube do dokładnego ćwiczenia. W szczegółach pojawi się przycisk „Zobacz film”.'}</div>
     <input type="url" class="form-input" id="exd-youtube-url" placeholder="https://www.youtube.com/watch?v=…" style="margin-top:6px;margin-bottom:6px;font-size:12px;">
     <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExYoutubeFromPaste(currentExDetail)">Zapisz film YouTube</button>
+    <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="requestYoutubeCandidates(currentExDetail)">✨ Znajdź propozycje według popularności</button>
+    ${youtubeSuggestionsHtml}
     ${msgHtml}
     ${ownBlock}
   </div>`;
@@ -5661,6 +5666,41 @@ async function assignExYoutubeFromPaste(name){
   return true;
 }
 window.assignExYoutubeFromPaste=assignExYoutubeFromPaste;
+
+async function assignExYoutubeCandidate(name,url){
+  const inp=document.getElementById('exd-youtube-url');
+  if(inp)inp.value=url||'';
+  return assignExYoutubeFromPaste(name);
+}
+window.assignExYoutubeCandidate=assignExYoutubeCandidate;
+
+async function requestYoutubeCandidates(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const ex=typeof libExerciseByName==='function'?libExerciseByName(n):null;
+  if(!n||!ex){notify('Najpierw wybierz ćwiczenie');return false;}
+  if(typeof window._youtubeCurationCall!=='function'){
+    exAssignSetMsg('Wyszukiwarka YouTube nie jest jeszcze gotowa na serwerze. Odśwież stronę za chwilę.',false);
+    return false;
+  }
+  const terms=[ex.name].concat(Array.isArray(ex.aliases)?ex.aliases:String(ex.aka||ex.alias||'').split(','));
+  exAssignSetMsg('Szukam dokładnych filmów i porównuję popularność…',true);
+  try{
+    const result=await window._youtubeCurationCall({exerciseName:ex.name,terms});
+    const candidates=result&&result.data&&Array.isArray(result.data.candidates)?result.data.candidates:[];
+    const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(ex.name):String(ex.name).toLowerCase();
+    window._youtubeSuggestions=window._youtubeSuggestions||{};
+    window._youtubeSuggestions[key]={candidates};
+    window._exAssignFlash={text:candidates.length?'Znaleziono '+candidates.length+' propozycji do wyboru.':'Nie znaleziono bezpiecznego dopasowania — wklej link ręcznie.',ok:!!candidates.length};
+    openExDetail(ex.name);
+    if(typeof setExdTab==='function')setExdTab('manage');
+    return true;
+  }catch(error){
+    const code=String(error&&error.code||'');
+    exAssignSetMsg(code.includes('resource-exhausted')?'Dzisiejszy limit wyszukiwań został wykorzystany. Spróbuj jutro.':'Nie udało się pobrać propozycji YouTube. Spróbuj ponownie później.',false);
+    return false;
+  }
+}
+window.requestYoutubeCandidates=requestYoutubeCandidates;
 
 function previewAssignedExOwnVideo(){
   const sel=document.getElementById('exd-mp4-own');

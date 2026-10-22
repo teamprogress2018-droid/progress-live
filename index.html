@@ -4399,9 +4399,12 @@ import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-ap
 import{getFirestore,collection,getDocs,getDocsFromServer,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction,Timestamp,serverTimestamp,deleteField}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
+import{getFunctions,httpsCallable}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-functions.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
 const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
 const storage=getStorage(app);
+const functions=getFunctions(app,'europe-west1');
+window._youtubeCurationCall=httpsCallable(functions,'youtubeCurationSuggest',{timeout:45000});
 window._storage=storage;window._storageRef=ref;window._uploadBytes=uploadBytes;window._getDownloadURL=getDownloadURL;
 window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._getDocsFromServer=getDocsFromServer;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;window._runTransaction=runTransaction;
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
@@ -4843,7 +4846,7 @@ async function load(session=captureTenantSession()){
 <script src="05-clients-builder-plans-calendar.js?v=119&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=113&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=114&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1"></script>
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=93&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=57&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
