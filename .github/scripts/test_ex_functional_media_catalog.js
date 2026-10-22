@@ -24,6 +24,8 @@ ok('functional shortcut includes the category', source.includes("e.cat==='Funkcj
 ok('functional category has a card color', source.includes("'Funkcjonalne':'#e11d48'"));
 ok('GIF technique is visibly marked as a film on a card', source.includes("const gif=typeof exGifUrl==='function'?exGifUrl(e)"));
 ok('browser loads the new functional catalog', html.includes('functional-hiit-media=1'));
+const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
+ok('Firebase GIF technique can be used as a lazy card preview', !core.includes("if(Number(window.EX_DRIVE_MEDIA_VERSION||0)>=1)return '';"));
 
 if (failed) process.exitCode = 1;
 else console.log('\nFunctional media catalog checks passed');

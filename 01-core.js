@@ -2201,9 +2201,9 @@ function exThumbUrl(exOrName){
   const previewDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(preview);
   if(previewDrive&&typeof googleDriveThumbnailUrl==='function')return googleDriveThumbnailUrl(preview,480);
   if(preview&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(preview):/\.(mp4|webm)(\?|#|$)/i.test(preview)))return preview;
-  // W bibliotece Drive karta ma pokazywać tylko jasny, zweryfikowany podgląd.
-  // Stare GIF-y pozostają materiałem techniki, a nie miniaturą innego wariantu.
-  if(Number(window.EX_DRIVE_MEDIA_VERSION||0)>=1)return '';
+  // Materiał z Drive w roli „technika” pozostaje oddzielony od jasnego podglądu.
+  // Własne GIF-y z Firebase są natomiast poprawnym podglądem karty: <img>
+  // ładuje je leniwie, więc nie uruchamiamy całej biblioteki jednocześnie.
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
   const drive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif);
   if(drive){
