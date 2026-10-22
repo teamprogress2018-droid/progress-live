@@ -22,6 +22,7 @@ ok('representative HIIT names are catalogued', ['Burpee Navy SEAL', 'Ćwiczenia 
 ok('new entries use the functional category', source.includes("cat:'Funkcjonalne'"));
 ok('functional shortcut includes the category', source.includes("e.cat==='Funkcjonalne'||EX_LIBRARY_FOCUS.functional.includes(e.name)"));
 ok('functional category has a card color', source.includes("'Funkcjonalne':'#e11d48'"));
+ok('GIF technique is visibly marked as a film on a card', source.includes("const gif=typeof exGifUrl==='function'?exGifUrl(e)"));
 ok('browser loads the new functional catalog', html.includes('functional-hiit-media=1'));
 
 if (failed) process.exitCode = 1;

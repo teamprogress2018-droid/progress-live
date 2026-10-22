@@ -2885,7 +2885,10 @@ window.exDelBtnHtml=exDelBtnHtml;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
-  const gif=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  // GIF-y techniki są poprawnymi materiałami, choć nie są plikami MP4/WebM.
+  // Do odznaki używamy pełnego resolvera, a w siatce pozostawiamy je lekkie:
+  // animacja ładuje się dopiero w szczegółach po kliknięciu karty.
+  const gif=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
   // Materiał premium z Drive jest dostępny po kliknięciu „FILM”, ale nie robi
   // ciemnej, ciężkiej miniatury na każdej karcie biblioteki.
   const isDriveTechnique=!!gif&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif)
