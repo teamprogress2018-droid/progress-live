@@ -3356,7 +3356,8 @@ function openExdAiAcc(){
 window.openExdAiAcc=openExdAiAcc;
 
 function exdPreviewMediaHtml(e){
-  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;
+  const youtube=typeof assignedExYoutubeUrl==='function'?assignedExYoutubeUrl(e):'';
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia({...e,video:youtube||e.video||''}):null;
   const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
   const assignedIsDrive=!!assigned&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(assigned);
   const assignedIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(assigned);
@@ -3379,7 +3380,9 @@ window.exdPreviewMediaHtml=exdPreviewMediaHtml;
 function exdPreviewHtml(e){
   const safe=exJsArg(e.name||'');
   const desc=e.tip||'';
-  const yt=typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button type="button" class="exd-yt-btn" onclick="event.stopPropagation();window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank')">&#9654; Szukaj na YouTube — technika</button>`;
+  const directYoutube=typeof assignedExYoutubeUrl==='function'?assignedExYoutubeUrl(e):'';
+  const youtubeTarget=directYoutube||(typeof youtubeSearchUrlForExercise==='function'?youtubeSearchUrlForExercise(e):'https://www.youtube.com/results?search_query='+encodeURIComponent(e.name+' cwiczenie'));
+  const yt=`<a class="exd-yt-btn" href="${exdEsc(youtubeTarget)}" target="_blank" rel="noopener noreferrer">&#9654; ${directYoutube?'Zobacz film na YouTube':'Zobacz film na YouTube — Ambitious Athletics'}</a>`;
   return `<p class="exd-preview-meta">${exdEsc(e.cat||'')}${e.eq?' <span aria-hidden="true">·</span> '+exdEsc(e.eq):''}</p>
     ${exdPreviewMediaHtml(e)}
     ${desc?`<div class="exd-preview-desc">${exdEsc(desc)}</div>`:''}
@@ -5379,6 +5382,31 @@ async function persistExercisePreviewUrl(exerciseName,previewUrl){
 }
 window.persistExercisePreviewUrl=persistExercisePreviewUrl;
 
+async function persistExerciseYoutubeUrl(exerciseName,youtubeUrl){
+  const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(youtubeUrl):String(youtubeUrl||'').trim();
+  if(!url||!exerciseName||typeof youtubeIdFromUrl!=='function'||!youtubeIdFromUrl(url))return false;
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(exerciseName):exerciseName.toLowerCase();
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
+  window.EX_YOUTUBE_REMOTE=window.EX_YOUTUBE_REMOTE||{};
+  window.EX_YOUTUBE_REMOTE[key]=url;
+  window._exYoutubePersistCloudErr=null;
+  if(window._db&&window._setDoc&&window._doc&&window._uid){
+    try{
+      await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
+        exerciseName,
+        youtubeUrl:url,
+        trainerId:window._uid,
+        updatedAt:new Date().toISOString()
+      },{merge:true});
+    }catch(err){
+      console.warn('persistExerciseYoutubeUrl',err);
+      window._exYoutubePersistCloudErr=err;
+    }
+  }
+  return true;
+}
+window.persistExerciseYoutubeUrl=persistExerciseYoutubeUrl;
+
 function exAssignSetMsg(text,ok){
   const s=String(text||'');
   const el=document.getElementById('exd-assign-msg');
@@ -5439,6 +5467,7 @@ function exDetailAssignHtml(e){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
   const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(e):'';
+  const youtube=typeof assignedExYoutubeUrl==='function'?assignedExYoutubeUrl(e):'';
   const currentIsDrive=!!current&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(current);
   const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current)||currentIsDrive;
   const currentHint=currentIsVideo
@@ -5471,6 +5500,10 @@ function exDetailAssignHtml(e){
     <div class="exd-assign-hint">${preview?'Podgląd karty: <code>'+esc(preview)+'</code>':'Opcjonalnie: wklej jasny obraz lub link Google Drive do pierwszego widoku karty. Nie zastępuje filmu techniki premium.'}</div>
     <textarea class="form-input" id="exd-preview-url" rows="2" placeholder="Jasny obraz lub link Google Drive" style="margin-top:6px;margin-bottom:6px;font-size:12px;min-height:52px;resize:vertical;"></textarea>
     <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExPreviewFromPaste(currentExDetail)">Zapisz podgląd karty</button>
+    <div class="exd-sec-h" style="margin-top:18px;">Film YouTube</div>
+    <div class="exd-assign-hint">${youtube?'Przypisany film: <code>'+esc(youtube)+'</code>':'Wklej publiczny link YouTube do dokładnego ćwiczenia. W szczegółach pojawi się przycisk „Zobacz film”.'}</div>
+    <input type="url" class="form-input" id="exd-youtube-url" placeholder="https://www.youtube.com/watch?v=…" style="margin-top:6px;margin-bottom:6px;font-size:12px;">
+    <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExYoutubeFromPaste(currentExDetail)">Zapisz film YouTube</button>
     ${msgHtml}
     ${ownBlock}
   </div>`;
@@ -5598,6 +5631,36 @@ async function assignExPreviewFromPaste(name){
   return true;
 }
 window.assignExPreviewFromPaste=assignExPreviewFromPaste;
+
+async function assignExYoutubeFromPaste(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const inp=document.getElementById('exd-youtube-url');
+  const raw=inp?String(inp.value||'').trim().replace(/^["']+|["']+$/g,''):'';
+  const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(raw):raw;
+  if(!n){notify('Najpierw wybierz ćwiczenie');return false;}
+  if(!url||typeof youtubeIdFromUrl!=='function'||!youtubeIdFromUrl(url)){
+    exAssignSetMsg('Wklej pełny link do filmu YouTube, np. https://www.youtube.com/watch?v=…',false);
+    return false;
+  }
+  if(!window._uid){exAssignSetMsg('Zaloguj się, aby zapisać film YouTube',false);return false;}
+  const saved=await persistExerciseYoutubeUrl(n,url);
+  if(!saved){exAssignSetMsg('Nie udało się zapisać filmu YouTube',false);return false;}
+  const custom=typeof findCustomEx==='function'?findCustomEx(n):null;
+  if(custom){
+    custom.youtubeUrl=url;
+    if(typeof persistById==='function')try{await persistById('exercises',custom);}catch(e){}
+  }
+  window._exAssignFlash=window._exYoutubePersistCloudErr
+    ?{text:'Film działa teraz, ale chmura go nie zapisała — po odświeżeniu zniknie',ok:false}
+    :{text:'Film YouTube przypisany do: '+n,ok:true};
+  if(typeof renderLib==='function')renderLib();
+  if(typeof openExDetail==='function'){
+    openExDetail(n);
+    if(typeof setExdTab==='function')setExdTab('preview');
+  }else exAssignSetMsg(window._exAssignFlash.text,window._exAssignFlash.ok);
+  return true;
+}
+window.assignExYoutubeFromPaste=assignExYoutubeFromPaste;
 
 function previewAssignedExOwnVideo(){
   const sel=document.getElementById('exd-mp4-own');

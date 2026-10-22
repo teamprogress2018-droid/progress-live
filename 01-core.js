@@ -2284,6 +2284,30 @@ function ownVideoForExercise(name){
 }
 window.ownVideoForExercise=ownVideoForExercise;
 
+/** Publiczny link YouTube przypisany ręcznie do ćwiczenia.
+ * Trzymamy go osobno od MP4/GIF, aby nie obciążał kart biblioteki. */
+function assignedExYoutubeUrl(exOrName){
+  const names=exerciseMediaCandidateNames(exOrName);
+  for(const name of names){
+    const url=normalizeCoachVideoUrl(mediaMapGet(window.EX_YOUTUBE_REMOTE,name));
+    if(youtubeIdFromUrl(url))return url;
+  }
+  const ex=typeof exOrName==='string'?libExerciseByName(exOrName):exOrName;
+  const direct=normalizeCoachVideoUrl(ex&&typeof ex==='object'?(ex.youtubeUrl||ex.youtube||''):'');
+  if(youtubeIdFromUrl(direct))return direct;
+  const own=ownVideoForExercise((ex&&ex.name)||exOrName||'');
+  return youtubeIdFromUrl(own)?own:'';
+}
+window.assignedExYoutubeUrl=assignedExYoutubeUrl;
+
+/** Bezpieczny fallback, gdy konkretny materiał nie został jeszcze wybrany. */
+function youtubeSearchUrlForExercise(exOrName){
+  const ex=typeof exOrName==='string'?libExerciseByName(exOrName):exOrName;
+  const name=String((ex&&ex.name)||exOrName||'ćwiczenie').trim();
+  return 'https://www.youtube.com/results?search_query='+encodeURIComponent('Ambitious Athletics '+name+' exercise');
+}
+window.youtubeSearchUrlForExercise=youtubeSearchUrlForExercise;
+
 function exerciseTodoNote(ex){
   if(!ex)return '';
   const own=String(ex.note||ex.notes||ex.cue||ex.planNote||'').trim();
