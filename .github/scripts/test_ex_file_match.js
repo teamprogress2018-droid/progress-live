@@ -17,9 +17,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v36', html.includes('ex-gif-manifest.js?v=36'));
-ok('cache 01 v60', html.includes('01-core.js?v=137'));
-ok('cache 06 v42', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache manifest v41', html.includes('ex-gif-manifest.js?v=41'));
+ok('cache Drive v3', html.includes('ex-drive-media-manifest.js?v=3'));
+ok('cache 01 v150', html.includes('01-core.js?v=150&drive-media=5'));
+ok('cache 06 v112', html.includes('06-inbox-exercises-ai-programs.js?v=112'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
 ok('DEF_EX block', !!m);
@@ -108,6 +109,7 @@ ok(
   hit('Wyciskanie sztangi wąskim chwytem (Close-Grip Barbell Bench Press).mp4') !== 'Wyciskanie sztangi leżąc'
 );
 ok('dips', hit('Dipy na poręczach (Parallel Bar Dips).mp4') === 'Dipy na poręczach');
+ok('machine shrugs Polish maps', hit('Szrugsy na maszynie (1).gif') === 'Unoszenie barków na maszynie');
 ok('generic chest name', ctx.isGenericExerciseMediaName('Klatka piersiowa') === true);
 ok('dips name not generic', ctx.isGenericExerciseMediaName('Dipy na poręczach') === false);
 ok(
@@ -437,6 +439,16 @@ ok(
   'cable lateral maps to one-arm cable raise',
   hit('Odwodzenie ramienia na wyciągu dolnym (stojąc bokiem) (Cable lateral raise (low pulley)).mp4') === 'Unoszenie bokiem na wyciągu jednorącz'
 );
+ok('functional modified hindu push-up maps', hit('Zmodyfikowana pompka hinduska.gif') === 'Pompki hindu');
+ok('functional lateral raise maps', hit('Wznosy bokiem.gif') === 'Unoszenie bokiem');
+ok('band lateral raise does not map to dumbbell raise', hit('Wznosy przodem i bokiem z gumą oporową.gif') !== 'Unoszenie bokiem');
+ok('functional side lunge maps', hit('Wykrok w bok.gif') === 'Wykrok boczny');
+ok('functional alternating jump lunge maps', hit('Wykroki z wyskokiem naprzemiennie.gif') === 'Wypady z wyskokiem naprzemiennie');
+ok('functional single-leg calf raise maps', hit('Wspięcia na palce na jednej nodze.gif') === 'Wspięcia na palce jednonóż');
+ok('functional side-lying abduction maps', hit('Unoszenie nogi leżąc na boku.gif') === 'Odwodzenie biodra leżąc');
+ok('functional hydrant maps', hit('Unoszenie nogi bokiem w klęku podpartym.gif') === 'Fire hydrant');
+ok('functional bodyweight bridge maps', hit('Unoszenie bioder z masą ciała.gif') === 'Mostek biodrowy');
+ok('functional seated band row maps', hit('Wiosłowanie siedząc z gumą oporową.gif') === 'Wiosłowanie z taśmą siedząc');
 ok(
   'lying barbell-row filename not assigned',
   hit('Wiosłowanie sztangą w opadzie tułowia (Barbell Bent-Over Row).mp4') === ''

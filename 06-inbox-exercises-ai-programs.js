@@ -482,6 +482,12 @@ function sendBroadcast(){
 // EXERCISE LIBRARY — ENHANCED
 // ════════════════════════════════════════
 var exView=(()=>{try{return localStorage.getItem('pl_ex_view_v1')==='list'?'list':'grid';}catch(e){return 'grid';}})();var exCatFilter='Wszystkie';var exEquipFilter='';var exSelId=null;
+// Katalog może mieć setki pozycji. Domyślnie pokazujemy tylko te z realnym
+// materiałem techniki; pozostałe nie są kasowane i nadal można je przywrócić.
+var exMediaOnly=(()=>{try{return localStorage.getItem('pl_ex_media_only_v1')!=='0';}catch(e){return true;}})();
+var exLibVisible=24;
+const EX_LIB_PAGE_SIZE=24;
+let _exLibraryDlSignature='';
 
 const CAT_COLORS_EX={
   'Klatka piersiowa':'var(--blue)',
@@ -497,8 +503,55 @@ const CAT_COLORS_EX={
   'Rozgrzewka':'#64748b',
   'Rozciąganie':'#94a3b8',
   'Mobilność':'#22c55e',
+  'Funkcjonalne':'#e11d48',
 };
 window.CAT_COLORS_EX=CAT_COLORS_EX;
+
+// Krótkie, celowe wejścia do biblioteki. Nie są nową bazą danych ani drugim
+// katalogiem: wskazują wyłącznie ćwiczenia już obecne w bibliotece. Dzięki temu
+// trener najpierw widzi ruchy używane najczęściej w planach, a materiały z Dysku
+// mogą być bezpiecznie przypinane do tych samych nazw bez mnożenia duplikatów.
+const EX_LIBRARY_FOCUS={
+  core:[
+    'Przysiad ze sztangą','Przysiad Goblet','Przysiad bułgarski','Wykrok chodzony','Wyciskanie nogami',
+    'Martwy ciąg klasyczny','Martwy ciąg RDL','Wypychanie bioder (hip thrust)','Wyciskanie sztangi leżąc',
+    'Wyciskanie hantli leżąc','Pompki','Wiosłowanie sztangą','Wiosłowanie hantlem','Podciąganie na drążku',
+    'Ściąganie drążka wyciąg','Wyciskanie żołnierskie OHP','Unoszenie bokiem','Uginanie biceps sztangą',
+    'Prostowanie tricepsa wyciąg','Deska','Martwy robak','Bird dog'
+  ],
+  functional:[
+    'Przysiad Goblet','Wykrok chodzony','Wykrok wsteczny','Wejścia na skrzynię','Martwy ciąg RDL',
+    'Wypychanie bioder (hip thrust)','Pompki','Burpees','Przysiad z wyskokiem','Mountain climbers',
+    'Gąsienica (inchworm)','Chód niedźwiedzia','Chód niedźwiedzia bokiem','Spacer farmera','Spacer walizkowy',
+    'Wyciskanie Pallofa','Deska','Deska z unoszeniem ramienia','Bird dog','Donkey kick','Fire hydrant'
+  ],
+  mobilityCats:['Mobilność','Rozgrzewka','Rozciąganie']
+};
+function exLibraryFocusKind(e,kind){
+  if(!e)return false;
+  if(kind==='__plan_core')return EX_LIBRARY_FOCUS.core.includes(e.name);
+  if(kind==='__functional')return e.cat==='Funkcjonalne'||EX_LIBRARY_FOCUS.functional.includes(e.name);
+  if(kind==='__mobility')return EX_LIBRARY_FOCUS.mobilityCats.includes(e.cat);
+  return false;
+}
+function exLibraryFocusRank(e,kind){
+  const list=kind==='__plan_core'?EX_LIBRARY_FOCUS.core:EX_LIBRARY_FOCUS.functional;
+  const rank=list.indexOf(e?.name);
+  return rank<0?Number.MAX_SAFE_INTEGER:rank;
+}
+// Materiał jest kompletny dopiero, gdy ma lekki podgląd karty oraz osobny film
+// techniki. Stary obrazek z katalogu nie ukrywa tego braku — dzięki temu lista
+// prowadzi import z Dysku do kompletnej, spójnej biblioteki.
+function exNeedsCuratedMedia(e){
+  const facts=typeof exLibraryMediaFacts==='function'?exLibraryMediaFacts(e):null;
+  if(facts)return !facts.preview||!facts.technique;
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(e):'';
+  const technique=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
+  return !preview||!technique;
+}
+window.EX_LIBRARY_FOCUS=EX_LIBRARY_FOCUS;
+window.exLibraryFocusKind=exLibraryFocusKind;
+window.exNeedsCuratedMedia=exNeedsCuratedMedia;
 
 const DEF_EX=[
 {name:'Wyciskanie sztangi leżąc',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Piersiowy większy, triceps, przedni bark',tip:'Ustaw stabilną pozycję na ławce. Stosuj pełny, kontrolowany i tolerowany zakres — nie pogłębiaj ruchu kosztem barku lub utraty napięcia.',nsca:'Hipertrofia: 3-4x8-12, RPE 8. Siła: 4-6x3-5.',alt:'Wyciskanie hantli, Pompki',img:'assets/ex/bench.svg'},
@@ -564,17 +617,17 @@ const DEF_EX=[
 {name:'Unoszenie bokiem na wyciągu jednorącz',cat:'Barki',eq:'Wyciąg',muscle:'Barki (środkowe)',tip:'Ciągnij w poprzek ciała — stałe napięcie.',nsca:'3x12–20/stronę.',alt:'Unoszenie bokiem, Unoszenie wyciągiem bokiem'},
 {name:'Unoszenie talerza przodem',aka:'Plate front raise, Plate Shoulder Front Raises, Plate Front Raises HandleBar',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie)',tip:'Talerz/hantel przed sobą do wysokości barków.',nsca:'3x12–15.',alt:'Unoszenie przodem, Wyciskanie żołnierskie OHP'},
 {name:'Unoszenie bokiem landmine',aka:'Landmine lateral raise',cat:'Barki',eq:'Sztanga',muscle:'Barki (środkowe)',tip:'Landmine w jednej ręce — łuk na zewnątrz.',nsca:'3x12–15/stronę.',alt:'Unoszenie bokiem'},
-{name:'Uginanie biceps sztangą',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa i krótka)',tip:'Łokieć stabilny przy boku.',nsca:'3x8-12.',alt:'Uginanie hantlami',img:'assets/ex/curl.svg'},
-{name:'Uginanie młotkowe',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Neutralny chwyt — kciuk do góry.',nsca:'3x10-12.',alt:'Uginanie biceps sztangą',img:'assets/ex/curl.svg'},
-{name:'Uginanie hantlami naprzemiennie',aka:'Alternating DB Biceps Curl, DB Biceps Curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy',tip:'Pełna supinacja przy uginaniu.',nsca:'3x10-12/stronę.',alt:'Uginanie sztangą',img:'assets/ex/curl.svg'},
-{name:'Uginanie na wyciągu',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps ramienia, ramienny',tip:'Linka zmienia profil oporu i może utrzymywać napięcie w innym fragmencie ruchu niż hantle. Nie zmienia „szczytu” bicepsa.',nsca:'3x12-15.',alt:'Uginanie hantlami'},
-{name:'Uginanie spider',aka:'Spider curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps ramienia, ramienny',tip:'Oparcie klatki ogranicza bujanie tułowiem. Trzymaj ramię stabilnie i dobierz ciężar do pełnego, kontrolowanego zgięcia; ćwiczenie nie zmienia „szczytu” bicepsa.',nsca:'3x12-15.',alt:'Uginanie koncentryczne'},
-{name:'Uginanie Zottman',aka:'DB Zottman Curls',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy, Przedramię',tip:'Supinacja w górze, pronacja w dół.',nsca:'3x10-12.',alt:'Uginanie młotkowe'},
-{name:'Uginanie reverse',cat:'Biceps',eq:'Sztanga',muscle:'Ramiennopromieniowy, Przedramię',tip:'Chwyt pronacyjny. Wzmacnia przedramię.',nsca:'3x12-15.',alt:'Uginanie Zottman'},
+{name:'Uginanie biceps sztangą',aka:'Barbell biceps curl, Uginanie ramion ze sztangą, Uginanie ramion',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa i krótka)',tip:'Łokieć stabilny przy boku.',nsca:'3x8-12.',alt:'Uginanie hantlami',img:'assets/ex/curl.svg'},
+{name:'Uginanie młotkowe',aka:'Hammer curl, Uginanie młotkowe z hantlami',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Neutralny chwyt — kciuk do góry.',nsca:'3x10-12.',alt:'Uginanie biceps sztangą',img:'assets/ex/curl.svg'},
+{name:'Uginanie hantlami naprzemiennie',aka:'Alternating DB Biceps Curl, DB Biceps Curl, Uginanie ramion z hantlami, Uginanie ramion z hantlami naprzemiennie',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy',tip:'Pełna supinacja przy uginaniu.',nsca:'3x10-12/stronę.',alt:'Uginanie sztangą',img:'assets/ex/curl.svg'},
+{name:'Uginanie na wyciągu',aka:'Cable biceps curl, Uginanie ramion na wyciągu, Uginanie ramion na wyciągu 2, Uginanie ramion na wyciągu 3',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps ramienia, ramienny',tip:'Linka zmienia profil oporu i może utrzymywać napięcie w innym fragmencie ruchu niż hantle. Nie zmienia „szczytu” bicepsa.',nsca:'3x12-15.',alt:'Uginanie hantlami'},
+{name:'Uginanie spider',aka:'Spider curl, Uginanie ramion z podparciem o ławkę, Uginanie ramion z podparciem o ławkę 02, Uginanie ramion z podparciem o ławkę 2, Uginanie ramion z hantlami w leżeniu przodem na ławce skośnej, Uginanie ramion leżąc na ławce skośnej',cat:'Biceps',eq:'Hantle',muscle:'Biceps ramienia, ramienny',tip:'Oparcie klatki ogranicza bujanie tułowiem. Trzymaj ramię stabilnie i dobierz ciężar do pełnego, kontrolowanego zgięcia; ćwiczenie nie zmienia „szczytu” bicepsa.',nsca:'3x12-15.',alt:'Uginanie koncentryczne'},
+{name:'Uginanie Zottman',aka:'DB Zottman Curls, Uginanie Zottmana z hantlami siedząc',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy, Przedramię',tip:'Supinacja w górze, pronacja w dół.',nsca:'3x10-12.',alt:'Uginanie młotkowe'},
+{name:'Uginanie reverse',aka:'Reverse curl, Uginanie ramion nachwytem',cat:'Biceps',eq:'Sztanga',muscle:'Ramiennopromieniowy, Przedramię',tip:'Chwyt pronacyjny. Wzmacnia przedramię.',nsca:'3x12-15.',alt:'Uginanie Zottman'},
 {name:'Uginanie nadgarstka',cat:'Biceps',eq:'Sztanga',muscle:'Zginacze nadgarstka, Przedramię',tip:'Nadgarstek opiera się o ławkę.',nsca:'3x15-20.',alt:'Uginanie reverse'},
-{name:'Uginanie koncentryczne',aka:'Concentration curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps ramienia, ramienny',tip:'Oparcie łokcia ogranicza pomoc tułowia. Uginaj w kontrolowanym zakresie; akcent skurczu nie zmienia kształtu ani „szczytu” bicepsa.',nsca:'3x10–12/stronę.',alt:'Uginanie spider, Uginanie hantlami'},
-{name:'Uginanie na modlitewniku',aka:'Preacher curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa krótka)',tip:'Ramię przylegające do ławki Scotta. Nie odrywaj łokci.',nsca:'3x8–12.',alt:'Uginanie spider, Uginanie sztangą'},
-{name:'Uginanie na skosie',aka:'Incline curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa — rozciągnięcie)',tip:'Ławka 45–60°. Ramiona swobodnie w tył.',nsca:'3x10–12.',alt:'Uginanie hantlami, Uginanie Bayesian'},
+{name:'Uginanie koncentryczne',aka:'Concentration curl, Uginanie w koncentracji, Uginanie w koncentracji kobieta, Uginanie w koncentracji mężczyzna',cat:'Biceps',eq:'Hantle',muscle:'Biceps ramienia, ramienny',tip:'Oparcie łokcia ogranicza pomoc tułowia. Uginaj w kontrolowanym zakresie; akcent skurczu nie zmienia kształtu ani „szczytu” bicepsa.',nsca:'3x10–12/stronę.',alt:'Uginanie spider, Uginanie hantlami'},
+{name:'Uginanie na modlitewniku',aka:'Preacher curl, Uginanie na modlitewniku ze sztangą prostą, Uginanie na modlitewniku ze sztangą łamaną',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa krótka)',tip:'Ramię przylegające do ławki Scotta. Nie odrywaj łokci.',nsca:'3x8–12.',alt:'Uginanie spider, Uginanie sztangą'},
+{name:'Uginanie na skosie',aka:'Incline curl, Uginanie ramion z hantlami na ławce skośnej, Uginanie ramion naprzemiennie na ławce skośnej, Uginanie ramion po skosie',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa — rozciągnięcie)',tip:'Ławka 45–60°. Ramiona swobodnie w tył.',nsca:'3x10–12.',alt:'Uginanie hantlami, Uginanie Bayesian'},
 {name:'Uginanie Bayesian',aka:'Bayesian curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps (rozciągnięcie + napięcie)',tip:'Wyciąg z tyłu. Krok do przodu, uginaj do przodu.',nsca:'3x10–15.',alt:'Uginanie na skosie, Uginanie na wyciągu'},
 {name:'Uginanie drag',aka:'Drag curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa)',tip:'Ciągnij sztangę wzdłuż tułowia — łokcie idą w tył.',nsca:'3x10–12.',alt:'Uginanie sztangą'},
 {name:'21-ki biceps',aka:'21s biceps',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (cała głowa — pump)',tip:'7 dolnej połowy + 7 górnej + 7 pełnych.',nsca:'2–3x21.',alt:'Uginanie sztangą, Uginanie na wyciągu'},
@@ -758,12 +811,12 @@ const DEF_EX=[
 {name:'Rotacja wewnętrzna barku',aka:'Internal rotation, Cable internal rotation, Shoulder Internal Rotation with Band',cat:'Barki',eq:'Wyciąg',muscle:'Rotatory (podłopatkowy)',tip:'Łokieć przy boku. Nie ciągnij tułowiem.',nsca:'2–3x12–20/stronę.',alt:'Rotacja zewnętrzna na wyciągu'},
 {name:'Unoszenie bokiem w opadzie',aka:'Bent-over lateral raise, Rear delt raise, Bent Over DB Lateral Raises, Unoszenie bokiem w opadzie hantle',cat:'Barki',eq:'Hantle',muscle:'Tylne barki, Rombowate',tip:'Tułów prawie równoległy. Nie zamachuj.',nsca:'3x12–15.',alt:'Odwrotne rozpiętki, Unoszenie Y'},
 {name:'Unoszenie Lu',aka:'Lu raise',cat:'Barki',eq:'Hantle',muscle:'Barki (wszystkie głowy), Trapez',tip:'Od ud łukiem nad głowę, kciuki do góry. Lekkie hantle.',nsca:'3x10–15.',alt:'Unoszenie bokiem, Unoszenie Y'},
-{name:'Uginanie gryfem łamanym',aka:'EZ bar curl, Uginanie EZ',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Łagodniejszy kąt nadgarstków niż sztanga prosta.',nsca:'3x8–12.',alt:'Uginanie biceps sztangą, Uginanie na modlitewniku',img:'assets/ex/curl.svg'},
-{name:'Uginanie młotkowe na wyciągu',aka:'Cable hammer curl, Rope hammer curl',cat:'Biceps',eq:'Wyciąg',muscle:'Ramiennopromieniowy, Biceps',tip:'Linka, kciuki w górę. Łokcie przy tułowiu.',nsca:'3x10–15.',alt:'Uginanie młotkowe, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
-{name:'Uginanie na maszynie',aka:'Machine curl, Preacher machine curl, Uginanie ramion na maszynie, Biceps Curl Machine',cat:'Biceps',eq:'Maszyna',muscle:'Biceps (izolacja)',tip:'Ramię przylega do poduszki. Nie odrywaj łokci.',nsca:'3x10–12.',alt:'Uginanie na modlitewniku, Uginanie hantlami naprzemiennie, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
+{name:'Uginanie gryfem łamanym',aka:'EZ bar curl, Uginanie EZ, Uginanie ramion ze sztangą łamaną',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Łagodniejszy kąt nadgarstków niż sztanga prosta.',nsca:'3x8–12.',alt:'Uginanie biceps sztangą, Uginanie na modlitewniku',img:'assets/ex/curl.svg'},
+{name:'Uginanie młotkowe na wyciągu',aka:'Cable hammer curl, Rope hammer curl, Uginanie młotkowe z liną',cat:'Biceps',eq:'Wyciąg',muscle:'Ramiennopromieniowy, Biceps',tip:'Linka, kciuki w górę. Łokcie przy tułowiu.',nsca:'3x10–15.',alt:'Uginanie młotkowe, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
+{name:'Uginanie na maszynie',aka:'Machine curl, Preacher machine curl, Uginanie ramion na maszynie, Uginanie ramion na maszynie naprzemiennie, Biceps Curl Machine',cat:'Biceps',eq:'Maszyna',muscle:'Biceps (izolacja)',tip:'Ramię przylega do poduszki. Nie odrywaj łokci.',nsca:'3x10–12.',alt:'Uginanie na modlitewniku, Uginanie hantlami naprzemiennie, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
 {name:'Prostowanie nadgarstka',aka:'Wrist extension',cat:'Biceps',eq:'Sztanga',muscle:'Prostowniki nadgarstka, Przedramię',tip:'Przedramiona na ławce, dłonie zwisają. Unoś nadgarstki.',nsca:'3x15–20.',alt:'Uginanie nadgarstka, Uginanie reverse'},
 {name:'Uginanie młotkowe na skosie',aka:'Incline hammer curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Ławka 45–60°. Ramiona swobodnie w tył.',nsca:'3x10–12.',alt:'Uginanie na skosie, Uginanie młotkowe',img:'assets/ex/curl.svg'},
-{name:'Uginanie w poprzek ciała',aka:'Cross-body hammer curl, Across body curl',cat:'Biceps',eq:'Hantle',muscle:'Ramiennopromieniowy, Biceps',tip:'Hantel prowadzi do przeciwnego barku.',nsca:'3x10–12/stronę.',alt:'Uginanie młotkowe, Uginanie Zottman',img:'assets/ex/curl.svg'},
+{name:'Uginanie w poprzek ciała',aka:'Cross-body hammer curl, Across body curl, Uginanie młotkowe w poprzek tułowia',cat:'Biceps',eq:'Hantle',muscle:'Ramiennopromieniowy, Biceps',tip:'Hantel prowadzi do przeciwnego barku.',nsca:'3x10–12/stronę.',alt:'Uginanie młotkowe, Uginanie Zottman',img:'assets/ex/curl.svg'},
 {name:'Uginanie z linką',aka:'Rope curl, Cable rope curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps, stałe napięcie',tip:'Na górze rozciągnij linkę na boki.',nsca:'3x12–15.',alt:'Uginanie na wyciągu, Uginanie Bayesian',img:'assets/ex/curl.svg'},
 {name:'Wyciskanie Tate',aka:'Tate press',cat:'Triceps',eq:'Hantle',muscle:'Triceps (boczna głowa)',tip:'Leżąc. Hantle od klatki na zewnątrz, łokcie szeroko.',nsca:'3x10–12.',alt:'Prostowanie za głowę (skull crusher), Kickback triceps'},
 {name:'Prostowanie za głowę hantlami',aka:'Dumbbell skull crusher, DB skull crusher',cat:'Triceps',eq:'Hantle',muscle:'Triceps',tip:'Opuszczaj do skroni/za głowę. Łokcie stabilne.',nsca:'3x10–12.',alt:'Prostowanie za głowę (skull crusher), Prostowanie za głowę hantlem'},
@@ -1123,7 +1176,7 @@ const DEF_EX=[
 {name:'Rotacja przedramienia hantlem (wspomagana)',aka:'Assisted Single Arm Forearm DB Rotation',cat:'Biceps',eq:'Hantle',muscle:'Przedramię, Rotatory',tip:'Lekki hantel. Supinacja/pronacja z pomocą drugiej ręki.',nsca:'2–3x12–15/stronę.',alt:'Uginanie Zottman'},
 {name:'Uginanie nadgarstków hantlami',aka:'DB Wrist Curl, DB Wrst Curl',cat:'Biceps',eq:'Hantle',muscle:'Zginacze nadgarstka',tip:'Przedramiona na udach. Uginaj nadgarstki podchwytem.',nsca:'3x12–20.',alt:'Uginanie Zottman'},
 {name:'Uginanie nadgarstków młotkowo',aka:'DB Hammer Wrist Curl',cat:'Biceps',eq:'Hantle',muscle:'Przedramię (neutralnie)',tip:'Chwyt młotkowy. Tylko nadgarstek.',nsca:'3x12–15.',alt:'Uginanie nadgarstków hantlami'},
-{name:'Uginanie nadgarstków nachwytem',aka:'Reverse DB Wrist Curl',cat:'Biceps',eq:'Hantle',muscle:'Prostowniki nadgarstka',tip:'Nachwyt. Unieś grzbiet dłoni.',nsca:'3x12–20.',alt:'Uginanie nadgarstków hantlami'},
+{name:'Uginanie nadgarstków nachwytem',aka:'Reverse DB Wrist Curl, Odwrotne uginanie nadgarstków, Odwrotne uginanie nadgarstków z hantlami',cat:'Biceps',eq:'Hantle',muscle:'Prostowniki nadgarstka',tip:'Nachwyt. Unieś grzbiet dłoni.',nsca:'3x12–20.',alt:'Uginanie nadgarstków hantlami'},
 {name:'Wyciskanie hantli siedząc naprzemiennie',aka:'Seated Alternating DB Shoulder Press',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Siedząc. Naprzemienne wyciskanie. Plecy oparte.',nsca:'3x8–12/stronę.',alt:'Wyciskanie hantli siedząc',img:'assets/ex/ohp.svg'},
 {name:'Wyciskanie hantli w rozkroku',aka:'Split Stance DB Overhead Press, Staggered Stance DB Shoulder',cat:'Barki',eq:'Hantle',muscle:'Barki, Core',tip:'Rozkrok. Wyciskaj, biodra zablokowane.',nsca:'3x8–12.',alt:'Wyciskanie hantli stojąc'},
 {name:'Drop and catch hantle w opadzie',aka:'Bent Over DB Drop and Catch',cat:'Plecy',eq:'Hantle',muscle:'Tylne barki, Reaktywność',tip:'W opadzie upuść i złap hantle. Krótki zakres.',nsca:'3x6–8.',alt:'Odwrotne rozpiętki'},
@@ -1426,6 +1479,60 @@ const DEF_EX=[
 ];
 window.DEF_EX=DEF_EX;
 
+// Uzupełnienia katalogu z autoryzowanego zestawu GIF „Biceps i przedramię”.
+// Są to osobne warianty ruchu lub sprzętu, których nie było w DEF_EX. Powtarzające
+// się ujęcia tego samego ćwiczenia (np. 01/02, kobieta/mężczyzna) są aliasami,
+// dzięki czemu nie mnożymy kart w bibliotece.
+const EX_MEDIA_BICEPS_ADD=[
+{name:'Ściskanie handgripu',aka:'Handgrip squeeze, Gripper squeeze',cat:'Biceps',eq:'Handgrip',muscle:'Zginacze palców, Przedramię',tip:'Ściskaj płynnie bez wyginania nadgarstka. Zatrzymaj chwyt na moment.',nsca:'3x12–20/stronę.',alt:'Uginanie nadgarstków hantlami'},
+{name:'Uginanie młotkowe naprzemiennie',aka:'Alternating hammer curl, Uginanie młotkowe naprzemiennie 02',cat:'Biceps',eq:'Hantle',muscle:'Ramienny, Ramiennopromieniowy, Biceps',tip:'Neutralny chwyt. Druga ręka pozostaje nieruchomo przy tułowiu.',nsca:'3x10–12/stronę.',alt:'Uginanie młotkowe'},
+{name:'Uginanie młotkowe na modlitewniku',aka:'Preacher hammer curl, Uginanie młotkowe na modlitewniku 2',cat:'Biceps',eq:'Hantle',muscle:'Ramienny, Ramiennopromieniowy, Biceps',tip:'Oprzyj ramię o modlitewnik i utrzymaj neutralny chwyt.',nsca:'3x10–12.',alt:'Uginanie młotkowe, Uginanie na modlitewniku'},
+{name:'Uginanie młotkowe na modlitewniku jednorącz',aka:'Single arm preacher hammer curl',cat:'Biceps',eq:'Hantle',muscle:'Ramienny, Ramiennopromieniowy, Biceps',tip:'Prowadź hantel bez skręcania barku; łokieć zostaje na podporze.',nsca:'3x10–12/stronę.',alt:'Uginanie młotkowe na modlitewniku'},
+{name:'Uginanie młotkowe z podparciem ramienia',aka:'Supported hammer curl, Arm supported hammer curl',cat:'Biceps',eq:'Hantle',muscle:'Ramienny, Ramiennopromieniowy, Biceps',tip:'Ustabilizuj ramię na ławce i nie pomagaj tułowiem.',nsca:'3x10–12/stronę.',alt:'Uginanie młotkowe, Uginanie spider'},
+{name:'Uginanie na modlitewniku na wyciągu',aka:'Cable preacher curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps, Ramienny',tip:'Ramię cały czas na poduszce; nie odrywaj łokci na dole.',nsca:'3x10–15.',alt:'Uginanie na modlitewniku, Uginanie na wyciągu'},
+{name:'Uginanie na modlitewniku z hantlami',aka:'Dumbbell preacher curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramienny',tip:'Pracuj jedną ręką na raz, utrzymując bark nieruchomo.',nsca:'3x10–12/stronę.',alt:'Uginanie na modlitewniku'},
+{name:'Uginanie nadgarstków ze sztangą',aka:'Barbell wrist curl',cat:'Biceps',eq:'Sztanga',muscle:'Zginacze nadgarstka',tip:'Przedramiona oparte. Ruch wykonują nadgarstki, nie łokcie.',nsca:'3x12–20.',alt:'Uginanie nadgarstków hantlami'},
+{name:'Uginanie nadgarstków jednorącz',aka:'Single arm wrist curl',cat:'Biceps',eq:'Hantle',muscle:'Zginacze nadgarstka',tip:'Podeprzyj przedramię o udo lub ławkę i pracuj spokojnym zakresem.',nsca:'3x12–20/stronę.',alt:'Uginanie nadgarstków hantlami'},
+{name:'Uginanie nadgarstków z talerzem',aka:'Plate wrist curl',cat:'Biceps',eq:'Talerz',muscle:'Zginacze nadgarstka, Palce',tip:'Trzymaj talerz pewnie i nie kompensuj ruchem całego ramienia.',nsca:'3x12–20.',alt:'Uginanie nadgarstków hantlami'},
+{name:'Uginanie nadgarstków za plecami',aka:'Behind the back wrist curl',cat:'Biceps',eq:'Sztanga',muscle:'Zginacze nadgarstka',tip:'Stój prosto, sztanga za biodrami. Wykonuj tylko ruch nadgarstków.',nsca:'3x12–20.',alt:'Uginanie nadgarstków ze sztangą'},
+{name:'Uginanie ramion bokiem na wyciągu',aka:'Side cable curl, Uginanie ramion bokiem',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps, Ramienny',tip:'Ustaw wyciąg z boku; bark zostaje stabilny, łokieć nie ucieka w przód.',nsca:'3x10–15/stronę.',alt:'Uginanie na wyciągu'},
+{name:'Uginanie ramion jednorącz na górnym wyciągu',aka:'Single arm high cable curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps (skrót)',tip:'Łokieć wysoko i nieruchomo. Uginaj bez unoszenia barku.',nsca:'3x10–15/stronę.',alt:'Uginanie na wyciągu'},
+{name:'Uginanie ramion na górnym wyciągu nad głową',aka:'Overhead cable curl, High cable curl overhead',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps (skrót)',tip:'Stań między wyciągami, łokcie utrzymuj wysoko i szeroko.',nsca:'3x10–15.',alt:'Uginanie ramion jednorącz na górnym wyciągu'},
+{name:'Uginanie ramion na wyciągu na ławce skośnej',aka:'Incline cable curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps (rozciągnięcie)',tip:'Ławka stabilna, ramię pozostaje lekko za tułowiem przez cały ruch.',nsca:'3x10–15.',alt:'Uginanie na skosie, Uginanie na wyciągu'},
+{name:'Uginanie ramion nachwytem na wyciągu',aka:'Cable reverse curl',cat:'Biceps',eq:'Wyciąg',muscle:'Ramiennopromieniowy, Prostowniki przedramienia',tip:'Nachwyt utrzymuj przez cały ruch; nadgarstki neutralne.',nsca:'3x10–15.',alt:'Uginanie nadgarstków nachwytem, Uginanie na wyciągu'},
+{name:'Uginanie ramion nachwytem z hantlami',aka:'Dumbbell reverse curl, Uginanie ramion nachwytem z hantlami 2',cat:'Biceps',eq:'Hantle',muscle:'Ramiennopromieniowy, Prostowniki przedramienia',tip:'Hantle prowadź blisko ciała; nie załamuj nadgarstków.',nsca:'3x10–15.',alt:'Uginanie nadgarstków nachwytem, Uginanie młotkowe'},
+{name:'Uginanie ramion ze sztangą szerokim chwytem',aka:'Wide grip barbell curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Szeroki chwyt dobierz bez bólu nadgarstków; łokcie zostają blisko tułowia.',nsca:'3x8–12.',alt:'Uginanie biceps sztangą'},
+{name:'Uginanie ramion ze sztangą wąskim chwytem',aka:'Close grip barbell curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Wąski chwyt bez kołysania tułowiem. Kontroluj pełny zakres.',nsca:'3x8–12.',alt:'Uginanie biceps sztangą'},
+{name:'Uginanie gryfem łamanym szerokim chwytem',aka:'Wide grip EZ bar curl, Uginanie ramion ze sztangą łamaną szerokim chwytem',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Wybierz szeroki uchwyt gryfu łamanego, utrzymując łokcie pod barkami.',nsca:'3x8–12.',alt:'Uginanie gryfem łamanym'}
+];
+EX_MEDIA_BICEPS_ADD.forEach(ex=>{if(!DEF_EX.some(existing=>existing.name===ex.name))DEF_EX.push(ex);});
+
+// Brakujące pozycje z autoryzowanego zestawu GIF „Trening funkcjonalny i HIIT”.
+// W katalogu znajdują się tylko pliki, których nazwy nie dopasowały się już do
+// ćwiczeń istniejących. Dzięki temu import 172 GIF-ów nie tworzy duplikatów,
+// a nowo dodane karty trafiają bezpośrednio do wejścia „Funkcjonalne”.
+const EX_MEDIA_FUNCTIONAL_ADD=[
+  'Bieg bokiem','Bieg krótkim krokiem','Bieg szybkimi krokami','Bieg tyłem','Bieg z unoszeniem kolan','Bieg z wyskokiem','Bieg z wysokim unoszeniem kolan',
+  'Box jump z dwóch nóg na jedną','Box jump z przejściem do pistol squat','Burpee Navy SEAL','Burpee','Chód boczny z gumą oporową','Cios prosty (jab)','Ciosy',
+  'Ćwiczenia boczne na drabince koordynacyjnej','Ćwiczenia na drabince koordynacyjnej','Ćwiczenie 5 punktów','Ćwiczenie plyometryczne X','Ćwiczenie z balonem','Dips tyłem do ławki',
+  'Głęboki przysiad wykroczny','Jazda na rowerze','Kickback pośladków z gumą oporową','Kickback pośladków z gymstickiem','Kickback pośladków ze zgiętą nogą z gumą oporową','Kickback ze zgiętą nogą',
+  'Kopnięcie hakowe','Krok bokserski cardio','Krok narciarski','Krok w tył z unoszeniem kolana','Krzesełko przy ścianie z pochyleniem tułowia','Krzesełko przy ścianie','Krzyż żelazny z hantlami',
+  'Martwy ciąg na jednej nodze','Military press z masą ciała','Mostek biodrowy na jednej nodze na ławce','Mostek biodrowy na jednej nodze z uniesioną nogą','Mostek biodrowy na jednej nodze','Mostek biodrowy z gumą oporową',
+  'Mountain climber','Narciarz z gymstickiem','Nożyce ramionami','Odwodzenie bioder z gumą oporową','Odwodzenie biodra bokiem','Odwodzenie biodra leżąc na boku','Odwodzenie biodra stojąc','Ośle kopnięcie',
+  'Pajacyk przodem','Pistol squat na skrzyni','Pistol squat z podparciem na skrzyni','Pływanie','Pochylenie miednicy','Podanie piłki lekarskiej sprzed klatki stojąc','Podskoki pajacyk','Podskoki z wysokim unoszeniem kolan',
+  'Pompka na kolanach wąskim chwytem','Pompka na kolanach','Prawy krzyżowy','Prawy prosty','Prawy sierpowy','Przyciąganie boczne z gumą oporową','Przyciąganie z gumą oporową',
+  'Przysiad bułgarski z masą ciała','Przysiad do ławki z masą ciała','Przysiad krewetka','Przysiad łyżwiarza','Przysiad na jednej nodze ze skrętem tułowia','Przysiad przy ścianie z piłką gimnastyczną','Przysiad sumo z masą ciała','Przysiad z gumą oporową nad głową','Przysiad z gymstickiem','Przysiad z przejściem do wykroku z gumą oporową','Przysiad z unoszeniem kolana','Przysiad z wyskokiem i ugięciem kolan','Przysiad',
+  'Rolowanie na piłce gimnastycznej','Równowaga na jednej nodze z uginaniem ramion','Rzut piłką lekarską do ściany','Rzut piłką lekarską leżąc','Rzut piłką lekarską w górę i w dół','Rzut piłką lekarską z rotacją','Rzut piłką lekarską z unoszeniem tułowia','Rzut piłką lekarską','Rzut piłką reakcyjną',
+  'Scyzoryk z piłką gimnastyczną','Skip A przy ścianie','Skip C','Skok do przodu na jednej nodze','Skok w dal','Skok w tył','Skok z ugięciem kolan','Skoki dynamiczne','Skoki łyżwiarza','Skoki nożyce','Skoki plyometryczne zygzakiem','Skoki snap','Skoki z wysokim unoszeniem kolan','Skręty łokieć do kolana','Spięcie brzucha żabka z piłką gimnastyczną','Step-up z gumą oporową','Step-up z unoszeniem kolana','Swing z gymstickiem','Szybki krok w bok','Szybki marsz','Ściąganie z gumą oporową',
+  'Uginanie młotkowe z butelką wody','Uginanie młotkowe z gumą oporową','Uginanie nóg leżąc z gumą oporową','Uginanie nóg leżąc z hantlami','Uginanie nóg na piłce gimnastycznej','Uginanie nóg z gumą oporową','Uginanie nóg z ręcznikiem','Uginanie ramion z gumą oporową','Unoszenie bioder z gumą oporową','Unoszenie bioder ze stopami na podwyższeniu','Unoszenie nóg w stylu żaby','Unoszenie prostej nogi w tył','Utrzymanie przysiadu ze wspięciem na palce',
+  'Walka z cieniem','Wiosłowanie jednorącz z gymstickiem','Wiosłowanie szerokim chwytem z gumą oporową','Wspięcia na palce z gumą oporową','Wyciskanie nad głowę bokiem z gymstickiem','Wyciskanie nad głowę jednorącz z gumą oporową','Wykrok na ławce','Wykrok z gymstickiem','Wykrok z masą ciała','Wykrok z wysokim unoszeniem kolana na piłce BOSU','Wykrok','Wykroki chodzone z wysokim unoszeniem kolana','Wykroki z przeskokiem z hantlami','Wymachy nóg w tył na ławce naprzemiennie','Wyprost bioder na ławce','Wyprost biodra stojąc','Wyprost w stawie barkowym z gumą oporową','Wznosy przodem i bokiem z gumą oporową','Zgięcie w stawie barkowym z gumą oporową'
+].map(name=>{
+  const n=name.toLowerCase();
+  const eq=n.includes('gumą')?'Guma oporowa':n.includes('gymstick')?'Gymstick':n.includes('piłk')?'Piłka':n.includes('hantl')?'Hantle':n.includes('ławce')?'Ławka':n.includes('drabince')?'Drabinka koordynacyjna':n.includes('skrzyni')?'Skrzynia':n.includes('bosu')?'BOSU':'Własna masa';
+  return {name,cat:'Funkcjonalne',eq,muscle:'Trening funkcjonalny / HIIT',tip:'Wykonuj ruch płynnie, zachowując stabilną pozycję i zakres bez bólu.',nsca:'2–4 serie po 6–15 powtórzeń lub 20–45 s.',alt:'Trening funkcjonalny'};
+});
+EX_MEDIA_FUNCTIONAL_ADD.forEach(ex=>{if(!DEF_EX.some(existing=>existing.name===ex.name))DEF_EX.push(ex);});
+
 
 function hiddenExNames(){
   const s=(window.SETTINGS&&window.SETTINGS.hiddenExercises)||[];
@@ -1508,13 +1615,20 @@ function recentExNames(limit){
 }
 window.recentExNames=recentExNames;
 
+let _allExercisesCacheKey='';
+let _allExercisesCache=[];
 function allExercises(){
   // Własne ćwiczenia trenera (EX) mają PIERWSZEŃSTWO nad domyślnymi (DEF_EX) o tej samej nazwie —
   // wcześniej było odwrotnie, przez co własne ćwiczenie znikało bez ostrzeżenia.
   // hiddenExercises chowa tylko DEF_EX — własne karty zostają, nawet przy tej samej nazwie.
-  const hidden=new Set(hiddenExNames());
+  const hiddenList=hiddenExNames();
   const custom=window.EX||EX||[];
   const defs=window.DEF_EX||DEF_EX||[];
+  // Weryfikacja medium wywołuje ten katalog wielokrotnie. Sygnatura łapie
+  // dodanie, usunięcie, zmianę nazwy lub ukrycie bez ponownego składania setek rekordów.
+  const cacheKey=[custom.length,defs.length,hiddenList.join('\u001f'),custom.map(e=>String((e&&e.id)||'')+'|'+String((e&&e.name)||'')).join('\u001f')].join('\u001e');
+  if(cacheKey===_allExercisesCacheKey)return _allExercisesCache;
+  const hidden=new Set(hiddenList);
   const seen=new Set();
   const out=[];
   custom.forEach(e=>{
@@ -1528,8 +1642,12 @@ function allExercises(){
     seen.add(e.name);
     out.push(e);
   });
-  return out;
+  _allExercisesCacheKey=cacheKey;
+  _allExercisesCache=out;
+  return _allExercisesCache;
 }
+function invalidateExerciseCatalogCache(){_allExercisesCacheKey='';_allExercisesCache=[];}
+window.invalidateExerciseCatalogCache=invalidateExerciseCatalogCache;
 
 const EX_PROFILE_LABELS={
   ascending:'narastający',
@@ -2420,6 +2538,48 @@ function catalogDedupeKey(s){
 }
 window.catalogDedupeKey=catalogDedupeKey;
 
+// Klucz używany wyłącznie do audytu duplikatów. Nie scala podobnych ćwiczeń
+// (np. różnych wariantów przysiadu) — wykrywa tylko tę samą nazwę zapisaną
+// inną wielkością liter, bez polskich znaków albo z dopisanym numerem kopii.
+function exerciseDuplicateKey(s){
+  return exerciseSearchNorm(catalogDedupeKey(s))
+    .replace(/[()\[\]{}.,:;!?'"`]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+window.exerciseDuplicateKey=exerciseDuplicateKey;
+
+function exerciseDuplicateGroups(){
+  const groups=new Map();
+  const add=(exercise,source)=>{
+    if(!exercise||!exercise.name)return;
+    const key=exerciseDuplicateKey(exercise.name);
+    if(!key)return;
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push({exercise,source});
+  };
+  (window.DEF_EX||DEF_EX||[]).forEach(ex=>add(ex,'catalog'));
+  (window.EX||EX||[]).forEach(ex=>add(ex,'custom'));
+  return [...groups.entries()].filter(([,items])=>items.length>1)
+    .map(([key,items])=>({key,items})).sort((a,b)=>a.items[0].exercise.name.localeCompare(b.items[0].exercise.name,'pl'));
+}
+window.exerciseDuplicateGroups=exerciseDuplicateGroups;
+
+async function reviewExerciseDuplicates(){
+  const groups=exerciseDuplicateGroups();
+  if(!groups.length){notify('Sprawdzone: nie ma zdublowanych ćwiczeń.');return {groups:[]};}
+  const imported=importedCatalogDupCount();
+  const lines=groups.slice(0,12).map(group=>'• '+group.items.map(item=>item.exercise.name+(item.source==='custom'?' (własne / import)':' (katalog)')).join('  ↔  '));
+  const more=groups.length>12?'\n… i '+(groups.length-12)+' kolejnych grup.':'';
+  const safe=imported?'\n\nMożna bezpiecznie usunąć '+imported+' kopii z importu — zachowam przy tym ich filmy i podglądy na właściwych kartach katalogu.':'\n\nNie usuwam automatycznie pozycji z katalogu; mogą być zamierzonymi wariantami.';
+  if(imported&&confirm('Znaleziono '+groups.length+' grup z powtarzającą się nazwą:\n\n'+lines.join('\n')+more+safe+'\n\nUsunąć teraz tylko bezpieczne kopie z importu?')){
+    await sweepImportedCatalogDuplicates({silent:false});
+  }else{
+    notify('Znaleziono '+groups.length+' grup duplikatów. Nic nie zostało usunięte.');
+  }
+  return {groups,imported};
+}
+window.reviewExerciseDuplicates=reviewExerciseDuplicates;
+
 function catalogDedupeIndex(defs){
   const map=new Map();
   (defs||window.DEF_EX||[]).forEach(e=>{
@@ -2444,7 +2604,7 @@ window.catalogCardForImport=catalogCardForImport;
 
 function importedExFilmUrl(ex){
   if(!ex||typeof ex!=='object')return '';
-  const cands=[ex.video,ex.gif,ex.img,ex.thumb,ex.image];
+  const cands=[ex.video,ex.gif];
   for(let i=0;i<cands.length;i++){
     let u=String(cands[i]||'').trim();
     if(!u)continue;
@@ -2458,6 +2618,30 @@ function importedExFilmUrl(ex){
   return '';
 }
 window.importedExFilmUrl=importedExFilmUrl;
+
+// Główny obraz karty nie jest filmem techniki. Przy scalaniu starego importu
+// zachowujemy go osobno, aby jasny podgląd nie trafił do zakładki „Technika”.
+function importedExPreviewUrl(ex){
+  if(!ex||typeof ex!=='object')return '';
+  const cands=[ex.preview,ex.img,ex.thumb,ex.image];
+  for(let i=0;i<cands.length;i++){
+    let u=String(cands[i]||'').trim();
+    if(!u)continue;
+    if(typeof normalizeImportedMediaUrl==='function')u=normalizeImportedMediaUrl(u);
+    if(!u)continue;
+    if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(u))continue;
+    if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(u))continue;
+    return u;
+  }
+  return '';
+}
+window.importedExPreviewUrl=importedExPreviewUrl;
+
+function importedExerciseRemoteMedia(ex,mapName){
+  const map=window[mapName]||{};
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(ex&&ex.name):catalogDedupeKey(ex&&ex.name);
+  return String(map[key]||'').trim();
+}
 
 async function delEx(name){
   if(!name||window._delExBusy)return;
@@ -2535,16 +2719,25 @@ async function sweepImportedCatalogDuplicates(opts){
       return {removed:0,copied:0,names};
     }
     const removed=[];
-    let copied=0;
+    let copiedFilms=0;
+    let copiedPreviews=0;
     for(const {card,copies} of groups.values()){
       if(!copies.length)continue;
-      const film=copies.map(importedExFilmUrl).find(Boolean)||'';
+      const film=copies.map(ex=>importedExerciseRemoteMedia(ex,'EX_GIF_REMOTE')||importedExFilmUrl(ex)).find(Boolean)||'';
+      const preview=copies.map(ex=>importedExerciseRemoteMedia(ex,'EX_PREVIEW_REMOTE')||importedExPreviewUrl(ex)).find(Boolean)||'';
       const mediaKey=typeof exerciseMediaKey==='function'?exerciseMediaKey(card.name):catalogDedupeKey(card.name);
-      const already=window.EX_GIF_REMOTE&&window.EX_GIF_REMOTE[mediaKey];
-      if(film&&!already&&typeof persistExerciseGifUrl==='function'){
+      const alreadyFilm=window.EX_GIF_REMOTE&&window.EX_GIF_REMOTE[mediaKey];
+      const alreadyPreview=window.EX_PREVIEW_REMOTE&&window.EX_PREVIEW_REMOTE[mediaKey];
+      if(preview&&!alreadyPreview&&typeof persistExercisePreviewUrl==='function'){
+        try{
+          const ok=await persistExercisePreviewUrl(card.name,preview);
+          if(ok)copiedPreviews++;
+        }catch(e){console.warn('sweepImportedCatalogDuplicates preview:',e);}
+      }
+      if(film&&!alreadyFilm&&typeof persistExerciseGifUrl==='function'){
         try{
           const ok=await persistExerciseGifUrl(card.name,film);
-          if(ok)copied++;
+          if(ok)copiedFilms++;
         }catch(e){console.warn('sweepImportedCatalogDuplicates film:',e);}
       }
       copies.forEach(ex=>removed.push(ex));
@@ -2567,9 +2760,12 @@ async function sweepImportedCatalogDuplicates(opts){
     if(typeof notify==='function'){
       const n=removed.length;
       const word=n===1?'duplikat':(n>=2&&n<=4?'duplikaty':'duplikatów');
-      notify('Usunięto '+n+' '+word+' importu'+(copied?(' · film na '+copied+' '+(copied===1?'karcie':'kartach')):''));
+      const media=[];
+      if(copiedPreviews)media.push('podgląd na '+copiedPreviews+' '+(copiedPreviews===1?'karcie':'kartach'));
+      if(copiedFilms)media.push('film na '+copiedFilms+' '+(copiedFilms===1?'karcie':'kartach'));
+      notify('Usunięto '+n+' '+word+' importu'+(media.length?(' · '+media.join(' · ')):''));
     }
-    return {removed:removed.length,copied};
+    return {removed:removed.length,copied:copiedFilms+copiedPreviews,copiedFilms,copiedPreviews};
   }finally{
     window._sweepExDupBusy=false;
   }
@@ -2661,11 +2857,30 @@ function setExView(v){
 }
 window.syncExViewUi=syncExViewUi;
 
+function resetExLibPage(){exLibVisible=EX_LIB_PAGE_SIZE;}
+function setExMediaOnly(on){
+  exMediaOnly=!!on;
+  try{localStorage.setItem('pl_ex_media_only_v1',exMediaOnly?'1':'0');}catch(e){}
+  resetExLibPage();
+  renderLib();
+}
+function toggleExMediaOnly(){setExMediaOnly(!exMediaOnly);}
+function showMoreExercises(){
+  const view=document.getElementById(exView==='grid'?'ex-grid-view':'ex-list-view');
+  const scrollTop=view?view.scrollTop:0;
+  exLibVisible+=EX_LIB_PAGE_SIZE;
+  renderLib();
+  if(view)requestAnimationFrame(()=>{view.scrollTop=scrollTop;});
+}
+window.setExMediaOnly=setExMediaOnly;
+window.toggleExMediaOnly=toggleExMediaOnly;
+window.showMoreExercises=showMoreExercises;
+
 // Wyszukiwarka ćwiczeń: render dopiero po krótkiej pauzie w pisaniu (lista ma setki kart).
 let _renderLibTimer=null;
 function renderLibSoon(){
   clearTimeout(_renderLibTimer);
-  _renderLibTimer=setTimeout(renderLib,160);
+  _renderLibTimer=setTimeout(()=>{resetExLibPage();renderLib();},160);
 }
 window.renderLibSoon=renderLibSoon;
 
@@ -2682,6 +2897,11 @@ window.exerciseSearchTokens=exerciseSearchTokens;
 window.exerciseMatchesTokens=exerciseMatchesTokens;
 
 function exEmptyListText(){
+  if(exMediaOnly)return 'Brak ćwiczeń z przypisanym filmem lub podglądem. Zaimportuj materiały albo wybierz „Pokaż także bez filmu”.';
+  if(exCatFilter==='__plan_core')return 'Brak ćwiczeń z fundamentu planów pasujących do pozostałych filtrów.';
+  if(exCatFilter==='__functional')return 'Brak ćwiczeń funkcjonalnych pasujących do pozostałych filtrów.';
+  if(exCatFilter==='__mobility')return 'Brak ćwiczeń mobilizacyjnych pasujących do pozostałych filtrów.';
+  if(exCatFilter==='__media_gap')return 'Każde ćwiczenie ma już jasny podgląd oraz osobny film techniki.';
   if(exCatFilter==='__fav')return 'Nie masz jeszcze ulubionych ćwiczeń. Kliknij ☆ na karcie ćwiczenia, żeby je tu dodać.';
   if(exCatFilter==='__recent')return 'Tu pojawią się ćwiczenia z Twoich zapisanych planów.';
   return 'Brak ćwiczeń pasujących do filtrów';
@@ -2706,26 +2926,103 @@ function exDelBtnHtml(e,extraStyle){
   return `<button type="button" class="btn btn-ghost btn-sm" style="${style}" title="${title}" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">${own?'Usuń':'Ukryj'}</button>`;
 }
 window.exDelBtnHtml=exDelBtnHtml;
+function exCardDeleteBtnHtml(e){
+  const own=exIsOwn(e);
+  const label=own?'Usuń własne ćwiczenie':'Ukryj z biblioteki';
+  return `<button type="button" class="ex-card-delete-btn" title="${label}" aria-label="${label}" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">${own?'🗑':'⊘'}</button>`;
+}
+window.exCardDeleteBtnHtml=exCardDeleteBtnHtml;
+
+// Karta katalogu potrzebuje tylko nieruchomego, jasnego kadru. Pełny GIF
+// pozostaje przypięty do ćwiczenia i odtwarza się dopiero w jego szczegółach.
+// Tworzymy mały pierwszy kadr tylko dla widocznych kart (loading="lazy").
+const _exCardGifFrameCache=new Map();
+function freezeExCardGif(img){
+  if(!img||img.dataset.exStaticFrame==='1'||/^data:/i.test(String(img.currentSrc||img.src||'')))return;
+  const source=String(img.currentSrc||img.src||'');
+  const cached=_exCardGifFrameCache.get(source);
+  if(cached){img.dataset.exStaticFrame='1';img.src=cached;return;}
+  const w=Number(img.naturalWidth)||0;
+  const h=Number(img.naturalHeight)||0;
+  if(!w||!h)return;
+  try{
+    const scale=Math.min(1,360/w,240/h);
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(w*scale));
+    canvas.height=Math.max(1,Math.round(h*scale));
+    const ctx=canvas.getContext('2d');
+    if(!ctx)return;
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    const still=canvas.toDataURL('image/jpeg',0.86);
+    _exCardGifFrameCache.set(source,still);
+    if(_exCardGifFrameCache.size>96)_exCardGifFrameCache.delete(_exCardGifFrameCache.keys().next().value);
+    img.dataset.exStaticFrame='1';img.src=still;
+  }catch(e){
+    // Gdy zewnętrzny serwer nie zezwoli na odczyt pikseli, pozostawiamy GIF.
+    // Firebase Storage ma CORS dla aplikacji, więc jej własne materiały trafią
+    // do powyższego, nieruchomego podglądu.
+  }
+}
+window.freezeExCardGif=freezeExCardGif;
+
+// Widok biblioteki ma jeden spójny, jasny styl. Nie mieszamy w nim starych
+// zdjęć z siłowni, zdjęć stockowych ani ciemnych materiałów z zewnętrznych
+// katalogów. Jedynym obrazem na karcie jest właściwy, nieruchomy i jasny
+// podgląd tego ćwiczenia. Pełny GIF/film pozostaje wyłącznie w szczegółach.
+function isTrainerWhiteCardGif(url){
+  const u=String(url||'');
+  return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)&&/\.gif(?:\?|#|$)/i.test(u);
+}
+window.isTrainerWhiteCardGif=isTrainerWhiteCardGif;
+
+function isGeneratedWhiteExerciseCardPreview(url){
+  const u=String(url||'');
+  return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)
+    &&/(?:-card\.(?:webp|jpe?g)|\/card-previews\/)/i.test(u);
+}
+window.isGeneratedWhiteExerciseCardPreview=isGeneratedWhiteExerciseCardPreview;
+
+function isWhiteExerciseCardPreview(ex,url){
+  const u=String(url||'');
+  // Własne GIF-y nie trafiają na kartę bezpośrednio: po imporcie tworzymy z
+  // nich osobny, statyczny plik -card.webp. Dzięki temu lista nie animuje ani
+  // nie pobiera ciężkich materiałów techniki.
+  if(isGeneratedWhiteExerciseCardPreview(u))return true;
+  // Manifest Drive jest rozdzielony na jasne podglądy i materiały techniki.
+  // Akceptujemy wyłącznie pierwszy rodzaj — nie zdjęcia stockowe ani film
+  // techniki w tle siłowni.
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(ex):'';
+  return !!(preview
+    &&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(preview)
+    &&typeof googleDriveMediaRole==='function'&&googleDriveMediaRole(preview)==='preview');
+}
+window.isWhiteExerciseCardPreview=isWhiteExerciseCardPreview;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
-  const gif=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
-  const isVid=!!gif;
+  // GIF-y techniki są poprawnymi materiałami, choć nie są plikami MP4/WebM.
+  // Do odznaki używamy pełnego resolvera, a karta pokazuje wyłącznie pierwszy
+  // nieruchomy kadr na białym tle.
+  const gif=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
+  const hasTechnique=!!gif;
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
   const part=e.cat||'Ćwiczenie';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
-  const filmBadge=isVid?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
+  const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
-  if(thumb){
-    media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
-  }else if(isVid&&gif){
-    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+  if(thumb&&isWhiteExerciseCardPreview(e,thumb)){
+    // Każdy dopuszczony materiał jest pojedynczym obrazem: wygenerowanym
+    // podglądem Firebase albo jasną miniaturą Drive.
+    const freeze=/\.gif(?:\?|#|$)/i.test(String(thumb))?' crossorigin="anonymous" onload="freezeExCardGif(this)"':'';
+    media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"${freeze} onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
   }else{
-    media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${esc(part)}</span></div>`;
+    media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:#fff;color:${col};border:1px solid #e5e7eb;"><span class="ex-card-part">${esc(part)}</span></div>`;
   }
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${Math.min(i||0,12)*0.025}s" data-ex-name="${escHtml(e.name)}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="ex-card-accent" style="background:${col};"></div>
     ${exFavBtnHtml(e)}
+    ${exCardDeleteBtnHtml(e)}
     <div class="ex-card-body">
       ${media}
       <div>
@@ -2737,10 +3034,54 @@ function exCardHtml(e,i){
         </div>
         ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${escHtml(e.muscle)}</div>`:''}
         ${e.tip?`<div class="ex-card-tip">${escHtml(e.tip.substring(0,80))}${e.tip.length>80?'…':''}</div>`:''}
-        ${exDelBtnHtml(e,'margin-top:6px;')}
       </div>
     </div>
   </div>`;
+}
+
+let _exLibraryMediaFacts=new WeakMap();
+let _exLibraryMediaMapRefs=null;
+let _exLibraryMediaMapSizes='';
+function exLibraryMediaMapSignature(){
+  const maps=[window.EX_GIF_REMOTE,window.EX_PREVIEW_REMOTE,window.EX_GIF_MANIFEST,window.EX_PREVIEW_FALLBACKS,window.EX_DRIVE_TECHNIQUE_MANIFEST,window.EX_DRIVE_PREVIEW_MANIFEST];
+  return {maps,sizes:maps.map(map=>map&&typeof map==='object'?Object.keys(map).length:0).join('|')};
+}
+function ensureExLibraryMediaFacts(){
+  const next=exLibraryMediaMapSignature();
+  const sameRefs=Array.isArray(_exLibraryMediaMapRefs)&&next.maps.every((map,index)=>map===_exLibraryMediaMapRefs[index]);
+  if(!sameRefs||next.sizes!==_exLibraryMediaMapSizes){
+    _exLibraryMediaFacts=new WeakMap();
+    _exLibraryMediaMapRefs=next.maps;
+    _exLibraryMediaMapSizes=next.sizes;
+  }
+}
+function invalidateExLibraryMediaFacts(){
+  _exLibraryMediaFacts=new WeakMap();
+  _exLibraryMediaMapRefs=null;
+  _exLibraryMediaMapSizes='';
+}
+function exLibraryMediaFacts(e){
+  if(!e)return {technique:'',preview:'',has:false};
+  const cached=_exLibraryMediaFacts.get(e);
+  if(cached)return cached;
+  const technique=typeof exGifUrl==='function'?exGifUrl(e):String(e.gif||e.video||'');
+  const preview=typeof exThumbUrl==='function'?exThumbUrl(e):String(e.img||e.previewUrl||'');
+  const facts={technique,preview,has:!!(technique||preview)};
+  _exLibraryMediaFacts.set(e,facts);
+  return facts;
+}
+function exHasLibraryMedia(e){return exLibraryMediaFacts(e).has;}
+window.invalidateExLibraryMediaFacts=invalidateExLibraryMediaFacts;
+function exLoadMoreHtml(total,shown,mode){
+  if(shown>=total)return '';
+  const remaining=total-shown;
+  const style=mode==='grid'?'grid-column:1/-1;':'padding:16px;text-align:center;';
+  return `<div class="ex-load-more" style="${style}text-align:center;padding:16px;color:var(--muted);"><div style="font-size:11px;margin-bottom:8px;">Wyświetlono ${shown} z ${total} ćwiczeń</div><button type="button" class="btn btn-ghost btn-sm" onclick="showMoreExercises()">Pokaż kolejne ${Math.min(EX_LIB_PAGE_SIZE,remaining)}</button></div>`;
+}
+function appendExLoadMore(targetId,total,shown,mode){
+  const target=document.getElementById(targetId);
+  const html=exLoadMoreHtml(total,shown,mode);
+  if(target&&html)target.insertAdjacentHTML('beforeend',html);
 }
 
 function renderLibGroupedSections(filtered,mode){
@@ -2798,8 +3139,26 @@ function renderLibGroupedSections(filtered,mode){
 }
 
 function renderLib(){
-  updateExDl();
   const all=allExercises();
+  ensureExLibraryMediaFacts();
+  // Datalist ma setki opcji, a wcześniej był przebudowywany przy każdym
+  // kliknięciu filtra lub wejściu do biblioteki. Aktualizujemy go tylko wtedy,
+  // kiedy rzeczywiście zmienił się katalog nazw.
+  const dlSignature=all.map(e=>String(e&&e.name||'')).join('\u001f');
+  if(dlSignature!==_exLibraryDlSignature){
+    updateExDl();
+    _exLibraryDlSignature=dlSignature;
+  }
+  // Jedno przejście po katalogu zamiast wielokrotnych, kosztownych rozwiązań
+  // adresów mediów dla filtrów, licznika i kolejki materiałów.
+  const withMedia=[];
+  const mediaGaps=[];
+  all.forEach(ex=>{
+    const facts=exLibraryMediaFacts(ex);
+    if(facts.has)withMedia.push(ex);
+    if(!facts.preview||!facts.technique)mediaGaps.push(ex);
+  });
+  const library=exMediaOnly?withMedia:all;
   const hiddenN=hiddenExNames().length;
   const restoreBtn=document.getElementById('lib-restore-hidden');
   if(restoreBtn){
@@ -2812,23 +3171,44 @@ function renderLib(){
     sweepBtn.style.display=dupN?'block':'none';
     sweepBtn.textContent='Usuń duplikaty importu ('+dupN+')';
   }
+  const reviewBtn=document.getElementById('lib-review-dups');
+  if(reviewBtn){
+    const groups=exerciseDuplicateGroups();
+    reviewBtn.textContent=groups.length?'Sprawdź duplikaty ('+groups.length+')':'Sprawdź duplikaty';
+  }
   syncExViewUi();
+  const mediaToggle=document.getElementById('ex-media-only-toggle');
+  if(mediaToggle){
+    mediaToggle.textContent=exMediaOnly?'✓ Tylko z filmem':'Pokaż także bez filmu';
+    mediaToggle.className='btn btn-sm '+(exMediaOnly?'btn-primary':'btn-ghost');
+    mediaToggle.title=exMediaOnly?'Pokazywane są tylko ćwiczenia z materiałem. Kliknij, aby zobaczyć pełny katalog.':'Wróć do katalogu ćwiczeń z materiałem.';
+    mediaToggle.setAttribute('aria-pressed',String(exMediaOnly));
+  }
   const search=(document.getElementById('ex-search')||{}).value||'';
 
   // build category nav
   const cats=['Wszystkie',...Object.keys(CAT_COLORS_EX)];
+  const categoryCounts={};
+  library.forEach(ex=>{const cat=String(ex&&ex.cat||'');categoryCounts[cat]=(categoryCounts[cat]||0)+1;});
   const favNames=favExNames();
   const recent=recentExNames(40);
   const catNav=document.getElementById('ex-cat-nav');
   if(catNav){
-    const special=[['__fav','★ Ulubione',all.filter(e=>favNames.includes(e.name)).length,'fav'],['__recent','🕘 Ostatnio używane',recent.length,'recent']];
-    catNav.innerHTML=special.map(([key,label,count,id])=>`<div class="ex-cat-nav-item ex-cat-nav-special${exCatFilter===key?' active':''}" onclick="exCatFilter='${key}';renderLib()">
+    const special=[
+      ['__plan_core','★ Fundament planów',library.filter(e=>exLibraryFocusKind(e,'__plan_core')).length,'plan-core'],
+      ['__functional','⚡ Funkcjonalne',library.filter(e=>exLibraryFocusKind(e,'__functional')).length,'functional'],
+      ['__mobility','🧘 Mobilizacja',library.filter(e=>exLibraryFocusKind(e,'__mobility')).length,'mobility'],
+      ['__media_gap','◌ Materiały do uzupełnienia',mediaGaps.length,'media-gap'],
+      ['__fav','★ Ulubione',library.filter(e=>favNames.includes(e.name)).length,'fav'],
+      ['__recent','🕘 Ostatnio używane',recent.length,'recent']
+    ];
+    catNav.innerHTML=special.map(([key,label,count,id])=>`<div class="ex-cat-nav-item ex-cat-nav-special${exCatFilter===key?' active':''}" onclick="exCatFilter='${key}';resetExLibPage();renderLib()">
         <span>${label}</span>
         <span id="ex-nav-count-${id}" style="font-family:'DM Mono',monospace;font-size:10px;">${count}</span>
       </div>`).join('')+cats.map(c=>{
-      const count=c==='Wszystkie'?all.length:all.filter(e=>e.cat===c).length;
+      const count=c==='Wszystkie'?library.length:(categoryCounts[c]||0);
       const col=CAT_COLORS_EX[c]||'var(--muted)';
-      return `<div class="ex-cat-nav-item${exCatFilter===c?' active':''}" onclick="exCatFilter='${c}';renderLib()">
+      return `<div class="ex-cat-nav-item${exCatFilter===c?' active':''}" onclick="exCatFilter='${c}';resetExLibPage();renderLib()">
         <div style="display:flex;align-items:center;gap:8px;">
           <div class="ex-cat-dot" style="background:${col};"></div>
           <span>${c}</span>
@@ -2842,15 +3222,20 @@ function renderLib(){
   const equips=['Sztanga','Hantle','Maszyna','Wyciąg','Własna masa','Kettlebell','Piłka lekarska','Taśmy'];
   const equipEl=document.getElementById('ex-equip-filters');
   if(equipEl){
-    equipEl.innerHTML=equips.map(eq=>`<div class="ex-equip-chip${exEquipFilter===eq?' active':''}" onclick="exEquipFilter=exEquipFilter==='${eq}'?'':'${eq}';renderLib()">
+    equipEl.innerHTML=equips.map(eq=>`<div class="ex-equip-chip${exEquipFilter===eq?' active':''}" onclick="exEquipFilter=exEquipFilter==='${eq}'?'':'${eq}';resetExLibPage();renderLib()">
       <div class="ex-equip-dot"></div><span>${eq}</span>
     </div>`).join('');
   }
 
   // filter
   const searchTokens=exerciseSearchTokens(search);
-  let filtered=all.filter(e=>{
-    if(exCatFilter==='__fav'){if(!favNames.includes(e.name))return false;}
+  const filterBase=exCatFilter==='__media_gap'?all:library;
+  let filtered=filterBase.filter(e=>{
+    if(exCatFilter==='__plan_core'||exCatFilter==='__functional'||exCatFilter==='__mobility'){
+      if(!exLibraryFocusKind(e,exCatFilter))return false;
+    }
+    else if(exCatFilter==='__media_gap'){if(!exNeedsCuratedMedia(e))return false;}
+    else if(exCatFilter==='__fav'){if(!favNames.includes(e.name))return false;}
     else if(exCatFilter==='__recent'){if(!recent.includes(e.name))return false;}
     else if(exCatFilter!=='Wszystkie'&&e.cat!==exCatFilter)return false;
     if(exEquipFilter&&e.eq!==exEquipFilter)return false;
@@ -2860,31 +3245,35 @@ function renderLib(){
 
   // sort (w widoku „Wszystkie” – wewnątrz każdej kategorii); „Ostatnio używane” zostają od najnowszych
   if(exCatFilter==='__recent')filtered.sort((a,b)=>recent.indexOf(a.name)-recent.indexOf(b.name));
+  else if(exCatFilter==='__plan_core'||exCatFilter==='__functional')filtered.sort((a,b)=>exLibraryFocusRank(a,exCatFilter)-exLibraryFocusRank(b,exCatFilter)||exLibSortFn()(a,b));
   else filtered.sort(exLibSortFn());
 
   const countEl=document.getElementById('ex-results-count');
-  if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń');
+  if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń')+(exMediaOnly?' z filmem / podglądem':'');
 
-  const useGrouped=exCatFilter==='Wszystkie';
+  const useGrouped=exCatFilter==='Wszystkie'||exCatFilter==='__media_gap';
+  const shown=filtered.slice(0,exLibVisible);
 
   if(exView==='grid'){
     const grid=document.getElementById('lib-grid');
     if(useGrouped){
       grid.classList.add('ex-lib-grouped');
-      renderLibGroupedSections(filtered,'grid');
+      renderLibGroupedSections(shown,'grid');
+      appendExLoadMore('lib-grid',filtered.length,shown.length,'grid');
       return;
     }
     grid.classList.remove('ex-lib-grouped');
     if(!filtered.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">${exEmptyListText()}</div>`;return;}
-    grid.innerHTML=filtered.map((e,i)=>exCardHtml(e,i)).join('');
+    grid.innerHTML=shown.map((e,i)=>exCardHtml(e,i)).join('')+exLoadMoreHtml(filtered.length,shown.length,'grid');
   } else {
     if(useGrouped){
-      renderLibGroupedSections(filtered,'list');
+      renderLibGroupedSections(shown,'list');
+      appendExLoadMore('ex-list-body',filtered.length,shown.length,'list');
       return;
     }
     const body=document.getElementById('ex-list-body');
     if(!filtered.length){body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted);">${exEmptyListText()}</div>`;return;}
-    body.innerHTML=filtered.map((e,i)=>{
+    body.innerHTML=shown.map((e,i)=>{
       const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
       return `<div class="ex-list-row" style="animation-delay:${Math.min(i,12)*0.02}s" onclick="openExDetail(${exJsArg(e.name)})">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -2899,7 +3288,7 @@ function renderLib(){
           <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
         </div>
       </div>`;
-    }).join('');
+    }).join('')+exLoadMoreHtml(filtered.length,shown.length,'list');
   }
 }
 
@@ -3020,15 +3409,17 @@ function openExdAiAcc(){
 window.openExdAiAcc=openExdAiAcc;
 
 function exdPreviewMediaHtml(e){
-  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;
+  const youtube=typeof assignedExYoutubeUrl==='function'?assignedExYoutubeUrl(e):'';
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia({...e,video:youtube||e.video||''}):null;
   const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  const assignedIsDrive=!!assigned&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(assigned);
   const assignedIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(assigned);
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   let h='';
   if(assignedIsVideo){
     h+=`<div class="exd-preview-media"><video id="exd-mp4-player" class="cw-technique-gif-img" src="${esc(assigned)}" autoplay loop muted playsinline controls preload="auto"></video></div>`;
   }else if(media){
-    const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));
+    const skipGif=!!(assigned&&!assignedIsDrive&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));
     if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});
     else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${esc(media.img)}" alt="Technika: ${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"></div>`;}
     const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));
@@ -3042,7 +3433,9 @@ window.exdPreviewMediaHtml=exdPreviewMediaHtml;
 function exdPreviewHtml(e){
   const safe=exJsArg(e.name||'');
   const desc=e.tip||'';
-  const yt=typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button type="button" class="exd-yt-btn" onclick="event.stopPropagation();window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank')">&#9654; Szukaj na YouTube — technika</button>`;
+  const directYoutube=typeof assignedExYoutubeUrl==='function'?assignedExYoutubeUrl(e):'';
+  const youtubeTarget=directYoutube||(typeof youtubeSearchUrlForExercise==='function'?youtubeSearchUrlForExercise(e):'https://www.youtube.com/results?search_query='+encodeURIComponent(e.name+' cwiczenie'));
+  const yt=`<a class="exd-yt-btn" href="${exdEsc(youtubeTarget)}" target="_blank" rel="noopener noreferrer">&#9654; ${directYoutube?'Zobacz film na YouTube':'Zobacz film na YouTube — Ambitious Athletics'}</a>`;
   return `<p class="exd-preview-meta">${exdEsc(e.cat||'')}${e.eq?' <span aria-hidden="true">·</span> '+exdEsc(e.eq):''}</p>
     ${exdPreviewMediaHtml(e)}
     ${desc?`<div class="exd-preview-desc">${exdEsc(desc)}</div>`:''}
@@ -3154,7 +3547,16 @@ function renderOwnVideos(){
   const el=document.getElementById('own-videos-grid');
   if(!el)return;
   const list=(window.COACH_VIDEOS||[]).slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  if(!list.length){
+  const drive=[];
+  const seenDrive=new Set();
+  (typeof allExercises==='function'?allExercises():[]).forEach(ex=>{
+    const url=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(ex):'';
+    const premium=!!url&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(url)
+      &&(!window.googleDriveMediaRole||window.googleDriveMediaRole(url)!=='preview');
+    const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(ex.name):String(ex.name||'').toLowerCase();
+    if(premium&&!seenDrive.has(key)){seenDrive.add(key);drive.push({name:ex.name,url});}
+  });
+  if(!list.length&&!drive.length){
     el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px 16px;color:var(--muted);">
       <div style="font-size:32px;margin-bottom:8px;opacity:.4;">▶</div>
       <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak własnych filmów</div>
@@ -3163,7 +3565,7 @@ function renderOwnVideos(){
     </div>`;
     return;
   }
-  el.innerHTML=list.map(v=>{
+  const ownHtml=list.map(v=>{
     const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(v.url):v.url;
     const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(url):'';
     const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(url);
@@ -3181,6 +3583,13 @@ function renderOwnVideos(){
       </div>
     </div>`;
   }).join('');
+  const driveHtml=drive.map(v=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;">
+      <div style="width:100%;min-height:102px;display:grid;place-items:center;margin-bottom:8px;border-radius:8px;background:#111827;color:#fff;font-size:28px;">▶</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(v.name)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Film techniki premium · Google Drive</div>
+      <button type="button" class="btn btn-primary btn-sm" style="width:100%;" onclick="openExDetail(${exJsArg(v.name)});if(typeof setExdTab==='function')setExdTab('preview')">▶ Otwórz technikę</button>
+    </div>`).join('');
+  el.innerHTML=`${driveHtml?`<div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--text);margin:2px 0 0;">Filmy techniki premium z Google Drive</div>${driveHtml}`:''}${ownHtml}`;
 }
 window.renderOwnVideos=renderOwnVideos;
 
@@ -4847,6 +5256,32 @@ async function delTask(id){
 // ════════════════════════════════════════
 let _exGifImportRows=[];
 let _exGifImportMode='files';
+let _exMediaImportBatchId='';
+
+function exMediaImportId(){return 'emi_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);}
+function exMediaImportStorageKey(){return 'pl_ex_media_import_v1_'+(window._uid||'anonymous');}
+function exMediaImportSnapshot(){
+  return {id:_exMediaImportBatchId,updatedAt:new Date().toISOString(),rows:_exGifImportRows.map(r=>({
+    label:r.label||(r.file&&r.file.name)||'',presetUrl:r.presetUrl||'',exerciseName:r.exerciseName||'',role:r.role,
+    selected:!!r.selected,status:r.status||'',confidence:r.confidence||'',score:r.score||0,storagePath:r.storagePath||'',url:r.url||'',previousUrl:r.previousUrl||''
+  }))};
+}
+async function saveExMediaImportJournal(state){
+  const snapshot=exMediaImportSnapshot(); snapshot.state=state||'draft';
+  try{localStorage.setItem(exMediaImportStorageKey(),JSON.stringify(snapshot));}catch(e){}
+  if(window._db&&window._setDoc&&window._doc&&window._uid&&snapshot.id){
+    try{await window._setDoc(window._doc(window._db,'exerciseMediaImports',snapshot.id),{id:snapshot.id,trainerId:window._uid,state:snapshot.state,updatedAt:snapshot.updatedAt,rows:snapshot.rows},{merge:true});}catch(e){console.warn('media import journal',e);}
+  }
+}
+function loadExMediaImportJournal(){
+  try{const saved=JSON.parse(localStorage.getItem(exMediaImportStorageKey())||'null');if(saved&&Array.isArray(saved.rows)){_exMediaImportBatchId=saved.id||exMediaImportId();_exGifImportRows=saved.rows;return true;}}catch(e){}
+  return false;
+}
+function exMediaConfidenceLabel(row){return ({high:'wysoka',medium:'średnia',low:'niska',conflict:'konflikt',unmatched:'brak',blocked:'zablokowane'})[row.confidence]||'ręcznie';}
+async function exMediaFileDigest(file){
+  if(!file||!window.crypto||!window.crypto.subtle)return '';
+  try{const hash=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');}catch(e){return '';}
+}
 
 function resolveExerciseName(input){
   const raw=String(input||'').trim();
@@ -4869,6 +5304,12 @@ function resolveExerciseName(input){
   }
   return raw;
 }
+
+/** #pl-preview oznacza jasny GIF wyświetlany na karcie ćwiczenia, nie film techniki. */
+function exGifImportRole(url){
+  return /#pl-preview(?:[?&]|$)/i.test(String(url||''))?'preview':'technique';
+}
+window.exGifImportRole=exGifImportRole;
 
 function mediaFilenameFromUrl(url){
   const raw=String(url||'').trim().split('#')[0].split('?')[0];
@@ -4901,7 +5342,7 @@ function splitPasteNameUrl(line){
   }
   const assets=s.match(/^(.*?)\s+((?:assets\/|\.?\.?\/)[^\s].+\.(?:gif|webp|mp4|webm|png|jpe?g|svg))$/i);
   if(assets)return{name:assets[1].trim(),url:assets[2].trim()};
-  if(/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(s))return{name:'',url:s};
+  if(/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(s)||(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(s)))return{name:'',url:s};
   return{name:s,url:''};
 }
 window.splitPasteNameUrl=splitPasteNameUrl;
@@ -4917,7 +5358,8 @@ function parseExGifBulkPaste(text){
         const url=normalizeImportedMediaUrl(o.url||o.gif||o.video||o.mp4||o.link||o.href||'');
         const name=String(o.name||o.exercise||o.exerciseName||'').trim();
         const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
-        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''};
+        const detail=typeof matchFilenameToExerciseDetailed==='function'?matchFilenameToExerciseDetailed(name||mediaFilenameFromUrl(url)):{name:exerciseName,confidence:exerciseName?'medium':'unmatched',score:0};
+        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName:exerciseName||detail.name,role:exGifImportRole(url),selected:!!((exerciseName||detail.name)&&url),status:'',url:'',confidence:detail.confidence,score:detail.score};
       }).filter(r=>r.presetUrl);
     }catch(e){/* fall through to lines */}
   }
@@ -4927,11 +5369,12 @@ function parseExGifBulkPaste(text){
     const parts=splitPasteNameUrl(line);
     let name=parts.name;
     let url=parts.url;
-    if(!url&&name&&(/^(https?:\/\/|assets\/)/i.test(name)||/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(name))){url=normalizeImportedMediaUrl(name);name='';}
+    if(!url&&name&&(/^(https?:\/\/|assets\/)/i.test(name)||/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(name)||(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(name)))){url=normalizeImportedMediaUrl(name);name='';}
     if(!url)return;
     url=normalizeImportedMediaUrl(url);
     const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
-    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''});
+    const detail=typeof matchFilenameToExerciseDetailed==='function'?matchFilenameToExerciseDetailed(name||mediaFilenameFromUrl(url)):{name:exerciseName,confidence:exerciseName?'medium':'unmatched',score:0};
+    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName:exerciseName||detail.name,role:exGifImportRole(url),selected:!!((exerciseName||detail.name)&&url),status:'',url:'',confidence:detail.confidence,score:detail.score});
   });
   return rows;
 }
@@ -4945,6 +5388,7 @@ async function persistExerciseGifUrl(exerciseName,gifUrl){
   const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
   window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
   window.EX_GIF_REMOTE[key]=url;
+  if(typeof invalidateExLibraryMediaFacts==='function')invalidateExLibraryMediaFacts();
   window._exGifPersistCloudErr=null;
   if(window._db&&window._setDoc&&window._doc&&window._uid){
     try{
@@ -4963,13 +5407,58 @@ async function persistExerciseGifUrl(exerciseName,gifUrl){
 }
 window.persistExerciseGifUrl=persistExerciseGifUrl;
 
-function hostBlocksFirebaseStorageUpload(){
-  try{
-    const h=String((typeof location!=='undefined'&&location&&location.hostname)||'');
-    return /github\.io$/i.test(h);
-  }catch(e){return false;}
+async function persistExercisePreviewUrl(exerciseName,previewUrl){
+  const url=normalizeImportedMediaUrl(previewUrl);
+  if(!url||!exerciseName)return false;
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url))return false;
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url))return false;
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(exerciseName):exerciseName.toLowerCase();
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
+  window.EX_PREVIEW_REMOTE=window.EX_PREVIEW_REMOTE||{};
+  window.EX_PREVIEW_REMOTE[key]=url;
+  if(typeof invalidateExLibraryMediaFacts==='function')invalidateExLibraryMediaFacts();
+  window._exPreviewPersistCloudErr=null;
+  if(window._db&&window._setDoc&&window._doc&&window._uid){
+    try{
+      await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
+        exerciseName,
+        previewUrl:url,
+        trainerId:window._uid,
+        updatedAt:new Date().toISOString()
+      },{merge:true});
+    }catch(err){
+      console.warn('persistExercisePreviewUrl',err);
+      window._exPreviewPersistCloudErr=err;
+    }
+  }
+  return true;
 }
-window.hostBlocksFirebaseStorageUpload=hostBlocksFirebaseStorageUpload;
+window.persistExercisePreviewUrl=persistExercisePreviewUrl;
+
+async function persistExerciseYoutubeUrl(exerciseName,youtubeUrl){
+  const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(youtubeUrl):String(youtubeUrl||'').trim();
+  if(!url||!exerciseName||typeof youtubeIdFromUrl!=='function'||!youtubeIdFromUrl(url))return false;
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(exerciseName):exerciseName.toLowerCase();
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
+  window.EX_YOUTUBE_REMOTE=window.EX_YOUTUBE_REMOTE||{};
+  window.EX_YOUTUBE_REMOTE[key]=url;
+  window._exYoutubePersistCloudErr=null;
+  if(window._db&&window._setDoc&&window._doc&&window._uid){
+    try{
+      await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
+        exerciseName,
+        youtubeUrl:url,
+        trainerId:window._uid,
+        updatedAt:new Date().toISOString()
+      },{merge:true});
+    }catch(err){
+      console.warn('persistExerciseYoutubeUrl',err);
+      window._exYoutubePersistCloudErr=err;
+    }
+  }
+  return true;
+}
+window.persistExerciseYoutubeUrl=persistExerciseYoutubeUrl;
 
 function exAssignSetMsg(text,ok){
   const s=String(text||'');
@@ -5014,6 +5503,7 @@ function isTruncatedAssignUrl(s){
   if(!/^https?:\/\//i.test(t))return false;
   if(/\.(mp4|webm|gif|webp)(\?|#|$)/i.test(t))return false;
   if(/youtu\.be|youtube\.com|vimeo\.com/i.test(t))return false;
+  if(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(t))return false;
   return true;
 }
 window.isTruncatedAssignUrl=isTruncatedAssignUrl;
@@ -5029,10 +5519,16 @@ function exDetailAssignHtml(e){
   const name=e&&e.name?e.name:'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
-  const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(e):'';
+  const youtube=typeof assignedExYoutubeUrl==='function'?assignedExYoutubeUrl(e):'';
+  const youtubeKey=typeof exerciseMediaKey==='function'?exerciseMediaKey(name):String(name).toLowerCase();
+  const youtubeSuggestions=((window._youtubeSuggestions||{})[youtubeKey]||{}).candidates||[];
+  const youtubeSuggestionsHtml=youtubeSuggestions.length?`<div style="margin-top:10px;display:grid;gap:7px;">${youtubeSuggestions.map(item=>`<div class="exd-assign-hint" style="padding:9px;"><b>${esc(item.title||'Film YouTube')}</b><br><span style="font-size:11px;">${esc(item.channel||'YouTube')} · ${Number(item.views||0).toLocaleString('pl-PL')} wyświetleń · ${Number(item.likes||0).toLocaleString('pl-PL')} polubień</span><div style="display:flex;gap:6px;margin-top:7px;"><a class="btn btn-ghost btn-sm" href="${esc(item.url||'#')}" target="_blank" rel="noopener noreferrer">Podgląd</a><button type="button" class="btn btn-primary btn-sm" onclick="assignExYoutubeCandidate(currentExDetail,${exJsArg(item.url||'')})">Przypisz film</button></div></div>`).join('')}</div>`:'';
+  const currentIsDrive=!!current&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(current);
+  const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current)||currentIsDrive;
   const currentHint=currentIsVideo
-    ?`<div id="exd-mp4-current" class="exd-assign-hint is-ok">Dopasowany film: <code>${esc(current)}</code></div>`
-    :'<div id="exd-mp4-current" class="exd-assign-hint">Brak filmu MP4 przy tym ćwiczeniu — wklej ścieżkę albo wybierz plik YouCan.</div>';
+    ?`<div id="exd-mp4-current" class="exd-assign-hint is-ok">${currentIsDrive?'Dopasowany film Google Drive':'Dopasowany film'}: <code>${esc(current)}</code></div>`
+    :'<div id="exd-mp4-current" class="exd-assign-hint">Brak filmu przy tym ćwiczeniu — wklej ścieżkę, link Google Drive albo wybierz plik YouCan.</div>';
   const own=(window.COACH_VIDEOS||[]).filter(v=>{
     const u=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(v.url):String(v.url||'');
     return typeof coachVideoIsFile==='function'?coachVideoIsFile(u):/\.(mp4|webm)(\?|#|$)/i.test(u);
@@ -5050,12 +5546,22 @@ function exDetailAssignHtml(e){
   return `<div id="exd-assign" class="exd-card exd-assign">
     <div class="exd-sec-h">Dopasuj film / GIF</div>
     ${currentHint}
-    <div style="font-size:13px;color:#D1D5DB;line-height:1.5;margin-bottom:12px;">Do <b>${esc(name)}</b> — wybierz film z listy albo plik YouCan, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
-    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Opcjonalnie wklej ścieżkę (Shift+PPM → Kopiuj jako ścieżkę)" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
+    <div style="font-size:13px;color:#D1D5DB;line-height:1.5;margin-bottom:12px;">Do <b>${esc(name)}</b> — wybierz film z listy, plik YouCan albo wklej pełny link Google Drive, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
+    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Ścieżka MP4 lub pełny link Google Drive" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
     ${isPecDeckAssignExercise(name)?'<button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>':''}
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
     <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>
     <input type="file" class="form-input" id="exd-mp4-file" accept=".mp4,.webm,video/mp4,video/webm" onchange="assignExTechniqueFromFile(currentExDetail,this)">
+    <div class="exd-sec-h" style="margin-top:18px;">Jasny podgląd karty</div>
+    <div class="exd-assign-hint">${preview?'Podgląd karty: <code>'+esc(preview)+'</code>':'Opcjonalnie: wklej jasny obraz lub link Google Drive do pierwszego widoku karty. Nie zastępuje filmu techniki premium.'}</div>
+    <textarea class="form-input" id="exd-preview-url" rows="2" placeholder="Jasny obraz lub link Google Drive" style="margin-top:6px;margin-bottom:6px;font-size:12px;min-height:52px;resize:vertical;"></textarea>
+    <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExPreviewFromPaste(currentExDetail)">Zapisz podgląd karty</button>
+    <div class="exd-sec-h" style="margin-top:18px;">Film YouTube</div>
+    <div class="exd-assign-hint">${youtube?'Przypisany film: <code>'+esc(youtube)+'</code>':'Wklej publiczny link YouTube do dokładnego ćwiczenia. W szczegółach pojawi się przycisk „Zobacz film”.'}</div>
+    <input type="url" class="form-input" id="exd-youtube-url" placeholder="https://www.youtube.com/watch?v=…" style="margin-top:6px;margin-bottom:6px;font-size:12px;">
+    <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExYoutubeFromPaste(currentExDetail)">Zapisz film YouTube</button>
+    <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="requestYoutubeCandidates(currentExDetail)">✨ Znajdź propozycje według popularności</button>
+    ${youtubeSuggestionsHtml}
     ${msgHtml}
     ${ownBlock}
   </div>`;
@@ -5150,6 +5656,105 @@ async function assignExTechniqueFromPaste(name){
 }
 window.assignExTechniqueFromPaste=assignExTechniqueFromPaste;
 
+async function assignExPreviewFromPaste(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const inp=document.getElementById('exd-preview-url');
+  const raw=inp?String(inp.value||'').trim().replace(/^["']+|["']+$/g,''):'';
+  if(!n){notify('Najpierw wybierz ćwiczenie');return false;}
+  if(!raw){exAssignSetMsg('Wklej jasny obraz lub pełny link Google Drive do podglądu karty.',false);return false;}
+  if(typeof isTruncatedAssignUrl==='function'&&isTruncatedAssignUrl(raw)){
+    exAssignSetMsg('Link jest ucięty. Wklej pełny adres obrazu lub Google Drive.',false);return false;
+  }
+  const url=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(raw):raw;
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
+    exAssignSetMsg('Podgląd musi być dostępny przez link, a nie przez ścieżkę na komputerze trenera.',false);return false;
+  }
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url)){
+    exAssignSetMsg('Wklej bezpieczny adres https:// do obrazu lub Google Drive.',false);return false;
+  }
+  if(!window._uid){exAssignSetMsg('Zaloguj się, aby zapisać podgląd karty',false);return false;}
+  const saved=await persistExercisePreviewUrl(n,url);
+  if(!saved){exAssignSetMsg('Nie udało się zapisać podglądu karty',false);return false;}
+  const custom=typeof findCustomEx==='function'?findCustomEx(n):null;
+  if(custom){
+    custom.previewUrl=url;
+    if(typeof persistById==='function')try{await persistById('exercises',custom);}catch(e){}
+  }
+  window._exAssignFlash=window._exPreviewPersistCloudErr
+    ?{text:'Podgląd widać teraz, ale chmura nie zapisała — po odświeżeniu zniknie',ok:false}
+    :{text:'Jasny podgląd zapisany dla: '+n,ok:true};
+  if(typeof renderLib==='function')renderLib();
+  if(typeof openExDetail==='function')openExDetail(n);
+  else exAssignSetMsg(window._exAssignFlash.text,window._exAssignFlash.ok);
+  return true;
+}
+window.assignExPreviewFromPaste=assignExPreviewFromPaste;
+
+async function assignExYoutubeFromPaste(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const inp=document.getElementById('exd-youtube-url');
+  const raw=inp?String(inp.value||'').trim().replace(/^["']+|["']+$/g,''):'';
+  const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(raw):raw;
+  if(!n){notify('Najpierw wybierz ćwiczenie');return false;}
+  if(!url||typeof youtubeIdFromUrl!=='function'||!youtubeIdFromUrl(url)){
+    exAssignSetMsg('Wklej pełny link do filmu YouTube, np. https://www.youtube.com/watch?v=…',false);
+    return false;
+  }
+  if(!window._uid){exAssignSetMsg('Zaloguj się, aby zapisać film YouTube',false);return false;}
+  const saved=await persistExerciseYoutubeUrl(n,url);
+  if(!saved){exAssignSetMsg('Nie udało się zapisać filmu YouTube',false);return false;}
+  const custom=typeof findCustomEx==='function'?findCustomEx(n):null;
+  if(custom){
+    custom.youtubeUrl=url;
+    if(typeof persistById==='function')try{await persistById('exercises',custom);}catch(e){}
+  }
+  window._exAssignFlash=window._exYoutubePersistCloudErr
+    ?{text:'Film działa teraz, ale chmura go nie zapisała — po odświeżeniu zniknie',ok:false}
+    :{text:'Film YouTube przypisany do: '+n,ok:true};
+  if(typeof renderLib==='function')renderLib();
+  if(typeof openExDetail==='function'){
+    openExDetail(n);
+    if(typeof setExdTab==='function')setExdTab('preview');
+  }else exAssignSetMsg(window._exAssignFlash.text,window._exAssignFlash.ok);
+  return true;
+}
+window.assignExYoutubeFromPaste=assignExYoutubeFromPaste;
+
+async function assignExYoutubeCandidate(name,url){
+  const inp=document.getElementById('exd-youtube-url');
+  if(inp)inp.value=url||'';
+  return assignExYoutubeFromPaste(name);
+}
+window.assignExYoutubeCandidate=assignExYoutubeCandidate;
+
+async function requestYoutubeCandidates(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const ex=typeof libExerciseByName==='function'?libExerciseByName(n):null;
+  if(!n||!ex){notify('Najpierw wybierz ćwiczenie');return false;}
+  if(typeof window._youtubeCurationCall!=='function'){
+    exAssignSetMsg('Wyszukiwarka YouTube nie jest jeszcze gotowa na serwerze. Odśwież stronę za chwilę.',false);
+    return false;
+  }
+  const terms=[ex.name].concat(Array.isArray(ex.aliases)?ex.aliases:String(ex.aka||ex.alias||'').split(','));
+  exAssignSetMsg('Szukam dokładnych filmów i porównuję popularność…',true);
+  try{
+    const result=await window._youtubeCurationCall({exerciseName:ex.name,terms});
+    const candidates=result&&result.data&&Array.isArray(result.data.candidates)?result.data.candidates:[];
+    const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(ex.name):String(ex.name).toLowerCase();
+    window._youtubeSuggestions=window._youtubeSuggestions||{};
+    window._youtubeSuggestions[key]={candidates};
+    window._exAssignFlash={text:candidates.length?'Znaleziono '+candidates.length+' propozycji do wyboru.':'Nie znaleziono bezpiecznego dopasowania — wklej link ręcznie.',ok:!!candidates.length};
+    openExDetail(ex.name);
+    if(typeof setExdTab==='function')setExdTab('manage');
+    return true;
+  }catch(error){
+    const code=String(error&&error.code||'');
+    exAssignSetMsg(code.includes('resource-exhausted')?'Dzisiejszy limit wyszukiwań został wykorzystany. Spróbuj jutro.':'Nie udało się pobrać propozycji YouTube. Spróbuj ponownie później.',false);
+    return false;
+  }
+}
+window.requestYoutubeCandidates=requestYoutubeCandidates;
+
 function previewAssignedExOwnVideo(){
   const sel=document.getElementById('exd-mp4-own');
   const id=sel?sel.value:'';
@@ -5200,8 +5805,7 @@ async function assignExTechniqueFromFile(name,input){
   if(!file){exAssignSetMsg('Wybierz plik MP4',false);return;}
   const cdn=typeof cdnUrlFromVideoFilename==='function'?cdnUrlFromVideoFilename(file.name):'';
   if(cdn){await saveAssignedExTechnique(n,cdn);return;}
-  const blocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
-  const canStore=!blocked&&window._uid&&window._storage&&window._storageRef&&window._uploadBytes&&window._getDownloadURL;
+  const canStore=window._uid&&window._storage&&window._storageRef&&window._uploadBytes&&window._getDownloadURL;
   if(!canStore){
     const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
     const suggest=typeof canonicalYouCanBasename==='function'&&typeof isYouCanVideoFilename==='function'&&isYouCanVideoFilename(base)
@@ -5210,14 +5814,14 @@ async function assignExTechniqueFromFile(name,input){
     if(inp)inp.value=suggest;
     let msg='Firebase Storage jest niedostępny. Wklej pełną ścieżkę D:/progress-live-video-assets/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
     if(!window._uid)msg='Zaloguj się, aby zapisać film przy ćwiczeniu';
-    else if(blocked)msg='Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
     exAssignSetMsg(msg,false);
     return;
   }
   try{
     const slug=typeof exerciseSlug==='function'?exerciseSlug(n):String(n).toLowerCase();
     const ext=(file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','mp4'])[1].toLowerCase();
-    const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+    // Keep ad-hoc uploads compatible with the immutable bulk-import layout.
+    const path='exercise-media/'+window._uid+'/single/'+slug+'-'+Date.now().toString(36)+'.'+ext;
     const ref=window._storageRef(window._storage,path);
     const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
     await window._uploadBytes(ref,file,{contentType:file.type||mime[ext]||'application/octet-stream'});
@@ -5230,7 +5834,7 @@ async function assignExTechniqueFromFile(name,input){
       ?canonicalYouCanBasename(base):base;
     const inp=document.getElementById('exd-mp4-url');
     if(inp)inp.value=suggest;
-    exAssignSetMsg('Wgrywanie padło (często CORS). Wklej D:/progress-live-video-assets/…/'+suggest+' i zapisz.',false);
+    exAssignSetMsg('Nie udało się wgrać pliku. Sprawdź połączenie i spróbuj ponownie.',false);
   }
 }
 window.assignExTechniqueFromFile=assignExTechniqueFromFile;
@@ -5255,10 +5859,41 @@ function matchGifFileToExercise(filename){
 }
 window.matchGifFileToExercise=matchGifFileToExercise;
 
+function exImportCleanFileName(filename){
+  return String(filename||'').replace(/\.(gif|webp|mp4|webm)$/i,'').replace(/\s*\(\d+\)\s*/g,' ').replace(/\s+\d{1,2}\s*$/,'').replace(/\s+/g,' ').trim();
+}
+function exImportInferCategory(filename){
+  const n=typeof exerciseSearchNorm==='function'?exerciseSearchNorm(filename):String(filename||'').toLowerCase();
+  if(/biceps|ramion|mlotkow|modlitewnik|nadgarstk|handgrip|zottman|bayesian|spider/.test(n))return 'Biceps';
+  if(/triceps|prostowanie/.test(n))return 'Triceps';
+  if(/klatk|wyciskanie|rozpiet/.test(n))return 'Klatka piersiowa';
+  if(/plec|wioslow|sciaganie|podciag/.test(n))return 'Plecy';
+  if(/bark|unoszenie|ohp/.test(n))return 'Barki';
+  if(/przysiad|wykrok|nogi|lydk|dwuglow|czworoglow/.test(n))return 'Nogi';
+  if(/brzuch|core|deska/.test(n))return 'Core';
+  return '';
+}
+function exImportCategories(all){
+  return [...new Set((all||[]).map(ex=>String(ex&&ex.cat||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl'));
+}
+function exImportEquipment(filename){
+  const n=typeof exerciseSearchNorm==='function'?exerciseSearchNorm(filename):String(filename||'').toLowerCase();
+  if(/hantl|zottman|mlotkow/.test(n))return 'Hantle';
+  if(/sztang|gryf/.test(n))return 'Sztanga';
+  if(/wyciag|lina/.test(n))return 'Wyciąg';
+  if(/maszyn/.test(n))return 'Maszyna';
+  if(/handgrip/.test(n))return 'Handgrip';
+  if(/talerz/.test(n))return 'Talerz';
+  return 'Własna masa';
+}
+window.exImportCleanFileName=exImportCleanFileName;
+
 function buildExGifImportRows(files){
   return (files||[]).filter(f=>/\.(gif|webp|mp4|webm)$/i.test(f.name||'')).map(file=>{
-    const exerciseName=matchGifFileToExercise(file.name);
-    return{file,exerciseName,selected:!!exerciseName,status:'',url:''};
+    const detail=typeof matchFilenameToExerciseDetailed==='function'?matchFilenameToExerciseDetailed(file.name):{name:matchGifFileToExercise(file.name),confidence:'medium',score:0};
+    const all=typeof allExercises==='function'?allExercises():[];
+    const hit=all.find(ex=>ex&&ex.name===detail.name);
+    return{file,exerciseName:detail.name||'',category:(hit&&hit.cat)||exImportInferCategory(file.name),role:'technique',selected:!!detail.name,status:'',url:'',confidence:detail.confidence,score:detail.score};
   }).sort((a,b)=>(b.selected?1:0)-(a.selected?1:0)||a.file.name.localeCompare(b.file.name,'pl'));
 }
 
@@ -5267,6 +5902,12 @@ function renderExGifImportPreview(){
   const cnt=document.getElementById('exgif-match-count');
   if(!el)return;
   const matched=_exGifImportRows.filter(r=>r.selected&&r.exerciseName).length;
+  const missing=_exGifImportRows.filter(r=>!r.exerciseName).length;
+  const addMissing=document.getElementById('exgif-add-missing');
+  if(addMissing){
+    addMissing.style.display=missing?'':'none';
+    addMissing.textContent='+ Dodaj '+missing+' brakujących ćwiczeń';
+  }
   if(cnt)cnt.textContent=matched+' / '+_exGifImportRows.length+' dopasowanych';
   if(!_exGifImportRows.length){
     const msg=_exGifImportMode==='paste'
@@ -5277,17 +5918,29 @@ function renderExGifImportPreview(){
   }
   el.innerHTML=_exGifImportRows.map((r,i)=>{
     const all=typeof allExercises==='function'?allExercises():[];
-    const opts=all.map(e=>`<option value="${typeof escHtml==='function'?escHtml(e.name):e.name}" ${r.exerciseName===e.name?'selected':''}>${typeof escHtml==='function'?escHtml(e.name):e.name}</option>`).join('');
+    const categories=exImportCategories(all);
+    const selectedEx=all.find(e=>e&&e.name===r.exerciseName);
+    const category=r.category||(selectedEx&&selectedEx.cat)||exImportInferCategory(r.file?r.file.name:r.label||'');
+    const inCategory=category?all.filter(e=>e&&e.cat===category):[];
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    const catOpts=['<option value="">— partia mięśniowa —</option>'].concat(categories.map(cat=>`<option value="${esc(cat)}" ${category===cat?'selected':''}>${esc(cat)}</option>`)).join('');
+    const opts=['<option value="">— wybierz ćwiczenie —</option>'].concat(inCategory.map(e=>`<option value="${esc(e.name)}" ${r.exerciseName===e.name?'selected':''}>${esc(e.name)}</option>`)).join('');
     const st=r.status==='done'?'✓':r.status==='err'?'✗':r.status==='upload'?'…':'';
     const label=r.file?(r.file.name):(r.label||r.presetUrl||'');
     const short=String(label).length>56?String(label).slice(0,53)+'…':label;
-    return `<div class="exgif-row" data-i="${i}">
+    return `<div class="exgif-row" style="grid-template-columns:28px minmax(155px,1fr) minmax(120px,.7fr) minmax(245px,1.5fr) minmax(110px,.6fr) 24px;" data-i="${i}">
       <label class="exgif-row-check"><input type="checkbox" ${r.selected?'checked':''} onchange="toggleExGifImportRow(${i},this.checked)"></label>
-      <div class="exgif-row-file" title="${typeof escHtml==='function'?escHtml(String(label)):String(label)}">${typeof escHtml==='function'?escHtml(short):short}</div>
-      <select class="form-select exgif-row-select" onchange="setExGifImportExercise(${i},this.value)">
-        <option value="">— wybierz ćwiczenie —</option>${opts}
+      <div class="exgif-row-file" title="${esc(String(label))}">${esc(short)}</div>
+      <select class="form-select exgif-row-category" aria-label="Partia mięśniowa" onchange="setExGifImportCategory(${i},this.value)">${catOpts}</select>
+      <div style="display:flex;gap:6px;min-width:0;">
+        <select class="form-select exgif-row-select" onchange="setExGifImportExercise(${i},this.value)">${opts}</select>
+        <button type="button" class="btn btn-ghost btn-sm" title="Dodaj brakujące ćwiczenie do wybranej partii" onclick="addExGifImportExercise(${i})">+ Ćwiczenie</button>
+      </div>
+      <select class="form-select exgif-row-role" aria-label="Przeznaczenie pliku" onchange="setExGifImportRole(${i},this.value)">
+        <option value="preview" ${r.role==='preview'?'selected':''}>Podgląd karty</option>
+        <option value="technique" ${r.role!=='preview'?'selected':''}>Technika</option>
       </select>
-      <span class="exgif-row-status">${st}</span>
+      <span class="exgif-row-status" title="Pewność dopasowania: ${exMediaConfidenceLabel(r)}">${st} ${exMediaConfidenceLabel(r)}</span>
     </div>`;
   }).join('');
 }
@@ -5297,6 +5950,7 @@ function onExGifFilesPicked(input){
   if(typeof setExGifImportTab==='function')setExGifImportTab('files',true);
   const files=input&&input.files?[...input.files]:[];
   _exGifImportRows=buildExGifImportRows(files);
+  _exMediaImportBatchId=exMediaImportId(); saveExMediaImportJournal('review');
   renderExGifImportPreview();
   syncExGifImportBtnLabel();
 }
@@ -5305,6 +5959,7 @@ function onExGifBulkPastePreview(){
   _exGifImportMode='paste';
   const ta=document.getElementById('exgif-paste');
   _exGifImportRows=parseExGifBulkPaste(ta?ta.value:'');
+  _exMediaImportBatchId=exMediaImportId(); saveExMediaImportJournal('review');
   renderExGifImportPreview();
   syncExGifImportBtnLabel();
   if(_exGifImportRows.length&&typeof notify==='function')notify('Sparsowano '+_exGifImportRows.length+' pozycji — sprawdź dopasowanie');
@@ -5344,13 +5999,103 @@ function toggleExGifImportRow(i,on){
 function setExGifImportExercise(i,name){
   if(!_exGifImportRows[i])return;
   _exGifImportRows[i].exerciseName=name||'';
+  const found=(typeof allExercises==='function'?allExercises():[]).find(ex=>ex&&ex.name===name);
+  if(found)_exGifImportRows[i].category=found.cat||'';
   _exGifImportRows[i].selected=!!name;
+  _exGifImportRows[i].confidence=name?'manual':'unmatched';
+  saveExMediaImportJournal('review');
   renderExGifImportPreview();
   syncExGifImportBtnLabel();
 }
 
+function setExGifImportCategory(i,category){
+  const row=_exGifImportRows[i];
+  if(!row)return;
+  row.category=category||'';
+  const found=(typeof allExercises==='function'?allExercises():[]).find(ex=>ex&&ex.name===row.exerciseName);
+  if(found&&found.cat!==row.category){row.exerciseName='';row.selected=false;row.confidence='unmatched';}
+  saveExMediaImportJournal('review');
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+}
+
+async function addExGifImportExercise(i){
+  const row=_exGifImportRows[i];
+  if(!row)return;
+  const label=row.file?row.file.name:(row.label||'');
+  const suggested=exImportCleanFileName(label);
+  const name=String(prompt('Nazwa nowego ćwiczenia:',suggested)||'').trim().replace(/\s+/g,' ');
+  if(!name)return;
+  const all=typeof allExercises==='function'?allExercises():[];
+  const norm=typeof exerciseSearchNorm==='function'?exerciseSearchNorm:s=>String(s||'').toLowerCase();
+  const duplicate=all.find(ex=>ex&&norm(ex.name)===norm(name));
+  if(duplicate){
+    row.exerciseName=duplicate.name;row.category=duplicate.cat||'';row.selected=true;row.confidence='manual';
+    saveExMediaImportJournal('review');renderExGifImportPreview();syncExGifImportBtnLabel();
+    notify('To ćwiczenie już istnieje — wybrano „'+duplicate.name+'”.');return;
+  }
+  const category=String(prompt('Partia mięśniowa:',row.category||exImportInferCategory(label)||'Inne')||'').trim()||'Inne';
+  const equipment=String(prompt('Sprzęt:',exImportEquipment(label))||'').trim()||'Własna masa';
+  const ex=withTrainer({id:newId('ex'),name,cat:category,eq:equipment,muscle:category,tip:'Dodane podczas importu materiału.',nsca:'3x8–12.',alt:'',gif:'',img:''});
+  EX.push(ex);
+  try{if(typeof persistById==='function')await persistById('exercises',ex);}catch(e){
+    EX=EX.filter(item=>item!==ex);window.EX=EX;
+    notify('Nie udało się zapisać ćwiczenia. Spróbuj ponownie.');return;
+  }
+  row.exerciseName=ex.name;row.category=ex.cat;row.selected=true;row.confidence='manual';
+  saveExMediaImportJournal('review');renderExGifImportPreview();syncExGifImportBtnLabel();
+  if(typeof renderLib==='function')renderLib();
+  notify('Dodano „'+ex.name+'” do biblioteki.');
+}
+window.setExGifImportCategory=setExGifImportCategory;
+window.addExGifImportExercise=addExGifImportExercise;
+
+async function addAllExGifImportExercises(){
+  const missing=_exGifImportRows.filter(row=>!row.exerciseName&&(row.file||row.label||row.presetUrl));
+  if(!missing.length){notify('Wszystkie pliki mają już przypisane ćwiczenia.');return;}
+  if(!confirm('Utworzyć '+missing.length+' brakujących ćwiczeń na podstawie nazw plików? Zostaną przypisane do partii widocznej przy pliku.'))return;
+  const norm=typeof exerciseSearchNorm==='function'?exerciseSearchNorm:s=>String(s||'').toLowerCase();
+  let added=0, reused=0, failed=0;
+  for(const row of missing){
+    const label=row.file?row.file.name:(row.label||row.presetUrl||'');
+    const name=exImportCleanFileName(label);
+    if(!name){failed++;continue;}
+    const all=typeof allExercises==='function'?allExercises():[];
+    const duplicate=all.find(ex=>ex&&norm(ex.name)===norm(name));
+    if(duplicate){
+      row.exerciseName=duplicate.name;row.category=duplicate.cat||row.category||'';row.selected=true;row.confidence='manual';reused++;continue;
+    }
+    const category=row.category||exImportInferCategory(label)||'Inne';
+    const ex=withTrainer({id:newId('ex'),name,cat:category,eq:exImportEquipment(label),muscle:category,tip:'Dodane podczas importu materiału.',nsca:'3x8–12.',alt:'',gif:'',img:''});
+    EX.push(ex);
+    try{if(typeof persistById==='function')await persistById('exercises',ex);}catch(e){
+      EX=EX.filter(item=>item!==ex);window.EX=EX;failed++;continue;
+    }
+    row.exerciseName=ex.name;row.category=ex.cat;row.selected=true;row.confidence='manual';added++;
+  }
+  await saveExMediaImportJournal('review');
+  renderExGifImportPreview();syncExGifImportBtnLabel();
+  if(typeof renderLib==='function')renderLib();
+  notify('Dodano '+added+' ćwiczeń'+(reused?', wykorzystano istniejące: '+reused:'')+(failed?', nie zapisano: '+failed:'')+'. Teraz kliknij „Wgraj pliki”.');
+}
+window.addAllExGifImportExercises=addAllExGifImportExercises;
+
+function setExGifImportRole(i,role){
+  if(!_exGifImportRows[i])return;
+  _exGifImportRows[i].role=role==='preview'?'preview':'technique';
+  renderExGifImportPreview();
+}
+
+/** Ustawia przeznaczenie całej zaznaczonej paczki, np. jasnych GIF-ów do kart. */
+function setAllExGifImportRoles(role){
+  const next=role==='preview'?'preview':'technique';
+  _exGifImportRows.forEach(row=>{if(row.selected&&row.exerciseName)row.role=next;});
+  renderExGifImportPreview();
+  if(typeof notify==='function')notify(next==='preview'?'Jasne materiały ustawione jako podglądy kart':'Materiały ustawione jako filmy techniki');
+}
+
 function openExGifImport(){
-  _exGifImportRows=[];
+  _exGifImportRows=[]; _exMediaImportBatchId='';
   _exGifImportMode='paste';
   const inp=document.getElementById('exgif-files');
   if(inp)inp.value='';
@@ -5364,6 +6109,12 @@ function openExGifImport(){
   openM('m-ex-gif-import');
 }
 
+function resumeExMediaImport(){
+  if(!loadExMediaImportJournal()){notify('Nie ma zapisanej paczki do wznowienia');return;}
+  _exGifImportMode='paste'; renderExGifImportPreview(); syncExGifImportBtnLabel();
+  notify('Wznowiono paczkę. Dla plików z dysku wybierz je ponownie — przeglądarka nie może ich zachować po odświeżeniu.');
+}
+
 function ensureExGifPasteParsed(){
   if(_exGifImportRows.length)return;
   const ta=document.getElementById('exgif-paste');
@@ -5375,6 +6126,125 @@ function ensureExGifPasteParsed(){
   syncExGifImportBtnLabel();
 }
 
+function isFirebaseExerciseMediaUrl(url){
+  const u=String(url||'');
+  return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)
+    &&/(?:exercise-media(?:%2f|\/)|%2Fexercise-media%2F)/i.test(u);
+}
+window.isFirebaseExerciseMediaUrl=isFirebaseExerciseMediaUrl;
+
+function whitePreviewBackground(ctx,width,height){
+  // Kontrolujemy jedynie brzegi: biały GIF z sylwetką zostanie zaakceptowany,
+  // a materiały z czarnym tłem lub salą wypełniającą cały kadr nie.
+  const inset=Math.max(2,Math.round(Math.min(width,height)*0.025));
+  const samples=[
+    [inset,inset],[width-inset-1,inset],[inset,height-inset-1],[width-inset-1,height-inset-1],
+    [Math.floor(width/2),inset],[Math.floor(width/2),height-inset-1]
+  ];
+  let light=0;
+  try{
+    samples.forEach(([x,y])=>{
+      const p=ctx.getImageData(x,y,1,1).data;
+      const l=(p[0]*0.2126+p[1]*0.7152+p[2]*0.0722);
+      if(p[3]<24||l>=218)light++;
+    });
+  }catch(e){return false;}
+  return light>=Math.ceil(samples.length*0.8);
+}
+window.whitePreviewBackground=whitePreviewBackground;
+
+/**
+ * Tworzy mały, statyczny obraz tylko z materiału mającego jasne tło.
+ * Zwraca null dla ciemnych/nieczytelnych filmów zamiast pokazywać je na karcie.
+ */
+function createWhiteExerciseCardThumbnail(source){
+  return new Promise(resolve=>{
+    if(typeof document==='undefined'||!document.createElement||typeof Image==='undefined')return resolve(null);
+    const isBlob=typeof Blob!=='undefined'&&source instanceof Blob;
+    if(isBlob&&source.size>40*1024*1024)return resolve(null);
+    const raw=isBlob&&typeof URL!=='undefined'&&URL.createObjectURL?URL.createObjectURL(source):String(source||'');
+    if(!raw)return resolve(null);
+    const img=new Image();
+    let done=false;
+    const finish=value=>{
+      if(done)return;
+      done=true;
+      clearTimeout(timeout);
+      if(isBlob&&typeof URL!=='undefined'&&URL.revokeObjectURL)URL.revokeObjectURL(raw);
+      resolve(value||null);
+    };
+    const timeout=setTimeout(()=>finish(null),12000);
+    img.decoding='async';
+    if(!isBlob)img.crossOrigin='anonymous';
+    img.onerror=()=>finish(null);
+    img.onload=()=>{
+      try{
+        const sourceW=img.naturalWidth||img.width;
+        const sourceH=img.naturalHeight||img.height;
+        if(!sourceW||!sourceH)return finish(null);
+        const scale=Math.min(480/sourceW,480/sourceH,1);
+        const width=Math.max(1,Math.round(sourceW*scale));
+        const height=Math.max(1,Math.round(sourceH*scale));
+        const canvas=document.createElement('canvas');
+        canvas.width=width;canvas.height=height;
+        const ctx=canvas.getContext('2d',{alpha:false});
+        if(!ctx)return finish(null);
+        ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+        ctx.imageSmoothingEnabled=true;
+        if('imageSmoothingQuality' in ctx)ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,0,0,width,height);
+        if(!whitePreviewBackground(ctx,width,height))return finish(null);
+        canvas.toBlob(blob=>finish(blob&&blob.size?{blob,extension:blob.type==='image/webp'?'webp':'jpg'}:null),'image/webp',0.84);
+      }catch(e){finish(null);}
+    };
+    img.src=raw;
+  });
+}
+window.createWhiteExerciseCardThumbnail=createWhiteExerciseCardThumbnail;
+
+async function uploadWhiteExerciseCardThumbnail(source,exerciseName,batchId,fingerprint){
+  if(!window._uid||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)return '';
+  const image=await createWhiteExerciseCardThumbnail(source);
+  if(!image)return '';
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):String(exerciseName||'exercise').toLowerCase();
+  const safeFingerprint=String(fingerprint||Date.now().toString(36)).replace(/[^a-z0-9_-]/gi,'').slice(0,80)||Date.now().toString(36);
+  const path='exercise-media/'+window._uid+'/'+batchId+'/'+slug+'-'+safeFingerprint+'-card.'+image.extension;
+  const ref=window._storageRef(window._storage,path);
+  await window._uploadBytes(ref,image.blob,{contentType:image.blob.type||'image/webp'});
+  return window._getDownloadURL(ref);
+}
+window.uploadWhiteExerciseCardThumbnail=uploadWhiteExerciseCardThumbnail;
+
+async function backfillWhiteExerciseCardPreviews(){
+  if(!window._uid||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+    notify('Zaloguj się do aplikacji — wtedy utworzę podglądy w Firebase.');return;
+  }
+  const all=typeof allExercises==='function'?allExercises():[];
+  const candidates=all.filter(ex=>{
+    const gif=typeof exGifUrl==='function'?exGifUrl(ex):'';
+    const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(ex):'';
+    return !!(gif&&isFirebaseExerciseMediaUrl(gif)&&!isGeneratedWhiteExerciseCardPreview(preview));
+  });
+  if(!candidates.length){notify('Wszystkie dostępne materiały Firebase mają już statyczny podgląd albo nie wymagają konwersji.');return;}
+  const btn=typeof document!=='undefined'?document.getElementById('lib-build-white-previews'):null;
+  if(btn){btn.disabled=true;btn.textContent='Tworzenie podglądów…';}
+  let made=0,notWhite=0,failed=0;
+  for(let i=0;i<candidates.length;i++){
+    const ex=candidates[i];
+    try{
+      const url=typeof exGifUrl==='function'?exGifUrl(ex):'';
+      const preview=await uploadWhiteExerciseCardThumbnail(url,ex.name,'card-previews',Date.now().toString(36)+'-'+i);
+      if(preview){await persistExercisePreviewUrl(ex.name,preview);made++;}
+      else notWhite++;
+    }catch(e){console.warn('card preview backfill',ex&&ex.name,e);failed++;}
+    if(btn)btn.textContent='Podglądy '+(i+1)+' / '+candidates.length;
+  }
+  if(btn){btn.disabled=false;btn.textContent='🖼 Utwórz białe podglądy';}
+  if(typeof renderLib==='function')renderLib();
+  notify('Gotowe: '+made+' białych podglądów. Pominięto '+notWhite+' materiałów z niebiałym tłem'+(failed?', błędy: '+failed:'')+'.');
+}
+window.backfillWhiteExerciseCardPreviews=backfillWhiteExerciseCardPreviews;
+
 async function runExGifImport(){
   ensureExGifPasteParsed();
   const parsed=_exGifImportRows.length;
@@ -5383,9 +6253,10 @@ async function runExGifImport(){
   if(!rows.length){notify('Wybierz ćwiczenie z listy przy każdym filmie — potem Zapisz masowo');return;}
   if(!window._uid){notify('Zaloguj się, aby zapisać GIF-y i filmy MP4');return;}
   const fileRows=rows.filter(r=>r.file&&!r.presetUrl);
-  const storageBlocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
-  if(fileRows.length&&(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
-    notify('Z GitHub Pages nie wgramy plików (CORS). Wklej ścieżki D:/progress-live-video-assets/…mp4 i Zapisz masowo');
+  if(!_exMediaImportBatchId)_exMediaImportBatchId=exMediaImportId();
+  await saveExMediaImportJournal('uploading');
+  if(fileRows.length&&(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
+    notify('Firebase Storage jest chwilowo niedostępny. Odśwież aplikację i spróbuj ponownie.');
     if(!rows.some(r=>r.presetUrl))return;
   }
   const btn=document.getElementById('exgif-import-btn');
@@ -5395,16 +6266,26 @@ async function runExGifImport(){
   if(progWrap)progWrap.style.display='block';
   window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
   let ok=0;
+  let previews=0;
+  let staticPreviews=0;
+  const previewOwners=new Set(rows.filter(r=>r.thumbnailUrl&&r.exerciseName).map(r=>typeof exerciseMediaKey==='function'?exerciseMediaKey(r.exerciseName):String(r.exerciseName).toLowerCase()));
   const total=rows.length;
   let step=0;
   for(let i=0;i<rows.length;i++){
     const row=rows[i];
+    const wasDone=row.status==='done';
     row.status='upload';
     renderExGifImportPreview();
     try{
-      if(row.presetUrl){
-        const saved=await persistExerciseGifUrl(row.exerciseName,row.presetUrl);
-        if(saved){row.url=row.presetUrl;row.status='done';ok++;}
+      if(wasDone){row.status='done';ok++;if(row.role==='preview')previews++;}
+      else if(row.presetUrl){
+        if(!Object.prototype.hasOwnProperty.call(row,'previousUrl')){
+          const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+          row.previousUrl=row.role==='preview'?((window.EX_PREVIEW_REMOTE||{})[key]||''):((window.EX_GIF_REMOTE||{})[key]||'');
+        }
+        const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
+        const saved=await saveMedia(row.exerciseName,row.presetUrl);
+        if(saved){row.url=row.presetUrl;row.status='done';ok++;if(row.role==='preview')previews++;}
         else{
           row.status='err';
           if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(row.presetUrl)){
@@ -5412,25 +6293,44 @@ async function runExGifImport(){
           }
         }
       }else if(row.file){
-        if(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+        if(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
           row.status='err';
         }else{
+        if(!Object.prototype.hasOwnProperty.call(row,'previousUrl')){
+          const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+          row.previousUrl=row.role==='preview'?((window.EX_PREVIEW_REMOTE||{})[key]||''):((window.EX_GIF_REMOTE||{})[key]||'');
+        }
         const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):String(row.exerciseName).toLowerCase();
         const ext=(row.file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','gif'])[1].toLowerCase();
-        const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+        const digest=await exMediaFileDigest(row.file);
+        const fingerprint=digest||((row.file.size||0).toString(36)+'-'+(row.file.lastModified||0).toString(36)+'-'+slug);
+        const path='exercise-media/'+window._uid+'/'+_exMediaImportBatchId+'/'+fingerprint+'.'+ext;
         const ref=window._storageRef(window._storage,path);
         const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
         await window._uploadBytes(ref,row.file,{contentType:row.file.type||mime[ext]||'application/octet-stream'});
         const url=await window._getDownloadURL(ref);
-        row.url=url;
-        await persistExerciseGifUrl(row.exerciseName,url);
+        row.url=url;row.storagePath=path;row.digest=digest;
+        const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
+        await saveMedia(row.exerciseName,url);
+        // Tak jak w Everfit: film i miniatura są osobnymi plikami. Dla
+        // jasnego GIF-a tworzony jest mały, nieruchomy obraz karty.
+        const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+        if(!previewOwners.has(key)&&/^(gif|webp)$/i.test(ext)){
+          const preview=await uploadWhiteExerciseCardThumbnail(row.file,row.exerciseName,_exMediaImportBatchId,fingerprint);
+          if(preview){
+            row.thumbnailUrl=preview;
+            await persistExercisePreviewUrl(row.exerciseName,preview);
+            previewOwners.add(key);staticPreviews++;
+          }
+        }
         row.status='done';
-        ok++;
+        ok++;if(row.role==='preview')previews++;
         }
       }else if(row.url){
-        await persistExerciseGifUrl(row.exerciseName,row.url);
+        const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
+        await saveMedia(row.exerciseName,row.url);
         row.status='done';
-        ok++;
+        ok++;if(row.role==='preview')previews++;
       }else row.status='err';
     }catch(e){
       console.warn('GIF/MP4 import',row.label||row.file&&row.file.name,e);
@@ -5439,11 +6339,31 @@ async function runExGifImport(){
     step++;
     if(prog)prog.style.width=Math.round((step/total)*100)+'%';
     renderExGifImportPreview();
+    await saveExMediaImportJournal(step===total?'published':'uploading');
   }
   if(btn){btn.disabled=false;syncExGifImportBtnLabel();}
   if(typeof renderLib==='function')renderLib();
-  notify('✓ Zapisano '+ok+' / '+total+' animacji / filmów techniki');
+  notify('✓ Zapisano '+ok+' / '+total+' plików · '+staticPreviews+' statycznych białych podglądów · '+previews+' ręcznych podglądów kart');
   if(ok===total)closeM('m-ex-gif-import');
+}
+
+async function rollbackExMediaImport(){
+  if(!loadExMediaImportJournal()){notify('Nie ma paczki do wycofania');return;}
+  // Rollback is metadata-only: uploaded immutable objects are retained for an
+  // audit trail and can be lifecycle-deleted by Storage, never reused silently.
+  for(const row of _exGifImportRows.filter(r=>r.status==='done'&&r.exerciseName)){
+    const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+    const map=row.role==='preview'?(window.EX_PREVIEW_REMOTE=window.EX_PREVIEW_REMOTE||{}):(window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{});
+    map[key]=row.previousUrl||'';
+    if(window._db&&window._setDoc&&window._doc&&window._uid){
+      const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):key;
+      const field=row.role==='preview'?'previewUrl':'gifUrl';
+      try{await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{exerciseName:row.exerciseName,trainerId:window._uid,[field]:row.previousUrl||null,updatedAt:new Date().toISOString()},{merge:true});}catch(e){console.warn('media import rollback',e);}
+    }
+  }
+  await saveExMediaImportJournal('rolled_back');
+  if(typeof renderLib==='function')renderLib();
+  notify('Wycofano przypisania tej paczki. Pliki pozostają poza publikacją do czasu reguły retencji Storage.');
 }
 
 window.openExGifImport=openExGifImport;
@@ -5455,6 +6375,10 @@ window.parseExGifBulkPaste=parseExGifBulkPaste;
 window.ensureExGifPasteParsed=ensureExGifPasteParsed;
 window.toggleExGifImportRow=toggleExGifImportRow;
 window.setExGifImportExercise=setExGifImportExercise;
+window.setExGifImportRole=setExGifImportRole;
+window.setAllExGifImportRoles=setAllExGifImportRoles;
+window.resumeExMediaImport=resumeExMediaImport;
+window.rollbackExMediaImport=rollbackExMediaImport;
 
 function countExercisesWithGif(){
   const all=typeof allExercises==='function'?allExercises():[];

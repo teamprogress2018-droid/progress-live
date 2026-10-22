@@ -88,10 +88,11 @@ function getClientLastActivity(clientId){
   return new Date(Math.max(...valid.map(d=>d.getTime())));
 }
 
-// Formatuje datę ostatniej aktywności do krótkiego, czytelnego tekstu + oznacza priorytet kolorem.
+// Formatuje datę ostatniej aktywności do krótkiego, czytelnego tekstu.
+// Brak historii sam w sobie nie jest alarmem — pilność pokazuje osobny filtr „Wymaga uwagi”.
 function formatClientActivity(clientId){
   const last=getClientLastActivity(clientId);
-  if(!last)return{label:'Brak aktywności',color:'var(--red)',days:Infinity};
+  if(!last)return{label:'Brak aktywności',color:'var(--text-label)',tone:'neutral',days:Infinity};
   const days=Math.floor((Date.now()-last.getTime())/(1000*60*60*24));
   let label;
   if(days<=0)label='Dziś';
@@ -100,8 +101,9 @@ function formatClientActivity(clientId){
   else if(days<14)label='Tydzień temu';
   else if(days<31)label=Math.floor(days/7)+' tyg. temu';
   else label=Math.floor(days/30)+' mies. temu';
-  const color=days<=3?'var(--teal)':days<=7?'var(--gold)':'var(--red)';
-  return{label,color,days};
+  const tone=days<=3?'positive':days<=14?'neutral':'watch';
+  const color=tone==='positive'?'var(--success, var(--teal))':tone==='watch'?'var(--warning, var(--orange))':'var(--text-label)';
+  return{label,color,tone,days};
 }
 
 /** Everfit-style tracked / assigned for last N days. */
@@ -144,10 +146,11 @@ function clientTasksWindowStats(clientId,days){
 }
 
 function clientStatusPillClass(c,life){
-  if(c.status==='archived'||c.status==='inactive')return'pill-red';
+  if(c.status==='archived'||c.status==='inactive')return'pill-muted';
   const k=life&&life.key;
   if(k==='expired')return'pill-red';
-  if(k==='noemail'||k==='onboarding'||k==='expiring'||k==='atrisk'||k==='idle')return'pill-orange';
+  if(k==='expiring'||k==='atrisk')return'pill-orange';
+  if(k==='noemail'||k==='onboarding'||k==='idle')return'pill-muted';
   return'pill-green';
 }
 function clPctCell(stats,emptyLabel){
@@ -215,11 +218,12 @@ function renderClientFilters(attnMap){
     const on=clientSegment===s.id&&!clientAttention;
     return `<button type="button" class="cl-seg-item${on?' active':''}" aria-pressed="${on}" onclick="pickClientSegment('${s.id}')"><span>${s.label}</span><span class="cl-seg-n">${s.count}</span></button>`;
   }).join('');
+  syncClientFiltersToggle();
 }
 function setClientSegment(seg){clientSegment=seg;renderClientFilters();renderClients();}
 /** Panel widoków i menu „Klienci”: wybór widoku zdejmuje filtr „Wymaga uwagi”. */
 function pickClientSegment(seg){clientAttention=null;setClientSegment(seg);}
-function setClientGoalFilter(goal){clientGoalFilter=goal||'';renderClients();}
+function setClientGoalFilter(goal){clientGoalFilter=goal||'';syncClientFiltersToggle();renderClients();}
 function openClientSegment(seg){
   if(typeof closeNavFlyouts==='function')closeNavFlyouts();
   goTo('clients');
@@ -320,20 +324,53 @@ function toggleClientSubnav(){
   applyClientSubnav(open);
   setClientUiPref('pl_clients_subnav',open?'1':'0');
 }
+function clientFiltersDefaultVisible(){
+  // Na telefonie najpierw pokazujemy wyszukiwarkę i listę. Filtry pozostają
+  // jednym dotknięciem dalej; na większym ekranie zachowujemy pełny widok.
+  return !(window.matchMedia&&window.matchMedia('(max-width: 600px)').matches);
+}
+function clientActiveFilterLabels(){
+  const labels=[];
+  if(clientSegment!=='all')labels.push(CLIENT_SEGMENT_TITLES[clientSegment]||'status');
+  const attention=clientAttention&&CLIENT_ATTENTION_FILTERS.find(filter=>filter.id===clientAttention);
+  if(attention)labels.push(attention.label);
+  if(clientGoalFilter)labels.push(clientGoalFilter);
+  return labels;
+}
+function syncClientFiltersToggle(){
+  const chips=document.getElementById('cl-filter-chips');
+  if(!chips)return;
+  applyClientFiltersToggleLabel(!chips.hidden);
+}
+function applyClientFiltersToggleLabel(show){
+  const btn=document.getElementById('cl-filters-toggle');
+  if(!btn)return;
+  const active=clientActiveFilterLabels();
+  const clear=document.getElementById('cl-filters-clear');
+  btn.textContent=show?'Ukryj filtry':(active.length?`Filtry (${active.length})`:'Pokaż filtry');
+  btn.setAttribute('aria-expanded',show?'true':'false');
+  btn.setAttribute('aria-label',show
+    ?'Ukryj filtry listy klientów'
+    :(active.length?`Pokaż filtry listy klientów. Aktywne filtry: ${active.join(', ')}.`:'Pokaż filtry listy klientów'));
+  if(clear)clear.hidden=!active.length;
+}
 function applyClientFiltersVisible(show){
   const chips=document.getElementById('cl-filter-chips');
   if(chips)chips.hidden=!show;
-  const btn=document.getElementById('cl-filters-toggle');
-  if(btn){
-    btn.textContent=show?'Ukryj filtry':'Pokaż filtry';
-    btn.setAttribute('aria-expanded',show?'true':'false');
-  }
+  applyClientFiltersToggleLabel(show);
 }
 function toggleClientFilters(){
   const chips=document.getElementById('cl-filter-chips');
   const show=!!(chips&&chips.hidden);
   applyClientFiltersVisible(show);
   setClientUiPref('pl_clients_filters',show?'1':'0');
+}
+function clearClientFilters(){
+  clientSegment='all';
+  clientAttention=null;
+  clientGoalFilter='';
+  renderClientFilters();
+  renderClients();
 }
 function focusClientSearch(){
   const inp=document.getElementById('client-search');
@@ -372,18 +409,46 @@ function copyClientAppLink(){
 }
 function initClientLayout(){
   applyClientSubnav(clientUiPref('pl_clients_subnav','1')!=='0');
-  applyClientFiltersVisible(clientUiPref('pl_clients_filters','1')!=='0');
+  const savedFilters=clientUiPref('pl_clients_filters','');
+  applyClientFiltersVisible(savedFilters===''?clientFiltersDefaultVisible():savedFilters!=='0');
   applyClientColumns();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initClientLayout);
 else initClientLayout();
 window.toggleClientSubnav=toggleClientSubnav;
 window.toggleClientFilters=toggleClientFilters;
+window.clearClientFilters=clearClientFilters;
 window.focusClientSearch=focusClientSearch;
 window.toggleClientMenu=toggleClientMenu;
 window.closeClientMenus=closeClientMenus;
 window.toggleClientColumn=toggleClientColumn;
 window.copyClientAppLink=copyClientAppLink;
+function clientListCompactDefault(){
+  return window.matchMedia&&window.matchMedia('(max-width: 600px)').matches;
+}
+function clientListIsCompact(){
+  const saved=clientUiPref('pl_clients_compact','');
+  return saved===''?clientListCompactDefault():saved==='1';
+}
+function updateClientListToggle(total,compact){
+  const wrap=document.getElementById('client-list-toggle-wrap');
+  const btn=document.getElementById('client-list-toggle');
+  if(!wrap||!btn)return;
+  const hidden=Math.max(0,total-3);
+  wrap.hidden=hidden===0;
+  btn.setAttribute('aria-expanded',compact?'false':'true');
+  btn.textContent=compact?`Pokaż pozostałych (${hidden})`:'Zwiń listę do 3 klientów';
+  btn.setAttribute('aria-label',compact
+    ?`Pokaż pozostałych ${hidden} klientów. Widoczne 3 z ${total}.`
+    :`Zwiń listę do 3 klientów. Widoczne wszystkie ${total}.`);
+  const summary=document.getElementById('client-view-summary');
+  if(summary&&compact&&hidden)summary.textContent+=` · widoczne 3 z ${total}`;
+}
+function toggleClientListCompact(){
+  setClientUiPref('pl_clients_compact',clientListIsCompact()?'0':'1');
+  renderClients();
+}
+window.toggleClientListCompact=toggleClientListCompact;
 function filterClients(){renderClients();}
 function getSidebarClientsFiltered(){
   const q=((document.getElementById('nav-client-search')||{}).value||'').trim().toLowerCase();
@@ -641,10 +706,13 @@ function renderClients(){
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Dodaj pierwszego klienta — potem plan i Trening Live.'}</div>
       ${clientAttention?`<button class="btn btn-ghost" onclick="setClientAttention('${clientAttention}')">Pokaż wszystkich</button>`:!q&&clientSegment!=='archived'?`<button class="btn btn-primary" onclick="openM('m-client')">+ Dodaj klienta</button>`:''}
     </div>`;
+    updateClientListToggle(0,false);
     renderSidebarClients();
     return;
   }
-  el.innerHTML=filtered.map((c,i)=>{
+  const compact=clientListIsCompact();
+  const displayed=compact?filtered.slice(0,3):filtered;
+  el.innerHTML=displayed.map((c,i)=>{
     const act=formatClientActivity(c.id);
     const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
     const t7=clientTrainingWindowStats(c.id,7);
@@ -657,8 +725,8 @@ function renderClients(){
     const hasAttention=Object.values(clientAttentionFlags).some(Boolean);
     const attnLine=attnFlag?`<div class="cl-attn-reason">⚠ ${escHtml(attnFlag.reason)}</div>`:'';
     const msgBtn=archived
-      ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć">↩</button>`
-      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość">💬</button>`;
+      ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć klienta" aria-label="Przywróć klienta ${escHtml(c.name)}">↩</button>`
+      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Napisz wiadomość" aria-label="Napisz wiadomość do ${escHtml(c.name)}">💬</button>`;
     return `<div class="tbl-row cl-everfit-row${hasAttention?' has-attention':''}" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
     <div class="cl-name-cell">
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
@@ -667,10 +735,10 @@ function renderClients(){
         <div class="cl-sub">${c.appJoined?'📱 w aplikacji · ':''}${escHtml(c.email||'bez e-maila')}${duplicateName?` · <button type="button" class="cl-dup-btn" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ możliwy duplikat — Scal</button>`:''}</div>
         ${attnLine}
       </div>
-      <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
+      <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta" aria-label="Edytuj dane klienta ${escHtml(c.name)}">Edycja</button>
     </div>
     <div class="cl-msg-cell" onclick="event.stopPropagation()">${msgBtn}</div>
-    <div class="cl-act" style="color:${act.color};">${act.label}</div>
+    <div class="cl-act cl-act-${act.tone||'neutral'}" title="${escHtml(act.label)}">${act.label}</div>
     <div>${clPctCell(t7)}</div>
     <div>${clPctCell(t30)}</div>
     <div>${clPctCell(tasks7,'brak zadań')}</div>
@@ -680,6 +748,7 @@ function renderClients(){
     </div>
   </div>`;
   }).join('');
+  updateClientListToggle(filtered.length,compact);
   renderSidebarClients();
 }
 
@@ -1125,9 +1194,11 @@ function resumeOnboardFromBuilder(){
   if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
-// Ostrzeżenie jest celowo lekkie: nie zapisujemy roboczego planu w przeglądarce,
-// ale chronimy trenera przed przypadkowym odświeżeniem lub wyjściem z kreatora.
-function builderDraftFingerprint(){
+// Szkic zostaje wyłącznie w sessionStorage bieżącej karty. Nie trafia do danych
+// klienta ani nie przechodzi do kolejnej sesji przeglądarki bez potwierdzenia.
+const BUILDER_DRAFT_PREFIX='pl_builder_draft_v1:';
+const BUILDER_DRAFT_MAX_AGE=24*60*60*1000;
+function builderDraftData(){
   const value=id=>String((document.getElementById(id)||{}).value||'').trim();
   const field=(row,key)=>{const el=row.querySelector('[data-f="'+key+'"]');return String((el||{}).value||'').trim();};
   const dayData=[...document.querySelectorAll('#builder-days .builder-day')].map(day=>({
@@ -1142,10 +1213,147 @@ function builderDraftFingerprint(){
       return data;
     })
   }));
-  return JSON.stringify({name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),volume:window._builderVolumeControl||null,days:dayData});
+  return {name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),volume:window._builderVolumeControl||null,days:dayData};
 }
+function builderDraftFingerprint(){
+  return JSON.stringify(builderDraftData());
+}
+function builderDraftStorageKey(){
+  return BUILDER_DRAFT_PREFIX+String(window._uid||'anon')+':new';
+}
+function builderReadStoredDraft(){
+  try{
+    const raw=sessionStorage.getItem(builderDraftStorageKey());
+    const entry=raw?JSON.parse(raw):null;
+    if(!entry||!entry.data||!entry.savedAt||Date.now()-entry.savedAt>BUILDER_DRAFT_MAX_AGE){
+      if(raw)sessionStorage.removeItem(builderDraftStorageKey());
+      return null;
+    }
+    return entry;
+  }catch(e){return null;}
+}
+function builderClearStoredDraft(){
+  if(window._builderDraftTimer){clearTimeout(window._builderDraftTimer);window._builderDraftTimer=null;}
+  try{sessionStorage.removeItem(builderDraftStorageKey());}catch(e){}
+  const offer=document.getElementById('builder-draft-offer');if(offer)offer.remove();
+}
+function builderQueueDraftSave(){
+  if(window._editingPlanId||!builderHasUnsavedChanges())return;
+  if(window._builderDraftTimer)clearTimeout(window._builderDraftTimer);
+  window._builderDraftTimer=setTimeout(()=>{
+    window._builderDraftTimer=null;
+    if(window._editingPlanId||!builderHasUnsavedChanges())return;
+    try{sessionStorage.setItem(builderDraftStorageKey(),JSON.stringify({version:1,savedAt:Date.now(),data:builderDraftData()}));}catch(e){}
+  },450);
+}
+function builderSetDraftField(row,key,value){
+  const el=row&&row.querySelector('[data-f="'+key+'"]');
+  if(el)el.value=value==null?'':value;
+}
+function builderApplyDraftData(draft,opts){
+  opts=opts||{};
+  if(!draft||window._editingPlanId)return false;
+  window._builderUndoMuted=true;
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value==null?'':value;};
+  builderEnsureSelectValue(document.getElementById('b-method'),draft.method||'');
+  builderEnsureSelectValue(document.getElementById('b-duration'),draft.duration||'');
+  set('b-name',draft.name||'');set('b-client',draft.client||'');set('b-progression',draft.progression||'double');
+  window._builderVolumeControl=draft.volume||null;
+  const days=document.getElementById('builder-days');if(!days)return false;
+  days.innerHTML='';dayCount=0;
+  (draft.days||[]).forEach(savedDay=>{
+    addDay();
+    const dayEl=document.getElementById('bd-'+dayCount);if(!dayEl)return;
+    builderSetDayHeader(dayEl,savedDay);
+    if(savedDay.rest){const rc=dayEl.querySelector('.rc');if(rc){rc.checked=true;toggleR(dayEl.id);}return;}
+    const circ=dayEl.querySelector('.circ');if(circ&&savedDay.circuit)circ.checked=true;
+    builderSetDraftField(dayEl,'roundRest',savedDay.roundRest||'');
+    if(savedDay.circuit)builderPaintCircuitDay(dayEl);
+    (savedDay.exercises||[]).forEach(values=>{
+      addRow(dayEl.id);
+      const row=[...dayEl.querySelectorAll('.ex-row')].pop();if(!row)return;
+      Object.keys(values||{}).forEach(key=>builderSetDraftField(row,key,values[key]));
+      if(typeof builderFillExTodo==='function')builderFillExTodo(row);
+      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
+      if(typeof builderPaintEmom==='function')builderPaintEmom(row);
+      if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+      if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
+    });
+    if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
+    if(typeof builderPaintCircuitDay==='function')builderPaintCircuitDay(dayEl);
+  });
+  if(typeof updatePeriod==='function')updatePeriod();
+  if(typeof builderRefreshRationale==='function')builderRefreshRationale();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+  const offer=document.getElementById('builder-draft-offer');if(offer)offer.remove();
+  window._builderUndoMuted=false;
+  window._builderUndoSkipNext=true;
+  builderUpdateDirtyUi();builderQueueDraftSave();
+  if(opts.notify&&typeof notify==='function')notify(opts.notify);
+  return true;
+}
+function builderRestoreStoredDraft(){
+  const entry=builderReadStoredDraft();
+  const restored=builderApplyDraftData(entry&&entry.data,{notify:'✓ Przywrócono szkic planu z tej karty'});
+  if(restored)builderUndoReset();
+  return restored;
+}
+function builderRenderDraftOffer(){
+  const old=document.getElementById('builder-draft-offer');if(old)old.remove();
+  if(window._editingPlanId||window._builderSkipDraftOffer)return;
+  const entry=builderReadStoredDraft();
+  const draft=entry&&entry.data;
+  if(!draft||!(draft.name||draft.client||(draft.days||[]).length))return;
+  const topbar=document.querySelector('#screen-builder .topbar');if(!topbar)return;
+  const box=document.createElement('div');box.id='builder-draft-offer';box.className='builder-draft-offer';box.setAttribute('role','status');
+  const text=document.createElement('span');text.textContent='Masz szkic planu zapisany w tej karcie.';
+  const restore=document.createElement('button');restore.type='button';restore.className='btn btn-ghost btn-sm';restore.textContent='Przywróć szkic';restore.onclick=builderRestoreStoredDraft;
+  const discard=document.createElement('button');discard.type='button';discard.className='btn btn-ghost btn-sm';discard.textContent='Usuń';discard.onclick=builderClearStoredDraft;
+  box.append(text,restore,discard);topbar.insertAdjacentElement('afterend',box);
+}
+window.builderRestoreStoredDraft=builderRestoreStoredDraft;
+window.builderClearStoredDraft=builderClearStoredDraft;
+function builderUndoUpdateUi(){
+  const btn=document.getElementById('builder-undo-btn');
+  const count=(window._builderUndo&&window._builderUndo.stack||[]).length;
+  if(btn){btn.disabled=!count;btn.setAttribute('aria-label',count?'Cofnij ostatnią zmianę w kreatorze':'Brak zmian do cofnięcia');}
+}
+function builderUndoReset(data){
+  window._builderUndo={stack:[],current:JSON.stringify(data||builderDraftData())};
+  builderUndoUpdateUi();
+}
+function builderTrackUndo(){
+  if(window._builderUndoMuted)return;
+  const now=JSON.stringify(builderDraftData());
+  if(window._builderUndoSkipNext){
+    window._builderUndoSkipNext=false;
+    if(window._builderUndo){window._builderUndo.current=now;builderUndoUpdateUi();}
+    else builderUndoReset(JSON.parse(now));
+    return;
+  }
+  const undo=window._builderUndo;
+  if(!undo){builderUndoReset(JSON.parse(now));return;}
+  if(now===undo.current)return;
+  try{undo.stack.push(JSON.parse(undo.current));}catch(e){undo.stack=[];}
+  if(undo.stack.length>20)undo.stack.shift();
+  undo.current=now;builderUndoUpdateUi();
+}
+function builderUndo(){
+  const undo=window._builderUndo;
+  if(!undo||!undo.stack.length)return false;
+  const previous=undo.stack.pop();
+  if(!builderApplyDraftData(previous))return false;
+  undo.current=JSON.stringify(builderDraftData());
+  window._builderUndoSkipNext=true;
+  builderUndoUpdateUi();
+  if(typeof notify==='function')notify('↩ Cofnięto ostatnią zmianę');
+  return true;
+}
+window.builderUndo=builderUndo;
 function builderMarkInitialFormState(){
   if(window._builderSaveState)window._builderSaveState.initialFingerprint=builderDraftFingerprint();
+  builderUndoReset();
   builderUpdateDirtyUi();
 }
 function builderHasUnsavedChanges(){
@@ -1167,7 +1375,10 @@ function builderUpdateDirtyUi(){
   const state=window._builderSaveState;
   const dirty=builderHasUnsavedChanges();
   const mark=document.getElementById('builder-dirty-indicator');
-  if(mark)mark.hidden=!dirty;
+  if(mark){
+    mark.hidden=!dirty;
+    mark.textContent=dirty&&!window._editingPlanId?'• Szkic w tej karcie · niezapisane zmiany':'• Niezapisane zmiany';
+  }
   const btn=document.getElementById('b-save-btn');
   if(btn&&!state?.pending&&!state?.saved)btn.textContent=dirty?'Zapisz zmiany':'Zapisz plan';
 }
@@ -1181,7 +1392,8 @@ function builderSetupDirtyUi(){
       field.classList.remove('builder-field-invalid');
       field.removeAttribute('aria-invalid');
     }
-    return window.requestAnimationFrame?window.requestAnimationFrame(builderUpdateDirtyUi):builderUpdateDirtyUi();
+    const update=()=>{builderTrackUndo();builderUpdateDirtyUi();builderQueueDraftSave();};
+    return window.requestAnimationFrame?window.requestAnimationFrame(update):update();
   };
   screen.addEventListener('input',refresh);
   screen.addEventListener('change',refresh);
@@ -2103,6 +2315,8 @@ window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
   // Powrót z Progress Academy: plan w kreatorze zostaje bez zmian.
   if(window._builderPreserveOnReturn){window._builderPreserveOnReturn=false;builderRefreshRationale();return;}
+  const skipDraftOffer=!!window._builderSkipDraftOffer;
+  window._builderSkipDraftOffer=false;
   builderResetSaveState();
   window._editingPlanId=null;
   window._manualPlanDraft=null;
@@ -2131,6 +2345,7 @@ function initBuilder(){
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
   if(typeof builderSetupDirtyUi==='function')builderSetupDirtyUi();
   if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
+  if(!skipDraftOffer&&typeof builderRenderDraftOffer==='function')builderRenderDraftOffer();
 }
 function addDay(){
   dayCount++;const id='bd-'+dayCount;
@@ -2212,7 +2427,7 @@ function addRow(dayId){
     +'</div>'
     +'<div class="ex-row-extra">'
     +'<div class="builder-alt-box" hidden>'
-    +'<div class="builder-alt-label">Zamienniki gdy nie ma maszyny — sztanga / hantle / brama / ławka — kliknij, żeby podmienić w planie</div>'
+    +'<div class="builder-alt-label">Zamienniki — kliknij, aby podmienić ćwiczenie w planie.</div>'
     +'<div class="builder-alt-chips"></div>'
     +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
     +'</div>'
@@ -2302,7 +2517,7 @@ function builderRefreshAltChips(row){
   box.innerHTML=alts.map(a=>{
     const safe=typeof escHtml==='function'?escHtml(a):a;
     const attr=String(a).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    return `<button type="button" class="builder-alt-chip" data-alt="${attr}" onclick="builderApplyAlt(this)" title="Podmień to ćwiczenie w planie">↻ ${safe}</button>`;
+    return `<button type="button" class="builder-alt-chip" data-alt="${attr}" onclick="builderApplyAlt(this)" title="Zamień ćwiczenie na ${attr}. Poprzednie ćwiczenie pozostanie jako zamiennik.">↻ ${safe}</button>`;
   }).join('');
 }
 window.builderRefreshAltChips=builderRefreshAltChips;
@@ -2321,7 +2536,7 @@ function builderApplyAlt(btn){
     if(prev&&prev.toLowerCase()!==next.toLowerCase()&&!keep.some(a=>a.toLowerCase()===prev.toLowerCase()))keep.unshift(prev);
     altInp.value=keep.join(', ');
   }
-  if(typeof notify==='function')notify('✓ Podmieniono na: '+next);
+  if(typeof notify==='function')notify('✓ Podmieniono na: '+next+'. Poprzednie ćwiczenie pozostaje w zamiennikach.');
   builderOnExNameChange(row);
   return true;
 }
@@ -3023,6 +3238,7 @@ function editPlan(id){
   const plan=PL.find(p=>p.id===id);
   if(!plan){notify('Nie znaleziono planu');return;}
   if(!window._builderReturnClientId)window._builderBack='plans';
+  window._builderSkipDraftOffer=true;
   goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
   window._editingPlanId=id;
   window._builderSaveState.base=builderPlanClone(plan);
@@ -3463,6 +3679,7 @@ async function savePlan(){
     if(idx>=0)PL[idx]=saved;else PL.push(saved);
     state.saved=true;
     state.savedPlan=saved;
+    if(!window._editingPlanId&&typeof builderClearStoredDraft==='function')builderClearStoredDraft();
   }catch(e){
     if(builderSaveFormCurrent(state)){
       console.warn('Zapis planu niepotwierdzony:',e);
@@ -4072,8 +4289,14 @@ function updateCalTitle(){
     const ws=getWeekStart(calCurrentDate);
     const we=new Date(ws);we.setDate(we.getDate()+6);
     const sm=ws.getMonth();const em=we.getMonth();
-    if(sm===em)el.textContent=CAL_DAYS_PL[0]+' '+ws.getDate()+' — '+CAL_DAYS_PL[6]+' '+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear();
-    else el.textContent=ws.getDate()+' '+CAL_MONTHS_PL[sm]+' — '+we.getDate()+' '+CAL_MONTHS_PL[em]+' '+ws.getFullYear();
+    const full=sm===em
+      ?CAL_DAYS_PL[0]+' '+ws.getDate()+' — '+CAL_DAYS_PL[6]+' '+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear()
+      :ws.getDate()+' '+CAL_MONTHS_PL[sm]+' — '+we.getDate()+' '+CAL_MONTHS_PL[em]+' '+ws.getFullYear();
+    const phone=typeof matchMedia==='function'&&matchMedia('(max-width:600px)').matches;
+    el.textContent=phone
+      ?(sm===em?ws.getDate()+'–'+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear():ws.getDate()+' '+CAL_MONTHS_PL[sm].slice(0,3)+'. – '+we.getDate()+' '+CAL_MONTHS_PL[em].slice(0,3)+'. '+ws.getFullYear())
+      :full;
+    el.title=full;
   } else if(calView==='month'){
     el.textContent=CAL_MONTHS_PL[calCurrentDate.getMonth()]+' '+calCurrentDate.getFullYear();
   } else {
@@ -4184,6 +4407,28 @@ window.calSessionStartMin=calSessionStartMin;
 window.calSessionEndMin=calSessionEndMin;
 window.calWeekHourBucket=calWeekHourBucket;
 
+/** Telefon: po geście tydzień zatrzymuje się na początku pełnego dnia.
+ *  Zostawia to widoczną i równą kolumnę zamiast urwanej karty z dnia obok. */
+function bindCalMobileWeekSnap(){
+  const track=document.getElementById('cal-week-track');
+  const grid=document.getElementById('cal-week-grid');
+  if(!track||!grid||track.dataset.calSnapBound)return;
+  track.dataset.calSnapBound='1';
+  let timer=0;
+  track.addEventListener('scroll',()=>{
+    if(typeof matchMedia!=='function'||!matchMedia('(max-width:600px)').matches)return;
+    clearTimeout(timer);
+    timer=setTimeout(()=>{
+      const dayWidth=(grid.scrollWidth-60)/7;
+      if(!isFinite(dayWidth)||dayWidth<=0)return;
+      const firstDay=Math.max(0,Math.min(3,Math.round((track.scrollLeft-60)/dayWidth)));
+      const target=Math.min(track.scrollWidth-track.clientWidth,Math.max(0,60+firstDay*dayWidth));
+      if(Math.abs(track.scrollLeft-target)>2)track.scrollTo({left:target,behavior:'smooth'});
+    },130);
+  },{passive:true});
+}
+window.bindCalMobileWeekSnap=bindCalMobileWeekSnap;
+
 function renderCalWeek(){
   const ws=getWeekStart(calCurrentDate);
   const today=new Date();today.setHours(0,0,0,0);
@@ -4243,10 +4488,19 @@ function renderCalWeek(){
 
   grid.innerHTML=gridHTML;
   grid.style.position='relative';
+  bindCalMobileWeekSnap();
 
   const scroll=document.getElementById('cal-week-scroll');
   if(scroll){
-    const lab=grid.querySelector('.cal-hour-label[data-cal-hour="8"]')||grid.querySelector('.cal-hour-label[data-cal-hour="7"]');
+    // Na telefonie zaczynamy tuż przed pierwszą zaplanowaną sesją. Dzięki temu
+    // trener nie musi przewijać od 06:00, gdy pierwszy termin jest w południe.
+    const phone=typeof matchMedia==='function'&&matchMedia('(max-width:600px)').matches;
+    const scheduledHour=phone?byDay.reduce((first,day)=>day.list.reduce((current,s)=>{
+      const hour=calWeekHourBucket(s,h0,h1);
+      return current==null||hour<current?hour:current;
+    },first),null):null;
+    const targetHour=phone&&scheduledHour!=null?Math.max(h0,scheduledHour-1):8;
+    const lab=grid.querySelector('.cal-hour-label[data-cal-hour="'+targetHour+'"]')||grid.querySelector('.cal-hour-label[data-cal-hour="8"]')||grid.querySelector('.cal-hour-label[data-cal-hour="7"]');
     if(lab)scroll.scrollTop=Math.max(0,lab.offsetTop-8);
   }
 

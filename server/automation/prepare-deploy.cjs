@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const target = path.join(__dirname, '.runtime');
 fs.mkdirSync(target, {recursive: true});
-for (const file of ['worker.cjs', 'index.cjs']) fs.copyFileSync(path.join(__dirname, file), path.join(target, file));
+for (const file of ['worker.cjs', 'youtube-curation-core.cjs', 'youtube-curation.cjs', 'index.cjs']) fs.copyFileSync(path.join(__dirname, file), path.join(target, file));
 // Firebase CLI confines emulator rule files to the config directory.
 fs.copyFileSync(path.join(__dirname, '../../firestore.rules'), path.join(target, 'firestore.rules'));
 fs.writeFileSync(path.join(target, 'package.json'), JSON.stringify({

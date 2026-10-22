@@ -10,6 +10,8 @@ const windowObj = {
   DEF_EX: [{ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' }],
   EX_GIF_MANIFEST: { 'wyciskanie sztangi leżąc': 'assets/ex/gifs/bench.gif' },
   EX_GIF_REMOTE: { 'podciąganie na drążku': 'https://cdn.example.com/pull.gif' },
+  EX_DRIVE_PREVIEW_MANIFEST: {},
+  EX_DRIVE_TECHNIQUE_MANIFEST: {},
   COACH_VIDEOS: [],
   document,
 };
@@ -18,7 +20,7 @@ const ctx = {
   window: windowObj,
   document,
   console,
-  Date, Math, parseInt, parseFloat, Number, String, Array, Object, JSON,
+  Date, Math, parseInt, parseFloat, Number, String, Array, Object, JSON, URL,
   setTimeout, clearTimeout, isNaN, Infinity, undefined,
 };
 ctx.globalThis = ctx;
@@ -93,5 +95,18 @@ ok(
 );
 windowObj.EX_GIF_REMOTE = { 'dipy na poręczach': 'https://cdn.example.com/filmy/custom-dips.mp4' };
 ok('honest remote dips override wins', ctx.assignedExVideoUrl('Dipy na poręczach') === 'https://cdn.example.com/filmy/custom-dips.mp4');
+
+windowObj.EX_GIF_REMOTE = {};
+windowObj.EX_DRIVE_PREVIEW_MANIFEST = { 'dipy na poręczach': 'https://drive.google.com/file/d/preview-dips/view#pl-preview' };
+const driveThumb = ctx.exThumbUrl({ name: 'Dipy na poręczach', img: 'assets/ex/bench.svg' });
+ok('Drive preview replaces old card image', driveThumb.includes('preview-dips') && driveThumb.includes('thumbnail'));
+windowObj.EX_DRIVE_TECHNIQUE_MANIFEST = { 'dipy na poręczach': 'https://drive.google.com/file/d/premium-dips/view' };
+ok('Drive premium is technique before legacy manifest', ctx.assignedExVideoUrl('Dipy na poręczach').includes('premium-dips'));
+windowObj.EX_DRIVE_MEDIA_VERSION = 1;
+windowObj.EX_DRIVE_PREVIEW_MANIFEST = {};
+windowObj.EX_PHOTO_MANIFEST = { 'pompki podchwytem': 'https://example.com/old-wrong-photo.jpg' };
+ok('Drive library hides unverified legacy card photo', ctx.exThumbUrl({ name: 'Pompki podchwytem' }) === '');
+windowObj.EX_GIF_MANIFEST = { 'pompki plyometryczne': 'https://example.com/old-dark-plyo.gif' };
+ok('Drive library hides unverified legacy card gif', ctx.exThumbUrl({ name: 'Pompki plyometryczne' }) === '');
 
 process.exit(failed ? 1 : 0);

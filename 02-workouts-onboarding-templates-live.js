@@ -2438,7 +2438,8 @@ function liveBindSessionButtons(slot){
   }
   if(end){
     end.style.display=st.sessionActive?'':'none';
-    end.textContent='Zakończ trening';
+    end.textContent='Zapisz trening';
+    end.title='Zapisz wykonane serie, notatkę i feedback, a następnie zakończ sesję';
   }
   if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
   livePaintTimer(n);
@@ -2749,8 +2750,53 @@ function liveToggleMoreMenu(force){
   const open=force===false?false:force===true?true:menu.hidden;
   menu.hidden=!open;
   if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+  if(open){
+    const first=menu.querySelector('button');
+    if(first)first.focus();
+  }
 }
 window.liveToggleMoreMenu=liveToggleMoreMenu;
+
+function liveTogglePrepMoreMenu(force){
+  const menu=document.getElementById('live-prep-more-menu');
+  const btn=document.getElementById('live-prep-more-btn');
+  if(!menu)return;
+  const open=force===false?false:force===true?true:menu.hidden;
+  menu.hidden=!open;
+  if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+  if(open){
+    const first=menu.querySelector('button');
+    if(first)first.focus();
+  }
+}
+window.liveTogglePrepMoreMenu=liveTogglePrepMoreMenu;
+
+/* Menu ma zawsze prostą drogę wyjścia także z klawiatury. */
+function liveCloseMoreMenusOnEscape(event){
+  if(event.key!=='Escape')return;
+  const sessionMenu=document.getElementById('live-more-menu');
+  const prepMenu=document.getElementById('live-prep-more-menu');
+  let returnFocus=null;
+  if(sessionMenu&&!sessionMenu.hidden){
+    liveToggleMoreMenu(false);
+    returnFocus=document.getElementById('live-more-btn');
+  }
+  if(prepMenu&&!prepMenu.hidden){
+    liveTogglePrepMoreMenu(false);
+    returnFocus=document.getElementById('live-prep-more-btn');
+  }
+  if(returnFocus){
+    event.preventDefault();
+    returnFocus.focus();
+  }
+}
+document.addEventListener('keydown',liveCloseMoreMenusOnEscape);
+document.addEventListener('click',event=>{
+  const target=event.target;
+  if(!target||!target.closest||target.closest('.live-more-wrap'))return;
+  liveToggleMoreMenu(false);
+  liveTogglePrepMoreMenu(false);
+});
 
 function liveDayLabel(slot){
   const n=liveN(slot);
@@ -2891,6 +2937,8 @@ function initLive(){
 
 function setLiveTab(t){
   liveTab=t;
+  const screen=document.getElementById('screen-live');
+  if(screen)screen.classList.toggle('live-history-view',t==='history');
   const floor=document.getElementById('live-floor');
   if(floor)floor.style.display=t==='trainer'?'flex':'none';
   const trainer=document.getElementById('live-trainer-tab');
@@ -2918,6 +2966,34 @@ function liveFocusClientPicker(slot){
   if(typeof liveClientSearchInput==='function')liveClientSearchInput(n);
 }
 window.liveFocusClientPicker=liveFocusClientPicker;
+
+// Szybki wybór na ekranie startowym LIVE. Lista opiera się wyłącznie na
+// realnej aktywności klienta, więc nie sugeruje trenerowi sztucznych danych.
+function liveRecentClientChoices(slot){
+  const n=liveN(slot);
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  const choices=clients.map(c=>{
+    const activity=typeof getClientLastActivity==='function'?getClientLastActivity(c.id):null;
+    return{client:c,activity,at:activity&&activity.getTime?activity.getTime():0};
+  }).filter(x=>x.at>0).sort((a,b)=>b.at-a.at||String(a.client.name||'').localeCompare(String(b.client.name||''),'pl')).slice(0,3);
+  if(!choices.length)return'';
+  return`<div class="live-quick-picks" role="group" aria-label="Ostatnio aktywni klienci">
+    <div class="live-quick-picks-label">Ostatnio aktywni</div>
+    <div class="live-quick-picks-list">${choices.map(({client})=>{
+      const activity=typeof formatClientActivity==='function'?formatClientActivity(client.id):{label:''};
+      const id=encodeURIComponent(String(client.id||''));
+      return`<button type="button" class="live-quick-client" onclick="event.stopPropagation();liveQuickPickClient('${id}',${n})"><span>${escHtml(client.name||'Klient')}</span><small>${escHtml(activity.label||'')}</small></button>`;
+    }).join('')}</div>
+  </div>`;
+}
+function liveQuickPickClient(encodedId,slot){
+  let id='';
+  try{id=decodeURIComponent(String(encodedId||''));}catch(e){id=String(encodedId||'');}
+  const client=(window.CL||[]).find(c=>c&&String(c.id)===id);
+  if(!client)return;
+  liveClientSetField(client.id,client.name,false,liveN(slot));
+}
+window.liveQuickPickClient=liveQuickPickClient;
 
 function liveSyncClientChrome(slot){
   const n=liveN(slot);
@@ -3487,6 +3563,7 @@ function renderLiveExercises(slot){
       <div class="live-empty-state-title">${title}</div>
       <div class="live-empty-state-sub">Plan i kg z poprzedniego treningu wczytają się po wyborze klienta.</div>
       <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="event.stopPropagation();liveFocusClientPicker(${n})">Wybierz klienta</button>
+      ${n===0?liveRecentClientChoices(n):''}
     </div>`;
     const zero=(id,v)=>{const e=liveEl(id,n);if(e)e.textContent=v;};
     zero('live-ex-done','0');zero('live-ex-total','0');zero('live-sets-done','0');zero('live-volume','0');
@@ -3518,18 +3595,20 @@ function renderLiveExercises(slot){
     const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
     if(needsName){ex.collapsed=false;return;}
     if(st.sessionActive)ex.collapsed=typeof ex.uiExpanded==='boolean'?!ex.uiExpanded:i!==curIdx&&!(curIdx<0&&i===st.exercises.length-1);
-    else if(ex.collapsed==null)ex.collapsed=i!==0;
+    // W przygotowaniu trener najpierw widzi cały plan do szybkiego skanowania.
+    // Rozwinięcie wybranej karty pozostaje zapamiętane, a w aktywnej sesji
+    // bieżące ćwiczenie nadal otwiera się samo.
+    else if(ex.collapsed==null)ex.collapsed=true;
   });
 
   el.innerHTML=`
     ${st.sessionActive?'':`<div class="live-ex-toolbar">
-      <div>
-        <div class="live-ex-toolbar-title">Plan treningu</div>
-        <div class="live-ex-toolbar-sub">${total} ćwiczeń</div>
+      <div class="live-ex-toolbar-meta">
+        <div class="live-ex-toolbar-title">Plan treningu <span class="live-ex-toolbar-count">${total} ćwiczeń</span></div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="liveAddExercise(${n})">+ Dodaj ćwiczenie</button>
+      <button class="btn btn-ghost btn-sm live-add-exercise" onclick="liveAddExercise(${n})" aria-label="Dodaj ćwiczenie"><span class="live-add-exercise-full">+ Dodaj ćwiczenie</span><span class="live-add-exercise-short" aria-hidden="true">+ Ćwiczenie</span></button>
     </div>`}
-    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue)).join('')}
+    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue,stats)).join('')}
     ${st.sessionActive&&doneCnt===total&&total>0?`
     <div class="live-ex-done-banner">
       <div class="live-ex-done-title">Trening ukończony</div>
@@ -3991,23 +4070,14 @@ function liveExDisplayName(ex){
 }
 window.liveExDisplayName=liveExDisplayName;
 
-function liveExTitleHtml(ex,lastChip,history){
+function liveExTitleHtml(ex){
   const needsName=!String(ex&&ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   if(needsName)return '<div class="live-ex-title is-empty">Wybierz ćwiczenie</div>';
   const display=liveExDisplayName(ex);
   const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(display.title)}${display.priority?'<span class="live-priority-badge">Priorytet</span>':''}`;
-  const histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
-  if(!histId||!history||!history.length||typeof exerciseHistoryModalBodyHtml!=='function'){
-    return `<div class="live-ex-title">${nameInner}</div>`;
-  }
-  return `<div class="live-ex-title-wrap">
-    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="true">${nameInner}</button>
-    <div class="live-ex-hist-pop" role="tooltip">
-      <div class="live-ex-hist-pop-hd">Poprzednie treningi</div>
-      ${exerciseHistoryModalBodyHtml(history.slice(0,4))}
-      <div class="live-ex-hist-pop-ft">Kliknij nazwę — pełna historia</div>
-    </div>
-  </div>`;
+  // Historia, progres i notatka mają jedno miejsce: menu „…”. Nie dublujemy
+  // ich pod nazwą ćwiczenia, aby w trakcie treningu pierwsze były serie.
+  return `<div class="live-ex-title">${nameInner}</div>`;
 }
 window.liveExTitleHtml=liveExTitleHtml;
 
@@ -4098,7 +4168,7 @@ function liveExFocusInfoHtml(ex,slot,display){
 }
 window.liveExFocusInfoHtml=liveExFocusInfoHtml;
 
-function liveExCard(ex,i,slot,cue){
+function liveExCard(ex,i,slot,cue,progress){
   const n=liveN(slot);
   const st=liveRef(n);
   const sl=liveSlotArg(n);
@@ -4111,8 +4181,6 @@ function liveExCard(ex,i,slot,cue){
   const histList=(cue&&cue.histByKey&&cueKey&&Array.isArray(cue.histByKey[cueKey]))
     ?cue.histByKey[cueKey]
     :(typeof liveExHistoryList==='function'?liveExHistoryList(ex,st.clientId,st.planId):[]);
-  const histEx=Object.assign({},ex,{lastHistory:histList,lastSets:[]});
-  const lastChip=histList.length&&typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(histEx,{clientId:st.clientId,aliases:ex.alts}):'';
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   void pr;
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
@@ -4133,52 +4201,48 @@ function liveExCard(ex,i,slot,cue){
   const targetRir=typeof plannedRir==='function'?plannedRir(ex):(ex.rir??'');
   const isCurrent=st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done);
   const currentSet=isCurrent?ex.sets.findIndex(s=>!s.done):-1;
-  // Przed startem pokazujemy pierwsze ćwiczenie jako punkt wejścia; w trakcie — aktualne ćwiczenie.
-  const isFocus=st.sessionActive?isCurrent:(!ex.done&&i===0);
+  // W trakcie sesji podkreślamy wyłącznie aktualne ćwiczenie. Przed startem
+  // karty są równorzędnym, krótkim przeglądem planu.
+  const isFocus=st.sessionActive&&isCurrent;
   const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
   const media=typeof resolveCoachMedia==='function'?Object.assign({name:ex.name},resolveCoachMedia(ex)):ex;
   const hasTechniqueMedia=!!(media&&(media.gif||media.video||media.videoEmbed));
-  const mediaOpen=!needsName&&(isFocus||!!ex.showVideo);
+  // Film jest pomocą na żądanie: nie zasłania serii ani nie pokazuje pustego
+  // pola, gdy trener nie dodał materiału techniki.
+  const mediaOpen=!needsName&&hasTechniqueMedia&&!!ex.showVideo;
   const mediaHtml=hasTechniqueMedia&&typeof coachMediaHtml==='function'
     ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:true,showNote:false})
     :`<div class="live-ex-media-empty"><strong>Brak filmu techniki</strong><span>Dodaj film lub GIF w Bibliotece ćwiczeń.</span></div>`;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${isFocus?' is-focus':''}${showBody?'':' is-collapsed'}" id="${cardId}">
-    <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
-      ${thumb?`<button type="button" class="live-ex-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="Pokaż film lub obraz techniki"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
+    <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})" onpointerdown="liveSwipeStart(event,${i}${sl})" onpointerup="liveSwipeEnd(event,${i}${sl})" onpointercancel="liveSwipeCancel(${i}${sl})">
+      ${thumb&&hasTechniqueMedia?`<button type="button" class="live-ex-thumb live-ex-technique-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="${ex.showVideo?'Ukryj':'Pokaż'} technikę" aria-label="${ex.showVideo?'Ukryj':'Pokaż'} technikę dla: ${escHtml(ex.name)}" aria-pressed="${ex.showVideo?'true':'false'}"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:thumb?`<div class="live-ex-thumb"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></div>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
-        ${liveExTitleHtml(ex,lastChip,histList)}
-        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span>${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
+        ${liveExTitleHtml(ex)}
+        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong>${isCurrent&&progress?`<span class="live-session-progress">Trening ${progress.doneCnt}/${progress.total} · ${progress.setsDone} serii</span>`:`<span>Wykonano ${setsDone}/${ex.sets.length}</span>`}${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
         <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}"><span aria-hidden="true">${showBody?'▴':'▾'}</span></button>
         <details class="live-ex-actions-menu"><summary aria-label="Opcje ćwiczenia">⋯</summary><div class="live-ex-actions-popover">
+        ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'history'${sl})" aria-pressed="${ex.detailPanel==='history'}">Historia i progres</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'coach'${sl})" aria-pressed="${ex.detailPanel==='coach'}">Notatka trenera</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'settings'${sl})" aria-pressed="${ex.detailPanel==='settings'}">Ustawienia ćwiczenia</button>
+        <div class="live-ex-actions-separator" role="separator"></div>`}
         ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm live-swap-open" onclick="liveToggleSwap(${i}${sl})">Zamień</button>`}
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="liveSkipEx(${i}${sl})">Pomiń</button>`:''}
         </div></details>
       </div>
     </div>
-    ${showBody&&!needsName&&!isFocus&&typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}
     ${showBody?`
-    ${!needsName&&isFocus?`<div class="live-focus-cue live-focus-cue-simple"><span>NAJWAŻNIEJSZA WSKAZÓWKA</span><strong>${escHtml(liveShortCoachCue(note))}</strong></div>
-    <details class="live-ex-more-details" onclick="event.stopPropagation()">
-      <summary><strong>Szczegóły ćwiczenia</strong><span>progres · ustawienia · notatka</span></summary>
-      <div class="live-ex-more-body">
-        <div class="live-ex-more-section"><strong>Progres, poprzedni trening i sugestia</strong>${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</div>
-        ${liveExFocusInfoHtml(ex,n,display)}
-        <div class="live-ex-todo live-ex-todo-details">
-          <label class="live-ex-todo-lbl" for="live-ex-cue-${n}-${i}">Notatka trenera</label>
-          <textarea id="live-ex-cue-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="2" placeholder="Dodatkowa wskazówka techniczna" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
-        </div>
-      </div>
-    </details>`:''}
-    ${needsName||isFocus?'':`<div class="live-ex-todo" onclick="event.stopPropagation()">
-      <label class="live-ex-todo-lbl" for="live-ex-todo-${n}-${i}">Do zrobienia</label>
-      <textarea id="live-ex-todo-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="${note?2:1}" placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte)" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
-    </div>`}
+    ${!needsName&&ex.detailPanel?`<section class="live-ex-context" aria-label="${ex.detailPanel==='history'?'Historia i progres ćwiczenia':ex.detailPanel==='coach'?'Notatka trenera':'Ustawienia ćwiczenia'}">
+      <div class="live-ex-context-head"><strong>${ex.detailPanel==='history'?'Historia i progres':ex.detailPanel==='coach'?'Notatka trenera':'Ustawienia ćwiczenia'}</strong><button type="button" onclick="liveToggleExPanel(${i},'${ex.detailPanel}'${sl})" aria-label="Zamknij panel szczegółów">×</button></div>
+      ${ex.detailPanel==='history'?`<div class="live-ex-context-body">${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</div>`:''}
+      ${ex.detailPanel==='coach'?`<div class="live-ex-context-body"><label class="live-ex-todo-lbl" for="live-ex-cue-${n}-${i}">Wskazówka dla trenera</label><textarea id="live-ex-cue-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="2" placeholder="Np. ustawienie maszyny lub ważna wskazówka techniczna" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea></div>`:''}
+      ${ex.detailPanel==='settings'?`<div class="live-ex-context-body">${liveExFocusInfoHtml(ex,n,display)}</div>`:''}
+    </section>`:''}
     ${needsName||(!target&&!display.description)||isFocus?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`}
     <div class="live-ex-body">
-      ${mediaOpen?'<span class="live-media-watch-label" aria-hidden="true">▶ Obejrzyj technikę</span>':''}
+      ${mediaOpen?'<span class="live-media-watch-label" aria-hidden="true">▶ Technika ćwiczenia</span>':''}
       ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${mediaHtml}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
@@ -4214,6 +4278,18 @@ function liveExCard(ex,i,slot,cue){
   </div>`;
 }
 window.liveExCard=liveExCard;
+
+// Dodatkowe informacje są dostępne z menu „…”, ale nie zasłaniają serii
+// podczas prowadzenia treningu. Ponowne wybranie tej samej pozycji ją zamyka.
+function liveToggleExPanel(i,panel,slot){
+  const n=liveN(slot);
+  const ex=(liveRef(n).exercises||[])[i];
+  if(!ex)return;
+  ex.collapsed=false;
+  ex.detailPanel=ex.detailPanel===panel?'':panel;
+  renderLiveExercises(n);
+}
+window.liveToggleExPanel=liveToggleExPanel;
 
 function liveSetFocusRest(value,slot){
   const n=liveN(slot);
@@ -4264,10 +4340,13 @@ window.liveSetKey=liveSetKey;
 function liveToggleExVideo(i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
-  if(!st.exercises[i])return;
-  st.exercises[i].showVideo=!st.exercises[i].showVideo;
-  st.exercises[i].collapsed=false;
-  st.exercises[i].uiExpanded=true;
+  const ex=st.exercises[i];
+  if(!ex)return;
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):ex;
+  if(!media||!(media.gif||media.video||media.videoEmbed))return;
+  ex.showVideo=!ex.showVideo;
+  ex.collapsed=false;
+  ex.uiExpanded=true;
   renderLiveExercises(n);
 }
 window.liveToggleExVideo=liveToggleExVideo;
@@ -4275,10 +4354,41 @@ window.liveToggleExVideo=liveToggleExVideo;
 function liveToggleCollapse(i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
-  st.exercises[i].collapsed=!st.exercises[i].collapsed;
-  st.exercises[i].uiExpanded=!st.exercises[i].collapsed;
+  const ex=st.exercises[i];
+  if(!ex)return;
+  if(ex.suppressCollapse){ex.suppressCollapse=false;return;}
+  ex.collapsed=!ex.collapsed;
+  ex.uiExpanded=!ex.collapsed;
   renderLiveExercises(n);
 }
+
+// Gest jest wyłącznie skrótem dotykowym: przesunięcie w lewo odsłania
+// istniejący, odwracalny wybór zamiennika. Nie podmienia ćwiczenia samo.
+function liveSwipeStart(ev,i,slot){
+  if(!ev||ev.pointerType!=='touch'||(ev.target&&ev.target.closest&&ev.target.closest('button,input,textarea,select,summary')))return;
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  if(ex)ex.swipeStart={x:ev.clientX,y:ev.clientY};
+}
+window.liveSwipeStart=liveSwipeStart;
+function liveSwipeCancel(i,slot){
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  if(ex)ex.swipeStart=null;
+}
+window.liveSwipeCancel=liveSwipeCancel;
+function liveSwipeEnd(ev,i,slot){
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  const start=ex&&ex.swipeStart;
+  if(!start||!ev||ev.pointerType!=='touch')return false;
+  ex.swipeStart=null;
+  const dx=ev.clientX-start.x,dy=ev.clientY-start.y;
+  if(dx<-64&&Math.abs(dy)<44){
+    ex.suppressCollapse=true;
+    if(!ex.swapOpen)liveToggleSwap(i,slot);
+    return true;
+  }
+  return false;
+}
+window.liveSwipeEnd=liveSwipeEnd;
 function liveToggleSetMenu(ei,si,slot){
   const n=liveN(slot);
   const st=liveRef(n);
@@ -4653,13 +4763,24 @@ function liveAskEndSession(slot){
   if(fb0)fb0.hidden=n===1;
   if(fb1)fb1.hidden=n!==1;
   ov.hidden=false;
+  const title=document.getElementById('live-end-title');
+  if(title)title.focus();
 }
 window.liveAskEndSession=liveAskEndSession;
 function liveCancelEnd(){
   const ov=document.getElementById('live-end-overlay');
   if(ov)ov.hidden=true;
+  const trigger=liveEl('live-end-btn',window._liveEndSlot||0);
+  if(trigger)trigger.focus();
 }
 window.liveCancelEnd=liveCancelEnd;
+document.addEventListener('keydown',event=>{
+  const ov=document.getElementById('live-end-overlay');
+  if(event.key==='Escape'&&ov&&!ov.hidden){
+    event.preventDefault();
+    liveCancelEnd();
+  }
+});
 function liveConfirmEnd(){
   window._liveEndFromOverlay=true;
   liveEndSession(window._liveEndSlot||0);
@@ -4675,7 +4796,7 @@ function liveEndSession(slot){
   window._liveEndFromOverlay=false;
   if(!fromOv){
     const msg=totalSets
-      ?'Zakończyć i zapisać sesję?'
+      ?'Zapisać trening i zakończyć sesję?'
       :'Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów. Zapisać mimo to?';
     if(!confirm(msg))return;
   }

@@ -1,6 +1,6 @@
 const fs=require('fs');
 const path=require('path');
-const root=path.resolve(__dirname,'..','..');
+const root=path.resolve(__dirname);
 const wizard=fs.readFileSync(path.join(root,'12-manual-plan-wizard.js'),'utf8');
 const profile=fs.readFileSync(path.join(root,'08-client-profile-extras.js'),'utf8');
 
@@ -9,4 +9,6 @@ assert(/function openManualPlanPicker\(clientId\)/.test(wizard),'kreator przyjmu
 assert(/const selected=clientId\|\|\(document\.getElementById\('b-client'\)/.test(wizard),'punkt wejścia zachowuje wskazanego klienta');
 assert(/onclick="openManualPlanPicker\('\$\{c\.id\}'\)"/.test(profile),'profil klienta otwiera kreator planu ręcznego');
 assert(!/onclick="openBuilderForClient\('\$\{c\.id\}'\)"/.test(profile),'profil nie omija kreatora planu ręcznego');
+assert(wizard.includes('Tryb Amator')&&wizard.includes('Tryb Zawodowiec'),'wejście jasno rozróżnia tryb prowadzony i pełny');
+assert(wizard.includes("meta.mode=mode==='advanced'?'advanced':'guided'"),'nazwy trybów nie zmieniają zapisanego modelu planu');
 console.log('OK manual plan entrypoints');

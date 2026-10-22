@@ -4084,6 +4084,8 @@ function renderCPMetrics(c){
       </div>
     </div>
 
+    <div class="cp-metrics-layout">
+      <section class="cp-metrics-summary" aria-label="Ostatni pomiar">
     ${activeGroup&&last?`<div class="card-sm" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">${activeGroup.icon}</span>
@@ -4110,8 +4112,10 @@ function renderCPMetrics(c){
         }).join('')}
       </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':''}</div>`}
     </div>`:''}
+      </section>
 
-    <div style="margin-top:8px;">
+      <section class="cp-metrics-history" aria-label="Historia pomiarów">
+    <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div class="cp-section-title" style="margin:0;">HISTORIA — ${activeGroup?escHtml(activeGroup.name):''}</div>
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisów</span>
@@ -4134,6 +4138,8 @@ function renderCPMetrics(c){
             </div>`;
           }).join('')}
         </div>`}
+    </div>
+      </section>
     </div>
     <div class="cp-crosslink-note">
       Rekordy, tonaż i regularność treningów są w zakładce <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Postępy</button>
@@ -4875,7 +4881,7 @@ function renderCPProgress(c){
     ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie są liczone jako wykonany trening.</div>`:''}
 
     ${logged.length&&typeof cpProgressDecisionsHtml==='function'?cpProgressDecisionsHtml(c.id):''}
-    ${logged.length?`    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
+    ${logged.length?`    <div data-cp-panel="train" class="cp-progress-trend-grid">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -4902,7 +4908,7 @@ function renderCPProgress(c){
     </div>
 
 `:`<div data-cp-panel="train" class="stat-card cp-progress-empty"><strong>Brak zapisanych treningów</strong><p>Zakończ pierwszy trening, aby zobaczyć wyniki i wskazówki progresji.</p><button type="button" class="btn btn-primary btn-sm" onclick="cpStartLive()">Rozpocznij trening</button></div>`}
-    <div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="body" class="cp-progress-body-grid">
       <div class="stat-card${lastM?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
@@ -4948,7 +4954,7 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="train" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="train" class="cp-progress-strength-grid">
       ${lastS||strengthAsc.length>=2?`<div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -4998,7 +5004,7 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="habits"${habits.length?'':' data-cp-summary-hide="empty"'} style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="habits" class="cp-progress-habits-grid"${habits.length?'':' data-cp-summary-hide="empty"'}>
       <div class="stat-card${habits.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>

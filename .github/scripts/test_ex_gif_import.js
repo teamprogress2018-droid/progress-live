@@ -17,16 +17,21 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v47', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache 01 v64', html.includes('01-core.js?v=137'));
+ok('cache 06 v112', html.includes('06-inbox-exercises-ai-programs.js?v=112'));
+ok('cache 01 v150', html.includes('01-core.js?v=150&drive-media=5'));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));
 ok('placeholder mp4', html.includes('bench.mp4'));
-ok('no webkitdirectory', !/id="exgif-files"[^>]*webkitdirectory/.test(html));
+ok('folder picker enabled', /id="exgif-files"[^>]*webkitdirectory/.test(html));
 ok('file accept mp4', /id="exgif-files"[^>]*accept="[^"]*mp4/.test(html));
 ok('ex-img is text', /id="ex-img"[^>]*type="text"/.test(html) || /type="text"[^>]*id="ex-img"/.test(html));
 ok('ov-url is text', /id="ov-url"[^>]*type="text"/.test(html) || /type="text"[^>]*id="ov-url"/.test(html));
 ok('import button label', html.includes('Import GIF / MP4'));
+ok('bulk preview role control', html.includes("setAllExGifImportRoles('preview')"));
+ok('bulk technique role control', html.includes("setAllExGifImportRoles('technique')"));
+ok('bulk role helper', six.includes('function setAllExGifImportRoles(role)'));
+ok('static white card preview generator exists', six.includes('function createWhiteExerciseCardThumbnail(source)') && six.includes('function uploadWhiteExerciseCardThumbnail(source,exerciseName,batchId,fingerprint)'));
+ok('existing Firebase GIFs can be backfilled into card previews', six.includes('function backfillWhiteExerciseCardPreviews()') && html.includes('id="lib-build-white-previews"'));
 
 const documentStub = {
   querySelectorAll: () => [],
@@ -97,6 +102,9 @@ ok('url spaces encoded', rowsSpace[0] && rowsSpace[0].presetUrl === 'https://cdn
 const rowsGif = ctx.parseExGifBulkPaste('Podciąganie na drążku;https://cdn.example.com/pull.gif');
 ok('semicolon gif still works', rowsGif.length === 1 && /\.gif$/.test(rowsGif[0].presetUrl) && rowsGif[0].selected);
 
+const rowsPreview = ctx.parseExGifBulkPaste('Wyciskanie sztangi leżąc | https://cdn.example.com/bench-white.gif#pl-preview');
+ok('preview marker selects card preview', rowsPreview[0] && rowsPreview[0].role === 'preview', JSON.stringify(rowsPreview[0]));
+
 const jsonRows = ctx.parseExGifBulkPaste(JSON.stringify([{ name: 'Martwy ciąg klasyczny', mp4: 'https://cdn.example.com/dead.mp4' }]));
 ok('json mp4 field', jsonRows.length === 1 && jsonRows[0].presetUrl.endsWith('dead.mp4') && jsonRows[0].selected);
 
@@ -139,6 +147,7 @@ ok('desktop path stays local', ctx.rewriteLocalMediaUrl('D:/Desktop/film.mp4') =
 
   ok('save without parse in source', /ensureExGifPasteParsed\(\)/.test(six) && /async function runExGifImport/.test(six));
   ok('upload mp4 mime', /video\/mp4/.test(six));
+  ok('GIF import saves a static card preview separately', /staticPreviews/.test(six) && /persistExercisePreviewUrl\(row\.exerciseName,preview\)/.test(six));
   ok('detail assign panel', /function exDetailAssignHtml/.test(six) && /id="exd-assign"/.test(six) && /id="exd-mp4-url"/.test(six));
   ok('detail assign wired', /exDetailAssignHtml\(e\)/.test(six) && /function saveAssignedExTechnique/.test(six));
 

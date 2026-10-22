@@ -34,6 +34,7 @@ function ok(name, cond, extra) {
     window.CL = [{ id: 'c1', name: 'Anna Kowalska', trainerId: 't1' }, { id: 'c2', name: 'Jan Nowak', trainerId: 't1' }];
     window.SETTINGS = window.SETTINGS || {};
     window.SETTINGS.favoriteExercises = [];
+    setExMediaOnly(false);
     window.PL = [{ id: 'p_src', name: 'Plan Anny', clientId: 'c1', clientName: 'Anna Kowalska', trainerId: 't1', createdAt: '2026-10-10T10:00:00Z', duration: 4, method: 'FBW',
       days: [{ day: 'PON', muscles: 'FBW', rest: false, exercises: [{ name: 'Wiosłowanie sztangą', sets: '4', reps: '8' }, { name: 'Przysiad ze sztangą', sets: '4', reps: '6' }] }] }];
     goTo('library');

@@ -33,19 +33,19 @@
 html[data-theme="light"] {
   color-scheme: light;
 
-  --bg-main: #f7f8fa;
+  --bg-main: #edf5ff;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
   --bg-input: #ffffff;
-  --bg-hover: #f1f3f6;
-  --bg-subtle: #f3f4f6;
+  --bg-hover: #f3f7fc;
+  --bg-subtle: #e8f0fa;
 
   --text-primary: #111827;
   --text-secondary: #374151;
   --text-label: #6b7280;
 
-  --border-subtle: #e5e7eb;
-  --border-default: #d1d5db;
+  --border-subtle: #dce6f1;
+  --border-default: #cad8e7;
   --border-focus: var(--accent);
 
   --panel-glow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.04);
@@ -170,7 +170,8 @@ html[data-theme="light"] .academy-safety {
 /* ═══ Szkielet: tło, sidebar, topbar ═══ */
 html[data-theme="light"] body { background: var(--bg-main); }
 html[data-theme="light"] .sidebar {
-  background: #ffffff;
+  background-color: #ebf4ff;
+  background: linear-gradient(180deg, #e3eeff 0%, #f7f9fc 50%, #ffeae6 100%);
   border-right: 1px solid var(--border-subtle);
 }
 html[data-theme="light"] .sidebar::after { display: none; }
@@ -182,8 +183,8 @@ html[data-theme="light"] .pl-logo-text span { color: var(--accent); }
 html[data-theme="light"] .pl-logo-text small { color: var(--text-label); }
 html[data-theme="light"] .sidebar-slogan { color: var(--text-secondary); }
 html[data-theme="light"] .sidebar-slogan::after { background: var(--accent); }
-html[data-theme="light"] .nav-item { color: var(--text-secondary); }
-html[data-theme="light"] .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+html[data-theme="light"] .nav-item { color: var(--text-secondary); font-weight: 400; }
+html[data-theme="light"] .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); font-weight: 600; }
 /* Aktywna pozycja: delikatne podświetlenie akcentem, ciemny tekst (czytelne dla każdego akcentu) */
 html[data-theme="light"] .nav-item.active,
 html[data-theme="light"] .sidebar .nav-item.active {
@@ -265,6 +266,17 @@ html[data-theme="light"] .cal-week-day-hdr.today {
   color: var(--text-primary);
 }
 html[data-theme="light"] #cal-week-grid { background: #ffffff; }
+/* Potwierdzenie odbytej sesji jest stanem sukcesu, nie kolejnym alarmem/CTA. */
+html[data-theme="light"] #screen-calendar .cal-sala-done {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(6, 118, 71, 0.28);
+  box-shadow: none;
+}
+html[data-theme="light"] #screen-calendar .cal-sala-done:hover {
+  background: #d1fadf;
+  border-color: var(--success);
+}
 
 /* ═══ Pulpit (Strona główna) — jasna, czysta wersja bez zdjęć ═══ */
 html[data-theme="light"] #screen-dashboard { background: var(--bg-main); }
@@ -519,14 +531,77 @@ html[data-theme="light"] .clive-nav {
   background: rgba(255, 255, 255, 0.98);
   border-top-color: var(--border-subtle);
 }
+/* Dolna nawigacja klienta: czytelny stan aktywny i wygodne cele dotykowe. */
+html[data-theme="light"] .clive-nav-btn {
+  min-height: 56px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  color: var(--text-label);
+  opacity: 1;
+}
+html[data-theme="light"] .clive-nav-btn.active {
+  background: var(--adim);
+  color: var(--accent);
+  font-weight: 700;
+}
+html[data-theme="light"] .clive-nav-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+html[data-theme="light"] .clive-content { overscroll-behavior-y: contain; }
+@media (max-width: 380px) {
+  html[data-theme="light"] .clive-nav { gap: 0; padding-left: 2px; padding-right: 2px; }
+  html[data-theme="light"] .clive-nav-btn { min-width: 0; padding-left: 4px; padding-right: 4px; font-size: 10px; }
+}
 html[data-theme="light"] .clive-more-sheet {
   background: #ffffff;
   border-top-color: var(--border-subtle);
 }
 html[data-theme="light"] .cw-set-row input {
+  background: var(--bg-input);
   border-color: var(--border-default);
   color: var(--text-primary);
 }
+html[data-theme="light"] .clive-player-inner { background: var(--bg-main); }
+html[data-theme="light"] .cw-set-done {
+  background: var(--success-bg);
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border-default));
+  color: var(--text-primary);
+}
+html[data-theme="light"] .cw-sync-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--success-bg);
+  color: var(--success);
+}
+html[data-theme="light"] .cw-sync-state.is-local {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+html[data-theme="light"] .cw-ex-todo {
+  background: var(--bg-subtle);
+  border-color: var(--border-subtle);
+}
+html[data-theme="light"] .cw-ss-badge {
+  background: var(--warning-bg);
+  border-color: color-mix(in srgb, var(--warning) 32%, var(--border-subtle));
+  color: var(--warning);
+}
+html[data-theme="light"] .clive-check-opt {
+  background: var(--bg-card);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+html[data-theme="light"] .clive-check-opt.on {
+  background: var(--adim);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+html[data-theme="light"] .cw-rest { color: var(--text-primary); }
 html[data-theme="light"] #screen-dashboard .dash-launch-card *,
 html[data-theme="light"] #screen-dashboard .dash3-hero *,
 html[data-theme="light"] .dash-fire-quote { text-shadow: none !important; }
@@ -640,7 +715,7 @@ html[data-theme="light"] #cap-phone-frame > div[style*="height:44px"] { color: v
 .app .sidebar .nav-item,
 .app .sidebar .nav-item.active {
   margin: 2px 12px; width: calc(100% - 24px); padding: 10px 12px; gap: 12px;
-  border-left: 0; border-radius: 10px; font-size: 15px; font-weight: 500; line-height: 1.25;
+  border-left: 0; border-radius: 10px; font-size: 15px; font-weight: 400; line-height: 1.25;
 }
 .app .sidebar .nav-item svg { width: 20px; height: 20px; }
 .nav-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -656,11 +731,10 @@ html[data-theme="light"] #cap-phone-frame > div[style*="height:44px"] { color: v
 }
 .app .sidebar-logout:hover { background: var(--bg-hover); color: var(--danger); }
 
-/* ── Pasek boczny: kolory jasnego motywu (miękki gradient akcentu) ── */
+/* ── Pasek boczny: jasne, spokojne przejście tła ── */
 html[data-theme="light"] .app .sidebar {
-  background:
-    linear-gradient(180deg, rgba(var(--accent-rgb), 0.10) 0%, rgba(var(--accent-rgb), 0.04) 48%, rgba(var(--accent-rgb), 0.12) 100%),
-    #ffffff;
+  background-color: #ebf4ff;
+  background: linear-gradient(180deg, #e3eeff 0%, #f7f9fc 50%, #ffeae6 100%);
   border-right: 1px solid var(--border-subtle);
 }
 html[data-theme="light"] .app .sidebar .nav-item { color: var(--text-secondary); }
@@ -737,16 +811,18 @@ html[data-theme="light"] .nav-flyout-item.active { color: #ffffff; background: r
 #app-root .cl-subnav .cl-seg-item {
   display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
   padding: 10px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent;
-  color: var(--text-secondary); font: 500 15px/1.3 var(--font-ui); text-align: left; cursor: pointer;
+  color: var(--text-secondary); font: 400 15px/1.3 var(--font-ui); text-align: left; cursor: pointer;
 }
-#app-root .cl-subnav .cl-seg-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+#app-root .cl-subnav .cl-seg-item:hover { background: var(--bg-hover); color: var(--text-primary); font-weight: 600; }
 #app-root .cl-subnav .cl-seg-item.active {
   background: var(--bg-card); border-color: var(--border-subtle); color: var(--text-primary); font-weight: 600;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
 }
 #app-root .cl-subnav .cl-seg-item.empty { color: var(--text-label); }
 .cl-seg-n,
-#app-root .cl-subnav .cl-attn-n { font-family: var(--font-ui); font-size: 14px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+#app-root .cl-subnav .cl-attn-n { font-family: var(--font-ui); font-size: 14px; font-weight: 400; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+#app-root .cl-subnav .cl-seg-item.active .cl-seg-n,
+#app-root .cl-subnav .cl-seg-item.active .cl-attn-n { font-weight: 600; }
 .cl-seg-item.empty .cl-seg-n { color: var(--text-label); font-weight: 500; }
 .cl-subnav-invite { margin-top: auto; padding: 22px 12px 4px; }
 .cl-subnav-invite-lbl { text-align: center; font-size: 12px; font-weight: 600; color: var(--text-label); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px; }
@@ -792,6 +868,9 @@ html[data-theme] #screen-clients .cl-everfit-filters {
 .cl-chip-select:focus { outline: none; }
 .cl-filters-toggle { border: none; background: transparent; color: var(--accent); font: 600 13px var(--font-ui); padding: 8px 6px; cursor: pointer; }
 .cl-filters-toggle:hover { text-decoration: underline; }
+.cl-filters-clear { border: none; background: transparent; color: var(--text-secondary); font: 600 13px var(--font-ui); padding: 8px 6px; cursor: pointer; }
+.cl-filters-clear:hover { color: var(--text-primary); text-decoration: underline; }
+.cl-filters-clear[hidden] { display: none; }
 .cl-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 24px 10px; flex-wrap: wrap; }
 .cl-search-wrap { position: relative; flex: 0 1 300px; min-width: 180px; color: var(--text-label); }
 .cl-search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
@@ -854,7 +933,16 @@ html[data-theme] #screen-clients .tbl-row.cl-everfit-row.has-attention { padding
 #screen-clients .cl-act,
 #screen-clients .cl-pct,
 #screen-clients .cl-goal { font-size: 14px; }
-#screen-clients .cl-act { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#screen-clients .cl-act { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-label); }
+#screen-clients .cl-act-positive { color: var(--success); }
+#screen-clients .cl-act-watch { color: var(--warning); }
+#screen-clients .cl-pct { text-align: right; font-variant-numeric: tabular-nums; }
+#screen-clients .cl-everfit-hdr > :nth-child(4),
+#screen-clients .cl-everfit-hdr > :nth-child(5),
+#screen-clients .cl-everfit-hdr > :nth-child(6) { text-align: right; }
+/* Stan konta nie jest ostrzeżeniem. Czerwony pozostaje dla realnie wygasłego dostępu. */
+#screen-clients .pill-muted { background: var(--bg-subtle); color: var(--text-label); border: 1px solid var(--border-subtle); }
+#screen-clients .pill-orange { background: var(--warning-bg); color: var(--warning); border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border-subtle)); }
 @media (min-width: 901px) {
   html[data-theme] #screen-clients .cl-everfit-hdr,
   html[data-theme] #screen-clients .cl-everfit-row { grid-template-columns: var(--cl-cols, minmax(220px,2.2fr) 44px repeat(6, minmax(90px,1fr))); }
@@ -911,6 +999,127 @@ html[data-theme] #screen-clients .tbl-row.cl-everfit-row.has-attention { padding
 }
 @media (max-width: 900px) {
   #cl-cols-btn { display: none; }
+}
+
+/* Telefon: menu i główna akcja mają osobne, pewne pola dotyku. */
+#mobile-menu-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+body.mobile-menu-open { overscroll-behavior: none; }
+.cl-list-toggle-wrap { display: flex; justify-content: center; padding: 2px 12px 20px; background: var(--bg-main); }
+.cl-list-toggle-wrap[hidden] { display: none; }
+.cl-list-toggle {
+  min-height: 40px; padding: 8px 14px; border: 1px solid var(--border-default); border-radius: 999px;
+  background: var(--bg-card); color: var(--text-primary); font: 600 13px var(--font-ui); cursor: pointer;
+}
+.cl-list-toggle:hover { background: var(--bg-hover); border-color: var(--accent); }
+@media (max-width: 600px) {
+  #mobile-menu-btn { z-index: 700; box-shadow: 0 2px 8px rgba(16, 24, 40, 0.12); }
+  #screen-clients .cl-topbar {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+    min-height: 68px; padding: max(8px, env(safe-area-inset-top)) 12px 8px 68px;
+  }
+  #screen-clients .cl-topbar-l { min-width: 0; }
+  #screen-clients .topbar-title { font-size: 17px; }
+  #screen-clients .cl-top-icons { min-width: auto; }
+  #screen-clients .cl-top-cta { min-height: 44px; padding: 8px 12px; white-space: nowrap; position: relative; z-index: 1; }
+  /* Pierwszy ekran listy: szukaj i działaj. Rozbudowane filtry rozwijają się na żądanie. */
+  html[data-theme] #screen-clients .cl-everfit-filters { min-height: 44px; justify-content: flex-start; }
+  #screen-clients .cl-filters-toggle { min-height: 44px; padding: 8px 10px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-card); }
+  #screen-clients .cl-filters-toggle:hover { text-decoration: none; background: var(--bg-hover); }
+  #screen-clients .cl-filters-clear { min-height: 44px; padding: 8px 10px; }
+  .cl-list-toggle { width: 100%; min-height: 48px; }
+}
+
+/* PWA na iPhonie może rysować stronę pod paskiem systemowym.
+   Rezerwujemy tę przestrzeń, aby menu i nagłówki zawsze pozostały dotykalne. */
+@media (max-width: 860px) {
+  body:not(.client-app-mode) #app-root { padding-top: env(safe-area-inset-top); }
+  body:not(.client-app-mode) #mobile-menu-btn { top: max(8px, env(safe-area-inset-top)); }
+  body:not(.client-app-mode) .sidebar { padding-top: env(safe-area-inset-top); }
+}
+
+/* Jasna powierzchnia aplikacji: tło pozostaje widoczne między białymi kartami.
+   Dzięki temu nie zamienia się w jednolitą, płaską biel na ekranie LIVE. */
+html[data-theme="light"] .main { background: #edf5ff; }
+html[data-theme="light"] #screen-clients .cl-main,
+html[data-theme="light"] #screen-clients .cl-everfit,
+html[data-theme="light"] #screen-live .live-floor,
+html[data-theme="light"] #screen-live .live-pane {
+  background: #edf5ff;
+}
+html[data-theme="light"] .cl-subnav { background: #fbfbfc; }
+html[data-theme="light"] #screen-live .live-side-left,
+html[data-theme="light"] #screen-live .live-ex-col { background: transparent; }
+
+/* Klienci i profil: chłodne tło aplikacji, białe powierzchnie danych.
+   Akcent pozostaje wyłącznie przy głównych CTA; statusy korzystają z własnej palety. */
+html[data-theme="light"] #screen-clients .tbl-row.cl-everfit-row {
+  margin: 0 0 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  box-shadow: var(--panel-glow);
+}
+html[data-theme="light"] #screen-clients .tbl-row.cl-everfit-row:hover {
+  background: var(--bg-card);
+  border-color: var(--border-default);
+}
+html[data-theme="light"] #screen-clients .cl-everfit-hdr { color: var(--text-secondary); }
+html[data-theme="light"] #screen-clients .cl-sub,
+html[data-theme="light"] #screen-clients .cl-goal,
+html[data-theme="light"] #screen-clients .cl-act { color: var(--text-secondary); }
+html[data-theme="light"] #screen-clients .cl-act-positive { color: var(--success); }
+html[data-theme="light"] #screen-clients .cl-act-watch { color: var(--warning); }
+html[data-theme="light"] #screen-clients .pill-green {
+  background: var(--success-bg); color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 26%, var(--border-subtle));
+}
+html[data-theme="light"] #screen-clients .pill-muted {
+  background: var(--bg-subtle); color: var(--text-secondary); border-color: var(--border-subtle);
+}
+html[data-theme="light"] #screen-clients .pill-orange {
+  background: var(--warning-bg); color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border-subtle));
+}
+html[data-theme="light"] #screen-clients .pill-red {
+  background: var(--danger-bg); color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--border-subtle));
+}
+html[data-theme="light"] .cp-drawer > div:first-child,
+html[data-theme="light"] .cp-tabs-bar {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+
+/* Telefon: technika i serie nie mogą dzielić jednego wiersza.
+   Pełna szerokość logu serii usuwa poziome przewijanie widoczne podczas LIVE. */
+@media (max-width: 600px) {
+  #screen-live .live-ex-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  #screen-live .live-ex-card .live-ex-media { flex: 1 1 100%; width: 100%; min-width: 0; max-width: 100%; }
+  #screen-live .live-ex-log { flex: 1 1 100%; width: 100%; min-width: 0; }
+  #screen-live .live-ex-media-empty { width: 100%; }
+}
+
+/* LIVE przed startem: trzy realnie ostatnie kontakty skracają drogę do sesji,
+   ale pełny wybór klienta zawsze pozostaje dostępny wyżej. */
+.live-quick-picks { max-width: 420px; margin: 22px auto 0; text-align: left; }
+.live-quick-picks-label { margin: 0 0 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.live-quick-picks-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.live-quick-client {
+  display: flex; flex-direction: column; gap: 3px; min-width: 0; min-height: 52px; padding: 9px 10px;
+  border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-card); color: var(--text-primary);
+  font: 600 13px var(--font-ui, inherit); text-align: left; cursor: pointer;
+}
+.live-quick-client:hover { border-color: var(--accent); background: var(--bg-hover); }
+.live-quick-client:focus-visible { outline: 3px solid rgba(var(--accent-rgb), .25); outline-offset: 2px; }
+.live-quick-client span,.live-quick-client small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-quick-client small { font-size: 11px; font-weight: 500; color: var(--text-label); }
+@media (max-width: 420px) {
+  .live-quick-picks { max-width: none; }
+  .live-quick-picks-list { grid-template-columns: 1fr; }
+  .live-quick-client { flex-direction: row; align-items: center; justify-content: space-between; min-height: 46px; }
 }
 @media (min-width: 861px) {
   /* Grafika ciemnego motywu (.sidebar::after) zostaje w pasku bocznym */
@@ -1003,6 +1212,16 @@ html[data-theme] #screen-dashboard .dash-content .btn-ghost {
 html[data-theme] #screen-dashboard .dash-content .btn-primary:hover,
 html[data-theme] #screen-dashboard .dash-content .btn-ghost:hover { background: var(--bg-hover); border-color: var(--text-label); }
 
+/* Na pulpicie tylko kolejny krok jest akcją główną. Dzięki temu trener
+   widzi od razu, co zrobić, a pozostałe skróty nie konkurują z decyzją. */
+html[data-theme] #screen-dashboard .dash-next-action .btn-primary {
+  background: var(--accent); color: var(--on-accent); border-color: var(--accent);
+  box-shadow: none; font-weight: 650;
+}
+html[data-theme] #screen-dashboard .dash-next-action .btn-primary:hover {
+  background: var(--accent2); border-color: var(--accent2);
+}
+
 /* Szybkie akcje i cele: ikony neutralne zamiast kolorowych */
 html[data-theme] #screen-dashboard .dash3-qa-grid button {
   border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-card);
@@ -1011,6 +1230,26 @@ html[data-theme] #screen-dashboard .dash3-qa-grid button {
 html[data-theme] #screen-dashboard .dash3-qa-grid button:hover { background: var(--bg-hover); }
 html[data-theme] #screen-dashboard .dash3-qa-grid i {
   background: var(--bg-subtle); color: var(--text-secondary); box-shadow: none;
+}
+
+/* Klient na telefonie: jedna decyzja na ekranie, wyraźny następny krok i bezpieczny skrót swipe. */
+html[data-theme] .cap-client-today { padding: 20px 16px max(28px, env(safe-area-inset-bottom)); }
+html[data-theme] .cap-client-greeting { margin: 0 0 16px; color: var(--text-primary); font-family: var(--font-ui); font-size: 24px; font-weight: 650; letter-spacing: -.02em; }
+html[data-theme] .cap-client-today-card { position: relative; overflow: hidden; margin-bottom: 14px; padding: 18px 16px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-card); box-shadow: none; }
+html[data-theme] .cap-client-today-card.cap-client-today-done { border-color: color-mix(in srgb, var(--success) 30%, var(--border-subtle)); background: var(--success-bg); }
+html[data-theme] .cap-client-eyebrow { color: var(--text-label); font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+html[data-theme] .cap-client-today-title { margin: 6px 0; color: var(--text-primary); font-size: 20px; font-weight: 700; }
+html[data-theme] .cap-client-muted { color: var(--text-secondary); line-height: 1.5; }
+html[data-theme] .cap-client-main-action { min-height: 52px; margin: 18px 0 0; border-radius: 10px; }
+.cap-client-swipe-action { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .cap-client-next { padding-right: 116px !important; transition: padding .18s ease, background .18s ease; touch-action: pan-y; }
+  .cap-client-next.is-swipe-revealed { background: var(--adim) !important; }
+  .cap-client-swipe-action { position: absolute; top: 50%; right: 12px; display: block; min-height: 42px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--accent); color: var(--on-accent); font: 700 12px var(--font-ui); transform: translate(130%,-50%); opacity: 0; pointer-events: none; transition: transform .18s ease, opacity .18s ease; }
+  .cap-client-next.is-swipe-revealed .cap-client-swipe-action { transform: translate(0,-50%); opacity: 1; pointer-events: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cap-client-next, .cap-client-swipe-action { transition: none !important; }
 }
 
 @media (max-width: 1100px) {

@@ -183,30 +183,41 @@ async function loadClientApp(account,session=captureClientTenantSession()){
   emptyClientCollections();
   window.SETTINGS=clientPublicSettings({},account.trainerName);
   const cid=account.clientId;
-  const [profileSnap,publicSnap,privateRows,sharedRows,forum]=await Promise.all([
+  const [profileSnap,publicSnap,privateRows]=await Promise.all([
     window._getDoc(window._doc(window._db,'clients',cid)),
     window._getDoc(window._doc(window._db,'trainerPublicProfiles',account.trainerId)),
-    Promise.all(CLIENT_PRIVATE_COLLECTIONS.map(name=>queryByClientId(name,cid,account,session))),
-    Promise.all(CLIENT_SHARED_COLLECTIONS.map(name=>queryByTrainerId(name,account.trainerId,account,session))),
-    queryClientForum(account,session)
+    Promise.all(CLIENT_PRIVATE_COLLECTIONS.map(name=>queryByClientId(name,cid,account,session)))
   ]);
   requireClientTenantSession(session);
   if(!profileSnap.exists()||profileSnap.id!==cid||profileSnap.data().trainerId!==account.trainerId)throw clientTenantError('client-profile-invalid');
   const publicData=publicSnap.exists()?publicSnap.data():{};
   if(publicSnap.exists()&&(publicSnap.id!==account.trainerId||publicData.trainerId!==account.trainerId))throw clientTenantError('client-public-profile-invalid');
+  const publicSettings=clientPublicSettings(publicData,account.trainerName);
+  const visible=publicSettings.clientApp.visibleSections||{};
+  // Plan i wskazówki techniczne są potrzebne zawsze. Opcjonalne biblioteki
+  // pobieramy wyłącznie, gdy trener udostępnił odpowiadający im ekran.
+  const clientSharedNames=CLIENT_SHARED_COLLECTIONS.filter(name=>
+    !['resources','odWorkouts','odPrograms'].includes(name)||
+    (name==='resources'?visible.resources!==false:visible.ondemand!==false)
+  );
+  const [sharedRows,forum]=await Promise.all([
+    Promise.all(clientSharedNames.map(name=>queryByTrainerId(name,account.trainerId,account,session))),
+    visible.forum===false?Promise.resolve({groups:[],posts:[],comments:[]}):queryClientForum(account,session)
+  ]);
+  requireClientTenantSession(session);
   const privateData=Object.fromEntries(CLIENT_PRIVATE_COLLECTIONS.map((name,i)=>[name,privateRows[i]]));
-  const sharedData=Object.fromEntries(CLIENT_SHARED_COLLECTIONS.map((name,i)=>[name,sharedRows[i]]));
+  const sharedData=Object.fromEntries(clientSharedNames.map((name,i)=>[name,sharedRows[i]]));
   // Publish one complete, current-account snapshot; late requests cannot restore a previous account.
   window.CL=[{...profileSnap.data(),id:profileSnap.id,_fbId:profileSnap.id}];
   Object.assign(window,{PL:privateData.plans,SE:privateData.sessions,TASKS:privateData.tasks,PACKAGES:privateData.packages,
     METRIC_ENTRIES:privateData.metricEntries,PROGRESS_PHOTOS:privateData.progressPhotos,OD_PROGRESS:privateData.odProgress,
     FORM_SENDS:privateData.formSends,EX:sharedData.exercises,METRIC_GROUPS:sharedData.metricGroups,COACH_VIDEOS:sharedData.coachVideos,
-    USER_RESOURCES:sharedData.resources,OD_WORKOUTS:sharedData.odWorkouts,OD_PROGRAMS:sharedData.odPrograms,
-    FORUM_GROUPS:forum.groups,FORUM_POSTS:forum.posts,SETTINGS:clientPublicSettings(publicData,account.trainerName)});
+    USER_RESOURCES:sharedData.resources||[],OD_WORKOUTS:sharedData.odWorkouts||[],OD_PROGRAMS:sharedData.odPrograms||[],
+    FORUM_GROUPS:forum.groups,FORUM_POSTS:forum.posts,SETTINGS:publicSettings});
   window.MSGS=window.MSGS||{};window.MSGS[cid]=privateData.messages.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   window.CHECKINS={[cid]:privateData.checkins.sort((a,b)=>(a.date||'').localeCompare(b.date||''))};
   indexForumComments(forum.comments);
-  sharedData.exerciseGifs.forEach(x=>{
+  (sharedData.exerciseGifs||[]).forEach(x=>{
     if(!x.gifUrl)return;
     const name=x.exerciseName||x.name||'';
     const key=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(name):String(name).toLowerCase().replace(/\s+/g,' ').trim();
@@ -342,7 +353,10 @@ function renderClientLive(){
   window._clientLiveScreen=scr;
   renderClientLiveNav(navScreens,moreScreens,scr);
   updateClientLiveNavBadges(c);
-  if(typeof capScreenHTML==='function'&&c)content.innerHTML=capScreenHTML(scr,c);
+  if(typeof capScreenHTML==='function'&&c){
+    content.innerHTML=capScreenHTML(scr,c);
+    if(typeof capBindTodaySwipe==='function')capBindTodaySwipe(content);
+  }
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
 }
 
@@ -354,15 +368,31 @@ function renderClientLiveNav(navScreens,moreScreens,scr){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s));
   const btn=(s,extra)=>{
     const on=s.id===scr;
-    return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
+    return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
   };
   const moreActive=moreScreens.some(s=>s.id===scr);
   const sheetOpen=sheet&&!sheet.hidden;
   nav.innerHTML=navScreens.map(s=>btn(s)).join('')+
-    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" onclick="toggleCliveMoreNav()"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
-  if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,"document.getElementById('clive-more-sheet').hidden=true;")).join('');
+    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" aria-haspopup="true" onclick="toggleCliveMoreNav()" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
+  if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,'closeCliveMoreNav();')).join('');
 }
 window.renderClientLiveNav=renderClientLiveNav;
+
+/** Strzałki umożliwiają przejście po dolnym pasku bez odbierania Enterowi roli akcji. */
+function moveClientLiveNav(event,current){
+  const keys=['ArrowLeft','ArrowRight','Home','End'];
+  if(!keys.includes(event.key))return;
+  const buttons=[...document.querySelectorAll('#clive-nav .clive-nav-btn')];
+  const index=buttons.indexOf(current);
+  if(index<0||!buttons.length)return;
+  let next=index;
+  if(event.key==='Home')next=0;
+  else if(event.key==='End')next=buttons.length-1;
+  else next=(index+(event.key==='ArrowLeft'?-1:1)+buttons.length)%buttons.length;
+  event.preventDefault();
+  buttons[next].focus();
+}
+window.moveClientLiveNav=moveClientLiveNav;
 
 function updateClientLiveNavBadges(c){
   const cid=c&&c.id;
@@ -400,11 +430,32 @@ function setClientLiveScreen(scr){
 function toggleCliveMoreNav(){
   const sheet=document.getElementById('clive-more-sheet');
   if(!sheet)return;
-  sheet.hidden=!sheet.hidden;
+  const opening=sheet.hidden;
+  sheet.hidden=!opening;
   const b=document.getElementById('clive-bn-more');
-  if(b)b.setAttribute('aria-expanded',sheet.hidden?'false':'true');
+  if(b)b.setAttribute('aria-expanded',opening?'true':'false');
+  if(opening){
+    const first=sheet.querySelector('button');
+    if(first)first.focus();
+  }
 }
 window.toggleCliveMoreNav=toggleCliveMoreNav;
+function closeCliveMoreNav(returnFocus){
+  const sheet=document.getElementById('clive-more-sheet');
+  const b=document.getElementById('clive-bn-more');
+  if(!sheet||sheet.hidden)return;
+  sheet.hidden=true;
+  if(b)b.setAttribute('aria-expanded','false');
+  if(returnFocus&&b)b.focus();
+}
+window.closeCliveMoreNav=closeCliveMoreNav;
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeCliveMoreNav(true);
+});
+document.addEventListener('click',event=>{
+  const target=event.target;
+  if(target&&target.closest&&!target.closest('#clive-more-sheet,#clive-bn-more'))closeCliveMoreNav(false);
+});
 
 function capGoScreen(scr){
   if(window._clientAppMode){setClientLiveScreen(scr);return;}
@@ -540,6 +591,10 @@ function authShowLoginFromClient(){
   if(reg)reg.style.display='none';
   if(reset)reset.style.display='none';
   if(login)login.style.display='block';
+  const hint=document.getElementById('auth-role-hint');
+  if(hint)hint.textContent='Aplikacja klienta — zaloguj się i od razu zobacz swój trening';
+  const button=document.getElementById('auth-login-btn');
+  if(button)button.textContent='Wejdź do swojej aplikacji';
 }
 
 function authSetError(id,msg){
@@ -1522,12 +1577,12 @@ function cwRender(){
   const cw=window._cw;
   if(!el||!cw)return;
   const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e60000';
-  const back=`<button type="button" class="btn btn-ghost btn-sm" onclick="cwClose()">✕</button>`;
+  const back=`<button type="button" class="btn btn-ghost btn-sm" aria-label="Zapisz trening do wznowienia i zamknij" onclick="cwClose()">✕</button>`;
   if(cw.phase==='overview'){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cw.exercises.length} ćwiczeń · serie zapisują się po zatwierdzeniu</div>
-      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
+      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}</div>
@@ -1540,7 +1595,7 @@ function cwRender(){
     const emom=cw.restKind==='emom';
     el.innerHTML=`<div class="cw-rest">
       <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${emom?'EMOM — czekaj na minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
-      <div class="cw-rest-num" id="cw-rest-num">${cw.restLeft}</div>
+      <div class="cw-rest-num" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy: ${cw.restLeft} sekund">${cw.restLeft}</div>
       <div style="font-size:13px;color:var(--muted);">${emom?'Następna runda':'Następna seria'} · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
       <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
     </div>`;
@@ -1566,10 +1621,10 @@ function cwRender(){
       </div>
       <div style="font-size:13px;margin-bottom:10px;text-align:center;">Trudność treningu (opcjonalnie)</div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px;">
-        ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" onclick="cwRate(${n})">${n}</button>`).join('')}
+        ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" aria-label="Trudność treningu: ${n} na 10" aria-pressed="${cw.rating===n?'true':'false'}" onclick="cwRate(${n})">${n}</button>`).join('')}
       </div>
       <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">${cw.rating?cw.rating+'/10':'Bez oceny'}</div>
-      <textarea class="form-textarea" rows="3" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
+      <textarea class="form-textarea" rows="3" aria-label="Komentarz dla trenera, opcjonalnie" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
       <button type="button" class="cap-btn-primary" style="margin-top:16px;padding:16px;" onclick="cwFinish()">Zapisz i wyślij do trenera</button>`;
     return;
   }
@@ -1580,7 +1635,7 @@ function cwRender(){
   const emomWait=emomOn&&typeof emomRestSec==='function'?emomRestSec(doneSets+1,cwEmomElapsed()):0;
   el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       ${back}
-      <div id="cw-clock" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
+      <div id="cw-clock" role="timer" aria-label="Czas treningu" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}${emomOn?' · EMOM runda '+(doneSets+1)+'/'+ex.sets.length:''}</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
@@ -1607,16 +1662,16 @@ function cwRender(){
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
-    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
+    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
     <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
       <div>#</div><div>${typeof loadUnitShortLabel==='function'?loadUnitShortLabel(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):(typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='min'?'Min':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg')}</div><div>Powt.</div><div title="Powtórzenia w zapasie">RIR</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
       <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}${s.kind&&s.kind!=='work'?`<div class="cw-set-kind ${s.kind}">${escHtml((typeof setKindBadge==='function'&&setKindBadge(s.kind))||s.kind)}</div>`:''}</div>
-      <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="decimal" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" ${s.done?'disabled':''} placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" oninput="cwPatchSet(${i},'rir',this.value)" class="${s.done?'cw-set-done':''}" title="RIR">
-      <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
+      <input type="number" inputmode="decimal" aria-label="Seria ${s.setNo}: ciężar" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="numeric" aria-label="Seria ${s.setNo}: powtórzenia" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="decimal" aria-label="Seria ${s.setNo}: RIR" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" ${s.done?'disabled':''} placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" oninput="cwPatchSet(${i},'rir',this.value)" class="${s.done?'cw-set-done':''}" title="RIR">
+      <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" aria-label="${s.done?'Cofnij zatwierdzenie serii':'Zatwierdź serię'} ${s.setNo}" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
     </div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:18px;">
       ${cw.exIdx>0?`<button type="button" class="btn btn-ghost" onclick="cwPrevEx()">←</button>`:''}

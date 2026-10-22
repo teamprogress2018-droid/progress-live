@@ -315,13 +315,13 @@
         <div class="form-field"><label class="form-lbl">Dla kogo tworzysz plan?</label><select class="form-select" id="mpw-entry-client">${manualPlanClientOptions(selected)}</select></div>
         <div style="font-size:12px;color:var(--muted);line-height:1.55;margin:4px 0 14px;">Najpierw ustalimy decyzje programowe, a potem przejdziesz do obecnego, szczegółowego edytora ćwiczeń.</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;">
-          <button type="button" class="card" style="text-align:left;cursor:pointer;padding:16px;border-color:var(--accent);" onclick="manualPlanStart('guided')">
-            <div style="font-weight:800;font-size:15px;margin-bottom:6px;">A. Kreator prowadzony</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.55;">Krok po kroku, krótkie wyjaśnienia „Dlaczego?” i kontrola podstawowych decyzji.</div>
+          <button type="button" class="card" style="text-align:left;cursor:pointer;padding:16px;border-color:var(--accent);" onclick="manualPlanStart('guided')" aria-label="Tryb Amator — kreator prowadzony krok po kroku">
+            <div style="font-weight:800;font-size:15px;margin-bottom:6px;">A. Tryb Amator</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.55;">Prowadzony krok po kroku, z krótkim „Dlaczego?” przy podstawowych decyzjach.</div>
           </button>
-          <button type="button" class="card" style="text-align:left;cursor:pointer;padding:16px;" onclick="manualPlanStart('advanced')">
-            <div style="font-weight:800;font-size:15px;margin-bottom:6px;">B. Tryb zaawansowany</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.55;">Najważniejsze ustawienia w jednym widoku. Możesz pominąć etap i dopracować go później.</div>
+          <button type="button" class="card" style="text-align:left;cursor:pointer;padding:16px;" onclick="manualPlanStart('advanced')" aria-label="Tryb Zawodowiec — pełne ustawienia programu w jednym widoku">
+            <div style="font-weight:800;font-size:15px;margin-bottom:6px;">B. Tryb Zawodowiec</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.55;">Pełne ustawienia programu w jednym widoku. Możesz pominąć etap i dopracować go później.</div>
           </button>
         </div>
       </div>
@@ -488,7 +488,7 @@
     const labels=['Cel','Priorytet','Tydzień','Metoda','Progresja','Ćwiczenia','Gotowe'];
     const current=mode==='advanced'?7:step;
     const milestones=mode==='advanced'?'Ustawienia programu':labels.map((label,index)=>`<span class="${index+1===current?'is-current':index+1<current?'is-done':''}">${index+1<current?'✓ ':''}${label}</span>`).join('<i>→</i>');
-    return `<div class="manual-plan-progress"><div class="manual-plan-progress-top"><span>KROK ${current}/${mode==='advanced'?7:labels.length} — ${mode==='advanced'?'Ustawienia programu':labels[current-1]}</span><span>${mode==='advanced'?'Tryb zaawansowany':'Asystent krok po kroku'}</span></div><div class="manual-plan-progress-line"><div style="width:${Math.round(current/(mode==='advanced'?7:labels.length)*100)}%;"></div></div><div class="manual-plan-progress-labels">${milestones}</div></div>`;
+    return `<div class="manual-plan-progress"><div class="manual-plan-progress-top"><span>KROK ${current}/${mode==='advanced'?7:labels.length} — ${mode==='advanced'?'Ustawienia programu':labels[current-1]}</span><span>${mode==='advanced'?'Tryb Zawodowiec':'Tryb Amator · krok po kroku'}</span></div><div class="manual-plan-progress-line"><div style="width:${Math.round(current/(mode==='advanced'?7:labels.length)*100)}%;"></div></div><div class="manual-plan-progress-labels">${milestones}</div></div>`;
   }
 
   function manualPlanRenderWizard(){
@@ -498,7 +498,7 @@
     const step=state.step||1;
     let content='';
     if(advanced){
-      content=`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;">Ustaw podstawy programu w jednym widoku. Każdy parametr możesz zmienić później.</div>${manualPlanProfileFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanPrioritiesFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanStructureFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanPeriodFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanProgressionFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanIntensityFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanMethodsFields(meta)}`;
+      content=`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;">Tryb Zawodowiec: ustaw podstawy programu w jednym widoku. Każdy parametr możesz zmienić później.</div>${manualPlanProfileFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanPrioritiesFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanStructureFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanPeriodFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanProgressionFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanIntensityFields(meta)}<hr style="border:0;border-top:1px solid var(--border);margin:16px 0;">${manualPlanMethodsFields(meta)}`;
     }else if(step===1){
       content=manualPlanGoalFields(meta);
     }else if(step===2){content=manualPlanPrioritiesFields(meta);}
@@ -511,7 +511,7 @@
       ?`<button class="btn btn-ghost" onclick="closeM('m-manual-plan-wizard')">Anuluj</button><button class="btn btn-primary" onclick="manualPlanOpenBuilder()">Przejdź do budowania jednostek</button>`
       :`<button class="btn btn-ghost" ${step===1?'disabled':''} onclick="manualPlanWizardBack()">Wstecz</button><button class="btn btn-primary" onclick="manualPlanWizardNext()">${step===7?'Przejdź do ćwiczeń':step===6?'Podsumowanie':'Dalej'}</button>`;
     const modal=manualPlanEnsureModal('m-manual-plan-wizard');
-    modal.innerHTML=`<div class="modal" style="max-width:900px;max-height:88vh;display:flex;flex-direction:column;"><div class="modal-hdr"><div class="modal-title">PLAN RĘCZNY — ${advanced?'USTAWIENIA PROGRAMU':'KREATOR'}</div><button class="modal-close" onclick="closeM('m-manual-plan-wizard')">×</button></div><div class="modal-body" style="overflow:auto;">${manualPlanProgress(meta.mode,step)}${advanced?'':manualPlanWizardCoach(step,meta)}${content}</div><div class="modal-footer">${footer}</div></div>`;
+    modal.innerHTML=`<div class="modal" style="max-width:900px;max-height:88vh;display:flex;flex-direction:column;"><div class="modal-hdr"><div class="modal-title">PLAN RĘCZNY — ${advanced?'ZAWODOWIEC':'AMATOR'}</div><button class="modal-close" onclick="closeM('m-manual-plan-wizard')">×</button></div><div class="modal-body" style="overflow:auto;">${manualPlanProgress(meta.mode,step)}${advanced?'':manualPlanWizardCoach(step,meta)}${content}</div><div class="modal-footer">${footer}</div></div>`;
     if(typeof openM==='function')openM('m-manual-plan-wizard');
   }
 

@@ -452,15 +452,42 @@ function syncMobileMenuBtn(open){
   btn.setAttribute('aria-label',open?'Zamknij menu':'Otwórz menu');
 }
 function toggleMobileSidebar(){
-  const open=document.querySelector('.sidebar').classList.toggle('mobile-open');
-  document.getElementById('mobile-sidebar-backdrop').classList.toggle('show',open);
+  const sidebar=document.getElementById('app-sidebar')||document.querySelector('.sidebar');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(!sidebar||!backdrop)return;
+  const open=!sidebar.classList.contains('mobile-open');
+  sidebar.classList.toggle('mobile-open',open);
+  backdrop.classList.toggle('show',open);
+  document.body.classList.toggle('mobile-menu-open',open);
   syncMobileMenuBtn(open);
 }
 function closeMobileSidebar(){
-  document.querySelector('.sidebar').classList.remove('mobile-open');
-  document.getElementById('mobile-sidebar-backdrop').classList.remove('show');
+  const sidebar=document.getElementById('app-sidebar')||document.querySelector('.sidebar');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(sidebar)sidebar.classList.remove('mobile-open');
+  if(backdrop)backdrop.classList.remove('show');
+  document.body.classList.remove('mobile-menu-open');
   syncMobileMenuBtn(false);
 }
+function bindMobileSidebarControls(){
+  const button=document.getElementById('mobile-menu-btn');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(button&&!button.dataset.boundMobileMenu){
+    button.dataset.boundMobileMenu='1';
+    button.addEventListener('click',toggleMobileSidebar);
+  }
+  if(backdrop&&!backdrop.dataset.boundMobileMenu){
+    backdrop.dataset.boundMobileMenu='1';
+    backdrop.addEventListener('click',closeMobileSidebar);
+  }
+}
+bindMobileSidebarControls();
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeMobileSidebar();
+});
+window.addEventListener('resize',()=>{
+  if(!window.matchMedia('(max-width: 860px)').matches)closeMobileSidebar();
+});
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
 
 function goTo(n){
@@ -510,6 +537,15 @@ function goTo(n){
   if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();
   try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
 }
+function openLiveFromMobile(){
+  closeMobileSidebar();
+  goTo('live');
+  // Po wejściu z małego ekranu pierwszy krok jest od razu dostępny z klawiatury.
+  if(window.matchMedia('(max-width: 860px)').matches&&!document.getElementById('live-client-sel')?.value){
+    setTimeout(()=>document.getElementById('live-client-sel-search')?.focus({preventScroll:true}),0);
+  }
+}
+window.openLiveFromMobile=openLiveFromMobile;
 function goToHomeworkQueue(){
   goTo('tasks');
   if(typeof setTaskFilter==='function')setTaskFilter('homework');
@@ -1119,9 +1155,40 @@ function normalizeCoachVideoUrl(raw){
 }
 window.normalizeCoachVideoUrl=normalizeCoachVideoUrl;
 
+/** Linki z Dysku Google nie kończą się na .mp4, mimo że wskazują na film. */
+function googleDriveFileId(url){
+  const raw=String(url||'').trim();
+  if(!raw)return '';
+  let parsed;
+  try{parsed=new URL(raw);}catch(e){return '';}
+  const host=String(parsed.hostname||'').toLowerCase();
+  if(!/(^|\.)drive\.google\.com$/.test(host))return '';
+  const fromPath=(parsed.pathname||'').match(/\/file\/d\/([A-Za-z0-9_-]{10,})/i);
+  const id=(fromPath&&fromPath[1])||parsed.searchParams.get('id')||'';
+  return /^[A-Za-z0-9_-]{10,}$/.test(id)?id:'';
+}
+window.googleDriveFileId=googleDriveFileId;
+function isGoogleDriveMediaUrl(url){return !!googleDriveFileId(url);}
+window.isGoogleDriveMediaUrl=isGoogleDriveMediaUrl;
+/** #pl-preview oznacza jasny materiał do karty; zwykły link Drive jest techniką na żądanie. */
+function googleDriveMediaRole(url){return /(?:[?#&]pl-preview(?:[=&]|$)|[?#&]pl-media=preview(?:[&#]|$))/i.test(String(url||''))?'preview':'technique';}
+window.googleDriveMediaRole=googleDriveMediaRole;
+function googleDrivePreviewUrl(url){
+  const id=googleDriveFileId(url);
+  return id?'https://drive.google.com/file/d/'+id+'/preview':'';
+}
+window.googleDrivePreviewUrl=googleDrivePreviewUrl;
+function googleDriveThumbnailUrl(url,size){
+  const id=googleDriveFileId(url);
+  return id?'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w'+Math.max(160,Math.min(Number(size)||480,1200)):'';
+}
+window.googleDriveThumbnailUrl=googleDriveThumbnailUrl;
+
 function coachVideoEmbed(url){
   const u=normalizeCoachVideoUrl(url);
   if(!u)return '';
+  const drivePreview=googleDrivePreviewUrl(u);
+  if(drivePreview)return drivePreview;
   let id='';
   let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
   if(m)id=m[1];
@@ -1402,6 +1469,22 @@ function matchFilenameToExercise(filename,exercises){
   return scored[0].name;
 }
 window.matchFilenameToExercise=matchFilenameToExercise;
+
+/* The importer must never silently choose between similarly named exercises.
+   Keep the candidates and an explainable confidence for the review screen. */
+function matchFilenameToExerciseDetailed(filename,exercises){
+  const parsed=parseExerciseMediaFilename(filename);
+  const list=exercises||window.DEF_EX||[];
+  if(!parsed||parsed.junk)return {name:'',confidence:'blocked',score:0,candidates:[],reason:'Nazwa pliku nie opisuje ćwiczenia'};
+  const candidates=list.map(ex=>({name:ex.name,score:scoreFilenameAgainstExercise(parsed,ex)}))
+    .filter(x=>x.score>=80).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'pl')).slice(0,5);
+  if(!candidates.length)return {name:'',confidence:'unmatched',score:0,candidates:[],reason:'Brak pewnego dopasowania'};
+  const top=candidates[0], next=candidates[1];
+  const ambiguous=!!(next&&top.score-next.score<12&&next.score>=90);
+  const confidence=ambiguous?'conflict':top.score>=200?'high':top.score>=135?'medium':'low';
+  return {name:ambiguous?'':top.name,confidence,score:top.score,candidates,reason:ambiguous?'Dwa podobne dopasowania — wybierz ręcznie':''};
+}
+window.matchFilenameToExerciseDetailed=matchFilenameToExerciseDetailed;
 
 /** Pliki, których treść (klatki) nie zgadza się z etykietą. Matcher ich nie przypisuje. */
 const EX_MEDIA_FILENAME_LIES={
@@ -1753,11 +1836,15 @@ const EX_MEDIA_FILE_ALIASES={
   'Krzyżowanie wyciągów dół–góra':{include:[/cable crossover/i],exclude:[/reverse/i,/single[- ]arm/i,/high pulley/i,/krzesełko/i],prefer:[/wyciąg górny, stojąc/i,/standing\) \(cable crossover\)/i]},
   'Rozpiętki na wyciągu w poziomie':{include:[/cable crossover fly \(middle chest\)/i]},
   'Rozpiętki jednorącz wyciąg':{include:[/single[- ]arm low cable fly/i,/single[- ]arm cable fly/i],exclude:[/lateral raise/i]},
-  'Pompki':{include:[/push[- ]?ups?/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i]},
-  'Pompki diamentowe':{include:[/diamond push[- ]?up/i],exclude:[/knee/i,/kolan/i]},
+  'Pompki':{include:[/push[- ]?ups?/i,/^pompka(?:\s|\.|$)/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i,/pliometrycz/i,/klaśni/i]},
+  'Pompki hindu':{include:[/hindu push[- ]?ups?/i,/zmodyfikowana pompka hinduska/i],exclude:[/wall/i,/kolan/i,/knee/i]},
+  'Pompki diamentowe':{include:[/diamond push[- ]?up/i,/pompka diamentowa/i],exclude:[/knee/i,/kolan/i]},
   'Pompki na hantlach':{include:[/dumbbell push[- ]?ups?/i]},
-  'Pompki na kolanach':{include:[/knee push[- ]?up/i,/kneeling push[- ]?up/i],exclude:[/incorrect/i,/błędn/i]},
-  'Dipy na poręczach':{include:[/parallel bar dips/i],exclude:[/bench dip/i,/ławc/i]},
+  'Pompki na kolanach':{include:[/knee push[- ]?up/i,/kneeling push[- ]?up/i,/pompki? na kolanach/i],exclude:[/incorrect/i,/błędn/i]},
+  'Pompki plyometryczne':{include:[/plyo(?:metric)? push[- ]?up/i,/pompk[ai] pli?ometryczn/i,/pompka z klaśnięciem/i],exclude:[/pike/i,/nogami na podwyższeniu/i]},
+  'Pompki z nogami na podwyższeniu':{include:[/feet elevated push[- ]?up/i,/pompka z nogami na podwyższeniu/i],exclude:[/plyo/i,/pliometrycz/i,/klaśni/i]},
+  'Unoszenie barków na maszynie':{include:[/machine shrug/i,/shrugs? na maszynie/i,/szrugsy na maszynie/i],exclude:[/suwnic/i,/smith/i,/hantl/i,/dumbbell/i,/sztang/i,/barbell/i]},
+  'Dipy na poręczach':{include:[/parallel bar dips/i,/dips na poręczach/i],exclude:[/bench dip/i,/ławc/i]},
   'Dipy na ławce':{include:[/bench dips?/i],exclude:[/parallel bar/i,/incline/i]},
   'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/odwrotn/i,/rear delt/i,/pulldown/i,/lat pulldown/i,/cable/i,/lunge/i]},
   'Wyciskanie wąskim chwytem':{include:[/close[- ]?grip barbell bench press/i,/narrow grip (barbell )?bench press/i]},
@@ -1777,6 +1864,7 @@ const EX_MEDIA_FILE_ALIASES={
   'Wiosłowanie hantlem':{include:[/one[- ]arm dumbbell row/i,/single[- ]arm dumbbell row/i],exclude:[/bent[- ]over row\)/i]},
   'Wiosłowanie hantlami oburącz':{include:[/dumbbell bent[- ]over row/i],exclude:[/one[- ]arm/i,/single[- ]arm/i,/rear delt/i,/jednor[aą]cz/i]},
   'Wiosłowanie wyciągiem siedząc':{include:[/seated cable row/i],exclude:[/machine/i,/maszynie/i,/single/i,/jednor/i]},
+  'Wiosłowanie z taśmą siedząc':{include:[/seated band row/i,/wiosłowanie siedząc z gumą oporową/i],exclude:[/cable/i,/wyciąg/i,/machine/i,/maszyn/i]},
   'Wiosłowanie na maszynie':{include:[/seated cable row \(machine/i,/cable row machine/i,/machine row/i]},
   'Wiosłowanie odwrócone':{include:[/inverted row/i,/australian pull[- ]?up/i]},
   'Wiosłowanie T-bar':{include:[/t[- ]?bar row/i],exclude:[/landmine/i,/meadows/i]},
@@ -1785,7 +1873,7 @@ const EX_MEDIA_FILE_ALIASES={
   'Odwrotne rozpiętki maszyna':{include:[/reverse pec deck/i,/rear delt machine fly/i],exclude:[/pulldown/i,/wiosł/i,/row/i,/tricep/i]},
   'Odwrotne rozpiętki na wyciągu':{include:[/cable rear delt fly/i],exclude:[/face pull/i,/row/i,/wiosł/i]},
   'Unoszenie bokiem w opadzie':{include:[/dumbbell bent[- ]over (lateral raise|rear delt fly)/i],exclude:[/cable/i]},
-  'Unoszenie bokiem':{include:[/dumbbell lateral raise/i],exclude:[/bent[- ]over/i,/opadzie/i,/seated/i,/siadzie/i,/barbell/i,/sztang/i],prefer:[/w staniu/i,/standing/i]},
+  'Unoszenie bokiem':{include:[/dumbbell lateral raise/i,/\bwznosy bokiem\b/i],exclude:[/bent[- ]over/i,/opadzie/i,/seated/i,/siadzie/i,/barbell/i,/sztang/i,/gum[aą]/i,/band/i],prefer:[/w staniu/i,/standing/i]},
   'Unoszenie bokiem na wyciągu jednorącz':{include:[/cable lateral raise \(low pulley\)/i,/single[- ]arm cable lateral/i],exclude:[/bent[- ]over/i,/opadzie/i,/rear delt/i]},
   'Wyciskanie hantli siedząc':{include:[/seated dumbbell (shoulder|overhead) press/i],exclude:[/single[- ]arm/i,/jednostronn/i,/jednor[aą]cz/i,/incline/i,/arnold/i,/sko[sś]n/i]},
   'Wyciskanie barków maszyna':{include:[/machine shoulder press/i],exclude:[/tricep/i,/francusk/i,/extension/i]},
@@ -1820,6 +1908,8 @@ const EX_MEDIA_FILE_ALIASES={
   'Wyciskanie nogami jednonóż':{include:[/single[- ]leg press/i]},
   'Wykrok z hantlami':{include:[/dumbbell lunge/i],exclude:[/barbell/i,/step[- ]up/i,/bulgarian/i,/walking/i,/chód/i]},
   'Wykrok chodzony':{include:[/walking lunge/i]},
+  'Wykrok boczny':{include:[/lateral lunge/i,/wykrok w bok/i],exclude:[/hantl/i,/dumbbell/i,/piłk/i,/medicine ball/i,/siekaniem/i,/wyciskaniem/i,/sprinter/i]},
+  'Wypady z wyskokiem naprzemiennie':{include:[/alternating (leg )?split squat jumps?/i,/wykroki z wyskokiem naprzemiennie/i],exclude:[/hantl/i,/dumbbell/i,/band/i,/gum[aą]/i]},
   'Wykrok ze sztangą':{include:[/barbell lunge/i],exclude:[/dumbbell/i,/hantl/i]},
   'Przysiad z piętami na podwyższeniu':{include:[/heel elevat/i],exclude:[/mini ?band/i,/sumo/i,/bulgarian/i,/bułgarsk/i]},
   'Przysiad goblet na podwyższeniu pięt':{include:[/heel elevat/i],exclude:[/mini ?band/i,/sumo/i,/bulgarian/i,/bułgarsk/i]},
@@ -1833,13 +1923,15 @@ const EX_MEDIA_FILE_ALIASES={
   'Wspięcia na palce':{include:[/machine calf raise/i,/calf raise.*maszyn/i],exclude:[/seated/i,/siad/i,/dumbbell/i,/hantl/i,/leg press/i,/suwnic/i,/band/i]},
   'Wspięcia na palce stojąc':{include:[/standing calf raise/i],exclude:[/dumbbell/i,/hantl/i,/band/i,/gum[aą]/i,/ankle/i,/dorsiflexion/i,/mobility/i,/plantar/i,/seated/i,/single[- ]leg/i,/jednon[oó]ż/i],prefer:[/na stopniu/i,/on step/i,/obie nogi/i]},
   'Wspięcia na palce hantlami':{include:[/standing dumbbell calf raise/i,/dumbbell calf raise/i],exclude:[/single[- ]leg/i,/jednon[oó]ż/i,/band/i,/gum[aą]/i]},
+  'Wspięcia na palce jednonóż':{include:[/single[- ]leg calf raise/i,/wspięcia na palce na jednej nodze/i],exclude:[/dumbbell/i,/hantl/i,/band/i,/gum[aą]/i]},
   'Wspięcia na palce siedząc':{include:[/seated calf raise/i],exclude:[/standing/i,/stoj/i]},
   'Abdukcja biodra maszyna':{include:[/hip abduction machine/i],exclude:[/lying/i,/leż/i,/kickback/i,/przywod/i,/adduction/i],prefer:[/seated/i,/siadzie/i]},
   'Przywodzenie biodra maszyna':{include:[/przywodzenie n[oó]g na maszynie/i,/seated hip adduction/i],exclude:[/odwodzen/i,/abduction/i,/standing/i,/ta[sś]m/i,/band/i]},
-  'Odwodzenie biodra leżąc':{include:[/side[- ]lying hip abduction/i],exclude:[/machine/i,/maszyn/i,/prone/i,/brzuchu/i]},
+  'Odwodzenie biodra leżąc':{include:[/side[- ]lying hip abduction/i,/unoszenie nogi leżąc na boku/i],exclude:[/machine/i,/maszyn/i,/prone/i,/brzuchu/i]},
+  'Fire hydrant':{include:[/fire hydrant/i,/unoszenie nogi bokiem w klęku podpartym/i],exclude:[/band/i,/gum[aą]/i]},
   'Kickback na maszynie':{include:[/machine glute kickback/i,/kickback na maszynie/i],exclude:[/cable glute/i,/na wyci[aą]gu/i,/prone/i,/le[zż]eniu/i,/donkey/i]},
   'Kickback pośladki':{include:[/cable glute kickback/i],exclude:[/tricep/i,/donkey/i,/prone/i,/le[zż]eniu/i,/machine glute kickback/i,/kickback na maszynie/i]},
-  'Mostek biodrowy':{include:[/glute bridge/i],exclude:[/hip thrust/i,/mini band/i,/aktywacja/i,/kas/i]},
+  'Mostek biodrowy':{include:[/glute bridge/i,/unoszenie bioder z masą ciała/i],exclude:[/hip thrust/i,/mini band/i,/aktywacja/i,/kas/i]},
   'Wypychanie bioder (hip thrust)':{include:[/hip thrust/i],exclude:[/glute bridge/i,/jednon[oó][zż]/i,/single[- ]leg/i,/machine/i,/maszynie/i,/banded/i,/ta[sś]m/i,/b[- ]?stance/i,/kas/i,/feet[- ]elevat/i]},
   'Rollout z kółkiem':{include:[/ab wheel rollout/i],prefer:[/kneeling/i,/z kolan/i]},
   'Nożyce':{include:[/scissor kicks/i],exclude:[/flutter/i]},
@@ -1903,13 +1995,20 @@ function mediaMapGet(map,name){
   return '';
 }
 
+const _mediaOwnershipCheckCache=new Map();
 function mediaUrlLooksAssignedToOtherExercise(url,name){
   if(!url||!name||typeof matchFilenameToExercise!=='function')return false;
+  const key=String(url)+'\u001f'+exerciseMediaKey(name);
+  if(_mediaOwnershipCheckCache.has(key))return _mediaOwnershipCheckCache.get(key);
   const mapped=matchFilenameToExercise(url,(typeof allExercises==='function'?allExercises():null)||window.DEF_EX||[]);
-  if(!mapped)return false;
-  return exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+  const other=!!mapped&&exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+  // Ograniczenie pamięci dla długiej pracy trenera z importami wielu plików.
+  if(_mediaOwnershipCheckCache.size>4000)_mediaOwnershipCheckCache.clear();
+  _mediaOwnershipCheckCache.set(key,other);
+  return other;
 }
 window.mediaUrlLooksAssignedToOtherExercise=mediaUrlLooksAssignedToOtherExercise;
+window.invalidateMediaOwnershipCheckCache=()=>_mediaOwnershipCheckCache.clear();
 
 function normalizeRemoteExerciseMediaUrl(url){
   const u=String(url||'').trim();
@@ -1958,11 +2057,20 @@ function assignedExVideoUrl(exOrName){
   const asVid=(u,normalize)=>{
     if(!u)return '';
     const n=normalize?normalizeRemoteExerciseMediaUrl(u):String(u||'').trim();
-    return (n&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n))?n:'';
+    const isFile=typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n);
+    const isDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(n);
+    return n&&(isFile||isDrive)?n:'';
   };
   for(const name of names){
     const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
     if(remoteVid&&!mediaUrlLooksAssignedToOtherExercise(remoteVid,name))return remoteVid;
+  }
+  // Materiały Premium z publicznej biblioteki Dysku są celowo osobne od
+  // jasnych podglądów kart. Dzięki temu karta pozostaje lekka i czytelna,
+  // a pełny materiał biomechaniczny jest dostępny dopiero po wejściu w technikę.
+  for(const name of names){
+    const driveVid=asVid(mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name),false);
+    if(driveVid&&!mediaUrlLooksAssignedToOtherExercise(driveVid,name))return driveVid;
   }
   for(const name of names){
     const localVid=asVid(mediaMapGet(window.EX_GIF_MANIFEST,name),false);
@@ -1976,6 +2084,29 @@ function exPhotoMapLookup(name){
   return mediaMapGet(window.EX_PHOTO_MANIFEST,name);
 }
 window.exPhotoMapLookup=exPhotoMapLookup;
+
+/** Jasny podgląd karty jest niezależny od filmu techniki. */
+function assignedExPreviewUrl(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  // Import trenera ma pierwszeństwo, potem używamy jasnego materiału z
+  // biblioteki Drive. Stary obraz zapisany w rekordzie ćwiczenia to wyłącznie
+  // bezpieczny fallback — nie może przykrywać nowego podglądu karty.
+  const previewMaps=[window.EX_PREVIEW_REMOTE,window.EX_DRIVE_PREVIEW_MANIFEST,window.EX_PREVIEW_FALLBACKS];
+  for(const name of exerciseMediaCandidateNames(ex||exOrName)){
+    for(const previewMap of previewMaps){
+      const remote=mediaMapGet(previewMap,name);
+      const url=normalizeRemoteExerciseMediaUrl(remote);
+      if(url&&isSafeMediaUrl(url))return url;
+    }
+  }
+  if(ex&&typeof ex==='object'){
+    const own=String(ex.previewUrl||ex.preview||ex.cardImage||'').trim();
+    if(own&&isSafeMediaUrl(own))return own;
+  }
+  return '';
+}
+window.assignedExPreviewUrl=assignedExPreviewUrl;
 
 /** Placeholdery SVG z assets/ex/*.svg nie są prawdziwymi zdjęciami techniki. */
 function isDecorativeExAsset(url){
@@ -2033,17 +2164,32 @@ function exGifUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   if(ex&&typeof ex==='object'){
-    const gif=String(ex.gif||'').trim();
-    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
-    const img=String(ex.img||ex.thumb||ex.image||'').trim();
-    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
+    // Nowa biblioteka techniki jest ważniejsza niż historyczne linki w
+    // rekordach startowych. Ręcznie importowane linki nadal wygrywają.
+    for(const name of exerciseMediaCandidateNames(ex)){
+      const remote=normalizeRemoteExerciseMediaUrl(mediaMapGet(window.EX_GIF_REMOTE,name));
+      if(remote&&isSafeMediaUrl(remote)&&!mediaUrlLooksAssignedToOtherExercise(remote,name))return remote;
+    }
+    for(const name of exerciseMediaCandidateNames(ex)){
+      const drive=mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name);
+      if(drive&&isSafeMediaUrl(drive)&&!mediaUrlLooksAssignedToOtherExercise(drive,name))return drive;
+    }
     for(const name of exerciseMediaCandidateNames(ex)){
       const mapped=exGifMapLookup(name);
       if(mapped)return mapped;
     }
+    const gif=String(ex.gif||'').trim();
+    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
+    const img=String(ex.img||ex.thumb||ex.image||'').trim();
+    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
     return '';
   }
-  return exGifMapLookup(typeof exOrName==='string'?exOrName:'');
+  const name=typeof exOrName==='string'?exOrName:'';
+  const remote=normalizeRemoteExerciseMediaUrl(mediaMapGet(window.EX_GIF_REMOTE,name));
+  if(remote&&isSafeMediaUrl(remote)&&!mediaUrlLooksAssignedToOtherExercise(remote,name))return remote;
+  const drive=mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name);
+  if(drive&&isSafeMediaUrl(drive)&&!mediaUrlLooksAssignedToOtherExercise(drive,name))return drive;
+  return exGifMapLookup(name);
 }
 window.exGifUrl=exGifUrl;
 
@@ -2051,8 +2197,20 @@ window.exGifUrl=exGifUrl;
 function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(ex||exOrName):'';
+  const previewDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(preview);
+  if(previewDrive&&typeof googleDriveThumbnailUrl==='function')return googleDriveThumbnailUrl(preview,480);
+  if(preview&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(preview):/\.(mp4|webm)(\?|#|$)/i.test(preview)))return preview;
+  // Materiał z Drive w roli „technika” pozostaje oddzielony od jasnego podglądu.
+  // Własne GIF-y z Firebase są natomiast poprawnym podglądem karty: <img>
+  // ładuje je leniwie, więc nie uruchamiamy całej biblioteki jednocześnie.
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
-  if(gif&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
+  const drive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif);
+  if(drive){
+    const role=typeof googleDriveMediaRole==='function'?googleDriveMediaRole(gif):'technique';
+    return role==='preview'&&typeof googleDriveThumbnailUrl==='function'?googleDriveThumbnailUrl(gif,480):'';
+  }
+  if(gif&&!drive&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;
@@ -2126,6 +2284,30 @@ function ownVideoForExercise(name){
 }
 window.ownVideoForExercise=ownVideoForExercise;
 
+/** Publiczny link YouTube przypisany ręcznie do ćwiczenia.
+ * Trzymamy go osobno od MP4/GIF, aby nie obciążał kart biblioteki. */
+function assignedExYoutubeUrl(exOrName){
+  const names=exerciseMediaCandidateNames(exOrName);
+  for(const name of names){
+    const url=normalizeCoachVideoUrl(mediaMapGet(window.EX_YOUTUBE_REMOTE,name));
+    if(youtubeIdFromUrl(url))return url;
+  }
+  const ex=typeof exOrName==='string'?libExerciseByName(exOrName):exOrName;
+  const direct=normalizeCoachVideoUrl(ex&&typeof ex==='object'?(ex.youtubeUrl||ex.youtube||''):'');
+  if(youtubeIdFromUrl(direct))return direct;
+  const own=ownVideoForExercise((ex&&ex.name)||exOrName||'');
+  return youtubeIdFromUrl(own)?own:'';
+}
+window.assignedExYoutubeUrl=assignedExYoutubeUrl;
+
+/** Bezpieczny fallback, gdy konkretny materiał nie został jeszcze wybrany. */
+function youtubeSearchUrlForExercise(exOrName){
+  const ex=typeof exOrName==='string'?libExerciseByName(exOrName):exOrName;
+  const name=String((ex&&ex.name)||exOrName||'ćwiczenie').trim();
+  return 'https://www.youtube.com/results?search_query='+encodeURIComponent('Ambitious Athletics '+name+' exercise');
+}
+window.youtubeSearchUrlForExercise=youtubeSearchUrlForExercise;
+
 function exerciseTodoNote(ex){
   if(!ex)return '';
   const own=String(ex.note||ex.notes||ex.cue||ex.planNote||'').trim();
@@ -2151,7 +2333,7 @@ function resolveCoachMedia(parsed){
   }
   let embed=coachVideoEmbed(video);
   const gif=exGifUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',gif:(ex.gif||(lib&&lib.gif)||''),img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
-  const img=gif||exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  const img=exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')})||gif;
   if(gif&&video&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(gif)&&sameMediaUrl(gif,video)){
     video='';
     embed='';
@@ -2209,6 +2391,11 @@ function exTechniqueMediaHtml(media,opts){
   const cap=showCap?`<div class="cw-technique-cap">${alt}</div>`:'';
   const imgAlt=showCap?'':alt;
   const onErr='this.onerror=null;if(typeof showTechniqueMediaUnavailable===\'function\')showTechniqueMediaUnavailable(this);';
+  const drivePreview=typeof googleDrivePreviewUrl==='function'?googleDrivePreviewUrl(gif):'';
+  if(drivePreview){
+    if(compact)return `<div class="cw-technique-media cw-technique-gif is-compact cw-technique-drive-compact" title="Film techniki z Google Drive" aria-label="Film techniki z Google Drive">▶</div>`;
+    return `<div class="cw-technique-media cw-technique-gif cw-technique-drive"><iframe class="${cls}" src="${escHtml(drivePreview)}" title="${alt}" allow="autoplay" allowfullscreen loading="lazy"></iframe>${cap}</div>`;
+  }
   if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
     const poster=String((media&&media.poster)||'').trim();
     const posterAttr=poster&&isSafeMediaUrl(poster)&&!isVideoMediaUrl(poster)&&!sameMediaUrl(poster,gif)?` poster="${escHtml(poster)}"`:'';
