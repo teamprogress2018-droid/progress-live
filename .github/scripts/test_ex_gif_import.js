@@ -30,6 +30,8 @@ ok('import button label', html.includes('Import GIF / MP4'));
 ok('bulk preview role control', html.includes("setAllExGifImportRoles('preview')"));
 ok('bulk technique role control', html.includes("setAllExGifImportRoles('technique')"));
 ok('bulk role helper', six.includes('function setAllExGifImportRoles(role)'));
+ok('static white card preview generator exists', six.includes('function createWhiteExerciseCardThumbnail(source)') && six.includes('function uploadWhiteExerciseCardThumbnail(source,exerciseName,batchId,fingerprint)'));
+ok('existing Firebase GIFs can be backfilled into card previews', six.includes('function backfillWhiteExerciseCardPreviews()') && html.includes('id="lib-build-white-previews"'));
 
 const documentStub = {
   querySelectorAll: () => [],
@@ -145,6 +147,7 @@ ok('desktop path stays local', ctx.rewriteLocalMediaUrl('D:/Desktop/film.mp4') =
 
   ok('save without parse in source', /ensureExGifPasteParsed\(\)/.test(six) && /async function runExGifImport/.test(six));
   ok('upload mp4 mime', /video\/mp4/.test(six));
+  ok('GIF import saves a static card preview separately', /staticPreviews/.test(six) && /persistExercisePreviewUrl\(row\.exerciseName,preview\)/.test(six));
   ok('detail assign panel', /function exDetailAssignHtml/.test(six) && /id="exd-assign"/.test(six) && /id="exd-mp4-url"/.test(six));
   ok('detail assign wired', /exDetailAssignHtml\(e\)/.test(six) && /function saveAssignedExTechnique/.test(six));
 

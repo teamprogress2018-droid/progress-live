@@ -2920,20 +2920,27 @@ window.freezeExCardGif=freezeExCardGif;
 
 // Widok biblioteki ma jeden spójny, jasny styl. Nie mieszamy w nim starych
 // zdjęć z siłowni, zdjęć stockowych ani ciemnych materiałów z zewnętrznych
-// katalogów. Jedynym obrazem na karcie jest właściwy, jasny podgląd tego
-// ćwiczenia: materiał trenera z Firebase, lokalny GIF biblioteki albo jasny
-// podgląd Drive oznaczony jako `pl-preview`. Reszta dostaje czyste białe pole.
+// katalogów. Jedynym obrazem na karcie jest właściwy, nieruchomy i jasny
+// podgląd tego ćwiczenia. Pełny GIF/film pozostaje wyłącznie w szczegółach.
 function isTrainerWhiteCardGif(url){
   const u=String(url||'');
   return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)&&/\.gif(?:\?|#|$)/i.test(u);
 }
 window.isTrainerWhiteCardGif=isTrainerWhiteCardGif;
 
+function isGeneratedWhiteExerciseCardPreview(url){
+  const u=String(url||'');
+  return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)
+    &&/(?:-card\.(?:webp|jpe?g)|\/card-previews\/)/i.test(u);
+}
+window.isGeneratedWhiteExerciseCardPreview=isGeneratedWhiteExerciseCardPreview;
+
 function isWhiteExerciseCardPreview(ex,url){
   const u=String(url||'');
-  // Własne jasne GIF-y oraz dołączone do aplikacji GIF-y ćwiczeń można
-  // zamrozić do pojedynczej klatki i bezpiecznie pokazać na karcie.
-  if(isTrainerWhiteCardGif(u)||/^assets\/ex\/gifs\/[^/]+\.gif(?:\?|#|$)/i.test(u))return true;
+  // Własne GIF-y nie trafiają na kartę bezpośrednio: po imporcie tworzymy z
+  // nich osobny, statyczny plik -card.webp. Dzięki temu lista nie animuje ani
+  // nie pobiera ciężkich materiałów techniki.
+  if(isGeneratedWhiteExerciseCardPreview(u))return true;
   // Manifest Drive jest rozdzielony na jasne podglądy i materiały techniki.
   // Akceptujemy wyłącznie pierwszy rodzaj — nie zdjęcia stockowe ani film
   // techniki w tle siłowni.
@@ -2957,8 +2964,8 @@ function exCardHtml(e,i){
   const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
   if(thumb&&isWhiteExerciseCardPreview(e,thumb)){
-    // GIF zostaje nieruchomym pierwszym kadrem; podgląd Drive jest już
-    // pojedynczym obrazem, więc nie próbujemy go rysować ponownie na canvas.
+    // Każdy dopuszczony materiał jest pojedynczym obrazem: wygenerowanym
+    // podglądem Firebase albo jasną miniaturą Drive.
     const freeze=/\.gif(?:\?|#|$)/i.test(String(thumb))?' crossorigin="anonymous" onload="freezeExCardGif(this)"':'';
     media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"${freeze} onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
   }else{
@@ -5963,6 +5970,125 @@ function ensureExGifPasteParsed(){
   syncExGifImportBtnLabel();
 }
 
+function isFirebaseExerciseMediaUrl(url){
+  const u=String(url||'');
+  return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)
+    &&/(?:exercise-media(?:%2f|\/)|%2Fexercise-media%2F)/i.test(u);
+}
+window.isFirebaseExerciseMediaUrl=isFirebaseExerciseMediaUrl;
+
+function whitePreviewBackground(ctx,width,height){
+  // Kontrolujemy jedynie brzegi: biały GIF z sylwetką zostanie zaakceptowany,
+  // a materiały z czarnym tłem lub salą wypełniającą cały kadr nie.
+  const inset=Math.max(2,Math.round(Math.min(width,height)*0.025));
+  const samples=[
+    [inset,inset],[width-inset-1,inset],[inset,height-inset-1],[width-inset-1,height-inset-1],
+    [Math.floor(width/2),inset],[Math.floor(width/2),height-inset-1]
+  ];
+  let light=0;
+  try{
+    samples.forEach(([x,y])=>{
+      const p=ctx.getImageData(x,y,1,1).data;
+      const l=(p[0]*0.2126+p[1]*0.7152+p[2]*0.0722);
+      if(p[3]<24||l>=218)light++;
+    });
+  }catch(e){return false;}
+  return light>=Math.ceil(samples.length*0.8);
+}
+window.whitePreviewBackground=whitePreviewBackground;
+
+/**
+ * Tworzy mały, statyczny obraz tylko z materiału mającego jasne tło.
+ * Zwraca null dla ciemnych/nieczytelnych filmów zamiast pokazywać je na karcie.
+ */
+function createWhiteExerciseCardThumbnail(source){
+  return new Promise(resolve=>{
+    if(typeof document==='undefined'||!document.createElement||typeof Image==='undefined')return resolve(null);
+    const isBlob=typeof Blob!=='undefined'&&source instanceof Blob;
+    if(isBlob&&source.size>40*1024*1024)return resolve(null);
+    const raw=isBlob&&typeof URL!=='undefined'&&URL.createObjectURL?URL.createObjectURL(source):String(source||'');
+    if(!raw)return resolve(null);
+    const img=new Image();
+    let done=false;
+    const finish=value=>{
+      if(done)return;
+      done=true;
+      clearTimeout(timeout);
+      if(isBlob&&typeof URL!=='undefined'&&URL.revokeObjectURL)URL.revokeObjectURL(raw);
+      resolve(value||null);
+    };
+    const timeout=setTimeout(()=>finish(null),12000);
+    img.decoding='async';
+    if(!isBlob)img.crossOrigin='anonymous';
+    img.onerror=()=>finish(null);
+    img.onload=()=>{
+      try{
+        const sourceW=img.naturalWidth||img.width;
+        const sourceH=img.naturalHeight||img.height;
+        if(!sourceW||!sourceH)return finish(null);
+        const scale=Math.min(480/sourceW,480/sourceH,1);
+        const width=Math.max(1,Math.round(sourceW*scale));
+        const height=Math.max(1,Math.round(sourceH*scale));
+        const canvas=document.createElement('canvas');
+        canvas.width=width;canvas.height=height;
+        const ctx=canvas.getContext('2d',{alpha:false});
+        if(!ctx)return finish(null);
+        ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+        ctx.imageSmoothingEnabled=true;
+        if('imageSmoothingQuality' in ctx)ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,0,0,width,height);
+        if(!whitePreviewBackground(ctx,width,height))return finish(null);
+        canvas.toBlob(blob=>finish(blob&&blob.size?{blob,extension:blob.type==='image/webp'?'webp':'jpg'}:null),'image/webp',0.84);
+      }catch(e){finish(null);}
+    };
+    img.src=raw;
+  });
+}
+window.createWhiteExerciseCardThumbnail=createWhiteExerciseCardThumbnail;
+
+async function uploadWhiteExerciseCardThumbnail(source,exerciseName,batchId,fingerprint){
+  if(!window._uid||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)return '';
+  const image=await createWhiteExerciseCardThumbnail(source);
+  if(!image)return '';
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):String(exerciseName||'exercise').toLowerCase();
+  const safeFingerprint=String(fingerprint||Date.now().toString(36)).replace(/[^a-z0-9_-]/gi,'').slice(0,80)||Date.now().toString(36);
+  const path='exercise-media/'+window._uid+'/'+batchId+'/'+slug+'-'+safeFingerprint+'-card.'+image.extension;
+  const ref=window._storageRef(window._storage,path);
+  await window._uploadBytes(ref,image.blob,{contentType:image.blob.type||'image/webp'});
+  return window._getDownloadURL(ref);
+}
+window.uploadWhiteExerciseCardThumbnail=uploadWhiteExerciseCardThumbnail;
+
+async function backfillWhiteExerciseCardPreviews(){
+  if(!window._uid||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+    notify('Zaloguj się do aplikacji — wtedy utworzę podglądy w Firebase.');return;
+  }
+  const all=typeof allExercises==='function'?allExercises():[];
+  const candidates=all.filter(ex=>{
+    const gif=typeof exGifUrl==='function'?exGifUrl(ex):'';
+    const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(ex):'';
+    return !!(gif&&isFirebaseExerciseMediaUrl(gif)&&!isGeneratedWhiteExerciseCardPreview(preview));
+  });
+  if(!candidates.length){notify('Wszystkie dostępne materiały Firebase mają już statyczny podgląd albo nie wymagają konwersji.');return;}
+  const btn=typeof document!=='undefined'?document.getElementById('lib-build-white-previews'):null;
+  if(btn){btn.disabled=true;btn.textContent='Tworzenie podglądów…';}
+  let made=0,notWhite=0,failed=0;
+  for(let i=0;i<candidates.length;i++){
+    const ex=candidates[i];
+    try{
+      const url=typeof exGifUrl==='function'?exGifUrl(ex):'';
+      const preview=await uploadWhiteExerciseCardThumbnail(url,ex.name,'card-previews',Date.now().toString(36)+'-'+i);
+      if(preview){await persistExercisePreviewUrl(ex.name,preview);made++;}
+      else notWhite++;
+    }catch(e){console.warn('card preview backfill',ex&&ex.name,e);failed++;}
+    if(btn)btn.textContent='Podglądy '+(i+1)+' / '+candidates.length;
+  }
+  if(btn){btn.disabled=false;btn.textContent='🖼 Utwórz białe podglądy';}
+  if(typeof renderLib==='function')renderLib();
+  notify('Gotowe: '+made+' białych podglądów. Pominięto '+notWhite+' materiałów z niebiałym tłem'+(failed?', błędy: '+failed:'')+'.');
+}
+window.backfillWhiteExerciseCardPreviews=backfillWhiteExerciseCardPreviews;
+
 async function runExGifImport(){
   ensureExGifPasteParsed();
   const parsed=_exGifImportRows.length;
@@ -5985,6 +6111,8 @@ async function runExGifImport(){
   window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
   let ok=0;
   let previews=0;
+  let staticPreviews=0;
+  const previewOwners=new Set(rows.filter(r=>r.thumbnailUrl&&r.exerciseName).map(r=>typeof exerciseMediaKey==='function'?exerciseMediaKey(r.exerciseName):String(r.exerciseName).toLowerCase()));
   const total=rows.length;
   let step=0;
   for(let i=0;i<rows.length;i++){
@@ -6028,6 +6156,17 @@ async function runExGifImport(){
         row.url=url;row.storagePath=path;row.digest=digest;
         const saveMedia=row.role==='preview'?persistExercisePreviewUrl:persistExerciseGifUrl;
         await saveMedia(row.exerciseName,url);
+        // Tak jak w Everfit: film i miniatura są osobnymi plikami. Dla
+        // jasnego GIF-a tworzony jest mały, nieruchomy obraz karty.
+        const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+        if(!previewOwners.has(key)&&/^(gif|webp)$/i.test(ext)){
+          const preview=await uploadWhiteExerciseCardThumbnail(row.file,row.exerciseName,_exMediaImportBatchId,fingerprint);
+          if(preview){
+            row.thumbnailUrl=preview;
+            await persistExercisePreviewUrl(row.exerciseName,preview);
+            previewOwners.add(key);staticPreviews++;
+          }
+        }
         row.status='done';
         ok++;if(row.role==='preview')previews++;
         }
@@ -6048,7 +6187,7 @@ async function runExGifImport(){
   }
   if(btn){btn.disabled=false;syncExGifImportBtnLabel();}
   if(typeof renderLib==='function')renderLib();
-  notify('✓ Zapisano '+ok+' / '+total+' plików · '+previews+' podglądów kart · '+(ok-previews)+' filmów techniki');
+  notify('✓ Zapisano '+ok+' / '+total+' plików · '+staticPreviews+' statycznych białych podglądów · '+previews+' ręcznych podglądów kart');
   if(ok===total)closeM('m-ex-gif-import');
 }
 
