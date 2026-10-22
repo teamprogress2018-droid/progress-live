@@ -2883,11 +2883,44 @@ function exDelBtnHtml(e,extraStyle){
 }
 window.exDelBtnHtml=exDelBtnHtml;
 
+// Karta katalogu potrzebuje tylko nieruchomego, jasnego kadru. Pełny GIF
+// pozostaje przypięty do ćwiczenia i odtwarza się dopiero w jego szczegółach.
+// Tworzymy mały pierwszy kadr tylko dla widocznych kart (loading="lazy").
+const _exCardGifFrameCache=new Map();
+function freezeExCardGif(img){
+  if(!img||img.dataset.exStaticFrame==='1'||/^data:/i.test(String(img.currentSrc||img.src||'')))return;
+  const source=String(img.currentSrc||img.src||'');
+  const cached=_exCardGifFrameCache.get(source);
+  if(cached){img.dataset.exStaticFrame='1';img.src=cached;return;}
+  const w=Number(img.naturalWidth)||0;
+  const h=Number(img.naturalHeight)||0;
+  if(!w||!h)return;
+  try{
+    const scale=Math.min(1,360/w,240/h);
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(w*scale));
+    canvas.height=Math.max(1,Math.round(h*scale));
+    const ctx=canvas.getContext('2d');
+    if(!ctx)return;
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    const still=canvas.toDataURL('image/jpeg',0.86);
+    _exCardGifFrameCache.set(source,still);
+    if(_exCardGifFrameCache.size>96)_exCardGifFrameCache.delete(_exCardGifFrameCache.keys().next().value);
+    img.dataset.exStaticFrame='1';img.src=still;
+  }catch(e){
+    // Gdy zewnętrzny serwer nie zezwoli na odczyt pikseli, pozostawiamy GIF.
+    // Firebase Storage ma CORS dla aplikacji, więc jej własne materiały trafią
+    // do powyższego, nieruchomego podglądu.
+  }
+}
+window.freezeExCardGif=freezeExCardGif;
+
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
   // GIF-y techniki są poprawnymi materiałami, choć nie są plikami MP4/WebM.
-  // Do odznaki używamy pełnego resolvera, a w siatce pozostawiamy je lekkie:
-  // animacja ładuje się dopiero w szczegółach po kliknięciu karty.
+  // Do odznaki używamy pełnego resolvera, a karta pokazuje wyłącznie pierwszy
+  // nieruchomy kadr na białym tle.
   const gif=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
   // Materiał premium z Drive jest dostępny po kliknięciu „FILM”, ale nie robi
   // ciemnej, ciężkiej miniatury na każdej karcie biblioteki.
@@ -2901,7 +2934,9 @@ function exCardHtml(e,i){
   const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
   if(thumb){
-    media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
+    const staticGif=/\.gif(?:\?|#|$)/i.test(thumb)&&!(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(thumb));
+    const freeze=staticGif?' crossorigin="anonymous" onload="freezeExCardGif(this)"':'';
+    media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"${freeze} onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
   }else if(isVid&&gif){
     // Nie pobieraj setek plików MP4 przy samym otwarciu katalogu. Pełny film
     // ładuje się po wejściu w szczegóły ćwiczenia.
