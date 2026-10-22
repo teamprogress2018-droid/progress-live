@@ -1995,13 +1995,20 @@ function mediaMapGet(map,name){
   return '';
 }
 
+const _mediaOwnershipCheckCache=new Map();
 function mediaUrlLooksAssignedToOtherExercise(url,name){
   if(!url||!name||typeof matchFilenameToExercise!=='function')return false;
+  const key=String(url)+'\u001f'+exerciseMediaKey(name);
+  if(_mediaOwnershipCheckCache.has(key))return _mediaOwnershipCheckCache.get(key);
   const mapped=matchFilenameToExercise(url,(typeof allExercises==='function'?allExercises():null)||window.DEF_EX||[]);
-  if(!mapped)return false;
-  return exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+  const other=!!mapped&&exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+  // Ograniczenie pamięci dla długiej pracy trenera z importami wielu plików.
+  if(_mediaOwnershipCheckCache.size>4000)_mediaOwnershipCheckCache.clear();
+  _mediaOwnershipCheckCache.set(key,other);
+  return other;
 }
 window.mediaUrlLooksAssignedToOtherExercise=mediaUrlLooksAssignedToOtherExercise;
+window.invalidateMediaOwnershipCheckCache=()=>_mediaOwnershipCheckCache.clear();
 
 function normalizeRemoteExerciseMediaUrl(url){
   const u=String(url||'').trim();

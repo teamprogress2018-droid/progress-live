@@ -487,6 +487,7 @@ var exView=(()=>{try{return localStorage.getItem('pl_ex_view_v1')==='list'?'list
 var exMediaOnly=(()=>{try{return localStorage.getItem('pl_ex_media_only_v1')!=='0';}catch(e){return true;}})();
 var exLibVisible=48;
 const EX_LIB_PAGE_SIZE=48;
+let _exLibraryDlSignature='';
 
 const CAT_COLORS_EX={
   'Klatka piersiowa':'var(--blue)',
@@ -1585,13 +1586,20 @@ function recentExNames(limit){
 }
 window.recentExNames=recentExNames;
 
+let _allExercisesCacheKey='';
+let _allExercisesCache=[];
 function allExercises(){
   // Własne ćwiczenia trenera (EX) mają PIERWSZEŃSTWO nad domyślnymi (DEF_EX) o tej samej nazwie —
   // wcześniej było odwrotnie, przez co własne ćwiczenie znikało bez ostrzeżenia.
   // hiddenExercises chowa tylko DEF_EX — własne karty zostają, nawet przy tej samej nazwie.
-  const hidden=new Set(hiddenExNames());
+  const hiddenList=hiddenExNames();
   const custom=window.EX||EX||[];
   const defs=window.DEF_EX||DEF_EX||[];
+  // Weryfikacja medium wywołuje ten katalog wielokrotnie. Sygnatura łapie
+  // dodanie, usunięcie, zmianę nazwy lub ukrycie bez ponownego składania setek rekordów.
+  const cacheKey=[custom.length,defs.length,hiddenList.join('\u001f'),custom.map(e=>String((e&&e.id)||'')+'|'+String((e&&e.name)||'')).join('\u001f')].join('\u001e');
+  if(cacheKey===_allExercisesCacheKey)return _allExercisesCache;
+  const hidden=new Set(hiddenList);
   const seen=new Set();
   const out=[];
   custom.forEach(e=>{
@@ -1605,8 +1613,12 @@ function allExercises(){
     seen.add(e.name);
     out.push(e);
   });
-  return out;
+  _allExercisesCacheKey=cacheKey;
+  _allExercisesCache=out;
+  return _allExercisesCache;
 }
+function invalidateExerciseCatalogCache(){_allExercisesCacheKey='';_allExercisesCache=[];}
+window.invalidateExerciseCatalogCache=invalidateExerciseCatalogCache;
 
 const EX_PROFILE_LABELS={
   ascending:'narastający',
@@ -2960,8 +2972,15 @@ function renderLibGroupedSections(filtered,mode){
 }
 
 function renderLib(){
-  updateExDl();
   const all=allExercises();
+  // Datalist ma setki opcji, a wcześniej był przebudowywany przy każdym
+  // kliknięciu filtra lub wejściu do biblioteki. Aktualizujemy go tylko wtedy,
+  // kiedy rzeczywiście zmienił się katalog nazw.
+  const dlSignature=all.map(e=>String(e&&e.name||'')).join('\u001f');
+  if(dlSignature!==_exLibraryDlSignature){
+    updateExDl();
+    _exLibraryDlSignature=dlSignature;
+  }
   const withMedia=all.filter(exHasLibraryMedia);
   const library=exMediaOnly?withMedia:all;
   // The completion queue must also expose new exercises before their first
