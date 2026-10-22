@@ -22,6 +22,7 @@ async function bootApp(page, port) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     window.CL = [{ id: 'c1', name: 'Anna Kowalska' }];
+    setExMediaOnly(false);
   });
 }
 

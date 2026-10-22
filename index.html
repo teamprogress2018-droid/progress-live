@@ -820,6 +820,7 @@
       <!-- toolbar -->
       <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
         <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="ex-results-count">0 ćwiczeń</span>
+        <button type="button" class="btn btn-primary btn-sm" id="ex-media-only-toggle" onclick="toggleExMediaOnly()" aria-pressed="true">✓ Tylko z filmem</button>
         <div style="margin-left:auto;">
           <select class="form-select" style="padding:4px 8px;font-size:11px;width:auto;" id="ex-sort" onchange="renderLib()">
             <option value="az">A–Z</option>
@@ -4838,7 +4839,7 @@ async function load(session=captureTenantSession()){
 <script src="05-clients-builder-plans-calendar.js?v=119&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=112&exercise-library-focus=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=112&exercise-library-focus=1&library-windowed=1"></script>
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=93&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=57&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>

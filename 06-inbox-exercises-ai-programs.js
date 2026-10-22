@@ -482,6 +482,11 @@ function sendBroadcast(){
 // EXERCISE LIBRARY — ENHANCED
 // ════════════════════════════════════════
 var exView=(()=>{try{return localStorage.getItem('pl_ex_view_v1')==='list'?'list':'grid';}catch(e){return 'grid';}})();var exCatFilter='Wszystkie';var exEquipFilter='';var exSelId=null;
+// Katalog może mieć setki pozycji. Domyślnie pokazujemy tylko te z realnym
+// materiałem techniki; pozostałe nie są kasowane i nadal można je przywrócić.
+var exMediaOnly=(()=>{try{return localStorage.getItem('pl_ex_media_only_v1')!=='0';}catch(e){return true;}})();
+var exLibVisible=48;
+const EX_LIB_PAGE_SIZE=48;
 
 const CAT_COLORS_EX={
   'Klatka piersiowa':'var(--blue)',
@@ -2741,11 +2746,30 @@ function setExView(v){
 }
 window.syncExViewUi=syncExViewUi;
 
+function resetExLibPage(){exLibVisible=EX_LIB_PAGE_SIZE;}
+function setExMediaOnly(on){
+  exMediaOnly=!!on;
+  try{localStorage.setItem('pl_ex_media_only_v1',exMediaOnly?'1':'0');}catch(e){}
+  resetExLibPage();
+  renderLib();
+}
+function toggleExMediaOnly(){setExMediaOnly(!exMediaOnly);}
+function showMoreExercises(){
+  const view=document.getElementById(exView==='grid'?'ex-grid-view':'ex-list-view');
+  const scrollTop=view?view.scrollTop:0;
+  exLibVisible+=EX_LIB_PAGE_SIZE;
+  renderLib();
+  if(view)requestAnimationFrame(()=>{view.scrollTop=scrollTop;});
+}
+window.setExMediaOnly=setExMediaOnly;
+window.toggleExMediaOnly=toggleExMediaOnly;
+window.showMoreExercises=showMoreExercises;
+
 // Wyszukiwarka ćwiczeń: render dopiero po krótkiej pauzie w pisaniu (lista ma setki kart).
 let _renderLibTimer=null;
 function renderLibSoon(){
   clearTimeout(_renderLibTimer);
-  _renderLibTimer=setTimeout(renderLib,160);
+  _renderLibTimer=setTimeout(()=>{resetExLibPage();renderLib();},160);
 }
 window.renderLibSoon=renderLibSoon;
 
@@ -2762,6 +2786,7 @@ window.exerciseSearchTokens=exerciseSearchTokens;
 window.exerciseMatchesTokens=exerciseMatchesTokens;
 
 function exEmptyListText(){
+  if(exMediaOnly)return 'Brak ćwiczeń z przypisanym filmem lub podglądem. Zaimportuj materiały albo wybierz „Pokaż także bez filmu”.';
   if(exCatFilter==='__plan_core')return 'Brak ćwiczeń z fundamentu planów pasujących do pozostałych filtrów.';
   if(exCatFilter==='__functional')return 'Brak ćwiczeń funkcjonalnych pasujących do pozostałych filtrów.';
   if(exCatFilter==='__mobility')return 'Brak ćwiczeń mobilizacyjnych pasujących do pozostałych filtrów.';
@@ -2808,7 +2833,9 @@ function exCardHtml(e,i){
   if(thumb){
     media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
   }else if(isVid&&gif){
-    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+    // Nie pobieraj setek plików MP4 przy samym otwarciu katalogu. Pełny film
+    // ładuje się po wejściu w szczegóły ćwiczenia.
+    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="none" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
   }else{
     media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${esc(part)}</span></div>`;
   }
@@ -2830,6 +2857,24 @@ function exCardHtml(e,i){
       </div>
     </div>
   </div>`;
+}
+
+function exHasLibraryMedia(e){
+  if(!e)return false;
+  const technique=typeof exGifUrl==='function'?exGifUrl(e):String(e.gif||e.video||'');
+  const preview=typeof exThumbUrl==='function'?exThumbUrl(e):String(e.img||e.previewUrl||'');
+  return !!(technique||preview);
+}
+function exLoadMoreHtml(total,shown,mode){
+  if(shown>=total)return '';
+  const remaining=total-shown;
+  const style=mode==='grid'?'grid-column:1/-1;':'padding:16px;text-align:center;';
+  return `<div class="ex-load-more" style="${style}text-align:center;padding:16px;color:var(--muted);"><div style="font-size:11px;margin-bottom:8px;">Wyświetlono ${shown} z ${total} ćwiczeń</div><button type="button" class="btn btn-ghost btn-sm" onclick="showMoreExercises()">Pokaż kolejne ${Math.min(EX_LIB_PAGE_SIZE,remaining)}</button></div>`;
+}
+function appendExLoadMore(targetId,total,shown,mode){
+  const target=document.getElementById(targetId);
+  const html=exLoadMoreHtml(total,shown,mode);
+  if(target&&html)target.insertAdjacentHTML('beforeend',html);
 }
 
 function renderLibGroupedSections(filtered,mode){
@@ -2889,6 +2934,8 @@ function renderLibGroupedSections(filtered,mode){
 function renderLib(){
   updateExDl();
   const all=allExercises();
+  const withMedia=all.filter(exHasLibraryMedia);
+  const library=exMediaOnly?withMedia:all;
   const hiddenN=hiddenExNames().length;
   const restoreBtn=document.getElementById('lib-restore-hidden');
   if(restoreBtn){
@@ -2902,6 +2949,13 @@ function renderLib(){
     sweepBtn.textContent='Usuń duplikaty importu ('+dupN+')';
   }
   syncExViewUi();
+  const mediaToggle=document.getElementById('ex-media-only-toggle');
+  if(mediaToggle){
+    mediaToggle.textContent=exMediaOnly?'✓ Tylko z filmem':'Pokaż także bez filmu';
+    mediaToggle.className='btn btn-sm '+(exMediaOnly?'btn-primary':'btn-ghost');
+    mediaToggle.title=exMediaOnly?'Pokazywane są tylko ćwiczenia z materiałem. Kliknij, aby zobaczyć pełny katalog.':'Wróć do katalogu ćwiczeń z materiałem.';
+    mediaToggle.setAttribute('aria-pressed',String(exMediaOnly));
+  }
   const search=(document.getElementById('ex-search')||{}).value||'';
 
   // build category nav
@@ -2911,20 +2965,20 @@ function renderLib(){
   const catNav=document.getElementById('ex-cat-nav');
   if(catNav){
     const special=[
-      ['__plan_core','★ Fundament planów',all.filter(e=>exLibraryFocusKind(e,'__plan_core')).length,'plan-core'],
-      ['__functional','⚡ Funkcjonalne',all.filter(e=>exLibraryFocusKind(e,'__functional')).length,'functional'],
-      ['__mobility','🧘 Mobilizacja',all.filter(e=>exLibraryFocusKind(e,'__mobility')).length,'mobility'],
-      ['__media_gap','◌ Materiały do uzupełnienia',all.filter(exNeedsCuratedMedia).length,'media-gap'],
-      ['__fav','★ Ulubione',all.filter(e=>favNames.includes(e.name)).length,'fav'],
+      ['__plan_core','★ Fundament planów',library.filter(e=>exLibraryFocusKind(e,'__plan_core')).length,'plan-core'],
+      ['__functional','⚡ Funkcjonalne',library.filter(e=>exLibraryFocusKind(e,'__functional')).length,'functional'],
+      ['__mobility','🧘 Mobilizacja',library.filter(e=>exLibraryFocusKind(e,'__mobility')).length,'mobility'],
+      ['__media_gap','◌ Materiały do uzupełnienia',library.filter(exNeedsCuratedMedia).length,'media-gap'],
+      ['__fav','★ Ulubione',library.filter(e=>favNames.includes(e.name)).length,'fav'],
       ['__recent','🕘 Ostatnio używane',recent.length,'recent']
     ];
-    catNav.innerHTML=special.map(([key,label,count,id])=>`<div class="ex-cat-nav-item ex-cat-nav-special${exCatFilter===key?' active':''}" onclick="exCatFilter='${key}';renderLib()">
+    catNav.innerHTML=special.map(([key,label,count,id])=>`<div class="ex-cat-nav-item ex-cat-nav-special${exCatFilter===key?' active':''}" onclick="exCatFilter='${key}';resetExLibPage();renderLib()">
         <span>${label}</span>
         <span id="ex-nav-count-${id}" style="font-family:'DM Mono',monospace;font-size:10px;">${count}</span>
       </div>`).join('')+cats.map(c=>{
-      const count=c==='Wszystkie'?all.length:all.filter(e=>e.cat===c).length;
+      const count=c==='Wszystkie'?library.length:library.filter(e=>e.cat===c).length;
       const col=CAT_COLORS_EX[c]||'var(--muted)';
-      return `<div class="ex-cat-nav-item${exCatFilter===c?' active':''}" onclick="exCatFilter='${c}';renderLib()">
+      return `<div class="ex-cat-nav-item${exCatFilter===c?' active':''}" onclick="exCatFilter='${c}';resetExLibPage();renderLib()">
         <div style="display:flex;align-items:center;gap:8px;">
           <div class="ex-cat-dot" style="background:${col};"></div>
           <span>${c}</span>
@@ -2938,14 +2992,14 @@ function renderLib(){
   const equips=['Sztanga','Hantle','Maszyna','Wyciąg','Własna masa','Kettlebell','Piłka lekarska','Taśmy'];
   const equipEl=document.getElementById('ex-equip-filters');
   if(equipEl){
-    equipEl.innerHTML=equips.map(eq=>`<div class="ex-equip-chip${exEquipFilter===eq?' active':''}" onclick="exEquipFilter=exEquipFilter==='${eq}'?'':'${eq}';renderLib()">
+    equipEl.innerHTML=equips.map(eq=>`<div class="ex-equip-chip${exEquipFilter===eq?' active':''}" onclick="exEquipFilter=exEquipFilter==='${eq}'?'':'${eq}';resetExLibPage();renderLib()">
       <div class="ex-equip-dot"></div><span>${eq}</span>
     </div>`).join('');
   }
 
   // filter
   const searchTokens=exerciseSearchTokens(search);
-  let filtered=all.filter(e=>{
+  let filtered=library.filter(e=>{
     if(exCatFilter==='__plan_core'||exCatFilter==='__functional'||exCatFilter==='__mobility'){
       if(!exLibraryFocusKind(e,exCatFilter))return false;
     }
@@ -2964,28 +3018,31 @@ function renderLib(){
   else filtered.sort(exLibSortFn());
 
   const countEl=document.getElementById('ex-results-count');
-  if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń');
+  if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń')+(exMediaOnly?' z filmem / podglądem':'');
 
   const useGrouped=exCatFilter==='Wszystkie';
+  const shown=filtered.slice(0,exLibVisible);
 
   if(exView==='grid'){
     const grid=document.getElementById('lib-grid');
     if(useGrouped){
       grid.classList.add('ex-lib-grouped');
-      renderLibGroupedSections(filtered,'grid');
+      renderLibGroupedSections(shown,'grid');
+      appendExLoadMore('lib-grid',filtered.length,shown.length,'grid');
       return;
     }
     grid.classList.remove('ex-lib-grouped');
     if(!filtered.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">${exEmptyListText()}</div>`;return;}
-    grid.innerHTML=filtered.map((e,i)=>exCardHtml(e,i)).join('');
+    grid.innerHTML=shown.map((e,i)=>exCardHtml(e,i)).join('')+exLoadMoreHtml(filtered.length,shown.length,'grid');
   } else {
     if(useGrouped){
-      renderLibGroupedSections(filtered,'list');
+      renderLibGroupedSections(shown,'list');
+      appendExLoadMore('ex-list-body',filtered.length,shown.length,'list');
       return;
     }
     const body=document.getElementById('ex-list-body');
     if(!filtered.length){body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted);">${exEmptyListText()}</div>`;return;}
-    body.innerHTML=filtered.map((e,i)=>{
+    body.innerHTML=shown.map((e,i)=>{
       const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
       return `<div class="ex-list-row" style="animation-delay:${Math.min(i,12)*0.02}s" onclick="openExDetail(${exJsArg(e.name)})">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -3000,7 +3057,7 @@ function renderLib(){
           <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">Usuń</button>
         </div>
       </div>`;
-    }).join('');
+    }).join('')+exLoadMoreHtml(filtered.length,shown.length,'list');
   }
 }
 
