@@ -5227,14 +5227,6 @@ async function persistExercisePreviewUrl(exerciseName,previewUrl){
 }
 window.persistExercisePreviewUrl=persistExercisePreviewUrl;
 
-function hostBlocksFirebaseStorageUpload(){
-  try{
-    const h=String((typeof location!=='undefined'&&location&&location.hostname)||'');
-    return /github\.io$/i.test(h);
-  }catch(e){return false;}
-}
-window.hostBlocksFirebaseStorageUpload=hostBlocksFirebaseStorageUpload;
-
 function exAssignSetMsg(text,ok){
   const s=String(text||'');
   const el=document.getElementById('exd-assign-msg');
@@ -5505,8 +5497,7 @@ async function assignExTechniqueFromFile(name,input){
   if(!file){exAssignSetMsg('Wybierz plik MP4',false);return;}
   const cdn=typeof cdnUrlFromVideoFilename==='function'?cdnUrlFromVideoFilename(file.name):'';
   if(cdn){await saveAssignedExTechnique(n,cdn);return;}
-  const blocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
-  const canStore=!blocked&&window._uid&&window._storage&&window._storageRef&&window._uploadBytes&&window._getDownloadURL;
+  const canStore=window._uid&&window._storage&&window._storageRef&&window._uploadBytes&&window._getDownloadURL;
   if(!canStore){
     const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
     const suggest=typeof canonicalYouCanBasename==='function'&&typeof isYouCanVideoFilename==='function'&&isYouCanVideoFilename(base)
@@ -5515,7 +5506,6 @@ async function assignExTechniqueFromFile(name,input){
     if(inp)inp.value=suggest;
     let msg='Firebase Storage jest niedostępny. Wklej pełną ścieżkę D:/progress-live-video-assets/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
     if(!window._uid)msg='Zaloguj się, aby zapisać film przy ćwiczeniu';
-    else if(blocked)msg='Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
     exAssignSetMsg(msg,false);
     return;
   }
@@ -5536,7 +5526,7 @@ async function assignExTechniqueFromFile(name,input){
       ?canonicalYouCanBasename(base):base;
     const inp=document.getElementById('exd-mp4-url');
     if(inp)inp.value=suggest;
-    exAssignSetMsg('Wgrywanie padło (często CORS). Wklej D:/progress-live-video-assets/…/'+suggest+' i zapisz.',false);
+    exAssignSetMsg('Nie udało się wgrać pliku. Sprawdź połączenie i spróbuj ponownie.',false);
   }
 }
 window.assignExTechniqueFromFile=assignExTechniqueFromFile;
@@ -5802,9 +5792,8 @@ async function runExGifImport(){
   const fileRows=rows.filter(r=>r.file&&!r.presetUrl);
   if(!_exMediaImportBatchId)_exMediaImportBatchId=exMediaImportId();
   await saveExMediaImportJournal('uploading');
-  const storageBlocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
-  if(fileRows.length&&(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
-    notify('Z GitHub Pages nie wgramy plików (CORS). Wklej ścieżki D:/progress-live-video-assets/…mp4 i Zapisz masowo');
+  if(fileRows.length&&(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
+    notify('Firebase Storage jest chwilowo niedostępny. Odśwież aplikację i spróbuj ponownie.');
     if(!rows.some(r=>r.presetUrl))return;
   }
   const btn=document.getElementById('exgif-import-btn');
@@ -5839,7 +5828,7 @@ async function runExGifImport(){
           }
         }
       }else if(row.file){
-        if(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+        if(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
           row.status='err';
         }else{
         if(!Object.prototype.hasOwnProperty.call(row,'previousUrl')){

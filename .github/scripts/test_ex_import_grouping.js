@@ -21,6 +21,8 @@ ok('new exercise action exists', source.includes('async function addExGifImportE
 ok('new exercise is stored before assignment', source.includes("await persistById('exercises',ex)"));
 ok('new exercise returns to the import row', source.includes("row.exerciseName=ex.name;row.category=ex.cat;row.selected=true"));
 ok('wide row preserves all six review controls', source.includes('grid-template-columns:28px minmax(155px,1fr) minmax(120px,.7fr) minmax(245px,1.5fr) minmax(110px,.6fr) 24px;'));
+ok('GitHub Pages is allowed to use Firebase Storage', !source.includes('function hostBlocksFirebaseStorageUpload') && !source.includes('Z GitHub Pages nie wgramy plików'));
+ok('bulk upload checks Firebase SDK availability', source.includes("if(fileRows.length&&(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL))"));
 
 if (failed) {
   console.error('\n' + failed + ' failed');
