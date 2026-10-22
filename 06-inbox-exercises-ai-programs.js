@@ -2916,33 +2916,33 @@ function freezeExCardGif(img){
 }
 window.freezeExCardGif=freezeExCardGif;
 
+// Widok biblioteki ma jeden spójny, jasny styl. Nie mieszamy w nim starych
+// zdjęć z siłowni, zdjęć stockowych ani ciemnych materiałów z zewnętrznych
+// katalogów. Jedynym obrazem na karcie jest nieruchomy kadr GIF-a wgranego
+// przez trenera do Firebase; reszta dostaje czyste białe pole.
+function isTrainerWhiteCardGif(url){
+  const u=String(url||'');
+  return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)&&/\.gif(?:\?|#|$)/i.test(u);
+}
+window.isTrainerWhiteCardGif=isTrainerWhiteCardGif;
+
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
   // GIF-y techniki są poprawnymi materiałami, choć nie są plikami MP4/WebM.
   // Do odznaki używamy pełnego resolvera, a karta pokazuje wyłącznie pierwszy
   // nieruchomy kadr na białym tle.
   const gif=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
-  // Materiał premium z Drive jest dostępny po kliknięciu „FILM”, ale nie robi
-  // ciemnej, ciężkiej miniatury na każdej karcie biblioteki.
-  const isDriveTechnique=!!gif&&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif)
-    &&(!window.googleDriveMediaRole||window.googleDriveMediaRole(gif)!=='preview');
-  const isVid=!!gif&&!isDriveTechnique;
   const hasTechnique=!!gif;
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
   const part=e.cat||'Ćwiczenie';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
-  if(thumb){
-    const staticGif=/\.gif(?:\?|#|$)/i.test(thumb)&&!(typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(thumb));
-    const freeze=staticGif?' crossorigin="anonymous" onload="freezeExCardGif(this)"':'';
+  if(thumb&&isTrainerWhiteCardGif(thumb)){
+    const freeze=' crossorigin="anonymous" onload="freezeExCardGif(this)"';
     media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"${freeze} onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
-  }else if(isVid&&gif){
-    // Nie pobieraj setek plików MP4 przy samym otwarciu katalogu. Pełny film
-    // ładuje się po wejściu w szczegóły ćwiczenia.
-    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="none" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
   }else{
-    media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${esc(part)}</span></div>`;
+    media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:#fff;color:${col};border:1px solid #e5e7eb;"><span class="ex-card-part">${esc(part)}</span></div>`;
   }
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${Math.min(i||0,12)*0.025}s" data-ex-name="${escHtml(e.name)}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="ex-card-accent" style="background:${col};"></div>
