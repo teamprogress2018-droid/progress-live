@@ -2538,6 +2538,48 @@ function catalogDedupeKey(s){
 }
 window.catalogDedupeKey=catalogDedupeKey;
 
+// Klucz używany wyłącznie do audytu duplikatów. Nie scala podobnych ćwiczeń
+// (np. różnych wariantów przysiadu) — wykrywa tylko tę samą nazwę zapisaną
+// inną wielkością liter, bez polskich znaków albo z dopisanym numerem kopii.
+function exerciseDuplicateKey(s){
+  return exerciseSearchNorm(catalogDedupeKey(s))
+    .replace(/[()\[\]{}.,:;!?'"`]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+window.exerciseDuplicateKey=exerciseDuplicateKey;
+
+function exerciseDuplicateGroups(){
+  const groups=new Map();
+  const add=(exercise,source)=>{
+    if(!exercise||!exercise.name)return;
+    const key=exerciseDuplicateKey(exercise.name);
+    if(!key)return;
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push({exercise,source});
+  };
+  (window.DEF_EX||DEF_EX||[]).forEach(ex=>add(ex,'catalog'));
+  (window.EX||EX||[]).forEach(ex=>add(ex,'custom'));
+  return [...groups.entries()].filter(([,items])=>items.length>1)
+    .map(([key,items])=>({key,items})).sort((a,b)=>a.items[0].exercise.name.localeCompare(b.items[0].exercise.name,'pl'));
+}
+window.exerciseDuplicateGroups=exerciseDuplicateGroups;
+
+async function reviewExerciseDuplicates(){
+  const groups=exerciseDuplicateGroups();
+  if(!groups.length){notify('Sprawdzone: nie ma zdublowanych ćwiczeń.');return {groups:[]};}
+  const imported=importedCatalogDupCount();
+  const lines=groups.slice(0,12).map(group=>'• '+group.items.map(item=>item.exercise.name+(item.source==='custom'?' (własne / import)':' (katalog)')).join('  ↔  '));
+  const more=groups.length>12?'\n… i '+(groups.length-12)+' kolejnych grup.':'';
+  const safe=imported?'\n\nMożna bezpiecznie usunąć '+imported+' kopii z importu — zachowam przy tym ich filmy i podglądy na właściwych kartach katalogu.':'\n\nNie usuwam automatycznie pozycji z katalogu; mogą być zamierzonymi wariantami.';
+  if(imported&&confirm('Znaleziono '+groups.length+' grup z powtarzającą się nazwą:\n\n'+lines.join('\n')+more+safe+'\n\nUsunąć teraz tylko bezpieczne kopie z importu?')){
+    await sweepImportedCatalogDuplicates({silent:false});
+  }else{
+    notify('Znaleziono '+groups.length+' grup duplikatów. Nic nie zostało usunięte.');
+  }
+  return {groups,imported};
+}
+window.reviewExerciseDuplicates=reviewExerciseDuplicates;
+
 function catalogDedupeIndex(defs){
   const map=new Map();
   (defs||window.DEF_EX||[]).forEach(e=>{
@@ -2884,6 +2926,12 @@ function exDelBtnHtml(e,extraStyle){
   return `<button type="button" class="btn btn-ghost btn-sm" style="${style}" title="${title}" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">${own?'Usuń':'Ukryj'}</button>`;
 }
 window.exDelBtnHtml=exDelBtnHtml;
+function exCardDeleteBtnHtml(e){
+  const own=exIsOwn(e);
+  const label=own?'Usuń własne ćwiczenie':'Ukryj z biblioteki';
+  return `<button type="button" class="ex-card-delete-btn" title="${label}" aria-label="${label}" onclick="event.stopPropagation();delEx(${exJsArg(e.name)})">${own?'🗑':'⊘'}</button>`;
+}
+window.exCardDeleteBtnHtml=exCardDeleteBtnHtml;
 
 // Karta katalogu potrzebuje tylko nieruchomego, jasnego kadru. Pełny GIF
 // pozostaje przypięty do ćwiczenia i odtwarza się dopiero w jego szczegółach.
@@ -2974,6 +3022,7 @@ function exCardHtml(e,i){
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${Math.min(i||0,12)*0.025}s" data-ex-name="${escHtml(e.name)}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="ex-card-accent" style="background:${col};"></div>
     ${exFavBtnHtml(e)}
+    ${exCardDeleteBtnHtml(e)}
     <div class="ex-card-body">
       ${media}
       <div>
@@ -2985,7 +3034,6 @@ function exCardHtml(e,i){
         </div>
         ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${escHtml(e.muscle)}</div>`:''}
         ${e.tip?`<div class="ex-card-tip">${escHtml(e.tip.substring(0,80))}${e.tip.length>80?'…':''}</div>`:''}
-        ${exDelBtnHtml(e,'margin-top:6px;')}
       </div>
     </div>
   </div>`;
@@ -3122,6 +3170,11 @@ function renderLib(){
     const dupN=importedCatalogDupCount();
     sweepBtn.style.display=dupN?'block':'none';
     sweepBtn.textContent='Usuń duplikaty importu ('+dupN+')';
+  }
+  const reviewBtn=document.getElementById('lib-review-dups');
+  if(reviewBtn){
+    const groups=exerciseDuplicateGroups();
+    reviewBtn.textContent=groups.length?'Sprawdź duplikaty ('+groups.length+')':'Sprawdź duplikaty';
   }
   syncExViewUi();
   const mediaToggle=document.getElementById('ex-media-only-toggle');
