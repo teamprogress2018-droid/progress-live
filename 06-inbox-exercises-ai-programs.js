@@ -5594,6 +5594,12 @@ function renderExGifImportPreview(){
   const cnt=document.getElementById('exgif-match-count');
   if(!el)return;
   const matched=_exGifImportRows.filter(r=>r.selected&&r.exerciseName).length;
+  const missing=_exGifImportRows.filter(r=>!r.exerciseName).length;
+  const addMissing=document.getElementById('exgif-add-missing');
+  if(addMissing){
+    addMissing.style.display=missing?'':'none';
+    addMissing.textContent='+ Dodaj '+missing+' brakujących ćwiczeń';
+  }
   if(cnt)cnt.textContent=matched+' / '+_exGifImportRows.length+' dopasowanych';
   if(!_exGifImportRows.length){
     const msg=_exGifImportMode==='paste'
@@ -5735,6 +5741,36 @@ async function addExGifImportExercise(i){
 }
 window.setExGifImportCategory=setExGifImportCategory;
 window.addExGifImportExercise=addExGifImportExercise;
+
+async function addAllExGifImportExercises(){
+  const missing=_exGifImportRows.filter(row=>!row.exerciseName&&(row.file||row.label||row.presetUrl));
+  if(!missing.length){notify('Wszystkie pliki mają już przypisane ćwiczenia.');return;}
+  if(!confirm('Utworzyć '+missing.length+' brakujących ćwiczeń na podstawie nazw plików? Zostaną przypisane do partii widocznej przy pliku.'))return;
+  const norm=typeof exerciseSearchNorm==='function'?exerciseSearchNorm:s=>String(s||'').toLowerCase();
+  let added=0, reused=0, failed=0;
+  for(const row of missing){
+    const label=row.file?row.file.name:(row.label||row.presetUrl||'');
+    const name=exImportCleanFileName(label);
+    if(!name){failed++;continue;}
+    const all=typeof allExercises==='function'?allExercises():[];
+    const duplicate=all.find(ex=>ex&&norm(ex.name)===norm(name));
+    if(duplicate){
+      row.exerciseName=duplicate.name;row.category=duplicate.cat||row.category||'';row.selected=true;row.confidence='manual';reused++;continue;
+    }
+    const category=row.category||exImportInferCategory(label)||'Inne';
+    const ex=withTrainer({id:newId('ex'),name,cat:category,eq:exImportEquipment(label),muscle:category,tip:'Dodane podczas importu materiału.',nsca:'3x8–12.',alt:'',gif:'',img:''});
+    EX.push(ex);
+    try{if(typeof persistById==='function')await persistById('exercises',ex);}catch(e){
+      EX=EX.filter(item=>item!==ex);window.EX=EX;failed++;continue;
+    }
+    row.exerciseName=ex.name;row.category=ex.cat;row.selected=true;row.confidence='manual';added++;
+  }
+  await saveExMediaImportJournal('review');
+  renderExGifImportPreview();syncExGifImportBtnLabel();
+  if(typeof renderLib==='function')renderLib();
+  notify('Dodano '+added+' ćwiczeń'+(reused?', wykorzystano istniejące: '+reused:'')+(failed?', nie zapisano: '+failed:'')+'. Teraz kliknij „Wgraj pliki”.');
+}
+window.addAllExGifImportExercises=addAllExGifImportExercises;
 
 function setExGifImportRole(i,role){
   if(!_exGifImportRows[i])return;

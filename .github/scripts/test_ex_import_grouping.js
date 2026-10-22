@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const source = fs.readFileSync(path.join(__dirname, '../..', '06-inbox-exercises-ai-programs.js'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '../..', 'index.html'), 'utf8');
 let failed = 0;
 function ok(name, condition) {
   if (condition) console.log('OK   ' + name);
@@ -20,6 +21,9 @@ ok('changing category clears mismatched exercise', source.includes("if(found&&fo
 ok('new exercise action exists', source.includes('async function addExGifImportExercise(i)'));
 ok('new exercise is stored before assignment', source.includes("await persistById('exercises',ex)"));
 ok('new exercise returns to the import row', source.includes("row.exerciseName=ex.name;row.category=ex.cat;row.selected=true"));
+ok('bulk creation action exists for all unmatched files', source.includes('async function addAllExGifImportExercises()'));
+ok('bulk creation is visibly offered in the import modal', html.includes('id="exgif-add-missing"'));
+ok('bulk creation writes each created exercise', source.includes("await persistById('exercises',ex)"));
 ok('wide row preserves all six review controls', source.includes('grid-template-columns:28px minmax(155px,1fr) minmax(120px,.7fr) minmax(245px,1.5fr) minmax(110px,.6fr) 24px;'));
 ok('GitHub Pages is allowed to use Firebase Storage', !source.includes('function hostBlocksFirebaseStorageUpload') && !source.includes('Z GitHub Pages nie wgramy plików'));
 ok('bulk upload checks Firebase SDK availability', source.includes("if(fileRows.length&&(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL))"));
