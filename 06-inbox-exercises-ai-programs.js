@@ -2964,6 +2964,9 @@ function renderLib(){
   const all=allExercises();
   const withMedia=all.filter(exHasLibraryMedia);
   const library=exMediaOnly?withMedia:all;
+  // The completion queue must also expose new exercises before their first
+  // upload; otherwise they disappear while the default media-only view is on.
+  const mediaGaps=all.filter(exNeedsCuratedMedia);
   const hiddenN=hiddenExNames().length;
   const restoreBtn=document.getElementById('lib-restore-hidden');
   if(restoreBtn){
@@ -2996,7 +2999,7 @@ function renderLib(){
       ['__plan_core','★ Fundament planów',library.filter(e=>exLibraryFocusKind(e,'__plan_core')).length,'plan-core'],
       ['__functional','⚡ Funkcjonalne',library.filter(e=>exLibraryFocusKind(e,'__functional')).length,'functional'],
       ['__mobility','🧘 Mobilizacja',library.filter(e=>exLibraryFocusKind(e,'__mobility')).length,'mobility'],
-      ['__media_gap','◌ Materiały do uzupełnienia',library.filter(exNeedsCuratedMedia).length,'media-gap'],
+      ['__media_gap','◌ Materiały do uzupełnienia',mediaGaps.length,'media-gap'],
       ['__fav','★ Ulubione',library.filter(e=>favNames.includes(e.name)).length,'fav'],
       ['__recent','🕘 Ostatnio używane',recent.length,'recent']
     ];
@@ -3027,7 +3030,8 @@ function renderLib(){
 
   // filter
   const searchTokens=exerciseSearchTokens(search);
-  let filtered=library.filter(e=>{
+  const filterBase=exCatFilter==='__media_gap'?all:library;
+  let filtered=filterBase.filter(e=>{
     if(exCatFilter==='__plan_core'||exCatFilter==='__functional'||exCatFilter==='__mobility'){
       if(!exLibraryFocusKind(e,exCatFilter))return false;
     }
@@ -3048,7 +3052,7 @@ function renderLib(){
   const countEl=document.getElementById('ex-results-count');
   if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń')+(exMediaOnly?' z filmem / podglądem':'');
 
-  const useGrouped=exCatFilter==='Wszystkie';
+  const useGrouped=exCatFilter==='Wszystkie'||exCatFilter==='__media_gap';
   const shown=filtered.slice(0,exLibVisible);
 
   if(exView==='grid'){
