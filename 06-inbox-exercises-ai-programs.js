@@ -503,6 +503,7 @@ const CAT_COLORS_EX={
   'Rozgrzewka':'#64748b',
   'Rozciąganie':'#94a3b8',
   'Mobilność':'#22c55e',
+  'Funkcjonalne':'#e11d48',
 };
 window.CAT_COLORS_EX=CAT_COLORS_EX;
 
@@ -529,7 +530,7 @@ const EX_LIBRARY_FOCUS={
 function exLibraryFocusKind(e,kind){
   if(!e)return false;
   if(kind==='__plan_core')return EX_LIBRARY_FOCUS.core.includes(e.name);
-  if(kind==='__functional')return EX_LIBRARY_FOCUS.functional.includes(e.name);
+  if(kind==='__functional')return e.cat==='Funkcjonalne'||EX_LIBRARY_FOCUS.functional.includes(e.name);
   if(kind==='__mobility')return EX_LIBRARY_FOCUS.mobilityCats.includes(e.cat);
   return false;
 }
@@ -1503,6 +1504,32 @@ const EX_MEDIA_BICEPS_ADD=[
 {name:'Uginanie gryfem łamanym szerokim chwytem',aka:'Wide grip EZ bar curl, Uginanie ramion ze sztangą łamaną szerokim chwytem',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Wybierz szeroki uchwyt gryfu łamanego, utrzymując łokcie pod barkami.',nsca:'3x8–12.',alt:'Uginanie gryfem łamanym'}
 ];
 EX_MEDIA_BICEPS_ADD.forEach(ex=>{if(!DEF_EX.some(existing=>existing.name===ex.name))DEF_EX.push(ex);});
+
+// Brakujące pozycje z autoryzowanego zestawu GIF „Trening funkcjonalny i HIIT”.
+// W katalogu znajdują się tylko pliki, których nazwy nie dopasowały się już do
+// ćwiczeń istniejących. Dzięki temu import 172 GIF-ów nie tworzy duplikatów,
+// a nowo dodane karty trafiają bezpośrednio do wejścia „Funkcjonalne”.
+const EX_MEDIA_FUNCTIONAL_ADD=[
+  'Bieg bokiem','Bieg krótkim krokiem','Bieg szybkimi krokami','Bieg tyłem','Bieg z unoszeniem kolan','Bieg z wyskokiem','Bieg z wysokim unoszeniem kolan',
+  'Box jump z dwóch nóg na jedną','Box jump z przejściem do pistol squat','Burpee Navy SEAL','Burpee','Chód boczny z gumą oporową','Cios prosty (jab)','Ciosy',
+  'Ćwiczenia boczne na drabince koordynacyjnej','Ćwiczenia na drabince koordynacyjnej','Ćwiczenie 5 punktów','Ćwiczenie plyometryczne X','Ćwiczenie z balonem','Dips tyłem do ławki',
+  'Głęboki przysiad wykroczny','Jazda na rowerze','Kickback pośladków z gumą oporową','Kickback pośladków z gymstickiem','Kickback pośladków ze zgiętą nogą z gumą oporową','Kickback ze zgiętą nogą',
+  'Kopnięcie hakowe','Krok bokserski cardio','Krok narciarski','Krok w tył z unoszeniem kolana','Krzesełko przy ścianie z pochyleniem tułowia','Krzesełko przy ścianie','Krzyż żelazny z hantlami',
+  'Martwy ciąg na jednej nodze','Military press z masą ciała','Mostek biodrowy na jednej nodze na ławce','Mostek biodrowy na jednej nodze z uniesioną nogą','Mostek biodrowy na jednej nodze','Mostek biodrowy z gumą oporową',
+  'Mountain climber','Narciarz z gymstickiem','Nożyce ramionami','Odwodzenie bioder z gumą oporową','Odwodzenie biodra bokiem','Odwodzenie biodra leżąc na boku','Odwodzenie biodra stojąc','Ośle kopnięcie',
+  'Pajacyk przodem','Pistol squat na skrzyni','Pistol squat z podparciem na skrzyni','Pływanie','Pochylenie miednicy','Podanie piłki lekarskiej sprzed klatki stojąc','Podskoki pajacyk','Podskoki z wysokim unoszeniem kolan',
+  'Pompka na kolanach wąskim chwytem','Pompka na kolanach','Prawy krzyżowy','Prawy prosty','Prawy sierpowy','Przyciąganie boczne z gumą oporową','Przyciąganie z gumą oporową',
+  'Przysiad bułgarski z masą ciała','Przysiad do ławki z masą ciała','Przysiad krewetka','Przysiad łyżwiarza','Przysiad na jednej nodze ze skrętem tułowia','Przysiad przy ścianie z piłką gimnastyczną','Przysiad sumo z masą ciała','Przysiad z gumą oporową nad głową','Przysiad z gymstickiem','Przysiad z przejściem do wykroku z gumą oporową','Przysiad z unoszeniem kolana','Przysiad z wyskokiem i ugięciem kolan','Przysiad',
+  'Rolowanie na piłce gimnastycznej','Równowaga na jednej nodze z uginaniem ramion','Rzut piłką lekarską do ściany','Rzut piłką lekarską leżąc','Rzut piłką lekarską w górę i w dół','Rzut piłką lekarską z rotacją','Rzut piłką lekarską z unoszeniem tułowia','Rzut piłką lekarską','Rzut piłką reakcyjną',
+  'Scyzoryk z piłką gimnastyczną','Skip A przy ścianie','Skip C','Skok do przodu na jednej nodze','Skok w dal','Skok w tył','Skok z ugięciem kolan','Skoki dynamiczne','Skoki łyżwiarza','Skoki nożyce','Skoki plyometryczne zygzakiem','Skoki snap','Skoki z wysokim unoszeniem kolan','Skręty łokieć do kolana','Spięcie brzucha żabka z piłką gimnastyczną','Step-up z gumą oporową','Step-up z unoszeniem kolana','Swing z gymstickiem','Szybki krok w bok','Szybki marsz','Ściąganie z gumą oporową',
+  'Uginanie młotkowe z butelką wody','Uginanie młotkowe z gumą oporową','Uginanie nóg leżąc z gumą oporową','Uginanie nóg leżąc z hantlami','Uginanie nóg na piłce gimnastycznej','Uginanie nóg z gumą oporową','Uginanie nóg z ręcznikiem','Uginanie ramion z gumą oporową','Unoszenie bioder z gumą oporową','Unoszenie bioder ze stopami na podwyższeniu','Unoszenie nóg w stylu żaby','Unoszenie prostej nogi w tył','Utrzymanie przysiadu ze wspięciem na palce',
+  'Walka z cieniem','Wiosłowanie jednorącz z gymstickiem','Wiosłowanie szerokim chwytem z gumą oporową','Wspięcia na palce z gumą oporową','Wyciskanie nad głowę bokiem z gymstickiem','Wyciskanie nad głowę jednorącz z gumą oporową','Wykrok na ławce','Wykrok z gymstickiem','Wykrok z masą ciała','Wykrok z wysokim unoszeniem kolana na piłce BOSU','Wykrok','Wykroki chodzone z wysokim unoszeniem kolana','Wykroki z przeskokiem z hantlami','Wymachy nóg w tył na ławce naprzemiennie','Wyprost bioder na ławce','Wyprost biodra stojąc','Wyprost w stawie barkowym z gumą oporową','Wznosy przodem i bokiem z gumą oporową','Zgięcie w stawie barkowym z gumą oporową'
+].map(name=>{
+  const n=name.toLowerCase();
+  const eq=n.includes('gumą')?'Guma oporowa':n.includes('gymstick')?'Gymstick':n.includes('piłk')?'Piłka':n.includes('hantl')?'Hantle':n.includes('ławce')?'Ławka':n.includes('drabince')?'Drabinka koordynacyjna':n.includes('skrzyni')?'Skrzynia':n.includes('bosu')?'BOSU':'Własna masa';
+  return {name,cat:'Funkcjonalne',eq,muscle:'Trening funkcjonalny / HIIT',tip:'Wykonuj ruch płynnie, zachowując stabilną pozycję i zakres bez bólu.',nsca:'2–4 serie po 6–15 powtórzeń lub 20–45 s.',alt:'Trening funkcjonalny'};
+});
+EX_MEDIA_FUNCTIONAL_ADD.forEach(ex=>{if(!DEF_EX.some(existing=>existing.name===ex.name))DEF_EX.push(ex);});
 
 
 function hiddenExNames(){
