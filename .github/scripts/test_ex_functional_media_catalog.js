@@ -24,7 +24,7 @@ ok('functional shortcut includes the category', source.includes("e.cat==='Funkcj
 ok('functional category has a card color', source.includes("'Funkcjonalne':'#e11d48'"));
 ok('GIF technique is visibly marked as a film on a card', source.includes("const gif=typeof exGifUrl==='function'?exGifUrl(e)"));
 ok('GIF cards are frozen to a white first-frame preview', source.includes('function freezeExCardGif(img)') && source.includes("ctx.fillStyle='#fff'") && source.includes('onload="freezeExCardGif(this)"'));
-ok('library excludes legacy dark and stock thumbnails', source.includes('function isTrainerWhiteCardGif(url)') && source.includes('if(thumb&&isTrainerWhiteCardGif(thumb))') && source.includes('style="background:#fff;color:${col};border:1px solid #e5e7eb;"'));
+ok('library accepts only matching white exercise previews', source.includes('function isWhiteExerciseCardPreview(ex,url)') && source.includes('if(thumb&&isWhiteExerciseCardPreview(e,thumb))') && source.includes("googleDriveMediaRole(preview)==='preview'") && source.includes('assets\\/ex\\/gifs') && source.includes('style="background:#fff;color:${col};border:1px solid #e5e7eb;"'));
 ok('browser loads the new functional catalog', html.includes('functional-hiit-media=1'));
 const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 ok('Firebase GIF technique can be used as a lazy card preview', !core.includes("if(Number(window.EX_DRIVE_MEDIA_VERSION||0)>=1)return '';"));

@@ -2920,13 +2920,29 @@ window.freezeExCardGif=freezeExCardGif;
 
 // Widok biblioteki ma jeden spójny, jasny styl. Nie mieszamy w nim starych
 // zdjęć z siłowni, zdjęć stockowych ani ciemnych materiałów z zewnętrznych
-// katalogów. Jedynym obrazem na karcie jest nieruchomy kadr GIF-a wgranego
-// przez trenera do Firebase; reszta dostaje czyste białe pole.
+// katalogów. Jedynym obrazem na karcie jest właściwy, jasny podgląd tego
+// ćwiczenia: materiał trenera z Firebase, lokalny GIF biblioteki albo jasny
+// podgląd Drive oznaczony jako `pl-preview`. Reszta dostaje czyste białe pole.
 function isTrainerWhiteCardGif(url){
   const u=String(url||'');
   return /(?:firebasestorage\.googleapis\.com|firebasestorage\.app)/i.test(u)&&/\.gif(?:\?|#|$)/i.test(u);
 }
 window.isTrainerWhiteCardGif=isTrainerWhiteCardGif;
+
+function isWhiteExerciseCardPreview(ex,url){
+  const u=String(url||'');
+  // Własne jasne GIF-y oraz dołączone do aplikacji GIF-y ćwiczeń można
+  // zamrozić do pojedynczej klatki i bezpiecznie pokazać na karcie.
+  if(isTrainerWhiteCardGif(u)||/^assets\/ex\/gifs\/[^/]+\.gif(?:\?|#|$)/i.test(u))return true;
+  // Manifest Drive jest rozdzielony na jasne podglądy i materiały techniki.
+  // Akceptujemy wyłącznie pierwszy rodzaj — nie zdjęcia stockowe ani film
+  // techniki w tle siłowni.
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(ex):'';
+  return !!(preview
+    &&typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(preview)
+    &&typeof googleDriveMediaRole==='function'&&googleDriveMediaRole(preview)==='preview');
+}
+window.isWhiteExerciseCardPreview=isWhiteExerciseCardPreview;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
@@ -2940,8 +2956,10 @@ function exCardHtml(e,i){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
-  if(thumb&&isTrainerWhiteCardGif(thumb)){
-    const freeze=' crossorigin="anonymous" onload="freezeExCardGif(this)"';
+  if(thumb&&isWhiteExerciseCardPreview(e,thumb)){
+    // GIF zostaje nieruchomym pierwszym kadrem; podgląd Drive jest już
+    // pojedynczym obrazem, więc nie próbujemy go rysować ponownie na canvas.
+    const freeze=/\.gif(?:\?|#|$)/i.test(String(thumb))?' crossorigin="anonymous" onload="freezeExCardGif(this)"':'';
     media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"${freeze} onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
   }else{
     media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:#fff;color:${col};border:1px solid #e5e7eb;"><span class="ex-card-part">${esc(part)}</span></div>`;
