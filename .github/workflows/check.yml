@@ -797,10 +797,23 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/check_browser.js
 
-      - name: Generator — pełny przepływ zatwierdzania i zapisu
-        if: ${{ !cancelled() }}
-        run: node .github/scripts/test_generator_workbench_ui.js
-
       - name: Podsumowanie
         if: success()
         run: echo "✅ Wszystkie sprawdzenia przeszły pomyślnie."
+
+  generator_workbench:
+    name: Generator — zatwierdzanie i zapis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Przygotuj przeglądarkę testową
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium
+      - name: Logika i izolacja
+        run: node .github/scripts/test_generator_workbench.js
+      - name: Propozycja, zapis, przywrócenie i wariant awaryjny
+        run: node .github/scripts/test_generator_workbench_ui.js
