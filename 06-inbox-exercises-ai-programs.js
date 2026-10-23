@@ -2999,6 +2999,46 @@ function isWhiteExerciseCardPreview(ex,url){
 }
 window.isWhiteExerciseCardPreview=isWhiteExerciseCardPreview;
 
+// Karty biblioteki są celowo niezależne od filmu i pliku podglądu. Dzięki temu
+// zawsze mają ten sam, biały, nieruchomy wygląd, także gdy ćwiczenie nie ma
+// jeszcze materiału w Firebase. Pełny GIF/film zostaje wyłącznie w szczegółach.
+function exCardWhitePreviewHtml(e,col){
+  const cat=String(e&&e.cat||'Ćwiczenie');
+  const eq=String(e&&e.eq||'');
+  const name=String(e&&e.name||'Ćwiczenie');
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  const accent=/^#[0-9a-f]{3,8}$/i.test(String(col||''))?col:'#ef3b34';
+  const key=(cat+' '+name).toLowerCase();
+  let target='<path d="M51 40c4-3 14-3 18 0l4 14H47z" fill="'+accent+'" opacity=".86"/>';
+  let pose='';
+  if(/plecy/.test(key))target='<path d="M48 39c4 3 20 3 24 0l-3 19H51z" fill="'+accent+'" opacity=".86"/>';
+  else if(/barki/.test(key))target='<path d="M38 40l10-5 2 10-10 5zm34 0-10-5-2 10 10 5z" fill="'+accent+'" opacity=".86"/>';
+  else if(/nogi|pośladki|posladki/.test(key))target='<path d="M49 57h9l-3 25h-9zm13 0h9l4 25h-9z" fill="'+accent+'" opacity=".86"/>';
+  else if(/biceps/.test(key))target='<path d="M38 43l7-3 5 15-7 3zm32-3 7 3-5 15-7-3z" fill="'+accent+'" opacity=".86"/>';
+  else if(/triceps/.test(key))target='<path d="M40 42l6 2-5 15-6-2zm34 2 6-2 5 15-6 2z" fill="'+accent+'" opacity=".86"/>';
+  else if(/core|brzuch/.test(key))target='<path d="M50 40h20l-2 20H52zM58 42v16m6-16v16" fill="'+accent+'" opacity=".86"/>';
+  else if(/cardio|biegan|bieg|hiit|funkcjonal/.test(key)){
+    target='<path d="M52 39h16l4 14H50z" fill="'+accent+'" opacity=".86"/>';
+    pose='<path d="M57 58 45 79m17-21 16 12" stroke="'+accent+'" stroke-width="5" stroke-linecap="round"/>';
+  }
+  const equipment=/maszyna/.test(eq)?'<path d="M16 20v57m7-45h14m-14 30h14M96 20v57m-14-45H68m14 30H68" stroke="#b9c1cb" stroke-width="3" stroke-linecap="round"/>'
+    :/sztanga/.test(eq)?'<path d="M24 28h72m-58-5v10m44-10v10" stroke="#b9c1cb" stroke-width="3" stroke-linecap="round"/>'
+    :/hantle/.test(eq)?'<path d="M22 70h17m42 0h17M26 64v12m9-12v12m50-12v12m9-12v12" stroke="#b9c1cb" stroke-width="3" stroke-linecap="round"/>'
+    :/wyciąg/.test(eq)?'<path d="M21 18v58m-5-58h10m-5 8 20 18m58-26v58m-5-58h10m-5 8-20 18" stroke="#b9c1cb" stroke-width="3" stroke-linecap="round"/>'
+    :'';
+  return `<div class="ex-card-thumb ex-card-thumb-white-art" style="position:relative;background:#fff;border-color:#e4e9ef;display:block;isolation:isolate;" role="img" aria-label="Stały biały podgląd: ${esc(name)}">
+    <svg style="display:block;width:100%;height:100%;" viewBox="0 0 120 96" aria-hidden="true" focusable="false">
+      <rect width="120" height="96" fill="#fff"/>
+      <path d="M60 18v12m-12 11 12-9 12 9M53 58 47 84m20-26 6 26" stroke="#9da7b3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="60" cy="18" r="8" fill="#d7dde5" stroke="#9da7b3" stroke-width="2"/>
+      ${target}${pose}${equipment}
+      <path d="M18 88h84" stroke="#e9edf2" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="ex-card-white-caption" style="position:absolute;left:4px;right:4px;bottom:4px;z-index:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:8px;line-height:1.2;font-weight:700;color:#5d6875;text-shadow:0 1px 0 #fff;">${esc(cat)}</span>
+  </div>`;
+}
+window.exCardWhitePreviewHtml=exCardWhitePreviewHtml;
+
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
   // GIF-y techniki są poprawnymi materiałami, choć nie są plikami MP4/WebM.
@@ -3006,19 +3046,10 @@ function exCardHtml(e,i){
   // nieruchomy kadr na białym tle.
   const gif=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
   const hasTechnique=!!gif;
-  const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
-  const part=e.cat||'Ćwiczenie';
-  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
-  let media;
-  if(thumb&&isWhiteExerciseCardPreview(e,thumb)){
-    // Każdy dopuszczony materiał jest pojedynczym obrazem: wygenerowanym
-    // podglądem Firebase albo jasną miniaturą Drive.
-    const freeze=/\.gif(?:\?|#|$)/i.test(String(thumb))?' crossorigin="anonymous" onload="freezeExCardGif(this)"':'';
-    media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"${freeze} onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
-  }else{
-    media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:#fff;color:${col};border:1px solid #e5e7eb;"><span class="ex-card-part">${esc(part)}</span></div>`;
-  }
+  // Nie używamy tu `exThumbUrl`: nawet pojedynczy zewnętrzny obraz może
+  // spowolnić całą bibliotekę albo zaburzyć jednolity biały styl kart.
+  const media=exCardWhitePreviewHtml(e,col);
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${Math.min(i||0,12)*0.025}s" data-ex-name="${escHtml(e.name)}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="ex-card-accent" style="background:${col};"></div>
     ${exFavBtnHtml(e)}
