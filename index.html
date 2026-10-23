@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="styles.css?v=189">
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=10&layout-v2=2">
+<link rel="stylesheet" href="generator-workbench.css?v=1">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
   .ex-card-delete-btn{position:absolute;top:6px;right:34px;z-index:2;border:0;border-radius:6px;background:transparent;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;padding:4px 5px;}
@@ -2687,7 +2688,14 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <!-- prawy panel — wynik -->
     <div class="apl-result-col">
       <div class="apl-result-wrap" id="apl-result-wrap">
+        <details id="gwb-controls" style="margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:10px;">
+          <summary>Zasady trenera i rozwój zapisanego planu</summary>
+          <div id="gwb-rules"></div>
+          <label style="display:block;margin-top:12px;">Kontynuuj zapisany plan<select id="gwb-saved-plan" class="form-select"></select></label>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="gwbOpenSaved()">Otwórz kopię do rozwoju</button>
+        </details>
         <div id="apl-result"></div>
+        <section id="gwb-panel" style="margin-top:16px;"></section>
       </div>
     </div>
   </div>
@@ -4582,6 +4590,7 @@ function resetTenantRuntimeData(){
   TENANT_ARRAY_KEYS.forEach(key=>tenantReplaceRuntimeValue(key,[]));
   TENANT_MAP_KEYS.forEach(key=>tenantReplaceRuntimeValue(key,{}));
   window.SETTINGS=JSON.parse(JSON.stringify(TENANT_DEFAULT_SETTINGS));
+  if(typeof window.gwbReset==='function')window.gwbReset();
   window.ONBOARDING_FLOW=null;
   ['_ciFillOpen','_settingsDocId','_clientId','_trainerId','_clientAccount','_cw','_odPlay','_odHwTaskId','_ppDraft','_ppCmp','_payCopy','_kbLastPlanningContext','_lastMethodRationale','_cpExerciseProgress','_onboardClientId','_onboardResumeAfterInvite','_onboardResumeAfterPackage','_onboardResumeAfterLive','_cpEditingClientId','_assignHwClientId','_assignHwWorkoutId','_assignWorkoutId','_editingClientId','_editingSessionId','_editingFormId','_editingProgId','_editingTaskId','_editingVideoId','_editingTplId','_editingODProgId','_editingKbId','_kbPendingMeta','_livePending','_liveSavedClientId','_liveSavedClientName','_liveDraftSessionId','_liveDraftCreatedAt','cpClientId','capClientId','aicClientId','repClientId','curChat','inviteClientId','plansLibClientId','tplDetailId','sendResourceId','metricActiveGroup','aplLastPlan'].forEach(key=>{window[key]=null;});
   window._userEmail='';window._userDisplayName='';
@@ -4847,7 +4856,7 @@ async function load(session=captureTenantSession()){
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=111"></script>
 <script src="books-kb.js?v=2"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=43&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=43&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1"></script>
 <script src="04-client-portal.js?v=66&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
 <script src="client-card-save.js?v=4"></script>
 <script src="dashboard-home.js?v=1"></script>
@@ -4866,5 +4875,6 @@ async function load(session=captureTenantSession()){
   <script src="13-budget-bridge.js?v=1"></script>
   <script src="14-amateur-plan-wizard.js?v=1"></script>
   <script src="15-pro-plan-wizard.js?v=1"></script>
+  <script src="generator-workbench.js?v=1"></script>
 </body>
 </html>

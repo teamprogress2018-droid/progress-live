@@ -1212,6 +1212,7 @@ function aplBooksContext(p){
 
 async function aplGenerate(){
   if(aplGenerating)return;
+  if(typeof gwbGenerating==='function')gwbGenerating();
   const goal=aplGetVal('apl-goals');
   const level=aplGetVal('apl-levels');
   const method=aplGetVal('apl-methods');
@@ -1228,7 +1229,7 @@ async function aplGenerate(){
   const pharmaStatus=document.getElementById('apl-pharma-status')?.value||'';
   const pharmaDetails=document.getElementById('apl-pharma-details')?.value||'';
   const notesRaw=document.getElementById('apl-notes')?.value||'';
-  const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim();
+  const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim()+(typeof gwbRulesPrompt==='function'?gwbRulesPrompt():'');
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
   const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('apl'):null;
@@ -1864,6 +1865,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   html+=`</div>`;
 
   res.innerHTML=html;
+  if(typeof gwbRender==='function')gwbRender(plan,client);
 }
 
 function aplSetWeek(idx){
@@ -1997,6 +1999,7 @@ function aplMoveExercise(di,ei,dir){
   aplRerenderCurrent();
 }
 function aplSwapExercise(di,ei){
+  if(typeof gwbSwap==='function'&&gwbSwap(di,ei))return;
   const ex=aplLastPlan?.days[di]?.exercises[ei];
   if(!ex)return;
   aplEditExercise(di,ei);
@@ -2083,6 +2086,7 @@ function aplBuildSavedPlan(src,cid,client,id){
   };
   return withTrainer({
     id:id,
+    ...(typeof gwbSaveMetadata==='function'?gwbSaveMetadata(src):{}),
     name:src.planName||'Plan AI',
     rationale:src.rationale||null,
     clientId:cid||null,
@@ -2103,6 +2107,11 @@ function aplBuildSavedPlan(src,cid,client,id){
         const name=e.name||'Ćwiczenie';
         const out={
           name,
+          ...(e.exerciseId?{exerciseId:e.exerciseId}:{}),
+          ...(e.id?{id:e.id}:{}),
+          ...(e.muscleGroup?{muscleGroup:e.muscleGroup}:{}),
+          ...(e.cat?{cat:e.cat}:{}),
+          ...(e.loadUnit?{loadUnit:e.loadUnit}:{}),
           sets:wp.s||e.sets||'3',
           reps:wp.r||e.reps||'10',
           rest:wp.rest||e.rest||'90s',
@@ -2129,6 +2138,7 @@ let aplSaveState=null;
 /** Zapis planu AI potwierdzany przez bazę; ponowienie używa tego samego id (bez duplikatów). */
 async function aplSavePlan(){
   if(!aplLastPlan){notify('Brak planu do zapisania!');return null;}
+  if(typeof gwbBeforeSave==='function'&&!gwbBeforeSave(aplLastPlan))return null;
   if(window._aplAmateurIntake&&typeof aplAmateurPlanIssues==='function'){
     const issues=aplAmateurPlanIssues(aplLastPlan);window._aplAmateurPlanIssues=issues;
     if(issues.length){notify('Popraw plan Amator przed zapisem: '+issues[0]);return null;}
@@ -2158,6 +2168,7 @@ async function aplSavePlan(){
       return null;
     }
     state.saved=newPlan;state.savedSig=sig;
+    if(typeof gwbAfterSave==='function')gwbAfterSave(state.src,newPlan);
     if(btn){btn.disabled=false;btn.textContent='✓ Zapisany';}
     const ix=PL.findIndex(p=>p&&p.id===newPlan.id);
     if(ix>=0)PL[ix]=newPlan;else PL.push(newPlan);
@@ -2615,6 +2626,7 @@ function buildPlanPDFHTML(plan,client){
 }
 
 function aplReset(){
+  if(typeof gwbGenerating==='function')gwbGenerating();
   aplLastPlan=null;
   window._aplAmateurIntake=null;
   window._aplProIntake=null;

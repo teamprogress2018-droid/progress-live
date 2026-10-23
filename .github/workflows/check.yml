@@ -36,6 +36,9 @@ jobs:
       - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
         run: node .github/scripts/test_coach_media.js
 
+      - name: Generator — adaptacja, zasady, wersje i wariant awaryjny
+        run: node .github/scripts/test_generator_workbench.js
+
       - name: Motyw Progress Live 2.0 (jasny + akcent)
         run: node .github/scripts/test_theme_accent.js
 
@@ -793,6 +796,10 @@ jobs:
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         if: ${{ !cancelled() }}
         run: node .github/scripts/check_browser.js
+
+      - name: Generator — pełny przepływ zatwierdzania i zapisu
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_generator_workbench_ui.js
 
       - name: Podsumowanie
         if: success()

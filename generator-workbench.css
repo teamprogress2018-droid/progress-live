@@ -1,0 +1,11 @@
+#gwb-controls,#gwb-panel{font-size:12px;line-height:1.55;color:var(--text)}
+#gwb-controls summary,#gwb-panel summary{cursor:pointer;font-weight:700;padding:6px 0}
+#gwb-controls label,#gwb-preview label{display:block;margin:10px 0}
+#gwb-controls textarea{width:100%;min-height:64px}
+.gwb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.gwb-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.gwb-change{padding:10px 0;border-bottom:1px solid var(--border)}
+.gwb-change small{display:block;color:var(--muted)}
+.gwb-note{padding:8px 12px;border-left:3px solid var(--warning);color:var(--text)}
+#gwb-preview{overflow-wrap:anywhere}
+#gwb-preview .btn{margin-top:8px}
