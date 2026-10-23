@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="globals.css?v=17">
 <link rel="stylesheet" href="styles.css?v=189">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=10&layout-v2=2">
+<link rel="stylesheet" href="theme.css?v=13&layout-v2=2&generator-ux=2">
 <link rel="stylesheet" href="generator-workbench.css?v=1">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
@@ -2244,7 +2244,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="clive-shell">
     <div class="clive-top">
       <div class="clive-brand">PROGRESS<span>LIVE</span></div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="doSignOut()">Wyloguj</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="switchClientAppToTrainer()">Panel trenera</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="doSignOut()">Wyloguj</button>
+      </div>
     </div>
     <div id="clive-screen-content" class="clive-content"></div>
     <div class="clive-more-sheet" id="clive-more-sheet" role="region" aria-label="Pozostałe obszary aplikacji" hidden></div>
@@ -2377,7 +2380,6 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button class="btn btn-ghost btn-sm" type="button" onclick="aplProOpen()">🏆 Tryb Zawodowiec</button>
       <button class="btn btn-ghost btn-sm" onclick="aplReset()">↺ Reset</button>
       <button class="btn btn-ghost btn-sm" onclick="aplCreateBlankPlan()">✏️ Stwórz od podstaw</button>
-      <button class="btn btn-primary btn-sm" id="apl-gen-btn" onclick="aplGenerate()">✨ Generuj plan</button>
     </div>
   </div>
 
@@ -2458,14 +2460,29 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
       <!-- metody intensyfikacji -->
       <div class="form-field">
-        <label class="form-lbl">Metody intensyfikacji (zaznacz dostępne)</label>
+        <label class="form-lbl">Metody intensyfikacji (wybierz opcjonalnie)</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-intensify">
           <button class="apl-opt-multi" data-val="Drop-sety" onclick="this.classList.toggle('active')">💧 Drop-sety</button>
           <button class="apl-opt-multi" data-val="Super-serie" onclick="this.classList.toggle('active')">⚡ Super-serie</button>
           <button class="apl-opt-multi" data-val="RPE/RIR" onclick="this.classList.toggle('active')">🎯 RPE/RIR</button>
+          <details class="apl-advanced-settings apl-methods-more">
+            <summary>Więcej metod <span>zaawansowane</span></summary>
+            <div class="apl-advanced-settings-body apl-methods-grid">
+          <button class="apl-opt-multi" data-val="Rest-pause" onclick="this.classList.toggle('active')">⏱️ Rest-pause</button>
+          <button class="apl-opt-multi" data-val="Myo-reps" onclick="this.classList.toggle('active')">🔁 Myo-reps</button>
+          <button class="apl-opt-multi" data-val="Drop-set mechaniczny" onclick="this.classList.toggle('active')">🔧 Drop-set mechaniczny</button>
+          <button class="apl-opt-multi" data-val="Serie łączone / pre-exhaust" onclick="this.classList.toggle('active')">🧩 Serie łączone / pre-exhaust</button>
+          <button class="apl-opt-multi" data-val="Serie gigant" onclick="this.classList.toggle('active')">🔄 Serie gigant</button>
+          <button class="apl-opt-multi" data-val="Powtórzenia częściowe w wydłużeniu" onclick="this.classList.toggle('active')">📐 Częściowe w wydłużeniu</button>
+          <button class="apl-opt-multi" data-val="Powtórzenia 1,5" onclick="this.classList.toggle('active')">➗ Powtórzenia 1,5</button>
+          <button class="apl-opt-multi" data-val="Serie klastrowe" onclick="this.classList.toggle('active')">📦 Serie klastrowe</button>
+          <button class="apl-opt-multi" data-val="Akcentowana faza ekscentryczna" onclick="this.classList.toggle('active')">⬇️ Akcent ekscentryczny</button>
           <button class="apl-opt-multi" data-val="HIIT/Interwały" onclick="this.classList.toggle('active')">🔥 HIIT/Interwały</button>
-          <button class="apl-opt-multi" data-val="Trening obwodowy" onclick="this.classList.toggle('active')" style="grid-column:1/-1;">🔄 Trening obwodowy</button>
+          <button class="apl-opt-multi" data-val="Trening obwodowy" onclick="this.classList.toggle('active')">🔄 Trening obwodowy</button>
+            </div>
+          </details>
         </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px;">Wybierz metody, które dopuszczasz. Generator zastosuje tylko pasujące do celu i stażu.</div>
       </div>
 
       <!-- dni w tygodniu -->
@@ -2563,6 +2580,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="apl-physique-priority-mount"></div>
       </div>
 
+      <details class="apl-advanced-settings">
+        <summary>🦴 Biomechanika i styl życia <span>opcjonalne</span></summary>
+        <div class="apl-advanced-settings-body">
       <!-- anatomia i biomechanika -->
       <div class="form-field">
         <label class="form-lbl">🦴 Długość kości udowej</label>
@@ -2647,6 +2667,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <input type="range" id="apl-stress" min="1" max="5" value="3" style="width:100%;accent-color:var(--red);" oninput="document.getElementById('apl-stress-val').textContent=['😌 Niski','🙂 Lekki','😐 Średni','😣 Wysoki','🤯 B. wysoki'][this.value-1]">
         <div style="font-size:10px;color:var(--muted);text-align:right;" id="apl-stress-val">😐 Średni</div>
       </div>
+        </div>
+      </details>
 
       <!-- progresja -->
       <div class="form-field">
@@ -2654,11 +2676,16 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-progression">
           <button class="apl-opt active" data-val="ai" onclick="aplToggleOpt(this,'apl-progression')" title="AI dobiera optymalną metodę">🤖 AI Auto</button>
           <button class="apl-opt" data-val="linear" onclick="aplToggleOpt(this,'apl-progression')" title="Co tydzień +2.5-5kg">📈 Liniowa</button>
-          <button class="apl-opt" data-val="dup" onclick="aplToggleOpt(this,'apl-progression')" title="Różne rep ranges każdej sesji">🔄 DUP</button>
           <button class="apl-opt" data-val="wave" onclick="aplToggleOpt(this,'apl-progression')" title="Tygodnie obj. przeplatane z intensywnością">〰️ Falowa</button>
+          <details class="apl-advanced-settings apl-progression-more">
+            <summary>Więcej metod <span>zaawansowane</span></summary>
+            <div class="apl-advanced-settings-body apl-methods-grid">
+          <button class="apl-opt" data-val="dup" onclick="aplToggleOpt(this,'apl-progression')" title="Różne rep ranges każdej sesji">🔄 DUP</button>
           <button class="apl-opt" data-val="block" onclick="aplToggleOpt(this,'apl-progression')" title="Akumulacja → Intensyfikacja → Realizacja">🧱 Blokowa</button>
           <button class="apl-opt" data-val="double" onclick="aplToggleOpt(this,'apl-progression')" title="Najpierw +powt., potem +ciężar">⏫ Podwójna</button>
           <button class="apl-opt" data-val="smolov" onclick="aplToggleOpt(this,'apl-progression')" title="Mikrocykl %1RM na przysiadzie">🏋️ Smolov</button>
+            </div>
+          </details>
         </div>
         <div id="apl-progression-hint" style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.45;"></div>
       </div>
@@ -2682,7 +2709,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
 
-      <button class="btn btn-primary" style="width:100%;margin-top:4px;" id="apl-gen-btn2" onclick="aplGenerate()">✨ Generuj plan treningowy</button>
+      <div class="apl-generate-sticky">
+        <button class="btn btn-primary" id="apl-gen-btn2" onclick="aplGenerate()">✨ Generuj plan treningowy</button>
+      </div>
     </div>
 
     <!-- prawy panel — wynik -->
@@ -4457,6 +4486,7 @@ window.doSignIn=async function(){
 
 window.doSignOut=async function(){
   if(!confirm('Wylogować się?'))return;
+  try{sessionStorage.removeItem('pl_auth_mode');}catch(e){}
   try{await signOut(auth);}catch(e){}
 };
 
@@ -4534,6 +4564,15 @@ function showTenantBootError(error,session){
 
 async function bootApp(session=captureTenantSession()){
   if(!tenantSessionIsCurrent(session))return false;
+  let preferredMode='';
+  try{preferredMode=sessionStorage.getItem('pl_auth_mode')||'';}catch(e){}
+  // Jedno konto Firebase może być równocześnie trenerem i testowym klientem.
+  // Wybór trenera omija automatyczne przejęcie sesji przez clientAccounts/{uid}.
+  if(preferredMode==='trainer'){
+    window._clientAppMode=false;
+    document.body.classList.remove('client-app-mode');
+    return load(session);
+  }
   if(window._clientRegistrationPromise)await window._clientRegistrationPromise;
   if(!tenantSessionIsCurrent(session))return false;
   if(typeof window.fetchClientAccount!=='function')throw new Error('client-account-loader-unavailable');
@@ -4852,22 +4891,22 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=153&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1"></script>
+<script src="01-core.js?v=155&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=111"></script>
 <script src="books-kb.js?v=2"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=43&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1"></script>
-<script src="04-client-portal.js?v=66&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=43&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1&intensify=1&generator-ux=1"></script>
+<script src="04-client-portal.js?v=67&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
 <script src="client-card-save.js?v=4"></script>
 <script src="dashboard-home.js?v=1"></script>
-<script src="05-clients-builder-plans-calendar.js?v=119&volume-control=1&layout-v2=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=120&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=118&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1"></script>
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=93&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
-<script src="09-posture-kb-invites-private.js?v=57&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
-<script src="10-client-app.js?v=47&tenant-isolation=2"></script>
+<script src="09-posture-kb-invites-private.js?v=58&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
+<script src="10-client-app.js?v=50&tenant-isolation=2&save-status=1&trainer-mode-switch=1"></script>
 <script src="11-progress-academy.js?v=8&study-explanations=1&book-answers=1&research=1"></script>
 <script src="research-answer.js?v=2"></script>
 <script src="research-academy.js?v=3"></script>

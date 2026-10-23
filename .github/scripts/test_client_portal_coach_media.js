@@ -5,9 +5,12 @@ const path = require('path');
 
 const makeNode = () => ({
   style: {},
-  classList: { add() {}, remove() {}, toggle() {} },
+  dataset: {},
+  classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
   querySelector() { return null; },
   querySelectorAll() { return []; },
+  setAttribute() {},
+  getAttribute() { return null; },
   appendChild() {},
   insertBefore() {},
   addEventListener() {},
@@ -143,7 +146,7 @@ ok('home shows newest plan name', homeHtml.includes('Nowy plan'));
 const planHtml = capScreenHTML('plan', client);
 ok('plan shows exercise row', planHtml.includes('Przysiad ze sztangą'));
 ok('plan shows coach note', planHtml.includes('Łopatki ściągnięte'));
-ok('plan shows film link', planHtml.includes('Film techniki'));
+ok('plan shows technique link', planHtml.includes('Zobacz technikę'));
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

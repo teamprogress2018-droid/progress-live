@@ -1915,7 +1915,7 @@ window.reloadOnboardScheduleDraft=reloadOnboardScheduleDraft;
 window.discardOnboardScheduleDraft=discardOnboardScheduleDraft;
 
 function latestClientPlan(clientId){
-  return(window.PL||[]).filter(p=>p&&p.clientId===clientId).slice().sort((a,b)=>{
+  return(window.PL||[]).filter(p=>p&&p.clientId===clientId&&!p.archived&&!p.deleted&&p.status!=='archived').slice().sort((a,b)=>{
     const ak=String(a.updatedAt||a.createdAt||a.id||'');
     const bk=String(b.updatedAt||b.createdAt||b.id||'');
     return bk.localeCompare(ak);

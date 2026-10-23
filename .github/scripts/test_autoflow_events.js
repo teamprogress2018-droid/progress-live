@@ -22,7 +22,7 @@ function ok(name, cond, extra) {
 
 ok('cache 01', html.includes('01-core.js?v=137'));
 ok('cache 04', html.includes('04-client-portal.js?v=62'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=57'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=58'));
 ok('html triggers', html.includes('value="package.expired"') && html.includes('value="checkin.submitted"'));
 ok('bus wires autoflow', /autoflowOnAppEvent/.test(core) && /emitAppEvent/.test(core));
 ok('checkin emits', /emitAppEvent\('checkin.submitted'/.test(src04));

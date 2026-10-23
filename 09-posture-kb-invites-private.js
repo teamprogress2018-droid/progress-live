@@ -5337,13 +5337,6 @@ function applySidebarCollapsed(on){
     btn.setAttribute('aria-label',lbl);btn.title=lbl;
   }
 }
-function toggleSidebarCollapsed(){
-  const app=document.getElementById('app-root');
-  const on=!(app&&app.classList.contains('sidebar-collapsed'));
-  applySidebarCollapsed(on);
-  try{localStorage.setItem('pl_sidebar_collapsed',on?'1':'0');}catch(e){}
-  closeNavFlyouts();
-}
 try{applySidebarCollapsed(localStorage.getItem('pl_sidebar_collapsed')==='1');}catch(e){}
 
 window.toggleLibraryFlyout=toggleLibraryFlyout;

@@ -948,34 +948,61 @@ function capScreenHTML(scr,c){
           <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(p.name)}</div>
           <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">${escHtml(p.method||'')} · ${escHtml(String(p.duration||''))} tygodni</div>
         </div>
-        ${(p.days||[]).map((d,i)=>{
+        ${(()=>{
+          const days=p.days||[];
+          const slot=typeof capTodaySlot==='function'?capTodaySlot(c):null;
+          const trainIdxs=typeof planTrainingDayIdxs==='function'?planTrainingDayIdxs(p):days.map((day,index)=>day&&!day.rest&&(day.exercises||[]).length?index:-1).filter(index=>index>=0);
+          const suggested=slot&&slot.kind==='workout'?Number(slot.dayIdx):slot&&slot.kind==='done'&&trainIdxs.length?
+            (()=>{const current=trainIdxs.indexOf(Number(slot.dayIdx));return trainIdxs[current>=0?(current+1)%trainIdxs.length:0];})():
+            (typeof suggestedPlanDayIdx==='function'?Number(suggestedPlanDayIdx(c.id,p)):days.findIndex(day=>day&&!day.rest&&(day.exercises||[]).length));
+          const recommendedIdx=days[suggested]&&!days[suggested].rest&&(days[suggested].exercises||[]).length?suggested:days.findIndex(day=>day&&!day.rest&&(day.exercises||[]).length);
+          const hasRir=days.some(day=>(day.exercises||[]).some(ex=>{const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(ex||{});return parsed.rir!==''&&parsed.rir!=null;}));
+          const hasTempo=days.some(day=>(day.exercises||[]).some(ex=>{const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(ex||{});return !!String(parsed.tempo||'').trim();}));
+          return `<div class="cap-client-plan-intro"><b>Twój plan treningowy</b><span>Otwórz dzień, żeby zobaczyć ćwiczenia i wskazówki. ${recommendedIdx>=0?'Najbliższy trening jest oznaczony poniżej.':''}</span></div>
+          ${hasRir||hasTempo?`<div class="cap-client-plan-rir-help">${hasRir?'<div><b>RIR</b> — ile powtórzeń zostało Ci jeszcze w zapasie po serii.</div>':''}${hasTempo?'<div><b>Tempo</b> — kolejno: opuszczanie, pauza, podnoszenie, pauza.</div>':''}</div>`:''}
+          <div class="cp-plan-days">${days.map((d,i)=>{
           const rest=d.rest||!(d.exercises||[]).length;
-          const live=capIsLiveClient();
+          const isRecommended=i===recommendedIdx&&!rest;
           const detailHtml=rest?'':(d.exercises||[]).map(ex=>{
             const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex||{});
             const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(parsed):{note:parsed.note||'',libTip:'',video:parsed.video||''};
             const icons=typeof coachMediaIcons==='function'?coachMediaIcons(parsed):'';
-            return `<div style="padding:8px 0;border-top:1px solid ${CAP_S3};">
-              <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;">
-                <span style="color:${CAP_TEXT};">${escHtml(parsed.name||'Ćwiczenie')}${icons}</span>
-                <span style="color:${CAP_MUTED};white-space:nowrap;">${escHtml((parsed.sets&&parsed.reps)?(parsed.sets+'×'+parsed.reps):(parsed.sets||parsed.reps||'—'))}</span>
-              </div>
-              ${coach.note?`<div style="font-size:11px;color:${CAP_MUTED};line-height:1.5;margin-top:4px;">${escHtml(coach.note)}</div>`:''}
-              ${!coach.note&&coach.libTip?`<div style="font-size:11px;color:${CAP_MUTED};line-height:1.5;margin-top:4px;">${escHtml(coach.libTip)}</div>`:''}
-              ${coach.video?`<div style="margin-top:6px;"><a href="${escHtml(coach.video)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:${accent};text-decoration:none;">▶ Film techniki</a></div>`:''}
+            const setCount=String(parsed.sets||'').trim();
+            const repCount=String(parsed.reps||'').trim();
+            const restLabel=String(parsed.rest||'').trim();
+            const rir=String(parsed.rir||'').trim();
+            const rpe=String(parsed.rpe||'').trim();
+            const tempo=String(parsed.tempo||'').trim();
+            const load=String(parsed.kg||'').trim();
+            const loadSuffix=load?(typeof loadUnitSuffix==='function'?loadUnitSuffix(parsed.loadUnit||'kg'):' kg'):'';
+            const metrics=[
+              setCount||repCount?`${setCount?setCount+' serii':''}${setCount&&repCount?' · ':''}${repCount?repCount+' powt.':''}`:'',
+              restLabel?'Przerwa '+restLabel:'',
+              rir?'RIR '+rir:'',
+              !rir&&rpe?'RPE '+rpe:'',
+              tempo?'Tempo '+tempo:'',
+              load?'Ciężar startowy '+load+loadSuffix:(parsed.pct1rm?'Ciężar '+parsed.pct1rm+'% 1RM':'')
+            ].filter(Boolean);
+            return `<div class="cap-client-plan-exercise">
+              <div class="cap-client-plan-exercise-name">${escHtml(parsed.name||'Ćwiczenie')}${icons}</div>
+              ${metrics.length?`<div class="cap-client-plan-metrics">${metrics.map((metric,index)=>`<span class="cap-client-plan-metric${index===0?' is-primary':''}">${escHtml(metric)}</span>`).join('')}</div>`:''}
+              ${coach.note?`<div class="cap-client-plan-note">${escHtml(coach.note)}</div>`:''}
+              ${!coach.note&&coach.libTip?`<div class="cap-client-plan-note">${escHtml(coach.libTip)}</div>`:''}
+              ${coach.video?`<a class="cap-client-plan-video" href="${escHtml(coach.video)}" target="_blank" rel="noopener noreferrer">▶ Zobacz technikę</a>`:''}
             </div>`;
           }).join('');
-          return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-              <div>
-                <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(capDayLabel(d,i))}${rest?' · rest':''}</div>
-                <div style="font-size:11px;color:${CAP_MUTED};">${rest?'Odpoczynek':((d.exercises||[]).length+' ćwiczeń')}</div>
-              </div>
-              ${rest?'':`<button type="button" class="btn btn-primary btn-sm" ${live?`onclick="cwOpen('${escHtml(p.id)}',${i})"`:`onclick="notify('Podgląd')"`}>▶ Start</button>`}
-            </div>
-            ${detailHtml?`<div style="margin-top:10px;">${detailHtml}</div>`:''}
-          </div>`;
-        }).join('')}
+          const dayName=escHtml(capDayLabel(d,i));
+          const live=capIsLiveClient();
+          return `<details class="cp-plan-day-tile cap-client-plan-day${rest?' is-rest':''}" ${isRecommended?'open':''}>
+            <summary class="cp-plan-day-summary cap-client-plan-day-summary">
+              <span class="cap-client-plan-day-title">${dayName}${rest?' · odpoczynek':''}</span>
+              ${isRecommended?'<span class="cap-client-plan-next">Najbliższy trening</span>':''}
+              <span class="cp-plan-day-count">${rest?'Dzień wolny':(d.exercises||[]).length+' ćwiczeń'}</span>
+            </summary>
+            ${detailHtml?`<div class="cap-client-plan-day-body">${detailHtml}<button type="button" class="${isRecommended?'cap-btn-primary':'cap-btn-secondary'} cap-client-plan-start" ${live?`onclick="cwOpen('${escHtml(p.id)}',${i})"`:`onclick="notify('Podgląd')"`}>${isRecommended?'▶ Rozpocznij trening':'Rozpocznij ten dzień'}</button></div>`:''}
+          </details>`;
+        }).join('')}</div>`;
+        })()}
       `;
       })()}
     </div>`;
@@ -3529,13 +3556,15 @@ function renderCheckin(){
 
 function renderCheckinClientList(){
   const search=(document.getElementById('ci-search')||{}).value||'';
-  let clients=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
+  let clients=CL.filter(c=>c&&!c.archived&&!c.deleted&&c.status!=='archived'&&(!search||String(c.name||'').toLowerCase().includes(search.toLowerCase())));
 
   clients.forEach(c=>ensureCheckins(c.id));
 
   if(ciFilter==='pending')clients=clients.filter(c=>getCIStatus(c.id)==='pending');
   else if(ciFilter==='done')clients=clients.filter(c=>getCIStatus(c.id)==='done');
   else if(ciFilter==='overdue')clients=clients.filter(c=>getCIStatus(c.id)==='overdue');
+  const statusRank={overdue:0,pending:1,done:2,none:3};
+  clients.sort((a,b)=>(statusRank[getCIStatus(a.id)]??4)-(statusRank[getCIStatus(b.id)]??4)||String(a.name||'').localeCompare(String(b.name||''),'pl'));
 
   const el=document.getElementById('ci-client-list');if(!el)return;
   if(!clients.length){
@@ -4714,7 +4743,7 @@ async function importClientsCsv(input){
         email:iEmail>=0?(cols[iEmail]||''):'',
         phone:iPhone>=0?(cols[iPhone]||''):'',
         goal:iGoal>=0?(cols[iGoal]||'masa'):'masa',
-        
+
         level:iLevel>=0?(cols[iLevel]||'sredni'):'sredni',
         status:'active',
         joinDate:new Date().toISOString().split('T')[0],

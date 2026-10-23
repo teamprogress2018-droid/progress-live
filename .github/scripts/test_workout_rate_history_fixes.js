@@ -5,9 +5,12 @@ const path = require('path');
 
 const makeNode = () => ({
   style: {},
-  classList: { add() {}, remove() {}, toggle() {} },
+  classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
+  dataset: {},
   querySelector() { return null; },
   querySelectorAll() { return []; },
+  setAttribute() {},
+  getAttribute() { return null; },
   appendChild() {},
   insertBefore() {},
   addEventListener() {},

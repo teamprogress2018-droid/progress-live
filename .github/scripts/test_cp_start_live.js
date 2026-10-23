@@ -34,7 +34,7 @@ ok('rest timer not labeled Start', /live-rest-custom-go"[^>]*>Przerwa</.test(htm
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=57'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=58'));
 ok('CI unit', wf.includes('test_cp_start_live.js'));
 ok('CI ui', wf.includes('test_cp_start_live_ui.js'));
 

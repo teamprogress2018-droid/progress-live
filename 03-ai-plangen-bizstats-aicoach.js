@@ -1265,7 +1265,7 @@ async function aplGenerate(){
   }
 
   aplGenerating=true;
-  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+  ['apl-gen-btn2'].forEach(id=>{
     const b=document.getElementById(id);
     if(b){b.disabled=true;b.textContent='⏳ Generuję...';}
   });
@@ -1392,7 +1392,10 @@ ${pharmaStatus==='wspomagany'?'Klient WSPOMAGANY farmakologicznie (sterydy anabo
 OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla każdej partii zsumuj w pamięci serie robocze ze wszystkich dni tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Pole "weeklyVolume" musi odzwierciedlać faktyczną sumę, nie szacunek. Nie dodawaj ćwiczenia tylko po to, aby dobić do MEV: najpierw sprawdź czas sesji, staż, wiek, regenerację, priorytety oraz konserwatywne limity objętości.
 SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: licz sumę tygodniową, ale nie próbuj wyrównywać nierównego układu czterech sesji przez przeładowanie pojedynczego dnia. Zachowaj rotację kolejki PPL między tygodniami.
 
-METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. Jeśli zaznaczono, w polu "notes" wybranych ćwiczeń zaznacz zastosowaną metodę (np. "Drop-set na ostatniej serii: -20% ciężaru do upadku").
+METODY INTENSYFIKACJI DOSTĘPNE (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. To lista metod do wyboru, nie obowiązek użycia każdej. Dobierz zwykle 1–2 pasujące metody na trening i rozłóż je oszczędnie; podaj dokładny schemat w polu "notes" konkretnego ćwiczenia. Stosuj tylko metodę zaznaczoną przez trenera.
+SCHEMATY METOD: Drop-set = po serii zmniejsz ciężar o ok. 20–30% i kontynuuj; najwyżej 1–2 zrzuty. Rest-pause = seria blisko upadku, 15–25 s przerwy, następnie 1–3 krótkie dogrywki po kilka powtórzeń. Myo-reps = seria aktywacyjna 12–20 powt. blisko upadku, 15–20 s przerwy, następnie 3–5 mini-serii po 3–5 powt.; zakończ, gdy nie utrzymasz celu lub techniki. Nie łącz rest-pause i myo-reps w jednym ćwiczeniu.
+Drop-set mechaniczny = bez zmiany ciężaru przejdź do łatwiejszej dźwigni/ustawienia tego samego ruchu, zachowując kontrolę. Serie łączone / pre-exhaust = izolacja danej partii, po niej bezpośrednio ćwiczenie wielostawowe na tę samą partię; zmniejsz ciężar w drugim ćwiczeniu, jeśli technika lub wynik ucierpi. Seria gigant = 3 ćwiczenia tej samej partii kolejno; maksymalnie jeden taki blok na sesję. Powtórzenia częściowe w wydłużeniu = 4–8 kontrolowanych powtórzeń w bezbolesnym, wydłużonym fragmencie zakresu po pełnych powtórzeniach; tylko stabilne ćwiczenie i pełna kontrola. Powtórzenia 1,5 = pełne powtórzenie + połowa w wybranym zakresie, liczone jako jedno; odpowiednio zmniejsz ciężar. Serie klastrowe = podziel serię siłową na małe grupy (np. 4+4+4) z 15–30 s przerwy; zachowaj zapas i szybkość, nie doprowadzaj do upadku. Akcent ekscentryczny = opuszczanie przez 3–5 s; bez wymuszania pomocy partnera i bez dodatkowego przeciążenia ponad kontrolę ćwiczącego. Superseria antagonistyczna może łączyć partie przeciwstawne; HIIT/interwały dobieraj tylko do celu kondycja/atletyzm, a nie jako metodę hipertrofii.
+OGRANICZENIA: techniki wydłużające serię (drop-set, rest-pause, myo-reps, gigant, częściowe) dawaj głównie w ostatniej serii stabilnej maszyny, wyciągu lub izolacji, nie w ciężkich przysiadach, martwym ciągu ani wyciskaniu bez asekuracji. Początkujący i osoby w rehabilitacji: nie planuj metod do upadku; jeśli ryzyko, ból lub ograniczenie techniki — pomiń metodę i zapisz zwykłą serię. Maksymalnie jedna metoda wydłużająca serię na ćwiczenie i nie stosuj ich na wszystkie ćwiczenia tej samej partii w jednej sesji. Serie klastrowe przypisuj głównie do celu siła/moc. W tygodniu deload usuń metody intensyfikacji. Nie zwiększaj nimi automatycznie tygodniowej objętości — zastępują standardową serię lub jej część. RPE/RIR to sposób dozowania wysiłku, nie technika do dopisania jako drop-set; umieść docelowe RIR w polu ćwiczenia.
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
@@ -1608,7 +1611,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
   }
 
   aplGenerating=false;
-  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+  ['apl-gen-btn2'].forEach(id=>{
     const b=document.getElementById(id);
     if(b){b.disabled=false;b.innerHTML='✨ Generuj plan';}
   });
@@ -1800,15 +1803,15 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       const tempo=ex.tempo||wp.tempo||'';
       const isLast=ei===(d.exercises.length-1);
       const intPill=rir!==''&&parseFloat(rir)<=4
-        ?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RIR ${rir}</span>`
-        :(rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:'');
-      html+=`<div id="apl-ex-row-${di}-${ei}" style="padding:15px 20px;${!isLast?'border-bottom:1px solid rgba(255,255,255,0.05);':''}">
+        ?`<span class="apl-effort-pill">RIR ${rir}</span>`
+        :(rpe?`<span class="apl-effort-pill">RPE ${rpe}</span>`:'');
+      html+=`<div id="apl-ex-row-${di}-${ei}" class="apl-exercise-card" style="${!isLast?'border-bottom:1px solid var(--border);':''}">
         <div style="display:flex;align-items:flex-start;gap:12px;">
           <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:14px;font-weight:700;line-height:1.3;">${ex.name}</div>
-            ${ex.notes?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;line-height:1.6;">💡 ${ex.notes}</div>`:''}
-            ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 6px;margin-top:5px;display:inline-block;">${ex.muscleGroup}</span>`:''}
+            <div class="apl-exercise-title">${ex.name}</div>
+            ${ex.notes?`<div class="apl-exercise-note">💡 ${ex.notes}</div>`:''}
+            ${ex.muscleGroup?`<span class="apl-muscle-tag">${ex.muscleGroup}</span>`:''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
             ${intPill}
@@ -1821,26 +1824,26 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
             </div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px;padding-left:42px;">
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Serie</div>
-            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--accent);">${sets}</div>
+        <div class="apl-exercise-metrics">
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Serie</div>
+            <div class="apl-metric-value apl-metric-series">${sets}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Powt.</div>
-            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--teal);">${reps}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Powtórzenia</div>
+            <div class="apl-metric-value apl-metric-reps">${reps}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Przerwa</div>
-            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--muted);">${rest}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Przerwa</div>
+            <div class="apl-metric-value apl-metric-rest">${rest}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Tempo</div>
-            <div style="font-size:13px;font-family:'DM Mono',monospace;color:${tempo?'var(--text)':'var(--muted)'};">${tempo||'—'}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Tempo</div>
+            <div class="apl-metric-value apl-metric-tempo">${tempo||'—'}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Ciężar ref.</div>
-            <div style="font-size:12px;font-family:'Bebas Neue',sans-serif;color:var(--gold);">${kg||'wg odczucia'}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Ciężar ref.</div>
+            <div class="apl-metric-value apl-metric-load">${kg||'wg odczucia'}</div>
           </div>
         </div>
       </div>`;

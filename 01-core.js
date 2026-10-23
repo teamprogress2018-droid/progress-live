@@ -485,7 +485,7 @@ bindMobileSidebarControls();
 
 // Desktop: zapamiętujemy zwinięte menu między wejściami do aplikacji.
 // Sam pasek ikon pozostaje dostępny także na ekranie Kalendarza.
-const SIDEBAR_COLLAPSED_STORAGE_KEY='pl_sidebar_collapsed_v1';
+const SIDEBAR_COLLAPSED_STORAGE_KEY='pl_sidebar_collapsed';
 function setSidebarCollapsed(collapsed,save=true){
   const app=document.getElementById('app-root');
   const button=document.getElementById('sidebar-collapse-btn');
@@ -2513,6 +2513,7 @@ function coachMediaHtml(ex,opts){
   const video=(ex&&ex.video)||'';
   const embed=(ex&&ex.videoEmbed)||'';
   const gif=(ex&&ex.gif)||'';
+  const img=(ex&&ex.img)||'';
   const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
   const show=!!opts.showVideo;
   const showGif=opts.showGif!==false;
@@ -2520,6 +2521,7 @@ function coachMediaHtml(ex,opts){
   const sameGifVideo=!!(gif&&video&&typeof sameMediaUrl==='function'&&sameMediaUrl(gif,video));
   let html='';
   if(showGif&&gif)html+=exTechniqueMediaHtml({gif,name:ex&&ex.name},opts);
+  else if(showGif&&img)html+=exTechniqueMediaHtml({gif:img,name:ex&&ex.name},opts);
   if(opts.showNote!==false){
     if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
     else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
@@ -5758,7 +5760,7 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
     const ex=parsePlanExercise(raw);
     // Klient może zobaczyć wyłącznie zamienniki wpisane w jego planie przez trenera.
     // Sugestie z biblioteki pozostają narzędziem trenera, nie automatyczną poradą.
-    const alts=String(ex.alt||'').split(/[,;/|]/).map(x=>x.trim()).filter((x,i,a)=>x&&x!==ex.name&&a.indexOf(x)===i);
+    const alts=String(ex.alt||'').split(/[,;/|]/).map(x=>x.trim()).filter((x,i,a)=>x&&x!==ex.name&&a.indexOf(x)===i).slice(0,3);
     const exerciseId=resolveExerciseId(ex);
     const last=lastLoadForExercise(clientId,ex.name,alts,exerciseId?{exerciseId}:{});
     const rest=parseRestSeconds(ex.rest);

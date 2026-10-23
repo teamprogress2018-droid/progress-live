@@ -12,6 +12,13 @@ function clientInviteTokenFromUrl(){
   }catch(e){return '';}
 }
 
+/** Ręczny wybór widoku trenera dla konta używanego też jako klient testowy. */
+function switchClientAppToTrainer(){
+  try{sessionStorage.setItem('pl_auth_mode','trainer');}catch(e){}
+  location.reload();
+}
+window.switchClientAppToTrainer=switchClientAppToTrainer;
+
 function clientAppUrl(){
   return (location.origin+location.pathname).replace(/index\.html$/,'');
 }
@@ -731,8 +738,7 @@ async function doClientRegister(){
 
 function pushClientMsg(text){
   const clientId=window._clientId;
-  if(!clientId||!text||!text.trim())return;
-  if(!window.MSGS[clientId])window.MSGS[clientId]=[];
+  if(!clientId||!text||!text.trim())return Promise.resolve(false);
   const msg=withTrainer({
     id:newId('msg'),
     clientId,
@@ -742,8 +748,25 @@ function pushClientMsg(text){
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     createdAt:new Date().toISOString()
   });
-  window.MSGS[clientId].push(msg);
-  persistById('messages',msg);
+  if(!window._clientAppMode){
+    if(!window.MSGS[clientId])window.MSGS[clientId]=[];
+    window.MSGS[clientId].push(msg);
+    persistById('messages',msg);
+    renderClientLive();
+    try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
+    return Promise.resolve(true);
+  }
+  const save=async()=>{
+    try{
+      const saved=typeof clientConfirmWrite==='function'?await clientConfirmWrite('messages',msg,captureClientTenantSession()):await persistById('messages',msg);
+      if(!saved)return false;
+      if(!window.MSGS[clientId])window.MSGS[clientId]=[];
+      window.MSGS[clientId].push(msg);
+      return true;
+    }catch(e){return false;}
+  };
+  return save().then(saved=>{
+    if(!saved)return false;
   // Jeśli trener ma już otwarty ten czat — oznacz jako przeczytane od razu
   try{
     if(typeof curChat!=='undefined'&&curChat===clientId&&typeof msgSetLastRead==='function')msgSetLastRead(clientId);
@@ -752,13 +775,26 @@ function pushClientMsg(text){
   try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
   try{if(typeof renderDashMsgFollowup==='function')renderDashMsgFollowup();}catch(e){}
   try{if(typeof renderInbox==='function'&&document.getElementById('screen-inbox')&&document.getElementById('screen-inbox').classList.contains('active'))renderInbox();}catch(e){}
+    return true;
+  });
 }
 
-function clientSendChat(){
+async function clientSendChat(){
   const inp=document.getElementById('clive-chat-input');
-  if(!inp)return;
-  pushClientMsg(inp.value);
-  inp.value='';
+  if(!inp||window._clientChatSending)return;
+  const text=inp.value;
+  if(!text.trim())return;
+  const button=inp.parentElement&&inp.parentElement.querySelector('button');
+  window._clientChatSending=true;
+  if(button){button.disabled=true;button.dataset.originalLabel=button.textContent;button.textContent='Wysyłanie…';}
+  try{
+    const sent=await pushClientMsg(text);
+    if(sent)inp.value='';
+    else if(typeof notify==='function')notify('Wiadomość nie została potwierdzona. Tekst pozostał w polu — spróbuj ponownie.');
+  }finally{
+    window._clientChatSending=false;
+    if(button){button.disabled=false;button.textContent=button.dataset.originalLabel||'Wyślij';delete button.dataset.originalLabel;}
+  }
 }
 
 function clientConfirmAttendance(){
@@ -1211,9 +1247,14 @@ function cwBuildRecord(cw,status){
     issues:(cw.issues||[]).slice(),feedback:0,difficulty:Number(cw.rating)||0,note:cw.note||'',confirmedSets:total
   });
 }
-function cwWriteLocal(cw){
-  if(!cw||!window.localStorage)return;
-  try{localStorage.setItem(cwDraftKey(),JSON.stringify({version:2,state:{...cw,restLeft:0,phase:cw.phase==='rest'?'exercise':cw.phase},savedAt:new Date().toISOString()}));}catch(e){}
+function cwWriteLocal(cw,preserveSyncState){
+  if(!cw)return false;
+  if(!preserveSyncState)cw.syncState='local';
+  try{
+    if(!window.localStorage)throw new Error('local-storage-unavailable');
+    localStorage.setItem(cwDraftKey(),JSON.stringify({version:2,state:{...cw,restLeft:0,phase:cw.phase==='rest'?'exercise':cw.phase},savedAt:new Date().toISOString()}));
+    return true;
+  }catch(e){if(!preserveSyncState)cw.syncState='error';return false;}
 }
 function cwReadLocal(){
   try{const raw=localStorage.getItem(cwDraftKey());return raw?JSON.parse(raw):null;}catch(e){return null;}
@@ -1226,10 +1267,14 @@ function cwFindResumable(planId,dayIdx){
   const remote=(window.SE||[]).find(s=>s&&s.source==='client'&&s.status==='in_progress'&&s.planId===planId&&Number(s.dayIdx)===Number(dayIdx));
   return remote?{sessionId:remote.id,dayName:remote.type,confirmedSets:Number(remote.confirmedSets)||0,syncState:'synced'}:null;
 }
-function cwSyncStateText(cw){return cw&&cw.syncState==='local'?'Zapisano na urządzeniu':'Zsynchronizowano';}
+function cwSyncStateText(cw){
+  if(cw&&cw.syncState==='error')return'Nie potwierdzono zapisu';
+  if(cw&&cw.syncState==='local')return'Zapisano na urządzeniu · oczekuje na synchronizację';
+  return'Zsynchronizowano';
+}
 async function cwPersist(cw,status){
   if(!cw||!window._clientAppMode)return false;
-  cw.syncState='local';cwWriteLocal(cw);
+  const localSaved=cwWriteLocal(cw);
   if(typeof navigator!=='undefined'&&navigator.onLine===false)return false;
   try{
     const session=captureClientTenantSession();requireClientTenantSession(session);
@@ -1241,9 +1286,9 @@ async function cwPersist(cw,status){
     window.SE=window.SE||[];
     const old=window.SE.find(s=>s.id===record.id);
     if(old)Object.assign(old,record);else window.SE.push(record);
-    cwWriteLocal(cw);
+    cwWriteLocal(cw,true);
     return true;
-  }catch(e){return false;}
+  }catch(e){if(!localSaved)cw.syncState='error';return false;}
 }
 function cwQueuePersist(cw,status){
   if(!cw)return Promise.resolve(false);
@@ -1393,6 +1438,12 @@ function cwCheckSet(setIdx){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
   const st=ex.sets[setIdx];
+  if(!st.done&&!(Number.parseFloat(String(st.reps||'').replace(',','.'))>0)){
+    if(typeof notify==='function')notify('Wpisz liczbę powtórzeń lub czas przed zatwierdzeniem serii.');
+    const field=document.querySelector(`#clive-player-inner input[aria-label="Seria ${st.setNo}: powtórzenia"]`);
+    if(field)field.focus();
+    return;
+  }
   st.done=!st.done;
   cwQueuePersist(cw,'in_progress');
   if(!st.done){cwRender();return;}
@@ -1514,7 +1565,7 @@ function cwSwapEx(name){
   const orig=cur.plannedName||cur.name;
   cur.plannedName=orig;
   cur.name=name;
-  cur.alts=[orig].concat(cur.approvedAlts||[]).filter((n,i,a)=>n&&n!==cur.name&&a.indexOf(n)===i);
+  cur.alts=[orig].concat(cur.approvedAlts||[]).filter((n,i,a)=>n&&n!==cur.name&&a.indexOf(n)===i).slice(0,3);
   const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(window._clientId,name):null;
   if(last){
     cur.lastKg=last.kg||'';
@@ -1556,6 +1607,10 @@ function cwSwapEx(name){
     cur.video=m.video||'';
     cur.videoEmbed=m.videoEmbed||'';
     cur.isFile=!!m.isFile;
+    cur.gif=m.gif||'';
+    cur.img=m.img||'';
+    cur.planVideo=m.video||'';
+    cur.planNote=m.note||m.libTip||'';
     cur.note=m.note||m.libTip||'';
     cur.libTip=m.libTip||'';
     cur.todoEdited=false;
@@ -1582,7 +1637,7 @@ function cwRender(){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cw.exercises.length} ćwiczeń · serie zapisują się po zatwierdzeniu</div>
-      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
+      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}</div>
@@ -1619,7 +1674,8 @@ function cwRender(){
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;">TRENING SKOŃCZONY</div>
         <div style="font-size:13px;color:var(--muted);margin-top:6px;">${setsDone} serii · ${cwFmt(cw.elapsed)}</div>
       </div>
-      <div style="font-size:13px;margin-bottom:10px;text-align:center;">Trudność treningu (opcjonalnie)</div>
+      <div style="font-size:13px;margin-bottom:4px;text-align:center;">Jak ciężki był trening? (opcjonalnie)</div>
+      <div class="cw-rating-scale" aria-label="1 oznacza bardzo lekki trening, 10 maksymalny wysiłek"><span>1 · bardzo lekki</span><span>10 · maksymalny wysiłek</span></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px;">
         ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" aria-label="Trudność treningu: ${n} na 10" aria-pressed="${cw.rating===n?'true':'false'}" onclick="cwRate(${n})">${n}</button>`).join('')}
       </div>
@@ -1641,10 +1697,11 @@ function cwRender(){
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
     ${(ex.video||ex.videoEmbed||ex.gif||ex.img||ex.note||ex.libTip)?`<button type="button" class="btn btn-ghost btn-sm" style="margin:0 0 10px;" onclick="cwToggleVideo()">${cw.showVideo?'Ukryj instrukcję':'Jak wykonać?'}</button>`:''}
     ${cw.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,toggleFn:'cwToggleVideo()',caption:false,showNote:false}):''}
+    ${!(ex.video||ex.videoEmbed||ex.gif||ex.img||ex.note||ex.libTip)?'<div class="cw-media-missing" role="note">Brak materiału instruktażowego. Jeśli nie znasz tego ćwiczenia, poproś trenera o wskazówkę przed rozpoczęciem.</div>':''}
     ${(()=>{const todo=typeof exerciseTodoNote==='function'?exerciseTodoNote(ex):String((ex&&(ex.note||ex.libTip))||'').trim();return todo?`<div class="cw-ex-todo"><div class="cw-ex-todo-lbl">Do zrobienia</div><div class="cw-ex-todo-txt">${escHtml(todo)}</div></div>`:'';})()}
     ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
-    ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
+    ${(ex.alts||[]).length?`<div style="margin:0 0 12px;"><div style="font-size:12px;color:var(--text-secondary,#666);margin-bottom:6px;">Inne warianty (do 3)</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${ex.alts.slice(0,3).map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div></div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
     ${ex.progHint?`<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">${escHtml(ex.progHint)}</div>`:''}
     ${typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):''}
@@ -1662,8 +1719,9 @@ function cwRender(){
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
-    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
-    <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
+    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
+    <div class="cw-rir-help">RIR — ile powtórzeń zostało Ci w zapasie po serii. Jeśli plan nie podaje RIR, zostaw pole puste.</div>
+    <div class="cw-set-row cw-set-header" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
       <div>#</div><div>${typeof loadUnitShortLabel==='function'?loadUnitShortLabel(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):(typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='min'?'Min':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg')}</div><div>Powt.</div><div title="Powtórzenia w zapasie">RIR</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
@@ -1716,7 +1774,12 @@ async function cwFinish(force){
     cw.completedAt=new Date().toISOString();
     cw.finishPrompt=false;
     const saved=await cwQueuePersist(cw,cw.status);
-    if(!saved){if(typeof notify==='function')notify('Zapisano na urządzeniu. Wyślemy wynik po odzyskaniu połączenia.');}
+    if(!saved&&cw.syncState==='error'){
+      if(typeof notify==='function')notify('Nie udało się potwierdzić zapisu. Trening pozostaje otwarty — sprawdź połączenie i spróbuj ponownie.');
+      cwRender();
+      return false;
+    }
+    if(!saved&&typeof notify==='function')notify('Zapisano na urządzeniu. Wyślemy wynik po odzyskaniu połączenia.');
   }catch(e){
     if(typeof notify==='function')notify('Nie udało się zapisać podsumowania. Trening pozostaje do wznowienia.');
     return false;

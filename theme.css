@@ -1265,3 +1265,246 @@ html[data-theme] .cap-client-main-action { min-height: 52px; margin: 18px 0 0; b
   html[data-theme] #screen-dashboard .dash3-card { padding: 16px; }
   html[data-theme] #screen-dashboard .gs-steps { grid-template-columns: 1fr !important; }
 }
+
+/* Generator: czytelniejsze parametry, zwijane dane dodatkowe i stałe CTA w panelu. */
+#screen-aiplangen .apl-form { padding-bottom: 0; }
+#screen-aiplangen .apl-form .form-field { margin-bottom: 18px; }
+#screen-aiplangen .apl-form .form-lbl { font-size: 13px; }
+#screen-aiplangen .apl-form div[style*="font-size:10px"],
+#screen-aiplangen .apl-form div[style*="font-size:11px"] {
+  color: var(--text-secondary) !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+#screen-aiplangen .apl-advanced-settings {
+  margin: 4px 0 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+#screen-aiplangen .apl-advanced-settings > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  list-style-position: inside;
+}
+#screen-aiplangen .apl-advanced-settings > summary span {
+  color: var(--text-label);
+  font-size: 11px;
+  font-weight: 500;
+}
+#screen-aiplangen .apl-advanced-settings[open] > summary { border-bottom: 1px solid var(--border-subtle); }
+#screen-aiplangen .apl-advanced-settings-body { padding: 14px 14px 1px; }
+#screen-aiplangen .apl-generate-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
+  margin: 8px -20px 0;
+  padding: 12px 20px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-main) 94%, transparent);
+  backdrop-filter: blur(10px);
+}
+#screen-aiplangen .apl-generate-sticky .btn { width: 100%; min-height: 48px; }
+#screen-aiplangen .apl-exercise-card { padding: 18px 20px; }
+#screen-aiplangen .apl-exercise-title { color: var(--text-primary); font-size: 15px; font-weight: 700; line-height: 1.4; }
+#screen-aiplangen .apl-exercise-note { margin-top: 6px; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+#screen-aiplangen .apl-muscle-tag {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 2px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background: var(--bg-subtle);
+  color: var(--text-label);
+  font-size: 11px;
+  line-height: 1.4;
+}
+#screen-aiplangen .apl-effort-pill {
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border-subtle));
+  border-radius: 7px;
+  background: var(--adim);
+  color: var(--accent);
+  font: 700 11px/1.2 var(--font-mono, monospace);
+  white-space: nowrap;
+}
+#screen-aiplangen .apl-exercise-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 0 36px;
+}
+#screen-aiplangen .apl-metric-card {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: var(--bg-subtle);
+  text-align: center;
+}
+#screen-aiplangen .apl-metric-label {
+  color: var(--text-label);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .035em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+#screen-aiplangen .apl-metric-value {
+  margin-top: 3px;
+  color: var(--text-primary);
+  font: 700 16px/1.35 var(--font-ui);
+  overflow-wrap: anywhere;
+}
+#screen-aiplangen .apl-metric-series { color: var(--accent); }
+#screen-aiplangen .apl-metric-reps { color: var(--teal); }
+#screen-aiplangen .apl-metric-tempo { font: 600 13px/1.4 var(--font-mono, monospace); }
+#screen-aiplangen .apl-metric-load { color: var(--gold); font-size: 14px; }
+#screen-aiplangen .apl-exercise-card button[title] { min-width: 28px; min-height: 28px; border-radius: 6px !important; }
+#screen-aiplangen .apl-exercise-card button[title]:hover { background: var(--bg-hover) !important; opacity: 1 !important; }
+@media (max-width: 1100px) {
+  #screen-aiplangen .apl-exercise-metrics { gap: 7px; margin-left: 34px; }
+  #screen-aiplangen .apl-metric-card { padding: 8px 6px; }
+}
+@media (max-width: 760px) {
+  #screen-aiplangen .apl-exercise-card { padding: 15px 14px; }
+  #screen-aiplangen .apl-exercise-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-left: 0; }
+  #screen-aiplangen .apl-metric-card:last-child { grid-column: 1 / -1; }
+  #screen-aiplangen .apl-generate-sticky { margin-left: -20px; margin-right: -20px; }
+}
+
+/* Keep advanced generator choices available without crowding the default view. */
+#screen-aiplangen .apl-methods-more,
+#screen-aiplangen .apl-progression-more { grid-column: 1 / -1; margin: 2px 0 0; }
+#screen-aiplangen .apl-methods-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+#screen-aiplangen .apl-methods-grid .apl-opt,
+#screen-aiplangen .apl-methods-grid .apl-opt-multi,
+#screen-aiplangen #apl-intensify > .apl-opt-multi,
+#screen-aiplangen #apl-progression > .apl-opt {
+  min-height: 44px;
+  padding: 9px 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+#screen-aiplangen .apl-methods-grid .active,
+#screen-aiplangen #apl-intensify > .apl-opt-multi.active,
+#screen-aiplangen #apl-progression > .apl-opt.active { color: var(--accent); }
+
+/* On phones the page scrolls as one document instead of nesting two scroll panes. */
+@media (max-width: 760px) {
+  #screen-aiplangen .apl-layout { display: block; flex: none; overflow: visible; }
+  #screen-aiplangen .apl-form { width: 100%; max-height: none; overflow: visible; }
+  #screen-aiplangen .apl-result-col { display: block; overflow: visible; }
+  #screen-aiplangen .apl-result-wrap { overflow: visible; padding: 18px 14px 28px; }
+  #screen-aiplangen .apl-exercise-metrics { margin-left: 0; }
+}
+
+/* Client workout controls and labels remain readable while training on a phone. */
+#clive-player-inner .cw-set-row { font-size: 13px; }
+#clive-player-inner .cw-set-row input,
+#clive-player-inner .cw-set-row button { min-height: 44px; }
+#clive-player-inner .cw-set-header { font-size: 11px !important; }
+.cw-rir-help,
+.cw-rating-scale { color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+.cw-rir-help { margin: -4px 0 10px; }
+.cw-rating-scale { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.cw-sync-state.is-error { color: var(--danger); background: color-mix(in srgb, var(--danger) 9%, transparent); }
+.cw-media-missing { margin: 0 0 12px; padding: 11px 12px; border: 1px solid var(--border-default); border-radius: 9px; background: var(--bg-subtle); color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+#clive-player-inner .cw-set-header { font-size: 11px !important; }
+@media (max-width: 420px) {
+  .cw-rating-scale { font-size: 11px; }
+  #clive-player-inner .cw-set-row { gap: 5px; }
+}
+
+/* Client plan: surface the next workout and keep long plans scannable on mobile. */
+html[data-theme] .cap-client-plan-intro {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 13px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+html[data-theme] .cap-client-plan-intro b { color: var(--text-primary); font-size: 14px; }
+html[data-theme] .cap-client-plan-rir-help {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+html[data-theme] .cap-client-plan-day { margin-bottom: 0; }
+html[data-theme] .cap-client-plan-day-summary { min-height: 54px; flex-wrap: wrap; gap: 6px 9px; }
+html[data-theme] .cap-client-plan-day-title { color: var(--text-primary); font-size: 14px; font-weight: 700; line-height: 1.35; }
+html[data-theme] .cap-client-plan-next {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--adim);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+html[data-theme] .cap-client-plan-day-body { padding: 4px 12px 12px; }
+html[data-theme] .cap-client-plan-exercise {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+html[data-theme] .cap-client-plan-exercise-name { color: var(--text-primary); font-size: 14px; font-weight: 650; line-height: 1.45; overflow-wrap: anywhere; }
+html[data-theme] .cap-client-plan-metrics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+html[data-theme] .cap-client-plan-metric {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.35;
+}
+html[data-theme] .cap-client-plan-metric.is-primary { color: var(--text-primary); font-weight: 700; }
+html[data-theme] .cap-client-plan-note { margin-top: 8px; color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+html[data-theme] .cap-client-plan-video {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+html[data-theme] .cap-client-plan-video:focus-visible,
+html[data-theme] .cap-client-plan-start:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+html[data-theme] .cap-client-plan-start { width: 100%; min-height: 50px; margin-top: 12px; border-radius: 9px; font-size: 14px; font-weight: 700; }
+html[data-theme] .cap-client-plan-start.cap-btn-secondary { border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-primary); }
+@media (max-width: 480px) {
+  html[data-theme] .cap-client-plan-day-summary { padding: 12px 10px; }
+  html[data-theme] .cap-client-plan-day-summary .cp-plan-day-count { width: 100%; margin-left: 0; }
+  html[data-theme] .cap-client-plan-day-body { padding-right: 10px; padding-left: 10px; }
+  html[data-theme] .cap-client-plan-metric { font-size: 12px; }
+}

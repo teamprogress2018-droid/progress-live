@@ -36,6 +36,7 @@ ok('int default daily', /class="auto-tab-btn active" id="int-tab-daily"/.test(ht
 ok('int catalog not wszystkie as default tab', html.includes('>Katalog</button>') && html.includes('Działa dziś'));
 ok('nutrition blocked copy', html.includes('Żywienie (wkrótce)') && aic.includes("mode==='nutrition'"));
 ok('clive primary nav + more', html.includes('id="clive-bn-home"') && src10.includes('id="clive-bn-more"') && html.includes('id="clive-more-sheet"'));
+ok('shared account can switch to trainer mode', html.includes('onclick="switchClientAppToTrainer()"') && src10.includes("sessionStorage.setItem('pl_auth_mode','trainer')") && html.includes("preferredMode==='trainer'"));
 ok('clive overflow in sheet', /function capLiveMoreScreens[\s\S]*?id:'homework'[\s\S]*?id:'ondemand'[\s\S]*?id:'resources'/.test(portal) && /clive-more-sheet[\s\S]*?moreScreens\.map/.test(src10));
 ok('cap preview homework nav', html.includes('id="capn-homework"'));
 ok('rest voice settings', html.includes('id="set-rest-voice"') || portal.includes('id="set-rest-voice"'));
@@ -52,12 +53,12 @@ ok('schedule repeat', src10.includes('function maybeScheduleNextHomework'));
 ok('strip od tags', portal.includes('function capStripOdTags') && portal.includes('capStripOdTags(raw)'));
 ok('homework filter render', src06.includes("taskFilter==='homework'"));
 ok('dash no-plan', portal.includes("tag:'Brak planu'") && portal.includes("tag:'Domowe zaległe'"));
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 04', html.includes('04-client-portal.js?v=62'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=57'));
-ok('cache 10', html.includes('10-client-app.js?v=44'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 01', html.includes('01-core.js?v=155'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=111'));
+ok('cache 04', html.includes('04-client-portal.js?v=67'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=58'));
+ok('cache 10', html.includes('10-client-app.js?v=50'));
+ok('cache styles', html.includes('styles.css?v=189') && html.includes('theme.css?v=13'));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));
 
 const document = {

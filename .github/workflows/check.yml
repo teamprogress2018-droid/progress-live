@@ -36,6 +36,9 @@ jobs:
       - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
         run: node .github/scripts/test_coach_media.js
 
+      - name: 1b2. Testy niezawodności i czytelności widoku klienta
+        run: node .github/scripts/test_client_ux_reliability.js
+
       - name: Generator — adaptacja, zasady, wersje i wariant awaryjny
         run: node .github/scripts/test_generator_workbench.js
 
