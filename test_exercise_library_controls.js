@@ -33,7 +33,7 @@ if (start >= 0 && end > start) {
 }
 check('every card gets a visible remove control', source.includes('${exCardDeleteBtnHtml(e)}'));
 check('sidebar provides duplicate audit', html.includes('id="lib-review-dups"') && html.includes('reviewExerciseDuplicates()'));
-check('new library script cache version', html.includes('06-inbox-exercises-ai-programs.js?v=115'));
+check('new library script cache version', html.includes('06-inbox-exercises-ai-programs.js?v=118'));
 
 if (failed) process.exit(1);
 console.log('Library controls tests passed');

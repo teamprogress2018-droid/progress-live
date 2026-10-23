@@ -3043,10 +3043,63 @@ function exCardWhitePreviewHtml(e,col){
 }
 window.exCardWhitePreviewHtml=exCardWhitePreviewHtml;
 
+// Jeżeli dana nazwa nie ma jeszcze własnego zdjęcia, nadal pokazujemy fotografię
+// z tej samej bazy ćwiczeń. Dzięki temu katalog nie miesza zdjęć z ikonami.
+// Najpierw próbujemy dopasować słowa z nazwy, a dopiero później używamy zdjęcia
+// reprezentującego daną partię lub rodzaj treningu.
+const EX_CARD_CATEGORY_PHOTO_KEYS={
+  'Klatka piersiowa':'pompki',
+  'Plecy':'wiosłowanie sztangą',
+  'Barki':'wyciskanie barków maszyna',
+  'Nogi':'wykrok z hantlami',
+  'Biceps':'uginanie hantlami naprzemiennie',
+  'Triceps':'prostowanie tricepsa wyciąg',
+  'Core':'deska',
+  'Pośladki':'wykrok z hantlami',
+  'Olimpijskie':'1',
+  'Cardio':'bieg',
+  'Rozgrzewka':'bieg',
+  'Rozciąganie':'cat-cow',
+  'Mobilność':'world’s greatest stretch',
+  'Funkcjonalne':'bieg'
+};
+let _exCardPhotoWordIndex=null;
+function exCardPhotoWordIndex(){
+  if(_exCardPhotoWordIndex)return _exCardPhotoWordIndex;
+  const index=new Map();
+  const manifest=window.EX_PHOTO_MANIFEST||{};
+  Object.keys(manifest).forEach(key=>{
+    const url=String(manifest[key]||'').trim();
+    if(!url)return;
+    const words=exerciseSearchTokens(key).filter(word=>word.length>=4);
+    words.forEach(word=>{
+      const list=index.get(word)||[];
+      if(!list.includes(url))list.push(url);
+      index.set(word,list);
+    });
+  });
+  _exCardPhotoWordIndex=index;
+  return index;
+}
+function exCardFallbackDatabasePhoto(e){
+  const direct=typeof exPhotoMapLookup==='function'?String(exPhotoMapLookup(e&&e.name)||'').trim():'';
+  if(direct)return direct;
+  const score=new Map();
+  const words=exerciseSearchTokens([e&&e.name,e&&e.aka,e&&e.muscle].filter(Boolean).join(' ')).filter(word=>word.length>=4);
+  const index=exCardPhotoWordIndex();
+  words.forEach(word=>{
+    (index.get(word)||[]).forEach(url=>score.set(url,(score.get(url)||0)+word.length));
+  });
+  let best='';let bestScore=0;
+  score.forEach((value,url)=>{if(value>bestScore){best=url;bestScore=value;}});
+  if(best)return best;
+  const fallbackKey=EX_CARD_CATEGORY_PHOTO_KEYS[String(e&&e.cat||'')]||'pompki';
+  return typeof exPhotoMapLookup==='function'?String(exPhotoMapLookup(fallbackKey)||'').trim():'';
+}
 function exCardDatabasePhotoHtml(e,col){
   const name=String(e&&e.name||'Ćwiczenie');
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
-  const photo=typeof exPhotoMapLookup==='function'?String(exPhotoMapLookup(name)||'').trim():'';
+  const photo=exCardFallbackDatabasePhoto(e);
   if(!photo||!(typeof isSafeMediaUrl==='function'?isSafeMediaUrl(photo):/^https?:\/\//i.test(photo)))return exCardWhitePreviewHtml(e,col);
   // Zdjęcie jest wyłącznie z manifestu własnej bazy ćwiczeń. Pod nim zostaje
   // biały podgląd awaryjny, więc brak pliku lub chwilowy problem z siecią nie
@@ -3301,7 +3354,10 @@ function renderLib(){
   const countEl=document.getElementById('ex-results-count');
   if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń')+(exMediaOnly?' z filmem / podglądem':'');
 
-  const useGrouped=exCatFilter==='Wszystkie'||exCatFilter==='__media_gap';
+  // W kartach pokazujemy jeden ciągły katalog. Dzięki temu pojedyncze ćwiczenia
+  // z partii nie zostawiają całych pustych rzędów po prawej stronie.
+  // Podział na partie pozostaje w filtrach po lewej i w widoku listy.
+  const useGrouped=exView==='list'&&(exCatFilter==='Wszystkie'||exCatFilter==='__media_gap');
   const shown=filtered.slice(0,exLibVisible);
 
   if(exView==='grid'){
