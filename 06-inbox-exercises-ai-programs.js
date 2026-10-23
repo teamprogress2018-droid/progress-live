@@ -3002,7 +3002,7 @@ window.isWhiteExerciseCardPreview=isWhiteExerciseCardPreview;
 // Karty biblioteki są celowo niezależne od filmu i pliku podglądu. Dzięki temu
 // zawsze mają ten sam, biały, nieruchomy wygląd, także gdy ćwiczenie nie ma
 // jeszcze materiału w Firebase. Pełny GIF/film zostaje wyłącznie w szczegółach.
-function exCardWhitePreviewHtml(e,col){
+function exCardWhitePreviewMarkup(e,col){
   const cat=String(e&&e.cat||'Ćwiczenie');
   const eq=String(e&&e.eq||'');
   const name=String(e&&e.name||'Ćwiczenie');
@@ -3026,8 +3026,7 @@ function exCardWhitePreviewHtml(e,col){
     :/hantle/.test(eq)?'<path d="M22 70h17m42 0h17M26 64v12m9-12v12m50-12v12m9-12v12" stroke="#b9c1cb" stroke-width="3" stroke-linecap="round"/>'
     :/wyciąg/.test(eq)?'<path d="M21 18v58m-5-58h10m-5 8 20 18m58-26v58m-5-58h10m-5 8-20 18" stroke="#b9c1cb" stroke-width="3" stroke-linecap="round"/>'
     :'';
-  return `<div class="ex-card-thumb ex-card-thumb-white-art" style="position:relative;background:#fff;border-color:#e4e9ef;display:block;isolation:isolate;" role="img" aria-label="Stały biały podgląd: ${esc(name)}">
-    <svg style="display:block;width:100%;height:100%;" viewBox="0 0 120 96" aria-hidden="true" focusable="false">
+  return `<svg style="display:block;width:100%;height:100%;" viewBox="0 0 120 96" aria-hidden="true" focusable="false">
       <rect width="120" height="96" fill="#fff"/>
       <path d="M60 18v12m-12 11 12-9 12 9M53 58 47 84m20-26 6 26" stroke="#9da7b3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       <circle cx="60" cy="18" r="8" fill="#d7dde5" stroke="#9da7b3" stroke-width="2"/>
@@ -3035,9 +3034,29 @@ function exCardWhitePreviewHtml(e,col){
       <path d="M18 88h84" stroke="#e9edf2" stroke-width="2" stroke-linecap="round"/>
     </svg>
     <span class="ex-card-white-caption" style="position:absolute;left:4px;right:4px;bottom:4px;z-index:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:8px;line-height:1.2;font-weight:700;color:#5d6875;text-shadow:0 1px 0 #fff;">${esc(cat)}</span>
-  </div>`;
+  `;
+}
+function exCardWhitePreviewHtml(e,col){
+  const name=String(e&&e.name||'Ćwiczenie');
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  return `<div class="ex-card-thumb ex-card-thumb-white-art" style="position:relative;background:#fff;border-color:#e4e9ef;display:block;isolation:isolate;" role="img" aria-label="Stały biały podgląd: ${esc(name)}">${exCardWhitePreviewMarkup(e,col)}</div>`;
 }
 window.exCardWhitePreviewHtml=exCardWhitePreviewHtml;
+
+function exCardDatabasePhotoHtml(e,col){
+  const name=String(e&&e.name||'Ćwiczenie');
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  const photo=typeof exPhotoMapLookup==='function'?String(exPhotoMapLookup(name)||'').trim():'';
+  if(!photo||!(typeof isSafeMediaUrl==='function'?isSafeMediaUrl(photo):/^https?:\/\//i.test(photo)))return exCardWhitePreviewHtml(e,col);
+  // Zdjęcie jest wyłącznie z manifestu własnej bazy ćwiczeń. Pod nim zostaje
+  // biały podgląd awaryjny, więc brak pliku lub chwilowy problem z siecią nie
+  // zostawi pustej karty.
+  return `<div class="ex-card-thumb ex-card-thumb-db-photo" style="position:relative;background:#fff;border-color:#e4e9ef;display:block;overflow:hidden;" role="img" aria-label="Zdjęcie ćwiczenia: ${esc(name)}">
+    ${exCardWhitePreviewMarkup(e,col)}
+    <img src="${esc(photo)}" alt="${esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#fff;" onerror="this.remove()">
+  </div>`;
+}
+window.exCardDatabasePhotoHtml=exCardDatabasePhotoHtml;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
@@ -3047,9 +3066,9 @@ function exCardHtml(e,i){
   const gif=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
   const hasTechnique=!!gif;
   const filmBadge=hasTechnique?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
-  // Nie używamy tu `exThumbUrl`: nawet pojedynczy zewnętrzny obraz może
-  // spowolnić całą bibliotekę albo zaburzyć jednolity biały styl kart.
-  const media=exCardWhitePreviewHtml(e,col);
+  // Zdjęcie pochodzi tylko z manifestu bazy ćwiczeń — nie korzystamy tu z
+  // filmów, GIF-ów ani losowych miniatur z YouTube/Firebase.
+  const media=exCardDatabasePhotoHtml(e,col);
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${Math.min(i||0,12)*0.025}s" data-ex-name="${escHtml(e.name)}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="ex-card-accent" style="background:${col};"></div>
     ${exFavBtnHtml(e)}
