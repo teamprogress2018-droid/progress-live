@@ -523,6 +523,70 @@ window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMo
 window.toggleSidebarCollapsed=toggleSidebarCollapsed;
 window.setSidebarCollapsed=setSidebarCollapsed;
 
+// Biblioteka może działać jak przestrzeń robocza: bez głównego menu i bez
+// panelu filtrów. Preferencja jest zapamiętana osobno od zwinięcia menu.
+const LIBRARY_WIDE_STORAGE_KEY='pl_library_wide_v1';
+function getLibraryWidePreference(){
+  try{
+    const saved=localStorage.getItem(LIBRARY_WIDE_STORAGE_KEY);
+    return saved===null||saved==='1';
+  }catch(e){return true;}
+}
+function libraryWideParts(){
+  const screen=document.getElementById('screen-library');
+  return {
+    screen,
+    app:document.getElementById('app-root'),
+    sidebar:document.getElementById('app-sidebar'),
+    filters:screen?screen.querySelector('#lib-ex-body > .lib-side.lib-filters'):null,
+    filterButton:document.getElementById('lib-filters-btn'),
+    wideButton:document.getElementById('lib-wide-btn')
+  };
+}
+function setLibraryWide(enabled,save=true){
+  const parts=libraryWideParts();
+  if(!parts.screen||!parts.app)return;
+  const on=!!enabled;
+  parts.app.classList.toggle('library-wide',on);
+  parts.screen.classList.toggle('library-wide',on);
+  if(parts.sidebar)parts.sidebar.style.display=on?'none':'';
+  if(parts.filters)parts.filters.style.display=on?'none':'';
+  if(parts.filterButton){
+    parts.filterButton.style.display=on?'inline-flex':'';
+    parts.filterButton.textContent='☰ Filtry';
+    parts.filterButton.setAttribute('aria-expanded','false');
+  }
+  if(parts.wideButton){
+    parts.wideButton.textContent=on?'↙ Zwykły widok':'⛶ Pełny ekran';
+    parts.wideButton.setAttribute('aria-pressed',on?'true':'false');
+    parts.wideButton.title=on?'Przywróć menu i filtry':'Pokaż Bibliotekę na całej szerokości';
+  }
+  if(on)libClosePanels(parts.screen);
+  if(save){
+    try{localStorage.setItem(LIBRARY_WIDE_STORAGE_KEY,on?'1':'0');}catch(e){}
+  }
+}
+function toggleLibraryWide(){
+  const {screen}=libraryWideParts();
+  if(!screen)return;
+  setLibraryWide(!screen.classList.contains('library-wide'));
+}
+function toggleLibraryFilters(){
+  const parts=libraryWideParts();
+  if(!parts.screen||!parts.filterButton)return;
+  if(!parts.screen.classList.contains('library-wide')){
+    libTogglePanel(parts.filterButton,'filters');
+    return;
+  }
+  const opening=!parts.filters||parts.filters.style.display==='none';
+  if(parts.filters)parts.filters.style.display=opening?'flex':'none';
+  parts.filterButton.textContent=opening?'✕ Ukryj filtry':'☰ Filtry';
+  parts.filterButton.setAttribute('aria-expanded',opening?'true':'false');
+}
+window.setLibraryWide=setLibraryWide;
+window.toggleLibraryWide=toggleLibraryWide;
+window.toggleLibraryFilters=toggleLibraryFilters;
+
 function goTo(n){
   // Gdy trener opuszcza kreator z bocznego menu, nie gubimy niezapisanego planu.
   // Zatwierdzone wyjście z przycisku „Anuluj” ustawia jednorazowy bypass.
@@ -547,6 +611,10 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.nav-flyout-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
+  // Poza Biblioteką menu aplikacji zawsze wraca; po powrocie do Biblioteki
+  // stosujemy zapamiętany widok szeroki (domyślnie włączony).
+  if(n==='library')setLibraryWide(getLibraryWidePreference(),false);
+  else setLibraryWide(false,false);
   closeMobileSidebar();
   if(typeof closeNavFlyouts==='function')closeNavFlyouts();
   // Ekran z menu wysuwanego podświetla przycisk swojej grupy w pasku bocznym.

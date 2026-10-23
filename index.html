@@ -790,7 +790,7 @@
   <div class="topbar">
     <div class="topbar-title" id="lib-top-title">Biblioteka ćwiczeń</div>
     <div class="topbar-actions">
-      <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" id="lib-filters-btn" aria-expanded="false" onclick="libTogglePanel(this,'filters')">☰ Filtry</button>
+      <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" id="lib-filters-btn" aria-expanded="false" onclick="toggleLibraryFilters()">☰ Filtry</button>
       <div style="display:flex;gap:6px;">
         <button class="btn btn-primary btn-sm" id="lib-tab-ex" onclick="setLibTab('ex')">Ćwiczenia</button>
         <button class="btn btn-ghost btn-sm" id="lib-tab-vid" onclick="setLibTab('videos')">Moje filmy</button>
@@ -801,6 +801,7 @@
       </div>
       <button class="btn btn-ghost btn-sm" id="lib-import-gif" onclick="openExGifImport()" title="Masowy import GIF / MP4 techniki">🎞 Import GIF / MP4</button>
       <span class="btn btn-ghost btn-sm" id="lib-build-white-previews" title="Każda karta korzysta z lekkiego, nieruchomego białego podglądu">🖼 Białe podglądy aktywne</span>
+      <button type="button" class="btn btn-ghost btn-sm" id="lib-wide-btn" aria-pressed="false" onclick="toggleLibraryWide()" title="Pokaż Bibliotekę na całej szerokości">⛶ Pełny ekran</button>
       <button class="btn btn-primary btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Ćwiczenie</button>
       <button class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
     </div>
@@ -4842,7 +4843,7 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=152&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1"></script>
+<script src="01-core.js?v=153&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=111"></script>
 <script src="books-kb.js?v=2"></script>
