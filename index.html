@@ -42,6 +42,7 @@
       <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <div id="auth-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-login-btn" onclick="doSignIn()">Zaloguj się</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;" id="auth-login-trainer-btn" onclick="doSignInAsTrainer()">Zaloguj jako trener</button>
       <div style="text-align:center;margin-top:14px;">
         <button onclick="authShowReset()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Nie pamiętam hasła</button>
       </div>
@@ -4467,8 +4468,13 @@ window.doSignIn=async function(){
   errEl.style.display='none';
   if(!email||!pass){errEl.textContent='Wpisz e-mail i hasło.';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='Logowanie...';
+  let authTimeout=null;
   try{
-    await signInWithEmailAndPassword(auth,email,pass);
+    const authRequest=signInWithEmailAndPassword(auth,email,pass);
+    const authWait=new Promise((_,reject)=>{
+      authTimeout=setTimeout(()=>{const error=new Error('auth-timeout');error.code='auth/timeout';reject(error);},20000);
+    });
+    await Promise.race([authRequest,authWait]);
     // onAuthStateChanged zrobi reszte
   }catch(e){
     const msgs={
@@ -4477,11 +4483,20 @@ window.doSignIn=async function(){
       'auth/user-not-found':'Nie znaleziono konta z tym adresem e-mail.',
       'auth/wrong-password':'Nieprawidłowe hasło.',
       'auth/too-many-requests':'Zbyt wiele prób. Spróbuj ponownie za chwilę.',
+      'auth/network-request-failed':'Nie można połączyć się z usługą logowania. Sprawdź internet lub spróbuj w innej przeglądarce.',
+      'auth/timeout':'Usługa logowania nie odpowiedziała przez 20 sekund. Sprawdź połączenie i spróbuj ponownie w zwykłym Edge lub Chrome.',
     };
     errEl.textContent=msgs[e.code]||('Błąd logowania: '+e.message);
     errEl.style.display='block';
+  }finally{
+    if(authTimeout)clearTimeout(authTimeout);
+    btn.disabled=false;btn.textContent=idleLabel;
   }
-  btn.disabled=false;btn.textContent=idleLabel;
+};
+
+window.doSignInAsTrainer=async function(){
+  try{sessionStorage.setItem('pl_auth_mode','trainer');}catch(e){}
+  return window.doSignIn();
 };
 
 window.doSignOut=async function(){
@@ -4906,7 +4921,7 @@ async function load(session=captureTenantSession()){
 <script src="07-forms-metrics-calculator.js?v=45&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=93&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=58&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
-<script src="10-client-app.js?v=50&tenant-isolation=2&save-status=1&trainer-mode-switch=1"></script>
+<script src="10-client-app.js?v=51&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1"></script>
 <script src="11-progress-academy.js?v=8&study-explanations=1&book-answers=1&research=1"></script>
 <script src="research-answer.js?v=2"></script>
 <script src="research-academy.js?v=3"></script>
