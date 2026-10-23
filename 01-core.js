@@ -482,6 +482,37 @@ function bindMobileSidebarControls(){
   }
 }
 bindMobileSidebarControls();
+
+// Desktop: zapamiętujemy zwinięte menu między wejściami do aplikacji.
+// Sam pasek ikon pozostaje dostępny także na ekranie Kalendarza.
+const SIDEBAR_COLLAPSED_STORAGE_KEY='pl_sidebar_collapsed_v1';
+function setSidebarCollapsed(collapsed,save=true){
+  const app=document.getElementById('app-root');
+  const button=document.getElementById('sidebar-collapse-btn');
+  if(!app)return;
+  const on=!!collapsed;
+  app.classList.toggle('sidebar-collapsed',on);
+  if(button){
+    button.setAttribute('aria-pressed',on?'true':'false');
+    button.setAttribute('aria-label',on?'Rozwiń menu boczne':'Zwiń menu boczne');
+    button.title=on?'Rozwiń menu boczne':'Zwiń menu boczne';
+  }
+  if(save){
+    try{localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY,on?'1':'0');}catch(e){}
+  }
+}
+function toggleSidebarCollapsed(){
+  const app=document.getElementById('app-root');
+  if(!app)return;
+  setSidebarCollapsed(!app.classList.contains('sidebar-collapsed'));
+  if(typeof closeNavFlyouts==='function')closeNavFlyouts();
+}
+function restoreSidebarCollapsed(){
+  let collapsed=false;
+  try{collapsed=localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)==='1';}catch(e){}
+  setSidebarCollapsed(collapsed,false);
+}
+restoreSidebarCollapsed();
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape')closeMobileSidebar();
 });
@@ -489,6 +520,8 @@ window.addEventListener('resize',()=>{
   if(!window.matchMedia('(max-width: 860px)').matches)closeMobileSidebar();
 });
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
+window.toggleSidebarCollapsed=toggleSidebarCollapsed;
+window.setSidebarCollapsed=setSidebarCollapsed;
 
 function goTo(n){
   // Gdy trener opuszcza kreator z bocznego menu, nie gubimy niezapisanego planu.
