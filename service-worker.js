@@ -2,7 +2,9 @@
    Cache obejmuje wyłącznie pliki interfejsu z tej samej domeny. Dane klienta,
    logowanie i zapisy treningu pozostają w ich istniejących, bezpiecznych
    mechanizmach; aktywny trening dodatkowo zapisuje się lokalnie w aplikacji. */
-const CACHE_NAME='progress-live-shell-v63';
+// Wersja 64 naprawia sytuację, w której przeglądarka mieszała nowy index.html
+// ze starszymi plikami JavaScript pozostawionymi w cache PWA.
+const CACHE_NAME='progress-live-shell-v64';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
@@ -46,11 +48,14 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{
+  // Interfejs aplikacji musi działać zawsze na zgodnym zestawie plików.
+  // Pobieramy więc najpierw aktualną wersję z sieci, a cache zostaje wyłącznie
+  // bezpiecznym planem awaryjnym, gdy urządzenie rzeczywiście jest offline.
+  event.respondWith(fetch(request).then(response=>{
     if(response.ok&&response.type==='basic'){
       const copy=response.clone();
       caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));
     }
     return response;
-  })));
+  }).catch(()=>caches.match(request)));
 });
