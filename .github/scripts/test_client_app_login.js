@@ -38,6 +38,8 @@ ok('rules include linked client onboarding fields',rules.includes('appJoined')&&
 ok('cache versions remain current',Number((html.match(/10-client-app\.js\?v=(\d+)/)||[])[1])>=42&&Number((html.match(/09-posture-kb-invites-private\.js\?v=(\d+)/)||[])[1])>=54);
 ok('login offers an explicit trainer route for shared accounts',html.includes('id="auth-login-trainer-btn"')&&html.includes('onclick="doSignInAsTrainer()"')&&html.includes("preferredMode==='trainer'"));
 ok('login request restores the button and explains timeouts',html.includes("'auth/timeout'")&&html.includes('clearTimeout(authTimeout)')&&html.includes('20 sekund'));
+ok('trainer-mode permission errors explain the required Firebase role',html.includes('permissionDenied')&&html.includes('Administrator musi nadać rolę trenera w Firebase'));
+ok('client account cannot self-promote through the login button',rules.includes("match /trainerRoles/{uid}")&&/allow read, write: if false/.test(rules)&&/function trainer\(\) \{ return signedIn\(\) && \(!hasAccount\(\) \|\| hasTrainerRole\(\)\); \}/.test(rules));
 ok('CI',wf.includes('test_client_app_login.js'));
 
 const writes=[];

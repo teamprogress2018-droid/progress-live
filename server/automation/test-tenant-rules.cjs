@@ -762,6 +762,32 @@ test('forum queries honor public groups and actual private membership', async ()
   denied(await remove('forumComments/' + commentId, sibling), 'delete sibling comment');
   ok(await remove('forumComments/' + commentId, userA), 'delete own comment');
 });
+test('admin-granted trainer role enables a client account without self-escalation', async () => {
+  const ownId = run + '-dual-role-owned';
+  const ownPath = 'settings/' + ownId;
+  const ownData = {id: ownId, trainerId: userA.uid, name: 'Dual role trainer'};
+
+  // A client cannot grant itself the role or access trainer-owned data before
+  // an administrator provisions trainerRoles/{uid}.
+  denied(await write('trainerRoles/' + userA.uid,
+    {uid: userA.uid, role: 'trainer', enabled: true}, userA), 'client cannot create trainer role');
+  denied(await write(ownPath, ownData, userA), 'client without grant cannot create trainer data');
+  denied(await read(ownPath, userA), 'client without grant cannot read trainer data');
+
+  // Emulator admin seeding models the trusted Firebase Admin/Console grant.
+  await seed('trainerRoles/' + userA.uid, {uid: userA.uid, role: 'trainer', enabled: true});
+  ok(await write(ownPath, ownData, userA), 'granted client can create its own trainer data');
+  ok(await read(ownPath, userA), 'granted client can read its own trainer data');
+  ok(await query('settings', userA, [['trainerId', 'EQUAL', userA.uid]]), 'granted client can query its own trainer data');
+  denied(await read(ownPath, userB), 'trainer role does not expose another account data');
+  denied(await read('trainerRoles/' + userA.uid, userA), 'role grant is not readable through app');
+  denied(await write('trainerRoles/' + userA.uid,
+    {uid: userA.uid, role: 'trainer', enabled: false}, userA), 'role grant cannot be changed through app');
+
+  // The dual-role account retains only its existing client relationship.
+  ok(await read('clients/' + clientA, userA), 'dual-role account retains its own client profile');
+  denied(await read('clients/' + clientSibling, userA), 'dual-role account cannot read a sibling client profile');
+});
 
 (async () => {
   let failed = 0;

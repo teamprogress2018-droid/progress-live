@@ -4573,7 +4573,12 @@ function showTenantBootError(error,session){
   document.getElementById('app-root').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   const box=document.getElementById('auth-error');
-  box.textContent='Nie udało się bezpiecznie wczytać danych konta. Odśwież aplikację, aby ponowić.';
+  let trainerMode=false;
+  try{trainerMode=sessionStorage.getItem('pl_auth_mode')==='trainer';}catch(e){}
+  const permissionDenied=error&&error.code==='permission-denied';
+  box.textContent=trainerMode&&permissionDenied
+    ?'Logowanie się powiodło, ale to konto nie ma jeszcze przyznanego dostępu trenera. Administrator musi nadać rolę trenera w Firebase.'
+    :'Nie udało się bezpiecznie wczytać danych konta. Odśwież aplikację, aby ponowić.';
   box.style.display='block';
 }
 

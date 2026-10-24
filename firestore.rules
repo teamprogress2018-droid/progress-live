@@ -7,11 +7,20 @@ service cloud.firestore {
     function accountPath() { return /databases/$(database)/documents/clientAccounts/$(request.auth.uid); }
     function hasAccount() { return signedIn() && exists(accountPath()); }
     function account() { return get(accountPath()).data; }
+    function trainerRolePath() { return /databases/$(database)/documents/trainerRoles/$(request.auth.uid); }
+    function hasTrainerRole() {
+      return signedIn() && exists(trainerRolePath())
+        && get(trainerRolePath()).data.uid == request.auth.uid
+        && get(trainerRolePath()).data.role == 'trainer'
+        && get(trainerRolePath()).data.enabled == true;
+    }
     function linked() {
       return hasAccount() && account().role == 'client'
         && account().trainerId is string && account().clientId is string;
     }
-    function trainer() { return signedIn() && !hasAccount(); }
+    // A linked client can also be a trainer only after an administrator grants
+    // a separate trainerRoles/{uid} record. That record is never client-writable.
+    function trainer() { return signedIn() && (!hasAccount() || hasTrainerRole()); }
     function owner() { return trainer() && resource.data.trainerId == request.auth.uid; }
     function ownerCreate() { return trainer() && request.resource.data.trainerId == request.auth.uid; }
     function ownerUpdate() { return owner() && request.resource.data.trainerId == resource.data.trainerId; }
@@ -77,6 +86,11 @@ service cloud.firestore {
       allow update: if signedIn() && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientName', 'lastSeenAt']);
       allow delete: if owner();
+    }
+    // Role grants are provisioned through Firebase Admin/Console. Clients and
+    // trainers cannot inspect or modify grants through the application.
+    match /trainerRoles/{uid} {
+      allow read, write: if false;
     }
     match /invites/{token} {
       allow get: if owner() || inviteUsable(resource.data)
