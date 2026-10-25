@@ -9,3 +9,6 @@
 .gwb-note{padding:8px 12px;border-left:3px solid var(--warning);color:var(--text)}
 #gwb-preview{overflow-wrap:anywhere}
 #gwb-preview .btn{margin-top:8px}
+
+/* Private trainer methodology, following the current theme. */
+.tm-section {max-width:900px;line-height:1.6}.tm-section h2{font-size:22px}.tm-section label{display:block;margin:12px 0 6px}.tm-section textarea{width:100%;box-sizing:border-box}.tm-material{padding:16px 0;border-bottom:1px solid var(--border)}.tm-material h3{font-size:16px}.tm-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.tm-generator{margin-bottom:16px;line-height:1.6}.tm-generator label{display:block;margin:8px 0}.tm-generator summary{cursor:pointer;font-weight:600}

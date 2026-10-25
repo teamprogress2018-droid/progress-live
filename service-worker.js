@@ -4,7 +4,7 @@
    mechanizmach; aktywny trening dodatkowo zapisuje się lokalnie w aplikacji. */
 // Wersja 64 naprawia sytuację, w której przeglądarka mieszała nowy index.html
 // ze starszymi plikami JavaScript pozostawionymi w cache PWA.
-const CACHE_NAME='progress-live-shell-v65';
+const CACHE_NAME='progress-live-shell-v66';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

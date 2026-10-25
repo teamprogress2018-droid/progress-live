@@ -174,10 +174,12 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
 }
 
 function initAplangen(){
+  const tmMount=document.getElementById('tm-generator-options');
+  if(tmMount&&typeof window.tmGeneratorOptions==='function')tmMount.innerHTML=window.tmGeneratorOptions();
   const sel=document.getElementById('apl-client');
   const prev=sel?sel.value:'';
   if(sel){
-    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+    sel.innerHTML='<option value="">Bez klienta — plan do biblioteki</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
     const openId=(typeof cpClientId!=='undefined'&&cpClientId)||window.cpClientId||'';
     const pref=window._aplPrefillClientId||prev||openId||window._aplLastClientId||'';
     window._aplPrefillClientId=null;
@@ -669,7 +671,7 @@ function aplPlanTokenBudget(dayCount,withPlanHeader){
 function aplVolumeTarget(level,duration,pharma){
   const lv=String(level||'').toLowerCase();
   const adv=/zaaw|advanced/.test(lv),beg=/pocz|beginner/.test(lv);
-  const enh=pharma==='wspomagany',trt=pharma==='TRT';
+  const enh=false,trt=false; // Status farmakologiczny nie wyznacza tolerancji objętości.
   const dur=parseInt(duration,10)||60;
   let ex=adv?6:(beg?4:5);
   if(dur<=45)ex-=1;else if(dur>=75)ex+=1;
@@ -1384,10 +1386,7 @@ Nogi (czworogłowe): MEV 12 / MAV 16-20 / MRV 24
 Pośladki: MEV 6 / MAV 10-14 / MRV 16
 Core: MEV 8 / MAV 10-14 / MRV 16
 Wg stażu: Początkujący → doln half MEV-MAV. Średni → środek/góra MAV. Zaawansowany → góra MAV, blisko MRV.
-${pharmaStatus?`
-DOSTOSOWANIE OBJĘTOŚCI DO STATUSU FARMAKOLOGICZNEGO (nadrzędne wobec progów "Wg stażu" powyżej):
-${pharmaStatus==='wspomagany'?'Klient WSPOMAGANY farmakologicznie (sterydy anaboliczno-androgenne) — jego zdolność regeneracji (MRV) jest istotnie wyższa niż u naturalnego sportowca o tym samym stażu. Planuj objętość w GÓRNEJ części MAV lub PONAD standardowe MRV z tabeli (nawet +20-40% serii tygodniowo na partię), krótsze przerwy między seriami są tolerowane lepiej, częstotliwość 2-3×/tydzień na partię jest bezpieczna nawet przy wyższej intensywności. Mimo to zachowaj progresję stopniowo — nie zaczynaj od razu od maksimum.':pharmaStatus==='TRT'?'Klient na TRT (fizjologiczne dawki testosteronu) — regeneracja umiarkowanie lepsza niż przy niedoborze naturalnym, ale NIE traktuj jak wspomaganego. Planuj górną część MAV z tabeli, bez przekraczania MRV.':'Klient naturalny — trzymaj się dokładnie progów MEV/MAV/MRV z tabeli powyżej, bez podwyższania.'}
-`:''}
+POUFNOŚĆ: status farmakologiczny i szczegóły są wyłącznie kontekstem trenera. Nie umieszczaj ich w żadnym polu odpowiedzi JSON. Nie zwiększaj objętości, ciężaru ani częstotliwości na podstawie samego statusu. Dobieraj je według stażu, wykonania i regeneracji.
 
 OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla każdej partii zsumuj w pamięci serie robocze ze wszystkich dni tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Pole "weeklyVolume" musi odzwierciedlać faktyczną sumę, nie szacunek. Nie dodawaj ćwiczenia tylko po to, aby dobić do MEV: najpierw sprawdź czas sesji, staż, wiek, regenerację, priorytety oraz konserwatywne limity objętości.
 SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: licz sumę tygodniową, ale nie próbuj wyrównywać nierównego układu czterech sesji przez przeładowanie pojedynczego dnia. Zachowaj rotację kolejki PPL między tygodniami.
@@ -1430,6 +1429,7 @@ OBJĘTOŚĆ wg badań (Schoenfeld i wsp. 2017 — zależność dawka–odpowied�
 OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
 Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core.
 DOBÓR ĆWICZEŃ WG WZORCA (OBOWIĄZKOWE): najpierw ustal wzorzec ruchowy, kierunek oporu, dominującą funkcję mięśnia, płaszczyznę ruchu i partię — dopiero potem konkretny wariant. Zmiana chwytu, maszyny lub przyrządu NIE jest innym ćwiczeniem. W jednym dniu maksymalnie 1 ćwiczenie na wzorzec (np. podciąganie ALBO ściąganie drążka; wyciskanie na ławce płaskiej hantlami ALBO sztangą). Różne wzorce to np.: przyciąganie pionowe, przyciąganie poziome, łopatka/tył barku, wyprost ramienia prostymi rękami; wyciskanie płaskie, skos, rozpiętki; przysiad/wypychanie obunóż, wykrok jednonóż, wyprost kolana, zgięcie kolana, zawias biodrowy, hip thrust. Wyjątek: świadoma specjalizacja wpisana przez trenera — wtedy max 2 i napisz w notes "specjalizacja". Brakującą objętość dobieraj seriami, nie kolejnym wariantem tego samego wzorca. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
+  +(typeof window.tmPrompt==='function'?window.tmPrompt():'')
   +bookCtx.all
   +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes,books:false}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
 
@@ -1510,7 +1510,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 2c. WZORCE: w jednym dniu max 1 ćwiczenie na wzorzec ruchowy (np. podciąganie ALBO ściąganie drążka; wyciskanie płaskie hantlami ALBO sztangą). Chwyt/maszyna/przyrząd to nie inny wzorzec. Zróżnicuj: pion, poziom, łopatka/tył barku, prostymi rękami; płasko, skos, rozpiętki; obunóż, jednonóż, wyprost kolana, zgięcie kolana, zawias, hip thrust. Wyjątek: specjalizacja trenera (max 2, "specjalizacja" w notes).
 3. Preferuj maszyny / Smith / wyciągi, gdy stabilność pomaga realizować cel, lecz zachowaj także ćwiczenia wolnym ciężarem, jeśli są potrzebne dla umiejętności lub preferencji. Różnicuj profil oporu (wydłużenie / środek / skrócenie); pauza w rozciągnięciu jest opcją, nie regułą.
 4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
-5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`+bookCtx.training;
+5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`+bookCtx.training+(typeof window.tmPrompt==='function'?window.tmPrompt():'');
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }

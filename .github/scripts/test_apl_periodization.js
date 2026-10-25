@@ -45,8 +45,8 @@ const nat = c.aplVolumeTarget('zaawansowany', '60', '');
 const enh = c.aplVolumeTarget('zaawansowany', '60', 'wspomagany');
 const trt = c.aplVolumeTarget('zaawansowany', '60', 'TRT');
 ok('advanced natural: 14–20 sets/week', nat.weekly === '14–20' && nat.weeklyMin === 12, JSON.stringify(nat));
-ok('advanced enhanced: ~+30% (18–26), 3–5 sets', enh.weekly === '18–26' && enh.weeklyMin >= 16 && enh.sets === '3–5' && /wspomagany/.test(enh.label), JSON.stringify(enh));
-ok('TRT between natural and enhanced', trt.weeklyMin > nat.weeklyMin && trt.weeklyMin < enh.weeklyMin, JSON.stringify(trt));
+ok('anabolic status alone does not increase volume', JSON.stringify(enh) === JSON.stringify(nat), JSON.stringify(enh));
+ok('TRT alone does not increase volume', JSON.stringify(trt) === JSON.stringify(nat), JSON.stringify(trt));
 ok('prompt cites the volume research', /Schoenfeld/.test(src) && /Baz-Valle/.test(src) && /Pelland/.test(src) && /Bhasin/.test(src));
 
 const plan = { days: [
@@ -58,7 +58,7 @@ const capped = cat => plan.days.flatMap(x => x.exercises).filter(e => e.muscleGr
 ok('enforce: chest and back raised to the minimum or every exercise at 5 sets', (sum('Klatka') >= enh.weeklyMin || capped('Klatka')) && (sum('Plecy') >= enh.weeklyMin || capped('Plecy')) && plan.days.flatMap(x => x.exercises).every(e => +e.sets <= 5) && top.some(t => t.cat === 'klatka'), JSON.stringify(top));
 ok('enforce: core untouched', plan.days[1].exercises[2].sets === '3');
 const checks = c.aplPlanChecks(Object.assign({ progression: 'wave', volumeTopUp: top, volumeTarget: { label: enh.label } }, plan), { level: 'zaawansowany', duration: '60', pharma: 'wspomagany' });
-ok('still below minimum after cap → flagged as low weekly volume', checks.some(x => x.kind === 'volume-week' && /klatka 15/.test(x.text)), JSON.stringify(checks));
+ok('only back below the level-based minimum is flagged', checks.some(x => x.kind === 'volume-week' && /plecy 10/.test(x.text) && !/klatka/.test(x.text)), JSON.stringify(checks));
 ok('plan check reports added sets', checks.some(x => x.kind === 'volume-topup' && /klatka \d+→\d+/.test(x.text)), JSON.stringify(checks));
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('\nAll periodization checks passed');
