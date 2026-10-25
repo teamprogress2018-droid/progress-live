@@ -4070,14 +4070,25 @@ function liveExDisplayName(ex){
 }
 window.liveExDisplayName=liveExDisplayName;
 
-function liveExTitleHtml(ex){
+function liveExTitleHtml(ex,lastChip,history){
   const needsName=!String(ex&&ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   if(needsName)return '<div class="live-ex-title is-empty">Wybierz ćwiczenie</div>';
   const display=liveExDisplayName(ex);
   const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(display.title)}${display.priority?'<span class="live-priority-badge">Priorytet</span>':''}`;
-  // Historia, progres i notatka mają jedno miejsce: menu „…”. Nie dublujemy
-  // ich pod nazwą ćwiczenia, aby w trakcie treningu pierwsze były serie.
-  return `<div class="live-ex-title">${nameInner}</div>`;
+  // Skrót (Ostatnio / Sugestia) jest w menu „⋯ → Historia i progres”. Pełna tabela
+  // poprzednich treningów zostaje pod nazwą: podgląd po najechaniu, klik otwiera całość.
+  const histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
+  if(!histId||!history||!history.length||typeof exerciseHistoryModalBodyHtml!=='function'){
+    return `<div class="live-ex-title">${nameInner}</div>`;
+  }
+  return `<div class="live-ex-title-wrap">
+    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="dialog">${nameInner}</button>
+    <div class="live-ex-hist-pop" role="tooltip">
+      <div class="live-ex-hist-pop-hd">Poprzednie treningi</div>
+      ${exerciseHistoryModalBodyHtml(history.slice(0,4))}
+      <div class="live-ex-hist-pop-ft">Kliknij nazwę — pełna historia</div>
+    </div>
+  </div>`;
 }
 window.liveExTitleHtml=liveExTitleHtml;
 
@@ -4181,6 +4192,8 @@ function liveExCard(ex,i,slot,cue,progress){
   const histList=(cue&&cue.histByKey&&cueKey&&Array.isArray(cue.histByKey[cueKey]))
     ?cue.histByKey[cueKey]
     :(typeof liveExHistoryList==='function'?liveExHistoryList(ex,st.clientId,st.planId):[]);
+  const histEx=Object.assign({},ex,{lastHistory:histList,lastSets:[]});
+  const lastChip=histList.length&&typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(histEx,{clientId:st.clientId,aliases:ex.alts}):'';
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   void pr;
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
@@ -4218,7 +4231,7 @@ function liveExCard(ex,i,slot,cue,progress){
       ${thumb&&hasTechniqueMedia?`<button type="button" class="live-ex-thumb live-ex-technique-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="${ex.showVideo?'Ukryj':'Pokaż'} technikę" aria-label="${ex.showVideo?'Ukryj':'Pokaż'} technikę dla: ${escHtml(ex.name)}" aria-pressed="${ex.showVideo?'true':'false'}"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:thumb?`<div class="live-ex-thumb"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></div>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
-        ${liveExTitleHtml(ex)}
+        ${liveExTitleHtml(ex,lastChip,histList)}
         <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong>${isCurrent&&progress?`<span class="live-session-progress">Trening ${progress.doneCnt}/${progress.total} · ${progress.setsDone} serii</span>`:`<span>Wykonano ${setsDone}/${ex.sets.length}</span>`}${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
