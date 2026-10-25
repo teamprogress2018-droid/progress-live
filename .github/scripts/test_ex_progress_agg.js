@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Etap 7A: agregat progresu klienta — przypadki 1–20 ze specyfikacji. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -45,7 +46,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
 ok('CI', wf.includes('test_ex_progress_agg.js'));
 ok('agg helper', /function aggregateClientProgress/.test(coreSrc));
 ok('agg stays in core', !/function aggregateClientProgress/.test(extras)

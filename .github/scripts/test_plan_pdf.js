@@ -1,4 +1,5 @@
 // PDF planu AI: czerwień Progress, granat, różowe komórki tygodni.
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -24,7 +25,7 @@ ok('export helper', /window\.buildPlanPDFHTML=buildPlanPDFHTML/.test(src03));
 ok('saved plan mapper', /function planToPdfModel\(/.test(src03) && /window\.planToPdfModel=planToPdfModel/.test(src03));
 ok('saved plan export', /function exportSavedPlanPDF\(/.test(src03) && /window\.exportSavedPlanPDF=exportSavedPlanPDF/.test(src03));
 ok('saves progression', /plan\.progression=progression/.test(src03));
-ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('styles.css?v=166'));
+ok('cache', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43) && cacheAtLeast(html, 'styles.css', 166));
 ok('mezocycle pdf helpers', /mezocycle_overview/.test(src03) && /weekly_progression_schema/.test(src03));
 ok('CI', wf.includes('test_plan_pdf.js') && wf.includes('test_plan_pdf_ui.js'));
 

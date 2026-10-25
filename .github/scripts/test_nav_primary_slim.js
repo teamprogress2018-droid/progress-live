@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Układ 2.0: pasek boczny z pozycjami głównymi i grupami w menu wysuwanym (bez „Więcej”). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -70,11 +71,13 @@ test('account area at the bottom', () => {
 });
 
 test('flyout behaviour: hover, click, keyboard, collapse', () => {
-  for (const fn of ['openNavFlyout', 'closeNavFlyouts', 'toggleNavFlyout', 'navGroupClick', '_navFlyHoverIn', '_navFlyKeydown', 'toggleSidebarCollapsed']) {
+  for (const fn of ['openNavFlyout', 'closeNavFlyouts', 'toggleNavFlyout', 'navGroupClick', '_navFlyHoverIn', '_navFlyKeydown']) {
     assert.match(nine, new RegExp('function\\s+' + fn + '\\('), fn);
   }
   assert.ok(nine.includes("e.key==='ArrowRight'") && nine.includes("e.key==='Escape'"), 'keyboard');
-  assert.ok(nine.includes("'pl_sidebar_collapsed'"), 'collapse remembered');
+  // Od 23.10 (85c7671) zwijanie paska i jego zapamiętanie są w 01-core.js.
+  assert.match(core, /function\s+toggleSidebarCollapsed\(/, 'toggleSidebarCollapsed');
+  assert.ok(core.includes("SIDEBAR_COLLAPSED_STORAGE_KEY='pl_sidebar_collapsed'") && /localStorage\.setItem\(SIDEBAR_COLLAPSED_STORAGE_KEY/.test(core), 'collapse remembered');
   assert.ok(theme.includes('.app.sidebar-collapsed .sidebar'), 'collapsed css');
 });
 
@@ -96,7 +99,7 @@ test('sidebar does not close #app-root before .main', () => {
 });
 
 test('cache + CI', () => {
-  assert.match(html, /01-core.js\?v=137/);
+  assert.ok(cacheAtLeast(html, '01-core.js', 137));
   assert.ok(html.includes('layout-v2='), 'cache param for Układ 2.0');
   assert.ok(wf.includes('test_nav_primary_slim.js'), 'CI runs nav slim test');
 });

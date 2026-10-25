@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Sztab ekspercki: routing słów kluczowych, tryby AI Coach, sekwencyjne wywołania. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 03 v37', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43'));
-ok('cache 06 v77', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache 03 v37', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43));
+ok('cache 06 v77', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
 ok('CI unit', wf.includes('test_staff_agents.js'));
 ok('CI ui', wf.includes('test_staff_agents_ui.js'));
 ok('sztab button', html.includes('id="aicm-sztab"') && html.includes('Sztab ekspercki'));

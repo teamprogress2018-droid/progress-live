@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Kalendarz: jedna karta na klienta+godzinę; plan nie dubluje zapisu Live/sala. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -18,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
 ok('ci unit', wf.includes('test_cal_sess_dedupe.js'));
 ok('ci ui', wf.includes('test_cal_sess_dedupe_ui.js'));
 ok('helpers', /function calDedupeVisibleSessions/.test(cal) && /function calSessionTimeKey/.test(cal));

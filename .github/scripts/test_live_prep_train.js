@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Live: tryb Przygotowanie / Trening — karta, serie, przerwa, zakończenie. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=111'));
-ok('cache styles', html.includes('styles.css?v=185'));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 111));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 185));
 ok('mobile end sheet keeps save action reachable', css.includes('.live-end-actions{position:sticky') && css.includes('.live-end-actions .btn{flex:1;min-height:48px;}'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));

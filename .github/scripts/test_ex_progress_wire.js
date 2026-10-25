@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Etap 6D: podpięcie classifyExerciseProgress pod serie 6C / dane Progress (bez UI). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -30,9 +31,9 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 04', html.includes('04-client-portal.js?v=62'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 04', cacheAtLeast(html, '04-client-portal.js', 62));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('CI', wf.includes('test_ex_progress_wire.js'));
 ok('mapping helpers', /function listClientProgressExercises/.test(coreSrc)
   && /function exerciseProgressClass/.test(coreSrc)

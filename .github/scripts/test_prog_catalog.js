@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Katalog programów: filtry 4–16 tyg., chipy data-dur, bez tygodniówek. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -20,8 +21,8 @@ function ok(name, cond, extra) {
 }
 
 const chips = html.slice(html.indexOf('id="prog-dur-chips"'), html.indexOf('id="prog-equip-fil"'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('CI', wf.includes('test_prog_catalog.js'));
 ok('CI ui', wf.includes('test_prog_catalog_ui.js'));
 ok('title 4-16', html.includes('>Bloki 4–16 tygodni<'));

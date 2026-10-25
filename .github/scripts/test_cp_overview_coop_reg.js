@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Etap 5 — pełna regresja Analizy współpracy (bramka, prompt, mock AI, cache). */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -141,7 +142,7 @@ ok('busy guard',/if\(window\._cpCoopBusy\[id\]\)return/.test(extract(src08,'runC
 ok('gate before fetch',extract(src08,'cpCoopRequestAnalysis').indexOf('length<2')<extract(src08,'cpCoopRequestAnalysis').indexOf('await fetch'));
 ok('run calls request helper',/cpCoopRequestAnalysis\(c\)/.test(extract(src08,'runCpCoopAnalysis')));
 ok('ci files',wf.includes('test_cp_overview_coop.js')&&wf.includes('test_cp_overview_coop_reg.js')&&wf.includes('test_cp_overview_coop_ui.js'));
-ok('cache pins',html.includes('08-client-profile-extras.js?v=91')&&html.includes('styles.css?v=166'));
+ok('cache pins',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, 'styles.css', 166));
 ok('css card',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-err'));
 
 const sb=makeSandbox();

@@ -29,10 +29,15 @@ ctx.renderLiveExercises(0);
 let markup=ctx.liveEl('live-exercises-panel',0).innerHTML;
 assert.equal(calls,1,'one shared cue pack per render');
 assert(markup.includes('4 serie × 8–12 powt.')&&markup.includes('6 serii × 8–12 powt.'));
-assert.equal((markup.match(/class="live-set-row/g)||[]).length,4,'first exercise rows visible before start');
+// Od 20.10 (3bc11fb) przed startem wszystkie karty są zwiniętym przeglądem planu; trener rozwija wybraną.
+assert.equal((markup.match(/class="live-set-row/g)||[]).length,0,'prep shows compact cards before start');
+assert.equal((markup.match(/live-ex-collapsed-meta/g)||[]).length,3,'every card shows its sets summary');
+ctx.liveToggleCollapse(0,0);ctx.renderLiveExercises(0);markup=ctx.liveEl('live-exercises-panel',0).innerHTML;
+assert.equal((markup.match(/class="live-set-row/g)||[]).length,4,'opened exercise shows its rows before start');
 assert(markup.includes('Wykonano 0/4'));
-assert(/class="live-focus-cue[^"]*"><span>NAJWAŻNIEJSZA WSKAZÓWKA<\/span><strong>Kontroluj ruch<\/strong>/.test(markup)&&markup.includes('class="live-ex-todo live-ex-todo-details"'),'coach note visible on card');
-assert(/<details class="live-ex-more-details"[^>]*>\s*<summary>/.test(markup),'details closed by default');
+// Od 20.10 (58b4c94) notatka trenera i szczegóły są na żądanie w menu „⋯”, nie stale na karcie.
+assert(markup.includes('Notatka trenera')&&!markup.includes('live-ex-note"'),'coach note on demand in the three-dot menu');
+assert(/<details class="live-ex-details"><summary>/.test(markup)&&!/<details class="live-ex-details" open/.test(markup),'details closed by default');
 slots[0].sessionActive=true;
 ctx.renderLiveExercises(0);ctx.liveToggleCollapse(1,0);ctx.renderLiveExercises(0);
 assert.equal(slots[0].exercises[1].collapsed,false,'manually opened next exercise stays open');

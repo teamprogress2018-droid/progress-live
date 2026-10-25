@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Biblioteka – nowe funkcje (audyt 18.10, pakiet F): ulubione ćwiczenia, ostatnio używane, duplikuj plan. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -28,9 +29,9 @@ function slice(src, from, to) {
 
 ok('ci unit', wf.includes('test_lib_nowe_funkcje.js'));
 ok('ci ui', wf.includes('test_lib_nowe_funkcje_ui.js'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 
 ok('star on card and list row', six.includes('${exFavBtnHtml(e)}') && (six.match(/\$\{exFavBtnHtml\(e\)\}/g) || []).length === 3);
 ok('favourites saved in settings', /window\.SETTINGS\.favoriteExercises=/.test(six) && /persistSettingsDoc/.test(slice(six, 'function toggleFavEx', 'function exFavPaint')));

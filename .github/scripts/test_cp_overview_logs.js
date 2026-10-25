@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Przegląd: liczby z planu, pusty rejestr ≠ nieobecność, statusy dni, etykiety. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -32,7 +33,7 @@ function ok(name,cond,extra){
 
 ok('ci unit',wf.includes('test_cp_overview_logs.js'));
 ok('ci ui',wf.includes('test_cp_overview_logs_ui.js'));
-ok('cache 08/styles/02',html.includes('08-client-profile-extras.js?v=91')&&html.includes('styles.css?v=166')&&html.includes('02-workouts-onboarding-templates-live.js?v=98'));
+ok('cache 08/styles/02',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, 'styles.css', 166)&&cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
 ok('empty wo copy',overview.includes('Brak zapisanych treningów')&&overview.includes('Dodaj trening')&&!/Same terminy w kalendarzu/.test(overview));
 ok('no remind on empty',!/assigned7&&last7===0/.test(overview));
 ok('notes copy',overview.includes('Widoczna tylko dla Ciebie')&&!overview.includes('Krótka notatka zostaje przy Tobie.'));

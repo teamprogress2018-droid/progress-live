@@ -230,7 +230,10 @@ ok('jump to client app', /openGarminImportedClientApp/.test(src04));
 const src10 = fs.readFileSync(path.join(root, '10-client-app.js'), 'utf8');
 ok('live client loads resources through the explicit trainer-scoped library allowlist',
   /CLIENT_SHARED_COLLECTIONS=Object\.freeze\(\[[^\]]*'resources'/.test(src10)&&
-  /CLIENT_SHARED_COLLECTIONS\.map\(name=>queryByTrainerId\(name,account\.trainerId,account,session\)\)/.test(src10)&&
+  // Od 20.10 (ec59eae) biblioteki opcjonalne są pobierane tylko, gdy trener udostępnił dany ekran.
+  /const clientSharedNames=CLIENT_SHARED_COLLECTIONS\.filter\(/.test(src10)&&
+  /name==='resources'\?visible\.resources!==false/.test(src10)&&
+  /clientSharedNames\.map\(name=>queryByTrainerId\(name,account\.trainerId,account,session\)\)/.test(src10)&&
   /USER_RESOURCES:sharedData\.resources/.test(src10));
 
 if (failed) {

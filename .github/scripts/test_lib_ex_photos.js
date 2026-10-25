@@ -63,8 +63,9 @@ ok('index loads photo manifest', fs.readFileSync(path.join(root, 'index.html'), 
 
 const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
 const card = six.slice(six.indexOf('function exCardHtml'), six.indexOf('function renderLibGroupedSections'));
-ok('cards fall back to muscle part label', /ex-card-part/.test(card));
-ok('cards prefer still thumb over mp4', /if\(thumb\)/.test(card) && card.indexOf('if(thumb)') < card.indexOf('else if(isVid'));
+// Od 23.10 (e376fcb, 6c9b6d5) karta pokazuje zdjęcie z bazy ćwiczeń, a bez niego biały podgląd — nigdy filmu.
+ok('cards fall back to white preview', /const media=exCardDatabasePhotoHtml\(e,col\)/.test(card) && /return exCardWhitePreviewHtml\(e,col\)/.test(six));
+ok('cards never play mp4', !/<video/.test(card));
 
 windowObj.EX_GIF_MANIFEST = {
   'wyciskanie sztangi leżąc': 'https://cdn.jsdelivr.net/gh/x/y@1/bench.mp4',

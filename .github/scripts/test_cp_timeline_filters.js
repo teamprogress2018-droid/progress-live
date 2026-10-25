@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Oś czasu: agregacja istniejących zdarzeń + filtry, bez nowych kolekcji. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -41,7 +42,7 @@ ok('no paidAt guess',!/paidAt/.test(extract(src08,'collectCpTimelineEvents')));
 ok('situation untouched',overview.includes('cpOverviewSituationHTML')&&overview.includes('Na kolejny trening')===false&&src08.includes('Wnioski'));
 ok('no second timeline in overview',!overview.includes('collectCpTimelineEvents')&&!overview.includes('cp-tl-filters'));
 ok('css quieter',css.includes('.cp-tl-row')&&css.includes('.cp-tl-filter')&&!/cp-tl-row\{[^}]*background:var\(--bg-card\)/.test(css.replace(/\n/g,' ')));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=91')&&html.includes('styles.css?v=166'));
+ok('cache 08/styles',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, 'styles.css', 166));
 ok('ci unit',wf.includes('test_cp_timeline_filters.js'));
 ok('ci ui',wf.includes('test_cp_timeline_filters_ui.js'));
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** UX audit: zadania domowe, nav 5+Więcej, Nowy plan, nazwy blok/tydzień, głos PL, klaster. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -53,12 +54,12 @@ ok('schedule repeat', src10.includes('function maybeScheduleNextHomework'));
 ok('strip od tags', portal.includes('function capStripOdTags') && portal.includes('capStripOdTags(raw)'));
 ok('homework filter render', src06.includes("taskFilter==='homework'"));
 ok('dash no-plan', portal.includes("tag:'Brak planu'") && portal.includes("tag:'Domowe zaległe'"));
-ok('cache 01', html.includes('01-core.js?v=155'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=111'));
-ok('cache 04', html.includes('04-client-portal.js?v=67'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=58'));
-ok('cache 10', html.includes('10-client-app.js?v=51'));
-ok('cache styles', html.includes('styles.css?v=189') && html.includes('theme.css?v=13'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 155));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 111));
+ok('cache 04', cacheAtLeast(html, '04-client-portal.js', 67));
+ok('cache 09', cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));
+ok('cache 10', cacheAtLeast(html, '10-client-app.js', 51));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 189) && cacheAtLeast(html, 'theme.css', 13));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));
 
 const document = {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Jedno pole weekday: nazwa w nawiasie > preferencje klienta. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -29,7 +30,7 @@ function ok(name, cond, extra) {
 }
 
 ok('ci', wf.includes('test_plan_day_weekday.js'));
-ok('cache 01/05', html.includes('01-core.js?v=137') && html.includes('05-clients-builder-plans-calendar.js?v=106'));
+ok('cache 01/05', cacheAtLeast(html, '01-core.js', 137) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
 ok('helpers', /function planDayWeekday/.test(src01) && /function hydratePlanDaysWeekdays/.test(src01) && /function parsePlanWeekdayFromText/.test(src01));
 ok('schedule uses day object', /resolvePlanDayWeekday\(d,trainI,preferred\)/.test(src05.replace(/\s+/g, '')));
 ok('canonical weekday first', /typeof planDayWeekday==='function'/.test(src05.slice(src05.indexOf('function resolvePlanDayWeekday'), src05.indexOf('function scheduleTimeFromClient'))));

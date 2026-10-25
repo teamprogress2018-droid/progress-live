@@ -35,7 +35,7 @@ function ok(name, cond, extra) {
   });
 
   await page.evaluate(() => {
-    if (typeof goTo === 'function') goTo('library');
+    if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
     const inp = document.getElementById('ex-search');
     if (inp) inp.value = 'Wyciskanie sztangi leżąc';
     if (typeof renderLib === 'function') renderLib();
@@ -87,8 +87,9 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'lib_hack_squat_card.png') });
   ok('hack squat card rendered', hack.found, JSON.stringify(hack));
-  ok('hack squat card uses local gif', /przysiad-hack-maszyna\.gif/.test(hack.img) && !/\.mp4/i.test(hack.img) && !/Hack_Squat\/0\.jpg/.test(hack.img), hack.img);
-  ok('hack squat gif loaded', hack.complete && hack.w > 0 && hack.h > 0, JSON.stringify(hack));
+  // Od 23.10 (6c9b6d5, aea1645) karty biblioteki pokazują zdjęcie z bazy ćwiczeń; GIF techniki jest w szczegółach.
+  ok('hack squat card uses database photo', /Hack_Squat\/0\.jpg/.test(hack.img) && !/\.mp4/i.test(hack.img), hack.img);
+  ok('hack squat photo loaded', hack.complete && hack.w > 0 && hack.h > 0, JSON.stringify(hack));
   ok('hack squat card has no video tag', !hack.hasVideo);
 
   await page.evaluate(() => {
@@ -125,9 +126,10 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     if (typeof openExDetail === 'function') openExDetail('Wyciskanie sztangi leżąc');
   });
-  await page.waitForSelector('#exd-body video');
+  // Od 21.10 (5d6cf07) część filmów techniki pochodzi z Google Drive i gra w ramce <iframe>.
+  await page.waitForSelector('#exd-body video, #exd-body iframe.cw-technique-gif-img');
   const detail = await page.evaluate(() => {
-    const video = document.querySelector('#exd-body video');
+    const video = document.querySelector('#exd-body video') || document.querySelector('#exd-body iframe.cw-technique-gif-img');
     const title = (document.getElementById('exd-title') || {}).textContent || '';
     return {
       title,
@@ -138,8 +140,8 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'lib_bench_detail.png') });
   ok('detail title is bench', detail.title === 'Wyciskanie sztangi leżąc', detail.title);
-  ok('detail plays mp4', /progress-live-video-assets/.test(detail.src) && /\.mp4/i.test(detail.src), detail.src.slice(0, 160));
-  ok('detail video loops muted autoplay', detail.autoplay && detail.loop);
+  ok('detail plays technique film', (/progress-live-video-assets/.test(detail.src) && /\.mp4/i.test(detail.src)) || /drive\.google\.com\/file\/d\/[^/]+\/preview/.test(detail.src), detail.src.slice(0, 160));
+  ok('detail video loops muted autoplay', /drive\.google\.com/.test(detail.src) || (detail.autoplay && detail.loop));
 
   async function detailMedia(name) {
     await page.evaluate((n) => {
@@ -153,7 +155,8 @@ function ok(name, cond, extra) {
         title: (document.getElementById('exd-title') || {}).textContent || '',
         src: video ? video.getAttribute('src') : '',
         img: img ? img.getAttribute('src') : '',
-        hasVideo: !!video
+        hasVideo: !!video,
+        drive: ((document.querySelector('#exd-body iframe.cw-technique-gif-img') || {}).src) || ''
       };
     });
   }
@@ -230,7 +233,7 @@ function ok(name, cond, extra) {
   ok('pendlay has no lying mp4', !pendlay.hasVideo, JSON.stringify(pendlay).slice(0, 200));
 
   await page.evaluate(() => {
-    if (typeof goTo === 'function') goTo('library');
+    if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
     const inp = document.getElementById('ex-search');
     if (inp) inp.value = 'Butterfly (peck deck)';
     if (typeof renderLib === 'function') renderLib();
@@ -249,7 +252,7 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'lib_pec_deck_card.png') });
   ok('pec deck card rendered', pecCard.found, JSON.stringify(pecCard));
-  ok('pec deck card uses local gif', /butterfly-peck-deck\.gif/.test(pecCard.img) && !/\.mp4/i.test(pecCard.img), pecCard.img);
+  ok('pec deck card uses database photo', /Butterfly\/0\.jpg/.test(pecCard.img) && !/\.mp4/i.test(pecCard.img), pecCard.img);
   ok('pec deck card has no video tag', !pecCard.hasVideo);
 
   await page.evaluate(() => {
@@ -257,7 +260,7 @@ function ok(name, cond, extra) {
   });
   await page.waitForSelector('#exd-body .ex-guide[data-guide="pec-deck"]');
   const pecDetail = await page.evaluate(() => {
-    const img = document.querySelector('#exd-body img.cw-technique-gif-img') || document.querySelector('#exd-body .cw-technique-gif img');
+    const img = document.querySelector('#exd-body .cw-technique-gif-img') || document.querySelector('#exd-body .cw-technique-gif img');
     const video = document.querySelector('#exd-body video');
     const cap = document.querySelector('#exd-body .cw-technique-cap');
     const guide = document.querySelector('#exd-body .ex-guide[data-guide="pec-deck"]');
@@ -274,7 +277,7 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'lib_pec_deck_detail.png') });
   ok('pec deck detail title', pecDetail.title === 'Butterfly (peck deck)', pecDetail.title);
-  ok('pec deck detail shows matching gif', /butterfly-peck-deck\.gif/.test(pecDetail.src), pecDetail.src);
+  ok('pec deck detail shows matching technique', /butterfly-peck-deck\.gif/.test(pecDetail.src) || /drive\.google\.com\/file\/d\/[^/]+\/preview/.test(pecDetail.src), pecDetail.src);
   ok('pec deck detail has no mp4 video', !pecDetail.hasVideo);
   ok('pec deck caption is exercise name', /Butterfly \(peck deck\)/i.test(pecDetail.cap), pecDetail.cap);
   ok('pec deck guide phases', pecDetail.hasGuide && pecDetail.phases.some((s) => /phase-open/.test(s)) && pecDetail.phases.some((s) => /phase-close/.test(s)));
@@ -282,7 +285,7 @@ function ok(name, cond, extra) {
 
   async function libCard(name) {
     await page.evaluate((n) => {
-      if (typeof goTo === 'function') goTo('library');
+      if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
       if (typeof setExView === 'function') setExView('grid');
       const inp = document.getElementById('ex-search');
       if (inp) inp.value = n;
@@ -364,7 +367,7 @@ function ok(name, cond, extra) {
   ok('db lateral detail title', laterals.title === 'Unoszenie bokiem', laterals.title);
   ok(
     'db lateral plays standing lateral clip',
-    laterals.hasVideo && /Dumbbell%20Lateral%20Raise/i.test(laterals.src),
+    (laterals.hasVideo && /Dumbbell%20Lateral%20Raise/i.test(laterals.src)) || /drive\.google\.com\/file\/d\/[^/]+\/preview/.test(laterals.drive),
     (laterals.src || '').slice(0, 180)
   );
 
@@ -688,11 +691,13 @@ function ok(name, cond, extra) {
     return {
       hidden: !!(thumb && thumb.hidden),
       src: video ? video.getAttribute('src') : '',
-      hasVideo: !!video
+      hasVideo: !!video,
+      drive: !!(thumb && thumb.querySelector('.cw-technique-drive-compact'))
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'builder_pompki_video.png') });
-  ok('builder pompki shows technique video', builder.hasVideo && !builder.hidden && /Push-up/i.test(decodeURIComponent(builder.src || '')), JSON.stringify(builder).slice(0, 220));
+  // Film z Google Drive ma w miniaturze kreatora znacznik ▶ zamiast <video> (od 21.10, 5d6cf07).
+  ok('builder pompki shows technique video', !builder.hidden && ((builder.hasVideo && /Push-up/i.test(decodeURIComponent(builder.src || ''))) || builder.drive), JSON.stringify(builder).slice(0, 220));
 
   await browser.close();
   if (failed) process.exit(1);

@@ -2,6 +2,7 @@
 'use strict';
 /** Biblioteka na telefonie i tablecie (audyt 18.10, pakiet C): filtry pod przyciskiem,
  *  brak przesuwania strony w bok, większe cele dotykowe. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -24,9 +25,9 @@ function ok(name, cond, extra) {
 
 ok('ci unit', wf.includes('test_lib_telefon_tablet.js'));
 ok('ci ui', wf.includes('test_lib_telefon_tablet_ui.js'));
-ok('cache styles', html.includes('styles.css?v=166'));
-ok('cache core', html.includes('01-core.js?v=137'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
+ok('cache core', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
 
 function section(id) {
   const a = html.indexOf('<div class="screen" id="screen-' + id + '">');
@@ -35,7 +36,8 @@ function section(id) {
 }
 ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'].forEach((id) => {
   const s = section(id);
-  ok(id + ' has filters button', /class="btn btn-ghost btn-sm lib-filters-btn"[^>]*onclick="libTogglePanel\(this,'filters'\)"/.test(s));
+  // Ćwiczenia (od 23.10, 7020315): toggleLibraryFilters obsługuje tryb pełnoekranowy, a poza nim woła libTogglePanel.
+  ok(id + ' has filters button', /class="btn btn-ghost btn-sm lib-filters-btn"[^>]*onclick="(libTogglePanel\(this,'filters'\)|toggleLibraryFilters\(\))"/.test(s));
   ok(id + ' has split + filters panel', s.includes('lib-split') && /class="(lib-side )?lib-filters/.test(s));
 });
 ok('metrics quick entry toggles', /libTogglePanel\(this,'aside'\)/.test(section('metrics')) && section('metrics').includes('class="lib-aside"'));

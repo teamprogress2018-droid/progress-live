@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Client profile: plan CTAs only in Plan tab header — no duplicates. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 
@@ -24,7 +25,7 @@ ok('empty state no duplicate buttons',planTab.includes('Brak planów treningowyc
 ok('overview just brak planu',overview.includes('Brak planu')&&!overview.includes('Własny plan')&&!overview.includes('Plan AI'));
 ok('overview links to plan tab',/Brak planu[\s\S]{0,200}setCPTab\('plan'\)/.test(overview)||overview.includes("onclick=\"setCPTab('plan')\""));
 
-ok('cache bump',html.includes('08-client-profile-extras.js?v=91'));
+ok('cache bump',cacheAtLeast(html, '08-client-profile-extras.js', 91));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll cp-plan-dedupe tests passed');

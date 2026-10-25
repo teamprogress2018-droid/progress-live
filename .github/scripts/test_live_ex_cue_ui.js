@@ -35,6 +35,14 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  // Od 20–21.10 (3bc11fb, d681203) przed startem karty LIVE są zwinięte, a OSTATNIO / DZISIAJ / SUGESTIA
+  // są w panelu „⋯ → Historia i progres”. Test otwiera ten panel tak, jak zrobiłby to trener.
+  await page.addInitScript(() => {
+    window.liveRenderWithHistory = () => {
+      (window.liveExercises || []).forEach((e) => { if (e) { e.collapsed = false; if (!e.detailPanel) e.detailPanel = 'history'; } });
+      renderLiveExercises(0);
+    };
+  });
   await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
@@ -93,7 +101,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
         { setNo: 2, kind: 'work', kg: '62.5', reps: '8', rir: '2', done: false }
       ]
     }];
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
   }, {
     NAME,
     sessA: [
@@ -120,7 +128,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     const suggest = document.querySelector('#live-ex-0 [data-cue="suggest"]');
     const cue = document.querySelector('#live-ex-0 .live-ex-cue');
     const prev = [...document.querySelectorAll('#live-ex-0 .live-set-prev')].map((b) => (b.textContent || '').trim());
-    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
+    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop') || document.querySelector('#live-ex-0 .live-ex-context');
     return {
       last: last ? last.innerText : '',
       today: today ? today.textContent : '',
@@ -162,7 +170,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
   const planA = await page.evaluate(() => {
     window.livePlanId = 'pl-a';
     window.liveExercises[0].sets[0].kg = '100';
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     const today = document.querySelector('#live-ex-0 [data-cue="today"]');
     return { last: last ? last.innerText : '', today: today ? today.textContent : '' };
@@ -179,7 +187,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
       name: 'Wyciskanie sztangi',
       sets: [{ setNo: 1, kind: 'work', kg: '42', reps: '10', done: false }]
     }];
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     return last ? last.innerText : '';
   });
@@ -201,7 +209,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
       exerciseId: 'ex-other',
       sets: [{ setNo: 1, kind: 'work', kg: '62.5', reps: '8', done: false }]
     }];
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     const suggest = document.querySelector('#live-ex-0 [data-cue="suggest"]');
     const cue = document.querySelector('#live-ex-0 .live-ex-cue');
@@ -223,7 +231,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
         { setNo: 3, kind: 'work', kg: '80', reps: '10', rir: '2', done: false }
       ]
     }];
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
     const suggest = document.querySelector('#live-ex-0 [data-cue="suggest"]');
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     return { suggest: suggest ? suggest.innerText : '', last: last ? last.innerText : '' };
@@ -250,7 +258,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
 
   // Telefon: „Dlaczego” zwinięte, stuknięcie w Sugestię rozwija i zwija.
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.evaluate(() => { if (typeof renderLiveExercises === 'function') renderLiveExercises(0); });
+  await page.evaluate(() => { if (typeof renderLiveExercises === 'function') liveRenderWithHistory(); });
   const whySel = '#live-ex-0 [data-cue="why"]';
   const hiddenAtStart = !(await page.locator(whySel).isVisible());
   await page.locator('#live-ex-0 [data-cue="suggest"]').click();
@@ -262,7 +270,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
   ok('tap on Sugestia expands why', shownAfterTap);
   ok('second tap collapses why', hiddenAgain);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.evaluate(() => { if (typeof renderLiveExercises === 'function') renderLiveExercises(0); });
+  await page.evaluate(() => { if (typeof renderLiveExercises === 'function') liveRenderWithHistory(); });
 
   const draft = await page.evaluate(() => {
     window.livePlanId = 'pl-b';
@@ -271,11 +279,11 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
       sets: [{ setNo: 1, kind: 'work', kg: '62.5', reps: '8', done: false }]
     }];
     window._cpExerciseProgress = null;
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
     const first = document.querySelector('#live-ex-0 .live-ex-cue');
     const a = first ? first.innerText : '';
     window._cpExerciseProgress = null;
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
     const second = document.querySelector('#live-ex-0 .live-ex-cue');
     const b = second ? second.innerText : '';
     return { a: a, b: b };
@@ -284,7 +292,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
 
   const noPlan = await page.evaluate(() => {
     window.livePlanId = '';
-    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof renderLiveExercises === 'function') liveRenderWithHistory();
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     return last ? last.innerText : '';
   });

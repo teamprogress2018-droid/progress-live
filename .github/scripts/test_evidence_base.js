@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Evidence base: trainer principles/PubMed links as planning context. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -68,7 +69,7 @@ ok('ctx has evidence',ctx.includes('Pełny ROM'));
 ok('ctx skips off note',!ctx.includes('Tajemnica gabinetu'));
 ok('user note before builtin',ctx.indexOf('ZZZ sen 7h')<ctx.indexOf('Częstotliwość'));
 
-ok('cache bumps',html.includes('01-core.js?v=137')&&html.includes('09-posture-kb-invites-private.js?v=58'));
+ok('cache bumps',cacheAtLeast(html, '01-core.js', 137)&&cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));
 const wf=fs.readFileSync(path.join(root,'.github/workflows/check.yml'),'utf8');
 ok('CI ui',wf.includes('test_kb_notes_evidence_ui.js'));
 const vol=list.find(e=>e.id==='bev_vol')||sandbox.getPlanningEvidenceEntries().find(e=>e.id==='bev_vol');

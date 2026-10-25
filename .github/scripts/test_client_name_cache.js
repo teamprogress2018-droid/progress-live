@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Po zmianie imienia — cache clientName na planach / pakietach / fakturach / onboardingu. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -39,9 +40,9 @@ ok('saveCPEdit syncs caches after confirmed service acknowledgement',
   inlineSave.indexOf('await saveClientCardConfirmed') < inlineSave.indexOf('syncClientNameCache(c.id,c.name)') &&
   !inlineSave.includes('persistById') && !inlineSave.includes('_setDoc'));
 ok('saveClient edit hooks sync', src05.includes("syncClientNameCache(c.id,c.name)"));
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=58'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 09', cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));
 ok('CI', wf.includes('test_client_name_cache.js'));
 
 const persist = [];

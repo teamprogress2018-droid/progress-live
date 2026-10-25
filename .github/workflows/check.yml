@@ -530,14 +530,17 @@ jobs:
         run: python3 .github/scripts/check_file_refs.py
 
       - name: 4. Zainstaluj przeglądarkę testową
+        if: ${{ !cancelled() }}
         run: |
           npm install playwright
           npx playwright install --with-deps chromium
 
       - name: 5. Uruchom lokalny serwer
+        if: ${{ !cancelled() }}
         run: python3 -m http.server 8080 &
 
       - name: 6. Poczekaj aż serwer wystartuje
+        if: ${{ !cancelled() }}
         run: sleep 2
 
       - name: 6a. Testy UI układu 2.0 (menu wysuwane, klienci, telefon)

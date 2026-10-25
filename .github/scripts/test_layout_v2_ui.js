@@ -111,6 +111,10 @@ async function openApp(browser, viewport) {
     return box.scrollWidth - box.clientWidth;
   });
   ok('phone list without horizontal scroll', overflow <= 1, String(overflow));
+  // Od 21.10 (4cbe827) na telefonie filtry są schowane za jednym dotknięciem przycisku „Pokaż filtry”.
+  ok('phone filters start hidden', await page.locator('#client-status-filter').isHidden());
+  await page.click('#cl-filters-toggle');
+  await page.waitForTimeout(150);
   ok('phone filters reachable', await page.locator('#client-status-filter').isVisible());
   await page.click('#mobile-menu-btn');
   await page.waitForTimeout(300);

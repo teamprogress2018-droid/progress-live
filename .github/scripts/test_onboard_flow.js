@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Onboard checklist: invite skip resume, forms library, schedule picker, builder. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -47,7 +48,7 @@ ok('new client stamps default flow', src05.includes("onboardingFlow:((window.SET
 ok('dead wizard removed', !src02.includes('function renderOnbNew') && !src02.includes('ONB_WIZARD_STEPS') && !src02.includes('function onbCreateClient') && !html.includes('id="onb-new-tab"'));
 ok('settings legend is real checklist', src02.includes('function renderOnbSettings') && src02.includes("goTo('automation')") && src02.includes('ONB_CHECKLIST_IDS') && !src02.includes('onb-msg-step') && !src02.includes("id:'welcome'") && !src02.includes('Wiadomości wysyłane automatycznie na każdym etapie'));
 ok('flow steps match checklist', src02.includes("['invite','intake','baseline','schedule','plan','calendar','package']") && !src02.includes("steps:['welcome'"));
-ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=137') && html.includes('02-workouts-onboarding-templates-live.js?v=98') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('05-clients-builder-plans-calendar.js?v=106') && html.includes('07-forms-metrics-calculator.js?v=45') && html.includes('09-posture-kb-invites-private.js?v=58'));
+ok('cache 01/02/03/05/07/09', cacheAtLeast(html, '01-core.js', 137) && cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98) && cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106) && cacheAtLeast(html, '07-forms-metrics-calculator.js', 45) && cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));
 ok('package cancel resumes', src05.includes('function closePackageModal') && html.includes('closePackageModal()') && html.includes('id="pkg-onboard-banner"'));
 ok('package save skips confirm from onboard', src09.includes('fromOnboard&&typeof maybeResumeOnboard') && src09.includes('!fromOnboard&&pkg.payStatus'));
 ok('invite overlay resumes', html.includes('id="m-invite"') && html.includes('closeInviteModal(false)'));

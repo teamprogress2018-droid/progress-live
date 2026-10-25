@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Brama pakietu: kalendarz / Live bez opłaty — Trial / Gość. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -21,10 +22,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('helpers', /function clientHasPaidAccess/.test(core) && /function setClientAccessMode/.test(core) && /function assertClientPaidAccess/.test(core));
 ok('schedule gate', /assertClientPaidAccess\(plan\.clientId\)/.test(src05));
 ok('maybe schedule gate', src05.slice(src05.indexOf('function maybeSchedulePlanToCalendar')).includes('assertClientPaidAccess(plan.clientId)'));
