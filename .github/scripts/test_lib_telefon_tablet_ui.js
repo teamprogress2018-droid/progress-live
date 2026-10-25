@@ -98,6 +98,28 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
     });
     ok('no filters button on Moje filmy', vids);
 
+    // Domyślny tryb pełnego ekranu (pl_library_wide_v1 brak/1): „Filtry” musi pokazać kategorie.
+    const wide = await page.evaluate(() => {
+      localStorage.removeItem('pl_library_wide_v1'); goTo('library'); setLibTab('ex');
+      if (typeof setLibraryWide === 'function') setLibraryWide(true, false);
+      const scr = document.getElementById('screen-library');
+      const btn = document.getElementById('lib-filters-btn');
+      const cats = () => [...scr.querySelectorAll('.lib-split > .lib-filters .ex-cat-nav-item')].filter((el) => el.getBoundingClientRect().height > 0).length;
+      const before = cats();
+      btn.click();
+      const opened = { cats: cats(), expanded: btn.getAttribute('aria-expanded') };
+      btn.click();
+      return { wide: scr.classList.contains('library-wide'), before, opened, closed: cats() };
+    });
+    ok('fullscreen library: Filtry shows categories on phone', wide.wide && wide.before === 0 && wide.opened.cats > 0 && wide.opened.expanded === 'true', JSON.stringify(wide));
+    ok('fullscreen library: Filtry hides categories again', wide.closed === 0, JSON.stringify(wide));
+    await page.click('#lib-filters-btn');
+    await page.locator('#screen-library .lib-split > .lib-filters .ex-cat-nav-item').nth(1).click();
+    await page.waitForTimeout(100);
+    const wpick = await page.evaluate(() => ({ open: document.getElementById('screen-library').classList.contains('lib-open-filters') }));
+    ok('fullscreen library: picking a category closes the panel', !wpick.open, JSON.stringify(wpick));
+    await page.evaluate(() => { localStorage.setItem('pl_library_wide_v1', '0'); if (typeof setLibraryWide === 'function') setLibraryWide(false, false); });
+
     const touch = await page.evaluate(() => {
       goTo('programs');
       const h = (sel) => Math.round((document.querySelector(sel) || { getBoundingClientRect: () => ({ height: 0 }) }).getBoundingClientRect().height);
