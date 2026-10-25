@@ -136,13 +136,39 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'live_rir_column.png') });
   ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
-  // Od 21.10 (d681203) historia nie wyskakuje po najechaniu na nazwę — jest w menu „⋯ → Historia i progres”.
+  // Skrót „Ostatnio / Sugestia” jest w menu „⋯ → Historia i progres”; pełna tabela poprzednich
+  // treningów zostaje pod nazwą ćwiczenia (podgląd po najechaniu, klik = pełna historia).
   const lastUi = await page.evaluate(() => {
-    const title = document.querySelector('#live-ex-0 .live-ex-title');
+    const title = document.querySelector('#live-ex-0 .live-ex-title.has-hist');
+    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
     const menuBtn = [...document.querySelectorAll('#live-ex-0 .live-ex-actions-popover button')].find((b) => /Historia i progres/.test(b.textContent));
-    return { name: title ? title.textContent : '', menu: !!menuBtn, pop: !!document.querySelector('#live-ex-0 .live-ex-hist-pop') };
+    return { has: !!title, tag: title ? title.tagName : '', name: title ? title.textContent : '', pop: pop ? pop.innerText : '', menu: !!menuBtn };
   });
-  ok('history lives in the three-dot menu', /Przysiad Goblet/.test(lastUi.name) && lastUi.menu && !lastUi.pop, JSON.stringify(lastUi));
+  ok('hist hover title', lastUi.has && lastUi.tag === 'BUTTON' && /Przysiad Goblet/.test(lastUi.name), JSON.stringify(lastUi));
+  ok('history summary also in the three-dot menu', lastUi.menu, JSON.stringify(lastUi));
+  await page.hover('#live-ex-0 .live-ex-title.has-hist');
+  const hoverUi = await page.evaluate(() => {
+    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
+    const cs = pop ? getComputedStyle(pop) : null;
+    return { display: cs ? cs.display : '', text: pop ? pop.innerText : '' };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_hist_hover.png') });
+  ok('hover shows popover', hoverUi.display === 'block' && /20/.test(hoverUi.text) && /poprzednie treningi/i.test(hoverUi.text) && /2026-09-13/.test(hoverUi.text) && /2026-09-06/.test(hoverUi.text) && /Σ/.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 280));
+  await page.mouse.move(8, 8);
+  await page.click('#live-ex-0 .live-ex-title.has-hist');
+  const modalUi = await page.evaluate(() => {
+    const ov = document.getElementById('m-ex-hist');
+    const body = document.getElementById('ex-hist-body');
+    return {
+      show: !!(ov && ov.classList.contains('show')),
+      title: (document.getElementById('ex-hist-title') || {}).textContent || '',
+      text: body ? body.innerText : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_history_modal.png') });
+  ok('hist modal table', modalUi.show && /Przysiad Goblet/.test(modalUi.title) && /Powt/.test(modalUi.text) && /20/.test(modalUi.text) && /Σ/.test(modalUi.text), JSON.stringify(modalUi));
+  await page.evaluate(() => { if (typeof closeM === 'function') closeM('m-ex-hist'); });
+  await page.mouse.move(8, 8);
   await page.evaluate(() => { if (typeof liveToggleExPanel === 'function') liveToggleExPanel(0, 'history'); });
   const prevUi = await page.evaluate(() => {
     const cue = document.querySelector('#live-ex-0 .live-ex-cue');
