@@ -635,6 +635,9 @@ jobs:
       - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_progress_ui.js
+      - name: 6b3c2b. Testy UI Live — jeden film naraz na karcie
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_one_video_ui.js
       - name: 6b3c2a. Testy UI Live OSTATNIO / DZISIAJ / SUGESTIA
         run: |
           node .github/scripts/test_live_ex_cue_ui.js

@@ -4210,8 +4210,11 @@ function liveExCard(ex,i,slot,cue,progress){
   // Film jest pomocą na żądanie: nie zasłania serii ani nie pokazuje pustego
   // pola, gdy trener nie dodał materiału techniki.
   const mediaOpen=!needsName&&hasTechniqueMedia&&!!ex.showVideo;
+  // Jeden film naraz: gdy trener dodał własny film z odtwarzaczem (YouTube albo plik),
+  // nie odtwarzamy obok animacji/MP4 techniki z biblioteki.
+  const trainerPlayer=!!(media&&media.video&&(media.videoEmbed||media.isFile));
   const mediaHtml=hasTechniqueMedia&&typeof coachMediaHtml==='function'
-    ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:true,showNote:false})
+    ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:!trainerPlayer,showNote:false})
     :`<div class="live-ex-media-empty"><strong>Brak filmu techniki</strong><span>Dodaj film lub GIF w Bibliotece ćwiczeń.</span></div>`;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${isFocus?' is-focus':''}${showBody?'':' is-collapsed'}" id="${cardId}">
     <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})" onpointerdown="liveSwipeStart(event,${i}${sl})" onpointerup="liveSwipeEnd(event,${i}${sl})" onpointercancel="liveSwipeCancel(${i}${sl})">
