@@ -56,10 +56,12 @@ const CLIENTS = [
   await page.goto('http://127.0.0.1:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof liveSelectPlan === 'function' && typeof renderLiveExercises === 'function');
 
-  // Postęp (Ostatnio / Dzisiaj / Sugestia) i ostrzeżenie o ograniczeniu są od 21.10 (d681203)
-  // w panelu „⋯ → Historia i progres”. Symulujemy trenera, który ma ten panel otwarty, także po przerysowaniu.
+  // Postęp (Ostatnio / Dzisiaj / Sugestia) jest od 21.10 (d681203) w panelu „⋯ → Historia i progres”.
+  // Symulujemy trenera, który ma ten panel otwarty, także po przerysowaniu. Ostrzeżenie o ograniczeniu
+  // stoi w nagłówku karty; sprawdzamy je na oryginalnym renderze (__renderLiveRaw), bez otwartego panelu.
   await page.evaluate(() => {
     const render = window.renderLiveExercises;
+    window.__renderLiveRaw = render;
     window.renderLiveExercises = function (slot) {
       const st = typeof liveRef === 'function' ? liveRef(typeof liveN === 'function' ? liveN(slot) : 0) : null;
       ((st && st.exercises) || window.liveExercises || []).forEach((e) => { if (e) { e.collapsed = false; if (!e.detailPanel) e.detailPanel = 'history'; } });
@@ -211,6 +213,19 @@ const CLIENTS = [
     liveClientSetField('cC', 'Celina Ograniczenia', false, 0);
     liveSelectPlan('plC', 0);
     out.limitBefore = (document.querySelector('#live-ex-0 [data-cue="limit"]') || {}).innerText || '';
+    // Bezpieczeństwo: ostrzeżenie widać od razu w nagłówku karty, bez otwierania „⋯ → Historia i progres”,
+    // i nie znika po zwinięciu karty.
+    const limitEl = () => document.querySelector('#live-ex-0 .live-ex-head [data-cue="limit"]');
+    const ex0 = liveRef(0).exercises[0];
+    ex0.detailPanel = ''; ex0.uiExpanded = true; ex0.collapsed = false; window.__renderLiveRaw(0);
+    out.limitNoPanel = !document.querySelector('#live-ex-0 .live-ex-context');
+    out.limitVisible = !!(limitEl() && limitEl().getClientRects().length);
+    out.limitCount = document.querySelectorAll('#live-ex-0 [data-cue="limit"]').length;
+    liveToggleExPanel(0, 'history', 0);
+    out.limitCountPanel = document.querySelectorAll('#live-ex-0 [data-cue="limit"]').length;
+    ex0.detailPanel = ''; ex0.uiExpanded = false; ex0.collapsed = true; window.__renderLiveRaw(0);
+    out.limitCollapsed = !!(document.querySelector('#live-ex-0.is-collapsed') && limitEl() && limitEl().getClientRects().length);
+    ex0.uiExpanded = true; ex0.collapsed = false; renderLiveExercises(0);
     liveSwapEx(0, 'Wyciskanie landmine', 0); renderLiveExercises(0);
     out.limitAfter = (document.querySelector('#live-ex-0 [data-cue="limit"]') || {}).innerText || '';
     openClientProfile('cC');
@@ -227,6 +242,9 @@ const CLIENTS = [
   ok('C: plan exercise conflicting with shoulder limit is flagged first', monitor.C[0] && monitor.C[0].kind === 'limit' && /Wyciskanie hantli nad głowę/.test(monitor.C[0].reason), JSON.stringify(monitor.C));
   ok('B: no limit or weight-goal noise without data', !monitor.B.some(r => r.kind === 'limit' || r.kind === 'massgoal'), JSON.stringify(monitor.B));
   ok('Live warns about the conflicting exercise', /Ograniczenie \(bark\)/.test(monitor.limitBefore), monitor.limitBefore);
+  ok('Live limit warning is visible in the card header without opening ⋯ menu', monitor.limitNoPanel && monitor.limitVisible, JSON.stringify(monitor));
+  ok('Live limit warning is shown once (not duplicated in history panel)', monitor.limitCount === 1 && monitor.limitCountPanel === 1, JSON.stringify(monitor));
+  ok('Live limit warning stays visible on a collapsed card', monitor.limitCollapsed, JSON.stringify(monitor));
   ok('Live warning disappears after swapping to a safe exercise', monitor.limitAfter === '', monitor.limitAfter);
 
   // --- ETAP 5: progres per ćwiczenie i zmiana ciężaru w planie po zatwierdzeniu
