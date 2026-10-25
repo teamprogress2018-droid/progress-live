@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Generator AI: kontekst bezpieczeństwa (waga/BMI, wady postawy, kontuzje). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -29,7 +30,7 @@ ok('pharma hidden by default', html.includes('id="apl-pharma-panel"') && /apl-ph
 ok('pharma prompt wiring', src03.includes("getElementById('apl-pharma-status')") && /Status farmakologiczny/.test(src03) && /WSPOMAGANY/.test(src03));
 ok('pharma toggle helper', /function toggleAplPharmaPanel/.test(src03) && /window\.toggleAplPharmaPanel/.test(src03));
 ok('pharma resets on client change', /BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny/.test(src03));
-ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('07-forms-metrics-calculator.js?v=45') && html.includes('styles.css?v=189'));
+ok('cache bumps', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43) && cacheAtLeast(html, '07-forms-metrics-calculator.js', 45) && cacheAtLeast(html, 'styles.css', 189));
 ok('CI', wf.includes('test_ai_plan_safety.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };

@@ -42,7 +42,7 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
     const { ctx, page, errors } = await bootApp(browser, port, { width: 390, height: 844 }, true);
     for (const s of SCREENS) {
       const r = await page.evaluate((s) => {
-        goTo(s);
+        localStorage.setItem('pl_library_wide_v1', '0'); goTo(s);
         const scr = document.getElementById('screen-' + s);
         const btn = scr.querySelector('.lib-filters-btn');
         const nav = scr.querySelector('.lib-split > .lib-filters');
@@ -60,7 +60,7 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
       ok(s + ': button opens full-width filters', (r.total === 0 || r.after.items > 0) && r.after.expanded === 'true' && r.after.width >= 380, JSON.stringify(r));
     }
     const search = await page.evaluate(() => {
-      goTo('library');
+      localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
       const r = document.getElementById('ex-search').getBoundingClientRect();
       const grid = document.getElementById('ex-grid-view').getBoundingClientRect();
       return { searchW: r.width, gridW: grid.width };
@@ -90,7 +90,7 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
     ok('metrics quick entry under its own button', aside.hidden && aside.shown, JSON.stringify(aside));
 
     const vids = await page.evaluate(() => {
-      goTo('library');
+      localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
       setLibTab('videos');
       const hidden = document.getElementById('lib-filters-btn').getBoundingClientRect().width === 0;
       setLibTab('ex');

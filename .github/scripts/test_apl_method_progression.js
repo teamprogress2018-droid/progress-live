@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** AI generator: Bro Split, Arnold, Smolov + auto-sync progresji z metody. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -43,7 +44,7 @@ ok('smolov progression prompt', src03.includes("smolov:'SMOLOV"));
 // Smolov: cykl bazowy to 3 tygodnie, w każdym 4 dni (70/75/80/85%) — nie „T1–T4” jako kolejne tygodnie.
 ok('aplPhasesForPlan smolov', /function aplPhasesForPlan[\s\S]*Smolov baza — tydz\. 1/.test(src03));
 ok('BUILDER_METHOD_DAYS Smolov', /Smolov:\['Smolov T1'/.test(src05));
-ok('cache bumps', html.includes('01-core.js?v=155') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('05-clients-builder-plans-calendar.js?v=120'));
+ok('cache bumps', cacheAtLeast(html, '01-core.js', 155) && cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 120));
 ok('CI', wf.includes('test_apl_method_progression.js'));
 
 const start = src03.indexOf('const APL_METHOD_PROGRESSION=');

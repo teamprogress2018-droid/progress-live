@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Autoflow: package.expired, check-in, zastój i sesja dziś idą przez emitAppEvent. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -20,9 +21,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 04', html.includes('04-client-portal.js?v=62'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=58'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 04', cacheAtLeast(html, '04-client-portal.js', 62));
+ok('cache 09', cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));
 ok('html triggers', html.includes('value="package.expired"') && html.includes('value="checkin.submitted"'));
 ok('bus wires autoflow', /autoflowOnAppEvent/.test(core) && /emitAppEvent/.test(core));
 ok('checkin emits', /emitAppEvent\('checkin.submitted'/.test(src04));

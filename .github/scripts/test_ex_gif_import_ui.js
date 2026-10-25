@@ -44,7 +44,7 @@ function ok(name, cond, extra) {
   });
 
   await page.evaluate(() => {
-    if (typeof goTo === 'function') goTo('library');
+    if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
   });
   await page.waitForSelector('#lib-import-gif');
 
@@ -62,7 +62,8 @@ function ok(name, cond, extra) {
   ok('toolbar says GIF / MP4', /MP4/i.test(copy.btn), copy.btn);
   ok('modal title mentions MP4', /MP4/i.test(copy.title), copy.title);
   ok('file picker accepts mp4', /mp4/i.test(copy.accept), copy.accept);
-  ok('file picker is not folder-only', copy.dir === false, JSON.stringify(copy));
+  // Od 22.10 (83ec02c) import wybiera cały folder z materiałami (wznawianie masowego importu).
+  ok('file picker takes a whole folder', copy.dir === true, JSON.stringify(copy));
 
   await page.click('#lib-import-gif');
   await page.waitForSelector('#m-ex-gif-import.open, #m-ex-gif-import.modal-ov.open, #exgif-paste');

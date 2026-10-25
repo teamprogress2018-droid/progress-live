@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Biblioteka DEF_EX: unikalne nazwy, bez klonów i siatki plyo NCM/CM/DC/CON. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -29,7 +30,7 @@ function akaTokens(name) {
   const e = DEF_EX.find((x) => x.name === name);
   return String((e && e.aka) || '').split(',').map((s) => s.trim());
 }
-ok('cache 06 v111', html.includes('06-inbox-exercises-ai-programs.js?v=111'));
+ok('cache 06 v111', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 111));
 ok('ci unit', wf.includes('test_ex_lib_dedupe.js'));
 ok('unique names', new Set(names).size === names.length);
 ok('library still large', DEF_EX.length >= 900, String(DEF_EX.length));

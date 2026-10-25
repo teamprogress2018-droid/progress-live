@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Auto-progresja z planu trenera: podwójna (powt. → kg) i liniowa. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -28,10 +29,10 @@ ok('live shows progHint', /progHint/.test(live) && /color:var\(--teal\)/.test(li
 ok('live history is independent of prefill date', /function liveExLastWorkSets/.test(live) && /lastSets.length\?esc\(lastLine\)/.test(live) && /Brak historii w tym planie/.test(live));
 ok('idle draft remaps', /function liveRefreshPlanLoads/.test(live) && /liveApplyDraft[\s\S]*liveRefreshPlanLoads/.test(live));
 ok('CI', wf.includes('test_plan_auto_progression.js'));
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 10', html.includes('10-client-app.js?v=44'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 10', cacheAtLeast(html, '10-client-app.js', 44));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = { addEventListener() {}, CL: [], PL: [], SE: [], EX: [], WO: [], METRIC_ENTRIES: [], document };

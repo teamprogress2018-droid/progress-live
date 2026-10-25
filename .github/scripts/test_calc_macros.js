@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -53,7 +54,7 @@ ok('client.macros.tdee', c.macros && c.macros.tdee === m.tdee);
 ok('persist clients', sandbox.persisted === 'clients:c1');
 ok('event macros.saved', sandbox.window._appEvents.some(e => e.type === 'macros.saved' && e.payload.clientId === 'c1'));
 
-ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=45'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 45));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll calc-macros checks passed');

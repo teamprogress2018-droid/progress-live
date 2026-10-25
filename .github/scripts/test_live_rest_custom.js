@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Timer przerwy live: 30s + własny czas (np. 35s). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -17,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache styles v55', html.includes('styles.css?v=166'));
+ok('cache 02 v27', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache styles v55', cacheAtLeast(html, 'styles.css', 166));
 ok('30s preset', html.includes('liveStartRest(30)') && /live-rest-preset[^>]*>30s</.test(html));
 ok('40s HIIT preset', html.includes('liveStartRest(40)') && /live-rest-preset[^>]*>40s</.test(html));
 ok('60s preset stays', html.includes('liveStartRest(60)'));

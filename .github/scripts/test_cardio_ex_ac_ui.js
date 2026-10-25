@@ -138,7 +138,7 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     // Wyjście z kreatora z niezapisanymi zmianami wymaga potwierdzenia — tu świadomie je pomijamy.
     window._builderNavigationConfirmed = true;
-    if (typeof goTo === 'function') goTo('library');
+    if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
     if (typeof renderLib === 'function') renderLib();
   });
   await page.waitForSelector('#ex-search');

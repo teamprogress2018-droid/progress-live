@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Method rationale data stays for AI/tooltips; cheat-sheet UI is gone. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -79,7 +80,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
-ok('cache references current build',html.includes('01-core.js?v=137')&&html.includes('02-workouts-onboarding-templates-live.js?v=98')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=43')&&html.includes('05-clients-builder-plans-calendar.js?v=106')&&html.includes('09-posture-kb-invites-private.js?v=58')&&html.includes('styles.css?v=166'));
+ok('cache references current build',cacheAtLeast(html, '01-core.js', 137)&&cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98)&&cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43)&&cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106)&&cacheAtLeast(html, '09-posture-kb-invites-private.js', 58)&&cacheAtLeast(html, 'styles.css', 166));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');

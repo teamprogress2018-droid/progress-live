@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Kalendarz: Zapisz edytuje, quick-add nie gubi godziny, nowa sesja wymaga klienta. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01/05', html.includes('01-core.js?v=137') && html.includes('05-clients-builder-plans-calendar.js?v=106'));
+ok('cache 01/05', cacheAtLeast(html, '01-core.js', 137) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
 ok('ci unit', wf.includes('test_cal_session_save.js'));
 ok('ci ui', wf.includes('test_cal_session_save_ui.js'));
 

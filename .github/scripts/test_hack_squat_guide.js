@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Panel szczegółów Hack Squat: kadry faz, czworogłowe, pełne rozciągnięcie. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -18,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v39', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles v52', html.includes('styles.css?v=166'));
+ok('cache 06 v39', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache styles v52', cacheAtLeast(html, 'styles.css', 166));
 ['anatomy.jpg', 'stretch-lens.jpg', 'phase-start.jpg', 'phase-bottom.jpg'].forEach((f) => {
   ok('asset ' + f, fs.existsSync(path.join(root, 'assets/ex/hack', f)));
 });

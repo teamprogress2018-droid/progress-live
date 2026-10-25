@@ -38,7 +38,7 @@ async function bootApp(page, port) {
 
   // 1. Karty/Lista: stan zgodny z widokiem, wybór zapamiętany po odświeżeniu.
   const v1 = await page.evaluate(() => {
-    goTo('library');
+    localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
     const gb = document.getElementById('ex-view-grid-btn');
     return { gridShown: getComputedStyle(document.getElementById('ex-grid-view')).display !== 'none', gridBtn: gb.classList.contains('btn-primary'), listBtn: document.getElementById('ex-view-list-btn').classList.contains('btn-primary') };
   });
@@ -46,7 +46,7 @@ async function bootApp(page, port) {
   await page.evaluate(() => setExView('list'));
   await bootApp(page, port);
   const v2 = await page.evaluate(() => {
-    goTo('library');
+    localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
     return { listShown: getComputedStyle(document.getElementById('ex-list-view')).display !== 'none', listBtn: document.getElementById('ex-view-list-btn').classList.contains('btn-primary'), rows: document.querySelectorAll('#ex-list-body .ex-list-row').length };
   });
   ok('reload keeps Lista', v2.listShown && v2.listBtn && v2.rows > 0, JSON.stringify(v2));
@@ -65,7 +65,8 @@ async function bootApp(page, port) {
     const opts = [...sel.options].map((o) => o.value);
     sel.value = 'eq';
     renderLib();
-    const first = document.querySelector('#lib-grid .ex-cat-section');
+    // Siatka bywa płaska (okienkowe renderowanie, 22.10) — wtedy sprawdzamy kolejność kart w całej siatce.
+    const first = document.querySelector('#lib-grid .ex-cat-section') || document.getElementById('lib-grid');
     const eqs = [...first.querySelectorAll('.ex-card')].map((c) => c.querySelectorAll('.ex-card-tags .pill')[1].textContent);
     sel.value = 'az';
     renderLib();
@@ -79,8 +80,10 @@ async function bootApp(page, port) {
   const labels = await page.evaluate(() => {
     window.EX.push({ id: 'ex_own', name: 'Moje ćwiczenie testowe', cat: 'Nogi', eq: 'Bez sprzętu', tip: '' });
     renderLib();
-    const card = (n) => [...document.querySelectorAll('#lib-grid .ex-card')].find((c) => c.querySelector('.ex-card-name').textContent === n);
-    const btn = (n) => [...card(n).querySelectorAll('button')].map((b) => b.textContent.trim()).pop();
+    // Siatka renderuje karty okienkami, więc kartę konkretnego ćwiczenia budujemy tym samym exCardHtml.
+    const card = (n) => [...document.querySelectorAll('#lib-grid .ex-card')].find((c) => c.querySelector('.ex-card-name').textContent === n)
+      || Object.assign(document.createElement('div'), { innerHTML: exCardHtml(libExerciseByName(n), 0) });
+    const btn = (n) => { const b = card(n).querySelector('.ex-card-delete-btn'); return b ? (/Usuń/.test(b.getAttribute('aria-label')) ? 'Usuń' : /Ukryj/.test(b.getAttribute('aria-label')) ? 'Ukryj' : b.textContent.trim()) : ''; };
     const sweep = document.getElementById('lib-sweep-dups');
     openExDetail('Moje ćwiczenie testowe');
     const hdrOwn = document.getElementById('exd-del-hdr').textContent;
@@ -121,6 +124,21 @@ async function bootApp(page, port) {
   ok('homework highlights Zadania domowe', fly.hw.join() === 'Zadania domowe', JSON.stringify(fly));
   ok('all tasks highlights Wszystkie zadania', fly.all.join() === 'Wszystkie zadania', JSON.stringify(fly));
 
+  // Tryb pełnoekranowy (od 23.10, 7020315) jest domyślny: bez menu i panelu filtrów; „Filtry” odsłania wyszukiwarkę.
+  const wide = await page.evaluate(() => {
+    localStorage.removeItem('pl_library_wide_v1');
+    goTo('dashboard'); goTo('library');
+    const vis = (el) => !!el && el.offsetHeight > 0;
+    const before = { wide: document.getElementById('screen-library').classList.contains('library-wide'), menu: vis(document.getElementById('app-sidebar')), search: vis(document.getElementById('ex-search')) };
+    toggleLibraryFilters();
+    const after = { search: vis(document.getElementById('ex-search')) };
+    toggleLibraryWide();
+    const normal = { menu: vis(document.getElementById('app-sidebar')), search: vis(document.getElementById('ex-search')), saved: localStorage.getItem('pl_library_wide_v1') };
+    return { before, after, normal };
+  });
+  ok('wide library by default hides menu and filters', wide.before.wide && !wide.before.menu && !wide.before.search, JSON.stringify(wide));
+  ok('wide library: Filtry reveals search', wide.after.search, JSON.stringify(wide));
+  ok('normal view brings back menu and search, remembered', wide.normal.menu && wide.normal.search && wide.normal.saved === '0', JSON.stringify(wide));
   ok('no page errors', errors.length === 0, errors.join(' | '));
   await browser.close();
   if (failed) {

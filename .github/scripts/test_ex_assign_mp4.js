@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Assign an MP4 (paste / own video / YouCan filename) to the selected library exercise. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -18,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v69', html.includes('01-core.js?v=137'));
-ok('cache 06 v57', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache 01 v69', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 06 v57', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -107,13 +108,13 @@ ok('bare not safe url', ctx.isSafeMediaUrl('fly-peck-deck.mp4') === false);
 
 const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
-ok('placeholder not fake path', /placeholder="[^"]*Opcjonalnie wklej/.test(htmlPanel) && !/placeholder="D:\//.test(htmlPanel));
+ok('placeholder not fake path', /placeholder="Ścieżka MP4 lub pełny link Google Drive"/.test(htmlPanel) && !/placeholder="D:\//.test(htmlPanel));
 ok('own select previews', /onchange="previewAssignedExOwnVideo\(\)"/.test(htmlPanel));
 ok('panel suggest pec deck path', /id="exd-mp4-suggest"/.test(htmlPanel) && /Wstaw ścieżkę motyl/.test(htmlPanel));
 ok('stretch panel has no pec deck suggest', !/id="exd-mp4-suggest"/.test(ctx.exDetailAssignHtml({ name: 'Rozciąganie butterfly' })));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
 ok('panel player autoplay', /id="exd-mp4-player"/.test(six) && /autoplay loop muted/.test(six));
-ok('panel copy-as-path hint', /Kopiuj jako ścieżkę/.test(htmlPanel) && /Shift\+PPM/.test(htmlPanel));
+ok('panel accepts Drive links', /Google Drive/.test(htmlPanel));
 ok('panel save label', /Dopasuj i zapisz przy tym ćwiczeniu/.test(htmlPanel));
 ok('suggested pec deck path', /Machine Chest Fly \(Pec Deck\)\)\.mp4$/.test(ctx.suggestedAssignPathForExercise('Butterfly (peck deck)')));
 ok('suggested other path is folder', ctx.suggestedAssignPathForExercise('Bench press') === 'D:/progress-live-video-assets/POGRUPOWANE/');
@@ -227,9 +228,9 @@ ok('empty other how-to', /Kopiuj jako ścieżkę/.test(ctx.exAssignEmptyPathMsg(
   documentStub._els['exd-mp4-url'].value = '';
   windowObj.__notices = [];
   await ctx.assignExTechniqueFromFile('Butterfly (peck deck)', { files: [{ name: 'fly-peck-deck.mp4' }] });
-  ok('github.io skips storage', windowObj._uploaded === false);
-  ok('github.io fills filename', documentStub._els['exd-mp4-url'].value === 'fly-peck-deck.mp4');
-  ok('github.io cors hint', /CORS/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+  // Od 22.10 (deaf747) GitHub Pages wgrywa pliki do Firebase Storage zamiast podpowiadać ścieżkę.
+  ok('github.io uploads to storage', windowObj._uploaded === true);
+  ok('github.io no CORS dead end', !/CORS/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
 
   windowObj._uploaded = false;
   windowObj.EX_GIF_REMOTE[pecKey] = '';

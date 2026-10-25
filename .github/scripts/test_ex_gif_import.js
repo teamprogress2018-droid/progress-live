@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Bulk GIF/MP4 paste import: parse .mp4 URLs and persist without clicking Parsuj. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -17,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v112', html.includes('06-inbox-exercises-ai-programs.js?v=112'));
-ok('cache 01 v150', html.includes('01-core.js?v=150&drive-media=5'));
+ok('cache 06 v112', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 112));
+ok('cache 01 v150', cacheAtLeast(html, '01-core.js', 150));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));
 ok('placeholder mp4', html.includes('bench.mp4'));

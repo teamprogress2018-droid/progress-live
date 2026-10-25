@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Korekty UX ze screenów: Więcej portal, zwijany sidebar, rationale client/sources. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -29,7 +30,7 @@ ok('period card reachable', html.includes('id="builder-period-card"') && html.in
 ok('client talk + details sources', core.includes('Jak wytłumaczyć klientowi') && /<details class="mr-sources[^"]*">/.test(core) && core.includes('clientTalk'));
 ok('weight tips in rationale', /weight>=95|Waga ~/.test(core) || core.includes("Waga ~"));
 ok('volume by tenure', core.includes('VOLUME_BY_LEVEL') && core.includes('Serie na partię wg stażu') && css.includes('.mr-vol-table'));
-ok('cache bumps', html.includes('styles.css?v=166') && html.includes('01-core.js?v=137') && html.includes('05-clients-builder-plans-calendar.js?v=106') && html.includes('09-posture-kb-invites-private.js?v=58'));
+ok('cache bumps', cacheAtLeast(html, 'styles.css', 166) && cacheAtLeast(html, '01-core.js', 137) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106) && cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));
 ok('CI', wf.includes('test_korekta_ux.js'));
 
 const sandbox = { window: {}, console };

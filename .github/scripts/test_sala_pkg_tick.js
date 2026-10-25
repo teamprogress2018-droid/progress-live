@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Sala i Live zdejmują jedną sesję pakietu na dzień. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
 ok('helpers', /function consumeClientPackageSession/.test(core) && /function clientPaidPackageForSession/.test(core));
 ok('sala consumes', /consumeClientPackageSession\(p\.clientId/.test(core));
 ok('live uses helper after confirmed save', /clientPaidPackageForSession\(sess\.clientId\)/.test(live) && /liveSaveSessionWithPackage\(newSession\)/.test(live) && /tx\.update\(pref,\{sessionsUsed:used\}\)/.test(live));

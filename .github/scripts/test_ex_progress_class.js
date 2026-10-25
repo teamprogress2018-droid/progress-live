@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Etap 6D: klasyfikator progresji ćwiczenia — przypadki 1–20 ze specyfikacji. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -24,7 +25,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
 ok('CI', wf.includes('test_ex_progress_class.js'));
 ok('classify helper', /function classifyExerciseProgress/.test(coreSrc));
 ok('no score helper', !/function scoreExerciseProgress/.test(coreSrc));

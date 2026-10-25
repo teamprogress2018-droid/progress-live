@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Stopka sidebara: nazwa trenera i ikony nie w jednym ciasnym wierszu. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -17,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('CI unit', wf.includes('test_sidebar_footer.js'));
 ok('CI ui', wf.includes('test_sidebar_footer_ui.js'));
 

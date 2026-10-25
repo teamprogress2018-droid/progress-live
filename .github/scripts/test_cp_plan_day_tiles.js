@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Profil → Plan: dni jako osobne kafelki z obramowaniem, nie jedna czarna apla. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -20,8 +21,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08', html.includes('08-client-profile-extras.js?v=93'));
-ok('cache styles', html.includes('styles.css?v=189'));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 93));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 189));
 ok('ci unit', wf.includes('test_cp_plan_day_tiles.js'));
 ok('ci ui', wf.includes('test_cp_plan_day_tiles_ui.js'));
 

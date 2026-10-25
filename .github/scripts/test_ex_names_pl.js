@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** DEF_EX display names in autocomplete are Polish; English kept as aka. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -54,9 +55,9 @@ ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 ok('photo PL incline db', !!photos['wyciskanie hantli na ławce skośnej']);
 ok('photo PL incline cable', !!photos['rozpiętki na bramie na ławce skośnej']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache photo', html.includes('ex-photo-manifest.js?v=6'));
-ok('cache core', html.includes('01-core.js?v=137'));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache photo', cacheAtLeast(html, 'ex-photo-manifest.js', 6));
+ok('cache core', cacheAtLeast(html, '01-core.js', 137));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {

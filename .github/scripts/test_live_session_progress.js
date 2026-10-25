@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Live dock Postęp + zapis sesji → adherencja / Progress. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -18,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v77', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 01 v110', html.includes('01-core.js?v=137'));
+ok('cache 02 v77', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 01 v110', cacheAtLeast(html, '01-core.js', 137));
 ok('dock Postęp ids', html.includes('id="live-ex-done"') && html.includes('id="live-sets-done"') && html.includes('id="live-volume"'));
 ok('dock hint', html.includes('id="live-progress-hint"'));
 ok('end warns empty sets', /Nie odhaczono żadnej serii/.test(live));
@@ -27,7 +28,8 @@ ok('end uses todayYmd', /date:\(typeof todayYmd===/.test(live));
 ok('live rir field', /function liveSetRir\(/.test(live) && live.includes('live-rir-input') && live.includes('title="Wpisz rzeczywiste powtórzenia w zapasie po serii"'));
 ok('live save serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.test(live));
 ok('live remove set', /function liveRemoveSet\(/.test(live) && live.includes('live-set-del') && live.includes('Zostaw przynajmniej jedną serię'));
-ok('live last sets', live.includes('lastSetsBlockHtml') && live.includes('live-ex-hist-pop') && live.includes('liveExTitleHtml') && live.includes('liveFillFromLast') && live.includes('liveExLastSummary'));
+// Od 21.10 (d681203) historia nie wyskakuje po najechaniu — jest w menu „⋯” → „Historia i progres”.
+ok('live last sets', live.includes("liveToggleExPanel(${i},'history'") && live.includes('Historia i progres') && live.includes('liveExTitleHtml') && live.includes('liveFillFromLast') && live.includes('liveExLastSummary'));
 ok('live hist kg/reps', live.includes('liveHistoryExLines') && live.includes('liveHistorySessionsForView') && live.includes('live-hist-ex-sets'));
 ok('CI unit', wf.includes('test_live_session_progress.js'));
 ok('CI ui', wf.includes('test_live_progress_ui.js'));

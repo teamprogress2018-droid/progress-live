@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Plan tab Edytuj opens the builder with Fitebo day labels (D1 A/B). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -29,8 +30,8 @@ ok('keeps custom day labels', /function builderSetDayHeader/.test(src05) && /fun
 ok('Custom maps to Własna', /v==='Custom'\)v='Własna'/.test(src05));
 ok('fitebo method not Custom', /return 'Własna'/.test(src08) && !/return 'Custom'/.test(src08));
 ok('return to client after save', /function builderLeaveToCaller/.test(src05) && /builderLeaveToCaller\(\{saved:true\}\)/.test(src05));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('CI unit', wf.includes('test_plan_edit_from_profile.js'));
 ok('CI ui', wf.includes('test_plan_edit_from_profile_ui.js'));
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Przegląd: Analiza współpracy — fakty → interpretacja → opcje (AI na żądanie). */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -45,7 +46,7 @@ ok('no persist',!/persistById/.test(coopSrc));
 ok('no scoreCheckin',!/scoreCheckinAnswers/.test(coopSrc));
 ok('injuries field',/c\.injuries/.test(extract(src08,'cpCoopContextForAI')));
 ok('css',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-sh'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=91')&&html.includes('styles.css?v=166'));
+ok('cache 08/styles',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, 'styles.css', 166));
 ok('ci unit',wf.includes('test_cp_overview_coop.js'));
 ok('ci ui',wf.includes('test_cp_overview_coop_ui.js'));
 ok('gate two signals',src08.includes('found.length>=2'));

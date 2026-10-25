@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Client profile tabs: slim primary + Oceny specjalistyczne (Everfit roadmap point 3). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -36,7 +37,7 @@ ok('withAnalyticsShell wraps specialty', /withAnalyticsShell/.test(src08) && /wi
 ok('css analytics chips', css.includes('.cp-analytics-nav') && css.includes('.cp-analytics-chip'));
 ok('CI step', wf.includes('test_cp_tabs_slim.js'));
 
-ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=45') && html.includes('08-client-profile-extras.js?v=91') && html.includes('09-posture-kb-invites-private.js?v=58') && html.includes('styles.css?v=166'));
+ok('cache bumps', cacheAtLeast(html, '07-forms-metrics-calculator.js', 45) && cacheAtLeast(html, '08-client-profile-extras.js', 91) && cacheAtLeast(html, '09-posture-kb-invites-private.js', 58) && cacheAtLeast(html, 'styles.css', 166));
 
 if (failed) {
   console.error(failed + ' failed');

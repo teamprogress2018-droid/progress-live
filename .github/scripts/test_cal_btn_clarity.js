@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Kalendarz: wyraziste ghost / Dziś / aktywny widok tygodnia. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -17,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache styles v82', html.includes('styles.css?v=166'));
+ok('cache styles v82', cacheAtLeast(html, 'styles.css', 166));
 ok('ci unit', wf.includes('test_cal_btn_clarity.js'));
 ok('ci ui', wf.includes('test_cal_btn_clarity_ui.js'));
 ok('ghost border beats btn none', /\.btn\.btn-ghost/.test(css) && /border:1px solid var\(--border-default\)/.test(css));

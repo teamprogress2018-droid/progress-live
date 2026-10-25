@@ -56,14 +56,14 @@ const CLIENTS = [
   await page.goto('http://127.0.0.1:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof liveSelectPlan === 'function' && typeof renderLiveExercises === 'function');
 
-  // Postęp (Ostatnio / Dzisiaj / Sugestia) jest w rozwijanym bloku „Szczegóły ćwiczenia”.
-  // Symulujemy trenera, który ma ten blok rozwinięty, także po każdym przerysowaniu.
+  // Postęp (Ostatnio / Dzisiaj / Sugestia) i ostrzeżenie o ograniczeniu są od 21.10 (d681203)
+  // w panelu „⋯ → Historia i progres”. Symulujemy trenera, który ma ten panel otwarty, także po przerysowaniu.
   await page.evaluate(() => {
     const render = window.renderLiveExercises;
-    window.renderLiveExercises = function () {
-      const out = render.apply(this, arguments);
-      document.querySelectorAll('.live-ex-more-details').forEach((d) => { d.open = true; });
-      return out;
+    window.renderLiveExercises = function (slot) {
+      const st = typeof liveRef === 'function' ? liveRef(typeof liveN === 'function' ? liveN(slot) : 0) : null;
+      ((st && st.exercises) || window.liveExercises || []).forEach((e) => { if (e) { e.collapsed = false; if (!e.detailPanel) e.detailPanel = 'history'; } });
+      return render.apply(this, arguments);
     };
   });
 
@@ -230,7 +230,7 @@ const CLIENTS = [
   ok('Live warning disappears after swapping to a safe exercise', monitor.limitAfter === '', monitor.limitAfter);
 
   // --- ETAP 5: progres per ćwiczenie i zmiana ciężaru w planie po zatwierdzeniu
-  const openProgress = id => page.evaluate(id => { openClientProfile(id); const b = [...document.querySelectorAll('button')].find(x => x.innerText.trim() === 'Zamknij'); if (b) b.click(); setCPTab('progress'); }, id);
+  const openProgress = id => page.evaluate(id => { openClientProfile(id); const b = [...document.querySelectorAll('button')].find(x => x.innerText.trim() === 'Zamknij'); if (b) b.click(); if (typeof closeM === 'function') closeM('m-client-onboard'); setCPTab('progress'); }, id);
   await openProgress('cB');
   await page.waitForTimeout(200);
   const pd = await page.evaluate(() => { const r = document.querySelector('.cp-pd-row'); return r ? { text: r.innerText, btn: (r.querySelector('[data-pd-apply]') || {}).innerText || '' } : null; });

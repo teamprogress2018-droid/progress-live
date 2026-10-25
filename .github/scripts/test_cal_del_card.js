@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Profil klienta → Treningi: usuwanie kart z kalendarza. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05 v42', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 08 v46', html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 05 v42', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 08 v46', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('card delete via session modal', /function delCpSession/.test(cp) && html.includes('id="as-del-btn"'));
 ok('bulk clear', /function clearClientPlannedSessions/.test(cp) && /Usuń terminy planu/.test(cp));
 ok('bulk in more menu', /clearClientPlannedSessions\(/.test(cp) && /cp-mp-more-menu/.test(cp) && /Usuń terminy planu/.test(cp));

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Generator AI: 8-tyg. mezocykl hipertrofii (RIR, bez faz 1–3 powt.). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -36,7 +37,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 03 v39', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43'));
+ok('cache 03 v39', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43));
 ok('CI', wf.includes('test_hypertrophy_mesocycle.js'));
 ok('prompt mezocycle fields', /mezocycle_overview/.test(src03) && /weekly_progression_schema/.test(src03) && /workout_plan/.test(src03));
 ok('prompt bans 1-3 for masa', /ZAKAZ faz siły maksymalnej/.test(src03) && /Akumulacja I/.test(src03) && /Pik objętości/.test(src03));

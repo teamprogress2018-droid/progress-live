@@ -5,6 +5,7 @@
  * Paint-only. 7A→7B→7C raz na slot. progressWorkingSet nie jest źródłem SUGESTIA.
  * 6C–7C frozen.
  */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -53,7 +54,8 @@ function sliceFn(src, start, endMark) {
 }
 
 function sha256(s) {
-  return crypto.createHash('sha256').update(s, 'utf8').digest('hex');
+  // Skróty liczone przy końcach linii CRLF; 01-core.js bywa zapisywany z LF (Codex 23.10), treść ta sama.
+  return crypto.createHash('sha256').update(String(s).replace(/\r?\n/g, '\r\n'), 'utf8').digest('hex');
 }
 const FROZEN_SHA256 = {
   '6C exerciseLoadHistory': '5d0278b808c24b305384255cb9acee086ca1ca9e1e8678a14d666bfd5bb7bd65',
@@ -105,10 +107,10 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 frozen', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 08 caller', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 01 frozen', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 08 caller', cacheAtLeast(html, '08-client-profile-extras.js', 91));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('CI 1e0z8', wf.includes('test_live_ex_cue.js') && wf.includes('1e0z8'));
 ok('CI cue UI', wf.includes('test_live_ex_cue_ui.js'));
 ok('CSS cue', styles.includes('.live-ex-cue') && styles.includes('.live-ex-cue-k') && styles.includes('.live-ns-posture'));
@@ -117,7 +119,7 @@ ok('one pack per render', /const cue=typeof liveExCuePack/.test(renderSrc)
   && /liveExCuePack\(n\)/.test(renderSrc)
   && (renderSrc.match(/liveExCuePack/g) || []).length === 2
   && !/liveExCuePack/.test(renderSrc.slice(renderSrc.indexOf('.map('))));
-ok('cards get shared cue', /liveExCard\(ex,i,n,cue\)/.test(renderSrc));
+ok('cards get shared cue', /liveExCard\(ex,i,n,cue(?:,\w+)?\)/.test(renderSrc));
 ok('session 7C banner not on floor', !/liveExCueSessionHtml\(cue\)/.test(renderSrc)
   && /function liveExCueSessionHtml/.test(live));
 ok('strip is one line', /data-cue="last"/.test(stripSrc)

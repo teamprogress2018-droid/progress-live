@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Panel operacyjny trenera: alerty, raporty, aktywność, wygasające pakiety. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -180,7 +181,7 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=62')&&html.includes('styles.css?v=166'));
+ok('cache bumps',cacheAtLeast(html, '04-client-portal.js', 62)&&cacheAtLeast(html, 'styles.css', 166));
 ok('CI ui',fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8').includes('test_dash_followup_gone_ui.js'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}

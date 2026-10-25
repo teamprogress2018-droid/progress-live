@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Zakładka Treningi: 4 stany kafelków, pasek, Plan/Historia. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -19,7 +20,7 @@ function ok(name, cond, extra) {
 
 ok('ci unit', wf.includes('test_cp_week_tiles.js'));
 ok('ci ui', wf.includes('test_cp_week_tiles_ui.js'));
-ok('cache 08/styles', html.includes('08-client-profile-extras.js?v=91') && html.includes('styles.css?v=166'));
+ok('cache 08/styles', cacheAtLeast(html, '08-client-profile-extras.js', 91) && cacheAtLeast(html, 'styles.css', 166));
 ok('plan historia', />Plan</.test(train) && />Historia</.test(train) && !/>Assignment</.test(train));
 ok('week arrows', /cpMpShiftWeek/.test(train) && /Poprzedni tydzień/.test(train));
 ok('no client in range helper', /cpOverviewPlanTitle/.test(train));

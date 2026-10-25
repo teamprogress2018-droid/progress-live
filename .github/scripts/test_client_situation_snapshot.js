@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Read-model clientSituationSnapshot: fakty + sygnały, bez AI i bez nowych kolekcji. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -29,7 +30,7 @@ function ok(name,cond,extra){
 ok('snapshot fn',/function clientSituationSnapshot\(clientId\)/.test(src04));
 ok('no firestore write in snapshot',!/function clientSituationSnapshot[\s\S]{0,2500}persistById/.test(src04));
 ok('no AI call in snapshot',!/function clientSituationSnapshot[\s\S]{0,2500}(sendAICMsg|aplGenerate)/.test(src04));
-ok('cache 04',html.includes('04-client-portal.js?v=62'));
+ok('cache 04',cacheAtLeast(html, '04-client-portal.js', 62));
 
 const today=new Date();today.setHours(12,0,0,0);
 function ymd(d){

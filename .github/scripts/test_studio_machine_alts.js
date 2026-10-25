@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Zamienniki gdy nie ma maszyny: dopasowanie nazw AI + Live swap. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -23,18 +24,18 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache 03', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43));
 ok('apl swap altFor', src03.includes('dataset.altFor') && src03.includes('sztanga / hantle / brama / ławka'));
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamień ćwiczenie') && /function liveToggleAltSearch\(/.test(live));
 ok('live chips css', css.includes('.live-alt-chip') && css.includes('.live-alts'));
 ok('live alts collapse', /const LIVE_ALT_MAX=3/.test(live) && /function liveToggleAlts\(/.test(live) && css.includes('.live-alts-more'));
 ok('live add alt search', live.includes('live-alt-search') && live.includes('data-live-swap-ei') && /function liveConfirmAltSearch\(/.test(live));
 ok('live add exercise name', live.includes('data-live-name-ei') && live.includes('Szukaj w bibliotece') && /function liveSetExName\(/.test(live) && /function liveConfirmExName\(/.test(live));
-ok('builder label', src05.includes('Zamienniki gdy nie ma maszyny'));
+ok('builder label', src05.includes('Zamienniki — kliknij, aby podmienić ćwiczenie w planie.'));
 ok('builder count on btn', src05.includes("Zamienniki · '"));
 ok('ac alt group', six.includes('Zamienniki — sztanga / hantle / brama / ławka') && /function exAcAltItems\(/.test(six));
 ok('CI', wf.includes('test_studio_machine_alts.js'));

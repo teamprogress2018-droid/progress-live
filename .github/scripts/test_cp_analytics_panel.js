@@ -1,5 +1,6 @@
 // Panel analityczny klienta: adherencja, check-in, nawyki, chipy, wykresy.
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -104,7 +105,7 @@ ok('habit weeks',hw.length===4&&hw.some(w=>w.due>0));
 const svg=sandbox.cpPctBarChart([{l:'T1',pct:50},{l:'T2',pct:80}]);
 ok('pct svg',/cp-chart-svg/.test(svg)&&/50%/.test(svg));
 
-ok('cache bumps',html.includes('08-client-profile-extras.js?v=91')&&html.includes('04-client-portal.js?v=62')&&html.includes('styles.css?v=166'));
+ok('cache bumps',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, '04-client-portal.js', 62)&&cacheAtLeast(html, 'styles.css', 166));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-analytics-panel tests passed');

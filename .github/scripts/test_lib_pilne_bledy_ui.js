@@ -94,8 +94,10 @@ async function bootApp(page, port) {
     window.EX = window.EX || [];
     window.EX.push({ id: 'ex_q', name: 'Box jump 30"', cat: 'Nogi', eq: 'Bez sprzętu', tip: '' });
     window.EX.push({ id: 'ex_x', name: 'Zz <img src=x onerror="window.__xss++">', cat: 'Nogi', eq: 'Bez sprzętu', tip: '<b onmouseover=1>t</b>' });
-    goTo('library');
+    localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
     setExView('grid');
+    // Domyślny filtr „tylko z filmem” chowa ćwiczenia bez materiałów — tu testujemy nazwy.
+    setExMediaOnly(false);
     const inp = document.getElementById('ex-search');
     inp.value = 'Box jump 30';
     renderLib();

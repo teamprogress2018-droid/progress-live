@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Ops scan: dashboard collectOpsEvents also fills the bell; 60s clock instead of cron. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -22,7 +23,7 @@ ok('ops notif key',src04.includes('function opsEventNotifKey')&&src04.includes('
 ok('scan clock',src04.includes('function startOpsScanClock')&&src04.includes('60000')&&src04.includes('visibilitychange'));
 ok('clock runs autoflow',src04.includes('runAutoflowsCheck(false)'));
 ok('load starts clock',html.includes('startOpsScanClock()'));
-ok('cache 04',html.includes('04-client-portal.js?v=62'));
+ok('cache 04',cacheAtLeast(html, '04-client-portal.js', 62));
 ok('CI',wf.includes('test_ops_scan.js'));
 ok('audit notes scan',/startOpsScanClock|jeden skan/.test(audit));
 

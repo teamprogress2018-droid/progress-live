@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** KB tags bind MEV/RIR/muscle notes to builder days and exercises. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -26,7 +27,7 @@ ok('day strip',src05.includes('builder-day-kb')&&html.includes('id="builder-kb-h
 ok('save tags',src09.includes('kbReadTagPicker')&&/useInPlanning,\s*tags/.test(src09));
 ok('askAI tags',src06.includes('preferTags')&&src06.includes('builderCollectKbTags'));
 ok('css tags',css.includes('.kb-tag-btn.is-on')&&css.includes('.builder-kb-hit'));
-ok('cache pins',html.includes('01-core.js?v=137')&&html.includes('05-clients-builder-plans-calendar.js?v=106')&&html.includes('09-posture-kb-invites-private.js?v=58')&&html.includes('styles.css?v=166'));
+ok('cache pins',cacheAtLeast(html, '01-core.js', 137)&&cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106)&&cacheAtLeast(html, '09-posture-kb-invites-private.js', 58)&&cacheAtLeast(html, 'styles.css', 166));
 ok('CI unit',wf.includes('test_kb_builder_tags.js'));
 ok('CI ui',wf.includes('test_kb_builder_tags_ui.js'));
 

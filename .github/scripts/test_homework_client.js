@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -112,7 +113,7 @@ const prog = ctx.capClientProgressScreenHTML({ id: 'c1', name: 'Test' }, '#ff3b3
 ok('progress lists homework rpe', /Zadania domowe/.test(prog) && /RPE 8/.test(prog));
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-ok('cache 01/04/09/10', indexHtml.includes('01-core.js?v=137') && indexHtml.includes('04-client-portal.js?v=62') && indexHtml.includes('09-posture-kb-invites-private.js?v=58') && indexHtml.includes('10-client-app.js?v=44'));
+ok('cache 01/04/09/10', cacheAtLeast(indexHtml, '01-core.js', 137) && cacheAtLeast(indexHtml, '04-client-portal.js', 62) && cacheAtLeast(indexHtml, '09-posture-kb-invites-private.js', 58) && cacheAtLeast(indexHtml, '10-client-app.js', 44));
 ok('CI guide ui', wf.includes('test_homework_guide_ui.js'));
 
 if (failed) {

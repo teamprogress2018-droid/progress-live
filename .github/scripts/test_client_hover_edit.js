@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Hover „Edycja” on client list opens edit modal. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -25,7 +26,7 @@ ok('hover reveals edit btn', css.includes('.tbl-row.cl-everfit-row:hover .cl-edi
 ok('touch fallback always visible', css.includes('@media (hover:none)') && /hover:none[\s\S]{0,80}\.cl-edit-btn\{opacity:1/.test(css));
 ok('exported', src05.includes('window.quickEditClient=quickEditClient'));
 ok('dash hover edit', src04.includes('dash-client-edit') && src04.includes("quickEditClient(event,'${c.id}')"));
-ok('cache bumps', html.includes('05-clients-builder-plans-calendar.js?v=106') && html.includes('styles.css?v=166') && html.includes('04-client-portal.js?v=62'));
+ok('cache bumps', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106) && cacheAtLeast(html, 'styles.css', 166) && cacheAtLeast(html, '04-client-portal.js', 62));
 ok('CI', wf.includes('test_client_hover_edit.js'));
 
 if (failed) {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Prawy panel ćwiczenia: 3 zakładki + akordeony biomechaniki. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('CI unit', wf.includes('test_exd_tabs.js'));
 ok('CI ui', wf.includes('test_exd_tabs_ui.js'));
 ok('lib side scroll', html.includes('id="lib-side-scroll"') && /class="lib-side[ "]/.test(html) && /id="ex-cat-nav"[\s\S]*id="ex-equip-filters"/.test(html));

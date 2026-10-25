@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Client + dashboard payment visibility helpers and confirmed mark-paid flow. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -151,7 +152,7 @@ async function main(){
   eq('chips not unique names',src09.includes("new Set(all.map(p=>p.clientName))"),false);
   eq('helper present',src09.includes('function payClientsFromPackages'),true);
   eq('card data-client-id',src09.includes('data-client-id=')&&src09.includes('filterPkgByClient(this.dataset.clientId'),true);
-  eq('cache 09',html.includes('09-posture-kb-invites-private.js?v=58'),true);
+  eq('cache 09',cacheAtLeast(html, '09-posture-kb-invites-private.js', 58),true);
   const wf=read('.github/workflows/check.yml');eq('CI ui',wf.includes('test_pay_hist_id_ui.js'),true);
 
   vm.runInContext(extract(src09,'payClientsFromPackages')+'\nwindow.payClientsFromPackages=payClientsFromPackages;',s);

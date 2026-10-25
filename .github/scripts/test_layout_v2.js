@@ -88,7 +88,8 @@ ok('column comes back', store.pl_clients_hidden_cols === '7' && !els['cl-everfit
 vm.runInContext("toggleClientSubnav()", ctx);
 ok('panel hides and remembers', els['cl-shell'].classList.contains('cl-subnav-off') && store.pl_clients_subnav === '0' && els['cl-subnav-toggle']['aria-expanded'] === 'false');
 vm.runInContext("toggleClientFilters()", ctx);
-ok('filters hide and remember', els['cl-filter-chips'].hidden === true && store.pl_clients_filters === '0' && els['cl-filters-toggle'].textContent === 'Pokaż filtry');
+// Ukryte filtry pokazują liczbę aktywnych (tu: cel „siła”) zamiast samego „Pokaż filtry”.
+ok('filters hide and remember', els['cl-filter-chips'].hidden === true && store.pl_clients_filters === '0' && els['cl-filters-toggle'].textContent === 'Filtry (1)', els['cl-filters-toggle'].textContent);
 // Po zalogowaniu (wczytaniu danych trenera) aplikacja ma wejść na listę klientów, nie na Pulpit
 const loginTail = html.slice(html.indexOf("window.applyAuthToTrainerProfile();"), html.indexOf("window.consumeClientPreviewHash();"));
 ok('login lands on client list', loginTail.includes("goTo('clients')") && !loginTail.includes("goTo('dashboard')"));
