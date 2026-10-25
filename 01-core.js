@@ -574,7 +574,10 @@ function toggleLibraryWide(){
 function toggleLibraryFilters(){
   const parts=libraryWideParts();
   if(!parts.screen||!parts.filterButton)return;
-  if(!parts.screen.classList.contains('library-wide')){
+  // Na telefonie panel filtrów pokazuje tylko klasa .lib-open-filters (CSS z !important),
+  // także w trybie pełnego ekranu — styl inline by go nie odsłonił.
+  const phone=typeof window.matchMedia==='function'&&window.matchMedia('(max-width: 760px)').matches;
+  if(!parts.screen.classList.contains('library-wide')||phone){
     libTogglePanel(parts.filterButton,'filters');
     return;
   }

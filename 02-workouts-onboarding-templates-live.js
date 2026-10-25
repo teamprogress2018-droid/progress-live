@@ -4036,10 +4036,7 @@ function liveExCueStripHtml(ex,slot,cue){
   const targetKg=detail.nextKg!=null?detail.nextKg:(rec&&rec.levers&&rec.levers.load==='hold'&&Number.isFinite(facts.lastKg)?facts.lastKg:'');
   const planKg=liveExPlannedKg(ex,n);
   const note=liveExSuggestNote(todayKg,targetKg,planKg,suffix,ex&&ex.prefillKg);
-  const client=(window.CL||[]).find(x=>x&&x.id===st.clientId);
-  const limit=typeof cpClientLimitConflicts==='function'&&client?cpClientLimitConflicts(client,[ex&&ex.name])[0]:null;
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
-    ${limit?'<span class="live-ex-cue-row live-ex-cue-limit" data-cue="limit" role="note"><span class="live-ex-cue-v">⚠ Ograniczenie ('+esc(limit.area)+'): „'+esc(limit.note)+'” — rozważ zamiennik</span></span>':''}
     <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>
     <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">Dzisiaj:</span> <span class="live-ex-cue-v">${esc(todayLine)}</span></span>
     <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}" data-target-kg="${esc(targetKg)}" data-plan-kg="${esc(planKg)}"${detail.why?' title="Dlaczego: '+esc(detail.why)+'" role="button" tabindex="0" aria-expanded="false" onclick="liveToggleCueWhy(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();liveToggleCueWhy(this)}"':''}><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}${detail.detail?' <span class="live-ex-cue-detail">'+esc(detail.detail)+'</span>':''}<span class="live-ex-cue-note" data-cue-note>${note?' · '+esc(note):''}</span>${detail.why&&suggest.kind!=='none'?'<span class="live-ex-cue-more" aria-hidden="true"> ⓘ</span>':''}</span></span>
@@ -4047,6 +4044,24 @@ function liveExCueStripHtml(ex,slot,cue){
   </div>`;
 }
 window.liveExCueStripHtml=liveExCueStripHtml;
+
+/** Konflikt ćwiczenia z ograniczeniem klienta (np. bark) albo null. */
+function liveExLimitConflict(ex,clientId){
+  if(!clientId||typeof cpClientLimitConflicts!=='function')return null;
+  const client=(window.CL||[]).find(x=>x&&x.id===clientId);
+  return client?cpClientLimitConflicts(client,[ex&&ex.name])[0]||null:null;
+}
+window.liveExLimitConflict=liveExLimitConflict;
+
+/** Ostrzeżenie o ograniczeniu stoi w nagłówku karty: bezpieczeństwo nie może
+ *  czekać w menu „⋯”, więc widać je od razu, także na zwiniętej karcie. */
+function liveExLimitHtml(ex,clientId){
+  const limit=liveExLimitConflict(ex,clientId);
+  if(!limit)return '';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  return '<div class="live-ex-limit" data-cue="limit" role="note">⚠ Ograniczenie ('+esc(limit.area)+'): „'+esc(limit.note)+'” — rozważ zamiennik</div>';
+}
+window.liveExLimitHtml=liveExLimitHtml;
 
 function liveExHistoryList(ex,clientId,planId){
   if(!clientId||!planId)return [];
@@ -4070,14 +4085,25 @@ function liveExDisplayName(ex){
 }
 window.liveExDisplayName=liveExDisplayName;
 
-function liveExTitleHtml(ex){
+function liveExTitleHtml(ex,lastChip,history){
   const needsName=!String(ex&&ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   if(needsName)return '<div class="live-ex-title is-empty">Wybierz ćwiczenie</div>';
   const display=liveExDisplayName(ex);
   const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(display.title)}${display.priority?'<span class="live-priority-badge">Priorytet</span>':''}`;
-  // Historia, progres i notatka mają jedno miejsce: menu „…”. Nie dublujemy
-  // ich pod nazwą ćwiczenia, aby w trakcie treningu pierwsze były serie.
-  return `<div class="live-ex-title">${nameInner}</div>`;
+  // Skrót (Ostatnio / Sugestia) jest w menu „⋯ → Historia i progres”. Pełna tabela
+  // poprzednich treningów zostaje pod nazwą: podgląd po najechaniu, klik otwiera całość.
+  const histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
+  if(!histId||!history||!history.length||typeof exerciseHistoryModalBodyHtml!=='function'){
+    return `<div class="live-ex-title">${nameInner}</div>`;
+  }
+  return `<div class="live-ex-title-wrap">
+    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="dialog">${nameInner}</button>
+    <div class="live-ex-hist-pop" role="tooltip">
+      <div class="live-ex-hist-pop-hd">Poprzednie treningi</div>
+      ${exerciseHistoryModalBodyHtml(history.slice(0,4))}
+      <div class="live-ex-hist-pop-ft">Kliknij nazwę — pełna historia</div>
+    </div>
+  </div>`;
 }
 window.liveExTitleHtml=liveExTitleHtml;
 
@@ -4181,6 +4207,8 @@ function liveExCard(ex,i,slot,cue,progress){
   const histList=(cue&&cue.histByKey&&cueKey&&Array.isArray(cue.histByKey[cueKey]))
     ?cue.histByKey[cueKey]
     :(typeof liveExHistoryList==='function'?liveExHistoryList(ex,st.clientId,st.planId):[]);
+  const histEx=Object.assign({},ex,{lastHistory:histList,lastSets:[]});
+  const lastChip=histList.length&&typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(histEx,{clientId:st.clientId,aliases:ex.alts}):'';
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   void pr;
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
@@ -4221,7 +4249,8 @@ function liveExCard(ex,i,slot,cue,progress){
       ${thumb&&hasTechniqueMedia?`<button type="button" class="live-ex-thumb live-ex-technique-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="${ex.showVideo?'Ukryj':'Pokaż'} technikę" aria-label="${ex.showVideo?'Ukryj':'Pokaż'} technikę dla: ${escHtml(ex.name)}" aria-pressed="${ex.showVideo?'true':'false'}"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:thumb?`<div class="live-ex-thumb"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></div>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
-        ${liveExTitleHtml(ex)}
+        ${liveExTitleHtml(ex,lastChip,histList)}
+        ${needsName||typeof liveExLimitHtml!=='function'?'':liveExLimitHtml(ex,st.clientId)}
         <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong>${isCurrent&&progress?`<span class="live-session-progress">Trening ${progress.doneCnt}/${progress.total} · ${progress.setsDone} serii</span>`:`<span>Wykonano ${setsDone}/${ex.sets.length}</span>`}${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
