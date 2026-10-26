@@ -4587,7 +4587,7 @@ function renderKbFeed(){
     const body=ai
       ?`${ai.takeaway?`<div class="kb-feed-takeaway">💡 ${escHtml(ai.takeaway)}</div>`:''}<div class="kb-feed-summary">${escHtml(ai.summary||'')}</div>${ai.population||ai.limits?`<div class="kb-feed-small">${ai.population?'Kogo dotyczy: '+escHtml(ai.population):''}${ai.population&&ai.limits?' · ':''}${ai.limits?'Ograniczenia: '+escHtml(ai.limits):''}</div>`:''}`
       :(x.abstract?`<div class="kb-feed-summary">${escHtml(x.abstract.substring(0,420))}${x.abstract.length>420?'…':''}</div>`:'<div class="kb-feed-small">Brak abstraktu w PubMed.</div>');
-    return `<div class="kb-feed-item">
+    return `<article class="kb-feed-item">
       <div class="kb-feed-pills">
         <span class="pill" style="font-size:10px;background:rgba(255,255,255,0.06);color:${kbFeedEvidenceColor(x.evidence)};">${escHtml(x.evidenceLabel||'Badanie')}</span>
         ${x.topJournal?'<span class="pill kb-feed-topic" title="Czołowe czasopismo w sporcie / żywieniu">★ Czołowe czasopismo</span>':''}
@@ -4596,13 +4596,16 @@ function renderKbFeed(){
       <div class="kb-feed-title">${escHtml(title)}</div>
       ${orig}
       <div class="kb-feed-small">${meta}</div>
-      ${body}
+      <details class="kb-feed-details">
+        <summary>Pokaż streszczenie i ograniczenia</summary>
+        <div class="kb-feed-details-body">${body}</div>
+      </details>
       <div class="kb-feed-actions">
         <button type="button" class="btn btn-primary btn-sm" onclick="kbFeedAccept('${x.pmid}')">+ Do bazy</button>
         <a class="btn btn-ghost btn-sm" href="${escHtml(x.url||('https://pubmed.ncbi.nlm.nih.gov/'+x.pmid+'/'))}" target="_blank" rel="noopener noreferrer">PubMed ↗</a>
         <button type="button" class="btn btn-ghost btn-sm" onclick="kbFeedDismiss('${x.pmid}')">Pomiń</button>
       </div>
-    </div>`;
+    </article>`;
   }).join('');
   const more=list.length>shown.length?`<button type="button" class="btn btn-ghost btn-sm kb-feed-more" onclick="kbFeedMore()">Pokaż więcej (${list.length-shown.length})</button>`:'';
   const empty=!list.length?`<div class="kb-feed-empty">${pending.length?'Brak pozycji dla tego filtra.':'Wszystko przejrzane. Kolejne badania pojawią się po poniedziałkowej aktualizacji.'}</div>`:'';

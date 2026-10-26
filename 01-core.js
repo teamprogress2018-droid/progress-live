@@ -627,7 +627,7 @@ function goTo(n){
     automation:['automation','onboarding'],
     ondemand:['ondemand','resources'],
     business:['payments','bizstats'],
-    knowledge:['academy','kb','aicoach','calculator'],
+    knowledge:['academy','kb','aicoach','calculator','aiplangen'],
   };
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
