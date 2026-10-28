@@ -677,13 +677,16 @@ function aplVolumeTarget(level,duration,pharma){
   if(dur<=45)ex-=1;else if(dur>=75)ex+=1;
   if(enh&&!beg&&dur>=75)ex+=1;
   ex=Math.max(3,ex);
-  // Serie tygodniowo na główną partię. Natural: Schoenfeld 2017, Baz-Valle 2022 (12–20 u trenujących), Pelland 2024.
-  let lo=adv?14:(beg?8:10),hi=adv?20:(beg?12:16),min=adv?12:(beg?6:10);
+  // Serie tygodniowo na główną partię wg książek: 10–20 (Schoenfeld P2, Helms P4), początkujący 10–12 (Helms R1),
+  // zaawansowani bliżej górnej granicy (Schoenfeld P2 — wniosek: 14–20).
+  let lo=adv?14:10,hi=adv?20:(beg?12:20),min=adv?12:10;
   if(enh&&!beg){lo=Math.round(lo*1.3);hi=Math.round(hi*1.3);min=Math.round(min*1.3);}
   else if(trt&&!beg){lo+=2;hi+=2;min+=2;}
-  const sets=enh&&!beg?'3–5':(adv?(dur>=75?'3–5':'3–4'):(beg?'2–3':'3–4'));
+  // Początkujący: 3 serie na ćwiczenie (Schoenfeld R1, Boyle PR5).
+  const sets=enh&&!beg?'3–5':(adv?(dur>=75?'3–5':'3–4'):(beg?'3':'3–4'));
   const label=(adv?'zaawansowany':(beg?'początkujący':'średni'))+(enh?', wspomagany':(trt?', TRT':''));
-  return{exMin:ex,exMax:ex+1,sets,weekly:lo+'–'+hi,weeklyMin:min,weeklyMax:hi,label,enhanced:enh};
+  const refs=beg?['piramida-treningu-helms R1','hipertrofia-schoenfeld R1']:['hipertrofia-schoenfeld P2','piramida-treningu-helms P4'];
+  return{exMin:ex,exMax:ex+1,sets,weekly:lo+'–'+hi,weeklyMin:min,weeklyMax:hi,label,enhanced:enh,refs};
 }
 window.aplVolumeTarget=aplVolumeTarget;
 /** Odpowiedź AI ucięta albo niepełna: brakujące dni, ćwiczenia bez nazwy. */
@@ -1193,10 +1196,10 @@ function aplRegroupExercisesByMuscle(plan,client){
   });
 }
 
-/** Reguły z książek (knowledge/books) dobrane do parametrów planu i ograniczeń klienta. */
+/** Reguły z książek (knowledge/books) dobrane do parametrów planu i ograniczeń klienta — ze wszystkich książek treningowych, z oznaczeniami [K1…]. */
 function aplBooksContext(p){
-  const empty={all:'',training:'',sources:[]};
-  if(typeof booksKbContext!=='function')return empty;
+  const empty={all:'',training:'',sources:[],sel:null,key:()=>''};
+  if(typeof booksKbPlanSelect!=='function'||typeof booksKbPlanPrompt!=='function')return empty;
   const levelWords={poczatkujacy:'początkujący',sredni:'średnio zaawansowany',zaawansowany:'zaawansowany'};
   const ageNum=parseInt(p.age,10);
   const w=parseFloat(p.weight),h=parseFloat(p.height);
@@ -1207,9 +1210,47 @@ function aplBooksContext(p){
     ageNum>=50?'starsi wiek osoby starsze':'',ageNum&&ageNum<18?'młodzież dzieci':'',
     bmi>=30?'otyłość nadwaga BMI':bmi>=25?'nadwaga':'',
     p.level==='poczatkujacy'?'początkujący':''].filter(Boolean).join(' ');
-  const training=booksKbContext({mode:'training',reset:true,query,safetyQuery,maxChars:9000});
-  const nutrition=booksKbContext({mode:'nutrition',query:p.goal+' '+(p.notes||'')+' białko kalorie',maxChars:1600});
-  return{all:training+nutrition,training,sources:typeof booksKbUsedSources==='function'?booksKbUsedSources():[]};
+  const sel=booksKbPlanSelect({query,safetyQuery,progression:p.progression,level:p.level,
+    nutritionQuery:p.goal+' '+(p.notes||'')+' białko kalorie',maxChars:16000});
+  if(!sel.rules.length)return empty;
+  const text=booksKbPlanPrompt(sel);
+  const keyOf={};sel.rules.forEach(r=>{keyOf[r.ref]=r.key;});
+  const byBook=new Map();
+  sel.rules.forEach(r=>{
+    const label=r.cite.replace(/, s\. .*$/,'').replace(/^Progress Live, reguła ostrożności \(nie z książki\); temat: /,'');
+    if(!byBook.has(label))byBook.set(label,[]);
+    byBook.get(label).push(r.id);
+  });
+  const sources=Array.from(byBook.entries()).map(([label,ids])=>label+' (reguły: '+ids.slice(0,8).join(', ')+(ids.length>8?'…':'')+')');
+  return{all:text,training:text,sources,sel,key:ref=>keyOf[ref]?'['+keyOf[ref]+']':''};
+}
+
+/** Skąd biorą się zasady progresji: reguły z książek albo metoda spoza bazy (Smolov, 5/3/1). */
+function aplProgressionBookNote(bookCtx,prog,method){
+  if(prog==='smolov'||method==='Smolov'||method==='531')
+    return ' (Metoda spoza bazy książek — schemat ustawiony w aplikacji na wybór trenera. Zapisz to w "rationale.uncertainties"; objętość pozostałych partii, przerwy i bezpieczeństwo opieraj na regułach z książek.)';
+  const anchors=(typeof PLAN_ANCHORS!=='undefined'&&PLAN_ANCHORS[prog])||[];
+  const keys=anchors.map(r=>bookCtx.key(r)).filter(Boolean).join('');
+  return keys?' Podstawa w książkach: '+keys+'.':'';
+}
+
+/** Sprawdza oznaczenia reguł w planie i zapisuje, na których regułach z książek plan się opiera. */
+function aplApplyBookRefs(plan,bookCtx){
+  if(!plan||!bookCtx||!bookCtx.sel||typeof booksKbValidatePlanRefs!=='function')return;
+  const check=booksKbValidatePlanRefs(plan,bookCtx.sel);
+  if(!plan.rationale||typeof plan.rationale!=='object'||Array.isArray(plan.rationale))plan.rationale={};
+  ['sources','reasoning','clientData','uncertainties','reviewTriggers'].forEach(k=>{
+    if(Array.isArray(plan.rationale[k]))plan.rationale[k]=plan.rationale[k].filter(x=>typeof x==='string'&&x.trim());
+  });
+  plan.rationale.bookSources=bookCtx.sources;
+  plan.bookRules=check.used.map(r=>({label:r.label,ref:r.ref,cite:r.cite,status:r.status,topic:r.topic,text:String(r.text).slice(0,260)}));
+  const training=check.used.filter(r=>r.topic!=='żywienie');
+  plan.bookCoverage={
+    offered:bookCtx.sel.books.length,
+    total:bookCtx.sel.trainingBooks.length,
+    used:Array.from(new Set(training.map(r=>r.book))).length,
+    removedRefs:check.removed
+  };
 }
 
 async function aplGenerate(){
@@ -1306,18 +1347,19 @@ async function aplGenerate(){
   if(typeof kbPrepareResearch==='function')await kbPrepareResearch();
   if(typeof booksKbLoad==='function')await booksKbLoad();
   const bookCtx=aplBooksContext({goal,level,method,days,duration,progression:effectiveProg,equipment,intensify,notes,injuries,age,gender,weight,height,pharmaStatus,client});
-  const systemPrompt=`Jesteś trenerem personalnym, który programuje trening na podstawie książek z bazy wiedzy trenera (sekcja WIEDZA Z KSIĄŻEK TRENERA poniżej). Tworzysz szczegółowe plany treningowe w języku polskim.
+  const systemPrompt=`Jesteś trenerem personalnym, który programuje trening na podstawie książek z bazy wiedzy trenera (sekcja WIEDZA Z KSIĄŻEK TRENERA — PODSTAWA PLANU na końcu). Tworzysz szczegółowe plany treningowe w języku polskim.
+KOLEJNOŚĆ WAŻNOŚCI: 1) bezpieczeństwo klienta, poufność i wybory trenera (metoda, liczba dni, sprzęt, metody intensyfikacji); 2) reguły z książek z oznaczeniem [K…]; 3) domyślne ustawienia aplikacji. Każdą liczbę w planie (serie, powtórzenia, RIR/RPE, przerwy, częstotliwość, progresja) opieraj w miarę możliwości na regule z książki i podaj jej oznaczenie.
 
 WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
 {
   "planName": "Nazwa planu",
-  "summary": "3–5 zdań dla trenera początkującego: dlaczego ta metoda, dlaczego taka objętość serii (nawiąż do MEV/MAV), dlaczego ten RPE/zakres powtórzeń dla poziomu klienta",
+  "summary": "3–5 zdań dla trenera początkującego: dlaczego ta metoda, dlaczego taka objętość serii, dlaczego ten RPE/zakres powtórzeń dla poziomu klienta — z oznaczeniami reguł z książek [K…]",
   "rationale": {
     "clientData": ["Wyłącznie fakty podane w danych klienta, istotne dla wyboru planu"],
-    "reasoning": ["Krótko: jaka decyzja, na podstawie którego faktu i dlaczego"],
+    "reasoning": ["Krótko: jaka decyzja, na podstawie którego faktu lub reguły z książki [K…] i dlaczego"],
     "uncertainties": ["Brakujące dane i założenia, które trener powinien sprawdzić"],
     "reviewTriggers": ["Kiedy ponownie ocenić plan na podstawie realizacji i informacji od klienta"],
-    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: książka (autor, tytuł, strony i oznaczenie reguły w nawiasie kwadratowym) albo badanie (tytuł i PMID, DOI lub adres). Jeśli brak pasującego źródła, pusta lista."]
+    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: reguła z książki jako krótki opis z oznaczeniem, np. 'Objętość 10–20 serii na partię tygodniowo [K1]', albo badanie (tytuł i PMID, DOI lub adres). Jeśli brak pasującego źródła, pusta lista."]
   },
   "method": "Nazwa metody",
   "weeks": ${weeksNum},
@@ -1367,8 +1409,11 @@ WARMUP KAŻDEJ SESJI: "warmupExercises" to lista DOKŁADNIE 3 ćwiczeń mobiliza
 FAZY TYGODNI (skopiuj do "weekly_progression_schema"; aplikacja liczy serie/RIR na tyg. 2+): ${JSON.stringify(phasesMap)}
 
 
-METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
+METODA PROGRESJI (obowiązkowa): ${progressionInstruction}${aplProgressionBookNote(bookCtx,effectiveProg,method)}
 ${structureHint?`\nSTRUKTURA METODY (obowiązkowa): ${structureHint}`:''}
+
+=== DOMYŚLNE USTAWIENIA APLIKACJI (nie z książek) ===
+Poniższe zasady to ustawienia domyślne Progress Live. Stosuj je, gdy reguły z książek nie rozstrzygają sprawy. Słowa „obowiązkowe”, „STRICT” i „krytyczne” w tej sekcji znaczą: obowiązuje, chyba że reguła z książki [K…] mówi inaczej — wtedy wybierz regułę z książki i zapisz zmianę w "rationale.reasoning". Wyjątek: bezpieczeństwo klienta, poufność i format JSON obowiązują zawsze.
 
 PPL PRZY 4 SESJACH (OBOWIĄZKOWE): nie resetuj splitu po niedzieli. Zapisz w "periodization" i "summary" kolejkę Push → Pull → Legs: tydzień 1 Push/Pull/Legs/Push, tydzień 2 Pull/Legs/Push/Pull, tydzień 3 Legs/Push/Pull/Legs. Nie dokładaj drugiego Pull i Legs w tym samym tygodniu kosztem nadmiernej objętości Push.
 KONTROLA OBJĘTOŚCI DLA NATURALNEGO PLANU 4-SESYJNEGO / KLIENTA 50+: zacznij konserwatywnie. Klatka 12–16 serii bezpośrednich/tydzień, boczny bark jako priorytet 8–10, biceps 8–10, triceps 8–10, czworogłowe 8–12, tył uda 6–10, pośladki 8–12. Dzień nóg: maks. 6 głównych ćwiczeń plus core; akcesoria zwykle 2–3 serie. Nie używaj dwóch podobnych unoszeń bokiem ani trzech wyciskań klatki w jednym dniu bez jawnej specjalizacji.
@@ -1376,16 +1421,7 @@ LIMIT SESJI PUSH: maks. 5 ćwiczeń głównych plus opcjonalnie core. W typowym 
 NAZEWNICTWO BIOMECHANICZNE: nie używaj jako celu mięśniowego określeń „wewnętrzna”, „środkowa”, „górna” ani „dolna klatka”. Używaj „piersiowy większy” i opisuj wariant przez kąt ławki, tor ramienia albo profil oporu. Nie twierdź, że jeden przyrząd daje zawsze „lepszą aktywację” — opisuj, co zmienia linka, maszyna lub hantle.
 ZAKRESY POWTÓRZEŃ: 14–17 powtórzeń jest prawidłowe dla izolacji, jeśli klient kończy serię z planowanym RIR i technika jest stabilna. Wybieraj proste zakresy o szerokości 2–4 powtórzeń: wielostawy zwykle 6–12, stabilne maszyny 8–15, izolacje 12–20. Nie używaj wysokich powtórzeń jako powodu do nieograniczonego zwiększania liczby serii.
 
-ORIENTACYJNE PROGI OBJĘTOŚCI (MEV/MAV/MRV) NA PARTIĘ NA TYDZIEŃ — są punktem odniesienia, nie obowiązkowym minimum. Dla początkującego, osoby 50+ i planu z czterema sesjami nadrzędne są niższe, konserwatywne zakresy podane wyżej:
-Klatka: MEV 10 / MAV 14-18 / MRV 20
-Plecy: MEV 10 / MAV 14-20 / MRV 22
-Barki: MEV 12 / MAV 16-20 / MRV 22
-Biceps: MEV 8 / MAV 10-14 / MRV 16
-Triceps: MEV 8 / MAV 10-14 / MRV 16
-Nogi (czworogłowe): MEV 12 / MAV 16-20 / MRV 24
-Pośladki: MEV 6 / MAV 10-14 / MRV 16
-Core: MEV 8 / MAV 10-14 / MRV 16
-Wg stażu: Początkujący → doln half MEV-MAV. Średni → środek/góra MAV. Zaawansowany → góra MAV, blisko MRV.
+OBJĘTOŚĆ Z KSIĄŻEK (punkt odniesienia, nie obowiązkowe minimum): 10–20 trudnych serii na partię lub wzorzec ruchu tygodniowo ${bookCtx.key('hipertrofia-schoenfeld P2')}${bookCtx.key('piramida-treningu-helms P4')}; początkujący ok. 10–12 serii, 2–3× w tygodniu ${bookCtx.key('piramida-treningu-helms R1')}; zaawansowani bliżej górnej granicy ${bookCtx.key('hipertrofia-schoenfeld P2')}; większość serii RIR 1–2 ${bookCtx.key('hipertrofia-schoenfeld P5')}. Dla osoby 50+ i planu z czterema sesjami nadrzędne są niższe, konserwatywne zakresy podane wyżej.
 POUFNOŚĆ: status farmakologiczny i szczegóły są wyłącznie kontekstem trenera. Nie umieszczaj ich w żadnym polu odpowiedzi JSON. Nie zwiększaj objętości, ciężaru ani częstotliwości na podstawie samego statusu. Dobieraj je według stażu, wykonania i regeneracji.
 
 OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla każdej partii zsumuj w pamięci serie robocze ze wszystkich dni tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Pole "weeklyVolume" musi odzwierciedlać faktyczną sumę, nie szacunek. Nie dodawaj ćwiczenia tylko po to, aby dobić do MEV: najpierw sprawdź czas sesji, staż, wiek, regenerację, priorytety oraz konserwatywne limity objętości.
@@ -1398,7 +1434,7 @@ OGRANICZENIA: techniki wydłużające serię (drop-set, rest-pause, myo-reps, gi
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
-BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE — ponad objętością MEV):
+BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE ZAWSZE — ponad objętością i regułami z książek o objętości):
 1. Uwzględnij WAŻĘ, BMI, kontuzje, wady postawy i analizę postawy z kontekstu użytkownika — plan NIE MOŻE szkodzić.
 2. Przy wyższej masie ciała (≥95 kg lub BMI≥30): maszyny/stabilne warianty, bez plyometrii i skoków, konserwatywne kg i RPE.
 3. Przy wadach postawy / bólu kręgosłupa / kolan / barków: stosuj zasady korekcyjne z kontekstu; unikaj ćwiczeń z ostrzeżeń analizy postawy.
@@ -1426,7 +1462,7 @@ Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (
 `:''}
 
 OBJĘTOŚĆ wg badań (Schoenfeld i wsp. 2017 — zależność dawka–odpowiedź, ≥10 serii/tydz. > <5; Baz-Valle i wsp. 2022 — 12–20 serii/tydz. u trenujących; Pelland i wsp. 2024 — przyrost rośnie z objętością, z malejącym zyskiem)${vt.enhanced?'; klient wspomagany: wyższa tolerancja objętości (Bhasin i wsp. 1996 — większe przyrosty przy suprafizjologicznym testosteronie), cel ok. +30% serii':''}.
-OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
+OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię ${(vt.refs||[]).map(r=>bookCtx.key(r)).join('')}. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
 Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core.
 DOBÓR ĆWICZEŃ WG WZORCA (OBOWIĄZKOWE): najpierw ustal wzorzec ruchowy, kierunek oporu, dominującą funkcję mięśnia, płaszczyznę ruchu i partię — dopiero potem konkretny wariant. Zmiana chwytu, maszyny lub przyrządu NIE jest innym ćwiczeniem. W jednym dniu maksymalnie 1 ćwiczenie na wzorzec (np. podciąganie ALBO ściąganie drążka; wyciskanie na ławce płaskiej hantlami ALBO sztangą). Różne wzorce to np.: przyciąganie pionowe, przyciąganie poziome, łopatka/tył barku, wyprost ramienia prostymi rękami; wyciskanie płaskie, skos, rozpiętki; przysiad/wypychanie obunóż, wykrok jednonóż, wyprost kolana, zgięcie kolana, zawias biodrowy, hip thrust. Wyjątek: świadoma specjalizacja wpisana przez trenera — wtedy max 2 i napisz w notes "specjalizacja". Brakującą objętość dobieraj seriami, nie kolejnym wariantem tego samego wzorca. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
   +(typeof window.tmPrompt==='function'?window.tmPrompt():'')
@@ -1510,7 +1546,8 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 2c. WZORCE: w jednym dniu max 1 ćwiczenie na wzorzec ruchowy (np. podciąganie ALBO ściąganie drążka; wyciskanie płaskie hantlami ALBO sztangą). Chwyt/maszyna/przyrząd to nie inny wzorzec. Zróżnicuj: pion, poziom, łopatka/tył barku, prostymi rękami; płasko, skos, rozpiętki; obunóż, jednonóż, wyprost kolana, zgięcie kolana, zawias, hip thrust. Wyjątek: specjalizacja trenera (max 2, "specjalizacja" w notes).
 3. Preferuj maszyny / Smith / wyciągi, gdy stabilność pomaga realizować cel, lecz zachowaj także ćwiczenia wolnym ciężarem, jeśli są potrzebne dla umiejętności lub preferencji. Różnicuj profil oporu (wydłużenie / środek / skrócenie); pauza w rozciągnięciu jest opcją, nie regułą.
 4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
-5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`+bookCtx.training+(typeof window.tmPrompt==='function'?window.tmPrompt():'');
+5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.
+Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] poniżej mówi inaczej, wybierz regułę z książki. Przy decyzjach opartych na regułach podawaj w "notes" ich oznaczenia [K…].`+bookCtx.training+(typeof window.tmPrompt==='function'?window.tmPrompt():'');
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }
@@ -1579,10 +1616,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       if(!plan.mezocycle_overview)plan.mezocycle_overview=plan.summary||'';
     }
     (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';}));
-    if(bookCtx.sources.length){
-      if(!plan.rationale||typeof plan.rationale!=='object'||Array.isArray(plan.rationale))plan.rationale={};
-      plan.rationale.bookSources=bookCtx.sources;
-    }
+    aplApplyBookRefs(plan,bookCtx);
     plan.volumeTopUp=aplEnforceWeeklyVolume(plan,vt);
     plan.volumeTarget={weekly:vt.weekly,min:vt.weeklyMin,label:vt.label};
     (plan.days||[]).forEach(d=>{
@@ -1632,7 +1666,21 @@ function aplPlanWhyHTML(plan){
     +section('uncertainties','Założenia i niepewność','Nie podano ograniczeń. Nie oznacza to pełnej pewności.')
     +section('reviewTriggers','Kiedy ponownie ocenić plan','Ustal z klientem termin oceny realizacji planu.')
     +section('sources','Źródła wskazane przez AI','Brak wskazanego źródła. Traktuj podpowiedź jako propozycję do weryfikacji.')
-    +(Array.isArray(r.bookSources)&&r.bookSources.length?section('bookSources','Książki z bazy wiedzy podane AI',''):'')+'</details>';
+    +aplPlanBooksHTML(plan,esc)
+    +(Array.isArray(r.bookSources)&&r.bookSources.length?'<div style="margin-top:10px;"><strong>Książki z bazy wiedzy podane AI</strong><ul style="margin:5px 0;padding-left:20px;">'+r.bookSources.filter(x=>typeof x==='string').map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'')+'</details>';
+}
+/** Reguły z książek, na które plan się powołuje (po sprawdzeniu oznaczeń). */
+function aplPlanBooksHTML(plan,esc){
+  const cov=plan&&plan.bookCoverage;
+  if(!cov)return '';
+  const rules=Array.isArray(plan.bookRules)?plan.bookRules:[];
+  const status={zrodlo:'źródło',wniosek:'wniosek',poza_zrodlem:'poza źródłem'};
+  let out='<div data-apl-book-rules style="margin-top:10px;"><strong>Reguły z książek użyte w planie</strong>'
+    +'<p style="margin:5px 0;font-size:12px;color:var(--muted);">AI dostało reguły z '+cov.offered+' z '+cov.total+' książek treningowych w bazie i powołało się na reguły z '+cov.used+' z nich.'
+    +(cov.removedRefs?' Usunięto '+cov.removedRefs+' oznaczeń reguł, których nie ma w bazie.':'')+'</p>';
+  if(!rules.length)return out+'<p style="margin:5px 0;color:var(--muted);">AI nie powołało się na żadną regułę z książek. Traktuj plan jako propozycję do weryfikacji.</p></div>';
+  out+='<ul style="margin:5px 0;padding-left:20px;">'+rules.map(x=>'<li><b>['+esc(x.label)+']</b> '+esc(x.cite)+(x.status&&status[x.status]?' · '+status[x.status]:'')+'<br><span style="font-size:12px;color:var(--muted);">'+esc(x.text)+'</span></li>').join('')+'</ul>';
+  return out+'</div>';
 }
 function aplRenderPlan(plan,client,goal,method,days,weeks){
   const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
@@ -2092,6 +2140,8 @@ function aplBuildSavedPlan(src,cid,client,id){
     ...(typeof gwbSaveMetadata==='function'?gwbSaveMetadata(src):{}),
     name:src.planName||'Plan AI',
     rationale:src.rationale||null,
+    bookRules:Array.isArray(src.bookRules)?src.bookRules:null,
+    bookCoverage:src.bookCoverage||null,
     clientId:cid||null,
     clientName:client?client.name:'',
     method:src.method||'Custom',

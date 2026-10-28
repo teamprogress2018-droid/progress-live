@@ -208,7 +208,173 @@ function booksKbList(){
   return state.data?state.data.books.slice():[];
 }
 
-const api={booksKbDomain,booksKbLoad,booksKbSetData,booksKbSelect,booksKbContext,booksKbUsedSources,booksKbList};
+// ── Generator planu: reguły ze wszystkich książek, krótkie oznaczenia [K1…] i ich sprawdzanie ──
+
+/** Reguły, na których opierają się liczby generatora (objętość, wysiłek, progresja). Zawsze trafiają do promptu. */
+const PLAN_ANCHORS={
+  volume:['hipertrofia-schoenfeld P2','hipertrofia-schoenfeld R8','piramida-treningu-helms P4','piramida-treningu-helms R1'],
+  effort:['hipertrofia-schoenfeld P5','conditioning-for-strength-chandler-brown RPE-TABLE'],
+  sets:['hipertrofia-schoenfeld R1','advances-functional-training-boyle PR5'],
+  periodization:['conditioning-for-strength-chandler-brown P11','hipertrofia-schoenfeld P14','nsca-essentials-personal-training P14'],
+  linear:['piramida-treningu-helms R1','advances-functional-training-boyle PR16'],
+  double:['piramida-treningu-helms PR6'],
+  dup:['hipertrofia-schoenfeld P14','advances-functional-training-boyle PR16'],
+  wave:['advances-functional-training-boyle PR16'],
+  block:['conditioning-for-strength-chandler-brown PER-BLOCK','conditioning-for-strength-chandler-brown R5'],
+  beginner:['hipertrofia-schoenfeld R1','encyklopedia-hipertrofii R1']
+};
+/** Tematy decyzji w planie — z każdego bierzemy reguły z wielu książek. */
+const PLAN_TOPICS=[
+  {k:'objętość',q:'objętość serie tydzień partia mięśniowa'},
+  {k:'intensywność',q:'intensywność RIR RPE zakres powtórzeń ciężar 1RM'},
+  {k:'częstotliwość',q:'częstotliwość split podział dni tydzień trening całego ciała'},
+  {k:'dobór ćwiczeń',q:'dobór ćwiczeń wielostawowe izolowane kolejność wzorzec ruchu'},
+  {k:'przerwy',q:'przerwy między seriami odpoczynek regeneracja'},
+  {k:'progresja',q:'progresja periodyzacja deload obciążenie'},
+  {k:'rozgrzewka',q:'rozgrzewka mobilność aktywacja'}
+];
+
+function findChunk(data,ref){
+  const parts=String(ref||'').trim().split(/\s+/);
+  if(parts.length!==2)return null;
+  const bi=data.books.findIndex(b=>b.id===parts[0]);
+  if(bi<0)return null;
+  return data.chunks.find(c=>c.b===bi&&c.id===parts[1])||null;
+}
+/** Krótka etykieta do tekstu planu, np. „Schoenfeld P2”. */
+const SHORT_NAME={
+  'hipertrofia-schoenfeld':'Schoenfeld','piramida-treningu-helms':'Helms','conditioning-for-strength-chandler-brown':'Chandler-Brown',
+  'nsca-essentials-personal-training':'NSCA','encyklopedia-hipertrofii':'Encyklopedia hipertrofii','zaplanuj-swoj-trening-gluchowski':'Zaplanuj swój trening',
+  'skrypt-trenera-personalnego-gsa':'Skrypt GSA','ukladanie-planow-treningowych':'Stachurski','dietetyka-sportowa-ebook':'Dietetyka sportowa',
+  'dietetyka-sportowa-mizera':'Mizera','22-prawa-marketingu-ries-trout':'Ries-Trout'
+};
+function shortLabel(book,id){
+  const author=String(book.author||'').split(/[;,(]/)[0].trim();
+  const name=SHORT_NAME[book.id]||author.split(/\s+/).filter(Boolean).pop()||book.id;
+  return name.replace(/[,.]$/,'')+' '+id;
+}
+function toRule(c,data,topic){
+  const b=data.books[c.b];
+  return{book:b.id,section:c.s,id:c.id,status:c.st,text:c.t,ref:b.id+' '+c.id,cite:chunkCite(c,data.books),label:shortLabel(b,c.id),topic:topic||''};
+}
+
+/**
+ * Reguły do generatora planu: reguły-kotwice liczb, reguły bezpieczeństwa, reguły z każdego tematu
+ * i co najmniej jedna pasująca reguła z każdej książki treningowej. Każda dostaje oznaczenie K1, K2…
+ * opts: query, safetyQuery, progression, level, nutritionQuery, maxChars, data (do testów).
+ */
+function booksKbPlanSelect(opts){
+  opts=opts||{};
+  const data=opts.data?prepare(opts.data):state.data;
+  const empty={rules:[],books:[],trainingBooks:[]};
+  if(!data||!data.chunks.length)return empty;
+  const max=opts.maxChars||16000;
+  const rules=[],taken=new Set();
+  let chars=0;
+  const add=(c,topic,force)=>{
+    if(!c||taken.has(c))return false;
+    const len=c.t.length+80;
+    if(!force&&chars+len>max)return false;
+    taken.add(c);chars+=len;rules.push(toRule(c,data,topic));return true;
+  };
+  const pick=list=>list.map(r=>findChunk(data,r.ref)).filter(Boolean);
+  /* 1. Kotwice liczb generatora — zawsze, bez względu na limit. */
+  const anchorTopics=['volume','effort','sets','periodization'];
+  if(PLAN_ANCHORS[opts.progression])anchorTopics.push(opts.progression);
+  if(/pocz/.test(norm(opts.level)))anchorTopics.push('beginner');
+  anchorTopics.forEach(t=>PLAN_ANCHORS[t].forEach(ref=>add(findChunk(data,ref),'podstawa liczb',true)));
+  const query=String(opts.query||'');
+  /* 2. Bezpieczeństwo pod ograniczenia klienta. */
+  if(opts.safetyQuery){
+    booksKbSelect({data:opts.data,mode:'training',query:'',safetyQuery:opts.safetyQuery,maxChars:Math.round(max*0.25),perBook:2})
+      .forEach(r=>add(findChunk(data,r.ref),'bezpieczeństwo'));
+  }
+  /* 3. Każdy temat decyzji — po jednej regule z kilku książek. */
+  PLAN_TOPICS.forEach(t=>{
+    booksKbSelect({data:opts.data,mode:'training',query:t.q+' '+query,maxChars:1800,perBook:1})
+      .slice(0,4).forEach(r=>add(findChunk(data,r.ref),t.k));
+  });
+  /* 4. Każda książka treningowa: najlepsza pasująca reguła, jeśli jeszcze żadnej nie ma. */
+  const trainingBooks=data.books.map((b,i)=>({b,i})).filter(x=>data.chunks.some(c=>c.b===x.i&&c.d==='training'));
+  const fullQuery=query+' '+PLAN_TOPICS.map(t=>t.q).join(' ');
+  const bestOfEach=booksKbSelect({data:opts.data,mode:'training',query:fullQuery,maxChars:1e7,perBook:1});
+  trainingBooks.forEach(({b})=>{
+    if(rules.some(r=>r.book===b.id))return;
+    const best=bestOfEach.find(r=>r.book===b.id);
+    if(best)add(findChunk(data,best.ref),'z każdej książki',true);
+  });
+  /* 5. Reszta miejsca: najlepsze reguły pod klienta. */
+  booksKbSelect({data:opts.data,mode:'training',query,safetyQuery:opts.safetyQuery,maxChars:max,perBook:6})
+    .forEach(r=>add(findChunk(data,r.ref),'dopasowanie do klienta'));
+  /* 6. Żywienie (osobna, mała pula). */
+  if(opts.nutritionQuery){
+    booksKbSelect({data:opts.data,mode:'nutrition',query:opts.nutritionQuery,maxChars:1800,perBook:2})
+      .forEach(r=>{const c=findChunk(data,r.ref);if(c&&!taken.has(c)){taken.add(c);rules.push(toRule(c,data,'żywienie'));}});
+  }
+  rules.forEach((r,i)=>{r.key='K'+(i+1);});
+  /* Dwie książki tego samego autora: etykieta z identyfikatorem książki, żeby była jednoznaczna. */
+  const labelBooks={};
+  rules.forEach(r=>{(labelBooks[r.label]=labelBooks[r.label]||new Set()).add(r.book);});
+  rules.forEach(r=>{if(labelBooks[r.label].size>1)r.label=r.ref;});
+  return{
+    rules,
+    books:Array.from(new Set(rules.filter(r=>r.topic!=='żywienie').map(r=>r.book))),
+    trainingBooks:trainingBooks.map(x=>x.b.id)
+  };
+}
+
+/** Blok promptu generatora z regułami [K1…]. */
+function booksKbPlanPrompt(sel){
+  if(!sel||!sel.rules||!sel.rules.length)return'';
+  let out='\n\n=== WIEDZA Z KSIĄŻEK TRENERA — PODSTAWA PLANU ===\n';
+  out+='Reguły z '+sel.books.length+' z '+sel.trainingBooks.length+' książek treningowych w bazie. Opieraj na nich objętość, zakresy powtórzeń, RIR/RPE, przerwy, częstotliwość, dobór i kolejność ćwiczeń, progresję i bezpieczeństwo. ';
+  out+='Gdy domyślne ustawienie aplikacji (powyżej) różni się od reguły z książki, wybierz regułę z książki i zapisz w "rationale.reasoning", co zmieniłeś i na podstawie której reguły. Bezpieczeństwo klienta i wybory trenera (metoda, liczba dni, sprzęt, metody intensyfikacji) zostają nadrzędne.\n';
+  out+='CYTOWANIE: przy każdej decyzji opartej na regule dopisz jej oznaczenie w nawiasie kwadratowym, np. [K3] — w "summary", "periodization", "rationale.reasoning", "rationale.sources" i w "notes" ćwiczeń, które z reguły wynikają. Używaj WYŁĄCZNIE oznaczeń z tej listy; nie wymyślaj innych. Oznaczenia, których nie ma na liście, aplikacja usunie.\n';
+  out+='Status: źródło = wprost z książki; wniosek = wyliczone z treści książki (słabsze); poza źródłem = reguła ostrożności, nie z książki.\n';
+  sel.rules.forEach(r=>{out+='['+r.key+'] ('+(STATUS_LABEL[r.status]||r.status)+'; '+r.topic+') '+r.text+' (Źródło: '+r.cite+')\n';});
+  return out;
+}
+
+/** Oznaczenie reguły ([K3], tytuł reguły z pełnym ref albo krótka etykieta) → reguła z wybranej listy. */
+function resolveKey(token,byKey,byRef,byLabel){
+  const t=String(token||'').trim();
+  return byKey[t.toUpperCase()]||byRef[t]||byLabel[norm(t)]||null;
+}
+
+/**
+ * Sprawdza oznaczenia reguł w planie z AI. Prawidłowe [K3] zamienia na czytelne [Schoenfeld P2],
+ * nieprawidłowe usuwa. Zwraca użyte reguły i liczbę usuniętych oznaczeń.
+ */
+function booksKbValidatePlanRefs(plan,sel){
+  const rules=(sel&&sel.rules)||[];
+  const byKey={},byRef={},byLabel={};
+  rules.forEach(r=>{byKey[r.key]=r;byRef[r.ref]=r;byLabel[norm(r.label)]=r;});
+  const used=new Map();let removed=0;
+  const looksLikeRef=t=>/^K\d+$/i.test(t)||/^[a-z0-9]+(?:-[a-z0-9]+)+\s+[A-Z][A-Z0-9-]*$/.test(t);
+  const fixText=s=>s.replace(/\[([^\[\]\n]{1,90})\]/g,(all,inner)=>{
+    const parts=inner.split(/[,;]\s*/);
+    if(!parts.every(p=>looksLikeRef(p.trim())||resolveKey(p,byKey,byRef,byLabel)))return all;
+    const ok=[];
+    parts.forEach(p=>{
+      const r=resolveKey(p,byKey,byRef,byLabel);
+      if(r){used.set(r.key,r);if(ok.indexOf(r.label)<0)ok.push(r.label);}
+      else removed++;
+    });
+    return ok.length?'['+ok.join(', ')+']':'';
+  }).replace(/\s+([.,;])/g,'$1').replace(/ {2,}/g,' ').trim();
+  const walk=v=>{
+    if(typeof v==='string')return fixText(v);
+    if(Array.isArray(v))return v.map(walk);
+    if(v&&typeof v==='object'){Object.keys(v).forEach(k=>{v[k]=walk(v[k]);});return v;}
+    return v;
+  };
+  walk(plan);
+  const list=Array.from(used.values()).sort((a,b)=>parseInt(a.key.slice(1),10)-parseInt(b.key.slice(1),10));
+  return{used:list,removed,books:Array.from(new Set(list.map(r=>r.book)))};
+}
+
+const api={booksKbDomain,booksKbLoad,booksKbSetData,booksKbSelect,booksKbContext,booksKbUsedSources,booksKbList,
+  booksKbPlanSelect,booksKbPlanPrompt,booksKbValidatePlanRefs,PLAN_ANCHORS};
 Object.assign(root,api);
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
