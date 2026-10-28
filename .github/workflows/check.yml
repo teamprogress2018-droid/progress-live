@@ -231,6 +231,9 @@ jobs:
       - name: 1i5d. Testy bazy wiedzy z książek
         run: node .github/scripts/test_books_kb.js
 
+      - name: 1i5g. Testy generatora planu opartego na książkach (wszystkie książki, oznaczenia reguł)
+        run: node .github/scripts/test_apl_books_plan.js
+
       - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
         run: node .github/scripts/test_edu_tooltips.js
 
