@@ -28,7 +28,9 @@ const libFly = html.slice(html.indexOf('id="nav-library-flyout"'), html.indexOf(
 ok('library has programs templates', /data-screen="programs"/.test(libFly) && /data-screen="templates"/.test(libFly));
 ok('library trimmed tools', !/data-screen="aiplangen"/.test(libFly) && !/data-screen="builder"/.test(libFly) && !/data-screen="calculator"/.test(libFly) && !/data-screen="kb"/.test(libFly));
 const sidebar = html.slice(html.indexOf('<aside class="sidebar"'), html.indexOf('</aside>'));
-ok('plan tools not in sidebar', !/data-screen="aiplangen"/.test(sidebar) && !/data-screen="builder"/.test(sidebar));
+// Generator AI ma jedno wejście: menu Progress Academy (grupa knowledge). Kreator ręczny nie jest w pasku.
+const knowFly = sidebar.slice(sidebar.indexOf('id="nav-knowledge-flyout"'));
+ok('plan tools not in sidebar', (sidebar.match(/data-screen="aiplangen"/g) || []).length === 1 && /data-screen="aiplangen"/.test(knowFly) && !/data-screen="builder"/.test(sidebar));
 ok('calculator kb under Progress Academy', /id="nav-knowledge-flyout"[\s\S]*data-screen="kb"[\s\S]*data-screen="calculator"/.test(html));
 ok('inbox top-level', /class="nav-item" data-screen="inbox"[\s\S]*?Wiadomości/.test(sidebar));
 ok('live calendar automation top-level', (()=>{
@@ -46,7 +48,7 @@ ok('flyout js race guard', /function\s+toggleLibraryFlyout/.test(nine) && /_libF
 ok('flyout positions from trigger rect', /function\s+_positionNavFlyout/.test(nine) && /getBoundingClientRect/.test(nine));
 ok('flyout portals to body', /document\.body\.appendChild\(fly\)/.test(nine));
 ok('goTo marks library group', /library:\['library','plans','programs','templates','tasks','forms','metrics','progbuilder'\]/.test(core) && core.includes("'nav-'+g+'-btn'"));
-ok('nav groups without builder/ai', /navGroupScreens=\{/.test(core) && !/navGroupScreens=\{[^}]*'aiplangen'/.test(core) && !/navGroupScreens=\{[^}]*'builder'/.test(core));
+ok('nav groups without builder; generator AI in knowledge', /navGroupScreens=\{/.test(core) && /knowledge:\[[^\]]*'aiplangen'/.test(core) && !/navGroupScreens=\{[^}]*'builder'/.test(core));
 ok('plans library new-plan picker', html.includes('openNewPlanPicker()') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
 ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));
