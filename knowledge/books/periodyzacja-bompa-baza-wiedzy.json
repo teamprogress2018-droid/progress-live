@@ -1,0 +1,1449 @@
+{
+ "meta": {
+  "title": "Periodización: teoría y metodología del entrenamiento",
+  "titlePl": "Periodyzacja. Teoria i metodyka treningu",
+  "authors": [
+   "Tudor O. Bompa",
+   "Carlo A. Buzzichelli"
+  ],
+  "language_source": "es",
+  "language_base": "pl",
+  "version": "1.0",
+  "date": "2026-10-28",
+  "ref": "bompa-periodyzacja",
+  "domain": "training",
+  "pageNumbering": "Strony = numeracja drukowana wydania hiszpańskiego. Plik PDF ma rozkładówki: PDF n = strony 2n+2 i 2n+3.",
+  "inputNote": "Plik 462740567-Periodization-5-edicion-Bompa-pdf 2.pdf (174 strony-rozkładówki, warstwa OCR). Opracowanie własnymi słowami po polsku, bez dosłownego tłumaczenia. Książka jest pisana dla trenerów sportowców; zasady dla klientów rekreacyjnych to wnioski.",
+  "audience": "sportowcy wyczynowi i trenerzy przygotowania motorycznego"
+ },
+ "principles": [
+  {
+   "id": "P01",
+   "rule": "Adaptacja wymaga bodźca stopniowo rosnącego; bodziec stały prowadzi do plateau, a nadmierny lub zbyt chaotycznie zmieniany do złej adaptacji.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "1 Podstawy treningu",
+     "pages": "19-21"
+    }
+   ]
+  },
+  {
+   "id": "P02",
+   "rule": "Zmęczenie po sesji mija mniej więcej trzy razy szybciej niż utrzymuje się jej pozytywny efekt (przykład: ok. 24 h zmęczenia wobec ok. 72 h efektu).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "1 Podstawy treningu",
+     "pages": "23"
+    }
+   ]
+  },
+  {
+   "id": "P03",
+   "rule": "Superkompensacja: zmęczenie (1–2 h) → odbudowa (24–48 h) → superkompensacja (36–72 h) → zanik efektu bez nowego bodźca (3–7 dni). Po umiarkowanym wysiłku tlenowym ok. 6–8 h, po bardzo intensywnym obciążeniu układu nerwowego ponad 24 h (do 48 h).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "1 Podstawy treningu",
+     "pages": "23-29"
+    }
+   ]
+  },
+  {
+   "id": "P04",
+   "rule": "Częstsze sesje przyspieszają postęp tylko wtedy, gdy intensywności są przeplatane; zbyt częste bodźce maksymalne prowadzą do przetrenowania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "1 Podstawy treningu",
+     "pages": "26-29"
+    }
+   ]
+  },
+  {
+   "id": "P05",
+   "rule": "Najpierw wszechstronny rozwój, potem specjalizacja; w większości sportów specjalizacja nie wcześniej niż ok. 15. roku życia.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "2 Zasady treningu",
+     "pages": "40-45"
+    }
+   ]
+  },
+  {
+   "id": "P06",
+   "rule": "Indywidualizacja: uwzględnij wiek biologiczny, staż, historię, zdrowie i stres pozatreningowy (np. egzaminy – zmniejsz obciążenie). Duża objętość połączona z dużym obciążeniem zwiększa ryzyko urazu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "2 Zasady treningu",
+     "pages": "49-51"
+    }
+   ]
+  },
+  {
+   "id": "P07",
+   "rule": "Zmienność: monotonia sprzyja stagnacji. Gdy parametry obciążenia mocno się zmieniają, dobór ćwiczeń trzymaj stały, i odwrotnie. Początkujący: więcej różnych ćwiczeń; zaawansowani: mniej ćwiczeń, więcej zmienności obciążeń.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "2 Zasady treningu",
+     "pages": "51-53"
+    }
+   ]
+  },
+  {
+   "id": "P08",
+   "rule": "Nagły skok obciążenia wydłuża adaptację i zwiększa ryzyko urazu; czas adaptacji jest proporcjonalny do wielkości skoku.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "2 Zasady treningu",
+     "pages": "55"
+    }
+   ]
+  },
+  {
+   "id": "P09",
+   "rule": "Kolejność przygotowania: fizyczne → techniczne → taktyczne → psychiczne. Zbyt krótki okres przygotowawczy daje zmęczenie i słabą technikę.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "3 Przygotowanie do treningu",
+     "pages": "63"
+    }
+   ]
+  },
+  {
+   "id": "P10",
+   "rule": "Technika przed kondycją: zmęczenie psuje technikę, więc ciężki dzień kondycyjny nie powinien poprzedzać dnia technicznego; nowe umiejętności i korekty techniki zaraz po rozgrzewce, w stanie wypoczętym.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "3 Przygotowanie do treningu",
+     "pages": "68-71, 78-81"
+    }
+   ]
+  },
+  {
+   "id": "P11",
+   "rule": "Wysoka intensywność daje szybszy, ale mniej stabilny postęp i większe ryzyko przetrenowania; niska – wolniejszy, stabilniejszy. Na początku okresu przygotowawczego duża objętość i niższa intensywność, potem objętość spada, a intensywność rośnie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "4 Zmienne treningu",
+     "pages": "90"
+    }
+   ]
+  },
+  {
+   "id": "P12",
+   "rule": "Wysoka objętość i wysoka intensywność jednocześnie oznaczają duże ryzyko przetrenowania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "8 Plan roczny",
+     "pages": "204-209"
+    }
+   ]
+  },
+  {
+   "id": "P13",
+   "rule": "Plan szczegółowo rozpisuj tylko na bieżący makrocykl; kolejny dopasuj do realnych postępów, a sesję dzienną do samopoczucia zawodnika.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "5 Periodyzacja zdolności biomotorycznych",
+     "pages": "108-110, 181"
+    }
+   ]
+  },
+  {
+   "id": "P14",
+   "rule": "Moc wymaga wcześniej zbudowanej siły maksymalnej; w każdym modelu periodyzacji siły zaczyna się od adaptacji anatomicznej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "5 Periodyzacja zdolności biomotorycznych",
+     "pages": "112-115, 280"
+    }
+   ]
+  },
+  {
+   "id": "P15",
+   "rule": "Siłę zawsze trenuj razem z innymi zdolnościami; dodanie treningu siłowego poprawia wyniki także w sportach wytrzymałościowych.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "248-250"
+    }
+   ]
+  },
+  {
+   "id": "P16",
+   "rule": "Taper (rozładowanie przed startem) to stopniowe, nieliniowe zmniejszanie obciążenia; zmęczenie znika szybko, a wytrenowanie utrzymuje się dłużej, ale zbyt długi taper prowadzi do roztrenowania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "9 Szczyt formy",
+     "pages": "226-229"
+    }
+   ]
+  }
+ ],
+ "exerciseRules": [
+  {
+   "id": "E01",
+   "rule": "Najlepszy zestaw środków: wolne ciężary + plyometria + piłki lekarskie + zwinność. Ćwiczenia wielostawowe dużych grup (przysiady, podciągania, zarzuty) przenoszą się na sport lepiej niż jednostawowe i maszyny.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "258-259"
+    }
+   ]
+  },
+  {
+   "id": "E02",
+   "rule": "Kolejność w sesji siłowej: najpierw wielostawowe dla dużych grup, potem jednostawowe i małe grupy; przeplataj górę i dół ciała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "269-270"
+    }
+   ]
+  },
+  {
+   "id": "E03",
+   "rule": "Kolejność w sesji/mikrocyklu: technika i koordynacja/zwinność → szybkość → siła → wytrzymałość (na końcu).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "140-141, 154-155"
+    }
+   ]
+  },
+  {
+   "id": "E04",
+   "rule": "Dobór ćwiczeń według głównych mięśni i linii działania siły w sporcie; ćwiczenia ogólne na początku okresu przygotowawczego, specyficzne później; dodaj ćwiczenia kompensacyjne na słabe ogniwa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "274-277, 213-215"
+    }
+   ]
+  },
+  {
+   "id": "E05",
+   "rule": "Przyspieszenie w sprincie zależy od sił poziomych: więcej ćwiczeń w wektorze przód–tył (np. swing kettlebell, hip thrust, skoki w dal).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "333-335"
+    }
+   ]
+  },
+  {
+   "id": "E06",
+   "rule": "Aktywacja pośladków w rozgrzewce (mostki obunóż i jednonóż, wyprosty biodra w klęku podpartym), by odciążyć dwugłowe ud i odcinek lędźwiowy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "139-140"
+    }
+   ]
+  },
+  {
+   "id": "E07",
+   "rule": "Rozciąganie dynamiczne w rozgrzewce; statyczne obniża siłę i moc, więc stosuj je w schłodzeniu (wtedy poprawia zakres ruchu).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "139, 141-142"
+    }
+   ]
+  },
+  {
+   "id": "E08",
+   "rule": "Modne niestabilne przyrządy (np. BOSU) autorzy uznają za często nieskuteczne; standardem są wolne ciężary.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "258-259"
+    }
+   ]
+  }
+ ],
+ "progressionRules": [
+  {
+   "id": "G01",
+   "rule": "Fazy periodyzacji siły: adaptacja anatomiczna → (hipertrofia, jeśli potrzebna) → siła maksymalna → konwersja (moc / wytrzymałość mocy / wytrzymałość mięśniowa) → utrzymanie → zawieszenie przed startem → kompensacja. Minimum: AA, siła maks., konwersja, utrzymanie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "280-281, 112-115"
+    }
+   ]
+  },
+  {
+   "id": "G02",
+   "rule": "Adaptacja anatomiczna: 2–3 serie × 8–20 powt., 40–65% 1RM, więcej ćwiczeń, równowaga agonista–antagonista, sporo ćwiczeń jednostronnych; czas pod napięciem 30–70 s na serię, ekscentryka 3–5 s.",
+   "status": "zrodlo",
+   "sets": "2-3",
+   "reps": "8-20",
+   "intensity": "40-65% 1RM",
+   "duration": "początkujący 8–12 tyg. (juniorzy 9–12), zaawansowani 2–4 tyg.",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "5 Periodyzacja zdolności biomotorycznych",
+     "pages": "117, 281"
+    }
+   ]
+  },
+  {
+   "id": "G03",
+   "rule": "Minimalna sekwencja przed mocą: AA ≥3 tyg. → siła maksymalna ≥4 tyg. → konwersja ≥4 tyg. (razem ≥11 tyg.).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "5 Periodyzacja zdolności biomotorycznych",
+     "pages": "115"
+    }
+   ]
+  },
+  {
+   "id": "G04",
+   "rule": "Siła maksymalna 1–3 mies., przerwy 3–5 min, faza koncentryczna eksplozywna. Etap 1 (koordynacja międzymięśniowa) i etap 2 (wewnątrzmięśniowa, 1–3 powt., 80–90% 1RM). UWAGA: dla etapu 1 książka podaje 2–6 powt. przy 70–80% 1RM (s.117) oraz szerzej 40–80% 1RM przy wielu seriach (s.282) – oba zakresy są w źródle.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "117, 282-283"
+    }
+   ]
+  },
+  {
+   "id": "G05",
+   "rule": "Konwersja na moc: 40–80% 1RM wykonywane jak najszybciej, ćwiczenia balistyczne i plyometria, 4–8 tyg.; konwersja na wytrzymałość mięśniową: ponad 15–20 powt. w serii.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "117, 119-120, 282-283"
+    }
+   ]
+  },
+  {
+   "id": "G06",
+   "rule": "Utrzymanie siły w sezonie: 2–5 ćwiczeń, 2–4 serie × 1–6 powt., ok. 2×/tydz. po ok. 30 min (minimum 1 sesja/tydz.); intensywność 60–80% dla siły maks., 30–80% dla mocy, 30–60% dla wytrzymałości mięśniowej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "5 Periodyzacja zdolności biomotorycznych",
+     "pages": "118, 283"
+    }
+   ]
+  },
+  {
+   "id": "G07",
+   "rule": "Zakończ trening siłowy 3–14 dni przed głównym startem (sporty indywidualne zwykle 5–7 dni); kobiety bliżej startu (do 3 dni), ciężsi zawodnicy wcześniej niż lżejsi.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "118, 284"
+    }
+   ]
+  },
+  {
+   "id": "G08",
+   "rule": "Zakresy powtórzeń wg celu: 1–6 siła maksymalna; 1–10 moc (zależnie od fazy); 15–30 krótka wytrzymałość mięśniowa; ponad 50 długa wytrzymałość mięśniowa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "264-265"
+    }
+   ]
+  },
+  {
+   "id": "G09",
+   "rule": "Strefy intensywności w sile: 100–125% 1RM supramaksymalna (tylko bardzo zaawansowani, rzadko), 90–100% maksymalna, 80–90% ciężka, 70–80% średnio ciężka, 50–70% średnia, 20–50% niska. Większość pracy wykonuje się przy 50–80%.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "262-263"
+    }
+   ]
+  },
+  {
+   "id": "G10",
+   "rule": "Bufor (zapas do upadku): duży bufor = lepsza technika i eksplozywność, mniej zmęczenia (moc, koordynacja wewnątrzmięśniowa, rozładowanie). W makrocyklu siły maks. zmniejszaj bufor, podnosząc ciężar przy tej samej liczbie powtórzeń. Trening do upadku jest gorszy dla siły maksymalnej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "262-266"
+    }
+   ]
+  },
+  {
+   "id": "G11",
+   "rule": "Liczba serii: niewytrenowani 3–4, wytrenowani 4–8; jedna seria to za mało. W okresie przygotowawczym więcej ćwiczeń i powtórzeń, mniej serii; bliżej startów mniej ćwiczeń, więcej serii.",
+   "status": "zrodlo",
+   "sets": "3-4 niewytrenowani; 4-8 wytrenowani",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "268-269"
+    }
+   ]
+  },
+  {
+   "id": "G12",
+   "rule": "Przerwy między seriami: dla siły i mocy 2–5 min (przerwa poniżej 1 min obniża siłę i moc o 12–44%); krótsze przerwy dla wytrzymałości mięśniowej i hipertrofii.",
+   "status": "zrodlo",
+   "rest": "2-5 min siła/moc",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "269"
+    }
+   ]
+  },
+  {
+   "id": "G13",
+   "rule": "Częstotliwość siłowa: początkujący i średnio zaawansowani całe ciało 2–3×/tydz.; większość sportowców 2–4 sesje/tydz.; zaawansowani częściej. Dwie krótsze sesje dziennie przy tej samej objętości działają lepiej niż jedna długa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "92-93, 270, 145-146"
+    }
+   ]
+  },
+  {
+   "id": "G14",
+   "rule": "Schematy obciążenia: piramida płaska (wszystkie serie robocze tym samym ciężarem, 70–90%) – najlepsza dla siły maks.; piramida rosnąca o rozpiętości 10–15% (nie więcej); piramida podwójna max 5–6 serii; piramida skośna (ostatnia seria lżejsza) w fazie utrzymania; falowanie – seria lekka po ciężkiej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "270-272"
+    }
+   ]
+  },
+  {
+   "id": "G15",
+   "rule": "Serie klastrowe (10–30 s przerwy między powtórzeniami) – najlepsze do ćwiczeń balistycznych i eksplozywnych; dla hipertrofii i siły maks. lepsze serie tradycyjne.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "273-274"
+    }
+   ]
+  },
+  {
+   "id": "G16",
+   "rule": "Struktura obciążeń w makrocyklu: schodkowa 3:1 (3 tygodnie wzrostu + 1 rozładowania) najczęściej; na początku fazy przygotowawczej 4:1; młodzi 2:1; przy dużym zmęczeniu 3:2; w fazie specyficznej sportów siły/mocy obciążenie płaskie 2:1; w fazie startowej 2:1, 1:1 lub 2:2.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "7 Mikrocykl i makrocykl",
+     "pages": "56-61, 178"
+    }
+   ]
+  },
+  {
+   "id": "G17",
+   "rule": "Obciążenie liniowe (ciągły wzrost) stosuj tylko krótko u początkujących; dłużej prowadzi do przetrenowania. Bloki skoncentrowane tylko dla zaawansowanych; po 2 tyg. bardzo dużego obciążenia potrzeba ok. 2 tyg. rozładowania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "2 Zasady treningu",
+     "pages": "56-59, 178"
+    }
+   ]
+  },
+  {
+   "id": "G18",
+   "rule": "Test 1RM: u wytrenowanych bezpieczny raz na 3–4 tyg., na końcu tygodnia rozładowania, po stopniowej rozgrzewce (kilka serii od ok. 13% do 100% z rosnącymi przerwami 30 s–6 min). Wzory z wielu powtórzeń często zawyżają 1RM. Program pisz na bieżący makrocykl i testuj przed kolejnym.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "274-277, 280"
+    }
+   ]
+  },
+  {
+   "id": "G19",
+   "rule": "Adaptacje nerwowe dominują przez pierwsze 6–20 tyg. treningu siłowego; widoczna hipertrofia pojawia się później (mniejsze mięśnie wcześniej, ćwiczenia wielostawowe nóg później).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "253-256"
+    }
+   ]
+  },
+  {
+   "id": "G20",
+   "rule": "Roztrenowanie: VO2max spada ok. 4% po 4 dniach, ok. 7% po 3 tyg., ok. 14% po 4 tyg.; siła spada o 6–10%, a moc o 14–17% po 4 tyg. bez treningu siłowego. Amatorzy utrzymują siłę przy 2–3 tyg. przerwy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "8 Plan roczny",
+     "pages": "192-195"
+    }
+   ]
+  },
+  {
+   "id": "G21",
+   "rule": "Faza przejściowa: 2–4 tyg. (u młodych do 6), aktywny wypoczynek (inne sporty), utrzymanie ok. 40–50% przygotowania ogólnego i podstaw siły (antagoniści, stabilizatory, ćwiczenia kompensacyjne); dłużej niż ok. 4 tyg. – roztrenowanie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "8 Plan roczny",
+     "pages": "192-195, 284-285"
+    }
+   ]
+  },
+  {
+   "id": "G22",
+   "rule": "Taper: 8–14 dni; objętość −41–60% (po bardzo dużym obciążeniu −60–90%); intensywność utrzymana (umiarkowana–wysoka); częstotliwość ≥80% sprzed tapera; najlepszy model wykładniczy szybki; oczekiwana poprawa ok. 3%. Skracaj sesje raczej niż usuwaj je.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "9 Szczyt formy",
+     "pages": "230-235, 244-245"
+    }
+   ]
+  },
+  {
+   "id": "G23",
+   "rule": "Indeks szczytu formy: 1 = 100% (najważniejsze starty, pełny taper), 2 ≈ 90%, 3 = 70–80% (sparingi, słabi rywale), 4 = 60% (faza przygotowawcza), 5 = ≤50% (przejściowa). Pełny szczyt tylko na 2–3 starty w sezonie; przed pozostałymi 2–3 dni rozładowania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "8 Plan roczny",
+     "pages": "208-210, 236-239"
+    }
+   ]
+  },
+  {
+   "id": "G24",
+   "rule": "Testy: krótka bateria 4–8 trafnych i rzetelnych testów; pierwsze w 1. mikrocyklu fazy przygotowawczej, potem na końcu każdego makrocyklu. Poprawa → zostaw strukturę; stagnacja lub spadek → zmień kolejny cykl. Standard nieosiągnięty przez 2 makrocykle → szukaj przyczyny.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "8 Plan roczny",
+     "pages": "219-221"
+    }
+   ]
+  },
+  {
+   "id": "G25",
+   "rule": "Mikrocykl: zwykle 1 szczyt obciążenia (ok. 3. dnia), czasem 2, po nim 1–2 dni lżejsze; obciążenia maksymalne ≤2×/tydz.; zacznij od niskiej lub średniej intensywności i faluj.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "7 Mikrocykl i makrocykl",
+     "pages": "154-158"
+    }
+   ]
+  },
+  {
+   "id": "G26",
+   "rule": "Mikrocykl rozładowania na końcu makrocyklu: objętość tygodniowa −50% lub więcej, intensywność utrzymana lub −5–10%.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "7 Mikrocykl i makrocykl",
+     "pages": "164"
+    }
+   ]
+  },
+  {
+   "id": "G27",
+   "rule": "Jeden start w tygodniu: 1–2 dni regeneracji po starcie, główna praca siłowa i mocy w środku tygodnia, rozładowanie 2 dni przed startem. Dzień po starcie – aktywny odpoczynek.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "7 Mikrocykl i makrocykl",
+     "pages": "154-155, 164-165"
+    }
+   ]
+  },
+  {
+   "id": "G28",
+   "rule": "Fazy roku: przygotowawcza 3–6 mies. (podfaza ogólna to 25–33% fazy przygotowawczej, praca intensywna ≤40% w podfazie ogólnej), startowa, przejściowa. Nie startuj w podfazie ogólnej. Początkujący i juniorzy – monocykl; wiele szczytów dopiero po 4–6 latach stażu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "8 Plan roczny",
+     "pages": "110-111, 184-188, 199-203"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S01",
+   "rule": "Zbyt krótka adaptacja anatomiczna zwiększa ryzyko urazu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "5 Periodyzacja zdolności biomotorycznych",
+     "pages": "117"
+    }
+   ]
+  },
+  {
+   "id": "S02",
+   "rule": "Duża objętość połączona z dużym obciążeniem to ryzyko urazu, zwłaszcza u młodych.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "2 Zasady treningu",
+     "pages": "49-51"
+    }
+   ]
+  },
+  {
+   "id": "S03",
+   "rule": "Nie trenuj szybkości ani zwinności w zmęczeniu; przy psuciu się techniki zmniejsz objętość lub przerwij (zmęczenie w sprincie: dłuższy, wolniejszy krok i dłuższy kontakt z podłożem).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "333-335, 338-341"
+    }
+   ]
+  },
+  {
+   "id": "S04",
+   "rule": "Trzy lub więcej sesji interwałowych wysokiej intensywności tygodniowo daje markery przetrenowania; zalecane 1–2 dni takiej pracy w tygodniu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "312-313"
+    }
+   ]
+  },
+  {
+   "id": "S05",
+   "rule": "Zbyt częste bodźce maksymalne prowadzą do przetrenowania; za dużo pracy przy 90–100% 1RM również.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "1 Podstawy treningu",
+     "pages": "26-29, 270-272"
+    }
+   ]
+  },
+  {
+   "id": "S06",
+   "rule": "Stres pozatreningowy (egzaminy, praca) sumuje się z treningowym – zmniejsz wtedy obciążenie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "2 Zasady treningu",
+     "pages": "49-51"
+    }
+   ]
+  },
+  {
+   "id": "S07",
+   "rule": "Monitoruj codziennie proste wskaźniki: tętno spoczynkowe, HRV, nastrój, sen, siła chwytu; prowadź dziennik treningowy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "129-133, 94"
+    }
+   ]
+  },
+  {
+   "id": "S08",
+   "rule": "Plany wieloszczytowe są nieodpowiednie dla juniorów.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "8 Plan roczny",
+     "pages": "113-115, 199-203"
+    }
+   ]
+  },
+  {
+   "id": "S09",
+   "rule": "Ostre przetrenowanie 6–8 tyg. przed sezonem może zaszkodzić całemu sezonowi.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "314-315"
+    }
+   ]
+  }
+ ],
+ "enduranceRules": [
+  {
+   "id": "W01",
+   "rule": "Sześć stref wytrzymałości: 1 alaktyczna (2–8 s, >95%, przerwa ok. 50–100× dłuższa od pracy); 2 tolerancja mleczanu (15–90 s, max 2×/tydz.); 3 VO2max (1–6 min przy 90–100% VO2max); 4 próg beztlenowy (np. 1–6 min przy 85–90% VO2max lub 5–7 × 8–15 min przy 80–85%); 5 próg tlenowy (ciągle lub odcinki >10 min, HR ok. 130–150); 6 kompensacja (45–60% VO2max, aktywna regeneracja).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "320-323"
+    }
+   ]
+  },
+  {
+   "id": "W02",
+   "rule": "Po sesji z górnych stref (1–3) zaplanuj sesję strefy 5 (przeplatanie); mikrocykl planuj jako numery stref na każdą sesję.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "324-325"
+    }
+   ]
+  },
+  {
+   "id": "W03",
+   "rule": "W sportach siły i mocy nie stosuj długiego, ciągłego biegu o niskiej intensywności (obniża moc i RFD, przesuwa włókna w stronę wolnych); wytrzymałość buduj sprintami i interwałami. Wyjątek: przy 3 meczach w 7 dniach lekki trening tlenowy pomaga regeneracji.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "286-288, 297-298, 314-315"
+    }
+   ]
+  },
+  {
+   "id": "W04",
+   "rule": "Trening długi wolny (tempo konwersacyjne): 30–120+ min przy 66–80% HRmax; aktywna regeneracja przy HR <65% HRmax przez 30–60 min.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "298-301"
+    }
+   ]
+  },
+  {
+   "id": "W05",
+   "rule": "Interwały tlenowe: długość odcinka 50–60% czasu utrzymania prędkości przy VO2max; przerwa do spadku HR do 65% HRmax lub aktywnie 50% tej prędkości przez tyle samo co praca; 2×/tydz. maks. przez 4 tygodnie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "302-304"
+    }
+   ]
+  },
+  {
+   "id": "W06",
+   "rule": "Przykład interwałów poprawiających VO2max i ekonomię: 4 × 4 min przy 90–95% HRmax z 3 min truchtu, 2×/tydz. przez 8 tyg. (piłkarze).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "296-297"
+    }
+   ]
+  },
+  {
+   "id": "W07",
+   "rule": "Interwały beztlenowe: 4–10 × 15–30 s maksymalnie, przerwy 45 s–12 min, 1–2×/tydz.; efekty już po ok. 2 tyg.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "304"
+    }
+   ]
+  },
+  {
+   "id": "W08",
+   "rule": "Prosty test prędkości tlenowej: 6 min biegu maksymalnie na dystans; dystans w metrach × 10 = prędkość w m/h (np. 1600 m → 16 km/h).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "304"
+    }
+   ]
+  },
+  {
+   "id": "W09",
+   "rule": "Stosunek pracy do przerwy: ok. 1:1 rozwija system tlenowy, ok. 1:12–1:20 i dłuższe – systemy beztlenowe; szybkość absolutna 1:50–1:100.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "36-37, 308-309, 344-345"
+    }
+   ]
+  },
+  {
+   "id": "W10",
+   "rule": "Przy dodaniu treningu siłowego wytrzymałościowcom zmniejsz objętość wytrzymałościową o 19–37%; samo dokładanie siły do istniejącego planu zwykle nie pomaga (zmęczenie). Wytrzymałościowcy przybierają mniej niż 1% masy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "296-297, 306-307"
+    }
+   ]
+  },
+  {
+   "id": "W11",
+   "rule": "Interwały grupowe: grupuj według wydolności – przerwa ustalona według najszybszego daje wolniejszym zbyt krótki odpoczynek. Tętno nie nadaje się do sterowania interwałami beztlenowymi – używaj czasów docelowych.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "11 Wytrzymałość",
+     "pages": "310-311"
+    }
+   ]
+  },
+  {
+   "id": "W12",
+   "rule": "HRmax z wzoru 220 − wiek jest mniej dokładne niż test.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "4 Zmienne treningu",
+     "pages": "86-89"
+    }
+   ]
+  }
+ ],
+ "speedRules": [
+  {
+   "id": "V01",
+   "rule": "Szybkość maksymalną trenuj krótkimi powtórzeniami z pełną przerwą; przyspieszenie: sprinty 10–40 m przy 95–100%, przerwy 1–4 min; prędkość maksymalna: 40–80 m przy 90–100%, przerwy 3–8 min, między seriami 6–20 min.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "120-122, 328-331, 336-337"
+    }
+   ]
+  },
+  {
+   "id": "V02",
+   "rule": "Rozgrzewka przed szybkością: dynamiczna; przerwy między powtórzeniami szybkości/zwinności min. 3–5 min; metoda powtórzeniowa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "342-343"
+    }
+   ]
+  },
+  {
+   "id": "V03",
+   "rule": "Czas docelowy odcinka = dystans / (prędkość maks. × procent). Przykład: 100 m w 11 s → 9,1 m/s; 90% → 12,2 s. Progresja w makrocyklu np. 90 → 92,5 → 95%.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "344-345"
+    }
+   ]
+  },
+  {
+   "id": "V04",
+   "rule": "Sam sprint prosty słabo przenosi się na zmiany kierunku – dodaj ćwiczenia zwinności (także z piłką) i reakcji na bodźce; hamowanie wymaga siły ekscentrycznej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "338-339"
+    }
+   ]
+  },
+  {
+   "id": "V05",
+   "rule": "Informacja zwrotna: początkujący częściej; max 1–2 korekty techniczne na sesję według priorytetu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "340-341"
+    }
+   ]
+  },
+  {
+   "id": "V06",
+   "rule": "Zwinność: zwykle 5–10 s bardzo intensywnie; czas zależy od systemu energetycznego i pozycji zawodnika.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "12 Szybkość i zwinność",
+     "pages": "342-343"
+    }
+   ]
+  }
+ ],
+ "sessionRules": [
+  {
+   "id": "SE01",
+   "rule": "Rozgrzewka: ogólna 5–10 min przy 40–60% VO2max + specyficzna 10–15 min z rosnącą intensywnością; ≥5 min przerwy przed częścią główną; łącznie 20–50 min (sprinterzy dłużej, wytrzymałościowcy krócej).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "137-138"
+    }
+   ]
+  },
+  {
+   "id": "SE02",
+   "rule": "Część główna: 2–3 cele na sesję; więcej celów spowalnia postęp. Sesja intensywna – mało celów i krótko; sesja lekka – więcej celów i dłużej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "141, 144"
+    }
+   ]
+  },
+  {
+   "id": "SE03",
+   "rule": "Schłodzenie 20–40 min: 10–20 min aktywnej regeneracji poniżej 50% HRmax + 10–20 min rozciągania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "141-142"
+    }
+   ]
+  },
+  {
+   "id": "SE04",
+   "rule": "Struktura sesji: 3 części (rozgrzewka, główna, schłodzenie) dla zaawansowanych; 4 części (+ krótki wstęp z celem i motywacją 5–10 min) dla początkujących i w fazie przygotowawczej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "136"
+    }
+   ]
+  },
+  {
+   "id": "SE05",
+   "rule": "Plan sesji na piśmie: cel, data, miejsce, sprzęt, ćwiczenia, dawka (serie, powtórzenia, czas), intensywność (%1RM, HR, tempo), punkty uwagi.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "145-146"
+    }
+   ]
+  },
+  {
+   "id": "SE06",
+   "rule": "Sesje uzupełniające 20–60 min (np. rano), maksymalnie 2 cele, najlepiej jeden słaby punkt (wytrzymałość ogólna, gibkość, siła).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "6 Planowanie i sesja",
+     "pages": "144-145"
+    }
+   ]
+  },
+  {
+   "id": "SE07",
+   "rule": "Potencjacja poaktywacyjna: ciężkie ćwiczenie ≥80% 1RM, 1–3 powt., 4–5 min przed skokiem lub sprintem; działa głównie u wysoko wytrenowanych.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "269-270, 140-141"
+    }
+   ]
+  }
+ ],
+ "planTemplates": [
+  {
+   "id": "T01",
+   "status": "zrodlo",
+   "phases": [
+    {
+     "phase": "Adaptacja anatomiczna",
+     "weeks": "≥3 (początkujący 8–12)",
+     "sets": "2-3",
+     "reps": "8-20",
+     "intensity": "40-65% 1RM"
+    },
+    {
+     "phase": "Siła maksymalna",
+     "weeks": "≥4 (1–3 mies.)",
+     "sets": "3-8",
+     "reps": "1-6",
+     "intensity": "70-90% 1RM (etap 1 także 40-80%)",
+     "rest": "3-5 min"
+    },
+    {
+     "phase": "Konwersja na moc",
+     "weeks": "≥4 (4–8)",
+     "reps": "1-10",
+     "intensity": "40-80% 1RM, maksymalnie szybko"
+    },
+    {
+     "phase": "Utrzymanie (sezon)",
+     "sessionsPerWeek": "1-2",
+     "exercises": "2-5",
+     "sets": "2-4",
+     "reps": "1-6"
+    },
+    {
+     "phase": "Zawieszenie",
+     "note": "zakończ siłę 3–14 dni przed głównym startem"
+    },
+    {
+     "phase": "Kompensacja (przejściowa)",
+     "weeks": "2-4",
+     "note": "aktywny wypoczynek, podtrzymanie stabilizatorów i antagonistów"
+    }
+   ],
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "5 Periodyzacja zdolności biomotorycznych",
+     "pages": "112-118, 280-285"
+    }
+   ],
+   "name": "Szkielet periodyzacji siły na sezon (sporty siły/mocy)"
+  },
+  {
+   "id": "T02",
+   "status": "zrodlo",
+   "weeks": [
+    {
+     "week": 1,
+     "load": "średnie"
+    },
+    {
+     "week": 2,
+     "load": "wyższe"
+    },
+    {
+     "week": 3,
+     "load": "najwyższe"
+    },
+    {
+     "week": 4,
+     "load": "rozładowanie: objętość −50% lub więcej, intensywność utrzymana lub −5–10%; na końcu ewentualnie test"
+    }
+   ],
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "7 Mikrocykl i makrocykl",
+     "pages": "56-57, 178, 164"
+    }
+   ],
+   "name": "Makrocykl 4-tygodniowy schodkowy 3:1"
+  },
+  {
+   "id": "T03",
+   "status": "zrodlo",
+   "days": [
+    {
+     "day": "dzień po starcie",
+     "content": "aktywny odpoczynek / regeneracja"
+    },
+    {
+     "day": "wtorek",
+     "content": "najcięższy trening (siła, moc)"
+    },
+    {
+     "day": "środa",
+     "content": "średnio"
+    },
+    {
+     "day": "czwartek–piątek",
+     "content": "rozładowanie"
+    },
+    {
+     "day": "weekend",
+     "content": "start"
+    }
+   ],
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "7 Mikrocykl i makrocykl",
+     "pages": "164-165"
+    }
+   ],
+   "name": "Tydzień z jednym startem/meczem w weekend"
+  },
+  {
+   "id": "T04",
+   "status": "zrodlo",
+   "params": {
+    "volume": "−41–60% (po bardzo dużym obciążeniu −60–90%), wykładniczo",
+    "intensity": "utrzymana (moc: najwyżej −5–10%)",
+    "frequency": "≥80% sprzed tapera",
+    "noNewExercises": true
+   },
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "9 Szczyt formy",
+     "pages": "230-235, 242-245"
+    }
+   ],
+   "name": "Taper przed głównym startem (8–14 dni)"
+  }
+ ],
+ "contradictions": [
+  {
+   "id": "C01",
+   "rule": "Etap 1 siły maksymalnej (koordynacja międzymięśniowa): w rozdz. 5 podano 2–6 powt. przy 70–80% 1RM, w rozdz. 10 – wiele serii przy 40–80% 1RM. Rekomendacja dla aplikacji: dla klientów PT używać węższego zakresu 70–80%, a 40–80% traktować jako wariant techniczny.",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "117, 282"
+    }
+   ]
+  },
+  {
+   "id": "C02",
+   "rule": "Zakończenie siły przed startem: 5–7 dni (rozdz. 5) vs 3–14 dni zależnie od sportu i płci (rozdz. 10). Oba w źródle.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "10 Siła i moc",
+     "pages": "118, 284"
+    }
+   ]
+  },
+  {
+   "id": "C03",
+   "rule": "Rycina udziału systemów energetycznych wg czasu wysiłku (ok. 1 min) różni się od opisu w tekście; do sprawdzenia na obrazie strony.",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "bompa-periodyzacja",
+     "chapter": "1 Podstawy treningu",
+     "pages": "30-35"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  {
+   "id": "X01",
+   "topic": "Gotowe plany dla klienta rekreacyjnego (FBW, redukcja masy)",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Książka dotyczy sportowców; plany dla klientów PT trzeba budować z zasad."
+  },
+  {
+   "id": "X02",
+   "topic": "Dobór konkretnych ćwiczeń dla osób z bólem lub urazem",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Odsyła do fizjoterapeuty/lekarza."
+  }
+ ],
+ "glossary": [
+  {
+   "es": "adaptación anatómica (AA)",
+   "pl": "adaptacja anatomiczna",
+   "note": "faza wprowadzająca w treningu siły"
+  },
+  {
+   "es": "fuerza máxima (FxM)",
+   "pl": "siła maksymalna"
+  },
+  {
+   "es": "conversión",
+   "pl": "konwersja (przeniesienie siły na moc lub wytrzymałość)"
+  },
+  {
+   "es": "mantenimiento",
+   "pl": "utrzymanie"
+  },
+  {
+   "es": "cesación / suspensión",
+   "pl": "zawieszenie (zakończenie siły przed startem)"
+  },
+  {
+   "es": "compensación (fase de transición)",
+   "pl": "kompensacja (faza przejściowa)"
+  },
+  {
+   "es": "buffer",
+   "pl": "bufor – zapas do upadku mięśniowego"
+  },
+  {
+   "es": "microciclo / macrociclo",
+   "pl": "mikrocykl (zwykle tydzień) / makrocykl (2–6 tyg.)"
+  },
+  {
+   "es": "descarga",
+   "pl": "rozładowanie"
+  },
+  {
+   "es": "pico de rendimiento / tapering",
+   "pl": "szczyt formy / taper"
+  },
+  {
+   "es": "ERBI (resistencia de baja intensidad)",
+   "pl": "wytrzymałość niskiej intensywności (tlenowa, ciągła)"
+  },
+  {
+   "es": "ERAI (resistencia de alta intensidad)",
+   "pl": "wytrzymałość wysokiej intensywności (powtarzane krótkie wysiłki)"
+  },
+  {
+   "es": "VAM",
+   "pl": "prędkość przy VO2max (prędkość tlenowa maksymalna)"
+  },
+  {
+   "es": "OBLA",
+   "pl": "początek kumulacji mleczanu (ok. 4 mmol/l)"
+  },
+  {
+   "es": "monociclo / biciclo / triciclo",
+   "pl": "plan roczny z 1 / 2 / 3 szczytami"
+  },
+  {
+   "es": "potenciación postactivación (PAP)",
+   "pl": "potencjacja poaktywacyjna"
+  }
+ ],
+ "figures": [
+  {
+   "id": "F-B01",
+   "pages": "265 (PDF 131)",
+   "chapter": "10 Siła i moc",
+   "type": "wykres",
+   "captionEn": "Number of repetitions required to develop various types of strength",
+   "captionPl": "Liczba powtórzeń dla różnych rodzajów siły",
+   "whatItShows": "Zakresy powtórzeń: siła maks., moc, wytrzymałość mocy, wytrzymałość mięśniowa krótka/średnia/długa",
+   "data": "tekst: 1–6 / 1–10 / 15–30 / >50; zakresy pośrednie z ryciny przybliżone",
+   "readVerified": false,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-B02",
+   "pages": "280-281 (PDF 139)",
+   "chapter": "10 Siła i moc",
+   "type": "tabela",
+   "captionEn": "Strength periodization and its phases",
+   "captionPl": "Periodyzacja siły i jej fazy",
+   "whatItShows": "Kolejność faz w okresie przygotowawczym, startowym i przejściowym",
+   "data": "AA → hipertrofia → siła maks. → konwersja → utrzymanie → zawieszenie → kompensacja",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-B03",
+   "pages": "262-263",
+   "chapter": "10 Siła i moc",
+   "type": "tabela",
+   "captionEn": "Intensity zones (% 1RM)",
+   "captionPl": "Strefy intensywności w treningu siły",
+   "whatItShows": "6 stref od niskiej do supramaksymalnej",
+   "data": "20–50 / 50–70 / 70–80 / 80–90 / 90–100 / 100–125% 1RM",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-B04",
+   "pages": "320-323",
+   "chapter": "11 Wytrzymałość",
+   "type": "tabela",
+   "captionEn": "Six endurance intensity zones",
+   "captionPl": "Sześć stref intensywności wytrzymałości",
+   "whatItShows": "Czas pracy, intensywność, przerwy dla każdej strefy",
+   "data": "patrz reguła W01",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-B05",
+   "pages": "208-210",
+   "chapter": "8 Plan roczny",
+   "type": "tabela",
+   "captionEn": "Peaking index",
+   "captionPl": "Indeks szczytu formy",
+   "whatItShows": "Poziomy 1–5 przygotowania do startów",
+   "data": "patrz reguła G23",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  }
+ ],
+ "sourceReferences": [
+  {
+   "ref": "bompa-periodyzacja",
+   "title": "Periodización: teoría y metodología del entrenamiento",
+   "authors": "Tudor O. Bompa, Carlo A. Buzzichelli",
+   "language": "es",
+   "inputFile": "462740567-Periodization-5-edicion-Bompa-pdf 2.pdf",
+   "pageOffset": "PDF n = strony drukowane 2n+2 i 2n+3",
+   "chapters": [
+    {
+     "n": 1,
+     "title": "1 Podstawy treningu"
+    },
+    {
+     "n": 2,
+     "title": "2 Zasady treningu"
+    },
+    {
+     "n": 3,
+     "title": "3 Przygotowanie do treningu"
+    },
+    {
+     "n": 4,
+     "title": "4 Zmienne treningu"
+    },
+    {
+     "n": 5,
+     "title": "5 Periodyzacja zdolności biomotorycznych"
+    },
+    {
+     "n": 6,
+     "title": "6 Planowanie i sesja"
+    },
+    {
+     "n": 7,
+     "title": "7 Mikrocykl i makrocykl"
+    },
+    {
+     "n": 8,
+     "title": "8 Plan roczny"
+    },
+    {
+     "n": 9,
+     "title": "9 Szczyt formy"
+    },
+    {
+     "n": 10,
+     "title": "10 Siła i moc"
+    },
+    {
+     "n": 11,
+     "title": "11 Wytrzymałość"
+    },
+    {
+     "n": 12,
+     "title": "12 Szybkość i zwinność"
+    }
+   ]
+  }
+ ]
+}
