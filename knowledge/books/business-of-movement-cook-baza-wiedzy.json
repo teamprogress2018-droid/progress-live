@@ -1,0 +1,1528 @@
+{
+ "meta": {
+  "title": "The Business of Movement",
+  "titlePl": "Biznes ruchu",
+  "author": "Gray Cook",
+  "year": "2022",
+  "language_source": "en",
+  "language_base": "pl",
+  "version": "1.0",
+  "date": "2026-10-28",
+  "ref": "cook-business-of-movement",
+  "domain": "training",
+  "pageNumbering": "Strony = numeracja drukowana. Strona PDF = drukowana + 1.",
+  "inputNote": "Plik 776155815-Business-of-Movement.pdf (381 stron). Opracowanie własnymi słowami po polsku, bez dosłownego tłumaczenia. Książka nie podaje parametrów obciążenia (serie, powtórzenia) – daje system decyzji: testy, światła, kolejność korekty, komunikację i biznes."
+ },
+ "principles": [
+  {
+   "id": "P01",
+   "rule": "Trzy zasady: (1) najpierw ruszaj się dobrze, potem często; (2) chroń → koryguj → rozwijaj; (3) twórz systemy (standardowe procedury, test → działanie → retest).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część I – Zasady",
+     "pages": "24, 54, 63, 72, 253"
+    }
+   ]
+  },
+  {
+   "id": "P02",
+   "rule": "Cztery warstwy ruchu i ich miary: zdrowie (parametry życiowe, ból; SFMA), wellness (wzorce ruchu i czynniki ryzyka; FMS), fitness (wydolność; FCS), produkcja (umiejętności i wyniki; testy specyficzne). Przed rozwijaniem warstwy poprzednia musi spełniać minimum.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część I – Zasady",
+     "pages": "49-53, 194, 253-255"
+    }
+   ]
+  },
+  {
+   "id": "P03",
+   "rule": "Pierwsza warstwa, dla której nie da się odpowiedzieć wyraźnie „tak” (czy klient jest zdrowy / sprawny ruchowo / wystarczająco wydolny?), staje się głównym celem pracy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "253-256"
+    }
+   ]
+  },
+  {
+   "id": "P04",
+   "rule": "Najpierw usuń negatywy, potem dodawaj („dodawanie przez odejmowanie”): ciało nie utrzyma zmian z sali, jeśli pozostałe 23 godziny doby są niekorzystne (sen, nawodnienie, odżywianie, stres).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "67, 181-183"
+    }
+   ]
+  },
+  {
+   "id": "P05",
+   "rule": "Testy przesiewowe wykrywają ryzyko niepowodzenia, nie przewidują sukcesu; wysoki wynik FMS nie gwarantuje braku urazu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "151-155, 183-184"
+    }
+   ]
+  },
+  {
+   "id": "P06",
+   "rule": "Najbardziej podstawowe ryzyko ma zawsze pierwszeństwo – gdy klient nie zalicza podstawowego wzorca, reszta danych czeka.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "268"
+    }
+   ]
+  },
+  {
+   "id": "P07",
+   "rule": "Nie poświęcaj funkcji dla formy: rozwój sprawności przy złym ruchu jest nietrwały.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "185-187"
+    }
+   ]
+  },
+  {
+   "id": "P08",
+   "rule": "Kolejność rozwoju ruchu jak u dziecka: pozycje podparte → zawieszone (klęk podparty, deska) → spiętrzone (siad, klęk) → stojące; najpierw utrzymanie pozycji, potem ruch w niej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "171, 202"
+    }
+   ]
+  },
+  {
+   "id": "P09",
+   "rule": "Mobilność przed kontrolą motoryczną; nowy zakres ruchu trzeba „zapisać” kontrolą i obciążeniem, bo sama mobilność bez kontroli zwiększa ryzyko urazu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "168, 196"
+    }
+   ]
+  },
+  {
+   "id": "P10",
+   "rule": "Równanie ruchu: lokalna swoboda (mobilność) + globalna kontrola (świadomość, oddech, kontrola motoryczna) = ruch.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "170"
+    }
+   ]
+  }
+ ],
+ "assessmentRules": [
+  {
+   "id": "A01",
+   "rule": "FMS – punktacja: 0 = ból (chroń, skieruj do specjalisty); 1 = nie wykonuje wzorca (chroń i koryguj); 2 = wykonuje z kompensacją (można trenować, poprawa przez program); 3 = bez kompensacji (dalej testy wydolności).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "138-141"
+    }
+   ]
+  },
+  {
+   "id": "A02",
+   "rule": "Priorytet wyników FMS: najpierw 0, potem 1, potem asymetrie (ASLR, mobilność barku, stabilność rotacyjna, wykrok liniowy, przekroczenie płotka), potem 2. Pojedyncze wzorce i asymetrie są ważniejsze niż suma.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "138-141"
+    }
+   ]
+  },
+  {
+   "id": "A03",
+   "rule": "Suma FMS 14 lub mniej jest łączona z urazami powodującymi przerwę; ok. 20% osób ma ból przy co najmniej jednym wzorcu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "138-141, 357"
+    }
+   ]
+  },
+  {
+   "id": "A04",
+   "rule": "Kolejność korekty wzorców FMS: ASLR → mobilność barku → mobilność kostki → stabilność rotacyjna → pompka → wykrok → przekroczenie płotka → przysiad.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "198"
+    }
+   ]
+  },
+  {
+   "id": "A05",
+   "rule": "Kolejność wzorców SFMA od prostych: szyja → bark → wielosegmentowe zgięcie/wyprost → rotacja → stanie na jednej nodze → przysiad; przy ponad 3 wzorcach dysfunkcyjnych bez bólu pracuj nad 1–2 najbardziej podstawowymi.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "195-197"
+    }
+   ]
+  },
+  {
+   "id": "A06",
+   "rule": "Kategorie SFMA: FN (funkcjonalny bez bólu), FP (funkcjonalny z bólem), DN (dysfunkcyjny bez bólu), DP (dysfunkcyjny z bólem). Nie trenuj wzorca bolesnego; pracuj wokół, koryguj DN, kieruj do specjalisty.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "147-150"
+    }
+   ]
+  },
+  {
+   "id": "A07",
+   "rule": "Kiedy wykonać FCS: czy dotyczy celu klienta, czy test jest bezpieczny i czy wynik zmieni program. Minimum dla wszystkich to FMS; FCS pomiń przy bólu w FMS, istotnych czynnikach ryzyka medycznego, ograniczeniach od lekarza lub ocenach 1 budzących obawy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "212-215"
+    }
+   ]
+  },
+  {
+   "id": "A08",
+   "rule": "FCS bada 4 jakości: kontrolę ruchu (Y Balance / Motor Control Screen), kontrolę postawy (test noszenia ok. 75% masy ciała), kontrolę eksplozywną (skok w dal) i kontrolę lądowania (potrójny skok, wieloskok 2–1–2).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "209-211, 216-217, 355"
+    }
+   ]
+  },
+  {
+   "id": "A09",
+   "rule": "Wywiad wstępny: cel i dlaczego; jak klient pozna, że cel osiągnięty; historia treningowa i urazów; największa przeszkoda; styl życia poza sesjami (szklanki wody, godziny snu, stres, aktywność).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "126-132"
+    }
+   ]
+  },
+  {
+   "id": "A10",
+   "rule": "Czynniki ryzyka urazu: niemodyfikowalne – wiek ponad 26 lat, wcześniejszy uraz z przerwą; modyfikowalne – ból przy ruchu, słaba odczuwana regeneracja, wysokie BMI (≥25), siła chwytu asymetryczna lub poniżej norm wieku, mała aktywność, asymetrie i niski wynik Y Balance, asymetria zgięcia grzbietowego kostki, kilka ocen 1 lub asymetrii w FMS, asymetria siły, niska wydolność.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "66, 184, 357-358"
+    }
+   ]
+  },
+  {
+   "id": "A11",
+   "rule": "Liczy się liczba czynników ryzyka: 0–2 – ryzyko bez wzrostu (iloraz szans 0,6–1,2), 3–4 – ok. 1,7, ponad 5 – 1,9–9,6.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część I – Zasady",
+     "pages": "66-67"
+    }
+   ]
+  },
+  {
+   "id": "A12",
+   "rule": "Szybki test gotowości przed sesją (ok. 5 min): górny poziom SFMA (szyja, sięganie, rotacja, skłon/wyprost, stanie na jednej nodze, przysiad nad głową), krótki test oddechu i test kontroli motorycznej; opcjonalnie HRV.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "288-290"
+    }
+   ]
+  },
+  {
+   "id": "A13",
+   "rule": "Zawsze sprawdzaj oddech i podstawową mobilność, zwłaszcza stóp i kostek; brak zgięcia grzbietowego kostki to jeden z najsilniejszych wskaźników przyszłego urazu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "167, 289"
+    }
+   ]
+  },
+  {
+   "id": "A14",
+   "rule": "Duża różnica między biernym a czynnym zakresem ruchu wskazuje raczej na pracę nad stabilnością/kontrolą niż mobilnością.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "196"
+    }
+   ]
+  },
+  {
+   "id": "A15",
+   "rule": "Nie „ćwicz testu” – poprawa wyniku testu przez powtarzanie go jako ćwiczenia nie oznacza poprawy funkcji.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "165"
+    }
+   ]
+  }
+ ],
+ "exerciseRules": [
+  {
+   "id": "E01",
+   "rule": "Światła według wyników FMS: czerwone (oceny 0, 1, asymetria 1/2) – unikaj ćwiczeń obciążających ten wzorzec; żółte (2, asymetria 2/3) – ostrożnie, po nich retest; zielone (3) – rozwijaj.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "187-189, 225"
+    }
+   ]
+  },
+  {
+   "id": "E02",
+   "rule": "ASLR słabe: czerwone – zawias biodrowy/martwy ciąg, bieg, skoki (rozdz. 12 także zarzuty, swing); żółte – wejścia na skrzynię, wykroki, ćwiczenia w rozkroku (rozdz. 12: przysiady); zielone – chop/lift w klęku i półklęku, góra ciała, core.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "188, 361"
+    }
+   ]
+  },
+  {
+   "id": "E03",
+   "rule": "Mobilność barku słaba: czerwone – wyciskanie nad głowę, podciąganie/ściąganie nad głową, stanie na rękach (rozdz. 12 też rwanie); żółte – wyciskanie poziome, wiosłowanie, częściowe tureckie wstawanie, noszenie w pozycji rack; zielone – martwy ciąg, swing, spacer farmera, dół ciała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "188, 226, 361"
+    }
+   ]
+  },
+  {
+   "id": "E04",
+   "rule": "Mobilność kostki lub wykrok liniowy słabe: czerwone – wykroki, ćwiczenia w rozkroku, bieg i skoki; żółte – martwy ciąg, swing, martwy ciąg jednonóż; zielone – pół-tureckie wstawanie, chop/lift w półklęku, góra ciała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "361"
+    }
+   ]
+  },
+  {
+   "id": "E05",
+   "rule": "Stabilność rotacyjna słaba: czerwone – ćwiczenia obciążone asymetrycznie (rwanie jednorącz, swing); żółte – częściowe tureckie wstawanie, chop/wyciskanie/lift w półklęku, symetryczny martwy ciąg i przysiad; zielone – wyciskanie leżąc na podłodze, symetryczna praca górą ciała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "361"
+    }
+   ]
+  },
+  {
+   "id": "E06",
+   "rule": "Pompka stabilizacyjna słaba: czerwone – wyciskanie stojąc (i ogólnie wyciskanie), swing, ćwiczenia balistyczne; żółte – martwy ciąg, przysiad, pompki, core; zielone – progresje pompek, wejścia, rozkrok, martwy ciąg jednonóż, częściowe tureckie wstawanie. Ostrożnie z obustronnym obciążeniem na stojąco.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "226-227, 361"
+    }
+   ]
+  },
+  {
+   "id": "E07",
+   "rule": "Przekroczenie płotka słabe: czerwone – ćwiczenia jednonóż, bieg/sprint, noszenie; żółte – symetryczny przysiad i martwy ciąg; zielone – pół-tureckie, chop/lift w półklęku, martwy ciąg walizkowy, góra ciała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "188, 361"
+    }
+   ]
+  },
+  {
+   "id": "E08",
+   "rule": "Głęboki przysiad słaby: czerwone – przysiady z obciążeniem (warianty przysiadu), zarzut, rwanie; żółte – przysiad jednonóż, przysiad dzielony/wykrok, bieg; zielone – tureckie wstawanie, martwy ciąg (też jednonóż), chop/lift w klęku.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "188, 361"
+    }
+   ]
+  },
+  {
+   "id": "E09",
+   "rule": "Światła według FCS: słaba kontrola ruchu → unikaj dużych uderzeń i ciężarów obciążających równowagę (zielone: chód niedźwiedzia, rzuty w półklęku, równoważnia); słaba kontrola postawy → unikaj dużych obciążeń kręgosłupa (zielone: noszenie w 6 pozycjach, trzymanie kettla z obrotem, halo w półklęku); słaba kontrola eksplozywna → unikaj wysiłków o wysokiej intensywności z uderzeniem (zielone: maczugi, fale liną); słaba kontrola lądowania → unikaj przyspieszeń, hamowań i zmian kierunku z obciążeniem (zielone: uderzenia maczugą, podstawowa skakanka).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "362"
+    }
+   ]
+  },
+  {
+   "id": "E10",
+   "rule": "Przy słabej kontroli eksplozywnej nie „trenuj testu” skomplikowanymi bojami ani plyometrią; prostszy korekcyjny środek to liny bojowe (z klęku → stojąc).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "211"
+    }
+   ]
+  },
+  {
+   "id": "E11",
+   "rule": "Ćwiczenia samoograniczające (dają natychmiastową informację zwrotną i naturalne granice): przetaczanie, chodzenie po równoważni, skakanka, tureckie wstawanie, spacer farmera, przysiad kielichowy, wyciskanie kettla do góry dnem, halo, martwy ciąg jednonóż, maczugi, chód niedźwiedzia, bieg terenowy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "230-232"
+    }
+   ]
+  },
+  {
+   "id": "E12",
+   "rule": "Utrzymanie funkcji w programie: zawsze znajdź miejsce na wariant zawiasu biodrowego (dół ciała) i tureckiego wstawania (góra ciała).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "232"
+    }
+   ]
+  },
+  {
+   "id": "E13",
+   "rule": "Korekcyjna macierz 4×4: postawy (podparta, zawieszona, spiętrzona, stojąca) × poziomy (z pomocą/bierny, aktywny, reaktywny RNT, samodzielny z oporem). Wybierz najwyższą postawę, w której klient wykonuje ruch poprawnie; ciągłe podpowiedzi przy obciążeniu = cofnij poziom; szybka poprawa = można przeskoczyć poziom.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "203-207"
+    }
+   ]
+  },
+  {
+   "id": "E14",
+   "rule": "Przykład korekty wielosegmentowego zgięcia: leżąc – brzuszek z gumą pomocniczą → bez → z oporem; czworaki – rotacja tułowia z gumą → bez → z oporem; klęk – chop w półklęku z gumą, częściowe tureckie wstawanie; stojąc – skłon z uniesionymi piętami, odwrócony skłon, pełne tureckie wstawanie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "207"
+    }
+   ]
+  },
+  {
+   "id": "E15",
+   "rule": "Strategie mobilności od biernych (praca na tkankach, roller, rozciąganie statyczne) przez aktywne z pomocą (przysiad z podparciem, ASLR z gumą, napnij-rozluźnij) do aktywnych (rozciąganie dynamiczne, automobilizacja). Wybieraj najbardziej aktywną opcję, która daje poprawę.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "168-169, 180"
+    }
+   ]
+  },
+  {
+   "id": "E16",
+   "rule": "Strategie stabilności: z pomocą (podparcie, mniejszy zakres, szersza podstawa, nacisk ręczny) → aktywnie (ruch kończyn, zawężanie podstawy) → reaktywnie (RNT: „karmienie błędu” gumą lub naciskiem wpychającym w błąd).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "173-174, 205"
+    }
+   ]
+  },
+  {
+   "id": "E17",
+   "rule": "To samo zadanie w 3 różnych pozycjach (np. kostka: na stole → w klęku → w przysiadzie) działa lepiej niż 3 serie jednego ćwiczenia.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "174"
+    }
+   ]
+  },
+  {
+   "id": "E18",
+   "rule": "Praktyka losowa: 3–4 ćwiczenia na ten sam wzorzec, po 4–5 powtórzeń w losowej kolejności.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "212"
+    }
+   ]
+  }
+ ],
+ "progressionRules": [
+  {
+   "id": "G01",
+   "rule": "Pracuj zawsze: test → działanie → retest (subiektywnie, lokalnie, globalnie). Jedno działanie, potem decyzja: gorzej – wiesz, czego unikać; bez zmian – to nie główna przyczyna; lepiej – wiesz, co robić.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "159, 179"
+    }
+   ]
+  },
+  {
+   "id": "G02",
+   "rule": "Trzy R: Reset (doświadczenie) → Wzmocnienie (chroń: czego nie robić / koryguj: co robić) → Rozwój (cała aktywność). Forma: biernie → aktywnie z pomocą → aktywnie; odpowiedzialność przechodzi z trenera na klienta.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "162-163, 182"
+    }
+   ]
+  },
+  {
+   "id": "G03",
+   "rule": "Praca domowa: minimalna skuteczna dawka, nie więcej niż 3 ćwiczenia korekcyjne między sesjami (przy bólu 1–2 na najprostsze wzorce). Jeśli zmiana się utrzymała – pełną parą; jeśli nie – zmień ćwiczenia lub oceń ponownie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "180, 197"
+    }
+   ]
+  },
+  {
+   "id": "G04",
+   "rule": "Nie wyłączaj klienta z treningu: trenuj dobre wzorce, koryguj 1–2 słabe. Korekcyjne wplataj w rozgrzewkę i jako „wypełniacze” w przerwach między seriami (np. halo w klęku, kettlebell arm bar).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "224-227"
+    }
+   ]
+  },
+  {
+   "id": "G05",
+   "rule": "Po rozgrzewce z ćwiczeniami korekcyjnymi zrób retest słabych wzorców: bez poprawy – nie obciążaj ich w tej sesji; poprawa do oceny 2 – można dodać obciążenie (np. wiosłowanie, wyciskanie poziome).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "226-227"
+    }
+   ]
+  },
+  {
+   "id": "G06",
+   "rule": "Retest: wzorce z oceną 1 sprawdzaj na każdej sesji aż do 2; przy wielu jedynkach regularny pełny retest; pełny FMS co ok. 4 tygodnie lub 10 wizyt oraz przy naturalnych przerwach (po urlopie, podróży, chorobie, urazie, przy zmianie fazy treningu / tygodniu odciążenia).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "219, 285, 287-288"
+    }
+   ]
+  },
+  {
+   "id": "G07",
+   "rule": "Po korekcie wykonaj podejrzaną aktywność (np. bieg) i zrób retest – czy korekta się utrzymała.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "186"
+    }
+   ]
+  },
+  {
+   "id": "G08",
+   "rule": "Symetria ważniejsza niż ocena 3: zmiana 2/3 → 2/2 nie jest pogorszeniem.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "204"
+    }
+   ]
+  },
+  {
+   "id": "G09",
+   "rule": "Obciążenie utrwala wzorzec, dlatego nie obciążaj złej techniki; jakość przed objętością, ciężarem i prędkością; zostaw zapas.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "189, 205"
+    }
+   ]
+  },
+  {
+   "id": "G10",
+   "rule": "Decyzja po szybkim teście gotowości: wszystko dobrze → plan A; coś nie tak → ćwiczenia korekcyjne i retest; poprawa → wróć do planu; brak poprawy → zmień lub odwołaj plan. Przygotuj zielony, żółty i czerwony wariant treningu. „Długoterminowy plan, nie długoterminowy program.”",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "289-290"
+    }
+   ]
+  },
+  {
+   "id": "G11",
+   "rule": "Kolejność w pracy z wydolnością i wynikiem: ból lub dysfunkcja w FMS/Y Balance → najpierw bezbolesny funkcjonalny ruch; deficyt w FCS → odbudowa wydolności; kompetencja i wydolność w normie, a wynik słaby → trening umiejętności.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "237"
+    }
+   ]
+  },
+  {
+   "id": "G12",
+   "rule": "Model tygodnia dla klienta szukającego samodzielności: 1–2 dni ukierunkowanego treningu + 2–3 dni praktyki lub zabawy (dzień zabawy może być dniem regeneracji; dzień praktyki np. jeden bój lub tureckie wstawanie z nagraniem wideo).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "247-248"
+    }
+   ]
+  },
+  {
+   "id": "G13",
+   "rule": "Zabawa → praktyka → trening: trening (objętość, intensywność, pomiar) dopiero gdy ruch jest „wystarczająco dobry”; nie trenuj z nowym przyrządem po kilku dniach od pierwszego kontaktu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "245-248"
+    }
+   ]
+  },
+  {
+   "id": "G14",
+   "rule": "Pierwsze 4 tygodnie treningu siłowego to głównie adaptacja nerwowa – warto je poświęcić na dopracowanie kontroli i oddechu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "199"
+    }
+   ]
+  },
+  {
+   "id": "G15",
+   "rule": "Przy wielu dysfunkcjach, złym stylu życia i historii urazów wyraźna zmiana ruchu może wymagać 1–2 tygodni.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "167"
+    }
+   ]
+  },
+  {
+   "id": "G16",
+   "rule": "Oddech: na rozluźnienie wydech dłuższy niż wdech (ok. 3:1), przy rosnącej trudności przejście do 1:1; oddech 360°. Podstawowe ćwiczenia oddechowe poprawiały ruch w ok. 70% przypadków.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "200"
+    }
+   ]
+  },
+  {
+   "id": "G17",
+   "rule": "Strefa Złotowłosej: pracuj w najtrudniejszej pozycji, w której klient oddycha normalnie; skracanie lub wstrzymywanie oddechu przy prostym zadaniu to sygnał, że jest za trudno.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "172, 199"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S01",
+   "rule": "Nigdy nie trenuj bolesnego wzorca; ból (ocena 0) = skierowanie do specjalisty zdrowia. Trener nie diagnozuje.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "147-150"
+    }
+   ]
+  },
+  {
+   "id": "S02",
+   "rule": "Nie trenuj wzorców z oceną 1 ani bolesnych; najpierw jakość ruchu, potem ilość (objętość, ciężar, prędkość).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "190"
+    }
+   ]
+  },
+  {
+   "id": "S03",
+   "rule": "W ostrym bólu pomiń testy; zacznij od oddechu, snu, nawodnienia i pozycji.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "150-152"
+    }
+   ]
+  },
+  {
+   "id": "S04",
+   "rule": "Zawsze mów klientowi: „daj znać, jeśli coś boli”; najważniejsza wskazówka w ćwiczeniu: „nie wchodź w ból, gdy robi się trudno – zatrzymaj się i oddychaj”.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "146, 176"
+    }
+   ]
+  },
+  {
+   "id": "S05",
+   "rule": "Diagnoza medyczna mówi, czego nie robić, ale nie powinna sterować całym programem; buduj sieć specjalistów do kierowania klientów.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "150-152"
+    }
+   ]
+  },
+  {
+   "id": "S06",
+   "rule": "Klient z bólem po operacji, którego dopuszczono do treningu: jeśli test wykazuje ból, trener wstrzymuje trening i kontaktuje się z fizjoterapeutą.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "302-303"
+    }
+   ]
+  },
+  {
+   "id": "S07",
+   "rule": "Trzymanie się zapisanego programu wbrew temu, co widać i co mierzy test, to częsta przyczyna urazów treningowych.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "289-290"
+    }
+   ]
+  }
+ ],
+ "ifThenRules": [
+  {
+   "id": "IF01",
+   "rule": "Jeśli ból przy ruchu w FMS → skieruj do specjalisty zdrowia; jeśli wzorce funkcjonalne → przejdź do testu wydolności (FCS); jeśli dysfunkcyjne → testy lokalne → korekta lokalna (ograniczenie strukturalne) lub globalna → retest.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "363"
+    }
+   ]
+  },
+  {
+   "id": "IF02",
+   "rule": "Jeśli wydolność ruchowa (FCS) niewystarczająca → testy sprawności i trening zdolności; jeśli wystarczająca → testy umiejętności i wyników; jeśli wynik nieoptymalny → trening umiejętności i usuwanie barier, w razie potrzeby powrót do sprawdzenia niższej warstwy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "363"
+    }
+   ]
+  },
+  {
+   "id": "IF03",
+   "rule": "Jeśli słaba równowaga na jednej nodze w teście gotowości → sprawdź wykrok; ograniczony skłon → ASLR; ograniczona szyja, kręgosłup lub bark → przywróć ruch przed obciążaniem pleców lub pracą nad głową.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "290"
+    }
+   ]
+  },
+  {
+   "id": "IF04",
+   "rule": "Jeśli słaby wynik noszenia (kontrola postawy) przy dobrym wyniku w podnoszeniu → klient jest blisko plateau; najpierw popraw kontrolę postawy („najpierw noś, potem podnoś”).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "211"
+    }
+   ]
+  }
+ ],
+ "planTemplates": [
+  {
+   "id": "T01",
+   "status": "zrodlo",
+   "structure": [
+    {
+     "part": "Rozgrzewka korekcyjna",
+     "content": "mobilizacja barku z gumą, pies z głową w dół, przetaczanie, chód niedźwiedzia → retest barku i pompki"
+    },
+    {
+     "part": "Część główna – bezpieczne",
+     "content": "martwy ciąg jednonóż, wykrok lub przysiad dzielony, spacer farmera jednorącz"
+    },
+    {
+     "part": "Warunkowo (gdy retest ≥2)",
+     "content": "wiosłowanie, wyciskanie poziome"
+    },
+    {
+     "part": "Wypełniacze w przerwach",
+     "content": "halo w klęku wysokim, kettlebell arm bar"
+    },
+    {
+     "part": "Unikać",
+     "content": "praca nad głową, wyciskanie"
+    }
+   ],
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "225-228"
+    }
+   ],
+   "name": "Sesja treningowa z systemem świateł (klient z oceną 1 w pompce i 1/2 w mobilności barku)"
+  },
+  {
+   "id": "T02",
+   "status": "zrodlo",
+   "variants": [
+    {
+     "score": 3,
+     "exercise": "przysiad ze sztangą z tyłu"
+    },
+    {
+     "score": 2,
+     "exercise": "przysiad przedni lub z kettlem"
+    },
+    {
+     "score": 1,
+     "exercise": "wariant korekcyjny (np. przysiad z dotykaniem palców)"
+    }
+   ],
+   "extra": "martwy ciąg: ASLR=1 → korekcyjne z gumą, przysiad dzielony lub martwy ciąg jednonóż; ASLR=2 → kettlebell zamiast sztangi",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "233-234"
+    }
+   ],
+   "name": "Ćwiczenie główne w grupie według oceny FMS (przykład przysiadu)"
+  },
+  {
+   "id": "T03",
+   "status": "zrodlo",
+   "steps": [
+    {
+     "when": "16 tyg. przed",
+     "content": "FMS + test wydolności + test sprawności; podział na 3 grupy (ból/0; oceny 1 lub suma ≤14; suma >14); program korekcyjno-treningowy"
+    },
+    {
+     "when": "8 tyg. przed",
+     "content": "retest i korekta programu"
+    },
+    {
+     "when": "start",
+     "content": "retest, trening dopasowany do poziomu funkcji"
+    },
+    {
+     "when": "koniec",
+     "content": "retest, plan długoterminowy"
+    }
+   ],
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "273-276"
+    }
+   ],
+   "name": "Program przygotowania grupy przed wymagającym okresem (16 tygodni)"
+  },
+  {
+   "id": "T04",
+   "status": "zrodlo",
+   "first": "asystent: wywiad podstawowy, parametry życiowe, górny poziom SFMA → specjalista: szczegółowy wywiad, testy rozbijające → zabieg/korekta → retest",
+   "followUp": "asystent: parametry, górny poziom SFMA, rozgrzewka, ćwiczenia korekcyjne i kondycyjne → specjalista: praca specjalistyczna → retest",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "324"
+    }
+   ],
+   "name": "Proces pierwszej wizyty i kolejnych (podział ról w zespole)"
+  }
+ ],
+ "communicationRules": [
+  {
+   "id": "K01",
+   "rule": "„Zdezorientowany klient nie kupuje”: pytaj „jak ci poszło?”, używaj słów klienta, pokazuj zamiast opowiadać (wideo z liniami i kątami), poproś klienta o powtórzenie planu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "155-160"
+    }
+   ]
+  },
+  {
+   "id": "K02",
+   "rule": "Nie narzucaj klientowi swoich odczuć; łącz wskazówki zewnętrzne (np. „prowadź wzrokiem”) z pytaniem, co czuje – i jego słowami.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "175-176"
+    }
+   ]
+  },
+  {
+   "id": "K03",
+   "rule": "Zaangażowanie klienta buduje pokazanie zmiany względem punktu wyjścia (jak u okulisty), a nie przekonywanie; łącz wynik testu z problemem, który klient zna.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "176-177"
+    }
+   ]
+  },
+  {
+   "id": "K04",
+   "rule": "Ustal oczekiwania: ruch zwykle poprawia się 2–3 dni wcześniej niż samopoczucie; brak poprawy samopoczucia w ciągu ok. 4 dni = ponowna ocena.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "177-178"
+    }
+   ]
+  },
+  {
+   "id": "K05",
+   "rule": "Nie etykietuj ruchu klienta („asymetria”, „dysfunkcja”); czasem wystarczy „to twój program”.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "227"
+    }
+   ]
+  },
+  {
+   "id": "K06",
+   "rule": "Proś o zgodę na czasowe odłożenie celów formy: „czy możemy przez tydzień–dwa popracować nad czymś ważniejszym i potem ocenić ponownie?”.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "187"
+    }
+   ]
+  },
+  {
+   "id": "K07",
+   "rule": "Pytaj klienta, czego chce: samodzielności („wolałbyś robić to sam?”) czy wyższego poziomu – samodzielny klient potrzebuje konsultanta, nie trenera.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "241-244"
+    }
+   ]
+  },
+  {
+   "id": "K08",
+   "rule": "Pokazuj postęp obiektywnie, np. zbiorcza ocena (A–F) z testów ruchu, bólu i kwestionariusza funkcji; klient zapomina, skąd startował.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "269-271"
+    }
+   ]
+  },
+  {
+   "id": "K09",
+   "rule": "Online: nie zakładaj, że klient rozumie; jasne oczekiwania przy starcie; kontakt 2–3 razy w tygodniu na początku; stałe dni raportów (cele, postęp, pytania, przeszkody, ból) zapisywane w prostym arkuszu; dokument FAQ z najczęstszymi pytaniami.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "337-339"
+    }
+   ]
+  },
+  {
+   "id": "K10",
+   "rule": "Klient zdalny: priorytetem jest wykrycie bólu i wyraźnych problemów ruchowych (FMS da się zrobić zdalnie z kijem i sznurkiem, by wyłapać oceny 0 i 1); jeśli potrzeba więcej – skieruj do lokalnego specjalisty.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "333-335"
+    }
+   ]
+  }
+ ],
+ "adherenceRules": [
+  {
+   "id": "AD01",
+   "rule": "Krótko i często: proste nawyki wplecione w codzienność (np. rozciąganie łydek po wyjściu z samochodu) dały 78% zaangażowania w dużej grupie pracowników; powyżej 50% to bardzo dobry wynik.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "279-281"
+    }
+   ]
+  },
+  {
+   "id": "AD02",
+   "rule": "Minimalna skuteczna dawka zamiast długiej listy ćwiczeń: 10 minut dziennie, jeśli klient je zrobi, jest lepsze niż 30, których nie zrobi.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "280-281"
+    }
+   ]
+  },
+  {
+   "id": "AD03",
+   "rule": "Mierz realizację zaleceń dotyczących stylu życia jak każdą inną miarę; łącz zalecenia z rolą klienta w życiu (rodzic, sportowiec).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "280-281"
+    }
+   ]
+  },
+  {
+   "id": "AD04",
+   "rule": "Fitness wybrany przez klienta pod koniec terapii (np. wiosłowanie z kettlem, martwy ciąg, 30 min marszu dziennie) utrzymuje się lepiej niż trzystronicowy program podtrzymujący.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "244"
+    }
+   ]
+  }
+ ],
+ "marketingRules": [
+  {
+   "id": "M01",
+   "rule": "80% sukcesu biznesu to bycie skuteczniejszym od konkurencji w poprawie życia klientów; marketing bez umiejętności daje krótki efekt. Polecenie to najsilniejsza forma marketingu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "263, 298"
+    }
+   ]
+  },
+  {
+   "id": "M02",
+   "rule": "Do lekarzy i fizjoterapeutów idź z konkretną prośbą (np. trudne przypadki bez postępów) i naucz ich 1–2 prostych testów, po których wiedzą, kogo do ciebie skierować; pokaż wynik (wideo przed/po), nie opowiadaj.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "298-300"
+    }
+   ]
+  },
+  {
+   "id": "M03",
+   "rule": "Raport dla specjalisty na jednej stronie, wizualnie (np. kolory czerwony/żółty/zielony względem norm) + krótki wniosek i plan.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "271"
+    }
+   ]
+  },
+  {
+   "id": "M04",
+   "rule": "Sieć współpracy: co najmniej jeden specjalista od bólu/zdrowia, jeden od wellness i jeden od formy/wyników; dobieraj partnerów ze wspólnym językiem ruchu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "296-297, 308"
+    }
+   ]
+  },
+  {
+   "id": "M05",
+   "rule": "Wejdź w środowisko przez wolontariat i darmową edukację – najpierw zaufanie, potem oferta.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "305"
+    }
+   ]
+  },
+  {
+   "id": "M06",
+   "rule": "Najwięcej poleceń dawali klienci z najdłuższym okresem opieki, nie ci najszybciej wyleczeni: „wyścig do odporności, nie do wypisu”. Wizyty kontrolne co 2 tyg., potem z coraz dłuższymi odstępami aż do co 12–16 tyg.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "276-277"
+    }
+   ]
+  },
+  {
+   "id": "M07",
+   "rule": "Wskaźnik obecności (show-up rate) ok. 93% i więcej silnie przewiduje wynik finansowy; sprawdzaj go tygodniowo, miesięcznie i kwartalnie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "278"
+    }
+   ]
+  },
+  {
+   "id": "M08",
+   "rule": "Mierz dane organizacyjne obok fizycznych: obecność, realizacja planu, liczba wizyt na klienta, źródła i liczba poleceń, przychód na wizytę i klienta.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "293"
+    }
+   ]
+  },
+  {
+   "id": "M09",
+   "rule": "Uczenie klienta samodzielności nie szkodzi biznesowi: wraca po nowe cele i poleca innych; historie sukcesu oparte wyłącznie na ciągłej opiece źle sprzedają usługę.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "243-244"
+    }
+   ]
+  },
+  {
+   "id": "M10",
+   "rule": "Inwestuj w ludzi i przestrzeń do ruchu, nie w maszyny i modną lokalizację; wolne ciężary, gumy, rollery, drabinki i piłki lekarskie dają wielokrotnie lepszy zwrot niż nowa maszyna.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "328-330"
+    }
+   ]
+  },
+  {
+   "id": "M11",
+   "rule": "Cena usług online: licz według czasu poświęconego klientowi, jak stawkę godzinową; 2–3 pakiety według potrzebnej samodzielności (indywidualny vs szablonowy); nie konkuruj ceną z darmowymi szablonami.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "339-340"
+    }
+   ]
+  },
+  {
+   "id": "M12",
+   "rule": "Zanim powiększysz lokal lub ofertę, wykorzystaj w pełni obecne zasoby; rozważ model zdalny lub hybrydowy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "330-331, 340"
+    }
+   ]
+  },
+  {
+   "id": "M13",
+   "rule": "Zespół: zatrudniaj według cech (bez ego, poczucie humoru, szacunek, uzupełniająca perspektywa), umiejętności da się nauczyć; regularne wspólne szkolenia i omawianie klientów; jeden standard procesu, by klient dostawał tę samą jakość u każdego trenera.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część III – Biznes (rozdz. 17–22)",
+     "pages": "312-316"
+    }
+   ]
+  }
+ ],
+ "contradictions": [
+  {
+   "id": "C01",
+   "rule": "Tabele świateł w rozdz. 12 (s.188) i w aneksie (s.361) różnią się szczegółami i nazwami kolumn (żółte: „korekta” vs „rozwijaj ostrożnie”; zielone: „rozwój” vs „koryguj i rozwijaj”). W aplikacji stosować sumę zakazów z obu tabel (wersja ostrożniejsza).",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Aneksy",
+     "pages": "188, 361"
+    }
+   ]
+  },
+  {
+   "id": "C02",
+   "rule": "Tabela czynników ryzyka na s.66 i s.184 grupuje te same czynniki w nieco inne kolumny; lista czynników jest zgodna.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "cook-business-of-movement",
+     "chapter": "Część II – Procesy (rozdz. 7–16)",
+     "pages": "66, 184"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  {
+   "id": "X01",
+   "topic": "Szczegółowa instrukcja wykonania i punktacji każdego testu FMS/FCS",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Książka odsyła do kursów i functionalmovement.com."
+  },
+  {
+   "id": "X02",
+   "topic": "Serie, powtórzenia i ciężary",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Cook nie podaje parametrów obciążenia – brać z innych książek (np. Bompa, NSCA)."
+  }
+ ],
+ "glossary": [
+  {
+   "en": "FMS (Functional Movement Screen)",
+   "pl": "test przesiewowy wzorców ruchu (7 testów, ocena 0–3)"
+  },
+  {
+   "en": "SFMA (Selective Functional Movement Assessment)",
+   "pl": "ocena ruchu dla osób z bólem – dla zawodów medycznych"
+  },
+  {
+   "en": "FCS (Fundamental Capacity Screen)",
+   "pl": "test podstawowej wydolności ruchowej"
+  },
+  {
+   "en": "YBT (Y Balance Test)",
+   "pl": "test równowagi Y – symetria i kontrola"
+  },
+  {
+   "en": "ASLR (active straight leg raise)",
+   "pl": "czynne unoszenie wyprostowanej nogi"
+  },
+  {
+   "en": "Rotary stability",
+   "pl": "stabilność rotacyjna"
+  },
+  {
+   "en": "Trunk stability push-up",
+   "pl": "pompka stabilizacyjna"
+  },
+  {
+   "en": "Inline lunge / Hurdle step / Deep squat",
+   "pl": "wykrok liniowy / przekroczenie płotka / głęboki przysiad"
+  },
+  {
+   "en": "Red / yellow / green light",
+   "pl": "światło czerwone (unikaj) / żółte (ostrożnie) / zielone (bezpieczne)"
+  },
+  {
+   "en": "RNT (reactive neuromuscular training)",
+   "pl": "reaktywny trening nerwowo-mięśniowy („karmienie błędu”)"
+  },
+  {
+   "en": "Reset / Reinforce / Redevelop",
+   "pl": "Reset / Wzmocnienie / Rozwój (3 R)"
+  },
+  {
+   "en": "Self-limiting exercise",
+   "pl": "ćwiczenie samoograniczające"
+  },
+  {
+   "en": "Show-up rate",
+   "pl": "wskaźnik obecności klientów"
+  }
+ ],
+ "figures": [
+  {
+   "id": "F-C01",
+   "pages": "361 (PDF 362)",
+   "chapter": "Aneksy",
+   "type": "tabela",
+   "captionEn": "Red, yellow, and green light exercises",
+   "captionPl": "Ćwiczenia – światła czerwone, żółte, zielone (wzorce FMS)",
+   "whatItShows": "Dla 8 wzorców FMS listy ćwiczeń do unikania, ostrożnych i bezpiecznych",
+   "data": "patrz E02–E08",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-C02",
+   "pages": "362 (PDF 363)",
+   "chapter": "Aneksy",
+   "type": "tabela",
+   "captionEn": "Light system for capacity (FCS)",
+   "captionPl": "Światła dla wydolności (FCS)",
+   "whatItShows": "4 rodzaje kontroli i dobór ćwiczeń",
+   "data": "patrz E09",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-C03",
+   "pages": "363 (PDF 364)",
+   "chapter": "Aneksy",
+   "type": "schemat",
+   "captionEn": "Standard operating procedure of movement",
+   "captionPl": "Standardowa procedura pracy z ruchem",
+   "whatItShows": "Drzewo decyzji przez warstwy zdrowie → wellness → fitness → produkcja",
+   "data": "patrz IF01–IF02",
+   "readVerified": false,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-C04",
+   "pages": "184 (PDF 185)",
+   "chapter": "Część II – Procesy (rozdz. 7–16)",
+   "type": "tabela",
+   "captionEn": "Identified movement risk factors",
+   "captionPl": "Czynniki ryzyka ruchowego",
+   "whatItShows": "Niemodyfikowalne i modyfikowalne (zdrowie, wellness, fitness)",
+   "data": "patrz A10",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-C05",
+   "pages": "66-67 (PDF 67-68)",
+   "chapter": "Część I – Zasady",
+   "type": "tabela+wykres",
+   "captionEn": "Number of risk factors and odds of future injury",
+   "captionPl": "Liczba czynników ryzyka a szansa urazu",
+   "whatItShows": "Iloraz szans i ryzyko względne wg liczby czynników",
+   "data": "patrz A11",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-C06",
+   "pages": "226 (PDF 227)",
+   "chapter": "Część II – Procesy (rozdz. 7–16)",
+   "type": "tabela",
+   "captionEn": "Light system example",
+   "captionPl": "Przykład świateł dla klienta",
+   "whatItShows": "Mobilność barku i pompka – dobór ćwiczeń",
+   "data": "patrz T01",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-C07",
+   "pages": "203-207",
+   "chapter": "Część II – Procesy (rozdz. 7–16)",
+   "type": "tabela",
+   "captionEn": "The corrective 4x4 matrix",
+   "captionPl": "Korekcyjna macierz 4×4",
+   "whatItShows": "Postawy × poziomy pomocy i oporu",
+   "data": "patrz E13–E14",
+   "readVerified": false,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-C08",
+   "pages": "324 (PDF 325)",
+   "chapter": "Część III – Biznes (rozdz. 17–22)",
+   "type": "schemat",
+   "captionEn": "Potential workflow for patient visits",
+   "captionPl": "Przebieg pierwszej i kolejnej wizyty",
+   "whatItShows": "Podział zadań asystent / specjalista",
+   "data": "patrz T04",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  }
+ ],
+ "sourceReferences": [
+  {
+   "ref": "cook-business-of-movement",
+   "title": "The Business of Movement",
+   "author": "Gray Cook",
+   "year": "2022",
+   "language": "en",
+   "inputFile": "776155815-Business-of-Movement.pdf",
+   "pageOffset": "PDF = drukowana + 1",
+   "parts": [
+    "Część I – Zasady",
+    "Część II – Procesy (rozdz. 7–16)",
+    "Część III – Biznes (rozdz. 17–22)",
+    "Aneksy"
+   ]
+  }
+ ]
+}
