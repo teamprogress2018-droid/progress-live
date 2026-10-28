@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" role="img" aria-label="Rozładowanie przed startem" style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif"><rect width="1000" height="400" fill="#fff"/>
+<text x="24" y="38" font-size="22" font-weight="700" fill="#1a1a1a">Rozładowanie przed głównym startem (8–14 dni)</text>
+<line x1="70" y1="300" x2="700" y2="300" stroke="#999"/><line x1="70" y1="80" x2="70" y2="300" stroke="#999"/>
+<line x1="66" y1="96" x2="70" y2="96" stroke="#999"/><text x="62" y="100" font-size="11" fill="#777" text-anchor="end">100%</text><text x="64" y="300" font-size="11" fill="#777" text-anchor="end">0</text>
+<text x="385" y="325" font-size="12" fill="#555" text-anchor="middle">dni do startu: 14 → 0</text>
+<polyline points="70,96.0 115,122.5 160,143.1 205,159.1 250,171.6 295,181.3 340,188.9 385,194.8 430,199.4 475,203.0 520,205.8 565,208.0 610,209.7 655,211.0 700,212.0" fill="none" stroke="#3d6fb0" stroke-width="4"/>
+<line x1="70" y1="96" x2="700" y2="100" stroke="#e08a2e" stroke-width="4" stroke-dasharray="10 6"/>
+<polyline points="70,96 700,124" fill="none" stroke="#6c9a5a" stroke-width="3"/>
+<line x1="700" y1="84" x2="700" y2="300" stroke="#999" stroke-dasharray="3 3"/><text x="700" y="78" font-size="11" font-weight="700" fill="#444" text-anchor="middle">START</text>
+<rect x="730" y="110" width="16" height="16" rx="3" fill="#3d6fb0"/>
+<text x="754" y="123" font-size="12" fill="#222">Objętość: spada wykładniczo,</text>
+<text x="754" y="139" font-size="12" fill="#222">łącznie o 41–60% (po bardzo</text>
+<text x="754" y="155" font-size="12" fill="#222">ciężkim okresie 60–90%)</text>
+<rect x="730" y="166" width="16" height="16" rx="3" fill="#e08a2e"/>
+<text x="754" y="179" font-size="12" fill="#222">Intensywność: utrzymana (moc</text>
+<text x="754" y="195" font-size="12" fill="#222">najwyżej −5–10%)</text>
+<rect x="730" y="222" width="16" height="16" rx="3" fill="#6c9a5a"/>
+<text x="754" y="235" font-size="12" fill="#222">Częstotliwość: co najmniej 80%</text>
+<text x="754" y="251" font-size="12" fill="#222">sesji sprzed rozładowania</text>
+<text x="730" y="290" font-size="12" fill="#222">Bez nowych ćwiczeń. Skracaj sesje,</text><text x="730" y="306" font-size="12" fill="#222">nie usuwaj ich. Oczekiwany zysk ok. 3%.</text>
+<text x="24" y="388" font-size="11" fill="#777">Opracowanie własne Progress Live na podstawie: T. Bompa, C. Buzzichelli, Periodyzacja (wyd. hiszp.), s. 230–235, 242–245. Kształt krzywej poglądowy.</text></svg>
