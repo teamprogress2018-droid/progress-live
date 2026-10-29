@@ -217,6 +217,92 @@ function dietRestTargets(train,o){
   });
 }
 
+// ════════ Korekta z postępów: propozycje dla trenera, nic nie zmienia się samo ════════
+// Okno i minimum danych to ustawienia aplikacji (książki nie podają, po ilu tygodniach oceniać).
+const REVIEW_DAYS=42,REVIEW_MIN_DAYS=21,REVIEW_MIN_POINTS=4;
+const DAY_MS=86400000;
+function ymdMs(d){const t=Date.parse(String(d).slice(0,10)+'T12:00:00Z');return isFinite(t)?t:NaN;}
+/** Trend masy: nachylenie prostej (kg na tydzień) z pomiarów w oknie, a nie pojedyncze ważenie. */
+function weightTrend(points,todayMs){
+  const end=todayMs||Date.now();
+  const pts=(points||[]).map(p=>({t:ymdMs(p.d),v:+p.v})).filter(p=>isFinite(p.t)&&isFinite(p.v)&&p.v>20&&p.t<=end+DAY_MS&&p.t>=end-REVIEW_DAYS*DAY_MS)
+    .sort((a,b)=>a.t-b.t);
+  // jeden pomiar na dzień (ostatni)
+  const byDay=new Map();pts.forEach(p=>byDay.set(Math.round(p.t/DAY_MS),p));
+  const u=[...byDay.values()];
+  if(u.length<2)return{n:u.length,days:0};
+  const days=Math.round((u[u.length-1].t-u[0].t)/DAY_MS);
+  const xs=u.map(p=>(p.t-u[0].t)/DAY_MS),mx=xs.reduce((a,b)=>a+b,0)/xs.length,my=u.reduce((a,p)=>a+p.v,0)/u.length;
+  let num=0,den=0;xs.forEach((x,i)=>{num+=(x-mx)*(u[i].v-my);den+=(x-mx)*(x-mx);});
+  const perDay=den?num/den:0;
+  const last=my+perDay*(xs[xs.length-1]-mx);
+  return{n:u.length,days,kgPerWeek:Math.round(perDay*7*100)/100,kgPerMonth:Math.round(perDay*30.4*100)/100,pctPerWeek:Math.round(perDay*7/last*100*100)/100,current:Math.round(last*10)/10};
+}
+function pomiarow(n){const d=n%10,dd=n%100;return n===1?'pomiar':d>=2&&d<=4&&(dd<12||dd>14)?'pomiary':'pomiarów';}
+function avg(list){const v=list.filter(x=>isFinite(x));return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
+/**
+ * Przegląd postępów i najwyżej 3 propozycje korekty dla trenera.
+ * o: {weights:[{d,v}], checkins:[{date, answers:{nutrition, energy, sleep, workouts}}], gender:'M'|'K',
+ *     delta (obecna zmiana kcal pod cel), rmr, tdee, plannedWorkouts (na tydzień), today}
+ */
+function dietProgressReview(o){
+  o=o||{};
+  const todayMs=o.today?ymdMs(o.today):Date.now();
+  const tr=weightTrend(o.weights,todayMs);
+  const delta=Math.round(+o.delta||0);
+  const mode=delta<0?'redukcja':delta>0?'masa':'utrzymanie';
+  const male=o.gender!=='K';
+  const pl=v=>String(v).replace('.',',');
+  const sinceMs=todayMs-REVIEW_DAYS*DAY_MS;
+  const cis=(o.checkins||[]).filter(c=>c&&c.answers&&ymdMs(c.date)>=sinceMs);
+  const nut=avg(cis.map(c=>+c.answers.nutrition));
+  const energy=avg(cis.map(c=>+c.answers.energy));
+  const sleep=avg(cis.map(c=>+c.answers.sleep));
+  const wk=avg(cis.map(c=>+c.answers.workouts));
+  const planned=+o.plannedWorkouts||0;
+  const adherence={checkins:cis.length,nutrition:nut==null?null:Math.round(nut*10)/10,energy:energy==null?null:Math.round(energy*10)/10,sleep:sleep==null?null:Math.round(sleep*10)/10,workouts:wk==null?null:Math.round(wk*10)/10,planned};
+  const appSrc=[src('app','','poza_zrodlem')];
+  const out={mode,trend:tr,adherence,suggestions:[],enough:false,
+    rule:{text:'Ocena z trendu z ostatnich '+REVIEW_DAYS/7+' tygodni (nachylenie prostej przez pomiary), najwcześniej po '+REVIEW_MIN_DAYS/7+' tygodniach i '+REVIEW_MIN_POINTS+' pomiarach.',sources:appSrc}};
+  if(tr.n<REVIEW_MIN_POINTS||tr.days<REVIEW_MIN_DAYS){
+    out.message='Za mało danych: '+tr.n+' '+pomiarow(tr.n)+' masy z '+(tr.days||0)+' dni. Potrzeba co najmniej '+REVIEW_MIN_POINTS+' pomiarów z '+REVIEW_MIN_DAYS/7+' tygodni, zanim aplikacja coś zaproponuje.';
+    return out;
+  }
+  out.enough=true;
+  const S=out.suggestions;
+  const lowAdh=(nut!=null&&nut<=3)||(planned&&wk!=null&&wk<planned*0.75);
+  if(lowAdh)S.push({kind:'realizacja',title:'Najpierw realizacja planu',
+    text:'Odżywianie w check-inach średnio '+(nut!=null?pl(adherence.nutrition)+'/5':'—')+(planned&&wk!=null?', treningi '+pl(adherence.workouts)+' z '+planned+' w tygodniu':'')+'. Zanim zmienisz kalorie, zapytaj klienta, co pomogłoby mu w przyszłym tygodniu (nie „dlaczego?”), i dopasuj posiłki do pór dnia, w których ma problem. Najważniejsza jest realizacja zaleceń.',
+    sources:[src('ads','583, 587-588')]});
+  const deficitRange=male?[300,500]:[200,300];
+  if(mode==='redukcja'){
+    const rate=-tr.pctPerWeek;
+    out.target={text:'0,5–0,7% masy na tydzień, najwyżej 1%',sources:[src('ads','423, 489, 507, 514'),src('sn','229-230')]};
+    if(rate<0.5){
+      const next=Math.max(-deficitRange[1],delta-100);
+      const room=next<delta&&(!o.tdee||!o.rmr||o.tdee+next>=o.rmr);
+      S.push(room
+        ?{kind:'kcal',title:'Większy deficyt: '+next+' kcal',text:'Masa spada o '+pl(Math.max(0,rate))+'% tygodniowo, wolniej niż 0,5%. Propozycja: deficyt z '+(-delta)+' na '+(-next)+' kcal (zakres dla '+(male?'mężczyzn':'kobiet')+' '+deficitRange[0]+'–'+deficitRange[1]+' kcal). Krok 100 kcal to ustawienie aplikacji.',delta:next,sources:[src('sn','229-230'),src('ads','423')]}
+        :{kind:'kcal',title:'Deficyt już na granicy',text:'Masa spada wolniej niż 0,5% tygodniowo, a deficyt jest już na górnej granicy zakresu ('+deficitRange[1]+' kcal) albo przy spoczynkowej przemianie materii. Nie zwiększaj go dalej: sprawdź realizację planu i aktywność poza treningiem albo skieruj klienta do dietetyka.',sources:[src('sn','229-230'),src('bean','121')]});
+    }else if(rate>1){
+      const next=Math.min(-deficitRange[0],delta+100);
+      S.push({kind:'kcal',title:'Wolniejsza redukcja: '+next+' kcal',text:'Masa spada o '+pl(rate)+'% tygodniowo, szybciej niż 1%. Przy tak szybkiej redukcji większa część to mięśnie. Propozycja: deficyt z '+(-delta)+' na '+(-next)+' kcal.',delta:next>delta?next:null,sources:[src('ads','422-423, 514')]});
+    }else S.push({kind:'ok',title:'Tempo w normie',text:'Masa spada o '+pl(rate)+'% tygodniowo, w zakresie 0,5–1%. Nie zmieniaj kalorii.',sources:[src('ads','423, 489'),src('sn','229-230')]});
+    if(energy!=null&&energy<=2)S.push({kind:'energia',title:'Niska energia przy deficycie',text:'Energia w check-inach średnio '+pl(adherence.energy)+'/5'+(sleep!=null?', sen '+pl(adherence.sleep)+'/5':'')+'. Większy deficyt obniża zdolność do treningu, więc nie pogłębiaj go teraz.',sources:[src('sn','229-230')]});
+  }else if(mode==='masa'){
+    const lo=male?0.5:0.25,hi=male?1:0.75;
+    out.target={text:(male?'mężczyźni':'kobiety')+' '+pl(lo)+'–'+pl(hi)+' kg na miesiąc',sources:[src('bean','139-141')]};
+    const m=tr.kgPerMonth;
+    if(m<lo)S.push({kind:'kcal',title:'Większa nadwyżka: +'+(delta+200)+' kcal',text:'Masa rośnie o '+pl(m)+' kg na miesiąc, wolniej niż '+pl(lo)+' kg. Propozycja: nadwyżka z '+delta+' na '+(delta+200)+' kcal (zwiększaj krokami po 200 kcal).',delta:delta+200,sources:[src('bean','139-141')]});
+    else if(m>hi){const next=Math.max(0,delta-200);S.push({kind:'kcal',title:next>0?'Mniejsza nadwyżka: +'+next+' kcal':'Bez nadwyżki (utrzymanie)',text:'Masa rośnie o '+pl(m)+' kg na miesiąc, szybciej niż '+pl(hi)+' kg, więc przybywa też tłuszczu. Propozycja: nadwyżka z '+delta+' na '+next+' kcal (ten sam krok 200 kcal).',delta:next,sources:[src('bean','139-141','wniosek')]});}
+    else S.push({kind:'ok',title:'Tempo w normie',text:'Masa rośnie o '+pl(m)+' kg na miesiąc, w zakresie '+pl(lo)+'–'+pl(hi)+' kg. Nie zmieniaj kalorii.',sources:[src('bean','139-141')]});
+  }else{
+    S.push({kind:'info',title:'Utrzymanie masy',text:'Zmiana masy: '+(tr.kgPerMonth>0?'+':'')+pl(tr.kgPerMonth)+' kg na miesiąc. Książki nie podają progu, od którego korygować kalorie przy utrzymaniu, więc aplikacja nic nie proponuje.',sources:appSrc});
+  }
+  out.suggestions=S.slice(0,3);
+  return out;
+}
+
 // Małe ilości (oliwa, masło orzechowe) co 1 g, reszta co 5 g.
 function round5(x){return x<30?Math.max(0,Math.round(x)):Math.round(x/5)*5;}
 function itemMacros(food,amount){
@@ -475,6 +561,22 @@ function dietWizardHTML(p,skipOpen){
     '</div>';
 }
 
+/** Sekcja „Postępy klienta” na karcie: trend, realizacja i najwyżej 3 propozycje do zatwierdzenia. */
+function dietReviewHTML(rv){
+  if(!rv)return'';
+  const pl=v=>String(v).replace('.',',');
+  const tr=rv.trend;
+  const head='<div style="font-size:12px;font-weight:700;margin-bottom:4px;">📈 Postępy klienta i propozycje korekty</div>';
+  const facts=rv.enough?'<div style="font-size:11.5px;margin-bottom:6px;">Trend masy: <strong>'+(tr.kgPerWeek>0?'+':'')+pl(tr.kgPerWeek)+' kg/tydz.</strong> ('+(tr.pctPerWeek>0?'+':'')+pl(tr.pctPerWeek)+'%), '+tr.n+' '+pomiarow(tr.n)+' z '+tr.days+' dni'+
+    (rv.adherence.checkins?' · check-iny: '+rv.adherence.checkins+(rv.adherence.nutrition!=null?', odżywianie '+pl(rv.adherence.nutrition)+'/5':''):' · brak check-inów')+
+    (rv.target?'<br>Cel tempa: '+esc(rv.target.text)+' '+srcTag(rv.target.sources):'')+'</div>':'';
+  const msg=rv.message?'<div style="font-size:11.5px;color:var(--muted);">'+esc(rv.message)+'</div>':'';
+  const items=rv.suggestions.map((sg,i)=>'<div class="calc-tip diet-suggestion" style="border-left:3px solid '+(sg.kind==='ok'||sg.kind==='info'?'var(--success)':'var(--warning)')+';"><strong>'+(i+1)+'. '+esc(sg.title)+'</strong><br>'+esc(sg.text)+' '+srcTag(sg.sources)+
+    (sg.delta!=null&&sg.delta!==undefined?' <button type="button" class="btn btn-sm" style="font-size:10.5px;padding:2px 8px;min-height:0;" onclick="dietApplySuggestion('+sg.delta+')">Ustaw w kalkulatorze</button>':'')+'</div>').join('');
+  return'<div class="diet-review" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:8px 0;">'+head+facts+msg+items+
+    '<div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">'+esc(rv.rule.text)+' To propozycje dla trenera: nic nie zmienia się samo, a decyzja należy do Ciebie.</div></div>';
+}
+
 function dietRenderCard(t,day,opts){
   opts=opts||{};
   const r=v=>Math.round(v);
@@ -522,12 +624,12 @@ function dietRenderCard(t,day,opts){
     '<button class="btn btn-sm" onclick="dietSendToClient()">📤 Wyślij '+(nDays===7?'tydzień':'jadłospis')+'</button></div>';
   return'<div class="calc-result-card diet-card" id="diet-card">'+head+
     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">'+(t.selected?'Jadłospis liczony z makro wybranego w kalkulatorze. Zakresy obok to zalecenia książek.':'Makro wg książek: białko g/kg wg celu, tłuszcz 25% energii, reszta węglowodany (te same liczby co w podziale makro).')+' Liczba posiłków: 3 posiłki + 2–3 przekąski '+srcTag([src('sn','230')])+'.</div>'+
-    info+notes+diff+warns+ctrl+meals+
+    info+notes+dietReviewHTML(opts.review)+diff+warns+ctrl+meals+
     '<div style="font-size:10.5px;color:var(--muted2);margin-top:8px;line-height:1.5;">Wartości produktów wyliczone z porcji w jadłospisach Bean (rozdz. 15, dane brytyjskie), status: wniosek. Zestawy posiłków i podział energii między posiłki to ustawienia aplikacji. Produkty suche waż przed gotowaniem. Ciąża, cukrzyca, zaburzenia odżywiania lub brak miesiączki: nie używaj automatu, skieruj do lekarza lub dietetyka '+srcTag([src('sn','377, 414, 443'),src('bk','917-919')])+'. To przykładowy plan, nie zastępuje dietetyka.</div>'+
     '</div>';
 }
 
-const api={dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
+const api={dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
 root.DietPlan=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

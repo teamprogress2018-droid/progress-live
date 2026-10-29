@@ -2071,7 +2071,24 @@ function calcDietCardHTML(o){
   const day=blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(Object.assign({},opts,{targets:shown})):DietPlan.dietBuildWeek(Object.assign({},opts,{targets:shown}));
   const cardT=blocked&&!t.blocked?(restDay||dietView==='tydzien'?rest:t):shown;
   window._dietLast={targets:shown,day};
-  return DietPlan.dietRenderCard(cardT,day,{meals:dietMeals,skipOpen:!!window._dietSkipOpen,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
+  return DietPlan.dietRenderCard(cardT,day,{review:calcDietReview(o),meals:dietMeals,skipOpen:!!window._dietSkipOpen,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
+}
+// Korekta z postępów: masa z pomiarów (Masa i BMI) i z check-inów, realizacja z check-inów.
+function calcDietReview(o){
+  const cid=window._calcClientId;
+  if(!cid||!DietPlan.dietProgressReview)return null;
+  const weights=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===cid&&e.groupId==='mg1'&&e.values&&e.values.m1!=null).map(e=>({d:e.date,v:parseFloat(e.values.m1)}));
+  const checkins=((window.CHECKINS&&window.CHECKINS[cid])||[]).filter(c=>c&&c.answers&&c.status==='filled').map(c=>({date:String(c.filledAt||c.date||'').slice(0,10),answers:c.answers}));
+  checkins.forEach(c=>{const w=parseFloat(c.answers.weight);if(w>0&&c.date)weights.push({d:c.date,v:w});});
+  const gender=(document.getElementById('calc-gender')||{}).value==='K'?'K':'M';
+  return DietPlan.dietProgressReview({weights,checkins,gender,delta:calcGoalDelta,rmr:o.rmr,tdee:o.kcal-calcGoalDelta,plannedWorkouts:dietTrainDaysNow().fromClient?dietTrainDaysNow().days.length:0});
+}
+// Trener sam zatwierdza propozycję: zmienia tylko cel w kalkulatorze, nic nie zapisuje u klienta.
+function dietApplySuggestion(delta){
+  calcGoalDelta=Math.round(+delta||0);
+  document.querySelectorAll('.calc-goal-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.val)===calcGoalDelta));
+  calcTDEE();
+  notify('✓ Cel ustawiony: '+(calcGoalDelta>0?'+':'')+calcGoalDelta+' kcal. Zapisz w profilu, jeśli się zgadzasz.');
 }
 function dietTrainDaysNow(){
   if(Array.isArray(dietTrainDays))return{days:dietTrainDays,fromClient:false};

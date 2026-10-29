@@ -161,8 +161,32 @@ ok('karta: wybór dni treningowych', trCard.includes('Trening a jedzenie') && tr
 const d3Card = D.dietRenderCard(tTr, D.dietBuildWeek({ targets: tTr, rest: tRest, dayType: 'wolny', meals: 5, days: 3 }), { meals: 5, train: tTr, rest: tRest, dayType: 'wolny' });
 ok('karta 3 dni: przełącznik typu dnia', d3Card.includes("dietSetDayType('wolny')") && !d3Card.includes('dietToggleTrainDay'));
 ok('kalkulator: dni z harmonogramu klienta', src07.includes('normalizePreferredWeekdays(c.preferredWeekdays)') && src07.includes('DietPlan.dietRestTargets(t,'));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 51));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 6));
+
+// Korekta z postępów: trend z kilku tygodni, najwyżej 3 propozycje, nic nie zmienia się samo.
+const series = (start, days, perDay, every) => { const o = []; for (let i = 0; i <= days; i += every) o.push({ d: new Date(Date.parse('2026-10-29') - (days - i) * 864e5).toISOString().slice(0, 10), v: start + perDay * i }); return o; };
+const RV = o => D.dietProgressReview(Object.assign({ today: '2026-10-29', gender: 'M' }, o));
+const few = RV({ weights: series(80, 10, 0.06, 5), delta: 300 });
+ok('za mało danych: brak propozycji', !few.enough && few.suggestions.length === 0 && few.message.includes('Za mało danych'));
+ok('jedno ważenie to nie trend', !RV({ weights: [{ d: '2026-10-28', v: 85 }], delta: -300 }).enough);
+const slow = RV({ weights: series(90, 28, -0.02, 4), delta: -300 });
+ok('redukcja za wolno: deficyt o 100 kcal większy', slow.enough && slow.suggestions[0].delta === -400 && slow.suggestions[0].sources.some(x => x.ref === 'ads'));
+ok('redukcja: deficyt nie przekracza 500 kcal (M)', RV({ weights: series(90, 28, -0.02, 4), delta: -500 }).suggestions.every(x => x.delta == null));
+ok('redukcja: kobiety najwyżej 300 kcal', RV({ weights: series(70, 28, -0.01, 4), delta: -300, gender: 'K' }).suggestions.every(x => x.delta == null));
+ok('redukcja: nie poniżej RMR', RV({ weights: series(90, 28, -0.02, 4), delta: -300, tdee: 1900, rmr: 1550 }).suggestions.every(x => x.delta == null));
+ok('redukcja za szybko: mniejszy deficyt', RV({ weights: series(90, 28, -0.2, 4), delta: -500 }).suggestions[0].delta === -400);
+ok('redukcja w normie: bez zmian', RV({ weights: series(90, 28, -0.09, 4), delta: -300 }).suggestions[0].kind === 'ok');
+const adh = RV({ weights: series(90, 28, -0.09, 4), delta: -300, checkins: [{ date: '2026-10-20', answers: { nutrition: 2, energy: 2, sleep: 2, workouts: 1 } }], plannedWorkouts: 3 });
+ok('słaba realizacja: najpierw rozmowa, nie kalorie', adh.suggestions[0].kind === 'realizacja' && adh.suggestions.length <= 3 && adh.suggestions.some(x => x.kind === 'energia'));
+ok('masa za wolno: +200 kcal (Bean)', RV({ weights: series(80, 35, 0.005, 7), delta: 300 }).suggestions[0].delta === 500);
+ok('masa za szybko: −200 kcal', RV({ weights: series(80, 35, 0.06, 7), delta: 300 }).suggestions[0].delta === 100);
+ok('utrzymanie: bez liczbowej propozycji', RV({ weights: series(80, 28, 0.01, 7), delta: 0 }).suggestions.every(x => x.delta == null));
+ok('stare pomiary poza oknem 6 tygodni', RV({ weights: series(90, 90, -0.02, 10).slice(0, 4), delta: -300 }).trend.n === 0);
+ok('każda propozycja ma źródło', [slow, adh].every(r => r.suggestions.every(x => x.sources.length)));
+const rvCard = D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5 }), { meals: 5, review: slow });
+ok('karta: propozycje do zatwierdzenia przez trenera', rvCard.includes('Postępy klienta') && rvCard.includes('dietApplySuggestion(-400)') && rvCard.includes('nic nie zmienia się samo'));
+ok('kalkulator: dane z pomiarów i check-inów', src07.includes("e.groupId==='mg1'") && src07.includes("c.status==='filled'") && src07.includes('function dietApplySuggestion('));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 52));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 7));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
