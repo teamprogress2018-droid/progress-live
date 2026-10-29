@@ -89,7 +89,7 @@ const wTxt = D.dietPlanText(t96, wk);
 ok('tekst tygodnia z dniami i zakupami', D.WEEK_DAYS.every(n => wTxt.includes(n.toUpperCase())) && wTxt.includes('Lista zakupów'));
 const wCard = D.dietRenderCard(t96, wk, { meals: 5 });
 ok('karta tygodnia: 7 dni i przełącznik', (wCard.match(/class="diet-day"/g) || []).length === 7 && wCard.includes("dietSetView('tydzien')") && wCard.includes('Wyślij tydzień'));
-ok('przełącznik widoku w kalkulatorze', src07.includes("function dietSetView(v)") && src07.includes('DietPlan.dietBuildWeek(opts)'));
+ok('przełącznik widoku w kalkulatorze', src07.includes("function dietSetView(v)") && src07.includes('DietPlan.dietBuildWeek(Object.assign({},opts'));
 
 // Kreator: wykluczenia, sposób żywienia, czas, 3 posiłki, 3 dni.
 const tK = D.dietBookTargets({ weight: 80, age: 30, kcal: 2400, rmr: 1700, pal: 1.5, goal: 'redukcja' });
@@ -141,8 +141,28 @@ ok('zamiana w tygodniu dotyczy jednego dnia', wSw.days[2].meals[1].swapped && !w
 const swCard = D.dietRenderCard(tK, wSw, { meals: 5, openDay: 2 });
 ok('karta: przycisk zamiany i otwarty dzień', swCard.includes('dietSwapMeal(2,1)') && /<details class="diet-day" style[^>]*>[\s\S]*<details class="diet-day" style[^>]*>[\s\S]*<details class="diet-day" open/.test(swCard));
 ok('kalkulator: zamiana posiłku', src07.includes('function dietSwapMeal(d,m)') && src07.includes('mealShift:dietMealShift'));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 50));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 5));
+
+// Dni treningowe i wolne: dzień wolny liczony z PAL 1,5, białko bez zmian, mniej węglowodanów.
+const tTr = D.dietBookTargets({ weight: 80, age: 30, kcal: 3415, rmr: 1780, pal: 1.75, goal: 'masa' });
+const tRest = D.dietRestTargets(tTr, { rmr: 1780, pal: 1.75, goalDelta: 300 });
+ok('dzień wolny = RMR × 1,5 + zmiana pod cel', tRest.kcal === Math.round(1780 * 1.5 + 300) && !tRest.same);
+ok('dzień wolny: białko bez zmian, tłuszcz ten sam %, mniej węglowodanów', tRest.protein.g === tTr.protein.g && tRest.fat.g === Math.round(tRest.kcal * tTr.fat.pct / 100 / 9) && tRest.carbs.g < tTr.carbs.g);
+ok('dzień wolny ma źródła', tRest.restWhy.sources.length >= 2 && tRest.restWhy.sources.every(x => x.pages));
+ok('PAL 1,5 lub niżej: dni się nie różnią', D.dietRestTargets(tK, { rmr: 1700, pal: 1.5 }).same);
+const tRed = D.dietBookTargets({ weight: 60, age: 30, kcal: 1300 * 1.75 - 700, rmr: 1300, pal: 1.75, goal: 'redukcja' });
+ok('dzień wolny poniżej RMR = blokada', D.dietRestTargets(tRed, { rmr: 1300, pal: 1.75, goalDelta: -700 }).blocked);
+const wTr = D.dietBuildWeek({ targets: tTr, rest: tRest, trainDays: [1, 3, 5], meals: 5, variant: 0 });
+ok('tydzień: pon/śr/pt treningowe, reszta wolne', wTr.days.map(d => d.dayType[0]).join('') === 'twtwtww' && wTr.days.every(d => d.kcalTarget === (d.dayType === 'trening' ? tTr.kcal : tRest.kcal)));
+ok('każdy dzień trzyma swój cel (±6%)', wTr.days.every(d => Math.abs(d.total.kcal - d.kcalTarget) <= d.kcalTarget * 0.06));
+const wTrTxt = D.dietPlanText(tTr, wTr);
+ok('tekst: typ dnia i kalorie', wTrTxt.includes('WTOREK (dzień bez treningu, ' + tRest.kcal + ' kcal)') && wTrTxt.includes('różne w dni treningowe i wolne'));
+const trCard = D.dietRenderCard(tTr, wTr, { meals: 5, train: tTr, rest: tRest, trainDays: [1, 3, 5] });
+ok('karta: wybór dni treningowych', trCard.includes('Trening a jedzenie') && trCard.includes('dietToggleTrainDay(1)') && trCard.includes('🏋 trening'));
+const d3Card = D.dietRenderCard(tTr, D.dietBuildWeek({ targets: tTr, rest: tRest, dayType: 'wolny', meals: 5, days: 3 }), { meals: 5, train: tTr, rest: tRest, dayType: 'wolny' });
+ok('karta 3 dni: przełącznik typu dnia', d3Card.includes("dietSetDayType('wolny')") && !d3Card.includes('dietToggleTrainDay'));
+ok('kalkulator: dni z harmonogramu klienta', src07.includes('normalizePreferredWeekdays(c.preferredWeekdays)') && src07.includes('DietPlan.dietRestTargets(t,'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 51));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 6));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');

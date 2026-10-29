@@ -1648,6 +1648,8 @@ var dietMeals=5;var dietVariant=0;var dietView='dzien';
 var dietPrefs={style:'wszystko',ex:[],skip:[],maxMin:0};
 // Zamienione posiłki: klucz 'dzień:posiłek' → ile razy przesunąć zestaw.
 var dietMealShift={};
+// Dni treningowe (numery dni tygodnia, 1 = pon … 0 = nd); null = z harmonogramu klienta. Typ dnia dla widoku 1 i 3 dni.
+var dietTrainDays=null;var dietDayType='trening';
 // 'books' = makro wg książek (diet-plan.js), 'manual' = preset albo suwaki trenera.
 var calcMacroMode='books';
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
@@ -1734,7 +1736,7 @@ function calcLoadFromClient(){
     calcActivity=actMap[c.activityLevel];
     document.querySelectorAll('.calc-act-btn').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.val)===calcActivity));
   }
-  window._calcClientId=c.id;
+  window._calcClientId=c.id;dietTrainDays=null;
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
   const delta=goalMap[c.goal]||0;
@@ -2059,11 +2061,26 @@ function calcDietContext(o){
 function calcDietCardHTML(o){
   if(typeof DietPlan==='undefined')return'';
   const t=DietPlan.dietBookTargets(calcDietContext(o));
-  const opts={targets:t,meals:dietMeals,variant:dietVariant,prefs:dietPrefs,days:dietView==='3dni'?3:7,mealShift:dietMealShift};
-  const day=t.blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(opts):DietPlan.dietBuildWeek(opts);
-  window._dietLast={targets:t,day};
-  return DietPlan.dietRenderCard(t,day,{meals:dietMeals,skipOpen:!!window._dietSkipOpen,openDay:window._dietOpenDay||0});
+  const ctx=calcDietContext(o);
+  const rest=DietPlan.dietRestTargets(t,{rmr:o.rmr,pal:ctx.pal,goalDelta:ctx.goalDelta});
+  const td=dietTrainDaysNow();
+  const restDay=!rest.same&&dietView!=='tydzien'&&dietDayType==='wolny';
+  const shown=restDay?rest:t;
+  const opts={targets:t,rest,trainDays:td.days,dayType:dietDayType,meals:dietMeals,variant:dietVariant,prefs:dietPrefs,days:dietView==='3dni'?3:7,mealShift:dietMealShift};
+  const blocked=t.blocked||(restDay&&rest.blocked)||(dietView==='tydzien'&&!rest.same&&rest.blocked&&td.days.length<7);
+  const day=blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(Object.assign({},opts,{targets:shown})):DietPlan.dietBuildWeek(Object.assign({},opts,{targets:shown}));
+  const cardT=blocked&&!t.blocked?(restDay||dietView==='tydzien'?rest:t):shown;
+  window._dietLast={targets:shown,day};
+  return DietPlan.dietRenderCard(cardT,day,{meals:dietMeals,skipOpen:!!window._dietSkipOpen,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
 }
+function dietTrainDaysNow(){
+  if(Array.isArray(dietTrainDays))return{days:dietTrainDays,fromClient:false};
+  const c=window._calcClientId&&typeof CL!=='undefined'?CL.find(x=>x.id===window._calcClientId):null;
+  const days=c&&typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(c.preferredWeekdays):[];
+  return days.length?{days,fromClient:true}:{days:[1,3,5],fromClient:false};
+}
+function dietToggleTrainDay(id){const d=dietTrainDaysNow().days.slice();const i=d.indexOf(id);if(i<0)d.push(id);else d.splice(i,1);dietTrainDays=d;calcTDEE();}
+function dietSetDayType(v){dietDayType=v==='wolny'?'wolny':'trening';calcTDEE();}
 function dietSetMeals(n){dietMeals=n;dietMealShift={};calcTDEE();}
 function dietSwapMeal(d,m){window._dietOpenDay=d;const k=d+':'+m;dietMealShift[k]=(dietMealShift[k]||0)+1;calcTDEE();}
 function dietSetView(v){dietView=v==='tydzien'||v==='3dni'?v:'dzien';calcTDEE();}
