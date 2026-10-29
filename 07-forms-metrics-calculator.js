@@ -2073,7 +2073,8 @@ function calcDietCardHTML(o){
   const day=blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(Object.assign({},opts,{targets:shown})):DietPlan.dietBuildWeek(Object.assign({},opts,{targets:shown}));
   const cardT=blocked&&!t.blocked?(restDay||dietView==='tydzien'?rest:t):shown;
   window._dietLast={targets:shown,day};
-  return DietPlan.dietRenderCard(cardT,day,{review:calcDietReview(o),meals:dietMeals,skipOpen:!!window._dietSkipOpen,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
+  const approval=window._dietApprovalOpen&&day?dietApprovalState(shown,day):null;
+  return DietPlan.dietRenderCard(cardT,day,{approval,review:calcDietReview(o),meals:dietMeals,skipOpen:!!window._dietSkipOpen,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
 }
 // Korekta z postępów: masa z pomiarów (Masa i BMI) i z check-inów, realizacja z check-inów.
 function calcDietReview(o){
@@ -2115,14 +2116,59 @@ function dietUseBookMacros(){
   setCalcMacroBooks();
   notify('✓ Makro ustawione wg książek');
 }
-function dietSendToClient(){
+// Wysyłka tylko po zatwierdzeniu: „Wyślij” otwiera listę kontrolną, klient dostaje plan dopiero po „Zatwierdź i wyślij”.
+function dietCalcClient(){
   const cid=document.getElementById('calc-client')?.value;
-  if(!cid){notify('Wybierz klienta!');return;}
+  return cid&&typeof CL!=='undefined'?CL.find(x=>x.id===cid)||null:null;
+}
+function dietApprovalState(t,day){
+  const c=dietCalcClient();
+  const age=parseInt(document.getElementById('calc-age')?.value,10)||null;
+  return{checks:DietPlan.dietApprovalChecks(t,day,{age,injuries:c&&c.injuries}),saved:c&&c.dietPlan};
+}
+function dietSendToClient(){
+  if(!dietCalcClient()){notify('Wybierz klienta!');return;}
   const last=window._dietLast;
   if(!last||!last.day){notify('Najpierw policz jadłospis');return;}
-  const c=CL.find(x=>x.id===cid);
-  pushMsg(cid,DietPlan.dietPlanText(last.targets,last.day));
-  notify('✓ Jadłospis wysłany do '+(c?c.name:'klienta')+' w wiadomościach!');
+  window._dietApprovalOpen=true;
+  calcTDEE();
+  const el=document.querySelector('#diet-card .diet-approval');
+  if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'});
+}
+function dietCloseApproval(){window._dietApprovalOpen=false;calcTDEE();}
+function dietPlanRecord(status){
+  const last=window._dietLast;
+  const t=last.targets,day=last.day;
+  const now=new Date().toISOString();
+  return{status,updatedAt:now,kcal:t.kcal,protein:t.protein.g,fat:t.fat.g,carbs:t.carbs.g,
+    days:day.days?day.days.length:1,meals:dietMeals,prefs:day.prefs||null,
+    text:DietPlan.dietPlanText(t,day),checks:DietPlan.dietApprovalChecks(t,day,{}).map(x=>x.level+': '+x.text)};
+}
+function dietStorePlan(c,rec){
+  if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
+  c.dietPlan=rec;
+  if(typeof persistById==='function')persistById('clients',c);
+}
+function dietSaveDraft(){
+  const c=dietCalcClient();
+  if(!c||!window._dietLast||!window._dietLast.day){notify('Wybierz klienta i policz jadłospis');return;}
+  dietStorePlan(c,dietPlanRecord('szkic'));
+  window._dietApprovalOpen=false;
+  calcTDEE();
+  notify('💾 Szkic zapisany u '+c.name+'. Klient go nie widzi.');
+}
+function dietApproveAndSend(){
+  const c=dietCalcClient();
+  if(!c||!window._dietLast||!window._dietLast.day){notify('Wybierz klienta i policz jadłospis');return;}
+  if(!document.getElementById('diet-approve-check')?.checked){notify('Najpierw zaznacz, że plan jest sprawdzony');return;}
+  const rec=dietPlanRecord('zatwierdzony');
+  rec.approvedAt=rec.updatedAt;
+  rec.approvedBy=window._uid||null;
+  dietStorePlan(c,rec);
+  pushMsg(c.id,rec.text);
+  window._dietApprovalOpen=false;
+  calcTDEE();
+  notify('✓ Jadłospis zatwierdzony i wysłany do '+c.name+' w wiadomościach!');
 }
 
 function suggestLoad(opts){

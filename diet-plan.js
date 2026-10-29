@@ -608,6 +608,42 @@ function dietReviewHTML(rv){
     '<div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">'+esc(rv.rule.text)+' To propozycje dla trenera: nic nie zmienia się samo, a decyzja należy do Ciebie.</div></div>';
 }
 
+// ════════ Zatwierdzanie przez trenera przed wysłaniem ════════
+const ALLERGENS=['gluten','mleko','jaja','ryby','orzeszki','soja','sezam'];
+/**
+ * Lista kontrolna przed wysłaniem: co jest niepewne i kiedy nie wysyłać.
+ * ctx: {clientName, age, injuries}
+ */
+function dietApprovalChecks(t,plan,ctx){
+  ctx=ctx||{};
+  const out=[];
+  const days=plan&&plan.days?plan.days:plan?[plan]:[];
+  const warns=plan&&plan.warnings||[];
+  warns.forEach(w=>out.push({level:'uwaga',text:w}));
+  days.filter(d=>Math.abs(d.diffKcal)>Math.max(60,(d.kcalTarget||t.kcal)*0.05)).forEach(d=>out.push({level:'uwaga',text:(d.name||'Jadłospis')+': '+(d.diffKcal>0?'+':'')+d.diffKcal+' kcal od celu.'}));
+  (t.notes||[]).forEach(n=>out.push({level:'uwaga',text:n.text,sources:n.sources}));
+  const pr=plan&&plan.prefs;
+  const al=pr?pr.ex.filter(id=>ALLERGENS.includes(id)):[];
+  if(al.length)out.push({level:'uwaga',text:'Wykluczenia: '+al.map(id=>DIET_EXCLUSIONS.find(e=>e.id===id).label.toLowerCase()).join(', ')+'. Oznaczenia produktów to typowy skład; przy alergii z objawami klient powinien skonsultować dietę z lekarzem lub dietetykiem.'});
+  if(ctx.injuries)out.push({level:'info',text:'Klient ma wpisane: „'+String(ctx.injuries).slice(0,120)+'”. Jadłospis tego nie uwzględnia.'});
+  out.push({level:'info',text:'Wartości produktów wyliczone z jadłospisów Bean (dane brytyjskie), status: wniosek. Polskie produkty mogą się różnić.',sources:[src('bean','202-220','wniosek')]});
+  out.push({level:'stop',text:'Nie wysyłaj automatu, jeśli klient jest w ciąży, ma cukrzycę, inną chorobę wymagającą diety, zaburzenia odżywiania albo brak miesiączki. Skieruj go do lekarza lub dietetyka.',sources:[src('sn','377, 414, 443'),src('bk','917-919')]});
+  return out;
+}
+function dietApprovalHTML(checks,saved){
+  const icon={stop:'⛔',uwaga:'⚠',info:'ℹ'};
+  const col={stop:'var(--danger)',uwaga:'var(--warning)',info:'var(--info)'};
+  const st=saved&&saved.status?'<div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">Ostatni plan klienta: <strong>'+(saved.status==='zatwierdzony'?'zatwierdzony i wysłany':'szkic')+'</strong> '+esc(String(saved.status==='zatwierdzony'?saved.approvedAt:saved.updatedAt||'').slice(0,10))+(saved.kcal?' · '+saved.kcal+' kcal':'')+'</div>':'';
+  return'<div class="diet-approval" style="border:2px solid var(--accent);border-radius:10px;padding:10px;margin:8px 0;">'+
+    '<div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">Zatwierdź jadłospis przed wysłaniem</div>'+st+
+    checks.map(c=>'<div class="calc-tip" style="border-left:3px solid '+col[c.level]+';">'+icon[c.level]+' '+esc(c.text)+(c.sources?' '+srcTag(c.sources):'')+'</div>').join('')+
+    '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;margin:8px 0;cursor:pointer;"><input type="checkbox" id="diet-approve-check" onchange="var b=document.getElementById(\'diet-approve-btn\');if(b){b.disabled=!this.checked;b.style.opacity=this.checked?1:.45;}"> <span>Sprawdziłem jadłospis i punkty powyżej. Klient nie ma przeciwwskazań z czerwonego punktu.</span></label>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+    '<button type="button" class="btn btn-sm btn-primary" id="diet-approve-btn" disabled style="opacity:.45;" onclick="dietApproveAndSend()">✅ Zatwierdź i wyślij</button>'+
+    '<button type="button" class="btn btn-sm" onclick="dietSaveDraft()">💾 Zapisz jako szkic</button>'+
+    '<button type="button" class="btn btn-sm" onclick="dietCloseApproval()">Anuluj</button></div></div>';
+}
+
 function dietRenderCard(t,day,opts){
   opts=opts||{};
   const r=v=>Math.round(v);
@@ -659,12 +695,12 @@ function dietRenderCard(t,day,opts){
     '<button class="btn btn-sm" onclick="dietSendToClient()">📤 Wyślij '+(nDays===7?'tydzień':'jadłospis')+'</button></div>';
   return'<div class="calc-result-card diet-card" id="diet-card">'+head+
     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">'+(t.selected?'Jadłospis liczony z makro wybranego w kalkulatorze. Zakresy obok to zalecenia książek.':'Makro wg książek: białko g/kg wg celu, tłuszcz 25% energii, reszta węglowodany (te same liczby co w podziale makro).')+' Liczba posiłków: 3 posiłki + 2–3 przekąski '+srcTag([src('sn','230')])+'.</div>'+
-    info+notes+dietReviewHTML(opts.review)+diff+warns+ctrl+meals+
+    info+notes+dietReviewHTML(opts.review)+diff+warns+ctrl+(opts.approval?dietApprovalHTML(opts.approval.checks,opts.approval.saved):'')+meals+
     '<div style="font-size:10.5px;color:var(--muted2);margin-top:8px;line-height:1.5;">Wartości produktów wyliczone z porcji w jadłospisach Bean (rozdz. 15, dane brytyjskie), status: wniosek. Zestawy posiłków i podział energii między posiłki to ustawienia aplikacji. Produkty suche waż przed gotowaniem. Ciąża, cukrzyca, zaburzenia odżywiania lub brak miesiączki: nie używaj automatu, skieruj do lekarza lub dietetyka '+srcTag([src('sn','377, 414, 443'),src('bk','917-919')])+'. To przykładowy plan, nie zastępuje dietetyka.</div>'+
     '</div>';
 }
 
-const api={dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
+const api={dietApprovalChecks,dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
 root.DietPlan=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
