@@ -1644,6 +1644,8 @@ async function askMetricAI(){
 // ════════════════════════════════════════
 var calcActivity=1.5;var calcGoalDelta=0;
 var dietMeals=5;var dietVariant=0;var dietView='dzien';
+// Kreator jadłospisu: sposób żywienia, wykluczenia, produkty, których klient nie je, limit czasu.
+var dietPrefs={style:'wszystko',ex:[],skip:[],maxMin:0};
 // 'books' = makro wg książek (diet-plan.js), 'manual' = preset albo suwaki trenera.
 var calcMacroMode='books';
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
@@ -2055,13 +2057,18 @@ function calcDietContext(o){
 function calcDietCardHTML(o){
   if(typeof DietPlan==='undefined')return'';
   const t=DietPlan.dietBookTargets(calcDietContext(o));
-  const opts={targets:t,meals:dietMeals,variant:dietVariant};
-  const day=t.blocked?null:dietView==='tydzien'?DietPlan.dietBuildWeek(opts):DietPlan.dietBuildDay(opts);
+  const opts={targets:t,meals:dietMeals,variant:dietVariant,prefs:dietPrefs,days:dietView==='3dni'?3:7};
+  const day=t.blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(opts):DietPlan.dietBuildWeek(opts);
   window._dietLast={targets:t,day};
-  return DietPlan.dietRenderCard(t,day,{meals:dietMeals});
+  return DietPlan.dietRenderCard(t,day,{meals:dietMeals,skipOpen:!!window._dietSkipOpen});
 }
 function dietSetMeals(n){dietMeals=n;calcTDEE();}
-function dietSetView(v){dietView=v==='tydzien'?'tydzien':'dzien';calcTDEE();}
+function dietSetView(v){dietView=v==='tydzien'||v==='3dni'?v:'dzien';calcTDEE();}
+function dietSetStyle(k){dietPrefs.style=k;dietPrefs.ex=dietPrefs.ex.filter(id=>!(DietPlan.DIET_STYLES[k]||{ex:[]}).ex.includes(id));calcTDEE();}
+function dietToggleList(list,id){const i=list.indexOf(id);if(i<0)list.push(id);else list.splice(i,1);}
+function dietToggleEx(id){dietToggleList(dietPrefs.ex,id);calcTDEE();}
+function dietToggleSkip(id){dietToggleList(dietPrefs.skip,id);window._dietSkipOpen=true;calcTDEE();}
+function dietSetMaxMin(v){dietPrefs.maxMin=+v||0;calcTDEE();}
 function dietNextVariant(){dietVariant++;calcTDEE();}
 function dietUseBookMacros(){
   setCalcMacroBooks();

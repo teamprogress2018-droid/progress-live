@@ -90,8 +90,40 @@ ok('tekst tygodnia z dniami i zakupami', D.WEEK_DAYS.every(n => wTxt.includes(n.
 const wCard = D.dietRenderCard(t96, wk, { meals: 5 });
 ok('karta tygodnia: 7 dni i przełącznik', (wCard.match(/class="diet-day"/g) || []).length === 7 && wCard.includes("dietSetView('tydzien')") && wCard.includes('Wyślij tydzień'));
 ok('przełącznik widoku w kalkulatorze', src07.includes("function dietSetView(v)") && src07.includes('DietPlan.dietBuildWeek(opts)'));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 48));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 3));
+
+// Kreator: wykluczenia, sposób żywienia, czas, 3 posiłki, 3 dni.
+const tK = D.dietBookTargets({ weight: 80, age: 30, kcal: 2400, rmr: 1700, pal: 1.5, goal: 'redukcja' });
+const used = d => d.meals.flatMap(m => m.items.map(it => it.id));
+const tagOf = id => foods[id].tags;
+[[{ style: 'weganska' }, ['mieso', 'ryby', 'mleko', 'jaja']], [{ style: 'wege', ex: ['gluten'] }, ['mieso', 'ryby', 'gluten']], [{ ex: ['mleko', 'ryby', 'gluten'] }, ['mleko', 'ryby', 'gluten']], [{ ex: ['orzeszki', 'soja', 'sezam', 'jaja'] }, ['orzeszki', 'soja', 'sezam', 'jaja']]].forEach(([prefs, banned]) => {
+  [3, 4, 5, 6].forEach(n => [0, 1, 2].forEach(v => {
+    const d = D.dietBuildDay({ targets: tK, meals: n, variant: v, prefs });
+    const bad = used(d).filter(id => tagOf(id).some(t => banned.includes(t)));
+    const badSwap = d.meals.flatMap(m => m.items.flatMap(it => it.swaps.map(s => s.id))).filter(id => tagOf(id).some(t => banned.includes(t)));
+    ok(`bez ${banned.join('/')} ${n}p w${v}`, d.meals.length === n && d.meals.every(m => m.items.length) && !bad.length && !badSwap.length, bad.concat(badSwap).join(','));
+  }));
+});
+const dSkip = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { skip: ['cottage', 'chleb'] } });
+ok('produkty, których klient nie je, znikają', !used(dSkip).some(id => id === 'cottage' || id === 'chleb'));
+ok('zamiana opisana przy posiłku', dSkip.meals.some(m => m.changes.some(ch => ch.from === 'cottage')));
+const dQuick = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { maxMin: 15 } });
+ok('limit 15 min: każdy posiłek w limicie', dQuick.meals.every(m => m.minutes <= 15) && !dQuick.warnings.length);
+const tplOver = D.dietBuildDay({ targets: tK, meals: 4, variant: 0, prefs: { maxMin: 2 } });
+ok('brak zestawu w limicie = ostrzeżenie', tplOver.warnings.some(w => w.includes('2 min')));
+const d3 = D.dietBuildDay({ targets: tK, meals: 3, variant: 0 });
+ok('3 posiłki trzymają makro', d3.meals.length === 3 && Math.abs(d3.total.p - tK.protein.g) <= tK.protein.g * 0.1 && Math.abs(d3.total.kcal - tK.kcal) <= tK.kcal * 0.06);
+const w3 = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, days: 3, prefs: { style: 'wege' } });
+ok('3 dni: nazwy, różne dni, zakupy', w3.days.length === 3 && w3.days[0].name === 'Dzień 1' && new Set(w3.days.map(sig)).size === 3 && w3.shopping.every(s => !tagOf(s.id).includes('mieso')));
+const w3Txt = D.dietPlanText(tK, w3);
+ok('tekst 3 dni z wykluczeniami', w3Txt.includes('na 3 dni') && w3Txt.includes('Bez: mięso, ryby'));
+const vegan = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { style: 'weganska' } });
+ok('mała baza = uczciwe ostrzeżenie', vegan.warnings.some(w => w.includes('Mało produktów')));
+const kCard = D.dietRenderCard(tK, w3, { meals: 5 });
+ok('karta: kreator i przełączniki', kCard.includes('Kreator jadłospisu') && kCard.includes("dietSetView('3dni')") && kCard.includes("dietToggleEx('gluten')") && kCard.includes('dietSetMaxMin(15)') && kCard.includes('dietSetMeals(3)'));
+ok('karta kreatora bez kolorów na sztywno', !/#[0-9a-f]{3,6}\b/i.test(kCard));
+ok('kalkulator: stan kreatora', /var dietPrefs=\{style:'wszystko'/.test(src07) && ['dietSetStyle', 'dietToggleEx', 'dietToggleSkip', 'dietSetMaxMin'].every(f => src07.includes('function ' + f + '(')));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 49));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 4));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
