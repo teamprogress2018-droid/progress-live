@@ -122,8 +122,27 @@ const kCard = D.dietRenderCard(tK, w3, { meals: 5 });
 ok('karta: kreator i przełączniki', kCard.includes('Kreator jadłospisu') && kCard.includes("dietSetView('3dni')") && kCard.includes("dietToggleEx('gluten')") && kCard.includes('dietSetMaxMin(15)') && kCard.includes('dietSetMeals(3)'));
 ok('karta kreatora bez kolorów na sztywno', !/#[0-9a-f]{3,6}\b/i.test(kCard));
 ok('kalkulator: stan kreatora', /var dietPrefs=\{style:'wszystko'/.test(src07) && ['dietSetStyle', 'dietToggleEx', 'dietToggleSkip', 'dietSetMaxMin'].every(f => src07.includes('function ' + f + '(')));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 49));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 4));
+
+// Zamiana całego posiłku: inny zestaw, ten sam cel dnia, pozostałe posiłki bez zmian w zestawach.
+[[{}, 5], [{ style: 'wege' }, 4], [{ ex: ['gluten', 'mleko'] }, 6], [{}, 3]].forEach(([prefs, n]) => {
+  const base = D.dietBuildDay({ targets: tK, meals: n, variant: 0, prefs });
+  base.meals.forEach((m, mi) => {
+    if (m.options < 2) return;
+    const sw = D.dietBuildDay({ targets: tK, meals: n, variant: 0, prefs, mealShift: { ['0:' + mi]: 1 } });
+    const key = x => x.items.map(it => it.id).join('+') + '|' + x.minutes;
+    ok(`zamiana posiłku ${n}p #${mi} ${JSON.stringify(prefs)}`, sw.meals[mi].swapped && key(sw.meals[mi]) !== key(m) &&
+      sw.meals.every((x, j) => j === mi || !x.swapped) &&
+      Math.abs(sw.total.kcal - tK.kcal) <= tK.kcal * 0.06 && Math.abs(sw.total.p - tK.protein.g) <= tK.protein.g * 0.1,
+      JSON.stringify({ day: [Math.round(base.total.kcal), Math.round(sw.total.kcal)], meal: [Math.round(m.total.kcal), Math.round(sw.meals[mi].total.kcal)] }));
+  });
+});
+const wSw = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, days: 3, mealShift: { '2:1': 1 } });
+ok('zamiana w tygodniu dotyczy jednego dnia', wSw.days[2].meals[1].swapped && !wSw.days[0].meals[1].swapped && !wSw.days[1].meals[1].swapped);
+const swCard = D.dietRenderCard(tK, wSw, { meals: 5, openDay: 2 });
+ok('karta: przycisk zamiany i otwarty dzień', swCard.includes('dietSwapMeal(2,1)') && /<details class="diet-day" style[^>]*>[\s\S]*<details class="diet-day" style[^>]*>[\s\S]*<details class="diet-day" open/.test(swCard));
+ok('kalkulator: zamiana posiłku', src07.includes('function dietSwapMeal(d,m)') && src07.includes('mealShift:dietMealShift'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 50));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 5));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
