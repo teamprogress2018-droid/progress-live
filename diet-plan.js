@@ -352,18 +352,27 @@ function solveMeal(tpl,target,allow){
 
 /** Zamienniki: produkty z tej samej podgrupy (mięso i ryby, nabiał, zboża, skrobia, owoce, tłuszcze),
  *  w ilości dającej tyle samo głównego składnika; bez porcji mniejszych niż sensowne minimum. */
-function swapsFor(item,allow){
+// Zamienniki białka: najpierw ta sama podgrupa, potem inne źródła białka (mięso, ryby, nabiał, rośliny)
+// w ilości dającej tyle samo gramów białka; kalorie i pozostałe makro mogą się różnić i są pokazane.
+// Produkty, które klient lubi, idą na początek.
+function swapsFor(item,allow,like){
   allow=allow||(()=>true);
+  like=like||new Set();
   const food=FOOD[item.id];
   const key=item.role;
   if(key!=='p'&&key!=='c'&&key!=='f')return[];
   const amountMain=itemMacros(food,item.amount)[key];
   if(amountMain<=0)return[];
-  return DIET_FOODS.filter(f=>f.id!==food.id&&f.sub===food.sub&&f[key]>0&&allow(f))
-    .map(f=>({id:f.id,raw:amountMain/f[key]*unitOf(f)}))
+  const fit=list=>list.map(f=>({id:f.id,raw:amountMain/f[key]*unitOf(f)}))
     .filter(s=>{const f=FOOD[s.id];return s.raw>=f.min*0.75&&s.raw<=(f.max||9999);})
-    .map(s=>({id:s.id,amount:clampAmount(FOOD[s.id],s.raw)}))
-    .slice(0,3);
+    .sort((a,b)=>like.has(b.id)-like.has(a.id))
+    .map(s=>{const amount=clampAmount(FOOD[s.id],s.raw);return{id:s.id,amount,m:itemMacros(FOOD[s.id],amount),liked:like.has(s.id)};});
+  const ok=f=>f.id!==food.id&&f[key]>0&&allow(f);
+  const near=x=>Math.abs(x.m.p-amountMain)<=Math.max(3,amountMain*0.15);
+  const same=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub===food.sub)).filter(x=>key!=='p'||near(x)).slice(0,3);
+  if(key!=='p')return same;
+  const other=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub!==food.sub&&ROLE_GROUPS.p.includes(f.group)&&f.p*4/f.kcal>=0.25)).filter(near).map(x=>Object.assign(x,{other:true}));
+  return same.concat(other).slice(0,Math.max(4,same.length));
 }
 
 /** Preferencje kreatora: {style, ex: [id wykluczeń], skip: [id produktów], maxMin: minuty na posiłek (0 = bez limitu)}. */
@@ -372,7 +381,8 @@ function dietPrefsNorm(p){
   const style=DIET_STYLES[p.style]?p.style:'wszystko';
   const ex=[...new Set([].concat(DIET_STYLES[style].ex,(p.ex||[]).filter(id=>DIET_EXCLUSIONS.some(e=>e.id===id))))];
   const skip=(p.skip||[]).filter(id=>FOOD[id]);
-  return{style,ex,skip,maxMin:Math.max(0,+p.maxMin||0)};
+  const like=(p.like||[]).filter(id=>FOOD[id]&&!skip.includes(id));
+  return{style,ex,skip,like,maxMin:Math.max(0,+p.maxMin||0)};
 }
 function dietAllow(prefs){
   const ex=new Set(prefs.ex),skip=new Set(prefs.skip);
@@ -384,23 +394,23 @@ const ROLE_GROUPS={p:['bialko','nabial'],c:['wegle'],f:['tluszcz']};
 // Produkty obiadowe (do gotowania na ciepło): w śniadaniu i przekąsce zamiennik z nich tylko w ostateczności.
 const MAIN_DISH=new Set(['kurczak','indyk','losos','ryba','fasola','makaron','ryz','ziemniaki','bataty']);
 // Produkty już użyte tego dnia idą na koniec kolejki, żeby zamiennik nie powtarzał się w każdym posiłku.
-function replacementFor(id,role,allow,used,today,light){
-  today=today||new Set();
+function replacementFor(id,role,allow,used,today,light,like){
+  today=today||new Set();like=like||new Set();
   const f=FOOD[id];
   const ok=g=>g.id!==id&&allow(g)&&g[role]>0&&!used.includes(g.id);
   const ratio=g=>g[role]*(role==='f'?9:4)/g.kcal;
   const pool=DIET_FOODS.filter(g=>ok(g)&&(g.sub===f.sub||ROLE_GROUPS[role].includes(g.group)));
   const other=g=>g.sub===f.sub?0:1;
   const heavy=g=>light&&MAIN_DISH.has(g.id)?1:0;
-  return pool.sort((a,b)=>(heavy(a)-heavy(b))||(today.has(a.id)-today.has(b.id))||(other(a)-other(b))||(ratio(b)-ratio(a)))[0]||null;
+  return pool.sort((a,b)=>(heavy(a)-heavy(b))||(like.has(b.id)-like.has(a.id))||(today.has(a.id)-today.has(b.id))||(other(a)-other(b))||(ratio(b)-ratio(a)))[0]||null;
 }
 /** Zestaw dopasowany do wykluczeń; null, gdy nie ma czym zastąpić białka albo węglowodanów. */
-function adaptTemplate(tpl,allow,today,light){
+function adaptTemplate(tpl,allow,today,light,like){
   const out={min:tpl.min,p:tpl.p,c:tpl.c,f:tpl.f,x:(tpl.x||[]).filter(([id])=>allow(FOOD[id])),changes:[]};
   for(const role of['p','c','f']){
     const id=out[role];
     if(!id||allow(FOOD[id]))continue;
-    const r=replacementFor(id,role,allow,[out.p,out.c,out.f].concat(out.x.map(x=>x[0])),today,light);
+    const r=replacementFor(id,role,allow,[out.p,out.c,out.f].concat(out.x.map(x=>x[0])),today,light,like);
     if(!r&&role!=='f')return null;
     out.changes.push({from:id,to:r?r.id:null});
     out[role]=r?r.id:null;
@@ -409,11 +419,20 @@ function adaptTemplate(tpl,allow,today,light){
 }
 /** Zestawy dla jednego rodzaju posiłku: najpierw pełne zgodne z preferencjami, potem przerobione;
  *  limit czasu odpuszczany dopiero, gdy nic się w nim nie mieści (z ostrzeżeniem). */
+// Upodobania: zestawy z produktami, które klient lubi, idą na początek i liczą się podwójnie w rotacji.
+function likedCount(t,like){return[t.p,t.c,t.f].concat(t.x.map(x=>x[0])).filter(id=>id&&like.has(id)).length;}
 function slotTemplates(slot,prefs,allow,today){
   const light=slot==='sniadanie'||slot==='przekaska';
-  const all=MEAL_TEMPLATES[slot].map(t=>adaptTemplate(t,allow,today,light)).filter(Boolean);
+  const like=new Set(prefs.like||[]);
+  const all=MEAL_TEMPLATES[slot].map(t=>adaptTemplate(t,allow,today,light,like)).filter(Boolean);
   const inTime=prefs.maxMin?all.filter(t=>t.min<=prefs.maxMin):all;
-  const pick=list=>{const clean=list.filter(t=>!t.changes.length);return clean.length>=2?clean:list;};
+  const pick=list=>{
+    const clean=list.filter(t=>!t.changes.length);
+    const base=clean.length>=2?clean:list;
+    if(!like.size)return base;
+    const liked=base.filter(t=>likedCount(t,like)>0).sort((a,b)=>likedCount(b,like)-likedCount(a,like));
+    return liked.length?liked.concat(base.filter(t=>!liked.includes(t)),liked):base;
+  };
   if(inTime.length)return{list:pick(inTime),overTime:false};
   return{list:pick(all),overTime:!!all.length};
 }
@@ -448,7 +467,7 @@ function dietBuildDay(o){
     const k=m.share/shareLeft;
     const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
     shareLeft-=m.share;
-    const items=solveMeal(tpl,target,allow).map(it=>Object.assign(it,{swaps:swapsFor(it,allow)}));
+    const items=solveMeal(tpl,target,allow).map(it=>Object.assign(it,{swaps:swapsFor(it,allow,new Set(prefs.like))}));
     const tot=sumItems(items);
     done=addM(done,tot);
     items.forEach(it=>{if(it.role!=='x')today.add(it.id);});
@@ -512,7 +531,7 @@ function mealsText(day,lines){
     lines.push(m.name+' (~'+r(m.total.kcal)+' kcal, B '+r(m.total.p)+' g)');
     m.items.forEach(it=>{
       const f=FOOD[it.id];
-      const sw=it.swaps.length?' (albo: '+it.swaps.map(s=>FOOD[s.id].name.toLowerCase()+' '+fmtAmount(FOOD[s.id],s.amount)).join(', ')+')':'';
+      const sw=it.swaps.length?' (albo: '+it.swaps.map(s=>FOOD[s.id].name.toLowerCase()+' '+fmtAmount(FOOD[s.id],s.amount)+(it.role==='p'?' = B '+Math.round(s.m.p)+' g':'')).join(', ')+')':'';
       lines.push('• '+f.name+' '+fmtAmount(f,it.amount)+sw);
     });
     lines.push('');
@@ -586,7 +605,9 @@ function dietWizardHTML(p,skipOpen){
     row('Sposób żywienia',Object.keys(DIET_STYLES).map(k=>chip(p.style===k,'dietSetStyle(\''+k+'\')',DIET_STYLES[k].label)).join(''))+
     row('Bez (alergie)',DIET_EXCLUSIONS.filter(e=>!styleEx.includes(e.id)).map(e=>chip(p.ex.includes(e.id),'dietToggleEx(\''+e.id+'\')',e.label)).join(''))+
     row('Czas na posiłek',[[0,'Bez limitu'],[15,'do 15 min'],[30,'do 30 min']].map(([v,l])=>chip(p.maxMin===v,'dietSetMaxMin('+v+')',l)).join(''))+
-    '<details class="diet-skip"'+(skipOpen?' open':'')+' style="margin-top:4px;"><summary style="cursor:pointer;font-size:11.5px;color:var(--muted);">Produkty, których klient nie je'+(p.skip.length?' ('+p.skip.length+')':'')+'</summary><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">'+
+    '<details class="diet-like"'+(skipOpen==='like'?' open':'')+' style="margin-top:4px;"><summary style="cursor:pointer;font-size:11.5px;color:var(--muted);">❤ Produkty, które klient lubi'+(p.like.length?' ('+p.like.length+')':'')+'</summary><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">'+
+      DIET_FOODS.filter(f=>!p.skip.includes(f.id)).map(f=>chip(p.like.includes(f.id),'dietToggleLike(\''+f.id+'\')',f.name)).join('')+'</div><div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Generator częściej wybiera posiłki z tymi produktami i stawia je pierwsze wśród zamienników.</div></details>'+
+    '<details class="diet-skip"'+(skipOpen===true||skipOpen==='skip'?' open':'')+' style="margin-top:4px;"><summary style="cursor:pointer;font-size:11.5px;color:var(--muted);">✕ Produkty, których klient nie lubi lub nie je'+(p.skip.length?' ('+p.skip.length+')':'')+'</summary><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">'+
       DIET_FOODS.map(f=>chip(p.skip.includes(f.id),'dietToggleSkip(\''+f.id+'\')',f.name)).join('')+'</div></details>'+
     '<div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Oznaczenia alergenów i czasy przygotowania to ustawienia aplikacji. Przy alergii zawsze sprawdzaj etykietę; przy chorobach skieruj klienta do dietetyka lub lekarza.</div>'+
     '</div>';
@@ -655,8 +676,8 @@ function dietRenderCard(t,day,opts){
   const mealsHTML=(d,di)=>d.meals.map((m,mi)=>'<div class="calc-meal-card">'+
     '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+(m.minutes?' <span style="font-weight:400;color:var(--muted);">⏱ ~'+m.minutes+' min</span>':'')+(m.swapped?' <span style="font-weight:400;color:var(--muted);">(zamieniony)</span>':'')+swapBtn(di||0,mi,m)+'</div>'+
     '<div style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r(m.total.kcal)+' kcal · B '+r(m.total.p)+' · T '+r(m.total.f)+' · W '+r(m.total.c)+'</div></div>'+
-    m.items.map(it=>{const f=FOOD[it.id];return'<div style="font-size:12px;padding:2px 0;">'+esc(f.name)+' <strong>'+esc(fmtAmount(f,it.amount))+'</strong>'+
-      (it.swaps.length?'<div style="font-size:10.5px;color:var(--muted);">zamiennik: '+it.swaps.map(s=>esc(FOOD[s.id].name.toLowerCase())+' '+esc(fmtAmount(FOOD[s.id],s.amount))).join(' · ')+'</div>':'')+'</div>';}).join('')+
+    m.items.map(it=>{const f=FOOD[it.id];const im=itemMacros(f,it.amount);return'<div style="font-size:12px;padding:2px 0;">'+esc(f.name)+' <strong>'+esc(fmtAmount(f,it.amount))+'</strong>'+(it.role!=='x'?' <span style="font-size:10.5px;color:var(--muted);font-family:\'DM Mono\',monospace;">B '+Math.round(im.p)+' g · '+Math.round(im.kcal)+' kcal</span>':'')+
+      (it.swaps.length?'<div style="font-size:10.5px;color:var(--muted);">zamiennik'+(it.role==='p'?' (to samo białko)':'')+': '+it.swaps.map(s=>(s.liked?'❤ ':'')+esc(FOOD[s.id].name.toLowerCase())+' '+esc(fmtAmount(FOOD[s.id],s.amount))+' <span style="font-family:\'DM Mono\',monospace;">(B '+Math.round(s.m.p)+' g · '+Math.round(s.m.kcal)+' kcal)</span>').join(' · ')+'</div>':'')+'</div>';}).join('')+
     ((m.changes||[]).length?'<div style="font-size:10.5px;color:var(--muted);margin-top:3px;">zmienione przez wykluczenia: '+m.changes.map(ch=>esc(FOOD[ch.from].name.toLowerCase())+' → '+(ch.to?esc(FOOD[ch.to].name.toLowerCase()):'bez zamiennika')).join(' · ')+'</div>':'')+
     '</div>').join('');
   const info=[

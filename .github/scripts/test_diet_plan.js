@@ -46,7 +46,9 @@ ok('mało węglowodanów = ostrzeżenie', D.dietBookTargets({ weight: 90, age: 3
 });
 const day = D.dietBuildDay({ targets: t, meals: 5, variant: 0 });
 const foods = Object.fromEntries(D.DIET_FOODS.map(f => [f.id, f]));
-ok('zamienniki z tej samej podgrupy', day.meals.every(m => m.items.every(it => it.swaps.every(s => foods[it.id].sub === foods[s.id].sub))));
+ok('zamienniki z tej samej podgrupy (białko także z innych źródeł)', day.meals.every(m => m.items.every(it => it.swaps.every(s => foods[it.id].sub === foods[s.id].sub || (it.role === 'p' && s.other)))));
+ok('zamiennik białka daje tyle samo białka (±15% lub limit porcji)', day.meals.every(m => m.items.filter(it => it.role === 'p').every(it => { const p0 = foods[it.id].p * (foods[it.id].unit === 'szt' ? it.amount : it.amount / 100); return it.swaps.every(s => Math.abs(s.m.p - p0) <= Math.max(4, p0 * 0.15)); })));
+ok('białko: zamienniki także spoza podgrupy', day.meals.some(m => m.items.some(it => it.role === 'p' && it.swaps.some(s => s.other))));
 ok('porcje nie mniejsze niż minimum', [0, 1, 2].every(v => [4, 5, 6].every(n => D.dietBuildDay({ targets: t, meals: n, variant: v }).meals.every(m =>
   m.items.every(it => it.amount >= (foods[it.id].min || 1) && it.swaps.every(s => s.amount >= (foods[s.id].min || 1)))))));
 // Przypadek z wdrożenia: 96 kg, 185 cm, 43 lata, łagodna masa, PAL 1,75 — bez porcji typu „serek 3 g”.
@@ -219,8 +221,23 @@ ok('zatwierdzenie wymaga zaznaczenia i zapisuje status', approveFn.includes("die
 const draftFn = (src07.match(/function dietSaveDraft\(\)\{[\s\S]*?\n\}/) || [''])[0];
 ok('szkic bez wiadomości do klienta', draftFn.includes("'szkic'") && !draftFn.includes('pushMsg'));
 ok('historia zatwierdzonych planów (5)', src07.includes('c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5)'));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 54));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 9));
+
+// Upodobania: lubiane produkty częściej w posiłkach i pierwsze wśród zamienników.
+const cnt = (w, id) => w.days.reduce((a, d) => a + d.meals.filter(m => m.items.some(it => it.id === id)).length, 0);
+const wBase = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0 });
+const wLike = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, prefs: { like: ['losos', 'jogurt'] } });
+ok('lubiany łosoś częściej w tygodniu', cnt(wLike, 'losos') > cnt(wBase, 'losos'), cnt(wBase, 'losos') + ' -> ' + cnt(wLike, 'losos'));
+ok('lubiany jogurt częściej w tygodniu', cnt(wLike, 'jogurt') > cnt(wBase, 'jogurt'));
+const dLike = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { like: ['indyk'] } });
+const kurSw = dLike.meals.flatMap(m => m.items).find(it => it.id === 'kurczak' || it.id === 'losos' || it.id === 'ryba');
+ok('lubiany produkt pierwszy wśród zamienników', !kurSw || !kurSw.swaps.some(s => s.id === 'indyk') || kurSw.swaps[0].id === 'indyk');
+ok('nielubiany nie może być lubianym', D.dietPrefsNorm({ like: ['kurczak'], skip: ['kurczak'] }).like.length === 0);
+const likeCard = D.dietRenderCard(tK, dLike, { meals: 5 });
+ok('karta: lubiane i nielubiane, makro zamienników', likeCard.includes("dietToggleLike('indyk')") && likeCard.includes('nie lubi lub nie je') && likeCard.includes('(to samo białko)') && /\(B \d+ g · \d+ kcal\)/.test(likeCard));
+ok('tekst: białko przy zamienniku', /= B \d+ g/.test(D.dietPlanText(tK, dLike)));
+ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function dietToggleLike(') && src07.includes('c.dietPlan&&c.dietPlan.prefs'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 10));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
