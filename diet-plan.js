@@ -53,8 +53,18 @@ const DIET_FOODS=[
   {id:'salata',name:'Sałata mieszana',group:'warzywa',unit:'g',kcal:12,p:0.8,c:1.6,f:0,page:'202'},
   {id:'kalafior',name:'Kalafior',group:'warzywa',unit:'g',kcal:28,p:2.4,c:2.4,f:1.2,page:'205'}
 ];
+/** Podgrupa do zamienników (zamiennik tylko w tej samej podgrupie) i najmniejsza sensowna porcja. */
+const FOOD_SUB={
+  kurczak:['mieso',80],indyk:['mieso',80],losos:['mieso',80],ryba:['mieso',80],tunczyk:['mieso',60],
+  jajko:['nabial',1],cottage:['nabial',50],jogurt:['nabial',100],mleko:['nabial',150],
+  fasola:['roslinne',100],tofu:['roslinne',100],
+  owsiane:['zboza',30],musli:['zboza',30],chleb:['zboza',35],wafle:['zboza',2],
+  makaron:['skrobia',50],ryz:['skrobia',50],ziemniaki:['skrobia',150],bataty:['skrobia',150],
+  'maslo-orz':['tluszcz',10],oliwa:['tluszcz',5],hummus:['tluszcz',30],
+  banan:['owoce',1],jablko:['owoce',1],pomarancza:['owoce',1],jagody:['owoce',80],rodzynki:['owoce',20]
+};
 const FOOD=Object.create(null);
-DIET_FOODS.forEach(f=>{FOOD[f.id]=f;});
+DIET_FOODS.forEach(f=>{FOOD[f.id]=f;const s=FOOD_SUB[f.id];f.sub=s?s[0]:f.group;f.min=s?s[1]:0;});
 
 /** Zestawy posiłków (ustawienie aplikacji): białko + węglowodany + tłuszcz + stałe dodatki. */
 const MEAL_TEMPLATES={
@@ -66,7 +76,7 @@ const MEAL_TEMPLATES={
   przekaska:[
     {p:'cottage',c:'wafle',f:null,x:[['jablko',1]]},
     {p:'jogurt',c:'musli',f:null,x:[['banan',1]]},
-    {p:'tunczyk',c:'chleb',f:'hummus',x:[['marchew',100]]}
+    {p:'tunczyk',c:'chleb',f:'oliwa',x:[['marchew',100]]}
   ],
   obiad:[
     {p:'kurczak',c:'ryz',f:'oliwa',x:[['brokul',150]]},
@@ -78,7 +88,7 @@ const MEAL_TEMPLATES={
   kolacja:[
     {p:'tunczyk',c:'chleb',f:'oliwa',x:[['salata',100],['papryka',100]]},
     {p:'jajko',c:'ziemniaki',f:'oliwa',x:[['szpinak',100]]},
-    {p:'indyk',c:'chleb',f:'hummus',x:[['marchew',100]]}
+    {p:'indyk',c:'chleb',f:'oliwa',x:[['marchew',100]]}
   ]
 };
 /** Podział energii (ustawienie aplikacji, nie z książek). Białko dzielone po równo. */
@@ -90,11 +100,11 @@ const MEAL_LAYOUTS={
 
 /** Białko g/kg wg celu (środek zgodnych zakresów książek). */
 const PROTEIN_BY_GOAL={
-  redukcja:{v:1.8,range:'1,6–2,0',why:'SN: ok. 1,5 i więcej przy dużym deficycie; Bean 1,6; ADS 1,6–2,4',sources:[src('sn','230','wniosek'),src('bean','120'),src('ads','104')]},
-  masa:{v:1.8,range:'1,7–2,0',why:'budowa mięśni',sources:[src('sn','230')]},
-  sila:{v:1.7,range:'1,6–1,7',why:'trening siłowy',sources:[src('sn','52'),src('bean','199')]},
-  kondycja:{v:1.3,range:'1,2–1,4',why:'trening wytrzymałościowy',sources:[src('sn','52'),src('bean','199')]},
-  inne:{v:1.6,range:'1,4–2,0',why:'osoby trenujące',sources:[src('sn','230','wniosek')]}
+  redukcja:{v:1.8,lo:1.6,hi:2.0,range:'1,6–2,0',why:'SN: ok. 1,5 i więcej przy dużym deficycie; Bean 1,6; ADS 1,6–2,4',sources:[src('sn','230','wniosek'),src('bean','120'),src('ads','104')]},
+  masa:{v:1.8,lo:1.7,hi:2.0,range:'1,7–2,0',why:'budowa mięśni',sources:[src('sn','230')]},
+  sila:{v:1.7,lo:1.6,hi:1.7,range:'1,6–1,7',why:'trening siłowy',sources:[src('sn','52'),src('bean','199')]},
+  kondycja:{v:1.3,lo:1.2,hi:1.4,range:'1,2–1,4',why:'trening wytrzymałościowy',sources:[src('sn','52'),src('bean','199')]},
+  inne:{v:1.6,lo:1.4,hi:2.0,range:'1,4–2,0',why:'osoby trenujące',sources:[src('sn','230','wniosek')]}
 };
 /** Węglowodany g/kg wg aktywności (Box 2.1). Klucz = współczynnik PAL kalkulatora. */
 function carbRangeForActivity(pal){
@@ -126,18 +136,27 @@ function dietBookTargets(o){
   if(kcal&&kcal<=1000)blocks.push({text:'Dieta 1000 kcal lub mniej jest niebezpieczna.',sources:[src('bean','121')]});
   const gk=goalKey(o.goal,o.goalDelta);
   const prot=PROTEIN_BY_GOAL[gk];
-  const proteinG=Math.round(prot.v*weight);
-  const fatG=Math.round(kcal*FAT_PCT/100/9);
-  const carbG=Math.max(0,Math.round((kcal-proteinG*4-fatG*9)/4));
+  // Makro wybrane w kalkulatorze (suwaki) albo wg książek: białko g/kg, tłuszcz 25%, reszta węglowodany.
+  const sel=o.selected&&+o.selected.p>0?o.selected:null;
+  const proteinG=sel?Math.round(+sel.p):Math.round(prot.v*weight);
+  const fatG=sel?Math.round(+sel.f):Math.round(kcal*FAT_PCT/100/9);
+  const carbG=sel?Math.round(+sel.c):Math.max(0,Math.round((kcal-proteinG*4-fatG*9)/4));
+  const fatPct=kcal?Math.round(fatG*9/kcal*100):FAT_PCT;
+  const protPerKg=weight?Math.round(proteinG/weight*10)/10:prot.v;
   const cr=carbRangeForActivity(+o.pal||0);
   const carbPerKg=weight?Math.round(carbG/weight*10)/10:0;
   const notes=[];
+  const pl=v=>String(v).replace('.',',');
+  if(sel&&weight&&(protPerKg<prot.lo-0.05||protPerKg>prot.hi+0.05))notes.push({text:'Wybrany podział daje '+pl(protPerKg)+' g białka na kg, a książki dla tego celu podają '+prot.range+' g/kg. Kliknij „📚 Wg książek”, żeby to wyrównać.',sources:prot.sources});
+  if(sel&&kcal&&(fatPct<20||fatPct>35))notes.push({text:'Tłuszcz to '+fatPct+'% energii, poza zakresem 20–35%.',sources:[src('sn','62-65, 230')]});
+  if(sel&&weight&&carbPerKg>cr.max)notes.push({text:'Węglowodanów jest '+pl(carbPerKg)+' g/kg, więcej niż '+cr.min+'–'+cr.max+' g/kg przy tej aktywności.',sources:[src('sn','22')]});
   if(weight&&carbPerKg<cr.min)notes.push({text:'Węglowodanów zostaje '+carbPerKg+' g/kg, mniej niż '+cr.min+'–'+cr.max+' g/kg zalecane przy aktywności „'+cr.label+'”. Rozważ mniejszy deficyt.',sources:[src('sn','22')]});
   if(gk==='redukcja'&&weight&&carbPerKg<4)notes.push({text:'Poniżej 4 g/kg węglowodanów trening zwykle słabnie.',sources:[src('bean','120')]});
   return{
     goal:gk,kcal,rmr,weight,blocked:blocks.length>0,blocks,notes,
-    protein:{g:proteinG,perKg:prot.v,range:prot.range,why:prot.why,sources:prot.sources},
-    fat:{g:fatG,pct:FAT_PCT,range:'20–35%',sources:[src('sn','62-65, 230')]},
+    selected:!!sel,
+    protein:{g:proteinG,perKg:protPerKg,lo:prot.lo,hi:prot.hi,range:prot.range,why:prot.why,sources:prot.sources},
+    fat:{g:fatG,pct:fatPct,range:'20–35%',sources:[src('sn','62-65, 230')]},
     carbs:{g:carbG,perKg:carbPerKg,range:cr.min+'–'+cr.max+' g/kg',label:cr.label,sources:[src('sn','22')]},
     perMealProtein:{g:Math.round(0.25*weight),sources:[src('sn','49, 53')]}
   };
@@ -152,58 +171,55 @@ function itemMacros(food,amount){
 function addM(a,b){return{kcal:a.kcal+b.kcal,p:a.p+b.p,c:a.c+b.c,f:a.f+b.f};}
 const ZERO={kcal:0,p:0,c:0,f:0};
 function sumItems(items,skip){return items.reduce((s,it,i)=>i===skip?s:addM(s,itemMacros(FOOD[it.id],it.amount)),ZERO);}
-function clampAmount(food,x){
-  if(food.unit==='szt')return Math.max(food.group==='bialko'?1:0,Math.min(food.max||99,Math.round(x)));
-  return Math.min(food.max||9999,round5(x));
+function unitOf(f){return f.unit==='szt'?1:100;}
+/** Porcja w granicach [min, max]; tłuszcz może zniknąć, gdy wychodzi go mniej niż pół porcji. */
+function clampAmount(food,x,role){
+  if(role==='f'&&x<Math.max(3,food.min/2))return 0;
+  const lo=food.min||0,hi=food.max||9999;
+  const v=food.unit==='szt'?Math.round(x):round5(x);
+  return Math.max(lo,Math.min(hi,v));
 }
 
-/** Gramatura jednego posiłku: kilka przebiegów dopasowania białka, węglowodanów i tłuszczu. */
+/** Gramatura jednego posiłku: dopasowanie węglowodanów, białka i tłuszczu w kilku przebiegach,
+ *  z najmniejszą sensowną porcją każdego produktu. Gdy limit porcji obcina składnik,
+ *  dochodzi drugi produkt z pasującej podgrupy (owoc do węglowodanów, nabiał do białka). */
 function solveMeal(tpl,target){
   const items=[];
-  const iP=items.push({id:tpl.p,amount:0,role:'p'})-1;
-  const iC=items.push({id:tpl.c,amount:0,role:'c'})-1;
-  const iF=tpl.f?items.push({id:tpl.f,amount:0,role:'f'})-1:-1;
+  items.push({id:tpl.c,amount:0,role:'c'});
+  items.push({id:tpl.p,amount:0,role:'p'});
+  if(tpl.f)items.push({id:tpl.f,amount:0,role:'f'});
   (tpl.x||[]).forEach(([id,amt])=>items.push({id,amount:amt,role:'x'}));
-  for(let pass=0;pass<4;pass++){
-    const pf=FOOD[tpl.p],cf=FOOD[tpl.c];
-    const unit=f=>f.unit==='szt'?1:100;
-    items[iC].amount=Math.max(0,(target.c-sumItems(items,iC).c)/cf.c*unit(cf));
-    items[iP].amount=Math.max(0,(target.p-sumItems(items,iP).p)/pf.p*unit(pf));
-    if(iF>=0){const ff=FOOD[tpl.f];items[iF].amount=Math.max(0,(target.f-sumItems(items,iF).f)/ff.f*unit(ff));}
+  const fit=i=>{
+    const it=items[i],f=FOOD[it.id],key=it.role;
+    if(!f[key])return;
+    it.amount=clampAmount(f,(target[key]-sumItems(items,i)[key])/f[key]*unitOf(f),key);
+  };
+  for(let pass=0;pass<6;pass++){
+    items.forEach((it,i)=>{if(it.role!=='x')fit(i);});
+    if(pass===1){
+      [['c',['banan','jablko','rodzynki']],['p',['jogurt','cottage','jajko']]].forEach(([key,fill])=>{
+        const miss=target[key]-sumItems(items)[key];
+        if(miss<=Math.max(8,target[key]*0.1))return;
+        const id=fill.find(x=>!items.some(it=>it.id===x));
+        if(id)items.push({id,amount:0,role:key});
+      });
+    }
   }
-  items.forEach(it=>{if(it.role!=='x')it.amount=clampAmount(FOOD[it.id],it.amount);});
-  // Limit porcji obciął składnik: dobierz drugi produkt na brakującą resztę.
-  [['c',['banan','rodzynki']],['p',['cottage','jogurt']],['f',['oliwa','maslo-orz']]].forEach(([key,fill])=>{
-    const miss=target[key]-sumItems(items)[key];
-    if(miss<=Math.max(3,target[key]*0.08))return;
-    const id=fill.find(x=>!items.some(it=>it.id===x));
-    if(!id)return;
-    const ff=FOOD[id];
-    const amt=clampAmount(ff,miss/ff[key]*(ff.unit==='szt'?1:100));
-    if(amt>0)items.push({id,amount:amt,role:key});
-  });
   return items.filter(it=>it.amount>0);
 }
 
-/** Produkty używane w danym posiłku w danej roli (żeby zamiennik pasował do pory dnia). */
-function slotPool(slot,role){
-  const ids=new Set();
-  (MEAL_TEMPLATES[slot]||[]).forEach(tpl=>{if(tpl[role])ids.add(tpl[role]);});
-  return ids;
-}
-/** Zamienniki: inne produkty z tej samej grupy, w ilości dającej tyle samo głównego składnika. */
-function swapsFor(item,slot){
+/** Zamienniki: produkty z tej samej podgrupy (mięso i ryby, nabiał, zboża, skrobia, owoce, tłuszcze),
+ *  w ilości dającej tyle samo głównego składnika; bez porcji mniejszych niż sensowne minimum. */
+function swapsFor(item){
   const food=FOOD[item.id];
-  const key=item.role==='p'?'p':item.role==='c'?'c':item.role==='f'?'f':null;
-  if(!key)return[];
-  const groups=item.role==='p'?['bialko']:item.role==='c'?['wegle']:['tluszcz'];
+  const key=item.role;
+  if(key!=='p'&&key!=='c'&&key!=='f')return[];
   const amountMain=itemMacros(food,item.amount)[key];
   if(amountMain<=0)return[];
-  const pool=slotPool(slot,item.role);
-  return DIET_FOODS.filter(f=>f.id!==food.id&&groups.includes(f.group)&&f[key]>0&&(key!=='p'||f.p>=7))
-    .sort((a,b)=>(pool.has(b.id)?1:0)-(pool.has(a.id)?1:0))
-    .map(f=>({id:f.id,amount:clampAmount(f,amountMain/f[key]*(f.unit==='szt'?1:100))}))
-    .filter(s=>s.amount>0&&s.amount<(FOOD[s.id].max||9999))
+  return DIET_FOODS.filter(f=>f.id!==food.id&&f.sub===food.sub&&f[key]>0)
+    .map(f=>({id:f.id,raw:amountMain/f[key]*unitOf(f)}))
+    .filter(s=>{const f=FOOD[s.id];return s.raw>=f.min*0.75&&s.raw<=(f.max||9999);})
+    .map(s=>({id:s.id,amount:clampAmount(FOOD[s.id],s.raw)}))
     .slice(0,3);
 }
 
@@ -216,13 +232,19 @@ function dietBuildDay(o){
   const variant=Math.max(0,+o.variant||0);
   const n=layout.length;
   const slotCount={};
+  // Cel posiłku liczony z tego, co zostało na resztę dnia: nadwyżka z najmniejszych porcji
+  // w jednym posiłku zmniejsza kolejne, więc suma dnia trzyma się celu.
+  let done=ZERO,shareLeft=1;
   const meals=layout.map((m,mi)=>{
     const list=MEAL_TEMPLATES[m.slot];
     const seen=slotCount[m.slot]=(slotCount[m.slot]||0)+1;
     const tpl=list[(variant+seen-1)%list.length];
-    const target={p:t.protein.g/n,c:t.carbs.g*m.share,f:t.fat.g*m.share};
-    const items=solveMeal(tpl,target).map(it=>Object.assign(it,{swaps:swapsFor(it,m.slot)}));
+    const k=m.share/shareLeft;
+    const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
+    shareLeft-=m.share;
+    const items=solveMeal(tpl,target).map(it=>Object.assign(it,{swaps:swapsFor(it)}));
     const tot=sumItems(items);
+    done=addM(done,tot);
     return{name:m.name,share:m.share,items,total:tot};
   });
   const total=meals.reduce((s,m)=>addM(s,m.total),ZERO);
@@ -277,10 +299,10 @@ function dietRenderCard(t,day,opts){
   const ctrl='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
     [4,5,6].map(k=>'<button class="btn btn-sm'+(k===mealsN?' btn-primary':'')+'" onclick="dietSetMeals('+k+')">'+k+' posiłki'+(k>4?'':'')+'</button>').join('')+
     '<button class="btn btn-sm" onclick="dietNextVariant()">🔄 Inny wariant</button>'+
-    '<button class="btn btn-sm" onclick="dietUseBookMacros()">Ustaw makro z książek</button>'+
+    (t.selected?'<button class="btn btn-sm" onclick="dietUseBookMacros()">📚 Ustaw makro z książek</button>':'')+
     '<button class="btn btn-sm" onclick="dietSendToClient()">📤 Wyślij jadłospis</button></div>';
   return'<div class="calc-result-card diet-card" id="diet-card">'+head+
-    '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Makro liczone wg książek (białko g/kg, tłuszcz % energii, reszta węglowodany), niezależnie od suwaków. Liczba posiłków: 3 posiłki + 2–3 przekąski '+srcTag([src('sn','230')])+'.</div>'+
+    '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">'+(t.selected?'Jadłospis liczony z makro wybranego w kalkulatorze. Zakresy obok to zalecenia książek.':'Makro wg książek: białko g/kg wg celu, tłuszcz 25% energii, reszta węglowodany (te same liczby co w podziale makro).')+' Liczba posiłków: 3 posiłki + 2–3 przekąski '+srcTag([src('sn','230')])+'.</div>'+
     info+notes+diff+ctrl+meals+
     '<div style="font-size:10.5px;color:var(--muted2);margin-top:8px;line-height:1.5;">Wartości produktów wyliczone z porcji w jadłospisach Bean (rozdz. 15, dane brytyjskie), status: wniosek. Zestawy posiłków i podział energii między posiłki to ustawienia aplikacji. Produkty suche waż przed gotowaniem. Ciąża, cukrzyca, zaburzenia odżywiania lub brak miesiączki: nie używaj automatu, skieruj do lekarza lub dietetyka '+srcTag([src('sn','377, 414, 443'),src('bk','917-919')])+'. To przykładowy plan, nie zastępuje dietetyka.</div>'+
     '</div>';
