@@ -63,40 +63,61 @@ const FOOD_SUB={
   'maslo-orz':['tluszcz',10],oliwa:['tluszcz',5],hummus:['tluszcz',30],
   banan:['owoce',1],jablko:['owoce',1],pomarancza:['owoce',1],jagody:['owoce',80],rodzynki:['owoce',20]
 };
+/** Alergeny i wykluczenia (ustawienie aplikacji: oznaczenia typowego składu, zawsze sprawdź etykietę). */
+const DIET_EXCLUSIONS=[
+  {id:'gluten',label:'Gluten',foods:['owsiane','musli','chleb','makaron']},
+  {id:'mleko',label:'Mleko i nabiał',foods:['cottage','jogurt','mleko']},
+  {id:'jaja',label:'Jaja',foods:['jajko']},
+  {id:'ryby',label:'Ryby',foods:['losos','ryba','tunczyk']},
+  {id:'orzeszki',label:'Orzeszki ziemne',foods:['maslo-orz']},
+  {id:'soja',label:'Soja',foods:['tofu']},
+  {id:'sezam',label:'Sezam',foods:['hummus']},
+  {id:'mieso',label:'Mięso',foods:['kurczak','indyk']}
+];
+/** Sposoby żywienia = zestawy wykluczeń. */
+const DIET_STYLES={
+  wszystko:{label:'Bez ograniczeń',ex:[]},
+  wege:{label:'Wegetariańska',ex:['mieso','ryby']},
+  weganska:{label:'Wegańska',ex:['mieso','ryby','mleko','jaja']}
+};
 const FOOD=Object.create(null);
-DIET_FOODS.forEach(f=>{FOOD[f.id]=f;const s=FOOD_SUB[f.id];f.sub=s?s[0]:f.group;f.min=s?s[1]:0;});
+DIET_FOODS.forEach(f=>{FOOD[f.id]=f;const s=FOOD_SUB[f.id];f.sub=s?s[0]:f.group;f.min=s?s[1]:0;f.tags=[];});
+DIET_EXCLUSIONS.forEach(e=>e.foods.forEach(id=>FOOD[id].tags.push(e.id)));
 
-/** Zestawy posiłków (ustawienie aplikacji): białko + węglowodany + tłuszcz + stałe dodatki. */
+/** Zestawy posiłków (ustawienie aplikacji): białko + węglowodany + tłuszcz + stałe dodatki.
+ *  min = szacowany czas przygotowania w minutach (ustawienie aplikacji, nie z książek). */
 const MEAL_TEMPLATES={
   sniadanie:[
-    {p:'cottage',c:'chleb',f:'maslo-orz',x:[['papryka',100]]},
-    {p:'jajko',c:'chleb',f:null,x:[['szpinak',80]]},
-    {p:'cottage',c:'owsiane',f:'maslo-orz',x:[['jagody',100],['mleko',200]]},
-    {p:'jogurt',c:'musli',f:'maslo-orz',x:[['banan',1]]}
+    {min:5,p:'cottage',c:'chleb',f:'maslo-orz',x:[['papryka',100]]},
+    {min:10,p:'jajko',c:'chleb',f:null,x:[['szpinak',80]]},
+    {min:10,p:'cottage',c:'owsiane',f:'maslo-orz',x:[['jagody',100],['mleko',200]]},
+    {min:3,p:'jogurt',c:'musli',f:'maslo-orz',x:[['banan',1]]}
   ],
   przekaska:[
-    {p:'cottage',c:'wafle',f:null,x:[['jablko',1]]},
-    {p:'jogurt',c:'musli',f:null,x:[['banan',1]]},
-    {p:'tunczyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
-    {p:'cottage',c:'chleb',f:null,x:[['pomarancza',1]]}
+    {min:3,p:'cottage',c:'wafle',f:null,x:[['jablko',1]]},
+    {min:3,p:'jogurt',c:'musli',f:null,x:[['banan',1]]},
+    {min:5,p:'tunczyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
+    {min:3,p:'cottage',c:'chleb',f:null,x:[['pomarancza',1]]}
   ],
   obiad:[
-    {p:'kurczak',c:'ryz',f:'oliwa',x:[['brokul',150]]},
-    {p:'losos',c:'ziemniaki',f:'oliwa',x:[['szpinak',100],['salata',100]]},
-    {p:'indyk',c:'makaron',f:'oliwa',x:[['papryka',100],['marchew',100]]},
-    {p:'ryba',c:'bataty',f:'oliwa',x:[['kalafior',150]]},
-    {p:'fasola',c:'ryz',f:'oliwa',x:[['papryka',150]]}
+    {min:30,p:'kurczak',c:'ryz',f:'oliwa',x:[['brokul',150]]},
+    {min:40,p:'losos',c:'ziemniaki',f:'oliwa',x:[['szpinak',100],['salata',100]]},
+    {min:25,p:'indyk',c:'makaron',f:'oliwa',x:[['papryka',100],['marchew',100]]},
+    {min:35,p:'ryba',c:'bataty',f:'oliwa',x:[['kalafior',150]]},
+    {min:30,p:'fasola',c:'ryz',f:'oliwa',x:[['papryka',150]]},
+    {min:15,p:'tunczyk',c:'makaron',f:'oliwa',x:[['papryka',100],['szpinak',80]]}
   ],
   kolacja:[
-    {p:'tunczyk',c:'chleb',f:'oliwa',x:[['salata',100],['papryka',100]]},
-    {p:'jajko',c:'ziemniaki',f:'oliwa',x:[['szpinak',100]]},
-    {p:'indyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
-    {p:'losos',c:'chleb',f:null,x:[['salata',100],['papryka',100]]},
-    {p:'tofu',c:'ryz',f:'oliwa',x:[['papryka',100],['brokul',100]]}
+    {min:10,p:'tunczyk',c:'chleb',f:'oliwa',x:[['salata',100],['papryka',100]]},
+    {min:25,p:'jajko',c:'ziemniaki',f:'oliwa',x:[['szpinak',100]]},
+    {min:10,p:'indyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
+    {min:5,p:'losos',c:'chleb',f:null,x:[['salata',100],['papryka',100]]},
+    {min:20,p:'tofu',c:'ryz',f:'oliwa',x:[['papryka',100],['brokul',100]]}
   ]
 };
 /** Podział energii (ustawienie aplikacji, nie z książek). Białko dzielone po równo. */
 const MEAL_LAYOUTS={
+  3:[{name:'Śniadanie',slot:'sniadanie',share:0.30},{name:'Obiad',slot:'obiad',share:0.40},{name:'Kolacja',slot:'kolacja',share:0.30}],
   4:[{name:'Śniadanie',slot:'sniadanie',share:0.30},{name:'Obiad',slot:'obiad',share:0.35},{name:'Przekąska',slot:'przekaska',share:0.10},{name:'Kolacja',slot:'kolacja',share:0.25}],
   5:[{name:'Śniadanie',slot:'sniadanie',share:0.25},{name:'II śniadanie',slot:'przekaska',share:0.15},{name:'Obiad',slot:'obiad',share:0.30},{name:'Podwieczorek',slot:'przekaska',share:0.10},{name:'Kolacja',slot:'kolacja',share:0.20}],
   6:[{name:'Śniadanie',slot:'sniadanie',share:0.20},{name:'II śniadanie',slot:'przekaska',share:0.15},{name:'Obiad',slot:'obiad',share:0.25},{name:'Podwieczorek',slot:'przekaska',share:0.10},{name:'Kolacja',slot:'kolacja',share:0.20},{name:'Przekąska wieczorna',slot:'przekaska',share:0.10}]
@@ -187,7 +208,8 @@ function clampAmount(food,x,role){
 /** Gramatura jednego posiłku: dopasowanie węglowodanów, białka i tłuszczu w kilku przebiegach,
  *  z najmniejszą sensowną porcją każdego produktu. Gdy limit porcji obcina składnik,
  *  dochodzi drugi produkt z pasującej podgrupy (owoc do węglowodanów, nabiał do białka). */
-function solveMeal(tpl,target){
+function solveMeal(tpl,target,allow){
+  allow=allow||(()=>true);
   const items=[];
   items.push({id:tpl.c,amount:0,role:'c'});
   items.push({id:tpl.p,amount:0,role:'p'});
@@ -204,7 +226,7 @@ function solveMeal(tpl,target){
       [['c',['banan','jablko','rodzynki']],['p',['jogurt','cottage','jajko']]].forEach(([key,fill])=>{
         const miss=target[key]-sumItems(items)[key];
         if(miss<=Math.max(8,target[key]*0.1))return;
-        const id=fill.find(x=>!items.some(it=>it.id===x));
+        const id=fill.find(x=>allow(FOOD[x])&&!items.some(it=>it.id===x));
         if(id)items.push({id,amount:0,role:key});
       });
     }
@@ -214,21 +236,74 @@ function solveMeal(tpl,target){
 
 /** Zamienniki: produkty z tej samej podgrupy (mięso i ryby, nabiał, zboża, skrobia, owoce, tłuszcze),
  *  w ilości dającej tyle samo głównego składnika; bez porcji mniejszych niż sensowne minimum. */
-function swapsFor(item){
+function swapsFor(item,allow){
+  allow=allow||(()=>true);
   const food=FOOD[item.id];
   const key=item.role;
   if(key!=='p'&&key!=='c'&&key!=='f')return[];
   const amountMain=itemMacros(food,item.amount)[key];
   if(amountMain<=0)return[];
-  return DIET_FOODS.filter(f=>f.id!==food.id&&f.sub===food.sub&&f[key]>0)
+  return DIET_FOODS.filter(f=>f.id!==food.id&&f.sub===food.sub&&f[key]>0&&allow(f))
     .map(f=>({id:f.id,raw:amountMain/f[key]*unitOf(f)}))
     .filter(s=>{const f=FOOD[s.id];return s.raw>=f.min*0.75&&s.raw<=(f.max||9999);})
     .map(s=>({id:s.id,amount:clampAmount(FOOD[s.id],s.raw)}))
     .slice(0,3);
 }
 
+/** Preferencje kreatora: {style, ex: [id wykluczeń], skip: [id produktów], maxMin: minuty na posiłek (0 = bez limitu)}. */
+function dietPrefsNorm(p){
+  p=p||{};
+  const style=DIET_STYLES[p.style]?p.style:'wszystko';
+  const ex=[...new Set([].concat(DIET_STYLES[style].ex,(p.ex||[]).filter(id=>DIET_EXCLUSIONS.some(e=>e.id===id))))];
+  const skip=(p.skip||[]).filter(id=>FOOD[id]);
+  return{style,ex,skip,maxMin:Math.max(0,+p.maxMin||0)};
+}
+function dietAllow(prefs){
+  const ex=new Set(prefs.ex),skip=new Set(prefs.skip);
+  return f=>!!f&&!skip.has(f.id)&&!f.tags.some(t=>ex.has(t));
+}
+// Zastępstwo dla produktu, którego klient nie je: najpierw ta sama podgrupa, potem produkt
+// z tym samym głównym składnikiem (białko: mięso, ryby, nabiał, rośliny; węglowodany: zboża i skrobia).
+const ROLE_GROUPS={p:['bialko','nabial'],c:['wegle'],f:['tluszcz']};
+// Produkty obiadowe (do gotowania na ciepło): w śniadaniu i przekąsce zamiennik z nich tylko w ostateczności.
+const MAIN_DISH=new Set(['kurczak','indyk','losos','ryba','fasola','makaron','ryz','ziemniaki','bataty']);
+// Produkty już użyte tego dnia idą na koniec kolejki, żeby zamiennik nie powtarzał się w każdym posiłku.
+function replacementFor(id,role,allow,used,today,light){
+  today=today||new Set();
+  const f=FOOD[id];
+  const ok=g=>g.id!==id&&allow(g)&&g[role]>0&&!used.includes(g.id);
+  const ratio=g=>g[role]*(role==='f'?9:4)/g.kcal;
+  const pool=DIET_FOODS.filter(g=>ok(g)&&(g.sub===f.sub||ROLE_GROUPS[role].includes(g.group)));
+  const other=g=>g.sub===f.sub?0:1;
+  const heavy=g=>light&&MAIN_DISH.has(g.id)?1:0;
+  return pool.sort((a,b)=>(heavy(a)-heavy(b))||(today.has(a.id)-today.has(b.id))||(other(a)-other(b))||(ratio(b)-ratio(a)))[0]||null;
+}
+/** Zestaw dopasowany do wykluczeń; null, gdy nie ma czym zastąpić białka albo węglowodanów. */
+function adaptTemplate(tpl,allow,today,light){
+  const out={min:tpl.min,p:tpl.p,c:tpl.c,f:tpl.f,x:(tpl.x||[]).filter(([id])=>allow(FOOD[id])),changes:[]};
+  for(const role of['p','c','f']){
+    const id=out[role];
+    if(!id||allow(FOOD[id]))continue;
+    const r=replacementFor(id,role,allow,[out.p,out.c,out.f].concat(out.x.map(x=>x[0])),today,light);
+    if(!r&&role!=='f')return null;
+    out.changes.push({from:id,to:r?r.id:null});
+    out[role]=r?r.id:null;
+  }
+  return out;
+}
+/** Zestawy dla jednego rodzaju posiłku: najpierw pełne zgodne z preferencjami, potem przerobione;
+ *  limit czasu odpuszczany dopiero, gdy nic się w nim nie mieści (z ostrzeżeniem). */
+function slotTemplates(slot,prefs,allow,today){
+  const light=slot==='sniadanie'||slot==='przekaska';
+  const all=MEAL_TEMPLATES[slot].map(t=>adaptTemplate(t,allow,today,light)).filter(Boolean);
+  const inTime=prefs.maxMin?all.filter(t=>t.min<=prefs.maxMin):all;
+  const pick=list=>{const clean=list.filter(t=>!t.changes.length);return clean.length>=2?clean:list;};
+  if(inTime.length)return{list:pick(inTime),overTime:false};
+  return{list:pick(all),overTime:!!all.length};
+}
+
 /**
- * Przykładowy dzień: o = {targets (z dietBookTargets), meals: 4|5|6, variant: liczba}
+ * Przykładowy dzień: o = {targets (z dietBookTargets), meals: 3–6, variant: liczba, prefs (kreator)}
  */
 function dietBuildDay(o){
   const t=o.targets;
@@ -236,35 +311,50 @@ function dietBuildDay(o){
   const variant=Math.max(0,+o.variant||0);
   const n=layout.length;
   const slotCount={};
+  const prefs=dietPrefsNorm(o.prefs);
+  const allow=dietAllow(prefs);
+  const warnings=[];
+  const today=new Set();
   // Cel posiłku liczony z tego, co zostało na resztę dnia: nadwyżka z najmniejszych porcji
   // w jednym posiłku zmniejsza kolejne, więc suma dnia trzyma się celu.
   let done=ZERO,shareLeft=1;
   const meals=layout.map((m,mi)=>{
-    const list=MEAL_TEMPLATES[m.slot];
+    const st=slotTemplates(m.slot,prefs,allow,today);
+    const list=st.list;
     const seen=slotCount[m.slot]=(slotCount[m.slot]||0)+1;
+    if(!list.length){warnings.push(m.name+': przy tych wykluczeniach nie ma z czego ułożyć posiłku.');return{name:m.name,share:m.share,items:[],total:ZERO,minutes:0};}
+    if(st.overTime&&seen===1)warnings.push(m.name+': żaden zestaw nie mieści się w '+prefs.maxMin+' min, wybrany najszybszy możliwy.');
     const tpl=list[(variant+seen-1)%list.length];
     const k=m.share/shareLeft;
     const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
     shareLeft-=m.share;
-    const items=solveMeal(tpl,target).map(it=>Object.assign(it,{swaps:swapsFor(it)}));
+    const items=solveMeal(tpl,target,allow).map(it=>Object.assign(it,{swaps:swapsFor(it,allow)}));
     const tot=sumItems(items);
     done=addM(done,tot);
-    return{name:m.name,share:m.share,items,total:tot};
+    items.forEach(it=>{if(it.role!=='x')today.add(it.id);});
+    return{name:m.name,share:m.share,items,total:tot,minutes:tpl.min,changes:tpl.changes};
   });
   const total=meals.reduce((s,m)=>addM(s,m.total),ZERO);
-  return{meals,total,diffKcal:Math.round(total.kcal-t.kcal)};
+  const reps={};
+  meals.forEach(m=>(m.changes||[]).forEach(ch=>{if(ch.to)reps[ch.to]=(reps[ch.to]||0)+1;}));
+  Object.keys(reps).filter(id=>reps[id]>=3).forEach(id=>warnings.push('Mało produktów przy tych wykluczeniach: '+FOOD[id].name.toLowerCase()+' zastępuje inne produkty w '+reps[id]+' posiłkach. Urozmaicić ręcznie albo poczekać na większą bazę produktów.'));
+  if(Math.abs(total.f-t.fat.g)>Math.max(10,t.fat.g*0.15))warnings.push('Tłuszcz wychodzi '+Math.round(total.f)+' g zamiast '+t.fat.g+' g (produkty dostępne przy tych wykluczeniach). Sprawdź jadłospis przed wysłaniem.');
+  if(total.p<t.protein.g*0.9)warnings.push('Przy tych wykluczeniach brakuje ok. '+Math.round(t.protein.g-total.p)+' g białka (limity porcji). Trener powinien dobrać produkty ręcznie.');
+  return{meals,total,diffKcal:Math.round(total.kcal-t.kcal),warnings,prefs};
 }
 
 const WEEK_DAYS=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
-/** Tydzień: 7 dni z tymi samymi celami, każdy dzień z innym zestawem posiłków, plus lista zakupów. */
+/** Kilka dni (o.days: 2–7, domyślnie tydzień) z tymi samymi celami, każdy dzień z innym zestawem posiłków, plus lista zakupów. */
 function dietBuildWeek(o){
   const base=Math.max(0,+o.variant||0);
-  const days=WEEK_DAYS.map((name,d)=>Object.assign({name},dietBuildDay({targets:o.targets,meals:o.meals,variant:base+d})));
+  const count=Math.min(7,Math.max(2,+o.days||7));
+  const names=count===7?WEEK_DAYS:Array.from({length:count},(_,i)=>'Dzień '+(i+1));
+  const days=names.map((name,d)=>Object.assign({name},dietBuildDay({targets:o.targets,meals:o.meals,variant:base+d,prefs:o.prefs})));
   const shop={};
   days.forEach(day=>day.meals.forEach(m=>m.items.forEach(it=>{shop[it.id]=(shop[it.id]||0)+it.amount;})));
   const shopping=Object.keys(shop).map(id=>({id,amount:shop[id]}))
     .sort((a,b)=>DIET_FOODS.indexOf(FOOD[a.id])-DIET_FOODS.indexOf(FOOD[b.id]));
-  return{days,shopping};
+  return{days,shopping,warnings:[...new Set([].concat(...days.map(d=>d.warnings)))],prefs:days[0].prefs};
 }
 
 function fmtAmount(food,amount){return food.unit==='szt'?amount+' szt.':amount+' '+food.unit;}
@@ -292,16 +382,36 @@ function fmtShop(food,amount){
 /** Tekst dla klienta: jeden dzień albo tydzień (obiekt z dietBuildWeek) z listą zakupów. */
 function dietPlanText(t,plan){
   const week=plan&&plan.days;
-  const lines=['🍽 Przykładowy jadłospis'+(week?' na tydzień':'')+' ('+t.kcal+' kcal dziennie)','Białko '+t.protein.g+' g · Tłuszcz '+t.fat.g+' g · Węglowodany '+t.carbs.g+' g',''];
+  const span=week?(plan.days.length===7?' na tydzień':' na '+plan.days.length+' dni'):'';
+  const lines=['🍽 Przykładowy jadłospis'+span+' ('+t.kcal+' kcal dziennie)','Białko '+t.protein.g+' g · Tłuszcz '+t.fat.g+' g · Węglowodany '+t.carbs.g+' g',''];
   if(week){
     plan.days.forEach(day=>{lines.push('📅 '+day.name.toUpperCase(),'');mealsText(day,lines);});
-    lines.push('🛒 Lista zakupów na tydzień:');
+    lines.push('🛒 Lista zakupów'+span+':');
     plan.shopping.forEach(s=>{const f=FOOD[s.id];lines.push('• '+f.name+' '+fmtShop(f,s.amount));});
     lines.push('');
   }else mealsText(plan,lines);
+  const pr=plan&&plan.prefs;
+  if(pr&&(pr.ex.length||pr.skip.length))lines.push('Bez: '+pr.ex.map(id=>DIET_EXCLUSIONS.find(e=>e.id===id).label.toLowerCase()).concat(pr.skip.map(id=>FOOD[id].name.toLowerCase())).join(', ')+'. Sprawdzaj skład na etykiecie.');
   lines.push('Produkty suche (ryż, makaron, płatki) waży się przed gotowaniem.');
   lines.push('To przykładowy plan z zasad z książek o żywieniu w sporcie. Nie zastępuje porady dietetyka ani lekarza.');
   return lines.join('\n');
+}
+
+/** Kreator: sposób żywienia, alergie i wykluczenia, produkty, których klient nie je, czas przygotowania. */
+function dietWizardHTML(p,skipOpen){
+  p=dietPrefsNorm(p);
+  const chip=(on,click,label)=>'<button type="button" class="btn btn-sm'+(on?' btn-primary':'')+'" style="font-size:11.5px;padding:4px 10px;min-height:0;" aria-pressed="'+(on?'true':'false')+'" onclick="'+click+'">'+esc(label)+'</button>';
+  const row=(title,body)=>'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0;"><span style="font-size:11.5px;color:var(--muted);flex-basis:100%;">'+title+'</span>'+body+'</div>';
+  const styleEx=DIET_STYLES[p.style].ex;
+  return'<div class="diet-wizard" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:8px 0;">'+
+    '<div style="font-size:12px;font-weight:700;margin-bottom:4px;">Kreator jadłospisu</div>'+
+    row('Sposób żywienia',Object.keys(DIET_STYLES).map(k=>chip(p.style===k,'dietSetStyle(\''+k+'\')',DIET_STYLES[k].label)).join(''))+
+    row('Bez (alergie)',DIET_EXCLUSIONS.filter(e=>!styleEx.includes(e.id)).map(e=>chip(p.ex.includes(e.id),'dietToggleEx(\''+e.id+'\')',e.label)).join(''))+
+    row('Czas na posiłek',[[0,'Bez limitu'],[15,'do 15 min'],[30,'do 30 min']].map(([v,l])=>chip(p.maxMin===v,'dietSetMaxMin('+v+')',l)).join(''))+
+    '<details class="diet-skip"'+(skipOpen?' open':'')+' style="margin-top:4px;"><summary style="cursor:pointer;font-size:11.5px;color:var(--muted);">Produkty, których klient nie je'+(p.skip.length?' ('+p.skip.length+')':'')+'</summary><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">'+
+      DIET_FOODS.map(f=>chip(p.skip.includes(f.id),'dietToggleSkip(\''+f.id+'\')',f.name)).join('')+'</div></details>'+
+    '<div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Oznaczenia alergenów i czasy przygotowania to ustawienia aplikacji. Przy alergii zawsze sprawdzaj etykietę; przy chorobach skieruj klienta do dietetyka lub lekarza.</div>'+
+    '</div>';
 }
 
 function dietRenderCard(t,day,opts){
@@ -312,10 +422,11 @@ function dietRenderCard(t,day,opts){
     return'<div class="calc-result-card diet-card" id="diet-card">'+head+t.blocks.map(b=>'<div class="calc-tip" style="border-left:3px solid var(--danger);">⚠ '+esc(b.text)+' '+srcTag(b.sources)+'</div>').join('')+'</div>';
   }
   const mealsHTML=d=>d.meals.map((m,mi)=>'<div class="calc-meal-card">'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+'</div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+(m.minutes?' <span style="font-weight:400;color:var(--muted);">⏱ ~'+m.minutes+' min</span>':'')+'</div>'+
     '<div style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r(m.total.kcal)+' kcal · B '+r(m.total.p)+' · T '+r(m.total.f)+' · W '+r(m.total.c)+'</div></div>'+
     m.items.map(it=>{const f=FOOD[it.id];return'<div style="font-size:12px;padding:2px 0;">'+esc(f.name)+' <strong>'+esc(fmtAmount(f,it.amount))+'</strong>'+
       (it.swaps.length?'<div style="font-size:10.5px;color:var(--muted);">zamiennik: '+it.swaps.map(s=>esc(FOOD[s.id].name.toLowerCase())+' '+esc(fmtAmount(FOOD[s.id],s.amount))).join(' · ')+'</div>':'')+'</div>';}).join('')+
+    ((m.changes||[]).length?'<div style="font-size:10.5px;color:var(--muted);margin-top:3px;">zmienione przez wykluczenia: '+m.changes.map(ch=>esc(FOOD[ch.from].name.toLowerCase())+' → '+(ch.to?esc(FOOD[ch.to].name.toLowerCase()):'bez zamiennika')).join(' · ')+'</div>':'')+
     '</div>').join('');
   const info=[
     '<strong>Białko</strong> '+t.protein.g+' g ('+String(t.protein.perKg).replace('.',',')+' g/kg, zakres '+t.protein.range+' g/kg) '+srcTag(t.protein.sources),
@@ -328,30 +439,33 @@ function dietRenderCard(t,day,opts){
   const week=!!(day&&day.days);
   const days=week?day.days:[day];
   const off=days.filter(d=>Math.abs(d.diffKcal)>Math.max(60,t.kcal*0.05));
+  const warns=((week?day.warnings:day.warnings)||[]).map(w=>'<div class="calc-tip" style="border-left:3px solid var(--warning);">⚠ '+esc(w)+'</div>').join('');
   const diff=off.length?'<div class="calc-tip" style="border-left:3px solid var(--warning);">'+(week?'Dni: '+off.map(d=>esc(d.name)).join(', ')+' różnią się od celu o więcej niż 5%':'Jadłospis różni się od celu o '+day.diffKcal+' kcal')+' (limity porcji). Zmień liczbę posiłków albo wariant.</div>':'';
   const r0=v=>Math.round(v);
   const dayHead=d=>'<span style="font-weight:700;">'+esc(d.name)+'</span> <span style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r0(d.total.kcal)+' kcal · B '+r0(d.total.p)+' · T '+r0(d.total.f)+' · W '+r0(d.total.c)+'</span>';
   const meals=week
     ?day.days.map((d,i)=>'<details class="diet-day"'+(i===0?' open':'')+' style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;">'+dayHead(d)+'</summary>'+mealsHTML(d)+'</details>').join('')+
-      '<details class="diet-shop" style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">🛒 Lista zakupów na tydzień</summary><div style="columns:2;column-gap:18px;font-size:12px;margin-top:6px;">'+
+      '<details class="diet-shop" style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">🛒 Lista zakupów '+(day.days.length===7?'na tydzień':'na '+day.days.length+' dni')+'</summary><div style="columns:2;column-gap:18px;font-size:12px;margin-top:6px;">'+
       day.shopping.map(s=>{const f=FOOD[s.id];return'<div>'+esc(f.name)+' <strong>'+esc(fmtShop(f,s.amount))+'</strong></div>';}).join('')+'</div></details>'
     :mealsHTML(day);
   const mealsN=opts.meals||5;
-  const ctrl='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
-    '<button class="btn btn-sm'+(week?'':' btn-primary')+'" onclick="dietSetView(\'dzien\')">1 dzień</button>'+
-    '<button class="btn btn-sm'+(week?' btn-primary':'')+'" onclick="dietSetView(\'tydzien\')">📅 Cały tydzień</button>'+
-    [4,5,6].map(k=>'<button class="btn btn-sm'+(k===mealsN?' btn-primary':'')+'" onclick="dietSetMeals('+k+')">'+k+' posiłki'+(k>4?'':'')+'</button>').join('')+
+  const nDays=week?day.days.length:1;
+  const ctrl=dietWizardHTML(day&&day.prefs,opts.skipOpen)+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
+    '<button class="btn btn-sm'+(nDays===1?' btn-primary':'')+'" onclick="dietSetView(\'dzien\')">1 dzień</button>'+
+    '<button class="btn btn-sm'+(nDays===3?' btn-primary':'')+'" onclick="dietSetView(\'3dni\')">3 dni</button>'+
+    '<button class="btn btn-sm'+(nDays===7?' btn-primary':'')+'" onclick="dietSetView(\'tydzien\')">📅 Cały tydzień</button>'+
+    [3,4,5,6].map(k=>'<button class="btn btn-sm'+(k===mealsN?' btn-primary':'')+'" onclick="dietSetMeals('+k+')">'+k+' posiłki</button>').join('')+
     '<button class="btn btn-sm" onclick="dietNextVariant()">🔄 Inny wariant</button>'+
     (t.selected?'<button class="btn btn-sm" onclick="dietUseBookMacros()">📚 Ustaw makro z książek</button>':'')+
-    '<button class="btn btn-sm" onclick="dietSendToClient()">📤 Wyślij '+(week?'tydzień':'jadłospis')+'</button></div>';
+    '<button class="btn btn-sm" onclick="dietSendToClient()">📤 Wyślij '+(nDays===7?'tydzień':'jadłospis')+'</button></div>';
   return'<div class="calc-result-card diet-card" id="diet-card">'+head+
     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">'+(t.selected?'Jadłospis liczony z makro wybranego w kalkulatorze. Zakresy obok to zalecenia książek.':'Makro wg książek: białko g/kg wg celu, tłuszcz 25% energii, reszta węglowodany (te same liczby co w podziale makro).')+' Liczba posiłków: 3 posiłki + 2–3 przekąski '+srcTag([src('sn','230')])+'.</div>'+
-    info+notes+diff+ctrl+meals+
+    info+notes+diff+warns+ctrl+meals+
     '<div style="font-size:10.5px;color:var(--muted2);margin-top:8px;line-height:1.5;">Wartości produktów wyliczone z porcji w jadłospisach Bean (rozdz. 15, dane brytyjskie), status: wniosek. Zestawy posiłków i podział energii między posiłki to ustawienia aplikacji. Produkty suche waż przed gotowaniem. Ciąża, cukrzyca, zaburzenia odżywiania lub brak miesiączki: nie używaj automatu, skieruj do lekarza lub dietetyka '+srcTag([src('sn','377, 414, 443'),src('bk','917-919')])+'. To przykładowy plan, nie zastępuje dietetyka.</div>'+
     '</div>';
 }
 
-const api={DIET_FOODS,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
+const api={DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
 root.DietPlan=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
