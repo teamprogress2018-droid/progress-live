@@ -37,16 +37,27 @@ ok('mało węglowodanów = ostrzeżenie', D.dietBookTargets({ weight: 90, age: 3
   [4, 5, 6].forEach(n => [0, 1, 2].forEach(v => {
     const d = D.dietBuildDay({ targets: tt, meals: n, variant: v });
     const near = (a, b) => Math.abs(a - b) <= Math.max(8, b * 0.1);
-    ok(`dzień ${w}kg ${k}kcal ${n} posiłki w${v}`, d.meals.length === n && near(d.total.p, tt.protein.g) && near(d.total.c, tt.carbs.g) && near(d.total.f, tt.fat.g),
+    // Najmniejsze sensowne porcje mogą podnieść białko, ale tylko do górnej granicy z książek,
+    // a nadwyżkę białka oddają węglowodany (ta sama energia).
+    const protOk = d.total.p >= tt.protein.g * 0.9 && d.total.p <= Math.max(tt.protein.g * 1.1, tt.protein.hi * w * 1.1);
+    ok(`dzień ${w}kg ${k}kcal ${n} posiłki w${v}`, d.meals.length === n && protOk && near(d.total.p + d.total.c, tt.protein.g + tt.carbs.g) && Math.abs(d.total.f - tt.fat.g) <= Math.max(10, tt.fat.g * 0.12),
       JSON.stringify({ p: Math.round(d.total.p), c: Math.round(d.total.c), f: Math.round(d.total.f), cel: [tt.protein.g, tt.carbs.g, tt.fat.g] }));
   }));
 });
 const day = D.dietBuildDay({ targets: t, meals: 5, variant: 0 });
 const foods = Object.fromEntries(D.DIET_FOODS.map(f => [f.id, f]));
-ok('zamienniki z tej samej grupy', day.meals.every(m => m.items.every(it => it.swaps.every(s => {
-  const a = foods[it.id].group, b = foods[s.id].group;
-  return a === b || (a === 'nabial' && b === 'bialko');
-}))));
+ok('zamienniki z tej samej podgrupy', day.meals.every(m => m.items.every(it => it.swaps.every(s => foods[it.id].sub === foods[s.id].sub))));
+ok('porcje nie mniejsze niż minimum', [0, 1, 2].every(v => [4, 5, 6].every(n => D.dietBuildDay({ targets: t, meals: n, variant: v }).meals.every(m =>
+  m.items.every(it => it.amount >= (foods[it.id].min || 1) && it.swaps.every(s => s.amount >= (foods[s.id].min || 1)))))));
+// Przypadek z wdrożenia: 96 kg, 185 cm, 43 lata, łagodna masa, PAL 1,75 — bez porcji typu „serek 3 g”.
+const t96 = D.dietBookTargets({ weight: 96, age: 43, kcal: 3636, rmr: 1906, pal: 1.75, goal: 'masa' });
+ok('96 kg: białko 173 g, węglowodany 509 g', t96.protein.g === 173 && t96.carbs.g === 509);
+const d96 = D.dietBuildDay({ targets: t96, meals: 5, variant: 0 });
+ok('96 kg: mięso co najmniej 80 g, serek co najmniej 50 g', d96.meals.every(m => m.items.every(it => it.amount >= (foods[it.id].min || 1))));
+// Makro z suwaków: jadłospis liczy się z wybranych gramów, a odstępstwo od książek daje ostrzeżenie.
+const tSel = D.dietBookTargets({ weight: 96, age: 43, kcal: 3636, rmr: 1906, pal: 1.75, goal: 'masa', selected: { p: 318, f: 101, c: 364 } });
+ok('wybrane makro przechodzi do jadłospisu', tSel.selected && tSel.protein.g === 318 && tSel.carbs.g === 364);
+ok('ostrzeżenie: białko poza zakresem książek', tSel.notes.some(n => n.text.includes('g białka na kg')));
 ok('gramatura w krokach 5 g (małe co 1 g)', day.meals.every(m => m.items.every(it => foods[it.id].unit === 'szt' ? Number.isInteger(it.amount) : (it.amount < 30 || it.amount % 5 === 0))));
 ok('produkty mają stronę źródła', D.DIET_FOODS.every(f => f.page && f.kcal > 0));
 ok('Atwater produktów (±25%)', D.DIET_FOODS.every(f => { const a = 4 * f.p + 4 * f.c + 9 * f.f; return Math.abs(a - f.kcal) <= Math.max(6, f.kcal * 0.25); }));
@@ -63,7 +74,11 @@ ok('brak 35 ml/kg', !src07.includes('0.035'));
 ok('PAL IOM w przyciskach', ['1.25', '1.5', '1.75', '2.2'].every(v => html.includes('data-val="' + v + '"')) && !html.includes('data-val="1.375"'));
 ok('karta jadłospisu w kalkulatorze', src07.includes('calcDietCardHTML({weight,age,kcal:target'));
 ok('diet-plan.js przed kalkulatorem', html.indexOf('diet-plan.js') > 0 && html.indexOf('diet-plan.js') < html.indexOf('07-forms-metrics-calculator.js'));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 46));
+ok('preset „Wg książek” domyślny', /calc-macro-btn active" data-books="1" onclick="setCalcMacroBooks\(\)"/.test(html));
+ok('tryb książek ustawia gramy z bazy', src07.includes("calcMacroMode==='books'&&typeof DietPlan") && src07.includes('window._calcBookMacros={proteinG,fatG,carbG}'));
+ok('suwaki przechodzą na tryb ręczny', /function syncSliders[\s\S]*?calcMacroMode='manual'/.test(src07));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 47));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 2));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');

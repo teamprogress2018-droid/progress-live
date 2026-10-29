@@ -1644,6 +1644,8 @@ async function askMetricAI(){
 // ════════════════════════════════════════
 var calcActivity=1.5;var calcGoalDelta=0;
 var dietMeals=5;var dietVariant=0;
+// 'books' = makro wg książek (diet-plan.js), 'manual' = preset albo suwaki trenera.
+var calcMacroMode='books';
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
 
 function initCalcClients(){
@@ -1737,10 +1739,8 @@ function calcLoadFromClient(){
     if(parseInt(b.dataset.val)===delta)b.classList.add('active');
   });
   calcGoalDelta=delta;
-  // set macro preset
-  const macroMap={masa:{p:35,f:25,c:40},redukcja:{p:40,f:30,c:30},sila:{p:35,f:25,c:40},kondycja:{p:30,f:30,c:40}};
-  const m=macroMap[c.goal]||{p:30,f:30,c:40};
-  setCalcMacroVals(m.p,m.f,m.c);
+  // Makro wg książek dla celu klienta (białko g/kg, tłuszcz 25%, reszta węglowodany).
+  calcSetMacroMode('books');
   calcTDEE();
   notify('✓ Dane klienta wczytane: '+c.name);
 }
@@ -1759,7 +1759,17 @@ function setCalcGoal(btn,delta){
   calcTDEE();
 }
 
+function calcSetMacroMode(mode){
+  calcMacroMode=mode==='books'?'books':'manual';
+  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.toggle('active',calcMacroMode==='books'&&b.dataset.books==='1'));
+}
+function setCalcMacroBooks(){
+  calcSetMacroMode('books');
+  calcTDEE();
+}
+
 function setCalcMacro(btn,p,f,c){
+  calcMacroMode='manual';
   document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   setCalcMacroVals(p,f,c);
@@ -1795,6 +1805,7 @@ function syncSliders(changed){
     document.getElementById('sl-c').value=c;
   }
   calcMacroP=p;calcMacroF=f;calcMacroC=c;
+  calcMacroMode='manual';
   document.getElementById('sl-p-val').textContent=p;
   document.getElementById('sl-f-val').textContent=f;
   document.getElementById('sl-c-val').textContent=c;
@@ -1824,9 +1835,18 @@ function calcTDEE(){
   const tdee=Math.round(bmr*calcActivity);
   const target=tdee+calcGoalDelta;
   const belowBmr=target<Math.round(bmr);
-  const proteinG=Math.round(target*(calcMacroP/100)/4);
-  const fatG=Math.round(target*(calcMacroF/100)/9);
-  const carbG=Math.round(target*(calcMacroC/100)/4);
+  let proteinG=Math.round(target*(calcMacroP/100)/4);
+  let fatG=Math.round(target*(calcMacroF/100)/9);
+  let carbG=Math.round(target*(calcMacroC/100)/4);
+  // Tryb „Wg książek”: gramy z bazy wiedzy, suwaki pokazują wynikające z nich procenty.
+  window._calcBookMacros=null;
+  if(calcMacroMode==='books'&&typeof DietPlan!=='undefined'){
+    const bt=DietPlan.dietBookTargets(calcDietContext({weight,age,kcal:target,rmr:Math.round(bmr)}));
+    proteinG=bt.protein.g;fatG=bt.fat.g;carbG=bt.carbs.g;
+    window._calcBookMacros={proteinG,fatG,carbG};
+    const pp=Math.round(proteinG*4/target*100),fp=Math.round(fatG*9/target*100);
+    setCalcMacroVals(pp,fp,100-pp-fp);
+  }
 
   // per kg recommendations
   const protPerKg=(proteinG/weight).toFixed(1);
@@ -1923,7 +1943,7 @@ function calcTDEE(){
           </div>`).join('')}
       </div>
     </div>
-    ${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr)})}
+    ${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr),selected:calcMacroMode==='books'?null:{p:proteinG,f:fatG,c:carbG}})}
     </div>
 
     <div class="calc-col-side">
@@ -1979,7 +1999,7 @@ function calcMacrosFromInputs(o){
   };
 }
 function calcReadFormMacros(){
-  return calcMacrosFromInputs({
+  const m=calcMacrosFromInputs({
     age:document.getElementById('calc-age')?.value,
     weight:document.getElementById('calc-weight')?.value,
     height:document.getElementById('calc-height')?.value,
@@ -1990,6 +2010,10 @@ function calcReadFormMacros(){
     macroF:typeof calcMacroF!=='undefined'?calcMacroF:25,
     macroC:typeof calcMacroC!=='undefined'?calcMacroC:45
   });
+  // Tryb „Wg książek”: zapisujemy dokładne gramy z kalkulatora, nie zaokrąglone procenty.
+  const b=typeof calcMacroMode!=='undefined'&&calcMacroMode==='books'?window._calcBookMacros:null;
+  if(b){m.proteinG=b.proteinG;m.fatG=b.fatG;m.carbG=b.carbG;m.macroSource='books';}
+  return m;
 }
 function applyMacrosToClient(client,macros,opts){
   opts=opts||{};
@@ -2038,13 +2062,7 @@ function calcDietCardHTML(o){
 function dietSetMeals(n){dietMeals=n;calcTDEE();}
 function dietNextVariant(){dietVariant++;calcTDEE();}
 function dietUseBookMacros(){
-  const t=window._dietLast&&window._dietLast.targets;
-  if(!t||!t.kcal)return;
-  const p=Math.max(15,Math.min(55,Math.round(t.protein.g*4/t.kcal*100)));
-  const f=t.fat.pct;
-  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
-  setCalcMacroVals(p,f,100-p-f);
-  calcTDEE();
+  setCalcMacroBooks();
   notify('✓ Makro ustawione wg książek');
 }
 function dietSendToClient(){
