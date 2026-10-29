@@ -1113,6 +1113,15 @@ function aplNormalizeGeneratedPlan(plan){
   const notes=plan.adaptation_notes||plan.adaptationNotes||'';
   if(notes)plan.adaptation_notes=notes;
   if(!Array.isArray(plan.weekly_progression_schema)&&plan.weeklyProgressionSchema)plan.weekly_progression_schema=plan.weeklyProgressionSchema;
+  // Starsze odpowiedzi AI opisywały drop set wyłącznie w notes. Migrujemy je do
+  // pól, które potrafi wykonać i pokazać aplikacja klienta.
+  (plan.days||[]).forEach(day=>(day.exercises||[]).forEach(ex=>{
+    if(!ex||typeof ex!=='object')return;
+    const text=String(ex.notes||ex.note||'').toLowerCase();
+    if(!ex.drop&&!/drop[ -]?set/.test(text))return;
+    ex.drop=Math.min(2,Math.max(1,parseInt(ex.drop,10)||1));
+    if(!ex.dropStep)ex.dropStep='25%';
+  }));
   return plan;
 }
 window.aplNormalizeGeneratedPlan=aplNormalizeGeneratedPlan;
@@ -1390,7 +1399,9 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
           "rpe": "7",
           "rir": "3",
           "kg": "60",
-          "tempo": "3-1-1-0"
+          "tempo": "3-1-1-0",
+          "drop": "1 albo pusty string — tylko gdy trener wybrał Drop-sety",
+          "dropStep": "25% albo 10kg — pusty string bez drop setu"
         }
       ]
     }
@@ -1427,7 +1438,7 @@ POUFNOŚĆ: status farmakologiczny i szczegóły są wyłącznie kontekstem tren
 OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla każdej partii zsumuj w pamięci serie robocze ze wszystkich dni tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Pole "weeklyVolume" musi odzwierciedlać faktyczną sumę, nie szacunek. Nie dodawaj ćwiczenia tylko po to, aby dobić do MEV: najpierw sprawdź czas sesji, staż, wiek, regenerację, priorytety oraz konserwatywne limity objętości.
 SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: licz sumę tygodniową, ale nie próbuj wyrównywać nierównego układu czterech sesji przez przeładowanie pojedynczego dnia. Zachowaj rotację kolejki PPL między tygodniami.
 
-METODY INTENSYFIKACJI DOSTĘPNE (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. To lista metod do wyboru, nie obowiązek użycia każdej. Dobierz zwykle 1–2 pasujące metody na trening i rozłóż je oszczędnie; podaj dokładny schemat w polu "notes" konkretnego ćwiczenia. Stosuj tylko metodę zaznaczoną przez trenera.
+METODY INTENSYFIKACJI DOSTĘPNE (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. To lista metod do wyboru, nie obowiązek użycia każdej. Dobierz zwykle 1–2 pasujące metody na trening i rozłóż je oszczędnie. Gdy używasz „Drop-sety”, MUSISZ zapisać je w polach konkretnego ćwiczenia: "drop":"1" oraz "dropStep":"25%" (maks. "2" zrzuty); dodaj też krótką informację w "notes". Nie wpisuj słów „drop set” wyłącznie w notes bez tych pól. Stosuj tylko metodę zaznaczoną przez trenera.
 SCHEMATY METOD: Drop-set = po serii zmniejsz ciężar o ok. 20–30% i kontynuuj; najwyżej 1–2 zrzuty. Rest-pause = seria blisko upadku, 15–25 s przerwy, następnie 1–3 krótkie dogrywki po kilka powtórzeń. Myo-reps = seria aktywacyjna 12–20 powt. blisko upadku, 15–20 s przerwy, następnie 3–5 mini-serii po 3–5 powt.; zakończ, gdy nie utrzymasz celu lub techniki. Nie łącz rest-pause i myo-reps w jednym ćwiczeniu.
 Drop-set mechaniczny = bez zmiany ciężaru przejdź do łatwiejszej dźwigni/ustawienia tego samego ruchu, zachowując kontrolę. Serie łączone / pre-exhaust = izolacja danej partii, po niej bezpośrednio ćwiczenie wielostawowe na tę samą partię; zmniejsz ciężar w drugim ćwiczeniu, jeśli technika lub wynik ucierpi. Seria gigant = 3 ćwiczenia tej samej partii kolejno; maksymalnie jeden taki blok na sesję. Powtórzenia częściowe w wydłużeniu = 4–8 kontrolowanych powtórzeń w bezbolesnym, wydłużonym fragmencie zakresu po pełnych powtórzeniach; tylko stabilne ćwiczenie i pełna kontrola. Powtórzenia 1,5 = pełne powtórzenie + połowa w wybranym zakresie, liczone jako jedno; odpowiednio zmniejsz ciężar. Serie klastrowe = podziel serię siłową na małe grupy (np. 4+4+4) z 15–30 s przerwy; zachowaj zapas i szybkość, nie doprowadzaj do upadku. Akcent ekscentryczny = opuszczanie przez 3–5 s; bez wymuszania pomocy partnera i bez dodatkowego przeciążenia ponad kontrolę ćwiczącego. Superseria antagonistyczna może łączyć partie przeciwstawne; HIIT/interwały dobieraj tylko do celu kondycja/atletyzm, a nie jako metodę hipertrofii.
 OGRANICZENIA: techniki wydłużające serię (drop-set, rest-pause, myo-reps, gigant, częściowe) dawaj głównie w ostatniej serii stabilnej maszyny, wyciągu lub izolacji, nie w ciężkich przysiadach, martwym ciągu ani wyciskaniu bez asekuracji. Początkujący i osoby w rehabilitacji: nie planuj metod do upadku; jeśli ryzyko, ból lub ograniczenie techniki — pomiń metodę i zapisz zwykłą serię. Maksymalnie jedna metoda wydłużająca serię na ćwiczenie i nie stosuj ich na wszystkie ćwiczenia tej samej partii w jednej sesji. Serie klastrowe przypisuj głównie do celu siła/moc. W tygodniu deload usuń metody intensyfikacji. Nie zwiększaj nimi automatycznie tygodniowej objętości — zastępują standardową serię lub jej część. RPE/RIR to sposób dozowania wysiłku, nie technika do dopisania jako drop-set; umieść docelowe RIR w polu ćwiczenia.
@@ -1859,6 +1870,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div style="flex:1;min-width:0;">
             <div class="apl-exercise-title">${ex.name}</div>
             ${ex.notes?`<div class="apl-exercise-note">💡 ${ex.notes}</div>`:''}
+            ${parseInt(ex.drop,10)?`<div style="margin-top:7px;padding:7px 9px;border:1px solid rgba(230,0,0,.38);border-radius:7px;background:rgba(230,0,0,.07);font-size:11px;line-height:1.45;color:var(--text);"><b style="color:var(--accent);">💧 DROP SET · OSTATNIA SERIA</b><br>${typeof dropSetInstruction==='function'?dropSetInstruction(ex):'Bez przerwy zmniejsz ciężar i kontynuuj serię.'}</div>`:''}
             ${ex.muscleGroup?`<span class="apl-muscle-tag">${ex.muscleGroup}</span>`:''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
@@ -2172,12 +2184,14 @@ function aplBuildSavedPlan(src,cid,client,id){
           rir:rirOf(wp,e),
           tempo:e.tempo||wp.tempo||'',
           kg:wp.kg||e.kg||'',
+          drop:wp.drop!=null?wp.drop:(e.drop||''),
+          dropStep:wp.dropStep!=null?wp.dropStep:(e.dropStep||''),
           note:e.notes||e.note||'',
           alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):'')
         };
         weekKeys.forEach(wk=>{
           const w=e[wk];
-          if(w&&typeof w==='object')out[wk]={s:w.s||'',r:w.r||'',rest:w.rest||'',rpe:w.rpe!=null?String(w.rpe):'',rir:rirOf(w,{}),kg:w.kg||''};
+          if(w&&typeof w==='object')out[wk]={s:w.s||'',r:w.r||'',rest:w.rest||'',rpe:w.rpe!=null?String(w.rpe):'',rir:rirOf(w,{}),kg:w.kg||'',drop:w.drop!=null?w.drop:out.drop,dropStep:w.dropStep!=null?w.dropStep:out.dropStep};
         });
         return out;
       })

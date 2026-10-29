@@ -2765,6 +2765,18 @@ function formatSetKindTag(ex){
 }
 window.formatSetKindTag=formatSetKindTag;
 
+/** Krótka, widoczna dla klienta instrukcja drop setu przypisanego do ćwiczenia. */
+function dropSetInstruction(ex){
+  const p=ex&&typeof ex==='object'?ex:{};
+  const count=parseSetKindCount(p.drop,2);
+  if(!count)return '';
+  const parsed=parseDropStep(p.dropStep);
+  const step=parsed?(parsed.mode==='kg'?('o '+parsed.n+' kg'):('o '+parsed.n+'%')):'o 25%';
+  const drops=count===1?'jeden zrzut ciężaru':count+' zrzuty ciężaru';
+  return 'Ostatnia seria: wykonaj zaplanowane powtórzenia, bez przerwy zmniejsz ciężar '+step+' i wykonaj kolejną serię. ('+drops+')';
+}
+window.dropSetInstruction=dropSetInstruction;
+
 function scaleKg(kg,frac){
   const n=parseFloat(kg);
   if(!Number.isFinite(n)||n<=0)return kg||'';
@@ -3470,6 +3482,14 @@ function exerciseForPlanWeek(ex,plan,weekIdx){
     if(wp.rest)out.rest=wp.rest;
     if(wp.rpe)out.rpe=wp.rpe;
     if(wp.rir!=null&&wp.rir!=='')out.rir=wp.rir;
+    if(wp.drop!=null)out.drop=wp.drop;
+    if(wp.dropStep!=null)out.dropStep=wp.dropStep;
+  }
+  // Zgodność ze starszymi planami zapisanymi zanim drop set miał osobne pola.
+  // Dzięki temu klient widzi instrukcję także w już utworzonym planie.
+  if(!parseSetKindCount(out.drop,2)&&/drop[ -]?set/i.test(String(out.note||out.notes||''))){
+    out.drop=1;
+    if(!out.dropStep)out.dropStep='25%';
   }
   if(isFiteboLikePlan(plan)){
     const sch=planPhaseSchedule(plan,{});
