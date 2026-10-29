@@ -373,8 +373,33 @@ function booksKbValidatePlanRefs(plan,sel){
   return{used:list,removed,books:Array.from(new Set(list.map(r=>r.book)))};
 }
 
+/** Własne grafiki narysowane na podstawie książek (knowledge/visuals/svg). Nie są to ryciny z książek. */
+const BOOK_VISUALS=[
+  {id:'fms-swiatla',title:'Światła FMS: dobór ćwiczeń przy słabym wzorcu',when:'Gdy klient ma słaby wynik FMS, asymetrię albo ograniczenia ruchowe.',source:'Cook, The Business of Movement, s. 188, 226, 361',tags:['kontuzje','ocena']},
+  {id:'bompa-fazy-sily',title:'Fazy treningu siły w sezonie',when:'Przy układaniu kolejności bloków: adaptacja, siła maksymalna, moc, utrzymanie.',source:'Bompa, Buzzichelli, Periodyzacja, s. 112–118, 280–285',tags:['sila','atletyzm','masa']},
+  {id:'bompa-strefy-intensywnosci',title:'Strefy intensywności (siła i wytrzymałość)',when:'Przy doborze % 1RM i stref wytrzymałości do celu bloku.',source:'Bompa, Buzzichelli, Periodyzacja, s. 262–263, 320–323',tags:['sila','atletyzm','masa','kondycja','redukcja']},
+  {id:'bompa-rozladowanie',title:'Rozładowanie przed głównym startem',when:'Ostatnie 8–14 dni przed zawodami lub testem.',source:'Bompa, Buzzichelli, Periodyzacja, s. 230–235, 242–245',tags:['atletyzm','start']}
+];
+function bookVisualSrc(v){return 'knowledge/visuals/svg/'+v.id+'.svg';}
+/** Grafiki do podglądu planu: najpierw pasujące do celu, FMS na początku przy ograniczeniach klienta. */
+function bookVisualsForPlan(goal,opts){
+  const o=opts||{};const g=String(goal||'').toLowerCase();
+  const tags=[g];if(o.limits)tags.push('kontuzje');if(o.competition||/start|zawod|turniej|mecz/i.test(String(o.text||'')))tags.push('start');
+  const score=v=>v.tags.reduce((n,t)=>n+(tags.indexOf(t)>=0?(t==='kontuzje'?3:1):0),0);
+  return BOOK_VISUALS.map((v,i)=>({v,i,s:score(v)})).sort((a,b)=>b.s-a.s||a.i-b.i).map(x=>Object.assign({match:x.s>0},x.v));
+}
+function bookVisualsHTML(list,opts){
+  const o=opts||{};const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  return '<div class="book-visuals'+(o.compact?' book-visuals-compact':'')+'">'+(list||BOOK_VISUALS).map(v=>{
+    const src=bookVisualSrc(v);
+    return '<figure class="book-visual" data-book-visual="'+esc(v.id)+'"><a href="'+src+'" target="_blank" rel="noopener" title="Otwórz w pełnym rozmiarze"><img src="'+src+'" alt="'+esc(v.title)+'" loading="lazy"></a>'
+      +'<figcaption><b>'+esc(v.title)+'</b>'+(v.match?' <span class="book-visual-match">pasuje do planu</span>':'')+'<span>'+esc(v.when)+'</span><small>Opracowanie własne na podstawie: '+esc(v.source)+'</small></figcaption></figure>';
+  }).join('')+'</div>';
+}
+
 const api={booksKbDomain,booksKbLoad,booksKbSetData,booksKbSelect,booksKbContext,booksKbUsedSources,booksKbList,
-  booksKbPlanSelect,booksKbPlanPrompt,booksKbValidatePlanRefs,PLAN_ANCHORS};
+  booksKbPlanSelect,booksKbPlanPrompt,booksKbValidatePlanRefs,PLAN_ANCHORS,
+  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML};
 Object.assign(root,api);
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

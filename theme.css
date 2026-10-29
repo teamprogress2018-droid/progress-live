@@ -1508,3 +1508,16 @@ html[data-theme] .cap-client-plan-start.cap-btn-secondary { border: 1px solid va
   html[data-theme] .cap-client-plan-day-body { padding-right: 10px; padding-left: 10px; }
   html[data-theme] .cap-client-plan-metric { font-size: 12px; }
 }
+
+/* Grafiki z książek (własne opracowania, knowledge/visuals/svg) — podgląd planu i Akademia */
+.book-visuals{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:10px}
+.book-visuals-compact{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.book-visual{margin:0;border:1px solid var(--border2);border-radius:12px;background:var(--s1,var(--bg));overflow:hidden;display:flex;flex-direction:column}
+.book-visual a{display:block;background:#fff;padding:6px;border-bottom:1px solid var(--border2)}
+.book-visual img{display:block;width:100%;height:auto}
+.book-visual figcaption{display:flex;flex-direction:column;gap:4px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.5}
+.book-visual figcaption b{color:var(--text);font-size:13px}
+.book-visual figcaption small{font-size:11px}
+.book-visual-match{align-self:flex-start;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:rgba(var(--accent-rgb),.12);color:var(--text)}
+.academy-visuals-intro{margin:0 0 6px;color:var(--muted);font-size:13px}
+@media (max-width:600px){.book-visuals,.book-visuals-compact{grid-template-columns:1fr}}

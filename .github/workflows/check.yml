@@ -566,6 +566,9 @@ jobs:
       - name: 6b0a. Testy UI zakładki Badania (pytanie → karta → zapis)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_research_academy_ui.js
+      - name: 6b0b. Testy UI grafik z książek (podgląd planu + Akademia)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_book_visuals_ui.js
       - name: 6b0. Testy UI biblioteki planów (tabela / filtry)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_plans_library_ui.js
