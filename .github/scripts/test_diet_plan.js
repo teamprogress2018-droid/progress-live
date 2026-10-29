@@ -77,8 +77,21 @@ ok('diet-plan.js przed kalkulatorem', html.indexOf('diet-plan.js') > 0 && html.i
 ok('preset „Wg książek” domyślny', /calc-macro-btn active" data-books="1" onclick="setCalcMacroBooks\(\)"/.test(html));
 ok('tryb książek ustawia gramy z bazy', src07.includes("calcMacroMode==='books'&&typeof DietPlan") && src07.includes('window._calcBookMacros={proteinG,fatG,carbG}'));
 ok('suwaki przechodzą na tryb ręczny', /function syncSliders[\s\S]*?calcMacroMode='manual'/.test(src07));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 47));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 2));
+// Tydzień: 7 dni z tym samym celem, różne zestawy posiłków, lista zakupów = suma porcji.
+const wk = D.dietBuildWeek({ targets: t96, meals: 5, variant: 0 });
+ok('tydzień ma 7 dni', wk.days.length === 7 && wk.days[0].name === 'Poniedziałek' && wk.days[6].name === 'Niedziela');
+const sig = d => d.meals.map(m => m.items.filter(it => it.role !== 'x').map(it => it.id).join('+')).join('|');
+ok('dni w tygodniu się różnią', new Set(wk.days.map(sig)).size === 7);
+ok('każdy dzień trzyma makro', wk.days.every(d => d.total.p >= t96.protein.g * 0.9 && Math.abs(d.total.p + d.total.c - t96.protein.g - t96.carbs.g) <= (t96.protein.g + t96.carbs.g) * 0.1 && Math.abs(d.total.f - t96.fat.g) <= t96.fat.g * 0.12));
+const shopSum = {}; wk.days.forEach(d => d.meals.forEach(m => m.items.forEach(it => { shopSum[it.id] = (shopSum[it.id] || 0) + it.amount; })));
+ok('lista zakupów = suma porcji', wk.shopping.length === Object.keys(shopSum).length && wk.shopping.every(s => s.amount === shopSum[s.id]));
+const wTxt = D.dietPlanText(t96, wk);
+ok('tekst tygodnia z dniami i zakupami', D.WEEK_DAYS.every(n => wTxt.includes(n.toUpperCase())) && wTxt.includes('Lista zakupów'));
+const wCard = D.dietRenderCard(t96, wk, { meals: 5 });
+ok('karta tygodnia: 7 dni i przełącznik', (wCard.match(/class="diet-day"/g) || []).length === 7 && wCard.includes("dietSetView('tydzien')") && wCard.includes('Wyślij tydzień'));
+ok('przełącznik widoku w kalkulatorze', src07.includes("function dietSetView(v)") && src07.includes('DietPlan.dietBuildWeek(opts)'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 48));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 3));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
