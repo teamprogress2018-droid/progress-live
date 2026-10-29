@@ -185,8 +185,26 @@ ok('każda propozycja ma źródło', [slow, adh].every(r => r.suggestions.every(
 const rvCard = D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5 }), { meals: 5, review: slow });
 ok('karta: propozycje do zatwierdzenia przez trenera', rvCard.includes('Postępy klienta') && rvCard.includes('dietApplySuggestion(-400)') && rvCard.includes('nic nie zmienia się samo'));
 ok('kalkulator: dane z pomiarów i check-inów', src07.includes("e.groupId==='mg1'") && src07.includes("c.status==='filled'") && src07.includes('function dietApplySuggestion('));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 52));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 7));
+
+// Zakupy i gotowanie: obiad na 2–3 dni, porcje dla kilku osób.
+const obiad = d => d.meals.find(m => m.name === 'Obiad').items.filter(it => it.role !== 'x').map(it => it.id).join('+');
+const wPrep = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, prep: 3 });
+ok('gotowanie na 3 dni: ten sam obiad w bloku', obiad(wPrep.days[0]) === obiad(wPrep.days[1]) && obiad(wPrep.days[1]) === obiad(wPrep.days[2]) && obiad(wPrep.days[2]) !== obiad(wPrep.days[3]) && obiad(wPrep.days[3]) === obiad(wPrep.days[5]));
+ok('gotowanie: inne posiłki dalej się zmieniają', wPrep.days[0].meals[0].items[0].id !== wPrep.days[1].meals[0].items[0].id || wPrep.days[0].meals[1].items[0].id !== wPrep.days[1].meals[1].items[0].id);
+ok('plan gotowania = suma obiadów z bloku', wPrep.cooking.length === 3 && wPrep.cooking[0].days.length === 3 && wPrep.cooking[0].items.every(it => Math.abs(it.amount - wPrep.days.slice(0, 3).reduce((a, d) => a + (d.meals.find(m => m.name === 'Obiad').items.find(x => x.id === it.id) || { amount: 0 }).amount, 0)) <= 1));
+ok('każdy dzień z gotowaniem trzyma makro', wPrep.days.every(d => Math.abs(d.total.kcal - tK.kcal) <= tK.kcal * 0.06));
+const w1 = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0 });
+const w2 = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, people: 2 });
+ok('lista zakupów dla 2 osób = podwójne porcje', w2.people === 2 && w2.shopping.every(s => { const a = w1.shopping.find(x => x.id === s.id).amount; return Math.abs(s.amount - 2 * a) <= 1; }));
+ok('bez gotowania brak planu gotowania', w1.cooking.length === 0 && w1.prep === 0);
+const prepTxt = D.dietPlanText(tK, D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, prep: 2, people: 3 }));
+ok('tekst: gotowanie i zakupy dla 3 osób', prepTxt.includes('Gotowanie obiadów na zapas') && prepTxt.includes('dla 3 osób'));
+const prepCard = D.dietRenderCard(tK, D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, prep: 2, people: 2 }), { meals: 5 });
+ok('karta: zakupy i gotowanie', prepCard.includes('dietSetPrep(2)') && prepCard.includes('dietSetPeople(3)') && prepCard.includes('diet-cook') && prepCard.includes('jak klient'));
+ok('karta 1 dnia bez sekcji gotowania', !D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5 }), { meals: 5 }).includes('dietSetPrep'));
+ok('kalkulator: gotowanie i osoby', src07.includes('prep:dietPrep,people:dietPeople') && src07.includes('function dietSetPrep(') && src07.includes('function dietSetPeople('));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 53));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 8));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');

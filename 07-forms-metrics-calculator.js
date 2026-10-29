@@ -1650,6 +1650,8 @@ var dietPrefs={style:'wszystko',ex:[],skip:[],maxMin:0};
 var dietMealShift={};
 // Dni treningowe (numery dni tygodnia, 1 = pon … 0 = nd); null = z harmonogramu klienta. Typ dnia dla widoku 1 i 3 dni.
 var dietTrainDays=null;var dietDayType='trening';
+// Zakupy i gotowanie (widok kilku dni): obiad na 2–3 dni, liczba osób na liście zakupów.
+var dietPrep=0;var dietPeople=1;
 // 'books' = makro wg książek (diet-plan.js), 'manual' = preset albo suwaki trenera.
 var calcMacroMode='books';
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
@@ -2066,7 +2068,7 @@ function calcDietCardHTML(o){
   const td=dietTrainDaysNow();
   const restDay=!rest.same&&dietView!=='tydzien'&&dietDayType==='wolny';
   const shown=restDay?rest:t;
-  const opts={targets:t,rest,trainDays:td.days,dayType:dietDayType,meals:dietMeals,variant:dietVariant,prefs:dietPrefs,days:dietView==='3dni'?3:7,mealShift:dietMealShift};
+  const opts={targets:t,rest,trainDays:td.days,dayType:dietDayType,meals:dietMeals,variant:dietVariant,prefs:dietPrefs,days:dietView==='3dni'?3:7,mealShift:dietMealShift,prep:dietPrep,people:dietPeople};
   const blocked=t.blocked||(restDay&&rest.blocked)||(dietView==='tydzien'&&!rest.same&&rest.blocked&&td.days.length<7);
   const day=blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(Object.assign({},opts,{targets:shown})):DietPlan.dietBuildWeek(Object.assign({},opts,{targets:shown}));
   const cardT=blocked&&!t.blocked?(restDay||dietView==='tydzien'?rest:t):shown;
@@ -2097,6 +2099,8 @@ function dietTrainDaysNow(){
   return days.length?{days,fromClient:true}:{days:[1,3,5],fromClient:false};
 }
 function dietToggleTrainDay(id){const d=dietTrainDaysNow().days.slice();const i=d.indexOf(id);if(i<0)d.push(id);else d.splice(i,1);dietTrainDays=d;calcTDEE();}
+function dietSetPrep(v){dietPrep=+v||0;dietMealShift={};calcTDEE();}
+function dietSetPeople(n){dietPeople=Math.max(1,+n||1);calcTDEE();}
 function dietSetDayType(v){dietDayType=v==='wolny'?'wolny':'trening';calcTDEE();}
 function dietSetMeals(n){dietMeals=n;dietMealShift={};calcTDEE();}
 function dietSwapMeal(d,m){window._dietOpenDay=d;const k=d+':'+m;dietMealShift[k]=(dietMealShift[k]||0)+1;calcTDEE();}

@@ -443,7 +443,8 @@ function dietBuildDay(o){
     // Zamiana całego posiłku: mealShift['dzień:posiłek'] przesuwa zestaw na kolejny z tej samej grupy,
     // cel posiłku zostaje ten sam, więc kalorie i makro dnia się nie zmieniają.
     const shift=Math.max(0,+(o.mealShift||{})[(+o.dayIndex||0)+':'+mi]||0);
-    const tpl=list[(variant+seen-1+shift)%list.length];
+    const fixed=o.fixVariant&&o.fixVariant[m.slot]!=null?Math.max(0,+o.fixVariant[m.slot]):variant;
+    const tpl=list[(fixed+seen-1+shift)%list.length];
     const k=m.share/shareLeft;
     const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
     shareLeft-=m.share;
@@ -471,17 +472,32 @@ function dietBuildWeek(o){
   // Dni treningowe: o.trainDays = numery dni tygodnia (1 = pon … 0 = nd), o.rest = cel dnia wolnego.
   // Krótszy widok (3 dni) dostaje jeden typ dnia: o.dayType.
   const split=!!(o.rest&&!o.rest.same);
+  const prep=Math.min(3,Math.max(0,Math.round(+o.prep||0)));
   const isTrain=d=>count===7&&Array.isArray(o.trainDays)?o.trainDays.includes((d+1)%7):o.dayType!=='wolny';
   const days=names.map((name,d)=>{
     const train=isTrain(d);
     const t=split&&!train?o.rest:o.targets;
-    return Object.assign({name,dayType:split?(train?'trening':'wolny'):null,kcalTarget:t.kcal},dietBuildDay({targets:t,meals:o.meals,variant:base+d,prefs:o.prefs,mealShift:o.mealShift,dayIndex:d}));
+    // Gotowanie na zapas: ten sam obiad przez o.prep kolejnych dni (blok), gotowany raz.
+    const fixVariant=prep>1?{obiad:base+Math.floor(d/prep)*prep}:null;
+    return Object.assign({name,dayType:split?(train?'trening':'wolny'):null,kcalTarget:t.kcal,prepBlock:prep>1?Math.floor(d/prep):null},dietBuildDay({targets:t,meals:o.meals,variant:base+d,prefs:o.prefs,mealShift:o.mealShift,dayIndex:d,fixVariant}));
   });
+  const people=Math.min(8,Math.max(1,Math.round(+o.people||1)));
   const shop={};
   days.forEach(day=>day.meals.forEach(m=>m.items.forEach(it=>{shop[it.id]=(shop[it.id]||0)+it.amount;})));
-  const shopping=Object.keys(shop).map(id=>({id,amount:shop[id]}))
+  // Porcje rodzinne: suma × liczba osób, pozostałe osoby jedzą porcje jak klient (ustawienie aplikacji).
+  const shopping=Object.keys(shop).map(id=>({id,amount:FOOD[id].unit==='szt'?Math.ceil(shop[id]*people):Math.round(shop[id]*people)}))
     .sort((a,b)=>DIET_FOODS.indexOf(FOOD[a.id])-DIET_FOODS.indexOf(FOOD[b.id]));
-  return{days,shopping,warnings:[...new Set([].concat(...days.map(d=>d.warnings)))],prefs:days[0].prefs};
+  const cooking=[];
+  if(prep>1)days.forEach((day,d)=>{
+    const m=day.meals.find(x=>x.name==='Obiad');
+    if(!m)return;
+    let b=cooking[day.prepBlock];
+    if(!b)b=cooking[day.prepBlock]={days:[],items:{}};
+    b.days.push(day.name);
+    m.items.forEach(it=>{b.items[it.id]=(b.items[it.id]||0)+it.amount*people;});
+  });
+  const cook=cooking.filter(Boolean).map(b=>({days:b.days,items:Object.keys(b.items).map(id=>({id,amount:FOOD[id].unit==='szt'?Math.ceil(b.items[id]):Math.round(b.items[id])}))}));
+  return{days,shopping,people,prep:prep>1?prep:0,cooking:cook,warnings:[...new Set([].concat(...days.map(d=>d.warnings)))],prefs:days[0].prefs};
 }
 
 function fmtAmount(food,amount){return food.unit==='szt'?amount+' szt.':amount+' '+food.unit;}
@@ -514,7 +530,12 @@ function dietPlanText(t,plan){
   const lines=['🍽 Przykładowy jadłospis'+span+' ('+daily+')','Białko '+t.protein.g+' g · Tłuszcz '+t.fat.g+' g · Węglowodany '+t.carbs.g+' g',''];
   if(week){
     plan.days.forEach(day=>{lines.push('📅 '+day.name.toUpperCase()+(day.dayType?(day.dayType==='trening'?' (dzień treningowy, ':' (dzień bez treningu, ')+day.kcalTarget+' kcal)':''),'');mealsText(day,lines);});
-    lines.push('🛒 Lista zakupów'+span+':');
+    if(plan.cooking&&plan.cooking.length){
+      lines.push('🍳 Gotowanie obiadów na zapas:');
+      plan.cooking.forEach(b=>lines.push('• '+b.days[0]+(b.days.length>1?' (na: '+b.days.join(', ')+')':'')+': '+b.items.map(it=>FOOD[it.id].name.toLowerCase()+' '+fmtShop(FOOD[it.id],it.amount)).join(', ')));
+      lines.push('');
+    }
+    lines.push('🛒 Lista zakupów'+span+(plan.people>1?' dla '+plan.people+' osób':'')+':');
     plan.shopping.forEach(s=>{const f=FOOD[s.id];lines.push('• '+f.name+' '+fmtShop(f,s.amount));});
     lines.push('');
   }else mealsText(plan,lines);
@@ -542,6 +563,16 @@ function dietTrainingHTML(opts,nDays){
         :'<div style="display:flex;gap:4px;flex-wrap:wrap;">'+chip(opts.dayType!=='wolny','dietSetDayType(\'trening\')','Dzień treningowy')+chip(opts.dayType==='wolny','dietSetDayType(\'wolny\')','Dzień wolny')+'</div>');
   }
   return'<div class="diet-training" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:8px 0;"><div style="font-size:12px;font-weight:700;margin-bottom:4px;">Trening a jedzenie</div>'+body+'</div>';
+}
+
+/** Zakupy i gotowanie dla widoku kilku dni: liczba osób i obiad gotowany na 2–3 dni. */
+function dietPrepHTML(plan){
+  const chip=(on,click,label)=>'<button type="button" class="btn btn-sm'+(on?' btn-primary':'')+'" style="font-size:11.5px;padding:4px 10px;min-height:0;" aria-pressed="'+(on?'true':'false')+'" onclick="'+click+'">'+esc(label)+'</button>';
+  const row=(title,body)=>'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0;"><span style="font-size:11.5px;color:var(--muted);flex-basis:100%;">'+title+'</span>'+body+'</div>';
+  return'<div class="diet-prep" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:8px 0;"><div style="font-size:12px;font-weight:700;margin-bottom:4px;">Zakupy i gotowanie</div>'+
+    row('Obiad',[[0,'Codziennie inny'],[2,'Gotuję na 2 dni'],[3,'Gotuję na 3 dni']].map(([v,l])=>chip((plan.prep||0)===v,'dietSetPrep('+v+')',l)).join(''))+
+    row('Lista zakupów dla',[1,2,3,4].map(n=>chip((plan.people||1)===n,'dietSetPeople('+n+')',n===1?'1 osoby':n+' osób')).join(''))+
+    '</div>';
 }
 
 /** Kreator: sposób żywienia, alergie i wykluczenia, produkty, których klient nie je, czas przygotowania. */
@@ -609,12 +640,16 @@ function dietRenderCard(t,day,opts){
   const dayHead=d=>'<span style="font-weight:700;">'+esc(d.name)+'</span>'+(d.dayType?' <span style="font-size:11px;'+(d.dayType==='trening'?'color:var(--accent);':'color:var(--muted);')+'">'+(d.dayType==='trening'?'🏋 trening':'wolne')+'</span>':'')+' <span style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r0(d.total.kcal)+' kcal · B '+r0(d.total.p)+' · T '+r0(d.total.f)+' · W '+r0(d.total.c)+'</span>';
   const meals=week
     ?day.days.map((d,i)=>'<details class="diet-day"'+(i===(+opts.openDay||0)?' open':'')+' style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;">'+dayHead(d)+'</summary>'+mealsHTML(d,i)+'</details>').join('')+
-      '<details class="diet-shop" style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">🛒 Lista zakupów '+(day.days.length===7?'na tydzień':'na '+day.days.length+' dni')+'</summary><div style="columns:2;column-gap:18px;font-size:12px;margin-top:6px;">'+
-      day.shopping.map(s=>{const f=FOOD[s.id];return'<div>'+esc(f.name)+' <strong>'+esc(fmtShop(f,s.amount))+'</strong></div>';}).join('')+'</div></details>'
+      '<details class="diet-shop" style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">🛒 Lista zakupów '+(day.days.length===7?'na tydzień':'na '+day.days.length+' dni')+(day.people>1?' dla '+day.people+' osób':'')+'</summary><div style="columns:2;column-gap:18px;font-size:12px;margin-top:6px;">'+
+      day.shopping.map(s=>{const f=FOOD[s.id];return'<div>'+esc(f.name)+' <strong>'+esc(fmtShop(f,s.amount))+'</strong></div>';}).join('')+'</div>'+
+      (day.people>1?'<div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Pozostałe osoby liczone z porcjami jak klient (ustawienie aplikacji), nie według ich własnych potrzeb.</div>':'')+'</details>'+
+      ((day.cooking||[]).length?'<details class="diet-cook" open style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">🍳 Gotowanie obiadów na zapas</summary>'+
+        day.cooking.map(b=>'<div style="font-size:12px;margin-top:6px;"><strong>'+esc(b.days[0])+'</strong>'+(b.days.length>1?' <span style="color:var(--muted);">na: '+esc(b.days.join(', '))+'</span>':'')+'<br>'+b.items.map(it=>esc(FOOD[it.id].name)+' '+esc(fmtShop(FOOD[it.id],it.amount))).join(' · ')+'</div>').join('')+
+        '<div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Ilości to suma porcji z tych dni (produkty suche przed gotowaniem). Gotowanie na 2–3 dni to ustawienie aplikacji; jak długo przechowywać jedzenie, książki nie podają.</div></details>':'')
     :mealsHTML(day,0);
   const mealsN=opts.meals||5;
   const nDays=week?day.days.length:1;
-  const ctrl=dietWizardHTML(day&&day.prefs,opts.skipOpen)+dietTrainingHTML(opts,nDays)+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
+  const ctrl=dietWizardHTML(day&&day.prefs,opts.skipOpen)+dietTrainingHTML(opts,nDays)+(week?dietPrepHTML(day):'')+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
     '<button class="btn btn-sm'+(nDays===1?' btn-primary':'')+'" onclick="dietSetView(\'dzien\')">1 dzień</button>'+
     '<button class="btn btn-sm'+(nDays===3?' btn-primary':'')+'" onclick="dietSetView(\'3dni\')">3 dni</button>'+
     '<button class="btn btn-sm'+(nDays===7?' btn-primary':'')+'" onclick="dietSetView(\'tydzien\')">📅 Cały tydzień</button>'+
