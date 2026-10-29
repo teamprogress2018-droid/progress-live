@@ -278,6 +278,9 @@ jobs:
       - name: 1n0. Testy zapisu makro TDEE do karty klienta
         run: node .github/scripts/test_calc_macros.js
 
+      - name: 1n0b. Testy jadłospisu z książek (kalkulator)
+        run: node .github/scripts/test_diet_plan.js
+
       - name: 1n3. Testy tygodniowego check-inu (audit flow)
         run: node .github/scripts/test_checkin_weekly.js
       - name: 1n3b. Testy check-inu po zapisanym treningu
