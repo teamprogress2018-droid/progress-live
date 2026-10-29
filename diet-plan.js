@@ -187,6 +187,36 @@ function dietBookTargets(o){
   };
 }
 
+/**
+ * Cel na dzień bez treningu: wydatek liczony z PAL 1,5 zamiast PAL dni treningowych
+ * (SN s. 203: w dni wolne PAL bywa dużo niższy; ADS s. 481–482: w dni treningowe można jeść więcej),
+ * ta sama zmiana kalorii pod cel. Białko w gramach bez zmian, tłuszcz ten sam % energii,
+ * mniej węglowodanów (SN s. 22: lekki dzień 3–5 g/kg). Przy PAL ≤ 1,5 dni się nie różnią.
+ * o: {rmr, pal, goalDelta}
+ */
+const REST_PAL=1.5;
+function dietRestTargets(train,o){
+  o=o||{};
+  const pal=+o.pal||0,rmr=+o.rmr||train.rmr||0;
+  if(!rmr||pal<=REST_PAL||train.blocked)return Object.assign({},train,{dayType:'wolny',same:true});
+  const kcal=Math.round(rmr*REST_PAL+(+o.goalDelta||0));
+  const fatG=Math.round(kcal*train.fat.pct/100/9);
+  const carbG=Math.max(0,Math.round((kcal-train.protein.g*4-fatG*9)/4));
+  const w=train.weight||0;
+  const carbPerKg=w?Math.round(carbG/w*10)/10:0;
+  const why=[src('sn','203','wniosek'),src('ads','481-482','wniosek')];
+  const notes=[];
+  const blocks=[];
+  if(kcal<rmr)blocks.push({text:'Cel dnia wolnego ('+kcal+' kcal) wychodzi poniżej spoczynkowej przemiany materii ('+rmr+' kcal). Zostaw dzień wolny na tym samym poziomie co treningowy albo zmniejsz deficyt.',sources:[src('bean','121')]});
+  if(w&&carbPerKg<3)notes.push({text:'W dzień wolny zostaje '+String(carbPerKg).replace('.',',')+' g/kg węglowodanów, mniej niż 3 g/kg z dolnej granicy dla lekkiego dnia.',sources:[src('sn','22')]});
+  return Object.assign({},train,{
+    dayType:'wolny',same:false,kcal,blocked:train.blocked||blocks.length>0,blocks:train.blocks.concat(blocks),notes,
+    fat:Object.assign({},train.fat,{g:fatG}),
+    carbs:Object.assign({},train.carbs,{g:carbG,perKg:carbPerKg,range:'3–5 g/kg',label:'dzień bez treningu',sources:[src('sn','22')]}),
+    restWhy:{text:'Dzień wolny: wydatek z PAL '+String(REST_PAL).replace('.',',')+' zamiast '+String(pal).replace('.',',')+' (ta sama zmiana pod cel), białko bez zmian, mniej węglowodanów.',sources:why}
+  });
+}
+
 // Małe ilości (oliwa, masło orzechowe) co 1 g, reszta co 5 g.
 function round5(x){return x<30?Math.max(0,Math.round(x)):Math.round(x/5)*5;}
 function itemMacros(food,amount){
@@ -352,7 +382,15 @@ function dietBuildWeek(o){
   const base=Math.max(0,+o.variant||0);
   const count=Math.min(7,Math.max(2,+o.days||7));
   const names=count===7?WEEK_DAYS:Array.from({length:count},(_,i)=>'Dzień '+(i+1));
-  const days=names.map((name,d)=>Object.assign({name},dietBuildDay({targets:o.targets,meals:o.meals,variant:base+d,prefs:o.prefs,mealShift:o.mealShift,dayIndex:d})));
+  // Dni treningowe: o.trainDays = numery dni tygodnia (1 = pon … 0 = nd), o.rest = cel dnia wolnego.
+  // Krótszy widok (3 dni) dostaje jeden typ dnia: o.dayType.
+  const split=!!(o.rest&&!o.rest.same);
+  const isTrain=d=>count===7&&Array.isArray(o.trainDays)?o.trainDays.includes((d+1)%7):o.dayType!=='wolny';
+  const days=names.map((name,d)=>{
+    const train=isTrain(d);
+    const t=split&&!train?o.rest:o.targets;
+    return Object.assign({name,dayType:split?(train?'trening':'wolny'):null,kcalTarget:t.kcal},dietBuildDay({targets:t,meals:o.meals,variant:base+d,prefs:o.prefs,mealShift:o.mealShift,dayIndex:d}));
+  });
   const shop={};
   days.forEach(day=>day.meals.forEach(m=>m.items.forEach(it=>{shop[it.id]=(shop[it.id]||0)+it.amount;})));
   const shopping=Object.keys(shop).map(id=>({id,amount:shop[id]}))
@@ -386,9 +424,10 @@ function fmtShop(food,amount){
 function dietPlanText(t,plan){
   const week=plan&&plan.days;
   const span=week?(plan.days.length===7?' na tydzień':' na '+plan.days.length+' dni'):'';
-  const lines=['🍽 Przykładowy jadłospis'+span+' ('+t.kcal+' kcal dziennie)','Białko '+t.protein.g+' g · Tłuszcz '+t.fat.g+' g · Węglowodany '+t.carbs.g+' g',''];
+  const daily=week&&plan.days.some(d=>d.dayType==='wolny')?'kalorie różne w dni treningowe i wolne':t.kcal+' kcal dziennie';
+  const lines=['🍽 Przykładowy jadłospis'+span+' ('+daily+')','Białko '+t.protein.g+' g · Tłuszcz '+t.fat.g+' g · Węglowodany '+t.carbs.g+' g',''];
   if(week){
-    plan.days.forEach(day=>{lines.push('📅 '+day.name.toUpperCase(),'');mealsText(day,lines);});
+    plan.days.forEach(day=>{lines.push('📅 '+day.name.toUpperCase()+(day.dayType?(day.dayType==='trening'?' (dzień treningowy, ':' (dzień bez treningu, ')+day.kcalTarget+' kcal)':''),'');mealsText(day,lines);});
     lines.push('🛒 Lista zakupów'+span+':');
     plan.shopping.forEach(s=>{const f=FOOD[s.id];lines.push('• '+f.name+' '+fmtShop(f,s.amount));});
     lines.push('');
@@ -398,6 +437,25 @@ function dietPlanText(t,plan){
   lines.push('Produkty suche (ryż, makaron, płatki) waży się przed gotowaniem.');
   lines.push('To przykładowy plan z zasad z książek o żywieniu w sporcie. Nie zastępuje porady dietetyka ani lekarza.');
   return lines.join('\n');
+}
+
+/** Dni treningowe i wolne: w tygodniu wybór dni, w krótszym widoku typ dnia. */
+const WEEK_SHORT=[[1,'Pon'],[2,'Wt'],[3,'Śr'],[4,'Czw'],[5,'Pt'],[6,'Sob'],[0,'Nd']];
+function dietTrainingHTML(opts,nDays){
+  const rest=opts.rest,train=opts.train;
+  if(!rest||!train)return'';
+  const chip=(on,click,label)=>'<button type="button" class="btn btn-sm'+(on?' btn-primary':'')+'" style="font-size:11.5px;padding:4px 10px;min-height:0;" aria-pressed="'+(on?'true':'false')+'" onclick="'+click+'">'+esc(label)+'</button>';
+  const pl=v=>String(v).replace('.',',');
+  let body;
+  if(rest.same)body='<div style="font-size:11.5px;color:var(--muted);">Przy aktywności PAL '+pl(REST_PAL)+' lub niższej dzień wolny ma ten sam cel co treningowy. '+srcTag([src('sn','203')])+'</div>';
+  else{
+    const days=opts.trainDays||[];
+    body='<div style="font-size:11.5px;margin-bottom:4px;">🏋 Dzień treningowy <strong>'+train.kcal+' kcal</strong> (W '+train.carbs.g+' g) · dzień wolny <strong>'+rest.kcal+' kcal</strong> (W '+rest.carbs.g+' g, '+pl(rest.carbs.perKg)+' g/kg). '+esc(rest.restWhy.text)+' '+srcTag(rest.restWhy.sources.concat([src('sn','22')]))+'</div>'+
+      (nDays===7
+        ?'<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"><span style="font-size:11.5px;color:var(--muted);flex-basis:100%;">Dni treningowe'+(opts.trainDaysFromClient?' (z harmonogramu klienta)':'')+'</span>'+WEEK_SHORT.map(([id,l])=>chip(days.includes(id),'dietToggleTrainDay('+id+')',l)).join('')+'</div>'
+        :'<div style="display:flex;gap:4px;flex-wrap:wrap;">'+chip(opts.dayType!=='wolny','dietSetDayType(\'trening\')','Dzień treningowy')+chip(opts.dayType==='wolny','dietSetDayType(\'wolny\')','Dzień wolny')+'</div>');
+  }
+  return'<div class="diet-training" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:8px 0;"><div style="font-size:12px;font-weight:700;margin-bottom:4px;">Trening a jedzenie</div>'+body+'</div>';
 }
 
 /** Kreator: sposób żywienia, alergie i wykluczenia, produkty, których klient nie je, czas przygotowania. */
@@ -446,7 +504,7 @@ function dietRenderCard(t,day,opts){
   const warns=((week?day.warnings:day.warnings)||[]).map(w=>'<div class="calc-tip" style="border-left:3px solid var(--warning);">⚠ '+esc(w)+'</div>').join('');
   const diff=off.length?'<div class="calc-tip" style="border-left:3px solid var(--warning);">'+(week?'Dni: '+off.map(d=>esc(d.name)).join(', ')+' różnią się od celu o więcej niż 5%':'Jadłospis różni się od celu o '+day.diffKcal+' kcal')+' (limity porcji). Zmień liczbę posiłków albo wariant.</div>':'';
   const r0=v=>Math.round(v);
-  const dayHead=d=>'<span style="font-weight:700;">'+esc(d.name)+'</span> <span style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r0(d.total.kcal)+' kcal · B '+r0(d.total.p)+' · T '+r0(d.total.f)+' · W '+r0(d.total.c)+'</span>';
+  const dayHead=d=>'<span style="font-weight:700;">'+esc(d.name)+'</span>'+(d.dayType?' <span style="font-size:11px;'+(d.dayType==='trening'?'color:var(--accent);':'color:var(--muted);')+'">'+(d.dayType==='trening'?'🏋 trening':'wolne')+'</span>':'')+' <span style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r0(d.total.kcal)+' kcal · B '+r0(d.total.p)+' · T '+r0(d.total.f)+' · W '+r0(d.total.c)+'</span>';
   const meals=week
     ?day.days.map((d,i)=>'<details class="diet-day"'+(i===(+opts.openDay||0)?' open':'')+' style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;">'+dayHead(d)+'</summary>'+mealsHTML(d,i)+'</details>').join('')+
       '<details class="diet-shop" style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">🛒 Lista zakupów '+(day.days.length===7?'na tydzień':'na '+day.days.length+' dni')+'</summary><div style="columns:2;column-gap:18px;font-size:12px;margin-top:6px;">'+
@@ -454,7 +512,7 @@ function dietRenderCard(t,day,opts){
     :mealsHTML(day,0);
   const mealsN=opts.meals||5;
   const nDays=week?day.days.length:1;
-  const ctrl=dietWizardHTML(day&&day.prefs,opts.skipOpen)+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
+  const ctrl=dietWizardHTML(day&&day.prefs,opts.skipOpen)+dietTrainingHTML(opts,nDays)+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
     '<button class="btn btn-sm'+(nDays===1?' btn-primary':'')+'" onclick="dietSetView(\'dzien\')">1 dzień</button>'+
     '<button class="btn btn-sm'+(nDays===3?' btn-primary':'')+'" onclick="dietSetView(\'3dni\')">3 dni</button>'+
     '<button class="btn btn-sm'+(nDays===7?' btn-primary':'')+'" onclick="dietSetView(\'tydzien\')">📅 Cały tydzień</button>'+
@@ -469,7 +527,7 @@ function dietRenderCard(t,day,opts){
     '</div>';
 }
 
-const api={DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
+const api={dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
 root.DietPlan=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
