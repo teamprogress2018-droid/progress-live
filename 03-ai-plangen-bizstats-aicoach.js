@@ -1689,6 +1689,16 @@ function aplPlanWhyHTML(plan){
     +aplPlanBooksHTML(plan,esc)
     +(Array.isArray(r.bookSources)&&r.bookSources.length?'<div style="margin-top:10px;"><strong>Książki z bazy wiedzy podane AI</strong><ul style="margin:5px 0;padding-left:20px;">'+r.bookSources.filter(x=>typeof x==='string').map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'')+'</details>';
 }
+/** Ściągi graficzne z książek pod podglądem planu (własne opracowania, knowledge/visuals/svg). */
+function aplPlanVisualsHTML(plan,goal){
+  if(typeof bookVisualsForPlan!=='function'||typeof bookVisualsHTML!=='function')return '';
+  const limits=(document.getElementById('apl-injuries')?.value||'').trim();
+  const text=[plan&&plan.planName,plan&&plan.adaptation_notes,document.getElementById('apl-sport-notes')?.value].filter(Boolean).join(' ');
+  const list=bookVisualsForPlan(goal,{limits:!!limits,text});
+  return '<details data-apl-visuals style="margin-top:14px;padding:12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);"><summary style="cursor:pointer;font-weight:600;">Ściągi z książek ('+list.length+')</summary>'
+    +'<p style="font-size:12px;color:var(--muted);">Własne grafiki na podstawie książek z bazy wiedzy. Kliknij grafikę, żeby otworzyć ją w pełnym rozmiarze.</p>'
+    +bookVisualsHTML(list,{compact:true})+'</details>';
+}
 /** Reguły z książek, na które plan się powołuje (po sprawdzeniu oznaczeń). */
 function aplPlanBooksHTML(plan,esc){
   const cov=plan&&plan.bookCoverage;
@@ -1737,6 +1747,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
       ${aplPlanWhyHTML(plan)}
+      ${aplPlanVisualsHTML(plan,goal)}
       ${typeof aplAmateurReviewHtml==='function'?aplAmateurReviewHtml():''}
       ${typeof aplProReviewHtml==='function'?aplProReviewHtml():''}
       ${typeof aplPlanChecksHTML==='function'?aplPlanChecksHTML(plan):''}
