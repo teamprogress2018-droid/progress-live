@@ -1645,7 +1645,7 @@ async function askMetricAI(){
 var calcActivity=1.5;var calcGoalDelta=0;
 var dietMeals=5;var dietVariant=0;var dietView='dzien';
 // Kreator jadłospisu: sposób żywienia, wykluczenia, produkty, których klient nie je, limit czasu.
-var dietPrefs={style:'wszystko',ex:[],skip:[],maxMin:0};
+var dietPrefs={style:'wszystko',ex:[],skip:[],like:[],maxMin:0};
 // Zamienione posiłki: klucz 'dzień:posiłek' → ile razy przesunąć zestaw.
 var dietMealShift={};
 // Dni treningowe (numery dni tygodnia, 1 = pon … 0 = nd); null = z harmonogramu klienta. Typ dnia dla widoku 1 i 3 dni.
@@ -1739,6 +1739,9 @@ function calcLoadFromClient(){
     document.querySelectorAll('.calc-act-btn').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.val)===calcActivity));
   }
   window._calcClientId=c.id;dietTrainDays=null;
+  // Upodobania i wykluczenia z ostatniego planu klienta.
+  const sp=c.dietPlan&&c.dietPlan.prefs;
+  dietPrefs=sp?{style:sp.style||'wszystko',ex:(sp.ex||[]).slice(),skip:(sp.skip||[]).slice(),like:(sp.like||[]).slice(),maxMin:+sp.maxMin||0}:{style:'wszystko',ex:[],skip:[],like:[],maxMin:0};
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
   const delta=goalMap[c.goal]||0;
@@ -2074,7 +2077,7 @@ function calcDietCardHTML(o){
   const cardT=blocked&&!t.blocked?(restDay||dietView==='tydzien'?rest:t):shown;
   window._dietLast={targets:shown,day};
   const approval=window._dietApprovalOpen&&day?dietApprovalState(shown,day):null;
-  return DietPlan.dietRenderCard(cardT,day,{approval,review:calcDietReview(o),meals:dietMeals,skipOpen:!!window._dietSkipOpen,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
+  return DietPlan.dietRenderCard(cardT,day,{approval,review:calcDietReview(o),meals:dietMeals,skipOpen:window._dietSkipOpen||false,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
 }
 // Korekta z postępów: masa z pomiarów (Masa i BMI) i z check-inów, realizacja z check-inów.
 function calcDietReview(o){
@@ -2109,7 +2112,8 @@ function dietSetView(v){dietView=v==='tydzien'||v==='3dni'?v:'dzien';calcTDEE();
 function dietSetStyle(k){dietPrefs.style=k;dietPrefs.ex=dietPrefs.ex.filter(id=>!(DietPlan.DIET_STYLES[k]||{ex:[]}).ex.includes(id));calcTDEE();}
 function dietToggleList(list,id){const i=list.indexOf(id);if(i<0)list.push(id);else list.splice(i,1);}
 function dietToggleEx(id){dietToggleList(dietPrefs.ex,id);calcTDEE();}
-function dietToggleSkip(id){dietToggleList(dietPrefs.skip,id);window._dietSkipOpen=true;calcTDEE();}
+function dietToggleSkip(id){dietToggleList(dietPrefs.skip,id);dietPrefs.like=(dietPrefs.like||[]).filter(x=>x!==id);window._dietSkipOpen='skip';calcTDEE();}
+function dietToggleLike(id){dietPrefs.like=dietPrefs.like||[];dietToggleList(dietPrefs.like,id);dietPrefs.skip=dietPrefs.skip.filter(x=>x!==id);window._dietSkipOpen='like';calcTDEE();}
 function dietSetMaxMin(v){dietPrefs.maxMin=+v||0;calcTDEE();}
 function dietNextVariant(){dietVariant++;dietMealShift={};calcTDEE();}
 function dietUseBookMacros(){
