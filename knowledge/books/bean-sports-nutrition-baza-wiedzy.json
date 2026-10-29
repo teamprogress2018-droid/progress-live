@@ -1,0 +1,319 @@
+{
+ "meta": {
+  "title": "The Complete Guide to Sports Nutrition (6. wyd.)",
+  "titlePl": "Kompletny przewodnik po żywieniu w sporcie",
+  "author": "Anita Bean",
+  "year": "2009",
+  "domain": "nutrition",
+  "version": "1.0",
+  "date": "2026-10-29",
+  "pageNote": "plik tekstowy bez podziału stron; numery stron przybliżone (±1)"
+ },
+ "principles": [
+  {
+   "id": "N1",
+   "title": "RMR wzorem z masy ciała i wieku",
+   "rule": "Tab. 9.1 (Goran i Astrup): mężczyźni 18–30 l. 15,3W + 679, 31–60 l. 11,6W + 879; kobiety 18–30 l. 14,7W + 496, 31–60 l. 8,7W + 829 (W = masa w kg).",
+   "values": {
+    "M18_30": "15,3W+679",
+    "M31_60": "11,6W+879",
+    "K18_30": "14,7W+496",
+    "K31_60": "8,7W+829"
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "118"
+    }
+   ]
+  },
+  {
+   "id": "N2",
+   "title": "PAL i kalorie z treningu",
+   "rule": "Współczynnik aktywności 1,4 / 1,7 / 2,0 plus kalorie samego treningu (Tab. 9.2, np. trening siłowy ok. 270–450 kcal/h dla 65 kg).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "118-119"
+    }
+   ]
+  },
+  {
+   "id": "N3",
+   "title": "Plan w 5 krokach",
+   "rule": "RMR → × PAL → + trening → cel (redukcja ×0,85, masa ×1,2) → makro: białko g/kg, węglowodany g/kg, tłuszcz = reszta.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 15 Your personal nutrition programme",
+     "pages": "198-200"
+    }
+   ]
+  }
+ ],
+ "nutritionRules": [
+  {
+   "id": "R1",
+   "category": "energy",
+   "if": "redukcja",
+   "then": "deficyt 10–20% (typowo 15%, czyli wydatek × 0,85); nie szybciej niż 0,5 kg/tydzień; nigdy poniżej RMR; diety ≤1000 kcal są niebezpieczne",
+   "values": {
+    "deficitPct": [
+     10,
+     20
+    ],
+    "typicalFactor": 0.85,
+    "maxKgPerWeek": 0.5
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "117-125"
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "category": "energy",
+   "if": "przyrost masy",
+   "then": "ok. +20% (× 1,2), w praktyce ok. +500 kcal; zwiększaj krokami po 200 kcal; tempo: mężczyźni 0,5–1 kg/mies., kobiety 0,25–0,75 kg/mies.",
+   "values": {
+    "factor": 1.2,
+    "stepKcal": 200
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 10 Weight gain",
+     "pages": "139-141"
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "category": "protein",
+   "if": "białko wg celu",
+   "then": "wytrzymałość 1,2–1,4 g/kg; siła 1,4–1,7; redukcja 1,6; masa 1,4–1,7 (powyżej 2,0 brak korzyści)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 15 Your personal nutrition programme",
+     "pages": "199"
+    },
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 10 Weight gain",
+     "pages": "140"
+    },
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "120"
+    }
+   ]
+  },
+  {
+   "id": "R4",
+   "category": "carbs",
+   "if": "węglowodany wg czasu treningu",
+   "then": "3–5 h/tydz. 4–5 g/kg; 5–7 h/tydz. 5–6; 1–2 h/dzień 6–7; 2–4 h/dzień 7–8; >4 h/dzień 8–10",
+   "values": {
+    "3-5h/tydz": [
+     4,
+     5
+    ],
+    "5-7h/tydz": [
+     5,
+     6
+    ],
+    "1-2h/dzien": [
+     6,
+     7
+    ],
+    "2-4h/dzien": [
+     7,
+     8
+    ],
+    ">4h/dzien": [
+     8,
+     10
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 3 Carbohydrate",
+     "pages": "23"
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "category": "carbs",
+   "if": "redukcja / masa",
+   "then": "redukcja 4–7 g/kg (poniżej 4 szkodzi treningowi); masa 5–7 g/kg",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "120"
+    },
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 10 Weight gain",
+     "pages": "140"
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "category": "fat",
+   "if": "tłuszcz",
+   "then": "redukcja 20–25% energii; masa 20–33%",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "120"
+    },
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 10 Weight gain",
+     "pages": "140"
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "category": "timing",
+   "if": "po treningu",
+   "then": "ok. 1 g/kg węglowodanów w ciągu 2 h; białko : węglowodany ok. 1 : 4 (15–30 g B i 60–120 g W)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 10 Weight gain",
+     "pages": "141"
+    }
+   ]
+  },
+  {
+   "id": "R8",
+   "category": "meals",
+   "if": "liczba posiłków",
+   "then": "redukcja ok. 6 małych posiłków; masa 5–6 posiłków, przerwy nie dłuższe niż 3–4 h",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "124"
+    },
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 10 Weight gain",
+     "pages": "141"
+    }
+   ]
+  },
+  {
+   "id": "R9",
+   "category": "menu",
+   "if": "wzór jadłospisu",
+   "then": "dzień = śniadanie, przekąska, obiad (lunch), przekąska, okołotreningowo napój/owoc, kolacja, wieczorem przekąska; 30 przykładowych dni 2500/3000/3500 kcal i wersje wegetariańskie, ok. 60% energii z węglowodanów",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 15 Your personal nutrition programme",
+     "pages": "202-236"
+    }
+   ]
+  },
+  {
+   "id": "R10",
+   "category": "sprzecznosc",
+   "if": "tłuszcz na redukcji",
+   "then": "s. 120 podaje 20–25%, a krok 7 na s. 125 15–20%; w aplikacji dolna granica 20% (zgodnie z SN 6ed s. 230)",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "120, 125"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "230"
+    }
+   ]
+  },
+  {
+   "id": "R11",
+   "category": "przestarzale",
+   "if": "„4500 kcal na 0,5 kg tłuszczu” i „wysoki IG = odkładanie tłuszczu”",
+   "then": "nie używać; nowsze źródło (SN 6ed) odrzuca stałe przeliczniki kcal na kg",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "118-122"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 10 Energy Balance",
+     "pages": "207"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S1",
+   "trigger": "plan poniżej RMR lub ≤1000 kcal",
+   "action": "zablokuj; ustaw minimum na RMR",
+   "status": "zrodlo",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "bean-sports-nutrition",
+     "chapter": "Rozdz. 9 Fat loss",
+     "pages": "121"
+    }
+   ]
+  }
+ ],
+ "sourceReferences": [
+  {
+   "id": "bean-sports-nutrition",
+   "type": "book",
+   "title": "The Complete Guide to Sports Nutrition",
+   "edition": "6",
+   "publisher": "A&C Black",
+   "author": "Anita Bean",
+   "year": 2009,
+   "isbn": "978-1-4081-0538-2",
+   "language": "en",
+   "foodData": "McCance & Widdowson (UK)",
+   "pagesNote": "z pliku .txt; strony przybliżone ±1"
+  }
+ ],
+ "gaps": [
+  "wydanie z 2009 r.; przy sprzecznościach wygrywają SN 6ed (2017) i e-book ADS (ok. 2019)",
+  "jadłospisy i przepisy objęte prawem autorskim – w aplikacji tylko wartości odżywcze wyliczone na 100 g"
+ ]
+}

@@ -1642,7 +1642,8 @@ async function askMetricAI(){
 // ════════════════════════════════════════
 // CALCULATOR — TDEE / MAKRO
 // ════════════════════════════════════════
-var calcActivity=1.375;var calcGoalDelta=0;
+var calcActivity=1.5;var calcGoalDelta=0;
+var dietMeals=5;var dietVariant=0;
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
 
 function initCalcClients(){
@@ -1721,8 +1722,8 @@ function calcLoadFromClient(){
     const g=typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender;
     if(g)document.getElementById('calc-gender').value=g;
   }
-  // Aktywność z profilu klienta (ta sama skala co w szacunku z karty klienta).
-  const actMap={sedentary:1.2,light:1.375,moderate:1.55,active:1.725};
+  // Aktywność z profilu klienta → PAL wg IOM (Sports Nutrition 6. wyd., s. 203).
+  const actMap={sedentary:1.25,light:1.5,moderate:1.75,active:2.2};
   if(actMap[c.activityLevel]){
     calcActivity=actMap[c.activityLevel];
     document.querySelectorAll('.calc-act-btn').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.val)===calcActivity));
@@ -1829,7 +1830,7 @@ function calcTDEE(){
 
   // per kg recommendations
   const protPerKg=(proteinG/weight).toFixed(1);
-  const isProtOk=parseFloat(protPerKg)>=1.6&&parseFloat(protPerKg)<=2.5;
+  const isProtOk=parseFloat(protPerKg)>=1.4&&parseFloat(protPerKg)<=2.2;
 
   // LBM: ze zmierzonego %BF klienta (pomiary mg1/m2), a gdy go brak — szacunek 82% masy ciała.
   const bfEntry=window._calcClientId?(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===window._calcClientId&&e.groupId==='mg1'&&e.values&&parseFloat(e.values.m2)>0&&parseFloat(e.values.m2)<70)
@@ -1865,7 +1866,7 @@ function calcTDEE(){
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">TDEE (Całkowite zapotrzebowanie)</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--orange);line-height:1;">${tdee}</div>
         <div style="font-size:11px;color:var(--muted);">kcal / dzień</div>
-        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">TDEE = BMR × ${calcActivity}</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">TDEE = BMR × ${String(calcActivity).replace('.',',')} (PAL wg IOM, SN s. 203)</div>
       </div>
     </div>
 
@@ -1879,7 +1880,6 @@ function calcTDEE(){
         <div style="text-align:right;">
           <div style="font-size:12px;color:var(--muted);">Zmiana vs TDEE</div>
           <div style="font-size:20px;font-weight:700;color:${calcGoalDelta<0?'var(--teal)':calcGoalDelta>0?'var(--orange)':'var(--muted)'};">${calcGoalDelta>0?'+':''}${calcGoalDelta} kcal</div>
-          ${calcGoalDelta!==0?`<div style="font-size:11px;color:var(--muted);">≈ ${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień</div>`:''}
         </div>
       </div>
       ${belowBmr?`<div role="alert" style="font-size:12px;line-height:1.5;color:var(--red);background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.35);border-radius:8px;padding:8px 10px;margin-bottom:10px;">⚠ Cel (${target} kcal) jest niższy niż BMR (${Math.round(bmr)} kcal). Taki deficyt rzadko jest zasadny — wybierz łagodniejszą redukcję albo prowadź klienta pod kontrolą dietetyka.</div>`:''}
@@ -1923,6 +1923,7 @@ function calcTDEE(){
           </div>`).join('')}
       </div>
     </div>
+    ${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr)})}
     </div>
 
     <div class="calc-col-side">
@@ -1945,11 +1946,11 @@ function calcTDEE(){
     <!-- wskazówki i normy -->
     <div class="calc-result-card">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">NORMY I WSKAZÓWKI</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> Stanowisko ISSN: 1,6–2,2 g/kg masy ciała (przy redukcji u osób trenujących do ok. 2,3–3,1 g/kg beztłuszczowej masy). Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w normie':'⚠ poza typowym zakresem, sprawdź'}.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> Min. ${Math.round(weight*0.035*10)/10} l/dzień (35ml/kg). Podczas treningu +500-1000ml.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> Zalecane 0.5-1% masy ciała/tydzień. Twój deficit/nadwyżka to ~${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">LBM (beztłuszczowa masa${bf!=null?', z pomiaru '+bf+'% BF':', szacunek bez pomiaru %BF'}):</strong> ~${lbm} kg. Docelowo 1.8-2.2g białka na kg LBM = ${Math.round(lbm*1.8)}–${Math.round(lbm*2.2)}g białka.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Białko w ciągu dnia:</strong> 20–40 g białka w 3–5 posiłkach. Ważniejsza jest dzienna suma niż dokładna pora — posiłek po treningu w ciągu kilku godzin w zupełności wystarczy.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> osoby trenujące 1,4–2,0 g/kg masy ciała (SN), w sportach siłowych 1,4–2,2 g/kg, przy redukcji do 2,3–3,1 g/kg beztłuszczowej masy (ADS). Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w zakresie':'⚠ poza typowym zakresem, sprawdź'}. <span class="diet-src">📚 SN s. 230; ADS s. 104, 424</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> ok. ${calcWaterLitres(gender)} l/dzień ze wszystkich źródeł, także z jedzenia (Europa: ${gender==='M'?'2,5':'2,0'} l). Ok. 4 h przed treningiem 5–7 ml/kg (${Math.round(weight*5)}–${Math.round(weight*7)} ml), po treningu ok. 150% utraconej masy. <span class="diet-src">📚 SN s. 109–111, 124</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> redukcja ok. 0,7% masy na tydzień (${(weight*0.007).toFixed(1).replace('.',',')} kg), nie szybciej niż 0,5 kg/tydz. wg Bean; masa: mężczyźni 0,5–1 kg, kobiety 0,25–0,75 kg na miesiąc. Stałe przeliczenie „7700 kcal = 1 kg” nie działa w czasie, więc go nie pokazujemy. <span class="diet-src">📚 SN s. 207, 229–230; Bean s. 117–141</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">LBM (beztłuszczowa masa${bf!=null?', z pomiaru '+bf+'% BF':', szacunek bez pomiaru %BF'}):</strong> ~${lbm} kg. Spoczynkowa przemiana wg Cunninghama (370 + 21,6 × LBM) = ${Math.round(370+21.6*lbm)} kcal, dla porównania z Mifflinem. <span class="diet-src">📚 SN s. 200</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko w ciągu dnia:</strong> ok. 0,25 g/kg na posiłek (${Math.round(weight*0.25)} g) w 4–5 posiłkach; osoby starsze 30–40 g. Ważniejsza jest dzienna suma niż dokładna pora — posiłek po treningu w ciągu kilku godzin w zupełności wystarczy. <span class="diet-src">📚 SN s. 42–49, 53, 230</span></div>
     </div>
     </div>`;
 }
@@ -2014,8 +2015,46 @@ function calcSendToClient(){
   const macros=calcReadFormMacros();
   if(c)applyMacrosToClient(c,macros,{persist:true});
   const weight=macros.weight||(c&&c.weight)||80;
-  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${macros.tdee} kcal\nCel: ${macros.targetKcal} kcal\n\nMakroskładniki:\n🟢 Białko: ${macros.proteinG}g\n🟡 Tłuszcze: ${macros.fatG}g\n🔵 Węglowodany: ${macros.carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
+  const gender=document.getElementById('calc-gender')?.value||'M';
+  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${macros.tdee} kcal\nCel: ${macros.targetKcal} kcal\n\nMakroskładniki:\n🟢 Białko: ${macros.proteinG}g\n🟡 Tłuszcze: ${macros.fatG}g\n🔵 Węglowodany: ${macros.carbG}g\n\nWoda: ok. ${calcWaterLitres(gender)} l/dzień (razem z wodą z jedzenia)`);
   notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
+}
+
+// Woda ze wszystkich źródeł (AI wg IOM): mężczyźni 3,7 l, kobiety 2,7 l — Sports Nutrition 6. wyd., s. 109–111.
+function calcWaterLitres(gender){return gender==='M'?'3,7':'2,7';}
+
+// Jadłospis z książek (diet-plan.js): cel kcal z kalkulatora, makro i gramatura wg baz wiedzy.
+function calcDietContext(o){
+  const c=window._calcClientId&&typeof CL!=='undefined'?CL.find(x=>x.id===window._calcClientId):null;
+  return Object.assign({pal:calcActivity,goal:c&&c.goal,goalDelta:calcGoalDelta},o);
+}
+function calcDietCardHTML(o){
+  if(typeof DietPlan==='undefined')return'';
+  const t=DietPlan.dietBookTargets(calcDietContext(o));
+  const day=t.blocked?null:DietPlan.dietBuildDay({targets:t,meals:dietMeals,variant:dietVariant});
+  window._dietLast={targets:t,day};
+  return DietPlan.dietRenderCard(t,day,{meals:dietMeals});
+}
+function dietSetMeals(n){dietMeals=n;calcTDEE();}
+function dietNextVariant(){dietVariant++;calcTDEE();}
+function dietUseBookMacros(){
+  const t=window._dietLast&&window._dietLast.targets;
+  if(!t||!t.kcal)return;
+  const p=Math.max(15,Math.min(55,Math.round(t.protein.g*4/t.kcal*100)));
+  const f=t.fat.pct;
+  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
+  setCalcMacroVals(p,f,100-p-f);
+  calcTDEE();
+  notify('✓ Makro ustawione wg książek');
+}
+function dietSendToClient(){
+  const cid=document.getElementById('calc-client')?.value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const last=window._dietLast;
+  if(!last||!last.day){notify('Najpierw policz jadłospis');return;}
+  const c=CL.find(x=>x.id===cid);
+  pushMsg(cid,DietPlan.dietPlanText(last.targets,last.day));
+  notify('✓ Jadłospis wysłany do '+(c?c.name:'klienta')+' w wiadomościach!');
 }
 
 function suggestLoad(opts){
