@@ -1643,7 +1643,7 @@ async function askMetricAI(){
 // CALCULATOR — TDEE / MAKRO
 // ════════════════════════════════════════
 var calcActivity=1.5;var calcGoalDelta=0;
-var dietMeals=5;var dietVariant=0;
+var dietMeals=5;var dietVariant=0;var dietView='dzien';
 // 'books' = makro wg książek (diet-plan.js), 'manual' = preset albo suwaki trenera.
 var calcMacroMode='books';
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
@@ -2055,11 +2055,13 @@ function calcDietContext(o){
 function calcDietCardHTML(o){
   if(typeof DietPlan==='undefined')return'';
   const t=DietPlan.dietBookTargets(calcDietContext(o));
-  const day=t.blocked?null:DietPlan.dietBuildDay({targets:t,meals:dietMeals,variant:dietVariant});
+  const opts={targets:t,meals:dietMeals,variant:dietVariant};
+  const day=t.blocked?null:dietView==='tydzien'?DietPlan.dietBuildWeek(opts):DietPlan.dietBuildDay(opts);
   window._dietLast={targets:t,day};
   return DietPlan.dietRenderCard(t,day,{meals:dietMeals});
 }
 function dietSetMeals(n){dietMeals=n;calcTDEE();}
+function dietSetView(v){dietView=v==='tydzien'?'tydzien':'dzien';calcTDEE();}
 function dietNextVariant(){dietVariant++;calcTDEE();}
 function dietUseBookMacros(){
   setCalcMacroBooks();
