@@ -203,8 +203,24 @@ const prepCard = D.dietRenderCard(tK, D.dietBuildWeek({ targets: tK, meals: 5, v
 ok('karta: zakupy i gotowanie', prepCard.includes('dietSetPrep(2)') && prepCard.includes('dietSetPeople(3)') && prepCard.includes('diet-cook') && prepCard.includes('jak klient'));
 ok('karta 1 dnia bez sekcji gotowania', !D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5 }), { meals: 5 }).includes('dietSetPrep'));
 ok('kalkulator: gotowanie i osoby', src07.includes('prep:dietPrep,people:dietPeople') && src07.includes('function dietSetPrep(') && src07.includes('function dietSetPeople('));
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 53));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 8));
+
+// Zatwierdzanie: lista kontrolna, wysyłka dopiero po zatwierdzeniu, szkic klient nie widzi.
+const apPlan = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { style: 'weganska', ex: ['gluten'] } });
+const checks = D.dietApprovalChecks(tK, apPlan, { injuries: 'bark prawy' });
+ok('lista kontrolna: ostrzeżenia, alergeny, kontuzje, dane produktów, przeciwwskazania', checks.some(c => c.text.includes('Mało produktów')) && checks.some(c => c.text.includes('gluten')) && checks.some(c => c.text.includes('bark prawy')) && checks.some(c => c.text.includes('Bean')) && checks.some(c => c.level === 'stop' && c.sources.length));
+ok('styl wegański bez fałszywego alarmu o alergii na mięso', !checks.some(c => c.text.startsWith('Wykluczenia') && c.text.includes('mięso')));
+const apCard = D.dietRenderCard(tK, apPlan, { meals: 5, approval: { checks, saved: { status: 'szkic', updatedAt: '2026-10-29T10:00:00Z', kcal: 2400 } } });
+ok('karta: przycisk zatwierdzenia wyłączony do zaznaczenia', /id="diet-approve-btn" disabled style="opacity:\.45;"/.test(apCard) && apCard.includes('diet-approve-check') && apCard.includes('dietSaveDraft()') && apCard.includes('Ostatni plan klienta'));
+ok('karta bez panelu, dopóki trener nie kliknie Wyślij', !D.dietRenderCard(tK, apPlan, { meals: 5 }).includes('diet-approval'));
+const sendFn = (src07.match(/function dietSendToClient\(\)\{[\s\S]*?\n\}/) || [''])[0];
+ok('„Wyślij” nie wysyła od razu', sendFn.includes('_dietApprovalOpen=true') && !sendFn.includes('pushMsg'));
+const approveFn = (src07.match(/function dietApproveAndSend\(\)\{[\s\S]*?\n\}/) || [''])[0];
+ok('zatwierdzenie wymaga zaznaczenia i zapisuje status', approveFn.includes("diet-approve-check')?.checked") && approveFn.includes("dietPlanRecord('zatwierdzony')") && approveFn.indexOf('pushMsg') > approveFn.indexOf('dietStorePlan'));
+const draftFn = (src07.match(/function dietSaveDraft\(\)\{[\s\S]*?\n\}/) || [''])[0];
+ok('szkic bez wiadomości do klienta', draftFn.includes("'szkic'") && !draftFn.includes('pushMsg'));
+ok('historia zatwierdzonych planów (5)', src07.includes('c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5)'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 54));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 9));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
