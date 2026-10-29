@@ -2777,6 +2777,52 @@ function dropSetInstruction(ex){
 }
 window.dropSetInstruction=dropSetInstruction;
 
+/* Metody intensyfikacji zapisujemy na ćwiczeniu, aby instrukcja nie ginęła
+   w opisie dnia i była dostępna również po stronie klienta. */
+const INTENSIFICATION_METHODS={
+  drop_set:{label:'DROP SET',when:'Ostatnia seria',how:'Bez przerwy zmniejsz ciężar o 20–30% i wykonaj kolejną serię.'},
+  mechanical_drop_set:{label:'DROP SET MECHANICZNY',when:'Ostatnia seria',how:'Bez zmiany ciężaru przejdź do łatwiejszego wariantu tego samego ruchu, zachowując technikę.'},
+  rest_pause:{label:'REST-PAUSE',when:'Ostatnia seria',how:'Po serii odpocznij 15–25 s, potem wykonaj krótką dogrywkę. Zakończ, gdy technika się pogarsza.'},
+  myo_reps:{label:'MYO-REPS',when:'Po serii aktywacyjnej',how:'Wykonaj serię aktywacyjną, odpocznij 15–20 s i zrób krótkie mini-serie zgodnie z planem.'},
+  superset:{label:'SUPER-SERIA',when:'Pomiędzy ćwiczeniami',how:'Przejdź do wskazanego drugiego ćwiczenia bez przerwy; odpocznij dopiero po wykonaniu obu.'},
+  combined_sets:{label:'SERIE ŁĄCZONE',when:'Pomiędzy ćwiczeniami',how:'Wykonaj wskazane ćwiczenia kolejno, bez przerwy; odpocznij po całym bloku.'},
+  giant_set:{label:'SERIA GIGANT',when:'Pomiędzy ćwiczeniami',how:'Wykonaj cały wskazany blok ćwiczeń kolejno, bez przerw; odpocznij po zakończeniu rundy.'},
+  partial_reps:{label:'CZĘŚCIOWE POWTÓRZENIA',when:'Po pełnych powtórzeniach',how:'Dodaj tylko zaplanowane, kontrolowane częściowe powtórzenia w bezbolesnym zakresie.'},
+  one_and_half:{label:'POWTÓRZENIA 1,5',when:'Każde powtórzenie',how:'Jedno powtórzenie to pełny ruch plus dodatkowa połowa ruchu w podanym zakresie.'},
+  cluster_set:{label:'CLUSTER SET',when:'W trakcie serii',how:'Podziel serię na krótkie mini-serie z zaplanowaną przerwą 15–30 s.'},
+  eccentric:{label:'AKCENT EKSCENTRYCZNY',when:'Każde powtórzenie',how:'Opuszczaj ciężar przez 3–5 sekund; nie zwiększaj ciężaru kosztem kontroli.'},
+  hiit:{label:'HIIT / INTERWAŁY',when:'Po części siłowej',how:'Wykonaj interwały według czasu pracy i przerwy podanych w planie.'}
+};
+window.INTENSIFICATION_METHODS=INTENSIFICATION_METHODS;
+function intensificationType(v){
+  const s=String(v||'').toLowerCase().replace(/[ąćęłńóśźż]/g,c=>({ą:'a',ć:'c',ę:'e',ł:'l',ń:'n',ó:'o',ś:'s',ź:'z',ż:'z'})[c]).replace(/[\s/-]+/g,'_');
+  const aliases={drop:'drop_set',dropset:'drop_set',drop_sety:'drop_set',drop_set:'drop_set',drop_set_mechaniczny:'mechanical_drop_set',mechanical_drop_set:'mechanical_drop_set',rest_pause:'rest_pause',myo_reps:'myo_reps',super_serie:'superset',super_serie:'superset',superset:'superset',serie_laczone_pre_exhaust:'combined_sets',combined_sets:'combined_sets',serie_gigant:'giant_set',giant_set:'giant_set',powtorzenia_czesciowe_w_wydluzeniu:'partial_reps',partial_reps:'partial_reps',powtorzenia_1_5:'one_and_half',one_and_half:'one_and_half',serie_klastrowe:'cluster_set',cluster_set:'cluster_set',akcentowana_faza_ekscentryczna:'eccentric',akcent_ekscentryczny:'eccentric',eccentric:'eccentric',hiit_interwaly:'hiit',hiit:'hiit'};
+  return aliases[s]||'';
+}
+window.intensificationType=intensificationType;
+function exerciseIntensificationMethods(ex){
+  const p=ex&&typeof ex==='object'?ex:{};
+  let raw=p.intensification||p.intensificationMethods||p.methods||[];
+  if(!Array.isArray(raw))raw=[raw];
+  const out=[],seen=new Set();
+  const add=(value,protocol)=>{const type=intensificationType(value&&typeof value==='object'?(value.type||value.name):value);if(!type||seen.has(type))return;seen.add(type);out.push({type,protocol:String(protocol||'').trim()});};
+  raw.forEach(x=>add(x,x&&typeof x==='object'?(x.protocol||x.instructions||x.note):''));
+  if(parseSetKindCount(p.drop,2))add('drop_set');
+  if(parseSetKindCount(p.rp,2))add('rest_pause');
+  if(parseSetKindCount(p.cluster,3))add('cluster_set');
+  const notes=String(p.note||p.notes||'').toLowerCase();
+  [['drop[ -]?set','drop_set'],['rest[ -]?pause','rest_pause'],['myo[ -]?reps','myo_reps'],['super[ -]?seri','superset'],['ser(ia|ie) gigant','giant_set'],['klast','cluster_set'],['ekscentrycz','eccentric'],['hiit|interwa','hiit']].forEach(([re,type])=>{if(new RegExp(re,'i').test(notes))add(type);});
+  return out;
+}
+window.exerciseIntensificationMethods=exerciseIntensificationMethods;
+function intensificationInstruction(method,ex){
+  const def=INTENSIFICATION_METHODS[method&&method.type];if(!def)return '';
+  if(method.protocol)return method.protocol;
+  if(method.type==='drop_set')return dropSetInstruction(ex);
+  return def.how;
+}
+window.intensificationInstruction=intensificationInstruction;
+
 function scaleKg(kg,frac){
   const n=parseFloat(kg);
   if(!Number.isFinite(n)||n<=0)return kg||'';
