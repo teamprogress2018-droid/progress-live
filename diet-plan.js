@@ -324,7 +324,10 @@ function dietBuildDay(o){
     const seen=slotCount[m.slot]=(slotCount[m.slot]||0)+1;
     if(!list.length){warnings.push(m.name+': przy tych wykluczeniach nie ma z czego ułożyć posiłku.');return{name:m.name,share:m.share,items:[],total:ZERO,minutes:0};}
     if(st.overTime&&seen===1)warnings.push(m.name+': żaden zestaw nie mieści się w '+prefs.maxMin+' min, wybrany najszybszy możliwy.');
-    const tpl=list[(variant+seen-1)%list.length];
+    // Zamiana całego posiłku: mealShift['dzień:posiłek'] przesuwa zestaw na kolejny z tej samej grupy,
+    // cel posiłku zostaje ten sam, więc kalorie i makro dnia się nie zmieniają.
+    const shift=Math.max(0,+(o.mealShift||{})[(+o.dayIndex||0)+':'+mi]||0);
+    const tpl=list[(variant+seen-1+shift)%list.length];
     const k=m.share/shareLeft;
     const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
     shareLeft-=m.share;
@@ -332,7 +335,7 @@ function dietBuildDay(o){
     const tot=sumItems(items);
     done=addM(done,tot);
     items.forEach(it=>{if(it.role!=='x')today.add(it.id);});
-    return{name:m.name,share:m.share,items,total:tot,minutes:tpl.min,changes:tpl.changes};
+    return{name:m.name,share:m.share,items,total:tot,minutes:tpl.min,changes:tpl.changes,options:list.length,swapped:shift>0};
   });
   const total=meals.reduce((s,m)=>addM(s,m.total),ZERO);
   const reps={};
@@ -349,7 +352,7 @@ function dietBuildWeek(o){
   const base=Math.max(0,+o.variant||0);
   const count=Math.min(7,Math.max(2,+o.days||7));
   const names=count===7?WEEK_DAYS:Array.from({length:count},(_,i)=>'Dzień '+(i+1));
-  const days=names.map((name,d)=>Object.assign({name},dietBuildDay({targets:o.targets,meals:o.meals,variant:base+d,prefs:o.prefs})));
+  const days=names.map((name,d)=>Object.assign({name},dietBuildDay({targets:o.targets,meals:o.meals,variant:base+d,prefs:o.prefs,mealShift:o.mealShift,dayIndex:d})));
   const shop={};
   days.forEach(day=>day.meals.forEach(m=>m.items.forEach(it=>{shop[it.id]=(shop[it.id]||0)+it.amount;})));
   const shopping=Object.keys(shop).map(id=>({id,amount:shop[id]}))
@@ -421,8 +424,9 @@ function dietRenderCard(t,day,opts){
   if(t.blocked){
     return'<div class="calc-result-card diet-card" id="diet-card">'+head+t.blocks.map(b=>'<div class="calc-tip" style="border-left:3px solid var(--danger);">⚠ '+esc(b.text)+' '+srcTag(b.sources)+'</div>').join('')+'</div>';
   }
-  const mealsHTML=d=>d.meals.map((m,mi)=>'<div class="calc-meal-card">'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+(m.minutes?' <span style="font-weight:400;color:var(--muted);">⏱ ~'+m.minutes+' min</span>':'')+'</div>'+
+  const swapBtn=(di,mi,m)=>m.options>1?' <button type="button" class="btn btn-sm diet-swap-meal" style="font-size:10.5px;padding:2px 8px;min-height:0;" title="Inny posiłek o tym samym celu kalorii i makro" onclick="dietSwapMeal('+di+','+mi+')">🔄 Inny posiłek</button>':'';
+  const mealsHTML=(d,di)=>d.meals.map((m,mi)=>'<div class="calc-meal-card">'+
+    '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+(m.minutes?' <span style="font-weight:400;color:var(--muted);">⏱ ~'+m.minutes+' min</span>':'')+(m.swapped?' <span style="font-weight:400;color:var(--muted);">(zamieniony)</span>':'')+swapBtn(di||0,mi,m)+'</div>'+
     '<div style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r(m.total.kcal)+' kcal · B '+r(m.total.p)+' · T '+r(m.total.f)+' · W '+r(m.total.c)+'</div></div>'+
     m.items.map(it=>{const f=FOOD[it.id];return'<div style="font-size:12px;padding:2px 0;">'+esc(f.name)+' <strong>'+esc(fmtAmount(f,it.amount))+'</strong>'+
       (it.swaps.length?'<div style="font-size:10.5px;color:var(--muted);">zamiennik: '+it.swaps.map(s=>esc(FOOD[s.id].name.toLowerCase())+' '+esc(fmtAmount(FOOD[s.id],s.amount))).join(' · ')+'</div>':'')+'</div>';}).join('')+
@@ -444,10 +448,10 @@ function dietRenderCard(t,day,opts){
   const r0=v=>Math.round(v);
   const dayHead=d=>'<span style="font-weight:700;">'+esc(d.name)+'</span> <span style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r0(d.total.kcal)+' kcal · B '+r0(d.total.p)+' · T '+r0(d.total.f)+' · W '+r0(d.total.c)+'</span>';
   const meals=week
-    ?day.days.map((d,i)=>'<details class="diet-day"'+(i===0?' open':'')+' style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;">'+dayHead(d)+'</summary>'+mealsHTML(d)+'</details>').join('')+
+    ?day.days.map((d,i)=>'<details class="diet-day"'+(i===(+opts.openDay||0)?' open':'')+' style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;">'+dayHead(d)+'</summary>'+mealsHTML(d,i)+'</details>').join('')+
       '<details class="diet-shop" style="border-top:1px solid var(--border);padding:8px 0;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">🛒 Lista zakupów '+(day.days.length===7?'na tydzień':'na '+day.days.length+' dni')+'</summary><div style="columns:2;column-gap:18px;font-size:12px;margin-top:6px;">'+
       day.shopping.map(s=>{const f=FOOD[s.id];return'<div>'+esc(f.name)+' <strong>'+esc(fmtShop(f,s.amount))+'</strong></div>';}).join('')+'</div></details>'
-    :mealsHTML(day);
+    :mealsHTML(day,0);
   const mealsN=opts.meals||5;
   const nDays=week?day.days.length:1;
   const ctrl=dietWizardHTML(day&&day.prefs,opts.skipOpen)+'<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px;">'+
