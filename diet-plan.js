@@ -41,11 +41,11 @@ const DIET_FOODS=[
   {id:'maslo-orz',name:'Masło orzechowe',group:'tluszcz',unit:'g',kcal:605,p:25,c:7.5,f:52.5,max:40,page:'206'},
   {id:'oliwa',name:'Oliwa z oliwek',group:'tluszcz',unit:'g',kcal:900,p:0,c:0,f:100,max:30,page:'202'},
   {id:'hummus',name:'Hummus',group:'tluszcz',unit:'g',kcal:187,p:8,c:12,f:13,max:100,page:'218'},
-  {id:'banan',name:'Banan',group:'owoce',unit:'szt',kcal:95,p:1,c:23,f:0,page:'205'},
-  {id:'jablko',name:'Jabłko',group:'owoce',unit:'szt',kcal:47,p:0.5,c:12,f:0,page:'202'},
-  {id:'pomarancza',name:'Pomarańcza',group:'owoce',unit:'szt',kcal:59,p:2,c:14,f:0,page:'202'},
-  {id:'jagody',name:'Owoce jagodowe',group:'owoce',unit:'g',kcal:27,p:1,c:6,f:0,page:'205'},
-  {id:'rodzynki',name:'Rodzynki',group:'owoce',unit:'g',kcal:273,p:3.3,c:70,f:0,page:'204'},
+  {id:'banan',name:'Banan',group:'owoce',unit:'szt',kcal:95,p:1,c:23,f:0,max:2,page:'205'},
+  {id:'jablko',name:'Jabłko',group:'owoce',unit:'szt',kcal:47,p:0.5,c:12,f:0,max:2,page:'202'},
+  {id:'pomarancza',name:'Pomarańcza',group:'owoce',unit:'szt',kcal:59,p:2,c:14,f:0,max:2,page:'202'},
+  {id:'jagody',name:'Owoce jagodowe',group:'owoce',unit:'g',kcal:27,p:1,c:6,f:0,max:250,page:'205'},
+  {id:'rodzynki',name:'Rodzynki',group:'owoce',unit:'g',kcal:273,p:3.3,c:70,f:0,max:50,page:'204'},
   {id:'brokul',name:'Brokuł',group:'warzywa',unit:'g',kcal:24,p:3.2,c:0.8,f:0.8,page:'202'},
   {id:'marchew',name:'Marchew',group:'warzywa',unit:'g',kcal:24,p:0.8,c:4.8,f:0.8,page:'202'},
   {id:'szpinak',name:'Szpinak',group:'warzywa',unit:'g',kcal:19,p:2.4,c:0.8,f:0.8,page:'203'},
@@ -56,7 +56,7 @@ const DIET_FOODS=[
 /** Podgrupa do zamienników (zamiennik tylko w tej samej podgrupie) i najmniejsza sensowna porcja. */
 const FOOD_SUB={
   kurczak:['mieso',80],indyk:['mieso',80],losos:['mieso',80],ryba:['mieso',80],tunczyk:['mieso',60],
-  jajko:['nabial',1],cottage:['nabial',50],jogurt:['nabial',100],mleko:['nabial',150],
+  jajko:['nabial',2],cottage:['nabial',100],jogurt:['nabial',150],mleko:['nabial',200],
   fasola:['roslinne',100],tofu:['roslinne',100],
   owsiane:['zboza',30],musli:['zboza',30],chleb:['zboza',35],wafle:['zboza',2],
   makaron:['skrobia',50],ryz:['skrobia',50],ziemniaki:['skrobia',150],bataty:['skrobia',150],
@@ -313,9 +313,12 @@ function addM(a,b){return{kcal:a.kcal+b.kcal,p:a.p+b.p,c:a.c+b.c,f:a.f+b.f};}
 const ZERO={kcal:0,p:0,c:0,f:0};
 function sumItems(items,skip){return items.reduce((s,it,i)=>i===skip?s:addM(s,itemMacros(FOOD[it.id],it.amount)),ZERO);}
 function unitOf(f){return f.unit==='szt'?1:100;}
-/** Porcja w granicach [min, max]; tłuszcz może zniknąć, gdy wychodzi go mniej niż pół porcji. */
-function clampAmount(food,x,role){
+/** Porcja w granicach [min, max]; tłuszcz może zniknąć, gdy wychodzi go mniej niż pół porcji.
+ *  Białko w przekąsce też (light), bo lepiej przekąska bez serka niż symboliczne 50 g;
+ *  w głównym posiłku białko zostaje co najmniej w najmniejszej sensownej porcji. */
+function clampAmount(food,x,role,light){
   if(role==='f'&&x<Math.max(3,food.min/2))return 0;
+  if(role==='p'&&light&&x<food.min/2)return 0;
   const lo=food.min||0,hi=food.max||9999;
   const v=food.unit==='szt'?Math.round(x):round5(x);
   return Math.max(lo,Math.min(hi,v));
@@ -324,7 +327,7 @@ function clampAmount(food,x,role){
 /** Gramatura jednego posiłku: dopasowanie węglowodanów, białka i tłuszczu w kilku przebiegach,
  *  z najmniejszą sensowną porcją każdego produktu. Gdy limit porcji obcina składnik,
  *  dochodzi drugi produkt z pasującej podgrupy (owoc do węglowodanów, nabiał do białka). */
-function solveMeal(tpl,target,allow){
+function solveMeal(tpl,target,allow,light){
   allow=allow||(()=>true);
   const items=[];
   items.push({id:tpl.c,amount:0,role:'c'});
@@ -334,7 +337,7 @@ function solveMeal(tpl,target,allow){
   const fit=i=>{
     const it=items[i],f=FOOD[it.id],key=it.role;
     if(!f[key])return;
-    it.amount=clampAmount(f,(target[key]-sumItems(items,i)[key])/f[key]*unitOf(f),key);
+    it.amount=clampAmount(f,(target[key]-sumItems(items,i)[key])/f[key]*unitOf(f),key,light);
   };
   for(let pass=0;pass<6;pass++){
     items.forEach((it,i)=>{if(it.role!=='x')fit(i);});
@@ -368,8 +371,9 @@ function swapsFor(item,allow,like){
     .sort((a,b)=>like.has(b.id)-like.has(a.id))
     .map(s=>{const amount=clampAmount(FOOD[s.id],s.raw);return{id:s.id,amount,m:itemMacros(FOOD[s.id],amount),liked:like.has(s.id)};});
   const ok=f=>f.id!==food.id&&f[key]>0&&allow(f);
-  const near=x=>Math.abs(x.m.p-amountMain)<=Math.max(3,amountMain*0.15);
-  const same=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub===food.sub)).filter(x=>key!=='p'||near(x)).slice(0,3);
+  // Zamiennik daje tyle samo głównego składnika (±15% albo ±3 g); inaczej go nie proponujemy.
+  const near=x=>Math.abs(x.m[key]-amountMain)<=Math.max(3,amountMain*0.15);
+  const same=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub===food.sub)).filter(near).slice(0,3);
   if(key!=='p')return same;
   const other=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub!==food.sub&&ROLE_GROUPS.p.includes(f.group)&&f.p*4/f.kcal>=0.25)).filter(near).map(x=>Object.assign(x,{other:true}));
   return same.concat(other).slice(0,Math.max(4,same.length));
@@ -467,7 +471,7 @@ function dietBuildDay(o){
     const k=m.share/shareLeft;
     const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
     shareLeft-=m.share;
-    const items=solveMeal(tpl,target,allow).map(it=>Object.assign(it,{swaps:swapsFor(it,allow,new Set(prefs.like))}));
+    const items=solveMeal(tpl,target,allow,m.slot==='przekaska').map(it=>Object.assign(it,{swaps:swapsFor(it,allow,new Set(prefs.like))}));
     const tot=sumItems(items);
     done=addM(done,tot);
     items.forEach(it=>{if(it.role!=='x')today.add(it.id);});
