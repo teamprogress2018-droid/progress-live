@@ -2624,6 +2624,60 @@ function planPdfBiomechTip(ex){
   return cues[b.pattern]||'';
 }
 
+// ── Widok planu dla klienta: jeden tydzień na ekranie, cały cykl w wydruku ──
+function planPdfIsDeload(phase){return /deload|rozład/i.test(String(phase||''));}
+function planPdfDash(v){return String(v==null?'':v).replace(/\s*-\s*/g,'–');}
+function planPdfRestLabel(rest){
+  const raw=String(rest==null?'':rest).trim();
+  const m=raw.match(/^(\d+)\s*s(ek)?\.?$/i);
+  if(!m)return raw||'—';
+  const sec=parseInt(m[1],10);
+  if(sec<60)return sec+' s';
+  const min=Math.floor(sec/60),r=sec%60;
+  return r?min+':'+String(r).padStart(2,'0')+' min':min+' min';
+}
+function planPdfCleanTip(tip){
+  // „PRIORYTET:” jest już znaczkiem nad nazwą — nie powtarzamy go w tekście.
+  const t=String(tip||'').replace(/^\s*PRIORYTET\s*:?\s*/i,'').trim();
+  return t?t.charAt(0).toUpperCase()+t.slice(1):'';
+}
+function planPdfFirstSentence(tip){
+  const t=String(tip||'').trim();
+  const m=t.match(/^(.{12,}?[.!?])(\s|$)/);
+  const first=m?m[1]:t;
+  return first.length>90?first.slice(0,87).replace(/\s+\S*$/,'')+'…':first;
+}
+function planPdfStartWeek(plan,count){
+  let wk=0;
+  try{
+    const key='pl_plan_week_'+String(plan.planName||'').slice(0,60);
+    const v=parseInt((typeof localStorage!=='undefined'&&localStorage.getItem(key))||'',10);
+    if(!isNaN(v)&&v>=0&&v<count)wk=v;
+  }catch(_){ /* bez pamięci przeglądarki zaczynamy od tygodnia 1 */ }
+  return wk;
+}
+function planPdfSetWeek(btn,i){
+  const root=btn&&btn.closest?btn.closest('.plan-pdf'):null;
+  if(!root)return;
+  root.querySelectorAll('.plan-pdf-wtab').forEach(b=>{const on=+b.dataset.wk===i;b.classList.toggle('is-on',on);b.setAttribute('aria-selected',on);});
+  root.querySelectorAll('.plan-pdf-dose').forEach(d=>d.classList.toggle('is-on',+d.dataset.wk===i));
+  root.querySelectorAll('.plan-pdf-day-wk b').forEach(b=>{b.textContent=String(i+1);});
+  try{const name=root.getAttribute('data-plan')||'';localStorage.setItem('pl_plan_week_'+name.slice(0,60),String(i));}catch(_){}
+  if(btn.scrollIntoView)try{btn.scrollIntoView({block:'nearest',inline:'center'});}catch(_){}
+}
+function planPdfSetDay(btn,i){
+  const root=btn&&btn.closest?btn.closest('.plan-pdf'):null;
+  if(!root)return;
+  root.querySelectorAll('.plan-pdf-dtab').forEach(b=>b.classList.toggle('is-on',+b.dataset.day===i));
+  root.querySelectorAll('.plan-pdf-day').forEach(d=>d.classList.toggle('is-on',+d.dataset.day===i));
+}
+function planPdfToggleCycle(btn){
+  const root=btn&&btn.closest?btn.closest('.plan-pdf'):null;
+  if(!root)return;
+  const on=root.classList.toggle('show-cycle');
+  btn.textContent=on?'Ukryj tabelę cyklu':'Pokaż cały cykl w tabeli';
+}
+
 function buildPlanPDFHTML(plan,client){
   plan=plan||{};
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
@@ -2646,7 +2700,7 @@ function buildPlanPDFHTML(plan,client){
   if(wuEx.length)warmupBits.push(wuEx.map(w=>w.name+(w.note?' — '+w.note:'')).join('; '));
   const warmupText=warmupBits.join(' ')||'5 min rower stacjonarny + mobilizacja barków/bioder + 2 serie rozjazdowe na pierwszym wielostawie.';
 
-  let html=`<div class="plan-pdf">
+  let html=`<div class="plan-pdf" data-plan="${planPdfEsc(String(plan.planName||'').slice(0,60))}">
     <div class="plan-pdf-brand">
       <img class="plan-pdf-logo" src="assets/brand/progress-logo.jpg" alt="">
       <div>
@@ -2673,32 +2727,74 @@ function buildPlanPDFHTML(plan,client){
       </div>
     </div>`;
 
-  (plan.days||[]).forEach((day,di)=>{
+  const startWk=planPdfStartWeek(plan,weekKeys.length);
+  const fmtPhase=wk=>phases[wk]?planPdfEsc(phases[wk]):'';
+  // Przełącznik tygodni (ekran). Wydruk pokazuje zawsze pełną tabelę cyklu.
+  if(weekKeys.length>1){
+    html+=`<div class="plan-pdf-weeknav" role="tablist" aria-label="Tydzień planu">
+      ${weekKeys.map((wk,i)=>`<button type="button" role="tab" class="plan-pdf-wtab${i===startWk?' is-on':''}${planPdfIsDeload(phases[wk])?' is-deload':''}" data-wk="${i}" aria-selected="${i===startWk}" onclick="planPdfSetWeek(this,${i})"><b>T${i+1}</b>${phases[wk]?`<span>${fmtPhase(wk)}</span>`:''}</button>`).join('')}
+    </div>`;
+  }
+  const days=(plan.days||[]);
+  if(days.length>1){
+    html+=`<div class="plan-pdf-daynav">${days.map((day,di)=>`<button type="button" class="plan-pdf-dtab${di===0?' is-on':''}" data-day="${di}" onclick="planPdfSetDay(this,${di})">Dzień ${di+1}${day.focus?`<span>${planPdfEsc(day.focus)}</span>`:''}</button>`).join('')}</div>`;
+  }
+
+  days.forEach((day,di)=>{
     const title=day.dayName||('Dzień '+(di+1));
-    html+=`<div class="plan-pdf-day">
-      <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}</div>
-      <table class="plan-pdf-tbl">
+    const exs=day.exercises||[];
+    const cards=exs.map((e,ei)=>{
+      const pri=planPdfIsPriority(e,client)||ei===0;
+      const rest=e.rest||((e.w1||{}).rest)||'90s';
+      const tip=planPdfCleanTip(e.notes||e.note||e.tempo||'');
+      const biomechTip=planPdfBiomechTip(e);
+      const doses=weekKeys.map((wk,wi)=>{
+        const w=e[wk]||{};
+        const sets=w.s||e.sets||'3',reps=w.r||e.reps||'10',rpe=w.rpe||e.rpe||'';
+        const wrest=w.rest||rest;
+        const kg=w.kg!=null&&w.kg!==''?String(w.kg):'';
+        return `<div class="plan-pdf-dose${wi===startWk?' is-on':''}" data-wk="${wi}">
+          <div class="plan-pdf-dose-sr"><b>${planPdfEsc(sets)}</b><i>×</i><b>${planPdfEsc(planPdfDash(reps))}</b>${planPdfWeekArrow(e,wk,wi?weekKeys[wi-1]:'')}</div>
+          <div class="plan-pdf-chips">${rpe?`<span class="plan-pdf-chip"><small>RPE</small> <b>${planPdfEsc(rpe)}</b></span>`:''}${kg?`<span class="plan-pdf-chip"><small>Ciężar</small> <b>${planPdfEsc(kg)} kg</b></span>`:''}<span class="plan-pdf-chip"><small>Pauza</small> <b>${planPdfEsc(planPdfRestLabel(wrest))}</b></span></div>
+        </div>`;
+      }).join('');
+      const hint=planPdfFirstSentence(tip);
+      const tipMore=hint&&tip.startsWith(hint)?tip.slice(hint.length).trim():tip;
+      const how=(tipMore||biomechTip)?`<details class="plan-pdf-how"><summary>Jak wykonać</summary>${tipMore?`<div class="plan-pdf-how-h">Wskazówka</div><p>${planPdfEsc(tipMore)}</p>`:''}${biomechTip?`<div class="plan-pdf-how-h">Biomechanika</div><p>${planPdfEsc(biomechTip)}</p>`:''}</details>`:'';
+      return `<div class="plan-pdf-card${pri?' is-pri':''}">
+        <div class="plan-pdf-card-top"><span class="plan-pdf-num">${ei+1}</span><div>${pri?'<span class="plan-pdf-pri">PRIORYTET</span>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div>${hint?`<div class="plan-pdf-hint">${planPdfEsc(hint)}</div>`:''}</div></div>
+        ${doses}
+        ${how}
+      </div>`;
+    }).join('');
+    const rows=exs.map((e,ei)=>{
+      const pri=planPdfIsPriority(e,client)||ei===0;
+      const rest=e.rest||((e.w1||{}).rest)||'90s';
+      const tip=planPdfCleanTip(e.notes||e.note||e.tempo||'');
+      const biomechTip=planPdfBiomechTip(e);
+      return `<tr class="plan-pdf-row">
+            <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div><div class="plan-pdf-rest">⏱ ${planPdfEsc(planPdfRestLabel(rest))}</div></td>
+            ${weekKeys.map((wk,wi)=>`<td class="${planPdfIsDeload(phases[wk])?'is-deload':''}">${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
+          </tr>${(tip||biomechTip)?`<tr class="plan-pdf-tiprow"><td colspan="${weekKeys.length+1}">${tip?`<span><b>Wskazówka:</b> ${planPdfEsc(tip)}</span>`:''}${biomechTip?`<span><b>Biomechanika:</b> ${planPdfEsc(biomechTip)}</span>`:''}</td></tr>`:''}`;
+    }).join('');
+    html+=`<div class="plan-pdf-day${di===0?' is-on':''}" data-day="${di}">
+      <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}<span class="plan-pdf-day-wk">${weekKeys.length>1?`Tydzień <b>${startWk+1}</b> z ${weekKeys.length}`:''}</span></div>
+      <div class="plan-pdf-cards">${cards}</div>
+      <div class="plan-pdf-cycle">
+        <div class="plan-pdf-cycle-h">Cały cykl — ${weekKeys.length} ${weekKeys.length===1?'tydzień':(weekKeys.length<5?'tygodnie':'tygodni')}</div>
+        <div class="plan-pdf-cycle-scroll"><table class="plan-pdf-tbl">
         <thead><tr>
           <th class="plan-pdf-ex">Ćwiczenie</th>
-          ${weekKeys.map((wk,i)=>`<th>Tydzień ${i+1}${phases[wk]?`<span class="plan-pdf-phase">${planPdfEsc(phases[wk])}</span>`:''}</th>`).join('')}
-          <th class="plan-pdf-tip">Pauza / wskazówka</th>
+          ${weekKeys.map((wk,i)=>`<th class="${planPdfIsDeload(phases[wk])?'is-deload':''}">Tydzień ${i+1}${phases[wk]?`<span class="plan-pdf-phase">${fmtPhase(wk)}</span>`:''}</th>`).join('')}
         </tr></thead>
-        <tbody>
-        ${(day.exercises||[]).map((e,ei)=>{
-          const pri=planPdfIsPriority(e,client)||ei===0;
-          const rest=e.rest||((e.w1||{}).rest)||'90s';
-          const tip=e.notes||e.note||e.tempo||'';
-          const biomechTip=planPdfBiomechTip(e);
-          return `<tr>
-            <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div></td>
-            ${weekKeys.map((wk,wi)=>`<td>${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
-            <td class="plan-pdf-tip-cell"><div class="plan-pdf-rest">⏱ ${planPdfEsc(rest)}</div>${tip?planPdfEsc(tip):''}${biomechTip?`<div style="margin-top:7px;color:#536b93;font-size:10px;line-height:1.35;"><b>🦴 Biomechanika:</b> ${planPdfEsc(biomechTip)}</div>`:''}</td>
-          </tr>`;
-        }).join('')}
-        </tbody>
-      </table>
+        <tbody>${rows}</tbody>
+      </table></div>
+      </div>
     </div>`;
   });
+  if(weekKeys.length>1&&days.length){
+    html+=`<button type="button" class="plan-pdf-cycle-btn" onclick="planPdfToggleCycle(this)">Pokaż cały cykl w tabeli</button>`;
+  }
 
   if(plan.weeklyVolume&&typeof plan.weeklyVolume==='object'){
     html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
@@ -2727,7 +2823,7 @@ window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplClientCardSummaryHtml=aplClientCardSummaryHtml;window.aplSyncClientDupUi=aplSyncClientDupUi;
 window.aplEditClientFromCard=aplEditClientFromCard;window.aplRefreshFromSavedClient=aplRefreshFromSavedClient;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
-window.buildPlanPDFHTML=buildPlanPDFHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
+window.buildPlanPDFHTML=buildPlanPDFHTML;window.planPdfSetWeek=planPdfSetWeek;window.planPdfSetDay=planPdfSetDay;window.planPdfToggleCycle=planPdfToggleCycle;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 
 // ════════════════════════════════════════
