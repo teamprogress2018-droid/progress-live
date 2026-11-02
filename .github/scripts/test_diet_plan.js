@@ -236,8 +236,39 @@ const likeCard = D.dietRenderCard(tK, dLike, { meals: 5 });
 ok('karta: lubiane i nielubiane, makro zamienników', likeCard.includes("dietToggleLike('indyk')") && likeCard.includes('nie lubi lub nie je') && likeCard.includes('(to samo białko)') && /\(B \d+ g · \d+ kcal\)/.test(likeCard));
 ok('tekst: białko przy zamienniku', /= B \d+ g/.test(D.dietPlanText(tK, dLike)));
 ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function dietToggleLike(') && src07.includes('c.dietPlan&&c.dietPlan.prefs'));
+// Realne porcje: serek od 100 g, jajka od 2 szt., jogurt od 150 g, mleko od 200 ml, owoce bez gór (jagody do 250 g);
+// zamiennik daje tyle samo głównego składnika (±15% albo ±3 g); w głównym posiłku zawsze jest produkt białkowy.
+{
+  const MIN = { cottage: 100, jajko: 2, jogurt: 150, mleko: 200 };
+  let porcje = true, zam = true, glowne = true, owoce = true;
+  [[60, 1900, 'inne'], [80, 2400, 'redukcja'], [85, 3500, 'masa'], [100, 3800, 'sila']].forEach(([w, k, g]) => {
+    const tt = D.dietBookTargets({ weight: w, age: 30, kcal: k, rmr: 1300, pal: 1.6, goal: g });
+    [3, 4, 5, 6].forEach(n => [0, 1, 2].forEach(v => {
+      D.dietBuildDay({ targets: tt, meals: n, variant: v }).meals.forEach(m => {
+        if (/^(Śniadanie|Obiad|Kolacja)$/.test(m.name) && !m.items.some(i => i.role === 'p')) glowne = false;
+        m.items.forEach(i => {
+          if (MIN[i.id] && i.amount < MIN[i.id]) porcje = false;
+          if (i.id === 'jagody' && i.amount > 250) owoce = false;
+          (i.swaps || []).forEach(s => {
+            const main = { p: 'p', c: 'c', f: 'f' }[i.role];
+            if (MIN[s.id] && s.amount < MIN[s.id]) porcje = false;
+            if (s.id === 'jagody' && s.amount > 250) owoce = false;
+            const f = D.DIET_FOODS.find(x => x.id === i.id);
+            const want = f[main] * i.amount / (f.unit === 'szt' ? 1 : 100);
+            if (Math.abs(s.m[main] - want) > Math.max(3, want * 0.15) + 0.01) zam = false;
+          });
+        });
+      });
+    }));
+  });
+  ok('porcje: serek ≥100 g, jajka ≥2, jogurt ≥150 g, mleko ≥200 ml', porcje);
+  ok('owoce jagodowe najwyżej 250 g', owoce);
+  ok('zamiennik = tyle samo głównego składnika', zam);
+  ok('główny posiłek zawsze z produktem białkowym', glowne);
+}
+
 ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 10));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 11));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
