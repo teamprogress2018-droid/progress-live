@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-10-26T09:28:09.598Z",
+ "generatedAt": "2026-11-02T11:47:32.553Z",
  "lookbackDays": 14,
  "categories": [
   {
@@ -53,6 +53,1238 @@
   }
  ],
  "items": [
+  {
+   "pmid": "42961026",
+   "doi": "10.1111/sms.70384",
+   "title": "Effects and Moderators of High-Intensity Interval Training (HIIT) on Physiological Adaptations Among Team-Sport Athletes: A Systematic Review and Meta-Analysis.",
+   "abstract": "High-intensity interval training (HIIT) is widely used in team sports, but the influence of participant and programme characteristics on physiological adaptations remains unclear. Five databases (Web of Science Core Collection, PubMed, Embase, Scopus, and CNKI) were searched initially on 25 April 2025 and updated on 21 December 2025. Mixed-effects models were used to estimate Hedges' g and 95% confidence intervals (CI). Forty-six studies involving 1204 athletes were included. Compared with regular sport-specific training alone, HIIT produced positive effects on maximal oxygen uptake (VO2max; g = 0.76, 95% CI [0.61, 0.92]), maximal aerobic power (g = 0.43, 95% CI [0.04, 0.82]), ventilatory threshold (g = 0.70, 95% CI [0.53, 0.88]), Yo-Yo intermittent recovery test performance (g = 1.02, 95% CI [0.76, 1.28]), and 30-s Wingate peak (g = 0.91, 95% CI [0.67, 1.16]) and mean power (g = 0.70, 95% CI [0.39, 1.01]). Effects on body composition were generally unclear. Mutually adjusted multivariable meta-regression identified no convincing evidence of differences in VO2max or Yo-Yo intermittent recovery test performance effects by sex or training level. Longer training duration was associated with greater VO2max effects. In exploratory analyses, model predictions indicated increases in VO2max of 2.56 mL·kg-1·min-1 (95% CI [1.54, 3.58]) after approximately 5 weeks and 5.11 mL·kg-1·min-1 (95% CI [3.32, 6.91]) after approximately 10 weeks. Shorter between-repetition recovery was associated with greater VO2max effects, although other programme variables were estimated imprecisely. Overall, adding HIIT to regular sport-specific training improves aerobic and anaerobic performance in trained team-sport athletes, whereas effects on body composition are limited. Associations involving programme characteristics should be interpreted cautiously because they were derived from study-level meta-regression. Trial Registration: PROSPERO Registration CRD42024609379.",
+   "journal": "Scandinavian journal of medicine & science in sports",
+   "journalAbbr": "Scand J Med Sci Sports",
+   "year": "2026",
+   "authors": "Zeng X i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Zeng X",
+    "Yin M",
+    "Xu K",
+    "Tao M",
+    "Wang J",
+    "Zhong Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Meta-Analysis",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42961026/",
+   "topics": [
+    "regeneracja",
+    "kondycja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 6
+  },
+  {
+   "pmid": "42954267",
+   "doi": "10.1080/15502783.2026.2752317",
+   "title": "Is plant-based protein supplementation as effective as whey protein? A systematic review and meta-analysis in untrained adults undergoing resistance training.",
+   "abstract": "BACKGROUND: Dietary protein supplements are commonly consumed to support increases in lean body mass among healthy adults engaged in resistance training (RT). Although whey protein has been extensively investigated, plant-based protein supplements have emerged as a viable alternative for individuals who avoid animal-derived products.\nMETHODS: The present study aims to evaluate, through a systematic review and meta-analysis, the effects of plant-based versus whey protein supplementation on body composition in untrained adults (18-59 years) undergoing RT, using Dual-Energy X-Ray Absorptiometry (DEXA). The systematic review was conducted according to the Preferred Reporting Items for Systematic Reviews and Meta-Analyses (PRISMA) 2020 checklist and was registered in PROSPERO (CRD420251145410). Searches were conducted in PubMed, Web of Science, and ScienceDirect, identifying 5 studies that met the inclusion criteria for qualitative synthesis and meta-analysis.\nRESULTS: When combined with RT, both plant-based and whey protein supplementation were associated with improvements in lean body mass (LBM) and body fat mass (BFM), with no significant between-group differences observed.\nCONCLUSIONS: Thus, soy- and pea-based protein supplements may support favorable body composition changes in adults initiating RT and could be considered practical nutritional options for individuals seeking alternatives to whey protein. Regarding chia-based protein, the available evidence is currently limited to a single study that did not demonstrate significant changes in lean body mass; therefore, firm conclusions regarding its efficacy cannot be drawn at this time.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
+   "year": "2026",
+   "authors": "Callegari IOM i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Callegari IOM",
+    "Silva GM",
+    "Oliveira AG"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42954267/",
+   "topics": [
+    "hipertrofia",
+    "zywienie",
+    "redukcja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 6
+  },
+  {
+   "pmid": "42947012",
+   "doi": "10.1186/s12877-026-08020-6",
+   "title": "Effect of resistance, balance, and aerobic training on strength, mobility, balance, and quality of life in older adults with sarcopenia: a systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: Sarcopenia is an age-related condition characterized by gradual loss of muscle mass and strength, leading to reduced physical function, often observed among older adults.\nOBJECTIVE: This review aimed to evaluate the effects of resistance, aerobic, and balance exercises on muscle strength, functional ability, gait speed, balance, and quality of life (QoL) in adults with sarcopenia.\nMETHODS: A systematic review and meta-analysis of randomized controlled trials (RCTs) was conducted. A comprehensive search of Web of Science, CAB-Abstract, CENTRAL, Embase, Global Health, Scopus, PEDro, and PubMed databases was performed between 2010 and July 31, 2025. Eligible RCTs were those that evaluated the effects of resistance, aerobic, and balance exercises on the most common outcomes in adults with sarcopenia. The outcomes included strength (handgrip strength and knee extension strength), mobility (gait speed), balance (timed up and go test (TUG)), functional ability, and QoL.\nRESULTS: Our search identified 12 RCTs involving 652 participants with sarcopenia (mean age: 74.1 ± 7.6 years; female: 82.7%). The results of the analysis indicated that exercise interventions resulted in significant improvement of handgrip strength (standardized mean difference (SMD) = 0.39), knee extension strength (SMD = 0.62), gait speed (SMD = 0.66), and TUG (SMD = -0.73) compared with the control groups. Functional ability and QoL did not exhibit any significant differences between the groups.\nCONCLUSIONS: The results suggest that incorporating resistance training, either alone or in combination with aerobic and balance training, may improve muscle strength, mobility, and balance in adults with sarcopenia.",
+   "journal": "BMC geriatrics",
+   "journalAbbr": "BMC Geriatr",
+   "year": "2026",
+   "authors": "Alsubaie SF i in.",
+   "authorCount": 2,
+   "authorList": [
+    "Alsubaie SF",
+    "Nambi G"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42947012/",
+   "topics": [
+    "hipertrofia",
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42945529",
+   "doi": "10.2196/101306",
+   "title": "Effectiveness of Wrist-Worn Wearable-Guided Cardiac Rehabilitation Delivered Through Fully Remote or Hybrid Programs in Patients With Cardiovascular Disease: Systematic Review and Meta-Analysis of Randomized Controlled Trials.",
+   "abstract": "BACKGROUND: Cardiovascular disease (CVD) remains the leading cause of death worldwide, yet participation in cardiac rehabilitation (CR) remains suboptimal. Wrist-worn wearables may support fully remote or hybrid CR through activity monitoring and individualized feedback, but the effectiveness and consistency of benefits remain uncertain.\nOBJECTIVE: This study aimed to evaluate the effectiveness of wrist-worn wearable-guided CR delivered through fully remote or hybrid programs initiated during phase II or III CR in patients with CVD.\nMETHODS: A total of 8 databases were searched for randomized controlled trials published from January 1, 2015, through August 7, 2026. Eligible trials enrolled adults with CVD and integrated a wrist-worn wearable into fully remote or hybrid CR. Studies focused primarily on heart failure or using wearables only for outcome measurement were excluded. Primary outcomes were peak oxygen consumption (VO2), 6-minute walk distance (6MWD), and daily steps. Random-effects meta-analyses used mean differences (MDs), except for quality of life, which used standardized MDs. Between-study variance was estimated using the DerSimonian-Laird method, pooled-effect CIs used the Knapp-Hartung adjustment, and 95% prediction intervals (PIs) used the Nagashima-Noma-Furukawa parametric bootstrap method. Risk of bias was assessed with Cochrane Risk of Bias 2. Subgroup and univariable meta-regression analyses explored study and intervention characteristics.\nRESULTS: A total of 18 trials involving 1993 randomized participants, reported in 20 publications, were included; 17 contributed to meta-analysis. Pooled estimates favored wearable-guided CR for peak VO2 (10 studies; 591 participants; MD 1.69, 95% CI 0.46-2.92, 95% PI -2.21 to 5.39 mL/kg/min), 6MWD (9 studies; 1094 participants; MD 31.03, 95% CI 7.66-53.92, 95% PI -62.11 to 123.18 m), and daily steps (8 studies; 474 participants; MD 1062.8, 95% CI 383.5-1825.0, 95% PI -503.0 to 2860.0 steps/day). All 3 PIs included the null, indicating uncertainty about consistency across future comparable settings. No clear pooled effects were observed for anaerobic threshold, BMI, waist circumference, grip strength, or quality of life. Subgroup differences were not statistically significant. In univariable meta-regression, a higher proportion of female participants was associated with greater peak VO2 improvement, although this aggregate-level finding was exploratory.\nCONCLUSIONS: Wrist-worn wearable-guided CR delivered through fully remote or hybrid programs may improve average exercise capacity and physical activity in patients with CVD. However, PIs included the null, indicating uncertainty about consistency across future settings. These programs may extend activity monitoring, individualized feedback, and behavioral support beyond center-based CR, but their multicomponent nature prevents attributing effects to wearables alone. Larger, rigorously designed trials with standardized protocols and outcomes should identify the patients and program components most likely to benefit. Future research should also evaluate long-term adherence, safety, equity, and implementation within routine multidisciplinary CR across diverse health systems.",
+   "journal": "JMIR mHealth and uHealth",
+   "journalAbbr": "JMIR Mhealth Uhealth",
+   "year": "2026",
+   "authors": "Choi JH i in.",
+   "authorCount": 11,
+   "authorList": [
+    "Choi JH",
+    "Lee SY",
+    "Seo KC",
+    "Lee SY",
+    "Lee HK",
+    "Heo D"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42945529/",
+   "topics": [
+    "adherencja",
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42945167",
+   "doi": "10.1371/journal.pone.0359019",
+   "title": "Is resistance training effective to increase BDNF in multiple sclerosis? An updated systematic review and meta-analysis of isolated interventions.",
+   "abstract": "BACKGROUND: Brain-derived neurotrophic factor (BDNF) is a key mediator of neuroplasticity and has been associated with disease progression in multiple sclerosis (MS). While aerobic exercise is consistently linked to BDNF modulation, the specific contribution of isolated resistance training (RT) remains unclear, as previous reviews have largely combined multimodal exercise interventions.\nOBJECTIVE: To systematically review and meta-analyze the effects of isolated RT on peripheral BDNF levels in individuals with MS (PROSPERO: CRD420251141069).\nMETHODS: Searches were conducted in PubMed, Web of Science, Scielo, Scopus, PEDro and Cochrane up to January 10, 2026, using PICOT criteria. Controlled experimental studies investigating isolated RT and BDNF outcomes were included. Risk of bias was assessed using RoB 2.0 and ROBINS-I, and certainty of evidence was evaluated using GRADE. Due to methodological heterogeneity, a random-effects model was applied to estimate pooled effects.\nRESULTS: Four studies (three RCTs and one controlled non-randomized trial), totaling 126 participants with MS, were included. Interventions lasted 8-24 weeks, with training frequencies of 2-3 sessions per week. Meta-analytic synthesis revealed positive pooled effects (SMD = 0.49; 95%CI: 0.15 to 0.83; Z = 2.80; p < 0.005; I2 = 0%; Q = 1.681) with wide confidence intervals without crossing zero. With the Hartung-Knapp adjustment, due to the reduced number of studies, the analysis continued to show a positive intervention effect: (SMD = 0.49; 95%CI: 0.42 to 0.56; t = 3.716; p = 0.0339). Two studies using low-to-moderate intensity protocols (Pilates-based RT and low-load RT with bands/weights) showed significant increases in serum BDNF after 8 weeks. In contrast, studies employing higher loads (≈80% of one-repetition maximum: 1RM) demonstrated no significant BDNF changes despite functional gains. Overall certainty of evidence was rated as low due to risk of bias, inconsistency, and imprecision.\nCONCLUSION: Isolated RT may increase peripheral BDNF levels in individuals with MS, but this effect is supported by limited and low-certainty evidence. Furthermore, given that only four studies were included in the meta-analysis, we suggest interpreting the results with some caution.",
+   "journal": "PloS one",
+   "journalAbbr": "PLoS One",
+   "year": "2026",
+   "authors": "Pedon WR i in.",
+   "authorCount": 14,
+   "authorList": [
+    "Pedon WR",
+    "Costa GCT",
+    "Cortizo Vidal LÁR",
+    "Inacio PA",
+    "Sales MM",
+    "Martins IM"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42945167/",
+   "topics": [
+    "hipertrofia"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42943012",
+   "doi": "10.3390/nu18203441",
+   "title": "Effects of Combined Music and Caffeine on Psychophysiological Responses During Exercise: A Systematic Review and Exploratory Meta-Analysis.",
+   "abstract": "Background: This systematic review and exploratory meta-analysis evaluated the effects of combined music and caffeine on psychophysiological responses during exercise. Methods: PubMed, Embase, Web of Science, and the Cochrane Library were searched from database inception to 10 June 2026. Randomized crossover studies comparing caffeine plus music with placebo plus no music, caffeine alone, or music alone were eligible. Outcomes included rating of perceived exertion (RPE), Physical Activity Enjoyment Scale (PACES), Feeling Scale (FS), and heart rate (HR). Findings were synthesized descriptively by outcome and comparator, considering study-specific effect estimates, confidence intervals, and experimental conditions. Random-effects meta-analyses were retained as secondary exploratory summaries. Because fewer than 10 independent studies were available, meta-regression and formal assessment of small-study effects were not undertaken. Results: Five crossover studies involving 88 participants were included. Study-specific RPE estimates varied from large reductions to estimates close to the null or in the opposite direction. PACES point estimates favoured the combined intervention, but their magnitudes differed substantially in comparisons with placebo plus no music and caffeine alone. Feeling Scale and heart-rate findings also varied across studies. All four primary meta-analyses showed I2 values exceeding 90%, and the certainty of evidence was very low for all primary outcomes. Conclusions: The available evidence comprises five small crossover studies conducted in different populations and experimental settings. Study-specific findings suggest possible improvements in exercise enjoyment, while perceived exertion, affective valence, and heart-rate responses vary across studies. Neither the descriptive findings nor the secondary exploratory pooled estimates establish a stable, broadly applicable magnitude of intervention benefit. Given the very low certainty of evidence, no firm recommendations can be made regarding the use of caffeine combined with music across exercise populations and settings. Further adequately powered studies using clearly specified interventions and comparable outcome assessments are needed to determine which responses are reproducible and practically meaningful.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Zhang Q i in.",
+   "authorCount": 16,
+   "authorList": [
+    "Zhang Q",
+    "Xu H",
+    "Mo J",
+    "Wang F",
+    "Gao X",
+    "Zhou C"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42943012/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42943005",
+   "doi": "10.3390/nu18203434",
+   "title": "Effects of Caffeine-Taurine Co-Supplementation on Exercise Performance: A Systematic Review and Meta-Analysis.",
+   "abstract": "Background: Caffeine-taurine combinations are widely used in commercial sports products. Whether this combination improves exercise performance is still unclear. This study aimed to estimate the effect of caffeine-taurine co-supplementation versus placebo on exercise performance. Methods: Randomized controlled trials comparing caffeine plus taurine versus placebo were searched in PubMed, Embase, Web of Science, Cochrane Library, and related databases up to June 1, 2026. Outcomes included heart rate (HR), reaction time (RT), time to exhaustion (TTE), rating of perceived exertion (RPE), and peak/maximal anaerobic power (PP). A random-effects model was applied. Risk of bias was assessed with RoB 2.0. Results: A total of 11 randomized controlled trials involving 234 participants were included in the meta-analysis. Compared with placebo, caffeine-taurine co-supplementation was associated with improvements in time to exhaustion (SMD = 0.54, 95% CI: 0.03 to 1.05) and PP (SMD = 0.55, 95% CI: 0.21 to 0.89); an expanded secondary product-level analysis that additionally included one commercial multi-ingredient energy drink yielded a smaller estimate (SMD = 0.48, 95% CI: 0.19 to 0.78) that cannot be attributed specifically to caffeine and taurine. The pooled estimate for reaction time favored supplementation (SMD = -1.49, 95% CI: -2.78 to -0.20), but very high heterogeneity and a prediction interval crossing the null indicated that the effect was not consistent across settings, whereas no meaningful effect was observed for heart rate (WMD = -0.11, 95% CI: -5.76 to 5.53). Rating of perceived exertion was significantly reduced (SMD = -0.44, 95% CI: -0.83 to -0.04). Conclusions: Caffeine-taurine-only formulations were associated with possible benefits for selected performance outcomes, including PP. However, the evidence was derived from few, generally small studies and did not establish the independent contribution of caffeine, taurine, or their interaction. Results from commercial multi-ingredient products should be interpreted at the product level rather than as evidence of an isolated caffeine-taurine effect.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "He B i in.",
+   "authorCount": 12,
+   "authorList": [
+    "He B",
+    "Zhou C",
+    "Zeng Z",
+    "Dong X",
+    "Huang D",
+    "Shi H"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42943005/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42937793",
+   "doi": "10.1097/MD.0000000000051306",
+   "title": "Efficacy and safety of GLP-1 receptor agonists in patients with metabolic dysfunction-associated steatotic liver disease (MASLD) and metabolic dysfunction-associated steatohepatitis (MASH): A systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: Metabolic dysfunction-associated steatotic liver disease (MASLD) and metabolic dysfunction-associated steatohepatitis (MASH) are increasingly prevalent liver diseases closely linked to obesity, type 2 diabetes mellitus, and cardiometabolic risk. Glucagon-like peptide-1 receptor agonists (GLP-1 RAs) may improve hepatic and metabolic outcomes through weight reduction, improved glycemic control, and reductions in hepatic steatosis. This systematic review and meta-analysis aimed to evaluate the efficacy and safety of GLP-1 RAs in adults with MASLD or MASH.\nMETHODS: A systematic review and meta-analysis was conducted in accordance with PRISMA 2020 guidelines. PubMed, Web of Science, Scopus, Google Scholar, and the Cochrane Central Register of Controlled Trials were searched for English-language studies published between January 2019 and December 2025. Eligible studies included adults with MASLD or MASH treated with GLP-1 RAs and reporting hepatic, metabolic, or safety outcomes. Pooled estimates were calculated using random-effects models.\nRESULTS: Nine studies involving 795 participants were included. GLP-1 RA therapy was associated with significant reductions in liver fat content (mean difference [MD]: -3.17; 95% CI: -4.06 to -2.29), body weight (MD: -4.68; 95% CI: -6.88 to -2.47), alanine aminotransferase (MD: -15.17; 95% CI: -21.29 to -9.05), aspartate aminotransferase (MD: -9.89; 95% CI: -13.65 to -6.13), and HbA1c (MD: -0.78; 95% CI: -1.07 to -0.49). Adverse events were more frequent with GLP-1 RAs, particularly nausea and vomiting, while serious adverse events did not differ significantly between groups.\nCONCLUSION: GLP-1 RAs are associated with meaningful improvements in hepatic steatosis, liver enzymes, body weight, and glycemic control in patients with MASLD or MASH. These findings support their potential role, particularly in patients with coexisting obesity or type 2 diabetes. However, further long-term, adequately powered trials are needed to clarify their effects on fibrosis regression, histological outcomes, and liver-related clinical events.",
+   "journal": "Medicine",
+   "journalAbbr": "Medicine (Baltimore)",
+   "year": "2026",
+   "authors": "Alfawaz M i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Alfawaz M",
+    "Bajamaan D",
+    "Alghamdi L",
+    "Alorfi Y",
+    "Khared S",
+    "Ameen N"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42937793/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42935102",
+   "doi": "10.4103/singaporemedj.SMJ-2026-426",
+   "title": "Singapore Society of Anaesthesiologists Position Statement: sustainability in anaesthesiology and intensive care in Singapore.",
+   "abstract": "Healthcare accounts for 7% of Singapore's carbon emissions. Given the role of planetary health in health outcomes, healthcare must be sustainable, evidence- and value-based. This consensus paper provides Singapore-specific recommendations to guide sustainable anaesthesia and intensive care practice while maintaining clinical care standards. It aims to support discussion, planning and implementation of initiatives without superseding clinical judgement or local policies. A workgroup from the Singapore Society of Anaesthesiologists conducted a review of international sustainability guidelines, peer-reviewed literature and evidence. Iterative consensus building was undertaken through discussion and consultation. Evidence was derived from life cycle analyses, laboratory or environmental studies, and quality improvement initiatives rather than conventional randomised controlled trials, but can nevertheless provide a robust scientific basis for recommendations underpinned by the triple bottom line framework. This position statement calls upon anaesthesiologists in Singapore to exercise leadership and stewardship to reduce emissions without compromising care.",
+   "journal": "Singapore medical journal",
+   "journalAbbr": "Singapore Med J",
+   "year": "2026",
+   "authors": "Zaw MWW i in.",
+   "authorCount": 13,
+   "authorList": [
+    "Zaw MWW",
+    "Poh PK",
+    "Tan KH",
+    "Ang KS",
+    "Tan M",
+    "Davies L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Consensus Statement"
+   ],
+   "evidence": "guideline",
+   "evidenceLabel": "Stanowisko / wytyczne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42935102/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42928304",
+   "doi": "10.1007/s13300-026-01927-8",
+   "title": "A Malaysian Expert Consensus on The Identification, Evaluation, and Pharmacological Management of Diabetic Sensorimotor Polyneuropathy.",
+   "abstract": "INTRODUCTION: Diabetic sensorimotor polyneuropathy (DSPN), the most common form of diabetic peripheral neuropathy (DPN), is a chronic complication of diabetes associated with sensory loss, foot ulceration, lower-limb amputation, reduced quality of life, and increased mortality. Despite its substantial clinical burden, DSPN remains underdiagnosed and undertreated in Malaysia. This consensus aimed to develop practical, evidence-informed recommendations for screening, diagnosis, and management of painful and non-painful presentations of DSPN tailored to the Malaysian healthcare setting.\nMETHODS: An expert panel comprising 11 endocrinologists from public and private healthcare institutions in Malaysia was convened. Draft recommendations were adapted from international and local guidelines for Malaysian clinical practice. Consensus development involved pre-meeting review and anonymous voting, followed by structured face-to-face discussion. Consensus was defined as ≥80% agreement.\nRESULTS: The panel finalized 61 consensus statements covering screening, diagnosis, sensory examination, and treatment. Recommendations emphasize annual screening for all individuals with diabetes and clinical examination to detect sensory deficits, including in individuals without painful symptoms. Assessment should include multiple bedside tests to evaluate small- and large-fiber function and loss of protective sensation. Recommended tests include the 10-g monofilament, vibration and pin-prick testing, and the Ipswich Touch Test, particularly in resource-limited settings. Assessment of painful and non-painful symptoms should complement rather than replace objective examination. Validated screening questionnaires, including the Malay-language PainDETECT may support assessment. Management includes optimization of glycemic control, lifestyle interventions, adjunctive pathogenetically oriented therapies such as alpha-lipoic acid, and evidence-based pharmacological treatments including pregabalin, gabapentin, duloxetine, and tricyclic antidepressants. Routine opioid use is discouraged.\nCONCLUSIONS: This Malaysian expert consensus provides practical, context-specific recommendations for early detection, diagnosis, and management of DSPN. By adapting international guidance to local healthcare realities, these recommendations aim to improve care consistency, reduce DSPN-related complications, and enhance patient outcomes in Malaysia.",
+   "journal": "Diabetes therapy : research, treatment and education of diabetes and related disorders",
+   "journalAbbr": "Diabetes Ther",
+   "year": "2026",
+   "authors": "Lim LL i in.",
+   "authorCount": 11,
+   "authorList": [
+    "Lim LL",
+    "Foo SH",
+    "Abdul Ghani R",
+    "Ibrahim L",
+    "Wahab NA",
+    "Mohamed WMIW"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "guideline",
+   "evidenceLabel": "Stanowisko / wytyczne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42928304/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42910538",
+   "doi": "10.1002/cam4.72348",
+   "title": "Core Self-Reported Variables for Next-Generation Colorectal Cancer Risk Prediction: An International Expert Consensus Study.",
+   "abstract": "BACKGROUND: Colorectal cancer remains a major global health burden, and although population-based screening is beneficial, current programs have notable limitations. Risk-stratified screening has been proposed, yet existing prediction models vary in performance and in the inclusion of predictors. Data-adaptive modeling (machine learning) may strengthen risk prediction but depends on high-quality input data. Expert consensus methods offer a structured way to identify clinically meaningful variables for future tools.\nOBJECTIVE: To establish expert consensus on the selection of relevant variables and refinement of self-reported questionnaire items for next-generation colorectal cancer risk-prediction tools.\nMETHODS: A modified Delphi study was conducted with seventeen internationally recognized experts. The process consisted of anonymized, email-based rounds aimed at refining a questionnaire for colorectal cancer risk prediction. Across three iterative rounds, experts rated item relevance, proposed revisions, and identified missing domains while reviewing group-level summaries of ratings and comments. Items not meeting predefined thresholds were removed, and validated lifestyle-related items were incorporated. Consensus was defined as 15 of 17 experts rating an item within a similar three-point range.\nRESULTS: All seventeen experts completed all rounds. The final I-CRC-RISK Questionnaire comprises 23 items across seven categories: Demography, Health Status, Family Health History, Dietary Patterns, Physical Activity, Smoking, and Alcohol Consumption. Expert consensus was reached for 19 items.\nCONCLUSION: The I-CRC-RISK Questionnaire provides an expert-informed set of self-reported variables to support future risk prediction efforts. It offers a structured basis for further validation and psychometric testing before prospective data collection may be undertaken. This foundational work could enhance the predictive performance of both traditional and machine-learning approaches by improving the consistency and relevance of input data.",
+   "journal": "Cancer medicine",
+   "journalAbbr": "Cancer Med",
+   "year": "2026",
+   "authors": "Dubois H i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Dubois H",
+    "Torbjörnsson E",
+    "Norrbom J",
+    "Hubbard A",
+    "Enskär M",
+    "Phillips RV"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Consensus Statement"
+   ],
+   "evidence": "guideline",
+   "evidenceLabel": "Stanowisko / wytyczne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42910538/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 5
+  },
+  {
+   "pmid": "42968164",
+   "doi": "10.1186/s12966-026-01961-6",
+   "title": "Which combinations of behaviour change techniques work best? Evidence from meta-review of interventions addressing healthy diet and exercise after breast cancer.",
+   "abstract": "BACKGROUND: The primary aim was to identify combinations including ≥ 3 behavior change techniques (BCTs) that are jointly used in behavioral interventions for women with/survivors of breast cancer, and result in a simultaneous improvement of physical activity, healthy nutrition behaviour, and healthy body weight maintenance.\nMETHODS: A meta-review integrated evidence from systematic, scoping, and pragmatic reviews. Ten databases were searched using ASReviews software and through manual searches, resulting in the inclusion of 32 reviews. The ROBIS tool was applied to assess bias risk. All combinations of ≥ 3 BCTs were identified in the original studies, and ratios of studies indicating a significant improvement to those with no improvement were calculated for three outcome domains. BCT combinations used in ≥ 10 original intervention studies (with ≥ 3 studies per each outcome domain) and supported in ≥ 85% of intervention studies were identified as the most promising.\nRESULTS: A total of k = 17,715 combinations were identified, including 3-12 BCTs. Only 46 combinations met the criteria for the most promising ones (supported by ≥ 85% of studies), with 7 combinations supported in ≥ 90% of studies. The promising combinations contained 3-6 BCTs included the following: goal setting (behaviour), problem solving, demonstration of the behaviour, self-monitoring of behaviour, instruction on how to perform the behaviour, feedback on behaviour, credible source. Interestingly, goal setting (related to behaviour or outcome) was present in 22 of the supported combinations, whereas demonstration of behaviour, problem solving, and self-monitoring were included more frequently (33, 32, and 26 of supported combinations, respectively).\nCONCLUSIONS: This meta-review offers a novel approach to identifying BCT combinations that are jointly used in interventions resulting in an improvement in physical activity, healthy nutrition behaviour, and healthy body weight maintenance. These evidence-based combinations may serve as examples of good practices for promoting a healthy lifestyle in the context of breast cancer.\nTRIAL REGISTRATION: PROSPERO database registration: #CRD420251130311.",
+   "journal": "The international journal of behavioral nutrition and physical activity",
+   "journalAbbr": "Int J Behav Nutr Phys Act",
+   "year": "2026",
+   "authors": "Boberska M i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Boberska M",
+    "Wietrzykowska D",
+    "Kulis E",
+    "Kuzminska J",
+    "Zalewska-Lunkiewicz K",
+    "Karaglani E"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42968164/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42964364",
+   "doi": "10.3389/fphys.2026.1976073",
+   "title": "Exercise training improves hepatic enzymes, body mass index, and cardiorespiratory fitness in adults with metabolic dysfunction-associated steatotic liver disease: a systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: Exercise is recommended for metabolic dysfunction-associated steatotic liver disease (MASLD). Recent reviews have addressed specific exercise modalities or selected outcome domains, but an updated integrated appraisal of hepatic, metabolic, and cardiorespiratory responses across randomized trials remains needed.\nMETHOD: We conducted a PRISMA 2020-compliant systematic review and meta-analysis of randomized controlled trials in adults with MASLD or legacy diagnoses of non-alcoholic fatty liver disease/non-alcoholic steatohepatitis. PubMed, Embase, CENTRAL, Scopus, Web of Science, and SPORTDiscus were searched from inception to June 2026. Post-intervention mean differences (MDs) or standardized mean differences (SMDs) with 95% confidence intervals (CIs) were pooled. Risk of bias was assessed using RoB 2 and certainty using GRADE.\nRESULTS: Twenty-five trials were included. Exercise reduced alanine aminotransferase (ALT; MD -7.33 U/L, 95% CI -10.71 to -3.95), aspartate aminotransferase (AST; MD -5.52 U/L, 95% CI -10.24 to -0.79), and BMI (random-effects MD -1.54 kg/m², 95% CI -2.28 to -0.80), and improved VO2peak/VO2max (MD 4.08 mL/kg/min, 95% CI 1.00 to 7.16). Pooled effects for liver fat/steatosis, HOMA-IR, and HbA1c were not statistically significant. Egger testing showed no significant asymmetry for ALT or AST, whereas BMI showed funnel-plot asymmetry consistent with possible small-study effects.\nCONCLUSION: Exercise training improves hepatic enzymes, BMI, and cardiorespiratory fitness in adults with MASLD/NAFLD, whereas evidence for liver fat and glycemic outcomes remains less certain. PROSPERO: CRD420261416397.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/, identifier CRD420261416397.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2026",
+   "authors": "Long S i in.",
+   "authorCount": 2,
+   "authorList": [
+    "Long S",
+    "Li Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42964364/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42964023",
+   "doi": "10.3389/fpsyt.2026.1888180",
+   "title": "Remote supervised exercise- and physical activity-based rehabilitation for post-stroke depression, anxiety, and quality of life: a systematic review, evidence map, and exploratory quantitative synthesis.",
+   "abstract": "BACKGROUND: Depression, anxiety, and reduced quality of life are common after stroke and may interfere with rehabilitation engagement and long-term recovery. Remote supervision can support home-based exercise or physical activity, but the available programs are complex packages that may also include coaching, caregiver involvement, education, and psychological support. We aimed to synthesize randomized evidence on depression, anxiety, and quality of life after remotely supervised exercise- or physical activity-based stroke rehabilitation, accounting for comparator type and co-interventions.\nMETHODS: This systematic review was registered in PROSPERO (CRD420261394314) and reported according to PRISMA 2020. PubMed/MEDLINE, Web of Science, SPORTDiscus, Cochrane Library, Embase, and Scopus were searched from inception to 1 March 2026. Randomized studies of remotely supervised exercise- or physical activity-based rehabilitation after ischemic or hemorrhagic stroke were eligible if depression, anxiety, or quality-of-life outcomes were extractable. Risk of bias was assessed using RoB 2, certainty was evaluated using GRADE, and a co-intervention sensitivity analysis examined the evidence remaining after exclusion of interventions with explicit psychological support.\nRESULTS: Six randomized studies involving 483 participants were included. Interventions, comparators, outcome instruments, and study designs were heterogeneous, precluding a primary pooled meta-analysis. The only directly analyzable depression effect against standard care came from Sun et al., a 12-week multidisciplinary telerehabilitation program that included online psychological counseling; the aligned Hedges g was 0.93 (95% CI 0.64 to 1.22), conventionally large, but certainty was very low. After this trial was excluded, no directly analyzable depression effect against standard care remained. Active-vs-active depression or distress findings did not establish superiority. Quality-of-life signals varied across instruments and comparators; no separable patient anxiety effect was available.\nCONCLUSION: The included evidence concerns complex remote rehabilitation packages rather than exercise alone. A possible depression benefit is supported principally by one trial with a psychological-support co-intervention and is therefore fragile. Remote programs should not be regarded as stand-alone treatments for post-stroke depression or anxiety. Confirmatory trials should recruit or stratify participants by baseline psychiatric symptoms, prespecify psychiatric outcomes, and separate exercise from psychological and implementation components.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261394314, identifier CRD420261394314.",
+   "journal": "Frontiers in psychiatry",
+   "journalAbbr": "Front Psychiatry",
+   "year": "2026",
+   "authors": "Zhang C i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Zhang C",
+    "Zhou Z",
+    "Cai J",
+    "Li Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42964023/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42954324",
+   "doi": "10.1111/sms.70392",
+   "title": "The Effects of Force-Velocity Profile-Based Load Prescription on Muscle Power and Functional Performance in Velocity-Deficient Older Adults.",
+   "abstract": "Muscle power is essential for functional capacity in older adults and can be improved through power-focused resistance training (PRT). PRT adaptations are load- and velocity-specific, yet optimal load prescription remains unclear. As force and velocity capacities vary between individuals, this 12-week intervention compared two force-velocity (F-V) profile-guided loading strategies: training at loads matched versus not matched to the F-V deficit. F-V profiles of 80 adults ≥ 65 years were assessed on a pneumatic leg press, with maximal force (F0) and velocity (V0) expressed as z-scores relative to a younger reference group (n = 60, 20-35 years). A difference ≥ 1 between z-scores was considered indicative of a deficit, with the direction determining a force- or velocity-deficit profile. As force deficits were rare (n = 4), the intervention only included participants with a velocity deficit (n = 59), of whom 57 initiated the intervention. Participants were randomly assigned to train at loads matched to their deficit (individualized; IND) or at loads deliberately not matched to their deficit (non-individualized; NON-IND). Maximal power, F-V profile parameters and functional performance were assessed at baseline, 6 and 12 weeks. From baseline to 12 weeks, F0 increased more in NON-IND than IND (p = 0.040), while V0 increased more in IND than NON-IND (p = 0.009). Changes in power and functional performance did not differ between groups (all p ≥ 0.065). In velocity-deficient older adults, differences in F-V-guided load prescription led to distinct F-V adaptations but did not lead to differences in power or functional performance. Trial Registration: The study was registered at ClinicalTrials.gov (NCT06449716).",
+   "journal": "Scandinavian journal of medicine & science in sports",
+   "journalAbbr": "Scand J Med Sci Sports",
+   "year": "2026",
+   "authors": "Deboutte J i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Deboutte J",
+    "Delecluse C",
+    "Thomis M",
+    "Van Roie E"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42954324/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42952548",
+   "doi": "10.3389/fphys.2026.1837579",
+   "title": "Comparative efficacy of aerobic training, resistance training, combined training, and multicomponent exercise on interleukin-6, C-reactive protein, and tumor necrosis factor-α levels in older adults (≥60 years): a systematic review and network meta-analysis.",
+   "abstract": "OBJECTIVE: To compare and rank the efficacy of four exercise training modalities-aerobic training (AT), resistance training (RT), combined training (AT+RT), and multicomponent exercise (MCEx)-on serum levels of interleukin-6 (IL-6), C-reactive protein (CRP), and tumor necrosis factor-α (TNF-α) in older adults, and to examine whether the optimal modality differs by participants' health status (healthy vs. chronic disease).\nMETHODS: Strictly following the PRISMA guidelines, two researchers independently performed literature screening, methodological quality assessment, and data extraction in accordance with pre-established inclusion and exclusion criteria. A three-level meta-analysis was used to address the correlation of effect sizes in multi-arm trials; a frequentist random-effects network meta-analysis was conducted to compare and rank the intervention effects of aerobic training (AT), resistance training (RT), combined training (AT+RT), and multicomponent training (MCEx). The Cochrane Risk of Bias tool was used to assess the risk of bias of the included studies, and the GRADE framework was used to evaluate the certainty of evidence. The main effect size was the standardized mean difference (SMD) and its 95% confidence interval (95%CI), and the total I² statistic (I²_total) was used to quantify heterogeneity. In addition, double subgroup analysis was carried out based on different exercise intervention methods and different physical states of the elderly.\nRESULTS: A total of 82 studies were included, involving 6493 participants, of which 3125 were in the control group and 3368 were in the experimental group, with a mean age of 71.04 years. Multilevel meta-analysis showed that exercise intervention could significantly reduce the levels of IL-6 (SMD = -0.31), CRP (SMD = -0.44), and TNF-α (SMD = -0.40) in the elderly. Subgroup analysis showed that AT+RT had the best improvement effect on IL-6, RT on CRP, and AT on TNF-α. Double subgroup analysis suggested that for the elderly with chronic diseases, RT and AT+RT could effectively improve their IL-6 and CRP levels; for healthy elderly, AT was an effective method to reduce their TNF-α levels. Network meta-analysis showed that AT ranked the best in reducing IL-6 (SUCRA = 84.6%) and TNF-α (SUCRA = 97.5%), while RT ranked the best in reducing CRP (SUCRA = 89.1%). Most of the included studies had unclear or high risk of bias, and the certainty of evidence for all three outcome indicators was very low based on GRADE assessment.\nCONCLUSION: Based on very low GRADE evidence, exercise interventions may reduce IL-6, CRP, and TNF-α in older adults, with aerobic training showing the highest probability of benefit for IL-6 and TNF-α, and resistance training for CRP. However, due to high risk of bias, heterogeneity, and publication bias, these findings are exploratory and require confirmation in high-quality trials.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261320198, identifier CRD420261320198.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2026",
+   "authors": "Li W i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Li W",
+    "Chu R",
+    "Xie Y",
+    "Du Y",
+    "Ni T"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42952548/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42952277",
+   "doi": "10.1177/14799731261501160",
+   "title": "Telehealth for healthcare delivery in adults with bronchiectasis: A systematic review.",
+   "abstract": "BackgroundThis systematic review examined the feasibility and clinical effectiveness of telehealth in adults with bronchiectasis.MethodsFive electronic databases were searched for telehealth interventions in adults with bronchiectasis. Feasibility and clinical effects data were extracted. Best evidence synthesis was reported as effect size (d), 95% confidence interval (CI).ResultsNine studies were included (n=156 participants). Interventions were pulmonary rehabilitation (n=4 studies), physical activity promotion (n=1 study), airway clearance therapy (n=3 studies), and multidisciplinary treatment (n=1 study). Studies reported high adherence to interventions (73-100%), high patient satisfaction (81-100%), and minor adverse events with selected interventions. Telehealth pulmonary rehabilitation (4 studies; 21 participants) demonstrated improvements in health-related quality of life (HRQOL) with small to large effect sizes at end-intervention (Chronic Respiratory Questionnaire domains: d range 0.23 to 1.78) but mixed effects on psychological symptoms (d range -1.12 to 0.04). Telehealth airway clearance therapy improved HRQOL (St Georges Respiratory Questionnaire total score: mean difference -5.8 [95% CI -10.8 to -0.9]).ConclusionsTelehealth pulmonary rehabilitation and airway clearance interventions are low risk, feasible and may be clinically effective in this population. Small sample sizes underscore the need for larger trials. Little is known about other telehealth-delivered interventions in bronchiectasis.",
+   "journal": "Chronic respiratory disease",
+   "journalAbbr": "Chron Respir Dis",
+   "year": "2026",
+   "authors": "Hearn K i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Hearn K",
+    "Holland AE",
+    "Lee AL"
+   ],
+   "pubTypes": [
+    "Systematic Review",
+    "Journal Article"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42952277/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42947921",
+   "doi": "10.3389/fnut.2026.1946052",
+   "title": "Protein supplementation and resistance training-induced strength gains in young adults: a meta-analysis.",
+   "abstract": "BACKGROUND: This study aimed to determine whether protein supplementation confers additional benefits for muscle strength gains beyond those induced by resistance training (RT) alone in healthy young adults.\nMETHODS: A systematic literature search was performed in PubMed, Web of Science, Cochrane Library, and SPORTDiscus through April 1, 2026. Twenty-three randomized controlled trials involving 611 healthy young adults were included. Pooled estimates were calculated as weighted mean differences (WMD) with 95% confidence intervals (CIs) using a random-effects model. Subgroup analysis, meta-regression, and leave-one-out and leave-one-category-out sensitivity analysis were performed to explore heterogeneity.\nRESULTS: Compared with RT alone, combined RT and protein supplementation produced significant improvements in both bench press (WMD: 2.63 kg, 95% CI: 0.77-4.49, p = 0.006) and squat strength (WMD: 7.40 kg, 95% CI: 2.15-12.66, p = 0.006). Subgroup analysis revealed that the ergogenic effect on squat strength was predominantly observed when the intervention lasted ≤12 weeks, or when protein was ingested both around exercise (pre- and/or post-exercise) and before sleep. Meta-regression identified intervention duration as a significant moderator (p = 0.037) and protein timing as a borderline moderator (p = 0.073) of squat strength heterogeneity. Sensitivity analysis showed that the pooled effects remained significant and consistent in direction.\nCONCLUSION: Protein supplementation combined with resistance training enhances muscle strength in young healthy adults, but its incremental benefit appears conditional on intervention duration, nutrient timing, training background, and baseline protein status rather than universally applicable. Future well-powered trials with standardized protein dose and source reporting, repeated measures of habitual protein intake, and stratified designs are needed to clarify these interactions and support more personalized, mechanism-informed exercise and nutrition guidance.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/# myprospero, PROSPERO, identifier: CRD42024534481.",
+   "journal": "Frontiers in nutrition",
+   "journalAbbr": "Front Nutr",
+   "year": "2026",
+   "authors": "Zhang C i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Zhang C",
+    "Wang Y",
+    "Huang W"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42947921/",
+   "topics": [
+    "hipertrofia",
+    "regeneracja",
+    "zywienie"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42947701",
+   "doi": "10.3389/fphys.2026.1975449",
+   "title": "Dietary modification and nutritional supplements for exercise-induced bronchoconstriction: a systematic review and meta-analysis.",
+   "abstract": "OBJECTIVE: Our aim was to evaluate the effects of dietary modification and nutritional supplementation on exercise-induced bronchoconstriction (EIB) and the certainty of evidence for each intervention.\nMETHODS: PubMed, Web of Science, Scopus, and CENTRAL were searched through to 1 August 2026. Randomized parallel-group and crossover trials assessing EIB with an exercise challenge, eucapnic voluntary hyperpnea (EVH), or another indirect bronchial provocation test were included. The primary outcome was the maximum or peak percentage fall in forced expiratory volume in 1 s (FEV1) within 30 min, with fixed-time-point values treated as proxy outcomes. Comparable intervention-specific effects were synthesized, crossover trials were analyzed as paired designs, and Risk of Bias 2 (RoB 2) and Grading of Recommendations Assessment, Development, and Evaluation (GRADE) were applied.\nRESULTS: A total of 20 studies (22 reports) were included. Low sodium compared with experimentally prescribed high sodium, standard omega-3 fatty acids/fish oil, selected caffeine doses, and PCSO-524 showed potentially favorable signals. However, the evidence was limited by the small sample sizes, proxy outcomes, heterogeneity, risk of bias, missing paired data, or lack of independent replication. Adverse events were inadequately reported.\nCONCLUSION: Current evidence is insufficient to recommend any nutritional intervention for routine prevention or treatment of EIB. Nutritional approaches should not replace guideline-based assessment or pharmacological management.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/, identifier CRD420261485221.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2026",
+   "authors": "Su M i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Su M",
+    "Sun R",
+    "Shan C"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42947701/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42945536",
+   "doi": "10.24875/ACM.26000187",
+   "title": "Inter-American consensus on hypertrophic cardiomyopathy.",
+   "abstract": "BACKGROUND: Hypertrophic cardiomyopathy (HCM) is the most common inherited cardiomyopathy and poses major diagnostic and therapeutic challenges in Latin America, owing to heterogeneity in resource availability, access to advanced technologies, and the organization of health systems.\nOBJECTIVES: To develop the first Inter-American Consensus on HCM, in order to standardize the care of these patients tailored to the regional context.\nMETHODS: The Inter-American Society of Cardiology (SIAC) convened a committee of experts from different countries across the Americas. A systematic review of the evidence was performed, followed by the development of recommendations, which were validated using a formal Delphi methodology; consensus was defined as agreement among more than 80% of participants.\nRESULTS: The consensus provides a comprehensive approach to the evaluation and management of HCM. It covers epidemiology, pathophysiology, multimodality diagnostic tools, genetics and family counseling, phenocopies, pharmacological and invasive treatment, associated complications, sudden cardiac death risk assessment, special populations (pediatric and pregnant patients), physical exercise, and follow-up strategies. In addition, it includes specific recommendations aimed at facilitating the implementation of these across Latin America.\nCONCLUSIONS: The Inter-American Consensus on HCM provides recommendations for the diagnosis and treatment of this condition. It integrates the best available evidence with regional clinical experience and takes into account the epidemiological, economic, and healthcare characteristics of the region. It constitutes a reference framework for standardizing the care of patients with HCM and their families throughout Latin America.",
+   "journal": "Archivos de cardiologia de Mexico",
+   "journalAbbr": "Arch Cardiol Mex",
+   "year": "2026",
+   "authors": "Parodi JB i in.",
+   "authorCount": 57,
+   "authorList": [
+    "Parodi JB",
+    "Scatularo CE",
+    "Berríos-Bárcenas EA",
+    "León JDL",
+    "Arenaza DP",
+    "Gómez LE"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Consensus Statement",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42945536/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42942938",
+   "doi": "10.3390/nu18203368",
+   "title": "Comparative Effectiveness of Nutritional Strategies for Sarcopenia-Related Outcomes in Older Adults: A Systematic Review and Network Meta-Analysis.",
+   "abstract": "Objective: This study compared the relative effects of distinct nutritional strategies on muscle mass, muscle strength, and physical performance in older adults with sarcopenia or at high risk of sarcopenia. Methods: PubMed, Embase, the Cochrane Library, Web of Science, and CNKI were systematically searched for randomized controlled trials (RCTs). Random-effects pairwise meta-analysis and network meta-analysis (NMA) were performed. The surface under the cumulative ranking curve (SUCRA) was used to summarize relative rankings, and CINeMA was applied to assess the certainty of evidence. Results: Twenty RCTs involving 2160 participants were included, forming 17 network nodes. Nutritional interventions collectively improved appendicular skeletal muscle mass index (ASMI), grip strength, and gait speed, whereas the pooled effect on the five-times sit-to-stand test (5STS) was not statistically significant. In the NMA, whey protein + vitamin D + leucine improved ASMI (SMD = 0.29, 95% CI: 0.06 to 0.52) and grip strength (SMD = 0.82, 95% CI: 0.13 to 1.50), and it reduced 5STS completion time (SMD = -1.41, 95% CI: -2.63 to -0.18). Omega-3 fatty acids + leucine + Lactobacillus paracasei PS23 improved ASMI (SMD = 0.67, 95% CI: 0.10 to 1.25) and grip strength (SMD = 1.84, 95% CI: 0.39 to 3.28), although this node was supported by a single RCT. Leucine + vitamin D + medium-chain triglycerides improved gait speed (SMD = 1.28, 95% CI: 0.13 to 2.43), although this node was also supported by a single RCT. Sensitivity analyses indicated that the magnitude and precision of some formulation-specific estimates varied with the exclusion of individual trials or restriction to participants with confirmed sarcopenia. The certainty of evidence for the principal comparisons ranged from low to very low. Conclusions: Nutritional supplementation showed overall benefits for ASMI, grip strength, and gait speed, while formulation-specific effects varied across outcomes. Whey protein + vitamin D + leucine showed favorable effects across several outcomes, whereas omega-3 fatty acids + leucine + Lactobacillus paracasei PS23 and leucine + vitamin D + medium-chain triglycerides showed additional formulation-specific signals based on single-study nodes. Given the sparse network and very low certainty of evidence for the principal comparisons, these findings should be regarded as candidate signals rather than evidence of a definitive treatment hierarchy.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Zhang X i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Zhang X",
+    "Fan S",
+    "Zan J",
+    "Chen M",
+    "Chen X"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Network Meta-Analysis",
+    "Comparative Study",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42942938/",
+   "topics": [
+    "suplementy",
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42942021",
+   "doi": "10.3390/ijms27209251",
+   "title": "GLP-1 Receptor Agonist Therapy in Patients with Cancer: A Review of Clinical Outcomes.",
+   "abstract": "Glucagon-like peptide-1 receptor agonists (GLP-1 RAs) are increasingly used for the management of obesity and type 2 diabetes, including among patients with cancer. Although previous research has mainly focused on cancer incidence, their associations with clinical outcomes after cancer diagnosis remain less well characterized. Therefore, the present study aimed to evaluate the oncologic and survival outcomes associated with GLP-1 RA use in adults with an established malignancy. We performed a systematic review of comparative studies evaluating GLP-1 RA use in patients with a confirmed cancer diagnosis. PubMed, Scopus and Web of Science were searched for English-language publications from 1 January 2016 to 8 August 2026. Twenty-six retrospective cohort studies were included in the qualitative synthesis. Thirteen studies included selective GLP-1 RAs and tirzepatide within the same exposure group. Study quality was assessed using the Newcastle-Ottawa Scale. Twenty-five studies evaluated overall survival and/or all-cause mortality, while nine assessed cancer recurrence, progression, or related outcomes. Survival and mortality outcomes more often favored the exposed group (especially compared with nonuse) than not, but findings were less consistent in active-comparator analyses. Evidence for recurrence and progression was sparse and heterogeneous, and no clear signal of increased risk was observed. Because all of these were observational studies with substantial differences in populations, comparators, exposure definitions, and duration of follow-up, the survival associations do not imply causality or direct antitumor effects of GLP-1 RAs. Clinically, the preponderance of evidence does not support the use of GLP-1 RAs as cancer-directed therapy, and their use in patients with cancer should be guided by established indications such as obesity and type 2 diabetes. Potential explanations include effects on glycemic and cardiovascular risk factors, treatment selection, residual confounding, or combinations thereof. Prospective studies and randomized controlled trials with cancer-specific outcomes and longer follow-up are needed to further evaluate these associations.",
+   "journal": "International journal of molecular sciences",
+   "journalAbbr": "Int J Mol Sci",
+   "year": "2026",
+   "authors": "Andronescu AC i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Andronescu AC",
+    "Ciumărnean L",
+    "Orășan OH",
+    "Cozma A",
+    "Leah NV",
+    "Lucaciu RL"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42942021/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42930571",
+   "doi": "10.3390/medsci14060652",
+   "title": "Cutaneous Adverse Events Associated with Semaglutide, Liraglutide and Tirzepatide: A Systematic Review.",
+   "abstract": "BACKGROUND/OBJECTIVES: Incretin-based therapies, including glucagon like peptide-1 receptor agonists (GLP-1 RAs) and glucose-dependent insulinotropic polypeptide (GIP)/GLP-1 RAs, are increasingly prescribed for obesity, leading to greater recognition of associated dermatological adverse events (AEs). We aimed to characterize the spectrum, frequency, and clinical characteristics of cutaneous AEs reported with semaglutide, liraglutide and tirzepatide, focusing on these agents because of their established use in both weight management and diabetes mellitus.\nMETHODS: A systematic literature search was conducted in MEDLINE (via PubMed), Embase, and Web of Science. Search terms combined skin-related manifestations (e.g., skin, dermatologic, injection-site reactions, pruritus, rash, hypersensitivity, dysesthesia, vasculitis) with GLP-1 RA and GIP/GLP-1 RAs (semaglutide, tirzepatide, liraglutide). Clinical trials, observational studies, pharmacovigilance studies, and case reports reporting skin-related AEs associated with semaglutide, liraglutide and tirzepatide were included.\nRESULTS: One hundred and one studies were included (32 randomized controlled trials, 6 retrospective cohort/cross-sectional studies, 20 pharmacovigilance studies, and 43 case series/reports). Cutaneous AEs ranged from generally common but mild reactions to rare but potentially severe immune-mediated disorders. Injection-site reactions, including erythema, pruritus, and hemorrhage, were reported most frequently with tirzepatide (2-7%), then liraglutide, and less commonly with semaglutide, with evidence of dose dependence. Dysesthesia was most strongly associated with semaglutide, occurring in approximately 5% of patients at standard doses and up to 20% with high-dose formulations indicated for weight management, with events frequently occurring during dose escalation. Uncommon reactions reported in association with GLP-1 or GIP/GLP-1 RA use included angioedema, hypersensitivity reactions, autoimmune blistering diseases, drug eruptions, vasculitis, and severe cutaneous reactions.\nCONCLUSIONS: Although most cutaneous AEs associated with GLP-1 and GIP/GLP-1 RAs are mild and manageable, clinically relevant drug-specific differences exist. The recognition of common and uncommon skin manifestations may facilitate earlier diagnosis, support treatment adherence, and reduce the adverse outcomes.",
+   "journal": "Medical sciences (Basel, Switzerland)",
+   "journalAbbr": "Med Sci (Basel)",
+   "year": "2026",
+   "authors": "Gupta AK i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Gupta AK",
+    "Teasell EM",
+    "Magalhães RF",
+    "Mirmirani P",
+    "Piguet V"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42930571/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42929456",
+   "doi": "10.1002/ejsc.70279",
+   "title": "Effects of Whey Protein Supplementation on Muscle Damage, Hepatic Stress, and Inflammatory Markers in Power- and Endurance-Trained Athletes.",
+   "abstract": "This study investigated the effects of 8 weeks of whey protein supplementation (30 g/day) on biomarkers of liver function, inflammation, and muscle damage in trained power-trained (predominantly speed-power/anaerobic-power disciplines) and endurance-trained athletes, in a randomized, double-blind, placebo-controlled design. Fifty-nine male athletes were stratified into power (n = 30) and endurance (n = 29) groups, then randomly assigned to a whey protein group (WG) or a placebo control group (CG). Biomarkers assessed pre- and post-intervention included alanine aminotransferase (ALT), aspartate aminotransferase (AST), C-reactive protein (CRP), and creatine kinase (CK). Significant reductions in ALT, AST, and CK were observed in both endurance- and power-trained athletes after supplementation (p = 0.001, p = 0.015, p = 0.001, and p = 0.003 respectively), indicating attenuated hepatic and muscular stress. Among the four biomarkers, only ALT displayed a statistically significant three-way interaction (Time × Supplementation × Training modality; p = 0.003), identifying it as the sole marker showing a genuine modality-specific differential response to supplementation. A significant within-group reduction in CRP was additionally observed in the supplemented power-trained athletes (p = 0.039), whereas endurance athletes showed only minor, non-significant changes; because the omnibus three-way interaction for CRP was not significant, this finding is reported as a within-group trend rather than evidence of a differential effect between modalities. Placebo groups demonstrated stable or increased enzyme and CRP values, particularly in endurance athletes. These findings suggest that whey protein may attenuate exercise-induced hepatic and muscular stress across training modalities, with a modality-specific effect on hepatic stress markers (ALT) observed in power-trained athletes. The results highlight whey protein's potential as a nutritional aid to promote recovery and physiological adaptation, possibly mediated by antioxidant and anti-inflammatory mechanisms. Further studies are warranted to examine long-term outcomes and dose-response effects across different training profiles.",
+   "journal": "European journal of sport science",
+   "journalAbbr": "Eur J Sport Sci",
+   "year": "2026",
+   "authors": "Ben Mhamed M i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Ben Mhamed M",
+    "Landolsi M",
+    "M'rad M",
+    "Bahlous A",
+    "Zarrouk F",
+    "Trabelsi H"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42929456/",
+   "topics": [
+    "regeneracja",
+    "suplementy"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 4
+  },
+  {
+   "pmid": "42963769",
+   "doi": "10.1186/s12877-026-08061-x",
+   "title": "Effects of dairy product intake and home-based resistance exercise on the physical function in Japanese community-dwelling older adults: results of a real-world randomized controlled trial.",
+   "abstract": "PURPOSE: Although the combination of dairy product intake and resistance training has shown benefits for muscle health in older adults, most intervention studies have been conducted under highly controlled conditions, limiting their applicability to real-world settings.\nMETHODS: We conducted a 12-week pragmatic, open-label randomized controlled trial involving community-dwelling Japanese older adults. Fifty-four adults aged ≥ 65 years were assigned to either a dairy product intake plus home-based resistance training group (milk and exercise; ME) or a home-based resistance training only group (E). The dairy intervention targeted an increase equivalent to approximately 10-15 g of dairy-derived protein per day within habitual meals. Both groups were instructed to perform home-based resistance training at least three days per week. The physical function, including upper and lower limb strength, handgrip strength, gait speed, and body composition, was assessed before and after the intervention. Exploratory subgroup analyses were conducted according to baseline dairy consumption and skeletal muscle mass.\nRESULTS: Fifty-one participants (mean age, 78.2 ± 6.9 years; BMI, 22.9 ± 3.2 kg/m²) completed the study (retention rate: 94.4%). Adherence to milk supplement consumption was exceptionally high (median 7.00 times/week, IQR 7.00-7.00 times/week). The median frequencies of milk and dairy product intakes were 6.83 (IQR 5.60-7.00) and 6.83 (IQR 6.17-6.94) times/week, respectively. Resistance exercise adherence was comparable between the ME and E groups (3.13 [2.81-3.65] vs. 3.25 [2.71-3.96] times/week; p = 0.940). No significant differences were observed between the groups in terms of muscle strength, physical function, or body composition. However, some functional outcomes improved over time in both groups. In exploratory subgroup analyses, participants with lower habitual dairy consumption at baseline showed improvements in upper and lower limb strength only in the ME group.\nCONCLUSIONS: Adding modest dairy product intake to home-based resistance training did not provide additional overall benefits compared to exercise alone. However, exploratory findings suggest that baseline dairy consumption may influence the responsiveness of older adults to combined nutrition and exercise interventions.\nTRIAL REGISTRATION: Registration number UMIN000052127 Date of registration 2023/09/08 URL https://center6.umin.ac.jp/cgi-open-bin/ctr/ctr_view.cgi?recptno=R000059497.",
+   "journal": "BMC geriatrics",
+   "journalAbbr": "BMC Geriatr",
+   "year": "2026",
+   "authors": "Miyazaki R i in.",
+   "authorCount": 6,
+   "authorList": [
+    "Miyazaki R",
+    "Sakane N",
+    "Ando H",
+    "Ayabe M",
+    "Taniguchi H",
+    "Yamasaki M"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Pragmatic Clinical Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42963769/",
+   "topics": [
+    "hipertrofia",
+    "populacje",
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42961957",
+   "doi": "10.1371/journal.pone.0360473",
+   "title": "High-intensity interval versus moderate-intensity continuous freestyle swimming in obese college students: A randomized controlled study protocol examining glycolipid and vascular endothelial responses.",
+   "abstract": "BACKGROUND: Obesity among college students may be accompanied by early metabolic and endothelial abnormalities before overt cardiometabolic disease develops. Freestyle swimming combines whole-body energy expenditure with low weight-bearing load. This randomized controlled trial will compare high-intensity interval training (HIIT) and moderate-intensity continuous training (MICT) freestyle swimming and examine the relationships between changes in glycolipid markers and vascular endothelial markers.\nMETHODS: A total of 108 obese college students will be randomized in a 1:1:1 ratio to HIIT, MICT, or a usual-activity control group (36 participants per group). The exercise groups will complete supervised 30-min freestyle swimming sessions three times weekly for 6 months. Total cholesterol (TC) at 6 months, adjusted for baseline TC, will be the single primary outcome. Secondary glycolipid, endothelial, anthropometric, adherence, and safety outcomes will be assessed at baseline and at 2, 4, and 6 months. The primary comparison will use analysis of covariance under the intention-to-treat principle. Longitudinal mixed-effects models and multiple imputation sensitivity analyses will characterize outcome trajectories. Multivariable linear regression will examine the relationships between changes in individual glycolipid markers and changes in ET-1 and NO.\nDISCUSSION: This trial will clarify whether HIIT and MICT freestyle swimming differ in their effects on TC and other glycolipid and endothelial outcomes in obese college students and whether improvements in glycolipid markers are accompanied by changes in ET-1 and NO. The findings may inform safe and more precise exercise prescriptions for young adults with obesity.\nCLINICAL TRIAL REGISTRATION: The trial was prospectively registered in the Chinese Clinical Trial Registry (ChiCTR2600121931) on April 7, 2026.",
+   "journal": "PloS one",
+   "journalAbbr": "PLoS One",
+   "year": "2026",
+   "authors": "Yang M i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Yang M",
+    "Wang J",
+    "Su X",
+    "Xiang H",
+    "Hou Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42961957/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42958207",
+   "doi": "10.1186/s12889-026-28797-w",
+   "title": "Development, implementation, and evaluation of a belief-targeted non-face-to-face leisure-time physical activity promotion program for South Korean University students.",
+   "abstract": "BACKGROUND: Despite a sharp decline in physical activity levels among university students since the COVID-19 pandemic, physical activity programs for this population remain limited. Our previous research examined key beliefs influencing physical activity behavior among university students at a Korean university during the COVID-19 pandemic. Accordingly, this study aimed to develop, implement, and evaluate a non-face-to-face leisure-time physical activity (NFTF-LTPA) promotion program for university students, focusing on three beliefs-health, friends, and laziness-identified as key determinants of physical activity behavior in our previous study.\nMETHODS: Undergraduate students were newly recruited from the same university and departments (i.e., the College of Social Sciences and the School of Business) as our prior study. Participants were stratified and randomly assigned to intervention or control groups and a belief-targeted intervention was implemented for three months. Process evaluations were conducted at mid-, and post-intervention, and outcomes were assessed at pre-, mid-, and post-intervention. A one-month follow-up survey was also conducted after the intervention ended. A 2 × 4 repeated measures generalized linear model was conducted and subgroup analyses examined participants with high intervention adherence (PHIA) compared with controls.\nRESULTS: Among the total analytic sample, significant group × time interaction effects at the α = 0.10 level were observed for outcome evaluation of behavioral beliefs (F = 2.70; p = 0.072; [Formula: see text]= 0.05) and motivation to comply with normative beliefs (F = 2.54; p = 0.085; [Formula: see text]= 0.05). However, no significant group × time interaction effects were observed for control beliefs, intention, or LTPA participation. In an exploratory subgroup analysis, a significant group × time interaction effect was observed for the control belief of laziness (F = 3.85; p = 0.031; [Formula: see text] = 0.18). Post hoc analyses indicated lower perceived laziness at the program midpoint in the PHIA group compared with the control group.\nCONCLUSIONS: Although the intervention produced changes in selected belief components among the total analytic sample, these changes did not translate into significant improvements in intention or behavior. Exploratory subgroup analyses suggested potential changes in control beliefs among participants with higher intervention adherence. These findings provide preliminary insights into the development, implementation, and evaluation of belief-targeted NFTF-LTPA promotion programs for university students.\nTRIAL REGISTRATION: The trial was retrospectively registered at ClinicalTrials.gov (Identifier: NCT07423403; 19 February 2026).",
+   "journal": "BMC public health",
+   "journalAbbr": "BMC Public Health",
+   "year": "2026",
+   "authors": "Kwon J i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Kwon J",
+    "Kang JH",
+    "Lee CG"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42958207/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42953921",
+   "doi": "10.2196/104711",
+   "title": "A Behavior Change Technique-Based Text Messaging Intervention for Obesity Among Employed Adult Men Younger Than 40 Years: Pilot Randomized Controlled Trial.",
+   "abstract": "BACKGROUND: In Japan, employed men younger than 40 years are not eligible for specific health guidance, and evidence regarding obesity interventions targeting this population is limited. Furthermore, due to the shortage of human resources in occupational health settings, a need has arisen for simple and implementable support methods. Support via SMS text message is expected to be a low-cost and scalable method for health guidance; however, its effectiveness in this target population has not been sufficiently evaluated.\nOBJECTIVE: This pilot randomized controlled trial aimed to assessed the feasibility, acceptability, and preliminary effectiveness of an SMS text messaging intervention among employed men younger than 40 years with obesity (BMI ≥25 kg/m²).\nMETHODS: An unblinded randomized controlled trial was conducted with 35 participants (intervention group, n=17; control group, n=18). The intervention group received one-way SMS text messaging based on behavior change techniques targeting diet and physical activity, delivered 3 times per week for 12 weeks (36 messages total). The control group received a pamphlet and a self-monitoring record sheet at baseline. The primary outcome was the proportion achieving ≥3% weight loss. Secondary outcomes included BMI, waist circumference, and psychological and behavioral measures. Feasibility and acceptability were also assessed.\nRESULTS: The proportion achieving ≥3% weight loss was 23.5% (4/17) in the intervention group and 5.6% (1/18) in the control group (P=.18; odds ratio 5.23). Waist circumference significantly decreased in the intervention group compared to baseline (t16=2.71, P=.02), whereas no significant between-group differences were observed in weight, BMI, or psychological measures. The SMS delivery rate was 95.5%, with a total cost of JP¥ 15,264 over 12 weeks. The follow-up rate was 100%, and the ratings for satisfaction, utilization, and willingness to recommend were 3.5, 2.8, and 3.0 out of 5, respectively.\nCONCLUSIONS: The findings support the feasibility and acceptability of an SMS text messaging intervention for health guidance among employed men younger than 40 years with obesity, although evidence of its effectiveness remains preliminary. Further research with larger samples is needed to evaluate its effectiveness and optimize the intervention.",
+   "journal": "JMIR formative research",
+   "journalAbbr": "JMIR Form Res",
+   "year": "2026",
+   "authors": "Tomotake C i in.",
+   "authorCount": 2,
+   "authorList": [
+    "Tomotake C",
+    "Ohyama Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42953921/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42952831",
+   "doi": "10.3389/fpubh.2026.1960282",
+   "title": "Effects of exercise snacks combining resistance training and Wuqinxi on older adults with possible sarcopenia in nursing homes: protocol for a randomized controlled trial.",
+   "abstract": "AIMS: To evaluate the effectiveness and feasibility of a Fogg Behaviour Model-based exercise-snack intervention combining resistance training and Wuqinxi for improving physical function among older adults with possible sarcopenia living in nursing homes.\nDESIGN: This study is a single-centre, assessor-blinded, two-arm randomised controlled trial protocol.\nMETHODS: Older adults with possible sarcopenia will be recruited from a nursing home in Changchun, China, and randomly allocated in a 1:1 ratio to either a 12-week exercise-snack intervention group or a wait-list control group. Guided by the Fogg Behaviour Model, the intervention combines resistance training and Wuqinxi delivered through short, repeated bouts of exercise to enhance exercise motivation, ability and adherence. Outcome assessments will be conducted at baseline and at weeks 4, 8 and 12. The primary outcome is physical function measured using the Short Physical Performance Battery. Secondary outcomes include upper- and lower-limb muscle strength, dynamic and static balance ability, cognitive function, exercise adherence and adverse events. Data will be analysed using linear mixed-effects models, with group, time and the group × time interaction included as fixed effects and participant-specific random intercepts.\nRESULTS: Participant recruitment and data collection are ongoing. Study findings will be disseminated following completion of the trial and final analyses.\nCONCLUSION: This trial will provide evidence regarding the feasibility, safety and effectiveness of a Fogg Behaviour Model-based exercise-snack intervention for improving physical function among older adults with possible sarcopenia in nursing homes.\nTRIAL REGISTRATION: Chinese Clinical Trial Registry (ChiCTR2600126344).",
+   "journal": "Frontiers in public health",
+   "journalAbbr": "Front Public Health",
+   "year": "2026",
+   "authors": "Wang J i in.",
+   "authorCount": 7,
+   "authorList": [
+    "Wang J",
+    "Ji T",
+    "Dong X",
+    "Shao X",
+    "Zhang Y",
+    "Wang Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42952831/",
+   "topics": [
+    "hipertrofia",
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42950242",
+   "doi": "10.2196/88832",
+   "title": "Neck-Specific Exercises With Internet Support Versus Standard Neck-Specific Exercise for the Treatment of Chronic Whiplash-Associated Disorders: Cost-Effectiveness Analysis.",
+   "abstract": "BACKGROUND: There is currently scarce information about the cost-effectiveness of interventions for individuals with chronic whiplash-associated disorders (WAD) or of internet-based exercise programs for neck pain, including WAD.\nOBJECTIVE: This study aimed to investigate the cost-effectiveness of a 3-month neck-specific exercise program with internet support in combination with 4 physiotherapy visits (neck-specific exercise with internet support [NSEIT]) compared with the same exercises performed twice a week (24 times) at a physiotherapy clinic (neck-specific exercise [NSE]) for individuals with chronic WAD.\nMETHODS: This was a prospective, multicenter, randomized controlled trial of the cost-effectiveness of the interventions among 140 individuals with chronic moderate to severe WAD with 3- and 15-month follow-up. The main outcome was the incremental cost-effectiveness ratio (ICER).\nRESULTS: At the 15-month follow-up, the total costs calculated for NSEIT and NSE were SEK 12,882 (95% CI 17,406.30-8358.42) and SEK 40,087 (95% CI 51,764.32-28,410.96), respectively (SEK 1=US $0.10 as of October 6, 2026). The health-related quality of life (HRQoL) score at 15 months was 0.662 (95% CI 0.73-0.59) and 0.711 (95% CI 0.77-0.65) for NSEIT and NSE, respectively. The ICER for HRQoL was SEK 555,209.80 per point when the NSEIT group was compared with NSE. The internet-based intervention was less costly and less effective than NSE at the 15-month follow-up. The cost-effectiveness acceptability curve showed that at a willingness to pay threshold of SEK 500,000 per point, there was a moderate probability (0.57) of the intervention being cost-effective with a loss of HRQoL. One-way sensitivity analysis showed that the health care costs of individuals receiving NSE and NSEIT affected the ICER.\nCONCLUSIONS: NSEIT intervention-an eHealth intervention for chronic WAD-was less costly and less effective compared with NSE. Health care costs associated with both interventions affected the ICER; therefore, patients' overall well-being should also be considered when treating chronic WAD. Even though the cost effectiveness acceptability curve showed that the cost savings from NSEIT outweighed the lost health outcomes, the reliability of the findings was limited by the exclusion of presenteeism costs, patients' self-reported health care use, and the small difference in health outcomes.\nTRIAL REGISTRATION: ClinicalTrials.gov NCT03022812; https://clinicaltrials.gov/study/NCT03022812.",
+   "journal": "Journal of medical Internet research",
+   "journalAbbr": "J Med Internet Res",
+   "year": "2026",
+   "authors": "Kshirsagar SN i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Kshirsagar SN",
+    "Peolsson A",
+    "Peterson G",
+    "Dalal K"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Multicenter Study"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42950242/",
+   "topics": [
+    "prehab"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42945193",
+   "doi": "10.1371/journal.pone.0360292",
+   "title": "Bridging the gap: Implementing BRIDGES (Brussels Resilience and Inclusion for Depression - Guidance, Exercise and Support) to shape adolescent outpatient mental health care. A pilot randomized controlled study protocol.",
+   "abstract": "INTRODUCTION: Physical activity interventions for adolescents with depression often show limited effectiveness due to insufficient developmental tailoring, limited autonomy support, and poor contextual feasibility. BRIDGES (Brussels Resilience and Inclusion for Depression - Guidance, Exercise, and Support) is a theory-informed and co-designed physical activity intervention integrating the COM-B model, self-determination theory and motivational interviewing to support autonomous and competence-enhancing engagement. This pilot randomized controlled trial uses a hybrid type 2 implementation-effectiveness design to examine feasibility, acceptability, implementation processes and obtain preliminary estimates of clinical effectiveness to inform a future larger-scale trial.\nMETHODS AND ANALYSIS: Sixty physically inactive adolescents aged 12-19 years with depression will be recruited from an outpatient mental health service in Brussels, Belgium. Participants will be randomized in waves using covariate-adaptive minimization with a biased-coin component (p=0.85), balancing baseline depression severity, physical activity level, gender and age. The intervention consists of 18 individualized physiotherapist-led counselling sessions delivered over 12 weeks, including structured support to facilitate transition to community-based physical activity. Primary feasibility, acceptability, implementation outcomes will be assessed using quantitative measures and semi-structured interviews with adolescents, caregivers and community partners, guided by the Practical, Robust Implementation and Sustainability Model (PRISM) and the Reach, Effectiveness, Adoption, Implementation and Maintenance (RE-AIM) framework. Preliminary effectiveness outcomes are changes in physical activity measured using the Physical Activity Vital Sign (PAVS) and depressive symptoms measured using the Patient Health Questionnaire-9 modified for Adolescents (PHQ-A). Preliminary effectiveness will be analysed using linear mixed-effects models following an intention-to-treat approach to estimate cluster-level parameters for a future fully powered Hybrid Type 2 trial. Secondary outcomes include social support, exercise self-efficacy, cardiorespiratory fitness and waist-to-height ratio. Qualitative data will be analysed using the Qualitative Analysis Guide of Leuven.\nTRIAL REGISTRATION: ClinicalTrials.gov NCT07422909.",
+   "journal": "PloS one",
+   "journalAbbr": "PLoS One",
+   "year": "2026",
+   "authors": "Philippot A i in.",
+   "authorCount": 11,
+   "authorList": [
+    "Philippot A",
+    "Ibanez I",
+    "Coppens M",
+    "Eeckhout C",
+    "Cescutti C",
+    "Beine A"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42945193/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42942946",
+   "doi": "10.3390/nu18203375",
+   "title": "Effects of Oral L-Arginine on Everyday Persistent Fatigue, Sleep, and Post-Exercise Lactate Recovery in Community-Dwelling Working-Age Adults: A Double-Blind, Placebo-Controlled Randomized Trial.",
+   "abstract": "BACKGROUND/OBJECTIVES: The evidence for nutritional interventions against fatigue is limited; we evaluated whether L-arginine reduces fatigue in working-age adults.\nMETHODS: In this 8-week randomized, double-blind, placebo-controlled trial, 120 community-dwelling working-age adults aged 30-59 years with persistent fatigue (Fatigue Severity Scale [FSS] total ≥ 27) received oral L-arginine 3 g/day, 6 g/day, or placebo. The primary endpoint was FSS change; secondary endpoints included the Checklist Individual Strength (CIS), Pittsburgh Sleep Quality Index (PSQI), and blood lactate kinetics during a standardized submaximal treadmill run (~70% VO2max, 30 min). Data from 119 participants were analyzed, with Holm adjustment for multiplicity.\nRESULTS: At Week 8, FSS decreased more with 6 g/day than with placebo (-6.41 vs. -2.23; Holm-adjusted p = 0.024), whereas 3 g/day did not differ from placebo. The 6 g/day CIS improvement did not survive multiplicity adjustment. PSQI scores improved nominally at both doses (3 g/day, p = 0.007; 6 g/day, p = 0.045). With 6 g/day, the total lactate area under the curve (Holm-adjusted p = 0.041) and 15-min recovery lactate (Holm-adjusted p = 0.002) were lower than with the placebo, whereas the resting plasma nitrite did not differ. No serious adverse events occurred.\nCONCLUSIONS: L-arginine supplementation at 6 g/day for 8 weeks reduced fatigue severity relative to placebo and was well-tolerated; however, mean FSS scores remained above the enrollment threshold, indicating a reduction in, rather than resolution of, persistent fatigue.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Kang EB i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Kang EB",
+    "Hong SB",
+    "Yoon N",
+    "Lee N",
+    "Kim B"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42942946/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42942929",
+   "doi": "10.3390/nu18203358",
+   "title": "Effects of Yeast Protein-Whey Protein Composite Supplementation on Recovery from Exercise-Induced Muscle Damage in Well-Trained Athletes: A Randomized Controlled Trial.",
+   "abstract": "Objectives: Exercise-induced muscle damage (EIMD) can impair muscle function and subsequent athletic performance. This study examined whether an isonitrogenous yeast protein-whey protein composite (YP) modifies recovery from EIMD compared with whey protein (WP) and a water-only control (C) in well-trained athletes. Methods: In this prospective, randomized, three-arm trial, 54 athletes were allocated to YP, WP, or C; 48 completed all follow-up procedures. YP and WP provided 0.9 g·kg-1·day-1 of actual protein, whereas C received water only and was not energy or sensory matched to the protein interventions. After 7 days of supplementation, participants completed a bilateral isokinetic EIMD protocol; supplementation continued through the 48 h assessment. Outcomes were assessed before EIMD, immediately afterward, and at 24, 48, and 72 h and were organized into muscle damage and soreness, inflammatory responses, and muscle function and performance. Female and male athletes were analyzed separately using linear mixed-effects models with multiplicity-adjusted contrasts. The study was not powered to formally compare intervention effects between sexes. Results: EIMD produced time-dependent biochemical, perceptual, and functional changes. Holm-adjusted comparisons showed lower CK in YP than C at 24 h in females and 48 h in males. The female 24 h CK finding was considered exploratory because the corresponding group × time interaction did not remain significant after damage-domain BH-FDR correction; the immediate male YP-C difference was significant only in the log-scale analysis. In males, YP was associated with lower soreness averaged across assessments and a lower immediate post-EIMD IL-6 value than C. Selected male CMJ comparisons favored YP but were exploratory after broader multiplicity correction. Acute-decline analyses showed smaller losses with YP in bilateral MVC and right-leg eccentric peak torque in males; only the right-leg eccentric YP-C comparison remained significant after BH-FDR correction. Conclusions: Compared with water alone, YP favorably influenced selected biochemical, perceptual, and muscle-function responses following EIMD, with the clearest pattern observed in the male analysis. Its overall response pattern was broadly aligned with WP, supporting the recovery-related potential and practical value of incorporating yeast-derived protein into a whey-based formulation.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Xu C i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Xu C",
+    "Gong L",
+    "Ni Z",
+    "Wang X"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42942929/",
+   "topics": [
+    "regeneracja",
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42937737",
+   "doi": "10.1097/MD.0000000000050944",
+   "title": "Effects of grip strengthening combined with scapular stabilization exercise on shoulder muscle strength and functional outcomes in individuals with subacromial pain syndrome: A randomized controlled trial.",
+   "abstract": "BACKGROUND: Subacromial pain syndrome (SAPS) is one of the most common causes of shoulder pain and is frequently associated with rotator cuff dysfunction. Recent evidence suggests a close relationship between hand grip strength and rotator cuff muscle function, indicating that grip-strengthening exercises may enhance shoulder rehabilitation outcomes. To investigate the effects of grip strengthening combined with scapular stabilization exercise on shoulder muscle strength, grip strength, and functional outcomes in individuals with SAPS.\nMETHODS: Thirty-six individuals with SAPS were randomly assigned to an experimental group (scapular stabilization exercise combined with grip strengthening; n = 18) or a control group (scapular stabilization exercise alone; n = 18). Both groups participated in exercise sessions 3 times per week for 4 weeks. Shoulder muscle strength, grip strength, and functional outcomes using the Shoulder Pain and Disability Index were assessed before and after the intervention.\nRESULTS: Both groups showed significant improvements in shoulder muscle strength, grip strength, and Shoulder Pain and Disability Index scores (P < .001). Significant Time × Group interaction effects were observed for all outcome measures (P < .001), indicating greater improvements in the experimental group.\nCONCLUSIONS: Grip strengthening combined with scapular stabilization exercise may provide additional benefits for improving shoulder muscle strength, grip strength, and functional outcomes in individuals with SAPS.",
+   "journal": "Medicine",
+   "journalAbbr": "Medicine (Baltimore)",
+   "year": "2026",
+   "authors": "Lee JH i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Lee JH",
+    "Chung E",
+    "Lee BH"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42937737/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42932910",
+   "doi": "10.1152/ajprenal.00079.2026",
+   "title": "Skeletal muscle adaptation to home-based exercise in chronic kidney disease.",
+   "abstract": "Chronic kidney disease (CKD) is commonly associated with decreased physical activity and skeletal muscle dysfunction. It has previously been shown that skeletal muscle fibrosis, impaired regeneration, and decreased vascularization occur in CKD. Independently, exercise can lead to increased muscle fiber size, satellite cells, capillary density, collagen synthesis, and extracellular matrix (ECM) remodeling. To determine the impact of exercise within a CKD population on muscle tissue properties, muscle tissue was examined before and after an exercise program. Twenty-five patients (19 exercisers and 6 usual care) with stages 3-5 CKD underwent a randomized controlled trial of a 12-wk home-based, personalized exercise program consisting of high-intensity interval training, power walking, and strength training versus usual care. Patients had a vastus lateralis muscle biopsy before and after interventions to assess muscle changes. Patients in the exercise cohort did not have significant changes in fiber size, fiber type, or number of satellite cells. Although there were no changes in measures of fibrosis (collagen content or ECM area), fibroadipogenic progenitors decreased with exercise, suggesting that there may be reduced accumulation of fibrosis in the future. There were parallel increases in muscle capillarization, increased in vivo muscle oxidative capacity, and a trending increase in walking distance, showing patients responded to exercise. This highlights that muscle in patients with CKD responded to an endurance-focused, home-based exercise program.NEW & NOTEWORTHY This study investigates the impact of a home-based, video-monitored 12-wk exercise program, consisting of both endurance and resistance exercise, on skeletal muscle structural remodeling in persons with chronic kidney disease. We found this program increased capillaries and decreased fibroadipogenic progenitors after exercise.",
+   "journal": "American journal of physiology. Renal physiology",
+   "journalAbbr": "Am J Physiol Renal Physiol",
+   "year": "2026",
+   "authors": "Brashear SE i in.",
+   "authorCount": 14,
+   "authorList": [
+    "Brashear SE",
+    "Mohamed Sulthan A",
+    "Chan D",
+    "Rao V",
+    "Begue G",
+    "Ahmadi A"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42932910/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 3
+  },
+  {
+   "pmid": "42963492",
+   "doi": "10.1007/s11154-026-10099-6",
+   "title": "Cultural adaptation of nutritional recommendations in the comprehensive care of adults with type 2 diabetes: An updated transcultural diabetes nutrition algorithm (tDNA) framework.",
+   "abstract": "BACKGROUND: The transcultural Diabetes Nutrition Algorithm (tDNA) applies medical nutrition therapy (MNT) for adults with type 2 diabetes (T2D) by aligning evidence-based dietary principles with cultural food patterns, clinical workflows, and health-system realities.\nOBJECTIVE: To review the evidence underpinning the tDNA framework, describe its role in culturally adapting MNT across current treatment contexts, and identify priorities for research, education, and implementation.\nMETHODS: Sources include concept and framework papers, regional adaptations, randomized and pragmatic evaluations of tDNA-aligned programs, clinician toolkit assessments, and practice statements. Evidence was abstracted around tDNA decision nodes: risk stratification, carbohydrate quality and distribution, portion guidance, meal timing, physical activity prompts, use of diabetes-specific formulas (DSFs) as a meal replacement or supplement when indicated, and digitally enabled monitoring.\nRESULTS: Regional tDNA adaptations for Asian Indian, Malaysian, Canadian, Middle Eastern, Brazilian and Venezuelan settings are expert consensus documents specifying culturally appropriate modifications. A published randomized controlled trial reports that calorie-prescribed, glycemic index/load-guided tDNA integrating DSFs and augmented by structured behavior counseling improves glycemic control and body weight over 6 to 12 months, with gains in eating self-efficacy supporting adherence. We propose that MNT as a co-therapy be aligned to dosing when pharmacotherapy is initiated. For the highly effective glucagon-like peptide-1 receptor agonists (GLP-1 RAs) and sodium-glucose cotransporter-2 (SGLT2) inhibitors, culturally adapted standardized nutrition checkpoints are proposed to support nutritional adequacy. Whether structured nutrition therapy using DSFs preserves lean mass in this setting is an area for further research.\nCONCLUSIONS: The tDNA framework offers a structure for culturally adapted nutrition care in T2D. We propose its extension to current pharmacotherapy and digitally enabled delivery; these extensions require prospective evaluation. Recommendations include early localization, integration with drug titration, structured nutrition support where indicated, standardized nutrition checkpoints, digitized implementation, and audit of remission, time in range, weight, and adherence.",
+   "journal": "Reviews in endocrine & metabolic disorders",
+   "journalAbbr": "Rev Endocr Metab Disord",
+   "year": "2026",
+   "authors": "Hegazi RA i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Hegazi RA",
+    "Hamdy O",
+    "Mechanick JI"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42963492/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 1
+  },
+  {
+   "pmid": "42923013",
+   "doi": "10.1590/S2237-96222026v35e20250602.en",
+   "title": "Integrative and complementary practices in diabetes management: a rapid review of clinical guidelines.",
+   "abstract": "OBJECTIVE: To map clinical guidelines that used the Grading of Recommendations, Assessment, Development and Evaluation (GRADE) system to make recommendations on integrative and complementary health practices (ICHP) in diabetes management.\nMETHODS: The search was conducted in Medline/PubMed, Embase, and Scopus on 24 October 2024, with no date limits. Guidelines that applied the GRADE system were included. Title and abstract screening was duplicated and performed independently. One reviewer conducted full-text reading and data extraction, and another performed verification. Methodological quality was assessed using the Appraisal of Guidelines for Research and Evaluation II (AGREE II) instrument, specifically the rigor of the development domain. A narrative synthesis was organized by outcome.\nRESULTS: Of the seven guidelines included, five showed high methodological confidence, one moderate, and one low. Recommendations were favorable for psychological support, self-care education, foot- and ankle-focused exercises, low-impact exercises, mindfulness, Ayurveda, and essential oils as additional supports; they were unfavorable for apitherapy and ozone therapy. Heterogeneity in outcomes and variation in the consistency of recommendations were observed.\nCONCLUSION: There are insufficient guidelines on ICHP in diabetes management, with methodological variability and inconsistent recommendations. New guidelines, with greater rigor and transparency, may support decision-making regarding the incorporation of ICHP into the Brazilian Unified Health System (Sistema Único de Saúde, SUS). Among the practices assessed, exercise, mindfulness, and self-care showed stronger evidence and may be prioritized in primary care for diabetes management.",
+   "journal": "Epidemiologia e servicos de saude : revista do Sistema Unico de Saude do Brasil",
+   "journalAbbr": "Epidemiol Serv Saude",
+   "year": "2026",
+   "authors": "Silva MT i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Silva MT",
+    "Amado DM",
+    "Rocha PRS",
+    "Barreto JOM"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42923013/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 1
+  },
+  {
+   "pmid": "42899457",
+   "doi": "10.1080/09638288.2026.2749683",
+   "title": "Physical activity guidelines' impact on cognition in multiple sclerosis: a systematic review and meta-analysis of randomized clinical trials.",
+   "abstract": "PURPOSE: This systematic review and meta-analysis aimed to determine the effects of meeting physical activity guidelines for people with multiple sclerosis (PAG-MS) on cognition in people with multiple sclerosis (MS). Meeting PAG-MS has shown to elicit numerous health benefits in people with MS; minimal work has examined the influence of PAG-MS on cognition.\nMATERIALS AND METHODS: A systematic search was conducted in PubMed, EMBASE, Web of Science, SPORTDiscuss, Scopus, and PsycINFO. Two independent reviewers assessed included studies for eligibility, extracted data, and evaluated risk of bias. Randomized controlled trials (RCTs) including physical activity that met PAG-MS and assessed cognition were included.\nRESULTS: Twelve randomized controlled trials met the inclusion criteria with 462 total participants. Eleven studies showed improvement in at least one aspect of cognition. Meta-analyses indicated meeting PAG-MS significantly improved processing speed (SMD = 0.29; 95% CI 0.08-0.51; p = 0.008), visuospatial memory (SMD = 0.47; 95% CI 0.14-0.80; p = 0.005), and verbal memory (SMD = 0.75; 95% CI 0.27-1.23; p = 0.002).\nCONCLUSION: Meta-analyses indicated meeting PAG-MS significantly improved processing speed and memory. The findings were based on a limited number of studies with a high risk of bias and more RCTs that meet PAG-MS and examine cognition are needed.",
+   "journal": "Disability and rehabilitation",
+   "journalAbbr": "Disabil Rehabil",
+   "year": "2026",
+   "authors": "Murphy T i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Murphy T",
+    "Lauinger A",
+    "Peters J",
+    "Truong E",
+    "Abou L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42899457/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 1
+  },
+  {
+   "pmid": "42947315",
+   "doi": "10.1177/03000605261497564",
+   "title": "Development and external validation of an interpretable machine learning model for predicting 4-year incident frailty in middle-aged and older adults with arthritis: A retrospective longitudinal study based on the CHARLS and KLoSA cohorts.",
+   "abstract": "ObjectiveBased on retrospective longitudinal data from the China Health and Retirement Longitudinal Study (CHARLS) and Korean Longitudinal Study of Ageing (KLoSA) cohorts, we developed and externally validated an interpretable machine learning model to predict 4-year incident frailty in middle-aged and older adults with arthritis.MethodsModel development was performed using the CHARLS cohort (n = 2126) and included participants aged ≥45 years who had been diagnosed with arthritis and were nonfrail at their initial survey. New-onset frailty was tracked over a 4-year interval. Thirty-one candidate predictors were identified through a literature review, none of which overlapped with the deficits constituting the frailty index. Ten core features, including age, marital status, left- and right-hand grip strength, number of painful sites, knee pain, leg pain, back pain, number of hospitalizations, and antirheumatic medication use, were selected via combined least absolute shrinkage and selection operator-Boruta feature selection. Six algorithms were compared based on their area under the curves in the internal validation dataset, specificity, sensitivity, and other clinical applicability metrics. Tenfold cross-validation was employed. The selected model was frozen and transported to KLoSA without refitting. A prespecified recalibration-in-the-large was applied to account for the lower baseline frailty incidence in the Korean cohort. Model interpretability was achieved with SHapley Additive exPlanations global and local analyses, and an online calculator was developed.ResultsLogistic regression was selected as the final model because it achieved competitive discrimination with the least shrinkage between training and validation sets. Its discriminative ability, measured as the area under the receiver operating characteristic curve, was 0.764 (95% confidence interval: 0.707-0.816) internally and remained at 0.747 (95% confidence interval: 0.701-0.793) when the model was transported to KLoSA. Performance was stable across 10-fold cross-validation (mean, 0.772 ± 0.046). Discrimination was well preserved, although a prespecified recalibration-in-the-large was required to correct for the lower baseline frailty incidence in the Korean cohort (Brier score 0.205→0.065). In the SHapley Additive exPlanations ranking, the number of painful sites, antirheumatic medication use, leg pain, age, and grip strength contributed the most. Once a user enters the 10 easily collected variables, the calculator reports that person's probability of becoming frail within 4 years. In post hoc analyses, pain burden and low grip strength emerged as two independent risk dimensions. High pain burden remained associated with falls (adjusted odds ratio = 1.60) and hospitalization (1.66) even at a given level of frailty, whereas low grip strength and medication use were associated with an increased frailty risk without a corresponding excess of events.ConclusionsThis explainable machine learning model, developed using data from Chinese middle-aged and older patients with arthritis and externally validated in a KLoSA cohort, combines acceptable predictive accuracy with cross-population robustness. The tool estimates an individualized 4-year frailty risk probability using 10 routinely available indicators. Given the observational nature of both cohorts, this model should be viewed as a candidate risk stratification aid rather than a validated clinical tool. Formal impact evaluation through prospective validation is necessary before the model can be recommended for use in community settings.",
+   "journal": "The Journal of international medical research",
+   "journalAbbr": "J Int Med Res",
+   "year": "2026",
+   "authors": "Xu X i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Xu X",
+    "Cesar N",
+    "Ntawuyamara E",
+    "Su SH"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Validation Study"
+   ],
+   "evidence": "other",
+   "evidenceLabel": "Inne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42947315/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-02T11:47:32.327Z",
+   "score": 0
+  },
   {
    "pmid": "42908119",
    "doi": "10.1080/15502783.2026.2731524",
