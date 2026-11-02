@@ -1725,7 +1725,7 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   }
   .report-page{box-shadow:none!important;margin:0!important;}
   .plan-pdf{max-width:none!important;padding:12mm 10mm 14mm!important;}
-  .plan-pdf-day{break-inside:avoid;page-break-inside:avoid;}
+  .plan-pdf-day{break-inside:auto;}
 }
 
 /* PDF planu treningowego — wzór: czerwień Progress, granat, różowe komórki tygodni */
@@ -1840,6 +1840,116 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 @media (max-width:720px){
   .plan-pdf-kpis,.plan-pdf-cols{grid-template-columns:1fr 1fr;}
 }
+/* Plan dla klienta 2.0: jeden tydzień na ekranie (duże cyfry, karty), cały cykl w tabeli do druku */
+.plan-pdf-weeknav{
+  position:sticky;top:0;z-index:3;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+  margin:0 -28px 12px;padding:10px 28px;background:rgba(255,255,255,0.96);
+  border-bottom:1px solid var(--pdf-line);backdrop-filter:blur(6px);
+}
+.plan-pdf-weeknav::-webkit-scrollbar{display:none;}
+.plan-pdf-wtab{
+  flex:0 0 auto;min-width:64px;min-height:48px;padding:6px 10px;border-radius:10px;cursor:pointer;
+  border:1px solid #dce6f1;background:#fff;color:var(--pdf-navy);text-align:left;font:inherit;
+}
+.plan-pdf-wtab b{display:block;font-size:17px;font-weight:800;line-height:1.1;}
+.plan-pdf-wtab span{display:block;font-size:10.5px;color:var(--pdf-muted);white-space:nowrap;margin-top:2px;}
+.plan-pdf-wtab.is-deload{border-style:dashed;border-color:var(--success,#067647);}
+.plan-pdf-wtab.is-on{background:var(--accent,var(--pdf-red));border-color:var(--accent,var(--pdf-red));color:var(--on-accent,#fff);}
+.plan-pdf-wtab.is-on span{color:inherit;opacity:0.9;}
+.plan-pdf-daynav{display:none;gap:6px;margin:0 0 14px;}
+.plan-pdf-dtab{
+  flex:1;min-height:48px;padding:6px 10px;border-radius:10px;cursor:pointer;font:inherit;font-weight:800;font-size:15px;
+  border:1px solid #dce6f1;background:#fff;color:var(--pdf-navy);
+}
+.plan-pdf-dtab span{display:block;font-size:11px;font-weight:500;color:var(--pdf-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.plan-pdf-dtab.is-on{background:var(--pdf-navy);border-color:var(--pdf-navy);color:#fff;}
+.plan-pdf-dtab.is-on span{color:rgba(255,255,255,0.75);}
+.plan-pdf-day-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.plan-pdf-day-wk{font-family:Inter,system-ui,sans-serif;font-size:12px;letter-spacing:0;color:rgba(255,255,255,0.75);white-space:nowrap;}
+.plan-pdf-day-wk b{color:#fff;}
+.plan-pdf-cards{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;
+  border:1px solid var(--pdf-line);border-top:none;border-radius:0 0 10px 10px;background:#f7f9fc;
+}
+.plan-pdf-card{background:#fff;border:1px solid #dce6f1;border-radius:12px;padding:14px 16px 6px;}
+.plan-pdf-card.is-pri{border-left:4px solid var(--accent,var(--pdf-red));}
+.plan-pdf-card-top{display:flex;gap:10px;align-items:flex-start;}
+.plan-pdf-num{
+  flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#eef3f9;color:var(--pdf-navy);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;margin-top:1px;
+}
+.plan-pdf-card .plan-pdf-ex-name{font-size:16px;line-height:1.3;}
+.plan-pdf-card .plan-pdf-pri{margin-bottom:5px;font-size:9px;padding:2px 8px;}
+.plan-pdf-hint{font-size:13px;color:#4b5563;line-height:1.4;margin-top:3px;}
+.plan-pdf-dose{display:none;align-items:center;flex-wrap:wrap;gap:6px 14px;margin:12px 0 4px 36px;}
+.plan-pdf-dose.is-on{display:flex;}
+.plan-pdf-dose-sr{font-size:34px;font-weight:800;color:var(--pdf-navy);line-height:1;letter-spacing:-0.5px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.plan-pdf-dose-sr i{font-style:normal;font-weight:500;color:var(--pdf-muted);font-size:22px;margin:0 5px;}
+.plan-pdf-dose-sr .plan-pdf-arrow-up,.plan-pdf-dose-sr .plan-pdf-arrow-dn{font-size:13px;margin-left:5px;vertical-align:middle;}
+.plan-pdf-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.plan-pdf-chip{background:#f2f5f9;border-radius:8px;padding:5px 9px;font-size:15px;color:var(--pdf-navy);white-space:nowrap;}
+.plan-pdf-chip small{font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--pdf-muted);}
+.plan-pdf-chip b{font-weight:800;}
+.plan-pdf-how{margin:8px 0 4px 36px;border-top:1px solid #eef2f6;}
+.plan-pdf-how summary{cursor:pointer;list-style:none;padding:10px 0;font-size:13px;font-weight:700;color:var(--pdf-navy);display:flex;justify-content:space-between;align-items:center;}
+.plan-pdf-how summary::-webkit-details-marker{display:none;}
+.plan-pdf-how summary::after{content:'+';font-size:18px;color:var(--pdf-muted);line-height:1;}
+.plan-pdf-how[open] summary::after{content:'−';}
+.plan-pdf-how-h{font-size:10.5px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--pdf-muted);margin:2px 0 3px;}
+.plan-pdf-how p{margin:0 0 10px;font-size:14px;line-height:1.5;color:#374151;}
+.plan-pdf-cycle{display:none;margin-top:10px;}
+.plan-pdf.show-cycle .plan-pdf-cycle{display:block;}
+.plan-pdf-cycle-h{font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--pdf-muted);margin:4px 0 6px;}
+.plan-pdf-cycle-scroll{overflow-x:auto;}
+.plan-pdf-cycle .plan-pdf-tbl{border-top:1px solid var(--pdf-line);min-width:640px;}
+.plan-pdf-tbl th.is-deload,.plan-pdf-tbl td.is-deload .plan-pdf-wk{background:var(--success-bg,#ecfdf3);}
+.plan-pdf-tbl .plan-pdf-rest{font-size:10px;margin-top:3px;}
+.plan-pdf-tbl tr.plan-pdf-row td{border-bottom:none;}
+.plan-pdf-tiprow td{font-size:10px;color:#4b5563;line-height:1.45;padding:0 10px 9px!important;text-align:left;}
+.plan-pdf-tiprow span{display:block;}
+.plan-pdf-tiprow b{color:var(--pdf-navy);}
+.plan-pdf-cycle-btn{
+  display:block;width:100%;margin:-6px 0 22px;padding:12px;border-radius:10px;cursor:pointer;
+  border:1px dashed #cad8e7;background:#fff;color:var(--pdf-navy);font:inherit;font-size:13px;font-weight:700;
+}
+@media (max-width:720px){
+  .plan-pdf{padding:16px 14px 32px;}
+  .plan-pdf-weeknav{margin:0 -14px 10px;padding:8px 14px;}
+  .plan-pdf-title{font-size:24px;}
+  .plan-pdf-kpis{margin:12px 0;}
+  .plan-pdf-kpi{padding:9px 8px 10px;}
+  .plan-pdf-cols{grid-template-columns:1fr;gap:8px;margin-bottom:14px;}
+  .plan-pdf-daynav{display:flex;}
+  .plan-pdf-day{display:none;}
+  .plan-pdf-day.is-on,.plan-pdf.show-cycle .plan-pdf-day{display:block;}
+  .plan-pdf-cards{grid-template-columns:1fr;padding:8px;}
+  .plan-pdf-card{padding:14px 14px 4px;}
+  .plan-pdf-dose,.plan-pdf-how{margin-left:0;}
+  .plan-pdf-dose-sr{font-size:38px;}
+  /* Na telefonie najpierw trening; zasady, rozgrzewka i podsumowania niżej */
+  .plan-pdf{display:flex;flex-direction:column;}
+  .plan-pdf>*{order:1;}
+  .plan-pdf>.plan-pdf-cols,.plan-pdf>.plan-pdf-box,.plan-pdf>.plan-pdf-foot{order:2;}
+  .plan-pdf>.plan-pdf-cols{margin-top:4px;}
+  .plan-pdf>.plan-pdf-box{margin-bottom:8px!important;}
+  #report-overlay-title{font-size:15px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin-right:8px;}
+  #report-overlay>div:first-child{padding:10px 12px!important;}
+  #report-overlay>div:first-child .btn{white-space:nowrap;}
+}
+@media print{
+  @page plan-pdf{size:A4 landscape;margin:10mm;}
+  .plan-pdf{page:plan-pdf;}
+  .plan-pdf-weeknav,.plan-pdf-daynav,.plan-pdf-cards,.plan-pdf-cycle-btn,.plan-pdf-day-wk,.plan-pdf-cycle-h{display:none!important;}
+  .plan-pdf-day{display:block!important;}
+  .plan-pdf-cycle{display:block!important;margin-top:0;}
+  .plan-pdf-cycle-scroll{overflow:visible;}
+  .plan-pdf-cycle .plan-pdf-tbl{border-top:none;min-width:0;}
+  .plan-pdf-cols{grid-template-columns:1fr 1fr!important;}
+  .plan-pdf-kpis{grid-template-columns:repeat(4,1fr)!important;}
+  .plan-pdf-tbl tr{break-inside:avoid;}
+  .plan-pdf-day-h{break-after:avoid;}
+}
+
 /* ── FORUM ── */
 .forum-group-nav{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;font-size:12px;color:var(--muted);background:linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.005));border-bottom:1px solid rgba(255,255,255,0.04);}
 .forum-group-nav:hover{color:var(--text);background:linear-gradient(90deg,rgba(var(--accent-rgb),0.08),rgba(255,255,255,0.015));}
