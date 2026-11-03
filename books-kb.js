@@ -373,14 +373,76 @@ function booksKbValidatePlanRefs(plan,sel){
   return{used:list,removed,books:Array.from(new Set(list.map(r=>r.book)))};
 }
 
+/**
+ * Strefy intensywności w treningu siłowym — grafika narysowana od zera (HTML/CSS, kolory z motywu).
+ * Każda liczba ma źródło w bazie wiedzy (knowledge/books). Gdy książki podają różne zakresy,
+ * pokazujemy część wspólną, a różnice opisujemy w „note”. Bez danych spoza książek.
+ *  - Bompa, Buzzichelli, Periodyzacja: G09 strefy (s. 262–263), G04 siła maks. (s. 117, 282–283), G08 powtórzenia (s. 264–265), S05 (s. 270–272), G06 (s. 118, 283)
+ *  - NSCA Essentials of PT: G24 tab. 23.2 %1RM↔powt. (s. 617–618), G26 tab. 23.5 (s. 624–625), G12 (s. 408–409), G08 (s. 405), G09 RPE↔RIR (s. 407–408)
+ *  - Rippetoe, Baker, Programowanie treningu siłowego: s. 202–203, 210 (5×5, 3×3, single/dwójki >90% CM)
+ *  - Stone, Stone, Sands, Principles and Practice: s. 288–293 (bloki 3×10 → 3×5 → 3×3/3×2), s. 226–227 (ciężko >80% 1RM)
+ *  - Głuchowski, Zaplanuj swój trening: P17 (s. 75, 104, 108–110), P15 (s. 90–92)
+ *  - Helms, Piramida treningu: PR14 RPE dnia siły/hipertrofii (s. 136–139), P8 RPE↔RIR (s. 64–65)
+ *  - Schoenfeld, Hipertrofia: P4 (s. 92–100), P5 RIR 1–2 (s. 129–135)
+ */
+const INTENSITY_ZONES=[
+  {id:'max',goal:'Siła maksymalna',pct:[90,100],reps:'1–3',rpe:'7–9',level:4,
+    tip:'Długie przerwy 3–5 min, mało serii. Za dużo pracy przy 90–100% grozi przetrenowaniem.',
+    note:'Bompa: strefa maksymalna 90–100%. NSCA: 1–3 powt. to 93–100%. Rippetoe: single i dwójki powyżej 90% CM. Stone: bloki 3×3 i 3×2.',
+    src:'Bompa s. 117, 262–263, 270–272, 282–283 · NSCA s. 617–618, 624–625 · Rippetoe s. 202, 210 · Stone s. 288–293 · Helms s. 136–139'},
+  {id:'str',goal:'Siła',pct:[85,90],reps:'4–6',rpe:'7–9',level:3,
+    tip:'Główne ćwiczenia wielostawowe, przerwy 2–5 min. Nie do upadku: zostaw zapas powtórzeń.',
+    note:'NSCA: siła od 85% 1RM, 1–6 powt. (85% ≈ 6, 90% ≈ 4). Bompa: strefa ciężka 80–90%. Rippetoe i Stone: serie po 5 (5×5, 3×5).',
+    src:'NSCA s. 617–618, 624–625 · Bompa s. 262–266 · Rippetoe s. 202–203 · Stone s. 288–293 · Helms s. 136–139'},
+  {id:'hyp',goal:'Hipertrofia',pct:[67,85],reps:'6–12',rpe:'6–9',level:2,
+    tip:'Większość serii 1–2 powtórzenia przed upadkiem. Seria liczy się do objętości od RIR 4.',
+    note:'6–12 powt. to 67–85% 1RM (NSCA). Działa też lżej, od ok. 30% 1RM, jeśli seria kończy się blisko upadku (Głuchowski: 30–85% CM, Schoenfeld, Helms).',
+    src:'NSCA s. 408–409, 617–618, 624–625 · Głuchowski s. 75, 90–92, 104, 108–110 · Schoenfeld s. 92–100, 129–135 · Helms s. 136–139'},
+  {id:'end',goal:'Wytrzymałość siłowa',pct:[30,60],reps:'15–30',rpe:null,level:1,
+    tip:'Krótkie przerwy, dużo powtórzeń w serii. Przy ponad 50 powt. to już długa wytrzymałość mięśniowa.',
+    note:'Bompa: 15–30 powt. (krótka wytrzymałość), 30–60% przy utrzymaniu, strefa niska 20–50%. NSCA: ponad 15 powt. (65% ≈ 15, 60% ≈ 20). Stone nazywa tak blok serii po 10, to inna definicja.',
+    src:'Bompa s. 118, 262–265, 283 · NSCA s. 408–409, 617–618 · Stone s. 288–293'}
+];
+/** Skala RPE ↔ RIR (NSCA s. 407–408, rys. 15.2; Helms s. 64–65). */
+const RPE_RIR=[['10','0'],['9','1'],['8','2'],['7','3'],['5–6','4–6']];
+/** Strefy wytrzymałości (bieg, rower) — Bompa, Buzzichelli, Periodyzacja, s. 320–323. */
+const ENDURANCE_ZONES=[
+  ['1','Alaktyczna','2–8 s, ponad 95%, bardzo długie przerwy'],
+  ['2','Tolerancja mleczanu','15–90 s, najwyżej 2× w tygodniu'],
+  ['3','VO2max','1–6 min przy 90–100% VO2max'],
+  ['4','Próg beztlenowy','odcinki 1–15 min, „trochę szybciej niż wygodnie”'],
+  ['5','Próg tlenowy','ciągle lub odcinki ponad 10 min, tętno ok. 130–150'],
+  ['6','Regeneracja','45–60% VO2max, 5–20 min po ciężkiej sesji']
+];
+function intensityZonesHTML(opts){
+  const o=opts||{};const lo=20,hi=100,pos=v=>((v-lo)/(hi-lo)*100).toFixed(1);
+  const zone=z=>'<li class="iz-zone iz-l'+z.level+'" data-iz="'+z.id+'">'
+    +'<div class="iz-head"><span class="iz-goal">'+z.goal+'</span><span class="iz-pct"><b>'+z.pct[0]+'–'+z.pct[1]+'</b><i>% 1RM</i></span></div>'
+    +'<div class="iz-bar" aria-hidden="true"><span style="left:'+pos(z.pct[0])+'%;width:'+(pos(z.pct[1])-pos(z.pct[0])).toFixed(1)+'%"></span></div>'
+    +'<div class="iz-ends" aria-hidden="true"><span>20%</span><span>100% 1RM</span></div>'
+    +'<div class="iz-stats"><div class="iz-stat"><b>'+z.reps+'</b><span>powtórzeń</span></div>'
+    +'<div class="iz-stat'+(z.rpe?'':' is-empty')+'"><b>'+(z.rpe?'RPE '+z.rpe:'—')+'</b><span>'+(z.rpe?'wysiłek w serii':'książki nie podają RPE')+'</span></div></div>'
+    +'<p class="iz-tip">'+z.tip+'</p>'
+    +'<details class="iz-more"><summary>Co mówią książki</summary><p>'+z.note+'</p><small>'+z.src+'</small></details></li>';
+  return '<div class="iz'+(o.compact?' iz-compact':'')+'">'
+    +'<ol class="iz-zones">'+INTENSITY_ZONES.map(zone).join('')+'</ol>'
+    +'<div class="iz-rpe"><b class="iz-rpe-title">RPE a powtórzenia w zapasie (RIR)</b><div class="iz-rpe-row">'
+    +RPE_RIR.map(r=>'<div><b>'+r[0]+'</b><span>'+(r[1]==='0'?'nic w zapasie':r[1]+' w zapasie')+'</span></div>').join('')+'</div>'
+    +'<small>NSCA s. 407–408 · Helms s. 64–65</small></div>'
+    +'<p class="iz-warn"><b>% 1RM to punkt startu.</b> Przy 75% 1RM jedni zrobią 7 powtórzeń, inni 24 (NSCA s. 405). Ciężar koryguj wg RPE albo RIR. Większość pracy siłowej wykonuje się przy 50–80% 1RM (Bompa s. 262–263).</p>'
+    +'<details class="iz-endurance"><summary>Strefy wytrzymałości (bieg, rower): 6 stref wg Bompy</summary><ol>'
+    +ENDURANCE_ZONES.map(e=>'<li><b>'+e[0]+'</b><span><strong>'+e[1]+'</strong> '+e[2]+'</span></li>').join('')+'</ol><small>Bompa, Buzzichelli, Periodyzacja, s. 320–323</small></details>'
+    +'</div>';
+}
+
 /** Własne grafiki narysowane na podstawie książek (knowledge/visuals/svg). Nie są to ryciny z książek. */
 const BOOK_VISUALS=[
   {id:'fms-swiatla',title:'Światła FMS: dobór ćwiczeń przy słabym wzorcu',when:'Gdy klient ma słaby wynik FMS, asymetrię albo ograniczenia ruchowe.',source:'Cook, The Business of Movement, s. 188, 226, 361',tags:['kontuzje','ocena']},
   {id:'bompa-fazy-sily',title:'Fazy treningu siły w sezonie',when:'Przy układaniu kolejności bloków: adaptacja, siła maksymalna, moc, utrzymanie.',source:'Bompa, Buzzichelli, Periodyzacja, s. 112–118, 280–285',tags:['sila','atletyzm','masa']},
-  {id:'bompa-strefy-intensywnosci',title:'Strefy intensywności (siła i wytrzymałość)',when:'Przy doborze % 1RM i stref wytrzymałości do celu bloku.',source:'Bompa, Buzzichelli, Periodyzacja, s. 262–263, 320–323',tags:['sila','atletyzm','masa','kondycja','redukcja']},
+  {id:'strefy-intensywnosci',html:true,title:'Strefy intensywności: % 1RM, powtórzenia i RPE',when:'Przy doborze ciężaru, liczby powtórzeń i wysiłku do celu bloku.',source:'Bompa, Buzzichelli, Periodyzacja; NSCA, Essentials of Personal Training (3. wyd.); Stone, Stone, Sands, Principles and Practice of Resistance Training; Rippetoe, Baker, Programowanie treningu siłowego; Głuchowski, Zaplanuj swój trening; Helms, Piramida treningu; Schoenfeld, Hipertrofia (strony przy każdej strefie)',tags:['sila','atletyzm','masa','kondycja','redukcja']},
   {id:'bompa-rozladowanie',title:'Rozładowanie przed głównym startem',when:'Ostatnie 8–14 dni przed zawodami lub testem.',source:'Bompa, Buzzichelli, Periodyzacja, s. 230–235, 242–245',tags:['atletyzm','start']}
 ];
-function bookVisualSrc(v){return 'knowledge/visuals/svg/'+v.id+'.svg';}
+function bookVisualSrc(v){return v.html?'':'knowledge/visuals/svg/'+v.id+'.svg';}
 /** Grafiki do podglądu planu: najpierw pasujące do celu, FMS na początku przy ograniczeniach klienta. */
 function bookVisualsForPlan(goal,opts){
   const o=opts||{};const g=String(goal||'').toLowerCase();
@@ -392,14 +454,16 @@ function bookVisualsHTML(list,opts){
   const o=opts||{};const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   return '<div class="book-visuals'+(o.compact?' book-visuals-compact':'')+'">'+(list||BOOK_VISUALS).map(v=>{
     const src=bookVisualSrc(v);
-    return '<figure class="book-visual" data-book-visual="'+esc(v.id)+'"><a href="'+src+'" target="_blank" rel="noopener" title="Otwórz w pełnym rozmiarze"><img src="'+src+'" alt="'+esc(v.title)+'" loading="lazy"></a>'
+    const art=v.html?'<div class="book-visual-html">'+intensityZonesHTML({compact:o.compact})+'</div>'
+      :'<a href="'+src+'" target="_blank" rel="noopener" title="Otwórz w pełnym rozmiarze"><img src="'+src+'" alt="'+esc(v.title)+'" loading="lazy"></a>';
+    return '<figure class="book-visual'+(v.html?' book-visual-wide':'')+'" data-book-visual="'+esc(v.id)+'">'+art
       +'<figcaption><b>'+esc(v.title)+'</b>'+(v.match?' <span class="book-visual-match">pasuje do planu</span>':'')+'<span>'+esc(v.when)+'</span><small>Opracowanie własne na podstawie: '+esc(v.source)+'</small></figcaption></figure>';
   }).join('')+'</div>';
 }
 
 const api={booksKbDomain,booksKbLoad,booksKbSetData,booksKbSelect,booksKbContext,booksKbUsedSources,booksKbList,
   booksKbPlanSelect,booksKbPlanPrompt,booksKbValidatePlanRefs,PLAN_ANCHORS,
-  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML};
+  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML,INTENSITY_ZONES,RPE_RIR,ENDURANCE_ZONES,intensityZonesHTML};
 Object.assign(root,api);
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
