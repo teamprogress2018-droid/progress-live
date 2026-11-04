@@ -1637,3 +1637,27 @@ html[data-theme] .cap-client-plan-start.cap-btn-secondary { border: 1px solid va
   .tp-days span{font-size:9.5px}
   .tp-rules .iz-pct b{font-size:36px}
 }
+
+/* ── Światła FMS (books-kb.js → fmsLightsHTML): kolory statusów, nigdy akcent ── */
+.fms{--fms-red:var(--danger,#d92d20);--fms-yellow:var(--warning,#dc6803);--fms-green:var(--success,#079455)}
+.fms-scores{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.fms-score{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border2);border-radius:12px;padding:10px 12px;background:var(--s2,#fff)}
+.fms-score b{flex-shrink:0;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;background:var(--fms-red)}
+.fms-score.is-yellow b{background:var(--fms-yellow)}
+.fms-score.is-green b{background:var(--fms-green)}
+.fms-score span{font-size:12.5px;line-height:1.4}
+.fms-score strong{display:block;font-size:13.5px}
+.fms-rule{margin:0;font-size:13px;line-height:1.5}
+.fms-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fms-card{border:1px solid var(--border2);border-radius:12px;padding:12px;background:var(--s2,#fff);display:flex;flex-direction:column;gap:8px;min-width:0}
+.fms-head{display:flex;gap:8px;align-items:center}
+.fms-head b{font-size:14.5px;line-height:1.25}
+.fms-no{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--bg,rgba(0,0,0,.05));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.fms-lane{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border-radius:10px;background:var(--bg,rgba(0,0,0,.04));border-left:4px solid var(--fms-c)}
+.fms-lane.is-red{--fms-c:var(--fms-red)}.fms-lane.is-yellow{--fms-c:var(--fms-yellow)}.fms-lane.is-green{--fms-c:var(--fms-green)}
+.fms-light{flex-shrink:0;width:14px;height:14px;margin-top:2px;border-radius:50%;background:var(--fms-c)}
+.fms-lane div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fms-lane b{font-size:12.5px;color:var(--text)}
+.fms-lane div span{font-size:13px;line-height:1.4}
+@media (max-width:1300px){.fms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fms-scores{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.fms-grid{grid-template-columns:1fr}}
