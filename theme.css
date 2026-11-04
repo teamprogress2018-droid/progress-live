@@ -1570,3 +1570,43 @@ html[data-theme] .cap-client-plan-start.cap-btn-secondary { border: 1px solid va
   .iz-rpe-row span{font-size:10.5px}
   .iz-endurance ol{grid-template-columns:1fr}
 }
+
+/* ── Oś faz siły (books-kb.js → strengthPhasesHTML), korzysta z klas .iz-* ── */
+.fs-lead{margin:0;font-size:13.5px;line-height:1.5}
+.fs-axis{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;position:relative}
+.fs-axis::before{content:"";position:absolute;left:14px;top:14px;bottom:14px;width:3px;border-radius:2px;background:rgba(var(--accent-rgb),.35)}
+.fs-phase{--iz-o:.8;position:relative;display:flex;gap:12px;align-items:flex-start;min-width:0}
+.fs-dot{position:relative;z-index:1;flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+.fs-phase.is-opt .fs-dot{background:var(--s2,#fff);color:var(--text);border:2px dashed rgba(var(--accent-rgb),.6)}
+.fs-body{flex:1;min-width:0;border:1px solid var(--border2);border-radius:12px;padding:12px 14px;background:var(--s2,#fff);display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(130px,.9fr) minmax(230px,1.3fr) minmax(200px,1.7fr);grid-template-areas:"top time stats tip" "top time stats src";gap:4px 18px;align-items:start}
+.fs-phase.is-opt .fs-body{border-style:dashed}
+.fs-top{grid-area:top;display:flex;flex-direction:column;gap:6px}
+.fs-time{grid-area:time}
+.fs-body .iz-stats{grid-area:stats}
+.fs-body .iz-tip{grid-area:tip}
+.fs-body>small{grid-area:src}
+.fs-name{font-size:15px;font-weight:700;line-height:1.25}
+.fs-badge{align-self:flex-start;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:rgba(var(--accent-rgb),.12)}
+.fs-phase.is-opt .fs-badge{background:var(--bg,rgba(0,0,0,.05));color:var(--muted)}
+.fs-time{display:flex;flex-direction:column;gap:2px}
+.fs-time b{font-size:28px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+.fs-time span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.fs .iz-stat b{font-size:20px}
+.fs .iz-tip{font-size:13px}
+.fs-other{border:1px solid var(--border2);border-radius:12px;padding:12px 14px;background:var(--s2,#fff);display:flex;flex-direction:column;gap:10px}
+.fs-row{display:grid;grid-template-columns:90px 1fr;gap:4px 12px;align-items:center}
+.fs-row small{grid-column:2}
+.fs-book{font-weight:700;font-size:13px}
+.fs-steps{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fs-steps li{background:var(--bg,rgba(0,0,0,.04));border-radius:8px;padding:5px 9px;font-size:13px;font-weight:600;white-space:nowrap}
+.fs-steps li+li::before{content:"→";margin-right:6px;color:var(--muted);font-weight:400}
+@media (max-width:900px){
+  .fs-body{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+  .fs-top{flex-direction:row;align-items:center;flex-wrap:wrap;gap:6px 8px}
+  .fs-time b{font-size:30px}
+}
+@media (max-width:600px){
+  .fs-row{grid-template-columns:1fr}
+  .fs-row small{grid-column:1}
+  .fs-steps li{white-space:normal}
+}

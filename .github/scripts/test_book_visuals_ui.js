@@ -22,9 +22,15 @@ ok('strefy: 4 cele', kb.INTENSITY_ZONES.map((z) => z.goal).join('|') === 'Siła 
 ok('strefy: każda ma źródło ze stronami', kb.INTENSITY_ZONES.every((z) => /s\. \d/.test(z.src)));
 ok('strefy: wytrzymałość bez RPE', kb.INTENSITY_ZONES.find((z) => z.id === 'end').rpe === null && /książki nie podają RPE/.test(iz));
 ok('strefy: skala RPE↔RIR', /RPE a powtórzenia w zapasie/.test(iz) && kb.RPE_RIR.length === 5);
+const fs_ = kb.strengthPhasesHTML();
+ok('fazy: 7 faz w kolejności Bompy', kb.STRENGTH_PHASES.map((p) => p.id).join('|') === 'aa|hyp|max|conv|keep|stop|rest');
+ok('fazy: 4 fazy obowiązkowe', kb.STRENGTH_PHASES.filter((p) => p.must).map((p) => p.id).join('|') === 'aa|max|conv|keep');
+ok('fazy: każda ma źródło ze stronami', kb.STRENGTH_PHASES.every((p) => /s\. \d/.test(p.src)) && kb.PHASES_OTHER_BOOKS.every((b) => /s\. \d/.test(b.src)));
+ok('fazy: hipertrofia bez wymyślonych liczb', kb.STRENGTH_PHASES.find((p) => p.id === 'hyp').pct === null && /książka nie podaje czasu/.test(fs_));
+ok('fazy: inne książki (NSCA, Stone, Rippetoe)', kb.PHASES_OTHER_BOOKS.map((b) => b.book).join('|') === 'NSCA|Stone|Rippetoe');
 ok('strefy: w HTML, bez <img>', /data-book-visual="strefy-intensywnosci"><div class="book-visual-html">/.test(kb.bookVisualsHTML()));
 ok('ograniczenia klienta → FMS pierwsze', kb.bookVisualsForPlan('masa', { limits: true })[0].id === 'fms-swiatla');
-ok('siła bez ograniczeń → fazy siły pierwsze', kb.bookVisualsForPlan('sila', {})[0].id === 'bompa-fazy-sily');
+ok('siła bez ograniczeń → fazy siły pierwsze', kb.bookVisualsForPlan('sila', {})[0].id === 'fazy-sily');
 ok('zawody w opisie → rozładowanie pasuje', kb.bookVisualsForPlan('kondycja', { text: 'start w zawodach 12.05' }).find((v) => v.id === 'bompa-rozladowanie').match === true);
 ok('zawsze wszystkie 4', kb.bookVisualsForPlan('rehab', {}).length === 4);
 ok('HTML ma podpis „Opracowanie własne”', /Opracowanie własne na podstawie/.test(kb.bookVisualsHTML()));
@@ -58,6 +64,8 @@ async function openApp(browser, viewport) {
 }
 
 async function imagesLoaded(page, sel) {
+  /* Grafiki mają loading=lazy; poniżej ekranu (telefon) by się nie wczytały. */
+  await page.$$eval(sel + ' img', (els) => els.forEach((i) => { i.loading = 'eager'; }));
   await page.waitForFunction((s) => Array.from(document.querySelectorAll(s + ' img')).every((i) => i.complete && i.naturalWidth > 0), sel);
   return page.$$eval(sel + ' img', (els) => els.length);
 }
@@ -70,7 +78,8 @@ async function imagesLoaded(page, sel) {
   await page.evaluate(() => goTo('academy'));
   await page.click('.academy-tab:has-text("Grafiki z książek")');
   await page.waitForSelector('.academy-visuals .book-visual');
-  ok('Akademia: 3 grafiki SVG wczytane', (await imagesLoaded(page, '.academy-visuals')) === 3);
+  ok('Akademia: 2 grafiki SVG wczytane', (await imagesLoaded(page, '.academy-visuals')) === 2);
+  ok('Akademia: oś faz siły narysowana', (await page.$$eval('.academy-visuals .fs-phase', (els) => els.length)) === 7);
   ok('Akademia: strefy intensywności narysowane', (await page.$$eval('.academy-visuals .iz-zone', (els) => els.length)) === 4);
   await page.locator('.academy-visuals [data-book-visual="strefy-intensywnosci"]').screenshot({ path: path.join(shotDir, 'strefy-komputer.png') });
   await page.screenshot({ path: path.join(shotDir, 'akademia-grafiki.png'), fullPage: true });
@@ -90,7 +99,7 @@ async function imagesLoaded(page, sel) {
     if (d) d.open = true;
   });
   await page.waitForSelector('[data-apl-visuals] .book-visual');
-  ok('Podgląd planu: 3 grafiki SVG + strefy', (await imagesLoaded(page, '[data-apl-visuals]')) === 3 && (await page.$$('[data-apl-visuals] .iz-zone')).length === 4);
+  ok('Podgląd planu: 2 grafiki SVG + strefy + fazy', (await imagesLoaded(page, '[data-apl-visuals]')) === 2 && (await page.$$('[data-apl-visuals] .fs-phase')).length === 7 && (await page.$$('[data-apl-visuals] .iz-zone')).length === 4);
   const first = await page.$eval('[data-apl-visuals] .book-visual', (el) => el.getAttribute('data-book-visual'));
   ok('Podgląd planu: przy ograniczeniach FMS pierwsze', first === 'fms-swiatla', first);
   const visuals = await page.$('[data-apl-visuals]');
@@ -111,6 +120,8 @@ async function imagesLoaded(page, sel) {
   ok('Telefon: strefy jedna pod drugą', izCols === 1, String(izCols));
   const pctSize = await mobile.page.$eval('.iz-pct b', (el) => parseFloat(getComputedStyle(el).fontSize));
   ok('Telefon: duże cyfry % 1RM', pctSize >= 36, String(pctSize));
+  const fsCols = await mobile.page.$eval('.academy-visuals .fs-axis', (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  ok('Telefon: fazy jedna pod drugą', fsCols === 1, String(fsCols));
   await mobile.page.locator('.academy-visuals [data-book-visual="strefy-intensywnosci"]').screenshot({ path: path.join(shotDir, 'strefy-telefon.png') });
 
   const errs = errors.concat(mobile.errors).filter((e) => !/firebase|gstatic/i.test(e));

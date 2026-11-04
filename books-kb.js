@@ -435,13 +435,64 @@ function intensityZonesHTML(opts){
     +'</div>';
 }
 
+/**
+ * Oś faz siły — grafika narysowana od zera (HTML/CSS, kolory z motywu). Kolejność i liczby z bazy wiedzy:
+ *  - Bompa, Buzzichelli, Periodyzacja: G01 fazy (s. 112–115, 280–281), G02 AA (s. 117, 281), G03 min. ≥11 tyg. (s. 115),
+ *    G04 siła maks. (s. 117, 282–283), G05 konwersja (s. 117, 119–120, 282–283), G06 utrzymanie (s. 118, 283),
+ *    G08 powtórzenia (s. 264–265), zawieszenie (s. 284), G21 kompensacja (s. 192–195, 284–285), hipertrofia (s. 281), S01 (s. 117)
+ *  - NSCA Essentials of PT: G26 tab. 23.5 (s. 624–625), G28 tab. 23.6 (s. 626)
+ *  - Stone, Stone, Sands: bloki 3×10 → 3×5 → 3×3 → 3×2, serie „w dół” ok. 50% 1RM (s. 288–293)
+ *  - Rippetoe, Baker: piramida 5×5 → 3×3 → 1×3 (s. 202–203), trójbój serie po 8 → 5 → 3/2/1 (s. 210–211)
+ * Brak liczby w bazie = puste pole „książka nie podaje”, nie zgadujemy.
+ */
+const STRENGTH_PHASES=[
+  {id:'aa',name:'Adaptacja anatomiczna',must:true,time:'≥ 3 tyg.',timeNote:'początkujący 8–12 tyg., zaawansowani 2–4',pct:[40,65],reps:'8–20',sets:'2–3',
+    why:'Dużo ćwiczeń, równowaga agonista–antagonista, sporo jednostronnych. Za krótka zwiększa ryzyko urazu.',src:'Bompa s. 115, 117, 281'},
+  {id:'hyp',name:'Hipertrofia',must:false,badge:'gdy potrzebna',time:null,pct:null,reps:null,
+    why:'Tylko gdy potrzebna masa: miotacze, duzi zawodnicy, kategorie ciężkie, początkujący.',src:'Bompa s. 280–281'},
+  {id:'max',name:'Siła maksymalna',must:true,time:'≥ 4 tyg.',timeNote:'zwykle 1–3 miesiące',pct:[70,90],reps:'1–6',
+    why:'Najpierw 70–80% i 2–6 powt. (koordynacja), potem 80–90% i 1–3 powt. Przerwy 3–5 min.',src:'Bompa s. 115, 117, 264–265, 282–283'},
+  {id:'conv',name:'Konwersja na moc',must:true,time:'≥ 4 tyg.',timeNote:'zwykle 4–8 tyg.',pct:[40,80],reps:'1–10',
+    why:'Ten sam ciężar, ale jak najszybciej: ćwiczenia balistyczne i plyometria. W sportach wytrzymałościowych serie po 15–20+.',src:'Bompa s. 115, 117, 119–120, 264–265, 282–283'},
+  {id:'keep',name:'Utrzymanie',must:true,time:'cały sezon',timeNote:'ok. 2× w tygodniu po 30 min, min. 1×',pct:[60,80],reps:'1–6',sets:'2–4',
+    why:'2–5 ćwiczeń przez cały okres startowy. Utrzymanie siły maks. 60–80%, mocy 30–80%.',src:'Bompa s. 118, 283'},
+  {id:'stop',name:'Zawieszenie',must:false,badge:'przed startem',time:'3–14 dni',timeNote:'przed głównym startem',pct:null,reps:null,
+    why:'Kończysz trening siły przed głównym startem. Kobiety do 3 dni przed, ciężsi zawodnicy kończą wcześniej niż lżejsi.',src:'Bompa s. 284'},
+  {id:'rest',name:'Kompensacja',must:false,badge:'po sezonie',time:'2–4 tyg.',timeNote:'nie dłużej niż ok. 4 tyg.',pct:null,reps:null,
+    why:'Aktywny wypoczynek, objętość −50–60%. Utrzymaj antagonistów i stabilizatory, dłużej = roztrenowanie.',src:'Bompa s. 192–195, 284–285'}
+];
+/** Ten sam kierunek w innych książkach: objętość w dół, ciężar w górę. */
+const PHASES_OTHER_BOOKS=[
+  {book:'NSCA',steps:['Hipertrofia 6–30+ powt. · ≤85%','Siła 1–6 · ≥85%','Siła i moc 1–6 · 85–95%','Szczyt 1–3 · ≥93%','Odpoczynek 1 tydz.'],note:'każda faza 2–3 tyg.',src:'NSCA s. 624–625'},
+  {book:'Stone',steps:['3×10','3×5','3×3','3×2'],note:'bloki po ok. 4 tyg., serie „w dół” ok. 50% 1RM',src:'Stone s. 288–293'},
+  {book:'Rippetoe',steps:['serie po 8','serie po 5','3, 2 i 1 powt.'],note:'po 3–4 tyg. na zakres',src:'Rippetoe s. 210–211'}
+];
+function strengthPhasesHTML(opts){
+  const o=opts||{};
+  const tile=(val,label,empty)=>'<div class="iz-stat'+(val?'':' is-empty')+'"><b>'+(val||'—')+'</b><span>'+(val?label:empty)+'</span></div>';
+  const phase=(p,i)=>'<li class="fs-phase'+(p.must?' is-must':' is-opt')+'" data-fs="'+p.id+'">'
+    +'<div class="fs-dot" aria-hidden="true">'+(i+1)+'</div>'
+    +'<div class="fs-body"><div class="fs-top"><span class="fs-name">'+p.name+'</span><span class="fs-badge">'+(p.must?'zawsze':p.badge)+'</span></div>'
+    +'<div class="fs-time"><b>'+(p.time||'—')+'</b>'+(p.timeNote?'<span>'+p.timeNote+'</span>':(p.time?'':'<span>książka nie podaje czasu</span>'))+'</div>'
+    +(p.pct||p.reps?'<div class="iz-stats">'+tile(p.pct?p.pct[0]+'–'+p.pct[1]+'%':null,'1RM','bez % 1RM')+tile(p.reps,'powtórzeń'+(p.sets?' · '+p.sets+' serie':''),'')+'</div>':'')
+    +'<p class="iz-tip">'+p.why+'</p><small>'+p.src+'</small></div></li>';
+  return '<div class="iz fs'+(o.compact?' iz-compact':'')+'">'
+    +'<p class="fs-lead"><b>Zawsze zaczynaj od adaptacji anatomicznej.</b> Przed pracą nad mocą potrzeba co najmniej ok. 11 tygodni: 3 + 4 + 4 (Bompa s. 115, 280).</p>'
+    +'<ol class="fs-axis">'+STRENGTH_PHASES.map(phase).join('')+'</ol>'
+    +'<div class="fs-other"><b class="iz-rpe-title">Ten sam kierunek w innych książkach: mniej powtórzeń, większy ciężar</b>'
+    +PHASES_OTHER_BOOKS.map(b=>'<div class="fs-row"><span class="fs-book">'+b.book+'</span><ol class="fs-steps">'+b.steps.map(s=>'<li>'+s+'</li>').join('')+'</ol><small>'+b.note+' · '+b.src+'</small></div>').join('')
+    +'</div></div>';
+}
+
 /** Własne grafiki narysowane na podstawie książek (knowledge/visuals/svg). Nie są to ryciny z książek. */
 const BOOK_VISUALS=[
   {id:'fms-swiatla',title:'Światła FMS: dobór ćwiczeń przy słabym wzorcu',when:'Gdy klient ma słaby wynik FMS, asymetrię albo ograniczenia ruchowe.',source:'Cook, The Business of Movement, s. 188, 226, 361',tags:['kontuzje','ocena']},
-  {id:'bompa-fazy-sily',title:'Fazy treningu siły w sezonie',when:'Przy układaniu kolejności bloków: adaptacja, siła maksymalna, moc, utrzymanie.',source:'Bompa, Buzzichelli, Periodyzacja, s. 112–118, 280–285',tags:['sila','atletyzm','masa']},
+  {id:'fazy-sily',html:true,title:'Oś faz siły: od adaptacji do kompensacji',when:'Przy układaniu kolejności bloków: adaptacja, siła maksymalna, moc, utrzymanie.',source:'Bompa, Buzzichelli, Periodyzacja, s. 112–120, 192–195, 264–265, 280–285; NSCA, Essentials of Personal Training (3. wyd.), s. 624–625; Stone, Stone, Sands, Principles and Practice of Resistance Training, s. 288–293; Rippetoe, Baker, Programowanie treningu siłowego, s. 210–211',tags:['sila','atletyzm','masa']},
   {id:'strefy-intensywnosci',html:true,title:'Strefy intensywności: % 1RM, powtórzenia i RPE',when:'Przy doborze ciężaru, liczby powtórzeń i wysiłku do celu bloku.',source:'Bompa, Buzzichelli, Periodyzacja; NSCA, Essentials of Personal Training (3. wyd.); Stone, Stone, Sands, Principles and Practice of Resistance Training; Rippetoe, Baker, Programowanie treningu siłowego; Głuchowski, Zaplanuj swój trening; Helms, Piramida treningu; Schoenfeld, Hipertrofia (strony przy każdej strefie)',tags:['sila','atletyzm','masa','kondycja','redukcja']},
   {id:'bompa-rozladowanie',title:'Rozładowanie przed głównym startem',when:'Ostatnie 8–14 dni przed zawodami lub testem.',source:'Bompa, Buzzichelli, Periodyzacja, s. 230–235, 242–245',tags:['atletyzm','start']}
 ];
+/** Grafiki rysowane w HTML: id → funkcja rysująca. */
+const BOOK_VISUAL_RENDER={'strefy-intensywnosci':intensityZonesHTML,'fazy-sily':strengthPhasesHTML};
 function bookVisualSrc(v){return v.html?'':'knowledge/visuals/svg/'+v.id+'.svg';}
 /** Grafiki do podglądu planu: najpierw pasujące do celu, FMS na początku przy ograniczeniach klienta. */
 function bookVisualsForPlan(goal,opts){
@@ -454,7 +505,8 @@ function bookVisualsHTML(list,opts){
   const o=opts||{};const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   return '<div class="book-visuals'+(o.compact?' book-visuals-compact':'')+'">'+(list||BOOK_VISUALS).map(v=>{
     const src=bookVisualSrc(v);
-    const art=v.html?'<div class="book-visual-html">'+intensityZonesHTML({compact:o.compact})+'</div>'
+    const draw=BOOK_VISUAL_RENDER[v.id];
+    const art=v.html&&draw?'<div class="book-visual-html">'+draw({compact:o.compact})+'</div>'
       :'<a href="'+src+'" target="_blank" rel="noopener" title="Otwórz w pełnym rozmiarze"><img src="'+src+'" alt="'+esc(v.title)+'" loading="lazy"></a>';
     return '<figure class="book-visual'+(v.html?' book-visual-wide':'')+'" data-book-visual="'+esc(v.id)+'">'+art
       +'<figcaption><b>'+esc(v.title)+'</b>'+(v.match?' <span class="book-visual-match">pasuje do planu</span>':'')+'<span>'+esc(v.when)+'</span><small>Opracowanie własne na podstawie: '+esc(v.source)+'</small></figcaption></figure>';
@@ -463,7 +515,7 @@ function bookVisualsHTML(list,opts){
 
 const api={booksKbDomain,booksKbLoad,booksKbSetData,booksKbSelect,booksKbContext,booksKbUsedSources,booksKbList,
   booksKbPlanSelect,booksKbPlanPrompt,booksKbValidatePlanRefs,PLAN_ANCHORS,
-  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML,INTENSITY_ZONES,RPE_RIR,ENDURANCE_ZONES,intensityZonesHTML};
+  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML,INTENSITY_ZONES,RPE_RIR,ENDURANCE_ZONES,intensityZonesHTML,STRENGTH_PHASES,PHASES_OTHER_BOOKS,strengthPhasesHTML,BOOK_VISUAL_RENDER};
 Object.assign(root,api);
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
