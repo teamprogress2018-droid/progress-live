@@ -28,10 +28,15 @@ ok('fazy: 4 fazy obowiązkowe', kb.STRENGTH_PHASES.filter((p) => p.must).map((p)
 ok('fazy: każda ma źródło ze stronami', kb.STRENGTH_PHASES.every((p) => /s\. \d/.test(p.src)) && kb.PHASES_OTHER_BOOKS.every((b) => /s\. \d/.test(b.src)));
 ok('fazy: hipertrofia bez wymyślonych liczb', kb.STRENGTH_PHASES.find((p) => p.id === 'hyp').pct === null && /książka nie podaje czasu/.test(fs_));
 ok('fazy: inne książki (NSCA, Stone, Rippetoe)', kb.PHASES_OTHER_BOOKS.map((b) => b.book).join('|') === 'NSCA|Stone|Rippetoe');
+const tp_ = kb.taperHTML();
+ok('rozładowanie: 4 reguły (czas, objętość, ciężar, liczba treningów)', kb.TAPER_RULES.map((t) => t.id).join('|') === 'len|vol|int|freq');
+ok('rozładowanie: każdy wiersz osi i reguła mają strony', kb.TAPER_RULES.concat(kb.TAPER_TIMELINE).every((t) => /s\. \d/.test(t.src)));
+ok('rozładowanie: oś 14 dni + start', (tp_.split('<div class="tp-days"')[1].split('</div>')[0].match(/<span/g) || []).length === 15);
+ok('rozładowanie: objętość wspólna −41–60%', kb.TAPER_RULES.find((t) => t.id === 'vol').big === '−41–60%');
 ok('strefy: w HTML, bez <img>', /data-book-visual="strefy-intensywnosci"><div class="book-visual-html">/.test(kb.bookVisualsHTML()));
 ok('ograniczenia klienta → FMS pierwsze', kb.bookVisualsForPlan('masa', { limits: true })[0].id === 'fms-swiatla');
 ok('siła bez ograniczeń → fazy siły pierwsze', kb.bookVisualsForPlan('sila', {})[0].id === 'fazy-sily');
-ok('zawody w opisie → rozładowanie pasuje', kb.bookVisualsForPlan('kondycja', { text: 'start w zawodach 12.05' }).find((v) => v.id === 'bompa-rozladowanie').match === true);
+ok('zawody w opisie → rozładowanie pasuje', kb.bookVisualsForPlan('kondycja', { text: 'start w zawodach 12.05' }).find((v) => v.id === 'rozladowanie').match === true);
 ok('zawsze wszystkie 4', kb.bookVisualsForPlan('rehab', {}).length === 4);
 ok('HTML ma podpis „Opracowanie własne”', /Opracowanie własne na podstawie/.test(kb.bookVisualsHTML()));
 
@@ -78,7 +83,8 @@ async function imagesLoaded(page, sel) {
   await page.evaluate(() => goTo('academy'));
   await page.click('.academy-tab:has-text("Grafiki z książek")');
   await page.waitForSelector('.academy-visuals .book-visual');
-  ok('Akademia: 2 grafiki SVG wczytane', (await imagesLoaded(page, '.academy-visuals')) === 2);
+  ok('Akademia: 1 grafika SVG wczytana', (await imagesLoaded(page, '.academy-visuals')) === 1);
+  ok('Akademia: rozładowanie narysowane', (await page.$$eval('.academy-visuals .tp-row', (els) => els.length)) === 5);
   ok('Akademia: oś faz siły narysowana', (await page.$$eval('.academy-visuals .fs-phase', (els) => els.length)) === 7);
   ok('Akademia: strefy intensywności narysowane', (await page.$$eval('.academy-visuals .iz-zone', (els) => els.length)) === 4);
   await page.locator('.academy-visuals [data-book-visual="strefy-intensywnosci"]').screenshot({ path: path.join(shotDir, 'strefy-komputer.png') });
@@ -99,7 +105,7 @@ async function imagesLoaded(page, sel) {
     if (d) d.open = true;
   });
   await page.waitForSelector('[data-apl-visuals] .book-visual');
-  ok('Podgląd planu: 2 grafiki SVG + strefy + fazy', (await imagesLoaded(page, '[data-apl-visuals]')) === 2 && (await page.$$('[data-apl-visuals] .fs-phase')).length === 7 && (await page.$$('[data-apl-visuals] .iz-zone')).length === 4);
+  ok('Podgląd planu: FMS + strefy + fazy + rozładowanie', (await imagesLoaded(page, '[data-apl-visuals]')) === 1 && (await page.$$('[data-apl-visuals] .tp-row')).length === 5 && (await page.$$('[data-apl-visuals] .fs-phase')).length === 7 && (await page.$$('[data-apl-visuals] .iz-zone')).length === 4);
   const first = await page.$eval('[data-apl-visuals] .book-visual', (el) => el.getAttribute('data-book-visual'));
   ok('Podgląd planu: przy ograniczeniach FMS pierwsze', first === 'fms-swiatla', first);
   const visuals = await page.$('[data-apl-visuals]');
