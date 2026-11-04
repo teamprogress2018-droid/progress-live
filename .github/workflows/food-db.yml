@@ -1,0 +1,48 @@
+name: Baza produktów z USDA
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'knowledge/food/usda-wybor.json'
+      - '.github/scripts/build_food_db.js'
+      - '.github/workflows/food-db.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: food-db-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+
+      - name: Ustaw Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Pobierz SR Legacy z USDA
+        run: |
+          mkdir -p /tmp/usda && cd /tmp/usda
+          curl -fsSL -o sr.zip https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
+          unzip -q -j sr.zip '*.csv'
+          ls -la
+
+      - name: Zbuduj bazę
+        run: node .github/scripts/build_food_db.js /tmp/usda
+
+      - name: Zapisz w repo
+        run: |
+          git add knowledge/food
+          if git diff --cached --quiet; then echo "Bez zmian."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Baza produktów: odśwież dane z USDA"
+          git push

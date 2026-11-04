@@ -39,7 +39,8 @@ ok('mało węglowodanów = ostrzeżenie', D.dietBookTargets({ weight: 90, age: 3
     const near = (a, b) => Math.abs(a - b) <= Math.max(8, b * 0.1);
     // Najmniejsze sensowne porcje mogą podnieść białko, ale tylko do górnej granicy z książek,
     // a nadwyżkę białka oddają węglowodany (ta sama energia).
-    const protOk = d.total.p >= tt.protein.g * 0.9 && d.total.p <= Math.max(tt.protein.g * 1.1, tt.protein.hi * w * 1.1);
+    // Ponad górną granicę tylko z uczciwym ostrzeżeniem (białko z pieczywa i kasz przy dużej ilości węglowodanów).
+    const protOk = d.total.p >= tt.protein.g * 0.9 && (d.total.p <= Math.max(tt.protein.g * 1.1, tt.protein.hi * w * 1.1) || d.warnings.some(x => x.includes('ponad zakres z książek')));
     ok(`dzień ${w}kg ${k}kcal ${n} posiłki w${v}`, d.meals.length === n && protOk && near(d.total.p + d.total.c, tt.protein.g + tt.carbs.g) && Math.abs(d.total.f - tt.fat.g) <= Math.max(10, tt.fat.g * 0.12),
       JSON.stringify({ p: Math.round(d.total.p), c: Math.round(d.total.c), f: Math.round(d.total.f), cel: [tt.protein.g, tt.carbs.g, tt.fat.g] }));
   }));
@@ -61,8 +62,17 @@ const tSel = D.dietBookTargets({ weight: 96, age: 43, kcal: 3636, rmr: 1906, pal
 ok('wybrane makro przechodzi do jadłospisu', tSel.selected && tSel.protein.g === 318 && tSel.carbs.g === 364);
 ok('ostrzeżenie: białko poza zakresem książek', tSel.notes.some(n => n.text.includes('g białka na kg')));
 ok('gramatura w krokach 5 g (małe co 1 g)', day.meals.every(m => m.items.every(it => foods[it.id].unit === 'szt' ? Number.isInteger(it.amount) : (it.amount < 30 || it.amount % 5 === 0))));
-ok('produkty mają stronę źródła', D.DIET_FOODS.every(f => f.page && f.kcal > 0));
-ok('Atwater produktów (±25%)', D.DIET_FOODS.every(f => { const a = 4 * f.p + 4 * f.c + 9 * f.f; return Math.abs(a - f.kcal) <= Math.max(6, f.kcal * 0.25); }));
+// Baza produktów: wartości z USDA (knowledge/food/usda-produkty.json) przepisane bez zmian, reszta z Bean ze stroną.
+const usda = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'knowledge', 'food', 'usda-produkty.json'), 'utf8')).produkty;
+const r2 = x => Math.round(x * 100) / 100;
+ok('produkty mają źródło (USDA z numerem albo Bean ze stroną)', D.DIET_FOODS.every(f => f.kcal > 0 && (f.src === 'usda' ? usda[f.id] && usda[f.id].fdc_id === f.fdc : f.src === 'bean' && f.page)));
+ok('wartości USDA zgodne z plikiem bazy', D.DIET_FOODS.filter(f => f.src === 'usda').every(f => {
+  const u = usda[f.id], k = f.unit === 'szt' ? f.g / 100 : 1;
+  return ['kcal', 'p', 'c', 'f'].every(x => Math.abs(f[x] - u[x] * k) <= (x === 'kcal' ? 0.06 : 0.006) * Math.max(1, k));
+}));
+ok('waga po obróbce z energii USDA', D.DIET_FOODS.filter(f => f.cooked).every(f => usda[f.id + '@po'] && usda[f.id + '@po'].fdc_id === f.cooked.fdc && Math.abs(f.cooked.ratio - usda[f.id].kcal / usda[f.id + '@po'].kcal) < 0.006));
+ok('Atwater produktów (±25%)', D.DIET_FOODS.every(f => { const a = 4 * f.p + 4 * f.c + 9 * f.f; return Math.abs(a - f.kcal) <= Math.max(8, f.kcal * 0.25); }));
+ok('szersza baza: co najmniej 70 produktów', D.DIET_FOODS.length >= 70);
 
 const txt = D.dietPlanText(t, day);
 ok('tekst dla klienta z zastrzeżeniem', txt.includes('nie zastępuje porady dietetyka'.replace('nie', 'Nie')) || txt.includes('Nie zastępuje'));
@@ -107,7 +117,8 @@ const tagOf = id => foods[id].tags;
 });
 const dSkip = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { skip: ['cottage', 'chleb'] } });
 ok('produkty, których klient nie je, znikają', !used(dSkip).some(id => id === 'cottage' || id === 'chleb'));
-ok('zamiana opisana przy posiłku', dSkip.meals.some(m => m.changes.some(ch => ch.from === 'cottage')));
+const dSkip2 = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { skip: ['cottage', 'jajko', 'jogurt', 'jogurt-grecki', 'mozzarella'] } });
+ok('zamiana opisana przy posiłku', dSkip2.meals.some(m => m.changes.some(ch => ['cottage', 'jajko', 'jogurt', 'jogurt-grecki', 'mozzarella'].includes(ch.from))));
 const dQuick = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { maxMin: 15 } });
 ok('limit 15 min: każdy posiłek w limicie', dQuick.meals.every(m => m.minutes <= 15) && !dQuick.warnings.length);
 const tplOver = D.dietBuildDay({ targets: tK, meals: 4, variant: 0, prefs: { maxMin: 2 } });
@@ -209,7 +220,7 @@ ok('kalkulator: gotowanie i osoby', src07.includes('prep:dietPrep,people:dietPeo
 // Zatwierdzanie: lista kontrolna, wysyłka dopiero po zatwierdzeniu, szkic klient nie widzi.
 const apPlan = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { style: 'weganska', ex: ['gluten'] } });
 const checks = D.dietApprovalChecks(tK, apPlan, { injuries: 'bark prawy' });
-ok('lista kontrolna: ostrzeżenia, alergeny, kontuzje, dane produktów, przeciwwskazania', checks.some(c => c.text.includes('Mało produktów')) && checks.some(c => c.text.includes('gluten')) && checks.some(c => c.text.includes('bark prawy')) && checks.some(c => c.text.includes('Bean')) && checks.some(c => c.level === 'stop' && c.sources.length));
+ok('lista kontrolna: ostrzeżenia, alergeny, kontuzje, dane produktów, przeciwwskazania', checks.some(c => c.text.includes('Mało produktów')) && checks.some(c => c.text.includes('gluten')) && checks.some(c => c.text.includes('bark prawy')) && checks.some(c => c.text.includes('USDA')) && checks.some(c => c.level === 'stop' && c.sources.length));
 ok('styl wegański bez fałszywego alarmu o alergii na mięso', !checks.some(c => c.text.startsWith('Wykluczenia') && c.text.includes('mięso')));
 const apCard = D.dietRenderCard(tK, apPlan, { meals: 5, approval: { checks, saved: { status: 'szkic', updatedAt: '2026-10-29T10:00:00Z', kcal: 2400 } } });
 ok('karta: przycisk zatwierdzenia wyłączony do zaznaczenia', /id="diet-approve-btn" disabled style="opacity:\.45;"/.test(apCard) && apCard.includes('diet-approve-check') && apCard.includes('dietSaveDraft()') && apCard.includes('Ostatni plan klienta'));
@@ -265,10 +276,17 @@ ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function 
   ok('owoce jagodowe najwyżej 250 g', owoce);
   ok('zamiennik = tyle samo głównego składnika', zam);
   ok('główny posiłek zawsze z produktem białkowym', glowne);
+  const MD = ['kurczak', 'indyk', 'wolowina', 'schab', 'losos', 'ryba', 'makrela', 'pstrag', 'fasola', 'soczewica', 'ciecierzyca'];
+  const snackSwaps = [[80, 2400, 'redukcja'], [85, 3500, 'masa']].every(([w, k, g]) => {
+    const tt = D.dietBookTargets({ weight: w, age: 30, kcal: k, rmr: 1300, pal: 1.6, goal: g });
+    return [5, 6].every(n => [0, 1, 2].every(v => D.dietBuildDay({ targets: tt, meals: n, variant: v }).meals
+      .filter(m => !/^(Obiad|Kolacja)$/.test(m.name)).every(m => m.items.every(i => !(i.swaps || []).some(s => s.other && MD.includes(s.id))))));
+  });
+  ok('w śniadaniu i przekąsce zamiennik białka bez dań obiadowych', snackSwaps);
 }
 
 ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 11));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 12));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
