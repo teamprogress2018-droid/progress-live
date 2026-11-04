@@ -1,0 +1,2579 @@
+{
+ "zrodlo": "USDA FoodData Central, SR Legacy (April 2018), domena publiczna",
+ "url": "https://fdc.nal.usda.gov/",
+ "jednostka": "na 100 g części jadalnej",
+ "produkty": {
+  "kurczak": {
+   "fdc_id": 171077,
+   "opis": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+   "kcal": 120,
+   "p": 22.5,
+   "f": 2.62,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 4,
+     "unit": "oz",
+     "g": 113
+    },
+    {
+     "amount": 1,
+     "unit": "piece",
+     "g": 272
+    },
+    {
+     "amount": 1,
+     "unit": "package",
+     "g": 926
+    }
+   ]
+  },
+  "kurczak@po": {
+   "fdc_id": 171477,
+   "opis": "Chicken, broilers or fryers, breast, meat only, cooked, roasted",
+   "kcal": 165,
+   "p": 31.02,
+   "f": 3.57,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped or diced",
+     "g": 140
+    },
+    {
+     "amount": 1,
+     "unit": "unit (yield from 1 lb ready-to-cook chicken)",
+     "g": 52
+    },
+    {
+     "amount": 0.5,
+     "unit": "breast, bone and skin removed",
+     "g": 86
+    }
+   ]
+  },
+  "indyk": {
+   "fdc_id": 174515,
+   "opis": "Turkey, retail parts, breast, meat only, raw",
+   "kcal": 114,
+   "p": 23.34,
+   "f": 2.33,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 4,
+     "unit": "oz",
+     "g": 113
+    },
+    {
+     "amount": 1,
+     "unit": "breast",
+     "g": 1150
+    }
+   ]
+  },
+  "indyk@po": {
+   "fdc_id": 174516,
+   "opis": "Turkey, retail parts, breast, meat only, cooked, roasted",
+   "kcal": 136,
+   "p": 29.51,
+   "f": 1.97,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "breast",
+     "g": 863
+    },
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    }
+   ]
+  },
+  "wolowina": {
+   "fdc_id": 171790,
+   "opis": "Beef, ground, 95% lean meat / 5% fat, raw",
+   "kcal": 137,
+   "p": 21.41,
+   "f": 5,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 4,
+     "unit": "oz",
+     "g": 113
+    }
+   ]
+  },
+  "wolowina@po": {
+   "fdc_id": 171792,
+   "opis": "Beef, ground, 95% lean meat / 5% fat, patty, cooked, pan-broiled",
+   "kcal": 164,
+   "p": 25.8,
+   "f": 5.94,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    }
+   ]
+  },
+  "schab": {
+   "fdc_id": 168263,
+   "opis": "Pork, fresh, loin, center loin (chops), boneless, separable lean only, raw",
+   "kcal": 123,
+   "p": 23.75,
+   "f": 3.09,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 4,
+     "unit": "oz",
+     "g": 113
+    },
+    {
+     "amount": 1,
+     "unit": "chop",
+     "g": 170
+    }
+   ]
+  },
+  "schab@po": {
+   "fdc_id": 168285,
+   "opis": "Pork, fresh, loin, center loin (chops), boneless, separable lean only, cooked, pan-broiled",
+   "kcal": 162,
+   "p": 30.02,
+   "f": 4.65,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    },
+    {
+     "amount": 1,
+     "unit": "chop",
+     "g": 137
+    }
+   ]
+  },
+  "losos": {
+   "fdc_id": 175167,
+   "opis": "Fish, salmon, Atlantic, farmed, raw",
+   "kcal": 208,
+   "p": 20.42,
+   "f": 13.42,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    },
+    {
+     "amount": 0.5,
+     "unit": "fillet",
+     "g": 198
+    }
+   ]
+  },
+  "losos@po": {
+   "fdc_id": 175168,
+   "opis": "Fish, salmon, Atlantic, farmed, cooked, dry heat",
+   "kcal": 206,
+   "p": 22.1,
+   "f": 12.35,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    },
+    {
+     "amount": 0.5,
+     "unit": "fillet",
+     "g": 178
+    }
+   ]
+  },
+  "ryba": {
+   "fdc_id": 171955,
+   "opis": "Fish, cod, Atlantic, raw",
+   "kcal": 82,
+   "p": 17.81,
+   "f": 0.67,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    },
+    {
+     "amount": 1,
+     "unit": "fillet",
+     "g": 231
+    }
+   ]
+  },
+  "ryba@po": {
+   "fdc_id": 171956,
+   "opis": "Fish, cod, Atlantic, cooked, dry heat",
+   "kcal": 105,
+   "p": 22.83,
+   "f": 0.86,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    },
+    {
+     "amount": 1,
+     "unit": "fillet",
+     "g": 180
+    }
+   ]
+  },
+  "makrela": {
+   "fdc_id": 175119,
+   "opis": "Fish, mackerel, Atlantic, raw",
+   "kcal": 205,
+   "p": 18.6,
+   "f": 13.89,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "fillet",
+     "g": 112
+    },
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    }
+   ]
+  },
+  "makrela@po": {
+   "fdc_id": 175120,
+   "opis": "Fish, mackerel, Atlantic, cooked, dry heat",
+   "kcal": 262,
+   "p": 23.85,
+   "f": 17.81,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "fillet",
+     "g": 88
+    },
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    }
+   ]
+  },
+  "pstrag": {
+   "fdc_id": 173717,
+   "opis": "Fish, trout, rainbow, farmed, raw",
+   "kcal": 141,
+   "p": 19.94,
+   "f": 6.18,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "fillet",
+     "g": 79
+    },
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    }
+   ]
+  },
+  "tunczyk": {
+   "fdc_id": 173709,
+   "opis": "Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 86,
+   "p": 19.44,
+   "f": 0.96,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    },
+    {
+     "amount": 3,
+     "unit": "oz",
+     "g": 85
+    },
+    {
+     "amount": 1,
+     "unit": "can",
+     "g": 165
+    },
+    {
+     "amount": 1,
+     "unit": "cup, solid or chunks",
+     "g": 154
+    },
+    {
+     "amount": 1,
+     "unit": "can (12.5 oz), drained",
+     "g": 315
+    }
+   ]
+  },
+  "jajko": {
+   "fdc_id": 171287,
+   "opis": "Egg, whole, raw, fresh",
+   "kcal": 143,
+   "p": 12.56,
+   "f": 9.51,
+   "c": 0.72,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 50
+    },
+    {
+     "amount": 1,
+     "unit": "extra large",
+     "g": 56
+    },
+    {
+     "amount": 1,
+     "unit": "jumbo",
+     "g": 63
+    },
+    {
+     "amount": 1,
+     "unit": "cup (4.86 large eggs)",
+     "g": 243
+    },
+    {
+     "amount": 1,
+     "unit": "medium",
+     "g": 44
+    },
+    {
+     "amount": 1,
+     "unit": "small",
+     "g": 38
+    }
+   ]
+  },
+  "cottage": {
+   "fdc_id": 172179,
+   "opis": "Cheese, cottage, creamed, large or small curd",
+   "kcal": 98,
+   "p": 11.12,
+   "f": 4.3,
+   "c": 3.38,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 4,
+     "unit": "oz",
+     "g": 113
+    },
+    {
+     "amount": 1,
+     "unit": "cup, large curd (not packed)",
+     "g": 210
+    },
+    {
+     "amount": 1,
+     "unit": "cup, small curd (not packed)",
+     "g": 225
+    }
+   ]
+  },
+  "jogurt": {
+   "fdc_id": 170886,
+   "opis": "Yogurt, plain, low fat",
+   "kcal": 63,
+   "p": 5.25,
+   "f": 1.55,
+   "c": 7.04,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "container (6 oz)",
+     "g": 170
+    },
+    {
+     "amount": 1,
+     "unit": "container (8 oz)",
+     "g": 227
+    },
+    {
+     "amount": 0.5,
+     "unit": "container (4 oz)",
+     "g": 113
+    },
+    {
+     "amount": 1,
+     "unit": "cup (8 fl oz)",
+     "g": 245
+    }
+   ]
+  },
+  "jogurt-grecki": {
+   "fdc_id": 170903,
+   "opis": "Yogurt, Greek, plain, lowfat",
+   "kcal": 73,
+   "p": 9.95,
+   "f": 1.92,
+   "c": 3.94,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "container (7 oz)",
+     "g": 200
+    }
+   ]
+  },
+  "kefir": {
+   "fdc_id": 170904,
+   "opis": "Kefir, lowfat, plain, LIFEWAY",
+   "kcal": 43,
+   "p": 3.79,
+   "f": 1.02,
+   "c": 4.77,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 243
+    },
+    {
+     "amount": 1,
+     "unit": "bottle",
+     "g": 971
+    }
+   ]
+  },
+  "mleko": {
+   "fdc_id": 171269,
+   "opis": "Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",
+   "kcal": 34,
+   "p": 3.37,
+   "f": 0.08,
+   "c": 4.96,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 245
+    },
+    {
+     "amount": 1,
+     "unit": "fl oz",
+     "g": 30.6
+    },
+    {
+     "amount": 1,
+     "unit": "quart",
+     "g": 980
+    }
+   ]
+  },
+  "mleko-2": {
+   "fdc_id": 171267,
+   "opis": "Milk, reduced fat, fluid, 2% milkfat, with added vitamin A and vitamin D",
+   "kcal": 50,
+   "p": 3.3,
+   "f": 1.98,
+   "c": 4.8,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 244
+    },
+    {
+     "amount": 1,
+     "unit": "fl oz",
+     "g": 30.5
+    },
+    {
+     "amount": 1,
+     "unit": "quart",
+     "g": 976
+    }
+   ]
+  },
+  "mozzarella": {
+   "fdc_id": 170847,
+   "opis": "Cheese, mozzarella, part skim milk",
+   "kcal": 254,
+   "p": 24.26,
+   "f": 15.92,
+   "c": 2.77,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    }
+   ]
+  },
+  "gouda": {
+   "fdc_id": 171241,
+   "opis": "Cheese, gouda",
+   "kcal": 356,
+   "p": 24.94,
+   "f": 27.44,
+   "c": 2.22,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    },
+    {
+     "amount": 1,
+     "unit": "package (7 oz)",
+     "g": 198
+    }
+   ]
+  },
+  "feta": {
+   "fdc_id": 173420,
+   "opis": "Cheese, feta",
+   "kcal": 265,
+   "p": 14.21,
+   "f": 21.49,
+   "c": 3.88,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, crumbled",
+     "g": 150
+    },
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    },
+    {
+     "amount": 1,
+     "unit": "cubic inch",
+     "g": 17
+    },
+    {
+     "amount": 1,
+     "unit": "wedge (1.33 oz)",
+     "g": 38
+    }
+   ]
+  },
+  "fasola": {
+   "fdc_id": 175194,
+   "opis": "Beans, kidney, red, mature seeds, cooked, boiled, without salt",
+   "kcal": 127,
+   "p": 8.67,
+   "f": 0.5,
+   "c": 22.8,
+   "fiber": 7.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 177
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 11
+    }
+   ]
+  },
+  "soczewica": {
+   "fdc_id": 172421,
+   "opis": "Lentils, mature seeds, cooked, boiled, without salt",
+   "kcal": 116,
+   "p": 9.02,
+   "f": 0.38,
+   "c": 20.13,
+   "fiber": 7.9,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 198
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 12.3
+    }
+   ]
+  },
+  "ciecierzyca": {
+   "fdc_id": 173757,
+   "opis": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt",
+   "kcal": 164,
+   "p": 8.86,
+   "f": 2.59,
+   "c": 27.42,
+   "fiber": 7.6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 164
+    }
+   ]
+  },
+  "tofu": {
+   "fdc_id": 172475,
+   "opis": "Tofu, raw, firm, prepared with calcium sulfate",
+   "kcal": 144,
+   "p": 17.27,
+   "f": 8.72,
+   "c": 2.78,
+   "fiber": 2.3,
+   "porcje": [
+    {
+     "amount": 0.5,
+     "unit": "cup",
+     "g": 126
+    },
+    {
+     "amount": 0.25,
+     "unit": "block",
+     "g": 81
+    }
+   ]
+  },
+  "owsiane": {
+   "fdc_id": 173904,
+   "opis": "Cereals, oats, regular and quick, not fortified, dry",
+   "kcal": 379,
+   "p": 13.15,
+   "f": 6.52,
+   "c": 67.7,
+   "fiber": 10.1,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 81
+    },
+    {
+     "amount": 0.33,
+     "unit": "cup",
+     "g": 27
+    }
+   ]
+  },
+  "chleb": {
+   "fdc_id": 172688,
+   "opis": "Bread, whole-wheat, commercially prepared",
+   "kcal": 252,
+   "p": 12.45,
+   "f": 3.5,
+   "c": 42.71,
+   "fiber": 6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "slice",
+     "g": 32
+    },
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    }
+   ]
+  },
+  "chleb-zytni": {
+   "fdc_id": 172684,
+   "opis": "Bread, rye",
+   "kcal": 259,
+   "p": 8.5,
+   "f": 3.3,
+   "c": 48.3,
+   "fiber": 5.8,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    },
+    {
+     "amount": 1,
+     "unit": "slice, regular",
+     "g": 32
+    },
+    {
+     "amount": 1,
+     "unit": "slice, snack-size",
+     "g": 7
+    },
+    {
+     "amount": 1,
+     "unit": "slice, thin",
+     "g": 25
+    }
+   ]
+  },
+  "makaron": {
+   "fdc_id": 169736,
+   "opis": "Pasta, dry, enriched",
+   "kcal": 371,
+   "p": 13.04,
+   "f": 1.51,
+   "c": 74.67,
+   "fiber": 3.2,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup spaghetti",
+     "g": 91
+    },
+    {
+     "amount": 2,
+     "unit": "oz",
+     "g": 57
+    },
+    {
+     "amount": 1,
+     "unit": "cup elbows",
+     "g": 122
+    },
+    {
+     "amount": 1,
+     "unit": "cup penne",
+     "g": 95
+    },
+    {
+     "amount": 1,
+     "unit": "cup farfalle",
+     "g": 81
+    },
+    {
+     "amount": 1,
+     "unit": "cup rotini",
+     "g": 96
+    }
+   ]
+  },
+  "makaron@po": {
+   "fdc_id": 169737,
+   "opis": "Pasta, cooked, enriched, without added salt",
+   "kcal": 158,
+   "p": 5.8,
+   "f": 0.93,
+   "c": 30.86,
+   "fiber": 1.8,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup spaghetti not packed",
+     "g": 124
+    },
+    {
+     "amount": 1,
+     "unit": "cup spaghetti packed",
+     "g": 151
+    },
+    {
+     "amount": 1,
+     "unit": "cup elbows not packed",
+     "g": 120
+    },
+    {
+     "amount": 1,
+     "unit": "cup elbows packed",
+     "g": 132
+    },
+    {
+     "amount": 1,
+     "unit": "cup penne",
+     "g": 107
+    },
+    {
+     "amount": 1,
+     "unit": "cup farfalle",
+     "g": 107
+    }
+   ]
+  },
+  "makaron-razowy": {
+   "fdc_id": 169738,
+   "opis": "Pasta, whole-wheat, dry (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 352,
+   "p": 13.87,
+   "f": 2.93,
+   "c": 73.37,
+   "fiber": 9.2,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup spaghetti",
+     "g": 91
+    },
+    {
+     "amount": 1,
+     "unit": "cup elbows",
+     "g": 122
+    },
+    {
+     "amount": 1,
+     "unit": "cup penne",
+     "g": 95
+    },
+    {
+     "amount": 1,
+     "unit": "cup farfalle",
+     "g": 81
+    },
+    {
+     "amount": 1,
+     "unit": "cup rotini",
+     "g": 96
+    },
+    {
+     "amount": 1,
+     "unit": "cup shells",
+     "g": 64
+    }
+   ]
+  },
+  "makaron-razowy@po": {
+   "fdc_id": 168910,
+   "opis": "Pasta, whole-wheat, cooked (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 149,
+   "p": 5.99,
+   "f": 1.71,
+   "c": 30.07,
+   "fiber": 3.9,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup spaghetti not packed",
+     "g": 117
+    },
+    {
+     "amount": 1,
+     "unit": "cup spaghetti packed",
+     "g": 151
+    },
+    {
+     "amount": 1,
+     "unit": "cup elbows",
+     "g": 117
+    },
+    {
+     "amount": 1,
+     "unit": "cup penne",
+     "g": 97
+    },
+    {
+     "amount": 1,
+     "unit": "cup shells",
+     "g": 105
+    },
+    {
+     "amount": 1,
+     "unit": "cup lasagne",
+     "g": 116
+    }
+   ]
+  },
+  "ryz": {
+   "fdc_id": 169703,
+   "opis": "Rice, brown, long-grain, raw (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 367,
+   "p": 7.54,
+   "f": 3.2,
+   "c": 76.25,
+   "fiber": 3.6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 185
+    }
+   ]
+  },
+  "ryz@po": {
+   "fdc_id": 169704,
+   "opis": "Rice, brown, long-grain, cooked (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 123,
+   "p": 2.74,
+   "f": 0.97,
+   "c": 25.58,
+   "fiber": 1.6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 202
+    }
+   ]
+  },
+  "ryz-bialy": {
+   "fdc_id": 169756,
+   "opis": "Rice, white, long-grain, regular, raw, unenriched",
+   "kcal": 365,
+   "p": 7.13,
+   "f": 0.66,
+   "c": 79.95,
+   "fiber": 1.3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 185
+    }
+   ]
+  },
+  "ryz-bialy@po": {
+   "fdc_id": 168935,
+   "opis": "Rice, white, long-grain, regular, cooked, unenriched, with salt",
+   "kcal": 130,
+   "p": 2.69,
+   "f": 0.28,
+   "c": 28.17,
+   "fiber": 0.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 158
+    }
+   ]
+  },
+  "kasza-gryczana": {
+   "fdc_id": 170685,
+   "opis": "Buckwheat groats, roasted, dry",
+   "kcal": 346,
+   "p": 11.73,
+   "f": 2.71,
+   "c": 74.95,
+   "fiber": 10.3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 164
+    }
+   ]
+  },
+  "kasza-gryczana@po": {
+   "fdc_id": 170686,
+   "opis": "Buckwheat groats, roasted, cooked",
+   "kcal": 92,
+   "p": 3.38,
+   "f": 0.62,
+   "c": 19.94,
+   "fiber": 2.7,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 168
+    }
+   ]
+  },
+  "kasza-jaglana": {
+   "fdc_id": 169702,
+   "opis": "Millet, raw",
+   "kcal": 378,
+   "p": 11.02,
+   "f": 4.22,
+   "c": 72.85,
+   "fiber": 8.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 200
+    }
+   ]
+  },
+  "kasza-jaglana@po": {
+   "fdc_id": 168871,
+   "opis": "Millet, cooked",
+   "kcal": 119,
+   "p": 3.51,
+   "f": 1,
+   "c": 23.67,
+   "fiber": 1.3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 174
+    }
+   ]
+  },
+  "kasza-jeczmienna": {
+   "fdc_id": 170284,
+   "opis": "Barley, pearled, raw",
+   "kcal": 352,
+   "p": 9.91,
+   "f": 1.16,
+   "c": 77.72,
+   "fiber": 15.6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 200
+    }
+   ]
+  },
+  "kasza-jeczmienna@po": {
+   "fdc_id": 170285,
+   "opis": "Barley, pearled, cooked",
+   "kcal": 123,
+   "p": 2.26,
+   "f": 0.44,
+   "c": 28.22,
+   "fiber": 3.8,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 157
+    }
+   ]
+  },
+  "komosa": {
+   "fdc_id": 168874,
+   "opis": "Quinoa, uncooked",
+   "kcal": 368,
+   "p": 14.12,
+   "f": 6.07,
+   "c": 64.16,
+   "fiber": 7,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 170
+    }
+   ]
+  },
+  "komosa@po": {
+   "fdc_id": 168917,
+   "opis": "Quinoa, cooked",
+   "kcal": 120,
+   "p": 4.4,
+   "f": 1.92,
+   "c": 21.3,
+   "fiber": 2.8,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 185
+    }
+   ]
+  },
+  "kuskus": {
+   "fdc_id": 169699,
+   "opis": "Couscous, dry",
+   "kcal": 376,
+   "p": 12.76,
+   "f": 0.64,
+   "c": 77.43,
+   "fiber": 5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 173
+    }
+   ]
+  },
+  "kuskus@po": {
+   "fdc_id": 169700,
+   "opis": "Couscous, cooked",
+   "kcal": 112,
+   "p": 3.79,
+   "f": 0.16,
+   "c": 23.22,
+   "fiber": 1.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, cooked",
+     "g": 157
+    },
+    {
+     "amount": 1,
+     "unit": "cup, dry, yields",
+     "g": 528
+    },
+    {
+     "amount": 1,
+     "unit": "oz, dry, yields",
+     "g": 86
+    }
+   ]
+  },
+  "bulgur": {
+   "fdc_id": 170688,
+   "opis": "Bulgur, dry",
+   "kcal": 342,
+   "p": 12.29,
+   "f": 1.33,
+   "c": 75.87,
+   "fiber": 12.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 140
+    }
+   ]
+  },
+  "bulgur@po": {
+   "fdc_id": 170287,
+   "opis": "Bulgur, cooked",
+   "kcal": 83,
+   "p": 3.08,
+   "f": 0.24,
+   "c": 18.58,
+   "fiber": 4.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 182
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 8.4
+    }
+   ]
+  },
+  "ziemniaki": {
+   "fdc_id": 170026,
+   "opis": "Potatoes, flesh and skin, raw",
+   "kcal": 77,
+   "p": 2.05,
+   "f": 0.09,
+   "c": 17.49,
+   "fiber": 2.1,
+   "porcje": [
+    {
+     "amount": 0.5,
+     "unit": "cup, diced",
+     "g": 75
+    },
+    {
+     "amount": 1,
+     "unit": "Potato large (3\" to 4-1/4\" dia)",
+     "g": 369
+    },
+    {
+     "amount": 1,
+     "unit": "Potato medium (2-1/4\" to 3-1/4\" dia)",
+     "g": 213
+    },
+    {
+     "amount": 1,
+     "unit": "Potato small (1-3/4\" to 2-1/2\" dia)",
+     "g": 170
+    }
+   ]
+  },
+  "ziemniaki@po": {
+   "fdc_id": 170440,
+   "opis": "Potatoes, boiled, cooked without skin, flesh, without salt",
+   "kcal": 86,
+   "p": 1.71,
+   "f": 0.1,
+   "c": 20.01,
+   "fiber": 1.8,
+   "porcje": [
+    {
+     "amount": 0.5,
+     "unit": "cup",
+     "g": 78
+    },
+    {
+     "amount": 1,
+     "unit": "large (3\" to 4-1/4\" dia.)",
+     "g": 300
+    },
+    {
+     "amount": 1,
+     "unit": "medium (2-1/4\" to 3-1/4\" dia.)",
+     "g": 167
+    },
+    {
+     "amount": 1,
+     "unit": "small (1-3/4\" to 2-1/2\" dia.)",
+     "g": 125
+    }
+   ]
+  },
+  "bataty": {
+   "fdc_id": 168482,
+   "opis": "Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 86,
+   "p": 1.57,
+   "f": 0.05,
+   "c": 20.12,
+   "fiber": 3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, cubes",
+     "g": 133
+    },
+    {
+     "amount": 1,
+     "unit": "sweetpotato, 5\" long",
+     "g": 130
+    }
+   ]
+  },
+  "bataty@po": {
+   "fdc_id": 168483,
+   "opis": "Sweet potato, cooked, baked in skin, flesh, without salt",
+   "kcal": 90,
+   "p": 2.01,
+   "f": 0.15,
+   "c": 20.71,
+   "fiber": 3.3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 200
+    },
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 180
+    },
+    {
+     "amount": 1,
+     "unit": "medium (2\" dia, 5\" long, raw)",
+     "g": 114
+    },
+    {
+     "amount": 1,
+     "unit": "small",
+     "g": 60
+    }
+   ]
+  },
+  "maslo-orz": {
+   "fdc_id": 172470,
+   "opis": "Peanut butter, smooth style, without salt",
+   "kcal": 598,
+   "p": 22.21,
+   "f": 51.36,
+   "c": 22.31,
+   "fiber": 5,
+   "porcje": [
+    {
+     "amount": 2,
+     "unit": "tbsp",
+     "g": 32
+    },
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 258
+    }
+   ]
+  },
+  "oliwa": {
+   "fdc_id": 171413,
+   "opis": "Oil, olive, salad or cooking",
+   "kcal": 884,
+   "p": 0,
+   "f": 100,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "tablespoon",
+     "g": 13.5
+    },
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 216
+    },
+    {
+     "amount": 1,
+     "unit": "tsp",
+     "g": 4.5
+    }
+   ]
+  },
+  "olej-rzepakowy": {
+   "fdc_id": 172336,
+   "opis": "Oil, canola",
+   "kcal": 884,
+   "p": 0,
+   "f": 100,
+   "c": 0,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 14
+    },
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 218
+    },
+    {
+     "amount": 1,
+     "unit": "tsp",
+     "g": 4.5
+    }
+   ]
+  },
+  "maslo": {
+   "fdc_id": 173430,
+   "opis": "Butter, without salt",
+   "kcal": 717,
+   "p": 0.85,
+   "f": 81.11,
+   "c": 0.06,
+   "fiber": 0,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "pat (1\" sq, 1/3\" high)",
+     "g": 5
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 14.2
+    },
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 227
+    },
+    {
+     "amount": 1,
+     "unit": "stick",
+     "g": 113
+    }
+   ]
+  },
+  "awokado": {
+   "fdc_id": 171705,
+   "opis": "Avocados, raw, all commercial varieties",
+   "kcal": 160,
+   "p": 2,
+   "f": 14.66,
+   "c": 8.53,
+   "fiber": 6.7,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, cubes",
+     "g": 150
+    },
+    {
+     "amount": 1,
+     "unit": "cup, pureed",
+     "g": 230
+    },
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 146
+    },
+    {
+     "amount": 1,
+     "unit": "avocado, NS as to Florida or California",
+     "g": 201
+    },
+    {
+     "amount": 1,
+     "unit": "NLEA Serving",
+     "g": 50
+    }
+   ]
+  },
+  "hummus": {
+   "fdc_id": 174289,
+   "opis": "Hummus, commercial",
+   "kcal": 237,
+   "p": 7.78,
+   "f": 17.82,
+   "c": 15,
+   "fiber": 5.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 15
+    },
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 246
+    }
+   ]
+  },
+  "orzechy-wloskie": {
+   "fdc_id": 170187,
+   "opis": "Nuts, walnuts, english",
+   "kcal": 654,
+   "p": 15.23,
+   "f": 65.21,
+   "c": 13.71,
+   "fiber": 6.7,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped",
+     "g": 117
+    },
+    {
+     "amount": 1,
+     "unit": "cup, ground",
+     "g": 80
+    },
+    {
+     "amount": 1,
+     "unit": "cup, in shell, edible yield (7 nuts)",
+     "g": 28
+    },
+    {
+     "amount": 1,
+     "unit": "cup shelled (50 halves)",
+     "g": 100
+    },
+    {
+     "amount": 1,
+     "unit": "cup pieces or chips",
+     "g": 120
+    },
+    {
+     "amount": 1,
+     "unit": "oz (14 halves)",
+     "g": 28.35
+    }
+   ]
+  },
+  "migdaly": {
+   "fdc_id": 170567,
+   "opis": "Nuts, almonds",
+   "kcal": 579,
+   "p": 21.15,
+   "f": 49.93,
+   "c": 21.55,
+   "fiber": 12.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, whole",
+     "g": 143
+    },
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 92
+    },
+    {
+     "amount": 1,
+     "unit": "cup, slivered",
+     "g": 108
+    },
+    {
+     "amount": 1,
+     "unit": "cup, ground",
+     "g": 95
+    },
+    {
+     "amount": 1,
+     "unit": "oz (23 whole kernels)",
+     "g": 28.35
+    },
+    {
+     "amount": 1,
+     "unit": "almond",
+     "g": 1.2
+    }
+   ]
+  },
+  "orzechy-laskowe": {
+   "fdc_id": 170581,
+   "opis": "Nuts, hazelnuts or filberts",
+   "kcal": 628,
+   "p": 14.95,
+   "f": 60.75,
+   "c": 16.7,
+   "fiber": 9.7,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped",
+     "g": 115
+    },
+    {
+     "amount": 1,
+     "unit": "cup, ground",
+     "g": 75
+    },
+    {
+     "amount": 1,
+     "unit": "cup, whole",
+     "g": 135
+    },
+    {
+     "amount": 1,
+     "unit": "oz (21 whole kernels)",
+     "g": 28.35
+    },
+    {
+     "amount": 10,
+     "unit": "nuts",
+     "g": 14
+    }
+   ]
+  },
+  "nerkowce": {
+   "fdc_id": 170162,
+   "opis": "Nuts, cashew nuts, raw",
+   "kcal": 553,
+   "p": 18.22,
+   "f": 43.85,
+   "c": 30.19,
+   "fiber": 3.3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    }
+   ]
+  },
+  "siemie": {
+   "fdc_id": 169414,
+   "opis": "Seeds, flaxseed",
+   "kcal": 534,
+   "p": 18.29,
+   "f": 42.16,
+   "c": 28.88,
+   "fiber": 27.3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "tbsp, whole",
+     "g": 10.3
+    },
+    {
+     "amount": 1,
+     "unit": "cup, whole",
+     "g": 168
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp, ground",
+     "g": 7
+    },
+    {
+     "amount": 1,
+     "unit": "tsp, whole",
+     "g": 3.4
+    },
+    {
+     "amount": 1,
+     "unit": "tsp, ground",
+     "g": 2.5
+    }
+   ]
+  },
+  "chia": {
+   "fdc_id": 170554,
+   "opis": "Seeds, chia seeds, dried",
+   "kcal": 486,
+   "p": 16.54,
+   "f": 30.74,
+   "c": 42.12,
+   "fiber": 34.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    }
+   ]
+  },
+  "pestki-dyni": {
+   "fdc_id": 170556,
+   "opis": "Seeds, pumpkin and squash seed kernels, dried",
+   "kcal": 559,
+   "p": 30.23,
+   "f": 49.05,
+   "c": 10.71,
+   "fiber": 6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 129
+    },
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    }
+   ]
+  },
+  "banan": {
+   "fdc_id": 173944,
+   "opis": "Bananas, raw",
+   "kcal": 89,
+   "p": 1.09,
+   "f": 0.33,
+   "c": 22.84,
+   "fiber": 2.6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, mashed",
+     "g": 225
+    },
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 150
+    },
+    {
+     "amount": 1,
+     "unit": "extra small (less than 6\" long)",
+     "g": 81
+    },
+    {
+     "amount": 1,
+     "unit": "small (6\" to 6-7/8\" long)",
+     "g": 101
+    },
+    {
+     "amount": 1,
+     "unit": "medium (7\" to 7-7/8\" long)",
+     "g": 118
+    },
+    {
+     "amount": 1,
+     "unit": "large (8\" to 8-7/8\" long)",
+     "g": 136
+    }
+   ]
+  },
+  "jablko": {
+   "fdc_id": 171688,
+   "opis": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 52,
+   "p": 0.26,
+   "f": 0.17,
+   "c": 13.81,
+   "fiber": 2.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, quartered or chopped",
+     "g": 125
+    },
+    {
+     "amount": 1,
+     "unit": "cup slices",
+     "g": 109
+    },
+    {
+     "amount": 1,
+     "unit": "large (3-1/4\" dia)",
+     "g": 223
+    },
+    {
+     "amount": 1,
+     "unit": "medium (3\" dia)",
+     "g": 182
+    },
+    {
+     "amount": 1,
+     "unit": "small (2-3/4\" dia)",
+     "g": 149
+    },
+    {
+     "amount": 1,
+     "unit": "extra small (2-1/2\" dia)",
+     "g": 101
+    }
+   ]
+  },
+  "pomarancza": {
+   "fdc_id": 169097,
+   "opis": "Oranges, raw, all commercial varieties",
+   "kcal": 47,
+   "p": 0.94,
+   "f": 0.12,
+   "c": 11.75,
+   "fiber": 2.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, sections",
+     "g": 180
+    },
+    {
+     "amount": 1,
+     "unit": "large (3-1/16\" dia)",
+     "g": 184
+    },
+    {
+     "amount": 1,
+     "unit": "small (2-3/8\" dia)",
+     "g": 96
+    },
+    {
+     "amount": 1,
+     "unit": "fruit (2-5/8\" dia)",
+     "g": 131
+    }
+   ]
+  },
+  "gruszka": {
+   "fdc_id": 169118,
+   "opis": "Pears, raw",
+   "kcal": 57,
+   "p": 0.36,
+   "f": 0.14,
+   "c": 15.23,
+   "fiber": 3.1,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, slices",
+     "g": 140
+    },
+    {
+     "amount": 1,
+     "unit": "cup, cubes",
+     "g": 161
+    },
+    {
+     "amount": 1,
+     "unit": "small",
+     "g": 148
+    },
+    {
+     "amount": 1,
+     "unit": "medium",
+     "g": 178
+    },
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 230
+    },
+    {
+     "amount": 1,
+     "unit": "NLEA serving",
+     "g": 166
+    }
+   ]
+  },
+  "kiwi": {
+   "fdc_id": 168153,
+   "opis": "Kiwifruit, green, raw",
+   "kcal": 61,
+   "p": 1.14,
+   "f": 0.52,
+   "c": 14.66,
+   "fiber": 3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 180
+    },
+    {
+     "amount": 1,
+     "unit": "fruit (2\" dia)",
+     "g": 69
+    },
+    {
+     "amount": 1,
+     "unit": "NLEA serving",
+     "g": 148
+    }
+   ]
+  },
+  "sliwka": {
+   "fdc_id": 169949,
+   "opis": "Plums, raw",
+   "kcal": 46,
+   "p": 0.7,
+   "f": 0.28,
+   "c": 11.42,
+   "fiber": 1.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 165
+    },
+    {
+     "amount": 1,
+     "unit": "fruit (2-1/8\" dia)",
+     "g": 66
+    },
+    {
+     "amount": 1,
+     "unit": "NLEA serving",
+     "g": 151
+    }
+   ]
+  },
+  "jagody": {
+   "fdc_id": 171711,
+   "opis": "Blueberries, raw",
+   "kcal": 57,
+   "p": 0.74,
+   "f": 0.33,
+   "c": 14.49,
+   "fiber": 2.4,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 148
+    },
+    {
+     "amount": 50,
+     "unit": "berries",
+     "g": 68
+    }
+   ]
+  },
+  "truskawki": {
+   "fdc_id": 167762,
+   "opis": "Strawberries, raw",
+   "kcal": 32,
+   "p": 0.67,
+   "f": 0.3,
+   "c": 7.68,
+   "fiber": 2,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, halves",
+     "g": 152
+    },
+    {
+     "amount": 1,
+     "unit": "cup, pureed",
+     "g": 232
+    },
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 166
+    },
+    {
+     "amount": 1,
+     "unit": "cup, whole",
+     "g": 144
+    },
+    {
+     "amount": 1,
+     "unit": "extra large (1-5/8\" dia)",
+     "g": 27
+    },
+    {
+     "amount": 1,
+     "unit": "large (1-3/8\" dia)",
+     "g": 18
+    }
+   ]
+  },
+  "maliny": {
+   "fdc_id": 167755,
+   "opis": "Raspberries, raw",
+   "kcal": 52,
+   "p": 1.2,
+   "f": 0.65,
+   "c": 11.94,
+   "fiber": 6.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 123
+    },
+    {
+     "amount": 1,
+     "unit": "pint as purchased, yields",
+     "g": 312
+    },
+    {
+     "amount": 10,
+     "unit": "raspberries",
+     "g": 19
+    }
+   ]
+  },
+  "winogrona": {
+   "fdc_id": 174683,
+   "opis": "Grapes, red or green (European type, such as Thompson seedless), raw",
+   "kcal": 69,
+   "p": 0.72,
+   "f": 0.16,
+   "c": 18.1,
+   "fiber": 0.9,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 151
+    },
+    {
+     "amount": 10,
+     "unit": "grapes",
+     "g": 49
+    },
+    {
+     "amount": 1,
+     "unit": "NLEA serving",
+     "g": 126
+    }
+   ]
+  },
+  "rodzynki": {
+   "fdc_id": 168165,
+   "opis": "Raisins, dark, seedless (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 299,
+   "p": 3.3,
+   "f": 0.25,
+   "c": 79.32,
+   "fiber": 4.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, packed",
+     "g": 165
+    },
+    {
+     "amount": 1,
+     "unit": "cup (not packed)",
+     "g": 145
+    },
+    {
+     "amount": 1,
+     "unit": "miniature box (.5 oz)",
+     "g": 14
+    },
+    {
+     "amount": 1,
+     "unit": "small box (1.5 oz)",
+     "g": 43
+    },
+    {
+     "amount": 50,
+     "unit": "raisins",
+     "g": 26
+    },
+    {
+     "amount": 1,
+     "unit": "oz (60 raisins)",
+     "g": 28.35
+    }
+   ]
+  },
+  "brokul": {
+   "fdc_id": 170379,
+   "opis": "Broccoli, raw",
+   "kcal": 34,
+   "p": 2.82,
+   "f": 0.37,
+   "c": 6.64,
+   "fiber": 2.6,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup chopped",
+     "g": 91
+    },
+    {
+     "amount": 1,
+     "unit": "bunch",
+     "g": 608
+    },
+    {
+     "amount": 1,
+     "unit": "spear (about 5\" long)",
+     "g": 31
+    },
+    {
+     "amount": 1,
+     "unit": "stalk",
+     "g": 151
+    },
+    {
+     "amount": 0.5,
+     "unit": "cup, chopped or diced",
+     "g": 44
+    },
+    {
+     "amount": 1,
+     "unit": "NLEA serving",
+     "g": 148
+    }
+   ]
+  },
+  "marchew": {
+   "fdc_id": 170393,
+   "opis": "Carrots, raw",
+   "kcal": 41,
+   "p": 0.93,
+   "f": 0.24,
+   "c": 9.58,
+   "fiber": 2.8,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup chopped",
+     "g": 128
+    },
+    {
+     "amount": 1,
+     "unit": "cup grated",
+     "g": 110
+    },
+    {
+     "amount": 1,
+     "unit": "cup strips or slices",
+     "g": 122
+    },
+    {
+     "amount": 1,
+     "unit": "large (7-1/4\" to 8-/1/2\" long)",
+     "g": 72
+    },
+    {
+     "amount": 1,
+     "unit": "medium",
+     "g": 61
+    },
+    {
+     "amount": 1,
+     "unit": "small (5-1/2\" long)",
+     "g": 50
+    }
+   ]
+  },
+  "szpinak": {
+   "fdc_id": 168462,
+   "opis": "Spinach, raw",
+   "kcal": 23,
+   "p": 2.86,
+   "f": 0.39,
+   "c": 3.63,
+   "fiber": 2.2,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 30
+    },
+    {
+     "amount": 1,
+     "unit": "bunch",
+     "g": 340
+    },
+    {
+     "amount": 1,
+     "unit": "leaf",
+     "g": 10
+    },
+    {
+     "amount": 1,
+     "unit": "package (10 oz)",
+     "g": 284
+    }
+   ]
+  },
+  "papryka": {
+   "fdc_id": 170108,
+   "opis": "Peppers, sweet, red, raw",
+   "kcal": 26,
+   "p": 0.99,
+   "f": 0.3,
+   "c": 6.03,
+   "fiber": 2.1,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped",
+     "g": 149
+    },
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 92
+    },
+    {
+     "amount": 1,
+     "unit": "tablespoon",
+     "g": 9.3
+    },
+    {
+     "amount": 1,
+     "unit": "large (2-1/4 per pound, approx 3-3/4\" long, 3\" dia.)",
+     "g": 164
+    },
+    {
+     "amount": 1,
+     "unit": "medium (approx 2-3/4\" long, 2-1/2 dia.)",
+     "g": 119
+    },
+    {
+     "amount": 1,
+     "unit": "small",
+     "g": 74
+    }
+   ]
+  },
+  "salata": {
+   "fdc_id": 169249,
+   "opis": "Lettuce, green leaf, raw",
+   "kcal": 15,
+   "p": 1.36,
+   "f": 0.15,
+   "c": 2.87,
+   "fiber": 1.3,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup shredded",
+     "g": 36
+    },
+    {
+     "amount": 1,
+     "unit": "head",
+     "g": 360
+    },
+    {
+     "amount": 1,
+     "unit": "leaf inner",
+     "g": 4.8
+    },
+    {
+     "amount": 1,
+     "unit": "leaf outer",
+     "g": 24
+    }
+   ]
+  },
+  "kalafior": {
+   "fdc_id": 169986,
+   "opis": "Cauliflower, raw",
+   "kcal": 25,
+   "p": 1.92,
+   "f": 0.28,
+   "c": 4.97,
+   "fiber": 2,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup chopped (1/2\" pieces)",
+     "g": 107
+    },
+    {
+     "amount": 1,
+     "unit": "floweret",
+     "g": 13
+    },
+    {
+     "amount": 1,
+     "unit": "head large (6-7\" dia.)",
+     "g": 840
+    },
+    {
+     "amount": 1,
+     "unit": "head medium (5-6\" dia.)",
+     "g": 588
+    },
+    {
+     "amount": 1,
+     "unit": "head small (4\" dia.)",
+     "g": 265
+    }
+   ]
+  },
+  "pomidor": {
+   "fdc_id": 170457,
+   "opis": "Tomatoes, red, ripe, raw, year round average",
+   "kcal": 18,
+   "p": 0.88,
+   "f": 0.2,
+   "c": 3.89,
+   "fiber": 1.2,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup cherry tomatoes",
+     "g": 149
+    },
+    {
+     "amount": 1,
+     "unit": "cup, chopped or sliced",
+     "g": 180
+    },
+    {
+     "amount": 1,
+     "unit": "Italian tomato",
+     "g": 62
+    },
+    {
+     "amount": 1,
+     "unit": "cherry",
+     "g": 17
+    },
+    {
+     "amount": 1,
+     "unit": "large whole (3\" dia)",
+     "g": 182
+    },
+    {
+     "amount": 1,
+     "unit": "medium whole (2-3/5\" dia)",
+     "g": 123
+    }
+   ]
+  },
+  "ogorek": {
+   "fdc_id": 168409,
+   "opis": "Cucumber, with peel, raw",
+   "kcal": 15,
+   "p": 0.65,
+   "f": 0.11,
+   "c": 3.63,
+   "fiber": 0.5,
+   "porcje": [
+    {
+     "amount": 0.5,
+     "unit": "cup slices",
+     "g": 52
+    },
+    {
+     "amount": 1,
+     "unit": "cucumber (8-1/4\")",
+     "g": 301
+    }
+   ]
+  },
+  "kapusta": {
+   "fdc_id": 169975,
+   "opis": "Cabbage, raw",
+   "kcal": 25,
+   "p": 1.28,
+   "f": 0.1,
+   "c": 5.8,
+   "fiber": 2.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped",
+     "g": 89
+    },
+    {
+     "amount": 1,
+     "unit": "cup, shredded",
+     "g": 70
+    },
+    {
+     "amount": 1,
+     "unit": "head, large (about 7\" dia)",
+     "g": 1248
+    },
+    {
+     "amount": 1,
+     "unit": "leaf, large",
+     "g": 33
+    },
+    {
+     "amount": 1,
+     "unit": "head, medium (about 5-3/4\" dia)",
+     "g": 908
+    },
+    {
+     "amount": 1,
+     "unit": "leaf, medium",
+     "g": 23
+    }
+   ]
+  },
+  "cukinia": {
+   "fdc_id": 169291,
+   "opis": "Squash, summer, zucchini, includes skin, raw",
+   "kcal": 17,
+   "p": 1.21,
+   "f": 0.32,
+   "c": 3.11,
+   "fiber": 1,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped",
+     "g": 124
+    },
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 113
+    },
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 323
+    },
+    {
+     "amount": 1,
+     "unit": "medium",
+     "g": 196
+    },
+    {
+     "amount": 1,
+     "unit": "slice",
+     "g": 9.9
+    },
+    {
+     "amount": 1,
+     "unit": "small",
+     "g": 118
+    }
+   ]
+  },
+  "cebula": {
+   "fdc_id": 170000,
+   "opis": "Onions, raw",
+   "kcal": 40,
+   "p": 1.1,
+   "f": 0.1,
+   "c": 9.34,
+   "fiber": 1.7,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped",
+     "g": 160
+    },
+    {
+     "amount": 1,
+     "unit": "cup, sliced",
+     "g": 115
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp chopped",
+     "g": 10
+    },
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 150
+    },
+    {
+     "amount": 1,
+     "unit": "slice, large (1/4\" thick)",
+     "g": 38
+    },
+    {
+     "amount": 1,
+     "unit": "medium (2-1/2\" dia)",
+     "g": 110
+    }
+   ]
+  },
+  "buraki": {
+   "fdc_id": 169145,
+   "opis": "Beets, raw",
+   "kcal": 43,
+   "p": 1.61,
+   "f": 0.17,
+   "c": 9.56,
+   "fiber": 2.8,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 136
+    },
+    {
+     "amount": 1,
+     "unit": "beet (2\" dia)",
+     "g": 82
+    }
+   ]
+  },
+  "pieczarki": {
+   "fdc_id": 169251,
+   "opis": "Mushrooms, white, raw",
+   "kcal": 22,
+   "p": 3.09,
+   "f": 0.34,
+   "c": 3.26,
+   "fiber": 1,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, pieces or slices",
+     "g": 70
+    },
+    {
+     "amount": 1,
+     "unit": "cup, whole",
+     "g": 96
+    },
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 23
+    },
+    {
+     "amount": 1,
+     "unit": "medium",
+     "g": 18
+    },
+    {
+     "amount": 1,
+     "unit": "slice",
+     "g": 6
+    },
+    {
+     "amount": 1,
+     "unit": "small",
+     "g": 10
+    }
+   ]
+  },
+  "fasolka": {
+   "fdc_id": 169961,
+   "opis": "Beans, snap, green, raw",
+   "kcal": 31,
+   "p": 1.83,
+   "f": 0.22,
+   "c": 6.97,
+   "fiber": 2.7,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup 1/2\" pieces",
+     "g": 100
+    },
+    {
+     "amount": 10,
+     "unit": "beans (4\" long)",
+     "g": 55
+    }
+   ]
+  },
+  "groszek": {
+   "fdc_id": 170016,
+   "opis": "Peas, green, frozen, unprepared (Includes foods for USDA's Food Distribution Program)",
+   "kcal": 77,
+   "p": 5.22,
+   "f": 0.4,
+   "c": 13.62,
+   "fiber": 4.5,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 134
+    },
+    {
+     "amount": 1,
+     "unit": "package",
+     "g": 284
+    }
+   ]
+  },
+  "miod": {
+   "fdc_id": 169640,
+   "opis": "Honey",
+   "kcal": 304,
+   "p": 0.3,
+   "f": 0,
+   "c": 82.4,
+   "fiber": 0.2,
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 339
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 21
+    },
+    {
+     "amount": 1,
+     "unit": "packet (0.5 oz)",
+     "g": 14
+    }
+   ]
+  }
+ }
+}
