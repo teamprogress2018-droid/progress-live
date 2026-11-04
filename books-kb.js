@@ -484,15 +484,59 @@ function strengthPhasesHTML(opts){
     +'</div></div>';
 }
 
+/**
+ * Rozładowanie przed startem (taper) — grafika narysowana od zera (HTML/CSS, kolory z motywu). Liczby z bazy wiedzy:
+ *  - Bompa, Buzzichelli, Periodyzacja: G22 taper (s. 230–235, 244–245), P16 (s. 226–229), zawieszenie siły (s. 118, 284; C02),
+ *    G27 start co tydzień (s. 154–155, 164–165), G23 indeks szczytu (s. 208–210, 236–239), G26 rozładowanie w makrocyklu (s. 164)
+ *  - Helms, Piramida treningu: PR15 taper (s. 140–141, 245), PR9 deload (s. 106, 124, 243)
+ *  - Rippetoe, Baker, Programowanie treningu siłowego: G01, G02 (s. 202), G09 (s. 204–205), S02 (s. 213), C02 (s. 199–202)
+ *  - Chandler, Brown, Conditioning for Strength: PER-TAPER (s. 411)
+ * Gdy książki się różnią: część wspólna w dużej cyfrze, zakresy każdej książki pod spodem.
+ */
+const TAPER_RULES=[
+  {id:'len',label:'Jak długo',big:'ok. 2 tyg.',detail:'Bompa 8–14 dni · Helms 1–4 tyg. · Rippetoe 2–4 tyg. Dłuższy po większym obciążeniu.',src:'Bompa s. 230–235 · Helms s. 140–141 · Rippetoe s. 199–202'},
+  {id:'vol',label:'Objętość',big:'−41–60%',detail:'Bompa i Chandler/Brown −41–60% (po bardzo dużym obciążeniu −60–90%). Helms −⅓ do −⅔. Skracaj sesje, zamiast je usuwać.',src:'Bompa s. 230–235 · Chandler, Brown s. 411 · Helms s. 140–141'},
+  {id:'int',label:'Ciężar (intensywność)',big:'bez zmian',detail:'Bompa i Chandler/Brown: utrzymana. Helms: najwyżej −10%. Rippetoe: kilka podejść blisko maksimum, single i dwójki.',src:'Bompa s. 230–235 · Helms s. 140–141 · Rippetoe s. 202'},
+  {id:'freq',label:'Liczba treningów',big:'≥ 80%',detail:'Bompa: co najmniej 80% treningów sprzed tapera. Rippetoe (trójbój): z 3 do 2 treningów w tygodniu.',src:'Bompa s. 230–235 · Rippetoe s. 204–205'}
+];
+/** Oś dni przed startem: [od, do] w dniach przed startem (14 → 0). soft = okno, w którym dzieje się to zależnie od zawodnika. */
+const TAPER_TIMELINE=[
+  {label:'Taper: mniej objętości, ten sam ciężar',from:14,to:1,soft:[14,8],note:'zaczyna się 8–14 dni przed startem',src:'Bompa s. 230–235'},
+  {label:'Koniec treningu siły (zawieszenie)',from:14,to:3,soft:[14,3],note:'3–14 dni przed; kobiety do 3 dni przed, ciężsi wcześniej',src:'Bompa s. 284'},
+  {label:'Ostatni ciężki trening',from:7,to:5,soft:[7,5],note:'5–7 dni przed; w tym tygodniu bez ćwiczeń męczących',src:'Rippetoe s. 202, 213'},
+  {label:'Tylko bardzo lekko',from:2,to:1,note:'Rippetoe: ok. 2 dni lekko. Helms: 24–48 h przed single przy RPE 4–5. Bompa (start co tydzień): rozładowanie 2 dni przed',src:'Rippetoe s. 202 · Helms s. 140–141 · Bompa s. 154–155'},
+  {label:'Dni wolne (można)',from:3,to:1,soft:[3,1],note:'1–3 dni wolnego przed startem',src:'Helms s. 140–141'}
+];
+function taperHTML(opts){
+  const o=opts||{};const D=14;
+  const col=d=>D-d+1; /* dzień 14 → kolumna 1, dzień 0 → kolumna 15 */
+  const bar=t=>{
+    const s=col(t.from),e=col(t.to)+1;
+    const soft=t.soft?'<span class="tp-soft" style="grid-column:'+col(t.soft[0])+'/'+(col(t.soft[1])+1)+'"></span>':'';
+    const solid=t.soft&&t.soft[1]>t.to?'<span class="tp-solid" style="grid-column:'+(col(t.soft[1])+1)+'/'+e+'"></span>':(t.soft?'':'<span class="tp-solid" style="grid-column:'+s+'/'+e+'"></span>');
+    return '<li class="tp-row"><div class="tp-row-head"><b>'+t.label+'</b><span>'+t.note+'</span></div><div class="tp-track" aria-hidden="true">'+soft+solid+'</div><small>'+t.src+'</small></li>';
+  };
+  const days=[];for(let d=D;d>=0;d--)days.push('<span'+(d===0?' class="is-start"':'')+'>'+(d===0?'start':(d%2===0?'−'+d:''))+'</span>');
+  return '<div class="iz tp'+(o.compact?' iz-compact':'')+'">'
+    +'<ol class="iz-zones tp-rules">'+TAPER_RULES.map(r=>'<li class="tp-rule" data-tp="'+r.id+'"><span class="iz-goal">'+r.label+'</span><span class="iz-pct"><b>'+r.big+'</b></span><p class="iz-tip">'+r.detail+'</p><small>'+r.src+'</small></li>').join('')+'</ol>'
+    +'<div class="tp-axis"><b class="iz-rpe-title">Dni do startu</b><div class="tp-days" aria-hidden="true">'+days.join('')+'</div>'
+    +'<ol class="tp-rows">'+TAPER_TIMELINE.map(bar).join('')+'</ol>'
+    +'<p class="tp-legend"><span><i class="tp-key-solid"></i> w tych dniach na pewno</span><span><i class="tp-key-soft"></i> okno: dokładny dzień zależy od zawodnika</span></p>'
+    +'<small>Bompa pisze o zawodnikach różnych sportów, Rippetoe i Helms o trójboju i sportach siłowych.</small></div>'
+    +'<p class="iz-warn"><b>Pełny taper tylko przed 2–3 najważniejszymi startami w sezonie.</b> Przed pozostałymi wystarczą 2–3 dni lżej (Bompa s. 208–210, 236–239). Oczekiwana poprawa po dobrym taperze: ok. 3% (Bompa s. 230–235). Za długi taper to roztrenowanie (Bompa s. 226–229).</p>'
+    +'<details class="iz-endurance"><summary>A zwykły tydzień rozładowania (bez startu)?</summary><p class="tp-deload">Objętość o ok. połowę mniej, ciężar ten sam albo 5–10% lżej (Bompa s. 164). Helms: −1–2 serie na ćwiczenie, −2 powtórzenia, RPE ok. 2 niżej (s. 106, 124, 243). Najczęściej co 4. tydzień, układ 3:1 (Bompa s. 56–61, NSCA s. 414–415, Schoenfeld s. 190–210).</p></details>'
+    +'</div>';
+}
+
 /** Własne grafiki narysowane na podstawie książek (knowledge/visuals/svg). Nie są to ryciny z książek. */
 const BOOK_VISUALS=[
   {id:'fms-swiatla',title:'Światła FMS: dobór ćwiczeń przy słabym wzorcu',when:'Gdy klient ma słaby wynik FMS, asymetrię albo ograniczenia ruchowe.',source:'Cook, The Business of Movement, s. 188, 226, 361',tags:['kontuzje','ocena']},
   {id:'fazy-sily',html:true,title:'Oś faz siły: od adaptacji do kompensacji',when:'Przy układaniu kolejności bloków: adaptacja, siła maksymalna, moc, utrzymanie.',source:'Bompa, Buzzichelli, Periodyzacja, s. 112–120, 192–195, 264–265, 280–285; NSCA, Essentials of Personal Training (3. wyd.), s. 624–625; Stone, Stone, Sands, Principles and Practice of Resistance Training, s. 288–293; Rippetoe, Baker, Programowanie treningu siłowego, s. 210–211',tags:['sila','atletyzm','masa']},
   {id:'strefy-intensywnosci',html:true,title:'Strefy intensywności: % 1RM, powtórzenia i RPE',when:'Przy doborze ciężaru, liczby powtórzeń i wysiłku do celu bloku.',source:'Bompa, Buzzichelli, Periodyzacja; NSCA, Essentials of Personal Training (3. wyd.); Stone, Stone, Sands, Principles and Practice of Resistance Training; Rippetoe, Baker, Programowanie treningu siłowego; Głuchowski, Zaplanuj swój trening; Helms, Piramida treningu; Schoenfeld, Hipertrofia (strony przy każdej strefie)',tags:['sila','atletyzm','masa','kondycja','redukcja']},
-  {id:'bompa-rozladowanie',title:'Rozładowanie przed głównym startem',when:'Ostatnie 8–14 dni przed zawodami lub testem.',source:'Bompa, Buzzichelli, Periodyzacja, s. 230–235, 242–245',tags:['atletyzm','start']}
+  {id:'rozladowanie',html:true,title:'Rozładowanie przed startem: co zmniejszyć i kiedy',when:'Ostatnie 2 tygodnie przed zawodami lub testem.',source:'Bompa, Buzzichelli, Periodyzacja, s. 56–61, 118, 154–155, 164, 208–210, 226–245, 284; Helms, Piramida treningu, s. 106, 124, 140–141, 243–245; Rippetoe, Baker, Programowanie treningu siłowego, s. 199–205, 213; Chandler, Brown, Conditioning for Strength and Human Performance, s. 411; NSCA, s. 414–415; Schoenfeld, Hipertrofia, s. 190–210',tags:['atletyzm','start']}
 ];
 /** Grafiki rysowane w HTML: id → funkcja rysująca. */
-const BOOK_VISUAL_RENDER={'strefy-intensywnosci':intensityZonesHTML,'fazy-sily':strengthPhasesHTML};
+const BOOK_VISUAL_RENDER={'strefy-intensywnosci':intensityZonesHTML,'fazy-sily':strengthPhasesHTML,'rozladowanie':taperHTML};
 function bookVisualSrc(v){return v.html?'':'knowledge/visuals/svg/'+v.id+'.svg';}
 /** Grafiki do podglądu planu: najpierw pasujące do celu, FMS na początku przy ograniczeniach klienta. */
 function bookVisualsForPlan(goal,opts){
@@ -515,7 +559,7 @@ function bookVisualsHTML(list,opts){
 
 const api={booksKbDomain,booksKbLoad,booksKbSetData,booksKbSelect,booksKbContext,booksKbUsedSources,booksKbList,
   booksKbPlanSelect,booksKbPlanPrompt,booksKbValidatePlanRefs,PLAN_ANCHORS,
-  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML,INTENSITY_ZONES,RPE_RIR,ENDURANCE_ZONES,intensityZonesHTML,STRENGTH_PHASES,PHASES_OTHER_BOOKS,strengthPhasesHTML,BOOK_VISUAL_RENDER};
+  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML,INTENSITY_ZONES,RPE_RIR,ENDURANCE_ZONES,intensityZonesHTML,STRENGTH_PHASES,PHASES_OTHER_BOOKS,strengthPhasesHTML,TAPER_RULES,TAPER_TIMELINE,taperHTML,BOOK_VISUAL_RENDER};
 Object.assign(root,api);
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

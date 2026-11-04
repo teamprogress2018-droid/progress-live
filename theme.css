@@ -1610,3 +1610,30 @@ html[data-theme] .cap-client-plan-start.cap-btn-secondary { border: 1px solid va
   .fs-row small{grid-column:1}
   .fs-steps li{white-space:normal}
 }
+
+/* ── Rozładowanie przed startem (books-kb.js → taperHTML), korzysta z klas .iz-* ── */
+.tp-rule{border:1px solid var(--border2);border-top:5px solid rgba(var(--accent-rgb),.72);border-radius:12px;padding:12px 14px;background:var(--s2,#fff);display:flex;flex-direction:column;gap:6px;min-width:0}
+.tp-rules .iz-pct b{font-size:34px}
+.tp-axis{border:1px solid var(--border2);border-radius:12px;padding:12px 14px;background:var(--s2,#fff);display:flex;flex-direction:column;gap:10px}
+.tp-days,.tp-track{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:2px}
+.tp-days span{font-size:11px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tp-days span.is-start{color:var(--text);font-weight:700}
+.tp-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.tp-row{display:flex;flex-direction:column;gap:5px}
+.tp-row-head{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+.tp-row-head b{font-size:14px}
+.tp-row-head span{font-size:12.5px;color:var(--muted)}
+.tp-track{position:relative;height:14px;background:repeating-linear-gradient(90deg,var(--bg,rgba(0,0,0,.05)) 0 calc(100%/15 - 2px),transparent calc(100%/15 - 2px) calc(100%/15));border-radius:4px}
+.tp-track span{grid-row:1;height:14px;border-radius:4px}
+.tp-solid{background:var(--accent)}
+.tp-soft{background:rgba(var(--accent-rgb),.28);border:1px dashed rgba(var(--accent-rgb),.7)}
+.tp-legend{margin:0;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px 16px;flex-wrap:wrap}
+.tp-legend span{display:inline-flex;align-items:center;gap:6px}
+.tp-legend i{display:inline-block;width:22px;height:10px;border-radius:3px}
+.tp-key-solid{background:var(--accent)}
+.tp-key-soft{background:rgba(var(--accent-rgb),.28);border:1px dashed rgba(var(--accent-rgb),.7)}
+.tp-deload{margin:8px 0 2px;font-size:12.5px;line-height:1.5}
+@media (max-width:600px){
+  .tp-days span{font-size:9.5px}
+  .tp-rules .iz-pct b{font-size:36px}
+}
