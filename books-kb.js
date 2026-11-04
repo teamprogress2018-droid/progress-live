@@ -528,15 +528,55 @@ function taperHTML(opts){
     +'</div>';
 }
 
-/** Własne grafiki narysowane na podstawie książek (knowledge/visuals/svg). Nie są to ryciny z książek. */
+/**
+ * Światła FMS — grafika narysowana od zera (HTML/CSS, kolory statusów z motywu: --danger/--warning/--success).
+ * Źródło: Cook, The Business of Movement (baza knowledge/books/business-of-movement-cook-baza-wiedzy.json):
+ *  A01 punktacja (s. 138–141), A02 priorytet (s. 138–141), A04 kolejność korekty (s. 198), E01 światła (s. 187–189, 225),
+ *  E02–E08 ćwiczenia przy słabym wzorcu (s. 188, 226–227, 361), C01: tabele z s. 188 i 361 różnią się, bierzemy sumę zakazów (wersja ostrożniejsza),
+ *  G06 retest (s. 219, 285, 287–288), G09 nie obciążaj złej techniki (s. 189, 205), S01 ból = specjalista (s. 147–150).
+ * Wzorce w kolejności korekty Cooka. Mobilność kostki i wykrok mają u Cooka tę samą listę (E04).
+ */
+const FMS_SCORES=[
+  {score:'0',light:'red',label:'ból',what:'Nie trenuj tego wzorca, skieruj do specjalisty.'},
+  {score:'1',light:'red',label:'nie wykonuje',what:'Chroń i koryguj, retest na każdej sesji.'},
+  {score:'2',light:'yellow',label:'z kompensacją',what:'Można trenować, ostrożnie, potem retest.'},
+  {score:'3',light:'green',label:'bez kompensacji',what:'Rozwijaj, dalej testy wydolności.'}
+];
+const FMS_PATTERNS=[
+  {id:'aslr',name:'Unoszenie wyprostowanej nogi (ASLR)',red:'zawias biodrowy i martwy ciąg, zarzuty, swing, bieg, skoki',yellow:'wejścia na skrzynię, wykroki, rozkrok, przysiady',green:'chop i lift w klęku i półklęku, góra ciała, core',src:'s. 188, 361'},
+  {id:'shoulder',name:'Mobilność barku',red:'wyciskanie nad głowę, podciąganie i ściąganie nad głową, stanie na rękach, rwanie',yellow:'wyciskanie poziome, wiosłowanie, częściowe tureckie wstawanie, noszenie w pozycji rack',green:'martwy ciąg, swing, spacer farmera, dół ciała',src:'s. 188, 226, 361'},
+  {id:'ankle',name:'Mobilność kostki',same:'lunge',red:'wykroki, rozkrok, bieg, skoki',yellow:'martwy ciąg, swing, martwy ciąg jednonóż',green:'pół-tureckie wstawanie, chop i lift w półklęku, góra ciała',src:'s. 361'},
+  {id:'rotary',name:'Stabilność rotacyjna',red:'ćwiczenia obciążone jednostronnie (rwanie jednorącz, swing)',yellow:'częściowe tureckie wstawanie, chop, wyciskanie i lift w półklęku, symetryczny martwy ciąg i przysiad',green:'wyciskanie leżąc na podłodze, symetryczna praca górą ciała',src:'s. 361'},
+  {id:'pushup',name:'Pompka stabilizacyjna',red:'wyciskanie stojąc, swing, ćwiczenia balistyczne',yellow:'martwy ciąg, przysiad, pompki, core',green:'progresje pompek, wejścia, rozkrok, martwy ciąg jednonóż, częściowe tureckie wstawanie',src:'s. 226–227, 361'},
+  {id:'lunge',name:'Wykrok liniowy',same:'ankle',red:'wykroki, rozkrok, bieg, skoki',yellow:'martwy ciąg, swing, martwy ciąg jednonóż',green:'pół-tureckie wstawanie, chop i lift w półklęku, góra ciała',src:'s. 361'},
+  {id:'hurdle',name:'Przekroczenie płotka',red:'ćwiczenia jednonóż, bieg i sprint, noszenie',yellow:'symetryczny przysiad i martwy ciąg',green:'pół-tureckie wstawanie, chop i lift w półklęku, martwy ciąg walizkowy, góra ciała',src:'s. 188, 361'},
+  {id:'squat',name:'Głęboki przysiad',red:'przysiady z obciążeniem, zarzut, rwanie',yellow:'przysiad jednonóż, przysiad dzielony i wykrok, bieg',green:'tureckie wstawanie, martwy ciąg (też jednonóż), chop i lift w klęku',src:'s. 188, 361'}
+];
+function fmsLightsHTML(opts){
+  const o=opts||{};
+  const LIGHT={red:['Unikaj','czerwone'],yellow:['Ostrożnie, potem retest','żółte'],green:['Bezpieczne, rozwijaj','zielone']};
+  const lane=(p,k)=>'<div class="fms-lane is-'+k+'"><span class="fms-light" aria-hidden="true"></span><div><b>'+LIGHT[k][0]+'</b><span>'+p[k]+'</span></div></div>';
+  const card=(p,i)=>'<li class="fms-card" data-fms="'+p.id+'"><div class="fms-head"><span class="fms-no" title="Kolejność korekty wg Cooka">'+(i+1)+'</span><b>'+p.name+'</b></div>'
+    +lane(p,'red')+lane(p,'yellow')+lane(p,'green')
+    +'<small>Cook '+p.src+(p.same?' · ta sama lista co '+(p.same==='lunge'?'wykrok liniowy':'mobilność kostki'):'')+'</small></li>';
+  return '<div class="iz fms'+(o.compact?' iz-compact':'')+'">'
+    +'<div class="fms-scores">'+FMS_SCORES.map(s=>'<div class="fms-score is-'+s.light+'"><b>'+s.score+'</b><span><strong>'+s.label+'</strong> '+s.what+'</span></div>').join('')+'</div>'
+    +'<p class="fms-rule"><b>Czerwone:</b> ocena 0 lub 1 albo asymetria 1/2. <b>Żółte:</b> ocena 2 albo asymetria 2/3. <b>Zielone:</b> ocena 3. Kolejność: najpierw 0, potem 1, potem asymetrie, na końcu 2. Pojedynczy wzorzec liczy się bardziej niż suma (Cook s. 138–141, 187–189, 225).</p>'
+    +'<ol class="fms-grid">'+FMS_PATTERNS.map(card).join('')+'</ol>'
+    +'<p class="iz-warn"><b>Ból (ocena 0) to zawsze skierowanie do specjalisty.</b> Trener nie diagnozuje i nie trenuje bolesnego wzorca (Cook s. 147–150). Nie obciążaj złej techniki, bo obciążenie utrwala wzorzec (s. 189, 205). Ocena 1: retest na każdej sesji aż do 2; pełny FMS co ok. 4 tygodnie lub 10 wizyt (s. 219, 285, 287–288).</p>'
+    +'<small>Numer przy wzorcu to kolejność korekty wg Cooka (s. 198). Listy łączą obie tabele z książki (s. 188 i 361); gdzie się różnią, bierzemy ostrożniejszą wersję. To wybrane przykłady, nie pełna lista.</small>'
+    +'</div>';
+}
+
+/** Własne grafiki narysowane od zera w HTML/CSS na podstawie książek. Nie są to ryciny z książek. */
 const BOOK_VISUALS=[
-  {id:'fms-swiatla',title:'Światła FMS: dobór ćwiczeń przy słabym wzorcu',when:'Gdy klient ma słaby wynik FMS, asymetrię albo ograniczenia ruchowe.',source:'Cook, The Business of Movement, s. 188, 226, 361',tags:['kontuzje','ocena']},
+  {id:'fms-swiatla',html:true,title:'Światła FMS: dobór ćwiczeń przy słabym wzorcu',when:'Gdy klient ma słaby wynik FMS, asymetrię albo ograniczenia ruchowe.',source:'Cook, The Business of Movement, s. 138–150, 187–189, 198, 205, 219, 225–227, 285–288, 361',tags:['kontuzje','ocena']},
   {id:'fazy-sily',html:true,title:'Oś faz siły: od adaptacji do kompensacji',when:'Przy układaniu kolejności bloków: adaptacja, siła maksymalna, moc, utrzymanie.',source:'Bompa, Buzzichelli, Periodyzacja, s. 112–120, 192–195, 264–265, 280–285; NSCA, Essentials of Personal Training (3. wyd.), s. 624–625; Stone, Stone, Sands, Principles and Practice of Resistance Training, s. 288–293; Rippetoe, Baker, Programowanie treningu siłowego, s. 210–211',tags:['sila','atletyzm','masa']},
   {id:'strefy-intensywnosci',html:true,title:'Strefy intensywności: % 1RM, powtórzenia i RPE',when:'Przy doborze ciężaru, liczby powtórzeń i wysiłku do celu bloku.',source:'Bompa, Buzzichelli, Periodyzacja; NSCA, Essentials of Personal Training (3. wyd.); Stone, Stone, Sands, Principles and Practice of Resistance Training; Rippetoe, Baker, Programowanie treningu siłowego; Głuchowski, Zaplanuj swój trening; Helms, Piramida treningu; Schoenfeld, Hipertrofia (strony przy każdej strefie)',tags:['sila','atletyzm','masa','kondycja','redukcja']},
   {id:'rozladowanie',html:true,title:'Rozładowanie przed startem: co zmniejszyć i kiedy',when:'Ostatnie 2 tygodnie przed zawodami lub testem.',source:'Bompa, Buzzichelli, Periodyzacja, s. 56–61, 118, 154–155, 164, 208–210, 226–245, 284; Helms, Piramida treningu, s. 106, 124, 140–141, 243–245; Rippetoe, Baker, Programowanie treningu siłowego, s. 199–205, 213; Chandler, Brown, Conditioning for Strength and Human Performance, s. 411; NSCA, s. 414–415; Schoenfeld, Hipertrofia, s. 190–210',tags:['atletyzm','start']}
 ];
 /** Grafiki rysowane w HTML: id → funkcja rysująca. */
-const BOOK_VISUAL_RENDER={'strefy-intensywnosci':intensityZonesHTML,'fazy-sily':strengthPhasesHTML,'rozladowanie':taperHTML};
+const BOOK_VISUAL_RENDER={'strefy-intensywnosci':intensityZonesHTML,'fazy-sily':strengthPhasesHTML,'rozladowanie':taperHTML,'fms-swiatla':fmsLightsHTML};
 function bookVisualSrc(v){return v.html?'':'knowledge/visuals/svg/'+v.id+'.svg';}
 /** Grafiki do podglądu planu: najpierw pasujące do celu, FMS na początku przy ograniczeniach klienta. */
 function bookVisualsForPlan(goal,opts){
@@ -559,7 +599,7 @@ function bookVisualsHTML(list,opts){
 
 const api={booksKbDomain,booksKbLoad,booksKbSetData,booksKbSelect,booksKbContext,booksKbUsedSources,booksKbList,
   booksKbPlanSelect,booksKbPlanPrompt,booksKbValidatePlanRefs,PLAN_ANCHORS,
-  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML,INTENSITY_ZONES,RPE_RIR,ENDURANCE_ZONES,intensityZonesHTML,STRENGTH_PHASES,PHASES_OTHER_BOOKS,strengthPhasesHTML,TAPER_RULES,TAPER_TIMELINE,taperHTML,BOOK_VISUAL_RENDER};
+  BOOK_VISUALS,bookVisualSrc,bookVisualsForPlan,bookVisualsHTML,INTENSITY_ZONES,RPE_RIR,ENDURANCE_ZONES,intensityZonesHTML,STRENGTH_PHASES,PHASES_OTHER_BOOKS,strengthPhasesHTML,TAPER_RULES,TAPER_TIMELINE,taperHTML,FMS_SCORES,FMS_PATTERNS,fmsLightsHTML,BOOK_VISUAL_RENDER};
 Object.assign(root,api);
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

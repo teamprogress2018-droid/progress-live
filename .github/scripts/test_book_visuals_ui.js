@@ -1,4 +1,4 @@
-// Własne grafiki z książek (knowledge/visuals/svg): podgląd planu z generatora i zakładka Akademii „Grafiki z książek”.
+// Własne grafiki z książek (rysowane w HTML, books-kb.js): podgląd planu z generatora i zakładka Akademii „Grafiki z książek”.
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -15,7 +15,8 @@ function ok(name, cond, extra) {
 /* Logika doboru bez przeglądarki. */
 const kb = require(path.join(root, 'books-kb.js'));
 ok('4 grafiki w BOOK_VISUALS', kb.BOOK_VISUALS.length === 4);
-kb.BOOK_VISUALS.filter((v) => !v.html).forEach((v) => ok('plik istnieje: ' + v.id, fs.existsSync(path.join(root, kb.bookVisualSrc(v)))));
+ok('wszystkie grafiki rysowane w HTML, każda ma funkcję', kb.BOOK_VISUALS.every((v) => v.html && typeof kb.BOOK_VISUAL_RENDER[v.id] === 'function'));
+ok('żadna grafika nie wskazuje pliku SVG', kb.BOOK_VISUALS.every((v) => kb.bookVisualSrc(v) === ''));
 /* Strefy intensywności: rysowane w HTML, każda strefa ma źródła, bez RPE tam, gdzie książki go nie podają. */
 const iz = kb.intensityZonesHTML();
 ok('strefy: 4 cele', kb.INTENSITY_ZONES.map((z) => z.goal).join('|') === 'Siła maksymalna|Siła|Hipertrofia|Wytrzymałość siłowa');
@@ -33,6 +34,11 @@ ok('rozładowanie: 4 reguły (czas, objętość, ciężar, liczba treningów)', 
 ok('rozładowanie: każdy wiersz osi i reguła mają strony', kb.TAPER_RULES.concat(kb.TAPER_TIMELINE).every((t) => /s\. \d/.test(t.src)));
 ok('rozładowanie: oś 14 dni + start', (tp_.split('<div class="tp-days"')[1].split('</div>')[0].match(/<span/g) || []).length === 15);
 ok('rozładowanie: objętość wspólna −41–60%', kb.TAPER_RULES.find((t) => t.id === 'vol').big === '−41–60%');
+const fms_ = kb.fmsLightsHTML();
+ok('FMS: 8 wzorców w kolejności korekty Cooka', kb.FMS_PATTERNS.map((p) => p.id).join('|') === 'aslr|shoulder|ankle|rotary|pushup|lunge|hurdle|squat');
+ok('FMS: każdy wzorzec ma 3 światła i strony', kb.FMS_PATTERNS.every((p) => p.red && p.yellow && p.green && /s\. \d/.test(p.src)));
+ok('FMS: punktacja 0–3, ból → specjalista', kb.FMS_SCORES.map((x) => x.score).join('') === '0123' && /skierowanie do specjalisty/.test(fms_));
+ok('FMS: kolory statusów, nie akcent', /fms-lane is-red/.test(fms_));
 ok('strefy: w HTML, bez <img>', /data-book-visual="strefy-intensywnosci"><div class="book-visual-html">/.test(kb.bookVisualsHTML()));
 ok('ograniczenia klienta → FMS pierwsze', kb.bookVisualsForPlan('masa', { limits: true })[0].id === 'fms-swiatla');
 ok('siła bez ograniczeń → fazy siły pierwsze', kb.bookVisualsForPlan('sila', {})[0].id === 'fazy-sily');
@@ -83,7 +89,8 @@ async function imagesLoaded(page, sel) {
   await page.evaluate(() => goTo('academy'));
   await page.click('.academy-tab:has-text("Grafiki z książek")');
   await page.waitForSelector('.academy-visuals .book-visual');
-  ok('Akademia: 1 grafika SVG wczytana', (await imagesLoaded(page, '.academy-visuals')) === 1);
+  ok('Akademia: bez obrazków, wszystko narysowane', (await page.$$('.academy-visuals img')).length === 0);
+  ok('Akademia: światła FMS narysowane', (await page.$$eval('.academy-visuals .fms-card', (els) => els.length)) === 8);
   ok('Akademia: rozładowanie narysowane', (await page.$$eval('.academy-visuals .tp-row', (els) => els.length)) === 5);
   ok('Akademia: oś faz siły narysowana', (await page.$$eval('.academy-visuals .fs-phase', (els) => els.length)) === 7);
   ok('Akademia: strefy intensywności narysowane', (await page.$$eval('.academy-visuals .iz-zone', (els) => els.length)) === 4);
@@ -105,7 +112,7 @@ async function imagesLoaded(page, sel) {
     if (d) d.open = true;
   });
   await page.waitForSelector('[data-apl-visuals] .book-visual');
-  ok('Podgląd planu: FMS + strefy + fazy + rozładowanie', (await imagesLoaded(page, '[data-apl-visuals]')) === 1 && (await page.$$('[data-apl-visuals] .tp-row')).length === 5 && (await page.$$('[data-apl-visuals] .fs-phase')).length === 7 && (await page.$$('[data-apl-visuals] .iz-zone')).length === 4);
+  ok('Podgląd planu: FMS + strefy + fazy + rozładowanie', (await page.$$('[data-apl-visuals] .fms-card')).length === 8 && (await page.$$('[data-apl-visuals] .tp-row')).length === 5 && (await page.$$('[data-apl-visuals] .fs-phase')).length === 7 && (await page.$$('[data-apl-visuals] .iz-zone')).length === 4);
   const first = await page.$eval('[data-apl-visuals] .book-visual', (el) => el.getAttribute('data-book-visual'));
   ok('Podgląd planu: przy ograniczeniach FMS pierwsze', first === 'fms-swiatla', first);
   const visuals = await page.$('[data-apl-visuals]');
@@ -116,7 +123,6 @@ async function imagesLoaded(page, sel) {
   const mobile = await openApp(browser, { width: 390, height: 844 });
   await mobile.page.evaluate(() => { goTo('academy'); academySetLevel('visuals'); });
   await mobile.page.waitForSelector('.academy-visuals .book-visual');
-  await imagesLoaded(mobile.page, '.academy-visuals');
   const cols = await mobile.page.$eval('.academy-visuals .book-visuals', (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
   ok('Telefon: jedna kolumna', cols === 1, String(cols));
   const overflow = await mobile.page.$eval('.academy-visuals', (el) => el.scrollWidth - el.clientWidth);
@@ -128,6 +134,8 @@ async function imagesLoaded(page, sel) {
   ok('Telefon: duże cyfry % 1RM', pctSize >= 36, String(pctSize));
   const fsCols = await mobile.page.$eval('.academy-visuals .fs-axis', (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
   ok('Telefon: fazy jedna pod drugą', fsCols === 1, String(fsCols));
+  const fmsCols = await mobile.page.$eval('.academy-visuals .fms-grid', (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  ok('Telefon: wzorce FMS jeden pod drugim', fmsCols === 1, String(fmsCols));
   await mobile.page.locator('.academy-visuals [data-book-visual="strefy-intensywnosci"]').screenshot({ path: path.join(shotDir, 'strefy-telefon.png') });
 
   const errs = errors.concat(mobile.errors).filter((e) => !/firebase|gstatic/i.test(e));
