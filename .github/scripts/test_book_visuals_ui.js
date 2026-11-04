@@ -15,7 +15,14 @@ function ok(name, cond, extra) {
 /* Logika doboru bez przeglądarki. */
 const kb = require(path.join(root, 'books-kb.js'));
 ok('4 grafiki w BOOK_VISUALS', kb.BOOK_VISUALS.length === 4);
-kb.BOOK_VISUALS.forEach((v) => ok('plik istnieje: ' + v.id, fs.existsSync(path.join(root, kb.bookVisualSrc(v)))));
+kb.BOOK_VISUALS.filter((v) => !v.html).forEach((v) => ok('plik istnieje: ' + v.id, fs.existsSync(path.join(root, kb.bookVisualSrc(v)))));
+/* Strefy intensywności: rysowane w HTML, każda strefa ma źródła, bez RPE tam, gdzie książki go nie podają. */
+const iz = kb.intensityZonesHTML();
+ok('strefy: 4 cele', kb.INTENSITY_ZONES.map((z) => z.goal).join('|') === 'Siła maksymalna|Siła|Hipertrofia|Wytrzymałość siłowa');
+ok('strefy: każda ma źródło ze stronami', kb.INTENSITY_ZONES.every((z) => /s\. \d/.test(z.src)));
+ok('strefy: wytrzymałość bez RPE', kb.INTENSITY_ZONES.find((z) => z.id === 'end').rpe === null && /książki nie podają RPE/.test(iz));
+ok('strefy: skala RPE↔RIR', /RPE a powtórzenia w zapasie/.test(iz) && kb.RPE_RIR.length === 5);
+ok('strefy: w HTML, bez <img>', /data-book-visual="strefy-intensywnosci"><div class="book-visual-html">/.test(kb.bookVisualsHTML()));
 ok('ograniczenia klienta → FMS pierwsze', kb.bookVisualsForPlan('masa', { limits: true })[0].id === 'fms-swiatla');
 ok('siła bez ograniczeń → fazy siły pierwsze', kb.bookVisualsForPlan('sila', {})[0].id === 'bompa-fazy-sily');
 ok('zawody w opisie → rozładowanie pasuje', kb.bookVisualsForPlan('kondycja', { text: 'start w zawodach 12.05' }).find((v) => v.id === 'bompa-rozladowanie').match === true);
@@ -63,7 +70,9 @@ async function imagesLoaded(page, sel) {
   await page.evaluate(() => goTo('academy'));
   await page.click('.academy-tab:has-text("Grafiki z książek")');
   await page.waitForSelector('.academy-visuals .book-visual');
-  ok('Akademia: 4 grafiki wczytane', (await imagesLoaded(page, '.academy-visuals')) === 4);
+  ok('Akademia: 3 grafiki SVG wczytane', (await imagesLoaded(page, '.academy-visuals')) === 3);
+  ok('Akademia: strefy intensywności narysowane', (await page.$$eval('.academy-visuals .iz-zone', (els) => els.length)) === 4);
+  await page.locator('.academy-visuals [data-book-visual="strefy-intensywnosci"]').screenshot({ path: path.join(shotDir, 'strefy-komputer.png') });
   await page.screenshot({ path: path.join(shotDir, 'akademia-grafiki.png'), fullPage: true });
 
   /* 2. Podgląd planu z generatora. */
@@ -81,7 +90,7 @@ async function imagesLoaded(page, sel) {
     if (d) d.open = true;
   });
   await page.waitForSelector('[data-apl-visuals] .book-visual');
-  ok('Podgląd planu: 4 grafiki wczytane', (await imagesLoaded(page, '[data-apl-visuals]')) === 4);
+  ok('Podgląd planu: 3 grafiki SVG + strefy', (await imagesLoaded(page, '[data-apl-visuals]')) === 3 && (await page.$$('[data-apl-visuals] .iz-zone')).length === 4);
   const first = await page.$eval('[data-apl-visuals] .book-visual', (el) => el.getAttribute('data-book-visual'));
   ok('Podgląd planu: przy ograniczeniach FMS pierwsze', first === 'fms-swiatla', first);
   const visuals = await page.$('[data-apl-visuals]');
@@ -98,6 +107,11 @@ async function imagesLoaded(page, sel) {
   const overflow = await mobile.page.$eval('.academy-visuals', (el) => el.scrollWidth - el.clientWidth);
   ok('Telefon: bez poziomego przewijania', overflow <= 1, String(overflow));
   await mobile.page.screenshot({ path: path.join(shotDir, 'akademia-grafiki-telefon.png'), fullPage: false });
+  const izCols = await mobile.page.$eval('.academy-visuals .iz-zones', (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  ok('Telefon: strefy jedna pod drugą', izCols === 1, String(izCols));
+  const pctSize = await mobile.page.$eval('.iz-pct b', (el) => parseFloat(getComputedStyle(el).fontSize));
+  ok('Telefon: duże cyfry % 1RM', pctSize >= 36, String(pctSize));
+  await mobile.page.locator('.academy-visuals [data-book-visual="strefy-intensywnosci"]').screenshot({ path: path.join(shotDir, 'strefy-telefon.png') });
 
   const errs = errors.concat(mobile.errors).filter((e) => !/firebase|gstatic/i.test(e));
   ok('bez błędów JS', errs.length === 0, errs.join(' | '));

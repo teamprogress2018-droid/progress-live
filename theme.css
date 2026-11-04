@@ -1521,3 +1521,52 @@ html[data-theme] .cap-client-plan-start.cap-btn-secondary { border: 1px solid va
 .book-visual-match{align-self:flex-start;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:rgba(var(--accent-rgb),.12);color:var(--text)}
 .academy-visuals-intro{margin:0 0 6px;color:var(--muted);font-size:13px}
 @media (max-width:600px){.book-visuals,.book-visuals-compact{grid-template-columns:1fr}}
+
+/* ── Strefy intensywności (books-kb.js → intensityZonesHTML): grafika rysowana w HTML, kolory z motywu ── */
+.book-visual-wide{grid-column:1/-1}
+.book-visual-html{padding:14px;border-bottom:1px solid var(--border2);background:var(--s1,var(--bg))}
+.iz{--iz-a:var(--accent-rgb);display:flex;flex-direction:column;gap:12px;color:var(--text);font-family:var(--font-ui)}
+.iz-zones{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.iz-zone{border:1px solid var(--border2);border-top:5px solid rgba(var(--iz-a),var(--iz-o));border-radius:12px;padding:12px 14px;background:var(--s2,#fff);display:flex;flex-direction:column;gap:10px;min-width:0}
+.iz-l4{--iz-o:1}.iz-l3{--iz-o:.72}.iz-l2{--iz-o:.46}.iz-l1{--iz-o:.24}
+.iz-head{display:flex;flex-direction:column;gap:2px}
+.iz-goal{font-size:15px;font-weight:700;line-height:1.25}
+.iz-pct{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.iz-pct b{font-size:38px;font-weight:800;line-height:1;letter-spacing:-.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.iz-pct i{font-style:normal;font-size:14px;font-weight:600;color:var(--muted)}
+.iz-bar{position:relative;height:8px;border-radius:999px;background:var(--bg,rgba(0,0,0,.06))}
+.iz-ends{display:flex;justify-content:space-between;margin-top:-6px;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.iz-bar span{position:absolute;top:0;bottom:0;border-radius:999px;background:rgba(var(--iz-a),var(--iz-o));min-width:8px}
+.iz-l1 .iz-bar span{background:rgba(var(--iz-a),.4)}
+.iz-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.iz-stat{background:var(--bg,rgba(0,0,0,.04));border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.iz-stat b{font-size:20px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.iz-stat span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.iz-stat.is-empty b{color:var(--muted)}
+.iz-tip{margin:0;font-size:13px;line-height:1.45;color:var(--text)}
+.iz-more summary,.iz-endurance summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text)}
+.iz-more p{margin:6px 0 4px;font-size:12.5px;line-height:1.5;color:var(--text)}
+.iz small{display:block;font-size:11px;line-height:1.45;color:var(--muted)}
+.iz-rpe{border:1px solid var(--border2);border-radius:12px;padding:12px 14px;background:var(--s2,#fff);display:flex;flex-direction:column;gap:8px}
+.iz-rpe-title{font-size:14px}
+.iz-rpe-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.iz-rpe-row div{background:var(--bg,rgba(0,0,0,.04));border-radius:10px;padding:8px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.iz-rpe-row b{font-size:24px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.iz-rpe-row span{font-size:11.5px;color:var(--muted)}
+.iz-warn{margin:0;padding:10px 12px;border-radius:10px;border-left:4px solid var(--info,#2563eb);background:var(--bg,rgba(0,0,0,.04));font-size:13px;line-height:1.5}
+.iz-endurance ol{list-style:none;margin:8px 0 6px;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+.iz-endurance li{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.45}
+.iz-endurance li b{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--bg,rgba(0,0,0,.05));display:flex;align-items:center;justify-content:center;font-size:13px}
+.iz-endurance li strong{display:block}
+.iz-compact .iz-zones,.book-visuals-compact .iz-zones{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+@media (max-width:1100px){.iz-zones{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){
+  .book-visual-html{padding:10px}
+  .iz-zones{grid-template-columns:1fr}
+  .iz-pct b{font-size:40px}
+  .iz-rpe-row{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+  .iz-rpe-row div{padding:6px 2px}
+  .iz-rpe-row b{font-size:20px}
+  .iz-rpe-row span{font-size:10.5px}
+  .iz-endurance ol{grid-template-columns:1fr}
+}
