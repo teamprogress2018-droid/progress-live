@@ -2,7 +2,7 @@ name: Baza produktów z USDA
 
 on:
   push:
-    branches: [ main, claude/dieta-baza-produktow ]
+    branches: [ main ]
     paths:
       - 'knowledge/food/usda-wybor.json'
       - '.github/scripts/build_food_db.js'

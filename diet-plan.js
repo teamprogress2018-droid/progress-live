@@ -1,8 +1,8 @@
 // ════════════════════════════════════════
 // JADŁOSPIS Z KSIĄŻEK — kalkulator TDEE → przykładowy dzień z gramaturą i zamiennikami
 // Każda liczba ma źródło w bazie wiedzy (knowledge/books/*.json). Wartości produktów
-// są wyliczone na 100 g z jadłospisów Bean (2009, rozdz. 15; dane brytyjskie
-// McCance & Widdowson) — same jadłospisy i przepisy nie są kopiowane.
+// pochodzą z USDA FoodData Central (SR Legacy, domena publiczna; knowledge/food/),
+// dwa produkty z jadłospisów Bean — same jadłospisy i przepisy nie są kopiowane.
 // Podział energii między posiłki i zestawy posiłków to ustawienia aplikacji.
 // ════════════════════════════════════════
 (function(root){
@@ -13,66 +13,108 @@ const REF={
   bean:'Bean, Complete Guide to Sports Nutrition (2009)',
   bk:'Brukner i Khan, Clinical Sports Medicine 4. wyd.',
   ads:'Dietetyka sportowa (ADS)',
+  usda:'USDA FoodData Central, SR Legacy (2018), domena publiczna',
   app:'ustawienie aplikacji'
 };
 function src(ref,pages,status){return{ref,pages:pages||'',status:status||'zrodlo'};}
 
-/** Produkty: wartości na 100 g (albo na sztukę), wyliczone z porcji w jadłospisach Bean. */
+/** Produkty: wartości na 100 g (albo na sztukę: g = waga sztuki) z USDA FoodData Central, SR Legacy
+ *  (domena publiczna, knowledge/food/usda-produkty.json, fdc = numer produktu). Musli i wafle ryżowe
+ *  zostają z jadłospisów Bean (status wniosek). Mięso, ryby, kasze i makaron są w wadze przed obróbką;
+ *  cooked.ratio = waga po obróbce / przed (z energii surowego i gotowego produktu USDA, status wniosek).
+ *  sub = podgrupa zamienników, min/max = najmniejsza i największa sensowna porcja (ustawienie aplikacji). */
 const DIET_FOODS=[
-  {id:'owsiane',name:'Płatki owsiane (suche)',group:'wegle',unit:'g',kcal:402,p:11.7,c:73.3,f:8.3,max:150,page:'204'},
-  {id:'musli',name:'Musli',group:'wegle',unit:'g',kcal:367,p:10,c:66.7,f:8.3,max:120,page:'202'},
-  {id:'chleb',name:'Chleb pełnoziarnisty',group:'wegle',unit:'g',kcal:218,p:8.8,c:42.5,f:2.5,max:200,page:'205'},
-  {id:'makaron',name:'Makaron (suchy)',group:'wegle',unit:'g',kcal:348,p:12,c:76,f:2,max:180,page:'205'},
-  {id:'ryz',name:'Ryż brązowy (suchy)',group:'wegle',unit:'g',kcal:357,p:7.1,c:81.2,f:2.4,max:180,page:'203'},
-  {id:'ziemniaki',name:'Ziemniaki pieczone',group:'wegle',unit:'g',kcal:136,p:4,c:31.7,f:0.3,max:550,page:'202'},
-  {id:'bataty',name:'Bataty pieczone',group:'wegle',unit:'g',kcal:115,p:1.7,c:28,f:0.3,max:550,page:'206'},
-  {id:'wafle',name:'Wafle ryżowe',group:'wegle',unit:'szt',kcal:32,p:0.5,c:7.3,f:0.25,max:8,page:'204'},
-  {id:'kurczak',name:'Pierś z kurczaka (grill)',group:'bialko',unit:'g',kcal:147,p:30,c:0,f:3.3,max:250,page:'202'},
-  {id:'indyk',name:'Pierś z indyka',group:'bialko',unit:'g',kcal:105,p:23,c:0,f:2,max:250,page:'205'},
-  {id:'losos',name:'Łosoś (grill)',group:'bialko',unit:'g',kcal:176,p:20,c:0,f:10.9,max:250,page:'203'},
-  {id:'ryba',name:'Biała ryba (grill)',group:'bialko',unit:'g',kcal:96,p:21.1,c:0,f:1.1,max:300,page:'206'},
-  {id:'tunczyk',name:'Tuńczyk w wodzie',group:'bialko',unit:'g',kcal:99,p:24,c:0,f:1,max:200,page:'202'},
-  {id:'jajko',name:'Jajko',group:'bialko',unit:'szt',kcal:80,p:7,c:0,f:6,max:4,page:'205'},
-  {id:'cottage',name:'Serek wiejski (cottage)',group:'bialko',unit:'g',kcal:98,p:14,c:2,f:4,max:300,page:'204'},
-  {id:'fasola',name:'Fasola czerwona (ugotowana)',group:'bialko',unit:'g',kcal:100,p:7.1,c:17.6,f:1.2,max:300,page:'220'},
-  {id:'tofu',name:'Tofu marynowane',group:'bialko',unit:'g',kcal:73,p:8,c:0.6,f:4,max:300,page:'218'},
-  {id:'jogurt',name:'Jogurt naturalny chudy',group:'nabial',unit:'g',kcal:42.5,p:3.8,c:6.2,f:0,max:300,page:'202'},
-  {id:'mleko',name:'Mleko odtłuszczone',group:'nabial',unit:'ml',kcal:33,p:3.5,c:5,f:0,max:400,page:'202'},
-  {id:'maslo-orz',name:'Masło orzechowe',group:'tluszcz',unit:'g',kcal:605,p:25,c:7.5,f:52.5,max:40,page:'206'},
-  {id:'oliwa',name:'Oliwa z oliwek',group:'tluszcz',unit:'g',kcal:900,p:0,c:0,f:100,max:30,page:'202'},
-  {id:'hummus',name:'Hummus',group:'tluszcz',unit:'g',kcal:187,p:8,c:12,f:13,max:100,page:'218'},
-  {id:'banan',name:'Banan',group:'owoce',unit:'szt',kcal:95,p:1,c:23,f:0,max:2,page:'205'},
-  {id:'jablko',name:'Jabłko',group:'owoce',unit:'szt',kcal:47,p:0.5,c:12,f:0,max:2,page:'202'},
-  {id:'pomarancza',name:'Pomarańcza',group:'owoce',unit:'szt',kcal:59,p:2,c:14,f:0,max:2,page:'202'},
-  {id:'jagody',name:'Owoce jagodowe',group:'owoce',unit:'g',kcal:27,p:1,c:6,f:0,max:250,page:'205'},
-  {id:'rodzynki',name:'Rodzynki',group:'owoce',unit:'g',kcal:273,p:3.3,c:70,f:0,max:50,page:'204'},
-  {id:'brokul',name:'Brokuł',group:'warzywa',unit:'g',kcal:24,p:3.2,c:0.8,f:0.8,page:'202'},
-  {id:'marchew',name:'Marchew',group:'warzywa',unit:'g',kcal:24,p:0.8,c:4.8,f:0.8,page:'202'},
-  {id:'szpinak',name:'Szpinak',group:'warzywa',unit:'g',kcal:19,p:2.4,c:0.8,f:0.8,page:'203'},
-  {id:'papryka',name:'Papryka',group:'warzywa',unit:'g',kcal:32,p:1,c:6,f:0,page:'205'},
-  {id:'salata',name:'Sałata mieszana',group:'warzywa',unit:'g',kcal:12,p:0.8,c:1.6,f:0,page:'202'},
-  {id:'kalafior',name:'Kalafior',group:'warzywa',unit:'g',kcal:28,p:2.4,c:2.4,f:1.2,page:'205'}
+  {id:'kurczak',name:'Pierś z kurczaka (surowa)',group:'bialko',sub:'mieso',unit:'g',kcal:120,p:22.5,c:0,f:2.62,src:'usda',fdc:171077,cooked:{label:'po upieczeniu',ratio:0.73,fdc:171477},min:100,max:300},
+  {id:'indyk',name:'Pierś z indyka (surowa)',group:'bialko',sub:'mieso',unit:'g',kcal:114,p:23.34,c:0,f:2.33,src:'usda',fdc:174515,cooked:{label:'po upieczeniu',ratio:0.84,fdc:174516},min:100,max:300},
+  {id:'wolowina',name:'Wołowina mielona chuda 5% (surowa)',group:'bialko',sub:'mieso',unit:'g',kcal:137,p:21.41,c:0,f:5,src:'usda',fdc:171790,cooked:{label:'po usmażeniu',ratio:0.84,fdc:171792},min:100,max:250},
+  {id:'schab',name:'Schab bez tłuszczu (surowy)',group:'bialko',sub:'mieso',unit:'g',kcal:123,p:23.75,c:0,f:3.09,src:'usda',fdc:168263,cooked:{label:'po usmażeniu',ratio:0.76,fdc:168285},min:100,max:250},
+  {id:'losos',name:'Łosoś (surowy)',group:'bialko',sub:'ryby',unit:'g',kcal:208,p:20.42,c:0,f:13.42,src:'usda',fdc:175167,cooked:{label:'po upieczeniu',ratio:1.01,fdc:175168},min:100,max:250},
+  {id:'ryba',name:'Dorsz (surowy)',group:'bialko',sub:'ryby',unit:'g',kcal:82,p:17.81,c:0,f:0.67,src:'usda',fdc:171955,cooked:{label:'po upieczeniu',ratio:0.78,fdc:171956},min:100,max:300},
+  {id:'makrela',name:'Makrela (surowa)',group:'bialko',sub:'ryby',unit:'g',kcal:205,p:18.6,c:0,f:13.89,src:'usda',fdc:175119,cooked:{label:'po upieczeniu',ratio:0.78,fdc:175120},min:80,max:200},
+  {id:'pstrag',name:'Pstrąg (surowy)',group:'bialko',sub:'ryby',unit:'g',kcal:141,p:19.94,c:0,f:6.18,src:'usda',fdc:173717,min:100,max:250},
+  {id:'tunczyk',name:'Tuńczyk w wodzie (odsączony)',group:'bialko',sub:'ryby',unit:'g',kcal:86,p:19.44,c:0,f:0.96,src:'usda',fdc:173709,min:60,max:200},
+  {id:'jajko',name:'Jajko',group:'bialko',sub:'nabial',unit:'szt',kcal:71.5,p:6.28,c:0.36,f:4.75,g:50,src:'usda',fdc:171287,min:2,max:4},
+  {id:'cottage',name:'Serek wiejski',group:'bialko',sub:'nabial',unit:'g',kcal:98,p:11.12,c:3.38,f:4.3,src:'usda',fdc:172179,min:100,max:300},
+  {id:'jogurt',name:'Jogurt naturalny 1,5%',group:'nabial',sub:'nabial',unit:'g',kcal:63,p:5.25,c:7.04,f:1.55,src:'usda',fdc:170886,min:150,max:400},
+  {id:'jogurt-grecki',name:'Jogurt grecki 2%',group:'nabial',sub:'nabial',unit:'g',kcal:73,p:9.95,c:3.94,f:1.92,src:'usda',fdc:170903,min:150,max:300},
+  {id:'kefir',name:'Kefir 1%',group:'nabial',sub:'nabial',unit:'ml',kcal:43,p:3.79,c:4.77,f:1.02,src:'usda',fdc:170904,min:200,max:500},
+  {id:'mleko',name:'Mleko odtłuszczone',group:'nabial',sub:'nabial',unit:'ml',kcal:34,p:3.37,c:4.96,f:0.08,src:'usda',fdc:171269,min:200,max:400},
+  {id:'mleko-2',name:'Mleko 2%',group:'nabial',sub:'nabial',unit:'ml',kcal:50,p:3.3,c:4.8,f:1.98,src:'usda',fdc:171267,min:200,max:400},
+  {id:'mozzarella',name:'Mozzarella light',group:'bialko',sub:'ser',unit:'g',kcal:254,p:24.26,c:2.77,f:15.92,src:'usda',fdc:170847,min:50,max:125},
+  {id:'gouda',name:'Ser żółty (gouda)',group:'bialko',sub:'ser',unit:'g',kcal:356,p:24.94,c:2.22,f:27.44,src:'usda',fdc:171241,min:20,max:60},
+  {id:'feta',name:'Ser feta',group:'bialko',sub:'ser',unit:'g',kcal:265,p:14.21,c:3.88,f:21.49,src:'usda',fdc:173420,min:30,max:80},
+  {id:'fasola',name:'Fasola czerwona (ugotowana)',group:'bialko',sub:'roslinne',unit:'g',kcal:127,p:8.67,c:22.8,f:0.5,src:'usda',fdc:175194,min:100,max:300},
+  {id:'soczewica',name:'Soczewica (ugotowana)',group:'bialko',sub:'roslinne',unit:'g',kcal:116,p:9.02,c:20.13,f:0.38,src:'usda',fdc:172421,min:100,max:300},
+  {id:'ciecierzyca',name:'Ciecierzyca (ugotowana)',group:'bialko',sub:'roslinne',unit:'g',kcal:164,p:8.86,c:27.42,f:2.59,src:'usda',fdc:173757,min:100,max:300},
+  {id:'tofu',name:'Tofu twarde',group:'bialko',sub:'roslinne',unit:'g',kcal:144,p:17.27,c:2.78,f:8.72,src:'usda',fdc:172475,min:100,max:250},
+  {id:'owsiane',name:'Płatki owsiane',group:'wegle',sub:'zboza',unit:'g',kcal:379,p:13.15,c:67.7,f:6.52,src:'usda',fdc:173904,min:30,max:150},
+  {id:'musli',name:'Musli',group:'wegle',sub:'zboza',unit:'g',kcal:367,p:10,c:66.7,f:8.3,src:'bean',page:'202',min:30,max:120},
+  {id:'chleb',name:'Chleb pełnoziarnisty',group:'wegle',sub:'zboza',unit:'g',kcal:252,p:12.45,c:42.71,f:3.5,src:'usda',fdc:172688,min:35,max:200},
+  {id:'chleb-zytni',name:'Chleb żytni',group:'wegle',sub:'zboza',unit:'g',kcal:259,p:8.5,c:48.3,f:3.3,src:'usda',fdc:172684,min:35,max:200},
+  {id:'wafle',name:'Wafle ryżowe',group:'wegle',sub:'zboza',unit:'szt',kcal:32,p:0.5,c:7.3,f:0.25,src:'bean',page:'204',min:2,max:8},
+  {id:'makaron',name:'Makaron (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:371,p:13.04,c:74.67,f:1.51,src:'usda',fdc:169736,cooked:{label:'po ugotowaniu',ratio:2.35,fdc:169737},min:50,max:180},
+  {id:'makaron-razowy',name:'Makaron razowy (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:352,p:13.87,c:73.37,f:2.93,src:'usda',fdc:169738,cooked:{label:'po ugotowaniu',ratio:2.36,fdc:168910},min:50,max:180},
+  {id:'ryz',name:'Ryż brązowy (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:367,p:7.54,c:76.25,f:3.2,src:'usda',fdc:169703,cooked:{label:'po ugotowaniu',ratio:2.98,fdc:169704},min:50,max:180},
+  {id:'ryz-bialy',name:'Ryż biały (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:365,p:7.13,c:79.95,f:0.66,src:'usda',fdc:169756,cooked:{label:'po ugotowaniu',ratio:2.81,fdc:168935},min:50,max:180},
+  {id:'kasza-gryczana',name:'Kasza gryczana (sucha)',group:'wegle',sub:'skrobia',unit:'g',kcal:346,p:11.73,c:74.95,f:2.71,src:'usda',fdc:170685,cooked:{label:'po ugotowaniu',ratio:3.76,fdc:170686},min:50,max:180},
+  {id:'kasza-jaglana',name:'Kasza jaglana (sucha)',group:'wegle',sub:'skrobia',unit:'g',kcal:378,p:11.02,c:72.85,f:4.22,src:'usda',fdc:169702,cooked:{label:'po ugotowaniu',ratio:3.18,fdc:168871},min:50,max:180},
+  {id:'kasza-jeczmienna',name:'Kasza jęczmienna pęczak (sucha)',group:'wegle',sub:'skrobia',unit:'g',kcal:352,p:9.91,c:77.72,f:1.16,src:'usda',fdc:170284,cooked:{label:'po ugotowaniu',ratio:2.86,fdc:170285},min:50,max:180},
+  {id:'komosa',name:'Komosa ryżowa (sucha)',group:'wegle',sub:'skrobia',unit:'g',kcal:368,p:14.12,c:64.16,f:6.07,src:'usda',fdc:168874,cooked:{label:'po ugotowaniu',ratio:3.07,fdc:168917},min:50,max:150},
+  {id:'kuskus',name:'Kuskus (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:376,p:12.76,c:77.43,f:0.64,src:'usda',fdc:169699,cooked:{label:'po ugotowaniu',ratio:3.36,fdc:169700},min:50,max:150},
+  {id:'bulgur',name:'Bulgur (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:342,p:12.29,c:75.87,f:1.33,src:'usda',fdc:170688,cooked:{label:'po ugotowaniu',ratio:4.12,fdc:170287},min:50,max:150},
+  {id:'ziemniaki',name:'Ziemniaki (surowe)',group:'wegle',sub:'skrobia',unit:'g',kcal:77,p:2.05,c:17.49,f:0.09,src:'usda',fdc:170026,cooked:{label:'po ugotowaniu',ratio:0.9,fdc:170440},min:150,max:600},
+  {id:'bataty',name:'Bataty (surowe)',group:'wegle',sub:'skrobia',unit:'g',kcal:86,p:1.57,c:20.12,f:0.05,src:'usda',fdc:168482,cooked:{label:'po upieczeniu',ratio:0.96,fdc:168483},min:150,max:600},
+  {id:'maslo-orz',name:'Masło orzechowe',group:'tluszcz',sub:'orzechy',unit:'g',kcal:598,p:22.21,c:22.31,f:51.36,src:'usda',fdc:172470,min:10,max:40},
+  {id:'orzechy-wloskie',name:'Orzechy włoskie',group:'tluszcz',sub:'orzechy',unit:'g',kcal:654,p:15.23,c:13.71,f:65.21,src:'usda',fdc:170187,min:10,max:40},
+  {id:'migdaly',name:'Migdały',group:'tluszcz',sub:'orzechy',unit:'g',kcal:579,p:21.15,c:21.55,f:49.93,src:'usda',fdc:170567,min:10,max:40},
+  {id:'orzechy-laskowe',name:'Orzechy laskowe',group:'tluszcz',sub:'orzechy',unit:'g',kcal:628,p:14.95,c:16.7,f:60.75,src:'usda',fdc:170581,min:10,max:40},
+  {id:'nerkowce',name:'Orzechy nerkowca',group:'tluszcz',sub:'orzechy',unit:'g',kcal:553,p:18.22,c:30.19,f:43.85,src:'usda',fdc:170162,min:10,max:40},
+  {id:'siemie',name:'Siemię lniane',group:'tluszcz',sub:'nasiona',unit:'g',kcal:534,p:18.29,c:28.88,f:42.16,src:'usda',fdc:169414,min:10,max:30},
+  {id:'chia',name:'Nasiona chia',group:'tluszcz',sub:'nasiona',unit:'g',kcal:486,p:16.54,c:42.12,f:30.74,src:'usda',fdc:170554,min:10,max:30},
+  {id:'pestki-dyni',name:'Pestki dyni',group:'tluszcz',sub:'nasiona',unit:'g',kcal:559,p:30.23,c:10.71,f:49.05,src:'usda',fdc:170556,min:10,max:40},
+  {id:'oliwa',name:'Oliwa z oliwek',group:'tluszcz',sub:'oleje',unit:'g',kcal:884,p:0,c:0,f:100,src:'usda',fdc:171413,min:5,max:30},
+  {id:'olej-rzepakowy',name:'Olej rzepakowy',group:'tluszcz',sub:'oleje',unit:'g',kcal:884,p:0,c:0,f:100,src:'usda',fdc:172336,min:5,max:30},
+  {id:'maslo',name:'Masło',group:'tluszcz',sub:'oleje',unit:'g',kcal:717,p:0.85,c:0.06,f:81.11,src:'usda',fdc:173430,min:5,max:20},
+  {id:'awokado',name:'Awokado',group:'tluszcz',sub:'pasty',unit:'g',kcal:160,p:2,c:8.53,f:14.66,src:'usda',fdc:171705,min:40,max:150},
+  {id:'hummus',name:'Hummus',group:'tluszcz',sub:'pasty',unit:'g',kcal:237,p:7.78,c:15,f:17.82,src:'usda',fdc:174289,min:30,max:100},
+  {id:'banan',name:'Banan',group:'owoce',sub:'owoce',unit:'szt',kcal:105,p:1.29,c:26.95,f:0.39,g:118,src:'usda',fdc:173944,min:1,max:2},
+  {id:'jablko',name:'Jabłko',group:'owoce',sub:'owoce',unit:'szt',kcal:94.6,p:0.47,c:25.13,f:0.31,g:182,src:'usda',fdc:171688,min:1,max:2},
+  {id:'pomarancza',name:'Pomarańcza',group:'owoce',sub:'owoce',unit:'szt',kcal:61.6,p:1.23,c:15.39,f:0.16,g:131,src:'usda',fdc:169097,min:1,max:2},
+  {id:'gruszka',name:'Gruszka',group:'owoce',sub:'owoce',unit:'szt',kcal:101.5,p:0.64,c:27.11,f:0.25,g:178,src:'usda',fdc:169118,min:1,max:2},
+  {id:'kiwi',name:'Kiwi',group:'owoce',sub:'owoce',unit:'szt',kcal:42.1,p:0.79,c:10.12,f:0.36,g:69,src:'usda',fdc:168153,min:1,max:3},
+  {id:'sliwka',name:'Śliwka',group:'owoce',sub:'owoce',unit:'szt',kcal:30.4,p:0.46,c:7.54,f:0.18,g:66,src:'usda',fdc:169949,min:2,max:4},
+  {id:'jagody',name:'Borówki',group:'owoce',sub:'owoce',unit:'g',kcal:57,p:0.74,c:14.49,f:0.33,src:'usda',fdc:171711,min:80,max:250},
+  {id:'truskawki',name:'Truskawki',group:'owoce',sub:'owoce',unit:'g',kcal:32,p:0.67,c:7.68,f:0.3,src:'usda',fdc:167762,min:80,max:250},
+  {id:'maliny',name:'Maliny',group:'owoce',sub:'owoce',unit:'g',kcal:52,p:1.2,c:11.94,f:0.65,src:'usda',fdc:167755,min:80,max:250},
+  {id:'winogrona',name:'Winogrona',group:'owoce',sub:'owoce',unit:'g',kcal:69,p:0.72,c:18.1,f:0.16,src:'usda',fdc:174683,min:80,max:250},
+  {id:'rodzynki',name:'Rodzynki',group:'owoce',sub:'owoce',unit:'g',kcal:299,p:3.3,c:79.32,f:0.25,src:'usda',fdc:168165,min:20,max:50},
+  {id:'brokul',name:'Brokuł',group:'warzywa',sub:'warzywa',unit:'g',kcal:34,p:2.82,c:6.64,f:0.37,src:'usda',fdc:170379},
+  {id:'marchew',name:'Marchew',group:'warzywa',sub:'warzywa',unit:'g',kcal:41,p:0.93,c:9.58,f:0.24,src:'usda',fdc:170393},
+  {id:'szpinak',name:'Szpinak',group:'warzywa',sub:'warzywa',unit:'g',kcal:23,p:2.86,c:3.63,f:0.39,src:'usda',fdc:168462},
+  {id:'papryka',name:'Papryka czerwona',group:'warzywa',sub:'warzywa',unit:'g',kcal:26,p:0.99,c:6.03,f:0.3,src:'usda',fdc:170108},
+  {id:'salata',name:'Sałata',group:'warzywa',sub:'warzywa',unit:'g',kcal:15,p:1.36,c:2.87,f:0.15,src:'usda',fdc:169249},
+  {id:'kalafior',name:'Kalafior',group:'warzywa',sub:'warzywa',unit:'g',kcal:25,p:1.92,c:4.97,f:0.28,src:'usda',fdc:169986},
+  {id:'pomidor',name:'Pomidor',group:'warzywa',sub:'warzywa',unit:'g',kcal:18,p:0.88,c:3.89,f:0.2,src:'usda',fdc:170457},
+  {id:'ogorek',name:'Ogórek',group:'warzywa',sub:'warzywa',unit:'g',kcal:15,p:0.65,c:3.63,f:0.11,src:'usda',fdc:168409},
+  {id:'kapusta',name:'Kapusta biała',group:'warzywa',sub:'warzywa',unit:'g',kcal:25,p:1.28,c:5.8,f:0.1,src:'usda',fdc:169975},
+  {id:'cukinia',name:'Cukinia',group:'warzywa',sub:'warzywa',unit:'g',kcal:17,p:1.21,c:3.11,f:0.32,src:'usda',fdc:169291},
+  {id:'cebula',name:'Cebula',group:'warzywa',sub:'warzywa',unit:'g',kcal:40,p:1.1,c:9.34,f:0.1,src:'usda',fdc:170000},
+  {id:'buraki',name:'Buraki',group:'warzywa',sub:'warzywa',unit:'g',kcal:43,p:1.61,c:9.56,f:0.17,src:'usda',fdc:169145},
+  {id:'pieczarki',name:'Pieczarki',group:'warzywa',sub:'warzywa',unit:'g',kcal:22,p:3.09,c:3.26,f:0.34,src:'usda',fdc:169251},
+  {id:'fasolka',name:'Fasolka szparagowa',group:'warzywa',sub:'warzywa',unit:'g',kcal:31,p:1.83,c:6.97,f:0.22,src:'usda',fdc:169961},
+  {id:'groszek',name:'Groszek zielony',group:'warzywa',sub:'warzywa',unit:'g',kcal:77,p:5.22,c:13.62,f:0.4,src:'usda',fdc:170016}
 ];
-/** Podgrupa do zamienników (zamiennik tylko w tej samej podgrupie) i najmniejsza sensowna porcja. */
-const FOOD_SUB={
-  kurczak:['mieso',80],indyk:['mieso',80],losos:['mieso',80],ryba:['mieso',80],tunczyk:['mieso',60],
-  jajko:['nabial',2],cottage:['nabial',100],jogurt:['nabial',150],mleko:['nabial',200],
-  fasola:['roslinne',100],tofu:['roslinne',100],
-  owsiane:['zboza',30],musli:['zboza',30],chleb:['zboza',35],wafle:['zboza',2],
-  makaron:['skrobia',50],ryz:['skrobia',50],ziemniaki:['skrobia',150],bataty:['skrobia',150],
-  'maslo-orz':['tluszcz',10],oliwa:['tluszcz',5],hummus:['tluszcz',30],
-  banan:['owoce',1],jablko:['owoce',1],pomarancza:['owoce',1],jagody:['owoce',80],rodzynki:['owoce',20]
-};
 /** Alergeny i wykluczenia (ustawienie aplikacji: oznaczenia typowego składu, zawsze sprawdź etykietę). */
 const DIET_EXCLUSIONS=[
-  {id:'gluten',label:'Gluten',foods:['owsiane','musli','chleb','makaron']},
-  {id:'mleko',label:'Mleko i nabiał',foods:['cottage','jogurt','mleko']},
+  {id:'gluten',label:'Gluten',foods:['owsiane','musli','chleb','chleb-zytni','makaron','makaron-razowy','kasza-jeczmienna','kuskus','bulgur']},
+  {id:'mleko',label:'Mleko i nabiał',foods:['cottage','jogurt','jogurt-grecki','kefir','mleko','mleko-2','mozzarella','gouda','feta','maslo']},
   {id:'jaja',label:'Jaja',foods:['jajko']},
-  {id:'ryby',label:'Ryby',foods:['losos','ryba','tunczyk']},
+  {id:'ryby',label:'Ryby',foods:['losos','ryba','makrela','pstrag','tunczyk']},
   {id:'orzeszki',label:'Orzeszki ziemne',foods:['maslo-orz']},
+  {id:'orzechy',label:'Orzechy',foods:['orzechy-wloskie','migdaly','orzechy-laskowe','nerkowce']},
   {id:'soja',label:'Soja',foods:['tofu']},
   {id:'sezam',label:'Sezam',foods:['hummus']},
-  {id:'mieso',label:'Mięso',foods:['kurczak','indyk']}
+  {id:'mieso',label:'Mięso',foods:['kurczak','indyk','wolowina','schab']}
 ];
 /** Sposoby żywienia = zestawy wykluczeń. */
 const DIET_STYLES={
@@ -81,7 +123,7 @@ const DIET_STYLES={
   weganska:{label:'Wegańska',ex:['mieso','ryby','mleko','jaja']}
 };
 const FOOD=Object.create(null);
-DIET_FOODS.forEach(f=>{FOOD[f.id]=f;const s=FOOD_SUB[f.id];f.sub=s?s[0]:f.group;f.min=s?s[1]:0;f.tags=[];});
+DIET_FOODS.forEach(f=>{FOOD[f.id]=f;f.sub=f.sub||f.group;f.min=f.min||0;f.tags=[];});
 DIET_EXCLUSIONS.forEach(e=>e.foods.forEach(id=>FOOD[id].tags.push(e.id)));
 
 /** Zestawy posiłków (ustawienie aplikacji): białko + węglowodany + tłuszcz + stałe dodatki.
@@ -91,13 +133,17 @@ const MEAL_TEMPLATES={
     {min:5,p:'cottage',c:'chleb',f:'maslo-orz',x:[['papryka',100]]},
     {min:10,p:'jajko',c:'chleb',f:null,x:[['szpinak',80]]},
     {min:10,p:'cottage',c:'owsiane',f:'maslo-orz',x:[['jagody',100],['mleko',200]]},
-    {min:3,p:'jogurt',c:'musli',f:'maslo-orz',x:[['banan',1]]}
+    {min:3,p:'jogurt',c:'musli',f:'maslo-orz',x:[['banan',1]]},
+    {min:10,p:'jajko',c:'chleb-zytni',f:null,x:[['pomidor',100],['ogorek',100]]},
+    {min:5,p:'jogurt-grecki',c:'owsiane',f:'orzechy-wloskie',x:[['maliny',100]]}
   ],
   przekaska:[
     {min:3,p:'cottage',c:'wafle',f:null,x:[['jablko',1]]},
     {min:3,p:'jogurt',c:'musli',f:null,x:[['banan',1]]},
     {min:5,p:'tunczyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
-    {min:3,p:'cottage',c:'chleb',f:null,x:[['pomarancza',1]]}
+    {min:3,p:'cottage',c:'chleb',f:null,x:[['pomarancza',1]]},
+    {min:3,p:'jogurt-grecki',c:'owsiane',f:null,x:[['truskawki',100]]},
+    {min:5,p:'mozzarella',c:'chleb-zytni',f:null,x:[['pomidor',100]]}
   ],
   obiad:[
     {min:30,p:'kurczak',c:'ryz',f:'oliwa',x:[['brokul',150]]},
@@ -105,14 +151,20 @@ const MEAL_TEMPLATES={
     {min:25,p:'indyk',c:'makaron',f:'oliwa',x:[['papryka',100],['marchew',100]]},
     {min:35,p:'ryba',c:'bataty',f:'oliwa',x:[['kalafior',150]]},
     {min:30,p:'fasola',c:'ryz',f:'oliwa',x:[['papryka',150]]},
-    {min:15,p:'tunczyk',c:'makaron',f:'oliwa',x:[['papryka',100],['szpinak',80]]}
+    {min:15,p:'tunczyk',c:'makaron',f:'oliwa',x:[['papryka',100],['szpinak',80]]},
+    {min:30,p:'schab',c:'kasza-gryczana',f:'olej-rzepakowy',x:[['kapusta',150]]},
+    {min:25,p:'wolowina',c:'makaron-razowy',f:'oliwa',x:[['pomidor',150],['cebula',50]]},
+    {min:30,p:'ryba',c:'ziemniaki',f:'olej-rzepakowy',x:[['marchew',100],['groszek',80]]},
+    {min:30,p:'soczewica',c:'ryz-bialy',f:'oliwa',x:[['pomidor',150],['cebula',50]]}
   ],
   kolacja:[
     {min:10,p:'tunczyk',c:'chleb',f:'oliwa',x:[['salata',100],['papryka',100]]},
     {min:25,p:'jajko',c:'ziemniaki',f:'oliwa',x:[['szpinak',100]]},
     {min:10,p:'indyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
     {min:5,p:'losos',c:'chleb',f:null,x:[['salata',100],['papryka',100]]},
-    {min:20,p:'tofu',c:'ryz',f:'oliwa',x:[['papryka',100],['brokul',100]]}
+    {min:20,p:'tofu',c:'ryz',f:'oliwa',x:[['papryka',100],['brokul',100]]},
+    {min:10,p:'jajko',c:'chleb-zytni',f:'awokado',x:[['pomidor',100]]},
+    {min:20,p:'kurczak',c:'kasza-jaglana',f:'oliwa',x:[['cukinia',150]]}
   ]
 };
 /** Podział energii (ustawienie aplikacji, nie z książek). Białko dzielone po równo. */
@@ -318,7 +370,7 @@ function unitOf(f){return f.unit==='szt'?1:100;}
  *  w głównym posiłku białko zostaje co najmniej w najmniejszej sensownej porcji. */
 function clampAmount(food,x,role,light){
   if(role==='f'&&x<Math.max(3,food.min/2))return 0;
-  if(role==='p'&&light&&x<food.min/2)return 0;
+  if(role==='p'&&light&&x<food.min*0.75)return 0;
   const lo=food.min||0,hi=food.max||9999;
   const v=food.unit==='szt'?Math.round(x):round5(x);
   return Math.max(lo,Math.min(hi,v));
@@ -396,7 +448,7 @@ function dietAllow(prefs){
 // z tym samym głównym składnikiem (białko: mięso, ryby, nabiał, rośliny; węglowodany: zboża i skrobia).
 const ROLE_GROUPS={p:['bialko','nabial'],c:['wegle'],f:['tluszcz']};
 // Produkty obiadowe (do gotowania na ciepło): w śniadaniu i przekąsce zamiennik z nich tylko w ostateczności.
-const MAIN_DISH=new Set(['kurczak','indyk','losos','ryba','fasola','makaron','ryz','ziemniaki','bataty']);
+const MAIN_DISH=new Set(['kurczak','indyk','wolowina','schab','losos','ryba','makrela','pstrag','fasola','soczewica','ciecierzyca','makaron','makaron-razowy','ryz','ryz-bialy','kasza-gryczana','kasza-jaglana','kasza-jeczmienna','komosa','kuskus','bulgur','ziemniaki','bataty']);
 // Produkty już użyte tego dnia idą na koniec kolejki, żeby zamiennik nie powtarzał się w każdym posiłku.
 function replacementFor(id,role,allow,used,today,light,like){
   today=today||new Set();like=like||new Set();
@@ -435,7 +487,11 @@ function slotTemplates(slot,prefs,allow,today){
     const base=clean.length>=2?clean:list;
     if(!like.size)return base;
     const liked=base.filter(t=>likedCount(t,like)>0).sort((a,b)=>likedCount(b,like)-likedCount(a,like));
-    return liked.length?liked.concat(base.filter(t=>!liked.includes(t)),liked):base;
+    if(!liked.length)return base;
+    // Lubiane zestawy co drugi raz w rotacji (przy długiej liście samo „na początek” prawie nic nie zmienia).
+    const others=base.filter(t=>!liked.includes(t));
+    if(!others.length)return liked;
+    return others.flatMap((t,k)=>[liked[k%liked.length],t]);
   };
   if(inTime.length)return{list:pick(inTime),overTime:false};
   return{list:pick(all),overTime:!!all.length};
@@ -482,6 +538,10 @@ function dietBuildDay(o){
   meals.forEach(m=>(m.changes||[]).forEach(ch=>{if(ch.to)reps[ch.to]=(reps[ch.to]||0)+1;}));
   Object.keys(reps).filter(id=>reps[id]>=3).forEach(id=>warnings.push('Mało produktów przy tych wykluczeniach: '+FOOD[id].name.toLowerCase()+' zastępuje inne produkty w '+reps[id]+' posiłkach. Urozmaicić ręcznie albo poczekać na większą bazę produktów.'));
   if(Math.abs(total.f-t.fat.g)>Math.max(10,t.fat.g*0.15))warnings.push('Tłuszcz wychodzi '+Math.round(total.f)+' g zamiast '+t.fat.g+' g (produkty dostępne przy tych wykluczeniach). Sprawdź jadłospis przed wysłaniem.');
+  // Pieczywo, makaron i kasze też mają białko (dane USDA), więc przy dużej ilości węglowodanów suma
+  // białka może wyjść ponad górną granicę z książek mimo najmniejszych porcji produktów białkowych.
+  const kg=t.protein.perKg?t.protein.g/t.protein.perKg:0;
+  if(kg&&t.protein.hi&&total.p>t.protein.hi*kg*1.05)warnings.push('Białko wychodzi '+Math.round(total.p)+' g ('+(Math.round(total.p/kg*10)/10).toString().replace('.',',')+' g/kg), ponad zakres z książek ('+t.protein.range+' g/kg). Dużo białka dają tu pieczywo, makaron i kasze. Można zmniejszyć porcje produktów białkowych w przekąskach albo zostawić, jeśli klient dobrze to toleruje.');
   if(total.p<t.protein.g*0.9)warnings.push('Przy tych wykluczeniach brakuje ok. '+Math.round(t.protein.g-total.p)+' g białka (limity porcji). Trener powinien dobrać produkty ręcznie.');
   return{meals,total,diffKcal:Math.round(total.kcal-t.kcal),warnings,prefs};
 }
@@ -524,9 +584,16 @@ function dietBuildWeek(o){
 }
 
 function fmtAmount(food,amount){return food.unit==='szt'?amount+' szt.':amount+' '+food.unit;}
+/** Waga po obróbce (mięso, ryby, kasze, makaron, ziemniaki): orientacyjnie, z energii produktu surowego i gotowego. */
+function cookedNote(food,amount){return food.cooked&&amount?food.cooked.label+' ok. '+round5(amount*food.cooked.ratio)+' g':'';}
+/** Produkty w kreatorze pogrupowane, żeby długą listę dało się przejrzeć. */
+const FOOD_SECTIONS=[['Mięso i ryby',['mieso','ryby']],['Nabiał, jaja i sery',['nabial','ser']],['Strączki i tofu',['roslinne']],['Pieczywo i płatki',['zboza']],['Kasze, ryż, makaron, ziemniaki',['skrobia']],['Tłuszcze, orzechy, nasiona',['orzechy','nasiona','oleje','pasty']],['Owoce',['owoce']],['Warzywa',['warzywa']]];
+function foodChips(list,chipFn){
+  return FOOD_SECTIONS.map(([label,subs])=>{const fs=list.filter(f=>subs.includes(f.sub));return fs.length?'<div style="width:100%;font-size:10.5px;color:var(--muted2);margin-top:4px;">'+label+'</div>'+fs.map(chipFn).join(''):'';}).join('');
+}
 function srcLabel(s){return(REF[s.ref]||s.ref)+(s.pages?', s. '+s.pages:'')+(s.status&&s.status!=='zrodlo'?' ('+s.status.replace('_',' ')+')':'');}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]);}
-function srcTag(sources){return'<span class="diet-src" title="'+esc(sources.map(srcLabel).join('; '))+'">📚 '+esc(sources.map(s=>(s.ref==='sn'?'SN':s.ref==='bean'?'Bean':s.ref==='bk'?'Brukner':s.ref.toUpperCase())+(s.pages?' s. '+s.pages:'')).join(', '))+'</span>';}
+function srcTag(sources){return'<span class="diet-src" title="'+esc(sources.map(srcLabel).join('; '))+'">📚 '+esc(sources.map(s=>(s.ref==='sn'?'SN':s.ref==='bean'?'Bean':s.ref==='bk'?'Brukner':s.ref==='usda'?'USDA':s.ref.toUpperCase())+(s.pages?' s. '+s.pages:'')).join(', '))+'</span>';}
 
 /** Tekst jadłospisu do wiadomości dla klienta. */
 function mealsText(day,lines){
@@ -536,7 +603,8 @@ function mealsText(day,lines){
     m.items.forEach(it=>{
       const f=FOOD[it.id];
       const sw=it.swaps.length?' (albo: '+it.swaps.map(s=>FOOD[s.id].name.toLowerCase()+' '+fmtAmount(FOOD[s.id],s.amount)+(it.role==='p'?' = B '+Math.round(s.m.p)+' g':'')).join(', ')+')':'';
-      lines.push('• '+f.name+' '+fmtAmount(f,it.amount)+sw);
+      const ck=cookedNote(f,it.amount);
+      lines.push('• '+f.name+' '+fmtAmount(f,it.amount)+(ck?' ('+ck+')':'')+sw);
     });
     lines.push('');
   });
@@ -610,9 +678,9 @@ function dietWizardHTML(p,skipOpen){
     row('Bez (alergie)',DIET_EXCLUSIONS.filter(e=>!styleEx.includes(e.id)).map(e=>chip(p.ex.includes(e.id),'dietToggleEx(\''+e.id+'\')',e.label)).join(''))+
     row('Czas na posiłek',[[0,'Bez limitu'],[15,'do 15 min'],[30,'do 30 min']].map(([v,l])=>chip(p.maxMin===v,'dietSetMaxMin('+v+')',l)).join(''))+
     '<details class="diet-like"'+(skipOpen==='like'?' open':'')+' style="margin-top:4px;"><summary style="cursor:pointer;font-size:11.5px;color:var(--muted);">❤ Produkty, które klient lubi'+(p.like.length?' ('+p.like.length+')':'')+'</summary><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">'+
-      DIET_FOODS.filter(f=>!p.skip.includes(f.id)).map(f=>chip(p.like.includes(f.id),'dietToggleLike(\''+f.id+'\')',f.name)).join('')+'</div><div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Generator częściej wybiera posiłki z tymi produktami i stawia je pierwsze wśród zamienników.</div></details>'+
+      foodChips(DIET_FOODS.filter(f=>!p.skip.includes(f.id)),f=>chip(p.like.includes(f.id),'dietToggleLike(\''+f.id+'\')',f.name))+'</div><div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Generator częściej wybiera posiłki z tymi produktami i stawia je pierwsze wśród zamienników.</div></details>'+
     '<details class="diet-skip"'+(skipOpen===true||skipOpen==='skip'?' open':'')+' style="margin-top:4px;"><summary style="cursor:pointer;font-size:11.5px;color:var(--muted);">✕ Produkty, których klient nie lubi lub nie je'+(p.skip.length?' ('+p.skip.length+')':'')+'</summary><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">'+
-      DIET_FOODS.map(f=>chip(p.skip.includes(f.id),'dietToggleSkip(\''+f.id+'\')',f.name)).join('')+'</div></details>'+
+      foodChips(DIET_FOODS,f=>chip(p.skip.includes(f.id),'dietToggleSkip(\''+f.id+'\')',f.name))+'</div></details>'+
     '<div style="font-size:10.5px;color:var(--muted2);margin-top:4px;">Oznaczenia alergenów i czasy przygotowania to ustawienia aplikacji. Przy alergii zawsze sprawdzaj etykietę; przy chorobach skieruj klienta do dietetyka lub lekarza.</div>'+
     '</div>';
 }
@@ -634,7 +702,7 @@ function dietReviewHTML(rv){
 }
 
 // ════════ Zatwierdzanie przez trenera przed wysłaniem ════════
-const ALLERGENS=['gluten','mleko','jaja','ryby','orzeszki','soja','sezam'];
+const ALLERGENS=['gluten','mleko','jaja','ryby','orzeszki','orzechy','soja','sezam'];
 /**
  * Lista kontrolna przed wysłaniem: co jest niepewne i kiedy nie wysyłać.
  * ctx: {clientName, age, injuries}
@@ -651,7 +719,7 @@ function dietApprovalChecks(t,plan,ctx){
   const al=pr?pr.ex.filter(id=>ALLERGENS.includes(id)):[];
   if(al.length)out.push({level:'uwaga',text:'Wykluczenia: '+al.map(id=>DIET_EXCLUSIONS.find(e=>e.id===id).label.toLowerCase()).join(', ')+'. Oznaczenia produktów to typowy skład; przy alergii z objawami klient powinien skonsultować dietę z lekarzem lub dietetykiem.'});
   if(ctx.injuries)out.push({level:'info',text:'Klient ma wpisane: „'+String(ctx.injuries).slice(0,120)+'”. Jadłospis tego nie uwzględnia.'});
-  out.push({level:'info',text:'Wartości produktów wyliczone z jadłospisów Bean (dane brytyjskie), status: wniosek. Polskie produkty mogą się różnić.',sources:[src('bean','202-220','wniosek')]});
+  out.push({level:'info',text:'Wartości produktów z bazy USDA FoodData Central (produkty amerykańskie; musli i wafle z jadłospisów Bean). Polskie produkty mogą się trochę różnić, przy produktach z etykietą liczy się etykieta.',sources:[src('usda'),src('bean','202-204','wniosek')]});
   out.push({level:'stop',text:'Nie wysyłaj automatu, jeśli klient jest w ciąży, ma cukrzycę, inną chorobę wymagającą diety, zaburzenia odżywiania albo brak miesiączki. Skieruj go do lekarza lub dietetyka.',sources:[src('sn','377, 414, 443'),src('bk','917-919')]});
   return out;
 }
@@ -680,7 +748,7 @@ function dietRenderCard(t,day,opts){
   const mealsHTML=(d,di)=>d.meals.map((m,mi)=>'<div class="calc-meal-card">'+
     '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+(m.minutes?' <span style="font-weight:400;color:var(--muted);">⏱ ~'+m.minutes+' min</span>':'')+(m.swapped?' <span style="font-weight:400;color:var(--muted);">(zamieniony)</span>':'')+swapBtn(di||0,mi,m)+'</div>'+
     '<div style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r(m.total.kcal)+' kcal · B '+r(m.total.p)+' · T '+r(m.total.f)+' · W '+r(m.total.c)+'</div></div>'+
-    m.items.map(it=>{const f=FOOD[it.id];const im=itemMacros(f,it.amount);return'<div style="font-size:12px;padding:2px 0;">'+esc(f.name)+' <strong>'+esc(fmtAmount(f,it.amount))+'</strong>'+(it.role!=='x'?' <span style="font-size:10.5px;color:var(--muted);font-family:\'DM Mono\',monospace;">B '+Math.round(im.p)+' g · '+Math.round(im.kcal)+' kcal</span>':'')+
+    m.items.map(it=>{const f=FOOD[it.id];const im=itemMacros(f,it.amount);const ck=cookedNote(f,it.amount);return'<div style="font-size:12px;padding:2px 0;">'+esc(f.name)+' <strong>'+esc(fmtAmount(f,it.amount))+'</strong>'+(ck?' <span style="font-size:10.5px;color:var(--muted);">('+esc(ck)+')</span>':'')+(it.role!=='x'?' <span style="font-size:10.5px;color:var(--muted);font-family:\'DM Mono\',monospace;">B '+Math.round(im.p)+' g · '+Math.round(im.kcal)+' kcal</span>':'')+
       (it.swaps.length?'<div style="font-size:10.5px;color:var(--muted);">zamiennik'+(it.role==='p'?' (to samo białko)':'')+': '+it.swaps.map(s=>(s.liked?'❤ ':'')+esc(FOOD[s.id].name.toLowerCase())+' '+esc(fmtAmount(FOOD[s.id],s.amount))+' <span style="font-family:\'DM Mono\',monospace;">(B '+Math.round(s.m.p)+' g · '+Math.round(s.m.kcal)+' kcal)</span>').join(' · ')+'</div>':'')+'</div>';}).join('')+
     ((m.changes||[]).length?'<div style="font-size:10.5px;color:var(--muted);margin-top:3px;">zmienione przez wykluczenia: '+m.changes.map(ch=>esc(FOOD[ch.from].name.toLowerCase())+' → '+(ch.to?esc(FOOD[ch.to].name.toLowerCase()):'bez zamiennika')).join(' · ')+'</div>':'')+
     '</div>').join('');
@@ -721,7 +789,7 @@ function dietRenderCard(t,day,opts){
   return'<div class="calc-result-card diet-card" id="diet-card">'+head+
     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">'+(t.selected?'Jadłospis liczony z makro wybranego w kalkulatorze. Zakresy obok to zalecenia książek.':'Makro wg książek: białko g/kg wg celu, tłuszcz 25% energii, reszta węglowodany (te same liczby co w podziale makro).')+' Liczba posiłków: 3 posiłki + 2–3 przekąski '+srcTag([src('sn','230')])+'.</div>'+
     info+notes+dietReviewHTML(opts.review)+diff+warns+ctrl+(opts.approval?dietApprovalHTML(opts.approval.checks,opts.approval.saved):'')+meals+
-    '<div style="font-size:10.5px;color:var(--muted2);margin-top:8px;line-height:1.5;">Wartości produktów wyliczone z porcji w jadłospisach Bean (rozdz. 15, dane brytyjskie), status: wniosek. Zestawy posiłków i podział energii między posiłki to ustawienia aplikacji. Produkty suche waż przed gotowaniem. Ciąża, cukrzyca, zaburzenia odżywiania lub brak miesiączki: nie używaj automatu, skieruj do lekarza lub dietetyka '+srcTag([src('sn','377, 414, 443'),src('bk','917-919')])+'. To przykładowy plan, nie zastępuje dietetyka.</div>'+
+    '<div style="font-size:10.5px;color:var(--muted2);margin-top:8px;line-height:1.5;">Wartości produktów z bazy USDA FoodData Central (SR Legacy, domena publiczna; musli i wafle ryżowe z jadłospisów Bean). Mięso, ryby, kasze, ryż i makaron waż przed obróbką; waga po obróbce jest orientacyjna. Zestawy posiłków i podział energii między posiłki to ustawienia aplikacji. Ciąża, cukrzyca, zaburzenia odżywiania lub brak miesiączki: nie używaj automatu, skieruj do lekarza lub dietetyka '+srcTag([src('sn','377, 414, 443'),src('bk','917-919')])+'. To przykładowy plan, nie zastępuje dietetyka.</div>'+
     '</div>';
 }
 
