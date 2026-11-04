@@ -276,6 +276,13 @@ ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function 
   ok('owoce jagodowe najwyżej 250 g', owoce);
   ok('zamiennik = tyle samo głównego składnika', zam);
   ok('główny posiłek zawsze z produktem białkowym', glowne);
+  const MD = ['kurczak', 'indyk', 'wolowina', 'schab', 'losos', 'ryba', 'makrela', 'pstrag', 'fasola', 'soczewica', 'ciecierzyca'];
+  const snackSwaps = [[80, 2400, 'redukcja'], [85, 3500, 'masa']].every(([w, k, g]) => {
+    const tt = D.dietBookTargets({ weight: w, age: 30, kcal: k, rmr: 1300, pal: 1.6, goal: g });
+    return [5, 6].every(n => [0, 1, 2].every(v => D.dietBuildDay({ targets: tt, meals: n, variant: v }).meals
+      .filter(m => !/^(Obiad|Kolacja)$/.test(m.name)).every(m => m.items.every(i => !(i.swaps || []).some(s => s.other && MD.includes(s.id))))));
+  });
+  ok('w śniadaniu i przekąsce zamiennik białka bez dań obiadowych', snackSwaps);
 }
 
 ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));

@@ -410,7 +410,7 @@ function solveMeal(tpl,target,allow,light){
 // Zamienniki białka: najpierw ta sama podgrupa, potem inne źródła białka (mięso, ryby, nabiał, rośliny)
 // w ilości dającej tyle samo gramów białka; kalorie i pozostałe makro mogą się różnić i są pokazane.
 // Produkty, które klient lubi, idą na początek.
-function swapsFor(item,allow,like){
+function swapsFor(item,allow,like,light){
   allow=allow||(()=>true);
   like=like||new Set();
   const food=FOOD[item.id];
@@ -427,7 +427,8 @@ function swapsFor(item,allow,like){
   const near=x=>Math.abs(x.m[key]-amountMain)<=Math.max(3,amountMain*0.15);
   const same=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub===food.sub)).filter(near).slice(0,3);
   if(key!=='p')return same;
-  const other=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub!==food.sub&&ROLE_GROUPS.p.includes(f.group)&&f.p*4/f.kcal>=0.25)).filter(near).map(x=>Object.assign(x,{other:true}));
+  // W śniadaniu i przekąsce bez dań obiadowych (surowe mięso czy ryba zamiast serka to nie zamiennik).
+  const other=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub!==food.sub&&ROLE_GROUPS.p.includes(f.group)&&f.p*4/f.kcal>=0.25&&!(light&&MAIN_DISH.has(f.id)))).filter(near).map(x=>Object.assign(x,{other:true}));
   return same.concat(other).slice(0,Math.max(4,same.length));
 }
 
@@ -527,7 +528,7 @@ function dietBuildDay(o){
     const k=m.share/shareLeft;
     const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
     shareLeft-=m.share;
-    const items=solveMeal(tpl,target,allow,m.slot==='przekaska').map(it=>Object.assign(it,{swaps:swapsFor(it,allow,new Set(prefs.like))}));
+    const items=solveMeal(tpl,target,allow,m.slot==='przekaska').map(it=>Object.assign(it,{swaps:swapsFor(it,allow,new Set(prefs.like),m.slot==='sniadanie'||m.slot==='przekaska')}));
     const tot=sumItems(items);
     done=addM(done,tot);
     items.forEach(it=>{if(it.role!=='x')today.add(it.id);});
