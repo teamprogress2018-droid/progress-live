@@ -870,13 +870,15 @@ function aplFrequencyRequest(notes,method,days){
   else if(new RegExp('(?:\\b2|dwa|dwoch|dwu|obu|obydwu)\\s*'+word).test(t)||/dwukrotn|\b2\s*x\b|2×|dwa razy|w kazdym treningu|kazda sesj|kazdym dniu/.test(t))min=2;
   const fromNotes=min>0&&(/parti|miesn|cwicz|stymul|trenow|czestotliw|kazd|tydz|tygodn/.test(t)||Object.keys(APL_FREQ_GROUPS).some(k=>APL_FREQ_GROUPS[k].re.test(t)));
   if(!fromNotes){
-    if(/^fbw|full ?body/i.test(String(method||'')))min=2;
+    // FBW = całe ciało w każdej sesji. Przy 2 treningach w tygodniu każdy podział dawałby partii 1×/tydz.,
+    // a książki mówią „co najmniej 2×” (Helms P7, Chandler P6, Bompa G13) — reguła z książki wygrywa.
+    if(/^fbw|full ?body/i.test(String(method||''))||n===2)min=2;
     else return null;
   }
   min=Math.min(min||2,n,3);
   let groups=fromNotes?Object.keys(APL_FREQ_GROUPS).filter(k=>APL_FREQ_GROUPS[k].re.test(t)):[];
   if(!groups.length)groups=APL_FREQ_MAJOR.slice();
-  return{min,groups,source:fromNotes?'notes':'method'};
+  return{min,groups,source:fromNotes?'notes':(/^fbw|full ?body/i.test(String(method||''))?'method':'books')};
 }
 function aplExerciseFreqGroups(ex){
   const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(ex):'inne';
@@ -896,7 +898,7 @@ function aplFrequencyPrompt(req,bookCtx){
   if(!req)return'';
   const k=bookCtx&&typeof bookCtx.key==='function'?bookCtx.key:()=>'';
   const refs=[k('piramida-treningu-helms P7'),k('conditioning-for-strength-chandler-brown P6'),k('periodyzacja-bompa G13'),k('hipertrofia-schoenfeld P3')].filter(Boolean).join('');
-  const who=req.source==='notes'?'wybór trenera w „Dodatkowych uwagach”':'metoda FBW — całe ciało w każdej sesji';
+  const who=req.source==='notes'?'wybór trenera w „Dodatkowych uwagach”':req.source==='method'?'metoda FBW — całe ciało w każdej sesji':'2 treningi w tygodniu — reguła z książek, każda partia co najmniej 2× w tygodniu';
   return `\n\nCZĘSTOTLIWOŚĆ PARTII (OBOWIĄZKOWE — ${who}): partie ${req.groups.map(g=>APL_FREQ_GROUPS[g].label).join(', ')} mają mieć ćwiczenia bezpośrednie w co najmniej ${req.min} RÓŻNYCH dniach tygodnia (każda z nich w ${req.min} sesjach). Podziel tygodniową objętość partii między te dni (np. 8 serii = 4 + 4), nie podwajaj jej. W kolejnych dniach dobierz inny wzorzec lub wariant tej samej partii (np. dzień 1 przyciąganie pionowe, dzień 2 przyciąganie poziome). Podstawa w książkach: każda partia co najmniej 2× w tygodniu${refs?' '+refs:''}. "weeklyVolume" opisuje TYLKO ćwiczenia, które naprawdę są w "days" — nie zapowiadaj ćwiczeń, których nie ma w planie.`;
 }
 /** Krótki opis już wygenerowanych dni dla kolejnej części planu — żeby nie zgubić zapowiedzianej pracy. */
@@ -1320,9 +1322,9 @@ function aplMuscleCategoryOf(blob){
   const categories=[
     ['klatka',/klatk|piersiow|^chest\b/],
     ['plecy',/plec|grzbiet|najszersz|^back\b|\blats?\b/],
-    ['barki',/bark|shoulder|delt/],
-    ['biceps',/biceps/],
-    ['triceps',/triceps/],
+    ['barki',/bark|naramien|shoulder|delt/],
+    ['biceps',/biceps|dwug[łl]ow[ya]? ramien/],
+    ['triceps',/triceps|tr[óo]jg[łl]ow/],
     ['posladki',/po[śs]ladk|hip thrust|glute/],
     ['nogi',/\bnog|\bnóg|czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|przysiad|wykrok|leg press|quad|hamstring|^legs?\b/],
     ['lydki',/[łl]ydk|calf/],
