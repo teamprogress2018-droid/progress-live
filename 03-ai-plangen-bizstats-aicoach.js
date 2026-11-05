@@ -851,7 +851,7 @@ window.aplEnforceWeeklyVolume=aplEnforceWeeklyVolume;
 const APL_FREQ_GROUPS={
   klatka:{label:'klatka',cats:['klatka'],re:/klat/},
   plecy:{label:'plecy',cats:['plecy'],re:/plec|grzbiet|najszersz/},
-  nogi:{label:'nogi',cats:['nogi','posladki'],re:/\bnog|\bnóg|\bud(a|o|ach)?\b|czworog|dwuglow|dwugłow/},
+  nogi:{label:'uda (czworogłowe / dwugłowe)',cats:['nogi'],re:/\bnog|\bnóg|\bud(a|o|ach)?\b|czworog|dwuglow|dwugłow/},
   barki:{label:'barki',cats:['barki'],re:/bark/},
   biceps:{label:'biceps',cats:['biceps'],re:/biceps|dwuglowy ramien|dwugłowy ramien/},
   triceps:{label:'triceps',cats:['triceps'],re:/triceps|trojglow|trójgłow/},
@@ -877,8 +877,10 @@ function aplFrequencyRequest(notes,method,days){
   }
   min=Math.min(min||2,n,3);
   let groups=fromNotes?Object.keys(APL_FREQ_GROUPS).filter(k=>APL_FREQ_GROUPS[k].re.test(t)):[];
-  if(!groups.length)groups=APL_FREQ_MAJOR.slice();
-  return{min,groups,source:fromNotes?'notes':(/^fbw|full ?body/i.test(String(method||''))?'method':'books')};
+  // Bez wskazanych partii: każda partia ćwiczona w planie (duże zawsze, mniejsze — ramiona, core, łydki — jeśli są w planie).
+  const all=!groups.length;
+  if(all)groups=Object.keys(APL_FREQ_GROUPS);
+  return{min,groups,all,source:fromNotes?'notes':(/^fbw|full ?body/i.test(String(method||''))?'method':'books')};
 }
 function aplExerciseFreqGroups(ex){
   const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(ex):'inne';
@@ -888,7 +890,7 @@ function aplExerciseFreqGroups(ex){
 function aplFrequencyGaps(plan,req){
   if(!req)return[];
   const days=(plan&&plan.days)||[];
-  return req.groups.map(g=>{
+  return req.groups.filter(g=>!req.all||APL_FREQ_MAJOR.includes(g)||days.some(d=>(d.exercises||[]).some(e=>e&&aplExerciseFreqGroups(e).includes(g)))).map(g=>{
     const present=[],missing=[];
     days.forEach((d,i)=>((d.exercises||[]).some(e=>e&&aplExerciseFreqGroups(e).includes(g))?present:missing).push(i));
     return{group:g,label:APL_FREQ_GROUPS[g].label,present,missing};
@@ -899,7 +901,7 @@ function aplFrequencyPrompt(req,bookCtx){
   const k=bookCtx&&typeof bookCtx.key==='function'?bookCtx.key:()=>'';
   const refs=[k('piramida-treningu-helms P7'),k('conditioning-for-strength-chandler-brown P6'),k('periodyzacja-bompa G13'),k('hipertrofia-schoenfeld P3')].filter(Boolean).join('');
   const who=req.source==='notes'?'wybór trenera w „Dodatkowych uwagach”':req.source==='method'?'metoda FBW — całe ciało w każdej sesji':'2 treningi w tygodniu — reguła z książek, każda partia co najmniej 2× w tygodniu';
-  return `\n\nCZĘSTOTLIWOŚĆ PARTII (OBOWIĄZKOWE — ${who}): partie ${req.groups.map(g=>APL_FREQ_GROUPS[g].label).join(', ')} mają mieć ćwiczenia bezpośrednie w co najmniej ${req.min} RÓŻNYCH dniach tygodnia (każda z nich w ${req.min} sesjach). Podziel tygodniową objętość partii między te dni (np. 8 serii = 4 + 4), nie podwajaj jej. W kolejnych dniach dobierz inny wzorzec lub wariant tej samej partii (np. dzień 1 przyciąganie pionowe, dzień 2 przyciąganie poziome). Podstawa w książkach: każda partia co najmniej 2× w tygodniu${refs?' '+refs:''}. "weeklyVolume" opisuje TYLKO ćwiczenia, które naprawdę są w "days" — nie zapowiadaj ćwiczeń, których nie ma w planie.`;
+  return `\n\nCZĘSTOTLIWOŚĆ PARTII (OBOWIĄZKOWE — ${who}): ${req.all?'KAŻDA partia ćwiczona w planie (klatka, plecy, uda, pośladki, barki, a także biceps, triceps, core i łydki, jeśli są w planie) ma mieć':'partie '+req.groups.map(g=>APL_FREQ_GROUPS[g].label).join(', ')+' mają mieć'} ćwiczenia bezpośrednie w co najmniej ${req.min} RÓŻNYCH dniach tygodnia (każda z nich w ${req.min} sesjach). Podziel tygodniową objętość partii między te dni (np. 8 serii = 4 + 4), nie podwajaj jej. W kolejnych dniach dobierz inny wzorzec lub wariant tej samej partii (np. dzień 1 przyciąganie pionowe, dzień 2 przyciąganie poziome). Podstawa w książkach: każda partia co najmniej 2× w tygodniu${refs?' '+refs:''}. "weeklyVolume" opisuje TYLKO ćwiczenia, które naprawdę są w "days" — nie zapowiadaj ćwiczeń, których nie ma w planie.`;
 }
 /** Krótki opis już wygenerowanych dni dla kolejnej części planu — żeby nie zgubić zapowiedzianej pracy. */
 function aplPlanDaysDigest(plan){
@@ -1313,12 +1315,13 @@ function aplNormalizeMuscleCategory(ex){
   // „Wiosłowanie (klatka piersiowa na ławce)” czy „Ściąganie drążka do klatki” to plecy, nie klatka.
   const group=String(ex.muscleGroup||'').toLowerCase();
   if(group.trim()){
-    const byGroup=aplMuscleCategoryOf(group);
+    // „Triceps / klatka” = triceps: liczy się partia wymieniona pierwsza.
+    const byGroup=aplMuscleCategoryOf(group,true);
     if(byGroup!=='inne')return byGroup;
   }
   return aplMuscleCategoryOf((group+' '+String(ex.name||'')).toLowerCase());
 }
-function aplMuscleCategoryOf(blob){
+function aplMuscleCategoryOf(blob,firstMention){
   const categories=[
     ['klatka',/klatk|piersiow|^chest\b/],
     ['plecy',/plec|grzbiet|najszersz|^back\b|\blats?\b/],
@@ -1326,10 +1329,15 @@ function aplMuscleCategoryOf(blob){
     ['biceps',/biceps|dwug[łl]ow[ya]? ramien/],
     ['triceps',/triceps|tr[óo]jg[łl]ow/],
     ['posladki',/po[śs]ladk|hip thrust|glute/],
-    ['nogi',/\bnog|\bnóg|czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|przysiad|wykrok|leg press|quad|hamstring|^legs?\b/],
+    ['nogi',/\bnog|\bnóg|czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|udow|kulszow|przysiad|wykrok|leg press|quad|hamstring|^legs?\b/],
     ['lydki',/[łl]ydk|calf/],
     ['core',/brzuch|\bcore\b|skos.*brzuch|abs\b/],
   ];
+  if(firstMention){
+    let best='inne',at=Infinity;
+    for(const [key,re] of categories){ const m=re.exec(blob); if(m&&m.index<at){at=m.index;best=key;} }
+    return best;
+  }
   for(const [key,re] of categories){ if(re.test(blob))return key; }
   return 'inne';
 }
