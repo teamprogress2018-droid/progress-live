@@ -23,8 +23,8 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
     window.notify = () => {}; window.CL = []; window.PL = [];
     goTo('aiplangen');
     const pick = (grp, val) => { const b = document.querySelector('#' + grp + ' [data-val="' + val + '"]'); if (b && !b.classList.contains('active')) aplToggleOpt(b, grp); };
-    pick('apl-methods', mode === 'ppl' ? 'PPL' : 'FBW'); pick('apl-levels', 'sredni'); pick('apl-days', '2'); pick('apl-duration', '60');
-    document.getElementById('apl-notes').value = mode === 'ppl' ? '' : 'zastosuj w dwoch treningach cwiczenia an ta samam partie miesniowa tak aby przestymulowac je dwa razy';
+    pick('apl-methods', mode === 'split2' ? 'Upper/Lower' : 'FBW'); pick('apl-levels', 'sredni'); pick('apl-days', '2'); pick('apl-duration', '60');
+    document.getElementById('apl-notes').value = mode === 'split2' ? '' : 'zastosuj w dwoch treningach cwiczenia an ta samam partie miesniowa tak aby przestymulowac je dwa razy';
     const calls = [];
     const E = (name, mg, sets) => ({ name, notes: 'x', muscleGroup: mg, sets: String(sets), reps: '10-12', rest: '90s', rpe: '8', rir: '2', kg: '20', tempo: '3-1-1-0' });
     const A = [E('Wyciskanie sztangi na ławce płaskiej', 'Klatka', 4), E('Rozpiętki na bramie', 'Klatka', 4), E('Wypychanie nogami na suwnicy (leg press)', 'Nogi (czworogłowe)', 4), E('Unoszenie hantli bokiem', 'Barki (bok)', 3), E('Prostowanie ramion na wyciągu', 'Triceps', 3), E('Plank', 'Core', 3)];
@@ -35,7 +35,7 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
       calls.push({ sys: body.system, user });
       const m = /(?:TYLKO dni|Dodaj dni) (\d+)–(\d+)/.exec(body.system + ' ' + user);
       const from = m ? +m[1] : 1;
-      const fixed = /POPRAW CZĘSTOTLIWOŚĆ PARTII/.test(user) && mode === 'cooperative';
+      const fixed = /POPRAW CZĘSTOTLIWOŚĆ PARTII/.test(user) && mode !== 'stubborn';
       let list = from === 1 ? A.slice() : B.slice();
       if (fixed && from === 1) list.splice(2, 0, E('Wiosłowanie sztangą w opadzie', 'Plecy', 3));
       if (fixed && from === 2) list.splice(0, 0, E('Wyciskanie hantli na ławce skośnej', 'Klatka', 3), E('Wyciskanie hantli nad głowę siedząc', 'Barki', 3));
@@ -48,11 +48,12 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
     const cat = e => aplNormalizeMuscleCategory(e);
     const vol = document.querySelector('[data-apl-weekly-volume]');
     return {
-      calls: calls.map(c => ({ freqSys: /CZĘSTOTLIWOŚĆ PARTII \(OBOWIĄZKOWE/.test(c.sys), fix: /POPRAW CZĘSTOTLIWOŚĆ PARTII/.test(c.user), digest: /Istniejące dni:\nDzień 1: Wyciskanie sztangi/.test(c.user), promised: /Sesja B uzupełnia/.test(c.user) })),
+      calls: calls.map(c => ({ sys: c.sys.slice(c.sys.indexOf('CZĘSTOTLIWOŚĆ PARTII'), c.sys.indexOf('CZĘSTOTLIWOŚĆ PARTII') + 300), freqSys: /CZĘSTOTLIWOŚĆ PARTII \(OBOWIĄZKOWE/.test(c.sys), fix: /POPRAW CZĘSTOTLIWOŚĆ PARTII/.test(c.user), digest: /Istniejące dni:\nDzień 1: Wyciskanie sztangi/.test(c.user), promised: /Sesja B uzupełnia/.test(c.user) })),
       cats: (plan.days || []).map(d => d.exercises.map(cat)),
       fix: plan.frequencyFix || [],
       wv: plan.weeklyVolume, wvAI: plan.weeklyVolumeAI,
       volText: vol ? vol.innerText : '',
+      noReq3: aplFrequencyRequest('', 'PPL', '3') === null && aplFrequencyRequest('', 'Bro Split', '5') === null,
       checks: [...document.querySelectorAll('[data-apl-check]')].map(li => li.dataset.aplCheck + ':' + li.textContent)
     };
   }, mode);
@@ -75,8 +76,10 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
   ok('copied exercise splits sets — weekly chest not doubled (8 → at most minimum for level)', (parseInt(s.wv.Klatka, 10) || 0) <= 12 && /D2: \d/.test(s.wv.Klatka || ''), JSON.stringify(s.wv));
   ok('trainer sees what was moved in Kontrola planu', s.checks.some(x => /^frequency-fix:/.test(x) && /klatka/.test(x)), JSON.stringify(s.checks));
 
-  const p = await run('ppl');
-  ok('no request, no FBW → no frequency block, no retries', p.calls.length === 2 && p.calls.every(x => !x.freqSys && !x.fix), JSON.stringify(p.calls));
+  const p = await run('split2');
+  ok('2 sessions/week without a note (Upper/Lower) → books rule 2×/week is in the prompt', p.calls.every(x => x.freqSys) && /reguła z książek/.test(p.calls[0].sys || ''), JSON.stringify(p.calls));
+  ok('2 sessions/week without a note → chest, back, shoulders in both sessions', p.cats.every(d => ['klatka', 'plecy', 'barki'].every(g => d.includes(g))), JSON.stringify(p.cats));
+  ok('3+ sessions without a note and not FBW → no frequency request', p.noReq3);
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await browser.close();
   if (failed) { console.error(failed + ' failed'); process.exit(1); }
