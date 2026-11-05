@@ -845,6 +845,131 @@ function aplEnforceWeeklyVolume(plan,vt){
 }
 window.aplEnforceWeeklyVolume=aplEnforceWeeklyVolume;
 
+/* Częstotliwość partii: trener prosi w „Dodatkowych uwagach” o tę samą partię w 2 (3) treningach,
+ * albo metoda FBW (całe ciało w każdej sesji). Książki: każda partia co najmniej 2× w tygodniu
+ * (Helms P7, Chandler P6, Bompa G13, NSCA G02), najwyżej 3× (Głuchowski P19). */
+const APL_FREQ_GROUPS={
+  klatka:{label:'klatka',cats:['klatka'],re:/klat/},
+  plecy:{label:'plecy',cats:['plecy'],re:/plec|grzbiet|najszersz/},
+  nogi:{label:'nogi',cats:['nogi','posladki'],re:/\bnog|\bnóg|\bud(a|o|ach)?\b|czworog|dwuglow|dwugłow/},
+  barki:{label:'barki',cats:['barki'],re:/bark/},
+  biceps:{label:'biceps',cats:['biceps'],re:/biceps|dwuglowy ramien|dwugłowy ramien/},
+  triceps:{label:'triceps',cats:['triceps'],re:/triceps|trojglow|trójgłow/},
+  posladki:{label:'pośladki',cats:['posladki'],re:/poslad|pośladk/},
+  lydki:{label:'łydki',cats:['lydki'],re:/lydk|łydk/},
+  core:{label:'core',cats:['core'],re:/brzuch|\bcore\b/}
+};
+const APL_FREQ_MAJOR=['klatka','plecy','nogi','barki'];
+function aplFrequencyRequest(notes,method,days){
+  const n=parseInt(days,10)||0;
+  if(n<2)return null;
+  const t=String(notes||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l');
+  const word='(?:treningach|sesjach|dniach|jednostkach|razy|x\\b|×)';
+  let min=0;
+  if(new RegExp('(?:\\b3|trzy|trzech|trzykrotn)\\s*'+word).test(t)||/trzykrotn|3\s*x\s*w\s*tyg/.test(t))min=3;
+  else if(new RegExp('(?:\\b2|dwa|dwoch|dwu|obu|obydwu)\\s*'+word).test(t)||/dwukrotn|\b2\s*x\b|2×|dwa razy|w kazdym treningu|kazda sesj|kazdym dniu/.test(t))min=2;
+  const fromNotes=min>0&&(/parti|miesn|cwicz|stymul|trenow|czestotliw|kazd|tydz|tygodn/.test(t)||Object.keys(APL_FREQ_GROUPS).some(k=>APL_FREQ_GROUPS[k].re.test(t)));
+  if(!fromNotes){
+    if(/^fbw|full ?body/i.test(String(method||'')))min=2;
+    else return null;
+  }
+  min=Math.min(min||2,n,3);
+  let groups=fromNotes?Object.keys(APL_FREQ_GROUPS).filter(k=>APL_FREQ_GROUPS[k].re.test(t)):[];
+  if(!groups.length)groups=APL_FREQ_MAJOR.slice();
+  return{min,groups,source:fromNotes?'notes':'method'};
+}
+function aplExerciseFreqGroups(ex){
+  const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(ex):'inne';
+  return Object.keys(APL_FREQ_GROUPS).filter(k=>APL_FREQ_GROUPS[k].cats.includes(c));
+}
+/** Partie z prośby, które w planie są w mniejszej liczbie dni niż trzeba. */
+function aplFrequencyGaps(plan,req){
+  if(!req)return[];
+  const days=(plan&&plan.days)||[];
+  return req.groups.map(g=>{
+    const present=[],missing=[];
+    days.forEach((d,i)=>((d.exercises||[]).some(e=>e&&aplExerciseFreqGroups(e).includes(g))?present:missing).push(i));
+    return{group:g,label:APL_FREQ_GROUPS[g].label,present,missing};
+  }).filter(x=>x.present.length<Math.min(req.min,days.length));
+}
+function aplFrequencyPrompt(req,bookCtx){
+  if(!req)return'';
+  const k=bookCtx&&typeof bookCtx.key==='function'?bookCtx.key:()=>'';
+  const refs=[k('piramida-treningu-helms P7'),k('conditioning-for-strength-chandler-brown P6'),k('periodyzacja-bompa G13'),k('hipertrofia-schoenfeld P3')].filter(Boolean).join('');
+  const who=req.source==='notes'?'wybór trenera w „Dodatkowych uwagach”':'metoda FBW — całe ciało w każdej sesji';
+  return `\n\nCZĘSTOTLIWOŚĆ PARTII (OBOWIĄZKOWE — ${who}): partie ${req.groups.map(g=>APL_FREQ_GROUPS[g].label).join(', ')} mają mieć ćwiczenia bezpośrednie w co najmniej ${req.min} RÓŻNYCH dniach tygodnia (każda z nich w ${req.min} sesjach). Podziel tygodniową objętość partii między te dni (np. 8 serii = 4 + 4), nie podwajaj jej. W kolejnych dniach dobierz inny wzorzec lub wariant tej samej partii (np. dzień 1 przyciąganie pionowe, dzień 2 przyciąganie poziome). Podstawa w książkach: każda partia co najmniej 2× w tygodniu${refs?' '+refs:''}. "weeklyVolume" opisuje TYLKO ćwiczenia, które naprawdę są w "days" — nie zapowiadaj ćwiczeń, których nie ma w planie.`;
+}
+/** Krótki opis już wygenerowanych dni dla kolejnej części planu — żeby nie zgubić zapowiedzianej pracy. */
+function aplPlanDaysDigest(plan){
+  return((plan&&plan.days)||[]).map((d,i)=>(String(d.dayName||('Dzień '+(i+1))).split(/[—–]/)[0].trim())+': '+(d.exercises||[]).map(e=>e.name+' ('+(e.muscleGroup||'?')+', '+(e.sets||'?')+' s.)').join('; ')).join('\n');
+}
+function aplFrequencyHint(gaps,dayOffset,plan){
+  return gaps.map(g=>{
+    const miss=g.missing.filter(i=>i>=dayOffset).map(i=>String(((plan.days||[])[i]||{}).dayName||('Dzień '+(i+1))).split(/[—–]/)[0].trim());
+    return miss.length?(miss.join(', ')+': dodaj ćwiczenie na '+g.label):'';
+  }).filter(Boolean).join('; ');
+}
+/** Gdy AI nie rozłożyło partii na wymaganą liczbę dni: kopia ćwiczenia z innego dnia, serie podzielone (suma bez zmian). */
+function aplEnforceFrequency(plan,req){
+  const out=[];
+  if(!req)return out;
+  const days=(plan&&plan.days)||[];
+  aplFrequencyGaps(plan,req).forEach(g=>{
+    let need=Math.min(req.min,days.length)-g.present.length;
+    g.missing.forEach(di=>{
+      if(need<=0)return;
+      let src=null,srcDay=-1;
+      g.present.forEach(pi=>((days[pi].exercises||[]).forEach(e=>{
+        if(aplExerciseFreqGroups(e).includes(g.group)&&(!src||(parseInt(e.sets,10)||0)>(parseInt(src.sets,10)||0))){src=e;srcDay=pi;}
+      })));
+      if(!src)return;
+      const sets=parseInt(src.sets,10)||3;
+      const copySets=Math.max(2,Math.floor(sets/2));
+      const copy=JSON.parse(JSON.stringify(src));
+      copy.sets=String(copySets);
+      copy.notes='Druga sesja tej partii (częstotliwość '+req.min+'×/tydz.)';
+      delete copy.intensification;
+      if(sets-copySets>=2)src.sets=String(sets-copySets);
+      const target=days[di].exercises=days[di].exercises||[];
+      const coreAt=target.findIndex(e=>typeof aplNormalizeMuscleCategory==='function'&&aplNormalizeMuscleCategory(e)==='core');
+      target.splice(coreAt>=0?coreAt:target.length,0,copy);
+      need--;
+      out.push({group:g.label,from:String(days[srcDay].dayName||('Dzień '+(srcDay+1))).split(/[—–]/)[0].trim(),to:String(days[di].dayName||('Dzień '+(di+1))).split(/[—–]/)[0].trim(),exercise:copy.name,sets:copySets});
+    });
+  });
+  return out;
+}
+/** Objętość tygodniowa liczona z ćwiczeń, które są w planie (zamiast opisu z odpowiedzi AI). */
+const APL_VOLUME_LABELS={klatka:'Klatka',plecy:'Plecy',nogi:'Nogi (uda)',posladki:'Pośladki',barki:'Barki',biceps:'Biceps',triceps:'Triceps',lydki:'Łydki',core:'Core'};
+function aplComputeWeeklyVolume(plan){
+  const wk=plan&&(plan.currentWeek||(plan.weekKeys||[])[0]);
+  const days=(plan&&plan.days)||[];
+  const acc={};
+  days.forEach((d,i)=>(d.exercises||[]).forEach(e=>{
+    if(!e||!e.name)return;
+    const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(e):'inne';
+    if(!APL_VOLUME_LABELS[c])return;
+    const w=(wk&&e[wk])||{};
+    const s=parseInt(w.s||e.sets,10)||0;
+    if(!s)return;
+    const a=acc[c]=acc[c]||{total:0,byDay:{}};
+    a.total+=s;a.byDay[i]=(a.byDay[i]||0)+s;
+  }));
+  const res={};
+  Object.keys(APL_VOLUME_LABELS).forEach(c=>{
+    const a=acc[c];if(!a)return;
+    const per=Object.keys(a.byDay).map(i=>'D'+(+i+1)+': '+a.byDay[i]).join(', ');
+    const freq=Object.keys(a.byDay).length;
+    const n=a.total,word=n===1?'seria':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'serie':'serii';
+    res[APL_VOLUME_LABELS[c]]=n+' '+word+' · '+freq+'×/tydz. ('+per+')';
+  });
+  return res;
+}
+window.aplFrequencyRequest=aplFrequencyRequest;
+window.aplFrequencyGaps=aplFrequencyGaps;
+window.aplEnforceFrequency=aplEnforceFrequency;
+window.aplComputeWeeklyVolume=aplComputeWeeklyVolume;
+
 function aplExtractJsonObject(text){
   const s=String(text||'');
   const start=s.search(/[\[{]/);
@@ -1182,15 +1307,24 @@ function aplSetGenProgress(msg){
 // partii razem (stabilnie, wg kolejności pierwszego wystąpienia), zachowując ćwiczenia
 // priorytetowe na początku sesji.
 function aplNormalizeMuscleCategory(ex){
-  const blob=(String(ex.muscleGroup||'')+' '+String(ex.name||'')).toLowerCase();
+  // Najpierw partia z pola muscleGroup, nazwa dopiero, gdy partii nie rozpoznano:
+  // „Wiosłowanie (klatka piersiowa na ławce)” czy „Ściąganie drążka do klatki” to plecy, nie klatka.
+  const group=String(ex.muscleGroup||'').toLowerCase();
+  if(group.trim()){
+    const byGroup=aplMuscleCategoryOf(group);
+    if(byGroup!=='inne')return byGroup;
+  }
+  return aplMuscleCategoryOf((group+' '+String(ex.name||'')).toLowerCase());
+}
+function aplMuscleCategoryOf(blob){
   const categories=[
-    ['klatka',/klatk/],
-    ['plecy',/plec|grzbiet/],
-    ['barki',/bark/],
+    ['klatka',/klatk|piersiow|^chest\b/],
+    ['plecy',/plec|grzbiet|najszersz|^back\b|\blats?\b/],
+    ['barki',/bark|shoulder|delt/],
     ['biceps',/biceps/],
     ['triceps',/triceps/],
     ['posladki',/po[śs]ladk|hip thrust|glute/],
-    ['nogi',/czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|przysiad|wykrok|leg press|quad/],
+    ['nogi',/\bnog|\bnóg|czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|przysiad|wykrok|leg press|quad|hamstring|^legs?\b/],
     ['lydki',/[łl]ydk|calf/],
     ['core',/brzuch|\bcore\b|skos.*brzuch|abs\b/],
   ];
@@ -1290,6 +1424,7 @@ async function aplGenerate(){
   const pharmaDetails=document.getElementById('apl-pharma-details')?.value||'';
   const notesRaw=document.getElementById('apl-notes')?.value||'';
   const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim()+(typeof gwbRulesPrompt==='function'?gwbRulesPrompt():'');
+  const freqReq=typeof aplFrequencyRequest==='function'?aplFrequencyRequest(notesRaw,method,days):null;
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
   const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('apl'):null;
@@ -1551,7 +1686,8 @@ STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
       if(chunks.length>1){
         aplSetGenProgress(`Generuję dni ${from}–${to} z ${totalDays} (część ${ci+1}/${chunks.length})…`);
       }
-      let chunkSystem=systemPrompt;
+      const freqPrompt=aplFrequencyPrompt(freqReq,bookCtx);
+      let chunkSystem=systemPrompt+freqPrompt;
       let chunkUser=userMsg;
       if(chunks.length>1){
         if(isFirst){
@@ -1567,21 +1703,23 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 3. Preferuj maszyny / Smith / wyciągi, gdy stabilność pomaga realizować cel, lecz zachowaj także ćwiczenia wolnym ciężarem, jeśli są potrzebne dla umiejętności lub preferencji. Różnicuj profil oporu (wydłużenie / środek / skrócenie); pauza w rozciągnięciu jest opcją, nie regułą.
 4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
 5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.
-Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] poniżej mówi inaczej, wybierz regułę z książki. Przy decyzjach opartych na regułach podawaj w "notes" ich oznaczenia [K…].`+bookCtx.training+(typeof window.tmPrompt==='function'?window.tmPrompt():'');
-          chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
+Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] poniżej mówi inaczej, wybierz regułę z książki. Przy decyzjach opartych na regułach podawaj w "notes" ich oznaczenia [K…].`+bookCtx.training+freqPrompt+(typeof window.tmPrompt==='function'?window.tmPrompt():'');
+          const promised=plan&&plan.weeklyVolume&&typeof plan.weeklyVolume==='object'?Object.entries(plan.weeklyVolume).map(([k,v])=>k+': '+v).join('; '):'';
+          chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni:\n${aplPlanDaysDigest(plan)}${promised?`\nPierwsza część zapowiada objętość tygodniową: ${promised}. Jeśli zapowiada pracę w kolejnych dniach (np. „Sesja B uzupełnia klatkę”), te ćwiczenia MUSZĄ być w dniach, które teraz tworzysz.`:''}\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }
       let chunkPlan=null;
       let chunkRaw='';
       let extraTokens=0;
       let redundancyHint='',redundancyTries=0,redundancyFallback=null;
+      let freqHint='',freqTries=0;
       for(let parseTry=0;parseTry<3;parseTry++){
         try{
           const data=await aplAnthropicRequest({
             model:'claude-sonnet-4-20250514',
             max_tokens:Math.min(aplPlanTokenBudget(chunkDays,isFirst)+extraTokens,8000),
             system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON z podwójnymi cudzysłowami przy kluczach i stringach. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown, bez komentarzy.': ''),
-            messages:[{role:'user',content:chunkUser+(redundancyHint?'\n\nPOPRAW DOBÓR ĆWICZEŃ (powtórzony wzorzec ruchowy): '+redundancyHint+'. Zamień nadmiarowe ćwiczenia na inny wzorzec tej samej partii (np. przyciąganie poziome, łopatka/tył barku, skos, rozpiętki, jednonóż), zachowaj liczbę serii i resztę dnia. Zwróć cały JSON.':(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': ''))}]
+            messages:[{role:'user',content:chunkUser+(freqHint?'\n\nPOPRAW CZĘSTOTLIWOŚĆ PARTII (uwagi trenera): '+freqHint+'. Każda z tych partii ma być w '+freqReq.min+' różnych dniach — dodaj w tych dniach ćwiczenie bezpośrednie (inny wzorzec niż w pozostałych dniach), objętość tygodniową podziel między dni. Zwróć cały JSON.':'')+(redundancyHint?'\n\nPOPRAW DOBÓR ĆWICZEŃ (powtórzony wzorzec ruchowy): '+redundancyHint+'. Zamień nadmiarowe ćwiczenia na inny wzorzec tej samej partii (np. przyciąganie poziome, łopatka/tył barku, skos, rozpiętki, jednonóż), zachowaj liczbę serii i resztę dnia. Zwróć cały JSON.':(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': ''))}]
           });
           chunkRaw=data?.content?.[0]?.text||'';
           if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
@@ -1605,6 +1743,18 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
             redundancyFallback=chunkPlan;
             aplSetGenProgress('Poprawiam dobór ćwiczeń (powtórzony wzorzec ruchowy)…');
             throw new Error('Niepełny JSON planu: redundancja wzorców');
+          }
+          if(freqReq&&!problem&&freqTries<1&&parseTry<2){
+            // Partia musi zmieścić się w pozostałych dniach — jeśli już nie może, poprawiamy tę część planu.
+            const merged={days:(isFirst?[]:(plan.days||[])).concat(chunkPlan.days||[])};
+            const left=totalDays-to;
+            const gaps=aplFrequencyGaps(merged,freqReq).filter(g=>g.present.length+left<Math.min(freqReq.min,totalDays)&&g.missing.some(i=>i>=from-1));
+            const hint=gaps.length?aplFrequencyHint(gaps,from-1,merged):'';
+            if(hint){
+              freqTries++;freqHint=hint;redundancyFallback=redundancyFallback||chunkPlan;
+              aplSetGenProgress('Poprawiam plan: ta sama partia w '+freqReq.min+' treningach…');
+              throw new Error('Niepełny JSON planu: częstotliwość partii');
+            }
           }
           break;
         }catch(parseErr){
@@ -1637,6 +1787,8 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
     }
     (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';}));
     aplApplyBookRefs(plan,bookCtx);
+    plan.frequencyRequest=freqReq;
+    plan.frequencyFix=aplEnforceFrequency(plan,freqReq);
     plan.volumeTopUp=aplEnforceWeeklyVolume(plan,vt);
     plan.volumeTarget={weekly:vt.weekly,min:vt.weeklyMin,label:vt.label};
     (plan.days||[]).forEach(d=>{
@@ -1645,6 +1797,9 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
         aplComputeProgression(ex,weekKeys,phasesMap,plan.progression);
       });
     });
+    // „Objętość/tydzień” liczymy z ćwiczeń w planie — opis z odpowiedzi AI potrafił zapowiadać pracę, której nie było.
+    if(plan.weeklyVolume&&!plan.weeklyVolumeAI)plan.weeklyVolumeAI=plan.weeklyVolume;
+    plan.weeklyVolume=aplComputeWeeklyVolume(plan);
   window._aplAmateurPlanIssues=typeof aplAmateurPlanIssues==='function'?aplAmateurPlanIssues(plan):[];
     aplRegroupExercisesByMuscle(plan,client);
     aplRenderPlan(plan,client,goal,method,days,weeks);
@@ -1933,10 +2088,12 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
 
   // ── OBJĘTOŚĆ TYGODNIOWA + ODŻYWIANIE (na dole) ──
   html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;">`;
-  if(plan.weeklyVolume){
-    html+=`<div class="apl-day-block">
+  const weeklyVol=(plan.days||[]).length&&typeof aplComputeWeeklyVolume==='function'?aplComputeWeeklyVolume(plan):plan.weeklyVolume;
+  if(weeklyVol&&Object.keys(weeklyVol).length){
+    html+=`<div class="apl-day-block" data-apl-weekly-volume>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">📊 OBJĘTOŚĆ/TYDZIEŃ</div>
-      ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);text-transform:capitalize;">${k}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span></div>`).join('')}
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Serie robocze policzone z ćwiczeń w planie · D1, D2… = dzień treningowy</div>
+      ${Object.entries(weeklyVol).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);text-transform:capitalize;">${k}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span></div>`).join('')}
     </div>`;
   }
   if(plan.nutritionTip){
@@ -2323,6 +2480,11 @@ function aplPlanChecks(plan,ctx){
     const red=aplPlanPatternRedundancy(plan,{notes:ctx.notes||''});
     if(red.length)out.push({tone:'watch',kind:'pattern',text:'Powtórzony wzorzec ruchowy — '+aplPatternRedundancyText(red)+'. Zamień przyciskiem 🔄.'});
   }
+  if(plan&&plan.frequencyRequest&&typeof aplFrequencyGaps==='function'){
+    const gaps=aplFrequencyGaps(plan,plan.frequencyRequest);
+    if(gaps.length)out.push({tone:'act',kind:'frequency',text:'Partia w mniej niż '+plan.frequencyRequest.min+' treningach (prośba z uwag): '+gaps.map(g=>g.label+' '+g.present.length+'×').join(', ')+' — dodaj ćwiczenie w drugim dniu.'});
+  }
+  if(plan&&Array.isArray(plan.frequencyFix)&&plan.frequencyFix.length)out.push({tone:'watch',kind:'frequency-fix',text:'Rozłożono partie na '+plan.frequencyRequest.min+' treningi: '+plan.frequencyFix.map(x=>x.group+' → '+x.to+' ('+x.exercise+', '+x.sets+' s.)').join('; ')+'. Możesz zamienić ćwiczenie na inny wariant przyciskiem 🔄.'});
   if(plan&&plan.incompleteDays>0)out.push({tone:'act',kind:'days',text:'AI nie wygenerowało '+plan.incompleteDays+' '+(plan.incompleteDays===1?'dnia':'dni')+' planu — wygeneruj plan ponownie albo dodaj dzień ręcznie.'});
   if(plan&&Array.isArray(plan.volumeTopUp)&&plan.volumeTopUp.length)out.push({tone:'watch',kind:'volume-topup',text:'Dołożono serie do minimum tygodniowego ('+(plan.volumeTarget&&plan.volumeTarget.label||'')+'): '+plan.volumeTopUp.map(x=>x.cat+' '+x.from+'→'+x.to).join(', ')+'.'});
   if(ctx.level&&typeof aplVolumeTarget==='function'&&days.length){
@@ -2796,8 +2958,9 @@ function buildPlanPDFHTML(plan,client){
     html+=`<button type="button" class="plan-pdf-cycle-btn" onclick="planPdfToggleCycle(this)">Pokaż cały cykl w tabeli</button>`;
   }
 
-  if(plan.weeklyVolume&&typeof plan.weeklyVolume==='object'){
-    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
+  const pdfVol=(plan.days||[]).length&&typeof aplComputeWeeklyVolume==='function'?aplComputeWeeklyVolume(plan):plan.weeklyVolume;
+  if(pdfVol&&typeof pdfVol==='object'&&Object.keys(pdfVol).length){
+    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(pdfVol).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
   }
   if(plan.adaptation_notes){
     html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">🏃 Sporty dodatkowe</div><p>${planPdfEsc(plan.adaptation_notes)}</p></div>`;
