@@ -53,6 +53,7 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
       fix: plan.frequencyFix || [],
       wv: plan.weeklyVolume, wvAI: plan.weeklyVolumeAI,
       volText: vol ? vol.innerText : '',
+      tricepsFirst: aplNormalizeMuscleCategory({ name: 'Wyciskanie sztangi wąskim chwytem na ławce płaskiej', muscleGroup: 'Triceps / klatka' }) === 'triceps' && aplNormalizeMuscleCategory({ name: 'Martwy ciąg rumuński', muscleGroup: 'Ścięgna udowe i pośladki' }) === 'nogi',
       noReq3: aplFrequencyRequest('', 'PPL', '3') === null && aplFrequencyRequest('', 'Bro Split', '5') === null,
       checks: [...document.querySelectorAll('[data-apl-check]')].map(li => li.dataset.aplCheck + ':' + li.textContent)
     };
@@ -68,12 +69,15 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
   ok('weekly volume computed from the plan (chest 2×, back 2×)', /2×\/tydz/.test(c.wv.Klatka || '') && /2×\/tydz/.test(c.wv.Plecy || ''), JSON.stringify(c.wv));
   ok('AI promise about session B is not shown as volume', !/uzupełnia/.test(c.volText) && /Klatka/.test(c.volText), c.volText);
   ok('AI description kept aside', c.wvAI && /uzupełnia/.test(c.wvAI.Chest || ''), JSON.stringify(c.wvAI));
-  ok('no frequency warning when AI fixed it', !c.checks.some(x => /^frequency/.test(x)), JSON.stringify(c.checks));
+  ok('no missing-frequency warning after fixes', !c.checks.some(x => /^frequency:/.test(x)), JSON.stringify(c.checks));
   if (SHOT) { await page.evaluate(() => document.querySelector('[data-apl-weekly-volume]').scrollIntoView({ block: 'center' })); await page.screenshot({ path: SHOT }); }
 
   const s = await run('stubborn');
   ok('AI ignores the hint → app splits the work itself', s.cats.every(d => ['klatka', 'plecy', 'barki'].every(g => d.includes(g))), JSON.stringify(s.cats));
   ok('copied exercise splits sets — weekly chest not doubled (8 → at most minimum for level)', (parseInt(s.wv.Klatka, 10) || 0) <= 12 && /D2: \d/.test(s.wv.Klatka || ''), JSON.stringify(s.wv));
+  ok('note without named parts → every part in the plan 2× (uda, pośladki, biceps, triceps, core too)', ['klatka', 'plecy', 'nogi', 'posladki', 'barki', 'biceps', 'triceps', 'core'].every(g => s.cats.every(d => d.includes(g))), JSON.stringify(s.cats));
+  ok('volume panel shows 2× for arms and core', ['Biceps', 'Triceps', 'Core', 'Nogi (uda)', 'Pośladki'].every(k => /2×\/tydz/.test(s.wv[k] || '')), JSON.stringify(s.wv));
+  ok('„Triceps / klatka” counts as triceps (first named part wins)', s.tricepsFirst);
   ok('trainer sees what was moved in Kontrola planu', s.checks.some(x => /^frequency-fix:/.test(x) && /klatka/.test(x)), JSON.stringify(s.checks));
 
   const p = await run('split2');
