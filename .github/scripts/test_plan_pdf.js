@@ -151,6 +151,15 @@ ok('print shows cycle, hides cards', /@media print\{\s*@page plan-pdf\{size:A4 l
 ok('phone: one day at a time', /\.plan-pdf-day\.is-on,\.plan-pdf\.show-cycle \.plan-pdf-day\{display:block;\}/.test(css));
 ok('cache bumped', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 48) && cacheAtLeast(html, 'styles.css', 191));
 
+// Wydruk: osobny zwarty dokument (tabela całego cyklu na A4 poziomo), nie ekran z kartami
+const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
+ok('print doc builder', /function planPdfPrintHTML\(root\)/.test(src03) && /window\.planPdfPrint=planPdfPrint/.test(src03));
+ok('print css A4 landscape', /PLAN_PDF_PRINT_CSS=`[\s\S]*@page\{size:A4 landscape/.test(src03));
+ok('print uses iframe', /plan-pdf-print-frame/.test(src03) && /contentWindow\.print\(\)/.test(src03));
+ok('reportPrint routes plan to compact print', /function reportPrint\(\)\{[\s\S]{0,300}planPdfPrint\(\)/.test(src04));
+ok('week cell shows kg', /plan-pdf-wk-kg/.test(src03) && /80 kg/.test(out));
+ok('cache 03/04', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 49) && cacheAtLeast(html, '04-client-portal.js', 68));
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);

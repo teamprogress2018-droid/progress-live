@@ -2683,7 +2683,8 @@ function planPdfWeekCell(ex,wk,prevWk){
   const s=w.s||ex.sets||'3';
   const r=w.r||ex.reps||'10';
   const rpe=w.rpe||ex.rpe||ex.rir||'';
-  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}</div>`;
+  const kg=w.kg!=null&&w.kg!==''?String(w.kg):'';
+  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}${kg?`<div class="plan-pdf-wk-kg">${planPdfEsc(kg)} kg</div>`:''}</div>`;
 }
 
 /** Zapisany plan z biblioteki / profilu → model PDF (jak generator AI). */
@@ -2850,6 +2851,106 @@ function planPdfToggleCycle(btn){
   btn.textContent=on?'Ukryj tabelę cyklu':'Pokaż cały cykl w tabeli';
 }
 
+// ── Wydruk / PDF planu: osobny, zwarty dokument (tabela całego cyklu), bez ekranu aplikacji w tle ──
+const PLAN_PDF_PRINT_CSS=`
+@page{size:A4 landscape;margin:9mm 8mm;}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+html,body{margin:0;background:#fff;color:#111827;font-family:Inter,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:9pt;}
+.pp-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid #e11f2e;padding-bottom:5px;margin-bottom:6px;}
+.pp-title{font-family:'Bebas Neue',Impact,sans-serif;font-size:20pt;letter-spacing:1px;color:#e11f2e;line-height:1;}
+.pp-sub{font-size:9pt;color:#374151;margin-top:2px;}
+.pp-meta{font-size:8.5pt;color:#374151;text-align:right;line-height:1.45;}
+.pp-meta b{color:#111827;}
+.pp-info{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:8pt;color:#374151;line-height:1.4;margin:0 0 6px;}
+.pp-info b{color:#111827;}
+.pp-info ul{margin:0;padding-left:14px;}
+.pp-day{margin-top:7px;break-inside:auto;}
+.pp-day-h{background:#16181f;color:#fff;font-weight:800;font-size:10pt;letter-spacing:0.3px;padding:4px 8px;border-radius:4px 4px 0 0;break-after:avoid;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+th,td{border:0.6pt solid #cbd5e1;padding:2.5pt 3pt;vertical-align:top;}
+thead th{background:#f1f5f9;font-size:7.5pt;font-weight:800;color:#111827;text-align:center;line-height:1.2;}
+thead th small{display:block;font-weight:500;color:#6b7280;font-size:6.8pt;}
+th.pp-n,td.pp-n{width:18pt;text-align:center;color:#6b7280;font-weight:700;}
+th.pp-ex{width:24%;text-align:left;}
+th.pp-rest,td.pp-rest{width:42pt;text-align:center;white-space:nowrap;}
+td.pp-exc .pp-name{font-weight:800;font-size:8.8pt;line-height:1.25;}
+td.pp-exc .pp-pri{display:inline-block;background:#e11f2e;color:#fff;font-size:6pt;font-weight:800;border-radius:6pt;padding:0 4pt;margin-right:3pt;vertical-align:1pt;}
+td.pp-exc .pp-tip{font-size:7pt;color:#4b5563;line-height:1.3;margin-top:1.5pt;}
+td.pp-wk{text-align:center;line-height:1.2;}
+td.pp-wk b{display:block;font-size:9.5pt;font-weight:800;white-space:nowrap;}
+td.pp-wk span{display:block;font-size:7pt;color:#4b5563;white-space:nowrap;}
+.is-deload{background:#ecfdf3;}
+tr{break-inside:avoid;}
+tbody tr:nth-child(even) td{background-color:#fafbfc;}
+tbody tr:nth-child(even) td.is-deload{background:#e3f8ea;}
+.pp-up{color:#067647;font-size:6.5pt;}.pp-dn{color:#b42318;font-size:6.5pt;}
+.pp-foot{margin-top:6px;font-size:7pt;color:#6b7280;display:flex;justify-content:space-between;}
+`;
+function planPdfPrintHTML(root){
+  if(!root)return '';
+  const txt=el=>el?String(el.textContent||'').trim():'';
+  const esc=planPdfEsc;
+  const title=txt(root.querySelector('.plan-pdf-sub'));
+  const kpis=[...root.querySelectorAll('.plan-pdf-kpi')].map(k=>`${esc(txt(k.querySelector('.plan-pdf-kpi-lbl')))}: <b>${esc(txt(k.querySelector('.plan-pdf-kpi-val')))}</b>`).join('<br>');
+  const boxes=[...root.querySelectorAll('.plan-pdf-cols .plan-pdf-box')].map(b=>{
+    const h=txt(b.querySelector('.plan-pdf-box-h')).replace(/^[^\p{L}]+/u,'');
+    const lis=[...b.querySelectorAll('li')].map(li=>`<li>${esc(txt(li))}</li>`).join('');
+    return `<div><b>${esc(h)}:</b> ${lis?`<ul>${lis}</ul>`:esc(txt(b.querySelector('p')))}</div>`;
+  }).join('');
+  const days=[...root.querySelectorAll('.plan-pdf-day')].map(day=>{
+    const head=txt(day.querySelector('.plan-pdf-day-h')?.firstChild);
+    const ths=[...day.querySelectorAll('.plan-pdf-cycle thead th')].slice(1);
+    const cols=ths.map(th=>{
+      const ph=txt(th.querySelector('.plan-pdf-phase'));
+      const label=txt(th).replace(ph,'').replace(/Tydzień\s*/i,'T').trim();
+      return `<th class="${th.classList.contains('is-deload')?'is-deload':''}">${esc(label)}${ph?`<small>${esc(ph)}</small>`:''}</th>`;
+    }).join('');
+    const rows=[...day.querySelectorAll('.plan-pdf-cycle tr.plan-pdf-row')].map((tr,i)=>{
+      const tds=[...tr.children];
+      const exTd=tds[0];
+      const tipRow=tr.nextElementSibling&&tr.nextElementSibling.classList.contains('plan-pdf-tiprow')?tr.nextElementSibling:null;
+      const tipSpan=tipRow?[...tipRow.querySelectorAll('span')].find(sp=>/^Wskazówka:/.test(txt(sp))):null;
+      const tip=tipSpan?txt(tipSpan).replace(/^Wskazówka:\s*/,''):'';
+      const rest=txt(exTd.querySelector('.plan-pdf-rest')).replace(/^⏱\s*/,'');
+      const pri=!!exTd.querySelector('.plan-pdf-pri');
+      const wks=tds.slice(1).map(td=>{
+        const sr=td.querySelector('.plan-pdf-wk-sr');
+        const arrow=sr&&sr.querySelector('.plan-pdf-arrow-up')?'<i class="pp-up">▲</i>':(sr&&sr.querySelector('.plan-pdf-arrow-dn')?'<i class="pp-dn">▼</i>':'');
+        const srTxt=txt(sr).replace(/[▲▼]/g,'').replace(/-/g,'–');
+        const extra=[txt(td.querySelector('.plan-pdf-wk-rpe')),txt(td.querySelector('.plan-pdf-wk-kg'))].filter(Boolean).join(' · ');
+        return `<td class="pp-wk${td.classList.contains('is-deload')?' is-deload':''}"><b>${esc(srTxt)}${arrow}</b>${extra?`<span>${esc(extra)}</span>`:''}</td>`;
+      }).join('');
+      return `<tr><td class="pp-n">${i+1}</td><td class="pp-exc"><div class="pp-name">${pri?'<span class="pp-pri">PRIORYTET</span>':''}${esc(txt(exTd.querySelector('.plan-pdf-ex-name')))}</div>${tip?`<div class="pp-tip">${esc(tip)}</div>`:''}</td><td class="pp-rest">${esc(rest)}</td>${wks}</tr>`;
+    }).join('');
+    return `<section class="pp-day"><div class="pp-day-h">${esc(head)}</div><table><thead><tr><th class="pp-n">#</th><th class="pp-ex">Ćwiczenie</th><th class="pp-rest">Pauza</th>${cols}</tr></thead><tbody>${rows}</tbody></table></section>`;
+  }).join('');
+  const foot=txt(root.querySelector('.plan-pdf-foot'));
+  return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(title||'Plan treningowy')}</title><style>${PLAN_PDF_PRINT_CSS}</style></head><body>
+<div class="pp-head"><div><div class="pp-title">PLAN TRENINGOWY</div><div class="pp-sub">${esc(title)}</div></div><div class="pp-meta">${kpis}</div></div>
+${boxes?`<div class="pp-info">${boxes}</div>`:''}
+${days}
+<div class="pp-foot"><span>W komórce: serie × powtórzenia, pod spodem RPE i ciężar. ▲ ▼ zmiana względem poprzedniego tygodnia. Zielona kolumna = deload.</span><span>${esc(foot)}</span></div>
+</body></html>`;
+}
+function planPdfPrint(){
+  const root=document.querySelector('#report-container .plan-pdf');
+  if(!root){window.print();return;}
+  const html=planPdfPrintHTML(root);
+  let fr=document.getElementById('plan-pdf-print-frame');
+  if(fr)fr.remove();
+  fr=document.createElement('iframe');
+  fr.id='plan-pdf-print-frame';
+  fr.setAttribute('aria-hidden','true');
+  fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(fr);
+  const doc=fr.contentWindow.document;
+  doc.open();doc.write(html);doc.close();
+  setTimeout(()=>{
+    try{fr.contentWindow.focus();fr.contentWindow.print();}
+    catch(_){window.print();}
+  },250);
+}
+
 function buildPlanPDFHTML(plan,client){
   plan=plan||{};
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
@@ -2996,7 +3097,7 @@ window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplClientCardSummaryHtml=aplClientCardSummaryHtml;window.aplSyncClientDupUi=aplSyncClientDupUi;
 window.aplEditClientFromCard=aplEditClientFromCard;window.aplRefreshFromSavedClient=aplRefreshFromSavedClient;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
-window.buildPlanPDFHTML=buildPlanPDFHTML;window.planPdfSetWeek=planPdfSetWeek;window.planPdfSetDay=planPdfSetDay;window.planPdfToggleCycle=planPdfToggleCycle;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
+window.buildPlanPDFHTML=buildPlanPDFHTML;window.planPdfSetWeek=planPdfSetWeek;window.planPdfSetDay=planPdfSetDay;window.planPdfToggleCycle=planPdfToggleCycle;window.planPdfPrint=planPdfPrint;window.planPdfPrintHTML=planPdfPrintHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 
 // ════════════════════════════════════════

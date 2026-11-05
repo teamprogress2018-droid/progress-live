@@ -20,6 +20,7 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1100, height: 1400 } });
   page.setDefaultTimeout(20000);
+  await page.addInitScript(() => { window.print = () => {}; });
   await page.goto('http://localhost:' + port + '/index.html?nocache=planpdf', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
   await page.evaluate(() => {
@@ -97,6 +98,16 @@ function ok(name, cond, extra) {
   ok('week pink', /rgb\(\s*253\s*,\s*232\s*,\s*234\s*\)/.test(vis.wkBg), vis.wkBg);
   ok('day navy', /rgb\(\s*22\s*,\s*24\s*,\s*31\s*\)/.test(vis.dayBg), vis.dayBg);
   ok('priorytet badge', vis.pri);
+  const printDoc = await page.evaluate(async () => {
+    const html = planPdfPrintHTML(document.querySelector('#report-container .plan-pdf'));
+    window.__printed = 0;
+    reportPrint();
+    await new Promise(r => setTimeout(r, 400));
+    const fr = document.getElementById('plan-pdf-print-frame');
+    return { html, frame: !!fr, frameText: fr ? fr.contentDocument.body.innerText : '' };
+  });
+  ok('compact print doc', /class="pp-day"/.test(printDoc.html) && /Hack squat/.test(printDoc.html) && /80 kg/.test(printDoc.html) && /T6/.test(printDoc.html) && !/plan-pdf-card/.test(printDoc.html));
+  ok('print goes through frame', printDoc.frame && /Wyciskanie żołnierskie/.test(printDoc.frameText));
 
   await page.evaluate(() => { if (typeof reportClose === 'function') reportClose(); });
   await page.evaluate(() => {

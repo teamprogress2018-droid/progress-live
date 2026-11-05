@@ -5283,7 +5283,11 @@ function generateReport(){
 }
 
 function reportClose(){document.getElementById('report-overlay').style.display='none';}
-function reportPrint(){window.print();}
+function reportPrint(){
+  // Plan treningowy drukujemy osobnym, zwartym dokumentem (tabela cyklu) zamiast ekranu z kartami.
+  if(typeof window.planPdfPrint==='function'&&document.querySelector('#report-container .plan-pdf'))return window.planPdfPrint();
+  window.print();
+}
 
 function buildReportHTML(c,from,to,sec,template){
   const isDark=template==='professional';
