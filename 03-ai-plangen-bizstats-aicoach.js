@@ -80,6 +80,35 @@ function aplShiftReps(reps,delta,minLo,setLo){
   return m?lo+'-'+hi:String(lo);
 }
 window.aplShiftReps=aplShiftReps;
+/** Zakresy startowe przy budowie masy: podobne w całym planie, różnica tylko tam, gdzie partia lubi inny bodziec.
+ * Wielostawy 8–10, pozostałe 10–12, łydki / bok i tył barku / brzuch 12–15 (Helms P5: większość pracy w 6–12,
+ * reszta wyżej). Czas, AMRAP i opisy zostają bez zmian. */
+const APL_REP_START={compound:'8-10',other:'10-12',high:'12-15'};
+const APL_REP_COMPOUND=['press_flat','press_incline','press_decline','vertical_push','vertical_pull','horizontal_pull','knee_bilateral','knee_unilateral','hip_hinge','hip_bridge'];
+const APL_REP_HIGH=['calf','shoulder_abduction','scapular_rear_delt'];
+function aplRepStartTier(ex){
+  const key=typeof aplExercisePatternKey==='function'?aplExercisePatternKey(ex):'';
+  const cat=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(ex):'';
+  if(APL_REP_HIGH.includes(key)||cat==='lydki'||cat==='core')return'high';
+  if(APL_REP_COMPOUND.includes(key))return'compound';
+  if(!key){
+    // Bez klasyfikacji z biblioteki: rozpoznanie po nazwie.
+    const n=String(ex.name||'').toLowerCase();
+    if(/bokiem|odwrotn|tyl.*bark|tył.*bark|face ?pull|wspi[eę]ci/.test(n))return'high';
+    if(/wyciskan|przysiad|martwy|wios[lł]|podci[aą]g|[sś]ci[aą]gani.*dr[aą][zż]|suwnic|wypychan|wykrok|hip thrust|pompk|dips/.test(n)&&!/francusk|wyprost|prostowan|na wyci[aą]gu pionowym.*triceps/.test(n))return'compound';
+  }
+  return'other';
+}
+function aplNormalizeStartReps(plan){
+  let n=0;
+  ((plan&&plan.days)||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
+    if(!ex||!/^\d+(\s*[-–]\s*\d+)?$/.test(String(ex.reps||'').trim()))return;
+    const next=APL_REP_START[aplRepStartTier(ex)];
+    if(String(ex.reps).replace('–','-').replace(/\s/g,'')!==next){ex.reps=next;n++;}
+  }));
+  return n;
+}
+window.aplNormalizeStartReps=aplNormalizeStartReps;
 /** Zmiana powtórzeń w tygodniu i (0 = baza) wg metody progresji. Deload = baza. */
 function aplWeekRepPlan(type,i,reps,isDeload){
   if(!i||isDeload)return{reps:null,kgMul:1};
@@ -95,6 +124,12 @@ function aplWeekRepPlan(type,i,reps,isDeload){
   if(type==='wave')off=[2,0,-2][(i-1)%3];
   else if(type==='dup')off=[0,-1,-2][i%3];
   else if(type==='smolov')off=0;
+  else if(type==='linear'){
+    // Liniowa (wybór trenera): co tydzień +1 powtórzenie przy tym samym ciężarze, po 4 tygodniach
+    // powrót do zakresu startowego z cięższym ciężarem — podwójna progresja jak u Helmsa (PR6).
+    const up=i%4;
+    return{delta:up,kgMul:Math.pow(1.025,Math.floor(i/4))};
+  }
   else{
     // Schodki: 4-tygodniowe fale (0, −1, −2, −3 powt.), każda kolejna fala z cięższym startem.
     off=-(i%4);
@@ -1584,7 +1619,7 @@ PPL PRZY 4 SESJACH (OBOWIĄZKOWE): nie resetuj splitu po niedzieli. Zapisz w "pe
 KONTROLA OBJĘTOŚCI DLA NATURALNEGO PLANU 4-SESYJNEGO / KLIENTA 50+: zacznij konserwatywnie. Klatka 12–16 serii bezpośrednich/tydzień, boczny bark jako priorytet 8–10, biceps 8–10, triceps 8–10, czworogłowe 8–12, tył uda 6–10, pośladki 8–12. Dzień nóg: maks. 6 głównych ćwiczeń plus core; akcesoria zwykle 2–3 serie. Nie używaj dwóch podobnych unoszeń bokiem ani trzech wyciskań klatki w jednym dniu bez jawnej specjalizacji.
 LIMIT SESJI PUSH: maks. 5 ćwiczeń głównych plus opcjonalnie core. W typowym dniu Push daj najwyżej 2 wyciskania dla klatki i 1 rozpiętkę, łącznie zwykle 6–8 serii bezpośrednich klatki. Boczny bark: zwykle 4–6 serii bezpośrednich na sesję, nie dwa niemal identyczne warianty unoszeń. Priorytet oznacza lepszą kolejność, technikę i progresję — nie automatyczne dokładanie serii.
 NAZEWNICTWO BIOMECHANICZNE: nie używaj jako celu mięśniowego określeń „wewnętrzna”, „środkowa”, „górna” ani „dolna klatka”. Używaj „piersiowy większy” i opisuj wariant przez kąt ławki, tor ramienia albo profil oporu. Nie twierdź, że jeden przyrząd daje zawsze „lepszą aktywację” — opisuj, co zmienia linka, maszyna lub hantle.
-ZAKRESY POWTÓRZEŃ: 14–17 powtórzeń jest prawidłowe dla izolacji, jeśli klient kończy serię z planowanym RIR i technika jest stabilna. Wybieraj proste zakresy o szerokości 2–4 powtórzeń: wielostawy zwykle 6–12, stabilne maszyny 8–15, izolacje 12–20. Nie używaj wysokich powtórzeń jako powodu do nieograniczonego zwiększania liczby serii.
+ZAKRESY POWTÓRZEŃ (wybór trenera przy budowie masy): zacznij od podobnych zakresów w całym planie — wielostawy 8–10, pozostałe ćwiczenia 10–12, a wyżej (12–15) tylko partie, które lubią więcej powtórzeń: łydki, bok i tył barku, brzuch. Powtórzenia rosną z progresją (aplikacja dolicza je w kolejnych tygodniach). Przy innych celach: wielostawy zwykle 6–12, stabilne maszyny 8–15, izolacje 12–20. Nie używaj wysokich powtórzeń jako powodu do nieograniczonego zwiększania liczby serii.
 
 OBJĘTOŚĆ Z KSIĄŻEK (punkt odniesienia, nie obowiązkowe minimum): 10–20 trudnych serii na partię lub wzorzec ruchu tygodniowo ${bookCtx.key('hipertrofia-schoenfeld P2')}${bookCtx.key('piramida-treningu-helms P4')}; początkujący ok. 10–12 serii, 2–3× w tygodniu ${bookCtx.key('piramida-treningu-helms R1')}; zaawansowani bliżej górnej granicy ${bookCtx.key('hipertrofia-schoenfeld P2')}; większość serii RIR 1–2 ${bookCtx.key('hipertrofia-schoenfeld P5')}. Dla osoby 50+ i planu z czterema sesjami nadrzędne są niższe, konserwatywne zakresy podane wyżej.
 POUFNOŚĆ: status farmakologiczny i szczegóły są wyłącznie kontekstem trenera. Nie umieszczaj ich w żadnym polu odpowiedzi JSON. Nie zwiększaj objętości, ciężaru ani częstotliwości na podstawie samego statusu. Dobieraj je według stażu, wykonania i regeneracji.
@@ -1796,6 +1831,8 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
       if(!plan.mezocycle_overview)plan.mezocycle_overview=plan.summary||'';
     }
     (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';}));
+    // Masa: podobne zakresy startowe w całym planie (różne tylko dla partii, które lubią więcej powtórzeń).
+    if(hypertrophyGoal)plan.repStartNormalized=aplNormalizeStartReps(plan);
     aplApplyBookRefs(plan,bookCtx);
     plan.frequencyRequest=freqReq;
     plan.frequencyFix=aplEnforceFrequency(plan,freqReq);
