@@ -38,6 +38,17 @@ for (const t of ['linear', 'dup', 'block', 'double', 'wave']) {
   ok(t + ' (strength path): within a wave fewer reps never means less load', !inverted, keys.slice(0, 7).map(k => ex[k].r + '@' + ex[k].kg).join(' '));
   if (t === 'wave') ok('wave (strength path): high-rep week lighter than low-rep week', ex.w2.r === '10-14' && ex.w4.r === '6-10' && parseFloat(ex.w2.kg) < parseFloat(ex.w4.kg), ex.w2.r + '@' + ex.w2.kg + ' ' + ex.w4.r + '@' + ex.w4.kg);
 }
+const lin = run('linear', '8-10');
+ok('linear: +1 rep a week at the same load, then back to start with more load', lin.w1.r === '8-10' && lin.w2.r === '9-11' && lin.w3.r === '10-12' && lin.w4.r === '11-13' && lin.w5.r === '8-10' && parseFloat(lin.w5.kg) > parseFloat(lin.w4.kg), keys.map(k => lin[k].r + '@' + lin[k].kg).join(' '));
+const startPlan = { days: [{ exercises: [
+  { name: 'Wyciskanie hantli na ławce skośnej dodatniej', muscleGroup: 'Klatka', reps: '7-9' },
+  { name: 'Rozpiętka na wyciągu cross', muscleGroup: 'Klatka', reps: '9-11' },
+  { name: 'Unoszenie hantli bokiem stojąc', muscleGroup: 'Barki (bok)', reps: '11-14' },
+  { name: 'Wypychanie nóg na suwnicy', muscleGroup: 'Nogi', reps: '9-11' },
+  { name: 'Plank', muscleGroup: 'Core', reps: '30s' }] }] };
+c.aplNormalizeStartReps(startPlan);
+const sr = startPlan.days[0].exercises.map(e => e.reps);
+ok('start ranges: compounds 8-10, isolations 10-12, side delts 12-15, time untouched', sr.join(',') === '8-10,10-12,12-15,8-10,30s', sr.join(','));
 const timed = run('linear', '20s');
 ok('timed sets untouched', keys.every(k => timed[k].r === '20s'));
 
