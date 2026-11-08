@@ -4,7 +4,8 @@
    mechanizmach; aktywny trening dodatkowo zapisuje się lokalnie w aplikacji. */
 // Wersja 64 naprawia sytuację, w której przeglądarka mieszała nowy index.html
 // ze starszymi plikami JavaScript pozostawionymi w cache PWA.
-const CACHE_NAME='progress-live-shell-v66';
+// Wersja 67: adresy w cache sprowadzane do jednej postaci (bez duplikatów w addAll).
+const CACHE_NAME='progress-live-shell-v67';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
@@ -20,7 +21,14 @@ async function cacheAppShell(){
     .map(match=>match[1])
     .filter(ref=>!/^https?:|^data:|^#/.test(ref)&&/\.(?:js|css|json|png|svg)(?:[?#]|$)/i.test(ref))
     .map(ref=>new URL(ref,self.registration.scope).toString());
-  await cache.addAll([...new Set([...APP_SHELL,...dynamicAssets])]);
+  await cache.addAll(uniqueShellUrls([...APP_SHELL,...dynamicAssets],self.registration.scope));
+}
+
+/* Cache.addAll() odrzuca całą listę, gdy ten sam adres występuje dwa razy
+   („./favicon.svg” z APP_SHELL i „favicon.svg” z index.html). Przed Set
+   sprowadzamy każdy wpis do pełnego adresu względem zakresu aplikacji, bez #… */
+function uniqueShellUrls(refs,scope){
+  return [...new Set(refs.map(ref=>{const url=new URL(ref,scope);url.hash='';return url.href;}))];
 }
 
 self.addEventListener('install',event=>{
