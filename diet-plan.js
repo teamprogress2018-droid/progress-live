@@ -251,7 +251,10 @@ function dietRestTargets(train,o){
   o=o||{};
   const pal=+o.pal||0,rmr=+o.rmr||train.rmr||0;
   if(!rmr||pal<=REST_PAL||train.blocked)return Object.assign({},train,{dayType:'wolny',same:true});
-  const kcal=Math.round(rmr*REST_PAL+(+o.goalDelta||0));
+  // Twarde minimum z kalkulatora (max(BMR, 1200/1500 kcal)) obowiązuje także w dzień wolny.
+  const rawKcal=Math.round(rmr*REST_PAL+(+o.goalDelta||0));
+  const kcalFloor=Math.round(+o.kcalFloor||0);
+  const kcal=Math.max(rawKcal,kcalFloor);
   const fatG=Math.round(kcal*train.fat.pct/100/9);
   const carbG=Math.max(0,Math.round((kcal-train.protein.g*4-fatG*9)/4));
   const w=train.weight||0;
@@ -260,6 +263,7 @@ function dietRestTargets(train,o){
   const notes=[];
   const blocks=[];
   if(kcal<rmr)blocks.push({text:'Cel dnia wolnego ('+kcal+' kcal) wychodzi poniżej spoczynkowej przemiany materii ('+rmr+' kcal). Zostaw dzień wolny na tym samym poziomie co treningowy albo zmniejsz deficyt.',sources:[src('bean','121')]});
+  if(kcal>rawKcal)notes.push({text:'Dzień wolny: minimum zadziałało — cel podniesiony z '+rawKcal+' do '+kcal+' kcal (nie mniej niż BMR i 1200 kcal kobiety / 1500 kcal mężczyźni).',sources:[src('bean','121','wniosek')]});
   if(w&&carbPerKg<3)notes.push({text:'W dzień wolny zostaje '+String(carbPerKg).replace('.',',')+' g/kg węglowodanów, mniej niż 3 g/kg z dolnej granicy dla lekkiego dnia.',sources:[src('sn','22')]});
   return Object.assign({},train,{
     dayType:'wolny',same:false,kcal,blocked:train.blocked||blocks.length>0,blocks:train.blocks.concat(blocks),notes,
@@ -708,6 +712,40 @@ const ALLERGENS=['gluten','mleko','jaja','ryby','orzeszki','orzechy','soja','sez
  * Lista kontrolna przed wysłaniem: co jest niepewne i kiedy nie wysyłać.
  * ctx: {clientName, age, injuries}
  */
+// ════════ Ciąża, cukrzyca, zaburzenia odżywiania: wysyłka tylko po świadomym potwierdzeniu ════════
+// Źródło sygnału: odpowiedzi z wypełnionych ankiet klienta (np. „Gotowość do wysiłku”, pyt. 8
+// „Jestem w ciąży”) i opis zdrowia w profilu. Szukamy słów — przy zaprzeczeniu („nie mam cukrzycy”)
+// trener też zobaczy pytanie; to celowo ostrożne.
+const HEALTH_RISKS=[
+  {id:'ciaza',label:'ciąża',re:/jestem w ciąży|\bw ciąży\b|\bciąża\b|\bciąży\b/i,
+    risk:'W ciąży zapotrzebowanie i bezpieczne produkty są inne, a deficyt kalorii jest przeciwwskazany.'},
+  {id:'cukrzyca',label:'cukrzyca',re:/cukrzyc|insulin(?!oop)/i,
+    risk:'Przy cukrzycy ilość i rozkład węglowodanów zależą od leczenia (insulina, leki); automat tego nie uwzględnia — ryzyko hipo- lub hiperglikemii.'},
+  {id:'zaburzenia',label:'zaburzenia odżywiania',re:/zaburzeni\w* (odżywiania|jedzenia|łaknienia)|anoreks|bulimi|ortoreks|napad\w* objadania|kompulsywn\w* objadani/i,
+    risk:'Przy zaburzeniach odżywiania gotowy jadłospis z liczbą kalorii może nasilić objawy; plan powinien prowadzić specjalista.'},
+];
+const NOT_PREGNANT=/^(nie dotyczy|nie|brak)$/i;
+/** o: {answers:[{form, answers:{qid:value}}], texts:[string]} → [{id,label,risk,evidence}] */
+function dietHealthRisks(o){
+  o=o||{};
+  const found=new Map();
+  const scan=(value,where)=>{
+    const v=String(value==null?'':value).trim();
+    if(!v||NOT_PREGNANT.test(v))return;
+    HEALTH_RISKS.forEach(r=>{if(!found.has(r.id)&&r.re.test(v))found.set(r.id,{id:r.id,label:r.label,risk:r.risk,evidence:where+': „'+v.slice(0,80)+'”'});});
+  };
+  (o.answers||[]).forEach(f=>{const a=f&&f.answers||{};Object.keys(a).forEach(k=>{const v=a[k];(Array.isArray(v)?v:[v]).forEach(x=>scan(x,f.form||'Ankieta'));});});
+  (o.texts||[]).forEach(t=>scan(t,'Profil klienta'));
+  return HEALTH_RISKS.filter(r=>found.has(r.id)).map(r=>found.get(r.id));
+}
+/** Czy można wysłać: zawsze potrzebne „sprawdziłem plan”, a przy ryzyku — osobne potwierdzenie ryzyka. */
+function dietCanSend(o){
+  o=o||{};
+  if(!o.approved)return{ok:false,reason:'approve'};
+  if((o.risks||[]).length&&!o.riskAck)return{ok:false,reason:'risk'};
+  return{ok:true};
+}
+
 function dietApprovalChecks(t,plan,ctx){
   ctx=ctx||{};
   const out=[];
@@ -721,17 +759,20 @@ function dietApprovalChecks(t,plan,ctx){
   if(al.length)out.push({level:'uwaga',text:'Wykluczenia: '+al.map(id=>DIET_EXCLUSIONS.find(e=>e.id===id).label.toLowerCase()).join(', ')+'. Oznaczenia produktów to typowy skład; przy alergii z objawami klient powinien skonsultować dietę z lekarzem lub dietetykiem.'});
   if(ctx.injuries)out.push({level:'info',text:'Klient ma wpisane: „'+String(ctx.injuries).slice(0,120)+'”. Jadłospis tego nie uwzględnia.'});
   out.push({level:'info',text:'Wartości produktów z bazy USDA FoodData Central (produkty amerykańskie; musli i wafle z jadłospisów Bean). Polskie produkty mogą się trochę różnić, przy produktach z etykietą liczy się etykieta.',sources:[src('usda'),src('bean','202-204','wniosek')]});
+  (ctx.risks||[]).forEach(r=>out.push({level:'stop',risk:r.id,text:'Ankieta/profil wskazuje: '+r.label+' ('+r.evidence+'). '+r.risk,sources:[src('sn','377, 414, 443'),src('bk','917-919')]}));
   out.push({level:'stop',text:'Nie wysyłaj automatu, jeśli klient jest w ciąży, ma cukrzycę, inną chorobę wymagającą diety, zaburzenia odżywiania albo brak miesiączki. Skieruj go do lekarza lub dietetyka.',sources:[src('sn','377, 414, 443'),src('bk','917-919')]});
   return out;
 }
 function dietApprovalHTML(checks,saved){
+  const riskLabels=(checks||[]).filter(c=>c.risk).map(c=>(HEALTH_RISKS.find(r=>r.id===c.risk)||{label:c.risk}).label);
   const icon={stop:'⛔',uwaga:'⚠',info:'ℹ'};
   const col={stop:'var(--danger)',uwaga:'var(--warning)',info:'var(--info)'};
   const st=saved&&saved.status?'<div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">Ostatni plan klienta: <strong>'+(saved.status==='zatwierdzony'?'zatwierdzony i wysłany':'szkic')+'</strong> '+esc(String(saved.status==='zatwierdzony'?saved.approvedAt:saved.updatedAt||'').slice(0,10))+(saved.kcal?' · '+saved.kcal+' kcal':'')+'</div>':'';
   return'<div class="diet-approval" style="border:2px solid var(--accent);border-radius:10px;padding:10px;margin:8px 0;">'+
     '<div style="font-size:12.5px;font-weight:700;margin-bottom:6px;">Zatwierdź jadłospis przed wysłaniem</div>'+st+
     checks.map(c=>'<div class="calc-tip" style="border-left:3px solid '+col[c.level]+';">'+icon[c.level]+' '+esc(c.text)+(c.sources?' '+srcTag(c.sources):'')+'</div>').join('')+
-    '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;margin:8px 0;cursor:pointer;"><input type="checkbox" id="diet-approve-check" onchange="var b=document.getElementById(\'diet-approve-btn\');if(b){b.disabled=!this.checked;b.style.opacity=this.checked?1:.45;}"> <span>Sprawdziłem jadłospis i punkty powyżej. Klient nie ma przeciwwskazań z czerwonego punktu.</span></label>'+
+    (riskLabels.length?'<label class="diet-risk-ack" style="display:flex;gap:8px;align-items:flex-start;font-size:12px;margin:8px 0;padding:8px;border:1px solid var(--danger);border-radius:8px;cursor:pointer;"><input type="checkbox" id="diet-risk-ack" onchange="dietApprovalToggle()"> <span><strong>Świadomie wysyłam mimo ryzyka: '+esc(riskLabels.join(', '))+'.</strong> Rozumiem, że automat nie uwzględnia tego stanu, a jadłospis może zaszkodzić klientowi. Ustaliłem to z klientem i jego lekarzem lub dietetykiem.</span></label>':'')+
+    '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;margin:8px 0;cursor:pointer;"><input type="checkbox" id="diet-approve-check" onchange="dietApprovalToggle()"> <span>Sprawdziłem jadłospis i punkty powyżej.'+(riskLabels.length?'':' Klient nie ma przeciwwskazań z czerwonego punktu.')+'</span></label>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
     '<button type="button" class="btn btn-sm btn-primary" id="diet-approve-btn" disabled style="opacity:.45;" onclick="dietApproveAndSend()">✅ Zatwierdź i wyślij</button>'+
     '<button type="button" class="btn btn-sm" onclick="dietSaveDraft()">💾 Zapisz jako szkic</button>'+
@@ -794,7 +835,7 @@ function dietRenderCard(t,day,opts){
     '</div>';
 }
 
-const api={dietApprovalChecks,dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
+const api={dietHealthRisks,dietCanSend,HEALTH_RISKS,dietApprovalChecks,dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
 root.DietPlan=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

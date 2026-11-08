@@ -1844,8 +1844,9 @@ function calcTDEE(){
   else bmr=10*weight+6.25*height-5*age-161;
 
   const tdee=Math.round(bmr*calcActivity);
-  const target=tdee+calcGoalDelta;
-  const belowBmr=target<Math.round(bmr);
+  // Twarde minimum: cel nigdy poniżej max(BMR, 1200 kcal kobiety / 1500 kcal mężczyźni).
+  const kcalFloor=calcApplyKcalFloor(tdee+calcGoalDelta,gender,bmr);
+  const target=kcalFloor.kcal;
   let proteinG=Math.round(target*(calcMacroP/100)/4);
   let fatG=Math.round(target*(calcMacroF/100)/9);
   let carbG=Math.round(target*(calcMacroC/100)/4);
@@ -1910,10 +1911,10 @@ function calcTDEE(){
         </div>
         <div style="text-align:right;">
           <div style="font-size:12px;color:var(--muted);">Zmiana vs TDEE</div>
-          <div style="font-size:20px;font-weight:700;color:${calcGoalDelta<0?'var(--teal)':calcGoalDelta>0?'var(--orange)':'var(--muted)'};">${calcGoalDelta>0?'+':''}${calcGoalDelta} kcal</div>
+          <div style="font-size:20px;font-weight:700;color:${calcGoalDelta<0?'var(--teal)':calcGoalDelta>0?'var(--orange)':'var(--muted)'};">${target-tdee>0?'+':''}${target-tdee} kcal</div>${kcalFloor.applied?`<div style="font-size:10px;color:var(--muted);">wybrano ${calcGoalDelta>0?'+':''}${calcGoalDelta} kcal</div>`:''}
         </div>
       </div>
-      ${belowBmr?`<div role="alert" style="font-size:12px;line-height:1.5;color:var(--red);background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.35);border-radius:8px;padding:8px 10px;margin-bottom:10px;">⚠ Cel (${target} kcal) jest niższy niż BMR (${Math.round(bmr)} kcal). Taki deficyt rzadko jest zasadny — wybierz łagodniejszą redukcję albo prowadź klienta pod kontrolą dietetyka.</div>`:''}
+      ${kcalFloor.applied?calcKcalFloorNoticeHTML(kcalFloor):''}
 
       <!-- pasek makro -->
       <div class="calc-macro-bar">
@@ -1949,12 +1950,12 @@ function calcTDEE(){
         ${[{l:'Agresywna redukcja',d:-500,c:'var(--red)'},{l:'Łagodna redukcja',d:-300,c:'var(--orange)'},{l:'Utrzymanie',d:0,c:'var(--teal)'},{l:'Łagodna masa',d:300,c:'var(--blue)'},{l:'Agresywna masa',d:500,c:'var(--accent)'}].map(s=>`
           <div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;${calcGoalDelta===s.d?'border:1px solid '+s.c+';':'border:1px solid transparent;'}">
             <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${s.l}</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${tdee+s.d}</div>
-            <div style="font-size:9px;color:var(--muted2);">kcal/dzień</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${calcApplyKcalFloor(tdee+s.d,gender,bmr).kcal}</div>
+            <div style="font-size:9px;color:var(--muted2);">kcal/dzień${calcApplyKcalFloor(tdee+s.d,gender,bmr).applied?' · minimum':''}</div>
           </div>`).join('')}
       </div>
     </div>
-    ${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr),selected:calcMacroMode==='books'?null:{p:proteinG,f:fatG,c:carbG}})}
+    ${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr),kcalFloor:kcalFloor.floor,selected:calcMacroMode==='books'?null:{p:proteinG,f:fatG,c:carbG}})}
     </div>
 
     <div class="calc-col-side">
@@ -1986,6 +1987,25 @@ function calcTDEE(){
     </div>`;
 }
 
+// ════════ Twarde minimum kalorii (audyt 8.11.2026) ════════
+// Cel nie spada poniżej max(BMR, 1200 kcal dla kobiet, 1500 kcal dla mężczyzn) — także przy
+// „agresywnej redukcji” (TDEE − 500). Bezpieczeństwo klienta: ustawienie aplikacji wygrywa z suwakiem.
+// Książki: nie schodzić poniżej RMR, ≤1000 kcal niebezpieczne (Bean s. 121); progi 1200/1500 to ustawienie aplikacji.
+const CALC_KCAL_MIN={K:1200,M:1500};
+function calcKcalFloor(gender,bmr){
+  const sex=gender==='M'?'M':'K';
+  const b=Math.round(+bmr||0),abs=CALC_KCAL_MIN[sex];
+  return{floor:Math.max(b,abs),bmr:b,abs,sex,byBmr:b>abs};
+}
+function calcApplyKcalFloor(kcal,gender,bmr){
+  const f=calcKcalFloor(gender,bmr),raw=Math.round(+kcal||0);
+  return Object.assign(f,{raw,kcal:Math.max(raw,f.floor),applied:raw<f.floor});
+}
+function calcKcalFloorNoticeHTML(f){
+  return `<div role="status" class="calc-kcal-floor" style="font-size:12px;line-height:1.5;color:var(--text);background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.45);border-radius:8px;padding:8px 10px;margin-bottom:10px;">🛡 <strong>Minimum zadziałało:</strong> cel podniesiony z ${f.raw} do ${f.kcal} kcal. Minimum to większa z wartości: BMR (${f.bmr} kcal) i ${f.abs} kcal dla ${f.sex==='M'?'mężczyzn':'kobiet'}. Większy deficyt tylko pod kontrolą lekarza lub dietetyka.</div>`;
+}
+window.calcApplyKcalFloor=calcApplyKcalFloor;
+
 function calcMacrosFromInputs(o){
   o=o||{};
   const age=+o.age||25;
@@ -1997,9 +2017,10 @@ function calcMacrosFromInputs(o){
   const p=+o.macroP||30,f=+o.macroF||25,c=+o.macroC||45;
   const bmr=gender==='M'?10*weight+6.25*height-5*age+5:10*weight+6.25*height-5*age-161;
   const tdee=Math.round(bmr*activity);
-  const target=tdee+goalDelta;
+  const floor=calcApplyKcalFloor(tdee+goalDelta,gender,bmr);
+  const target=floor.kcal;
   return{
-    tdee,targetKcal:target,
+    tdee,targetKcal:target,kcalFloorApplied:floor.applied,kcalFloor:floor.floor,
     proteinG:Math.round(target*(p/100)/4),
     fatG:Math.round(target*(f/100)/9),
     carbG:Math.round(target*(c/100)/4),
@@ -2067,7 +2088,7 @@ function calcDietCardHTML(o){
   if(typeof DietPlan==='undefined')return'';
   const t=DietPlan.dietBookTargets(calcDietContext(o));
   const ctx=calcDietContext(o);
-  const rest=DietPlan.dietRestTargets(t,{rmr:o.rmr,pal:ctx.pal,goalDelta:ctx.goalDelta});
+  const rest=DietPlan.dietRestTargets(t,{rmr:o.rmr,pal:ctx.pal,goalDelta:ctx.goalDelta,kcalFloor:o.kcalFloor});
   const td=dietTrainDaysNow();
   const restDay=!rest.same&&dietView!=='tydzien'&&dietDayType==='wolny';
   const shown=restDay?rest:t;
@@ -2125,10 +2146,25 @@ function dietCalcClient(){
   const cid=document.getElementById('calc-client')?.value;
   return cid&&typeof CL!=='undefined'?CL.find(x=>x.id===cid)||null:null;
 }
+// Ciąża / cukrzyca / zaburzenia odżywiania z ankiet klienta i opisu zdrowia w profilu.
+function dietClientHealthRisks(c){
+  if(!c||typeof DietPlan==='undefined'||!DietPlan.dietHealthRisks)return[];
+  const answers=(window.FORM_SENDS||[]).filter(s=>s&&s.clientId===c.id&&s.status==='filled')
+    .map(s=>({form:s.formName||'Ankieta',answers:typeof formSendAnswersMap==='function'?formSendAnswersMap(s):(s.answers||{})}));
+  return DietPlan.dietHealthRisks({answers,texts:[c.injuries,c.health,c.healthNotes].filter(Boolean)});
+}
 function dietApprovalState(t,day){
   const c=dietCalcClient();
   const age=parseInt(document.getElementById('calc-age')?.value,10)||null;
-  return{checks:DietPlan.dietApprovalChecks(t,day,{age,injuries:c&&c.injuries}),saved:c&&c.dietPlan};
+  return{checks:DietPlan.dietApprovalChecks(t,day,{age,injuries:c&&c.injuries,risks:dietClientHealthRisks(c)}),saved:c&&c.dietPlan};
+}
+// Przycisk „Zatwierdź i wyślij” aktywny dopiero po zaznaczeniu wszystkich wymaganych potwierdzeń.
+function dietApprovalToggle(){
+  const ok=!!document.getElementById('diet-approve-check')?.checked;
+  const riskBox=document.getElementById('diet-risk-ack');
+  const on=ok&&(!riskBox||riskBox.checked);
+  const b=document.getElementById('diet-approve-btn');
+  if(b){b.disabled=!on;b.style.opacity=on?1:.45;}
 }
 function dietSendToClient(){
   if(!dietCalcClient()){notify('Wybierz klienta!');return;}
@@ -2146,7 +2182,7 @@ function dietPlanRecord(status){
   const now=new Date().toISOString();
   return{status,updatedAt:now,kcal:t.kcal,protein:t.protein.g,fat:t.fat.g,carbs:t.carbs.g,
     days:day.days?day.days.length:1,meals:dietMeals,prefs:day.prefs||null,
-    text:DietPlan.dietPlanText(t,day),checks:DietPlan.dietApprovalChecks(t,day,{}).map(x=>x.level+': '+x.text)};
+    text:DietPlan.dietPlanText(t,day),checks:DietPlan.dietApprovalChecks(t,day,{risks:dietClientHealthRisks(dietCalcClient())}).map(x=>x.level+': '+x.text)};
 }
 function dietStorePlan(c,rec){
   if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
@@ -2164,10 +2200,19 @@ function dietSaveDraft(){
 function dietApproveAndSend(){
   const c=dietCalcClient();
   if(!c||!window._dietLast||!window._dietLast.day){notify('Wybierz klienta i policz jadłospis');return;}
-  if(!document.getElementById('diet-approve-check')?.checked){notify('Najpierw zaznacz, że plan jest sprawdzony');return;}
+  const risks=dietClientHealthRisks(c);
+  const can=DietPlan.dietCanSend({risks,approved:!!document.getElementById('diet-approve-check')?.checked,riskAck:!!document.getElementById('diet-risk-ack')?.checked});
+  if(!can.ok){
+    if(can.reason==='risk'){
+      window._dietApprovalOpen=true;calcTDEE();
+      notify('⛔ Ankieta wskazuje: '+risks.map(r=>r.label).join(', ')+'. Zaznacz osobne potwierdzenie ryzyka albo skieruj klienta do lekarza lub dietetyka.');
+    }else notify('Najpierw zaznacz, że plan jest sprawdzony');
+    return;
+  }
   const rec=dietPlanRecord('zatwierdzony');
   rec.approvedAt=rec.updatedAt;
   rec.approvedBy=window._uid||null;
+  if(risks.length)rec.riskAck={risks:risks.map(r=>r.id),by:window._uid||null,at:rec.updatedAt};
   dietStorePlan(c,rec);
   pushMsg(c.id,rec.text);
   window._dietApprovalOpen=false;
