@@ -160,6 +160,22 @@ ok('reportPrint routes plan to compact print', /function reportPrint\(\)\{[\s\S]
 ok('week cell shows kg', /plan-pdf-wk-kg/.test(src03) && /80 kg/.test(out));
 ok('cache 03/04', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 49) && cacheAtLeast(html, '04-client-portal.js', 68));
 
+// Metody intensyfikacji: wyraźny znaczek ⚡ i proste wyjaśnienie zamiast drobnego dopisku w opisie
+const intHtml = ctx.buildPlanPDFHTML({
+  planName: 'Int', weekKeys: ['w1', 'w2'],
+  days: [{ dayName: 'Dzień 1', exercises: [
+    { name: 'Unoszenie bokiem', notes: 'Boczny bark. Lekki nachył. Ostatnia seria: myo-reps.', w1: { s: '4', r: '12-15', rpe: '7.5' }, w2: { s: '4', r: '12-15', rpe: '8' } },
+    { name: 'Pushdown', intensification: [{ type: 'drop_set', protocol: 'Ostatnia seria: zrzuć 25% i rób dalej' }], w1: { s: '3', r: '10', rpe: '8' } },
+    { name: 'Przysiad', notes: 'Pauza 1 s.', w1: { s: '4', r: '6', rpe: '8' } }
+  ] }]
+}, { name: 'Krzysztof' });
+ok('myo-reps badge from notes', /data-int="myo_reps"/.test(intHtml) && /⚡ MYO-REPS/.test(intHtml) && /3–5 głębokich oddechów/.test(intHtml));
+ok('drop set from field keeps plan protocol', /data-int="drop_set"/.test(intHtml) && /Plan: Ostatnia seria: zrzuć 25%/.test(intHtml));
+ok('note sentence about method removed from tip', !/Ostatnia seria: myo-reps/.test(intHtml) && /Boczny bark/.test(intHtml));
+ok('no badge without method', (intHtml.match(/class="plan-pdf-int"/g) || []).length === 2);
+ok('print shows methods', /class="pp-int"/.test(src03) && /\.pp-int\{/.test(src03) && /\.plan-pdf-int\{/.test(css));
+ok('cache 03/styles', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 50) && cacheAtLeast(html, 'styles.css', 192));
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);

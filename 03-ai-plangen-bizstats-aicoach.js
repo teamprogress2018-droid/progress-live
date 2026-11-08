@@ -2766,6 +2766,8 @@ function planToPdfModel(plan){
         notes,note:src.note||src.notes||'',
         tempo:src.tempo||'',
         priority:src.priority===true||src.priorytet===true,
+        intensification:src.intensification||src.intensificationMethods||'',
+        drop:src.drop||'',dropStep:src.dropStep||'',rp:src.rp||'',cluster:src.cluster||'',
         muscleGroup:src.muscleGroup||d.muscles||d.focus||''
       };
       weekKeys.forEach(wk=>{
@@ -2888,6 +2890,53 @@ function planPdfToggleCycle(btn){
   btn.textContent=on?'Ukryj tabelę cyklu':'Pokaż cały cykl w tabeli';
 }
 
+// ── Metody intensyfikacji na planie: wyraźny znaczek + proste wyjaśnienie dla klienta ──
+const PLAN_PDF_INT_SIMPLE={
+  myo_reps:{label:'MYO-REPS',when:'ostatnia seria',simple:'Zrób serię prawie do upadku. Odłóż ciężar na 3–5 głębokich oddechów (ok. 15 s) i zrób 3–5 powtórzeń. Powtórz takie mini-serie 3–4 razy tym samym ciężarem.'},
+  drop_set:{label:'DROP SET',when:'ostatnia seria',simple:'Zrób serię prawie do upadku, od razu zmniejsz ciężar o ok. 25% i bez odpoczynku rób dalej, aż zostaną 1–2 powtórzenia w zapasie.'},
+  mechanical_drop_set:{label:'DROP SET MECHANICZNY',when:'ostatnia seria',simple:'Gdy kończą się siły, bez odpoczynku przejdź na łatwiejszą wersję tego ruchu tym samym ciężarem i rób dalej.'},
+  rest_pause:{label:'REST-PAUSE',when:'ostatnia seria',simple:'Zrób serię prawie do upadku, odpocznij 15–20 s i dorób ile się da (zwykle 2–4 powtórzenia). Możesz to powtórzyć jeszcze raz.'},
+  superset:{label:'SUPER-SERIA',when:'z następnym ćwiczeniem',simple:'Zrób to ćwiczenie i od razu, bez przerwy, drugie wskazane. Odpoczywasz dopiero po obu.'},
+  combined_sets:{label:'SERIE ŁĄCZONE',when:'blok ćwiczeń',simple:'Zrób wskazane ćwiczenia jedno po drugim, bez przerw. Odpoczywasz dopiero po całym bloku.'},
+  giant_set:{label:'SERIA GIGANT',when:'blok ćwiczeń',simple:'Zrób cały blok ćwiczeń po kolei, bez przerw. Odpoczywasz po całej rundzie.'},
+  partial_reps:{label:'POWTÓRZENIA CZĘŚCIOWE',when:'koniec serii',simple:'Gdy nie dasz rady zrobić pełnego powtórzenia, dorób 3–5 krótszych ruchów w zakresie, który nie boli.'},
+  one_and_half:{label:'POWTÓRZENIA 1,5',when:'każde powtórzenie',simple:'Pełny ruch w dół, połowa w górę, znowu w dół i dopiero cały ruch w górę. To jedno powtórzenie.'},
+  cluster_set:{label:'CLUSTER SET',when:'w trakcie serii',simple:'Podziel serię na małe porcje (np. po 3 powtórzenia) z 15–30 s przerwy, tym samym ciężarem.'},
+  eccentric:{label:'WOLNE OPUSZCZANIE',when:'każde powtórzenie',simple:'Opuszczaj ciężar powoli, licząc do 3–5. W górę normalnym tempem.'},
+  hiit:{label:'INTERWAŁY',when:'po treningu siłowym',simple:'Krótko bardzo mocno, potem spokojnie, według czasów z planu.'}
+};
+const PLAN_PDF_INT_RE=[['mechanical_drop_set','drop[ -]?set mechaniczn'],['drop_set','drop[ -]?set|drop[ -]?sety'],['rest_pause','rest[ -]?pause'],['myo_reps','myo[ -]?rep'],['superset','super[ -]?seri'],['giant_set','seri[ae] gigant'],['cluster_set','klast|cluster'],['one_and_half','1[,.]5 powt|powtórzeni[ae] 1[,.]5'],['partial_reps','częściow[ey]? powt|partial'],['eccentric','ekscentrycz'],['hiit','hiit|interwał']];
+function planPdfIntMethods(ex){
+  if(!ex)return [];
+  let list=[];
+  try{if(typeof exerciseIntensificationMethods==='function')list=exerciseIntensificationMethods(ex)||[];}catch(_){list=[];}
+  if(!list.length){
+    // Bez 01-core (np. w teście): czytamy pole intensification i flagi drop/rp/cluster wprost.
+    let raw=ex.intensification||[];if(!Array.isArray(raw))raw=raw?[raw]:[];
+    raw.forEach(x=>{const t=String(x&&typeof x==='object'?(x.type||x.name||''):x).toLowerCase().replace(/[\s-]+/g,'_');if(PLAN_PDF_INT_SIMPLE[t])list.push({type:t,protocol:x&&typeof x==='object'?(x.protocol||''):''});});
+    if(ex.drop&&!list.some(m=>m.type==='drop_set'))list.push({type:'drop_set',protocol:''});
+    if(ex.rp&&!list.some(m=>m.type==='rest_pause'))list.push({type:'rest_pause',protocol:''});
+    if(ex.cluster&&!list.some(m=>m.type==='cluster_set'))list.push({type:'cluster_set',protocol:''});
+  }
+  const seen=new Set(list.map(m=>m.type));
+  const notes=String(ex.notes||ex.note||'');
+  PLAN_PDF_INT_RE.forEach(([type,re])=>{if(!seen.has(type)&&new RegExp(re,'i').test(notes)&&!(type==='drop_set'&&seen.has('mechanical_drop_set'))){seen.add(type);list.push({type,protocol:''});}});
+  return list.filter(m=>PLAN_PDF_INT_SIMPLE[m.type]).map(m=>{
+    const d=PLAN_PDF_INT_SIMPLE[m.type];
+    return{type:m.type,label:d.label,when:d.when,protocol:String(m.protocol||'').trim(),simple:d.simple};
+  });
+}
+function planPdfStripIntNote(tip,methods){
+  if(!tip||!methods||!methods.length)return tip;
+  // „Ostatnia seria: myo-reps.” znika z opisu, bo metoda ma własny, wyraźny opis.
+  const parts=String(tip).split(/(?<=[.!?])\s+/);
+  const out=parts.filter(sen=>!(sen.length<70&&PLAN_PDF_INT_RE.some(([type,re])=>methods.some(m=>m.type===type)&&new RegExp(re,'i').test(sen))));
+  return out.join(' ').trim();
+}
+function planPdfIntBlock(methods,cls){
+  return methods.map(m=>`<div class="${cls}" data-int="${planPdfEsc(m.type)}"><b>⚡ ${planPdfEsc(m.label)}</b> <small>${planPdfEsc(m.when)}</small><span>${planPdfEsc(m.simple)}</span>${m.protocol&&m.protocol!==m.simple?`<em>Plan: ${planPdfEsc(m.protocol)}</em>`:''}</div>`).join('');
+}
+
 // ── Wydruk / PDF planu: osobny, zwarty dokument (tabela całego cyklu), bez ekranu aplikacji w tle ──
 const PLAN_PDF_PRINT_CSS=`
 @page{size:A4 landscape;margin:9mm 8mm;}
@@ -2920,6 +2969,11 @@ td.pp-wk span{display:block;font-size:7pt;color:#4b5563;white-space:nowrap;}
 tr{break-inside:avoid;}
 tbody tr:nth-child(even) td{background-color:#fafbfc;}
 tbody tr:nth-child(even) td.is-deload{background:#e3f8ea;}
+.pp-int{margin-top:2.5pt;border:0.8pt solid #e11f2e;border-left:3pt solid #e11f2e;background:#fff1f2;border-radius:3pt;padding:2pt 4pt;font-size:7.4pt;line-height:1.3;color:#111827;break-inside:avoid;}
+.pp-int b{color:#b4151f;font-size:8pt;letter-spacing:0.2px;}
+.pp-int i{font-style:normal;color:#6b7280;font-size:7pt;}
+.pp-int span{display:block;}
+.pp-int .pp-int-plan{color:#374151;margin-top:1pt;}
 .pp-up{color:#067647;font-size:6.5pt;}.pp-dn{color:#b42318;font-size:6.5pt;}
 .pp-foot{margin-top:6px;font-size:7pt;color:#6b7280;display:flex;justify-content:space-between;}
 `;
@@ -2948,6 +3002,7 @@ function planPdfPrintHTML(root){
       const tipRow=tr.nextElementSibling&&tr.nextElementSibling.classList.contains('plan-pdf-tiprow')?tr.nextElementSibling:null;
       const tipSpan=tipRow?[...tipRow.querySelectorAll('span')].find(sp=>/^Wskazówka:/.test(txt(sp))):null;
       const tip=tipSpan?txt(tipSpan).replace(/^Wskazówka:\s*/,''):'';
+      const ints=tipRow?[...tipRow.querySelectorAll('.plan-pdf-int')].map(el=>`<div class="pp-int"><b>⚡ ${esc(txt(el.querySelector('b')).replace(/^⚡\s*/,''))}</b> <i>${esc(txt(el.querySelector('small')))}</i><span>${esc(txt(el.querySelector('span')))}</span>${el.querySelector('em')?`<span class="pp-int-plan">${esc(txt(el.querySelector('em')))}</span>`:''}</div>`).join(''):'';
       const rest=txt(exTd.querySelector('.plan-pdf-rest')).replace(/^⏱\s*/,'');
       const pri=!!exTd.querySelector('.plan-pdf-pri');
       const wks=tds.slice(1).map(td=>{
@@ -2957,7 +3012,7 @@ function planPdfPrintHTML(root){
         const extra=[txt(td.querySelector('.plan-pdf-wk-rpe')),txt(td.querySelector('.plan-pdf-wk-kg'))].filter(Boolean).join(' · ');
         return `<td class="pp-wk${td.classList.contains('is-deload')?' is-deload':''}"><b>${esc(srTxt)}${arrow}</b>${extra?`<span>${esc(extra)}</span>`:''}</td>`;
       }).join('');
-      return `<tr><td class="pp-n">${i+1}</td><td class="pp-exc"><div class="pp-name">${pri?'<span class="pp-pri">PRIORYTET</span>':''}${esc(txt(exTd.querySelector('.plan-pdf-ex-name')))}</div>${tip?`<div class="pp-tip">${esc(tip)}</div>`:''}</td><td class="pp-rest">${esc(rest)}</td>${wks}</tr>`;
+      return `<tr><td class="pp-n">${i+1}</td><td class="pp-exc"><div class="pp-name">${pri?'<span class="pp-pri">PRIORYTET</span>':''}${esc(txt(exTd.querySelector('.plan-pdf-ex-name')))}</div>${tip?`<div class="pp-tip">${esc(tip)}</div>`:''}${ints}</td><td class="pp-rest">${esc(rest)}</td>${wks}</tr>`;
     }).join('');
     return `<section class="pp-day"><div class="pp-day-h">${esc(head)}</div><table><thead><tr><th class="pp-n">#</th><th class="pp-ex">Ćwiczenie</th><th class="pp-rest">Pauza</th>${cols}</tr></thead><tbody>${rows}</tbody></table></section>`;
   }).join('');
@@ -2966,7 +3021,7 @@ function planPdfPrintHTML(root){
 <div class="pp-head"><div><div class="pp-title">PLAN TRENINGOWY</div><div class="pp-sub">${esc(title)}</div></div><div class="pp-meta">${kpis}</div></div>
 ${boxes?`<div class="pp-info">${boxes}</div>`:''}
 ${days}
-<div class="pp-foot"><span>W komórce: serie × powtórzenia, pod spodem RPE i ciężar. ▲ ▼ zmiana względem poprzedniego tygodnia. Zielona kolumna = deload.</span><span>${esc(foot)}</span></div>
+<div class="pp-foot"><span>W komórce: serie × powtórzenia, pod spodem RPE i ciężar. ▲ ▼ zmiana względem poprzedniego tygodnia. Zielona kolumna = deload. ⚡ = metoda intensyfikacji (opis pod ćwiczeniem).</span><span>${esc(foot)}</span></div>
 </body></html>`;
 }
 function planPdfPrint(){
@@ -3056,7 +3111,8 @@ function buildPlanPDFHTML(plan,client){
     const cards=exs.map((e,ei)=>{
       const pri=planPdfIsPriority(e,client)||ei===0;
       const rest=e.rest||((e.w1||{}).rest)||'90s';
-      const tip=planPdfCleanTip(e.notes||e.note||e.tempo||'');
+      const ints=planPdfIntMethods(e);
+      const tip=planPdfStripIntNote(planPdfCleanTip(e.notes||e.note||e.tempo||''),ints);
       const biomechTip=planPdfBiomechTip(e);
       const doses=weekKeys.map((wk,wi)=>{
         const w=e[wk]||{};
@@ -3074,18 +3130,20 @@ function buildPlanPDFHTML(plan,client){
       return `<div class="plan-pdf-card${pri?' is-pri':''}">
         <div class="plan-pdf-card-top"><span class="plan-pdf-num">${ei+1}</span><div>${pri?'<span class="plan-pdf-pri">PRIORYTET</span>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div>${hint?`<div class="plan-pdf-hint">${planPdfEsc(hint)}</div>`:''}</div></div>
         ${doses}
+        ${ints.length?`<div class="plan-pdf-ints">${planPdfIntBlock(ints,'plan-pdf-int')}</div>`:''}
         ${how}
       </div>`;
     }).join('');
     const rows=exs.map((e,ei)=>{
       const pri=planPdfIsPriority(e,client)||ei===0;
       const rest=e.rest||((e.w1||{}).rest)||'90s';
-      const tip=planPdfCleanTip(e.notes||e.note||e.tempo||'');
+      const ints=planPdfIntMethods(e);
+      const tip=planPdfStripIntNote(planPdfCleanTip(e.notes||e.note||e.tempo||''),ints);
       const biomechTip=planPdfBiomechTip(e);
       return `<tr class="plan-pdf-row">
             <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div><div class="plan-pdf-rest">⏱ ${planPdfEsc(planPdfRestLabel(rest))}</div></td>
             ${weekKeys.map((wk,wi)=>`<td class="${planPdfIsDeload(phases[wk])?'is-deload':''}">${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
-          </tr>${(tip||biomechTip)?`<tr class="plan-pdf-tiprow"><td colspan="${weekKeys.length+1}">${tip?`<span><b>Wskazówka:</b> ${planPdfEsc(tip)}</span>`:''}${biomechTip?`<span><b>Biomechanika:</b> ${planPdfEsc(biomechTip)}</span>`:''}</td></tr>`:''}`;
+          </tr>${(tip||biomechTip||ints.length)?`<tr class="plan-pdf-tiprow"><td colspan="${weekKeys.length+1}">${planPdfIntBlock(ints,'plan-pdf-int is-row')}${tip?`<span><b>Wskazówka:</b> ${planPdfEsc(tip)}</span>`:''}${biomechTip?`<span><b>Biomechanika:</b> ${planPdfEsc(biomechTip)}</span>`:''}</td></tr>`:''}`;
     }).join('');
     html+=`<div class="plan-pdf-day${di===0?' is-on':''}" data-day="${di}">
       <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}<span class="plan-pdf-day-wk">${weekKeys.length>1?`Tydzień <b>${startWk+1}</b> z ${weekKeys.length}`:''}</span></div>
