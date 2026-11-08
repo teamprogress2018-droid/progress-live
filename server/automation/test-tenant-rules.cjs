@@ -133,6 +133,10 @@ async function setup() {
     batch.set(db.doc('clientAccounts/' + u.uid), {role: 'client', uid: u.uid, trainerId, clientId, email: u.email, inviteToken: 'legacy'});
     batch.set(db.doc('clients/' + clientId), {id: clientId, trainerId, name: clientId, status: 'active'});
   }
+  // Trainers exist only through an administrator-granted role record.
+  for (const owner of [ownerA, ownerB]) {
+    batch.set(db.doc('trainerRoles/' + owner.uid), {uid: owner.uid, role: 'trainer', enabled: true});
+  }
   await batch.commit();
 }
 test('all trainer collections isolate CRUD, query ownership and immutable trainerId', async () => {
@@ -163,6 +167,39 @@ test('unknown collections and descendants never inherit a trainer allow', async 
       denied(await remove(p, user), p + ' delete');
     }
   }
+});
+test('a fresh self-registered account without a trainer role reads and writes nothing', async () => {
+  // Open e-mail sign-up: signed in, no clientAccounts binding, no trainerRoles grant.
+  const fresh = {uid: run + '-fresh-signup', email: 'fresh@example.test'};
+  for (const col of OWNED) {
+    const id = run + '-fresh-' + col, p = col + '/' + id;
+    denied(await write(p, {id, trainerId: fresh.uid, name: 'Own data'}, fresh), col + ' create without role');
+    denied(await query(col, fresh, [['trainerId', 'EQUAL', fresh.uid]]), col + ' scoped list without role');
+    await seed(p, {id, trainerId: fresh.uid, name: 'Seeded'});
+    denied(await read(p, fresh), col + ' read own-tagged data without role');
+    denied(await patch(p, {name: 'Changed'}, fresh), col + ' update without role');
+    denied(await remove(p, fresh), col + ' delete without role');
+  }
+  for (const col of ['plans', 'checkins', 'sessions']) {
+    denied(await read(col + '/' + run + '-fresh-missing-' + col, fresh), col + ' missing-ID preflight without role');
+  }
+  denied(await write('trainerPublicProfiles/' + fresh.uid, {trainerId: fresh.uid, schemaVersion: 1,
+    updatedAt: new Date().toISOString(), profile: {name: 'X'}, brand: {}, clientApp: {visibleSections: {}},
+    paymentInstructions: {}}, fresh), 'public profile without role');
+  denied(await read('invoiceCounters/' + fresh.uid, fresh), 'invoice counter without role');
+  denied(await read('clients/' + clientA, fresh), 'foreign client without role');
+  denied(await write('trainerRoles/' + fresh.uid, {uid: fresh.uid, role: 'trainer', enabled: true}, fresh),
+    'fresh account cannot grant itself the role');
+  const missingGrant = await read('trainerRoles/' + fresh.uid, fresh);
+  assert.equal(missingGrant.status, 404, 'own missing grant is reported as not found (the app shows "no trainer role")'); count++;
+  // A disabled or mismatched grant is not a role.
+  await seed('trainerRoles/' + fresh.uid, {uid: fresh.uid, role: 'trainer', enabled: false});
+  denied(await write('settings/' + run + '-fresh-disabled', {id: 'x', trainerId: fresh.uid}, fresh), 'disabled grant');
+  await seed('trainerRoles/' + fresh.uid, {uid: 'someone-else', role: 'trainer', enabled: true});
+  denied(await write('settings/' + run + '-fresh-mismatch', {id: 'x', trainerId: fresh.uid}, fresh), 'grant for another uid');
+  await seed('trainerRoles/' + fresh.uid, {uid: fresh.uid, role: 'trainer', enabled: true});
+  ok(await write('settings/' + run + '-fresh-granted', {id: 'x', trainerId: fresh.uid}, fresh), 'granted role unlocks own data');
+  ok(await read('trainerRoles/' + fresh.uid, fresh), 'granted account can check its own role');
 });
 test('invoice counters are private per-trainer monotonic sequences linked to new invoices', async () => {
   const counterPath = 'invoiceCounters/' + trainerA;
@@ -780,13 +817,44 @@ test('admin-granted trainer role enables a client account without self-escalatio
   ok(await read(ownPath, userA), 'granted client can read its own trainer data');
   ok(await query('settings', userA, [['trainerId', 'EQUAL', userA.uid]]), 'granted client can query its own trainer data');
   denied(await read(ownPath, userB), 'trainer role does not expose another account data');
-  denied(await read('trainerRoles/' + userA.uid, userA), 'role grant is not readable through app');
+  ok(await read('trainerRoles/' + userA.uid, userA), 'account can get only its own role grant');
+  denied(await read('trainerRoles/' + userA.uid, userB), 'role grant of another account is not readable');
+  denied(await query('trainerRoles', userA), 'role grants cannot be listed');
   denied(await write('trainerRoles/' + userA.uid,
     {uid: userA.uid, role: 'trainer', enabled: false}, userA), 'role grant cannot be changed through app');
 
   // The dual-role account retains only its existing client relationship.
   ok(await read('clients/' + clientA, userA), 'dual-role account retains its own client profile');
   denied(await read('clients/' + clientSibling, userA), 'dual-role account cannot read a sibling client profile');
+});
+
+test('client notifications accept only known type/action and short title/body', async () => {
+  const base = id => clientData({id, type: 'system', title: 'Klient w aplikacji', body: 'Anna założyła konto',
+    action: 'clients', read: false, time: 'teraz', createdAt: new Date().toISOString()});
+  const id = run + '-notif';
+  ok(await write('notifications/' + id, base(id), userA), 'client creates a well-formed notification');
+  const noAction = run + '-notif-noaction';
+  ok(await write('notifications/' + noAction, {...base(noAction), action: null}, userA), 'notification without action');
+  const bad = [
+    ['type', {type: 'script'}, 'unknown notification type'],
+    ['action', {action: 'settings'}, 'unknown notification action'],
+    ['action-js', {action: 'javascript:alert(1)'}, 'script-like action'],
+    ['title', {title: 'x'.repeat(121)}, 'title over 120 chars'],
+    ['body', {body: 'x'.repeat(501)}, 'body over 500 chars'],
+    ['time', {time: 'x'.repeat(41)}, 'time over 40 chars'],
+    ['read', {read: true}, 'pre-read notification'],
+    ['extra', {html: '<img src=x onerror=alert(1)>'}, 'unknown notification field'],
+  ];
+  for (const [suffix, change, label] of bad) {
+    const badId = run + '-notif-' + suffix;
+    denied(await write('notifications/' + badId, {...base(badId), ...change}, userA), label);
+  }
+  const edge = run + '-notif-edge';
+  ok(await write('notifications/' + edge, {...base(edge), title: 'x'.repeat(120), body: 'y'.repeat(500)}, userA),
+    'title 120 and body 500 chars are accepted');
+  const foreign = run + '-notif-foreign';
+  denied(await write('notifications/' + foreign, {...base(foreign), trainerId: trainerB}, userA), 'notification for another trainer');
+  denied(await read('notifications/' + id, userA), 'client cannot read trainer notifications');
 });
 
 (async () => {

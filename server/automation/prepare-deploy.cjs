@@ -7,6 +7,7 @@ fs.mkdirSync(target, {recursive: true});
 for (const file of ['worker.cjs', 'youtube-curation-core.cjs', 'youtube-curation.cjs', 'index.cjs']) fs.copyFileSync(path.join(__dirname, file), path.join(target, file));
 // Firebase CLI confines emulator rule files to the config directory.
 fs.copyFileSync(path.join(__dirname, '../../firestore.rules'), path.join(target, 'firestore.rules'));
+fs.copyFileSync(path.join(__dirname, '../../storage.rules'), path.join(target, 'storage.rules'));
 fs.writeFileSync(path.join(target, 'package.json'), JSON.stringify({
   name: 'progress-live-autoflow', private: true, main: 'index.cjs', engines: {node: '22'},
   dependencies: {'firebase-admin': '13.5.0', 'firebase-functions': '6.4.0'}
