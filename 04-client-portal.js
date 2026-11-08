@@ -3743,12 +3743,12 @@ function renderCIAnswers(ci,c){
 
     ${ci.answers.notes?`<div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:12px;padding:12px 16px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">💬 Komentarz klienta</div>
-      <div style="font-size:13px;line-height:1.6;">${ci.answers.notes}</div>
+      <div style="font-size:13px;line-height:1.6;">${escHtml(ci.answers.notes)}</div>
     </div>`:''}
 
     <div style="display:flex;gap:8px;margin-top:12px;">
       <button class="btn btn-ghost btn-sm" onclick="replyToCheckin('${c.id}')">💬 Odpowiedz klientowi</button>
-      <button class="btn btn-ghost btn-sm" onclick="addNotification('metric','Nowy check-in','${c.name} wypełnił check-in — score: ${ci.score}%','checkin')">🔔 Ustaw alert</button>
+      <button class="btn btn-ghost btn-sm" onclick="addNotification('metric','Nowy check-in',${escHtml(JSON.stringify(String(c.name||'Klient')+' wypełnił check-in — score: '+String(ci.score??'')+'%'))},'checkin')">🔔 Ustaw alert</button>
     </div>`;
 }
 
@@ -4930,12 +4930,13 @@ function renderNotifs(){
 
   el.innerHTML=list.map((n,i)=>{
     const t=NOTIF_TYPES[n.type]||NOTIF_TYPES.system;
-    return `<div class="notif-item${n.read?'':' unread'}" onclick="clickNotif('${n.id}')" style="animation-delay:${i*0.03}s">
+    // Tytuł, treść, czas i id mogą pochodzić od klienta (reguła notifications/create) — zawsze jako tekst.
+    return `<div class="notif-item${n.read?'':' unread'}" onclick="clickNotif(${escHtml(JSON.stringify(String(n.id??'')))})" style="animation-delay:${i*0.03}s">
       <div class="notif-icon" style="background:${t.bg};">${t.icon}</div>
       <div style="flex:1;min-width:0;">
-        <div class="notif-title" style="color:${n.read?'var(--muted)':'var(--text)'};">${n.title}</div>
-        <div class="notif-body">${n.body}</div>
-        <div class="notif-time">${n.time}</div>
+        <div class="notif-title" style="color:${n.read?'var(--muted)':'var(--text)'};">${escHtml(n.title)}</div>
+        <div class="notif-body">${escHtml(n.body)}</div>
+        <div class="notif-time">${escHtml(n.time)}</div>
       </div>
       ${!n.read?`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;"></div>`:''}
     </div>`;
@@ -5004,7 +5005,13 @@ async function pruneOldNotifications(opts){
 window.pruneOldNotifications=pruneOldNotifications;
 
 // Dodaj powiadomienie programowo (używane przez inne moduły)
+// Limity zgodne z firestore.rules (notifications/create od klienta): tytuł 120, treść 500 znaków.
+const NOTIF_CLIENT_TITLE_MAX=120,NOTIF_CLIENT_BODY_MAX=500;
 function addNotification(type,title,body,action=null,fixedId=null){
+  if(window._clientAppMode){
+    title=String(title??'').slice(0,NOTIF_CLIENT_TITLE_MAX);
+    body=String(body??'').slice(0,NOTIF_CLIENT_BODY_MAX);
+  }
   const n=withTrainer({
     id:fixedId||newId('n'),type,title,body,
     time:'teraz',
@@ -5535,11 +5542,11 @@ function buildReportHTML(c,from,to,sec,template){
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <thead><tr>${['Data','Godzina','Typ','Czas','Notatki'].map(h=>`<th style="padding:7px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
           <tbody>${sessions.map((s,i)=>`<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
-            <td style="padding:7px 10px;font-family:${fontMono};">${s.date}</td>
-            <td style="padding:7px 10px;font-family:${fontMono};color:${accent};">${s.time||'—'}</td>
-            <td style="padding:7px 10px;font-weight:600;">${s.type||'Sesja'}</td>
-            <td style="padding:7px 10px;color:${muted};">${s.duration||60} min</td>
-            <td style="padding:7px 10px;color:${muted};font-size:11px;">${s.notes||'—'}</td>
+            <td style="padding:7px 10px;font-family:${fontMono};">${escHtml(s.date)}</td>
+            <td style="padding:7px 10px;font-family:${fontMono};color:${accent};">${escHtml(s.time||'—')}</td>
+            <td style="padding:7px 10px;font-weight:600;">${escHtml(s.type||'Sesja')}</td>
+            <td style="padding:7px 10px;color:${muted};">${escHtml(s.duration||60)} min</td>
+            <td style="padding:7px 10px;color:${muted};font-size:11px;">${escHtml(s.notes||s.note||'—')}</td>
           </tr>`).join('')}</tbody>
         </table>`);
     }
@@ -5642,8 +5649,8 @@ function buildReportHTML(c,from,to,sec,template){
   if(sec.notes&&notes.length){
     html+=`<div style="margin-bottom:24px;">${sectionTitle('NOTATKI TRENERA','📝',blue)}`;
     html+=card(notes.map(n=>`<div style="padding:10px 14px;background:${bg};border-radius:8px;border-left:3px solid ${accent};margin-bottom:8px;">
-      <div style="font-size:12px;line-height:1.6;">${n.text}</div>
-      <div style="font-size:10px;color:${muted};font-family:${fontMono};margin-top:4px;">${n.date}</div>
+      <div style="font-size:12px;line-height:1.6;">${escHtml(n.text)}</div>
+      <div style="font-size:10px;color:${muted};font-family:${fontMono};margin-top:4px;">${escHtml(n.date)}</div>
     </div>`).join(''));
     html+='</div>';
   }

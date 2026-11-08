@@ -210,7 +210,14 @@ service cloud.firestore {
       allow create: if ownClient(request.resource.data)
         && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'type', 'title', 'body', 'time', 'read', 'action', 'autoKey', 'createdAt'])
         && request.resource.data.id == docId && request.resource.data.read == false
-        && smallText(request.resource.data.title, 500) && smallText(request.resource.data.body, 10000);
+        // Klient może wysłać tylko znane typy i akcje; tytuł/treść jako krótki tekst
+        // (panel trenera i tak wyświetla je przez escHtml).
+        && request.resource.data.type in ['system', 'task', 'form', 'payment', 'metric', 'message']
+        && request.resource.data.get('action', null) in [null, 'clients', 'forms', 'checkin', 'tasks',
+          'payments', 'forum', 'ondemand', 'inbox']
+        && smallText(request.resource.data.title, 120) && smallText(request.resource.data.body, 500)
+        && smallText(request.resource.data.get('time', ''), 40)
+        && (request.resource.data.get('autoKey', null) == null || smallText(request.resource.data.autoKey, 300));
     }
     match /formSends/{docId} {
       allow update: if clientUpdate(['status', 'answers', 'filledAt'])
