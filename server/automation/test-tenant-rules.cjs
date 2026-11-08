@@ -789,6 +789,35 @@ test('admin-granted trainer role enables a client account without self-escalatio
   denied(await read('clients/' + clientSibling, userA), 'dual-role account cannot read a sibling client profile');
 });
 
+test('client notifications accept only known type/action and short title/body', async () => {
+  const base = id => clientData({id, type: 'system', title: 'Klient w aplikacji', body: 'Anna założyła konto',
+    action: 'clients', read: false, time: 'teraz', createdAt: new Date().toISOString()});
+  const id = run + '-notif';
+  ok(await write('notifications/' + id, base(id), userA), 'client creates a well-formed notification');
+  const noAction = run + '-notif-noaction';
+  ok(await write('notifications/' + noAction, {...base(noAction), action: null}, userA), 'notification without action');
+  const bad = [
+    ['type', {type: 'script'}, 'unknown notification type'],
+    ['action', {action: 'settings'}, 'unknown notification action'],
+    ['action-js', {action: 'javascript:alert(1)'}, 'script-like action'],
+    ['title', {title: 'x'.repeat(121)}, 'title over 120 chars'],
+    ['body', {body: 'x'.repeat(501)}, 'body over 500 chars'],
+    ['time', {time: 'x'.repeat(41)}, 'time over 40 chars'],
+    ['read', {read: true}, 'pre-read notification'],
+    ['extra', {html: '<img src=x onerror=alert(1)>'}, 'unknown notification field'],
+  ];
+  for (const [suffix, change, label] of bad) {
+    const badId = run + '-notif-' + suffix;
+    denied(await write('notifications/' + badId, {...base(badId), ...change}, userA), label);
+  }
+  const edge = run + '-notif-edge';
+  ok(await write('notifications/' + edge, {...base(edge), title: 'x'.repeat(120), body: 'y'.repeat(500)}, userA),
+    'title 120 and body 500 chars are accepted');
+  const foreign = run + '-notif-foreign';
+  denied(await write('notifications/' + foreign, {...base(foreign), trainerId: trainerB}, userA), 'notification for another trainer');
+  denied(await read('notifications/' + id, userA), 'client cannot read trainer notifications');
+});
+
 (async () => {
   let failed = 0;
   try {
