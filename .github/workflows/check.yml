@@ -69,6 +69,26 @@ jobs:
           node .github/scripts/test_client_checkin_permissions.js
           node .github/scripts/test_round2_trainer_fixes.js
 
+      - name: Testy wcześniej pominięte w CI (audyt 8.11.2026)
+        if: ${{ !cancelled() }}
+        run: |
+          node .github/scripts/test_apl_amateur_mode.js
+          node .github/scripts/test_client_list_visual_hierarchy.js
+          node .github/scripts/test_client_minimal_data_scope.js
+          node .github/scripts/test_client_mobile_today.js
+          node .github/scripts/test_client_offline_shell.js
+          node .github/scripts/test_client_self_workout.js
+          node .github/scripts/test_client_workout_light_theme.js
+          node .github/scripts/test_dash_simple_mode.js
+          node .github/scripts/test_ex_biceps_media_catalog.js
+          node .github/scripts/test_ex_functional_media_catalog.js
+          node .github/scripts/test_ex_import_grouping.js
+          node .github/scripts/test_ex_library_performance.js
+          node .github/scripts/test_kb_management.js
+          node .github/scripts/test_manual_plan_entrypoints.js
+          node .github/scripts/test_manual_plan_model.js
+          node .github/scripts/test_mobile_trainer_controls.js
+
       - name: 1c. Testy warstwy klienta dla coach media
         run: node .github/scripts/test_client_portal_coach_media.js
       - name: 1c2. Testy GIF-ów techniki ćwiczeń
