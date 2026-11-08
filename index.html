@@ -4616,8 +4616,11 @@ function showTenantBootError(error,session){
   let trainerMode=false;
   try{trainerMode=sessionStorage.getItem('pl_auth_mode')==='trainer';}catch(e){}
   const permissionDenied=error&&error.code==='permission-denied';
-  box.textContent=trainerMode&&permissionDenied
-    ?'Logowanie się powiodło, ale to konto nie ma jeszcze przyznanego dostępu trenera. Administrator musi nadać rolę trenera w Firebase.'
+  // Rola trenera wymaga dokumentu trainerRoles/{uid} (firestore.rules trainer()).
+  // Konto bez powiązania klienta i bez tej roli dostaje odmowę — pokaż identyfikator do nadania roli.
+  const noTrainerRole=permissionDenied&&(trainerMode||!window._clientAppMode);
+  box.textContent=noTrainerRole
+    ?'Logowanie się powiodło, ale to konto nie ma jeszcze przyznanego dostępu trenera. Administrator musi nadać rolę trenera w Firebase (kolekcja trainerRoles). Identyfikator konta: '+String((session&&session.uid)||window._uid||'')
     :'Nie udało się bezpiecznie wczytać danych konta. Odśwież aplikację, aby ponowić.';
   box.style.display='block';
   if(typeof window.landingOpenAuth==='function')window.landingOpenAuth();
