@@ -48,6 +48,9 @@ jobs:
       - name: Motyw Progress Live 2.0 (jasny + akcent)
         run: node .github/scripts/test_theme_accent.js
 
+      - name: Ikony PWA 192/512 (także maskable) w manifest.json
+        run: node .github/scripts/test_manifest_icons.js
+
       - name: Izolacja danych trenerów i klientów
         run: |
           node .github/scripts/test_tenant_persistence.js
