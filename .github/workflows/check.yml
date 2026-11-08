@@ -33,6 +33,9 @@ jobs:
           done
           echo "Wszystkie pliki JS maja poprawna skladnie."
 
+      - name: 1a. Service worker — cache bez duplikatów adresów
+        run: node .github/scripts/test_service_worker_cache.js
+
       - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
         run: node .github/scripts/test_coach_media.js
 
