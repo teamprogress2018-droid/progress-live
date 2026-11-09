@@ -12,6 +12,8 @@
   const week=p=>keys(p).includes(p.currentWeek)?p.currentWeek:keys(p)[0];
   const cell=(e,w)=>({s:String(e[w]?.s??e.sets??'3'),r:String(e[w]?.r??e.reps??'10'),kg:String(e[w]?.kg??e.kg??''),rest:String(e[w]?.rest??e.rest??'90s'),rir:String(e[w]?.rir??e.rir??''),rpe:String(e[w]?.rpe??e.rpe??'')});
   const numeric=x=>/^\d+(?:[.,]\d+)?$/.test(String(x).trim())?Number(String(x).replace(',','.')):null;
+  // Liczba serii z AI bywa zakresem („3–4”) albo z dopiskiem („4 (2+2)”); do limitów liczy się górna granica.
+  const setCount=x=>{const m=String(x==null?'':x).trim().match(/^(\d+)(?:\s*[-–—]\s*(\d+))?/);return m?Number(m[2]||m[1]):null;};
   function rules(input){
     const r=Object.assign({},defaults,input||{});
     for(const [k,lo,hi] of [['maxIncreasePct',0,10],['loadStep',0.25,10],['maxSetsPerExercise',1,10],['maxWeeklySets',1,40]]){
@@ -32,7 +34,7 @@
   function audit(plan,r,w){
     const totals={},issues=[];w=w||week(plan);
     (plan.days||[]).forEach((d,di)=>(d.exercises||[]).forEach(e=>{
-      const c=cell(e,w),s=numeric(c.s),cat=category(e);
+      const c=cell(e,w),s=setCount(c.s),cat=category(e);
       if(s==null||s<1)issues.push('Dzień '+(di+1)+': sprawdź liczbę serii '+e.name+'.');
       else{totals[cat]=(totals[cat]||0)+s;if(s>r.maxSetsPerExercise)issues.push(e.name+': przekroczony limit serii na ćwiczenie.');}
       if(list(r.excluded).includes(norm(e.name)))issues.push(e.name+': ćwiczenie wykluczone przez trenera.');
@@ -276,7 +278,12 @@
     try{
       if(bindings.has(src))assertPlan();else assertTrainer();
       const issues=keys(src).flatMap(w=>audit(src,getRules(),w).issues.map(s=>w+': '+s));
-      if(issues.length)throw new Error('Popraw plan zgodnie z zasadami trenera: '+issues[0]);
+      if(issues.length){
+        // Zasady generatora to podpowiedzi trenera: pokaż, co odbiega, i pozwól zapisać mimo to.
+        const uniq=[...new Set(issues.map(x=>x.replace(/^w\d+: /,'')))];
+        const msg='Plan odbiega od Twoich zasad generatora:\n• '+uniq.slice(0,5).join('\n• ')+(uniq.length>5?'\n… i '+(uniq.length-5)+' więcej':'')+'\n\nZapisać plan mimo to?';
+        if(typeof root.confirm!=='function'||!root.confirm(msg))throw new Error('Plan nie został zapisany. Popraw: '+uniq[0]);
+      }
       root.gwbSaveMetadata(src);return true;
     }catch(e){tell(e.message);return false;}
   };
