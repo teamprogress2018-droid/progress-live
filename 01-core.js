@@ -2361,17 +2361,29 @@ function libExerciseMatchScore(ex,raw){
   return 0;
 }
 
+/* Kreator i podgląd planu pytają o to samo ćwiczenie dziesiątki razy w jednym przebiegu
+ * (media, alternatywy, baza wiedzy). Pełne dopasowanie do biblioteki trwa, więc wynik
+ * trzymamy do końca bieżącego zadania — po nim pamięć się czyści (edycje biblioteki od razu widać). */
+let _libByNameCache=null,_libByNameLib=null;
 function libExerciseByName(name){
   const key=libExerciseNormName(name);
   if(!key)return null;
   const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  if(!_libByNameCache||_libByNameLib!==lib){
+    _libByNameCache=new Map();_libByNameLib=lib;
+    setTimeout(()=>{_libByNameCache=null;_libByNameLib=null;},0);
+  }
+  const ck=String(name);
+  if(_libByNameCache.has(ck))return _libByNameCache.get(ck);
   let best=null,bestScore=0;
   for(let i=0;i<lib.length;i++){
     const s=libExerciseMatchScore(lib[i],name);
     if(s>bestScore){best=lib[i];bestScore=s;}
     if(s>=1000)break;
   }
-  return bestScore>=400?best:null;
+  const out=bestScore>=400?best:null;
+  _libByNameCache.set(ck,out);
+  return out;
 }
 window.libExerciseNormName=libExerciseNormName;
 window.libExerciseMatchScore=libExerciseMatchScore;

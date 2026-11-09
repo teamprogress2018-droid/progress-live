@@ -2689,9 +2689,14 @@ function exportSavedPlanPDF(planId){
   const plan=(window.PL||[]).find(p=>p&&p.id===planId);
   if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
   const client=(window.CL||[]).find(c=>c&&c.id===plan.clientId)||(plan.clientName?{name:plan.clientName}:null);
-  const model=planToPdfModel(plan);
-  const html=buildPlanPDFHTML(model,client);
-  showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+String(model.planName||plan.name||'').toUpperCase());
+  try{
+    const model=planToPdfModel(plan);
+    const html=buildPlanPDFHTML(model,client);
+    showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+String(model.planName||plan.name||'').toUpperCase());
+  }catch(e){
+    console.error('exportSavedPlanPDF',e);
+    if(typeof notify==='function')notify('⚠ Nie udało się przygotować PDF: '+((e&&e.message)||e));
+  }
 }
 
 function planPdfEsc(s){
