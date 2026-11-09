@@ -167,6 +167,19 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'saved_plan_pdf_profile.png'), fullPage: true });
   ok('profile pdf', fromCp.overlay && /Hack squat/.test(fromCp.text), fromCp.text.slice(0, 120));
 
+  // Pobierz PDF: przycisk tylko przy planie, plik PDF z nazwą klienta bez polskich znaków.
+  const dlVisible = await page.evaluate(() => getComputedStyle(document.getElementById('plan-pdf-dl-btn')).display !== 'none');
+  ok('download button visible on plan', dlVisible);
+  const fname = await page.evaluate(() => { const d = document.createElement('div'); d.innerHTML = '<div class="plan-pdf-sub">Krzysztof Wałęsa · PPL 4×/tydz. — Masa</div>'; return planPdfFileName(d); });
+  ok('download file name', fname === 'Plan treningowy - Krzysztof Walesa.pdf', fname);
+  const [download] = await Promise.all([page.waitForEvent('download', { timeout: 60000 }), page.click('#plan-pdf-dl-btn')]);
+  const dlPath = path.join(shotDir, 'plan_download.pdf');
+  await download.saveAs(dlPath);
+  const head = fs.readFileSync(dlPath).slice(0, 5).toString();
+  ok('downloaded file is a PDF', head === '%PDF-' && /\.pdf$/.test(download.suggestedFilename()), download.suggestedFilename());
+  const dlHidden = await page.evaluate(() => { const box = document.getElementById('report-container'); const keep = box.innerHTML; box.innerHTML = '<div>raport</div>'; const hidden = getComputedStyle(document.getElementById('plan-pdf-dl-btn')).display === 'none'; box.innerHTML = keep; return hidden; });
+  ok('download button hidden on other reports', dlHidden);
+
   // Generator: metoda intensyfikacji pokazana tylko w swoich tygodniach (jak na wydruku).
   const genWeeks = await page.evaluate(() => {
     const wk = ['w1','w2','w3','w4','w5','w6','w7','w8'];

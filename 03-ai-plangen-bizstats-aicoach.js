@@ -3091,6 +3091,82 @@ function planPdfPrint(){
   },250);
 }
 
+// Pobierz PDF: ten sam zwarty dokument co wydruk, zapisany jako plik (do wysłania klientowi).
+let planPdfLibLoading=null;
+function planPdfLibReady(){
+  if(window.html2pdf)return Promise.resolve();
+  if(!planPdfLibLoading)planPdfLibLoading=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');s.src='assets/vendor/html2pdf.bundle.min.js';
+    s.onload=resolve;s.onerror=()=>{planPdfLibLoading=null;s.remove();reject(new Error('lib'));};
+    document.head.appendChild(s);
+  });
+  return planPdfLibLoading;
+}
+function planPdfFileName(root){
+  const sub=String(root&&root.querySelector('.plan-pdf-sub')?.textContent||'').trim();
+  // Nazwa pliku bez polskich znaków i symboli — część przeglądarek inaczej odrzuca nazwę i zapisuje „download”.
+  const who=sub.split(/\s+·\s+/)[0].normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L')
+    .replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
+  return 'Plan treningowy'+(who?' - '+who:'')+'.pdf';
+}
+function planPdfScopedCSS(){
+  return PLAN_PDF_PRINT_CSS.replace(/@page\{[^}]*\}/g,'').split('}').map(rule=>{
+    const i=rule.indexOf('{');if(i<0)return rule;
+    const sel=rule.slice(0,i).trim(),decl=rule.slice(i);
+    const scoped=sel.split(',').map(x=>{x=x.trim();if(x==='html'||x==='body')return '.pp-root';if(x==='*')return '.pp-root, .pp-root *';return '.pp-root '+x;}).join(',');
+    return scoped+decl;
+  }).join('}')+'.pp-root{width:1060px;padding:0;margin:0;line-height:normal;text-align:left;}';
+}
+async function planPdfDownload(){
+  const root=document.querySelector('#report-container .plan-pdf');
+  const say=m=>{if(typeof notify==='function')notify(m);};
+  if(!root){say('Otwórz plan treningowy, aby pobrać PDF.');return null;}
+  const btn=document.getElementById('plan-pdf-dl-btn');
+  const label=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Przygotowuję PDF…';}
+  let fr=null;
+  try{
+    await planPdfLibReady();
+    const filename=planPdfFileName(root);
+    // html2pdf rysuje element w głównym dokumencie, więc style wydruku zawężamy do .pp-root.
+    const html=planPdfPrintHTML(root);
+    const body=(html.match(/<body>([\s\S]*)<\/body>/)||[])[1]||'';
+    fr=document.createElement('div');
+    fr.className='pp-root';
+    fr.innerHTML='<style>'+planPdfScopedCSS()+'</style>'+body;
+    document.body.appendChild(fr);
+    try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(_){}
+    const blob=await window.html2pdf().set({
+      margin:[8,7,8,7],filename,
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,backgroundColor:'#ffffff',logging:false},
+      jsPDF:{unit:'mm',format:'a4',orientation:'landscape',compress:true},
+      pagebreak:{mode:['css','legacy'],avoid:['tr','.pp-day-h','.pp-legend','.pp-head','.pp-int']}
+    }).from(fr).outputPdf('blob');
+    const file=typeof File==='function'?new File([blob],filename,{type:'application/pdf'}):null;
+    // Na telefonie od razu „Udostępnij” (WhatsApp, mail); na komputerze zwykłe pobranie pliku.
+    const mobile=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
+    if(mobile&&file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:filename.replace(/\.pdf$/,'')});return blob;}
+      catch(e){if(e&&e.name==='AbortError')return blob;}
+    }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    say('✅ PDF zapisany: '+filename);
+    return blob;
+  }catch(e){
+    console.warn('planPdfDownload',e);
+    say('⚠ Nie udało się przygotować PDF. Użyj „Drukuj / PDF” i wybierz „Zapisz jako PDF”.');
+    return null;
+  }finally{
+    if(fr)fr.remove();
+    if(btn){btn.disabled=false;btn.textContent=label||'⬇ Pobierz PDF';}
+  }
+}
+window.planPdfDownload=planPdfDownload;
+
 function buildPlanPDFHTML(plan,client){
   plan=plan||{};
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
