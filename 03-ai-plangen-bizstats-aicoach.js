@@ -725,6 +725,19 @@ function aplVolumeTarget(level,duration,pharma){
 }
 window.aplVolumeTarget=aplVolumeTarget;
 /** Odpowiedź AI ucięta albo niepełna: brakujące dni, ćwiczenia bez nazwy. */
+/** Dni z części odpowiedzi AI bez powtórek: AI potrafi oddać dni już istniejące (np. „Dzień 2–4” zamiast „Dzień 4”)
+ *  albo więcej dni niż prosiliśmy. Zostają tylko nowe dni, po numerze z dayName; bez numerów — tyle, ile brakuje. */
+function aplTakeChunkDays(days,have,totalDays){
+  const list=(days||[]).filter(Boolean),room=Math.max(0,totalDays-have);
+  const num=d=>{const m=String(d&&(d.dayName||d.day)||'').match(/dzie[nń]\s*(\d+)/i);return m?parseInt(m[1],10):null;};
+  const nums=list.map(num);
+  if(list.length&&nums.every(n=>n!=null)&&new Set(nums).size===nums.length){
+    const fresh=list.filter((d,i)=>nums[i]>have&&nums[i]<=totalDays);
+    if(fresh.length)return fresh.slice(0,room);
+  }
+  return list.slice(0,room);
+}
+window.aplTakeChunkDays=aplTakeChunkDays;
 function aplChunkProblem(chunkPlan,expectDays,truncated){
   if(truncated)return'ucięta odpowiedź';
   const days=(chunkPlan&&chunkPlan.days)||[];
@@ -1725,7 +1738,10 @@ STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
     }
     let plan=null;
     for(let ci=0;ci<chunks.length;ci++){
-      const {from,to}=chunks[ci];
+      // AI czasem oddaje więcej dni niż prosiliśmy — te dni są już w planie, więc nie generujemy ich drugi raz.
+      const have=plan?(plan.days||[]).length:0;
+      if(plan&&have>=chunks[ci].to)continue;
+      const from=Math.max(chunks[ci].from,have+1),to=chunks[ci].to;
       const chunkDays=to-from+1;
       const isFirst=ci===0;
       if(chunks.length>1){
@@ -1771,6 +1787,7 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
           const truncated=data?.stop_reason==='max_tokens';
           if(truncated)extraTokens+=1500;
           chunkPlan=aplParsePlanJson(chunkRaw);
+          if(chunkPlan&&Array.isArray(chunkPlan.days))chunkPlan.days=aplTakeChunkDays(chunkPlan.days,isFirst?0:(plan.days||[]).length,totalDays);
           const problem=aplChunkProblem(chunkPlan,chunkDays,truncated);
           if(problem){
             if(!truncated)extraTokens+=1500;
@@ -3109,13 +3126,63 @@ function planPdfFileName(root){
     .replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
   return 'Plan treningowy'+(who?' - '+who:'')+'.pdf';
 }
+// Strona A4 poziomo minus marginesy (7 mm po bokach, 8 mm góra/dół) w px przy 96 dpi — tak liczy html2pdf.
+const PLAN_PDF_DL_W=Math.floor((297-14)*96/25.4);
+const PLAN_PDF_DL_H=Math.floor((210-16)*96/25.4);
+/** Łamanie stron przed renderem: wiersz tabeli nie jest cięty, tabela dnia przechodzi na kolejną stronę
+ *  z nagłówkiem „(cd.)” i kolumnami T1–T8, nagłówek dnia nie zostaje sam na dole strony. */
+function planPdfPaginate(box,pageH){
+  if(!box||!pageH)return 0;
+  const base=()=>box.getBoundingClientRect().top;
+  const topOf=el=>el.getBoundingClientRect().top-base();
+  const crosses=(t,b)=>Math.floor(t/pageH)!==Math.floor((b-1)/pageH);
+  const atPageTop=t=>t%pageH<3;
+  const brk=()=>{const d=document.createElement('div');d.className='html2pdf__page-break';return d;};
+  let breaks=0;
+  for(let guard=0;guard<300;guard++){
+    let changed=false;
+    for(const el of box.querySelectorAll('.pp-head,.pp-info,.pp-day,.pp-legend,.pp-foot')){
+      if(el.classList.contains('pp-day')){
+        const head=el.querySelector('.pp-day-h'),rows=[...el.querySelectorAll('tbody > tr')];
+        const t=topOf(el);
+        const firstEnd=rows[0]?rows[0].getBoundingClientRect().bottom-base():t+el.offsetHeight;
+        if(crosses(t,firstEnd)&&!atPageTop(t)){el.before(brk());changed=true;break;}
+        const cut=rows.findIndex((r,i)=>i>0&&crosses(topOf(r),topOf(r)+r.offsetHeight));
+        if(cut>0){
+          const cont=el.cloneNode(false),table=el.querySelector('table');
+          const h=head.cloneNode(true);if(!/\(cd\.\)\s*$/.test(h.textContent))h.textContent=h.textContent+' (cd.)';
+          const t2=table.cloneNode(false),tb=document.createElement('tbody');
+          t2.appendChild(table.querySelector('thead').cloneNode(true));t2.appendChild(tb);
+          rows.slice(cut).forEach(r=>tb.appendChild(r));
+          cont.appendChild(h);cont.appendChild(t2);
+          el.after(cont);el.after(brk());
+          changed=true;break;
+        }
+      }else{
+        const t=topOf(el);
+        if(crosses(t,t+el.offsetHeight)&&!atPageTop(t)&&el.offsetHeight<pageH){el.before(brk());changed=true;break;}
+      }
+    }
+    if(!changed){
+      // html2pdf sam dopełnia stronę za każdym łamaniem — zostawiamy puste znaczniki.
+      box.querySelectorAll('.html2pdf__page-break').forEach(d=>{d.style.height='';});
+      break;
+    }
+    breaks++;
+    // Wstawione łamanie wypełnia resztę strony, tak jak zrobi to html2pdf.
+    box.querySelectorAll('.html2pdf__page-break').forEach(d=>{d.style.height='0px';});
+    box.querySelectorAll('.html2pdf__page-break').forEach(d=>{const t=topOf(d);d.style.height=(Math.ceil((t+0.5)/pageH)*pageH-t)+'px';});
+  }
+  return breaks;
+}
+window.planPdfPaginate=planPdfPaginate;
 function planPdfScopedCSS(){
   return PLAN_PDF_PRINT_CSS.replace(/@page\{[^}]*\}/g,'').split('}').map(rule=>{
     const i=rule.indexOf('{');if(i<0)return rule;
     const sel=rule.slice(0,i).trim(),decl=rule.slice(i);
     const scoped=sel.split(',').map(x=>{x=x.trim();if(x==='html'||x==='body')return '.pp-root';if(x==='*')return '.pp-root, .pp-root *';return '.pp-root '+x;}).join(',');
     return scoped+decl;
-  }).join('}')+'.pp-root{width:1060px;padding:0;margin:0;line-height:normal;text-align:left;}';
+  }).join('}')+'.pp-root{width:'+PLAN_PDF_DL_W+'px;padding:0;margin:0;line-height:normal;text-align:left;}';
 }
 async function planPdfDownload(){
   const root=document.querySelector('#report-container .plan-pdf');
@@ -3136,12 +3203,14 @@ async function planPdfDownload(){
     fr.innerHTML='<style>'+planPdfScopedCSS()+'</style>'+body;
     document.body.appendChild(fr);
     try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(_){}
+    planPdfPaginate(fr,PLAN_PDF_DL_H);
     const blob=await window.html2pdf().set({
       margin:[8,7,8,7],filename,
       image:{type:'jpeg',quality:0.95},
       html2canvas:{scale:2,backgroundColor:'#ffffff',logging:false},
       jsPDF:{unit:'mm',format:'a4',orientation:'landscape',compress:true},
-      pagebreak:{mode:['css','legacy'],avoid:['tr','.pp-day-h','.pp-legend','.pp-head','.pp-int']}
+      // Podział stron robi planPdfPaginate (tabela dzielona z powtórzonym nagłówkiem), html2pdf tylko wstawia łamania.
+      pagebreak:{mode:['legacy']}
     }).from(fr).outputPdf('blob');
     const file=typeof File==='function'?new File([blob],filename,{type:'application/pdf'}):null;
     // Na telefonie od razu „Udostępnij” (WhatsApp, mail); na komputerze zwykłe pobranie pliku.

@@ -29,7 +29,10 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
       if (mode === 'redundant-fail' && calls.length === 1) { calls.push({ max: 0, sys: '', user: 'fail' }); return { ok: false, status: 500, text: async () => 'boom', json: async () => ({}) }; }
       const body = JSON.parse(opt.body); calls.push({ max: body.max_tokens, sys: body.system, user: body.messages[0].content });
       const m = /(?:TYLKO dni|Dodaj dni) (\d+)–(\d+)/.exec(body.system + ' ' + body.messages[0].content);
-      const from = m ? +m[1] : 1, to = m ? +m[2] : 1;
+      let from = m ? +m[1] : 1, to = m ? +m[2] : 1;
+      // AI oddaje więcej dni niż prośba: pierwsza część dni 1–3 albo kontynuacja powtarza poprzedni dzień.
+      if (mode === 'extra-first' && from === 1) to = 3;
+      if (mode === 'overlap' && from > 1) from -= 1;
       const days = []; for (let d = from; d <= to; d++) days.push(day(d, mode === 'short' ? 2 : 6, (mode === 'redundant' || mode === 'redundant-fail' || mode === 'redundant-short') && calls.length === 1 ? REDUNDANT : null));
       let text = JSON.stringify(from === 1 ? { planName: 'Test', summary: 's', days } : { days });
       let stop = 'end_turn';
@@ -42,6 +45,7 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     const html = (document.getElementById('apl-result') || document.body).innerText;
     const checks = [...document.querySelectorAll('[data-apl-check]')].map(li => li.dataset.aplCheck + ':' + li.textContent);
     return { fix: calls.map(c => /POPRAW DOBÓR ĆWICZEŃ[^\n]*przyciąganie pionowe/.test(c.user)), calls: calls.map(c => ({ max: c.max, vol: /6–7 ćwiczeń głównych|6–7 głównych/.test(c.sys) })), days: (plan.days || []).map(d => (d.exercises || []).map(e => e.name).length),
+      dayNames: (plan.days || []).map(d => d.dayName),
       names: (plan.days || []).flatMap(d => d.exercises.map(e => e.name)), undef: /undefined/.test(html), checks };
   }, mode);
 
@@ -61,6 +65,10 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   ok('pattern rewrite fails → plan still generated, warning in Kontrola planu', rf.days.join() === '6,6,6,6' && rf.checks.some(c => /^pattern:/.test(c) && /przyciąganie pionowe/.test(c)), JSON.stringify({ days: rf.days, checks: rf.checks }));
   const rs = await run('redundant-short');
   ok('incomplete rewrites → keeps the complete first plan', rs.days.join() === '6,6,6,6' && rs.checks.some(c => /^pattern:/.test(c)), JSON.stringify({ days: rs.days, checks: rs.checks }));
+  const xf = await run('extra-first');
+  ok('first part with 3 days → no duplicated days, only day 4 generated next', xf.dayNames.map(n => n.slice(0, 7)).join() === 'Dzień 1,Dzień 2,Dzień 3,Dzień 4' && xf.calls.length === 2, JSON.stringify({ d: xf.dayNames, c: xf.calls.length }));
+  const ov = await run('overlap');
+  ok('continuation repeating an earlier day → each day once', ov.dayNames.map(n => n.slice(0, 7)).join() === 'Dzień 1,Dzień 2,Dzień 3,Dzień 4', JSON.stringify(ov.dayNames));
   const s = await run('short');
   ok('too few exercises for advanced is flagged in plan check', s.checks.some(c => /^volume:/.test(c) && /zaawansowany/.test(c)), JSON.stringify(s.checks));
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
