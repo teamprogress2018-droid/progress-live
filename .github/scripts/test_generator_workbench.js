@@ -41,6 +41,11 @@ for(let i=0;i<9;i++)p.generatorHistory=api.addRevision(p,'v'+i);
 assert.equal(p.generatorHistory.length,5);
 assert.ok(p.generatorHistory.every(v=>!v.snapshot.generatorHistory),'no recursive histories');
 assert.equal(api.audit(plan(),api.rules({maxWeeklySets:2})).issues.length,2);
+// Serie z AI jako zakres („3–4”) to poprawna liczba serii; do limitów liczy się górna granica.
+const ranged=plan();ranged.days[0].exercises[0].w1.s='3–4';ranged.days[0].exercises[0].w2.s='3-4';
+assert.equal(api.audit(ranged,r,'w1').issues.length,0,'set range is not a missing set count');
+assert.equal(api.audit(ranged,r,'w2').totals.klatka,4);
+assert.equal(api.audit(ranged,api.rules({maxSetsPerExercise:3}),'w1').issues.length,1,'upper bound checked against limit');
 
 // Run the real DOM-facing handlers and existing saved-plan serializer together.
 const nodes={};
@@ -80,6 +85,15 @@ assert.equal(context.aplLastPlan.days[0].exercises[0].w2.kg,'','new exercise cle
 assert.equal(context.aplLastPlan.days[0].exercises[0].kg,'');
 const swapSaved=context.aplBuildSavedPlan(context.aplLastPlan,'client-a',{name:'A'},'plan-b');
 assert.equal(swapSaved.days[0].exercises[0].kg,'');
+// Odstępstwo od zasad trenera nie blokuje zapisu po cichu: pytanie, a zapis po zgodzie.
+context.SETTINGS.generatorRules={maxWeeklySets:1};const asked=[];
+context.confirm=m=>{asked.push(m);return true;};
+assert.equal(context.gwbBeforeSave(context.aplLastPlan),true,'trainer may save despite own rules');
+assert.match(asked[0],/odbiega od Twoich zasad[\s\S]*Zapisać plan mimo to/);
+context.confirm=()=>false;messages.length=0;
+assert.equal(context.gwbBeforeSave(context.aplLastPlan),false);
+assert.match(messages[0],/Plan nie został zapisany/);
+delete context.confirm;context.SETTINGS.generatorRules={};
 context._uid='trainer-b';assert.equal(context.gwbBeforeSave(context.aplLastPlan),false);
 context._uid='trainer-a';
 context.SETTINGS.generatorRules={instructions:'old'};
