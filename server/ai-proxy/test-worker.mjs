@@ -41,7 +41,7 @@ globalThis.fetch = async (url, init = {}) => {
   }
   if (url === 'https://api.anthropic.com/v1/messages') {
     anthropicCalls++;
-    return new Response(JSON.stringify({ content: [{ type: 'text', text: 'ok' }], sent: JSON.parse(init.body) }));
+    return new Response(JSON.stringify({ content: [{ type: 'thinking', thinking: '', signature: 's' }, { type: 'text', text: 'ok' }], sent: JSON.parse(init.body) }));
   }
   throw new Error('unexpected fetch ' + url);
 };
@@ -81,6 +81,8 @@ test('granted trainer is forwarded with capped tokens and allowed model', async 
   assert.equal(r.body.sent.max_tokens, 8000); assert.equal(r.body.sent.model, 'claude-sonnet-5-5'); count += 2;
   const legacy = await call(await idToken('trainer-1'), undefined, { model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [] });
   assert.equal(legacy.status, 200); assert.equal(legacy.body.sent.model, 'claude-sonnet-5-5'); count += 2;
+  assert.deepEqual(r.body.sent.thinking, { type: 'between_tools' }); count++;
+  assert.equal(r.body.content[0].type, 'text'); assert.equal(r.body.content[0].text, 'ok'); assert.equal(r.body.content.length, 1); count += 3;
 });
 test('role check result is cached for repeated calls', async () => {
   resetCaches(); roles.set('trainer-c', { uid: 'trainer-c', role: 'trainer', enabled: true });

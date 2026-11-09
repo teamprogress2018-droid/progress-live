@@ -120,12 +120,21 @@ export default {
     if (!ALLOWED_MODELS.includes(body.model)) body.model = ALLOWED_MODELS[0];
     body.max_tokens = Math.min(Number(body.max_tokens) || 1024, MAX_TOKENS_CAP);
     delete body.stream;
+    // Aplikacja czyta odpowiedź jako content[0].text i oczekuje szybkiej odpowiedzi bez „myślenia”.
+    // Na claude-sonnet-5-5 wyłącza się je typem between_tools ({type:'disabled'} daje 400).
+    body.thinking = { type: 'between_tools' };
+    delete body.temperature; delete body.top_p; delete body.top_k;
 
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify(body),
     });
-    return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json', ...cors(origin) } });
+    const headers = { 'Content-Type': 'application/json', ...cors(origin) };
+    if (!r.ok) return new Response(r.body, { status: r.status, headers });
+    const data = await r.json();
+    // Bloki thinking (nawet puste) przesunęłyby tekst z content[0] — aplikacja dostaje tylko tekst i narzędzia.
+    if (Array.isArray(data.content)) data.content = data.content.filter(b => b && b.type !== 'thinking' && b.type !== 'redacted_thinking');
+    return new Response(JSON.stringify(data), { status: r.status, headers });
   },
 };
