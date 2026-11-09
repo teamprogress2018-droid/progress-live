@@ -78,7 +78,9 @@ test('granted trainer is forwarded with capped tokens and allowed model', async 
   const before = anthropicCalls;
   const r = await call(await idToken('trainer-1'));
   assert.equal(r.status, 200); assert.equal(anthropicCalls, before + 1); count += 2;
-  assert.equal(r.body.sent.max_tokens, 8000); assert.equal(r.body.sent.model, 'claude-sonnet-4-20250514'); count += 2;
+  assert.equal(r.body.sent.max_tokens, 8000); assert.equal(r.body.sent.model, 'claude-sonnet-5-5'); count += 2;
+  const legacy = await call(await idToken('trainer-1'), undefined, { model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [] });
+  assert.equal(legacy.status, 200); assert.equal(legacy.body.sent.model, 'claude-sonnet-5-5'); count += 2;
 });
 test('role check result is cached for repeated calls', async () => {
   resetCaches(); roles.set('trainer-c', { uid: 'trainer-c', role: 'trainer', enabled: true });

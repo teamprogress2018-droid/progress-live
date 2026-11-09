@@ -10,7 +10,8 @@
 // - tylko adres aplikacji (CORS), dozwolone modele i limit max_tokens.
 export const PROJECT_ID = 'progress-live-fc83d';
 export const ALLOWED_ORIGINS = ['https://teamprogress2018-droid.github.io'];
-export const ALLOWED_MODELS = ['claude-sonnet-4-20250514'];
+// Pierwszy model na liście jest domyślny: każdy inny (np. wycofany claude-sonnet-4-20250514 zapisany w aplikacji) jest na niego zamieniany.
+export const ALLOWED_MODELS = ['claude-sonnet-5-5'];
 export const MAX_TOKENS_CAP = 8000;
 export const DAILY_LIMIT = 400;            // zapytań na konto trenera na dobę (UTC)
 export const ROLE_CACHE_MS = 5 * 60 * 1000; // wynik sprawdzenia roli trzymany 5 min w pamięci Workera
