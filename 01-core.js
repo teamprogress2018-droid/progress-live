@@ -2805,7 +2805,7 @@ function exerciseIntensificationMethods(ex){
   let raw=p.intensification||p.intensificationMethods||p.methods||[];
   if(!Array.isArray(raw))raw=[raw];
   const out=[],seen=new Set();
-  const add=(value,protocol)=>{const type=intensificationType(value&&typeof value==='object'?(value.type||value.name):value);if(!type||seen.has(type))return;seen.add(type);out.push({type,protocol:String(protocol||'').trim()});};
+  const add=(value,protocol)=>{const type=intensificationType(value&&typeof value==='object'?(value.type||value.name):value);if(!type||seen.has(type))return;seen.add(type);const m={type,protocol:String(protocol||'').trim()};const wk=value&&typeof value==='object'&&Array.isArray(value.weeks)?value.weeks.map(n=>parseInt(n,10)).filter(n=>n>0):null;if(wk&&wk.length)m.weeks=wk;out.push(m);};
   raw.forEach(x=>add(x,x&&typeof x==='object'?(x.protocol||x.instructions||x.note):''));
   if(parseSetKindCount(p.drop,2))add('drop_set');
   if(parseSetKindCount(p.rp,2))add('rest_pause');

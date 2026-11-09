@@ -1917,6 +1917,8 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .plan-pdf-int.is-row{font-size:10px;padding:4px 7px;margin-bottom:4px;border-radius:5px;}
 .plan-pdf-int.is-row b{font-size:10px;}
 .plan-pdf-int.is-row small,.plan-pdf-int.is-row em{font-size:9.5px;}
+.plan-pdf-wk-int{display:inline-block;margin-top:3px;font-size:9px;font-weight:800;letter-spacing:0.03em;border:1px solid;border-radius:99px;padding:1px 6px;white-space:nowrap;}
+.plan-pdf-chips .plan-pdf-wk-int{font-size:12px;padding:5px 9px;border-radius:8px;margin-top:0;}
 .plan-pdf-cycle-btn{
   display:block;width:100%;margin:-6px 0 22px;padding:12px;border-radius:10px;cursor:pointer;
   border:1px dashed #cad8e7;background:#fff;color:var(--pdf-navy);font:inherit;font-size:13px;font-weight:700;

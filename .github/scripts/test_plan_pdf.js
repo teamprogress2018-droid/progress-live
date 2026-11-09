@@ -174,7 +174,23 @@ ok('drop set from field keeps plan protocol', /data-int="drop_set"/.test(intHtml
 ok('note sentence about method removed from tip', !/Ostatnia seria: myo-reps/.test(intHtml) && /Boczny bark/.test(intHtml));
 ok('no badge without method', (intHtml.match(/class="plan-pdf-int"/g) || []).length === 2);
 ok('print shows methods', /class="pp-int"/.test(src03) && /\.pp-int\{/.test(src03) && /\.plan-pdf-int\{/.test(css));
-ok('cache 03/styles', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 50) && cacheAtLeast(html, 'styles.css', 192));
+ok('cache 03/styles', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 51) && cacheAtLeast(html, 'styles.css', 193));
+// Metody zmienne w czasie: kratka tygodnia dostaje kolorowy znaczek tylko w tygodniach metody, deload bez metody
+const wk8 = ['w1','w2','w3','w4','w5','w6','w7','w8'];
+const varEx = { name: 'Rozpiętki', intensification: [{ type: 'rest_pause', weeks: [3, 4] }, { type: 'drop_set', weeks: [5, 6, 7] }] };
+const plainEx = { name: 'Unoszenie', notes: 'Ostatnia seria: myo-reps.' };
+wk8.forEach((k, i) => { varEx[k] = { s: '4', r: '10-12', rpe: '8' }; plainEx[k] = { s: '4', r: '12-15', rpe: '8' }; });
+const varHtml = ctx.buildPlanPDFHTML({ planName: 'Var', weekKeys: wk8, phases: { w8: 'Deload' }, days: [{ dayName: 'D1', exercises: [varEx, plainEx] }] }, {});
+const varRow = varHtml.split('<tr class="plan-pdf-row">')[1] || '';
+const varCells = varRow.split('</tr>')[0].split('<td').slice(2);
+ok('rest-pause only T3–T4', [2, 3].every(i => /data-int="rest_pause"/.test(varCells[i])) && ![0, 1, 4, 7].some(i => /data-int="rest_pause"/.test(varCells[i])));
+ok('drop set only T5–T7', [4, 5, 6].every(i => /data-int="drop_set"/.test(varCells[i])) && !/plan-pdf-wk-int/.test(varCells[7]));
+ok('weeks label in description', /T3–T4/.test(varHtml) && /T5–T7/.test(varHtml) && /T1–T7/.test(varHtml));
+ok('distinct colors per method', /color:#b54708/.test(varHtml) && /color:#c81e1e/.test(varHtml) && /color:#1d4ed8/.test(varHtml));
+ok('print legend', /pp-legend/.test(src03) && /Metody intensyfikacji — jak je wykonać/.test(src03));
+ok('AI prompt asks for weeks', /"weeks":\[numery tygodni\]/.test(src03));
+const src01 = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
+ok('core keeps weeks', /if\(wk&&wk\.length\)m\.weeks=wk/.test(src01) && cacheAtLeast(html, '01-core.js', 159));
 
 if (failed) {
   console.error(failed + ' failed');
