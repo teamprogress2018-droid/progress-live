@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-11-02T11:47:32.553Z",
+ "generatedAt": "2026-11-09T12:17:28.012Z",
  "lookbackDays": 14,
  "categories": [
   {
@@ -53,6 +53,803 @@
   }
  ],
  "items": [
+  {
+   "pmid": "42993750",
+   "doi": "10.1371/journal.pone.0362552",
+   "title": "Effects of vitamin D supplementation on vitamin D status and physical performance in football players: A systematic review and meta-analysis.",
+   "abstract": "BACKGROUND/OBJECTIVES: Low vitamin D status is frequently reported among athletes, but whether vitamin D supplementation improves physical performance in football players remains uncertain. This systematic review and meta-analysis aimed to evaluate the effects of vitamin D supplementation on serum 25-hydroxyvitamin D [25(OH)D] concentration, jump performance, sprint performance, aerobic capacity, and muscular performance in association football and futsal players.\nMETHODS: PubMed, Embase, the Cochrane Library, Scopus, and Web of Science were searched from database inception to 31 May 2026. Controlled intervention studies comparing vitamin D supplementation with control conditions were eligible. Standardized mean differences were calculated as Hedges' g and pooled using random-effects meta-analyses. Two reviewers independently extracted data and assessed risk of bias using RoB 2 or ROBINS-I. The certainty of evidence was assessed using GRADE. The protocol was prospectively registered in PROSPERO (CRD420261430873).\nRESULTS: Eleven reports representing nine independent studies and 312 players were included. In RCT-only primary analyses, vitamin D supplementation was associated with higher circulating 25(OH)D concentrations (g = 1.41, 95% CI 0.90 to 1.92; I² = 58.0%). Pooled effects were not statistically significant for jump performance (g = 0.21, 95% CI -0.10 to 0.53), sprint performance (g = -0.03, 95% CI -0.40 to 0.34), aerobic capacity (g = 0.00, 95% CI -0.45 to 0.45), or muscular performance (g = 0.19, 95% CI -0.14 to 0.51). The certainty of evidence was low for circulating 25(OH)D, jump performance, and muscular performance, and very low for sprint performance and aerobic capacity.\nCONCLUSIONS: Vitamin D supplementation was associated with increased circulating 25(OH)D concentrations, whereas current evidence is insufficient to support a consistent improvement in physical performance. Given the low to very low certainty of evidence, these findings should be interpreted cautiously. Larger, well-designed randomized controlled trials using standardized, football-relevant performance tests are warranted.",
+   "journal": "PloS one",
+   "journalAbbr": "PLoS One",
+   "year": "2026",
+   "authors": "Gu J i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Gu J",
+    "Zhang Y",
+    "Xiao L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42993750/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42992367",
+   "doi": "10.1002/dmrr.70250",
+   "title": "Adults With Type 1 Diabetes Are Less Physically Active Than Adults Without Diabetes: A Systematic Review and Meta-Analysis.",
+   "abstract": "AIMS: Physical activity is central to the management of type 1 diabetes, yet diabetes-specific barriers may reduce habitual activity. We systematically reviewed and meta-analysed studies comparing physical activity and sedentary behaviour in adults with type 1 diabetes and adults without diabetes.\nMATERIAL AND METHODS: MEDLINE, Embase, and SPORTDiscus were searched from inception to 24 July 2026. Random-effects models were used to pool standardised mean differences for continuous outcomes and odds ratios (OR) for meeting physical activity recommendations or study-defined active criteria.\nRESULTS: Sixteen publications representing 14 independent cohorts and 3335 participants were included (54.2% females). Adults with type 1 diabetes had lower total physical activity than adults without diabetes (12 studies; Hedges g = -0.13; 95% confidence interval, -0.22 to -0.05; p = 0.001), with no detected heterogeneity. They also had lower estimated odds of meeting a physical activity criterion, although the association was not statistically significant (4 studies; OR = 0.77; 95% confidence interval, 0.58-1.02; p = 0.066). Mean age, diabetes duration and glycated haemoglobin were not associated with between-group differences in total physical activity. Data were insufficient to pool sedentary behaviour, steps or intensity-specific outcomes.\nCONCLUSIONS: Adults with type 1 diabetes engage in slightly less total physical activity than adults without diabetes, although evidence regarding adherence to physical activity recommendations remains inconclusive. The absence of population-based studies limits the generalisability of these findings and highlights the need for representative studies using standardised device-based assessments.",
+   "journal": "Diabetes/metabolism research and reviews",
+   "journalAbbr": "Diabetes Metab Res Rev",
+   "year": "2026",
+   "authors": "García-Hermoso A i in.",
+   "authorCount": 4,
+   "authorList": [
+    "García-Hermoso A",
+    "Muñoz-Pardeza J",
+    "Hormazábal-Aguayo I",
+    "Ezzatvar Y"
+   ],
+   "pubTypes": [
+    "Systematic Review",
+    "Journal Article",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42992367/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42991260",
+   "doi": "10.3389/fpubh.2026.1896512",
+   "title": "Effects of resistance training on frailty-related outcomes in frail and pre-frail older adults: a systematic review and meta-analysis of randomized controlled trials.",
+   "abstract": "BACKGROUND AND OBJECTIVE: Frailty is associated with muscle weakness, impaired physical function, and increased risk of disability and loss of independence, making preservation of muscle function an important public health goal for healthy aging. Resistance training may help address these deficits, but its effects in frail or pre-frail older adults remain uncertain. This systematic review and meta-analysis evaluated its effects on muscle strength, physical function, and frailty score.\nMETHODS: Seven electronic information sources were searched from inception to August 2026, with no language restrictions. Randomized controlled trials were included if they enrolled adults aged ≥60 years who were clearly diagnosed as frail or pre-frail using validated tools or comprehensive assessments. The intervention was limited to structured resistance training without combination with other exercise modalities. Random-effects models were used for meta-analysis, and the certainty of evidence was assessed using the GRADE approach.\nRESULTS: Nine randomized controlled trials comprising 27 study arms and 566 participants were included. Low-certainty evidence suggested that resistance training may improve knee extensor strength (SMD = 1.30, 95% CI: 0.48 to 2.13). Very-low-certainty evidence showed possible improvements in handgrip strength (MD = 4.15 kg, 95% CI: 0.81 to 7.48) and gait speed (MD = 0.13 m/s, 95% CI 0.00 to 0.26), whereas the effects on Timed Up and Go (TUG), Short Physical Performance Battery (SPPB) and frailty score remained uncertain. For handgrip strength, gait speed, TUG, and SPPB, clinical importance remained uncertain because the 95% CI encompassed the corresponding reference thresholds for clinical importance. Between-study heterogeneity was substantial to considerable.\nCONCLUSION: Resistance training may improve knee extensor strength and may also benefit handgrip strength and gait speed in frail or pre-frail older adults, although the certainty of evidence is low to very low; effects on TUG, SPPB, and frailty score remain uncertain. Because muscle weakness and functional decline contribute to disability and loss of independence in later life, these findings may inform resistance-training strategies aimed at supporting muscle health and healthy aging. Further high-quality trials with standardized training prescriptions and longer-term follow-up are needed.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261391816, identifier: CRD420261391816.",
+   "journal": "Frontiers in public health",
+   "journalAbbr": "Front Public Health",
+   "year": "2026",
+   "authors": "Qian X i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Qian X",
+    "Huang W",
+    "Yao L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42991260/",
+   "topics": [
+    "hipertrofia",
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42989252",
+   "doi": "10.1186/s12902-026-02473-x",
+   "title": "Optimal time window of postprandial exercise in middle-aged and older adults with type 2 diabetes mellitus: a systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: Postprandial hyperglycemia constitutes an independent risk factor for diabetic complications, particularly in middle-aged and older adults with type 2 diabetes mellitus (T2DM). Although exercise timing may critically modulate postprandial glycemic control, the optimal time window for this population remains to be established.\nOBJECTIVE: To systematically evaluate the effect of postprandial exercise on glycemic control in middle-aged and older adults with type 2 diabetes mellitus (T2DM), and to provide evidence-based recommendations for optimal postprandial exercise timing.\nMETHODS: A systematic search of PubMed, Embase, Cochrane Library, and other databases was performed. Fourteen randomized crossover or parallel controlled trials involving 440 middle-aged and older patients with T2DM were included. The intervention was postprandial exercise. A random-effects meta-analysis was conducted, with subgroup analyses exploring the effects of exercise modality, timing, and disease duration on postprandial glucose area under the curve (AUC) and postprandial blood glucose levels.\nRESULTS: This study found that, compared with the control group, postprandial exercise significantly reduced both the glucose AUC (8 studies, 11 effect sizes; Hedges' g = - 0.61; SE = 0.16; P < 0.05) and postprandial blood glucose levels (6 studies, 12 effect sizes; Hedges' g = - 1.82; SE = 0.23; P < 0.05). Postprandial exercise contributed to improved acute glycemic control in middle-aged and older adults with T2DM. Notably, the non-aerobic-only exercise subgroup (e.g., passive stretching, resistance exercise, or combined exercise) demonstrated a more pronounced effect in reducing postprandial glucose AUC in this population. Although no statistically significant differences were observed across postprandial exercise timing subgroups for either glycemic outcome, the 30-90 min postprandial subgroup showed a numerically larger reduction in postprandial blood glucose effect sizes.\nCONCLUSION: Postprandial exercise can reduce postprandial blood glucose levels and the postprandial glucose AUC in middle-aged and older patients with type 2 diabetes. Non-aerobic-only exercise (e.g., passive stretching, resistance exercise, or combined exercise) appears to be more suitable for glycemic control in this population, although this finding remains preliminary. Initiating exercise within the 30-90 min postprandial window may be more effective in improving postprandial blood glucose.\nCLINICAL TRIAL NUMBER: Not applicable.",
+   "journal": "BMC endocrine disorders",
+   "journalAbbr": "BMC Endocr Disord",
+   "year": "2026",
+   "authors": "Li Y i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Li Y",
+    "Ou X",
+    "Hu S",
+    "Yang S",
+    "Li M",
+    "Chang Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42989252/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42981147",
+   "doi": "10.1097/HTR.0000000000001221",
+   "title": "Consensus Statement on Traumatic Brain Injury in First Responders: The 1st International Conference on TBI in First Responders.",
+   "abstract": "OBJECTIVE: To develop the first interdisciplinary consensus recommendations for the recognition, diagnosis, and management of traumatic brain injury (TBI) in first responders (ie, law enforcement/corrections officers, firefighters, emergency medical services [EMS] personnel).\nSETTING: The first International Conference on TBI in First Responders, held at The Ohio State University in March 2026.\nPARTICIPANTS: An interdisciplinary author group of 52 clinicians, researchers, policy and organizational professionals, and first responders with lived or operational experience.\nDESIGN: Six expert workgroups conducted a best-evidence synthesis of first responder-specific literature and relevant evidence from military personnel, athletes, and other populations. Preliminary recommendations were developed over 6 months and refined using a modified Delphi process with 2 rounds of anonymous voting via Microsoft Forms. Consensus was predefined as ≥80% agreement without reservations or with minor reservations.\nMAIN MEASURES: Evidence quality and recommendation strength were graded using the Strength of Recommendation Taxonomy (SORT). The primary outcome was the percentage of agreement for each recommendation.\nRESULTS: Twenty-nine preliminary statements were evaluated across 6 domains: injury risk, recognition, and reporting challenges; early assessment and diagnosis; return to duty; mental health; prevention; and workplace and policy context. In round 1, 27 of 29 statements reached consensus. After group discussion, review of anonymous comments, wording refinement, and consolidation of related statements, 28 final recommendations were evaluated in round 2; all reached consensus.\nCONCLUSION: These recommendations provide the first interdisciplinary framework for TBI in first responders. They emphasize shared organizational responsibility, standardized terminology, nonpunitive reporting and referral pathways, clinician-guided care, occupation-specific RTD progression, mental health screening and treatment, exposure mitigation, and first responder-engaged research. Implementation of these recommendations may improve timely care, operational readiness, and the evidence base for first responders with TBI.",
+   "journal": "The Journal of head trauma rehabilitation",
+   "journalAbbr": "J Head Trauma Rehabil",
+   "year": "2026",
+   "authors": "Caccese JB i in.",
+   "authorCount": 51,
+   "authorList": [
+    "Caccese JB",
+    "Oñate JA",
+    "Edwards N",
+    "Sas AR",
+    "Smith NIJ",
+    "Williams WH"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Consensus Statement"
+   ],
+   "evidence": "guideline",
+   "evidenceLabel": "Stanowisko / wytyczne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42981147/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42977938",
+   "doi": "10.1186/s12877-026-08087-1",
+   "title": "Lower-limb blood flow restriction training for improving multiple dimensions of muscle strength and physical performance in older adults: a systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: Age-related declines in muscle strength and function accelerate frailty and heighten the risk of sarcopenia in older adults. Lower-limb blood flow restriction (BFR) training offers potential low-stress alternatives capable of inducing similar muscular adaptations.\nOBJECTIVES: To systematically evaluate the effects of lower-limb BFR training on muscle strength and physical performance in older adults with and without musculoskeletal conditions, and to examine its potential role in sarcopenia prevention and early management.\nMETHODS: Electronic databases, including the Cochrane Central Register of Controlled Trials (CENTRAL), PubMed, Embase, the Physiotherapy Evidence Database (PEDro), Scopus, and Web of Science, were searched up to 20 July 2026. Eligible randomized controlled trials (RCTs) included adults aged 50 years or older who participated in lower‑limb BFR training-such as low‑load resistance training with BFR (LL‑BFR) or walking with BFR (W‑BFR)-and compared these interventions with low‑load resistance training (LL‑RT), high‑load resistance training (HL‑RT), conventional walking, or no‑training control conditions. The main outcomes were muscle strength (e.g., knee extension, leg press, handgrip) and physical performance (Timed Up and Go [TUG], 30 s Chair Stand Test [30CST], Six‑Minute Walk Test, balance). Methodological quality was evaluated using the PEDro scale, and the certainty of the evidence was judged according to the GRADE framework.\nRESULTS: Twenty-five RCTs involving 819 participants were included. Compared to no intervention, meta-analysis of the data estimated that LL-BFR improved multiple domains of physical performance, including knee extension strength (SMD = 1.23; 95% CI: 0.49-1.98), leg press strength (SMD = 1.24; 95% CI: 0.16-2.31), 30CST (MD = 3.55; 95% CI: 2.32-4.78), and Timed Up and Go Test (MD = - 2.15; 95% CI: - 3.05- - 1.24). W-BFR was more effective than conventional walking, yielding greater improvements in knee extension strength (SMD = 0.8, 95% CI: 0.23 to 1.38), 30CST (SMD = 2.75, 95% CI: 2.06 to 3.45), TUG (MD = -0.46, 95% CI: -0.59 to -0.32). When comparing LL-BFR with LL-RT, the former had superior effects on strength measures. Compared with HL-RT, LL-BFR showed no significant differences in muscle strength or physical performance.\nCONCLUSION: Both LL-BFR and W-BFR may improve lower-limb muscle strength and physical performance in older adults, particularly when compared with no intervention or conventional walking. Lower-limb BFR training may therefore have a potential role in sarcopenia prevention and early management in aging populations, especially for individuals who are unable to tolerate high mechanical loads.",
+   "journal": "BMC geriatrics",
+   "journalAbbr": "BMC Geriatr",
+   "year": "2026",
+   "authors": "Diao J i in.",
+   "authorCount": 12,
+   "authorList": [
+    "Diao J",
+    "Yuan Y",
+    "Li X",
+    "Cai Y",
+    "Zhuang J",
+    "Liu T"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42977938/",
+   "topics": [
+    "hipertrofia",
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42973833",
+   "doi": "10.3389/fpubh.2026.1869982",
+   "title": "Recreational football as medicine? A meta-analysis of its effects and feasibility in patients with chronic diseases.",
+   "abstract": "OBJECTIVE: To quantitatively synthesise the effects of recreational football interventions on physiological and feasibility-related outcomes in people with chronic diseases.\nMETHODS: PubMed, Web of Science, and the Cochrane Library were searched from inception to 6 February 2026, and additional searches of Scopus and Embase were conducted on 17 August 2026. Controlled trials of recreational football in adolescents and adults with selected chronic disease populations were eligible. Three-level random-effects meta-analyses were performed, with cluster-robust (CR2) variance estimation, clustering on the independent trial, applied to every outcome as a robustness check, and certainty of evidence was assessed using GRADE.\nRESULTS: Twenty-two study reports representing 17 unique trials (15 randomised and 2 non-randomised controlled trials; 588 unique participants) were included. Recreational football was associated with significant improvements in body fat percentage (k = 13; SMD = -0.36, 95% CI - 0.57 to -0.14; p < 0.01), muscle mass (k = 12; SMD = 0.22, 95% CI 0.01 to 0.44; p = 0.05), diastolic blood pressure (k = 12; SMD = -0.53, 95% CI - 0.96 to -0.09; p = 0.02), mean arterial pressure (k = 7; SMD = -0.89, 95% CI - 1.48 to -0.29; p = 0.01), resting heart rate (k = 10; SMD = -1.01, 95% CI - 1.72 to -0.31; p = 0.01), VO₂peak (k = 16; SMD = 0.70, 95% CI 0.37 to 1.03; p < 0.01), Yo-Yo Intermittent Endurance Test level 1 performance (k = 4; SMD = 1.43, 95% CI 0.83 to 2.03; p < 0.01), triglycerides (k = 11; SMD = -0.56, 95% CI - 0.91 to -0.22; p < 0.01), total cholesterol (k = 11; SMD = -0.69, 95% CI - 1.08 to -0.30; p < 0.01), plasma osteocalcin (k = 4; SMD = 1.07, 95% CI 0.53 to 1.60; p < 0.01), and P1NP (k = 4; SMD = 1.28, 95% CI 0.22 to 2.34; p = 0.03). Borderline effects that were not retained under cluster-robust inference were observed for fat mass (SMD = -0.30; p = 0.05), systolic blood pressure (SMD = -0.60; p = 0.05) and LDL (SMD = -0.50; p = 0.05). No statistically significant pooled effects were observed for body weight (SMD = -0.29; p = 0.05), BMI (SMD = -0.06; p = 0.71), waist circumference (SMD = -0.48; p = 0.18), HbA1c (SMD = -0.28; p = 0.10), fasting glucose (SMD = -0.11; p = 0.48), fasting insulin (SMD = 0.07; p = 0.73), HDL (SMD = 0.10; p = 0.70), CRP (SMD = -0.88; p = 0.13), DXA-derived leg and whole-body bone mineral density or content (all p ≥ 0.11), or CTX-1 (SMD = 0.54; p = 0.19). Effects on body fat percentage, fat mass, muscle mass, SBP and LDL were sensitive to the assumed pre-post correlation. Under cluster-robust (CR2) inference the statistical interpretation was unchanged for 22 of the 27 outcomes; fat mass, SBP, LDL and P1NP were no longer significant (all p between 0.05 and 0.07) and whole-body bone mineral density became significant (p = 0.03). Certainty of evidence was low to very low for most outcomes, and adverse events were summarized narratively because quantitative synthesis was not possible. Mean attendance was 82.7% across 13 independent trials, and mean attrition was 15.6% across 14 independent trials.\nCONCLUSION: Across the selected chronic disease populations represented in the current evidence base, recreational football showed signals of potential benefit for cardiorespiratory fitness and selected cardiovascular, lipid, and bone-related outcomes, although adiposity- and bone-formation-related effects were less robust in sensitivity analyses. However, these findings should be interpreted cautiously due to heterogeneity and generally low or very low certainty of evidence. Recreational football may be considered a supervised adjunctive exercise option.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261365103, Identifier CRD420261365103.",
+   "journal": "Frontiers in public health",
+   "journalAbbr": "Front Public Health",
+   "year": "2026",
+   "authors": "Wei K i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Wei K",
+    "Chen G",
+    "Wang T",
+    "Wang B"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Meta-Analysis",
+    "Systematic Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42973833/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42962207",
+   "doi": "10.2196/95757",
+   "title": "Effects of Parent-Involved Digital Health Interventions on Adiposity-Related Outcomes and Behaviors in Children and Adolescents With Overweight or Obesity: Systematic Review and Meta-Analysis.",
+   "abstract": "BACKGROUND: Parental involvement in obesity interventions is considered essential for sustainable behavior change in children and adolescents with overweight or obesity; yet, the effectiveness of parent-involved digital health interventions (DHIs) and the influence of different delivery modalities remain unclear.\nOBJECTIVE: This study aimed to synthesize the effects of parent-involved DHIs on adiposity-related outcomes and behaviors and explore potential moderators.\nMETHODS: Nine databases were searched from inception to December 2025 to identify eligible randomized controlled trials (RCTs). Primary outcomes were adiposity-related outcomes such as BMI; secondary outcomes were adiposity-related behaviors, including dietary behavior, physical activity, and sedentary behavior. Standardized mean differences (SMDs; Hedges g) on primary outcomes were pooled using random-effects models. Prespecified subgroup analyses examined DHI delivery modalities and parent-involved strategies. Secondary outcomes were synthesized narratively. Risk of bias was assessed using the revised Cochrane Risk of Bias tool for randomized trials (RoB 2), and certainty of evidence was evaluated using GRADE (Grading of Recommendations, Assessment, Development, and Evaluation).\nRESULTS: Twenty-nine RCTs (4156 participants) were included, of which 22 contributed to the meta-analysis. Parent-involved DHIs produced a small but statistically significant reduction in BMI-related outcomes compared with controls (SMD=-0.11, 95% CI -0.19 to -0.04; P=.004; I²=0%). When stratified by control type, the pooled effect remained significant in trials using inactive controls (SMD=-0.15, 95% CI -0.25 to -0.04; P=.006; I²=0%), but not in trials using active controls (SMD=-0.07, 95% CI -0.19 to 0.04; P=.20; I²=0%). Subgroup differences on DHI delivery modalities and parent-involved strategies were not statistically significant. For adiposity-related behaviors, significant improvements were reported in 5 of 16 trials for dietary behaviors, 2 of 17 for physical activity, and 2 of 12 for sedentary behavior. The risk of bias was generally low to some concerns, and the overall certainty of evidence for BMI-related outcomes was moderate.\nCONCLUSIONS: Moderate-certainty evidence suggests that parent-involved DHIs may produce a small improvement in BMI-related outcomes among children and adolescents with overweight or obesity. However, evidence for improvements in adiposity-related behaviors remains limited, and neither the optimal digital delivery modality nor the most effective parent-involved strategy has been established. Future research should refine these interventions to identify optimal strategies and confirm their effectiveness.\nTRIAL REGISTRATION: PROSPERO CRD420251239829; https://www.crd.york.ac.uk/PROSPERO/view/CRD420251239829.",
+   "journal": "Journal of medical Internet research",
+   "journalAbbr": "J Med Internet Res",
+   "year": "2026",
+   "authors": "Zheng Y i in.",
+   "authorCount": 7,
+   "authorList": [
+    "Zheng Y",
+    "Huang J",
+    "Peng Y",
+    "Wu K",
+    "Sun F",
+    "Huang W"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42962207/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 5
+  },
+  {
+   "pmid": "42991639",
+   "doi": "10.3389/fphys.2026.1953636",
+   "title": "Structured effects of exercise on circulating brain-derived neurotrophic factor (BDNF) in postmenopausal women: a meta-analysis.",
+   "abstract": "OBJECTIVE: To systematically evaluate the effect of structured exercise interventions on circulating brain-derived neurotrophic factor (BDNF) levels among postmenopausal women, and to clarify the moderating effects of intervention modality, population characteristics, training duration, exercise intensity and energy-supply pattern on intervention outcomes, so as to provide evidence-based references for precise exercise interventions targeting brain health in postmenopausal women.\nMETHODS: Following the Preferred Reporting Items for Systematic Reviews and Meta-Analyses (PRISMA) statement, electronic databases including PubMed, Web of Science, EBSCO and CNKI were searched for original studies regarding the effects of various exercise interventions on BDNF in postmenopausal women, from database inception to August 1, 2026. The Cochrane Risk-of-Bias Tool was applied for randomized studies. For quasi-randomized and non-randomized intervention studies, we explicitly acknowledge limitations of this tool and interpret methodological assessments cautiously; studies with insufficient randomization reporting were rated as unclear risk of bias. Meta-analysis was performed using Review Manager 5.4 software. Effect sizes were presented as standardized mean difference (SMD) with 95% confidence interval (95% CI). Subgroup analysis, sensitivity analysis and publication-bias evaluation were also conducted.\nRESULTS: Twelve studies involving 351 participants were finally included, with 173 subjects in the intervention group and 178 subjects in the control group. All included trials adopted chronic long-term structured exercise interventions without acute single-bout exercise protocols. Pooled meta-analysis demonstrated that structured exercise interventions significantly elevated BDNF levels in postmenopausal women compared with control conditions [SMD = 0.64, 95% CI (0.11, 1.17), P = 0.02], with substantial between-study heterogeneity (I² = 81%, P < 0.0001). Subgroup analyses (only subgroups with ≥3 studies included for quantitative synthesis) indicated that intervention modality, population characteristics, training duration and energy-supply pattern were potential main sources of heterogeneity. Statistically-significant maximum effect sizes were observed in the resistance training subgroup [SMD = 1.07, 95% CI (0.12, 2.01), P = 0.03], healthy older/postmenopausal-women subgroup [SMD = 0.30, 95% CI (-0.05, 0.65), P = 0.009], anaerobic-energy-supply-predominant subgroup [SMD = 1.07, 95% CI (0.12, 2.01), P = 0.03]. Some potential moderators could not be quantitatively evaluated because corresponding subgroups contained fewer than three primary studies, and those comparisons are only discussed as exploratory clues rather than robust conclusions. Sensitivity analysis revealed no substantial shift in pooled effect direction after sequential exclusion of individual studies. Funnel-plot inspection and Egger's test detected no statistical evidence of publication asymmetry; nevertheless, these assessments were limited by the small number of included studies and cannot rule out publication bias definitively.\nCONCLUSION: Structured exercise interventions can significantly increase peripheral BDNF levels in postmenopausal women, which suggests beneficial impacts on neuroplasticity and brain health for this population. Chronic resistance-based exercise regimens dominated by anaerobic energy-supply exert superior regulatory effects among healthy postmenopausal women.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261468069, identifier CRD420261468069.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2026",
+   "authors": "Zhou Y i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Zhou Y",
+    "Chai J",
+    "Wang J",
+    "Wang J"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42991639/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42987975",
+   "doi": "10.1002/ejsc.70284",
+   "title": "Effects of Combined Blood Flow Restriction and Inter-Effort Recovery Hypoxia On Repeated-Sprint Performance And Physiological Responses: A Randomized And Single-Blinded Crossover Trial.",
+   "abstract": "We investigated the acute effects of local and/or systemic hypoxia on performance and psycho-physiological responses during repeated cycle sprints. Eleven physically active young adults (six men, five women) performed four sessions on separate days, each involving three sets of five 5-s all-out efforts on a cycle ergometer (25 seconds rest between efforts and 5 minutes rest between sets). Sessions were conducted under four conditions, combining blood flow restriction [BFR; 45% of arterial occlusion pressure (AOP)] or control (CON; 5% of AOP) applied bilaterally to the legs during sprints, with inter-effort recovery hypoxia [IEH; inspired oxygen fraction (FiO2) = 13.5%] or normoxia (NOR; FiO2 = 20.9%). Power output decreased across sprints and heart rate increased over sets, with no differences between conditions (Δ = -9.18%). IEH resulted in lower peripheral oxygen saturation (Δ = -8.0%) but higher oxygen uptake (Δ = 6.7 mL·kg-1 min-1) and minute ventilation (Δ = 6.1 L·kg-1 min-1), compared to normoxic conditions. Blood lactate concentration increased (Δ = 6.5 mM) post-session similarly across all conditions. Vastus lateralis muscle oxygenation during sprints and inter-set recovery was comparable across conditions, although the mean tissue saturation index during inter-set recovery was lower in BFR + IEH versus CON + NOR conditions (Δ = -4.0%). Ratings of perceived exertion (Δ = 22.5%), limb discomfort (Δ = 34.2%), and breathing difficulty (Δ = 43.7%) increased throughout the sets, independently of conditions. Despite physiological and perceptual adjustments across sprint repetitions, neither BFR during sprints nor systemic hypoxia during recovery altered mechanical output in physically active individuals.",
+   "journal": "European journal of sport science",
+   "journalAbbr": "Eur J Sport Sci",
+   "year": "2026",
+   "authors": "Carvalho CD i in.",
+   "authorCount": 7,
+   "authorList": [
+    "Carvalho CD",
+    "Putti GM",
+    "Ihsan M",
+    "Scott BR",
+    "Peeling P",
+    "Papoti M"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42987975/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42986000",
+   "doi": "10.1111/sms.70393",
+   "title": "Effects of Multicomponent Training on Body Composition and Cardiorespiratory Fitness in Adults With Type 2 Diabetes: A Randomized Controlled Trial.",
+   "abstract": "We investigated whether 14 weeks of multicomponent training delivered as small-sided soccer improves body composition, cardiorespiratory fitness, and metabolic outcomes in adults with type 2 diabetes. Adults aged 40-70 years (n = 111) were randomized to exercise (n = 66; three 60-min sessions per week) or usual care (n = 45). Constrained linear mixed models estimated between-group differences in change. No between-group difference was detected in the primary outcome, lean body mass (0.04 kg, 95% CI -0.97 to 1.05), or in fat mass, body fat percentage, or HbA1c. Compared with usual care, exercise produced greater increases in relative VO2peak (between-group difference: 2.80 mL·kg-1·min-1, 95% CI 1.69 to 3.92), absolute VO2peak (237 mL/min, 95% CI 143 to 331), and Yo-Yo Intermittent Endurance Level 1 test performance (122 m, 95% CI 12 to 232). Exploratory analyses showed lower C-peptide (-10.3%, 95% CI -19.0 to -0.6) and HOMA2-IR (-10.8%, 95% CI -20.1 to -0.6), and higher HOMA2-%S (+12.2%, 95% CI 0.6 to 25.1), in the exercise group relative to usual care. Exploratory three-way interaction tests provided no clear evidence that glucagon-like peptide-1 receptor agonist (GLP-1RA) use modified the effects on lean body mass, fat mass, or absolute VO2peak. Small-sided soccer improved cardiorespiratory fitness, whereas a benefit for lean body mass was not demonstrated. The metabolic findings require confirmation. Trial Registration: ClinicalTrials.gov identifier: NCT06478173.",
+   "journal": "Scandinavian journal of medicine & science in sports",
+   "journalAbbr": "Scand J Med Sci Sports",
+   "year": "2026",
+   "authors": "Skoradal MB i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Skoradal MB",
+    "Kristiansen J",
+    "Póvoas S",
+    "Johannesen HL",
+    "Ellingsgaard H",
+    "Olsen HW"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42986000/",
+   "topics": [
+    "redukcja",
+    "kondycja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42983555",
+   "doi": "10.1186/s12984-026-02094-4",
+   "title": "Systematic review on the association between brain-related measures and upper limb movement characteristics after stroke.",
+   "abstract": "BACKGROUND: Upper limb (UL) movements are highly diverse, as are movement deficits following stroke. The relationship that stroke pathology has with UL impairments and their recovery has been studied with an increasingly complex array of neuroimaging and neurophysiology tools. This systematic review summarizes evidence on brain-related measures and UL movement in subjects with stroke.\nMETHODS: Bibliographic databases were systematically searched for combinations of 'brain function' and 'kinematics/ kinetics/ muscle activity' and 'stroke' and 'upper limb'. Studies were included if both brain and UL movement measures were assessed in at least 10 subjects. Each study was evaluated for risk of bias (adapted QUADAS-2 tool). Information on assessments for brain and UL measures, their associations, and experimental tasks was extracted, summarized, and synthesized. This study was registered on PROSPERO (CRD42025637373).\nRESULTS: A total of 220 studies were included that reported 288 experimental tasks across 4'954 subjects with stroke (mean 59.7 years). Transcranial magnetic stimulation, functional magnetic resonance imaging (fMRI), and electroencephalography, commonly combined with grip force sensors and motion sensor- or camera-based systems, were the most frequently used methodologies. Overall, 92 brain-related and 201 UL metrics were assessed. Risk of bias was low-to-moderate. Structural brain measures revealed associations between corticospinal tract integrity and greater grip strength, as well as kinematic differences between left- and right-hemisphere stroke locations. For functional brain measures, increased activation of ipsilesional motor areas during fMRI was associated with improved smoothness. In addition, studies reported reduced activation intensity and excitability after stroke, alongside task-related recruitment of additional brain areas.\nDISCUSSION: This review summarizes a large and heterogeneous body of research reflecting substantial methodological and technological advances in the assessment of brain and UL movement measures after stroke. The current findings support the relevance and utility of combining brain-based and UL metrics to identify meaningful associations between neurological injury, brain function, and behavioral outcomes after stroke and thereby provide an improved understanding of movement after stroke.",
+   "journal": "Journal of neuroengineering and rehabilitation",
+   "journalAbbr": "J Neuroeng Rehabil",
+   "year": "2026",
+   "authors": "Schwarz A i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Schwarz A",
+    "Song MK",
+    "Wu M",
+    "Sakthi S",
+    "Settle M",
+    "Farahmand E"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42983555/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42983508",
+   "doi": "10.1186/s13102-026-01950-z",
+   "title": "Research trends and gaps in canoe sprint training: a scoping review.",
+   "abstract": "BACKGROUND: Canoe sprint is an Olympic aquatic discipline requiring complex biomechanical and physiological demands, including trunk rotation, upper-extremity power, and integrated aerobic-anaerobic energy systems. Despite growing interest in sport-specific training, training-related research in canoe sprint remains fragmented and has not been comprehensively synthesized. This scoping review aimed to systematically map international research trends in canoe sprint training, classify major training types and outcome measures, and identify evidence gaps to guide future inquiry.\nMETHODS: Following the PRISMA-ScR guidelines and the Arksey & O'Malley framework, three databases (PubMed, Web of Science, SCOPUS) were searched for peer-reviewed English-language articles published between January 2010 and March 2026. Studies were selected based on Participants, Concept, Context (PCC) criteria, and data were charted using descriptive and content analysis.\nRESULTS: Of 357 identified studies, 12 met inclusion criteria. High-Intensity Interval Training (HIIT), warm-up interventions, and resistance/core training were the predominant modalities. Studies were concentrated on male elite kayak athletes, with limited representation of female athletes and canoe events. Methodological quality was predominantly moderate, with small sample sizes and limited blinding.\nCONCLUSIONS: Canoe sprint training research remains at an early stage with notable gaps in female athlete representation, sport-specific biomechanical outcome measures, and longitudinal study designs. Future research should employ randomized controlled designs, diverse participant samples, and on-water performance assessments to strengthen the evidence base.",
+   "journal": "BMC sports science, medicine & rehabilitation",
+   "journalAbbr": "BMC Sports Sci Med Rehabil",
+   "year": "2026",
+   "authors": "Hwang M i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Hwang M",
+    "Jung J",
+    "Kim S",
+    "Chang E"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42983508/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42978043",
+   "doi": "10.1080/15502783.2026.2757309",
+   "title": "Exploratory serum renal biomarker and eGFR responses to high-protein diets during resistance versus concurrent training in resistance-trained men.",
+   "abstract": "BACKGROUND: High protein intake is common among resistance-trained athletes, but its association with renal biomarkers across different exercise modalities remains uncertain. This study investigated whether consuming a high-protein diet (3.2 g·kg⁻¹·d⁻¹) during 16 weeks of resistance training (RT) or concurrent training (CT) affects renal biomarkers and estimated glomerular filtration rate (eGFR) in resistance-trained men.\nMETHODS: Forty-eight resistance-trained men (26 ± 6 years; BMI 25.6 ± 2.9 kg·m⁻²) were randomized to 16 weeks of RT or CT (4 sessions·wk⁻¹) while consuming either 1.6 or 3.2 g·kg⁻¹·d⁻¹ of protein in a 2 × 2 factorial design. Forty-four participants with complete pre- and post-intervention data were analyzed. Fasting blood samples were assessed for blood urea nitrogen (BUN), BUN/creatinine ratio, cystatin C, and eGFR calculated using the CKD-EPI creatinine (2021), cystatin C (2012), and creatinine-cystatin C (2021) equations. Within-group changes were evaluated using paired t-tests, and factorial effects were assessed using linear mixed-effects models (Time × Training × Protein).\nRESULTS: No statistically significant Time × Protein or Time × Training × Protein interactions were detected for any renal biomarker or eGFR estimate (all p ≥ 0.182). No significant within-group changes occurred in the 1.6 g·kg⁻¹·d⁻¹ groups (all p > 0.05). In both 3.2 g·kg⁻¹·d⁻¹ groups, BUN and cystatin C increased (all p ≤ 0.017), while eGFR estimates decreased (all p ≤ 0.009). The BUN/creatinine ratio remained unchanged (p ≥ 0.614). However, these within-group findings were descriptive because the corresponding interaction effects were not statistically significant.\nCONCLUSIONS: In resistance-trained men, 16 weeks of high protein intake did not produce statistically detectable differences in renal biomarker or eGFR changes compared with moderate protein intake, irrespective of training modality. Although modest increases in BUN and cystatin C and small decreases in eGFR estimates were observed within the high-protein groups, these findings were not supported by significant factorial interactions. The limited sample size precludes excluding clinically meaningful differences, warranting further investigation in larger studies.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
+   "year": "2026",
+   "authors": "Bagheri R i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Bagheri R",
+    "Karimi Z",
+    "Ghobadi H",
+    "Kazeminasab F",
+    "Kreider RB",
+    "Ferns GA"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42978043/",
+   "topics": [
+    "zywienie",
+    "kondycja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42977993",
+   "doi": "10.1186/s13102-026-01943-y",
+   "title": "Hypoxic exposure and air-quality reporting in normobaric hypoxic resistance training: a systematic evidence map and exploratory meta-analysis.",
+   "abstract": "BACKGROUND: Normobaric hypoxic resistance training (NHRT) studies describe the hypoxic prescription using the fraction of inspired oxygen (FiO₂) or simulated altitude. However, FiO₂ is an external setting and may not fully represent the hypoxic stimulus experienced during training. Training SpO₂ responses, the hypoxia-delivery method, facility volume, gas flow, ventilation, CO₂, humidity and temperature may affect the exposure environment. These variables are important for interpreting and comparing NHRT studies, but their reporting has not been systematically evaluated.\nMETHODS: This evidence map assessed reporting of hypoxic exposure and air quality in chronic NHRT studies and conducted exploratory meta-analyses when outcomes and data were comparable. The primary evidence map comprised 16 independent chronic NHRT cohorts. Reporting completeness was assessed in this set and repeated in an extended 17-study set that included one additional air-quality reference study. Thirteen independent primary cohorts contributed to at least one exploratory meta-analysis. NHRT-versus-NRT syntheses used random-effects models and Hedges-corrected standardised mean differences.\nRESULTS: FiO₂ or simulated altitude was reported relatively well, whereas training SpO₂, CO₂, humidity, temperature, ventilation, space and flow-related variables were underreported. Thirteen independent cohorts contributed to at least one exploratory meta-analysis. Lower-limb maximal strength (7 studies; SMD = 0.07, 95% CI -0.26 to 0.41; I2 = 0%) and lean mass (5 studies; SMD = 0.12, 95% CI -0.25 to 0.49; I2 = 0%) did not show a clear additional advantage of NHRT over NRT. Whole-body body fat percentage showed an unstable numerical direction favouring NHRT (5 studies; SMD = -0.33, 95% CI -0.78 to 0.12; I2 = 23.2%). Local muscle morphology and local muscular endurance outcomes were supported by few studies and should be interpreted as exploratory.\nCONCLUSIONS: Existing NHRT studies report FiO₂ or simulated altitude relatively well, but actual exposure conditions and internal hypoxic responses remain incompletely described. Exploratory meta-analyses did not show that NHRT was superior to NRT for common outcomes related to strength, body composition or local muscle morphology. Future NHRT studies should report not only FiO₂, but also hypoxia-delivery method, internal oxygenation responses and air-quality control conditions.\nSYSTEMATIC REVIEW REGISTRATION: PROSPERO CRD420261405733.",
+   "journal": "BMC sports science, medicine & rehabilitation",
+   "journalAbbr": "BMC Sports Sci Med Rehabil",
+   "year": "2026",
+   "authors": "Guan Z i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Guan Z",
+    "Wang Z",
+    "Mao C",
+    "Liu W",
+    "Zhang C"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42977993/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42970451",
+   "doi": "10.1080/15502783.2026.2753371",
+   "title": "Effects of extremely low-volume high-intensity interval training combined with iron supplementation versus iron supplementation alone on postural control in young women with iron deficiency anemia: a randomized controlled trial.",
+   "abstract": "BACKGROUND: Recent research revealed postural control deterioration in young women with Iron Deficiency Anemia (IDA). To address this postural deficit, it is crucial to develop intervention strategies for postural rehabilitation in these individuals. This study aimed to explore the effect of 8-week extremely low-volume high-intensity interval training (HIIT) based on plyometric exercises combined with iron supplementation versus simple iron treatment on postural control of young women with IDA.\nMETHODS: This randomized controlled trial enrolled young women with IDA aged 18-25 years, who were randomly assigned to a training group (TG; n = 16) or a non-training group (NTG; n = 17). All participants received oral iron supplementation (ferrous sulfate, 494.5 mg/day, administered as 247.25 mg twice daily), while the TG additionally completed an 8-week extremely low-volume HIIT program based on plyometric exercises. Hemoglobin (Hb) and serum ferritin concentrations were assessed, alongside muscle endurance, reaction time performance, and postural control. Muscle endurance was evaluated using the Killy test, reaction time performance using an online simple reaction time test, and postural control using a stabilometric platform under bipodal and semi-tandem stance conditions. Postural assessments were conducted with eyes open (EO) and eyes closed (EC) on firm and foam surfaces. All outcomes were measured at baseline and 72 h after the final intervention session.\nRESULTS: After the 8-week intervention, this study demonstrated significant improvements across both groups, irrespective of the intervention. However, TG showed significantly greater post-intervention improvements than NTG in Hb concentration (P = 0.042), muscle endurance (P < 0.001), and postural control. Superior postural control in TG was observed during a bipedal stance on a foam surface (EO: P = 0.001); EC: P = 0.035), as well as during semi-tandem stance on a firm surface (EO: P = 0.015; EC: P = 0.040) and on a foam surface (EO: P = 0.019; EC: P = 0.003), compared to the NTG. With a Bonferroni-adjusted significance threshold for multiple comparisons (α = 0.00625), between-group differences in postural control remained significant for bipedal foam EO (P = 0.001) and semi-tandem foam EC (P = 0.003).\nCONCLUSIONS: The study showed that women with IDA improved their postural performance regardless of the intervention used. However, an 8-week program of extremely low-volume HIIT combined with plyometric exercises and iron supplementation had a more beneficial effect compared to traditional iron therapy. These greater improvements in postural control occurred alongside greater improvements in the Hb concentration and muscle endurance in the TG compared to the NTG.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
+   "year": "2026",
+   "authors": "Harrabi MA i in.",
+   "authorCount": 11,
+   "authorList": [
+    "Harrabi MA",
+    "Fendri T",
+    "Ayed R",
+    "Boughattas W",
+    "Chaari F",
+    "Mezghani I"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42970451/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42969580",
+   "doi": "10.1093/bmb/ldag044",
+   "title": "Little league shoulder revisited: a systematic review of the last decade.",
+   "abstract": "BACKGROUND: Physeal stress injuries involving the shoulder epiphyseal growth plate complex, known as Little League Shoulder (LLS), occur primarily in skeletally immature overhead athletes.\nSOURCES OF DATA: This systematic review included research on LLS published within the last 10 years, from 1 January 2015 through 23 September 2025, from four electronic databases (Embase, PubMed, SPORTDiscus, Cochrane Library) focusing on diagnosis, management, imaging, and criteria for return-to-sport.\nAREAS OF AGREEMENT: LLS is mainly described in male, skeletally immature overhead athletes aged 11-15. Early specialization, multi-team participation, and inadequate rest are reported risk factors. LLS commonly presents with throwing-related shoulder pain, proximal humeral physis tenderness, posterior capsule tightness, and scapular dyskinesia. X-rays remain first-line imaging, demonstrating lateral physeal widening and irregularity. Throwing cessation for 2-4 months, followed by rehabilitation and gradual return-to-throwing yields excellent short-term outcomes, with low rates of growth disturbance. Prevention strategies include pitch-counts, rest, proper throwing mechanics, and delayed specialization.\nAREAS OF CONTROVERSY: The prevalence of LLS remains unknown due to variable diagnostic criteria, imaging use, and underreporting. Recurrence and long-term sequelae are inconsistent across studies, and the reasons athletes discontinue baseball remain uncertain. Evidence is conflicting regarding the benefits of formal rehabilitation compared with rest alone.\nGROWING POINTS: Advanced imaging demonstrates structural remodeling of the shoulder, suggesting that repetitive loading during skeletal immaturity impacts long-term morphology and mechanics.\nAREAS TIMELY FOR DEVELOPING RESEARCH: Prospective studies using clinical and imaging criteria may help define the incidence, severity, risk factors, sport-specific patterns, and to clarify symptom resolution, humeral remodeling, and factors influencing attrition. Longitudinal studies should compare rest versus structured rehabilitation and varying return-to-throwing protocols.",
+   "journal": "British medical bulletin",
+   "journalAbbr": "Br Med Bull",
+   "year": "2026",
+   "authors": "Lenz A i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Lenz A",
+    "Johnson L",
+    "Riederer M",
+    "Provance A"
+   ],
+   "pubTypes": [
+    "Systematic Review",
+    "Journal Article"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42969580/",
+   "topics": [
+    "prehab"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42959053",
+   "doi": "10.3389/fendo.2026.1907308",
+   "title": "Quality of osteoporosis management guidelines produced in China: a systematic review.",
+   "abstract": "INTRODUCTION: This study employed the AGREE II and AGREE-REX instruments to assess the methodological rigor and recommendation quality of Chinese clinical practice guidelines (CPGs) for osteoporosis care.\nMETHODS: A systematic search was conducted across CNKI, SinoMed, Wanfang, VIP, Medlive, and the Chinese Medical Association website for CPGs published between January 2014 and December 2025. AGREE II was used to evaluate methodological quality, while AGREE-REX was applied to guidelines scoring ≥50% in at least three AGREE II domains.\nRESULTS: A total of 13 CPGs were analyzed. The median overall quality score was 54% (IQR: 49%-71%). The rigor of development domain scored the lowest [38% (25%-94%)], whereas stakeholder involvement and clarity of presentation scored the highest [72% (44%-72%) and 72% (61%-83%), respectively]. Ten guidelines met the threshold for AGREE-REX assessment, with a median recommendation quality score of 56% (32%-63%). A positive correlation was found between AGREE-REX and AGREE II overall scores (r = 0.665).\nCONCLUSIONS: The methodological and recommendation quality of Chinese osteoporosis CPGs is moderate. Recommendations focusing on functional assessment, diet and exercise, rehabilitation, and environmental modifications are valuable. Furthermore, traditional Chinese medicine exercises may offer a reference for CPG development in other countries.\nSYSTEMATIC REVIEW REGISTRATION: https://ebn.nursing.fudan.edu.cn/myRegisterList, identifier, ER20240722.",
+   "journal": "Frontiers in endocrinology",
+   "journalAbbr": "Front Endocrinol (Lausanne)",
+   "year": "2026",
+   "authors": "Liu X i in.",
+   "authorCount": 6,
+   "authorList": [
+    "Liu X",
+    "Ge M",
+    "Wu C",
+    "Shen K",
+    "Yang J",
+    "Sun S"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42959053/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 4
+  },
+  {
+   "pmid": "42998283",
+   "doi": "10.1093/ageing/afag323",
+   "title": "Eight-week omega-3 polyunsaturated fatty acid supplementation alters but does not attenuate exercise-induced muscle damage in older adults: a randomised controlled trial.",
+   "abstract": "BACKGROUND: Exercise-induced muscle damage (EIMD) serves as a model to study muscle plasticity and recovery. Exercise recovery declines with age, and while omega-3 polyunsaturated fatty acids (n-3 PUFA) exhibit inconsistent effects in younger adults, the effect in older adults is unknown.\nMETHODS: In a double-blind, randomised, placebo-controlled trial, 43 healthy, older women and men (65-85 years) ingested 5 mL of n-3 PUFA algae oil (2 g PUFA) or placebo for eight weeks. After eight weeks participants performed a bout of 10 × 10 eccentric-emphasised leg extensions. Outcome measures included quadriceps maximal voluntary contraction (MVC), muscle soreness, creatine kinase (CK) and inflammation (Interleukin-6, high-sensitive C-reactive protein; CRP) assessed at baseline and post-exercise.\nRESULTS: EIMD symptoms such as muscle soreness and function were modest and consistent with previous reports in older adults. Overall, n-3 PUFA supplementation did not improve functional recovery. However, a borderline greater MVC loss was observed in the n-3 PUFA group (time × group: P = .064), which resulted from significantly lower MVC in the n-3 PUFA group at 24 h (difference: -10.9%, 95%CI: -21.4;-0.40%, P = .042) and at 72 h (difference: -9.80, 95%CI: -18.3;-1.27, P = .025) post-exercise compared to the placebo. No significant overall group differences were observed for CK, interleukin-6, CRP, but CK concentrations significantly increased from baseline at 24 h post-exercise in the placebo group (change: +81.1%, 95%CI:10.5;152%, P = .014). Habitual physical activity and sex emerged as significant moderators of molecular recovery in an exploratory analysis.\nCONCLUSION: n-3 PUFA supplementation did not improve functional recovery, but different molecular response patterns were observed. Habitual physical activity and sex may be determinants of post-exercise response; this exploratory finding warrants confirmation in larger studies.",
+   "journal": "Age and ageing",
+   "journalAbbr": "Age Ageing",
+   "year": "2026",
+   "authors": "Li D i in.",
+   "authorCount": 11,
+   "authorList": [
+    "Li D",
+    "Göger L",
+    "Krüger N",
+    "Aleithe M",
+    "Peil A",
+    "Felsner J"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42998283/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 3
+  },
+  {
+   "pmid": "42985994",
+   "doi": "10.1111/jne.70308",
+   "title": "Effects of glucagon-like peptide-1 analogs on prolactin levels: A secondary analysis of a randomized, double-blind, placebo-controlled crossover trial.",
+   "abstract": "Prolactin (PRL) is involved in the modulation of sexual function. Glucagon-like peptide-1 receptor agonists (GLP-1 RAs) have been proposed to modulate reward-related processes beyond their effects on appetite, including sexual desire. In our previously published randomized parent trial of dulaglutide and sexual desire, we hypothesized that any potential effect on sexual desire could involve changes in PRL concentrations. Predefined secondary analysis of a single-center randomized, double blind, placebo-controlled, crossover trial involving 24 healthy eugonad men of normal weight (BMI 18.5-25 kg/m2 or BMI 25.1-30 kg/m2 and waist circumference <102 cm). PRL concentrations were the primary outcome of the present analysis and were measured at baseline and after 4 weeks of dulaglutide (1.5 mg s.c. weekly) and placebo treatment, alongside weight, appetite, and sexual desire. Median age of participants was 24.5 years (IQR [21.0, 29.0]), median BMI was 23.9 kg/m2 (IQR [22.2, 25.0]). PRL levels changed by -31.1 mU/L (SD 87.0 mU/L) on dulaglutide and +44.6 mU/L (SD 113.1 mU/L) on placebo over 4 weeks (estimated difference: -149.3 mU/L; 95% CI: [-298.5, -0.1]). On dulaglutide treatment, reductions in PRL correlated weakly with weight loss (r = 0.25), and more than half of participants (13/24) showed parallel decreases in PRL and appetite scores. Regarding sexuality, we found no association of PRL levels and sexual desire. Four weeks of dulaglutide treatment reduced PRL concentrations compared with placebo in healthy men. These findings may point to broader neuroendocrine effects of GLP-1 receptor activation and warrant further investigation. Trial registration: ClinicalTrials.gov NCT04687514.",
+   "journal": "Journal of neuroendocrinology",
+   "journalAbbr": "J Neuroendocrinol",
+   "year": "2026",
+   "authors": "Reber V i in.",
+   "authorCount": 9,
+   "authorList": [
+    "Reber V",
+    "Mueller CD",
+    "Lengsfeld S",
+    "Probst L",
+    "Werlen L",
+    "Allen R"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42985994/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 3
+  },
+  {
+   "pmid": "42982936",
+   "doi": "10.1007/s00520-026-11430-2",
+   "title": "Resistance training and protein supplementation in patients with incurable gastroesophageal cancer: a randomized feasibility trial.",
+   "abstract": "PURPOSE: Cancer cachexia is associated with reduced physical performance, quality of life, and survival in patients with incurable gastroesophageal cancer. Resistance training and protein supplementation have the potential to improve these outcomes. Whether an intervention comprising resistance training and protein supplementation is feasible during treatment for incurable gastroesophageal cancer is not known.\nMETHODS: This was an open-label, parallel-group, two-arm, randomized controlled feasibility trial. Patients with incurable gastroesophageal cancer scheduled to undergo first-line chemotherapy were randomized 2:1 to resistance training three times per week and daily protein supplementation or to control. The primary outcome, feasibility, was assessed by recruitment, retention, adherence, and harms. Secondary outcomes included body composition, physical performance, quality of life, and treatment tolerability.\nRESULTS: Out of 106 potentially eligible patients, 20 participants (5 female and 15 male, mean age 65) were randomized yielding a recruitment rate of 19%. 18 participants completed the trial with a retention rate of 90%. Median (25th; 75th percentile) adherence to the resistance training sessions and to the protein supplements was 63% (43; 77) and 39% (17; 76), respectively. Five participants (38%) met the minimum feasibility criteria of both interventions. No serious adverse events related to the intervention occurred. We found no between-group differences in body composition, physical performance, quality of life, or treatment tolerability.\nCONCLUSION: Resistance training combined with protein supplementation was not feasible during first-line chemotherapy in patients with incurable gastroesophageal cancer due to low accrual and low adherence to protein supplementation.\nTRIAL REGISTRATION: ClinicalTrials.gov NCT05650827. Study registration date 2022-12-12.",
+   "journal": "Supportive care in cancer : official journal of the Multinational Association of Supportive Care in Cancer",
+   "journalAbbr": "Support Care Cancer",
+   "year": "2026",
+   "authors": "Krabek R i in.",
+   "authorCount": 13,
+   "authorList": [
+    "Krabek R",
+    "Kristensen KB",
+    "Thomsen SN",
+    "Sørensen AH",
+    "Christensen PL",
+    "Pedersen KC"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42982936/",
+   "topics": [
+    "zywienie",
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 3
+  },
+  {
+   "pmid": "42977959",
+   "doi": "10.1186/s12891-026-10321-1",
+   "title": "Efficacy of real-time feedback exercise therapy in patients following total hip arthroplasty: a pilot cluster-randomized controlled trial.",
+   "abstract": "BACKGROUND: The prevalence of hip osteoarthritis is increasing and frequently requires total hip arthroplasty (THA). However, a standardized rehabilitation protocol to ensure sustainable functional recovery from THA has yet to be established. Therefore, this study compared the effects of real-time feedback-assisted home-exercise versus standard written instructions on the functional performance of patients following unilateral THA.\nMETHODS: This study was designed as a cluster-randomized controlled pilot trial with two parallel groups. Data from three-dimensional movement analysis, clinical examination, body-composition, activity monitoring and questionnaires were collected at baseline four weeks post-surgery, and follow-ups at three- and six-months post-surgery. Baseline measurements were followed by an eight-week supervised group exercise therapy. For home-exercise the control-group received printed instructions, whereas the intervention-group was provided a real-time feedback prototype.\nRESULTS: A total of 22 patients, aged 52 to 73 years (mean 62.9), participated in the study, 21 completed the intervention and thereof, 19 could be assessed at six-months post-surgery. No statistically significant differences were found for the primary outcomes frontal knee, pelvis and trunk range-of-motion during level walking, nor the secondary outcomes Harris Hip Score (HHS), SF-12 and IPAQ short form. Both groups improved their mean walking speed, cadence, step length, isometric knee flexion force of operated limb, SF-12 physical domain and HHS.\nCONCLUSION: Real-time feedback assisted home-exercise after THA did not differ when compared to commonly used written instructions in improving function and quality of life. However, patients in the real-time feedback group reported greater motivation and self-confidence regarding exercise performance, which was not reflected in the recorded numbers of home-exercise sessions.\nTRIAL REGISTRATION: The study was prospectively registered on 7th December 2023 at ClinicalTrials.gov NCT06161194.",
+   "journal": "BMC musculoskeletal disorders",
+   "journalAbbr": "BMC Musculoskelet Disord",
+   "year": "2026",
+   "authors": "Widhalm K i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Widhalm K",
+    "Berger-Maul L",
+    "Penasso H",
+    "Durstberger S",
+    "Putz P",
+    "Leder-Berg S"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42977959/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 3
+  },
+  {
+   "pmid": "42998302",
+   "doi": "10.1002/ejsc.70254",
+   "title": "Predicting the Free-Weight Back Squat 1-Repetition Maximum: Comparing Regression Models and Minimum Velocity Thresholds Across Sexes.",
+   "abstract": "This study compared the accuracy of eight velocity-based one-repetition maximum (1RM) estimation methods during the free-weight back squat across sexes. Thirty resistance-trained individuals (fifteen males and fifteen females) completed two sessions involving four submaximal loads followed by actual 1RM attempts. The load-velocity relationship (LVR) was modeled using both multiple-point (40%, 55%, 70%, and 85% 1RM) and two-point (40% and 85% 1RM) methods. Four minimum velocity threshold (MVT) approaches were applied: (a) general MVT (0.30 m·s-1), (b) actual MVT (the velocity at the actual 1RM in session one), (c) individual optimal MVT (the velocity that eliminated the difference between actual and predicted 1RM in session one), and (d) average optimal MVT (average of individual optimal MVTs across both sessions for each sex). Across sexes, only the individual and average optimal MVTs consistently avoided systematic overestimation of 1RM (raw errors ≤ 2.20 kg, p = 0.179-0.938) and produced relatively small absolute errors (4.5%-8.3%) compared with the other MVTs (8.0%-12.4%). Sex did not influence 1RM prediction accuracy (p = 0.636), whereas the LVR model demonstrated a borderline significant effect (p = 0.050). The optimal MVT did not differ between males (0.38 m·s-1) and females (0.36 m·s-1) but demonstrated poor reliability. Therefore, when direct 1RM testing is impractical, we recommend employing the unified value (0.37 m·s-1) as an efficient alternative for approximate 1RM estimation across sexes. However, caution should be exercised when using velocity-based methods to estimate 1RM in the free-weight back squat, as all methods exhibited relatively wide limits of agreement.",
+   "journal": "European journal of sport science",
+   "journalAbbr": "Eur J Sport Sci",
+   "year": "2026",
+   "authors": "Huang Y i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Huang Y",
+    "Chen Z",
+    "Weakley J",
+    "Fitas A",
+    "Li Z",
+    "Li D"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Comparative Study"
+   ],
+   "evidence": "other",
+   "evidenceLabel": "Inne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42998302/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 1
+  },
+  {
+   "pmid": "42973704",
+   "doi": "10.1177/1759720X261485403",
+   "title": "Towards a consensus definition of \"refractory osteoarthritis\". A systematic review.",
+   "abstract": "BACKGROUND: Osteoarthritis is a highly prevalent and debilitating joint disease. Some patients continue to experience substantial symptoms despite recommended, well-conducted treatment, but the absence of a widely accepted definition of \"refractory OA\" complicates their identification and management.\nOBJECTIVE: To establish an international, multidisciplinary consensus-based clinical definition of refractory knee osteoarthritis (OA).\nDESIGN: Systematic literature review followed by a two-round Delphi consensus study. Data Sources and Methods: PubMed, MEDLINE, PreMEDLINE, and Embase were searched without language or publication date restrictions to identify definitions and operational criteria for refractory, difficult-to-treat, or treatment-failure OA. The findings informed 15 statements developed by a 13-member international, multidisciplinary Technical Expert Panel, supported by a methodologist and a scientific librarian. Two anonymous voting rounds were conducted between June and August 2025, with consensus predefined as at least 85% of ratings within the same three-point region of a nine-point Likert scale. In round 1 participants could propose additional statements for voting. Final statements were discussed at the 8th International Symposium on Intra-Articular Treatment Congress in October 2025.\nRESULTS: Of 3047 records identified, 98 were screened and 43 publications (27 original articles and 16 reviews) were included. Consensus was achieved for 13 of 15 statements: nine in round 1 with unanimous agreement and four after revision in round 2. Osteoarthritis (OA) was assessed considering its causes, features, and impact on daily life. Experts took into account symptoms, progression, and treatment response, highlighting the need for optimal management. Refractory OA was defined as: persistent symptoms (at least 3-6 months) and altered quality of life despite optimized, guideline-based multimodal conservative OA therapy.\nCONCLUSIONS: A consistent definition of refractory knee OA (ROA) can identify patients with high unmet needs, support medical and surgical decision-making, and standardize eligibility for future research.",
+   "journal": "Therapeutic advances in musculoskeletal disease",
+   "journalAbbr": "Ther Adv Musculoskelet Dis",
+   "year": "2026",
+   "authors": "Migliore A i in.",
+   "authorCount": 13,
+   "authorList": [
+    "Migliore A",
+    "De Lucia O",
+    "Heusdens C",
+    "Alrahoomi A",
+    "Benazzo F",
+    "Chevalier X"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42973704/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 1
+  },
+  {
+   "pmid": "42931562",
+   "doi": "10.3390/sports14100425",
+   "title": "Sport-Specific Assessment for Change of Direction Ability in Taekwondo: A Brief Review with Guidelines for Testing.",
+   "abstract": "In taekwondo combat, agility is essential for rapid movement and maintaining match pace, as well as for executing unilateral technical actions swiftly in multidirectional planes. Furthermore, it is also required to dodge and block opponents' repeated attacks and to handle clinch situations and close-quarters combat effectively. This brief review aims to present the sport-specific tests available in the current literature for change of direction (COD) assessments in taekwondo, summarizing and analyzing the development and validation process of each test. This narrative review was conducted in accordance with the SANRA checklist. A literature search of PubMed/MEDLINE, Google Scholar and Scopus was performed for research articles from September 2017 to February 2026. The inclusion criteria were studies focusing on taekwondo athletes of any competitive level, age category, and nationality; evaluating COD through sport-specific testing; reporting at least one aspect of the validity, reliability, or sensitivity of the test; or providing a practical application of the test protocol. A total of 113 records were identified across databases. After deduplication, screening, and full-text assessment, 26 articles focused on the specific assessment of COD in taekwondo using three currently available tests (i.e., the Taekwondo-Specific Agility Test, the Taekwondo-Specific Aerobic-Anaerobic-Agility test, and the Taekwondo-Specific Change-of-Direction Speed Test) were included in the results. These tests incorporate greater sport-specificity and may provide greater ecological relevance than general tests, as they mimic the typical movements and technical actions of the match. However, the distinct methodological and measurement characteristics of each test must be considered in practical use. Future research should explore further aspects of validity (such as face, convergent and predictive validity), as well as clarify the reliability (i.e., test-retest and/or intra-/inter-rater) and sensitivity of these tests and develop classification tables. Practitioners can use the available tests to monitor the acute and chronic effects of training protocols on sport-specific COD performance, to monitor the relationship between the latter and other fundamental fitness components, or to classify athletes.",
+   "journal": "Sports (Basel, Switzerland)",
+   "journalAbbr": "Sports (Basel)",
+   "year": "2026",
+   "authors": "Apollaro G i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Apollaro G",
+    "Bishop C",
+    "Kons RL",
+    "Franchini E",
+    "Detanico D",
+    "Ruggeri P"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42931562/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-09T12:17:27.885Z",
+   "score": 1
+  },
   {
    "pmid": "42961026",
    "doi": "10.1111/sms.70384",
@@ -973,7 +1770,8 @@
    "url": "https://pubmed.ncbi.nlm.nih.gov/42952831/",
    "topics": [
     "hipertrofia",
-    "populacje"
+    "populacje",
+    "adherencja"
    ],
    "topJournal": false,
    "firstSeen": "2026-11-02T11:47:32.327Z",
