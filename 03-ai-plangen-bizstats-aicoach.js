@@ -1590,7 +1590,7 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
           "tempo": "3-1-1-0",
           "drop": "1 albo pusty string — tylko gdy trener wybrał Drop-sety",
           "dropStep": "25% albo 10kg — pusty string bez drop setu",
-          "intensification": [{"type":"drop_set","protocol":"Ostatnia seria: bez przerwy zmniejsz ciężar o 25% i wykonaj 8–12 powtórzeń"}]
+          "intensification": [{"type":"drop_set","protocol":"Ostatnia seria: bez przerwy zmniejsz ciężar o 25% i wykonaj 8–12 powtórzeń","weeks":[5,6,7]}]
         }
       ]
     }
@@ -1627,7 +1627,7 @@ POUFNOŚĆ: status farmakologiczny i szczegóły są wyłącznie kontekstem tren
 OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla każdej partii zsumuj w pamięci serie robocze ze wszystkich dni tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Pole "weeklyVolume" musi odzwierciedlać faktyczną sumę, nie szacunek. Nie dodawaj ćwiczenia tylko po to, aby dobić do MEV: najpierw sprawdź czas sesji, staż, wiek, regenerację, priorytety oraz konserwatywne limity objętości.
 SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: licz sumę tygodniową, ale nie próbuj wyrównywać nierównego układu czterech sesji przez przeładowanie pojedynczego dnia. Zachowaj rotację kolejki PPL między tygodniami.
 
-METODY INTENSYFIKACJI DOSTĘPNE (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. To lista metod do wyboru, nie obowiązek użycia każdej. Dobierz zwykle 1–2 pasujące metody na trening i rozłóż je oszczędnie. Każdą używaną metodę MUSISZ zapisać w polu konkretnego ćwiczenia "intensification" jako listę obiektów {"type":"nazwa_typu","protocol":"dokładna instrukcja dla klienta"}. Użyj wyłącznie: drop_set, mechanical_drop_set, rest_pause, myo_reps, superset, combined_sets, giant_set, partial_reps, one_and_half, cluster_set, eccentric, hiit. "protocol" ma jasno wskazać co robi klient, w której serii i — gdy dotyczy — drugie ćwiczenie, czas lub liczbę powtórzeń. Gdy używasz drop_set, dodatkowo MUSISZ wpisać "drop":"1" oraz "dropStep":"25%"; przy rest_pause wpisz "rp":"1", a przy cluster_set "cluster":"1". Nie wpisuj metody wyłącznie w notes. Stosuj tylko metodę zaznaczoną przez trenera.
+METODY INTENSYFIKACJI DOSTĘPNE (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. To lista metod do wyboru, nie obowiązek użycia każdej. Dobierz zwykle 1–2 pasujące metody na trening i rozłóż je oszczędnie. Każdą używaną metodę MUSISZ zapisać w polu konkretnego ćwiczenia "intensification" jako listę obiektów {"type":"nazwa_typu","protocol":"dokładna instrukcja dla klienta","weeks":[numery tygodni]}. Pole "weeks" mówi, w których tygodniach planu metoda obowiązuje (np. [3,4,5,6,7]); metody mogą się zmieniać w trakcie cyklu (np. tydz. 1–3 bez metody, 4–5 rest-pause, 6–7 drop set), a w tygodniu deload nie stosuj żadnej metody. Użyj wyłącznie: drop_set, mechanical_drop_set, rest_pause, myo_reps, superset, combined_sets, giant_set, partial_reps, one_and_half, cluster_set, eccentric, hiit. "protocol" ma jasno wskazać co robi klient, w której serii i — gdy dotyczy — drugie ćwiczenie, czas lub liczbę powtórzeń. Gdy używasz drop_set, dodatkowo MUSISZ wpisać "drop":"1" oraz "dropStep":"25%"; przy rest_pause wpisz "rp":"1", a przy cluster_set "cluster":"1". Nie wpisuj metody wyłącznie w notes. Stosuj tylko metodę zaznaczoną przez trenera.
 SCHEMATY METOD: Drop-set = po serii zmniejsz ciężar o ok. 20–30% i kontynuuj; najwyżej 1–2 zrzuty. Rest-pause = seria blisko upadku, 15–25 s przerwy, następnie 1–3 krótkie dogrywki po kilka powtórzeń. Myo-reps = seria aktywacyjna 12–20 powt. blisko upadku, 15–20 s przerwy, następnie 3–5 mini-serii po 3–5 powt.; zakończ, gdy nie utrzymasz celu lub techniki. Nie łącz rest-pause i myo-reps w jednym ćwiczeniu.
 Drop-set mechaniczny = bez zmiany ciężaru przejdź do łatwiejszej dźwigni/ustawienia tego samego ruchu, zachowując kontrolę. Serie łączone / pre-exhaust = izolacja danej partii, po niej bezpośrednio ćwiczenie wielostawowe na tę samą partię; zmniejsz ciężar w drugim ćwiczeniu, jeśli technika lub wynik ucierpi. Seria gigant = 3 ćwiczenia tej samej partii kolejno; maksymalnie jeden taki blok na sesję. Powtórzenia częściowe w wydłużeniu = 4–8 kontrolowanych powtórzeń w bezbolesnym, wydłużonym fragmencie zakresu po pełnych powtórzeniach; tylko stabilne ćwiczenie i pełna kontrola. Powtórzenia 1,5 = pełne powtórzenie + połowa w wybranym zakresie, liczone jako jedno; odpowiednio zmniejsz ciężar. Serie klastrowe = podziel serię siłową na małe grupy (np. 4+4+4) z 15–30 s przerwy; zachowaj zapas i szybkość, nie doprowadzaj do upadku. Akcent ekscentryczny = opuszczanie przez 3–5 s; bez wymuszania pomocy partnera i bez dodatkowego przeciążenia ponad kontrolę ćwiczącego. Superseria antagonistyczna może łączyć partie przeciwstawne; HIIT/interwały dobieraj tylko do celu kondycja/atletyzm, a nie jako metodę hipertrofii.
 OGRANICZENIA: techniki wydłużające serię (drop-set, rest-pause, myo-reps, gigant, częściowe) dawaj głównie w ostatniej serii stabilnej maszyny, wyciągu lub izolacji, nie w ciężkich przysiadach, martwym ciągu ani wyciskaniu bez asekuracji. Początkujący i osoby w rehabilitacji: nie planuj metod do upadku; jeśli ryzyko, ból lub ograniczenie techniki — pomiń metodę i zapisz zwykłą serię. Maksymalnie jedna metoda wydłużająca serię na ćwiczenie i nie stosuj ich na wszystkie ćwiczenia tej samej partii w jednej sesji. Serie klastrowe przypisuj głównie do celu siła/moc. W tygodniu deload usuń metody intensyfikacji. Nie zwiększaj nimi automatycznie tygodniowej objętości — zastępują standardową serię lub jej część. RPE/RIR to sposób dozowania wysiłku, nie technika do dopisania jako drop-set; umieść docelowe RIR w polu ćwiczenia.
@@ -2715,13 +2715,13 @@ function planPdfWeekArrow(ex,wk,prevWk){
   if(dir<0)return '<span class="plan-pdf-arrow-dn">▼</span>';
   return '';
 }
-function planPdfWeekCell(ex,wk,prevWk){
+function planPdfWeekCell(ex,wk,prevWk,ints){
   const w=(ex&&ex[wk])||{};
   const s=w.s||ex.sets||'3';
   const r=w.r||ex.reps||'10';
   const rpe=w.rpe||ex.rpe||ex.rir||'';
   const kg=w.kg!=null&&w.kg!==''?String(w.kg):'';
-  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}${kg?`<div class="plan-pdf-wk-kg">${planPdfEsc(kg)} kg</div>`:''}</div>`;
+  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}${kg?`<div class="plan-pdf-wk-kg">${planPdfEsc(kg)} kg</div>`:''}${(ints||[]).length&&typeof planPdfIntTag==='function'?`<div class="plan-pdf-wk-ints">${ints.map(planPdfIntTag).join('')}</div>`:''}</div>`;
 }
 
 /** Zapisany plan z biblioteki / profilu → model PDF (jak generator AI). */
@@ -2766,6 +2766,8 @@ function planToPdfModel(plan){
         notes,note:src.note||src.notes||'',
         tempo:src.tempo||'',
         priority:src.priority===true||src.priorytet===true,
+        intensification:src.intensification||src.intensificationMethods||'',
+        drop:src.drop||'',dropStep:src.dropStep||'',rp:src.rp||'',cluster:src.cluster||'',
         muscleGroup:src.muscleGroup||d.muscles||d.focus||''
       };
       weekKeys.forEach(wk=>{
@@ -2888,6 +2890,82 @@ function planPdfToggleCycle(btn){
   btn.textContent=on?'Ukryj tabelę cyklu':'Pokaż cały cykl w tabeli';
 }
 
+// ── Metody intensyfikacji na planie: wyraźny znaczek + proste wyjaśnienie dla klienta ──
+const PLAN_PDF_INT_SIMPLE={
+  myo_reps:{label:'MYO-REPS',color:'#1d4ed8',bg:'#eff4ff',when:'ostatnia seria',simple:'Zrób serię prawie do upadku. Odłóż ciężar na 3–5 głębokich oddechów (ok. 15 s) i zrób 3–5 powtórzeń. Powtórz takie mini-serie 3–4 razy tym samym ciężarem.'},
+  drop_set:{label:'DROP SET',color:'#c81e1e',bg:'#fff1f1',when:'ostatnia seria',simple:'Zrób serię prawie do upadku, od razu zmniejsz ciężar o ok. 25% i bez odpoczynku rób dalej, aż zostaną 1–2 powtórzenia w zapasie.'},
+  mechanical_drop_set:{label:'DROP SET MECHANICZNY',color:'#9f1239',bg:'#fff1f5',when:'ostatnia seria',simple:'Gdy kończą się siły, bez odpoczynku przejdź na łatwiejszą wersję tego ruchu tym samym ciężarem i rób dalej.'},
+  rest_pause:{label:'REST-PAUSE',color:'#b54708',bg:'#fff7ed',when:'ostatnia seria',simple:'Zrób serię prawie do upadku, odpocznij 15–20 s i dorób ile się da (zwykle 2–4 powtórzenia). Możesz to powtórzyć jeszcze raz.'},
+  superset:{label:'SUPER-SERIA',color:'#0f766e',bg:'#effcf9',when:'z następnym ćwiczeniem',simple:'Zrób to ćwiczenie i od razu, bez przerwy, drugie wskazane. Odpoczywasz dopiero po obu.'},
+  combined_sets:{label:'SERIE ŁĄCZONE',color:'#0e7490',bg:'#ecfeff',when:'blok ćwiczeń',simple:'Zrób wskazane ćwiczenia jedno po drugim, bez przerw. Odpoczywasz dopiero po całym bloku.'},
+  giant_set:{label:'SERIA GIGANT',color:'#155e75',bg:'#ecfeff',when:'blok ćwiczeń',simple:'Zrób cały blok ćwiczeń po kolei, bez przerw. Odpoczywasz po całej rundzie.'},
+  partial_reps:{label:'POWTÓRZENIA CZĘŚCIOWE',color:'#4d7c0f',bg:'#f7fee7',when:'koniec serii',simple:'Gdy nie dasz rady zrobić pełnego powtórzenia, dorób 3–5 krótszych ruchów w zakresie, który nie boli.'},
+  one_and_half:{label:'POWTÓRZENIA 1,5',color:'#3f6212',bg:'#f7fee7',when:'każde powtórzenie',simple:'Pełny ruch w dół, połowa w górę, znowu w dół i dopiero cały ruch w górę. To jedno powtórzenie.'},
+  cluster_set:{label:'CLUSTER SET',color:'#067647',bg:'#ecfdf3',when:'w trakcie serii',simple:'Podziel serię na małe porcje (np. po 3 powtórzenia) z 15–30 s przerwy, tym samym ciężarem.'},
+  eccentric:{label:'WOLNE OPUSZCZANIE',color:'#854d0e',bg:'#fefce8',when:'każde powtórzenie',simple:'Opuszczaj ciężar powoli, licząc do 3–5. W górę normalnym tempem.'},
+  hiit:{label:'INTERWAŁY',color:'#475569',bg:'#f1f5f9',when:'po treningu siłowym',simple:'Krótko bardzo mocno, potem spokojnie, według czasów z planu.'}
+};
+const PLAN_PDF_INT_RE=[['mechanical_drop_set','drop[ -]?set mechaniczn'],['drop_set','drop[ -]?set|drop[ -]?sety'],['rest_pause','rest[ -]?pause'],['myo_reps','myo[ -]?rep'],['superset','super[ -]?seri'],['giant_set','seri[ae] gigant'],['cluster_set','klast|cluster'],['one_and_half','1[,.]5 powt|powtórzeni[ae] 1[,.]5'],['partial_reps','częściow[ey]? powt|partial'],['eccentric','ekscentrycz'],['hiit','hiit|interwał']];
+function planPdfIntMethods(ex){
+  if(!ex)return [];
+  let list=[];
+  try{if(typeof exerciseIntensificationMethods==='function')list=exerciseIntensificationMethods(ex)||[];}catch(_){list=[];}
+  if(!list.length){
+    // Bez 01-core (np. w teście): czytamy pole intensification i flagi drop/rp/cluster wprost.
+    let raw=ex.intensification||[];if(!Array.isArray(raw))raw=raw?[raw]:[];
+    raw.forEach(x=>{const t=String(x&&typeof x==='object'?(x.type||x.name||''):x).toLowerCase().replace(/[\s-]+/g,'_');if(PLAN_PDF_INT_SIMPLE[t])list.push({type:t,protocol:x&&typeof x==='object'?(x.protocol||''):'',weeks:x&&typeof x==='object'&&Array.isArray(x.weeks)?x.weeks:null});});
+    if(ex.drop&&!list.some(m=>m.type==='drop_set'))list.push({type:'drop_set',protocol:''});
+    if(ex.rp&&!list.some(m=>m.type==='rest_pause'))list.push({type:'rest_pause',protocol:''});
+    if(ex.cluster&&!list.some(m=>m.type==='cluster_set'))list.push({type:'cluster_set',protocol:''});
+  }
+  const seen=new Set(list.map(m=>m.type));
+  const notes=String(ex.notes||ex.note||'');
+  PLAN_PDF_INT_RE.forEach(([type,re])=>{if(!seen.has(type)&&new RegExp(re,'i').test(notes)&&!(type==='drop_set'&&seen.has('mechanical_drop_set'))){seen.add(type);list.push({type,protocol:''});}});
+  return list.filter(m=>PLAN_PDF_INT_SIMPLE[m.type]).map(m=>{
+    const d=PLAN_PDF_INT_SIMPLE[m.type];
+    const weeks=Array.isArray(m.weeks)?m.weeks.map(n=>parseInt(n,10)).filter(n=>n>0):null;
+    return{type:m.type,label:d.label,color:d.color,bg:d.bg,when:d.when,protocol:String(m.protocol||'').trim(),simple:d.simple,weeks:weeks&&weeks.length?weeks:null};
+  });
+}
+function planPdfStripIntNote(tip,methods){
+  if(!tip||!methods||!methods.length)return tip;
+  // „Ostatnia seria: myo-reps.” znika z opisu, bo metoda ma własny, wyraźny opis.
+  const parts=String(tip).split(/(?<=[.!?])\s+/);
+  const out=parts.filter(sen=>!(sen.length<70&&PLAN_PDF_INT_RE.some(([type,re])=>methods.some(m=>m.type===type)&&new RegExp(re,'i').test(sen))));
+  return out.join(' ').trim();
+}
+// Tygodnie, w których metoda obowiązuje: z pola weeks albo wszystkie poza deloadem.
+function planPdfIntWeeks(m,weekKeys,phases){
+  const all=(weekKeys||[]).map((wk,i)=>i+1);
+  if(m.weeks)return all.filter(n=>m.weeks.includes(n));
+  return all.filter((n,i)=>!planPdfIsDeload((phases||{})[weekKeys[i]]));
+}
+function planPdfWeeksLabel(nums,total){
+  if(!nums.length)return '';
+  if(nums.length===total)return 'każdy tydzień';
+  const parts=[];let a=nums[0],b=nums[0];
+  nums.slice(1).concat([null]).forEach(n=>{if(n===b+1){b=n;return;}parts.push(a===b?'T'+a:'T'+a+'–T'+b);a=b=n;});
+  return parts.join(', ');
+}
+function planPdfWeekInts(ex,wk,wi,weekKeys,phases,methods){
+  const cell=ex&&ex[wk];
+  if(cell&&typeof cell==='object'&&cell.intensification!=null){
+    let raw=cell.intensification;if(!Array.isArray(raw))raw=raw?[raw]:[];
+    return raw.map(x=>String(x&&typeof x==='object'?(x.type||x.name||''):x).toLowerCase().replace(/[\s-]+/g,'_')).filter(t=>PLAN_PDF_INT_SIMPLE[t]).map(t=>({type:t,label:PLAN_PDF_INT_SIMPLE[t].label}));
+  }
+  return (methods||[]).filter(m=>planPdfIntWeeks(m,weekKeys,phases).includes(wi+1));
+}
+function planPdfIntTag(m){
+  const d=PLAN_PDF_INT_SIMPLE[m.type]||{};
+  return `<span class="plan-pdf-wk-int" data-int="${planPdfEsc(m.type)}" style="color:${d.color||'#c81e1e'};border-color:${d.color||'#c81e1e'};background:${d.bg||'#fff1f1'}">⚡ ${planPdfEsc(d.label||m.label||m.type)}</span>`;
+}
+function planPdfIntBlock(methods,cls,weekKeys,phases){
+  return methods.map(m=>{
+    const wl=weekKeys&&weekKeys.length>1?planPdfWeeksLabel(planPdfIntWeeks(m,weekKeys,phases),weekKeys.length):'';
+    return `<div class="${cls}" data-int="${planPdfEsc(m.type)}" style="border-color:${m.color};border-left-color:${m.color};background:${m.bg}"><b style="color:${m.color}">⚡ ${planPdfEsc(m.label)}</b> <small>${planPdfEsc(m.when)}${wl?' · '+planPdfEsc(wl):''}</small><span>${planPdfEsc(m.simple)}</span>${m.protocol&&m.protocol!==m.simple?`<em>Plan: ${planPdfEsc(m.protocol)}</em>`:''}</div>`;
+  }).join('');
+}
+
 // ── Wydruk / PDF planu: osobny, zwarty dokument (tabela całego cyklu), bez ekranu aplikacji w tle ──
 const PLAN_PDF_PRINT_CSS=`
 @page{size:A4 landscape;margin:9mm 8mm;}
@@ -2920,8 +2998,20 @@ td.pp-wk span{display:block;font-size:7pt;color:#4b5563;white-space:nowrap;}
 tr{break-inside:avoid;}
 tbody tr:nth-child(even) td{background-color:#fafbfc;}
 tbody tr:nth-child(even) td.is-deload{background:#e3f8ea;}
+.pp-int{margin-top:2.5pt;border:0.8pt solid #e11f2e;border-left:3pt solid #e11f2e;background:#fff1f2;border-radius:3pt;padding:2pt 4pt;font-size:7.4pt;line-height:1.3;color:#111827;break-inside:avoid;}
+.pp-int b{color:#b4151f;font-size:8pt;letter-spacing:0.2px;}
+.pp-int i{font-style:normal;color:#6b7280;font-size:7pt;}
+.pp-int span{display:block;}
+.pp-int .pp-int-plan{color:#374151;margin-top:1pt;}
+.pp-wint{display:block;margin:1.5pt auto 0;font-style:normal;font-weight:800;font-size:6.3pt;letter-spacing:0.2px;border:0.6pt solid;border-radius:5pt;padding:0 2pt;white-space:nowrap;width:fit-content;}
+.pp-legend{margin-top:8px;border:0.8pt solid #cbd5e1;border-radius:4pt;padding:5pt 7pt;break-inside:avoid;}
+.pp-legend-h{font-weight:800;font-size:9.5pt;margin-bottom:4pt;}
+.pp-legend-i{border-left:4pt solid;border-radius:2pt;padding:2.5pt 6pt;margin-bottom:3pt;font-size:8pt;line-height:1.35;}
+.pp-legend-i b{display:inline-block;min-width:105pt;font-size:8.3pt;}
+.pp-legend-note{font-size:7.5pt;color:#4b5563;margin-top:2pt;}
 .pp-up{color:#067647;font-size:6.5pt;}.pp-dn{color:#b42318;font-size:6.5pt;}
-.pp-foot{margin-top:6px;font-size:7pt;color:#6b7280;display:flex;justify-content:space-between;}
+.pp-foot{margin-top:6px;font-size:7pt;color:#6b7280;display:flex;justify-content:space-between;gap:14px;}
+.pp-foot span:last-child{white-space:nowrap;}
 `;
 function planPdfPrintHTML(root){
   if(!root)return '';
@@ -2934,6 +3024,7 @@ function planPdfPrintHTML(root){
     const lis=[...b.querySelectorAll('li')].map(li=>`<li>${esc(txt(li))}</li>`).join('');
     return `<div><b>${esc(h)}:</b> ${lis?`<ul>${lis}</ul>`:esc(txt(b.querySelector('p')))}</div>`;
   }).join('');
+  const used=new Map();
   const days=[...root.querySelectorAll('.plan-pdf-day')].map(day=>{
     const head=txt(day.querySelector('.plan-pdf-day-h')?.firstChild);
     const ths=[...day.querySelectorAll('.plan-pdf-cycle thead th')].slice(1);
@@ -2948,6 +3039,11 @@ function planPdfPrintHTML(root){
       const tipRow=tr.nextElementSibling&&tr.nextElementSibling.classList.contains('plan-pdf-tiprow')?tr.nextElementSibling:null;
       const tipSpan=tipRow?[...tipRow.querySelectorAll('span')].find(sp=>/^Wskazówka:/.test(txt(sp))):null;
       const tip=tipSpan?txt(tipSpan).replace(/^Wskazówka:\s*/,''):'';
+      const ints=tipRow?[...tipRow.querySelectorAll('.plan-pdf-int')].map(el=>{
+        const type=el.getAttribute('data-int')||'';const d=PLAN_PDF_INT_SIMPLE[type]||{};
+        used.set(type,{label:d.label||txt(el.querySelector('b')).replace(/^⚡\s*/,''),color:d.color||'#c81e1e',bg:d.bg||'#fff1f1',simple:d.simple||txt(el.querySelector('span'))});
+        return `<div class="pp-int" style="border-color:${d.color||'#c81e1e'};background:${d.bg||'#fff1f1'}"><b style="color:${d.color||'#c81e1e'}">⚡ ${esc(d.label||'')}</b> <i>${esc(txt(el.querySelector('small')))}</i>${el.querySelector('em')?`<span class="pp-int-plan">${esc(txt(el.querySelector('em')))}</span>`:''}</div>`;
+      }).join(''):'';
       const rest=txt(exTd.querySelector('.plan-pdf-rest')).replace(/^⏱\s*/,'');
       const pri=!!exTd.querySelector('.plan-pdf-pri');
       const wks=tds.slice(1).map(td=>{
@@ -2955,9 +3051,11 @@ function planPdfPrintHTML(root){
         const arrow=sr&&sr.querySelector('.plan-pdf-arrow-up')?'<i class="pp-up">▲</i>':(sr&&sr.querySelector('.plan-pdf-arrow-dn')?'<i class="pp-dn">▼</i>':'');
         const srTxt=txt(sr).replace(/[▲▼]/g,'').replace(/-/g,'–');
         const extra=[txt(td.querySelector('.plan-pdf-wk-rpe')),txt(td.querySelector('.plan-pdf-wk-kg'))].filter(Boolean).join(' · ');
-        return `<td class="pp-wk${td.classList.contains('is-deload')?' is-deload':''}"><b>${esc(srTxt)}${arrow}</b>${extra?`<span>${esc(extra)}</span>`:''}</td>`;
+        const tags=[...td.querySelectorAll('.plan-pdf-wk-int')].map(t=>{const d=PLAN_PDF_INT_SIMPLE[t.getAttribute('data-int')]||{};return `<em class="pp-wint" style="color:${d.color||'#c81e1e'};border-color:${d.color||'#c81e1e'};background:${d.bg||'#fff1f1'}">${esc(d.label||txt(t).replace(/^⚡\s*/,''))}</em>`;}).join('');
+        const first=td.querySelector('.plan-pdf-wk-int');const fd=first?(PLAN_PDF_INT_SIMPLE[first.getAttribute('data-int')]||{}):null;
+        return `<td class="pp-wk${td.classList.contains('is-deload')?' is-deload':''}"${fd?` style="box-shadow:inset 0 -2.5pt 0 ${fd.color};background:${fd.bg}"`:''}><b>${esc(srTxt)}${arrow}</b>${extra?`<span>${esc(extra)}</span>`:''}${tags}</td>`;
       }).join('');
-      return `<tr><td class="pp-n">${i+1}</td><td class="pp-exc"><div class="pp-name">${pri?'<span class="pp-pri">PRIORYTET</span>':''}${esc(txt(exTd.querySelector('.plan-pdf-ex-name')))}</div>${tip?`<div class="pp-tip">${esc(tip)}</div>`:''}</td><td class="pp-rest">${esc(rest)}</td>${wks}</tr>`;
+      return `<tr><td class="pp-n">${i+1}</td><td class="pp-exc"><div class="pp-name">${pri?'<span class="pp-pri">PRIORYTET</span>':''}${esc(txt(exTd.querySelector('.plan-pdf-ex-name')))}</div>${tip?`<div class="pp-tip">${esc(tip)}</div>`:''}${ints}</td><td class="pp-rest">${esc(rest)}</td>${wks}</tr>`;
     }).join('');
     return `<section class="pp-day"><div class="pp-day-h">${esc(head)}</div><table><thead><tr><th class="pp-n">#</th><th class="pp-ex">Ćwiczenie</th><th class="pp-rest">Pauza</th>${cols}</tr></thead><tbody>${rows}</tbody></table></section>`;
   }).join('');
@@ -2966,7 +3064,8 @@ function planPdfPrintHTML(root){
 <div class="pp-head"><div><div class="pp-title">PLAN TRENINGOWY</div><div class="pp-sub">${esc(title)}</div></div><div class="pp-meta">${kpis}</div></div>
 ${boxes?`<div class="pp-info">${boxes}</div>`:''}
 ${days}
-<div class="pp-foot"><span>W komórce: serie × powtórzenia, pod spodem RPE i ciężar. ▲ ▼ zmiana względem poprzedniego tygodnia. Zielona kolumna = deload.</span><span>${esc(foot)}</span></div>
+${used.size?`<section class="pp-legend"><div class="pp-legend-h">⚡ Metody intensyfikacji — jak je wykonać</div>${[...used.values()].map(u=>`<div class="pp-legend-i" style="border-left-color:${u.color};background:${u.bg}"><b style="color:${u.color}">${esc(u.label)}</b><span>${esc(u.simple)}</span></div>`).join('')}<div class="pp-legend-note">Kolorowa kratka w tygodniu = w tym tygodniu robisz tę metodę (zwykle w ostatniej serii). Kratka bez koloru = zwykłe serie.</div></section>`:''}
+<div class="pp-foot"><span>W komórce: serie × powtórzenia, pod spodem RPE i ciężar. ▲ ▼ zmiana względem poprzedniego tygodnia. Zielona kolumna = deload. Kolor i ⚡ = metoda intensyfikacji (objaśnienie na końcu).</span><span>${esc(foot)}</span></div>
 </body></html>`;
 }
 function planPdfPrint(){
@@ -3056,7 +3155,8 @@ function buildPlanPDFHTML(plan,client){
     const cards=exs.map((e,ei)=>{
       const pri=planPdfIsPriority(e,client)||ei===0;
       const rest=e.rest||((e.w1||{}).rest)||'90s';
-      const tip=planPdfCleanTip(e.notes||e.note||e.tempo||'');
+      const ints=planPdfIntMethods(e);
+      const tip=planPdfStripIntNote(planPdfCleanTip(e.notes||e.note||e.tempo||''),ints);
       const biomechTip=planPdfBiomechTip(e);
       const doses=weekKeys.map((wk,wi)=>{
         const w=e[wk]||{};
@@ -3065,7 +3165,7 @@ function buildPlanPDFHTML(plan,client){
         const kg=w.kg!=null&&w.kg!==''?String(w.kg):'';
         return `<div class="plan-pdf-dose${wi===startWk?' is-on':''}" data-wk="${wi}">
           <div class="plan-pdf-dose-sr"><b>${planPdfEsc(sets)}</b><i>×</i><b>${planPdfEsc(planPdfDash(reps))}</b>${planPdfWeekArrow(e,wk,wi?weekKeys[wi-1]:'')}</div>
-          <div class="plan-pdf-chips">${rpe?`<span class="plan-pdf-chip"><small>RPE</small> <b>${planPdfEsc(rpe)}</b></span>`:''}${kg?`<span class="plan-pdf-chip"><small>Ciężar</small> <b>${planPdfEsc(kg)} kg</b></span>`:''}<span class="plan-pdf-chip"><small>Pauza</small> <b>${planPdfEsc(planPdfRestLabel(wrest))}</b></span></div>
+          <div class="plan-pdf-chips">${rpe?`<span class="plan-pdf-chip"><small>RPE</small> <b>${planPdfEsc(rpe)}</b></span>`:''}${kg?`<span class="plan-pdf-chip"><small>Ciężar</small> <b>${planPdfEsc(kg)} kg</b></span>`:''}<span class="plan-pdf-chip"><small>Pauza</small> <b>${planPdfEsc(planPdfRestLabel(wrest))}</b></span>${planPdfWeekInts(e,wk,wi,weekKeys,phases,ints).map(planPdfIntTag).join('')}</div>
         </div>`;
       }).join('');
       const hint=planPdfFirstSentence(tip);
@@ -3074,18 +3174,20 @@ function buildPlanPDFHTML(plan,client){
       return `<div class="plan-pdf-card${pri?' is-pri':''}">
         <div class="plan-pdf-card-top"><span class="plan-pdf-num">${ei+1}</span><div>${pri?'<span class="plan-pdf-pri">PRIORYTET</span>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div>${hint?`<div class="plan-pdf-hint">${planPdfEsc(hint)}</div>`:''}</div></div>
         ${doses}
+        ${ints.length?`<div class="plan-pdf-ints">${planPdfIntBlock(ints,'plan-pdf-int',weekKeys,phases)}</div>`:''}
         ${how}
       </div>`;
     }).join('');
     const rows=exs.map((e,ei)=>{
       const pri=planPdfIsPriority(e,client)||ei===0;
       const rest=e.rest||((e.w1||{}).rest)||'90s';
-      const tip=planPdfCleanTip(e.notes||e.note||e.tempo||'');
+      const ints=planPdfIntMethods(e);
+      const tip=planPdfStripIntNote(planPdfCleanTip(e.notes||e.note||e.tempo||''),ints);
       const biomechTip=planPdfBiomechTip(e);
       return `<tr class="plan-pdf-row">
             <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div><div class="plan-pdf-rest">⏱ ${planPdfEsc(planPdfRestLabel(rest))}</div></td>
-            ${weekKeys.map((wk,wi)=>`<td class="${planPdfIsDeload(phases[wk])?'is-deload':''}">${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
-          </tr>${(tip||biomechTip)?`<tr class="plan-pdf-tiprow"><td colspan="${weekKeys.length+1}">${tip?`<span><b>Wskazówka:</b> ${planPdfEsc(tip)}</span>`:''}${biomechTip?`<span><b>Biomechanika:</b> ${planPdfEsc(biomechTip)}</span>`:''}</td></tr>`:''}`;
+            ${weekKeys.map((wk,wi)=>`<td class="${planPdfIsDeload(phases[wk])?'is-deload':''}">${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'',planPdfWeekInts(e,wk,wi,weekKeys,phases,ints))}</td>`).join('')}
+          </tr>${(tip||biomechTip||ints.length)?`<tr class="plan-pdf-tiprow"><td colspan="${weekKeys.length+1}">${planPdfIntBlock(ints,'plan-pdf-int is-row',weekKeys,phases)}${tip?`<span><b>Wskazówka:</b> ${planPdfEsc(tip)}</span>`:''}${biomechTip?`<span><b>Biomechanika:</b> ${planPdfEsc(biomechTip)}</span>`:''}</td></tr>`:''}`;
     }).join('');
     html+=`<div class="plan-pdf-day${di===0?' is-on':''}" data-day="${di}">
       <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}<span class="plan-pdf-day-wk">${weekKeys.length>1?`Tydzień <b>${startWk+1}</b> z ${weekKeys.length}`:''}</span></div>
