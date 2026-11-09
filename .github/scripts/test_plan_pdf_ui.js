@@ -167,6 +167,24 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'saved_plan_pdf_profile.png'), fullPage: true });
   ok('profile pdf', fromCp.overlay && /Hack squat/.test(fromCp.text), fromCp.text.slice(0, 120));
 
+  // Generator: metoda intensyfikacji pokazana tylko w swoich tygodniach (jak na wydruku).
+  const genWeeks = await page.evaluate(() => {
+    const wk = ['w1','w2','w3','w4','w5','w6','w7','w8'];
+    const ex = { name: 'Unoszenie hantli bokiem', sets: '4', reps: '12-15', rest: '60s', muscleGroup: 'Barki',
+      intensification: [{ type: 'drop_set', protocol: 'Ostatnia seria: zmniejsz ciężar o 25%', weeks: [4, 5, 6] }] };
+    wk.forEach(k => ex[k] = { s: '4', r: '12-15', kg: '10', rpe: '8' });
+    const plan = aplNormalizeGeneratedPlan({ planName: 'PPL', method: 'PPL', daysPerWeek: 1, weeks: 8, progression: 'wave', weekKeys: wk, phases: { w8: 'Deload' }, days: [{ dayName: 'Dzień 1', focus: 'Push', exercises: [ex] }] });
+    const out = {};
+    for (const w of ['w1', 'w4']) {
+      plan.currentWeek = w; aplRenderPlan(plan, null, 'masa', 'PPL', '1', '8');
+      const row = document.getElementById('apl-ex-row-0-0');
+      out[w] = { now: !!row.querySelector('[data-apl-int-now]'), later: (row.querySelector('[data-apl-int-later]') || {}).textContent || '' };
+    }
+    return out;
+  });
+  ok('generator: drop set not in T1', !genWeeks.w1.now && /T4–T6/.test(genWeeks.w1.later), JSON.stringify(genWeeks.w1));
+  ok('generator: drop set in T4', genWeeks.w4.now && !genWeeks.w4.later, JSON.stringify(genWeeks.w4));
+
   await browser.close();
   if (failed) {
     console.error(failed + ' failed');

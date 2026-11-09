@@ -2092,7 +2092,11 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div style="flex:1;min-width:0;">
             <div class="apl-exercise-title">${ex.name}</div>
             ${ex.notes?`<div class="apl-exercise-note">💡 ${ex.notes}</div>`:''}
-            ${(()=>{const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];return methods.map(m=>{const def=(window.INTENSIFICATION_METHODS||{})[m.type]||{};const text=typeof intensificationInstruction==='function'?intensificationInstruction(m,ex):m.protocol;return `<div style="margin-top:7px;padding:7px 9px;border:1px solid rgba(230,0,0,.38);border-radius:7px;background:rgba(230,0,0,.07);font-size:11px;line-height:1.45;color:var(--text);"><b style="color:var(--accent);">⚡ ${escHtml(def.label||m.type)} · ${escHtml(def.when||'Wykonanie')}</b><br>${escHtml(text)}</div>`;}).join('')})()}
+            ${(()=>{const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];return methods.map(m=>{const def=(window.INTENSIFICATION_METHODS||{})[m.type]||{};const text=typeof intensificationInstruction==='function'?intensificationInstruction(m,ex):m.protocol;
+              // Metoda tylko w swoich tygodniach (jak na wydruku); w pozostałych krótka informacja, kiedy wchodzi.
+              const nums=planPdfIntWeeks(m,weekKeys,phases),wl=planPdfWeeksLabel(nums,weekKeys.length);
+              if(!nums.includes(curWeekIdx+1))return `<div data-apl-int-later style="margin-top:6px;font-size:11px;color:var(--muted);">⚡ ${escHtml(def.label||m.type)} ${nums.length?'w tygodniach '+escHtml(wl):'— nie w tym cyklu'}${nums.length?' (nie w tym tygodniu)':''}</div>`;
+              return `<div data-apl-int-now style="margin-top:7px;padding:7px 9px;border:1px solid rgba(230,0,0,.38);border-radius:7px;background:rgba(230,0,0,.07);font-size:11px;line-height:1.45;color:var(--text);"><b style="color:var(--accent);">⚡ ${escHtml(def.label||m.type)} · ${escHtml(def.when||'Wykonanie')}</b>${wl&&nums.length<weekKeys.length?` <span style="color:var(--muted);font-weight:400;">· ${escHtml(wl)}</span>`:''}<br>${escHtml(text)}</div>`;}).join('')})()}
             ${ex.muscleGroup?`<span class="apl-muscle-tag">${ex.muscleGroup}</span>`:''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
