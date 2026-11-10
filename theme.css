@@ -2178,3 +2178,14 @@ html[data-theme] #screen-dashboard .dash-next-watch .dash-next-eyebrow { color: 
 /* Pełny ekran Biblioteki: zawsze widoczne wyjście do menu aplikacji */
 #lib-exit-wide { display: none; margin-right: 10px; }
 #screen-library.library-wide #lib-exit-wide { display: inline-flex; }
+
+/* Wywiad / podsumowanie / propozycja generatora: ekran ma overflow:hidden (przewijały się kolumny formularza),
+ * więc gdy edytor jest schowany, przewija się sam #pliv-mount — inaczej kółko myszy nie zjeżdżało niżej. */
+#screen-aiplangen > #pliv-mount:not([data-pliv-state="applied"]):not([data-pliv-state="manual"]) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 32px;
+}
