@@ -690,6 +690,7 @@ jobs:
           node .github/scripts/test_apl_periodization.js
           node .github/scripts/test_apl_pattern_redundancy.js
           node .github/scripts/test_apl_frequency_ui.js
+          node .github/scripts/test_apl_freq_philosophy_ui.js
           node .github/scripts/test_dash_agenda_ui.js
           node .github/scripts/test_dash_attention_unified_ui.js
           node .github/scripts/test_plan_interview_ui.js
