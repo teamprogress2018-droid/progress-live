@@ -21,7 +21,7 @@ function ok(name, cond) {
 }
 
 ok('quickEditClient helper', /function\s+quickEditClient\s*\(/.test(src05) && src05.includes('openClientModal(clientId)'));
-ok('list row Edycja button', src05.includes('cl-edit-btn') && src05.includes("quickEditClient(event,'${c.id}')") && /Edycja<\/button>/.test(src05));
+ok('list row details: Edytuj dane', src05.includes("quickEditClient(event,'${c.id}')") && /Edytuj dane<\/button>/.test(src05));
 ok('hover reveals edit btn', css.includes('.tbl-row.cl-everfit-row:hover .cl-edit-btn') && css.includes('opacity:0'));
 ok('touch fallback always visible', css.includes('@media (hover:none)') && /hover:none[\s\S]{0,80}\.cl-edit-btn\{opacity:1/.test(css));
 ok('exported', src05.includes('window.quickEditClient=quickEditClient'));
