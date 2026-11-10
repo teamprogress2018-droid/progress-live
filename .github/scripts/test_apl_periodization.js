@@ -71,5 +71,23 @@ ok('enforce: core untouched', plan.days[1].exercises[2].sets === '3');
 const checks = c.aplPlanChecks(Object.assign({ progression: 'wave', volumeTopUp: top, volumeTarget: { label: enh.label } }, plan), { level: 'zaawansowany', duration: '60', pharma: 'wspomagany' });
 ok('only back below the level-based minimum is flagged', checks.some(x => x.kind === 'volume-week' && /plecy 10/.test(x.text) && !/klatka/.test(x.text)), JSON.stringify(checks));
 ok('plan check reports added sets', checks.some(x => x.kind === 'volume-topup' && /klatka \d+→\d+/.test(x.text)), JSON.stringify(checks));
+// Realne skoki ciężaru: bez 60 → 60,3 kg; w fali powtórzeń ten sam ciężar, nowa fala = skok sprzętu.
+const hypPh = c.aplPhasesForPlan('PPL', 8, keys, 'masa');
+const runN = (name, kg, t) => { const ex = { name, sets: '4', reps: '8-10', rest: '90s', rpe: '8', kg }; c.aplComputeProgression(ex, keys, hypPh, t || 'linear'); return keys.map(k => parseFloat(ex[k].kg)); };
+const db = runN('Wyciskanie hantli na ławce skośnej dodatniej', '26');
+ok('hantle: tylko pełne kilogramy co 2 kg, fala bez zmian, potem +2 kg', db.slice(0, 4).every(v => v === 26) && db[4] === 28 && db.every(v => v % 2 === 0), db.join(' '));
+const mach = runN('Wyciskanie na maszynie siedząc', '60');
+ok('maszyna: 60 przez falę, potem 62,5', mach.slice(0, 4).every(v => v === 60) && mach[4] === 62.5 && mach.every(v => Math.abs(v / 2.5 - Math.round(v / 2.5)) < 1e-9), mach.join(' '));
+const bar = runN('Wyciskanie sztangi leżąc', '80', 'double');
+ok('sztanga (double): ciężary co 2,5 kg', bar.every(v => Math.abs(v / 2.5 - Math.round(v / 2.5)) < 1e-9), bar.join(' '));
+ok('skok sprzętu: hantle 2 kg, sztanga 2,5, suwnica 120 kg → 5', c.aplLoadStep({ name: 'Uginanie hantlami' }, 14) === 2 && c.aplLoadStep({ name: 'Przysiad ze sztangą' }, 100) === 2.5 && c.aplLoadStep({ name: 'Wypychanie nóg na suwnicy' }, 120) === 5);
+const oldPlan = { weekKeys: keys, phases: hypPh, days: [{ exercises: [{ name: 'Wyciskanie na maszynie siedząc', kg: '60' }, { name: 'Wiosłowanie hantlem', kg: '22' }] }] };
+const oldW = ['8-10@60', '9-11@60.3', '10-12@60.6', '11-13@62.7', '8-10@64.6', '9-11@64.9', '10-12@65.9', '8-10@59.7'];
+keys.forEach((k, i) => { const [r, kg] = oldW[i].split('@'); oldPlan.days[0].exercises[0][k] = { r, kg }; oldPlan.days[0].exercises[1][k] = { r, kg: String(22 + 2 * Math.floor(i / 4)) }; });
+const nFix = c.aplRepairPlanLoads(oldPlan);
+const fixed = keys.map(k => oldPlan.days[0].exercises[0][k].kg).join(' ');
+ok('naprawa starego planu: 60 ×4, 65 ×3, deload niżej', nFix > 0 && fixed === '60 60 60 60 65 65 65 57.5', fixed);
+ok('naprawa nie rusza ręcznych, równych ciężarów', keys.map(k => oldPlan.days[0].exercises[1][k].kg).join(' ') === '22 22 22 22 24 24 24 24');
+ok('naprawa jest jednorazowa', c.aplRepairPlanLoads(oldPlan) === 0);
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('\nAll periodization checks passed');

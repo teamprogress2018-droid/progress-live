@@ -118,7 +118,7 @@ function aplWeekRepPlan(type,i,reps,isDeload){
     if(!m)return{reps:null,kgMul:1};
     const lo=+m[1],hi=+m[2],span=Math.max(1,hi-lo);
     const cycle=Math.floor(i/span),step=i%span;
-    return{setLo:lo+step,kgMul:1+0.025*cycle};
+    return{setLo:lo+step,kgMul:1+0.025*cycle,cycle,waveMul:1};
   }
   let off=0;
   if(type==='wave')off=[2,0,-2][(i-1)%3];
@@ -128,16 +128,86 @@ function aplWeekRepPlan(type,i,reps,isDeload){
     // Liniowa (wybór trenera): co tydzień +1 powtórzenie przy tym samym ciężarze, po 4 tygodniach
     // powrót do zakresu startowego z cięższym ciężarem — podwójna progresja jak u Helmsa (PR6).
     const up=i%4;
-    return{delta:up,kgMul:Math.pow(1.025,Math.floor(i/4))};
+    return{delta:up,kgMul:Math.pow(1.025,Math.floor(i/4)),cycle:Math.floor(i/4),waveMul:1};
   }
   else{
     // Schodki: 4-tygodniowe fale (0, −1, −2, −3 powt.), każda kolejna fala z cięższym startem.
     off=-(i%4);
-    return{delta:off,kgMul:(1-0.02*off)*(1+0.025*Math.floor(i/4))};
+    return{delta:off,kgMul:(1-0.02*off)*(1+0.025*Math.floor(i/4)),cycle:Math.floor(i/4),waveMul:1-0.02*off};
   }
-  return{delta:off,kgMul:1-0.02*off};
+  return{delta:off,kgMul:1-0.02*off,cycle:0,waveMul:1-0.02*off};
 }
 window.aplWeekRepPlan=aplWeekRepPlan;
+/**
+ * Najmniejszy realny skok ciężaru dla ćwiczenia: hantle 1 kg (do 10 kg) / 2 kg, kettlebell 4 kg,
+ * suwnica do nóg 2,5 / 5 kg (od 80 kg), sztanga i Smith 2,5 kg, wyciąg i maszyny 2,5 / 5 kg (od 80 kg).
+ * Dzięki temu w planie nie ma „60 → 60,3 kg”, których nie da się ustawić na sprzęcie.
+ */
+function aplLoadStep(ex,kg){
+  const n=(String(ex&&ex.name||'')+' '+String(ex&&(ex.equipment||ex.eq)||'')).toLowerCase();
+  const k=parseFloat(kg)||0;
+  if(/hantl|hantel|hantle|dumbbell/.test(n))return k<10?1:2;
+  if(/kettl|odważnik|odwaznik/.test(n))return 4;
+  if(/smith|sztang|gryf|landmine|t-bar|martwy ci|przysiad ze sztang|barbell/.test(n))return 2.5;
+  if(/suwnic|leg press|wypychanie n|wyciskanie n[oó]g|hack/.test(n))return k>=80?5:2.5;
+  if(/wyci[aą]g|link|lin[aąy]\b|cable|maszyn|butterfly|pec ?deck|machine/.test(n))return k>=80?5:2.5;
+  return 2.5;
+}
+function aplRoundLoad(kg,step){
+  const st=step>0?step:2.5;
+  return Math.round(Math.round(kg/st)*st*100)/100;
+}
+window.aplLoadStep=aplLoadStep;
+window.aplRoundLoad=aplRoundLoad;
+
+/**
+ * Naprawa zapisanych planów z ciężarami typu 60 → 60,3 → 60,6 kg (stara progresja z dryfem 0,5%/tydz.).
+ * Tylko ćwiczenia z ciężarem spoza skoku sprzętu: w obrębie fali powtórzeń (rosnąca dolna granica)
+ * ciężar zostaje jak w pierwszym tygodniu fali, nowa fala / deload — ciężar zaokrąglony do skoku.
+ * Ręcznie wpisanych „równych” ciężarów nie rusza.
+ */
+function aplRepairPlanLoads(plan){
+  const keys=(plan&&plan.weekKeys)||[];
+  if(keys.length<2)return 0;
+  const phases=plan.phases||{};
+  let changed=0;
+  (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
+    if(!ex)return;
+    const nums=keys.map(k=>{const c=ex[k];const m=c&&String(c.kg==null?'':c.kg).match(/^([\d.]+)/);return m?parseFloat(m[1]):null;});
+    const base=nums.find(n=>n!=null);
+    if(base==null)return;
+    const step=aplLoadStep(ex,base);
+    // Ślad starej progresji: ciężar z ułamkiem innym niż ,0 / ,5 (np. 26,1 / 60,3). Ręczne 12 / 22,5 kg zostają.
+    const offGrid=nums.some(n=>n!=null&&Math.abs(n*2-Math.round(n*2))>0.01);
+    if(!offGrid)return;
+    let waveKg=null,prevLo=null;
+    keys.forEach((k,i)=>{
+      const c=ex[k];if(!c||nums[i]==null)return;
+      const suffix=String(c.kg).slice(String(c.kg).match(/^([\d.]+)/)[1].length);
+      const lo=parseInt(String(c.r==null?'':c.r),10);
+      const deload=/deload/i.test(String(phases[k]||''));
+      let v;
+      if(deload){v=Math.max(step,Math.round(Math.floor(nums[i]/step+1e-9)*step*100)/100);}
+      else if(waveKg==null||!Number.isFinite(lo)||prevLo==null||lo<=prevLo){waveKg=i===0?nums[i]:Math.max(aplRoundLoad(nums[i],step),waveKg);v=waveKg;}
+      else v=waveKg;
+      if(!deload)prevLo=Number.isFinite(lo)?lo:prevLo;
+      const nv=v+suffix;
+      if(String(c.kg)!==nv){c.kg=nv;changed++;}
+    });
+    if(keys[0]&&ex[keys[0]]&&ex.kg!==ex[keys[0]].kg&&ex[keys[0]].kg)ex.kg=ex[keys[0]].kg;
+  }));
+  return changed;
+}
+/** Po wczytaniu danych: popraw zapisane plany trenera i zapisz tylko te, które się zmieniły. */
+function aplRepairSavedPlanLoads(){
+  const fixed=[];
+  (window.PL||[]).forEach(p=>{try{if(aplRepairPlanLoads(p))fixed.push(p);}catch(e){}});
+  if(fixed.length&&typeof persistById==='function')fixed.forEach(p=>{try{persistById('plans',p);}catch(e){}});
+  return fixed.length;
+}
+window.aplRepairPlanLoads=aplRepairPlanLoads;
+window.aplRepairSavedPlanLoads=aplRepairSavedPlanLoads;
+
 function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
   const baseS=ex.sets,baseR=ex.reps,baseRest=ex.rest;
   const baseRpe=parseFloat(ex.rpe)||parseFloat(ex.rir)||7;
@@ -146,6 +216,10 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     const m=String(ex.kg).match(/^([\d.]+)/);
     if(m){baseKgNum=parseFloat(m[1]);kgSuffix=String(ex.kg).slice(m[1].length);}
   }
+  const step=baseKgNum!=null?aplLoadStep(ex,baseKgNum):2.5;
+  // Skok między falami: ok. 2,5% ciężaru, ale nigdy mniej niż najmniejszy skok sprzętu.
+  const incr=baseKgNum!=null?Math.max(step,aplRoundLoad(baseKgNum*0.025,step)):0;
+  let prevKg=baseKgNum;
   weekKeys.forEach((wk,i)=>{
     const hyp=aplHypertrophyPhaseMods(phasesMap[wk]);
     if(i===0){
@@ -163,7 +237,20 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
       rpe=hyp.rpe;
       rir=hyp.rir;
       s=String(Math.max(1,Math.round((parseInt(baseS)||3)*hyp.vol)));
-      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+(repCyc?0.005:0.015)*i)*(rp.kgMul||1)*10)/10)+kgSuffix;
+      if(baseKgNum!=null){
+        let v;
+        if(repCyc){
+          // Podwójna progresja: w obrębie fali ten sam ciężar (rosną powtórzenia), nowa fala = realny skok ciężaru.
+          const mul=(rp.waveMul||1)*(/deload/i.test(phase)?hyp.kgMul:1);
+          v=(mul===1?baseKgNum:aplRoundLoad(baseKgNum*mul,step))+(rp.cycle||0)*incr;
+        }else{
+          v=aplRoundLoad(baseKgNum*hyp.kgMul*(1+0.015*i),step);
+          if(!/deload/i.test(phase)&&prevKg!=null&&v<prevKg)v=prevKg;
+        }
+        if(/deload/i.test(phase))v=Math.min(v,aplRoundLoad(baseKgNum*hyp.kgMul,step));
+        else prevKg=v;
+        kg=v+kgSuffix;
+      }
       ex[wk]={s,r,rest,rpe:String(rpe),rir:String(rir),kg};
       return;
     }
@@ -175,7 +262,7 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
       switch(progressionType){
         case 'linear':
           rpe=Math.min(9,baseRpe+Math.floor(i/2));
-          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+step*i)*10)/10)+kgSuffix;
           break;
         case 'dup':
           rpe=Math.min(9,baseRpe+Math.floor(i/3));
@@ -202,7 +289,11 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     }
     // Gdy powtórzenia falują, ciężar liczymy jedną regułą (odwrotnie do powtórzeń + mały dryf), zamiast nakładać stare przyrosty kg.
     if(!isDeload&&baseKgNum!=null&&repCyc&&rp.kgMul){
-      kg=(Math.round(baseKgNum*rp.kgMul*(1+0.01*i)*10)/10)+kgSuffix;
+      kg=(((rp.waveMul||1)===1?baseKgNum:aplRoundLoad(baseKgNum*rp.waveMul,step))+(rp.cycle||0)*incr)+kgSuffix;
+    }else if(baseKgNum!=null&&kg!==''&&kg!=null){
+      // Pozostałe metody: ciężar zaokrąglony do skoku sprzętu (np. hantle co 2 kg).
+      const num=parseFloat(String(kg));
+      if(Number.isFinite(num))kg=aplRoundLoad(num,step)+kgSuffix;
     }
     ex[wk]={s,r,rest,rpe:String(rpe),rir:rir===''?'':String(rir),kg};
   });
@@ -3264,8 +3355,8 @@ function buildPlanPDFHTML(plan,client){
   const prog=planPdfProgressionLabel(plan);
   const rules=(plan.progressionRules&&plan.progressionRules.length)?plan.progressionRules:(
     plan.periodization?String(plan.periodization).split(/[.;]\s+/).map(s=>s.trim()).filter(s=>s.length>8):[
-      'Progresja liniowa: co tydzień +2.5 kg na wielostawach, gdy RPE ≤ 8.',
-      'Izolacje: najpierw +1 powtórzenie w zakresie, potem +1.25 kg.',
+      'Podwójna progresja: w zakresie powtórzeń dokładaj powtórzenia przy tym samym ciężarze; gdy zrobisz górę zakresu we wszystkich seriach, zwiększ ciężar.',
+      'Skok ciężaru wg sprzętu: sztanga i Smith +2,5 kg, hantle +1–2 kg, wyciąg i maszyny najmniejszy skok stosu (2,5–5 kg).',
       (plan.deload||'Deload co 4–6 tygodni: 50–70% objętości, RPE 5–6.')
     ]
   );
