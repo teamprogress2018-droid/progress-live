@@ -54,7 +54,7 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
       wv: plan.weeklyVolume, wvAI: plan.weeklyVolumeAI,
       volText: vol ? vol.innerText : '',
       tricepsFirst: aplNormalizeMuscleCategory({ name: 'Wyciskanie sztangi wąskim chwytem na ławce płaskiej', muscleGroup: 'Triceps / klatka' }) === 'triceps' && aplNormalizeMuscleCategory({ name: 'Martwy ciąg rumuński', muscleGroup: 'Ścięgna udowe i pośladki' }) === 'nogi',
-      noReq3: aplFrequencyRequest('', 'PPL', '3') === null && aplFrequencyRequest('', 'Bro Split', '5') === null,
+      noReq3: ['PPL|3', 'Bro Split|5', 'Upper/Lower|4'].every(k => { const [m, d] = k.split('|'); const r = aplFrequencyRequest('', m, d); return r && r.min === 2 && r.all && r.source === 'trainer' && r.retry === false; }) && aplFrequencyRequest('', 'FBW', '1') === null,
       checks: [...document.querySelectorAll('[data-apl-check]')].map(li => li.dataset.aplCheck + ':' + li.textContent)
     };
   }, mode);
@@ -81,9 +81,9 @@ const SHOT = process.env.APL_FREQ_SHOT || '';
   ok('trainer sees what was moved in Kontrola planu', s.checks.some(x => /^frequency-fix:/.test(x) && /klatka/.test(x)), JSON.stringify(s.checks));
 
   const p = await run('split2');
-  ok('2 sessions/week without a note (Upper/Lower) → books rule 2×/week is in the prompt', p.calls.every(x => x.freqSys) && /reguła z książek/.test(p.calls[0].sys || ''), JSON.stringify(p.calls));
+  ok('2 sessions/week without a note (Upper/Lower) → trainer philosophy 2×/week is in the prompt', p.calls.every(x => x.freqSys) && /filozofia trenera/.test(p.calls[0].sys || ''), JSON.stringify(p.calls));
   ok('2 sessions/week without a note → chest, back, shoulders in both sessions', p.cats.every(d => ['klatka', 'plecy', 'barki'].every(g => d.includes(g))), JSON.stringify(p.cats));
-  ok('3+ sessions without a note and not FBW → no frequency request', p.noReq3);
+  ok('every method (PPL 3, Bro Split 5, Upper/Lower 4) without a note → 2×/week request (trainer philosophy)', p.noReq3);
   ok('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await browser.close();
   if (failed) { console.error(failed + ' failed'); process.exit(1); }

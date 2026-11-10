@@ -1085,17 +1085,19 @@ function aplFrequencyRequest(notes,method,days){
   else if(new RegExp('(?:\\b2|dwa|dwoch|dwu|obu|obydwu)\\s*'+word).test(t)||/dwukrotn|\b2\s*x\b|2×|dwa razy|w kazdym treningu|kazda sesj|kazdym dniu/.test(t))min=2;
   const fromNotes=min>0&&(/parti|miesn|cwicz|stymul|trenow|czestotliw|kazd|tydz|tygodn/.test(t)||Object.keys(APL_FREQ_GROUPS).some(k=>APL_FREQ_GROUPS[k].re.test(t)));
   if(!fromNotes){
-    // FBW = całe ciało w każdej sesji. Przy 2 treningach w tygodniu każdy podział dawałby partii 1×/tydz.,
-    // a książki mówią „co najmniej 2×” (Helms P7, Chandler P6, Bompa G13) — reguła z książki wygrywa.
-    if(/^fbw|full ?body/i.test(String(method||''))||n===2)min=2;
-    else return null;
+    // Filozofia trenera (Progress Studio): KAŻDA partia przepracowana 2× w tygodniu — w każdym planie i każdej metodzie
+    // (FBW, Upper/Lower, PPL, split). Zgodne z książkami: co najmniej 2× (Helms P7, Chandler P6, Bompa G13).
+    min=2;
   }
   min=Math.min(min||2,n,3);
   let groups=fromNotes?Object.keys(APL_FREQ_GROUPS).filter(k=>APL_FREQ_GROUPS[k].re.test(t)):[];
   // Bez wskazanych partii: każda partia ćwiczona w planie (duże zawsze, mniejsze — ramiona, core, łydki — jeśli są w planie).
   const all=!groups.length;
   if(all)groups=Object.keys(APL_FREQ_GROUPS);
-  return{min,groups,all,source:fromNotes?'notes':(/^fbw|full ?body/i.test(String(method||''))?'method':'books')};
+  const fbw=/^fbw|full ?body/i.test(String(method||''));
+  // retry: osobna prośba do AI o poprawkę (uwagi trenera, FBW, 2 dni). Przy splitach 3+ dni brakującą sesję
+  // dokłada sama aplikacja (inny wariant z biblioteki) — bez dodatkowego czekania na AI.
+  return{min,groups,all,source:fromNotes?'notes':(fbw?'method':'trainer'),retry:fromNotes||fbw||n===2};
 }
 function aplExerciseFreqGroups(ex){
   const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(ex):'inne';
@@ -1115,8 +1117,8 @@ function aplFrequencyPrompt(req,bookCtx){
   if(!req)return'';
   const k=bookCtx&&typeof bookCtx.key==='function'?bookCtx.key:()=>'';
   const refs=[k('piramida-treningu-helms P7'),k('conditioning-for-strength-chandler-brown P6'),k('periodyzacja-bompa G13'),k('hipertrofia-schoenfeld P3')].filter(Boolean).join('');
-  const who=req.source==='notes'?'wybór trenera w „Dodatkowych uwagach”':req.source==='method'?'metoda FBW — całe ciało w każdej sesji':'2 treningi w tygodniu — reguła z książek, każda partia co najmniej 2× w tygodniu';
-  return `\n\nCZĘSTOTLIWOŚĆ PARTII (OBOWIĄZKOWE — ${who}): ${req.all?'KAŻDA partia ćwiczona w planie (klatka, plecy, uda, pośladki, barki, a także biceps, triceps, core i łydki, jeśli są w planie) ma mieć':'partie '+req.groups.map(g=>APL_FREQ_GROUPS[g].label).join(', ')+' mają mieć'} ćwiczenia bezpośrednie w co najmniej ${req.min} RÓŻNYCH dniach tygodnia (każda z nich w ${req.min} sesjach). Podziel tygodniową objętość partii między te dni (np. 8 serii = 4 + 4), nie podwajaj jej. W kolejnych dniach dobierz inny wzorzec lub wariant tej samej partii (np. dzień 1 przyciąganie pionowe, dzień 2 przyciąganie poziome). Podstawa w książkach: każda partia co najmniej 2× w tygodniu${refs?' '+refs:''}. "weeklyVolume" opisuje TYLKO ćwiczenia, które naprawdę są w "days" — nie zapowiadaj ćwiczeń, których nie ma w planie.`;
+  const who=req.source==='notes'?'wybór trenera w „Dodatkowych uwagach”':req.source==='method'?'metoda FBW — całe ciało w każdej sesji':'filozofia trenera Progress — każda partia przepracowana 2× w tygodniu, w każdej metodzie';
+  return `\n\nCZĘSTOTLIWOŚĆ PARTII (OBOWIĄZKOWE — ${who}): ${req.all?'KAŻDA partia ćwiczona w planie (klatka, plecy, uda, pośladki, barki, a także biceps, triceps, core i łydki, jeśli są w planie) ma mieć':'partie '+req.groups.map(g=>APL_FREQ_GROUPS[g].label).join(', ')+' mają mieć'} ćwiczenia bezpośrednie w co najmniej ${req.min} RÓŻNYCH dniach tygodnia (każda z nich w ${req.min} sesjach). Podziel tygodniową objętość partii między te dni (np. 8 serii = 4 + 4), nie podwajaj jej. Druga (i kolejna) sesja tej samej partii ma być UROZMAICONA: inne ćwiczenie niż w pierwszej — inny sprzęt (sztanga ↔ hantle ↔ maszyna / wyciąg) albo inna płaszczyzna / kąt (np. klatka: dzień 1 wyciskanie sztangi na płaskiej, dzień 2 wyciskanie hantli na skosie; plecy: dzień 1 przyciąganie pionowe, dzień 2 wiosłowanie poziome; uda: dzień 1 przysiad ze sztangą, dzień 2 suwnica lub wykroki z hantlami). Nie powtarzaj tego samego ćwiczenia dwa razy w tygodniu. Przy splicie (PPL, góra/dół, split) dołóż w innym dniu krótszy blok tej partii, żeby każda była 2× w tygodniu. Podstawa w książkach: każda partia co najmniej 2× w tygodniu${refs?' '+refs:''}. "weeklyVolume" opisuje TYLKO ćwiczenia, które naprawdę są w "days" — nie zapowiadaj ćwiczeń, których nie ma w planie.`;
 }
 /** Krótki opis już wygenerowanych dni dla kolejnej części planu — żeby nie zgubić zapowiedzianej pracy. */
 function aplPlanDaysDigest(plan){
@@ -1128,7 +1130,86 @@ function aplFrequencyHint(gaps,dayOffset,plan){
     return miss.length?(miss.join(', ')+': dodaj ćwiczenie na '+g.label):'';
   }).filter(Boolean).join('; ');
 }
-/** Gdy AI nie rozłożyło partii na wymaganą liczbę dni: kopia ćwiczenia z innego dnia, serie podzielone (suma bez zmian). */
+/** Sprzęt ćwiczenia: sztanga / hantle / maszyna / wyciąg / kettlebell / masa ciała. */
+function aplExEquipClass(ex){
+  const n=(String(ex&&ex.name||'')+' '+String(ex&&(ex.eq||ex.equipment)||'')).toLowerCase();
+  if(/smith|suwnic|maszyn|hack|leg press|butterfly|pec ?deck|machine/.test(n))return'maszyna';
+  if(/wyci[aą]g|link[aęi]|\blin[aąy]\b|bram|cable|face ?pull/.test(n))return'wyciag';
+  if(/hantl|hantel|dumbbell/.test(n))return'hantle';
+  if(/sztang|gryf|barbell|landmine/.test(n))return'sztanga';
+  if(/kettl|odważnik|odwaznik/.test(n))return'kettlebell';
+  return'masa';
+}
+/** Płaszczyzna / kąt: skos dodatni, skos ujemny, pionowo, poziomo, płasko. */
+function aplExPlane(ex){
+  const n=String(ex&&ex.name||'').toLowerCase();
+  if(/skos.*ujemn|ujemn|decline/.test(n))return'ujemny';
+  if(/skos|skośn|incline|dodatn/.test(n))return'skos';
+  if(/ściąg|sciag|podciąg|podciag|nad głow|nad glow|żołniersk|zolniersk|arnold|overhead|stojąc.*wycisk/.test(n))return'pion';
+  if(/wiosł|wiosl|row\b|przyciąg.*pozi|przyciag.*pozi/.test(n))return'poziom';
+  if(/płask|plask|flat/.test(n))return'plasko';
+  return'';
+}
+/** Wzorzec ruchu (ten sam wzorzec = sensowny zamiennik: przysiad → suwnica / wykrok, nie martwy ciąg). */
+function aplExPattern(ex){
+  const n=String(ex&&ex.name||'').toLowerCase();
+  if(/martwy|rdl|rumu[nń]|good morning|sk[łl]on|hip thrust|wypychanie bioder|mostek|uginanie n[oó]g|pull-through/.test(n))return'hinge';
+  if(/przysiad|wykrok|zakrok|wyciskanie nogami|suwnic|leg press|hack|wej[sś]ci|bu[łl]gar|wyprost.*n[oó]g/.test(n))return'squat';
+  if(/[sś]ci[aą]g|podci[aą]g|pullover/.test(n))return'pull-v';
+  if(/wios[łl]|row\b|t-bar/.test(n))return'pull-h';
+  if(/wyciskan|pompk|dip/.test(n))return'press';
+  return'';
+}
+/** Inny wariant tej samej partii z biblioteki: inny sprzęt lub inna płaszczyzna, bez ćwiczeń już obecnych w planie. */
+function aplPickFrequencyVariant(src,group,plan){
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  if(!src||!lib||!lib.length)return null;
+  const used=new Set();
+  ((plan&&plan.days)||[]).forEach(d=>(d.exercises||[]).forEach(e=>{if(e&&e.name)used.add(String(e.name).trim().toLowerCase());}));
+  const srcEq=aplExEquipClass(src),srcPlane=aplExPlane(src);
+  // Izolacja ↔ izolacja, wielostawowe ↔ wielostawowe (żołnierskie → inne wyciskanie, nie unoszenia).
+  const isoRe=/rozpi[eę]t|\bfly|uginan|wyprost|prostowan|wznos|unosz|kickback|face ?pull|abdukc|odwodz|przywodz|wspi[eę]c|butterfly|pec ?deck|przeno[sś]/i;
+  const srcIso=isoRe.test(String(src.name||''));
+  const fits=e=>{
+    if(!e||!e.name||used.has(String(e.name).trim().toLowerCase()))return false;
+    if(/taśm|tasm|piłka lekarsk|pilka lekarsk|skakank/i.test(String(e.eq||'')))return false;
+    if(/cardio|mobil|rozgrzew|rozciąg|rozciag|olimpij/i.test(String(e.cat||'')))return false;
+    const c=aplNormalizeMuscleCategory({muscleGroup:e.cat,name:e.name});
+    if(group==='lydki')return/łydk|lydk|calf|wspięci|wspieci/i.test(e.name);
+    return APL_FREQ_GROUPS[group].cats.includes(c);
+  };
+  const srcPattern=aplExPattern(src);
+  // Kolejność w bibliotece Progress = najpierw podstawowe ćwiczenia danej partii.
+  const rank=new Map();const perCat={};
+  lib.forEach(e=>{if(!e||!e.name)return;const c=String(e.cat||'');perCat[c]=(perCat[c]||0)+1;if(!rank.has(e.name))rank.set(e.name,perCat[c]);});
+  let usage=null;
+  try{usage=typeof exPlanUsage==='function'?exPlanUsage():null;}catch(_){usage=null;}
+  let best=null,bestScore=-Infinity;
+  lib.filter(fits).forEach(e=>{
+    const eq=aplExEquipClass(e),plane=aplExPlane(e);
+    let sc=0;
+    if(eq!==srcEq)sc+=3;
+    if(plane&&plane!==srcPlane&&['klatka','plecy','barki'].includes(group))sc+=2;
+    if(eq==='masa')sc-=3;
+    if(eq==='kettlebell')sc-=1;
+    sc+=isoRe.test(String(e.name||''))===srcIso?3:-3;
+    const pat=aplExPattern(e);
+    // Plecy: druga sesja w drugiej płaszczyźnie (pionowo ↔ poziomo) — tak, jak w przykładzie trenera.
+    if(group==='plecy'&&/^pull/.test(srcPattern)&&/^pull/.test(pat))sc+=pat!==srcPattern?3:0;
+    else if(srcPattern)sc+=pat===srcPattern?3:-2;
+    const r=rank.get(e.name)||99;
+    sc+=r<=8?3:r<=16?1:0;
+    if(/swiss|pi[łl]ce|combo|drop and catch|renegade|russian|jednon[oó][żz]|z pauz|mini band/i.test(e.name))sc-=3;
+    if(typeof studioMuscleOverlap==='function'&&src.muscle&&studioMuscleOverlap(src,e))sc+=1;
+    const u=usage&&typeof usage.get==='function'?usage.get(e.name):null;
+    if(u&&u.plans)sc+=Math.min(2,u.plans);
+    if(sc>bestScore||(sc===bestScore&&best&&String(e.name).localeCompare(best.name,'pl')<0)){best=e;bestScore=sc;}
+  });
+  return best&&bestScore>=2?best:null;
+}
+window.aplPickFrequencyVariant=aplPickFrequencyVariant;
+/** Gdy AI nie rozłożyło partii na wymaganą liczbę dni: inny wariant tej partii (inny sprzęt / płaszczyzna) z biblioteki,
+ * a gdy biblioteka nic nie ma — kopia ćwiczenia z innego dnia; serie podzielone (suma bez zmian). */
 function aplEnforceFrequency(plan,req){
   const out=[];
   if(!req)return out;
@@ -1145,15 +1226,25 @@ function aplEnforceFrequency(plan,req){
       const sets=parseInt(src.sets,10)||3;
       const copySets=Math.max(2,Math.floor(sets/2));
       const copy=JSON.parse(JSON.stringify(src));
+      const variant=aplPickFrequencyVariant(src,g.group,plan);
+      if(variant){
+        copy.name=variant.name;
+        if(variant.eq)copy.equipment=variant.eq;
+        if(variant.tip)copy.tip=variant.tip;else delete copy.tip;
+        delete copy.alt;
+        // Inny sprzęt = inny ciężar: trener dobiera go na pierwszym treningu.
+        if(aplExEquipClass(variant)!==aplExEquipClass(src))copy.kg='';
+        Object.keys(copy).forEach(k=>{if(/^w\d+$/.test(k))delete copy[k];});
+      }
       copy.sets=String(copySets);
-      copy.notes='Druga sesja tej partii (częstotliwość '+req.min+'×/tydz.)';
+      copy.notes=(variant?'Druga sesja tej partii — inny wariant niż „'+src.name+'”':'Druga sesja tej partii')+' (częstotliwość '+req.min+'×/tydz.)';
       delete copy.intensification;
       if(sets-copySets>=2)src.sets=String(sets-copySets);
       const target=days[di].exercises=days[di].exercises||[];
       const coreAt=target.findIndex(e=>typeof aplNormalizeMuscleCategory==='function'&&aplNormalizeMuscleCategory(e)==='core');
       target.splice(coreAt>=0?coreAt:target.length,0,copy);
       need--;
-      out.push({group:g.label,from:String(days[srcDay].dayName||('Dzień '+(srcDay+1))).split(/[—–]/)[0].trim(),to:String(days[di].dayName||('Dzień '+(di+1))).split(/[—–]/)[0].trim(),exercise:copy.name,sets:copySets});
+      out.push({group:g.label,from:String(days[srcDay].dayName||('Dzień '+(srcDay+1))).split(/[—–]/)[0].trim(),to:String(days[di].dayName||('Dzień '+(di+1))).split(/[—–]/)[0].trim(),exercise:copy.name,sets:copySets,variant:!!variant});
     });
   });
   return out;
@@ -1185,6 +1276,8 @@ function aplComputeWeeklyVolume(plan){
   return res;
 }
 window.aplFrequencyRequest=aplFrequencyRequest;
+window.aplExEquipClass=aplExEquipClass;
+window.aplExPlane=aplExPlane;
 window.aplFrequencyGaps=aplFrequencyGaps;
 window.aplEnforceFrequency=aplEnforceFrequency;
 window.aplComputeWeeklyVolume=aplComputeWeeklyVolume;
@@ -1976,7 +2069,7 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
             aplSetGenProgress('Poprawiam dobór ćwiczeń (powtórzony wzorzec ruchowy)…');
             throw new Error('Niepełny JSON planu: redundancja wzorców');
           }
-          if(freqReq&&!problem&&freqTries<1&&parseTry<2){
+          if(freqReq&&freqReq.retry!==false&&!problem&&freqTries<1&&parseTry<2){
             // Partia musi zmieścić się w pozostałych dniach — jeśli już nie może, poprawiamy tę część planu.
             const merged={days:(isFirst?[]:(plan.days||[])).concat(chunkPlan.days||[])};
             const left=totalDays-to;
@@ -2725,7 +2818,7 @@ function aplPlanChecks(plan,ctx){
   }
   if(plan&&plan.frequencyRequest&&typeof aplFrequencyGaps==='function'){
     const gaps=aplFrequencyGaps(plan,plan.frequencyRequest);
-    if(gaps.length)out.push({tone:'act',kind:'frequency',text:'Partia w mniej niż '+plan.frequencyRequest.min+' treningach (prośba z uwag): '+gaps.map(g=>g.label+' '+g.present.length+'×').join(', ')+' — dodaj ćwiczenie w drugim dniu.'});
+    if(gaps.length)out.push({tone:'act',kind:'frequency',text:'Partia w mniej niż '+plan.frequencyRequest.min+' treningach ('+(plan.frequencyRequest.source==='notes'?'prośba z uwag':plan.frequencyRequest.source==='method'?'FBW':'zasada: każda partia 2× w tygodniu')+'): '+gaps.map(g=>g.label+' '+g.present.length+'×').join(', ')+' — dodaj ćwiczenie w drugim dniu.'});
   }
   if(plan&&Array.isArray(plan.frequencyFix)&&plan.frequencyFix.length)out.push({tone:'watch',kind:'frequency-fix',text:'Rozłożono partie na '+plan.frequencyRequest.min+' treningi: '+plan.frequencyFix.map(x=>x.group+' → '+x.to+' ('+x.exercise+', '+x.sets+' s.)').join('; ')+'. Możesz zamienić ćwiczenie na inny wariant przyciskiem 🔄.'});
   if(plan&&plan.incompleteDays>0)out.push({tone:'act',kind:'days',text:'AI nie wygenerowało '+plan.incompleteDays+' '+(plan.incompleteDays===1?'dnia':'dni')+' planu — wygeneruj plan ponownie albo dodaj dzień ręcznie.'});
