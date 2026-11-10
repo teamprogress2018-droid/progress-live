@@ -54,9 +54,9 @@ assert.deepStrictEqual(goals, { train: '1/2', plans: '1/2', money: '1/2', checki
 const box = { innerHTML: '' };
 w.document.getElementById = id => (id === 'dash-day-list' ? box : null);
 w.renderDashDay();
-assert.ok(box.innerHTML.includes('Anna Nowak') && box.innerHTML.includes('is-done') && box.innerHTML.includes('07:00'), 'Mój dzień z sesji');
+assert.ok(box.innerHTML.includes('data-dash-day="sessions"') && /<b>2<\/b><span>treningi dzisiaj · 1 przed Tobą/.test(box.innerHTML) && box.innerHTML.includes('do wykonania') && box.innerHTML.includes('Zobacz kalendarz'), 'Twój dzień: liczby z sesji + kalendarz');
 w.SE = []; w.dashTodaySessions = () => [];
 w.renderDashDay();
-assert.ok(box.innerHTML.includes('Brak zaplanowanych zajęć'), 'pusty dzień');
+assert.ok(/<b>0<\/b><span>treningów dzisiaj/.test(box.innerHTML), 'pusty dzień');
 
 console.log('All dashboard home v3 tests passed.');
