@@ -18,7 +18,7 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     window.notify = () => {}; window.CL = []; window.PL = [];
     goTo('aiplangen');
     const pick = (grp, val) => { const b = document.querySelector('#' + grp + ' [data-val="' + val + '"]'); if (b && !b.classList.contains('active')) aplToggleOpt(b, grp); };
-    pick('apl-levels', 'zaawansowany'); pick('apl-days', '4'); pick('apl-duration', '60');
+    pick('apl-methods', 'PPL'); pick('apl-levels', 'zaawansowany'); pick('apl-days', '4'); pick('apl-duration', '60');
     const calls = [];
     const NAMES = [['Wyciskanie na ławce płaskiej', 'Klatka'], ['Wiosłowanie hantlem', 'Plecy'], ['Unoszenie hantli bokiem', 'Barki'], ['Wyciskanie żołnierskie', 'Barki'], ['Ściąganie do twarzy (face pull)', 'Plecy'], ['Uginanie ramion ze sztangą', 'Biceps']];
     const REDUNDANT = [['Podciąganie nachwytem', 'Plecy'], ['Lat Pulldown szerokim chwytem', 'Plecy'], ['Close-Grip Pulldown', 'Plecy'], ['Wiosłowanie hantlem', 'Plecy'], ['Face Pull', 'Plecy'], ['Uginanie ramion ze sztangą', 'Biceps']];

@@ -99,7 +99,7 @@ async function imagesLoaded(page, sel) {
 
   /* 2. Podgląd planu z generatora. */
   await page.evaluate(() => {
-    goTo('aiplangen');
+    goTo('aiplangen'); if (typeof plivManual === 'function') plivManual();
     const inj = document.getElementById('apl-injuries');
     if (inj) inj.value = 'Słaby wynik ASLR po lewej';
     const plan = {
