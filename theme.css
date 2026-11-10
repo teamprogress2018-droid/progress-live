@@ -2155,3 +2155,17 @@ html[data-theme] #screen-dashboard .dash-next-watch .dash-next-eyebrow { color: 
 }
 .pliv-mount { scroll-margin-top: 72px; }
 .exl-usage { color: var(--text-label); font-weight: 600; white-space: nowrap; }
+/* Trening Live: podgląd „Ostatnie treningi” — 5 treningów, jeden wiersz na trening */
+.live-ex-hist-pop { width: min(480px, 88vw); max-height: min(460px, 72vh); }
+.live-hist-mini { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.live-hist-mini th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); }
+.live-hist-mini td { padding: 8px; border-bottom: 1px solid var(--border-subtle); vertical-align: top; color: var(--text-primary); }
+.live-hist-mini tr:last-child td { border-bottom: 0; }
+.live-hist-mini tr.is-last td { background: var(--bg-subtle, var(--bg-main)); }
+.live-hist-date { white-space: nowrap; font-weight: 600; }
+.live-hist-date span { display: block; font-size: 10px; font-weight: 600; color: var(--text-label); text-transform: uppercase; letter-spacing: .3px; }
+.live-hist-sets { line-height: 1.45; }
+.live-hist-vol { white-space: nowrap; color: var(--text-secondary); text-align: right; }
+.live-hist-trend { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; }
+.live-hist-trend.is-up { color: var(--success, var(--teal)); }
+.live-hist-trend.is-down { color: var(--warning, var(--orange)); }

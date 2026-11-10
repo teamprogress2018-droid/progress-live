@@ -4085,22 +4085,84 @@ function liveExDisplayName(ex){
 }
 window.liveExDisplayName=liveExDisplayName;
 
-function liveExTitleHtml(ex,lastChip,history){
+/* Podgląd „Ostatnie treningi” pod nazwą ćwiczenia: 5 ostatnich treningów klienta z tym ćwiczeniem
+   (najpierw z bieżącego planu, potem z innych planów), jeden wiersz na trening. */
+const LIVE_HIST_POP_N=5;
+const _liveHistPopCache=new Map();
+const _liveHistIds=new Map();
+function liveExPopupHistory(ex,clientId,planHist){
+  const base=Array.isArray(planHist)?planHist:[];
+  const nm=ex&&(ex.name||ex.plannedName)||'';
+  if(!clientId||!(nm||(ex&&ex.exerciseId))||typeof exerciseLoadHistory!=='function')return base.slice(0,LIVE_HIST_POP_N);
+  const se=window.SE||[];
+  const key=clientId+'|'+nm+'|'+(ex.exerciseId||'')+'|'+se.length+'|'+base.length+'|'+((se[se.length-1]||{}).id||'');
+  if(_liveHistPopCache.has(key))return _liveHistPopCache.get(key);
+  const any=exerciseLoadHistory(clientId,nm,ex.alts,{limit:LIVE_HIST_POP_N,exerciseId:ex.exerciseId||''})||[];
+  const seen=new Set(),out=[];
+  base.concat(any)
+    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.createdAt||'').localeCompare(String(a.createdAt||'')))
+    .forEach(h=>{const k=(h.sessionId||'')+'|'+(h.date||'')+'|'+(h.name||'');if(seen.has(k))return;seen.add(k);out.push(h);});
+  const res=out.slice(0,LIVE_HIST_POP_N);
+  if(_liveHistPopCache.size>300)_liveHistPopCache.clear();
+  _liveHistPopCache.set(key,res);
+  return res;
+}
+window.liveExPopupHistory=liveExPopupHistory;
+
+function liveExHistCompactHtml(history){
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const num=v=>{const x=parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(x)?x:null;};
+  const fmt=x=>typeof fmtHistNum==='function'?fmtHistNum(x):String(Math.round(x*100)/100);
+  const rows=(history||[]).map(h=>{
+    const unit=h.loadUnit||'kg';
+    const sets=(Array.isArray(h.workSets)&&h.workSets.length?h.workSets:(h.sets||[])).filter(s=>s&&(s.reps!=null&&s.reps!==''||s.kg!=null&&s.kg!==''));
+    const top=sets.reduce((m,s)=>{const k=num(s.kg);return k!=null&&(m==null||k>m)?k:m;},null);
+    const txt=sets.map(s=>{
+      const k=num(s.kg),r=s.reps!=null&&s.reps!==''?String(s.reps):'';
+      if(unit!=='kg'&&k!=null)return fmt(k)+' '+(unit==='sec'?'s':unit)+(r?' × '+r:'');
+      return k!=null&&k!==0?fmt(k)+' × '+(r||'—'):(r?r+' powt.':'—');
+    }).join(' · ');
+    const d=String(h.date||'').slice(0,10).split('-');
+    const date=d.length===3?d[2]+'.'+d[1]+'.'+d[0].slice(2):String(h.date||'');
+    const vol=h.workVolume!=null&&h.workVolume>0?fmt(h.workVolume)+' kg':'—';
+    return {date,txt:txt||'—',top,vol,n:sets.length};
+  });
+  return `<table class="live-hist-mini">
+    <thead><tr><th>Data</th><th>Serie robocze</th><th>Obj.</th></tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const prev=rows[i+1];
+      let tr='';
+      if(prev&&r.top!=null&&prev.top!=null&&r.top!==prev.top){const d=r.top-prev.top;tr=`<span class="live-hist-trend ${d>0?'is-up':'is-down'}" title="Najcięższa seria względem poprzedniego treningu">${d>0?'▲ +':'▼ '}${esc(fmt(d))}</span>`;}
+      return `<tr${i===0?' class="is-last"':''}><td class="live-hist-date">${esc(r.date)}${i===0?'<span>ostatnio</span>':''}</td><td class="live-hist-sets">${esc(r.txt)}${tr}</td><td class="live-hist-vol">${esc(r.vol)}</td></tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+window.liveExHistCompactHtml=liveExHistCompactHtml;
+
+function liveExTitleHtml(ex,lastChip,history,clientId){
   const needsName=!String(ex&&ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   if(needsName)return '<div class="live-ex-title is-empty">Wybierz ćwiczenie</div>';
   const display=liveExDisplayName(ex);
   const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(display.title)}${display.priority?'<span class="live-priority-badge">Priorytet</span>':''}`;
   // Skrót (Ostatnio / Sugestia) jest w menu „⋯ → Historia i progres”. Pełna tabela
   // poprzednich treningów zostaje pod nazwą: podgląd po najechaniu, klik otwiera całość.
-  const histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
-  if(!histId||!history||!history.length||typeof exerciseHistoryModalBodyHtml!=='function'){
+  const pop=typeof liveExPopupHistory==='function'?liveExPopupHistory(ex,clientId,history):(history||[]).slice(0,5);
+  let histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
+  if(!pop.length||(!histId&&!clientId)){
     return `<div class="live-ex-title">${nameInner}</div>`;
+  }
+  // Pełna historia po kliknięciu obejmuje wszystkie plany klienta (jak podgląd), nie tylko bieżący.
+  if(clientId&&typeof _exHistCache==='object'&&typeof _liveHistIds!=='undefined'){
+    const hk=clientId+'|'+(ex.name||ex.plannedName||'')+'|'+(ex.exerciseId||'');
+    histId=_liveHistIds.get(hk)||('lh'+(++_exHistSeq));
+    _liveHistIds.set(hk,histId);
+    _exHistCache[histId]={name:ex.name||ex.plannedName||'',history:null,clientId,aliases:ex.alts,exerciseId:ex.exerciseId||''};
   }
   return `<div class="live-ex-title-wrap">
     <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="dialog">${nameInner}</button>
     <div class="live-ex-hist-pop" role="tooltip">
-      <div class="live-ex-hist-pop-hd">Poprzednie treningi</div>
-      ${exerciseHistoryModalBodyHtml(history.slice(0,4))}
+      <div class="live-ex-hist-pop-hd">Ostatnie treningi (${pop.length})</div>
+      ${typeof liveExHistCompactHtml==='function'?liveExHistCompactHtml(pop):(typeof exerciseHistoryModalBodyHtml==='function'?exerciseHistoryModalBodyHtml(pop):'')}
       <div class="live-ex-hist-pop-ft">Kliknij nazwę — pełna historia</div>
     </div>
   </div>`;
@@ -4249,7 +4311,7 @@ function liveExCard(ex,i,slot,cue,progress){
       ${thumb&&hasTechniqueMedia?`<button type="button" class="live-ex-thumb live-ex-technique-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="${ex.showVideo?'Ukryj':'Pokaż'} technikę" aria-label="${ex.showVideo?'Ukryj':'Pokaż'} technikę dla: ${escHtml(ex.name)}" aria-pressed="${ex.showVideo?'true':'false'}"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:thumb?`<div class="live-ex-thumb"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></div>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
-        ${liveExTitleHtml(ex,lastChip,histList)}
+        ${liveExTitleHtml(ex,lastChip,histList,st.clientId)}
         ${needsName||typeof liveExLimitHtml!=='function'?'':liveExLimitHtml(ex,st.clientId)}
         <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong>${isCurrent&&progress?`<span class="live-session-progress">Trening ${progress.doneCnt}/${progress.total} · ${progress.setsDone} serii</span>`:`<span>Wykonano ${setsDone}/${ex.sets.length}</span>`}${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
       </div>
