@@ -40,7 +40,7 @@ ok('workout library nav removed', !html.includes('data-screen="workout-library"'
     if (loading) loading.style.display = 'none';
   });
 
-  await page.evaluate(() => goTo('aiplangen'));
+  await page.evaluate(() => { goTo('aiplangen'); if (typeof plivManual === 'function') plivManual(); });
   await page.waitForTimeout(400);
   const gen = await page.evaluate(() => {
     const layout = document.querySelector('.apl-layout');

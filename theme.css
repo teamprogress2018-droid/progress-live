@@ -2057,3 +2057,100 @@ html[data-theme] #screen-dashboard .dash3-qa-small i { width: 18px; height: 18px
 }
 html[data-theme] #screen-dashboard .dash-next-urgent .dash-next-eyebrow { color: var(--danger, var(--red)); }
 html[data-theme] #screen-dashboard .dash-next-watch .dash-next-eyebrow { color: var(--warning, var(--orange)); }
+
+/* ── Generator planu AI: wywiad „Poznaj klienta przed planem” → Profil do planu → Propozycja Progress AI ── */
+.pliv-mount { padding: 20px 24px 0; }
+.pliv-mount:empty { display: none; }
+#screen-aiplangen .apl-layout[hidden] { display: none !important; }
+#screen-aiplangen .apl-layout.pliv-editor-only { grid-template-columns: minmax(0,1fr) !important; }
+#screen-aiplangen .apl-layout.pliv-editor-only > .apl-form { display: none !important; }
+.pliv-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--r2, 16px); padding: 20px 22px; max-width: 980px; margin: 0 auto 20px; }
+.pliv-grid { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 20px; max-width: 1100px; margin: 0 auto; align-items: start; }
+.pliv-grid .pliv-card { margin: 0; max-width: none; }
+.pliv-side { position: sticky; top: 16px; }
+.pliv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.pliv-card-kicker { font: 700 11px var(--font-ui); letter-spacing: .4px; text-transform: uppercase; color: var(--text-label); margin-bottom: 4px; }
+.pliv-title { font: 650 20px var(--font-ui); color: var(--text-primary); margin: 0; }
+.pliv-sub { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.pliv-hint { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 4px 0 12px; }
+.pliv-link { border: 0; background: none; padding: 4px 0; font: 500 13px var(--font-ui); color: var(--text-label); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.pliv-link:hover { color: var(--text-primary); }
+.pliv-bar { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; margin: 4px 0 10px; }
+.pliv-seg { height: 6px; border: 0; border-radius: 999px; background: var(--border-subtle); cursor: pointer; padding: 0; }
+.pliv-seg.is-done { background: rgba(var(--accent-rgb), .45); }
+.pliv-seg.is-now { background: var(--accent); }
+.pliv-step-lbl { font: 600 13px var(--font-ui); color: var(--text-primary); margin-bottom: 4px; }
+.pliv-fields { display: flex; flex-direction: column; gap: 16px; margin-top: 12px; }
+.pliv-lbl { display: block; font: 600 13px var(--font-ui); color: var(--text-primary); margin-bottom: 7px; }
+.pliv-req { color: var(--accent); }
+.pliv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pliv-chip { min-height: 38px; padding: 0 14px; border: 1px solid var(--border-default); border-radius: 999px; background: var(--bg-card); font: 500 13px var(--font-ui); color: var(--text-primary); cursor: pointer; }
+.pliv-chip:hover { background: var(--bg-hover); }
+.pliv-chip.is-on { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-card); }
+.pliv-scale .pliv-chip { min-width: 44px; padding: 0; }
+.pliv-input { width: 100%; }
+.pliv-errors { font-size: 13px; color: var(--danger, var(--red)); min-height: 0; margin-top: 10px; }
+.pliv-errors:empty { display: none; }
+.pliv-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
+.pliv-nav .btn { min-width: 120px; min-height: 42px; }
+.pliv-medical { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: var(--warning-bg, rgba(245,158,11,.1)); color: var(--text-primary); font-size: 13px; line-height: 1.45; }
+.pliv-medical.is-strong { background: var(--danger-bg, rgba(239,68,68,.1)); }
+.pliv-profile { border: 1px solid var(--border-subtle); border-radius: 14px; padding: 14px 16px; background: var(--bg-card); }
+.pliv-summary .pliv-profile { margin-top: 12px; }
+.pliv-rows { margin: 4px 0 0; display: flex; flex-direction: column; }
+.pliv-row { display: grid; grid-template-columns: 150px minmax(0,1fr); gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
+.pliv-row:last-child { border-bottom: 0; }
+.pliv-row dt { color: var(--text-secondary); }
+.pliv-row dd { margin: 0; color: var(--text-primary); font-weight: 500; overflow-wrap: anywhere; }
+.pliv-row.is-warn dd { color: var(--danger, var(--red)); }
+.pliv-row.is-watch dd { color: var(--warning, var(--orange)); }
+.pliv-profile.is-compact .pliv-row { grid-template-columns: 1fr; gap: 1px; }
+.pliv-rec { margin-top: 14px; padding: 14px 16px; border-radius: 14px; background: var(--bg-subtle, var(--bg-main)); }
+.pliv-rec-main { font-size: 14px; color: var(--text-primary); margin: 2px 0 6px; }
+.pliv-why { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
+.pliv-ask { margin-top: 14px; padding: 14px 16px; border: 1px dashed var(--border-default); border-radius: 14px; font-size: 13px; color: var(--text-secondary); }
+.pliv-ask .pliv-field + .pliv-field { margin-top: 12px; }
+.pliv-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
+.pliv-actions .btn { min-height: 42px; }
+.pliv-pick-row { display: flex; gap: 10px; margin: 6px 0 10px; }
+.pliv-pick-row .form-select { flex: 1; }
+.pliv-facts { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; margin: 6px 0 4px; }
+.pliv-facts > div { padding: 10px 12px; border-radius: 12px; background: var(--bg-subtle, var(--bg-main)); }
+.pliv-facts dt { font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+.pliv-facts dd { margin: 3px 0 0; font-size: 13px; color: var(--text-primary); font-weight: 500; }
+.pliv-block { margin-top: 18px; }
+.pliv-block-hd { font: 650 14px var(--font-ui); color: var(--text-primary); margin-bottom: 8px; }
+.pliv-vol { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--text-secondary); }
+.pliv-vol b { color: var(--text-primary); font-weight: 600; }
+.pliv-day { border: 1px solid var(--border-subtle); border-radius: 12px; padding: 0 14px; margin-bottom: 8px; }
+.pliv-day > summary { cursor: pointer; padding: 12px 0; font-size: 14px; list-style: none; }
+.pliv-day > summary::-webkit-details-marker { display: none; }
+.pliv-day > summary span { color: var(--text-secondary); font-size: 12px; }
+.pliv-ex { margin: 0 0 12px; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+.pliv-ex-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.pliv-ex-meta { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+.pliv-ex-tip { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.pliv-ex-alt { font-size: 12px; color: var(--text-label); margin-top: 2px; }
+.pliv-books, .pliv-warn { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; display: flex; flex-direction: column; gap: 5px; }
+.pliv-books b { color: var(--text-primary); }
+.pliv-src { display: block; font-size: 11px; color: var(--text-label); }
+.pliv-warn .is-warn { color: var(--text-primary); }
+.pliv-strip { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; max-width: 1100px; margin: 0 auto 16px; padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); font-size: 13px; color: var(--text-secondary); }
+.pliv-strip-actions { display: flex; gap: 14px; }
+.pliv-gen { text-align: center; padding: 40px 22px; }
+.pliv-dots { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
+.pliv-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s infinite; }
+.pliv-dots span:nth-child(2) { animation-delay: .2s; } .pliv-dots span:nth-child(3) { animation-delay: .4s; }
+@media (max-width: 900px) {
+  .pliv-mount { padding: 12px 12px 0; }
+  .pliv-grid { grid-template-columns: 1fr; }
+  .pliv-side { display: none; }
+  .pliv-card { padding: 16px; border-radius: 14px; }
+  .pliv-head { flex-direction: column; gap: 6px; }
+  .pliv-row { grid-template-columns: 1fr; gap: 1px; }
+  .pliv-pick-row { flex-direction: column; }
+  .pliv-actions { flex-direction: column-reverse; }
+  .pliv-actions .btn, .pliv-nav .btn { width: 100%; }
+  .pliv-chip { min-height: 42px; }
+}
+.pliv-mount { scroll-margin-top: 72px; }

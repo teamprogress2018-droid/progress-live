@@ -232,6 +232,8 @@ function initAplangen(){
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
   if(typeof aplSyncProgressionFromMethod==='function')aplSyncProgressionFromMethod();
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-aiplangen'));
+  // Generator zaczyna od wywiadu z klientem („Poznaj klienta przed planem”).
+  if(typeof plivOnScreenOpen==='function')plivOnScreenOpen(sel?sel.value:'');
 }
 
 function aplShowWelcome(){
@@ -590,6 +592,7 @@ function aplFillFromClient(){
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
   if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
   notify(hasS||hasM?`✓ Dane ${c.name} + bezpieczeństwo/pomiary wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
+  if(typeof plivOnClientPicked==='function')plivOnClientPicked(c.id);
 }
 
 function aplRenderMetricsHint(clientId){
@@ -1352,6 +1355,7 @@ async function aplAnthropicRequest(payload,maxRetries=3){
 function aplSetGenProgress(msg){
   const el=document.getElementById('apl-gen-status');
   if(el)el.textContent=msg;
+  if(typeof plivProgress==='function')plivProgress(msg);
 }
 
 // Twarda, programistyczna gwarancja poprawnej kolejności ćwiczeń — niezależna od tego,
@@ -1512,6 +1516,8 @@ async function aplGenerate(){
   const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys,goal):{};
   const hypertrophyGoal=typeof aplIsHypertrophyGoal==='function'&&aplIsHypertrophyGoal(goal);
   const vt=aplVolumeTarget(level,duration,document.getElementById('apl-pharma-status')?.value||'');
+  // Wywiad przed planem: objętość startowa z rekomendacji (np. niższa przy słabym śnie / wysokim stresie).
+  if(typeof plivVolumeOverride==='function')plivVolumeOverride(vt);
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
@@ -1867,6 +1873,8 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
   window._aplAmateurPlanIssues=typeof aplAmateurPlanIssues==='function'?aplAmateurPlanIssues(plan):[];
     aplRegroupExercisesByMuscle(plan,client);
     aplRenderPlan(plan,client,goal,method,days,weeks);
+    // Z wywiadu: najpierw „Propozycja Progress AI”, edytor dopiero po „Zastosuj”. Nic nie zapisuje się samo.
+    if(typeof plivOnPlanReady==='function')plivOnPlanReady(plan);
   }catch(e){
     console.error('aplGenerate błąd:',e);
     const msg=String(e?.message||e||'');
@@ -1881,6 +1889,7 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
       <div style="font-size:12px;color:var(--muted);max-width:360px;">${hint}</div>
       <button class="btn btn-primary" onclick="aplGenerate()">↺ Spróbuj ponownie</button>
     </div>`;
+    if(typeof plivOnPlanError==='function')plivOnPlanError(title,hint);
   }
 
   aplGenerating=false;
@@ -2405,6 +2414,8 @@ function aplBuildSavedPlan(src,cid,client,id){
     duration:src.weeks||8,
     progression:src.progression||'',
     amateurIntake:window._aplAmateurIntake?JSON.parse(JSON.stringify(window._aplAmateurIntake)):null,
+    // Tylko ślad wywiadu (bez danych zdrowotnych — plan czyta też klient).
+    planInterview:src.planInterview?{at:src.planInterview.at||'',method:src.planInterview.method||'',needsTrainerReview:!!src.planInterview.needsTrainerReview}:null,
     proIntake:window._aplProIntake?JSON.parse(JSON.stringify(window._aplProIntake)):null,
     weekKeys:weekKeys,
     currentWeek:curWeek,
@@ -2557,6 +2568,7 @@ function aplPlanChecks(plan,ctx){
   if(plan&&Array.isArray(plan.volumeTopUp)&&plan.volumeTopUp.length)out.push({tone:'watch',kind:'volume-topup',text:'Dołożono serie do minimum tygodniowego ('+(plan.volumeTarget&&plan.volumeTarget.label||'')+'): '+plan.volumeTopUp.map(x=>x.cat+' '+x.from+'→'+x.to).join(', ')+'.'});
   if(ctx.level&&typeof aplVolumeTarget==='function'&&days.length){
     const vt=aplVolumeTarget(ctx.level,ctx.duration,ctx.pharma);
+    if(typeof plivVolumeOverride==='function')plivVolumeOverride(vt);
     const isCore=e=>typeof aplNormalizeMuscleCategory==='function'&&aplNormalizeMuscleCategory(e)==='core';
     const shortDays=[];
     const weekly={};
