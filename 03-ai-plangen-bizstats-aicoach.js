@@ -80,6 +80,44 @@ function aplShiftReps(reps,delta,minLo,setLo){
   return m?lo+'-'+hi:String(lo);
 }
 window.aplShiftReps=aplShiftReps;
+/**
+ * Górna granica powtórzeń w progresji (zasada trenera): maszyny, wyciągi, suwnice i Smith — maks. 15,
+ * wolne ciężary (hantle, sztanga, kettlebell) — maks. 12. Ćwiczenia z masą ciała / na czas bez limitu (null).
+ */
+function aplRepCap(ex){
+  const n=(String(ex&&ex.name||'')+' '+String(ex&&(ex.equipment||ex.eq)||'')).toLowerCase();
+  if(/maszyn|wyci[aą]g|link[aęi]|lin[aąy]\b|cable|suwnic|smith|butterfly|pec ?deck|machine|hack|face ?pull|wioślarz|ergometr/.test(n))return 15;
+  if(/hantl|hantel|sztang|kettl|odważnik|odwaznik|gryf|dumbbell|barbell|landmine|martwy ci|rumuńsk|rumunsk|przysiad bułgar|przysiad goblet|goblet/.test(n))return 12;
+  return null;
+}
+/** Przycina zakres do limitu: „11–13” przy limicie 12 → „11–12”, „13–15” → „12”. */
+function aplCapReps(reps,cap){
+  if(!cap)return reps;
+  const s=String(reps==null?'':reps).trim();
+  const m=/^(\d+)\s*[-–]\s*(\d+)$/.exec(s),one=/^(\d+)$/.exec(s);
+  if(m){
+    const lo=+m[1],hi=+m[2];
+    if(hi<=cap)return s;
+    const nlo=Math.min(lo,cap);
+    return nlo>=cap?String(cap):nlo+'-'+cap;
+  }
+  if(one&&+one[1]>cap)return String(cap);
+  return s;
+}
+/** Zakres startowy powyżej limitu przesuwa w dół z tą samą szerokością (np. hantle 12–15 → 9–12). */
+function aplCapStartReps(reps,cap){
+  if(!cap)return reps;
+  const s=String(reps==null?'':reps).trim();
+  const m=/^(\d+)\s*[-–]\s*(\d+)$/.exec(s);
+  if(!m)return aplCapReps(s,cap);
+  const lo=+m[1],hi=+m[2];
+  if(hi<=cap)return s;
+  const span=hi-lo;
+  return Math.max(1,cap-span)+'-'+cap;
+}
+window.aplRepCap=aplRepCap;
+window.aplCapReps=aplCapReps;
+window.aplCapStartReps=aplCapStartReps;
 /** Zakresy startowe przy budowie masy: podobne w całym planie, różnica tylko tam, gdzie partia lubi inny bodziec.
  * Wielostawy 8–10, pozostałe 10–12, łydki / bok i tył barku / brzuch 12–15 (Helms P5: większość pracy w 6–12,
  * reszta wyżej). Czas, AMRAP i opisy zostają bez zmian. */
@@ -103,7 +141,7 @@ function aplNormalizeStartReps(plan){
   let n=0;
   ((plan&&plan.days)||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
     if(!ex||!/^\d+(\s*[-–]\s*\d+)?$/.test(String(ex.reps||'').trim()))return;
-    const next=APL_REP_START[aplRepStartTier(ex)];
+    const next=aplCapStartReps(APL_REP_START[aplRepStartTier(ex)],aplRepCap(ex));
     if(String(ex.reps).replace('–','-').replace(/\s/g,'')!==next){ex.reps=next;n++;}
   }));
   return n;
@@ -198,10 +236,23 @@ function aplRepairPlanLoads(plan){
   }));
   return changed;
 }
+/** Limit powtórzeń w zapisanym planie (maszyny 15, wolne ciężary 12) — tylko komórki powyżej limitu. */
+function aplRepairPlanRepCaps(plan){
+  const keys=(plan&&plan.weekKeys)||[];
+  let changed=0;
+  (plan&&plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
+    if(!ex)return;
+    const cap=aplRepCap(ex);if(!cap)return;
+    if(ex.reps!=null){const nr=aplCapStartReps(ex.reps,cap);if(String(nr)!==String(ex.reps)){ex.reps=nr;changed++;}}
+    keys.forEach((k,i)=>{const c=ex[k];if(!c||c.r==null)return;const deload=/deload/i.test(String((plan.phases||{})[k]||''));const nr=(i===0||deload)?aplCapStartReps(c.r,cap):aplCapReps(c.r,cap);if(String(nr)!==String(c.r)){c.r=nr;changed++;}});
+  }));
+  return changed;
+}
+window.aplRepairPlanRepCaps=aplRepairPlanRepCaps;
 /** Po wczytaniu danych: popraw zapisane plany trenera i zapisz tylko te, które się zmieniły. */
 function aplRepairSavedPlanLoads(){
   const fixed=[];
-  (window.PL||[]).forEach(p=>{try{if(aplRepairPlanLoads(p))fixed.push(p);}catch(e){}});
+  (window.PL||[]).forEach(p=>{try{const a=aplRepairPlanLoads(p),b=aplRepairPlanRepCaps(p);if(a||b)fixed.push(p);}catch(e){}});
   if(fixed.length&&typeof persistById==='function')fixed.forEach(p=>{try{persistById('plans',p);}catch(e){}});
   return fixed.length;
 }
@@ -209,6 +260,8 @@ window.aplRepairPlanLoads=aplRepairPlanLoads;
 window.aplRepairSavedPlanLoads=aplRepairSavedPlanLoads;
 
 function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
+  const repCap=aplRepCap(ex);
+  if(repCap&&/^\d+(\s*[-–]\s*\d+)?$/.test(String(ex.reps==null?'':ex.reps).trim()))ex.reps=aplCapStartReps(ex.reps,repCap);
   const baseS=ex.sets,baseR=ex.reps,baseRest=ex.rest;
   const baseRpe=parseFloat(ex.rpe)||parseFloat(ex.rir)||7;
   let baseKgNum=null,kgSuffix='';
@@ -232,7 +285,7 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'',rir='';
     const rp=aplWeekRepPlan(progressionType,i,baseR,isDeload||/deload/.test(String(phasesMap[wk]||'').toLowerCase()));
     const repCyc=(rp.delta!=null||rp.setLo!=null)&&progressionType!=='smolov'&&/^\d+(\s*[-–]\s*\d+)?$/.test(String(baseR==null?'':baseR).trim());
-    if(repCyc)r=aplShiftReps(baseR,rp.delta||0,hyp?6:3,rp.setLo);
+    if(repCyc)r=aplCapReps(aplShiftReps(baseR,rp.delta||0,hyp?6:3,rp.setLo),repCap);
     if(hyp){
       rpe=hyp.rpe;
       rir=hyp.rir;
