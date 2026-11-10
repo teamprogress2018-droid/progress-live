@@ -101,23 +101,27 @@ function capClientSectionVisible(id){
 
 /** Dolny pasek aplikacji klienta (4 główne zakładki + „Więcej”). Ukryte przez trenera sekcje są pomijane. */
 function capLiveNavScreens(){
+  const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
-    {id:'home',label:'Dzisiaj',icon:'🏠'},
-    {id:'plan',label:'Trening',icon:'🏋️'},
-    {id:'messages',label:'Czat',icon:'💬'},
-    {id:'progress',label:'Postępy',icon:'📈'}
-  ].filter(s=>capClientSectionVisible(s.id));
+    {id:'home',label:'Dzisiaj',icon:ic('home','🏠')},
+    {id:'train',label:'Trening',icon:ic('train','🏋️'),section:'plan'},
+    {id:'plan',label:'Plan',icon:ic('plan','📋')},
+    {id:'progress',label:'Postępy',icon:ic('progress','📈')}
+  ].filter(s=>capClientSectionVisible(s.section||s.id));
 }
-/** Ekrany w arkuszu „Więcej” (kalendarz jest dostępny z Postępów). */
+/** Ekrany w arkuszu „Więcej” (kalendarz jest dostępny z Postępów). Kontakt jest zawsze. */
 function capLiveMoreScreens(){
+  const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
-    {id:'checkin',label:'Ankieta tygodniowa',icon:'✅'},
-    {id:'homework',label:'Zadania',icon:'🏡'},
-    {id:'ondemand',label:'Treningi nagrane',icon:'▶️'},
-    {id:'resources',label:'Materiały',icon:'📚'},
-    {id:'forum',label:'Forum',icon:'👥'},
-    {id:'profile',label:'Profil',icon:'👤'}
-  ].filter(s=>s.id==='profile'||capClientSectionVisible(s.id));
+    {id:'contact',label:'Kontakt',icon:ic('contact','📞')},
+    {id:'messages',label:'Czat',icon:ic('chat','💬')},
+    {id:'checkin',label:'Ankieta tygodniowa',icon:ic('checkin','✅')},
+    {id:'homework',label:'Zadania',icon:ic('homework','🏡')},
+    {id:'ondemand',label:'Treningi nagrane',icon:ic('play','▶️')},
+    {id:'resources',label:'Materiały',icon:ic('book','📚')},
+    {id:'forum',label:'Forum',icon:ic('users','👥')},
+    {id:'profile',label:'Profil',icon:ic('user','👤')}
+  ].filter(s=>s.id==='profile'||s.id==='contact'||capClientSectionVisible(s.id));
 }
 window.capLiveMoreScreens=capLiveMoreScreens;
 
@@ -341,6 +345,7 @@ function capWorkoutHistoryList(c,list,live,accent){
 
 /* Prawdziwy ekran startowy klienta: jedna decyzja, bez pulpitu trenera. */
 function capClientTodaySimple(c){
+  if(typeof csTodayHTML==='function')return csTodayHTML(c);
   const slot=capTodaySlot(c);
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   const weekStart=typeof mondayYmd==='function'?mondayYmd(today):today;
@@ -931,6 +936,9 @@ function capScreenHTML(scr,c){
     </div>`;
   }
 
+  if(scr==='train'&&typeof csTrainScreenHTML==='function')return csTrainScreenHTML(c);
+  if(scr==='contact'&&typeof csContactHTML==='function')return csContactHTML(c);
+  if(scr==='plan'&&capIsLiveClient()&&typeof csPlanHTML==='function')return csPlanHTML(c);
   if(scr==='plan') return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MÓJ PLAN</div>
@@ -1087,6 +1095,10 @@ function capScreenHTML(scr,c){
   }
 
   if(scr==='progress'){
+    if(capIsLiveClient()&&typeof csProgressHTML==='function'){
+      if(!window._csProgressFull)return csProgressHTML(c);
+      return `<div class="cs-screen cs-screen-tight"><button type="button" class="cs-back" onclick="csProgressFull(false)">${typeof csIcon==='function'?csIcon('back',18):'←'}Postępy</button></div>`+capClientProgressScreenHTML(c,accent);
+    }
     return capClientProgressScreenHTML(c,accent);
   }
 
@@ -1624,7 +1636,7 @@ function renderCapCustomize(){
     </div>
     <div class="settings-card">
       <div class="settings-card-title">⚡ Prosty widok klienta</div>
-      <div class="settings-card-desc">Zostawia tylko: Dzisiaj, Trening, Czat, Postępy i Profil. Klient nie widzi biblioteki materiałów, forum, kategorii ćwiczeń ani danych innych klientów.</div>
+      <div class="settings-card-desc">Zostawia tylko: Dzisiaj, Trening, Plan, Postępy, Kontakt, Czat i Profil. Klient nie widzi biblioteki materiałów, forum, kategorii ćwiczeń ani danych innych klientów.</div>
       <button type="button" class="btn btn-primary" style="width:100%;" onclick="applyClientMinimalPreset()">Ustaw prosty widok klienta</button>
     </div>
     <div class="settings-card">
@@ -1646,13 +1658,22 @@ function renderCapCustomize(){
             ['forum','👥 Forum'],
             ['messages','💬 Wiadomości'],
             ['profile','👤 Profil'],
+            ['bodyWeight','⚖️ Masa ciała w Postępach klienta'],
           ];
+          // Masa ciała jest domyślnie ukryta — trener włącza ją świadomie.
           return rows.map(([id,label])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
           <span style="font-size:13px;">${label}</span>
-          <input type="checkbox" data-cap-section="${id}" ${vs[id]!==false?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
+          <input type="checkbox" data-cap-section="${id}" ${(id==='bodyWeight'?vs[id]===true:vs[id]!==false)?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
         </label>`).join('');
         })()}
       </div>
+    </div>
+    <div class="settings-card">
+      <div class="settings-card-title">📇 Kontakt w aplikacji klienta</div>
+      <div class="settings-card-desc">Ekran „Kontakt” pokazuje klientowi: nazwę firmy, adres, telefon i stronę. Zmienisz je w Ustawieniach (Profil i Firma).</div>
+      ${(()=>{const S=window.SETTINGS||{};const co=S.company||{};const pr=S.profile||{};const addr=[co.address,co.city].filter(Boolean).join(', ');
+        const r=(l,v)=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--muted);">${l}</span><span style="text-align:right;">${v?escHtml(v):'<span style="color:var(--muted);">nie podano</span>'}</span></div>`;
+        return r('Nazwa',co.name||pr.name)+r('Adres',addr)+r('Telefon',pr.phone)+r('Strona',co.website);})()}
     </div>
     <button class="btn btn-primary" onclick="saveCapAppSettings()">Zapisz ustawienia</button>`;
 }

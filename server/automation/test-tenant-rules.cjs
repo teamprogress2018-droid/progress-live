@@ -399,6 +399,12 @@ test('public profile projection excludes settings secrets and supports missing p
   denied(await patch(p, {profile: {...profile.profile, email: 'private@example.test'}}, ownerA), 'secret nested projection');
   denied(await patch(p, {paymentInstructions: {...profile.paymentInstructions, apiKey: 'secret'}}, ownerA), 'secret payment projection');
   denied(await write('trainerPublicProfiles/' + trainerB, profile, ownerA), 'foreign profile path');
+  // Ekran „Kontakt” i przełącznik masy ciała w aplikacji klienta.
+  const contact = {name: 'P&P Progress', phone: '+48 692 535 692', address: 'Owczarska 64, 54-020 Wrocław', website: 'https://teamprogress.pl/'};
+  ok(await write(p, {...profile, contact, clientApp: {...profile.clientApp, visibleSections: {home: true, bodyWeight: true}}}, ownerA), 'contact and body weight flag');
+  denied(await patch(p, {contact: {...contact, email: 'private@example.test'}}, ownerA), 'extra contact field');
+  denied(await patch(p, {contact: {...contact, phone: 123}}, ownerA), 'non-text contact phone');
+  denied(await patch(p, {clientApp: {...profile.clientApp, visibleSections: {bodyWeight: 'yes'}}}, ownerA), 'non-boolean body weight flag');
 });
 test('client submission actions preserve assignment, authority and other clients', async () => {
   const taskId = run + '-task', taskPath = 'tasks/' + taskId;

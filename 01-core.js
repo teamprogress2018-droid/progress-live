@@ -215,11 +215,16 @@ window.persistPackageFields=persistPackageFields;
 function trainerPublicProfilePayload(settings,uid){
   const pick=(value,keys)=>Object.fromEntries(keys.filter(k=>value&&typeof value[k]==='string').map(k=>[k,value[k]]));
   const sections={};
-  for(const key of ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile']){
+  for(const key of ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile','bodyWeight']){
     const value=settings.clientApp?.visibleSections?.[key];
     if(typeof value==='boolean')sections[key]=value;
   }
+  const cut=(v,n)=>String(v==null?'':v).trim().slice(0,n);
+  const company=settings.company||{};
   return {trainerId:uid,schemaVersion:1,updatedAt:new Date().toISOString(),
+    // Dane do ekranu „Kontakt” w aplikacji klienta — tylko to, co trener i tak pokazuje publicznie.
+    contact:{name:cut(company.name||settings.profile?.name,200),phone:cut(settings.profile?.phone,50),
+      address:cut([company.address,company.city].map(x=>String(x||'').trim()).filter(Boolean).join(', '),300),website:cut(company.website,300)},
     profile:pick(settings.profile,['name','title','avatar','avatarUrl']),
     brand:{...pick(settings.brand,['accentColor','appName','logo','font']),theme:(settings.brand?.themeMode==='dark'||(!settings.brand?.themeMode&&settings.brand?.theme==='dark-v2'))?'dark-v2':'light'},
     clientApp:{...pick(settings.clientApp,['appName']),visibleSections:sections},
@@ -232,10 +237,22 @@ async function syncTrainerPublicProfile(session){
   if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return false;
   if(window.SETTINGS.trainerId&&window.SETTINGS.trainerId!==session.uid)return false;
   const payload=trainerPublicProfilePayload(window.SETTINGS,session.uid);
+  const ref=window._doc(window._db,'trainerPublicProfiles',session.uid);
   try{
-    await window._setDoc(window._doc(window._db,'trainerPublicProfiles',session.uid),payload);
+    await window._setDoc(ref,payload);
     return !window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(session);
-  }catch(e){console.warn('Nie udało się zapisać profilu dla klientów',e);return false;}
+  }catch(e){
+    // Reguły Firestore sprzed ekranu „Kontakt” nie znają pól contact/bodyWeight —
+    // wtedy zapisujemy profil w starym kształcie, żeby widoczność sekcji dalej działała.
+    if(!e||e.code!=='permission-denied'){console.warn('Nie udało się zapisać profilu dla klientów',e);return false;}
+    try{
+      const legacy={...payload,clientApp:{...payload.clientApp,visibleSections:{...payload.clientApp.visibleSections}}};
+      delete legacy.contact;delete legacy.clientApp.visibleSections.bodyWeight;
+      await window._setDoc(ref,legacy);
+      console.warn('Profil dla klientów zapisany bez danych kontaktowych — wdróż aktualne firestore.rules');
+      return !window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(session);
+    }catch(e2){console.warn('Nie udało się zapisać profilu dla klientów',e2);return false;}
+  }
 }
 window.trainerPublicProfilePayload=trainerPublicProfilePayload;
 window.syncTrainerPublicProfile=syncTrainerPublicProfile;

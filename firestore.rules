@@ -36,13 +36,18 @@ service cloud.firestore {
     function smallText(value, max) { return value is string && value.size() <= max; }
     function optionalImage(value) { return value == null || smallText(value, 800000); }
     function visibleFlags(flags) {
-      return flags.keys().hasOnly(['home', 'plan', 'homework', 'progress', 'checkin', 'ondemand', 'resources', 'forum', 'messages', 'profile', 'calendar'])
+      return flags.keys().hasOnly(['home', 'plan', 'homework', 'progress', 'checkin', 'ondemand', 'resources', 'forum', 'messages', 'profile', 'calendar', 'bodyWeight'])
         && flags.get('home', true) is bool && flags.get('plan', true) is bool
         && flags.get('homework', true) is bool && flags.get('progress', true) is bool
         && flags.get('checkin', true) is bool && flags.get('ondemand', true) is bool
         && flags.get('resources', true) is bool && flags.get('forum', true) is bool
         && flags.get('messages', true) is bool && flags.get('profile', true) is bool
-        && flags.get('calendar', true) is bool;
+        && flags.get('calendar', true) is bool && flags.get('bodyWeight', false) is bool;
+    }
+    function contactInfo(c) {
+      return c is map && c.keys().hasOnly(['name', 'phone', 'address', 'website'])
+        && smallText(c.get('name', ''), 200) && smallText(c.get('phone', ''), 50)
+        && smallText(c.get('address', ''), 300) && smallText(c.get('website', ''), 300);
     }
     // Explicit top-level trainer collections. No client, nested or special-schema
     // access is granted here: those have separate rules below.
@@ -127,8 +132,9 @@ service cloud.firestore {
       allow delete: if owner();
     }
     function safeProfile(data) {
-      return data.keys().hasOnly(['trainerId', 'schemaVersion', 'updatedAt', 'profile', 'brand', 'clientApp', 'paymentInstructions'])
+      return data.keys().hasOnly(['trainerId', 'schemaVersion', 'updatedAt', 'profile', 'brand', 'clientApp', 'paymentInstructions', 'contact'])
         && data.schemaVersion == 1
+        && (!('contact' in data) || contactInfo(data.contact))
         && data.profile.keys().hasOnly(['name', 'title', 'avatar', 'avatarUrl'])
         && smallText(data.profile.get('name', ''), 200) && smallText(data.profile.get('title', ''), 200)
         && smallText(data.profile.get('avatar', ''), 20) && optionalImage(data.profile.get('avatarUrl', null))
