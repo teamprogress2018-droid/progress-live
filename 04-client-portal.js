@@ -6752,11 +6752,12 @@ window.focusDashSection=focusDashSection;
 window.renderDashTodayFocus=renderDashTodayFocus;
 
 function dashNextAction(){
-  const att=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
+  const att=(typeof dashAttentionPeople==='function'?dashAttentionPeople():(typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[]))
+    .filter(x=>!x.issue||x.pri<=1); // brak e-maila / niedokończony start to nie „najważniejsze teraz”
   if(att.length){
     const x=att[0];
     const tag=String(x.tag||'wymaga uwagi');
-    return{tone:x.pri===0?'urgent':'watch',eyebrow:'Najważniejsze teraz',title:(x.name||'Klient')+' — '+tag.charAt(0).toLowerCase()+tag.slice(1),desc:x.meta||'Sprawdź sytuację klienta.',cta:x.cta||"goTo('clients')",ctaLbl:x.ctaLbl||'Sprawdź'};
+    return{tone:x.pri===0?'urgent':'watch',eyebrow:'Najważniejsze teraz',clientId:x.clientId||null,title:(x.name||'Klient')+' — '+tag.charAt(0).toLowerCase()+tag.slice(1),desc:x.meta||'Sprawdź sytuację klienta.',cta:x.cta||"goTo('clients')",ctaLbl:x.ctaLbl||'Sprawdź'};
   }
   const reports=typeof dashOpsRecentReports==='function'?dashOpsRecentReports():[];
   if(reports.length){
@@ -6807,6 +6808,23 @@ window.renderDashNextAction=renderDashNextAction;
 
 /** „Wymagają uwagi”: jedna osoba = jeden najważniejszy powód + jedno działanie; domyślnie 3 osoby. */
 function dashAttentionPeople(){
+  // Jedno źródło z ekranem „Klienci”: te same sprawy (clientIssues) i ta sama liczba „Wymaga uwagi”.
+  if(typeof clientIssues==='function'&&typeof CLIENT_ISSUES==='object'){
+    const sevPri={urgent:0,warn:1,info:2,hint:3};
+    const out=[];
+    (window.CL||[]).forEach(c=>{
+      if(!c)return;
+      const iss=(clientIssues(c)||[]).filter(i=>CLIENT_ISSUES[i.key]&&CLIENT_ISSUES[i.key].counts);
+      if(!iss.length)return;
+      const top=iss[0],def=CLIENT_ISSUES[top.key];
+      const id=String(c.id).replace(/'/g,"\\'");
+      out.push({channel:'attention',pri:sevPri[def.sev]??2,issue:top.key,clientId:c.id,name:c.name,
+        tag:def.label,short:top.label||def.label,meta:top.reason||def.tip,
+        cta:`clientDoAction(null,'${id}','${top.key}')`,ctaLbl:def.action});
+    });
+    const ord=typeof CLIENT_ISSUE_ORDER!=='undefined'?CLIENT_ISSUE_ORDER:[];
+    return out.sort((a,b)=>(ord.indexOf(a.issue)-ord.indexOf(b.issue))||String(a.name||'').localeCompare(String(b.name||''),'pl'));
+  }
   const items=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
   const seen=new Set();
   const out=[];
@@ -6826,9 +6844,13 @@ function dashAttentionTone(it){
 function dashAttentionHTML(){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   const people=dashAttentionPeople();
+  // Osoba z „Najważniejsze teraz” nie powtarza się na zwiniętej liście.
+  const topId=typeof dashNextAction==='function'?(dashNextAction()||{}).clientId:null;
   if(!people.length)return`<div class="dash-ops-empty">Wszystko na bieżąco — nikt nie czeka na Twoją reakcję.</div>`;
   const expanded=typeof dashListExpanded==='function'&&dashListExpanded('dash-attention');
-  const shown=expanded?people:people.slice(0,DASH_ATTENTION_PREVIEW);
+  const rest=topId?people.filter(p=>p.clientId!==topId):people;
+  const shown=expanded?people:rest.slice(0,DASH_ATTENTION_PREVIEW);
+  if(!shown.length)return`<div class="dash-ops-empty">Poza sprawą powyżej nikt nie czeka na Twoją reakcję.</div>`;
   const rows=shown.map(it=>{
     const tone=dashAttentionTone(it);
     const reason=it.short||it.tag||'Wymaga uwagi';
@@ -6841,7 +6863,7 @@ function dashAttentionHTML(){
       <button type="button" class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl||'Otwórz')}</button>
     </div>`;
   }).join('');
-  const more=people.length>DASH_ATTENTION_PREVIEW?`<button type="button" class="dash-att-all" data-dash-att-all="${people.length}" onclick="toggleDashListExpand('dash-attention')" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń listę':'Zobacz wszystkich wymagających uwagi ('+people.length+')'}</button>`:'';
+  const more=people.length>shown.length||expanded?`<button type="button" class="dash-att-all" data-dash-att-all="${people.length}" onclick="toggleDashListExpand('dash-attention')" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń listę':'Zobacz wszystkich wymagających uwagi ('+people.length+')'}</button>`:'';
   return rows+more;
 }
 const DASH_ATTENTION_PREVIEW=3;
@@ -7316,10 +7338,15 @@ function renderDashToday(){
     const st=dashSessionState(s,now);
     const canStart=s.date===today&&c&&st.kind!=='done'&&st.kind!=='skipped'&&st.kind!=='unrecorded';
     const lbl=stateLabel(st);
-    const title=s.type||s.name||'Trening personalny';
+    // Długi opis partii („… — Nogi: czworogłowe, tył uda…”) idzie do „Szczegóły”, na liście sama nazwa.
+    const fullTitle=String(s.type||s.name||'Trening personalny');
+    const cut=fullTitle.indexOf(' — ');
+    const tail=cut>0?fullTitle.slice(cut+3):'';
+    const title=cut>0&&/:/.test(tail)?fullTitle.slice(0,cut):fullTitle;
+    const partsLine=title!==fullTitle?tail:'';
     // Ostrzeżenie na wierzchu tylko, gdy wymaga decyzji przed treningiem (np. ćwiczenie sprzeczne z ograniczeniem).
     const urgentAttn=brief.attn&&brief.attn.tone==='act'?brief.attn:null;
-    const details=[brief.last?`<div class="dash-today-last" data-dash-last>${esc(brief.last)}</div>`:'',
+    const details=[partsLine?`<div class="dash-today-last" data-dash-parts>${esc(partsLine)}</div>`:'',brief.last?`<div class="dash-today-last" data-dash-last>${esc(brief.last)}</div>`:'',
       brief.attn&&!urgentAttn?`<div class="dash-today-attn dash-today-attn-${esc(brief.attn.tone)}" data-dash-attn title="${esc(brief.attn.reason||'')}">${esc(brief.attn.title)}</div>`:''].join('');
     let btn;
     if(canStart){

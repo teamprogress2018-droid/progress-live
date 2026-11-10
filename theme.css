@@ -2055,3 +2055,5 @@ html[data-theme] #screen-dashboard .dash3-qa-small i { width: 18px; height: 18px
   html[data-theme] #screen-dashboard .dash-today-row .dash-today-badge { grid-column: 2; justify-self: start; }
   html[data-theme] #screen-dashboard .dash-fire-side { flex-direction: column; }
 }
+html[data-theme] #screen-dashboard .dash-next-urgent .dash-next-eyebrow { color: var(--danger, var(--red)); }
+html[data-theme] #screen-dashboard .dash-next-watch .dash-next-eyebrow { color: var(--warning, var(--orange)); }
