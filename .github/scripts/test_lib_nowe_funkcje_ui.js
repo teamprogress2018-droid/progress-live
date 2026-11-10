@@ -47,11 +47,10 @@ function ok(name, cond, extra) {
   await page.locator('.ex-card', { hasText: 'Pompki diamentowe' }).first().locator('.ex-fav-btn').click();
   const fav = await page.evaluate(() => {
     const btn = document.querySelector('.ex-card[data-ex-name="Pompki diamentowe"] .ex-fav-btn');
-    const count = document.getElementById('ex-nav-count-fav').textContent;
+    const count = document.querySelector('#lib2-tabs [data-tab="fav"] .lib2-tab-n').textContent;
     document.getElementById('ex-search').value = '';
-    exCatFilter = '__fav';
-    renderLib();
-    const names = [...document.querySelectorAll('#lib-grid .ex-card-name')].map((el) => el.textContent);
+    setExTab('fav');
+    const names = [...document.querySelectorAll('#lib-grid .exl-name')].map((el) => el.textContent);
     return { on: btn && btn.classList.contains('is-on') && btn.textContent === '★', count, names, saved: SETTINGS.favoriteExercises.slice(), detail: document.querySelector('.ex-card.selected') === null };
   });
   ok('star marks favourite', fav.on && fav.count === '1', JSON.stringify(fav));
@@ -66,15 +65,14 @@ function ok(name, cond, extra) {
 
   // 2. Ostatnio używane – z planów, od najnowszego.
   const rec = await page.evaluate(() => {
-    exCatFilter = '__recent';
-    renderLib();
-    return [...document.querySelectorAll('#lib-grid .ex-card-name')].map((el) => el.textContent);
+    setExTab('recent');
+    return [...document.querySelectorAll('#lib-grid .exl-name')].map((el) => el.textContent);
   });
   ok('recent from plans in order', rec.join('|') === 'Wiosłowanie sztangą|Przysiad ze sztangą', rec.join('|'));
 
   // 3. Duplikuj plan → kopia bez klienta w kreatorze; zapis dla innego klienta nie rusza oryginału.
   const dup = await page.evaluate(async () => {
-    exCatFilter = 'Wszystkie';
+    setExTab('base');
     goTo('plans');
     renderPlans();
     const btn = document.querySelector('button[onclick*="duplicatePlan(\'p_src\')"]');

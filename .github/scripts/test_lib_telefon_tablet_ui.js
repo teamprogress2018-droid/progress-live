@@ -31,7 +31,8 @@ async function bootApp(browser, port, viewport, mobile) {
   return { ctx, page, errors };
 }
 
-const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'];
+// Biblioteka ćwiczeń 2.0 ma własny przycisk „Filtry” nad listą — sprawdzana niżej osobno.
+const SCREENS = ['programs', 'templates', 'tasks', 'forms', 'metrics'];
 
 (async () => {
   const port = process.env.LAYOUT_PORT || '8080';
@@ -98,26 +99,22 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
     });
     ok('no filters button on Moje filmy', vids);
 
-    // Domyślny tryb pełnego ekranu (pl_library_wide_v1 brak/1): „Filtry” musi pokazać kategorie.
+    // Domyślny tryb pełnego ekranu: „Filtry” rozwija panel filtrów nad listą, drugi klik go zwija.
     const wide = await page.evaluate(() => {
       localStorage.removeItem('pl_library_wide_v1'); goTo('library'); setLibTab('ex');
       if (typeof setLibraryWide === 'function') setLibraryWide(true, false);
       const scr = document.getElementById('screen-library');
       const btn = document.getElementById('lib-filters-btn');
-      const cats = () => [...scr.querySelectorAll('.lib-split > .lib-filters .ex-cat-nav-item')].filter((el) => el.getBoundingClientRect().height > 0).length;
-      const before = cats();
+      const sels = () => [...scr.querySelectorAll('#lib2-filters select')].filter((el) => el.getBoundingClientRect().height > 0).length;
+      const before = sels();
       btn.click();
-      const opened = { cats: cats(), expanded: btn.getAttribute('aria-expanded') };
+      const opened = { sels: sels(), expanded: btn.getAttribute('aria-expanded'), w: Math.round(document.getElementById('lib2-filters').getBoundingClientRect().width) };
       btn.click();
-      return { wide: scr.classList.contains('library-wide'), before, opened, closed: cats() };
+      return { wide: scr.classList.contains('library-wide'), before, opened, closed: sels(), sw: document.documentElement.scrollWidth };
     });
-    ok('fullscreen library: Filtry shows categories on phone', wide.wide && wide.before === 0 && wide.opened.cats > 0 && wide.opened.expanded === 'true', JSON.stringify(wide));
-    ok('fullscreen library: Filtry hides categories again', wide.closed === 0, JSON.stringify(wide));
-    await page.click('#lib-filters-btn');
-    await page.locator('#screen-library .lib-split > .lib-filters .ex-cat-nav-item').nth(1).click();
-    await page.waitForTimeout(100);
-    const wpick = await page.evaluate(() => ({ open: document.getElementById('screen-library').classList.contains('lib-open-filters') }));
-    ok('fullscreen library: picking a category closes the panel', !wpick.open, JSON.stringify(wpick));
+    ok('fullscreen library: Filtry shows filters on phone', wide.wide && wide.before === 0 && wide.opened.sels === 5 && wide.opened.expanded === 'true' && wide.opened.w >= 380, JSON.stringify(wide));
+    ok('fullscreen library: Filtry hides filters again', wide.closed === 0, JSON.stringify(wide));
+    ok('library: no sideways page', wide.sw <= 390, JSON.stringify(wide));
     await page.evaluate(() => { localStorage.setItem('pl_library_wide_v1', '0'); if (typeof setLibraryWide === 'function') setLibraryWide(false, false); });
 
     const touch = await page.evaluate(() => {

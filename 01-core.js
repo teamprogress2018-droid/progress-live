@@ -556,7 +556,8 @@ function libraryWideParts(){
     app:document.getElementById('app-root'),
     sidebar:document.getElementById('app-sidebar'),
     filters:screen?screen.querySelector('#lib-ex-body > .lib-side.lib-filters'):null,
-    filterButton:document.getElementById('lib-filters-btn'),
+    // Biblioteka 2.0 ma własny przycisk „Filtry” (.lib2-filters-btn) — tryb pełnoekranowy go nie przejmuje.
+    filterButton:document.querySelector('#screen-library .lib-filters-btn'),
     wideButton:document.getElementById('lib-wide-btn')
   };
 }
@@ -590,6 +591,7 @@ function toggleLibraryWide(){
 }
 function toggleLibraryFilters(){
   const parts=libraryWideParts();
+  if(parts.screen&&!parts.filterButton&&typeof toggleExFilters==='function'){toggleExFilters();return;}
   if(!parts.screen||!parts.filterButton)return;
   // Na telefonie panel filtrów pokazuje tylko klasa .lib-open-filters (CSS z !important),
   // także w trybie pełnego ekranu — styl inline by go nie odsłonił.

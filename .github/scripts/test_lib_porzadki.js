@@ -32,12 +32,12 @@ ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
 const a = html.indexOf('<div class="screen" id="screen-library">');
 const lib = html.slice(a, html.indexOf('<div class="screen"', a + 10));
 ok('one import button', (lib.match(/openExGifImport\(\)/g) || []).length === 1);
-ok('+ Ćwiczenie is the main action', /class="btn btn-primary btn-sm" id="lib-add-ex"/.test(lib) && /class="btn btn-ghost btn-sm" id="lib-import-gif"/.test(lib));
+ok('import and tools live in the ⋯ menu', /id="lib-more-menu"[\s\S]*id="lib-import-gif"/.test(lib) && /id="lib-add-ex"/.test(lib));
 ok('dedupe button hidden by default', /id="lib-sweep-dups" style="[^"]*display:none;/.test(lib));
 ok('no empty plan filters', !html.includes('id="ex-plan-filters"') && !html.includes('Filtry dla planu'));
 ok('no empty muscle chips', !html.includes('id="ex-muscle-chips"'));
 ok('no category sort', !/<option value="cat">Kategoria<\/option>/.test(lib));
-ok('view buttons start on Karty', /class="btn btn-primary btn-sm" id="ex-view-grid-btn" aria-pressed="true"/.test(lib));
+ok('one compact card view', !lib.includes('id="ex-view-grid-btn"') && lib.includes('id="lib-grid"'));
 ok('search waits for typing pause', lib.includes('oninput="renderLibSoon()"'));
 
 ['id="ex-img"', 'id="ex-video"'].forEach((id) => {

@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="globals.css?v=17">
 <link rel="stylesheet" href="styles.css?v=194">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=14&layout-v2=2&generator-ux=2&book-visuals=5">
+<link rel="stylesheet" href="theme.css?v=15&layout-v2=2&generator-ux=2&book-visuals=5">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
 <link rel="stylesheet" href="landing.css?v=2">
 <link rel="stylesheet" href="client-simple.css?v=1">
@@ -797,69 +797,47 @@
 
 <!-- EXERCISE LIBRARY — ENHANCED -->
 <div class="screen" id="screen-library">
-  <div class="topbar">
+  <div class="topbar lib2-topbar">
     <div class="topbar-title" id="lib-top-title">Biblioteka ćwiczeń</div>
     <div class="topbar-actions">
-      <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" id="lib-filters-btn" aria-expanded="false" onclick="toggleLibraryFilters()">☰ Filtry</button>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-primary btn-sm" id="lib-tab-ex" onclick="setLibTab('ex')">Ćwiczenia</button>
-        <button class="btn btn-ghost btn-sm" id="lib-tab-vid" onclick="setLibTab('videos')">Moje filmy</button>
+      <div class="lib2-seg" role="group" aria-label="Rodzaj biblioteki">
+        <button type="button" class="btn btn-primary btn-sm" id="lib-tab-ex" onclick="setLibTab('ex')">Ćwiczenia</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="lib-tab-vid" onclick="setLibTab('videos')">Moje filmy</button>
       </div>
-      <div style="display:flex;gap:6px;" id="lib-ex-view-btns">
-        <button class="btn btn-primary btn-sm" id="ex-view-grid-btn" aria-pressed="true" onclick="setExView('grid')">⊞ Karty</button>
-        <button class="btn btn-ghost btn-sm" id="ex-view-list-btn" aria-pressed="false" onclick="setExView('list')">☰ Lista</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Własne ćwiczenie</button>
+      <button type="button" class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
+      <div class="lib2-more-wrap">
+        <button type="button" class="btn btn-ghost btn-sm lib2-more-btn" id="lib-more-btn" onclick="toggleLibMoreMenu()" aria-haspopup="true" aria-expanded="false" aria-controls="lib-more-menu" aria-label="Więcej narzędzi biblioteki" title="Narzędzia: import, duplikaty, ukryte">⋯</button>
+        <div class="lib2-pop" id="lib-more-menu" role="menu" hidden>
+          <button type="button" class="lib2-pop-item" role="menuitem" id="lib-import-gif" onclick="closeLibMoreMenu();openExGifImport()">🎞 Import GIF / MP4</button>
+          <button type="button" class="lib2-pop-item" role="menuitem" onclick="closeLibMoreMenu();setExTab('all');exCatFilter='__media_gap';renderLib()">◌ Materiały do uzupełnienia</button>
+          <button type="button" class="lib2-pop-item" role="menuitem" id="lib-review-dups" onclick="closeLibMoreMenu();reviewExerciseDuplicates()">Sprawdź duplikaty</button>
+          <button type="button" class="lib2-pop-item" role="menuitem" id="lib-sweep-dups" style="display:none;" onclick="closeLibMoreMenu();removeImportedCatalogDuplicates()">Usuń duplikaty</button>
+          <button type="button" class="lib2-pop-item" role="menuitem" id="lib-restore-hidden" style="display:none;" onclick="closeLibMoreMenu();restoreHiddenExercises()">Przywróć ukryte</button>
+          <button type="button" class="lib2-pop-item" role="menuitem" id="lib-wide-btn" aria-pressed="false" onclick="closeLibMoreMenu();toggleLibraryWide()">⛶ Pełny ekran</button>
+        </div>
       </div>
-      <button class="btn btn-ghost btn-sm" id="lib-import-gif" onclick="openExGifImport()" title="Masowy import GIF / MP4 techniki">🎞 Import GIF / MP4</button>
-      <span class="btn btn-ghost btn-sm" id="lib-build-white-previews" title="Każda karta korzysta z lekkiego, nieruchomego białego podglądu">🖼 Białe podglądy aktywne</span>
-      <button type="button" class="btn btn-ghost btn-sm" id="lib-wide-btn" aria-pressed="false" onclick="toggleLibraryWide()" title="Pokaż Bibliotekę na całej szerokości">⛶ Pełny ekran</button>
-      <button class="btn btn-primary btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Ćwiczenie</button>
-      <button class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
     </div>
   </div>
-  <div id="lib-ex-body" class="lib-ex-body lib-split">
-    <!-- lewy panel: kategorie + sprzęt w jednym scrollu, żeby dół nie był ucięty -->
-    <div class="lib-side lib-filters has-search">
-      <div class="lib-side-top lib-search-row">
-        <input type="text" id="ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderLibSoon()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
-        <button type="button" class="btn btn-ghost btn-sm" id="lib-review-dups" style="width:100%;margin-top:8px;" onclick="reviewExerciseDuplicates()">Sprawdź duplikaty</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="lib-sweep-dups" style="width:100%;margin-top:8px;display:none;" onclick="removeImportedCatalogDuplicates()">Usuń duplikaty</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="lib-restore-hidden" style="width:100%;margin-top:6px;display:none;color:var(--red);" onclick="restoreHiddenExercises()">Przywróć ukryte</button>
-      </div>
-      <div class="lib-side-scroll" id="lib-side-scroll">
-        <div id="ex-cat-nav"></div>
-        <div class="lib-equip">
-          <div class="lib-equip-lbl">Sprzęt</div>
-          <div id="ex-equip-filters"></div>
+  <div id="lib-ex-body" class="lib-ex-body lib2">
+    <div class="lib2-main">
+      <div class="lib2-head">
+        <div class="lib2-search">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="ex-search" placeholder="Szukaj ćwiczenia, np. przysiad, wiosłowanie, deska" aria-label="Szukaj ćwiczenia" oninput="renderLibSoon()" autocomplete="off">
         </div>
+        <button type="button" class="lib2-filters-btn" id="lib-filters-btn" onclick="toggleExFilters()" aria-expanded="false" aria-controls="lib2-filters"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg><span id="lib-filters-lbl">Filtry</span></button>
       </div>
-    </div>
-
-    <!-- główna treść -->
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <!-- toolbar -->
-      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
-        <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="ex-results-count">0 ćwiczeń</span>
-        <button type="button" class="btn btn-primary btn-sm" id="ex-media-only-toggle" onclick="toggleExMediaOnly()" aria-pressed="true">✓ Tylko z filmem</button>
-        <div style="margin-left:auto;">
-          <select class="form-select" style="padding:4px 8px;font-size:11px;width:auto;" id="ex-sort" onchange="renderLib()">
-            <option value="az">A–Z</option>
-            <option value="eq">Sprzęt</option>
-          </select>
-        </div>
+      <div class="lib2-tabs" id="lib2-tabs" role="tablist" aria-label="Widoki biblioteki"></div>
+      <div class="lib2-filters" id="lib2-filters" hidden></div>
+      <div class="lib2-groups" id="ex-cat-nav" role="group" aria-label="Szybkie kategorie"></div>
+      <div class="lib2-draft" id="lib2-draft" hidden></div>
+      <div class="lib2-count" id="ex-results-count" aria-live="polite">0 ćwiczeń</div>
+      <div id="ex-grid-view" class="lib2-scroll">
+        <div id="lib-grid" class="lib2-grid"></div>
+        <div id="lib2-sentinel" class="lib2-sentinel" aria-hidden="true"></div>
       </div>
-
-      <!-- widok kart -->
-      <div id="ex-grid-view" style="flex:1;overflow-y:auto;padding:14px 16px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;" id="lib-grid"></div>
-      </div>
-
-      <!-- widok listy -->
-      <div id="ex-list-view" style="flex:1;overflow-y:auto;display:none;">
-        <div id="ex-list-head" style="display:grid;grid-template-columns:2fr 120px 140px 1fr 100px;gap:8px;padding:8px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
-          <span>Ćwiczenie</span><span>Kategoria</span><span>Sprzęt</span><span class="ex-list-tip-hd">Wskazówka</span><span></span>
-        </div>
-        <div id="ex-list-body"></div>
-      </div>
+      <div id="ex-list-view" hidden><div id="ex-list-body"></div></div>
     </div>
 
     <!-- prawy panel: szczegóły ćwiczenia -->
@@ -871,14 +849,11 @@
           <button type="button" class="exd-close" onclick="closeExDetail()" aria-label="Zamknij">×</button>
         </div>
       </div>
-      <div class="exd-tabs" role="tablist" aria-label="Szczegóły ćwiczenia" onkeydown="onExdTabsKeydown(event)">
-        <button type="button" class="exd-tab is-active" role="tab" id="exd-tab-preview" aria-controls="exd-panel-preview" aria-selected="true" tabindex="0" onclick="setExdTab('preview')">Podgląd</button>
-        <button type="button" class="exd-tab" role="tab" id="exd-tab-biomech" aria-controls="exd-panel-biomech" aria-selected="false" tabindex="-1" onclick="setExdTab('biomech')">Biomechanika</button>
-        <button type="button" class="exd-tab" role="tab" id="exd-tab-manage" aria-controls="exd-panel-manage" aria-selected="false" tabindex="-1" onclick="setExdTab('manage')">Zarządzanie</button>
-      </div>
       <div id="exd-body">
-        <div id="exd-panel-preview" class="exd-panel" role="tabpanel" aria-labelledby="exd-tab-preview"></div>
-        <div id="exd-panel-biomech" class="exd-panel" role="tabpanel" aria-labelledby="exd-tab-biomech" hidden>
+        <div id="exd-panel-preview" class="exd-panel"></div>
+        <details class="exd-trainer" id="exd-trainer">
+        <summary class="exd-trainer-sum">Szczegóły dla trenera <span>biomechanika, zamienniki, parametry, zarządzanie</span></summary>
+        <div id="exd-panel-biomech" class="exd-panel">
           <div id="exd-biomech-main"></div>
           <details class="exd-acc" id="exd-acc-ai">
             <summary class="exd-acc-sum">🦴 Zapytaj Biomechanika</summary>
@@ -893,7 +868,8 @@
             </div>
           </details>
         </div>
-        <div id="exd-panel-manage" class="exd-panel" role="tabpanel" aria-labelledby="exd-tab-manage" hidden></div>
+        <div id="exd-panel-manage" class="exd-panel"></div>
+        </details>
       </div>
     </div>
   </div>
@@ -4929,7 +4905,7 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=161&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1"></script>
+<script src="01-core.js?v=162&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=114"></script>
 <script src="books-kb.js?v=8"></script>
@@ -4940,7 +4916,7 @@ async function load(session=captureTenantSession()){
 <script src="05-clients-builder-plans-calendar.js?v=121&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=118&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=119&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1"></script>
 <script src="diet-plan.js?v=13"></script>
 <script src="07-forms-metrics-calculator.js?v=56&week=1&diet=1&baseline-save=1&profile-save=1"></script>
 <script src="08-client-profile-extras.js?v=94&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
