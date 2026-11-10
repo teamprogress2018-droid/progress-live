@@ -35,7 +35,7 @@ function ok(name,cond,extra){
 ok('collect fn',/function collectCpBriefItems\(c\)/.test(src08));
 ok('html helper',/function cpOverviewBriefHTML\(c\)/.test(src08));
 ok('brief before situation',overview.indexOf('cpOverviewBriefHTML(c)')<overview.indexOf('cpOverviewSituationHTML(c)')&&overview.indexOf('cpOverviewBriefHTML(c)')>=0);
-ok('situation helper intact',sit.includes('Wnioski')&&sit.includes('cp-ov-situation')&&!sit.includes('collectCpBriefItems')&&!sit.includes('Przed treningiem'));
+ok('situation helper intact',sit.includes('do wykonania')&&sit.includes('cp-ov-situation')&&!sit.includes('collectCpBriefItems')&&!sit.includes('Przed treningiem'));
 ok('no next-focus in brief',!/cpNextSessionFocusItems/.test(briefSrc));
 ok('no AI',!/sendAICMsg|aplGenerate|openai/.test(briefSrc+extract(src08,'cpOverviewBriefHTML')));
 ok('no persist',!/persistById/.test(briefSrc));
@@ -51,8 +51,8 @@ ok('injury watch',css.includes('.cp-ov-brief-row.is-watch')&&!css.includes('.cp-
 ok('cache 08/styles',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, 'styles.css', 166));
 ok('ci unit',wf.includes('test_cp_overview_brief.js'));
 ok('ci ui',wf.includes('test_cp_overview_brief_ui.js'));
-ok('empty copy',src08.includes('Brak danych do briefu.'));
-ok('kicker',src08.includes('>Dziś</div>')||src08.includes('Dziś</div>'));
+ok('empty copy',src08.includes('Dziś brak treningu'));
+ok('kicker',src08.includes('>Dzisiaj</div>'));
 
 const sandbox={
   window:{CL:[],SE:[],PL:[],CHECKINS:{},CLIENT_NOTES:{},TASKS:[]},
@@ -115,6 +115,7 @@ vm.runInNewContext(
   extract(src08,'cpBriefTopLoads')+'\n'+
   extract(src08,'cpOverviewPlanTitle')+'\n'+
   extract(src08,'collectCpBriefItems')+'\n'+
+  extract(src08,'cpOverviewPrimaryAction')+'\n'+
   extract(src08,'cpOverviewBriefHTML')+'\n'+
   'window.collectCpBriefItems=collectCpBriefItems;window.cpOverviewBriefHTML=cpOverviewBriefHTML;window.cpOverviewPlanTitle=cpOverviewPlanTitle;',
   sandbox
@@ -160,7 +161,7 @@ ok('no recs as own line',!full.some(e=>e.kind==='rekord'));
 ok('no adh line',!full.some(e=>/Adherencja|7d|30d/.test(e.label+e.fact)));
 
 const htmlFull=sandbox.cpOverviewBriefHTML(sandbox.window.CL[0]);
-ok('html kicker',/Dziś/.test(htmlFull));
+ok('html kicker',/Dzisiaj/.test(htmlFull));
 ok('html no placeholder rows',!/brak danych/.test(htmlFull.toLowerCase().replace('brak danych do briefu.','')));
 ok('html injury watch class',/data-cp-brief="injury"[^>]*is-watch|is-watch[^>]*data-cp-brief="injury"/.test(htmlFull));
 
@@ -171,7 +172,7 @@ const empty=sandbox.collectCpBriefItems(emptyC);
 ok('new client no items',empty.length===0,JSON.stringify(empty));
 ok('notes not injury on empty',!empty.some(e=>e.kind==='injury'));
 const emptyHtml=sandbox.cpOverviewBriefHTML(emptyC);
-ok('empty one message',/Brak danych do briefu/.test(emptyHtml)&&emptyHtml.includes('data-cp-brief="empty"'));
+ok('empty one message',/Dziś brak treningu/.test(emptyHtml)&&emptyHtml.includes('data-cp-brief="empty"'));
 ok('empty no fake rows',!/data-cp-brief="session"/.test(emptyHtml)&&!/data-cp-brief="injury"/.test(emptyHtml));
 
 sandbox.window.SE.length=0;

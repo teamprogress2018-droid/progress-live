@@ -123,7 +123,7 @@ function ok(name, cond, extra) {
       title: (document.querySelector('.cp-ov-situation-title') || {}).textContent || '',
       kicker: (document.querySelector('.cp-ov-situation-kicker') || {}).textContent || '',
       pulse: !!document.querySelector('.cp-ov-situation .cp-ov-pulse'),
-      nextHd: (document.querySelector('.cp-ov-next-hd') || {}).textContent || '',
+      nextHd: ((document.querySelector('.cp-ov-acts-sum') || document.querySelector('.cp-ov-rec-ok') || {}).textContent || ''),
       next,
     tiles,
     checkinHint: ((document.querySelector('[data-cp-sit="checkin"] .cp-ov-sit-hint') || {}).textContent || ''),
@@ -141,10 +141,10 @@ function ok(name, cond, extra) {
   ok('situation visible', busy.hasSit);
   ok('kicker Status', /Status/.test(busy.kicker), busy.kicker);
   ok('no name-goal repeat', !/Jarosław Test/.test(busy.title), busy.title);
-  ok('next header', /Wnioski/.test(busy.nextHd), busy.nextHd);
+  ok('next header', /do wykonania|Wszystko w porządku/.test(busy.nextHd), busy.nextHd);
   ok('invite rec not poproś', !busy.next.some(x => x.kind === 'invite') && !busy.next.some(x => /Poproś o check-in/.test(x.text)), JSON.stringify(busy.next));
   ok('max 3 recs', busy.next.length <= 3, String(busy.next.length));
-  ok('kpi tiles 4', busy.tiles.length === 4 && busy.tiles[0].id === 'train' && busy.tiles[1].id === 'mass' && /tygodniu/.test(busy.tiles[0].lbl), JSON.stringify(busy.tiles));
+  ok('kpi tiles max 3 (sen w Pomiarach)', busy.tiles.length === 3 && !busy.tiles.some(t => t.id === 'sleep') && busy.tiles[0].id === 'train' && busy.tiles[1].id === 'mass' && /tygodniu/.test(busy.tiles[0].lbl), JSON.stringify(busy.tiles));
   ok('checkin hint', /brak od|oczekuje|brak/.test(busy.checkinHint), busy.checkinHint);
   ok('existing train card', busy.hasTrain);
   ok('existing metrics card', busy.hasMetrics);

@@ -39,7 +39,7 @@ ok('no remind on empty',!/assigned7&&last7===0/.test(overview));
 ok('notes copy',overview.includes('Widoczna tylko dla Ciebie')&&!overview.includes('Krótka notatka zostaje przy Tobie.'));
 ok('ask all',src08.includes('Poproś o wszystko')&&src08.includes('function cpRemindAllMissing'));
 ok('has-app heading',src08.includes('Uzupełni klient')&&src08.includes('Poproś o wszystko'));
-ok('nolog rec',src08.includes("kind:'nolog'")&&src08.includes('Nie ma zapisanych treningów — jeśli się odbyły, zapisz je')&&src08.includes('Przejdź do Treningów'));
+ok('nolog rec',src08.includes("kind:'nolog'")&&src08.includes('Nie ma zapisanych treningów — jeśli się odbyły, zapisz je')&&src08.includes('Przejdź do treningów')&&src08.includes('Brak zapisanych treningów'));
 ok('live package label',src02.includes("Pakiet: '+pkg.sessions+' sesji")||src02.includes('Pakiet: '));
 ok('today frame css',css.includes('.cp-ov-week-day.is-today')&&/box-shadow:0 0 0 1px/.test(css));
 ok('accent helper',/function cpOverviewPlanDayAccent/.test(src08));

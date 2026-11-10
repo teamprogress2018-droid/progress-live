@@ -40,8 +40,8 @@ ok('no persist in next',!/function cpNextSessionFocusItems[\s\S]{0,2500}persistB
 ok('no AI in next',!/function cpNextSessionFocusItems[\s\S]{0,2500}(sendAICMsg|aplGenerate|openai)/.test(src08));
 ok('load drop 85%',src08.includes('prev*0.85')||src08.includes('prev * 0.85'));
 ok('empty copy',src08.includes('Brak szczególnych sygnałów — jedź planem.'));
-ok('next header',src08.includes('Wnioski')&&src08.includes('cp-ov-next'));
-ok('kpis week mass sleep checkin',sit.includes('Treningi w tym tygodniu')&&sit.includes('Waga')&&sit.includes('Sen')&&sit.includes('Check-in'));
+ok('next header',src08.includes('do wykonania')&&src08.includes('cp-ov-next'));
+ok('kpis week mass checkin (sen w Pomiarach)',sit.includes('Treningi w tym tygodniu')&&sit.includes('Ostatni pomiar wagi')&&sit.includes('Oczekiwanie na raport')&&!sit.includes("lbl:'Sen'"));
 ok('rec copy',src08.includes('Poproś o check-in przed dzisiejszym treningiem')&&src08.includes('Ustal stały dzień pomiaru wagi')&&src08.includes('Otwórz plan'));
 ok('plan before last trainings',overview.indexOf('Aktywny plan tygodnia')<overview.indexOf('Ostatnie treningi'));
 ok('existing cards remain',overview.includes('Ostatnie treningi')&&overview.includes('Pomiary ciała')&&overview.includes('Samopoczucie (check-in)')&&!overview.includes('Ostatnie 7 dni ·'));
@@ -255,8 +255,8 @@ ok('mass +1.2 / 30d',mass&&mass.value===81.2&&mass.delta===1.2,JSON.stringify(ma
 
 const htmlSit=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
 ok('situation html kicker',/Status/.test(htmlSit)&&!/Jarosław/.test(htmlSit));
-ok('situation html next',/Wnioski/.test(htmlSit));
-ok('situation html tiles',/data-cp-sit="train"/.test(htmlSit)&&/data-cp-sit="mass"/.test(htmlSit)&&/data-cp-sit="sleep"/.test(htmlSit)&&/data-cp-sit="checkin"/.test(htmlSit));
+ok('situation html next',/do wykonania/.test(htmlSit));
+ok('situation html tiles',/data-cp-sit="train"/.test(htmlSit)&&/data-cp-sit="mass"/.test(htmlSit)&&!/data-cp-sit="sleep"/.test(htmlSit)&&/data-cp-sit="checkin"/.test(htmlSit));
 ok('week label',/Treningi w tym tygodniu/.test(htmlSit));
 
 sandbox._snap.facts.adh30={assigned:2,logged:1,pct:50};
@@ -265,8 +265,8 @@ sandbox.window.METRIC_ENTRIES=[
   {clientId:'c1',groupId:'mg5',date:'2026-09-21',values:{m2:5}}
 ];
 const htmlThin=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
-ok('thin adh not percent',/1\/2|1 z 2|za mało/.test(htmlThin)&&!/>50%</.test(htmlThin));
-ok('thin sleep no trend',/za mało ocen snu/.test(htmlThin)&&!/spada/.test(htmlThin));
+ok('thin adh not percent',/1\/2|1 z 2|za mało|brak zaplanowanych/.test(htmlThin)&&!/>50%</.test(htmlThin));
+ok('thin sleep not on overview (Pomiary)',!/data-cp-sit="sleep"/.test(htmlThin)&&!/spada/.test(htmlThin));
 ok('thin sleep not in next',sandbox.cpNextSessionFocusItems('c1').every(x=>x.kind!=='sleep'));
 
 sandbox.window.CHECKINS={c1:[]};

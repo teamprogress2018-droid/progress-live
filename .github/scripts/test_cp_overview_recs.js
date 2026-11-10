@@ -31,7 +31,7 @@ function ok(name,cond,extra){
 ok('recs helper',/function cpOverviewRecs\(c(,opts)?\)/.test(src08));
 ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'));
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
-ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
+ok('early copy',src08.includes('Wiarygodna analiza będzie dostępna po 4 tygodniach lub 4 pomiarach.'));
 ok('ci workflow',wf.includes('test_cp_overview_recs.js'));
 ok('cache',cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('invite not a rec',!/kind:'invite'/.test(extract(src08,'cpOverviewRecs')));
@@ -179,7 +179,7 @@ sandbox.window.SE=[
 sandbox._adh={assigned:4,logged:0,pct:0};
 recs=sandbox.cpOverviewRecs(client({inviteSent:true,createdAt:'2026-09-13'}));
 ok('empty log no adherence rec',!recs.some(x=>x.kind==='adherence'),JSON.stringify(recs));
-ok('empty log add workout rec',recs.some(x=>x.kind==='nolog'&&x.cta&&x.cta.label==='Przejdź do Treningów'&&/Nie ma zapisanych treningów/.test(x.title)),JSON.stringify(recs));
+ok('empty log add workout rec',recs.some(x=>x.kind==='nolog'&&x.cta&&x.cta.label==='Przejdź do treningów'&&/Nie ma zapisanych treningów/.test(x.title)),JSON.stringify(recs));
 const adhInc=sandbox.cpOverviewAdhWindow('c1',14);
 ok('incomplete from plan start',adhInc.incomplete&&adhInc.planStart==='2026-09-13'&&adhInc.assigned===4&&adhInc.logged===0,JSON.stringify(adhInc));
 ok('incomplete copy',sandbox.cpOverviewAdhReason(adhInc)==='0 z 4 zaplanowanych od 13.09',sandbox.cpOverviewAdhReason(adhInc));

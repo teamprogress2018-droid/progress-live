@@ -38,7 +38,7 @@ function ok(name,cond,extra){
 ok('helpers',/function cpCoopCollectSignals\(c\)/.test(src08)&&/function cpOverviewCoopHTML\(c\)/.test(src08)&&/function runCpCoopAnalysis\(/.test(src08));
 ok('after situation',overview.indexOf('cpOverviewSituationHTML(c)')<overview.indexOf('cpOverviewCoopHTML(c)')&&overview.indexOf('cpOverviewCoopHTML(c)')>0);
 ok('brief still first',overview.indexOf('cpOverviewBriefHTML(c)')<overview.indexOf('cpOverviewSituationHTML(c)'));
-ok('situation untouched',sit.includes('Wnioski')&&sit.includes('cp-ov-situation')&&!sit.includes('cpOverviewCoopHTML')&&!sit.includes('Przeanalizuj współpracę'));
+ok('situation untouched',sit.includes('do wykonania')&&sit.includes('cp-ov-situation')&&!sit.includes('cpOverviewCoopHTML')&&!sit.includes('Przeanalizuj współpracę'));
 ok('brief untouched',brief.includes('Dziś')&&!brief.includes('Przeanalizuj współpracę')&&!brief.includes('runCpCoopAnalysis'));
 ok('cta copy',src08.includes('Przeanalizuj współpracę')&&!/Co by zmieniło AI\?/.test(coopSrc));
 ok('no monitor.next in html helper',!/v\.next|monitor\.next/.test(extract(src08,'cpOverviewCoopHTML')));
