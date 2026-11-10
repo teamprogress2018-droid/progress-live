@@ -686,7 +686,7 @@ function renderLibFilters(){
 function renderLibTabs(counts){
   const el=document.getElementById('lib2-tabs');if(!el)return;
   const tabs=[['base','Baza Progress',counts.base,'Wyselekcjonowane, sprawdzone ćwiczenia P&P Progress'],['fav','Ulubione',counts.fav,'Ćwiczenia oznaczone gwiazdką'],
-    ['recent','Ostatnio używane',counts.recent,'Ćwiczenia z Twoich ostatnich planów'],['own','Moje ćwiczenia',counts.own,'Ćwiczenia dodane przez Ciebie'],
+    ['recent','Ostatnio używane',counts.recent,'Ćwiczenia z Twoich ostatnich planów'],['own','Moje ćwiczenia',counts.own,'Najczęściej przypisywane do Twoich planów, potem ćwiczenia dodane przez Ciebie'],
     ['all','Wszystkie ćwiczenia',counts.all,'Pełna baza — wczytywana partiami']];
   el.innerHTML=tabs.map(([id,l,n,tip])=>`<button type="button" role="tab" data-tab="${id}" class="lib2-tab${exTab===id?' is-on':''}" aria-selected="${exTab===id}" onclick="setExTab('${id}')" title="${escHtml(tip)}">${l}<span class="lib2-tab-n">${n}</span></button>`).join('');
 }
@@ -1817,6 +1817,101 @@ function recentExNames(limit){
   return out;
 }
 window.recentExNames=recentExNames;
+
+/**
+ * Ile razy trener użył ćwiczenia w swoich planach: {name → {plans, uses}} (nazwy z biblioteki).
+ * Szybkie dopasowanie bez pełnego wyszukiwania rozmytego: dokładna nazwa, nazwa przed „(” / „—”,
+ * a potem najdłuższa nazwa z biblioteki, którą zaczyna się nazwa z planu. Wynik w cache do zmiany planów.
+ */
+let _exPlanUsageCache={key:'',map:null};
+const EX_USAGE_MATCH_KEY='pl_ex_usage_match_v1';
+let _exUsageMatch=null,_exUsagePending=new Set(),_exUsageTimer=null;
+function exUsageMatchStore(){
+  if(_exUsageMatch)return _exUsageMatch;
+  try{_exUsageMatch=JSON.parse(localStorage.getItem(EX_USAGE_MATCH_KEY)||'{}')||{};}catch(e){_exUsageMatch={};}
+  return _exUsageMatch;
+}
+/** Nazwy z planów, których nie da się dopasować od razu, dopasowujemy w tle (wyszukiwanie rozmyte jest wolne) i zapamiętujemy. */
+function exUsageResolvePending(){
+  if(_exUsageTimer||!_exUsagePending.size||typeof libExerciseByName!=='function')return;
+  const step=()=>{
+    _exUsageTimer=null;
+    const store=exUsageMatchStore();
+    const batch=[..._exUsagePending].slice(0,3);
+    batch.forEach(raw=>{
+      _exUsagePending.delete(raw);
+      let hit=null;try{hit=libExerciseByName(raw);}catch(e){hit=null;}
+      store[raw]=hit&&hit.name?hit.name:'';
+    });
+    if(_exUsagePending.size){_exUsageTimer=setTimeout(step,30);return;}
+    try{localStorage.setItem(EX_USAGE_MATCH_KEY,JSON.stringify(store));}catch(e){}
+    _exPlanUsageCache.key='';
+    if(typeof exTab!=='undefined'&&exTab==='own'&&document.querySelector('#screen-library.active')&&typeof renderLib==='function')renderLib();
+  };
+  _exUsageTimer=setTimeout(step,250);
+}
+/**
+ * Ile razy trener użył ćwiczenia w swoich planach: {name → {plans, uses}} (nazwy z biblioteki).
+ * Najpierw szybko: dokładna nazwa, nazwa przed „(” / „—”, najdłuższa wielowyrazowa nazwa z biblioteki na początku nazwy z planu;
+ * reszta dopasowuje się w tle (`exUsageResolvePending`) i trafia do localStorage. Wynik w cache do zmiany planów.
+ */
+function exPlanUsage(){
+  const plans=(window.PL||[]).filter(p=>p&&Array.isArray(p.days));
+  const lib=typeof allExercises==='function'?allExercises():[];
+  const key=plans.length+'|'+lib.length+'|'+plans.map(p=>String(p.id||'')+':'+String(p.updatedAt||p.createdAt||'')).join(',');
+  if(_exPlanUsageCache.key===key&&_exPlanUsageCache.map)return _exPlanUsageCache.map;
+  const norm=x=>exerciseSearchNorm(x).replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+  const byNorm=new Map(),names=new Set();
+  lib.forEach(e=>{names.add(e.name);const n=norm(e.name);if(n&&!byNorm.has(n))byNorm.set(n,e.name);});
+  const byLen=[...byNorm.keys()].filter(n=>n.indexOf(' ')>0).sort((a,b)=>b.length-a.length);
+  const store=exUsageMatchStore();
+  const memo=new Map();
+  const match=raw=>{
+    if(memo.has(raw))return memo.get(raw);
+    let hit=null;
+    if(Object.prototype.hasOwnProperty.call(store,raw))hit=store[raw]&&names.has(store[raw])?store[raw]:null;
+    else{
+      const n=norm(raw);
+      hit=byNorm.get(n)||byNorm.get(norm(String(raw).split(/\s[—–-]\s|\s*\(/)[0]))||null;
+      if(!hit){const pre=byLen.find(k=>n.startsWith(k+' '));if(pre)hit=byNorm.get(pre);}
+      if(!hit)_exUsagePending.add(raw);
+    }
+    memo.set(raw,hit);return hit;
+  };
+  const map=new Map();
+  plans.forEach(p=>{
+    const seen=new Set();
+    p.days.forEach(d=>((d&&d.exercises)||[]).forEach(ex=>{
+      const raw=String((ex&&typeof ex==='object'?(ex.name||ex.n):ex)||'').trim();
+      if(!raw)return;
+      const name=match(raw);if(!name)return;
+      const u=map.get(name)||{plans:0,uses:0};
+      u.uses++;if(!seen.has(name)){seen.add(name);u.plans++;}
+      map.set(name,u);
+    }));
+  });
+  _exPlanUsageCache={key,map};
+  exUsageResolvePending();
+  return map;
+}
+/** „Moje ćwiczenia”: najpierw najczęściej przypisywane do planów, potem własne (dodane przez trenera), których jeszcze nie użył. */
+function myExercisesList(all){
+  const usage=exPlanUsage();
+  const idx=new Map(all.map(e=>[e.name,e]));
+  const used=[...usage.entries()].map(([n,u])=>({e:idx.get(n),u})).filter(x=>x.e)
+    .sort((a,b)=>b.u.plans-a.u.plans||b.u.uses-a.u.uses||String(a.e.name).localeCompare(String(b.e.name),'pl')).map(x=>x.e);
+  const set=new Set(used.map(e=>e.name));
+  const rest=all.filter(e=>exIsOwn(e)&&!set.has(e.name)).sort((a,b)=>String(a.name).localeCompare(String(b.name),'pl'));
+  return used.concat(rest);
+}
+function exUsageLabel(name){
+  const u=exPlanUsage().get(name);
+  if(!u)return'';
+  const n=u.plans;
+  return 'w '+n+' '+(n===1?'planie':'planach');
+}
+window.exPlanUsage=exPlanUsage;
+window.myExercisesList=myExercisesList;
 
 let _allExercisesCacheKey='';
 let _allExercisesCache=[];
@@ -3327,7 +3422,7 @@ function exCardHtml(e,i){
     <div class="exl-thumb" style="--exl-col:${col}" aria-hidden="true"><span class="exl-thumb-ph">${escHtml(String(e.cat||'?').slice(0,1))}</span>${safePhoto?`<img src="${escHtml(photo)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</div>
     <div class="exl-info">
       <div class="exl-name">${name}</div>
-      <div class="exl-sub">${gif?'<span class="exl-film" title="Ma film techniki" aria-label="Ma film techniki">▶</span> ':''}${escHtml(m.pat||e.cat||'')}${m.base&&exTab!=='base'?' <span class="exl-base" title="Baza Progress">BP</span>':''}</div>
+      <div class="exl-sub">${gif?'<span class="exl-film" title="Ma film techniki" aria-label="Ma film techniki">▶</span> ':''}${escHtml(m.pat||e.cat||'')}${m.base&&exTab!=='base'?' <span class="exl-base" title="Baza Progress">BP</span>':''}${exTab==='own'&&exUsageLabel(e.name)?` <span class="exl-usage" data-ex-usage>· ${escHtml(exUsageLabel(e.name))}</span>`:''}</div>
     </div>
     <span class="exl-eq" title="Sprzęt: ${escHtml(eq||'—')}"><span aria-hidden="true">${EX_EQ_ICON[eq]||'•'}</span><span class="exl-eq-t">Sprzęt: ${escHtml(eq||'—')}</span></span>
     ${exFavBtnHtml(e)}
@@ -3441,7 +3536,7 @@ function renderLib(){
   const baseList=progressBaseExercises();
   const favNames=favExNames();
   const recent=recentExNames(40);
-  const own=all.filter(e=>exIsOwn(e));
+  const own=myExercisesList(all);
   renderLibTabs({base:baseList.length,fav:favNames.length,recent:recent.length,own:own.length,all:all.length});
   renderLibFilters();
   renderLibDraftBar();
@@ -3470,14 +3565,14 @@ function renderLib(){
   if(exTab==='base'&&tokens.length){
     const ql=exerciseSearchNorm(search);
     filtered.sort((a,b)=>(exIsProgressBase(b)-exIsProgressBase(a))||(typeof exerciseSearchRank==='function'?exerciseSearchRank(a,ql)-exerciseSearchRank(b,ql):0)||String(a.name).localeCompare(String(b.name),'pl'));
-  }else if(exTab==='all'||exTab==='own'||exTab==='fav')filtered.sort(exLibSortFn());
+  }else if(exTab==='all'||exTab==='fav')filtered.sort(exLibSortFn());
   const countEl=document.getElementById('ex-results-count');
   const word=n=>n===1?'ćwiczenie':(n%10>=2&&n%10<=4&&!(n%100>=12&&n%100<=14))?'ćwiczenia':'ćwiczeń';
-  if(countEl)countEl.textContent=exCatFilter==='__media_gap'?filtered.length+' '+word(filtered.length)+' bez kompletu materiałów':filtered.length+' '+word(filtered.length)+(tokens.length?(exTab==='base'?' · wyniki z całej bazy (Baza Progress na górze)':' · wyniki wyszukiwania'):'');
+  if(countEl)countEl.textContent=exCatFilter==='__media_gap'?filtered.length+' '+word(filtered.length)+' bez kompletu materiałów':filtered.length+' '+word(filtered.length)+(tokens.length?(exTab==='base'?' · wyniki z całej bazy (Baza Progress na górze)':' · wyniki wyszukiwania'):(exTab==='own'?' · najczęściej używane w planach na górze':''));
   const grid=document.getElementById('lib-grid');
   if(!grid)return;
   if(!filtered.length){
-    grid.innerHTML=`<div class="lib2-empty">${exTab==='fav'&&!tokens.length?'Nie masz jeszcze ulubionych. Kliknij ☆ na karcie, aby dodać ćwiczenie tutaj.':exTab==='recent'&&!tokens.length?'Tu pojawią się ćwiczenia z Twoich zapisanych planów.':exTab==='own'&&!tokens.length?'Nie dodałeś jeszcze własnych ćwiczeń.':'Brak ćwiczeń pasujących do wyszukiwania lub filtrów.'}${exTab!=='all'&&(tokens.length||exActiveFilterCount())?`<button type="button" class="btn btn-ghost btn-sm" onclick="setExTab('all')">Szukaj we wszystkich ćwiczeniach</button>`:''}</div>`;
+    grid.innerHTML=`<div class="lib2-empty">${exTab==='fav'&&!tokens.length?'Nie masz jeszcze ulubionych. Kliknij ☆ na karcie, aby dodać ćwiczenie tutaj.':exTab==='recent'&&!tokens.length?'Tu pojawią się ćwiczenia z Twoich zapisanych planów.':exTab==='own'&&!tokens.length?'Tu pojawią się ćwiczenia, które najczęściej przypisujesz do planów, i ćwiczenia dodane przez Ciebie.':'Brak ćwiczeń pasujących do wyszukiwania lub filtrów.'}${exTab!=='all'&&(tokens.length||exActiveFilterCount())?`<button type="button" class="btn btn-ghost btn-sm" onclick="setExTab('all')">Szukaj we wszystkich ćwiczeniach</button>`:''}</div>`;
     exLibObserveSentinel(false);
     return;
   }

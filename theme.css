@@ -2154,3 +2154,4 @@ html[data-theme] #screen-dashboard .dash-next-watch .dash-next-eyebrow { color: 
   .pliv-chip { min-height: 42px; }
 }
 .pliv-mount { scroll-margin-top: 72px; }
+.exl-usage { color: var(--text-label); font-weight: 600; white-space: nowrap; }
