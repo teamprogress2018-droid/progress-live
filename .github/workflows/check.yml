@@ -762,6 +762,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_ondemand_youtube_ui.js
 
+      - name: 6d0. Testy UI listy klientów 2.0 (statystyki, priorytet, następny krok, szczegóły)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_clients_simple_ui.js
+
       - name: 6d1. Testy UI prostego widoku klienta (Dzisiaj, ćwiczenie, plan, postępy, kontakt)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_simple_ui.js

@@ -39,8 +39,8 @@ ok('live calendar automation top-level', (()=>{
 ok('ondemand forum payments in sidebar', /data-screen="ondemand"[\s\S]*data-screen="forum"[\s\S]*data-screen="payments"/.test(sidebar));
 ok('no Więcej section', !html.includes('nav-more-items'));
 ok('single inbox badge', (html.match(/id="nb-inbox"/g) || []).length === 1);
-ok('clients screen everfit layout', html.includes('cl-everfit') && html.includes('cl-everfit-hdr'));
-ok('clients training columns', html.includes('Trening 7 dni') && html.includes('Trening 30 dni') && html.includes('Zadania 7 dni'));
+ok('clients screen layout', html.includes('cl-everfit') && html.includes('id="cl2-hdr"') && html.includes('Następny krok'));
+ok('training columns moved to row details', !html.includes('Trening 7 dni') && clients.includes("kv('Trening 7 dni'") && clients.includes("kv('Trening 30 dni'") && clients.includes("kv('Zadania 7 dni'"));
 ok('clients default active screen', /class="screen active" id="screen-clients"/.test(html));
 ok('flyout css panel', css.includes('.nav-flyout') && css.includes('.nav-flyout-hd') && css.includes('.cl-everfit-row'));
 ok('flyout not clipped by absolute-in-scroll', /\.nav-flyout\{[^}]*position:fixed/.test(css));
@@ -51,10 +51,10 @@ ok('goTo marks library group', /library:\['library','plans','programs','template
 ok('nav groups without builder; generator AI in knowledge', /navGroupScreens=\{/.test(core) && /knowledge:\[[^\]]*'aiplangen'/.test(core) && !/navGroupScreens=\{[^}]*'builder'/.test(core));
 ok('plans library new-plan picker', html.includes('openNewPlanPicker()') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
-ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));
-ok('row actions have accessible client labels', clients.includes('aria-label="Napisz wiadomość do ${escHtml(c.name)}"') && clients.includes('aria-label="Edytuj dane klienta ${escHtml(c.name)}"'));
+ok('row message action', clients.includes('Napisz wiadomość') && clients.includes('quickMessageClient'));
+ok('row actions have accessible client labels', clients.includes('aria-label="${escHtml(actLabel)}: ${name}"') && clients.includes('aria-label="Szczegóły: ${name}"'));
 ok('neutral client states are not rendered as alarms', clients.includes("if(c.status==='archived'||c.status==='inactive')return'pill-muted'") && clients.includes("if(k==='noemail'||k==='onboarding'||k==='idle')return'pill-muted'"));
-ok('client activity uses semantic, non-alarm tones', clients.includes("tone:'neutral'") && clients.includes('cl-act-${act.tone||\'neutral\'}'));
+ok('client activity uses semantic, non-alarm tones', clients.includes("tone:'neutral'") && clients.includes("cl-act-${archived||inactive?'neutral':(act.tone||'neutral')}"));
 ok('clients use cool canvas, white rows and semantic status surfaces', theme.includes('#screen-clients .tbl-row.cl-everfit-row') && theme.includes('background: var(--bg-card)') && theme.includes('#screen-clients .pill-green') && theme.includes('#screen-clients .pill-muted') && theme.includes('#screen-clients .pill-red'));
 ok('no action button spam in rows', !/quickStartWorkout\(event/.test(clients.slice(clients.indexOf('function renderClients'), clients.indexOf('function openClientModal'))));
 ok('openBuilderForClient sets back', /openBuilderForClient[\s\S]{0,200}_builderBack\s*=\s*'clients'/.test(clients));

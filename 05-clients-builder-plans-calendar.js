@@ -68,6 +68,84 @@ window.CLIENT_ATTENTION_FILTERS=CLIENT_ATTENTION_FILTERS;
 window.clientAttentionFlags=clientAttentionFlags;
 window.attnAgoText=attnAgoText;
 
+// ── Lista klientów 2.0: jeden „następny krok” na klienta ──
+// Kolejność = priorytet. Czerwień (urgent) tylko dla spraw pilnych; brak e-maila to informacja, nie alarm.
+// counts:false → podpowiedź w wierszu, ale klient nie trafia do „Wymaga uwagi”.
+const CLIENT_ISSUES={
+  regres:{sev:'urgent',label:'Regres w postępach',action:'Sprawdź postęp',counts:true,
+    tip:'Pilne: monitoring postępów pokazuje spadek wyników. Sprawdź, co się dzieje, i porozmawiaj z klientem.',
+    many:n=>n+' '+clPlural(n,'klient ma','klientów ma','klientów ma')+' regres w postępach'},
+  expired:{sev:'urgent',label:'Pakiet wygasł',action:'Przedłuż pakiet',counts:true,
+    tip:'Pilne: pakiet treningów klienta wygasł. Przedłuż go albo zakończ współpracę.',
+    many:n=>n+' '+clPlural(n,'klientowi','klientom','klientom')+' wygasł pakiet'},
+  noplan:{sev:'warn',label:'Brak planu treningowego',action:'Ułóż pierwszy plan',counts:true,
+    tip:'Klient nie ma przypisanego planu — bez niego nie zobaczy treningu w aplikacji.',
+    many:n=>n+' '+clPlural(n,'klient nie ma','klientów nie ma','klientów nie ma')+' planu treningowego'},
+  noworkout:{sev:'warn',label:'Brak treningu od 14+ dni',action:'Napisz wiadomość',counts:true,
+    tip:'Klient ma plan, ale od ponad 14 dni nie zapisał treningu. Krótka wiadomość zwykle wystarczy.',
+    many:n=>n+' '+clPlural(n,'klient nie trenował','klientów nie trenowało','klientów nie trenowało')+' od 14+ dni'},
+  expiring:{sev:'warn',label:'Pakiet wkrótce się kończy',action:'Przedłuż pakiet',counts:true,
+    tip:'Pakiet kończy się w ciągu 7 dni — zaproponuj przedłużenie.',
+    many:n=>n+' '+clPlural(n,'klientowi kończy','klientom kończy','klientom kończy')+' się pakiet'},
+  noemail:{sev:'info',label:'Brakuje adresu e-mail',action:'Dodaj e-mail',counts:true,
+    tip:'Bez e-maila nie zaprosisz klienta do aplikacji. To nie jest pilne — uzupełnij przy okazji.',
+    many:n=>n+' '+clPlural(n,'klient nie ma','klientów nie ma','klientów nie ma')+' e-maila'},
+  onboard:{sev:'info',label:'Niedokończony start',action:'Dokończ start',counts:true,
+    tip:'Nie wszystkie kroki startu są zrobione (np. wywiad, pomiary, plan).',
+    many:n=>n+' '+clPlural(n,'klient ma','klientów ma','klientów ma')+' niedokończony start'},
+  checkin:{sev:'hint',label:'Brak check-inu',action:'Wyślij check-in',counts:false,
+    tip:'Klient od ponad 7 dni nie wypełnił ankiety tygodniowej.'},
+  measure:{sev:'hint',label:'Brak pomiaru',action:'Dodaj pomiar',counts:false,
+    tip:'Ostatni pomiar był ponad 30 dni temu albo nie ma żadnego.'}
+};
+const CLIENT_ISSUE_ORDER=['regres','expired','noplan','noworkout','expiring','noemail','onboard','checkin','measure'];
+const CLIENT_SEV_LABEL={urgent:'Pilne',warn:'Do zrobienia',info:'Informacja',hint:'Podpowiedź',ok:'W porządku'};
+function clPlural(n,one,few,many){const a=Math.abs(n)%100,b=a%10;if(n===1)return one;if(b>=2&&b<=4&&(a<12||a>14))return few;return many;}
+/** Wszystkie sprawy klienta w kolejności priorytetu: [{key,label,reason}]. */
+function clientIssues(c,flags){
+  const out=[];
+  if(!c||c.status==='archived'||c.status==='inactive')return out;
+  const f=flags||clientAttentionFlags(c);
+  const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
+  const hasPlan=(window.PL||[]).some(p=>p&&p.clientId===c.id&&p.status!=='archived');
+  const add=(key,reason,label)=>out.push({key,reason:reason||'',label:label||CLIENT_ISSUES[key].label});
+  if(f['attn-regres'])add('regres',f['attn-regres'].reason);
+  if(life&&life.key==='expired')add('expired','Pakiet wygasł '+(life.expiresDate||''));
+  if(!hasPlan)add('noplan','Nie ma przypisanego planu');
+  if(hasPlan&&f['attn-noworkout'])add('noworkout',f['attn-noworkout'].reason,f['attn-noworkout'].days>=999?'Brak zapisanych treningów':'Brak treningu od '+f['attn-noworkout'].days+' dni');
+  if(life&&life.key==='expiring')add('expiring','',life.label);
+  if(typeof clientHasEmail==='function'?!clientHasEmail(c):!c.email)add('noemail','Uzupełnij e-mail, aby wysłać zaproszenie do aplikacji');
+  if(f['attn-onboard'])add('onboard',f['attn-onboard'].reason,'Niedokończony '+(f['attn-onboard'].reason||'start').replace(/^Start/,'start').split(' — ')[0]);
+  if(f['attn-checkin'])add('checkin',f['attn-checkin'].reason,f['attn-checkin'].days>=999?'Brak check-inu':'Brak check-inu od '+f['attn-checkin'].days+' dni');
+  if(f['attn-measure'])add('measure',f['attn-measure'].reason,f['attn-measure'].days>=999?'Brak pomiarów':'Brak pomiaru od '+f['attn-measure'].days+' dni');
+  return out.sort((a,b)=>CLIENT_ISSUE_ORDER.indexOf(a.key)-CLIENT_ISSUE_ORDER.indexOf(b.key));
+}
+function clientNeedsAction(issues){return (issues||[]).some(i=>CLIENT_ISSUES[i.key].counts);}
+function clientIssuesMap(attnMap){
+  const map=new Map();
+  (window.CL||[]).forEach(c=>{if(c)map.set(c.id,clientIssues(c,attnMap&&attnMap.get(c.id)));});
+  return map;
+}
+/** Przycisk działania z wiersza — prowadzi prosto do miejsca, gdzie trener to załatwia. */
+function clientDoAction(e,clientId,key){
+  if(e)e.stopPropagation();
+  const prof=tab=>{if(typeof openClientProfile==='function')openClientProfile(clientId,tab?{tab}:undefined);};
+  if(key==='regres'||key==='ok')return prof('progress');
+  if(key==='expired'||key==='expiring')return prof('payments');
+  if(key==='noplan'){if(typeof openBuilderForClient==='function')return openBuilderForClient(clientId);return prof('plan');}
+  if(key==='noworkout'||key==='message')return quickMessageClient(e||{stopPropagation(){}},clientId);
+  if(key==='noemail'){
+    if(typeof openClientModal==='function')openClientModal(clientId);
+    setTimeout(()=>{const el=document.getElementById('ac-email');if(el){el.focus();if(el.scrollIntoView)el.scrollIntoView({block:'center'});}},80);
+    return;
+  }
+  if(key==='checkin'){if(typeof sendCheckinTo==='function')return sendCheckinTo(clientId);return prof();}
+  if(key==='measure')return prof('metrics');
+  if(key==='restore')return quickRestoreClient(e||{stopPropagation(){}},clientId);
+  return prof();
+}
+window.clientIssues=clientIssues;window.clientDoAction=clientDoAction;window.CLIENT_ISSUES=CLIENT_ISSUES;
+
 // Zwraca datę (Date) ostatniej aktywności KLIENTA, albo null jeśli brak.
 // Liczy tylko to, co klient faktycznie zrobił: odbyte sesje (nie zaplanowane), pomiary, check-iny, wpisy osi czasu.
 // Pomija sesje w przyszłości i daty utworzenia planów (to aktywność trenera) — inaczej „ryzyko odejścia” nigdy by się nie pojawiło.
@@ -212,6 +290,7 @@ function renderClientFilters(attnMap){
   syncClientFlyout();
   const link=document.getElementById('cl-app-link');
   if(link&&typeof clientAppUrl==='function')link.textContent=clientAppUrl().replace(/^https?:\/\//,'');
+  syncClientFiltersToggle();
   const el=document.getElementById('client-filter-list');
   if(!el)return;
   el.innerHTML=segments.map(s=>{
@@ -252,7 +331,16 @@ function renderClientAttentionChips(map){
     return `<button type="button" class="cl-seg-item cl-attn-chip${on?' active':''}${n?'':' empty'}" aria-pressed="${on}" onclick="setClientAttention('${f.id}')"><span>${escHtml(f.label)}</span><span class="cl-seg-n cl-attn-n">${n}</span></button>`;
   }).join('');
   if(sel){
-    sel.innerHTML=`<option value="">Wszyscy</option>`+CLIENT_ATTENTION_FILTERS.map(f=>`<option value="${f.id}">${escHtml(f.label)} (${count(f.id)})</option>`).join('');
+    const im=window._clIssuesMap||new Map();
+    const actN=key=>[...im.values()].filter(list=>key==='any'?clientNeedsAction(list):list.some(i=>i.key===key)).length;
+    // Jedna lista spraw (bez powtórek); tylko te, które dotyczą choć jednego klienta.
+    let opts=`<option value="">Wszyscy</option><option value="act:any">Wymaga działania (${actN('any')})</option>`
+      +CLIENT_ISSUE_ORDER.map(k=>({k,n:actN(k)})).filter(x=>x.n).map(x=>`<option value="act:${x.k}">${escHtml(CLIENT_ISSUES[x.k].label)} (${x.n})</option>`).join('');
+    if(clientAttention&&clientAttention.startsWith('attn-')){
+      const f=CLIENT_ATTENTION_FILTERS.find(x=>x.id===clientAttention);
+      if(f)opts+=`<option value="${f.id}">${escHtml(f.label)} (${count(f.id)})</option>`;
+    }
+    sel.innerHTML=opts;
     sel.value=clientAttention||'';
   }
 }
@@ -294,10 +382,8 @@ function clientHiddenColumns(){
 function applyClientColumns(){
   const box=document.getElementById('cl-everfit');
   if(!box)return;
+  // Lista 2.0 ma stałe 4 kolumny; dane z dawnych kolumn są w „Szczegółach” wiersza.
   const hidden=clientHiddenColumns();
-  CLIENT_TABLE_COLUMNS.forEach(c=>box.classList.toggle('cl-hide-'+c.n,hidden.includes(c.n)));
-  const cols=['minmax(220px,2.2fr)','44px'].concat(CLIENT_TABLE_COLUMNS.filter(c=>!hidden.includes(c.n)).map(c=>c.w));
-  box.style.setProperty('--cl-cols',cols.join(' '));
   const pop=document.getElementById('cl-cols-menu');
   if(pop)pop.innerHTML=`<div class="cl-pop-hd">Widoczne kolumny</div>`+CLIENT_TABLE_COLUMNS.map(c=>
     `<label class="cl-pop-check"><input type="checkbox" ${hidden.includes(c.n)?'':'checked'} onchange="toggleClientColumn(${c.n},this.checked)"> ${c.label}</label>`).join('');
@@ -325,15 +411,21 @@ function toggleClientSubnav(){
   setClientUiPref('pl_clients_subnav',open?'1':'0');
 }
 function clientFiltersDefaultVisible(){
-  // Na telefonie najpierw pokazujemy wyszukiwarkę i listę. Filtry pozostają
-  // jednym dotknięciem dalej; na większym ekranie zachowujemy pełny widok.
-  return !(window.matchMedia&&window.matchMedia('(max-width: 600px)').matches);
+  // Filtry są schowane pod jednym przyciskiem „Filtry” — na start lista i jedno działanie.
+  return false;
+}
+function clientAttentionLabel(id){
+  if(!id)return '';
+  if(id==='act:any')return 'Wymaga uwagi';
+  if(id.startsWith('act:')){const d=CLIENT_ISSUES[id.slice(4)];return d?d.label:'Wymaga uwagi';}
+  const f=CLIENT_ATTENTION_FILTERS.find(filter=>filter.id===id);
+  return f?f.label:'';
 }
 function clientActiveFilterLabels(){
   const labels=[];
   if(clientSegment!=='all')labels.push(CLIENT_SEGMENT_TITLES[clientSegment]||'status');
-  const attention=clientAttention&&CLIENT_ATTENTION_FILTERS.find(filter=>filter.id===clientAttention);
-  if(attention)labels.push(attention.label);
+  const attention=clientAttentionLabel(clientAttention);
+  if(attention)labels.push(attention);
   if(clientGoalFilter)labels.push(clientGoalFilter);
   return labels;
 }
@@ -347,7 +439,8 @@ function applyClientFiltersToggleLabel(show){
   if(!btn)return;
   const active=clientActiveFilterLabels();
   const clear=document.getElementById('cl-filters-clear');
-  btn.textContent=show?'Ukryj filtry':(active.length?`Filtry (${active.length})`:'Pokaż filtry');
+  btn.textContent=active.length?`Filtry (${active.length})`:'Filtry';
+  btn.classList.toggle('is-on',!!show);
   btn.setAttribute('aria-expanded',show?'true':'false');
   btn.setAttribute('aria-label',show
     ?'Ukryj filtry listy klientów'
@@ -408,9 +501,8 @@ function copyClientAppLink(){
   copyInviteText(clientAppUrl(),'✓ Link do aplikacji klienta skopiowany','Skopiuj link ręcznie');
 }
 function initClientLayout(){
-  applyClientSubnav(clientUiPref('pl_clients_subnav','1')!=='0');
-  const savedFilters=clientUiPref('pl_clients_filters','');
-  applyClientFiltersVisible(savedFilters===''?clientFiltersDefaultVisible():savedFilters!=='0');
+  applyClientSubnav(false);
+  applyClientFiltersVisible(clientFiltersDefaultVisible());
   applyClientColumns();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initClientLayout);
@@ -665,13 +757,152 @@ window.mergeClients=mergeClients;
 window.clientMergeCandidates=clientMergeCandidates;
 window.clientMergePlan=clientMergePlan;
 
+function clClientsNoun(n){return (n%10>=2&&n%10<=4&&!(n%100>=12&&n%100<=14))?'klientów':(n===1?'klient':'klientów');}
+/** Trzy klikalne liczby nad listą. */
+function renderClientStats(issuesMap,attnMap){
+  const el=document.getElementById('cl-stats');
+  if(!el)return;
+  const live=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(!live.length){el.innerHTML='';el.hidden=true;return;}
+  el.hidden=false;
+  const active=(window.CL||[]).filter(c=>c&&c.status==='active').length;
+  const need=[...issuesMap.values()].filter(clientNeedsAction).length;
+  const regres=[...attnMap.values()].filter(f=>f['attn-regres']).length;
+  const stat=(id,label,n,on,tip,urgent)=>`<button type="button" class="cl2-stat${on?' is-on':''}${urgent&&n?' is-urgent':''}" aria-pressed="${on}" onclick="pickClientStat('${id}')" title="${escHtml(tip)}"><span class="cl2-stat-n">${n}</span><span class="cl2-stat-l">${label}</span></button>`;
+  el.innerHTML=stat('active','Aktywni',active,clientSegment==='active'&&!clientAttention,'Klienci w trakcie współpracy')
+    +stat('need','Wymaga uwagi',need,clientAttention==='act:any','Klienci, przy których jest coś do zrobienia — od pilnych spraw po brak e-maila')
+    +stat('regres','Regres',regres,clientAttention==='attn-regres','Monitoring postępów pokazuje spadek wyników — to pilne',true);
+}
+function pickClientStat(id){
+  if(id==='active'){clientAttention=null;clientSegment='active';}
+  else{
+    const target=id==='need'?'act:any':'attn-regres';
+    clientAttention=clientAttention===target?null:target;
+    if(clientSegment==='archived'||clientSegment==='inactive')clientSegment='all';
+  }
+  renderClientFilters();renderClients();
+}
+/** Jedna karta priorytetu zamiast listy liczników. */
+function renderClientPriority(issuesMap){
+  const el=document.getElementById('cl-priority');
+  if(!el)return;
+  if(clientAttention||!(window.CL||[]).some(c=>c&&c.status!=='archived')){el.innerHTML='';el.hidden=true;return;}
+  const lists=[...issuesMap.values()];
+  const need=lists.filter(clientNeedsAction).length;
+  el.hidden=false;
+  if(!need){
+    el.innerHTML=`<div class="cl2-prio is-calm"><div class="cl2-prio-main"><div class="cl2-prio-title">Wszystko pod kontrolą</div><div class="cl2-prio-sub">Żaden klient nie wymaga teraz działania.</div></div></div>`;
+    return;
+  }
+  const counts=CLIENT_ISSUE_ORDER.filter(k=>CLIENT_ISSUES[k].counts).map(k=>({k,n:lists.filter(l=>l.some(i=>i.key===k)).length})).filter(x=>x.n);
+  const top=counts[0];
+  const def=CLIENT_ISSUES[top.k];
+  const rest=counts.slice(1,3);
+  el.innerHTML=`<div class="cl2-prio cl2-sev-${def.sev}">
+    <div class="cl2-prio-main">
+      <div class="cl2-prio-title">${need} ${clClientsNoun(need)} wymaga działania</div>
+      <div class="cl2-prio-sub"><span class="cl2-prio-k">Najważniejsze:</span> ${escHtml(def.many(top.n))}</div>
+      ${rest.length?`<div class="cl2-prio-more">Też: ${rest.map(x=>`<button type="button" class="cl2-linkbtn" onclick="setClientAttention('act:${x.k}')">${escHtml(CLIENT_ISSUES[x.k].many(x.n))}</button>`).join(' · ')}</div>`:''}
+    </div>
+    <button type="button" class="btn btn-ghost cl2-prio-btn" onclick="setClientAttention('act:${top.k}')">Zobacz klientów</button>
+  </div>`;
+}
+function clientMatchesAttention(c,attnMap,issuesMap){
+  if(!clientAttention)return true;
+  const list=issuesMap.get(c.id)||[];
+  if(clientAttention==='act:any')return clientNeedsAction(list);
+  if(clientAttention.startsWith('act:'))return list.some(i=>i.key===clientAttention.slice(4));
+  return !!(attnMap.get(c.id)||{})[clientAttention];
+}
+/** Szczegóły wiersza (dawne kolumny) — liczone dopiero po rozwinięciu. */
+function clientRowDetailsHTML(c){
+  const t7=clientTrainingWindowStats(c.id,7),t30=clientTrainingWindowStats(c.id,30),tasks7=clientTasksWindowStats(c.id,7);
+  const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
+  const issues=(window._clIssuesMap&&window._clIssuesMap.get(c.id))||clientIssues(c);
+  const archived=c.status==='archived';
+  const dup=!archived&&clientMergeCandidates(c).length>0;
+  const kv=(k,v,tip)=>`<div class="cl2-kv"${tip?` title="${escHtml(tip)}"`:''}><span>${k}</span><b>${v}</b></div>`;
+  return `<div class="cl2-details-grid">
+      ${kv('Trening 7 dni',clPctCell(t7),'Wykonane treningi względem zaplanowanych w ostatnich 7 dniach')}
+      ${kv('Trening 30 dni',clPctCell(t30),'Wykonane treningi względem zaplanowanych w ostatnich 30 dniach')}
+      ${kv('Zadania 7 dni',clPctCell(tasks7,'brak zadań'),'Zrobione zadania i nawyki w ostatnich 7 dniach')}
+      ${kv('Cel',CLIENT_GOAL_LABELS[c.goal]||escHtml(c.goal||'')||'nieustalony')}
+      ${kv('Status',`<span class="pill ${clientStatusPillClass(c,life)}"><span class="pill-dot"></span>${escHtml(archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':(life&&life.label)||'Aktywny')}</span>`)}
+      ${kv('E-mail',escHtml(c.email||'—'))}
+      ${kv('Aplikacja',c.appJoined?'📱 korzysta':'nie dołączył')}
+    </div>
+    ${issues.length>1?`<div class="cl2-details-issues"><span>Inne sprawy:</span> ${issues.slice(1).map(i=>`<span class="cl2-chip cl2-sev-${CLIENT_ISSUES[i.key].sev}" title="${escHtml(CLIENT_ISSUES[i.key].tip)}">${escHtml(i.label)}</span>`).join('')}</div>`:''}
+    <div class="cl2-details-actions">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openClientProfile('${c.id}')">Otwórz profil</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="quickEditClient(event,'${c.id}')">Edytuj dane</button>
+      ${archived?'':`<button type="button" class="btn btn-ghost btn-sm" onclick="quickMessageClient(event,'${c.id}')">Napisz wiadomość</button>`}
+      ${dup?`<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ Możliwy duplikat — Scal</button>`:''}
+    </div>`;
+}
+window._clOpenRows=window._clOpenRows||new Set();
+function toggleClientRowDetails(e,clientId){
+  if(e)e.stopPropagation();
+  const open=window._clOpenRows;
+  if(open.has(clientId))open.delete(clientId);else open.add(clientId);
+  const row=document.querySelector(`#clients-tbl .cl2-row[data-client-id="${CSS&&CSS.escape?CSS.escape(clientId):clientId}"]`);
+  if(!row){renderClients();return;}
+  const on=open.has(clientId);
+  row.classList.toggle('is-open',on);
+  const btn=row.querySelector('.cl2-more');
+  if(btn){btn.setAttribute('aria-expanded',on?'true':'false');}
+  const box=row.querySelector('.cl2-details');
+  if(box){box.hidden=!on;if(on){const c=CL.find(x=>x.id===clientId);if(c)box.innerHTML=clientRowDetailsHTML(c);}}
+}
+window.toggleClientRowDetails=toggleClientRowDetails;window.pickClientStat=pickClientStat;
+function clientRowHTML(c,i,issuesMap){
+  const act=formatClientActivity(c.id);
+  const archived=c.status==='archived',inactive=c.status==='inactive';
+  const issues=issuesMap.get(c.id)||[];
+  // Przy filtrze konkretnej sprawy wiersz pokazuje właśnie ją (i jej działanie), a nie inną, pilniejszą.
+  const focusKey=clientAttention&&clientAttention.startsWith('act:')&&clientAttention!=='act:any'?clientAttention.slice(4)
+    :({'attn-regres':'regres','attn-noworkout':'noworkout','attn-onboard':'onboard','attn-checkin':'checkin','attn-measure':'measure'})[clientAttention]||null;
+  const top=(focusKey&&issues.find(i=>i.key===focusKey))||issues[0];
+  const def=top&&CLIENT_ISSUES[top.key];
+  const sev=def?def.sev:'ok';
+  const statusText=archived?'Zarchiwizowany':inactive?'Nieaktywny':act.label;
+  const statusTip=archived?'Klient jest w archiwum — nie liczy się do statystyk.':inactive?'Współpraca wstrzymana.':'Ostatnia aktywność klienta: trening, pomiar albo check-in.';
+  let nextHtml,actKey,actLabel;
+  if(archived){nextHtml='<span class="cl2-next cl2-sev-muted">W archiwum</span>';actKey='restore';actLabel='Przywróć';}
+  else if(inactive){nextHtml='<span class="cl2-next cl2-sev-muted">Współpraca wstrzymana</span>';actKey='message';actLabel='Napisz wiadomość';}
+  else if(top){
+    nextHtml=`<span class="cl2-next cl2-sev-${sev}" title="${escHtml(CLIENT_SEV_LABEL[sev]+': '+def.tip)}"><span class="cl2-dot" aria-hidden="true"></span><span class="cl2-next-txt">${escHtml(top.label)}</span><span class="sr-only"> (${CLIENT_SEV_LABEL[sev]})</span></span>`;
+    actKey=top.key;actLabel=def.action;
+  }else{nextHtml='<span class="cl2-next cl2-sev-ok" title="Brak spraw do załatwienia"><span class="cl2-dot" aria-hidden="true"></span><span class="cl2-next-txt">Wszystko w porządku</span></span>';actKey='ok';actLabel='Sprawdź postęp';}
+  const open=window._clOpenRows.has(c.id);
+  const name=escHtml(c.name||'Klient');
+  return `<div class="cl2-row cl2-row-${sev}${open?' is-open':''}" data-client-id="${escHtml(c.id)}" style="animation-delay:${Math.min(i,12)*0.025}s;" onclick="openClientProfile('${c.id}')">
+    <div class="cl2-main">
+      <div class="cl2-who">
+        <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};" aria-hidden="true">${escHtml(getInit(c.name||'?'))}</div>
+        <button type="button" class="cl2-name" onclick="event.stopPropagation();openClientProfile('${c.id}')" title="Otwórz profil: ${name}">${name}</button>
+      </div>
+      <div class="cl2-status cl-act-${archived||inactive?'neutral':(act.tone||'neutral')}" title="${escHtml(statusTip)}">${escHtml(statusText)}</div>
+      <div class="cl2-nextcell">${nextHtml}</div>
+      <div class="cl2-actions" onclick="event.stopPropagation()">
+        <button type="button" class="cl2-act-btn${sev==='urgent'?' is-urgent':''}${sev==='ok'?' is-quiet':''}" onclick="clientDoAction(event,'${c.id}','${actKey}')" aria-label="${escHtml(actLabel)}: ${name}">${escHtml(actLabel)}</button>
+        <button type="button" class="cl2-more" onclick="toggleClientRowDetails(event,'${c.id}')" aria-expanded="${open?'true':'false'}" aria-controls="cl2-det-${escHtml(c.id)}" aria-label="Szczegóły: ${name}" title="Szczegóły: treningi, zadania, cel, status"><span class="cl2-more-txt">Szczegóły</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
+      </div>
+    </div>
+    <div class="cl2-details" id="cl2-det-${escHtml(c.id)}" onclick="event.stopPropagation()"${open?'':' hidden'}>${open?clientRowDetailsHTML(c):''}</div>
+  </div>`;
+}
 function renderClients(){
   const attnMap=clientAttentionMap();
+  const issuesMap=clientIssuesMap(attnMap);
+  window._clIssuesMap=issuesMap;
   renderClientFilters(attnMap);
+  renderClientStats(issuesMap,attnMap);
+  renderClientPriority(issuesMap);
   const search=(document.getElementById('client-search')||{}).value||'';
+  const q=search.trim().toLowerCase();
   let filtered=CL.filter(c=>{
-    if(search&&!(c.name||'').toLowerCase().includes(search.toLowerCase()))return false;
-    if(clientAttention&&!(attnMap.get(c.id)||{})[clientAttention])return false;
+    if(q&&!((c.name||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q)))return false;
+    if(!clientMatchesAttention(c,attnMap,issuesMap))return false;
     if(clientGoalFilter&&c.goal!==clientGoalFilter)return false;
     if(clientSegment==='active')return c.status==='active';
     if(clientSegment==='inactive')return c.status==='inactive';
@@ -679,78 +910,60 @@ function renderClients(){
     if(clientSegment==='all')return c.status!=='archived';
     return true;
   });
-  filtered=filtered.map(c=>({c,act:formatClientActivity(c.id)}))
-    .sort((a,b)=>b.act.days-a.act.days)
+  // Najpierw pilne, potem do zrobienia, potem reszta — w obrębie grupy wg ostatniej aktywności.
+  const rank={urgent:0,warn:1,info:2,hint:3,ok:4};
+  filtered=filtered.map(c=>{const iss=issuesMap.get(c.id)||[];return {c,act:formatClientActivity(c.id),r:iss[0]?rank[CLIENT_ISSUES[iss[0].key].sev]:4};})
+    .sort((a,b)=>a.r-b.r||(a.act.days-b.act.days)||String(a.c.name||'').localeCompare(String(b.c.name||''),'pl'))
     .map(x=>x.c);
+  const total=(window.CL||[]).filter(c=>c&&c.status!=='archived').length;
+  const totalEl=document.getElementById('clients-total');
+  if(totalEl)totalEl.textContent=`${total} ${clClientsNoun(total)}`;
   const countEl=document.getElementById('clients-segment-count');
   if(countEl)countEl.textContent=filtered.length;
+  const viewLabel=clientAttentionLabel(clientAttention)||(clientSegment!=='all'?CLIENT_SEGMENT_TITLES[clientSegment]:'')||(clientGoalFilter?CLIENT_GOAL_LABELS[clientGoalFilter]:'');
+  const filteredView=!!(clientAttention||clientSegment!=='all'||clientGoalFilter);
   const summaryEl=document.getElementById('client-view-summary');
-  if(summaryEl){
-    const attentionDefinition=clientAttention&&CLIENT_ATTENTION_FILTERS.find(filter=>filter.id===clientAttention);
-    const viewLabel=attentionDefinition?attentionDefinition.label:(CLIENT_SEGMENT_TITLES[clientSegment]||'Wszyscy klienci');
-    const countLabel=filtered.length===1?'klient':(filtered.length%10>=2&&filtered.length%10<=4&&!(filtered.length%100>=12&&filtered.length%100<=14)?'klienci':'klientów');
-    summaryEl.textContent=`${filtered.length} ${countLabel} · ${viewLabel}`;
-  }
-  const titleEl=document.getElementById('clients-segment-title');
-  if(titleEl){
-    const attnDef=clientAttention&&CLIENT_ATTENTION_FILTERS.find(f=>f.id===clientAttention);
-    const base=attnDef?'Wymaga uwagi: '+escHtml(attnDef.label):(CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci');
-    titleEl.innerHTML=`${base} <span class="cl-title-count">(<span id="clients-segment-count">${filtered.length}</span>)</span>`;
-  }
+  if(summaryEl)summaryEl.textContent=filteredView||q?`${filtered.length} ${clClientsNoun(filtered.length)} · ${q?'wyniki wyszukiwania':viewLabel}`:'';
+  const viewBar=document.getElementById('cl-view-bar');
+  if(viewBar)viewBar.hidden=!(filteredView||q);
   const el=document.getElementById('clients-tbl');
+  const hdr=document.getElementById('cl2-hdr');
+  const firstUse=!total&&!(window.CL||[]).length;
+  const screen=document.getElementById('cl-everfit');
+  if(screen)screen.classList.toggle('cl2-first-use',firstUse);
   if(!filtered.length){
-    const q=search.trim();
-    el.innerHTML=`<div style="padding:48px 20px;text-align:center;">
-      <div style="font-size:36px;margin-bottom:8px;opacity:0.4;">👥</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${q?'Brak wyników':clientAttention?'Nikt nie wymaga tu uwagi 👍':'Brak klientów w tym widoku'}</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Dodaj pierwszego klienta — potem plan i Trening Live.'}</div>
-      ${clientAttention?`<button class="btn btn-ghost" onclick="setClientAttention('${clientAttention}')">Pokaż wszystkich</button>`:!q&&clientSegment!=='archived'?`<button class="btn btn-primary" onclick="openM('m-client')">+ Dodaj klienta</button>`:''}
-    </div>`;
+    if(hdr)hdr.hidden=true;
+    if(firstUse){
+      el.innerHTML=`<div class="cl2-empty cl2-onboard">
+        <div class="cl2-empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <h2 class="cl2-empty-title">Zacznij od dodania pierwszego klienta.</h2>
+        <p class="cl2-empty-text">Potem ułożysz mu plan, a klient zobaczy trening w aplikacji. Masz listę w pliku? Możesz ją zaimportować.</p>
+        <div class="cl2-empty-actions"><button type="button" class="btn btn-primary" onclick="openM('m-client')">Dodaj klienta</button><button type="button" class="btn btn-ghost" onclick="openM('m-fitebo')">Importuj z pliku</button></div>
+      </div>`;
+    }else{
+      el.innerHTML=`<div class="cl2-empty">
+        <h2 class="cl2-empty-title">${q?'Brak wyników':clientAttention?'Nikt nie wymaga tu działania 👍':'Brak klientów w tym widoku'}</h2>
+        <p class="cl2-empty-text">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Zmień filtr, aby zobaczyć pozostałych klientów.'}</p>
+        <div class="cl2-empty-actions"><button type="button" class="btn btn-ghost" onclick="clearClientView()">Pokaż wszystkich</button></div>
+      </div>`;
+    }
     updateClientListToggle(0,false);
     renderSidebarClients();
     return;
   }
+  if(hdr)hdr.hidden=false;
   const compact=clientListIsCompact();
   const displayed=compact?filtered.slice(0,3):filtered;
-  el.innerHTML=displayed.map((c,i)=>{
-    const act=formatClientActivity(c.id);
-    const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
-    const t7=clientTrainingWindowStats(c.id,7);
-    const t30=clientTrainingWindowStats(c.id,30);
-    const tasks7=clientTasksWindowStats(c.id,7);
-    const archived=c.status==='archived';
-    const duplicateName=!archived&&clientMergeCandidates(c).length>0;
-    const clientAttentionFlags=attnMap.get(c.id)||{};
-    const attnFlag=clientAttention&&clientAttentionFlags[clientAttention];
-    const hasAttention=Object.values(clientAttentionFlags).some(Boolean);
-    const attnLine=attnFlag?`<div class="cl-attn-reason">⚠ ${escHtml(attnFlag.reason)}</div>`:'';
-    const msgBtn=archived
-      ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć klienta" aria-label="Przywróć klienta ${escHtml(c.name)}">↩</button>`
-      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Napisz wiadomość" aria-label="Napisz wiadomość do ${escHtml(c.name)}">💬</button>`;
-    return `<div class="tbl-row cl-everfit-row${hasAttention?' has-attention':''}" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
-    <div class="cl-name-cell">
-      <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
-      <div class="cl-name-meta">
-        <button type="button" class="cl-client-open" onclick="event.stopPropagation();openClientProfile('${c.id}')">${escHtml(c.name)}</button>
-        <div class="cl-sub">${c.appJoined?'📱 w aplikacji · ':''}${escHtml(c.email||'bez e-maila')}${duplicateName?` · <button type="button" class="cl-dup-btn" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ możliwy duplikat — Scal</button>`:''}</div>
-        ${attnLine}
-      </div>
-      <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta" aria-label="Edytuj dane klienta ${escHtml(c.name)}">Edycja</button>
-    </div>
-    <div class="cl-msg-cell" onclick="event.stopPropagation()">${msgBtn}</div>
-    <div class="cl-act cl-act-${act.tone||'neutral'}" title="${escHtml(act.label)}">${act.label}</div>
-    <div>${clPctCell(t7)}</div>
-    <div>${clPctCell(t30)}</div>
-    <div>${clPctCell(tasks7,'brak zadań')}</div>
-    <div class="cl-goal${c.goal?'':' muted'}">${CLIENT_GOAL_LABELS[c.goal]||escHtml(c.goal||'')||'cel nieustalony'}</div>
-    <div class="cl-status">
-      <span class="pill ${clientStatusPillClass(c,life)}"><span class="pill-dot"></span>${escHtml(archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':(life&&life.label)||'Aktywny')}</span>
-    </div>
-  </div>`;
-  }).join('');
+  el.innerHTML=displayed.map((c,i)=>clientRowHTML(c,i,issuesMap)).join('');
   updateClientListToggle(filtered.length,compact);
   renderSidebarClients();
 }
+function clearClientView(){
+  const inp=document.getElementById('client-search');
+  if(inp)inp.value='';
+  clearClientFilters();
+}
+window.clearClientView=clearClientView;
 
 // A draft belongs to one trainer session and one client, including after a failed save.
 const clientModalDrafts=new Map();

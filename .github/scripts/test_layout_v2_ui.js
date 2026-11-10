@@ -36,8 +36,9 @@ async function openApp(browser, viewport) {
   let page = await openApp(browser, { width: 1440, height: 900 });
 
   ok('app starts on the client list', await page.evaluate(() => window._startScreen === 'screen-clients'));
-  ok('second column visible', await page.locator('#cl-subnav').isVisible());
-  ok('title counts clients', (await page.locator('#clients-segment-title').textContent()).replace(/\s+/g, ' ').trim() === 'Wszyscy klienci (2)');
+  ok('no second column', await page.locator('#cl-subnav').count() === 0);
+  ok('title and total count', (await page.locator('#clients-segment-title').textContent()).trim() === 'Klienci' && (await page.locator('#clients-total').textContent()).trim() === '2 klientów');
+  ok('filters start hidden', await page.locator('#client-status-filter').isHidden());
   ok('Klienci active in sidebar', await page.locator('#nav-clients-btn.active').count() === 1);
 
   await page.hover('#nav-clients-btn');
@@ -48,8 +49,8 @@ async function openApp(browser, viewport) {
   ok('flyout is dark', bg === 'rgb(22, 24, 29)', bg);
   await page.click('#nav-clients-flyout [data-client-seg="inactive"]');
   await page.waitForTimeout(150);
-  ok('flyout picks a view', (await page.locator('#clients-segment-title').textContent()).includes('Nieaktywni klienci (1)'));
-  ok('view highlighted in second column', (await page.locator('#client-filter-list .cl-seg-item.active').textContent()).includes('Nieaktywni'));
+  ok('flyout picks a view', (await page.locator('#client-view-summary').textContent()).includes('1 klient · Nieaktywni klienci'));
+  ok('view shown in filter select', await page.locator('#client-status-filter').inputValue() === 'inactive');
   ok('flyout closed after pick', await page.locator('#nav-clients-flyout').isHidden());
 
   await page.mouse.move(900, 600);
@@ -85,27 +86,21 @@ async function openApp(browser, viewport) {
   await page.click('#sidebar-collapse-btn');
 
   await page.evaluate(() => goTo('clients'));
-  await page.click('#cl-subnav-toggle');
-  ok('panel toggle hides second column', await page.locator('#cl-subnav').isHidden());
-  await page.click('#cl-subnav-toggle');
+  await page.evaluate(() => clearClientView());
   await page.click('#cl-add-caret');
   ok('add-client menu opens', await page.locator('#cl-add-menu').isVisible());
   await page.keyboard.press('Escape');
   ok('Escape closes add-client menu', await page.locator('#cl-add-menu').isHidden());
-  await page.click('#cl-cols-btn');
-  await page.locator('#cl-cols-menu label', { hasText: 'Cel' }).locator('input').uncheck();
-  const hdrCells = await page.locator('.cl-everfit-hdr span:visible').count();
-  ok('column can be hidden', hdrCells === 6, String(hdrCells)); // 8 kolumn − pusta kolumna wiadomości − Cel
   const aligned = await page.evaluate(() => {
-    const h = document.querySelector('.cl-everfit-hdr').children[7].getBoundingClientRect().left;
-    const r = document.querySelector('.cl-everfit-row').children[7].getBoundingClientRect().left;
+    const h = document.querySelector('#cl2-hdr').children[2].getBoundingClientRect().left;
+    const r = document.querySelector('#clients-tbl .cl2-main').children[2].getBoundingClientRect().left;
     return Math.abs(h - r) < 2;
   });
   ok('header and rows stay aligned', aligned);
   await page.close();
 
   page = await openApp(browser, { width: 390, height: 844 });
-  ok('phone hides second column', await page.locator('#cl-subnav').isHidden());
+  ok('phone shows one list', await page.locator('#cl2-hdr').isHidden() && await page.locator('#clients-tbl .cl2-row').count() === 2);
   const overflow = await page.evaluate(() => {
     const box = document.getElementById('cl-everfit');
     return box.scrollWidth - box.clientWidth;
