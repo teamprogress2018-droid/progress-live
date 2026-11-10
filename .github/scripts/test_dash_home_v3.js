@@ -14,7 +14,7 @@ const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
 
 const dashFull = html.slice(html.indexOf('id="screen-dashboard"'), html.indexOf('id="screen-clients"'));
 const dash = dashFull.slice(0, dashFull.indexOf('id="dash-today-focus"'));
-assert.ok(html.includes('<script src="dashboard-home.js?v=1"></script>'), 'skrypt pulpitu podpięty');
+assert.ok(/<script src="dashboard-home.js?v=\d+"><\/script>/.test(html), 'skrypt pulpitu podpięty');
 assert.ok(dash.includes('id="dash-search"') && dash.includes('dashSearchInput('), 'wyszukiwarka');
 assert.ok(dash.includes('id="dash-notif-badge"') && dash.includes('id="dash-msg-badge"'), 'odznaki powiadomień i wiadomości');
 assert.ok(dash.includes('id="dash-hello"') && dash.includes('id="dash-date-full"'), 'powitanie i data');
