@@ -690,8 +690,58 @@ function renderLibTabs(counts){
     ['all','Wszystkie ćwiczenia',counts.all,'Pełna baza — wczytywana partiami']];
   el.innerHTML=tabs.map(([id,l,n,tip])=>`<button type="button" role="tab" data-tab="${id}" class="lib2-tab${exTab===id?' is-on':''}" aria-selected="${exTab===id}" onclick="setExTab('${id}')" title="${escHtml(tip)}">${l}<span class="lib2-tab-n">${n}</span></button>`).join('');
 }
+/* Partie ciała dla „Moich ćwiczeń”. Najpierw nazwa (kategorie własnych ćwiczeń bywają błędne,
+   np. „Prostowanie nóg” w Triceps), potem pierwszy mięsień, na końcu kategoria. */
+const EX_BODY_PARTS=[
+  {id:'klatka',label:'Klatka'},{id:'plecy',label:'Plecy'},{id:'barki',label:'Barki'},{id:'biceps',label:'Biceps'},
+  {id:'triceps',label:'Triceps'},{id:'nogi',label:'Nogi'},{id:'posladki',label:'Pośladki'},{id:'core',label:'Brzuch i core'},
+  {id:'kondycja',label:'Kondycja'},{id:'mobilnosc',label:'Mobilność'},{id:'inne',label:'Inne'}
+];
+const EX_PART_NAME_RULES=[
+  ['mobilnosc',/rozciag|stretch|mobiliz|rozgrzewk|cool.?down|jefferson|kot.?krowa|cat.?cow|oddech|plaszczkowat/],
+  ['kondycja',/airbike|air bike|rower|biezn|wioslarz|ergometr|ski.?erg|burpe|mountain|climber|liny treningowe|battle rope|skakank|hiit|tabata|rzut pilk|slam|swing|sanki|sled|farmer|spacer|podrzut|zarzut/],
+  ['core',/deska|plank|brzusz|martwy robak|dead bug|pallof|\bspiecia|scyzoryk|russian|unoszenie nog|allah|rollout|kolo do brzuch|skrety tulow|hollow/],
+  ['nogi',/prostowanie [a-z ]*nog|uginanie [a-z ]*nog|wypychanie|wyciskanie nog|przysiad|squat|pistol|wykrok|zakrok|bulgar|step.?up|wejsc|leg press|^suwnica|suwnic[a-z]* (45|poziom|na jednej|nog)|hack|lydk|wspieci[a-z]* na palce|martwy ciag|rumunsk|good morning|dzien dobry|przywodzenie/],
+  ['posladki',/hip thrust|hip trust|mostek biodr|glute|kickback|odwodzenie nog|odwodzenie na maszynie|odwodzenie stojac|abduk|abductor|posladk|wyprost[a-z]* bioder|odwrocony wyprost/],
+  ['plecy',/szrug|unoszenie bark|wyprost[a-z]* tulow|hiperekstens/],
+  ['barki',/nad glow|zza glow|zolniersk|military|arnold|wyciskanie (hantli|sztangi) siedzac|wyciskanie barkow|barkow|unoszenie (bokiem|w bok|przodem|ramion)|wznosy|odwodzenie ramion|odwodzenie na wyciagu|face pull|sciaganie do twarzy|odwrotne rozpietki|odwrotny butterfly|reverse fly|tyl bark|wzdluz tulowia/],
+  ['triceps',/tricep|prostowanie ramion|prostowanie lin|prostowanie przedram|francusk|pushdown|wyprost[a-z]* (ramion|przedram)|dipy|pompki na poreczach|pompki diamentow/],
+  ['biceps',/biceps|uginanie (ramion|hantl|przedram|na wyciagu|na maszynie|z|sztang|mlotk)|curl|mlotkow|modlitewn/],
+  ['plecy',/wioslowanie|sciaganie|podciaganie|pull.?down|pulldown|pull.?up|plecy|\blat /],
+  ['klatka',/wyciskanie|rozpietki|butterfly|pec deck|peck deck|pompk|crossover|krzyzowanie|chest|klatk/],
+  ['core',/\bcore\b|skrety/]
+];
+function exBodyPart(e){
+  if(!e)return'inne';
+  if(e._bodyPart&&e._bodyPartName===e.name)return e._bodyPart;
+  const n=exerciseSearchNorm(e.name||'');
+  let part='';
+  for(const [id,re] of EX_PART_NAME_RULES){if(re.test(n)){part=id;break;}}
+  if(!part){
+    const m=exerciseSearchNorm(String(e.muscle||'').split(/[,(/]/)[0]);
+    const byMuscle=[['klatka',/klatk|piersiow/],['plecy',/plec|najszersz|czworobocz/],['barki',/bark|naramien/],['biceps',/biceps/],['triceps',/triceps/],
+      ['posladki',/posladk/],['nogi',/udo|uda|czworoglow|dwuglow|nogi|lydk/],['core',/core|brzuch|prost brzuch|skosn/]];
+    for(const [id,re] of byMuscle){if(re.test(m)){part=id;break;}}
+  }
+  if(!part){
+    const c=String(e.cat||'');
+    part=({'Klatka piersiowa':'klatka','Plecy':'plecy','Barki':'barki','Biceps':'biceps','Triceps':'triceps','Nogi':'nogi','Pośladki':'posladki',
+      'Core':'core','Cardio':'kondycja','Mobilność':'mobilnosc','Rozciąganie':'mobilnosc','Rozgrzewka':'mobilnosc'})[c]||'inne';
+  }
+  try{Object.defineProperty(e,'_bodyPart',{value:part,writable:true,configurable:true,enumerable:false});Object.defineProperty(e,'_bodyPartName',{value:e.name,writable:true,configurable:true,enumerable:false});}catch(err){}
+  return part;
+}
+window.exBodyPart=exBodyPart;
+
 function renderLibGroups(list){
   const el=document.getElementById('ex-cat-nav');if(!el)return;
+  if(exTab==='own'){
+    el.hidden=false;
+    const cnt={};list.forEach(e=>{const p=exBodyPart(e);cnt[p]=(cnt[p]||0)+1;});
+    el.innerHTML=`<button type="button" class="lib2-chip${!exGroup?' is-on':''}" aria-pressed="${!exGroup}" onclick="setExGroup('')">Wszystkie <span>${list.length}</span></button>`
+      +EX_BODY_PARTS.filter(p=>cnt[p.id]).map(p=>`<button type="button" class="lib2-chip${exGroup===p.id?' is-on':''}" aria-pressed="${exGroup===p.id}" data-ex-part="${p.id}" onclick="setExGroup('${p.id}')">${escHtml(p.label)} <span>${cnt[p.id]}</span></button>`).join('');
+    return;
+  }
   if(exTab!=='base'){el.innerHTML='';el.hidden=true;return;}
   el.hidden=false;
   const n=g=>list.filter(e=>exLibMeta(e).group===g).length;
@@ -3540,7 +3590,9 @@ function renderLib(){
   renderLibTabs({base:baseList.length,fav:favNames.length,recent:recent.length,own:own.length,all:all.length});
   renderLibFilters();
   renderLibDraftBar();
-  const search=(document.getElementById('ex-search')||{}).value||'';
+  const searchEl=document.getElementById('ex-search');
+  if(searchEl)searchEl.placeholder=exTab==='own'?'Szukaj w Moich ćwiczeniach, np. wiosłowanie, przysiad':'Szukaj ćwiczenia, np. przysiad, wiosłowanie, deska';
+  const search=(searchEl||{}).value||'';
   const tokens=exerciseSearchTokens(search);
   // Źródło zależy od zakładki — „Baza Progress” nie dotyka całego katalogu.
   let source;
@@ -3555,6 +3607,7 @@ function renderLib(){
   const filtered=source.filter(e=>{
     if(tokens.length&&!exerciseMatchesTokens(e,tokens))return false;
     if(exTab==='base'&&exGroup&&exLibMeta(e).group!==exGroup)return false;
+    if(exTab==='own'&&exGroup&&exBodyPart(e)!==exGroup)return false;
     if(exF.cat&&e.cat!==exF.cat)return false;
     if(exF.eq&&e.eq!==exF.eq)return false;
     if(exF.baseOnly&&!exIsProgressBase(e))return false;
@@ -3573,6 +3626,17 @@ function renderLib(){
   if(!grid)return;
   if(!filtered.length){
     grid.innerHTML=`<div class="lib2-empty">${exTab==='fav'&&!tokens.length?'Nie masz jeszcze ulubionych. Kliknij ☆ na karcie, aby dodać ćwiczenie tutaj.':exTab==='recent'&&!tokens.length?'Tu pojawią się ćwiczenia z Twoich zapisanych planów.':exTab==='own'&&!tokens.length?'Tu pojawią się ćwiczenia, które najczęściej przypisujesz do planów, i ćwiczenia dodane przez Ciebie.':'Brak ćwiczeń pasujących do wyszukiwania lub filtrów.'}${exTab!=='all'&&(tokens.length||exActiveFilterCount())?`<button type="button" class="btn btn-ghost btn-sm" onclick="setExTab('all')">Szukaj we wszystkich ćwiczeniach</button>`:''}</div>`;
+    exLibObserveSentinel(false);
+    return;
+  }
+  // Moje ćwiczenia bez wyszukiwania i partii: sekcje według partii, w każdej najczęściej używane na górze.
+  if(exTab==='own'&&!exGroup&&!tokens.length&&!exActiveFilterCount()){
+    let i=0;
+    grid.innerHTML=EX_BODY_PARTS.map(p=>{
+      const items=filtered.filter(e=>exBodyPart(e)===p.id);
+      if(!items.length)return '';
+      return `<section class="lib2-sec" data-ex-part-sec="${p.id}"><h2 class="lib2-sec-h">${escHtml(p.label)}<span>${items.length}</span></h2><div class="lib2-sec-grid">${items.map(e=>exCardHtml(e,i++)).join('')}</div></section>`;
+    }).join('');
     exLibObserveSentinel(false);
     return;
   }
