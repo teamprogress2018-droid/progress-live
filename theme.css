@@ -1973,3 +1973,85 @@ details[open]>summary .cp-ov-acts-chev{transform:rotate(90deg);}
 .cp-ov-sit-tile{display:flex;flex-direction:column;justify-content:flex-start;}
 .cp-ov-profile-compact .cp-ov-profile-email{justify-content:flex-start!important;}
 .cp-ov-profile-compact .cp-ov-profile-email span{flex-shrink:0;}
+
+/* ── Pulpit 2.0: centrum decyzji — jedna czerwona akcja, krótkie listy, szczegóły po kliknięciu ── */
+html[data-theme] #screen-dashboard .dash-fire-main { display: flex; flex-direction: column; gap: 20px; }
+html[data-theme] #screen-dashboard .dash-fire-main > * { margin-bottom: 0; }
+html[data-theme] #screen-dashboard .dash-ops-grid,
+html[data-theme] #screen-dashboard .dash-ops-col { gap: 20px; }
+html[data-theme] #screen-dashboard #dash-qa-btn { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-default); box-shadow: none; }
+html[data-theme] #screen-dashboard #dash-qa-btn:hover { background: var(--bg-hover); }
+/* Najważniejsze teraz */
+html[data-theme] #screen-dashboard .dash-next-action { padding: 20px 24px; gap: 16px; }
+html[data-theme] #screen-dashboard .dash-next-eyebrow { color: var(--text-label); }
+html[data-theme] #screen-dashboard .dash-next-title { font-size: 18px; font-weight: 650; margin: 4px 0 2px; }
+html[data-theme] #screen-dashboard .dash-next-desc { font-size: 13px; color: var(--text-secondary); }
+html[data-theme] #screen-dashboard .dash-next-ok .dash-next-eyebrow { color: var(--success, var(--teal)); }
+html[data-theme] #screen-dashboard .dash-next-action .btn-primary { min-height: 42px; padding: 0 22px; }
+/* Linki w nagłówkach kart */
+.dash-hdr-link { border: 0; background: none; padding: 4px 0; font: 500 12px var(--font-ui); color: var(--text-label); cursor: pointer; }
+.dash-hdr-link:hover { color: var(--text-primary); }
+/* Wymagają uwagi */
+.dash-att-row { display: grid; grid-template-columns: 8px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-subtle); }
+.dash-att-row:last-of-type { border-bottom: 0; }
+.dash-att-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-default); }
+.dash-att-urgent .dash-att-dot { background: var(--danger, var(--red)); }
+.dash-att-watch .dash-att-dot { background: var(--warning, var(--orange)); }
+.dash-att-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.dash-att-name .dash-ops-client-link { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.dash-att-name .dash-ops-client-link:hover { text-decoration: underline; }
+.dash-att-reason { font-size: 13px; color: var(--text-secondary); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-att-all { display: block; width: 100%; margin-top: 8px; padding: 10px; border: 1px dashed var(--border-default); border-radius: 8px; background: none; font: 600 13px var(--font-ui); color: var(--text-primary); cursor: pointer; }
+.dash-att-all:hover { background: var(--bg-hover); }
+/* Dzisiaj */
+html[data-theme] #screen-dashboard .dash-today-row { display: grid; grid-template-columns: 56px minmax(0,1fr) auto auto; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); cursor: default; background: none; }
+html[data-theme] #screen-dashboard .dash-today-row:last-child { border-bottom: 0; }
+.dash-today-time { font: 650 15px var(--font-ui); color: var(--text-primary); font-variant-numeric: tabular-nums; }
+html[data-theme] #screen-dashboard .dash-today-name { font-size: 14px; font-weight: 600; }
+html[data-theme] #screen-dashboard .dash-today-meta { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+html[data-theme] #screen-dashboard .dash-today-attn-act { margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--danger, var(--red)); }
+.dash-today-more { margin-top: 4px; }
+.dash-today-more > summary { list-style: none; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-label); display: inline-block; }
+.dash-today-more > summary::-webkit-details-marker { display: none; }
+.dash-today-more > summary::after { content: ' ›'; }
+.dash-today-more[open] > summary::after { content: ' ⌄'; }
+.dash-today-more .dash-today-last,
+.dash-today-more .dash-today-attn { font-size: 12px; color: var(--text-secondary); margin-top: 4px; font-weight: 400; }
+.dash-today-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--bg-subtle); color: var(--text-secondary); white-space: nowrap; }
+.dash-today-badge-ok { background: var(--success-bg); color: var(--success); }
+.dash-today-badge-watch { background: var(--warning-bg); color: var(--warning); }
+html[data-theme] #screen-dashboard .dash-content .dash-today-row .btn-primary[data-dash-start] {
+  background: var(--text-primary); color: var(--bg-card); border-color: var(--text-primary); font-weight: 650; min-width: 84px;
+}
+html[data-theme] #screen-dashboard .dash-content .dash-today-row .btn-primary[data-dash-start]:hover { opacity: .9; }
+html[data-theme] #screen-dashboard .dash-today-row .btn { min-width: 84px; }
+/* Plan na jutro */
+#dash-ops-tomorrow[hidden] { display: none !important; }
+#dash-ops-tomorrow .dash-today-sep { display: none; }
+.dash-tomorrow-row { display: grid; grid-template-columns: 56px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+.dash-tomorrow-row:last-of-type { border-bottom: 0; }
+.dash-tomorrow-row .dash-today-time { font-weight: 500; color: var(--text-secondary); }
+.dash-tomorrow-name { font-size: 14px; color: var(--text-primary); }
+.dash-tomorrow-more { font-size: 12px; color: var(--text-label); padding-top: 8px; }
+/* Prawy panel: Twój dzień + szybkie akcje, cele schowane */
+html[data-theme] #screen-dashboard .dash-fire-side { gap: 16px; }
+.dash3-day-stats { display: flex; flex-direction: column; gap: 6px; }
+.dash3-day-stat { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border: 0; background: none; text-align: left; cursor: pointer; color: var(--text-secondary); font: 500 13px var(--font-ui); }
+.dash3-day-stat b { font: 650 22px var(--font-ui); color: var(--text-primary); min-width: 28px; }
+.dash3-day-stat:hover span { color: var(--text-primary); }
+html[data-theme] #screen-dashboard .dash3-day-cal { width: 100%; margin-top: 10px; }
+.dash3-qa-label { margin: 18px 0 8px; padding-top: 14px; border-top: 1px solid var(--border-subtle); font: 600 12px var(--font-ui); color: var(--text-label); }
+html[data-theme] #screen-dashboard .dash3-qa-small { gap: 6px; }
+html[data-theme] #screen-dashboard .dash3-qa-small button { height: 34px; font-size: 12px; padding: 0 8px; gap: 6px; }
+html[data-theme] #screen-dashboard .dash3-qa-small i { width: 18px; height: 18px; font-size: 11px; }
+.dash3-biz > summary { list-style: none; cursor: pointer; padding: 8px 4px; font: 500 13px var(--font-ui); color: var(--text-label); }
+.dash3-biz > summary::-webkit-details-marker { display: none; }
+.dash3-biz > summary::after { content: ' ›'; }
+.dash3-biz[open] > summary::after { content: ' ⌄'; }
+.dash3-biz > summary:hover { color: var(--text-primary); }
+@media (max-width: 760px) {
+  html[data-theme] #screen-dashboard .dash-fire-main { gap: 14px; }
+  html[data-theme] #screen-dashboard .dash-today-row { grid-template-columns: 48px minmax(0,1fr) auto; }
+  html[data-theme] #screen-dashboard .dash-today-row .dash-today-badge { grid-column: 2; justify-self: start; }
+  html[data-theme] #screen-dashboard .dash-fire-side { flex-direction: column; }
+}

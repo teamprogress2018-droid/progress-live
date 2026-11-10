@@ -38,8 +38,8 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     if (typeof goTo === 'function') goTo('dashboard');
     renderDashToday();
     return [...document.querySelectorAll('#d-today-sessions .dash-today-row')].map(r => ({
-      name: (r.querySelector('.dash-today-name') || {}).innerText || '', meta: (r.querySelector('.dash-today-meta') || {}).innerText || '',
-      last: (r.querySelector('[data-dash-last]') || {}).innerText || '', attn: (r.querySelector('[data-dash-attn]') || {}).innerText || '',
+      name: (r.querySelector('.dash-today-name') || {}).innerText || '', meta: ((r.querySelector('.dash-today-time') || {}).innerText || '') + ' ' + ((r.querySelector('.dash-today-meta') || {}).innerText || ''),
+      last: ((r.querySelector('[data-dash-last]') || {}).textContent || '').trim(), attn: ((r.querySelector('[data-dash-attn]') || {}).textContent || '').trim(),
       start: !!r.querySelector('[data-dash-start]') }));
   });
   await page.screenshot({ path: path.join(shotDir, 'dash_agenda.png') });

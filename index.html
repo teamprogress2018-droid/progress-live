@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="globals.css?v=17">
 <link rel="stylesheet" href="styles.css?v=194">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=16&layout-v2=2&generator-ux=2&book-visuals=5">
+<link rel="stylesheet" href="theme.css?v=17&layout-v2=2&generator-ux=2&book-visuals=5">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
 <link rel="stylesheet" href="landing.css?v=2">
 <link rel="stylesheet" href="client-simple.css?v=1">
@@ -328,7 +328,6 @@
           <div class="dash-ops-hdr">
             <div>
               <div class="studio-hdr">Wymagają uwagi</div>
-              <div class="studio-sub">Zaległe domowe, check-in, brak planu, opuszczone treningi</div>
             </div>
           </div>
           <div id="d-ops-attention"></div>
@@ -336,12 +335,19 @@
         <div class="card" id="dash-ops-today">
         <div class="dash-ops-hdr">
           <div>
-            <div class="studio-hdr">Dzisiejszy plan</div>
+            <div class="studio-hdr">Dzisiaj</div>
             <div class="studio-sub" id="d-date-lbl"></div>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
+          <button class="dash-hdr-link" onclick="goTo('calendar')">Kalendarz →</button>
         </div>
         <div id="d-today-sessions"></div>
+      </div>
+      <div class="card" id="dash-ops-tomorrow" hidden>
+        <div class="dash-ops-hdr">
+          <div><div class="studio-hdr">Plan na jutro</div></div>
+          <button class="dash-hdr-link" onclick="goTo('calendar')">Zobacz kalendarz →</button>
+        </div>
+        <div id="d-tomorrow-sessions"></div>
       </div>
       <div class="card" id="dash-ops-reports">
           <div class="dash-ops-hdr">
@@ -406,23 +412,24 @@
 
       </div>
       <aside class="dash-fire-side" aria-label="Twój dzień">
-        <section class="dash3-card dash3-day" aria-label="Mój dzień">
-          <div class="dash3-card-hd"><h2>Mój dzień</h2><button type="button" onclick="goTo('calendar')">Zobacz cały dzień →</button></div>
+        <section class="dash3-card dash3-day" aria-label="Twój dzień">
+          <div class="dash3-card-hd"><h2>Twój dzień</h2></div>
           <div id="dash-day-list"></div>
-        </section>
-        <section class="dash3-card dash3-actions-card" aria-label="Szybkie akcje">
-          <div class="dash3-card-hd"><h2>Szybkie akcje</h2></div>
-          <div class="dash3-qa-grid">
+          <div class="dash3-qa-label">Szybkie akcje</div>
+          <div class="dash3-qa-grid dash3-qa-small">
             <button type="button" onclick="openM('m-client')"><i class="qa-blue">＋</i>Nowy klient</button>
             <button type="button" onclick="openNewPlanPicker()"><i class="qa-green">▤</i>Nowy plan</button>
             <button type="button" onclick="dashNewNote()"><i class="qa-red">✎</i>Nowa notatka</button>
             <button type="button" onclick="openM('m-task')"><i class="qa-teal">✓</i>Nowe zadanie</button>
           </div>
         </section>
-        <section class="dash3-card dash3-goals" aria-label="Twoje cele">
-          <div class="dash3-card-hd"><h2>Twoje cele</h2><button type="button" onclick="goTo('bizstats')">Zobacz wszystkie →</button></div>
-          <div id="dash-goals-list"></div>
-        </section>
+        <details class="dash3-biz" aria-label="Postępy biznesowe">
+          <summary>Postępy biznesowe</summary>
+          <div class="dash3-card dash3-goals">
+            <div class="dash3-card-hd"><h2>Twoje cele</h2><button type="button" onclick="goTo('bizstats')">Zobacz wszystkie →</button></div>
+            <div id="dash-goals-list"></div>
+          </div>
+        </details>
       </aside>
     </div>
   </div>
@@ -4910,9 +4917,9 @@ async function load(session=captureTenantSession()){
 <script src="02-workouts-onboarding-templates-live.js?v=114"></script>
 <script src="books-kb.js?v=8"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=55&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1&intensify=1&generator-ux=1&book-visuals=2&freq=3&reps=1"></script>
-<script src="04-client-portal.js?v=70&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
+<script src="04-client-portal.js?v=71&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
 <script src="client-card-save.js?v=4"></script>
-<script src="dashboard-home.js?v=1"></script>
+<script src="dashboard-home.js?v=2"></script>
 <script src="05-clients-builder-plans-calendar.js?v=121&volume-control=1&layout-v2=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>

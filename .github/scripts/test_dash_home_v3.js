@@ -14,7 +14,7 @@ const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
 
 const dashFull = html.slice(html.indexOf('id="screen-dashboard"'), html.indexOf('id="screen-clients"'));
 const dash = dashFull.slice(0, dashFull.indexOf('id="dash-today-focus"'));
-assert.ok(html.includes('<script src="dashboard-home.js?v=1"></script>'), 'skrypt pulpitu podpięty');
+assert.ok(/<script src="dashboard-home\.js\?v=\d+"><\/script>/.test(html), 'skrypt pulpitu podpięty');
 assert.ok(dash.includes('id="dash-search"') && dash.includes('dashSearchInput('), 'wyszukiwarka');
 assert.ok(dash.includes('id="dash-notif-badge"') && dash.includes('id="dash-msg-badge"'), 'odznaki powiadomień i wiadomości');
 assert.ok(dash.includes('id="dash-hello"') && dash.includes('id="dash-date-full"'), 'powitanie i data');
@@ -54,9 +54,9 @@ assert.deepStrictEqual(goals, { train: '1/2', plans: '1/2', money: '1/2', checki
 const box = { innerHTML: '' };
 w.document.getElementById = id => (id === 'dash-day-list' ? box : null);
 w.renderDashDay();
-assert.ok(box.innerHTML.includes('Anna Nowak') && box.innerHTML.includes('is-done') && box.innerHTML.includes('07:00'), 'Mój dzień z sesji');
+assert.ok(box.innerHTML.includes('data-dash-day="sessions"') && /<b>2<\/b><span>treningi dzisiaj · 1 przed Tobą/.test(box.innerHTML) && box.innerHTML.includes('do wykonania') && box.innerHTML.includes('Zobacz kalendarz'), 'Twój dzień: liczby z sesji + kalendarz');
 w.SE = []; w.dashTodaySessions = () => [];
 w.renderDashDay();
-assert.ok(box.innerHTML.includes('Brak zaplanowanych zajęć'), 'pusty dzień');
+assert.ok(/<b>0<\/b><span>treningów dzisiaj/.test(box.innerHTML), 'pusty dzień');
 
 console.log('All dashboard home v3 tests passed.');

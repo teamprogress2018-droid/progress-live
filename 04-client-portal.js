@@ -6427,6 +6427,8 @@ function collectOpsEvents(force){
   // Każdy alert mówi: co i kiedy (meta), skąd to wiadomo (src) i co zrobić (cta).
   const ago=typeof attnAgoText==='function'?attnAgoText:(t=>new Date(t).toLocaleDateString('pl-PL'));
   const ciTime=ci=>ci&&typeof checkinActivityTime==='function'?checkinActivityTime(ci):NaN;
+  const daysAgo=t=>Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;
+  const dniTxt=n=>n===0?'dziś':n===1?'1 dnia':n+' dni';
   const shortDate=ymd=>{const t=new Date(String(ymd).slice(0,10)+'T12:00:00');return isNaN(t)?String(ymd):t.toLocaleDateString('pl-PL',{day:'numeric',month:'numeric'});};
   clients.forEach(c=>{
     if(typeof ensureCheckins==='function')ensureCheckins(c.id);
@@ -6438,11 +6440,13 @@ function collectOpsEvents(force){
         meta:Number.isFinite(pendT)?'Check-in wysłany '+ago(pendT)+' — bez odpowiedzi'
           :Number.isFinite(lastT)?'Ostatni check-in '+ago(lastT):'Spóźniony check-in tygodniowy',
         src:'Źródło: check-in tygodniowy',
+        short:daysAgo(pendT)!=null?'Raport zaległy od '+dniTxt(daysAgo(pendT)):'Raport zaległy',
         cta:`sendCheckinTo('${escHtml(c.id)}')`,ctaLbl:'Przypomnij'});
     }else if(st==='pending'){
       items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Czeka na raport',col:'var(--orange)',
         meta:Number.isFinite(pendT)?'Check-in wysłany '+ago(pendT)+' — brak odpowiedzi':'Check-in wysłany — brak odpowiedzi',
         src:'Źródło: check-in tygodniowy',
+        short:daysAgo(pendT)!=null?'Czeka na raport od '+dniTxt(daysAgo(pendT)):'Czeka na raport',
         cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`,ctaLbl:'Otwórz'});
     }
     if(typeof clientTrainingWindowStats==='function'){
@@ -6451,6 +6455,7 @@ function collectOpsEvents(force){
         items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'<70% planu',col:'var(--orange)',
           meta:`Trening 7 dni: ${st7.done}/${st7.assigned} (${st7.pct}%)`,
           src:'Źródło: kalendarz i zapisane treningi (ostatnie 7 dni)',
+          short:`Zrobił ${st7.done} z ${st7.assigned} treningów w 7 dni`,
           cta:`openClientProfile('${escHtml(c.id)}')`,ctaLbl:'Profil'});
       }
       const today=typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10);
@@ -6462,7 +6467,8 @@ function collectOpsEvents(force){
       });
       if(missed.length>=2){
         const days=missed.map(s=>s.date).sort().map(shortDate);
-        items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--red)',
+        items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--orange)',
+          short:missed.length+(missed.length<5?' treningi':' treningów')+' bez zapisu (14 dni)',
           meta:missed.length+' zaplanowane bez zapisu: '+days.slice(-4).join(', '),
           src:'Źródło: kalendarz (ostatnie 14 dni)',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('training');},150)`,ctaLbl:'Treningi'});
@@ -6477,6 +6483,7 @@ function collectOpsEvents(force){
         items.push({channel:'attention',pri:0,clientId:c.id,name:c.name,tag:'Domowe zaległe',col:'var(--red)',
           meta:late.length+' zaległych zadań domowych — najstarsze z terminem '+shortDate(oldest),
           src:'Źródło: zadania domowe',
+          short:'Zaległe zadania domowe: '+late.length,
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)`,ctaLbl:'Domowe'});
       }else if(hw.length){
         items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'Domowe otwarte',col:'var(--teal)',
@@ -6489,6 +6496,7 @@ function collectOpsEvents(force){
     if(!hasPlan){
       items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Brak planu',col:'var(--orange)',
         meta:'Nie ma aktywnego planu treningowego',
+        short:'Brak planu treningowego',
         src:'Źródło: plany treningowe',
         cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('plan');},150)`,ctaLbl:'Plan'});
     }
@@ -6747,7 +6755,8 @@ function dashNextAction(){
   const att=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
   if(att.length){
     const x=att[0];
-    return{tone:x.pri===0?'urgent':'watch',eyebrow:'Najważniejsze teraz',title:(x.name||'Klient')+' — '+(x.tag||'wymaga uwagi'),desc:x.meta||'Sprawdź sytuację klienta.',cta:x.cta||"goTo('clients')",ctaLbl:x.ctaLbl||'Sprawdź'};
+    const tag=String(x.tag||'wymaga uwagi');
+    return{tone:x.pri===0?'urgent':'watch',eyebrow:'Najważniejsze teraz',title:(x.name||'Klient')+' — '+tag.charAt(0).toLowerCase()+tag.slice(1),desc:x.meta||'Sprawdź sytuację klienta.',cta:x.cta||"goTo('clients')",ctaLbl:x.ctaLbl||'Sprawdź'};
   }
   const reports=typeof dashOpsRecentReports==='function'?dashOpsRecentReports():[];
   if(reports.length){
@@ -6784,17 +6793,60 @@ function dashNextAction(){
       return{tone:'info',eyebrow:'Dokończ start współpracy',title:c.name||'Klient',desc:'Następny krok: '+(step?step.label:(st.missingLabels||[])[0]||'Sprawdź checklistę')+'. Ukończono '+st.done+' z '+st.total+' kroków.',cta:`openClientOnboardChecklist('${escHtml(c.id)}')`,ctaLbl:'Otwórz następny krok'};
     }
   }
-  return{tone:'ok',eyebrow:'Plan na dziś wykonany',title:'Wszystko jest na bieżąco',desc:'Możesz rozpocząć trening albo przygotować plan dla kolejnego klienta.',cta:"goTo('live')",ctaLbl:'Trening Live'};
+  return{tone:'ok',eyebrow:'Najważniejsze teraz',title:'Wszystko pod kontrolą',desc:'Nie masz teraz pilnych działań.',cta:"goTo('calendar')",ctaLbl:'Zobacz kalendarz'};
 }
 function renderDashNextAction(){
   const el=document.getElementById('dash-next-action');if(!el)return;
   const a=dashNextAction();
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   el.className='dash-next-action dash-next-'+esc(a.tone||'info');
-  el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">${esc(a.eyebrow)}</div><div class="dash-next-title">${esc(a.title)}</div><div class="dash-next-desc">${esc(a.desc)}</div></div><button type="button" class="btn btn-primary" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
+  el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">${esc(a.eyebrow)}</div><div class="dash-next-title">${esc(a.title)}</div><div class="dash-next-desc">${esc(a.desc)}</div></div><button type="button" class="btn ${a.tone==='ok'?'btn-ghost':'btn-primary'}" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
 }
 window.dashNextAction=dashNextAction;
 window.renderDashNextAction=renderDashNextAction;
+
+/** „Wymagają uwagi”: jedna osoba = jeden najważniejszy powód + jedno działanie; domyślnie 3 osoby. */
+function dashAttentionPeople(){
+  const items=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
+  const seen=new Set();
+  const out=[];
+  items.slice().sort((a,b)=>(a.pri-b.pri)).forEach(it=>{
+    const k=it.clientId||it.name;
+    if(seen.has(k))return;
+    seen.add(k);out.push(it);
+  });
+  return out;
+}
+function dashAttentionTone(it){
+  if(!it)return'neutral';
+  if(it.pri===0)return'urgent';
+  if(it.pri===1)return'watch';
+  return'neutral';
+}
+function dashAttentionHTML(){
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const people=dashAttentionPeople();
+  if(!people.length)return`<div class="dash-ops-empty">Wszystko na bieżąco — nikt nie czeka na Twoją reakcję.</div>`;
+  const expanded=typeof dashListExpanded==='function'&&dashListExpanded('dash-attention');
+  const shown=expanded?people:people.slice(0,DASH_ATTENTION_PREVIEW);
+  const rows=shown.map(it=>{
+    const tone=dashAttentionTone(it);
+    const reason=it.short||it.tag||'Wymaga uwagi';
+    return `<div class="dash-att-row dash-att-${tone}" data-dash-att="${esc(it.clientId||'')}">
+      <span class="dash-att-dot" aria-hidden="true"></span>
+      <div class="dash-att-body">
+        <div class="dash-att-name">${it.clientId?`<button type="button" class="dash-ops-client-link" onclick="openClientProfile('${esc(it.clientId)}')">${esc(it.name)}</button>`:esc(it.name)}</div>
+        <div class="dash-att-reason" title="${esc(it.meta||'')}">${esc(reason)}</div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl||'Otwórz')}</button>
+    </div>`;
+  }).join('');
+  const more=people.length>DASH_ATTENTION_PREVIEW?`<button type="button" class="dash-att-all" data-dash-att-all="${people.length}" onclick="toggleDashListExpand('dash-attention')" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń listę':'Zobacz wszystkich wymagających uwagi ('+people.length+')'}</button>`:'';
+  return rows+more;
+}
+const DASH_ATTENTION_PREVIEW=3;
+window.dashAttentionPeople=dashAttentionPeople;
+window.dashAttentionHTML=dashAttentionHTML;
 
 function renderDashOps(){
   const attEl=document.getElementById('d-ops-attention');
@@ -6804,16 +6856,7 @@ function renderDashOps(){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
 
   if(attEl){
-    const items=dashOpsAttentionItems();
-    attEl.innerHTML=dashListSection('dash-attention',items,it=>`<div class="dash-ops-item">
-      <span class="dash-ops-tag" style="background:${it.col}22;color:${it.col};">${esc(it.tag)}</span>
-      <div class="dash-ops-item-body">
-        <div class="dash-ops-item-title">${it.clientId?`<button type="button" class="dash-ops-client-link" onclick="openClientProfile('${esc(it.clientId)}')">${esc(it.name)}</button>`:esc(it.name)}</div>
-        <div class="dash-ops-item-meta">${esc(it.meta)}</div>
-        ${it.src?`<div class="dash-ops-item-src">${esc(it.src)}</div>`:''}
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl)}</button>
-    </div>`,`<div class="dash-ops-empty">Wszystko na bieżąco — brak alertów.</div>`);
+    attEl.innerHTML=dashAttentionHTML();
   }
 
   if(repEl){
@@ -7246,77 +7289,74 @@ window.dashStartPrimary=dashStartPrimary;
 
 function renderDashToday(){
   const el=document.getElementById('d-today-sessions');if(!el)return;
+  const tmEl=document.getElementById('d-tomorrow-sessions');
   const now=new Date();
   const today=dateStr(now);
   const tomorrow=dateStr(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
+  const esc=typeof escHtml==='function'?escHtml:(x=>String(x??''));
 
   // Sesje dziś + jutro
   const agenda=dashAgendaSessions(SE);
   const todaySess=agenda.filter(s=>s.date===today);
   const tomorrowSess=agenda.filter(s=>s.date===tomorrow);
 
-  function timeLabel(s){
-    const state=dashSessionState(s,now);
-    if(state.kind==='done')return{txt:'Odbył się',col:'var(--teal)'};
-    if(state.kind==='skipped')return{txt:'Nie odbył się',col:'var(--muted)'};
-    if(state.kind==='unrecorded')return{txt:'Brak zapisu',col:'var(--orange)'};
-    if(state.kind==='running')return{txt:'Trwa termin',col:'var(--blue)'};
-    if(state.kind==='unscheduled')return{txt:'Bez godziny',col:'var(--muted)'};
-    if(!s.time)return null;
-    const [hh,mm]=s.time.split(':').map(Number);
-    const sessDate=new Date(s.date+'T'+s.time+':00');
-    const diffMs=sessDate-now;
-    const diffH=diffMs/3600000;
-    if(s.date===today){
-      if(diffH<1)return {txt:'Za '+Math.ceil(diffMs/60000)+' min',col:'var(--red)'};
-      if(diffH<3)return {txt:'Za '+Math.floor(diffH)+'h',col:'var(--orange)'};
-      return {txt:s.time,col:'var(--teal)'};
-    }
-    if(s.date===tomorrow)return {txt:'Jutro',col:'var(--blue)'};
-    return {txt:s.date,col:'var(--muted)'};
+  // Na liście „Dzisiaj” tylko stan, który zmienia decyzję (bez odliczania „Za 2h”).
+  function stateLabel(st){
+    if(st.kind==='done')return{txt:'Odbył się',tone:'ok'};
+    if(st.kind==='skipped')return{txt:'Nie odbył się',tone:'muted'};
+    if(st.kind==='unrecorded')return{txt:'Brak zapisu',tone:'watch'};
+    if(st.kind==='running')return{txt:'Trwa termin',tone:'info'};
+    if(st.kind==='unscheduled')return{txt:'Bez godziny',tone:'muted'};
+    return null;
   }
-
-  function sessRow(s,i){
+  let primaryUsed=false;
+  function sessRow(s){
     const c=CL.find(x=>x.id===s.clientId);
     const brief=c&&typeof dashClientBrief==='function'?dashClientBrief(c):{last:'',attn:null};
     const st=dashSessionState(s,now);
-    const canStart=s.date===today&&c&&st.kind!=='done'&&st.kind!=='skipped';
-    const ci=CL.findIndex(x=>x.id===s.clientId);
-    const clCol=SESS_COLORS[(ci>=0?ci:i)%6];
-    const av=c?(c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()):'?';
-    const tl=timeLabel(s);
-    return `<div class="dash-today-row" onclick="editSession('${s.id}')">
-      <div class="dash-today-bar" style="background:${clCol};"></div>
-      <div class="dash-today-av" style="background:${clCol}22;color:${clCol};">${av}</div>
+    const canStart=s.date===today&&c&&st.kind!=='done'&&st.kind!=='skipped'&&st.kind!=='unrecorded';
+    const lbl=stateLabel(st);
+    const title=s.type||s.name||'Trening personalny';
+    // Ostrzeżenie na wierzchu tylko, gdy wymaga decyzji przed treningiem (np. ćwiczenie sprzeczne z ograniczeniem).
+    const urgentAttn=brief.attn&&brief.attn.tone==='act'?brief.attn:null;
+    const details=[brief.last?`<div class="dash-today-last" data-dash-last>${esc(brief.last)}</div>`:'',
+      brief.attn&&!urgentAttn?`<div class="dash-today-attn dash-today-attn-${esc(brief.attn.tone)}" data-dash-attn title="${esc(brief.attn.reason||'')}">${esc(brief.attn.title)}</div>`:''].join('');
+    let btn;
+    if(canStart){
+      btn=`<button onclick="event.stopPropagation();dashStartLive('${esc(s.id)}')" class="btn ${primaryUsed?'btn-ghost':'btn-primary'} btn-sm" data-dash-start title="Start treningu w Live">Start</button>`;
+      primaryUsed=true;
+    }else btn=`<button onclick="event.stopPropagation();editSession('${esc(s.id)}')" class="btn btn-ghost btn-sm">${st.kind==='unrecorded'?'Uzupełnij':'Szczegóły'}</button>`;
+    return `<div class="dash-today-row" data-dash-session="${esc(s.id)}">
+      <div class="dash-today-time">${esc(s.time||'—')}</div>
       <div class="dash-today-body">
-        <div class="dash-today-name">${c?`<a href="#" class="dash-today-link" onclick="event.preventDefault();event.stopPropagation();openClientProfile('${c.id}')">${escHtml(c.name)}</a>`:'Klient'}</div>
-        <div class="dash-today-meta">${s.time?escHtml(s.time)+' · ':''}${s.type||'Trening personalny'} · ${s.duration||60} min</div>
-        ${brief.last?`<div class="dash-today-last" data-dash-last>${escHtml(brief.last)}</div>`:''}
-        ${brief.attn?`<div class="dash-today-attn dash-today-attn-${escHtml(brief.attn.tone)}" data-dash-attn title="${escHtml(brief.attn.reason||'')}">⚠ ${escHtml(brief.attn.title)}</div>`:''}
+        <div class="dash-today-name">${c?`<a href="#" class="dash-today-link" onclick="event.preventDefault();event.stopPropagation();openClientProfile('${esc(c.id)}')">${esc(c.name)}</a>`:'Klient'}</div>
+        <div class="dash-today-meta">${esc(title)} · ${esc(String(s.duration||60))} min</div>
+        ${urgentAttn?`<div class="dash-today-attn dash-today-attn-act" data-dash-attn title="${esc(urgentAttn.reason||'')}">⚠ ${esc(urgentAttn.title)}</div>`:''}
+        ${details?`<details class="dash-today-more"><summary>Szczegóły</summary>${details}</details>`:''}
       </div>
-      ${tl?`<div class="dash-today-badge" style="color:${tl.col};background:${tl.col}18;">${tl.txt}</div>`:''}
-      ${canStart?`<button onclick="event.stopPropagation();dashStartLive('${s.id}')" class="btn btn-primary btn-sm" data-dash-start title="Start treningu w Live">▶ Start</button>`:`<button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm">Szczegóły</button>`}
+      ${lbl?`<div class="dash-today-badge dash-today-badge-${lbl.tone}">${lbl.txt}</div>`:''}
+      ${btn}
+    </div>`;
+  }
+  function tomorrowRow(s){
+    const c=CL.find(x=>x.id===s.clientId);
+    return `<div class="dash-tomorrow-row" data-dash-tomorrow-row="${esc(s.id)}">
+      <div class="dash-today-time">${esc(s.time||'—')}</div>
+      <div class="dash-tomorrow-name">${esc(c?c.name:'Klient')}</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="editSession('${esc(s.id)}')">Szczegóły</button>
     </div>`;
   }
 
-  const allSess=[...todaySess,...tomorrowSess];
-
-  if(!allSess.length){
-    el.innerHTML=`<div style="padding:8px 0 4px;">
-      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak sesji na dziś i jutro</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Odpal trening od razu albo dopisz sesję do kalendarza.</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="goTo('live')">▶ Trening Live</button>
-        <button class="btn btn-ghost btn-sm" onclick="openM('m-session')">+ Dodaj do kalendarza</button>
-      </div>
+  el.innerHTML=todaySess.length?todaySess.map(sessRow).join(''):`<div class="dash-ops-empty" data-dash-today-empty>
+      Dziś nie masz zaplanowanych treningów.
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-session')">+ Dodaj do kalendarza</button>
     </div>`;
-    return;
+  if(tmEl){
+    const card=document.getElementById('dash-ops-tomorrow');
+    if(card)card.hidden=!tomorrowSess.length;
+    const more=tomorrowSess.length-2;
+    tmEl.innerHTML=tomorrowSess.length?`<div class="dash-today-sep" data-dash-tomorrow>Jutro</div>`+tomorrowSess.slice(0,2).map(tomorrowRow).join('')+(more>0?`<div class="dash-tomorrow-more">+${more} w kalendarzu</div>`:''):'';
   }
-
-  // Cały dzisiejszy grafik zawsze widoczny; jutro zwinięte do podglądu.
-  const todayHtml=todaySess.map((s,i)=>sessRow(s,i)).join('');
-  const tomorrowHtml=tomorrowSess.length?`<div class="dash-today-sep" data-dash-tomorrow>Jutro</div>`+dashListSection('dash-today',tomorrowSess,(s,i)=>sessRow(s,todaySess.length+i),''):'';
-  el.innerHTML=todayHtml+tomorrowHtml;
 }
 
 function renderDashTasks(){
