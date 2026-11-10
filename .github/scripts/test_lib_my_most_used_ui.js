@@ -24,7 +24,9 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
     window.PL = [mk('1', [a, b + ' (30°)']), mk('2', [a]), mk('3', [a, a + ' — jednorącz'])];
     goTo('library'); setExTab('own');
     await new Promise(r => setTimeout(r, 300));
-    const cards = [...document.querySelectorAll('#lib-grid .exl-card')].map(c => ({ name: (c.querySelector('.exl-name') || c).textContent.trim(), usage: (c.querySelector('[data-ex-usage]') || {}).textContent || '' }));
+    const usageOf = n => { const c = [...document.querySelectorAll('#lib-grid .exl-card')].find(x => (x.querySelector('.exl-name') || x).textContent.trim() === n); return c ? ((c.querySelector('[data-ex-usage]') || {}).textContent || '') : ''; };
+    // Kolejność z listy (na ekranie karty są dodatkowo w sekcjach partii).
+    const cards = myExercisesList(allExercises()).map(e => ({ name: e.name, usage: usageOf(e.name) }));
     return { a, b, cards: cards.slice(0, 4), count: document.getElementById('ex-results-count').textContent, tab: (document.querySelector('[data-tab="own"]') || {}).textContent || '', hasOwn: cards.some(c => /Mój wyskok testowy/.test(c.name)), ownIdx: cards.findIndex(c => /Mój wyskok testowy/.test(c.name)) };
   });
   ok('najczęściej używane pierwsze z licznikiem', r.cards[0] && r.cards[0].name.startsWith(r.a) && /w 3 planach/.test(r.cards[0].usage), JSON.stringify(r.cards));
