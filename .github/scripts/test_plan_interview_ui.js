@@ -50,6 +50,18 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   await page.click('.pliv-nav .btn-primary');
   await page.click('.pliv-nav .btn-primary');
   ok('podsumowanie: Profil do planu', await state() === 'summary' && /3 × 45 min/.test(await page.textContent('[data-pliv-row="avail"]')) && /podwyższone/.test(await page.textContent('[data-pliv-row="risk"]')));
+  // Regresja 10.11.2026: ekran generatora ma overflow:hidden, a podsumowanie wywiadu nie dawało się przewinąć kółkiem.
+  await page.setViewportSize({ width: 1440, height: 600 });
+  await page.evaluate(() => { const m = document.getElementById('pliv-mount'); m.scrollTop = 0; });
+  const box = await page.locator('#pliv-mount').boundingBox();
+  await page.mouse.move(box.x + box.width / 2, Math.min(box.y + 200, 550));
+  await page.mouse.wheel(0, 600);
+  await page.waitForTimeout(300);
+  const sc = await page.evaluate(() => { const m = document.getElementById('pliv-mount'); return { top: m.scrollTop, over: m.scrollHeight > m.clientHeight, gen: (() => { const b = document.querySelector('[data-pliv-generate]'); if (!b) return false; const r = b.getBoundingClientRect(), mr = m.getBoundingClientRect(); return r.bottom <= mr.bottom + 1 && r.top >= mr.top - 1; })() }; });
+  ok('podsumowanie przewija się kółkiem myszy (niski ekran)', sc.over && sc.top > 0, JSON.stringify(sc));
+  await page.mouse.wheel(0, 4000); await page.waitForTimeout(300);
+  ok('na dole widać przycisk generowania', await page.evaluate(() => { const m = document.getElementById('pliv-mount'), b = document.querySelector('[data-pliv-generate]'); const r = b.getBoundingClientRect(), mr = m.getBoundingClientRect(); return r.bottom <= mr.bottom + 1 && r.top >= mr.top - 1; }));
+  await page.setViewportSize({ width: 1440, height: 1000 });
   ok('wywiad zapisany w kliencie (pole prywatne)', await page.evaluate(() => window.__saved.some(s => s.col === 'clients' && s.o.planInterview && s.o.planInterview.status === 'done')));
   await page.click('text=Zadaj AI dodatkowe pytania');
   await page.waitForSelector('[data-pliv-ask] input');

@@ -622,7 +622,7 @@
     for(let i=S.step;i<n;i++){if(stepErrors(S.data,i).length){S.step=i;render();showErrors(stepErrors(S.data,i));return;}}
     S.step=n;render();
   }
-  function scrollTop(){const m=doc()&&doc().getElementById('pliv-mount');if(m&&m.scrollIntoView)try{m.scrollIntoView({block:'start',behavior:'smooth'});}catch(e){}}
+  function scrollTop(){const m=doc()&&doc().getElementById('pliv-mount');if(!m)return;try{m.scrollTop=0;}catch(e){}if(m.scrollIntoView)try{m.scrollIntoView({block:'start',behavior:'smooth'});}catch(e){}}
   function saveLater(){
     if(S.state==='interview')readStep();
     save();
