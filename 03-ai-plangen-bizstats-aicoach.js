@@ -1176,6 +1176,9 @@ function aplPickFrequencyVariant(src,group,plan){
     if(/cardio|mobil|rozgrzew|rozciąg|rozciag|olimpij/i.test(String(e.cat||'')))return false;
     const c=aplNormalizeMuscleCategory({muscleGroup:e.cat,name:e.name});
     if(group==='lydki')return/łydk|lydk|calf|wspięci|wspieci/i.test(e.name);
+    // Partia z nazwy (jak w kolumnach biblioteki): własne karty bywają w złej kategorii,
+    // np. „Wyciskanie hantli nad głowę” zapisane jako Klatka piersiowa to barki.
+    if(typeof exBodyPart==='function'){const bp=exBodyPart(e);if(bp&&bp!=='inne')return bp===group;}
     return APL_FREQ_GROUPS[group].cats.includes(c);
   };
   const srcPattern=aplExPattern(src);

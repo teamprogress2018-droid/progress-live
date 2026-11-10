@@ -13,6 +13,13 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   await page.route('https://www.gstatic.com/firebasejs/**', r => r.abort());
   await page.goto('http://127.0.0.1:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof aplGenerate === 'function' && typeof aplPickFrequencyVariant === 'function');
+  const mis = await page.evaluate(() => {
+    window.EX = [{ id: 'own1', name: 'Wyciskanie hantli nad głowę', cat: 'Klatka piersiowa', eq: 'Hantle' }];
+    const v = aplPickFrequencyVariant({ name: 'Wyciskanie sztangi leżąc' }, 'klatka', { days: [{ exercises: [] }] });
+    window.EX = [];
+    return v && v.name;
+  });
+  ok('own card in a wrong category (overhead press saved as chest) is not used as a chest variant', mis && !/nad głow/i.test(mis), mis);
   const r = await page.evaluate(async () => {
     window._uid = 'gen-trainer'; window._clientAppMode = false; window._tenantDataReady = true; window._db = { fixture: 1 };
     for (const id of ['auth-screen', 'app-loading']) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
