@@ -43,12 +43,13 @@ async function bootApp(page, port) {
       tab: (document.querySelector('#lib2-tabs .lib2-tab.is-on') || {}).getAttribute('data-tab'),
       cards: document.querySelectorAll('#lib-grid .exl-card').length,
       sections: document.querySelectorAll('#lib-grid .lib2-sec').length,
+      cols: document.querySelectorAll('#lib-grid .lib2-cols').length,
       chips: document.querySelectorAll('#ex-cat-nav .lib2-chip').length,
       filtersHidden: document.getElementById('lib2-filters').hidden,
       mediaOnly: exMediaOnly
     };
   });
-  ok('start: Baza Progress, 40 cards in 7 groups', v1.tab === 'base' && v1.cards === 40 && v1.sections === 7 && v1.chips === 8, JSON.stringify(v1));
+  ok('start: Baza Progress, 40 cards in body-part columns', v1.tab === 'base' && v1.cards === 40 && v1.sections >= 8 && v1.chips === v1.sections + 1 && v1.cols === 1, JSON.stringify(v1));
   ok('filters folded, film filter off', v1.filtersHidden && v1.mediaOnly === false, JSON.stringify(v1));
 
   // 2. Wyszukiwarka: słowa w dowolnej kolejności, z podwójną spacją.
@@ -66,7 +67,7 @@ async function bootApp(page, port) {
     setExGroup('');
     return names;
   });
-  ok('quick group Core', grp.length === 6 && grp.includes('Deska') && grp.includes('Martwy robak'), grp.join(' | '));
+  ok('quick part Core', grp.length >= 4 && grp.includes('Deska') && grp.includes('Martwy robak') && !grp.includes('Przysiad Goblet'), grp.join(' | '));
 
   // 4. Ukryj (katalog) vs Usuń (własne) — w nagłówku panelu; duplikaty tylko w menu „⋯”.
   const labels = await page.evaluate(() => {

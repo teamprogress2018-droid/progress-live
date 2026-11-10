@@ -698,11 +698,11 @@ const EX_BODY_PARTS=[
   {id:'kondycja',label:'Kondycja'},{id:'mobilnosc',label:'Mobilność'},{id:'inne',label:'Inne'}
 ];
 const EX_PART_NAME_RULES=[
-  ['mobilnosc',/rozciag|stretch|mobiliz|rozgrzewk|cool.?down|jefferson|kot.?krowa|cat.?cow|oddech|plaszczkowat/],
+  ['mobilnosc',/rozciag|stretch|mobiliz|rozgrzewk|cool.?down|jefferson|kot.?krowa|cat.?cow|oddech|plaszczkowat|open book|90.90|bretzel/],
   ['kondycja',/airbike|air bike|rower|biezn|wioslarz|ergometr|ski.?erg|burpe|mountain|climber|liny treningowe|battle rope|skakank|hiit|tabata|rzut pilk|slam|swing|sanki|sled|farmer|spacer|podrzut|zarzut/],
   ['core',/deska|plank|brzusz|martwy robak|dead bug|pallof|\bspiecia|scyzoryk|russian|unoszenie nog|allah|rollout|kolo do brzuch|skrety tulow|hollow/],
-  ['nogi',/prostowanie [a-z ]*nog|uginanie [a-z ]*nog|wypychanie|wyciskanie nog|przysiad|squat|pistol|wykrok|zakrok|bulgar|step.?up|wejsc|leg press|^suwnica|suwnic[a-z]* (45|poziom|na jednej|nog)|hack|lydk|wspieci[a-z]* na palce|martwy ciag|rumunsk|good morning|dzien dobry|przywodzenie/],
   ['posladki',/hip thrust|hip trust|mostek biodr|glute|kickback|odwodzenie nog|odwodzenie na maszynie|odwodzenie stojac|abduk|abductor|posladk|wyprost[a-z]* bioder|odwrocony wyprost/],
+  ['nogi',/prostowanie [a-z ]*nog|uginanie [a-z ]*nog|wypychanie|wyciskanie nog|przysiad|squat|pistol|wykrok|zakrok|bulgar|step.?up|wejsc|leg press|^suwnica|suwnic[a-z]* (45|poziom|na jednej|nog)|hack|lydk|wspieci[a-z]* na palce|martwy ciag|rumunsk|good morning|dzien dobry|przywodzenie/],
   ['plecy',/szrug|unoszenie bark|wyprost[a-z]* tulow|hiperekstens/],
   ['barki',/nad glow|zza glow|zolniersk|military|arnold|wyciskanie (hantli|sztangi) siedzac|wyciskanie barkow|barkow|unoszenie (bokiem|w bok|przodem|ramion)|wznosy|odwodzenie ramion|odwodzenie na wyciagu|face pull|sciaganie do twarzy|odwrotne rozpietki|odwrotny butterfly|reverse fly|tyl bark|wzdluz tulowia/],
   ['triceps',/tricep|prostowanie ramion|prostowanie lin|prostowanie przedram|francusk|pushdown|wyprost[a-z]* (ramion|przedram)|dipy|pompki na poreczach|pompki diamentow/],
@@ -735,7 +735,7 @@ window.exBodyPart=exBodyPart;
 
 function renderLibGroups(list){
   const el=document.getElementById('ex-cat-nav');if(!el)return;
-  if(exTab==='own'){
+  if(exTab==='own'||exTab==='base'){
     el.hidden=false;
     const cnt={};list.forEach(e=>{const p=exBodyPart(e);cnt[p]=(cnt[p]||0)+1;});
     el.innerHTML=`<button type="button" class="lib2-chip${!exGroup?' is-on':''}" aria-pressed="${!exGroup}" onclick="setExGroup('')">Wszystkie <span>${list.length}</span></button>`
@@ -3606,8 +3606,7 @@ function renderLib(){
   renderLibGroups(source);
   const filtered=source.filter(e=>{
     if(tokens.length&&!exerciseMatchesTokens(e,tokens))return false;
-    if(exTab==='base'&&exGroup&&exLibMeta(e).group!==exGroup)return false;
-    if(exTab==='own'&&exGroup&&exBodyPart(e)!==exGroup)return false;
+    if((exTab==='base'||exTab==='own')&&exGroup&&exBodyPart(e)!==exGroup)return false;
     if(exF.cat&&e.cat!==exF.cat)return false;
     if(exF.eq&&e.eq!==exF.eq)return false;
     if(exF.baseOnly&&!exIsProgressBase(e))return false;
@@ -3629,25 +3628,15 @@ function renderLib(){
     exLibObserveSentinel(false);
     return;
   }
-  // Moje ćwiczenia bez wyszukiwania i partii: sekcje według partii, w każdej najczęściej używane na górze.
-  if(exTab==='own'&&!exGroup&&!tokens.length&&!exActiveFilterCount()){
+  // Baza Progress i Moje ćwiczenia bez wyszukiwania i partii: kolumny według partii (Klatka, Plecy, Barki…).
+  // W Moich ćwiczeniach w każdej kolumnie najczęściej używane na górze.
+  if((exTab==='own'||exTab==='base')&&!exGroup&&!tokens.length&&!exActiveFilterCount()){
     let i=0;
-    grid.innerHTML=EX_BODY_PARTS.map(p=>{
+    grid.innerHTML=`<div class="lib2-cols">${EX_BODY_PARTS.map(p=>{
       const items=filtered.filter(e=>exBodyPart(e)===p.id);
       if(!items.length)return '';
-      return `<section class="lib2-sec" data-ex-part-sec="${p.id}"><h2 class="lib2-sec-h">${escHtml(p.label)}<span>${items.length}</span></h2><div class="lib2-sec-grid">${items.map(e=>exCardHtml(e,i++)).join('')}</div></section>`;
-    }).join('');
-    exLibObserveSentinel(false);
-    return;
-  }
-  // Baza Progress bez wyszukiwania: sekcje według szybkich kategorii.
-  if(exTab==='base'&&!exGroup&&!tokens.length&&!exActiveFilterCount()){
-    let i=0;
-    grid.innerHTML=PROGRESS_BASE_GROUPS.map(g=>{
-      const items=filtered.filter(e=>exLibMeta(e).group===g.id);
-      if(!items.length)return '';
-      return `<section class="lib2-sec"><h2 class="lib2-sec-h">${escHtml(g.label)}<span>${items.length}</span></h2><div class="lib2-sec-grid">${items.map(e=>exCardHtml(e,i++)).join('')}</div></section>`;
-    }).join('');
+      return `<section class="lib2-sec lib2-col" data-ex-part-sec="${p.id}"><h2 class="lib2-sec-h">${escHtml(p.label)}<span>${items.length}</span></h2><div class="lib2-col-list">${items.map(e=>exCardHtml(e,i++)).join('')}</div></section>`;
+    }).join('')}</div>`;
     exLibObserveSentinel(false);
     return;
   }
