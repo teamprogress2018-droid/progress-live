@@ -1725,6 +1725,8 @@ function openAiPlanForClient(clientId,fromOnboard){
     if(sel){
       sel.value=clientId;
       if(typeof aplFillFromClient==='function')aplFillFromClient();
+      // Najpierw krótki wywiad „Poznaj klienta przed planem”.
+      if(typeof pivOnClientPicked==='function')pivOnClientPicked(clientId);
     }
     if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
   },200);

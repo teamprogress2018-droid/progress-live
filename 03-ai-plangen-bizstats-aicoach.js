@@ -1523,6 +1523,7 @@ async function aplGenerate(){
     if(b){b.disabled=true;b.textContent='⏳ Generuję...';}
   });
 
+  let genOk=null;
   const res=document.getElementById('apl-result');
   res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;gap:20px;">
     <div style="width:56px;height:56px;border-radius:16px;background:var(--adim);display:flex;align-items:center;justify-content:center;">
@@ -1725,7 +1726,8 @@ STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
 - Każdy dzień = 1–2 obwody (stacje). W "exercises" ułóż 5–8 stacji wykonywanych po kolei; w "notes" napisz np. "Stacja 1/6 — przejście bez odpoczynku" lub "Runda 2/3".
 - Przerwy: 0–30 s między stacjami, 90–180 s między rundami (pole "rest"). Powtórzenia często czasowe (np. "40s") lub 10–15.
 - RPE 6–8 (kondycja), nie gonij RPE 10 na każdej stacji. Dla redukcji OK; przy sile dodaj 1 ciężki wielostaw na start dnia z dłuższą przerwą.
-- dayName np. "Dzień 1 — Obwód A (full body)" / "Obwód B (góra+core)".`:'');
+- dayName np. "Dzień 1 — Obwód A (full body)" / "Obwód B (góra+core)".`:'')
+  +(typeof pivPromptBlock==='function'&&window._pivActive&&window._pivActive.clientId===cid?pivPromptBlock():'');
 
   try{
     const totalDays=parseInt(days)||4;
@@ -1867,6 +1869,7 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
   window._aplAmateurPlanIssues=typeof aplAmateurPlanIssues==='function'?aplAmateurPlanIssues(plan):[];
     aplRegroupExercisesByMuscle(plan,client);
     aplRenderPlan(plan,client,goal,method,days,weeks);
+    genOk=plan;
   }catch(e){
     console.error('aplGenerate błąd:',e);
     const msg=String(e?.message||e||'');
@@ -1888,6 +1891,8 @@ Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] p
     const b=document.getElementById(id);
     if(b){b.disabled=false;b.innerHTML='✨ Generuj plan';}
   });
+  // Wywiad przed planem: najpierw „Propozycja Progress AI”, edytor dopiero po „Zastosuj”.
+  if(typeof pivAfterGenerate==='function'&&window._pivActive&&window._pivActive.clientId===cid)pivAfterGenerate(genOk);
 }
 
 function aplPlanWhyHTML(plan){
