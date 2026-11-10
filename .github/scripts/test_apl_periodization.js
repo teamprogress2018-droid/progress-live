@@ -97,6 +97,19 @@ ok('wolne ciężary: nigdy powyżej 12 powtórzeń', dbR.concat(sqR).every(r => 
 ok('maszyny i wyciągi: nigdy powyżej 15 powtórzeń', fpR.concat(mcR).every(r => hiOf(r) <= 15) && fpR[3] === '15' && mcR[3] === '13-15', fpR.join(' ') + ' | ' + mcR.join(' '));
 ok('masa ciała bez limitu', bwR[3] === '15-18', bwR.join(' '));
 const capPlan = { weekKeys: ['w1', 'w2'], days: [{ exercises: [{ name: 'Uginanie hantli', reps: '12-15', w1: { r: '12-15' }, w2: { r: '13-16' } }, { name: 'Face pull na wyciągu', reps: '12-15', w1: { r: '12-15' }, w2: { r: '15-18' } }] }] };
-ok('naprawa zapisanych planów: limit powtórzeń', c.aplRepairPlanRepCaps(capPlan) > 0 && capPlan.days[0].exercises[0].w2.r === '12' && capPlan.days[0].exercises[0].reps === '9-12' && capPlan.days[0].exercises[0].w1.r === '9-12' && capPlan.days[0].exercises[1].w2.r === '15' && c.aplRepairPlanRepCaps(capPlan) === 0, JSON.stringify(capPlan.days[0].exercises));
+ok('naprawa zapisanych planów: limit powtórzeń', c.aplRepairPlanRepCaps(capPlan) > 0 && capPlan.days[0].exercises[0].w2.r === '10-12' && capPlan.days[0].exercises[0].reps === '9-12' && capPlan.days[0].exercises[0].w1.r === '9-12' && capPlan.days[0].exercises[1].w2.r === '15' && c.aplRepairPlanRepCaps(capPlan) === 0, JSON.stringify(capPlan.days[0].exercises));
+const lat = { name: 'Unoszenie hantli bokiem', reps: '12-15', sets: '3', kg: '10' };
+const latW = ['12-15', '13-16', '14-17', '15-18', '12-15', '13-16', '14-17', '12-15'];
+const latPlan = { weekKeys: keys, phases: hypPh, progression: 'linear', days: [{ exercises: [lat] }] };
+keys.forEach((k, i) => { lat[k] = { r: latW[i], kg: '10' }; });
+c.aplRepairPlanRepCaps(latPlan);
+const latFix = keys.map(k => lat[k].r).join(' ');
+ok('naprawa: zakres startowy w dół z zachowaniem fal (hantle bokiem)', latFix === '9-12 10-12 11-12 12 9-12 10-12 11-12 9-12', latFix);
+const col = { name: 'Unoszenie hantli bokiem', reps: '9-12', sets: '3', kg: '10' };
+const colW = ['9-12', '12', '12', '12', '12', '12', '12', '9-12'];
+keys.forEach((k, i) => { col[k] = { r: colW[i], kg: '10' }; });
+c.aplRepairPlanRepCaps({ weekKeys: keys, phases: hypPh, progression: 'linear', days: [{ exercises: [col] }] });
+const colFix = keys.map(k => col[k].r).join(' ');
+ok('naprawa: zlane „12” odtworzone z progresji', colFix === '9-12 10-12 11-12 12 9-12 10-12 11-12 9-12', colFix);
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('\nAll periodization checks passed');

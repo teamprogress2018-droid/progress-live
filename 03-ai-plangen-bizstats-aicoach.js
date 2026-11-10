@@ -239,12 +239,32 @@ function aplRepairPlanLoads(plan){
 /** Limit powtórzeń w zapisanym planie (maszyny 15, wolne ciężary 12) — tylko komórki powyżej limitu. */
 function aplRepairPlanRepCaps(plan){
   const keys=(plan&&plan.weekKeys)||[];
+  const phases=(plan&&plan.phases)||{};
+  const isDel=k=>/deload/i.test(String(phases[k]||''));
+  const range=/^(\d+)\s*[-–]\s*(\d+)$/;
   let changed=0;
   (plan&&plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
     if(!ex)return;
     const cap=aplRepCap(ex);if(!cap)return;
-    if(ex.reps!=null){const nr=aplCapStartReps(ex.reps,cap);if(String(nr)!==String(ex.reps)){ex.reps=nr;changed++;}}
-    keys.forEach((k,i)=>{const c=ex[k];if(!c||c.r==null)return;const deload=/deload/i.test(String((plan.phases||{})[k]||''));const nr=(i===0||deload)?aplCapStartReps(c.r,cap):aplCapReps(c.r,cap);if(String(nr)!==String(c.r)){c.r=nr;changed++;}});
+    const set=(obj,key,v)=>{if(String(v)!==String(obj[key])){obj[key]=v;changed++;}};
+    const m=range.exec(String(ex.reps==null?'':ex.reps).trim());
+    // Zakres startowy powyżej limitu: cały plan przesuwamy w dół o tyle samo (fale zostają), potem limit.
+    const shift=m&&+m[2]>cap?cap-(+m[2]):0;
+    if(ex.reps!=null)set(ex,'reps',aplCapStartReps(ex.reps,cap));
+    keys.forEach((k,i)=>{
+      const c=ex[k];if(!c||c.r==null)return;
+      if(i===0||isDel(k)){set(c,'r',aplCapStartReps(c.r,cap));return;}
+      set(c,'r',aplCapReps(shift?aplShiftReps(c.r,shift,1):c.r,cap));
+    });
+    // Plan zapisany wcześniejszą naprawą, w której fale zlały się w jedno „12”: odtwórz powtórzenia z progresji (ciężary bez zmian).
+    const mid=keys.slice(1).filter(k=>!isDel(k)&&ex[k]);
+    if(m&&mid.length>=4&&mid.every(k=>String(ex[k].r)===String(cap))&&typeof aplComputeProgression==='function'){
+      const clone={name:ex.name,equipment:ex.equipment,sets:ex.sets,reps:ex.reps,rest:ex.rest,rpe:ex.rpe,rir:ex.rir,kg:ex.kg};
+      try{
+        aplComputeProgression(clone,keys,phases,plan.progression||plan.progressionType||'linear');
+        keys.forEach(k=>{if(ex[k]&&clone[k]&&clone[k].r!=null)set(ex[k],'r',clone[k].r);});
+      }catch(e){}
+    }
   }));
   return changed;
 }
