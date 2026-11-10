@@ -153,7 +153,7 @@ function ok(name, cond, extra) {
     return { display: cs ? cs.display : '', text: pop ? pop.innerText : '' };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_ex_hist_hover.png') });
-  ok('hover shows popover', hoverUi.display === 'block' && /20/.test(hoverUi.text) && /poprzednie treningi/i.test(hoverUi.text) && /2026-09-13/.test(hoverUi.text) && /2026-09-06/.test(hoverUi.text) && /Σ/.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 280));
+  ok('hover shows popover: ostatnie treningi, wiersz na trening, trend', hoverUi.display === 'block' && /ostatnie treningi \(2\)/i.test(hoverUi.text) && /13\.09\.26/.test(hoverUi.text) && /06\.09\.26/.test(hoverUi.text) && /20 × 12 · 22\.5 × 10/.test(hoverUi.text) && /▲ \+2\.5/.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 280));
   await page.mouse.move(8, 8);
   await page.click('#live-ex-0 .live-ex-title.has-hist');
   const modalUi = await page.evaluate(() => {
