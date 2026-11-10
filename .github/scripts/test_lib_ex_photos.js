@@ -64,7 +64,7 @@ ok('index loads photo manifest', fs.readFileSync(path.join(root, 'index.html'), 
 const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
 const card = six.slice(six.indexOf('function exCardHtml'), six.indexOf('function renderLibGroupedSections'));
 // Od 23.10 (e376fcb, 6c9b6d5) karta pokazuje zdjęcie z bazy ćwiczeń, a bez niego biały podgląd — nigdy filmu.
-ok('cards fall back to white preview', /const media=exCardDatabasePhotoHtml\(e,col\)/.test(card) && /return exCardWhitePreviewHtml\(e,col\)/.test(six));
+ok('cards use the database photo with a light placeholder', /const photo=exCardFallbackDatabasePhoto\(e\)/.test(card) && card.includes('class="exl-thumb-ph"') && card.includes('loading="lazy"'));
 ok('cards never play mp4', !/<video/.test(card));
 
 windowObj.EX_GIF_MANIFEST = {

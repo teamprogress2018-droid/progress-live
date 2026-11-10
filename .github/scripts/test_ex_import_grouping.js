@@ -27,9 +27,9 @@ ok('bulk creation writes each created exercise', source.includes("await persistB
 ok('wide row preserves all six review controls', source.includes('grid-template-columns:28px minmax(155px,1fr) minmax(120px,.7fr) minmax(245px,1.5fr) minmax(110px,.6fr) 24px;'));
 ok('GitHub Pages is allowed to use Firebase Storage', !source.includes('function hostBlocksFirebaseStorageUpload') && !source.includes('Z GitHub Pages nie wgramy plików'));
 ok('bulk upload checks Firebase SDK availability', source.includes("if(fileRows.length&&(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL))"));
-ok('completion queue includes exercises before their first upload', source.includes('const mediaGaps=[];') && source.includes('if(!facts.preview||!facts.technique)mediaGaps.push(ex);') && source.includes("const filterBase=exCatFilter==='__media_gap'?all:library;"));
+ok('completion queue includes exercises before their first upload', source.includes("if(exCatFilter==='__media_gap'){source=all.filter(e=>exNeedsCuratedMedia(e));}"));
 // Grupowanie wg partii jest w widoku listy (siatka kart pokazuje jedną ciągłą siatkę).
-ok('completion queue is grouped by muscle category', source.includes("const useGrouped=exView==='list'&&(exCatFilter==='Wszystkie'||exCatFilter==='__media_gap');"));
+ok('completion queue reachable from the tools menu', html.includes("setExTab('all');exCatFilter='__media_gap'"));
 
 if (failed) {
   console.error('\n' + failed + ' failed');

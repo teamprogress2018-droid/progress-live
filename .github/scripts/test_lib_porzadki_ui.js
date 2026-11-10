@@ -36,64 +36,53 @@ async function bootApp(page, port) {
   page.on('pageerror', (e) => errors.push(e.message));
   await bootApp(page, port);
 
-  // 1. Karty/Lista: stan zgodny z widokiem, wybór zapamiętany po odświeżeniu.
+  // 1. Domyślnie „Baza Progress”: 40 kompaktowych kart w 7 szybkich kategoriach, filtry zwinięte.
   const v1 = await page.evaluate(() => {
     localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
-    const gb = document.getElementById('ex-view-grid-btn');
-    return { gridShown: getComputedStyle(document.getElementById('ex-grid-view')).display !== 'none', gridBtn: gb.classList.contains('btn-primary'), listBtn: document.getElementById('ex-view-list-btn').classList.contains('btn-primary') };
+    return {
+      tab: (document.querySelector('#lib2-tabs .lib2-tab.is-on') || {}).getAttribute('data-tab'),
+      cards: document.querySelectorAll('#lib-grid .exl-card').length,
+      sections: document.querySelectorAll('#lib-grid .lib2-sec').length,
+      chips: document.querySelectorAll('#ex-cat-nav .lib2-chip').length,
+      filtersHidden: document.getElementById('lib2-filters').hidden,
+      mediaOnly: exMediaOnly
+    };
   });
-  ok('start: Karty shown and highlighted', v1.gridShown && v1.gridBtn && !v1.listBtn, JSON.stringify(v1));
-  await page.evaluate(() => setExView('list'));
-  await bootApp(page, port);
-  const v2 = await page.evaluate(() => {
-    localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
-    return { listShown: getComputedStyle(document.getElementById('ex-list-view')).display !== 'none', listBtn: document.getElementById('ex-view-list-btn').classList.contains('btn-primary'), rows: document.querySelectorAll('#ex-list-body .ex-list-row').length };
-  });
-  ok('reload keeps Lista', v2.listShown && v2.listBtn && v2.rows > 0, JSON.stringify(v2));
-  await page.evaluate(() => setExView('grid'));
+  ok('start: Baza Progress, 40 cards in 7 groups', v1.tab === 'base' && v1.cards === 40 && v1.sections === 7 && v1.chips === 8, JSON.stringify(v1));
+  ok('filters folded, film filter off', v1.filtersHidden && v1.mediaOnly === false, JSON.stringify(v1));
 
   // 2. Wyszukiwarka: słowa w dowolnej kolejności, z podwójną spacją.
   await page.fill('#ex-search', 'lezac  sztangi wyciskanie');
   await page.waitForTimeout(400);
-  const found = await page.evaluate(() => [...document.querySelectorAll('#lib-grid .ex-card-name')].map((el) => el.textContent));
+  const found = await page.evaluate(() => [...document.querySelectorAll('#lib-grid .exl-name')].map((el) => el.textContent));
   ok('search any word order', found.includes('Wyciskanie sztangi leżąc'), found.slice(0, 5).join(' | '));
+  ok('Baza Progress result first', found[0] === 'Wyciskanie sztangi leżąc', found.slice(0, 3).join(' | '));
 
-  // 3. Sortowanie „Sprzęt” działa w widoku „Wszystkie”.
-  const sorted = await page.evaluate(() => {
+  // 3. Szybka kategoria zawęża Bazę Progress.
+  const grp = await page.evaluate(() => {
     document.getElementById('ex-search').value = '';
-    const sel = document.getElementById('ex-sort');
-    const opts = [...sel.options].map((o) => o.value);
-    sel.value = 'eq';
-    renderLib();
-    // Siatka bywa płaska (okienkowe renderowanie, 22.10) — wtedy sprawdzamy kolejność kart w całej siatce.
-    const first = document.querySelector('#lib-grid .ex-cat-section') || document.getElementById('lib-grid');
-    const eqs = [...first.querySelectorAll('.ex-card')].map((c) => c.querySelectorAll('.ex-card-tags .pill')[1].textContent);
-    sel.value = 'az';
-    renderLib();
-    return { opts, eqs };
+    setExGroup('core');
+    const names = [...document.querySelectorAll('#lib-grid .exl-name')].map((el) => el.textContent);
+    setExGroup('');
+    return names;
   });
-  const isSorted = sorted.eqs.every((e, i, arr) => i === 0 || arr[i - 1].localeCompare(e, 'pl') <= 0);
-  ok('sort options without Kategoria', sorted.opts.join(',') === 'az,eq', sorted.opts.join(','));
-  ok('equipment sort inside category', sorted.eqs.length > 3 && isSorted, sorted.eqs.slice(0, 8).join(','));
+  ok('quick group Core', grp.length === 6 && grp.includes('Deska') && grp.includes('Martwy robak'), grp.join(' | '));
 
-  // 4. Ukryj (katalog) vs Usuń (własne), przycisk duplikatów tylko gdy są.
+  // 4. Ukryj (katalog) vs Usuń (własne) — w nagłówku panelu; duplikaty tylko w menu „⋯”.
   const labels = await page.evaluate(() => {
     window.EX.push({ id: 'ex_own', name: 'Moje ćwiczenie testowe', cat: 'Nogi', eq: 'Bez sprzętu', tip: '' });
+    if (typeof invalidateExerciseCatalogCache === 'function') invalidateExerciseCatalogCache();
     renderLib();
-    // Siatka renderuje karty okienkami, więc kartę konkretnego ćwiczenia budujemy tym samym exCardHtml.
-    const card = (n) => [...document.querySelectorAll('#lib-grid .ex-card')].find((c) => c.querySelector('.ex-card-name').textContent === n)
-      || Object.assign(document.createElement('div'), { innerHTML: exCardHtml(libExerciseByName(n), 0) });
-    const btn = (n) => { const b = card(n).querySelector('.ex-card-delete-btn'); return b ? (/Usuń/.test(b.getAttribute('aria-label')) ? 'Usuń' : /Ukryj/.test(b.getAttribute('aria-label')) ? 'Ukryj' : b.textContent.trim()) : ''; };
     const sweep = document.getElementById('lib-sweep-dups');
     openExDetail('Moje ćwiczenie testowe');
     const hdrOwn = document.getElementById('exd-del-hdr').textContent;
     openExDetail('Wyciskanie sztangi leżąc');
     const hdrCat = document.getElementById('exd-del-hdr').textContent;
-    return { own: btn('Moje ćwiczenie testowe'), cat: btn('Wyciskanie sztangi leżąc'), sweep: getComputedStyle(sweep).display, hdrOwn, hdrCat };
+    const ownTab = (document.querySelector('#lib2-tabs [data-tab="own"] .lib2-tab-n') || {}).textContent;
+    return { sweep: getComputedStyle(sweep).display, hdrOwn, hdrCat, ownTab };
   });
-  ok('catalog card says Ukryj', labels.cat === 'Ukryj', JSON.stringify(labels));
-  ok('own card says Usuń', labels.own === 'Usuń', JSON.stringify(labels));
   ok('detail header matches', /Usuń/.test(labels.hdrOwn) && /Ukryj/.test(labels.hdrCat), JSON.stringify(labels));
+  ok('own exercise counted in Moje ćwiczenia', labels.ownTab === '1', JSON.stringify(labels));
   ok('no dedupe button without duplicates', labels.sweep === 'none', JSON.stringify(labels));
 
   // 5. Zamknięcie szczegółów nie przebudowuje siatki.
@@ -104,14 +93,28 @@ async function bootApp(page, port) {
   });
   ok('close detail keeps cards', kept);
 
-  // 6. Jeden import, „+ Ćwiczenie” jako główna akcja.
-  const top = await page.evaluate(() => ({
-    imports: [...document.querySelectorAll('#screen-library button')].filter((b) => /Import GIF/.test(b.textContent) && b.getBoundingClientRect().width > 0).length,
-    add: document.getElementById('lib-add-ex').classList.contains('btn-primary')
-  }));
-  ok('single visible import, + Ćwiczenie primary', top.imports === 1 && top.add, JSON.stringify(top));
+  // 6. Import i narzędzia w menu „⋯”, nie na górnym pasku.
+  const top = await page.evaluate(() => {
+    const visibleImports = () => [...document.querySelectorAll('#screen-library button')].filter((b) => /Import GIF/.test(b.textContent) && b.getBoundingClientRect().width > 0).length;
+    const before = visibleImports();
+    toggleLibMoreMenu();
+    const after = visibleImports();
+    closeLibMoreMenu();
+    return { before, after, add: !!document.getElementById('lib-add-ex') };
+  });
+  ok('import hidden in ⋯ menu', top.before === 0 && top.after === 1 && top.add, JSON.stringify(top));
 
-  // 7. Menu: podświetlona pozycja zgodna z filtrem zadań.
+  // 7. „Wszystkie ćwiczenia” ładuje się partiami.
+  const all = await page.evaluate(() => {
+    setExTab('all');
+    const n = document.querySelectorAll('#lib-grid .exl-card').length;
+    const total = allExercises().length;
+    setExTab('base');
+    return { n, total };
+  });
+  ok('full catalogue rendered in pages', all.total > 900 && all.n > 0 && all.n <= 90, JSON.stringify(all));
+
+  // 8. Menu: podświetlona pozycja zgodna z filtrem zadań.
   const fly = await page.evaluate(() => {
     const act = () => [...document.querySelectorAll('.nav-flyout-item.active')].map((b) => b.textContent.trim());
     goToHomeworkQueue();
@@ -124,21 +127,22 @@ async function bootApp(page, port) {
   ok('homework highlights Zadania domowe', fly.hw.join() === 'Zadania domowe', JSON.stringify(fly));
   ok('all tasks highlights Wszystkie zadania', fly.all.join() === 'Wszystkie zadania', JSON.stringify(fly));
 
-  // Tryb pełnoekranowy (od 23.10, 7020315) jest domyślny: bez menu i panelu filtrów; „Filtry” odsłania wyszukiwarkę.
+  // Tryb pełnoekranowy (od 23.10) jest domyślny: bez menu aplikacji, ale wyszukiwarka i „Filtry” zawsze na górze.
   const wide = await page.evaluate(() => {
     localStorage.removeItem('pl_library_wide_v1');
     goTo('dashboard'); goTo('library');
     const vis = (el) => !!el && el.offsetHeight > 0;
-    const before = { wide: document.getElementById('screen-library').classList.contains('library-wide'), menu: vis(document.getElementById('app-sidebar')), search: vis(document.getElementById('ex-search')) };
+    const before = { wide: document.getElementById('screen-library').classList.contains('library-wide'), menu: vis(document.getElementById('app-sidebar')), search: vis(document.getElementById('ex-search')), lbl: !!document.getElementById('lib-filters-lbl') };
     toggleLibraryFilters();
-    const after = { search: vis(document.getElementById('ex-search')) };
+    const after = { panel: vis(document.getElementById('lib2-filters')) };
+    toggleExFilters();
     toggleLibraryWide();
     const normal = { menu: vis(document.getElementById('app-sidebar')), search: vis(document.getElementById('ex-search')), saved: localStorage.getItem('pl_library_wide_v1') };
     return { before, after, normal };
   });
-  ok('wide library by default hides menu and filters', wide.before.wide && !wide.before.menu && !wide.before.search, JSON.stringify(wide));
-  ok('wide library: Filtry reveals search', wide.after.search, JSON.stringify(wide));
-  ok('normal view brings back menu and search, remembered', wide.normal.menu && wide.normal.search && wide.normal.saved === '0', JSON.stringify(wide));
+  ok('wide library by default hides app menu, keeps search', wide.before.wide && !wide.before.menu && wide.before.search && wide.before.lbl, JSON.stringify(wide));
+  ok('Filtry opens the filter panel', wide.after.panel, JSON.stringify(wide));
+  ok('normal view brings back menu, remembered', wide.normal.menu && wide.normal.search && wide.normal.saved === '0', JSON.stringify(wide));
   ok('no page errors', errors.length === 0, errors.join(' | '));
   await browser.close();
   if (failed) {

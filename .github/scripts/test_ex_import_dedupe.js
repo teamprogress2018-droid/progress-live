@@ -25,7 +25,7 @@ ok('cache styles v189', cacheAtLeast(html, 'styles.css', 189));
 ok('ci unit', wf.includes('test_ex_import_dedupe.js'));
 ok('ci ui', wf.includes('test_ex_import_dedupe_ui.js'));
 ok('button markup', html.includes('id="lib-sweep-dups"') && html.includes('Usuń duplikaty'));
-ok('dedupe remains an explicit library action', html.includes('onclick="removeImportedCatalogDuplicates()"') && !/sweepImportedCatalogDuplicates\(\{silent:true\}\)/.test(html));
+ok('dedupe remains an explicit library action', html.includes('removeImportedCatalogDuplicates()') && !/sweepImportedCatalogDuplicates\(\{silent:true\}\)/.test(html));
 ok('narrow hides tip only', /max-width:\s*1200px[\s\S]*ex-list-tip\{display:none/.test(css.replace(/\s+/g, '')));
 ok('narrow keeps actions', !/max-width:\s*860px[\s\S]*ex-list-row\s*>\s*\*:nth-child\(5\)\{display:none/.test(css.replace(/\s+/g, '')));
 ok('list row classes', /ex-list-tip/.test(six) && /ex-list-actions/.test(six));

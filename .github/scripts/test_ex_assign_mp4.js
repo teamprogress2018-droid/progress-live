@@ -29,7 +29,7 @@ ok('technique guide in preview', /exdPreviewMediaHtml/.test(six) && /exTechnique
 ok('assign panel ids', /id="exd-assign"/.test(six) && /id="exd-mp4-url"/.test(six) && /id="exd-mp4-file"/.test(six) && /id="exd-mp4-player"/.test(six));
 ok('uses currentExDetail', /assignExTechniqueFromPaste\(currentExDetail\)/.test(six));
 ok('own videos dropdown', /id="exd-mp4-own"/.test(six));
-ok('card film badge', /▶ FILM/.test(six));
+ok('card film marker', six.includes('title="Ma film techniki"'));
 
 const documentStub = {
   querySelectorAll: () => [],

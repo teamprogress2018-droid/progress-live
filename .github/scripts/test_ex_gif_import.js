@@ -32,7 +32,7 @@ ok('bulk preview role control', html.includes("setAllExGifImportRoles('preview')
 ok('bulk technique role control', html.includes("setAllExGifImportRoles('technique')"));
 ok('bulk role helper', six.includes('function setAllExGifImportRoles(role)'));
 ok('static white card preview generator exists', six.includes('function createWhiteExerciseCardThumbnail(source)') && six.includes('function uploadWhiteExerciseCardThumbnail(source,exerciseName,batchId,fingerprint)'));
-ok('existing Firebase GIFs can be backfilled into card previews', six.includes('function backfillWhiteExerciseCardPreviews()') && html.includes('id="lib-build-white-previews"'));
+ok('existing Firebase GIFs can be backfilled into card previews', six.includes('function backfillWhiteExerciseCardPreviews()'));
 
 const documentStub = {
   querySelectorAll: () => [],

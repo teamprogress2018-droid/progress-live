@@ -46,39 +46,32 @@ function ok(name, cond, extra) {
 
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('library');
-    if (typeof setExView === 'function') setExView('list');
     const inp = document.getElementById('ex-search');
     if (inp) inp.value = 'Wyciskanie z podłogi';
     if (typeof renderLib === 'function') renderLib();
+    if (typeof toggleLibMoreMenu === 'function') toggleLibMoreMenu();
   });
-  await page.waitForSelector('.ex-list-row');
+  await page.waitForSelector('.exl-card');
 
   const ui = await page.evaluate(() => {
     const btn = document.getElementById('lib-sweep-dups');
-    const row = [...document.querySelectorAll('.ex-list-row')].find((el) => /Wyciskanie z podłogi/.test(el.textContent || ''));
-    const tip = row && row.querySelector('.ex-list-tip');
-    const actions = row && row.querySelector('.ex-list-actions');
-    const sz = actions && [...actions.querySelectorAll('button')].find((b) => /Szczegóły/.test(b.textContent || ''));
-    const del = actions && [...actions.querySelectorAll('button')].find((b) => /Usuń/.test(b.textContent || ''));
-    const cs = (el) => (el ? getComputedStyle(el).display : '');
+    const card = [...document.querySelectorAll('.exl-card')].find((el) => /Wyciskanie z podłogi/.test(el.textContent || ''));
     return {
-      btn: !!(btn && /Usuń duplikaty/.test(btn.textContent || '')),
-      row: !!row,
-      tipDisplay: cs(tip),
-      actionsDisplay: cs(actions),
-      szDisplay: cs(sz),
-      delDisplay: cs(del),
+      btn: !!(btn && /Usuń duplikaty/.test(btn.textContent || '') && getComputedStyle(btn).display !== 'none'),
+      card: !!card,
+      add: !!(card && card.querySelector('.exl-add')),
+      fav: !!(card && card.querySelector('.ex-fav-btn')),
+      noTip: !!(card && !/Opuszczaj|Ustaw|Łokcie/.test(card.textContent || '')),
       width: window.innerWidth
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'lib_list_1100.png') });
   ok('viewport 1100', ui.width === 1100, String(ui.width));
-  ok('sweep button', ui.btn);
-  ok('list row', ui.row);
-  ok('tip hidden', ui.tipDisplay === 'none', ui.tipDisplay);
-  ok('actions visible', ui.actionsDisplay !== 'none', ui.actionsDisplay);
-  ok('Szczegóły visible', ui.szDisplay !== 'none', ui.szDisplay);
-  ok('Usuń visible', ui.delDisplay !== 'none', ui.delDisplay);
+  ok('sweep button in tools menu', ui.btn);
+  ok('compact card found by search', ui.card);
+  ok('card has + and favourite', ui.add && ui.fav, JSON.stringify(ui));
+  ok('card has no long description', ui.noTip);
+  await page.evaluate(() => { if (typeof closeLibMoreMenu === 'function') closeLibMoreMenu(); });
 
   page.once('dialog', (d) => d.accept());
   const sweep = await page.evaluate(async () => {
@@ -102,12 +95,8 @@ function ok(name, cond, extra) {
     if (inp) inp.value = 'Wyciskanie z podłogi';
     if (typeof renderLib === 'function') renderLib();
   });
-  const wide = await page.evaluate(() => {
-    const row = [...document.querySelectorAll('.ex-list-row')].find((el) => /Wyciskanie z podłogi/.test(el.textContent || ''));
-    const tip = row && row.querySelector('.ex-list-tip');
-    return tip ? getComputedStyle(tip).display : '';
-  });
-  ok('tip visible on wide', wide !== 'none', wide);
+  const wide = await page.evaluate(() => !![...document.querySelectorAll('.exl-card')].find((el) => /Wyciskanie z podłogi/.test(el.textContent || '')));
+  ok('card visible on wide', wide);
 
   await browser.close();
   if (failed) {

@@ -45,16 +45,30 @@ function ok(name, cond, extra) {
   let n = await names();
   ok('exercise inserted into first day', n.length === 1 && n[0] === 'Przysiad Goblet', JSON.stringify(n));
 
-  // 2. Kolejne ćwiczenie trafia do tego samego planu.
+  // 2. Kolejne ćwiczenie: przy otwartym planie „Dodaj do planu” dokłada je bez opuszczania Biblioteki.
   await page.evaluate(() => { window._builderNavigationConfirmed = true; goTo('library'); openExDetail('Wiosłowanie hantlą jednorącz'); });
   const second = await page.evaluate(() => document.getElementById('exd-title').textContent);
   await cta.click();
   await page.waitForTimeout(300);
+  active = await page.evaluate(() => (document.querySelector('.screen.active') || {}).id);
   n = await names();
-  ok('asked to keep open plan', dialogs.some((m) => /otwarty w kreatorze/.test(m)), dialogs.join(' | '));
+  ok('stays in library while adding', active === 'screen-library', active);
   ok('second exercise added to same plan', n.length === 2 && n[0] === 'Przysiad Goblet' && n[1] === second, JSON.stringify(n));
+  ok('no extra question when a plan is open', !dialogs.some((m) => /otwarty w kreatorze/.test(m)), dialogs.join(' | '));
+  await page.evaluate(() => closeExDetail());
+  ok('draft bar visible', await page.locator('#lib2-draft').isVisible());
 
-  // 3. Anuluj wraca do Biblioteki.
+  // 3. Karta „+” też dokłada do tego samego planu.
+  await page.click('.exl-card[data-ex-name="Deska"] .exl-add');
+  await page.waitForTimeout(200);
+  n = await names();
+  ok('card + adds to the same plan', n.length === 3 && n[2] === 'Deska', JSON.stringify(n));
+
+  // 4. Powrót do kreatora i „Anuluj” wraca do Biblioteki.
+  await page.click('#lib2-draft .lib2-linkbtn');
+  await page.waitForTimeout(300);
+  active = await page.evaluate(() => (document.querySelector('.screen.active') || {}).id);
+  ok('opens builder from library', active === 'screen-builder', active);
   await page.click('#screen-builder .topbar-actions button:has-text("Anuluj")');
   await page.waitForTimeout(300);
   active = await page.evaluate(() => (document.querySelector('.screen.active') || {}).id);

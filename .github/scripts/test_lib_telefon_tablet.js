@@ -34,7 +34,8 @@ function section(id) {
   const b = html.indexOf('<div class="screen"', a + 10);
   return a >= 0 ? html.slice(a, b) : '';
 }
-['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'].forEach((id) => {
+// Biblioteka ćwiczeń 2.0 ma własny przycisk „Filtry” nad listą (test_lib2_ui.js).
+['programs', 'templates', 'tasks', 'forms', 'metrics'].forEach((id) => {
   const s = section(id);
   // Ćwiczenia (od 23.10, 7020315): toggleLibraryFilters obsługuje tryb pełnoekranowy, a poza nim woła libTogglePanel.
   ok(id + ' has filters button', /class="btn btn-ghost btn-sm lib-filters-btn"[^>]*onclick="(libTogglePanel\(this,'filters'\)|toggleLibraryFilters\(\))"/.test(s));

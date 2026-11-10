@@ -34,7 +34,7 @@ ok('cache 06 v111', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 111)
 ok('ci unit', wf.includes('test_ex_lib_dedupe.js'));
 ok('unique names', new Set(names).size === names.length);
 ok('library still large', DEF_EX.length >= 900, String(DEF_EX.length));
-const focusMatch = six.match(/const EX_LIBRARY_FOCUS=({[\s\S]*?\n});\nfunction exLibraryFocusKind/);
+const focusMatch = six.match(/const EX_LIBRARY_FOCUS=({[\s\S]*?\n});\n/);
 ok('focus library block', !!focusMatch);
 if (focusMatch) {
   const focusSandbox = {};

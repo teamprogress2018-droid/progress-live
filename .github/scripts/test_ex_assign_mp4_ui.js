@@ -129,11 +129,11 @@ function ok(name, cond, extra) {
     const player = document.getElementById('exd-mp4-player');
     const body = document.getElementById('exd-body');
     const assign = document.getElementById('exd-assign');
-    const card = [...document.querySelectorAll('.ex-card')].find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Butterfly (peck deck)');
+    const card = document.querySelector('.ex-card[data-ex-name="Butterfly (peck deck)"]');
     return {
       playerSrc: player ? player.getAttribute('src') : '',
       autoplay: !!(player && player.hasAttribute('autoplay') && player.hasAttribute('muted')),
-      filmBadge: !!(card && /FILM/.test(card.textContent || '')),
+      filmBadge: !!(card && card.querySelector('.exl-film')),
       cardVideo: !!(card && card.querySelector('video'))
     };
   });

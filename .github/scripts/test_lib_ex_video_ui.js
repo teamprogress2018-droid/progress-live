@@ -44,9 +44,9 @@ function ok(name, cond, extra) {
 
   const card = await page.evaluate(() => {
     const cards = [...document.querySelectorAll('.ex-card')];
-    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Wyciskanie sztangi leżąc');
-    const img = hit && hit.querySelector('.ex-card-thumb img');
-    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    const hit = cards.find((el) => (el.querySelector('.exl-name') || {}).textContent === 'Wyciskanie sztangi leżąc');
+    const img = hit && hit.querySelector('.exl-thumb img');
+    const vid = hit && hit.querySelector('.exl-thumb video');
     return {
       found: !!hit,
       img: img ? img.getAttribute('src') : '',
@@ -59,7 +59,7 @@ function ok(name, cond, extra) {
   ok('bench card has no video tag', !card.hasVideo);
 
   await page.evaluate(() => {
-    if (typeof setExView === 'function') setExView('grid');
+    
     const inp = document.getElementById('ex-search');
     if (inp) inp.value = 'Przysiad hack maszyna';
     if (typeof renderLib === 'function') renderLib();
@@ -67,15 +67,15 @@ function ok(name, cond, extra) {
   await page.waitForSelector('.ex-card');
   await page.waitForFunction(() => {
     const cards = [...document.querySelectorAll('.ex-card')];
-    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Przysiad hack maszyna');
-    const img = hit && hit.querySelector('.ex-card-thumb img');
+    const hit = cards.find((el) => (el.querySelector('.exl-name') || {}).textContent === 'Przysiad hack maszyna');
+    const img = hit && hit.querySelector('.exl-thumb img');
     return !!(img && img.complete && img.naturalWidth > 0);
   });
   const hack = await page.evaluate(() => {
     const cards = [...document.querySelectorAll('.ex-card')];
-    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Przysiad hack maszyna');
-    const img = hit && hit.querySelector('.ex-card-thumb img');
-    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    const hit = cards.find((el) => (el.querySelector('.exl-name') || {}).textContent === 'Przysiad hack maszyna');
+    const img = hit && hit.querySelector('.exl-thumb img');
+    const vid = hit && hit.querySelector('.exl-thumb video');
     return {
       found: !!hit,
       img: img ? img.getAttribute('src') : '',
@@ -241,9 +241,9 @@ function ok(name, cond, extra) {
   await page.waitForSelector('.ex-card');
   const pecCard = await page.evaluate(() => {
     const cards = [...document.querySelectorAll('.ex-card')];
-    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Butterfly (peck deck)');
-    const img = hit && hit.querySelector('.ex-card-thumb img');
-    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    const hit = cards.find((el) => (el.querySelector('.exl-name') || {}).textContent === 'Butterfly (peck deck)');
+    const img = hit && hit.querySelector('.exl-thumb img');
+    const vid = hit && hit.querySelector('.exl-thumb video');
     return {
       found: !!hit,
       img: img ? img.getAttribute('src') : '',
@@ -286,7 +286,7 @@ function ok(name, cond, extra) {
   async function libCard(name) {
     await page.evaluate((n) => {
       if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
-      if (typeof setExView === 'function') setExView('grid');
+      
       const inp = document.getElementById('ex-search');
       if (inp) inp.value = n;
       if (typeof renderLib === 'function') renderLib();
@@ -294,14 +294,14 @@ function ok(name, cond, extra) {
     await page.waitForSelector('.ex-card');
     await page.waitForFunction((n) => {
       const cards = [...document.querySelectorAll('.ex-card')];
-      const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === n);
-      const img = hit && hit.querySelector('.ex-card-thumb img');
+      const hit = cards.find((el) => (el.querySelector('.exl-name') || {}).textContent === n);
+      const img = hit && hit.querySelector('.exl-thumb img');
       return !!(img && img.complete && img.naturalWidth > 0);
     }, name);
     return page.evaluate((n) => {
       const cards = [...document.querySelectorAll('.ex-card')];
-      const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === n);
-      const img = hit && hit.querySelector('.ex-card-thumb img');
+      const hit = cards.find((el) => (el.querySelector('.exl-name') || {}).textContent === n);
+      const img = hit && hit.querySelector('.exl-thumb img');
       const ph = hit && hit.querySelector('.ex-card-thumb-ph');
       return {
         found: !!hit,
