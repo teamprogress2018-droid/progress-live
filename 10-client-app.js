@@ -126,7 +126,8 @@ function clientPublicSettings(data,trainerName){
   if(!profile.name)profile.name=trainerName||'Trener';
   const payment=pick(data.paymentInstructions,['name','bank','currency','footer']);
   return {profile,brand:pick(data.brand,['accentColor','theme','appName','logo','font']),
-    clientApp:{...pick(data.clientApp,['appName']),visibleSections:pick(data.clientApp?.visibleSections,['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile'])},
+    clientApp:{...pick(data.clientApp,['appName']),visibleSections:pick(data.clientApp?.visibleSections,['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile','bodyWeight'])},
+    contact:Object.fromEntries(['name','phone','address','website'].filter(k=>data.contact&&typeof data.contact[k]==='string').map(k=>[k,data.contact[k]])),
     payments:{bankAccount:payment.bank||'',currency:payment.currency||'PLN'},company:{name:payment.name||profile.name,invoice_footer:payment.footer||''}};
 }
 
@@ -353,7 +354,7 @@ function renderClientLive(){
   const moreScreens=typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[];
   const navIds=navScreens.map(s=>s.id), moreIds=moreScreens.map(s=>s.id);
   // Podekrany otwierane z innych ekranów (np. program on-demand z „Treningi nagrane”).
-  const subScreens=['session','exercise','odprogram'];
+  const subScreens=['session','exercise','odprogram','contact','train'];
   if(scr==='calendar'&&!(typeof capClientSectionVisible==='function'&&capClientSectionVisible('calendar')))scr='progress';
   const allowed=scr==='calendar'||navIds.includes(scr)||moreIds.includes(scr)||subScreens.includes(scr);
   if(!allowed)scr='home';
@@ -380,7 +381,7 @@ function renderClientLiveNav(navScreens,moreScreens,scr){
   const moreActive=moreScreens.some(s=>s.id===scr);
   const sheetOpen=sheet&&!sheet.hidden;
   nav.innerHTML=navScreens.map(s=>btn(s)).join('')+
-    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" aria-haspopup="true" onclick="toggleCliveMoreNav()" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
+    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" aria-haspopup="true" onclick="toggleCliveMoreNav()" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">${typeof csIcon==='function'?csIcon('more'):'☰'}</span><span>Więcej</span></button>`:'');
   if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,'closeCliveMoreNav();')).join('');
 }
 window.renderClientLiveNav=renderClientLiveNav;
@@ -420,14 +421,19 @@ function updateClientLiveNavBadges(c){
     }
   };
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
+  const unread=!!(cid&&typeof clientHasUnreadFromTrainer==='function'&&clientHasUnreadFromTrainer(cid));
   setBadge('clive-bn-profile',pendPay);
-  setBadge('clive-bn-more',pendPay);
+  setBadge('clive-bn-more',pendPay||unread);
   setBadge('clive-bn-home',false);
-  setBadge('clive-bn-messages',!!(cid&&typeof clientHasUnreadFromTrainer==='function'&&clientHasUnreadFromTrainer(cid)));
+  setBadge('clive-bn-messages',unread);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
 function setClientLiveScreen(scr){
+  // „Trening” w pasku: jeśli dziś jest trening (lub trwa), od razu otwiera ćwiczenie.
+  if(scr==='train'&&typeof csTrainEntry==='function'&&csTrainEntry()){window._clientLiveScreen='train';return;}
+  if(scr!=='plan')window._csPlanOpen=null;
+  if(scr!=='progress')window._csProgressFull=false;
   window._clientLiveScreen=scr;
   if(scr==='messages'&&window._clientId&&typeof clientMarkTrainerMsgsRead==='function'){
     try{clientMarkTrainerMsgsRead(window._clientId);}catch(e){}
@@ -1178,7 +1184,7 @@ async function clientCompleteHomework(taskId,opts){
   if(typeof maybeScheduleNextHomework==='function')maybeScheduleNextHomework(t);
   if(typeof renderClientLive==='function'){
     if(sess)window._cliveSessionId=sess.id;
-    window._clientLiveScreen='progress';
+    window._clientLiveScreen='progress';window._csProgressFull=true;
     renderClientLive();
   }
   return true;
@@ -1670,8 +1676,9 @@ function cwRender(){
     }
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>
       <div style="text-align:center;padding:10px 0 20px;">
-        <div style="font-size:40px;margin-bottom:8px;">🔥</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;">TRENING SKOŃCZONY</div>
+        <div class="cs-finish-check" aria-hidden="true">${typeof csIcon==='function'?csIcon('check',40):'✓'}</div>
+        <div class="cs-finish-title">Trening zrobiony!</div>
+        ${(()=>{const cl=(window.CL||[]).find(x=>x&&x.id===window._clientId);return cl&&typeof csMotivation==='function'?`<p class="cs-finish-msg">${escHtml(csMotivation(cl,true))}</p>`:'';})()}
         <div style="font-size:13px;color:var(--muted);margin-top:6px;">${setsDone} serii · ${cwFmt(cw.elapsed)}</div>
       </div>
       <div style="font-size:13px;margin-bottom:4px;text-align:center;">Jak ciężki był trening? (opcjonalnie)</div>
@@ -1686,6 +1693,7 @@ function cwRender(){
   }
   const ex=cw.exercises[cw.exIdx];
   cwEnsureEmomClock();
+  if(typeof cwSimpleExerciseHTML==='function'){el.innerHTML=cwSimpleExerciseHTML(cw,ex);return;}
   const doneSets=ex.sets.filter(s=>s.done).length;
   const emomOn=typeof isEmomExercise==='function'&&isEmomExercise(ex);
   const emomWait=emomOn&&typeof emomRestSec==='function'?emomRestSec(doneSets+1,cwEmomElapsed()):0;
@@ -1794,7 +1802,7 @@ async function cwFinish(force){
   if(wrap)wrap.hidden=true;
   document.body.classList.remove('cw-playing');
   window._cliveSessionId=cw.sessionId;
-  window._clientLiveScreen='progress';
+  window._clientLiveScreen='progress';window._csProgressFull=true;
   if(cw.syncState==='synced')cwClearLocal();
   renderClientLive();
   return true;
@@ -1876,7 +1884,7 @@ async function ppSave(clientId){
     try{if(typeof renderDashPhotoFollowup==='function')renderDashPhotoFollowup();}catch(e){}
   }
   if(typeof notify==='function')notify('✓ Zdjęcia zapisane');
-  if(window._clientAppMode){window._clientLiveScreen='progress';renderClientLive();}
+  if(window._clientAppMode){window._clientLiveScreen='progress';window._csProgressFull=true;renderClientLive();}
   else if(typeof setCPTab==='function')setCPTab('photos');
   return true;
 }
