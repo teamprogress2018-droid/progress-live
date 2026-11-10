@@ -5,7 +5,7 @@
 // Wersja 64 naprawia sytuację, w której przeglądarka mieszała nowy index.html
 // ze starszymi plikami JavaScript pozostawionymi w cache PWA.
 // Wersja 67: adresy w cache sprowadzane do jednej postaci (bez duplikatów w addAll).
-const CACHE_NAME='progress-live-shell-v71';
+const CACHE_NAME='progress-live-shell-v72';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

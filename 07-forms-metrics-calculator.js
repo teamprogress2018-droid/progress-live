@@ -2578,6 +2578,7 @@ function setCPTab(t){
     t='analytics';
   }
   cpTab=t;
+  if(typeof cpOverviewSyncHeader==='function')cpOverviewSyncHeader(t);
   const moreTabs=['tasks','notes','timeline','analytics','photos','forms','food','payments','features','documents'];
   if(typeof closeCpMoreNav==='function')closeCpMoreNav();
   document.querySelectorAll('.cp-tab').forEach(el=>el.classList.remove('active'));

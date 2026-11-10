@@ -132,7 +132,7 @@ function makeSandbox(){
 
 ok('helpers exist',/function cpCoopCollectSignals\(c\)/.test(src08)&&/function runCpCoopAnalysis\(/.test(src08));
 ok('overview order brief-sit-coop',overview.indexOf('cpOverviewBriefHTML(c)')<overview.indexOf('cpOverviewSituationHTML(c)')&&overview.indexOf('cpOverviewSituationHTML(c)')<overview.indexOf('cpOverviewCoopHTML(c)'));
-ok('situation helper frozen',sit.includes('Wnioski')&&sit.includes('cp-ov-situation')&&!sit.includes('runCpCoopAnalysis')&&!sit.includes('Przeanalizuj współpracę'));
+ok('situation helper frozen',sit.includes('do wykonania')&&sit.includes('cp-ov-situation')&&!sit.includes('runCpCoopAnalysis')&&!sit.includes('Przeanalizuj współpracę'));
 ok('brief helper frozen',brief.includes('Dziś')&&!brief.includes('Przeanalizuj współpracę')&&!brief.includes('runCpCoopAnalysis'));
 ok('html helper no monitor.next',!/v\.next|monitor\.next/.test(extract(src08,'cpOverviewCoopHTML')));
 ok('coop no persistById',!/persistById/.test(coopSrc));

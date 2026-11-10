@@ -40,7 +40,7 @@ ok('form title dane osobowe', form.includes('Dane osobowe') && form.includes('id
 ok('name field placeholder', form.includes('id="cpe-name"') && /placeholder="np\. Jan Kowalski"/.test(form));
 ok('startCPEdit restores flag after open', start.includes('openClientProfile(id)') && start.includes('window._cpEditingClientId=id'));
 ok('startCPEdit scrolls and focuses name', start.includes('scrollIntoView') && start.includes('cpe-name'));
-ok('profil rail name without kliknij hint', overview.includes('Imię i nazwisko') && !overview.includes('Kliknij: imię i nazwisko'));
+ok('profil rail name without kliknij hint', overview.includes('cp-ov-profile-compact') && !overview.includes('Kliknij: imię i nazwisko'));
 ok('css for header + CTA', css.includes('.cp-edit-data-btn') && css.includes('.cp-ov-edit-cta') && css.includes('.cp-hdr-name-row'));
 ok('cache 08 v37', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('cache 01 name sync', cacheAtLeast(html, '01-core.js', 137) && cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));

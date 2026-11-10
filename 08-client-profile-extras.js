@@ -2180,6 +2180,7 @@ function cpOverviewSitTone(kind,snap,mass,sleep,opts){
 function focusCpOverviewSection(id){
   const el=document.getElementById(id);
   if(!el)return;
+  for(let p=el.parentElement;p;p=p.parentElement){if(p.tagName==='DETAILS'&&!p.open)p.open=true;}
   document.querySelectorAll('.dash-section-focus').forEach(n=>n.classList.remove('dash-section-focus'));
   el.classList.add('dash-section-focus');
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -2570,7 +2571,7 @@ function cpOverviewRecs(c,opts){
       priority:1,order:1,kind:'nolog',tone:'info',
       title:'Nie ma zapisanych treningów — jeśli się odbyły, zapisz je',
       reason:'',
-      cta:{label:'Przejdź do Treningów',onclick:`setCPTab('training')`}
+      cta:{label:'Przejdź do treningów',onclick:`setCPTab('training')`}
     });
   }
   const adh14=typeof cpOverviewAdhWindow==='function'?cpOverviewAdhWindow(id,14):(typeof clientAdherenceStats==='function'?clientAdherenceStats(id,14):{assigned:0,logged:0,pct:0});
@@ -2628,7 +2629,7 @@ function cpOverviewStatusHeadline(c){
   const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):{reason:'ok',label:'Status',tone:'info',hint:''};
   const early=typeof cpOverviewStatusIsEarly==='function'?cpOverviewStatusIsEarly(c):false;
   if(early){
-    return{title:'Za wcześnie na ocenę',badge:'',tone:'info',sub:'Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.',early:true};
+    return{title:'Za wcześnie na ocenę',badge:'',tone:'info',sub:'Wiarygodna analiza będzie dostępna po 4 tygodniach lub 4 pomiarach.',early:true};
   }
   let v=null;
   try{v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;}catch(e){v=null;}
@@ -2712,7 +2713,7 @@ function cpOverviewSituationHTML(c){
   const fmtN=v=>v==null||v===''?'—':(typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*10)/10):String(v));
   const emptyLog=typeof cpOverviewHasLoggedSincePlan==='function'? !cpOverviewHasLoggedSincePlan(c.id):false;
   let trainHint='brak zaplanowanych treningów';
-  if(emptyLog)trainHint='brak zapisanych treningów';
+  if(emptyLog)trainHint='';
   else if(week.assigned)trainHint=week.logged+' z '+week.assigned;
   else if(week.logged)trainHint=week.logged+' zarejestrowane';
   let massHint='brak pomiaru wagi';
@@ -2750,18 +2751,23 @@ function cpOverviewSituationHTML(c){
   const massTone=fromSurvey||massVal==null?'info':cpOverviewSitTone('mass',snap,mass,sleep);
   const sleepTone=cpOverviewSitTone('sleep',snap,mass,sleep);
   const ciTone=cpOverviewSitTone('checkin',snap,mass,sleep);
-  const trainN=emptyLog?'—':(week.assigned||week.logged?fmtN(week.logged):'—');
-  const trainUnit=emptyLog||!week.assigned?'':('/'+week.assigned);
+  const trainN=week.assigned||week.logged||emptyLog?fmtN(week.logged||0):'—';
+  const trainUnit=!week.assigned?'':('/'+week.assigned);
   const tiles=[
     {id:'train',n:trainN,unit:trainUnit,lbl:'Treningi w tym tygodniu',hint:trainHint,tone:trainTone,target:'cp-ov-card-train'},
-    {id:'mass',n:fmtN(massN),unit:massN!=null&&massN!==''?'kg':'',lbl:'Waga',hint:massHint,tone:massTone,target:'cp-ov-card-metrics'},
-    {id:'sleep',n:sleepVal==null?'—':fmtN(sleepVal),unit:sleepVal!=null?'/10':'',lbl:'Sen',hint:sleepVal==null?'brak ocen snu':sleepHint,tone:sleepTone,target:'cp-ov-card-metrics'},
+    {id:'mass',n:fmtN(massN),unit:massN!=null&&massN!==''?'kg':'',lbl:'Ostatni pomiar wagi',hint:massHint,tone:massTone,target:'cp-ov-card-metrics'},
     {id:'checkin',n:ciN,unit:ciN==='—'?'':ciN==='1'?'dzień':'dni',lbl:ciGap&&ciGap.ymd?'Od ostatniego raportu':'Oczekiwanie na raport',hint:ciHint,tone:ciTone,target:'cp-ov-card-feel'}
   ];
   const steps=typeof cpOverviewStatusSteps==='function'?cpOverviewStatusSteps(c):[];
   const recOk=steps.length===1&&steps[0].kind==='ok';
   const showAnalysis=!head.early;
-  return `<div class="cp-ov-situation">
+  const short={
+    nolog:{title:'Brak zapisanych treningów',cta:'Przejdź do treningów'},
+    checkin:{title:'Brak informacji o samopoczuciu',cta:'Dodaj notatkę'},
+    mass:{title:'Brak regularnych pomiarów',cta:'Ustaw przypomnienie'}
+  };
+  const actWord=n=>n===1?'działanie':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'działania':'działań';
+  return `<div class="cp-ov-situation cp-ov-situation-compact">
     <div class="cp-ov-situation-top">
       <div>
         <div class="cp-ov-situation-kicker">Status współpracy</div>
@@ -2775,32 +2781,36 @@ function cpOverviewSituationHTML(c){
         </div>
       </div>`:''}
     </div>
-    <div class="cp-ov-next">
-      <div class="cp-ov-next-hd">Wnioski${recOk?'':`<span class="cp-ov-next-count" data-cp-attn="${steps.length}"> · ${steps.length===1?'1 rzecz wymaga':steps.length+' rzeczy wymagają'} Twojej uwagi</span>`}</div>
-      ${recOk?`<div class="cp-ov-rec-ok" data-cp-next="ok">${esc(steps[0].text)}</div>`:`<ol class="cp-ov-next-list cp-ov-steps">
-        ${steps.map(it=>`<li class="cp-ov-next-item cp-ov-step cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}">
-          <span class="cp-ov-step-n" aria-hidden="true">${esc(String(it.n))}</span>
+    ${recOk?`<div class="cp-ov-next"><div class="cp-ov-rec-ok" data-cp-next="ok">${esc(steps[0].text)}</div></div>`:`<details class="cp-ov-next cp-ov-acts" data-cp-acts="1">
+      <summary class="cp-ov-acts-sum"><span class="cp-ov-acts-n" data-cp-attn="${steps.length}">${steps.length}</span> ${actWord(steps.length)} do wykonania<span class="cp-ov-acts-chev" aria-hidden="true">›</span></summary>
+      <ol class="cp-ov-next-list cp-ov-steps">
+        ${steps.map(it=>{
+          const sh=short[it.kind];
+          const title=sh?sh.title:(it.title||it.text);
+          const why=sh?'':it.reason;
+          const cta=it.cta?Object.assign({},it.cta,sh&&sh.cta&&it.kind!=='checkin'?{label:sh.cta}:{}):null;
+          return `<li class="cp-ov-next-item cp-ov-step cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}"${it.reason&&sh?` title="${esc(it.reason)}"`:''}>
           <div class="cp-ov-step-body">
             <div class="cp-ov-step-text">
-              <div class="cp-ov-rec-title">${esc(it.title||it.text)}</div>
-              ${it.reason?`<div class="cp-ov-rec-why">${esc(it.reason)}</div>`:''}
+              <div class="cp-ov-rec-title">${esc(title)}</div>
+              ${why?`<div class="cp-ov-rec-why">${esc(why)}</div>`:''}
             </div>
-            ${it.cta?`<button type="button" class="btn btn-ghost btn-sm" data-cp-status-act="${esc(it.kind)}" onclick="${it.cta.onclick}">${esc(it.cta.label)}</button>`:''}
+            ${cta?`<button type="button" class="btn btn-ghost btn-sm" data-cp-status-act="${esc(it.kind)}" onclick="${cta.onclick}">${esc(cta.label)}</button>`:''}
           </div>
-        </li>`).join('')}
-      </ol>`}
-    </div>
-    <div class="cp-ov-situation-kpis">
-      ${tiles.map(t=>{
-        const colored=t.tone==='watch'||t.tone==='act';
-        return `<button type="button" class="cp-ov-sit-tile${colored?' cp-ov-sit-tile-'+esc(t.tone):''}" data-cp-sit="${esc(t.id)}" onclick="focusCpOverviewSection('${esc(t.target)}')">
-        <div class="cp-ov-sit-n">${esc(t.n)}${t.unit?`<span class="cp-ov-sit-unit">${esc(t.unit)}</span>`:''}</div>
-        <div class="cp-ov-sit-lbl">${esc(t.lbl)}</div>
-        <div class="cp-ov-sit-hint">${esc(t.hint)}</div>
-      </button>`;
-      }).join('')}
-    </div>
+        </li>`;}).join('')}
+      </ol>
+    </details>`}
     ${showAnalysis?`<div class="cp-ov-sit-foot"><button type="button" class="btn btn-ghost btn-sm" data-cp-analysis-link="1" onclick="revealCpOverviewCoop()">Pełna analiza →</button></div>`:''}
+  </div>
+  <div class="cp-ov-situation-kpis" data-cp-kpis="${tiles.length}">
+    ${tiles.map(t=>{
+      const colored=t.tone==='watch'||t.tone==='act';
+      return `<button type="button" class="cp-ov-sit-tile${colored?' cp-ov-sit-tile-'+esc(t.tone):''}" data-cp-sit="${esc(t.id)}" onclick="focusCpOverviewSection('${esc(t.target)}')">
+      <div class="cp-ov-sit-lbl">${esc(t.lbl)}</div>
+      <div class="cp-ov-sit-n">${esc(t.n)}${t.unit?`<span class="cp-ov-sit-unit">${esc(t.unit)}</span>`:''}</div>
+      ${t.hint?`<div class="cp-ov-sit-hint">${esc(t.hint)}</div>`:''}
+    </button>`;
+    }).join('')}
   </div>`;
 }
 window.cpSetsVolume=cpSetsVolume;
@@ -3173,26 +3183,41 @@ function collectCpBriefItems(c){
   }
   return items;
 }
+function cpOverviewPrimaryAction(c){
+  // Jedna dominująca akcja na Przeglądzie: trening dziś → „Otwórz trening”, brak planu → „Ułóż plan”, inaczej „Dodaj trening”.
+  if(!c)return null;
+  const id=String(c.id||'');
+  const hasToday=typeof cpOverviewHasSessionToday==='function'?cpOverviewHasSessionToday(c):false;
+  if(hasToday)return{kind:'open',label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`};
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(id):null;
+  const hasPlan=!!(plan&&Array.isArray(plan.days)&&plan.days.some(d=>d&&!d.rest));
+  if(!hasPlan)return{kind:'plan',label:'Ułóż plan',onclick:`setCPTab('plan')`};
+  return{kind:'add',label:'Dodaj trening',onclick:`typeof openAddSessionFromCP==='function'&&openAddSessionFromCP('${id}')`};
+}
 function cpOverviewBriefHTML(c){
   if(!c)return'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   const items=collectCpBriefItems(c);
-  const session=items.find(it=>it.kind==='session');
+  const anySession=items.find(it=>it.kind==='session');
+  const session=anySession&&anySession.label==='Dziś'?anySession:null;
+  const nextSession=anySession&&!session?anySession:null;
   const injury=items.find(it=>it.kind==='injury');
   const workout=items.find(it=>it.kind==='workout');
-  if(!items.length){
-    return `<div class="cp-ov-brief" data-cp-brief="empty">
-      <div class="cp-ov-brief-kicker">Dziś</div>
-      <div class="cp-ov-brief-empty">Brak danych do briefu.</div>
-    </div>`;
-  }
+  const act=cpOverviewPrimaryAction(c);
+  const actBtn=a=>a?`<button type="button" class="btn btn-primary btn-sm cp-ov-today-cta" data-cp-primary="${esc(a.kind)}"${a.kind==='open'?' data-cp-brief-live="1"':''} onclick="${a.onclick}">${esc(a.label)}</button>`:'';
   const time=(session&&session.time)||'';
   const title=(session&&(session.dayName||session.headline||session.title||session.fact))||'';
   const pri=(session&&session.priority)||'';
   const loadsLine=(workout&&workout.loadsLine)||'';
-  const hasSession=!!session;
-  return `<div class="cp-ov-brief">
-    <div class="cp-ov-brief-kicker">Dziś</div>
+  const noneRow=`<div class="cp-ov-today-row is-none" data-cp-brief="none">
+      <div class="cp-ov-today-main">
+        <div class="cp-ov-brief-fact">Dziś brak treningu</div>
+        <div class="cp-ov-today-pri">${nextSession&&nextSession.fact?'Następny: '+esc(nextSession.fact):(act&&act.kind==='plan'?'Klient nie ma jeszcze planu treningowego.':'Kolejny trening zobaczysz w planie tygodnia.')}</div>
+      </div>
+      ${actBtn(act&&act.kind!=='open'?act:{kind:'add',label:'Dodaj trening',onclick:`typeof openAddSessionFromCP==='function'&&openAddSessionFromCP('${esc(c.id)}')`})}
+    </div>`;
+  return `<div class="cp-ov-brief"${items.length?'':' data-cp-brief="empty"'}>
+    <div class="cp-ov-brief-kicker">Dzisiaj</div>
     ${session?`<div class="cp-ov-today-row${session.tone==='watch'?' is-watch':''}" data-cp-brief="session">
       ${time?`<div class="cp-ov-today-time">${esc(time)}</div>`:''}
       <div class="cp-ov-today-main">
@@ -3200,8 +3225,8 @@ function cpOverviewBriefHTML(c){
         ${pri?`<div class="cp-ov-today-pri">Priorytet: ${esc(pri)}</div>`:''}
         ${loadsLine?`<div class="cp-ov-today-extra">${esc(loadsLine)}</div>`:''}
       </div>
-      ${hasSession?`<button type="button" class="btn btn-ghost btn-sm cp-ov-today-cta" data-cp-brief-live="1" onclick="typeof cpStartLive==='function'&&cpStartLive()">Podgląd treningu</button>`:''}
-    </div>`:''}
+      ${actBtn({kind:'open',label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`})}
+    </div>`:noneRow}
     ${injury?`<div class="cp-ov-brief-row is-watch" data-cp-brief="injury">
       <span class="cp-ov-brief-lbl">${esc(injury.label||'Ograniczenia')}</span>
       <span class="cp-ov-brief-dot">•</span>
@@ -3209,6 +3234,7 @@ function cpOverviewBriefHTML(c){
     </div>`:''}
   </div>`;
 }
+window.cpOverviewPrimaryAction=cpOverviewPrimaryAction;
 window.cpBriefTodayYmd=cpBriefTodayYmd;
 window.collectCpBriefItems=collectCpBriefItems;
 window.cpOverviewBriefHTML=cpOverviewBriefHTML;
@@ -3672,6 +3698,7 @@ function renderCPOverview(c){
   const notes=CLIENT_NOTES[c.id]||[];
   initClientData(c);
   if(typeof cpApplyProfileSubtext==='function')cpApplyProfileSubtext(c);
+  cpOverviewSyncHeader('overview');
 
   const editing=window._cpEditingClientId===c.id;
   const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
@@ -3741,11 +3768,15 @@ function renderCPOverview(c){
   const sleepHtml=sleepSeries.length>=CP_OV_SLEEP_MIN?metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'',sleepSpark):'';
   const hrHtml=metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',hrDelta,'',hrSpark);
   const stepsHtml=metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',stepsDelta,'',stepsSpark);
-  const metricsHtml=[weightHtml,sleepHtml,hrHtml,stepsHtml].filter(Boolean).join('');
+  const metricsHtml=[weightHtml,hrHtml,stepsHtml].filter(Boolean).join(''); // sen → zakładka Pomiary/Postępy
   const hasPhysique=!!(photosOn&&physique&&(physique.front||physique.side||physique.back));
   const hasFeel=!!lastCheck;
   const hasGarmin=!!(garmin7&&garmin7.n);
 
+  // Brak treningów jest już w „działaniach do wykonania” — nie powtarzamy pustej karty.
+  const statusText=c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany';
+  const nologAct=(typeof cpOverviewStatusSteps==='function'?cpOverviewStatusSteps(c):[]).some(x=>x&&x.kind==='nolog');
+  const trainHidden=nologAct&&!(logged&&logged.length)&&!lastHw;
   const railCard=(title,body,onclick)=>{
     const click=onclick?` class="cp-ov-rail-card clickable" role="button" tabindex="0" onclick="${onclick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onclick}}"`:` class="cp-ov-rail-card"`;
     return `<div${click}>
@@ -3795,11 +3826,12 @@ function renderCPOverview(c){
               const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed,null,plan.id):'Zaplanowany';
               const wd=parsed.weekdayLabel||'';
               const accent=parsed.rest?'':(typeof cpOverviewPlanDayAccent==='function'?cpOverviewPlanDayAccent(parsed):'');
-              const stClass=st==='Dziś'?' is-today':st==='Wykonany'?' is-done':(st==='Niezapisany'||st==='Brak zapisu')?' is-nolog':st==='Opuszczony'?' is-skip':'';
-              return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${stClass}">
-              ${wd?`<span class="cp-ov-week-wd">${escHtml(wd)}</span>`:''}
+              const stClass=st==='Dziś'?' is-today':st==='Wykonany'?' is-done':(st==='Niezapisany'||st==='Brak zapisu')?' is-nolog':st==='Opuszczony'?' is-skip':st==='Zaplanowany'?' is-todo':'';
+              const stLabel=st==='Zaplanowany'?'Do wykonania':st==='Niezapisany'?'Brak zapisu':st;
+              return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${stClass}" data-cp-week-st="${escHtml(st)}">
+              ${wd||st==='Dziś'?`<div class="cp-ov-week-top">${wd?`<span class="cp-ov-week-wd">${escHtml(wd)}</span>`:''}${st==='Dziś'?`<span class="cp-ov-week-today">Dzisiaj</span>`:''}</div>`:''}
               <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':parsed.name||'Trening')}</div>${accent?`<div class="cp-ov-week-accent" title="${escHtml(accent)}">${escHtml(accent)}</div>`:''}
-              <div class="cp-ov-week-st">${escHtml(st)}</div>
+              ${parsed.rest||st==='Dziś'?'':`<div class="cp-ov-week-st">${escHtml(stLabel)}</div>`}
             </div>`;
             }).join('')}
           </div>
@@ -3811,7 +3843,7 @@ function renderCPOverview(c){
           <div class="cp-ov-rail-hint" style="margin-top:8px;">Przejdź do zakładki Plan</div>
         </div>`}
 
-        <div class="cp-ov-card" id="cp-ov-card-train">
+        ${trainHidden?`<div id="cp-ov-card-train" hidden></div>`:`<div class="cp-ov-card" id="cp-ov-card-train">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Ostatnie treningi</div>
             <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('training')">Wszystkie →</button>
@@ -3836,7 +3868,7 @@ function renderCPOverview(c){
             }).join('')}${!hist.length&&lastHw?`<li class="cp-ov-hist-row" onclick="setCPTab('training')"><div class="cp-ov-hist-title">${escHtml(lastWorkoutTitle||'Zadanie domowe')}</div><div class="cp-ov-hist-meta">${escHtml(fmt(lastWorkoutDate||''))}</div></li>`:''}</ul>`;
           })()}
           ${typeof cpOverviewHasApp==='function'&&cpOverviewHasApp(c)&&(logged&&logged.length)&&pulse.tone!=='good'?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
-        </div>
+        </div>`}
 
         ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('metrics')">
           <div class="cp-ov-card-hd">
@@ -3888,12 +3920,14 @@ function renderCPOverview(c){
       </div>
 
       <aside class="cp-ov-rail">
+        <details class="cp-ov-rail-fold" data-cp-rail="1"${cpOverviewRailOpen()?' open':''} ontoggle="cpOverviewRailToggle(this)">
+        <summary class="cp-ov-rail-sum"><span>Profil i notatka</span><span class="cp-ov-rail-sum-meta">${escHtml(statusText)}${notes.length?' · '+notes.length+' '+(notes.length===1?'notatka':'notatki'):''}</span><span class="cp-ov-acts-chev" aria-hidden="true">›</span></summary>
+        <div class="cp-ov-rail-body">
         ${railCard('Profil',
-          `<div class="cp-ov-profile-rows">
-            <div><span>Imię i nazwisko</span><b title="${escHtml(c.name||'')}">${escHtml(c.name||'—')}</b></div>
-            <div><span>Email</span><b class="cp-ov-email" title="${escHtml(c.email||'')}">${escHtml(c.email||'—')}</b></div>
+          `<div class="cp-ov-profile-rows cp-ov-profile-compact">
+            <div class="cp-ov-profile-email" title="${escHtml(c.email||'')}"><span>✉</span><b class="cp-ov-email">${escHtml(c.email||'brak e-maila')}</b></div>
             ${c.phone?`<div><span>Telefon</span><b>${escHtml(c.phone)}</b></div>`:''}
-            <div><span>Status</span><b style="color:${c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)'};">${c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany'}</b></div>
+            <div><span>Status</span><b class="cp-ov-status-pill is-${escHtml(c.status||'archived')}">${escHtml(statusText)}</b></div>
             ${(()=>{const cap=typeof cpOverviewPackageCaption==='function'?cpOverviewPackageCaption(c):'';if(!cap)return'';const n=cap.replace(/^Pakiet:\s*/,'');return `<div data-cp-pkg="1"><span>Pakiet</span><b>${escHtml(n)}</b></div>`;})()}
           </div>`,
           `startCPEdit('${c.id}')`)}
@@ -3911,10 +3945,31 @@ function renderCPOverview(c){
           </div>`)}
 
         ${cpOverviewMissingHTML(c)}
+        </div>
+        </details>
       </aside>
     </div>`;
   mountCPEditDraft();
 }
+
+function cpOverviewRailOpen(){
+  let v=null;
+  try{v=sessionStorage.getItem('pl_cp_rail_open');}catch(e){v=null;}
+  if(v==='1')return true;
+  if(v==='0')return false;
+  return typeof window!=='undefined'&&window.innerWidth>=1100;
+}
+function cpOverviewRailToggle(el){
+  try{sessionStorage.setItem('pl_cp_rail_open',el&&el.open?'1':'0');}catch(e){}
+}
+function cpOverviewSyncHeader(tab){
+  // Na Przeglądzie dominuje „Otwórz trening” / „Ułóż plan” — nagłówkowy „Trening Live” staje się drugorzędny.
+  const d=typeof document!=='undefined'?document.getElementById('cp-drawer'):null;
+  if(d)d.setAttribute('data-cp-tab',String(tab||''));
+}
+window.cpOverviewRailOpen=cpOverviewRailOpen;
+window.cpOverviewRailToggle=cpOverviewRailToggle;
+window.cpOverviewSyncHeader=cpOverviewSyncHeader;
 
 function renderCPPlan(c){
   const plans=PL.filter(p=>p.clientId===c.id);
