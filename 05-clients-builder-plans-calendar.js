@@ -78,6 +78,9 @@ const CLIENT_ISSUES={
   expired:{sev:'urgent',label:'Pakiet wygasł',action:'Przedłuż pakiet',counts:true,
     tip:'Pilne: pakiet treningów klienta wygasł. Przedłuż go albo zakończ współpracę.',
     many:n=>n+' '+clPlural(n,'klientowi','klientom','klientom')+' wygasł pakiet'},
+  report:{sev:'warn',label:'Raport zaległy',action:'Przypomnij',counts:true,
+    tip:'Klient nie odpowiedział na wysłany check-in tygodniowy. Przypomnij mu o raporcie.',
+    many:n=>n+' '+clPlural(n,'klient nie wysłał','klientów nie wysłało','klientów nie wysłało')+' raportu'},
   noplan:{sev:'warn',label:'Brak planu treningowego',action:'Ułóż pierwszy plan',counts:true,
     tip:'Klient nie ma przypisanego planu — bez niego nie zobaczy treningu w aplikacji.',
     many:n=>n+' '+clPlural(n,'klient nie ma','klientów nie ma','klientów nie ma')+' planu treningowego'},
@@ -98,7 +101,7 @@ const CLIENT_ISSUES={
   measure:{sev:'hint',label:'Brak pomiaru',action:'Dodaj pomiar',counts:false,
     tip:'Ostatni pomiar był ponad 30 dni temu albo nie ma żadnego.'}
 };
-const CLIENT_ISSUE_ORDER=['regres','expired','noplan','noworkout','expiring','noemail','onboard','checkin','measure'];
+const CLIENT_ISSUE_ORDER=['regres','expired','report','noplan','noworkout','expiring','noemail','onboard','checkin','measure'];
 const CLIENT_SEV_LABEL={urgent:'Pilne',warn:'Do zrobienia',info:'Informacja',hint:'Podpowiedź',ok:'W porządku'};
 function clPlural(n,one,few,many){const a=Math.abs(n)%100,b=a%10;if(n===1)return one;if(b>=2&&b<=4&&(a<12||a>14))return few;return many;}
 /** Wszystkie sprawy klienta w kolejności priorytetu: [{key,label,reason}]. */
@@ -111,6 +114,8 @@ function clientIssues(c,flags){
   const add=(key,reason,label)=>out.push({key,reason:reason||'',label:label||CLIENT_ISSUES[key].label});
   if(f['attn-regres'])add('regres',f['attn-regres'].reason);
   if(life&&life.key==='expired')add('expired','Pakiet wygasł '+(life.expiresDate||''));
+  const rep=clientReportOverdue(c);
+  if(rep)add('report',rep.reason,rep.label);
   if(!hasPlan)add('noplan','Nie ma przypisanego planu');
   if(hasPlan&&f['attn-noworkout'])add('noworkout',f['attn-noworkout'].reason,f['attn-noworkout'].days>=999?'Brak zapisanych treningów':'Brak treningu od '+f['attn-noworkout'].days+' dni');
   if(life&&life.key==='expiring')add('expiring','',life.label);
@@ -119,6 +124,18 @@ function clientIssues(c,flags){
   if(f['attn-checkin'])add('checkin',f['attn-checkin'].reason,f['attn-checkin'].days>=999?'Brak check-inu':'Brak check-inu od '+f['attn-checkin'].days+' dni');
   if(f['attn-measure'])add('measure',f['attn-measure'].reason,f['attn-measure'].days>=999?'Brak pomiarów':'Brak pomiaru od '+f['attn-measure'].days+' dni');
   return out.sort((a,b)=>CLIENT_ISSUE_ORDER.indexOf(a.key)-CLIENT_ISSUE_ORDER.indexOf(b.key));
+}
+/** Zaległy raport (check-in wysłany, bez odpowiedzi) — to samo źródło co pulpit. */
+function clientReportOverdue(c){
+  if(!c||typeof getCIStatus!=='function')return null;
+  if(typeof ensureCheckins==='function')ensureCheckins(c.id);
+  if(getCIStatus(c.id)!=='overdue')return null;
+  const ci=typeof pendingCheckin==='function'?pendingCheckin(c.id):null;
+  const t=ci&&typeof checkinActivityTime==='function'?checkinActivityTime(ci):NaN;
+  if(!Number.isFinite(t))return{label:'Raport zaległy',reason:'Check-in tygodniowy bez odpowiedzi'};
+  const d=Math.max(0,Math.floor((Date.now()-t)/86400000));
+  const ago=typeof attnAgoText==='function'?attnAgoText(t):d+' dni temu';
+  return{label:'Raport zaległy od '+(d===0?'dziś':d===1?'1 dnia':d+' dni'),reason:'Check-in wysłany '+ago+' — bez odpowiedzi',days:d};
 }
 function clientNeedsAction(issues){return (issues||[]).some(i=>CLIENT_ISSUES[i.key].counts);}
 function clientIssuesMap(attnMap){
@@ -139,7 +156,7 @@ function clientDoAction(e,clientId,key){
     setTimeout(()=>{const el=document.getElementById('ac-email');if(el){el.focus();if(el.scrollIntoView)el.scrollIntoView({block:'center'});}},80);
     return;
   }
-  if(key==='checkin'){if(typeof sendCheckinTo==='function')return sendCheckinTo(clientId);return prof();}
+  if(key==='checkin'||key==='report'){if(typeof sendCheckinTo==='function')return sendCheckinTo(clientId);return prof();}
   if(key==='measure')return prof('metrics');
   if(key==='restore')return quickRestoreClient(e||{stopPropagation(){}},clientId);
   return prof();
