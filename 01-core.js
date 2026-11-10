@@ -584,6 +584,15 @@ function setLibraryWide(enabled,save=true){
     try{localStorage.setItem(LIBRARY_WIDE_STORAGE_KEY,on?'1':'0');}catch(e){}
   }
 }
+// Escape w trybie pełnego ekranu wraca do zwykłego widoku z menu (gdy nie jest otwarte okno ani panel).
+if(typeof document!=='undefined')document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const scr=document.getElementById('screen-library');
+  if(!scr||!scr.classList.contains('library-wide')||!scr.classList.contains('active'))return;
+  if(document.querySelector('.modal-overlay.open,.modal.open,#exd-panel.open,.lib2-pop:not([hidden])'))return;
+  const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+  setLibraryWide(false);
+});
 function toggleLibraryWide(){
   const {screen}=libraryWideParts();
   if(!screen)return;

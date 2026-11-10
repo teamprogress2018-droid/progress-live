@@ -2169,3 +2169,12 @@ html[data-theme] #screen-dashboard .dash-next-watch .dash-next-eyebrow { color: 
 .live-hist-trend { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; }
 .live-hist-trend.is-up { color: var(--success, var(--teal)); }
 .live-hist-trend.is-down { color: var(--warning, var(--orange)); }
+/* Biblioteka: kolumny według partii (Klatka, Plecy, Barki…) w Bazie Progress i Moich ćwiczeniach */
+.lib2-cols { column-width: 320px; column-gap: 16px; }
+.lib2-col { break-inside: avoid; display: inline-block; width: 100%; margin: 0 0 16px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-subtle, var(--bg-main)); }
+.lib2-col .lib2-sec-h { margin: 0 0 10px; padding: 0 2px; }
+.lib2-col-list { display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 760px) { .lib2-cols { column-width: auto; column-count: 1; } }
+/* Pełny ekran Biblioteki: zawsze widoczne wyjście do menu aplikacji */
+#lib-exit-wide { display: none; margin-right: 10px; }
+#screen-library.library-wide #lib-exit-wide { display: inline-flex; }
