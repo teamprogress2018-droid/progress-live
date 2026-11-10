@@ -48,7 +48,7 @@ const startPlan = { days: [{ exercises: [
   { name: 'Plank', muscleGroup: 'Core', reps: '30s' }] }] };
 c.aplNormalizeStartReps(startPlan);
 const sr = startPlan.days[0].exercises.map(e => e.reps);
-ok('start ranges: compounds 8-10, isolations 10-12, side delts 12-15, time untouched', sr.join(',') === '8-10,10-12,12-15,8-10,30s', sr.join(','));
+ok('start ranges: compounds 8-10, isolations 10-12, side delts with dumbbells capped to 9-12, time untouched', sr.join(',') === '8-10,10-12,9-12,8-10,30s', sr.join(','));
 const timed = run('linear', '20s');
 ok('timed sets untouched', keys.every(k => timed[k].r === '20s'));
 
@@ -89,5 +89,14 @@ const fixed = keys.map(k => oldPlan.days[0].exercises[0][k].kg).join(' ');
 ok('naprawa starego planu: 60 ×4, 65 ×3, deload niżej', nFix > 0 && fixed === '60 60 60 60 65 65 65 57.5', fixed);
 ok('naprawa nie rusza ręcznych, równych ciężarów', keys.map(k => oldPlan.days[0].exercises[1][k].kg).join(' ') === '22 22 22 22 24 24 24 24');
 ok('naprawa jest jednorazowa', c.aplRepairPlanLoads(oldPlan) === 0);
+// Limit powtórzeń: maszyny i wyciągi maks. 15, wolne ciężary maks. 12, masa ciała bez limitu.
+const repsOf = (name, reps) => { const ex = { name, sets: '3', reps, rest: '60s', rpe: '8', kg: '20' }; c.aplComputeProgression(ex, keys, hypPh, 'linear'); return keys.map(k => ex[k].r); };
+const hiOf = r => +String(r).split(/[-–]/).pop();
+const dbR = repsOf('Uginanie hantli na ławce skośnej', '10-12'), sqR = repsOf('Przysiad ze sztangą', '8-10'), fpR = repsOf('Face pull na wyciągu', '12-15'), mcR = repsOf('Prostowanie nóg na maszynie', '10-12'), bwR = repsOf('Unoszenie nóg w zwisie', '12-15');
+ok('wolne ciężary: nigdy powyżej 12 powtórzeń', dbR.concat(sqR).every(r => hiOf(r) <= 12) && dbR[1] === '11-12' && dbR[2] === '12', dbR.join(' ') + ' | ' + sqR.join(' '));
+ok('maszyny i wyciągi: nigdy powyżej 15 powtórzeń', fpR.concat(mcR).every(r => hiOf(r) <= 15) && fpR[3] === '15' && mcR[3] === '13-15', fpR.join(' ') + ' | ' + mcR.join(' '));
+ok('masa ciała bez limitu', bwR[3] === '15-18', bwR.join(' '));
+const capPlan = { weekKeys: ['w1', 'w2'], days: [{ exercises: [{ name: 'Uginanie hantli', reps: '12-15', w1: { r: '12-15' }, w2: { r: '13-16' } }, { name: 'Face pull na wyciągu', reps: '12-15', w1: { r: '12-15' }, w2: { r: '15-18' } }] }] };
+ok('naprawa zapisanych planów: limit powtórzeń', c.aplRepairPlanRepCaps(capPlan) > 0 && capPlan.days[0].exercises[0].w2.r === '12' && capPlan.days[0].exercises[0].reps === '9-12' && capPlan.days[0].exercises[0].w1.r === '9-12' && capPlan.days[0].exercises[1].w2.r === '15' && c.aplRepairPlanRepCaps(capPlan) === 0, JSON.stringify(capPlan.days[0].exercises));
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('\nAll periodization checks passed');
