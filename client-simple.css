@@ -128,7 +128,6 @@
 .cs-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .cs-chip { min-height: 40px; padding: 0 12px; border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 14px; cursor: pointer; }
 .cs-tips-actions { display: flex; flex-direction: column; gap: 8px; }
-.cs-ex-foot { position: sticky; bottom: calc(-16px - env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; margin: 0 -16px calc(-16px - env(safe-area-inset-bottom)); padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border-subtle); background: var(--bg-main, var(--bg-card)); }
 .cs-ex-foot .cs-btn-secondary { min-height: 52px; border-color: var(--border-default, var(--border-subtle)); font-size: 16px; }
 
 /* Koniec treningu */
@@ -144,4 +143,79 @@
   .cs-h1 { font-size: 30px; }
   .cs-card-title { font-size: 28px; }
   .cs-num input { font-size: 34px; }
+}
+
+/* ===== Ekran treningu na iPhonie: safe area, stały nagłówek i dół, jedno CTA ===== */
+/* --cs-sat / --cs-sab: bezpieczne obszary (Dynamic Island, pasek gestów); zmienne, żeby test mógł je zasymulować. */
+:root { --cs-sat: env(safe-area-inset-top, 0px); --cs-sab: env(safe-area-inset-bottom, 0px); --cs-sal: env(safe-area-inset-left, 0px); --cs-sar: env(safe-area-inset-right, 0px); }
+#clive-player-inner { padding-top: calc(12px + var(--cs-sat)); padding-bottom: calc(16px + var(--cs-sab)); padding-left: calc(16px + var(--cs-sal)); padding-right: calc(16px + var(--cs-sar)); }
+#clive-player-inner.cw-ex-mode { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+#clive-player-inner.cw-ex-mode > .cs-ex { flex: 1 1 auto; min-height: 0; height: 100%; }
+.cw-ex-mode .cs-ex { position: relative; display: flex; flex-direction: column; min-height: 0; }
+.cw-ex-mode .cs-ex-top { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: calc(6px + var(--cs-sat)) calc(8px + var(--cs-sar)) 6px calc(8px + var(--cs-sal)); background: var(--bg-main, var(--bg-card)); }
+.cw-ex-mode .cs-ex-segs { flex: 0 0 auto; margin: 0 calc(16px + var(--cs-sar)) 4px calc(16px + var(--cs-sal)); }
+.cw-ex-mode .cs-ex-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 10px calc(16px + var(--cs-sar)) 20px calc(16px + var(--cs-sal)); }
+.cw-ex-mode .cs-ex-body { gap: 14px; padding-bottom: 0; }
+.cw-ex-mode .cs-ex-foot { flex: 0 0 auto; position: relative; display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 10px calc(16px + var(--cs-sar)) calc(10px + max(var(--cs-sab), 8px)) calc(16px + var(--cs-sal)); border-top: 1px solid var(--border-subtle); background: var(--bg-main, var(--bg-card)); }
+.cs-back-btn { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; min-width: 44px; padding: 0 10px 0 4px; border: 0; border-radius: 12px; background: transparent; color: var(--text-primary); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cs-back-btn:active { background: color-mix(in srgb, var(--text-primary) 7%, transparent); }
+.cw-ex-mode .cs-ex-clock { margin-left: auto; }
+.cs-more-btn { width: 44px; height: 44px; flex: 0 0 44px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--text-primary) 7%, transparent); color: var(--text-primary); cursor: pointer; }
+.cs-back-btn:focus-visible, .cs-more-btn:focus-visible, .cs-nav-btn:focus-visible, .cs-tech-btn:focus-visible, .cs-rir-opts button:focus-visible, .cs-saved-undo:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cw-ex-mode .cs-ex-count { font-size: 14px; font-weight: 650; color: var(--text-secondary); }
+.cw-ex-mode .cs-ex-name { font-size: 26px; }
+.cs-ex-tiprow { display: flex; align-items: flex-start; gap: 10px; }
+.cs-ex-tiprow .cs-ex-tip { flex: 1; margin: 0; font-size: 16px; }
+.cs-tech-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px 0 8px; border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.cs-tech-play { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--accent); }
+.cs-tech-play svg { width: 16px; height: 16px; }
+.cs-media { position: relative; }
+.cs-media-x { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; cursor: pointer; z-index: 2; }
+.cs-target { margin: -4px 0 0; color: var(--text-secondary); font-size: 15px; font-weight: 600; }
+.cw-ex-mode .cs-set { padding: 16px; gap: 12px; }
+.cw-ex-mode .cs-num input { font-size: 34px; }
+.cs-rir-q { display: flex; flex-direction: column; gap: 8px; color: var(--text-secondary); font-size: 14px; }
+.cs-rir-opts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.cs-rir-opts button { min-height: 44px; padding: 0 4px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.cs-rir-opts button.is-on { border-color: var(--text-primary); background: var(--text-primary); color: var(--bg-card); }
+.cs-ex-foot .cs-btn-primary { min-height: 56px; }
+.cs-ex-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cs-nav-btn { min-height: 44px; border: 1px solid var(--border-default, var(--border-subtle)); border-radius: 14px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cs-nav-btn:disabled { opacity: .38; cursor: default; }
+.cs-saved { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 0 6px 0 14px; border-radius: 14px; background: var(--success-bg, rgba(16,185,129,.12)); color: var(--success, #047857); font-size: 15px; font-weight: 650; }
+.cs-saved span { display: inline-flex; align-items: center; gap: 6px; }
+.cs-saved-undo { min-height: 44px; min-width: 64px; padding: 0 12px; border: 0; border-radius: 12px; background: transparent; color: var(--text-primary); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+#clive-player-inner > .cs-saved { margin-bottom: 12px; }
+.cs-set-done { display: inline-flex; align-items: center; gap: 6px; }
+.cs-swipe-hint { position: absolute; top: 45%; right: 12px; max-width: 70%; padding: 10px 14px; border-radius: 14px; background: var(--text-primary); color: var(--bg-card); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transform: translateX(8px); transition: opacity .12s, transform .12s; pointer-events: none; z-index: 5; }
+.cs-swipe-hint.is-left { right: auto; left: 12px; transform: translateX(-8px); }
+.cs-swipe-hint.is-on { opacity: .92; transform: none; }
+.cs-ov-list { display: flex; flex-direction: column; margin-top: 8px; }
+.cs-ov-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 12px; min-height: 56px; padding: 6px 2px; border: 0; border-top: 1px solid var(--border-subtle); background: transparent; color: var(--text-primary); font: inherit; font-size: 16px; text-align: left; cursor: pointer; }
+.cs-ov-row.is-now .cs-ov-name { font-weight: 700; }
+.cs-ov-row.is-done .cs-ex-n { background: var(--success, #10b981); color: #fff; }
+.cs-ov-row.is-skipped { color: var(--text-secondary); }
+.cs-ov-st { color: var(--text-secondary); font-size: 14px; white-space: nowrap; }
+/* Dolny panel */
+.cs-sheet-wrap { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
+.cs-sheet-backdrop { position: absolute; inset: 0; background: rgba(10,12,16,.45); }
+.cs-sheet { position: relative; width: 100%; max-width: 520px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 18px calc(16px + var(--cs-sar)) calc(16px + max(var(--cs-sab), 8px)) calc(16px + var(--cs-sal)); border-radius: 22px 22px 0 0; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 -12px 32px rgba(0,0,0,.18); max-height: calc(100% - var(--cs-sat) - 24px); overflow-y: auto; }
+.cs-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cs-sheet-head h2 { margin: 0; font-size: 20px; font-weight: 750; letter-spacing: -.01em; }
+.cs-sheet-x { width: 44px; height: 44px; flex: 0 0 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--text-primary) 7%, transparent); color: var(--text-primary); cursor: pointer; }
+.cs-sheet-text { margin: 0 0 4px; color: var(--text-secondary); font-size: 16px; line-height: 1.45; }
+.cs-sheet .cs-btn { min-height: 52px; }
+.cs-sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cs-sheet-field { display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); font-size: 14px; }
+.cs-sheet-field input { min-height: 48px; padding: 0 12px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-main, var(--bg-card)); color: var(--text-primary); font: inherit; font-size: 16px; }
+.cs-warn { color: var(--danger, #b91c1c) !important; }
+/* Otwarta klawiatura (iOS): odtwarzacz dopasowuje się do widocznej części ekranu, dół bez zapasu na pasek gestów. */
+.clive-player.cw-kb { bottom: auto; height: var(--cw-vvh, 100%); }
+.clive-player.cw-kb .cs-ex-foot { padding-bottom: 10px; }
+.clive-player.cw-kb .cs-ex-nav { display: none; }
+@media (max-width: 360px) {
+  .cw-ex-mode .cs-ex-name { font-size: 22px; }
+  .cw-ex-mode .cs-num input { font-size: 28px; }
+  .cs-back-btn { font-size: 15px; }
+  .cs-rir-opts button { font-size: 14px; }
 }

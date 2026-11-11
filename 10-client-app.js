@@ -1351,7 +1351,11 @@ function cwOpen(planId,dayIdx){
   cwRender();
 }
 
-function cwClose(){
+function cwClose(force){
+  // Niezapisane wpisy (serie wpisane, ale nie zapisane): najpierw dolny panel z wyborem.
+  if(force!==true&&window._cw&&window._cw.active&&typeof cwDirtySets==='function'&&cwDirtySets(window._cw).length&&typeof cwOpenSheet==='function'){
+    cwOpenSheet('exit',{target:'close'});return;
+  }
   if(window._cw&&window._cw.active&&window._cw.phase!=='overview'&&window._cw.phase!=='finish'){
     cwWriteLocal(window._cw);
     cwQueuePersist(window._cw,window._cw.status||'in_progress');
@@ -1368,6 +1372,7 @@ function cwClose(){
 function cwBegin(){
   const cw=window._cw;if(!cw)return;
   cw.phase='exercise';
+  cw.began=true;
   cw.startedAt=Date.now();
   cw.startedAtIso=cw.startedAtIso||new Date().toISOString();
   cw.status='in_progress';
@@ -1392,7 +1397,11 @@ function cwFmt(sec){
 function cwPatchSet(setIdx,field,val){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
-  ex.sets[setIdx][field]=val;
+  const st=ex.sets[setIdx];
+  // Wartości z planu zapamiętane przy pierwszej zmianie — do „Wyjdź bez zapisu”.
+  if(!st._orig)st._orig={reps:st.reps==null?'':st.reps,kg:st.kg==null?'':st.kg,rir:st.rir==null?'':st.rir};
+  if(field==='kg')val=String(val==null?'':val).replace(',','.');
+  st[field]=val;
   cwWriteLocal(cw);
 }
 
@@ -1422,6 +1431,7 @@ function cwGoEx(idx){
   cw.exIdx=idx;
   cw.phase='exercise';
   cw.showVideo=false;
+  cw.sheet=null;
   cwEnsureEmomClock();
   cwWriteLocal(cw);
   cwRender();
@@ -1452,7 +1462,10 @@ function cwCheckSet(setIdx){
   }
   st.done=!st.done;
   cwQueuePersist(cw,'in_progress');
-  if(!st.done){cwRender();return;}
+  if(!st.done){if(cw.lastSaved&&cw.lastSaved.exIdx===cw.exIdx&&cw.lastSaved.setIdx===setIdx)cw.lastSaved=null;cwRender();return;}
+  cw.sheet=null;
+  // „Seria 1 z 4 zapisana ✓” + „Cofnij” przez kilka sekund (także na ekranie przerwy).
+  cw.lastSaved={exIdx:cw.exIdx,setIdx,at:Date.now(),label:'Seria '+(setIdx+1)+' z '+ex.sets.length+' zapisana'};
   const prMsg=typeof prToastText==='function'?prToastText(window._clientId,ex.name,st.kg,st.reps):'';
   if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
     cwEnsureEmomClock();
@@ -1503,8 +1516,10 @@ function cwCheckSet(setIdx){
     return;
   }
   if(act&&act.kind==='advance'){
-    const next=typeof ssAdvanceIdx==='function'?ssAdvanceIdx(cw.exercises,cw.exIdx):cw.exIdx+1;
-    cwGoEx(next);
+    // Ćwiczenie (lub cała super-seria) ukończone: zostajemy na ekranie z „Ćwiczenie ukończone”,
+    // „Przejdź do następnego ćwiczenia” prowadzi dalej (cwNextEx).
+    cwWriteLocal(cw);
+    cwRender();
     return;
   }
   const next=ex.sets.find(s=>!s.done);
@@ -1513,8 +1528,9 @@ function cwCheckSet(setIdx){
     cwStartRest(sec);
     return;
   }
-  if(cw.exIdx<cw.exercises.length-1){cwGoEx(cw.exIdx+1);return;}
-  cw.phase='finish';cwRender();
+  // Ostatnia seria: zostajemy na ćwiczeniu — „Ćwiczenie ukończone” i dopiero wtedy „Przejdź do następnego ćwiczenia”.
+  cwWriteLocal(cw);
+  cwRender();
 }
 
 function cwSkipRest(){
@@ -1525,12 +1541,15 @@ function cwSkipRest(){
   cwRender();
 }
 
-function cwSkipEx(){
+function cwSkipEx(reasonArg){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];
+  // Prosty powód z dolnego panelu: Brak czasu / Ból / Sprzęt zajęty / Inne.
+  if(reasonArg==null&&typeof cwSkipAsk==='function'){cwSkipAsk();return;}
   if(ex){
-    const reason=prompt('Pominąć ćwiczenie? Dodaj opcjonalny powód dla trenera.')||'';
+    const reason=reasonArg!=null?String(reasonArg):(prompt('Pominąć ćwiczenie? Dodaj opcjonalny powód dla trenera.')||'');
     ex.skipped=true;ex.skipReason=reason.trim();
+    cw.sheet=null;
     cwQueuePersist(cw,'in_progress');
   }
   if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();}
@@ -1539,7 +1558,7 @@ function cwSkipEx(){
 
 function cwPrevEx(){
   const cw=window._cw;if(!cw||cw.exIdx<=0)return;
-  cw.exIdx-=1;cw.phase='exercise';cwRender();
+  cw.exIdx-=1;cw.phase='exercise';cw.showVideo=false;cw.sheet=null;cwWriteLocal(cw);cwRender();
 }
 
 function cwReportProblem(){
@@ -1633,12 +1652,24 @@ function cwToggleVideo(){
 }
 window.cwToggleVideo=cwToggleVideo;
 
+/** Render + dolny panel (wyjście, pominięcie, menu) na każdym etapie treningu. */
 function cwRender(){
+  cwRenderBase();
+  const el=document.getElementById('clive-player-inner');const cw=window._cw;
+  if(!el||!cw)return;
+  if(cw.sheet&&!el.querySelector('.cs-sheet-wrap')&&typeof csSheetHTML==='function')el.insertAdjacentHTML('beforeend',csSheetHTML(cw));
+}
+function cwRenderBase(){
   const el=document.getElementById('clive-player-inner');
   const cw=window._cw;
   if(!el||!cw)return;
   const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e60000';
-  const back=`<button type="button" class="btn btn-ghost btn-sm" aria-label="Zapisz trening do wznowienia i zamknij" onclick="cwClose()">✕</button>`;
+  const back=`<button type="button" class="cs-back-btn" aria-label="Wróć — trening zostanie zapisany do wznowienia" onclick="cwClose()">${typeof csIcon==='function'?csIcon('back',20):'‹'}<span>Wróć</span></button>`;
+  const sheet=typeof csSheetHTML==='function'?csSheetHTML(cw):'';
+  // Ćwiczenie i lista rozpoczętego treningu: stały nagłówek i dół, przewija się środek (safe area iPhone'a).
+  const exMode=(cw.phase==='exercise'&&typeof cwSimpleExerciseHTML==='function')||(cw.phase==='overview'&&typeof csOverviewHTML==='function'&&typeof cwStarted==='function'&&cwStarted(cw));
+  el.classList.toggle('cw-ex-mode',!!exMode);
+  if(cw.phase==='overview'&&exMode){el.innerHTML=csOverviewHTML(cw)+sheet;return;}
   if(cw.phase==='overview'){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
@@ -1654,7 +1685,9 @@ function cwRender(){
   if(cw.phase==='rest'){
     const nxt=cw.exercises[cw.exIdx]||{};
     const emom=cw.restKind==='emom';
-    el.innerHTML=`<div class="cw-rest">
+    const saved=typeof cwSavedBannerHTML==='function'?cwSavedBannerHTML(cw):'';
+    if(saved&&typeof cwScheduleSavedHide==='function')cwScheduleSavedHide(cw);
+    el.innerHTML=`${saved}<div class="cw-rest">
       <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${emom?'EMOM — czekaj na minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
       <div class="cw-rest-num" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy: ${cw.restLeft} sekund">${cw.restLeft}</div>
       <div style="font-size:13px;color:var(--muted);">${emom?'Następna runda':'Następna seria'} · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
@@ -1693,7 +1726,12 @@ function cwRender(){
   }
   const ex=cw.exercises[cw.exIdx];
   cwEnsureEmomClock();
-  if(typeof cwSimpleExerciseHTML==='function'){el.innerHTML=cwSimpleExerciseHTML(cw,ex);return;}
+  if(typeof cwSimpleExerciseHTML==='function'){
+    el.innerHTML=cwSimpleExerciseHTML(cw,ex)+sheet;
+    if(typeof cwScheduleSavedHide==='function')cwScheduleSavedHide(cw);
+    if(typeof cwBindSwipe==='function')cwBindSwipe(el);
+    return;
+  }
   const doneSets=ex.sets.filter(s=>s.done).length;
   const emomOn=typeof isEmomExercise==='function'&&isEmomExercise(ex);
   const emomWait=emomOn&&typeof emomRestSec==='function'?emomRestSec(doneSets+1,cwEmomElapsed()):0;

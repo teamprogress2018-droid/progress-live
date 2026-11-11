@@ -69,20 +69,21 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'client_simple_exercise.png') });
   ok('starts on first exercise', /Ćwiczenie 1 z 6/.test(exv.text) && /Przysiad goblet/.test(exv.text), exv.text.slice(0, 120));
   ok('set, reps and load', /Seria 1 z 3/.test(exv.text) && exv.reps === '10' && exv.kg === '20', JSON.stringify(exv));
-  ok('big actions', /Ukończ serię/.test(exv.text) && /Następne ćwiczenie/.test(exv.text));
-  ok('tips hidden by default', !exv.tipsOpen && /Pokaż wskazówki/.test(exv.text));
+  ok('big actions', /Zapisz serię 1 z 3/.test(exv.text) && /Następne →/.test(exv.text) && /← Poprzednie/.test(exv.text));
+  ok('tips hidden by default', !exv.tipsOpen && /Pomoc \/ Technika \/ Więcej/.test(exv.text));
 
-  await page.click('.cs-ex-foot .cs-btn-primary');
+  await page.click('.cs-ex-foot [data-cs-primary="save"]');
   await page.waitForSelector('.cw-rest');
   await page.evaluate(() => cwSkipRest());
   const after = await page.evaluate(() => ({ text: document.querySelector('.cs-ex').innerText, done: window._cw.exercises[0].sets[0].done }));
   ok('complete set logs it', after.done && /Seria 2 z 3/.test(after.text), after.text.slice(0, 120));
-  await page.click('text=Pokaż wskazówki');
+  await page.click('text=Pomoc / Technika / Więcej');
   const tips = await page.evaluate(() => (document.getElementById('cs-tips') || {}).innerText || '');
   ok('tips reveal details', /SERIE \(1\/3\)/.test(tips) && /Zgłoś ból lub problem/.test(tips), tips.slice(0, 160));
-  await page.click('.cs-ex-foot .cs-btn-secondary');
+  await page.click('[data-cs-nav="next"]');
+  await page.click('text=Przejdź dalej');
   ok('next exercise', await page.evaluate(() => /Ćwiczenie 2 z 6/.test(document.querySelector('.cs-ex').innerText)));
-  await page.evaluate(() => cwClose());
+  await page.evaluate(() => cwClose(true));
 
   await page.evaluate(() => setClientLiveScreen('plan'));
   const plan = await page.evaluate(() => document.getElementById('clive-screen-content').innerText);

@@ -780,6 +780,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_simple_ui.js
 
+      - name: 6d2. Ekran treningu klienta na iPhonie (safe area, Wróć, Zapisz serię, Cofnij, nawigacja bez swipe)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_workout_ios_ui.js
+
       - name: 6e. Testy UI wygaszacza z logo
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_screensaver_ui.js
