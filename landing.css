@@ -8,6 +8,7 @@
   --land-line: #e3e1dc;
   --land-accent: var(--accent, #e60000);
   --land-on-accent: var(--on-accent, #ffffff);
+  --land-accent-text: color-mix(in srgb, var(--land-accent) 92%, #000);
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -84,7 +85,7 @@
   letter-spacing: 0.14em;
   color: var(--land-ink);
 }
-.pl-land-eyebrow span { color: var(--land-accent); }
+.pl-land-eyebrow span { color: var(--land-accent-text); } /* drobny czerwony tekst: ok. #d40000 zamiast akcentu (5,07:1 na kremowym) */
 .pl-land-title {
   margin: 0 0 20px;
   font-size: clamp(36px, 5.2vw, 68px);
@@ -219,7 +220,7 @@
   font-weight: 800;
   white-space: nowrap;
 }
-.pl-land-stat--accent .pl-land-stat-chip { color: var(--land-accent); }
+.pl-land-stat--accent .pl-land-stat-chip { color: var(--land-accent-text); }
 .pl-land-stat-value { font-size: clamp(34px, 3.4vw, 46px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
 .pl-land-stat-value small { margin-left: 6px; font-size: 0.42em; font-weight: 700; letter-spacing: 0; }
 .pl-land-stat-text { font-size: 15px; line-height: 1.4; font-weight: 500; color: var(--stat-muted); }
