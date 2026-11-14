@@ -404,7 +404,7 @@ function aplShowWelcome(){
   document.getElementById('apl-result').innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
       <div style="font-size:56px;margin-bottom:20px;">⚡</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">GENERATOR PLANÓW AI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">Generator planów AI</div>
       <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij formularz po lewej stronie i kliknij <strong style="color:var(--accent);">Generuj plan</strong>. AI stworzy spersonalizowany plan treningowy z ćwiczeniami, seriami, powtórzeniami i wskazówkami metodycznymi.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
         ${[
@@ -1794,7 +1794,7 @@ async function aplGenerate(){
     <div style="width:56px;height:56px;border-radius:16px;background:var(--adim);display:flex;align-items:center;justify-content:center;">
       <div class="ai-dot" style="width:16px;height:16px;"></div>
     </div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);">AI GENERUJE PLAN...</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);">AI generuje plan...</div>
     <div id="apl-gen-status" style="font-size:12px;color:var(--muted);max-width:320px;text-align:center;line-height:1.7;">Analizuję parametry i tworzę plan ${method} na ${weeks} tygodni… To zwykle trwa 60–90 sekund.</div>
     <div style="display:flex;gap:6px;">${[0,1,2].map(i=>`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s ${i*0.2}s infinite;"></div>`).join('')}</div>
   </div>`;
@@ -2271,24 +2271,24 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       <div style="background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">📈</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#4ade80;">ZASADY PROGRESJI</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#4ade80;">Zasady progresji</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.periodization||''}</div>
         ${plan.progressionRules?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">${plan.progressionRules.map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:#4ade80;flex-shrink:0;">→</span>${r}</div>`).join('')}</div>`:''}
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:#4ade80;margin-top:10px;margin-bottom:3px;">DELOAD</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:#4ade80;margin-top:10px;margin-bottom:3px;">Deload</div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;">${plan.deload||'Co 4-6 tygodni: 50% objętości'}</div>
       </div>
       <div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">🔥</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f59e0b;">PROTOKÓŁ ROZGRZEWKI</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f59e0b;">Protokół rozgrzewki</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
       </div>
       <div style="background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">❄️</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f87171;">SCHŁODZENIE</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f87171;">Schłodzenie</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
       </div>
@@ -4277,7 +4277,7 @@ function aicShowWelcome(){
     <div style="width:64px;height:64px;border-radius:20px;background:var(--adim);border:1px solid rgba(230,0,0,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
       <div class="ai-dot" style="width:14px;height:14px;"></div>
     </div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI COACH</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI coach</div>
     <div style="font-size:13px;color:var(--muted);max-width:420px;line-height:1.7;margin-bottom:24px;">Twój asystent AI z wiedzą NSCA/NASM/ACSM. Tryb <b>Sztab ekspercki</b> pyta biomechanikę, dev i biznes po kolei — gdy pytanie nie pasuje do żadnego, odzywają się wszyscy.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       ${Object.entries(AIC_MODES).map(([k,m])=>`<button class="aic-suggestion" onclick="setAICMode('${k}',document.getElementById('aicm-${k}'));document.getElementById('aic-input').focus();">${m.label}</button>`).join('')}

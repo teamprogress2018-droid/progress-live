@@ -468,7 +468,7 @@ function renderOnbOverview(){
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">W TRAKCIE STARTU</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">W trakcie startu</div>
       <button class="btn btn-primary btn-sm" onclick="onbOpenNewClient()">+ Nowy klient</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
@@ -476,7 +476,7 @@ function renderOnbOverview(){
     </div>
 
     ${completed.length?`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:12px;color:var(--muted);">UKOŃCZONE</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:12px;color:var(--muted);">Ukończone</div>
     <div style="display:flex;flex-direction:column;gap:10px;">${completed.map(card).join('')}</div>`:''}`;
 }
 
@@ -510,7 +510,7 @@ function renderOnbFlows(){
   const realSteps=onbChecklistSteps();
   const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
   el.innerHTML=`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">WARIANTY STARTU WSPÓŁPRACY</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">Warianty startu współpracy</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.55;">Każdy kafelek to etykieta przy nowym kliencie — nie osobna checklista. Postęp zawsze liczy 6 kroków (zaproszenie → pomiary → dni → plan → kalendarz → pakiet). Automatyczne wiadomości: Automatyzacja, gdy flow jest Aktywny.</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">
       ${ONB_FLOWS.map(f=>`<div style="background:var(--s2);border:1px solid var(--border);border-top:3px solid ${f.color};border-radius:12px;padding:18px;">
@@ -540,7 +540,7 @@ function renderOnbSettings(){
   const contract=onb.contract||'Regulamin współpracy z trenerem personalnym\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.';
   el.innerHTML=`
     <div style="max-width:600px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA STARTU WSPÓŁPRACY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">Ustawienia startu współpracy</div>
       <div class="settings-card" style="margin-bottom:14px;">
         <div class="settings-card-title">✅ Checklista 6 kroków</div>
         <div class="settings-card-desc">Ta sama co <b>Rozpocznij współpracę</b>. Kroków nie da się wyłączyć — warianty to tylko etykiety przy nowym kliencie.</div>
@@ -3545,7 +3545,7 @@ function renderLiveExercises(slot){
       const nm=st.savedClientName||'klient';
       el.innerHTML=`<div style="text-align:center;padding:48px 20px;">
         <div style="font-size:36px;margin-bottom:10px;">✅</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:6px;">SESJA ZAPISANA</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:6px;">Sesja zapisana</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;">${escHtml(nm)} · trening jest w kalendarzu i historii.</div>
         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="liveRepeatSameClient(${n})">▶ Kolejny dzień tego klienta</button>
@@ -5582,7 +5582,7 @@ function renderRepOverview(){
     </div>
 
     <!-- klienci -->
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:14px;">KLIENCI — STATUS RAPORTÓW</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:14px;">Klienci — status raportów</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
       ${clients.map(c=>{
         const cSess=SE.filter(s=>s.clientId===c.id);
@@ -5618,7 +5618,7 @@ function renderRepHistory(){
   const all=REP_HISTORY;
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">HISTORIA WYSŁANYCH RAPORTÓW</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">Historia wysłanych raportów</div>
       <button class="btn btn-ghost btn-sm" onclick="exportRepHistoryCsv()">⬇ Eksport CSV</button>
     </div>
     ${!all.length?`<div style="text-align:center;padding:60px;color:var(--muted);">
@@ -5668,7 +5668,7 @@ function renderRepAuto(){
   const schedules=getRepSchedules();
   el.innerHTML=`
     <div style="max-width:700px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">AUTOMATYCZNE RAPORTY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">Automatyczne raporty</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Harmonogram zapisuje się w ustawieniach. Wysyłka e-mail/WhatsApp wymaga backendu — tu zapisujemy reguły i generujemy raport w appce przy logowaniu (jeśli włączone).</div>
       <div style="font-size:11px;color:var(--muted);background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;margin-bottom:20px;">Uwaga: to nie jest cron 24/7. Reguły są sprawdzane gdy otworzysz panel trenera.</div>
 
@@ -5691,7 +5691,7 @@ function renderRepAuto(){
       </div>
 
       <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:20px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:14px;">USTAWIENIA GLOBALNE</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:14px;">Ustawienia globalne</div>
         <div class="form-grid">
           <div class="form-field">
             <label class="form-lbl">Domyślny szablon</label>
@@ -5844,7 +5844,7 @@ async function repGenerate(){
   const area=document.getElementById('rep-preview-area');
   area.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">
     <div class="ai-dot" style="width:16px;height:16px;"></div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent);">AI GENERUJE RAPORT...</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent);">AI generuje raport...</div>
     <div style="font-size:12px;color:var(--muted);">Analizuję dane klienta i tworzę spersonalizowane podsumowanie...</div>
   </div>`;
 
@@ -5959,7 +5959,7 @@ function renderRepDocument(c,template,hasAI,ai){
         <div style="background:${isDark?'linear-gradient(135deg,#0d0f12,#12151a)':accent+'22'};padding:28px 32px;border-bottom:1px solid ${border};">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:6px;">RAPORT POSTĘPÓW</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:6px;">Raport postępów</div>
               <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:${text};">${hasAI&&ai.headline?ai.headline:'Podsumowanie tygodnia'}</div>
               <div style="font-size:12px;color:${muted};margin-top:4px;">${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
             </div>

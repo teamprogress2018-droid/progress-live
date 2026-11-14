@@ -51,6 +51,9 @@ jobs:
       - name: Motyw Progress Live 2.0 (jasny + akcent)
         run: node .github/scripts/test_theme_accent.js
 
+      - name: Jeden wygląd (ikony, czerwony, promienie, Inter)
+        run: node .github/scripts/test_ux_one_look.js
+
       - name: Ikony PWA 192/512 (także maskable) w manifest.json
         run: node .github/scripts/test_manifest_icons.js
 
