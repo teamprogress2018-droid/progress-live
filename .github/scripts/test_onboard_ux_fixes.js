@@ -24,7 +24,7 @@ function ok(name, cond, extra) {
 }
 
 ok('profile edit no duplicate intake buttons', src08.includes('Ankieta wstępna — tylko w Formularzach') && src08.includes("setCPTab('forms')") && !src08.includes("printFormPdf('df1')") && !src08.includes("sendClientIntakeForm('${escHtml(c.id)}');cancelCPEdit()"));
-ok('plan tab CTAs gated on empty', src08.includes('const showCreate=!plans.length') && src08.includes('showContinueFitebo') && src08.includes('Generuj plan AI'));
+ok('plan tab CTAs gated on empty', src08.includes('const showCreate=!plans.length') && src08.includes('showContinueFitebo') && src08.includes('Nowy plan (AI)'));
 ok('onboard does not push extra plan CTAs when done', !/doneExtra:`<div[\s\S]*Nowy plan AI/.test(src05) && src05.includes("action:`openClientPlanChoice('${id}')`,cta:'Wybierz sposób'"));
 const resumeApl = src05.slice(src05.indexOf('function resumeOnboardFromApl'), src05.indexOf('function renderOnboardBuilderBanner'));
 ok('apl back returns to checklist without saving', resumeApl.includes('maybeResumeOnboard(cid)') && !resumeApl.includes('aplSavePlan()'));

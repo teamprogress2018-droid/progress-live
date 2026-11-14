@@ -909,6 +909,7 @@ function clientRowHTML(c,i,issuesMap){
   </div>`;
 }
 function renderClients(){
+  if(typeof syncNavForClientCount==="function")syncNavForClientCount();
   const attnMap=clientAttentionMap();
   const issuesMap=clientIssuesMap(attnMap);
   window._clIssuesMap=issuesMap;

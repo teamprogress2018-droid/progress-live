@@ -42,7 +42,7 @@ ok('baseline ignores card weight', src01.includes('function clientOnboardHasBase
 ok('overview uses real checklist', src02.includes('function onbOpenChecklist') && src02.includes('function onbStatusFor') && src02.includes("onbOpenChecklist('") && !src02.includes('Potwierdź krok'));
 ok('no fake ONB_ACTIVE progress', !src02.includes("persistById('onboardingActive'") && !src02.includes('Wypełnij ankietę wstępną'));
 ok('flow tiles open same client card', src02.includes('function onbUseFlow') && src02.includes('function onbOpenNewClient') && src02.includes("if(t==='new')") && src02.includes('onbOpenNewClient()') && !html.includes('id="onb-tab-new"') && !html.includes('id="onb-new-tab"'));
-ok('nav start współpracy', html.includes('data-screen="onboarding"') && html.includes('Przegląd startu →') && html.includes('Start współpracy'));
+ok('nav start współpracy', html.includes('data-screen="onboarding"') && html.includes('Przegląd startu →') && html.includes('Nowy klient: pierwsze kroki'));
 ok('no auto intake when flow off', src09.includes('function runOnboardingForClient') && !src09.includes('formularz (auto)') && !/if\(!formSent&&typeof createFormSend/.test(src09));
 ok('new client stamps default flow', src05.includes("onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow"));
 ok('dead wizard removed', !src02.includes('function renderOnbNew') && !src02.includes('ONB_WIZARD_STEPS') && !src02.includes('function onbCreateClient') && !html.includes('id="onb-new-tab"'));
