@@ -12,6 +12,16 @@ function clientInviteTokenFromUrl(){
   }catch(e){return '';}
 }
 
+/** E-mail klienta dopisany przez trenera do linku zaproszenia (?invite=…&email=…), tylko do wypełnienia pola. */
+function clientInviteEmailFromUrl(){
+  try{
+    const q=new URLSearchParams(location.search||'');
+    const v=String(q.get('email')||'').trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)?v:'';
+  }catch(e){return '';}
+}
+window.clientInviteEmailFromUrl=clientInviteEmailFromUrl;
+
 /** Ręczny wybór widoku trenera dla konta używanego też jako klient testowy. */
 function switchClientAppToTrainer(){
   try{sessionStorage.setItem('pl_auth_mode','trainer');}catch(e){}
@@ -579,11 +589,16 @@ function prepareAuthForInvite(){
     authShowRegister();
     // An invite must not disclose client names or email addresses before sign-in.
     const tokEl=document.getElementById('auth-reg-token');if(tokEl)tokEl.value=window._pendingInviteToken;
+    // Kod jest w linku — pole kodu niepotrzebne. E-mail z linku (jeśli trener go dodał) wpisujemy od razu.
+    const tokField=document.getElementById('auth-reg-token-field');if(tokField)tokField.hidden=true;
     const em=document.getElementById('auth-reg-email');if(em)em.readOnly=false;
+    const linkEmail=clientInviteEmailFromUrl();
+    if(em&&linkEmail&&!em.value)em.value=linkEmail;
     const sub=document.getElementById('auth-reg-sub');
-    if(sub)sub.textContent='Wpisz adres e-mail podany trenerowi i ustaw hasło. Jeśli masz już konto, użyj swojego hasła.';
+    if(sub)sub.textContent='Wymyśl hasło i zobacz swój plan.';
+    if(em&&em.value){const pw=document.getElementById('auth-reg-password');if(pw)setTimeout(()=>{try{pw.focus();}catch(e){}},60);}
   }else if(hint){
-    hint.textContent='Zaloguj się — trener do panelu, klient do swojej aplikacji';
+    hint.textContent='Zaloguj się do swojego konta';
   }
 }
 
@@ -660,7 +675,7 @@ async function doClientRegister(){
   const pass2=document.getElementById('auth-reg-password2')?.value||'';
   const btn=document.getElementById('auth-reg-btn');
   authSetError('auth-reg-error','');
-  if(!token){authSetError('auth-reg-error','Wklej token z linku zaproszenia albo otwórz link od trenera.');return;}
+  if(!token){authSetError('auth-reg-error','Wpisz kod od trenera albo otwórz link z jego wiadomości.');return;}
   if(!email||!pass){authSetError('auth-reg-error','Wpisz e-mail i hasło.');return;}
   if(pass.length<6){authSetError('auth-reg-error','Hasło musi mieć co najmniej 6 znaków.');return;}
   if(pass!==pass2){authSetError('auth-reg-error','Hasła nie są takie same.');return;}
@@ -1402,6 +1417,11 @@ function cwPatchSet(setIdx,field,val){
   if(!st._orig)st._orig={reps:st.reps==null?'':st.reps,kg:st.kg==null?'':st.kg,rir:st.rir==null?'':st.rir};
   if(field==='kg')val=String(val==null?'':val).replace(',','.');
   st[field]=val;
+  if(cw.setError&&cw.setError.field===field&&String(val).trim()!==''){
+    cw.setError=null;
+    const err=document.getElementById('cs-set-err');if(err)err.remove();
+    const inp=document.querySelector('#clive-player-inner input[aria-invalid="true"]');if(inp){inp.removeAttribute('aria-invalid');inp.removeAttribute('aria-describedby');}
+  }
   cwWriteLocal(cw);
 }
 
@@ -1418,12 +1438,28 @@ function cwStartRest(seconds,kind){
   window._cwRestTimer=setInterval(()=>{
     if(!window._cw)return;
     window._cw.restLeft-=1;
+    const left=Math.max(0,window._cw.restLeft);
     const n=document.getElementById('cw-rest-num');
-    if(n)n.textContent=Math.max(0,window._cw.restLeft);
-    if(window._cw.restLeft<=0)cwSkipRest();
+    if(n)n.textContent=left;
+    cwRestAnnounce(left);
+    if(window._cw.restLeft<=0){cwRestDoneSignal();cwSkipRest();}
   },1000);
   cwRender();
 }
+
+/** Czytnik ekranu: zegar przerwy nie gada co sekundę, tylko przy 10 s, 3 s i 0. */
+function cwRestAnnounce(left){
+  if(left!==10&&left!==3&&left!==0)return;
+  const live=document.getElementById('cw-rest-live');
+  if(live)live.textContent=left?('Zostało '+left+' sekund przerwy'):'Koniec przerwy';
+}
+/** Koniec przerwy: wibracja (jeśli telefon pozwala) i krótki sygnał. */
+function cwRestDoneSignal(){
+  if(typeof liveRestBeep==='function'){liveRestBeep('go');return;}
+  try{if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate([140,70,220]);}catch(e){}
+}
+window.cwRestAnnounce=cwRestAnnounce;
+window.cwRestDoneSignal=cwRestDoneSignal;
 
 function cwGoEx(idx){
   const cw=window._cw;if(!cw)return;
@@ -1455,11 +1491,14 @@ function cwCheckSet(setIdx){
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
   const st=ex.sets[setIdx];
   if(!st.done&&!(Number.parseFloat(String(st.reps||'').replace(',','.'))>0)){
-    if(typeof notify==='function')notify('Wpisz liczbę powtórzeń lub czas przed zatwierdzeniem serii.');
+    // Błąd zostaje pod polem (prosty widok), zamiast znikającego komunikatu.
+    if(typeof cwSimpleExerciseHTML==='function'){cw.setError={exIdx:cw.exIdx,setIdx,field:'reps',msg:'Wpisz liczbę powtórzeń lub czas, żeby zapisać serię.'};cwRender();}
+    else if(typeof notify==='function')notify('Wpisz liczbę powtórzeń lub czas przed zatwierdzeniem serii.');
     const field=document.querySelector(`#clive-player-inner input[aria-label="Seria ${st.setNo}: powtórzenia"]`);
     if(field)field.focus();
     return;
   }
+  cw.setError=null;
   st.done=!st.done;
   cwQueuePersist(cw,'in_progress');
   if(!st.done){if(cw.lastSaved&&cw.lastSaved.exIdx===cw.exIdx&&cw.lastSaved.setIdx===setIdx)cw.lastSaved=null;cwRender();return;}
@@ -1687,11 +1726,18 @@ function cwRenderBase(){
     const emom=cw.restKind==='emom';
     const saved=typeof cwSavedBannerHTML==='function'?cwSavedBannerHTML(cw):'';
     if(saved&&typeof cwScheduleSavedHide==='function')cwScheduleSavedHide(cw);
-    el.innerHTML=`${saved}<div class="cw-rest">
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${emom?'EMOM — czekaj na minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
-      <div class="cw-rest-num" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy: ${cw.restLeft} sekund">${cw.restLeft}</div>
-      <div style="font-size:13px;color:var(--muted);">${emom?'Następna runda':'Następna seria'} · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
-      <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
+    // Prosty styl jak „Dzisiaj”: co dalej (ćwiczenie, seria, ciężar), duży zegar, „Pomiń przerwę” jako przycisk drugorzędny.
+    const nSets=nxt.sets||[];
+    const ni=nSets.findIndex(s=>!s.done);
+    const ns=ni>=0?nSets[ni]:null;
+    const kgTxt=ns&&ns.kg!=null&&String(ns.kg).trim()!==''?String(ns.kg).trim()+' kg':'';
+    const nextBits=[(nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt.name||''),ns?('seria '+(ni+1)+' z '+nSets.length):'',kgTxt].filter(Boolean);
+    el.innerHTML=`${saved}<div class="cw-rest cs-rest">
+      <div class="cs-eyebrow">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
+      <div class="cw-rest-num cs-rest-clock" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy w sekundach">${cw.restLeft}</div>
+      <div class="sr-only" id="cw-rest-live" aria-live="polite"></div>
+      <p class="cs-rest-next">${emom?'Następna runda':'Następna'}: ${escHtml(nextBits.join(', '))}</p>
+      <button type="button" class="cs-btn cs-btn-secondary cs-rest-skip" onclick="cwSkipRest()">Pomiń przerwę</button>
     </div>`;
     return;
   }
@@ -1701,10 +1747,12 @@ function cwRenderBase(){
     if(cw.finishPrompt){
       const first=cw.exercises.findIndex(e=>(e.sets||[]).some(s=>!s.done));
       el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:10px;">ZAKOŃCZYĆ TRENING?</div>
-        <div class="cw-ex-todo"><div class="cw-ex-todo-txt">Pozostało ${missing} niewykonanych ${missing===1?'seria':'serii'}. Możesz do nich wrócić albo zakończyć trening jako częściowo wykonany.</div></div>
-        <button type="button" class="btn btn-ghost" style="width:100%;padding:13px;margin-top:10px;" onclick="cwGoEx(${Math.max(0,first)})">Wróć do treningu</button>
-        <button type="button" class="cap-btn-primary" style="margin-top:10px;padding:15px;" onclick="cwFinish(true)">Zakończ częściowo wykonany</button>`;
+        <div class="cs-finish-ask">
+          <h2 class="cs-ex-name">Zakończyć trening?</h2>
+          <p class="cs-card-text">${missing===1?'Została 1 niewykonana seria':(missing%10>=2&&missing%10<=4&&(missing%100<10||missing%100>=20)?'Zostały '+missing+' niewykonane serie':'Zostało '+missing+' niewykonanych serii')}. Możesz do nich wrócić albo zakończyć teraz. Zapiszemy to, co zrobione.</p>
+          <button type="button" class="cs-btn cs-btn-secondary" onclick="cwGoEx(${Math.max(0,first)})">Wróć do treningu</button>
+          <button type="button" class="cs-btn cs-btn-primary" onclick="cwFinish(true)">Zakończ teraz</button>
+        </div>`;
       return;
     }
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>

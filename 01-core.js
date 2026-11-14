@@ -306,7 +306,7 @@ function enterClientPreviewMode(clientId){
   }
   if(banner){
     banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(62,207,178,0.12);border:1px solid rgba(62,207,178,0.35);border-radius:8px;font-size:12px;color:var(--teal);';
-    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
+    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent-text,var(--accent));cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
   }
   setCapTab('preview');
   renderClientApp();
@@ -655,12 +655,15 @@ function goTo(n){
     automation:['automation','onboarding'],
     ondemand:['ondemand','resources'],
     business:['payments','bizstats'],
-    knowledge:['academy','kb','aicoach','calculator','aiplangen'],
+    knowledge:['academy','kb','aicoach','calculator'],
+    // „Więcej” widać tylko na koncie bez klientów (syncNavForClientCount).
+    more:['inbox','automation','onboarding','ondemand','resources','forum','payments','bizstats','academy','kb','aicoach','calculator'],
   };
+  navGroupScreens.library.push('aiplangen');
+  syncNavForClientCount();
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
-  const flyItem=document.querySelector('.nav-flyout-item[data-screen="'+n+'"]');
-  if(flyItem)flyItem.classList.add('active');
+  document.querySelectorAll('.nav-flyout-item[data-screen="'+n+'"]').forEach(b=>b.classList.add('active'));
   Object.keys(navGroupScreens).forEach(g=>{
     if(!navGroupScreens[g].includes(n))return;
     const groupBtn=document.getElementById('nav-'+g+'-btn');
@@ -669,6 +672,24 @@ function goTo(n){
   if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();
   try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
 }
+/** Nowy trener (0 klientów): w menu 6 pozycji — Pulpit, Klienci, Biblioteka (z „Nowy plan (AI)”), Kalendarz, Trening LIVE, Więcej.
+ *  Pozostałe grupy wracają od pierwszego klienta; wszystkie ekrany są dostępne z „Więcej”. */
+/** Ikony liniowe 18 px (obrys 1,75 px, currentColor) zamiast emoji na pulpicie i w „Pierwszych krokach”. */
+const PL_LINE_ICONS={"user": "<path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>", "users": "<path d=\"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M23 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>", "plus": "<line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/>", "plan": "<path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/>", "play": "<polygon points=\"6 4 20 12 6 20 6 4\"/>", "link": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"/><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"/>", "home": "<path d=\"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><polyline points=\"9 22 9 12 15 12 15 22\"/>", "megaphone": "<path d=\"M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z\"/><path d=\"M16 8a5 5 0 0 1 0 8\"/>", "note": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z\"/>", "check": "<polyline points=\"20 6 9 17 4 12\"/>", "file": "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"8\" y1=\"13\" x2=\"16\" y2=\"13\"/><line x1=\"8\" y1=\"17\" x2=\"13\" y2=\"17\"/>", "card": "<rect x=\"1\" y=\"4\" width=\"22\" height=\"16\" rx=\"2\"/><line x1=\"1\" y1=\"10\" x2=\"23\" y2=\"10\"/>", "spark": "<path d=\"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z\"/>"};
+function plLineIcon(name,size){
+  const d=PL_LINE_ICONS[name];if(!d)return '';
+  const px=size||18;
+  return '<svg class="pl-ico" viewBox="0 0 24 24" width="'+px+'" height="'+px+'" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+}
+window.PL_LINE_ICONS=PL_LINE_ICONS;
+window.plLineIcon=plLineIcon;
+function syncNavForClientCount(){
+  const app=document.getElementById('app-root');
+  if(!app)return;
+  const list=Array.isArray(window.CL)?window.CL:[];
+  app.classList.toggle('nav-new-trainer',!list.length);
+}
+window.syncNavForClientCount=syncNavForClientCount;
 function openLiveFromMobile(){
   closeMobileSidebar();
   goTo('live');
@@ -7808,7 +7829,7 @@ function applyBrandTheme(settings){
   const accent=normalizeHexColor(brand.accentColor)||STUDIO_THEME.accent;
   const mode=resolveThemeMode(brand);
   const rgb=hexToRgbStr(accent);
-  const hover=shadeHex(accent,-0.14);
+  const hover=shadeHex(accent,-0.15); // #e60000 → #c40000
   root.setAttribute('data-theme',mode);
   root.style.colorScheme=mode;
   root.style.setProperty('--accent',accent);

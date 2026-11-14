@@ -46,7 +46,7 @@ ok('progress hooks remember', /rememberClientExerciseProgress\(c\.id\)/.test(pro
 ok('progress panel from store', /cpExerciseProgressPanelHtml\(c\.id\)/.test(progressFn));
 ok('no class in client Progress markup', !/effortHarder|doseIncreased|reserveAvailable|nearLimit/.test(capFn)
   && !/cpExerciseProgressPanelHtml/.test(capFn));
-ok('html template unchanged labels', /POSTĘPY/.test(progressFn) && /MOJE POSTĘPY/.test(capFn));
+ok('html template unchanged labels', /POSTĘPY/i.test(progressFn) && /MOJE POSTĘPY/i.test(capFn));
 
 const document = {
   querySelectorAll: () => [],

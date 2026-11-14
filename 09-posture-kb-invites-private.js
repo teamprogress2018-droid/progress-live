@@ -1035,7 +1035,7 @@ function viewInvoice(invId){
     <div style="font-family:'DM Mono',monospace;">
       <div style="display:flex;justify-content:space-between;margin-bottom:20px;gap:12px;">
         <div>
-          <div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div>
+          <div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">Progress LIVE</div>
           <div style="font-size:11px;color:var(--muted);">${escHtml(seller.name)}</div>
           ${seller.nip?`<div style="font-size:11px;color:var(--muted);">NIP ${escHtml(seller.nip)}</div>`:''}
           ${seller.address?`<div style="font-size:11px;color:var(--muted);">${escHtml(seller.address)}</div>`:''}
@@ -2218,7 +2218,7 @@ function renderODPrograms(){
             <button class="btn btn-primary btn-sm" type="button" onclick="openODAddFilm('${filter}')">+ Wklej link YouTube</button>
           </div>`
       }</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:12px;">PROGRAMY W TEJ KOLEKCJI</div>`;
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:12px;">Programy w tej kolekcji</div>`;
     }
   }
   g.innerHTML=(list.length?list.map((p,i)=>odProgramCardHTML(p,i)).join(''):`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);"><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak programów${coll?' w „'+coll.name+'”':''}</div><div style="font-size:12px;margin-bottom:10px;">Możesz dodać pojedyncze filmy YouTube powyżej albo złożyć program.</div><button class="btn btn-ghost btn-sm" onclick="odProgramFilter='all';renderODPrograms()">Pokaż wszystkie programy</button></div>`)

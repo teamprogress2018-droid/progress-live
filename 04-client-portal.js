@@ -551,7 +551,7 @@ function capClientProgressScreenHTML(c,accent){
   return `
     <div class="cap-section cap-progress-panel" style="padding-bottom:90px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">Moje postępy</div>
         ${capClientSectionVisible('calendar')?`<button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>`:''}
       </div>
       ${!metricsOn?`<div style="background:var(--s3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:${CAP_MUTED};line-height:1.45;">📏 Pomiary ciała (masa, obwody, Garmin) są wyłączone przez trenera — widać treningi, rekordy i historię.</div>`:''}
@@ -941,7 +941,7 @@ function capScreenHTML(scr,c){
   if(scr==='plan'&&capIsLiveClient()&&typeof csPlanHTML==='function')return csPlanHTML(c);
   if(scr==='plan') return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MÓJ PLAN</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">Mój plan</div>
       ${(()=>{
         const plan=capClientPlan(c);
         if(!plan)return `
@@ -1046,7 +1046,7 @@ function capScreenHTML(scr,c){
     }
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">KALENDARZ</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">Kalendarz</div>
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <button type="button" style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;" onclick="clientCalNav(-1)">‹</button>
@@ -1191,7 +1191,7 @@ function capScreenHTML(scr,c){
     if(live&&typeof filledThisWeek==='function'&&filledThisWeek(c.id)&&!(typeof pendingCheckin==='function'&&pendingCheckin(c.id))){
       const last=filledThisWeek(c.id);
       return `<div class="cap-section" style="padding-bottom:90px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">CHECK-IN</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">Check-in</div>
         <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:20px;text-align:center;">
           <div style="font-size:36px;margin-bottom:8px;">✓</div>
           <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">W tym tygodniu już wysłane</div>
@@ -1212,7 +1212,7 @@ function capScreenHTML(scr,c){
     };
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">CHECK-IN TYGODNIOWY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">Check-in tygodniowy</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:20px;">${live?'Wypełnij i wyślij do trenera':'Podgląd formularza'}</div>
       ${qrow('energy','Poziom energii',['😴','😪','😐','😊','⚡'])}
       ${qrow('sleep','Jakość snu',['😴','😪','😐','😊','🌟'])}
@@ -1281,7 +1281,7 @@ function capScreenHTML(scr,c){
     const allW=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[]));
     const resolveW=t=>(allW.find(x=>x.id===t.odWorkoutId)||null);
     return `<div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">ZADANIA DOMOWE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">Zadania domowe</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Tylko to, co trener Ci przypisał — termin, notatka i odhaczenie. Szablony bez filmu mają timer w apce. Katalog YouTube jest w <strong>On-demand</strong> (Więcej).</div>
       ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Do zrobienia (${openHw.length})</div>
         ${openHw.map(t=>{const w=resolveW(t);
@@ -1321,7 +1321,7 @@ function capScreenHTML(scr,c){
       }).join('');
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ON-DEMAND</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">On-demand</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Wielotygodniowe programy z filmami YouTube (mobilność, dom bez sprzętu, FBW). Klient sam wybiera dzień i tempo — to biblioteka planów, nie pojedyncze zadania od trenera. Pojedyncze treningi → zakładka <strong>Zadania domowe</strong>.</div>
       ${programCards}
     </div>`;
@@ -1376,7 +1376,7 @@ function capScreenHTML(scr,c){
     const pill=(id,label)=>`<button type="button" class="btn ${filter===id?'btn-primary':'btn-ghost'} btn-sm" onclick="capSetResFilter('${id}')">${label}</button>`;
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ZASOBY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">Zasoby</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">Darmowe na YouTube — bez Spotify Premium.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
         ${pill('all','Wszystkie')}
@@ -1426,7 +1426,7 @@ function capScreenHTML(scr,c){
       </div>`;
     }
     return `<div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 6px;">SPOŁECZNOŚĆ</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 6px;">Społeczność</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;">Grupa Twojego trenera — nie jest to publiczne forum.</div>
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:12px;margin-bottom:14px;">
         <input id="clive-fp-title" class="form-input" placeholder="Tytuł posta" style="margin-bottom:8px;background:${CAP_S3};border:1px solid ${CAP_S3};">
@@ -1536,7 +1536,7 @@ function capScreenHTML(scr,c){
       </div>`;
     }
     return `<div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 16px;padding-top:8px;">FORMULARZE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 16px;padding-top:8px;">Formularze</div>
       ${!sends.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak formularzy. Gdy trener wyśle ankietę, pojawi się tutaj.</div>`:''}
       ${pending.length?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--purple);text-transform:uppercase;margin-bottom:8px;">Do wypełnienia</div>
         ${pending.map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenForm('${escHtml(s.id)}')">
@@ -1799,9 +1799,11 @@ function shareAppLink(){
 }
 
 function buildClientInviteLink(c){
-  if(c&&c.inviteToken&&c.inviteToken!==c.id&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken);
+  // E-mail klienta w linku tylko wypełnia pole w oknie konta (klient dostaje link na własny adres).
+  const em=c&&c.email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email).trim())?'&email='+encodeURIComponent(String(c.email).trim()):'';
+  if(c&&c.inviteToken&&c.inviteToken!==c.id&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken)+em;
   const base=(location.origin+location.pathname).replace(/index\.html$/,'');
-  if(c&&c.inviteToken&&c.inviteToken!==c.id)return base+'?invite='+encodeURIComponent(c.inviteToken);
+  if(c&&c.inviteToken&&c.inviteToken!==c.id)return base+'?invite='+encodeURIComponent(c.inviteToken)+em;
   return base+'?invite=';
 }
 
@@ -4204,7 +4206,7 @@ function renderSettingsContent(t,targetId){
 
   if(t==='profile'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">PROFIL TRENERA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Profil trenera</div>
 
       ${card('Zdjęcie i dane osobowe','Informacje widoczne dla klientów w aplikacji mobilnej.',`
         <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px;">
@@ -4261,7 +4263,7 @@ function renderSettingsContent(t,targetId){
     const presets=window.ACCENT_PRESETS||[];
     const isPreset=presets.some(p=>p.hex===accentNow);
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">MARKA I WYGLĄD</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Marka i wygląd</div>
 
       ${card('Kolor akcentu','Kolor przycisków, aktywnej zakładki i wyróżnień. Ostrzeżenia, błędy i statusy mają własne, stałe kolory — nie zmieniają się razem z akcentem.',`
         <div class="accent-presets" role="radiogroup" aria-label="Kolor akcentu">
@@ -4329,7 +4331,7 @@ function renderSettingsContent(t,targetId){
           <div style="width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
           </div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;" id="brand-preview-name">PROGRESS<span style="color:var(--accent);">LIVE</span></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;" id="brand-preview-name">Progress<span style="color:var(--accent);">LIVE</span></div>
         </div>
       `)}
     </div>`;
@@ -4337,7 +4339,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='company'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">DANE FIRMY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Dane firmy</div>
 
       ${card('Dane podstawowe','Używane do fakturowania i raportów.',`
         <div class="form-grid">
@@ -4366,7 +4368,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='notifications'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">POWIADOMIENIA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Powiadomienia</div>
 
       ${card('Sesje','',`
         ${row('Przypomnienie o sesji','Powiadamia przed zaplanowaną sesją',toggle('sess-reminder',S.notifications.sessionReminder))}
@@ -4394,7 +4396,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='calendar'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA KALENDARZA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Ustawienia kalendarza</div>
 
       ${card('Godziny pracy','',`
         ${row('Początek dnia roboczego','',`<input type="time" class="form-input" id="set-workday-start" value="${S.calendar.workdayStart}" style="width:120px;font-size:13px;">`)}
@@ -4416,7 +4418,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='payments'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA PŁATNOŚCI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Ustawienia płatności</div>
 
       ${card('Waluta i ceny','',`
         ${row('Waluta',''  ,sel('currency',S.payments.currency,[['PLN','PLN — Polski złoty'],['EUR','EUR — Euro'],['USD','USD — Dolar'],['GBP','GBP — Funt']]))}
@@ -4442,7 +4444,7 @@ function renderSettingsContent(t,targetId){
   else if(t==='integrations'){
     const items=typeof INTEGRATIONS!=='undefined'?INTEGRATIONS:[];
     el.innerHTML=`<div class="settings-section" style="max-width:700px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">INTEGRACJE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Integracje</div>
       <div class="settings-card" style="margin-bottom:16px;">
         <div style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px;">Zielone działają ze strony (ICS, WhatsApp, e-mail, Calendly, Zapier/Make, Garmin CSV). Pomarańczowe wymagają serwera — nie zbieramy kluczy tajnych.</div>
         <button class="btn btn-primary btn-sm" onclick="goTo('integrations')">Otwórz Integracje →</button>
@@ -4471,7 +4473,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='data'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">DANE I EKSPORT</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Dane i eksport</div>
 
       ${card('Eksport danych','Pobierz kopię swoich danych.',`
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -4504,7 +4506,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='about'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">O APLIKACJI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">O aplikacji</div>
 
       ${card('Progress Live','',`
         <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">
@@ -4512,7 +4514,7 @@ function renderSettingsContent(t,targetId){
             <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
           </div>
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;">PROGRESS<span style="color:var(--accent);">LIVE</span></div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;">Progress<span style="color:var(--accent);">LIVE</span></div>
             <div style="font-size:11px;color:var(--muted);">Wersja 1.0.0 · Build 2025.05</div>
             <div style="font-size:11px;color:var(--muted);">Platforma dla trenerów personalnych</div>
           </div>
@@ -5430,7 +5432,7 @@ function buildReportHTML(c,from,to,sec,template){
     <div style="position:absolute;bottom:-40px;right:60px;width:150px;height:150px;border-radius:50%;background:${blue};opacity:0.06;"></div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:${accent};opacity:0.8;margin-bottom:6px;">PROGRESS LIVE · RAPORT POSTĘPÓW</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:${accent};opacity:0.8;margin-bottom:6px;">Progress LIVE · raport postępów</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;margin-bottom:4px;">${c.name.toUpperCase()}</div>
         <div style="font-size:13px;opacity:0.6;">Okres: ${from} — ${to}</div>
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
@@ -6235,9 +6237,13 @@ try{dashSimpleMode=localStorage.getItem('pl_dash_simple')!=='0';}catch(e){}
 function applyDashSimpleMode(){
   const screen=document.getElementById('screen-dashboard');
   const btn=document.getElementById('dash-simple-toggle');
-  if(screen)screen.classList.toggle('dash-simple',!!dashSimpleMode);
+  if(screen){
+    screen.classList.toggle('dash-simple',!!dashSimpleMode);
+    // Pusty pulpit (0 klientów): jedna karta „Pierwszy krok” + „Twój dzień”, reszta od pierwszego klienta.
+    screen.classList.toggle('dash-empty',!(window.CL||[]).length);
+  }
   if(btn){
-    btn.textContent=dashSimpleMode?'Widok prosty':'Widok pełny';
+    btn.textContent=dashSimpleMode?'Widok: prosty':'Widok: pełny';
     btn.setAttribute('aria-pressed',dashSimpleMode?'true':'false');
     btn.title=dashSimpleMode?'Pokaż wszystkie statystyki i ostatnią aktywność':'Ukryj elementy pomocnicze i skup się na zadaniach';
   }
@@ -6315,6 +6321,7 @@ function renderDash(){
   renderProfileSetupBanner();
   if(typeof renderDashHome==='function')try{renderDashHome();}catch(e){console.warn('renderDashHome',e);}
   applyDashSimpleMode();
+  if(typeof syncNavForClientCount==='function')syncNavForClientCount();
 }
 
 function toggleDashQuickActions(evOrClose){
@@ -6801,6 +6808,14 @@ function renderDashNextAction(){
   const a=dashNextAction();
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   el.className='dash-next-action dash-next-'+esc(a.tone||'info');
+  if(!(window.CL||[]).length){
+    el.classList.add('dash-next-first');
+    const steps=[['Dodaj klienta','Imię, e-mail i cel.'],['Przypisz plan','Gotowy szablon albo nowy plan.'],['Odpal Trening Live','Prowadzisz trening, aplikacja zapisuje ciężary.']];
+    el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">Pierwszy krok</div><div class="dash-next-title">Zacznij od pierwszego klienta</div>`+
+      `<ol class="dash-first-steps">${steps.map(x=>`<li><b>${esc(x[0])}</b><span>${esc(x[1])}</span></li>`).join('')}</ol></div>`+
+      `<button type="button" class="btn btn-primary" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
+    return;
+  }
   el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">${esc(a.eyebrow)}</div><div class="dash-next-title">${esc(a.title)}</div><div class="dash-next-desc">${esc(a.desc)}</div></div><button type="button" class="btn ${a.tone==='ok'?'btn-ghost':'btn-primary'}" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
 }
 window.dashNextAction=dashNextAction;
@@ -7030,9 +7045,9 @@ function renderDashGettingStarted(){
   const hasSess=SE.length>0;
   if(dismissed||(hasClients&&hasPlan&&hasSess)){el.style.display='none';el.innerHTML='';return;}
   const steps=[
-    {done:hasClients,icon:'👤',title:'Dodaj klienta',desc:'Imię, cel i e-mail — stąd zaczyna się wszystko',action:"openM('m-client')",cta:'Dodaj klienta'},
-    {done:hasPlan,icon:'📋',title:'Przypisz plan',desc:'Szablon lub nowy plan pod konkretną osobę',action:hasClients?"goTo('plans')":"openM('m-client')",cta:'Otwórz plany'},
-    {done:hasSess,icon:'▶',title:'Odpal Trening Live',desc:'Wybierz klienta, start sesji, zapis ciężarów',action:"goTo('live')",cta:'Trening Live'},
+    {done:hasClients,icon:'user',title:'Dodaj klienta',desc:'Imię, cel i e-mail — stąd zaczyna się wszystko',action:"openM('m-client')",cta:'Dodaj klienta'},
+    {done:hasPlan,icon:'plan',title:'Przypisz plan',desc:'Szablon lub nowy plan pod konkretną osobę',action:hasClients?"goTo('plans')":"openM('m-client')",cta:'Otwórz plany'},
+    {done:hasSess,icon:'play',title:'Odpal Trening Live',desc:'Wybierz klienta, start sesji, zapis ciężarów',action:"goTo('live')",cta:'Trening Live'},
   ];
   el.style.display='block';
   el.innerHTML=`<div class="card dash-setup-card">
@@ -7046,7 +7061,7 @@ function renderDashGettingStarted(){
     <div class="gs-steps" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
       ${steps.map((s,i)=>`<div style="background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;padding:12px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <div style="width:28px;height:28px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;">${s.done?'✓':s.icon}</div>
+          <div style="width:28px;height:28px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;color:var(--text-label);">${typeof plLineIcon==='function'?plLineIcon(s.done?'check':s.icon):''}</div>
           <div style="font-size:12px;font-weight:700;">${i+1}. ${s.title}</div>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:${s.done?'0':'10px'};">${s.desc}</div>

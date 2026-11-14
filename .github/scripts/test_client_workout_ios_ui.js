@@ -69,12 +69,12 @@ const geom = (page, ph) => page.evaluate(ph => {
     ok(ph.name + ': wszystkie przyciski min. 44 × 44', g.small.length === 0, JSON.stringify(g.small));
     ok(ph.name + ': bez przewijania w poziomie', !g.overflowX);
     ok(ph.name + ': film tylko jako mały przycisk „Technika”', g.tech && g.tech.h <= 48, JSON.stringify(g.tech));
-    ok(ph.name + ': domyślnie: ćwiczenie X z Y, nazwa, wskazówka, plan serii, zapis', /Ćwiczenie 1 z 6/.test(g.text) && /Wiosłowanie na maszynie Hammer/.test(g.text) && /Kontroluj zakres/.test(g.text) && /8 powtórzeń · 70 kg · cel RIR 2–3/.test(g.text) && /Zapisz serię 1 z 4/.test(g.text), g.text.slice(0, 300));
-    ok(ph.name + ': szczegóły schowane pod „Pomoc / Technika / Więcej”', !/HISTORIA|Pomiń ćwiczenie|INNE WARIANTY/.test(g.text) && /Pomoc \/ Technika \/ Więcej/.test(g.text));
+    ok(ph.name + ': domyślnie: ćwiczenie X z Y, nazwa, wskazówka, plan serii, zapis', /Ćwiczenie 1 z 6/.test(g.text) && /Wiosłowanie na maszynie Hammer/.test(g.text) && /Kontroluj zakres/.test(g.text) && /8 powtórzeń · 70 kg · zostaw w zapasie 2–3 powtórzenia/.test(g.text) && !/RIR/.test(g.text) && /Zapisz serię 1 z 4/.test(g.text), g.text.slice(0, 300));
+    ok(ph.name + ': szczegóły schowane pod „Wskazówki i historia”', !/HISTORIA|Pomiń ćwiczenie|INNE WARIANTY/.test(g.text) && /Wskazówki i historia/.test(g.text));
     ok(ph.name + ': widoczne „← Poprzednie” i „Następne →”', /← Poprzednie/.test(g.text) && /Następne →/.test(g.text));
     if (ph.w === 375) {
       // RIR prostym językiem
-      ok('RIR: pytanie i opcje 0 / 1–2 / 3–4 / Nie wiem', /Ile powtórzeń zostało Ci w zapasie\?/.test(g.text) && await page.locator('.cs-rir-opts button').allInnerTexts().then(t => t.join('|') === '0|1–2|3–4|Nie wiem'));
+      ok('RIR: pytanie i opcje Ledwo (0) / 1–2 / 3–4 / Nie wiem', /Ile powtórzeń zostało Ci w zapasie\?/.test(g.text) && await page.locator('.cs-rir-opts button').allInnerTexts().then(t => t.join('|') === 'Ledwo (0)|1–2|3–4|Nie wiem'));
       await page.tap('.cs-rir-opts [data-rir="1-2"]');
       ok('RIR zapisany jako 1-2', await page.evaluate(() => window._cw.exercises[0].sets[0].rir === '1-2'));
 
@@ -164,7 +164,7 @@ const geom = (page, ph) => page.evaluate(ph => {
       // Zakończ trening z menu
       await page.tap('.cs-more-btn');
       await page.tap('.cs-sheet >> text=Zakończ trening');
-      ok('„Zakończ trening” z menu → pytanie o niewykonane serie', await page.evaluate(() => window._cw.phase === 'finish' && /ZAKOŃCZYĆ TRENING\?/.test(document.getElementById('clive-player-inner').innerText)));
+      ok('„Zakończ trening” z menu → pytanie o niewykonane serie', await page.evaluate(() => window._cw.phase === 'finish' && /Zakończyć trening\?/.test(document.getElementById('clive-player-inner').innerText) && /Zakończ teraz/.test(document.getElementById('clive-player-inner').innerText)));
       const fin = await page.evaluate(() => { const r = document.querySelector('#clive-player-inner .cs-back-btn').getBoundingClientRect(); return { t: r.top, h: r.height }; });
       ok('ekran końca: „‹ Wróć” zamiast ×, pod paskiem statusu', fin.t >= 20 && fin.h >= 44, JSON.stringify(fin));
     }

@@ -219,3 +219,20 @@
   .cs-back-btn { font-size: 15px; }
   .cs-rir-opts button { font-size: 14px; }
 }
+
+/* ── Etap 6 UX: przerwa i koniec treningu w prostym stylu, czytelne pola serii ── */
+.cs-rest { gap: 18px; padding: 0 8px; }
+.cs-rest .cs-rest-clock { font-family: var(--font-ui, Inter, system-ui, sans-serif) !important; font-size: 104px; font-weight: 750; letter-spacing: -.03em; line-height: 1; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.cs-rest-next { margin: 0; max-width: 340px; color: var(--text-primary); font-size: 17px; font-weight: 550; line-height: 1.45; }
+.cs-rest .cs-rest-skip { max-width: 320px; }
+.cs-finish-ask { display: flex; flex-direction: column; gap: 14px; }
+.cs-finish-ask .cs-card-text { margin-bottom: 6px; }
+/* Pola powtórzeń i ciężaru: pełna ramka 1,5 px (kontrast > 3:1), wysokość 64 px. */
+#clive-player-inner .cs-num input,
+.cs-num input { min-height: 64px; padding: 4px 12px !important; border: 1.5px solid var(--border-strong, #6b7280) !important; border-radius: 14px !important; background: var(--bg-card) !important; }
+#clive-player-inner .cs-num input:focus,
+.cs-num input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 230,0,0), .18) !important; }
+#clive-player-inner .cs-num input[aria-invalid="true"],
+.cs-num input[aria-invalid="true"] { border-color: var(--danger) !important; }
+.cs-num span { padding-left: 4px; }
+.cs-field-err { margin: -4px 0 0; color: var(--danger); font-size: 15px; font-weight: 600; line-height: 1.4; }

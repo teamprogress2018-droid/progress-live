@@ -45,6 +45,9 @@ const trackX = (page, i) => page.evaluate((n) => {
     const y1b = await trackY(page, 0); const y2b = await trackY(page, 1);
     ok('first column moves up', y1b < y1, y1 + ' → ' + y1b);
     ok('second column moves down', y2b > y2, y2 + ' → ' + y2b);
+    ok('tiles stop after one loop', await page.$eval('#auth-screen .pl-land-track', (e) => getComputedStyle(e).animationIterationCount) === '1');
+    ok('two entries: client and trainer', (await page.textContent('#pl-land-who-client')).includes('Jestem klientem') && (await page.textContent('#pl-land-who-trainer')).includes('Jestem trenerem'));
+    ok('one red button on hero', (await page.locator('.pl-land-hero .pl-land-btn-primary').count()) === 1);
     const titleSize = await page.$eval('#pl-land-title', (e) => parseFloat(getComputedStyle(e).fontSize));
     ok('big headline', titleSize >= 56, String(titleSize));
     ok('dialog hidden at start', !(await page.isVisible('#auth-card')));
@@ -63,8 +66,12 @@ const trackX = (page, i) => page.evaluate((n) => {
     await page.click('.pl-auth-backdrop', { position: { x: 10, y: 10 } });
     ok('backdrop closes dialog', !(await page.isVisible('#auth-card')));
 
-    await page.click('.pl-land-link');
-    ok('invite link opens register form', await page.isVisible('#auth-reg-btn') && !(await page.isVisible('#auth-login-btn')));
+    await page.click('#pl-land-who-client');
+    ok('client entry selected', await page.getAttribute('#pl-land-who-client', 'aria-pressed') === 'true' && (await page.textContent('#pl-land-start-btn')).includes('Załóż konto'));
+    await page.click('#pl-land-start-btn');
+    ok('client entry opens register form', await page.isVisible('#auth-reg-btn') && !(await page.isVisible('#auth-login-btn')));
+    ok('register subtitle', (await page.textContent('#auth-reg-sub')).trim() === 'Wymyśl hasło i zobacz swój plan.');
+    ok('code field explains where to find the code', await page.isVisible('#auth-reg-token') && (await page.textContent('#auth-reg-token-help')).includes('wiadomości od trenera'));
     await page.click('#auth-register-view button[onclick="authShowLoginFromClient()"]');
     ok('back to login inside dialog', await page.isVisible('#auth-login-btn') && await page.isVisible('#auth-card'));
     await page.click('#auth-login-view button[onclick="authShowReset()"]');
@@ -78,6 +85,12 @@ const trackX = (page, i) => page.evaluate((n) => {
     await page.waitForTimeout(300);
     ok('invite URL opens register dialog', await page.isVisible('#auth-reg-btn'));
     ok('invite token filled', (await page.inputValue('#auth-reg-token')) === 'abc123');
+    ok('invite: code field hidden when code is in the link', !(await page.isVisible('#auth-reg-token')));
+    await ctx.close();
+
+    ({ ctx, page } = await open(browser, { viewport: { width: 390, height: 844 } }, '?invite=abc123&email=ania%40example.com'));
+    await page.waitForTimeout(300);
+    ok('invite with e-mail: e-mail prefilled', (await page.inputValue('#auth-reg-email')) === 'ania@example.com');
     await ctx.close();
 
     // Telefon
@@ -89,9 +102,11 @@ const trackX = (page, i) => page.evaluate((n) => {
     ok('phone: no horizontal scroll', noHScroll);
     ok('phone: login button visible on first screen', await page.isVisible('#pl-land-start-btn') && (await page.$eval('#pl-land-start-btn', (e) => e.getBoundingClientRect().bottom)) <= 844);
     ok('phone: invite button in header hidden', !(await page.isVisible('.pl-land-top-invite')));
-    const x1 = await trackX(page, 0); const x2 = await trackX(page, 1);
+    const x1 = await trackX(page, 0);
     await page.waitForTimeout(1200);
-    ok('phone: tile rows move sideways in opposite directions', (await trackX(page, 0)) < x1 && (await trackX(page, 1)) > x2);
+    ok('phone: tiles are static', (await trackX(page, 0)) === x1 && await page.$eval('#auth-screen .pl-land-track', (e) => getComputedStyle(e).animationName) === 'none');
+    const who = await page.$$eval('.pl-land-who-btn', (els) => els.map((e) => e.getBoundingClientRect().height));
+    ok('phone: two entries ≥44 px', who.length === 2 && who.every((h) => h >= 44), JSON.stringify(who));
     await page.click('#pl-land-login-top');
     const box = await page.$eval('#auth-card', (e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right }; });
     ok('phone: dialog fits screen', box.l >= 0 && box.r <= 390, JSON.stringify(box));

@@ -15,8 +15,8 @@
   --text-label: #9ca3af;
 
   /* ── Akcent ── */
-  --accent-red: #ff3b30;
-  --accent-red-hover: #ff5248;
+  --accent-red: #e60000;       /* jeden akcent w całej aplikacji */
+  --accent-red-hover: #c40000;
   --accent-rgb: 255, 59, 48;
 
   /* ── Obramowania ── */
@@ -26,7 +26,7 @@
 
   /* ── Typografia ── */
   --font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Bebas Neue', sans-serif;
+  --font-display: var(--font-ui);
   --font-size-base: 16px;
   --font-size-sm: 14px;
   --font-size-label: 13px;
@@ -47,8 +47,8 @@
   --section-gap: 20px;
 
   /* ── Promienie ── */
-  --r: 10px;
-  --r2: 14px;
+  --r: 8px;    /* przyciski, pola */
+  --r2: 12px;  /* karty */
   --r-pill: 999px;
 
   /* ── Cienie ── */
@@ -72,7 +72,7 @@
   --input-bg: var(--bg-input);
   --input-text: var(--text-primary);
   --accent: var(--accent-red);
-  --accent2: #e0352b;
+  --accent2: #c40000;          /* hover akcentu */
   --adim: rgba(var(--accent-rgb), 0.12);
   --glow: var(--focus-ring);
   --font-body: var(--font-ui);
