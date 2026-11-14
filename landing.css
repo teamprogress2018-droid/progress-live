@@ -287,7 +287,7 @@
 .pl-auth-card .btn-primary { min-height: 48px; font-size: 15px; }
 .pl-auth-card #auth-login-view button[onclick^="auth"],
 .pl-auth-card #auth-register-view button[onclick^="auth"],
-.pl-auth-card #auth-reset-view button[onclick^="auth"] { font-size: 13px !important; color: var(--text-secondary, #3d3d3d) !important; padding: 6px 4px !important; }
+.pl-auth-card #auth-reset-view button[onclick^="auth"] { font-size: 14px !important; color: var(--text-secondary, #3d3d3d) !important; padding: 6px 4px !important; }
 #auth-screen .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* Tablet i telefon: kafelki jako poziome paski pod tekstem */
@@ -323,3 +323,15 @@
   .pl-land-track { animation: none !important; }
   .pl-land-btn { transition: none; }
 }
+
+/* ── Etap 2 UX: logowanie — jeden przycisk, czytelne linki i błąd, „pokaż hasło” ── */
+.pl-auth-pass { position: relative; }
+.pl-auth-pass .form-input { padding-right: 52px; }
+.pl-auth-eye { position: absolute; top: 50%; right: 2px; transform: translateY(-50%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.pl-auth-eye svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.pl-auth-eye[aria-pressed="true"] svg { opacity: .55; }
+.pl-auth-eye:focus-visible { outline: 3px solid var(--text-primary); outline-offset: 0; }
+.pl-auth-error { background: var(--danger-bg); border: 1px solid var(--danger); border-radius: 8px; padding: 10px 12px; font-size: 14px; line-height: 1.4; color: var(--danger); margin-bottom: 12px; }
+.pl-auth-links { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 12px; }
+.pl-auth-card .pl-auth-link { min-height: 44px; padding: 0 12px !important; background: none; border: 0; font-size: 14px !important; color: var(--text-secondary) !important; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pl-auth-card .pl-auth-link:hover { color: var(--text-primary) !important; }

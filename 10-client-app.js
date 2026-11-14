@@ -583,7 +583,7 @@ function prepareAuthForInvite(){
     const sub=document.getElementById('auth-reg-sub');
     if(sub)sub.textContent='Wpisz adres e-mail podany trenerowi i ustaw hasło. Jeśli masz już konto, użyj swojego hasła.';
   }else if(hint){
-    hint.textContent='Zaloguj się — trener do panelu, klient do swojej aplikacji';
+    hint.textContent='Zaloguj się do swojego konta';
   }
 }
 

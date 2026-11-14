@@ -37,9 +37,23 @@
   }
 
   var lastFocus=null;
+  /** E-mail znany z wcześniejszego kroku: okno logowania albo pole na stronie startowej. */
+  function landingKnownEmail(){
+    var ids=['auth-email','pl-land-email','auth-reg-email'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value&&el.value.trim())return el.value.trim();}
+    return '';
+  }
+  /** Ikona „pokaż hasło” przy polu hasła. */
+  function authTogglePassword(id,btn){
+    var inp=document.getElementById(id);if(!inp)return;
+    var show=inp.type==='password';
+    inp.type=show?'text':'password';
+    if(btn){btn.setAttribute('aria-pressed',show?'true':'false');btn.setAttribute('aria-label',show?'Ukryj hasło':'Pokaż hasło');}
+  }
   function landingOpenAuth(view,email){
     var screen=document.getElementById('auth-screen');
     if(!screen)return;
+    if(!email){var land=document.getElementById('pl-land-email');email=land&&land.value?land.value.trim():'';}
     if(!screen.classList.contains('pl-auth-open'))lastFocus=document.activeElement;
     screen.classList.add('pl-auth-open');
     var card=document.getElementById('auth-card');
@@ -88,5 +102,7 @@
   window.landingOpenAuth=landingOpenAuth;
   window.landingCloseAuth=landingCloseAuth;
   window.landingStart=landingStart;
+  window.landingKnownEmail=landingKnownEmail;
+  window.authTogglePassword=authTogglePassword;
   renderLandingStats();
 })();

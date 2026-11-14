@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
-<link rel="stylesheet" href="landing.css?v=2">
+<link rel="stylesheet" href="landing.css?v=2&ux-login=1">
 <link rel="stylesheet" href="client-simple.css?v=2">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
@@ -70,45 +70,42 @@
     <div class="pl-auth-card-head"><svg viewBox="0 0 40 44" aria-hidden="true"><path d="M4 6 14 2v40L4 38z" fill="#e5231b"/><path d="M17 2h10c7.7 0 13 5 13 12.5S34.7 27 27 27h-3v-9h2.6c2.4 0 4-1.4 4-3.6s-1.6-3.6-4-3.6H17z" fill="#ff2d20"/><path d="M17 30h7v12l-7-3z" fill="#b5130d"/></svg><b id="auth-card-title">PROGRESS <span>LIVE</span></b></div>
 
     <div id="auth-login-view">
-      <div id="auth-role-hint" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się — trener do panelu, klient do swojej aplikacji</div>
-      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-email" placeholder="trener@przyklad.pl" autocomplete="username"></div>
-      <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
-      <div id="auth-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
+      <div id="auth-role-hint" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się do swojego konta</div>
+      <div class="form-field"><label class="form-lbl" for="auth-email">E-mail</label><input type="email" class="form-input" id="auth-email" placeholder="twoj@email.pl" autocomplete="username"></div>
+      <div class="form-field"><label class="form-lbl" for="auth-password">Hasło</label><div class="pl-auth-pass"><input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"><button type="button" class="pl-auth-eye" id="auth-pass-toggle" onclick="authTogglePassword('auth-password',this)" aria-label="Pokaż hasło" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <div id="auth-error" class="pl-auth-error" role="alert" style="display:none;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-login-btn" onclick="doSignIn()">Zaloguj się</button>
-      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;" id="auth-login-trainer-btn" onclick="doSignInAsTrainer()">Zaloguj jako trener</button>
-      <div style="text-align:center;margin-top:14px;">
-        <button onclick="authShowReset()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Nie pamiętam hasła</button>
-      </div>
-      <div style="text-align:center;margin-top:10px;">
-        <button type="button" onclick="authShowRegister()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Mam zaproszenie od trenera — pierwsze logowanie</button>
+      <div class="pl-auth-links">
+        <button type="button" class="pl-auth-link" onclick="authShowReset()">Nie pamiętam hasła</button>
+        <button type="button" class="pl-auth-link" onclick="authShowRegister()">Mam zaproszenie, załóż konto</button>
       </div>
     </div>
 
     <div id="auth-register-view" style="display:none;">
       <div id="auth-reg-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Ustaw hasło z linku zaproszenia, żeby zobaczyć swój plan.</div>
-      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reg-email" placeholder="jan@przyklad.pl" autocomplete="username"></div>
+      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reg-email" placeholder="twoj@email.pl" autocomplete="username"></div>
       <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-reg-password" placeholder="min. 6 znaków" autocomplete="new-password"></div>
       <div class="form-field"><label class="form-lbl">Powtórz hasło</label><input type="password" class="form-input" id="auth-reg-password2" placeholder="powtórz hasło" autocomplete="new-password" onkeydown="if(event.key==='Enter')doClientRegister()"></div>
       <div class="form-field"><label class="form-lbl">Kod z linku zaproszenia</label><input class="form-input" id="auth-reg-token" placeholder="wklej, jeśli nie otworzyłeś linku" autocomplete="off"></div>
-      <div id="auth-reg-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
+      <div id="auth-reg-error" class="pl-auth-error" role="alert" style="display:none;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-reg-btn" onclick="doClientRegister()">Utwórz konto i wejdź</button>
-      <div style="text-align:center;margin-top:14px;">
-        <button type="button" onclick="authShowLoginFromClient()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">← Mam już konto — zaloguj się</button>
+      <div class="pl-auth-links">
+        <button type="button" class="pl-auth-link" onclick="authShowLoginFromClient()">← Mam już konto, zaloguj się</button>
       </div>
     </div>
 
     <div id="auth-reset-view" style="display:none;">
-      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Podaj e-mail, na który wyślemy link do resetu hasła</div>
-      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reset-email" placeholder="trener@przyklad.pl"></div>
-      <div id="auth-reset-msg" style="display:none;font-size:11px;margin-bottom:12px;"></div>
+      <div id="auth-reset-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Wyślemy Ci link na e-mail. Sprawdź też spam.</div>
+      <div class="form-field"><label class="form-lbl" for="auth-reset-email">E-mail</label><input type="email" class="form-input" id="auth-reset-email" placeholder="twoj@email.pl" autocomplete="email"></div>
+      <div id="auth-reset-msg" role="status" style="display:none;font-size:14px;margin-bottom:12px;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" onclick="doPasswordReset()">Wyślij link resetujący</button>
-      <div style="text-align:center;margin-top:14px;">
-        <button onclick="authShowLogin()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">← Wróć do logowania</button>
+      <div class="pl-auth-links">
+        <button type="button" class="pl-auth-link" onclick="authShowLogin()">← Wróć do logowania</button>
       </div>
     </div>
   </div>
 </div>
-<script src="landing.js?v=2"></script>
+<script src="landing.js?v=2&ux-login=1"></script>
 
 <div class="app" id="app-root" style="display:none;">
 <button id="mobile-menu-btn" type="button" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
@@ -4509,6 +4506,9 @@ window.authShowReset=function(){
   document.getElementById('auth-login-view').style.display='none';
   const reg=document.getElementById('auth-register-view');if(reg)reg.style.display='none';
   document.getElementById('auth-reset-view').style.display='block';
+  // E-mail wpisany wcześniej (strona startowa albo okno logowania) nie jest pytany drugi raz.
+  const resetEm=document.getElementById('auth-reset-email');
+  if(resetEm&&!resetEm.value&&typeof window.landingKnownEmail==='function')resetEm.value=window.landingKnownEmail();
 };
 window.authShowLogin=function(){
   document.getElementById('auth-reset-view').style.display='none';
@@ -4521,11 +4521,11 @@ window.doPasswordReset=async function(){
   if(!email){return;}
   try{
     await sendPasswordResetEmail(auth,email);
-    msgEl.style.color='var(--teal)';
-    msgEl.textContent='Link do resetu hasła wysłany — sprawdź skrzynkę e-mail.';
+    msgEl.style.color='var(--success)';
+    msgEl.textContent='Link wysłany. Sprawdź skrzynkę e-mail i folder spam.';
     msgEl.style.display='block';
   }catch(e){
-    msgEl.style.color='var(--red)';
+    msgEl.style.color='var(--danger)';
     msgEl.textContent='Nie udało się wysłać linku. Sprawdź adres e-mail.';
     msgEl.style.display='block';
   }
@@ -4935,7 +4935,7 @@ async function load(session=captureTenantSession()){
 <script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=59&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
 <script src="client-simple.js?v=2"></script>
-<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1"></script>
+<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1"></script>
 <script src="11-progress-academy.js?v=10&study-explanations=1&book-answers=1&research=1&visuals=3"></script>
 <script src="research-answer.js?v=2"></script>
 <script src="research-academy.js?v=3"></script>

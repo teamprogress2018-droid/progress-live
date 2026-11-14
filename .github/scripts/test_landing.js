@@ -30,7 +30,7 @@ ok('stats marked as example data', /id="pl-land-stats-note">Tak klient widzi swo
 ok('auth card is a dialog', /id="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-card-title" aria-hidden="true"/.test(landing));
 ok('login, register and reset forms kept', ['auth-login-view', 'auth-register-view', 'auth-reset-view', 'auth-email', 'auth-password', 'auth-reg-token', 'auth-error'].every((id) => landing.includes('id="' + id + '"')));
 ok('old cup icon gone', !landing.includes('logo-mark'));
-ok('landing.js loaded right after the landing', /<\/div>\r?\n<script src="landing\.js\?v=2"><\/script>/.test(html));
+ok('landing.js loaded right after the landing', /<\/div>\r?\n<script src="landing\.js\?v=\d+[^"]*"><\/script>/.test(html));
 ok('landing.css loaded after theme.css', html.indexOf('landing.css?v=2') > html.indexOf('theme.css?v=1'));
 ok('no external scripts for the landing', !/https?:\/\//.test(js) && !/@import|https?:\/\//.test(css.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '')));
 

@@ -592,6 +592,9 @@ jobs:
       - name: 6a1. Testy UI strony startowej (ruchome kafelki, logowanie, telefon)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_landing_ui.js
+      - name: 6a2. Testy UI okna logowania (jeden przycisk, błąd, linki 44 px)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_login_ux_ui.js
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b0z. Testy UI kafelek dni w zakładce Plan
