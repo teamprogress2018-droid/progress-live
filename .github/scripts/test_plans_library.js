@@ -35,7 +35,7 @@ ok('cache styles v61', cacheAtLeast(html, 'styles.css', 166));
 ok('CI unit', wf.includes('test_plans_library.js'));
 ok('CI ui', wf.includes('test_plans_library_ui.js'));
 ok('scripts once 01', (html.match(/<script src="01-core\.js\?v=\d+(?:&[^"<>]+)?">/g) || []).length === 1);
-ok('scripts once 02', (html.match(/<script src="02-workouts-onboarding-templates-live\.js\?v=\d+">/g) || []).length === 1);
+ok('scripts once 02', (html.match(/<script src="02-workouts-onboarding-templates-live\.js\?v=\d+(?:&[^"<>]+)?">/g) || []).length === 1);
 
 const start = src.indexOf('function planIsUnassigned');
 const end = src.indexOf('window.filterSortPlans=filterSortPlans;');
