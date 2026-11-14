@@ -85,10 +85,27 @@
     if(lastFocus&&typeof lastFocus.focus==='function'){try{lastFocus.focus();}catch(e){}}
     lastFocus=null;
   }
+  /** Dwa wejścia na stronie startowej: klient (zaproszenie) albo trener (logowanie). Jedno pole e-mail i jeden czerwony przycisk. */
+  var landingWho='trainer';
+  function landingPickWho(who){
+    landingWho=who==='client'?'client':'trainer';
+    ['client','trainer'].forEach(function(w){
+      var b=document.getElementById('pl-land-who-'+w);
+      if(b)b.setAttribute('aria-pressed',w===landingWho?'true':'false');
+    });
+    var btn=document.getElementById('pl-land-start-btn');
+    if(btn)btn.textContent=landingWho==='client'?'Załóż konto →':'Zaloguj się →';
+    var note=document.getElementById('pl-land-who-note');
+    if(note)note.textContent=landingWho==='client'
+      ?'Wpisz e-mail, który podałeś trenerowi. Masz już konto? Wybierz „Zaloguj się” na górze.'
+      :'Klient? Wybierz „Jestem klientem” i załóż konto z linku od trenera.';
+    var em=document.getElementById('pl-land-email');
+    if(em)try{em.focus();}catch(e){}
+  }
   function landingStart(ev){
     if(ev&&ev.preventDefault)ev.preventDefault();
     var em=document.getElementById('pl-land-email');
-    landingOpenAuth('login',em?em.value.trim():'');
+    landingOpenAuth(landingWho==='client'?'register':'login',em?em.value.trim():'');
   }
 
   document.addEventListener('keydown',function(e){
@@ -102,6 +119,7 @@
   window.landingOpenAuth=landingOpenAuth;
   window.landingCloseAuth=landingCloseAuth;
   window.landingStart=landingStart;
+  window.landingPickWho=landingPickWho;
   window.landingKnownEmail=landingKnownEmail;
   window.authTogglePassword=authTogglePassword;
   renderLandingStats();

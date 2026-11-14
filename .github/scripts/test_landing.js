@@ -23,7 +23,7 @@ ok('auth screen is the landing page', /<div id="auth-screen" class="pl-landing" 
 ok('brand + slogan', landing.includes('PROGRESS <span>LIVE</span>') && landing.includes('TRENER. PLAN. EFEKTY.'));
 ok('headline is h1', /<h1 class="pl-land-title" id="pl-land-title">/.test(landing));
 ok('login entry points', landing.includes("onclick=\"landingOpenAuth('login')\"") && landing.includes('onsubmit="landingStart(event)"'));
-ok('invite entry points', (landing.match(/landingOpenAuth\('register'\)/g) || []).length === 2);
+ok('invite entry points: header button + client entry', (landing.match(/landingOpenAuth\('register'\)/g) || []).length === 1 && landing.includes("onclick=\"landingPickWho('client')\""));
 ok('email field labelled', /<label for="pl-land-email" class="sr-only">/.test(landing));
 ok('two stat tracks', (landing.match(/class="pl-land-track"/g) || []).length === 2);
 ok('stats marked as example data', /id="pl-land-stats-note">Tak klient widzi swoje postępy w aplikacji <span>· przykładowe dane<\/span>/.test(landing) && landing.includes('aria-labelledby="pl-land-stats-note"'));

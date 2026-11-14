@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
-<link rel="stylesheet" href="landing.css?v=2&ux-login=1">
+<link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1">
 <link rel="stylesheet" href="client-simple.css?v=2">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
@@ -44,12 +44,16 @@
       <div class="pl-land-eyebrow">TRENER. PLAN. <span>EFEKTY.</span></div>
       <h1 class="pl-land-title" id="pl-land-title">Prowadź klientów, plany i treningi <em>w&nbsp;jednym miejscu</em></h1>
       <p class="pl-land-lead">Progress Live to aplikacja dla trenera personalnego: klienci, plany treningowe, trening LIVE, kalendarz i płatności. Twoi podopieczni dostają własną aplikację z planem i postępami.</p>
+      <div class="pl-land-who" role="group" aria-label="Kim jesteś?">
+        <button type="button" class="pl-land-who-btn" id="pl-land-who-client" data-who="client" aria-pressed="false" onclick="landingPickWho('client')"><b>Jestem klientem</b><span>mam zaproszenie</span></button>
+        <button type="button" class="pl-land-who-btn" id="pl-land-who-trainer" data-who="trainer" aria-pressed="true" onclick="landingPickWho('trainer')"><b>Jestem trenerem</b><span>zaloguj się</span></button>
+      </div>
       <form class="pl-land-start" onsubmit="landingStart(event)">
         <label for="pl-land-email" class="sr-only">Twój e-mail</label>
         <input type="email" id="pl-land-email" placeholder="Twój e-mail" autocomplete="email" inputmode="email">
         <button type="submit" class="pl-land-btn pl-land-btn-primary" id="pl-land-start-btn">Zaloguj się →</button>
       </form>
-      <div class="pl-land-invite">Jesteś klientem i masz zaproszenie od trenera? <button type="button" class="pl-land-link" onclick="landingOpenAuth('register')">Załóż konto z zaproszenia</button></div>
+      <div class="pl-land-invite" id="pl-land-who-note">Klient? Wybierz „Jestem klientem” i załóż konto z linku od trenera.</div>
       <ul class="pl-land-points">
         <li>Plan treningowy z progresją w kilka minut</li>
         <li>Trening LIVE z klientem i aplikacja dla podopiecznego</li>
@@ -82,11 +86,11 @@
     </div>
 
     <div id="auth-register-view" style="display:none;">
-      <div id="auth-reg-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Ustaw hasło z linku zaproszenia, żeby zobaczyć swój plan.</div>
+      <div id="auth-reg-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Wymyśl hasło i zobacz swój plan.</div>
       <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reg-email" placeholder="twoj@email.pl" autocomplete="username"></div>
       <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-reg-password" placeholder="min. 6 znaków" autocomplete="new-password"></div>
       <div class="form-field"><label class="form-lbl">Powtórz hasło</label><input type="password" class="form-input" id="auth-reg-password2" placeholder="powtórz hasło" autocomplete="new-password" onkeydown="if(event.key==='Enter')doClientRegister()"></div>
-      <div class="form-field"><label class="form-lbl">Kod z linku zaproszenia</label><input class="form-input" id="auth-reg-token" placeholder="wklej, jeśli nie otworzyłeś linku" autocomplete="off"></div>
+      <div class="form-field" id="auth-reg-token-field"><label class="form-lbl" for="auth-reg-token">Kod od trenera</label><input class="form-input" id="auth-reg-token" placeholder="wklej kod z linku" autocomplete="off" aria-describedby="auth-reg-token-help"><div class="pl-auth-help" id="auth-reg-token-help">Znajdziesz go w wiadomości od trenera. Najprościej otwórz link z tej wiadomości, wtedy kod wpisze się sam.</div></div>
       <div id="auth-reg-error" class="pl-auth-error" role="alert" style="display:none;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-reg-btn" onclick="doClientRegister()">Utwórz konto i wejdź</button>
       <div class="pl-auth-links">
@@ -105,7 +109,7 @@
     </div>
   </div>
 </div>
-<script src="landing.js?v=2&ux-login=1"></script>
+<script src="landing.js?v=2&ux-login=1&ux-start=1"></script>
 
 <div class="app" id="app-root" style="display:none;">
 <button id="mobile-menu-btn" type="button" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
@@ -4923,7 +4927,7 @@ async function load(session=captureTenantSession()){
 <script src="02-workouts-onboarding-templates-live.js?v=115"></script>
 <script src="books-kb.js?v=8"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=61&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1&intensify=1&generator-ux=1&book-visuals=2&freq=4&reps=1"></script>
-<script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1"></script>
+<script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1"></script>
 <script src="client-card-save.js?v=4"></script>
 <script src="dashboard-home.js?v=2"></script>
 <script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1"></script>
@@ -4935,7 +4939,7 @@ async function load(session=captureTenantSession()){
 <script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
 <script src="09-posture-kb-invites-private.js?v=59&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
 <script src="client-simple.js?v=2"></script>
-<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1"></script>
+<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1"></script>
 <script src="11-progress-academy.js?v=10&study-explanations=1&book-answers=1&research=1&visuals=3"></script>
 <script src="research-answer.js?v=2"></script>
 <script src="research-academy.js?v=3"></script>

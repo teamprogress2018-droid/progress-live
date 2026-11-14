@@ -1799,9 +1799,11 @@ function shareAppLink(){
 }
 
 function buildClientInviteLink(c){
-  if(c&&c.inviteToken&&c.inviteToken!==c.id&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken);
+  // E-mail klienta w linku tylko wypełnia pole w oknie konta (klient dostaje link na własny adres).
+  const em=c&&c.email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email).trim())?'&email='+encodeURIComponent(String(c.email).trim()):'';
+  if(c&&c.inviteToken&&c.inviteToken!==c.id&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken)+em;
   const base=(location.origin+location.pathname).replace(/index\.html$/,'');
-  if(c&&c.inviteToken&&c.inviteToken!==c.id)return base+'?invite='+encodeURIComponent(c.inviteToken);
+  if(c&&c.inviteToken&&c.inviteToken!==c.id)return base+'?invite='+encodeURIComponent(c.inviteToken)+em;
   return base+'?invite=';
 }
 
