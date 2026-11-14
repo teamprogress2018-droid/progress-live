@@ -1,0 +1,101 @@
+{
+ "landing": [],
+ "logowanie": [],
+ "pulpit": [
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "klienci": [
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "biblioteka": [
+  {
+   "id": "nested-interactive",
+   "impact": "serious",
+   "n": 40,
+   "ex": [
+    "div[onclick=\"openExDetail(\\\"Pompki\\\")\"]",
+    ".ex-card.exl-card[data-ex-name=\"Wyciskanie hantli leżąc\"]",
+    "section[data-ex-part-sec=\"klatka\"] > .lib2-col-list > .ex-card.exl-card[role=\"button\"]:nth-child(3)",
+    ".ex-card.exl-card[data-ex-name=\"Wyciskanie sztangi leżąc\"]",
+    ".ex-card.exl-card[data-ex-name=\"Ściąganie drążka wyciąg\"]",
+    ".ex-card.exl-card[data-ex-name=\"Wiosłowanie wyciągiem siedząc\"]",
+    "div[aria-label=\"Szczegóły: Wiosłowanie hantlem\"]",
+    ".ex-card.exl-card[data-ex-name=\"Wiosłowanie odwrócone\"]",
+    "div[aria-label=\"Szczegóły: Podciąganie z gumą\"]",
+    ".ex-card.exl-card[data-ex-name=\"Wyciskanie hantli siedząc\"]",
+    "div[aria-label=\"Szczegóły: Unoszenie bokiem\"]",
+    "section[data-ex-part-sec=\"barki\"] > .lib2-col-list > .ex-card.exl-card[role=\"button\"]:nth-child(3)",
+    "div[aria-label=\"Szczegóły: Uginanie młotkowe\"]",
+    ".ex-card.exl-card[data-ex-name=\"Prostowanie tricepsa wyciąg\"]",
+    "div[aria-label=\"Szczegóły: Przysiad Goblet\"]",
+    "div[aria-label=\"Szczegóły: Przysiad ze sztangą\"]",
+    "div[aria-label=\"Szczegóły: Wyciskanie nogami\"]",
+    "div[aria-label=\"Szczegóły: Przysiad bułgarski\"]",
+    "div[aria-label=\"Szczegóły: Wykrok wsteczny\"]",
+    "div[aria-label=\"Szczegóły: Wejścia na skrzynię\"]",
+    ".ex-card.exl-card[data-ex-name=\"Wspięcia na palce stojąc\"]",
+    "div[aria-label=\"Szczegóły: Martwy ciąg RDL\"]",
+    ".ex-card.exl-card[data-ex-name=\"Martwy ciąg kettlebell\"]",
+    "div[aria-label=\"Szczegóły: Uginanie nóg leżąc\"]",
+    ".ex-card.exl-card[data-ex-name=\"Wypychanie bioder (hip thrust)\"]",
+    "div[aria-label=\"Szczegóły: Mostek biodrowy\"]",
+    "div[onclick=\"openExDetail(\\\"RDL jednonóż\\\")\"]",
+    "div[onclick=\"openExDetail(\\\"Deska\\\")\"]",
+    "div[onclick=\"openExDetail(\\\"Deska boczna\\\")\"]",
+    "div[onclick=\"openExDetail(\\\"Martwy robak\\\")\"]"
+   ]
+  },
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "generator": [
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "podglad_klienta": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "n": 3,
+   "ex": [
+    "#cap-dev-phone 3.67 #e60000/#ecdde6 8.3pt (11px)",
+    "#cap-preview-tab > div:nth-child(3) > div:nth-child(1) 4.37 #e60000/#edf5ff 9.8pt (13px)",
+    "#cap-screen-info > div:nth-child(2) 4.37 #e60000/#edf5ff 8.3pt (11px)"
+   ]
+  },
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ]
+}

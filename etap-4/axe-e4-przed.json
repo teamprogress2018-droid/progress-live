@@ -1,0 +1,106 @@
+{
+ "landing": [],
+ "logowanie": [],
+ "pulpit": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "n": 1,
+   "ex": [
+    ".dash3-biz > summary 4.39 #6b7280/#edf5ff 9.8pt (13px)"
+   ]
+  },
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "klienci": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "n": 4,
+   "ex": [
+    "#cl2-hdr > span:nth-child(1) 4.39 #6b7280/#edf5ff 9.0pt (12px)",
+    "#cl2-hdr > span:nth-child(2) 4.39 #6b7280/#edf5ff 9.0pt (12px)",
+    "#cl2-hdr > span:nth-child(3) 4.39 #6b7280/#edf5ff 9.0pt (12px)",
+    "div[data-client-id=\"u1\"] > .cl2-main > .cl2-who > .cl-av[aria-hidden=\"true\"] 3.78 #e60000/#fcdddd 8.3pt (11px)"
+   ]
+  },
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "biblioteka": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "n": 5,
+   "ex": [
+    "button[data-tab=\"base\"] > .lib2-tab-n 4.2 #6b7280/#e8f0fa 9.0pt (12px)",
+    "button[data-tab=\"all\"] > .lib2-tab-n 4.2 #6b7280/#e8f0fa 9.0pt (12px)",
+    "button[onclick=\"setExGroup('')\"] > span 3.89 #6b7280/#ede4ed 9.8pt (13px)",
+    "#ex-results-count 4.39 #6b7280/#edf5ff 9.8pt (13px)"
+   ]
+  },
+  {
+   "id": "nested-interactive",
+   "impact": "serious",
+   "n": 40,
+   "ex": [
+    "div[onclick=\"openExDetail(\\\"Pompki\\\")\"]",
+    ".ex-card.exl-card[data-ex-name=\"Wyciskanie hantli leżąc\"]",
+    "section[data-ex-part-sec=\"klatka\"] > .lib2-col-list > .ex-card.exl-card[role=\"button\"]:nth-child(3)",
+    ".ex-card.exl-card[data-ex-name=\"Wyciskanie sztangi leżąc\"]"
+   ]
+  },
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "generator": [
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ],
+ "podglad_klienta": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "n": 23,
+   "ex": [
+    "button[onclick=\"exitClientPreviewMode()\"] 4.05 #e60000/#d8f0f6 9.0pt (12px)",
+    "#cap-preview-tab > div:nth-child(1) > div:nth-child(1) 4.39 #6b7280/#edf5ff 6.8pt (9px)",
+    "#capn-plan 4.39 #6b7280/#edf5ff 9.0pt (12px)",
+    "#capn-calendar 4.39 #6b7280/#edf5ff 9.0pt (12px)"
+   ]
+  },
+  {
+   "id": "select-name",
+   "impact": "critical",
+   "n": 1,
+   "ex": [
+    "#tmpl-client-sel"
+   ]
+  }
+ ]
+}
