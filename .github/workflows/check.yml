@@ -601,6 +601,9 @@ jobs:
       - name: 6a4. Testy UI menu nowego trenera (6 pozycji, Więcej, logo)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_nav_new_trainer_ui.js
+      - name: 6a5. Testy UI przerwy i końca treningu klienta (prosty styl, wibracja, błąd pod polem)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_rest_ui.js
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b0z. Testy UI kafelek dni w zakładce Plan
