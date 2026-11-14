@@ -54,9 +54,6 @@ jobs:
       - name: Jeden wygląd (ikony, czerwony, promienie, Inter)
         run: node .github/scripts/test_ux_one_look.js
 
-      - name: Dostępność (skip link, h1, okna, fokus, mniej ruchu)
-        run: node .github/scripts/test_a11y_basics_ui.js
-
       - name: Ikony PWA 192/512 (także maskable) w manifest.json
         run: node .github/scripts/test_manifest_icons.js
 
@@ -607,6 +604,9 @@ jobs:
       - name: 6a4. Testy UI menu nowego trenera (6 pozycji, Więcej, logo)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_nav_new_trainer_ui.js
+
+      - name: Dostępność (skip link, h1, okna, fokus, mniej ruchu)
+        run: node .github/scripts/test_a11y_basics_ui.js
       - name: 6a5. Testy UI przerwy i końca treningu klienta (prosty styl, wibracja, błąd pod polem)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_rest_ui.js
