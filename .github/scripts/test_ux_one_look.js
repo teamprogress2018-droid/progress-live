@@ -53,7 +53,7 @@ ok('errors use danger colour with icon', /\.app \.research-state-error,[^{]*\{ c
 ok('light danger is #b42318', theme.includes('--danger: #b42318;'));
 
 // Wersje plików
-ok('cache versions bumped', ['globals.css?v=', 'styles.css?v=', 'theme.css?v=', '01-core.js?v=', '04-client-portal.js?v='].every((f) => new RegExp(f.replace(/[.?]/g, '\\$&') + '[^"]*ux-look=1"').test(html)));
+ok('cache versions bumped', ['globals.css?v=', 'styles.css?v=', 'theme.css?v=', '01-core.js?v=', '04-client-portal.js?v='].every((f) => new RegExp(f.replace(/[.?]/g, '\\$&') + '[^"]*ux-look=1[^"]*"').test(html)));
 
 if (failed) { console.error('\n' + failed + ' test(s) failed'); process.exit(1); }
 console.log('\nAll one-look tests passed');

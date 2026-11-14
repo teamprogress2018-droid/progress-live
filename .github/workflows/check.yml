@@ -54,6 +54,9 @@ jobs:
       - name: Jeden wygląd (ikony, czerwony, promienie, Inter)
         run: node .github/scripts/test_ux_one_look.js
 
+      - name: Dostępność (skip link, h1, okna, fokus, mniej ruchu)
+        run: node .github/scripts/test_a11y_basics_ui.js
+
       - name: Ikony PWA 192/512 (także maskable) w manifest.json
         run: node .github/scripts/test_manifest_icons.js
 

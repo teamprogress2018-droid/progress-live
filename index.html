@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="globals.css?v=17&ux-look=1">
 <link rel="stylesheet" href="styles.css?v=194&ux-look=1">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1">
+<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-a11y=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
 <link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1&ux-rest=1">
 <link rel="stylesheet" href="client-simple.css?v=2&ux-rest=1">
@@ -112,6 +112,7 @@
 <script src="landing.js?v=2&ux-login=1&ux-start=1"></script>
 
 <div class="app" id="app-root" style="display:none;">
+<a class="skip-link" href="#main">Przejdź do treści</a>
 <button id="mobile-menu-btn" type="button" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
@@ -267,7 +268,7 @@
   </div>
 </aside>
 
-<div class="main">
+<div class="main" id="main" role="main" tabindex="-1">
 
 <!-- DASHBOARD -->
 <!-- DASHBOARD V2 -->
@@ -543,7 +544,7 @@
 
 <!-- PLANS -->
 <div class="screen" id="screen-plans">
-    <div class="topbar"><div class="topbar-title">Treningi</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openNewPlanPicker()">+ Nowy plan</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Gotowy tydzień</button></div></div>
+    <div class="topbar"><h1 class="topbar-title">Treningi</h1><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openNewPlanPicker()">+ Nowy plan</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Gotowy tydzień</button></div></div>
   <div class="plans-toolbar">
     <input type="text" class="form-input plans-search" id="plans-search" placeholder="🔍 Szukaj nazwy lub nazwiska..." oninput="renderPlans()">
     <div class="plans-chips" id="plans-status-chips" role="tablist" aria-label="Status planu">
@@ -569,7 +570,7 @@
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><span class="builder-dirty-indicator" id="builder-dirty-indicator" role="status" aria-live="polite" hidden>• Niezapisane zmiany</span><button type="button" class="btn btn-ghost btn-sm" id="builder-undo-btn" onclick="builderUndo()" disabled>Cofnij</button><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" id="b-save-btn" onclick="manualPlanSaveFromBuilder()">Zapisz plan</button></div></div>
+  <div class="topbar"><h1 class="topbar-title">Nowy plan treningowy</h1><div class="topbar-actions"><span class="builder-dirty-indicator" id="builder-dirty-indicator" role="status" aria-live="polite" hidden>• Niezapisane zmiany</span><button type="button" class="btn btn-ghost btn-sm" id="builder-undo-btn" onclick="builderUndo()" disabled>Cofnij</button><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" id="b-save-btn" onclick="manualPlanSaveFromBuilder()">Zapisz plan</button></div></div>
   <div id="builder-save-status" role="status" aria-live="polite" hidden style="margin:12px 24px;padding:12px;border:1px solid var(--border);border-radius:8px;"></div>
   <div id="builder-calendar-actions" hidden style="margin:0 24px 12px;"><button type="button" class="btn btn-primary btn-sm" id="b-calendar-retry" onclick="builderRetryCalendar()">Ponów dopełnienie kalendarza</button> <button type="button" class="btn btn-ghost btn-sm" id="b-calendar-continue" onclick="builderFinishSavedPlan()">Kontynuuj bez dopełnienia</button></div>
     <div id="builder-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
@@ -659,7 +660,7 @@
 <div class="screen" id="screen-calendar">
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:10px;">
-      <div class="topbar-title" id="cal-title">Kalendarz</div>
+      <h1 class="topbar-title" id="cal-title">Kalendarz</h1>
       <div class="cal-view-toggle" role="group" aria-label="Widok kalendarza">
         <button type="button" class="auto-tab-btn active" id="calv-week" onclick="setCalView('week')">Tydzień</button>
         <button type="button" class="auto-tab-btn" id="calv-month" onclick="setCalView('month')">Miesiąc</button>
@@ -739,7 +740,7 @@
 <!-- INBOX — ENHANCED -->
 <div class="screen" id="screen-inbox">
   <div class="topbar">
-    <div class="topbar-title">Wiadomości</div>
+    <h1 class="topbar-title">Wiadomości</h1>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-broadcast')">📢 Broadcast</button>
     </div>
@@ -826,7 +827,7 @@
 <div class="screen" id="screen-library">
   <div class="topbar lib2-topbar">
     <button type="button" class="btn btn-ghost btn-sm lib-exit-wide" id="lib-exit-wide" onclick="setLibraryWide(false)" title="Pokaż menu aplikacji (Klienci, Pulpit, Kalendarz…)" aria-label="Pokaż menu aplikacji">☰ Menu</button>
-    <div class="topbar-title" id="lib-top-title">Biblioteka ćwiczeń</div>
+    <h1 class="topbar-title" id="lib-top-title">Biblioteka ćwiczeń</h1>
     <div class="topbar-actions">
       <div class="lib2-seg" role="group" aria-label="Rodzaj biblioteki">
         <button type="button" class="btn btn-primary btn-sm" id="lib-tab-ex" onclick="setLibTab('ex')">Ćwiczenia</button>
@@ -854,7 +855,7 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="search" id="ex-search" placeholder="Szukaj ćwiczenia, np. przysiad, wiosłowanie, deska" aria-label="Szukaj ćwiczenia" oninput="renderLibSoon()" autocomplete="off">
         </div>
-        <button type="button" class="lib2-filters-btn" id="lib-filters-btn" onclick="toggleExFilters()" aria-expanded="false" aria-controls="lib2-filters"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg><span id="lib-filters-lbl">Filtry</span></button>
+        <button type="button" class="lib2-filters-btn" id="lib-filters-btn" onclick="toggleExFilters()" aria-label="Filtry ćwiczeń" aria-expanded="false" aria-controls="lib2-filters"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg><span id="lib-filters-lbl">Filtry</span></button>
       </div>
       <div class="lib2-tabs" id="lib2-tabs" role="tablist" aria-label="Widoki biblioteki"></div>
       <div class="lib2-filters" id="lib2-filters" hidden></div>
@@ -911,7 +912,7 @@
 <div class="screen" id="screen-programs">
   <div class="topbar">
     <div>
-      <div class="topbar-title">Bloki 4–16 tygodni</div>
+      <h1 class="topbar-title">Bloki 4–16 tygodni</h1>
       <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>bloki 4–16 tygodni</b> z periodyzacją (akumulacja → intensyfikacja → deload). Schematy 1-tygodniowe są w <button type="button" class="linkish" onclick="goTo('templates')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Gotowy tydzień</button>.</div>
     </div>
     <div class="topbar-actions">
@@ -991,7 +992,7 @@
 <!-- TASKS — ENHANCED -->
 <div class="screen" id="screen-tasks">
   <div class="topbar">
-    <div class="topbar-title">Zadania</div>
+    <h1 class="topbar-title">Zadania</h1>
     <div class="topbar-actions">
       <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" aria-expanded="false" onclick="libTogglePanel(this,'filters')">☰ Filtry</button>
       <button class="btn btn-ghost btn-sm" onclick="openAssignHomeworkModal('')">🏡 Zadanie domowe</button>
@@ -1100,7 +1101,7 @@
   </div>
   <div style="padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
     <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Wybierz klienta do przypisania szablonu:</div>
-    <select class="form-select" style="font-size:12px;" id="tmpl-client-sel"></select>
+    <select class="form-select" style="font-size:12px;" id="tmpl-client-sel" aria-label="Klient, któremu przypiszesz szablon"></select>
   </div>
   <div style="flex:1;overflow-y:auto;padding:14px;" id="task-templates-body"></div>
 </div>
@@ -1108,7 +1109,7 @@
 <!-- FORMS — ENHANCED -->
 <div class="screen" id="screen-forms">
   <div class="topbar">
-    <div class="topbar-title">Formularze i ankiety</div>
+    <h1 class="topbar-title">Formularze i ankiety</h1>
     <div class="topbar-actions">
       <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" aria-expanded="false" onclick="libTogglePanel(this,'filters')">☰ Filtry</button>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-form')">+ Własny formularz</button>
@@ -1257,7 +1258,7 @@
 <!-- METRICS — BIBLIOTEKA GRUP METRYCZNYCH -->
 <div class="screen" id="screen-metrics">
   <div class="topbar">
-    <div class="topbar-title">Pomiary ciała</div>
+    <h1 class="topbar-title">Pomiary ciała</h1>
     <div class="topbar-actions">
       <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" aria-expanded="false" onclick="libTogglePanel(this,'filters')">👤 Klient i grupy</button>
       <button type="button" class="btn btn-ghost btn-sm lib-filters-btn" aria-expanded="false" onclick="libTogglePanel(this,'aside')">⚡ Szybki wpis</button>
@@ -1341,7 +1342,7 @@
 <!-- AUTOMATION — ONBOARDING FLOW + AUTOFLOW -->
 <div class="screen" id="screen-automation">
   <div class="topbar">
-    <div class="topbar-title">Automatyzacja</div>
+    <h1 class="topbar-title">Automatyzacja</h1>
     <div class="topbar-actions">
       <button type="button" class="btn btn-ghost btn-sm" onclick="goTo('onboarding')">Przegląd startu →</button>
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
@@ -1546,7 +1547,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- RESOURCES — BIBLIOTEKA ZASOBÓW -->
 <div class="screen" id="screen-resources">
   <div class="topbar">
-    <div class="topbar-title">Zasoby dla klientów</div>
+    <h1 class="topbar-title">Zasoby dla klientów</h1>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="rtab-resources" onclick="setResTab('resources')">Zasoby</button>
@@ -1608,7 +1609,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- ON-DEMAND — PORTAL NETFLIX STYLE -->
 <div class="screen" id="screen-ondemand">
   <div class="topbar">
-    <div class="topbar-title">On-demand</div>
+    <h1 class="topbar-title">On-demand</h1>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="odtab-browse" onclick="setODTab('browse')">Przeglądaj</button>
@@ -1721,7 +1722,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- PAYMENTS — PEŁNA SEKCJA -->
 <div class="screen" id="screen-payments">
   <div class="topbar">
-    <div class="topbar-title">Płatności i pakiety</div>
+    <h1 class="topbar-title">Płatności i pakiety</h1>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="ptab-overview" onclick="setPayTab('overview')">Przegląd</button>
@@ -1818,7 +1819,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- FORUM — SPOŁECZNOŚĆ -->
 <div class="screen" id="screen-forum">
   <div class="topbar">
-    <div class="topbar-title">Społeczność</div>
+    <h1 class="topbar-title">Społeczność</h1>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-forum-group')">+ Nowa grupa</button>
       <button class="btn btn-primary btn-sm" id="forum-new-post-btn" onclick="openM('m-forum-post')">+ Nowy post</button>
@@ -1879,7 +1880,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- BAZA WIEDZY -->
 <div class="screen" id="screen-kb">
   <div class="topbar">
-    <div class="topbar-title">Baza wiedzy</div>
+    <h1 class="topbar-title">Baza wiedzy</h1>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="kbImportBuiltinPack()">📚 Pakiet startowy</button>
       <button class="btn btn-primary btn-sm" onclick="openKbModal()">+ Dodaj wpis</button>
@@ -1909,7 +1910,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- MÓJ PROFIL TRENERA -->
 <div class="screen" id="screen-trainer-profile">
   <div class="topbar">
-    <div class="topbar-title">Mój profil</div>
+    <h1 class="topbar-title">Mój profil</h1>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="goTo('settings')">Pozostałe ustawienia</button>
       <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 Zapisz profil</button>
@@ -1921,7 +1922,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- SETTINGS — USTAWIENIA -->
 <div class="screen" id="screen-settings">
   <div class="topbar">
-    <div class="topbar-title">Ustawienia</div>
+    <h1 class="topbar-title">Ustawienia</h1>
     <div class="topbar-actions">
       <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 Zapisz wszystko</button>
     </div>
@@ -1951,7 +1952,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- CHECK-IN SYSTEM -->
 <div class="screen" id="screen-checkin">
   <div class="topbar">
-    <div class="topbar-title">Check-in tygodniowy</div>
+    <h1 class="topbar-title">Check-in tygodniowy</h1>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-checkin-send')">📤 Wyślij check-in</button>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-checkin-template')">ℹ Formularz</button>
@@ -1994,7 +1995,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- PROGRAM BUILDER V2 -->
 <div class="screen" id="screen-progbuilder">
   <div class="topbar">
-    <div class="topbar-title" id="pb-title">Kreator programu</div>
+    <h1 class="topbar-title" id="pb-title">Kreator programu</h1>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="goTo('programs')">← Bloki 4–16 tyg.</button>
       <button class="btn btn-ghost btn-sm" onclick="pbNewProgram()">+ Nowy program</button>
@@ -2092,7 +2093,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- INTEGRATIONS SCREEN -->
 <div class="screen" id="screen-integrations">
   <div class="topbar">
-    <div class="topbar-title">Integracje</div>
+    <h1 class="topbar-title">Integracje</h1>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn" id="int-tab-all" onclick="setIntTab('all')">Katalog</button>
@@ -2149,14 +2150,14 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- CLIENT APP — WIDOK KLIENTA -->
 <div class="screen" id="screen-clientapp">
   <div class="topbar">
-    <div class="topbar-title">Aplikacja klienta — podgląd</div>
+    <h1 class="topbar-title">Aplikacja klienta — podgląd</h1>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="cap-tab-preview" onclick="setCapTab('preview')">📱 Podgląd</button>
         <button class="auto-tab-btn" id="cap-tab-customize" onclick="setCapTab('customize')">🎨 Personalizacja</button>
         <button class="auto-tab-btn" id="cap-tab-access" onclick="setCapTab('access')">🔑 Dostęp klientów</button>
       </div>
-      <select class="form-select" id="cap-client-sel" onchange="renderClientApp()" style="width:160px;font-size:12px;padding:5px 8px;">
+      <select class="form-select" id="cap-client-sel" aria-label="Klient do podglądu" onchange="renderClientApp()" style="width:160px;font-size:12px;padding:5px 8px;">
         <option value="">Wybierz klienta...</option>
       </select>
     </div>
@@ -2284,7 +2285,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="ai-dot" style="width:10px;height:10px;"></div>
       </div>
       <div>
-        <div class="topbar-title" style="font-size:18px;">AI Coach</div>
+        <h1 class="topbar-title" style="font-size:18px;">AI Coach</h1>
         <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:-2px;">Claude · Sztab ekspercki · Twoje książki</div>
       </div>
     </div>
@@ -2368,7 +2369,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- STATYSTYKI BIZNESOWE -->
 <div class="screen" id="screen-bizstats">
   <div class="topbar">
-    <div class="topbar-title">Statystyki biznesowe</div>
+    <h1 class="topbar-title">Statystyki biznesowe</h1>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="bst-p-30" onclick="setBizPeriod(30,this)">30 dni</button>
@@ -2386,7 +2387,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:32px;height:32px;border-radius:10px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:16px;">⚡</div>
-      <div class="topbar-title">Generator planu AI</div>
+      <h1 class="topbar-title">Generator planu AI</h1>
     </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" type="button" onclick="aplAmateurOpen()">🌱 Tryb Amator</button>
@@ -2752,7 +2753,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- RAPORTY POSTĘPÓW -->
 <div class="screen" id="screen-reports">
   <div class="topbar">
-    <div class="topbar-title">Raporty postępów</div>
+    <h1 class="topbar-title">Raporty postępów</h1>
     <div class="topbar-actions">
       <select class="form-select" id="rep-client-sel" onchange="repLoadClient()" style="width:180px;font-size:12px;padding:5px 8px;">
         <option value="">Wybierz klienta...</option>
@@ -3086,7 +3087,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="live-dock-sub" id="live-b-progress-hint" hidden></div>
 
   <div class="live-rest-strip live-rest-card" id="live-rest-strip" hidden>
-    <div class="live-rest-val" id="live-rest-timer" aria-live="assertive">—</div>
+    <div class="live-rest-val" id="live-rest-timer" role="timer" aria-live="off">—</div><span class="sr-only" id="live-rest-sr" aria-live="polite"></span>
     <div class="live-rest-strip-track"><div class="live-rest-strip-bar" id="live-rest-strip-bar"></div></div>
     <div class="live-rest-strip-next" id="live-rest-next"></div>
     <div class="live-rest-strip-btns">
@@ -3096,7 +3097,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
   </div>
   <div class="live-rest-strip live-rest-card" id="live-b-rest-strip" hidden>
-    <div class="live-rest-val" id="live-b-rest-timer" aria-live="assertive">—</div>
+    <div class="live-rest-val" id="live-b-rest-timer" role="timer" aria-live="off">—</div><span class="sr-only" id="live-b-rest-sr" aria-live="polite"></span>
     <div class="live-rest-strip-track"><div class="live-rest-strip-bar" id="live-b-rest-strip-bar"></div></div>
     <div class="live-rest-strip-next" id="live-b-rest-next"></div>
     <div class="live-rest-strip-btns">
@@ -3158,7 +3159,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <div class="screen" id="screen-templates">
   <div class="topbar">
     <div>
-      <div class="topbar-title">Gotowy tydzień</div>
+      <h1 class="topbar-title">Gotowy tydzień</h1>
       <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>schematy tygodnia</b> (mikrocykle: PPL, FBW, Upper/Lower…). Bez faz i deloadów — te są w <button type="button" class="linkish" onclick="goTo('programs')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Blokach 4–16 tyg.</button>.</div>
     </div>
     <div class="topbar-actions">
@@ -3209,7 +3210,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- ONBOARDING -->
 <div class="screen" id="screen-onboarding">
   <div class="topbar">
-    <div class="topbar-title">Nowy klient: pierwsze kroki</div>
+    <h1 class="topbar-title">Nowy klient: pierwsze kroki</h1>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="onb-tab-overview" onclick="setOnbTab('overview')">Przegląd</button>
@@ -3227,7 +3228,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- CALCULATOR — TDEE / MAKRO -->
 <div class="screen" id="screen-calculator">
   <div class="topbar">
-    <div class="topbar-title" id="calc-top-title">Kalkulator TDEE i Makro</div>
+    <h1 class="topbar-title" id="calc-top-title">Kalkulator TDEE i Makro</h1>
     <div class="topbar-actions">
       <button class="btn btn-primary btn-sm" id="calc-tab-tdee" onclick="setCalcTool('tdee')">TDEE / Makro</button>
       <button class="btn btn-ghost btn-sm" id="calc-tab-rir" onclick="setCalcTool('rir')">Obciążenie RIR</button>
@@ -4941,9 +4942,9 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1"></script>
+<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1&ux-a11y=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=115&ux-menu=1&ux-look=1"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=115&ux-menu=1&ux-look=1&ux-a11y=1"></script>
 <script src="books-kb.js?v=8"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=61&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1&intensify=1&generator-ux=1&book-visuals=2&freq=4&reps=1&ux-look=1"></script>
 <script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1&ux-menu=1&ux-look=1"></script>
@@ -4952,7 +4953,7 @@ async function load(session=captureTenantSession()){
 <script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1&ux-menu=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-a11y=1"></script>
 <script src="diet-plan.js?v=13"></script>
 <script src="07-forms-metrics-calculator.js?v=57&week=1&diet=1&baseline-save=1&profile-save=1&ux-look=1"></script>
 <script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2&ux-menu=1"></script>

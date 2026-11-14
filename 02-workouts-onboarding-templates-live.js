@@ -5229,6 +5229,20 @@ function liveRestBeep(kind){
 }
 window.liveRestBeep=liveRestBeep;
 
+// Czytnik ekranu: zamiast ogłaszać każdą sekundę, mówimy tylko przy 10 s, 3 s i 0.
+function liveRestAnnounceText(left){
+  if(left===10)return 'Zostało 10 sekund przerwy';
+  if(left===3)return 'Zostały 3 sekundy';
+  if(left===0)return 'Koniec przerwy';
+  return '';
+}
+function liveRestAnnounce(slot,left){
+  const txt=liveRestAnnounceText(left);if(!txt)return;
+  const sr=document.getElementById(liveN(slot)===1?'live-b-rest-sr':'live-rest-sr');
+  if(sr)sr.textContent=txt;
+}
+window.liveRestAnnounceText=liveRestAnnounceText;
+
 function liveRestPaint(slot,phase){
   const n=liveN(slot);
   const el=liveEl('live-rest-timer',n);
@@ -5316,6 +5330,7 @@ function liveStartRest(sec,slot){
     const phase=liveRestPhase(left);
     const cue=liveRestCue(left);
     liveRestPaint(n,phase);
+    liveRestAnnounce(n,left);
     if(cue){
       if(typeof liveRestSpeak==='function')liveRestSpeak(left);
       liveRestBeep(cue);

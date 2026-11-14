@@ -919,6 +919,67 @@ function closeM(id){
   if(el)el.classList.remove('show');
 }
 document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){if(m.id==='m-client')closeM(m.id);else m.classList.remove('show');}}));
+// ── Okna (.modal-ov): rola dialog, fokus w środku, Esc zamyka, fokus wraca do przycisku ──
+const PL_FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function plModalFocusables(ov){
+  return [...ov.querySelectorAll(PL_FOCUSABLE)].filter(el=>el.offsetParent!==null||el.getClientRects().length>0);
+}
+function plModalPrepare(ov){
+  if(!ov||ov._plA11y)return;ov._plA11y=true;
+  const box=ov.querySelector('.modal')||ov.firstElementChild||ov;
+  box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+  const title=box.querySelector('.modal-title');
+  if(title){if(!title.id)title.id=(ov.id||'pl-modal')+'-title';box.setAttribute('aria-labelledby',title.id);}
+  ov.setAttribute('aria-hidden',ov.classList.contains('show')?'false':'true');
+  if(typeof MutationObserver==='function')new MutationObserver(()=>plModalSync(ov)).observe(ov,{attributes:true,attributeFilter:['class']});
+}
+function plModalSync(ov){
+  const open=ov.classList.contains('show');
+  if(open===ov._plOpen)return;ov._plOpen=open;
+  ov.setAttribute('aria-hidden',open?'false':'true');
+  if(open){
+    ov._plOpener=document.activeElement;
+    setTimeout(()=>{
+      if(!ov.classList.contains('show')||ov.contains(document.activeElement))return;
+      const f=plModalFocusables(ov);const first=f.find(el=>!el.classList.contains('modal-close'))||f[0];
+      if(first)first.focus();
+    },30);
+  }else{
+    const back=ov._plOpener;ov._plOpener=null;
+    if(back&&back.isConnected&&typeof back.focus==='function'&&(!document.activeElement||document.activeElement===document.body||ov.contains(document.activeElement)))back.focus();
+  }
+}
+function plTopModal(){
+  const open=[...document.querySelectorAll('.modal-ov.show')];
+  return open.length?open[open.length-1]:null;
+}
+function plModalKeydown(e){
+  const ov=plTopModal();if(!ov)return;
+  if(e.key==='Escape'){
+    e.preventDefault();e.stopPropagation();
+    if(typeof closeM==='function'&&ov.id)closeM(ov.id);else ov.classList.remove('show');
+    return;
+  }
+  if(e.key!=='Tab')return;
+  const f=plModalFocusables(ov);if(!f.length){e.preventDefault();return;}
+  const first=f[0],last=f[f.length-1],cur=document.activeElement;
+  if(!ov.contains(cur)){e.preventDefault();first.focus();return;}
+  if(e.shiftKey&&cur===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&cur===last){e.preventDefault();first.focus();}
+}
+function plModalInit(){
+  document.querySelectorAll('.modal-ov').forEach(plModalPrepare);
+  document.addEventListener('keydown',plModalKeydown,true);
+  if(typeof MutationObserver==='function')new MutationObserver(list=>{
+    for(const m of list)for(const n of m.addedNodes){
+      if(n.nodeType!==1)continue;
+      if(n.classList.contains('modal-ov'))plModalPrepare(n);
+      else if(n.querySelector&&n.firstElementChild)n.querySelectorAll('.modal-ov').forEach(plModalPrepare);
+    }
+  }).observe(document.body,{childList:true,subtree:true});
+}
+if(typeof document!=='undefined'&&document.body)plModalInit();
+window.plModalPrepare=plModalPrepare;window.plModalKeydown=plModalKeydown;
 
 window.renderAll=function(){
   const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};

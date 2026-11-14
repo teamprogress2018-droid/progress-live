@@ -2279,3 +2279,21 @@ html { --font-display: var(--font-ui, 'Inter', system-ui, sans-serif); }
   content: "!"; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-right: 6px;
   border-radius: 50%; background: var(--danger); color: var(--on-accent, #fff); font-size: 0.75rem; font-weight: 800; vertical-align: 1px;
 }
+
+/* Etap 8: dostępność. */
+/* Fokus z klawiatury: gruby, ciemny obrys widoczny na bieli i na czerwieni. */
+html[data-theme] :focus-visible { outline: 3px solid var(--text-primary) !important; outline-offset: 2px; }
+html[data-theme] .modal-ov :focus-visible,
+html[data-theme] .nav-item:focus-visible { outline-offset: -3px; }
+/* Link „Przejdź do treści”: niewidoczny, pojawia się po pierwszym Tab. */
+.skip-link { position: fixed; left: 12px; top: -80px; z-index: 10000; padding: 12px 16px; border-radius: var(--r, 8px); background: var(--bg-elevated, #fff); color: var(--text-primary); font: 700 15px/1.2 var(--font-ui); text-decoration: none; border: 2px solid var(--text-primary); }
+.skip-link:focus { top: 12px; }
+#main:focus { outline: none; }
+/* Tytuły ekranów to nagłówki h1. */
+h1.topbar-title { margin: 0; }
+/* Nazwa ćwiczenia jako osobny przycisk na karcie. */
+button.exl-name { display: -webkit-box; width: 100%; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+/* Mniej ruchu: wyłączamy animacje i płynne przewijanie w całej aplikacji. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
