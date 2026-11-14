@@ -12,6 +12,16 @@ function clientInviteTokenFromUrl(){
   }catch(e){return '';}
 }
 
+/** E-mail klienta dopisany przez trenera do linku zaproszenia (?invite=…&email=…), tylko do wypełnienia pola. */
+function clientInviteEmailFromUrl(){
+  try{
+    const q=new URLSearchParams(location.search||'');
+    const v=String(q.get('email')||'').trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)?v:'';
+  }catch(e){return '';}
+}
+window.clientInviteEmailFromUrl=clientInviteEmailFromUrl;
+
 /** Ręczny wybór widoku trenera dla konta używanego też jako klient testowy. */
 function switchClientAppToTrainer(){
   try{sessionStorage.setItem('pl_auth_mode','trainer');}catch(e){}
@@ -579,11 +589,16 @@ function prepareAuthForInvite(){
     authShowRegister();
     // An invite must not disclose client names or email addresses before sign-in.
     const tokEl=document.getElementById('auth-reg-token');if(tokEl)tokEl.value=window._pendingInviteToken;
+    // Kod jest w linku — pole kodu niepotrzebne. E-mail z linku (jeśli trener go dodał) wpisujemy od razu.
+    const tokField=document.getElementById('auth-reg-token-field');if(tokField)tokField.hidden=true;
     const em=document.getElementById('auth-reg-email');if(em)em.readOnly=false;
+    const linkEmail=clientInviteEmailFromUrl();
+    if(em&&linkEmail&&!em.value)em.value=linkEmail;
     const sub=document.getElementById('auth-reg-sub');
-    if(sub)sub.textContent='Wpisz adres e-mail podany trenerowi i ustaw hasło. Jeśli masz już konto, użyj swojego hasła.';
+    if(sub)sub.textContent='Wymyśl hasło i zobacz swój plan.';
+    if(em&&em.value){const pw=document.getElementById('auth-reg-password');if(pw)setTimeout(()=>{try{pw.focus();}catch(e){}},60);}
   }else if(hint){
-    hint.textContent='Zaloguj się — trener do panelu, klient do swojej aplikacji';
+    hint.textContent='Zaloguj się do swojego konta';
   }
 }
 
@@ -660,7 +675,7 @@ async function doClientRegister(){
   const pass2=document.getElementById('auth-reg-password2')?.value||'';
   const btn=document.getElementById('auth-reg-btn');
   authSetError('auth-reg-error','');
-  if(!token){authSetError('auth-reg-error','Wklej token z linku zaproszenia albo otwórz link od trenera.');return;}
+  if(!token){authSetError('auth-reg-error','Wpisz kod od trenera albo otwórz link z jego wiadomości.');return;}
   if(!email||!pass){authSetError('auth-reg-error','Wpisz e-mail i hasło.');return;}
   if(pass.length<6){authSetError('auth-reg-error','Hasło musi mieć co najmniej 6 znaków.');return;}
   if(pass!==pass2){authSetError('auth-reg-error','Hasła nie są takie same.');return;}

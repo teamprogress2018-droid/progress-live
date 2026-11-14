@@ -306,7 +306,7 @@ function enterClientPreviewMode(clientId){
   }
   if(banner){
     banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(62,207,178,0.12);border:1px solid rgba(62,207,178,0.35);border-radius:8px;font-size:12px;color:var(--teal);';
-    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
+    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent-text,var(--accent));cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
   }
   setCapTab('preview');
   renderClientApp();
