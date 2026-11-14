@@ -15,9 +15,9 @@
 <link rel="stylesheet" href="globals.css?v=17">
 <link rel="stylesheet" href="styles.css?v=194">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5">
+<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
-<link rel="stylesheet" href="landing.css?v=2">
+<link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1">
 <link rel="stylesheet" href="client-simple.css?v=2">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
@@ -44,12 +44,16 @@
       <div class="pl-land-eyebrow">TRENER. PLAN. <span>EFEKTY.</span></div>
       <h1 class="pl-land-title" id="pl-land-title">Prowadź klientów, plany i treningi <em>w&nbsp;jednym miejscu</em></h1>
       <p class="pl-land-lead">Progress Live to aplikacja dla trenera personalnego: klienci, plany treningowe, trening LIVE, kalendarz i płatności. Twoi podopieczni dostają własną aplikację z planem i postępami.</p>
+      <div class="pl-land-who" role="group" aria-label="Kim jesteś?">
+        <button type="button" class="pl-land-who-btn" id="pl-land-who-client" data-who="client" aria-pressed="false" onclick="landingPickWho('client')"><b>Jestem klientem</b><span>mam zaproszenie</span></button>
+        <button type="button" class="pl-land-who-btn" id="pl-land-who-trainer" data-who="trainer" aria-pressed="true" onclick="landingPickWho('trainer')"><b>Jestem trenerem</b><span>zaloguj się</span></button>
+      </div>
       <form class="pl-land-start" onsubmit="landingStart(event)">
         <label for="pl-land-email" class="sr-only">Twój e-mail</label>
         <input type="email" id="pl-land-email" placeholder="Twój e-mail" autocomplete="email" inputmode="email">
         <button type="submit" class="pl-land-btn pl-land-btn-primary" id="pl-land-start-btn">Zaloguj się →</button>
       </form>
-      <div class="pl-land-invite">Jesteś klientem i masz zaproszenie od trenera? <button type="button" class="pl-land-link" onclick="landingOpenAuth('register')">Załóż konto z zaproszenia</button></div>
+      <div class="pl-land-invite" id="pl-land-who-note">Klient? Wybierz „Jestem klientem” i załóż konto z linku od trenera.</div>
       <ul class="pl-land-points">
         <li>Plan treningowy z progresją w kilka minut</li>
         <li>Trening LIVE z klientem i aplikacja dla podopiecznego</li>
@@ -70,45 +74,42 @@
     <div class="pl-auth-card-head"><svg viewBox="0 0 40 44" aria-hidden="true"><path d="M4 6 14 2v40L4 38z" fill="#e5231b"/><path d="M17 2h10c7.7 0 13 5 13 12.5S34.7 27 27 27h-3v-9h2.6c2.4 0 4-1.4 4-3.6s-1.6-3.6-4-3.6H17z" fill="#ff2d20"/><path d="M17 30h7v12l-7-3z" fill="#b5130d"/></svg><b id="auth-card-title">PROGRESS <span>LIVE</span></b></div>
 
     <div id="auth-login-view">
-      <div id="auth-role-hint" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się — trener do panelu, klient do swojej aplikacji</div>
-      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-email" placeholder="trener@przyklad.pl" autocomplete="username"></div>
-      <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
-      <div id="auth-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
+      <div id="auth-role-hint" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się do swojego konta</div>
+      <div class="form-field"><label class="form-lbl" for="auth-email">E-mail</label><input type="email" class="form-input" id="auth-email" placeholder="twoj@email.pl" autocomplete="username"></div>
+      <div class="form-field"><label class="form-lbl" for="auth-password">Hasło</label><div class="pl-auth-pass"><input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"><button type="button" class="pl-auth-eye" id="auth-pass-toggle" onclick="authTogglePassword('auth-password',this)" aria-label="Pokaż hasło" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <div id="auth-error" class="pl-auth-error" role="alert" style="display:none;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-login-btn" onclick="doSignIn()">Zaloguj się</button>
-      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;" id="auth-login-trainer-btn" onclick="doSignInAsTrainer()">Zaloguj jako trener</button>
-      <div style="text-align:center;margin-top:14px;">
-        <button onclick="authShowReset()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Nie pamiętam hasła</button>
-      </div>
-      <div style="text-align:center;margin-top:10px;">
-        <button type="button" onclick="authShowRegister()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Mam zaproszenie od trenera — pierwsze logowanie</button>
+      <div class="pl-auth-links">
+        <button type="button" class="pl-auth-link" onclick="authShowReset()">Nie pamiętam hasła</button>
+        <button type="button" class="pl-auth-link" onclick="authShowRegister()">Mam zaproszenie, załóż konto</button>
       </div>
     </div>
 
     <div id="auth-register-view" style="display:none;">
-      <div id="auth-reg-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Ustaw hasło z linku zaproszenia, żeby zobaczyć swój plan.</div>
-      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reg-email" placeholder="jan@przyklad.pl" autocomplete="username"></div>
+      <div id="auth-reg-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Wymyśl hasło i zobacz swój plan.</div>
+      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reg-email" placeholder="twoj@email.pl" autocomplete="username"></div>
       <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-reg-password" placeholder="min. 6 znaków" autocomplete="new-password"></div>
       <div class="form-field"><label class="form-lbl">Powtórz hasło</label><input type="password" class="form-input" id="auth-reg-password2" placeholder="powtórz hasło" autocomplete="new-password" onkeydown="if(event.key==='Enter')doClientRegister()"></div>
-      <div class="form-field"><label class="form-lbl">Kod z linku zaproszenia</label><input class="form-input" id="auth-reg-token" placeholder="wklej, jeśli nie otworzyłeś linku" autocomplete="off"></div>
-      <div id="auth-reg-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
+      <div class="form-field" id="auth-reg-token-field"><label class="form-lbl" for="auth-reg-token">Kod od trenera</label><input class="form-input" id="auth-reg-token" placeholder="wklej kod z linku" autocomplete="off" aria-describedby="auth-reg-token-help"><div class="pl-auth-help" id="auth-reg-token-help">Znajdziesz go w wiadomości od trenera. Najprościej otwórz link z tej wiadomości, wtedy kod wpisze się sam.</div></div>
+      <div id="auth-reg-error" class="pl-auth-error" role="alert" style="display:none;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-reg-btn" onclick="doClientRegister()">Utwórz konto i wejdź</button>
-      <div style="text-align:center;margin-top:14px;">
-        <button type="button" onclick="authShowLoginFromClient()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">← Mam już konto — zaloguj się</button>
+      <div class="pl-auth-links">
+        <button type="button" class="pl-auth-link" onclick="authShowLoginFromClient()">← Mam już konto, zaloguj się</button>
       </div>
     </div>
 
     <div id="auth-reset-view" style="display:none;">
-      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Podaj e-mail, na który wyślemy link do resetu hasła</div>
-      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reset-email" placeholder="trener@przyklad.pl"></div>
-      <div id="auth-reset-msg" style="display:none;font-size:11px;margin-bottom:12px;"></div>
+      <div id="auth-reset-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Wyślemy Ci link na e-mail. Sprawdź też spam.</div>
+      <div class="form-field"><label class="form-lbl" for="auth-reset-email">E-mail</label><input type="email" class="form-input" id="auth-reset-email" placeholder="twoj@email.pl" autocomplete="email"></div>
+      <div id="auth-reset-msg" role="status" style="display:none;font-size:14px;margin-bottom:12px;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" onclick="doPasswordReset()">Wyślij link resetujący</button>
-      <div style="text-align:center;margin-top:14px;">
-        <button onclick="authShowLogin()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">← Wróć do logowania</button>
+      <div class="pl-auth-links">
+        <button type="button" class="pl-auth-link" onclick="authShowLogin()">← Wróć do logowania</button>
       </div>
     </div>
   </div>
 </div>
-<script src="landing.js?v=2"></script>
+<script src="landing.js?v=2&ux-login=1&ux-start=1"></script>
 
 <div class="app" id="app-root" style="display:none;">
 <button id="mobile-menu-btn" type="button" aria-label="Otwórz menu" aria-controls="app-sidebar" aria-expanded="false">
@@ -135,6 +136,7 @@
         <button type="button" class="nav-flyout-item" role="menuitem" data-client-seg="inactive" onclick="openClientSegment('inactive')">Nieaktywni</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-client-seg="archived" onclick="openClientSegment('archived')">Zarchiwizowani</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="checkin" onclick="closeNavFlyouts();goTo('checkin')">Check-iny</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="onboarding" onclick="closeNavFlyouts();goTo('onboarding')">Nowy klient: pierwsze kroki</button>
       </div>
     </div>
 
@@ -151,9 +153,10 @@
           <span>Biblioteka</span>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         </div>
+        <button type="button" class="nav-flyout-item nav-flyout-item-primary" role="menuitem" data-screen="aiplangen" onclick="closeLibraryFlyout();goTo('aiplangen')">Nowy plan (AI)</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="library" onclick="closeLibraryFlyout();goTo('library')">Ćwiczenia</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="plans" onclick="closeLibraryFlyout();goTo('plans')">Treningi</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="closeLibraryFlyout();goTo('programs')">Bloki 4–16 tyg.</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="closeLibraryFlyout();goTo('programs')">Programy wielotygodniowe</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="closeLibraryFlyout();goTo('templates')">Gotowy tydzień</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" data-task-filter="homework" onclick="closeLibraryFlyout();goToHomeworkQueue()">Zadania domowe</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="closeLibraryFlyout();goTo('tasks');setTaskFilter('all')">Wszystkie zadania</button>
@@ -167,18 +170,17 @@
     <button class="nav-item" data-screen="calendar" onclick="goTo('calendar')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="nav-lbl">Kalendarz</span></button>
 
     <div class="nav-flyout-wrap" id="nav-automation-wrap" data-nav-group="automation">
-      <button type="button" class="nav-item nav-flyout-trigger" id="nav-automation-btn" data-screen="automation" data-nav-group="automation" onclick="navGroupClick('automation',event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-automation-flyout"><svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg><span class="nav-lbl">Automatyzacja</span></button>
-      <div class="nav-flyout" id="nav-automation-flyout" hidden role="menu" aria-label="Automatyzacja">
-        <div class="nav-flyout-hd"><span>Automatyzacja</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg></div>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="onboarding" onclick="closeNavFlyouts();goTo('onboarding')">Start współpracy</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="automation" onclick="closeNavFlyouts();goTo('automation')">Automatyczne działania</button>
+      <button type="button" class="nav-item nav-flyout-trigger" id="nav-automation-btn" data-screen="automation" data-nav-group="automation" onclick="navGroupClick('automation',event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-automation-flyout"><svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg><span class="nav-lbl">Przypomnienia</span></button>
+      <div class="nav-flyout" id="nav-automation-flyout" hidden role="menu" aria-label="Przypomnienia i wiadomości">
+        <div class="nav-flyout-hd"><span>Przypomnienia i wiadomości</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg></div>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="automation" onclick="closeNavFlyouts();goTo('automation')">Automatyczne przypomnienia</button>
       </div>
     </div>
 
     <div class="nav-flyout-wrap" id="nav-ondemand-wrap" data-nav-group="ondemand">
-      <button type="button" class="nav-item nav-flyout-trigger" id="nav-ondemand-btn" data-screen="ondemand" data-nav-group="ondemand" onclick="navGroupClick('ondemand',event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-ondemand-flyout"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 9 15 12 10 15 10 9"/></svg><span class="nav-lbl">On-demand</span></button>
-      <div class="nav-flyout" id="nav-ondemand-flyout" hidden role="menu" aria-label="On-demand">
-        <div class="nav-flyout-hd"><span>On-demand</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 9 15 12 10 15 10 9"/></svg></div>
+      <button type="button" class="nav-item nav-flyout-trigger" id="nav-ondemand-btn" data-screen="ondemand" data-nav-group="ondemand" onclick="navGroupClick('ondemand',event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-ondemand-flyout"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 9 15 12 10 15 10 9"/></svg><span class="nav-lbl">Treningi wideo</span></button>
+      <div class="nav-flyout" id="nav-ondemand-flyout" hidden role="menu" aria-label="Treningi wideo">
+        <div class="nav-flyout-hd"><span>Treningi wideo</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10 9 15 12 10 15 10 9"/></svg></div>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="ondemand" onclick="closeNavFlyouts();goTo('ondemand')">Treningi i programy</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="resources" onclick="closeNavFlyouts();goTo('resources')">Zasoby</button>
       </div>
@@ -201,7 +203,25 @@
       <div class="nav-flyout" id="nav-knowledge-flyout" hidden role="menu" aria-label="Progress Academy">
         <div class="nav-flyout-hd"><span>Progress Academy</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></div>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="academy" onclick="closeNavFlyouts();goTo('academy')">Progress Academy</button>
-        <button type="button" class="nav-flyout-item nav-flyout-item-primary" role="menuitem" data-screen="aiplangen" onclick="closeNavFlyouts();goTo('aiplangen')">✦ Generator planu AI</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="kb" onclick="closeNavFlyouts();goTo('kb')">Baza wiedzy</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="aicoach" onclick="closeNavFlyouts();goTo('aicoach')">AI Coach</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="calculator" onclick="closeNavFlyouts();goTo('calculator')">Kalkulator</button>
+      </div>
+    </div>
+    <div class="nav-flyout-wrap nav-more-wrap" id="nav-more-wrap" data-nav-group="more">
+      <button type="button" class="nav-item nav-flyout-trigger" id="nav-more-btn" data-nav-group="more" onclick="navGroupClick('more',event)" aria-haspopup="true" aria-expanded="false" aria-controls="nav-more-flyout"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg><span class="nav-lbl">Więcej</span><svg class="nav-flyout-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <div class="nav-flyout" id="nav-more-flyout" hidden role="menu" aria-label="Więcej">
+        <div class="nav-flyout-hd"><span>Więcej</span></div>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="inbox" onclick="closeNavFlyouts();goTo('inbox')">Wiadomości</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="onboarding" onclick="closeNavFlyouts();goTo('onboarding')">Nowy klient: pierwsze kroki</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="automation" onclick="closeNavFlyouts();goTo('automation')">Przypomnienia i wiadomości</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="ondemand" onclick="closeNavFlyouts();goTo('ondemand')">Treningi wideo</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="resources" onclick="closeNavFlyouts();goTo('resources')">Zasoby</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="forum" onclick="closeNavFlyouts();goTo('forum')">Społeczność</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="payments" onclick="closeNavFlyouts();goTo('payments')">Płatności</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="bizstats" onclick="closeNavFlyouts();goTo('bizstats')">Statystyki</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" onclick="closeNavFlyouts();openReportModal()">Raporty</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="academy" onclick="closeNavFlyouts();goTo('academy')">Progress Academy</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="kb" onclick="closeNavFlyouts();goTo('kb')">Baza wiedzy</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="aicoach" onclick="closeNavFlyouts();goTo('aicoach')">AI Coach</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="calculator" onclick="closeNavFlyouts();goTo('calculator')">Kalkulator</button>
@@ -2147,7 +2167,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
     <!-- lewy panel — lista sekcji -->
     <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:10px 0;">
-      <div style="padding:5px 14px 3px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Ekrany klienta</div>
+      <div style="padding:5px 14px 3px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Ekrany klienta</div>
       <div class="cap-nav-item active" id="capn-home" onclick="setCapScreen('home',this)">🏠 Strona główna</div>
       <div class="cap-nav-item" id="capn-plan" onclick="setCapScreen('plan',this)">📋 Mój plan</div>
       <div class="cap-nav-item" id="capn-calendar" onclick="setCapScreen('calendar',this)">📅 Kalendarz sesji</div>
@@ -2160,7 +2180,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="cap-nav-item" id="capn-profile" onclick="setCapScreen('profile',this)">👤 Mój profil</div>
 
       <div style="padding:12px 14px;border-top:1px solid var(--border);margin-top:8px;">
-        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Urządzenie</div>
+        <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Urządzenie</div>
         <div style="display:flex;flex-direction:column;gap:5px;">
           <button class="wl-filter-chip active" id="cap-dev-phone" onclick="setCapDevice('phone',this)">📱 iPhone</button>
           <button class="wl-filter-chip" id="cap-dev-android" onclick="setCapDevice('android',this)">🤖 Android</button>
@@ -3189,7 +3209,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- ONBOARDING -->
 <div class="screen" id="screen-onboarding">
   <div class="topbar">
-    <div class="topbar-title">Start współpracy</div>
+    <div class="topbar-title">Nowy klient: pierwsze kroki</div>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="onb-tab-overview" onclick="setOnbTab('overview')">Przegląd</button>
@@ -4509,6 +4529,9 @@ window.authShowReset=function(){
   document.getElementById('auth-login-view').style.display='none';
   const reg=document.getElementById('auth-register-view');if(reg)reg.style.display='none';
   document.getElementById('auth-reset-view').style.display='block';
+  // E-mail wpisany wcześniej (strona startowa albo okno logowania) nie jest pytany drugi raz.
+  const resetEm=document.getElementById('auth-reset-email');
+  if(resetEm&&!resetEm.value&&typeof window.landingKnownEmail==='function')resetEm.value=window.landingKnownEmail();
 };
 window.authShowLogin=function(){
   document.getElementById('auth-reset-view').style.display='none';
@@ -4521,11 +4544,11 @@ window.doPasswordReset=async function(){
   if(!email){return;}
   try{
     await sendPasswordResetEmail(auth,email);
-    msgEl.style.color='var(--teal)';
-    msgEl.textContent='Link do resetu hasła wysłany — sprawdź skrzynkę e-mail.';
+    msgEl.style.color='var(--success)';
+    msgEl.textContent='Link wysłany. Sprawdź skrzynkę e-mail i folder spam.';
     msgEl.style.display='block';
   }catch(e){
-    msgEl.style.color='var(--red)';
+    msgEl.style.color='var(--danger)';
     msgEl.textContent='Nie udało się wysłać linku. Sprawdź adres e-mail.';
     msgEl.style.display='block';
   }
@@ -4918,24 +4941,24 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1"></script>
+<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=115"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=115&ux-menu=1"></script>
 <script src="books-kb.js?v=8"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=61&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1&intensify=1&generator-ux=1&book-visuals=2&freq=4&reps=1"></script>
-<script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1"></script>
+<script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1&ux-menu=1"></script>
 <script src="client-card-save.js?v=4"></script>
 <script src="dashboard-home.js?v=2"></script>
-<script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1&ux-menu=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1&ux-contrast=1&ux-menu=1"></script>
 <script src="diet-plan.js?v=13"></script>
 <script src="07-forms-metrics-calculator.js?v=57&week=1&diet=1&baseline-save=1&profile-save=1"></script>
-<script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2"></script>
+<script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2&ux-menu=1"></script>
 <script src="09-posture-kb-invites-private.js?v=59&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1"></script>
 <script src="client-simple.js?v=2"></script>
-<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1"></script>
+<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1"></script>
 <script src="11-progress-academy.js?v=10&study-explanations=1&book-answers=1&research=1&visuals=3"></script>
 <script src="research-answer.js?v=2"></script>
 <script src="research-academy.js?v=3"></script>

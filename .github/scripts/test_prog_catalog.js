@@ -26,7 +26,7 @@ ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('CI', wf.includes('test_prog_catalog.js'));
 ok('CI ui', wf.includes('test_prog_catalog_ui.js'));
 ok('title 4-16', html.includes('>Bloki 4–16 tygodni<'));
-ok('nav 4-16', html.includes('>Bloki 4–16 tyg.<'));
+ok('nav: multi-week programs', html.includes('>Programy wielotygodniowe<'));
 ok('subtitle 4-16', /bloki 4–16 tygodni/.test(html));
 ok('no 1-tyg chip', !/setProgDurFilter\('1'\)/.test(chips) && !/>1 tyg\.</.test(chips));
 ok('chips data-dur', /data-dur=""/.test(chips) && /data-dur="4"/.test(chips) && /data-dur="6"/.test(chips) && /data-dur="8"/.test(chips) && /data-dur="10\+"/.test(chips));
