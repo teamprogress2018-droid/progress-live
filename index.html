@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="globals.css?v=17&ux-look=1">
 <link rel="stylesheet" href="styles.css?v=194&ux-look=1">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-a11y=1">
+<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-a11y=1&ux-add-client=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
 <link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1&ux-rest=1">
 <link rel="stylesheet" href="client-simple.css?v=2&ux-rest=1">
@@ -3539,16 +3539,20 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title">NOWY KLIENT</div><button class="modal-close" aria-label="Zamknij" onclick="closeM('m-client')">×</button></div>
     <div class="modal-body">
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input type="text" class="form-input" id="ac-name" placeholder="Jan Kowalski" required></div><div class="form-field"><label class="form-lbl">E-mail klienta (do zaproszenia do aplikacji)</label><input type="email" class="form-input" id="ac-email" placeholder="jan@example.com — możesz uzupełnić później" autocomplete="email"></div></div>
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Telefon</label><input type="tel" class="form-input" id="ac-phone" placeholder="+48 123 456 789"></div><div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="form-input" id="ac-age" placeholder="25"></div></div>
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Płeć</label><select class="form-select" id="ac-gender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></div><div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="ac-weight" placeholder="80"></div></div>
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="form-input" id="ac-height" placeholder="180"></div><div class="form-field"></div></div>
+      <p class="ac-intro">Wystarczą 3 rzeczy. Resztę uzupełnisz później albo klient poda ją sam.</p>
+      <div class="form-field"><label class="form-lbl" for="ac-name">Imię i nazwisko</label><input type="text" class="form-input" id="ac-name" placeholder="np. Anna Nowak" required autocomplete="off"></div>
+      <div class="form-field"><label class="form-lbl" for="ac-email">E-mail klienta</label><input type="email" class="form-input" id="ac-email" placeholder="np. anna@poczta.pl" autocomplete="off" aria-describedby="ac-email-help"><div class="ac-help" id="ac-email-help">Wyślemy na niego zaproszenie do aplikacji. Możesz dodać go później.</div></div>
+      <div class="form-field"><label class="form-lbl" for="ac-goal">Cel</label><select class="form-select" id="ac-goal"><option value="masa">Budowa masy</option><option value="sila">Wzrost siły</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option></select></div>
+      <details class="ac-more" id="ac-more">
+        <summary>Więcej danych <span>(opcjonalnie: telefon, wiek, waga, poziom, dni treningowe, kontuzje)</span></summary>
+      <div class="form-grid"><div class="form-field"><label class="form-lbl" for="ac-phone">Telefon</label><input type="tel" class="form-input" id="ac-phone" placeholder="+48 123 456 789"></div><div class="form-field"><label class="form-lbl" for="ac-age">Wiek</label><input type="number" class="form-input" id="ac-age" placeholder="25"></div></div>
+      <div class="form-grid"><div class="form-field"><label class="form-lbl" for="ac-gender">Płeć</label><select class="form-select" id="ac-gender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></div><div class="form-field"><label class="form-lbl" for="ac-weight">Waga (kg)</label><input type="number" class="form-input" id="ac-weight" placeholder="80"></div></div>
+      <div class="form-grid"><div class="form-field"><label class="form-lbl" for="ac-height">Wzrost (cm)</label><input type="number" class="form-input" id="ac-height" placeholder="180"></div><div class="form-field"></div></div>
       <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Cel</label><select class="form-select" id="ac-goal"><option value="masa">Budowa masy</option><option value="sila">Wzrost siły</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option></select></div>
-        <div class="form-field"><label class="form-lbl">Poziom</label><select class="form-select" id="ac-level"><option value="poczatkujacy">Początkujący (0-1 rok)</option><option value="sredni">Średniozaawansowany (1-3 lata)</option><option value="zaawansowany">Zaawansowany (3+ lata)</option></select></div>
+        <div class="form-field"><label class="form-lbl" for="ac-level">Poziom</label><select class="form-select" id="ac-level"><option value="poczatkujacy">Początkujący (0-1 rok)</option><option value="sredni">Średniozaawansowany (1-3 lata)</option><option value="zaawansowany">Zaawansowany (3+ lata)</option></select></div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Dni treningowe / tydzień</label>
+        <div class="form-field"><label class="form-lbl" for="ac-freq">Dni treningowe / tydzień</label>
           <select class="form-select" id="ac-freq">
             <option value="">— nie ustawiono —</option>
             <option value="2">2× w tygodniu</option>
@@ -3558,7 +3562,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             <option value="6">6× w tygodniu</option>
           </select>
         </div>
-        <div class="form-field"><label class="form-lbl">Preferowana pora</label>
+        <div class="form-field"><label class="form-lbl" for="ac-train-time">Preferowana pora</label>
           <select class="form-select" id="ac-train-time">
             <option value="">— dowolna —</option>
             <option value="Rano (6-10)">Rano (6–10)</option>
@@ -3577,16 +3581,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="ac-prior-sports-mount"></div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
+        <div class="form-field"><label class="form-lbl" for="ac-activity">Dotychczasowa aktywność</label>
           <select class="form-select" id="ac-activity"><option value="sedentary">Siedzący tryb</option><option value="light">Lekka</option><option value="moderate" selected>Umiarkowana</option><option value="active">Aktywny</option></select></div>
-        <div class="form-field"><label class="form-lbl">Uwagi sportowe</label><input type="text" class="form-input" id="ac-sport-notes" placeholder="np. biegał 5 lat"></div>
+        <div class="form-field"><label class="form-lbl" for="ac-sport-notes">Uwagi sportowe</label><input type="text" class="form-input" id="ac-sport-notes" placeholder="np. biegał 5 lat"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Priorytet sylwetkowy</label>
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Partie do akcentu na początku sesji (AI / Live).</div>
         <div id="ac-physique-priority-mount"></div>
       </div>
-      <div class="form-field"><label class="form-lbl">Kontuzje / ograniczenia</label><textarea class="form-textarea" id="ac-injuries" rows="2" placeholder="np. ból kolana, ograniczona mobilność barku..."></textarea></div>
-      <div class="form-field"><label class="form-lbl">Uwagi prywatne</label><textarea class="form-textarea" id="ac-notes" rows="2" placeholder="Notatka tylko dla trenera..."></textarea></div>
+      <div class="form-field"><label class="form-lbl" for="ac-injuries">Kontuzje / ograniczenia</label><textarea class="form-textarea" id="ac-injuries" rows="2" placeholder="np. ból kolana, ograniczona mobilność barku..."></textarea></div>
+      <div class="form-field"><label class="form-lbl" for="ac-notes">Uwagi prywatne</label><textarea class="form-textarea" id="ac-notes" rows="2" placeholder="Notatka tylko dla trenera..."></textarea></div>
+      </details>
     </div>
     <div id="ac-save-status" role="status" aria-live="polite" style="padding:0 24px;color:var(--muted);font-size:12px"></div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-client')">Zamknij</button><button id="ac-reload-btn" class="btn btn-ghost" style="display:none" onclick="reloadClientModalDraft()">Wczytaj aktualne dane</button><button id="ac-new-btn" class="btn btn-ghost" style="display:none" onclick="startNewClientModalDraft()">Dodaj kolejnego klienta</button><button id="ac-save-btn" class="btn btn-primary" onclick="saveClient()">Zapisz klienta</button></div>
@@ -3598,6 +3603,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal" style="max-width:480px;">
     <div class="modal-hdr"><div class="modal-title">🎯 ROZPOCZNIJ WSPÓŁPRACĘ</div><button class="modal-close" aria-label="Zamknij" onclick="closeM('m-client-onboard')">×</button></div>
     <div class="modal-body" id="client-onboard-body">
+      <div class="client-saved-cta" id="client-onboard-saved" role="status" hidden></div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;" id="client-onboard-intro">Wykonaj te kroki, aby uruchomić współpracę:</div>
       <div id="client-onboard-progress" style="margin-bottom:14px;"></div>
       <div id="client-onboard-steps"></div>
@@ -4942,7 +4948,7 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1&ux-a11y=1"></script>
+<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1&ux-a11y=1&ux-add-client=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=115&ux-menu=1&ux-look=1&ux-a11y=1"></script>
 <script src="books-kb.js?v=8"></script>
@@ -4950,7 +4956,7 @@ async function load(session=captureTenantSession()){
 <script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1&ux-menu=1&ux-look=1"></script>
 <script src="client-card-save.js?v=4"></script>
 <script src="dashboard-home.js?v=2"></script>
-<script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1&ux-menu=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1&ux-menu=1&ux-add-client=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-a11y=1"></script>

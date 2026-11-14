@@ -922,7 +922,8 @@ document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>
 // ── Okna (.modal-ov): rola dialog, fokus w środku, Esc zamyka, fokus wraca do przycisku ──
 const PL_FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 function plModalFocusables(ov){
-  return [...ov.querySelectorAll(PL_FOCUSABLE)].filter(el=>el.offsetParent!==null||el.getClientRects().length>0);
+  // checkVisibility pomija też pola w zwiniętym <details> (np. „Więcej danych” przy nowym kliencie).
+  return [...ov.querySelectorAll(PL_FOCUSABLE)].filter(el=>typeof el.checkVisibility==='function'?el.checkVisibility():(el.offsetParent!==null||el.getClientRects().length>0));
 }
 function plModalPrepare(ov){
   if(!ov||ov._plA11y)return;ov._plA11y=true;

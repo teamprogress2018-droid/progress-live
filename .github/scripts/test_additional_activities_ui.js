@@ -36,6 +36,8 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     if (typeof openClientModal === 'function') openClientModal();
     else if (typeof openM === 'function') openM('m-client');
+    // Sporty są w zwiniętej sekcji „Więcej danych” (etap 9 UX).
+    const more = document.getElementById('ac-more'); if (more) more.open = true;
   });
   await page.waitForSelector('#ac-prior-sports');
   await page.click('#ac-prior-sports [data-sport="nordic_walking"]');
