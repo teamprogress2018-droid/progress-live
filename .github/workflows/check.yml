@@ -611,6 +611,10 @@ jobs:
       - name: Dodaj klienta (3 pola i następny krok)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_add_client_simple_ui.js
+
+      - name: Nawigacja klienta (pasek, Czat, brak internetu, pakiet do opłacenia)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_nav_ui.js
       - name: 6a5. Testy UI przerwy i końca treningu klienta (prosty styl, wibracja, błąd pod polem)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_rest_ui.js

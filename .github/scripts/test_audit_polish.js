@@ -21,7 +21,7 @@ ok('saveCheckinFill refreshes dash',/function saveCheckinFill[\s\S]*?refreshDash
 ok('clientSubmitCheckin refreshes dash',/function clientSubmitCheckin[\s\S]*?renderDashCheckinFollowup/.test(src10)||/function clientSubmitCheckin[\s\S]*?refreshDashOps/.test(src10));
 ok('packages filter archived',src09.includes('status!==\'archived\'')&&/function packagesAwaitingPayment[\s\S]*?archived/.test(src09));
 ok('messages badge not forms',/const unread=[^;]*clientHasUnreadFromTrainer/.test(src10)&&src10.includes("setBadge('clive-bn-messages',unread)")&&!src10.includes("setBadge('clive-bn-messages',pendForms)"));
-ok('more badge for unpaid packages',src10.includes("setBadge('clive-bn-more',pendPay||unread)"));
+ok('more badge for unpaid packages',src10.includes("setBadge('clive-bn-more',pendPay||(unread&&!document.getElementById('clive-bn-messages')))"));
 ok('client unread helper',src06.includes('function clientHasUnreadFromTrainer'));
 ok('open chat marks read on inbound',src10.includes('msgSetLastRead')&&src10.includes('curChat===clientId'));
 ok('inbox skips archived',src06.includes("status!=='archived'")&&/function renderInbox[\s\S]*?archived/.test(src06));

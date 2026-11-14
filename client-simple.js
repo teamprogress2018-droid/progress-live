@@ -6,6 +6,8 @@
  * Dane: te same co dotąd (PL, SE, METRIC_ENTRIES, SETTINGS z publicznego profilu trenera). */
 
 const CS_ICONS={
+  card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+  wifiOff:'<line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path d="M19 12.9a10 10 0 0 0-2.3-1.7"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
   home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"></path>',
   train:'<path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path>',
   plan:'<rect x="4" y="5" width="16" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M4 10h16"></path>',
@@ -160,11 +162,51 @@ function csTodayHTML(c){
   return `<div class="cs-screen cs-today">
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}
+    ${csPayCardHTML(c)}
     ${meeting?`<div class="cs-note">${csIcon('calendar',18)}<span>Spotkanie z trenerem: ${csEsc(meeting.time||'')} ${csEsc(meeting.type||'')}</span></div>`:''}
     ${csWeekBar(c,slot.plan)}
   </div>`;
 }
 window.csTodayHTML=csTodayHTML;
+
+/** Karta „Pakiet do opłacenia” na ekranie Dzisiaj. Przyciski drugorzędne: czerwony zostaje przy treningu. */
+function csPayCardHTML(c){
+  const unpaid=c&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(c.id):[];
+  if(!unpaid.length)return '';
+  const p=unpaid.find(x=>x&&x.paymentRequestedAt)||unpaid[0];
+  const seller=typeof paySeller==='function'?(paySeller()||{}):{};
+  const price=Number(p.price||0);
+  const amount=price?price.toLocaleString('pl')+' '+(seller.currency||'zł'):'';
+  const title=((p.clientName||c.name||'')+' '+(p.invoiceId||p.id||'')).trim();
+  const more=unpaid.length>1?`<p class="cs-card-text">Do opłacenia masz ${unpaid.length} pakiety.</p>`:'';
+  return `<section class="cs-card cs-pay" aria-labelledby="cs-pay-title">
+    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">Pakiet do opłacenia</h2></div>
+    <p class="cs-pay-what"><b>${csEsc(p.title||'Pakiet treningów')}</b>${amount?` · ${csEsc(amount)}`:''}</p>
+    ${more}
+    ${seller.bank?`<dl class="cs-pay-bank"><dt>Konto</dt><dd>${csEsc(seller.bank)}</dd><dt>Tytuł przelewu</dt><dd>${csEsc(title)}</dd></dl>`:
+      `<p class="cs-card-text">Trener nie podał jeszcze numeru konta. Zapytaj na czacie.</p>`}
+    <div class="cs-pay-btns">
+      ${seller.bank&&typeof copyPackageTransfer==='function'?`<button type="button" class="cs-btn cs-btn-secondary" onclick="copyPackageTransfer('${csEsc(p.id)}')">Kopiuj przelew</button>`:''}
+      ${typeof clientNotifyPaid==='function'?`<button type="button" class="cs-btn cs-btn-secondary" onclick="clientNotifyPaid('${csEsc(p.id)}')">Zapłaciłem</button>`:''}
+    </div>
+  </section>`;
+}
+window.csPayCardHTML=csPayCardHTML;
+
+/** Pasek „Brak internetu”: klient wie, że wyniki czekają na telefonie i nie są stracone. */
+function csSyncOfflineBar(){
+  const bar=document.getElementById('clive-offline');if(!bar)return;
+  const off=typeof navigator!=='undefined'&&navigator.onLine===false;
+  bar.hidden=!off;
+  document.body&&document.body.classList.toggle('cs-is-offline',off);
+}
+if(typeof window!=='undefined'&&window.addEventListener){
+  window.addEventListener('online',csSyncOfflineBar);
+  window.addEventListener('offline',csSyncOfflineBar);
+  if(typeof document!=='undefined'&&document.readyState!=='loading')csSyncOfflineBar();
+  else if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',csSyncOfflineBar);
+}
+window.csSyncOfflineBar=csSyncOfflineBar;
 
 /** Zakładka „Trening”: gdy jest trening na dziś, przycisk w pasku od razu go otwiera. */
 function csTrainEntry(){

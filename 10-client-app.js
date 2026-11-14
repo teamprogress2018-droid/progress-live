@@ -422,6 +422,8 @@ function updateClientLiveNavBadges(c){
         dot=document.createElement('span');
         dot.className='clive-nav-badge';
         dot.style.cssText='position:absolute;top:4px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:1px solid var(--s1);';
+        // Kropka nie jest tylko kolorem: czytnik ekranu usłyszy „nowe”.
+        dot.innerHTML='<span class="sr-only">, nowe</span>';
         bn.style.position=bn.style.position||'relative';
         bn.appendChild(dot);
       }
@@ -433,7 +435,8 @@ function updateClientLiveNavBadges(c){
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
   const unread=!!(cid&&typeof clientHasUnreadFromTrainer==='function'&&clientHasUnreadFromTrainer(cid));
   setBadge('clive-bn-profile',pendPay);
-  setBadge('clive-bn-more',pendPay||unread);
+  // Czat ma własny przycisk na pasku; „Więcej” świeci tylko, gdy czatu na pasku nie ma.
+  setBadge('clive-bn-more',pendPay||(unread&&!document.getElementById('clive-bn-messages')));
   setBadge('clive-bn-home',false);
   setBadge('clive-bn-messages',unread);
 }

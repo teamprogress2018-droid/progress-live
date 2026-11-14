@@ -105,7 +105,8 @@ function capLiveNavScreens(){
   return [
     {id:'home',label:'Dzisiaj',icon:ic('home','🏠')},
     {id:'train',label:'Trening',icon:ic('train','🏋️'),section:'plan'},
-    {id:'plan',label:'Plan',icon:ic('plan','📋')},
+    // Czat na dolnym pasku (z plakietką nieprzeczytanych); pełny plan jest w „Więcej” i na ekranie Trening.
+    {id:'messages',label:'Czat',icon:ic('chat','💬')},
     {id:'progress',label:'Postępy',icon:ic('progress','📈')}
   ].filter(s=>capClientSectionVisible(s.section||s.id));
 }
@@ -113,8 +114,8 @@ function capLiveNavScreens(){
 function capLiveMoreScreens(){
   const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
+    {id:'plan',label:'Plan',icon:ic('plan','📋')},
     {id:'contact',label:'Kontakt',icon:ic('contact','📞')},
-    {id:'messages',label:'Czat',icon:ic('chat','💬')},
     {id:'checkin',label:'Ankieta tygodniowa',icon:ic('checkin','✅')},
     {id:'homework',label:'Zadania',icon:ic('homework','🏡')},
     {id:'ondemand',label:'Treningi nagrane',icon:ic('play','▶️')},
@@ -1260,7 +1261,7 @@ function capScreenHTML(scr,c){
       </div>
       <div style="flex:1;overflow-y:auto;padding:14px 12px;">
         ${msgs.map(m=>`<div style="margin-bottom:10px;${!m.out?'text-align:right;':''}">
-          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'#000':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(m.odProgId)}')">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
+          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'var(--on-accent,#fff)':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(m.odProgId)}')">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
           <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${escHtml(m.time)}</div>
         </div>`).join('')}
       </div>

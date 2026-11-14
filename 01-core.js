@@ -1013,6 +1013,8 @@ window.renderAll=function(){
 
 function showNetBanner(offline){
   let el=document.getElementById('net-banner');
+  // Aplikacja klienta ma własny, spokojniejszy pasek pod nagłówkiem (#clive-offline).
+  if(document.body.classList.contains('client-app-mode')&&document.getElementById('clive-offline')){if(el)el.style.display='none';return;}
   if(!el){
     el=document.createElement('div');
     el.id='net-banner';
