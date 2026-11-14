@@ -598,6 +598,9 @@ jobs:
       - name: 6a3. Czytelność (kontrast tokenów, min. 12 px, cele dotykowe 44 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_ux_readability.js
+      - name: 6a4. Testy UI menu nowego trenera (6 pozycji, Więcej, logo)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_nav_new_trainer_ui.js
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b0z. Testy UI kafelek dni w zakładce Plan

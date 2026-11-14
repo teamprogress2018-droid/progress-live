@@ -451,8 +451,8 @@ function renderOnbOverview(){
 
   el.innerHTML=`
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.55;">
-      Postęp = ta sama checklista co <b style="color:var(--text);">Rozpocznij współpracę</b> (6 kroków). <b style="color:var(--text);">+ Nowy klient</b> otwiera tę samą kartę co Klienci — potem checklista, nie drugi kreator.
-      Automatyczna wiadomość i ankieta: <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;" onclick="goTo('automation')">Automatyzacja</button>
+      Każdy nowy klient przechodzi te same kroki: ankieta, pomiary, plan, kalendarz, pakiet i zaproszenie do aplikacji. Kliknij klienta, żeby zobaczyć, co zostało.
+      Wiadomość powitalną i ankietę możesz wysyłać automatycznie: <button class="btn btn-ghost btn-sm" style="font-size:12px;padding:2px 8px;" onclick="goTo('automation')">Przypomnienia i wiadomości</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
       ${[

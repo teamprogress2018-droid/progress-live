@@ -2236,3 +2236,22 @@ html[data-theme="light"] .wl-filter-chip.active,
 html[data-theme="light"] [style^="color:var(--accent)"],
 html[data-theme="light"] [style*=";color:var(--accent)"],
 html[data-theme="light"] [style*=" color:var(--accent)"] { color: var(--accent-text) !important; }
+
+/* ── Etap 5 UX: menu — 6 pozycji dla nowego trenera, przewijany środek, logo w jednej linii ── */
+.app .nav-more-wrap { display: none; }
+.app.nav-new-trainer .nav-more-wrap { display: block; }
+.app.nav-new-trainer .sidebar-nav > .nav-item[data-screen="inbox"],
+.app.nav-new-trainer .sidebar-nav > .nav-item[data-screen="forum"],
+.app.nav-new-trainer #nav-automation-wrap,
+.app.nav-new-trainer #nav-ondemand-wrap,
+.app.nav-new-trainer #nav-business-wrap,
+.app.nav-new-trainer #nav-knowledge-wrap { display: none; }
+/* Środek menu przewija się; logo u góry i konto na dole zostają widoczne. */
+.app .sidebar { display: flex; flex-direction: column; }
+.app .sidebar-logo, .app .sidebar-end { flex-shrink: 0; }
+.app .sidebar-nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-height: 860px) { .app .sidebar-slogan { display: none; } }
+/* Logo w jednej linii. */
+.app .pl-logo-text { display: block; white-space: nowrap; font-size: 19px; }
+.app .pl-logo-text span { display: inline; margin: 0 0 0 .2em; font-size: inherit; }
+.app .pl-logo-text small { display: block; }

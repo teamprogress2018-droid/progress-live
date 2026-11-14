@@ -6321,6 +6321,7 @@ function renderDash(){
   renderProfileSetupBanner();
   if(typeof renderDashHome==='function')try{renderDashHome();}catch(e){console.warn('renderDashHome',e);}
   applyDashSimpleMode();
+  if(typeof syncNavForClientCount==='function')syncNavForClientCount();
 }
 
 function toggleDashQuickActions(evOrClose){

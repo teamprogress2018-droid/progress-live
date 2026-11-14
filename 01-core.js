@@ -655,12 +655,15 @@ function goTo(n){
     automation:['automation','onboarding'],
     ondemand:['ondemand','resources'],
     business:['payments','bizstats'],
-    knowledge:['academy','kb','aicoach','calculator','aiplangen'],
+    knowledge:['academy','kb','aicoach','calculator'],
+    // „Więcej” widać tylko na koncie bez klientów (syncNavForClientCount).
+    more:['inbox','automation','onboarding','ondemand','resources','forum','payments','bizstats','academy','kb','aicoach','calculator'],
   };
+  navGroupScreens.library.push('aiplangen');
+  syncNavForClientCount();
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
-  const flyItem=document.querySelector('.nav-flyout-item[data-screen="'+n+'"]');
-  if(flyItem)flyItem.classList.add('active');
+  document.querySelectorAll('.nav-flyout-item[data-screen="'+n+'"]').forEach(b=>b.classList.add('active'));
   Object.keys(navGroupScreens).forEach(g=>{
     if(!navGroupScreens[g].includes(n))return;
     const groupBtn=document.getElementById('nav-'+g+'-btn');
@@ -669,6 +672,15 @@ function goTo(n){
   if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();
   try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
 }
+/** Nowy trener (0 klientów): w menu 6 pozycji — Pulpit, Klienci, Biblioteka (z „Nowy plan (AI)”), Kalendarz, Trening LIVE, Więcej.
+ *  Pozostałe grupy wracają od pierwszego klienta; wszystkie ekrany są dostępne z „Więcej”. */
+function syncNavForClientCount(){
+  const app=document.getElementById('app-root');
+  if(!app)return;
+  const list=Array.isArray(window.CL)?window.CL:[];
+  app.classList.toggle('nav-new-trainer',!list.length);
+}
+window.syncNavForClientCount=syncNavForClientCount;
 function openLiveFromMobile(){
   closeMobileSidebar();
   goTo('live');

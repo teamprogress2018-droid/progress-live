@@ -4001,7 +4001,7 @@ function renderCPPlan(c){
           </div>
           <div style="font-size:10px;color:var(--muted);max-width:280px;text-align:right;line-height:1.35;">Tyg. 1–2: 12 powt. (Fitebo). Tyg. 3+: 8 powt. — teraz jesteście na 3.</div>
         </div>`:''}
-        ${showCreate?`<button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>`:''}
+        ${showCreate?`<button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">Nowy plan (AI)</button>`:''}
       </div>`:''}
     </div>
     ${!plans.length?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">Wybierz szablon, kreator, Fitebo albo generator AI — potem plan pojawi się tutaj.</div>`:''}
