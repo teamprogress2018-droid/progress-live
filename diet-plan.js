@@ -140,7 +140,8 @@ DIET_EXCLUSIONS.forEach(e=>e.foods.forEach(id=>FOOD[id].tags.push(e.id)));
  *  min = szacowany czas przygotowania w minutach (ustawienie aplikacji, nie z książek).
  *  dish = nazwa dania, img = zdjęcie w assets/dania/ (z e-booka, gdy jest), col = zestaw dań (DIET_COLLECTIONS). Zestawy z nazwą to pomysły na dania z e-booków kupionych przez trenera
  *  (fitslodycze.pl, K. Domaszewski; Fit desery: Magdala Studio; Szybkie… dla zapracowanych: Dietetyka #NieNaŻarty,
- *  A. Porębska; Kurczak i ryż, Lodowe przysmaki: A. Bączak), na zgodę autorów, o której mówi trener;
+ *  A. Porębska; Kurczak i ryż, Lodowe przysmaki: A. Bączak; 199 Fit Obiadów, 30 Fit Przepisów na sałatki: N. Jurkian
+ *  i A. Szuba; 40 Fit Przepisów ze skyrem: zdrowyprzepis.eu; Gotuj raz w tygodniu: A. Pióro), na zgodę autorów, o której mówi trener;
  *  tylko dla klientów trenera. Z e-booków: nazwa dania, rodzaj składników i zdjęcie. Gramatura i makro
  *  liczą się jak w każdym zestawie (produkty USDA), nie z e-booków. */
 const MEAL_TEMPLATES={
@@ -169,6 +170,18 @@ const MEAL_TEMPLATES={
     {col:'fit',dish:'Bułka z twarożkiem i awokado',img:'bulka-z-twarozkiem-i-awokado.webp',min:5,p:'twarog',c:'chleb',f:'awokado',x:[['pomidor',80]]},
     {col:'fit',dish:'Kanapki z indykiem i warzywami',img:'kanapki-z-indykiem-i-warzywami.webp',min:5,p:'wedlina',c:'chleb',f:'maslo',x:[['salata',40],['pomidor',80],['ogorek',80]]},
     {col:'fit',dish:'Wrap z tuńczykiem',img:'wrap-z-tunczykiem.webp',min:5,p:'tunczyk',c:'pita',f:'oliwa',x:[['salata',50],['pomidor',80]]},
+    // Gotuj raz w tygodniu (Angelika Pióro), 40 Fit Przepisów ze Skyrem (zdrowyprzepis.eu) i jadłospis z Biedry.
+    {col:'gotuj-raz',dish:'Granola pod skyrem z jabłkami',img:'granola-pod-skyrem-z-jablkami.webp',min:10,p:'skyr',c:'musli',f:'chia',x:[['jablko',1]]},
+    {col:'gotuj-raz',dish:'Pancakes cytrynowo-borówkowe',img:'pancakes-cytrynowo-borowkowe.webp',min:15,p:'twarog',c:'owsiane',f:'olej-rzepakowy',x:[['jajko',2],['jagody',100]]},
+    {col:'gotuj-raz',dish:'Omlet sernikowy',img:'omlet-sernikowy.webp',min:10,p:'jajko',c:'maliny',f:null,x:[['twarog',100]]},
+    {col:'skyr',dish:'Owsianka na skyrze z borówkami',img:'owsianka-na-skyrze-z-borowkami.webp',min:10,p:'skyr',c:'owsiane',f:'orzechy-wloskie',x:[['jagody',80],['maliny',80]]},
+    {col:'skyr',dish:'Serek ziołowy ze skyru z pieczywem',img:'serek-ziolowy-ze-skyru-z-pieczywem.webp',min:5,p:'skyr',c:'chleb-zytni',f:'oliwa',x:[['ogorek',100],['pomidor',80]]},
+    {col:'skyr',dish:'Skyrowe placuszki z malinami',img:'skyrowe-placuszki-z-malinami.webp',min:15,p:'skyr',c:'owsiane',f:'olej-rzepakowy',x:[['jajko',2],['maliny',80]]},
+    {col:'skyr',dish:'Placuszki skyrowe z jabłkiem',img:'placuszki-skyrowe-z-jablkiem.webp',min:15,p:'skyr',c:'owsiane',f:'olej-rzepakowy',x:[['jajko',2],['jablko',1]]},
+    {col:'skyr',dish:'Omlet biszkoptowy ze skyrem',img:'omlet-biszkoptowy-ze-skyrem.webp',min:10,p:'jajko',c:'owsiane',f:null,x:[['skyr',150],['maliny',80]]},
+    {col:'biedra',dish:'Mleczna jajecznica z pieczywem',min:10,p:'jajko',c:'chleb',f:'maslo',x:[['pomidor',100],['dymka',10]]},
+    {col:'biedra',dish:'Omlet ze szpinakiem i pieczywem',min:10,p:'jajko',c:'chleb-zytni',f:'oliwa',x:[['szpinak',80]]},
+    {col:'biedra',dish:'Szakszuka z pieczywem',min:20,p:'jajko',c:'chleb',f:'oliwa',x:[['pomidory-puszka',200],['papryka',100],['cebula',50]]},
     {min:5,p:'cottage',c:'chleb',f:'maslo-orz',x:[['papryka',100]]},
     {min:10,p:'jajko',c:'chleb',f:null,x:[['szpinak',80]]},
     {min:10,p:'cottage',c:'owsiane',f:'maslo-orz',x:[['jagody',100],['mleko',200]]},
@@ -197,6 +210,11 @@ const MEAL_TEMPLATES={
     {col:'fit',dish:'Serek wiejski z bananem',img:'serek-wiejski-z-bananem.webp',min:3,p:'cottage',c:'banan',f:null,x:[]},
     {col:'fit',dish:'Deser sernikowy z truskawkami',min:5,p:'twarog',c:'wafle',f:'migdaly',x:[['truskawki',150],['miod',10]]},
     {col:'fit',dish:'Banana split na skyrze',img:'banana-split-na-skyrze.webp',min:5,p:'skyr',c:'banan',f:'orzechy-laskowe',x:[]},
+    // 40 Fit Przepisów ze Skyrem (zdrowyprzepis.eu) i jadłospis z Biedry.
+    {col:'skyr',dish:'Skyr z malinami',img:'skyr-z-malinami.webp',min:3,p:'skyr',c:'maliny',f:'orzechy-wloskie',x:[]},
+    {col:'skyr',dish:'Skyr z musem owocowym',img:'skyr-z-musem-owocowym.webp',min:5,p:'skyr',c:'jablko',f:'migdaly',x:[['jagody',80]]},
+    {col:'skyr',dish:'Malinowy shake ze skyrem',img:'malinowy-shake-ze-skyrem.webp',min:5,p:'skyr',c:'maliny',f:null,x:[['mleko-2',200]]},
+    {col:'biedra',dish:'Kanapka na grahamce z szynką',min:5,p:'wedlina',c:'chleb',f:'maslo',x:[['pomidor',80],['salata',20]]},
     {min:3,p:'cottage',c:'wafle',f:null,x:[['jablko',1]]},
     {min:3,p:'jogurt',c:'musli',f:null,x:[['banan',1]]},
     {min:5,p:'tunczyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
@@ -249,6 +267,47 @@ const MEAL_TEMPLATES={
     {col:'fit',dish:'Klopsiki z indyka w sosie pomidorowym',min:35,p:'indyk',c:'kasza-gryczana',f:'oliwa',x:[['pomidory-puszka',150],['cebula',50]]},
     {col:'fit',dish:'Ryż smażony z jajkiem i warzywami',img:'ryz-smazony-z-jajkiem-i-warzywami.webp',min:15,p:'jajko',c:'ryz-bialy',f:'olej-rzepakowy',x:[['groszek',80],['marchew',80],['dymka',20]]},
     {col:'fit',dish:'Wege buddha bowl',img:'wege-buddha-bowl.webp',min:25,p:'ciecierzyca',c:'komosa',f:'hummus',x:[['szpinak',60],['marchew',80],['buraki',80]]},
+    // Obiady w mniej niż 30 min (199 Fit Obiadów, N. Jurkian i A. Szuba; bez zdjęć), Sałatki (30 Fit Przepisów,
+    // A. Szuba i N. Jurkian), Gotuj raz w tygodniu (Angelika Pióro) i jadłospis z Biedry (bez zdjęć).
+    {col:'obiady-30',dish:'Makaron razowy z kurczakiem w sosie warzywnym',min:25,p:'kurczak',c:'makaron-razowy',f:'oliwa',x:[['pomidory-puszka',150],['papryka',100],['cukinia',100]]},
+    {col:'obiady-30',dish:'Mięso mielone z indyka w sosie szpinakowym',min:20,p:'indyk',c:'ryz',f:'oliwa',x:[['szpinak',100],['cebula',50]]},
+    {col:'obiady-30',dish:'Pulpety z indyka w sosie pomidorowym',min:30,p:'indyk',c:'ryz',f:'oliwa',x:[['pomidory-puszka',200],['cebula',50]]},
+    {col:'obiady-30',dish:'Kurczak na kapuście z ziemniakami',min:30,p:'kurczak',c:'ziemniaki',f:'olej-rzepakowy',x:[['kapusta',200],['cebula',50]]},
+    {col:'obiady-30',dish:'Kurczak z puree marchwiowo-ziemniaczanym',min:30,p:'kurczak',c:'ziemniaki',f:'maslo',x:[['marchew',150]]},
+    {col:'obiady-30',dish:'Duszona pierś z kurczaka z pieczarkami',min:25,p:'kurczak',c:'kasza-gryczana',f:'olej-rzepakowy',x:[['pieczarki',150],['cebula',50]]},
+    {col:'obiady-30',dish:'Kurczak w sosie sojowo-miodowym',min:20,p:'kurczak',c:'ryz-bialy',f:'olej-rzepakowy',x:[['brokul',100],['miod',10]]},
+    {col:'obiady-30',dish:'Makaron ze szpinakiem i piersią z kurczaka',min:20,p:'kurczak',c:'makaron',f:'oliwa',x:[['szpinak',100]]},
+    {col:'obiady-30',dish:'Pad thai z kurczakiem',min:25,p:'kurczak',c:'makaron-ryzowy',f:'olej-rzepakowy',x:[['marchew',60],['dymka',20]]},
+    {col:'obiady-30',dish:'Spaghetti z pieczarkami i kurczakiem',min:25,p:'kurczak',c:'makaron',f:'oliwa',x:[['pieczarki',150]]},
+    {col:'obiady-30',dish:'Pierś z kurczaka z marchewką i groszkiem',min:25,p:'kurczak',c:'ziemniaki',f:'olej-rzepakowy',x:[['marchew',100],['groszek',80]]},
+    {col:'obiady-30',dish:'Gulasz z piersią z kurczaka',min:30,p:'kurczak',c:'kasza-jeczmienna',f:'olej-rzepakowy',x:[['papryka',100],['cebula',50],['pomidory-puszka',100]]},
+    {col:'obiady-30',dish:'Makaron z łososiem i szpinakiem',min:20,p:'losos',c:'makaron',f:null,x:[['szpinak',80]]},
+    {col:'obiady-30',dish:'Łosoś z piekarnika z brokułem',min:25,p:'losos',c:'ziemniaki',f:null,x:[['brokul',150]]},
+    {col:'obiady-30',dish:'Dorsz po japońsku z ryżem',min:25,p:'ryba',c:'ryz-bialy',f:'olej-rzepakowy',x:[['marchew',80],['papryka',80]]},
+    {col:'obiady-30',dish:'Łosoś z płatkami migdałowymi i fasolką',min:25,p:'losos',c:'ryz',f:null,x:[['fasolka',150]]},
+    {col:'obiady-30',dish:'Dorsz w sosie musztardowym',min:25,p:'ryba',c:'ziemniaki',f:'oliwa',x:[['marchew',100]]},
+    {col:'obiady-30',dish:'Makaron ryżowy z tofu i warzywami',min:20,p:'tofu',c:'makaron-ryzowy',f:'olej-rzepakowy',x:[['papryka',100],['brokul',80]]},
+    {col:'obiady-30',dish:'Tofu w słodkim sosie z ryżem',min:25,p:'tofu',c:'ryz-bialy',f:'olej-rzepakowy',x:[['papryka',100],['miod',10]]},
+    {col:'salatki',dish:'Makaronowa sałatka z szynką',img:'makaronowa-salatka-z-szynka.webp',min:20,p:'wedlina',c:'makaron',f:'olej-rzepakowy',x:[['ogorek',100]]},
+    {col:'salatki',dish:'Sałatka makaronowa z tuńczykiem',img:'salatka-makaronowa-z-tunczykiem.webp',min:20,p:'tunczyk',c:'makaron',f:'oliwa',x:[['szpinak',50],['mozzarella',50]]},
+    {col:'salatki',dish:'Sałatka z ryżem i tuńczykiem',img:'salatka-z-ryzem-i-tunczykiem.webp',min:20,p:'tunczyk',c:'ryz-bialy',f:'oliwa',x:[['ogorek',50]]},
+    {col:'salatki',dish:'Sałatka z ciecierzycą i kaszą pęczak',img:'salatka-z-ciecierzyca-i-kasza-peczak.webp',min:25,p:'ciecierzyca',c:'kasza-jeczmienna',f:'oliwa',x:[['pomidor',150],['papryka',100],['feta',30]]},
+    {col:'salatki',dish:'Tajska sałatka z tofu i mango',img:'tajska-salatka-z-tofu-i-mango.webp',min:25,p:'tofu',c:'makaron-ryzowy',f:'olej-rzepakowy',x:[['salata',50],['pomidor',80]]},
+    {col:'gotuj-raz',dish:'Wołowina w marynacie z warzywami',img:'wolowina-w-marynacie-z-warzywami.webp',min:30,p:'wolowina',c:'kasza-gryczana',f:'oliwa',x:[['brokul',150],['pieczarki',75]]},
+    {col:'gotuj-raz',dish:'Kurczak w marynacie paprykowej z warzywami',img:'kurczak-w-marynacie-paprykowej-z-warzywami.webp',min:25,p:'kurczak',c:'ryz-bialy',f:'oliwa',x:[['cukinia',100],['pieczarki',80],['papryka',100]]},
+    {col:'gotuj-raz',dish:'Łosoś w czerwonej marynacie z ryżem',img:'losos-w-czerwonej-marynacie-z-ryzem.webp',min:25,p:'losos',c:'ryz-bialy',f:null,x:[['brokul',150]]},
+    {col:'gotuj-raz',dish:'Pieczone kotleciki z kurczaka',img:'pieczone-kotleciki-z-kurczaka.webp',min:40,p:'kurczak',c:'ziemniaki',f:'olej-rzepakowy',x:[['papryka',50],['cebula',30],['ogorek',80]]},
+    {col:'gotuj-raz',dish:'Kurczak w sosie musztardowo-miodowym',img:'kurczak-w-sosie-musztardowo-miodowym.webp',min:25,p:'kurczak',c:'ziemniaki',f:'maslo',x:[['cebula',40],['miod',10]]},
+    {col:'gotuj-raz',dish:'Kurczak w stylu azjatyckim z czerwoną kapustą',img:'kurczak-w-stylu-azjatyckim-z-czerwona-kapusta.webp',min:25,p:'kurczak',c:'ryz-bialy',f:'olej-rzepakowy',x:[['kapusta',150],['papryka',100],['brokul',100]]},
+    {col:'gotuj-raz',dish:'Kurczak garam masala',img:'kurczak-garam-masala.webp',min:25,p:'kurczak',c:'ryz-bialy',f:'maslo',x:[['pomidory-puszka',150]]},
+    {col:'gotuj-raz',dish:'Vege curry z fasolą i ryżem',img:'vege-curry-z-fasola-i-ryzem.webp',min:40,p:'fasola',c:'ryz-bialy',f:'oliwa',x:[['kalafior',100],['marchew',50]]},
+    {col:'gotuj-raz',dish:'Pieczone tofu marynowane z ryżem',img:'pieczone-tofu-marynowane-z-ryzem.webp',min:35,p:'tofu',c:'ryz-bialy',f:'oliwa',x:[['parmezan',10],['brokul',150]]},
+    {col:'biedra',dish:'Pierś z kurczaka w sosie po chińsku',min:25,p:'kurczak',c:'ryz-bialy',f:'olej-rzepakowy',x:[['papryka',100],['marchew',60],['cebula',40]]},
+    {col:'biedra',dish:'Pierś z kurczaka w sosie paprykowym',min:25,p:'kurczak',c:'ryz',f:'oliwa',x:[['papryka',150],['cebula',50]]},
+    {col:'biedra',dish:'Grillowana pierś z kurczaka z pieczarkami',min:25,p:'kurczak',c:'ziemniaki',f:'oliwa',x:[['pieczarki',150],['salata',50]]},
+    {col:'biedra',dish:'Ryżowe pulpeciki w sosie pomidorowym',min:30,p:'indyk',c:'ryz-bialy',f:'oliwa',x:[['pomidory-puszka',200]]},
+    {col:'biedra',dish:'Dorsz pod szpinakową pierzynką',min:30,p:'ryba',c:'ziemniaki',f:'oliwa',x:[['szpinak',150]]},
+    {col:'biedra',dish:'Kurczak w sosie chrzanowym z ziemniakami',min:25,p:'kurczak',c:'ziemniaki',f:'oliwa',x:[['jogurt',150],['marchew',100]]},
     {min:30,p:'kurczak',c:'ryz',f:'oliwa',x:[['brokul',150]]},
     {min:40,p:'losos',c:'ziemniaki',f:'oliwa',x:[['szpinak',100],['salata',100]]},
     {min:25,p:'indyk',c:'makaron',f:'oliwa',x:[['papryka',100],['marchew',100]]},
@@ -279,6 +338,14 @@ const MEAL_TEMPLATES={
     {col:'fit',dish:'Bruschetta z mozzarellą',img:'bruschetta-z-mozzarella.webp',min:10,p:'mozzarella',c:'chleb',f:'oliwa',x:[['pomidor',150]]},
     {col:'fit',dish:'Burger z indykiem w pełnoziarnistej bułce',min:20,p:'indyk',c:'chleb',f:'oliwa',x:[['salata',50],['pomidor',80],['ogorek',50]]},
     {col:'fit',dish:'Pasta z fasoli na pieczywie z papryką',img:'pasta-z-fasoli-na-pieczywie-z-papryka.webp',min:10,p:'fasola',c:'chleb-zytni',f:'oliwa',x:[['papryka',100]]},
+    // Sałatki (30 Fit Przepisów, A. Szuba i N. Jurkian) i jadłospis z Biedry (bez zdjęć).
+    {col:'salatki',dish:'Sałatka z wędzonym kurczakiem i mozzarellą',img:'salatka-z-wedzonym-kurczakiem-i-mozzarella.webp',min:10,p:'kurczak',c:'chleb',f:null,x:[['mozzarella',50],['salata',80],['pomidor',50],['ogorek',50]]},
+    {col:'salatki',dish:'Sałatka z pieczonym kurczakiem',img:'salatka-z-pieczonym-kurczakiem.webp',min:30,p:'kurczak',c:'chleb-zytni',f:'oliwa',x:[['salata',100],['pomidor',100],['ogorek',50],['feta',30]]},
+    {col:'salatki',dish:'Sałatka z pieczonym łososiem',img:'salatka-z-pieczonym-lososiem.webp',min:25,p:'losos',c:'chleb-zytni',f:null,x:[['salata',100],['pomidor',100],['ogorek',50]]},
+    {col:'salatki',dish:'Sałatka z młodych ziemniaków z fetą',img:'salatka-z-mlodych-ziemniakow-z-feta.webp',min:25,p:'mozzarella',c:'ziemniaki',f:null,x:[['feta',30],['ogorek',50],['dymka',10]]},
+    {col:'salatki',dish:'Prosta sałatka z kurczakiem',img:'prosta-salatka-z-kurczakiem.webp',min:15,p:'kurczak',c:'chleb',f:'oliwa',x:[['salata',80],['pomidor',100],['ogorek',50]]},
+    {col:'biedra',dish:'Sałatka z grillowanym kurczakiem i pieczywem',min:15,p:'kurczak',c:'chleb-zytni',f:'oliwa',x:[['salata',80],['pomidor',100],['ogorek',80]]},
+    {col:'biedra',dish:'Pasta jajeczna z pieczywem',min:15,p:'jajko',c:'chleb-zytni',f:null,x:[['dymka',10],['ogorek',80]]},
     {min:10,p:'tunczyk',c:'chleb',f:'oliwa',x:[['salata',100],['papryka',100]]},
     {min:25,p:'jajko',c:'ziemniaki',f:'oliwa',x:[['szpinak',100]]},
     {min:10,p:'indyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
@@ -296,7 +363,12 @@ const DIET_COLLECTIONS=[
   {id:'szybkie-desery',label:'Szybkie desery i przekąski'},
   {id:'kurczak-ryz',label:'Kurczak i ryż'},
   {id:'lody',label:'Lody'},
-  {id:'fit',label:'Fit przepisy (fitslodycze.pl)'}
+  {id:'fit',label:'Fit przepisy (fitslodycze.pl)'},
+  {id:'obiady-30',label:'Obiady w mniej niż 30 min'},
+  {id:'salatki',label:'Sałatki'},
+  {id:'skyr',label:'Przepisy ze skyrem'},
+  {id:'gotuj-raz',label:'Gotuj raz w tygodniu'},
+  {id:'biedra',label:'Jadłospis z Biedry'}
 ];
 /** Podział energii (ustawienie aplikacji, nie z książek). Białko dzielone po równo. */
 const MEAL_LAYOUTS={
