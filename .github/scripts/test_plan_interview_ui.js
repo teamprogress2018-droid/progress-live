@@ -34,7 +34,7 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   ok('PPL nie jest domyślną metodą', await page.evaluate(() => (document.querySelector('#apl-methods .apl-opt.active') || {}).dataset.val === 'FBW'));
   await page.selectOption('#pliv-client', 'c1');
   await page.click('text=Rozpocznij wywiad');
-  ok('wywiad: krok 1 z 5 z paskiem postępu', await page.locator('.pliv-seg').count() === 5 && /Krok 1 z 5/.test(await page.textContent('.pliv-step-lbl')));
+  ok('wywiad: krok 1 z 6 z paskiem postępu', await page.locator('.pliv-seg').count() === 6 && /Krok 1 z 6/.test(await page.textContent('.pliv-step-lbl')));
   ok('profil klienta uzupełnia wywiad (cel)', await page.evaluate(() => !!document.querySelector('[data-pliv-field="goal"] .pliv-chip.is-on')));
   await page.click('.pliv-nav .btn-primary');
   await page.click('.pliv-nav .btn-primary');
@@ -48,6 +48,10 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   await page.fill('#pliv-f-sleepH', '6');
   await page.click('[data-pliv-field="stress"] >> text=4');
   await page.click('.pliv-nav .btn-primary');
+  await page.click('.pliv-nav .btn-primary');
+  ok('krok 6: Jedzenie (opcjonalny)', /Krok 6 z 6 · Jedzenie/.test(await page.textContent('.pliv-step-lbl')) && await page.isVisible('[data-pliv-field="foodExclusions"]'));
+  await page.click('[data-pliv-field="mealsPerDay"] >> text=4');
+  await page.click('[data-pliv-field="foodExclusions"] >> text=Orzechy');
   await page.click('.pliv-nav .btn-primary');
   ok('podsumowanie: Profil do planu', await state() === 'summary' && /3 × 45 min/.test(await page.textContent('[data-pliv-row="avail"]')) && /podwyższone/.test(await page.textContent('[data-pliv-row="risk"]')));
   // Regresja 10.11.2026: ekran generatora ma overflow:hidden, a podsumowanie wywiadu nie dawało się przewinąć kółkiem.
