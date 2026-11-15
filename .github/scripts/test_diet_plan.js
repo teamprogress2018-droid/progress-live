@@ -117,8 +117,24 @@ const tagOf = id => foods[id].tags;
 });
 const dSkip = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { skip: ['cottage', 'chleb'] } });
 ok('produkty, których klient nie je, znikają', !used(dSkip).some(id => id === 'cottage' || id === 'chleb'));
-const dSkip2 = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { skip: ['cottage', 'jajko', 'jogurt', 'jogurt-grecki', 'mozzarella'] } });
-ok('zamiana opisana przy posiłku', dSkip2.meals.some(m => m.changes.some(ch => ['cottage', 'jajko', 'jogurt', 'jogurt-grecki', 'mozzarella'].includes(ch.from))));
+// Wszystkie białka ze śniadań wykluczone, więc śniadanie musi mieć zamianę (opisaną i bez nazwy dania).
+const skip2 = ['cottage', 'jajko', 'jogurt', 'jogurt-grecki', 'mozzarella', 'twarog', 'skyr', 'tofu', 'tunczyk', 'wedlina'];
+const dSkip2 = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { skip: skip2 } });
+ok('zamiana opisana przy posiłku', dSkip2.meals.some(m => m.changes.some(ch => skip2.includes(ch.from))));
+ok('zamienione białko = bez nazwy dania', dSkip2.meals.every(m => !m.changes.some(ch => skip2.includes(ch.from)) || !m.dish));
+// Dania z e-booków: nazwa dania przy posiłku, w karcie i w tekście dla klienta; składniki z bazy produktów.
+const named = Object.values(D.MEAL_TEMPLATES).flat().filter(x => x.dish);
+ok('co najmniej 40 nazwanych dań', named.length >= 40);
+ok('nazwy dań bez powtórzeń', new Set(named.map(x => x.dish)).size === named.length);
+ok('składniki dań są w bazie produktów', named.every(x => [x.p, x.c, x.f].concat((x.x || []).map(y => y[0])).every(id => !id || foods[id])));
+const wNamed = D.dietBuildWeek({ targets: t96, meals: 5, variant: 0 });
+const mNamed = wNamed.days.flatMap(d => d.meals).find(m => m.dish);
+ok('tydzień ma posiłki z nazwą dania', !!mNamed);
+ok('nazwa dania w karcie i tekście', D.dietRenderCard(t96, wNamed, { meals: 5 }).includes(mNamed.dish) && D.dietPlanText(t96, wNamed).includes(mNamed.name + ': ' + mNamed.dish));
+ok('zdjęcia dań istnieją', named.filter(x => x.img).length >= 30 && named.filter(x => x.img).every(x => fs.existsSync(path.join(root, 'assets', 'dania', x.img))));
+const mImg = wNamed.days.flatMap(d => d.meals).find(m => m.img);
+ok('zdjęcie dania w karcie', !!mImg && D.dietRenderCard(t96, wNamed, { meals: 5 }).includes('assets/dania/' + mImg.img));
+ok('zamienione białko = bez zdjęcia', dSkip2.meals.every(m => !m.changes.some(ch => skip2.includes(ch.from)) || !m.img));
 const dQuick = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { maxMin: 15 } });
 ok('limit 15 min: każdy posiłek w limicie', dQuick.meals.every(m => m.minutes <= 15) && !dQuick.warnings.length);
 const tplOver = D.dietBuildDay({ targets: tK, meals: 4, variant: 0, prefs: { maxMin: 2 } });
@@ -286,7 +302,7 @@ ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function 
 }
 
 ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 12));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 14));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');

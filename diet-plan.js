@@ -28,12 +28,15 @@ const DIET_FOODS=[
   {id:'indyk',name:'Pierś z indyka (surowa)',group:'bialko',sub:'mieso',unit:'g',kcal:114,p:23.34,c:0,f:2.33,src:'usda',fdc:174515,cooked:{label:'po upieczeniu',ratio:0.84,fdc:174516},min:100,max:300},
   {id:'wolowina',name:'Wołowina mielona chuda 5% (surowa)',group:'bialko',sub:'mieso',unit:'g',kcal:137,p:21.41,c:0,f:5,src:'usda',fdc:171790,cooked:{label:'po usmażeniu',ratio:0.84,fdc:171792},min:100,max:250},
   {id:'schab',name:'Schab bez tłuszczu (surowy)',group:'bialko',sub:'mieso',unit:'g',kcal:123,p:23.75,c:0,f:3.09,src:'usda',fdc:168263,cooked:{label:'po usmażeniu',ratio:0.76,fdc:168285},min:100,max:250},
+  {id:'wedlina',name:'Wędlina z piersi indyka',group:'bialko',sub:'wedlina',unit:'g',kcal:109,p:21.81,c:3.51,f:0.83,src:'usda',fdc:174572,min:50,max:150},
   {id:'losos',name:'Łosoś (surowy)',group:'bialko',sub:'ryby',unit:'g',kcal:208,p:20.42,c:0,f:13.42,src:'usda',fdc:175167,cooked:{label:'po upieczeniu',ratio:1.01,fdc:175168},min:100,max:250},
   {id:'ryba',name:'Dorsz (surowy)',group:'bialko',sub:'ryby',unit:'g',kcal:82,p:17.81,c:0,f:0.67,src:'usda',fdc:171955,cooked:{label:'po upieczeniu',ratio:0.78,fdc:171956},min:100,max:300},
   {id:'makrela',name:'Makrela (surowa)',group:'bialko',sub:'ryby',unit:'g',kcal:205,p:18.6,c:0,f:13.89,src:'usda',fdc:175119,cooked:{label:'po upieczeniu',ratio:0.78,fdc:175120},min:80,max:200},
   {id:'pstrag',name:'Pstrąg (surowy)',group:'bialko',sub:'ryby',unit:'g',kcal:141,p:19.94,c:0,f:6.18,src:'usda',fdc:173717,min:100,max:250},
   {id:'tunczyk',name:'Tuńczyk w wodzie (odsączony)',group:'bialko',sub:'ryby',unit:'g',kcal:86,p:19.44,c:0,f:0.96,src:'usda',fdc:173709,min:60,max:200},
   {id:'jajko',name:'Jajko',group:'bialko',sub:'nabial',unit:'szt',kcal:71.5,p:6.28,c:0.36,f:4.75,g:50,src:'usda',fdc:171287,min:2,max:4},
+  {id:'twarog',name:'Twaróg chudy',group:'bialko',sub:'nabial',unit:'g',kcal:72,p:10.34,c:6.66,f:0.29,src:'usda',fdc:172181,min:100,max:300},
+  {id:'skyr',name:'Skyr naturalny',group:'nabial',sub:'nabial',unit:'g',kcal:59,p:10.19,c:3.6,f:0.39,src:'usda',fdc:170894,min:150,max:300},
   {id:'cottage',name:'Serek wiejski',group:'bialko',sub:'nabial',unit:'g',kcal:98,p:11.12,c:3.38,f:4.3,src:'usda',fdc:172179,min:100,max:300},
   {id:'jogurt',name:'Jogurt naturalny 1,5%',group:'nabial',sub:'nabial',unit:'g',kcal:63,p:5.25,c:7.04,f:1.55,src:'usda',fdc:170886,min:150,max:400},
   {id:'jogurt-grecki',name:'Jogurt grecki 2%',group:'nabial',sub:'nabial',unit:'g',kcal:73,p:9.95,c:3.94,f:1.92,src:'usda',fdc:170903,min:150,max:300},
@@ -42,6 +45,7 @@ const DIET_FOODS=[
   {id:'mleko-2',name:'Mleko 2%',group:'nabial',sub:'nabial',unit:'ml',kcal:50,p:3.3,c:4.8,f:1.98,src:'usda',fdc:171267,min:200,max:400},
   {id:'mozzarella',name:'Mozzarella light',group:'bialko',sub:'ser',unit:'g',kcal:254,p:24.26,c:2.77,f:15.92,src:'usda',fdc:170847,min:50,max:125},
   {id:'gouda',name:'Ser żółty (gouda)',group:'bialko',sub:'ser',unit:'g',kcal:356,p:24.94,c:2.22,f:27.44,src:'usda',fdc:171241,min:20,max:60},
+  {id:'parmezan',name:'Parmezan tarty',group:'bialko',sub:'ser',unit:'g',kcal:420,p:28.42,c:13.91,f:27.84,src:'usda',fdc:171247,min:10,max:30},
   {id:'feta',name:'Ser feta',group:'bialko',sub:'ser',unit:'g',kcal:265,p:14.21,c:3.88,f:21.49,src:'usda',fdc:173420,min:30,max:80},
   {id:'fasola',name:'Fasola czerwona (ugotowana)',group:'bialko',sub:'roslinne',unit:'g',kcal:127,p:8.67,c:22.8,f:0.5,src:'usda',fdc:175194,min:100,max:300},
   {id:'soczewica',name:'Soczewica (ugotowana)',group:'bialko',sub:'roslinne',unit:'g',kcal:116,p:9.02,c:20.13,f:0.38,src:'usda',fdc:172421,min:100,max:300},
@@ -51,9 +55,11 @@ const DIET_FOODS=[
   {id:'musli',name:'Musli',group:'wegle',sub:'zboza',unit:'g',kcal:367,p:10,c:66.7,f:8.3,src:'bean',page:'202',min:30,max:120},
   {id:'chleb',name:'Chleb pełnoziarnisty',group:'wegle',sub:'zboza',unit:'g',kcal:252,p:12.45,c:42.71,f:3.5,src:'usda',fdc:172688,min:35,max:200},
   {id:'chleb-zytni',name:'Chleb żytni',group:'wegle',sub:'zboza',unit:'g',kcal:259,p:8.5,c:48.3,f:3.3,src:'usda',fdc:172684,min:35,max:200},
+  {id:'pita',name:'Pita pełnoziarnista',group:'wegle',sub:'zboza',unit:'g',kcal:262,p:9.8,c:55.89,f:1.71,src:'usda',fdc:174916,min:60,max:180},
   {id:'wafle',name:'Wafle ryżowe',group:'wegle',sub:'zboza',unit:'szt',kcal:32,p:0.5,c:7.3,f:0.25,src:'bean',page:'204',min:2,max:8},
   {id:'makaron',name:'Makaron (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:371,p:13.04,c:74.67,f:1.51,src:'usda',fdc:169736,cooked:{label:'po ugotowaniu',ratio:2.35,fdc:169737},min:50,max:180},
   {id:'makaron-razowy',name:'Makaron razowy (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:352,p:13.87,c:73.37,f:2.93,src:'usda',fdc:169738,cooked:{label:'po ugotowaniu',ratio:2.36,fdc:168910},min:50,max:180},
+  {id:'makaron-ryzowy',name:'Makaron ryżowy (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:364,p:5.95,c:80.18,f:0.56,src:'usda',fdc:169742,cooked:{label:'po ugotowaniu',ratio:3.37,fdc:168914},min:50,max:150},
   {id:'ryz',name:'Ryż brązowy (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:367,p:7.54,c:76.25,f:3.2,src:'usda',fdc:169703,cooked:{label:'po ugotowaniu',ratio:2.98,fdc:169704},min:50,max:180},
   {id:'ryz-bialy',name:'Ryż biały (suchy)',group:'wegle',sub:'skrobia',unit:'g',kcal:365,p:7.13,c:79.95,f:0.66,src:'usda',fdc:169756,cooked:{label:'po ugotowaniu',ratio:2.81,fdc:168935},min:50,max:180},
   {id:'kasza-gryczana',name:'Kasza gryczana (sucha)',group:'wegle',sub:'skrobia',unit:'g',kcal:346,p:11.73,c:74.95,f:2.71,src:'usda',fdc:170685,cooked:{label:'po ugotowaniu',ratio:3.76,fdc:170686},min:50,max:180},
@@ -87,11 +93,15 @@ const DIET_FOODS=[
   {id:'truskawki',name:'Truskawki',group:'owoce',sub:'owoce',unit:'g',kcal:32,p:0.67,c:7.68,f:0.3,src:'usda',fdc:167762,min:80,max:250},
   {id:'maliny',name:'Maliny',group:'owoce',sub:'owoce',unit:'g',kcal:52,p:1.2,c:11.94,f:0.65,src:'usda',fdc:167755,min:80,max:250},
   {id:'winogrona',name:'Winogrona',group:'owoce',sub:'owoce',unit:'g',kcal:69,p:0.72,c:18.1,f:0.16,src:'usda',fdc:174683,min:80,max:250},
+  {id:'miod',name:'Miód',group:'dodatki',sub:'dodatki',unit:'g',kcal:304,p:0.3,c:82.4,f:0,src:'usda',fdc:169640},
   {id:'rodzynki',name:'Rodzynki',group:'owoce',sub:'owoce',unit:'g',kcal:299,p:3.3,c:79.32,f:0.25,src:'usda',fdc:168165,min:20,max:50},
   {id:'brokul',name:'Brokuł',group:'warzywa',sub:'warzywa',unit:'g',kcal:34,p:2.82,c:6.64,f:0.37,src:'usda',fdc:170379},
   {id:'marchew',name:'Marchew',group:'warzywa',sub:'warzywa',unit:'g',kcal:41,p:0.93,c:9.58,f:0.24,src:'usda',fdc:170393},
   {id:'szpinak',name:'Szpinak',group:'warzywa',sub:'warzywa',unit:'g',kcal:23,p:2.86,c:3.63,f:0.39,src:'usda',fdc:168462},
   {id:'papryka',name:'Papryka czerwona',group:'warzywa',sub:'warzywa',unit:'g',kcal:26,p:0.99,c:6.03,f:0.3,src:'usda',fdc:170108},
+  {id:'salata-rzymska',name:'Sałata rzymska',group:'warzywa',sub:'warzywa',unit:'g',kcal:17,p:1.23,c:3.29,f:0.3,src:'usda',fdc:169247},
+  {id:'pomidory-puszka',name:'Pomidory z puszki',group:'warzywa',sub:'warzywa',unit:'g',kcal:16,p:0.79,c:3.47,f:0.25,src:'usda',fdc:170051},
+  {id:'dymka',name:'Dymka',group:'warzywa',sub:'warzywa',unit:'g',kcal:32,p:1.83,c:7.34,f:0.19,src:'usda',fdc:170005},
   {id:'salata',name:'Sałata',group:'warzywa',sub:'warzywa',unit:'g',kcal:15,p:1.36,c:2.87,f:0.15,src:'usda',fdc:169249},
   {id:'kalafior',name:'Kalafior',group:'warzywa',sub:'warzywa',unit:'g',kcal:25,p:1.92,c:4.97,f:0.28,src:'usda',fdc:169986},
   {id:'pomidor',name:'Pomidor',group:'warzywa',sub:'warzywa',unit:'g',kcal:18,p:0.88,c:3.89,f:0.2,src:'usda',fdc:170457},
@@ -106,15 +116,15 @@ const DIET_FOODS=[
 ];
 /** Alergeny i wykluczenia (ustawienie aplikacji: oznaczenia typowego składu, zawsze sprawdź etykietę). */
 const DIET_EXCLUSIONS=[
-  {id:'gluten',label:'Gluten',foods:['owsiane','musli','chleb','chleb-zytni','makaron','makaron-razowy','kasza-jeczmienna','kuskus','bulgur']},
-  {id:'mleko',label:'Mleko i nabiał',foods:['cottage','jogurt','jogurt-grecki','kefir','mleko','mleko-2','mozzarella','gouda','feta','maslo']},
+  {id:'gluten',label:'Gluten',foods:['owsiane','musli','chleb','chleb-zytni','pita','makaron','makaron-razowy','kasza-jeczmienna','kuskus','bulgur']},
+  {id:'mleko',label:'Mleko i nabiał',foods:['cottage','twarog','skyr','parmezan','jogurt','jogurt-grecki','kefir','mleko','mleko-2','mozzarella','gouda','feta','maslo']},
   {id:'jaja',label:'Jaja',foods:['jajko']},
   {id:'ryby',label:'Ryby',foods:['losos','ryba','makrela','pstrag','tunczyk']},
   {id:'orzeszki',label:'Orzeszki ziemne',foods:['maslo-orz']},
   {id:'orzechy',label:'Orzechy',foods:['orzechy-wloskie','migdaly','orzechy-laskowe','nerkowce']},
   {id:'soja',label:'Soja',foods:['tofu']},
   {id:'sezam',label:'Sezam',foods:['hummus']},
-  {id:'mieso',label:'Mięso',foods:['kurczak','indyk','wolowina','schab']}
+  {id:'mieso',label:'Mięso',foods:['kurczak','indyk','wolowina','schab','wedlina']}
 ];
 /** Sposoby żywienia = zestawy wykluczeń. */
 const DIET_STYLES={
@@ -127,9 +137,24 @@ DIET_FOODS.forEach(f=>{FOOD[f.id]=f;f.sub=f.sub||f.group;f.min=f.min||0;f.tags=[
 DIET_EXCLUSIONS.forEach(e=>e.foods.forEach(id=>FOOD[id].tags.push(e.id)));
 
 /** Zestawy posiłków (ustawienie aplikacji): białko + węglowodany + tłuszcz + stałe dodatki.
- *  min = szacowany czas przygotowania w minutach (ustawienie aplikacji, nie z książek). */
+ *  min = szacowany czas przygotowania w minutach (ustawienie aplikacji, nie z książek).
+ *  dish = nazwa dania, img = zdjęcie w assets/dania/ (z e-booka, gdy jest). Zestawy z nazwą to pomysły na dania z e-booków kupionych przez trenera
+ *  (fitslodycze.pl, K. Domaszewski; Fit desery: Magdala Studio), na zgodę autora, o której mówi trener;
+ *  tylko dla klientów trenera. Z e-booków: nazwa dania, rodzaj składników i zdjęcie. Gramatura i makro
+ *  liczą się jak w każdym zestawie (produkty USDA), nie z e-booków. */
 const MEAL_TEMPLATES={
   sniadanie:[
+    // Pomysły z e-booków (Fit Śniadania, Fit Dania w 5 i 15 minut, Fit Posiłki dla Zabieganych).
+    {dish:'Omlet z fetą i szpinakiem',img:'omlet-z-feta-i-szpinakiem.webp',min:10,p:'jajko',c:'chleb-zytni',f:null,x:[['feta',30],['szpinak',80]]},
+    {dish:'Omlet z pieczarkami i papryką',img:'omlet-z-pieczarkami-i-papryka.webp',min:10,p:'jajko',c:'chleb',f:'oliwa',x:[['pieczarki',80],['papryka',80]]},
+    {dish:'Angielskie śniadanie w wersji fit',img:'angielskie-sniadanie-w-wersji-fit.webp',min:15,p:'jajko',c:'chleb',f:'oliwa',x:[['wedlina',50],['pomidory-puszka',100],['pieczarki',80]]},
+    {dish:'Owsianka z bananem na skyrze',img:'owsianka-z-bananem-na-skyrze.webp',min:5,p:'skyr',c:'owsiane',f:'maslo-orz',x:[['banan',1],['mleko',150]]},
+    {dish:'Placki twarogowo-owsiane z borówkami',img:'placki-twarogowo-owsiane-z-borowkami.webp',min:15,p:'twarog',c:'owsiane',f:'olej-rzepakowy',x:[['jajko',1],['jagody',100]]},
+    {dish:'Tofucznica z pomidorem',img:'tofucznica-z-pomidorem.webp',min:10,p:'tofu',c:'chleb',f:'oliwa',x:[['pomidor',100],['pieczarki',50],['dymka',20]]},
+    {dish:'Twarożek z dymką i ogórkiem',img:'twarozek-z-dymka-i-ogorkiem.webp',min:5,p:'twarog',c:'chleb-zytni',f:'maslo',x:[['dymka',20],['ogorek',100]]},
+    {dish:'Bułka z twarożkiem i awokado',img:'bulka-z-twarozkiem-i-awokado.webp',min:5,p:'twarog',c:'chleb',f:'awokado',x:[['pomidor',80]]},
+    {dish:'Kanapki z indykiem i warzywami',img:'kanapki-z-indykiem-i-warzywami.webp',min:5,p:'wedlina',c:'chleb',f:'maslo',x:[['salata',40],['pomidor',80],['ogorek',80]]},
+    {dish:'Wrap z tuńczykiem',img:'wrap-z-tunczykiem.webp',min:5,p:'tunczyk',c:'pita',f:'oliwa',x:[['salata',50],['pomidor',80]]},
     {min:5,p:'cottage',c:'chleb',f:'maslo-orz',x:[['papryka',100]]},
     {min:10,p:'jajko',c:'chleb',f:null,x:[['szpinak',80]]},
     {min:10,p:'cottage',c:'owsiane',f:'maslo-orz',x:[['jagody',100],['mleko',200]]},
@@ -138,6 +163,14 @@ const MEAL_TEMPLATES={
     {min:5,p:'jogurt-grecki',c:'owsiane',f:'orzechy-wloskie',x:[['maliny',100]]}
   ],
   przekaska:[
+    // Pomysły z e-booków (Fit Śniadania: drugie śniadania, Fit Posiłki dla Zabieganych, Fit desery w 5 minut).
+    {dish:'Skyr z gruszką i orzechami',img:'skyr-z-gruszka-i-orzechami.webp',min:3,p:'skyr',c:'musli',f:'orzechy-wloskie',x:[['gruszka',1]]},
+    {dish:'Twaróg na słodko z owocami i bakaliami',img:'twarog-na-slodko-z-owocami-i-bakaliami.webp',min:5,p:'twarog',c:'rodzynki',f:'migdaly',x:[['truskawki',100],['miod',10]]},
+    {dish:'Koktajl owsiany z owocami',img:'koktajl-owsiany-z-owocami.webp',min:5,p:'jogurt',c:'owsiane',f:null,x:[['maliny',80]]},
+    {dish:'Sałatka caprese z pieczywem',img:'salatka-caprese-z-pieczywem.webp',min:5,p:'mozzarella',c:'chleb-zytni',f:'oliwa',x:[['pomidor',150]]},
+    {dish:'Serek wiejski z bananem',img:'serek-wiejski-z-bananem.webp',min:3,p:'cottage',c:'banan',f:null,x:[]},
+    {dish:'Deser sernikowy z truskawkami',min:5,p:'twarog',c:'wafle',f:'migdaly',x:[['truskawki',150],['miod',10]]},
+    {dish:'Banana split na skyrze',img:'banana-split-na-skyrze.webp',min:5,p:'skyr',c:'banan',f:'orzechy-laskowe',x:[]},
     {min:3,p:'cottage',c:'wafle',f:null,x:[['jablko',1]]},
     {min:3,p:'jogurt',c:'musli',f:null,x:[['banan',1]]},
     {min:5,p:'tunczyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
@@ -146,6 +179,28 @@ const MEAL_TEMPLATES={
     {min:5,p:'mozzarella',c:'chleb-zytni',f:null,x:[['pomidor',100]]}
   ],
   obiad:[
+    // Pomysły z e-booków (Fit Obiady, Fit Fast Food, Fit Dania z Restauracji, Fit Posiłki dla Zabieganych).
+    {dish:'Kurczak pieczony z batatem',img:'kurczak-pieczony-z-batatem.webp',min:35,p:'kurczak',c:'bataty',f:'oliwa',x:[['papryka',100],['cebula',50]]},
+    {dish:'Leczo z kurczakiem',min:30,p:'kurczak',c:'ryz',f:'oliwa',x:[['papryka',150],['cukinia',100],['pomidory-puszka',150],['cebula',50]]},
+    {dish:'Chili con carne',min:30,p:'wolowina',c:'ryz',f:'olej-rzepakowy',x:[['fasola',100],['pomidory-puszka',200],['papryka',100],['cebula',50]]},
+    {dish:'Spaghetti bolognese w wersji fit',min:25,p:'wolowina',c:'makaron',f:'oliwa',x:[['pomidory-puszka',200],['marchew',50],['cebula',50]]},
+    {dish:'Grillowany kurczak z puree i buraczkami',img:'grillowany-kurczak-z-puree-i-buraczkami.webp',min:30,p:'kurczak',c:'ziemniaki',f:'maslo',x:[['buraki',150]]},
+    {dish:'Kurczak słodko-kwaśny z ryżem',min:25,p:'kurczak',c:'ryz-bialy',f:'olej-rzepakowy',x:[['papryka',150],['cebula',50],['miod',10]]},
+    {dish:'Kurczak tikka masala z ryżem',min:30,p:'kurczak',c:'ryz-bialy',f:'olej-rzepakowy',x:[['pomidory-puszka',150],['jogurt',50],['cebula',50]]},
+    {dish:'Curry z ciecierzycą i szpinakiem',img:'curry-z-ciecierzyca-i-szpinakiem.webp',min:25,p:'ciecierzyca',c:'ryz',f:'olej-rzepakowy',x:[['szpinak',80],['pomidory-puszka',150],['cebula',50]]},
+    {dish:'Wegańskie chili z soczewicy',img:'weganskie-chili-z-soczewicy.webp',min:30,p:'soczewica',c:'ryz',f:'oliwa',x:[['pomidory-puszka',200],['papryka',100],['cebula',50]]},
+    {dish:'Fasolka po bretońsku w wersji wege',img:'fasolka-po-bretonsku-w-wersji-wege.webp',min:25,p:'fasola',c:'chleb',f:'oliwa',x:[['pomidory-puszka',200],['cebula',50]]},
+    {dish:'Kasza jęczmienna z indykiem i warzywami curry',img:'kasza-jeczmienna-z-indykiem-i-warzywami-curry.webp',min:30,p:'indyk',c:'kasza-jeczmienna',f:'olej-rzepakowy',x:[['cukinia',100],['papryka',100],['marchew',50]]},
+    {dish:'Gyros z kurczaka w picie',img:'gyros-z-kurczaka-w-picie.webp',min:25,p:'kurczak',c:'pita',f:'oliwa',x:[['kapusta',100],['pomidor',80],['ogorek',80]]},
+    {dish:'Makaron po tajsku z kurczakiem',img:'makaron-po-tajsku-z-kurczakiem.webp',min:20,p:'kurczak',c:'makaron-ryzowy',f:'olej-rzepakowy',x:[['marchew',80],['kapusta',80],['dymka',20]]},
+    {dish:'Ramen z tofu i warzywami',min:20,p:'tofu',c:'makaron-ryzowy',f:'olej-rzepakowy',x:[['szpinak',80],['pieczarki',80],['marchew',50]]},
+    {dish:'Łosoś teriyaki z ryżem i brokułem',img:'losos-teriyaki-z-ryzem-i-brokulem.webp',min:25,p:'losos',c:'ryz-bialy',f:null,x:[['brokul',150],['miod',10]]},
+    {dish:'Ryba z ziołami i płatkami migdałów',img:'ryba-z-ziolami-i-platkami-migdalow.webp',min:25,p:'ryba',c:'ziemniaki',f:'migdaly',x:[['fasolka',150]]},
+    {dish:'Sushi bowl z łososiem',img:'sushi-bowl-z-lososiem.webp',min:25,p:'losos',c:'ryz-bialy',f:'awokado',x:[['ogorek',100],['marchew',50]]},
+    {dish:'Szaszłyki z kurczaka z bulgurem',img:'szaszlyki-z-kurczaka-z-bulgurem.webp',min:30,p:'kurczak',c:'bulgur',f:'oliwa',x:[['papryka',100],['cukinia',100],['cebula',50]]},
+    {dish:'Klopsiki z indyka w sosie pomidorowym',min:35,p:'indyk',c:'kasza-gryczana',f:'oliwa',x:[['pomidory-puszka',150],['cebula',50]]},
+    {dish:'Ryż smażony z jajkiem i warzywami',img:'ryz-smazony-z-jajkiem-i-warzywami.webp',min:15,p:'jajko',c:'ryz-bialy',f:'olej-rzepakowy',x:[['groszek',80],['marchew',80],['dymka',20]]},
+    {dish:'Wege buddha bowl',img:'wege-buddha-bowl.webp',min:25,p:'ciecierzyca',c:'komosa',f:'hummus',x:[['szpinak',60],['marchew',80],['buraki',80]]},
     {min:30,p:'kurczak',c:'ryz',f:'oliwa',x:[['brokul',150]]},
     {min:40,p:'losos',c:'ziemniaki',f:'oliwa',x:[['szpinak',100],['salata',100]]},
     {min:25,p:'indyk',c:'makaron',f:'oliwa',x:[['papryka',100],['marchew',100]]},
@@ -158,6 +213,14 @@ const MEAL_TEMPLATES={
     {min:30,p:'soczewica',c:'ryz-bialy',f:'oliwa',x:[['pomidor',150],['cebula',50]]}
   ],
   kolacja:[
+    // Pomysły z e-booków (Fit Śniadania, Fit Fast Food, Fit Dania w 15 minut, Fit Posiłki dla Zabieganych).
+    {dish:'Sałatka Cezar z kurczakiem',img:'salatka-cezar-z-kurczakiem.webp',min:20,p:'kurczak',c:'chleb',f:'oliwa',x:[['salata-rzymska',150],['parmezan',15]]},
+    {dish:'Sałatka z fetą, jajkiem i grzankami',img:'salatka-z-feta-jajkiem-i-grzankami.webp',min:15,p:'jajko',c:'chleb',f:'oliwa',x:[['feta',30],['pomidor',100],['ogorek',100],['salata',80]]},
+    {dish:'Tosty z tuńczykiem',img:'tosty-z-tunczykiem.webp',min:10,p:'tunczyk',c:'chleb',f:'oliwa',x:[['pomidor',80],['dymka',10]]},
+    {dish:'Club sandwich z indykiem',img:'club-sandwich-z-indykiem.webp',min:10,p:'wedlina',c:'chleb',f:'maslo',x:[['jajko',1],['salata',50],['pomidor',80]]},
+    {dish:'Bruschetta z mozzarellą',img:'bruschetta-z-mozzarella.webp',min:10,p:'mozzarella',c:'chleb',f:'oliwa',x:[['pomidor',150]]},
+    {dish:'Burger z indykiem w pełnoziarnistej bułce',min:20,p:'indyk',c:'chleb',f:'oliwa',x:[['salata',50],['pomidor',80],['ogorek',50]]},
+    {dish:'Pasta z fasoli na pieczywie z papryką',img:'pasta-z-fasoli-na-pieczywie-z-papryka.webp',min:10,p:'fasola',c:'chleb-zytni',f:'oliwa',x:[['papryka',100]]},
     {min:10,p:'tunczyk',c:'chleb',f:'oliwa',x:[['salata',100],['papryka',100]]},
     {min:25,p:'jajko',c:'ziemniaki',f:'oliwa',x:[['szpinak',100]]},
     {min:10,p:'indyk',c:'chleb',f:'oliwa',x:[['marchew',100]]},
@@ -453,7 +516,7 @@ function dietAllow(prefs){
 // z tym samym głównym składnikiem (białko: mięso, ryby, nabiał, rośliny; węglowodany: zboża i skrobia).
 const ROLE_GROUPS={p:['bialko','nabial'],c:['wegle'],f:['tluszcz']};
 // Produkty obiadowe (do gotowania na ciepło): w śniadaniu i przekąsce zamiennik z nich tylko w ostateczności.
-const MAIN_DISH=new Set(['kurczak','indyk','wolowina','schab','losos','ryba','makrela','pstrag','fasola','soczewica','ciecierzyca','makaron','makaron-razowy','ryz','ryz-bialy','kasza-gryczana','kasza-jaglana','kasza-jeczmienna','komosa','kuskus','bulgur','ziemniaki','bataty']);
+const MAIN_DISH=new Set(['kurczak','indyk','wolowina','schab','losos','ryba','makrela','pstrag','fasola','soczewica','ciecierzyca','makaron','makaron-razowy','makaron-ryzowy','ryz','ryz-bialy','kasza-gryczana','kasza-jaglana','kasza-jeczmienna','komosa','kuskus','bulgur','ziemniaki','bataty']);
 // Produkty już użyte tego dnia idą na koniec kolejki, żeby zamiennik nie powtarzał się w każdym posiłku.
 function replacementFor(id,role,allow,used,today,light,like){
   today=today||new Set();like=like||new Set();
@@ -467,7 +530,7 @@ function replacementFor(id,role,allow,used,today,light,like){
 }
 /** Zestaw dopasowany do wykluczeń; null, gdy nie ma czym zastąpić białka albo węglowodanów. */
 function adaptTemplate(tpl,allow,today,light,like){
-  const out={min:tpl.min,p:tpl.p,c:tpl.c,f:tpl.f,x:(tpl.x||[]).filter(([id])=>allow(FOOD[id])),changes:[]};
+  const out={dish:tpl.dish||'',img:tpl.img||'',min:tpl.min,p:tpl.p,c:tpl.c,f:tpl.f,x:(tpl.x||[]).filter(([id])=>allow(FOOD[id])),changes:[]};
   for(const role of['p','c','f']){
     const id=out[role];
     if(!id||allow(FOOD[id]))continue;
@@ -476,6 +539,8 @@ function adaptTemplate(tpl,allow,today,light,like){
     out.changes.push({from:id,to:r?r.id:null});
     out[role]=r?r.id:null;
   }
+  // Inny produkt białkowy albo węglowodanowy = już nie to danie, więc bez nazwy.
+  if(out.changes.some(ch=>ch.from===tpl.p||ch.from===tpl.c)){out.dish='';out.img='';}
   return out;
 }
 /** Zestawy dla jednego rodzaju posiłku: najpierw pełne zgodne z preferencjami, potem przerobione;
@@ -536,7 +601,7 @@ function dietBuildDay(o){
     const tot=sumItems(items);
     done=addM(done,tot);
     items.forEach(it=>{if(it.role!=='x')today.add(it.id);});
-    return{name:m.name,share:m.share,items,total:tot,minutes:tpl.min,changes:tpl.changes,options:list.length,swapped:shift>0};
+    return{name:m.name,dish:tpl.dish||'',img:tpl.img||'',share:m.share,items,total:tot,minutes:tpl.min,changes:tpl.changes,options:list.length,swapped:shift>0};
   });
   const total=meals.reduce((s,m)=>addM(s,m.total),ZERO);
   const reps={};
@@ -592,7 +657,7 @@ function fmtAmount(food,amount){return food.unit==='szt'?amount+' szt.':amount+'
 /** Waga po obróbce (mięso, ryby, kasze, makaron, ziemniaki): orientacyjnie, z energii produktu surowego i gotowego. */
 function cookedNote(food,amount){return food.cooked&&amount?food.cooked.label+' ok. '+round5(amount*food.cooked.ratio)+' g':'';}
 /** Produkty w kreatorze pogrupowane, żeby długą listę dało się przejrzeć. */
-const FOOD_SECTIONS=[['Mięso i ryby',['mieso','ryby']],['Nabiał, jaja i sery',['nabial','ser']],['Strączki i tofu',['roslinne']],['Pieczywo i płatki',['zboza']],['Kasze, ryż, makaron, ziemniaki',['skrobia']],['Tłuszcze, orzechy, nasiona',['orzechy','nasiona','oleje','pasty']],['Owoce',['owoce']],['Warzywa',['warzywa']]];
+const FOOD_SECTIONS=[['Mięso, wędliny i ryby',['mieso','wedlina','ryby']],['Nabiał, jaja i sery',['nabial','ser']],['Strączki i tofu',['roslinne']],['Pieczywo i płatki',['zboza']],['Kasze, ryż, makaron, ziemniaki',['skrobia']],['Tłuszcze, orzechy, nasiona',['orzechy','nasiona','oleje','pasty']],['Owoce',['owoce']],['Warzywa',['warzywa']],['Inne',['dodatki']]];
 function foodChips(list,chipFn){
   return FOOD_SECTIONS.map(([label,subs])=>{const fs=list.filter(f=>subs.includes(f.sub));return fs.length?'<div style="width:100%;font-size:10.5px;color:var(--muted2);margin-top:4px;">'+label+'</div>'+fs.map(chipFn).join(''):'';}).join('');
 }
@@ -604,7 +669,7 @@ function srcTag(sources){return'<span class="diet-src" title="'+esc(sources.map(
 function mealsText(day,lines){
   const r=v=>Math.round(v);
   day.meals.forEach(m=>{
-    lines.push(m.name+' (~'+r(m.total.kcal)+' kcal, B '+r(m.total.p)+' g)');
+    lines.push(m.name+(m.dish?': '+m.dish:'')+' (~'+r(m.total.kcal)+' kcal, B '+r(m.total.p)+' g)');
     m.items.forEach(it=>{
       const f=FOOD[it.id];
       const sw=it.swaps.length?' (albo: '+it.swaps.map(s=>FOOD[s.id].name.toLowerCase()+' '+fmtAmount(FOOD[s.id],s.amount)+(it.role==='p'?' = B '+Math.round(s.m.p)+' g':'')).join(', ')+')':'';
@@ -787,13 +852,14 @@ function dietRenderCard(t,day,opts){
     return'<div class="calc-result-card diet-card" id="diet-card">'+head+t.blocks.map(b=>'<div class="calc-tip" style="border-left:3px solid var(--danger);">⚠ '+esc(b.text)+' '+srcTag(b.sources)+'</div>').join('')+'</div>';
   }
   const swapBtn=(di,mi,m)=>m.options>1?' <button type="button" class="btn btn-sm diet-swap-meal" style="font-size:10.5px;padding:2px 8px;min-height:0;" title="Inny posiłek o tym samym celu kalorii i makro" onclick="dietSwapMeal('+di+','+mi+')">🔄 Inny posiłek</button>':'';
-  const mealsHTML=(d,di)=>d.meals.map((m,mi)=>'<div class="calc-meal-card">'+
-    '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+(m.minutes?' <span style="font-weight:400;color:var(--muted);">⏱ ~'+m.minutes+' min</span>':'')+(m.swapped?' <span style="font-weight:400;color:var(--muted);">(zamieniony)</span>':'')+swapBtn(di||0,mi,m)+'</div>'+
+  const mealImg=m=>m.img?'<img src="assets/dania/'+esc(m.img)+'" alt="'+esc(m.dish)+'" loading="lazy" width="96" height="72" style="float:right;width:96px;height:72px;object-fit:cover;border-radius:8px;margin:0 0 6px 8px;">':'';
+  const mealsHTML=(d,di)=>d.meals.map((m,mi)=>'<div class="calc-meal-card">'+mealImg(m)+
+    '<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:6px;"><div style="font-size:12px;font-weight:700;">'+esc(m.name)+(m.dish?' · '+esc(m.dish):'')+(m.minutes?' <span style="font-weight:400;color:var(--muted);">⏱ ~'+m.minutes+' min</span>':'')+(m.swapped?' <span style="font-weight:400;color:var(--muted);">(zamieniony)</span>':'')+swapBtn(di||0,mi,m)+'</div>'+
     '<div style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">'+r(m.total.kcal)+' kcal · B '+r(m.total.p)+' · T '+r(m.total.f)+' · W '+r(m.total.c)+'</div></div>'+
     m.items.map(it=>{const f=FOOD[it.id];const im=itemMacros(f,it.amount);const ck=cookedNote(f,it.amount);return'<div style="font-size:12px;padding:2px 0;">'+esc(f.name)+' <strong>'+esc(fmtAmount(f,it.amount))+'</strong>'+(ck?' <span style="font-size:10.5px;color:var(--muted);">('+esc(ck)+')</span>':'')+(it.role!=='x'?' <span style="font-size:10.5px;color:var(--muted);font-family:\'DM Mono\',monospace;">B '+Math.round(im.p)+' g · '+Math.round(im.kcal)+' kcal</span>':'')+
       (it.swaps.length?'<div style="font-size:10.5px;color:var(--muted);">zamiennik'+(it.role==='p'?' (to samo białko)':'')+': '+it.swaps.map(s=>(s.liked?'❤ ':'')+esc(FOOD[s.id].name.toLowerCase())+' '+esc(fmtAmount(FOOD[s.id],s.amount))+' <span style="font-family:\'DM Mono\',monospace;">(B '+Math.round(s.m.p)+' g · '+Math.round(s.m.kcal)+' kcal)</span>').join(' · ')+'</div>':'')+'</div>';}).join('')+
     ((m.changes||[]).length?'<div style="font-size:10.5px;color:var(--muted);margin-top:3px;">zmienione przez wykluczenia: '+m.changes.map(ch=>esc(FOOD[ch.from].name.toLowerCase())+' → '+(ch.to?esc(FOOD[ch.to].name.toLowerCase()):'bez zamiennika')).join(' · ')+'</div>':'')+
-    '</div>').join('');
+    (m.img?'<div style="clear:both;"></div>':'')+'</div>').join('');
   const info=[
     '<strong>Białko</strong> '+t.protein.g+' g ('+String(t.protein.perKg).replace('.',',')+' g/kg, zakres '+t.protein.range+' g/kg) '+srcTag(t.protein.sources),
     '<strong>Tłuszcz</strong> '+t.fat.g+' g ('+t.fat.pct+'% energii, nie mniej niż 20%) '+srcTag(t.fat.sources),
