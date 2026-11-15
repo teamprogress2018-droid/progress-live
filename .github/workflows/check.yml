@@ -595,6 +595,9 @@ jobs:
       - name: 6a1. Testy UI strony startowej (ruchome kafelki, logowanie, telefon)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_landing_ui.js
+      - name: 6a1b. Testy UI kafelków strony startowej (klawiatura, jedna pętla, ograniczony ruch)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_landing_tiles_ui.js
       - name: 6a2. Testy UI okna logowania (jeden przycisk, błąd, linki 44 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_login_ux_ui.js

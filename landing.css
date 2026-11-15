@@ -356,3 +356,6 @@
   .pl-land-stat { scroll-snap-align: start; }
   .pl-land-stat[aria-hidden="true"] { display: none; }
 }
+
+/* ── Etap 11 UX: kolumny kafelków dostępne z klawiatury (telefon: przewijane strzałkami) ── */
+.pl-land-col:focus-visible { outline: 3px solid var(--land-ink); outline-offset: -3px; border-radius: 16px; }
