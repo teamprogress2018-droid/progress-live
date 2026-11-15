@@ -153,6 +153,8 @@ const wO30 = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, days: 7, prefs
 ok('obiady w mniej niż 30 min: co najmniej 15 dań, każde do 30 min', o30.length >= 15 && o30.every(x => x.min <= 30));
 ok('obiady w mniej niż 30 min: cały tydzień obiadów z zestawu', wO30.days.every(d => o30.some(x => x.dish === d.meals[2].dish)));
 ok('nowe zestawy: sałatki, skyr, gotuj raz w tygodniu, Biedra', ['salatki', 'skyr', 'gotuj-raz', 'biedra'].every(id => D.DIET_COLLECTIONS.some(c => c.id === id)));
+ok('nowe zestawy: lunchbox, lunchbox wege, na słodko, kuchnia A. Pióro, Lidl', ['lunchbox', 'lunchbox-wege', 'na-slodko', 'kuchnia-pioro', 'lidl'].every(id => D.DIET_COLLECTIONS.some(c => c.id === id)));
+ok('lunchbox: dania na każdy posiłek, ze zdjęciami', ['sniadanie', 'przekaska', 'obiad', 'kolacja'].every(sl => D.MEAL_TEMPLATES[sl].some(x => x.col === 'lunchbox' && x.img)));
 ok('nieznany zestaw pominięty', D.dietPrefsNorm({ col: ['xyz', 'lody'] }).col.join() === 'lody');
 ok('karta: wybór rodzaju dań', D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5, variant: 0 }), { meals: 5 }).includes("dietToggleCol('szybkie-kolacje')"));
 ok('kalkulator: wybór rodzaju dań', src07.includes('function dietToggleCol(') && src07.includes('function dietClearCol(') && src07.includes('col:(sp.col||[]).slice()'));
@@ -167,7 +169,8 @@ ok('3 dni: nazwy, różne dni, zakupy', w3.days.length === 3 && w3.days[0].name 
 const w3Txt = D.dietPlanText(tK, w3);
 ok('tekst 3 dni z wykluczeniami', w3Txt.includes('na 3 dni') && w3Txt.includes('Bez: mięso, ryby'));
 const vegan = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { style: 'weganska' } });
-ok('mała baza = uczciwe ostrzeżenie', vegan.warnings.some(w => w.includes('Mało produktów')));
+ok('wegańska: baza dań wystarcza, bez zamienników tofu w 3+ posiłkach', !vegan.warnings.some(w => w.includes('Mało produktów')) &&
+  vegan.meals.every(m => m.items.every(it => !['mieso', 'ryby', 'mleko', 'jaja'].some(tg => tagOf(it.id).includes(tg)))));
 const kCard = D.dietRenderCard(tK, w3, { meals: 5 });
 ok('karta: kreator i przełączniki', kCard.includes('Kreator jadłospisu') && kCard.includes("dietSetView('3dni')") && kCard.includes("dietToggleEx('gluten')") && kCard.includes('dietSetMaxMin(15)') && kCard.includes('dietSetMeals(3)'));
 ok('karta kreatora bez kolorów na sztywno', !/#[0-9a-f]{3,6}\b/i.test(kCard));
@@ -323,7 +326,7 @@ ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function 
 }
 
 ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 16));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 17));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
