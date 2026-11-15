@@ -107,4 +107,17 @@ assert.strictEqual(PC.homePortion('twarog',250),'ok. 1 kostka');
 assert.strictEqual(PC.homePortion('nieznany',100),'');
 assert.strictEqual(PC.healthGate({id:'h',health:'insulina'}).nutritionAllowed,false);
 
+// Jadłospis dla klienta i przegląd postępów.
+const pub=PC.publicPlan(week);
+assert.strictEqual(pub.days.length,7);assert.ok(pub.shop.length>5&&Array.isArray(pub.shop[0]));
+assert.ok(!('notes' in pub)&&!('assumptions' in pub),'tylko dane dla klienta');
+assert.strictEqual(PC.nutritionTargets(anna,{delta:-400}).delta,-400,'zmiana kcal z postępów');
+ctx.CHECKINS={a:[{status:'filled',date:'2026-11-20',answers:{sleep:1,energy:2,hunger:4,nutrition:4,workouts:3,hardest:'słodycze'}},{status:'pending',date:'2026-11-27',answers:{}}]};
+const rv=PC.progressReview(anna,{since:'2026-11-15',plannedWorkouts:3,today:'2026-11-21'});
+assert.strictEqual(rv.checkins.length,1,'tylko wypełnione');
+assert.ok(rv.suggestions.some(s=>s.kind==='glod')&&rv.suggestions.some(s=>s.kind==='trening'&&s.apply&&s.apply.type==='sets'));
+assert.strictEqual(rv.hardest[0].text,'słodycze');
+assert.ok(rv.suggestions.length<=3);
+assert.strictEqual(PC.progressReview(anna,{since:'2026-12-01'}).checkins.length,0,'check-iny sprzed publikacji pominięte');
+
 console.log('All plan client tests passed.');

@@ -48,7 +48,7 @@
   /** Szkic odżywiania liczony z aktualnych danych klienta i formy ze szkicu (nie zapisujemy całego jadłospisu). */
   function nutritionOf(c,dr){
     if(!dr||!dr.nutrition)return null;
-    try{const x=dr.nutrition;return PC().buildNutrition(c,x.form||'week',{trainDays:trainDaysOf(c),variant:x.variant||0,habits:x.habits,mealShift:x.mealShift,prep:x.prep,people:x.people});}
+    try{const x=dr.nutrition;return PC().buildNutrition(c,x.form||'week',{trainDays:trainDaysOf(c),variant:x.variant||0,habits:x.habits,mealShift:x.mealShift,prep:x.prep,people:x.people,delta:x.delta});}
     catch(e){console.warn('Plan klienta: odżywianie',e);return null;}
   }
 
@@ -251,10 +251,32 @@
   function notesHTML(c,dr){
     return`<section class="pk-card"><h2 class="pk-h2">Notatki trenera</h2><p class="pk-muted">Widzisz je tylko Ty. Klient ich nie dostaje.</p><textarea class="form-input pk-notes" id="pk-notes" rows="8" placeholder="Np. klient woli trenować rano, w piątki krótszy trening">${esc(dr&&dr.notes||'')}</textarea><div class="pk-actions"><button type="button" class="btn btn-ghost pk-btn" onclick="pkSaveNotes()">Zapisz notatki</button></div></section>`;
   }
+  const SCALES=[['mood','Nastrój'],['sleep','Sen'],['hunger','Głód'],['energy','Energia'],['nutrition','Jedzenie wg planu']];
+  function reviewOf(c,dr){
+    const n=dr.nutrition?nutritionOf(c,dr):null;
+    return PC().progressReview(c,{since:dr.publishedAt,delta:n&&n.ok?n.delta:(dr.nutrition&&dr.nutrition.delta),plannedWorkouts:trainDaysOf(c).length});
+  }
   function progressHTML(c,dr){
-    if(!dr||dr.status!=='opublikowany')return emptyTab('Postępy po publikacji','Po publikacji planu klient co tydzień wypełnia krótki check-in. Tu zobaczysz jego odpowiedzi i propozycję korekty do Twojej decyzji.');
-    const t=Date.parse(dr.publishedAt),next=isFinite(t)?new Date(t+7*86400000).toISOString():'';
-    return`<section class="pk-card"><h2 class="pk-h2">Postępy</h2><p class="pk-muted">Plan opublikowany ${esc(fmtDate(dr.publishedAt))}. Pierwszy check-in klienta: ${esc(fmtDate(next))}.</p></section>`;
+    if(!dr||!dr.publishedAt)return emptyTab('Postępy po publikacji','Po publikacji planu klient co tydzień wypełnia krótki check-in. Tu zobaczysz jego odpowiedzi i propozycję korekty do Twojej decyzji.');
+    const rv=reviewOf(c,dr);
+    if(!rv.checkins.length){
+      const t=Date.parse(dr.publishedAt),next=isFinite(t)?new Date(t+7*86400000).toISOString():'';
+      return`<section class="pk-card" data-pk-progress="empty"><h2 class="pk-h2">Postępy</h2><p class="pk-muted">Plan opublikowany ${esc(fmtDate(dr.publishedAt))}. Klient wypełni pierwszy check-in około ${esc(fmtDate(next))}.</p></section>`;
+    }
+    const decided=dr.decisions||{};
+    const sug=rv.suggestions.filter(x=>!decided[x.id]);
+    const sugHTML=sug.length?sug.map(x=>`<div class="pk-sug" data-pk-sug="${esc(x.kind)}"><b>${esc(x.title)}</b><p class="pk-muted">${esc(x.text)}</p><div class="pk-actions">${x.apply?`<button type="button" class="btn btn-ghost pk-btn pk-btn-strong" onclick="pkSugApply('${esc(x.id)}')">Wprowadź</button>`:''}<button type="button" class="btn btn-ghost pk-btn" onclick="pkSugManual('${esc(x.id)}')">Zmienię ręcznie</button><button type="button" class="btn btn-ghost pk-btn" onclick="pkSugReject('${esc(x.id)}')">Odrzuć</button></div></div>`).join(''):
+      `<p class="pk-muted">${rv.enough?'Brak propozycji zmian. Plan bez korekty.':esc(rv.message||'Za mało danych na propozycję.')}</p>`;
+    const done=Object.keys(decided).length?`<div class="pk-muted" data-pk-decisions>Twoje decyzje: ${Object.values(decided).slice(-3).map(d=>esc(d.title+' – '+({apply:'wprowadzone do szkicu',manual:'zmienisz ręcznie',reject:'odrzucone'}[d.action]||d.action))).join('; ')}.</div>`:'';
+    const rows=rv.checkins.slice(-4).reverse().map(ci=>{const a=ci.answers;
+      return`<div class="pk-ci" data-pk-ci="${esc(ci.date)}"><div class="pk-ci-h"><b>${esc(fmtDate(ci.date))}</b>${a.weight?`<span>${esc(a.weight)} kg</span>`:''}<span>treningi: ${esc(a.workouts!=null?a.workouts:'—')}</span></div><div class="pk-ex-meta">${SCALES.filter(([k])=>a[k]!=null).map(([k,l])=>`<span>${l} ${esc(a[k])}/5</span>`).join('')}</div>${a.hardest?`<div class="pk-ex-note"><b>Najtrudniejsze:</b> ${esc(a.hardest)}</div>`:''}${a.notes?`<div class="pk-ex-note">${esc(a.notes)}</div>`:''}</div>`;}).join('');
+    return`<section class="pk-card" data-pk-progress><div class="pk-head"><h2 class="pk-h2">Propozycja korekty</h2><span class="pk-muted">do Twojej decyzji</span></div><p class="pk-muted">AI nic nie zmienia samo. „Wprowadź” zmienia tylko szkic, a klient dostaje zmianę po ponownej publikacji.</p>${sugHTML}${done}</section><section class="pk-card"><h2 class="pk-h2">Check-iny</h2>${rows}</section>`;
+  }
+  function sugFind(id){const c=clientById(S.cid),dr=draftOf(c);if(!dr)return{};return{c,dr,x:reviewOf(c,dr).suggestions.find(s=>s.id===id)};}
+  function sugDecide(id,action){
+    const {c,dr,x}=sugFind(id);if(!dr||!x)return null;
+    dr.decisions=Object.assign({},dr.decisions);dr.decisions[id]={action,at:now(),title:x.title,kind:x.kind};
+    return{c,dr,x};
   }
 
   /* ───────── Uzupełnij wywiad: tylko brakujące pola (max 3) ───────── */
@@ -399,12 +421,14 @@
         if(!n||!n.ok)throw new Error('Brak danych do odżywiania');
         const at=now(),text=nutritionText(n),t=n.targets;
         const rec={status:'zatwierdzony',updatedAt:at,approvedAt:at,approvedBy:root._uid||null,source:'plan-klienta',form:n.form,
-          kcal:t.kcal,protein:t.protein.g,fat:t.fat.g,carbs:t.carbs.g,days:n.form==='week'?7:1,meals:n.meals,prefs:n.prefs||null,text};
+          kcal:t.kcal,protein:t.protein.g,fat:t.fat.g,carbs:t.carbs.g,days:n.form==='week'?7:1,meals:n.meals,prefs:n.prefs||null,text,plan:PC().publicPlan(n)};
         if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
         c.dietPlan=rec;
         if(typeof root.pushMsg==='function')root.pushMsg(c.id,text);
       }
       dr.status='opublikowany';dr.publishedAt=now();dr.updatedAt=dr.publishedAt;
+      // Widoczne dla klienta: data publikacji (dodatkowe pytania w check-inie). Szkic zostaje prywatny.
+      c.clientPlanPublished=dr.publishedAt;
       await save(c);
       say('Plan opublikowany. '+(c.name||'Klient')+' go widzi.');
     }catch(e){
@@ -450,6 +474,12 @@
       w.document.open();w.document.write(DP().dietPlanPrintHTML(n.targets,n.week,{client:c.name||'',date:new Date().toLocaleDateString('pl-PL'),base}));w.document.close();try{w.opener=null;}catch(e){}},
     pkCopyShop:()=>{const c=clientById(S.cid),n=nutritionOf(c,draftOf(c));if(!n)return;const t='Lista zakupów:\n'+n.shopping.map(x=>'• '+food(x.id).name+' '+fmtShop(food(x.id),x.amount)).join('\n');
       S.lastCopy=t;const cb=root.navigator&&root.navigator.clipboard;(cb?cb.writeText(t):Promise.reject()).then(()=>say('Lista skopiowana'),()=>say('Nie udało się skopiować. Zaznacz listę ręcznie.'));},
+    pkSugApply:id=>{const r0=sugDecide(id,'apply');if(!r0)return;const a=r0.x.apply||{};
+      if(a.type==='kcal'){editNutrition(x=>{x.delta=a.delta;},'Zmiana kalorii w szkicu. Opublikuj, żeby klient ją dostał.');}
+      else if(a.type==='sets'){editTraining(p=>{const t=[];(p.days||[]).forEach(d=>(d.exercises||[]).forEach(e=>{const n=parseInt(e.sets,10)||3;if(n>2){e.sets=String(n+a.d);t.push(e);}}));return t;},'Lżejszy tydzień w szkicu. Opublikuj, żeby klient go dostał.');}
+      else{save(r0.c);render();}},
+    pkSugManual:id=>{const r0=sugDecide(id,'manual');if(!r0)return;save(r0.c);S.tab=r0.x.kind==='trening'?'training':'nutrition';render();},
+    pkSugReject:id=>{const r0=sugDecide(id,'reject');if(!r0)return;save(r0.c);render();say('Propozycja odrzucona');},
     pkOnTrainingReady:onTrainingReady,pkOnTrainingError:onTrainingError,pkOnTrainingProgress:onTrainingProgress
   });
   root.PlanClientUI={state:()=>S,nutritionText,trainDaysOf,render};

@@ -151,3 +151,31 @@ html[data-theme="light"] .pk-fact.is-miss .pk-fact-v { color: #92400e; }
 .pk-meal-acts { margin-top: 6px; }
 .pk-habits { margin: 8px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
 .pk-habits .pk-in { margin-top: 0; }
+
+/* Postępy u trenera (PR 5) */
+.pk-sug { padding: 12px; border: 1px solid var(--border-subtle); border-radius: 12px; margin-top: 10px; }
+.pk-sug b { font-size: 15px; color: var(--text-primary); }
+.pk-ci { padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+.pk-ci:last-child { border-bottom: 0; }
+.pk-ci-h { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--text-secondary); }
+.pk-ci-h b { color: var(--text-primary); }
+
+/* Widok klienta: Moje jedzenie, Lista zakupów, karta na Dzisiaj (plan-client-client.js) */
+.pkc-muted { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.5; }
+p.pkc-muted { margin: 0; }
+.pkc-meals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.pkc-meal { padding: 12px 0; border-top: 1px solid var(--border-subtle); }
+.pkc-meal:first-child { border-top: 0; padding-top: 0; }
+.pkc-meal-h { font-size: 1rem; color: var(--text-primary); margin-bottom: 6px; }
+.pkc-items { list-style: none; margin: 0; padding: 0; }
+.pkc-items li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; padding: 4px 0; font-size: 0.9375rem; color: var(--text-primary); }
+.pkc-habits { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 1rem; line-height: 1.45; color: var(--text-primary); }
+.pkc-days .cs-chip { min-width: 44px; min-height: 44px; }
+.pkc-days .cs-chip.is-on { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-card); }
+.pkc-shop li { border-bottom: 1px solid var(--border-subtle); }
+.pkc-shop li:last-child { border-bottom: 0; }
+.pkc-check { display: flex; align-items: center; gap: 12px; min-height: 52px; font-size: 1rem; color: var(--text-primary); cursor: pointer; }
+.pkc-check input { width: 22px; height: 22px; flex: 0 0 auto; accent-color: var(--text-primary); }
+.pkc-check span:nth-of-type(1) { flex: 1; min-width: 0; }
+.pkc-check.is-on span { color: var(--text-secondary); text-decoration: line-through; }
+.pkc-amt { white-space: nowrap; }

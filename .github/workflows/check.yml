@@ -730,6 +730,7 @@ jobs:
           node .github/scripts/test_dash_attention_unified_ui.js
           node .github/scripts/test_plan_interview_ui.js
           node .github/scripts/test_plan_client_ui.js
+          node .github/scripts/test_plan_client_app_ui.js
           node .github/scripts/test_lib_my_most_used_ui.js
           node .github/scripts/test_lib_my_parts_ui.js
           node .github/scripts/test_lib_exit_wide_ui.js

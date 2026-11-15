@@ -124,8 +124,8 @@
    * Orientacyjny cel kaloryczny (Mifflin-St Jeor × PAL + zmiana pod cel, nie mniej niż BMR i 1200/1500 kcal)
    * i makro wg książek (DietPlan.dietBookTargets). Zwraca też założenia, jeśli czegoś brakowało.
    */
-  function nutritionTargets(c){
-    c=c||{};
+  function nutritionTargets(c,o){
+    c=c||{};o=o||{};
     const d=interviewOf(c),assumptions=[];
     const weight=num(d.weight)||num(c.weight),height=num(d.height)||num(c.height),age=ageOf(c);
     const miss=[!weight&&'masa ciała',!height&&'wzrost',!age&&'wiek'].filter(Boolean);
@@ -140,7 +140,8 @@
     if(days>=4)pal+=0.1;
     pal=Math.round(pal*100)/100;
     const goalKey=d.goal||c.goal||'';
-    const delta=GOAL_DELTA[goalKey]||0;
+    // o.delta: zmiana kcal wprowadzona przez trenera z postępów (zastępuje domyślną pod cel).
+    const delta=o.delta!=null&&isFinite(+o.delta)?Math.round(+o.delta):(GOAL_DELTA[goalKey]||0);
     const raw=Math.round(bmr*pal+delta);
     const floor=Math.max(Math.round(bmr),KCAL_MIN[sex]);
     const kcal=Math.max(raw,floor);
@@ -188,14 +189,14 @@
    */
   function buildNutrition(c,form,opts){
     opts=opts||{};
-    const nt=nutritionTargets(c);
+    const nt=nutritionTargets(c,{delta:opts.delta});
     if(!nt.ok)return Object.assign({form},nt);
     const dp=dietPrefsFrom(c);
     const meals=dp.meals||4;
     const assumptions=nt.assumptions.slice();
     if(!dp.meals)assumptions.push('4 posiłki dziennie');
     const DP=root.DietPlan,t=nt.targets;
-    const out={ok:true,form,targets:t,kcal:nt.kcal,water:nt.water,meals,prefs:dp.prefs,people:dp.people,prep:dp.prep,assumptions,habits:(opts.habits||DEFAULT_HABITS).slice(0,3)};
+    const out={ok:true,form,delta:nt.delta,bmr:nt.bmr,targets:t,kcal:nt.kcal,water:nt.water,meals,prefs:dp.prefs,people:dp.people,prep:dp.prep,assumptions,habits:(opts.habits||DEFAULT_HABITS).slice(0,3)};
     if(form==='flex'){out.flex=flexOptions(t,meals,dp.prefs);out.shopping=sumShop([].concat(...Object.values(out.flex)));out.shopDays=3;}
     else if(form==='week'){
       // Trener może zmienić gotowanie na zapas i liczbę osób w szkicu (opts), bez zmiany wywiadu.
@@ -230,8 +231,57 @@
     return'ok. '+fracTxt(q)+' '+plForm(q,h);
   }
 
+  /** Jadłospis dla klienta (c.dietPlan.plan): tylko to, co klient ma zobaczyć, w zwartej postaci. */
+  function publicPlan(n){
+    const it=items=>(items||[]).map(i=>[i.id,i.amount]);
+    const meal=m=>({n:m.name,d:m.dish||'',k:Math.round(m.total.kcal),p:Math.round(m.total.p),i:it(m.items)});
+    const t=n.targets;
+    return{form:n.form,kcal:n.kcal,p:t.protein.g,f:t.fat.g,c:t.carbs.g,water:n.water,meals:n.meals,
+      habits:n.form==='habits'?n.habits.slice(0,3):[],
+      days:n.form==='week'?n.week.days.map(d=>({n:d.name,t:d.dayType||'',m:d.meals.map(meal)})):[],
+      flex:n.form==='flex'?Object.keys(n.flex).map(slot=>({s:slot,o:n.flex[slot].map(meal)})):[],
+      cooking:n.form==='week'?(n.week.cooking||[]).map(b=>({days:b.days,i:it(b.items)})):[],
+      shop:it(n.shopping),shopDays:n.shopDays,people:n.form==='week'?(n.people||1):1};
+  }
+
+  /* ───────── Postępy: check-iny po publikacji i propozycje korekty (nigdy nie wprowadzane same) ───────── */
+  function checkinsOf(c){
+    return((root.CHECKINS&&root.CHECKINS[c&&c.id])||[]).filter(x=>x&&x.answers&&x.status==='filled')
+      .map(x=>({id:x.id,date:String(x.filledAt||x.date||'').slice(0,10),answers:x.answers})).sort((a,b)=>a.date.localeCompare(b.date));
+  }
+  const avgOf=(list,k)=>{const v=list.map(x=>+x.answers[k]).filter(x=>x>=1&&x<=5);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*10)/10:null;};
+  const plNum=v=>String(v).replace('.',',');
+  /**
+   * Przegląd postępów: kalorie z trendu masy (DietPlan.dietProgressReview), do tego głód, sen i energia z ostatnich 2 check-inów.
+   * o: {since (data publikacji), delta (obecna zmiana kcal), plannedWorkouts, today}. Każda propozycja ma id; apply tylko gdy da się ją wprowadzić jednym kliknięciem.
+   */
+  function progressReview(c,o){
+    o=o||{};
+    const all=checkinsOf(c),since=String(o.since||'').slice(0,10);
+    const recent=all.filter(x=>!since||x.date>=since);
+    const weights=(root.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===c.id&&e.groupId==='mg1'&&e.values&&e.values.m1!=null).map(e=>({d:e.date,v:parseFloat(e.values.m1)}));
+    all.forEach(x=>{const w=parseFloat(x.answers.weight);if(w>0&&x.date)weights.push({d:x.date,v:w});});
+    const nt=nutritionTargets(c,{delta:o.delta});
+    const DP=root.DietPlan;
+    const base=DP&&DP.dietProgressReview&&nt.ok?DP.dietProgressReview({weights,checkins:all,gender:c.gender==='M'?'M':'K',delta:nt.delta,rmr:nt.bmr,tdee:nt.kcal-nt.delta,plannedWorkouts:o.plannedWorkouts||0,today:o.today}):{suggestions:[],enough:false,message:'Brak danych do oceny masy ciała.'};
+    const last=recent.slice(-2),key=last.length?last[last.length-1].date:'';
+    const out=[];
+    (base.suggestions||[]).forEach(sg=>{
+      const x={id:sg.kind+':'+key,kind:sg.kind,title:sg.title,text:sg.text};
+      if(sg.kind==='kcal'&&sg.delta!=null&&sg.delta!==nt.delta)x.apply={type:'kcal',delta:sg.delta};
+      out.push(x);
+    });
+    const hunger=avgOf(last,'hunger'),sleep=avgOf(last,'sleep'),energy=avgOf(last,'energy');
+    if(hunger!=null&&hunger>=4)out.push({id:'glod:'+key,kind:'glod',title:'Duży głód',text:'Głód w ostatnich check-inach średnio '+plNum(hunger)+'/5. Propozycja: więcej warzyw i białka w posiłkach, a przy redukcji sprawdź, czy deficyt nie jest za duży.'});
+    if(sleep!=null&&energy!=null&&sleep<=2&&energy<=2)out.push({id:'regeneracja:'+key,kind:'trening',title:'Lżejszy tydzień treningowy',text:'Sen '+plNum(sleep)+'/5 i energia '+plNum(energy)+'/5. Propozycja: o 1 serię mniej w każdym ćwiczeniu przez tydzień, potem powrót do planu.',apply:{type:'sets',d:-1}});
+    const hardest=recent.slice(-3).reverse().map(x=>({date:x.date,text:String(x.answers.hardest||'').trim()})).filter(x=>x.text);
+    const seen=new Set();
+    return{enough:!!base.enough,message:base.message||'',trend:base.trend||null,checkins:recent,hardest,
+      suggestions:out.filter(x=>!seen.has(x.kind)&&seen.add(x.kind)).slice(0,3)};
+  }
+
   const api={FIELDS,TOP,HEALTH_STOP,HEALTH_RX,facts,missing,confidence,healthGate,dietPrefsFrom,interviewOf,
-    nutritionTargets,buildNutrition,flexOptions,homePortion,DEFAULT_HABITS};
+    nutritionTargets,buildNutrition,flexOptions,homePortion,DEFAULT_HABITS,publicPlan,checkinsOf,progressReview};
   root.PlanClient=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

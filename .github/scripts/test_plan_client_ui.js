@@ -137,6 +137,21 @@ const SETUP = () => {
   await page.click('#pk-publish');
   await page.waitForFunction(() => CL[0].clientPlan.status === 'opublikowany', null, { timeout: 5000 }).catch(() => {});
   ok('ponowna publikacja: stara wersja w archiwum', await page.evaluate(id => { const o = PL.find(p => p.id === id); return o && o.archived && CL[0].clientPlan.trainingPlanId !== id; }, firstId));
+  // Postępy: check-in po publikacji → propozycje do decyzji trenera, nic nie zmienia się samo
+  ok('publikacja: jadłospis dla klienta w zwartej postaci', await page.evaluate(() => CL[0].dietPlan.plan && CL[0].dietPlan.plan.days.length === 7 && !!CL[0].clientPlanPublished));
+  await page.evaluate(() => { const d = new Date().toISOString().slice(0, 10);
+    window.CHECKINS = { c1: [{ id: 'ci1', clientId: 'c1', status: 'filled', date: d, filledAt: new Date().toISOString(),
+      answers: { mood: 2, energy: 1, sleep: 2, hunger: 5, stress: 4, nutrition: 4, workouts: 2, weight: '73.6', hardest: 'Wieczorne podjadanie', notes: '' } }] }; });
+  await page.click('[data-pk-tab="progress"]');
+  ok('postępy: check-in z najtrudniejszą rzeczą', /Wieczorne podjadanie/.test(await page.textContent('[data-pk-ci]')));
+  ok('postępy: propozycje głód i lżejszy tydzień', await page.locator('[data-pk-sug="glod"]').count() === 1 && await page.locator('[data-pk-sug="trening"]').count() === 1);
+  const setsBefore = await page.evaluate(() => JSON.stringify(CL[0].clientPlan.training.days.map(d => d.exercises.map(e => e.sets))));
+  ok('propozycja niczego nie zmienia sama', await st() === 'published');
+  await page.click('[data-pk-sug="trening"] >> text=Wprowadź');
+  ok('Wprowadź: mniej serii w szkicu, plan wraca do szkicu', await st() === 'draft' && await page.evaluate(b => JSON.stringify(CL[0].clientPlan.training.days.map(d => d.exercises.map(e => e.sets))) !== b, setsBefore));
+  await page.click('[data-pk-tab="progress"]');
+  await page.click('[data-pk-sug="glod"] >> text=Odrzuć');
+  ok('Odrzuć: propozycja znika, decyzja zapisana', await page.locator('[data-pk-sug]').count() === 0 && /odrzucone/.test(await page.textContent('[data-pk-decisions]')));
   // Bramka zdrowia
   await page.selectOption('#pk-client', 'c2');
   ok('zdrowie: komunikat o konsultacji', /Plan wymaga konsultacji z lekarzem lub dietetykiem klinicznym\./.test(await page.textContent('[data-pk-health]')));
