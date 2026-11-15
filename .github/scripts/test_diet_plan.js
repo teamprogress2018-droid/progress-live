@@ -155,6 +155,26 @@ ok('obiady w mniej niż 30 min: cały tydzień obiadów z zestawu', wO30.days.ev
 ok('nowe zestawy: sałatki, skyr, gotuj raz w tygodniu, Biedra', ['salatki', 'skyr', 'gotuj-raz', 'biedra'].every(id => D.DIET_COLLECTIONS.some(c => c.id === id)));
 ok('nowe zestawy: lunchbox, lunchbox wege, na słodko, kuchnia A. Pióro, Lidl', ['lunchbox', 'lunchbox-wege', 'na-slodko', 'kuchnia-pioro', 'lidl'].every(id => D.DIET_COLLECTIONS.some(c => c.id === id)));
 ok('lunchbox: dania na każdy posiłek, ze zdjęciami', ['sniadanie', 'przekaska', 'obiad', 'kolacja'].every(sl => D.MEAL_TEMPLATES[sl].some(x => x.col === 'lunchbox' && x.img)));
+// Dania bez chleba: wybór trenera, nie alergia.
+const noBread = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, days: 7, prefs: { ex: ['pieczywo'] } });
+const breadIds = ['chleb', 'chleb-zytni', 'pita'];
+ok('bez chleba: w tygodniu żadnego pieczywa, makro trzyma', noBread.days.every(d => d.meals.every(m => m.items.every(it => !breadIds.includes(it.id) && !(it.swaps || []).some(x => breadIds.includes(x.id)))) &&
+  Math.abs(d.total.kcal - tK.kcal) <= tK.kcal * 0.08) && !noBread.shopping.some(x => breadIds.includes(x.id)));
+ok('bez chleba: dania z nazwą zostają', noBread.days.every(d => d.meals.filter(m => m.dish).length >= 3));
+const cardNB = D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5, variant: 0 }), { meals: 5 });
+const alRow = cardNB.slice(cardNB.indexOf('Bez (alergie)'), cardNB.indexOf('>Pieczywo<'));
+ok('kreator: osobny wiersz „Dania bez chleba”, nie wśród alergii', cardNB.includes('Dania bez chleba') && cardNB.includes("dietToggleEx('pieczywo')") && alRow.length > 0 && !alRow.includes('pieczywo'));
+ok('bez chleba: kontrola przed wysłaniem nie traktuje tego jak alergii', !D.dietApprovalChecks(tK, D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { ex: ['pieczywo'] } })).some(c => /Wykluczenia: .*pieczywo/.test(c.text)));
+// PDF: wersja do druku ze zdjęciami.
+const pdfDay = D.dietBuildDay({ targets: tK, meals: 5, variant: 0 });
+const pdfH = D.dietPlanPrintHTML(tK, pdfDay, { client: 'Anna <b>', date: '15.11.2026', base: 'https://x.test/app/' });
+ok('PDF: dokument z posiłkami, makro, zdjęciem i drukiem', pdfH.startsWith('<!DOCTYPE html>') && pdfDay.meals.every(m => pdfH.includes(m.name)) && pdfH.includes('<base href="https://x.test/app/">') &&
+  pdfH.includes('assets/dania/') && pdfH.includes('window.print()') && pdfH.includes('Zapisz jako PDF') && pdfH.includes(tK.kcal + ' kcal'));
+ok('PDF: imię klienta bezpieczne (escape)', pdfH.includes('Anna &lt;b&gt;') && !pdfH.includes('Anna <b>'));
+const pdfW = D.dietPlanPrintHTML(tK, D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, days: 7 }), {});
+ok('PDF tygodnia: dni i lista zakupów', pdfW.includes('<h2>Poniedziałek</h2>') && pdfW.includes('<h2>Niedziela</h2>') && pdfW.includes('Lista zakupów na tydzień'));
+ok('karta: przyciski Zapisz i Pobierz PDF', D.dietRenderCard(tK, pdfDay, { meals: 5 }).includes('dietSaveDraft()') && D.dietRenderCard(tK, pdfDay, { meals: 5 }).includes('dietDownloadPdf()'));
+ok('kalkulator: pobieranie PDF', src07.includes('function dietDownloadPdf(') && src07.includes('DietPlan.dietPlanPrintHTML('));
 ok('nieznany zestaw pominięty', D.dietPrefsNorm({ col: ['xyz', 'lody'] }).col.join() === 'lody');
 ok('karta: wybór rodzaju dań', D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5, variant: 0 }), { meals: 5 }).includes("dietToggleCol('szybkie-kolacje')"));
 ok('kalkulator: wybór rodzaju dań', src07.includes('function dietToggleCol(') && src07.includes('function dietClearCol(') && src07.includes('col:(sp.col||[]).slice()'));
@@ -325,8 +345,8 @@ ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function 
   ok('w śniadaniu i przekąsce zamiennik białka bez dań obiadowych', snackSwaps);
 }
 
-ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 17));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 59));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 18));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');

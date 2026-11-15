@@ -124,7 +124,9 @@ const DIET_EXCLUSIONS=[
   {id:'orzechy',label:'Orzechy',foods:['orzechy-wloskie','migdaly','orzechy-laskowe','nerkowce']},
   {id:'soja',label:'Soja',foods:['tofu']},
   {id:'sezam',label:'Sezam',foods:['hummus']},
-  {id:'mieso',label:'Mięso',foods:['kurczak','indyk','wolowina','schab','wedlina']}
+  {id:'mieso',label:'Mięso',foods:['kurczak','indyk','wolowina','schab','wedlina']},
+  // Nie alergia, tylko wybór trenera: dania bez chleba, bułek, tortilli i pity (osobny wiersz w kreatorze).
+  {id:'pieczywo',label:'Pieczywo',pref:true,foods:['chleb','chleb-zytni','pita']}
 ];
 /** Sposoby żywienia = zestawy wykluczeń. */
 const DIET_STYLES={
@@ -934,6 +936,40 @@ function dietPlanText(t,plan){
   return lines.join('\n');
 }
 
+/** Jadłospis do wydruku / „Zapisz jako PDF”: osobny dokument HTML ze zdjęciami dań.
+ *  opts: {client: imię klienta, date: data (tekst), base: adres, od którego liczą się ścieżki zdjęć}. */
+function dietPlanPrintHTML(t,plan,opts){
+  opts=opts||{};
+  const r=v=>Math.round(v);
+  const week=plan&&plan.days;
+  const days=week?plan.days:[plan];
+  const span=week?(plan.days.length===7?' na tydzień':' na '+plan.days.length+' dni'):'';
+  const mealHTML=m=>'<div class="meal">'+(m.img?'<img src="assets/dania/'+esc(m.img)+'" alt="">':'')+
+    '<div class="mh">'+esc(m.name)+(m.dish?' · '+esc(m.dish):'')+' <span class="mk">~'+r(m.total.kcal)+' kcal · B '+r(m.total.p)+' g · T '+r(m.total.f)+' g · W '+r(m.total.c)+' g</span></div><ul>'+
+    m.items.map(it=>{const f=FOOD[it.id];const ck=cookedNote(f,it.amount);
+      const sw=it.swaps&&it.swaps.length?' <span class="sw">(albo: '+it.swaps.map(x=>esc(FOOD[x.id].name.toLowerCase())+' '+fmtAmount(FOOD[x.id],x.amount)).join(', ')+')</span>':'';
+      return'<li>'+esc(f.name)+' '+fmtAmount(f,it.amount)+(ck?' ('+esc(ck)+')':'')+sw+'</li>';}).join('')+'</ul></div>';
+  const dayHTML=d=>(week?'<h2>'+esc(d.name)+(d.dayType?(d.dayType==='trening'?' · dzień treningowy':' · dzień bez treningu')+', '+d.kcalTarget+' kcal':'')+'</h2>':'')+
+    d.meals.map(mealHTML).join('')+'<div class="tot">Razem: ~'+r(d.total.kcal)+' kcal · B '+r(d.total.p)+' g · T '+r(d.total.f)+' g · W '+r(d.total.c)+' g</div>';
+  const shop=week&&plan.shopping&&plan.shopping.length?'<h2>Lista zakupów'+span+(plan.people>1?' dla '+plan.people+' osób':'')+'</h2><ul class="shop">'+
+    plan.shopping.map(x=>{const f=FOOD[x.id];return'<li>'+esc(f.name)+' '+fmtShop(f,x.amount)+'</li>';}).join('')+'</ul>':'';
+  const pr=plan&&plan.prefs;
+  const bez=pr&&(pr.ex.length||pr.skip.length)?'<p>Bez: '+esc(pr.ex.map(id=>DIET_EXCLUSIONS.find(e=>e.id===id).label.toLowerCase()).concat(pr.skip.map(id=>FOOD[id].name.toLowerCase())).join(', '))+'. Sprawdzaj skład na etykiecie.</p>':'';
+  return'<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8">'+(opts.base?'<base href="'+esc(opts.base)+'">':'')+
+    '<title>Jadłospis'+(opts.client?' – '+esc(opts.client):'')+'</title><style>'+
+    'body{font-family:Arial,Helvetica,sans-serif;color:#222;margin:24px;font-size:13px;line-height:1.4}h1{font-size:20px;margin:0 0 4px}h2{font-size:15px;margin:18px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px;page-break-after:avoid}'+
+    '.sub{color:#555;margin-bottom:10px}.meal{overflow:hidden;margin:8px 0;padding:6px 0;border-bottom:1px dashed #ddd;page-break-inside:avoid}.meal img{float:right;width:120px;height:90px;object-fit:cover;border-radius:6px;margin-left:10px}'+
+    '.mh{font-weight:bold}.mk{font-weight:normal;color:#555;font-size:12px}ul{margin:4px 0 0 18px;padding:0}.sw{color:#666;font-size:12px}.tot{margin-top:6px;font-weight:bold}.shop{columns:2}.foot{margin-top:16px;color:#666;font-size:11px}'+
+    '.no-print{margin-bottom:14px;background:#f4f4f4;padding:10px 12px;border-radius:8px}@media print{body{margin:12px}.no-print{display:none!important}}'+
+    '</style></head><body>'+
+    '<div class="no-print">Wybierz <b>Drukuj → Zapisz jako PDF</b>, żeby pobrać plik. <button onclick="window.print()" style="margin-left:10px;padding:6px 12px;cursor:pointer;">Drukuj / PDF</button></div>'+
+    '<h1>Jadłospis'+span+(opts.client?' – '+esc(opts.client):'')+'</h1>'+
+    '<div class="sub">'+(opts.date?esc(opts.date)+' · ':'')+(week&&plan.days.some(d=>d.dayType==='wolny')?'kalorie różne w dni treningowe i wolne':t.kcal+' kcal dziennie')+' · Białko '+t.protein.g+' g · Tłuszcz '+t.fat.g+' g · Węglowodany '+t.carbs.g+' g</div>'+
+    days.map(dayHTML).join('')+shop+bez+
+    '<div class="foot">Produkty suche (ryż, makaron, płatki) waży się przed gotowaniem. To przykładowy plan z zasad z książek o żywieniu w sporcie. Nie zastępuje porady dietetyka ani lekarza.<br>Progress Live</div>'+
+    '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},400);});<\/script></body></html>';
+}
+
 /** Dni treningowe i wolne: w tygodniu wybór dni, w krótszym widoku typ dnia. */
 const WEEK_SHORT=[[1,'Pon'],[2,'Wt'],[3,'Śr'],[4,'Czw'],[5,'Pt'],[6,'Sob'],[0,'Nd']];
 function dietTrainingHTML(opts,nDays){
@@ -972,7 +1008,8 @@ function dietWizardHTML(p,skipOpen){
   return'<div class="diet-wizard" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:8px 0;">'+
     '<div style="font-size:12px;font-weight:700;margin-bottom:4px;">Kreator jadłospisu</div>'+
     row('Sposób żywienia',Object.keys(DIET_STYLES).map(k=>chip(p.style===k,'dietSetStyle(\''+k+'\')',DIET_STYLES[k].label)).join(''))+
-    row('Bez (alergie)',DIET_EXCLUSIONS.filter(e=>!styleEx.includes(e.id)).map(e=>chip(p.ex.includes(e.id),'dietToggleEx(\''+e.id+'\')',e.label)).join(''))+
+    row('Bez (alergie)',DIET_EXCLUSIONS.filter(e=>!e.pref&&!styleEx.includes(e.id)).map(e=>chip(p.ex.includes(e.id),'dietToggleEx(\''+e.id+'\')',e.label)).join(''))+
+    row('Pieczywo',chip(!p.ex.includes('pieczywo'),p.ex.includes('pieczywo')?'dietToggleEx(\'pieczywo\')':'','Z pieczywem')+chip(p.ex.includes('pieczywo'),p.ex.includes('pieczywo')?'':'dietToggleEx(\'pieczywo\')','Dania bez chleba'))+
     row('Rodzaj dań (z e-booków)',chip(!p.col.length,'dietClearCol()','Wszystkie')+DIET_COLLECTIONS.map(c=>chip(p.col.includes(c.id),'dietToggleCol(\''+c.id+'\')',c.label)).join(''))+
     row('Czas na posiłek',[[0,'Bez limitu'],[15,'do 15 min'],[30,'do 30 min']].map(([v,l])=>chip(p.maxMin===v,'dietSetMaxMin('+v+')',l)).join(''))+
     '<details class="diet-like"'+(skipOpen==='like'?' open':'')+' style="margin-top:4px;"><summary style="cursor:pointer;font-size:11.5px;color:var(--muted);">❤ Produkty, które klient lubi'+(p.like.length?' ('+p.like.length+')':'')+'</summary><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">'+
@@ -1121,6 +1158,8 @@ function dietRenderCard(t,day,opts){
     [3,4,5,6].map(k=>'<button class="btn btn-sm'+(k===mealsN?' btn-primary':'')+'" onclick="dietSetMeals('+k+')">'+k+' posiłki</button>').join('')+
     '<button class="btn btn-sm" onclick="dietNextVariant()">🔄 Inny wariant</button>'+
     (t.selected?'<button class="btn btn-sm" onclick="dietUseBookMacros()">📚 Ustaw makro z książek</button>':'')+
+    '<button class="btn btn-sm" onclick="dietSaveDraft()">💾 Zapisz</button>'+
+    '<button class="btn btn-sm" onclick="dietDownloadPdf()">📄 Pobierz PDF</button>'+
     '<button class="btn btn-sm" onclick="dietSendToClient()">📤 Wyślij '+(nDays===7?'tydzień':'jadłospis')+'</button></div>';
   return'<div class="calc-result-card diet-card" id="diet-card">'+head+
     '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">'+(t.selected?'Jadłospis liczony z makro wybranego w kalkulatorze. Zakresy obok to zalecenia książek.':'Makro wg książek: białko g/kg wg celu, tłuszcz 25% energii, reszta węglowodany (te same liczby co w podziale makro).')+' Liczba posiłków: 3 posiłki + 2–3 przekąski '+srcTag([src('sn','230')])+'.</div>'+
@@ -1129,7 +1168,7 @@ function dietRenderCard(t,day,opts){
     '</div>';
 }
 
-const api={dietHealthRisks,dietCanSend,HEALTH_RISKS,dietApprovalChecks,dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,DIET_COLLECTIONS,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
+const api={dietPlanPrintHTML,dietHealthRisks,dietCanSend,HEALTH_RISKS,dietApprovalChecks,dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,DIET_COLLECTIONS,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
 root.DietPlan=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
