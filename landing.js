@@ -34,7 +34,20 @@
       tracks[i].innerHTML=set.map(function(st){return landingStatHTML(st,false);}).join('')+
         set.map(function(st){return landingStatHTML(st,true);}).join('');
     }
+    syncLandingColsFocus();
   }
+  /** Kolumna kafelków jest przystankiem klawiatury tylko wtedy, gdy da się ją przewinąć (telefon). */
+  function syncLandingColsFocus(){
+    var cols=document.querySelectorAll('#auth-screen .pl-land-col');
+    for(var i=0;i<cols.length;i++){
+      var c=cols[i];
+      var scrolls=c.scrollWidth>c.clientWidth+1||c.scrollHeight>c.clientHeight+1;
+      var css=window.getComputedStyle?getComputedStyle(c):null;
+      var canScroll=scrolls&&css&&(/(auto|scroll)/.test(css.overflowX)||/(auto|scroll)/.test(css.overflowY));
+      if(canScroll)c.setAttribute('tabindex','0');else c.removeAttribute('tabindex');
+    }
+  }
+  if(typeof window.addEventListener==='function')window.addEventListener('resize',function(){syncLandingColsFocus();});
 
   var lastFocus=null;
   /** E-mail znany z wcześniejszego kroku: okno logowania albo pole na stronie startowej. */

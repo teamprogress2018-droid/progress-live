@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-a11y=1&ux-add-client=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
-<link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1&ux-rest=1">
+<link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-tiles-kb=1">
 <link rel="stylesheet" href="client-simple.css?v=2&ux-rest=1&ux-client-nav=1&ux-client-fix=1">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
@@ -63,8 +63,8 @@
     <div class="pl-land-showcase">
       <p class="pl-land-showcase-note" id="pl-land-stats-note">Tak klient widzi swoje postępy w aplikacji <span>· przykładowe dane</span></p>
       <div class="pl-land-stats" aria-labelledby="pl-land-stats-note">
-        <div class="pl-land-col"><div class="pl-land-track"></div></div>
-        <div class="pl-land-col"><div class="pl-land-track"></div></div>
+        <div class="pl-land-col" role="region" aria-label="Przykładowe postępy klienta" tabindex="0"><div class="pl-land-track"></div></div>
+        <div class="pl-land-col" role="region" aria-label="Przykładowe postępy klienta, ciąg dalszy" tabindex="0"><div class="pl-land-track"></div></div>
       </div>
     </div>
   </main>
@@ -109,7 +109,7 @@
     </div>
   </div>
 </div>
-<script src="landing.js?v=2&ux-login=1&ux-start=1"></script>
+<script src="landing.js?v=2&ux-login=1&ux-start=1&ux-tiles-kb=1"></script>
 
 <div class="app" id="app-root" style="display:none;">
 <a class="skip-link" href="#main">Przejdź do treści</a>
