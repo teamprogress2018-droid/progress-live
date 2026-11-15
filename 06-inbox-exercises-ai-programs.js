@@ -3468,10 +3468,11 @@ function exCardHtml(e,i){
   const eq=String(e.eq||'');
   const gif=typeof exGifUrl==='function'?exGifUrl(e):(typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'');
   // Karta: miniatura, nazwa, wzorzec, sprzęt, ulubione i „+”. Opis, tagi i filmy są w panelu po prawej.
-  return `<div class="ex-card exl-card${exSelId===e.name?' selected':''}" data-ex-name="${name}" role="button" tabindex="0" onclick="openExDetail(${exJsArg(e.name)})" onkeydown="if(event.key==='Enter'&&event.target===this)openExDetail(${exJsArg(e.name)})" aria-label="Szczegóły: ${name}">
+  // Karta nie jest przyciskiem (w środku są ulubione i „+”); osobnym przyciskiem jest nazwa. Klik w kartę myszą nadal otwiera szczegóły.
+  return `<div class="ex-card exl-card${exSelId===e.name?' selected':''}" data-ex-name="${name}" onclick="openExDetail(${exJsArg(e.name)})">
     <div class="exl-thumb" style="--exl-col:${col}" aria-hidden="true"><span class="exl-thumb-ph">${escHtml(String(e.cat||'?').slice(0,1))}</span>${safePhoto?`<img src="${escHtml(photo)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</div>
     <div class="exl-info">
-      <div class="exl-name">${name}</div>
+      <button type="button" class="exl-name" onclick="event.stopPropagation();openExDetail(${exJsArg(e.name)})">${name}</button>
       <div class="exl-sub">${gif?'<span class="exl-film" title="Ma film techniki" aria-label="Ma film techniki">▶</span> ':''}${escHtml(m.pat||e.cat||'')}${m.base&&exTab!=='base'?' <span class="exl-base" title="Baza Progress">BP</span>':''}${exTab==='own'&&exUsageLabel(e.name)?` <span class="exl-usage" data-ex-usage>· ${escHtml(exUsageLabel(e.name))}</span>`:''}</div>
     </div>
     <span class="exl-eq" title="Sprzęt: ${escHtml(eq||'—')}"><span aria-hidden="true">${EX_EQ_ICON[eq]||'•'}</span><span class="exl-eq-t">Sprzęt: ${escHtml(eq||'—')}</span></span>

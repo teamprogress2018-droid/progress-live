@@ -6,6 +6,8 @@
  * Dane: te same co dotąd (PL, SE, METRIC_ENTRIES, SETTINGS z publicznego profilu trenera). */
 
 const CS_ICONS={
+  card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+  wifiOff:'<line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path d="M19 12.9a10 10 0 0 0-2.3-1.7"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
   home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"></path>',
   train:'<path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"></path>',
   plan:'<rect x="4" y="5" width="16" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M4 10h16"></path>',
@@ -160,11 +162,51 @@ function csTodayHTML(c){
   return `<div class="cs-screen cs-today">
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}
+    ${csPayCardHTML(c)}
     ${meeting?`<div class="cs-note">${csIcon('calendar',18)}<span>Spotkanie z trenerem: ${csEsc(meeting.time||'')} ${csEsc(meeting.type||'')}</span></div>`:''}
     ${csWeekBar(c,slot.plan)}
   </div>`;
 }
 window.csTodayHTML=csTodayHTML;
+
+/** Karta „Pakiet do opłacenia” na ekranie Dzisiaj. Przyciski drugorzędne: czerwony zostaje przy treningu. */
+function csPayCardHTML(c){
+  const unpaid=c&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(c.id):[];
+  if(!unpaid.length)return '';
+  const p=unpaid.find(x=>x&&x.paymentRequestedAt)||unpaid[0];
+  const seller=typeof paySeller==='function'?(paySeller()||{}):{};
+  const price=Number(p.price||0);
+  const amount=price?price.toLocaleString('pl')+' '+(seller.currency||'zł'):'';
+  const title=((p.clientName||c.name||'')+' '+(p.invoiceId||p.id||'')).trim();
+  const more=unpaid.length>1?`<p class="cs-card-text">Do opłacenia masz ${unpaid.length} pakiety.</p>`:'';
+  return `<section class="cs-card cs-pay" aria-labelledby="cs-pay-title">
+    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">Pakiet do opłacenia</h2></div>
+    <p class="cs-pay-what"><b>${csEsc(p.title||'Pakiet treningów')}</b>${amount?` · ${csEsc(amount)}`:''}</p>
+    ${more}
+    ${seller.bank?`<dl class="cs-pay-bank"><dt>Konto</dt><dd>${csEsc(seller.bank)}</dd><dt>Tytuł przelewu</dt><dd>${csEsc(title)}</dd></dl>`:
+      `<p class="cs-card-text">Trener nie podał jeszcze numeru konta. Zapytaj na czacie.</p>`}
+    <div class="cs-pay-btns">
+      ${seller.bank&&typeof copyPackageTransfer==='function'?`<button type="button" class="cs-btn cs-btn-secondary" onclick="copyPackageTransfer('${csEsc(p.id)}')">Kopiuj przelew</button>`:''}
+      ${typeof clientNotifyPaid==='function'?`<button type="button" class="cs-btn cs-btn-secondary" onclick="clientNotifyPaid('${csEsc(p.id)}')">Zapłaciłem</button>`:''}
+    </div>
+  </section>`;
+}
+window.csPayCardHTML=csPayCardHTML;
+
+/** Pasek „Brak internetu”: klient wie, że wyniki czekają na telefonie i nie są stracone. */
+function csSyncOfflineBar(){
+  const bar=document.getElementById('clive-offline');if(!bar)return;
+  const off=typeof navigator!=='undefined'&&navigator.onLine===false;
+  bar.hidden=!off;
+  document.body&&document.body.classList.toggle('cs-is-offline',off);
+}
+if(typeof window!=='undefined'&&window.addEventListener){
+  window.addEventListener('online',csSyncOfflineBar);
+  window.addEventListener('offline',csSyncOfflineBar);
+  if(typeof document!=='undefined'&&document.readyState!=='loading')csSyncOfflineBar();
+  else if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',csSyncOfflineBar);
+}
+window.csSyncOfflineBar=csSyncOfflineBar;
 
 /** Zakładka „Trening”: gdy jest trening na dziś, przycisk w pasku od razu go otwiera. */
 function csTrainEntry(){
@@ -483,7 +525,7 @@ function cwSkipOther(){
   if(typeof cwSkipEx==='function')cwSkipEx(txt?'Inne: '+txt:'Inne');
 }
 /** RIR prostym językiem: 0 / 1–2 / 3–4 / Nie wiem. */
-const CS_RIR_OPTS=[['0','0'],['1-2','1–2'],['3-4','3–4'],['?','Nie wiem']];
+const CS_RIR_OPTS=[['0','Ledwo (0)'],['1-2','1–2'],['3-4','3–4'],['?','Nie wiem']];
 function cwSetRir(setIdx,val){
   const cw=window._cw;if(!cw)return;
   const st=(cw.exercises[cw.exIdx]||{}).sets?.[setIdx];if(!st)return;
@@ -633,6 +675,13 @@ function cwBindSwipe(root){
 }
 window.cwBindSwipe=cwBindSwipe;
 
+/** „2-3” → „powtórzenia”, „1” → „powtórzenie”, „5” → „powtórzeń”. */
+function csRepWord(v){
+  const n=Math.max(...String(v||'').split(/[^0-9]+/).filter(Boolean).map(Number).concat(0));
+  if(n===1)return 'powtórzenie';
+  const x=n%100,y=n%10;
+  return y>=2&&y<=4&&(x<10||x>=20)?'powtórzenia':'powtórzeń';
+}
 function cwSimpleExerciseHTML(cw,ex){
   const n=cw.exercises.length,idx=cw.exIdx;
   const sets=ex.sets||[];
@@ -659,14 +708,17 @@ function cwSimpleExerciseHTML(cw,ex){
   const showRir=!allDone&&ex.rir!=null&&String(ex.rir)!=='';
   const plan=(s&&s._orig)||s||{};
   const unitWord=unit==='sec'?'s':s&&s.kind==='amrap'?'powtórzeń (max)':'powtórzeń';
-  const target=[plan.reps!=null&&plan.reps!==''?csEsc(plan.reps)+' '+unitWord:(s&&s.kind==='amrap'?'max powtórzeń':''),plan.kg!=null&&plan.kg!==''?csEsc(plan.kg)+' '+csEsc(weightUnit?'kg':loadLbl):'',showRir?'cel RIR '+csEsc(String(ex.rir).replace(/\s*-\s*/,'–')):''].filter(Boolean).join(' · ');
+  const target=[plan.reps!=null&&plan.reps!==''?csEsc(plan.reps)+' '+unitWord:(s&&s.kind==='amrap'?'max powtórzeń':''),plan.kg!=null&&plan.kg!==''?csEsc(plan.kg)+' '+csEsc(weightUnit?'kg':loadLbl):'',showRir?'zostaw w zapasie '+csEsc(String(ex.rir).replace(/\s*-\s*/,'–'))+' '+csRepWord(ex.rir):''].filter(Boolean).join(' · ');
   const rirVal=s&&s.rirUnknown?'?':String((s&&s.rir)||'');
+  const err=cw.setError&&cw.setError.exIdx===idx&&cw.setError.setIdx===cur?cw.setError:null;
+  const errAttr=f=>err&&err.field===f?' aria-invalid="true" aria-describedby="cs-set-err"':'';
   const inputs=allDone?`<p class="cs-set-done" data-cs-ex-done>${ex.skipped?'Ćwiczenie pominięte':'Ćwiczenie ukończone'} ${ex.skipped?'':csIcon('check',20)}</p>`:`
       ${target?`<p class="cs-target" data-cs-target>${target}</p>`:''}
       <div class="cs-set-grid">
-        <label class="cs-num"><input type="text" inputmode="numeric" enterkeyhint="done" aria-label="Seria ${csEsc(setNo)}: powtórzenia" value="${csEsc(s.reps)}" placeholder="${s.kind==='amrap'?'max':'0'}" oninput="cwPatchSet(${cur},'reps',this.value)"><span>${unit==='sec'?'sekund':s.kind==='amrap'?'powtórzeń (max)':'powtórzeń'}</span></label>
+        <label class="cs-num"><input type="text" inputmode="numeric" enterkeyhint="done" aria-label="Seria ${csEsc(setNo)}: powtórzenia"${errAttr('reps')} value="${csEsc(s.reps)}" placeholder="${s.kind==='amrap'?'max':'0'}" oninput="cwPatchSet(${cur},'reps',this.value)"><span>${unit==='sec'?'sekund':s.kind==='amrap'?'powtórzeń (max)':'powtórzeń'}</span></label>
         <label class="cs-num"><input type="text" inputmode="decimal" enterkeyhint="done" aria-label="Seria ${csEsc(setNo)}: ciężar" value="${csEsc(s.kg)}" placeholder="${weightUnit?'0':'—'}" oninput="cwPatchSet(${cur},'kg',this.value)"><span>${csEsc(weightUnit?'kg':loadLbl)}</span></label>
       </div>
+      ${err?`<p class="cs-field-err" id="cs-set-err" role="alert">${csEsc(err.msg)}</p>`:''}
       ${showRir?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało Ci w zapasie?"><span>Ile powtórzeń zostało Ci w zapasie?</span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirVal===v?'is-on':''}" aria-pressed="${rirVal===v?'true':'false'}" aria-label="Seria ${csEsc(setNo)}: zapas ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}`;
   const lastHtml=(()=>{
     const html=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:window._clientId}):'';
@@ -677,7 +729,7 @@ function cwSimpleExerciseHTML(cw,ex){
     const line=[last,rec].filter(Boolean).join(' · ');
     return line?`<p class="cs-tip-line">${line}</p>`:'';
   })();
-  const rirShow=x=>x.rirUnknown?'RIR ?':(x.rir!=null&&x.rir!==''?'RIR '+String(x.rir).replace('-','–'):'');
+  const rirShow=x=>x.rirUnknown?'zapas: nie wiem':(x.rir!=null&&x.rir!==''?'zapas '+String(x.rir).replace('-','–'):'');
   const setList=sets.map((x,i)=>`<li class="cs-setlog${x.done?' is-done':''}"><span>Seria ${csEsc(x.setNo!=null?x.setNo:i+1)}${x.kind&&x.kind!=='work'?' · '+csEsc((typeof setKindBadge==='function'&&setKindBadge(x.kind))||x.kind):''}</span><span>${csEsc(x.reps||'—')} × ${csEsc(x.kg||'—')} ${csEsc(weightUnit?'kg':loadLbl)}${x.done&&rirShow(x)?' · '+csEsc(rirShow(x)):''}</span>${x.done?`<button type="button" class="cs-mini" aria-label="Cofnij zapis serii ${csEsc(x.setNo!=null?x.setNo:i+1)}" onclick="cwCheckSet(${i})">Cofnij</button>`:'<span class="cs-mini-ph"></span>'}</li>`).join('');
   const tips=cw.showTips?`<div class="cs-tips" id="cs-tips">
       ${todo&&todo!==tip?`<div class="cs-tips-block"><div class="cs-eyebrow">TECHNIKA</div><p>${csEsc(todo)}</p></div>`:''}
@@ -689,7 +741,7 @@ function cwSimpleExerciseHTML(cw,ex){
       ${emomOn?`<p class="cs-tip-line">EMOM: zrób serię i odpocznij do końca minuty.</p>`:''}
       ${methodsHtml?`<div class="cs-tips-block">${methodsHtml}</div>`:''}
       ${lastHtml?`<div class="cs-tips-block"><div class="cs-eyebrow">HISTORIA</div>${lastHtml}</div>`:''}
-      <div class="cs-tips-block"><div class="cs-eyebrow">SERIE (${doneN}/${sets.length})</div><ul class="cs-setlogs">${setList}</ul>${showRir?'<p class="cs-tip-line cw-rir-help">Zapas powtórzeń (RIR) — ile powtórzeń dałbyś radę zrobić jeszcze po serii.</p>':''}</div>
+      <div class="cs-tips-block"><div class="cs-eyebrow">SERIE (${doneN}/${sets.length})</div><ul class="cs-setlogs">${setList}</ul>${showRir?'<p class="cs-tip-line cw-rir-help">Zapas powtórzeń: ile powtórzeń dałbyś radę zrobić jeszcze po serii.</p>':''}</div>
       ${(ex.alts||[]).length?`<div class="cs-tips-block"><div class="cs-eyebrow">INNE WARIANTY OD TRENERA</div><div class="cs-chips">${ex.alts.slice(0,3).map(a=>`<button type="button" class="cs-chip" onclick='cwSwapEx(${JSON.stringify(a).replace(/'/g,'&#39;')})'>↻ ${csEsc(a)}</button>`).join('')}</div></div>`:''}
       <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>
       <div class="cs-tips-actions">
@@ -719,13 +771,13 @@ function cwSimpleExerciseHTML(cw,ex){
         ${tip||media?`<div class="cs-ex-tiprow">${tip?`<p class="cs-ex-tip">${csEsc(tip)}</p>`:''}${cw.showVideo?'':media}</div>`:''}
         ${cw.showVideo?media:''}
         ${others.length?`<p class="cs-ex-ss">Bez przerwy z: ${others.map(o=>csEsc((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</p>`:''}
-        ${methods.length&&!cw.showTips?`<p class="cs-ex-ss">⚡ ${csEsc(methods.map(m=>((window.INTENSIFICATION_METHODS||{})[m.type]||{}).label||m.type).join(', '))} — szczegóły w „Pomoc / Technika / Więcej”</p>`:''}
+        ${methods.length&&!cw.showTips?`<p class="cs-ex-ss">⚡ ${csEsc(methods.map(m=>((window.INTENSIFICATION_METHODS||{})[m.type]||{}).label||m.type).join(', '))} — szczegóły we „Wskazówkach i historii”</p>`:''}
         <section class="cs-set" aria-label="Bieżąca seria">
           <div class="cs-set-head"><b>${allDone?(ex.skipped?'Pominięte':'Wszystkie serie zrobione'):'Seria '+csEsc(setNo)+' z '+sets.length}${kindTag&&!allDone?` · ${csEsc(kindTag)}`:''}</b><span class="cs-dots" aria-hidden="true">${dots}</span></div>
           ${inputs}
         </section>
         ${cw.syncState==='error'&&!cw.showTips?`<div class="cw-sync-state is-error" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
-        <button type="button" class="cs-link" aria-expanded="${cw.showTips?'true':'false'}" aria-controls="cs-tips" onclick="cwToggleTips()">${cw.showTips?'Ukryj pomoc':'Pomoc / Technika / Więcej'}<span class="cs-chev${cw.showTips?' is-open':''}">${csIcon('down',18)}</span></button>
+        <button type="button" class="cs-link" aria-expanded="${cw.showTips?'true':'false'}" aria-controls="cs-tips" onclick="cwToggleTips()">${cw.showTips?'Ukryj wskazówki':'Wskazówki i historia'}<span class="cs-chev${cw.showTips?' is-open':''}">${csIcon('down',18)}</span></button>
         ${tips}
       </div>
     </div>

@@ -50,9 +50,9 @@ ok('import says Sprawdź listę', imp.includes('>Sprawdź listę</button>') && !
 const ov = html.slice(html.indexOf('id="m-own-video"'), html.indexOf('id="m-own-video"') + 2500);
 ok('own video note plain', !/D:\\\\Desktop|progress-live-video-assets/.test(ov));
 
-ok('menu Pomiary ciała = title', html.includes(">Pomiary ciała</button>") && html.includes('<div class="topbar-title">Pomiary ciała</div>'));
-ok('menu Treningi = title', html.includes('data-screen="plans" onclick="closeLibraryFlyout();goTo(\'plans\')">Treningi</button>') && html.includes('<div class="topbar-title">Treningi</div>'));
-ok('menu Formularze i ankiety = title', html.includes('<div class="topbar-title">Formularze i ankiety</div>'));
+ok('menu Pomiary ciała = title', html.includes(">Pomiary ciała</button>") && html.includes('<h1 class="topbar-title">Pomiary ciała</h1>'));
+ok('menu Treningi = title', html.includes('data-screen="plans" onclick="closeLibraryFlyout();goTo(\'plans\')">Treningi</button>') && html.includes('<h1 class="topbar-title">Treningi</h1>'));
+ok('menu Formularze i ankiety = title', html.includes('<h1 class="topbar-title">Formularze i ankiety</h1>'));
 ok('no 8–16 / 8–12 block ranges', !html.includes('Blokach 8–16') && !two.includes('8–12 tyg. → Biblioteka programów'));
 ok('task flyout synced', /function syncTaskFlyout\(/.test(six) && /syncTaskFlyout\(\);\n?\r?\n?\s*renderTasks\(\);/.test(six) && core.includes("if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();"));
 ok('view remembered', six.includes("localStorage.setItem('pl_ex_view_v1',exView)") && six.includes("localStorage.getItem('pl_ex_view_v1')"));

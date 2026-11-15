@@ -1669,7 +1669,7 @@ function calcShowWelcome(){
   el.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
       <div style="font-size:56px;margin-bottom:20px;">🧮</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">KALKULATOR TDEE I MAKRO</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">Kalkulator TDEE i makro</div>
       <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij dane po lewej stronie i kliknij <strong style="color:var(--accent);">Oblicz</strong>. Kalkulator wyznaczy zapotrzebowanie kaloryczne, podział makroskładników i przykładowy rozkład na posiłki.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
         ${[
@@ -1945,7 +1945,7 @@ function calcTDEE(){
 
     <!-- alternatywne scenariusze -->
     <div class="calc-result-card">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">ALTERNATYWNE SCENARIUSZE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">Alternatywne scenariusze</div>
       <div class="calc-scenarios">
         ${[{l:'Agresywna redukcja',d:-500,c:'var(--red)'},{l:'Łagodna redukcja',d:-300,c:'var(--orange)'},{l:'Utrzymanie',d:0,c:'var(--teal)'},{l:'Łagodna masa',d:300,c:'var(--blue)'},{l:'Agresywna masa',d:500,c:'var(--accent)'}].map(s=>`
           <div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;${calcGoalDelta===s.d?'border:1px solid '+s.c+';':'border:1px solid transparent;'}">
@@ -1977,7 +1977,7 @@ function calcTDEE(){
 
     <!-- wskazówki i normy -->
     <div class="calc-result-card">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">NORMY I WSKAZÓWKI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">Normy i wskazówki</div>
       <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> osoby trenujące 1,4–2,0 g/kg masy ciała (SN), w sportach siłowych 1,4–2,2 g/kg, przy redukcji do 2,3–3,1 g/kg beztłuszczowej masy (ADS). Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w zakresie':'⚠ poza typowym zakresem, sprawdź'}. <span class="diet-src">📚 SN s. 230; ADS s. 104, 424</span></div>
       <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> ok. ${calcWaterLitres(gender)} l/dzień ze wszystkich źródeł, także z jedzenia (Europa: ${gender==='M'?'2,5':'2,0'} l). Ok. 4 h przed treningiem 5–7 ml/kg (${Math.round(weight*5)}–${Math.round(weight*7)} ml), po treningu ok. 150% utraconej masy. <span class="diet-src">📚 SN s. 109–111, 124</span></div>
       <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> redukcja ok. 0,7% masy na tydzień (${(weight*0.007).toFixed(1).replace('.',',')} kg), nie szybciej niż 0,5 kg/tydz. wg Bean; masa: mężczyźni 0,5–1 kg, kobiety 0,25–0,75 kg na miesiąc. Stałe przeliczenie „7700 kcal = 1 kg” nie działa w czasie, więc go nie pokazujemy. <span class="diet-src">📚 SN s. 207, 229–230; Bean s. 117–141</span></div>

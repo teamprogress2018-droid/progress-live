@@ -75,7 +75,7 @@ ok('mobile flyout above sidebar', /\.nav-flyout\{[^}]*z-index:600;/.test(css));
 
 // --- Ćwiczenia ---
 ok('no raw name in exercise onclick', !/openExDetail\('\$\{e\.name/.test(six) && !/delEx\('\$\{e\.name/.test(six));
-ok('card escapes name', /const name=escHtml\(e\.name\);[\s\S]*?<div class="exl-name">\$\{name\}<\/div>/.test(six));
+ok('card escapes name', /const name=escHtml\(e\.name\);[\s\S]*?<button type="button" class="exl-name"[^>]*>\$\{name\}<\/button>/.test(six));
 ok('no per-card animation delay', !/animation-delay:\$\{i\*0\.02\}s/.test(six));
 ok('openExDetail does not rebuild grid', !/play\.play\(\)[\s\S]{0,200}\n  renderLib\(\);\n\}/.test(six) && /dataset\.exName===name/.test(six));
 ok('saveEx blocks duplicate names', /już jest w '\+\(own\?'Twoich ćwiczeniach':'bibliotece'\)/.test(six));

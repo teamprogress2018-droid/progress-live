@@ -192,7 +192,7 @@ ok('client resources youtube first', /youtube\.com/i.test((ctx.capClientResource
 ok('podcast filter youtube', ctx.capClientResourceList('podcast').every(r => /youtube\.com/i.test(r.url || '') && (r.type === 'podcast' || r.coll === 'podcasts')));
 
 const progressHtml = ctx.capScreenHTML('progress', anna);
-ok('client progress panel', /MOJE POSTĘPY/.test(progressHtml));
+ok('client progress panel', /MOJE POSTĘPY/i.test(progressHtml));
 ok('client progress calendar entry', /Kalendarz/.test(progressHtml));
 // Activity title / kcal live on home + calendar + session; Progress shows Kroki chart when ≥2 punktów.
 const day2 = [

@@ -909,6 +909,7 @@ function clientRowHTML(c,i,issuesMap){
   </div>`;
 }
 function renderClients(){
+  if(typeof syncNavForClientCount==="function")syncNavForClientCount();
   const attnMap=clientAttentionMap();
   const issuesMap=clientIssuesMap(attnMap);
   window._clIssuesMap=issuesMap;
@@ -1034,6 +1035,8 @@ function openClientModal(clientId){
   state.open=true;window._clientModalState=state;window._editingClientId=state.editId;
   const titleEl=document.querySelector('#m-client .modal-title');
   if(titleEl)titleEl.textContent=state.editId?'EDYTUJ KLIENTA':'NOWY KLIENT';
+  // Nowy klient: 3 pola na wierzchu, reszta zwinięta. Przy edycji pokazujemy wszystko.
+  const more=document.getElementById('ac-more');if(more)more.open=!!state.editId;
   for(const [field,id] of Object.entries(clientModalFieldIds)){
     const el=document.getElementById(id);if(el)el.value=state.fields[field]??'';
   }
@@ -1161,6 +1164,7 @@ async function saveClient(){
     notify(state.message);
     if(clientModalIsCurrent(state)){
       state.acknowledged=!!result.ok;closeM('m-client');
+      window._clientJustSavedId=c.id;
       if(typeof openClientOnboardChecklist==='function')openClientOnboardChecklist(c.id);
     }
   }catch(error){
@@ -1835,9 +1839,32 @@ window.saveNewPlanPicker=saveNewPlanPicker;
 function openClientOnboardChecklist(clientId){
   if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
   window._onboardClientId=clientId;
+  // Zaraz po dodaniu klienta: jeden wyraźny następny krok („Ułóż pierwszy plan”) albo „Później”.
+  window._onboardSavedBanner=window._clientJustSavedId===clientId;window._clientJustSavedId=null;
   renderClientOnboardChecklist();
   openM('m-client-onboard');
 }
+function renderClientSavedCta(c,st){
+  const box=document.getElementById('client-onboard-saved');if(!box)return;
+  const show=!!(window._onboardSavedBanner&&c&&!st.plan);
+  box.hidden=!show;
+  const body=document.getElementById('client-onboard-body');if(body)body.classList.toggle('has-saved-cta',show);
+  if(!show){box.innerHTML='';return;}
+  const first=escHtml(String(c.name||'').trim().split(/\s+/)[0]||'Klient');
+  box.innerHTML=`<div class="client-saved-cta-title">${typeof plLineIcon==='function'?plLineIcon('check',18):''} ${first} jest na liście klientów.</div>
+    <p>Następny krok: pierwszy plan treningowy. Resztę startu zrobisz z listy poniżej, kiedy zechcesz.</p>
+    <div class="client-saved-cta-btns"><button type="button" class="btn btn-primary" id="client-saved-plan-btn" onclick="clientSavedStartPlan()">Ułóż pierwszy plan</button><button type="button" class="btn btn-ghost" id="client-saved-later-btn" onclick="clientSavedLater()">Później</button></div>`;
+}
+function clientSavedStartPlan(){
+  const id=window._onboardClientId;window._onboardSavedBanner=false;
+  closeM('m-client-onboard');
+  if(id&&typeof openBuilderForClient==='function')openBuilderForClient(id,true);
+}
+function clientSavedLater(){
+  window._onboardSavedBanner=false;
+  closeM('m-client-onboard');
+}
+window.clientSavedStartPlan=clientSavedStartPlan;window.clientSavedLater=clientSavedLater;
 
 function renderClientOnboardChecklist(){
   const id=window._onboardClientId;
@@ -1850,6 +1877,7 @@ function renderClientOnboardChecklist(){
   if(calendarState&&calendarState.operation&&!calendarState.calendarBefore&&st.calendar){
     st.calendar=false;st.done=Math.max(0,st.done-1);st.complete=false;
   }
+  renderClientSavedCta(c,st);
   const intro=document.getElementById('client-onboard-intro');
   if(intro)intro.textContent=st.complete
     ? c.name+' jest gotowy do codziennej pracy.'

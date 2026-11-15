@@ -23,14 +23,14 @@ ok('auth screen is the landing page', /<div id="auth-screen" class="pl-landing" 
 ok('brand + slogan', landing.includes('PROGRESS <span>LIVE</span>') && landing.includes('TRENER. PLAN. EFEKTY.'));
 ok('headline is h1', /<h1 class="pl-land-title" id="pl-land-title">/.test(landing));
 ok('login entry points', landing.includes("onclick=\"landingOpenAuth('login')\"") && landing.includes('onsubmit="landingStart(event)"'));
-ok('invite entry points', (landing.match(/landingOpenAuth\('register'\)/g) || []).length === 2);
+ok('invite entry points: header button + client entry', (landing.match(/landingOpenAuth\('register'\)/g) || []).length === 1 && landing.includes("onclick=\"landingPickWho('client')\""));
 ok('email field labelled', /<label for="pl-land-email" class="sr-only">/.test(landing));
 ok('two stat tracks', (landing.match(/class="pl-land-track"/g) || []).length === 2);
 ok('stats marked as example data', /id="pl-land-stats-note">Tak klient widzi swoje postępy w aplikacji <span>· przykładowe dane<\/span>/.test(landing) && landing.includes('aria-labelledby="pl-land-stats-note"'));
 ok('auth card is a dialog', /id="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-card-title" aria-hidden="true"/.test(landing));
 ok('login, register and reset forms kept', ['auth-login-view', 'auth-register-view', 'auth-reset-view', 'auth-email', 'auth-password', 'auth-reg-token', 'auth-error'].every((id) => landing.includes('id="' + id + '"')));
 ok('old cup icon gone', !landing.includes('logo-mark'));
-ok('landing.js loaded right after the landing', /<\/div>\r?\n<script src="landing\.js\?v=2"><\/script>/.test(html));
+ok('landing.js loaded right after the landing', /<\/div>\r?\n<script src="landing\.js\?v=\d+[^"]*"><\/script>/.test(html));
 ok('landing.css loaded after theme.css', html.indexOf('landing.css?v=2') > html.indexOf('theme.css?v=1'));
 ok('no external scripts for the landing', !/https?:\/\//.test(js) && !/@import|https?:\/\//.test(css.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '')));
 

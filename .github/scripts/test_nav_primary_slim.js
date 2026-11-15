@@ -41,9 +41,25 @@ function test(name, fn) {
 test('primary order like the reference layout', () => {
   assert.deepStrictEqual(topLevel, [
     'group:clients', 'dashboard', 'group:library', 'inbox', 'live', 'calendar',
-    'group:automation', 'group:ondemand', 'forum', 'group:business', 'group:knowledge',
+    'group:automation', 'group:ondemand', 'forum', 'group:business', 'group:knowledge', 'group:more',
   ]);
-  assert.ok(!html.includes('nav-more-items') && !html.includes('toggleMoreNav'), 'no Więcej section');
+  assert.ok(!html.includes('nav-more-items') && !html.includes('toggleMoreNav'), 'no old Więcej section');
+});
+
+test('Etap 5: new trainer (0 clients) sees 6 items, the rest under "Więcej"', () => {
+  assert.match(core, /function syncNavForClientCount\(\)[\s\S]*classList\.toggle\('nav-new-trainer',!list\.length\)/);
+  assert.ok(theme.includes('.app.nav-new-trainer .nav-more-wrap { display: block; }'), 'Więcej only for new trainer');
+  for (const sel of ['#nav-automation-wrap', '#nav-ondemand-wrap', '#nav-business-wrap', '#nav-knowledge-wrap', '[data-screen="inbox"]', '[data-screen="forum"]']) {
+    assert.ok(theme.includes('.app.nav-new-trainer ' + (sel.startsWith('[') ? '.sidebar-nav > .nav-item' + sel : sel)), sel + ' hidden for new trainer');
+  }
+  const more = primary.slice(primary.indexOf('id="nav-more-flyout"'));
+  for (const s of ['inbox', 'onboarding', 'automation', 'ondemand', 'resources', 'forum', 'payments', 'bizstats', 'academy', 'kb', 'aicoach', 'calculator']) {
+    assert.ok(more.includes(`data-screen="${s}"`), s + ' reachable from Więcej');
+  }
+  assert.ok(/id="nav-library-flyout"[\s\S]*?data-screen="aiplangen"[^>]*>Nowy plan \(AI\)</.test(primary), 'Nowy plan (AI) in Biblioteka');
+  assert.ok(!/id="nav-knowledge-flyout"[\s\S]*?data-screen="aiplangen"[\s\S]*?id="nav-more-wrap"/.test(primary), 'generator moved out of Academy');
+  assert.ok(primary.includes('>Nowy klient: pierwsze kroki<') && primary.includes('>Programy wielotygodniowe<') && primary.includes('Przypomnienia i wiadomości'), 'human names');
+  assert.ok(!primary.includes('>Start współpracy<') && !primary.includes('>Bloki 4–16 tyg.<') && !primary.includes('>Automatyzacja<'), 'old names gone');
 });
 
 test('every former screen still reachable from the sidebar', () => {
@@ -57,7 +73,7 @@ test('every former screen still reachable from the sidebar', () => {
 });
 
 test('groups have flyout menus with ARIA wiring', () => {
-  for (const g of ['clients', 'library', 'automation', 'ondemand', 'business', 'knowledge']) {
+  for (const g of ['clients', 'library', 'automation', 'ondemand', 'business', 'knowledge', 'more']) {
     assert.ok(primary.includes(`id="nav-${g}-wrap"`) && primary.includes(`id="nav-${g}-flyout"`), g + ' flyout');
     assert.match(primary, new RegExp(`id="nav-${g}-btn"[^>]*aria-haspopup="true"[^>]*aria-expanded="false"[^>]*aria-controls="nav-${g}-flyout"`));
   }

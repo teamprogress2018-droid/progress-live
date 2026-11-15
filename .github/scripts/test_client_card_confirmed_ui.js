@@ -110,6 +110,8 @@ const { chromium } = require('playwright');
     const fill = async (value = 'Nowy Klient') => {
       await name.fill(value);
       await page.locator('#ac-email').fill('new@example.test');
+      // Telefon i notatki są w zwiniętej sekcji „Więcej danych” (etap 9 UX).
+      await page.evaluate(() => { document.getElementById('ac-more').open = true; });
       await page.locator('#ac-phone').fill('987654321');
       await page.locator('#ac-notes').fill('Zachowaj tę notatkę');
     };

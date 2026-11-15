@@ -18,7 +18,7 @@ ok('counts only confirmed sets in the record',/filter\(s=>s&&s\.done\)/.test(app
 ok('persists each confirmed or reverted set',/st\.done=!st\.done;\s*cwQueuePersist\(cw,'in_progress'\)/.test(app));
 ok('persists locally before an offline attempt',/const localSaved=cwWriteLocal\(cw\)/.test(app)&&/if\(typeof navigator!=='undefined'&&navigator\.onLine===false\)return false/.test(app));
 ok('flushes local work after reconnect or app reopen',/function cwFlushLocal\(\)/.test(app)&&/setTimeout\(\(\)=>cwFlushLocal\(\),0\)/.test(app));
-ok('partial completion asks before ending',/cw\.finishPrompt=true/.test(app)&&/Zakończ częściowo wykonany/.test(app));
+ok('partial completion asks before ending',/cw\.finishPrompt=true/.test(app)&&/Zakończ teraz/.test(app));
 ok('supports a pain report without automated treatment',/function cwReportProblem\(\)/.test(app)&&/Zgłoś ból lub problem/.test(app));
 ok('client replacements come only from the trainer plan',/const alts=String\(ex\.alt\|\|''\)/.test(core)&&/approvedAlts:alts\.slice\(\)/.test(core));
 ok('trainer session panel shows plan and actual result',/Plan: \$\{planned\}/.test(fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8'))&&/Wynik: \$\{setsText/.test(fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8')));

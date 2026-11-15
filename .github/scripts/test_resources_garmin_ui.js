@@ -176,7 +176,7 @@ const SAMPLE_CSV = [
   await page.waitForTimeout(250);
   const capProgress = await page.evaluate(() => (document.getElementById('cap-screen-content') || {}).innerText || '');
   await page.screenshot({ path: path.join(shotDir, 'client_app_garmin_progress.png') });
-  ok('client progress panel', /MOJE POSTĘPY/.test(capProgress));
+  ok('client progress panel', /MOJE POSTĘPY/i.test(capProgress));
   ok('client progress calendar entry', /Kalendarz/.test(capProgress));
   // Kroki sparkline wymaga ≥2 punktów — pokryte w test_resources_garmin.js (HTML), nie w UI innerText.
   await page.evaluate(() => {
