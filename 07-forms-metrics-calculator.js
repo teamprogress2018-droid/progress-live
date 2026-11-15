@@ -1645,7 +1645,7 @@ async function askMetricAI(){
 var calcActivity=1.5;var calcGoalDelta=0;
 var dietMeals=5;var dietVariant=0;var dietView='dzien';
 // Kreator jadłospisu: sposób żywienia, wykluczenia, produkty, których klient nie je, limit czasu.
-var dietPrefs={style:'wszystko',ex:[],skip:[],like:[],maxMin:0};
+var dietPrefs={style:'wszystko',ex:[],skip:[],like:[],maxMin:0,col:[]};
 // Zamienione posiłki: klucz 'dzień:posiłek' → ile razy przesunąć zestaw.
 var dietMealShift={};
 // Dni treningowe (numery dni tygodnia, 1 = pon … 0 = nd); null = z harmonogramu klienta. Typ dnia dla widoku 1 i 3 dni.
@@ -1741,7 +1741,7 @@ function calcLoadFromClient(){
   window._calcClientId=c.id;dietTrainDays=null;
   // Upodobania i wykluczenia z ostatniego planu klienta.
   const sp=c.dietPlan&&c.dietPlan.prefs;
-  dietPrefs=sp?{style:sp.style||'wszystko',ex:(sp.ex||[]).slice(),skip:(sp.skip||[]).slice(),like:(sp.like||[]).slice(),maxMin:+sp.maxMin||0}:{style:'wszystko',ex:[],skip:[],like:[],maxMin:0};
+  dietPrefs=sp?{style:sp.style||'wszystko',ex:(sp.ex||[]).slice(),skip:(sp.skip||[]).slice(),like:(sp.like||[]).slice(),maxMin:+sp.maxMin||0,col:(sp.col||[]).slice()}:{style:'wszystko',ex:[],skip:[],like:[],maxMin:0,col:[]};
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
   const delta=goalMap[c.goal]||0;
@@ -2136,6 +2136,9 @@ function dietToggleEx(id){dietToggleList(dietPrefs.ex,id);calcTDEE();}
 function dietToggleSkip(id){dietToggleList(dietPrefs.skip,id);dietPrefs.like=(dietPrefs.like||[]).filter(x=>x!==id);window._dietSkipOpen='skip';calcTDEE();}
 function dietToggleLike(id){dietPrefs.like=dietPrefs.like||[];dietToggleList(dietPrefs.like,id);dietPrefs.skip=dietPrefs.skip.filter(x=>x!==id);window._dietSkipOpen='like';calcTDEE();}
 function dietSetMaxMin(v){dietPrefs.maxMin=+v||0;calcTDEE();}
+// Rodzaj dań z e-booków (np. szybkie kolacje): wybrane zestawy zastępują inne dania w swoich posiłkach.
+function dietToggleCol(id){dietPrefs.col=dietPrefs.col||[];dietToggleList(dietPrefs.col,id);calcTDEE();}
+function dietClearCol(){dietPrefs.col=[];calcTDEE();}
 function dietNextVariant(){dietVariant++;dietMealShift={};calcTDEE();}
 function dietUseBookMacros(){
   setCalcMacroBooks();
