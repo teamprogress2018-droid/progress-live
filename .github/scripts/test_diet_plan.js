@@ -345,8 +345,31 @@ ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function 
   ok('w śniadaniu i przekąsce zamiennik białka bez dań obiadowych', snackSwaps);
 }
 
+// Składnik z nazwy dania nie znika z porcji, a przy alergii danie traci nazwę (np. „Lody bananowo-orzechowe”).
+{
+  const stem = n => n.toLowerCase().split(/[^a-ząćęłńóśźż]+/).filter(w => w.length >= 5).map(w => w.slice(0, 5));
+  const byDish = new Map(Object.values(D.MEAL_TEMPLATES).flat().map(t => [t.dish, t]));
+  let named = 0, wrong = [], fatDays = 0, days = 0, lody = 0;
+  [[], ['orzechy'], ['orzeszki'], ['mleko'], ['gluten']].forEach(ex => [1600, 2400, 3000].forEach(kcal => {
+    const tt = D.dietBookTargets({ weight: kcal / 26, kcal, rmr: kcal * 0.7, age: 35, goal: 'redukcja', goalDelta: -300, pal: 1.55 });
+    D.dietBuildWeek({ targets: tt, meals: 4, variant: kcal % 7, prefs: { ex }, days: 7 }).days.forEach(d => {
+      days++; if (d.warnings.some(x => /Tłuszcz wychodzi/.test(x))) fatDays++;
+      d.meals.forEach(m => {
+        const tp = byDish.get(m.dish); if (!tp) return; named++;
+        const ids = m.items.map(i => i.id);
+        if (m.dish === 'Lody bananowo-orzechowe') { lody++; if (!ids.includes('maslo-orz')) wrong.push(m.dish + ' ' + ex); }
+        [tp.p, tp.c, tp.f].filter(Boolean).forEach(id => { if (!ids.includes(id) && stem(foods[id].name).some(st => m.dish.toLowerCase().includes(st))) wrong.push(m.dish + ' bez ' + id + ' ' + ex); });
+        if (ex.includes('orzeszki') && /orzech/i.test(m.dish) && !ids.some(id => tagOf(id).includes('orzechy'))) wrong.push(m.dish + ' przy alergii na orzeszki');
+      });
+    });
+  }));
+  ok('nazwa dania zgadza się ze składnikami', named > 300 && !wrong.length, wrong.slice(0, 5).join('; '));
+  // Przed poprawką: 23 ze 105 dni z ostrzeżeniem o tłuszczu w tej próbie, po niej 6; silnik najpierw szuka innego zestawu.
+  ok('za tłusty posiłek: najpierw inny zestaw (mniej ostrzeżeń o tłuszczu)', fatDays <= days * 0.08, fatDays + '/' + days);
+}
+
 ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 59));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 18));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 19));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
