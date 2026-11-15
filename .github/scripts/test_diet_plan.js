@@ -135,6 +135,22 @@ ok('zdjęcia dań istnieją', named.filter(x => x.img).length >= 30 && named.fil
 const mImg = wNamed.days.flatMap(d => d.meals).find(m => m.img);
 ok('zdjęcie dania w karcie', !!mImg && D.dietRenderCard(t96, wNamed, { meals: 5 }).includes('assets/dania/' + mImg.img));
 ok('zamienione białko = bez zdjęcia', dSkip2.meals.every(m => !m.changes.some(ch => skip2.includes(ch.from)) || !m.img));
+// Rodzaj dań z e-booków: wybrany zestaw (np. szybkie kolacje) zastępuje inne dania w swoich posiłkach.
+ok('zestawy dań: każde danie z nazwą ma zestaw', named.every(x => D.DIET_COLLECTIONS.some(c => c.id === x.col)));
+ok('każde zdjęcie dania istnieje', named.every(x => !x.img || fs.existsSync(path.join(root, 'assets', 'dania', x.img))));
+D.DIET_COLLECTIONS.forEach(c => {
+  const slots = Object.keys(D.MEAL_TEMPLATES).filter(sl => D.MEAL_TEMPLATES[sl].some(x => x.col === c.id));
+  const wC = D.dietBuildWeek({ targets: tK, meals: 5, variant: 0, days: 3, prefs: { col: [c.id] } });
+  const names = new Set(D.MEAL_TEMPLATES[slots[0]].filter(x => x.col === c.id).map(x => x.dish));
+  const hit = wC.days.flatMap(d => d.meals).filter(m => names.has(m.dish)).length;
+  ok('zestaw ' + c.label + ': dania z zestawu w swoich posiłkach, dzień trzyma makro', slots.length > 0 && hit > 0 &&
+    wC.days.every(d => Math.abs(d.total.kcal - tK.kcal) <= tK.kcal * 0.08 && d.total.p >= tK.protein.g * 0.9));
+});
+const dKol = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { col: ['szybkie-kolacje'] } });
+ok('szybkie kolacje: kolacja z zestawu, reszta bez zmian', D.MEAL_TEMPLATES.kolacja.some(x => x.col === 'szybkie-kolacje' && x.dish === dKol.meals[4].dish) && dKol.meals[0].dish === D.dietBuildDay({ targets: tK, meals: 5, variant: 0 }).meals[0].dish);
+ok('nieznany zestaw pominięty', D.dietPrefsNorm({ col: ['xyz', 'lody'] }).col.join() === 'lody');
+ok('karta: wybór rodzaju dań', D.dietRenderCard(tK, D.dietBuildDay({ targets: tK, meals: 5, variant: 0 }), { meals: 5 }).includes("dietToggleCol('szybkie-kolacje')"));
+ok('kalkulator: wybór rodzaju dań', src07.includes('function dietToggleCol(') && src07.includes('function dietClearCol(') && src07.includes('col:(sp.col||[]).slice()'));
 const dQuick = D.dietBuildDay({ targets: tK, meals: 5, variant: 0, prefs: { maxMin: 15 } });
 ok('limit 15 min: każdy posiłek w limicie', dQuick.meals.every(m => m.minutes <= 15) && !dQuick.warnings.length);
 const tplOver = D.dietBuildDay({ targets: tK, meals: 4, variant: 0, prefs: { maxMin: 2 } });
@@ -302,7 +318,7 @@ ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function 
 }
 
 ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 55));
-ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 14));
+ok('cache diet-plan', cacheAtLeast(html, 'diet-plan.js', 15));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll diet-plan checks passed');
