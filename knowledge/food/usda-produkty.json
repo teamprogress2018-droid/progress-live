@@ -2583,7 +2583,13 @@
    "f": 0.39,
    "c": 3.6,
    "fiber": 0,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "container",
+     "g": 170
+    }
+   ]
   },
   "twarog": {
    "fdc_id": 172181,
@@ -2593,7 +2599,18 @@
    "f": 0.29,
    "c": 6.66,
    "fiber": 0,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup (not packed)",
+     "g": 145
+    },
+    {
+     "amount": 4,
+     "unit": "oz",
+     "g": 113
+    }
+   ]
   },
   "wedlina": {
    "fdc_id": 174572,
@@ -2603,7 +2620,33 @@
    "f": 0.83,
    "c": 3.51,
    "fiber": 0.5,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "slice",
+     "g": 28
+    },
+    {
+     "amount": 1,
+     "unit": "slice NFS",
+     "g": 28
+    },
+    {
+     "amount": 1,
+     "unit": "cup wafer slices or shaved",
+     "g": 81
+    },
+    {
+     "amount": 1,
+     "unit": "cubic inch",
+     "g": 14
+    },
+    {
+     "amount": 2,
+     "unit": "oz",
+     "g": 57
+    }
+   ]
   },
   "pita": {
    "fdc_id": 174916,
@@ -2613,7 +2656,18 @@
    "f": 1.71,
    "c": 55.89,
    "fiber": 6.1,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "pita, large (6-1/2\" dia)",
+     "g": 64
+    },
+    {
+     "amount": 1,
+     "unit": "pita, small  (4\" dia)",
+     "g": 28
+    }
+   ]
   },
   "makaron-ryzowy": {
    "fdc_id": 169742,
@@ -2623,7 +2677,13 @@
    "f": 0.56,
    "c": 80.18,
    "fiber": 1.6,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 2,
+     "unit": "oz",
+     "g": 57
+    }
+   ]
   },
   "makaron-ryzowy@po": {
    "fdc_id": 168914,
@@ -2633,7 +2693,13 @@
    "f": 0.2,
    "c": 24.01,
    "fiber": 1,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 176
+    }
+   ]
   },
   "parmezan": {
    "fdc_id": 171247,
@@ -2643,7 +2709,23 @@
    "f": 27.84,
    "c": 13.91,
    "fiber": 0,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 100
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 5
+    },
+    {
+     "amount": 1,
+     "unit": "oz",
+     "g": 28.35
+    }
+   ]
   },
   "pomidory-puszka": {
    "fdc_id": 170051,
@@ -2653,7 +2735,38 @@
    "f": 0.25,
    "c": 3.47,
    "fiber": 1.9,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup",
+     "g": 240
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp",
+     "g": 15
+    },
+    {
+     "amount": 1,
+     "unit": "can",
+     "g": 190
+    },
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 164
+    },
+    {
+     "amount": 1,
+     "unit": "medium",
+     "g": 111
+    },
+    {
+     "amount": 1,
+     "unit": "small",
+     "g": 82
+    }
+   ]
   },
   "salata-rzymska": {
    "fdc_id": 169247,
@@ -2663,7 +2776,33 @@
    "f": 0.3,
    "c": 3.29,
    "fiber": 2.1,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup shredded",
+     "g": 47
+    },
+    {
+     "amount": 1,
+     "unit": "leaf inner",
+     "g": 6
+    },
+    {
+     "amount": 1,
+     "unit": "leaf outer",
+     "g": 28
+    },
+    {
+     "amount": 1,
+     "unit": "head",
+     "g": 626
+    },
+    {
+     "amount": 1,
+     "unit": "NLEA serving",
+     "g": 85
+    }
+   ]
   },
   "dymka": {
    "fdc_id": 170005,
@@ -2673,7 +2812,33 @@
    "f": 0.19,
    "c": 7.34,
    "fiber": 2.6,
-   "porcje": []
+   "porcje": [
+    {
+     "amount": 1,
+     "unit": "cup, chopped",
+     "g": 100
+    },
+    {
+     "amount": 1,
+     "unit": "tbsp chopped",
+     "g": 6
+    },
+    {
+     "amount": 1,
+     "unit": "large",
+     "g": 25
+    },
+    {
+     "amount": 1,
+     "unit": "medium (4-1/8\" long)",
+     "g": 15
+    },
+    {
+     "amount": 1,
+     "unit": "small (3\" long)",
+     "g": 5
+    }
+   ]
   }
  }
 }
