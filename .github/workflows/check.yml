@@ -749,6 +749,9 @@ jobs:
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_notes_evidence_ui.js
+      - name: 6b3c2b1a. Testy UI tłumaczenia nowych badań na polski
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_research_feed_pl_ui.js
       - name: 6b3c2b1b. Testy UI tagów KB w kreatorze
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_builder_tags_ui.js
