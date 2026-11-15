@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 /** UI (Etap 10 UX): aplikacja klienta — pasek Dzisiaj, Trening, Czat, Postępy, Więcej; plakietka na Czacie;
- *  safe area; tekst w rem; pasek „Brak internetu”; karta „Pakiet do opłacenia”. */
+ *  safe area; tekst w rem; pasek „Brak internetu”; karta „Pakiet do opłacenia” (także gdy pakiet się skończył);
+ *  długie nazwy bez ucinania (bez nowrap) i bez stałej wysokości 150 px. */
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -14,6 +15,9 @@ function ok(name, cond, extra) {
 }
 
 ok('client-simple.css: no px font sizes', !/font-size:\s*\d+(\.\d+)?px/.test(css) && !/font:[^;]*\d+px/.test(css));
+function rule(sel) { const m = css.match(new RegExp('(^|\\n)' + sel.replace(/[.]/g, '\\.') + ' \\{([^}]*)\\}')); return m ? m[2] : ''; }
+['.cs-card-title', '.cs-row-title', '.cs-ex-meta', '.cs-ov-st'].forEach((sel) => ok('client-simple.css: ' + sel + ' wraps (no nowrap/ellipsis/line-clamp)', rule(sel) && !/nowrap|ellipsis|line-clamp/.test(rule(sel)), rule(sel)));
+ok('client-simple.css: media button has no fixed 150px height', /min-height: clamp\(/.test(rule('.cs-media-btn')) && !/(^|[^-])height: 150px/.test(rule('.cs-media-btn')), rule('.cs-media-btn'));
 ok('client-simple.css: nav respects safe area', /\.clive-nav \{[^}]*padding-bottom: max\(8px, var\(--cs-sab\)\)/.test(css) && /\.clive-nav \{[^}]*var\(--cs-sal\)/.test(css));
 
 async function open(browser, opts) {
@@ -33,7 +37,8 @@ async function open(browser, opts) {
     window.PL = [{ id: 'p1', clientId: 'c1', trainerId: 'cn-trainer', name: 'Full Body', weekKeys: ['w1'], currentWeek: 'w1', startDate: todayYmd(),
       days: [{ day: 'Dzień 1', muscles: 'Full Body', exercises: [{ name: 'Przysiad goblet', sets: '3', reps: '10', kg: '20', rest: '90s' }] }] }];
     window.SE = []; window.TASKS = []; window.MSGS = { c1: [] };
-    window.PACKAGES = o.unpaid ? [{ id: 'pk1', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, payStatus: 'pending', status: 'active', paymentRequestedAt: new Date().toISOString() }] : [];
+    if (o.longName) window.PL[0].days[0].muscles = 'Trening całego ciała z naciskiem na stabilizację tułowia i mobilność bioder';
+    window.PACKAGES = o.ended ? [{ id: 'pk0', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, payStatus: 'paid', status: 'active', sessions: 8, sessionsUsed: 8 }] : o.unpaid ? [{ id: 'pk1', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, payStatus: 'pending', status: 'active', paymentRequestedAt: new Date().toISOString() }] : [];
     window.SETTINGS = { profile: { name: 'Trener' }, brand: {}, clientApp: { visibleSections: {} }, payments: { bankAccount: '12 3456 7890 1234 5678 9012 3456', currency: 'zł' } };
     if (o.unread) window.clientHasUnreadFromTrainer = () => true;
     enterClientLiveShell();
@@ -91,6 +96,21 @@ async function open(browser, opts) {
     ok('payment buttons secondary, one red action on screen', !!pay && pay.primary === 0 && pay.allPrimary === 1 && pay.btns.includes('Zapłaciłem') && pay.btns.includes('Kopiuj przelew') && /12 3456/.test(pay.text), JSON.stringify(pay));
     const more = await page.evaluate(() => { const b = document.querySelector('#clive-bn-more .clive-nav-badge'); return !!b && getComputedStyle(b).display !== 'none'; });
     ok('unpaid package marks Więcej', more);
+    await ctx.close();
+
+    ({ ctx, page } = await open(browser, { ended: true, longName: true }));
+    const ended = await page.evaluate(() => {
+      const card = document.querySelector('.cs-today .cs-pay.is-ended');
+      return card ? { text: card.innerText, primary: card.querySelectorAll('.cs-btn-primary').length, btns: [...card.querySelectorAll('button')].map((b) => b.innerText.trim()),
+        allPrimary: document.querySelectorAll('.cs-today .cs-btn-primary').length } : null;
+    });
+    ok('ended package card on Dzisiaj', !!ended && /Pakiet do opłacenia/.test(ended.text) && /8 treningów/.test(ended.text) && /się skończył/.test(ended.text) && /wykorzystane/.test(ended.text), ended && ended.text);
+    ok('ended package: one secondary "Napisz do trenera", one red action on screen', !!ended && ended.primary === 0 && ended.allPrimary === 1 && JSON.stringify(ended.btns) === '["Napisz do trenera"]', JSON.stringify(ended));
+    const cut = await page.evaluate(() => [...document.querySelectorAll('.cs-card-title, .cs-row-title')].filter((e) => e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1 || getComputedStyle(e).whiteSpace === 'nowrap').map((e) => e.textContent));
+    ok('long names are not cut off', cut.length === 0, JSON.stringify(cut));
+    ok('no horizontal scroll at 390 px', await page.evaluate(() => document.documentElement.scrollWidth <= 390));
+    await page.click('.cs-today .cs-pay.is-ended button');
+    ok('"Napisz do trenera" opens Czat', await page.evaluate(() => window._clientLiveScreen === 'messages'));
     await ctx.close();
   } catch (e) {
     console.error('FAIL exception — ' + (e && e.stack || e));
