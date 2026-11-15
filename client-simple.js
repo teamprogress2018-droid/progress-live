@@ -169,10 +169,33 @@ function csTodayHTML(c){
 }
 window.csTodayHTML=csTodayHTML;
 
+/** Pakiet, który się skończył (minęła data albo wykorzystano wszystkie treningi), gdy nie ma nowego. */
+function csEndedPackage(c){
+  if(!c)return null;
+  const all=typeof packagesForClient==='function'?packagesForClient(c.id):(window.PACKAGES||[]).filter(p=>p&&p.clientId===c.id);
+  if(!all.length)return null;
+  const today=csToday();
+  const ended=p=>(typeof clientPackageExpired==='function'?clientPackageExpired(p,today):p.status==='expired')||
+    (Number(p.sessions)>0&&Number(p.sessionsUsed||0)>=Number(p.sessions));
+  if(all.some(p=>!ended(p)))return null;
+  return all.slice().sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0];
+}
+window.csEndedPackage=csEndedPackage;
 /** Karta „Pakiet do opłacenia” na ekranie Dzisiaj. Przyciski drugorzędne: czerwony zostaje przy treningu. */
 function csPayCardHTML(c){
   const unpaid=c&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(c.id):[];
-  if(!unpaid.length)return '';
+  if(!unpaid.length){
+    const p=csEndedPackage(c);
+    if(!p)return '';
+    const used=Number(p.sessions)>0&&Number(p.sessionsUsed||0)>=Number(p.sessions);
+    const why=used?'Wszystkie treningi z tego pakietu są już wykorzystane.':(p.expiresDate?'Pakiet był ważny do '+csDateLabel(String(p.expiresDate).slice(0,10))+'.':'Ten pakiet już się skończył.');
+    return `<section class="cs-card cs-pay is-ended" aria-labelledby="cs-pay-title">
+    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">Pakiet do opłacenia</h2></div>
+    <p class="cs-pay-what"><b>${csEsc(p.title||'Pakiet treningów')}</b> się skończył.</p>
+    <p class="cs-card-text">${csEsc(why)} Napisz do trenera, żeby ustalić kolejny pakiet.</p>
+    <div class="cs-pay-btns"><button type="button" class="cs-btn cs-btn-secondary" onclick="setClientLiveScreen('messages')">Napisz do trenera</button></div>
+  </section>`;
+  }
   const p=unpaid.find(x=>x&&x.paymentRequestedAt)||unpaid[0];
   const seller=typeof paySeller==='function'?(paySeller()||{}):{};
   const price=Number(p.price||0);
