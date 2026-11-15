@@ -650,7 +650,7 @@ function goTo(n){
   if(typeof closeNavFlyouts==='function')closeNavFlyouts();
   // Ekran z menu wysuwanego podświetla przycisk swojej grupy w pasku bocznym.
   const navGroupScreens={
-    clients:['clients','checkin'],
+    clients:['clients','checkin','clientplan'],
     library:['library','plans','programs','templates','tasks','forms','metrics','progbuilder'],
     automation:['automation','onboarding'],
     ondemand:['ondemand','resources'],
@@ -748,6 +748,7 @@ function _goToRender(n){
   if(n==='aicoach'){initAICoach();}
   if(n==='bizstats'){initBizStats();}
   if(n==='aiplangen'){initAplangen();}
+  if(n==='clientplan'&&typeof pkInit==='function'){pkInit();}
   if(n==='reports'){initReports();}
   if(n==='live'){initLive();}
   if(n==='templates'){initTemplates();}

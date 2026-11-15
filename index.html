@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="research-academy.css?v=3">
 <link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-a11y=1&ux-add-client=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
+<link rel="stylesheet" href="plan-client.css?v=1">
 <link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-tiles-kb=1">
 <link rel="stylesheet" href="client-simple.css?v=2&ux-rest=1&ux-client-nav=1&ux-client-fix=1">
 <style>
@@ -136,6 +137,7 @@
         <button type="button" class="nav-flyout-item" role="menuitem" data-client-seg="active" onclick="openClientSegment('active')">Aktywni</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-client-seg="inactive" onclick="openClientSegment('inactive')">Nieaktywni</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-client-seg="archived" onclick="openClientSegment('archived')">Zarchiwizowani</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="clientplan" onclick="closeNavFlyouts();goTo('clientplan')">Plan klienta</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="checkin" onclick="closeNavFlyouts();goTo('checkin')">Check-iny</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="onboarding" onclick="closeNavFlyouts();goTo('onboarding')">Nowy klient: pierwsze kroki</button>
       </div>
@@ -1950,6 +1952,13 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- CHECK-IN SYSTEM -->
+<div class="screen" id="screen-clientplan">
+  <div class="topbar">
+    <h1 class="topbar-title">Plan klienta: trening i odżywianie</h1>
+  </div>
+  <div class="pk-root" id="pk-root"></div>
+</div>
+
 <div class="screen" id="screen-checkin">
   <div class="topbar">
     <h1 class="topbar-title">Check-in tygodniowy</h1>
@@ -4949,7 +4958,7 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1&ux-a11y=1&ux-add-client=1&ux-client-nav=1"></script>
+<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1&ux-a11y=1&ux-add-client=1&ux-client-nav=1&clientplan=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=115&ux-menu=1&ux-look=1&ux-a11y=1"></script>
 <script src="books-kb.js?v=8"></script>
@@ -4963,7 +4972,7 @@ async function load(session=captureTenantSession()){
 <script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-a11y=1"></script>
 <script src="diet-plan.js?v=18"></script>
 <script src="07-forms-metrics-calculator.js?v=59&week=1&diet=1&baseline-save=1&profile-save=1&ux-look=1&iv-food=1"></script>
-<script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2&ux-menu=1"></script>
+<script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2&ux-menu=1&clientplan=1"></script>
 <script src="09-posture-kb-invites-private.js?v=59&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1&ux-look=1&feed-pl=1"></script>
 <script src="client-simple.js?v=2&ux-rest=1&ux-client-nav=1&ux-client-fix=1"></script>
 <script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1&ux-rest=1&ux-client-nav=1"></script>
@@ -4975,8 +4984,9 @@ async function load(session=captureTenantSession()){
   <script src="14-amateur-plan-wizard.js?v=2"></script>
   <script src="15-pro-plan-wizard.js?v=2"></script>
   <script src="generator-workbench.js?v=2"></script>
-  <script src="plan-interview.js?v=2&food=1"></script>
-  <script src="plan-client.js?v=1"></script>
+  <script src="plan-interview.js?v=2&food=1&clientplan=1"></script>
+  <script src="plan-client.js?v=1&ui=1"></script>
+  <script src="plan-client-ui.js?v=1"></script>
   <script src="trainer-methodology.js?v=1"></script>
 </body>
 </html>

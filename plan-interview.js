@@ -734,7 +734,7 @@
     refreshRec();save('done');
     applyToForm(variantHint);
     S.state='generating';S.genError=null;S.proposal=null;render();scrollTop();
-    root._plivSession={clientId:S.clientId,volume:{lo:S.rec.setsLo,hi:S.rec.setsHi},rec:S.rec};
+    root._plivSession={clientId:S.clientId,volume:{lo:S.rec.setsLo,hi:S.rec.setsHi},rec:S.rec,target:S.target||''};
     const gen=typeof root.aplGenerate==='function'?root.aplGenerate:null;
     if(!gen){S.genError={title:'Generator niedostępny',hint:'Odśwież aplikację i spróbuj ponownie.'};render();return;}
     await gen();
@@ -761,13 +761,42 @@
         }
       }));
     }
-    S.state='proposal';render();scrollTop();return true;
+    S.state='proposal';
+    // Ekran „Plan klienta”: szkic treningu trafia tam, a nie do propozycji generatora.
+    if(S.target==='clientplan'&&typeof root.pkOnTrainingReady==='function'){S.target='';root.pkOnTrainingReady(plan,S.rec,S.clientId);return true;}
+    render();scrollTop();return true;
   }
   function onPlanError(title,hint){
     if(!root._plivSession||S.state!=='generating')return false;
-    S.genError={title:title||'Błąd generowania planu',hint:hint||'Spróbuj ponownie za chwilę.'};render();return true;
+    S.genError={title:title||'Błąd generowania planu',hint:hint||'Spróbuj ponownie za chwilę.'};
+    if(S.target==='clientplan'&&typeof root.pkOnTrainingError==='function'){S.target='';S.state='summary';root.pkOnTrainingError(S.genError);return true;}
+    render();return true;
   }
-  function progress(msg){const el=doc()&&doc().getElementById('pliv-gen-status');if(el&&msg)el.textContent=msg;}
+  function progress(msg){const el=doc()&&doc().getElementById('pliv-gen-status');if(el&&msg)el.textContent=msg;if(S.target==='clientplan'&&msg&&typeof root.pkOnTrainingProgress==='function')root.pkOnTrainingProgress(msg);}
+
+  /**
+   * Szkic treningu dla ekranu „Plan klienta”: ten sam wywiad i generator, bez przechodzenia przez kroki.
+   * Brakujące pola wymagane dostają ostrożne założenia (zwracane, żeby pokazać je trenerowi); wywiad klienta się nie zmienia.
+   */
+  const ASSUME={goal:['zdrowie','cel: zdrowie'],exp:['3-12m','staż: 3–12 mies.'],days:['3','3 treningi w tygodniu'],minutes:['60','60 min na sesję'],
+    equipment:[['gym'],'pełna siłownia'],medical:['skip','brak informacji o zaleceniach lekarza (plan zachowawczy)'],pain:['skip','brak informacji o bólu (plan zachowawczy)']};
+  function generateForClientPlan(clientId){
+    const c=(root.CL||[]).find(x=>x&&x.id===clientId);
+    if(!c)return{ok:false,assumptions:[]};
+    S.clientId=c.id;S.data=prefill(c,c.planInterview);S.step=1;S.proposal=null;S.genError=null;
+    const assumptions=[];
+    Object.keys(ASSUME).forEach(k=>{const v=S.data[k];if(Array.isArray(v)?!v.length:!txt(v)){S.data[k]=Array.isArray(ASSUME[k][0])?ASSUME[k][0].slice():ASSUME[k][0];assumptions.push(ASSUME[k][1]);}});
+    const sel=doc()&&doc().getElementById('apl-client');
+    if(sel){sel.value=c.id;if(typeof root.aplFillFromClient==='function'){S._filling=true;try{root.aplFillFromClient();}catch(e){}finally{S._filling=false;}}}
+    refreshRec();
+    applyToForm('');
+    S.state='generating';S.target='clientplan';
+    root._plivSession={clientId:S.clientId,volume:{lo:S.rec.setsLo,hi:S.rec.setsHi},rec:S.rec,target:'clientplan'};
+    const gen=typeof root.aplGenerate==='function'?root.aplGenerate:null;
+    if(!gen){S.target='';S.state='summary';return{ok:false,assumptions,error:'Generator niedostępny'};}
+    Promise.resolve().then(()=>gen()).catch(e=>onPlanError('Błąd generowania planu',String(e&&e.message||e)));
+    return{ok:true,assumptions,rec:S.rec};
+  }
   /** Objętość z rekomendacji zastępuje domyślny cel objętości generatora (np. niższa przy słabym śnie). */
   function volumeOverride(vt){
     const s=root._plivSession;
@@ -806,8 +835,8 @@
     w._pliv=true;root[n]=w;
   });
 
-  const api={GOALS,EXP,EQUIP,HEALTH,HEALTH_STOP,FOOD_STYLE,FOOD_EX,BUDGET,COOKING,PREP,healthStops,label,STEP_DEFS,emptyInterview,prefill,stepErrors,levelOf,attendance,medicalFlags,overloadRisk,missingData,recommend,profile,
-    fallbackQuestions,notesBlock,bookHints,render,start,exit,onPlanReady,onPlanError,progress,volumeOverride,state:()=>S};
+  const api={GOALS,EXP,DAYS,MINUTES,JOB,STEPS,MEALS,YESNO,EQUIP,HEALTH,HEALTH_STOP,FOOD_STYLE,FOOD_EX,BUDGET,COOKING,PREP,healthStops,label,STEP_DEFS,emptyInterview,prefill,stepErrors,levelOf,attendance,medicalFlags,overloadRisk,missingData,recommend,profile,
+    fallbackQuestions,notesBlock,bookHints,render,start,exit,generateForClientPlan,onPlanReady,onPlanError,progress,volumeOverride,state:()=>S};
   root.PLIV=api;
   Object.assign(root,{
     plivPick:pick,plivNext:next,plivBack:back,plivGo:go,plivSaveLater:saveLater,plivEdit:()=>{S.state='interview';S.step=1;render();scrollTop();},

@@ -4,6 +4,7 @@ const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('ass
 const root=path.join(__dirname,'..','..');
 const ctx={console};ctx.window=ctx;ctx.globalThis=ctx;
 vm.runInNewContext(fs.readFileSync(path.join(root,'plan-interview.js'),'utf8'),ctx);
+vm.runInNewContext(fs.readFileSync(path.join(root,'diet-plan.js'),'utf8'),ctx);
 vm.runInNewContext(fs.readFileSync(path.join(root,'plan-client.js'),'utf8'),ctx);
 const PC=ctx.PlanClient,P=ctx.PLIV;
 const val=(list,k)=>list.find(f=>f.k===k).v;
@@ -50,7 +51,7 @@ assert.strictEqual(val(empty,'allergies'),'','bez kroku Jedzenie alergie są bra
 
 // Profil bez wywiadu też zasila panel.
 const fp=PC.facts({id:'p',goal:'sila',age:30,height:180,weight:80,trainingFreq:4,activityLevel:'active'});
-assert.strictEqual(val(fp,'goal'),'Siła');assert.strictEqual(val(fp,'trainings'),'4 × w tygodniu');assert.ok(/kroków|Aktywny/.test(val(fp,'activity')));
+assert.strictEqual(val(fp,'goal'),'Siła');assert.strictEqual(val(fp,'trainings'),'4 w tygodniu');assert.ok(/kroków|Aktywny/.test(val(fp,'activity')));
 
 // Bramka zdrowia: stany z wywiadu albo słowa w notatkach.
 let g=PC.healthGate(anna);
@@ -82,5 +83,28 @@ const dp=PC.dietPrefsFrom(anna);
 assert.strictEqual(dp.prefs.style,'wszystko');assert.deepStrictEqual(Array.from(dp.prefs.ex),['orzechy']);
 assert.strictEqual(dp.prefs.maxMin,30);assert.strictEqual(dp.meals,4);assert.strictEqual(dp.prep,3);assert.strictEqual(dp.people,2);
 assert.strictEqual(PC.dietPrefsFrom({id:'z',planInterview:{cookingTime:'45'}}).prefs.maxMin,0,'45+ min = bez limitu');
+
+// Odżywianie: orientacyjny cel (Mifflin × PAL, cel), podłoga kcal, trzy formy planu, porcje domowe.
+const ntA=PC.nutritionTargets(Object.assign({gender:'K'},anna));
+assert.ok(ntA.ok,'cel dla Anny');
+assert.ok(ntA.kcal>=1600&&ntA.kcal<=2000,'kcal '+ntA.kcal);
+assert.strictEqual(ntA.delta,-300,'redukcja −300 kcal');
+assert.ok(ntA.targets.protein.g>=110,'białko '+ntA.targets.protein.g);
+assert.strictEqual(ntA.water.length,2);
+const tiny=PC.nutritionTargets({gender:'K',age:60,height:150,weight:45,goal:'redukcja',planInterview:{goal:'redukcja',steps:'low'}});
+assert.ok(tiny.kcal>=1200&&tiny.kcal>=tiny.bmr,'nie mniej niż BMR i 1200 kcal: '+tiny.kcal);
+assert.deepStrictEqual(Array.from(PC.nutritionTargets({id:'x'}).missing),['masa ciała','wzrost','wiek']);
+const week=PC.buildNutrition(anna,'week',{trainDays:[1,3,5]});
+assert.ok(week.ok&&week.week.days.length===7&&week.shopping.length>5&&week.shopDays===7);
+assert.ok(!week.week.days.some(d=>d.meals.some(m=>m.items.some(it=>/orzech/i.test(it.id)))),'bez orzechów');
+const flex=PC.buildNutrition(anna,'flex');
+Object.keys(flex.flex).forEach(slot=>{const k=flex.flex[slot].map(m=>m.total.kcal);assert.ok(k.length>=1&&k.length<=3);if(k.length>1)assert.ok(Math.max(...k)-Math.min(...k)<=150,slot+': rozrzut '+k.join('/'));});
+const hab=PC.buildNutrition(anna,'habits');
+assert.strictEqual(hab.habits.length,3);assert.ok(hab.shopping.length>5&&!hab.shopping.some(s=>/orzech/.test(s.id)));
+assert.strictEqual(hab.kcal,week.kcal,'ten sam cel w każdej formie');
+assert.strictEqual(PC.homePortion('owsiane',75),'ok. 7 ½ łyżki');
+assert.strictEqual(PC.homePortion('twarog',250),'ok. 1 kostka');
+assert.strictEqual(PC.homePortion('nieznany',100),'');
+assert.strictEqual(PC.healthGate({id:'h',health:'insulina'}).nutritionAllowed,false);
 
 console.log('All plan client tests passed.');
