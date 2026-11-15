@@ -2189,3 +2189,27 @@ html[data-theme] #screen-dashboard .dash-next-watch .dash-next-eyebrow { color: 
   -webkit-overflow-scrolling: touch;
   padding-bottom: 32px;
 }
+
+/* ── Etap 1 UX: pusty pulpit trenera (0 klientów) = jedna karta „Pierwszy krok” + „Twój dzień” ── */
+html[data-theme] #screen-dashboard.dash-empty .dash-today-focus,
+html[data-theme] #screen-dashboard.dash-empty .dash-kpi-row,
+html[data-theme] #screen-dashboard.dash-empty .dash-ops-grid,
+html[data-theme] #screen-dashboard.dash-empty #dash-getting-started,
+html[data-theme] #screen-dashboard.dash-empty #dash-client-pipeline,
+html[data-theme] #screen-dashboard.dash-empty #dash-profile-setup,
+html[data-theme] #screen-dashboard.dash-empty #dash-ops-activity,
+html[data-theme] #screen-dashboard.dash-empty .dash-qa-wrap,
+html[data-theme] #screen-dashboard.dash-empty #dash-simple-toggle,
+html[data-theme] #screen-dashboard.dash-empty .dash3-qa-label,
+html[data-theme] #screen-dashboard.dash-empty .dash3-qa-grid,
+html[data-theme] #screen-dashboard.dash-empty .dash3-biz { display: none !important; }
+html[data-theme] #screen-dashboard .dash-next-first { align-items: flex-end; }
+html[data-theme] #screen-dashboard .dash-first-steps { list-style: none; counter-reset: dfs; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+html[data-theme] #screen-dashboard .dash-first-steps li { counter-increment: dfs; display: grid; grid-template-columns: 28px 1fr; column-gap: 10px; align-items: start; }
+html[data-theme] #screen-dashboard .dash-first-steps li::before { content: counter(dfs); grid-row: span 2; width: 28px; height: 28px; border-radius: 999px; border: 1.5px solid var(--border-subtle); color: var(--text-primary); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+html[data-theme] #screen-dashboard .dash-first-steps b { font-size: 15px; font-weight: 650; color: var(--text-primary); }
+html[data-theme] #screen-dashboard .dash-first-steps span { font-size: 14px; color: var(--text-secondary); }
+@media (max-width: 900px) {
+  html[data-theme] #screen-dashboard .dash-next-first { align-items: stretch; }
+  html[data-theme] #screen-dashboard .dash-next-first .btn-primary { min-height: 48px; }
+}

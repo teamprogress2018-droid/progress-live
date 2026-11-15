@@ -6235,9 +6235,13 @@ try{dashSimpleMode=localStorage.getItem('pl_dash_simple')!=='0';}catch(e){}
 function applyDashSimpleMode(){
   const screen=document.getElementById('screen-dashboard');
   const btn=document.getElementById('dash-simple-toggle');
-  if(screen)screen.classList.toggle('dash-simple',!!dashSimpleMode);
+  if(screen){
+    screen.classList.toggle('dash-simple',!!dashSimpleMode);
+    // Pusty pulpit (0 klientów): jedna karta „Pierwszy krok” + „Twój dzień”, reszta od pierwszego klienta.
+    screen.classList.toggle('dash-empty',!(window.CL||[]).length);
+  }
   if(btn){
-    btn.textContent=dashSimpleMode?'Widok prosty':'Widok pełny';
+    btn.textContent=dashSimpleMode?'Widok: prosty':'Widok: pełny';
     btn.setAttribute('aria-pressed',dashSimpleMode?'true':'false');
     btn.title=dashSimpleMode?'Pokaż wszystkie statystyki i ostatnią aktywność':'Ukryj elementy pomocnicze i skup się na zadaniach';
   }
@@ -6801,6 +6805,14 @@ function renderDashNextAction(){
   const a=dashNextAction();
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   el.className='dash-next-action dash-next-'+esc(a.tone||'info');
+  if(!(window.CL||[]).length){
+    el.classList.add('dash-next-first');
+    const steps=[['Dodaj klienta','Imię, e-mail i cel.'],['Przypisz plan','Gotowy szablon albo nowy plan.'],['Odpal Trening Live','Prowadzisz trening, aplikacja zapisuje ciężary.']];
+    el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">Pierwszy krok</div><div class="dash-next-title">Zacznij od pierwszego klienta</div>`+
+      `<ol class="dash-first-steps">${steps.map(x=>`<li><b>${esc(x[0])}</b><span>${esc(x[1])}</span></li>`).join('')}</ol></div>`+
+      `<button type="button" class="btn btn-primary" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
+    return;
+  }
   el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">${esc(a.eyebrow)}</div><div class="dash-next-title">${esc(a.title)}</div><div class="dash-next-desc">${esc(a.desc)}</div></div><button type="button" class="btn ${a.tone==='ok'?'btn-ghost':'btn-primary'}" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
 }
 window.dashNextAction=dashNextAction;
