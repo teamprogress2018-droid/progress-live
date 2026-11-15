@@ -146,3 +146,8 @@ html[data-theme="light"] .pk-fact.is-miss .pk-fact-v { color: #92400e; }
 .pk-add { display: flex; gap: 8px; margin-top: 12px; }
 .pk-add .pk-in { margin-top: 0; flex: 1; min-width: 0; }
 .pk-ex-meta { align-items: center; }
+
+/* Odżywianie i lista zakupów (PR 4) */
+.pk-meal-acts { margin-top: 6px; }
+.pk-habits { margin: 8px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.pk-habits .pk-in { margin-top: 0; }

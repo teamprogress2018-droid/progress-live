@@ -198,7 +198,10 @@
     const out={ok:true,form,targets:t,kcal:nt.kcal,water:nt.water,meals,prefs:dp.prefs,people:dp.people,prep:dp.prep,assumptions,habits:(opts.habits||DEFAULT_HABITS).slice(0,3)};
     if(form==='flex'){out.flex=flexOptions(t,meals,dp.prefs);out.shopping=sumShop([].concat(...Object.values(out.flex)));out.shopDays=3;}
     else if(form==='week'){
-      const w=DP.dietBuildWeek({targets:t,meals,variant:opts.variant||0,prefs:dp.prefs,days:7,prep:dp.prep||2,people:dp.people,trainDays:opts.trainDays});
+      // Trener może zmienić gotowanie na zapas i liczbę osób w szkicu (opts), bez zmiany wywiadu.
+      const prep=opts.prep!=null?+opts.prep:(dp.prep||2),people=opts.people!=null?+opts.people:dp.people;
+      out.prep=prep;out.people=people;
+      const w=DP.dietBuildWeek({targets:t,meals,variant:opts.variant||0,prefs:dp.prefs,days:7,prep,people,trainDays:opts.trainDays,mealShift:opts.mealShift||{}});
       out.week=w;out.shopping=w.shopping;out.shopDays=7;out.warnings=w.warnings;
     }else{out.form='habits';out.shopping=baseShop(dp.prefs);out.shopDays=7;}
     return out;

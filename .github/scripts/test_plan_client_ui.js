@@ -89,13 +89,30 @@ const SETUP = () => {
   ok('odżywianie: cel kcal i makro', /kcal dziennie/.test(await page.textContent('[data-pk-targets]')));
   ok('odżywianie: tydzień 7 dni', await page.locator('[data-pk-wday]').count() === 7);
   ok('porcje domowe obok gramów', /ok\. /.test(await page.textContent('[data-pk-week]')));
+  // Edycja odżywiania: zamiana posiłku, inny zestaw, gotowanie na zapas, osoby
+  const dish = () => page.evaluate(() => [...document.querySelectorAll('[data-pk-week] .pk-meal-h')].map(x => x.textContent).join('|'));
+  const kcal0 = await page.textContent('[data-pk-targets]');
+  const d0 = await dish();
+  await page.click('[data-pk-mswap="0-1"]');
+  ok('inny posiłek: zmienia posiłek, cel zostaje', (await dish()) !== d0 && /zmieniony/.test(await dish()) && (await page.textContent('[data-pk-targets]')) === kcal0);
+  await page.click('[data-pk-variant]');
+  ok('inny jadłospis na tydzień', await page.evaluate(() => CL[0].clientPlan.nutrition.variant === 7));
+  await page.click('[data-pk-week-opts] >> text=2 osób');
+  await page.click('[data-pk-week-opts] >> text=Na 3 dni');
+  ok('osoby i gotowanie na zapas zapisane', await page.evaluate(() => CL[0].clientPlan.nutrition.people === 2 && CL[0].clientPlan.nutrition.prep === 3));
   await page.click('[data-pk-nform="flex"]');
   ok('elastyczny plan: propozycje na posiłek', await page.locator('[data-pk-slot] .pk-opt').count() >= 4);
   await page.click('[data-pk-nform="habits"]');
   ok('cele i nawyki: 3 nawyki', await page.locator('[data-pk-habits] li').count() === 3);
+  await page.fill('[data-pk-habit="2"]', 'Kolacja do 20:00');
+  await page.click('text=Zapisz nawyki');
+  ok('nawyki edytowalne', await page.evaluate(() => CL[0].clientPlan.nutrition.habits[2] === 'Kolacja do 20:00'));
   await page.click('[data-pk-nform="week"]');
   await page.click('[data-pk-tab="shopping"]');
   ok('lista zakupów na tydzień', await page.locator('[data-pk-shopping] li').count() > 5);
+  ok('lista dla 2 osób', /dla 2 osób/.test(await page.textContent('[data-pk-shopping] h2')));
+  await page.click('[data-pk-copy]');
+  ok('kopiuj listę', await page.evaluate(() => /^Lista zakupów:/.test(PlanClientUI.state().lastCopy || '')));
   await page.click('[data-pk-tab="notes"]');
   await page.fill('#pk-notes', 'Woli rano');
   await page.click('text=Zapisz notatki');
@@ -108,7 +125,7 @@ const SETUP = () => {
   await page.click('#pk-publish');
   await page.waitForFunction(() => CL[0].clientPlan.status === 'opublikowany', null, { timeout: 5000 }).catch(() => {});
   ok('publikacja: plan treningowy zapisany', await page.evaluate(() => window.__saved.some(s => s.col === 'plans' && s.o.clientId === 'c1') && !!CL[0].clientPlan.trainingPlanId));
-  ok('publikacja: jadłospis zatwierdzony + wiadomość', await page.evaluate(() => CL[0].dietPlan.status === 'zatwierdzony' && CL[0].dietPlan.source === 'plan-klienta' && window.__msgs.length === 1 && /Lista zakupów/.test(window.__msgs[0].text)));
+  ok('publikacja: jadłospis zatwierdzony + wiadomość', await page.evaluate(() => CL[0].dietPlan.status === 'zatwierdzony' && CL[0].dietPlan.source === 'plan-klienta' && window.__msgs.length === 1 && /Lista zakupów.*dla 2 osób/.test(window.__msgs[0].text)));
   ok('status: opublikowany', await st() === 'published');
   // Zmiana po publikacji: szkic wraca, ponowna publikacja archiwizuje starą wersję planu.
   const firstId = await page.evaluate(() => CL[0].clientPlan.trainingPlanId);

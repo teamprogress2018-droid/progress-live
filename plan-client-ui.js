@@ -48,7 +48,7 @@
   /** Szkic odżywiania liczony z aktualnych danych klienta i formy ze szkicu (nie zapisujemy całego jadłospisu). */
   function nutritionOf(c,dr){
     if(!dr||!dr.nutrition)return null;
-    try{return PC().buildNutrition(c,dr.nutrition.form||'week',{trainDays:trainDaysOf(c),variant:dr.nutrition.variant||0,habits:dr.nutrition.habits});}
+    try{const x=dr.nutrition;return PC().buildNutrition(c,x.form||'week',{trainDays:trainDaysOf(c),variant:x.variant||0,habits:x.habits,mealShift:x.mealShift,prep:x.prep,people:x.people});}
     catch(e){console.warn('Plan klienta: odżywianie',e);return null;}
   }
 
@@ -201,9 +201,16 @@
     return`<ul class="pk-items">${(items||[]).map(it=>{const f=food(it.id),h=PC().homePortion(it.id,it.amount);const sw=(it.swaps||[]).slice(0,2).map(s=>esc(food(s.id).name.toLowerCase())+' '+fmtAmount(food(s.id),s.amount)).join(', ');
       return`<li><span>${esc(f.name)}</span><span class="pk-amt">${fmtAmount(f,it.amount)}${h?` <span class="pk-muted">(${esc(h)})</span>`:''}</span>${sw?`<div class="pk-muted pk-sw">albo: ${sw}</div>`:''}</li>`;}).join('')}</ul>`;
   }
-  function mealHTML(m){
-    return`<div class="pk-meal"><div class="pk-meal-h"><b>${esc(m.name)}</b>${m.dish?` · ${esc(m.dish)}`:''}<span class="pk-muted"> ~${r(m.total.kcal)} kcal · B ${r(m.total.p)} g</span></div>${itemsHTML(m.items)}</div>`;
+  function mealHTML(m,act){
+    return`<div class="pk-meal"><div class="pk-meal-h"><b>${esc(m.name)}</b>${m.dish?` · ${esc(m.dish)}`:''}<span class="pk-muted"> ~${r(m.total.kcal)} kcal · B ${r(m.total.p)} g</span>${m.swapped?' <span class="pk-tag">zmieniony</span>':''}</div>${itemsHTML(m.items)}${act||''}</div>`;
   }
+  /** Zmiany odżywiania w szkicu: forma, zamiana posiłku, inny zestaw, nawyki, gotowanie na zapas, osoby. Cel kcal się nie zmienia. */
+  function editNutrition(fn,msg){
+    const c=clientById(S.cid),dr=draftOf(c);if(!dr||!dr.nutrition)return;
+    fn(dr.nutrition);dr.updatedAt=now();if(dr.status==='opublikowany')dr.status='szkic';
+    save(c);render();if(msg)say(msg);
+  }
+  const OPT=(lbl,list,cur,fn)=>`<div class="pk-lbl">${lbl}</div><div class="pk-chips">${list.map(([v,l])=>`<button type="button" class="pk-chip${String(cur)===String(v)?' is-on':''}" aria-pressed="${String(cur)===String(v)}" onclick="${fn}(${v})">${l}</button>`).join('')}</div>`;
   function targetsHTML(n){
     const t=n.targets;
     return`<div class="pk-targets" data-pk-targets><div><b>${n.kcal}</b><span>kcal dziennie</span></div><div><b>${t.protein.g} g</b><span>białko</span></div><div><b>${t.fat.g} g</b><span>tłuszcz</span></div><div><b>${t.carbs.g} g</b><span>węglowodany</span></div><div><b>${n.meals}</b><span>posiłki</span></div><div><b>${String(n.water[0]).replace('.',',')}–${String(n.water[1]).replace('.',',')} l</b><span>woda</span></div></div>`;
@@ -218,7 +225,7 @@
     const head=`<section class="pk-card"><div class="pk-head"><h2 class="pk-h2">Odżywianie</h2><span class="pk-muted">orientacyjny cel</span></div>${forms}${targetsHTML(n)}<p class="pk-muted">Cel liczony z masy ciała, wzrostu, wieku i aktywności${n.assumptions.length?' (z założeniami: '+esc(n.assumptions.join(', '))+')':''}. Do obserwacji i korekty po check-inach.</p></section>`;
     let body='';
     if(n.form==='habits'){
-      body=`<section class="pk-card" data-pk-habits><h3 class="pk-h3">3 nawyki na start</h3><ol class="pk-list">${n.habits.map(h=>`<li>${esc(h)}</li>`).join('')}</ol><p class="pk-muted">Klient dostaje cel i nawyki bez rozpisanych posiłków. Lista zakupów to produkty bazowe na tydzień.</p></section>`;
+      body=`<section class="pk-card" data-pk-habits><h3 class="pk-h3">3 nawyki na start</h3><p class="pk-muted">Klient dostaje cel i nawyki bez rozpisanych posiłków. Lista zakupów to produkty bazowe na tydzień. Nawyki możesz zmienić.</p><ol class="pk-habits">${[0,1,2].map(i=>`<li><input class="form-input pk-in" data-pk-habit="${i}" value="${esc(n.habits[i]||'')}" aria-label="Nawyk ${i+1}"></li>`).join('')}</ol><div class="pk-actions"><button type="button" class="btn btn-ghost pk-btn" onclick="pkSaveHabits()">Zapisz nawyki</button><button type="button" class="pk-link" onclick="pkResetHabits()">Przywróć domyślne</button></div></section>`;
     }else if(n.form==='flex'){
       body=Object.keys(n.flex).map(slot=>`<section class="pk-card" data-pk-slot="${esc(slot)}"><h3 class="pk-h3">${esc(slot)}</h3><div class="pk-muted">Do wyboru, podobna kaloryczność</div><div class="pk-opts">${n.flex[slot].map((m,i)=>`<div class="pk-opt"><div class="pk-lbl">Propozycja ${i+1}</div>${mealHTML(m)}</div>`).join('')}</div></section>`).join('');
     }else{
@@ -227,7 +234,9 @@
       const days=`<div class="pk-chips pk-days" role="group" aria-label="Dzień">${w.days.map((x,i)=>`<button type="button" class="pk-chip${i===di?' is-on':''}" data-pk-wday="${i}" aria-pressed="${i===di}" onclick="pkDay(${i})">${WD[i]||i+1}${td.includes((i+1)%7)?' ·':''}</button>`).join('')}</div><div class="pk-muted">Kropka = dzień treningowy.</div>`;
       const cook=w.cooking&&w.cooking.length?`<section class="pk-card"><h3 class="pk-h3">Gotowanie na zapas</h3><ul class="pk-list">${w.cooking.map(b=>`<li><b>${esc(b.days[0])}</b>${b.days.length>1?' (na: '+esc(b.days.join(', '))+')':''}: ${b.items.map(it=>esc(food(it.id).name.toLowerCase())+' '+fmtShop(food(it.id),it.amount)).join(', ')}</li>`).join('')}</ul></section>`:'';
       const warn=(w.warnings||[]).length?`<div class="pk-miss">${w.warnings.map(esc).join('<br>')}</div>`:'';
-      body=`<section class="pk-card" data-pk-week>${days}<h3 class="pk-h3">${esc(d.name)} · ~${r(d.total.kcal)} kcal</h3>${warn}${d.meals.map(mealHTML).join('')}</section>${cook}`;
+      const swapBtn=mi=>`<div class="pk-meal-acts"><button type="button" class="pk-tb" data-pk-mswap="${di}-${mi}" onclick="pkMealSwap(${di},${mi})">Inny posiłek</button></div>`;
+      const opts=`<section class="pk-card" data-pk-week-opts><h3 class="pk-h3">Ustawienia jadłospisu</h3>${OPT('Gotowanie obiadów na zapas',[[0,'Nie'],[2,'Na 2 dni'],[3,'Na 3 dni']],n.prep>1?n.prep:0,'pkPrep')}${OPT('Lista zakupów dla',[[1,'1 osoby'],[2,'2 osób'],[3,'3 osób'],[4,'4 osób']],n.people||1,'pkPeople')}<div class="pk-actions"><button type="button" class="btn btn-ghost pk-btn" data-pk-variant onclick="pkVariant()">Inny jadłospis na tydzień</button><button type="button" class="btn btn-ghost pk-btn" onclick="pkPdf()">Pobierz PDF</button></div><p class="pk-muted">Kalorie i makro zostają te same. Zmienia się tylko dobór posiłków.</p></section>`;
+      body=`<section class="pk-card" data-pk-week>${days}<h3 class="pk-h3">${esc(d.name)} · ~${r(d.total.kcal)} kcal</h3>${warn}${d.meals.map((m,mi)=>mealHTML(m,swapBtn(mi))).join('')}</section>${cook}${opts}`;
     }
     return head+body;
   }
@@ -237,7 +246,7 @@
     if(!n||!n.ok)return emptyTab('Brak listy zakupów','Lista powstaje razem ze szkicem odżywiania.');
     const span=n.shopDays===7?'na tydzień':'na '+n.shopDays+' dni';
     const ppl=n.form==='week'&&n.people>1?' dla '+n.people+' osób':'';
-    return`<section class="pk-card" data-pk-shopping><div class="pk-head"><h2 class="pk-h2">Lista zakupów ${span}${ppl}</h2><span class="pk-muted">${n.shopping.length} produktów</span></div><ul class="pk-shop">${n.shopping.map(s=>{const f=food(s.id);return`<li><span>${esc(f.name)}</span><span class="pk-amt">${fmtShop(f,s.amount)}</span></li>`;}).join('')}</ul><p class="pk-muted">Ilości orientacyjne. Produkty suche (ryż, makaron, płatki) liczone przed gotowaniem.</p></section>`;
+    return`<section class="pk-card" data-pk-shopping><div class="pk-head"><h2 class="pk-h2">Lista zakupów ${span}${ppl}</h2><span class="pk-muted">${n.shopping.length} produktów</span></div><ul class="pk-shop">${n.shopping.map(s=>{const f=food(s.id),h0=PC().homePortion(s.id,s.amount),h=h0&&(parseFloat(h0.replace(/^ok\. /,''))||0)<=6?h0:'';return`<li><span>${esc(f.name)}</span><span class="pk-amt">${fmtShop(f,s.amount)}${h&&f.unit!=='szt'?` <span class="pk-muted">(${esc(h)})</span>`:''}</span></li>`;}).join('')}</ul><p class="pk-muted">Ilości orientacyjne. Produkty suche (ryż, makaron, płatki) liczone przed gotowaniem.</p><div class="pk-actions"><button type="button" class="btn btn-ghost pk-btn" data-pk-copy onclick="pkCopyShop()">Kopiuj listę</button></div></section>`;
   }
   function notesHTML(c,dr){
     return`<section class="pk-card"><h2 class="pk-h2">Notatki trenera</h2><p class="pk-muted">Widzisz je tylko Ty. Klient ich nie dostaje.</p><textarea class="form-input pk-notes" id="pk-notes" rows="8" placeholder="Np. klient woli trenować rano, w piątki krótszy trening">${esc(dr&&dr.notes||'')}</textarea><div class="pk-actions"><button type="button" class="btn btn-ghost pk-btn" onclick="pkSaveNotes()">Zapisz notatki</button></div></section>`;
@@ -430,6 +439,17 @@
     pkSaveNotes:()=>{const c=clientById(S.cid);if(!c)return;const el=doc().getElementById('pk-notes');const dr=draftOf(c)||(c.clientPlan={status:'szkic',kind:'',createdAt:now(),history:[]});dr.notes=el?el.value:'';dr.updatedAt=now();save(c);say('Notatki zapisane');},
     pkExMove:exMove,pkExDrag:exDrag,pkExDrop:exDrop,pkExSets:exSets,pkExSwap:exSwap,pkExDel:exDel,pkExAdd:exAdd,pkExSave:exSave,
     pkExEdit:(i,j)=>{S.edit=i+'-'+j;render();},pkExCancel:()=>{S.edit='';render();},
+    pkMealSwap:(d,mi)=>editNutrition(x=>{const k=d+':'+mi;x.mealShift=Object.assign({},x.mealShift);x.mealShift[k]=(x.mealShift[k]||0)+1;},'Posiłek zamieniony'),
+    pkVariant:()=>editNutrition(x=>{x.variant=(x.variant||0)+7;x.mealShift={};},'Nowy jadłospis na tydzień'),
+    pkPrep:v=>editNutrition(x=>{x.prep=v;}),
+    pkPeople:v=>editNutrition(x=>{x.people=v;}),
+    pkSaveHabits:()=>{const v=[...doc().querySelectorAll('[data-pk-habit]')].map(el=>txt(el.value)).filter(Boolean);if(!v.length){say('Wpisz przynajmniej jeden nawyk');return;}editNutrition(x=>{x.habits=v.slice(0,3);},'Nawyki zapisane');},
+    pkResetHabits:()=>editNutrition(x=>{x.habits=PC().DEFAULT_HABITS.slice();}),
+    pkPdf:()=>{const c=clientById(S.cid),n=nutritionOf(c,draftOf(c));if(!n||!n.week)return;const base=String(root.location.href).split('#')[0].split('?')[0].replace(/[^/]*$/,'');
+      const w=root.open('','_blank','width=860,height=900');if(!w){say('Zablokowano okno. Odblokuj wyskakujące okna, żeby pobrać PDF.');return;}
+      w.document.open();w.document.write(DP().dietPlanPrintHTML(n.targets,n.week,{client:c.name||'',date:new Date().toLocaleDateString('pl-PL'),base}));w.document.close();try{w.opener=null;}catch(e){}},
+    pkCopyShop:()=>{const c=clientById(S.cid),n=nutritionOf(c,draftOf(c));if(!n)return;const t='Lista zakupów:\n'+n.shopping.map(x=>'• '+food(x.id).name+' '+fmtShop(food(x.id),x.amount)).join('\n');
+      S.lastCopy=t;const cb=root.navigator&&root.navigator.clipboard;(cb?cb.writeText(t):Promise.reject()).then(()=>say('Lista skopiowana'),()=>say('Nie udało się skopiować. Zaznacz listę ręcznie.'));},
     pkOnTrainingReady:onTrainingReady,pkOnTrainingError:onTrainingError,pkOnTrainingProgress:onTrainingProgress
   });
   root.PlanClientUI={state:()=>S,nutritionText,trainDaysOf,render};
