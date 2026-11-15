@@ -31,7 +31,7 @@
   // Domyślne dni treningowe, gdy klient nie podał ulubionych (1 = pon … 0 = nd).
   const DEFAULT_DAYS={1:[3],2:[2,4],3:[1,3,5],4:[1,2,4,5],5:[1,2,3,4,5],6:[1,2,3,4,5,6]};
 
-  const S={cid:'',tab:'overview',choice:'komplet',form:'week',day:0,showAll:false,gen:{state:'idle',msg:'',error:null},modal:false};
+  const S={edit:'',drag:null,cid:'',tab:'overview',choice:'komplet',form:'week',day:0,showAll:false,gen:{state:'idle',msg:'',error:null},modal:false};
 
   function food(id){const D=DP();if(!D)return{name:id,unit:'g'};if(!D._F){D._F={};D.DIET_FOODS.forEach(f=>{D._F[f.id]=f;});}return D._F[id]||{name:id,unit:'g'};}
   function fmtAmount(f,a){return f.unit==='szt'?a+' szt.':a+' '+f.unit;}
@@ -107,7 +107,7 @@
     const rows=[];
     if(dr.kind!=='odzywianie'){
       const p=dr.training;
-      rows.push(['Trening',p?`${(p.days||[]).length} × ${p.sessionDuration||'?'} min · ${esc(p.method||p.planName||'')}`:(S.gen.state==='running'?'w przygotowaniu…':'brak szkicu treningu')]);
+      rows.push(['Trening',p?`${(p.days||[]).length} × ${p.sessionDuration||'?'} min · ${esc(p.method||p.planName||'')}${dr.edits?' · zmiany trenera: '+dr.edits:''}`:(S.gen.state==='running'?'w przygotowaniu…':'brak szkicu treningu')]);
     }
     if(dr.nutrition){
       rows.push(['Odżywianie',nut&&nut.ok?`ok. ${nut.kcal} kcal · B ${nut.targets.protein.g} g · T ${nut.targets.fat.g} g · W ${nut.targets.carbs.g} g · ${esc((FORMS.find(f=>f.v===nut.form)||{}).l||'')}`:'brak danych do obliczenia']);
@@ -133,11 +133,68 @@
     const safety=[lim&&lim.v&&lim.v!=='Brak'?'Ograniczenia klienta: '+lim.v:'',txt(p.adaptation_notes)].filter(Boolean);
     const day=(d,i)=>{
       const wu=(d.warmupExercises||[]).map(w=>`<li>${esc(w.name)}${w.sets||w.reps?' · '+esc([w.sets,w.reps].filter(Boolean).join(' × ')):''}${w.note?' <span class="pk-muted">('+esc(w.note)+')</span>':''}</li>`).join('');
-      const ex=(d.exercises||[]).map((e,j)=>`<li class="pk-ex" data-pk-ex="${i}-${j}"><div class="pk-ex-name">${j+1}. ${esc(e.name)}</div><div class="pk-ex-meta"><span>${esc(e.sets||'?')} × ${esc(e.reps||'?')}</span>${e.rir?`<span>RIR ${esc(e.rir)}</span>`:''}${e.rpe?`<span>RPE ${esc(e.rpe)}</span>`:''}${e.rest?`<span>przerwa ${esc(e.rest)}</span>`:''}${e.tempo?`<span>tempo ${esc(e.tempo)}</span>`:''}</div>${e.notes?`<div class="pk-ex-note">Technika: ${esc(e.notes)}</div>`:''}${e.alt?`<div class="pk-ex-note">Zamiennik: ${esc(e.alt)}</div>`:''}</li>`).join('');
-      return`<section class="pk-card pk-day" data-pk-day="${i}"><div class="pk-head"><h3 class="pk-h3">${esc(d.dayName||'Dzień '+(i+1))}</h3><span class="pk-muted">${esc(p.sessionDuration?p.sessionDuration+' min':'')}</span></div>${d.focus?`<div class="pk-muted">${esc(d.focus)}</div>`:''}${wu?`<div class="pk-lbl">Rozgrzewka</div><ul class="pk-list">${wu}</ul>`:''}<div class="pk-lbl">Ćwiczenia</div><ol class="pk-exs">${ex}</ol></section>`;
+      const ex=(d.exercises||[]).map((e,j)=>exHTML(e,i,j,(d.exercises||[]).length)).join('');
+      return`<section class="pk-card pk-day" data-pk-day="${i}"><div class="pk-head"><h3 class="pk-h3">${esc(d.dayName||'Dzień '+(i+1))}</h3><span class="pk-muted">${esc(p.sessionDuration?p.sessionDuration+' min':'')}</span></div>${d.focus?`<div class="pk-muted">${esc(d.focus)}</div>`:''}${wu?`<div class="pk-lbl">Rozgrzewka</div><ul class="pk-list">${wu}</ul>`:''}<div class="pk-lbl">Ćwiczenia</div><ol class="pk-exs" data-pk-exs="${i}" ondragover="event.preventDefault()" ondrop="pkExDrop(event,${i})">${ex}</ol><form class="pk-add" onsubmit="event.preventDefault();pkExAdd(${i})"><input class="form-input pk-in" id="pk-add-${i}" placeholder="Własne ćwiczenie" aria-label="Nazwa nowego ćwiczenia"><button type="submit" class="btn btn-ghost pk-btn">Dodaj</button></form></section>`;
     };
     const prog=[txt(p.periodization)].concat(p.progressionRules||[]).filter(Boolean);
-    return`<section class="pk-card"><div class="pk-head"><h2 class="pk-h2">${esc(p.planName||'Plan treningowy')}</h2><span class="pk-muted">${(p.days||[]).length} dni · ${esc(p.weeks||'?')} tyg.</span></div>${p.warmup?`<p class="pk-muted">Rozgrzewka ogólna: ${esc(p.warmup)}</p>`:''}${safety.length?`<div class="pk-miss"><b>Bezpieczeństwo:</b> ${safety.map(esc).join(' ')}</div>`:''}</section>${(p.days||[]).map(day).join('')}${prog.length?`<section class="pk-card"><h3 class="pk-h3">Progresja</h3><ul class="pk-list">${prog.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`:''}`;
+    const rules=ruleIssues(p);
+    const rulesHTML=rules.length?`<div class="pk-miss" data-pk-rules><b>Odbiega od Twoich zasad generatora:</b><ul class="pk-list">${rules.slice(0,5).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>Przy publikacji aplikacja zapyta, czy zapisać mimo to.</div>`:'';
+    return`<section class="pk-card"><div class="pk-head"><h2 class="pk-h2">${esc(p.planName||'Plan treningowy')}</h2><span class="pk-muted">${(p.days||[]).length} dni · ${esc(p.weeks||'?')} tyg.</span></div>${p.warmup?`<p class="pk-muted">Rozgrzewka ogólna: ${esc(p.warmup)}</p>`:''}${safety.length?`<div class="pk-miss"><b>Bezpieczeństwo:</b> ${safety.map(esc).join(' ')}</div>`:''}${rulesHTML}</section>${(p.days||[]).map(day).join('')}${prog.length?`<section class="pk-card"><h3 class="pk-h3">Progresja</h3><ul class="pk-list">${prog.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`:''}`;
+  }
+
+  /** Te same zasady trenera co przy zapisie w generatorze (limit serii na ćwiczenie i na tydzień). */
+  function ruleIssues(p){
+    const W=root.GeneratorWorkbench;if(!W||!W.audit)return[];
+    try{const r=W.rules(root.SETTINGS&&root.SETTINGS.generatorRules||{});const wk=Array.isArray(p.weekKeys)&&p.weekKeys.length?p.weekKeys:[undefined];
+      return[...new Set([].concat(...wk.map(w=>W.audit(p,r,w).issues)))];}catch(e){return[];}
+  }
+  /* Edytor ćwiczenia: przeciąganie (komputer) albo strzałki (telefon), zamiana jednym kliknięciem, serie ±, edycja, usuwanie. */
+  function exHTML(e,i,j,n){
+    const id=i+'-'+j;
+    if(S.edit===id){
+      const f=(k,l,ph)=>`<label class="pk-ef"><span class="pk-lbl">${l}</span><input class="form-input pk-in" data-pk-ef="${k}" value="${esc(e[k]||'')}" placeholder="${esc(ph||'')}"></label>`;
+      return`<li class="pk-ex is-edit" data-pk-ex="${id}"><div class="pk-ef-grid">${f('name','Ćwiczenie')}${f('sets','Serie','3')}${f('reps','Powtórzenia','8-10')}${f('rir','Zapas powtórzeń (RIR)','2')}${f('rest','Przerwa','90s')}${f('notes','Technika')}${f('alt','Zamiennik')}</div><div class="pk-actions"><button type="button" class="btn btn-ghost pk-btn pk-btn-strong" onclick="pkExSave(${i},${j})">Zapisz</button><button type="button" class="btn btn-ghost pk-btn" onclick="pkExCancel()">Anuluj</button></div></li>`;
+    }
+    const b=(lbl,fn,dis,cls)=>`<button type="button" class="pk-ib${cls?' '+cls:''}" aria-label="${lbl}" title="${lbl}" onclick="${fn}"${dis?' disabled':''}>`;
+    return`<li class="pk-ex" data-pk-ex="${id}" draggable="true" ondragstart="pkExDrag(event,${i},${j})"><div class="pk-ex-top"><span class="pk-grip" aria-hidden="true">⋮⋮</span><div class="pk-ex-name">${j+1}. ${esc(e.name)}${e.custom?' <span class="pk-tag">własne</span>':''}</div></div>`+
+      `<div class="pk-ex-meta"><span class="pk-sets">${b('Mniej serii',`pkExSets(${i},${j},-1)`,(parseInt(e.sets,10)||0)<=1)}−</button><b>${esc(e.sets||'?')}</b> × ${esc(e.reps||'?')}${b('Więcej serii',`pkExSets(${i},${j},1)`,(parseInt(e.sets,10)||0)>=10)}+</button></span>${e.rir?`<span>RIR ${esc(e.rir)}</span>`:''}${e.rpe?`<span>RPE ${esc(e.rpe)}</span>`:''}${e.rest?`<span>przerwa ${esc(e.rest)}</span>`:''}${e.tempo?`<span>tempo ${esc(e.tempo)}</span>`:''}</div>`+
+      `${e.notes?`<div class="pk-ex-note">Technika: ${esc(e.notes)}</div>`:''}${e.alt?`<div class="pk-ex-note">Zamiennik: ${esc(e.alt)}</div>`:''}`+
+      `<div class="pk-ex-acts">${b('Wyżej',`pkExMove(${i},${j},-1)`,j===0)}↑</button>${b('Niżej',`pkExMove(${i},${j},1)`,j===n-1)}↓</button>${e.alt?`<button type="button" class="pk-tb" data-pk-swap onclick="pkExSwap(${i},${j})">Zamień na zamiennik</button>`:''}<button type="button" class="pk-tb" onclick="pkExEdit(${i},${j})">Edytuj</button><button type="button" class="pk-tb pk-tb-del" onclick="pkExDel(${i},${j})">Usuń</button></div></li>`;
+  }
+  /** Zmiana treningu w szkicu: po edycji plan trzeba opublikować ponownie. Tygodnie progresji liczone od nowa. */
+  function editTraining(fn,msg){
+    const c=clientById(S.cid),dr=draftOf(c);if(!dr||!dr.training)return;
+    const p=dr.training;
+    const touched=fn(p);
+    (touched||[]).forEach(ex=>{if(ex&&p.weekKeys&&typeof root.aplComputeProgression==='function'){try{root.aplComputeProgression(ex,p.weekKeys,p.phases||{},p.progression||'linear');}catch(e){}}});
+    dr.trainingPublished=false;dr.updatedAt=now();
+    if(dr.status==='opublikowany'){dr.status='szkic';}
+    dr.edits=(dr.edits||0)+1;
+    save(c);render();if(msg)say(msg);
+  }
+  const exAt=(p,i,j)=>((p.days||[])[i]||{}).exercises&&p.days[i].exercises[j];
+  function exMove(i,j,dir){editTraining(p=>{const a=p.days[i].exercises,k=j+dir;if(k<0||k>=a.length)return;const x=a.splice(j,1)[0];a.splice(k,0,x);});}
+  function exDrag(ev,i,j){S.drag={i,j};try{ev.dataTransfer.setData('text/plain',i+'-'+j);ev.dataTransfer.effectAllowed='move';}catch(e){}}
+  function exDrop(ev,i){
+    ev.preventDefault();const from=S.drag;S.drag=null;if(!from||from.i!==i)return;
+    const li=ev.target&&ev.target.closest?ev.target.closest('[data-pk-ex]'):null;
+    const to=li?parseInt(li.dataset.pkEx.split('-')[1],10):Infinity;
+    editTraining(p=>{const a=p.days[i].exercises;const x=a.splice(from.j,1)[0];a.splice(Math.min(to,a.length),0,x);});
+  }
+  function exSets(i,j,d){editTraining(p=>{const e=exAt(p,i,j);if(!e)return;const n=Math.min(10,Math.max(1,(parseInt(e.sets,10)||3)+d));e.sets=String(n);return[e];});}
+  function exSwap(i,j){editTraining(p=>{const e=exAt(p,i,j);if(!e||!e.alt)return;const old=e.name;e.name=e.alt;e.alt=old;e.swapped=!e.swapped;return[e];},'Ćwiczenie zamienione');}
+  function exDel(i,j){editTraining(p=>{p.days[i].exercises.splice(j,1);},'Ćwiczenie usunięte');}
+  function exAdd(i){
+    const el=doc().getElementById('pk-add-'+i);const name=txt(el&&el.value);
+    if(!name){say('Wpisz nazwę ćwiczenia');return;}
+    editTraining(p=>{const e={name,sets:'3',reps:'10-12',rest:'90s',rir:'2',notes:'',custom:true};(p.days[i].exercises=p.days[i].exercises||[]).push(e);return[e];},'Ćwiczenie dodane');
+  }
+  function exSave(i,j){
+    const li=doc().querySelector('[data-pk-ex="'+i+'-'+j+'"]');if(!li)return;
+    const v={};li.querySelectorAll('[data-pk-ef]').forEach(x=>{v[x.dataset.pkEf]=txt(x.value);});
+    if(!v.name){say('Ćwiczenie musi mieć nazwę');return;}
+    S.edit='';
+    editTraining(p=>{const e=exAt(p,i,j);if(!e)return;Object.assign(e,v);return[e];},'Zmiany zapisane w szkicu');
   }
 
   function itemsHTML(items){
@@ -323,6 +380,9 @@
         root.aplLastPlan=JSON.parse(JSON.stringify(dr.training));
         const saved=await root.aplSavePlan();
         if(!saved)throw new Error('Plan treningowy nie został zapisany');
+        // Poprawiony plan zastępuje poprzednią wersję z tego ekranu: stara trafia do archiwum, żeby klient nie miał dwóch.
+        const old=dr.trainingPlanId&&dr.trainingPlanId!==saved.id?(root.PL||[]).find(x=>x&&x.id===dr.trainingPlanId):null;
+        if(old&&!old.archived){old.archived=true;old.archivedAt=now();old.replacedBy=saved.id;if(typeof root.persistById==='function')await root.persistById('plans',old);}
         dr.trainingPlanId=saved.id;dr.trainingPublished=true;
       }
       if(dr.nutrition){
@@ -368,6 +428,8 @@
     pkIvPick:ivPick,pkSaveInterview:saveInterview,
     pkGenerate:generate,pkPublish:publish,
     pkSaveNotes:()=>{const c=clientById(S.cid);if(!c)return;const el=doc().getElementById('pk-notes');const dr=draftOf(c)||(c.clientPlan={status:'szkic',kind:'',createdAt:now(),history:[]});dr.notes=el?el.value:'';dr.updatedAt=now();save(c);say('Notatki zapisane');},
+    pkExMove:exMove,pkExDrag:exDrag,pkExDrop:exDrop,pkExSets:exSets,pkExSwap:exSwap,pkExDel:exDel,pkExAdd:exAdd,pkExSave:exSave,
+    pkExEdit:(i,j)=>{S.edit=i+'-'+j;render();},pkExCancel:()=>{S.edit='';render();},
     pkOnTrainingReady:onTrainingReady,pkOnTrainingError:onTrainingError,pkOnTrainingProgress:onTrainingProgress
   });
   root.PlanClientUI={state:()=>S,nutritionText,trainDaysOf,render};

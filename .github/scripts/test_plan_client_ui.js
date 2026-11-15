@@ -6,7 +6,7 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
 const SETUP = () => {
   window.__saved = []; window.__msgs = [];
   window.persistById = async (col, o) => { window.__saved.push({ col, o: JSON.parse(JSON.stringify(o)) }); return o; };
-  window.notify = () => {}; window.confirm = () => false; window.maybeSchedulePlanToCalendar = () => {};
+  window.notify = m => { (window.__notes = window.__notes || []).push(m); }; window.confirm = () => false; window.maybeSchedulePlanToCalendar = () => {};
   ['auth-screen', 'app-loading', 'screensaver'].forEach(i => { const e = document.getElementById(i); if (e) e.style.display = 'none'; });
   const app = document.getElementById('app-root'); if (app) app.style.display = 'flex';
   window._uid = 'u1';
@@ -60,6 +60,31 @@ const SETUP = () => {
   ok('szkic nie wysyła nic klientowi', await page.evaluate(() => !window.__msgs.length && !window.PL.length));
   await page.click('[data-pk-tab="training"]');
   ok('trening: 3 dni z ćwiczeniami i zamiennikiem', await page.locator('[data-pk-day]').count() === 3 && /Zamiennik: Przysiad do skrzyni/.test(await page.textContent('[data-pk-day="0"]')));
+  // Edytor treningu
+  const ex0 = () => page.evaluate(() => CL[0].clientPlan.training.days[0].exercises.map(e => e.name + ':' + e.sets));
+  const s0 = parseInt((await ex0())[0].split(':')[1], 10);
+  await page.click('[data-pk-ex="0-0"] [aria-label="Więcej serii"]');
+  ok('serie +1', parseInt((await ex0())[0].split(':')[1], 10) === s0 + 1);
+  for (let k = 0; k < 6; k++) { const b = page.locator('[data-pk-ex="0-0"] [aria-label="Więcej serii"]'); if (await b.isDisabled()) break; await b.click(); }
+  ok('zasady generatora: ostrzeżenie o limicie serii', /limit serii/.test(await page.textContent('[data-pk-rules]')));
+  while (parseInt((await ex0())[0].split(':')[1], 10) > s0) await page.click('[data-pk-ex="0-0"] [aria-label="Mniej serii"]');
+  ok('w limicie: bez ostrzeżenia', await page.locator('[data-pk-rules]').count() === 0);
+  await page.click('[data-pk-ex="0-0"] [data-pk-swap]');
+  ok('zamiana jednym kliknięciem', /^Przysiad do skrzyni/.test((await ex0())[0]));
+  await page.click('[data-pk-ex="0-0"] [aria-label="Niżej"]');
+  ok('kolejność: strzałka niżej', /^Przysiad do skrzyni/.test((await ex0())[1]));
+  await page.fill('#pk-add-0', 'Hip thrust');
+  await page.click('[data-pk-day="0"] .pk-add button');
+  ok('własne ćwiczenie dodane', (await ex0()).length === 3 && /^Hip thrust/.test((await ex0())[2]));
+  await page.click('[data-pk-ex="0-2"] >> text=Edytuj');
+  await page.fill('[data-pk-ex="0-2"] [data-pk-ef="reps"]', '12-15');
+  await page.click('[data-pk-ex="0-2"] >> text=Zapisz');
+  ok('edycja powtórzeń', await page.evaluate(() => CL[0].clientPlan.training.days[0].exercises[2].reps === '12-15'));
+  const drag = await page.evaluate(() => { const dt = new DataTransfer(); const src = document.querySelector('[data-pk-ex="0-2"]'); src.dispatchEvent(new DragEvent('dragstart', { dataTransfer: dt, bubbles: true }));
+    const dst = document.querySelector('[data-pk-ex="0-0"]'); dst.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); return CL[0].clientPlan.training.days[0].exercises[0].name; });
+  ok('przeciąganie zmienia kolejność', drag === 'Hip thrust', drag);
+  await page.click('[data-pk-ex="0-0"] >> text=Usuń');
+  ok('usuwanie ćwiczenia', (await ex0()).length === 2);
   await page.click('[data-pk-tab="nutrition"]');
   ok('odżywianie: cel kcal i makro', /kcal dziennie/.test(await page.textContent('[data-pk-targets]')));
   ok('odżywianie: tydzień 7 dni', await page.locator('[data-pk-wday]').count() === 7);
@@ -85,6 +110,16 @@ const SETUP = () => {
   ok('publikacja: plan treningowy zapisany', await page.evaluate(() => window.__saved.some(s => s.col === 'plans' && s.o.clientId === 'c1') && !!CL[0].clientPlan.trainingPlanId));
   ok('publikacja: jadłospis zatwierdzony + wiadomość', await page.evaluate(() => CL[0].dietPlan.status === 'zatwierdzony' && CL[0].dietPlan.source === 'plan-klienta' && window.__msgs.length === 1 && /Lista zakupów/.test(window.__msgs[0].text)));
   ok('status: opublikowany', await st() === 'published');
+  // Zmiana po publikacji: szkic wraca, ponowna publikacja archiwizuje starą wersję planu.
+  const firstId = await page.evaluate(() => CL[0].clientPlan.trainingPlanId);
+  await page.click('[data-pk-tab="training"]');
+  await page.click('[data-pk-ex="1-0"] [aria-label="Mniej serii"]');
+  ok('edycja po publikacji = szkic', await st() === 'draft');
+  await page.click('[data-pk-tab="overview"]');
+  await page.check('#pk-reviewed');
+  await page.click('#pk-publish');
+  await page.waitForFunction(() => CL[0].clientPlan.status === 'opublikowany', null, { timeout: 5000 }).catch(() => {});
+  ok('ponowna publikacja: stara wersja w archiwum', await page.evaluate(id => { const o = PL.find(p => p.id === id); return o && o.archived && CL[0].clientPlan.trainingPlanId !== id; }, firstId));
   // Bramka zdrowia
   await page.selectOption('#pk-client', 'c2');
   ok('zdrowie: komunikat o konsultacji', /Plan wymaga konsultacji z lekarzem lub dietetykiem klinicznym\./.test(await page.textContent('[data-pk-health]')));

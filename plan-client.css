@@ -123,3 +123,26 @@ html[data-theme="light"] .pk-fact.is-miss .pk-fact-v { color: #92400e; }
 .pk-ivf { padding: 12px 0; border-top: 1px solid var(--border-subtle); }
 .pk-in { width: 100%; min-height: 44px; margin-top: 8px; }
 .pk-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* Edytor treningu (PR 3) */
+.pk-ex[draggable="true"] { cursor: grab; }
+.pk-ex-top { display: flex; gap: 8px; align-items: flex-start; }
+.pk-grip { color: var(--text-label); font-size: 14px; line-height: 20px; user-select: none; }
+@media (hover: none) { .pk-grip { display: none; } }
+.pk-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--info-bg); font-size: 11px; font-weight: 600; color: var(--text-primary); }
+.pk-ex-meta .pk-sets { display: inline-flex; align-items: center; gap: 6px; padding: 0 2px; background: none; font-size: 13px; color: var(--text-primary); }
+.pk-ib { width: 44px; height: 44px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--bg-card); font: 600 16px var(--font-ui); color: var(--text-primary); cursor: pointer; }
+.pk-ib:hover:not([disabled]) { background: var(--bg-hover); }
+.pk-ib[disabled] { opacity: .4; cursor: default; }
+.pk-ex-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pk-tb { min-height: 44px; padding: 0 12px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--bg-card); font: 500 13px var(--font-ui); color: var(--text-primary); cursor: pointer; }
+.pk-tb:hover { background: var(--bg-hover); }
+.pk-tb-del { color: var(--danger); border-color: var(--danger-bg); }
+.pk-ex.is-edit { background: var(--bg-subtle, var(--bg-main)); border-radius: 12px; padding: 12px; }
+.pk-ef-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 10px; }
+@media (min-width: 720px) { .pk-ef-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pk-ef .pk-lbl { margin: 6px 0 0; }
+.pk-ef .pk-in { margin-top: 4px; }
+.pk-add { display: flex; gap: 8px; margin-top: 12px; }
+.pk-add .pk-in { margin-top: 0; flex: 1; min-width: 0; }
+.pk-ex-meta { align-items: center; }
