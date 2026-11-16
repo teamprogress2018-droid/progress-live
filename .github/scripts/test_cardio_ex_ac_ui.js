@@ -138,7 +138,7 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     // Wyjście z kreatora z niezapisanymi zmianami wymaga potwierdzenia — tu świadomie je pomijamy.
     window._builderNavigationConfirmed = true;
-    if (typeof goTo === 'function') goTo('library');
+    if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
     if (typeof renderLib === 'function') renderLib();
   });
   await page.waitForSelector('#ex-search');
@@ -161,7 +161,7 @@ function ok(name, cond, extra) {
   const libZ = await page.evaluate(() => (document.getElementById('lib-grid') || {}).innerText || '');
   ok('library search zarzut', /Zarzut siłowy/.test(libZ), libZ.slice(0, 240));
 
-  const cats = await page.evaluate(() => (document.getElementById('ex-cat-nav') || {}).innerText || '');
+  const cats = await page.evaluate(() => { if (typeof setExTab === 'function') setExTab('all'); exFiltersOpen = true; renderLib(); return [...document.querySelectorAll('#lib2-filters select option')].map((o) => o.textContent).join('|'); });
   ok('library nav olimpijskie', /Olimpijskie/.test(cats), cats.slice(0, 300));
 
   await browser.close();

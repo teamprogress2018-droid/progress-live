@@ -369,7 +369,7 @@ function ok(name, cond, extra) {
       hasFakeEmpty: /Bez onboardingu/.test(html),
       hasEwelina: /Ewelina/.test(html),
       hasChecklistCta: /Dokończ|Checklista/.test(html),
-      hasRealCopy: /ta sama checklista/i.test(html)
+      hasRealCopy: /te same kroki/i.test(html)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_overview.png') });

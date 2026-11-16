@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Live: max 3 zamienniki, reszta pod „Więcej opcji”. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('LIVE_ALT_MAX 3', /const LIVE_ALT_MAX=3/.test(live));
 ok('toggle helper', /function liveToggleAlts\(/.test(live) && /function liveAltsToShow\(/.test(live));
 ok('more css', css.includes('.live-alts-more') && css.includes('.live-swap-btn'));

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Builder: day focus auto-filled from plan method (Push/Pull/Legs, FBW, …). */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 
@@ -25,7 +26,7 @@ ok('addDay refreshes focus',src.includes('builderRefreshAllDayFocus()'));
 ok('toggleR refreshes focus',/function toggleR\(id\).{0,200}builderRefreshAllDayFocus/.test(src));
 ok('placeholder updated',src.includes('placeholder="Push, Pull, FBW…"'));
 ok('b-method onchange wired',html.includes('id="b-method" onchange="builderOnMethodChange()"'));
-ok('cache bump v28',html.includes('05-clients-builder-plans-calendar.js?v=106'));
+ok('cache bump v28',cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
 
 const BUILDER_METHOD_DAYS={
   PPL:['Push','Pull','Legs'],

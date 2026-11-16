@@ -5,6 +5,8 @@ const path = require('path');
 
 const makeNode = () => ({
   style: {},
+  dataset: {},
+  setAttribute() {},
   classList: { add() {}, remove() {}, toggle() {} },
   querySelector() { return null; },
   querySelectorAll() { return []; },

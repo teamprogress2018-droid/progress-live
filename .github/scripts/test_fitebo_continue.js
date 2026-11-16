@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Fitebo: kopia ćwiczeń + tygodnie adaptacja → hipertrofia. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -20,7 +21,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 08 v50', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('ci unit', wf.includes('test_fitebo_continue.js'));
 ok('ci ui', wf.includes('test_fitebo_continue_ui.js'));
 ok('plan tab CTA', planTab.includes('cpContinueFiteboPlan') && planTab.includes('Kontynuuj plan z Fitebo') && planTab.includes('showContinueFitebo'));

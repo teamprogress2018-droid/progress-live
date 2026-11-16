@@ -80,6 +80,73 @@ function aplShiftReps(reps,delta,minLo,setLo){
   return m?lo+'-'+hi:String(lo);
 }
 window.aplShiftReps=aplShiftReps;
+/**
+ * Górna granica powtórzeń w progresji (zasada trenera): maszyny, wyciągi, suwnice i Smith — maks. 15,
+ * wolne ciężary (hantle, sztanga, kettlebell) — maks. 12. Ćwiczenia z masą ciała / na czas bez limitu (null).
+ */
+function aplRepCap(ex){
+  const n=(String(ex&&ex.name||'')+' '+String(ex&&(ex.equipment||ex.eq)||'')).toLowerCase();
+  if(/maszyn|wyci[aą]g|link[aęi]|lin[aąy]\b|cable|suwnic|smith|butterfly|pec ?deck|machine|hack|face ?pull|wioślarz|ergometr/.test(n))return 15;
+  if(/hantl|hantel|sztang|kettl|odważnik|odwaznik|gryf|dumbbell|barbell|landmine|martwy ci|rumuńsk|rumunsk|przysiad bułgar|przysiad goblet|goblet/.test(n))return 12;
+  return null;
+}
+/** Przycina zakres do limitu: „11–13” przy limicie 12 → „11–12”, „13–15” → „12”. */
+function aplCapReps(reps,cap){
+  if(!cap)return reps;
+  const s=String(reps==null?'':reps).trim();
+  const m=/^(\d+)\s*[-–]\s*(\d+)$/.exec(s),one=/^(\d+)$/.exec(s);
+  if(m){
+    const lo=+m[1],hi=+m[2];
+    if(hi<=cap)return s;
+    const nlo=Math.min(lo,cap);
+    return nlo>=cap?String(cap):nlo+'-'+cap;
+  }
+  if(one&&+one[1]>cap)return String(cap);
+  return s;
+}
+/** Zakres startowy powyżej limitu przesuwa w dół z tą samą szerokością (np. hantle 12–15 → 9–12). */
+function aplCapStartReps(reps,cap){
+  if(!cap)return reps;
+  const s=String(reps==null?'':reps).trim();
+  const m=/^(\d+)\s*[-–]\s*(\d+)$/.exec(s);
+  if(!m)return aplCapReps(s,cap);
+  const lo=+m[1],hi=+m[2];
+  if(hi<=cap)return s;
+  const span=hi-lo;
+  return Math.max(1,cap-span)+'-'+cap;
+}
+window.aplRepCap=aplRepCap;
+window.aplCapReps=aplCapReps;
+window.aplCapStartReps=aplCapStartReps;
+/** Zakresy startowe przy budowie masy: podobne w całym planie, różnica tylko tam, gdzie partia lubi inny bodziec.
+ * Wielostawy 8–10, pozostałe 10–12, łydki / bok i tył barku / brzuch 12–15 (Helms P5: większość pracy w 6–12,
+ * reszta wyżej). Czas, AMRAP i opisy zostają bez zmian. */
+const APL_REP_START={compound:'8-10',other:'10-12',high:'12-15'};
+const APL_REP_COMPOUND=['press_flat','press_incline','press_decline','vertical_push','vertical_pull','horizontal_pull','knee_bilateral','knee_unilateral','hip_hinge','hip_bridge'];
+const APL_REP_HIGH=['calf','shoulder_abduction','scapular_rear_delt'];
+function aplRepStartTier(ex){
+  const key=typeof aplExercisePatternKey==='function'?aplExercisePatternKey(ex):'';
+  const cat=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(ex):'';
+  if(APL_REP_HIGH.includes(key)||cat==='lydki'||cat==='core')return'high';
+  if(APL_REP_COMPOUND.includes(key))return'compound';
+  if(!key){
+    // Bez klasyfikacji z biblioteki: rozpoznanie po nazwie.
+    const n=String(ex.name||'').toLowerCase();
+    if(/bokiem|odwrotn|tyl.*bark|tył.*bark|face ?pull|wspi[eę]ci/.test(n))return'high';
+    if(/wyciskan|przysiad|martwy|wios[lł]|podci[aą]g|[sś]ci[aą]gani.*dr[aą][zż]|suwnic|wypychan|wykrok|hip thrust|pompk|dips/.test(n)&&!/francusk|wyprost|prostowan|na wyci[aą]gu pionowym.*triceps/.test(n))return'compound';
+  }
+  return'other';
+}
+function aplNormalizeStartReps(plan){
+  let n=0;
+  ((plan&&plan.days)||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
+    if(!ex||!/^\d+(\s*[-–]\s*\d+)?$/.test(String(ex.reps||'').trim()))return;
+    const next=aplCapStartReps(APL_REP_START[aplRepStartTier(ex)],aplRepCap(ex));
+    if(String(ex.reps).replace('–','-').replace(/\s/g,'')!==next){ex.reps=next;n++;}
+  }));
+  return n;
+}
+window.aplNormalizeStartReps=aplNormalizeStartReps;
 /** Zmiana powtórzeń w tygodniu i (0 = baza) wg metody progresji. Deload = baza. */
 function aplWeekRepPlan(type,i,reps,isDeload){
   if(!i||isDeload)return{reps:null,kgMul:1};
@@ -89,21 +156,132 @@ function aplWeekRepPlan(type,i,reps,isDeload){
     if(!m)return{reps:null,kgMul:1};
     const lo=+m[1],hi=+m[2],span=Math.max(1,hi-lo);
     const cycle=Math.floor(i/span),step=i%span;
-    return{setLo:lo+step,kgMul:1+0.025*cycle};
+    return{setLo:lo+step,kgMul:1+0.025*cycle,cycle,waveMul:1};
   }
   let off=0;
   if(type==='wave')off=[2,0,-2][(i-1)%3];
   else if(type==='dup')off=[0,-1,-2][i%3];
   else if(type==='smolov')off=0;
+  else if(type==='linear'){
+    // Liniowa (wybór trenera): co tydzień +1 powtórzenie przy tym samym ciężarze, po 4 tygodniach
+    // powrót do zakresu startowego z cięższym ciężarem — podwójna progresja jak u Helmsa (PR6).
+    const up=i%4;
+    return{delta:up,kgMul:Math.pow(1.025,Math.floor(i/4)),cycle:Math.floor(i/4),waveMul:1};
+  }
   else{
     // Schodki: 4-tygodniowe fale (0, −1, −2, −3 powt.), każda kolejna fala z cięższym startem.
     off=-(i%4);
-    return{delta:off,kgMul:(1-0.02*off)*(1+0.025*Math.floor(i/4))};
+    return{delta:off,kgMul:(1-0.02*off)*(1+0.025*Math.floor(i/4)),cycle:Math.floor(i/4),waveMul:1-0.02*off};
   }
-  return{delta:off,kgMul:1-0.02*off};
+  return{delta:off,kgMul:1-0.02*off,cycle:0,waveMul:1-0.02*off};
 }
 window.aplWeekRepPlan=aplWeekRepPlan;
+/**
+ * Najmniejszy realny skok ciężaru dla ćwiczenia: hantle 1 kg (do 10 kg) / 2 kg, kettlebell 4 kg,
+ * suwnica do nóg 2,5 / 5 kg (od 80 kg), sztanga i Smith 2,5 kg, wyciąg i maszyny 2,5 / 5 kg (od 80 kg).
+ * Dzięki temu w planie nie ma „60 → 60,3 kg”, których nie da się ustawić na sprzęcie.
+ */
+function aplLoadStep(ex,kg){
+  const n=(String(ex&&ex.name||'')+' '+String(ex&&(ex.equipment||ex.eq)||'')).toLowerCase();
+  const k=parseFloat(kg)||0;
+  if(/hantl|hantel|hantle|dumbbell/.test(n))return k<10?1:2;
+  if(/kettl|odważnik|odwaznik/.test(n))return 4;
+  if(/smith|sztang|gryf|landmine|t-bar|martwy ci|przysiad ze sztang|barbell/.test(n))return 2.5;
+  if(/suwnic|leg press|wypychanie n|wyciskanie n[oó]g|hack/.test(n))return k>=80?5:2.5;
+  if(/wyci[aą]g|link|lin[aąy]\b|cable|maszyn|butterfly|pec ?deck|machine/.test(n))return k>=80?5:2.5;
+  return 2.5;
+}
+function aplRoundLoad(kg,step){
+  const st=step>0?step:2.5;
+  return Math.round(Math.round(kg/st)*st*100)/100;
+}
+window.aplLoadStep=aplLoadStep;
+window.aplRoundLoad=aplRoundLoad;
+
+/**
+ * Naprawa zapisanych planów z ciężarami typu 60 → 60,3 → 60,6 kg (stara progresja z dryfem 0,5%/tydz.).
+ * Tylko ćwiczenia z ciężarem spoza skoku sprzętu: w obrębie fali powtórzeń (rosnąca dolna granica)
+ * ciężar zostaje jak w pierwszym tygodniu fali, nowa fala / deload — ciężar zaokrąglony do skoku.
+ * Ręcznie wpisanych „równych” ciężarów nie rusza.
+ */
+function aplRepairPlanLoads(plan){
+  const keys=(plan&&plan.weekKeys)||[];
+  if(keys.length<2)return 0;
+  const phases=plan.phases||{};
+  let changed=0;
+  (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
+    if(!ex)return;
+    const nums=keys.map(k=>{const c=ex[k];const m=c&&String(c.kg==null?'':c.kg).match(/^([\d.]+)/);return m?parseFloat(m[1]):null;});
+    const base=nums.find(n=>n!=null);
+    if(base==null)return;
+    const step=aplLoadStep(ex,base);
+    // Ślad starej progresji: ciężar z ułamkiem innym niż ,0 / ,5 (np. 26,1 / 60,3). Ręczne 12 / 22,5 kg zostają.
+    const offGrid=nums.some(n=>n!=null&&Math.abs(n*2-Math.round(n*2))>0.01);
+    if(!offGrid)return;
+    let waveKg=null,prevLo=null;
+    keys.forEach((k,i)=>{
+      const c=ex[k];if(!c||nums[i]==null)return;
+      const suffix=String(c.kg).slice(String(c.kg).match(/^([\d.]+)/)[1].length);
+      const lo=parseInt(String(c.r==null?'':c.r),10);
+      const deload=/deload/i.test(String(phases[k]||''));
+      let v;
+      if(deload){v=Math.max(step,Math.round(Math.floor(nums[i]/step+1e-9)*step*100)/100);}
+      else if(waveKg==null||!Number.isFinite(lo)||prevLo==null||lo<=prevLo){waveKg=i===0?nums[i]:Math.max(aplRoundLoad(nums[i],step),waveKg);v=waveKg;}
+      else v=waveKg;
+      if(!deload)prevLo=Number.isFinite(lo)?lo:prevLo;
+      const nv=v+suffix;
+      if(String(c.kg)!==nv){c.kg=nv;changed++;}
+    });
+    if(keys[0]&&ex[keys[0]]&&ex.kg!==ex[keys[0]].kg&&ex[keys[0]].kg)ex.kg=ex[keys[0]].kg;
+  }));
+  return changed;
+}
+/** Limit powtórzeń w zapisanym planie (maszyny 15, wolne ciężary 12) — tylko komórki powyżej limitu. */
+function aplRepairPlanRepCaps(plan){
+  const keys=(plan&&plan.weekKeys)||[];
+  const phases=(plan&&plan.phases)||{};
+  const isDel=k=>/deload/i.test(String(phases[k]||''));
+  const range=/^(\d+)\s*[-–]\s*(\d+)$/;
+  let changed=0;
+  (plan&&plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{
+    if(!ex)return;
+    const cap=aplRepCap(ex);if(!cap)return;
+    const set=(obj,key,v)=>{if(String(v)!==String(obj[key])){obj[key]=v;changed++;}};
+    const m=range.exec(String(ex.reps==null?'':ex.reps).trim());
+    // Zakres startowy powyżej limitu: cały plan przesuwamy w dół o tyle samo (fale zostają), potem limit.
+    const shift=m&&+m[2]>cap?cap-(+m[2]):0;
+    if(ex.reps!=null)set(ex,'reps',aplCapStartReps(ex.reps,cap));
+    keys.forEach((k,i)=>{
+      const c=ex[k];if(!c||c.r==null)return;
+      if(i===0||isDel(k)){set(c,'r',aplCapStartReps(c.r,cap));return;}
+      set(c,'r',aplCapReps(shift?aplShiftReps(c.r,shift,1):c.r,cap));
+    });
+    // Plan zapisany wcześniejszą naprawą, w której fale zlały się w jedno „12”: odtwórz powtórzenia z progresji (ciężary bez zmian).
+    const mid=keys.slice(1).filter(k=>!isDel(k)&&ex[k]);
+    if(m&&mid.length>=4&&mid.every(k=>String(ex[k].r)===String(cap))&&typeof aplComputeProgression==='function'){
+      const clone={name:ex.name,equipment:ex.equipment,sets:ex.sets,reps:ex.reps,rest:ex.rest,rpe:ex.rpe,rir:ex.rir,kg:ex.kg};
+      try{
+        aplComputeProgression(clone,keys,phases,plan.progression||plan.progressionType||'linear');
+        keys.forEach(k=>{if(ex[k]&&clone[k]&&clone[k].r!=null)set(ex[k],'r',clone[k].r);});
+      }catch(e){}
+    }
+  }));
+  return changed;
+}
+window.aplRepairPlanRepCaps=aplRepairPlanRepCaps;
+/** Po wczytaniu danych: popraw zapisane plany trenera i zapisz tylko te, które się zmieniły. */
+function aplRepairSavedPlanLoads(){
+  const fixed=[];
+  (window.PL||[]).forEach(p=>{try{const a=aplRepairPlanLoads(p),b=aplRepairPlanRepCaps(p);if(a||b)fixed.push(p);}catch(e){}});
+  if(fixed.length&&typeof persistById==='function')fixed.forEach(p=>{try{persistById('plans',p);}catch(e){}});
+  return fixed.length;
+}
+window.aplRepairPlanLoads=aplRepairPlanLoads;
+window.aplRepairSavedPlanLoads=aplRepairSavedPlanLoads;
+
 function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
+  const repCap=aplRepCap(ex);
+  if(repCap&&/^\d+(\s*[-–]\s*\d+)?$/.test(String(ex.reps==null?'':ex.reps).trim()))ex.reps=aplCapStartReps(ex.reps,repCap);
   const baseS=ex.sets,baseR=ex.reps,baseRest=ex.rest;
   const baseRpe=parseFloat(ex.rpe)||parseFloat(ex.rir)||7;
   let baseKgNum=null,kgSuffix='';
@@ -111,6 +289,10 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     const m=String(ex.kg).match(/^([\d.]+)/);
     if(m){baseKgNum=parseFloat(m[1]);kgSuffix=String(ex.kg).slice(m[1].length);}
   }
+  const step=baseKgNum!=null?aplLoadStep(ex,baseKgNum):2.5;
+  // Skok między falami: ok. 2,5% ciężaru, ale nigdy mniej niż najmniejszy skok sprzętu.
+  const incr=baseKgNum!=null?Math.max(step,aplRoundLoad(baseKgNum*0.025,step)):0;
+  let prevKg=baseKgNum;
   weekKeys.forEach((wk,i)=>{
     const hyp=aplHypertrophyPhaseMods(phasesMap[wk]);
     if(i===0){
@@ -123,12 +305,25 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'',rir='';
     const rp=aplWeekRepPlan(progressionType,i,baseR,isDeload||/deload/.test(String(phasesMap[wk]||'').toLowerCase()));
     const repCyc=(rp.delta!=null||rp.setLo!=null)&&progressionType!=='smolov'&&/^\d+(\s*[-–]\s*\d+)?$/.test(String(baseR==null?'':baseR).trim());
-    if(repCyc)r=aplShiftReps(baseR,rp.delta||0,hyp?6:3,rp.setLo);
+    if(repCyc)r=aplCapReps(aplShiftReps(baseR,rp.delta||0,hyp?6:3,rp.setLo),repCap);
     if(hyp){
       rpe=hyp.rpe;
       rir=hyp.rir;
       s=String(Math.max(1,Math.round((parseInt(baseS)||3)*hyp.vol)));
-      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+(repCyc?0.005:0.015)*i)*(rp.kgMul||1)*10)/10)+kgSuffix;
+      if(baseKgNum!=null){
+        let v;
+        if(repCyc){
+          // Podwójna progresja: w obrębie fali ten sam ciężar (rosną powtórzenia), nowa fala = realny skok ciężaru.
+          const mul=(rp.waveMul||1)*(/deload/i.test(phase)?hyp.kgMul:1);
+          v=(mul===1?baseKgNum:aplRoundLoad(baseKgNum*mul,step))+(rp.cycle||0)*incr;
+        }else{
+          v=aplRoundLoad(baseKgNum*hyp.kgMul*(1+0.015*i),step);
+          if(!/deload/i.test(phase)&&prevKg!=null&&v<prevKg)v=prevKg;
+        }
+        if(/deload/i.test(phase))v=Math.min(v,aplRoundLoad(baseKgNum*hyp.kgMul,step));
+        else prevKg=v;
+        kg=v+kgSuffix;
+      }
       ex[wk]={s,r,rest,rpe:String(rpe),rir:String(rir),kg};
       return;
     }
@@ -140,7 +335,7 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
       switch(progressionType){
         case 'linear':
           rpe=Math.min(9,baseRpe+Math.floor(i/2));
-          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+step*i)*10)/10)+kgSuffix;
           break;
         case 'dup':
           rpe=Math.min(9,baseRpe+Math.floor(i/3));
@@ -167,17 +362,23 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     }
     // Gdy powtórzenia falują, ciężar liczymy jedną regułą (odwrotnie do powtórzeń + mały dryf), zamiast nakładać stare przyrosty kg.
     if(!isDeload&&baseKgNum!=null&&repCyc&&rp.kgMul){
-      kg=(Math.round(baseKgNum*rp.kgMul*(1+0.01*i)*10)/10)+kgSuffix;
+      kg=(((rp.waveMul||1)===1?baseKgNum:aplRoundLoad(baseKgNum*rp.waveMul,step))+(rp.cycle||0)*incr)+kgSuffix;
+    }else if(baseKgNum!=null&&kg!==''&&kg!=null){
+      // Pozostałe metody: ciężar zaokrąglony do skoku sprzętu (np. hantle co 2 kg).
+      const num=parseFloat(String(kg));
+      if(Number.isFinite(num))kg=aplRoundLoad(num,step)+kgSuffix;
     }
     ex[wk]={s,r,rest,rpe:String(rpe),rir:rir===''?'':String(rir),kg};
   });
 }
 
 function initAplangen(){
+  const tmMount=document.getElementById('tm-generator-options');
+  if(tmMount&&typeof window.tmGeneratorOptions==='function')tmMount.innerHTML=window.tmGeneratorOptions();
   const sel=document.getElementById('apl-client');
   const prev=sel?sel.value:'';
   if(sel){
-    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+    sel.innerHTML='<option value="">Bez klienta — plan do biblioteki</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
     const openId=(typeof cpClientId!=='undefined'&&cpClientId)||window.cpClientId||'';
     const pref=window._aplPrefillClientId||prev||openId||window._aplLastClientId||'';
     window._aplPrefillClientId=null;
@@ -195,13 +396,15 @@ function initAplangen(){
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
   if(typeof aplSyncProgressionFromMethod==='function')aplSyncProgressionFromMethod();
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-aiplangen'));
+  // Generator zaczyna od wywiadu z klientem („Poznaj klienta przed planem”).
+  if(typeof plivOnScreenOpen==='function')plivOnScreenOpen(sel?sel.value:'');
 }
 
 function aplShowWelcome(){
   document.getElementById('apl-result').innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
       <div style="font-size:56px;margin-bottom:20px;">⚡</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">GENERATOR PLANÓW AI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">Generator planów AI</div>
       <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij formularz po lewej stronie i kliknij <strong style="color:var(--accent);">Generuj plan</strong>. AI stworzy spersonalizowany plan treningowy z ćwiczeniami, seriami, powtórzeniami i wskazówkami metodycznymi.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
         ${[
@@ -553,6 +756,7 @@ function aplFillFromClient(){
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
   if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
   notify(hasS||hasM?`✓ Dane ${c.name} + bezpieczeństwo/pomiary wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
+  if(typeof plivOnClientPicked==='function')plivOnClientPicked(c.id);
 }
 
 function aplRenderMetricsHint(clientId){
@@ -669,22 +873,38 @@ function aplPlanTokenBudget(dayCount,withPlanHeader){
 function aplVolumeTarget(level,duration,pharma){
   const lv=String(level||'').toLowerCase();
   const adv=/zaaw|advanced/.test(lv),beg=/pocz|beginner/.test(lv);
-  const enh=pharma==='wspomagany',trt=pharma==='TRT';
+  const enh=false,trt=false; // Status farmakologiczny nie wyznacza tolerancji objętości.
   const dur=parseInt(duration,10)||60;
   let ex=adv?6:(beg?4:5);
   if(dur<=45)ex-=1;else if(dur>=75)ex+=1;
   if(enh&&!beg&&dur>=75)ex+=1;
   ex=Math.max(3,ex);
-  // Serie tygodniowo na główną partię. Natural: Schoenfeld 2017, Baz-Valle 2022 (12–20 u trenujących), Pelland 2024.
-  let lo=adv?14:(beg?8:10),hi=adv?20:(beg?12:16),min=adv?12:(beg?6:10);
+  // Serie tygodniowo na główną partię wg książek: 10–20 (Schoenfeld P2, Helms P4), początkujący 10–12 (Helms R1),
+  // zaawansowani bliżej górnej granicy (Schoenfeld P2 — wniosek: 14–20).
+  let lo=adv?14:10,hi=adv?20:(beg?12:20),min=adv?12:10;
   if(enh&&!beg){lo=Math.round(lo*1.3);hi=Math.round(hi*1.3);min=Math.round(min*1.3);}
   else if(trt&&!beg){lo+=2;hi+=2;min+=2;}
-  const sets=enh&&!beg?'3–5':(adv?(dur>=75?'3–5':'3–4'):(beg?'2–3':'3–4'));
+  // Początkujący: 3 serie na ćwiczenie (Schoenfeld R1, Boyle PR5).
+  const sets=enh&&!beg?'3–5':(adv?(dur>=75?'3–5':'3–4'):(beg?'3':'3–4'));
   const label=(adv?'zaawansowany':(beg?'początkujący':'średni'))+(enh?', wspomagany':(trt?', TRT':''));
-  return{exMin:ex,exMax:ex+1,sets,weekly:lo+'–'+hi,weeklyMin:min,weeklyMax:hi,label,enhanced:enh};
+  const refs=beg?['piramida-treningu-helms R1','hipertrofia-schoenfeld R1']:['hipertrofia-schoenfeld P2','piramida-treningu-helms P4'];
+  return{exMin:ex,exMax:ex+1,sets,weekly:lo+'–'+hi,weeklyMin:min,weeklyMax:hi,label,enhanced:enh,refs};
 }
 window.aplVolumeTarget=aplVolumeTarget;
 /** Odpowiedź AI ucięta albo niepełna: brakujące dni, ćwiczenia bez nazwy. */
+/** Dni z części odpowiedzi AI bez powtórek: AI potrafi oddać dni już istniejące (np. „Dzień 2–4” zamiast „Dzień 4”)
+ *  albo więcej dni niż prosiliśmy. Zostają tylko nowe dni, po numerze z dayName; bez numerów — tyle, ile brakuje. */
+function aplTakeChunkDays(days,have,totalDays){
+  const list=(days||[]).filter(Boolean),room=Math.max(0,totalDays-have);
+  const num=d=>{const m=String(d&&(d.dayName||d.day)||'').match(/dzie[nń]\s*(\d+)/i);return m?parseInt(m[1],10):null;};
+  const nums=list.map(num);
+  if(list.length&&nums.every(n=>n!=null)&&new Set(nums).size===nums.length){
+    const fresh=list.filter((d,i)=>nums[i]>have&&nums[i]<=totalDays);
+    if(fresh.length)return fresh.slice(0,room);
+  }
+  return list.slice(0,room);
+}
+window.aplTakeChunkDays=aplTakeChunkDays;
 function aplChunkProblem(chunkPlan,expectDays,truncated){
   if(truncated)return'ucięta odpowiedź';
   const days=(chunkPlan&&chunkPlan.days)||[];
@@ -839,6 +1059,231 @@ function aplEnforceWeeklyVolume(plan,vt){
   return out;
 }
 window.aplEnforceWeeklyVolume=aplEnforceWeeklyVolume;
+
+/* Częstotliwość partii: trener prosi w „Dodatkowych uwagach” o tę samą partię w 2 (3) treningach,
+ * albo metoda FBW (całe ciało w każdej sesji). Książki: każda partia co najmniej 2× w tygodniu
+ * (Helms P7, Chandler P6, Bompa G13, NSCA G02), najwyżej 3× (Głuchowski P19). */
+const APL_FREQ_GROUPS={
+  klatka:{label:'klatka',cats:['klatka'],re:/klat/},
+  plecy:{label:'plecy',cats:['plecy'],re:/plec|grzbiet|najszersz/},
+  nogi:{label:'uda (czworogłowe / dwugłowe)',cats:['nogi'],re:/\bnog|\bnóg|\bud(a|o|ach)?\b|czworog|dwuglow|dwugłow/},
+  barki:{label:'barki',cats:['barki'],re:/bark/},
+  biceps:{label:'biceps',cats:['biceps'],re:/biceps|dwuglowy ramien|dwugłowy ramien/},
+  triceps:{label:'triceps',cats:['triceps'],re:/triceps|trojglow|trójgłow/},
+  posladki:{label:'pośladki',cats:['posladki'],re:/poslad|pośladk/},
+  lydki:{label:'łydki',cats:['lydki'],re:/lydk|łydk/},
+  core:{label:'core',cats:['core'],re:/brzuch|\bcore\b/}
+};
+const APL_FREQ_MAJOR=['klatka','plecy','nogi','barki'];
+function aplFrequencyRequest(notes,method,days){
+  const n=parseInt(days,10)||0;
+  if(n<2)return null;
+  const t=String(notes||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l');
+  const word='(?:treningach|sesjach|dniach|jednostkach|razy|x\\b|×)';
+  let min=0;
+  if(new RegExp('(?:\\b3|trzy|trzech|trzykrotn)\\s*'+word).test(t)||/trzykrotn|3\s*x\s*w\s*tyg/.test(t))min=3;
+  else if(new RegExp('(?:\\b2|dwa|dwoch|dwu|obu|obydwu)\\s*'+word).test(t)||/dwukrotn|\b2\s*x\b|2×|dwa razy|w kazdym treningu|kazda sesj|kazdym dniu/.test(t))min=2;
+  const fromNotes=min>0&&(/parti|miesn|cwicz|stymul|trenow|czestotliw|kazd|tydz|tygodn/.test(t)||Object.keys(APL_FREQ_GROUPS).some(k=>APL_FREQ_GROUPS[k].re.test(t)));
+  if(!fromNotes){
+    // Filozofia trenera (Progress Studio): KAŻDA partia przepracowana 2× w tygodniu — w każdym planie i każdej metodzie
+    // (FBW, Upper/Lower, PPL, split). Zgodne z książkami: co najmniej 2× (Helms P7, Chandler P6, Bompa G13).
+    min=2;
+  }
+  min=Math.min(min||2,n,3);
+  let groups=fromNotes?Object.keys(APL_FREQ_GROUPS).filter(k=>APL_FREQ_GROUPS[k].re.test(t)):[];
+  // Bez wskazanych partii: każda partia ćwiczona w planie (duże zawsze, mniejsze — ramiona, core, łydki — jeśli są w planie).
+  const all=!groups.length;
+  if(all)groups=Object.keys(APL_FREQ_GROUPS);
+  const fbw=/^fbw|full ?body/i.test(String(method||''));
+  // retry: osobna prośba do AI o poprawkę (uwagi trenera, FBW, 2 dni). Przy splitach 3+ dni brakującą sesję
+  // dokłada sama aplikacja (inny wariant z biblioteki) — bez dodatkowego czekania na AI.
+  return{min,groups,all,source:fromNotes?'notes':(fbw?'method':'trainer'),retry:fromNotes||fbw||n===2};
+}
+function aplExerciseFreqGroups(ex){
+  const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(ex):'inne';
+  return Object.keys(APL_FREQ_GROUPS).filter(k=>APL_FREQ_GROUPS[k].cats.includes(c));
+}
+/** Partie z prośby, które w planie są w mniejszej liczbie dni niż trzeba. */
+function aplFrequencyGaps(plan,req){
+  if(!req)return[];
+  const days=(plan&&plan.days)||[];
+  return req.groups.filter(g=>!req.all||APL_FREQ_MAJOR.includes(g)||days.some(d=>(d.exercises||[]).some(e=>e&&aplExerciseFreqGroups(e).includes(g)))).map(g=>{
+    const present=[],missing=[];
+    days.forEach((d,i)=>((d.exercises||[]).some(e=>e&&aplExerciseFreqGroups(e).includes(g))?present:missing).push(i));
+    return{group:g,label:APL_FREQ_GROUPS[g].label,present,missing};
+  }).filter(x=>x.present.length<Math.min(req.min,days.length));
+}
+function aplFrequencyPrompt(req,bookCtx){
+  if(!req)return'';
+  const k=bookCtx&&typeof bookCtx.key==='function'?bookCtx.key:()=>'';
+  const refs=[k('piramida-treningu-helms P7'),k('conditioning-for-strength-chandler-brown P6'),k('periodyzacja-bompa G13'),k('hipertrofia-schoenfeld P3')].filter(Boolean).join('');
+  const who=req.source==='notes'?'wybór trenera w „Dodatkowych uwagach”':req.source==='method'?'metoda FBW — całe ciało w każdej sesji':'filozofia trenera Progress — każda partia przepracowana 2× w tygodniu, w każdej metodzie';
+  return `\n\nCZĘSTOTLIWOŚĆ PARTII (OBOWIĄZKOWE — ${who}): ${req.all?'KAŻDA partia ćwiczona w planie (klatka, plecy, uda, pośladki, barki, a także biceps, triceps, core i łydki, jeśli są w planie) ma mieć':'partie '+req.groups.map(g=>APL_FREQ_GROUPS[g].label).join(', ')+' mają mieć'} ćwiczenia bezpośrednie w co najmniej ${req.min} RÓŻNYCH dniach tygodnia (każda z nich w ${req.min} sesjach). Podziel tygodniową objętość partii między te dni (np. 8 serii = 4 + 4), nie podwajaj jej. Druga (i kolejna) sesja tej samej partii ma być UROZMAICONA: inne ćwiczenie niż w pierwszej — inny sprzęt (sztanga ↔ hantle ↔ maszyna / wyciąg) albo inna płaszczyzna / kąt (np. klatka: dzień 1 wyciskanie sztangi na płaskiej, dzień 2 wyciskanie hantli na skosie; plecy: dzień 1 przyciąganie pionowe, dzień 2 wiosłowanie poziome; uda: dzień 1 przysiad ze sztangą, dzień 2 suwnica lub wykroki z hantlami). Nie powtarzaj tego samego ćwiczenia dwa razy w tygodniu. Przy splicie (PPL, góra/dół, split) dołóż w innym dniu krótszy blok tej partii, żeby każda była 2× w tygodniu. Podstawa w książkach: każda partia co najmniej 2× w tygodniu${refs?' '+refs:''}. "weeklyVolume" opisuje TYLKO ćwiczenia, które naprawdę są w "days" — nie zapowiadaj ćwiczeń, których nie ma w planie.`;
+}
+/** Krótki opis już wygenerowanych dni dla kolejnej części planu — żeby nie zgubić zapowiedzianej pracy. */
+function aplPlanDaysDigest(plan){
+  return((plan&&plan.days)||[]).map((d,i)=>(String(d.dayName||('Dzień '+(i+1))).split(/[—–]/)[0].trim())+': '+(d.exercises||[]).map(e=>e.name+' ('+(e.muscleGroup||'?')+', '+(e.sets||'?')+' s.)').join('; ')).join('\n');
+}
+function aplFrequencyHint(gaps,dayOffset,plan){
+  return gaps.map(g=>{
+    const miss=g.missing.filter(i=>i>=dayOffset).map(i=>String(((plan.days||[])[i]||{}).dayName||('Dzień '+(i+1))).split(/[—–]/)[0].trim());
+    return miss.length?(miss.join(', ')+': dodaj ćwiczenie na '+g.label):'';
+  }).filter(Boolean).join('; ');
+}
+/** Sprzęt ćwiczenia: sztanga / hantle / maszyna / wyciąg / kettlebell / masa ciała. */
+function aplExEquipClass(ex){
+  const n=(String(ex&&ex.name||'')+' '+String(ex&&(ex.eq||ex.equipment)||'')).toLowerCase();
+  if(/smith|suwnic|maszyn|hack|leg press|butterfly|pec ?deck|machine/.test(n))return'maszyna';
+  if(/wyci[aą]g|link[aęi]|\blin[aąy]\b|bram|cable|face ?pull/.test(n))return'wyciag';
+  if(/hantl|hantel|dumbbell/.test(n))return'hantle';
+  if(/sztang|gryf|barbell|landmine/.test(n))return'sztanga';
+  if(/kettl|odważnik|odwaznik/.test(n))return'kettlebell';
+  return'masa';
+}
+/** Płaszczyzna / kąt: skos dodatni, skos ujemny, pionowo, poziomo, płasko. */
+function aplExPlane(ex){
+  const n=String(ex&&ex.name||'').toLowerCase();
+  if(/skos.*ujemn|ujemn|decline/.test(n))return'ujemny';
+  if(/skos|skośn|incline|dodatn/.test(n))return'skos';
+  if(/ściąg|sciag|podciąg|podciag|nad głow|nad glow|żołniersk|zolniersk|arnold|overhead|stojąc.*wycisk/.test(n))return'pion';
+  if(/wiosł|wiosl|row\b|przyciąg.*pozi|przyciag.*pozi/.test(n))return'poziom';
+  if(/płask|plask|flat/.test(n))return'plasko';
+  return'';
+}
+/** Wzorzec ruchu (ten sam wzorzec = sensowny zamiennik: przysiad → suwnica / wykrok, nie martwy ciąg). */
+function aplExPattern(ex){
+  const n=String(ex&&ex.name||'').toLowerCase();
+  if(/martwy|rdl|rumu[nń]|good morning|sk[łl]on|hip thrust|wypychanie bioder|mostek|uginanie n[oó]g|pull-through/.test(n))return'hinge';
+  if(/przysiad|wykrok|zakrok|wyciskanie nogami|suwnic|leg press|hack|wej[sś]ci|bu[łl]gar|wyprost.*n[oó]g/.test(n))return'squat';
+  if(/[sś]ci[aą]g|podci[aą]g|pullover/.test(n))return'pull-v';
+  if(/wios[łl]|row\b|t-bar/.test(n))return'pull-h';
+  if(/wyciskan|pompk|dip/.test(n))return'press';
+  return'';
+}
+/** Inny wariant tej samej partii z biblioteki: inny sprzęt lub inna płaszczyzna, bez ćwiczeń już obecnych w planie. */
+function aplPickFrequencyVariant(src,group,plan){
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  if(!src||!lib||!lib.length)return null;
+  const used=new Set();
+  ((plan&&plan.days)||[]).forEach(d=>(d.exercises||[]).forEach(e=>{if(e&&e.name)used.add(String(e.name).trim().toLowerCase());}));
+  const srcEq=aplExEquipClass(src),srcPlane=aplExPlane(src);
+  // Izolacja ↔ izolacja, wielostawowe ↔ wielostawowe (żołnierskie → inne wyciskanie, nie unoszenia).
+  const isoRe=/rozpi[eę]t|\bfly|uginan|wyprost|prostowan|wznos|unosz|kickback|face ?pull|abdukc|odwodz|przywodz|wspi[eę]c|butterfly|pec ?deck|przeno[sś]/i;
+  const srcIso=isoRe.test(String(src.name||''));
+  const fits=e=>{
+    if(!e||!e.name||used.has(String(e.name).trim().toLowerCase()))return false;
+    if(/taśm|tasm|piłka lekarsk|pilka lekarsk|skakank/i.test(String(e.eq||'')))return false;
+    if(/cardio|mobil|rozgrzew|rozciąg|rozciag|olimpij/i.test(String(e.cat||'')))return false;
+    const c=aplNormalizeMuscleCategory({muscleGroup:e.cat,name:e.name});
+    if(group==='lydki')return/łydk|lydk|calf|wspięci|wspieci/i.test(e.name);
+    // Partia z nazwy (jak w kolumnach biblioteki): własne karty bywają w złej kategorii,
+    // np. „Wyciskanie hantli nad głowę” zapisane jako Klatka piersiowa to barki.
+    if(typeof exBodyPart==='function'){const bp=exBodyPart(e);if(bp&&bp!=='inne')return bp===group;}
+    return APL_FREQ_GROUPS[group].cats.includes(c);
+  };
+  const srcPattern=aplExPattern(src);
+  // Kolejność w bibliotece Progress = najpierw podstawowe ćwiczenia danej partii.
+  const rank=new Map();const perCat={};
+  lib.forEach(e=>{if(!e||!e.name)return;const c=String(e.cat||'');perCat[c]=(perCat[c]||0)+1;if(!rank.has(e.name))rank.set(e.name,perCat[c]);});
+  let usage=null;
+  try{usage=typeof exPlanUsage==='function'?exPlanUsage():null;}catch(_){usage=null;}
+  let best=null,bestScore=-Infinity;
+  lib.filter(fits).forEach(e=>{
+    const eq=aplExEquipClass(e),plane=aplExPlane(e);
+    let sc=0;
+    if(eq!==srcEq)sc+=3;
+    if(plane&&plane!==srcPlane&&['klatka','plecy','barki'].includes(group))sc+=2;
+    if(eq==='masa')sc-=3;
+    if(eq==='kettlebell')sc-=1;
+    sc+=isoRe.test(String(e.name||''))===srcIso?3:-3;
+    const pat=aplExPattern(e);
+    // Plecy: druga sesja w drugiej płaszczyźnie (pionowo ↔ poziomo) — tak, jak w przykładzie trenera.
+    if(group==='plecy'&&/^pull/.test(srcPattern)&&/^pull/.test(pat))sc+=pat!==srcPattern?3:0;
+    else if(srcPattern)sc+=pat===srcPattern?3:-2;
+    const r=rank.get(e.name)||99;
+    sc+=r<=8?3:r<=16?1:0;
+    if(/swiss|pi[łl]ce|combo|drop and catch|renegade|russian|jednon[oó][żz]|z pauz|mini band/i.test(e.name))sc-=3;
+    if(typeof studioMuscleOverlap==='function'&&src.muscle&&studioMuscleOverlap(src,e))sc+=1;
+    const u=usage&&typeof usage.get==='function'?usage.get(e.name):null;
+    if(u&&u.plans)sc+=Math.min(2,u.plans);
+    if(sc>bestScore||(sc===bestScore&&best&&String(e.name).localeCompare(best.name,'pl')<0)){best=e;bestScore=sc;}
+  });
+  return best&&bestScore>=2?best:null;
+}
+window.aplPickFrequencyVariant=aplPickFrequencyVariant;
+/** Gdy AI nie rozłożyło partii na wymaganą liczbę dni: inny wariant tej partii (inny sprzęt / płaszczyzna) z biblioteki,
+ * a gdy biblioteka nic nie ma — kopia ćwiczenia z innego dnia; serie podzielone (suma bez zmian). */
+function aplEnforceFrequency(plan,req){
+  const out=[];
+  if(!req)return out;
+  const days=(plan&&plan.days)||[];
+  aplFrequencyGaps(plan,req).forEach(g=>{
+    let need=Math.min(req.min,days.length)-g.present.length;
+    g.missing.forEach(di=>{
+      if(need<=0)return;
+      let src=null,srcDay=-1;
+      g.present.forEach(pi=>((days[pi].exercises||[]).forEach(e=>{
+        if(aplExerciseFreqGroups(e).includes(g.group)&&(!src||(parseInt(e.sets,10)||0)>(parseInt(src.sets,10)||0))){src=e;srcDay=pi;}
+      })));
+      if(!src)return;
+      const sets=parseInt(src.sets,10)||3;
+      const copySets=Math.max(2,Math.floor(sets/2));
+      const copy=JSON.parse(JSON.stringify(src));
+      const variant=aplPickFrequencyVariant(src,g.group,plan);
+      if(variant){
+        copy.name=variant.name;
+        if(variant.eq)copy.equipment=variant.eq;
+        if(variant.tip)copy.tip=variant.tip;else delete copy.tip;
+        delete copy.alt;
+        // Inny sprzęt = inny ciężar: trener dobiera go na pierwszym treningu.
+        if(aplExEquipClass(variant)!==aplExEquipClass(src))copy.kg='';
+        Object.keys(copy).forEach(k=>{if(/^w\d+$/.test(k))delete copy[k];});
+      }
+      copy.sets=String(copySets);
+      copy.notes=(variant?'Druga sesja tej partii — inny wariant niż „'+src.name+'”':'Druga sesja tej partii')+' (częstotliwość '+req.min+'×/tydz.)';
+      delete copy.intensification;
+      if(sets-copySets>=2)src.sets=String(sets-copySets);
+      const target=days[di].exercises=days[di].exercises||[];
+      const coreAt=target.findIndex(e=>typeof aplNormalizeMuscleCategory==='function'&&aplNormalizeMuscleCategory(e)==='core');
+      target.splice(coreAt>=0?coreAt:target.length,0,copy);
+      need--;
+      out.push({group:g.label,from:String(days[srcDay].dayName||('Dzień '+(srcDay+1))).split(/[—–]/)[0].trim(),to:String(days[di].dayName||('Dzień '+(di+1))).split(/[—–]/)[0].trim(),exercise:copy.name,sets:copySets,variant:!!variant});
+    });
+  });
+  return out;
+}
+/** Objętość tygodniowa liczona z ćwiczeń, które są w planie (zamiast opisu z odpowiedzi AI). */
+const APL_VOLUME_LABELS={klatka:'Klatka',plecy:'Plecy',nogi:'Nogi (uda)',posladki:'Pośladki',barki:'Barki',biceps:'Biceps',triceps:'Triceps',lydki:'Łydki',core:'Core'};
+function aplComputeWeeklyVolume(plan){
+  const wk=plan&&(plan.currentWeek||(plan.weekKeys||[])[0]);
+  const days=(plan&&plan.days)||[];
+  const acc={};
+  days.forEach((d,i)=>(d.exercises||[]).forEach(e=>{
+    if(!e||!e.name)return;
+    const c=typeof aplNormalizeMuscleCategory==='function'?aplNormalizeMuscleCategory(e):'inne';
+    if(!APL_VOLUME_LABELS[c])return;
+    const w=(wk&&e[wk])||{};
+    const s=parseInt(w.s||e.sets,10)||0;
+    if(!s)return;
+    const a=acc[c]=acc[c]||{total:0,byDay:{}};
+    a.total+=s;a.byDay[i]=(a.byDay[i]||0)+s;
+  }));
+  const res={};
+  Object.keys(APL_VOLUME_LABELS).forEach(c=>{
+    const a=acc[c];if(!a)return;
+    const per=Object.keys(a.byDay).map(i=>'D'+(+i+1)+': '+a.byDay[i]).join(', ');
+    const freq=Object.keys(a.byDay).length;
+    const n=a.total,word=n===1?'seria':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'serie':'serii';
+    res[APL_VOLUME_LABELS[c]]=n+' '+word+' · '+freq+'×/tydz. ('+per+')';
+  });
+  return res;
+}
+window.aplFrequencyRequest=aplFrequencyRequest;
+window.aplExEquipClass=aplExEquipClass;
+window.aplExPlane=aplExPlane;
+window.aplFrequencyGaps=aplFrequencyGaps;
+window.aplEnforceFrequency=aplEnforceFrequency;
+window.aplComputeWeeklyVolume=aplComputeWeeklyVolume;
 
 function aplExtractJsonObject(text){
   const s=String(text||'');
@@ -1108,6 +1553,23 @@ function aplNormalizeGeneratedPlan(plan){
   const notes=plan.adaptation_notes||plan.adaptationNotes||'';
   if(notes)plan.adaptation_notes=notes;
   if(!Array.isArray(plan.weekly_progression_schema)&&plan.weeklyProgressionSchema)plan.weekly_progression_schema=plan.weeklyProgressionSchema;
+  // Starsze odpowiedzi AI opisywały drop set wyłącznie w notes. Migrujemy je do
+  // pól, które potrafi wykonać i pokazać aplikacja klienta.
+  (plan.days||[]).forEach(day=>(day.exercises||[]).forEach(ex=>{
+    if(!ex||typeof ex!=='object')return;
+    const text=String(ex.notes||ex.note||'').toLowerCase();
+    if(!ex.drop&&!/drop[ -]?set/.test(text))return;
+    ex.drop=Math.min(2,Math.max(1,parseInt(ex.drop,10)||1));
+    if(!ex.dropStep)ex.dropStep='25%';
+  }));
+  (plan.days||[]).forEach(day=>(day.exercises||[]).forEach(ex=>{
+    if(!ex||typeof ex!=='object')return;
+    const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];
+    if(methods.length)ex.intensification=methods;
+    if(methods.some(m=>m.type==='drop_set')){ex.drop=Math.min(2,Math.max(1,parseInt(ex.drop,10)||1));if(!ex.dropStep)ex.dropStep='25%';}
+    if(methods.some(m=>m.type==='rest_pause')&&!ex.rp)ex.rp=1;
+    if(methods.some(m=>m.type==='cluster_set')&&!ex.cluster)ex.cluster=1;
+  }));
   return plan;
 }
 window.aplNormalizeGeneratedPlan=aplNormalizeGeneratedPlan;
@@ -1153,6 +1615,7 @@ async function aplAnthropicRequest(payload,maxRetries=3){
 function aplSetGenProgress(msg){
   const el=document.getElementById('apl-gen-status');
   if(el)el.textContent=msg;
+  if(typeof plivProgress==='function')plivProgress(msg);
 }
 
 // Twarda, programistyczna gwarancja poprawnej kolejności ćwiczeń — niezależna od tego,
@@ -1160,18 +1623,33 @@ function aplSetGenProgress(msg){
 // partii razem (stabilnie, wg kolejności pierwszego wystąpienia), zachowując ćwiczenia
 // priorytetowe na początku sesji.
 function aplNormalizeMuscleCategory(ex){
-  const blob=(String(ex.muscleGroup||'')+' '+String(ex.name||'')).toLowerCase();
+  // Najpierw partia z pola muscleGroup, nazwa dopiero, gdy partii nie rozpoznano:
+  // „Wiosłowanie (klatka piersiowa na ławce)” czy „Ściąganie drążka do klatki” to plecy, nie klatka.
+  const group=String(ex.muscleGroup||'').toLowerCase();
+  if(group.trim()){
+    // „Triceps / klatka” = triceps: liczy się partia wymieniona pierwsza.
+    const byGroup=aplMuscleCategoryOf(group,true);
+    if(byGroup!=='inne')return byGroup;
+  }
+  return aplMuscleCategoryOf((group+' '+String(ex.name||'')).toLowerCase());
+}
+function aplMuscleCategoryOf(blob,firstMention){
   const categories=[
-    ['klatka',/klatk/],
-    ['plecy',/plec|grzbiet/],
-    ['barki',/bark/],
-    ['biceps',/biceps/],
-    ['triceps',/triceps/],
+    ['klatka',/klatk|piersiow|^chest\b/],
+    ['plecy',/plec|grzbiet|najszersz|^back\b|\blats?\b/],
+    ['barki',/bark|naramien|shoulder|delt/],
+    ['biceps',/biceps|dwug[łl]ow[ya]? ramien/],
+    ['triceps',/triceps|tr[óo]jg[łl]ow/],
     ['posladki',/po[śs]ladk|hip thrust|glute/],
-    ['nogi',/czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|przysiad|wykrok|leg press|quad/],
+    ['nogi',/\bnog|\bnóg|czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|udow|kulszow|przysiad|wykrok|leg press|quad|hamstring|^legs?\b/],
     ['lydki',/[łl]ydk|calf/],
     ['core',/brzuch|\bcore\b|skos.*brzuch|abs\b/],
   ];
+  if(firstMention){
+    let best='inne',at=Infinity;
+    for(const [key,re] of categories){ const m=re.exec(blob); if(m&&m.index<at){at=m.index;best=key;} }
+    return best;
+  }
   for(const [key,re] of categories){ if(re.test(blob))return key; }
   return 'inne';
 }
@@ -1191,10 +1669,10 @@ function aplRegroupExercisesByMuscle(plan,client){
   });
 }
 
-/** Reguły z książek (knowledge/books) dobrane do parametrów planu i ograniczeń klienta. */
+/** Reguły z książek (knowledge/books) dobrane do parametrów planu i ograniczeń klienta — ze wszystkich książek treningowych, z oznaczeniami [K1…]. */
 function aplBooksContext(p){
-  const empty={all:'',training:'',sources:[]};
-  if(typeof booksKbContext!=='function')return empty;
+  const empty={all:'',training:'',sources:[],sel:null,key:()=>''};
+  if(typeof booksKbPlanSelect!=='function'||typeof booksKbPlanPrompt!=='function')return empty;
   const levelWords={poczatkujacy:'początkujący',sredni:'średnio zaawansowany',zaawansowany:'zaawansowany'};
   const ageNum=parseInt(p.age,10);
   const w=parseFloat(p.weight),h=parseFloat(p.height);
@@ -1205,13 +1683,52 @@ function aplBooksContext(p){
     ageNum>=50?'starsi wiek osoby starsze':'',ageNum&&ageNum<18?'młodzież dzieci':'',
     bmi>=30?'otyłość nadwaga BMI':bmi>=25?'nadwaga':'',
     p.level==='poczatkujacy'?'początkujący':''].filter(Boolean).join(' ');
-  const training=booksKbContext({mode:'training',reset:true,query,safetyQuery,maxChars:9000});
-  const nutrition=booksKbContext({mode:'nutrition',query:p.goal+' '+(p.notes||'')+' białko kalorie',maxChars:1600});
-  return{all:training+nutrition,training,sources:typeof booksKbUsedSources==='function'?booksKbUsedSources():[]};
+  const sel=booksKbPlanSelect({query,safetyQuery,progression:p.progression,level:p.level,
+    nutritionQuery:p.goal+' '+(p.notes||'')+' białko kalorie',maxChars:16000});
+  if(!sel.rules.length)return empty;
+  const text=booksKbPlanPrompt(sel);
+  const keyOf={};sel.rules.forEach(r=>{keyOf[r.ref]=r.key;});
+  const byBook=new Map();
+  sel.rules.forEach(r=>{
+    const label=r.cite.replace(/, s\. .*$/,'').replace(/^Progress Live, reguła ostrożności \(nie z książki\); temat: /,'');
+    if(!byBook.has(label))byBook.set(label,[]);
+    byBook.get(label).push(r.id);
+  });
+  const sources=Array.from(byBook.entries()).map(([label,ids])=>label+' (reguły: '+ids.slice(0,8).join(', ')+(ids.length>8?'…':'')+')');
+  return{all:text,training:text,sources,sel,key:ref=>keyOf[ref]?'['+keyOf[ref]+']':''};
+}
+
+/** Skąd biorą się zasady progresji: reguły z książek albo metoda spoza bazy (Smolov, 5/3/1). */
+function aplProgressionBookNote(bookCtx,prog,method){
+  if(prog==='smolov'||method==='Smolov'||method==='531')
+    return ' (Metoda spoza bazy książek — schemat ustawiony w aplikacji na wybór trenera. Zapisz to w "rationale.uncertainties"; objętość pozostałych partii, przerwy i bezpieczeństwo opieraj na regułach z książek.)';
+  const anchors=(typeof PLAN_ANCHORS!=='undefined'&&PLAN_ANCHORS[prog])||[];
+  const keys=anchors.map(r=>bookCtx.key(r)).filter(Boolean).join('');
+  return keys?' Podstawa w książkach: '+keys+'.':'';
+}
+
+/** Sprawdza oznaczenia reguł w planie i zapisuje, na których regułach z książek plan się opiera. */
+function aplApplyBookRefs(plan,bookCtx){
+  if(!plan||!bookCtx||!bookCtx.sel||typeof booksKbValidatePlanRefs!=='function')return;
+  const check=booksKbValidatePlanRefs(plan,bookCtx.sel);
+  if(!plan.rationale||typeof plan.rationale!=='object'||Array.isArray(plan.rationale))plan.rationale={};
+  ['sources','reasoning','clientData','uncertainties','reviewTriggers'].forEach(k=>{
+    if(Array.isArray(plan.rationale[k]))plan.rationale[k]=plan.rationale[k].filter(x=>typeof x==='string'&&x.trim());
+  });
+  plan.rationale.bookSources=bookCtx.sources;
+  plan.bookRules=check.used.map(r=>({label:r.label,ref:r.ref,cite:r.cite,status:r.status,topic:r.topic,text:String(r.text).slice(0,260)}));
+  const training=check.used.filter(r=>r.topic!=='żywienie');
+  plan.bookCoverage={
+    offered:bookCtx.sel.books.length,
+    total:bookCtx.sel.trainingBooks.length,
+    used:Array.from(new Set(training.map(r=>r.book))).length,
+    removedRefs:check.removed
+  };
 }
 
 async function aplGenerate(){
   if(aplGenerating)return;
+  if(typeof gwbGenerating==='function')gwbGenerating();
   const goal=aplGetVal('apl-goals');
   const level=aplGetVal('apl-levels');
   const method=aplGetVal('apl-methods');
@@ -1228,7 +1745,8 @@ async function aplGenerate(){
   const pharmaStatus=document.getElementById('apl-pharma-status')?.value||'';
   const pharmaDetails=document.getElementById('apl-pharma-details')?.value||'';
   const notesRaw=document.getElementById('apl-notes')?.value||'';
-  const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim();
+  const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim()+(typeof gwbRulesPrompt==='function'?gwbRulesPrompt():'');
+  const freqReq=typeof aplFrequencyRequest==='function'?aplFrequencyRequest(notesRaw,method,days):null;
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
   const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('apl'):null;
@@ -1258,13 +1776,15 @@ async function aplGenerate(){
   const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys,goal):{};
   const hypertrophyGoal=typeof aplIsHypertrophyGoal==='function'&&aplIsHypertrophyGoal(goal);
   const vt=aplVolumeTarget(level,duration,document.getElementById('apl-pharma-status')?.value||'');
+  // Wywiad przed planem: objętość startowa z rekomendacji (np. niższa przy słabym śnie / wysokim stresie).
+  if(typeof plivVolumeOverride==='function')plivVolumeOverride(vt);
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
   }
 
   aplGenerating=true;
-  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+  ['apl-gen-btn2'].forEach(id=>{
     const b=document.getElementById(id);
     if(b){b.disabled=true;b.textContent='⏳ Generuję...';}
   });
@@ -1274,7 +1794,7 @@ async function aplGenerate(){
     <div style="width:56px;height:56px;border-radius:16px;background:var(--adim);display:flex;align-items:center;justify-content:center;">
       <div class="ai-dot" style="width:16px;height:16px;"></div>
     </div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);">AI GENERUJE PLAN...</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);">AI generuje plan...</div>
     <div id="apl-gen-status" style="font-size:12px;color:var(--muted);max-width:320px;text-align:center;line-height:1.7;">Analizuję parametry i tworzę plan ${method} na ${weeks} tygodni… To zwykle trwa 60–90 sekund.</div>
     <div style="display:flex;gap:6px;">${[0,1,2].map(i=>`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s ${i*0.2}s infinite;"></div>`).join('')}</div>
   </div>`;
@@ -1303,18 +1823,19 @@ async function aplGenerate(){
   if(typeof kbPrepareResearch==='function')await kbPrepareResearch();
   if(typeof booksKbLoad==='function')await booksKbLoad();
   const bookCtx=aplBooksContext({goal,level,method,days,duration,progression:effectiveProg,equipment,intensify,notes,injuries,age,gender,weight,height,pharmaStatus,client});
-  const systemPrompt=`Jesteś trenerem personalnym, który programuje trening na podstawie książek z bazy wiedzy trenera (sekcja WIEDZA Z KSIĄŻEK TRENERA poniżej). Tworzysz szczegółowe plany treningowe w języku polskim.
+  const systemPrompt=`Jesteś trenerem personalnym, który programuje trening na podstawie książek z bazy wiedzy trenera (sekcja WIEDZA Z KSIĄŻEK TRENERA — PODSTAWA PLANU na końcu). Tworzysz szczegółowe plany treningowe w języku polskim.
+KOLEJNOŚĆ WAŻNOŚCI: 1) bezpieczeństwo klienta, poufność i wybory trenera (metoda, liczba dni, sprzęt, metody intensyfikacji); 2) reguły z książek z oznaczeniem [K…]; 3) domyślne ustawienia aplikacji. Każdą liczbę w planie (serie, powtórzenia, RIR/RPE, przerwy, częstotliwość, progresja) opieraj w miarę możliwości na regule z książki i podaj jej oznaczenie.
 
 WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
 {
   "planName": "Nazwa planu",
-  "summary": "3–5 zdań dla trenera początkującego: dlaczego ta metoda, dlaczego taka objętość serii (nawiąż do MEV/MAV), dlaczego ten RPE/zakres powtórzeń dla poziomu klienta",
+  "summary": "3–5 zdań dla trenera początkującego: dlaczego ta metoda, dlaczego taka objętość serii, dlaczego ten RPE/zakres powtórzeń dla poziomu klienta — z oznaczeniami reguł z książek [K…]",
   "rationale": {
     "clientData": ["Wyłącznie fakty podane w danych klienta, istotne dla wyboru planu"],
-    "reasoning": ["Krótko: jaka decyzja, na podstawie którego faktu i dlaczego"],
+    "reasoning": ["Krótko: jaka decyzja, na podstawie którego faktu lub reguły z książki [K…] i dlaczego"],
     "uncertainties": ["Brakujące dane i założenia, które trener powinien sprawdzić"],
     "reviewTriggers": ["Kiedy ponownie ocenić plan na podstawie realizacji i informacji od klienta"],
-    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: książka (autor, tytuł, strony i oznaczenie reguły w nawiasie kwadratowym) albo badanie (tytuł i PMID, DOI lub adres). Jeśli brak pasującego źródła, pusta lista."]
+    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: reguła z książki jako krótki opis z oznaczeniem, np. 'Objętość 10–20 serii na partię tygodniowo [K1]', albo badanie (tytuł i PMID, DOI lub adres). Jeśli brak pasującego źródła, pusta lista."]
   },
   "method": "Nazwa metody",
   "weeks": ${weeksNum},
@@ -1345,7 +1866,10 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
           "rpe": "7",
           "rir": "3",
           "kg": "60",
-          "tempo": "3-1-1-0"
+          "tempo": "3-1-1-0",
+          "drop": "1 albo pusty string — tylko gdy trener wybrał Drop-sety",
+          "dropStep": "25% albo 10kg — pusty string bez drop setu",
+          "intensification": [{"type":"drop_set","protocol":"Ostatnia seria: bez przerwy zmniejsz ciężar o 25% i wykonaj 8–12 powtórzeń","weeks":[5,6,7]}]
         }
       ]
     }
@@ -1364,38 +1888,32 @@ WARMUP KAŻDEJ SESJI: "warmupExercises" to lista DOKŁADNIE 3 ćwiczeń mobiliza
 FAZY TYGODNI (skopiuj do "weekly_progression_schema"; aplikacja liczy serie/RIR na tyg. 2+): ${JSON.stringify(phasesMap)}
 
 
-METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
+METODA PROGRESJI (obowiązkowa): ${progressionInstruction}${aplProgressionBookNote(bookCtx,effectiveProg,method)}
 ${structureHint?`\nSTRUKTURA METODY (obowiązkowa): ${structureHint}`:''}
+
+=== DOMYŚLNE USTAWIENIA APLIKACJI (nie z książek) ===
+Poniższe zasady to ustawienia domyślne Progress Live. Stosuj je, gdy reguły z książek nie rozstrzygają sprawy. Słowa „obowiązkowe”, „STRICT” i „krytyczne” w tej sekcji znaczą: obowiązuje, chyba że reguła z książki [K…] mówi inaczej — wtedy wybierz regułę z książki i zapisz zmianę w "rationale.reasoning". Wyjątek: bezpieczeństwo klienta, poufność i format JSON obowiązują zawsze.
 
 PPL PRZY 4 SESJACH (OBOWIĄZKOWE): nie resetuj splitu po niedzieli. Zapisz w "periodization" i "summary" kolejkę Push → Pull → Legs: tydzień 1 Push/Pull/Legs/Push, tydzień 2 Pull/Legs/Push/Pull, tydzień 3 Legs/Push/Pull/Legs. Nie dokładaj drugiego Pull i Legs w tym samym tygodniu kosztem nadmiernej objętości Push.
 KONTROLA OBJĘTOŚCI DLA NATURALNEGO PLANU 4-SESYJNEGO / KLIENTA 50+: zacznij konserwatywnie. Klatka 12–16 serii bezpośrednich/tydzień, boczny bark jako priorytet 8–10, biceps 8–10, triceps 8–10, czworogłowe 8–12, tył uda 6–10, pośladki 8–12. Dzień nóg: maks. 6 głównych ćwiczeń plus core; akcesoria zwykle 2–3 serie. Nie używaj dwóch podobnych unoszeń bokiem ani trzech wyciskań klatki w jednym dniu bez jawnej specjalizacji.
 LIMIT SESJI PUSH: maks. 5 ćwiczeń głównych plus opcjonalnie core. W typowym dniu Push daj najwyżej 2 wyciskania dla klatki i 1 rozpiętkę, łącznie zwykle 6–8 serii bezpośrednich klatki. Boczny bark: zwykle 4–6 serii bezpośrednich na sesję, nie dwa niemal identyczne warianty unoszeń. Priorytet oznacza lepszą kolejność, technikę i progresję — nie automatyczne dokładanie serii.
 NAZEWNICTWO BIOMECHANICZNE: nie używaj jako celu mięśniowego określeń „wewnętrzna”, „środkowa”, „górna” ani „dolna klatka”. Używaj „piersiowy większy” i opisuj wariant przez kąt ławki, tor ramienia albo profil oporu. Nie twierdź, że jeden przyrząd daje zawsze „lepszą aktywację” — opisuj, co zmienia linka, maszyna lub hantle.
-ZAKRESY POWTÓRZEŃ: 14–17 powtórzeń jest prawidłowe dla izolacji, jeśli klient kończy serię z planowanym RIR i technika jest stabilna. Wybieraj proste zakresy o szerokości 2–4 powtórzeń: wielostawy zwykle 6–12, stabilne maszyny 8–15, izolacje 12–20. Nie używaj wysokich powtórzeń jako powodu do nieograniczonego zwiększania liczby serii.
+ZAKRESY POWTÓRZEŃ (wybór trenera przy budowie masy): zacznij od podobnych zakresów w całym planie — wielostawy 8–10, pozostałe ćwiczenia 10–12, a wyżej (12–15) tylko partie, które lubią więcej powtórzeń: łydki, bok i tył barku, brzuch. Powtórzenia rosną z progresją (aplikacja dolicza je w kolejnych tygodniach). Przy innych celach: wielostawy zwykle 6–12, stabilne maszyny 8–15, izolacje 12–20. Nie używaj wysokich powtórzeń jako powodu do nieograniczonego zwiększania liczby serii.
 
-ORIENTACYJNE PROGI OBJĘTOŚCI (MEV/MAV/MRV) NA PARTIĘ NA TYDZIEŃ — są punktem odniesienia, nie obowiązkowym minimum. Dla początkującego, osoby 50+ i planu z czterema sesjami nadrzędne są niższe, konserwatywne zakresy podane wyżej:
-Klatka: MEV 10 / MAV 14-18 / MRV 20
-Plecy: MEV 10 / MAV 14-20 / MRV 22
-Barki: MEV 12 / MAV 16-20 / MRV 22
-Biceps: MEV 8 / MAV 10-14 / MRV 16
-Triceps: MEV 8 / MAV 10-14 / MRV 16
-Nogi (czworogłowe): MEV 12 / MAV 16-20 / MRV 24
-Pośladki: MEV 6 / MAV 10-14 / MRV 16
-Core: MEV 8 / MAV 10-14 / MRV 16
-Wg stażu: Początkujący → doln half MEV-MAV. Średni → środek/góra MAV. Zaawansowany → góra MAV, blisko MRV.
-${pharmaStatus?`
-DOSTOSOWANIE OBJĘTOŚCI DO STATUSU FARMAKOLOGICZNEGO (nadrzędne wobec progów "Wg stażu" powyżej):
-${pharmaStatus==='wspomagany'?'Klient WSPOMAGANY farmakologicznie (sterydy anaboliczno-androgenne) — jego zdolność regeneracji (MRV) jest istotnie wyższa niż u naturalnego sportowca o tym samym stażu. Planuj objętość w GÓRNEJ części MAV lub PONAD standardowe MRV z tabeli (nawet +20-40% serii tygodniowo na partię), krótsze przerwy między seriami są tolerowane lepiej, częstotliwość 2-3×/tydzień na partię jest bezpieczna nawet przy wyższej intensywności. Mimo to zachowaj progresję stopniowo — nie zaczynaj od razu od maksimum.':pharmaStatus==='TRT'?'Klient na TRT (fizjologiczne dawki testosteronu) — regeneracja umiarkowanie lepsza niż przy niedoborze naturalnym, ale NIE traktuj jak wspomaganego. Planuj górną część MAV z tabeli, bez przekraczania MRV.':'Klient naturalny — trzymaj się dokładnie progów MEV/MAV/MRV z tabeli powyżej, bez podwyższania.'}
-`:''}
+OBJĘTOŚĆ Z KSIĄŻEK (punkt odniesienia, nie obowiązkowe minimum): 10–20 trudnych serii na partię lub wzorzec ruchu tygodniowo ${bookCtx.key('hipertrofia-schoenfeld P2')}${bookCtx.key('piramida-treningu-helms P4')}; początkujący ok. 10–12 serii, 2–3× w tygodniu ${bookCtx.key('piramida-treningu-helms R1')}; zaawansowani bliżej górnej granicy ${bookCtx.key('hipertrofia-schoenfeld P2')}; większość serii RIR 1–2 ${bookCtx.key('hipertrofia-schoenfeld P5')}. Dla osoby 50+ i planu z czterema sesjami nadrzędne są niższe, konserwatywne zakresy podane wyżej.
+POUFNOŚĆ: status farmakologiczny i szczegóły są wyłącznie kontekstem trenera. Nie umieszczaj ich w żadnym polu odpowiedzi JSON. Nie zwiększaj objętości, ciężaru ani częstotliwości na podstawie samego statusu. Dobieraj je według stażu, wykonania i regeneracji.
 
 OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla każdej partii zsumuj w pamięci serie robocze ze wszystkich dni tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Pole "weeklyVolume" musi odzwierciedlać faktyczną sumę, nie szacunek. Nie dodawaj ćwiczenia tylko po to, aby dobić do MEV: najpierw sprawdź czas sesji, staż, wiek, regenerację, priorytety oraz konserwatywne limity objętości.
 SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: licz sumę tygodniową, ale nie próbuj wyrównywać nierównego układu czterech sesji przez przeładowanie pojedynczego dnia. Zachowaj rotację kolejki PPL między tygodniami.
 
-METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. Jeśli zaznaczono, w polu "notes" wybranych ćwiczeń zaznacz zastosowaną metodę (np. "Drop-set na ostatniej serii: -20% ciężaru do upadku").
+METODY INTENSYFIKACJI DOSTĘPNE (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. To lista metod do wyboru, nie obowiązek użycia każdej. Dobierz zwykle 1–2 pasujące metody na trening i rozłóż je oszczędnie. Każdą używaną metodę MUSISZ zapisać w polu konkretnego ćwiczenia "intensification" jako listę obiektów {"type":"nazwa_typu","protocol":"dokładna instrukcja dla klienta","weeks":[numery tygodni]}. Pole "weeks" mówi, w których tygodniach planu metoda obowiązuje (np. [3,4,5,6,7]); metody mogą się zmieniać w trakcie cyklu (np. tydz. 1–3 bez metody, 4–5 rest-pause, 6–7 drop set), a w tygodniu deload nie stosuj żadnej metody. Użyj wyłącznie: drop_set, mechanical_drop_set, rest_pause, myo_reps, superset, combined_sets, giant_set, partial_reps, one_and_half, cluster_set, eccentric, hiit. "protocol" ma jasno wskazać co robi klient, w której serii i — gdy dotyczy — drugie ćwiczenie, czas lub liczbę powtórzeń. Gdy używasz drop_set, dodatkowo MUSISZ wpisać "drop":"1" oraz "dropStep":"25%"; przy rest_pause wpisz "rp":"1", a przy cluster_set "cluster":"1". Nie wpisuj metody wyłącznie w notes. Stosuj tylko metodę zaznaczoną przez trenera.
+SCHEMATY METOD: Drop-set = po serii zmniejsz ciężar o ok. 20–30% i kontynuuj; najwyżej 1–2 zrzuty. Rest-pause = seria blisko upadku, 15–25 s przerwy, następnie 1–3 krótkie dogrywki po kilka powtórzeń. Myo-reps = seria aktywacyjna 12–20 powt. blisko upadku, 15–20 s przerwy, następnie 3–5 mini-serii po 3–5 powt.; zakończ, gdy nie utrzymasz celu lub techniki. Nie łącz rest-pause i myo-reps w jednym ćwiczeniu.
+Drop-set mechaniczny = bez zmiany ciężaru przejdź do łatwiejszej dźwigni/ustawienia tego samego ruchu, zachowując kontrolę. Serie łączone / pre-exhaust = izolacja danej partii, po niej bezpośrednio ćwiczenie wielostawowe na tę samą partię; zmniejsz ciężar w drugim ćwiczeniu, jeśli technika lub wynik ucierpi. Seria gigant = 3 ćwiczenia tej samej partii kolejno; maksymalnie jeden taki blok na sesję. Powtórzenia częściowe w wydłużeniu = 4–8 kontrolowanych powtórzeń w bezbolesnym, wydłużonym fragmencie zakresu po pełnych powtórzeniach; tylko stabilne ćwiczenie i pełna kontrola. Powtórzenia 1,5 = pełne powtórzenie + połowa w wybranym zakresie, liczone jako jedno; odpowiednio zmniejsz ciężar. Serie klastrowe = podziel serię siłową na małe grupy (np. 4+4+4) z 15–30 s przerwy; zachowaj zapas i szybkość, nie doprowadzaj do upadku. Akcent ekscentryczny = opuszczanie przez 3–5 s; bez wymuszania pomocy partnera i bez dodatkowego przeciążenia ponad kontrolę ćwiczącego. Superseria antagonistyczna może łączyć partie przeciwstawne; HIIT/interwały dobieraj tylko do celu kondycja/atletyzm, a nie jako metodę hipertrofii.
+OGRANICZENIA: techniki wydłużające serię (drop-set, rest-pause, myo-reps, gigant, częściowe) dawaj głównie w ostatniej serii stabilnej maszyny, wyciągu lub izolacji, nie w ciężkich przysiadach, martwym ciągu ani wyciskaniu bez asekuracji. Początkujący i osoby w rehabilitacji: nie planuj metod do upadku; jeśli ryzyko, ból lub ograniczenie techniki — pomiń metodę i zapisz zwykłą serię. Maksymalnie jedna metoda wydłużająca serię na ćwiczenie i nie stosuj ich na wszystkie ćwiczenia tej samej partii w jednej sesji. Serie klastrowe przypisuj głównie do celu siła/moc. W tygodniu deload usuń metody intensyfikacji. Nie zwiększaj nimi automatycznie tygodniowej objętości — zastępują standardową serię lub jej część. RPE/RIR to sposób dozowania wysiłku, nie technika do dopisania jako drop-set; umieść docelowe RIR w polu ćwiczenia.
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
-BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE — ponad objętością MEV):
+BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE ZAWSZE — ponad objętością i regułami z książek o objętości):
 1. Uwzględnij WAŻĘ, BMI, kontuzje, wady postawy i analizę postawy z kontekstu użytkownika — plan NIE MOŻE szkodzić.
 2. Przy wyższej masie ciała (≥95 kg lub BMI≥30): maszyny/stabilne warianty, bez plyometrii i skoków, konserwatywne kg i RPE.
 3. Przy wadach postawy / bólu kręgosłupa / kolan / barków: stosuj zasady korekcyjne z kontekstu; unikaj ćwiczeń z ostrzeżeń analizy postawy.
@@ -1423,9 +1941,10 @@ Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (
 `:''}
 
 OBJĘTOŚĆ wg badań (Schoenfeld i wsp. 2017 — zależność dawka–odpowiedź, ≥10 serii/tydz. > <5; Baz-Valle i wsp. 2022 — 12–20 serii/tydz. u trenujących; Pelland i wsp. 2024 — przyrost rośnie z objętością, z malejącym zyskiem)${vt.enhanced?'; klient wspomagany: wyższa tolerancja objętości (Bhasin i wsp. 1996 — większe przyrosty przy suprafizjologicznym testosteronie), cel ok. +30% serii':''}.
-OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
+OBJĘTOŚĆ (staż: ${vt.label}, sesja ${duration||60} min — OBOWIĄZKOWE): każdy dzień ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core, ${vt.sets} serii roboczych na ćwiczenie; tygodniowo ${vt.weekly} serii roboczych na każdą główną partię ${(vt.refs||[]).map(r=>bookCtx.key(r)).join('')}. Nie skracaj dni — każdy dzień ma pełną listę ćwiczeń.
 Każdy dzień: ${vt.exMin}–${vt.exMax} ćwiczeń głównych + opcjonalnie core.
 DOBÓR ĆWICZEŃ WG WZORCA (OBOWIĄZKOWE): najpierw ustal wzorzec ruchowy, kierunek oporu, dominującą funkcję mięśnia, płaszczyznę ruchu i partię — dopiero potem konkretny wariant. Zmiana chwytu, maszyny lub przyrządu NIE jest innym ćwiczeniem. W jednym dniu maksymalnie 1 ćwiczenie na wzorzec (np. podciąganie ALBO ściąganie drążka; wyciskanie na ławce płaskiej hantlami ALBO sztangą). Różne wzorce to np.: przyciąganie pionowe, przyciąganie poziome, łopatka/tył barku, wyprost ramienia prostymi rękami; wyciskanie płaskie, skos, rozpiętki; przysiad/wypychanie obunóż, wykrok jednonóż, wyprost kolana, zgięcie kolana, zawias biodrowy, hip thrust. Wyjątek: świadoma specjalizacja wpisana przez trenera — wtedy max 2 i napisz w notes "specjalizacja". Brakującą objętość dobieraj seriami, nie kolejnym wariantem tego samego wzorca. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
+  +(typeof window.tmPrompt==='function'?window.tmPrompt():'')
   +bookCtx.all
   +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes,books:false}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
 
@@ -1485,13 +2004,17 @@ STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
     }
     let plan=null;
     for(let ci=0;ci<chunks.length;ci++){
-      const {from,to}=chunks[ci];
+      // AI czasem oddaje więcej dni niż prosiliśmy — te dni są już w planie, więc nie generujemy ich drugi raz.
+      const have=plan?(plan.days||[]).length:0;
+      if(plan&&have>=chunks[ci].to)continue;
+      const from=Math.max(chunks[ci].from,have+1),to=chunks[ci].to;
       const chunkDays=to-from+1;
       const isFirst=ci===0;
       if(chunks.length>1){
         aplSetGenProgress(`Generuję dni ${from}–${to} z ${totalDays} (część ${ci+1}/${chunks.length})…`);
       }
-      let chunkSystem=systemPrompt;
+      const freqPrompt=aplFrequencyPrompt(freqReq,bookCtx);
+      let chunkSystem=systemPrompt+freqPrompt;
       let chunkUser=userMsg;
       if(chunks.length>1){
         if(isFirst){
@@ -1506,27 +2029,31 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 2c. WZORCE: w jednym dniu max 1 ćwiczenie na wzorzec ruchowy (np. podciąganie ALBO ściąganie drążka; wyciskanie płaskie hantlami ALBO sztangą). Chwyt/maszyna/przyrząd to nie inny wzorzec. Zróżnicuj: pion, poziom, łopatka/tył barku, prostymi rękami; płasko, skos, rozpiętki; obunóż, jednonóż, wyprost kolana, zgięcie kolana, zawias, hip thrust. Wyjątek: specjalizacja trenera (max 2, "specjalizacja" w notes).
 3. Preferuj maszyny / Smith / wyciągi, gdy stabilność pomaga realizować cel, lecz zachowaj także ćwiczenia wolnym ciężarem, jeśli są potrzebne dla umiejętności lub preferencji. Różnicuj profil oporu (wydłużenie / środek / skrócenie); pauza w rozciągnięciu jest opcją, nie regułą.
 4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
-5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`+bookCtx.training;
-          chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
+5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.
+Punkty 1–4 to domyślne ustawienia aplikacji: gdy reguła z książki [K…] poniżej mówi inaczej, wybierz regułę z książki. Przy decyzjach opartych na regułach podawaj w "notes" ich oznaczenia [K…].`+bookCtx.training+freqPrompt+(typeof window.tmPrompt==='function'?window.tmPrompt():'');
+          const promised=plan&&plan.weeklyVolume&&typeof plan.weeklyVolume==='object'?Object.entries(plan.weeklyVolume).map(([k,v])=>k+': '+v).join('; '):'';
+          chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni:\n${aplPlanDaysDigest(plan)}${promised?`\nPierwsza część zapowiada objętość tygodniową: ${promised}. Jeśli zapowiada pracę w kolejnych dniach (np. „Sesja B uzupełnia klatkę”), te ćwiczenia MUSZĄ być w dniach, które teraz tworzysz.`:''}\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }
       let chunkPlan=null;
       let chunkRaw='';
       let extraTokens=0;
       let redundancyHint='',redundancyTries=0,redundancyFallback=null;
+      let freqHint='',freqTries=0;
       for(let parseTry=0;parseTry<3;parseTry++){
         try{
           const data=await aplAnthropicRequest({
             model:'claude-sonnet-4-20250514',
             max_tokens:Math.min(aplPlanTokenBudget(chunkDays,isFirst)+extraTokens,8000),
             system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON z podwójnymi cudzysłowami przy kluczach i stringach. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown, bez komentarzy.': ''),
-            messages:[{role:'user',content:chunkUser+(redundancyHint?'\n\nPOPRAW DOBÓR ĆWICZEŃ (powtórzony wzorzec ruchowy): '+redundancyHint+'. Zamień nadmiarowe ćwiczenia na inny wzorzec tej samej partii (np. przyciąganie poziome, łopatka/tył barku, skos, rozpiętki, jednonóż), zachowaj liczbę serii i resztę dnia. Zwróć cały JSON.':(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': ''))}]
+            messages:[{role:'user',content:chunkUser+(freqHint?'\n\nPOPRAW CZĘSTOTLIWOŚĆ PARTII (uwagi trenera): '+freqHint+'. Każda z tych partii ma być w '+freqReq.min+' różnych dniach — dodaj w tych dniach ćwiczenie bezpośrednie (inny wzorzec niż w pozostałych dniach), objętość tygodniową podziel między dni. Zwróć cały JSON.':'')+(redundancyHint?'\n\nPOPRAW DOBÓR ĆWICZEŃ (powtórzony wzorzec ruchowy): '+redundancyHint+'. Zamień nadmiarowe ćwiczenia na inny wzorzec tej samej partii (np. przyciąganie poziome, łopatka/tył barku, skos, rozpiętki, jednonóż), zachowaj liczbę serii i resztę dnia. Zwróć cały JSON.':(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': ''))}]
           });
           chunkRaw=data?.content?.[0]?.text||'';
           if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
           const truncated=data?.stop_reason==='max_tokens';
           if(truncated)extraTokens+=1500;
           chunkPlan=aplParsePlanJson(chunkRaw);
+          if(chunkPlan&&Array.isArray(chunkPlan.days))chunkPlan.days=aplTakeChunkDays(chunkPlan.days,isFirst?0:(plan.days||[]).length,totalDays);
           const problem=aplChunkProblem(chunkPlan,chunkDays,truncated);
           if(problem){
             if(!truncated)extraTokens+=1500;
@@ -1544,6 +2071,18 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
             redundancyFallback=chunkPlan;
             aplSetGenProgress('Poprawiam dobór ćwiczeń (powtórzony wzorzec ruchowy)…');
             throw new Error('Niepełny JSON planu: redundancja wzorców');
+          }
+          if(freqReq&&freqReq.retry!==false&&!problem&&freqTries<1&&parseTry<2){
+            // Partia musi zmieścić się w pozostałych dniach — jeśli już nie może, poprawiamy tę część planu.
+            const merged={days:(isFirst?[]:(plan.days||[])).concat(chunkPlan.days||[])};
+            const left=totalDays-to;
+            const gaps=aplFrequencyGaps(merged,freqReq).filter(g=>g.present.length+left<Math.min(freqReq.min,totalDays)&&g.missing.some(i=>i>=from-1));
+            const hint=gaps.length?aplFrequencyHint(gaps,from-1,merged):'';
+            if(hint){
+              freqTries++;freqHint=hint;redundancyFallback=redundancyFallback||chunkPlan;
+              aplSetGenProgress('Poprawiam plan: ta sama partia w '+freqReq.min+' treningach…');
+              throw new Error('Niepełny JSON planu: częstotliwość partii');
+            }
           }
           break;
         }catch(parseErr){
@@ -1575,10 +2114,11 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       if(!plan.mezocycle_overview)plan.mezocycle_overview=plan.summary||'';
     }
     (plan.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';}));
-    if(bookCtx.sources.length){
-      if(!plan.rationale||typeof plan.rationale!=='object'||Array.isArray(plan.rationale))plan.rationale={};
-      plan.rationale.bookSources=bookCtx.sources;
-    }
+    // Masa: podobne zakresy startowe w całym planie (różne tylko dla partii, które lubią więcej powtórzeń).
+    if(hypertrophyGoal)plan.repStartNormalized=aplNormalizeStartReps(plan);
+    aplApplyBookRefs(plan,bookCtx);
+    plan.frequencyRequest=freqReq;
+    plan.frequencyFix=aplEnforceFrequency(plan,freqReq);
     plan.volumeTopUp=aplEnforceWeeklyVolume(plan,vt);
     plan.volumeTarget={weekly:vt.weekly,min:vt.weeklyMin,label:vt.label};
     (plan.days||[]).forEach(d=>{
@@ -1587,9 +2127,14 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
         aplComputeProgression(ex,weekKeys,phasesMap,plan.progression);
       });
     });
+    // „Objętość/tydzień” liczymy z ćwiczeń w planie — opis z odpowiedzi AI potrafił zapowiadać pracę, której nie było.
+    if(plan.weeklyVolume&&!plan.weeklyVolumeAI)plan.weeklyVolumeAI=plan.weeklyVolume;
+    plan.weeklyVolume=aplComputeWeeklyVolume(plan);
   window._aplAmateurPlanIssues=typeof aplAmateurPlanIssues==='function'?aplAmateurPlanIssues(plan):[];
     aplRegroupExercisesByMuscle(plan,client);
     aplRenderPlan(plan,client,goal,method,days,weeks);
+    // Z wywiadu: najpierw „Propozycja Progress AI”, edytor dopiero po „Zastosuj”. Nic nie zapisuje się samo.
+    if(typeof plivOnPlanReady==='function')plivOnPlanReady(plan);
   }catch(e){
     console.error('aplGenerate błąd:',e);
     const msg=String(e?.message||e||'');
@@ -1604,10 +2149,11 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       <div style="font-size:12px;color:var(--muted);max-width:360px;">${hint}</div>
       <button class="btn btn-primary" onclick="aplGenerate()">↺ Spróbuj ponownie</button>
     </div>`;
+    if(typeof plivOnPlanError==='function')plivOnPlanError(title,hint);
   }
 
   aplGenerating=false;
-  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+  ['apl-gen-btn2'].forEach(id=>{
     const b=document.getElementById(id);
     if(b){b.disabled=false;b.innerHTML='✨ Generuj plan';}
   });
@@ -1628,7 +2174,31 @@ function aplPlanWhyHTML(plan){
     +section('uncertainties','Założenia i niepewność','Nie podano ograniczeń. Nie oznacza to pełnej pewności.')
     +section('reviewTriggers','Kiedy ponownie ocenić plan','Ustal z klientem termin oceny realizacji planu.')
     +section('sources','Źródła wskazane przez AI','Brak wskazanego źródła. Traktuj podpowiedź jako propozycję do weryfikacji.')
-    +(Array.isArray(r.bookSources)&&r.bookSources.length?section('bookSources','Książki z bazy wiedzy podane AI',''):'')+'</details>';
+    +aplPlanBooksHTML(plan,esc)
+    +(Array.isArray(r.bookSources)&&r.bookSources.length?'<div style="margin-top:10px;"><strong>Książki z bazy wiedzy podane AI</strong><ul style="margin:5px 0;padding-left:20px;">'+r.bookSources.filter(x=>typeof x==='string').map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'')+'</details>';
+}
+/** Ściągi graficzne z książek pod podglądem planu (własne opracowania rysowane w HTML, books-kb.js). */
+function aplPlanVisualsHTML(plan,goal){
+  if(typeof bookVisualsForPlan!=='function'||typeof bookVisualsHTML!=='function')return '';
+  const limits=(document.getElementById('apl-injuries')?.value||'').trim();
+  const text=[plan&&plan.planName,plan&&plan.adaptation_notes,document.getElementById('apl-sport-notes')?.value].filter(Boolean).join(' ');
+  const list=bookVisualsForPlan(goal,{limits:!!limits,text});
+  return '<details data-apl-visuals style="margin-top:14px;padding:12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);"><summary style="cursor:pointer;font-weight:600;">Ściągi z książek ('+list.length+')</summary>'
+    +'<p style="font-size:12px;color:var(--muted);">Własne grafiki na podstawie książek z bazy wiedzy. Strony źródeł są przy każdej liczbie.</p>'
+    +bookVisualsHTML(list,{compact:true})+'</details>';
+}
+/** Reguły z książek, na które plan się powołuje (po sprawdzeniu oznaczeń). */
+function aplPlanBooksHTML(plan,esc){
+  const cov=plan&&plan.bookCoverage;
+  if(!cov)return '';
+  const rules=Array.isArray(plan.bookRules)?plan.bookRules:[];
+  const status={zrodlo:'źródło',wniosek:'wniosek',poza_zrodlem:'poza źródłem'};
+  let out='<div data-apl-book-rules style="margin-top:10px;"><strong>Reguły z książek użyte w planie</strong>'
+    +'<p style="margin:5px 0;font-size:12px;color:var(--muted);">AI dostało reguły z '+cov.offered+' z '+cov.total+' książek treningowych w bazie i powołało się na reguły z '+cov.used+' z nich.'
+    +(cov.removedRefs?' Usunięto '+cov.removedRefs+' oznaczeń reguł, których nie ma w bazie.':'')+'</p>';
+  if(!rules.length)return out+'<p style="margin:5px 0;color:var(--muted);">AI nie powołało się na żadną regułę z książek. Traktuj plan jako propozycję do weryfikacji.</p></div>';
+  out+='<ul style="margin:5px 0;padding-left:20px;">'+rules.map(x=>'<li><b>['+esc(x.label)+']</b> '+esc(x.cite)+(x.status&&status[x.status]?' · '+status[x.status]:'')+'<br><span style="font-size:12px;color:var(--muted);">'+esc(x.text)+'</span></li>').join('')+'</ul>';
+  return out+'</div>';
 }
 function aplRenderPlan(plan,client,goal,method,days,weeks){
   const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
@@ -1665,6 +2235,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
       ${aplPlanWhyHTML(plan)}
+      ${aplPlanVisualsHTML(plan,goal)}
       ${typeof aplAmateurReviewHtml==='function'?aplAmateurReviewHtml():''}
       ${typeof aplProReviewHtml==='function'?aplProReviewHtml():''}
       ${typeof aplPlanChecksHTML==='function'?aplPlanChecksHTML(plan):''}
@@ -1700,24 +2271,24 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       <div style="background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">📈</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#4ade80;">ZASADY PROGRESJI</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#4ade80;">Zasady progresji</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.periodization||''}</div>
         ${plan.progressionRules?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">${plan.progressionRules.map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:#4ade80;flex-shrink:0;">→</span>${r}</div>`).join('')}</div>`:''}
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:#4ade80;margin-top:10px;margin-bottom:3px;">DELOAD</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:#4ade80;margin-top:10px;margin-bottom:3px;">Deload</div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;">${plan.deload||'Co 4-6 tygodni: 50% objętości'}</div>
       </div>
       <div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">🔥</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f59e0b;">PROTOKÓŁ ROZGRZEWKI</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f59e0b;">Protokół rozgrzewki</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
       </div>
       <div style="background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">❄️</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f87171;">SCHŁODZENIE</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f87171;">Schłodzenie</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
       </div>
@@ -1799,15 +2370,20 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       const tempo=ex.tempo||wp.tempo||'';
       const isLast=ei===(d.exercises.length-1);
       const intPill=rir!==''&&parseFloat(rir)<=4
-        ?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RIR ${rir}</span>`
-        :(rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:'');
-      html+=`<div id="apl-ex-row-${di}-${ei}" style="padding:15px 20px;${!isLast?'border-bottom:1px solid rgba(255,255,255,0.05);':''}">
+        ?`<span class="apl-effort-pill">RIR ${rir}</span>`
+        :(rpe?`<span class="apl-effort-pill">RPE ${rpe}</span>`:'');
+      html+=`<div id="apl-ex-row-${di}-${ei}" class="apl-exercise-card" style="${!isLast?'border-bottom:1px solid var(--border);':''}">
         <div style="display:flex;align-items:flex-start;gap:12px;">
           <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:14px;font-weight:700;line-height:1.3;">${ex.name}</div>
-            ${ex.notes?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;line-height:1.6;">💡 ${ex.notes}</div>`:''}
-            ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 6px;margin-top:5px;display:inline-block;">${ex.muscleGroup}</span>`:''}
+            <div class="apl-exercise-title">${ex.name}</div>
+            ${ex.notes?`<div class="apl-exercise-note">💡 ${ex.notes}</div>`:''}
+            ${(()=>{const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];return methods.map(m=>{const def=(window.INTENSIFICATION_METHODS||{})[m.type]||{};const text=typeof intensificationInstruction==='function'?intensificationInstruction(m,ex):m.protocol;
+              // Metoda tylko w swoich tygodniach (jak na wydruku); w pozostałych krótka informacja, kiedy wchodzi.
+              const nums=planPdfIntWeeks(m,weekKeys,phases),wl=planPdfWeeksLabel(nums,weekKeys.length);
+              if(!nums.includes(curWeekIdx+1))return `<div data-apl-int-later style="margin-top:6px;font-size:11px;color:var(--muted);">⚡ ${escHtml(def.label||m.type)} ${nums.length?'w tygodniach '+escHtml(wl):'— nie w tym cyklu'}${nums.length?' (nie w tym tygodniu)':''}</div>`;
+              return `<div data-apl-int-now style="margin-top:7px;padding:7px 9px;border:1px solid rgba(230,0,0,.38);border-radius:7px;background:rgba(230,0,0,.07);font-size:11px;line-height:1.45;color:var(--text);"><b style="color:var(--accent);">⚡ ${escHtml(def.label||m.type)} · ${escHtml(def.when||'Wykonanie')}</b>${wl&&nums.length<weekKeys.length?` <span style="color:var(--muted);font-weight:400;">· ${escHtml(wl)}</span>`:''}<br>${escHtml(text)}</div>`;}).join('')})()}
+            ${ex.muscleGroup?`<span class="apl-muscle-tag">${ex.muscleGroup}</span>`:''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
             ${intPill}
@@ -1820,26 +2396,26 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
             </div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px;padding-left:42px;">
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Serie</div>
-            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--accent);">${sets}</div>
+        <div class="apl-exercise-metrics">
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Serie</div>
+            <div class="apl-metric-value apl-metric-series">${sets}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Powt.</div>
-            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--teal);">${reps}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Powtórzenia</div>
+            <div class="apl-metric-value apl-metric-reps">${reps}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Przerwa</div>
-            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--muted);">${rest}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Przerwa</div>
+            <div class="apl-metric-value apl-metric-rest">${rest}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Tempo</div>
-            <div style="font-size:13px;font-family:'DM Mono',monospace;color:${tempo?'var(--text)':'var(--muted)'};">${tempo||'—'}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Tempo</div>
+            <div class="apl-metric-value apl-metric-tempo">${tempo||'—'}</div>
           </div>
-          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
-            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Ciężar ref.</div>
-            <div style="font-size:12px;font-family:'Bebas Neue',sans-serif;color:var(--gold);">${kg||'wg odczucia'}</div>
+          <div class="apl-metric-card">
+            <div class="apl-metric-label">Ciężar ref.</div>
+            <div class="apl-metric-value apl-metric-load">${kg||'wg odczucia'}</div>
           </div>
         </div>
       </div>`;
@@ -1849,10 +2425,12 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
 
   // ── OBJĘTOŚĆ TYGODNIOWA + ODŻYWIANIE (na dole) ──
   html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;">`;
-  if(plan.weeklyVolume){
-    html+=`<div class="apl-day-block">
+  const weeklyVol=(plan.days||[]).length&&typeof aplComputeWeeklyVolume==='function'?aplComputeWeeklyVolume(plan):plan.weeklyVolume;
+  if(weeklyVol&&Object.keys(weeklyVol).length){
+    html+=`<div class="apl-day-block" data-apl-weekly-volume>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">📊 OBJĘTOŚĆ/TYDZIEŃ</div>
-      ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);text-transform:capitalize;">${k}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span></div>`).join('')}
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Serie robocze policzone z ćwiczeń w planie · D1, D2… = dzień treningowy</div>
+      ${Object.entries(weeklyVol).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);text-transform:capitalize;">${k}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span></div>`).join('')}
     </div>`;
   }
   if(plan.nutritionTip){
@@ -1864,6 +2442,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   html+=`</div>`;
 
   res.innerHTML=html;
+  if(typeof gwbRender==='function')gwbRender(plan,client);
 }
 
 function aplSetWeek(idx){
@@ -1997,6 +2576,7 @@ function aplMoveExercise(di,ei,dir){
   aplRerenderCurrent();
 }
 function aplSwapExercise(di,ei){
+  if(typeof gwbSwap==='function'&&gwbSwap(di,ei))return;
   const ex=aplLastPlan?.days[di]?.exercises[ei];
   if(!ex)return;
   aplEditExercise(di,ei);
@@ -2083,14 +2663,19 @@ function aplBuildSavedPlan(src,cid,client,id){
   };
   return withTrainer({
     id:id,
+    ...(typeof gwbSaveMetadata==='function'?gwbSaveMetadata(src):{}),
     name:src.planName||'Plan AI',
     rationale:src.rationale||null,
+    bookRules:Array.isArray(src.bookRules)?src.bookRules:null,
+    bookCoverage:src.bookCoverage||null,
     clientId:cid||null,
     clientName:client?client.name:'',
     method:src.method||'Custom',
     duration:src.weeks||8,
     progression:src.progression||'',
     amateurIntake:window._aplAmateurIntake?JSON.parse(JSON.stringify(window._aplAmateurIntake)):null,
+    // Tylko ślad wywiadu (bez danych zdrowotnych — plan czyta też klient).
+    planInterview:src.planInterview?{at:src.planInterview.at||'',method:src.planInterview.method||'',needsTrainerReview:!!src.planInterview.needsTrainerReview}:null,
     proIntake:window._aplProIntake?JSON.parse(JSON.stringify(window._aplProIntake)):null,
     weekKeys:weekKeys,
     currentWeek:curWeek,
@@ -2103,6 +2688,11 @@ function aplBuildSavedPlan(src,cid,client,id){
         const name=e.name||'Ćwiczenie';
         const out={
           name,
+          ...(e.exerciseId?{exerciseId:e.exerciseId}:{}),
+          ...(e.id?{id:e.id}:{}),
+          ...(e.muscleGroup?{muscleGroup:e.muscleGroup}:{}),
+          ...(e.cat?{cat:e.cat}:{}),
+          ...(e.loadUnit?{loadUnit:e.loadUnit}:{}),
           sets:wp.s||e.sets||'3',
           reps:wp.r||e.reps||'10',
           rest:wp.rest||e.rest||'90s',
@@ -2110,12 +2700,15 @@ function aplBuildSavedPlan(src,cid,client,id){
           rir:rirOf(wp,e),
           tempo:e.tempo||wp.tempo||'',
           kg:wp.kg||e.kg||'',
+          drop:wp.drop!=null?wp.drop:(e.drop||''),
+          dropStep:wp.dropStep!=null?wp.dropStep:(e.dropStep||''),
+          intensification:typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(e):[],
           note:e.notes||e.note||'',
           alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):'')
         };
         weekKeys.forEach(wk=>{
           const w=e[wk];
-          if(w&&typeof w==='object')out[wk]={s:w.s||'',r:w.r||'',rest:w.rest||'',rpe:w.rpe!=null?String(w.rpe):'',rir:rirOf(w,{}),kg:w.kg||''};
+          if(w&&typeof w==='object')out[wk]={s:w.s||'',r:w.r||'',rest:w.rest||'',rpe:w.rpe!=null?String(w.rpe):'',rir:rirOf(w,{}),kg:w.kg||'',drop:w.drop!=null?w.drop:out.drop,dropStep:w.dropStep!=null?w.dropStep:out.dropStep};
         });
         return out;
       })
@@ -2129,6 +2722,7 @@ let aplSaveState=null;
 /** Zapis planu AI potwierdzany przez bazę; ponowienie używa tego samego id (bez duplikatów). */
 async function aplSavePlan(){
   if(!aplLastPlan){notify('Brak planu do zapisania!');return null;}
+  if(typeof gwbBeforeSave==='function'&&!gwbBeforeSave(aplLastPlan))return null;
   if(window._aplAmateurIntake&&typeof aplAmateurPlanIssues==='function'){
     const issues=aplAmateurPlanIssues(aplLastPlan);window._aplAmateurPlanIssues=issues;
     if(issues.length){notify('Popraw plan Amator przed zapisem: '+issues[0]);return null;}
@@ -2158,6 +2752,7 @@ async function aplSavePlan(){
       return null;
     }
     state.saved=newPlan;state.savedSig=sig;
+    if(typeof gwbAfterSave==='function')gwbAfterSave(state.src,newPlan);
     if(btn){btn.disabled=false;btn.textContent='✓ Zapisany';}
     const ix=PL.findIndex(p=>p&&p.id===newPlan.id);
     if(ix>=0)PL[ix]=newPlan;else PL.push(newPlan);
@@ -2224,10 +2819,16 @@ function aplPlanChecks(plan,ctx){
     const red=aplPlanPatternRedundancy(plan,{notes:ctx.notes||''});
     if(red.length)out.push({tone:'watch',kind:'pattern',text:'Powtórzony wzorzec ruchowy — '+aplPatternRedundancyText(red)+'. Zamień przyciskiem 🔄.'});
   }
+  if(plan&&plan.frequencyRequest&&typeof aplFrequencyGaps==='function'){
+    const gaps=aplFrequencyGaps(plan,plan.frequencyRequest);
+    if(gaps.length)out.push({tone:'act',kind:'frequency',text:'Partia w mniej niż '+plan.frequencyRequest.min+' treningach ('+(plan.frequencyRequest.source==='notes'?'prośba z uwag':plan.frequencyRequest.source==='method'?'FBW':'zasada: każda partia 2× w tygodniu')+'): '+gaps.map(g=>g.label+' '+g.present.length+'×').join(', ')+' — dodaj ćwiczenie w drugim dniu.'});
+  }
+  if(plan&&Array.isArray(plan.frequencyFix)&&plan.frequencyFix.length)out.push({tone:'watch',kind:'frequency-fix',text:'Rozłożono partie na '+plan.frequencyRequest.min+' treningi: '+plan.frequencyFix.map(x=>x.group+' → '+x.to+' ('+x.exercise+', '+x.sets+' s.)').join('; ')+'. Możesz zamienić ćwiczenie na inny wariant przyciskiem 🔄.'});
   if(plan&&plan.incompleteDays>0)out.push({tone:'act',kind:'days',text:'AI nie wygenerowało '+plan.incompleteDays+' '+(plan.incompleteDays===1?'dnia':'dni')+' planu — wygeneruj plan ponownie albo dodaj dzień ręcznie.'});
   if(plan&&Array.isArray(plan.volumeTopUp)&&plan.volumeTopUp.length)out.push({tone:'watch',kind:'volume-topup',text:'Dołożono serie do minimum tygodniowego ('+(plan.volumeTarget&&plan.volumeTarget.label||'')+'): '+plan.volumeTopUp.map(x=>x.cat+' '+x.from+'→'+x.to).join(', ')+'.'});
   if(ctx.level&&typeof aplVolumeTarget==='function'&&days.length){
     const vt=aplVolumeTarget(ctx.level,ctx.duration,ctx.pharma);
+    if(typeof plivVolumeOverride==='function')plivVolumeOverride(vt);
     const isCore=e=>typeof aplNormalizeMuscleCategory==='function'&&aplNormalizeMuscleCategory(e)==='core';
     const shortDays=[];
     const weekly={};
@@ -2360,9 +2961,14 @@ function exportSavedPlanPDF(planId){
   const plan=(window.PL||[]).find(p=>p&&p.id===planId);
   if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
   const client=(window.CL||[]).find(c=>c&&c.id===plan.clientId)||(plan.clientName?{name:plan.clientName}:null);
-  const model=planToPdfModel(plan);
-  const html=buildPlanPDFHTML(model,client);
-  showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+String(model.planName||plan.name||'').toUpperCase());
+  try{
+    const model=planToPdfModel(plan);
+    const html=buildPlanPDFHTML(model,client);
+    showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+String(model.planName||plan.name||'').toUpperCase());
+  }catch(e){
+    console.error('exportSavedPlanPDF',e);
+    if(typeof notify==='function')notify('⚠ Nie udało się przygotować PDF: '+((e&&e.message)||e));
+  }
 }
 
 function planPdfEsc(s){
@@ -2407,12 +3013,13 @@ function planPdfWeekArrow(ex,wk,prevWk){
   if(dir<0)return '<span class="plan-pdf-arrow-dn">▼</span>';
   return '';
 }
-function planPdfWeekCell(ex,wk,prevWk){
+function planPdfWeekCell(ex,wk,prevWk,ints){
   const w=(ex&&ex[wk])||{};
   const s=w.s||ex.sets||'3';
   const r=w.r||ex.reps||'10';
   const rpe=w.rpe||ex.rpe||ex.rir||'';
-  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}</div>`;
+  const kg=w.kg!=null&&w.kg!==''?String(w.kg):'';
+  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}${kg?`<div class="plan-pdf-wk-kg">${planPdfEsc(kg)} kg</div>`:''}${(ints||[]).length&&typeof planPdfIntTag==='function'?`<div class="plan-pdf-wk-ints">${ints.map(planPdfIntTag).join('')}</div>`:''}</div>`;
 }
 
 /** Zapisany plan z biblioteki / profilu → model PDF (jak generator AI). */
@@ -2457,6 +3064,8 @@ function planToPdfModel(plan){
         notes,note:src.note||src.notes||'',
         tempo:src.tempo||'',
         priority:src.priority===true||src.priorytet===true,
+        intensification:src.intensification||src.intensificationMethods||'',
+        drop:src.drop||'',dropStep:src.dropStep||'',rp:src.rp||'',cluster:src.cluster||'',
         muscleGroup:src.muscleGroup||d.muscles||d.focus||''
       };
       weekKeys.forEach(wk=>{
@@ -2525,6 +3134,385 @@ function planPdfBiomechTip(ex){
   return cues[b.pattern]||'';
 }
 
+// ── Widok planu dla klienta: jeden tydzień na ekranie, cały cykl w wydruku ──
+function planPdfIsDeload(phase){return /deload|rozład/i.test(String(phase||''));}
+function planPdfDash(v){return String(v==null?'':v).replace(/\s*-\s*/g,'–');}
+function planPdfRestLabel(rest){
+  const raw=String(rest==null?'':rest).trim();
+  const m=raw.match(/^(\d+)\s*s(ek)?\.?$/i);
+  if(!m)return raw||'—';
+  const sec=parseInt(m[1],10);
+  if(sec<60)return sec+' s';
+  const min=Math.floor(sec/60),r=sec%60;
+  return r?min+':'+String(r).padStart(2,'0')+' min':min+' min';
+}
+function planPdfCleanTip(tip){
+  // „PRIORYTET:” jest już znaczkiem nad nazwą — nie powtarzamy go w tekście.
+  const t=String(tip||'').replace(/^\s*PRIORYTET\s*:?\s*/i,'').trim();
+  return t?t.charAt(0).toUpperCase()+t.slice(1):'';
+}
+function planPdfFirstSentence(tip){
+  const t=String(tip||'').trim();
+  const m=t.match(/^(.{12,}?[.!?])(\s|$)/);
+  const first=m?m[1]:t;
+  return first.length>90?first.slice(0,87).replace(/\s+\S*$/,'')+'…':first;
+}
+function planPdfStartWeek(plan,count){
+  let wk=0;
+  try{
+    const key='pl_plan_week_'+String(plan.planName||'').slice(0,60);
+    const v=parseInt((typeof localStorage!=='undefined'&&localStorage.getItem(key))||'',10);
+    if(!isNaN(v)&&v>=0&&v<count)wk=v;
+  }catch(_){ /* bez pamięci przeglądarki zaczynamy od tygodnia 1 */ }
+  return wk;
+}
+function planPdfSetWeek(btn,i){
+  const root=btn&&btn.closest?btn.closest('.plan-pdf'):null;
+  if(!root)return;
+  root.querySelectorAll('.plan-pdf-wtab').forEach(b=>{const on=+b.dataset.wk===i;b.classList.toggle('is-on',on);b.setAttribute('aria-selected',on);});
+  root.querySelectorAll('.plan-pdf-dose').forEach(d=>d.classList.toggle('is-on',+d.dataset.wk===i));
+  root.querySelectorAll('.plan-pdf-day-wk b').forEach(b=>{b.textContent=String(i+1);});
+  try{const name=root.getAttribute('data-plan')||'';localStorage.setItem('pl_plan_week_'+name.slice(0,60),String(i));}catch(_){}
+  if(btn.scrollIntoView)try{btn.scrollIntoView({block:'nearest',inline:'center'});}catch(_){}
+}
+function planPdfSetDay(btn,i){
+  const root=btn&&btn.closest?btn.closest('.plan-pdf'):null;
+  if(!root)return;
+  root.querySelectorAll('.plan-pdf-dtab').forEach(b=>b.classList.toggle('is-on',+b.dataset.day===i));
+  root.querySelectorAll('.plan-pdf-day').forEach(d=>d.classList.toggle('is-on',+d.dataset.day===i));
+}
+function planPdfToggleCycle(btn){
+  const root=btn&&btn.closest?btn.closest('.plan-pdf'):null;
+  if(!root)return;
+  const on=root.classList.toggle('show-cycle');
+  btn.textContent=on?'Ukryj tabelę cyklu':'Pokaż cały cykl w tabeli';
+}
+
+// ── Metody intensyfikacji na planie: wyraźny znaczek + proste wyjaśnienie dla klienta ──
+const PLAN_PDF_INT_SIMPLE={
+  myo_reps:{label:'MYO-REPS',color:'#1d4ed8',bg:'#eff4ff',when:'ostatnia seria',simple:'Zrób serię prawie do upadku. Odłóż ciężar na 3–5 głębokich oddechów (ok. 15 s) i zrób 3–5 powtórzeń. Powtórz takie mini-serie 3–4 razy tym samym ciężarem.'},
+  drop_set:{label:'DROP SET',color:'#c81e1e',bg:'#fff1f1',when:'ostatnia seria',simple:'Zrób serię prawie do upadku, od razu zmniejsz ciężar o ok. 25% i bez odpoczynku rób dalej, aż zostaną 1–2 powtórzenia w zapasie.'},
+  mechanical_drop_set:{label:'DROP SET MECHANICZNY',color:'#9f1239',bg:'#fff1f5',when:'ostatnia seria',simple:'Gdy kończą się siły, bez odpoczynku przejdź na łatwiejszą wersję tego ruchu tym samym ciężarem i rób dalej.'},
+  rest_pause:{label:'REST-PAUSE',color:'#b54708',bg:'#fff7ed',when:'ostatnia seria',simple:'Zrób serię prawie do upadku, odpocznij 15–20 s i dorób ile się da (zwykle 2–4 powtórzenia). Możesz to powtórzyć jeszcze raz.'},
+  superset:{label:'SUPER-SERIA',color:'#0f766e',bg:'#effcf9',when:'z następnym ćwiczeniem',simple:'Zrób to ćwiczenie i od razu, bez przerwy, drugie wskazane. Odpoczywasz dopiero po obu.'},
+  combined_sets:{label:'SERIE ŁĄCZONE',color:'#0e7490',bg:'#ecfeff',when:'blok ćwiczeń',simple:'Zrób wskazane ćwiczenia jedno po drugim, bez przerw. Odpoczywasz dopiero po całym bloku.'},
+  giant_set:{label:'SERIA GIGANT',color:'#155e75',bg:'#ecfeff',when:'blok ćwiczeń',simple:'Zrób cały blok ćwiczeń po kolei, bez przerw. Odpoczywasz po całej rundzie.'},
+  partial_reps:{label:'POWTÓRZENIA CZĘŚCIOWE',color:'#4d7c0f',bg:'#f7fee7',when:'koniec serii',simple:'Gdy nie dasz rady zrobić pełnego powtórzenia, dorób 3–5 krótszych ruchów w zakresie, który nie boli.'},
+  one_and_half:{label:'POWTÓRZENIA 1,5',color:'#3f6212',bg:'#f7fee7',when:'każde powtórzenie',simple:'Pełny ruch w dół, połowa w górę, znowu w dół i dopiero cały ruch w górę. To jedno powtórzenie.'},
+  cluster_set:{label:'CLUSTER SET',color:'#067647',bg:'#ecfdf3',when:'w trakcie serii',simple:'Podziel serię na małe porcje (np. po 3 powtórzenia) z 15–30 s przerwy, tym samym ciężarem.'},
+  eccentric:{label:'WOLNE OPUSZCZANIE',color:'#854d0e',bg:'#fefce8',when:'każde powtórzenie',simple:'Opuszczaj ciężar powoli, licząc do 3–5. W górę normalnym tempem.'},
+  hiit:{label:'INTERWAŁY',color:'#475569',bg:'#f1f5f9',when:'po treningu siłowym',simple:'Krótko bardzo mocno, potem spokojnie, według czasów z planu.'}
+};
+const PLAN_PDF_INT_RE=[['mechanical_drop_set','drop[ -]?set mechaniczn'],['drop_set','drop[ -]?set|drop[ -]?sety'],['rest_pause','rest[ -]?pause'],['myo_reps','myo[ -]?rep'],['superset','super[ -]?seri'],['giant_set','seri[ae] gigant'],['cluster_set','klast|cluster'],['one_and_half','1[,.]5 powt|powtórzeni[ae] 1[,.]5'],['partial_reps','częściow[ey]? powt|partial'],['eccentric','ekscentrycz'],['hiit','hiit|interwał']];
+function planPdfIntMethods(ex){
+  if(!ex)return [];
+  let list=[];
+  try{if(typeof exerciseIntensificationMethods==='function')list=exerciseIntensificationMethods(ex)||[];}catch(_){list=[];}
+  if(!list.length){
+    // Bez 01-core (np. w teście): czytamy pole intensification i flagi drop/rp/cluster wprost.
+    let raw=ex.intensification||[];if(!Array.isArray(raw))raw=raw?[raw]:[];
+    raw.forEach(x=>{const t=String(x&&typeof x==='object'?(x.type||x.name||''):x).toLowerCase().replace(/[\s-]+/g,'_');if(PLAN_PDF_INT_SIMPLE[t])list.push({type:t,protocol:x&&typeof x==='object'?(x.protocol||''):'',weeks:x&&typeof x==='object'&&Array.isArray(x.weeks)?x.weeks:null});});
+    if(ex.drop&&!list.some(m=>m.type==='drop_set'))list.push({type:'drop_set',protocol:''});
+    if(ex.rp&&!list.some(m=>m.type==='rest_pause'))list.push({type:'rest_pause',protocol:''});
+    if(ex.cluster&&!list.some(m=>m.type==='cluster_set'))list.push({type:'cluster_set',protocol:''});
+  }
+  const seen=new Set(list.map(m=>m.type));
+  const notes=String(ex.notes||ex.note||'');
+  PLAN_PDF_INT_RE.forEach(([type,re])=>{if(!seen.has(type)&&new RegExp(re,'i').test(notes)&&!(type==='drop_set'&&seen.has('mechanical_drop_set'))){seen.add(type);list.push({type,protocol:''});}});
+  return list.filter(m=>PLAN_PDF_INT_SIMPLE[m.type]).map(m=>{
+    const d=PLAN_PDF_INT_SIMPLE[m.type];
+    const weeks=Array.isArray(m.weeks)?m.weeks.map(n=>parseInt(n,10)).filter(n=>n>0):null;
+    return{type:m.type,label:d.label,color:d.color,bg:d.bg,when:d.when,protocol:String(m.protocol||'').trim(),simple:d.simple,weeks:weeks&&weeks.length?weeks:null};
+  });
+}
+function planPdfStripIntNote(tip,methods){
+  if(!tip||!methods||!methods.length)return tip;
+  // „Ostatnia seria: myo-reps.” znika z opisu, bo metoda ma własny, wyraźny opis.
+  const parts=String(tip).split(/(?<=[.!?])\s+/);
+  const out=parts.filter(sen=>!(sen.length<70&&PLAN_PDF_INT_RE.some(([type,re])=>methods.some(m=>m.type===type)&&new RegExp(re,'i').test(sen))));
+  return out.join(' ').trim();
+}
+// Tygodnie, w których metoda obowiązuje: z pola weeks albo wszystkie poza deloadem.
+function planPdfIntWeeks(m,weekKeys,phases){
+  const all=(weekKeys||[]).map((wk,i)=>i+1);
+  if(m.weeks)return all.filter(n=>m.weeks.includes(n));
+  return all.filter((n,i)=>!planPdfIsDeload((phases||{})[weekKeys[i]]));
+}
+function planPdfWeeksLabel(nums,total){
+  if(!nums.length)return '';
+  if(nums.length===total)return 'każdy tydzień';
+  const parts=[];let a=nums[0],b=nums[0];
+  nums.slice(1).concat([null]).forEach(n=>{if(n===b+1){b=n;return;}parts.push(a===b?'T'+a:'T'+a+'–T'+b);a=b=n;});
+  return parts.join(', ');
+}
+function planPdfWeekInts(ex,wk,wi,weekKeys,phases,methods){
+  const cell=ex&&ex[wk];
+  if(cell&&typeof cell==='object'&&cell.intensification!=null){
+    let raw=cell.intensification;if(!Array.isArray(raw))raw=raw?[raw]:[];
+    return raw.map(x=>String(x&&typeof x==='object'?(x.type||x.name||''):x).toLowerCase().replace(/[\s-]+/g,'_')).filter(t=>PLAN_PDF_INT_SIMPLE[t]).map(t=>({type:t,label:PLAN_PDF_INT_SIMPLE[t].label}));
+  }
+  return (methods||[]).filter(m=>planPdfIntWeeks(m,weekKeys,phases).includes(wi+1));
+}
+function planPdfIntTag(m){
+  const d=PLAN_PDF_INT_SIMPLE[m.type]||{};
+  return `<span class="plan-pdf-wk-int" data-int="${planPdfEsc(m.type)}" style="color:${d.color||'#c81e1e'};border-color:${d.color||'#c81e1e'};background:${d.bg||'#fff1f1'}">⚡ ${planPdfEsc(d.label||m.label||m.type)}</span>`;
+}
+function planPdfIntBlock(methods,cls,weekKeys,phases){
+  return methods.map(m=>{
+    const wl=weekKeys&&weekKeys.length>1?planPdfWeeksLabel(planPdfIntWeeks(m,weekKeys,phases),weekKeys.length):'';
+    return `<div class="${cls}" data-int="${planPdfEsc(m.type)}" style="border-color:${m.color};border-left-color:${m.color};background:${m.bg}"><b style="color:${m.color}">⚡ ${planPdfEsc(m.label)}</b> <small>${planPdfEsc(m.when)}${wl?' · '+planPdfEsc(wl):''}</small><span>${planPdfEsc(m.simple)}</span>${m.protocol&&m.protocol!==m.simple?`<em>Plan: ${planPdfEsc(m.protocol)}</em>`:''}</div>`;
+  }).join('');
+}
+
+// ── Wydruk / PDF planu: osobny, zwarty dokument (tabela całego cyklu), bez ekranu aplikacji w tle ──
+const PLAN_PDF_PRINT_CSS=`
+@page{size:A4 landscape;margin:9mm 8mm;}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+html,body{margin:0;background:#fff;color:#111827;font-family:Inter,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:9pt;}
+.pp-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid #e11f2e;padding-bottom:5px;margin-bottom:6px;}
+.pp-title{font-family:'Bebas Neue',Impact,sans-serif;font-size:20pt;letter-spacing:1px;color:#e11f2e;line-height:1;}
+.pp-sub{font-size:9pt;color:#374151;margin-top:2px;}
+.pp-meta{font-size:8.5pt;color:#374151;text-align:right;line-height:1.45;}
+.pp-meta b{color:#111827;}
+.pp-info{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:8pt;color:#374151;line-height:1.4;margin:0 0 6px;}
+.pp-info b{color:#111827;}
+.pp-info ul{margin:0;padding-left:14px;}
+.pp-day{margin-top:7px;break-inside:auto;}
+.pp-day-h{background:#16181f;color:#fff;font-weight:800;font-size:10pt;letter-spacing:0.3px;padding:4px 8px;border-radius:4px 4px 0 0;break-after:avoid;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+th,td{border:0.6pt solid #cbd5e1;padding:2.5pt 3pt;vertical-align:top;}
+thead th{background:#f1f5f9;font-size:7.5pt;font-weight:800;color:#111827;text-align:center;line-height:1.2;}
+thead th small{display:block;font-weight:500;color:#6b7280;font-size:6.8pt;}
+th.pp-n,td.pp-n{width:18pt;text-align:center;color:#6b7280;font-weight:700;}
+th.pp-ex{width:24%;text-align:left;}
+th.pp-rest,td.pp-rest{width:42pt;text-align:center;white-space:nowrap;}
+td.pp-exc .pp-name{font-weight:800;font-size:8.8pt;line-height:1.25;}
+td.pp-exc .pp-pri{display:inline-block;background:#e11f2e;color:#fff;font-size:6pt;font-weight:800;border-radius:6pt;padding:0 4pt;margin-right:3pt;vertical-align:1pt;}
+td.pp-exc .pp-tip{font-size:7pt;color:#4b5563;line-height:1.3;margin-top:1.5pt;}
+td.pp-wk{text-align:center;line-height:1.2;}
+td.pp-wk b{display:block;font-size:9.5pt;font-weight:800;white-space:nowrap;}
+td.pp-wk span{display:block;font-size:7pt;color:#4b5563;white-space:nowrap;}
+.is-deload{background:#ecfdf3;}
+tr{break-inside:avoid;}
+tbody tr:nth-child(even) td{background-color:#fafbfc;}
+tbody tr:nth-child(even) td.is-deload{background:#e3f8ea;}
+.pp-int{margin-top:2.5pt;border:0.8pt solid #e11f2e;border-left:3pt solid #e11f2e;background:#fff1f2;border-radius:3pt;padding:2pt 4pt;font-size:7.4pt;line-height:1.3;color:#111827;break-inside:avoid;}
+.pp-int b{color:#b4151f;font-size:8pt;letter-spacing:0.2px;}
+.pp-int i{font-style:normal;color:#6b7280;font-size:7pt;}
+.pp-int span{display:block;}
+.pp-int .pp-int-plan{color:#374151;margin-top:1pt;}
+.pp-wint{display:block;margin:1.5pt auto 0;font-style:normal;font-weight:800;font-size:6.3pt;letter-spacing:0.2px;border:0.6pt solid;border-radius:5pt;padding:0 2pt;white-space:nowrap;width:fit-content;}
+.pp-legend{margin-top:8px;border:0.8pt solid #cbd5e1;border-radius:4pt;padding:5pt 7pt;break-inside:avoid;}
+.pp-legend-h{font-weight:800;font-size:9.5pt;margin-bottom:4pt;}
+.pp-legend-i{border-left:4pt solid;border-radius:2pt;padding:2.5pt 6pt;margin-bottom:3pt;font-size:8pt;line-height:1.35;}
+.pp-legend-i b{display:inline-block;min-width:105pt;font-size:8.3pt;}
+.pp-legend-note{font-size:7.5pt;color:#4b5563;margin-top:2pt;}
+.pp-up{color:#067647;font-size:6.5pt;}.pp-dn{color:#b42318;font-size:6.5pt;}
+.pp-foot{margin-top:6px;font-size:7pt;color:#6b7280;display:flex;justify-content:space-between;gap:14px;}
+.pp-foot span:last-child{white-space:nowrap;}
+`;
+function planPdfPrintHTML(root){
+  if(!root)return '';
+  const txt=el=>el?String(el.textContent||'').trim():'';
+  const esc=planPdfEsc;
+  const title=txt(root.querySelector('.plan-pdf-sub'));
+  const kpis=[...root.querySelectorAll('.plan-pdf-kpi')].map(k=>`${esc(txt(k.querySelector('.plan-pdf-kpi-lbl')))}: <b>${esc(txt(k.querySelector('.plan-pdf-kpi-val')))}</b>`).join('<br>');
+  const boxes=[...root.querySelectorAll('.plan-pdf-cols .plan-pdf-box')].map(b=>{
+    const h=txt(b.querySelector('.plan-pdf-box-h')).replace(/^[^\p{L}]+/u,'');
+    const lis=[...b.querySelectorAll('li')].map(li=>`<li>${esc(txt(li))}</li>`).join('');
+    return `<div><b>${esc(h)}:</b> ${lis?`<ul>${lis}</ul>`:esc(txt(b.querySelector('p')))}</div>`;
+  }).join('');
+  const used=new Map();
+  const days=[...root.querySelectorAll('.plan-pdf-day')].map(day=>{
+    const head=txt(day.querySelector('.plan-pdf-day-h')?.firstChild);
+    const ths=[...day.querySelectorAll('.plan-pdf-cycle thead th')].slice(1);
+    const cols=ths.map(th=>{
+      const ph=txt(th.querySelector('.plan-pdf-phase'));
+      const label=txt(th).replace(ph,'').replace(/Tydzień\s*/i,'T').trim();
+      return `<th class="${th.classList.contains('is-deload')?'is-deload':''}">${esc(label)}${ph?`<small>${esc(ph)}</small>`:''}</th>`;
+    }).join('');
+    const rows=[...day.querySelectorAll('.plan-pdf-cycle tr.plan-pdf-row')].map((tr,i)=>{
+      const tds=[...tr.children];
+      const exTd=tds[0];
+      const tipRow=tr.nextElementSibling&&tr.nextElementSibling.classList.contains('plan-pdf-tiprow')?tr.nextElementSibling:null;
+      const tipSpan=tipRow?[...tipRow.querySelectorAll('span')].find(sp=>/^Wskazówka:/.test(txt(sp))):null;
+      const tip=tipSpan?txt(tipSpan).replace(/^Wskazówka:\s*/,''):'';
+      const ints=tipRow?[...tipRow.querySelectorAll('.plan-pdf-int')].map(el=>{
+        const type=el.getAttribute('data-int')||'';const d=PLAN_PDF_INT_SIMPLE[type]||{};
+        used.set(type,{label:d.label||txt(el.querySelector('b')).replace(/^⚡\s*/,''),color:d.color||'#c81e1e',bg:d.bg||'#fff1f1',simple:d.simple||txt(el.querySelector('span'))});
+        return `<div class="pp-int" style="border-color:${d.color||'#c81e1e'};background:${d.bg||'#fff1f1'}"><b style="color:${d.color||'#c81e1e'}">⚡ ${esc(d.label||'')}</b> <i>${esc(txt(el.querySelector('small')))}</i>${el.querySelector('em')?`<span class="pp-int-plan">${esc(txt(el.querySelector('em')))}</span>`:''}</div>`;
+      }).join(''):'';
+      const rest=txt(exTd.querySelector('.plan-pdf-rest')).replace(/^⏱\s*/,'');
+      const pri=!!exTd.querySelector('.plan-pdf-pri');
+      const wks=tds.slice(1).map(td=>{
+        const sr=td.querySelector('.plan-pdf-wk-sr');
+        const arrow=sr&&sr.querySelector('.plan-pdf-arrow-up')?'<i class="pp-up">▲</i>':(sr&&sr.querySelector('.plan-pdf-arrow-dn')?'<i class="pp-dn">▼</i>':'');
+        const srTxt=txt(sr).replace(/[▲▼]/g,'').replace(/-/g,'–');
+        const extra=[txt(td.querySelector('.plan-pdf-wk-rpe')),txt(td.querySelector('.plan-pdf-wk-kg'))].filter(Boolean).join(' · ');
+        const tags=[...td.querySelectorAll('.plan-pdf-wk-int')].map(t=>{const d=PLAN_PDF_INT_SIMPLE[t.getAttribute('data-int')]||{};return `<em class="pp-wint" style="color:${d.color||'#c81e1e'};border-color:${d.color||'#c81e1e'};background:${d.bg||'#fff1f1'}">${esc(d.label||txt(t).replace(/^⚡\s*/,''))}</em>`;}).join('');
+        const first=td.querySelector('.plan-pdf-wk-int');const fd=first?(PLAN_PDF_INT_SIMPLE[first.getAttribute('data-int')]||{}):null;
+        return `<td class="pp-wk${td.classList.contains('is-deload')?' is-deload':''}"${fd?` style="box-shadow:inset 0 -2.5pt 0 ${fd.color};background:${fd.bg}"`:''}><b>${esc(srTxt)}${arrow}</b>${extra?`<span>${esc(extra)}</span>`:''}${tags}</td>`;
+      }).join('');
+      return `<tr><td class="pp-n">${i+1}</td><td class="pp-exc"><div class="pp-name">${pri?'<span class="pp-pri">PRIORYTET</span>':''}${esc(txt(exTd.querySelector('.plan-pdf-ex-name')))}</div>${tip?`<div class="pp-tip">${esc(tip)}</div>`:''}${ints}</td><td class="pp-rest">${esc(rest)}</td>${wks}</tr>`;
+    }).join('');
+    return `<section class="pp-day"><div class="pp-day-h">${esc(head)}</div><table><thead><tr><th class="pp-n">#</th><th class="pp-ex">Ćwiczenie</th><th class="pp-rest">Pauza</th>${cols}</tr></thead><tbody>${rows}</tbody></table></section>`;
+  }).join('');
+  const foot=txt(root.querySelector('.plan-pdf-foot'));
+  return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(title||'Plan treningowy')}</title><style>${PLAN_PDF_PRINT_CSS}</style></head><body>
+<div class="pp-head"><div><div class="pp-title">PLAN TRENINGOWY</div><div class="pp-sub">${esc(title)}</div></div><div class="pp-meta">${kpis}</div></div>
+${boxes?`<div class="pp-info">${boxes}</div>`:''}
+${days}
+${used.size?`<section class="pp-legend"><div class="pp-legend-h">⚡ Metody intensyfikacji — jak je wykonać</div>${[...used.values()].map(u=>`<div class="pp-legend-i" style="border-left-color:${u.color};background:${u.bg}"><b style="color:${u.color}">${esc(u.label)}</b><span>${esc(u.simple)}</span></div>`).join('')}<div class="pp-legend-note">Kolorowa kratka w tygodniu = w tym tygodniu robisz tę metodę (zwykle w ostatniej serii). Kratka bez koloru = zwykłe serie.</div></section>`:''}
+<div class="pp-foot"><span>W komórce: serie × powtórzenia, pod spodem RPE i ciężar. ▲ ▼ zmiana względem poprzedniego tygodnia. Zielona kolumna = deload. Kolor i ⚡ = metoda intensyfikacji (objaśnienie na końcu).</span><span>${esc(foot)}</span></div>
+</body></html>`;
+}
+function planPdfPrint(){
+  const root=document.querySelector('#report-container .plan-pdf');
+  if(!root){window.print();return;}
+  const html=planPdfPrintHTML(root);
+  let fr=document.getElementById('plan-pdf-print-frame');
+  if(fr)fr.remove();
+  fr=document.createElement('iframe');
+  fr.id='plan-pdf-print-frame';
+  fr.setAttribute('aria-hidden','true');
+  fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(fr);
+  const doc=fr.contentWindow.document;
+  doc.open();doc.write(html);doc.close();
+  setTimeout(()=>{
+    try{fr.contentWindow.focus();fr.contentWindow.print();}
+    catch(_){window.print();}
+  },250);
+}
+
+// Pobierz PDF: ten sam zwarty dokument co wydruk, zapisany jako plik (do wysłania klientowi).
+let planPdfLibLoading=null;
+function planPdfLibReady(){
+  if(window.html2pdf)return Promise.resolve();
+  if(!planPdfLibLoading)planPdfLibLoading=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');s.src='assets/vendor/html2pdf.bundle.min.js';
+    s.onload=resolve;s.onerror=()=>{planPdfLibLoading=null;s.remove();reject(new Error('lib'));};
+    document.head.appendChild(s);
+  });
+  return planPdfLibLoading;
+}
+function planPdfFileName(root){
+  const sub=String(root&&root.querySelector('.plan-pdf-sub')?.textContent||'').trim();
+  // Nazwa pliku bez polskich znaków i symboli — część przeglądarek inaczej odrzuca nazwę i zapisuje „download”.
+  const who=sub.split(/\s+·\s+/)[0].normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L')
+    .replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);
+  return 'Plan treningowy'+(who?' - '+who:'')+'.pdf';
+}
+// Strona A4 poziomo minus marginesy (7 mm po bokach, 8 mm góra/dół) w px przy 96 dpi — tak liczy html2pdf.
+const PLAN_PDF_DL_W=Math.floor((297-14)*96/25.4);
+const PLAN_PDF_DL_H=Math.floor((210-16)*96/25.4);
+/** Łamanie stron przed renderem: wiersz tabeli nie jest cięty, tabela dnia przechodzi na kolejną stronę
+ *  z nagłówkiem „(cd.)” i kolumnami T1–T8, nagłówek dnia nie zostaje sam na dole strony. */
+function planPdfPaginate(box,pageH){
+  if(!box||!pageH)return 0;
+  const base=()=>box.getBoundingClientRect().top;
+  const topOf=el=>el.getBoundingClientRect().top-base();
+  const crosses=(t,b)=>Math.floor(t/pageH)!==Math.floor((b-1)/pageH);
+  const atPageTop=t=>t%pageH<3;
+  const brk=()=>{const d=document.createElement('div');d.className='html2pdf__page-break';return d;};
+  let breaks=0;
+  for(let guard=0;guard<300;guard++){
+    let changed=false;
+    for(const el of box.querySelectorAll('.pp-head,.pp-info,.pp-day,.pp-legend,.pp-foot')){
+      if(el.classList.contains('pp-day')){
+        const head=el.querySelector('.pp-day-h'),rows=[...el.querySelectorAll('tbody > tr')];
+        const t=topOf(el);
+        const firstEnd=rows[0]?rows[0].getBoundingClientRect().bottom-base():t+el.offsetHeight;
+        if(crosses(t,firstEnd)&&!atPageTop(t)){el.before(brk());changed=true;break;}
+        const cut=rows.findIndex((r,i)=>i>0&&crosses(topOf(r),topOf(r)+r.offsetHeight));
+        if(cut>0){
+          const cont=el.cloneNode(false),table=el.querySelector('table');
+          const h=head.cloneNode(true);if(!/\(cd\.\)\s*$/.test(h.textContent))h.textContent=h.textContent+' (cd.)';
+          const t2=table.cloneNode(false),tb=document.createElement('tbody');
+          t2.appendChild(table.querySelector('thead').cloneNode(true));t2.appendChild(tb);
+          rows.slice(cut).forEach(r=>tb.appendChild(r));
+          cont.appendChild(h);cont.appendChild(t2);
+          el.after(cont);el.after(brk());
+          changed=true;break;
+        }
+      }else{
+        const t=topOf(el);
+        if(crosses(t,t+el.offsetHeight)&&!atPageTop(t)&&el.offsetHeight<pageH){el.before(brk());changed=true;break;}
+      }
+    }
+    if(!changed){
+      // html2pdf sam dopełnia stronę za każdym łamaniem — zostawiamy puste znaczniki.
+      box.querySelectorAll('.html2pdf__page-break').forEach(d=>{d.style.height='';});
+      break;
+    }
+    breaks++;
+    // Wstawione łamanie wypełnia resztę strony, tak jak zrobi to html2pdf.
+    box.querySelectorAll('.html2pdf__page-break').forEach(d=>{d.style.height='0px';});
+    box.querySelectorAll('.html2pdf__page-break').forEach(d=>{const t=topOf(d);d.style.height=(Math.ceil((t+0.5)/pageH)*pageH-t)+'px';});
+  }
+  return breaks;
+}
+window.planPdfPaginate=planPdfPaginate;
+function planPdfScopedCSS(){
+  return PLAN_PDF_PRINT_CSS.replace(/@page\{[^}]*\}/g,'').split('}').map(rule=>{
+    const i=rule.indexOf('{');if(i<0)return rule;
+    const sel=rule.slice(0,i).trim(),decl=rule.slice(i);
+    const scoped=sel.split(',').map(x=>{x=x.trim();if(x==='html'||x==='body')return '.pp-root';if(x==='*')return '.pp-root, .pp-root *';return '.pp-root '+x;}).join(',');
+    return scoped+decl;
+  }).join('}')+'.pp-root{width:'+PLAN_PDF_DL_W+'px;padding:0;margin:0;line-height:normal;text-align:left;}';
+}
+async function planPdfDownload(){
+  const root=document.querySelector('#report-container .plan-pdf');
+  const say=m=>{if(typeof notify==='function')notify(m);};
+  if(!root){say('Otwórz plan treningowy, aby pobrać PDF.');return null;}
+  const btn=document.getElementById('plan-pdf-dl-btn');
+  const label=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Przygotowuję PDF…';}
+  let fr=null;
+  try{
+    await planPdfLibReady();
+    const filename=planPdfFileName(root);
+    // html2pdf rysuje element w głównym dokumencie, więc style wydruku zawężamy do .pp-root.
+    const html=planPdfPrintHTML(root);
+    const body=(html.match(/<body>([\s\S]*)<\/body>/)||[])[1]||'';
+    fr=document.createElement('div');
+    fr.className='pp-root';
+    fr.innerHTML='<style>'+planPdfScopedCSS()+'</style>'+body;
+    document.body.appendChild(fr);
+    try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(_){}
+    planPdfPaginate(fr,PLAN_PDF_DL_H);
+    const blob=await window.html2pdf().set({
+      margin:[8,7,8,7],filename,
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,backgroundColor:'#ffffff',logging:false},
+      jsPDF:{unit:'mm',format:'a4',orientation:'landscape',compress:true},
+      // Podział stron robi planPdfPaginate (tabela dzielona z powtórzonym nagłówkiem), html2pdf tylko wstawia łamania.
+      pagebreak:{mode:['legacy']}
+    }).from(fr).outputPdf('blob');
+    const file=typeof File==='function'?new File([blob],filename,{type:'application/pdf'}):null;
+    // Na telefonie od razu „Udostępnij” (WhatsApp, mail); na komputerze zwykłe pobranie pliku.
+    const mobile=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
+    if(mobile&&file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:filename.replace(/\.pdf$/,'')});return blob;}
+      catch(e){if(e&&e.name==='AbortError')return blob;}
+    }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    say('✅ PDF zapisany: '+filename);
+    return blob;
+  }catch(e){
+    console.warn('planPdfDownload',e);
+    say('⚠ Nie udało się przygotować PDF. Użyj „Drukuj / PDF” i wybierz „Zapisz jako PDF”.');
+    return null;
+  }finally{
+    if(fr)fr.remove();
+    if(btn){btn.disabled=false;btn.textContent=label||'⬇ Pobierz PDF';}
+  }
+}
+window.planPdfDownload=planPdfDownload;
+
 function buildPlanPDFHTML(plan,client){
   plan=plan||{};
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
@@ -2536,8 +3524,8 @@ function buildPlanPDFHTML(plan,client){
   const prog=planPdfProgressionLabel(plan);
   const rules=(plan.progressionRules&&plan.progressionRules.length)?plan.progressionRules:(
     plan.periodization?String(plan.periodization).split(/[.;]\s+/).map(s=>s.trim()).filter(s=>s.length>8):[
-      'Progresja liniowa: co tydzień +2.5 kg na wielostawach, gdy RPE ≤ 8.',
-      'Izolacje: najpierw +1 powtórzenie w zakresie, potem +1.25 kg.',
+      'Podwójna progresja: w zakresie powtórzeń dokładaj powtórzenia przy tym samym ciężarze; gdy zrobisz górę zakresu we wszystkich seriach, zwiększ ciężar.',
+      'Skok ciężaru wg sprzętu: sztanga i Smith +2,5 kg, hantle +1–2 kg, wyciąg i maszyny najmniejszy skok stosu (2,5–5 kg).',
       (plan.deload||'Deload co 4–6 tygodni: 50–70% objętości, RPE 5–6.')
     ]
   );
@@ -2547,7 +3535,7 @@ function buildPlanPDFHTML(plan,client){
   if(wuEx.length)warmupBits.push(wuEx.map(w=>w.name+(w.note?' — '+w.note:'')).join('; '));
   const warmupText=warmupBits.join(' ')||'5 min rower stacjonarny + mobilizacja barków/bioder + 2 serie rozjazdowe na pierwszym wielostawie.';
 
-  let html=`<div class="plan-pdf">
+  let html=`<div class="plan-pdf" data-plan="${planPdfEsc(String(plan.planName||'').slice(0,60))}">
     <div class="plan-pdf-brand">
       <img class="plan-pdf-logo" src="assets/brand/progress-logo.jpg" alt="">
       <div>
@@ -2574,35 +3562,81 @@ function buildPlanPDFHTML(plan,client){
       </div>
     </div>`;
 
-  (plan.days||[]).forEach((day,di)=>{
+  const startWk=planPdfStartWeek(plan,weekKeys.length);
+  const fmtPhase=wk=>phases[wk]?planPdfEsc(phases[wk]):'';
+  // Przełącznik tygodni (ekran). Wydruk pokazuje zawsze pełną tabelę cyklu.
+  if(weekKeys.length>1){
+    html+=`<div class="plan-pdf-weeknav" role="tablist" aria-label="Tydzień planu">
+      ${weekKeys.map((wk,i)=>`<button type="button" role="tab" class="plan-pdf-wtab${i===startWk?' is-on':''}${planPdfIsDeload(phases[wk])?' is-deload':''}" data-wk="${i}" aria-selected="${i===startWk}" onclick="planPdfSetWeek(this,${i})"><b>T${i+1}</b>${phases[wk]?`<span>${fmtPhase(wk)}</span>`:''}</button>`).join('')}
+    </div>`;
+  }
+  const days=(plan.days||[]);
+  if(days.length>1){
+    html+=`<div class="plan-pdf-daynav">${days.map((day,di)=>`<button type="button" class="plan-pdf-dtab${di===0?' is-on':''}" data-day="${di}" onclick="planPdfSetDay(this,${di})">Dzień ${di+1}${day.focus?`<span>${planPdfEsc(day.focus)}</span>`:''}</button>`).join('')}</div>`;
+  }
+
+  days.forEach((day,di)=>{
     const title=day.dayName||('Dzień '+(di+1));
-    html+=`<div class="plan-pdf-day">
-      <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}</div>
-      <table class="plan-pdf-tbl">
+    const exs=day.exercises||[];
+    const cards=exs.map((e,ei)=>{
+      const pri=planPdfIsPriority(e,client)||ei===0;
+      const rest=e.rest||((e.w1||{}).rest)||'90s';
+      const ints=planPdfIntMethods(e);
+      const tip=planPdfStripIntNote(planPdfCleanTip(e.notes||e.note||e.tempo||''),ints);
+      const biomechTip=planPdfBiomechTip(e);
+      const doses=weekKeys.map((wk,wi)=>{
+        const w=e[wk]||{};
+        const sets=w.s||e.sets||'3',reps=w.r||e.reps||'10',rpe=w.rpe||e.rpe||'';
+        const wrest=w.rest||rest;
+        const kg=w.kg!=null&&w.kg!==''?String(w.kg):'';
+        return `<div class="plan-pdf-dose${wi===startWk?' is-on':''}" data-wk="${wi}">
+          <div class="plan-pdf-dose-sr"><b>${planPdfEsc(sets)}</b><i>×</i><b>${planPdfEsc(planPdfDash(reps))}</b>${planPdfWeekArrow(e,wk,wi?weekKeys[wi-1]:'')}</div>
+          <div class="plan-pdf-chips">${rpe?`<span class="plan-pdf-chip"><small>RPE</small> <b>${planPdfEsc(rpe)}</b></span>`:''}${kg?`<span class="plan-pdf-chip"><small>Ciężar</small> <b>${planPdfEsc(kg)} kg</b></span>`:''}<span class="plan-pdf-chip"><small>Pauza</small> <b>${planPdfEsc(planPdfRestLabel(wrest))}</b></span>${planPdfWeekInts(e,wk,wi,weekKeys,phases,ints).map(planPdfIntTag).join('')}</div>
+        </div>`;
+      }).join('');
+      const hint=planPdfFirstSentence(tip);
+      const tipMore=hint&&tip.startsWith(hint)?tip.slice(hint.length).trim():tip;
+      const how=(tipMore||biomechTip)?`<details class="plan-pdf-how"><summary>Jak wykonać</summary>${tipMore?`<div class="plan-pdf-how-h">Wskazówka</div><p>${planPdfEsc(tipMore)}</p>`:''}${biomechTip?`<div class="plan-pdf-how-h">Biomechanika</div><p>${planPdfEsc(biomechTip)}</p>`:''}</details>`:'';
+      return `<div class="plan-pdf-card${pri?' is-pri':''}">
+        <div class="plan-pdf-card-top"><span class="plan-pdf-num">${ei+1}</span><div>${pri?'<span class="plan-pdf-pri">PRIORYTET</span>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div>${hint?`<div class="plan-pdf-hint">${planPdfEsc(hint)}</div>`:''}</div></div>
+        ${doses}
+        ${ints.length?`<div class="plan-pdf-ints">${planPdfIntBlock(ints,'plan-pdf-int',weekKeys,phases)}</div>`:''}
+        ${how}
+      </div>`;
+    }).join('');
+    const rows=exs.map((e,ei)=>{
+      const pri=planPdfIsPriority(e,client)||ei===0;
+      const rest=e.rest||((e.w1||{}).rest)||'90s';
+      const ints=planPdfIntMethods(e);
+      const tip=planPdfStripIntNote(planPdfCleanTip(e.notes||e.note||e.tempo||''),ints);
+      const biomechTip=planPdfBiomechTip(e);
+      return `<tr class="plan-pdf-row">
+            <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div><div class="plan-pdf-rest">⏱ ${planPdfEsc(planPdfRestLabel(rest))}</div></td>
+            ${weekKeys.map((wk,wi)=>`<td class="${planPdfIsDeload(phases[wk])?'is-deload':''}">${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'',planPdfWeekInts(e,wk,wi,weekKeys,phases,ints))}</td>`).join('')}
+          </tr>${(tip||biomechTip||ints.length)?`<tr class="plan-pdf-tiprow"><td colspan="${weekKeys.length+1}">${planPdfIntBlock(ints,'plan-pdf-int is-row',weekKeys,phases)}${tip?`<span><b>Wskazówka:</b> ${planPdfEsc(tip)}</span>`:''}${biomechTip?`<span><b>Biomechanika:</b> ${planPdfEsc(biomechTip)}</span>`:''}</td></tr>`:''}`;
+    }).join('');
+    html+=`<div class="plan-pdf-day${di===0?' is-on':''}" data-day="${di}">
+      <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}<span class="plan-pdf-day-wk">${weekKeys.length>1?`Tydzień <b>${startWk+1}</b> z ${weekKeys.length}`:''}</span></div>
+      <div class="plan-pdf-cards">${cards}</div>
+      <div class="plan-pdf-cycle">
+        <div class="plan-pdf-cycle-h">Cały cykl — ${weekKeys.length} ${weekKeys.length===1?'tydzień':(weekKeys.length<5?'tygodnie':'tygodni')}</div>
+        <div class="plan-pdf-cycle-scroll"><table class="plan-pdf-tbl">
         <thead><tr>
           <th class="plan-pdf-ex">Ćwiczenie</th>
-          ${weekKeys.map((wk,i)=>`<th>Tydzień ${i+1}${phases[wk]?`<span class="plan-pdf-phase">${planPdfEsc(phases[wk])}</span>`:''}</th>`).join('')}
-          <th class="plan-pdf-tip">Pauza / wskazówka</th>
+          ${weekKeys.map((wk,i)=>`<th class="${planPdfIsDeload(phases[wk])?'is-deload':''}">Tydzień ${i+1}${phases[wk]?`<span class="plan-pdf-phase">${fmtPhase(wk)}</span>`:''}</th>`).join('')}
         </tr></thead>
-        <tbody>
-        ${(day.exercises||[]).map((e,ei)=>{
-          const pri=planPdfIsPriority(e,client)||ei===0;
-          const rest=e.rest||((e.w1||{}).rest)||'90s';
-          const tip=e.notes||e.note||e.tempo||'';
-          const biomechTip=planPdfBiomechTip(e);
-          return `<tr>
-            <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div></td>
-            ${weekKeys.map((wk,wi)=>`<td>${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
-            <td class="plan-pdf-tip-cell"><div class="plan-pdf-rest">⏱ ${planPdfEsc(rest)}</div>${tip?planPdfEsc(tip):''}${biomechTip?`<div style="margin-top:7px;color:#536b93;font-size:10px;line-height:1.35;"><b>🦴 Biomechanika:</b> ${planPdfEsc(biomechTip)}</div>`:''}</td>
-          </tr>`;
-        }).join('')}
-        </tbody>
-      </table>
+        <tbody>${rows}</tbody>
+      </table></div>
+      </div>
     </div>`;
   });
+  if(weekKeys.length>1&&days.length){
+    html+=`<button type="button" class="plan-pdf-cycle-btn" onclick="planPdfToggleCycle(this)">Pokaż cały cykl w tabeli</button>`;
+  }
 
-  if(plan.weeklyVolume&&typeof plan.weeklyVolume==='object'){
-    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
+  const pdfVol=(plan.days||[]).length&&typeof aplComputeWeeklyVolume==='function'?aplComputeWeeklyVolume(plan):plan.weeklyVolume;
+  if(pdfVol&&typeof pdfVol==='object'&&Object.keys(pdfVol).length){
+    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(pdfVol).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
   }
   if(plan.adaptation_notes){
     html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">🏃 Sporty dodatkowe</div><p>${planPdfEsc(plan.adaptation_notes)}</p></div>`;
@@ -2615,6 +3649,7 @@ function buildPlanPDFHTML(plan,client){
 }
 
 function aplReset(){
+  if(typeof gwbGenerating==='function')gwbGenerating();
   aplLastPlan=null;
   window._aplAmateurIntake=null;
   window._aplProIntake=null;
@@ -2627,7 +3662,7 @@ window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplClientCardSummaryHtml=aplClientCardSummaryHtml;window.aplSyncClientDupUi=aplSyncClientDupUi;
 window.aplEditClientFromCard=aplEditClientFromCard;window.aplRefreshFromSavedClient=aplRefreshFromSavedClient;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
-window.buildPlanPDFHTML=buildPlanPDFHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
+window.buildPlanPDFHTML=buildPlanPDFHTML;window.planPdfSetWeek=planPdfSetWeek;window.planPdfSetDay=planPdfSetDay;window.planPdfToggleCycle=planPdfToggleCycle;window.planPdfPrint=planPdfPrint;window.planPdfPrintHTML=planPdfPrintHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 
 // ════════════════════════════════════════
@@ -3242,7 +4277,7 @@ function aicShowWelcome(){
     <div style="width:64px;height:64px;border-radius:20px;background:var(--adim);border:1px solid rgba(230,0,0,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
       <div class="ai-dot" style="width:14px;height:14px;"></div>
     </div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI COACH</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI coach</div>
     <div style="font-size:13px;color:var(--muted);max-width:420px;line-height:1.7;margin-bottom:24px;">Twój asystent AI z wiedzą NSCA/NASM/ACSM. Tryb <b>Sztab ekspercki</b> pyta biomechanikę, dev i biznes po kolei — gdy pytanie nie pasuje do żadnego, odzywają się wszyscy.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       ${Object.entries(AIC_MODES).map(([k,m])=>`<button class="aic-suggestion" onclick="setAICMode('${k}',document.getElementById('aicm-${k}'));document.getElementById('aic-input').focus();">${m.label}</button>`).join('')}

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Etap 6B: fundament danych do analizy progresji ćwiczenia (bez scoringu / UI). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -29,10 +30,10 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache 10', html.includes('10-client-app.js?v=44'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 91));
+ok('cache 10', cacheAtLeast(html, '10-client-app.js', 44));
 ok('CI', wf.includes('test_ex_progress_history.js'));
 ok('live serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.test(live));
 ok('client serialize', /function cwLoggedExercises[\s\S]*?exerciseId:ex\.exerciseId[\s\S]*?\.filter\(s=>s\.done\)/.test(client) && /exercises:cwLoggedExercises\(cw\)/.test(client));

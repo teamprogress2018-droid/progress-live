@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Client profile navigation names and overflow destinations. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const root=path.join(__dirname,'../..');
@@ -30,11 +31,11 @@ const overview=src08.slice(src08.indexOf('function renderCPOverview'),src08.inde
 ok('overview measurement shortcut opens the edit/history screen',/id="cp-ov-card-metrics"[^>]*onclick="setCPTab\('metrics'\)"/.test(overview)&&/Pomiary →/.test(overview));
 const progress=src08.slice(src08.indexOf('function renderCPProgress'),src08.indexOf('window.renderCPProgress'));
 ok('postęp screen uses one empty-training message',/Brak zapisanych treningów/.test(progress)&&/data-cp-panel="train" class="stat-card cp-progress-empty"/.test(progress)&&/Rozpocznij trening/.test(progress));
-ok('summary hides empty wellbeing habits and streaks',/data-cp-panel="checkin"\$\{ciPts\.length\?'':' data-cp-summary-hide="empty"'\}/.test(progress)&&/data-cp-panel="habits"\$\{habits\.length\?'':' data-cp-summary-hide="empty"'\}/.test(progress)&&/hideOnSummary/.test(src08));
+ok('summary hides empty wellbeing habits and streaks',/data-cp-panel="checkin"\$\{ciPts\.length\?'':' data-cp-summary-hide="empty"'\}/.test(progress)&&/data-cp-panel="habits"(?: class="[^"]*")?\$\{habits\.length\?'':' data-cp-summary-hide="empty"'\}/.test(progress)&&/hideOnSummary/.test(src08));
 ok('empty photos are a short photos link',/Brak zdjęć/.test(progress)&&/onclick="setCPTab\('photos'\)">Zdjęcia<\/button>/.test(progress)&&/Otwórz porównanie/.test(progress));
 ok('plan realization shows no data without assignments',/adh30\.assigned\?`\$\{adh30\.pct\}%`:'Brak danych'/.test(progress)&&/Realizacja planu · 30 dni/.test(progress));
 ok('timeline heading says Historia aktywności',/class="cp-section-title">Historia aktywności<\/div>/.test(src08));
-ok('updated app script caches',/07-forms-metrics-calculator\.js\?v=45/.test(html)&&/08-client-profile-extras\.js\?v=91/.test(html));
+ok('updated app script caches',cacheAtLeast(html, '07-forms-metrics-calculator.js', 45)&&cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('CI runs navigation regression test',wf.includes('test_cp_nav_terms.js'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}

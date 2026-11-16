@@ -31,7 +31,8 @@ async function bootApp(browser, port, viewport, mobile) {
   return { ctx, page, errors };
 }
 
-const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'];
+// Biblioteka ćwiczeń 2.0 ma własny przycisk „Filtry” nad listą — sprawdzana niżej osobno.
+const SCREENS = ['programs', 'templates', 'tasks', 'forms', 'metrics'];
 
 (async () => {
   const port = process.env.LAYOUT_PORT || '8080';
@@ -42,7 +43,7 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
     const { ctx, page, errors } = await bootApp(browser, port, { width: 390, height: 844 }, true);
     for (const s of SCREENS) {
       const r = await page.evaluate((s) => {
-        goTo(s);
+        localStorage.setItem('pl_library_wide_v1', '0'); goTo(s);
         const scr = document.getElementById('screen-' + s);
         const btn = scr.querySelector('.lib-filters-btn');
         const nav = scr.querySelector('.lib-split > .lib-filters');
@@ -60,7 +61,7 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
       ok(s + ': button opens full-width filters', (r.total === 0 || r.after.items > 0) && r.after.expanded === 'true' && r.after.width >= 380, JSON.stringify(r));
     }
     const search = await page.evaluate(() => {
-      goTo('library');
+      localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
       const r = document.getElementById('ex-search').getBoundingClientRect();
       const grid = document.getElementById('ex-grid-view').getBoundingClientRect();
       return { searchW: r.width, gridW: grid.width };
@@ -90,13 +91,31 @@ const SCREENS = ['library', 'programs', 'templates', 'tasks', 'forms', 'metrics'
     ok('metrics quick entry under its own button', aside.hidden && aside.shown, JSON.stringify(aside));
 
     const vids = await page.evaluate(() => {
-      goTo('library');
+      localStorage.setItem('pl_library_wide_v1', '0'); goTo('library');
       setLibTab('videos');
       const hidden = document.getElementById('lib-filters-btn').getBoundingClientRect().width === 0;
       setLibTab('ex');
       return hidden;
     });
     ok('no filters button on Moje filmy', vids);
+
+    // Domyślny tryb pełnego ekranu: „Filtry” rozwija panel filtrów nad listą, drugi klik go zwija.
+    const wide = await page.evaluate(() => {
+      localStorage.removeItem('pl_library_wide_v1'); goTo('library'); setLibTab('ex');
+      if (typeof setLibraryWide === 'function') setLibraryWide(true, false);
+      const scr = document.getElementById('screen-library');
+      const btn = document.getElementById('lib-filters-btn');
+      const sels = () => [...scr.querySelectorAll('#lib2-filters select')].filter((el) => el.getBoundingClientRect().height > 0).length;
+      const before = sels();
+      btn.click();
+      const opened = { sels: sels(), expanded: btn.getAttribute('aria-expanded'), w: Math.round(document.getElementById('lib2-filters').getBoundingClientRect().width) };
+      btn.click();
+      return { wide: scr.classList.contains('library-wide'), before, opened, closed: sels(), sw: document.documentElement.scrollWidth };
+    });
+    ok('fullscreen library: Filtry shows filters on phone', wide.wide && wide.before === 0 && wide.opened.sels === 5 && wide.opened.expanded === 'true' && wide.opened.w >= 380, JSON.stringify(wide));
+    ok('fullscreen library: Filtry hides filters again', wide.closed === 0, JSON.stringify(wide));
+    ok('library: no sideways page', wide.sw <= 390, JSON.stringify(wide));
+    await page.evaluate(() => { localStorage.setItem('pl_library_wide_v1', '0'); if (typeof setLibraryWide === 'function') setLibraryWide(false, false); });
 
     const touch = await page.evaluate(() => {
       goTo('programs');

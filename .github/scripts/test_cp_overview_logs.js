@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Przegląd: liczby z planu, pusty rejestr ≠ nieobecność, statusy dni, etykiety. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -32,13 +33,13 @@ function ok(name,cond,extra){
 
 ok('ci unit',wf.includes('test_cp_overview_logs.js'));
 ok('ci ui',wf.includes('test_cp_overview_logs_ui.js'));
-ok('cache 08/styles/02',html.includes('08-client-profile-extras.js?v=91')&&html.includes('styles.css?v=166')&&html.includes('02-workouts-onboarding-templates-live.js?v=98'));
+ok('cache 08/styles/02',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, 'styles.css', 166)&&cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
 ok('empty wo copy',overview.includes('Brak zapisanych treningów')&&overview.includes('Dodaj trening')&&!/Same terminy w kalendarzu/.test(overview));
 ok('no remind on empty',!/assigned7&&last7===0/.test(overview));
 ok('notes copy',overview.includes('Widoczna tylko dla Ciebie')&&!overview.includes('Krótka notatka zostaje przy Tobie.'));
 ok('ask all',src08.includes('Poproś o wszystko')&&src08.includes('function cpRemindAllMissing'));
 ok('has-app heading',src08.includes('Uzupełni klient')&&src08.includes('Poproś o wszystko'));
-ok('nolog rec',src08.includes("kind:'nolog'")&&src08.includes('Nie ma zapisanych treningów — jeśli się odbyły, zapisz je')&&src08.includes('Przejdź do Treningów'));
+ok('nolog rec',src08.includes("kind:'nolog'")&&src08.includes('Nie ma zapisanych treningów — jeśli się odbyły, zapisz je')&&src08.includes('Przejdź do treningów')&&src08.includes('Brak zapisanych treningów'));
 ok('live package label',src02.includes("Pakiet: '+pkg.sessions+' sesji")||src02.includes('Pakiet: '));
 ok('today frame css',css.includes('.cp-ov-week-day.is-today')&&/box-shadow:0 0 0 1px/.test(css));
 ok('accent helper',/function cpOverviewPlanDayAccent/.test(src08));

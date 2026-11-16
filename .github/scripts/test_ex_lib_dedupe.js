@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Biblioteka DEF_EX: unikalne nazwy, bez klonów i siatki plyo NCM/CM/DC/CON. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -29,10 +30,21 @@ function akaTokens(name) {
   const e = DEF_EX.find((x) => x.name === name);
   return String((e && e.aka) || '').split(',').map((s) => s.trim());
 }
-ok('cache 06 v59', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache 06 v111', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 111));
 ok('ci unit', wf.includes('test_ex_lib_dedupe.js'));
 ok('unique names', new Set(names).size === names.length);
 ok('library still large', DEF_EX.length >= 900, String(DEF_EX.length));
+const focusMatch = six.match(/const EX_LIBRARY_FOCUS=({[\s\S]*?\n});\n/);
+ok('focus library block', !!focusMatch);
+if (focusMatch) {
+  const focusSandbox = {};
+  vm.runInNewContext('focus=' + focusMatch[1], focusSandbox);
+  const focus = focusSandbox.focus;
+  ok('plan core has main patterns', ['Przysiad ze sztangą', 'Martwy ciąg RDL', 'Wyciskanie sztangi leżąc', 'Wiosłowanie sztangą'].every((n) => focus.core.includes(n)));
+  ok('functional has carries and antirotation', ['Spacer farmera', 'Wyciskanie Pallofa', 'Chód niedźwiedzia'].every((n) => focus.functional.includes(n)));
+  ok('mobility collects three safe groups', focus.mobilityCats.join('|') === 'Mobilność|Rozgrzewka|Rozciąganie');
+  ok('focus names exist in catalog', [...focus.core, ...focus.functional].every((n) => names.includes(n)));
+}
 ok('no rumuński clone', !names.includes('Rumuński martwy ciąg'));
 ok('rdl keeps rumuński aka', akaTokens('Martwy ciąg RDL').includes('Rumuński martwy ciąg'));
 ok('no opadzie hantle clone', !names.includes('Unoszenie bokiem w opadzie hantle'));

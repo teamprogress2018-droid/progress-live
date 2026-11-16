@@ -114,6 +114,7 @@ function ok(name, cond, extra) {
       accent: (el.querySelector('.cp-ov-week-accent') || {}).textContent || '',
       st: (el.querySelector('.cp-ov-week-st') || {}).textContent || '',
       today: el.classList.contains('is-today'),
+      todayLbl: (el.querySelector('.cp-ov-week-today') || {}).textContent || '',
       nolog: el.classList.contains('is-nolog')
     }));
     const wo = document.getElementById('cp-ov-card-train');
@@ -129,6 +130,7 @@ function ok(name, cond, extra) {
       checkinHint: ((checkin || {}).querySelector && (checkin.querySelector('.cp-ov-sit-hint') || {}).textContent) || '',
       days,
       woText: (wo && wo.textContent) || '',
+      woHidden: !!(wo && wo.hidden),
       addWo: !!(wo && [...wo.querySelectorAll('button')].some(b => /Dodaj trening/.test(b.textContent || ''))),
       remind: !!(wo && /Przypomnij o treningu/.test(wo.textContent || '')),
       askAll: !!(missing && /Poproś o wszystko/.test(missing.textContent || '')),
@@ -141,17 +143,17 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_overview_logs_empty.png') });
 
-  ok('nolog rec shown', empty.next.some(x => x.kind === 'nolog' && /Nie ma zapisanych treningów/.test(x.text)), JSON.stringify(empty.next));
+  ok('nolog rec shown', empty.next.some(x => x.kind === 'nolog' && /Brak zapisanych treningów/.test(x.text) && /Przejdź do treningów/.test(x.text)), JSON.stringify(empty.next));
   ok('no 3x rec', !empty.next.some(x => /3 treningi/.test(x.text)) && !empty.next.some(x => x.kind === 'adherence'), JSON.stringify(empty.next));
   ok('no red 0/4', !/0\/4/.test(empty.trainN) && empty.trainTone !== 'cp-ov-sit-tile-act', empty.trainN + ' ' + empty.trainTone);
-  ok('train hint empty log', /brak zapisanych/.test(empty.trainHint), empty.trainHint);
-  ok('add workout in list', empty.addWo);
+  ok('train hint empty log (no repeated no-data copy)', empty.trainHint === '', empty.trainHint);
+  ok('empty trainings card hidden when action covers it', empty.woHidden && !empty.addWo);
   ok('no remind jargon', !empty.remind && !/Live, apka/.test(empty.woText));
   ok('check-in copy', /Oczekiwanie na raport|Od ostatniego raportu/.test(empty.checkinLbl) && /brak od/.test(empty.checkinHint), empty.checkinLbl + ' ' + empty.checkinHint);
   ok('accent titles', empty.days.some(d => /akcent:/.test((d.accent || '').toLowerCase()) && /klatka/.test((d.accent || d.name || '').toLowerCase())), JSON.stringify(empty.days));
   ok('weekday line', empty.days.every(d => d.wd), JSON.stringify(empty.days));
-  ok('today framed', empty.days.filter(d => d.today).every(d => d.st === 'Dziś') && empty.days.some(d => d.today), JSON.stringify(empty.days));
-  ok('past not done without log', empty.days.filter(d => d.nolog).every(d => d.st === 'Niezapisany'), JSON.stringify(empty.days));
+  ok('today labeled Dzisiaj', empty.days.filter(d => d.today).every(d => d.todayLbl === 'Dzisiaj' && d.st === '') && empty.days.some(d => d.today), JSON.stringify(empty.days));
+  ok('past not done without log', empty.days.filter(d => d.nolog).every(d => d.st === 'Brak zapisu'), JSON.stringify(empty.days));
   ok('ask all once', empty.askAll && empty.fivePopros <= 1, String(empty.fivePopros));
   ok('has app no invite wording', empty.hasAppCopy);
   ok('notes private', empty.notesCopy);

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Obwody ciała (cm) — pełna taśma w mg2, merge grup, baseline, bez fałszywych seedów. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -54,8 +55,8 @@ ok('08 empty circ copy', src08.includes('Brak obwodów centymetrem'));
 ok('08 uses circBarItems', src08.includes('circBarItems'));
 ok('04 last circ dynamic', src04.includes('circMetricDefs'));
 ok('loader does not silently rewrite stored metric groups', !html.includes('migrateEnsureCircMetrics') && html.includes("['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS"));
-ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=45'));
-ok('cache 04/05/08', html.includes('04-client-portal.js?v=62') && html.includes('05-clients-builder-plans-calendar.js?v=106') && html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 45));
+ok('cache 04/05/08', cacheAtLeast(html, '04-client-portal.js', 62) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106) && cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('CI unit', wf.includes('test_circ_metrics.js'));
 
 function sliceFn(src, name) {

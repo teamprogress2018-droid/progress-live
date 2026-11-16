@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Zamienniki biomechaniczne + kalkulator obciążenia RIR (port ze sztabu). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -20,9 +21,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles v91', html.includes('styles.css?v=166'));
-ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=45'));
+ok('cache 06 v80', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache styles v91', cacheAtLeast(html, 'styles.css', 166));
+ok('cache 07 v39', cacheAtLeast(html, '07-forms-metrics-calculator.js', 45));
 ok('CI unit', wf.includes('test_staff_subs_rir.js'));
 ok('CI ui', wf.includes('test_staff_subs_rir_ui.js'));
 ok('rir tab markup', html.includes('id="calc-tab-rir"') && html.includes('Obciążenie RIR') && html.includes('id="rir-weight"'));
@@ -32,7 +33,7 @@ ok('biomech labeled rows', /exd-biomech-row/.test(six) && /Wzorzec/.test(six) &&
 ok('drawer css 480', css.includes('width:min(480px,100vw)') && css.includes('.exd-ai-h') && css.includes('.exd-biomech-row'));
 ok('no tiny biomech header', !/font-size:9px;font-family:'DM Mono',monospace;color:var\(--accent\);margin-bottom:8px/.test(html));
 ok('keep catalog alts', /Zamienniki z karty/.test(six));
-ok('exd tabs markup', html.includes('id="exd-tab-preview"') && html.includes('Podgląd') && html.includes('Biomechanika') && html.includes('Zarządzanie'));
+ok('exd trainer details markup', html.includes('id="exd-trainer"') && html.includes('Szczegóły dla trenera') && html.includes('id="exd-panel-biomech"') && html.includes('id="exd-panel-manage"'));
 ok('exd accordions', html.includes('id="exd-acc-ai"') && /Uzasadnienia zamienników/.test(six));
 ok('exd tab css', css.includes('.exd-tab') && css.includes('.exd-acc'));
 ok('no 12-ex replace', !/db-incline-lateral/.test(six));

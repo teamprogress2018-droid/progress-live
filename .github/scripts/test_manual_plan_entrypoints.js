@@ -15,5 +15,6 @@ assert(!index.includes('manual-plan-analysis-card'),'kreator nie renderuje dług
 assert(wizard.includes('manual-plan-method-option')&&wizard.includes('manualPlanToggleMethod'),'kreator renderuje klikalne kafelki metod');
 assert(wizard.includes('manualPlanPrioritiesFields')&&wizard.includes('PRIORYTET 1'),'kreator prowadzi przez wybór priorytetów');
 assert(wizard.includes("'Cel','Priorytet','Tydzień','Metoda','Progresja','Ćwiczenia','Gotowe'"),'kreator pokazuje prosty postęp dla początkującego');
-assert(index.includes('builderToggleKnowledge')&&index.includes('Baza pomocnicza'),'baza wiedzy w edytorze jest ukryta na żądanie');
+// Panel nazywa się teraz „Biomechanika ćwiczeń”; nadal zwinięty, rozwijany przyciskiem.
+assert(index.includes('onclick="builderToggleKnowledge()"')&&index.includes('id="builder-kb-toggle" aria-expanded="false"'),'baza wiedzy w edytorze jest ukryta na żądanie');
 console.log('OK manual plan entrypoints');

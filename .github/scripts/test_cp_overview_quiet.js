@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Przegląd: jedno źródło statusu, uczciwe próbki, pasek zaproszenia, brakujące dane. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -42,9 +43,9 @@ ok('invite cta not primary red',extract(src08,'cpOverviewAlertHTML').includes('c
 ok('thin copy',src08.includes('Za mało danych')&&src08.includes('brak pomiaru wagi'));
 ok('no score 0 label',!/Werdykt: \$\{esc\(verdict\)\}\$\{v&&v\.score!=null/.test(src08));
 ok('thin verdict helper',/function cpOverviewVerdictIsThin\(c,v\)/.test(src08)&&src08.includes('Za mało danych do werdyktu'));
-ok('early headline',src08.includes('Za wcześnie na ocenę')&&src08.includes('cp-ov-situation-headline')&&src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
+ok('early headline',src08.includes('Za wcześnie na ocenę')&&src08.includes('cp-ov-situation-headline')&&src08.includes('Wiarygodna analiza będzie dostępna po 4 tygodniach lub 4 pomiarach.'));
 ok('rec engine',src08.includes('function cpOverviewRecs')&&src08.includes('Wszystko w porządku — brak pilnych działań.')&&src08.includes('Otwórz plan')&&!src08.includes('Skróć plan'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=91')&&html.includes('styles.css?v=166'));
+ok('cache 08/styles',cacheAtLeast(html, '08-client-profile-extras.js', 91)&&cacheAtLeast(html, 'styles.css', 166));
 ok('level labels helper',/Początkujący/.test(extract(src08,'cpProfileSubtext')));
 ok('css alert+missing',css.includes('.cp-ov-alert')&&css.includes('.cp-ov-missing')&&css.includes('.cp-ov-day-chip')&&css.includes('.cp-ov-alert-cta'));
 ok('css no card red bar',css.includes('.cp-ov-card::after,.cp-ov-rail-card::after{display:none;}'));

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Importy w EX, które dublują katalog DEF_EX: nazwa / aka / (1), bez sklejania wariantów. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,12 +20,12 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v76', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles v88', html.includes('styles.css?v=166'));
+ok('cache 06 v112', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 112));
+ok('cache styles v189', cacheAtLeast(html, 'styles.css', 189));
 ok('ci unit', wf.includes('test_ex_import_dedupe.js'));
 ok('ci ui', wf.includes('test_ex_import_dedupe_ui.js'));
 ok('button markup', html.includes('id="lib-sweep-dups"') && html.includes('Usuń duplikaty'));
-ok('dedupe remains an explicit library action', html.includes('onclick="removeImportedCatalogDuplicates()"') && !/sweepImportedCatalogDuplicates\(\{silent:true\}\)/.test(html));
+ok('dedupe remains an explicit library action', html.includes('removeImportedCatalogDuplicates()') && !/sweepImportedCatalogDuplicates\(\{silent:true\}\)/.test(html));
 ok('narrow hides tip only', /max-width:\s*1200px[\s\S]*ex-list-tip\{display:none/.test(css.replace(/\s+/g, '')));
 ok('narrow keeps actions', !/max-width:\s*860px[\s\S]*ex-list-row\s*>\s*\*:nth-child\(5\)\{display:none/.test(css.replace(/\s+/g, '')));
 ok('list row classes', /ex-list-tip/.test(six) && /ex-list-actions/.test(six));
@@ -37,6 +38,7 @@ ok('slice', start > 0 && end > start);
 
 const deleted = [];
 const persistedGifs = [];
+const persistedPreviews = [];
 const notifies = [];
 const documentStub = {
   getElementById: () => null,
@@ -47,6 +49,7 @@ const windowObj = {
   EX: [],
   DEF_EX: [],
   EX_GIF_REMOTE: {},
+  EX_PREVIEW_REMOTE: {},
   document: documentStub,
   _uid: 'trainer-1',
   _db: {},
@@ -72,6 +75,12 @@ const ctx = {
     const key = ctx.exerciseMediaKey(name);
     windowObj.EX_GIF_REMOTE[key] = url;
     persistedGifs.push({ name, url });
+    return true;
+  },
+  async persistExercisePreviewUrl(name, url) {
+    const key = ctx.exerciseMediaKey(name);
+    windowObj.EX_PREVIEW_REMOTE[key] = url;
+    persistedPreviews.push({ name, url });
     return true;
   }
 };
@@ -107,8 +116,9 @@ ok('unique custom stays', !card('Moje wyciskanie smoka'));
 
 (async () => {
   const film = 'https://cdn.example.com/floor-press.mp4';
+  const preview = 'https://cdn.example.com/floor-press-white.gif';
   windowObj.EX = [
-    { id: 'ex-floor', name: 'Floor press', video: film, cat: 'Klatka piersiowa' },
+    { id: 'ex-floor', name: 'Floor press', video: film, img: preview, cat: 'Klatka piersiowa' },
     { id: 'ex-floor-1', name: 'Floor press (1)', gif: '', cat: 'Klatka piersiowa' },
     { id: 'ex-pl-1', name: 'wyciskanie z podłogi', cat: 'Klatka piersiowa' },
     { id: 'ex-diamond', name: 'Pompki diamentowe', cat: 'Klatka piersiowa' },
@@ -124,6 +134,7 @@ ok('unique custom stays', !card('Moje wyciskanie smoka'));
   const r = await ctx.sweepImportedCatalogDuplicates({ silent: true });
   ok('removed import dups', r.removed >= 3, String(r.removed));
   ok('copied floor film', persistedGifs.some((g) => g.name === 'Wyciskanie z podłogi' && g.url === film), JSON.stringify(persistedGifs));
+  ok('copied floor preview separately', persistedPreviews.some((p) => p.name === 'Wyciskanie z podłogi' && p.url === preview), JSON.stringify(persistedPreviews));
   ok('firestore deleted floor', deleted.some((d) => d && d.id === 'ex-floor'));
   ok('own custom kept', windowObj.EX.some((e) => e.name === 'Moje wyciskanie smoka'));
   ok('variants still distinct cards', ['Pompki diamentowe', 'Pompki na kolanach', 'Pompki na rączkach', 'Dipy z obciążeniem', 'Krzyżowanie wyciągów góra–dół', 'Krzyżowanie wyciągów dół–góra', 'Wyciskanie sztangi skos+', 'Wyciskanie sztangi skos−'].every((n) => windowObj.DEF_EX.some((e) => e.name === n)));

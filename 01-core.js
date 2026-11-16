@@ -151,7 +151,8 @@ function persistWarn(msg){
 }
 // Pola widoczne tylko dla trenera. Leżą w kolekcji clientPrivate, do której reguły bazy nie dają dostępu klientowi.
 // Do czasu wdrożenia reguł (odczyt clientPrivate odrzucony) zostają w karcie klienta, jak dotąd.
-const CLIENT_PRIVATE_FIELDS=Object.freeze(['notes','psycho','_posture','timeline']);
+// clientPlan (szkic planu, notatki trenera) i healthAck tylko dla trenera; klient dostaje opublikowany plan (plans) i jadłospis (dietPlan).
+const CLIENT_PRIVATE_FIELDS=Object.freeze(['notes','psycho','_posture','timeline','planInterview','clientPlan','healthAck']);
 window.CLIENT_PRIVATE_FIELDS=CLIENT_PRIVATE_FIELDS;
 function clientPrivateEnabled(){
   return !window._clientAppMode&&window._clientPrivateReady===true&&typeof window._deleteField==='function';
@@ -215,11 +216,16 @@ window.persistPackageFields=persistPackageFields;
 function trainerPublicProfilePayload(settings,uid){
   const pick=(value,keys)=>Object.fromEntries(keys.filter(k=>value&&typeof value[k]==='string').map(k=>[k,value[k]]));
   const sections={};
-  for(const key of ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile']){
+  for(const key of ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile','bodyWeight']){
     const value=settings.clientApp?.visibleSections?.[key];
     if(typeof value==='boolean')sections[key]=value;
   }
+  const cut=(v,n)=>String(v==null?'':v).trim().slice(0,n);
+  const company=settings.company||{};
   return {trainerId:uid,schemaVersion:1,updatedAt:new Date().toISOString(),
+    // Dane do ekranu „Kontakt” w aplikacji klienta — tylko to, co trener i tak pokazuje publicznie.
+    contact:{name:cut(company.name||settings.profile?.name,200),phone:cut(settings.profile?.phone,50),
+      address:cut([company.address,company.city].map(x=>String(x||'').trim()).filter(Boolean).join(', '),300),website:cut(company.website,300)},
     profile:pick(settings.profile,['name','title','avatar','avatarUrl']),
     brand:{...pick(settings.brand,['accentColor','appName','logo','font']),theme:(settings.brand?.themeMode==='dark'||(!settings.brand?.themeMode&&settings.brand?.theme==='dark-v2'))?'dark-v2':'light'},
     clientApp:{...pick(settings.clientApp,['appName']),visibleSections:sections},
@@ -232,10 +238,22 @@ async function syncTrainerPublicProfile(session){
   if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return false;
   if(window.SETTINGS.trainerId&&window.SETTINGS.trainerId!==session.uid)return false;
   const payload=trainerPublicProfilePayload(window.SETTINGS,session.uid);
+  const ref=window._doc(window._db,'trainerPublicProfiles',session.uid);
   try{
-    await window._setDoc(window._doc(window._db,'trainerPublicProfiles',session.uid),payload);
+    await window._setDoc(ref,payload);
     return !window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(session);
-  }catch(e){console.warn('Nie udało się zapisać profilu dla klientów',e);return false;}
+  }catch(e){
+    // Reguły Firestore sprzed ekranu „Kontakt” nie znają pól contact/bodyWeight —
+    // wtedy zapisujemy profil w starym kształcie, żeby widoczność sekcji dalej działała.
+    if(!e||e.code!=='permission-denied'){console.warn('Nie udało się zapisać profilu dla klientów',e);return false;}
+    try{
+      const legacy={...payload,clientApp:{...payload.clientApp,visibleSections:{...payload.clientApp.visibleSections}}};
+      delete legacy.contact;delete legacy.clientApp.visibleSections.bodyWeight;
+      await window._setDoc(ref,legacy);
+      console.warn('Profil dla klientów zapisany bez danych kontaktowych — wdróż aktualne firestore.rules');
+      return !window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(session);
+    }catch(e2){console.warn('Nie udało się zapisać profilu dla klientów',e2);return false;}
+  }
 }
 window.trainerPublicProfilePayload=trainerPublicProfilePayload;
 window.syncTrainerPublicProfile=syncTrainerPublicProfile;
@@ -289,7 +307,7 @@ function enterClientPreviewMode(clientId){
   }
   if(banner){
     banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(62,207,178,0.12);border:1px solid rgba(62,207,178,0.35);border-radius:8px;font-size:12px;color:var(--teal);';
-    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
+    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent-text,var(--accent));cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
   }
   setCapTab('preview');
   renderClientApp();
@@ -452,16 +470,154 @@ function syncMobileMenuBtn(open){
   btn.setAttribute('aria-label',open?'Zamknij menu':'Otwórz menu');
 }
 function toggleMobileSidebar(){
-  const open=document.querySelector('.sidebar').classList.toggle('mobile-open');
-  document.getElementById('mobile-sidebar-backdrop').classList.toggle('show',open);
+  const sidebar=document.getElementById('app-sidebar')||document.querySelector('.sidebar');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(!sidebar||!backdrop)return;
+  const open=!sidebar.classList.contains('mobile-open');
+  sidebar.classList.toggle('mobile-open',open);
+  backdrop.classList.toggle('show',open);
+  document.body.classList.toggle('mobile-menu-open',open);
   syncMobileMenuBtn(open);
 }
 function closeMobileSidebar(){
-  document.querySelector('.sidebar').classList.remove('mobile-open');
-  document.getElementById('mobile-sidebar-backdrop').classList.remove('show');
+  const sidebar=document.getElementById('app-sidebar')||document.querySelector('.sidebar');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(sidebar)sidebar.classList.remove('mobile-open');
+  if(backdrop)backdrop.classList.remove('show');
+  document.body.classList.remove('mobile-menu-open');
   syncMobileMenuBtn(false);
 }
+function bindMobileSidebarControls(){
+  const button=document.getElementById('mobile-menu-btn');
+  const backdrop=document.getElementById('mobile-sidebar-backdrop');
+  if(button&&!button.dataset.boundMobileMenu){
+    button.dataset.boundMobileMenu='1';
+    button.addEventListener('click',toggleMobileSidebar);
+  }
+  if(backdrop&&!backdrop.dataset.boundMobileMenu){
+    backdrop.dataset.boundMobileMenu='1';
+    backdrop.addEventListener('click',closeMobileSidebar);
+  }
+}
+bindMobileSidebarControls();
+
+// Desktop: zapamiętujemy zwinięte menu między wejściami do aplikacji.
+// Sam pasek ikon pozostaje dostępny także na ekranie Kalendarza.
+const SIDEBAR_COLLAPSED_STORAGE_KEY='pl_sidebar_collapsed';
+function setSidebarCollapsed(collapsed,save=true){
+  const app=document.getElementById('app-root');
+  const button=document.getElementById('sidebar-collapse-btn');
+  if(!app)return;
+  const on=!!collapsed;
+  app.classList.toggle('sidebar-collapsed',on);
+  if(button){
+    button.setAttribute('aria-pressed',on?'true':'false');
+    button.setAttribute('aria-label',on?'Rozwiń menu boczne':'Zwiń menu boczne');
+    button.title=on?'Rozwiń menu boczne':'Zwiń menu boczne';
+  }
+  if(save){
+    try{localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY,on?'1':'0');}catch(e){}
+  }
+}
+function toggleSidebarCollapsed(){
+  const app=document.getElementById('app-root');
+  if(!app)return;
+  setSidebarCollapsed(!app.classList.contains('sidebar-collapsed'));
+  if(typeof closeNavFlyouts==='function')closeNavFlyouts();
+}
+function restoreSidebarCollapsed(){
+  let collapsed=false;
+  try{collapsed=localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)==='1';}catch(e){}
+  setSidebarCollapsed(collapsed,false);
+}
+restoreSidebarCollapsed();
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeMobileSidebar();
+});
+window.addEventListener('resize',()=>{
+  if(!window.matchMedia('(max-width: 860px)').matches)closeMobileSidebar();
+});
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
+window.toggleSidebarCollapsed=toggleSidebarCollapsed;
+window.setSidebarCollapsed=setSidebarCollapsed;
+
+// Biblioteka może działać jak przestrzeń robocza: bez głównego menu i bez
+// panelu filtrów. Preferencja jest zapamiętana osobno od zwinięcia menu.
+const LIBRARY_WIDE_STORAGE_KEY='pl_library_wide_v1';
+function getLibraryWidePreference(){
+  try{
+    const saved=localStorage.getItem(LIBRARY_WIDE_STORAGE_KEY);
+    return saved===null||saved==='1';
+  }catch(e){return true;}
+}
+function libraryWideParts(){
+  const screen=document.getElementById('screen-library');
+  return {
+    screen,
+    app:document.getElementById('app-root'),
+    sidebar:document.getElementById('app-sidebar'),
+    filters:screen?screen.querySelector('#lib-ex-body > .lib-side.lib-filters'):null,
+    // Biblioteka 2.0 ma własny przycisk „Filtry” (.lib2-filters-btn) — tryb pełnoekranowy go nie przejmuje.
+    filterButton:document.querySelector('#screen-library .lib-filters-btn'),
+    wideButton:document.getElementById('lib-wide-btn')
+  };
+}
+function setLibraryWide(enabled,save=true){
+  const parts=libraryWideParts();
+  if(!parts.screen||!parts.app)return;
+  const on=!!enabled;
+  parts.app.classList.toggle('library-wide',on);
+  parts.screen.classList.toggle('library-wide',on);
+  if(parts.sidebar)parts.sidebar.style.display=on?'none':'';
+  if(parts.filters)parts.filters.style.display=on?'none':'';
+  if(parts.filterButton){
+    parts.filterButton.style.display=on?'inline-flex':'';
+    parts.filterButton.textContent='☰ Filtry';
+    parts.filterButton.setAttribute('aria-expanded','false');
+  }
+  if(parts.wideButton){
+    parts.wideButton.textContent=on?'↙ Zwykły widok':'⛶ Pełny ekran';
+    parts.wideButton.setAttribute('aria-pressed',on?'true':'false');
+    parts.wideButton.title=on?'Przywróć menu i filtry':'Pokaż Bibliotekę na całej szerokości';
+  }
+  if(on)libClosePanels(parts.screen);
+  if(save){
+    try{localStorage.setItem(LIBRARY_WIDE_STORAGE_KEY,on?'1':'0');}catch(e){}
+  }
+}
+// Escape w trybie pełnego ekranu wraca do zwykłego widoku z menu (gdy nie jest otwarte okno ani panel).
+if(typeof document!=='undefined')document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const scr=document.getElementById('screen-library');
+  if(!scr||!scr.classList.contains('library-wide')||!scr.classList.contains('active'))return;
+  if(document.querySelector('.modal-overlay.open,.modal.open,#exd-panel.open,.lib2-pop:not([hidden])'))return;
+  const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+  setLibraryWide(false);
+});
+function toggleLibraryWide(){
+  const {screen}=libraryWideParts();
+  if(!screen)return;
+  setLibraryWide(!screen.classList.contains('library-wide'));
+}
+function toggleLibraryFilters(){
+  const parts=libraryWideParts();
+  if(parts.screen&&!parts.filterButton&&typeof toggleExFilters==='function'){toggleExFilters();return;}
+  if(!parts.screen||!parts.filterButton)return;
+  // Na telefonie panel filtrów pokazuje tylko klasa .lib-open-filters (CSS z !important),
+  // także w trybie pełnego ekranu — styl inline by go nie odsłonił.
+  const phone=typeof window.matchMedia==='function'&&window.matchMedia('(max-width: 760px)').matches;
+  if(!parts.screen.classList.contains('library-wide')||phone){
+    libTogglePanel(parts.filterButton,'filters');
+    return;
+  }
+  const opening=!parts.filters||parts.filters.style.display==='none';
+  if(parts.filters)parts.filters.style.display=opening?'flex':'none';
+  parts.filterButton.textContent=opening?'✕ Ukryj filtry':'☰ Filtry';
+  parts.filterButton.setAttribute('aria-expanded',opening?'true':'false');
+}
+window.setLibraryWide=setLibraryWide;
+window.toggleLibraryWide=toggleLibraryWide;
+window.toggleLibraryFilters=toggleLibraryFilters;
 
 function goTo(n){
   // Gdy trener opuszcza kreator z bocznego menu, nie gubimy niezapisanego planu.
@@ -487,21 +643,28 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.nav-flyout-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
+  // Poza Biblioteką menu aplikacji zawsze wraca; po powrocie do Biblioteki
+  // stosujemy zapamiętany widok szeroki (domyślnie włączony).
+  if(n==='library')setLibraryWide(getLibraryWidePreference(),false);
+  else setLibraryWide(false,false);
   closeMobileSidebar();
   if(typeof closeNavFlyouts==='function')closeNavFlyouts();
   // Ekran z menu wysuwanego podświetla przycisk swojej grupy w pasku bocznym.
   const navGroupScreens={
-    clients:['clients','checkin'],
+    clients:['clients','checkin','clientplan'],
     library:['library','plans','programs','templates','tasks','forms','metrics','progbuilder'],
     automation:['automation','onboarding'],
     ondemand:['ondemand','resources'],
     business:['payments','bizstats'],
     knowledge:['academy','kb','aicoach','calculator'],
+    // „Więcej” widać tylko na koncie bez klientów (syncNavForClientCount).
+    more:['inbox','automation','onboarding','ondemand','resources','forum','payments','bizstats','academy','kb','aicoach','calculator'],
   };
+  navGroupScreens.library.push('aiplangen');
+  syncNavForClientCount();
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
-  const flyItem=document.querySelector('.nav-flyout-item[data-screen="'+n+'"]');
-  if(flyItem)flyItem.classList.add('active');
+  document.querySelectorAll('.nav-flyout-item[data-screen="'+n+'"]').forEach(b=>b.classList.add('active'));
   Object.keys(navGroupScreens).forEach(g=>{
     if(!navGroupScreens[g].includes(n))return;
     const groupBtn=document.getElementById('nav-'+g+'-btn');
@@ -510,6 +673,33 @@ function goTo(n){
   if(n==='tasks'&&typeof syncTaskFlyout==='function')syncTaskFlyout();
   try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
 }
+/** Nowy trener (0 klientów): w menu 6 pozycji — Pulpit, Klienci, Biblioteka (z „Nowy plan (AI)”), Kalendarz, Trening LIVE, Więcej.
+ *  Pozostałe grupy wracają od pierwszego klienta; wszystkie ekrany są dostępne z „Więcej”. */
+/** Ikony liniowe 18 px (obrys 1,75 px, currentColor) zamiast emoji na pulpicie i w „Pierwszych krokach”. */
+const PL_LINE_ICONS={"user": "<path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>", "users": "<path d=\"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M23 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>", "plus": "<line x1=\"12\" y1=\"5\" x2=\"12\" y2=\"19\"/><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/>", "plan": "<path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/>", "play": "<polygon points=\"6 4 20 12 6 20 6 4\"/>", "link": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"/><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"/>", "home": "<path d=\"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><polyline points=\"9 22 9 12 15 12 15 22\"/>", "megaphone": "<path d=\"M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z\"/><path d=\"M16 8a5 5 0 0 1 0 8\"/>", "note": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z\"/>", "check": "<polyline points=\"20 6 9 17 4 12\"/>", "file": "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><line x1=\"8\" y1=\"13\" x2=\"16\" y2=\"13\"/><line x1=\"8\" y1=\"17\" x2=\"13\" y2=\"17\"/>", "card": "<rect x=\"1\" y=\"4\" width=\"22\" height=\"16\" rx=\"2\"/><line x1=\"1\" y1=\"10\" x2=\"23\" y2=\"10\"/>", "spark": "<path d=\"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z\"/>"};
+function plLineIcon(name,size){
+  const d=PL_LINE_ICONS[name];if(!d)return '';
+  const px=size||18;
+  return '<svg class="pl-ico" viewBox="0 0 24 24" width="'+px+'" height="'+px+'" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+}
+window.PL_LINE_ICONS=PL_LINE_ICONS;
+window.plLineIcon=plLineIcon;
+function syncNavForClientCount(){
+  const app=document.getElementById('app-root');
+  if(!app)return;
+  const list=Array.isArray(window.CL)?window.CL:[];
+  app.classList.toggle('nav-new-trainer',!list.length);
+}
+window.syncNavForClientCount=syncNavForClientCount;
+function openLiveFromMobile(){
+  closeMobileSidebar();
+  goTo('live');
+  // Po wejściu z małego ekranu pierwszy krok jest od razu dostępny z klawiatury.
+  if(window.matchMedia('(max-width: 860px)').matches&&!document.getElementById('live-client-sel')?.value){
+    setTimeout(()=>document.getElementById('live-client-sel-search')?.focus({preventScroll:true}),0);
+  }
+}
+window.openLiveFromMobile=openLiveFromMobile;
 function goToHomeworkQueue(){
   goTo('tasks');
   if(typeof setTaskFilter==='function')setTaskFilter('homework');
@@ -559,6 +749,7 @@ function _goToRender(n){
   if(n==='aicoach'){initAICoach();}
   if(n==='bizstats'){initBizStats();}
   if(n==='aiplangen'){initAplangen();}
+  if(n==='clientplan'&&typeof pkInit==='function'){pkInit();}
   if(n==='reports'){initReports();}
   if(n==='live'){initLive();}
   if(n==='templates'){initTemplates();}
@@ -730,6 +921,68 @@ function closeM(id){
   if(el)el.classList.remove('show');
 }
 document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){if(m.id==='m-client')closeM(m.id);else m.classList.remove('show');}}));
+// ── Okna (.modal-ov): rola dialog, fokus w środku, Esc zamyka, fokus wraca do przycisku ──
+const PL_FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function plModalFocusables(ov){
+  // checkVisibility pomija też pola w zwiniętym <details> (np. „Więcej danych” przy nowym kliencie).
+  return [...ov.querySelectorAll(PL_FOCUSABLE)].filter(el=>typeof el.checkVisibility==='function'?el.checkVisibility():(el.offsetParent!==null||el.getClientRects().length>0));
+}
+function plModalPrepare(ov){
+  if(!ov||ov._plA11y)return;ov._plA11y=true;
+  const box=ov.querySelector('.modal')||ov.firstElementChild||ov;
+  box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+  const title=box.querySelector('.modal-title');
+  if(title){if(!title.id)title.id=(ov.id||'pl-modal')+'-title';box.setAttribute('aria-labelledby',title.id);}
+  ov.setAttribute('aria-hidden',ov.classList.contains('show')?'false':'true');
+  if(typeof MutationObserver==='function')new MutationObserver(()=>plModalSync(ov)).observe(ov,{attributes:true,attributeFilter:['class']});
+}
+function plModalSync(ov){
+  const open=ov.classList.contains('show');
+  if(open===ov._plOpen)return;ov._plOpen=open;
+  ov.setAttribute('aria-hidden',open?'false':'true');
+  if(open){
+    ov._plOpener=document.activeElement;
+    setTimeout(()=>{
+      if(!ov.classList.contains('show')||ov.contains(document.activeElement))return;
+      const f=plModalFocusables(ov);const first=f.find(el=>!el.classList.contains('modal-close'))||f[0];
+      if(first)first.focus();
+    },30);
+  }else{
+    const back=ov._plOpener;ov._plOpener=null;
+    if(back&&back.isConnected&&typeof back.focus==='function'&&(!document.activeElement||document.activeElement===document.body||ov.contains(document.activeElement)))back.focus();
+  }
+}
+function plTopModal(){
+  const open=[...document.querySelectorAll('.modal-ov.show')];
+  return open.length?open[open.length-1]:null;
+}
+function plModalKeydown(e){
+  const ov=plTopModal();if(!ov)return;
+  if(e.key==='Escape'){
+    e.preventDefault();e.stopPropagation();
+    if(typeof closeM==='function'&&ov.id)closeM(ov.id);else ov.classList.remove('show');
+    return;
+  }
+  if(e.key!=='Tab')return;
+  const f=plModalFocusables(ov);if(!f.length){e.preventDefault();return;}
+  const first=f[0],last=f[f.length-1],cur=document.activeElement;
+  if(!ov.contains(cur)){e.preventDefault();first.focus();return;}
+  if(e.shiftKey&&cur===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&cur===last){e.preventDefault();first.focus();}
+}
+function plModalInit(){
+  document.querySelectorAll('.modal-ov').forEach(plModalPrepare);
+  document.addEventListener('keydown',plModalKeydown,true);
+  if(typeof MutationObserver==='function')new MutationObserver(list=>{
+    for(const m of list)for(const n of m.addedNodes){
+      if(n.nodeType!==1)continue;
+      if(n.classList.contains('modal-ov'))plModalPrepare(n);
+      else if(n.querySelector&&n.firstElementChild)n.querySelectorAll('.modal-ov').forEach(plModalPrepare);
+    }
+  }).observe(document.body,{childList:true,subtree:true});
+}
+if(typeof document!=='undefined'&&document.body)plModalInit();
+window.plModalPrepare=plModalPrepare;window.plModalKeydown=plModalKeydown;
 
 window.renderAll=function(){
   const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};
@@ -762,6 +1015,8 @@ window.renderAll=function(){
 
 function showNetBanner(offline){
   let el=document.getElementById('net-banner');
+  // Aplikacja klienta ma własny, spokojniejszy pasek pod nagłówkiem (#clive-offline).
+  if(document.body.classList.contains('client-app-mode')&&document.getElementById('clive-offline')){if(el)el.style.display='none';return;}
   if(!el){
     el=document.createElement('div');
     el.id='net-banner';
@@ -1119,9 +1374,40 @@ function normalizeCoachVideoUrl(raw){
 }
 window.normalizeCoachVideoUrl=normalizeCoachVideoUrl;
 
+/** Linki z Dysku Google nie kończą się na .mp4, mimo że wskazują na film. */
+function googleDriveFileId(url){
+  const raw=String(url||'').trim();
+  if(!raw)return '';
+  let parsed;
+  try{parsed=new URL(raw);}catch(e){return '';}
+  const host=String(parsed.hostname||'').toLowerCase();
+  if(!/(^|\.)drive\.google\.com$/.test(host))return '';
+  const fromPath=(parsed.pathname||'').match(/\/file\/d\/([A-Za-z0-9_-]{10,})/i);
+  const id=(fromPath&&fromPath[1])||parsed.searchParams.get('id')||'';
+  return /^[A-Za-z0-9_-]{10,}$/.test(id)?id:'';
+}
+window.googleDriveFileId=googleDriveFileId;
+function isGoogleDriveMediaUrl(url){return !!googleDriveFileId(url);}
+window.isGoogleDriveMediaUrl=isGoogleDriveMediaUrl;
+/** #pl-preview oznacza jasny materiał do karty; zwykły link Drive jest techniką na żądanie. */
+function googleDriveMediaRole(url){return /(?:[?#&]pl-preview(?:[=&]|$)|[?#&]pl-media=preview(?:[&#]|$))/i.test(String(url||''))?'preview':'technique';}
+window.googleDriveMediaRole=googleDriveMediaRole;
+function googleDrivePreviewUrl(url){
+  const id=googleDriveFileId(url);
+  return id?'https://drive.google.com/file/d/'+id+'/preview':'';
+}
+window.googleDrivePreviewUrl=googleDrivePreviewUrl;
+function googleDriveThumbnailUrl(url,size){
+  const id=googleDriveFileId(url);
+  return id?'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w'+Math.max(160,Math.min(Number(size)||480,1200)):'';
+}
+window.googleDriveThumbnailUrl=googleDriveThumbnailUrl;
+
 function coachVideoEmbed(url){
   const u=normalizeCoachVideoUrl(url);
   if(!u)return '';
+  const drivePreview=googleDrivePreviewUrl(u);
+  if(drivePreview)return drivePreview;
   let id='';
   let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
   if(m)id=m[1];
@@ -1402,6 +1688,22 @@ function matchFilenameToExercise(filename,exercises){
   return scored[0].name;
 }
 window.matchFilenameToExercise=matchFilenameToExercise;
+
+/* The importer must never silently choose between similarly named exercises.
+   Keep the candidates and an explainable confidence for the review screen. */
+function matchFilenameToExerciseDetailed(filename,exercises){
+  const parsed=parseExerciseMediaFilename(filename);
+  const list=exercises||window.DEF_EX||[];
+  if(!parsed||parsed.junk)return {name:'',confidence:'blocked',score:0,candidates:[],reason:'Nazwa pliku nie opisuje ćwiczenia'};
+  const candidates=list.map(ex=>({name:ex.name,score:scoreFilenameAgainstExercise(parsed,ex)}))
+    .filter(x=>x.score>=80).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'pl')).slice(0,5);
+  if(!candidates.length)return {name:'',confidence:'unmatched',score:0,candidates:[],reason:'Brak pewnego dopasowania'};
+  const top=candidates[0], next=candidates[1];
+  const ambiguous=!!(next&&top.score-next.score<12&&next.score>=90);
+  const confidence=ambiguous?'conflict':top.score>=200?'high':top.score>=135?'medium':'low';
+  return {name:ambiguous?'':top.name,confidence,score:top.score,candidates,reason:ambiguous?'Dwa podobne dopasowania — wybierz ręcznie':''};
+}
+window.matchFilenameToExerciseDetailed=matchFilenameToExerciseDetailed;
 
 /** Pliki, których treść (klatki) nie zgadza się z etykietą. Matcher ich nie przypisuje. */
 const EX_MEDIA_FILENAME_LIES={
@@ -1753,11 +2055,15 @@ const EX_MEDIA_FILE_ALIASES={
   'Krzyżowanie wyciągów dół–góra':{include:[/cable crossover/i],exclude:[/reverse/i,/single[- ]arm/i,/high pulley/i,/krzesełko/i],prefer:[/wyciąg górny, stojąc/i,/standing\) \(cable crossover\)/i]},
   'Rozpiętki na wyciągu w poziomie':{include:[/cable crossover fly \(middle chest\)/i]},
   'Rozpiętki jednorącz wyciąg':{include:[/single[- ]arm low cable fly/i,/single[- ]arm cable fly/i],exclude:[/lateral raise/i]},
-  'Pompki':{include:[/push[- ]?ups?/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i]},
-  'Pompki diamentowe':{include:[/diamond push[- ]?up/i],exclude:[/knee/i,/kolan/i]},
+  'Pompki':{include:[/push[- ]?ups?/i,/^pompka(?:\s|\.|$)/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i,/pliometrycz/i,/klaśni/i]},
+  'Pompki hindu':{include:[/hindu push[- ]?ups?/i,/zmodyfikowana pompka hinduska/i],exclude:[/wall/i,/kolan/i,/knee/i]},
+  'Pompki diamentowe':{include:[/diamond push[- ]?up/i,/pompka diamentowa/i],exclude:[/knee/i,/kolan/i]},
   'Pompki na hantlach':{include:[/dumbbell push[- ]?ups?/i]},
-  'Pompki na kolanach':{include:[/knee push[- ]?up/i,/kneeling push[- ]?up/i],exclude:[/incorrect/i,/błędn/i]},
-  'Dipy na poręczach':{include:[/parallel bar dips/i],exclude:[/bench dip/i,/ławc/i]},
+  'Pompki na kolanach':{include:[/knee push[- ]?up/i,/kneeling push[- ]?up/i,/pompki? na kolanach/i],exclude:[/incorrect/i,/błędn/i]},
+  'Pompki plyometryczne':{include:[/plyo(?:metric)? push[- ]?up/i,/pompk[ai] pli?ometryczn/i,/pompka z klaśnięciem/i],exclude:[/pike/i,/nogami na podwyższeniu/i]},
+  'Pompki z nogami na podwyższeniu':{include:[/feet elevated push[- ]?up/i,/pompka z nogami na podwyższeniu/i],exclude:[/plyo/i,/pliometrycz/i,/klaśni/i]},
+  'Unoszenie barków na maszynie':{include:[/machine shrug/i,/shrugs? na maszynie/i,/szrugsy na maszynie/i],exclude:[/suwnic/i,/smith/i,/hantl/i,/dumbbell/i,/sztang/i,/barbell/i]},
+  'Dipy na poręczach':{include:[/parallel bar dips/i,/dips na poręczach/i],exclude:[/bench dip/i,/ławc/i]},
   'Dipy na ławce':{include:[/bench dips?/i],exclude:[/parallel bar/i,/incline/i]},
   'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/odwrotn/i,/rear delt/i,/pulldown/i,/lat pulldown/i,/cable/i,/lunge/i]},
   'Wyciskanie wąskim chwytem':{include:[/close[- ]?grip barbell bench press/i,/narrow grip (barbell )?bench press/i]},
@@ -1777,6 +2083,7 @@ const EX_MEDIA_FILE_ALIASES={
   'Wiosłowanie hantlem':{include:[/one[- ]arm dumbbell row/i,/single[- ]arm dumbbell row/i],exclude:[/bent[- ]over row\)/i]},
   'Wiosłowanie hantlami oburącz':{include:[/dumbbell bent[- ]over row/i],exclude:[/one[- ]arm/i,/single[- ]arm/i,/rear delt/i,/jednor[aą]cz/i]},
   'Wiosłowanie wyciągiem siedząc':{include:[/seated cable row/i],exclude:[/machine/i,/maszynie/i,/single/i,/jednor/i]},
+  'Wiosłowanie z taśmą siedząc':{include:[/seated band row/i,/wiosłowanie siedząc z gumą oporową/i],exclude:[/cable/i,/wyciąg/i,/machine/i,/maszyn/i]},
   'Wiosłowanie na maszynie':{include:[/seated cable row \(machine/i,/cable row machine/i,/machine row/i]},
   'Wiosłowanie odwrócone':{include:[/inverted row/i,/australian pull[- ]?up/i]},
   'Wiosłowanie T-bar':{include:[/t[- ]?bar row/i],exclude:[/landmine/i,/meadows/i]},
@@ -1785,7 +2092,7 @@ const EX_MEDIA_FILE_ALIASES={
   'Odwrotne rozpiętki maszyna':{include:[/reverse pec deck/i,/rear delt machine fly/i],exclude:[/pulldown/i,/wiosł/i,/row/i,/tricep/i]},
   'Odwrotne rozpiętki na wyciągu':{include:[/cable rear delt fly/i],exclude:[/face pull/i,/row/i,/wiosł/i]},
   'Unoszenie bokiem w opadzie':{include:[/dumbbell bent[- ]over (lateral raise|rear delt fly)/i],exclude:[/cable/i]},
-  'Unoszenie bokiem':{include:[/dumbbell lateral raise/i],exclude:[/bent[- ]over/i,/opadzie/i,/seated/i,/siadzie/i,/barbell/i,/sztang/i],prefer:[/w staniu/i,/standing/i]},
+  'Unoszenie bokiem':{include:[/dumbbell lateral raise/i,/\bwznosy bokiem\b/i],exclude:[/bent[- ]over/i,/opadzie/i,/seated/i,/siadzie/i,/barbell/i,/sztang/i,/gum[aą]/i,/band/i],prefer:[/w staniu/i,/standing/i]},
   'Unoszenie bokiem na wyciągu jednorącz':{include:[/cable lateral raise \(low pulley\)/i,/single[- ]arm cable lateral/i],exclude:[/bent[- ]over/i,/opadzie/i,/rear delt/i]},
   'Wyciskanie hantli siedząc':{include:[/seated dumbbell (shoulder|overhead) press/i],exclude:[/single[- ]arm/i,/jednostronn/i,/jednor[aą]cz/i,/incline/i,/arnold/i,/sko[sś]n/i]},
   'Wyciskanie barków maszyna':{include:[/machine shoulder press/i],exclude:[/tricep/i,/francusk/i,/extension/i]},
@@ -1820,6 +2127,8 @@ const EX_MEDIA_FILE_ALIASES={
   'Wyciskanie nogami jednonóż':{include:[/single[- ]leg press/i]},
   'Wykrok z hantlami':{include:[/dumbbell lunge/i],exclude:[/barbell/i,/step[- ]up/i,/bulgarian/i,/walking/i,/chód/i]},
   'Wykrok chodzony':{include:[/walking lunge/i]},
+  'Wykrok boczny':{include:[/lateral lunge/i,/wykrok w bok/i],exclude:[/hantl/i,/dumbbell/i,/piłk/i,/medicine ball/i,/siekaniem/i,/wyciskaniem/i,/sprinter/i]},
+  'Wypady z wyskokiem naprzemiennie':{include:[/alternating (leg )?split squat jumps?/i,/wykroki z wyskokiem naprzemiennie/i],exclude:[/hantl/i,/dumbbell/i,/band/i,/gum[aą]/i]},
   'Wykrok ze sztangą':{include:[/barbell lunge/i],exclude:[/dumbbell/i,/hantl/i]},
   'Przysiad z piętami na podwyższeniu':{include:[/heel elevat/i],exclude:[/mini ?band/i,/sumo/i,/bulgarian/i,/bułgarsk/i]},
   'Przysiad goblet na podwyższeniu pięt':{include:[/heel elevat/i],exclude:[/mini ?band/i,/sumo/i,/bulgarian/i,/bułgarsk/i]},
@@ -1833,13 +2142,15 @@ const EX_MEDIA_FILE_ALIASES={
   'Wspięcia na palce':{include:[/machine calf raise/i,/calf raise.*maszyn/i],exclude:[/seated/i,/siad/i,/dumbbell/i,/hantl/i,/leg press/i,/suwnic/i,/band/i]},
   'Wspięcia na palce stojąc':{include:[/standing calf raise/i],exclude:[/dumbbell/i,/hantl/i,/band/i,/gum[aą]/i,/ankle/i,/dorsiflexion/i,/mobility/i,/plantar/i,/seated/i,/single[- ]leg/i,/jednon[oó]ż/i],prefer:[/na stopniu/i,/on step/i,/obie nogi/i]},
   'Wspięcia na palce hantlami':{include:[/standing dumbbell calf raise/i,/dumbbell calf raise/i],exclude:[/single[- ]leg/i,/jednon[oó]ż/i,/band/i,/gum[aą]/i]},
+  'Wspięcia na palce jednonóż':{include:[/single[- ]leg calf raise/i,/wspięcia na palce na jednej nodze/i],exclude:[/dumbbell/i,/hantl/i,/band/i,/gum[aą]/i]},
   'Wspięcia na palce siedząc':{include:[/seated calf raise/i],exclude:[/standing/i,/stoj/i]},
   'Abdukcja biodra maszyna':{include:[/hip abduction machine/i],exclude:[/lying/i,/leż/i,/kickback/i,/przywod/i,/adduction/i],prefer:[/seated/i,/siadzie/i]},
   'Przywodzenie biodra maszyna':{include:[/przywodzenie n[oó]g na maszynie/i,/seated hip adduction/i],exclude:[/odwodzen/i,/abduction/i,/standing/i,/ta[sś]m/i,/band/i]},
-  'Odwodzenie biodra leżąc':{include:[/side[- ]lying hip abduction/i],exclude:[/machine/i,/maszyn/i,/prone/i,/brzuchu/i]},
+  'Odwodzenie biodra leżąc':{include:[/side[- ]lying hip abduction/i,/unoszenie nogi leżąc na boku/i],exclude:[/machine/i,/maszyn/i,/prone/i,/brzuchu/i]},
+  'Fire hydrant':{include:[/fire hydrant/i,/unoszenie nogi bokiem w klęku podpartym/i],exclude:[/band/i,/gum[aą]/i]},
   'Kickback na maszynie':{include:[/machine glute kickback/i,/kickback na maszynie/i],exclude:[/cable glute/i,/na wyci[aą]gu/i,/prone/i,/le[zż]eniu/i,/donkey/i]},
   'Kickback pośladki':{include:[/cable glute kickback/i],exclude:[/tricep/i,/donkey/i,/prone/i,/le[zż]eniu/i,/machine glute kickback/i,/kickback na maszynie/i]},
-  'Mostek biodrowy':{include:[/glute bridge/i],exclude:[/hip thrust/i,/mini band/i,/aktywacja/i,/kas/i]},
+  'Mostek biodrowy':{include:[/glute bridge/i,/unoszenie bioder z masą ciała/i],exclude:[/hip thrust/i,/mini band/i,/aktywacja/i,/kas/i]},
   'Wypychanie bioder (hip thrust)':{include:[/hip thrust/i],exclude:[/glute bridge/i,/jednon[oó][zż]/i,/single[- ]leg/i,/machine/i,/maszynie/i,/banded/i,/ta[sś]m/i,/b[- ]?stance/i,/kas/i,/feet[- ]elevat/i]},
   'Rollout z kółkiem':{include:[/ab wheel rollout/i],prefer:[/kneeling/i,/z kolan/i]},
   'Nożyce':{include:[/scissor kicks/i],exclude:[/flutter/i]},
@@ -1903,13 +2214,20 @@ function mediaMapGet(map,name){
   return '';
 }
 
+const _mediaOwnershipCheckCache=new Map();
 function mediaUrlLooksAssignedToOtherExercise(url,name){
   if(!url||!name||typeof matchFilenameToExercise!=='function')return false;
+  const key=String(url)+'\u001f'+exerciseMediaKey(name);
+  if(_mediaOwnershipCheckCache.has(key))return _mediaOwnershipCheckCache.get(key);
   const mapped=matchFilenameToExercise(url,(typeof allExercises==='function'?allExercises():null)||window.DEF_EX||[]);
-  if(!mapped)return false;
-  return exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+  const other=!!mapped&&exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+  // Ograniczenie pamięci dla długiej pracy trenera z importami wielu plików.
+  if(_mediaOwnershipCheckCache.size>4000)_mediaOwnershipCheckCache.clear();
+  _mediaOwnershipCheckCache.set(key,other);
+  return other;
 }
 window.mediaUrlLooksAssignedToOtherExercise=mediaUrlLooksAssignedToOtherExercise;
+window.invalidateMediaOwnershipCheckCache=()=>_mediaOwnershipCheckCache.clear();
 
 function normalizeRemoteExerciseMediaUrl(url){
   const u=String(url||'').trim();
@@ -1958,11 +2276,20 @@ function assignedExVideoUrl(exOrName){
   const asVid=(u,normalize)=>{
     if(!u)return '';
     const n=normalize?normalizeRemoteExerciseMediaUrl(u):String(u||'').trim();
-    return (n&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n))?n:'';
+    const isFile=typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n);
+    const isDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(n);
+    return n&&(isFile||isDrive)?n:'';
   };
   for(const name of names){
     const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
     if(remoteVid&&!mediaUrlLooksAssignedToOtherExercise(remoteVid,name))return remoteVid;
+  }
+  // Materiały Premium z publicznej biblioteki Dysku są celowo osobne od
+  // jasnych podglądów kart. Dzięki temu karta pozostaje lekka i czytelna,
+  // a pełny materiał biomechaniczny jest dostępny dopiero po wejściu w technikę.
+  for(const name of names){
+    const driveVid=asVid(mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name),false);
+    if(driveVid&&!mediaUrlLooksAssignedToOtherExercise(driveVid,name))return driveVid;
   }
   for(const name of names){
     const localVid=asVid(mediaMapGet(window.EX_GIF_MANIFEST,name),false);
@@ -1976,6 +2303,29 @@ function exPhotoMapLookup(name){
   return mediaMapGet(window.EX_PHOTO_MANIFEST,name);
 }
 window.exPhotoMapLookup=exPhotoMapLookup;
+
+/** Jasny podgląd karty jest niezależny od filmu techniki. */
+function assignedExPreviewUrl(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  // Import trenera ma pierwszeństwo, potem używamy jasnego materiału z
+  // biblioteki Drive. Stary obraz zapisany w rekordzie ćwiczenia to wyłącznie
+  // bezpieczny fallback — nie może przykrywać nowego podglądu karty.
+  const previewMaps=[window.EX_PREVIEW_REMOTE,window.EX_DRIVE_PREVIEW_MANIFEST,window.EX_PREVIEW_FALLBACKS];
+  for(const name of exerciseMediaCandidateNames(ex||exOrName)){
+    for(const previewMap of previewMaps){
+      const remote=mediaMapGet(previewMap,name);
+      const url=normalizeRemoteExerciseMediaUrl(remote);
+      if(url&&isSafeMediaUrl(url))return url;
+    }
+  }
+  if(ex&&typeof ex==='object'){
+    const own=String(ex.previewUrl||ex.preview||ex.cardImage||'').trim();
+    if(own&&isSafeMediaUrl(own))return own;
+  }
+  return '';
+}
+window.assignedExPreviewUrl=assignedExPreviewUrl;
 
 /** Placeholdery SVG z assets/ex/*.svg nie są prawdziwymi zdjęciami techniki. */
 function isDecorativeExAsset(url){
@@ -2033,17 +2383,32 @@ function exGifUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   if(ex&&typeof ex==='object'){
-    const gif=String(ex.gif||'').trim();
-    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
-    const img=String(ex.img||ex.thumb||ex.image||'').trim();
-    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
+    // Nowa biblioteka techniki jest ważniejsza niż historyczne linki w
+    // rekordach startowych. Ręcznie importowane linki nadal wygrywają.
+    for(const name of exerciseMediaCandidateNames(ex)){
+      const remote=normalizeRemoteExerciseMediaUrl(mediaMapGet(window.EX_GIF_REMOTE,name));
+      if(remote&&isSafeMediaUrl(remote)&&!mediaUrlLooksAssignedToOtherExercise(remote,name))return remote;
+    }
+    for(const name of exerciseMediaCandidateNames(ex)){
+      const drive=mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name);
+      if(drive&&isSafeMediaUrl(drive)&&!mediaUrlLooksAssignedToOtherExercise(drive,name))return drive;
+    }
     for(const name of exerciseMediaCandidateNames(ex)){
       const mapped=exGifMapLookup(name);
       if(mapped)return mapped;
     }
+    const gif=String(ex.gif||'').trim();
+    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
+    const img=String(ex.img||ex.thumb||ex.image||'').trim();
+    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
     return '';
   }
-  return exGifMapLookup(typeof exOrName==='string'?exOrName:'');
+  const name=typeof exOrName==='string'?exOrName:'';
+  const remote=normalizeRemoteExerciseMediaUrl(mediaMapGet(window.EX_GIF_REMOTE,name));
+  if(remote&&isSafeMediaUrl(remote)&&!mediaUrlLooksAssignedToOtherExercise(remote,name))return remote;
+  const drive=mediaMapGet(window.EX_DRIVE_TECHNIQUE_MANIFEST,name);
+  if(drive&&isSafeMediaUrl(drive)&&!mediaUrlLooksAssignedToOtherExercise(drive,name))return drive;
+  return exGifMapLookup(name);
 }
 window.exGifUrl=exGifUrl;
 
@@ -2051,8 +2416,20 @@ window.exGifUrl=exGifUrl;
 function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  const preview=typeof assignedExPreviewUrl==='function'?assignedExPreviewUrl(ex||exOrName):'';
+  const previewDrive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(preview);
+  if(previewDrive&&typeof googleDriveThumbnailUrl==='function')return googleDriveThumbnailUrl(preview,480);
+  if(preview&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(preview):/\.(mp4|webm)(\?|#|$)/i.test(preview)))return preview;
+  // Materiał z Drive w roli „technika” pozostaje oddzielony od jasnego podglądu.
+  // Własne GIF-y z Firebase są natomiast poprawnym podglądem karty: <img>
+  // ładuje je leniwie, więc nie uruchamiamy całej biblioteki jednocześnie.
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
-  if(gif&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
+  const drive=typeof isGoogleDriveMediaUrl==='function'&&isGoogleDriveMediaUrl(gif);
+  if(drive){
+    const role=typeof googleDriveMediaRole==='function'?googleDriveMediaRole(gif):'technique';
+    return role==='preview'&&typeof googleDriveThumbnailUrl==='function'?googleDriveThumbnailUrl(gif,480):'';
+  }
+  if(gif&&!drive&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;
@@ -2099,17 +2476,29 @@ function libExerciseMatchScore(ex,raw){
   return 0;
 }
 
+/* Kreator i podgląd planu pytają o to samo ćwiczenie dziesiątki razy w jednym przebiegu
+ * (media, alternatywy, baza wiedzy). Pełne dopasowanie do biblioteki trwa, więc wynik
+ * trzymamy do końca bieżącego zadania — po nim pamięć się czyści (edycje biblioteki od razu widać). */
+let _libByNameCache=null,_libByNameLib=null;
 function libExerciseByName(name){
   const key=libExerciseNormName(name);
   if(!key)return null;
   const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  if(!_libByNameCache||_libByNameLib!==lib){
+    _libByNameCache=new Map();_libByNameLib=lib;
+    setTimeout(()=>{_libByNameCache=null;_libByNameLib=null;},0);
+  }
+  const ck=String(name);
+  if(_libByNameCache.has(ck))return _libByNameCache.get(ck);
   let best=null,bestScore=0;
   for(let i=0;i<lib.length;i++){
     const s=libExerciseMatchScore(lib[i],name);
     if(s>bestScore){best=lib[i];bestScore=s;}
     if(s>=1000)break;
   }
-  return bestScore>=400?best:null;
+  const out=bestScore>=400?best:null;
+  _libByNameCache.set(ck,out);
+  return out;
 }
 window.libExerciseNormName=libExerciseNormName;
 window.libExerciseMatchScore=libExerciseMatchScore;
@@ -2125,6 +2514,30 @@ function ownVideoForExercise(name){
   return lib?normalizeCoachVideoUrl(lib.video||''):'';
 }
 window.ownVideoForExercise=ownVideoForExercise;
+
+/** Publiczny link YouTube przypisany ręcznie do ćwiczenia.
+ * Trzymamy go osobno od MP4/GIF, aby nie obciążał kart biblioteki. */
+function assignedExYoutubeUrl(exOrName){
+  const names=exerciseMediaCandidateNames(exOrName);
+  for(const name of names){
+    const url=normalizeCoachVideoUrl(mediaMapGet(window.EX_YOUTUBE_REMOTE,name));
+    if(youtubeIdFromUrl(url))return url;
+  }
+  const ex=typeof exOrName==='string'?libExerciseByName(exOrName):exOrName;
+  const direct=normalizeCoachVideoUrl(ex&&typeof ex==='object'?(ex.youtubeUrl||ex.youtube||''):'');
+  if(youtubeIdFromUrl(direct))return direct;
+  const own=ownVideoForExercise((ex&&ex.name)||exOrName||'');
+  return youtubeIdFromUrl(own)?own:'';
+}
+window.assignedExYoutubeUrl=assignedExYoutubeUrl;
+
+/** Bezpieczny fallback, gdy konkretny materiał nie został jeszcze wybrany. */
+function youtubeSearchUrlForExercise(exOrName){
+  const ex=typeof exOrName==='string'?libExerciseByName(exOrName):exOrName;
+  const name=String((ex&&ex.name)||exOrName||'ćwiczenie').trim();
+  return 'https://www.youtube.com/results?search_query='+encodeURIComponent('Ambitious Athletics '+name+' exercise');
+}
+window.youtubeSearchUrlForExercise=youtubeSearchUrlForExercise;
 
 function exerciseTodoNote(ex){
   if(!ex)return '';
@@ -2151,7 +2564,7 @@ function resolveCoachMedia(parsed){
   }
   let embed=coachVideoEmbed(video);
   const gif=exGifUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',gif:(ex.gif||(lib&&lib.gif)||''),img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
-  const img=gif||exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  const img=exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')})||gif;
   if(gif&&video&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(gif)&&sameMediaUrl(gif,video)){
     video='';
     embed='';
@@ -2209,6 +2622,11 @@ function exTechniqueMediaHtml(media,opts){
   const cap=showCap?`<div class="cw-technique-cap">${alt}</div>`:'';
   const imgAlt=showCap?'':alt;
   const onErr='this.onerror=null;if(typeof showTechniqueMediaUnavailable===\'function\')showTechniqueMediaUnavailable(this);';
+  const drivePreview=typeof googleDrivePreviewUrl==='function'?googleDrivePreviewUrl(gif):'';
+  if(drivePreview){
+    if(compact)return `<div class="cw-technique-media cw-technique-gif is-compact cw-technique-drive-compact" title="Film techniki z Google Drive" aria-label="Film techniki z Google Drive">▶</div>`;
+    return `<div class="cw-technique-media cw-technique-gif cw-technique-drive"><iframe class="${cls}" src="${escHtml(drivePreview)}" title="${alt}" allow="autoplay" allowfullscreen loading="lazy"></iframe>${cap}</div>`;
+  }
   if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
     const poster=String((media&&media.poster)||'').trim();
     const posterAttr=poster&&isSafeMediaUrl(poster)&&!isVideoMediaUrl(poster)&&!sameMediaUrl(poster,gif)?` poster="${escHtml(poster)}"`:'';
@@ -2225,6 +2643,7 @@ function coachMediaHtml(ex,opts){
   const video=(ex&&ex.video)||'';
   const embed=(ex&&ex.videoEmbed)||'';
   const gif=(ex&&ex.gif)||'';
+  const img=(ex&&ex.img)||'';
   const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
   const show=!!opts.showVideo;
   const showGif=opts.showGif!==false;
@@ -2232,6 +2651,7 @@ function coachMediaHtml(ex,opts){
   const sameGifVideo=!!(gif&&video&&typeof sameMediaUrl==='function'&&sameMediaUrl(gif,video));
   let html='';
   if(showGif&&gif)html+=exTechniqueMediaHtml({gif,name:ex&&ex.name},opts);
+  else if(showGif&&img)html+=exTechniqueMediaHtml({gif:img,name:ex&&ex.name},opts);
   if(opts.showNote!==false){
     if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
     else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
@@ -2471,6 +2891,64 @@ function formatSetKindTag(ex){
   return bits.join(' ');
 }
 window.formatSetKindTag=formatSetKindTag;
+
+/** Krótka, widoczna dla klienta instrukcja drop setu przypisanego do ćwiczenia. */
+function dropSetInstruction(ex){
+  const p=ex&&typeof ex==='object'?ex:{};
+  const count=parseSetKindCount(p.drop,2);
+  if(!count)return '';
+  const parsed=parseDropStep(p.dropStep);
+  const step=parsed?(parsed.mode==='kg'?('o '+parsed.n+' kg'):('o '+parsed.n+'%')):'o 25%';
+  const drops=count===1?'jeden zrzut ciężaru':count+' zrzuty ciężaru';
+  return 'Ostatnia seria: wykonaj zaplanowane powtórzenia, bez przerwy zmniejsz ciężar '+step+' i wykonaj kolejną serię. ('+drops+')';
+}
+window.dropSetInstruction=dropSetInstruction;
+
+/* Metody intensyfikacji zapisujemy na ćwiczeniu, aby instrukcja nie ginęła
+   w opisie dnia i była dostępna również po stronie klienta. */
+const INTENSIFICATION_METHODS={
+  drop_set:{label:'DROP SET',when:'Ostatnia seria',how:'Bez przerwy zmniejsz ciężar o 20–30% i wykonaj kolejną serię.'},
+  mechanical_drop_set:{label:'DROP SET MECHANICZNY',when:'Ostatnia seria',how:'Bez zmiany ciężaru przejdź do łatwiejszego wariantu tego samego ruchu, zachowując technikę.'},
+  rest_pause:{label:'REST-PAUSE',when:'Ostatnia seria',how:'Po serii odpocznij 15–25 s, potem wykonaj krótką dogrywkę. Zakończ, gdy technika się pogarsza.'},
+  myo_reps:{label:'MYO-REPS',when:'Po serii aktywacyjnej',how:'Wykonaj serię aktywacyjną, odpocznij 15–20 s i zrób krótkie mini-serie zgodnie z planem.'},
+  superset:{label:'SUPER-SERIA',when:'Pomiędzy ćwiczeniami',how:'Przejdź do wskazanego drugiego ćwiczenia bez przerwy; odpocznij dopiero po wykonaniu obu.'},
+  combined_sets:{label:'SERIE ŁĄCZONE',when:'Pomiędzy ćwiczeniami',how:'Wykonaj wskazane ćwiczenia kolejno, bez przerwy; odpocznij po całym bloku.'},
+  giant_set:{label:'SERIA GIGANT',when:'Pomiędzy ćwiczeniami',how:'Wykonaj cały wskazany blok ćwiczeń kolejno, bez przerw; odpocznij po zakończeniu rundy.'},
+  partial_reps:{label:'CZĘŚCIOWE POWTÓRZENIA',when:'Po pełnych powtórzeniach',how:'Dodaj tylko zaplanowane, kontrolowane częściowe powtórzenia w bezbolesnym zakresie.'},
+  one_and_half:{label:'POWTÓRZENIA 1,5',when:'Każde powtórzenie',how:'Jedno powtórzenie to pełny ruch plus dodatkowa połowa ruchu w podanym zakresie.'},
+  cluster_set:{label:'CLUSTER SET',when:'W trakcie serii',how:'Podziel serię na krótkie mini-serie z zaplanowaną przerwą 15–30 s.'},
+  eccentric:{label:'AKCENT EKSCENTRYCZNY',when:'Każde powtórzenie',how:'Opuszczaj ciężar przez 3–5 sekund; nie zwiększaj ciężaru kosztem kontroli.'},
+  hiit:{label:'HIIT / INTERWAŁY',when:'Po części siłowej',how:'Wykonaj interwały według czasu pracy i przerwy podanych w planie.'}
+};
+window.INTENSIFICATION_METHODS=INTENSIFICATION_METHODS;
+function intensificationType(v){
+  const s=String(v||'').toLowerCase().replace(/[ąćęłńóśźż]/g,c=>({ą:'a',ć:'c',ę:'e',ł:'l',ń:'n',ó:'o',ś:'s',ź:'z',ż:'z'})[c]).replace(/[\s/-]+/g,'_');
+  const aliases={drop:'drop_set',dropset:'drop_set',drop_sety:'drop_set',drop_set:'drop_set',drop_set_mechaniczny:'mechanical_drop_set',mechanical_drop_set:'mechanical_drop_set',rest_pause:'rest_pause',myo_reps:'myo_reps',super_serie:'superset',super_serie:'superset',superset:'superset',serie_laczone_pre_exhaust:'combined_sets',combined_sets:'combined_sets',serie_gigant:'giant_set',giant_set:'giant_set',powtorzenia_czesciowe_w_wydluzeniu:'partial_reps',partial_reps:'partial_reps',powtorzenia_1_5:'one_and_half',one_and_half:'one_and_half',serie_klastrowe:'cluster_set',cluster_set:'cluster_set',akcentowana_faza_ekscentryczna:'eccentric',akcent_ekscentryczny:'eccentric',eccentric:'eccentric',hiit_interwaly:'hiit',hiit:'hiit'};
+  return aliases[s]||'';
+}
+window.intensificationType=intensificationType;
+function exerciseIntensificationMethods(ex){
+  const p=ex&&typeof ex==='object'?ex:{};
+  let raw=p.intensification||p.intensificationMethods||p.methods||[];
+  if(!Array.isArray(raw))raw=[raw];
+  const out=[],seen=new Set();
+  const add=(value,protocol)=>{const type=intensificationType(value&&typeof value==='object'?(value.type||value.name):value);if(!type||seen.has(type))return;seen.add(type);const m={type,protocol:String(protocol||'').trim()};const wk=value&&typeof value==='object'&&Array.isArray(value.weeks)?value.weeks.map(n=>parseInt(n,10)).filter(n=>n>0):null;if(wk&&wk.length)m.weeks=wk;out.push(m);};
+  raw.forEach(x=>add(x,x&&typeof x==='object'?(x.protocol||x.instructions||x.note):''));
+  if(parseSetKindCount(p.drop,2))add('drop_set');
+  if(parseSetKindCount(p.rp,2))add('rest_pause');
+  if(parseSetKindCount(p.cluster,3))add('cluster_set');
+  const notes=String(p.note||p.notes||'').toLowerCase();
+  [['drop[ -]?set','drop_set'],['rest[ -]?pause','rest_pause'],['myo[ -]?reps','myo_reps'],['super[ -]?seri','superset'],['ser(ia|ie) gigant','giant_set'],['klast','cluster_set'],['ekscentrycz','eccentric'],['hiit|interwa','hiit']].forEach(([re,type])=>{if(new RegExp(re,'i').test(notes))add(type);});
+  return out;
+}
+window.exerciseIntensificationMethods=exerciseIntensificationMethods;
+function intensificationInstruction(method,ex){
+  const def=INTENSIFICATION_METHODS[method&&method.type];if(!def)return '';
+  if(method.protocol)return method.protocol;
+  if(method.type==='drop_set')return dropSetInstruction(ex);
+  return def.how;
+}
+window.intensificationInstruction=intensificationInstruction;
 
 function scaleKg(kg,frac){
   const n=parseFloat(kg);
@@ -3177,6 +3655,14 @@ function exerciseForPlanWeek(ex,plan,weekIdx){
     if(wp.rest)out.rest=wp.rest;
     if(wp.rpe)out.rpe=wp.rpe;
     if(wp.rir!=null&&wp.rir!=='')out.rir=wp.rir;
+    if(wp.drop!=null)out.drop=wp.drop;
+    if(wp.dropStep!=null)out.dropStep=wp.dropStep;
+  }
+  // Zgodność ze starszymi planami zapisanymi zanim drop set miał osobne pola.
+  // Dzięki temu klient widzi instrukcję także w już utworzonym planie.
+  if(!parseSetKindCount(out.drop,2)&&/drop[ -]?set/i.test(String(out.note||out.notes||''))){
+    out.drop=1;
+    if(!out.dropStep)out.dropStep='25%';
   }
   if(isFiteboLikePlan(plan)){
     const sch=planPhaseSchedule(plan,{});
@@ -5470,7 +5956,7 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
     const ex=parsePlanExercise(raw);
     // Klient może zobaczyć wyłącznie zamienniki wpisane w jego planie przez trenera.
     // Sugestie z biblioteki pozostają narzędziem trenera, nie automatyczną poradą.
-    const alts=String(ex.alt||'').split(/[,;/|]/).map(x=>x.trim()).filter((x,i,a)=>x&&x!==ex.name&&a.indexOf(x)===i);
+    const alts=String(ex.alt||'').split(/[,;/|]/).map(x=>x.trim()).filter((x,i,a)=>x&&x!==ex.name&&a.indexOf(x)===i).slice(0,3);
     const exerciseId=resolveExerciseId(ex);
     const last=lastLoadForExercise(clientId,ex.name,alts,exerciseId?{exerciseId}:{});
     const rest=parseRestSeconds(ex.rest);
@@ -7409,7 +7895,7 @@ function applyBrandTheme(settings){
   const accent=normalizeHexColor(brand.accentColor)||STUDIO_THEME.accent;
   const mode=resolveThemeMode(brand);
   const rgb=hexToRgbStr(accent);
-  const hover=shadeHex(accent,-0.14);
+  const hover=shadeHex(accent,-0.15); // #e60000 → #c40000
   root.setAttribute('data-theme',mode);
   root.style.colorScheme=mode;
   root.style.setProperty('--accent',accent);

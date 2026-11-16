@@ -4,6 +4,7 @@ const {getFirestore} = require('firebase-admin/firestore');
 const {onSchedule} = require('firebase-functions/v2/scheduler');
 const {logger} = require('firebase-functions');
 const {drainPending} = require('./worker.cjs');
+const {youtubeCurationSuggest} = require('./youtube-curation.cjs');
 initializeApp();
 
 exports.continuePendingAutoflow = onSchedule({
@@ -14,3 +15,5 @@ exports.continuePendingAutoflow = onSchedule({
   const counts = await drainPending(getFirestore(), {runId: String(event.scheduleTime), maxJobs: 100});
   logger.info('autoflow-pending-summary', counts);
 });
+
+exports.youtubeCurationSuggest = youtubeCurationSuggest;

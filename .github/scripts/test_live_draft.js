@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Live draft: LS + IndexedDB + Firestore source live-draft (co 3 serie). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -21,10 +22,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 04', html.includes('04-client-portal.js?v=62'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 04', cacheAtLeast(html, '04-client-portal.js', 62));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
 ok('helpers', /function liveShouldPersistDraftRemote/.test(live) && /function livePersistDraftRemote/.test(live) && /function liveDraftIdbPut/.test(live));
 ok('start persist', /liveSaveDraft\(n,\{remote:true,force:true\}\)/.test(live));
 ok('toggle persist', /liveSaveDraft\(n,\{remote:true\}\)/.test(live));

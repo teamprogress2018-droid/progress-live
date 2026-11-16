@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Keep CP tab when switching clients; unread dot on sidebar list. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -26,7 +27,7 @@ ok('opts.tab force', /o\.tab\|\|/.test(src07));
 ok('sidebar unread badge', src05.includes('nav-client-attn') && src05.includes('msgHasUnread'));
 ok('inbox badge refreshes sidebar', /updateInboxNavBadge[\s\S]{0,200}renderSidebarClients/.test(src06));
 ok('css attn dot', css.includes('.nav-client-attn'));
-ok('cache', html.includes('07-forms-metrics-calculator.js?v=45') && html.includes('05-clients-builder-plans-calendar.js?v=106') && html.includes('06-inbox-exercises-ai-programs.js?v=103') && html.includes('styles.css?v=166'));
+ok('cache', cacheAtLeast(html, '07-forms-metrics-calculator.js', 45) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106) && cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103) && cacheAtLeast(html, 'styles.css', 166));
 ok('CI', wf.includes('test_cp_tab_persist.js'));
 
 if (failed) {

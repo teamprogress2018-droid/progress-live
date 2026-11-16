@@ -1642,7 +1642,18 @@ async function askMetricAI(){
 // ════════════════════════════════════════
 // CALCULATOR — TDEE / MAKRO
 // ════════════════════════════════════════
-var calcActivity=1.375;var calcGoalDelta=0;
+var calcActivity=1.5;var calcGoalDelta=0;
+var dietMeals=5;var dietVariant=0;var dietView='dzien';
+// Kreator jadłospisu: sposób żywienia, wykluczenia, produkty, których klient nie je, limit czasu.
+var dietPrefs={style:'wszystko',ex:[],skip:[],like:[],maxMin:0,col:[]};
+// Zamienione posiłki: klucz 'dzień:posiłek' → ile razy przesunąć zestaw.
+var dietMealShift={};
+// Dni treningowe (numery dni tygodnia, 1 = pon … 0 = nd); null = z harmonogramu klienta. Typ dnia dla widoku 1 i 3 dni.
+var dietTrainDays=null;var dietDayType='trening';
+// Zakupy i gotowanie (widok kilku dni): obiad na 2–3 dni, liczba osób na liście zakupów.
+var dietPrep=0;var dietPeople=1;
+// 'books' = makro wg książek (diet-plan.js), 'manual' = preset albo suwaki trenera.
+var calcMacroMode='books';
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
 
 function initCalcClients(){
@@ -1658,7 +1669,7 @@ function calcShowWelcome(){
   el.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
       <div style="font-size:56px;margin-bottom:20px;">🧮</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">KALKULATOR TDEE I MAKRO</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">Kalkulator TDEE i makro</div>
       <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij dane po lewej stronie i kliknij <strong style="color:var(--accent);">Oblicz</strong>. Kalkulator wyznaczy zapotrzebowanie kaloryczne, podział makroskładników i przykładowy rozkład na posiłki.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
         ${[
@@ -1721,13 +1732,19 @@ function calcLoadFromClient(){
     const g=typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender;
     if(g)document.getElementById('calc-gender').value=g;
   }
-  // Aktywność z profilu klienta (ta sama skala co w szacunku z karty klienta).
-  const actMap={sedentary:1.2,light:1.375,moderate:1.55,active:1.725};
+  // Aktywność z profilu klienta → PAL wg IOM (Sports Nutrition 6. wyd., s. 203).
+  const actMap={sedentary:1.25,light:1.5,moderate:1.75,active:2.2};
   if(actMap[c.activityLevel]){
     calcActivity=actMap[c.activityLevel];
     document.querySelectorAll('.calc-act-btn').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.val)===calcActivity));
   }
-  window._calcClientId=c.id;
+  window._calcClientId=c.id;dietTrainDays=null;
+  // Upodobania i wykluczenia z ostatniego planu klienta.
+  // Bez planu: sposób odżywiania, wykluczenia, czas gotowania i liczba posiłków z wywiadu (krok „Jedzenie”).
+  const fromIv=!(c.dietPlan&&c.dietPlan.prefs)&&window.PlanClient?PlanClient.dietPrefsFrom(c):null;
+  if(fromIv&&fromIv.meals)dietMeals=fromIv.meals;
+  const sp=c.dietPlan&&c.dietPlan.prefs||(fromIv&&fromIv.prefs);
+  dietPrefs=sp?{style:sp.style||'wszystko',ex:(sp.ex||[]).slice(),skip:(sp.skip||[]).slice(),like:(sp.like||[]).slice(),maxMin:+sp.maxMin||0,col:(sp.col||[]).slice()}:{style:'wszystko',ex:[],skip:[],like:[],maxMin:0,col:[]};
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
   const delta=goalMap[c.goal]||0;
@@ -1736,10 +1753,8 @@ function calcLoadFromClient(){
     if(parseInt(b.dataset.val)===delta)b.classList.add('active');
   });
   calcGoalDelta=delta;
-  // set macro preset
-  const macroMap={masa:{p:35,f:25,c:40},redukcja:{p:40,f:30,c:30},sila:{p:35,f:25,c:40},kondycja:{p:30,f:30,c:40}};
-  const m=macroMap[c.goal]||{p:30,f:30,c:40};
-  setCalcMacroVals(m.p,m.f,m.c);
+  // Makro wg książek dla celu klienta (białko g/kg, tłuszcz 25%, reszta węglowodany).
+  calcSetMacroMode('books');
   calcTDEE();
   notify('✓ Dane klienta wczytane: '+c.name);
 }
@@ -1758,7 +1773,17 @@ function setCalcGoal(btn,delta){
   calcTDEE();
 }
 
+function calcSetMacroMode(mode){
+  calcMacroMode=mode==='books'?'books':'manual';
+  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.toggle('active',calcMacroMode==='books'&&b.dataset.books==='1'));
+}
+function setCalcMacroBooks(){
+  calcSetMacroMode('books');
+  calcTDEE();
+}
+
 function setCalcMacro(btn,p,f,c){
+  calcMacroMode='manual';
   document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   setCalcMacroVals(p,f,c);
@@ -1794,6 +1819,7 @@ function syncSliders(changed){
     document.getElementById('sl-c').value=c;
   }
   calcMacroP=p;calcMacroF=f;calcMacroC=c;
+  calcMacroMode='manual';
   document.getElementById('sl-p-val').textContent=p;
   document.getElementById('sl-f-val').textContent=f;
   document.getElementById('sl-c-val').textContent=c;
@@ -1821,15 +1847,25 @@ function calcTDEE(){
   else bmr=10*weight+6.25*height-5*age-161;
 
   const tdee=Math.round(bmr*calcActivity);
-  const target=tdee+calcGoalDelta;
-  const belowBmr=target<Math.round(bmr);
-  const proteinG=Math.round(target*(calcMacroP/100)/4);
-  const fatG=Math.round(target*(calcMacroF/100)/9);
-  const carbG=Math.round(target*(calcMacroC/100)/4);
+  // Twarde minimum: cel nigdy poniżej max(BMR, 1200 kcal kobiety / 1500 kcal mężczyźni).
+  const kcalFloor=calcApplyKcalFloor(tdee+calcGoalDelta,gender,bmr);
+  const target=kcalFloor.kcal;
+  let proteinG=Math.round(target*(calcMacroP/100)/4);
+  let fatG=Math.round(target*(calcMacroF/100)/9);
+  let carbG=Math.round(target*(calcMacroC/100)/4);
+  // Tryb „Wg książek”: gramy z bazy wiedzy, suwaki pokazują wynikające z nich procenty.
+  window._calcBookMacros=null;
+  if(calcMacroMode==='books'&&typeof DietPlan!=='undefined'){
+    const bt=DietPlan.dietBookTargets(calcDietContext({weight,age,kcal:target,rmr:Math.round(bmr)}));
+    proteinG=bt.protein.g;fatG=bt.fat.g;carbG=bt.carbs.g;
+    window._calcBookMacros={proteinG,fatG,carbG};
+    const pp=Math.round(proteinG*4/target*100),fp=Math.round(fatG*9/target*100);
+    setCalcMacroVals(pp,fp,100-pp-fp);
+  }
 
   // per kg recommendations
   const protPerKg=(proteinG/weight).toFixed(1);
-  const isProtOk=parseFloat(protPerKg)>=1.6&&parseFloat(protPerKg)<=2.5;
+  const isProtOk=parseFloat(protPerKg)>=1.4&&parseFloat(protPerKg)<=2.2;
 
   // LBM: ze zmierzonego %BF klienta (pomiary mg1/m2), a gdy go brak — szacunek 82% masy ciała.
   const bfEntry=window._calcClientId?(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===window._calcClientId&&e.groupId==='mg1'&&e.values&&parseFloat(e.values.m2)>0&&parseFloat(e.values.m2)<70)
@@ -1865,7 +1901,7 @@ function calcTDEE(){
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">TDEE (Całkowite zapotrzebowanie)</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--orange);line-height:1;">${tdee}</div>
         <div style="font-size:11px;color:var(--muted);">kcal / dzień</div>
-        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">TDEE = BMR × ${calcActivity}</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">TDEE = BMR × ${String(calcActivity).replace('.',',')} (PAL wg IOM, SN s. 203)</div>
       </div>
     </div>
 
@@ -1878,11 +1914,10 @@ function calcTDEE(){
         </div>
         <div style="text-align:right;">
           <div style="font-size:12px;color:var(--muted);">Zmiana vs TDEE</div>
-          <div style="font-size:20px;font-weight:700;color:${calcGoalDelta<0?'var(--teal)':calcGoalDelta>0?'var(--orange)':'var(--muted)'};">${calcGoalDelta>0?'+':''}${calcGoalDelta} kcal</div>
-          ${calcGoalDelta!==0?`<div style="font-size:11px;color:var(--muted);">≈ ${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień</div>`:''}
+          <div style="font-size:20px;font-weight:700;color:${calcGoalDelta<0?'var(--teal)':calcGoalDelta>0?'var(--orange)':'var(--muted)'};">${target-tdee>0?'+':''}${target-tdee} kcal</div>${kcalFloor.applied?`<div style="font-size:10px;color:var(--muted);">wybrano ${calcGoalDelta>0?'+':''}${calcGoalDelta} kcal</div>`:''}
         </div>
       </div>
-      ${belowBmr?`<div role="alert" style="font-size:12px;line-height:1.5;color:var(--red);background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.35);border-radius:8px;padding:8px 10px;margin-bottom:10px;">⚠ Cel (${target} kcal) jest niższy niż BMR (${Math.round(bmr)} kcal). Taki deficyt rzadko jest zasadny — wybierz łagodniejszą redukcję albo prowadź klienta pod kontrolą dietetyka.</div>`:''}
+      ${kcalFloor.applied?calcKcalFloorNoticeHTML(kcalFloor):''}
 
       <!-- pasek makro -->
       <div class="calc-macro-bar">
@@ -1913,16 +1948,17 @@ function calcTDEE(){
 
     <!-- alternatywne scenariusze -->
     <div class="calc-result-card">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">ALTERNATYWNE SCENARIUSZE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">Alternatywne scenariusze</div>
       <div class="calc-scenarios">
         ${[{l:'Agresywna redukcja',d:-500,c:'var(--red)'},{l:'Łagodna redukcja',d:-300,c:'var(--orange)'},{l:'Utrzymanie',d:0,c:'var(--teal)'},{l:'Łagodna masa',d:300,c:'var(--blue)'},{l:'Agresywna masa',d:500,c:'var(--accent)'}].map(s=>`
           <div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;${calcGoalDelta===s.d?'border:1px solid '+s.c+';':'border:1px solid transparent;'}">
             <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${s.l}</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${tdee+s.d}</div>
-            <div style="font-size:9px;color:var(--muted2);">kcal/dzień</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${calcApplyKcalFloor(tdee+s.d,gender,bmr).kcal}</div>
+            <div style="font-size:9px;color:var(--muted2);">kcal/dzień${calcApplyKcalFloor(tdee+s.d,gender,bmr).applied?' · minimum':''}</div>
           </div>`).join('')}
       </div>
     </div>
+    ${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr),kcalFloor:kcalFloor.floor,selected:calcMacroMode==='books'?null:{p:proteinG,f:fatG,c:carbG}})}
     </div>
 
     <div class="calc-col-side">
@@ -1944,15 +1980,34 @@ function calcTDEE(){
 
     <!-- wskazówki i normy -->
     <div class="calc-result-card">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">NORMY I WSKAZÓWKI</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> Stanowisko ISSN: 1,6–2,2 g/kg masy ciała (przy redukcji u osób trenujących do ok. 2,3–3,1 g/kg beztłuszczowej masy). Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w normie':'⚠ poza typowym zakresem, sprawdź'}.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> Min. ${Math.round(weight*0.035*10)/10} l/dzień (35ml/kg). Podczas treningu +500-1000ml.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> Zalecane 0.5-1% masy ciała/tydzień. Twój deficit/nadwyżka to ~${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">LBM (beztłuszczowa masa${bf!=null?', z pomiaru '+bf+'% BF':', szacunek bez pomiaru %BF'}):</strong> ~${lbm} kg. Docelowo 1.8-2.2g białka na kg LBM = ${Math.round(lbm*1.8)}–${Math.round(lbm*2.2)}g białka.</div>
-      <div class="calc-tip"><strong style="color:var(--accent);">Białko w ciągu dnia:</strong> 20–40 g białka w 3–5 posiłkach. Ważniejsza jest dzienna suma niż dokładna pora — posiłek po treningu w ciągu kilku godzin w zupełności wystarczy.</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">Normy i wskazówki</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> osoby trenujące 1,4–2,0 g/kg masy ciała (SN), w sportach siłowych 1,4–2,2 g/kg, przy redukcji do 2,3–3,1 g/kg beztłuszczowej masy (ADS). Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w zakresie':'⚠ poza typowym zakresem, sprawdź'}. <span class="diet-src">📚 SN s. 230; ADS s. 104, 424</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> ok. ${calcWaterLitres(gender)} l/dzień ze wszystkich źródeł, także z jedzenia (Europa: ${gender==='M'?'2,5':'2,0'} l). Ok. 4 h przed treningiem 5–7 ml/kg (${Math.round(weight*5)}–${Math.round(weight*7)} ml), po treningu ok. 150% utraconej masy. <span class="diet-src">📚 SN s. 109–111, 124</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> redukcja ok. 0,7% masy na tydzień (${(weight*0.007).toFixed(1).replace('.',',')} kg), nie szybciej niż 0,5 kg/tydz. wg Bean; masa: mężczyźni 0,5–1 kg, kobiety 0,25–0,75 kg na miesiąc. Stałe przeliczenie „7700 kcal = 1 kg” nie działa w czasie, więc go nie pokazujemy. <span class="diet-src">📚 SN s. 207, 229–230; Bean s. 117–141</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">LBM (beztłuszczowa masa${bf!=null?', z pomiaru '+bf+'% BF':', szacunek bez pomiaru %BF'}):</strong> ~${lbm} kg. Spoczynkowa przemiana wg Cunninghama (370 + 21,6 × LBM) = ${Math.round(370+21.6*lbm)} kcal, dla porównania z Mifflinem. <span class="diet-src">📚 SN s. 200</span></div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko w ciągu dnia:</strong> ok. 0,25 g/kg na posiłek (${Math.round(weight*0.25)} g) w 4–5 posiłkach; osoby starsze 30–40 g. Ważniejsza jest dzienna suma niż dokładna pora — posiłek po treningu w ciągu kilku godzin w zupełności wystarczy. <span class="diet-src">📚 SN s. 42–49, 53, 230</span></div>
     </div>
     </div>`;
 }
+
+// ════════ Twarde minimum kalorii (audyt 8.11.2026) ════════
+// Cel nie spada poniżej max(BMR, 1200 kcal dla kobiet, 1500 kcal dla mężczyzn) — także przy
+// „agresywnej redukcji” (TDEE − 500). Bezpieczeństwo klienta: ustawienie aplikacji wygrywa z suwakiem.
+// Książki: nie schodzić poniżej RMR, ≤1000 kcal niebezpieczne (Bean s. 121); progi 1200/1500 to ustawienie aplikacji.
+const CALC_KCAL_MIN={K:1200,M:1500};
+function calcKcalFloor(gender,bmr){
+  const sex=gender==='M'?'M':'K';
+  const b=Math.round(+bmr||0),abs=CALC_KCAL_MIN[sex];
+  return{floor:Math.max(b,abs),bmr:b,abs,sex,byBmr:b>abs};
+}
+function calcApplyKcalFloor(kcal,gender,bmr){
+  const f=calcKcalFloor(gender,bmr),raw=Math.round(+kcal||0);
+  return Object.assign(f,{raw,kcal:Math.max(raw,f.floor),applied:raw<f.floor});
+}
+function calcKcalFloorNoticeHTML(f){
+  return `<div role="status" class="calc-kcal-floor" style="font-size:12px;line-height:1.5;color:var(--text);background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.45);border-radius:8px;padding:8px 10px;margin-bottom:10px;">🛡 <strong>Minimum zadziałało:</strong> cel podniesiony z ${f.raw} do ${f.kcal} kcal. Minimum to większa z wartości: BMR (${f.bmr} kcal) i ${f.abs} kcal dla ${f.sex==='M'?'mężczyzn':'kobiet'}. Większy deficyt tylko pod kontrolą lekarza lub dietetyka.</div>`;
+}
+window.calcApplyKcalFloor=calcApplyKcalFloor;
 
 function calcMacrosFromInputs(o){
   o=o||{};
@@ -1965,9 +2020,10 @@ function calcMacrosFromInputs(o){
   const p=+o.macroP||30,f=+o.macroF||25,c=+o.macroC||45;
   const bmr=gender==='M'?10*weight+6.25*height-5*age+5:10*weight+6.25*height-5*age-161;
   const tdee=Math.round(bmr*activity);
-  const target=tdee+goalDelta;
+  const floor=calcApplyKcalFloor(tdee+goalDelta,gender,bmr);
+  const target=floor.kcal;
   return{
-    tdee,targetKcal:target,
+    tdee,targetKcal:target,kcalFloorApplied:floor.applied,kcalFloor:floor.floor,
     proteinG:Math.round(target*(p/100)/4),
     fatG:Math.round(target*(f/100)/9),
     carbG:Math.round(target*(c/100)/4),
@@ -1978,7 +2034,7 @@ function calcMacrosFromInputs(o){
   };
 }
 function calcReadFormMacros(){
-  return calcMacrosFromInputs({
+  const m=calcMacrosFromInputs({
     age:document.getElementById('calc-age')?.value,
     weight:document.getElementById('calc-weight')?.value,
     height:document.getElementById('calc-height')?.value,
@@ -1989,6 +2045,10 @@ function calcReadFormMacros(){
     macroF:typeof calcMacroF!=='undefined'?calcMacroF:25,
     macroC:typeof calcMacroC!=='undefined'?calcMacroC:45
   });
+  // Tryb „Wg książek”: zapisujemy dokładne gramy z kalkulatora, nie zaokrąglone procenty.
+  const b=typeof calcMacroMode!=='undefined'&&calcMacroMode==='books'?window._calcBookMacros:null;
+  if(b){m.proteinG=b.proteinG;m.fatG=b.fatG;m.carbG=b.carbG;m.macroSource='books';}
+  return m;
 }
 function applyMacrosToClient(client,macros,opts){
   opts=opts||{};
@@ -2014,8 +2074,170 @@ function calcSendToClient(){
   const macros=calcReadFormMacros();
   if(c)applyMacrosToClient(c,macros,{persist:true});
   const weight=macros.weight||(c&&c.weight)||80;
-  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${macros.tdee} kcal\nCel: ${macros.targetKcal} kcal\n\nMakroskładniki:\n🟢 Białko: ${macros.proteinG}g\n🟡 Tłuszcze: ${macros.fatG}g\n🔵 Węglowodany: ${macros.carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
+  const gender=document.getElementById('calc-gender')?.value||'M';
+  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${macros.tdee} kcal\nCel: ${macros.targetKcal} kcal\n\nMakroskładniki:\n🟢 Białko: ${macros.proteinG}g\n🟡 Tłuszcze: ${macros.fatG}g\n🔵 Węglowodany: ${macros.carbG}g\n\nWoda: ok. ${calcWaterLitres(gender)} l/dzień (razem z wodą z jedzenia)`);
   notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
+}
+
+// Woda ze wszystkich źródeł (AI wg IOM): mężczyźni 3,7 l, kobiety 2,7 l — Sports Nutrition 6. wyd., s. 109–111.
+function calcWaterLitres(gender){return gender==='M'?'3,7':'2,7';}
+
+// Jadłospis z książek (diet-plan.js): cel kcal z kalkulatora, makro i gramatura wg baz wiedzy.
+function calcDietContext(o){
+  const c=window._calcClientId&&typeof CL!=='undefined'?CL.find(x=>x.id===window._calcClientId):null;
+  return Object.assign({pal:calcActivity,goal:c&&c.goal,goalDelta:calcGoalDelta},o);
+}
+function calcDietCardHTML(o){
+  if(typeof DietPlan==='undefined')return'';
+  const t=DietPlan.dietBookTargets(calcDietContext(o));
+  const ctx=calcDietContext(o);
+  const rest=DietPlan.dietRestTargets(t,{rmr:o.rmr,pal:ctx.pal,goalDelta:ctx.goalDelta,kcalFloor:o.kcalFloor});
+  const td=dietTrainDaysNow();
+  const restDay=!rest.same&&dietView!=='tydzien'&&dietDayType==='wolny';
+  const shown=restDay?rest:t;
+  const opts={targets:t,rest,trainDays:td.days,dayType:dietDayType,meals:dietMeals,variant:dietVariant,prefs:dietPrefs,days:dietView==='3dni'?3:7,mealShift:dietMealShift,prep:dietPrep,people:dietPeople};
+  const blocked=t.blocked||(restDay&&rest.blocked)||(dietView==='tydzien'&&!rest.same&&rest.blocked&&td.days.length<7);
+  const day=blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(Object.assign({},opts,{targets:shown})):DietPlan.dietBuildWeek(Object.assign({},opts,{targets:shown}));
+  const cardT=blocked&&!t.blocked?(restDay||dietView==='tydzien'?rest:t):shown;
+  window._dietLast={targets:shown,day};
+  const approval=window._dietApprovalOpen&&day?dietApprovalState(shown,day):null;
+  return DietPlan.dietRenderCard(cardT,day,{approval,review:calcDietReview(o),meals:dietMeals,skipOpen:window._dietSkipOpen||false,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
+}
+// Korekta z postępów: masa z pomiarów (Masa i BMI) i z check-inów, realizacja z check-inów.
+function calcDietReview(o){
+  const cid=window._calcClientId;
+  if(!cid||!DietPlan.dietProgressReview)return null;
+  const weights=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===cid&&e.groupId==='mg1'&&e.values&&e.values.m1!=null).map(e=>({d:e.date,v:parseFloat(e.values.m1)}));
+  const checkins=((window.CHECKINS&&window.CHECKINS[cid])||[]).filter(c=>c&&c.answers&&c.status==='filled').map(c=>({date:String(c.filledAt||c.date||'').slice(0,10),answers:c.answers}));
+  checkins.forEach(c=>{const w=parseFloat(c.answers.weight);if(w>0&&c.date)weights.push({d:c.date,v:w});});
+  const gender=(document.getElementById('calc-gender')||{}).value==='K'?'K':'M';
+  return DietPlan.dietProgressReview({weights,checkins,gender,delta:calcGoalDelta,rmr:o.rmr,tdee:o.kcal-calcGoalDelta,plannedWorkouts:dietTrainDaysNow().fromClient?dietTrainDaysNow().days.length:0});
+}
+// Trener sam zatwierdza propozycję: zmienia tylko cel w kalkulatorze, nic nie zapisuje u klienta.
+function dietApplySuggestion(delta){
+  calcGoalDelta=Math.round(+delta||0);
+  document.querySelectorAll('.calc-goal-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.val)===calcGoalDelta));
+  calcTDEE();
+  notify('✓ Cel ustawiony: '+(calcGoalDelta>0?'+':'')+calcGoalDelta+' kcal. Zapisz w profilu, jeśli się zgadzasz.');
+}
+function dietTrainDaysNow(){
+  if(Array.isArray(dietTrainDays))return{days:dietTrainDays,fromClient:false};
+  const c=window._calcClientId&&typeof CL!=='undefined'?CL.find(x=>x.id===window._calcClientId):null;
+  const days=c&&typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(c.preferredWeekdays):[];
+  return days.length?{days,fromClient:true}:{days:[1,3,5],fromClient:false};
+}
+function dietToggleTrainDay(id){const d=dietTrainDaysNow().days.slice();const i=d.indexOf(id);if(i<0)d.push(id);else d.splice(i,1);dietTrainDays=d;calcTDEE();}
+function dietSetPrep(v){dietPrep=+v||0;dietMealShift={};calcTDEE();}
+function dietSetPeople(n){dietPeople=Math.max(1,+n||1);calcTDEE();}
+function dietSetDayType(v){dietDayType=v==='wolny'?'wolny':'trening';calcTDEE();}
+function dietSetMeals(n){dietMeals=n;dietMealShift={};calcTDEE();}
+function dietSwapMeal(d,m){window._dietOpenDay=d;const k=d+':'+m;dietMealShift[k]=(dietMealShift[k]||0)+1;calcTDEE();}
+function dietSetView(v){dietView=v==='tydzien'||v==='3dni'?v:'dzien';calcTDEE();}
+function dietSetStyle(k){dietPrefs.style=k;dietPrefs.ex=dietPrefs.ex.filter(id=>!(DietPlan.DIET_STYLES[k]||{ex:[]}).ex.includes(id));calcTDEE();}
+function dietToggleList(list,id){const i=list.indexOf(id);if(i<0)list.push(id);else list.splice(i,1);}
+function dietToggleEx(id){dietToggleList(dietPrefs.ex,id);calcTDEE();}
+function dietToggleSkip(id){dietToggleList(dietPrefs.skip,id);dietPrefs.like=(dietPrefs.like||[]).filter(x=>x!==id);window._dietSkipOpen='skip';calcTDEE();}
+function dietToggleLike(id){dietPrefs.like=dietPrefs.like||[];dietToggleList(dietPrefs.like,id);dietPrefs.skip=dietPrefs.skip.filter(x=>x!==id);window._dietSkipOpen='like';calcTDEE();}
+function dietSetMaxMin(v){dietPrefs.maxMin=+v||0;calcTDEE();}
+// Rodzaj dań z e-booków (np. szybkie kolacje): wybrane zestawy zastępują inne dania w swoich posiłkach.
+function dietToggleCol(id){dietPrefs.col=dietPrefs.col||[];dietToggleList(dietPrefs.col,id);calcTDEE();}
+function dietClearCol(){dietPrefs.col=[];calcTDEE();}
+function dietNextVariant(){dietVariant++;dietMealShift={};calcTDEE();}
+function dietUseBookMacros(){
+  setCalcMacroBooks();
+  notify('✓ Makro ustawione wg książek');
+}
+// Wysyłka tylko po zatwierdzeniu: „Wyślij” otwiera listę kontrolną, klient dostaje plan dopiero po „Zatwierdź i wyślij”.
+function dietCalcClient(){
+  const cid=document.getElementById('calc-client')?.value;
+  return cid&&typeof CL!=='undefined'?CL.find(x=>x.id===cid)||null:null;
+}
+// Ciąża / cukrzyca / zaburzenia odżywiania z ankiet klienta i opisu zdrowia w profilu.
+function dietClientHealthRisks(c){
+  if(!c||typeof DietPlan==='undefined'||!DietPlan.dietHealthRisks)return[];
+  const answers=(window.FORM_SENDS||[]).filter(s=>s&&s.clientId===c.id&&s.status==='filled')
+    .map(s=>({form:s.formName||'Ankieta',answers:typeof formSendAnswersMap==='function'?formSendAnswersMap(s):(s.answers||{})}));
+  return DietPlan.dietHealthRisks({answers,texts:[c.injuries,c.health,c.healthNotes].filter(Boolean)});
+}
+function dietApprovalState(t,day){
+  const c=dietCalcClient();
+  const age=parseInt(document.getElementById('calc-age')?.value,10)||null;
+  return{checks:DietPlan.dietApprovalChecks(t,day,{age,injuries:c&&c.injuries,risks:dietClientHealthRisks(c)}),saved:c&&c.dietPlan};
+}
+// Przycisk „Zatwierdź i wyślij” aktywny dopiero po zaznaczeniu wszystkich wymaganych potwierdzeń.
+function dietApprovalToggle(){
+  const ok=!!document.getElementById('diet-approve-check')?.checked;
+  const riskBox=document.getElementById('diet-risk-ack');
+  const on=ok&&(!riskBox||riskBox.checked);
+  const b=document.getElementById('diet-approve-btn');
+  if(b){b.disabled=!on;b.style.opacity=on?1:.45;}
+}
+function dietSendToClient(){
+  if(!dietCalcClient()){notify('Wybierz klienta!');return;}
+  const last=window._dietLast;
+  if(!last||!last.day){notify('Najpierw policz jadłospis');return;}
+  window._dietApprovalOpen=true;
+  calcTDEE();
+  const el=document.querySelector('#diet-card .diet-approval');
+  if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'});
+}
+function dietCloseApproval(){window._dietApprovalOpen=false;calcTDEE();}
+function dietPlanRecord(status){
+  const last=window._dietLast;
+  const t=last.targets,day=last.day;
+  const now=new Date().toISOString();
+  return{status,updatedAt:now,kcal:t.kcal,protein:t.protein.g,fat:t.fat.g,carbs:t.carbs.g,
+    days:day.days?day.days.length:1,meals:dietMeals,prefs:day.prefs||null,
+    text:DietPlan.dietPlanText(t,day),checks:DietPlan.dietApprovalChecks(t,day,{risks:dietClientHealthRisks(dietCalcClient())}).map(x=>x.level+': '+x.text)};
+}
+function dietStorePlan(c,rec){
+  if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
+  c.dietPlan=rec;
+  if(typeof persistById==='function')persistById('clients',c);
+}
+function dietSaveDraft(){
+  const c=dietCalcClient();
+  if(!c||!window._dietLast||!window._dietLast.day){notify('Wybierz klienta i policz jadłospis');return;}
+  dietStorePlan(c,dietPlanRecord('szkic'));
+  window._dietApprovalOpen=false;
+  calcTDEE();
+  notify('💾 Szkic zapisany u '+c.name+'. Klient go nie widzi.');
+}
+/** Jadłospis jako PDF: osobne okno z wersją do druku (Drukuj → Zapisz jako PDF). Działa też bez wybranego klienta. */
+function dietDownloadPdf(){
+  const last=window._dietLast;
+  if(!last||!last.day){notify('Najpierw policz jadłospis');return false;}
+  const c=dietCalcClient();
+  const base=String(location.href).split('#')[0].split('?')[0].replace(/[^/]*$/,'');
+  const html=DietPlan.dietPlanPrintHTML(last.targets,last.day,{client:c&&c.name||'',date:new Date().toLocaleDateString('pl-PL'),base});
+  // Bez „noopener”: z nim window.open zwraca null i nie da się wpisać treści do okna.
+  const w=window.open('','_blank','width=860,height=900');
+  if(!w){notify('Zablokowano okno — odblokuj pop-upy, żeby pobrać PDF');return false;}
+  w.document.open();w.document.write(html);w.document.close();
+  try{w.opener=null;}catch(e){}
+  return true;
+}
+function dietApproveAndSend(){
+  const c=dietCalcClient();
+  if(!c||!window._dietLast||!window._dietLast.day){notify('Wybierz klienta i policz jadłospis');return;}
+  const risks=dietClientHealthRisks(c);
+  const can=DietPlan.dietCanSend({risks,approved:!!document.getElementById('diet-approve-check')?.checked,riskAck:!!document.getElementById('diet-risk-ack')?.checked});
+  if(!can.ok){
+    if(can.reason==='risk'){
+      window._dietApprovalOpen=true;calcTDEE();
+      notify('⛔ Ankieta wskazuje: '+risks.map(r=>r.label).join(', ')+'. Zaznacz osobne potwierdzenie ryzyka albo skieruj klienta do lekarza lub dietetyka.');
+    }else notify('Najpierw zaznacz, że plan jest sprawdzony');
+    return;
+  }
+  const rec=dietPlanRecord('zatwierdzony');
+  rec.approvedAt=rec.updatedAt;
+  rec.approvedBy=window._uid||null;
+  if(risks.length)rec.riskAck={risks:risks.map(r=>r.id),by:window._uid||null,at:rec.updatedAt};
+  dietStorePlan(c,rec);
+  pushMsg(c.id,rec.text);
+  window._dietApprovalOpen=false;
+  calcTDEE();
+  notify('✓ Jadłospis zatwierdzony i wysłany do '+c.name+' w wiadomościach!');
 }
 
 function suggestLoad(opts){
@@ -2376,6 +2598,7 @@ function setCPTab(t){
     t='analytics';
   }
   cpTab=t;
+  if(typeof cpOverviewSyncHeader==='function')cpOverviewSyncHeader(t);
   const moreTabs=['tasks','notes','timeline','analytics','photos','forms','food','payments','features','documents'];
   if(typeof closeCpMoreNav==='function')closeCpMoreNav();
   document.querySelectorAll('.cp-tab').forEach(el=>el.classList.remove('active'));

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Etap 6D: UI Progress czyta wyłącznie window._cpExerciseProgress (bez ponownej klasyfikacji). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -28,9 +29,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 91));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('CI', wf.includes('test_ex_progress_ui.js'));
 ok('view helper', /function exerciseProgressClassViewHtml/.test(coreSrc)
   && /function readStoredExerciseProgress/.test(coreSrc)
@@ -60,7 +61,7 @@ ok('css analysis box', /\.ex-prog-box/.test(styles) && /\.ex-prog-reasons/.test(
 
 const histBody = { innerHTML: '' };
 const histTitle = { textContent: '' };
-const dummyEl = { classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } }, style: {}, querySelector() { return null; }, querySelectorAll() { return []; } };
+const dummyEl = { dataset: {}, setAttribute() {}, addEventListener() {}, classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } }, style: {}, querySelector() { return null; }, querySelectorAll() { return []; } };
 const document = {
   querySelectorAll: () => [],
   querySelector: () => null,

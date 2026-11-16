@@ -1,0 +1,660 @@
+{
+ "meta": {
+  "title": "Sports Nutrition: A Handbook for Professionals (6. wyd.)",
+  "titlePl": "Żywienie w sporcie – podręcznik dla profesjonalistów (SCAN, 6. wyd.)",
+  "author": "Christine Karpinski, Christine A. Rosenbloom (red.)",
+  "year": "2017",
+  "domain": "nutrition",
+  "version": "1.0",
+  "date": "2026-10-29"
+ },
+ "principles": [
+  {
+   "id": "N1",
+   "title": "Spoczynkowa przemiana materii: policz kilkoma wzorami",
+   "rule": "Nie ma jednego najlepszego wzoru na RMR. Licz kilkoma (Mifflin-St Jeor, Harris-Benedict, Cunningham, Owen) i patrz na zakres. Cunningham (370 + 21,6 × FFM) najlepiej pasuje do osób wytrenowanych, gdy znana jest beztłuszczowa masa ciała. Zwykłe wzory mogą zaniżać RMR u sportowców i zawyżać u osób z otyłością.",
+   "values": {
+    "mifflinM": "10W + 6,25H − 5A + 5",
+    "mifflinK": "10W + 6,25H − 5A − 161",
+    "harrisBenedictM": "66,473 + 13,7516W + 5,0033H − 6,775A",
+    "harrisBenedictK": "665,0955 + 9,5634W + 1,8496H − 4,6756A",
+    "cunningham": "370 + 21,6 × FFM",
+    "owenM": "879 + 10,2W",
+    "owenK": "795 + 7,18W"
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 10 Energy Balance",
+     "pages": "200"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 16 Vegetarian Athletes",
+     "pages": "330"
+    }
+   ]
+  },
+  {
+   "id": "N2",
+   "title": "Całkowity wydatek = RMR × współczynnik aktywności (PAL)",
+   "rule": "PAL wg IOM: siedzący 1,25 (1,1–1,39), niska aktywność 1,5 (1,4–1,59), aktywny 1,75 (1,6–1,89, ok. 1 h ruchu dziennie), bardzo aktywny 2,2 (1,9–2,5, kilka godzin intensywnego treningu). U sportowców błąd jest duży; w dni wolne PAL bywa dużo niższy.",
+   "values": {
+    "sedentary": 1.25,
+    "lowActive": 1.5,
+    "active": 1.75,
+    "veryActive": 2.2
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 10 Energy Balance",
+     "pages": "203"
+    }
+   ]
+  },
+  {
+   "id": "N3",
+   "title": "Termogeneza posiłków ok. 10%",
+   "rule": "Trawienie mieszanego posiłku kosztuje ok. 10% jego energii (tłuszcz ok. 3%, węglowodany 5–10%, białko 20–30%).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 10 Energy Balance",
+     "pages": "201"
+    }
+   ]
+  },
+  {
+   "id": "N4",
+   "title": "Stała reguła „7700 kcal = 1 kg” jest błędna",
+   "rule": "Prognoza „500 kcal deficytu dziennie = 0,5 kg tygodniowo” nie działa w czasie: deficyt maleje (spada RMR, TEF, NEAT, organizm się adaptuje). Nie używaj jej do przewidywania tempa.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 10 Energy Balance",
+     "pages": "207"
+    }
+   ]
+  },
+  {
+   "id": "N5",
+   "title": "Dzienniczki zaniżają jedzenie",
+   "rule": "Spożycie z dzienniczka jest zwykle zaniżone, a deklarowana aktywność zawyżona. Przy stabilnej masie wydatek ≈ spożycie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 10 Energy Balance",
+     "pages": "206"
+    }
+   ]
+  },
+  {
+   "id": "N6",
+   "title": "Węglowodany planuj w g/kg, nie w % energii",
+   "rule": "Procent energii z węglowodanów myli: ten sam procent daje bardzo różne g/kg zależnie od kalorii. Ustal g/kg wg treningu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 2 Carbohydrate and Exercise",
+     "pages": "24"
+    }
+   ]
+  },
+  {
+   "id": "N7",
+   "title": "Tłuszcz dopasuj po węglowodanach i białku",
+   "rule": "Najpierw ustal białko i węglowodany pod trening, potem tłuszcz w zakresie 20–35% energii.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 4 Dietary Fat and Exercise",
+     "pages": "64"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 21 Intermittent High-Intensity Sports",
+     "pages": "483"
+    }
+   ]
+  },
+  {
+   "id": "N8",
+   "title": "Masa docelowa z beztłuszczowej masy ciała",
+   "rule": "Masa docelowa = FFM / (1 − docelowy %BF). Licz dla dolnej i górnej granicy %BF, żeby dostać zakres.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "229"
+    }
+   ]
+  }
+ ],
+ "nutritionRules": [
+  {
+   "id": "R1",
+   "category": "energy",
+   "if": "cel: budowa mięśni",
+   "then": "mężczyźni +400–500 kcal/dzień, kobiety +300–400 kcal/dzień ponad wydatek",
+   "values": {
+    "M": [
+     400,
+     500
+    ],
+    "K": [
+     300,
+     400
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "229-230"
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "category": "energy",
+   "if": "cel: redukcja tkanki tłuszczowej",
+   "then": "mężczyźni −300–500 kcal/dzień, kobiety −200–300 kcal/dzień; większy deficyt obniża zdolność do treningu; tempo ok. 0,7% masy ciała na tydzień",
+   "values": {
+    "M": [
+     -500,
+     -300
+    ],
+    "K": [
+     -300,
+     -200
+    ],
+    "ratePctPerWeek": 0.7
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "229-230"
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "category": "energy",
+   "if": "cel: rekompozycja (więcej mięśni, mniej tłuszczu)",
+   "then": "mężczyźni ok. +300 kcal, kobiety ok. +200 kcal; korekty po 50–100 kcal",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "229-230"
+    }
+   ]
+  },
+  {
+   "id": "R4",
+   "category": "energy",
+   "if": "kulturystyka / sylwetka",
+   "then": "energia indywidualnie od ok. 30 kcal/kg (kobiety na redukcji) do 60 kcal/kg (mężczyźni na masie)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "At a Glance: Bodybuilding",
+     "pages": "546-547"
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "category": "protein",
+   "if": "sportowiec, białko dziennie",
+   "then": "1,4–2,0 g/kg; budowa mięśni 1,7–2,0; redukcja ok. 1,5, przy dużym deficycie może być >2,0",
+   "values": {
+    "range": [
+     1.4,
+     2.0
+    ],
+    "gain": [
+     1.7,
+     2.0
+    ],
+    "loss": 1.5
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "230"
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "category": "protein",
+   "if": "białko wg typu treningu (rozdz. 3)",
+   "then": "wytrzymałość 1,2–1,4 g/kg; siła 1,6–1,7 g/kg",
+   "values": {
+    "endurance": [
+     1.2,
+     1.4
+    ],
+    "strength": [
+     1.6,
+     1.7
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 3 Protein and Exercise",
+     "pages": "52"
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "category": "protein",
+   "if": "białko w posiłku",
+   "then": "ok. 0,25 g/kg (20–25 g) na posiłek, 4–5 razy dziennie, z ok. 2–3 g leucyny; starsi 30–40 g (ok. 0,4 g/kg); 40 g zamiast 20 g nie daje więcej",
+   "values": {
+    "perMealGPerKg": 0.25,
+    "mealsPerDay": [
+     4,
+     5
+    ],
+    "olderPerMealG": [
+     30,
+     40
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 3 Protein and Exercise",
+     "pages": "46-49, 53"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "230"
+    }
+   ]
+  },
+  {
+   "id": "R8",
+   "category": "protein",
+   "if": "porcja ok. 20 g pełnowartościowego białka",
+   "then": "500 ml mleka odtłuszczonego, ok. 85 g wołowiny, ok. 70 g kurczaka lub indyka, ¾ szklanki serka wiejskiego",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 3 Protein and Exercise",
+     "pages": "49"
+    }
+   ]
+  },
+  {
+   "id": "R9",
+   "category": "carbs",
+   "if": "węglowodany dziennie wg treningu",
+   "then": "bardzo lekki/techniczny trening (lub redukcja) 3–5 g/kg; umiarkowany ok. 1 h/dzień 5–7; 1–3 h/dzień 6–10; 4–5 h/dzień 8–12",
+   "values": {
+    "light": [
+     3,
+     5
+    ],
+    "moderate1h": [
+     5,
+     7
+    ],
+    "endurance1to3h": [
+     6,
+     10
+    ],
+    "extreme4to5h": [
+     8,
+     12
+    ]
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 2 Carbohydrate and Exercise",
+     "pages": "22"
+    }
+   ]
+  },
+  {
+   "id": "R10",
+   "category": "carbs",
+   "if": "kulturystyka / sylwetka",
+   "then": "węglowodany 5–7 g/kg, białko 1,4–1,7 g/kg (przy najniższej energii do ok. 2,0), tłuszcz = reszta",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "At a Glance: Bodybuilding",
+     "pages": "546-547"
+    }
+   ]
+  },
+  {
+   "id": "R11",
+   "category": "carbs",
+   "if": "porcja ok. 25 g węglowodanów (zamienniki)",
+   "then": "2 kromki chleba pełnoziarnistego, szklanka ugotowanej owsianki, pół szklanki ugotowanego ryżu lub makaronu, pół średniego pieczonego ziemniaka, 1 średnie jabłko, 1 duża pomarańcza, 2 szklanki truskawek, 2 szklanki mleka, ok. 170 g jogurtu naturalnego",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 2 Carbohydrate and Exercise",
+     "pages": "23"
+    }
+   ]
+  },
+  {
+   "id": "R12",
+   "category": "timing",
+   "if": "posiłek przed treningiem",
+   "then": "1–4 g/kg węglowodanów 1–4 h przed (1 h → ok. 1 g/kg, 4 h → ok. 4 g/kg); mniej tłuszczu, białka i błonnika",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 2 Carbohydrate and Exercise",
+     "pages": "27"
+    }
+   ]
+  },
+  {
+   "id": "R13",
+   "category": "timing",
+   "if": "w trakcie wysiłku",
+   "then": "<30 min niepotrzebne; 1–2 h ok. 30 g/h; 2–3 h ok. 60 g/h; ≥2,5 h do 90 g/h",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 2 Carbohydrate and Exercise",
+     "pages": "30-31"
+    }
+   ]
+  },
+  {
+   "id": "R14",
+   "category": "timing",
+   "if": "po treningu, gdy do następnego <8 h",
+   "then": "1–1,2 g/kg węglowodanów na godzinę przez 4 h plus ok. 20 g białka; pierwszy posiłek z 0,25–0,3 g/kg białka",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 2 Carbohydrate and Exercise",
+     "pages": "31-33"
+    }
+   ]
+  },
+  {
+   "id": "R15",
+   "category": "fat",
+   "if": "tłuszcz dziennie",
+   "then": "20–35% energii (AMDR); w praktyce ok. 1 g/kg albo 25–30%; nie mniej niż 20%; nasycone <10%, trans <1%",
+   "values": {
+    "minPct": 20,
+    "maxPct": 35,
+    "satMaxPct": 10
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 4 Dietary Fat and Exercise",
+     "pages": "62-65"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "230"
+    }
+   ]
+  },
+  {
+   "id": "R16",
+   "category": "fat",
+   "if": "dieta keto / bardzo wysokotłuszczowa",
+   "then": "adaptacja tak, poprawy wyników nie wykazano; przy wysokiej intensywności spadek mocy",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 4 Dietary Fat and Exercise",
+     "pages": "68-71"
+    }
+   ]
+  },
+  {
+   "id": "R17",
+   "category": "hydration",
+   "if": "woda dziennie (ze wszystkich źródeł, także jedzenia)",
+   "then": "mężczyźni ok. 3,7 l, kobiety ok. 2,7 l (IOM); Europa (EFSA) 2,5 l i 2,0 l; nie ma jednej normy, „8 szklanek” to mit",
+   "values": {
+    "IOM": {
+     "M": 3.7,
+     "K": 2.7
+    },
+    "EFSA": {
+     "M": 2.5,
+     "K": 2.0
+    }
+   },
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 6 Fluid, Electrolytes, and Exercise",
+     "pages": "109-111"
+    }
+   ]
+  },
+  {
+   "id": "R18",
+   "category": "hydration",
+   "if": "przed i po treningu",
+   "then": "5–7 ml/kg ok. 4 h przed; po wysiłku wypić ok. 150% utraconej masy; sód ok. 1 g/h przy długim obfitym poceniu",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 6 Fluid, Electrolytes, and Exercise",
+     "pages": "124"
+    }
+   ]
+  },
+  {
+   "id": "R19",
+   "category": "meals",
+   "if": "rozkład posiłków",
+   "then": "3 posiłki + 2–3 przekąski; po treningu węglowodany z białkiem",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "230"
+    }
+   ]
+  },
+  {
+   "id": "R20",
+   "category": "meals",
+   "if": "wegetarianin z dużym zapotrzebowaniem",
+   "then": "6–8 posiłków/przekąsek, mniej błonnika, produkty gęste energetycznie; białko 1,2–2,0 g/kg",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 16 Vegetarian Athletes",
+     "pages": "329-331"
+    }
+   ]
+  },
+  {
+   "id": "R21",
+   "category": "supplements",
+   "if": "suplementy",
+   "then": "nie zastępują planu posiłków; witaminy tylko przy niedoborze; odżywki tylko z certyfikatem (np. Informed Sport)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 5 i 7 (Key Takeaways)",
+     "pages": "102, 148"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 3 Protein and Exercise",
+     "pages": "47"
+    }
+   ]
+  },
+  {
+   "id": "R22",
+   "category": "sprzecznosc",
+   "if": "białko: rozdz. 3 vs rozdz. 11",
+   "then": "rozdz. 3 podaje siła 1,6–1,7 g/kg, rozdz. 11 podaje 1,4–2,0 (masa 1,7–2,0); w aplikacji pokazuj zakres 1,6–2,0 z obiema stronami",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 3 Protein and Exercise",
+     "pages": "52"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "230"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S1",
+   "trigger": "BMI <18,5 albo objawy zaburzeń odżywiania",
+   "action": "nie układać diety redukcyjnej; skierować do specjalisty",
+   "status": "zrodlo",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 11 Weight Management",
+     "pages": "227"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 18 Disordered Eating",
+     "pages": "414"
+    }
+   ]
+  },
+  {
+   "id": "S2",
+   "trigger": "ciąża",
+   "action": "poza automatycznym kalkulatorem; dieta z lekarzem",
+   "status": "wniosek",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 17 Pregnancy",
+     "pages": "377-378"
+    }
+   ]
+  },
+  {
+   "id": "S3",
+   "trigger": "cukrzyca",
+   "action": "indywidualny plan z zespołem medycznym; aplikacja nie układa diety",
+   "status": "zrodlo",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 19 Diabetes",
+     "pages": "443"
+    }
+   ]
+  },
+  {
+   "id": "S4",
+   "trigger": "dzieci i młodzież",
+   "action": "potrzeby wg płci i dojrzewania; ostrożnie z suplementami; poza automatem",
+   "status": "wniosek",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 12 Child and Adolescent Athletes",
+     "pages": "258"
+    }
+   ]
+  },
+  {
+   "id": "S5",
+   "trigger": "odwadnianie przed ważeniem / zawodami",
+   "action": "niebezpieczne; nie zalecać",
+   "status": "zrodlo",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "At a Glance: Bodybuilding",
+     "pages": "546-547"
+    },
+    {
+     "ref": "sports-nutrition-scan",
+     "chapter": "Rozdz. 6 Fluid, Electrolytes, and Exercise",
+     "pages": "124"
+    }
+   ]
+  }
+ ],
+ "sourceReferences": [
+  {
+   "id": "sports-nutrition-scan",
+   "type": "book",
+   "title": "Sports Nutrition: A Handbook for Professionals",
+   "edition": "6",
+   "publisher": "Academy of Nutrition and Dietetics (SCAN)",
+   "author": "Christine Karpinski, Christine A. Rosenbloom (red.)",
+   "year": 2017,
+   "isbn": "978-0-88091-975-3",
+   "language": "en",
+   "pages": 614,
+   "pagesNote": "strona drukowana = strona PDF − 18",
+   "foodData": "USDA SR28"
+  }
+ ],
+ "gaps": [
+  "brak tabeli składu produktów na 100 g (książka korzysta z USDA SR28)",
+  "brak gotowych jadłospisów poza Box 16.2 (wegetariański i wegański dzień)"
+ ]
+}

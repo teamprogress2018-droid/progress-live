@@ -147,12 +147,16 @@ function ok(name, cond, extra) {
     }];
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
     const card = document.getElementById('live-ex-0');
+    const srcs = card ? [...card.querySelectorAll('video')].map((v) => v.getAttribute('src') || '') : [];
     return {
-      videos: card ? card.querySelectorAll('video').length : 0,
+      videos: srcs.length,
+      sameSrcTwice: srcs.length !== new Set(srcs).size,
       filePlayers: card ? card.querySelectorAll('.cw-file-player').length : -1
     };
   }, gifMp4);
-  ok('same mp4 not rendered twice', dupStats.videos === 1 && dupStats.filePlayers === 0, JSON.stringify(dupStats));
+  // Od 21–23.10 karta bierze film techniki z biblioteki po nazwie, a film trenera (showVideo) gra osobno —
+  // to dwa różne pliki. Pilnujemy, żeby ten sam plik nie grał dwa razy.
+  ok('same mp4 not rendered twice', dupStats.videos >= 1 && !dupStats.sameSrcTwice, JSON.stringify(dupStats));
 
   await browser.close();
   if (failed) process.exit(1);

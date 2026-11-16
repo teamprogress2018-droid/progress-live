@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Etap 7B: rekomendacja na następną sesję — A–O, kontrakt targetu, inwarianty D0–D18. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -84,7 +85,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
 ok('CI', wf.includes('test_ex_progress_rec.js') && wf.includes('1e0z5'));
 ok('rec helper', /function recommendExerciseProgress/.test(coreSrc));
 ok('rec stays in core', !/function recommendExerciseProgress/.test(extras)

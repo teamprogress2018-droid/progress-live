@@ -19,10 +19,12 @@ ok('progress hides duplicated body and photos panels', /const allowed=\['all','t
 ok('progress has one photo compare shortcut and no generic CTA strip', !/Podsumowanie<\/button>/.test(progressFn) && /cp-photo-summary/.test(progressFn) && /setCPTab\('photos'\)/.test(progressFn));
 ok('progress uses svg charts', /cp-chart-svg|cpLineChartSVG|cpWeeklyDualChart/.test(progressFn));
 ok('progress uses stat-card layout', /stat-card/.test(progressFn));
+ok('progress uses responsive desktop grids', /cp-progress-trend-grid/.test(progressFn) && /cp-progress-body-grid/.test(progressFn) && /cp-progress-strength-grid/.test(progressFn) && /cp-progress-habits-grid/.test(progressFn));
 ok('progress analytics hub', /POSTĘPY/.test(progressFn) && /Realizacja planu · 30 dni/.test(progressFn));
 ok('progress explains calendar-only entries', /same terminy nie są liczone jako wykonany trening/.test(progressFn));
 ok('progress has focused filters', /Podsumowanie/.test(progressFn) && /Trening/.test(progressFn) && /Check-in/.test(progressFn) && /Nawyki/.test(progressFn));
 ok('metrics is single measurement history', /Jedyne miejsce do dodawania, edycji i przeglądania historii pomiarów/.test(metricsFn));
+ok('metrics use desktop summary and history layout', /cp-metrics-layout/.test(metricsFn) && /cp-metrics-summary/.test(metricsFn) && /cp-metrics-history/.test(metricsFn));
 ok('index has progress tab', /cpt-progress/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
 ok('setCPTab wires progress', /t==='progress'/.test(fs.readFileSync(path.join(__dirname, '..', '..', '07-forms-metrics-calculator.js'), 'utf8')));
 ok('index slim header', /cp-hdr-actions/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));

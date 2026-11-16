@@ -20,7 +20,7 @@ ok('openBuilderForClient helper',src05.includes('function openBuilderForClient')
 ok('exports openBuilderForClient',src05.includes('window.openBuilderForClient=openBuilderForClient'));
 ok('prefills b-client',/openBuilderForClient[\s\S]{0,400}b-client/.test(src05));
 ok('plan tab header button',planTab.includes("openManualPlanPicker('${c.id}')")&&planTab.includes('Stwórz własny plan'));
-ok('header has all three CTAs',planTab.includes('Przypisz szablon')&&planTab.includes('Generuj plan AI')&&planTab.includes('Kontynuuj plan z Fitebo'));
+ok('header has all three CTAs',planTab.includes('Przypisz szablon')&&planTab.includes('Nowy plan (AI)')&&planTab.includes('Kontynuuj plan z Fitebo'));
 ok('empty state text only',planTab.includes('Brak planów treningowych')&&!/Brak planów treningowych[\s\S]{0,280}openBuilderForClient/.test(planTab));
 
 if(failed){console.error(failed+' failed');process.exit(1);}

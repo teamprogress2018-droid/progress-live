@@ -146,7 +146,7 @@ function ok(name, cond, extra) {
   await page.waitForSelector('#clive-bn-homework', { state: 'attached' });
   const liveNav = await page.evaluate(() => ({
     ondemandBtn: !!(document.getElementById('clive-bn-ondemand') && document.getElementById('clive-bn-ondemand').style.display !== 'none'),
-    homeToday: /DZISIAJ/.test((document.getElementById('clive-screen-content') || {}).innerText || '')
+    homeToday: /DZISIEJSZY PLAN/.test((document.getElementById('clive-screen-content') || {}).innerText || '')
   }));
   await page.screenshot({ path: path.join(shotDir, 'client_live_home_ondemand.png') });
   ok('live nav ondemand', liveNav.ondemandBtn);
@@ -170,7 +170,7 @@ function ok(name, cond, extra) {
     html: (document.getElementById('clive-screen-content') || {}).innerHTML || ''
   }));
   await page.screenshot({ path: path.join(shotDir, 'client_live_home_continue_program.png') });
-  ok('live home keeps one decision', /DZISIAJ/.test(liveContinue.text) && !/KONTYNUUJ PROGRAM/i.test(liveContinue.text));
+  ok('live home keeps one decision', /DZISIEJSZY PLAN/.test(liveContinue.text) && !/KONTYNUUJ PROGRAM/i.test(liveContinue.text));
 
   await page.click('#clive-bn-more');
   await page.waitForSelector('#clive-more-sheet:not([hidden])');

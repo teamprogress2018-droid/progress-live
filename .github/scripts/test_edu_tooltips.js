@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Educational tooltips on sets / RPE / method fields. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -45,7 +46,7 @@ ok('rpe mentions RIR',/RIR|RPE/.test(sandbox.eduTipText('rpe')));
 ok('method dynamic',sandbox.eduTipText('method',{method:'PPL'}).includes('Push'));
 ok('mark has data-tip',sandbox.eduTipMark('sets').includes('data-tip=')&&sandbox.eduTipMark('sets').includes('edu-tip'));
 
-ok('cache bumps',html.includes('01-core.js?v=137')&&html.includes('05-clients-builder-plans-calendar.js?v=106')&&html.includes('styles.css?v=166'));
+ok('cache bumps',cacheAtLeast(html, '01-core.js', 137)&&cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106)&&cacheAtLeast(html, 'styles.css', 166));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll edu-tooltips tests passed');

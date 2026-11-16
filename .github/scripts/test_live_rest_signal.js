@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Sygnał końca przerwy Live: faza, głos + beep, puls karty. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,10 +20,11 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache styles', html.includes('styles.css?v=166'));
-ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
-ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
+// Etap 8 UX: zegar nie ogłasza każdej sekundy; osobny komunikat „polite” przy 10 s, 3 s i 0.
+ok('aria live A', html.includes('id="live-rest-timer" role="timer" aria-live="off"') && html.includes('id="live-rest-sr" aria-live="polite"'));
+ok('aria live B', html.includes('id="live-b-rest-timer" role="timer" aria-live="off"') && html.includes('id="live-b-rest-sr" aria-live="polite"'));
 ok('phase helper', /function liveRestPhase\(/.test(live));
 ok('cue helper', /function liveRestCue\(/.test(live));
 ok('beep helper', /function liveRestBeep\(/.test(live) && live.includes('AudioContext'));

@@ -1,0 +1,187 @@
+{
+ "meta": {
+  "title": "Clinical Sports Medicine (4. wyd.)",
+  "titlePl": "Kliniczna medycyna sportowa",
+  "author": "Peter Brukner, Karim Khan",
+  "year": "2012",
+  "domain": "nutrition",
+  "version": "1.0",
+  "date": "2026-10-29",
+  "scopeNote": "podręcznik medyczny; żywienie tylko w wybranych rozdziałach"
+ },
+ "principles": [
+  {
+   "id": "N1",
+   "title": "Regeneracja to paliwo, białko i płyny",
+   "rule": "Po wysiłku trzeba uzupełnić glikogen, płyny z elektrolitami i dostarczyć białka do odbudowy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 10 Recovery",
+     "pages": "140"
+    }
+   ]
+  }
+ ],
+ "nutritionRules": [
+  {
+   "id": "R1",
+   "category": "carbs",
+   "if": "bardzo ciężki trening",
+   "then": "7–12 g/kg węglowodanów dziennie, żeby odbudować glikogen",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 10 Recovery",
+     "pages": "140"
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "category": "timing",
+   "if": "po treningu",
+   "then": "1–1,2 g/kg węglowodanów w 1. godzinie (zwłaszcza gdy do kolejnej sesji <8 h) i 10–20 g dobrego białka",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 10 Recovery",
+     "pages": "141"
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "category": "protein",
+   "if": "porcja ok. 10 g białka",
+   "then": "np. 2 jajka, ok. 40 g ugotowanej chudej wołowiny lub kurczaka, ok. 50 g tuńczyka z puszki, 300 ml mleka, 200 g jogurtu, 30 g sera, 120 g tofu",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 10 Recovery",
+     "pages": "141"
+    }
+   ]
+  },
+  {
+   "id": "R4",
+   "category": "hydration",
+   "if": "nawodnienie po wysiłku",
+   "then": "zważyć się przed i po; w ciągu 4–6 h wypić 125–150% straty; dodać sód (słone jedzenie)",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 10 Recovery",
+     "pages": "142"
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "category": "alcohol",
+   "if": "alkohol po treningu",
+   "then": "pogarsza odbudowę glikogenu i funkcję mięśni",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 10 Recovery",
+     "pages": "140"
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "category": "timing",
+   "if": "przed zawodami",
+   "then": "posiłek ≥3 h przed startem, mało tłuszczu, białka i błonnika; przy wysiłku >90 min napój do 10% węglowodanów z odrobiną sodu",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 51 Gastrointestinal symptoms",
+     "pages": "1060-1061"
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "category": "youth",
+   "if": "młodzi sportowcy",
+   "then": "więcej białka na kg niż dorośli, tłuszcz <30% energii, bez bardzo wysokowęglowodanowej diety; wapń i żelazo",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 42 The younger athlete",
+     "pages": "903-904"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S1",
+   "trigger": "zmęczenie i słabsze wyniki",
+   "action": "sprawdzić żelazo: ferrytyna <30 µg/l (kobiety) i <50 µg/l (mężczyźni) sugeruje niskie zapasy; skierować do lekarza/dietetyka",
+   "status": "zrodlo",
+   "priority": "medium",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 57 The tired athlete",
+     "pages": "1126-1127"
+    }
+   ]
+  },
+  {
+   "id": "S2",
+   "trigger": "brak/nieregularne miesiączki, niska masa, zaburzone jedzenie",
+   "action": "triada sportsmenek (niska dostępność energii): nie obniżać kalorii, skierować do lekarza",
+   "status": "zrodlo",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 43 Women and activity-related issues",
+     "pages": "917-919"
+    }
+   ]
+  },
+  {
+   "id": "S3",
+   "trigger": "klient poniżej 18 lat",
+   "action": "inne potrzeby wzrostu; poza automatycznym kalkulatorem",
+   "status": "wniosek",
+   "priority": "high",
+   "sources": [
+    {
+     "ref": "brukner-khan-csm",
+     "chapter": "Rozdz. 42 The younger athlete",
+     "pages": "903-904"
+    }
+   ]
+  }
+ ],
+ "sourceReferences": [
+  {
+   "id": "brukner-khan-csm",
+   "type": "book",
+   "title": "Clinical Sports Medicine",
+   "edition": "4",
+   "publisher": "McGraw-Hill Australia",
+   "author": "Peter Brukner, Karim Khan",
+   "year": 2012,
+   "language": "en",
+   "pagesNote": "skan; strona drukowana = strona PDF − 46"
+  }
+ ],
+ "gaps": [
+  "brak osobnego rozdziału o żywieniu (energia, makro, jadłospisy) – tylko regeneracja, młodzież, kobiety, przewód pokarmowy, zmęczenie"
+ ]
+}

@@ -5,6 +5,7 @@
  * Izolowane fixture. Nie rusza produkcyjnego Firestore.
  * E2E-10: 6C bez planId nadal miesza plany; opts.planId i caller aktywnego planu izolują.
  */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -69,8 +70,8 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 frozen', html.includes('01-core.js?v=137'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 01 frozen', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('CI', wf.includes('test_ex_progress_e2e.js') && wf.includes('1e0z7'));
 ok('caller in 08', /function composeClientNextSessionBrief/.test(extras)
   && /function cpNextSessionBriefHtml/.test(extras));

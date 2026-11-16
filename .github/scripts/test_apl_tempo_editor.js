@@ -13,7 +13,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('render shows tempo column', /Tempo<\/div>\s*\n\s*<div style="font-size:13px;font-family:'DM Mono'/.test(apl));
+ok('render shows tempo column', /apl-metric-label">Tempo<\/div>\s*\n\s*<div class="apl-metric-value apl-metric-tempo">\$\{tempo\|\|'—'\}/.test(apl));
 ok('edit form has tempo input', apl.includes('id="apl-edit-tempo-${di}-${ei}"'));
 ok('save exercise stores tempo', apl.includes('ex.tempo=tempo') && apl.includes('ex[curWeek].tempo=tempo'));
 ok('legend mentions tempo', apl.includes('⏱ <b>Tempo</b>'));

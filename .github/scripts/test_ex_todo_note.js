@@ -1,5 +1,6 @@
 'use strict';
 /** Notatka „Do zrobienia” przy każdym ćwiczeniu: kreator, Live, apka klienta. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -21,11 +22,11 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 10', html.includes('10-client-app.js?v=44'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 02', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 10', cacheAtLeast(html, '10-client-app.js', 44));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 ok('CI unit', wf.includes('test_ex_todo_note.js'));
 ok('CI readable ui', wf.includes('test_live_readable_ui.js'));
 

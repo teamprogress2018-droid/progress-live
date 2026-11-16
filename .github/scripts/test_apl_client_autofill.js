@@ -1,4 +1,5 @@
 // Generator AI: wiek/waga/płeć/aktywność z karty klienta, bez drugiego formularza.
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -25,7 +26,7 @@ ok('fill hides dup UI', /function aplFillFromClient[\s\S]*aplSyncClientDupUi/.te
 ok('close profile remembers client', /if\(cpClientId\)window\._aplLastClientId=cpClientId/.test(src07));
 ok('save client remembers', /window\._aplLastClientId=c\.id/.test(src05) && /aplRefreshFromSavedClient\(c\.id\)/.test(src05));
 ok('edit from card opens modal', /function aplEditClientFromCard[\s\S]*openClientModal/.test(src03));
-ok('cache 03/05/07', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('05-clients-builder-plans-calendar.js?v=106') && html.includes('07-forms-metrics-calculator.js?v=45'));
+ok('cache 03/05/07', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43) && cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106) && cacheAtLeast(html, '07-forms-metrics-calculator.js', 45));
 ok('CI', wf.includes('test_apl_client_autofill.js') && wf.includes('test_apl_client_autofill_ui.js'));
 
 const slice = src03.match(/function aplClientReviewHtml[\s\S]*?(?=\nfunction aplSyncClientDupUi)/);

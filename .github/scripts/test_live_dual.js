@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Live dual: dwa niezależne sloty (klient / serie / zapis). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=98'));
-ok('cache styles v63', html.includes('styles.css?v=166'));
+ok('cache 02 v33', cacheAtLeast(html, '02-workouts-onboarding-templates-live.js', 98));
+ok('cache styles v63', cacheAtLeast(html, 'styles.css', 166));
 ok('dual button', html.includes('id="live-dual-btn"') && html.includes('liveToggleDual()'));
 ok('pane 0/1', html.includes('id="live-pane-0"') && html.includes('id="live-pane-1"'));
 ok('slot B ids', html.includes('id="live-b-timer"') && html.includes('id="live-b-exercises-panel"') && html.includes('id="live-b-start-btn"'));

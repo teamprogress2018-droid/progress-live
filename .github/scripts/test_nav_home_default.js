@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Ekran startowy = lista klientów (jak we wzorze); dawny panel główny to „Pulpit”. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -31,7 +32,7 @@ ok('dashboard not in account area', !more.includes('data-screen="dashboard"'));
 ok('nav groups without dashboard', /navGroupScreens=\{[^}]*ondemand/.test(core) && !/navGroupScreens=\{[^}]*dashboard/.test(core));
 ok('CI step', wf.includes('test_nav_home_default.js'));
 
-ok('cache bump core v34', html.includes('01-core.js?v=137'));
+ok('cache bump core v34', cacheAtLeast(html, '01-core.js', 137));
 
 if (failed) {
   console.error(failed + ' failed');

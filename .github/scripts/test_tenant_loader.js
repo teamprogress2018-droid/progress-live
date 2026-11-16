@@ -16,7 +16,7 @@ function harness(options={}){
   const ctx={console:{warn(){}},db:{},auth:{},Date,Math,Promise,Set,JSON,
     SETTINGS:{profile:{name:'',email:'',title:''},brand:{accentColor:'#ef3340'},clientApp:{visibleSections:{home:true}},payments:{currency:'PLN'}},
     document:{getElementById:element,body:{classList:{remove(){}}},querySelector:()=>element('sidebar'),querySelectorAll:()=>[]},
-    location:{reload(){calls.reloads++;}},
+    location:{reload(){calls.reloads++;}},sessionStorage:options.sessionStorage||{getItem(){return null;}},
     clearInterval:id=>calls.cleared.push(id),clearTimeout:id=>calls.cleared.push(id),
     onAuthStateChanged(_auth,callback){calls.authCallback=callback;},
     collection:(_db,name)=>({name}),where:(field,operator,value)=>({field,operator,value}),query:(collection,...filters)=>({collection:collection.name,filters}),
@@ -111,6 +111,15 @@ await test('account lookup failure never falls through into trainer boot',async(
   const h=harness({globals:{fetchClientAccount:async()=>{throw new Error('client-account-unavailable');}}});
   await assert.rejects(h.ctx.bootApp(h.signIn()),/client-account-unavailable/);
   assert.equal(h.calls.queries.length,0);assert.equal(h.calls.writes.length,0);assert.equal(h.calls.renders,0);
+});
+
+await test('explicit trainer mode bypasses a same-UID client account and loads trainer data',async()=>{
+  const h=harness({sessionStorage:{getItem:key=>key==='pl_auth_mode'?'trainer':null},globals:{
+    fetchClientAccount:async()=>{throw new Error('should-not-load-client-account');}
+  }});
+  assert.equal(await h.ctx.bootApp(h.signIn('shared-user')),true);
+  assert.equal(h.ctx._clientAppMode,false);assert.equal(h.ctx._tenantLoadedUid,'shared-user');
+  assert.equal(h.calls.queries.length,40);
 });
 
 await test('client registration is awaited before role routing, and registration failure blocks boot',async()=>{

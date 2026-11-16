@@ -1,12 +1,12 @@
 {
   "name": "Progress Live",
   "short_name": "Progress",
-  "description": "Panel trenera — klienci, plany i trening live",
+  "description": "Plan, trening i postępy klienta",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#111318",
-  "theme_color": "#FF3B30",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "pl",
   "icons": [
     {
@@ -20,6 +20,30 @@
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

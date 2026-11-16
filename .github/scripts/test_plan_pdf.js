@@ -1,4 +1,5 @@
 // PDF planu AI: czerwień Progress, granat, różowe komórki tygodni.
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -24,7 +25,7 @@ ok('export helper', /window\.buildPlanPDFHTML=buildPlanPDFHTML/.test(src03));
 ok('saved plan mapper', /function planToPdfModel\(/.test(src03) && /window\.planToPdfModel=planToPdfModel/.test(src03));
 ok('saved plan export', /function exportSavedPlanPDF\(/.test(src03) && /window\.exportSavedPlanPDF=exportSavedPlanPDF/.test(src03));
 ok('saves progression', /plan\.progression=progression/.test(src03));
-ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43') && html.includes('styles.css?v=166'));
+ok('cache', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43) && cacheAtLeast(html, 'styles.css', 166));
 ok('mezocycle pdf helpers', /mezocycle_overview/.test(src03) && /weekly_progression_schema/.test(src03));
 ok('CI', wf.includes('test_plan_pdf.js') && wf.includes('test_plan_pdf_ui.js'));
 
@@ -125,6 +126,71 @@ const hypPdf = ctx.buildPlanPDFHTML({
   days: []
 }, { name: 'Piotr' });
 ok('hyp pdf overview', /Blok hipertrofii/.test(hypPdf) && /Akumulacja I/.test(hypPdf) && /Nordic walking/.test(hypPdf));
+
+// Widok dla klienta: jeden tydzień na ekranie, przełącznik tygodni i dni, wskazówki w „Jak wykonać”, cały cykl w wydruku
+const big = ctx.buildPlanPDFHTML({
+  planName: 'PPL 8', weekKeys: ['w1','w2','w3','w4','w5','w6','w7','w8'],
+  phases: { w1: 'Akumulacja I', w8: 'Deload' },
+  days: [
+    { dayName: 'Dzień 1 — Push', focus: 'Push', exercises: [{ name: 'Wyciskanie', rest: '120s', notes: 'PRIORYTET: góra klatki na świeżo. Kontrola 3s opuszczania.',
+      w1: { s: '4', r: '8-10', rpe: '7.5' }, w2: { s: '4', r: '7-9', rpe: '8' }, w8: { s: '2', r: '8-10', rpe: '6' } }] },
+    { dayName: 'Dzień 2 — Pull', focus: 'Pull', exercises: [{ name: 'Wiosłowanie', rest: '90s' }] }
+  ]
+}, { name: 'Tomasz' });
+ok('week tabs T1..T8', (big.match(/class="plan-pdf-wtab/g) || []).length === 8 && /onclick="planPdfSetWeek\(this,7\)"/.test(big));
+ok('deload tab marked', /plan-pdf-wtab[^"]*is-deload[^"]*" data-wk="7"/.test(big));
+ok('day tabs', (big.match(/class="plan-pdf-dtab/g) || []).length === 2 && /planPdfSetDay\(this,1\)/.test(big));
+ok('one dose per week, first on', (big.match(/class="plan-pdf-dose( is-on)?"/g) || []).length === 16 && /plan-pdf-dose is-on" data-wk="0"/.test(big));
+ok('big numbers with en dash', /<b>4<\/b><i>×<\/i><b>8–10<\/b>/.test(big));
+ok('rest label', /2 min/.test(big) && /1:30 min/.test(big));
+ok('hint under name without PRIORYTET prefix', /plan-pdf-hint">Góra klatki na świeżo\.</.test(big));
+ok('accordion keeps rest of tip', /<details class="plan-pdf-how"><summary>Jak wykonać<\/summary><div class="plan-pdf-how-h">Wskazówka<\/div><p>Kontrola 3s opuszczania\.<\/p>/.test(big));
+ok('cycle table for print', /class="plan-pdf-cycle"/.test(big) && /Tydzień 8/.test(big) && /plan-pdf-tiprow/.test(big));
+ok('globals exported', /window\.planPdfSetWeek=planPdfSetWeek/.test(src03) && /window\.planPdfSetDay=planPdfSetDay/.test(src03));
+ok('print shows cycle, hides cards', /@media print\{\s*@page plan-pdf\{size:A4 landscape/.test(css) && /\.plan-pdf-cards,\.plan-pdf-cycle-btn/.test(css));
+ok('phone: one day at a time', /\.plan-pdf-day\.is-on,\.plan-pdf\.show-cycle \.plan-pdf-day\{display:block;\}/.test(css));
+ok('cache bumped', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 48) && cacheAtLeast(html, 'styles.css', 191));
+
+// Wydruk: osobny zwarty dokument (tabela całego cyklu na A4 poziomo), nie ekran z kartami
+const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
+ok('print doc builder', /function planPdfPrintHTML\(root\)/.test(src03) && /window\.planPdfPrint=planPdfPrint/.test(src03));
+ok('print css A4 landscape', /PLAN_PDF_PRINT_CSS=`[\s\S]*@page\{size:A4 landscape/.test(src03));
+ok('print uses iframe', /plan-pdf-print-frame/.test(src03) && /contentWindow\.print\(\)/.test(src03));
+ok('reportPrint routes plan to compact print', /function reportPrint\(\)\{[\s\S]{0,300}planPdfPrint\(\)/.test(src04));
+ok('week cell shows kg', /plan-pdf-wk-kg/.test(src03) && /80 kg/.test(out));
+ok('cache 03/04', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 49) && cacheAtLeast(html, '04-client-portal.js', 68));
+
+// Metody intensyfikacji: wyraźny znaczek ⚡ i proste wyjaśnienie zamiast drobnego dopisku w opisie
+const intHtml = ctx.buildPlanPDFHTML({
+  planName: 'Int', weekKeys: ['w1', 'w2'],
+  days: [{ dayName: 'Dzień 1', exercises: [
+    { name: 'Unoszenie bokiem', notes: 'Boczny bark. Lekki nachył. Ostatnia seria: myo-reps.', w1: { s: '4', r: '12-15', rpe: '7.5' }, w2: { s: '4', r: '12-15', rpe: '8' } },
+    { name: 'Pushdown', intensification: [{ type: 'drop_set', protocol: 'Ostatnia seria: zrzuć 25% i rób dalej' }], w1: { s: '3', r: '10', rpe: '8' } },
+    { name: 'Przysiad', notes: 'Pauza 1 s.', w1: { s: '4', r: '6', rpe: '8' } }
+  ] }]
+}, { name: 'Krzysztof' });
+ok('myo-reps badge from notes', /data-int="myo_reps"/.test(intHtml) && /⚡ MYO-REPS/.test(intHtml) && /3–5 głębokich oddechów/.test(intHtml));
+ok('drop set from field keeps plan protocol', /data-int="drop_set"/.test(intHtml) && /Plan: Ostatnia seria: zrzuć 25%/.test(intHtml));
+ok('note sentence about method removed from tip', !/Ostatnia seria: myo-reps/.test(intHtml) && /Boczny bark/.test(intHtml));
+ok('no badge without method', (intHtml.match(/class="plan-pdf-int"/g) || []).length === 2);
+ok('print shows methods', /class="pp-int"/.test(src03) && /\.pp-int\{/.test(src03) && /\.plan-pdf-int\{/.test(css));
+ok('cache 03/styles', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 51) && cacheAtLeast(html, 'styles.css', 193));
+// Metody zmienne w czasie: kratka tygodnia dostaje kolorowy znaczek tylko w tygodniach metody, deload bez metody
+const wk8 = ['w1','w2','w3','w4','w5','w6','w7','w8'];
+const varEx = { name: 'Rozpiętki', intensification: [{ type: 'rest_pause', weeks: [3, 4] }, { type: 'drop_set', weeks: [5, 6, 7] }] };
+const plainEx = { name: 'Unoszenie', notes: 'Ostatnia seria: myo-reps.' };
+wk8.forEach((k, i) => { varEx[k] = { s: '4', r: '10-12', rpe: '8' }; plainEx[k] = { s: '4', r: '12-15', rpe: '8' }; });
+const varHtml = ctx.buildPlanPDFHTML({ planName: 'Var', weekKeys: wk8, phases: { w8: 'Deload' }, days: [{ dayName: 'D1', exercises: [varEx, plainEx] }] }, {});
+const varRow = varHtml.split('<tr class="plan-pdf-row">')[1] || '';
+const varCells = varRow.split('</tr>')[0].split('<td').slice(2);
+ok('rest-pause only T3–T4', [2, 3].every(i => /data-int="rest_pause"/.test(varCells[i])) && ![0, 1, 4, 7].some(i => /data-int="rest_pause"/.test(varCells[i])));
+ok('drop set only T5–T7', [4, 5, 6].every(i => /data-int="drop_set"/.test(varCells[i])) && !/plan-pdf-wk-int/.test(varCells[7]));
+ok('weeks label in description', /T3–T4/.test(varHtml) && /T5–T7/.test(varHtml) && /T1–T7/.test(varHtml));
+ok('distinct colors per method', /color:#b54708/.test(varHtml) && /color:#c81e1e/.test(varHtml) && /color:#1d4ed8/.test(varHtml));
+ok('print legend', /pp-legend/.test(src03) && /Metody intensyfikacji — jak je wykonać/.test(src03));
+ok('AI prompt asks for weeks', /"weeks":\[numery tygodni\]/.test(src03));
+const src01 = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
+ok('core keeps weeks', /if\(wk&&wk\.length\)m\.weeks=wk/.test(src01) && cacheAtLeast(html, '01-core.js', 159));
 
 if (failed) {
   console.error(failed + ' failed');

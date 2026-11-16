@@ -1,0 +1,668 @@
+{
+ "meta": {
+  "title": "Practical Programming for Strength Training, 3rd Edition",
+  "titlePl": "Programowanie treningu siłowego. Kontynuacja książki „Zacznij od siły”",
+  "authors": [
+   "Mark Rippetoe",
+   "Andy Baker"
+  ],
+  "year": "2019 (wyd. polskie), 2017 (ed. poprawiona wyd. 3)",
+  "publisher": "Galaktyka",
+  "language_source": "pl",
+  "language_base": "pl",
+  "version": "1.0",
+  "date": "2026-10-29",
+  "ref": "programowanie-treningu-silowego-rippetoe",
+  "domain": "training",
+  "pageNumbering": "Strony = numeracja drukowana wydania polskiego. Plik PDF n = strona n+190 (PDF 7–25 = s. 197–215).",
+  "inputNote": "Plik 837267461-programowanie-treningu-silowego.pdf (26 stron): okładka, strona tytułowa, strona redakcyjna, spis treści i tylko s. 197–215 z rozdziału 8 „Zaawansowani” (ucięte w trakcie programu strongmana). Rozdziały 1–7 i 9 nie są w pliku, więc zasady dla początkujących i średnio zaawansowanych mają status brak_w_zrodle. Opracowanie własnymi słowami.",
+  "audience": "zawodnicy zaawansowani (trójbój, strongman, sporty siłowe, MMA) i ich trenerzy"
+ },
+ "principles": [
+  {
+   "id": "P01",
+   "rule": "Poziom zaawansowany zaczyna się wtedy, gdy tygodniowy plan przestaje dawać postęp; bodziec przeciążeniowy i regeneracja po nim mogą trwać miesiąc lub dłużej. Większość ćwiczących, poza zawodnikami trójboju, dwuboju i strongmanu, nigdy tego poziomu nie osiąga.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "197"
+    }
+   ]
+  },
+  {
+   "id": "P02",
+   "rule": "Periodyzacja to planowana zmiana objętości i intensywności w okresach dłuższych niż odstęp między treningami, podporządkowana celowi startowemu. Autorzy krytykują traktowanie modelu Matwiejewa jako uniwersalnego dla każdego poziomu zaawansowania.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Historia periodyzacji",
+     "pages": "197-198"
+    }
+   ]
+  },
+  {
+   "id": "P03",
+   "rule": "Początkujący nie potrzebują złożonych programów (autorzy: wręcz nie powinni ich stosować) – adaptują się szybko i mogą dokładać ciężar na każdym treningu. Złożoność planu ma rosnąć dopiero wtedy, gdy zwalnia tempo adaptacji: od progresji z treningu na trening, przez cykl tygodniowy, do cykli kilkutygodniowych.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Wprowadzenie do programowania dla zaawansowanych",
+     "pages": "198-199, 202"
+    }
+   ]
+  },
+  {
+   "id": "P04",
+   "rule": "Im dłuższy staż treningowy, tym mniejsza szybkość adaptacji: poziom siły zbliża się do indywidualnego potencjału genetycznego, a potrzebna złożoność planu rośnie (Ilustracja 8.1).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "199"
+    }
+   ]
+  },
+  {
+   "id": "P05",
+   "rule": "Długość cyklu zależy od poziomu: u średnio zaawansowanego cyklem jest tydzień (rekord co tydzień), u zaawansowanego około dwóch miesięcy (w przykładzie 8-tygodniowym rekordy padają 3 razy).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "199-201"
+    }
+   ]
+  },
+  {
+   "id": "P06",
+   "rule": "Dwie cechy treningu zaawansowanych: (1) im bliżej potencjału, tym ważniejszy jest skumulowany efekt serii treningów, a nie pojedynczej sesji; (2) trening dzieli się na dłuższe fazy – od dużej objętości i mniejszej intensywności do małej objętości i dużej intensywności (Ilustracja 8.2).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "201-202"
+    }
+   ]
+  },
+  {
+   "id": "P07",
+   "rule": "Zaawansowany zawodnik osiąga szczyt formy tylko w zaplanowanym z wyprzedzeniem terminie startu; średnio zaawansowany robi postępy na tyle szybko, że niemal każdy weekend jest dla niego życiową formą.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "202"
+    }
+   ]
+  },
+  {
+   "id": "P08",
+   "rule": "Model piramidy (przeciążenie przez kilka tygodni, potem kilka tygodni zmniejszania objętości) to rozciągnięta w czasie wersja tygodnia metody teksaskiej: tygodnie 1–4 działają jak poniedziałek o dużej objętości, tygodnie 5–8 jak lżejsza środa i rekordowy piątek.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy",
+     "pages": "200, 203"
+    }
+   ]
+  },
+  {
+   "id": "P09",
+   "rule": "Dla klientów rekreacyjnych PT modele z tego rozdziału zwykle nie są potrzebne: autorzy piszą, że większość sportowców innych dyscyplin i osób trenujących bez startów zostaje na poziomie średnio zaawansowanym (przerwy, kontuzje, brak startów).",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "197, 205"
+    }
+   ]
+  }
+ ],
+ "exerciseRules": [
+  {
+   "id": "E01",
+   "rule": "Martwy ciąg łatwo prowadzi do przetrenowania, dlatego objętość ciągu buduje się lżejszym wariantem (martwy ciąg na prostych nogach, 3 serie z mniejszym ciężarem) zamiast wielu ciężkich serii martwego ciągu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Trójbój 11 tygodni",
+     "pages": "204"
+    }
+   ]
+  },
+  {
+   "id": "E02",
+   "rule": "Wyciskanie stojąc i wyciskanie leżąc wąskim chwytem uzupełniają objętość wyciskania i wzmacniają tricepsy przed cięższą fazą.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Trójbój 11 tygodni",
+     "pages": "204"
+    }
+   ]
+  },
+  {
+   "id": "E03",
+   "rule": "Podciąganie i wyciskanie przeszkadzają sobie nawzajem bez względu na kolejność. Podciąganie można natomiast robić przed przysiadem, bo nie psuje przysiadu. W sportach chwytanych (judo, BJJ, MMA) podciąganie bywa ćwiczeniem głównym, a nie pomocniczym.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy dla MMA",
+     "pages": "210"
+    }
+   ]
+  },
+  {
+   "id": "E04",
+   "rule": "W łatwych tygodniach przed próbą rekordu można zmieniać wariant: wyciskanie z pauzą lub wąskim chwytem, przysiad z pauzą, martwy ciąg chwytem rwaniowym. W tygodniach rekordowych wszystko robi się techniką startową.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Klasyczny tapering",
+     "pages": "211"
+    }
+   ]
+  },
+  {
+   "id": "E05",
+   "rule": "W klasycznym taperingu ukierunkowane ćwiczenia pomocnicze są właściwie niezbędne (w przykładzie: żuraw, skłony z obciążeniem, wyciskanie na skosie, pompki na poręczach, wiosłowanie, ściąganie drążka, martwy ciąg na prostych nogach, wyprosty przedramion).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Klasyczny tapering",
+     "pages": "211-213"
+    }
+   ]
+  },
+  {
+   "id": "E06",
+   "rule": "Strongman: trenuj konkretne konkurencje i przyrządy z najbliższych zawodów (kłoda, belka, gryf axle do 55 mm, grube rączki), bo zasady konkurencji się różnią; w sobotę symuluj zawody, najlepiej w kolejności konkurencji ze startu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Strongman",
+     "pages": "213-214"
+    }
+   ]
+  },
+  {
+   "id": "E07",
+   "rule": "Martwy ciąg z opon (ok. wysokości kolan) przygotowuje się klasycznym martwym ciągiem i ciągiem w klatce z trzech wysokości: 5, 10 i 15 cm nad podłogą; najwyższa odpowiada mniej więcej wysokości startowej.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Strongman",
+     "pages": "214"
+    }
+   ]
+  }
+ ],
+ "progressionRules": [
+  {
+   "id": "G01",
+   "rule": "Szczyt formy u zawodników najbardziej zaawansowanych: w ostatnich 2–4 tygodniach przed zawodami zmniejsz objętość i intensywność. Zostaw kilka podejść blisko maksimum (1–3 serie raz lub dwa razy w tygodniu), rozdzielonych lżejszymi treningami; powtórzenia schodzą do singli i dwójek, ubywa serii i ćwiczeń.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Osiąganie szczytu formy",
+     "pages": "202"
+    }
+   ]
+  },
+  {
+   "id": "G02",
+   "rule": "Ostatni ciężki trening 5–7 dni przed zawodami, a przez około 2 dni przed startem tylko bardzo lekkie ćwiczenia. Dokładny termin zależy od zawodnika i jego doświadczenia.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Osiąganie szczytu formy",
+     "pages": "202"
+    }
+   ]
+  },
+  {
+   "id": "G03",
+   "rule": "Model piramidy (8 tygodni, 3 treningi w tygodniu): tygodnie 1–4 to faza zwiększania obciążeń, 5×5 na dwóch ciężkich treningach i lżejsza środa; objętość ma wywołać narastające zmęczenie. Tygodnie 5–8 to faza szczytowa: 3×3, potem pojedyncze serie po 3 powtórzenia, z ciężarem rosnącym do nowego rekordu.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy",
+     "pages": "202-203"
+    }
+   ]
+  },
+  {
+   "id": "G04",
+   "rule": "Jeśli regeneracja przebiega dobrze i wszystkie serie 4. tygodnia wyszły, przedłuż fazę zwiększania obciążeń o tydzień; tak samo można wydłużyć fazę szczytową.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy",
+     "pages": "203"
+    }
+   ]
+  },
+  {
+   "id": "G05",
+   "rule": "Cykl piramidy można powtarzać wiele razy, podnosząc tylko ciężary (np. następny cykl od 145 zamiast 135 kg × 5 × 5). Między cyklami 1–2 tygodnie aktywnego odpoczynku lub mniej treningów i lżejsze ciężary, np. 2 razy w tygodniu 2–3 × 5 lekko.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy",
+     "pages": "203"
+    }
+   ]
+  },
+  {
+   "id": "G06",
+   "rule": "Piramida działa też na innych zakresach, np. faza obciążania 3 × 10, a do szczytu wystarczy 1 × 5. Warunek: objętość w fazie obciążania ma doprowadzić zmęczenie do poziomu, na którym wynik blisko 1 CM jest trudny, choć nie niemożliwy.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy",
+     "pages": "203"
+    }
+   ]
+  },
+  {
+   "id": "G07",
+   "rule": "Kontrola ciężaru w piramidzie (reguła z książki): jeśli w 3. tygodniu, jeszcze przed zmniejszeniem objętości, nie udaje się osiągnąć co najmniej 90% w odniesieniu do 5 CM, obciążenie jest najpewniej za duże. Jeśli zawodnik kończy fazę na swoim maksimum albo powyżej, w następnym cyklu można podnieść ciężary.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy",
+     "pages": "203"
+    }
+   ]
+  },
+  {
+   "id": "G08",
+   "rule": "Gdy zawodnik nie robi pełnego 5×5, objętość ma zostać duża: zmniejsz ciężar sztangi, żeby zrobić wszystkie powtórzenia, zamiast skracać serie.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Trójbój 11 tygodni",
+     "pages": "204"
+    }
+   ]
+  },
+  {
+   "id": "G09",
+   "rule": "Tapering przez zmniejszenie częstotliwości: z 3 do 2 treningów w tygodniu. W przykładzie trójbojowym przejście pon. – czw. – niedz. – śr. – sob., potem tylko środa i sobota, bo zawody są w sobotę rano. Pierwszy trening taperingu robi się tym samym ciężarem co ostatnio, ale ze znacznie mniejszą objętością, a po 2 dniach odpoczynku ciężar może wzrosnąć.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Trójbój 11 tygodni",
+     "pages": "204-205"
+    }
+   ]
+  },
+  {
+   "id": "G10",
+   "rule": "Sporty siłowe: faza zwiększania obciążenia 4–6 tygodni, rekordy w ostatnim lub dwóch ostatnich tygodniach. W taperingu ten sam ładunek rozbija się na 4 krótsze sesje, a gdy rośnie trening specjalistyczny i kondycyjny, robi się tylko 1–2 ćwiczenia na sesję w siłowni.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy dla sportów siłowych",
+     "pages": "205-206"
+    }
+   ]
+  },
+  {
+   "id": "G11",
+   "rule": "Sporty z treningiem specjalistycznym (np. MMA): budowanie siły w okresie, gdy trening techniczny i kondycyjny jest umiarkowany, a tapering siłowy, gdy one przyspieszają przed startem. Przykład: 12 tygodni = 6 tygodni kumulacji (4 treningi siłowe, góra/dół) + 6 tygodni intensyfikacji (3 treningi, każda partia co 3–4 dni).",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy dla MMA",
+     "pages": "206-207"
+    }
+   ]
+  },
+  {
+   "id": "G12",
+   "rule": "Intensyfikacja (przykład MMA): serie dynamiczne o 2–4 mniej i ciężar wyżej o około 5%, pod warunkiem tej samej prędkości. Po rozgrzewce w formie szybkich serii robi się ciężkie 1–2 powtórzenia powyżej 90% CM. Serie po 5 zastępuje się trójkami tym samym ciężarem albo jedną ciężką piątką, żeby ograniczyć zmęczenie i nadal podnosić ciężar co tydzień.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy dla MMA",
+     "pages": "210"
+    }
+   ]
+  },
+  {
+   "id": "G13",
+   "rule": "Klasyczny tapering trójbojowy (8–16 tygodni): najczęściej 3–4 tygodnie serii po 8, potem 3–4 tygodnie po 5, a na końcu 3–4 tygodnie po 3, 2 i 1 powtórzeniu. W przedostatnim tygodniu każdej fazy powtarza się dotychczasowy rekord, w ostatnim próbuje nowego (+2,5–5 kg); pierwsze dwa tygodnie fazy są o 2–5 kg lżejsze.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Klasyczny tapering",
+     "pages": "210-211"
+    }
+   ]
+  },
+  {
+   "id": "G14",
+   "rule": "Strongman: trzy cykle po 3–4 tygodnie, od dużej do małej objętości. Faza I to 4 tygodnie serii po 8 + konkurencje, Faza II to 4 tygodnie serii po 5 + konkurencje (każda zakończona tygodniem lżejszym), Faza III to 4 tygodnie szczytu i zawody.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Strongman",
+     "pages": "214-215"
+    }
+   ]
+  }
+ ],
+ "safetyRules": [
+  {
+   "id": "S01",
+   "rule": "Ciężkie, wyczerpujące sesje (dzień przysiadów i dzień symulacji zawodów u strongmana) rozdzielaj w tygodniu, żeby była regeneracja.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Strongman",
+     "pages": "214-215"
+    }
+   ]
+  },
+  {
+   "id": "S02",
+   "rule": "W ostatnim tygodniu przed startem usuwa się ćwiczenia męczące (w przykładzie martwy ciąg na prostych nogach), żeby przyspieszyć regenerację.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Klasyczny tapering",
+     "pages": "213"
+    }
+   ]
+  },
+  {
+   "id": "S03",
+   "rule": "Wydawca zastrzega, że porady z książki nie zastępują konsultacji z doświadczonym trenerem, a przed rozpoczęciem treningu, zwłaszcza przy chorobach lub leczeniu, warto skonsultować się z lekarzem.",
+   "status": "zrodlo",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "Strona redakcyjna",
+     "pages": "4 (PDF)"
+    }
+   ]
+  }
+ ],
+ "planTemplates": [
+  {
+   "id": "T01",
+   "name": "Porównanie 8 tygodni: średnio zaawansowany (metoda teksaska) vs zaawansowany (piramida) – przysiad",
+   "status": "zrodlo",
+   "structure": "Średnio zaaw.: pon. 5×5 rosnąco co tydzień, śr. lekko 5×2, pt. rekord (3 → 2×2 → 1×5). Zaaw.: tyg. 1–4 pon./pt. 5×5 rosnąco, śr. lekko 5×5; tyg. 5–8 pon. 3×3, śr. 5×2, pt. 1×5. Obaj kończą na 195 × 1 × 5.",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "200"
+    }
+   ]
+  },
+  {
+   "id": "T02",
+   "name": "Prosta piramida 8 tygodni – przysiad (1 CM 182,5 kg)",
+   "status": "zrodlo",
+   "weeks": [
+    {
+     "week": "1-4",
+     "mon": "135 → 145 → 150 → 152,5 × 5 × 5",
+     "wed": "112,5 × 5 × 5 (tydz. 4: 102,5)",
+     "fri": "135 → 147,5 → 150 → 157,5 × 5 × 5"
+    },
+    {
+     "week": "5-8",
+     "mon": "155 × 3 × 3 → 162,5 × 3 × 3 → 172,5 × 3 → 160 × 3",
+     "wed": "112,5 × 5",
+     "fri": "160 × 3 × 3 → 167,5 × 3 × 3 → 177,5 × 3 → 182,5 × 3"
+    }
+   ],
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy",
+     "pages": "202-203"
+    }
+   ]
+  },
+  {
+   "id": "T03",
+   "name": "Trójbój: 11 tygodni przed zawodami",
+   "status": "zrodlo",
+   "structure": "Tyg. 1–6 (pon./śr./pt.): przysiad 5×5 ciężko–lekko–ciężko, wyciskanie leżąc 5×5 / wyciskanie stojąc 5×5 / wyciskanie wąsko 5×5, zarzut 3×5 dwa razy, martwy ciąg 1×5 + MC na prostych nogach 3×5 w środę. Tyg. 7 (pon./czw./niedz.): 3×3. Tyg. 8–10 (śr./sob.): 3×3 → 2×3 → 1×5. Tyg. 11: lekki dzień + zawody w sobotę.",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Trójbój 11 tygodni",
+     "pages": "204-205"
+    }
+   ]
+  },
+  {
+   "id": "T04",
+   "name": "Piramida dla sportów siłowych (3 dni)",
+   "status": "zrodlo",
+   "days": [
+    "Dzień 1: przysiad 5×5, wyciskopodrzut 6×3, rwanie siłowe 6×2",
+    "Dzień 2: przysiad 5×5, wyciskanie leżąc 5×5, martwy ciąg 70–80% × 1 × 10 + 90% × 1",
+    "Dzień 3: przysiad dynamiczny na skrzyni 70–75% × 2 × 12, wyciskanie stojąc 5×5, zarzut 5×3"
+   ],
+   "taper": "ostatni tydzień: 4 krótkie sesje po 2 ćwiczenia (3×3, single w rwaniu i zarzucie, przysiad dynamiczny 75% × 2 × 8, martwy ciąg 1×5)",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy dla sportów siłowych",
+     "pages": "205-206"
+    }
+   ]
+  },
+  {
+   "id": "T05",
+   "name": "Siła dla zawodnika MMA (12 tygodni)",
+   "status": "zrodlo",
+   "structure": "Kumulacja 6 tyg.: pon. góra (dynamiczne wyciskanie stojąc 70% × 3 × 10, wyciskanie leżąc 5×5, wyciskanie z podłogi z pauzą 2×5), wt. dół (podciąganie z obciążeniem 10×2, przysiad dynamiczny 60–70% × 2 × 12, dynamiczny MC 70–80% × 1 × 20), czw. góra (wyciskanie stojąc 5×5, wyciskopodrzut 2×3, pompki na poręczach 3×6–8), pt. dół (podciąganie nachwytem 5×5, przysiad 5×5, skłony „dzień dobry” 3×5). Intensyfikacja 6 tyg.: pon./śr./pt. naprzemiennie, single >90%, pompki i podciąganie bez obciążenia do upadku; tydz. 6 = walka.",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Model piramidy dla MMA",
+     "pages": "207-210"
+    }
+   ]
+  },
+  {
+   "id": "T06",
+   "name": "Klasyczny tapering trójbojowy – 12 tygodni (rekordy 260 / 182,5 / 302,5 kg)",
+   "status": "zrodlo",
+   "structure": "Pon. przysiad, śr. wyciskanie leżąc, pt. martwy ciąg + ćwiczenia pomocnicze. Tyg. 1–4: serie po 8 (rekord w tyg. 4), tyg. 5–7: po 5 (rekord w tyg. 7), tyg. 8–10: 3×2 → 2×2, tyg. 11: dwa powtórzenia z poprzednim CM, tyg. 12: wt./śr. 80% × 3 × 2–3, sobota zawody (260 / 187,5 / 297,5).",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Klasyczny tapering",
+     "pages": "211-213"
+    }
+   ]
+  },
+  {
+   "id": "T07",
+   "name": "Zaawansowany strongman – klasyczny tapering (fragment)",
+   "status": "zrodlo",
+   "structure": "Pon. wyciskania (wyciskanie stojąc 8×3, leżąc/skos, tricepsy), wt. przysiad 8×3 + rumuński MC + sanie, czw. wyciskanie belki + częściowe wyciskanie belki + pompki na poręczach, sob. konkurencje (MC 8 CM ze stojaków poz. 1–3, spacer farmera i buszmena 2×60 m, opona 2×30 m). Tydz. 5 lżejszy. Dalsza część planu nie jest w przesłanym pliku.",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Strongman",
+     "pages": "213-215"
+    }
+   ]
+  }
+ ],
+ "contradictions": [
+  {
+   "id": "C01",
+   "rule": "Na s. 204 tekst mówi, że w fazie zwiększania obciążenia „podrzut” robi się dwa razy w tygodniu, a w tabeli w tych dniach jest „zarzut”. Rekomendacja: trzymać się tabeli (zarzut); prawdopodobnie to kwestia tłumaczenia.",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani – Trójbój 11 tygodni",
+     "pages": "204"
+    }
+   ]
+  },
+  {
+   "id": "C02",
+   "rule": "Długość zmniejszania obciążeń przed startem: na s. 199 „1–3 tygodnie” (peaking), na s. 202 „ostatnie 2–4 tygodnie”, a w modelu piramidy 3 tygodnie taperingu + 1 tydzień szczytu. Rekomendacja: 2–4 tygodnie łącznie, zależnie od zawodnika.",
+   "status": "wniosek",
+   "sources": [
+    {
+     "ref": "programowanie-treningu-silowego-rippetoe",
+     "chapter": "8 Zaawansowani",
+     "pages": "199, 200, 202"
+    }
+   ]
+  }
+ ],
+ "gaps": [
+  {
+   "id": "X01",
+   "topic": "Programowanie dla początkujących i średnio zaawansowanych (metoda „Zacznij od siły”, metoda teksaska, Bill Starr), rozdziały 1–7",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Nie ma ich w przesłanym pliku (tylko spis treści). Do uzupełnienia po przesłaniu pełnej książki."
+  },
+  {
+   "id": "X02",
+   "topic": "Grupy specyficzne: kobiety, młodzież, osoby starsze, po rehabilitacji (rozdz. 9)",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Tylko w spisie treści."
+  },
+  {
+   "id": "X03",
+   "topic": "Przerwy między seriami, rozgrzewka, rozciąganie, dobór i kolejność ćwiczeń (rozdz. 5)",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Tylko w spisie treści."
+  },
+  {
+   "id": "X04",
+   "topic": "Program strongmana od tygodnia 6 i ćwiczenia wspomagające omówione „w dalszej części rozdziału”",
+   "status": "brak_w_zrodle",
+   "value": null,
+   "note": "Plik kończy się na s. 215."
+  }
+ ],
+ "figures": [
+  {
+   "id": "F-R01",
+   "pages": "199 (PDF 9)",
+   "chapter": "8 Zaawansowani",
+   "type": "wykres",
+   "captionPl": "Ilustracja 8.1 – Ogólny związek poprawy wyników i złożoności planu w czasie",
+   "whatItShows": "Siła rośnie szybko i spłaszcza się pod potencjałem genetycznym; szybkość adaptacji spada; złożoność planu rośnie głównie u średnio zaawansowanych. Oś: lata 0–6.",
+   "data": "wykres poglądowy, bez wartości",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  },
+  {
+   "id": "F-R02",
+   "pages": "201 (PDF 11)",
+   "chapter": "8 Zaawansowani",
+   "type": "wykres",
+   "captionPl": "Ilustracja 8.2 – Cecha 1 i 2 treningu zaawansowanych",
+   "whatItShows": "Wydolność (A) spada pod linię bazową i przekracza ją dopiero po wielu sesjach; objętość (B) najpierw rośnie, potem maleje; intensywność (C) rośnie.",
+   "data": "wykres poglądowy, bez wartości",
+   "readVerified": true,
+   "license": "tylko_wlasciciel"
+  }
+ ],
+ "glossary": [
+  {
+   "pl": "CM (ciężar maksymalny)",
+   "en": "RM (repetition maximum)",
+   "note": "1 CM = 1RM, 5 CM = 5RM"
+  },
+  {
+   "pl": "tapering / faza taperingu",
+   "en": "taper",
+   "note": "zmniejszanie obciążeń przed startem"
+  },
+  {
+   "pl": "kumulacja / faza zwiększania obciążenia",
+   "en": "loading / accumulation phase"
+  },
+  {
+   "pl": "intensyfikacja",
+   "en": "intensification"
+  },
+  {
+   "pl": "wysiłek dynamiczny (DE)",
+   "en": "dynamic effort",
+   "note": "szybkie serie z ok. 60–80%"
+  },
+  {
+   "pl": "zapis 135 × 5 × 5",
+   "en": "135 × 5 × 5",
+   "note": "ciężar (kg) × powtórzenia × serie"
+  }
+ ],
+ "sourceReferences": [
+  {
+   "ref": "programowanie-treningu-silowego-rippetoe",
+   "title": "Programowanie treningu siłowego. Kontynuacja książki „Zacznij od siły”",
+   "titleOriginal": "Practical Programming for Strength Training, 3rd Edition",
+   "authors": "Mark Rippetoe, Andy Baker",
+   "translator": "Piotr Pazdej",
+   "publisher": "Galaktyka, Łódź 2019",
+   "isbn": "978-83-7579-722-0",
+   "language": "pl",
+   "inputFile": "837267461-programowanie-treningu-silowego.pdf",
+   "pageOffset": "PDF n = s. n+190",
+   "coverage": "s. 197–215 (fragment rozdz. 8)",
+   "chapters": [
+    {
+     "n": 8,
+     "title": "8 Zaawansowani",
+     "pages": "197-236"
+    }
+   ]
+  }
+ ]
+}

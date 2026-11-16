@@ -87,6 +87,7 @@ function setCapScreen(scr,btn){
   const content=document.getElementById('cap-screen-content');
   if(!content)return;
   content.innerHTML=capScreenHTML(scr,c);
+  if(typeof capBindTodaySwipe==='function')capBindTodaySwipe(content);
   renderCapInfo();
 }
 
@@ -100,23 +101,31 @@ function capClientSectionVisible(id){
 
 /** Dolny pasek aplikacji klienta (4 główne zakładki + „Więcej”). Ukryte przez trenera sekcje są pomijane. */
 function capLiveNavScreens(){
+  const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
-    {id:'home',label:'Dzisiaj',icon:'🏠'},
-    {id:'plan',label:'Trening',icon:'🏋️'},
-    {id:'messages',label:'Czat',icon:'💬'},
-    {id:'progress',label:'Postępy',icon:'📈'}
-  ].filter(s=>capClientSectionVisible(s.id));
+    {id:'home',label:'Dzisiaj',icon:ic('home','🏠')},
+    {id:'train',label:'Trening',icon:ic('train','🏋️'),section:'plan'},
+    // Czat na dolnym pasku (z plakietką nieprzeczytanych); pełny plan jest w „Więcej” i na ekranie Trening.
+    {id:'messages',label:'Czat',icon:ic('chat','💬')},
+    {id:'progress',label:'Postępy',icon:ic('progress','📈')}
+  ].filter(s=>capClientSectionVisible(s.section||s.id));
 }
-/** Ekrany w arkuszu „Więcej” (kalendarz jest dostępny z Postępów). */
+/** Ekrany w arkuszu „Więcej” (kalendarz jest dostępny z Postępów). Kontakt jest zawsze. */
 function capLiveMoreScreens(){
+  const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
-    {id:'checkin',label:'Ankieta tygodniowa',icon:'✅'},
-    {id:'homework',label:'Zadania',icon:'🏡'},
-    {id:'ondemand',label:'Treningi nagrane',icon:'▶️'},
-    {id:'resources',label:'Materiały',icon:'📚'},
-    {id:'forum',label:'Forum',icon:'👥'},
-    {id:'profile',label:'Profil',icon:'👤'}
-  ].filter(s=>s.id==='profile'||capClientSectionVisible(s.id));
+    {id:'plan',label:'Plan',icon:ic('plan','📋')},
+    // Plan klienta: jedzenie i zakupy tylko wtedy, gdy trener opublikował jadłospis (plan-client-client.js).
+    {id:'food',label:'Moje jedzenie',icon:ic('book','🍽'),pk:1},
+    {id:'shopping',label:'Lista zakupów',icon:ic('list','🛒'),pk:1},
+    {id:'contact',label:'Kontakt',icon:ic('contact','📞')},
+    {id:'checkin',label:'Ankieta tygodniowa',icon:ic('checkin','✅')},
+    {id:'homework',label:'Zadania',icon:ic('homework','🏡')},
+    {id:'ondemand',label:'Treningi nagrane',icon:ic('play','▶️')},
+    {id:'resources',label:'Materiały',icon:ic('book','📚')},
+    {id:'forum',label:'Forum',icon:ic('users','👥')},
+    {id:'profile',label:'Profil',icon:ic('user','👤')}
+  ].filter(s=>s.pk?(typeof pkcHasFood==='function'&&pkcHasFood()):(s.id==='profile'||s.id==='contact'||capClientSectionVisible(s.id)));
 }
 window.capLiveMoreScreens=capLiveMoreScreens;
 
@@ -340,6 +349,7 @@ function capWorkoutHistoryList(c,list,live,accent){
 
 /* Prawdziwy ekran startowy klienta: jedna decyzja, bez pulpitu trenera. */
 function capClientTodaySimple(c){
+  if(typeof csTodayHTML==='function')return csTodayHTML(c);
   const slot=capTodaySlot(c);
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   const weekStart=typeof mondayYmd==='function'?mondayYmd(today):today;
@@ -347,24 +357,47 @@ function capClientTodaySimple(c){
     ['completed','partial','finished',''].includes(String(s.status||''))&&s.date>=weekStart&&s.date<=today);
   const inProgress=typeof cwFindResumable==='function'&&slot.plan?cwFindResumable(slot.plan.id,slot.dayIdx):null;
   const meeting=(slot.inPerson||[]).find(s=>s&&s.date>=today&&s.source!=='client');
+  const planShortcut='<button type="button" class="cap-client-swipe-action" onclick="capGoScreen(\'plan\')">Pokaż plan</button>';
   let main='';
   if(inProgress&&inProgress.completeLocal){
-    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Wynik czeka na wysłanie</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii na urządzeniu. Wyślemy je po odzyskaniu połączenia.</div></div>`;
+    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Wynik czeka na wysłanie</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii na urządzeniu. Wyślemy je po odzyskaniu połączenia.</div><button type="button" class="cap-btn-secondary cap-client-today-action" onclick="setClientLiveScreen('plan')">Pokaż plan</button></div>`;
   }else if(inProgress){
-    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">TRENING W TOKU</div><div class="cap-client-today-title">${escHtml(inProgress.dayName||capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii${inProgress.syncState==='local'?' · na urządzeniu':''}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Wznów trening</button></div>`;
+    main=`<div class="cap-client-today-card cap-client-next" data-cap-swipe-plan><div class="cap-client-eyebrow">TRENING W TOKU</div><div class="cap-client-today-title">${escHtml(inProgress.dayName||capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">Zapisano ${Number(inProgress.confirmedSets||0)} serii${inProgress.syncState==='local'?' · na urządzeniu':''}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Wznów trening</button>${planShortcut}</div>`;
   }else if(slot.kind==='workout'){
     const count=((slot.day&&slot.day.exercises)||[]).length;
-    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">ZAPLANOWANY TRENING</div><div class="cap-client-today-title">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">${count} ${count===1?'ćwiczenie':'ćwiczeń'} · ${escHtml(slot.plan.name||'Plan')}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Rozpocznij trening</button></div>`;
+    main=`<div class="cap-client-today-card cap-client-next" data-cap-swipe-plan><div class="cap-client-eyebrow">ZAPLANOWANY TRENING</div><div class="cap-client-today-title">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div><div class="cap-client-muted">${count} ${count===1?'ćwiczenie':'ćwiczeń'} · ${escHtml(slot.plan.name||'Plan')}</div><button type="button" class="cap-btn-primary cap-client-main-action" onclick="cwOpen('${escHtml(slot.plan.id)}',${slot.dayIdx})">Rozpocznij trening</button>${planShortcut}</div>`;
   }else if(slot.kind==='done'){
-    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Dobra robota</div><div class="cap-client-muted">Dzisiejszy trening jest w Twoich postępach.</div></div>`;
+    main=`<div class="cap-client-today-card cap-client-today-done"><div class="cap-client-eyebrow">TRENING ZAPISANY</div><div class="cap-client-today-title">Dobra robota</div><div class="cap-client-muted">Dzisiejszy trening jest w Twoich postępach.</div><button type="button" class="cap-btn-secondary cap-client-today-action" onclick="setClientLiveScreen('progress')">Zobacz postępy</button></div>`;
   }else if(slot.kind==='rest'){
-    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Dzień bez treningu</div><div class="cap-client-muted">${slot.nextTrainingYmd?'Następny trening: '+escHtml(slot.nextTrainingYmd)+'.':'Plan nie przewiduje dziś treningu.'}</div></div>`;
+    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Dzień bez treningu</div><div class="cap-client-muted">${slot.nextTrainingYmd?'Następny trening: '+escHtml(slot.nextTrainingYmd)+'.':'Plan nie przewiduje dziś treningu.'}</div><button type="button" class="cap-btn-secondary cap-client-today-action" onclick="setClientLiveScreen('plan')">Pokaż plan</button></div>`;
   }else{
-    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Brak przypisanego treningu</div><div class="cap-client-muted">Gdy trener przypisze plan, pojawi się tutaj.</div></div>`;
+    main=`<div class="cap-client-today-card"><div class="cap-client-eyebrow">DZISIAJ</div><div class="cap-client-today-title">Brak przypisanego treningu</div><div class="cap-client-muted">Gdy trener przypisze plan, pojawi się tutaj.</div><button type="button" class="cap-btn-secondary cap-client-today-action" onclick="setClientLiveScreen('messages')">Napisz do trenera</button></div>`;
   }
   return `<div class="cap-section cap-client-today"><div class="cap-client-greeting">Cześć, ${escHtml((c.name||'').split(' ')[0]||'')}!</div>${main}${meeting?`<div class="cap-client-line"><b>Najbliższe spotkanie</b><span>${escHtml(meeting.date||'')} ${escHtml(meeting.time||'')} · ${escHtml(meeting.type||'Trening z trenerem')}</span></div>`:''}<div class="cap-client-line"><b>Ten tydzień</b><span>${finished.length} wykonanych treningów</span></div></div>`;
 }
 window.capClientTodaySimple=capClientTodaySimple;
+
+/* Dotykowy skrót: odsłania plan, ale nie uruchamia żadnej akcji samym przesunięciem. */
+function capBindTodaySwipe(root=document){
+  (root||document).querySelectorAll('[data-cap-swipe-plan]').forEach(card=>{
+    if(card.dataset.swipeBound)return;
+    card.dataset.swipeBound='1';
+    let startX=null;
+    card.addEventListener('pointerdown',event=>{
+      if(event.pointerType==='mouse')return;
+      startX=event.clientX;
+    });
+    card.addEventListener('pointerup',event=>{
+      if(startX===null)return;
+      const delta=event.clientX-startX;
+      if(delta<-56)card.classList.add('is-swipe-revealed');
+      if(delta>36)card.classList.remove('is-swipe-revealed');
+      startX=null;
+    });
+    card.addEventListener('pointercancel',()=>{startX=null;});
+  });
+}
+window.capBindTodaySwipe=capBindTodaySwipe;
 
 function capGarminEntries(c){
   const cid=c&&c.id;
@@ -522,7 +555,7 @@ function capClientProgressScreenHTML(c,accent){
   return `
     <div class="cap-section cap-progress-panel" style="padding-bottom:90px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">Moje postępy</div>
         ${capClientSectionVisible('calendar')?`<button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>`:''}
       </div>
       ${!metricsOn?`<div style="background:var(--s3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:${CAP_MUTED};line-height:1.45;">📏 Pomiary ciała (masa, obwody, Garmin) są wyłączone przez trenera — widać treningi, rekordy i historię.</div>`:''}
@@ -907,9 +940,14 @@ function capScreenHTML(scr,c){
     </div>`;
   }
 
+  if(scr==='train'&&typeof csTrainScreenHTML==='function')return csTrainScreenHTML(c);
+  if(scr==='contact'&&typeof csContactHTML==='function')return csContactHTML(c);
+  if(scr==='food'&&typeof pkcFoodHTML==='function')return pkcFoodHTML(c);
+  if(scr==='shopping'&&typeof pkcShopHTML==='function')return pkcShopHTML(c);
+  if(scr==='plan'&&capIsLiveClient()&&typeof csPlanHTML==='function')return csPlanHTML(c);
   if(scr==='plan') return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MÓJ PLAN</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">Mój plan</div>
       ${(()=>{
         const plan=capClientPlan(c);
         if(!plan)return `
@@ -924,34 +962,61 @@ function capScreenHTML(scr,c){
           <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(p.name)}</div>
           <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">${escHtml(p.method||'')} · ${escHtml(String(p.duration||''))} tygodni</div>
         </div>
-        ${(p.days||[]).map((d,i)=>{
+        ${(()=>{
+          const days=p.days||[];
+          const slot=typeof capTodaySlot==='function'?capTodaySlot(c):null;
+          const trainIdxs=typeof planTrainingDayIdxs==='function'?planTrainingDayIdxs(p):days.map((day,index)=>day&&!day.rest&&(day.exercises||[]).length?index:-1).filter(index=>index>=0);
+          const suggested=slot&&slot.kind==='workout'?Number(slot.dayIdx):slot&&slot.kind==='done'&&trainIdxs.length?
+            (()=>{const current=trainIdxs.indexOf(Number(slot.dayIdx));return trainIdxs[current>=0?(current+1)%trainIdxs.length:0];})():
+            (typeof suggestedPlanDayIdx==='function'?Number(suggestedPlanDayIdx(c.id,p)):days.findIndex(day=>day&&!day.rest&&(day.exercises||[]).length));
+          const recommendedIdx=days[suggested]&&!days[suggested].rest&&(days[suggested].exercises||[]).length?suggested:days.findIndex(day=>day&&!day.rest&&(day.exercises||[]).length);
+          const hasRir=days.some(day=>(day.exercises||[]).some(ex=>{const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(ex||{});return parsed.rir!==''&&parsed.rir!=null;}));
+          const hasTempo=days.some(day=>(day.exercises||[]).some(ex=>{const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(ex||{});return !!String(parsed.tempo||'').trim();}));
+          return `<div class="cap-client-plan-intro"><b>Twój plan treningowy</b><span>Otwórz dzień, żeby zobaczyć ćwiczenia i wskazówki. ${recommendedIdx>=0?'Najbliższy trening jest oznaczony poniżej.':''}</span></div>
+          ${hasRir||hasTempo?`<div class="cap-client-plan-rir-help">${hasRir?'<div><b>RIR</b> — ile powtórzeń zostało Ci jeszcze w zapasie po serii.</div>':''}${hasTempo?'<div><b>Tempo</b> — kolejno: opuszczanie, pauza, podnoszenie, pauza.</div>':''}</div>`:''}
+          <div class="cp-plan-days">${days.map((d,i)=>{
           const rest=d.rest||!(d.exercises||[]).length;
-          const live=capIsLiveClient();
+          const isRecommended=i===recommendedIdx&&!rest;
           const detailHtml=rest?'':(d.exercises||[]).map(ex=>{
             const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex||{});
             const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(parsed):{note:parsed.note||'',libTip:'',video:parsed.video||''};
             const icons=typeof coachMediaIcons==='function'?coachMediaIcons(parsed):'';
-            return `<div style="padding:8px 0;border-top:1px solid ${CAP_S3};">
-              <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;">
-                <span style="color:${CAP_TEXT};">${escHtml(parsed.name||'Ćwiczenie')}${icons}</span>
-                <span style="color:${CAP_MUTED};white-space:nowrap;">${escHtml((parsed.sets&&parsed.reps)?(parsed.sets+'×'+parsed.reps):(parsed.sets||parsed.reps||'—'))}</span>
-              </div>
-              ${coach.note?`<div style="font-size:11px;color:${CAP_MUTED};line-height:1.5;margin-top:4px;">${escHtml(coach.note)}</div>`:''}
-              ${!coach.note&&coach.libTip?`<div style="font-size:11px;color:${CAP_MUTED};line-height:1.5;margin-top:4px;">${escHtml(coach.libTip)}</div>`:''}
-              ${coach.video?`<div style="margin-top:6px;"><a href="${escHtml(coach.video)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:${accent};text-decoration:none;">▶ Film techniki</a></div>`:''}
+            const setCount=String(parsed.sets||'').trim();
+            const repCount=String(parsed.reps||'').trim();
+            const restLabel=String(parsed.rest||'').trim();
+            const rir=String(parsed.rir||'').trim();
+            const rpe=String(parsed.rpe||'').trim();
+            const tempo=String(parsed.tempo||'').trim();
+            const load=String(parsed.kg||'').trim();
+            const loadSuffix=load?(typeof loadUnitSuffix==='function'?loadUnitSuffix(parsed.loadUnit||'kg'):' kg'):'';
+            const metrics=[
+              setCount||repCount?`${setCount?setCount+' serii':''}${setCount&&repCount?' · ':''}${repCount?repCount+' powt.':''}`:'',
+              restLabel?'Przerwa '+restLabel:'',
+              rir?'RIR '+rir:'',
+              !rir&&rpe?'RPE '+rpe:'',
+              tempo?'Tempo '+tempo:'',
+              load?'Ciężar startowy '+load+loadSuffix:(parsed.pct1rm?'Ciężar '+parsed.pct1rm+'% 1RM':'')
+            ].filter(Boolean);
+            return `<div class="cap-client-plan-exercise">
+              <div class="cap-client-plan-exercise-name">${escHtml(parsed.name||'Ćwiczenie')}${icons}</div>
+              ${metrics.length?`<div class="cap-client-plan-metrics">${metrics.map((metric,index)=>`<span class="cap-client-plan-metric${index===0?' is-primary':''}">${escHtml(metric)}</span>`).join('')}</div>`:''}
+              ${coach.note?`<div class="cap-client-plan-note">${escHtml(coach.note)}</div>`:''}
+              ${!coach.note&&coach.libTip?`<div class="cap-client-plan-note">${escHtml(coach.libTip)}</div>`:''}
+              ${coach.video?`<a class="cap-client-plan-video" href="${escHtml(coach.video)}" target="_blank" rel="noopener noreferrer">▶ Zobacz technikę</a>`:''}
             </div>`;
           }).join('');
-          return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-              <div>
-                <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(capDayLabel(d,i))}${rest?' · rest':''}</div>
-                <div style="font-size:11px;color:${CAP_MUTED};">${rest?'Odpoczynek':((d.exercises||[]).length+' ćwiczeń')}</div>
-              </div>
-              ${rest?'':`<button type="button" class="btn btn-primary btn-sm" ${live?`onclick="cwOpen('${escHtml(p.id)}',${i})"`:`onclick="notify('Podgląd')"`}>▶ Start</button>`}
-            </div>
-            ${detailHtml?`<div style="margin-top:10px;">${detailHtml}</div>`:''}
-          </div>`;
-        }).join('')}
+          const dayName=escHtml(capDayLabel(d,i));
+          const live=capIsLiveClient();
+          return `<details class="cp-plan-day-tile cap-client-plan-day${rest?' is-rest':''}" ${isRecommended?'open':''}>
+            <summary class="cp-plan-day-summary cap-client-plan-day-summary">
+              <span class="cap-client-plan-day-title">${dayName}${rest?' · odpoczynek':''}</span>
+              ${isRecommended?'<span class="cap-client-plan-next">Najbliższy trening</span>':''}
+              <span class="cp-plan-day-count">${rest?'Dzień wolny':(d.exercises||[]).length+' ćwiczeń'}</span>
+            </summary>
+            ${detailHtml?`<div class="cap-client-plan-day-body">${detailHtml}<button type="button" class="${isRecommended?'cap-btn-primary':'cap-btn-secondary'} cap-client-plan-start" ${live?`onclick="cwOpen('${escHtml(p.id)}',${i})"`:`onclick="notify('Podgląd')"`}>${isRecommended?'▶ Rozpocznij trening':'Rozpocznij ten dzień'}</button></div>`:''}
+          </details>`;
+        }).join('')}</div>`;
+        })()}
       `;
       })()}
     </div>`;
@@ -987,7 +1052,7 @@ function capScreenHTML(scr,c){
     }
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">KALENDARZ</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">Kalendarz</div>
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <button type="button" style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;" onclick="clientCalNav(-1)">‹</button>
@@ -1036,6 +1101,10 @@ function capScreenHTML(scr,c){
   }
 
   if(scr==='progress'){
+    if(capIsLiveClient()&&typeof csProgressHTML==='function'){
+      if(!window._csProgressFull)return csProgressHTML(c);
+      return `<div class="cs-screen cs-screen-tight"><button type="button" class="cs-back" onclick="csProgressFull(false)">${typeof csIcon==='function'?csIcon('back',18):'←'}Postępy</button></div>`+capClientProgressScreenHTML(c,accent);
+    }
     return capClientProgressScreenHTML(c,accent);
   }
 
@@ -1128,7 +1197,7 @@ function capScreenHTML(scr,c){
     if(live&&typeof filledThisWeek==='function'&&filledThisWeek(c.id)&&!(typeof pendingCheckin==='function'&&pendingCheckin(c.id))){
       const last=filledThisWeek(c.id);
       return `<div class="cap-section" style="padding-bottom:90px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">CHECK-IN</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">Check-in</div>
         <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:20px;text-align:center;">
           <div style="font-size:36px;margin-bottom:8px;">✓</div>
           <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">W tym tygodniu już wysłane</div>
@@ -1149,10 +1218,12 @@ function capScreenHTML(scr,c){
     };
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">CHECK-IN TYGODNIOWY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">Check-in tygodniowy</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:20px;">${live?'Wypełnij i wyślij do trenera':'Podgląd formularza'}</div>
+      ${typeof pkcCheckinExtra==='function'&&pkcCheckinExtra(c)?qrow('mood','Nastrój',['😣','😔','😐','😊','😄']):''}
       ${qrow('energy','Poziom energii',['😴','😪','😐','😊','⚡'])}
       ${qrow('sleep','Jakość snu',['😴','😪','😐','😊','🌟'])}
+      ${typeof pkcCheckinExtra==='function'&&pkcCheckinExtra(c)?qrow('hunger','Głód (1 = mały, 5 = duży)',['🙂','😌','😐','😋','🤤']):''}
       ${qrow('stress','Poziom stresu (1=niski)',['🧘','😌','😐','😰','🤯'])}
       ${qrow('nutrition','Odżywianie',['🍕','🌮','😐','🥗','💪'])}
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
@@ -1166,6 +1237,10 @@ function capScreenHTML(scr,c){
         <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Masa ciała (opcjonalnie)</div>
         <input type="number" inputmode="decimal" class="form-input" value="${escHtml(st.weight||'')}" oninput="window._cliveCheckin=window._cliveCheckin||{};window._cliveCheckin.weight=this.value" placeholder="kg" style="font-size:16px;">
       </div>
+      ${typeof pkcCheckinExtra==='function'&&pkcCheckinExtra(c)?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
+        <label for="ci-hardest" style="display:block;font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Co było najtrudniejsze w tym tygodniu?</label>
+        <textarea id="ci-hardest" class="form-textarea" rows="2" oninput="window._cliveCheckin=window._cliveCheckin||{};window._cliveCheckin.hardest=this.value" placeholder="Np. wieczorne podjadanie, brak czasu na trening">${escHtml(st.hardest||'')}</textarea>
+      </div>`:''}
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Komentarz dla trenera</div>
         <textarea class="form-textarea" rows="3" oninput="window._cliveCheckin=window._cliveCheckin||{};window._cliveCheckin.notes=this.value" placeholder="Jak minął tydzień?">${escHtml(st.notes||'')}</textarea>
@@ -1197,7 +1272,7 @@ function capScreenHTML(scr,c){
       </div>
       <div style="flex:1;overflow-y:auto;padding:14px 12px;">
         ${msgs.map(m=>`<div style="margin-bottom:10px;${!m.out?'text-align:right;':''}">
-          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'#000':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(m.odProgId)}')">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
+          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'var(--on-accent,#fff)':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(m.odProgId)}')">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
           <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${escHtml(m.time)}</div>
         </div>`).join('')}
       </div>
@@ -1218,7 +1293,7 @@ function capScreenHTML(scr,c){
     const allW=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[]));
     const resolveW=t=>(allW.find(x=>x.id===t.odWorkoutId)||null);
     return `<div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">ZADANIA DOMOWE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">Zadania domowe</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Tylko to, co trener Ci przypisał — termin, notatka i odhaczenie. Szablony bez filmu mają timer w apce. Katalog YouTube jest w <strong>On-demand</strong> (Więcej).</div>
       ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Do zrobienia (${openHw.length})</div>
         ${openHw.map(t=>{const w=resolveW(t);
@@ -1258,7 +1333,7 @@ function capScreenHTML(scr,c){
       }).join('');
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ON-DEMAND</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">On-demand</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Wielotygodniowe programy z filmami YouTube (mobilność, dom bez sprzętu, FBW). Klient sam wybiera dzień i tempo — to biblioteka planów, nie pojedyncze zadania od trenera. Pojedyncze treningi → zakładka <strong>Zadania domowe</strong>.</div>
       ${programCards}
     </div>`;
@@ -1313,7 +1388,7 @@ function capScreenHTML(scr,c){
     const pill=(id,label)=>`<button type="button" class="btn ${filter===id?'btn-primary':'btn-ghost'} btn-sm" onclick="capSetResFilter('${id}')">${label}</button>`;
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ZASOBY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">Zasoby</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">Darmowe na YouTube — bez Spotify Premium.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
         ${pill('all','Wszystkie')}
@@ -1363,7 +1438,7 @@ function capScreenHTML(scr,c){
       </div>`;
     }
     return `<div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 6px;">SPOŁECZNOŚĆ</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 6px;">Społeczność</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;">Grupa Twojego trenera — nie jest to publiczne forum.</div>
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:12px;margin-bottom:14px;">
         <input id="clive-fp-title" class="form-input" placeholder="Tytuł posta" style="margin-bottom:8px;background:${CAP_S3};border:1px solid ${CAP_S3};">
@@ -1473,7 +1548,7 @@ function capScreenHTML(scr,c){
       </div>`;
     }
     return `<div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 16px;padding-top:8px;">FORMULARZE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 16px;padding-top:8px;">Formularze</div>
       ${!sends.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak formularzy. Gdy trener wyśle ankietę, pojawi się tutaj.</div>`:''}
       ${pending.length?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--purple);text-transform:uppercase;margin-bottom:8px;">Do wypełnienia</div>
         ${pending.map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenForm('${escHtml(s.id)}')">
@@ -1572,6 +1647,11 @@ function renderCapCustomize(){
       <input type="text" class="form-input" value="${appName}" id="cap-app-name" style="font-size:13px;">
     </div>
     <div class="settings-card">
+      <div class="settings-card-title">⚡ Prosty widok klienta</div>
+      <div class="settings-card-desc">Zostawia tylko: Dzisiaj, Trening, Plan, Postępy, Kontakt, Czat i Profil. Klient nie widzi biblioteki materiałów, forum, kategorii ćwiczeń ani danych innych klientów.</div>
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="applyClientMinimalPreset()">Ustaw prosty widok klienta</button>
+    </div>
+    <div class="settings-card">
       <div class="settings-card-title">👁 Widoczne sekcje dla klienta</div>
       <div class="settings-card-desc">Wybierz które sekcje są dostępne w aplikacji klienta.</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -1590,13 +1670,22 @@ function renderCapCustomize(){
             ['forum','👥 Forum'],
             ['messages','💬 Wiadomości'],
             ['profile','👤 Profil'],
+            ['bodyWeight','⚖️ Masa ciała w Postępach klienta'],
           ];
+          // Masa ciała jest domyślnie ukryta — trener włącza ją świadomie.
           return rows.map(([id,label])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
           <span style="font-size:13px;">${label}</span>
-          <input type="checkbox" data-cap-section="${id}" ${vs[id]!==false?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
+          <input type="checkbox" data-cap-section="${id}" ${(id==='bodyWeight'?vs[id]===true:vs[id]!==false)?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
         </label>`).join('');
         })()}
       </div>
+    </div>
+    <div class="settings-card">
+      <div class="settings-card-title">📇 Kontakt w aplikacji klienta</div>
+      <div class="settings-card-desc">Ekran „Kontakt” pokazuje klientowi: nazwę firmy, adres, telefon i stronę. Zmienisz je w Ustawieniach (Profil i Firma).</div>
+      ${(()=>{const S=window.SETTINGS||{};const co=S.company||{};const pr=S.profile||{};const addr=[co.address,co.city].filter(Boolean).join(', ');
+        const r=(l,v)=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--muted);">${l}</span><span style="text-align:right;">${v?escHtml(v):'<span style="color:var(--muted);">nie podano</span>'}</span></div>`;
+        return r('Nazwa',co.name||pr.name)+r('Adres',addr)+r('Telefon',pr.phone)+r('Strona',co.website);})()}
     </div>
     <button class="btn btn-primary" onclick="saveCapAppSettings()">Zapisz ustawienia</button>`;
 }
@@ -1615,6 +1704,20 @@ function saveCapAppSettings(){
   persistSettingsDoc().then(saved=>{if(saved)notify('✓ Ustawienia aplikacji klienta zapisane');});
 }
 window.saveCapAppSettings=saveCapAppSettings;
+
+/* Celowo nie zmienia danych ani planów. To tylko gotowy, odwracalny układ
+   mobilny dla trenera, który chce dać klientowi jeden prosty punkt wejścia. */
+function applyClientMinimalPreset(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  S.clientApp=S.clientApp||{};
+  const visible=S.clientApp.visibleSections=S.clientApp.visibleSections||{};
+  const allowed=new Set(['home','plan','messages','progress','profile']);
+  ['home','plan','homework','progress','calendar','checkin','ondemand','resources','forum','messages','profile']
+    .forEach(id=>{visible[id]=allowed.has(id);});
+  renderCapCustomize();
+  if(typeof notify==='function')notify('Prosty widok ustawiony — zapisz ustawienia, aby udostępnić go klientom');
+}
+window.applyClientMinimalPreset=applyClientMinimalPreset;
 
 function capShowQr(){
   const url='https://app.progresslive.pl/client/'+encodeURIComponent((window.SETTINGS?.profile?.name||'trener').toLowerCase().replace(/\s+/g,'-'));
@@ -1700,7 +1803,7 @@ function shareAppLink(){
   if(!c){notify('Wybierz klienta!');return;}
   const go=async()=>{
     const link=typeof ensureClientInvite==='function'?await ensureClientInvite(c):buildClientInviteLink(c);
-    pushMsg(c.id,'📱 Aplikacja Progress Live:\n\n'+link+'\n\nOtwórz link, ustaw hasło i zobaczysz swój plan.');
+    pushMsg(c.id,'📱 Aplikacja Progress Live:\n\n'+link+'\n\nOtwórz link, ustaw hasło i od razu zobaczysz swój trening. Na iPhonie możesz potem wybrać Udostępnij → Do ekranu początkowego.');
     if(navigator.clipboard){try{navigator.clipboard.writeText(link);}catch(e){}}
     notify('✓ Link do aplikacji skopiowany i zapisany w wiadomościach');
   };
@@ -1708,9 +1811,11 @@ function shareAppLink(){
 }
 
 function buildClientInviteLink(c){
-  if(c&&c.inviteToken&&c.inviteToken!==c.id&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken);
+  // E-mail klienta w linku tylko wypełnia pole w oknie konta (klient dostaje link na własny adres).
+  const em=c&&c.email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email).trim())?'&email='+encodeURIComponent(String(c.email).trim()):'';
+  if(c&&c.inviteToken&&c.inviteToken!==c.id&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken)+em;
   const base=(location.origin+location.pathname).replace(/index\.html$/,'');
-  if(c&&c.inviteToken&&c.inviteToken!==c.id)return base+'?invite='+encodeURIComponent(c.inviteToken);
+  if(c&&c.inviteToken&&c.inviteToken!==c.id)return base+'?invite='+encodeURIComponent(c.inviteToken)+em;
   return base+'?invite=';
 }
 
@@ -1720,7 +1825,7 @@ function inviteClientToApp(cid){
     const link=typeof ensureClientInvite==='function'?await ensureClientInvite(c):buildClientInviteLink(c);
     c.appInvited=true;c.inviteSent=true;c.inviteSentAt=new Date().toISOString();
     persistById('clients',c);
-    pushMsg(c.id,'📱 Zaproszenie do Progress Live:\n'+link+'\n\nOtwórz link, ustaw hasło (e-mail: '+(c.email||'z karty klienta')+') i wejdź do swojej aplikacji.');
+    pushMsg(c.id,'📱 Zaproszenie do Progress Live:\n'+link+'\n\nOtwórz link, ustaw hasło (e-mail: '+(c.email||'z karty klienta')+') i wejdź do swojej aplikacji. Na iPhonie możesz potem wybrać Udostępnij → Do ekranu początkowego.');
     if(navigator.clipboard){try{navigator.clipboard.writeText(link);}catch(e){}}
     notify('✓ Zaproszenie zapisane w czacie + link skopiowany');
     if(typeof renderClientApp==='function')renderClientApp();
@@ -3486,13 +3591,15 @@ function renderCheckin(){
 
 function renderCheckinClientList(){
   const search=(document.getElementById('ci-search')||{}).value||'';
-  let clients=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
+  let clients=CL.filter(c=>c&&!c.archived&&!c.deleted&&c.status!=='archived'&&(!search||String(c.name||'').toLowerCase().includes(search.toLowerCase())));
 
   clients.forEach(c=>ensureCheckins(c.id));
 
   if(ciFilter==='pending')clients=clients.filter(c=>getCIStatus(c.id)==='pending');
   else if(ciFilter==='done')clients=clients.filter(c=>getCIStatus(c.id)==='done');
   else if(ciFilter==='overdue')clients=clients.filter(c=>getCIStatus(c.id)==='overdue');
+  const statusRank={overdue:0,pending:1,done:2,none:3};
+  clients.sort((a,b)=>(statusRank[getCIStatus(a.id)]??4)-(statusRank[getCIStatus(b.id)]??4)||String(a.name||'').localeCompare(String(b.name||''),'pl'));
 
   const el=document.getElementById('ci-client-list');if(!el)return;
   if(!clients.length){
@@ -3671,12 +3778,12 @@ function renderCIAnswers(ci,c){
 
     ${ci.answers.notes?`<div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:12px;padding:12px 16px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">💬 Komentarz klienta</div>
-      <div style="font-size:13px;line-height:1.6;">${ci.answers.notes}</div>
+      <div style="font-size:13px;line-height:1.6;">${escHtml(ci.answers.notes)}</div>
     </div>`:''}
 
     <div style="display:flex;gap:8px;margin-top:12px;">
       <button class="btn btn-ghost btn-sm" onclick="replyToCheckin('${c.id}')">💬 Odpowiedz klientowi</button>
-      <button class="btn btn-ghost btn-sm" onclick="addNotification('metric','Nowy check-in','${c.name} wypełnił check-in — score: ${ci.score}%','checkin')">🔔 Ustaw alert</button>
+      <button class="btn btn-ghost btn-sm" onclick="addNotification('metric','Nowy check-in',${escHtml(JSON.stringify(String(c.name||'Klient')+' wypełnił check-in — score: '+String(ci.score??'')+'%'))},'checkin')">🔔 Ustaw alert</button>
     </div>`;
 }
 
@@ -4111,7 +4218,7 @@ function renderSettingsContent(t,targetId){
 
   if(t==='profile'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">PROFIL TRENERA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Profil trenera</div>
 
       ${card('Zdjęcie i dane osobowe','Informacje widoczne dla klientów w aplikacji mobilnej.',`
         <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px;">
@@ -4168,11 +4275,11 @@ function renderSettingsContent(t,targetId){
     const presets=window.ACCENT_PRESETS||[];
     const isPreset=presets.some(p=>p.hex===accentNow);
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">MARKA I WYGLĄD</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Marka i wygląd</div>
 
       ${card('Kolor akcentu','Kolor przycisków, aktywnej zakładki i wyróżnień. Ostrzeżenia, błędy i statusy mają własne, stałe kolory — nie zmieniają się razem z akcentem.',`
         <div class="accent-presets" role="radiogroup" aria-label="Kolor akcentu">
-          ${presets.map(p=>`<button type="button" class="accent-preset${p.hex===accentNow?' active':''}" role="radio" aria-checked="${p.hex===accentNow}" data-accent="${p.hex}" onclick="setAccentColor('${p.hex}')">
+          ${presets.map(p=>`<button type="button" class="accent-preset${p.hex===accentNow?' active':''}" role="radio" aria-checked="${p.hex===accentNow}" tabindex="${p.hex===accentNow?'0':'-1'}" data-accent="${p.hex}" onclick="setAccentColor('${p.hex}')" onkeydown="moveAccentPreset(event,this)">
             <span class="accent-preset-dot" style="background:${p.hex};"></span>${p.label}
           </button>`).join('')}
         </div>
@@ -4236,7 +4343,7 @@ function renderSettingsContent(t,targetId){
           <div style="width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
           </div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;" id="brand-preview-name">PROGRESS<span style="color:var(--accent);">LIVE</span></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;" id="brand-preview-name">Progress<span style="color:var(--accent);">LIVE</span></div>
         </div>
       `)}
     </div>`;
@@ -4244,7 +4351,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='company'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">DANE FIRMY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Dane firmy</div>
 
       ${card('Dane podstawowe','Używane do fakturowania i raportów.',`
         <div class="form-grid">
@@ -4273,7 +4380,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='notifications'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">POWIADOMIENIA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Powiadomienia</div>
 
       ${card('Sesje','',`
         ${row('Przypomnienie o sesji','Powiadamia przed zaplanowaną sesją',toggle('sess-reminder',S.notifications.sessionReminder))}
@@ -4301,7 +4408,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='calendar'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA KALENDARZA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Ustawienia kalendarza</div>
 
       ${card('Godziny pracy','',`
         ${row('Początek dnia roboczego','',`<input type="time" class="form-input" id="set-workday-start" value="${S.calendar.workdayStart}" style="width:120px;font-size:13px;">`)}
@@ -4323,7 +4430,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='payments'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA PŁATNOŚCI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Ustawienia płatności</div>
 
       ${card('Waluta i ceny','',`
         ${row('Waluta',''  ,sel('currency',S.payments.currency,[['PLN','PLN — Polski złoty'],['EUR','EUR — Euro'],['USD','USD — Dolar'],['GBP','GBP — Funt']]))}
@@ -4349,7 +4456,7 @@ function renderSettingsContent(t,targetId){
   else if(t==='integrations'){
     const items=typeof INTEGRATIONS!=='undefined'?INTEGRATIONS:[];
     el.innerHTML=`<div class="settings-section" style="max-width:700px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">INTEGRACJE</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Integracje</div>
       <div class="settings-card" style="margin-bottom:16px;">
         <div style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px;">Zielone działają ze strony (ICS, WhatsApp, e-mail, Calendly, Zapier/Make, Garmin CSV). Pomarańczowe wymagają serwera — nie zbieramy kluczy tajnych.</div>
         <button class="btn btn-primary btn-sm" onclick="goTo('integrations')">Otwórz Integracje →</button>
@@ -4378,7 +4485,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='data'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">DANE I EKSPORT</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">Dane i eksport</div>
 
       ${card('Eksport danych','Pobierz kopię swoich danych.',`
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -4411,7 +4518,7 @@ function renderSettingsContent(t,targetId){
 
   else if(t==='about'){
     el.innerHTML=`<div class="settings-section">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">O APLIKACJI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">O aplikacji</div>
 
       ${card('Progress Live','',`
         <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">
@@ -4419,7 +4526,7 @@ function renderSettingsContent(t,targetId){
             <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
           </div>
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;">PROGRESS<span style="color:var(--accent);">LIVE</span></div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;">Progress<span style="color:var(--accent);">LIVE</span></div>
             <div style="font-size:11px;color:var(--muted);">Wersja 1.0.0 · Build 2025.05</div>
             <div style="font-size:11px;color:var(--muted);">Platforma dla trenerów personalnych</div>
           </div>
@@ -4482,6 +4589,22 @@ function accentContrastHTML(hex,mode){
 }
 
 let _accentSaveTimer=null;
+function moveAccentPreset(event,current){
+  const keys=['ArrowLeft','ArrowUp','ArrowRight','ArrowDown','Home','End'];
+  if(!keys.includes(event.key))return;
+  const presets=[...document.querySelectorAll('.accent-preset')];
+  const index=presets.indexOf(current);
+  if(index<0||!presets.length)return;
+  let next=index;
+  if(event.key==='Home')next=0;
+  else if(event.key==='End')next=presets.length-1;
+  else next=(index+(event.key==='ArrowLeft'||event.key==='ArrowUp'?-1:1)+presets.length)%presets.length;
+  event.preventDefault();
+  const button=presets[next];
+  button.focus();
+  setAccentColor(button.dataset.accent);
+}
+window.moveAccentPreset=moveAccentPreset;
 function setAccentColor(color,opts){
   const hex=(typeof normalizeHexColor==='function'?normalizeHexColor(color):color)||null;
   if(!hex){notify('Podaj kolor w formacie HEX, np. #e60000');return false;}
@@ -4655,7 +4778,7 @@ async function importClientsCsv(input){
         email:iEmail>=0?(cols[iEmail]||''):'',
         phone:iPhone>=0?(cols[iPhone]||''):'',
         goal:iGoal>=0?(cols[iGoal]||'masa'):'masa',
-        
+
         level:iLevel>=0?(cols[iLevel]||'sredni'):'sredni',
         status:'active',
         joinDate:new Date().toISOString().split('T')[0],
@@ -4842,12 +4965,13 @@ function renderNotifs(){
 
   el.innerHTML=list.map((n,i)=>{
     const t=NOTIF_TYPES[n.type]||NOTIF_TYPES.system;
-    return `<div class="notif-item${n.read?'':' unread'}" onclick="clickNotif('${n.id}')" style="animation-delay:${i*0.03}s">
+    // Tytuł, treść, czas i id mogą pochodzić od klienta (reguła notifications/create) — zawsze jako tekst.
+    return `<div class="notif-item${n.read?'':' unread'}" onclick="clickNotif(${escHtml(JSON.stringify(String(n.id??'')))})" style="animation-delay:${i*0.03}s">
       <div class="notif-icon" style="background:${t.bg};">${t.icon}</div>
       <div style="flex:1;min-width:0;">
-        <div class="notif-title" style="color:${n.read?'var(--muted)':'var(--text)'};">${n.title}</div>
-        <div class="notif-body">${n.body}</div>
-        <div class="notif-time">${n.time}</div>
+        <div class="notif-title" style="color:${n.read?'var(--muted)':'var(--text)'};">${escHtml(n.title)}</div>
+        <div class="notif-body">${escHtml(n.body)}</div>
+        <div class="notif-time">${escHtml(n.time)}</div>
       </div>
       ${!n.read?`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;"></div>`:''}
     </div>`;
@@ -4916,7 +5040,13 @@ async function pruneOldNotifications(opts){
 window.pruneOldNotifications=pruneOldNotifications;
 
 // Dodaj powiadomienie programowo (używane przez inne moduły)
+// Limity zgodne z firestore.rules (notifications/create od klienta): tytuł 120, treść 500 znaków.
+const NOTIF_CLIENT_TITLE_MAX=120,NOTIF_CLIENT_BODY_MAX=500;
 function addNotification(type,title,body,action=null,fixedId=null){
+  if(window._clientAppMode){
+    title=String(title??'').slice(0,NOTIF_CLIENT_TITLE_MAX);
+    body=String(body??'').slice(0,NOTIF_CLIENT_BODY_MAX);
+  }
   const n=withTrainer({
     id:fixedId||newId('n'),type,title,body,
     time:'teraz',
@@ -5195,7 +5325,11 @@ function generateReport(){
 }
 
 function reportClose(){document.getElementById('report-overlay').style.display='none';}
-function reportPrint(){window.print();}
+function reportPrint(){
+  // Plan treningowy drukujemy osobnym, zwartym dokumentem (tabela cyklu) zamiast ekranu z kartami.
+  if(typeof window.planPdfPrint==='function'&&document.querySelector('#report-container .plan-pdf'))return window.planPdfPrint();
+  window.print();
+}
 
 function buildReportHTML(c,from,to,sec,template){
   const isDark=template==='professional';
@@ -5310,7 +5444,7 @@ function buildReportHTML(c,from,to,sec,template){
     <div style="position:absolute;bottom:-40px;right:60px;width:150px;height:150px;border-radius:50%;background:${blue};opacity:0.06;"></div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:${accent};opacity:0.8;margin-bottom:6px;">PROGRESS LIVE · RAPORT POSTĘPÓW</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:${accent};opacity:0.8;margin-bottom:6px;">Progress LIVE · raport postępów</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;margin-bottom:4px;">${c.name.toUpperCase()}</div>
         <div style="font-size:13px;opacity:0.6;">Okres: ${from} — ${to}</div>
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
@@ -5443,11 +5577,11 @@ function buildReportHTML(c,from,to,sec,template){
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <thead><tr>${['Data','Godzina','Typ','Czas','Notatki'].map(h=>`<th style="padding:7px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
           <tbody>${sessions.map((s,i)=>`<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
-            <td style="padding:7px 10px;font-family:${fontMono};">${s.date}</td>
-            <td style="padding:7px 10px;font-family:${fontMono};color:${accent};">${s.time||'—'}</td>
-            <td style="padding:7px 10px;font-weight:600;">${s.type||'Sesja'}</td>
-            <td style="padding:7px 10px;color:${muted};">${s.duration||60} min</td>
-            <td style="padding:7px 10px;color:${muted};font-size:11px;">${s.notes||'—'}</td>
+            <td style="padding:7px 10px;font-family:${fontMono};">${escHtml(s.date)}</td>
+            <td style="padding:7px 10px;font-family:${fontMono};color:${accent};">${escHtml(s.time||'—')}</td>
+            <td style="padding:7px 10px;font-weight:600;">${escHtml(s.type||'Sesja')}</td>
+            <td style="padding:7px 10px;color:${muted};">${escHtml(s.duration||60)} min</td>
+            <td style="padding:7px 10px;color:${muted};font-size:11px;">${escHtml(s.notes||s.note||'—')}</td>
           </tr>`).join('')}</tbody>
         </table>`);
     }
@@ -5550,8 +5684,8 @@ function buildReportHTML(c,from,to,sec,template){
   if(sec.notes&&notes.length){
     html+=`<div style="margin-bottom:24px;">${sectionTitle('NOTATKI TRENERA','📝',blue)}`;
     html+=card(notes.map(n=>`<div style="padding:10px 14px;background:${bg};border-radius:8px;border-left:3px solid ${accent};margin-bottom:8px;">
-      <div style="font-size:12px;line-height:1.6;">${n.text}</div>
-      <div style="font-size:10px;color:${muted};font-family:${fontMono};margin-top:4px;">${n.date}</div>
+      <div style="font-size:12px;line-height:1.6;">${escHtml(n.text)}</div>
+      <div style="font-size:10px;color:${muted};font-family:${fontMono};margin-top:4px;">${escHtml(n.date)}</div>
     </div>`).join(''));
     html+='</div>';
   }
@@ -6115,9 +6249,13 @@ try{dashSimpleMode=localStorage.getItem('pl_dash_simple')!=='0';}catch(e){}
 function applyDashSimpleMode(){
   const screen=document.getElementById('screen-dashboard');
   const btn=document.getElementById('dash-simple-toggle');
-  if(screen)screen.classList.toggle('dash-simple',!!dashSimpleMode);
+  if(screen){
+    screen.classList.toggle('dash-simple',!!dashSimpleMode);
+    // Pusty pulpit (0 klientów): jedna karta „Pierwszy krok” + „Twój dzień”, reszta od pierwszego klienta.
+    screen.classList.toggle('dash-empty',!(window.CL||[]).length);
+  }
   if(btn){
-    btn.textContent=dashSimpleMode?'Widok prosty':'Widok pełny';
+    btn.textContent=dashSimpleMode?'Widok: prosty':'Widok: pełny';
     btn.setAttribute('aria-pressed',dashSimpleMode?'true':'false');
     btn.title=dashSimpleMode?'Pokaż wszystkie statystyki i ostatnią aktywność':'Ukryj elementy pomocnicze i skup się na zadaniach';
   }
@@ -6195,6 +6333,7 @@ function renderDash(){
   renderProfileSetupBanner();
   if(typeof renderDashHome==='function')try{renderDashHome();}catch(e){console.warn('renderDashHome',e);}
   applyDashSimpleMode();
+  if(typeof syncNavForClientCount==='function')syncNavForClientCount();
 }
 
 function toggleDashQuickActions(evOrClose){
@@ -6307,6 +6446,8 @@ function collectOpsEvents(force){
   // Każdy alert mówi: co i kiedy (meta), skąd to wiadomo (src) i co zrobić (cta).
   const ago=typeof attnAgoText==='function'?attnAgoText:(t=>new Date(t).toLocaleDateString('pl-PL'));
   const ciTime=ci=>ci&&typeof checkinActivityTime==='function'?checkinActivityTime(ci):NaN;
+  const daysAgo=t=>Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;
+  const dniTxt=n=>n===0?'dziś':n===1?'1 dnia':n+' dni';
   const shortDate=ymd=>{const t=new Date(String(ymd).slice(0,10)+'T12:00:00');return isNaN(t)?String(ymd):t.toLocaleDateString('pl-PL',{day:'numeric',month:'numeric'});};
   clients.forEach(c=>{
     if(typeof ensureCheckins==='function')ensureCheckins(c.id);
@@ -6318,11 +6459,13 @@ function collectOpsEvents(force){
         meta:Number.isFinite(pendT)?'Check-in wysłany '+ago(pendT)+' — bez odpowiedzi'
           :Number.isFinite(lastT)?'Ostatni check-in '+ago(lastT):'Spóźniony check-in tygodniowy',
         src:'Źródło: check-in tygodniowy',
+        short:daysAgo(pendT)!=null?'Raport zaległy od '+dniTxt(daysAgo(pendT)):'Raport zaległy',
         cta:`sendCheckinTo('${escHtml(c.id)}')`,ctaLbl:'Przypomnij'});
     }else if(st==='pending'){
       items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Czeka na raport',col:'var(--orange)',
         meta:Number.isFinite(pendT)?'Check-in wysłany '+ago(pendT)+' — brak odpowiedzi':'Check-in wysłany — brak odpowiedzi',
         src:'Źródło: check-in tygodniowy',
+        short:daysAgo(pendT)!=null?'Czeka na raport od '+dniTxt(daysAgo(pendT)):'Czeka na raport',
         cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`,ctaLbl:'Otwórz'});
     }
     if(typeof clientTrainingWindowStats==='function'){
@@ -6331,6 +6474,7 @@ function collectOpsEvents(force){
         items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'<70% planu',col:'var(--orange)',
           meta:`Trening 7 dni: ${st7.done}/${st7.assigned} (${st7.pct}%)`,
           src:'Źródło: kalendarz i zapisane treningi (ostatnie 7 dni)',
+          short:`Zrobił ${st7.done} z ${st7.assigned} treningów w 7 dni`,
           cta:`openClientProfile('${escHtml(c.id)}')`,ctaLbl:'Profil'});
       }
       const today=typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10);
@@ -6342,7 +6486,8 @@ function collectOpsEvents(force){
       });
       if(missed.length>=2){
         const days=missed.map(s=>s.date).sort().map(shortDate);
-        items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--red)',
+        items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--orange)',
+          short:missed.length+(missed.length<5?' treningi':' treningów')+' bez zapisu (14 dni)',
           meta:missed.length+' zaplanowane bez zapisu: '+days.slice(-4).join(', '),
           src:'Źródło: kalendarz (ostatnie 14 dni)',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('training');},150)`,ctaLbl:'Treningi'});
@@ -6357,6 +6502,7 @@ function collectOpsEvents(force){
         items.push({channel:'attention',pri:0,clientId:c.id,name:c.name,tag:'Domowe zaległe',col:'var(--red)',
           meta:late.length+' zaległych zadań domowych — najstarsze z terminem '+shortDate(oldest),
           src:'Źródło: zadania domowe',
+          short:'Zaległe zadania domowe: '+late.length,
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)`,ctaLbl:'Domowe'});
       }else if(hw.length){
         items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'Domowe otwarte',col:'var(--teal)',
@@ -6369,6 +6515,7 @@ function collectOpsEvents(force){
     if(!hasPlan){
       items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Brak planu',col:'var(--orange)',
         meta:'Nie ma aktywnego planu treningowego',
+        short:'Brak planu treningowego',
         src:'Źródło: plany treningowe',
         cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('plan');},150)`,ctaLbl:'Plan'});
     }
@@ -6624,10 +6771,12 @@ window.focusDashSection=focusDashSection;
 window.renderDashTodayFocus=renderDashTodayFocus;
 
 function dashNextAction(){
-  const att=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
+  const att=(typeof dashAttentionPeople==='function'?dashAttentionPeople():(typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[]))
+    .filter(x=>!x.issue||x.pri<=1); // brak e-maila / niedokończony start to nie „najważniejsze teraz”
   if(att.length){
     const x=att[0];
-    return{tone:x.pri===0?'urgent':'watch',eyebrow:'Najważniejsze teraz',title:(x.name||'Klient')+' — '+(x.tag||'wymaga uwagi'),desc:x.meta||'Sprawdź sytuację klienta.',cta:x.cta||"goTo('clients')",ctaLbl:x.ctaLbl||'Sprawdź'};
+    const tag=String(x.tag||'wymaga uwagi');
+    return{tone:x.pri===0?'urgent':'watch',eyebrow:'Najważniejsze teraz',clientId:x.clientId||null,title:(x.name||'Klient')+' — '+tag.charAt(0).toLowerCase()+tag.slice(1),desc:x.meta||'Sprawdź sytuację klienta.',cta:x.cta||"goTo('clients')",ctaLbl:x.ctaLbl||'Sprawdź'};
   }
   const reports=typeof dashOpsRecentReports==='function'?dashOpsRecentReports():[];
   if(reports.length){
@@ -6664,17 +6813,89 @@ function dashNextAction(){
       return{tone:'info',eyebrow:'Dokończ start współpracy',title:c.name||'Klient',desc:'Następny krok: '+(step?step.label:(st.missingLabels||[])[0]||'Sprawdź checklistę')+'. Ukończono '+st.done+' z '+st.total+' kroków.',cta:`openClientOnboardChecklist('${escHtml(c.id)}')`,ctaLbl:'Otwórz następny krok'};
     }
   }
-  return{tone:'ok',eyebrow:'Plan na dziś wykonany',title:'Wszystko jest na bieżąco',desc:'Możesz rozpocząć trening albo przygotować plan dla kolejnego klienta.',cta:"goTo('live')",ctaLbl:'Trening Live'};
+  return{tone:'ok',eyebrow:'Najważniejsze teraz',title:'Wszystko pod kontrolą',desc:'Nie masz teraz pilnych działań.',cta:"goTo('calendar')",ctaLbl:'Zobacz kalendarz'};
 }
 function renderDashNextAction(){
   const el=document.getElementById('dash-next-action');if(!el)return;
   const a=dashNextAction();
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   el.className='dash-next-action dash-next-'+esc(a.tone||'info');
-  el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">${esc(a.eyebrow)}</div><div class="dash-next-title">${esc(a.title)}</div><div class="dash-next-desc">${esc(a.desc)}</div></div><button type="button" class="btn btn-primary" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
+  if(!(window.CL||[]).length){
+    el.classList.add('dash-next-first');
+    const steps=[['Dodaj klienta','Imię, e-mail i cel.'],['Przypisz plan','Gotowy szablon albo nowy plan.'],['Odpal Trening Live','Prowadzisz trening, aplikacja zapisuje ciężary.']];
+    el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">Pierwszy krok</div><div class="dash-next-title">Zacznij od pierwszego klienta</div>`+
+      `<ol class="dash-first-steps">${steps.map(x=>`<li><b>${esc(x[0])}</b><span>${esc(x[1])}</span></li>`).join('')}</ol></div>`+
+      `<button type="button" class="btn btn-primary" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
+    return;
+  }
+  el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">${esc(a.eyebrow)}</div><div class="dash-next-title">${esc(a.title)}</div><div class="dash-next-desc">${esc(a.desc)}</div></div><button type="button" class="btn ${a.tone==='ok'?'btn-ghost':'btn-primary'}" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
 }
 window.dashNextAction=dashNextAction;
 window.renderDashNextAction=renderDashNextAction;
+
+/** „Wymagają uwagi”: jedna osoba = jeden najważniejszy powód + jedno działanie; domyślnie 3 osoby. */
+function dashAttentionPeople(){
+  // Jedno źródło z ekranem „Klienci”: te same sprawy (clientIssues) i ta sama liczba „Wymaga uwagi”.
+  if(typeof clientIssues==='function'&&typeof CLIENT_ISSUES==='object'){
+    const sevPri={urgent:0,warn:1,info:2,hint:3};
+    const out=[];
+    (window.CL||[]).forEach(c=>{
+      if(!c)return;
+      const iss=(clientIssues(c)||[]).filter(i=>CLIENT_ISSUES[i.key]&&CLIENT_ISSUES[i.key].counts);
+      if(!iss.length)return;
+      const top=iss[0],def=CLIENT_ISSUES[top.key];
+      const id=String(c.id).replace(/'/g,"\\'");
+      out.push({channel:'attention',pri:sevPri[def.sev]??2,issue:top.key,clientId:c.id,name:c.name,
+        tag:def.label,short:top.label||def.label,meta:top.reason||def.tip,
+        cta:`clientDoAction(null,'${id}','${top.key}')`,ctaLbl:def.action});
+    });
+    const ord=typeof CLIENT_ISSUE_ORDER!=='undefined'?CLIENT_ISSUE_ORDER:[];
+    return out.sort((a,b)=>(ord.indexOf(a.issue)-ord.indexOf(b.issue))||String(a.name||'').localeCompare(String(b.name||''),'pl'));
+  }
+  const items=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
+  const seen=new Set();
+  const out=[];
+  items.slice().sort((a,b)=>(a.pri-b.pri)).forEach(it=>{
+    const k=it.clientId||it.name;
+    if(seen.has(k))return;
+    seen.add(k);out.push(it);
+  });
+  return out;
+}
+function dashAttentionTone(it){
+  if(!it)return'neutral';
+  if(it.pri===0)return'urgent';
+  if(it.pri===1)return'watch';
+  return'neutral';
+}
+function dashAttentionHTML(){
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const people=dashAttentionPeople();
+  // Osoba z „Najważniejsze teraz” nie powtarza się na zwiniętej liście.
+  const topId=typeof dashNextAction==='function'?(dashNextAction()||{}).clientId:null;
+  if(!people.length)return`<div class="dash-ops-empty">Wszystko na bieżąco — nikt nie czeka na Twoją reakcję.</div>`;
+  const expanded=typeof dashListExpanded==='function'&&dashListExpanded('dash-attention');
+  const rest=topId?people.filter(p=>p.clientId!==topId):people;
+  const shown=expanded?people:rest.slice(0,DASH_ATTENTION_PREVIEW);
+  if(!shown.length)return`<div class="dash-ops-empty">Poza sprawą powyżej nikt nie czeka na Twoją reakcję.</div>`;
+  const rows=shown.map(it=>{
+    const tone=dashAttentionTone(it);
+    const reason=it.short||it.tag||'Wymaga uwagi';
+    return `<div class="dash-att-row dash-att-${tone}" data-dash-att="${esc(it.clientId||'')}">
+      <span class="dash-att-dot" aria-hidden="true"></span>
+      <div class="dash-att-body">
+        <div class="dash-att-name">${it.clientId?`<button type="button" class="dash-ops-client-link" onclick="openClientProfile('${esc(it.clientId)}')">${esc(it.name)}</button>`:esc(it.name)}</div>
+        <div class="dash-att-reason" title="${esc(it.meta||'')}">${esc(reason)}</div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl||'Otwórz')}</button>
+    </div>`;
+  }).join('');
+  const more=people.length>shown.length||expanded?`<button type="button" class="dash-att-all" data-dash-att-all="${people.length}" onclick="toggleDashListExpand('dash-attention')" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń listę':'Zobacz wszystkich wymagających uwagi ('+people.length+')'}</button>`:'';
+  return rows+more;
+}
+const DASH_ATTENTION_PREVIEW=3;
+window.dashAttentionPeople=dashAttentionPeople;
+window.dashAttentionHTML=dashAttentionHTML;
 
 function renderDashOps(){
   const attEl=document.getElementById('d-ops-attention');
@@ -6684,16 +6905,7 @@ function renderDashOps(){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
 
   if(attEl){
-    const items=dashOpsAttentionItems();
-    attEl.innerHTML=dashListSection('dash-attention',items,it=>`<div class="dash-ops-item">
-      <span class="dash-ops-tag" style="background:${it.col}22;color:${it.col};">${esc(it.tag)}</span>
-      <div class="dash-ops-item-body">
-        <div class="dash-ops-item-title">${it.clientId?`<button type="button" class="dash-ops-client-link" onclick="openClientProfile('${esc(it.clientId)}')">${esc(it.name)}</button>`:esc(it.name)}</div>
-        <div class="dash-ops-item-meta">${esc(it.meta)}</div>
-        ${it.src?`<div class="dash-ops-item-src">${esc(it.src)}</div>`:''}
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl)}</button>
-    </div>`,`<div class="dash-ops-empty">Wszystko na bieżąco — brak alertów.</div>`);
+    attEl.innerHTML=dashAttentionHTML();
   }
 
   if(repEl){
@@ -6845,9 +7057,9 @@ function renderDashGettingStarted(){
   const hasSess=SE.length>0;
   if(dismissed||(hasClients&&hasPlan&&hasSess)){el.style.display='none';el.innerHTML='';return;}
   const steps=[
-    {done:hasClients,icon:'👤',title:'Dodaj klienta',desc:'Imię, cel i e-mail — stąd zaczyna się wszystko',action:"openM('m-client')",cta:'Dodaj klienta'},
-    {done:hasPlan,icon:'📋',title:'Przypisz plan',desc:'Szablon lub nowy plan pod konkretną osobę',action:hasClients?"goTo('plans')":"openM('m-client')",cta:'Otwórz plany'},
-    {done:hasSess,icon:'▶',title:'Odpal Trening Live',desc:'Wybierz klienta, start sesji, zapis ciężarów',action:"goTo('live')",cta:'Trening Live'},
+    {done:hasClients,icon:'user',title:'Dodaj klienta',desc:'Imię, cel i e-mail — stąd zaczyna się wszystko',action:"openM('m-client')",cta:'Dodaj klienta'},
+    {done:hasPlan,icon:'plan',title:'Przypisz plan',desc:'Szablon lub nowy plan pod konkretną osobę',action:hasClients?"goTo('plans')":"openM('m-client')",cta:'Otwórz plany'},
+    {done:hasSess,icon:'play',title:'Odpal Trening Live',desc:'Wybierz klienta, start sesji, zapis ciężarów',action:"goTo('live')",cta:'Trening Live'},
   ];
   el.style.display='block';
   el.innerHTML=`<div class="card dash-setup-card">
@@ -6861,7 +7073,7 @@ function renderDashGettingStarted(){
     <div class="gs-steps" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
       ${steps.map((s,i)=>`<div style="background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;padding:12px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <div style="width:28px;height:28px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;">${s.done?'✓':s.icon}</div>
+          <div style="width:28px;height:28px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;color:var(--text-label);">${typeof plLineIcon==='function'?plLineIcon(s.done?'check':s.icon):''}</div>
           <div style="font-size:12px;font-weight:700;">${i+1}. ${s.title}</div>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:${s.done?'0':'10px'};">${s.desc}</div>
@@ -7126,77 +7338,79 @@ window.dashStartPrimary=dashStartPrimary;
 
 function renderDashToday(){
   const el=document.getElementById('d-today-sessions');if(!el)return;
+  const tmEl=document.getElementById('d-tomorrow-sessions');
   const now=new Date();
   const today=dateStr(now);
   const tomorrow=dateStr(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
+  const esc=typeof escHtml==='function'?escHtml:(x=>String(x??''));
 
   // Sesje dziś + jutro
   const agenda=dashAgendaSessions(SE);
   const todaySess=agenda.filter(s=>s.date===today);
   const tomorrowSess=agenda.filter(s=>s.date===tomorrow);
 
-  function timeLabel(s){
-    const state=dashSessionState(s,now);
-    if(state.kind==='done')return{txt:'Odbył się',col:'var(--teal)'};
-    if(state.kind==='skipped')return{txt:'Nie odbył się',col:'var(--muted)'};
-    if(state.kind==='unrecorded')return{txt:'Brak zapisu',col:'var(--orange)'};
-    if(state.kind==='running')return{txt:'Trwa termin',col:'var(--blue)'};
-    if(state.kind==='unscheduled')return{txt:'Bez godziny',col:'var(--muted)'};
-    if(!s.time)return null;
-    const [hh,mm]=s.time.split(':').map(Number);
-    const sessDate=new Date(s.date+'T'+s.time+':00');
-    const diffMs=sessDate-now;
-    const diffH=diffMs/3600000;
-    if(s.date===today){
-      if(diffH<1)return {txt:'Za '+Math.ceil(diffMs/60000)+' min',col:'var(--red)'};
-      if(diffH<3)return {txt:'Za '+Math.floor(diffH)+'h',col:'var(--orange)'};
-      return {txt:s.time,col:'var(--teal)'};
-    }
-    if(s.date===tomorrow)return {txt:'Jutro',col:'var(--blue)'};
-    return {txt:s.date,col:'var(--muted)'};
+  // Na liście „Dzisiaj” tylko stan, który zmienia decyzję (bez odliczania „Za 2h”).
+  function stateLabel(st){
+    if(st.kind==='done')return{txt:'Odbył się',tone:'ok'};
+    if(st.kind==='skipped')return{txt:'Nie odbył się',tone:'muted'};
+    if(st.kind==='unrecorded')return{txt:'Brak zapisu',tone:'watch'};
+    if(st.kind==='running')return{txt:'Trwa termin',tone:'info'};
+    if(st.kind==='unscheduled')return{txt:'Bez godziny',tone:'muted'};
+    return null;
   }
-
-  function sessRow(s,i){
+  let primaryUsed=false;
+  function sessRow(s){
     const c=CL.find(x=>x.id===s.clientId);
     const brief=c&&typeof dashClientBrief==='function'?dashClientBrief(c):{last:'',attn:null};
     const st=dashSessionState(s,now);
-    const canStart=s.date===today&&c&&st.kind!=='done'&&st.kind!=='skipped';
-    const ci=CL.findIndex(x=>x.id===s.clientId);
-    const clCol=SESS_COLORS[(ci>=0?ci:i)%6];
-    const av=c?(c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()):'?';
-    const tl=timeLabel(s);
-    return `<div class="dash-today-row" onclick="editSession('${s.id}')">
-      <div class="dash-today-bar" style="background:${clCol};"></div>
-      <div class="dash-today-av" style="background:${clCol}22;color:${clCol};">${av}</div>
+    const canStart=s.date===today&&c&&st.kind!=='done'&&st.kind!=='skipped'&&st.kind!=='unrecorded';
+    const lbl=stateLabel(st);
+    // Długi opis partii („… — Nogi: czworogłowe, tył uda…”) idzie do „Szczegóły”, na liście sama nazwa.
+    const fullTitle=String(s.type||s.name||'Trening personalny');
+    const cut=fullTitle.indexOf(' — ');
+    const tail=cut>0?fullTitle.slice(cut+3):'';
+    const title=cut>0&&/:/.test(tail)?fullTitle.slice(0,cut):fullTitle;
+    const partsLine=title!==fullTitle?tail:'';
+    // Ostrzeżenie na wierzchu tylko, gdy wymaga decyzji przed treningiem (np. ćwiczenie sprzeczne z ograniczeniem).
+    const urgentAttn=brief.attn&&brief.attn.tone==='act'?brief.attn:null;
+    const details=[partsLine?`<div class="dash-today-last" data-dash-parts>${esc(partsLine)}</div>`:'',brief.last?`<div class="dash-today-last" data-dash-last>${esc(brief.last)}</div>`:'',
+      brief.attn&&!urgentAttn?`<div class="dash-today-attn dash-today-attn-${esc(brief.attn.tone)}" data-dash-attn title="${esc(brief.attn.reason||'')}">${esc(brief.attn.title)}</div>`:''].join('');
+    let btn;
+    if(canStart){
+      btn=`<button onclick="event.stopPropagation();dashStartLive('${esc(s.id)}')" class="btn ${primaryUsed?'btn-ghost':'btn-primary'} btn-sm" data-dash-start title="Start treningu w Live">Start</button>`;
+      primaryUsed=true;
+    }else btn=`<button onclick="event.stopPropagation();editSession('${esc(s.id)}')" class="btn btn-ghost btn-sm">${st.kind==='unrecorded'?'Uzupełnij':'Szczegóły'}</button>`;
+    return `<div class="dash-today-row" data-dash-session="${esc(s.id)}">
+      <div class="dash-today-time">${esc(s.time||'—')}</div>
       <div class="dash-today-body">
-        <div class="dash-today-name">${c?`<a href="#" class="dash-today-link" onclick="event.preventDefault();event.stopPropagation();openClientProfile('${c.id}')">${escHtml(c.name)}</a>`:'Klient'}</div>
-        <div class="dash-today-meta">${s.time?escHtml(s.time)+' · ':''}${s.type||'Trening personalny'} · ${s.duration||60} min</div>
-        ${brief.last?`<div class="dash-today-last" data-dash-last>${escHtml(brief.last)}</div>`:''}
-        ${brief.attn?`<div class="dash-today-attn dash-today-attn-${escHtml(brief.attn.tone)}" data-dash-attn title="${escHtml(brief.attn.reason||'')}">⚠ ${escHtml(brief.attn.title)}</div>`:''}
+        <div class="dash-today-name">${c?`<a href="#" class="dash-today-link" onclick="event.preventDefault();event.stopPropagation();openClientProfile('${esc(c.id)}')">${esc(c.name)}</a>`:'Klient'}</div>
+        <div class="dash-today-meta">${esc(title)} · ${esc(String(s.duration||60))} min</div>
+        ${urgentAttn?`<div class="dash-today-attn dash-today-attn-act" data-dash-attn title="${esc(urgentAttn.reason||'')}">⚠ ${esc(urgentAttn.title)}</div>`:''}
+        ${details?`<details class="dash-today-more"><summary>Szczegóły</summary>${details}</details>`:''}
       </div>
-      ${tl?`<div class="dash-today-badge" style="color:${tl.col};background:${tl.col}18;">${tl.txt}</div>`:''}
-      ${canStart?`<button onclick="event.stopPropagation();dashStartLive('${s.id}')" class="btn btn-primary btn-sm" data-dash-start title="Start treningu w Live">▶ Start</button>`:`<button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm">Szczegóły</button>`}
+      ${lbl?`<div class="dash-today-badge dash-today-badge-${lbl.tone}">${lbl.txt}</div>`:''}
+      ${btn}
+    </div>`;
+  }
+  function tomorrowRow(s){
+    const c=CL.find(x=>x.id===s.clientId);
+    return `<div class="dash-tomorrow-row" data-dash-tomorrow-row="${esc(s.id)}">
+      <div class="dash-today-time">${esc(s.time||'—')}</div>
+      <div class="dash-tomorrow-name">${esc(c?c.name:'Klient')}</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="editSession('${esc(s.id)}')">Szczegóły</button>
     </div>`;
   }
 
-  const allSess=[...todaySess,...tomorrowSess];
-
-  if(!allSess.length){
-    el.innerHTML=`<div style="padding:8px 0 4px;">
-      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak sesji na dziś i jutro</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Odpal trening od razu albo dopisz sesję do kalendarza.</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="goTo('live')">▶ Trening Live</button>
-        <button class="btn btn-ghost btn-sm" onclick="openM('m-session')">+ Dodaj do kalendarza</button>
-      </div>
+  el.innerHTML=todaySess.length?todaySess.map(sessRow).join(''):`<div class="dash-ops-empty" data-dash-today-empty>
+      Dziś nie masz zaplanowanych treningów.
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-session')">+ Dodaj do kalendarza</button>
     </div>`;
-    return;
+  if(tmEl){
+    const card=document.getElementById('dash-ops-tomorrow');
+    if(card)card.hidden=!tomorrowSess.length;
+    const more=tomorrowSess.length-2;
+    tmEl.innerHTML=tomorrowSess.length?`<div class="dash-today-sep" data-dash-tomorrow>Jutro</div>`+tomorrowSess.slice(0,2).map(tomorrowRow).join('')+(more>0?`<div class="dash-tomorrow-more">+${more} w kalendarzu</div>`:''):'';
   }
-
-  // Cały dzisiejszy grafik zawsze widoczny; jutro zwinięte do podglądu.
-  const todayHtml=todaySess.map((s,i)=>sessRow(s,i)).join('');
-  const tomorrowHtml=tomorrowSess.length?`<div class="dash-today-sep" data-dash-tomorrow>Jutro</div>`+dashListSection('dash-today',tomorrowSess,(s,i)=>sessRow(s,todaySess.length+i),''):'';
-  el.innerHTML=todayHtml+tomorrowHtml;
 }
 
 function renderDashTasks(){

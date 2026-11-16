@@ -2,9 +2,9 @@ name: Izolacja danych trenerów i klientów
 on:
   push:
     branches: [main]
-    paths: ['firestore.rules', 'server/automation/**', '.github/workflows/tenant-isolation-check.yml']
+    paths: ['firestore.rules', 'storage.rules', 'server/ai-proxy/**', 'server/automation/**', '.github/workflows/tenant-isolation-check.yml']
   pull_request:
-    paths: ['firestore.rules', 'server/automation/**', '.github/workflows/tenant-isolation-check.yml']
+    paths: ['firestore.rules', 'storage.rules', 'server/ai-proxy/**', 'server/automation/**', '.github/workflows/tenant-isolation-check.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,3 +32,11 @@ jobs:
           --only firestore --project demo-progress-autoflow
           --config server/automation/firebase.tenant.test.json
           "node server/automation/test-tenant-rules.cjs"
+      - name: Pliki (Storage) tylko dla kont z nadaną rolą trenera
+        run: >-
+          server/automation/.runtime/node_modules/.bin/firebase emulators:exec
+          --only firestore,storage --project demo-progress-autoflow
+          --config server/automation/firebase.storage.test.json
+          "node server/automation/test-storage-rules.cjs"
+      - name: Pośrednik AI — bez roli trenera 403, limit dzienny
+        run: node server/ai-proxy/test-worker.mjs

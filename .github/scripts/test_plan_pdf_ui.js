@@ -20,6 +20,7 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1100, height: 1400 } });
   page.setDefaultTimeout(20000);
+  await page.addInitScript(() => { window.print = () => {}; });
   await page.goto('http://localhost:' + port + '/index.html?nocache=planpdf', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
   await page.evaluate(() => {
@@ -97,6 +98,16 @@ function ok(name, cond, extra) {
   ok('week pink', /rgb\(\s*253\s*,\s*232\s*,\s*234\s*\)/.test(vis.wkBg), vis.wkBg);
   ok('day navy', /rgb\(\s*22\s*,\s*24\s*,\s*31\s*\)/.test(vis.dayBg), vis.dayBg);
   ok('priorytet badge', vis.pri);
+  const printDoc = await page.evaluate(async () => {
+    const html = planPdfPrintHTML(document.querySelector('#report-container .plan-pdf'));
+    window.__printed = 0;
+    reportPrint();
+    await new Promise(r => setTimeout(r, 400));
+    const fr = document.getElementById('plan-pdf-print-frame');
+    return { html, frame: !!fr, frameText: fr ? fr.contentDocument.body.innerText : '' };
+  });
+  ok('compact print doc', /class="pp-day"/.test(printDoc.html) && /Hack squat/.test(printDoc.html) && /80 kg/.test(printDoc.html) && /T6/.test(printDoc.html) && !/plan-pdf-card/.test(printDoc.html));
+  ok('print goes through frame', printDoc.frame && /Wyciskanie żołnierskie/.test(printDoc.frameText));
 
   await page.evaluate(() => { if (typeof reportClose === 'function') reportClose(); });
   await page.evaluate(() => {
@@ -155,6 +166,37 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'saved_plan_pdf_profile.png'), fullPage: true });
   ok('profile pdf', fromCp.overlay && /Hack squat/.test(fromCp.text), fromCp.text.slice(0, 120));
+
+  // Pobierz PDF: przycisk tylko przy planie, plik PDF z nazwą klienta bez polskich znaków.
+  const dlVisible = await page.evaluate(() => getComputedStyle(document.getElementById('plan-pdf-dl-btn')).display !== 'none');
+  ok('download button visible on plan', dlVisible);
+  const fname = await page.evaluate(() => { const d = document.createElement('div'); d.innerHTML = '<div class="plan-pdf-sub">Krzysztof Wałęsa · PPL 4×/tydz. — Masa</div>'; return planPdfFileName(d); });
+  ok('download file name', fname === 'Plan treningowy - Krzysztof Walesa.pdf', fname);
+  const [download] = await Promise.all([page.waitForEvent('download', { timeout: 60000 }), page.click('#plan-pdf-dl-btn')]);
+  const dlPath = path.join(shotDir, 'plan_download.pdf');
+  await download.saveAs(dlPath);
+  const head = fs.readFileSync(dlPath).slice(0, 5).toString();
+  ok('downloaded file is a PDF', head === '%PDF-' && /\.pdf$/.test(download.suggestedFilename()), download.suggestedFilename());
+  const dlHidden = await page.evaluate(() => { const box = document.getElementById('report-container'); const keep = box.innerHTML; box.innerHTML = '<div>raport</div>'; const hidden = getComputedStyle(document.getElementById('plan-pdf-dl-btn')).display === 'none'; box.innerHTML = keep; return hidden; });
+  ok('download button hidden on other reports', dlHidden);
+
+  // Generator: metoda intensyfikacji pokazana tylko w swoich tygodniach (jak na wydruku).
+  const genWeeks = await page.evaluate(() => {
+    const wk = ['w1','w2','w3','w4','w5','w6','w7','w8'];
+    const ex = { name: 'Unoszenie hantli bokiem', sets: '4', reps: '12-15', rest: '60s', muscleGroup: 'Barki',
+      intensification: [{ type: 'drop_set', protocol: 'Ostatnia seria: zmniejsz ciężar o 25%', weeks: [4, 5, 6] }] };
+    wk.forEach(k => ex[k] = { s: '4', r: '12-15', kg: '10', rpe: '8' });
+    const plan = aplNormalizeGeneratedPlan({ planName: 'PPL', method: 'PPL', daysPerWeek: 1, weeks: 8, progression: 'wave', weekKeys: wk, phases: { w8: 'Deload' }, days: [{ dayName: 'Dzień 1', focus: 'Push', exercises: [ex] }] });
+    const out = {};
+    for (const w of ['w1', 'w4']) {
+      plan.currentWeek = w; aplRenderPlan(plan, null, 'masa', 'PPL', '1', '8');
+      const row = document.getElementById('apl-ex-row-0-0');
+      out[w] = { now: !!row.querySelector('[data-apl-int-now]'), later: (row.querySelector('[data-apl-int-later]') || {}).textContent || '' };
+    }
+    return out;
+  });
+  ok('generator: drop set not in T1', !genWeeks.w1.now && /T4–T6/.test(genWeeks.w1.later), JSON.stringify(genWeeks.w1));
+  ok('generator: drop set in T4', genWeeks.w4.now && !genWeeks.w4.later, JSON.stringify(genWeeks.w4));
 
   await browser.close();
   if (failed) {

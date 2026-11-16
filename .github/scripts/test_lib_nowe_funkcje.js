@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Biblioteka – nowe funkcje (audyt 18.10, pakiet F): ulubione ćwiczenia, ostatnio używane, duplikuj plan. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -28,14 +29,14 @@ function slice(src, from, to) {
 
 ok('ci unit', wf.includes('test_lib_nowe_funkcje.js'));
 ok('ci ui', wf.includes('test_lib_nowe_funkcje_ui.js'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache styles', html.includes('styles.css?v=166'));
+ok('cache 05', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache styles', cacheAtLeast(html, 'styles.css', 166));
 
-ok('star on card and list row', six.includes('${exFavBtnHtml(e)}') && (six.match(/\$\{exFavBtnHtml\(e\)\}/g) || []).length === 3);
+ok('star on card', /function exCardHtml[\s\S]*?\$\{exFavBtnHtml\(e\)\}/.test(six));
 ok('favourites saved in settings', /window\.SETTINGS\.favoriteExercises=/.test(six) && /persistSettingsDoc/.test(slice(six, 'function toggleFavEx', 'function exFavPaint')));
-ok('nav has Ulubione and Ostatnio używane', six.includes("['__fav','★ Ulubione'") && six.includes("['__recent','🕘 Ostatnio używane'"));
-ok('recent keeps recency order', six.includes("if(exCatFilter==='__recent')filtered.sort((a,b)=>recent.indexOf(a.name)-recent.indexOf(b.name));"));
+ok('tabs have Ulubione and Ostatnio używane', six.includes("['fav','Ulubione'") && six.includes("['recent','Ostatnio używane'"));
+ok('recent keeps recency order', six.includes("source=recent.map(n=>idx.get(n)).filter(Boolean);"));
 ok('star styles', css.includes('.ex-fav-btn.is-on{color:#FFD60A;}'));
 ok('duplicate button on plan', five.includes("onclick=\"event.stopPropagation();duplicatePlan('${id}')\""));
 

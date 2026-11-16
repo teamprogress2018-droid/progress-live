@@ -126,7 +126,8 @@ function ok(name, cond, extra) {
     const el = document.querySelector('.cp-ov-brief');
     const rows = [...document.querySelectorAll('.cp-ov-brief [data-cp-brief]')].map(n => n.getAttribute('data-cp-brief'));
     return {
-      empty: (document.querySelector('.cp-ov-brief-empty') || {}).textContent || '',
+      empty: (document.querySelector('[data-cp-brief="none"]') || {}).textContent || '',
+      primary: (document.querySelector('.cp-ov-brief [data-cp-primary]') || {}).textContent || '',
       wrap: el ? el.getAttribute('data-cp-brief') : '',
       rows,
       sit: !!document.querySelector('.cp-ov-situation'),
@@ -134,7 +135,7 @@ function ok(name, cond, extra) {
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_brief_nowy_klient.png') });
-  ok('new client one empty', /Brak danych do briefu/.test(empty.empty) && empty.wrap === 'empty' && empty.rows.length === 0, JSON.stringify(empty));
+  ok('new client one empty + one main action', /Dziś brak treningu/.test(empty.empty) && empty.wrap === 'empty' && empty.rows.join() === 'none' && /Ułóż plan|Dodaj trening/.test(empty.primary), JSON.stringify(empty));
   ok('new client no notes leak', !empty.notesLeak);
   ok('situation remains for new', empty.sit);
 

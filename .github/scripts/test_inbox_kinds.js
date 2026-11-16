@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Inbox: kind direct | system | broadcast, strip tagów, filtry czatu. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -20,9 +21,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=137'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
-ok('cache 10', html.includes('10-client-app.js?v=44'));
+ok('cache 01', cacheAtLeast(html, '01-core.js', 137));
+ok('cache 06', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
+ok('cache 10', cacheAtLeast(html, '10-client-app.js', 44));
 ok('kind bar html', html.includes('id="chat-kind-bar"') && html.includes("setChatKindFilter('system')"));
 ok('kind helpers', /function normalizeMsgKind/.test(core) && /function msgDisplayText/.test(core));
 ok('pushMsg opts', /function pushMsg\(clientId,text,opts\)/.test(core) && /kind:opts\.kind/.test(core));

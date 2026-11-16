@@ -82,7 +82,7 @@ function ok(name, cond, extra) {
     return {
       hasPlan: /FBW Siła/.test(t),
       hasTpl: /Przypisz szablon/.test(t),
-      hasAi: /Generuj plan AI/.test(t),
+      hasAi: /Nowy plan \(AI\)/.test(t),
       hasFitebo: /Kontynuuj plan z Fitebo/.test(t)
     };
   });

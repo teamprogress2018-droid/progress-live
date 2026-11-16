@@ -65,7 +65,8 @@ function aplAmateurApply(input){
   const stress=document.getElementById('apl-stress');if(stress)stress.value=String(Math.max(1,Math.min(5,Number(d.stress)||3)));
   const injuries=document.getElementById('apl-injuries');if(injuries)injuries.value=String(d.painDetails||'').trim();
   const notes=document.getElementById('apl-notes');
-  if(notes)notes.value=['TRYB AMATOR — plan startowy.', 'Cel: '+(d.goal||'sprawność ogólna')+'.', 'Zasada: RIR '+p.targetRir+'; bez serii do upadku, HIIT i zaawansowanych technik.', d.preferences?'Preferencje: '+d.preferences+'.':''].filter(Boolean).join('\n');
+  const ownNotes=notes?String(notes.value||'').split('\n').filter(l=>l.trim()&&!/^(TRYB |Cel: |Zasada: |Preferencje: |Dyscyplina: |Start docelowy: |Staż: |Obecne obciążenie: |Uwagi sztabu: )/.test(l)).join('\n'):'';
+  if(notes)notes.value=['TRYB AMATOR — plan startowy.', 'Cel: '+(d.goal||'sprawność ogólna')+'.', 'Zasada: RIR '+p.targetRir+'; bez serii do upadku, HIIT i zaawansowanych technik.', d.preferences?'Preferencje: '+d.preferences+'.':'',ownNotes].filter(Boolean).join('\n');
   window._aplAmateurIntake={schemaVersion:APL_AMATEUR_SCHEMA_VERSION,createdAt:new Date().toISOString(),answers:{...d},assessment:rx,prescription:p};
   return{ok:true,assessment:rx,prescription:p};
 }

@@ -23,7 +23,8 @@ function aplProApply(input){
   if(p.needsReview)return{ok:false,assessment};
   ['apl-levels','apl-methods','apl-days','apl-duration','apl-weeks','apl-progression'].forEach((id,i)=>aplProSetOpt(id,[p.level,p.method,p.days,p.duration,p.weeks,p.progression][i]));
   const notes=document.getElementById('apl-notes');
-  if(notes)notes.value=['TRYB ZAWODOWIEC — plan pod okres przygotowań.','Dyscyplina: '+p.discipline+'. Faza: '+p.phase+'.',d.eventDate?'Start docelowy: '+d.eventDate+'.':'',d.trainingAge?'Staż: '+d.trainingAge+' lat.':'',d.weeklyLoad?'Obecne obciążenie: '+d.weeklyLoad+'/5.':'',d.notes?'Uwagi sztabu: '+d.notes+'.':''].filter(Boolean).join('\n');
+  const ownNotes=notes?String(notes.value||'').split('\n').filter(l=>l.trim()&&!/^(TRYB |Cel: |Zasada: |Preferencje: |Dyscyplina: |Start docelowy: |Staż: |Obecne obciążenie: |Uwagi sztabu: )/.test(l)).join('\n'):'';
+  if(notes)notes.value=['TRYB ZAWODOWIEC — plan pod okres przygotowań.','Dyscyplina: '+p.discipline+'. Faza: '+p.phase+'.',d.eventDate?'Start docelowy: '+d.eventDate+'.':'',d.trainingAge?'Staż: '+d.trainingAge+' lat.':'',d.weeklyLoad?'Obecne obciążenie: '+d.weeklyLoad+'/5.':'',d.notes?'Uwagi sztabu: '+d.notes+'.':'',ownNotes].filter(Boolean).join('\n');
   window._aplProIntake={schemaVersion:APL_PRO_SCHEMA_VERSION,createdAt:new Date().toISOString(),answers:{...d},assessment,prescription:p};
   return{ok:true,assessment,prescription:p};
 }

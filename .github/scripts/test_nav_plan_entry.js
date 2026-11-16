@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Nav: plan creation only via client Plan tab — not under Więcej. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 
@@ -23,12 +24,12 @@ ok('no Generator AI in Więcej',!/data-screen="aiplangen"/.test(more));
 ok('no Kreator in Więcej',!/data-screen="builder"/.test(more));
 ok('moreScreens without plan tools',!/moreScreens=\[[^\]]*(aiplangen|builder)/.test(core));
 ok('screens still exist',html.includes('id="screen-builder"')&&html.includes('id="screen-aiplangen"'));
-ok('plan tab keeps CTAs',planTab.includes('Stwórz własny plan')&&planTab.includes('Generuj plan AI')&&planTab.includes('Przypisz szablon')&&planTab.includes('Kontynuuj plan z Fitebo'));
+ok('plan tab keeps CTAs',planTab.includes('Stwórz własny plan')&&planTab.includes('Nowy plan (AI)')&&planTab.includes('Przypisz szablon')&&planTab.includes('Kontynuuj plan z Fitebo'));
 ok('openBuilderForClient + openAiPlanForClient',src05.includes('function openBuilderForClient')&&src05.includes('function openAiPlanForClient'));
 ok('plans library new plan picker',html.includes('openNewPlanPicker()')&&src05.includes('function openNewPlanPicker')&&src05.includes('function saveNewPlanPicker')&&src05.includes("openBuilderForClient"));
 ok('builder cancel uses back',src05.includes('function builderGoBack')&&src05.includes("_builderBack||'clients'")&&html.includes('builderGoBack()'));
 
-ok('cache bumps',html.includes('01-core.js?v=137')&&html.includes('05-clients-builder-plans-calendar.js?v=106'));
+ok('cache bumps',cacheAtLeast(html, '01-core.js', 139)&&cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 114));
 ok('onboard plan CTAs only when missing',src05.includes("cta:'Wybierz sposób'")&&src05.includes('⚡ Generator AI')&&src05.includes('✏️ Klasyczny kreator')&&!/doneExtra:`<div[\s\S]*Nowy plan AI/.test(src05));
 
 if(failed){console.error(failed+' failed');process.exit(1);}

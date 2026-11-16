@@ -50,25 +50,25 @@
     return kind||'Własny trening';
   }
 
+  function plN(n,one,few,many){
+    const x=Math.abs(n)%100,y=x%10;
+    if(n===1)return one;
+    if(y>=2&&y<=4&&(x<10||x>=20))return few;
+    return many;
+  }
+  // „Twój dzień”: dwie liczby + jedno przejście do kalendarza (bez listy — lista jest w „Dzisiaj”).
   function renderDashDay(){
     const el=document.getElementById('dash-day-list');if(!el)return;
-    const rows=(typeof dashTodaySessions==='function'?dashTodaySessions():[]).slice(0,6);
-    if(!rows.length){
-      el.innerHTML='<div class="dash3-empty">Brak zaplanowanych zajęć na dziś.<button type="button" onclick="goTo(\'calendar\')">Zaplanuj w kalendarzu →</button></div>';
-      return;
-    }
     const now=new Date();
-    el.innerHTML=rows.map(s=>{
-      const st=typeof dashSessionState==='function'?dashSessionState(s,now):{kind:'upcoming'};
-      const tag=sessionTag(s);
-      const done=st.kind==='done';
-      const stLbl=done?'zrealizowany':st.kind==='running'?'trwa teraz':st.kind==='skipped'?'pominięty':'';
-      return '<button type="button" class="dash3-day-row dash3-tag-'+tag.cls+(done?' is-done':'')+(st.kind==='running'?' is-now':'')+'" onclick="goTo(\'calendar\')"'+(stLbl?' title="'+esc(stLbl)+'"':'')+'>'+
-        '<span class="dash3-check" aria-hidden="true">'+(done?'✓':'')+'</span>'+
-        '<b>'+esc(s.time||'—')+'</b><i></i>'+
-        '<span class="dash3-day-name">'+esc(sessionTitle(s))+'</span>'+
-        '<em>'+esc(tag.lbl)+'</em></button>';
-    }).join('');
+    const today=(typeof dashTodaySessions==='function'?dashTodaySessions():[]);
+    const left=today.filter(s=>{const k=typeof dashSessionState==='function'?dashSessionState(s,now).kind:'upcoming';return k!=='done'&&k!=='skipped';}).length;
+    const acts=typeof dashAttentionPeople==='function'?dashAttentionPeople().length:0;
+    const n=today.length;
+    el.innerHTML='<div class="dash3-day-stats">'+
+      '<button type="button" class="dash3-day-stat" data-dash-day="sessions" onclick="focusDashSection(\'sessions\')"><b>'+n+'</b><span>'+plN(n,'trening','treningi','treningów')+' dzisiaj'+(n&&left!==n?' · '+left+' przed Tobą':'')+'</span></button>'+
+      '<button type="button" class="dash3-day-stat" data-dash-day="actions" onclick="focusDashSection(\'attention\')"><b>'+acts+'</b><span>'+plN(acts,'działanie','działania','działań')+' do wykonania</span></button>'+
+      '</div>'+
+      '<button type="button" class="btn btn-ghost btn-sm dash3-day-cal" onclick="goTo(\'calendar\')">Zobacz kalendarz</button>';
   }
 
   function dashGoals(){

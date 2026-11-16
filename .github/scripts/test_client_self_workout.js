@@ -16,12 +16,14 @@ ok('uses one stable client-session ID',/sessionId:newId\('s'\)/.test(app)&&/id:c
 ok('stores plan snapshot at workout start',/planSnapshot:cwPlanSnapshot\(exercises\)/.test(app)&&/planSnapshot:\{planId:cw\.planId/.test(app));
 ok('counts only confirmed sets in the record',/filter\(s=>s&&s\.done\)/.test(app)&&/confirmed:true/.test(app));
 ok('persists each confirmed or reverted set',/st\.done=!st\.done;\s*cwQueuePersist\(cw,'in_progress'\)/.test(app));
-ok('persists locally before an offline attempt',/cw\.syncState='local';cwWriteLocal\(cw\)/.test(app));
+ok('persists locally before an offline attempt',/const localSaved=cwWriteLocal\(cw\)/.test(app)&&/if\(typeof navigator!=='undefined'&&navigator\.onLine===false\)return false/.test(app));
 ok('flushes local work after reconnect or app reopen',/function cwFlushLocal\(\)/.test(app)&&/setTimeout\(\(\)=>cwFlushLocal\(\),0\)/.test(app));
-ok('partial completion asks before ending',/cw\.finishPrompt=true/.test(app)&&/Zakończ częściowo wykonany/.test(app));
+ok('partial completion asks before ending',/cw\.finishPrompt=true/.test(app)&&/Zakończ teraz/.test(app));
 ok('supports a pain report without automated treatment',/function cwReportProblem\(\)/.test(app)&&/Zgłoś ból lub problem/.test(app));
 ok('client replacements come only from the trainer plan',/const alts=String\(ex\.alt\|\|''\)/.test(core)&&/approvedAlts:alts\.slice\(\)/.test(core));
 ok('trainer session panel shows plan and actual result',/Plan: \$\{planned\}/.test(fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8'))&&/Wynik: \$\{setsText/.test(fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8')));
 ok('rules limit client session statuses and mutable fields',/\['in_progress', 'completed', 'partial'\]/.test(rules)&&/confirmedSets/.test(rules)&&/planSnapshot/.test(rules));
 ok('today screen is deliberately compact',/function capClientTodaySimple\(c\)/.test(portal)&&/Wznów trening/.test(portal)&&/Najbliższe spotkanie/.test(portal));
+ok('client without a plan gets a visible contact path',/Brak przypisanego treningu/.test(portal)&&/Napisz do trenera/.test(portal)&&/setClientLiveScreen\('messages'\)/.test(portal));
+ok('today always gives one clear next action',/Wynik czeka na wysłanie/.test(portal)&&/Dobra robota/.test(portal)&&/Zobacz postępy/.test(portal)&&/Dzień bez treningu/.test(portal)&&/Pokaż plan/.test(portal));
 console.log('\nAll client self-workout contract checks passed.');

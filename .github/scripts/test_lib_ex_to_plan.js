@@ -21,7 +21,8 @@ function ok(name, cond, extra) {
 
 ok('ci unit', wf.includes('test_lib_ex_to_plan.js'));
 ok('ci ui', wf.includes('test_lib_ex_to_plan_ui.js'));
-ok('cta renamed', six.includes('onclick="prefillExInBuilder(${safe})">+ Dodaj do planu</button>'));
+ok('cta adds to plan', six.includes('onclick="quickAddExToPlan(event,${safe})">+ Dodaj do planu</button>') && /function quickAddExToPlan[\s\S]*?prefillExInBuilder\(name\)/.test(six));
+ok('card + adds without leaving the library when a plan is open', /function quickAddExToPlan[\s\S]*?builderInsertExercise\(name,\{quiet:true\}\)/.test(six) && six.includes('class="exl-add"'));
 ok('returns to library', /function prefillExInBuilder[\s\S]*?window\._builderBack='library'/.test(six));
 ok('can keep open draft', /function prefillExInBuilder[\s\S]*?builderHasOpenDraft\(\)[\s\S]*?_builderPreserveOnReturn=true/.test(six));
 ok('inserts row with name', /function builderInsertExercise[\s\S]*?addDay\(\)[\s\S]*?addRow\(day\.id\)[\s\S]*?builderOnExNameChange\(row\)/.test(six));

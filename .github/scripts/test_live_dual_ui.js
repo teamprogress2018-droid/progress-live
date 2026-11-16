@@ -128,6 +128,9 @@ function ok(name, cond, extra) {
       altsLbl: !!(card && (/Zamień/.test(card.textContent))),
       chips
     };
+    // Od 20.10 (58b4c94) notatka trenera jest na żądanie w menu „⋯ → Notatka trenera”.
+    if (typeof liveToggleExPanel === 'function') liveToggleExPanel(0, 'coach');
+    media.noteVisible = /PRIORYTET czworogłowe/.test((document.querySelector('#live-ex-0 .live-ex-note') || {}).value || '');
     if (typeof liveSwapEx === 'function' && chips.length) {
       liveSwapEx(0, chips[0].replace(/^↻\s*/, ''));
       media.swappedName = (window.liveExercises[0] && window.liveExercises[0].name) || '';
@@ -158,7 +161,7 @@ function ok(name, cond, extra) {
   ok('clients A/B', afterSets.aClient === 'c1' && afterSets.bClient === 'c2', JSON.stringify(afterSets));
   ok('same client blocked', afterSets.sameGuard, afterSets.blocked);
   ok('live gif has no caption overlay', afterSets.media && afterSets.media.capCount === 0 && afterSets.media.titleCount === 1, JSON.stringify(afterSets.media));
-  ok('coach note still visible', afterSets.media && afterSets.media.noteVisible, JSON.stringify(afterSets.media));
+  ok('coach note available from the menu', afterSets.media && afterSets.media.noteVisible, JSON.stringify(afterSets.media));
   ok('live machine alts chips', afterSets.media && afterSets.media.altsLbl && afterSets.media.chips.some((c) => /nogami|przysiad/i.test(c)), JSON.stringify(afterSets.media && afterSets.media.chips));
   ok('live swap changes name', afterSets.media && afterSets.media.swappedName && afterSets.media.swappedName !== 'Przysiad na suwnicy (Hack Squat / maszyna)', afterSets.media && afterSets.media.swappedName);
 

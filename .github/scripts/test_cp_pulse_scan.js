@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Profil klienta: status, sylwetka, Garmin 7d, zwinięte kafelki, Pomiary. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache styles v58', html.includes('styles.css?v=166'));
+ok('cache 08 v41', cacheAtLeast(html, '08-client-profile-extras.js', 91));
+ok('cache styles v58', cacheAtLeast(html, 'styles.css', 166));
 ok('ci unit', wf.includes('test_cp_pulse_scan.js'));
 ok('metrics stacked toolbar', /cp-metrics-head/.test(src) && /cp-metrics-groups/.test(src) && /cp-metrics-actions/.test(src));
 ok('collapse helper', /function cpCollapseDaySessions/.test(src));

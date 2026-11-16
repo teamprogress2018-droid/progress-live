@@ -49,7 +49,9 @@ function ok(name, cond, extra) {
     if (typeof aplRerenderCurrent === 'function') aplRerenderCurrent();
   });
   await page.waitForTimeout(300);
-  await page.evaluate(() => { if (typeof aplSwapExercise === 'function') aplSwapExercise(0, 0); });
+  // Od 24.10 (f03636b) „Zamień” przy otwartym generatorze pokazuje ranking zamienników (test_generator_workbench_ui.js).
+  // Tu sprawdzamy ręczny edytor z podpowiedziami tej samej partii, który zostaje, gdy generatora nie ma.
+  await page.evaluate(() => { window.gwbSwap = undefined; if (typeof aplSwapExercise === 'function') aplSwapExercise(0, 0); });
   await page.waitForFunction(() => {
     const dd = document.querySelector('#apl-ex-row-0-0 .ex-ac-dropdown');
     return !!(dd && dd.style.display !== 'none' && dd.querySelectorAll('.ex-ac-item').length);
@@ -82,7 +84,9 @@ function ok(name, cond, extra) {
     if (typeof aplRerenderCurrent === 'function') aplRerenderCurrent();
   });
   await page.waitForTimeout(250);
-  await page.evaluate(() => { if (typeof aplSwapExercise === 'function') aplSwapExercise(0, 0); });
+  // Od 24.10 (f03636b) „Zamień” przy otwartym generatorze pokazuje ranking zamienników (test_generator_workbench_ui.js).
+  // Tu sprawdzamy ręczny edytor z podpowiedziami tej samej partii, który zostaje, gdy generatora nie ma.
+  await page.evaluate(() => { window.gwbSwap = undefined; if (typeof aplSwapExercise === 'function') aplSwapExercise(0, 0); });
   await page.waitForFunction(() => {
     const dd = document.querySelector('#apl-ex-row-0-0 .ex-ac-dropdown');
     return !!(dd && dd.style.display !== 'none' && /ławka|hantle|Rozpiętk|Klatka|Ta sama partia/i.test(dd.textContent || ''));

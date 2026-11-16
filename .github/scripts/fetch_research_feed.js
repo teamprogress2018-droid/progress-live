@@ -329,7 +329,12 @@ async function main() {
         if (ai) { it.ai = ai; done++; }
       } catch (e) {
         console.warn('AI pominięte dla ' + it.pmid + ': ' + e.message);
-        if (/HTTP 4(01|03)/.test(e.message)) break; // zły klucz — nie ma sensu próbować dalej
+        if (/HTTP 4(01|03)/.test(e.message)) {
+          // Proxy aplikacji przyjmuje tylko zalogowanych trenerów — z GitHub Actions potrzebny jest sekret ANTHROPIC_API_KEY.
+          // Bez niego aplikacja tłumaczy nowe badania sama po otwarciu Bazy wiedzy.
+          if (ai.label === 'proxy aplikacji') console.warn('Dodaj sekret ANTHROPIC_API_KEY w Settings → Secrets → Actions, aby tłumaczyć badania już przy pobieraniu.');
+          break; // zły klucz lub brak dostępu — nie ma sensu próbować dalej
+        }
       }
       await sleep(300);
     }

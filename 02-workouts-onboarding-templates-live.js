@@ -451,8 +451,8 @@ function renderOnbOverview(){
 
   el.innerHTML=`
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.55;">
-      Postęp = ta sama checklista co <b style="color:var(--text);">Rozpocznij współpracę</b> (6 kroków). <b style="color:var(--text);">+ Nowy klient</b> otwiera tę samą kartę co Klienci — potem checklista, nie drugi kreator.
-      Automatyczna wiadomość i ankieta: <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;" onclick="goTo('automation')">Automatyzacja</button>
+      Każdy nowy klient przechodzi te same kroki: ankieta, pomiary, plan, kalendarz, pakiet i zaproszenie do aplikacji. Kliknij klienta, żeby zobaczyć, co zostało.
+      Wiadomość powitalną i ankietę możesz wysyłać automatycznie: <button class="btn btn-ghost btn-sm" style="font-size:12px;padding:2px 8px;" onclick="goTo('automation')">Przypomnienia i wiadomości</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
       ${[
@@ -468,7 +468,7 @@ function renderOnbOverview(){
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">W TRAKCIE STARTU</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">W trakcie startu</div>
       <button class="btn btn-primary btn-sm" onclick="onbOpenNewClient()">+ Nowy klient</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
@@ -476,7 +476,7 @@ function renderOnbOverview(){
     </div>
 
     ${completed.length?`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:12px;color:var(--muted);">UKOŃCZONE</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:12px;color:var(--muted);">Ukończone</div>
     <div style="display:flex;flex-direction:column;gap:10px;">${completed.map(card).join('')}</div>`:''}`;
 }
 
@@ -510,7 +510,7 @@ function renderOnbFlows(){
   const realSteps=onbChecklistSteps();
   const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
   el.innerHTML=`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">WARIANTY STARTU WSPÓŁPRACY</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">Warianty startu współpracy</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.55;">Każdy kafelek to etykieta przy nowym kliencie — nie osobna checklista. Postęp zawsze liczy 6 kroków (zaproszenie → pomiary → dni → plan → kalendarz → pakiet). Automatyczne wiadomości: Automatyzacja, gdy flow jest Aktywny.</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">
       ${ONB_FLOWS.map(f=>`<div style="background:var(--s2);border:1px solid var(--border);border-top:3px solid ${f.color};border-radius:12px;padding:18px;">
@@ -540,7 +540,7 @@ function renderOnbSettings(){
   const contract=onb.contract||'Regulamin współpracy z trenerem personalnym\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.';
   el.innerHTML=`
     <div style="max-width:600px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA STARTU WSPÓŁPRACY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">Ustawienia startu współpracy</div>
       <div class="settings-card" style="margin-bottom:14px;">
         <div class="settings-card-title">✅ Checklista 6 kroków</div>
         <div class="settings-card-desc">Ta sama co <b>Rozpocznij współpracę</b>. Kroków nie da się wyłączyć — warianty to tylko etykiety przy nowym kliencie.</div>
@@ -2438,7 +2438,8 @@ function liveBindSessionButtons(slot){
   }
   if(end){
     end.style.display=st.sessionActive?'':'none';
-    end.textContent='Zakończ trening';
+    end.textContent='Zapisz trening';
+    end.title='Zapisz wykonane serie, notatkę i feedback, a następnie zakończ sesję';
   }
   if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
   livePaintTimer(n);
@@ -2749,8 +2750,53 @@ function liveToggleMoreMenu(force){
   const open=force===false?false:force===true?true:menu.hidden;
   menu.hidden=!open;
   if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+  if(open){
+    const first=menu.querySelector('button');
+    if(first)first.focus();
+  }
 }
 window.liveToggleMoreMenu=liveToggleMoreMenu;
+
+function liveTogglePrepMoreMenu(force){
+  const menu=document.getElementById('live-prep-more-menu');
+  const btn=document.getElementById('live-prep-more-btn');
+  if(!menu)return;
+  const open=force===false?false:force===true?true:menu.hidden;
+  menu.hidden=!open;
+  if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+  if(open){
+    const first=menu.querySelector('button');
+    if(first)first.focus();
+  }
+}
+window.liveTogglePrepMoreMenu=liveTogglePrepMoreMenu;
+
+/* Menu ma zawsze prostą drogę wyjścia także z klawiatury. */
+function liveCloseMoreMenusOnEscape(event){
+  if(event.key!=='Escape')return;
+  const sessionMenu=document.getElementById('live-more-menu');
+  const prepMenu=document.getElementById('live-prep-more-menu');
+  let returnFocus=null;
+  if(sessionMenu&&!sessionMenu.hidden){
+    liveToggleMoreMenu(false);
+    returnFocus=document.getElementById('live-more-btn');
+  }
+  if(prepMenu&&!prepMenu.hidden){
+    liveTogglePrepMoreMenu(false);
+    returnFocus=document.getElementById('live-prep-more-btn');
+  }
+  if(returnFocus){
+    event.preventDefault();
+    returnFocus.focus();
+  }
+}
+document.addEventListener('keydown',liveCloseMoreMenusOnEscape);
+document.addEventListener('click',event=>{
+  const target=event.target;
+  if(!target||!target.closest||target.closest('.live-more-wrap'))return;
+  liveToggleMoreMenu(false);
+  liveTogglePrepMoreMenu(false);
+});
 
 function liveDayLabel(slot){
   const n=liveN(slot);
@@ -2891,6 +2937,8 @@ function initLive(){
 
 function setLiveTab(t){
   liveTab=t;
+  const screen=document.getElementById('screen-live');
+  if(screen)screen.classList.toggle('live-history-view',t==='history');
   const floor=document.getElementById('live-floor');
   if(floor)floor.style.display=t==='trainer'?'flex':'none';
   const trainer=document.getElementById('live-trainer-tab');
@@ -2918,6 +2966,34 @@ function liveFocusClientPicker(slot){
   if(typeof liveClientSearchInput==='function')liveClientSearchInput(n);
 }
 window.liveFocusClientPicker=liveFocusClientPicker;
+
+// Szybki wybór na ekranie startowym LIVE. Lista opiera się wyłącznie na
+// realnej aktywności klienta, więc nie sugeruje trenerowi sztucznych danych.
+function liveRecentClientChoices(slot){
+  const n=liveN(slot);
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  const choices=clients.map(c=>{
+    const activity=typeof getClientLastActivity==='function'?getClientLastActivity(c.id):null;
+    return{client:c,activity,at:activity&&activity.getTime?activity.getTime():0};
+  }).filter(x=>x.at>0).sort((a,b)=>b.at-a.at||String(a.client.name||'').localeCompare(String(b.client.name||''),'pl')).slice(0,3);
+  if(!choices.length)return'';
+  return`<div class="live-quick-picks" role="group" aria-label="Ostatnio aktywni klienci">
+    <div class="live-quick-picks-label">Ostatnio aktywni</div>
+    <div class="live-quick-picks-list">${choices.map(({client})=>{
+      const activity=typeof formatClientActivity==='function'?formatClientActivity(client.id):{label:''};
+      const id=encodeURIComponent(String(client.id||''));
+      return`<button type="button" class="live-quick-client" onclick="event.stopPropagation();liveQuickPickClient('${id}',${n})"><span>${escHtml(client.name||'Klient')}</span><small>${escHtml(activity.label||'')}</small></button>`;
+    }).join('')}</div>
+  </div>`;
+}
+function liveQuickPickClient(encodedId,slot){
+  let id='';
+  try{id=decodeURIComponent(String(encodedId||''));}catch(e){id=String(encodedId||'');}
+  const client=(window.CL||[]).find(c=>c&&String(c.id)===id);
+  if(!client)return;
+  liveClientSetField(client.id,client.name,false,liveN(slot));
+}
+window.liveQuickPickClient=liveQuickPickClient;
 
 function liveSyncClientChrome(slot){
   const n=liveN(slot);
@@ -3469,7 +3545,7 @@ function renderLiveExercises(slot){
       const nm=st.savedClientName||'klient';
       el.innerHTML=`<div style="text-align:center;padding:48px 20px;">
         <div style="font-size:36px;margin-bottom:10px;">✅</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:6px;">SESJA ZAPISANA</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:6px;">Sesja zapisana</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;">${escHtml(nm)} · trening jest w kalendarzu i historii.</div>
         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="liveRepeatSameClient(${n})">▶ Kolejny dzień tego klienta</button>
@@ -3487,6 +3563,7 @@ function renderLiveExercises(slot){
       <div class="live-empty-state-title">${title}</div>
       <div class="live-empty-state-sub">Plan i kg z poprzedniego treningu wczytają się po wyborze klienta.</div>
       <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="event.stopPropagation();liveFocusClientPicker(${n})">Wybierz klienta</button>
+      ${n===0?liveRecentClientChoices(n):''}
     </div>`;
     const zero=(id,v)=>{const e=liveEl(id,n);if(e)e.textContent=v;};
     zero('live-ex-done','0');zero('live-ex-total','0');zero('live-sets-done','0');zero('live-volume','0');
@@ -3518,18 +3595,20 @@ function renderLiveExercises(slot){
     const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
     if(needsName){ex.collapsed=false;return;}
     if(st.sessionActive)ex.collapsed=typeof ex.uiExpanded==='boolean'?!ex.uiExpanded:i!==curIdx&&!(curIdx<0&&i===st.exercises.length-1);
-    else if(ex.collapsed==null)ex.collapsed=i!==0;
+    // W przygotowaniu trener najpierw widzi cały plan do szybkiego skanowania.
+    // Rozwinięcie wybranej karty pozostaje zapamiętane, a w aktywnej sesji
+    // bieżące ćwiczenie nadal otwiera się samo.
+    else if(ex.collapsed==null)ex.collapsed=true;
   });
 
   el.innerHTML=`
     ${st.sessionActive?'':`<div class="live-ex-toolbar">
-      <div>
-        <div class="live-ex-toolbar-title">Plan treningu</div>
-        <div class="live-ex-toolbar-sub">${total} ćwiczeń</div>
+      <div class="live-ex-toolbar-meta">
+        <div class="live-ex-toolbar-title">Plan treningu <span class="live-ex-toolbar-count">${total} ćwiczeń</span></div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="liveAddExercise(${n})">+ Dodaj ćwiczenie</button>
+      <button class="btn btn-ghost btn-sm live-add-exercise" onclick="liveAddExercise(${n})" aria-label="Dodaj ćwiczenie"><span class="live-add-exercise-full">+ Dodaj ćwiczenie</span><span class="live-add-exercise-short" aria-hidden="true">+ Ćwiczenie</span></button>
     </div>`}
-    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue)).join('')}
+    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue,stats)).join('')}
     ${st.sessionActive&&doneCnt===total&&total>0?`
     <div class="live-ex-done-banner">
       <div class="live-ex-done-title">Trening ukończony</div>
@@ -3957,10 +4036,7 @@ function liveExCueStripHtml(ex,slot,cue){
   const targetKg=detail.nextKg!=null?detail.nextKg:(rec&&rec.levers&&rec.levers.load==='hold'&&Number.isFinite(facts.lastKg)?facts.lastKg:'');
   const planKg=liveExPlannedKg(ex,n);
   const note=liveExSuggestNote(todayKg,targetKg,planKg,suffix,ex&&ex.prefillKg);
-  const client=(window.CL||[]).find(x=>x&&x.id===st.clientId);
-  const limit=typeof cpClientLimitConflicts==='function'&&client?cpClientLimitConflicts(client,[ex&&ex.name])[0]:null;
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
-    ${limit?'<span class="live-ex-cue-row live-ex-cue-limit" data-cue="limit" role="note"><span class="live-ex-cue-v">⚠ Ograniczenie ('+esc(limit.area)+'): „'+esc(limit.note)+'” — rozważ zamiennik</span></span>':''}
     <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>
     <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">Dzisiaj:</span> <span class="live-ex-cue-v">${esc(todayLine)}</span></span>
     <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}" data-target-kg="${esc(targetKg)}" data-plan-kg="${esc(planKg)}"${detail.why?' title="Dlaczego: '+esc(detail.why)+'" role="button" tabindex="0" aria-expanded="false" onclick="liveToggleCueWhy(this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();liveToggleCueWhy(this)}"':''}><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}${detail.detail?' <span class="live-ex-cue-detail">'+esc(detail.detail)+'</span>':''}<span class="live-ex-cue-note" data-cue-note>${note?' · '+esc(note):''}</span>${detail.why&&suggest.kind!=='none'?'<span class="live-ex-cue-more" aria-hidden="true"> ⓘ</span>':''}</span></span>
@@ -3968,6 +4044,24 @@ function liveExCueStripHtml(ex,slot,cue){
   </div>`;
 }
 window.liveExCueStripHtml=liveExCueStripHtml;
+
+/** Konflikt ćwiczenia z ograniczeniem klienta (np. bark) albo null. */
+function liveExLimitConflict(ex,clientId){
+  if(!clientId||typeof cpClientLimitConflicts!=='function')return null;
+  const client=(window.CL||[]).find(x=>x&&x.id===clientId);
+  return client?cpClientLimitConflicts(client,[ex&&ex.name])[0]||null:null;
+}
+window.liveExLimitConflict=liveExLimitConflict;
+
+/** Ostrzeżenie o ograniczeniu stoi w nagłówku karty: bezpieczeństwo nie może
+ *  czekać w menu „⋯”, więc widać je od razu, także na zwiniętej karcie. */
+function liveExLimitHtml(ex,clientId){
+  const limit=liveExLimitConflict(ex,clientId);
+  if(!limit)return '';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  return '<div class="live-ex-limit" data-cue="limit" role="note">⚠ Ograniczenie ('+esc(limit.area)+'): „'+esc(limit.note)+'” — rozważ zamiennik</div>';
+}
+window.liveExLimitHtml=liveExLimitHtml;
 
 function liveExHistoryList(ex,clientId,planId){
   if(!clientId||!planId)return [];
@@ -3991,20 +4085,84 @@ function liveExDisplayName(ex){
 }
 window.liveExDisplayName=liveExDisplayName;
 
-function liveExTitleHtml(ex,lastChip,history){
+/* Podgląd „Ostatnie treningi” pod nazwą ćwiczenia: 5 ostatnich treningów klienta z tym ćwiczeniem
+   (najpierw z bieżącego planu, potem z innych planów), jeden wiersz na trening. */
+const LIVE_HIST_POP_N=5;
+const _liveHistPopCache=new Map();
+const _liveHistIds=new Map();
+function liveExPopupHistory(ex,clientId,planHist){
+  const base=Array.isArray(planHist)?planHist:[];
+  const nm=ex&&(ex.name||ex.plannedName)||'';
+  if(!clientId||!(nm||(ex&&ex.exerciseId))||typeof exerciseLoadHistory!=='function')return base.slice(0,LIVE_HIST_POP_N);
+  const se=window.SE||[];
+  const key=clientId+'|'+nm+'|'+(ex.exerciseId||'')+'|'+se.length+'|'+base.length+'|'+((se[se.length-1]||{}).id||'');
+  if(_liveHistPopCache.has(key))return _liveHistPopCache.get(key);
+  const any=exerciseLoadHistory(clientId,nm,ex.alts,{limit:LIVE_HIST_POP_N,exerciseId:ex.exerciseId||''})||[];
+  const seen=new Set(),out=[];
+  base.concat(any)
+    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.createdAt||'').localeCompare(String(a.createdAt||'')))
+    .forEach(h=>{const k=(h.sessionId||'')+'|'+(h.date||'')+'|'+(h.name||'');if(seen.has(k))return;seen.add(k);out.push(h);});
+  const res=out.slice(0,LIVE_HIST_POP_N);
+  if(_liveHistPopCache.size>300)_liveHistPopCache.clear();
+  _liveHistPopCache.set(key,res);
+  return res;
+}
+window.liveExPopupHistory=liveExPopupHistory;
+
+function liveExHistCompactHtml(history){
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const num=v=>{const x=parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(x)?x:null;};
+  const fmt=x=>typeof fmtHistNum==='function'?fmtHistNum(x):String(Math.round(x*100)/100);
+  const rows=(history||[]).map(h=>{
+    const unit=h.loadUnit||'kg';
+    const sets=(Array.isArray(h.workSets)&&h.workSets.length?h.workSets:(h.sets||[])).filter(s=>s&&(s.reps!=null&&s.reps!==''||s.kg!=null&&s.kg!==''));
+    const top=sets.reduce((m,s)=>{const k=num(s.kg);return k!=null&&(m==null||k>m)?k:m;},null);
+    const txt=sets.map(s=>{
+      const k=num(s.kg),r=s.reps!=null&&s.reps!==''?String(s.reps):'';
+      if(unit!=='kg'&&k!=null)return fmt(k)+' '+(unit==='sec'?'s':unit)+(r?' × '+r:'');
+      return k!=null&&k!==0?fmt(k)+' × '+(r||'—'):(r?r+' powt.':'—');
+    }).join(' · ');
+    const d=String(h.date||'').slice(0,10).split('-');
+    const date=d.length===3?d[2]+'.'+d[1]+'.'+d[0].slice(2):String(h.date||'');
+    const vol=h.workVolume!=null&&h.workVolume>0?fmt(h.workVolume)+' kg':'—';
+    return {date,txt:txt||'—',top,vol,n:sets.length};
+  });
+  return `<table class="live-hist-mini">
+    <thead><tr><th>Data</th><th>Serie robocze</th><th>Obj.</th></tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const prev=rows[i+1];
+      let tr='';
+      if(prev&&r.top!=null&&prev.top!=null&&r.top!==prev.top){const d=r.top-prev.top;tr=`<span class="live-hist-trend ${d>0?'is-up':'is-down'}" title="Najcięższa seria względem poprzedniego treningu">${d>0?'▲ +':'▼ '}${esc(fmt(d))}</span>`;}
+      return `<tr${i===0?' class="is-last"':''}><td class="live-hist-date">${esc(r.date)}${i===0?'<span>ostatnio</span>':''}</td><td class="live-hist-sets">${esc(r.txt)}${tr}</td><td class="live-hist-vol">${esc(r.vol)}</td></tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+window.liveExHistCompactHtml=liveExHistCompactHtml;
+
+function liveExTitleHtml(ex,lastChip,history,clientId){
   const needsName=!String(ex&&ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   if(needsName)return '<div class="live-ex-title is-empty">Wybierz ćwiczenie</div>';
   const display=liveExDisplayName(ex);
   const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(display.title)}${display.priority?'<span class="live-priority-badge">Priorytet</span>':''}`;
-  const histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
-  if(!histId||!history||!history.length||typeof exerciseHistoryModalBodyHtml!=='function'){
+  // Skrót (Ostatnio / Sugestia) jest w menu „⋯ → Historia i progres”. Pełna tabela
+  // poprzednich treningów zostaje pod nazwą: podgląd po najechaniu, klik otwiera całość.
+  const pop=typeof liveExPopupHistory==='function'?liveExPopupHistory(ex,clientId,history):(history||[]).slice(0,5);
+  let histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
+  if(!pop.length||(!histId&&!clientId)){
     return `<div class="live-ex-title">${nameInner}</div>`;
   }
+  // Pełna historia po kliknięciu obejmuje wszystkie plany klienta (jak podgląd), nie tylko bieżący.
+  if(clientId&&typeof _exHistCache==='object'&&typeof _liveHistIds!=='undefined'){
+    const hk=clientId+'|'+(ex.name||ex.plannedName||'')+'|'+(ex.exerciseId||'');
+    histId=_liveHistIds.get(hk)||('lh'+(++_exHistSeq));
+    _liveHistIds.set(hk,histId);
+    _exHistCache[histId]={name:ex.name||ex.plannedName||'',history:null,clientId,aliases:ex.alts,exerciseId:ex.exerciseId||''};
+  }
   return `<div class="live-ex-title-wrap">
-    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="true">${nameInner}</button>
+    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="dialog">${nameInner}</button>
     <div class="live-ex-hist-pop" role="tooltip">
-      <div class="live-ex-hist-pop-hd">Poprzednie treningi</div>
-      ${exerciseHistoryModalBodyHtml(history.slice(0,4))}
+      <div class="live-ex-hist-pop-hd">Ostatnie treningi (${pop.length})</div>
+      ${typeof liveExHistCompactHtml==='function'?liveExHistCompactHtml(pop):(typeof exerciseHistoryModalBodyHtml==='function'?exerciseHistoryModalBodyHtml(pop):'')}
       <div class="live-ex-hist-pop-ft">Kliknij nazwę — pełna historia</div>
     </div>
   </div>`;
@@ -4098,7 +4256,7 @@ function liveExFocusInfoHtml(ex,slot,display){
 }
 window.liveExFocusInfoHtml=liveExFocusInfoHtml;
 
-function liveExCard(ex,i,slot,cue){
+function liveExCard(ex,i,slot,cue,progress){
   const n=liveN(slot);
   const st=liveRef(n);
   const sl=liveSlotArg(n);
@@ -4133,52 +4291,52 @@ function liveExCard(ex,i,slot,cue){
   const targetRir=typeof plannedRir==='function'?plannedRir(ex):(ex.rir??'');
   const isCurrent=st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done);
   const currentSet=isCurrent?ex.sets.findIndex(s=>!s.done):-1;
-  // Przed startem pokazujemy pierwsze ćwiczenie jako punkt wejścia; w trakcie — aktualne ćwiczenie.
-  const isFocus=st.sessionActive?isCurrent:(!ex.done&&i===0);
+  // W trakcie sesji podkreślamy wyłącznie aktualne ćwiczenie. Przed startem
+  // karty są równorzędnym, krótkim przeglądem planu.
+  const isFocus=st.sessionActive&&isCurrent;
   const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
   const media=typeof resolveCoachMedia==='function'?Object.assign({name:ex.name},resolveCoachMedia(ex)):ex;
   const hasTechniqueMedia=!!(media&&(media.gif||media.video||media.videoEmbed));
-  const mediaOpen=!needsName&&(isFocus||!!ex.showVideo);
+  // Film jest pomocą na żądanie: nie zasłania serii ani nie pokazuje pustego
+  // pola, gdy trener nie dodał materiału techniki.
+  const mediaOpen=!needsName&&hasTechniqueMedia&&!!ex.showVideo;
+  // Jeden film naraz: gdy trener dodał własny film z odtwarzaczem (YouTube albo plik),
+  // nie odtwarzamy obok animacji/MP4 techniki z biblioteki.
+  const trainerPlayer=!!(media&&media.video&&(media.videoEmbed||media.isFile));
   const mediaHtml=hasTechniqueMedia&&typeof coachMediaHtml==='function'
-    ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:true,showNote:false})
+    ?coachMediaHtml(media,{showVideo:true,caption:false,showGif:!trainerPlayer,showNote:false})
     :`<div class="live-ex-media-empty"><strong>Brak filmu techniki</strong><span>Dodaj film lub GIF w Bibliotece ćwiczeń.</span></div>`;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${isFocus?' is-focus':''}${showBody?'':' is-collapsed'}" id="${cardId}">
-    <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
-      ${thumb?`<button type="button" class="live-ex-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="Pokaż film lub obraz techniki"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
+    <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})" onpointerdown="liveSwipeStart(event,${i}${sl})" onpointerup="liveSwipeEnd(event,${i}${sl})" onpointercancel="liveSwipeCancel(${i}${sl})">
+      ${thumb&&hasTechniqueMedia?`<button type="button" class="live-ex-thumb live-ex-technique-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="${ex.showVideo?'Ukryj':'Pokaż'} technikę" aria-label="${ex.showVideo?'Ukryj':'Pokaż'} technikę dla: ${escHtml(ex.name)}" aria-pressed="${ex.showVideo?'true':'false'}"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></button>`:thumb?`<div class="live-ex-thumb"><img src="${escHtml(thumb)}" alt="" onerror="this.onerror=null;this.closest('.live-ex-thumb').classList.add('is-unavailable');this.remove();"></div>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
-        ${liveExTitleHtml(ex,lastChip,histList)}
-        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span>${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
+        ${liveExTitleHtml(ex,lastChip,histList,st.clientId)}
+        ${needsName||typeof liveExLimitHtml!=='function'?'':liveExLimitHtml(ex,st.clientId)}
+        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong>${isCurrent&&progress?`<span class="live-session-progress">Trening ${progress.doneCnt}/${progress.total} · ${progress.setsDone} serii</span>`:`<span>Wykonano ${setsDone}/${ex.sets.length}</span>`}${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
         <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}"><span aria-hidden="true">${showBody?'▴':'▾'}</span></button>
         <details class="live-ex-actions-menu"><summary aria-label="Opcje ćwiczenia">⋯</summary><div class="live-ex-actions-popover">
+        ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'history'${sl})" aria-pressed="${ex.detailPanel==='history'}">Historia i progres</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'coach'${sl})" aria-pressed="${ex.detailPanel==='coach'}">Notatka trenera</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="liveToggleExPanel(${i},'settings'${sl})" aria-pressed="${ex.detailPanel==='settings'}">Ustawienia ćwiczenia</button>
+        <div class="live-ex-actions-separator" role="separator"></div>`}
         ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm live-swap-open" onclick="liveToggleSwap(${i}${sl})">Zamień</button>`}
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="liveSkipEx(${i}${sl})">Pomiń</button>`:''}
         </div></details>
       </div>
     </div>
-    ${showBody&&!needsName&&!isFocus&&typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}
     ${showBody?`
-    ${!needsName&&isFocus?`<div class="live-focus-cue live-focus-cue-simple"><span>NAJWAŻNIEJSZA WSKAZÓWKA</span><strong>${escHtml(liveShortCoachCue(note))}</strong></div>
-    <details class="live-ex-more-details" onclick="event.stopPropagation()">
-      <summary><strong>Szczegóły ćwiczenia</strong><span>progres · ustawienia · notatka</span></summary>
-      <div class="live-ex-more-body">
-        <div class="live-ex-more-section"><strong>Progres, poprzedni trening i sugestia</strong>${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</div>
-        ${liveExFocusInfoHtml(ex,n,display)}
-        <div class="live-ex-todo live-ex-todo-details">
-          <label class="live-ex-todo-lbl" for="live-ex-cue-${n}-${i}">Notatka trenera</label>
-          <textarea id="live-ex-cue-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="2" placeholder="Dodatkowa wskazówka techniczna" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
-        </div>
-      </div>
-    </details>`:''}
-    ${needsName||isFocus?'':`<div class="live-ex-todo" onclick="event.stopPropagation()">
-      <label class="live-ex-todo-lbl" for="live-ex-todo-${n}-${i}">Do zrobienia</label>
-      <textarea id="live-ex-todo-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="${note?2:1}" placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte)" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
-    </div>`}
+    ${!needsName&&ex.detailPanel?`<section class="live-ex-context" aria-label="${ex.detailPanel==='history'?'Historia i progres ćwiczenia':ex.detailPanel==='coach'?'Notatka trenera':'Ustawienia ćwiczenia'}">
+      <div class="live-ex-context-head"><strong>${ex.detailPanel==='history'?'Historia i progres':ex.detailPanel==='coach'?'Notatka trenera':'Ustawienia ćwiczenia'}</strong><button type="button" onclick="liveToggleExPanel(${i},'${ex.detailPanel}'${sl})" aria-label="Zamknij panel szczegółów">×</button></div>
+      ${ex.detailPanel==='history'?`<div class="live-ex-context-body">${typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''}</div>`:''}
+      ${ex.detailPanel==='coach'?`<div class="live-ex-context-body"><label class="live-ex-todo-lbl" for="live-ex-cue-${n}-${i}">Wskazówka dla trenera</label><textarea id="live-ex-cue-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="2" placeholder="Np. ustawienie maszyny lub ważna wskazówka techniczna" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea></div>`:''}
+      ${ex.detailPanel==='settings'?`<div class="live-ex-context-body">${liveExFocusInfoHtml(ex,n,display)}</div>`:''}
+    </section>`:''}
     ${needsName||(!target&&!display.description)||isFocus?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`}
     <div class="live-ex-body">
-      ${mediaOpen?'<span class="live-media-watch-label" aria-hidden="true">▶ Obejrzyj technikę</span>':''}
+      ${mediaOpen?'<span class="live-media-watch-label" aria-hidden="true">▶ Technika ćwiczenia</span>':''}
       ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${mediaHtml}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
@@ -4214,6 +4372,18 @@ function liveExCard(ex,i,slot,cue){
   </div>`;
 }
 window.liveExCard=liveExCard;
+
+// Dodatkowe informacje są dostępne z menu „…”, ale nie zasłaniają serii
+// podczas prowadzenia treningu. Ponowne wybranie tej samej pozycji ją zamyka.
+function liveToggleExPanel(i,panel,slot){
+  const n=liveN(slot);
+  const ex=(liveRef(n).exercises||[])[i];
+  if(!ex)return;
+  ex.collapsed=false;
+  ex.detailPanel=ex.detailPanel===panel?'':panel;
+  renderLiveExercises(n);
+}
+window.liveToggleExPanel=liveToggleExPanel;
 
 function liveSetFocusRest(value,slot){
   const n=liveN(slot);
@@ -4264,10 +4434,13 @@ window.liveSetKey=liveSetKey;
 function liveToggleExVideo(i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
-  if(!st.exercises[i])return;
-  st.exercises[i].showVideo=!st.exercises[i].showVideo;
-  st.exercises[i].collapsed=false;
-  st.exercises[i].uiExpanded=true;
+  const ex=st.exercises[i];
+  if(!ex)return;
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):ex;
+  if(!media||!(media.gif||media.video||media.videoEmbed))return;
+  ex.showVideo=!ex.showVideo;
+  ex.collapsed=false;
+  ex.uiExpanded=true;
   renderLiveExercises(n);
 }
 window.liveToggleExVideo=liveToggleExVideo;
@@ -4275,10 +4448,41 @@ window.liveToggleExVideo=liveToggleExVideo;
 function liveToggleCollapse(i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
-  st.exercises[i].collapsed=!st.exercises[i].collapsed;
-  st.exercises[i].uiExpanded=!st.exercises[i].collapsed;
+  const ex=st.exercises[i];
+  if(!ex)return;
+  if(ex.suppressCollapse){ex.suppressCollapse=false;return;}
+  ex.collapsed=!ex.collapsed;
+  ex.uiExpanded=!ex.collapsed;
   renderLiveExercises(n);
 }
+
+// Gest jest wyłącznie skrótem dotykowym: przesunięcie w lewo odsłania
+// istniejący, odwracalny wybór zamiennika. Nie podmienia ćwiczenia samo.
+function liveSwipeStart(ev,i,slot){
+  if(!ev||ev.pointerType!=='touch'||(ev.target&&ev.target.closest&&ev.target.closest('button,input,textarea,select,summary')))return;
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  if(ex)ex.swipeStart={x:ev.clientX,y:ev.clientY};
+}
+window.liveSwipeStart=liveSwipeStart;
+function liveSwipeCancel(i,slot){
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  if(ex)ex.swipeStart=null;
+}
+window.liveSwipeCancel=liveSwipeCancel;
+function liveSwipeEnd(ev,i,slot){
+  const ex=(liveRef(liveN(slot)).exercises||[])[i];
+  const start=ex&&ex.swipeStart;
+  if(!start||!ev||ev.pointerType!=='touch')return false;
+  ex.swipeStart=null;
+  const dx=ev.clientX-start.x,dy=ev.clientY-start.y;
+  if(dx<-64&&Math.abs(dy)<44){
+    ex.suppressCollapse=true;
+    if(!ex.swapOpen)liveToggleSwap(i,slot);
+    return true;
+  }
+  return false;
+}
+window.liveSwipeEnd=liveSwipeEnd;
 function liveToggleSetMenu(ei,si,slot){
   const n=liveN(slot);
   const st=liveRef(n);
@@ -4653,13 +4857,24 @@ function liveAskEndSession(slot){
   if(fb0)fb0.hidden=n===1;
   if(fb1)fb1.hidden=n!==1;
   ov.hidden=false;
+  const title=document.getElementById('live-end-title');
+  if(title)title.focus();
 }
 window.liveAskEndSession=liveAskEndSession;
 function liveCancelEnd(){
   const ov=document.getElementById('live-end-overlay');
   if(ov)ov.hidden=true;
+  const trigger=liveEl('live-end-btn',window._liveEndSlot||0);
+  if(trigger)trigger.focus();
 }
 window.liveCancelEnd=liveCancelEnd;
+document.addEventListener('keydown',event=>{
+  const ov=document.getElementById('live-end-overlay');
+  if(event.key==='Escape'&&ov&&!ov.hidden){
+    event.preventDefault();
+    liveCancelEnd();
+  }
+});
 function liveConfirmEnd(){
   window._liveEndFromOverlay=true;
   liveEndSession(window._liveEndSlot||0);
@@ -4675,7 +4890,7 @@ function liveEndSession(slot){
   window._liveEndFromOverlay=false;
   if(!fromOv){
     const msg=totalSets
-      ?'Zakończyć i zapisać sesję?'
+      ?'Zapisać trening i zakończyć sesję?'
       :'Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów. Zapisać mimo to?';
     if(!confirm(msg))return;
   }
@@ -5014,6 +5229,20 @@ function liveRestBeep(kind){
 }
 window.liveRestBeep=liveRestBeep;
 
+// Czytnik ekranu: zamiast ogłaszać każdą sekundę, mówimy tylko przy 10 s, 3 s i 0.
+function liveRestAnnounceText(left){
+  if(left===10)return 'Zostało 10 sekund przerwy';
+  if(left===3)return 'Zostały 3 sekundy';
+  if(left===0)return 'Koniec przerwy';
+  return '';
+}
+function liveRestAnnounce(slot,left){
+  const txt=liveRestAnnounceText(left);if(!txt)return;
+  const sr=document.getElementById(liveN(slot)===1?'live-b-rest-sr':'live-rest-sr');
+  if(sr)sr.textContent=txt;
+}
+window.liveRestAnnounceText=liveRestAnnounceText;
+
 function liveRestPaint(slot,phase){
   const n=liveN(slot);
   const el=liveEl('live-rest-timer',n);
@@ -5101,6 +5330,7 @@ function liveStartRest(sec,slot){
     const phase=liveRestPhase(left);
     const cue=liveRestCue(left);
     liveRestPaint(n,phase);
+    liveRestAnnounce(n,left);
     if(cue){
       if(typeof liveRestSpeak==='function')liveRestSpeak(left);
       liveRestBeep(cue);
@@ -5367,7 +5597,7 @@ function renderRepOverview(){
     </div>
 
     <!-- klienci -->
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:14px;">KLIENCI — STATUS RAPORTÓW</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:14px;">Klienci — status raportów</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
       ${clients.map(c=>{
         const cSess=SE.filter(s=>s.clientId===c.id);
@@ -5403,7 +5633,7 @@ function renderRepHistory(){
   const all=REP_HISTORY;
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">HISTORIA WYSŁANYCH RAPORTÓW</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">Historia wysłanych raportów</div>
       <button class="btn btn-ghost btn-sm" onclick="exportRepHistoryCsv()">⬇ Eksport CSV</button>
     </div>
     ${!all.length?`<div style="text-align:center;padding:60px;color:var(--muted);">
@@ -5453,7 +5683,7 @@ function renderRepAuto(){
   const schedules=getRepSchedules();
   el.innerHTML=`
     <div style="max-width:700px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">AUTOMATYCZNE RAPORTY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">Automatyczne raporty</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Harmonogram zapisuje się w ustawieniach. Wysyłka e-mail/WhatsApp wymaga backendu — tu zapisujemy reguły i generujemy raport w appce przy logowaniu (jeśli włączone).</div>
       <div style="font-size:11px;color:var(--muted);background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;margin-bottom:20px;">Uwaga: to nie jest cron 24/7. Reguły są sprawdzane gdy otworzysz panel trenera.</div>
 
@@ -5476,7 +5706,7 @@ function renderRepAuto(){
       </div>
 
       <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:20px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:14px;">USTAWIENIA GLOBALNE</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:14px;">Ustawienia globalne</div>
         <div class="form-grid">
           <div class="form-field">
             <label class="form-lbl">Domyślny szablon</label>
@@ -5629,7 +5859,7 @@ async function repGenerate(){
   const area=document.getElementById('rep-preview-area');
   area.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">
     <div class="ai-dot" style="width:16px;height:16px;"></div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent);">AI GENERUJE RAPORT...</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent);">AI generuje raport...</div>
     <div style="font-size:12px;color:var(--muted);">Analizuję dane klienta i tworzę spersonalizowane podsumowanie...</div>
   </div>`;
 
@@ -5744,7 +5974,7 @@ function renderRepDocument(c,template,hasAI,ai){
         <div style="background:${isDark?'linear-gradient(135deg,#0d0f12,#12151a)':accent+'22'};padding:28px 32px;border-bottom:1px solid ${border};">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:6px;">RAPORT POSTĘPÓW</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:6px;">Raport postępów</div>
               <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:${text};">${hasAI&&ai.headline?ai.headline:'Podsumowanie tygodnia'}</div>
               <div style="font-size:12px;color:${muted};margin-top:4px;">${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
             </div>

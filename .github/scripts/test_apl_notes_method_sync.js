@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Auto-struktura PPL w apl-notes znika przy zmianie metody/dni. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -23,7 +24,7 @@ ok('sync helper', /function aplSyncAutoStructureNotes/.test(src03));
 ok('toggle syncs methods/days', /groupId==='apl-methods'[\s\S]{0,120}aplSyncAutoStructureNotes/.test(src03));
 ok('preset uses marker', /APL-AUTO-STRUCT/.test(src03) && /aplAutoStructureNoteBlock/.test(src03));
 ok('ui hint', /Auto-struktura dni/.test(html) && html.includes('id="apl-notes"'));
-ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=43'));
+ok('cache 03', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 43));
 ok('CI', wf.includes('test_apl_notes_method_sync.js'));
 
 const start = src03.indexOf('function aplStripAutoStructureNotes');

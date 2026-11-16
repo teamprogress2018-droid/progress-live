@@ -99,6 +99,14 @@ eq('mapped note', mapped[0].note, 'Tempo 3-0-1');
 eq('mapped embed', mapped[0].videoEmbed, 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
 eq('mapped planNote', mapped[0].planNote, 'Tempo 3-0-1');
 
+const imageOnlyGuide = ctx.coachMediaHtml({name: 'Wariant ze zdjęciem', img: 'https://example.com/variant.png'}, {showVideo: true, showNote: false, caption: false});
+eq('image-only exercise guide renders the image', imageOnlyGuide.includes('<img') && imageOnlyGuide.includes('variant.png'), true);
+
+const mappedAlternatives = mapPlanExercisesForClient([{
+  name: 'Wyciskanie hantli', alt: 'Maszyna, Pompki, Linki, Sztanga, Dipy'
+}], 'c1');
+eq('client sees at most three trainer-approved alternatives', mappedAlternatives[0].alts, ['Maszyna', 'Pompki', 'Linki']);
+
 windowObj.DEF_EX = [{name: 'Przysiad ze sztangą', tip: '', video: 'https://youtu.be/abcdefghijk'}];
 eq('icons lib video only', coachMediaIcons({name: 'Przysiad ze sztangą'}), ' ▶️');
 

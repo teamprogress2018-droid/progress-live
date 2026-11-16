@@ -7,6 +7,7 @@ const path = require('path');
 const root = path.join(__dirname, '../..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
+const theme = fs.readFileSync(path.join(root, 'theme.css'), 'utf8');
 const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const clients = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
 const nine = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
@@ -25,9 +26,11 @@ ok('library flyout header', html.includes('nav-flyout-hd') && /Biblioteka/.test(
 ok('library flyout items', /Ćwiczenia/.test(html) && />Treningi</.test(html) && /Programy/.test(html) && /Formularze i ankiety/.test(html) && /Grupy pomiarów/.test(html));
 const libFly = html.slice(html.indexOf('id="nav-library-flyout"'), html.indexOf('data-screen="inbox"'));
 ok('library has programs templates', /data-screen="programs"/.test(libFly) && /data-screen="templates"/.test(libFly));
-ok('library trimmed tools', !/data-screen="aiplangen"/.test(libFly) && !/data-screen="builder"/.test(libFly) && !/data-screen="calculator"/.test(libFly) && !/data-screen="kb"/.test(libFly));
+ok('library trimmed tools', /data-screen="aiplangen"[^>]*>[\s\S]{0,400}?Nowy plan \(AI\)/.test(libFly) && !/data-screen="builder"/.test(libFly) && !/data-screen="calculator"/.test(libFly) && !/data-screen="kb"/.test(libFly));
 const sidebar = html.slice(html.indexOf('<aside class="sidebar"'), html.indexOf('</aside>'));
-ok('plan tools not in sidebar', !/data-screen="aiplangen"/.test(sidebar) && !/data-screen="builder"/.test(sidebar));
+// Generator AI ma jedno wejście: Biblioteka → „Nowy plan (AI)” (etap 5 poprawek UX). Kreator ręczny nie jest w pasku.
+const knowFly = sidebar.slice(sidebar.indexOf('id="nav-knowledge-flyout"'));
+ok('plan tools not in sidebar', (sidebar.match(/data-screen="aiplangen"/g) || []).length === 1 && /data-screen="aiplangen"/.test(libFly) && !/data-screen="aiplangen"/.test(knowFly) && !/data-screen="builder"/.test(sidebar));
 ok('calculator kb under Progress Academy', /id="nav-knowledge-flyout"[\s\S]*data-screen="kb"[\s\S]*data-screen="calculator"/.test(html));
 ok('inbox top-level', /class="nav-item" data-screen="inbox"[\s\S]*?Wiadomości/.test(sidebar));
 ok('live calendar automation top-level', (()=>{
@@ -36,8 +39,8 @@ ok('live calendar automation top-level', (()=>{
 ok('ondemand forum payments in sidebar', /data-screen="ondemand"[\s\S]*data-screen="forum"[\s\S]*data-screen="payments"/.test(sidebar));
 ok('no Więcej section', !html.includes('nav-more-items'));
 ok('single inbox badge', (html.match(/id="nb-inbox"/g) || []).length === 1);
-ok('clients screen everfit layout', html.includes('cl-everfit') && html.includes('cl-everfit-hdr'));
-ok('clients training columns', html.includes('Trening 7 dni') && html.includes('Trening 30 dni') && html.includes('Zadania 7 dni'));
+ok('clients screen layout', html.includes('cl-everfit') && html.includes('id="cl2-hdr"') && html.includes('Następny krok'));
+ok('training columns moved to row details', !html.includes('Trening 7 dni') && clients.includes("kv('Trening 7 dni'") && clients.includes("kv('Trening 30 dni'") && clients.includes("kv('Zadania 7 dni'"));
 ok('clients default active screen', /class="screen active" id="screen-clients"/.test(html));
 ok('flyout css panel', css.includes('.nav-flyout') && css.includes('.nav-flyout-hd') && css.includes('.cl-everfit-row'));
 ok('flyout not clipped by absolute-in-scroll', /\.nav-flyout\{[^}]*position:fixed/.test(css));
@@ -45,10 +48,14 @@ ok('flyout js race guard', /function\s+toggleLibraryFlyout/.test(nine) && /_libF
 ok('flyout positions from trigger rect', /function\s+_positionNavFlyout/.test(nine) && /getBoundingClientRect/.test(nine));
 ok('flyout portals to body', /document\.body\.appendChild\(fly\)/.test(nine));
 ok('goTo marks library group', /library:\['library','plans','programs','templates','tasks','forms','metrics','progbuilder'\]/.test(core) && core.includes("'nav-'+g+'-btn'"));
-ok('nav groups without builder/ai', /navGroupScreens=\{/.test(core) && !/navGroupScreens=\{[^}]*'aiplangen'/.test(core) && !/navGroupScreens=\{[^}]*'builder'/.test(core));
+ok('nav groups without builder; generator AI in library', /navGroupScreens=\{/.test(core) && /navGroupScreens\.library\.push\('aiplangen'\)/.test(core) && !/knowledge:\[[^\]]*'aiplangen'/.test(core) && !/navGroupScreens=\{[^}]*'builder'/.test(core));
 ok('plans library new-plan picker', html.includes('openNewPlanPicker()') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
-ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));
+ok('row message action', clients.includes('Napisz wiadomość') && clients.includes('quickMessageClient'));
+ok('row actions have accessible client labels', clients.includes('aria-label="${escHtml(actLabel)}: ${name}"') && clients.includes('aria-label="Szczegóły: ${name}"'));
+ok('neutral client states are not rendered as alarms', clients.includes("if(c.status==='archived'||c.status==='inactive')return'pill-muted'") && clients.includes("if(k==='noemail'||k==='onboarding'||k==='idle')return'pill-muted'"));
+ok('client activity uses semantic, non-alarm tones', clients.includes("tone:'neutral'") && clients.includes("cl-act-${archived||inactive?'neutral':(act.tone||'neutral')}"));
+ok('clients use cool canvas, white rows and semantic status surfaces', theme.includes('#screen-clients .tbl-row.cl-everfit-row') && theme.includes('background: var(--bg-card)') && theme.includes('#screen-clients .pill-green') && theme.includes('#screen-clients .pill-muted') && theme.includes('#screen-clients .pill-red'));
 ok('no action button spam in rows', !/quickStartWorkout\(event/.test(clients.slice(clients.indexOf('function renderClients'), clients.indexOf('function openClientModal'))));
 ok('openBuilderForClient sets back', /openBuilderForClient[\s\S]{0,200}_builderBack\s*=\s*'clients'/.test(clients));
 

@@ -14,6 +14,7 @@ Nie wykonywano produkcyjnych zapisów formularzy, check-inów, treningów, zdję
 
 ## Zakres
 
+- Trenerem jest wyłącznie konto z dokumentem `trainerRoles/{uid}` (`role = trainer`, `enabled = true`), nadanym ręcznie w Firebase Console — patrz `docs/rejestracja-trenera.md`. Samo zalogowanie się kontem bez powiązania klienta nie daje dostępu do danych, plików ani AI.
 - Trener odczytuje i zapisuje dane przypisane do swojego `trainerId`. Zapytania nie pobierają całych kolekcji bez ograniczenia właściciela.
 - Klient korzysta ze stałego powiązania w `clientAccounts/{uid}`. Prywatne dane wymagają zgodności `trainerId` i `clientId`; biblioteki wspólne dla podopiecznych mają osobną listę dozwolonych kolekcji. Dostęp do prywatnych grup forum wymaga członkostwa.
 - Pełne ustawienia trenera pozostają prywatne. `trainerPublicProfiles/{trainerId}` udostępnia podopiecznym wyłącznie dozwolone dane profilu, wyglądu, widoczności sekcji i instrukcji przelewu. Klucze API i konfiguracja integracji nie trafiają do tej projekcji.

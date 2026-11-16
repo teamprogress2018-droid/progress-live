@@ -14,7 +14,8 @@ function ok(name, cond, extra) {
 
 async function openApp(browser, viewport, routeBase) {
   const port = process.env.RESEARCH_PORT || '8080';
-  const page = await browser.newPage({ viewport });
+  // Atrapy sieci (page.route) nie obejmują zapytań service workera — w teście go blokujemy.
+  const page = await browser.newPage({ viewport, serviceWorkers: 'block' });
   page.setDefaultTimeout(20000);
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));

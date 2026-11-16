@@ -130,3 +130,42 @@ Dokumentacja Firebase:
 [harmonogram funkcji](https://firebase.google.com/docs/functions/schedule-functions),
 [wdrażanie funkcji](https://firebase.google.com/docs/functions/manage-functions),
 [transakcje](https://firebase.google.com/docs/firestore/manage-data/transactions).
+
+## Propozycje filmów YouTube do ćwiczeń
+
+Przycisk **„Znajdź propozycje według popularności”** w szczegółach ćwiczenia
+nie kopiuje żadnych filmów. Wyszukuje wyłącznie publiczne filmy przez YouTube
+Data API i zwraca maksymalnie pięć propozycji do ręcznego wyboru. Wyniki są
+odrzucane, gdy tytuł nie pasuje wystarczająco do ćwiczenia albo autor zabronił
+osadzania filmu. Kolejność uwzględnia przede wszystkim zgodność tytułu, a potem
+wyświetlenia i polubienia. YouTube nie udostępnia obecnie publicznego licznika
+niepolubień, więc nie jest on używany.
+
+Klucz API nigdy nie trafia do aplikacji, Firestore ani repozytorium. Administrator
+tworzy ograniczony klucz dla **YouTube Data API v3**, zapisuje go w Firebase Secret
+Manager jako `YOUTUBE_DATA_API_KEY`, a następnie wdraża wyłącznie tę funkcję:
+
+```sh
+node prepare-deploy.cjs
+npm install --prefix .runtime
+firebase functions:secrets:set YOUTUBE_DATA_API_KEY --project progress-live-fc83d
+firebase deploy --project progress-live-fc83d --config firebase.json --only functions:autoflow-pending:youtubeCurationSuggest
+```
+
+Klucz należy ograniczyć w Google Cloud do API **YouTube Data API v3**. Funkcja
+przyjmuje tylko żądania z aplikacji Progress Live, wymaga zalogowanego trenera,
+ma limit 80 nowych wyszukań na dobę oraz siedmiodniowy cache wyników. Jedno nowe
+wyszukiwanie używa `search.list` (100 jednostek kwoty) i `videos.list` (1
+jednostka), więc dzienny limit to maksymalnie około 8 080 jednostek. Przed
+masowym przypisywaniem należy najpierw ręcznie sprawdzić propozycję oraz kliknąć
+**„Przypisz film”** przy właściwym ćwiczeniu.
+
+Weryfikacja bez kontaktu z YouTube:
+
+```sh
+node server/automation/test-youtube-curation-core.cjs
+```
+
+Dokumentacja: [YouTube search.list](https://developers.google.com/youtube/v3/docs/search/list),
+[statystyki videos.list](https://developers.google.com/youtube/v3/docs/videos/list),
+[sekrety Firebase Functions](https://firebase.google.com/docs/functions/config-env).

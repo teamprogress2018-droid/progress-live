@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Biblioteka: Usuń ćwiczenie także dla DEF_EX (ukrycie + persist). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -18,13 +19,13 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v61', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache 06 v61', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
 ok('ci unit', wf.includes('test_lib_del_ex.js'));
 ok('detail always has delete', /id="exd-del"/.test(six) && /Usuń ćwiczenie/.test(six));
 ok('header delete sticky', html.includes('id="exd-del-hdr"') && /exd-del-hdr/.test(six));
 ok('edit still custom-only', /findCustomEx\(e\.name\)\?`<button[^>]*editEx/.test(six));
 ok('list row has Usuń', /delEx\(\$\{exJsArg\(e\.name\)\}/.test(six) && (six.match(/>Usuń<\/button>/g) || []).length >= 2);
-ok('card has Usuń', /function exCardHtml[\s\S]*?delEx\(\$\{exJsArg\(e\.name\)\}/.test(six));
+ok('detail header has Usuń / Ukryj', html.includes('id="exd-del-hdr"') && html.includes('delEx(currentExDetail)'));
 ok('restore control', html.includes('lib-restore-hidden') && /function restoreHiddenExercises/.test(six));
 ok('helpers', /function hiddenExNames/.test(six) && /function persistHiddenExercises/.test(six));
 ok('busy guard', /window\._delExBusy/.test(six) && /function refreshLibAfterDel/.test(six));

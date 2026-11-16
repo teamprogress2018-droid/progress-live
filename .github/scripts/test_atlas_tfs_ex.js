@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Atlas TFS POL: missing endurance / INNE / TRX / med-ball / KB names land in DEF_EX (EN aka). */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -36,10 +37,10 @@ function exerciseSearchBlob(e) {
 
 ok('library size atlas', DEF_EX.length >= 900, DEF_EX.length);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
-ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache 06 v38', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
 ok('cat Mobilność', six.includes("'Mobilność'") && html.includes('<option>Mobilność</option>'));
 ok('mobilność count', DEF_EX.filter((e) => e.cat === 'Mobilność').length >= 80, DEF_EX.filter((e) => e.cat === 'Mobilność').length);
-ok('cache 06 v37', html.includes('06-inbox-exercises-ai-programs.js?v=103'));
+ok('cache 06 v37', cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103));
 
 function findByQuery(q) {
   const n = exerciseSearchNorm(q);

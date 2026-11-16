@@ -41,13 +41,18 @@ function ok(name, cond, extra) {
       window.__savedGifs.push({ ref, data });
     };
     window.EX_GIF_REMOTE = {};
+    // Katalog filmów z Google Drive (od 21.10) i manifest GIF już dopasowują motyla — tu sprawdzamy ręczne przypisanie od zera.
+    window.EX_DRIVE_TECHNIQUE_MANIFEST = {};
+    window.EX_DRIVE_PREVIEW_MANIFEST = {};
+    ['butterfly (peck deck)', 'butterfly-peck-deck'].forEach((k) => { delete window.EX_GIF_MANIFEST[k]; delete (window.EX_PREVIEW_FALLBACKS || {})[k]; });
+    if (typeof invalidateExLibraryMediaFacts === 'function') invalidateExLibraryMediaFacts();
     window.COACH_VIDEOS = [
       { id: 'cv-pec', name: 'Motyl z biblioteki', url: 'https://cdn.example.com/filmy/motyl.mp4' }
     ];
   });
 
   await page.evaluate(() => {
-    if (typeof goTo === 'function') goTo('library');
+    if (typeof goTo === 'function') { localStorage.setItem('pl_library_wide_v1', '0'); goTo('library'); }
     const inp = document.getElementById('ex-search');
     if (inp) inp.value = 'Butterfly (peck deck)';
     if (typeof renderLib === 'function') renderLib();
@@ -124,11 +129,11 @@ function ok(name, cond, extra) {
     const player = document.getElementById('exd-mp4-player');
     const body = document.getElementById('exd-body');
     const assign = document.getElementById('exd-assign');
-    const card = [...document.querySelectorAll('.ex-card')].find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Butterfly (peck deck)');
+    const card = document.querySelector('.ex-card[data-ex-name="Butterfly (peck deck)"]');
     return {
       playerSrc: player ? player.getAttribute('src') : '',
       autoplay: !!(player && player.hasAttribute('autoplay') && player.hasAttribute('muted')),
-      filmBadge: !!(card && /FILM/.test(card.textContent || '')),
+      filmBadge: !!(card && card.querySelector('.exl-film')),
       cardVideo: !!(card && card.querySelector('video'))
     };
   });

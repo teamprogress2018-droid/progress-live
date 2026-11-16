@@ -4700,3 +4700,5214 @@ async function saveSess(){
   maybeResumeOnboard(cid);
 }
 
+// ════════════════════════════════════════
+// KLIENCI
+// ════════════════════════════════════════
+var clientSegment='all';
+var clientAttention=null;
+var clientGoalFilter='';
+const CLIENT_GOAL_LABELS={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+const CLIENT_SEGMENT_TITLES={all:'Wszyscy klienci',active:'Aktywni klienci',inactive:'Nieaktywni klienci',archived:'Zarchiwizowani klienci'};
+
+// „Wymaga uwagi” — jedna definicja dla filtrów listy klientów i alertów na pulpicie.
+const CLIENT_ATTENTION_FILTERS=[
+  {id:'attn-checkin',label:'Brak check-inu >7 dni'},
+  {id:'attn-measure',label:'Brak pomiaru >30 dni'},
+  {id:'attn-regres',label:'Regres'},
+  {id:'attn-noworkout',label:'0 treningów (14 dni)'},
+  {id:'attn-onboard',label:'Niedokończony start'},
+];
+function attnShortDate(t){return new Date(t).toLocaleDateString('pl-PL',{day:'numeric',month:'numeric'});}
+function attnDaysAgo(t){return Math.floor((Date.now()-t)/86400000);}
+function attnTime(raw){
+  if(!raw)return NaN;
+  const s=String(raw);
+  const t=new Date(s.length===10?s+'T12:00:00':s).getTime();
+  return Number.isFinite(t)&&t<=Date.now()?t:NaN;
+}
+function attnAgoText(t){
+  const d=attnDaysAgo(t);
+  return (d<=0?'dziś':d===1?'wczoraj':d+' dni temu')+' ('+attnShortDate(t)+')';
+}
+/** Zwraca {id:{reason,days}} dla aktywnych klientów. Nowy klient (<7 dni) nie dostaje alarmów o braku danych. */
+function clientAttentionFlags(c){
+  const out={};
+  if(!c||c.status==='archived'||c.status==='inactive')return out;
+  const joinedT=attnTime(c.joinDate||c.createdAt);
+  const fresh=Number.isFinite(joinedT)&&attnDaysAgo(joinedT)<7;
+  const ci=typeof latestFilledCheckin==='function'?latestFilledCheckin(c.id):null;
+  const ciT=ci&&typeof checkinActivityTime==='function'?checkinActivityTime(ci):NaN;
+  if(Number.isFinite(ciT)){
+    if(attnDaysAgo(ciT)>7)out['attn-checkin']={days:attnDaysAgo(ciT),reason:'Ostatni check-in '+attnAgoText(ciT)};
+  }else if(!fresh)out['attn-checkin']={days:999,reason:'Nie wypełnił jeszcze check-inu'};
+  const mT=(window.METRIC_ENTRIES||[]).filter(m=>m&&m.clientId===c.id).map(m=>attnTime(m.date)).filter(Number.isFinite);
+  if(mT.length){
+    const last=Math.max(...mT);
+    if(attnDaysAgo(last)>30)out['attn-measure']={days:attnDaysAgo(last),reason:'Ostatni pomiar '+attnAgoText(last)};
+  }else if(!fresh)out['attn-measure']={days:999,reason:'Brak pomiarów'};
+  const logged=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&(typeof isLoggedWorkout==='function'?isLoggedWorkout(s):s.source!=='planned'))
+    .map(s=>attnTime(s.date)).filter(Number.isFinite);
+  const lastW=logged.length?Math.max(...logged):NaN;
+  if(!fresh&&!(Number.isFinite(lastW)&&attnDaysAgo(lastW)<=14)){
+    out['attn-noworkout']={days:Number.isFinite(lastW)?attnDaysAgo(lastW):999,reason:Number.isFinite(lastW)?'Ostatni trening '+attnAgoText(lastW):'Brak zapisanych treningów'};
+  }
+  if(typeof buildMonitorVerdict==='function'){
+    try{
+      const v=buildMonitorVerdict(c);
+      if(v&&v.verdict==='regres'){
+        const bad=(v.signals||[]).filter(s=>s&&s.tone==='bad').map(s=>s.label+': '+s.text);
+        out['attn-regres']={days:0,reason:bad.length?'Źródło — '+bad.slice(0,2).join(' · '):'Monitoring postępów wskazuje regres',signals:bad};
+      }
+    }catch(e){}
+  }
+  if(typeof clientOnboardStatus==='function'){
+    const st=clientOnboardStatus(c);
+    if(st&&!st.complete)out['attn-onboard']={days:0,reason:'Start '+st.done+'/'+st.total+(st.missingLabels&&st.missingLabels[0]?' — '+st.missingLabels[0]:'')};
+  }
+  return out;
+}
+window.CLIENT_ATTENTION_FILTERS=CLIENT_ATTENTION_FILTERS;
+window.clientAttentionFlags=clientAttentionFlags;
+window.attnAgoText=attnAgoText;
+
+// ── Lista klientów 2.0: jeden „następny krok” na klienta ──
+// Kolejność = priorytet. Czerwień (urgent) tylko dla spraw pilnych; brak e-maila to informacja, nie alarm.
+// counts:false → podpowiedź w wierszu, ale klient nie trafia do „Wymaga uwagi”.
+const CLIENT_ISSUES={
+  regres:{sev:'urgent',label:'Regres w postępach',action:'Sprawdź postęp',counts:true,
+    tip:'Pilne: monitoring postępów pokazuje spadek wyników. Sprawdź, co się dzieje, i porozmawiaj z klientem.',
+    many:n=>n+' '+clPlural(n,'klient ma','klientów ma','klientów ma')+' regres w postępach'},
+  expired:{sev:'urgent',label:'Pakiet wygasł',action:'Przedłuż pakiet',counts:true,
+    tip:'Pilne: pakiet treningów klienta wygasł. Przedłuż go albo zakończ współpracę.',
+    many:n=>n+' '+clPlural(n,'klientowi','klientom','klientom')+' wygasł pakiet'},
+  report:{sev:'warn',label:'Raport zaległy',action:'Przypomnij',counts:true,
+    tip:'Klient nie odpowiedział na wysłany check-in tygodniowy. Przypomnij mu o raporcie.',
+    many:n=>n+' '+clPlural(n,'klient nie wysłał','klientów nie wysłało','klientów nie wysłało')+' raportu'},
+  noplan:{sev:'warn',label:'Brak planu treningowego',action:'Ułóż pierwszy plan',counts:true,
+    tip:'Klient nie ma przypisanego planu — bez niego nie zobaczy treningu w aplikacji.',
+    many:n=>n+' '+clPlural(n,'klient nie ma','klientów nie ma','klientów nie ma')+' planu treningowego'},
+  noworkout:{sev:'warn',label:'Brak treningu od 14+ dni',action:'Napisz wiadomość',counts:true,
+    tip:'Klient ma plan, ale od ponad 14 dni nie zapisał treningu. Krótka wiadomość zwykle wystarczy.',
+    many:n=>n+' '+clPlural(n,'klient nie trenował','klientów nie trenowało','klientów nie trenowało')+' od 14+ dni'},
+  expiring:{sev:'warn',label:'Pakiet wkrótce się kończy',action:'Przedłuż pakiet',counts:true,
+    tip:'Pakiet kończy się w ciągu 7 dni — zaproponuj przedłużenie.',
+    many:n=>n+' '+clPlural(n,'klientowi kończy','klientom kończy','klientom kończy')+' się pakiet'},
+  noemail:{sev:'info',label:'Brakuje adresu e-mail',action:'Dodaj e-mail',counts:true,
+    tip:'Bez e-maila nie zaprosisz klienta do aplikacji. To nie jest pilne — uzupełnij przy okazji.',
+    many:n=>n+' '+clPlural(n,'klient nie ma','klientów nie ma','klientów nie ma')+' e-maila'},
+  onboard:{sev:'info',label:'Niedokończony start',action:'Dokończ start',counts:true,
+    tip:'Nie wszystkie kroki startu są zrobione (np. wywiad, pomiary, plan).',
+    many:n=>n+' '+clPlural(n,'klient ma','klientów ma','klientów ma')+' niedokończony start'},
+  checkin:{sev:'hint',label:'Brak check-inu',action:'Wyślij check-in',counts:false,
+    tip:'Klient od ponad 7 dni nie wypełnił ankiety tygodniowej.'},
+  measure:{sev:'hint',label:'Brak pomiaru',action:'Dodaj pomiar',counts:false,
+    tip:'Ostatni pomiar był ponad 30 dni temu albo nie ma żadnego.'}
+};
+const CLIENT_ISSUE_ORDER=['regres','expired','report','noplan','noworkout','expiring','noemail','onboard','checkin','measure'];
+const CLIENT_SEV_LABEL={urgent:'Pilne',warn:'Do zrobienia',info:'Informacja',hint:'Podpowiedź',ok:'W porządku'};
+function clPlural(n,one,few,many){const a=Math.abs(n)%100,b=a%10;if(n===1)return one;if(b>=2&&b<=4&&(a<12||a>14))return few;return many;}
+/** Wszystkie sprawy klienta w kolejności priorytetu: [{key,label,reason}]. */
+function clientIssues(c,flags){
+  const out=[];
+  if(!c||c.status==='archived'||c.status==='inactive')return out;
+  const f=flags||clientAttentionFlags(c);
+  const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
+  const hasPlan=(window.PL||[]).some(p=>p&&p.clientId===c.id&&p.status!=='archived');
+  const add=(key,reason,label)=>out.push({key,reason:reason||'',label:label||CLIENT_ISSUES[key].label});
+  if(f['attn-regres'])add('regres',f['attn-regres'].reason);
+  if(life&&life.key==='expired')add('expired','Pakiet wygasł '+(life.expiresDate||''));
+  const rep=clientReportOverdue(c);
+  if(rep)add('report',rep.reason,rep.label);
+  if(!hasPlan)add('noplan','Nie ma przypisanego planu');
+  if(hasPlan&&f['attn-noworkout'])add('noworkout',f['attn-noworkout'].reason,f['attn-noworkout'].days>=999?'Brak zapisanych treningów':'Brak treningu od '+f['attn-noworkout'].days+' dni');
+  if(life&&life.key==='expiring')add('expiring','',life.label);
+  if(typeof clientHasEmail==='function'?!clientHasEmail(c):!c.email)add('noemail','Uzupełnij e-mail, aby wysłać zaproszenie do aplikacji');
+  if(f['attn-onboard'])add('onboard',f['attn-onboard'].reason,'Niedokończony '+(f['attn-onboard'].reason||'start').replace(/^Start/,'start').split(' — ')[0]);
+  if(f['attn-checkin'])add('checkin',f['attn-checkin'].reason,f['attn-checkin'].days>=999?'Brak check-inu':'Brak check-inu od '+f['attn-checkin'].days+' dni');
+  if(f['attn-measure'])add('measure',f['attn-measure'].reason,f['attn-measure'].days>=999?'Brak pomiarów':'Brak pomiaru od '+f['attn-measure'].days+' dni');
+  return out.sort((a,b)=>CLIENT_ISSUE_ORDER.indexOf(a.key)-CLIENT_ISSUE_ORDER.indexOf(b.key));
+}
+/** Zaległy raport (check-in wysłany, bez odpowiedzi) — to samo źródło co pulpit. */
+function clientReportOverdue(c){
+  if(!c||typeof getCIStatus!=='function')return null;
+  if(typeof ensureCheckins==='function')ensureCheckins(c.id);
+  if(getCIStatus(c.id)!=='overdue')return null;
+  const ci=typeof pendingCheckin==='function'?pendingCheckin(c.id):null;
+  const t=ci&&typeof checkinActivityTime==='function'?checkinActivityTime(ci):NaN;
+  if(!Number.isFinite(t))return{label:'Raport zaległy',reason:'Check-in tygodniowy bez odpowiedzi'};
+  const d=Math.max(0,Math.floor((Date.now()-t)/86400000));
+  const ago=typeof attnAgoText==='function'?attnAgoText(t):d+' dni temu';
+  return{label:'Raport zaległy od '+(d===0?'dziś':d===1?'1 dnia':d+' dni'),reason:'Check-in wysłany '+ago+' — bez odpowiedzi',days:d};
+}
+function clientNeedsAction(issues){return (issues||[]).some(i=>CLIENT_ISSUES[i.key].counts);}
+function clientIssuesMap(attnMap){
+  const map=new Map();
+  (window.CL||[]).forEach(c=>{if(c)map.set(c.id,clientIssues(c,attnMap&&attnMap.get(c.id)));});
+  return map;
+}
+/** Przycisk działania z wiersza — prowadzi prosto do miejsca, gdzie trener to załatwia. */
+function clientDoAction(e,clientId,key){
+  if(e)e.stopPropagation();
+  const prof=tab=>{if(typeof openClientProfile==='function')openClientProfile(clientId,tab?{tab}:undefined);};
+  if(key==='regres'||key==='ok')return prof('progress');
+  if(key==='expired'||key==='expiring')return prof('payments');
+  if(key==='noplan'){if(typeof openBuilderForClient==='function')return openBuilderForClient(clientId);return prof('plan');}
+  if(key==='noworkout'||key==='message')return quickMessageClient(e||{stopPropagation(){}},clientId);
+  if(key==='noemail'){
+    if(typeof openClientModal==='function')openClientModal(clientId);
+    setTimeout(()=>{const el=document.getElementById('ac-email');if(el){el.focus();if(el.scrollIntoView)el.scrollIntoView({block:'center'});}},80);
+    return;
+  }
+  if(key==='checkin'||key==='report'){if(typeof sendCheckinTo==='function')return sendCheckinTo(clientId);return prof();}
+  if(key==='measure')return prof('metrics');
+  if(key==='restore')return quickRestoreClient(e||{stopPropagation(){}},clientId);
+  return prof();
+}
+window.clientIssues=clientIssues;window.clientDoAction=clientDoAction;window.CLIENT_ISSUES=CLIENT_ISSUES;
+
+// Zwraca datę (Date) ostatniej aktywności KLIENTA, albo null jeśli brak.
+// Liczy tylko to, co klient faktycznie zrobił: odbyte sesje (nie zaplanowane), pomiary, check-iny, wpisy osi czasu.
+// Pomija sesje w przyszłości i daty utworzenia planów (to aktywność trenera) — inaczej „ryzyko odejścia” nigdy by się nie pojawiło.
+function getClientLastActivity(clientId){
+  const dates=[];
+  const now=Date.now();
+  const sessions=window.SE||[];
+  sessions.forEach(s=>{
+    if(s.clientId!==clientId||!s.date)return;
+    const happened=typeof sessionHappened==='function'?sessionHappened(s,sessions):s.source!=='planned';
+    if(happened)dates.push(new Date(s.date+'T'+(s.time||'12:00')+':00'));
+  });
+  (window.METRIC_ENTRIES||[]).forEach(m=>{ if(m.clientId===clientId && m.date) dates.push(new Date(m.date+'T10:00:00')); });
+  ((window.CHECKINS||{})[clientId]||[]).forEach(ci=>{ if(ci&&ci.filledAt) dates.push(new Date(ci.filledAt)); });
+  (window.CLIENT_TIMELINE?.[clientId]||[]).forEach(e=>{ if(e.date) dates.push(new Date(e.date)); });
+  const valid=dates.filter(d=>!isNaN(d)&&d.getTime()<=now);
+  if(!valid.length)return null;
+  return new Date(Math.max(...valid.map(d=>d.getTime())));
+}
+
+// Formatuje datę ostatniej aktywności do krótkiego, czytelnego tekstu.
+// Brak historii sam w sobie nie jest alarmem — pilność pokazuje osobny filtr „Wymaga uwagi”.
+function formatClientActivity(clientId){
+  const last=getClientLastActivity(clientId);
+  if(!last)return{label:'Brak aktywności',color:'var(--text-label)',tone:'neutral',days:Infinity};
+  const days=Math.floor((Date.now()-last.getTime())/(1000*60*60*24));
+  let label;
+  if(days<=0)label='Dziś';
+  else if(days===1)label='Wczoraj';
+  else if(days<7)label=days+' dni temu';
+  else if(days<14)label='Tydzień temu';
+  else if(days<31)label=Math.floor(days/7)+' tyg. temu';
+  else label=Math.floor(days/30)+' mies. temu';
+  const tone=days<=3?'positive':days<=14?'neutral':'watch';
+  const color=tone==='positive'?'var(--success, var(--teal))':tone==='watch'?'var(--warning, var(--orange))':'var(--text-label)';
+  return{label,color,tone,days};
+}
+
+/** Everfit-style tracked / assigned for last N days. */
+function clientTrainingWindowStats(clientId,days){
+  if(typeof clientAdherenceStats==='function'){
+    const st=clientAdherenceStats(clientId,days);
+    return{done:st.logged,assigned:st.assigned,pct:st.assigned||st.logged?st.pct:null};
+  }
+  const today=new Date();
+  const sessions=(window.SE||[]).filter(s=>{
+    if(s.clientId!==clientId||!s.date)return false;
+    const d=new Date(s.date+'T12:00:00');
+    const diff=(today-d)/86400000;
+    return diff>=0&&diff<=days;
+  });
+  const logged=typeof completedWorkouts==='function'
+    ? completedWorkouts(clientId,sessions)
+    : sessions.filter(s=>s.source==='client'||s.source==='live');
+  const assigned=sessions.length;
+  const done=logged.length;
+  const pct=assigned?Math.round((done/assigned)*100):null;
+  return{done,assigned,pct};
+}
+
+function clientTasksWindowStats(clientId,days){
+  const today=new Date();
+  const tasks=(window.TASKS||[]).filter(t=>{
+    if(t.clientId!==clientId)return false;
+    const raw=t.completedAt||t.doneAt||t.dueDate||t.createdAt||t.date;
+    if(!raw)return t.status==='done'||t.status==='open'||!t.status;
+    const d=new Date(raw);
+    if(isNaN(d))return true;
+    const diff=(today-d)/86400000;
+    return diff>=0&&diff<=days;
+  });
+  const assigned=tasks.length;
+  const done=tasks.filter(t=>t.status==='done').length;
+  const pct=assigned?Math.round((done/assigned)*100):null;
+  return{done,assigned,pct};
+}
+
+function clientStatusPillClass(c,life){
+  if(c.status==='archived'||c.status==='inactive')return'pill-muted';
+  const k=life&&life.key;
+  if(k==='expired')return'pill-red';
+  if(k==='expiring'||k==='atrisk')return'pill-orange';
+  if(k==='noemail'||k==='onboarding'||k==='idle')return'pill-muted';
+  return'pill-green';
+}
+function clPctCell(stats,emptyLabel){
+  if(!stats.assigned){
+    if(stats.done)return`<span class="cl-pct mid" title="Zapisane, ale nic nie było zaplanowane">${stats.done} poza planem</span>`;
+    return`<span class="cl-pct muted" title="Nic nie zaplanowano w tym okresie">${emptyLabel||'nic w planie'}</span>`;
+  }
+  const ok=stats.pct>=80;
+  const mid=stats.pct>=40;
+  return`<span class="cl-pct ${ok?'ok':mid?'mid':'low'}">${stats.done}/${stats.assigned} · ${stats.pct}%</span>`;
+}
+
+// ── Szybkie akcje z listy klientów (bez otwierania pełnego profilu) ──
+function quickMessageClient(e,clientId){
+  e.stopPropagation();
+  goTo('inbox');
+  setTimeout(()=>{ if(typeof openChat==='function')openChat(clientId); },200);
+}
+function quickEditClient(e,clientId){
+  e.stopPropagation();
+  if(typeof openClientModal==='function')openClientModal(clientId);
+}
+function quickStartWorkout(e,clientId){
+  e.stopPropagation();
+  const c=CL.find(x=>x.id===clientId);
+  if(typeof liveSetPendingClient==='function')liveSetPendingClient(clientId,{clientName:c?c.name:''});
+  goTo('live');
+}
+function quickCheckin(e,clientId){
+  e.stopPropagation();
+  if(typeof sendCheckinTo==='function')sendCheckinTo(clientId);
+}
+function quickArchiveClient(e,clientId){
+  e.stopPropagation();
+  if(typeof archiveClient==='function')archiveClient(clientId);
+}
+function quickRestoreClient(e,clientId){
+  e.stopPropagation();
+  if(typeof restoreClient==='function')restoreClient(clientId);
+}
+function quickDeleteClient(e,clientId){
+  e.stopPropagation();
+  if(typeof deleteClientPermanently==='function')deleteClientPermanently(clientId);
+}
+
+function renderClientFilters(attnMap){
+  const sel=document.getElementById('client-status-filter');
+  if(sel&&sel.value!==clientSegment)sel.value=clientSegment;
+  const goalSel=document.getElementById('client-goal-filter');
+  if(goalSel&&goalSel.value!==clientGoalFilter)goalSel.value=clientGoalFilter;
+  const nonArchived=CL.filter(c=>c.status!=='archived');
+  const segments=[
+    {id:'all',label:'Wszyscy klienci',count:nonArchived.length},
+    {id:'active',label:'Aktywni',count:CL.filter(c=>c.status==='active').length},
+    {id:'inactive',label:'Nieaktywni',count:CL.filter(c=>c.status==='inactive').length},
+    {id:'archived',label:'Zarchiwizowani',count:CL.filter(c=>c.status==='archived').length},
+  ];
+  renderClientAttentionChips(attnMap);
+  syncClientFlyout();
+  const link=document.getElementById('cl-app-link');
+  if(link&&typeof clientAppUrl==='function')link.textContent=clientAppUrl().replace(/^https?:\/\//,'');
+  syncClientFiltersToggle();
+  const el=document.getElementById('client-filter-list');
+  if(!el)return;
+  el.innerHTML=segments.map(s=>{
+    const on=clientSegment===s.id&&!clientAttention;
+    return `<button type="button" class="cl-seg-item${on?' active':''}" aria-pressed="${on}" onclick="pickClientSegment('${s.id}')"><span>${s.label}</span><span class="cl-seg-n">${s.count}</span></button>`;
+  }).join('');
+  syncClientFiltersToggle();
+}
+function setClientSegment(seg){clientSegment=seg;renderClientFilters();renderClients();}
+/** Panel widoków i menu „Klienci”: wybór widoku zdejmuje filtr „Wymaga uwagi”. */
+function pickClientSegment(seg){clientAttention=null;setClientSegment(seg);}
+function setClientGoalFilter(goal){clientGoalFilter=goal||'';syncClientFiltersToggle();renderClients();}
+function openClientSegment(seg){
+  if(typeof closeNavFlyouts==='function')closeNavFlyouts();
+  goTo('clients');
+  pickClientSegment(seg);
+}
+/** Menu „Klienci” w pasku bocznym pokazuje, który widok listy jest otwarty. */
+function syncClientFlyout(){
+  document.querySelectorAll('#nav-clients-flyout [data-client-seg]').forEach(b=>{
+    b.classList.toggle('active',!clientAttention&&b.dataset.clientSeg===clientSegment);
+  });
+}
+/** Flagi liczone raz na render listy (monitoring postępów nie jest darmowy). */
+function clientAttentionMap(){
+  const map=new Map();
+  (window.CL||[]).forEach(c=>{if(c&&c.status!=='archived'&&c.status!=='inactive')map.set(c.id,clientAttentionFlags(c));});
+  return map;
+}
+function renderClientAttentionChips(map){
+  const el=document.getElementById('client-attn-chips');
+  const sel=document.getElementById('client-attn-filter');
+  if(!el&&!sel)return;
+  const flags=map||clientAttentionMap();
+  const count=id=>[...flags.values()].filter(f=>f[id]).length;
+  if(el)el.innerHTML=CLIENT_ATTENTION_FILTERS.map(f=>{
+    const n=count(f.id),on=clientAttention===f.id;
+    return `<button type="button" class="cl-seg-item cl-attn-chip${on?' active':''}${n?'':' empty'}" aria-pressed="${on}" onclick="setClientAttention('${f.id}')"><span>${escHtml(f.label)}</span><span class="cl-seg-n cl-attn-n">${n}</span></button>`;
+  }).join('');
+  if(sel){
+    const im=window._clIssuesMap||new Map();
+    const actN=key=>[...im.values()].filter(list=>key==='any'?clientNeedsAction(list):list.some(i=>i.key===key)).length;
+    // Jedna lista spraw (bez powtórek); tylko te, które dotyczą choć jednego klienta.
+    let opts=`<option value="">Wszyscy</option><option value="act:any">Wymaga działania (${actN('any')})</option>`
+      +CLIENT_ISSUE_ORDER.map(k=>({k,n:actN(k)})).filter(x=>x.n).map(x=>`<option value="act:${x.k}">${escHtml(CLIENT_ISSUES[x.k].label)} (${x.n})</option>`).join('');
+    if(clientAttention&&clientAttention.startsWith('attn-')){
+      const f=CLIENT_ATTENTION_FILTERS.find(x=>x.id===clientAttention);
+      if(f)opts+=`<option value="${f.id}">${escHtml(f.label)} (${count(f.id)})</option>`;
+    }
+    sel.innerHTML=opts;
+    sel.value=clientAttention||'';
+  }
+}
+function setClientAttention(id){
+  clientAttention=clientAttention===id?null:id;
+  // Filtr uwagi dotyczy klientów w trakcie współpracy, więc wraca do „wszyscy”.
+  if(clientAttention&&clientSegment==='archived')clientSegment='all';
+  renderClientFilters();renderClients();
+}
+function setClientAttentionValue(id){
+  if((id||null)===clientAttention)return;
+  setClientAttention(id||clientAttention);
+}
+window.setClientAttention=setClientAttention;
+window.setClientAttentionValue=setClientAttentionValue;
+window.setClientGoalFilter=setClientGoalFilter;
+window.openClientSegment=openClientSegment;
+window.pickClientSegment=pickClientSegment;
+window.syncClientFlyout=syncClientFlyout;
+
+// ── Układ 2.0: panel widoków, filtry, menu i kolumny listy klientów ──
+const CLIENT_TABLE_COLUMNS=[
+  {n:3,label:'Ostatnia aktywność',w:'minmax(110px,1fr)'},
+  {n:4,label:'Trening 7 dni',w:'minmax(90px,1fr)'},
+  {n:5,label:'Trening 30 dni',w:'minmax(90px,1fr)'},
+  {n:6,label:'Zadania 7 dni',w:'minmax(90px,1fr)'},
+  {n:7,label:'Cel',w:'minmax(90px,.9fr)'},
+  {n:8,label:'Status',w:'minmax(110px,1fr)'},
+];
+function clientUiPref(key,fallback){
+  try{const v=localStorage.getItem(key);return v===null?fallback:v;}catch(e){return fallback;}
+}
+function setClientUiPref(key,val){
+  try{localStorage.setItem(key,val);}catch(e){}
+}
+function clientHiddenColumns(){
+  return clientUiPref('pl_clients_hidden_cols','').split(',').map(Number).filter(Boolean);
+}
+function applyClientColumns(){
+  const box=document.getElementById('cl-everfit');
+  if(!box)return;
+  // Lista 2.0 ma stałe 4 kolumny; dane z dawnych kolumn są w „Szczegółach” wiersza.
+  const hidden=clientHiddenColumns();
+  const pop=document.getElementById('cl-cols-menu');
+  if(pop)pop.innerHTML=`<div class="cl-pop-hd">Widoczne kolumny</div>`+CLIENT_TABLE_COLUMNS.map(c=>
+    `<label class="cl-pop-check"><input type="checkbox" ${hidden.includes(c.n)?'':'checked'} onchange="toggleClientColumn(${c.n},this.checked)"> ${c.label}</label>`).join('');
+}
+function toggleClientColumn(n,visible){
+  const hidden=clientHiddenColumns().filter(x=>x!==n);
+  if(!visible)hidden.push(n);
+  setClientUiPref('pl_clients_hidden_cols',hidden.join(','));
+  applyClientColumns();
+}
+function applyClientSubnav(open){
+  const shell=document.getElementById('cl-shell');
+  if(shell)shell.classList.toggle('cl-subnav-off',!open);
+  const btn=document.getElementById('cl-subnav-toggle');
+  if(btn){
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    const lbl=open?'Ukryj panel widoków':'Pokaż panel widoków';
+    btn.setAttribute('aria-label',lbl);btn.title=lbl;
+  }
+}
+function toggleClientSubnav(){
+  const shell=document.getElementById('cl-shell');
+  const open=!!(shell&&shell.classList.contains('cl-subnav-off'));
+  applyClientSubnav(open);
+  setClientUiPref('pl_clients_subnav',open?'1':'0');
+}
+function clientFiltersDefaultVisible(){
+  // Filtry są schowane pod jednym przyciskiem „Filtry” — na start lista i jedno działanie.
+  return false;
+}
+function clientAttentionLabel(id){
+  if(!id)return '';
+  if(id==='act:any')return 'Wymaga uwagi';
+  if(id.startsWith('act:')){const d=CLIENT_ISSUES[id.slice(4)];return d?d.label:'Wymaga uwagi';}
+  const f=CLIENT_ATTENTION_FILTERS.find(filter=>filter.id===id);
+  return f?f.label:'';
+}
+function clientActiveFilterLabels(){
+  const labels=[];
+  if(clientSegment!=='all')labels.push(CLIENT_SEGMENT_TITLES[clientSegment]||'status');
+  const attention=clientAttentionLabel(clientAttention);
+  if(attention)labels.push(attention);
+  if(clientGoalFilter)labels.push(clientGoalFilter);
+  return labels;
+}
+function syncClientFiltersToggle(){
+  const chips=document.getElementById('cl-filter-chips');
+  if(!chips)return;
+  applyClientFiltersToggleLabel(!chips.hidden);
+}
+function applyClientFiltersToggleLabel(show){
+  const btn=document.getElementById('cl-filters-toggle');
+  if(!btn)return;
+  const active=clientActiveFilterLabels();
+  const clear=document.getElementById('cl-filters-clear');
+  btn.textContent=active.length?`Filtry (${active.length})`:'Filtry';
+  btn.classList.toggle('is-on',!!show);
+  btn.setAttribute('aria-expanded',show?'true':'false');
+  btn.setAttribute('aria-label',show
+    ?'Ukryj filtry listy klientów'
+    :(active.length?`Pokaż filtry listy klientów. Aktywne filtry: ${active.join(', ')}.`:'Pokaż filtry listy klientów'));
+  if(clear)clear.hidden=!active.length;
+}
+function applyClientFiltersVisible(show){
+  const chips=document.getElementById('cl-filter-chips');
+  if(chips)chips.hidden=!show;
+  applyClientFiltersToggleLabel(show);
+}
+function toggleClientFilters(){
+  const chips=document.getElementById('cl-filter-chips');
+  const show=!!(chips&&chips.hidden);
+  applyClientFiltersVisible(show);
+  setClientUiPref('pl_clients_filters',show?'1':'0');
+}
+function clearClientFilters(){
+  clientSegment='all';
+  clientAttention=null;
+  clientGoalFilter='';
+  renderClientFilters();
+  renderClients();
+}
+function focusClientSearch(){
+  const inp=document.getElementById('client-search');
+  if(inp){inp.focus();inp.select();}
+}
+function closeClientMenus(){
+  document.querySelectorAll('#screen-clients .cl-pop').forEach(p=>{p.hidden=true;});
+  document.querySelectorAll('#screen-clients [aria-controls^="cl-"][aria-haspopup]').forEach(b=>b.setAttribute('aria-expanded','false'));
+}
+function toggleClientMenu(id,btn){
+  const pop=document.getElementById(id);
+  if(!pop)return;
+  const open=pop.hidden;
+  closeClientMenus();
+  if(!open)return;
+  pop.hidden=false;
+  if(btn)btn.setAttribute('aria-expanded','true');
+  const first=pop.querySelector('button,input');
+  if(first)first.focus();
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest&&e.target.closest('#screen-clients .cl-split'))return;
+  closeClientMenus();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const pop=document.querySelector('#screen-clients .cl-pop:not([hidden])');
+  if(!pop)return;
+  const btn=document.querySelector(`[aria-controls="${pop.id}"]`);
+  closeClientMenus();
+  if(btn)btn.focus();
+});
+function copyClientAppLink(){
+  if(typeof clientAppUrl!=='function'||typeof copyInviteText!=='function')return;
+  copyInviteText(clientAppUrl(),'✓ Link do aplikacji klienta skopiowany','Skopiuj link ręcznie');
+}
+function initClientLayout(){
+  applyClientSubnav(false);
+  applyClientFiltersVisible(clientFiltersDefaultVisible());
+  applyClientColumns();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initClientLayout);
+else initClientLayout();
+window.toggleClientSubnav=toggleClientSubnav;
+window.toggleClientFilters=toggleClientFilters;
+window.clearClientFilters=clearClientFilters;
+window.focusClientSearch=focusClientSearch;
+window.toggleClientMenu=toggleClientMenu;
+window.closeClientMenus=closeClientMenus;
+window.toggleClientColumn=toggleClientColumn;
+window.copyClientAppLink=copyClientAppLink;
+function clientListCompactDefault(){
+  return window.matchMedia&&window.matchMedia('(max-width: 600px)').matches;
+}
+function clientListIsCompact(){
+  const saved=clientUiPref('pl_clients_compact','');
+  return saved===''?clientListCompactDefault():saved==='1';
+}
+function updateClientListToggle(total,compact){
+  const wrap=document.getElementById('client-list-toggle-wrap');
+  const btn=document.getElementById('client-list-toggle');
+  if(!wrap||!btn)return;
+  const hidden=Math.max(0,total-3);
+  wrap.hidden=hidden===0;
+  btn.setAttribute('aria-expanded',compact?'false':'true');
+  btn.textContent=compact?`Pokaż pozostałych (${hidden})`:'Zwiń listę do 3 klientów';
+  btn.setAttribute('aria-label',compact
+    ?`Pokaż pozostałych ${hidden} klientów. Widoczne 3 z ${total}.`
+    :`Zwiń listę do 3 klientów. Widoczne wszystkie ${total}.`);
+  const summary=document.getElementById('client-view-summary');
+  if(summary&&compact&&hidden)summary.textContent+=` · widoczne 3 z ${total}`;
+}
+function toggleClientListCompact(){
+  setClientUiPref('pl_clients_compact',clientListIsCompact()?'0':'1');
+  renderClients();
+}
+window.toggleClientListCompact=toggleClientListCompact;
+function filterClients(){renderClients();}
+function getSidebarClientsFiltered(){
+  const q=((document.getElementById('nav-client-search')||{}).value||'').trim().toLowerCase();
+  let list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(q){
+    list=list.filter(c=>{
+      const name=(c.name||'').toLowerCase();
+      const email=(c.email||'').toLowerCase();
+      return name.includes(q)||email.includes(q);
+    });
+  }
+  return list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{days:0}}))
+    .sort((a,b)=>(b.act.days||0)-(a.act.days||0))
+    .map(x=>x.c);
+}
+function renderSidebarClients(){
+  const el=document.getElementById('nav-clients-list');
+  if(!el)return;
+  const list=getSidebarClientsFiltered();
+  const activeId=(typeof cpClientId!=='undefined'&&cpClientId)?cpClientId:null;
+  if(!list.length){
+    const q=((document.getElementById('nav-client-search')||{}).value||'').trim();
+    el.innerHTML=`<div class="nav-clients-empty">${q?'Brak wyników':'Brak klientów'}</div>`;
+    return;
+  }
+  el.innerHTML=list.map((c,i)=>{
+    const col=(typeof COLS!=='undefined'?COLS:['#e6302a','#4ade80','#60a5fa','#a78bfa','#f59e0b'])[i%5];
+    const on=activeId===c.id?' active':'';
+    const init=typeof getInit==='function'?getInit(c.name):(c.name||'?').slice(0,1);
+    const safeName=typeof escHtml==='function'?escHtml(c.name):String(c.name||'');
+    const safeInit=typeof escHtml==='function'?escHtml(init):String(init);
+    const unread=typeof msgHasUnread==='function'?msgHasUnread(c.id):(typeof clientsWithUnreadMsgs==='function'&&clientsWithUnreadMsgs().some(x=>x.id===c.id));
+    const badge=unread?'<span class="nav-client-attn" title="Nieprzeczytana wiadomość" aria-label="Nieprzeczytana"></span>':'';
+    return `<button type="button" class="nav-client-item${on}" role="listitem" data-client-id="${c.id}" onclick="openClientFromSidebar('${c.id}')" title="${safeName}">
+      <span class="nav-client-av" style="background:${col}22;color:${col}">${safeInit}</span>
+      <span class="nav-client-name">${safeName}</span>
+      ${badge}
+    </button>`;
+  }).join('');
+}
+function filterSidebarClients(){renderSidebarClients();}
+function openClientFromSidebar(id){
+  if(typeof closeMobileSidebar==='function')try{closeMobileSidebar();}catch(e){}
+  if(typeof openClientProfile==='function')openClientProfile(id);
+  else if(typeof goTo==='function'){goTo('clients');}
+  renderSidebarClients();
+}
+window.renderSidebarClients=renderSidebarClients;
+window.filterSidebarClients=filterSidebarClients;
+window.openClientFromSidebar=openClientFromSidebar;
+
+function clientIdentityText(value){return String(value||'').trim().toLocaleLowerCase('pl').replace(/\s+/g,' ');}
+function clientPossibleDuplicates(fields,excludeId){
+  const name=clientIdentityText(fields&&fields.name);
+  const email=clientIdentityText(fields&&fields.email);
+  const all=(window.CL||[]).filter(c=>c&&c.id!==excludeId&&c.status!=='archived');
+  return {
+    email:email?all.filter(c=>clientIdentityText(c.email)===email):[],
+    name:name?all.filter(c=>clientIdentityText(c.name)===name):[]
+  };
+}
+window.clientPossibleDuplicates=clientPossibleDuplicates;
+
+// ── Scalanie duplikatów: dane z jednej karty przechodzą do drugiej, a pusta karta trafia do archiwum ──
+const CLIENT_MERGE_ARRAYS=[['plans','PL'],['sessions','SE'],['tasks','TASKS'],['metricEntries','METRIC_ENTRIES'],['progressPhotos','PROGRESS_PHOTOS'],
+  ['packages','PACKAGES'],['invoices','INVOICES'],['formSends','FORM_SENDS'],['reportHistory','REP_HISTORY']];
+const CLIENT_MERGE_GROUPS=[['messages','MSGS'],['checkins','CHECKINS'],['clientNotes','CLIENT_NOTES'],['clientDocs','CLIENT_DOCS']];
+const CLIENT_MERGE_LABELS={plans:'plany',sessions:'treningi i sesje',tasks:'zadania',metricEntries:'pomiary',progressPhotos:'zdjęcia sylwetki',
+  packages:'pakiety',invoices:'faktury',formSends:'formularze',reportHistory:'raporty',messages:'wiadomości',checkins:'check-iny',clientNotes:'notatki',clientDocs:'dokumenty'};
+const CLIENT_MERGE_FILL=['email','phone','age','gender','weight','height','goal','level','trainingFreq','preferredTrainTime','activityLevel','injuries','sportNotes'];
+function clientMergeRecords(clientId){
+  const out=[];
+  CLIENT_MERGE_ARRAYS.forEach(([col,key])=>(window[key]||[]).forEach(r=>{if(r&&r.clientId===clientId)out.push({col,key,r});}));
+  CLIENT_MERGE_GROUPS.forEach(([col,key])=>(((window[key]||{})[clientId])||[]).forEach(r=>{if(r)out.push({col,key,r,group:true});}));
+  return out;
+}
+/** Odcisk rekordu: ten sam trening, plan, pomiar czy wiadomość zapisane dwa razy nie trafiają drugi raz do karty docelowej. */
+function clientMergeSig(col,r){
+  if(!r)return null;
+  if(col==='sessions')return [r.date||'',r.time||'',r.source||'',(r.exercises||[]).map(e=>(e&&(e.name||e.exerciseName))||'').join('|')].join('#');
+  if(col==='plans')return [r.name||r.planName||'',JSON.stringify(r.days||r.weeks||r.exercises||[])].join('#');
+  if(col==='metricEntries')return [r.groupId||'',r.date||'',JSON.stringify(r.values||{})].join('#');
+  if(col==='checkins')return [r.date||'',r.status||'',JSON.stringify(r.answers||{})].join('#');
+  if(col==='messages')return [r.createdAt||r.time||'',r.text||'',r.out?1:0].join('#');
+  return null;
+}
+/** Co przejdzie do karty docelowej, a co zostanie (jako powtórzenie) przy zarchiwizowanym duplikacie. */
+function clientMergePlan(dropId,keepId){
+  const seen=new Set();
+  if(keepId)clientMergeRecords(keepId).forEach(x=>{const s=clientMergeSig(x.col,x.r);if(s!=null)seen.add(x.col+'@'+s);});
+  const move=[],skip=[];
+  clientMergeRecords(dropId).forEach(x=>{
+    const s=clientMergeSig(x.col,x.r),key=x.col+'@'+s;
+    if(s!=null&&seen.has(key))skip.push(x);
+    else{move.push(x);if(s!=null)seen.add(key);}
+  });
+  return{move,skip};
+}
+function clientMergeSummary(clientId,keepId){
+  const plan=clientMergePlan(clientId,keepId||null),counts={};
+  plan.move.forEach(x=>{counts[x.col]=(counts[x.col]||0)+1;});
+  const text=Object.entries(counts).map(([col,n])=>(CLIENT_MERGE_LABELS[col]||col)+': '+n).join(', ')||'brak powiązanych danych';
+  return plan.skip.length?text+'; powtórzone, pomijamy: '+plan.skip.length:text;
+}
+/** Która karta zostaje: połączona z aplikacją, potem ta z większą liczbą danych, potem starsza. */
+function clientMergeKeep(a,b){
+  if(!!a.appJoined!==!!b.appJoined)return a.appJoined?a:b;
+  const na=clientMergeRecords(a.id).length,nb=clientMergeRecords(b.id).length;
+  if(na!==nb)return na>nb?a:b;
+  return String(a.joinDate||a.createdAt||'9')<=String(b.joinDate||b.createdAt||'9')?a:b;
+}
+function clientMergeCandidates(c){
+  if(!c)return[];
+  const d=clientPossibleDuplicates(c,c.id);
+  const trainerEmail=typeof normalizeClientEmail==='function'?normalizeClientEmail((typeof getTrainerEmail==='function'&&getTrainerEmail())||window._userEmail||''):'';
+  // Wspólny e-mail trenera nie oznacza tej samej osoby — takich kart nie proponujemy do scalenia.
+  const byEmail=clientIdentityText(c.email)&&clientIdentityText(c.email)!==trainerEmail?d.email:[];
+  const seen=new Set();
+  return [...d.name,...byEmail].filter(x=>x&&!seen.has(x.id)&&seen.add(x.id));
+}
+function openClientMerge(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  const cands=clientMergeCandidates(c);
+  if(!c||!cands.length){notify('Nie znaleziono podobnej karty do scalenia.');return;}
+  let m=document.getElementById('m-client-merge');
+  if(!m){
+    m=document.createElement('div');m.id='m-client-merge';m.className='modal-ov';
+    document.body.appendChild(m);
+  }
+  const card=x=>`<div class="cm-card"><div class="cm-name">${escHtml(x.name||'Klient')}${x.appJoined?' <span class="pill pill-green" style="font-size:10px;">aplikacja</span>':''}</div>
+    <div class="cm-sub">${escHtml(x.email||'bez e-maila')}${x.joinDate?' · od '+escHtml(x.joinDate):''}</div>
+    <div class="cm-sub">${escHtml(clientMergeSummary(x.id))}</div></div>`;
+  const rows=cands.map(o=>{
+    const keep=clientMergeKeep(c,o),drop=keep===c?o:c;
+    const both=c.appJoined&&o.appJoined;
+    return `<div class="cm-pair">
+      <div class="cm-cards">${card(c)}${card(o)}</div>
+      ${both?`<div class="cm-warn">Obie karty są połączone z aplikacją klienta — scal je ręcznie (przepisz dane i zarchiwizuj jedną).</div>`
+        :`<div class="cm-plan">Zostanie <b>${escHtml(keep.name||'')}</b>${keep.email?' ('+escHtml(keep.email)+')':''}. Dane z drugiej karty (${escHtml(clientMergeSummary(drop.id,keep.id))}) przejdą do niej, a druga karta trafi do archiwum. Powtórzone treningi, plany i pomiary nie zostaną zdublowane.</div>
+      <button type="button" class="btn btn-primary" onclick="mergeClients('${escHtml(keep.id)}','${escHtml(drop.id)}')">Scal te karty</button>`}
+    </div>`;
+  }).join('');
+  m.innerHTML=`<div class="modal" style="max-width:560px;">
+    <div class="modal-hdr"><div class="modal-title">SCAL DUPLIKAT</div><button class="modal-close" type="button" aria-label="Zamknij" onclick="closeM('m-client-merge')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;">Scal tylko karty <b>tej samej osoby</b>. Treningi, plany, pomiary, wiadomości i płatności przejdą do jednej karty. Puste pola tej karty uzupełnimy danymi z drugiej.</div>
+      ${rows}
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" type="button" onclick="closeM('m-client-merge')">Anuluj</button></div>
+  </div>`;
+  if(typeof openM==='function')openM('m-client-merge');else m.classList.add('show');
+}
+async function mergeClients(keepId,dropId){
+  const keep=(window.CL||[]).find(c=>c.id===keepId),drop=(window.CL||[]).find(c=>c.id===dropId);
+  if(!keep||!drop||keepId===dropId)return;
+  if(window._clientMergeBusy)return;
+  if(keep.appJoined&&drop.appJoined){notify('Obie karty są połączone z aplikacją klienta — scal je ręcznie.');return;}
+  if(drop.appJoined){notify('Karta połączona z aplikacją musi zostać. Otwórz scalanie ponownie.');return;}
+  if(!window._db||typeof window._runTransaction!=='function'||typeof persistById!=='function'){notify('Brak połączenia z bazą. Spróbuj ponownie.');return;}
+  const plan=clientMergePlan(dropId,keepId),recs=plan.move;
+  if(!confirm('Scalić karty?\n\nZostaje: '+(keep.name||'')+'\nPrzenosimy z karty „'+(drop.name||'')+'”: '+clientMergeSummary(dropId,keepId)+'.\n\nKarta „'+(drop.name||'')+'” trafi do archiwum.'))return;
+  window._clientMergeBusy=true;
+  let moved=0;
+  try{
+    for(const it of recs){
+      const copy={...it.r,clientId:keepId};
+      if(Object.prototype.hasOwnProperty.call(copy,'clientName'))copy.clientName=keep.name;
+      const saved=await persistById(it.col,copy);
+      if(!saved)throw new Error('zapis');
+      it.r.clientId=keepId;if(saved._fbId)it.r._fbId=saved._fbId;
+      if(Object.prototype.hasOwnProperty.call(it.r,'clientName'))it.r.clientName=keep.name;
+      if(it.group){
+        const map=window[it.key]||(window[it.key]={});
+        (map[keepId]||(map[keepId]=[])).push(it.r);
+        map[dropId]=(map[dropId]||[]).filter(x=>x!==it.r);
+      }
+      moved++;
+    }
+    CLIENT_MERGE_GROUPS.forEach(([,key])=>{const map=window[key];if(map&&map[dropId]&&!map[dropId].length)delete map[dropId];});
+    if(window.MSGS&&window.MSGS[keepId])window.MSGS[keepId].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+    // Karta docelowa: tylko puste pola dostają wartości z duplikatu. Duplikat: archiwum ze wskazaniem karty docelowej.
+    const keepRef=window._doc(window._db,'clients',keep._fbId||keep.id),dropRef=window._doc(window._db,'clients',drop._fbId||drop.id);
+    const mergedAt=new Date().toISOString();
+    const fill=await window._runTransaction(window._db,async tx=>{
+      const k=await tx.get(keepRef),d=await tx.get(dropRef);
+      if(!k.exists()||!d.exists())throw new Error('Jedna z kart została usunięta. Odśwież listę klientów.');
+      const kr=k.data(),dr=d.data(),patch={};
+      if(kr.trainerId!==window._uid||dr.trainerId!==window._uid)throw new Error('Brak dostępu do jednej z kart.');
+      CLIENT_MERGE_FILL.forEach(f=>{
+        const empty=v=>v==null||v===''||v===0||(Array.isArray(v)&&!v.length);
+        if(empty(kr[f])&&!empty(dr[f]))patch[f]=dr[f];
+      });
+      if(Object.keys(patch).length)tx.update(keepRef,patch);
+      tx.update(dropRef,{status:'archived',mergedInto:keepId,mergedAt});
+      return patch;
+    });
+    Object.assign(keep,fill);
+    Object.assign(drop,{status:'archived',mergedInto:keepId,mergedAt});
+    if(typeof closeM==='function')closeM('m-client-merge');
+    notify('✓ Scalono: '+(keep.name||'')+' ('+moved+' rekordów przeniesionych'+(plan.skip.length?', '+plan.skip.length+' powtórzonych zostało w archiwum':'')+')');
+  }catch(e){
+    console.warn('mergeClients:',e);
+    notify(moved<recs.length
+      ?'Scalanie przerwane po '+moved+' z '+recs.length+' rekordów. Przeniesione dane są już w karcie „'+(keep.name||'')+'”. Spróbuj ponownie.'
+      :(e&&e.message&&e.message!=='zapis'?e.message:'Nie udało się zarchiwizować duplikatu. Spróbuj ponownie.'));
+  }finally{
+    window._clientMergeBusy=false;
+    try{renderClients();}catch(e){}
+    try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+  }
+}
+window.openClientMerge=openClientMerge;
+window.mergeClients=mergeClients;
+window.clientMergeCandidates=clientMergeCandidates;
+window.clientMergePlan=clientMergePlan;
+
+function clClientsNoun(n){return (n%10>=2&&n%10<=4&&!(n%100>=12&&n%100<=14))?'klientów':(n===1?'klient':'klientów');}
+/** Trzy klikalne liczby nad listą. */
+function renderClientStats(issuesMap,attnMap){
+  const el=document.getElementById('cl-stats');
+  if(!el)return;
+  const live=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(!live.length){el.innerHTML='';el.hidden=true;return;}
+  el.hidden=false;
+  const active=(window.CL||[]).filter(c=>c&&c.status==='active').length;
+  const need=[...issuesMap.values()].filter(clientNeedsAction).length;
+  const regres=[...attnMap.values()].filter(f=>f['attn-regres']).length;
+  const stat=(id,label,n,on,tip,urgent)=>`<button type="button" class="cl2-stat${on?' is-on':''}${urgent&&n?' is-urgent':''}" aria-pressed="${on}" onclick="pickClientStat('${id}')" title="${escHtml(tip)}"><span class="cl2-stat-n">${n}</span><span class="cl2-stat-l">${label}</span></button>`;
+  el.innerHTML=stat('active','Aktywni',active,clientSegment==='active'&&!clientAttention,'Klienci w trakcie współpracy')
+    +stat('need','Wymaga uwagi',need,clientAttention==='act:any','Klienci, przy których jest coś do zrobienia — od pilnych spraw po brak e-maila')
+    +stat('regres','Regres',regres,clientAttention==='attn-regres','Monitoring postępów pokazuje spadek wyników — to pilne',true);
+}
+function pickClientStat(id){
+  if(id==='active'){clientAttention=null;clientSegment='active';}
+  else{
+    const target=id==='need'?'act:any':'attn-regres';
+    clientAttention=clientAttention===target?null:target;
+    if(clientSegment==='archived'||clientSegment==='inactive')clientSegment='all';
+  }
+  renderClientFilters();renderClients();
+}
+/** Jedna karta priorytetu zamiast listy liczników. */
+function renderClientPriority(issuesMap){
+  const el=document.getElementById('cl-priority');
+  if(!el)return;
+  if(clientAttention||!(window.CL||[]).some(c=>c&&c.status!=='archived')){el.innerHTML='';el.hidden=true;return;}
+  const lists=[...issuesMap.values()];
+  const need=lists.filter(clientNeedsAction).length;
+  el.hidden=false;
+  if(!need){
+    el.innerHTML=`<div class="cl2-prio is-calm"><div class="cl2-prio-main"><div class="cl2-prio-title">Wszystko pod kontrolą</div><div class="cl2-prio-sub">Żaden klient nie wymaga teraz działania.</div></div></div>`;
+    return;
+  }
+  const counts=CLIENT_ISSUE_ORDER.filter(k=>CLIENT_ISSUES[k].counts).map(k=>({k,n:lists.filter(l=>l.some(i=>i.key===k)).length})).filter(x=>x.n);
+  const top=counts[0];
+  const def=CLIENT_ISSUES[top.k];
+  const rest=counts.slice(1,3);
+  el.innerHTML=`<div class="cl2-prio cl2-sev-${def.sev}">
+    <div class="cl2-prio-main">
+      <div class="cl2-prio-title">${need} ${clClientsNoun(need)} wymaga działania</div>
+      <div class="cl2-prio-sub"><span class="cl2-prio-k">Najważniejsze:</span> ${escHtml(def.many(top.n))}</div>
+      ${rest.length?`<div class="cl2-prio-more">Też: ${rest.map(x=>`<button type="button" class="cl2-linkbtn" onclick="setClientAttention('act:${x.k}')">${escHtml(CLIENT_ISSUES[x.k].many(x.n))}</button>`).join(' · ')}</div>`:''}
+    </div>
+    <button type="button" class="btn btn-ghost cl2-prio-btn" onclick="setClientAttention('act:${top.k}')">Zobacz klientów</button>
+  </div>`;
+}
+function clientMatchesAttention(c,attnMap,issuesMap){
+  if(!clientAttention)return true;
+  const list=issuesMap.get(c.id)||[];
+  if(clientAttention==='act:any')return clientNeedsAction(list);
+  if(clientAttention.startsWith('act:'))return list.some(i=>i.key===clientAttention.slice(4));
+  return !!(attnMap.get(c.id)||{})[clientAttention];
+}
+/** Szczegóły wiersza (dawne kolumny) — liczone dopiero po rozwinięciu. */
+function clientRowDetailsHTML(c){
+  const t7=clientTrainingWindowStats(c.id,7),t30=clientTrainingWindowStats(c.id,30),tasks7=clientTasksWindowStats(c.id,7);
+  const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
+  const issues=(window._clIssuesMap&&window._clIssuesMap.get(c.id))||clientIssues(c);
+  const archived=c.status==='archived';
+  const dup=!archived&&clientMergeCandidates(c).length>0;
+  const kv=(k,v,tip)=>`<div class="cl2-kv"${tip?` title="${escHtml(tip)}"`:''}><span>${k}</span><b>${v}</b></div>`;
+  return `<div class="cl2-details-grid">
+      ${kv('Trening 7 dni',clPctCell(t7),'Wykonane treningi względem zaplanowanych w ostatnich 7 dniach')}
+      ${kv('Trening 30 dni',clPctCell(t30),'Wykonane treningi względem zaplanowanych w ostatnich 30 dniach')}
+      ${kv('Zadania 7 dni',clPctCell(tasks7,'brak zadań'),'Zrobione zadania i nawyki w ostatnich 7 dniach')}
+      ${kv('Cel',CLIENT_GOAL_LABELS[c.goal]||escHtml(c.goal||'')||'nieustalony')}
+      ${kv('Status',`<span class="pill ${clientStatusPillClass(c,life)}"><span class="pill-dot"></span>${escHtml(archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':(life&&life.label)||'Aktywny')}</span>`)}
+      ${kv('E-mail',escHtml(c.email||'—'))}
+      ${kv('Aplikacja',c.appJoined?'📱 korzysta':'nie dołączył')}
+    </div>
+    ${issues.length>1?`<div class="cl2-details-issues"><span>Inne sprawy:</span> ${issues.slice(1).map(i=>`<span class="cl2-chip cl2-sev-${CLIENT_ISSUES[i.key].sev}" title="${escHtml(CLIENT_ISSUES[i.key].tip)}">${escHtml(i.label)}</span>`).join('')}</div>`:''}
+    <div class="cl2-details-actions">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openClientProfile('${c.id}')">Otwórz profil</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="quickEditClient(event,'${c.id}')">Edytuj dane</button>
+      ${archived?'':`<button type="button" class="btn btn-ghost btn-sm" onclick="quickMessageClient(event,'${c.id}')">Napisz wiadomość</button>`}
+      ${dup?`<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openClientMerge('${c.id}')">⚠ Możliwy duplikat — Scal</button>`:''}
+    </div>`;
+}
+window._clOpenRows=window._clOpenRows||new Set();
+function toggleClientRowDetails(e,clientId){
+  if(e)e.stopPropagation();
+  const open=window._clOpenRows;
+  if(open.has(clientId))open.delete(clientId);else open.add(clientId);
+  const row=document.querySelector(`#clients-tbl .cl2-row[data-client-id="${CSS&&CSS.escape?CSS.escape(clientId):clientId}"]`);
+  if(!row){renderClients();return;}
+  const on=open.has(clientId);
+  row.classList.toggle('is-open',on);
+  const btn=row.querySelector('.cl2-more');
+  if(btn){btn.setAttribute('aria-expanded',on?'true':'false');}
+  const box=row.querySelector('.cl2-details');
+  if(box){box.hidden=!on;if(on){const c=CL.find(x=>x.id===clientId);if(c)box.innerHTML=clientRowDetailsHTML(c);}}
+}
+window.toggleClientRowDetails=toggleClientRowDetails;window.pickClientStat=pickClientStat;
+function clientRowHTML(c,i,issuesMap){
+  const act=formatClientActivity(c.id);
+  const archived=c.status==='archived',inactive=c.status==='inactive';
+  const issues=issuesMap.get(c.id)||[];
+  // Przy filtrze konkretnej sprawy wiersz pokazuje właśnie ją (i jej działanie), a nie inną, pilniejszą.
+  const focusKey=clientAttention&&clientAttention.startsWith('act:')&&clientAttention!=='act:any'?clientAttention.slice(4)
+    :({'attn-regres':'regres','attn-noworkout':'noworkout','attn-onboard':'onboard','attn-checkin':'checkin','attn-measure':'measure'})[clientAttention]||null;
+  const top=(focusKey&&issues.find(i=>i.key===focusKey))||issues[0];
+  const def=top&&CLIENT_ISSUES[top.key];
+  const sev=def?def.sev:'ok';
+  const statusText=archived?'Zarchiwizowany':inactive?'Nieaktywny':act.label;
+  const statusTip=archived?'Klient jest w archiwum — nie liczy się do statystyk.':inactive?'Współpraca wstrzymana.':'Ostatnia aktywność klienta: trening, pomiar albo check-in.';
+  let nextHtml,actKey,actLabel;
+  if(archived){nextHtml='<span class="cl2-next cl2-sev-muted">W archiwum</span>';actKey='restore';actLabel='Przywróć';}
+  else if(inactive){nextHtml='<span class="cl2-next cl2-sev-muted">Współpraca wstrzymana</span>';actKey='message';actLabel='Napisz wiadomość';}
+  else if(top){
+    nextHtml=`<span class="cl2-next cl2-sev-${sev}" title="${escHtml(CLIENT_SEV_LABEL[sev]+': '+def.tip)}"><span class="cl2-dot" aria-hidden="true"></span><span class="cl2-next-txt">${escHtml(top.label)}</span><span class="sr-only"> (${CLIENT_SEV_LABEL[sev]})</span></span>`;
+    actKey=top.key;actLabel=def.action;
+  }else{nextHtml='<span class="cl2-next cl2-sev-ok" title="Brak spraw do załatwienia"><span class="cl2-dot" aria-hidden="true"></span><span class="cl2-next-txt">Wszystko w porządku</span></span>';actKey='ok';actLabel='Sprawdź postęp';}
+  const open=window._clOpenRows.has(c.id);
+  const name=escHtml(c.name||'Klient');
+  return `<div class="cl2-row cl2-row-${sev}${open?' is-open':''}" data-client-id="${escHtml(c.id)}" style="animation-delay:${Math.min(i,12)*0.025}s;" onclick="openClientProfile('${c.id}')">
+    <div class="cl2-main">
+      <div class="cl2-who">
+        <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};" aria-hidden="true">${escHtml(getInit(c.name||'?'))}</div>
+        <button type="button" class="cl2-name" onclick="event.stopPropagation();openClientProfile('${c.id}')" title="Otwórz profil: ${name}">${name}</button>
+      </div>
+      <div class="cl2-status cl-act-${archived||inactive?'neutral':(act.tone||'neutral')}" title="${escHtml(statusTip)}">${escHtml(statusText)}</div>
+      <div class="cl2-nextcell">${nextHtml}</div>
+      <div class="cl2-actions" onclick="event.stopPropagation()">
+        <button type="button" class="cl2-act-btn${sev==='urgent'?' is-urgent':''}${sev==='ok'?' is-quiet':''}" onclick="clientDoAction(event,'${c.id}','${actKey}')" aria-label="${escHtml(actLabel)}: ${name}">${escHtml(actLabel)}</button>
+        <button type="button" class="cl2-more" onclick="toggleClientRowDetails(event,'${c.id}')" aria-expanded="${open?'true':'false'}" aria-controls="cl2-det-${escHtml(c.id)}" aria-label="Szczegóły: ${name}" title="Szczegóły: treningi, zadania, cel, status"><span class="cl2-more-txt">Szczegóły</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
+      </div>
+    </div>
+    <div class="cl2-details" id="cl2-det-${escHtml(c.id)}" onclick="event.stopPropagation()"${open?'':' hidden'}>${open?clientRowDetailsHTML(c):''}</div>
+  </div>`;
+}
+function renderClients(){
+  if(typeof syncNavForClientCount==="function")syncNavForClientCount();
+  const attnMap=clientAttentionMap();
+  const issuesMap=clientIssuesMap(attnMap);
+  window._clIssuesMap=issuesMap;
+  renderClientFilters(attnMap);
+  renderClientStats(issuesMap,attnMap);
+  renderClientPriority(issuesMap);
+  const search=(document.getElementById('client-search')||{}).value||'';
+  const q=search.trim().toLowerCase();
+  let filtered=CL.filter(c=>{
+    if(q&&!((c.name||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q)))return false;
+    if(!clientMatchesAttention(c,attnMap,issuesMap))return false;
+    if(clientGoalFilter&&c.goal!==clientGoalFilter)return false;
+    if(clientSegment==='active')return c.status==='active';
+    if(clientSegment==='inactive')return c.status==='inactive';
+    if(clientSegment==='archived')return c.status==='archived';
+    if(clientSegment==='all')return c.status!=='archived';
+    return true;
+  });
+  // Najpierw pilne, potem do zrobienia, potem reszta — w obrębie grupy wg ostatniej aktywności.
+  const rank={urgent:0,warn:1,info:2,hint:3,ok:4};
+  filtered=filtered.map(c=>{const iss=issuesMap.get(c.id)||[];return {c,act:formatClientActivity(c.id),r:iss[0]?rank[CLIENT_ISSUES[iss[0].key].sev]:4};})
+    .sort((a,b)=>a.r-b.r||(a.act.days-b.act.days)||String(a.c.name||'').localeCompare(String(b.c.name||''),'pl'))
+    .map(x=>x.c);
+  const total=(window.CL||[]).filter(c=>c&&c.status!=='archived').length;
+  const totalEl=document.getElementById('clients-total');
+  if(totalEl)totalEl.textContent=`${total} ${clClientsNoun(total)}`;
+  const countEl=document.getElementById('clients-segment-count');
+  if(countEl)countEl.textContent=filtered.length;
+  const viewLabel=clientAttentionLabel(clientAttention)||(clientSegment!=='all'?CLIENT_SEGMENT_TITLES[clientSegment]:'')||(clientGoalFilter?CLIENT_GOAL_LABELS[clientGoalFilter]:'');
+  const filteredView=!!(clientAttention||clientSegment!=='all'||clientGoalFilter);
+  const summaryEl=document.getElementById('client-view-summary');
+  if(summaryEl)summaryEl.textContent=filteredView||q?`${filtered.length} ${clClientsNoun(filtered.length)} · ${q?'wyniki wyszukiwania':viewLabel}`:'';
+  const viewBar=document.getElementById('cl-view-bar');
+  if(viewBar)viewBar.hidden=!(filteredView||q);
+  const el=document.getElementById('clients-tbl');
+  const hdr=document.getElementById('cl2-hdr');
+  const firstUse=!total&&!(window.CL||[]).length;
+  const screen=document.getElementById('cl-everfit');
+  if(screen)screen.classList.toggle('cl2-first-use',firstUse);
+  if(!filtered.length){
+    if(hdr)hdr.hidden=true;
+    if(firstUse){
+      el.innerHTML=`<div class="cl2-empty cl2-onboard">
+        <div class="cl2-empty-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <h2 class="cl2-empty-title">Zacznij od dodania pierwszego klienta.</h2>
+        <p class="cl2-empty-text">Potem ułożysz mu plan, a klient zobaczy trening w aplikacji. Masz listę w pliku? Możesz ją zaimportować.</p>
+        <div class="cl2-empty-actions"><button type="button" class="btn btn-primary" onclick="openM('m-client')">Dodaj klienta</button><button type="button" class="btn btn-ghost" onclick="openM('m-fitebo')">Importuj z pliku</button></div>
+      </div>`;
+    }else{
+      el.innerHTML=`<div class="cl2-empty">
+        <h2 class="cl2-empty-title">${q?'Brak wyników':clientAttention?'Nikt nie wymaga tu działania 👍':'Brak klientów w tym widoku'}</h2>
+        <p class="cl2-empty-text">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Zmień filtr, aby zobaczyć pozostałych klientów.'}</p>
+        <div class="cl2-empty-actions"><button type="button" class="btn btn-ghost" onclick="clearClientView()">Pokaż wszystkich</button></div>
+      </div>`;
+    }
+    updateClientListToggle(0,false);
+    renderSidebarClients();
+    return;
+  }
+  if(hdr)hdr.hidden=false;
+  const compact=clientListIsCompact();
+  const displayed=compact?filtered.slice(0,3):filtered;
+  el.innerHTML=displayed.map((c,i)=>clientRowHTML(c,i,issuesMap)).join('');
+  updateClientListToggle(filtered.length,compact);
+  renderSidebarClients();
+}
+function clearClientView(){
+  const inp=document.getElementById('client-search');
+  if(inp)inp.value='';
+  clearClientFilters();
+}
+window.clearClientView=clearClientView;
+
+// A draft belongs to one trainer session and one client, including after a failed save.
+const clientModalDrafts=new Map();
+const clientModalFieldIds={name:'ac-name',email:'ac-email',phone:'ac-phone',age:'ac-age',gender:'ac-gender',weight:'ac-weight',height:'ac-height',goal:'ac-goal',level:'ac-level',trainingFreq:'ac-freq',preferredTrainTime:'ac-train-time',activityLevel:'ac-activity',sportNotes:'ac-sport-notes',injuries:'ac-injuries',notes:'ac-notes'};
+function clientModalFields(){
+  const fields={};
+  for(const [key,id] of Object.entries(clientModalFieldIds))fields[key]=document.getElementById(id)?.value||'';
+  const bg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac'):{priorSports:[],additional_activities:[]};
+  fields.priorSports=bg.priorSports||[];fields.additional_activities=bg.additional_activities||[];
+  fields.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):[];
+  fields.preferredWeekdays=typeof readPreferredWeekdaysFrom==='function'?readPreferredWeekdaysFrom('ac'):[];
+  return fields;
+}
+function clientModalIsCurrent(state){
+  return window._clientModalState===state&&state.open&&assignmentSessionCurrent(state.auth)&&
+    document.getElementById('m-client')?.classList.contains('show');
+}
+function captureClientModalDraft(){
+  const state=window._clientModalState;
+  if(state&&state.open){if(!state.candidate)state.fields=clientModalFields();state.open=false;}
+}
+function clearClientModalDrafts(){
+  clientModalDrafts.clear();window._clientModalState=null;
+  for(const id of Object.values(clientModalFieldIds)){const el=document.getElementById(id);if(el)el.value='';}
+  ['ac-prior-sports-mount','ac-physique-priority-mount','ac-preferred-weekdays-mount','ac-save-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
+}
+function renderClientModalSaveState(state){
+  if(window._clientModalState!==state)return;
+  document.querySelectorAll('#m-client .modal-body input,#m-client .modal-body select,#m-client .modal-body textarea,#m-client .modal-body button').forEach(el=>{el.disabled=!!state.candidate;});
+  const btn=document.getElementById('ac-save-btn');
+  if(btn){btn.disabled=!!(state.pending||state.saved||state.conflict);btn.textContent=state.pending?'Zapisuję…':state.saved?'Zapisano':state.error?'Ponów zapis':'Zapisz klienta';}
+  const next=document.getElementById('ac-new-btn');if(next)next.style.display=state.saved&&!state.editId&&!state.pending?'':'none';
+  const refresh=document.getElementById('ac-reload-btn');if(refresh)refresh.style.display=state.conflict?'':'none';
+  const status=document.getElementById('ac-save-status');
+  if(status){status.textContent=state.message||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+}
+function openClientModal(clientId){
+  captureClientModalDraft();
+  const auth=assignmentSession();
+  for(const [key,draft] of clientModalDrafts)if(!assignmentSessionCurrent(draft.auth))clientModalDrafts.delete(key);
+  const c=clientId?CL.find(x=>x.id===clientId):null;
+  if(clientId&&!c){notify('Nie znaleziono klienta');return;}
+  const key=JSON.stringify([auth.uid,auth.generation,clientId||'new']);
+  let state=clientModalDrafts.get(key);
+  if(state&&state.saved&&!state.pending&&(state.editId||state.acknowledged)){clientModalDrafts.delete(key);state=null;}
+  if(!state){
+    const base=c?JSON.parse(JSON.stringify(c)):null;
+    state={auth,key,editId:clientId||null,base,operation:{auth,edit:!!clientId,base},fields:c?{...base,injuries:typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'')}:{gender:'M',goal:'masa',level:'poczatkujacy',trainingFreq:3,activityLevel:'moderate',preferredWeekdays:[1,3,5]}};
+    clientModalDrafts.set(key,state);
+  }
+  state.open=true;window._clientModalState=state;window._editingClientId=state.editId;
+  const titleEl=document.querySelector('#m-client .modal-title');
+  if(titleEl)titleEl.textContent=state.editId?'EDYTUJ KLIENTA':'NOWY KLIENT';
+  // Nowy klient: 3 pola na wierzchu, reszta zwinięta. Przy edycji pokazujemy wszystko.
+  const more=document.getElementById('ac-more');if(more)more.open=!!state.editId;
+  for(const [field,id] of Object.entries(clientModalFieldIds)){
+    const el=document.getElementById(id);if(el)el.value=state.fields[field]??'';
+  }
+  const gender=document.getElementById('ac-gender');if(gender)gender.value=(typeof normalizeClientGender==='function'?normalizeClientGender(state.fields.gender):state.fields.gender)||'M';
+  if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',state.fields.priorSports||[],state.fields.additional_activities||[]);
+  if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',state.fields.physiquePriority||[]);
+  if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',state.fields.preferredWeekdays||[]);
+  // Do not call the generic New Client entry point again: it used to clear the edit ID.
+  if(!state.displayBase)state.displayBase=clientModalFields();
+  document.getElementById('m-client').classList.add('show');
+  renderClientModalSaveState(state);
+}
+function startNewClientModalDraft(){
+  const state=window._clientModalState;
+  if(!state||!clientModalIsCurrent(state)||!state.saved||state.pending)return;
+  clientModalDrafts.delete(state.key);openClientModal();
+}
+function reloadClientModalDraft(){
+  const state=window._clientModalState;
+  if(!state||!clientModalIsCurrent(state)||!state.conflict||state.pending)return;
+  const remote=state.conflict;
+  try{assertAssignmentSession(state.auth,remote);}catch(error){notify(error.message);return;}
+  state.base=JSON.parse(JSON.stringify(remote));state.fields={...state.base,injuries:typeof clientInjuriesText==='function'?clientInjuriesText(state.base):(state.base.injuries||'')};
+  state.operation={auth:state.auth,edit:true,base:state.base};
+  state.candidate=null;state.error=false;state.conflict=null;state.displayBase=null;
+  state.message='Wczytano aktualne dane. Wprowadź i zapisz swoje zmiany.';
+  state.open=false;openClientModal(state.editId);
+}
+window.openClientModal=openClientModal;
+window.quickEditClient=quickEditClient;
+window.captureClientModalDraft=captureClientModalDraft;
+window.clearClientModalDrafts=clearClientModalDrafts;
+window.startNewClientModalDraft=startNewClientModalDraft;
+window.reloadClientModalDraft=reloadClientModalDraft;
+
+async function saveClient(){
+  const state=window._clientModalState;
+  if(!state||!clientModalIsCurrent(state)||state.pending||state.saved||state.conflict)return;
+  if(!state.candidate){
+    const fields=clientModalFields(),name=fields.name.trim();
+    if(!name){notify('Wpisz imię!');return;}
+    const email=typeof normalizeClientEmail==='function'?normalizeClientEmail(fields.email):fields.email.trim().toLowerCase();
+    if(email&&!clientEmailValid(email)){notify('Sprawdź adres e-mail — wygląda na niepełny. Możesz też zostawić pole puste.');return;}
+    const trainerEmail=typeof normalizeClientEmail==='function'?normalizeClientEmail((typeof getTrainerEmail==='function'&&getTrainerEmail())||window._userEmail||''):'';
+    const emailChanged=!state.editId||JSON.stringify(fields.email)!==JSON.stringify((state.displayBase||{}).email);
+    if(email&&emailChanged&&trainerEmail&&email===trainerEmail){notify('To Twój e-mail, a nie klienta. Wpisz e-mail klienta albo zostaw pole puste — uzupełnisz go przed zaproszeniem do aplikacji.');return;}
+    try{if(!assignmentSessionCurrent(state.auth))throw new Error('Zaloguj się ponownie przed zapisem.');
+      if(state.editId)assertAssignmentSession(state.auth,CL.find(c=>c.id===state.editId));
+    }catch(error){notify(error.message);return;}
+    const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(fields.trainingFreq):parseInt(fields.trainingFreq,10);
+    const values={...fields,name,email,age:+fields.age||0,weight:+fields.weight||0,height:+fields.height||0,
+      gender:(typeof normalizeClientGender==='function'?normalizeClientGender(fields.gender):fields.gender)||'M',trainingFreq:freq||(state.editId?null:3)};
+    if(state.editId){
+      for(const key of Object.keys(values)){
+        if(JSON.stringify(fields[key])===JSON.stringify(state.displayBase[key])){
+          if(Object.prototype.hasOwnProperty.call(state.base,key))values[key]=state.base[key];
+          else delete values[key];
+        }
+      }
+    }
+    {
+      const nameChanged=!state.editId||JSON.stringify(fields.name)!==JSON.stringify((state.displayBase||{}).name);
+      const duplicates=clientPossibleDuplicates({name:nameChanged?name:'',email:emailChanged?email:''},state.editId||null);
+      if(duplicates.email.length){
+        const names=duplicates.email.map(c=>c.name).join(', ');
+        state.message='Nie zapisano: ten e-mail jest już przypisany do klienta: '+names+'. '+(state.editId?'Jeśli to ta sama osoba, scal karty przyciskiem „Scal” na liście klientów.':'Otwórz istniejącą kartę zamiast dodawać duplikat.');
+        state.error=true;renderClientModalSaveState(state);notify(state.message);return;
+      }
+      const duplicateNameKey=clientIdentityText(name);
+      if(duplicates.name.length&&state.nameDuplicateAcknowledged!==duplicateNameKey){
+        state.nameDuplicateAcknowledged=duplicateNameKey;
+        state.message='Istnieje już klient o tym samym imieniu. Sprawdź e-mail lub kliknij Zapisz klienta ponownie, jeśli to inna osoba.';
+        state.error=false;renderClientModalSaveState(state);notify(state.message);return;
+      }
+    }
+    state.fields=fields;
+    state.candidate=state.editId?{...state.base,...values}:{...values,
+      id:'c_'+crypto.randomUUID(),trainerId:state.auth.uid,status:'active',
+      joinDate:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString(),
+      onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow||'standard'};
+  }
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie zapisu klienta.';
+  renderClientModalSaveState(state);
+  try{
+    const saved=await saveClientCardConfirmed(state.candidate,state.operation);
+    if(!assignmentSessionCurrent(state.auth))return;
+    assertAssignmentSession(state.auth,saved);
+    state.saved=true;
+    let c=CL.find(x=>x.id===saved.id);
+    if(state.editId){
+      if(!c)throw new Error('Klient został usunięty podczas zapisu.');
+      assertAssignmentSession(state.auth,c);
+    }
+    if(c)Object.assign(c,saved);else{c=saved;CL.push(c);}
+    state.message='Klient '+c.name+' zapisany.';
+    if(clientModalIsCurrent(state)){
+      window._aplLastClientId=c.id;
+      if(typeof aplRefreshFromSavedClient==='function')try{aplRefreshFromSavedClient(c.id);}catch(e){}
+    }
+    if(state.editId){
+      try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
+    }
+    try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
+    if(state.editId){
+      if(typeof cpClientId!=='undefined'&&cpClientId===c.id){
+        try{document.getElementById('cp-name').textContent=c.name;}catch(e){}
+        if(clientModalIsCurrent(state)&&typeof cpTab!=='undefined'&&cpTab==='overview'&&!window._cpEditingClientId){
+          try{renderCPOverview(c);}catch(e){}
+        }
+      }
+      notify('✓ Zaktualizowano: '+c.name);
+      if(clientModalIsCurrent(state)){
+        state.acknowledged=true;closeM('m-client');
+        if(window._onboardResumeAfterEdit===c.id){window._onboardResumeAfterEdit=null;if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(c.id);}
+      }
+      return;
+    }
+    state.message='Klient '+c.name+' zapisany. Uruchamiam start współpracy…';
+    renderClientModalSaveState(state);
+    const result=await assignClientPipeline(c,{persist:false,runFlow:true,schedule:true,notify:true,fireEvent:true});
+    if(!assignmentSessionCurrent(state.auth))return;
+    if(!result.ok)state.message='Klient '+c.name+' zapisany. Start współpracy wymaga dokończenia w checkliście: '+(result.error||'Spróbuj ponownie.');
+    else if(result.calendar&&result.calendar.status==='error')state.message='Klient i plan zapisani. Kalendarz wymaga ponowienia w checkliście: '+result.calendar.error;
+    else state.message='✅ Klient '+c.name+' zapisany!';
+    notify(state.message);
+    if(clientModalIsCurrent(state)){
+      state.acknowledged=!!result.ok;closeM('m-client');
+      window._clientJustSavedId=c.id;
+      if(typeof openClientOnboardChecklist==='function')openClientOnboardChecklist(c.id);
+    }
+  }catch(error){
+    if(!assignmentSessionCurrent(state.auth))return;
+    state.error=true;
+    state.conflict=state.editId&&error&&error.code==='client-card-conflict'?error.remote:null;
+    state.message=state.saved?(state.editId?'Edycja zapisana, ale klient jest teraz niedostępny. Odśwież listę klientów.':'Klient zapisany. Dokończ start współpracy w jego checkliście.'):
+      state.conflict?'Dane klienta zmieniły się podczas edycji. Wczytaj aktualne dane i nanieś zmiany ponownie.':
+      'Nie potwierdzono zapisu. Dane formularza zachowano. Ponów zapis. '+(error?.message||'');
+    notify(state.message);
+  }finally{
+    state.pending=false;
+    if(clientModalIsCurrent(state))renderClientModalSaveState(state);
+  }
+}
+
+function getClientOnboard(c){
+  c=clientForOnboardSkip(c);
+  if(typeof clientOnboardStatus==='function')return clientOnboardStatus(c);
+  if(!c)return{invite:false,plan:false,session:false,baseline:false,schedule:false,calendar:false,package:false,done:0,total:6,complete:true,next:null,missing:[],missingLabels:[]};
+  const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
+  const plan=PL.some(p=>p.clientId===c.id);
+  const session=SE.some(s=>s.clientId===c.id);
+  const baseline=typeof clientHasBaseline==='function'?clientHasBaseline(c.id):!!(c.baselineDone);
+  const schedule=typeof clientHasSchedulePrefs==='function'?clientHasSchedulePrefs(c):!!((c.preferredWeekdays||[]).length);
+  const calendar=session;
+  const packageDone=typeof clientHasPackage==='function'?clientHasPackage(c):!!(c.packageSkipped||(window.PACKAGES||[]).some(p=>p&&p.clientId===c.id));
+  const done=[invite,baseline,schedule,plan,calendar,packageDone].filter(Boolean).length;
+  return{invite,baseline,schedule,plan,calendar,package:packageDone,session,done,total:6,complete:done===6,next:null,missing:[],missingLabels:[]};
+}
+window.getClientOnboard=getClientOnboard;
+
+function maybeResumeOnboard(clientId){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c||c.status==='archived')return;
+  const st=getClientOnboard(c);
+  if(st.complete)return;
+  if(window._onboardResumeTimer)clearTimeout(window._onboardResumeTimer);
+  window._onboardResumeTimer=setTimeout(()=>{
+    window._onboardResumeTimer=null;
+    openClientOnboardChecklist(clientId);
+  },450);
+}
+window.maybeResumeOnboard=maybeResumeOnboard;
+
+const onboardSkipStates=new Map();
+function getOnboardSkipState(clientId,field){
+  const auth=assignmentSession();
+  return onboardSkipStates.get(JSON.stringify([auth.uid,auth.generation,clientId,field]));
+}
+function clientForOnboardSkip(c){
+  if(!c)return c;
+  let result=c;
+  for(const field of ['inviteSkipped','packageSkipped']){
+    const state=getOnboardSkipState(c.id,field);
+    if(state&&!state.saved&&!state.markerBefore&&(state.pending||state.error)){
+      if(result===c)result={...c};delete result[field];
+    }
+  }
+  return result;
+}
+function renderOnboardSkipState(clientId){
+  document.querySelectorAll('button[data-onboard-skip-client]').forEach(button=>{
+    if(button.getAttribute('data-onboard-skip-client')!==clientId)return;
+    const state=getOnboardSkipState(clientId,button.getAttribute('data-onboard-skip-field'));
+    button.disabled=!!state?.pending;
+    if(button.getAttribute('data-onboard-skip-action')==='skip')button.textContent=state?.pending?'Zapisuję…':state?.error?'Ponów pominięcie':'Pomiń';
+  });
+  document.querySelectorAll('[data-onboard-skip-status]').forEach(el=>{
+    if(el.getAttribute('data-onboard-skip-client')!==clientId)return;
+    const state=getOnboardSkipState(clientId,el.getAttribute('data-onboard-skip-status'));
+    el.textContent=state?.message||'';el.hidden=!el.textContent;el.style.color=state?.error?'var(--accent)':'var(--muted)';
+  });
+  if(typeof renderInviteSkipState==='function')renderInviteSkipState(clientId);
+}
+function clearOnboardSkipStates(){
+  onboardSkipStates.clear();
+  document.querySelectorAll('[data-onboard-skip-status]').forEach(el=>{el.textContent='';el.hidden=true;});
+  document.querySelectorAll('button[data-onboard-skip-client]').forEach(button=>{button.disabled=false;});
+  if(typeof clearInviteSkipView==='function')clearInviteSkipView();
+}
+function saveOnboardSkip(clientId,field){
+  if(!['inviteSkipped','packageSkipped'].includes(field))return Promise.resolve(false);
+  const auth=assignmentSession(),key=JSON.stringify([auth.uid,auth.generation,clientId,field]);
+  for(const [storedKey,state] of onboardSkipStates)if(!assignmentSessionCurrent(state.auth))onboardSkipStates.delete(storedKey);
+  let state=onboardSkipStates.get(key);
+  if(state?.pending)return state.promise;
+  const c=CL.find(x=>x.id===clientId);
+  try{
+    assertAssignmentSession(auth,c);
+    if(state&&(c._fbId||c.id)!==(state.candidate._fbId||state.candidate.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie checklistę.');
+  }catch(error){if(typeof notify==='function')notify(error.message);return Promise.resolve(false);}
+  if(state?.saved)return Promise.resolve(true);
+  if(!state){
+    const snapshot=onboardScheduleFreeze(onboardScheduleClone({...c,[field]:true}));
+    state={auth:onboardScheduleFreeze({...auth}),clientId,field,key,candidate:snapshot,markerBefore:!!c[field]};
+    state.operation={auth:state.auth};onboardSkipStates.set(key,state);
+  }
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie pominięcia.';
+  if(window._onboardClientId===clientId&&typeof renderClientOnboardChecklist==='function')try{renderClientOnboardChecklist();}catch(e){}
+  renderOnboardSkipState(clientId);
+  state.promise=Promise.resolve().then(async()=>{
+    try{
+      const saved=await saveClientOnboardSkipConfirmed(state.candidate,field,state.operation);
+      if(!assignmentSessionCurrent(state.auth))return false;
+      assertAssignmentSession(state.auth,saved);
+      if(saved.id!==clientId||(saved._fbId||saved.id)!==(state.candidate._fbId||state.candidate.id)||saved[field]!==true)throw new Error('Nie można potwierdzić pominięcia dla tego klienta.');
+      state.acknowledged=true;
+      const local=CL.find(x=>x.id===clientId);assertAssignmentSession(state.auth,local);
+      if((local._fbId||local.id)!==(state.candidate._fbId||state.candidate.id))throw new Error('Identyfikator klienta zmienił się podczas zapisu.');
+      local[field]=true;state.saved=true;
+      state.message=(field==='inviteSkipped'?'Zaproszenie':'Pakiet')+' klienta '+(saved.name||state.candidate.name||clientId)+' pominięte.';
+      if(window._onboardClientId===clientId&&typeof renderClientOnboardChecklist==='function')try{renderClientOnboardChecklist();}catch(e){}
+      if(typeof renderDash==='function')try{renderDash();}catch(e){}
+      if(typeof renderClients==='function')try{renderClients();}catch(e){}
+      if(typeof notify==='function')notify(state.message);
+      return true;
+    }catch(error){
+      if(!assignmentSessionCurrent(state.auth))return false;
+      state.error=true;state.message=state.acknowledged?'Pominięcie zapisane, ale klient jest teraz niedostępny. Odśwież listę klientów.':
+        'Nie potwierdzono pominięcia. Ponów zapis. '+(error?.message||'');
+      if(window._onboardClientId===clientId&&typeof renderClientOnboardChecklist==='function')try{renderClientOnboardChecklist();}catch(e){}
+      if(typeof notify==='function')notify(state.message);
+      return false;
+    }finally{state.pending=false;state.promise=null;if(assignmentSessionCurrent(state.auth))renderOnboardSkipState(clientId);}
+  });
+  return state.promise;
+}
+function skipClientInvite(clientId){return saveOnboardSkip(clientId,'inviteSkipped');}
+window.skipClientInvite=skipClientInvite;
+window.getOnboardSkipState=getOnboardSkipState;
+window.clientForOnboardSkip=clientForOnboardSkip;
+window.renderOnboardSkipState=renderOnboardSkipState;
+window.clearOnboardSkipStates=clearOnboardSkipStates;
+
+function clientNextStartStep(c){
+  if(!c||c.status==='archived'||typeof clientOnboardStatus!=='function')return null;
+  const st=clientOnboardStatus(c);
+  if(!st||st.complete)return null;
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const steps={
+    invite:{label:'Zaproś klienta',why:'Zaproszenie daje klientowi dostęp do ankiety i przypisanych treningów.'},
+    intake:{label:intake&&intake.pending?'Sprawdź ankietę':'Przygotuj ankietę',why:intake&&intake.pending?'Ankieta czeka na odpowiedź klienta. Sprawdź jej status przed przygotowaniem planu.':'Zbierz cel, doświadczenie i ograniczenia klienta przed przygotowaniem planu.'},
+    baseline:{label:'Dodaj pomiary',why:'Pomiary początkowe pozwolą później porównać wyniki klienta.'},
+    schedule:{label:'Ustal dni treningowe',why:'Dopasuj harmonogram do czasu, którym klient rzeczywiście dysponuje.'},
+    plan:{label:'Przygotuj plan',why:'Wykorzystaj ankietę i pomiary. Przed zapisaniem sprawdź ograniczenia klienta.'},
+    calendar:{label:'Zaplanuj terminy',why:'Przypisany plan potrzebuje terminów, żeby klient wiedział, kiedy trenować.'},
+    package:{label:'Ustal rozliczenie',why:'Przypisz pakiet lub pomiń ten krok, jeśli rozliczacie się inaczej.'}
+  };
+  const step=steps[st.next];
+  return step?{...step,key:st.next,done:st.done,total:st.total}:null;
+}
+function openClientNextStartStep(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  const step=clientNextStartStep(c);
+  if(!step)return;
+  if(step.key==='invite')return openInviteFromOnboard(clientId);
+  if(step.key==='intake'){
+    const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(clientId):null;
+    return intake&&intake.pending?openClientProfileFromOnboard(clientId,'forms'):openFormsLibraryFromOnboard(clientId);
+  }
+  if(step.key==='baseline')return openClientBaselineModal(clientId,true);
+  if(step.key==='schedule')return openClientScheduleFromOnboard(clientId);
+  if(step.key==='plan')return openClientPlanChoice(clientId);
+  // Calendar and billing require a choice; opening the checklist does not create entries.
+  return openClientOnboardChecklist(clientId);
+}
+window.clientNextStartStep=clientNextStartStep;
+window.openClientNextStartStep=openClientNextStartStep;
+
+function openInviteFromOnboard(clientId){
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  window._onboardResumeAfterInvite=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof openInviteModal==='function')openInviteModal(clientId);
+}
+window.openInviteFromOnboard=openInviteFromOnboard;
+
+function openFormsLibraryFromOnboard(clientId){
+  window._onboardResumeAfterForms=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof closeClientProfile==='function')closeClientProfile();
+  goTo('forms');
+  setTimeout(()=>{
+    const cf=document.getElementById('form-client-filter');
+    if(cf)cf.value=clientId;
+    if(typeof setFormNav==='function')setFormNav('wstepna');
+    else if(typeof renderForms==='function')renderForms();
+    if(typeof renderOnboardFormsBanner==='function')renderOnboardFormsBanner();
+    if(typeof openFormDetail==='function')openFormDetail('df1');
+  },80);
+}
+window.openFormsLibraryFromOnboard=openFormsLibraryFromOnboard;
+
+function openClientProfileFromOnboard(clientId,tab){
+  window._onboardResumeAfterProfile=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof openClientProfile==='function')openClientProfile(clientId,{tab:tab||'forms',fromOnboard:true});
+}
+window.openClientProfileFromOnboard=openClientProfileFromOnboard;
+
+function openLiveFromOnboard(clientId,clientName){
+  window._onboardResumeAfterLive=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof liveSetPendingClient==='function')liveSetPendingClient(clientId,{clientName:clientName||''});
+  goTo('live');
+  if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
+}
+function renderOnboardLiveBanner(){
+  const bar=document.getElementById('live-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterLive;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — sesja Live zalicza kalendarz. Albo wróć i wrzuć plan.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromLive()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromLive(){
+  const cid=window._onboardResumeAfterLive;
+  window._onboardResumeAfterLive=null;
+  if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+window.openLiveFromOnboard=openLiveFromOnboard;
+window.renderOnboardLiveBanner=renderOnboardLiveBanner;
+window.resumeOnboardFromLive=resumeOnboardFromLive;
+
+function renderOnboardAplBanner(){
+  const bar=document.getElementById('apl-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterApl;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — wygeneruj plan albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromApl()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromApl(){
+  const cid=window._onboardResumeAfterApl;
+  window._onboardResumeAfterApl=null;
+  if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function renderOnboardBuilderBanner(){
+  const bar=document.getElementById('builder-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterBuilder;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — zapisz plan albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromBuilder()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromBuilder(){
+  const cid=window._onboardResumeAfterBuilder;
+  window._onboardResumeAfterBuilder=null;
+  if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+// Szkic zostaje wyłącznie w sessionStorage bieżącej karty. Nie trafia do danych
+// klienta ani nie przechodzi do kolejnej sesji przeglądarki bez potwierdzenia.
+const BUILDER_DRAFT_PREFIX='pl_builder_draft_v1:';
+const BUILDER_DRAFT_MAX_AGE=24*60*60*1000;
+function builderDraftData(){
+  const value=id=>String((document.getElementById(id)||{}).value||'').trim();
+  const field=(row,key)=>{const el=row.querySelector('[data-f="'+key+'"]');return String((el||{}).value||'').trim();};
+  const dayData=[...document.querySelectorAll('#builder-days .builder-day')].map(day=>({
+    day:String((day.querySelector('.builder-day-select')||{}).value||''),
+    focus:String((day.querySelector('.builder-day-focus')||{}).value||'').trim(),
+    rest:!!((day.querySelector('.rc')||{}).checked),
+    circuit:!!((day.querySelector('.circ')||{}).checked),
+    roundRest:String((day.querySelector('[data-f="roundRest"]')||{}).value||'').trim(),
+    exercises:[...day.querySelectorAll('.ex-row')].map(row=>{
+      const data={};
+      ['name','sets','reps','kg','rpe','rir','rest','tempo','alt','pct1rm','note','video','ss','wu','drop','dropStep','trans','cluster','rp','amrap','emom'].forEach(key=>{data[key]=field(row,key);});
+      return data;
+    })
+  }));
+  return {name:value('b-name'),client:value('b-client'),method:value('b-method'),duration:value('b-duration'),progression:value('b-progression'),volume:window._builderVolumeControl||null,days:dayData};
+}
+function builderDraftFingerprint(){
+  return JSON.stringify(builderDraftData());
+}
+function builderDraftStorageKey(){
+  return BUILDER_DRAFT_PREFIX+String(window._uid||'anon')+':new';
+}
+function builderReadStoredDraft(){
+  try{
+    const raw=sessionStorage.getItem(builderDraftStorageKey());
+    const entry=raw?JSON.parse(raw):null;
+    if(!entry||!entry.data||!entry.savedAt||Date.now()-entry.savedAt>BUILDER_DRAFT_MAX_AGE){
+      if(raw)sessionStorage.removeItem(builderDraftStorageKey());
+      return null;
+    }
+    return entry;
+  }catch(e){return null;}
+}
+function builderClearStoredDraft(){
+  if(window._builderDraftTimer){clearTimeout(window._builderDraftTimer);window._builderDraftTimer=null;}
+  try{sessionStorage.removeItem(builderDraftStorageKey());}catch(e){}
+  const offer=document.getElementById('builder-draft-offer');if(offer)offer.remove();
+}
+function builderQueueDraftSave(){
+  if(window._editingPlanId||!builderHasUnsavedChanges())return;
+  if(window._builderDraftTimer)clearTimeout(window._builderDraftTimer);
+  window._builderDraftTimer=setTimeout(()=>{
+    window._builderDraftTimer=null;
+    if(window._editingPlanId||!builderHasUnsavedChanges())return;
+    try{sessionStorage.setItem(builderDraftStorageKey(),JSON.stringify({version:1,savedAt:Date.now(),data:builderDraftData()}));}catch(e){}
+  },450);
+}
+function builderSetDraftField(row,key,value){
+  const el=row&&row.querySelector('[data-f="'+key+'"]');
+  if(el)el.value=value==null?'':value;
+}
+function builderApplyDraftData(draft,opts){
+  opts=opts||{};
+  if(!draft||window._editingPlanId)return false;
+  window._builderUndoMuted=true;
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value==null?'':value;};
+  builderEnsureSelectValue(document.getElementById('b-method'),draft.method||'');
+  builderEnsureSelectValue(document.getElementById('b-duration'),draft.duration||'');
+  set('b-name',draft.name||'');set('b-client',draft.client||'');set('b-progression',draft.progression||'double');
+  window._builderVolumeControl=draft.volume||null;
+  const days=document.getElementById('builder-days');if(!days)return false;
+  days.innerHTML='';dayCount=0;
+  (draft.days||[]).forEach(savedDay=>{
+    addDay();
+    const dayEl=document.getElementById('bd-'+dayCount);if(!dayEl)return;
+    builderSetDayHeader(dayEl,savedDay);
+    if(savedDay.rest){const rc=dayEl.querySelector('.rc');if(rc){rc.checked=true;toggleR(dayEl.id);}return;}
+    const circ=dayEl.querySelector('.circ');if(circ&&savedDay.circuit)circ.checked=true;
+    builderSetDraftField(dayEl,'roundRest',savedDay.roundRest||'');
+    if(savedDay.circuit)builderPaintCircuitDay(dayEl);
+    (savedDay.exercises||[]).forEach(values=>{
+      addRow(dayEl.id);
+      const row=[...dayEl.querySelectorAll('.ex-row')].pop();if(!row)return;
+      Object.keys(values||{}).forEach(key=>builderSetDraftField(row,key,values[key]));
+      if(typeof builderFillExTodo==='function')builderFillExTodo(row);
+      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
+      if(typeof builderPaintEmom==='function')builderPaintEmom(row);
+      if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+      if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
+    });
+    if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
+    if(typeof builderPaintCircuitDay==='function')builderPaintCircuitDay(dayEl);
+  });
+  if(typeof updatePeriod==='function')updatePeriod();
+  if(typeof builderRefreshRationale==='function')builderRefreshRationale();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+  const offer=document.getElementById('builder-draft-offer');if(offer)offer.remove();
+  window._builderUndoMuted=false;
+  window._builderUndoSkipNext=true;
+  builderUpdateDirtyUi();builderQueueDraftSave();
+  if(opts.notify&&typeof notify==='function')notify(opts.notify);
+  return true;
+}
+function builderRestoreStoredDraft(){
+  const entry=builderReadStoredDraft();
+  const restored=builderApplyDraftData(entry&&entry.data,{notify:'✓ Przywrócono szkic planu z tej karty'});
+  if(restored)builderUndoReset();
+  return restored;
+}
+function builderRenderDraftOffer(){
+  const old=document.getElementById('builder-draft-offer');if(old)old.remove();
+  if(window._editingPlanId||window._builderSkipDraftOffer)return;
+  const entry=builderReadStoredDraft();
+  const draft=entry&&entry.data;
+  if(!draft||!(draft.name||draft.client||(draft.days||[]).length))return;
+  const topbar=document.querySelector('#screen-builder .topbar');if(!topbar)return;
+  const box=document.createElement('div');box.id='builder-draft-offer';box.className='builder-draft-offer';box.setAttribute('role','status');
+  const text=document.createElement('span');text.textContent='Masz szkic planu zapisany w tej karcie.';
+  const restore=document.createElement('button');restore.type='button';restore.className='btn btn-ghost btn-sm';restore.textContent='Przywróć szkic';restore.onclick=builderRestoreStoredDraft;
+  const discard=document.createElement('button');discard.type='button';discard.className='btn btn-ghost btn-sm';discard.textContent='Usuń';discard.onclick=builderClearStoredDraft;
+  box.append(text,restore,discard);topbar.insertAdjacentElement('afterend',box);
+}
+window.builderRestoreStoredDraft=builderRestoreStoredDraft;
+window.builderClearStoredDraft=builderClearStoredDraft;
+function builderUndoUpdateUi(){
+  const btn=document.getElementById('builder-undo-btn');
+  const count=(window._builderUndo&&window._builderUndo.stack||[]).length;
+  if(btn){btn.disabled=!count;btn.setAttribute('aria-label',count?'Cofnij ostatnią zmianę w kreatorze':'Brak zmian do cofnięcia');}
+}
+function builderUndoReset(data){
+  window._builderUndo={stack:[],current:JSON.stringify(data||builderDraftData())};
+  builderUndoUpdateUi();
+}
+function builderTrackUndo(){
+  if(window._builderUndoMuted)return;
+  const now=JSON.stringify(builderDraftData());
+  if(window._builderUndoSkipNext){
+    window._builderUndoSkipNext=false;
+    if(window._builderUndo){window._builderUndo.current=now;builderUndoUpdateUi();}
+    else builderUndoReset(JSON.parse(now));
+    return;
+  }
+  const undo=window._builderUndo;
+  if(!undo){builderUndoReset(JSON.parse(now));return;}
+  if(now===undo.current)return;
+  try{undo.stack.push(JSON.parse(undo.current));}catch(e){undo.stack=[];}
+  if(undo.stack.length>20)undo.stack.shift();
+  undo.current=now;builderUndoUpdateUi();
+}
+function builderUndo(){
+  const undo=window._builderUndo;
+  if(!undo||!undo.stack.length)return false;
+  const previous=undo.stack.pop();
+  if(!builderApplyDraftData(previous))return false;
+  undo.current=JSON.stringify(builderDraftData());
+  window._builderUndoSkipNext=true;
+  builderUndoUpdateUi();
+  if(typeof notify==='function')notify('↩ Cofnięto ostatnią zmianę');
+  return true;
+}
+window.builderUndo=builderUndo;
+function builderMarkInitialFormState(){
+  if(window._builderSaveState)window._builderSaveState.initialFingerprint=builderDraftFingerprint();
+  builderUndoReset();
+  builderUpdateDirtyUi();
+}
+function builderHasUnsavedChanges(){
+  const state=window._builderSaveState;
+  const screen=document.getElementById('screen-builder');
+  if(!state||state.saved||state.pending||!screen||!screen.classList.contains('active'))return false;
+  return builderDraftFingerprint()!==String(state.initialFingerprint||'');
+}
+function builderConfirmLeave(){
+  return !builderHasUnsavedChanges()||window.confirm('Masz niezapisane zmiany w planie. Opuścić kreator bez zapisywania?');
+}
+function builderBeforeUnload(event){
+  if(!builderHasUnsavedChanges())return;
+  event.preventDefault();
+  event.returnValue='';
+  return '';
+}
+function builderUpdateDirtyUi(){
+  const state=window._builderSaveState;
+  const dirty=builderHasUnsavedChanges();
+  const mark=document.getElementById('builder-dirty-indicator');
+  if(mark){
+    mark.hidden=!dirty;
+    mark.textContent=dirty&&!window._editingPlanId?'• Szkic w tej karcie · niezapisane zmiany':'• Niezapisane zmiany';
+  }
+  const btn=document.getElementById('b-save-btn');
+  if(btn&&!state?.pending&&!state?.saved)btn.textContent=dirty?'Zapisz zmiany':'Zapisz plan';
+}
+function builderSetupDirtyUi(){
+  const screen=document.getElementById('screen-builder');
+  if(!screen||screen.dataset.dirtyUiBound==='1')return;
+  screen.dataset.dirtyUiBound='1';
+  const refresh=event=>{
+    const field=event&&event.target;
+    if(field&&field.classList&&field.classList.contains('builder-field-invalid')){
+      field.classList.remove('builder-field-invalid');
+      field.removeAttribute('aria-invalid');
+    }
+    const update=()=>{builderTrackUndo();builderUpdateDirtyUi();builderQueueDraftSave();};
+    return window.requestAnimationFrame?window.requestAnimationFrame(update):update();
+  };
+  screen.addEventListener('input',refresh);
+  screen.addEventListener('change',refresh);
+  if(typeof MutationObserver==='function')new MutationObserver(refresh).observe(document.getElementById('builder-days'),{childList:true,subtree:true});
+}
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('beforeunload',builderBeforeUnload);
+function builderLeaveToCaller(opts){
+  opts=opts||{};
+  if(!opts.saved&&!builderConfirmLeave())return false;
+  if(window._onboardResumeAfterBuilder&&!opts.saved){
+    resumeOnboardFromBuilder();
+    return true;
+  }
+  const cid=window._builderReturnClientId;
+  const tab=window._builderReturnTab||'plan';
+  window._builderReturnClientId=null;
+  window._builderReturnTab=null;
+  if(cid&&typeof openClientProfile==='function'){
+    window._builderNavigationConfirmed=true;
+    goTo('clients');
+    openClientProfile(cid,{tab:tab});
+    return true;
+  }
+  window._builderNavigationConfirmed=true;
+  goTo(window._builderBack||'clients');
+  return true;
+}
+function builderGoBack(){
+  builderLeaveToCaller();
+}
+window.renderOnboardAplBanner=renderOnboardAplBanner;
+window.resumeOnboardFromApl=resumeOnboardFromApl;
+window.renderOnboardBuilderBanner=renderOnboardBuilderBanner;
+window.resumeOnboardFromBuilder=resumeOnboardFromBuilder;
+window.builderGoBack=builderGoBack;
+window.builderLeaveToCaller=builderLeaveToCaller;
+
+function skipClientPackage(clientId){return saveOnboardSkip(clientId,'packageSkipped');}
+window.skipClientPackage=skipClientPackage;
+
+function openPackageForClient(clientId){
+  window._packageOpenClient=clientId;
+  window._onboardResumeAfterPackage=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  const pkgEl=document.getElementById('pkg-client');
+  if(pkgEl){
+    const list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+    if(clientId&&!list.some(c=>c.id===clientId)){
+      const extra=(window.CL||[]).find(c=>c&&c.id===clientId);
+      if(extra)list.push(extra);
+    }
+    pkgEl.innerHTML=list.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name||c.email||c.id)+'</option>').join('')
+      ||(clientId?'<option value="'+escHtml(clientId)+'">'+escHtml(clientId)+'</option>':'');
+    pkgEl.value=clientId;
+  }
+  const pkgDate=document.getElementById('pkg-date');
+  if(pkgDate&&!pkgDate.value)pkgDate.value=new Date().toISOString().split('T')[0];
+  const paySt=document.getElementById('pkg-pay-status');
+  if(paySt&&!paySt.value)paySt.value='pending';
+  const bar=document.getElementById('pkg-onboard-banner');
+  if(bar){
+    const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    bar.style.display='flex';
+    bar.innerHTML='<span>Start współpracy: <b>'+esc(c&&c.name||'')+'</b> — zapisz pakiet albo wróć do checklisty.</span>'
+      +'<button type="button" class="btn btn-primary btn-sm" onclick="closePackageModal()">Wróć do checklisty</button>';
+  }
+  openM('m-package');
+}
+function closePackageModal(){
+  if(typeof closeM==='function')closeM('m-package');
+  const bar=document.getElementById('pkg-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+  const cid=window._onboardResumeAfterPackage;
+  window._onboardResumeAfterPackage=null;
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function clearPackageOnboardBanner(){
+  const bar=document.getElementById('pkg-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+}
+window.openPackageForClient=openPackageForClient;
+window.closePackageModal=closePackageModal;
+window.clearPackageOnboardBanner=clearPackageOnboardBanner;
+
+function clientPendingPackage(clientId){
+  return(window.PACKAGES||[]).find(p=>p&&p.clientId===clientId&&p.payStatus==='pending'&&!p.paymentRequestedAt)||null;
+}
+window.clientPendingPackage=clientPendingPackage;
+
+function openAiPlanForClient(clientId,fromOnboard){
+  window._onboardResumeAfterApl=fromOnboard?clientId:null;
+  if(fromOnboard&&typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof closeClientProfile==='function')closeClientProfile();
+  window._aplPrefillClientId=clientId;
+  goTo('aiplangen');
+  setTimeout(()=>{
+    const sel=document.getElementById('apl-client');
+    if(sel){
+      sel.value=clientId;
+      if(typeof aplFillFromClient==='function')aplFillFromClient();
+    }
+    if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
+  },200);
+}
+window.openAiPlanForClient=openAiPlanForClient;
+
+function openBuilderForClient(clientId,fromOnboard){
+  window._builderBack='clients';
+  window._onboardResumeAfterBuilder=fromOnboard?clientId:null;
+  goTo('builder');
+  const sel=document.getElementById('b-client');
+  if(sel){
+    sel.value=clientId;
+    if(typeof updatePeriod==='function')updatePeriod();
+    // Wybór klienta przy otwarciu to nie zmiana trenera — bez fałszywego „niezapisane zmiany”.
+    if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
+  }
+  if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
+}
+window.openBuilderForClient=openBuilderForClient;
+
+// Checklista nie zakłada, że generator AI jest jedyną drogą do planu.
+// Każda z trzech opcji otwiera konkretny tryb, ale nie zapisuje żadnego planu.
+function openClientPlanChoice(clientId){
+  const client=(window.CL||[]).find(item=>item&&item.id===clientId);
+  if(!client)return;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  let modal=document.getElementById('m-client-plan-choice');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='m-client-plan-choice';
+    modal.className='modal-ov';
+    document.body.appendChild(modal);
+  }
+  const esc=typeof escHtml==='function'?escHtml:value=>String(value==null?'':value);
+  const idArg=String(clientId).replace(/'/g,"\\'");
+  modal.innerHTML=`<div class="modal" style="max-width:620px;">
+    <div class="modal-hdr"><div class="modal-title">JAK CHCESZ UTWORZYĆ PLAN?</div><button class="modal-close" onclick="closeClientPlanChoice('${idArg}')">×</button></div>
+    <div class="modal-body">
+      <p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:var(--muted);">Dla <b style="color:var(--text);">${esc(client.name||client.email||'tego klienta')}</b>. Wybierz sposób pracy — plan zostanie zapisany dopiero po Twoim potwierdzeniu.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;">
+        <button type="button" class="card" style="text-align:left;cursor:pointer;padding:14px;" onclick="startClientAiPlan('${idArg}')"><b>⚡ Generator AI</b><span style="display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45;">Szybki szkic na podstawie danych klienta.</span></button>
+        <button type="button" class="card" style="text-align:left;cursor:pointer;padding:14px;" onclick="startClientManualPlan('${idArg}')"><b>🧭 Plan krok po kroku</b><span style="display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45;">Prowadzony kreator dla trenera.</span></button>
+        <button type="button" class="card" style="text-align:left;cursor:pointer;padding:14px;" onclick="startClientBuilderPlan('${idArg}')"><b>✏️ Klasyczny kreator</b><span style="display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45;">Pełna ręczna edycja lub start od szablonu.</span></button>
+      </div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="closeClientPlanChoice('${idArg}')">Wróć do checklisty</button></div>
+  </div>`;
+  if(typeof openM==='function')openM('m-client-plan-choice');
+}
+function closeClientPlanChoice(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  if(clientId&&typeof openClientOnboardChecklist==='function')openClientOnboardChecklist(clientId);
+}
+function startClientAiPlan(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  return openAiPlanForClient(clientId,true);
+}
+function startClientManualPlan(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  // Flaga umożliwia bezpieczny powrót do checklisty po przejściu kreatora.
+  window._onboardResumeAfterBuilder=clientId;
+  if(typeof window.openManualPlanPicker==='function')return window.openManualPlanPicker(clientId);
+  return openBuilderForClient(clientId,true);
+}
+function startClientBuilderPlan(clientId){
+  if(typeof closeM==='function')closeM('m-client-plan-choice');
+  return openBuilderForClient(clientId,true);
+}
+window.openClientPlanChoice=openClientPlanChoice;
+window.closeClientPlanChoice=closeClientPlanChoice;
+window.startClientAiPlan=startClientAiPlan;
+window.startClientManualPlan=startClientManualPlan;
+window.startClientBuilderPlan=startClientBuilderPlan;
+
+function openNewPlanPicker(){
+  if(typeof window.openManualPlanPicker==='function')return window.openManualPlanPicker();
+  let m=document.getElementById('m-new-plan');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-new-plan';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:440px;">
+      <div class="modal-hdr"><div class="modal-title">NOWY PLAN</div><button class="modal-close" onclick="closeM('m-new-plan')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Klient</label>
+          <select class="form-select" id="np-client"></select>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;">Kreator otworzy się z wybranym podopiecznym. Albo wklej gotowy tydzień z biblioteki.</div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-new-plan')">Anuluj</button><button class="btn btn-ghost" onclick="closeM('m-new-plan');goTo('templates')">📋 Gotowy tydzień</button><button class="btn btn-primary" onclick="saveNewPlanPicker()">Otwórz kreator</button></div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  const sel=document.getElementById('np-client');
+  const list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(sel)sel.innerHTML=list.length?list.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join(''):'<option value="">Brak klientów</option>';
+  openM('m-new-plan');
+}
+function saveNewPlanPicker(){
+  const cid=(document.getElementById('np-client')||{}).value;
+  closeM('m-new-plan');
+  if(!cid){if(typeof notify==='function')notify('Najpierw dodaj klienta');openM('m-client');return;}
+  openBuilderForClient(cid);
+}
+window.openNewPlanPicker=openNewPlanPicker;
+window.saveNewPlanPicker=saveNewPlanPicker;
+
+function openClientOnboardChecklist(clientId){
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  window._onboardClientId=clientId;
+  // Zaraz po dodaniu klienta: jeden wyraźny następny krok („Ułóż pierwszy plan”) albo „Później”.
+  window._onboardSavedBanner=window._clientJustSavedId===clientId;window._clientJustSavedId=null;
+  renderClientOnboardChecklist();
+  openM('m-client-onboard');
+}
+function renderClientSavedCta(c,st){
+  const box=document.getElementById('client-onboard-saved');if(!box)return;
+  const show=!!(window._onboardSavedBanner&&c&&!st.plan);
+  box.hidden=!show;
+  const body=document.getElementById('client-onboard-body');if(body)body.classList.toggle('has-saved-cta',show);
+  if(!show){box.innerHTML='';return;}
+  const first=escHtml(String(c.name||'').trim().split(/\s+/)[0]||'Klient');
+  box.innerHTML=`<div class="client-saved-cta-title">${typeof plLineIcon==='function'?plLineIcon('check',18):''} ${first} jest na liście klientów.</div>
+    <p>Następny krok: pierwszy plan treningowy. Resztę startu zrobisz z listy poniżej, kiedy zechcesz.</p>
+    <div class="client-saved-cta-btns"><button type="button" class="btn btn-primary" id="client-saved-plan-btn" onclick="clientSavedStartPlan()">Ułóż pierwszy plan</button><button type="button" class="btn btn-ghost" id="client-saved-later-btn" onclick="clientSavedLater()">Później</button></div>`;
+}
+function clientSavedStartPlan(){
+  const id=window._onboardClientId;window._onboardSavedBanner=false;
+  closeM('m-client-onboard');
+  if(id&&typeof openBuilderForClient==='function')openBuilderForClient(id,true);
+}
+function clientSavedLater(){
+  window._onboardSavedBanner=false;
+  closeM('m-client-onboard');
+}
+window.clientSavedStartPlan=clientSavedStartPlan;window.clientSavedLater=clientSavedLater;
+
+function renderClientOnboardChecklist(){
+  const id=window._onboardClientId;
+  const c=CL.find(x=>x.id===id);
+  const el=document.getElementById('client-onboard-steps');
+  if(!el||!c)return;
+  const st={...getClientOnboard(c)};
+  const calendarState=getOnboardCalendarState(id);
+  // A local listener may emit before the write acknowledgement. Keep this action unconfirmed.
+  if(calendarState&&calendarState.operation&&!calendarState.calendarBefore&&st.calendar){
+    st.calendar=false;st.done=Math.max(0,st.done-1);st.complete=false;
+  }
+  renderClientSavedCta(c,st);
+  const intro=document.getElementById('client-onboard-intro');
+  if(intro)intro.textContent=st.complete
+    ? c.name+' jest gotowy do codziennej pracy.'
+    : 'Klient: '+c.name+' — dokończ start współpracy.';
+  const prog=document.getElementById('client-onboard-progress');
+  if(prog){
+    const pct=Math.round(st.done/st.total*100);
+    prog.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;"><span>Postęp startu</span><span style="font-family:'DM Mono',monospace;color:var(--accent);">${st.done}/${st.total}</span></div>
+      <div style="height:6px;background:var(--s4);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:99px;"></div></div>`;
+  }
+  const safeName=c.name.replace(/'/g,"\\'");
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(id):null;
+  const steps=[
+    {skipField:'inviteSkipped',done:st.invite,icon:'📱',title:'Wyślij zaproszenie',
+      desc:st.invite&&c.inviteSkipped&&!(c.inviteSent||c.appInvited||c.inviteSentAt||c.appJoined)
+        ?'Zaproszenie pominięte — możesz wysłać je później.'
+        :st.invite&&!c.appJoined
+        ?'Checklistę oznaczono, ale klient dostanie link dopiero gdy wyślesz e-mail (Gmail) albo WhatsApp — Inbox w apce zobaczy po zalogowaniu.'
+        :'Link na e-mail klienta (Gmail). Inbox w apce zobaczy dopiero po pierwszym logowaniu.',
+      action:`openInviteFromOnboard('${id}')`,cta:'✉️ E-mail',
+      extra:st.invite?'':`<button type="button" class="btn btn-ghost btn-sm" data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-field="inviteSkipped" data-onboard-skip-action="skip" onclick="skipClientInvite('${id}')">Pomiń</button>`,
+      doneExtra:(st.invite&&!c.appJoined)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openInviteFromOnboard('${id}')">✉️ ${c.inviteSkipped&&!(c.inviteSent||c.appInvited||c.inviteSentAt)?'Wyślij zaproszenie':'Wyślij ponownie e-mailem'}</button></div>`:''},
+    {done:!!(intake&&intake.filled),icon:'📋',title:'Ankieta wstępna',
+      desc:intake&&intake.filled
+        ?'Wypełniona — cel, ograniczenia i preferencje są dostępne w profilu oraz generatorze planu.'
+        :intake&&intake.pending
+          ?'Czeka na odpowiedź klienta. Plan przygotuj po sprawdzeniu celu i przeciwwskazań.'
+          :'Zbierz cel, doświadczenie, możliwości i przeciwwskazania przed przygotowaniem planu.',
+      action:intake&&intake.pending?`remindFormSend('${intake.pending.id}');renderClientOnboardChecklist()`:`sendClientIntakeForm('${id}');renderClientOnboardChecklist()`,
+      cta:intake&&intake.pending?'Przypomnij klientowi':'Wyślij ankietę',
+      extra:intake&&intake.pending
+        ?`<button class="btn btn-ghost btn-sm" onclick="openClientProfileFromOnboard('${id}','forms')">Formularze</button>`
+        :`<button class="btn btn-ghost btn-sm" onclick="openFormsLibraryFromOnboard('${id}')">Biblioteka formularzy</button>`},
+    {done:st.baseline,icon:'⚖️',title:'Pomiary startowe (baseline)',desc:'Waga, %BF i obwody z datą — historia progresu',
+      action:`openClientBaselineModal('${id}',true)`,cta:'Zapisz pomiary'},
+    {done:st.schedule,icon:'📅',title:'Dni treningowe',desc:'Preferowane dni tygodnia — apka i auto-kalendarz z nich korzystają',
+      action:`openClientScheduleFromOnboard('${id}')`,cta:'Ustaw dni'},
+    {done:st.plan,icon:'📋',title:'Przypisz plan treningowy',
+      desc:st.plan
+        ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' („'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
+        :'Wybierz generator AI, prowadzony plan krok po kroku albo klasyczny kreator.',
+      action:`openClientPlanChoice('${id}')`,cta:'Wybierz sposób',
+      extra:''},
+    {key:'calendar',done:st.calendar,icon:'🗓',title:'Dodaj terminy do kalendarza',desc:'Dopełnij 4 tygodnie według planu. Istniejące treningi, zmiany terminów i pominięcia zostaną zachowane.',
+      action:`scheduleClientPlanToCalendar('${id}')`,cta:'Dodaj terminy na 4 tygodnie',
+      extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,
+      doneExtra:st.calendar?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button type="button" class="btn btn-ghost btn-sm" data-onboard-calendar-client="${escHtml(id)}" data-onboard-calendar-label="Dopełnij terminy najnowszego planu" onclick="scheduleClientPlanToCalendar('${id}')">Dopełnij terminy najnowszego planu</button></div>`:''},
+    {skipField:'packageSkipped',done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
+      action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
+      extra:st.package?'':`<button type="button" class="btn btn-ghost btn-sm" data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-field="packageSkipped" data-onboard-skip-action="skip" onclick="skipClientPackage('${id}')">Pomiń</button>`,
+      afterDone:(()=>{
+        const pend=typeof clientPendingPackage==='function'?clientPendingPackage(id):null;
+        if(!pend)return'';
+        return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="requestPayment('${pend.id}');renderClientOnboardChecklist()">💸 Poproś o wpłatę</button><span style="font-size:10px;color:var(--muted);align-self:center;">${escHtml(pend.title||'Pakiet')} · ${(pend.price||0)} zł</span></div>`;
+      })()},
+  ];
+  const flow=window.ONBOARDING_FLOW;
+  if(flow&&flow.forumGroupId){
+    const g=(window.FORUM_GROUPS||[]).find(x=>x.id===flow.forumGroupId);
+    const inForum=typeof isClientInForumGroup==='function'?isClientInForumGroup(id,flow.forumGroupId):false;
+    steps.push({
+      done:inForum,
+      icon:'👥',
+      title:'Forum / społeczność',
+      desc:g?('Grupa: '+(g.name||'Forum')+(g.privacy==='private'?' (prywatna)':'')):'Dołącz klienta do grupy z Automatyzacji',
+      action:`enrollClientInOnboardForum('${id}')`,
+      cta:'Dołącz do forum'
+    });
+  }
+  // Invite step: show app-joined hint when already invited
+  const inviteStep=steps.find(s=>s.title&&s.title.indexOf('zaproszenie')>=0);
+  if(inviteStep&&st.invite&&c.appJoined){
+    inviteStep.desc='Klient założył konto w aplikacji ('+(c.appJoinedAt?String(c.appJoinedAt).slice(0,10):'ok')+').';
+  }
+  // Soft intake / pending forms block (not counted in pipeline total)
+  let formBlock='';
+  if(intake&&!intake.filled&&!intake.pending&&intake.anyPending&&intake.anyPending.length){
+      const p=intake.anyPending[0];
+      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid rgba(157,124,244,0.45);border-radius:10px;margin-bottom:8px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(157,124,244,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Formularz oczekuje</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(p.formName||'Formularz')}${intake.anyPending.length>1?' · +'+(intake.anyPending.length-1):''}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(p.id)}');renderClientOnboardChecklist()">Przypomnij</button>
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfileFromOnboard('${id}','forms')">Profil</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  el.innerHTML=formBlock+steps.map(s=>`
+    <div ${s.key==='calendar'?'data-onboard-step="calendar"':''} style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
+      <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${s.title}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:${(s.done&&!s.afterDone&&!s.doneExtra)||!s.done?'8px':'0'};">${s.desc}</div>
+        ${s.done
+          ?`<div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>${s.doneExtra||''}${s.afterDone||''}`
+          :`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="btn btn-primary btn-sm" ${s.key==='calendar'?`data-onboard-calendar-client="${escHtml(id)}" data-onboard-calendar-label="${s.cta}"`:s.skipField?`data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-field="${s.skipField}" data-onboard-skip-action="related"`:''} onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
+        ${s.skipField?`<div data-onboard-skip-client="${escHtml(id)}" data-onboard-skip-status="${s.skipField}" role="status" aria-live="polite" hidden style="font-size:11px;line-height:1.5;margin-top:8px;"></div>`:''}
+        ${s.key==='calendar'?`<div data-onboard-calendar-status="${escHtml(id)}" role="status" aria-live="polite" hidden style="font-size:11px;line-height:1.5;margin-top:8px;"></div>`:''}
+      </div>
+    </div>`).join('')+(st.complete?`<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="closeM('m-client-onboard')">Gotowe — zamknij</button>`:'');
+  renderOnboardCalendarState(id);
+  renderOnboardSkipState(id);
+}
+window.openClientOnboardChecklist=openClientOnboardChecklist;
+window.renderClientOnboardChecklist=renderClientOnboardChecklist;
+
+function enrollClientInOnboardForum(clientId){
+  const flow=window.ONBOARDING_FLOW;
+  if(!flow||!flow.forumGroupId){
+    if(typeof notify==='function')notify('Ustaw grupę forum w Automatyzacja → Onboarding');
+    return false;
+  }
+  const r=typeof enrollClientInForumGroup==='function'
+    ?enrollClientInForumGroup(clientId,flow.forumGroupId,{notify:true,forceNotify:true})
+    :{ok:false};
+  if(!r.ok){
+    if(typeof notify==='function')notify('Nie znaleziono grupy forum');
+    return false;
+  }
+  if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
+  if(typeof renderDash==='function')try{renderDash();}catch(e){}
+  if(typeof notify==='function')notify(r.added?'✓ Klient dołączony do forum':'Klient już jest w tej grupie');
+  return true;
+}
+window.enrollClientInOnboardForum=enrollClientInOnboardForum;
+
+// Schedule retries belong to one client and authenticated trainer session.
+const onboardScheduleDrafts=new Map();
+function onboardScheduleClone(value){
+  if(Array.isArray(value))return value.map(onboardScheduleClone);
+  if(value instanceof Date)return new Date(value.getTime());
+  if(value&&typeof value==='object'&&value.constructor?.name==='Object')return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,onboardScheduleClone(item)]));
+  return value;
+}
+function onboardScheduleFreeze(value){
+  if(Array.isArray(value)||(value&&typeof value==='object'&&value.constructor?.name==='Object')){
+    Object.values(value).forEach(onboardScheduleFreeze);Object.freeze(value);
+  }
+  return value;
+}
+function onboardScheduleOwnsModal(state){
+  return !!state&&window._onboardScheduleState===state&&state.open&&assignmentSessionCurrent(state.auth)&&
+    window._onboardScheduleClientId===state.clientId&&document.getElementById('m-onboard-schedule')?.classList.contains('show');
+}
+function onboardScheduleIsCurrent(state){
+  return onboardScheduleOwnsModal(state)&&!document.querySelector('.modal-ov.show:not(#m-onboard-schedule)');
+}
+function captureOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(state&&state.open){
+    if(!state.candidate&&window._onboardScheduleClientId===state.clientId&&typeof readPreferredWeekdaysFrom==='function')state.days=onboardScheduleClone(readPreferredWeekdaysFrom('ob-sched'));
+    state.open=false;
+  }
+}
+function clearOnboardScheduleDrafts(){
+  onboardScheduleDrafts.clear();window._onboardScheduleState=null;
+  window._onboardScheduleClientId=null;window._onboardResumeAfterSchedule=null;
+  const modal=document.getElementById('m-onboard-schedule');if(modal)modal.classList.remove('show');
+  const name=document.getElementById('ob-sched-name');if(name)name.textContent='';
+  const bar=document.getElementById('sched-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
+  if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ob-sched',[]);
+  const status=document.getElementById('ob-sched-save-status');if(status)status.textContent='';
+}
+function renderOnboardScheduleSaveState(state){
+  if(!onboardScheduleOwnsModal(state))return;
+  const days=document.getElementById('ob-sched-preferred-weekdays');
+  if(days)days.querySelectorAll('button').forEach(button=>{button.disabled=!!state.candidate;});
+  const save=document.getElementById('ob-sched-save-btn');
+  if(save){save.disabled=!!(state.pending||state.saved||state.conflict);save.textContent=state.pending?'Zapisuję…':state.saved?'Zapisano':state.error?'Ponów zapis':'Zapisz dni';}
+  const status=document.getElementById('ob-sched-save-status');if(status){status.textContent=state.message||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+  const reload=document.getElementById('ob-sched-reload-btn');if(reload){reload.hidden=!state.conflict;reload.disabled=!!state.pending;}
+  const discard=document.getElementById('ob-sched-discard-btn');if(discard)discard.disabled=!!(state.pending||state.saved||(state.candidate&&!state.conflict));
+}
+function reloadOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||!state.conflict||state.pending)return;
+  try{
+    const local=CL.find(c=>c.id===state.clientId);
+    assertAssignmentSession(state.auth,state.conflict);assertAssignmentSession(state.auth,local);
+    if((state.conflict._fbId||state.conflict.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+    if((local._fbId||local.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+  }catch(error){state.error=true;state.message=error.message;renderOnboardScheduleSaveState(state);return;}
+  state.base=onboardScheduleFreeze(onboardScheduleClone(state.conflict));
+  state.days=onboardScheduleClone(state.base.preferredWeekdays?.length?state.base.preferredWeekdays:[1,3,5]);
+  state.operation={auth:state.auth,edit:true,base:state.base};state.candidate=null;state.displayDays=null;state.conflict=null;state.error=false;
+  state.message='Wczytano aktualne dane. Zaznacz i zapisz dni treningowe.';state.open=false;
+  openClientScheduleFromOnboard(state.clientId);
+}
+function discardOnboardScheduleDraft(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||state.pending||state.saved||(state.candidate&&!state.conflict))return;
+  onboardScheduleDrafts.delete(state.key);
+  closeScheduleOnboardModal();window._onboardScheduleState=null;
+}
+function openClientScheduleFromOnboard(clientId){
+  const c=CL.find(x=>x.id===clientId),auth=assignmentSession();
+  try{assertAssignmentSession(auth,c);}catch(error){if(typeof notify==='function')notify(error.message);return;}
+  if(window._onboardResumeTimer){clearTimeout(window._onboardResumeTimer);window._onboardResumeTimer=null;}
+  captureOnboardScheduleDraft();
+  for(const [key,draft] of onboardScheduleDrafts)if(!assignmentSessionCurrent(draft.auth))onboardScheduleDrafts.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,clientId]);
+  let state=onboardScheduleDrafts.get(key);
+  if(state&&state.saved&&!state.pending){onboardScheduleDrafts.delete(key);state=null;}
+  if(!state){
+    const base=onboardScheduleFreeze(onboardScheduleClone(c));
+    state={auth:onboardScheduleFreeze({...auth}),key,clientId,base,days:onboardScheduleClone(c.preferredWeekdays?.length?c.preferredWeekdays:[1,3,5])};
+    state.operation={auth:state.auth,edit:true,base};onboardScheduleDrafts.set(key,state);
+  }
+  window._onboardScheduleState=state;state.open=true;
+  window._onboardScheduleClientId=clientId;
+  window._onboardResumeAfterSchedule=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  const nameEl=document.getElementById('ob-sched-name');
+  if(nameEl)nameEl.textContent=state.base.name||'';
+  if(typeof initPreferredWeekdaysForm==='function'){
+    initPreferredWeekdaysForm('ob-sched',state.days);
+  }
+  if(!state.displayDays&&typeof readPreferredWeekdaysFrom==='function')state.displayDays=onboardScheduleClone(readPreferredWeekdaysFrom('ob-sched'));
+  const bar=document.getElementById('sched-onboard-banner');
+  if(bar){
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    bar.style.display='flex';
+    bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — zaznacz dni albo wróć do checklisty.</span>'
+      +'<button type="button" class="btn btn-primary btn-sm" onclick="closeScheduleOnboardModal()">Wróć do checklisty</button>';
+  }
+  openM('m-onboard-schedule');
+  renderOnboardScheduleSaveState(state);
+}
+function closeScheduleOnboardModal(){
+  const state=window._onboardScheduleState;
+  const cid=onboardScheduleIsCurrent(state)?state.clientId:null;
+  captureOnboardScheduleDraft();
+  if(typeof closeM==='function')closeM('m-onboard-schedule');
+  const bar=document.getElementById('sched-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+  window._onboardResumeAfterSchedule=null;window._onboardScheduleClientId=null;
+  if(cid&&assignmentSessionCurrent(state.auth)){
+    try{assertAssignmentSession(state.auth,CL.find(c=>c.id===cid));if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);}catch(error){}
+  }
+}
+async function saveClientScheduleFromOnboard(){
+  const state=window._onboardScheduleState;
+  if(!onboardScheduleIsCurrent(state)||state.pending||state.saved||state.conflict)return;
+  try{
+    const local=CL.find(c=>c.id===state.clientId);assertAssignmentSession(state.auth,local);
+    if((local._fbId||local.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie harmonogram.');
+    if(!state.candidate){
+      if(typeof readPreferredWeekdaysFrom!=='function')throw new Error('Nie można odczytać dni treningowych. Odśwież aplikację.');
+      const days=readPreferredWeekdaysFrom('ob-sched');
+      if(!days.length)throw new Error('Wybierz przynajmniej jeden dzień');
+      state.days=onboardScheduleClone(days);
+      const untouched=state.base.preferredWeekdays?.length&&JSON.stringify(days)===JSON.stringify(state.displayDays);
+      state.candidate=onboardScheduleFreeze({id:state.clientId,trainerId:state.auth.uid,
+        ...(state.base._fbId?{_fbId:state.base._fbId}:{}),preferredWeekdays:onboardScheduleClone(untouched?state.base.preferredWeekdays:days)});
+    }
+  }catch(error){state.error=true;state.message=error.message;renderOnboardScheduleSaveState(state);if(typeof notify==='function')notify(state.message);return;}
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie zapisu dni treningowych.';
+  renderOnboardScheduleSaveState(state);
+  try{
+    const saved=await saveClientCardConfirmed(state.candidate,state.operation);
+    if(!assignmentSessionCurrent(state.auth))return;
+    assertAssignmentSession(state.auth,saved);
+    if(saved.id!==state.clientId||(saved._fbId||saved.id)!==(state.base._fbId||state.base.id))throw new Error('Nie można potwierdzić identyfikatora zapisanego klienta.');
+    state.saved=true;
+    const c=CL.find(x=>x.id===state.clientId);assertAssignmentSession(state.auth,c);
+    if((c._fbId||c.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się podczas zapisu.');
+    // Merge only the confirmed schedule; other local fields may have changed meanwhile.
+    if(Object.prototype.hasOwnProperty.call(saved,'preferredWeekdays'))c.preferredWeekdays=onboardScheduleClone(saved.preferredWeekdays);
+    if(saved.clientCardWriteId)c.clientCardWriteId=saved.clientCardWriteId;
+    state.message='Dni treningowe klienta '+(saved.name||state.base.name||state.clientId)+' zapisane.';
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
+    if(typeof renderClients==='function')try{renderClients();}catch(e){}
+    if(typeof notify==='function')notify(state.message);
+    if(onboardScheduleIsCurrent(state))closeScheduleOnboardModal();
+  }catch(error){
+    if(!assignmentSessionCurrent(state.auth))return;
+    state.error=true;state.conflict=error?.code==='client-card-conflict'&&error.remote?onboardScheduleClone(error.remote):null;
+    state.message=state.saved?'Dni zapisane, ale klient jest teraz niedostępny. Odśwież listę klientów.':
+      state.conflict?'Dni treningowe zmieniły się w innym oknie. Wczytaj aktualne dane i zaznacz dni ponownie.':
+      'Nie potwierdzono zapisu. Wybrane dni zachowano. Ponów zapis. '+(error?.message||'');
+    if(onboardScheduleIsCurrent(state)&&typeof notify==='function')notify(state.message);
+  }finally{state.pending=false;if(onboardScheduleOwnsModal(state))renderOnboardScheduleSaveState(state);}
+}
+window.openClientScheduleFromOnboard=openClientScheduleFromOnboard;
+window.closeScheduleOnboardModal=closeScheduleOnboardModal;
+window.saveClientScheduleFromOnboard=saveClientScheduleFromOnboard;
+window.captureOnboardScheduleDraft=captureOnboardScheduleDraft;
+window.clearOnboardScheduleDrafts=clearOnboardScheduleDrafts;
+window.reloadOnboardScheduleDraft=reloadOnboardScheduleDraft;
+window.discardOnboardScheduleDraft=discardOnboardScheduleDraft;
+
+function latestClientPlan(clientId){
+  return(window.PL||[]).filter(p=>p&&p.clientId===clientId&&!p.archived&&!p.deleted&&p.status!=='archived').slice().sort((a,b)=>{
+    const ak=String(a.updatedAt||a.createdAt||a.id||'');
+    const bk=String(b.updatedAt||b.createdAt||b.id||'');
+    return bk.localeCompare(ak);
+  })[0]||null;
+}
+// Calendar actions in Start współpracy are scoped to the current trainer session.
+const onboardCalendarStates=new Map();
+function onboardCalendarSession(){return {uid:window._uid,generation:window.tenantSessionGeneration||0};}
+function onboardCalendarCurrent(auth){
+  return !!auth.uid&&auth.uid===window._uid&&auth.generation===(window.tenantSessionGeneration||0)&&
+    !window._clientAppMode&&!window._clientPreviewMode&&window._tenantDataReady===true&&
+    (!window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(auth));
+}
+function onboardCalendarKey(auth,cid){return JSON.stringify([auth.uid,auth.generation,cid]);}
+function getOnboardCalendarState(cid){
+  const auth=onboardCalendarSession();
+  for(const [key,state] of onboardCalendarStates){
+    if(state.auth.uid!==auth.uid||state.auth.generation!==auth.generation)onboardCalendarStates.delete(key);
+  }
+  return onboardCalendarStates.get(onboardCalendarKey(auth,cid));
+}
+function renderOnboardCalendarState(cid){
+  const state=getOnboardCalendarState(cid);
+  document.querySelectorAll('[data-onboard-calendar-client]').forEach(button=>{
+    if(button.getAttribute('data-onboard-calendar-client')!==cid)return;
+    button.disabled=!!(state&&state.pending);
+    button.textContent=state&&state.pending?'Zapisywanie…':state&&state.error?'Ponów zapis terminów':button.getAttribute('data-onboard-calendar-label');
+  });
+  document.querySelectorAll('[data-onboard-calendar-status]').forEach(el=>{
+    if(el.getAttribute('data-onboard-calendar-status')!==cid)return;
+    el.textContent=state&&state.message||'';
+    el.hidden=!el.textContent;
+    el.style.color=state&&state.error?'var(--orange)':'var(--muted)';
+  });
+}
+function scheduleClientPlanToCalendar(clientId){
+  const cid=String(clientId||''),auth=onboardCalendarSession();
+  let state=getOnboardCalendarState(cid);
+  if(state&&state.pending)return state.promise;
+  if(!state){
+    state={auth,pending:false,error:false,message:'',operation:null};
+    onboardCalendarStates.set(onboardCalendarKey(auth,cid),state);
+  }
+  try{
+    if(!onboardCalendarCurrent(auth))throw new Error('Dane konta nie są gotowe. Otwórz ponownie profil klienta po zalogowaniu.');
+    const client=(window.CL||[]).find(c=>c&&c.id===cid&&c.trainerId===auth.uid&&!c.archived&&!c.deleted&&c.status!=='archived');
+    if(!client)throw new Error('Klient jest niedostępny. Odśwież listę klientów.');
+    if(typeof window.refillCalendarConfirmed!=='function')throw new Error('Odśwież aplikację, aby wczytać moduł kalendarza.');
+    if(!state.operation){
+      const plan=(window.PL||[]).filter(p=>p&&p.clientId===cid&&p.trainerId===auth.uid&&!p.archived&&!p.deleted&&p.status!=='archived'&&
+        (p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length))
+        .sort((a,b)=>String(b.updatedAt||b.createdAt||b.id||'').localeCompare(String(a.updatedAt||a.createdAt||a.id||'')))[0];
+      if(!plan)throw new Error('Najpierw przypisz klientowi plan z dniami treningowymi.');
+      const preferred=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(client.preferredWeekdays):(client.preferredWeekdays||[]);
+      if(!preferred.length&&!confirm('Dodać terminy na 4 tygodnie według dni w planie? Preferowane dni klienta nie są jeszcze ustawione.'))return Promise.resolve({status:'cancelled'});
+      state.operation={planId:plan.id,weeks:4};
+      state.planName=plan.name||'Plan treningowy';
+      state.calendarBefore=!!getClientOnboard(client).calendar;
+    }
+  }catch(error){
+    const message=error&&error.message||'Nie można rozpocząć zapisu terminów.';
+    state.error=true;state.message=message;
+    renderOnboardCalendarState(cid);
+    return Promise.resolve({status:'error',error:message});
+  }
+  state.pending=true;state.error=false;
+  state.message='Sprawdzam terminy i zapisuję brakujące: '+state.planName+'. Poczekaj na potwierdzenie.';
+  renderOnboardCalendarState(cid);
+  // Start in a microtask so repeated clicks always receive the same Promise.
+  state.promise=Promise.resolve().then(async()=>{
+    try{
+      if(!onboardCalendarCurrent(auth))throw new Error('Sesja logowania zmieniła się. Otwórz ponownie profil klienta.');
+      const result=await window.refillCalendarConfirmed(cid,state.operation);
+      if(!onboardCalendarCurrent(auth))return {status:'error',error:'Sesja logowania zmieniła się. Otwórz ponownie profil klienta.'};
+      if(!result||!['saved','unchanged'].includes(result.status))throw new Error(result&&result.error||'Nie udało się potwierdzić zapisu terminów.');
+      state.operation=null;state.error=false;
+      state.message=result.added?'Potwierdzono zapis '+result.added+' treningów. Istniejące terminy zachowano.':'Kalendarz jest już uzupełniony. Istniejące terminy zachowano.';
+      return result;
+    }catch(error){
+      const message=error&&error.code?'Nie udało się potwierdzić zapisu. Sprawdź połączenie i ponów zapis terminów.':error&&error.message||'Nie udało się potwierdzić zapisu terminów.';
+      if(onboardCalendarCurrent(auth)){state.error=true;state.message=message;}
+      return {status:'error',error:message};
+    }finally{
+      state.pending=false;
+      const modal=document.getElementById('m-client-onboard');
+      if(onboardCalendarCurrent(auth)&&window._onboardClientId===cid&&
+        getOnboardCalendarState(cid)===state&&modal&&modal.classList.contains('show')){
+        renderClientOnboardChecklist();
+        if(!state.error&&!state.operation){
+          if(typeof renderDash==='function')try{renderDash();}catch(e){}
+          if(typeof renderClients==='function')try{renderClients();}catch(e){}
+        }
+      }
+    }
+  });
+  return state.promise;
+}
+window.latestClientPlan=latestClientPlan;
+window.scheduleClientPlanToCalendar=scheduleClientPlanToCalendar;
+
+const baselineModalDrafts=new Map();
+function baselineModalFields(){
+  const g=id=>document.getElementById(id)?.value||'';
+  return {date:g('bl-date'),weight:g('bl-weight'),bf:g('bl-bf'),
+    circ:typeof collectBaselineCircFields==='function'?collectBaselineCircFields():{},notes:'Pomiar startowy (baseline)'};
+}
+function baselineModalIsCurrent(state){
+  return window._baselineModalState===state&&state.open&&baselineSessionCurrent(state.auth)&&
+    document.getElementById('m-baseline')?.classList.contains('show');
+}
+function renderBaselineSaveState(state){
+  if(!baselineModalIsCurrent(state))return;
+  document.querySelectorAll('#m-baseline input').forEach(el=>{el.disabled=!!state.operation.entries;});
+  const btn=document.getElementById('bl-save-btn');
+  if(btn){btn.disabled=!!(state.pending||state.saved);btn.textContent=state.saved?'Zapisano':state.pending?'Zapisuję…':state.error?'Ponów zapis':'Zapisz pomiary';}
+  const next=document.getElementById('bl-new-btn');if(next)next.style.display=state.saved?'':'none';
+  const status=document.getElementById('bl-save-status');
+  if(status){status.textContent=state.saved?'Te pomiary zostały zapisane. Aby dodać nowy zestaw, wybierz „Dodaj kolejne pomiary”.':state.pending?'Czekamy na potwierdzenie zapisu.':state.error||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+}
+function openClientBaselineModal(clientId,fromOnboard){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  const previous=window._baselineModalState;
+  if(previous&&previous.open){if(!previous.operation.entries)previous.fields=baselineModalFields();previous.open=false;}
+  const auth=baselineSession();
+  for(const [key,draft] of baselineModalDrafts)if(!baselineSessionCurrent(draft.auth))baselineModalDrafts.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,clientId]);
+  let state=baselineModalDrafts.get(key);
+  if(!state){
+    state={auth,clientId,operation:{},fields:{weight:c.weight||'',bf:'',circ:{},date:typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10)}};
+    baselineModalDrafts.set(key,state);
+  }
+  state.open=true;state.resumeId=fromOnboard?clientId:null;
+  window._baselineModalState=state;
+  window._baselineClientId=clientId;
+  window._onboardResumeAfterBaseline=state.resumeId;
+  if(fromOnboard&&typeof closeM==='function')closeM('m-client-onboard');
+  openM('m-baseline');
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null?v:'';};
+  if(typeof renderBaselineCircFields==='function')renderBaselineCircFields();
+  set('bl-weight',state.fields.weight);set('bl-bf',state.fields.bf);set('bl-date',state.fields.date);
+  Object.entries(state.fields.circ||{}).forEach(([id,value])=>set('bl-circ-'+id,value));
+  const title=document.getElementById('m-baseline-title');
+  if(title)title.textContent='POMIARY STARTOWE — '+(c.name||'').toUpperCase();
+  const bar=document.getElementById('bl-onboard-banner');
+  if(bar){
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    bar.style.display=fromOnboard?'flex':'none';
+    bar.innerHTML=fromOnboard?'<span>Start współpracy: <b>'+esc(c.name)+'</b> — zapisz pomiary albo wróć do checklisty.</span>'
+      +'<button type="button" class="btn btn-primary btn-sm" onclick="closeBaselineModal()">Wróć do checklisty</button>':'';
+  }
+  renderBaselineSaveState(state);
+}
+function startNewBaselineDraft(){
+  const state=window._baselineModalState;
+  if(!state||!state.saved||!baselineModalIsCurrent(state))return;
+  baselineModalDrafts.delete(JSON.stringify([state.auth.uid,state.auth.generation,state.clientId]));
+  openClientBaselineModal(state.clientId,!!state.resumeId);
+}
+function closeBaselineModal(){
+  const state=window._baselineModalState;
+  if(state){if(!state.operation.entries)state.fields=baselineModalFields();state.open=false;}
+  if(typeof closeM==='function')closeM('m-baseline');
+  const bar=document.getElementById('bl-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+  const cid=state&&baselineSessionCurrent(state.auth)?state.resumeId:null;
+  window._onboardResumeAfterBaseline=null;
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+async function saveClientBaselineModal(){
+  const state=window._baselineModalState;
+  if(!state||!baselineModalIsCurrent(state)||state.pending||state.saved)return;
+  if(!state.operation.entries)state.fields=baselineModalFields();
+  state.pending=true;state.error='';renderBaselineSaveState(state);
+  try{
+    const request=saveClientBaselineConfirmed(state.clientId,state.fields,state.operation);
+    renderBaselineSaveState(state);
+    const created=await request;
+    if(!created.length)throw new Error('Wpisz przynajmniej wagę, skład ciała lub obwód.');
+    state.saved=true;
+    const mass=created.find(e=>e.groupId==='mg1'),circ=created.find(e=>e.groupId==='mg2');
+    state.fields={date:created[0].date,weight:mass?.values?.m1??'',bf:mass?.values?.m2??'',circ:{...(circ?.values||{})}};
+    const client=(window.CL||[]).find(c=>c.id===state.clientId);
+    notify('✓ Pomiary startowe zapisane'+(client&&client.name?' — '+client.name:''));
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
+    if(!baselineModalIsCurrent(state)){
+      if(baselineSessionCurrent(state.auth)&&state.resumeId===window._onboardClientId&&
+        document.getElementById('m-client-onboard')?.classList.contains('show')&&typeof renderClientOnboardChecklist==='function')
+        renderClientOnboardChecklist();
+      return;
+    }
+    const resumeId=state.resumeId;
+    state.open=false;window._onboardResumeAfterBaseline=null;
+    closeM('m-baseline');
+    const bar=document.getElementById('bl-onboard-banner');if(bar){bar.style.display='none';bar.innerHTML='';}
+    if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+    else if(typeof renderClientOnboardChecklist==='function'&&document.getElementById('m-client-onboard')?.classList.contains('show'))renderClientOnboardChecklist();
+  }catch(error){
+    state.error=(error&&error.message)||'Nie udało się potwierdzić zapisu. Ponów zapis.';
+    if(state.operation.entries)state.error+=' Zachowaliśmy wartości do ponowienia.';
+  }finally{state.pending=false;renderBaselineSaveState(state);}
+}
+window.openClientBaselineModal=openClientBaselineModal;
+window.startNewBaselineDraft=startNewBaselineDraft;
+window.closeBaselineModal=closeBaselineModal;
+window.saveClientBaselineModal=saveClientBaselineModal;
+
+
+
+// ════════════════════════════════════════
+// BUILDER
+// ════════════════════════════════════════
+const BUILDER_METHOD_DAYS={
+  PPL:['Push','Pull','Legs'],
+  FBW:['FBW'],
+  'Upper Lower':['Upper','Lower'],
+  Obwodowy:['Obwód A','Obwód B','Obwód C'],
+  Arnold:['Arnold A','Arnold B','Arnold C'],
+  'Bro Split':['Bro 1','Bro 2','Bro 3','Bro 4','Bro 5'],
+  Smolov:['Smolov T1','Smolov T2','Smolov T3','Smolov T4','Utrzymanie góry','Deload'],
+  'Własna':null
+};
+function builderGetMethod(){
+  const sel=document.getElementById('b-method');
+  return sel?sel.value:'PPL';
+}
+function builderDayFocusLabel(method,workoutDayIndex){
+  const labels=BUILDER_METHOD_DAYS[method];
+  if(!labels||!labels.length)return '';
+  return labels[((workoutDayIndex%labels.length)+labels.length)%labels.length];
+}
+function builderFillDayFocus(dayEl,workoutDayIndex){
+  if(!dayEl)return;
+  const inp=dayEl.querySelector('.builder-day-focus');
+  if(!inp)return;
+  const method=builderGetMethod();
+  if(method==='Własna'){
+    inp.placeholder='np. Push, FBW, własna nazwa';
+    return;
+  }
+  inp.placeholder='Push, Pull, FBW…';
+  if(dayEl.querySelector('.rc')?.checked){inp.value='';return;}
+  inp.value=builderDayFocusLabel(method,workoutDayIndex);
+}
+function builderRefreshAllDayFocus(){
+  let wi=0;
+  document.querySelectorAll('.builder-day').forEach(de=>{
+    if(de.querySelector('.rc')?.checked){
+      const inp=de.querySelector('.builder-day-focus');
+      if(inp)inp.value='';
+      return;
+    }
+    builderFillDayFocus(de,wi);
+    wi++;
+  });
+}
+function builderOnMethodChange(){
+  builderRefreshAllDayFocus();
+  builderRefreshRationale();
+  const circ=typeof normalizeRationaleMethod==='function'&&normalizeRationaleMethod(builderGetMethod())==='Obwodowy';
+  if(circ){
+    document.querySelectorAll('.builder-day').forEach(de=>{
+      const cb=de.querySelector('.circ');
+      if(cb&&!cb.checked){cb.checked=true;builderOnCircuitToggle(de.id);}
+    });
+  }
+}
+window.builderOnMethodChange=builderOnMethodChange;
+function builderEduCtx(){
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const c=(window.CL||[]).find(x=>x.id===cid)||{};
+  let weight=c.weight||null;
+  if(cid&&typeof clientLatestMetricWeight==='function'){
+    const mw=clientLatestMetricWeight(cid);
+    if(mw!=null)weight=mw;
+  }
+  return{
+    method:(document.getElementById('b-method')||{}).value||'PPL',
+    goal:c.goal||'masa',
+    level:c.level||'sredni',
+    weight:weight,
+    clientId:cid||undefined,
+    clientName:c.name||undefined
+  };
+}
+function builderRefreshMethodHint(){
+  const hint=document.getElementById('b-method-hint');
+  const btn=document.getElementById('b-method-tip-btn');
+  const ctx=builderEduCtx();
+  const text=typeof eduTipText==='function'?eduTipText('method',ctx):'';
+  if(hint)hint.textContent=text;
+  if(btn){
+    btn.setAttribute('data-tip',text);
+    btn.setAttribute('title',text);
+    btn.setAttribute('data-edu','method');
+  }
+}
+function builderRefreshRationale(){
+  builderRefreshMethodHint();
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
+}
+window.builderRefreshRationale=builderRefreshRationale;
+window.builderEduCtx=builderEduCtx;
+
+function builderKbTextForDay(dayEl){
+  if(!dayEl)return '';
+  const bits=[];
+  bits.push((dayEl.querySelector('.builder-day-focus')||{}).value||'');
+  dayEl.querySelectorAll('[data-f="name"]').forEach(inp=>{
+    const name=(inp.value||'').trim();
+    if(!name)return;
+    bits.push(name);
+    const ex=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+    if(ex)bits.push(ex.muscle||'',ex.cat||'');
+  });
+  return bits.join(' ');
+}
+function builderCollectKbTags(dayEl){
+  const bits=[];
+  const method=(document.getElementById('b-method')||{}).value||'';
+  bits.push(method);
+  if(dayEl)bits.push(builderKbTextForDay(dayEl));
+  else document.querySelectorAll('#builder-days .builder-day').forEach(d=>bits.push(builderKbTextForDay(d)));
+  const tags=typeof kbTagsFromText==='function'?kbTagsFromText(bits.join(' ')):[];
+  ['mev','mav','rir','rpe','deload'].forEach(id=>{if(tags.indexOf(id)<0)tags.push(id);});
+  if(/ppl|upper|fbw|full body/i.test(method)&&tags.indexOf('freq')<0)tags.push('freq');
+  return typeof normalizeKbTags==='function'?normalizeKbTags(tags):tags;
+}
+function builderKbHitHtml(hit){
+  const e=hit&&hit.entry;if(!e)return '';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const labels=typeof kbTagLabels==='function'?kbTagLabels(hit.tags||[]):[];
+  const text=String(e.text||'');
+  const short=text.length>140?text.slice(0,137)+'…':text;
+  return `<div class="builder-kb-hit">
+    ${labels.length?`<div class="builder-kb-hit-tags">${labels.map(l=>`<span class="kb-tag">${esc(l)}</span>`).join('')}</div>`:''}
+    <div class="builder-kb-hit-title">${esc(e.title||'')}</div>
+    <div class="builder-kb-hit-text">${esc(short)}</div>
+  </div>`;
+}
+function builderRefreshKbHits(){
+  const hitsFn=typeof kbEntriesForBuilder==='function'?kbEntriesForBuilder:null;
+  const planTags=builderCollectKbTags();
+  const planHits=hitsFn?hitsFn(planTags,{limit:6}):[];
+  const box=document.getElementById('builder-kb-hits');
+  if(box){
+    if(!planHits.length)box.innerHTML='<div class="ui-section-sub">Brak dopasowanych wpisów. Dodaj tag MEV / partię w Bazie wiedzy.</div>';
+    else box.innerHTML=planHits.map(builderKbHitHtml).join('');
+  }
+  document.querySelectorAll('#builder-days .builder-day').forEach(dayEl=>{
+    const strip=dayEl.querySelector('.builder-day-kb');
+    if(!strip)return;
+    // Wiedza biomechaniczna jest dostępna na żądanie (ⓘ przy ćwiczeniu lub
+    // w panelu „Baza pomocnicza”), więc nie wydłuża kart jednostek.
+    strip.hidden=true;strip.innerHTML='';
+  });
+}
+window.builderCollectKbTags=builderCollectKbTags;
+window.builderRefreshKbHits=builderRefreshKbHits;
+function builderToggleKnowledge(){
+  const box=document.getElementById('builder-kb-hits');
+  const button=document.getElementById('builder-kb-toggle');
+  if(!box)return;
+  const open=box.hasAttribute('hidden');
+  if(open)box.removeAttribute('hidden');else box.setAttribute('hidden','');
+  if(button){button.textContent=open?'Ukryj':'Pokaż';button.setAttribute('aria-expanded',open?'true':'false');}
+}
+window.builderToggleKnowledge=builderToggleKnowledge;
+
+function toggleBuilderSidebar(forceOpen){
+  const layout=document.querySelector('#screen-builder .builder-layout');
+  const expand=document.getElementById('builder-sidebar-expand');
+  const collapse=document.getElementById('builder-sidebar-collapse');
+  if(!layout)return;
+  let open;
+  if(forceOpen===true)open=true;
+  else if(forceOpen===false)open=false;
+  else open=layout.classList.contains('builder-sidebar-collapsed');
+  layout.classList.toggle('builder-sidebar-collapsed',!open);
+  if(expand){
+    if(open)expand.setAttribute('hidden','');
+    else expand.removeAttribute('hidden');
+  }
+  if(collapse){
+    collapse.setAttribute('aria-expanded',open?'true':'false');
+    collapse.textContent=open?'Zwiń ⟩':'Pokaż pomoc';
+    collapse.title=open?'Zwiń pomoc trenera':'Pokaż pomoc trenera';
+  }
+  try{localStorage.setItem('pl_builder_sidebar',open?'1':'0');}catch(e){}
+}
+function restoreBuilderSidebarState(){
+  let open=false;
+  try{open=localStorage.getItem('pl_builder_sidebar')==='1';}catch(e){}
+  toggleBuilderSidebar(open);
+}
+window.toggleBuilderSidebar=toggleBuilderSidebar;
+window.restoreBuilderSidebarState=restoreBuilderSidebarState;
+function initBuilder(){
+  // Powrót z Progress Academy: plan w kreatorze zostaje bez zmian.
+  if(window._builderPreserveOnReturn){window._builderPreserveOnReturn=false;builderRefreshRationale();return;}
+  const skipDraftOffer=!!window._builderSkipDraftOffer;
+  window._builderSkipDraftOffer=false;
+  builderResetSaveState();
+  window._editingPlanId=null;
+  window._manualPlanDraft=null;
+  window._builderVolumeControl=null;
+  const manualQuickbar=document.getElementById('manual-plan-quickbar');
+  if(manualQuickbar)manualQuickbar.hidden=true;
+  const volumeQuickbar=document.getElementById('builder-volume-quickbar');
+  if(volumeQuickbar)volumeQuickbar.hidden=true;
+  window._builderPeriodWeek=0;
+  if(!window._builderBack)window._builderBack='clients';
+  const titleEl=document.querySelector('#screen-builder .topbar-title');
+  if(titleEl)titleEl.textContent='Nowy plan treningowy';
+  dayCount=0;
+  document.getElementById('builder-days').innerHTML='';
+  document.getElementById('b-name').value='';
+  // wypełnij select klientów
+  const sel=document.getElementById('b-client');
+  if(sel){
+    sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+  }
+  // Lista sugestii ćwiczeń jest potrzebna dopiero w kreatorze, a nie na pulpicie.
+  try{updateExDl();}catch(e){}
+  updatePeriod();
+  builderRefreshRationale();
+  if(typeof restoreBuilderSidebarState==='function')restoreBuilderSidebarState();
+  if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
+  if(typeof builderSetupDirtyUi==='function')builderSetupDirtyUi();
+  if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
+  if(!skipDraftOffer&&typeof builderRenderDraftOffer==='function')builderRenderDraftOffer();
+}
+function addDay(){
+  dayCount++;const id='bd-'+dayCount;
+  const days=['PON','WT','ŚR','CZ','PT','SO','ND'];
+  const sel=days.map((d,i)=>`<option value="${d}"${i===dayCount-1?' selected':''}>${d}</option>`).join('');
+  const div=document.createElement('div');div.id=id;div.className='builder-day';
+  const tip=k=>typeof eduTipMark==='function'?eduTipMark(k,builderEduCtx()):'';
+  div.innerHTML=`<div class="builder-day-hdr">
+    <select class="builder-day-select">${sel}</select>
+    <input type="text" class="builder-day-focus" placeholder="Push, Pull, FBW…" oninput="builderRefreshKbHits()" title="${typeof eduTipText==='function'?eduTipText('focus').replace(/"/g,'&quot;'):''}">
+    <label class="builder-rest-toggle"><input type="checkbox" class="rc" style="accent-color:var(--accent);" onchange="toggleR('${id}')"> Dzień odpoczynku</label>
+    <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove();builderRefreshAllDayFocus();builderRefreshRationale();if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume()">×</button>
+  </div>
+  <div class="builder-day-kb" hidden></div>
+  <div class="rest-s builder-rest-state" style="display:none;">— Dzień odpoczynku / regeneracja aktywna</div>
+  <div class="work-s">
+    <div class="builder-circuit-bar">
+      <label class="builder-circuit-toggle"><input type="checkbox" class="circ" style="accent-color:var(--accent);" onchange="builderOnCircuitToggle('${id}')"> Obwód (stacje)</label>
+      <input type="text" class="ex-inp builder-round-rest" data-f="roundRest" placeholder="90s rundy" title="Przerwa między rundami obwodu" hidden>
+    </div>
+    <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER${tip('sets')}</span><span>POWT${tip('reps')}</span><span>RIR${tip('rir')}</span><span>PRZERWA${tip('rest')}</span><span></span></div>
+    <div class="ex-rows"></div>
+    <button class="add-ex-btn" onclick="addRow('${id}')">+ DODAJ ĆWICZENIE</button>
+  </div>`;
+  document.getElementById('builder-days').appendChild(div);
+  if(typeof normalizeRationaleMethod==='function'&&normalizeRationaleMethod(builderGetMethod())==='Obwodowy'){
+    const cb=div.querySelector('.circ');
+    if(cb){cb.checked=true;builderOnCircuitToggle(id);}
+  }
+  builderRefreshAllDayFocus();
+  builderRefreshRationale();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+}
+function builderOnCircuitToggle(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  builderPaintCircuitDay(el);
+}
+window.builderOnCircuitToggle=builderOnCircuitToggle;
+function builderPaintCircuitDay(dayEl){
+  if(!dayEl)return;
+  const on=!!(dayEl.querySelector('.circ')||{}).checked;
+  dayEl.classList.toggle('is-circuit',on);
+  const rr=dayEl.querySelector('.builder-round-rest');
+  if(rr)rr.hidden=!on;
+  [...dayEl.querySelectorAll('.ex-row')].forEach((r,i)=>{
+    const badge=r.querySelector('.builder-station-badge');
+    if(badge){badge.hidden=!on;badge.textContent='S'+(i+1);}
+    const tr=r.querySelector('[data-f="trans"]');
+    if(tr)tr.hidden=!on;
+  });
+}
+window.builderPaintCircuitDay=builderPaintCircuitDay;
+function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';builderRefreshAllDayFocus();builderRefreshRationale();if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();}
+function addRow(dayId){
+  const rows=document.querySelector('#'+dayId+' .ex-rows');
+  const div=document.createElement('div');div.className='ex-row';
+  const ctx=typeof builderEduCtx==='function'?builderEduCtx():{};
+  const t=k=>typeof eduTipText==='function'?String(eduTipText(k,ctx)).replace(/"/g,'&quot;'):'';
+  div.innerHTML='<div class="builder-ex-namecell">'
+    +'<span class="builder-station-badge" hidden>S1</span>'
+    +'<button type="button" class="builder-ex-thumb" hidden title="Podgląd techniki" onclick="builderOpenExMedia(this.closest(\'.ex-row\'))"></button>'
+    +'<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
+    +'</div>'
+    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" title="'+t('sets')+'" oninput="builderOnPeriodFieldEdit(this);if(typeof manualPlanRefreshVolume===\'function\')manualPlanRefreshVolume()">'
+    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" title="'+t('reps')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="number" placeholder="kg" class="ex-inp ex-advanced-field" data-f="kg" title="'+t('kg')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="8" class="ex-inp ex-advanced-field" data-f="rpe" inputmode="decimal" title="'+t('rpe')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="2" class="ex-inp" data-f="rir" inputmode="decimal" title="'+t('rir')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" title="'+t('rest')+'" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="text" placeholder="2-0-2" class="ex-inp ex-advanced-field" data-f="tempo" title="'+t('tempo')+'">'
+    +'<div class="builder-row-tools">'
+    +'<button type="button" class="builder-row-more" onclick="builderToggleRowDetails(this.closest(\'.ex-row\'))" aria-expanded="false">Więcej</button>'
+    +'<div class="builder-row-actions">'
+    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,-1)" title="Przenieś wyżej">▲</button>'
+    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,1)" title="Przenieś niżej">▼</button>'
+    +'</div>'
+    +'<button type="button" class="builder-remove-row" onclick="builderRemoveRow(this)">×</button>'
+    +'</div>'
+    +'<div class="ex-row-extra">'
+    +'<div class="builder-alt-box" hidden>'
+    +'<div class="builder-alt-label">Zamienniki — kliknij, aby podmienić ćwiczenie w planie.</div>'
+    +'<div class="builder-alt-chips"></div>'
+    +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
+    +'</div>'
+    +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderOnPeriodFieldEdit(this)">'
+    +'<div class="ex-row-coach">'
+    +'<label class="builder-todo-lbl">Do zrobienia<textarea placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte, pauza 2 s)" class="ex-inp ex-inp-name builder-sub-input builder-todo-input" data-f="note" rows="2"></textarea></label>'
+    +'<input type="url" placeholder="Własny film (opcjonalnie): YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Nadpisz film techniki z biblioteki" oninput="builderRefreshTechMedia(this.closest(\'.ex-row\'))">'
+    +'</div>'
+    +'<div class="ex-kind-btns">'
+    +'<input type="hidden" data-f="ss" value="">'
+    +'<input type="hidden" data-f="wu" value="">'
+    +'<input type="hidden" data-f="drop" value="">'
+    +'<input type="hidden" data-f="cluster" value="">'
+    +'<input type="hidden" data-f="rp" value="">'
+    +'<input type="hidden" data-f="amrap" value="">'
+    +'<input type="hidden" data-f="emom" value="">'
+    +'<button type="button" class="ex-ss-btn builder-alt-toggle" onclick="builderToggleAlts(this.closest(\'.ex-row\'))" title="Pokaż zamienniki" aria-expanded="false">Zamienniki</button>'
+    +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, zrzut 20% lub kg">DROP</button>'
+    +'<input type="text" class="ex-inp ex-drop-step" data-f="dropStep" placeholder="20% / 10kg" title="Zrzut między dropami: 20% ciężaru roboczego albo 10kg" hidden>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn cluster" onclick="builderCycleKind(this,\'cluster\',3)" title="Klaster: mini-serie z 20 s wewnątrz (1–3)">KL</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn rp" onclick="builderCycleKind(this,\'rp\',2)" title="Rest-pause: 1–2 dogrywki po 15 s">RP</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
+    +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
+    +'<input type="text" class="ex-inp ex-trans-inp" data-f="trans" placeholder="20s przejście" title="Czas przejścia do następnej stacji obwodu" hidden>'
+    +'</div>'
+    +'<div class="builder-period-preview" style="grid-column:1/-1;display:none;"></div>'
+    +'<div class="builder-ex-hist-slot" hidden></div>'
+    +'</div>';
+  rows.appendChild(div);
+  const nameInp=div.querySelector('[data-f="name"]');
+  if(nameInp&&typeof exAcInitInput==='function')exAcInitInput(nameInp);
+  builderRefreshAltChips(div);
+  builderRefreshTechMedia(div);
+  if(typeof manualPlanRenderExerciseProgramming==='function')manualPlanRenderExerciseProgramming(div);
+  builderRefreshPeriodPreview();
+  builderPaintKinds(div);
+  const dayEl=document.getElementById(dayId);
+  if(dayEl){
+    builderPaintCircuitDay(dayEl);
+    const addButton=dayEl.querySelector('.add-ex-btn');
+    if(addButton){addButton.classList.remove('builder-field-invalid');addButton.removeAttribute('aria-invalid');}
+  }
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+}
+function builderToggleRowDetails(row){
+  if(!row)return;
+  const open=!row.classList.contains('ex-advanced-open');
+  row.classList.toggle('ex-advanced-open',open);
+  const button=row.querySelector('.builder-row-more');
+  if(button){button.textContent=open?'Mniej':'Więcej';button.setAttribute('aria-expanded',String(open));}
+}
+window.builderToggleRowDetails=builderToggleRowDetails;
+function builderAltListForRow(row){
+  if(!row)return[];
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const raw=(row.querySelector('[data-f="alt"]')||{}).value||'';
+  const fromField=String(raw).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+  const fromLib=typeof altsForExercise==='function'?altsForExercise(name):[];
+  const cur=String(name).trim().toLowerCase();
+  const seen=new Set();
+  const out=[];
+  fromField.concat(fromLib).forEach(a=>{
+    const k=String(a).trim();
+    if(!k)return;
+    const lk=k.toLowerCase();
+    if(lk===cur||seen.has(lk))return;
+    seen.add(lk);out.push(k);
+  });
+  return out;
+}
+function builderRefreshAltChips(row){
+  if(!row)return;
+  const box=row.querySelector('.builder-alt-chips');if(!box)return;
+  const alts=builderAltListForRow(row);
+  const btn=row.querySelector('.builder-alt-toggle');
+  if(btn){
+    btn.textContent=alts.length?('Zamienniki · '+alts.length):'Zamienniki';
+    btn.title=alts.length?'Pokaż zamienniki (gdy nie ma maszyny w studio)':'Pokaż zamienniki';
+  }
+  if(!alts.length){
+    box.innerHTML='<span class="builder-alt-empty">Brak zamienników w bibliotece — wpisz własny poniżej albo wybierz ćwiczenie z listy.</span>';
+    return;
+  }
+  box.innerHTML=alts.map(a=>{
+    const safe=typeof escHtml==='function'?escHtml(a):a;
+    const attr=String(a).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    return `<button type="button" class="builder-alt-chip" data-alt="${attr}" onclick="builderApplyAlt(this)" title="Zamień ćwiczenie na ${attr}. Poprzednie ćwiczenie pozostanie jako zamiennik.">↻ ${safe}</button>`;
+  }).join('');
+}
+window.builderRefreshAltChips=builderRefreshAltChips;
+function builderApplyAlt(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return false;
+  const next=String(btn.dataset.alt||btn.getAttribute('data-alt')||'').trim();
+  if(!next)return false;
+  const nameInp=row.querySelector('[data-f="name"]');
+  const altInp=row.querySelector('[data-f="alt"]');
+  const prev=nameInp?(nameInp.value||'').trim():'';
+  const before=altInp?(altInp.value||''):'';
+  if(nameInp)nameInp.value=next;
+  if(altInp){
+    const keep=String(before).split(/[,;/]/).map(s=>s.trim()).filter(Boolean)
+      .filter(a=>a.toLowerCase()!==next.toLowerCase());
+    if(prev&&prev.toLowerCase()!==next.toLowerCase()&&!keep.some(a=>a.toLowerCase()===prev.toLowerCase()))keep.unshift(prev);
+    altInp.value=keep.join(', ');
+  }
+  if(typeof notify==='function')notify('✓ Podmieniono na: '+next+'. Poprzednie ćwiczenie pozostaje w zamiennikach.');
+  builderOnExNameChange(row);
+  return true;
+}
+window.builderApplyAlt=builderApplyAlt;
+function builderToggleAlts(row){
+  if(!row)return;
+  const box=row.querySelector('.builder-alt-box');
+  const btn=row.querySelector('.builder-alt-toggle');
+  if(!box)return;
+  const open=!box.hasAttribute('hidden');
+  if(open){
+    box.setAttribute('hidden','');
+    row.classList.remove('alts-open');
+    if(btn){btn.classList.remove('on');btn.setAttribute('aria-expanded','false');}
+  }else{
+    box.removeAttribute('hidden');
+    row.classList.add('alts-open');
+    if(btn){btn.classList.add('on');btn.setAttribute('aria-expanded','true');}
+    builderRefreshAltChips(row);
+  }
+}
+window.builderToggleAlts=builderToggleAlts;
+function builderExMediaFromRow(row){
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const videoInp=row.querySelector('[data-f="video"]');
+  const videoVal=videoInp?(videoInp.value||'').trim():'';
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia({name,video:videoVal}):{gif:'',video:videoVal,isFile:false,img:'',videoEmbed:''};
+  if(videoInp&&!videoVal&&media.video)videoInp.value=media.video;
+  media.name=name;
+  return media;
+}
+function builderRefreshTechMedia(row){
+  if(!row)return;
+  const thumb=row.querySelector('.builder-ex-thumb');
+  const media=builderExMediaFromRow(row);
+  const gif=media.gif||'';
+  const video=media.video||'';
+  const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
+  const poster=typeof exThumbUrl==='function'?exThumbUrl({name:media.name}):'';
+  let html='';
+  if(gif&&typeof exTechniqueMediaHtml==='function'){
+    html=exTechniqueMediaHtml({gif,name:media.name,poster},{compact:true});
+  }else if(video&&file){
+    html=typeof exTechniqueMediaHtml==='function'?exTechniqueMediaHtml({gif:video,name:media.name,poster},{compact:true}):`<video src="${typeof escHtml==='function'?escHtml(video):video}" muted loop playsinline preload="metadata"></video>`;
+  }else if(media.img){
+    html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}" loading="lazy" referrerpolicy="no-referrer">`;
+  }
+  if(thumb){
+    if(html){
+      thumb.innerHTML=html;
+      thumb.hidden=false;
+      thumb.setAttribute('aria-label','Podgląd techniki: '+(media.name||''));
+    }else{
+      thumb.innerHTML='';
+      thumb.hidden=true;
+    }
+  }
+  const pop=document.getElementById('builder-ex-media-pop');
+  if(pop&&pop.dataset.row===String(row.dataset.builderRow||'')&&!pop.hidden)builderFillExMediaPop(media);
+}
+window.builderRefreshTechMedia=builderRefreshTechMedia;
+function builderFillExMediaPop(media){
+  const pop=document.getElementById('builder-ex-media-pop');
+  if(!pop)return;
+  const gif=media.gif||'';
+  const video=media.video||'';
+  const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
+  const poster=typeof exThumbUrl==='function'?exThumbUrl({name:media.name}):'';
+  let html='';
+  if(gif&&typeof exTechniqueMediaHtml==='function')html=exTechniqueMediaHtml({gif,name:media.name,poster},{});
+  else if(video&&file)html=typeof exTechniqueMediaHtml==='function'?exTechniqueMediaHtml({gif:video,name:media.name,poster},{}):`<video src="${typeof escHtml==='function'?escHtml(video):video}" controls playsinline muted loop></video>`;
+  else if(video&&media.videoEmbed)html=`<iframe src="${typeof escHtml==='function'?escHtml(media.videoEmbed):media.videoEmbed}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe>`;
+  else if(media.img)html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}">`;
+  pop.querySelector('.builder-ex-media-pop-body').innerHTML=html||'<div class="builder-alt-empty">Brak podglądu techniki w bibliotece.</div>';
+  const title=pop.querySelector('.builder-ex-media-pop-title');
+  if(title)title.textContent=media.name||'Technika';
+}
+function builderCloseExMedia(){
+  const pop=document.getElementById('builder-ex-media-pop');
+  if(!pop)return;
+  pop.hidden=true;
+  pop.dataset.row='';
+  const body=pop.querySelector('.builder-ex-media-pop-body');
+  if(body)body.innerHTML='';
+}
+window.builderCloseExMedia=builderCloseExMedia;
+function builderOpenExMedia(row){
+  if(!row)return;
+  const media=builderExMediaFromRow(row);
+  if(!media.gif&&!media.video&&!media.img){
+    if(typeof notify==='function')notify('Brak filmu/zdjęcia techniki w bibliotece — wklej link poniżej.');
+    return;
+  }
+  let pop=document.getElementById('builder-ex-media-pop');
+  if(!pop){
+    pop=document.createElement('div');
+    pop.id='builder-ex-media-pop';
+    pop.className='builder-ex-media-pop';
+    pop.innerHTML='<div class="builder-ex-media-pop-card"><div class="builder-ex-media-pop-bar"><span class="builder-ex-media-pop-title"></span><button type="button" class="builder-ex-media-pop-close" onclick="builderCloseExMedia()" aria-label="Zamknij">×</button></div><div class="builder-ex-media-pop-body"></div></div>';
+    pop.addEventListener('click',e=>{if(e.target===pop)builderCloseExMedia();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')builderCloseExMedia();});
+    document.body.appendChild(pop);
+  }
+  if(!row.dataset.builderRow)row.dataset.builderRow='r'+Math.random().toString(36).slice(2,8);
+  pop.dataset.row=row.dataset.builderRow;
+  builderFillExMediaPop(media);
+  pop.hidden=false;
+}
+window.builderOpenExMedia=builderOpenExMedia;
+function builderFillExTodo(row){
+  if(!row)return;
+  const noteInp=row.querySelector('[data-f="note"]');
+  if(!noteInp)return;
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const tip=typeof exerciseTodoNote==='function'?exerciseTodoNote({name}):String(((typeof libExerciseByName==='function'?libExerciseByName(name):null)||{}).tip||'').trim();
+  const cur=String(noteInp.value||'').trim();
+  const prev=row.dataset.autoTodo||'';
+  if(!tip){
+    if(cur&&cur===prev){noteInp.value='';row.dataset.autoTodo='';}
+    return;
+  }
+  if(!cur||cur===prev||cur===tip){
+    noteInp.value=tip;
+    row.dataset.autoTodo=tip;
+  }
+}
+window.builderFillExTodo=builderFillExTodo;
+function builderOnExNameChange(row){
+  if(!row)return;
+  if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
+  if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+  if(typeof builderRefreshPeriodPreview==='function')builderRefreshPeriodPreview();
+  // Uzupełnij alt z biblioteki, gdy pole puste
+  const altInp=row.querySelector('[data-f="alt"]');
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  if(altInp&&!(altInp.value||'').trim()&&typeof altsForExercise==='function'){
+    const alts=altsForExercise(name);
+    if(alts.length)altInp.value=alts.join(', ');
+  }
+  builderFillExTodo(row);
+  builderRefreshAltChips(row);
+  builderRefreshTechMedia(row);
+  if(typeof manualPlanRenderExerciseProgramming==='function')manualPlanRenderExerciseProgramming(row);
+  if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+}
+window.builderOnExNameChange=builderOnExNameChange;
+function builderRefreshExHist(row){
+  if(!row)return;
+  try{
+    let box=row.querySelector('.builder-ex-hist-slot');
+    if(!box){
+      box=document.createElement('div');
+      box.className='builder-ex-hist-slot';
+      const extra=row.querySelector('.ex-row-extra');
+      if(extra)extra.appendChild(box);
+      else row.appendChild(box);
+    }
+    const cid=(document.getElementById('b-client')||{}).value||'';
+    const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+    const alt=(row.querySelector('[data-f="alt"]')||{}).value||'';
+    const fromField=String(alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+    const fromLib=typeof altsForExercise==='function'?altsForExercise(name):[];
+    const alts=fromField.concat(fromLib);
+    const html=cid&&name&&typeof lastSetsBlockHtml==='function'
+      ?lastSetsBlockHtml({name,clientId:cid,alts},{variant:'builder',limit:8})
+      :'';
+    box.innerHTML=html||'';
+    box.hidden=!html;
+  }catch(e){console.warn('builderRefreshExHist',e);}
+}
+window.builderRefreshExHist=builderRefreshExHist;
+function builderRefreshRowExtras(row){
+  builderRefreshAltChips(row);
+  builderRefreshTechMedia(row);
+  if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
+}
+window.builderRefreshRowExtras=builderRefreshRowExtras;
+function builderRemoveRow(btn){
+  const row=btn.closest('.ex-row');
+  const box=row&&row.parentElement;
+  const dayEl=row&&row.closest('.builder-day');
+  if(row)row.remove();
+  if(box)builderPaintSs(box);
+  if(dayEl)builderPaintCircuitDay(dayEl);
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+}
+window.builderRemoveRow=builderRemoveRow;
+function builderMoveRow(btn,dir){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const box=row.parentElement;if(!box)return;
+  if(dir<0){
+    const prev=row.previousElementSibling;
+    if(prev)box.insertBefore(row,prev);
+  }else{
+    const next=row.nextElementSibling;
+    if(next)box.insertBefore(next,row);
+  }
+  builderPaintSs(box);
+  if(typeof builderRefreshPeriodPreview==='function')builderRefreshPeriodPreview();
+}
+window.builderMoveRow=builderMoveRow;
+function builderPaintSs(box){
+  if(!box)return;
+  const rows=[...box.querySelectorAll('.ex-row')];
+  const vals=rows.map(r=>(r.querySelector('[data-f="ss"]')||{}).value||'');
+  rows.forEach((r,i)=>{
+    r.classList.remove('ss','ss-first','ss-last');
+    const btn=r.querySelector('.ex-ss-btn');
+    const v=vals[i];
+    const run=!!v&&((i>0&&vals[i-1]===v)||(i<vals.length-1&&vals[i+1]===v));
+    if(!run){
+      const el=r.querySelector('[data-f="ss"]');if(el&&v)el.value='';
+      if(btn)btn.textContent='⚡ SS';
+      return;
+    }
+    r.classList.add('ss');
+    if(i===0||vals[i-1]!==v)r.classList.add('ss-first');
+    if(i===rows.length-1||vals[i+1]!==v)r.classList.add('ss-last');
+    let start=i;while(start>0&&vals[start-1]===v)start--;
+    if(btn)btn.textContent='⚡ '+v+(i-start+1);
+  });
+}
+window.builderPaintSs=builderPaintSs;
+function builderToggleSs(btn){
+  const row=btn.closest('.ex-row');if(!row)return;
+  const box=row.parentElement;
+  const rows=[...box.querySelectorAll('.ex-row')];
+  const i=rows.indexOf(row);
+  const get=r=>(r.querySelector('[data-f="ss"]')||{}).value||'';
+  const set=(r,v)=>{const el=r.querySelector('[data-f="ss"]');if(el)el.value=v||'';};
+  const cur=get(row);
+  const next=rows[i+1];
+  const prev=rows[i-1];
+  if(cur&&((next&&get(next)===cur)||(prev&&get(prev)===cur))){
+    set(row,'');
+    builderPaintSs(box);
+    return;
+  }
+  if(!next){if(typeof notify==='function')notify('Dodaj następne ćwiczenie, potem ⚡ Super-seria');return;}
+  let letter=get(next)||cur;
+  if(!letter){
+    const used=new Set(rows.map(get).filter(Boolean));
+    letter='A';
+    while(used.has(letter))letter=String.fromCharCode(letter.charCodeAt(0)+1);
+  }
+  set(row,letter);set(next,letter);
+  [row,next].forEach(r=>{
+    ['wu','drop','cluster','rp'].forEach(f=>{const el=r.querySelector('[data-f="'+f+'"]');if(el)el.value='';});
+    const em=r.querySelector('[data-f="emom"]');if(em)em.value='';
+    if(typeof builderPaintKinds==='function')builderPaintKinds(r);
+    if(typeof builderPaintEmom==='function')builderPaintEmom(r);
+  });
+  builderPaintSs(box);
+}
+window.builderToggleSs=builderToggleSs;
+function builderCycleKind(btn,field,max){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  if((row.querySelector('[data-f="ss"]')||{}).value)return;
+  const el=row.querySelector('[data-f="'+field+'"]');if(!el)return;
+  let n=parseInt(el.value,10)||0;
+  n=(n+1)%((max||2)+1);
+  el.value=n?String(n):'';
+  builderPaintKinds(row);
+}
+window.builderCycleKind=builderCycleKind;
+function builderToggleAmrap(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="amrap"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  builderPaintKinds(row);
+}
+window.builderToggleAmrap=builderToggleAmrap;
+function builderPaintKinds(row){
+  if(!row)return;
+  const g=f=>((row.querySelector('[data-f="'+f+'"]')||{}).value||'');
+  const inSs=!!g('ss');
+  const wu=inSs?0:(parseInt(g('wu'),10)||0);
+  const dr=inSs?0:(parseInt(g('drop'),10)||0);
+  const cl=inSs?0:(parseInt(g('cluster'),10)||0);
+  const rp=inSs?0:(parseInt(g('rp'),10)||0);
+  const am=g('amrap')==='1';
+  const wuBtn=row.querySelector('.ex-kind-btn.wu');
+  const drBtn=row.querySelector('.ex-kind-btn.drop');
+  const clBtn=row.querySelector('.ex-kind-btn.cluster');
+  const rpBtn=row.querySelector('.ex-kind-btn.rp');
+  const amBtn=row.querySelector('.ex-kind-btn.amrap');
+  if(wuBtn){wuBtn.textContent=wu?('WU '+wu):'WU';wuBtn.classList.toggle('on',!!wu);wuBtn.disabled=inSs;wuBtn.title=inSs?'WU/DROP nie w super-serii':'Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa';}
+  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);drBtn.disabled=inSs;drBtn.title=inSs?'WU/DROP nie w super-serii':'Drop sety po roboczych — bez przerwy; wpisz 20% albo 10kg';}
+  const stepInp=row.querySelector('[data-f="dropStep"]');
+  if(stepInp){stepInp.hidden=!dr||inSs;if(!dr)stepInp.value=stepInp.value;}
+  if(clBtn){clBtn.textContent=cl?('KL '+cl):'KL';clBtn.classList.toggle('on',!!cl);clBtn.disabled=inSs;clBtn.title=inSs?'Klaster nie w super-serii':'Klaster: mini-serie z 20 s wewnątrz (1–3)';}
+  if(rpBtn){rpBtn.textContent=rp?('RP '+rp):'RP';rpBtn.classList.toggle('on',!!rp);rpBtn.disabled=inSs;rpBtn.title=inSs?'Rest-pause nie w super-serii':'Rest-pause: 1–2 dogrywki po 15 s';}
+  if(amBtn)amBtn.classList.toggle('on',am);
+}
+window.builderPaintKinds=builderPaintKinds;
+function builderToggleEmom(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="emom"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  if(el.value==='1'){
+    const ss=row.querySelector('[data-f="ss"]');
+    if(ss&&ss.value){
+      ss.value='';
+      const box=row.parentElement;
+      if(typeof builderPaintSs==='function')builderPaintSs(box);
+    }
+  }
+  builderPaintEmom(row);
+  if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+}
+window.builderToggleEmom=builderToggleEmom;
+function builderPaintEmom(row){
+  if(!row)return;
+  const on=((row.querySelector('[data-f="emom"]')||{}).value||'')==='1';
+  const btn=row.querySelector('.ex-emom-btn');
+  if(btn)btn.classList.toggle('on',on);
+}
+window.builderPaintEmom=builderPaintEmom;
+function builderPreviewKg(row){
+  if(!row)return;
+  const kgEl=row.querySelector('[data-f="kg"]');
+  if(!kgEl)return;
+  const unit=typeof builderApplyLoadUnit==='function'?builderApplyLoadUnit(row):(typeof exLoadUnit==='function'?exLoadUnit((row.querySelector('[data-f="name"]')||{}).value||''):'kg');
+  if(unit&&unit!=='kg')return;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const pct=typeof parsePct1RM==='function'?parsePct1RM((row.querySelector('[data-f="pct1rm"]')||{}).value||''):'';
+  if(!pct||!cid||typeof weightFromPct1RM!=='function'){
+    if(!kgEl.value)kgEl.placeholder=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder('kg'):'kg';
+    return;
+  }
+  const w=weightFromPct1RM(cid,name,pct);
+  kgEl.placeholder=w.kg?String(w.kg):(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder('kg'):'kg');
+  kgEl.title=w.hint||'kg z %1RM';
+}
+window.builderPreviewKg=builderPreviewKg;
+function builderApplyLoadUnit(row){
+  if(!row)return 'kg';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(name):'kg';
+  row.dataset.loadUnit=unit;
+  const kgEl=row.querySelector('[data-f="kg"]');
+  if(kgEl){
+    kgEl.dataset.loadUnit=unit;
+    kgEl.placeholder=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):(unit==='min'?'min':unit==='sec'?'sec':'kg');
+    kgEl.title=typeof loadUnitTitle==='function'?loadUnitTitle(unit):(unit==='min'?'Czas (min)':unit==='sec'?'Czas (s)':'Obciążenie (kg)');
+  }
+  const pct=row.querySelector('[data-f="pct1rm"]');
+  if(pct){
+    const timed=typeof isWeightLoadUnit==='function'?!isWeightLoadUnit(unit):(unit==='sec'||unit==='min'||unit==='m');
+    pct.disabled=!!timed;
+    if(timed){
+      pct.value='';
+      pct.title='Nie dotyczy — to pole to czas, nie ciężar';
+    }else{
+      pct.title='Procent 1RM — kg z Pomiary → Siła bazowa';
+    }
+  }
+  return unit;
+}
+window.builderApplyLoadUnit=builderApplyLoadUnit;
+function builderRirFromRpe(rpeStr){
+  const s=String(rpeStr||'').replace(/RPE\s*/ig,'').trim();
+  if(!s)return '';
+  const range=s.match(/(\d+(?:[.,]\d+)?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)/);
+  if(range){
+    const a=10-parseFloat(String(range[1]).replace(',','.'));
+    const b=10-parseFloat(String(range[2]).replace(',','.'));
+    if(isNaN(a)||isNaN(b))return '';
+    const lo=Math.round(Math.min(a,b)*2)/2;
+    const hi=Math.round(Math.max(a,b)*2)/2;
+    return lo===hi?String(lo):(lo+'-'+hi);
+  }
+  const n=parseFloat(String(s).replace(',','.'));
+  if(isNaN(n))return '';
+  return String(Math.max(0,Math.round((10-n)*2)/2));
+}
+window.builderRirFromRpe=builderRirFromRpe;
+function builderNormalizeRpe(rpeStr){
+  return String(rpeStr||'').replace(/RPE\s*/ig,'').trim();
+}
+function builderCapturePeriodBase(row){
+  if(!row||row.dataset.periodBase)return;
+  const fields=['sets','reps','kg','rpe','rir','pct1rm'];
+  const o={};
+  fields.forEach(f=>{
+    const el=row.querySelector('[data-f="'+f+'"]');
+    o[f]=el?String(el.value||''):'';
+  });
+  row.dataset.periodBase=JSON.stringify(o);
+}
+function builderRestorePeriodBase(row){
+  if(!row||!row.dataset.periodBase)return;
+  try{
+    const o=JSON.parse(row.dataset.periodBase);
+    Object.keys(o).forEach(f=>{
+      const el=row.querySelector('[data-f="'+f+'"]');
+      if(el)el.value=o[f];
+    });
+  }catch(e){}
+  delete row.dataset.periodBase;
+}
+function builderOnPeriodFieldEdit(el){
+  const row=el&&el.closest('.ex-row');
+  if(row&&!(window._builderPeriodWeek>0))delete row.dataset.periodBase;
+  if(el&&el.getAttribute('data-f')==='rpe'&&row&&!(window._builderPeriodWeek>0)){
+    const rirEl=row.querySelector('[data-f="rir"]');
+    if(rirEl&&!String(rirEl.value||'').trim()){
+      const auto=builderRirFromRpe(el.value);
+      if(auto)rirEl.placeholder=auto;
+    }
+  }
+  builderRefreshPeriodPreview();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+}
+window.builderOnPeriodFieldEdit=builderOnPeriodFieldEdit;
+function builderShiftRepRange(val,delta){
+  const s=String(val||'').trim();
+  if(!s)return '';
+  const m=s.match(/^(\d+)\s*-\s*(\d+)$/);
+  if(m)return `${Math.max(1,parseInt(m[1],10)+delta)}-${Math.max(1,parseInt(m[2],10)+delta)}`;
+  const one=s.match(/^(\d+)$/);
+  if(one)return String(Math.max(1,parseInt(one[1],10)+delta));
+  return s;
+}
+function builderWeekModel(level,idx){
+  if(typeof periodWeekModel==='function')return periodWeekModel(level,idx);
+  const ls=String(level||'sredni');
+  const beginner=[
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8'},
+    {loadPct:-12,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const intermediate=[
+    {loadPct:-2.5,repDelta:2,setDelta:1,rpe:'7'},
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const advanced=[
+    {loadPct:-2.5,repDelta:1,setDelta:1,rpe:'7-8'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8-9'},
+    {loadPct:7.5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:10,repDelta:-3,setDelta:-1,rpe:'9-10'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const arr=ls==='poczatkujacy'?beginner:ls==='sredni'?intermediate:advanced;
+  return arr[Math.max(0,Math.min(idx,arr.length-1))]||arr[0];
+}
+function builderWeekPreviewData(row,mod,idx){
+  const base=row&&row.dataset.periodBase?(()=>{try{return JSON.parse(row.dataset.periodBase);}catch(e){return null;}})():null;
+  const g=(f)=>{
+    if(base&&base[f]!=null&&base[f]!=='')return base[f];
+    return (row.querySelector('[data-f="'+f+'"]')||{}).value||'';
+  };
+  const reps=g('reps')||'10';
+  const setsBase=parseInt(g('sets')||'3',10)||3;
+  const kgRaw=g('kg');
+  const kgBase=kgRaw?parseFloat(kgRaw)||0:builderBaseKg(row);
+  const nextSets=Math.max(1,setsBase+(mod.setDelta||0));
+  const nextReps=builderShiftRepRange(reps,mod.repDelta||0);
+  const nextKg=kgBase?Math.max(0,Math.round((kgBase*((100+(mod.loadPct||0))/100))*2)/2):0;
+  const rpe=builderNormalizeRpe(mod.rpe||g('rpe')||'');
+  const rir=builderRirFromRpe(rpe)||g('rir')||'';
+  return {idx,sets:nextSets,reps:nextReps,kg:nextKg,rpe,rir,deload:!!mod.deload};
+}
+function builderBaseKg(row){
+  const base=row&&row.dataset.periodBase?(()=>{try{return JSON.parse(row.dataset.periodBase);}catch(e){return null;}})():null;
+  const kgVal=(base&&base.kg!=null&&base.kg!=='')?base.kg:((row.querySelector('[data-f="kg"]')||{}).value||'');
+  if(kgVal)return parseFloat(kgVal)||0;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const pctRaw=(base&&base.pct1rm!=null&&base.pct1rm!=='')?base.pct1rm:((row.querySelector('[data-f="pct1rm"]')||{}).value||'');
+  const pct=typeof parsePct1RM==='function'?parsePct1RM(pctRaw):'';
+  if(!pct||!cid||typeof weightFromPct1RM!=='function')return 0;
+  const w=weightFromPct1RM(cid,name,pct);
+  return parseFloat(w.kg)||0;
+}
+function builderEditingPlan(){
+  const id=window._editingPlanId;
+  return id&&(window.PL||[]).find(p=>p&&p.id===id)||null;
+}
+function builderPeriodSchedule(client){
+  const plan=builderEditingPlan();
+  const c=client||{};
+  const dur=parseInt((document.getElementById('b-duration')||{}).value,10)||0;
+  if(plan&&Array.isArray(plan.weekKeys)&&plan.weekKeys.length){
+    if(typeof planPhaseSchedule==='function')return planPhaseSchedule(plan,c);
+  }
+  if(plan&&typeof isFiteboLikePlan==='function'&&isFiteboLikePlan(plan)&&typeof fiteboContinuePhases==='function'){
+    const n=Math.max(4,Math.min(12,dur||parseInt(plan.duration,10)||8));
+    const keys=['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,n);
+    const phases=fiteboContinuePhases(n,keys);
+    return keys.map((wk,i)=>{
+      const cel=phases[wk]||('Tydzień '+(i+1));
+      const rpe=typeof planPhaseRpe==='function'?planPhaseRpe(cel):'8';
+      return{nr:i+1,key:wk,cel,rpe:'RPE '+rpe};
+    });
+  }
+  return getPeriod(c.level||'sredni');
+}
+window.builderPeriodSchedule=builderPeriodSchedule;
+function builderWeekMetaForSave(prev,dur){
+  const n=Math.max(4,Math.min(12,parseInt(dur,10)||8));
+  const fromPrev=prev&&Array.isArray(prev.weekKeys)&&prev.weekKeys.length;
+  const fitebo=prev&&(prev.source==='fitebo-continue'||prev.fromFitebo||prev.source==='fitebo');
+  if(!fromPrev&&!fitebo)return {};
+  const weekKeys=['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,n);
+  const phases=fitebo&&typeof fiteboContinuePhases==='function'
+    ? fiteboContinuePhases(n,weekKeys)
+    : Object.assign({},prev&&prev.phases||{});
+  const idx=window._builderPeriodWeek||0;
+  const out={weekKeys,phases,currentWeek:weekKeys[idx]||(prev&&prev.currentWeek)||weekKeys[0]};
+  if(prev&&prev.source)out.source=prev.source;
+  if(prev&&prev.fromFitebo)out.fromFitebo=true;
+  if(prev&&prev.continueFromWeek)out.continueFromWeek=prev.continueFromWeek;
+  return out;
+}
+window.builderWeekMetaForSave=builderWeekMetaForSave;
+function builderPlanRationaleChanged(prev,next){
+  if(!prev||!next)return false;
+  const signature=plan=>JSON.stringify({
+    method:plan.method||'',
+    duration:String(plan.duration||''),
+    progression:plan.progression||'',
+    clientId:plan.clientId||'',
+    level:plan.level||'',
+    goal:plan.goal||'',
+    days:Array.isArray(plan.days)?plan.days:[]
+  });
+  return signature(prev)!==signature(next);
+}
+function builderRowWeekLoads(row){
+  if(!row||!row.dataset.weekLoads)return null;
+  try{return JSON.parse(row.dataset.weekLoads);}catch(e){return null;}
+}
+function builderApplyWeekLoad(row,load){
+  if(!row||!load)return;
+  const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el&&v!=null&&v!=='')el.value=String(v);};
+  if(load.s!=null)set('sets',load.s);
+  if(load.r!=null)set('reps',load.r);
+  if(load.kg!=null&&load.kg!=='')set('kg',load.kg);
+  if(load.rpe!=null)set('rpe',load.rpe);
+  if(load.rest)set('rest',load.rest);
+  if(load.rir!=null)set('rir',load.rir);
+}
+function builderRefreshPeriodPreview(){
+  const idx=window._builderPeriodWeek||0;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const c=CL.find(x=>x.id===cid)||{};
+  const sch=builderPeriodSchedule(c);
+  const key=sch[idx]&&sch[idx].key;
+  const mod=builderWeekModel(c.level||'sredni',idx);
+  document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
+    const box=row.querySelector('.builder-period-preview');
+    const loads=builderRowWeekLoads(row);
+    if(loads&&key&&loads[key]){
+      builderApplyWeekLoad(row,loads[key]);
+      if(box){
+        box.style.display='block';
+        const w=sch[idx]||{};
+        box.innerHTML=`<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:10px;color:var(--muted);line-height:1.5;font-family:var(--font-ui);">📈 Tydzień ${idx+1} — ${w.cel||''} · ${loads[key].s||''}×${loads[key].r||''}${loads[key].kg?' @'+loads[key].kg+' kg':''} · RPE ${loads[key].rpe||''}</div>`;
+      }
+    }else if(idx>0){
+      builderCapturePeriodBase(row);
+      const pv=builderWeekPreviewData(row,mod,idx);
+      const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null||v===''?'':String(v);};
+      set('sets',pv.sets);
+      set('reps',pv.reps);
+      if(pv.kg)set('kg',pv.kg);
+      set('rpe',pv.rpe);
+      set('rir',pv.rir);
+      if(box){
+        box.style.display='block';
+        const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+        const unit=row.dataset.loadUnit||(typeof exLoadUnit==='function'?exLoadUnit(name):'kg');
+        const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
+        const bits=[
+          `TYDZ ${idx+1}`,
+          pv.sets+' serie',
+          pv.reps+' powt.',
+          (pv.kg?pv.kg+' '+suf:suf+' bez zmiany'),
+          'RPE '+pv.rpe,
+          (pv.rir?'RIR '+pv.rir:''),
+          pv.deload?'deload / mniej objętości':'progresja aktywna'
+        ].filter(Boolean);
+        box.innerHTML=`<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:10px;color:var(--muted);line-height:1.5;font-family:var(--font-ui);">📈 Podgląd tygodnia — ${bits.join(' · ')}. Kliknij „Użyj wartości…”, aby zapisać w formularzu.</div>`;
+      }
+    }else{
+      builderRestorePeriodBase(row);
+      if(box){box.style.display='none';box.innerHTML='';}
+    }
+    ['sets','reps','kg','rpe','rir'].forEach(f=>{
+      const input=row.querySelector('[data-f="'+f+'"]');
+      if(input)input.classList.toggle('period-preview-on',idx>0&&!(loads&&key&&loads[key]));
+    });
+  });
+}
+window.builderRefreshPeriodPreview=builderRefreshPeriodPreview;
+function updateExDl(){
+  const dl=document.getElementById('ex-dl');
+  const all=allExercises().map(e=>e.name);
+  dl.innerHTML=[...new Set(all)].map(n=>'<option value="'+n+'">').join('');
+}
+function updatePeriod(){
+  const cid=document.getElementById('b-client').value;const c=CL.find(x=>x.id===cid);
+  const el=document.getElementById('period-sched');
+  if(!el){if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();return;}
+  if(!c){el.innerHTML='<div style="font-size:11px;color:var(--muted);">Wybierz klienta</div>';if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();return;}
+  const sch=builderPeriodSchedule(c);
+  const rms=typeof officialLift1RMs==='function'?officialLift1RMs(c.id):{};
+  const fmt=(v)=>v!=null?v+' kg':'—';
+  const rmBar=`<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.55;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
+    <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">1RM — Siła bazowa</div>
+    Przysiad ${fmt(rms.squat)} · Martwy ${fmt(rms.deadlift)} · Bench ${fmt(rms.bench)} · OHP ${fmt(rms.ohp)}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;">Pole %1RM w ćwiczeniu liczy kg z tych pomiarów. Brak? Uzupełnij w Pomiary → Siła bazowa.</div>
+  </div>`;
+  const sportLbl=typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c):'';
+  const sportBar=sportLbl?`<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.55;padding:8px 10px;background:rgba(61,207,178,0.08);border:1px solid rgba(61,207,178,0.25);border-radius:8px;">
+    <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Tło sportowe (planowanie)</div>
+    ${sportLbl}
+  </div>`:'';
+  const activeIdx=window._builderPeriodWeek||0;
+  const n=sch.length;
+  if(activeIdx>=n)window._builderPeriodWeek=Math.max(0,n-1);
+  const idx=window._builderPeriodWeek||0;
+  const hasKeys=sch.some(w=>w&&w.key);
+  el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć serie, powtórzenia, kg, <b>RPE</b> i <b>RIR</b> w wierszach ćwiczeń.${n>4?` Ten plan ma <b>${n} tygodni</b>.`:''}</div>`+sch.map((w,i)=>`<button type="button" class="period-row${idx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${/deload/i.test(w.cel)?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}${w.rir?' · RIR '+w.rir:''}</div></div></button>`).join('')+(idx>0&&!hasKeys?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${idx+1} w formularzu</button>`:'');
+  document.querySelectorAll('#builder-days .ex-row').forEach(r=>{
+    if(typeof builderPreviewKg==='function')builderPreviewKg(r);
+    if(typeof builderRefreshExHist==='function')builderRefreshExHist(r);
+  });
+  builderRefreshPeriodPreview();
+  builderRefreshRationale();
+  if(typeof refreshBuilderAiCoachCard==='function')refreshBuilderAiCoachCard();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+}
+function builderSelectPeriodWeek(idx){
+  window._builderPeriodWeek=idx||0;
+  updatePeriod();
+}
+window.builderSelectPeriodWeek=builderSelectPeriodWeek;
+function builderApplyPeriodWeek(){
+  const idx=window._builderPeriodWeek||0;
+  if(idx<=0){notify('TYG 1 to wartości bazowe');return;}
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const c=CL.find(x=>x.id===cid)||{};
+  const mod=builderWeekModel(c.level||'sredni',idx);
+  document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
+    builderCapturePeriodBase(row);
+    const pv=builderWeekPreviewData(row,mod,idx);
+    const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null||v===''?'':String(v);};
+    set('sets',pv.sets);
+    set('reps',pv.reps);
+    if(pv.kg)set('kg',pv.kg);
+    set('rpe',pv.rpe);
+    set('rir',pv.rir);
+    delete row.dataset.periodBase;
+  });
+  window._builderPeriodWeek=0;
+  updatePeriod();
+  notify('✓ Wstawiono wartości z wybranego tygodnia (serie, powt., kg, RPE, RIR)');
+}
+window.builderApplyPeriodWeek=builderApplyPeriodWeek;
+function getPeriod(level){
+  return typeof periodScheduleForLevel==='function'?periodScheduleForLevel(level):[{nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7'},{nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8'},{nr:3,cel:'DUP Szczyt',rpe:'RPE 9'},{nr:4,cel:'DELOAD',rpe:'RPE 6'}];
+}
+function builderEnsureSelectValue(sel,value,label){
+  if(!sel)return;
+  let v=value==null||value===''?'':String(value);
+  if(!v)return;
+  if(v==='Custom')v='Własna';
+  if(![...sel.options].some(o=>o.value===v)){
+    const o=document.createElement('option');
+    o.value=v;
+    o.textContent=label||v;
+    sel.appendChild(o);
+  }
+  sel.value=v;
+}
+window.builderEnsureSelectValue=builderEnsureSelectValue;
+function builderSetDayHeader(dayEl,d){
+  if(!dayEl)return;
+  const sel=dayEl.querySelector('.builder-day-select');
+  const focus=dayEl.querySelector('.builder-day-focus');
+  const label=String((d&&(d.day||d.dayName))||'').trim();
+  const muscles=String((d&&(d.muscles||d.focus))||'').trim();
+  if(sel&&label)builderEnsureSelectValue(sel,label,label);
+  if(focus)focus.value=muscles;
+}
+window.builderSetDayHeader=builderSetDayHeader;
+// Ładuje istniejący plan do kreatora, żeby faktycznie go edytować (a nie tworzyć pusty nowy).
+function editPlan(id){
+  const plan=PL.find(p=>p.id===id);
+  if(!plan){notify('Nie znaleziono planu');return;}
+  if(!window._builderReturnClientId)window._builderBack='plans';
+  window._builderSkipDraftOffer=true;
+  goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
+  window._editingPlanId=id;
+  window._builderSaveState.base=builderPlanClone(plan);
+  document.getElementById('b-name').value=plan.name||'';
+  const clientSel=document.getElementById('b-client');
+  if(clientSel)clientSel.value=plan.clientId||'';
+  if(plan.manualPlan&&typeof manualPlanRead==='function'){
+    const client=(window.CL||[]).find(item=>item&&item.id===plan.clientId)||{};
+    window._manualPlanDraft=manualPlanRead(plan,client);
+  }
+  window._builderVolumeControl=plan.volumeControl||(plan.manualPlan&&plan.manualPlan.volumeControl)||null;
+  builderEnsureSelectValue(document.getElementById('b-method'),plan.method||'');
+  builderEnsureSelectValue(document.getElementById('b-duration'),plan.duration||(plan.weekKeys&&plan.weekKeys.length)||'');
+  const progSel=document.getElementById('b-progression');
+  if(progSel)progSel.value=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan.progression||plan.progressionType):'double';
+  const keys=plan.weekKeys||[];
+  const cur=plan.currentWeek&&keys.length?keys.indexOf(plan.currentWeek):0;
+  window._builderPeriodWeek=cur>=0?cur:0;
+  updatePeriod();
+  (plan.days||[]).forEach(d=>{
+    addDay();
+    const dayEl=document.getElementById('bd-'+dayCount);
+    if(!dayEl)return;
+    builderSetDayHeader(dayEl,d);
+    if(d.rest){
+      const rc=dayEl.querySelector('.rc');
+      if(rc){rc.checked=true;toggleR(dayEl.id);}
+      return;
+    }
+    const circOn=!!d.circuit||(typeof normalizeRationaleMethod==='function'&&normalizeRationaleMethod(plan.method)==='Obwodowy');
+    const circCb=dayEl.querySelector('.circ');
+    if(circCb&&circOn)circCb.checked=true;
+    const rr=dayEl.querySelector('[data-f="roundRest"]');
+    if(rr&&d.roundRest)rr.value=d.roundRest;
+    if(circOn)builderPaintCircuitDay(dayEl);
+    (d.exercises||[]).forEach(ex=>{
+      try{
+        addRow(dayEl.id);
+        const rows=dayEl.querySelectorAll('.ex-row');
+        const row=rows[rows.length-1];
+        if(!row)return;
+        const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex);
+        const wkIdx=window._builderPeriodWeek||0;
+        const shown=(ex&&typeof ex==='object'&&typeof exerciseForPlanWeek==='function')?exerciseForPlanWeek(ex,plan,wkIdx):parsed;
+        const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null?'':v;};
+        set('name',shown.name||parsed.name||'');
+        set('sets',shown.sets||parsed.sets||'');
+        set('reps',shown.reps||parsed.reps||'');
+        set('kg',shown.kg||parsed.kg||'');
+        set('rpe',shown.rpe||parsed.rpe||'');
+        set('rir',shown.rir||parsed.rir||'');
+        set('rest',shown.rest||parsed.rest||'');
+        set('tempo',parsed.tempo||'');
+        set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
+        set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
+        set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
+        set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
+        set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
+        if(typeof builderFillExTodo==='function')builderFillExTodo(row);
+        set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
+        set('wu',parsed.wu||(ex&&typeof ex==='object'&&ex.wu)||'');
+        set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');
+        set('dropStep',(ex&&typeof ex==='object'&&ex.dropStep)||parsed.dropStep||'');
+        set('trans',(ex&&typeof ex==='object'&&(ex.trans||ex.transSec))||parsed.trans||'');
+        set('cluster',parsed.cluster||(ex&&typeof ex==='object'&&ex.cluster)||'');
+        set('rp',parsed.rp||(ex&&typeof ex==='object'&&ex.rp)||'');
+        set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
+        if(ex&&typeof ex==='object'){
+          const loads={};
+          (plan.weekKeys||[]).forEach(wk=>{if(ex[wk])loads[wk]=ex[wk];});
+          if(Object.keys(loads).length)row.dataset.weekLoads=JSON.stringify(loads);
+        }
+        if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+        if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
+        if(typeof builderPaintEmom==='function')builderPaintEmom(row);
+        if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+        if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
+      }catch(e){console.warn('editPlan row',e);}
+    });
+    if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
+    if(typeof builderPaintCircuitDay==='function')builderPaintCircuitDay(dayEl);
+  });
+  const titleEl=document.querySelector('#screen-builder .topbar-title');
+  if(titleEl)titleEl.textContent='Edytuj plan: '+(plan.name||'');
+  window._editingPlanId=id;
+  updatePeriod();
+  if(typeof manualPlanShowAnalysis==='function')manualPlanShowAnalysis();
+  if(typeof manualPlanRefreshVolume==='function')manualPlanRefreshVolume();
+  if(typeof builderMarkInitialFormState==='function')builderMarkInitialFormState();
+}
+function editPlanFromProfile(planId,clientId){
+  const plan=(window.PL||[]).find(p=>p&&p.id===planId);
+  if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
+  window._builderReturnClientId=clientId||plan.clientId||'';
+  window._builderReturnTab='plan';
+  window._builderBack='clients';
+  try{editPlan(planId);}
+  catch(e){
+    console.warn('editPlanFromProfile',e);
+    if(typeof notify==='function')notify('Nie udało się otworzyć kreatora');
+  }
+}
+window.editPlan=editPlan;
+window.editPlanFromProfile=editPlanFromProfile;
+
+function builderPlanClone(value){
+  return JSON.parse(JSON.stringify(value));
+}
+function builderPlanSignature(value){
+  const clean=v=>Array.isArray(v)?v.map(clean):v&&typeof v==='object'?Object.keys(v).filter(k=>k!=='_fbId').sort().reduce((out,k)=>{out[k]=clean(v[k]);return out;},{}):v;
+  return JSON.stringify(clean(value));
+}
+function builderSaveSessionCurrent(session){
+  return !!session&&!!session.uid&&!window._clientAppMode&&!window._clientPreviewMode&&
+    window._uid===session.uid&&window.tenantSessionGeneration===session.generation&&
+    (typeof window.tenantSessionIsCurrent!=='function'||window.tenantSessionIsCurrent(session));
+}
+function builderSaveStatus(message,isError){
+  const el=document.getElementById('builder-save-status');
+  if(el){el.hidden=!message;el.textContent=message||'';el.style.color=isError?'var(--orange)':'var(--muted)';}
+}
+function builderFocusValidationField(field){
+  if(!field)return;
+  field.classList.add('builder-field-invalid');
+  field.setAttribute('aria-invalid','true');
+  try{field.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}
+  try{field.focus({preventScroll:true});}catch(e){try{field.focus();}catch(ignore){}}
+}
+function builderFocusEmptyTrainingDay(){
+  const day=[...document.querySelectorAll('#builder-days .builder-day')].find(item=>{
+    if((item.querySelector('.rc')||{}).checked)return false;
+    return ![...item.querySelectorAll('[data-f="name"]')].some(input=>String(input.value||'').trim());
+  });
+  builderFocusValidationField(day&&day.querySelector('.add-ex-btn'));
+}
+function builderSaveUnlock(state){
+  (state&&state.controls||[]).forEach(item=>{item.el.disabled=item.disabled;});
+  if(state)state.controls=[];
+}
+function builderResetSaveState(){
+  builderSaveUnlock(window._builderSaveState);
+  window._builderSaveState={session:{uid:window._uid,generation:window.tenantSessionGeneration},pending:false,candidate:null,base:null,saved:false,duplicateConfirmed:false,initialFingerprint:'',controls:[]};
+  const btn=document.getElementById('b-save-btn');
+  if(btn){btn.disabled=false;btn.textContent='Zapisz plan';}
+  builderSaveStatus('');
+  builderCalendarActions(window._builderSaveState,false);
+  return window._builderSaveState;
+}
+function builderSaveLock(state){
+  if(state.controls.length)return;
+  const screen=document.getElementById('screen-builder');
+  if(!screen)return;
+  screen.querySelectorAll('input,select,textarea,button').forEach(el=>{
+    if(el.id==='b-save-btn'||el.id==='b-calendar-retry'||el.id==='b-calendar-continue'||(el.getAttribute('onclick')||'').includes('builderGoBack'))return;
+    state.controls.push({el,disabled:el.disabled});el.disabled=true;
+  });
+}
+function builderSaveFormCurrent(state){
+  const screen=document.getElementById('screen-builder');
+  return window._builderSaveState===state&&builderSaveSessionCurrent(state.session)&&!!screen&&screen.classList.contains('active');
+}
+function builderCalendarActions(state,visible){
+  if(window._builderSaveState!==state)return;
+  const actions=document.getElementById('builder-calendar-actions');
+  if(actions)actions.hidden=!visible;
+  ['b-calendar-retry','b-calendar-continue'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.disabled=!!(state.calendar&&state.calendar.status==='pending');
+  });
+}
+function builderFinishSavedPlan(state){
+  state=state||window._builderSaveState;
+  if(!state||!state.saved||state.finished||!builderSaveFormCurrent(state)||
+    (state.calendar&&state.calendar.status==='pending'))return;
+  state.finished=true;
+  builderCalendarActions(state,false);
+  builderSaveUnlock(state);
+  window._editingPlanId=null;
+  const cid=state.savedPlan&&state.savedPlan.clientId;
+  if(typeof builderLeaveToCaller==='function')builderLeaveToCaller({saved:true});
+  else goTo('plans');
+  if(window._onboardResumeAfterBuilder===cid){
+    window._onboardResumeAfterBuilder=null;
+    if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
+  }
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function builderRetryCalendar(state){
+  state=state||window._builderSaveState;
+  if(!state||!state.saved||state.finished||!state.calendar||!builderSaveFormCurrent(state))return Promise.resolve(null);
+  const calendar=state.calendar;
+  if(calendar.status==='pending')return calendar.promise;
+  calendar.status='pending';calendar.error='';
+  builderCalendarActions(state,false);
+  builderSaveStatus('Plan zapisany. Sprawdzam terminy i dopełniam kalendarz…');
+  calendar.promise=(async()=>{
+    try{
+      if(typeof window.refillCalendarConfirmed!=='function')throw new Error('Moduł kalendarza jest niedostępny. Odśwież aplikację i dopełnij kalendarz w profilu klienta.');
+      const result=await window.refillCalendarConfirmed(calendar.clientId,{planId:calendar.planId,weeks:calendar.weeks});
+      if(!result||!['saved','unchanged'].includes(result.status))
+        throw new Error(result&&result.error||'Nie udało się potwierdzić zapisu terminów.');
+      calendar.status='saved';
+      if(builderSaveFormCurrent(state)){
+        builderSaveStatus('Plan zapisany. Kalendarz uzupełniony; istniejące terminy zachowano.');
+        builderFinishSavedPlan(state);
+      }
+      return result;
+    }catch(error){
+      calendar.status='error';
+      calendar.error=error&&error.message||'Nie udało się potwierdzić zapisu terminów.';
+      if(builderSaveFormCurrent(state)){
+        builderSaveStatus('Plan zapisany. Dopełnienie kalendarza nie zostało potwierdzone. '+calendar.error+' Możesz ponowić samo dopełnienie; plan nie zostanie zapisany drugi raz.',true);
+        builderCalendarActions(state,true);
+      }
+      return {status:'error',error:calendar.error};
+    }
+  })();
+  return calendar.promise;
+}
+async function persistBuilderPlan(candidate,base,session){
+  if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła. Zaloguj się ponownie.');
+  if(!window._db||typeof window._runTransaction!=='function'||typeof window._doc!=='function')throw new Error('Brak połączenia z bazą. Spróbuj ponownie.');
+  if(candidate.trainerId!==session.uid||(base&&base.trainerId!==session.uid))throw new Error('Plan nie należy do bieżącego konta.');
+  const docId=candidate._fbId||candidate.id;
+  const ref=window._doc(window._db,'plans',docId);
+  const payload=builderPlanClone(candidate);delete payload._fbId;
+  const client=candidate.clientId?(window.CL||[]).find(c=>c.id===candidate.clientId):null;
+  if(candidate.clientId&&(!client||client.trainerId!==session.uid))throw new Error('Klient jest niedostępny. Otwórz jego profil ponownie.');
+  await window._runTransaction(window._db,async tx=>{
+    if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+    if(client){
+      const clientSnap=await tx.get(window._doc(window._db,'clients',client._fbId||client.id));
+      if(!clientSnap.exists()||clientSnap.data().trainerId!==session.uid)throw new Error('Klient jest niedostępny. Otwórz jego profil ponownie.');
+    }
+    const snap=await tx.get(ref);
+    if(snap.exists()){
+      const raw=snap.data();
+      if(raw.trainerId!==session.uid)throw new Error('Nie można zapisać tego planu na bieżącym koncie.');
+      // clients/plans use the document ID, including legacy payloads without an id.
+      const remote={...raw,id:candidate.id};
+      if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+      if(builderPlanSignature(remote)===builderPlanSignature(payload))return;
+      if(!base||builderPlanSignature(remote)!==builderPlanSignature(base))
+        throw new Error('Plan zmienił się w innym oknie. Zachowaliśmy Twoją wersję w kreatorze; otwórz aktualny plan przed kolejną edycją.');
+    }else if(base){
+      throw new Error('Ten plan został usunięty. Zachowaliśmy treść w kreatorze.');
+    }
+    if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+    tx.set(ref,payload,{merge:true});
+  });
+  if(!builderSaveSessionCurrent(session))return null;
+  return {...candidate,_fbId:docId};
+}
+async function savePlan(){
+  const state=window._builderSaveState||builderResetSaveState();
+  if(state.pending||state.saved)return null;
+  if(!builderSaveSessionCurrent(state.session)){builderSaveStatus('Sesja wygasła. Otwórz kreator ponownie po zalogowaniu.',true);return null;}
+  const retry=state.candidate;
+
+  const name=document.getElementById('b-name').value.trim();
+  if(!name){
+    const field=document.getElementById('b-name');
+    builderFocusValidationField(field);
+    builderSaveStatus('Wpisz nazwę planu, aby kontynuować.',true);
+    notify('Wpisz nazwę planu!');
+    return;
+  }
+  const cid=document.getElementById('b-client').value;
+  const c=CL.find(x=>x.id===cid);
+  const editingId=window._editingPlanId;
+  const prev=state.base||(editingId?(window.PL||[]).find(p=>p.id===editingId):null);
+  if(editingId&&(!prev||prev.id!==editingId||prev.trainerId!==state.session.uid)){
+    builderSaveStatus('Nie można edytować tego planu. Otwórz aktualny plan z biblioteki.',true);return null;
+  }
+  if(cid&&(!c||c.trainerId!==state.session.uid)){
+    builderSaveStatus('Wybrany klient jest niedostępny. Wybierz klienta ponownie.',true);return null;
+  }
+  if(prev&&prev.clientId&&prev.clientId!==cid){
+    builderSaveStatus('To plan przypisany do klienta. Aby przygotować plan dla innej osoby, utwórz nowy plan.',true);return null;
+  }
+  const dur=parseInt((document.getElementById('b-duration')||{}).value,10)||4;
+  const weekMeta=builderWeekMetaForSave(prev,dur);
+  const days=[],invalidExerciseValues=[];
+  document.querySelectorAll('.builder-day').forEach(de=>{
+    const inps=de.querySelectorAll('.builder-day-hdr select, .builder-day-hdr input[type=text]');
+    const dn=inps[0].value,muscles=inps[1].value;const isRest=de.querySelector('.rc').checked;
+    if(isRest){days.push({day:dn,rest:true,muscles:'',exercises:[],sets:0});return;}
+    const exercises=[];let sets=0;
+    de.querySelectorAll('.ex-row').forEach(r=>{
+      const g=f=>(r.querySelector('[data-f="'+f+'"]')||{}).value||'';
+      const n=g('name').trim();
+      if(!n)return;
+      const setN=g('sets')||'3';
+      const setCount=Number(String(setN).trim().replace(',','.'));
+      const kgRaw=String(g('kg')||'').trim();
+      const kgValue=kgRaw?Number(kgRaw.replace(',','.')):0;
+      if(!Number.isInteger(setCount)||setCount<1){
+        invalidExerciseValues.push({message:dn+': '+n+' — liczba serii musi być dodatnią liczbą całkowitą.',field:r.querySelector('[data-f="sets"]')});
+        return;
+      }
+      if(kgRaw&&(!Number.isFinite(kgValue)||kgValue<0)){
+        invalidExerciseValues.push({message:dn+': '+n+' — ciężar nie może być ujemny.',field:r.querySelector('[data-f="kg"]')});
+        return;
+      }
+      const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
+      const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
+      const ex={
+        name:n,
+        sets:setN,
+        reps:g('reps')||'10',
+        kg:g('kg'),
+        loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg',
+        pct1rm:pct,
+        rpe:g('rpe'),
+        rir:g('rir'),
+        rest:g('rest')||'90s',
+        tempo:g('tempo'),
+        alt,
+        ss:g('ss'),
+        emom:g('emom')==='1',
+        note:g('note').trim(),
+        video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim(),
+        wu:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('wu'),2):(parseInt(g('wu'),10)||0)),
+        drop:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('drop'),2):(parseInt(g('drop'),10)||0)),
+        dropStep:g('ss')?'':String(g('dropStep')||'').trim(),
+        trans:g('trans').trim(),
+        cluster:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('cluster'),3):(parseInt(g('cluster'),10)||0)),
+        rp:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('rp'),2):(parseInt(g('rp'),10)||0)),
+        amrap:g('amrap')==='1'
+      };
+      if(window._manualPlanDraft&&typeof manualPlanExerciseProgramming==='function'){
+        const library=typeof libExerciseByName==='function'?libExerciseByName(n):null;
+        ex.programming=manualPlanExerciseProgramming(Object.assign({},library||{},ex));
+      }
+      const loads=builderRowWeekLoads(r);
+      (weekMeta.weekKeys||[]).forEach(wk=>{if(loads&&loads[wk])ex[wk]=loads[wk];});
+      if(weekMeta.currentWeek){
+        ex[weekMeta.currentWeek]={s:setN,r:g('reps')||'10',kg:g('kg'),rest:g('rest')||'90s',rpe:g('rpe'),rir:g('rir')};
+      }
+      exercises.push(ex);
+      sets+=parseInt(setN,10)||3;
+    });
+    if(typeof applySsLabels==='function'){
+      applySsLabels(exercises);
+      exercises.forEach(e=>{e.ss=e.ssLetter||'';delete e.ssLabel;delete e.ssLetter;});
+    }
+    const row={day:dn,muscles,exercises,sets,rest:false,circuit:!!(de.querySelector('.circ')||{}).checked,roundRest:(de.querySelector('[data-f="roundRest"]')||{}).value||''};
+    const wd=typeof planDayWeekday==='function'?planDayWeekday(row,days.filter(x=>x&&!x.rest).length):null;
+    if(wd!=null)row.weekday=wd;
+    days.push(row);
+  });
+  if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
+  if(invalidExerciseValues.length){
+    const first=invalidExerciseValues[0];
+    const msg='Popraw dane ćwiczenia przed zapisem: '+first.message;
+    builderSaveStatus(msg,true);
+    builderFocusValidationField(first.field);
+    notify(msg);
+    return null;
+  }
+  const trainingExerciseCount=days.reduce((sum,day)=>sum+(!day.rest?(day.exercises||[]).length:0),0);
+  const trainingDayCount=days.filter(day=>!day.rest).length;
+  // Plan regeneracyjny (same dni odpoczynku) jest celową, poprawną strukturą.
+  // Blokujemy tylko pustą jednostkę, która wygląda jak przypadkowo niedokończony trening.
+  if(trainingDayCount&&!trainingExerciseCount){
+    const msg='Dodaj co najmniej jedno ćwiczenie w jednostce treningowej przed zapisem planu.';
+    builderSaveStatus(msg+' Puste dni możesz zostawić tylko wtedy, gdy inna jednostka zawiera trening.',true);
+    builderFocusEmptyTrainingDay();
+    notify(msg);
+    return null;
+  }
+  // Pusta jednostka obok innych z treningiem: klient dostałby pusty trening, więc pytamy.
+  // OK = zapisz te dni jako odpoczynek; Anuluj = wróć i uzupełnij ćwiczenia.
+  const emptyTrainingDays=days.filter(day=>!day.rest&&!(day.exercises||[]).length);
+  if(emptyTrainingDays.length&&!retry){
+    const names=emptyTrainingDays.map(day=>day.day).join(', ');
+    if(!window.confirm('Dni bez ćwiczeń: '+names+'.\n\nOK — zapisz je jako dni odpoczynku.\nAnuluj — wróć i dodaj ćwiczenia.')){
+      builderSaveStatus('Uzupełnij ćwiczenia w dniach: '+names+' albo oznacz je jako dzień odpoczynku.',true);
+      builderFocusEmptyTrainingDay();
+      return null;
+    }
+    emptyTrainingDays.forEach(day=>{day.rest=true;day.muscles='';day.sets=0;delete day.weekday;});
+  }
+  // To nie jest błąd sam w sobie (np. wariant ciężki + techniczny), dlatego pytamy,
+  // zamiast blokować zapis. Chroni to głównie przed przypadkowym podwójnym kliknięciem.
+  const duplicateExercises=[];
+  days.forEach(day=>{
+    if(day.rest)return;
+    const seen=new Set();
+    (day.exercises||[]).forEach(ex=>{
+      const key=String(ex&&ex.name||'').trim().toLocaleLowerCase('pl-PL').replace(/\s+/g,' ');
+      if(!key)return;
+      if(seen.has(key))duplicateExercises.push(day.day+': '+ex.name);
+      else seen.add(key);
+    });
+  });
+  if(!retry&&duplicateExercises.length&&!state.duplicateConfirmed){
+    const repeated=duplicateExercises.slice(0,3).join(', ');
+    const proceed=confirm('W tej samej jednostce powtarza się identyczne ćwiczenie: '+repeated+'.\n\nKontynuować zapis? Wybierz „Anuluj”, aby najpierw sprawdzić plan.');
+    if(!proceed){
+      builderSaveStatus('Zapis zatrzymany. Sprawdź powtórzone ćwiczenie albo zapisz ponownie, jeśli powtórzenie jest celowe.',true);
+      return null;
+    }
+    state.duplicateConfirmed=true;
+  }
+  const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';
+  const candidate=retry||{
+    ...(prev?builderPlanClone(prev):{id:newId('p'),createdAt:new Date().toISOString(),trainerId:state.session.uid}),
+    name,method:document.getElementById('b-method').value,
+    duration:document.getElementById('b-duration').value,
+    progression,clientId:cid,clientName:c?c.name:'',
+    level:c?c.level:(prev?prev.level:'sredni'),goal:c?c.goal:(prev?prev.goal:'masa'),
+    days,...weekMeta,...(prev?{updatedAt:new Date().toISOString()}:{})
+  };
+  if(window._manualPlanDraft&&typeof manualPlanApplyToPlan==='function'){
+    Object.assign(candidate,manualPlanApplyToPlan(candidate,window._manualPlanDraft,c||{}));
+  }
+  if(typeof manualPlanVolumeControlForSave==='function'){
+    const volumeControl=manualPlanVolumeControlForSave();
+    if(volumeControl){
+      candidate.volumeControl=volumeControl;
+      if(candidate.manualPlan)candidate.manualPlan.volumeControl=volumeControl;
+    }
+  }
+  if(prev&&prev.rationale&&builderPlanRationaleChanged(prev,candidate))candidate.rationale=null;
+  state.candidate=candidate;
+  if(prev&&!state.base)state.base=builderPlanClone(prev);
+  state.pending=true;
+  builderSaveLock(state);
+  const btn=document.getElementById('b-save-btn');
+  if(btn){btn.disabled=true;btn.textContent='Zapisywanie…';}
+  builderSaveStatus('Zapisywanie planu. Poczekaj na potwierdzenie.');
+  let saved;
+  try{
+    saved=await persistBuilderPlan(candidate,state.base,state.session);
+    if(!saved||!builderSaveSessionCurrent(state.session))return null;
+    const idx=PL.findIndex(p=>p.id===saved.id);
+    if(idx>=0)PL[idx]=saved;else PL.push(saved);
+    state.saved=true;
+    state.savedPlan=saved;
+    if(!window._editingPlanId&&typeof builderClearStoredDraft==='function')builderClearStoredDraft();
+  }catch(e){
+    if(builderSaveFormCurrent(state)){
+      console.warn('Zapis planu niepotwierdzony:',e);
+      builderSaveStatus((e&&e.message&&!e.code?e.message:'Nie udało się potwierdzić zapisu. Sprawdź połączenie z internetem.')+' Formularz jest zachowany. „Ponów zapis” wysyła te same dane.',true);
+    }
+    return null;
+  }finally{
+    state.pending=false;
+    if(window._builderSaveState===state){
+      // Keep the confirmed form locked until calendar completion or explicit exit.
+      if(btn){btn.disabled=state.saved;btn.textContent=state.saved?'Zapisano plan':'Ponów zapis';}
+    }
+  }
+  if(!builderSaveFormCurrent(state))return saved;
+  builderSaveStatus('Plan zapisany.');
+  notify(editingId?'Plan zaktualizowany!':'Plan zapisany!');
+  // A confirmed plan and its calendar have independent outcomes and retries.
+  const hasTraining=(saved.days||[]).some(day=>day&&!day.rest&&(day.exercises||[]).length);
+  if(saved.clientId&&hasTraining){
+    const weeks=Math.max(1,Math.min(12,Number(saved.duration)>=8?Number(saved.duration):4));
+    const client=(window.CL||[]).find(item=>item.id===saved.clientId);
+    const preferred=typeof normalizePreferredWeekdays==='function'
+      ?normalizePreferredWeekdays(client&&client.preferredWeekdays):((client&&client.preferredWeekdays)||[]);
+    if(preferred.length||confirm('Dopełnić kalendarz o brakujące treningi z zapisanego planu na '+weeks+' tygodni? Istniejące terminy pozostaną bez zmian.')){
+      state.calendar={planId:saved.id,clientId:saved.clientId,weeks,status:'ready',error:'',promise:null};
+      await builderRetryCalendar(state);
+      return saved;
+    }
+  }
+  builderFinishSavedPlan(state);
+  return saved;
+}
+
+/** Mapuje etykietę dnia planu → JS getDay() (0=Nd … 6=Sob). */
+function planDayLabelToWeekday(label,fallbackIdx){
+  if(typeof parsePlanWeekdayFromText==='function'){
+    const parsed=parsePlanWeekdayFromText(label);
+    if(parsed!=null)return parsed;
+  }
+  const s=String(label||'').toUpperCase();
+  const map={PON:1,WT:2,'ŚR':3,SR:3,CZ:4,PT:5,SO:6,ND:0,
+    PONIEDZIALEK:1,WTOREK:2,SRODA:3,'ŚRODA':3,CZWARTEK:4,PIATEK:5,'PIĄTEK':5,SOBOTA:6,NIEDZIELA:0};
+  for(const k of Object.keys(map)){if(s.startsWith(k)||s.includes(k+' ')||s.includes(k+':')||s.includes(k+'—')||s.includes(k+'-'))return map[k];}
+  const defaults=[1,3,5,2,4,6,1]; // Pon/Śr/Pt/Wt/Czw/Sob
+  return defaults[(fallbackIdx||0)%defaults.length];
+}
+/** Unikalne dni tygodnia: najpierw preferencje, potem wolne Pon–Nd — bez owijania dwóch treningów na ten sam dzień. */
+function uniqueWeekdaysForTrainDays(trainCount,preferredWeekdays){
+  const n=Math.max(0,Number(trainCount)||0);
+  const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
+  const out=[];const used=new Set();
+  pref.forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  [1,2,3,4,5,6,0].forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  return out;
+}
+function resolvePlanDayWeekday(dayOrLabel,dayIdx,preferredWeekdays){
+  const idx=Math.max(0,Number(dayIdx)||0);
+  const day=dayOrLabel&&typeof dayOrLabel==='object'?dayOrLabel:{day:dayOrLabel};
+  if(typeof planDayWeekday==='function')return planDayWeekday(day,idx,preferredWeekdays);
+  const fromName=planDayLabelToWeekday(day.day||day.dayName||day.name||dayOrLabel,idx);
+  if(fromName!=null&&(day.day||day.dayName||day.name||dayOrLabel)){
+    const parsed=typeof parsePlanWeekdayFromText==='function'?parsePlanWeekdayFromText(day.day||day.dayName||day.name||dayOrLabel):null;
+    if(parsed!=null)return parsed;
+  }
+  const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
+  if(pref.length){
+    const map=uniqueWeekdaysForTrainDays(idx+1,pref);
+    if(map[idx]!=null)return map[idx];
+  }
+  return fromName;
+}
+/** Godzina startu z preferowanej pory klienta (np. „Wieczór (18-22)”). */
+function scheduleTimeFromClient(client,fallback){
+  const fb=fallback||'18:00';
+  const t=String(client&&client.preferredTrainTime||'');
+  if(/rano|6-10|6–10/i.test(t))return'08:00';
+  if(/południe|10-14|10–14/i.test(t))return'12:00';
+  if(/po południu|14-18|14–18/i.test(t))return'16:00';
+  if(/wieczór|18-22|18–22/i.test(t))return'18:00';
+  return fb;
+}
+/** Usuwa sesje source=planned klienta od danej daty (domyślnie dziś) — stary plan nie zostaje pod nowym. */
+function dropPlannedSessionsFrom(clientId,fromYmd){
+  const cid=String(clientId||'');
+  const from=String(fromYmd||(typeof todayYmd==='function'?todayYmd():'')||'').slice(0,10);
+  if(!cid)return 0;
+  const list=window.SE||[];
+  const drop=[];
+  for(let i=list.length-1;i>=0;i--){
+    const s=list[i];
+    const d=String(s&&s.date||'').slice(0,10);
+    if(s&&s.clientId===cid&&s.source==='planned'&&(!from||d>=from)){
+      drop.push(s);
+      list.splice(i,1);
+    }
+  }
+  drop.forEach(s=>{
+    if(window._db&&typeof window._del==='function'&&typeof window._doc==='function'){
+      try{window._del(window._doc(window._db,'sessions',s.id));}catch(e){}
+    }
+  });
+  return drop.length;
+}
+/** Tworzy sesje kalendarzowe z dni planu (planId + dayIdx) na N tygodni do przodu. */
+function schedulePlanToCalendar(planId,opts){
+  const plan=PL.find(p=>p.id===planId);if(!plan){notify('Brak planu');return 0;}
+  if(!plan.clientId){notify('Przypisz plan do klienta, żeby dodać do kalendarza');return 0;}
+  if(!(opts&&opts.forceAccess)&&typeof assertClientPaidAccess==='function'&&!assertClientPaidAccess(plan.clientId))return 0;
+  const client=CL.find(x=>x.id===plan.clientId);
+  const weeks=Math.max(1,Math.min(12,(opts&&opts.weeks)||4));
+  const time=(opts&&opts.time)||scheduleTimeFromClient(client,'18:00');
+  const duration=(opts&&opts.duration)||60;
+  const preferred=(opts&&opts.weekdays)!=null?(opts.weekdays):(client&&client.preferredWeekdays)||[];
+  const trainDays=(plan.days||[]).map((d,i)=>({d,i})).filter(x=>x.d&&!x.d.rest&&(x.d.exercises||[]).length);
+  if(!trainDays.length){notify('Plan nie ma dni treningowych');return 0;}
+  if(typeof hydratePlanDaysWeekdays==='function'&&hydratePlanDaysWeekdays(plan,preferred)){
+    try{if(typeof persistById==='function')persistById('plans',plan);}catch(e){}
+  }
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayStr=typeof dateStr==='function'?dateStr(today):(typeof todayYmd==='function'?todayYmd():today.toISOString().slice(0,10));
+  if(typeof dropPlannedSessionsFrom==='function')dropPlannedSessionsFrom(plan.clientId,todayStr);
+  let created=0;
+  for(let w=0;w<weeks;w++){
+    trainDays.forEach(({d,i},trainI)=>{
+      const wd=resolvePlanDayWeekday(d,trainI,preferred);
+      const dt=new Date(today);
+      const cur=dt.getDay();
+      let add=(wd-cur+7)%7;
+      if(add===0&&w===0)add=0; // dziś OK
+      dt.setDate(dt.getDate()+add+w*7);
+      const ymd=typeof dateStr==='function'?dateStr(dt):dt.toISOString().slice(0,10);
+      const exists=SE.some(s=>s.clientId===plan.clientId&&s.date===ymd&&s.source==='planned');
+      if(exists)return;
+      const label=d.day||d.dayName||('Dzień '+(i+1));
+      const muscles=d.muscles||d.focus||'';
+      const sess=withTrainer({
+        id:newId('s'),
+        clientId:plan.clientId,
+        date:ymd,
+        time,
+        type:label+(muscles?' — '+muscles:''),
+        notes:'Z planu: '+(plan.name||'')+(muscles?' · '+muscles:''),
+        duration,
+        source:'planned',
+        planId:plan.id,
+        dayIdx:i,
+        createdAt:new Date().toISOString()
+      });
+      SE.push(sess);
+      persistById('sessions',sess);
+      created++;
+    });
+  }
+  try{renderCal();}catch(e){}
+  try{renderDash();}catch(e){}
+  try{if(typeof renderDashCalRefillFollowup==='function')renderDashCalRefillFollowup();}catch(e){}
+  notify(created?'📅 Dodano '+created+' sesji do kalendarza':'Brak nowych sesji (już zaplanowane)');
+  return created;
+}
+window.schedulePlanToCalendar=schedulePlanToCalendar;
+window.planDayLabelToWeekday=planDayLabelToWeekday;
+window.uniqueWeekdaysForTrainDays=uniqueWeekdaysForTrainDays;
+window.resolvePlanDayWeekday=resolvePlanDayWeekday;
+window.scheduleTimeFromClient=scheduleTimeFromClient;
+window.dropPlannedSessionsFrom=dropPlannedSessionsFrom;
+
+/** Auto-kalendarz gdy klient ma preferredWeekdays; inaczej confirm. */
+function maybeSchedulePlanToCalendar(planId,opts){
+  const plan=(window.PL||[]).find(p=>p.id===planId);
+  if(!plan||!plan.clientId||typeof schedulePlanToCalendar!=='function')return 0;
+  if(!(opts&&opts.forceAccess)&&typeof assertClientPaidAccess==='function'&&!assertClientPaidAccess(plan.clientId))return 0;
+  const client=(window.CL||[]).find(x=>x.id===plan.clientId);
+  const pref=typeof normalizePreferredWeekdays==='function'
+    ?normalizePreferredWeekdays(client&&client.preferredWeekdays)
+    :((client&&client.preferredWeekdays)||[]);
+  const weeks=(opts&&opts.weeks)||4;
+  const forceConfirm=opts&&opts.forceConfirm;
+  if(pref.length&&!forceConfirm){
+    const n=schedulePlanToCalendar(planId,{weeks,weekdays:pref,forceAccess:true});
+    if(n>0){
+      const labels=typeof preferredWeekdaysLabels==='function'?preferredWeekdaysLabels(pref).join('/'):pref.join(',');
+      const time=typeof scheduleTimeFromClient==='function'?scheduleTimeFromClient(client,'18:00'):'18:00';
+      if(typeof notify==='function')notify('📅 Zaplanowano '+n+' sesji ('+labels+' · '+time+')');
+    }
+    return n;
+  }
+  const msg=(opts&&opts.confirmMsg)||'Dodać dni planu do kalendarza na najbliższe 4 tygodnie?';
+  if(confirm(msg))return schedulePlanToCalendar(planId,{weeks,forceAccess:true});
+  return 0;
+}
+window.maybeSchedulePlanToCalendar=maybeSchedulePlanToCalendar;
+
+/** Dopełnij kalendarz klienta o kolejne tygodnie z jego planu. */
+function refillClientCalendar(clientId,opts){
+  if(typeof window.refillCalendarConfirmed==='function')return window.refillCalendarConfirmed(clientId,opts);
+  if(typeof notify==='function')notify('Odśwież aplikację, aby dopełnić kalendarz.');
+  return Promise.resolve({status:'error',error:'Moduł kalendarza jest niedostępny'});
+}
+window.refillClientCalendar=refillClientCalendar;
+
+// ════════════════════════════════════════
+// PLANS
+// ════════════════════════════════════════
+// Kolor akcentu karty wg metody treningowej — ten sam wzorzec co w Zasobach i Bibliotece ćwiczeń.
+const PLAN_METHOD_COLORS={PPL:'var(--accent)',FBW:'var(--teal)',UL:'var(--blue)','531':'var(--purple)',HIIT:'var(--red)',GZCLP:'var(--orange)',Obwodowy:'var(--orange)',Circuit:'var(--orange)'};
+const PLANS_VIEW_KEY='pl_plans_view';
+var plansLibStatus='active';
+var plansLibSort='newest';
+var plansLibClientId='';
+var plansLibView=(function(){
+  try{
+    const v=localStorage.getItem(PLANS_VIEW_KEY);
+    if(v==='cards'||v==='table')return v;
+  }catch(e){}
+  return 'table';
+})();
+
+function planIsUnassigned(p){return !p||!p.clientId;}
+function planIsArchived(p){return !!(p&&(p.archived===true||p.status==='archived'));}
+function planStamp(p){return String((p&&(p.updatedAt||p.createdAt))||'');}
+function planDateLabel(p){
+  const y=String(planStamp(p)).slice(0,10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(y)?y:'—';
+}
+function planStatusMeta(p){
+  if(planIsArchived(p))return{key:'archived',label:'Archiwum',pill:'pill-muted'};
+  if(planIsUnassigned(p))return{key:'template',label:'Szablon',pill:'pill-blue'};
+  return{key:'active',label:'Aktywny',pill:'pill-green'};
+}
+function filterSortPlans(plans,clients,opts){
+  const o=opts||{};
+  const search=String(o.search||'').trim().toLowerCase();
+  const status=o.status||'active';
+  const clientId=o.clientId||'';
+  const sort=o.sort||'newest';
+  const byId={};
+  (clients||[]).forEach(c=>{if(c&&c.id)byId[c.id]=c;});
+  let list=(plans||[]).filter(p=>{
+    if(!p)return false;
+    const archived=planIsArchived(p);
+    const unassigned=planIsUnassigned(p);
+    if(status==='archived'){if(!archived)return false;}
+    else if(status==='templates'){if(archived||!unassigned)return false;}
+    else if(archived||unassigned)return false;
+    if(clientId&&p.clientId!==clientId)return false;
+    if(search){
+      const client=byId[p.clientId];
+      const clientName=String(client&&client.name||p.clientName||'').toLowerCase();
+      const name=String(p.name||'').toLowerCase();
+      if(!clientName.includes(search)&&!name.includes(search))return false;
+    }
+    return true;
+  });
+  list=list.slice().sort((a,b)=>{
+    if(sort==='alpha')return String(a.name||'').localeCompare(String(b.name||''),'pl',{sensitivity:'base'});
+    const da=Date.parse(planStamp(a))||0;
+    const db=Date.parse(planStamp(b))||0;
+    return sort==='oldest'?da-db:db-da;
+  });
+  return list;
+}
+window.planIsUnassigned=planIsUnassigned;
+window.planIsArchived=planIsArchived;
+window.planStamp=planStamp;
+window.planDateLabel=planDateLabel;
+window.planStatusMeta=planStatusMeta;
+window.filterSortPlans=filterSortPlans;
+
+function setPlansLibStatus(s){
+  plansLibStatus=s==='templates'||s==='archived'?s:'active';
+  renderPlans();
+}
+function setPlansLibSort(s){
+  plansLibSort=s==='oldest'||s==='alpha'?s:'newest';
+  renderPlans();
+}
+function setPlansLibClient(id){
+  plansLibClientId=String(id||'');
+  renderPlans();
+}
+function setPlansLibView(v){
+  plansLibView=v==='cards'?'cards':'table';
+  try{localStorage.setItem(PLANS_VIEW_KEY,plansLibView);}catch(e){}
+  renderPlans();
+}
+window.setPlansLibStatus=setPlansLibStatus;
+window.setPlansLibSort=setPlansLibSort;
+window.setPlansLibClient=setPlansLibClient;
+window.setPlansLibView=setPlansLibView;
+
+/** Kopia planu (np. dla innego klienta): nowy plan bez klienta, otwarty w kreatorze. */
+async function duplicatePlan(id){
+  const src=(window.PL||[]).find(p=>p&&p.id===id);
+  if(!src){notify('Nie znaleziono planu');return null;}
+  const copy=JSON.parse(JSON.stringify(src));
+  ['clientId','clientName','startDate','archived','archivedAt','updatedAt','calendarScheduledAt'].forEach(k=>{delete copy[k];});
+  if(copy.status==='archived')delete copy.status;
+  copy.id=newId('p');
+  copy.name=String(src.name||'Plan')+' (kopia)';
+  copy.createdAt=new Date().toISOString();
+  copy.copiedFrom=src.id;
+  if(Array.isArray(copy.weekKeys)&&copy.weekKeys.length)copy.currentWeek=copy.weekKeys[0];
+  delete copy.trainerId;
+  let saved;
+  try{saved=withTrainer(copy);}catch(e){notify(e.message||'Nie udało się zapisać kopii');return null;}
+  PL.push(saved);
+  await persistById('plans',saved);
+  if(typeof renderPlans==='function')renderPlans();
+  window._builderBack='plans';
+  editPlan(saved.id);
+  notify('Kopia zapisana. Wybierz klienta w kreatorze i zapisz plan.');
+  return saved;
+}
+window.duplicatePlan=duplicatePlan;
+
+function planActionButtons(p,client){
+  const hasClient=!!client;
+  const arch=planIsArchived(p);
+  const id=p.id;
+  return `<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();togglePlanExpand('${id}')" id="plan-toggle-${id}">👁️ Podgląd</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();exportSavedPlanPDF('${id}')" title="PDF" id="plan-pdf-${id}">📄</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();editPlan('${id}')" title="Edytuj">✏️</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();duplicatePlan('${id}')" title="Duplikuj – np. dla innego klienta">⧉</button>
+    ${hasClient?`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();openClientProfile('${client.id}')" title="Profil">👤</button>`:''}
+    ${arch
+      ?`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();restorePlan('${id}')" title="Przywróć">↩</button>`
+      :`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();archivePlan('${id}')" title="Archiwizuj">📦</button>`}
+    <button class="btn btn-danger btn-sm" type="button" onclick="event.stopPropagation();delPlan('${id}')" title="Usuń">🗑️</button>`;
+}
+
+function renderPlans(){
+  const el=document.getElementById('plans-content');
+  if(!el)return;
+  const search=(document.getElementById('plans-search')||{}).value?.trim().toLowerCase()||'';
+  const all=window.PL||[];
+  const clients=window.CL||[];
+  const nActive=all.filter(p=>!planIsArchived(p)&&!planIsUnassigned(p)).length;
+  const nTpl=all.filter(p=>!planIsArchived(p)&&planIsUnassigned(p)).length;
+  const nArch=all.filter(p=>planIsArchived(p)).length;
+  const setN=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n;};
+  setN('plans-n-active',nActive);setN('plans-n-templates',nTpl);setN('plans-n-archived',nArch);
+  ['active','templates','archived'].forEach(s=>{
+    const b=document.getElementById('plans-st-'+s);
+    if(b)b.classList.toggle('is-on',plansLibStatus===s);
+  });
+  const sortEl=document.getElementById('plans-sort');
+  if(sortEl&&sortEl.value!==plansLibSort)sortEl.value=plansLibSort;
+  const clientSel=document.getElementById('plans-client');
+  if(clientSel){
+    const opts=['<option value="">Wszyscy podopieczni</option>'].concat(
+      clients.filter(c=>c&&c.id&&c.status!=='archived').slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pl'))
+        .map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name||c.id)}</option>`)
+    );
+    clientSel.innerHTML=opts.join('');
+    clientSel.value=plansLibClientId;
+    clientSel.disabled=plansLibStatus==='templates';
+  }
+  const vc=document.getElementById('plans-view-cards');
+  const vt=document.getElementById('plans-view-table');
+  if(vc)vc.classList.toggle('is-on',plansLibView==='cards');
+  if(vt)vt.classList.toggle('is-on',plansLibView==='table');
+
+  const list=filterSortPlans(all,clients,{search,status:plansLibStatus,clientId:plansLibClientId,sort:plansLibSort});
+  const emptyHint=plansLibStatus==='templates'
+    ?'Tu lądują kopie bez przypisanego klienta. Mikrocykle są w Bibliotece szablonów.'
+    :plansLibStatus==='archived'
+      ?'Zarchiwizowane plany nie mieszają się z aktywnymi.'
+      :'Twórz i przypisuj plany z profilu klienta → zakładka Plan.';
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px 20px;">
+    <div style="font-size:36px;margin-bottom:10px;opacity:0.35;">📋</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">${search||plansLibClientId?'Brak planów pasujących do filtrów':'Brak planów w tej zakładce'}</div>
+    <div style="font-size:12px;margin-bottom:16px;">${emptyHint}</div>
+    ${search||plansLibClientId?'':`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="goTo('clients')">Otwórz klientów</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Biblioteka szablonów</button>
+    </div>`}
+  </div>`;return;}
+
+  const cardHtml=(p,pi)=>{
+    const client=clients.find(c=>c.id===p.clientId);
+    const clientName=client?.name||p.clientName||'Bez klienta';
+    const hasClient=!!client;
+    const dayChips=(p.days||[]).map(d=>d.rest?'💤':(d.day||d.dayName||d.muscles||d.focus||d.name||'—')).slice(0,6);
+    const accentCol=PLAN_METHOD_COLORS[p.method]||'var(--muted)';
+    const st=planStatusMeta(p);
+    const amateurMeta=planAmateurMetaHtml(p);
+    const nm=typeof escHtml==='function'?escHtml(p.name||''):String(p.name||'');
+    const cn=typeof escHtml==='function'?escHtml(clientName):String(clientName);
+    return `<div class="plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.03}s;">
+      <div class="plan-card-accent" style="background:${accentCol};"></div>
+      <div style="padding:16px 18px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          ${hasClient?`<div style="width:36px;height:36px;border-radius:9px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);flex-shrink:0;">${getInit(clientName)}</div>`:'<div style="width:36px;height:36px;border-radius:9px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>'}
+          <div style="min-width:0;flex:1;">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.3;">${nm}</div>
+              <span class="pill ${st.pill}"><span class="pill-dot"></span>${st.label}</span>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">${hasClient?'👤 '+cn:'Brak klienta'} · ⏱️ ${p.duration||'?'} tyg. · ${planDateLabel(p)}</div>
+            ${amateurMeta}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+          ${dayChips.map(d=>`<span class="plan-day-chip">${typeof escHtml==='function'?escHtml(String(d)):d}</span>`).join('')}
+        </div>
+        <div class="plan-card-actions">${planActionButtons(p,client)}</div>
+      </div>
+      <div id="plan-detail-${p.id}" class="plan-card-detail" style="display:none;">
+        ${(p.days||[]).map((d,di)=>planDayPreviewHtml(d,p.clientId,p,di)).join('')}
+      </div>
+    </div>`;
+  };
+
+  if(plansLibView==='table'){
+    el.innerHTML=`<div class="plans-tbl-wrap">
+      <div class="plans-tbl-hdr" role="row">
+        <span>Data</span><span>Nazwa planu</span><span>Podopieczny</span><span>Czas</span><span>Status</span><span>Akcje</span>
+      </div>
+      ${list.map((p,pi)=>{
+        const client=clients.find(c=>c.id===p.clientId);
+        const clientName=client?.name||p.clientName||'—';
+        const st=planStatusMeta(p);
+        const amateurMeta=planAmateurMetaHtml(p);
+        const nm=typeof escHtml==='function'?escHtml(p.name||''):String(p.name||'');
+        const cn=typeof escHtml==='function'?escHtml(clientName):String(clientName);
+        return `<div class="plans-tbl-row plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.02}s;">
+          <span class="plans-tbl-date">${planDateLabel(p)}</span>
+          <span class="plans-tbl-name">${nm}${amateurMeta}</span>
+          <span class="plans-tbl-client">${client?'👤 '+cn:'—'}</span>
+          <span>${p.duration||'—'} tyg.</span>
+          <span><span class="pill ${st.pill}"><span class="pill-dot"></span>${st.label}</span></span>
+          <span class="plans-tbl-actions">${planActionButtons(p,client)}</span>
+          <div id="plan-detail-${p.id}" class="plan-card-detail plans-tbl-detail" style="display:none;">
+            ${(p.days||[]).map((d,di)=>planDayPreviewHtml(d,p.clientId,p,di)).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+    return;
+  }
+  el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>cardHtml(p,pi)).join('')+`</div>`;
+}
+
+function planAmateurMetaHtml(plan){
+  const intake=plan&&plan.amateurIntake;
+  if(!intake)return'';
+  const prescription=intake.prescription||{};
+  const days=Number(prescription.days)||'?';
+  const rir=Number(prescription.targetRir)||'?';
+  return `<div style="margin-top:5px;font-size:10px;font-weight:700;color:var(--teal);">TRYB AMATOR · ${days} sesje/tydz. · RIR ≥ ${rir}</div>`;
+}
+window.planAmateurMetaHtml=planAmateurMetaHtml;
+
+function planDayPreviewHtml(d,clientId,plan,dayIndex){
+  const dayName=escHtml(d.day||d.dayName||'—');
+  const exs=Array.isArray(d.exercises)?d.exercises:[];
+  const focusRaw=String(d.muscles||d.focus||d.name||'').trim();
+  const dayRaw=String(d.day||d.dayName||'').trim();
+  const showFocus=focusRaw&&focusRaw!==dayRaw;
+  const weekKey=plan&&(plan.currentWeek||(plan.weekKeys&&plan.weekKeys[0]));
+  if(d.rest){
+    return `<details class="plan-preview-day is-rest">
+      <summary class="plan-preview-day-summary">
+        <span class="plan-preview-day-label">${dayName}</span>
+        <span class="plan-preview-day-focus">Odpoczynek / regeneracja</span>
+      </summary>
+    </details>`;
+  }
+  const rows=exs.map(e=>{
+    const raw=e&&typeof e==='object'?e:{name:e};
+    const view=typeof cpExWeekView==='function'?cpExWeekView(raw,weekKey):raw;
+    const sets=view.sets!=null&&view.sets!==''?String(view.sets):'';
+    const reps=view.reps!=null&&view.reps!==''?String(view.reps):'';
+    const kg=view.kg!=null&&view.kg!==''?String(view.kg)+' kg':'';
+    const meta=[sets&&reps?sets+'×'+reps:'',kg].filter(Boolean).join(' · ');
+    return `<div class="plan-preview-ex-row"><span>${escHtml(view.name||'Ćwiczenie')}</span>${meta?`<span>${escHtml(meta)}</span>`:''}</div>`;
+  }).join('');
+  return `<details class="plan-preview-day"${dayIndex===0?' open':''}>
+    <summary class="plan-preview-day-summary">
+      <span class="plan-preview-day-label">${dayName}</span>
+      <span class="plan-preview-day-focus">${showFocus?escHtml(focusRaw):'Trening'}</span>
+      <span class="plan-preview-day-count">${exs.length} ćw.</span>
+    </summary>
+    ${rows?`<div class="plan-preview-exercises">${rows}</div>`:''}
+  </details>`;
+}
+window.planDayPreviewHtml=planDayPreviewHtml;
+
+// Rozwija/zwija szczegóły ćwiczeń w karcie planu — na liście widać tylko nagłówek + tagi dni,
+// pełne ćwiczenia pokazują się dopiero po kliknięciu "Podgląd".
+function togglePlanExpand(id){
+  const detail=document.getElementById('plan-detail-'+id);
+  const btn=document.getElementById('plan-toggle-'+id);
+  const card=document.getElementById('plan-card-'+id);
+  if(!detail)return;
+  const isOpen=detail.style.display!=='none';
+  // flex (nie block), żeby działał odstęp między dniami z .plan-card-detail.
+  detail.style.display=isOpen?'none':'flex';
+  if(card)card.classList.toggle('is-open',!isOpen);
+  if(btn)btn.textContent=isOpen?'👁️ Podgląd':'👁️ Ukryj';
+}
+async function delPlan(id){
+  if(!id){notify('Błąd: brak ID planu');return;}
+  if(!confirm('Usunąć plan?'))return;
+  try{if(window._db)await window._del(window._doc(window._db,'plans',id));}catch(e){console.warn('Firebase delPlan:',e);}
+  window.PL=PL.filter(p=>p.id!==id);
+  renderPlans();
+  // odśwież profil klienta jeśli otwarty
+  if(typeof cpClientId!=='undefined'&&cpClientId){try{setCPTab('plan');}catch(e){}}
+  notify('✓ Plan usunięty');
+}
+
+async function archivePlan(id){
+  const p=(window.PL||[]).find(x=>x&&x.id===id);
+  if(!p){notify('Nie znaleziono planu');return;}
+  if(planIsArchived(p)){notify('Plan jest już w archiwum');return;}
+  if(!confirm('Zarchiwizować plan? Zniknie z listy aktywnych.'))return;
+  p.archived=true;
+  p.updatedAt=new Date().toISOString();
+  try{if(typeof persistById==='function')await persistById('plans',p);}catch(e){console.warn('archivePlan:',e);}
+  renderPlans();
+  notify('Plan w archiwum');
+}
+async function restorePlan(id){
+  const p=(window.PL||[]).find(x=>x&&x.id===id);
+  if(!p){notify('Nie znaleziono planu');return;}
+  p.archived=false;
+  if(p.status==='archived')delete p.status;
+  p.updatedAt=new Date().toISOString();
+  try{if(typeof persistById==='function')await persistById('plans',p);}catch(e){console.warn('restorePlan:',e);}
+  renderPlans();
+  notify('Plan przywrócony');
+}
+window.archivePlan=archivePlan;
+window.restorePlan=restorePlan;
+
+// ════════════════════════════════════════
+// CALENDAR V2 — WEEK / MONTH / LIST
+// ════════════════════════════════════════
+var calView='week';
+var calCurrentDate=new Date();
+var calMiniDate=new Date();
+var calSelectedDate=null;
+
+const CAL_HOURS=Array.from({length:24},(_,i)=>i); // 0-23
+const CAL_HOUR_H=60;
+const CAL_WEEK_H0=6;
+const CAL_WEEK_H1=23;
+const CAL_DAYS_PL=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
+const CAL_MONTHS_PL=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const SESS_COLORS=['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--red)'];
+
+function getWeekStart(d){
+  const dt=new Date(d);
+  const day=dt.getDay();
+  const diff=day===0?-6:1-day; // Monday = 0
+  dt.setDate(dt.getDate()+diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function dateStr(d){
+  if(typeof dateStrLocal==='function')return dateStrLocal(d);
+  const x=d instanceof Date?d:new Date(d);
+  if(isNaN(x.getTime()))return '';
+  const p=n=>String(n).padStart(2,'0');
+  return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate());
+}
+
+function setCalView(v){
+  calView=v;
+  document.getElementById('cal-week-view').style.display=v==='week'?'flex':'none';
+  document.getElementById('cal-week-view').style.flexDirection=v==='week'?'column':'';
+  document.getElementById('cal-month-view').style.display=v==='month'?'block':'none';
+  document.getElementById('cal-list-view').style.display=v==='list'?'block':'none';
+  ['week','month','list'].forEach(t=>{
+    const btn=document.getElementById('calv-'+t);
+    if(btn)btn.classList.toggle('active',t===v);
+  });
+  renderCal();
+}
+
+function calNav(dir){
+  if(calView==='week'){calCurrentDate=new Date(calCurrentDate);calCurrentDate.setDate(calCurrentDate.getDate()+dir*7);}
+  else if(calView==='month'){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()+dir,1);}
+  else if(calView==='list'){calCurrentDate=new Date(calCurrentDate);calCurrentDate.setDate(calCurrentDate.getDate()+dir*14);}
+  renderCal();
+}
+
+function calNavToday(){calCurrentDate=new Date();renderCal();}
+function calMiniNav(dir){calMiniDate=new Date(calMiniDate.getFullYear(),calMiniDate.getMonth()+dir,1);renderCalMini();}
+
+function renderCal(){
+  updateCalTitle();
+  renderCalMini();
+  renderCalSidebar();
+  if(calView==='week')renderCalWeek();
+  else if(calView==='month')renderCalMonth();
+  else renderCalList();
+}
+
+function updateCalTitle(){
+  const el=document.getElementById('cal-title');if(!el)return;
+  const today=new Date();
+  if(calView==='week'){
+    const ws=getWeekStart(calCurrentDate);
+    const we=new Date(ws);we.setDate(we.getDate()+6);
+    const sm=ws.getMonth();const em=we.getMonth();
+    const full=sm===em
+      ?CAL_DAYS_PL[0]+' '+ws.getDate()+' — '+CAL_DAYS_PL[6]+' '+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear()
+      :ws.getDate()+' '+CAL_MONTHS_PL[sm]+' — '+we.getDate()+' '+CAL_MONTHS_PL[em]+' '+ws.getFullYear();
+    const phone=typeof matchMedia==='function'&&matchMedia('(max-width:600px)').matches;
+    el.textContent=phone
+      ?(sm===em?ws.getDate()+'–'+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear():ws.getDate()+' '+CAL_MONTHS_PL[sm].slice(0,3)+'. – '+we.getDate()+' '+CAL_MONTHS_PL[em].slice(0,3)+'. '+ws.getFullYear())
+      :full;
+    el.title=full;
+  } else if(calView==='month'){
+    el.textContent=CAL_MONTHS_PL[calCurrentDate.getMonth()]+' '+calCurrentDate.getFullYear();
+  } else {
+    el.textContent='Lista sesji';
+  }
+}
+
+function calSessionDoneBits(s){
+  const happened=typeof sessionHappened==='function'&&sessionHappened(s);
+  const tipRaw=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):((s&&s.type||'')+' '+(s&&s.time||''));
+  const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw||'').replace(/"/g,'&quot;');
+  return{happened,cls:happened?' cal-session-done':'',mark:happened?'✓ ':'',tip};
+}
+window.calSessionDoneBits=calSessionDoneBits;
+function calSalaDoneBtn(s){
+  if(!s||s.source!=='planned')return '';
+  const happened=typeof sessionHappened==='function'&&sessionHappened(s);
+  if(happened)return '';
+  const sid=String(s.id||'').replace(/\\/g,'').replace(/'/g,"\\'");
+  return `<button type="button" class="btn btn-primary btn-sm cal-sala-done" onclick="event.stopPropagation();openSalaDoneModal('${sid}')">✓ Odbył się</button>`;
+}
+window.calSalaDoneBtn=calSalaDoneBtn;
+function calSessionTimeKey(s){
+  const parts=String(s&&s.time||'').split(':');
+  const h=parseInt(parts[0],10);
+  const m=parseInt(parts[1],10);
+  if(!isFinite(h))return '';
+  return String(h).padStart(2,'0')+':'+String(isFinite(m)?m:0).padStart(2,'0');
+}
+function calSessionIsLogged(s){
+  if(!s)return false;
+  if(typeof isLoggedWorkout==='function')return isLoggedWorkout(s);
+  return s.source==='live'||s.source==='sala'||s.source==='client'||s.source==='homework';
+}
+/** Jedna karta na klienta+dzień+godzinę; plan znika, gdy jest zapis z tego dnia. */
+function calDedupeVisibleSessions(list){
+  const src=(list||[]).filter(s=>s&&s.source!=='live-draft');
+  const loggedDays=new Set();
+  src.forEach(s=>{
+    if(calSessionIsLogged(s)&&s.clientId&&s.date)loggedDays.add(String(s.clientId)+'|'+String(s.date).slice(0,10));
+  });
+  const filtered=src.filter(s=>{
+    if(s.source!=='planned'||!s.clientId||!s.date)return true;
+    return !loggedDays.has(String(s.clientId)+'|'+String(s.date).slice(0,10));
+  });
+  const byKey=Object.create(null);
+  const order=[];
+  filtered.forEach(s=>{
+    const d=String(s.date||'').slice(0,10);
+    const t=calSessionTimeKey(s);
+    const cid=String(s.clientId||'');
+    const type=String(s.type||s.title||'').toLowerCase().replace(/\s+/g,' ').trim();
+    const key=cid?cid+'|'+d+'|'+t:'anon|'+d+'|'+t+'|'+type;
+    if(!byKey[key]){
+      byKey[key]=s;
+      order.push(key);
+      return;
+    }
+    const cur=byKey[key];
+    const rs=calSessionIsLogged(s)?2:(s.source==='garmin'?1:0);
+    const rc=calSessionIsLogged(cur)?2:(cur.source==='garmin'?1:0);
+    if(rs>rc)byKey[key]=s;
+  });
+  return order.map(k=>byKey[k]);
+}
+function calVisibleSessions(list){
+  return calDedupeVisibleSessions(list||window.SE||[]);
+}
+window.calSessionTimeKey=calSessionTimeKey;
+window.calDedupeVisibleSessions=calDedupeVisibleSessions;
+window.calVisibleSessions=calVisibleSessions;
+
+function calSessionStartMin(s){
+  const parts=String(s&&s.time||'0:0').split(':');
+  const h=parseInt(parts[0],10);
+  const m=parseInt(parts[1],10);
+  return (isFinite(h)?h:0)*60+(isFinite(m)?m:0);
+}
+function calSessionEndMin(s){
+  const dur=parseInt(s&&s.duration,10);
+  return calSessionStartMin(s)+(isFinite(dur)&&dur>0?dur:60);
+}
+/** Godzina wiersza w tygodniu (jak w miesiącu: karty idą w dół po czasie). */
+function calWeekHourBucket(s,h0,h1){
+  const start=h0==null?CAL_WEEK_H0:h0;
+  const end=h1==null?CAL_WEEK_H1:h1;
+  const hr=Math.floor(calSessionStartMin(s)/60);
+  if(!isFinite(hr))return start;
+  return Math.max(start,Math.min(end-1,hr));
+}
+function calWeekSessChip(s){
+  const c=CL.find(x=>x.id===s.clientId);
+  const cIdx=c?CL.indexOf(c):-1;
+  const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(cIdx>=0?cIdx:0)%6];
+  const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+  const who=c?c.name:'Klient';
+  const first=c?c.name.split(' ')[0]:'Klient';
+  const sid=s&&s.id?String(s.id).replace(/"/g,''):'';
+  const typeBit=s&&s.type?String(s.type):'';
+  const tipRaw=who+(typeBit?' — '+typeBit:'')+(bits.happened?' · odbył się':'')+' — '+(bits.tip||'');
+  const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw).replace(/"/g,'&quot;');
+  return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);min-width:0;max-width:100%;" onclick="event.stopPropagation();editSession('${s.id}')" title="${tip}">
+      <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}<span class="cal-week-sess-time">${s.time||''}</span> ${first}</div>
+      ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
+    </div>`;
+}
+window.calSessionStartMin=calSessionStartMin;
+window.calSessionEndMin=calSessionEndMin;
+window.calWeekHourBucket=calWeekHourBucket;
+
+/** Telefon: po geście tydzień zatrzymuje się na początku pełnego dnia.
+ *  Zostawia to widoczną i równą kolumnę zamiast urwanej karty z dnia obok. */
+function bindCalMobileWeekSnap(){
+  const track=document.getElementById('cal-week-track');
+  const grid=document.getElementById('cal-week-grid');
+  if(!track||!grid||track.dataset.calSnapBound)return;
+  track.dataset.calSnapBound='1';
+  let timer=0;
+  track.addEventListener('scroll',()=>{
+    if(typeof matchMedia!=='function'||!matchMedia('(max-width:600px)').matches)return;
+    clearTimeout(timer);
+    timer=setTimeout(()=>{
+      const dayWidth=(grid.scrollWidth-60)/7;
+      if(!isFinite(dayWidth)||dayWidth<=0)return;
+      const firstDay=Math.max(0,Math.min(3,Math.round((track.scrollLeft-60)/dayWidth)));
+      const target=Math.min(track.scrollWidth-track.clientWidth,Math.max(0,60+firstDay*dayWidth));
+      if(Math.abs(track.scrollLeft-target)>2)track.scrollTo({left:target,behavior:'smooth'});
+    },130);
+  },{passive:true});
+}
+window.bindCalMobileWeekSnap=bindCalMobileWeekSnap;
+
+function renderCalWeek(){
+  const ws=getWeekStart(calCurrentDate);
+  const today=new Date();today.setHours(0,0,0,0);
+  const hdr=document.getElementById('cal-week-header');
+  if(!hdr)return;
+  hdr.style.display='grid';
+  hdr.style.gridTemplateColumns='60px repeat(7,minmax(0,1fr))';
+  hdr.style.minWidth='0';
+  hdr.style.width='100%';
+  const h0=CAL_WEEK_H0;
+  const h1=CAL_WEEK_H1;
+
+  // header — dni tygodnia
+  let hdrHTML='<div style="height:48px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--s1);position:sticky;top:0;z-index:6;"></div>';
+  for(let i=0;i<7;i++){
+    const d=new Date(ws);d.setDate(d.getDate()+i);
+    const isToday=dateStr(d)===dateStr(today);
+    const dayCount=calVisibleSessions().filter(s=>s.date===dateStr(d)).length;
+    hdrHTML+=`<div class="cal-week-day-hdr${isToday?' today':''}" style="border-bottom:1px solid var(--border);">
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${CAL_DAYS_PL[i]}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${isToday?'var(--accent)':'var(--text)'};">${d.getDate()}</div>
+      ${dayCount?`<div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin:0 auto;"></div>`:'<div style="width:6px;height:6px;"></div>'}
+    </div>`;
+  }
+  hdr.innerHTML=hdrHTML;
+
+  // siatka godzin × dni: karty w komórce godziny, jedna pod drugą (jak w miesiącu)
+  const grid=document.getElementById('cal-week-grid');
+  grid.style.display='grid';
+  grid.style.gridTemplateColumns='60px repeat(7,minmax(0,1fr))';
+  grid.style.minWidth='0';
+  grid.style.width='100%';
+  let gridHTML='';
+  const now=new Date();
+  const nowHour=now.getHours();
+  const nowMin=now.getMinutes();
+  const todayIdx=[...Array(7)].findIndex((_,i)=>{const d=new Date(ws);d.setDate(d.getDate()+i);return dateStr(d)===dateStr(today);});
+
+  const byDay=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(ws);d.setDate(d.getDate()+i);
+    const ds=dateStr(d);
+    const list=calVisibleSessions().filter(s=>s&&s.date===ds)
+      .sort((a,b)=>calSessionStartMin(a)-calSessionStartMin(b)||String(a.id||'').localeCompare(String(b.id||'')));
+    byDay.push({ds,list});
+  }
+
+  for(let h=h0;h<h1;h++){
+    gridHTML+=`<div class="cal-hour-label" data-cal-hour="${h}">${String(h).padStart(2,'0')}:00</div>`;
+    for(let i=0;i<7;i++){
+      const {ds,list}=byDay[i];
+      const isToday=i===todayIdx;
+      const chips=list.filter(s=>calWeekHourBucket(s,h0,h1)===h).map(calWeekSessChip).join('');
+      gridHTML+=`<div class="cal-cell${isToday?' today-col':''}" data-cal-day="${ds}" data-cal-hour="${h}" onclick="quickAddSession('${ds}','${String(h).padStart(2,'0')}:00')">${chips}</div>`;
+    }
+  }
+
+  grid.innerHTML=gridHTML;
+  grid.style.position='relative';
+  bindCalMobileWeekSnap();
+
+  const scroll=document.getElementById('cal-week-scroll');
+  if(scroll){
+    // Na telefonie zaczynamy tuż przed pierwszą zaplanowaną sesją. Dzięki temu
+    // trener nie musi przewijać od 06:00, gdy pierwszy termin jest w południe.
+    const phone=typeof matchMedia==='function'&&matchMedia('(max-width:600px)').matches;
+    const scheduledHour=phone?byDay.reduce((first,day)=>day.list.reduce((current,s)=>{
+      const hour=calWeekHourBucket(s,h0,h1);
+      return current==null||hour<current?hour:current;
+    },first),null):null;
+    const targetHour=phone&&scheduledHour!=null?Math.max(h0,scheduledHour-1):8;
+    const lab=grid.querySelector('.cal-hour-label[data-cal-hour="'+targetHour+'"]')||grid.querySelector('.cal-hour-label[data-cal-hour="8"]')||grid.querySelector('.cal-hour-label[data-cal-hour="7"]');
+    if(lab)scroll.scrollTop=Math.max(0,lab.offsetTop-8);
+  }
+
+  if(todayIdx>=0&&nowHour>=h0&&nowHour<h1){
+    const lab=grid.querySelector('.cal-hour-label[data-cal-hour="'+nowHour+'"]');
+    const topPx=lab?lab.offsetTop+(nowMin/60)*lab.offsetHeight:((nowHour-h0)*CAL_HOUR_H)+(nowMin/60*CAL_HOUR_H);
+    const line=document.createElement('div');
+    line.className='cal-time-now';
+    line.style.top=topPx+'px';
+    grid.appendChild(line);
+  }
+}
+
+function renderCalMonth(){
+  const y=calCurrentDate.getFullYear();
+  const m=calCurrentDate.getMonth();
+  const today=new Date();
+  const firstDay=new Date(y,m,1);
+  let fd=firstDay.getDay();fd=(fd+6)%7;
+  const dim=new Date(y,m+1,0).getDate();
+
+  const dowEl=document.getElementById('cal-month-dow');
+  if(dowEl)dowEl.innerHTML=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;padding:4px 0;">${d}</div>`).join('');
+
+  let html='';
+  for(let i=0;i<fd;i++){
+    const pd=new Date(y,m,1-fd+i);
+    html+=`<div class="cal-month-cell other-month"><div style="font-size:12px;color:var(--muted2);">${pd.getDate()}</div></div>`;
+  }
+  for(let d=1;d<=dim;d++){
+    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const daySess=calVisibleSessions().filter(s=>s.date===ds);
+    const isToday=ds===dateStr(today);
+    html+=`<div class="cal-month-cell${isToday?' today':''}" onclick="calClickDay('${ds}')">
+      <div style="font-size:12px;font-weight:${isToday?700:500};color:${isToday?'var(--accent)':'var(--text)'};">${d}</div>
+      ${daySess.slice(0,3).map(s=>{
+        const c=CL.find(x=>x.id===s.clientId);
+        const ci=c?CL.indexOf(c):-1;
+        const col=SESS_COLORS[(ci>=0?ci:0)%6];
+        const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')" title="${bits.tip}"><div class="cal-month-sess-line">${bits.mark}<span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}</div>`;
+      }).join('')}
+      ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
+    </div>`;
+  }
+  const remaining=(7-((fd+dim)%7))%7;
+  for(let i=1;i<=remaining;i++){
+    html+=`<div class="cal-month-cell other-month"><div style="font-size:12px;color:var(--muted2);">${i}</div></div>`;
+  }
+  const grid=document.getElementById('cal-month-grid');
+  if(grid)grid.innerHTML=html;
+}
+
+function renderCalList(){
+  const el=document.getElementById('cal-list-body');if(!el)return;
+  const start=new Date(calCurrentDate);start.setHours(0,0,0,0);
+  const end=new Date(start);end.setDate(end.getDate()+30);
+  const startStr=dateStr(start);const endStr=dateStr(end);
+  const upcoming=calVisibleSessions().filter(s=>s.date>=startStr&&s.date<=endStr).sort((a,b)=>a.date.localeCompare(b.date)||((a.time||'').localeCompare(b.time||'')));
+
+  if(!upcoming.length){
+    el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
+      <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📅</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak sesji w tym okresie</div>
+      <button class="btn btn-primary" onclick="openM('m-session')">+ Dodaj sesję</button>
+    </div>`;
+    return;
+  }
+
+  // group by date
+  const groups={};
+  upcoming.forEach(s=>{if(!groups[s.date])groups[s.date]=[];groups[s.date].push(s);});
+  const today=dateStr(new Date());
+  el.innerHTML=Object.entries(groups).map(([date,sessions])=>{
+    const d=new Date(date+'T12:00:00');
+    const isToday=date===today;
+    const dayName=CAL_DAYS_PL[(d.getDay()+6)%7];
+    return `<div class="cal-list-day">
+      <div class="cal-list-day-hdr">
+        <div style="font-size:24px;color:${isToday?'var(--accent)':'var(--text)'};">${d.getDate()}</div>
+        <div>
+          <div style="font-size:12px;color:${isToday?'var(--accent)':'var(--muted)'};">${dayName}</div>
+          <div style="font-size:11px;color:var(--muted2);">${CAL_MONTHS_PL[d.getMonth()]}</div>
+        </div>
+        ${isToday?'<span class="pill pill-green" style="font-size:10px;">Dziś</span>':''}
+        <span class="pill pill-muted" style="font-size:10px;">${sessions.length} ${sessions.length===1?'sesja':sessions.length<5?'sesje':'sesji'}</span>
+      </div>
+      ${sessions.map(s=>{
+        const c=CL.find(x=>x.id===s.clientId);
+        const ci=c?CL.indexOf(c):-1;
+        const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(ci>=0?ci:0)%6];
+        const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+        return `<div class="cal-list-sess${bits.cls}" onclick="editSession('${s.id}')" title="${bits.tip}">
+          <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;">${bits.mark}${s.source==='garmin'?'⌚ ':''}${c?c.name:'Klient'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.source==='garmin'?'Garmin · ':''}${s.type||'Sesja'} · ${s.duration||60} min${bits.happened?' · odbył się':''}</div>
+            ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${s.notes}</div>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
+            ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editSession('${s.id}')">✏</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSession('${s.id}')">×</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderCalMini(){
+  const y=calMiniDate.getFullYear();
+  const m=calMiniDate.getMonth();
+  const today=new Date();
+  const titleEl=document.getElementById('cal-mini-title');
+  if(titleEl)titleEl.textContent=CAL_MONTHS_PL[m]+' '+y;
+
+  const firstDay=new Date(y,m,1);
+  let fd=firstDay.getDay();fd=(fd+6)%7;
+  const dim=new Date(y,m+1,0).getDate();
+  let html='';
+  for(let i=0;i<fd;i++){
+    const pd=new Date(y,m,1-fd+i);
+    html+=`<div class="cal-mini-day other-month">${pd.getDate()}</div>`;
+  }
+  for(let d=1;d<=dim;d++){
+    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=ds===dateStr(today);
+    const hasSess=SE.some(s=>s.date===ds);
+    const hasDone=typeof sessionHappened==='function'&&SE.some(s=>s.date===ds&&sessionHappened(s));
+    const isSel=calSelectedDate===ds;
+    html+=`<div class="cal-mini-day${isToday?' today':hasDone?' has-done':hasSess?' has-sess':''}${isSel?' selected':''}" onclick="calJumpTo('${ds}')">${d}</div>`;
+  }
+  const grid=document.getElementById('cal-mini-grid');
+  if(grid)grid.innerHTML=html;
+}
+
+function renderCalSidebar(){
+  const today=new Date();
+  const ws=getWeekStart(calCurrentDate);
+  const we=new Date(ws);we.setDate(we.getDate()+6);
+  const wsStr=dateStr(ws);const weStr=dateStr(we);
+  const weekSess=calVisibleSessions().filter(s=>s.date>=wsStr&&s.date<=weStr);
+
+  const statsEl=document.getElementById('cal-week-stats');
+  if(statsEl)statsEl.innerHTML=`
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val">${weekSess.length}</div>
+      <div class="ui-kpi-mini-lbl">Sesji</div>
+    </div>
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val" style="color:var(--blue);">${new Set(weekSess.map(s=>s.clientId)).size}</div>
+      <div class="ui-kpi-mini-lbl">Klientów</div>
+    </div>
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val" style="color:var(--teal);">${weekSess.filter(s=>typeof sessionIsRecorded==='function'&&sessionIsRecorded(s)).length}</div>
+      <div class="ui-kpi-mini-lbl">Odbyte</div>
+    </div>
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val" style="color:var(--orange);">${calVisibleSessions().filter(s=>s.date===dateStr(today)).length}</div>
+      <div class="ui-kpi-mini-lbl">Dziś</div>
+    </div>`;
+
+  // upcoming
+  const nowStr=dateStr(today);
+  const up=calVisibleSessions().filter(s=>s.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,6);
+  const upEl=document.getElementById('cal-upcoming');
+  if(!upEl)return;
+  upEl.innerHTML=!up.length?'<div class="ui-section-sub" style="text-align:center;padding:24px 0;">Brak nadchodzących sesji</div>'
+    :up.map(s=>{
+      const c=CL.find(x=>x.id===s.clientId);
+      const ci=c?CL.indexOf(c):-1;
+      const col=SESS_COLORS[(ci>=0?ci:0)%6];
+      const d=new Date(s.date+'T12:00:00');
+      const isToday=s.date===nowStr;
+      const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;" onclick="editSession('${s.id}')" title="${bits.tip}">
+        <div style="text-align:center;min-width:40px;">
+          <div style="font-size:var(--font-size-label);color:var(--text-label);font-weight:600;">${isToday?'Dziś':CAL_DAYS_PL[(d.getDay()+6)%7]}</div>
+          <div class="ui-kpi-mini-val" style="font-size:22px;color:${col};">${d.getDate()}</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);">${bits.mark}${c?c.name:'Klient'}</div>
+          <div style="font-size:var(--font-size-label);color:var(--text-label);margin-top:4px;">${s.time||'—'} · ${s.type||'Sesja'}${bits.happened?' · odbył się':''}</div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function calClickDay(ds){
+  calSelectedDate=ds;
+  calCurrentDate=new Date(ds+'T12:00:00');
+  if(calView==='month'){setCalView('week');}
+  else{renderCal();}
+}
+
+function calJumpTo(ds){
+  calSelectedDate=ds;
+  calCurrentDate=new Date(ds+'T12:00:00');
+  calMiniDate=new Date(ds+'T12:00:00');
+  renderCal();
+}
+
+function quickAddSession(date,time){
+  openM('m-session');
+  asSetClientField('','');
+  const d=document.getElementById('as-date');
+  const t=document.getElementById('as-time');
+  if(d)d.value=date;
+  if(t)t.value=time;
+}
+
+function openSessDetail(id){
+  const s=SE.find(x=>x.id===id);if(!s)return;
+  const c=CL.find(x=>x.id===s.clientId);
+  notify(`${c?c.name:'Klient'} · ${s.date} ${s.time||''} · ${s.type||'Sesja'}`);
+}
+
+function editSession(id){
+  const s=SE.find(x=>x.id===id);if(!s)return;
+  const c=CL.find(x=>x.id===s.clientId);
+  openM('m-session'); // resetuje formularz (w tym ukrywa sekcję zarejestrowanych ćwiczeń)
+  window._editingSessionId=id;
+  asSetClientField(s.clientId||'',c?c.name:'');
+  document.getElementById('as-date').value=s.date;
+  document.getElementById('as-time').value=s.time||'';
+  const typeEl=document.getElementById('as-type');
+  if(typeEl){
+    const ty=s.type||'';
+    if(ty&&![...typeEl.options].some(o=>o.value===ty)){
+      const opt=document.createElement('option');
+      opt.value=ty;opt.textContent=ty;
+      typeEl.appendChild(opt);
+    }
+    typeEl.value=ty;
+  }
+  document.getElementById('as-notes').value=s.notes||'';
+  const durEl=document.getElementById('as-duration');
+  if(durEl)durEl.value=s.duration||60;
+  const del=document.getElementById('as-del-btn');
+  if(del)del.style.display='';
+  const titleEl=document.querySelector('#m-session .modal-title');
+  if(titleEl)titleEl.textContent=s.source==='planned'?'TERMIN PLANU':'SESJA';
+  const salaBar=document.getElementById('as-sala-done');
+  if(salaBar){
+    const pending=s.source==='planned'&&!(typeof sessionHappened==='function'&&sessionHappened(s));
+    salaBar.style.display=pending?'':'none';
+    salaBar.innerHTML=pending?`<button type="button" class="btn btn-primary" style="width:100%;" onclick="closeM('m-session');openSalaDoneModal('${escHtml(s.id)}')">✓ Odbył się — ocena i czas</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;">Bez Live tonaż 0. Ocena 1–5 i minuty wchodzą do Postępów.</div>`:'';
+  }
+  renderRecordedExercises(s);
+}
+
+function delSessionFromModal(){
+  const id=window._editingSessionId;
+  if(!id)return;
+  if(typeof closeM==='function')closeM('m-session');
+  delSession(id);
+}
+window.delSessionFromModal=delSessionFromModal;
+
+// Pokazuje zarejestrowane ćwiczenia (ciężary/powtórzenia) i ocenę z sesji klienta lub Treningu Live.
+function renderRecordedExercises(s){
+  const wrap=document.getElementById('as-recorded-exercises');
+  const list=document.getElementById('as-recorded-exercises-list');
+  if(!wrap||!list)return;
+  const hasDetailedSets=(s.exercises||[]).some(e=>Array.isArray(e.sets)&&e.sets.length&&typeof e.sets[0]==='object');
+  const hasSkip=(s.exercises||[]).some(e=>e&&e.skipped);
+  const hasIssues=Array.isArray(s.issues)&&s.issues.length;
+  const hasRating=Number(s.feedback)>=1&&Number(s.feedback)<=5;
+  if(!hasDetailedSets&&!hasRating&&!hasSkip&&!hasIssues&&!(s.note||s.notes)){wrap.style.display='none';list.innerHTML='';return;}
+  const src=s.source==='client'?'klienta':s.source==='live'?'Treningu Live':s.source==='planned'?'planu':'sesji';
+  const titleEl=wrap.querySelector('[data-rec-ex-title]');
+  if(titleEl)titleEl.textContent='Wynik klienta (z '+src+')';
+  const ratingLine=hasRating&&typeof sessionRatingLabel==='function'
+    ?`<div class="as-recorded-rating">Ocena: ${sessionRatingLabel(s.feedback)}</div>`
+    :'';
+  const noteLine=(s.note||s.notes)?`<div class="as-recorded-note">Komentarz: <span>${escHtml(s.note||s.notes)}</span></div>`:'';
+  const status=s.status==='in_progress'?'W trakcie':s.status==='partial'?'Częściowo wykonana':s.status==='completed'?'Zakończona':'';
+  const statusLine=status?`<div class="as-recorded-note">Status: <span>${status}</span></div>`:'';
+  const difficulty=Number(s.difficulty)>0?`<div class="as-recorded-note">Trudność: <span>${Number(s.difficulty)}/10</span></div>`:'';
+  const issueLine=hasIssues?`<div class="as-recorded-note">Zgłoszone problemy: <span>${s.issues.map(x=>escHtml((x.exerciseName?x.exerciseName+': ':'')+(x.note||''))).join(' · ')}</span></div>`:'';
+  const exHtml=(hasDetailedSets||hasSkip)?s.exercises.map(e=>{
+    const setsText=(e.sets||[]).map(st=>`${st.kg||0}kg × ${st.reps||0}`).join(' · ');
+    const planned=(e.plannedSets||[]).map(st=>`${st.kg||'—'}kg × ${st.reps||'—'}`).join(' · ');
+    return `<div class="as-recorded-ex-card">
+      <div class="as-recorded-ex-name">${escHtml(e.name||'')}</div>
+      ${planned?`<div class="as-recorded-ex-sets">Plan: ${planned}</div>`:''}
+      <div class="as-recorded-ex-sets">Wynik: ${setsText||'brak zatwierdzonych serii'}${e.skipped?' · pominięto'+(e.skipReason?': '+escHtml(e.skipReason):''):''}</div>
+    </div>`;
+  }).join(''):'';
+  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'');
+  wrap.style.display='block';
+}
+
+// Ustawia pole klienta w oknie sesji: widoczny tekst wyszukiwania + ukryte id.
+function asSetClientField(clientId,clientName){
+  const hid=document.getElementById('as-client');
+  const vis=document.getElementById('as-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('as-client-results');
+  if(res)res.style.display='none';
+  asRenderPlanDayChips(clientId);
+}
+
+// Pokazuje "chipsy" z dniami przypisanego planu klienta — 1 klik wypełnia pole notatek.
+function asRenderPlanDayChips(clientId){
+  const wrap=document.getElementById('as-plan-days');
+  const list=document.getElementById('as-plan-days-list');
+  if(!wrap||!list)return;
+  const clientPlans=PL.filter(p=>p.clientId===clientId);
+  const plan=clientPlans[clientPlans.length-1];
+  if(!plan||!plan.days||!plan.days.length){wrap.style.display='none';return;}
+  list.innerHTML=plan.days.map(d=>{
+    const label=d.day||d.dayName||d.muscles||d.name||'Trening';
+    const detail=d.muscles&&d.muscles!==label?' — '+d.muscles:'';
+    const full=(label+detail).replace(/'/g,"\\'");
+    return `<button type="button" onclick="asPickPlanDay('${full}')" style="background:var(--s3);border:1px solid var(--border2);border-radius:99px;padding:5px 12px;font-size:11px;color:var(--text);cursor:pointer;">${label}${detail}</button>`;
+  }).join('');
+  wrap.style.display='block';
+}
+
+// Wypełnia pole notatek wybranym dniem z planu (nadpisuje, żeby nie duplikować przy kilku kliknięciach).
+function asPickPlanDay(text){
+  const notesEl=document.getElementById('as-notes');
+  if(notesEl)notesEl.value=text;
+}
+
+// Filtruje i pokazuje klientów pod polem wyszukiwania, priorytetyzując tych wymagających uwagi.
+function asClientSearchInput(){
+  const q=(document.getElementById('as-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('as-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="asSetClientField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${escHtml(c.name||'')}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+
+async function delSession(id){
+  const s=(window.SE||[]).find(x=>x&&x.id===id);
+  const planned=s&&s.source==='planned';
+  const msg=planned
+    ?'Usunąć ten termin z kalendarza?\nPlan klienta zostaje — znika tylko ten dzień.'
+    :'Usunąć sesję z kalendarza?';
+  if(!confirm(msg))return;
+  const cid=s&&s.clientId;
+  window.SE=SE.filter(x=>x.id!==id);
+  try{renderCal();}catch(e){}
+  try{renderDash();}catch(e){}
+  if(cid&&typeof renderCPTraining==='function'){
+    const c=CL.find(x=>x.id===cid);
+    if(c&&typeof cpTab!=='undefined'&&cpTab==='training')try{renderCPTraining(c);}catch(e){}
+  }
+  notify(planned?'Termin usunięty z kalendarza':'Sesja usunięta');
+  if(window._db){try{await window._del(window._doc(window._db,'sessions',id));}catch(e){console.warn('Firebase delSession:',e);}}
+}
+window.delSession=delSession;
+
+(function wrapOpenSessionModal(){
+  const orig=window.openM;
+  if(typeof orig!=='function')return;
+  window.openM=function(id){
+    orig.apply(this,arguments);
+    if(id==='m-session'){
+      window._editingSessionId=null;
+      const del=document.getElementById('as-del-btn');
+      if(del)del.style.display='none';
+      const t=document.querySelector('#m-session .modal-title');
+      if(t)t.textContent='NOWA SESJA';
+    }
+  };
+})();
+async function saveSess(){
+  if(window._saveGuard_saveSess)return;window._saveGuard_saveSess=true;setTimeout(()=>window._saveGuard_saveSess=false,1500);
+
+  const cid=document.getElementById('as-client').value;
+  const date=document.getElementById('as-date').value;
+  const time=document.getElementById('as-time').value;
+  const type=document.getElementById('as-type').value;
+  const notes=document.getElementById('as-notes').value;
+  const duration=parseInt(document.getElementById('as-duration').value)||60;
+  if(!cid){notify('Wybierz klienta!');return;}
+  if(!date||!time){notify('Uzupełnij datę i godzinę!');return;}
+  const editId=window._editingSessionId;
+  const existing=editId&&(window.SE||[]).find(x=>x&&x.id===editId);
+  // Kolizja terminów: trener nie poprowadzi dwóch sesji naraz.
+  const toMin=t=>{const p=String(t||'').split(':');const h=+p[0],m=+(p[1]||0);return isFinite(h)?h*60+(isFinite(m)?m:0):null;};
+  const start=toMin(time),end=start==null?null:start+duration;
+  if(start!=null){
+    const clash=(window.SE||[]).find(o=>{
+      if(!o||o===existing||o.id===editId||String(o.date||'').slice(0,10)!==date||o.status==='cancelled'||o.archived)return false;
+      const os=toMin(o.time);if(os==null)return false;
+      const oe=os+(Number(o.duration)||60);
+      return start<oe&&os<end;
+    });
+    if(clash){
+      const who=((window.CL||[]).find(c=>c.id===clash.clientId)||{}).name||'inny klient';
+      if(!confirm(`O ${clash.time} masz już sesję (${who}). Terminy nakładają się. Zapisać mimo to?`)){window._saveGuard_saveSess=false;return;}
+    }
+  }
+  const refresh=()=>{
+    try{renderCal();}catch(e){}
+    try{renderDash();}catch(e){}
+    if(typeof cpClientId!=='undefined'&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
+  };
+  if(existing){
+    existing.clientId=cid;
+    existing.date=date;
+    existing.time=time;
+    existing.type=type;
+    existing.notes=notes;
+    existing.duration=duration;
+    existing.updatedAt=new Date().toISOString();
+    closeM('m-session');
+    window._editingSessionId=null;
+    refresh();
+    notify('Zapisuję sesję…');
+    // Potwierdzenie dopiero po zapisie w bazie — offline persistById sam pokaże ostrzeżenie.
+    if(await persistById('sessions',existing))notify('Sesja zapisana ✓');
+    return;
+  }
+  const sess=withTrainer({id:newId('s'),clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()});
+  SE.push(sess);
+  closeM('m-session');
+  refresh();
+  notify('Zapisuję sesję…');
+  if(await persistById('sessions',sess))notify('Sesja dodana ✓');
+  if(typeof fireIntEvent==='function'){
+    const cli=(window.CL||[]).find(x=>x.id===cid);
+    fireIntEvent('session.created',{session:{id:sess.id,date:sess.date,time:sess.time,type:sess.type,duration:sess.duration},client:{id:cid,name:cli&&cli.name||'',email:cli&&cli.email||'',phone:cli&&cli.phone||''}});
+  }
+  maybeResumeOnboard(cid);
+}
+

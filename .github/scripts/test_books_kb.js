@@ -57,8 +57,50 @@ ok('tryb business → marketing', /\(marketing\)/.test(K.booksKbContext({ mode: 
 
 const gen = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
 ok('generator ładuje książki przed promptem', /await booksKbLoad\(\)/.test(gen) && gen.indexOf('aplBooksContext({') < gen.indexOf('const systemPrompt='));
-ok('generator: książki w kolejnych częściach planu', gen.includes('`+bookCtx.training;'));
-ok('generator: zapis źródeł z książek w planie', /plan\.rationale\.bookSources=bookCtx\.sources/.test(gen));
+ok('generator: książki w kolejnych częściach planu', gen.includes('`+bookCtx.training+'));
+ok('generator: zapis źródeł z książek w planie', /plan\.rationale\.bookSources=bookCtx\.sources/.test(gen) && /aplApplyBookRefs\(plan,bookCtx\)/.test(gen));
+ok('generator: reguły z książek przed ustawieniami aplikacji', /KOLEJNOŚĆ WAŻNOŚCI/.test(gen) && /DOMYŚLNE USTAWIENIA APLIKACJI \(nie z książek\)/.test(gen));
+ok('generator: bez tabeli MEV/MAV/MRV spoza książek', !/MEV 10 \/ MAV/.test(gen) && /OBJĘTOŚĆ Z KSIĄŻEK/.test(gen));
+ok('generator: Smolov i 5/3/1 oznaczone jako spoza książek', /Metoda spoza bazy książek/.test(gen));
+
+// Generator: reguły ze wszystkich książek treningowych, kotwice liczb, oznaczenia [K…].
+const trainingBooks = index.books.filter((b, i) => index.chunks.some(c => c.b === i && c.d === 'training')).map(b => b.id);
+Object.entries(K.PLAN_ANCHORS).forEach(([topic, refs]) => refs.forEach(ref => {
+  const [book, id] = ref.split(' ');
+  const bi = index.books.findIndex(b => b.id === book);
+  ok('kotwica ' + topic + ' istnieje: ' + ref, bi >= 0 && index.chunks.some(c => c.b === bi && c.id === id));
+}));
+const cases = [
+  { query: 'masa średnio zaawansowany PPL 4 dni pełna siłownia', progression: 'dup', level: 'sredni', safetyQuery: 'ból kolana' },
+  { query: 'redukcja początkujący FBW 3 dni', progression: 'linear', level: 'poczatkujacy', safetyQuery: 'starsi wiek osoby starsze otyłość' },
+  { query: 'siła zaawansowany Blokowa 4 dni', progression: 'block', level: 'zaawansowany', safetyQuery: '' },
+  { query: 'kondycja Obwodowy 3 dni', progression: 'wave', level: 'sredni', safetyQuery: 'ból kręgosłupa' }
+];
+cases.forEach(c => {
+  const p = K.booksKbPlanSelect(Object.assign({ nutritionQuery: 'białko kalorie' }, c));
+  const books = new Set(p.rules.filter(r => r.topic !== 'żywienie').map(r => r.book));
+  ok('plan [' + c.query + ']: reguły z każdej książki treningowej', trainingBooks.every(b => books.has(b)), trainingBooks.filter(b => !books.has(b)));
+  ok('plan [' + c.query + ']: kotwice progresji ' + c.progression, K.PLAN_ANCHORS[c.progression].every(ref => p.rules.some(r => r.ref === ref)));
+  ok('plan [' + c.query + ']: oznaczenia K1…Kn bez dziur', p.rules.every((r, i) => r.key === 'K' + (i + 1)));
+  ok('plan [' + c.query + ']: etykiety jednoznaczne', new Set(p.rules.map(r => r.label)).size === p.rules.length);
+  ok('plan [' + c.query + ']: są reguły żywieniowe', p.rules.some(r => r.topic === 'żywienie'));
+});
+const planSel = K.booksKbPlanSelect({ query: 'masa', progression: 'double', level: 'sredni' });
+const prompt = K.booksKbPlanPrompt(planSel);
+ok('prompt: oznaczenia [K1] i zasada cytowania', /\[K1\] \(/.test(prompt) && /WYŁĄCZNIE oznaczeń z tej listy/.test(prompt));
+const k1 = planSel.rules[0], k2 = planSel.rules[1];
+const plan = {
+  summary: 'Objętość 10–20 serii [K1], RIR [K2, K999].',
+  periodization: 'Wg [' + k2.ref + '] i [K4040]. Zakres [8-12] zostaje.',
+  days: [{ exercises: [{ name: 'Przysiad', notes: 'Technika [K1]' }] }],
+  rationale: { sources: ['[K77]', 'Objętość [K1]'] }
+};
+const check = K.booksKbValidatePlanRefs(plan, planSel);
+ok('walidacja: prawidłowe [K1] → czytelna etykieta', plan.summary.includes('[' + k1.label + ']') && plan.days[0].exercises[0].notes.includes('[' + k1.label + ']'));
+ok('walidacja: pełny ref też rozpoznany', plan.periodization.includes('[' + k2.label + ']'));
+ok('walidacja: wymyślone oznaczenia usunięte', !/K999|K4040|K77/.test(JSON.stringify(plan)) && check.removed === 3, { removed: check.removed, plan });
+ok('walidacja: zwykłe nawiasy zostają', plan.periodization.includes('[8-12]'));
+ok('walidacja: lista użytych reguł', check.used.map(r => r.key).join(',') === 'K1,K2');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 ok('index.html ładuje books-kb.js', /<script src="books-kb\.js\?v=\d+"><\/script>/.test(html));
 

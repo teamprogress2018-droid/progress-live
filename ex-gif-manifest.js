@@ -272,5 +272,44 @@ window.EX_GIF_MANIFEST={
   "wspięcia na palce stojąc": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
   "wspiecia-na-palce-stojac": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
   "standing calf raise": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
-  "standing-calf-raise": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4"
+  "standing-calf-raise": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wspi%C4%99cia%20na%20palce%20(stoj%C4%85c)%20%E2%80%93%20unoszenie%20%C5%82ydek%20na%20stopniu%20(Standing%20Calf%20Raise%20on%20Step).mp4",
+  "przysiad z własnym ciężarem": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view",
+  "przysiad-z-wlasnym-ciezarem": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view",
+  "przysiad z własnym ciężarem ciała": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view",
+  "przysiad-z-wlasnym-ciezarem-ciala": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view",
+  "bodyweight squat": "https://drive.google.com/file/d/1emqBkqVLwenWCNcBTY_aWQdKJa-ntp2V/view"
 };
+
+/*
+ * Zweryfikowane, opisane GIF-y z białego katalogu trenera.
+ * Znacznik #pl-preview mówi bibliotece, aby użyła jasnej miniatury na karcie;
+ * pełny film techniki pozostaje dostępny na żądanie w szczegółach ćwiczenia.
+ */
+Object.assign(window.EX_GIF_MANIFEST,{
+  "butterfly (peck deck)":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
+  "butterfly-peck-deck":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
+  "dipy na poręczach":"https://drive.google.com/file/d/1EQ_BUsSLxKNAA6WeST7lMu6A4PKQ2DR2/view#pl-preview",
+  "dipy-na-poreczach":"https://drive.google.com/file/d/1EQ_BUsSLxKNAA6WeST7lMu6A4PKQ2DR2/view#pl-preview",
+  "pompki":"https://drive.google.com/file/d/1wApO80p7-7oNfgvTIf2f_ZFBHBuzZyK6/view#pl-preview",
+  "wyciskanie sztangi leżąc":"https://drive.google.com/file/d/12FpFiza1zKMruTFKUH0KEUijHclis-7N/view#pl-preview",
+  "wyciskanie-sztangi-lezac":"https://drive.google.com/file/d/12FpFiza1zKMruTFKUH0KEUijHclis-7N/view#pl-preview",
+  "wyciskanie hantli leżąc":"https://drive.google.com/file/d/1Vq3vVDvN4LydaDZLtlEceIoKA_86cigZ/view#pl-preview",
+  "wyciskanie-hantli-lezac":"https://drive.google.com/file/d/1Vq3vVDvN4LydaDZLtlEceIoKA_86cigZ/view#pl-preview"
+});
+
+/*
+ * Karta ćwiczenia ma własne źródło miniatury. Dzięki temu nie przegrywa ze
+ * starszym polem img/gif zapisanym przy ćwiczeniu, a film techniki zachowuje
+ * swoje źródło w EX_GIF_MANIFEST. Dodawaj tu wyłącznie zweryfikowane pliki.
+ */
+window.EX_PREVIEW_FALLBACKS=Object.assign(window.EX_PREVIEW_FALLBACKS||{}, {
+  "butterfly (peck deck)":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
+  "butterfly-peck-deck":"https://drive.google.com/file/d/15cmCIZT_pCixMyTznrNs24pUbJbwjbxp/view#pl-preview",
+  "dipy na poręczach":"https://drive.google.com/file/d/1EQ_BUsSLxKNAA6WeST7lMu6A4PKQ2DR2/view#pl-preview",
+  "dipy-na-poreczach":"https://drive.google.com/file/d/1EQ_BUsSLxKNAA6WeST7lMu6A4PKQ2DR2/view#pl-preview",
+  "pompki":"https://drive.google.com/file/d/1wApO80p7-7oNfgvTIf2f_ZFBHBuzZyK6/view#pl-preview",
+  "wyciskanie sztangi leżąc":"https://drive.google.com/file/d/12FpFiza1zKMruTFKUH0KEUijHclis-7N/view#pl-preview",
+  "wyciskanie-sztangi-lezac":"https://drive.google.com/file/d/12FpFiza1zKMruTFKUH0KEUijHclis-7N/view#pl-preview",
+  "wyciskanie hantli leżąc":"https://drive.google.com/file/d/1Vq3vVDvN4LydaDZLtlEceIoKA_86cigZ/view#pl-preview",
+  "wyciskanie-hantli-lezac":"https://drive.google.com/file/d/1Vq3vVDvN4LydaDZLtlEceIoKA_86cigZ/view#pl-preview"
+});

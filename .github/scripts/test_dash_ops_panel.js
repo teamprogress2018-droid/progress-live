@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Panel operacyjny trenera: alerty, raporty, aktywność, wygasające pakiety. */
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -33,7 +34,7 @@ ok('kpi row',html.includes('id="d-kpi-row"')&&html.includes('id="d-reports"')&&h
 ok('today focus strip',html.includes('id="dash-today-focus"')&&html.includes('focusDashSection'));
 ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&html.includes('id="dash-ops-today"')&&!html.includes('id="dash-ops-reminders"'));
 ok('packages only in pay card',html.includes('Płatności do odnowienia')&&html.includes('id="d-ops-expiring"')&&!html.includes('Brak nadchodzących terminów')&&!html.includes('Raporty i pakiety'));
-ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-sessions"'));
+ok('today plan',html.includes('>Dzisiaj</div>')&&html.includes('id="d-today-sessions"')&&html.includes('Plan na jutro')&&html.includes('id="d-tomorrow-sessions"'));
 ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes('openInviteFromDashboard()')&&html.includes("openM('m-client')")&&html.includes('openNewPlanPicker()')&&html.includes('goToHomeworkQueue()')&&html.includes("goTo('clients')")&&html.includes("openM('m-broadcast')")&&html.includes("goTo('live')"));
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row')&&css.includes('.dash-today-focus')&&css.includes('.dash-today-tile-ok'));
 ok('no duplicate reminders card',!src04.includes('d-ops-reminders')&&!src04.includes('Brak nadchodzących terminów'));
@@ -180,7 +181,7 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=62')&&html.includes('styles.css?v=166'));
+ok('cache bumps',cacheAtLeast(html, '04-client-portal.js', 62)&&cacheAtLeast(html, 'styles.css', 166));
 ok('CI ui',fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8').includes('test_dash_followup_gone_ui.js'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}

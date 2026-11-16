@@ -136,21 +136,16 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'live_rir_column.png') });
   ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
+  // Skrót „Ostatnio / Sugestia” jest w menu „⋯ → Historia i progres”; pełna tabela poprzednich
+  // treningów zostaje pod nazwą ćwiczenia (podgląd po najechaniu, klik = pełna historia).
   const lastUi = await page.evaluate(() => {
     const title = document.querySelector('#live-ex-0 .live-ex-title.has-hist');
     const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
-    return { has: !!title, tag: title ? title.tagName : '', name: title ? title.textContent : '', pop: pop ? pop.innerText : '' };
+    const menuBtn = [...document.querySelectorAll('#live-ex-0 .live-ex-actions-popover button')].find((b) => /Historia i progres/.test(b.textContent));
+    return { has: !!title, tag: title ? title.tagName : '', name: title ? title.textContent : '', pop: pop ? pop.innerText : '', menu: !!menuBtn };
   });
   ok('hist hover title', lastUi.has && lastUi.tag === 'BUTTON' && /Przysiad Goblet/.test(lastUi.name), JSON.stringify(lastUi));
-  ok('hist popover tables', /poprzednie treningi/i.test(lastUi.pop) && /2026-09-13/.test(lastUi.pop) && /2026-09-06/.test(lastUi.pop) && /Σ/.test(lastUi.pop), lastUi.pop.slice(0, 280));
-  const prevUi = await page.evaluate(() => {
-    const cue = document.querySelector('#live-ex-0 .live-ex-cue');
-    const panel = document.querySelector('#live-ex-0 .live-last-panel');
-    const rows = document.querySelectorAll('#live-ex-0 .live-set-row').length;
-    return { cue: cue ? cue.innerText : '', panel: !!panel, rows };
-  });
-  ok('cue last weights', /Ostatnio:/i.test(prevUi.cue) && /22\.5 kg|20 kg/.test(prevUi.cue) && !/999/.test(prevUi.cue), prevUi.cue);
-  ok('no last panel in card', prevUi.panel === false, JSON.stringify(prevUi));
+  ok('history summary also in the three-dot menu', lastUi.menu, JSON.stringify(lastUi));
   await page.hover('#live-ex-0 .live-ex-title.has-hist');
   const hoverUi = await page.evaluate(() => {
     const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
@@ -158,7 +153,7 @@ function ok(name, cond, extra) {
     return { display: cs ? cs.display : '', text: pop ? pop.innerText : '' };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_ex_hist_hover.png') });
-  ok('hover shows popover', hoverUi.display === 'block' && /20/.test(hoverUi.text) && /poprzednie treningi/i.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 240));
+  ok('hover shows popover: ostatnie treningi, wiersz na trening, trend', hoverUi.display === 'block' && /ostatnie treningi \(2\)/i.test(hoverUi.text) && /13\.09\.26/.test(hoverUi.text) && /06\.09\.26/.test(hoverUi.text) && /20 × 12 · 22\.5 × 10/.test(hoverUi.text) && /▲ \+2\.5/.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 280));
   await page.mouse.move(8, 8);
   await page.click('#live-ex-0 .live-ex-title.has-hist');
   const modalUi = await page.evaluate(() => {
@@ -174,6 +169,17 @@ function ok(name, cond, extra) {
   ok('hist modal table', modalUi.show && /Przysiad Goblet/.test(modalUi.title) && /Powt/.test(modalUi.text) && /20/.test(modalUi.text) && /Σ/.test(modalUi.text), JSON.stringify(modalUi));
   await page.evaluate(() => { if (typeof closeM === 'function') closeM('m-ex-hist'); });
   await page.mouse.move(8, 8);
+  await page.evaluate(() => { if (typeof liveToggleExPanel === 'function') liveToggleExPanel(0, 'history'); });
+  const prevUi = await page.evaluate(() => {
+    const cue = document.querySelector('#live-ex-0 .live-ex-cue');
+    const panel = document.querySelector('#live-ex-0 .live-last-panel');
+    const rows = document.querySelectorAll('#live-ex-0 .live-set-row').length;
+    return { cue: cue ? cue.innerText : '', panel: !!panel, rows };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_history_panel.png') });
+  ok('cue last weights', /Ostatnio:/i.test(prevUi.cue) && /22\.5 kg|20 kg/.test(prevUi.cue) && !/999/.test(prevUi.cue), prevUi.cue);
+  ok('no last panel in card', prevUi.panel === false, JSON.stringify(prevUi));
+  await page.evaluate(() => { if (typeof liveToggleExPanel === 'function') liveToggleExPanel(0, 'history'); });
   await page.evaluate(() => { if (typeof liveFillFromLast === 'function') liveFillFromLast(0, 0); });
   const filled = await page.evaluate(() => {
     const row = document.querySelector('#live-ex-0 .live-set-row');

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Client profile: visible personal-data edit (name/surname), not only ⋯ overflow. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -39,11 +40,11 @@ ok('form title dane osobowe', form.includes('Dane osobowe') && form.includes('id
 ok('name field placeholder', form.includes('id="cpe-name"') && /placeholder="np\. Jan Kowalski"/.test(form));
 ok('startCPEdit restores flag after open', start.includes('openClientProfile(id)') && start.includes('window._cpEditingClientId=id'));
 ok('startCPEdit scrolls and focuses name', start.includes('scrollIntoView') && start.includes('cpe-name'));
-ok('profil rail name without kliknij hint', overview.includes('Imię i nazwisko') && !overview.includes('Kliknij: imię i nazwisko'));
+ok('profil rail name without kliknij hint', overview.includes('cp-ov-profile-compact') && !overview.includes('Kliknij: imię i nazwisko'));
 ok('css for header + CTA', css.includes('.cp-edit-data-btn') && css.includes('.cp-ov-edit-cta') && css.includes('.cp-hdr-name-row'));
-ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache 01 name sync', html.includes('01-core.js?v=137') && html.includes('09-posture-kb-invites-private.js?v=57'));
-ok('cache styles v54', html.includes('styles.css?v=166'));
+ok('cache 08 v37', cacheAtLeast(html, '08-client-profile-extras.js', 91));
+ok('cache 01 name sync', cacheAtLeast(html, '01-core.js', 137) && cacheAtLeast(html, '09-posture-kb-invites-private.js', 58));
+ok('cache styles v54', cacheAtLeast(html, 'styles.css', 166));
 ok('CI unit', wf.includes('test_cp_edit_visible.js'));
 ok('CI ui', wf.includes('test_cp_edit_visible_ui.js'));
 

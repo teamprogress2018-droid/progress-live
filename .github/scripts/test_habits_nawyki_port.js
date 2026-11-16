@@ -1,5 +1,6 @@
 // Progress Nawyki: biblioteka + przypisywanie pakietu w panelu trenera.
 'use strict';
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
@@ -65,7 +66,7 @@ ok('task from lib',!!(task&&task.kind==='habit'&&task.libId==='m2'&&task.xp===5&
   windowObj.TASKS[0].doneDates=['2026-08-01','2026-08-02'];
   const xp=ctx.clientHabitXpTotal('c1');
   ok('xp total',xp===30); // m1=15 * 2 days
-  ok('cache bumps',html.includes('01-core.js?v=137')&&html.includes('06-inbox-exercises-ai-programs.js?v=103')&&html.includes('04-client-portal.js?v=62')&&html.includes('styles.css?v=166'));
+  ok('cache bumps',cacheAtLeast(html, '01-core.js', 137)&&cacheAtLeast(html, '06-inbox-exercises-ai-programs.js', 103)&&cacheAtLeast(html, '04-client-portal.js', 62)&&cacheAtLeast(html, 'styles.css', 166));
 
   if(failed){console.error('\n'+failed+' failed');process.exit(1);}
   console.log('\nAll progress-nawyki port tests passed');

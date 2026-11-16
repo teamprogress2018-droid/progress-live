@@ -33,11 +33,29 @@ jobs:
           done
           echo "Wszystkie pliki JS maja poprawna skladnie."
 
+      - name: 1a. Service worker — cache bez duplikatów adresów
+        run: node .github/scripts/test_service_worker_cache.js
+
       - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
         run: node .github/scripts/test_coach_media.js
 
+      - name: 1b2. Testy niezawodności i czytelności widoku klienta
+        run: node .github/scripts/test_client_ux_reliability.js
+
+      - name: Generator — adaptacja, zasady, wersje i wariant awaryjny
+        run: node .github/scripts/test_generator_workbench.js
+
+      - name: Generator — prywatna filozofia i zatwierdzone materiały
+        run: node .github/scripts/test_trainer_methodology.js
+
       - name: Motyw Progress Live 2.0 (jasny + akcent)
         run: node .github/scripts/test_theme_accent.js
+
+      - name: Jeden wygląd (ikony, czerwony, promienie, Inter)
+        run: node .github/scripts/test_ux_one_look.js
+
+      - name: Ikony PWA 192/512 (także maskable) w manifest.json
+        run: node .github/scripts/test_manifest_icons.js
 
       - name: Izolacja danych trenerów i klientów
         run: |
@@ -59,6 +77,26 @@ jobs:
           node .github/scripts/test_forum_reaction_persistence.js
           node .github/scripts/test_client_checkin_permissions.js
           node .github/scripts/test_round2_trainer_fixes.js
+
+      - name: Testy wcześniej pominięte w CI (audyt 8.11.2026)
+        if: ${{ !cancelled() }}
+        run: |
+          node .github/scripts/test_apl_amateur_mode.js
+          node .github/scripts/test_client_list_visual_hierarchy.js
+          node .github/scripts/test_client_minimal_data_scope.js
+          node .github/scripts/test_client_mobile_today.js
+          node .github/scripts/test_client_offline_shell.js
+          node .github/scripts/test_client_self_workout.js
+          node .github/scripts/test_client_workout_light_theme.js
+          node .github/scripts/test_dash_simple_mode.js
+          node .github/scripts/test_ex_biceps_media_catalog.js
+          node .github/scripts/test_ex_functional_media_catalog.js
+          node .github/scripts/test_ex_import_grouping.js
+          node .github/scripts/test_ex_library_performance.js
+          node .github/scripts/test_kb_management.js
+          node .github/scripts/test_manual_plan_entrypoints.js
+          node .github/scripts/test_manual_plan_model.js
+          node .github/scripts/test_mobile_trainer_controls.js
 
       - name: 1c. Testy warstwy klienta dla coach media
         run: node .github/scripts/test_client_portal_coach_media.js
@@ -222,6 +260,15 @@ jobs:
       - name: 1i5d. Testy bazy wiedzy z książek
         run: node .github/scripts/test_books_kb.js
 
+      - name: 1i5e. Wywiad przed planem (dobór metody)
+        run: node .github/scripts/test_plan_interview.js
+
+      - name: 1i5f. Plan klienta — dane, braki, pewność, bramka zdrowia
+        run: node .github/scripts/test_plan_client.js
+
+      - name: 1i5g. Testy generatora planu opartego na książkach (wszystkie książki, oznaczenia reguł)
+        run: node .github/scripts/test_apl_books_plan.js
+
       - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
         run: node .github/scripts/test_edu_tooltips.js
 
@@ -265,6 +312,11 @@ jobs:
 
       - name: 1n0. Testy zapisu makro TDEE do karty klienta
         run: node .github/scripts/test_calc_macros.js
+
+      - name: 1n0b. Testy jadłospisu z książek (kalkulator)
+        run: node .github/scripts/test_diet_plan.js
+      - name: Dieta — minimum kalorii w dniu wolnym i blokada wysyłki przy ciąży/chorobie
+        run: node .github/scripts/test_diet_health_block.js
 
       - name: 1n3. Testy tygodniowego check-inu (audit flow)
         run: node .github/scripts/test_checkin_weekly.js
@@ -383,6 +435,8 @@ jobs:
         run: node .github/scripts/test_nav_primary_slim.js
       - name: Układ 2.0 (lista klientów)
         run: node .github/scripts/test_layout_v2.js
+      - name: Strona startowa (przed zalogowaniem)
+        run: node .github/scripts/test_landing.js
       - name: 1n27c2. Testy domyślnego Panelu głównego
         run: node .github/scripts/test_nav_home_default.js
       - name: 1n27d. Testy mini-listy klientów w sidebarze
@@ -522,19 +576,54 @@ jobs:
         run: python3 .github/scripts/check_file_refs.py
 
       - name: 4. Zainstaluj przeglądarkę testową
+        if: ${{ !cancelled() }}
         run: |
           npm install playwright
           npx playwright install --with-deps chromium
 
       - name: 5. Uruchom lokalny serwer
+        if: ${{ !cancelled() }}
         run: python3 -m http.server 8080 &
 
       - name: 6. Poczekaj aż serwer wystartuje
+        if: ${{ !cancelled() }}
         run: sleep 2
 
       - name: 6a. Testy UI układu 2.0 (menu wysuwane, klienci, telefon)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_layout_v2_ui.js
+      - name: 6a0. Testy UI pustego pulpitu (jedna karta, jeden czerwony przycisk)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_dash_empty_ui.js
+      - name: 6a1. Testy UI strony startowej (ruchome kafelki, logowanie, telefon)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_landing_ui.js
+      - name: 6a1b. Testy UI kafelków strony startowej (klawiatura, jedna pętla, ograniczony ruch)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_landing_tiles_ui.js
+      - name: 6a2. Testy UI okna logowania (jeden przycisk, błąd, linki 44 px)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_login_ux_ui.js
+      - name: 6a3. Czytelność (kontrast tokenów, min. 12 px, cele dotykowe 44 px)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ux_readability.js
+      - name: 6a4. Testy UI menu nowego trenera (6 pozycji, Więcej, logo)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_nav_new_trainer_ui.js
+
+      - name: Dostępność (skip link, h1, okna, fokus, mniej ruchu)
+        run: node .github/scripts/test_a11y_basics_ui.js
+
+      - name: Dodaj klienta (3 pola i następny krok)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_add_client_simple_ui.js
+
+      - name: Nawigacja klienta (pasek, Czat, brak internetu, pakiet do opłacenia)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_nav_ui.js
+      - name: 6a5. Testy UI przerwy i końca treningu klienta (prosty styl, wibracja, błąd pod polem)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_rest_ui.js
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b0z. Testy UI kafelek dni w zakładce Plan
@@ -543,6 +632,9 @@ jobs:
       - name: 6b0a. Testy UI zakładki Badania (pytanie → karta → zapis)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_research_academy_ui.js
+      - name: 6b0b. Testy UI grafik z książek (podgląd planu + Akademia)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_book_visuals_ui.js
       - name: 6b0. Testy UI biblioteki planów (tabela / filtry)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_plans_library_ui.js
@@ -621,6 +713,9 @@ jobs:
       - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_progress_ui.js
+      - name: 6b3c2b. Testy UI Live — jeden film naraz na karcie
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_live_one_video_ui.js
       - name: 6b3c2a. Testy UI Live OSTATNIO / DZISIAJ / SUGESTIA
         run: |
           node .github/scripts/test_live_ex_cue_ui.js
@@ -629,9 +724,20 @@ jobs:
           node .github/scripts/test_apl_generate_complete_ui.js
           node .github/scripts/test_apl_periodization.js
           node .github/scripts/test_apl_pattern_redundancy.js
+          node .github/scripts/test_apl_frequency_ui.js
+          node .github/scripts/test_apl_freq_philosophy_ui.js
           node .github/scripts/test_dash_agenda_ui.js
+          node .github/scripts/test_dash_attention_unified_ui.js
+          node .github/scripts/test_plan_interview_ui.js
+          node .github/scripts/test_plan_client_ui.js
+          node .github/scripts/test_plan_client_app_ui.js
+          node .github/scripts/test_lib_my_most_used_ui.js
+          node .github/scripts/test_lib_my_parts_ui.js
+          node .github/scripts/test_lib_exit_wide_ui.js
+          node .github/scripts/test_live_hist_last5_ui.js
           node .github/scripts/test_pay_actions_ui.js
           node .github/scripts/test_notif_prune_ui.js
+          node .github/scripts/test_notif_escape_ui.js
           node .github/scripts/test_multiday_rep_target_ui.js
           node .github/scripts/test_live_readable_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
@@ -651,6 +757,9 @@ jobs:
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_notes_evidence_ui.js
+      - name: 6b3c2b1a. Testy UI tłumaczenia nowych badań na polski
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_research_feed_pl_ui.js
       - name: 6b3c2b1b. Testy UI tagów KB w kreatorze
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_builder_tags_ui.js
@@ -702,6 +811,18 @@ jobs:
       - name: 6d. Testy UI portalu On-demand YouTube
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_ondemand_youtube_ui.js
+
+      - name: 6d0. Testy UI listy klientów 2.0 (statystyki, priorytet, następny krok, szczegóły)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_clients_simple_ui.js
+
+      - name: 6d1. Testy UI prostego widoku klienta (Dzisiaj, ćwiczenie, plan, postępy, kontakt)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_simple_ui.js
+
+      - name: 6d2. Ekran treningu klienta na iPhonie (safe area, Wróć, Zapisz serię, Cofnij, nawigacja bez swipe)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_workout_ios_ui.js
 
       - name: 6e. Testy UI wygaszacza z logo
         if: ${{ !cancelled() }}
@@ -792,3 +913,20 @@ jobs:
       - name: Podsumowanie
         if: success()
         run: echo "✅ Wszystkie sprawdzenia przeszły pomyślnie."
+
+  generator_workbench:
+    name: Generator — zatwierdzanie i zapis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Przygotuj przeglądarkę testową
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium
+      - name: Logika i izolacja
+        run: node .github/scripts/test_generator_workbench.js
+      - name: Propozycja, zapis, przywrócenie i wariant awaryjny
+        run: node .github/scripts/test_generator_workbench_ui.js

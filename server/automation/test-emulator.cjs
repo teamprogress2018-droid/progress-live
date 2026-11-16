@@ -60,6 +60,8 @@ async function fixture() {
     trigger: 'checkin.submitted', status: 'active', scope: 'all', steps: [step],
     createdAt: new Date(nowMs - 86400000).toISOString()});
   batch.set(clientRef, {id: clientId, trainerId: owner, name: 'Alicja Testowa', status: 'active'});
+  // Trainer access requires an administrator-granted role record (firestore.rules trainer()).
+  batch.set(db.doc('trainerRoles/' + owner), {uid: owner, role: 'trainer', enabled: true});
   await batch.commit();
   return {owner, clientId, id, job, controlRef, stateRef, flowRef, clientRef, taskRef,
     args: {trainerId: owner, stateDocId, jobId: id, runId: suffix, nowMs}};

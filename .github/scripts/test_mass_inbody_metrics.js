@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Masa i BMI: wiek metaboliczny, nawodnienie, ocena fizyczności. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -33,9 +34,9 @@ ok('ai context extra fields', /wiek metaboliczny/.test(src07) && /nawodnienie/.t
 ok('progress tiles', /Wiek met\./.test(src08) && /Nawodn\./.test(src08) && /Fizyczność/.test(src08));
 ok('measurement empty state is shown once', /activeGroup&&last/.test(src08) && /Brak pomiarów w tej kategorii/.test(src08) && !/Brak pomiarów w tej grupie/.test(src08));
 ok('loader does not silently rewrite stored metric groups', !html.includes('migrateEnsureMetricGroups') && html.includes("['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS"));
-ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=45'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=91'));
-ok('cache 04', html.includes('04-client-portal.js?v=62'));
+ok('cache 07', cacheAtLeast(html, '07-forms-metrics-calculator.js', 45));
+ok('cache 08', cacheAtLeast(html, '08-client-profile-extras.js', 91));
+ok('cache 04', cacheAtLeast(html, '04-client-portal.js', 62));
 ok('CI unit', wf.includes('test_mass_inbody_metrics.js'));
 ok('CI ui', wf.includes('test_mass_inbody_ui.js'));
 

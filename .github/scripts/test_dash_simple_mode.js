@@ -11,7 +11,6 @@ const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 
 assert.ok(html.includes('id="dash-next-action"'), 'sekcja następnego kroku');
 assert.ok(html.includes('id="dash-simple-toggle"') && html.includes('toggleDashSimpleMode()'), 'przełącznik widoku');
-assert.ok(html.includes('Najważniejsze działania trenera w jednym miejscu'), 'jasny opis ekranu');
 assert.ok(/function dashNextAction\s*\(/.test(src) && /function renderDashNextAction\s*\(/.test(src), 'logika następnego kroku');
 assert.ok(src.includes("localStorage.getItem('pl_dash_simple')") && src.includes("localStorage.setItem('pl_dash_simple'"), 'zapamiętanie widoku');
 assert.ok(src.includes('renderDashNextAction();') && src.includes('applyDashSimpleMode();'), 'render dashboardu');

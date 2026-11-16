@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /** Grafik Assignment: jeden aktywny plan, bez kopii na tym samym dniu. */
+const { cacheAtLeast } = require('./cache-pin.js');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05 v38', html.includes('05-clients-builder-plans-calendar.js?v=106'));
-ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=91'));
+ok('cache 05 v38', cacheAtLeast(html, '05-clients-builder-plans-calendar.js', 106));
+ok('cache 08 v42', cacheAtLeast(html, '08-client-profile-extras.js', 91));
 ok('ci unit', wf.includes('test_cp_cal_plan_dedupe.js'));
 ok('assignment helper', /function cpAssignmentSessions/.test(src08));
 ok('drop helper', /function dropPlannedSessionsFrom/.test(src05));

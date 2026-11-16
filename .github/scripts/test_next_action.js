@@ -1,5 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const root=require('path').join(__dirname,'../..');
 const src=fs.readFileSync(require('path').join(__dirname,'../../04-client-portal.js'),'utf8');
+const theme=fs.readFileSync(require('path').join(root,'theme.css'),'utf8');
 const fn=src.slice(src.indexOf('function dashNextAction(){'),src.indexOf('function renderDashNextAction(){'));
 const ctx={window:{CL:[{id:'c1',name:'Klient'}],CLIENT_ONBOARD_STEPS:[{id:'intake',label:'Ankieta'}]},escHtml:s=>s,dashOpsAttentionItems:()=>[],dashOpsRecentReports:()=>[],dashTodaySessions:()=>[],clientOnboardStatus:()=>({complete:false,next:'intake',done:1,total:7})};
 vm.createContext(ctx);vm.runInContext(fn,ctx);
@@ -12,6 +14,7 @@ ctx.dashOpsRecentReports=()=>[{kind:'checkin',clientId:'c1',clientName:'Klient'}
 assert(ctx.dashNextAction().cta.includes('openCIClient'));
 ctx.dashOpsRecentReports=()=>[];ctx.window.CL=[];
 assert.equal(ctx.dashNextAction().ctaLbl,'Dodaj klienta');
+assert(theme.includes('#screen-dashboard .dash-next-action .btn-primary'),'next action remains the single visual primary action on dashboard');
 console.log('PASS: onboarding, archived client, form, check-in, first client');
 
 // A passed calendar time is not a completed workout. Use the real domain helpers.
@@ -23,8 +26,8 @@ const y='2026-09-26';
 const fixed=new Date(2026,8,26,12,0,0).getTime();
 class FixedDate extends Date{constructor(...args){super(...(args.length?args:[fixed]));}static now(){return fixed;}}
 const day=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-const output={innerHTML:''};
-Object.assign(ctx,{Date:FixedDate,dashTodayYmd:()=>y,dateStr:day,document:{getElementById:()=>output},
+const output={innerHTML:''};const outputTm={innerHTML:''};
+Object.assign(ctx,{Date:FixedDate,dashTodayYmd:()=>y,dateStr:day,document:{getElementById:id=>id==='d-tomorrow-sessions'?outputTm:id==='dash-ops-tomorrow'?{}:output},
   SESS_COLORS:['red','blue'],dashListSection:(_id,rows,render)=>rows.map(render).join(''),
   clientOnboardStatus:()=>({complete:true}),dashOpsAttentionItems:()=>[],dashOpsRecentReports:()=>[]});
 ctx.window.CL=[{id:'c1',name:'Klient A'},{id:'c2',name:'Klient B'}];ctx.CL=ctx.window.CL;
@@ -84,7 +87,7 @@ setRows([past,done,recording,ongoing,skipped,early,planned('tomorrow','10:00',{d
 ctx.renderDashToday();
 assert(output.innerHTML.includes('Brak zapisu')&&output.innerHTML.includes('Trwa termin'));
 assert(output.innerHTML.includes('Odbył się')&&output.innerHTML.includes('Nie odbył się'));
-assert(output.innerHTML.includes('Jutro'));
+assert(outputTm.innerHTML.includes('Jutro')&&(outputTm.innerHTML.match(/data-dash-tomorrow-row/g)||[]).length===1,'tomorrow in its own card');
 assert(!output.innerHTML.includes('Zakończona'),'clock time must never claim completion');
-assert.equal((output.innerHTML.match(/class="dash-today-row"/g)||[]).length,6,'one rendered row per calendar event');
+assert.equal((output.innerHTML.match(/class="dash-today-row"/g)||[]).length,5,'one rendered row per today calendar event');
 console.log('PASS: real completion, agenda deduplication, pending-session order, local time boundaries and rendered labels');

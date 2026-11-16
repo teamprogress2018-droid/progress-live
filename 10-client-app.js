@@ -12,6 +12,23 @@ function clientInviteTokenFromUrl(){
   }catch(e){return '';}
 }
 
+/** E-mail klienta dopisany przez trenera do linku zaproszenia (?invite=…&email=…), tylko do wypełnienia pola. */
+function clientInviteEmailFromUrl(){
+  try{
+    const q=new URLSearchParams(location.search||'');
+    const v=String(q.get('email')||'').trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)?v:'';
+  }catch(e){return '';}
+}
+window.clientInviteEmailFromUrl=clientInviteEmailFromUrl;
+
+/** Ręczny wybór widoku trenera dla konta używanego też jako klient testowy. */
+function switchClientAppToTrainer(){
+  try{sessionStorage.setItem('pl_auth_mode','trainer');}catch(e){}
+  location.reload();
+}
+window.switchClientAppToTrainer=switchClientAppToTrainer;
+
 function clientAppUrl(){
   return (location.origin+location.pathname).replace(/index\.html$/,'');
 }
@@ -119,7 +136,8 @@ function clientPublicSettings(data,trainerName){
   if(!profile.name)profile.name=trainerName||'Trener';
   const payment=pick(data.paymentInstructions,['name','bank','currency','footer']);
   return {profile,brand:pick(data.brand,['accentColor','theme','appName','logo','font']),
-    clientApp:{...pick(data.clientApp,['appName']),visibleSections:pick(data.clientApp?.visibleSections,['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile'])},
+    clientApp:{...pick(data.clientApp,['appName']),visibleSections:pick(data.clientApp?.visibleSections,['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile','bodyWeight'])},
+    contact:Object.fromEntries(['name','phone','address','website'].filter(k=>data.contact&&typeof data.contact[k]==='string').map(k=>[k,data.contact[k]])),
     payments:{bankAccount:payment.bank||'',currency:payment.currency||'PLN'},company:{name:payment.name||profile.name,invoice_footer:payment.footer||''}};
 }
 
@@ -183,30 +201,41 @@ async function loadClientApp(account,session=captureClientTenantSession()){
   emptyClientCollections();
   window.SETTINGS=clientPublicSettings({},account.trainerName);
   const cid=account.clientId;
-  const [profileSnap,publicSnap,privateRows,sharedRows,forum]=await Promise.all([
+  const [profileSnap,publicSnap,privateRows]=await Promise.all([
     window._getDoc(window._doc(window._db,'clients',cid)),
     window._getDoc(window._doc(window._db,'trainerPublicProfiles',account.trainerId)),
-    Promise.all(CLIENT_PRIVATE_COLLECTIONS.map(name=>queryByClientId(name,cid,account,session))),
-    Promise.all(CLIENT_SHARED_COLLECTIONS.map(name=>queryByTrainerId(name,account.trainerId,account,session))),
-    queryClientForum(account,session)
+    Promise.all(CLIENT_PRIVATE_COLLECTIONS.map(name=>queryByClientId(name,cid,account,session)))
   ]);
   requireClientTenantSession(session);
   if(!profileSnap.exists()||profileSnap.id!==cid||profileSnap.data().trainerId!==account.trainerId)throw clientTenantError('client-profile-invalid');
   const publicData=publicSnap.exists()?publicSnap.data():{};
   if(publicSnap.exists()&&(publicSnap.id!==account.trainerId||publicData.trainerId!==account.trainerId))throw clientTenantError('client-public-profile-invalid');
+  const publicSettings=clientPublicSettings(publicData,account.trainerName);
+  const visible=publicSettings.clientApp.visibleSections||{};
+  // Plan i wskazówki techniczne są potrzebne zawsze. Opcjonalne biblioteki
+  // pobieramy wyłącznie, gdy trener udostępnił odpowiadający im ekran.
+  const clientSharedNames=CLIENT_SHARED_COLLECTIONS.filter(name=>
+    !['resources','odWorkouts','odPrograms'].includes(name)||
+    (name==='resources'?visible.resources!==false:visible.ondemand!==false)
+  );
+  const [sharedRows,forum]=await Promise.all([
+    Promise.all(clientSharedNames.map(name=>queryByTrainerId(name,account.trainerId,account,session))),
+    visible.forum===false?Promise.resolve({groups:[],posts:[],comments:[]}):queryClientForum(account,session)
+  ]);
+  requireClientTenantSession(session);
   const privateData=Object.fromEntries(CLIENT_PRIVATE_COLLECTIONS.map((name,i)=>[name,privateRows[i]]));
-  const sharedData=Object.fromEntries(CLIENT_SHARED_COLLECTIONS.map((name,i)=>[name,sharedRows[i]]));
+  const sharedData=Object.fromEntries(clientSharedNames.map((name,i)=>[name,sharedRows[i]]));
   // Publish one complete, current-account snapshot; late requests cannot restore a previous account.
   window.CL=[{...profileSnap.data(),id:profileSnap.id,_fbId:profileSnap.id}];
   Object.assign(window,{PL:privateData.plans,SE:privateData.sessions,TASKS:privateData.tasks,PACKAGES:privateData.packages,
     METRIC_ENTRIES:privateData.metricEntries,PROGRESS_PHOTOS:privateData.progressPhotos,OD_PROGRESS:privateData.odProgress,
     FORM_SENDS:privateData.formSends,EX:sharedData.exercises,METRIC_GROUPS:sharedData.metricGroups,COACH_VIDEOS:sharedData.coachVideos,
-    USER_RESOURCES:sharedData.resources,OD_WORKOUTS:sharedData.odWorkouts,OD_PROGRAMS:sharedData.odPrograms,
-    FORUM_GROUPS:forum.groups,FORUM_POSTS:forum.posts,SETTINGS:clientPublicSettings(publicData,account.trainerName)});
+    USER_RESOURCES:sharedData.resources||[],OD_WORKOUTS:sharedData.odWorkouts||[],OD_PROGRAMS:sharedData.odPrograms||[],
+    FORUM_GROUPS:forum.groups,FORUM_POSTS:forum.posts,SETTINGS:publicSettings});
   window.MSGS=window.MSGS||{};window.MSGS[cid]=privateData.messages.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   window.CHECKINS={[cid]:privateData.checkins.sort((a,b)=>(a.date||'').localeCompare(b.date||''))};
   indexForumComments(forum.comments);
-  sharedData.exerciseGifs.forEach(x=>{
+  (sharedData.exerciseGifs||[]).forEach(x=>{
     if(!x.gifUrl)return;
     const name=x.exerciseName||x.name||'';
     const key=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(name):String(name).toLowerCase().replace(/\s+/g,' ').trim();
@@ -335,14 +364,17 @@ function renderClientLive(){
   const moreScreens=typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[];
   const navIds=navScreens.map(s=>s.id), moreIds=moreScreens.map(s=>s.id);
   // Podekrany otwierane z innych ekranów (np. program on-demand z „Treningi nagrane”).
-  const subScreens=['session','exercise','odprogram'];
+  const subScreens=['session','exercise','odprogram','contact','train'];
   if(scr==='calendar'&&!(typeof capClientSectionVisible==='function'&&capClientSectionVisible('calendar')))scr='progress';
   const allowed=scr==='calendar'||navIds.includes(scr)||moreIds.includes(scr)||subScreens.includes(scr);
   if(!allowed)scr='home';
   window._clientLiveScreen=scr;
   renderClientLiveNav(navScreens,moreScreens,scr);
   updateClientLiveNavBadges(c);
-  if(typeof capScreenHTML==='function'&&c)content.innerHTML=capScreenHTML(scr,c);
+  if(typeof capScreenHTML==='function'&&c){
+    content.innerHTML=capScreenHTML(scr,c);
+    if(typeof capBindTodaySwipe==='function')capBindTodaySwipe(content);
+  }
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
 }
 
@@ -354,15 +386,31 @@ function renderClientLiveNav(navScreens,moreScreens,scr){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s));
   const btn=(s,extra)=>{
     const on=s.id===scr;
-    return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
+    return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
   };
   const moreActive=moreScreens.some(s=>s.id===scr);
   const sheetOpen=sheet&&!sheet.hidden;
   nav.innerHTML=navScreens.map(s=>btn(s)).join('')+
-    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" onclick="toggleCliveMoreNav()"><span aria-hidden="true">☰</span><span>Więcej</span></button>`:'');
-  if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,"document.getElementById('clive-more-sheet').hidden=true;")).join('');
+    (moreScreens.length?`<button type="button" class="clive-nav-btn${moreActive?' active':''}" id="clive-bn-more" aria-expanded="${sheetOpen?'true':'false'}" aria-controls="clive-more-sheet" aria-haspopup="true" onclick="toggleCliveMoreNav()" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">${typeof csIcon==='function'?csIcon('more'):'☰'}</span><span>Więcej</span></button>`:'');
+  if(sheet)sheet.innerHTML=moreScreens.map(s=>btn(s,'closeCliveMoreNav();')).join('');
 }
 window.renderClientLiveNav=renderClientLiveNav;
+
+/** Strzałki umożliwiają przejście po dolnym pasku bez odbierania Enterowi roli akcji. */
+function moveClientLiveNav(event,current){
+  const keys=['ArrowLeft','ArrowRight','Home','End'];
+  if(!keys.includes(event.key))return;
+  const buttons=[...document.querySelectorAll('#clive-nav .clive-nav-btn')];
+  const index=buttons.indexOf(current);
+  if(index<0||!buttons.length)return;
+  let next=index;
+  if(event.key==='Home')next=0;
+  else if(event.key==='End')next=buttons.length-1;
+  else next=(index+(event.key==='ArrowLeft'?-1:1)+buttons.length)%buttons.length;
+  event.preventDefault();
+  buttons[next].focus();
+}
+window.moveClientLiveNav=moveClientLiveNav;
 
 function updateClientLiveNavBadges(c){
   const cid=c&&c.id;
@@ -374,6 +422,8 @@ function updateClientLiveNavBadges(c){
         dot=document.createElement('span');
         dot.className='clive-nav-badge';
         dot.style.cssText='position:absolute;top:4px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:1px solid var(--s1);';
+        // Kropka nie jest tylko kolorem: czytnik ekranu usłyszy „nowe”.
+        dot.innerHTML='<span class="sr-only">, nowe</span>';
         bn.style.position=bn.style.position||'relative';
         bn.appendChild(dot);
       }
@@ -383,14 +433,20 @@ function updateClientLiveNavBadges(c){
     }
   };
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
+  const unread=!!(cid&&typeof clientHasUnreadFromTrainer==='function'&&clientHasUnreadFromTrainer(cid));
   setBadge('clive-bn-profile',pendPay);
-  setBadge('clive-bn-more',pendPay);
+  // Czat ma własny przycisk na pasku; „Więcej” świeci tylko, gdy czatu na pasku nie ma.
+  setBadge('clive-bn-more',pendPay||(unread&&!document.getElementById('clive-bn-messages')));
   setBadge('clive-bn-home',false);
-  setBadge('clive-bn-messages',!!(cid&&typeof clientHasUnreadFromTrainer==='function'&&clientHasUnreadFromTrainer(cid)));
+  setBadge('clive-bn-messages',unread);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
 function setClientLiveScreen(scr){
+  // „Trening” w pasku: jeśli dziś jest trening (lub trwa), od razu otwiera ćwiczenie.
+  if(scr==='train'&&typeof csTrainEntry==='function'&&csTrainEntry()){window._clientLiveScreen='train';return;}
+  if(scr!=='plan')window._csPlanOpen=null;
+  if(scr!=='progress')window._csProgressFull=false;
   window._clientLiveScreen=scr;
   if(scr==='messages'&&window._clientId&&typeof clientMarkTrainerMsgsRead==='function'){
     try{clientMarkTrainerMsgsRead(window._clientId);}catch(e){}
@@ -400,11 +456,32 @@ function setClientLiveScreen(scr){
 function toggleCliveMoreNav(){
   const sheet=document.getElementById('clive-more-sheet');
   if(!sheet)return;
-  sheet.hidden=!sheet.hidden;
+  const opening=sheet.hidden;
+  sheet.hidden=!opening;
   const b=document.getElementById('clive-bn-more');
-  if(b)b.setAttribute('aria-expanded',sheet.hidden?'false':'true');
+  if(b)b.setAttribute('aria-expanded',opening?'true':'false');
+  if(opening){
+    const first=sheet.querySelector('button');
+    if(first)first.focus();
+  }
 }
 window.toggleCliveMoreNav=toggleCliveMoreNav;
+function closeCliveMoreNav(returnFocus){
+  const sheet=document.getElementById('clive-more-sheet');
+  const b=document.getElementById('clive-bn-more');
+  if(!sheet||sheet.hidden)return;
+  sheet.hidden=true;
+  if(b)b.setAttribute('aria-expanded','false');
+  if(returnFocus&&b)b.focus();
+}
+window.closeCliveMoreNav=closeCliveMoreNav;
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')closeCliveMoreNav(true);
+});
+document.addEventListener('click',event=>{
+  const target=event.target;
+  if(target&&target.closest&&!target.closest('#clive-more-sheet,#clive-bn-more'))closeCliveMoreNav(false);
+});
 
 function capGoScreen(scr){
   if(window._clientAppMode){setClientLiveScreen(scr);return;}
@@ -515,11 +592,16 @@ function prepareAuthForInvite(){
     authShowRegister();
     // An invite must not disclose client names or email addresses before sign-in.
     const tokEl=document.getElementById('auth-reg-token');if(tokEl)tokEl.value=window._pendingInviteToken;
+    // Kod jest w linku — pole kodu niepotrzebne. E-mail z linku (jeśli trener go dodał) wpisujemy od razu.
+    const tokField=document.getElementById('auth-reg-token-field');if(tokField)tokField.hidden=true;
     const em=document.getElementById('auth-reg-email');if(em)em.readOnly=false;
+    const linkEmail=clientInviteEmailFromUrl();
+    if(em&&linkEmail&&!em.value)em.value=linkEmail;
     const sub=document.getElementById('auth-reg-sub');
-    if(sub)sub.textContent='Wpisz adres e-mail podany trenerowi i ustaw hasło. Jeśli masz już konto, użyj swojego hasła.';
+    if(sub)sub.textContent='Wymyśl hasło i zobacz swój plan.';
+    if(em&&em.value){const pw=document.getElementById('auth-reg-password');if(pw)setTimeout(()=>{try{pw.focus();}catch(e){}},60);}
   }else if(hint){
-    hint.textContent='Zaloguj się — trener do panelu, klient do swojej aplikacji';
+    hint.textContent='Zaloguj się do swojego konta';
   }
 }
 
@@ -530,6 +612,8 @@ function authShowRegister(){
   if(login)login.style.display='none';
   if(reset)reset.style.display='none';
   if(reg)reg.style.display='block';
+  // Strona startowa: formularz jest w oknie, które trzeba pokazać (np. link z zaproszeniem).
+  if(typeof window.landingOpenAuth==='function')window.landingOpenAuth();
 }
 function authShowLoginFromClient(){
   const login=document.getElementById('auth-login-view');
@@ -538,6 +622,10 @@ function authShowLoginFromClient(){
   if(reg)reg.style.display='none';
   if(reset)reset.style.display='none';
   if(login)login.style.display='block';
+  const hint=document.getElementById('auth-role-hint');
+  if(hint)hint.textContent='Aplikacja klienta — zaloguj się i od razu zobacz swój trening';
+  const button=document.getElementById('auth-login-btn');
+  if(button)button.textContent='Wejdź do swojej aplikacji';
 }
 
 function authSetError(id,msg){
@@ -590,7 +678,7 @@ async function doClientRegister(){
   const pass2=document.getElementById('auth-reg-password2')?.value||'';
   const btn=document.getElementById('auth-reg-btn');
   authSetError('auth-reg-error','');
-  if(!token){authSetError('auth-reg-error','Wklej token z linku zaproszenia albo otwórz link od trenera.');return;}
+  if(!token){authSetError('auth-reg-error','Wpisz kod od trenera albo otwórz link z jego wiadomości.');return;}
   if(!email||!pass){authSetError('auth-reg-error','Wpisz e-mail i hasło.');return;}
   if(pass.length<6){authSetError('auth-reg-error','Hasło musi mieć co najmniej 6 znaków.');return;}
   if(pass!==pass2){authSetError('auth-reg-error','Hasła nie są takie same.');return;}
@@ -674,8 +762,7 @@ async function doClientRegister(){
 
 function pushClientMsg(text){
   const clientId=window._clientId;
-  if(!clientId||!text||!text.trim())return;
-  if(!window.MSGS[clientId])window.MSGS[clientId]=[];
+  if(!clientId||!text||!text.trim())return Promise.resolve(false);
   const msg=withTrainer({
     id:newId('msg'),
     clientId,
@@ -685,8 +772,25 @@ function pushClientMsg(text){
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     createdAt:new Date().toISOString()
   });
-  window.MSGS[clientId].push(msg);
-  persistById('messages',msg);
+  if(!window._clientAppMode){
+    if(!window.MSGS[clientId])window.MSGS[clientId]=[];
+    window.MSGS[clientId].push(msg);
+    persistById('messages',msg);
+    renderClientLive();
+    try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
+    return Promise.resolve(true);
+  }
+  const save=async()=>{
+    try{
+      const saved=typeof clientConfirmWrite==='function'?await clientConfirmWrite('messages',msg,captureClientTenantSession()):await persistById('messages',msg);
+      if(!saved)return false;
+      if(!window.MSGS[clientId])window.MSGS[clientId]=[];
+      window.MSGS[clientId].push(msg);
+      return true;
+    }catch(e){return false;}
+  };
+  return save().then(saved=>{
+    if(!saved)return false;
   // Jeśli trener ma już otwarty ten czat — oznacz jako przeczytane od razu
   try{
     if(typeof curChat!=='undefined'&&curChat===clientId&&typeof msgSetLastRead==='function')msgSetLastRead(clientId);
@@ -695,13 +799,26 @@ function pushClientMsg(text){
   try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
   try{if(typeof renderDashMsgFollowup==='function')renderDashMsgFollowup();}catch(e){}
   try{if(typeof renderInbox==='function'&&document.getElementById('screen-inbox')&&document.getElementById('screen-inbox').classList.contains('active'))renderInbox();}catch(e){}
+    return true;
+  });
 }
 
-function clientSendChat(){
+async function clientSendChat(){
   const inp=document.getElementById('clive-chat-input');
-  if(!inp)return;
-  pushClientMsg(inp.value);
-  inp.value='';
+  if(!inp||window._clientChatSending)return;
+  const text=inp.value;
+  if(!text.trim())return;
+  const button=inp.parentElement&&inp.parentElement.querySelector('button');
+  window._clientChatSending=true;
+  if(button){button.disabled=true;button.dataset.originalLabel=button.textContent;button.textContent='Wysyłanie…';}
+  try{
+    const sent=await pushClientMsg(text);
+    if(sent)inp.value='';
+    else if(typeof notify==='function')notify('Wiadomość nie została potwierdzona. Tekst pozostał w polu — spróbuj ponownie.');
+  }finally{
+    window._clientChatSending=false;
+    if(button){button.disabled=false;button.textContent=button.dataset.originalLabel||'Wyślij';delete button.dataset.originalLabel;}
+  }
 }
 
 function clientConfirmAttendance(){
@@ -725,6 +842,9 @@ async function clientSubmitCheckin(){
   }
   // Każda skala musi być zaznaczona — brak odpowiedzi nie może po cichu stać się „3” i fałszować wyniku.
   const SCALE_LABELS={energy:'energia',sleep:'sen',stress:'stres',nutrition:'odżywianie'};
+  // Plan klienta: nastrój i głód też są obowiązkowe (plan-client-client.js).
+  const extra=typeof pkcCheckinExtra==='function'&&pkcCheckinExtra();
+  if(extra)Object.assign(SCALE_LABELS,window.PKC_EXTRA_SCALES||{});
   const missing=Object.keys(SCALE_LABELS).filter(k=>!(+a[k]>=1&&+a[k]<=5));
   if(missing.length){
     if(typeof notify==='function')notify('Zaznacz jeszcze: '+missing.map(k=>SCALE_LABELS[k]).join(', '));
@@ -737,6 +857,7 @@ async function clientSubmitCheckin(){
     energy:+a.energy,sleep:+a.sleep,stress:+a.stress,nutrition:+a.nutrition,
     workouts:a.workouts!=null?+a.workouts:0,weight:a.weight||'',notes:a.notes||''
   };
+  if(extra){answers.mood=+a.mood;answers.hunger=+a.hunger;answers.hardest=String(a.hardest||'').slice(0,500);}
   const session=captureClientTenantSession();
   a.saving=true;
   let ci;
@@ -1085,7 +1206,7 @@ async function clientCompleteHomework(taskId,opts){
   if(typeof maybeScheduleNextHomework==='function')maybeScheduleNextHomework(t);
   if(typeof renderClientLive==='function'){
     if(sess)window._cliveSessionId=sess.id;
-    window._clientLiveScreen='progress';
+    window._clientLiveScreen='progress';window._csProgressFull=true;
     renderClientLive();
   }
   return true;
@@ -1154,9 +1275,14 @@ function cwBuildRecord(cw,status){
     issues:(cw.issues||[]).slice(),feedback:0,difficulty:Number(cw.rating)||0,note:cw.note||'',confirmedSets:total
   });
 }
-function cwWriteLocal(cw){
-  if(!cw||!window.localStorage)return;
-  try{localStorage.setItem(cwDraftKey(),JSON.stringify({version:2,state:{...cw,restLeft:0,phase:cw.phase==='rest'?'exercise':cw.phase},savedAt:new Date().toISOString()}));}catch(e){}
+function cwWriteLocal(cw,preserveSyncState){
+  if(!cw)return false;
+  if(!preserveSyncState)cw.syncState='local';
+  try{
+    if(!window.localStorage)throw new Error('local-storage-unavailable');
+    localStorage.setItem(cwDraftKey(),JSON.stringify({version:2,state:{...cw,restLeft:0,phase:cw.phase==='rest'?'exercise':cw.phase},savedAt:new Date().toISOString()}));
+    return true;
+  }catch(e){if(!preserveSyncState)cw.syncState='error';return false;}
 }
 function cwReadLocal(){
   try{const raw=localStorage.getItem(cwDraftKey());return raw?JSON.parse(raw):null;}catch(e){return null;}
@@ -1169,10 +1295,14 @@ function cwFindResumable(planId,dayIdx){
   const remote=(window.SE||[]).find(s=>s&&s.source==='client'&&s.status==='in_progress'&&s.planId===planId&&Number(s.dayIdx)===Number(dayIdx));
   return remote?{sessionId:remote.id,dayName:remote.type,confirmedSets:Number(remote.confirmedSets)||0,syncState:'synced'}:null;
 }
-function cwSyncStateText(cw){return cw&&cw.syncState==='local'?'Zapisano na urządzeniu':'Zsynchronizowano';}
+function cwSyncStateText(cw){
+  if(cw&&cw.syncState==='error')return'Nie potwierdzono zapisu';
+  if(cw&&cw.syncState==='local')return'Zapisano na urządzeniu · oczekuje na synchronizację';
+  return'Zsynchronizowano';
+}
 async function cwPersist(cw,status){
   if(!cw||!window._clientAppMode)return false;
-  cw.syncState='local';cwWriteLocal(cw);
+  const localSaved=cwWriteLocal(cw);
   if(typeof navigator!=='undefined'&&navigator.onLine===false)return false;
   try{
     const session=captureClientTenantSession();requireClientTenantSession(session);
@@ -1184,9 +1314,9 @@ async function cwPersist(cw,status){
     window.SE=window.SE||[];
     const old=window.SE.find(s=>s.id===record.id);
     if(old)Object.assign(old,record);else window.SE.push(record);
-    cwWriteLocal(cw);
+    cwWriteLocal(cw,true);
     return true;
-  }catch(e){return false;}
+  }catch(e){if(!localSaved)cw.syncState='error';return false;}
 }
 function cwQueuePersist(cw,status){
   if(!cw)return Promise.resolve(false);
@@ -1243,7 +1373,11 @@ function cwOpen(planId,dayIdx){
   cwRender();
 }
 
-function cwClose(){
+function cwClose(force){
+  // Niezapisane wpisy (serie wpisane, ale nie zapisane): najpierw dolny panel z wyborem.
+  if(force!==true&&window._cw&&window._cw.active&&typeof cwDirtySets==='function'&&cwDirtySets(window._cw).length&&typeof cwOpenSheet==='function'){
+    cwOpenSheet('exit',{target:'close'});return;
+  }
   if(window._cw&&window._cw.active&&window._cw.phase!=='overview'&&window._cw.phase!=='finish'){
     cwWriteLocal(window._cw);
     cwQueuePersist(window._cw,window._cw.status||'in_progress');
@@ -1260,6 +1394,7 @@ function cwClose(){
 function cwBegin(){
   const cw=window._cw;if(!cw)return;
   cw.phase='exercise';
+  cw.began=true;
   cw.startedAt=Date.now();
   cw.startedAtIso=cw.startedAtIso||new Date().toISOString();
   cw.status='in_progress';
@@ -1284,7 +1419,16 @@ function cwFmt(sec){
 function cwPatchSet(setIdx,field,val){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
-  ex.sets[setIdx][field]=val;
+  const st=ex.sets[setIdx];
+  // Wartości z planu zapamiętane przy pierwszej zmianie — do „Wyjdź bez zapisu”.
+  if(!st._orig)st._orig={reps:st.reps==null?'':st.reps,kg:st.kg==null?'':st.kg,rir:st.rir==null?'':st.rir};
+  if(field==='kg')val=String(val==null?'':val).replace(',','.');
+  st[field]=val;
+  if(cw.setError&&cw.setError.field===field&&String(val).trim()!==''){
+    cw.setError=null;
+    const err=document.getElementById('cs-set-err');if(err)err.remove();
+    const inp=document.querySelector('#clive-player-inner input[aria-invalid="true"]');if(inp){inp.removeAttribute('aria-invalid');inp.removeAttribute('aria-describedby');}
+  }
   cwWriteLocal(cw);
 }
 
@@ -1301,12 +1445,28 @@ function cwStartRest(seconds,kind){
   window._cwRestTimer=setInterval(()=>{
     if(!window._cw)return;
     window._cw.restLeft-=1;
+    const left=Math.max(0,window._cw.restLeft);
     const n=document.getElementById('cw-rest-num');
-    if(n)n.textContent=Math.max(0,window._cw.restLeft);
-    if(window._cw.restLeft<=0)cwSkipRest();
+    if(n)n.textContent=left;
+    cwRestAnnounce(left);
+    if(window._cw.restLeft<=0){cwRestDoneSignal();cwSkipRest();}
   },1000);
   cwRender();
 }
+
+/** Czytnik ekranu: zegar przerwy nie gada co sekundę, tylko przy 10 s, 3 s i 0. */
+function cwRestAnnounce(left){
+  if(left!==10&&left!==3&&left!==0)return;
+  const live=document.getElementById('cw-rest-live');
+  if(live)live.textContent=left?('Zostało '+left+' sekund przerwy'):'Koniec przerwy';
+}
+/** Koniec przerwy: wibracja (jeśli telefon pozwala) i krótki sygnał. */
+function cwRestDoneSignal(){
+  if(typeof liveRestBeep==='function'){liveRestBeep('go');return;}
+  try{if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate([140,70,220]);}catch(e){}
+}
+window.cwRestAnnounce=cwRestAnnounce;
+window.cwRestDoneSignal=cwRestDoneSignal;
 
 function cwGoEx(idx){
   const cw=window._cw;if(!cw)return;
@@ -1314,6 +1474,7 @@ function cwGoEx(idx){
   cw.exIdx=idx;
   cw.phase='exercise';
   cw.showVideo=false;
+  cw.sheet=null;
   cwEnsureEmomClock();
   cwWriteLocal(cw);
   cwRender();
@@ -1336,9 +1497,21 @@ function cwCheckSet(setIdx){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
   const st=ex.sets[setIdx];
+  if(!st.done&&!(Number.parseFloat(String(st.reps||'').replace(',','.'))>0)){
+    // Błąd zostaje pod polem (prosty widok), zamiast znikającego komunikatu.
+    if(typeof cwSimpleExerciseHTML==='function'){cw.setError={exIdx:cw.exIdx,setIdx,field:'reps',msg:'Wpisz liczbę powtórzeń lub czas, żeby zapisać serię.'};cwRender();}
+    else if(typeof notify==='function')notify('Wpisz liczbę powtórzeń lub czas przed zatwierdzeniem serii.');
+    const field=document.querySelector(`#clive-player-inner input[aria-label="Seria ${st.setNo}: powtórzenia"]`);
+    if(field)field.focus();
+    return;
+  }
+  cw.setError=null;
   st.done=!st.done;
   cwQueuePersist(cw,'in_progress');
-  if(!st.done){cwRender();return;}
+  if(!st.done){if(cw.lastSaved&&cw.lastSaved.exIdx===cw.exIdx&&cw.lastSaved.setIdx===setIdx)cw.lastSaved=null;cwRender();return;}
+  cw.sheet=null;
+  // „Seria 1 z 4 zapisana ✓” + „Cofnij” przez kilka sekund (także na ekranie przerwy).
+  cw.lastSaved={exIdx:cw.exIdx,setIdx,at:Date.now(),label:'Seria '+(setIdx+1)+' z '+ex.sets.length+' zapisana'};
   const prMsg=typeof prToastText==='function'?prToastText(window._clientId,ex.name,st.kg,st.reps):'';
   if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
     cwEnsureEmomClock();
@@ -1389,8 +1562,10 @@ function cwCheckSet(setIdx){
     return;
   }
   if(act&&act.kind==='advance'){
-    const next=typeof ssAdvanceIdx==='function'?ssAdvanceIdx(cw.exercises,cw.exIdx):cw.exIdx+1;
-    cwGoEx(next);
+    // Ćwiczenie (lub cała super-seria) ukończone: zostajemy na ekranie z „Ćwiczenie ukończone”,
+    // „Przejdź do następnego ćwiczenia” prowadzi dalej (cwNextEx).
+    cwWriteLocal(cw);
+    cwRender();
     return;
   }
   const next=ex.sets.find(s=>!s.done);
@@ -1399,8 +1574,9 @@ function cwCheckSet(setIdx){
     cwStartRest(sec);
     return;
   }
-  if(cw.exIdx<cw.exercises.length-1){cwGoEx(cw.exIdx+1);return;}
-  cw.phase='finish';cwRender();
+  // Ostatnia seria: zostajemy na ćwiczeniu — „Ćwiczenie ukończone” i dopiero wtedy „Przejdź do następnego ćwiczenia”.
+  cwWriteLocal(cw);
+  cwRender();
 }
 
 function cwSkipRest(){
@@ -1411,12 +1587,15 @@ function cwSkipRest(){
   cwRender();
 }
 
-function cwSkipEx(){
+function cwSkipEx(reasonArg){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];
+  // Prosty powód z dolnego panelu: Brak czasu / Ból / Sprzęt zajęty / Inne.
+  if(reasonArg==null&&typeof cwSkipAsk==='function'){cwSkipAsk();return;}
   if(ex){
-    const reason=prompt('Pominąć ćwiczenie? Dodaj opcjonalny powód dla trenera.')||'';
+    const reason=reasonArg!=null?String(reasonArg):(prompt('Pominąć ćwiczenie? Dodaj opcjonalny powód dla trenera.')||'');
     ex.skipped=true;ex.skipReason=reason.trim();
+    cw.sheet=null;
     cwQueuePersist(cw,'in_progress');
   }
   if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();}
@@ -1425,7 +1604,7 @@ function cwSkipEx(){
 
 function cwPrevEx(){
   const cw=window._cw;if(!cw||cw.exIdx<=0)return;
-  cw.exIdx-=1;cw.phase='exercise';cwRender();
+  cw.exIdx-=1;cw.phase='exercise';cw.showVideo=false;cw.sheet=null;cwWriteLocal(cw);cwRender();
 }
 
 function cwReportProblem(){
@@ -1457,7 +1636,7 @@ function cwSwapEx(name){
   const orig=cur.plannedName||cur.name;
   cur.plannedName=orig;
   cur.name=name;
-  cur.alts=[orig].concat(cur.approvedAlts||[]).filter((n,i,a)=>n&&n!==cur.name&&a.indexOf(n)===i);
+  cur.alts=[orig].concat(cur.approvedAlts||[]).filter((n,i,a)=>n&&n!==cur.name&&a.indexOf(n)===i).slice(0,3);
   const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(window._clientId,name):null;
   if(last){
     cur.lastKg=last.kg||'';
@@ -1499,6 +1678,10 @@ function cwSwapEx(name){
     cur.video=m.video||'';
     cur.videoEmbed=m.videoEmbed||'';
     cur.isFile=!!m.isFile;
+    cur.gif=m.gif||'';
+    cur.img=m.img||'';
+    cur.planVideo=m.video||'';
+    cur.planNote=m.note||m.libTip||'';
     cur.note=m.note||m.libTip||'';
     cur.libTip=m.libTip||'';
     cur.todoEdited=false;
@@ -1515,20 +1698,32 @@ function cwToggleVideo(){
 }
 window.cwToggleVideo=cwToggleVideo;
 
+/** Render + dolny panel (wyjście, pominięcie, menu) na każdym etapie treningu. */
 function cwRender(){
+  cwRenderBase();
+  const el=document.getElementById('clive-player-inner');const cw=window._cw;
+  if(!el||!cw)return;
+  if(cw.sheet&&!el.querySelector('.cs-sheet-wrap')&&typeof csSheetHTML==='function')el.insertAdjacentHTML('beforeend',csSheetHTML(cw));
+}
+function cwRenderBase(){
   const el=document.getElementById('clive-player-inner');
   const cw=window._cw;
   if(!el||!cw)return;
   const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e60000';
-  const back=`<button type="button" class="btn btn-ghost btn-sm" onclick="cwClose()">✕</button>`;
+  const back=`<button type="button" class="cs-back-btn" aria-label="Wróć — trening zostanie zapisany do wznowienia" onclick="cwClose()">${typeof csIcon==='function'?csIcon('back',20):'‹'}<span>Wróć</span></button>`;
+  const sheet=typeof csSheetHTML==='function'?csSheetHTML(cw):'';
+  // Ćwiczenie i lista rozpoczętego treningu: stały nagłówek i dół, przewija się środek (safe area iPhone'a).
+  const exMode=(cw.phase==='exercise'&&typeof cwSimpleExerciseHTML==='function')||(cw.phase==='overview'&&typeof csOverviewHTML==='function'&&typeof cwStarted==='function'&&cwStarted(cw));
+  el.classList.toggle('cw-ex-mode',!!exMode);
+  if(cw.phase==='overview'&&exMode){el.innerHTML=csOverviewHTML(cw)+sheet;return;}
   if(cw.phase==='overview'){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cw.exercises.length} ćwiczeń · serie zapisują się po zatwierdzeniu</div>
-      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
+      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}${typeof exerciseIntensificationMethods==='function'&&exerciseIntensificationMethods(ex).length?' · ⚡':''}</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
     return;
@@ -1536,11 +1731,20 @@ function cwRender(){
   if(cw.phase==='rest'){
     const nxt=cw.exercises[cw.exIdx]||{};
     const emom=cw.restKind==='emom';
-    el.innerHTML=`<div class="cw-rest">
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${emom?'EMOM — czekaj na minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
-      <div class="cw-rest-num" id="cw-rest-num">${cw.restLeft}</div>
-      <div style="font-size:13px;color:var(--muted);">${emom?'Następna runda':'Następna seria'} · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
-      <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
+    const saved=typeof cwSavedBannerHTML==='function'?cwSavedBannerHTML(cw):'';
+    if(saved&&typeof cwScheduleSavedHide==='function')cwScheduleSavedHide(cw);
+    // Prosty styl jak „Dzisiaj”: co dalej (ćwiczenie, seria, ciężar), duży zegar, „Pomiń przerwę” jako przycisk drugorzędny.
+    const nSets=nxt.sets||[];
+    const ni=nSets.findIndex(s=>!s.done);
+    const ns=ni>=0?nSets[ni]:null;
+    const kgTxt=ns&&ns.kg!=null&&String(ns.kg).trim()!==''?String(ns.kg).trim()+' kg':'';
+    const nextBits=[(nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt.name||''),ns?('seria '+(ni+1)+' z '+nSets.length):'',kgTxt].filter(Boolean);
+    el.innerHTML=`${saved}<div class="cw-rest cs-rest">
+      <div class="cs-eyebrow">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
+      <div class="cw-rest-num cs-rest-clock" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy w sekundach">${cw.restLeft}</div>
+      <div class="sr-only" id="cw-rest-live" aria-live="polite"></div>
+      <p class="cs-rest-next">${emom?'Następna runda':'Następna'}: ${escHtml(nextBits.join(', '))}</p>
+      <button type="button" class="cs-btn cs-btn-secondary cs-rest-skip" onclick="cwSkipRest()">Pomiń przerwę</button>
     </div>`;
     return;
   }
@@ -1550,44 +1754,56 @@ function cwRender(){
     if(cw.finishPrompt){
       const first=cw.exercises.findIndex(e=>(e.sets||[]).some(s=>!s.done));
       el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:10px;">ZAKOŃCZYĆ TRENING?</div>
-        <div class="cw-ex-todo"><div class="cw-ex-todo-txt">Pozostało ${missing} niewykonanych ${missing===1?'seria':'serii'}. Możesz do nich wrócić albo zakończyć trening jako częściowo wykonany.</div></div>
-        <button type="button" class="btn btn-ghost" style="width:100%;padding:13px;margin-top:10px;" onclick="cwGoEx(${Math.max(0,first)})">Wróć do treningu</button>
-        <button type="button" class="cap-btn-primary" style="margin-top:10px;padding:15px;" onclick="cwFinish(true)">Zakończ częściowo wykonany</button>`;
+        <div class="cs-finish-ask">
+          <h2 class="cs-ex-name">Zakończyć trening?</h2>
+          <p class="cs-card-text">${missing===1?'Została 1 niewykonana seria':(missing%10>=2&&missing%10<=4&&(missing%100<10||missing%100>=20)?'Zostały '+missing+' niewykonane serie':'Zostało '+missing+' niewykonanych serii')}. Możesz do nich wrócić albo zakończyć teraz. Zapiszemy to, co zrobione.</p>
+          <button type="button" class="cs-btn cs-btn-secondary" onclick="cwGoEx(${Math.max(0,first)})">Wróć do treningu</button>
+          <button type="button" class="cs-btn cs-btn-primary" onclick="cwFinish(true)">Zakończ teraz</button>
+        </div>`;
       return;
     }
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>
       <div style="text-align:center;padding:10px 0 20px;">
-        <div style="font-size:40px;margin-bottom:8px;">🔥</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;">TRENING SKOŃCZONY</div>
+        <div class="cs-finish-check" aria-hidden="true">${typeof csIcon==='function'?csIcon('check',40):'✓'}</div>
+        <div class="cs-finish-title">Trening zrobiony!</div>
+        ${(()=>{const cl=(window.CL||[]).find(x=>x&&x.id===window._clientId);return cl&&typeof csMotivation==='function'?`<p class="cs-finish-msg">${escHtml(csMotivation(cl,true))}</p>`:'';})()}
         <div style="font-size:13px;color:var(--muted);margin-top:6px;">${setsDone} serii · ${cwFmt(cw.elapsed)}</div>
       </div>
-      <div style="font-size:13px;margin-bottom:10px;text-align:center;">Trudność treningu (opcjonalnie)</div>
+      <div style="font-size:13px;margin-bottom:4px;text-align:center;">Jak ciężki był trening? (opcjonalnie)</div>
+      <div class="cw-rating-scale" aria-label="1 oznacza bardzo lekki trening, 10 maksymalny wysiłek"><span>1 · bardzo lekki</span><span>10 · maksymalny wysiłek</span></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px;">
-        ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" onclick="cwRate(${n})">${n}</button>`).join('')}
+        ${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" aria-label="Trudność treningu: ${n} na 10" aria-pressed="${cw.rating===n?'true':'false'}" onclick="cwRate(${n})">${n}</button>`).join('')}
       </div>
       <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">${cw.rating?cw.rating+'/10':'Bez oceny'}</div>
-      <textarea class="form-textarea" rows="3" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
+      <textarea class="form-textarea" rows="3" aria-label="Komentarz dla trenera, opcjonalnie" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
       <button type="button" class="cap-btn-primary" style="margin-top:16px;padding:16px;" onclick="cwFinish()">Zapisz i wyślij do trenera</button>`;
     return;
   }
   const ex=cw.exercises[cw.exIdx];
   cwEnsureEmomClock();
+  if(typeof cwSimpleExerciseHTML==='function'){
+    el.innerHTML=cwSimpleExerciseHTML(cw,ex)+sheet;
+    if(typeof cwScheduleSavedHide==='function')cwScheduleSavedHide(cw);
+    if(typeof cwBindSwipe==='function')cwBindSwipe(el);
+    return;
+  }
   const doneSets=ex.sets.filter(s=>s.done).length;
   const emomOn=typeof isEmomExercise==='function'&&isEmomExercise(ex);
   const emomWait=emomOn&&typeof emomRestSec==='function'?emomRestSec(doneSets+1,cwEmomElapsed()):0;
   el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       ${back}
-      <div id="cw-clock" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
+      <div id="cw-clock" role="timer" aria-label="Czas treningu" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}${emomOn?' · EMOM runda '+(doneSets+1)+'/'+ex.sets.length:''}</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
     ${(ex.video||ex.videoEmbed||ex.gif||ex.img||ex.note||ex.libTip)?`<button type="button" class="btn btn-ghost btn-sm" style="margin:0 0 10px;" onclick="cwToggleVideo()">${cw.showVideo?'Ukryj instrukcję':'Jak wykonać?'}</button>`:''}
     ${cw.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,toggleFn:'cwToggleVideo()',caption:false,showNote:false}):''}
+    ${!(ex.video||ex.videoEmbed||ex.gif||ex.img||ex.note||ex.libTip)?'<div class="cw-media-missing" role="note">Brak materiału instruktażowego. Jeśli nie znasz tego ćwiczenia, poproś trenera o wskazówkę przed rozpoczęciem.</div>':''}
     ${(()=>{const todo=typeof exerciseTodoNote==='function'?exerciseTodoNote(ex):String((ex&&(ex.note||ex.libTip))||'').trim();return todo?`<div class="cw-ex-todo"><div class="cw-ex-todo-lbl">Do zrobienia</div><div class="cw-ex-todo-txt">${escHtml(todo)}</div></div>`:'';})()}
     ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
-    ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
+    ${(()=>{const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];return methods.map(m=>{const def=(window.INTENSIFICATION_METHODS||{})[m.type]||{};const info=typeof intensificationInstruction==='function'?intensificationInstruction(m,ex):m.protocol;return `<div class="cw-ex-todo" style="border-color:rgba(230,0,0,.45);background:rgba(230,0,0,.08);"><div class="cw-ex-todo-lbl" style="color:var(--accent);">⚡ ${escHtml(def.label||m.type)} · ${escHtml(def.when||'Wykonanie')}</div><div class="cw-ex-todo-txt">${escHtml(info)}</div></div>`;}).join('')})()}
+    ${(ex.alts||[]).length?`<div style="margin:0 0 12px;"><div style="font-size:12px;color:var(--text-secondary,#666);margin-bottom:6px;">Inne warianty (do 3)</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${ex.alts.slice(0,3).map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div></div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
     ${ex.progHint?`<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">${escHtml(ex.progHint)}</div>`:''}
     ${typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):''}
@@ -1605,16 +1821,17 @@ function cwRender(){
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
-    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}">${escHtml(cwSyncStateText(cw))}</div>
-    <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
+    <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${escHtml(cwSyncStateText(cw))}</div>
+    <div class="cw-rir-help">RIR — ile powtórzeń zostało Ci w zapasie po serii. Jeśli plan nie podaje RIR, zostaw pole puste.</div>
+    <div class="cw-set-row cw-set-header" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
       <div>#</div><div>${typeof loadUnitShortLabel==='function'?loadUnitShortLabel(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):(typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='min'?'Min':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg')}</div><div>Powt.</div><div title="Powtórzenia w zapasie">RIR</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
       <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}${s.kind&&s.kind!=='work'?`<div class="cw-set-kind ${s.kind}">${escHtml((typeof setKindBadge==='function'&&setKindBadge(s.kind))||s.kind)}</div>`:''}</div>
-      <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="decimal" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" ${s.done?'disabled':''} placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" oninput="cwPatchSet(${i},'rir',this.value)" class="${s.done?'cw-set-done':''}" title="RIR">
-      <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
+      <input type="number" inputmode="decimal" aria-label="Seria ${s.setNo}: ciężar" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="numeric" aria-label="Seria ${s.setNo}: powtórzenia" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="decimal" aria-label="Seria ${s.setNo}: RIR" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" ${s.done?'disabled':''} placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" oninput="cwPatchSet(${i},'rir',this.value)" class="${s.done?'cw-set-done':''}" title="RIR">
+      <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" aria-label="${s.done?'Cofnij zatwierdzenie serii':'Zatwierdź serię'} ${s.setNo}" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
     </div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:18px;">
       ${cw.exIdx>0?`<button type="button" class="btn btn-ghost" onclick="cwPrevEx()">←</button>`:''}
@@ -1659,7 +1876,12 @@ async function cwFinish(force){
     cw.completedAt=new Date().toISOString();
     cw.finishPrompt=false;
     const saved=await cwQueuePersist(cw,cw.status);
-    if(!saved){if(typeof notify==='function')notify('Zapisano na urządzeniu. Wyślemy wynik po odzyskaniu połączenia.');}
+    if(!saved&&cw.syncState==='error'){
+      if(typeof notify==='function')notify('Nie udało się potwierdzić zapisu. Trening pozostaje otwarty — sprawdź połączenie i spróbuj ponownie.');
+      cwRender();
+      return false;
+    }
+    if(!saved&&typeof notify==='function')notify('Zapisano na urządzeniu. Wyślemy wynik po odzyskaniu połączenia.');
   }catch(e){
     if(typeof notify==='function')notify('Nie udało się zapisać podsumowania. Trening pozostaje do wznowienia.');
     return false;
@@ -1673,7 +1895,7 @@ async function cwFinish(force){
   if(wrap)wrap.hidden=true;
   document.body.classList.remove('cw-playing');
   window._cliveSessionId=cw.sessionId;
-  window._clientLiveScreen='progress';
+  window._clientLiveScreen='progress';window._csProgressFull=true;
   if(cw.syncState==='synced')cwClearLocal();
   renderClientLive();
   return true;
@@ -1755,7 +1977,7 @@ async function ppSave(clientId){
     try{if(typeof renderDashPhotoFollowup==='function')renderDashPhotoFollowup();}catch(e){}
   }
   if(typeof notify==='function')notify('✓ Zdjęcia zapisane');
-  if(window._clientAppMode){window._clientLiveScreen='progress';renderClientLive();}
+  if(window._clientAppMode){window._clientLiveScreen='progress';window._csProgressFull=true;renderClientLive();}
   else if(typeof setCPTab==='function')setCPTab('photos');
   return true;
 }
