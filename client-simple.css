@@ -353,3 +353,11 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-meet-when { margin: 2px 0 0; color: var(--text-primary); font-size: 1.125rem; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
 .cs-meet-when b { font-size: 1.375rem; font-weight: 750; font-variant-numeric: tabular-nums; }
 .cs-meet-sep { color: var(--text-secondary); font-weight: 400; }
+
+/* ===== Pakiet: ile treningów zostało do końca (bez numeru konta na ekranie Dzisiaj) ===== */
+.cs-pay.is-active { border-left-color: var(--success); }
+.cs-pay.is-active .cs-pay-head { color: var(--success); }
+.cs-pkg-left { display: flex; flex-direction: column; gap: 8px; }
+.cs-pkg-bar span.is-on { background: var(--success); }
+.cs-pkg-meter { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text-primary) 12%, transparent); overflow: hidden; }
+.cs-pkg-meter span { display: block; height: 100%; border-radius: 4px; background: var(--success); }
