@@ -676,6 +676,22 @@ function clampAmount(food,x,role,light,keep){
 // bo wtedy nazwa przestaje się zgadzać z tym, co klient je. Dopasowanie po rdzeniu słowa (5 liter).
 function nameStems(name){return String(name||'').toLowerCase().split(/[^a-ząćęłńóśźż]+/).filter(w=>w.length>=5).map(w=>w.slice(0,5));}
 function inDishName(dish,id){const d=String(dish||'').toLowerCase();return!!d&&!!FOOD[id]&&nameStems(FOOD[id].name).some(st=>d.includes(st));}
+// Słowa w nazwie dania, które wymagają produktu, choć rdzeń nazwy produktu ich nie łapie
+// (krótkie nazwy jak „tofu”, „skyr”, „feta” albo inna forma słowa jak „jajecznica” od „jajko”).
+const DISH_NEEDS=[[/jajeczn|omlet|jajk|jaj[aeo]\b|jajami|tosty francusk/,'jajko'],[/tofu/,'tofu'],[/skyr/,'skyr'],[/\bfet[aąy]/,'feta'],[/tuńczyk/,'tunczyk'],[/twaro|twaroż/,'twarog'],[/łoso/,'losos'],[/kurczak/,'kurczak']];
+/** Produkty, bez których nazwa dania kłamie: z listy słów i z rdzenia nazw produktów zestawu. */
+function dishNeeds(tpl){
+  const d=String(tpl&&tpl.dish||'').toLowerCase();if(!d)return[];
+  const ids=[tpl.p,tpl.c,tpl.f].concat((tpl.x||[]).map(x=>x[0])).filter(Boolean);
+  const need=new Set(ids.filter(id=>inDishName(d,id)));
+  DISH_NEEDS.forEach(([re,id])=>{if(re.test(d)&&FOOD[id]&&ids.includes(id))need.add(id);});
+  return[...need];
+}
+/** Nazwa dania pasuje do składników: każdy produkt z nazwy jest w porcji. */
+function dishMatches(tpl,items){
+  const have=new Set(items.filter(it=>it.amount>0).map(it=>it.id));
+  return dishNeeds(tpl).every(id=>have.has(id));
+}
 function solveMeal(tpl,target,allow,light){
   allow=allow||(()=>true);
   const keep=new Set([tpl.p,tpl.c,tpl.f].filter(id=>id&&inDishName(tpl.dish,id)));
@@ -706,7 +722,7 @@ function solveMeal(tpl,target,allow,light){
 /** Zamienniki: produkty z tej samej podgrupy (mięso i ryby, nabiał, zboża, skrobia, owoce, tłuszcze),
  *  w ilości dającej tyle samo głównego składnika; bez porcji mniejszych niż sensowne minimum. */
 // Zamienniki białka: najpierw ta sama podgrupa, potem inne źródła białka (mięso, ryby, nabiał, rośliny)
-// w ilości dającej tyle samo gramów białka; kalorie i pozostałe makro mogą się różnić i są pokazane.
+// w ilości dającej tyle samo gramów białka i przy zbliżonych kaloriach (±30% albo ±60 kcal).
 // Produkty, które klient lubi, idą na początek.
 function swapsFor(item,allow,like,light){
   allow=allow||(()=>true);
@@ -722,7 +738,9 @@ function swapsFor(item,allow,like,light){
     .map(s=>{const amount=clampAmount(FOOD[s.id],s.raw);return{id:s.id,amount,m:itemMacros(FOOD[s.id],amount),liked:like.has(s.id)};});
   const ok=f=>f.id!==food.id&&f[key]>0&&allow(f);
   // Zamiennik daje tyle samo głównego składnika (±15% albo ±3 g); inaczej go nie proponujemy.
-  const near=x=>Math.abs(x.m[key]-amountMain)<=Math.max(3,amountMain*0.15);
+  // …i zbliżone kalorie (±30% albo ±60 kcal), żeby zamiana nie rozjechała sumy dnia.
+  const kcalMain=itemMacros(food,item.amount).kcal;
+  const near=x=>Math.abs(x.m[key]-amountMain)<=Math.max(3,amountMain*0.15)&&Math.abs(x.m.kcal-kcalMain)<=Math.max(60,kcalMain*0.3);
   const same=fit(DIET_FOODS.filter(f=>ok(f)&&f.sub===food.sub)).filter(near).slice(0,3);
   if(key!=='p')return same;
   // W śniadaniu i przekąsce bez dań obiadowych (surowe mięso czy ryba zamiast serka to nie zamiennik).
@@ -774,6 +792,8 @@ function adaptTemplate(tpl,allow,today,light,like){
   // Inny produkt białkowy albo węglowodanowy = już nie to danie, więc bez nazwy.
   // Tak samo przy tłuszczu z nazwy dania (np. bez masła orzechowego przy alergii na orzeszki).
   if(out.changes.some(ch=>ch.from===tpl.p||ch.from===tpl.c||inDishName(tpl.dish,ch.from))){out.dish='';out.img='';}
+  // Produkt z nazwy wypadł z dodatków (np. feta przy wykluczeniu nabiału) = nazwa już nie pasuje.
+  else if(out.dish){const left=new Set([out.p,out.c,out.f].concat(out.x.map(x=>x[0])));if(dishNeeds(tpl).some(id=>!left.has(id))){out.dish='';out.img='';}}
   return out;
 }
 /** Zestawy dla jednego rodzaju posiłku: najpierw pełne zgodne z preferencjami, potem przerobione;
@@ -855,7 +875,9 @@ function dietBuildDay(o){
     const tot=sumItems(items);
     done=addM(done,tot);
     items.forEach(it=>{if(it.role!=='x')today.add(it.id);});
-    return{name:m.name,dish:tpl.dish||'',img:tpl.img||'',share:m.share,items,total:tot,minutes:tpl.min,changes:tpl.changes,options:list.length,swapped:shift>0};
+    // Gdy w porcji brakuje produktu z nazwy (np. jajecznica bez jajek), danie traci nazwę i zdjęcie.
+    const named=dishMatches(tpl,items);
+    return{name:m.name,dish:named?tpl.dish||'':'',img:named?tpl.img||'':'',share:m.share,items,total:tot,minutes:tpl.min,changes:tpl.changes,options:list.length,swapped:shift>0};
   });
   const total=meals.reduce((s,m)=>addM(s,m.total),ZERO);
   const reps={};
@@ -1193,7 +1215,7 @@ function dietRenderCard(t,day,opts){
     '</div>';
 }
 
-const api={dietAllow,dietPlanPrintHTML,dietHealthRisks,dietCanSend,HEALTH_RISKS,dietApprovalChecks,dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,DIET_COLLECTIONS,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
+const api={dietAllow,dishNeeds,dishMatches,DISH_NEEDS,dietPlanPrintHTML,dietHealthRisks,dietCanSend,HEALTH_RISKS,dietApprovalChecks,dietProgressReview,weightTrend,dietRestTargets,REST_PAL,DIET_FOODS,DIET_EXCLUSIONS,DIET_STYLES,dietPrefsNorm,MEAL_TEMPLATES,DIET_COLLECTIONS,MEAL_LAYOUTS,PROTEIN_BY_GOAL,REF,WEEK_DAYS,dietBookTargets,dietBuildDay,dietBuildWeek,dietPlanText,dietRenderCard,carbRangeForActivity};
 root.DietPlan=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

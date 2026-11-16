@@ -269,6 +269,9 @@ jobs:
       - name: 1i5f2. Widok planu żywieniowego — model, kroki, zmiany trenera, wydruk A4
         run: node .github/scripts/test_diet_plan_view.js
 
+      - name: 1i5f3. Nazwy dań pasują do składników, zamienniki o zbliżonych kcal
+        run: node .github/scripts/test_dish_names.js
+
       - name: 1i5g. Testy generatora planu opartego na książkach (wszystkie książki, oznaczenia reguł)
         run: node .github/scripts/test_apl_books_plan.js
 
