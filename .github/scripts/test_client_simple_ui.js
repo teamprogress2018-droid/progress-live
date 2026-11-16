@@ -64,24 +64,27 @@ function ok(name, cond, extra) {
   await page.waitForSelector('.cs-ex');
   const exv = await page.evaluate(() => {
     const t = document.querySelector('.cs-ex').innerText;
-    return { text: t, reps: document.querySelector('input[aria-label="Seria 1: powtórzenia"]').value, kg: document.querySelector('input[aria-label="Seria 1: ciężar"]').value, tipsOpen: !!document.getElementById('cs-tips') };
+    return { text: t, reps: document.querySelector('input[aria-label="Seria 1: powtórzenia"]').value, kg: document.querySelector('input[aria-label="Seria 1: ciężar"]').value, tipsOpen: !!(document.querySelector('.cs-hist') || {}).open };
   });
   await page.screenshot({ path: path.join(shotDir, 'client_simple_exercise.png') });
   ok('starts on first exercise', /Ćwiczenie 1 z 6/.test(exv.text) && /Przysiad goblet/.test(exv.text), exv.text.slice(0, 120));
   ok('set, reps and load', /Seria 1 z 3/.test(exv.text) && exv.reps === '10' && exv.kg === '20', JSON.stringify(exv));
-  ok('big actions', /Zapisz serię 1 z 3/.test(exv.text) && /Następne →/.test(exv.text) && /← Poprzednie/.test(exv.text));
-  ok('tips hidden by default', !exv.tipsOpen && /Wskazówki i historia/.test(exv.text));
+  ok('one big action', /Seria 1 z 3/.test(exv.text) && /Zapisz serię/.test(exv.text) && !/Następne →/.test(exv.text) && await page.evaluate(() => document.querySelectorAll('.cs-ex-foot button').length === 1));
+  ok('set history collapsed by default', !exv.tipsOpen && /Historia serii/.test(exv.text) && /Technika/.test(exv.text));
 
   await page.click('.cs-ex-foot [data-cs-primary="save"]');
   await page.waitForSelector('.cw-rest');
   await page.evaluate(() => cwSkipRest());
   const after = await page.evaluate(() => ({ text: document.querySelector('.cs-ex').innerText, done: window._cw.exercises[0].sets[0].done }));
   ok('complete set logs it', after.done && /Seria 2 z 3/.test(after.text), after.text.slice(0, 120));
-  await page.click('text=Wskazówki i historia');
-  const tips = await page.evaluate(() => (document.getElementById('cs-tips') || {}).innerText || '');
-  ok('tips reveal details', /SERIE \(1\/3\)/.test(tips) && /Zgłoś ból lub problem/.test(tips), tips.slice(0, 160));
-  await page.click('[data-cs-nav="next"]');
-  await page.click('text=Przejdź dalej');
+  await page.click('.cs-hist summary');
+  const tips = await page.evaluate(() => (document.querySelector('.cs-hist') || {}).innerText || '');
+  ok('history shows sets with undo', /Historia serii\s*1 z 3/.test(tips) && /Cofnij/.test(tips), tips.slice(0, 160));
+  await page.click('.cs-more-btn');
+  ok('menu: report problem', await page.isVisible('.cs-sheet >> text=Zgłoś ból lub problem'));
+  await page.click('.cs-sheet-x');
+  await page.evaluate(() => cwNav(1));
+  await page.click('text=Przejdź do następnego ćwiczenia');
   ok('next exercise', await page.evaluate(() => /Ćwiczenie 2 z 6/.test(document.querySelector('.cs-ex').innerText)));
   await page.evaluate(() => cwClose(true));
 

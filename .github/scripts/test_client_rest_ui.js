@@ -37,9 +37,9 @@ function ok(name, cond, extra) {
   await page.waitForSelector('.cs-ex');
 
   const txt = await page.textContent('.cs-ex');
-  ok('RIR in plain words', /zostaw w zapasie 2–3 powtórzenia/.test(txt) && !/cel RIR/.test(txt));
-  ok('RIR answers', (await page.locator('.cs-rir-opts button').allInnerTexts()).join('|') === 'Ledwo (0)|1–2|3–4|Nie wiem');
-  ok('"Wskazówki i historia" link', /Wskazówki i historia/.test(txt) && !/Pomoc \/ Technika/.test(txt));
+  ok('RIR in plain words', /2–3 powtórzenia w zapasie/.test(txt) && !/RIR/.test(txt));
+  ok('RIR answers', (await page.locator('.cs-rir-opts button').allInnerTexts()).join('|') === '0|1|2|3|4+');
+  ok('"Historia serii" and "Technika"', /Historia serii/.test(txt) && /Technika/.test(txt) && !/Pomoc \/ Technika/.test(txt));
   const inp = await page.$eval('input[aria-label="Seria 1: powtórzenia"]', (e) => { const cs = getComputedStyle(e); return { h: e.getBoundingClientRect().height, bw: cs.borderTopWidth, bc: cs.borderTopColor }; });
   // Chromium zaokrągla obramowanie w getComputedStyle do pełnych px, więc 1,5 px sprawdzamy w arkuszu stylów.
   const css = require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'client-simple.css'), 'utf8');
@@ -58,12 +58,12 @@ function ok(name, cond, extra) {
   await page.waitForSelector('.cw-rest');
   await page.evaluate(() => clearInterval(window._cwRestTimer));
   const rest = await page.evaluate(() => {
-    const next = document.querySelector('.cs-rest-next'); const skip = [...document.querySelectorAll('.cw-rest button')].find((b) => /Pomiń przerwę/.test(b.textContent));
+    const next = document.querySelector('.cs-rest-next'); const skip = [...document.querySelectorAll('#clive-player-inner button')].find((b) => /Pomiń przerwę/.test(b.textContent));
     const cs = getComputedStyle(next);
-    return { next: next.textContent.trim(), fs: parseFloat(cs.fontSize), color: cs.color, skipPrimary: skip.classList.contains('cs-btn-primary') || skip.classList.contains('cap-btn-primary'), skipSecondary: skip.classList.contains('cs-btn-secondary'),
+    return { next: next.innerText.replace(/\s*\n\s*/g, ' | ').trim(), fs: parseFloat(cs.fontSize), color: cs.color, skipPrimary: skip.classList.contains('cs-btn-primary') || skip.classList.contains('cap-btn-primary'), skipSecondary: skip.classList.contains('cs-btn-secondary'),
       timer: document.getElementById('cw-rest-num').getAttribute('role'), live: document.getElementById('cw-rest-num').getAttribute('aria-live'), polite: document.getElementById('cw-rest-live').getAttribute('aria-live') };
   });
-  ok('rest: "Następna: exercise, set, kg"', rest.next === 'Następna: Wyciskanie hantli, seria 2 z 4, 70 kg', rest.next);
+  ok('rest: next set with exercise, set, reps, kg', rest.next === 'NASTĘPNA SERIA | Wyciskanie hantli | Seria 2 z 4 · 10 powt. · 70 kg', rest.next);
   ok('rest: 17 px dark text', rest.fs >= 17 && rest.color === 'rgb(17, 24, 39)', JSON.stringify(rest));
   ok('rest: "Pomiń przerwę" is secondary', rest.skipSecondary && !rest.skipPrimary);
   ok('rest: role=timer, no per-second announcements', rest.timer === 'timer' && rest.live !== 'assertive' && rest.polite === 'polite');

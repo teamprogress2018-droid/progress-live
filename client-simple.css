@@ -263,3 +263,84 @@
 /* Czerwony tekst na jasnym różu (aktywna zakładka, logo) ciemniejszy, żeby miał kontrast ≥4,5:1. */
 html[data-theme="light"] .clive-nav-btn.active,
 html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--accent)); }
+
+/* ===== Ekran serii (2026-11): niski nagłówek, jedno CTA na dole, duże pola, szczegóły w „Technice” i „Historii serii” ===== */
+.cw-ex-mode .cs-ex-top { gap: 6px; padding: calc(2px + var(--cs-sat)) calc(6px + var(--cs-sar)) 2px calc(6px + var(--cs-sal)); }
+.cs-ex-pos { flex: 1 1 auto; min-width: 0; color: var(--text-primary); font-size: 0.9375rem; font-weight: 650; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cw-ex-mode .cs-ex-clock { margin-left: 0; color: var(--text-secondary); }
+.cs-rest-scr .cs-ex-pos { text-align: left; padding-left: 10px; min-height: 44px; display: flex; align-items: center; }
+/* Linia pod nagłówkiem: przewijana treść wyraźnie zaczyna się pod nim. */
+.cw-ex-mode .cs-ex-segs { margin: 0; padding: 0 calc(16px + var(--cs-sar)) 6px calc(16px + var(--cs-sal)); border-bottom: 1px solid var(--border-subtle); background: var(--bg-main, var(--bg-card)); }
+.cw-ex-mode .cs-ex-segs span { background: color-mix(in srgb, var(--text-primary) 22%, transparent); }
+.cw-ex-mode .cs-ex-segs span.is-past { background: var(--text-primary); }
+.cw-ex-mode .cs-ex-segs span.is-now { background: var(--accent); }
+.cw-ex-mode .cs-ex-scroll { padding-top: 12px; padding-bottom: 16px; scroll-padding: 16px 0 16px; }
+.cw-ex-mode .cs-ex-body { gap: 12px; }
+.cs-ex-headrow { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.cw-ex-mode .cs-ex-name { font-size: 1.5rem; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cs-tech-btn { border-color: var(--border-strong, #6b7280); }
+.cs-key-note { margin: 0; padding: 10px 12px; border-left: 4px solid var(--warning, #b45309); border-radius: 10px; background: var(--warning-bg, color-mix(in srgb, var(--warning, #b45309) 10%, var(--bg-card))); color: var(--text-primary); font-size: 0.9375rem; line-height: 1.45; }
+.cw-ex-mode .cs-set { padding: 14px; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-subtle); }
+.cs-target { margin: 0; color: var(--text-primary); font-size: 1.0625rem; font-weight: 650; }
+.cs-target-lbl { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--text-primary) 8%, transparent); color: var(--text-secondary); font-size: 0.8125rem; font-weight: 700; vertical-align: 1px; }
+.cs-rir-goal { display: flex; align-items: center; gap: 6px; margin-top: -4px; color: var(--text-secondary); font-size: 0.9375rem; }
+.cs-q { flex: 0 0 auto; width: 44px; height: 44px; margin: -10px 0; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--text-primary); font: inherit; font-weight: 750; cursor: pointer; position: relative; }
+.cs-q::before { content: ''; position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border-strong, #6b7280); box-sizing: border-box; }
+.cs-rir-help { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--bg-subtle, color-mix(in srgb, var(--text-primary) 5%, var(--bg-card))); color: var(--text-primary); font-size: 0.9375rem; line-height: 1.45; }
+.cs-key-line { margin: 0; color: var(--text-primary); font-size: 0.9375rem; font-weight: 600; }
+.cs-num-lbl { padding-left: 4px; color: var(--text-secondary); font-size: 0.875rem; font-weight: 600; }
+.cs-num > span.cs-num-lbl { order: -1; }
+.cs-kg-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 4px; }
+.cs-step { height: 64px; min-width: 40px; padding: 0; border: 1.5px solid var(--border-strong, #6b7280); border-radius: 14px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 1.5rem; font-weight: 650; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.cs-step:active { background: color-mix(in srgb, var(--text-primary) 8%, var(--bg-card)); }
+#clive-player-inner .cs-kg-row input, .cs-kg-row input { padding: 4px 6px !important; text-align: center; }
+.cs-step:focus-visible, .cs-q:focus-visible, .cs-hist summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cs-rir-q { gap: 6px; color: var(--text-primary); font-size: 0.9375rem; font-weight: 600; }
+.cs-rir-q em { color: var(--text-secondary); font-style: normal; font-weight: 500; font-size: 0.8125rem; }
+.cs-rir-opts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.cs-rir-opts button { border-color: var(--border-strong, #6b7280); }
+.cs-last { margin: 0; color: var(--text-secondary); font-size: 0.875rem; }
+.cs-done-sum { margin: 0; color: var(--text-primary); font-size: 0.9375rem; }
+.cs-hist { border-top: 1px solid var(--border-subtle); }
+.cs-hist summary { display: flex; align-items: center; gap: 8px; min-height: 48px; list-style: none; color: var(--text-primary); font-size: 1rem; font-weight: 650; cursor: pointer; }
+.cs-hist summary::-webkit-details-marker { display: none; }
+.cs-hist-n { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
+.cs-hist .cs-chev { margin-left: auto; display: inline-flex; transition: transform .15s; }
+.cs-hist[open] .cs-chev { transform: rotate(180deg); }
+.cs-hist .cw-sync-state { margin-top: 8px; }
+.cs-hist-prev { margin-top: 10px; }
+/* Kontrast: chipy ze starego ciemnego motywu (jasnoniebieski tekst) nie są już używane na tym ekranie; obrysy ≥3:1. */
+.cw-ex-mode .live-coach-chip { color: var(--text-primary); background: var(--bg-card); border-color: var(--border-strong, #6b7280); font-size: 0.8125rem; }
+.cs-chip, .cs-mini, .cs-sheet .cs-btn-ghost { border-color: var(--border-strong, #6b7280); }
+/* Dolny pasek: jeden przycisk, safe area iPhone'a. */
+.cw-ex-mode .cs-ex-foot { gap: 8px; padding: 8px calc(16px + var(--cs-sar)) calc(8px + max(var(--cs-sab), 4px)) calc(16px + var(--cs-sal)); }
+.cs-ex-foot .cs-btn-primary { min-height: 56px; box-shadow: none; }
+.cs-ex-foot .cs-btn-primary[data-cs-primary="next"] { font-size: 1rem; line-height: 1.25; padding: 6px 16px; }
+.cs-ex-foot .cs-saved { min-height: 44px; }
+/* Technika (dolny panel) */
+.cs-tech { display: flex; flex-direction: column; gap: 12px; }
+.cs-tech-full { margin: 0; color: var(--text-secondary); font-size: 0.9375rem; }
+.cs-tech-note { margin: 0; color: var(--text-primary); font-size: 1rem; line-height: 1.5; }
+.cs-tech-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 0.9375rem; }
+.cs-tech-facts dt { color: var(--text-secondary); font-weight: 600; }
+.cs-tech-facts dd { margin: 0; color: var(--text-primary); }
+.cs-swap-opt { justify-content: flex-start; text-align: left; }
+/* Przerwa */
+.cw-ex-mode .cs-rest { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; min-height: 100%; text-align: center; }
+.cs-rest-next { display: flex; flex-direction: column; gap: 4px; max-width: 340px; font-size: 1.0625rem; }
+.cs-rest-next b { font-size: 1.25rem; }
+.cw-ex-mode .cs-rest-scr .cs-ex-scroll { display: flex; }
+.cs-rest-scr .cs-rest-skip { max-width: none; }
+/* Otwarta klawiatura: nagłówek najniższy, zapis zawsze widoczny nad klawiaturą. */
+.clive-player.cw-kb .cs-ex-segs { display: none; }
+.clive-player.cw-kb .cs-ex-foot { padding-top: 6px; padding-bottom: 6px; }
+.clive-player.cw-kb .cs-ex-foot .cs-saved { display: none; }
+@media (max-width: 360px) {
+  .cw-ex-mode .cs-ex-name { font-size: 1.3125rem; }
+  .cs-ex-pos { font-size: 0.875rem; }
+  .cs-back-btn span { font-size: 0.9375rem; }
+  .cs-kg-row { grid-template-columns: 36px minmax(0, 1fr) 36px; }
+  .cs-step { min-width: 36px; }
+}
+.cs-ex-foot .cs-saved { font-size: 0.875rem; }
+.cs-ex-foot .cs-saved > span { min-width: 0; }

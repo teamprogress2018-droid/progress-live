@@ -520,7 +520,7 @@ function cwExitSave(){
 function cwExitDiscard(){
   const cw=window._cw;if(!cw)return;
   const target=(cw.sheet&&cw.sheet.target)||'overview';
-  cwDirtySets(cw).forEach(({st})=>{['reps','kg','rir'].forEach(k=>{st[k]=st._orig[k];});delete st.rirUnknown;});
+  cwDirtySets(cw).forEach(({st})=>{['reps','kg','rir'].forEach(k=>{st[k]=st._orig[k];});delete st.rirUnknown;delete st.rirReported;});
   if(typeof cwWriteLocal==='function')cwWriteLocal(cw);
   cwExitTarget(target);
 }
@@ -548,14 +548,20 @@ function cwSkipOther(){
   cw.sheet=null;
   if(typeof cwSkipEx==='function')cwSkipEx(txt?'Inne: '+txt:'Inne');
 }
-/** RIR prostym językiem: 0 / 1–2 / 3–4 / Nie wiem. */
-const CS_RIR_OPTS=[['0','Ledwo (0)'],['1-2','1–2'],['3-4','3–4'],['?','Nie wiem']];
+/** Ocena zapasu (opcjonalna): ponowne dotknięcie tej samej odpowiedzi ją odznacza. Cel z planu zostaje w danych bez zmian. */
 function cwSetRir(setIdx,val){
   const cw=window._cw;if(!cw)return;
   const st=(cw.exercises[cw.exIdx]||{}).sets?.[setIdx];if(!st)return;
-  if(val==='?'){if(typeof cwPatchSet==='function')cwPatchSet(setIdx,'rir','');st.rirUnknown=true;}
-  else{if(typeof cwPatchSet==='function')cwPatchSet(setIdx,'rir',val);delete st.rirUnknown;}
-  document.querySelectorAll('.cs-rir-opts [data-rir]').forEach(b=>{const on=b.dataset.rir===(st.rirUnknown?'?':String(st.rir||''));b.classList.toggle('is-on',on);b.setAttribute('aria-pressed',on?'true':'false');});
+  if(st.rirReported&&String(st.rir)===String(val)){
+    if(typeof cwPatchSet==='function')cwPatchSet(setIdx,'rir',st._orig?st._orig.rir:'');
+    st.rirReported=false;
+  }else{
+    if(typeof cwPatchSet==='function')cwPatchSet(setIdx,'rir',val);
+    st.rirReported=true;
+  }
+  if(cw.setError&&cw.setError.field==='rir'){cw.setError=null;const e=document.getElementById('cs-set-err');if(e)e.remove();}
+  const cur=st.rirReported?String(st.rir):'';
+  document.querySelectorAll('.cs-rir-opts [data-rir]').forEach(b=>{const on=b.dataset.rir===cur;b.classList.toggle('is-on',on);b.setAttribute('aria-pressed',on?'true':'false');});
 }
 /** „Cofnij” po zapisie serii (7 s): seria znowu do zrobienia, przerwa anulowana. */
 function cwUndoLastSet(){
@@ -563,6 +569,7 @@ function cwUndoLastSet(){
   const ls=cw.lastSaved;
   const st=((cw.exercises[ls.exIdx]||{}).sets||[])[ls.setIdx];
   cw.lastSaved=null;
+  cw._tapLockUntil=0;
   if(!st||!st.done)return;
   st.done=false;
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
@@ -610,12 +617,49 @@ function csSheetHTML(cw){
     title=csLeftText(left)+'.';
     body=`<p class="cs-sheet-text">${last?'To ostatnie ćwiczenie. Zakończyć trening?':'Przejść do następnego ćwiczenia?'}</p>
       <button type="button" class="cs-btn cs-btn-primary" data-cs-sheet-first onclick="cwSheetClose()">Wróć do serii</button>
-      <button type="button" class="cs-btn cs-btn-secondary" onclick="cwNavGo(1)">${last?'Zakończ trening':'Przejdź dalej'}</button>`;
+      <button type="button" class="cs-btn cs-btn-secondary" onclick="cwNavGo(1)">${last?'Zakończ trening':'Przejdź do następnego ćwiczenia'}</button>`;
   }else if(sh.kind==='menu'){
     title='Trening';
-    body=`<button type="button" class="cs-btn cs-btn-ghost" data-cs-sheet-first onclick="cwSkipAsk()">Pomiń ćwiczenie</button>
+    const inEx=cw.phase==='exercise';
+    const exDone=!ex.skipped&&(ex.sets||[]).length&&(ex.sets||[]).every(x=>x.done);
+    body=`${inEx&&cw.exIdx>0?`<button type="button" class="cs-btn cs-btn-ghost" data-cs-sheet-first onclick="cwNavGo(-1)">← Poprzednie ćwiczenie</button>`:''}
+      ${inEx&&(ex.alts||[]).length?`<button type="button" class="cs-btn cs-btn-ghost"${cw.exIdx>0?'':' data-cs-sheet-first'} onclick="cwOpenSheet('swap')">Zamień ćwiczenie</button>`:''}
+      ${inEx&&!exDone&&!ex.skipped?`<button type="button" class="cs-btn cs-btn-ghost" data-cs-skip onclick="cwSkipAsk()">Pomiń ćwiczenie…</button>`:''}
+      <button type="button" class="cs-btn cs-btn-ghost" onclick="cwSheetClose();cwToOverview()">Lista ćwiczeń</button>
       <button type="button" class="cs-btn cs-btn-ghost cs-warn" onclick="cwSheetClose();cwReportProblem()">Zgłoś ból lub problem</button>
       <button type="button" class="cs-btn cs-btn-ghost cs-warn" onclick="cwEndWorkout()">Zakończ trening</button>`;
+  }else if(sh.kind==='swap'){
+    title='Zamień ćwiczenie';
+    body=`<p class="cs-sheet-text">Warianty, które trener zatwierdził dla tego ćwiczenia. Serie i ciężar dopasujemy do wybranego.</p>
+      ${(ex.alts||[]).slice(0,3).map((a,i)=>`<button type="button" class="cs-btn cs-btn-ghost cs-swap-opt"${i===0?' data-cs-sheet-first':''} onclick='cwSheetClose();cwSwapEx(${JSON.stringify(a).replace(/'/g,'&#39;')})'>↻ ${csEsc(a)}</button>`).join('')}`;
+  }else if(sh.kind==='tech'){
+    title='Technika';
+    const note=csNoteInfo(ex);
+    const hasMedia=!!(ex.video||ex.videoEmbed||ex.gif||ex.img);
+    const h=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex):{};
+    const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+    const hasRir=ex.rir!=null&&String(ex.rir)!=='';
+    const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];
+    const facts=[
+      ex.tempo?['Tempo',csTempoText(ex.tempo)]:null,
+      h.restLabel?['Przerwa',h.restLabel]:null,
+      unit==='sec'&&h.workLabel?['Czas pracy',h.workLabel]:null,
+      hasRir?['Zapas',csRirFriendly(ex.rir)]:(h.rpe?['Wysiłek',csNum(h.rpe)+' na 10']:null)
+    ].filter(Boolean);
+    body=`<div class="cs-tech">
+      ${csShortName(ex.name)!==ex.name?`<p class="cs-tech-full">${csEsc(ex.name)}</p>`:''}
+      ${hasMedia&&typeof coachMediaHtml==='function'?`<div class="cs-media">${coachMediaHtml(ex,{showVideo:true,caption:false,showNote:false})}</div>`:''}
+      ${note.body?`<p class="cs-tech-note">${csEsc(note.body.replace(/^./,c=>c.toUpperCase()))}</p>`:''}
+      ${!hasMedia&&!note.full?'<p class="cw-media-missing" role="note">Brak materiału instruktażowego. Jeśli nie znasz tego ćwiczenia, poproś trenera o wskazówkę przed rozpoczęciem.</p>':''}
+      ${facts.length?`<dl class="cs-tech-facts">${facts.map(([k,v])=>`<dt>${csEsc(k)}</dt><dd>${csEsc(v)}</dd>`).join('')}</dl>`:''}
+      ${methods.map(m=>{const def=(window.INTENSIFICATION_METHODS||{})[m.type]||{};const info=typeof intensificationInstruction==='function'?intensificationInstruction(m,ex):m.protocol;return `<div class="cs-method"><b>${csEsc(def.label||m.type)} · ${csEsc(def.when||'Wykonanie')}</b><span>${csEsc(info)}</span></div>`;}).join('')}
+      ${note.priority?`<p class="cs-tip-line">Priorytet w planie: ${csEsc(note.priority)}</p>`:''}
+      ${ex.plannedName&&ex.plannedName!==ex.name?`<p class="cs-tip-line">Z planu: ${csEsc(ex.plannedName)}</p>`:''}
+      ${ex.kgHint?`<p class="cs-tip-line">${csEsc(ex.kgHint)}</p>`:''}
+      ${ex.progHint?`<p class="cs-tip-line">${csEsc(ex.progHint)}</p>`:''}
+      ${typeof isEmomExercise==='function'&&isEmomExercise(ex)?'<p class="cs-tip-line">EMOM: zrób serię i odpocznij do końca minuty.</p>':''}
+    </div>
+    <button type="button" class="cs-btn cs-btn-secondary" data-cs-sheet-first onclick="cwSheetClose()">Wróć do serii</button>`;
   }else if(sh.kind==='skip'){
     title='Dlaczego pomijasz?';
     body=sh.other?`<label class="cs-sheet-field"><span>Krótko dla trenera (opcjonalnie)</span><input type="text" id="cs-skip-other" maxlength="120" enterkeyhint="done" onkeydown="if(event.key==='Enter')cwSkipOther()"></label>
@@ -706,6 +750,48 @@ function csRepWord(v){
   const x=n%100,y=n%10;
   return y>=2&&y<=4&&(x<10||x>=20)?'powtórzenia':'powtórzeń';
 }
+/** Liczba po polsku: 17.5 → „17,5”. */
+function csNum(v){return String(v==null?'':v).trim().replace(/(\d)\.(\d)/g,'$1,$2');}
+/** Krótka nazwa na główny ekran: bez dopisku w nawiasie i po myślniku („Unoszenie bokiem na maszynie”). */
+function csShortName(name){
+  const full=String(name||'').trim();
+  const short=full.replace(/\s*\([^)]*\)\s*$/,'').split(/\s+[—–]\s+/)[0].trim();
+  return short.length>=3?short:full;
+}
+/** Zakres powtórzeń z planu („10-12” → „10–12”). */
+function csRange(v){return csNum(String(v==null?'':v).trim().replace(/\s*-\s*/,'–'));}
+/** Cel zapasu (RIR z planu) prostym językiem. 2.5 → „około 2–3 powtórzeń w zapasie”. Wartość w danych bez zmian. */
+function csRirFriendly(v){
+  const raw=String(v==null?'':v).replace(/^\s*RIR\s*/i,'').trim();
+  if(!raw)return '';
+  const range=raw.match(/^(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)$/);
+  if(range)return csNum(range[1])+'–'+csNum(range[2])+' '+csRepWord(range[2])+' w zapasie';
+  const n=Number.parseFloat(raw.replace(',','.'));
+  if(!Number.isFinite(n))return raw+' w zapasie';
+  if(n<=0)return 'seria do końca (0 w zapasie)';
+  if(!Number.isInteger(n)){const lo=Math.floor(n),hi=Math.ceil(n);return 'około '+lo+'–'+hi+' powtórzeń w zapasie';}
+  return n+' '+csRepWord(String(n))+' w zapasie';
+}
+/** Ocena zapasu po serii: pojedyncze liczby, więc cel „2–3” zawsze ma pasującą odpowiedź. */
+const CS_RIR_OPTS=[['0','0'],['1','1'],['2','2'],['3','3'],['4+','4+']];
+/** Notatka trenera: ważna (na ekranie serii) albo zwykła (w „Technice”). „WAŻNE:” lub „!” na początku = ważna. */
+function csNoteInfo(ex){
+  const full=typeof exerciseTodoNote==='function'?exerciseTodoNote(ex):String((ex&&(ex.note||ex.libTip))||'').trim();
+  const m=full.match(/^\s*(?:!+|WAŻNE\s*:)\s*/i);
+  const key=!!(ex&&ex.noteKey)||!!m;
+  const text=m?full.slice(m[0].length).trim():full;
+  // „PRIORYTET: boczny bark — uzasadnienie” → priorytet i uzasadnienie osobno (tylko w szczegółach).
+  const pr=text.match(/^\s*PRIORYTET\s*:?\s*([^—–\-.]{1,48}?)\s*[—–-]\s*([\s\S]*)$/i);
+  return{full:text,key,priority:pr?pr[1].trim():'',body:pr?pr[2].trim():text};
+}
+/** Tempo prostym językiem: „3-0-1-0” → opuszczanie 3 s, pauza 0 s, podnoszenie 1 s, pauza 0 s. */
+function csTempoText(t){
+  const p=String(t||'').trim().replace(/!$/,'').split(/[-–:/\s]+/).filter(Boolean);
+  if(p.length!==4)return String(t||'').replace(/!$/,'');
+  return 'opuszczanie '+p[0]+' s · pauza '+p[1]+' s · podnoszenie '+p[2]+' s · pauza '+p[3]+' s';
+}
+function csTempoKey(ex){return !!(ex&&(ex.tempoKey||/!\s*$/.test(String(ex.tempo||''))));}
+
 function cwSimpleExerciseHTML(cw,ex){
   const n=cw.exercises.length,idx=cw.exIdx;
   const sets=ex.sets||[];
@@ -716,107 +802,201 @@ function cwSimpleExerciseHTML(cw,ex){
   const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
   const loadLbl=typeof loadUnitShortLabel==='function'?loadUnitShortLabel(unit):'kg';
   const weightUnit=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit);
+  const timed=unit==='sec';
   const s=allDone?sets[sets.length-1]||{}:sets[cur];
   const setNo=s&&s.setNo!=null?s.setNo:(cur+1);
-  const curNo=cur+1;
   const kindTag=s&&s.kind&&s.kind!=='work'?((typeof setKindBadge==='function'&&setKindBadge(s.kind))||s.kind):'';
-  const todo=typeof exerciseTodoNote==='function'?exerciseTodoNote(ex):String(ex.note||ex.libTip||'').trim();
-  const tip=csShortTip(todo);
-  const hasMedia=!!(ex.video||ex.videoEmbed||ex.gif||ex.img);
+  const note=csNoteInfo(ex);
+  const shortName=csShortName(ex.name);
   const segs=cw.exercises.map((_,i)=>`<span class="${i<idx?'is-past':i===idx?'is-now':''}"></span>`).join('');
   const dots=sets.map((x,i)=>`<span class="${x.done?'is-done':i===cur?'is-now':''}"></span>`).join('');
   const others=(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,idx):[];return g.filter(i=>i!==idx).map(i=>cw.exercises[i]).filter(Boolean);})();
-  const emomOn=typeof isEmomExercise==='function'&&isEmomExercise(ex);
   const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];
-  const methodsHtml=methods.map(m=>{const def=(window.INTENSIFICATION_METHODS||{})[m.type]||{};const info=typeof intensificationInstruction==='function'?intensificationInstruction(m,ex):m.protocol;return `<div class="cs-method"><b>${csEsc(def.label||m.type)} · ${csEsc(def.when||'Wykonanie')}</b><span>${csEsc(info)}</span></div>`;}).join('');
-  const showRir=!allDone&&ex.rir!=null&&String(ex.rir)!=='';
+  const hasRir=ex.rir!=null&&String(ex.rir)!=='';
+  const showRir=!allDone&&(hasRir||!!ex.rirRequired);
   const plan=(s&&s._orig)||s||{};
-  const unitWord=unit==='sec'?'s':s&&s.kind==='amrap'?'powtórzeń (max)':'powtórzeń';
-  const target=[plan.reps!=null&&plan.reps!==''?csEsc(plan.reps)+' '+unitWord:(s&&s.kind==='amrap'?'max powtórzeń':''),plan.kg!=null&&plan.kg!==''?csEsc(plan.kg)+' '+csEsc(weightUnit?'kg':loadLbl):'',showRir?'zostaw w zapasie '+csEsc(String(ex.rir).replace(/\s*-\s*/,'–'))+' '+csRepWord(ex.rir):''].filter(Boolean).join(' · ');
-  const rirVal=s&&s.rirUnknown?'?':String((s&&s.rir)||'');
+  const unitWord=timed?'s':s&&s.kind==='amrap'?'powtórzeń (max)':'powt.';
+  // Cel: zakres z planu (10–12), gdy seria ma wpisany dolny próg z progresji.
+  const repsPlan=plan.reps!=null&&plan.reps!==''?String(plan.reps):'';
+  const range=ex.planReps&&/[-–]/.test(String(ex.planReps))&&!timed&&s&&s.kind!=='amrap'?csRange(ex.planReps):'';
+  const repsTxt=range&&(!repsPlan||String(ex.planReps).split(/[-–]/).map(x=>x.trim()).includes(repsPlan))?range:csRange(repsPlan);
+  const target=[repsTxt?repsTxt+' '+unitWord:(s&&s.kind==='amrap'?'max powtórzeń':''),plan.kg!=null&&plan.kg!==''?csNum(plan.kg)+' '+(weightUnit?'kg':loadLbl):''].filter(Boolean).join(' · ');
+  const rirPicked=s&&s.rirReported?String(s.rir||''):'';
   const err=cw.setError&&cw.setError.exIdx===idx&&cw.setError.setIdx===cur?cw.setError:null;
   const errAttr=f=>err&&err.field===f?' aria-invalid="true" aria-describedby="cs-set-err"':'';
-  const inputs=allDone?`<p class="cs-set-done" data-cs-ex-done>${ex.skipped?'Ćwiczenie pominięte':'Ćwiczenie ukończone'} ${ex.skipped?'':csIcon('check',20)}</p>`:`
-      ${target?`<p class="cs-target" data-cs-target>${target}</p>`:''}
+  const tempoKey=csTempoKey(ex)&&ex.tempo;
+  const workTxt=timed&&typeof exerciseCoachHints==='function'?exerciseCoachHints(ex).workLabel:'';
+  const lastLine=(()=>{
+    const ls=(ex.lastSets||[]).filter(x=>x&&(x.reps||x.kg));
+    const pick=ls[Math.min(cur<0?0:cur,ls.length-1)];
+    if(pick)return 'Ostatnio: '+csNum(pick.reps||'—')+' × '+csNum(pick.kg||'—')+(weightUnit?' kg':' '+loadLbl);
+    return ex.lastKg?('Ostatnio: '+(ex.lastReps?csNum(ex.lastReps)+' × ':'')+csNum(ex.lastKg)+(weightUnit?' kg':' '+loadLbl)):'';
+  })();
+  const kgStep=weightUnit?2.5:1;
+  const card=allDone?`<div class="cs-set-done" data-cs-ex-done>${ex.skipped?'Ćwiczenie pominięte':'Ćwiczenie ukończone '+csIcon('check',20)}</div>
+      ${ex.skipped?'':`<p class="cs-done-sum">${sets.filter(x=>x.done).map(x=>csEsc(csNum(x.reps||'—'))+' × '+csEsc(csNum(x.kg||'—'))+' '+csEsc(weightUnit?'kg':loadLbl)).join(' · ')}</p>`}`:`
+      ${target?`<p class="cs-target" data-cs-target><span class="cs-target-lbl">Cel</span> ${csEsc(target)}</p>`:''}
+      ${hasRir?`<div class="cs-rir-goal"><span>${csEsc(csRirFriendly(ex.rir).replace(/^./,c=>c.toUpperCase()))}</span><button type="button" class="cs-q" aria-label="Co to jest zapas powtórzeń?" aria-expanded="${cw.showRirHelp?'true':'false'}" aria-controls="cs-rir-help" onclick="cwToggleRirHelp()">?</button></div>
+      ${cw.showRirHelp?`<p class="cs-rir-help" id="cs-rir-help">Zapas to liczba powtórzeń, które dałbyś radę zrobić jeszcze z dobrą techniką. Skończ serię, zanim ruch zacznie się psuć.</p>`:''}`:''}
+      ${tempoKey?`<p class="cs-key-line">Tempo: ${csEsc(csTempoText(ex.tempo))}</p>`:''}
+      ${workTxt&&!target?`<p class="cs-key-line">Czas pracy: ${csEsc(workTxt)}</p>`:''}
       <div class="cs-set-grid">
-        <label class="cs-num"><input type="text" inputmode="numeric" enterkeyhint="done" aria-label="Seria ${csEsc(setNo)}: powtórzenia"${errAttr('reps')} value="${csEsc(s.reps)}" placeholder="${s.kind==='amrap'?'max':'0'}" oninput="cwPatchSet(${cur},'reps',this.value)"><span>${unit==='sec'?'sekund':s.kind==='amrap'?'powtórzeń (max)':'powtórzeń'}</span></label>
-        <label class="cs-num"><input type="text" inputmode="decimal" enterkeyhint="done" aria-label="Seria ${csEsc(setNo)}: ciężar" value="${csEsc(s.kg)}" placeholder="${weightUnit?'0':'—'}" oninput="cwPatchSet(${cur},'kg',this.value)"><span>${csEsc(weightUnit?'kg':loadLbl)}</span></label>
+        <label class="cs-num"><span class="cs-num-lbl">${timed?'Sekundy':s.kind==='amrap'?'Powtórzenia (max)':'Powtórzenia'}</span><input type="text" inputmode="numeric" enterkeyhint="next" autocomplete="off" aria-label="Seria ${csEsc(setNo)}: ${timed?'sekundy':'powtórzenia'}"${errAttr('reps')} value="${csEsc(s.reps)}" placeholder="${s.kind==='amrap'?'max':'0'}" onfocus="cwFieldFocus(this)" oninput="cwPatchSet(${cur},'reps',this.value)" onkeydown="cwFieldKey(event,0)"></label>
+        <div class="cs-num"><span class="cs-num-lbl" id="cs-kg-lbl">${weightUnit?'Ciężar (kg)':csEsc(loadLbl)}</span><div class="cs-kg-row">
+          <button type="button" class="cs-step" aria-label="Ciężar mniej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},-${kgStep})">−</button>
+          <input type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-labelledby="cs-kg-lbl" aria-label="Seria ${csEsc(setNo)}: ciężar" value="${csEsc(csNum(s.kg))}" placeholder="${weightUnit?'0':'—'}" onfocus="cwFieldFocus(this)" oninput="cwPatchSet(${cur},'kg',this.value)" onkeydown="cwFieldKey(event,1)">
+          <button type="button" class="cs-step" aria-label="Ciężar więcej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},${kgStep})">+</button>
+        </div></div>
       </div>
       ${err?`<p class="cs-field-err" id="cs-set-err" role="alert">${csEsc(err.msg)}</p>`:''}
-      ${showRir?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało Ci w zapasie?"><span>Ile powtórzeń zostało Ci w zapasie?</span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirVal===v?'is-on':''}" aria-pressed="${rirVal===v?'true':'false'}" aria-label="Seria ${csEsc(setNo)}: zapas ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}`;
-  const lastHtml=(()=>{
-    const html=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:window._clientId}):'';
-    const pr=typeof exercisePR==='function'&&weightUnit?exercisePR(window._clientId,ex.name):null;
-    const rec=pr?('Rekord: '+csEsc(String(pr.kg))+' kg × '+csEsc(String(pr.reps))):'';
-    if(html)return html+(rec?`<p class="cs-tip-line">${rec}</p>`:'');
-    const last=ex.lastKg?('Ostatnio: '+csEsc(String(ex.lastKg))+' '+csEsc(typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg')+(ex.lastReps?' × '+csEsc(String(ex.lastReps)):'')):'';
-    const line=[last,rec].filter(Boolean).join(' · ');
-    return line?`<p class="cs-tip-line">${line}</p>`:'';
-  })();
-  const rirShow=x=>x.rirUnknown?'zapas: nie wiem':(x.rir!=null&&x.rir!==''?'zapas '+String(x.rir).replace('-','–'):'');
-  const setList=sets.map((x,i)=>`<li class="cs-setlog${x.done?' is-done':''}"><span>Seria ${csEsc(x.setNo!=null?x.setNo:i+1)}${x.kind&&x.kind!=='work'?' · '+csEsc((typeof setKindBadge==='function'&&setKindBadge(x.kind))||x.kind):''}</span><span>${csEsc(x.reps||'—')} × ${csEsc(x.kg||'—')} ${csEsc(weightUnit?'kg':loadLbl)}${x.done&&rirShow(x)?' · '+csEsc(rirShow(x)):''}</span>${x.done?`<button type="button" class="cs-mini" aria-label="Cofnij zapis serii ${csEsc(x.setNo!=null?x.setNo:i+1)}" onclick="cwCheckSet(${i})">Cofnij</button>`:'<span class="cs-mini-ph"></span>'}</li>`).join('');
-  const tips=cw.showTips?`<div class="cs-tips" id="cs-tips">
-      ${todo&&todo!==tip?`<div class="cs-tips-block"><div class="cs-eyebrow">TECHNIKA</div><p>${csEsc(todo)}</p></div>`:''}
-      ${!hasMedia&&!todo?'<div class="cw-media-missing" role="note">Brak materiału instruktażowego. Jeśli nie znasz tego ćwiczenia, poproś trenera o wskazówkę przed rozpoczęciem.</div>':''}
-      ${typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):''}
-      ${ex.plannedName&&ex.plannedName!==ex.name?`<p class="cs-tip-line">Z planu: ${csEsc(ex.plannedName)}</p>`:''}
-      ${ex.kgHint?`<p class="cs-tip-line">${csEsc(ex.kgHint)}</p>`:''}
-      ${ex.progHint?`<p class="cs-tip-line">${csEsc(ex.progHint)}</p>`:''}
-      ${emomOn?`<p class="cs-tip-line">EMOM: zrób serię i odpocznij do końca minuty.</p>`:''}
-      ${methodsHtml?`<div class="cs-tips-block">${methodsHtml}</div>`:''}
-      ${lastHtml?`<div class="cs-tips-block"><div class="cs-eyebrow">HISTORIA</div>${lastHtml}</div>`:''}
-      <div class="cs-tips-block"><div class="cs-eyebrow">SERIE (${doneN}/${sets.length})</div><ul class="cs-setlogs">${setList}</ul>${showRir?'<p class="cs-tip-line cw-rir-help">Zapas powtórzeń: ile powtórzeń dałbyś radę zrobić jeszcze po serii.</p>':''}</div>
-      ${(ex.alts||[]).length?`<div class="cs-tips-block"><div class="cs-eyebrow">INNE WARIANTY OD TRENERA</div><div class="cs-chips">${ex.alts.slice(0,3).map(a=>`<button type="button" class="cs-chip" onclick='cwSwapEx(${JSON.stringify(a).replace(/'/g,'&#39;')})'>↻ ${csEsc(a)}</button>`).join('')}</div></div>`:''}
+      ${showRir?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało w zapasie?${ex.rirRequired?' (wymagane)':' (opcjonalnie)'}"><span>Ile zostało w zapasie? <em>${ex.rirRequired?'wymagane':'opcjonalnie'}</em></span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirPicked===v?'is-on':''}" aria-pressed="${rirPicked===v?'true':'false'}" aria-label="Zapas: ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}
+      ${lastLine?`<p class="cs-last">${csEsc(lastLine)}</p>`:''}`;
+  const rirShow=x=>x.rirReported&&x.rir!=null&&x.rir!==''?'zapas '+String(x.rir):'';
+  const setList=sets.map((x,i)=>`<li class="cs-setlog${x.done?' is-done':''}"><span>Seria ${csEsc(x.setNo!=null?x.setNo:i+1)}${x.kind&&x.kind!=='work'?' · '+csEsc((typeof setKindBadge==='function'&&setKindBadge(x.kind))||x.kind):''}</span><span>${csEsc(csNum(x.reps||'—'))} × ${csEsc(csNum(x.kg||'—'))} ${csEsc(weightUnit?'kg':loadLbl)}${x.done&&rirShow(x)?' · '+csEsc(rirShow(x)):''}</span>${x.done?`<button type="button" class="cs-mini" aria-label="Cofnij zapis serii ${csEsc(x.setNo!=null?x.setNo:i+1)}" onclick="cwUndoSet(${i})">Cofnij</button>`:'<span class="cs-mini-ph"></span>'}</li>`).join('');
+  const histExtra=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:window._clientId}):'';
+  const pr=typeof exercisePR==='function'&&weightUnit?exercisePR(window._clientId,ex.name):null;
+  const hist=`<details class="cs-hist"${cw.showHist?' open':''} ontoggle="cwHistToggle(this.open)">
+      <summary>Historia serii <span class="cs-hist-n">${doneN} z ${sets.length}</span><span class="cs-chev">${csIcon('down',18)}</span></summary>
+      <ul class="cs-setlogs">${setList}</ul>
+      ${histExtra?`<div class="cs-hist-prev">${histExtra}</div>`:''}
+      ${pr?`<p class="cs-tip-line">Rekord: ${csEsc(csNum(pr.kg))} kg × ${csEsc(String(pr.reps))}</p>`:''}
       <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>
-      <div class="cs-tips-actions">
-        ${idx>0?'<button type="button" class="cs-btn cs-btn-ghost" onclick="cwNav(-1)">← Poprzednie ćwiczenie</button>':''}
-        ${allDone?'':'<button type="button" class="cs-btn cs-btn-ghost" onclick="cwSkipAsk()">Pomiń ćwiczenie</button>'}
-        <button type="button" class="cs-btn cs-btn-ghost cs-warn" onclick="cwReportProblem()">Zgłoś ból lub problem</button>
-      </div>
-    </div>`:'';
+    </details>`;
   const nextEx=cw.exercises[idx+1];
   const primary=allDone
-    ?`<button type="button" class="cs-btn cs-btn-primary" data-cs-primary="next" onclick="cwNextEx()">${isLast?'Zakończ trening':'Przejdź do następnego ćwiczenia'}</button>`
-    :`<button type="button" class="cs-btn cs-btn-primary" data-cs-primary="save" onclick="cwCheckSet(${cur})">Zapisz serię ${curNo} z ${sets.length}</button>`;
-  const media=hasMedia?(cw.showVideo&&typeof coachMediaHtml==='function'
-    ?`<div class="cs-media">${coachMediaHtml(ex,{showVideo:true,toggleFn:'cwToggleVideo()',caption:false,showNote:false})}<button type="button" class="cs-media-x" aria-label="Zamknij film" onclick="cwToggleVideo()">${csIcon('close',20)}</button></div>`
-    :`<button type="button" class="cs-tech-btn" onclick="cwToggleVideo()"><span class="cs-tech-play">${CS_PLAY_ICON}</span>Technika</button>`):'';
+    ?`<button type="button" class="cs-btn cs-btn-primary" data-cs-primary="next" onclick="cwPrimaryNext()">${isLast?'Zakończ trening':'Następne ćwiczenie: '+csEsc(csShortName(nextEx&&nextEx.name))+' →'}</button>`
+    :`<button type="button" class="cs-btn cs-btn-primary" data-cs-primary="save" onclick="cwSaveSet(${cur})">Zapisz serię</button>`;
   return `<div class="cs-ex">
     <div class="cs-ex-top">
-      <button type="button" class="cs-back-btn" onclick="cwBack()">${csIcon('back',20)}<span>Wróć do treningu</span></button>
+      <button type="button" class="cs-back-btn" aria-label="Lista ćwiczeń treningu" onclick="cwBack()">${csIcon('back',20)}<span>Lista</span></button>
+      <span class="cs-ex-pos">Ćwiczenie ${idx+1} z ${n}</span>
       <span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span>
-      <button type="button" class="cs-more-btn" aria-label="Więcej opcji treningu" onclick="cwMenu()">${csIcon('more',22)}</button>
+      <button type="button" class="cs-more-btn" aria-label="Więcej: zamień, pomiń, poprzednie ćwiczenie" onclick="cwMenu()">${csIcon('more',22)}</button>
     </div>
     <div class="cs-ex-segs" style="grid-template-columns:repeat(${n},minmax(0,1fr))" aria-hidden="true">${segs}</div>
     <div class="cs-ex-scroll" data-cs-swipe>
       <div class="cs-ex-body">
-        <span class="cs-ex-count">Ćwiczenie ${idx+1} z ${n}</span>
-        <h2 class="cs-ex-name">${ex.ssLabel?`<span class="cw-ss-badge">${csEsc(ex.ssLabel)}</span> `:''}${csEsc(ex.name)}</h2>
-        ${tip||media?`<div class="cs-ex-tiprow">${tip?`<p class="cs-ex-tip">${csEsc(tip)}</p>`:''}${cw.showVideo?'':media}</div>`:''}
-        ${cw.showVideo?media:''}
-        ${others.length?`<p class="cs-ex-ss">Bez przerwy z: ${others.map(o=>csEsc((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</p>`:''}
-        ${methods.length&&!cw.showTips?`<p class="cs-ex-ss">⚡ ${csEsc(methods.map(m=>((window.INTENSIFICATION_METHODS||{})[m.type]||{}).label||m.type).join(', '))} — szczegóły we „Wskazówkach i historii”</p>`:''}
+        <div class="cs-ex-headrow">
+          <h2 class="cs-ex-name" title="${csEsc(ex.name)}">${ex.ssLabel?`<span class="cw-ss-badge">${csEsc(ex.ssLabel)}</span> `:''}${csEsc(shortName)}</h2>
+          <button type="button" class="cs-tech-btn" onclick="cwOpenSheet('tech')"><span class="cs-tech-play">${CS_PLAY_ICON}</span>Technika</button>
+        </div>
+        ${note.key&&note.full?`<p class="cs-key-note" role="note"><b>Uwaga trenera:</b> ${csEsc(note.full)}</p>`:''}
+        ${others.length?`<p class="cs-ex-ss">Bez przerwy z: ${others.map(o=>csEsc((o.ssLabel?o.ssLabel+' ':'')+csShortName(o.name))).join(', ')}</p>`:''}
+        ${methods.length?`<p class="cs-ex-ss">⚡ ${csEsc(methods.map(m=>((window.INTENSIFICATION_METHODS||{})[m.type]||{}).label||m.type).join(', '))} · opis w „Technice”</p>`:''}
         <section class="cs-set" aria-label="Bieżąca seria">
           <div class="cs-set-head"><b>${allDone?(ex.skipped?'Pominięte':'Wszystkie serie zrobione'):'Seria '+csEsc(setNo)+' z '+sets.length}${kindTag&&!allDone?` · ${csEsc(kindTag)}`:''}</b><span class="cs-dots" aria-hidden="true">${dots}</span></div>
-          ${inputs}
+          ${card}
         </section>
-        ${cw.syncState==='error'&&!cw.showTips?`<div class="cw-sync-state is-error" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
-        <button type="button" class="cs-link" aria-expanded="${cw.showTips?'true':'false'}" aria-controls="cs-tips" onclick="cwToggleTips()">${cw.showTips?'Ukryj wskazówki':'Wskazówki i historia'}<span class="cs-chev${cw.showTips?' is-open':''}">${csIcon('down',18)}</span></button>
-        ${tips}
+        ${cw.syncState==='error'?`<div class="cw-sync-state is-error" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
+        ${hist}
       </div>
     </div>
     <div class="cs-swipe-hint" aria-hidden="true"></div>
     <div class="cs-ex-foot">
       ${cwSavedBannerHTML(cw)}
       ${primary}
-      <div class="cs-ex-nav">
-        <button type="button" class="cs-nav-btn" data-cs-nav="prev" onclick="cwNav(-1)" ${idx>0?'':'disabled'}>← Poprzednie</button>
-        <button type="button" class="cs-nav-btn" data-cs-nav="next" onclick="cwNav(1)">${isLast?'Zakończ →':'Następne →'}</button>
-      </div>
     </div>
   </div>`;
 }
 window.cwSimpleExerciseHTML=cwSimpleExerciseHTML;
+window.csShortName=csShortName;window.csRirFriendly=csRirFriendly;window.csNoteInfo=csNoteInfo;window.csTempoText=csTempoText;window.csNum=csNum;
+
+/* Zapis serii: dokładnie raz. Po zapisie przycisk w tym samym miejscu zmienia znaczenie (przerwa / „Następne ćwiczenie”),
+ * więc przez chwilę ignorujemy kolejne dotknięcia — szybkie podwójne dotknięcie nie przeskakuje dalej. */
+const CW_TAP_LOCK_MS=700;
+function cwTapLocked(){const cw=window._cw;return !!(cw&&cw._tapLockUntil&&Date.now()<cw._tapLockUntil);}
+function cwLockTaps(){const cw=window._cw;if(cw)cw._tapLockUntil=Date.now()+CW_TAP_LOCK_MS;}
+function cwSaveSet(setIdx){
+  const cw=window._cw;if(!cw||cwTapLocked())return;
+  const ex=cw.exercises[cw.exIdx];const st=ex&&ex.sets&&ex.sets[setIdx];
+  if(!st||st.done)return;
+  const reps=Number.parseFloat(String(st.reps||'').replace(',','.'));
+  if(reps>0&&ex.rirRequired&&!st.rirReported){
+    cw.setError={exIdx:cw.exIdx,setIdx,field:'rir',msg:'Zaznacz, ile powtórzeń zostało w zapasie — trener o to prosi.'};
+    cwRender();return;
+  }
+  // Zmieniony ciężar przechodzi na kolejne serie, które miały ten sam ciężar z planu (nie trzeba wpisywać 17,5 drugi raz).
+  const origKg=st._orig?String(st._orig.kg==null?'':st._orig.kg):null;
+  const newKg=String(st.kg==null?'':st.kg);
+  if(typeof cwCheckSet==='function')cwCheckSet(setIdx);
+  if(!st.done)return;
+  cwLockTaps();
+  if(origKg!=null&&newKg!==''&&newKg!==origKg){
+    let carried=false;
+    (ex.sets||[]).forEach((x,i)=>{if(i>setIdx&&!x.done&&!x._orig&&String(x.kg==null?'':x.kg)===origKg&&(x.kind||'work')===(st.kind||'work')){x.kg=newKg;carried=true;}});
+    if(carried){if(typeof cwWriteLocal==='function')cwWriteLocal(cw);if(cw.phase==='rest')cwRender();}
+  }
+}
+/** Cofnięcie zapisanej serii z „Historii serii”. */
+function cwUndoSet(setIdx){
+  const cw=window._cw;if(!cw)return;
+  const st=((cw.exercises[cw.exIdx]||{}).sets||[])[setIdx];
+  if(!st||!st.done)return;
+  if(cw.lastSaved&&cw.lastSaved.exIdx===cw.exIdx&&cw.lastSaved.setIdx===setIdx){cwUndoLastSet();return;}
+  if(typeof cwCheckSet==='function')cwCheckSet(setIdx);
+  if(typeof notify==='function')notify('Cofnięto zapis serii '+(setIdx+1));
+}
+function cwPrimaryNext(){if(cwTapLocked())return;cwLockTaps();cwNextEx();}
+function cwSkipRestTap(){if(cwTapLocked())return;cwLockTaps();if(typeof cwSkipRest==='function')cwSkipRest();}
+function cwStepKg(setIdx,delta){
+  const cw=window._cw;if(!cw)return;
+  const st=((cw.exercises[cw.exIdx]||{}).sets||[])[setIdx];if(!st)return;
+  const cur=Number.parseFloat(String(st.kg||'0').replace(',','.'))||0;
+  const next=Math.max(0,Math.round((cur+delta)*100)/100);
+  if(typeof cwPatchSet==='function')cwPatchSet(setIdx,'kg',String(next));
+  const inp=document.querySelector('#clive-player-inner .cs-kg-row input');
+  if(inp)inp.value=csNum(next);
+}
+/** Pole wyniku: całe zaznaczone (wpisanie nadpisuje), widoczne nad klawiaturą. */
+function cwFieldFocus(inp){
+  try{inp.select();}catch(e){}
+  setTimeout(()=>{try{inp.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}},250);
+}
+function cwFieldKey(e,pos){
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  const inputs=[...document.querySelectorAll('#clive-player-inner .cs-set-grid input')];
+  if(pos===0&&inputs[1])inputs[1].focus();else e.target.blur();
+}
+function cwToggleRirHelp(){const cw=window._cw;if(!cw)return;cw.showRirHelp=!cw.showRirHelp;cwRender();}
+function cwHistToggle(open){const cw=window._cw;if(cw)cw.showHist=!!open;}
+window.cwSaveSet=cwSaveSet;window.cwUndoSet=cwUndoSet;window.cwPrimaryNext=cwPrimaryNext;window.cwSkipRestTap=cwSkipRestTap;
+window.cwStepKg=cwStepKg;window.cwFieldFocus=cwFieldFocus;window.cwFieldKey=cwFieldKey;window.cwToggleRirHelp=cwToggleRirHelp;window.cwHistToggle=cwHistToggle;
+window.cwTapLocked=cwTapLocked;window.CW_TAP_LOCK_MS=CW_TAP_LOCK_MS;
+
+/** Przerwa: duży licznik, parametry następnej serii, „Cofnij” i „Pomiń przerwę” w zasięgu kciuka. */
+function csRestClock(sec){const v=Math.max(0,sec|0);return v>=60?Math.floor(v/60)+':'+String(v%60).padStart(2,'0'):v+' s';}
+function csRestHTML(cw){
+  const nxt=cw.exercises[cw.exIdx]||{};
+  const emom=cw.restKind==='emom';
+  const nSets=nxt.sets||[];
+  const ni=nSets.findIndex(s=>!s.done);
+  const ns=ni>=0?nSets[ni]:null;
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(nxt):'kg';
+  const weightUnit=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit);
+  const range=nxt.planReps&&/[-–]/.test(String(nxt.planReps))&&unit!=='sec'?csRange(nxt.planReps):'';
+  const reps=ns?(range||csRange(ns.reps)):'';
+  const params=ns?[reps?reps+(unit==='sec'?' s':' powt.'):'',ns.kg!=null&&String(ns.kg).trim()!==''?csNum(ns.kg)+(weightUnit?' kg':''):''].filter(Boolean).join(' · '):'';
+  const prevEx=cw.lastSaved?cw.exercises[cw.lastSaved.exIdx]:null;
+  const change=prevEx&&prevEx!==nxt;
+  return `<div class="cs-ex cs-rest-scr">
+    <div class="cs-ex-top"><span class="cs-ex-pos">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</span><span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span></div>
+    <div class="cs-ex-scroll"><div class="cw-rest cs-rest">
+      <div class="cw-rest-num cs-rest-clock" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy">${csRestClock(cw.restLeft)}</div>
+      <div class="sr-only" id="cw-rest-live" aria-live="polite"></div>
+      ${ns?`<div class="cs-rest-next">
+        <span class="cs-eyebrow">${change?'NASTĘPNE ĆWICZENIE':(emom?'NASTĘPNA RUNDA':'NASTĘPNA SERIA')}</span>
+        <b>${nxt.ssLabel?csEsc(nxt.ssLabel)+' ':''}${csEsc(csShortName(nxt.name))}</b>
+        <span>Seria ${ni+1} z ${nSets.length}${params?' · '+csEsc(params):''}</span>
+      </div>`:''}
+    </div></div>
+    <div class="cs-ex-foot">
+      ${cwSavedBannerHTML(cw)}
+      <button type="button" class="cs-btn cs-btn-secondary cs-rest-skip" onclick="cwSkipRestTap()">Pomiń przerwę</button>
+    </div>
+  </div>`;
+}
+window.csRestHTML=csRestHTML;window.csRestClock=csRestClock;
 
 /* Otwarta klawiatura na iPhonie: odtwarzacz mieści się w widocznej części ekranu (visualViewport), CTA nad klawiaturą. */
 (function cwKeyboardFit(){
