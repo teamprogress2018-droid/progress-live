@@ -55,5 +55,10 @@ ok('wydruk: czcionka min. 10 pt w treści',/\.dpvp\{[^}]*font-size:10pt/.test(ht
 ok('wydruk: wszystkie posiłki i lista zakupów',(html.match(/class="blk meal"/g)||[]).length===35&&html.includes('Lista zakupów na tydzień'));
 ok('wydruk: zdjęcia z adresu aplikacji',html.includes('<base href="https://x.test/app/">')&&html.includes('src="assets/dania/'));
 ok('wydruk: podział na strony w dokumencie',html.includes(V.PAGINATE.slice(0,40)));
+ok('wydruk: suma dnia pod posiłkami każdego dnia',(html.match(/class="blk daysum"/g)||[]).length===7&&html.includes('Suma dnia — Poniedziałek'));
+const wk=vmW.days.reduce((s,d)=>s+d.total.kcal,0);
+ok('wydruk: suma tygodnia i średnia',html.includes('Suma tygodnia')&&html.includes('Średnio dziennie')&&html.includes('<td>'+Math.round(wk)+'</td>'));
+const scr=V.render('t-sum',vmW,{mode:'client'});
+ok('ekran: suma dnia w zakładce Dzisiaj',scr.includes('data-dpv-daysum')&&scr.includes('Cel na dzień'));
 ok('wydruk: dane escapowane',!V.printHTML(V.fromBuilt(nt.targets,week.days[0],{client:'Anna <b>'}),{}).includes('Anna <b>'));
 console.log('All diet plan view tests passed ('+n+').');

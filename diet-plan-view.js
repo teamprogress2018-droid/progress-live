@@ -25,6 +25,21 @@
   function roundAmt(id,a){const f=food(id);if(f.unit==='szt')return Math.max(1,Math.round(a));const v=Math.round(a/5)*5;return Math.max(5,v);}
   const macroLine=m=>`${r(m.kcal)} kcal · B: ${r(m.p)} g · T: ${r(m.f)} g · W: ${r(m.c)} g`;
   const macroShort=m=>`${r(m.kcal)} kcal · B ${r(m.p)} · T ${r(m.f)} · W ${r(m.c)}`;
+  /** Tabela sum: wiersze [etykieta, makro], stopka [etykieta, makro, klasa]. Ta sama dla ekranu i wydruku. */
+  function sumTable(cls,caption,rows,foot,head){
+    const td=m=>`<td>${r(m.kcal)}</td><td>${r(m.p)} g</td><td>${r(m.f)} g</td><td>${r(m.c)} g</td>`;
+    return`<table class="${cls}"><caption>${esc(caption)}</caption><thead><tr><th scope="col">${head||'Posiłek'}</th><th scope="col">kcal</th><th scope="col">Białko</th><th scope="col">Tłuszcze</th><th scope="col">Węgl.</th></tr></thead>
+      <tbody>${rows.map(([l,m])=>`<tr><th scope="row">${esc(l)}</th>${td(m)}</tr>`).join('')}</tbody>
+      <tfoot>${foot.map(([l,m,c])=>`<tr${c?` class="${c}"`:''}><th scope="row">${esc(l)}</th>${td(m)}</tr>`).join('')}</tfoot></table>`;
+  }
+  const weekTotal=vm=>vm.days.reduce((s,d)=>add(s,d.total),ZERO);
+  const scale=(m,k)=>({kcal:m.kcal*k,p:m.p*k,f:m.f*k,c:m.c*k});
+  const targetOf=vm=>({kcal:vm.kcal||0,p:vm.p||0,f:vm.f||0,c:vm.c||0});
+  function weekSumHTML(vm,cls,wrap){
+    if(vm.days.length<2)return'';
+    const tot=weekTotal(vm),n=vm.days.length;
+    return`<section class="${wrap}" data-dpv-weeksum>${sumTable(cls,n===7?'Podsumowanie tygodnia':'Podsumowanie planu',vm.days.map(d=>[d.name,d.total]),[[n===7?'Suma tygodnia':'Suma '+n+' dni',tot,'is-total'],['Średnio dziennie',scale(tot,1/n),''],['Cel na dzień',targetOf(vm),'is-goal']],'Dzień')}</section>`;
+  }
   const plNum=v=>String(v).replace('.',',');
 
   const GOAL_LBL={redukcja:'Łagodna redukcja',masa:'Spokojny wzrost masy',sila:'Więcej siły',kondycja:'Lepsza kondycja',sprawnosc:'Lepsza sprawność',zdrowie:'Zdrowie i dobre samopoczucie',utrzymanie:'Utrzymanie wagi'};
@@ -60,6 +75,8 @@
     vm.date=ctx.date||new Date().toLocaleDateString('pl-PL');
     vm.water=ctx.water||null;
     vm.habit=ctx.habit||'Zjedz białko w każdym posiłku';
+    vm.why=Array.isArray(ctx.why)?ctx.why.filter(Boolean).slice(0,6):[];
+    vm.times=Array.isArray(ctx.times)?ctx.times.slice(0,6):[];
     vm.note=String(ctx.note||'').trim();
     vm.people=Math.max(1,+ctx.people||+vm.people||1);
     vm.mealsN=ctx.meals||(vm.days[0]?vm.days[0].meals.length:0);
@@ -79,7 +96,7 @@
   }
   /** Z planu zapisanego u klienta (PlanClient.publicPlan): pozycje [id, ilość, rola, [[zamiennik, ilość], …]]. */
   function fromPublic(p,ctx){
-    ctx=Object.assign({water:p.water,meals:p.meals,people:p.people,note:p.note,habit:(p.habits||[])[0]},ctx||{});
+    ctx=Object.assign({water:p.water,meals:p.meals,people:p.people,note:p.note,habit:p.habit||(p.habits||[])[0],why:p.why,times:p.times},ctx||{});
     const it=list=>(list||[]).map(x=>({id:x[0],amount:x[1],role:x[2]||'x',swaps:(x[3]||[]).map(s=>({id:s[0],amount:s[1]}))}));
     const days=(p.days||[]).map((d,i,a)=>dayModel({name:d.n,type:d.t,meals:(d.m||[]).map(m=>({slot:m.n,dish:m.d,img:m.img,min:m.min,items:it(m.i),steps:m.st}))},i,a.length));
     return finish({kcal:p.kcal,p:p.p,f:p.f,c:p.c,days},ctx);
@@ -189,6 +206,7 @@
   }
   function trainerBarHTML(id){
     const o=REG[id].opts;
+    if(o.noTbar)return'';
     const b=(act,l,extra)=>`<button type="button" class="dpv-btn dpv-btn-sm" data-dpv-tact="${act}" onclick="dpvAct('${id}','${act}')"${extra||''}>${l}</button>`;
     return`<div class="dpv-tbar" data-dpv-tbar role="toolbar" aria-label="Akcje trenera">${b('shop','Wygeneruj listę zakupów')}${b('preview','Podgląd wydruku')}${b('print','Drukuj / Zapisz PDF')}${o.onSend?b('send','Wyślij do klienta'):''}</div>`;
   }
@@ -206,7 +224,14 @@
     const d=vm.days[st.day];
     if(!d)return'<p class="dpv-muted">Brak posiłków w planie.</p>';
     return`${dayChips(id)}<div class="dpv-dayhead"><h2 class="dpv-h2" data-dpv-dayname>${dayLabel(vm,d,st.day)}</h2><span class="dpv-muted">${macroShort(d.total)}</span></div>
-      <div class="dpv-meals">${d.meals.map((m,mi)=>mealHTML(id,st.day,mi)).join('')}</div>${dayTipsHTML(vm,d)}`;
+      <div class="dpv-meals">${d.meals.map((m,mi)=>mealHTML(id,st.day,mi)).join('')}</div>${daySumHTML(id)}${dayTipsHTML(vm,d)}${whyHTML(vm)}`;
+  }
+  /** Suma dnia: makro każdego posiłku (także wybranego zamiennika) i suma, obok celu. */
+  function daySumHTML(id){
+    const R=REG[id],d=R.vm.days[R.st.day];
+    const shown=d.meals.map((m,mi)=>shownMeal(id,R.st.day,mi).m);
+    const tot=shown.reduce((s,m)=>add(s,m.total),ZERO);
+    return`<section class="dpv-sum" data-dpv-daysum>${sumTable('dpv-sumt','Suma dnia',shown.map((m,mi)=>[(mi+1)+'. '+d.meals[mi].slot,m.total]),[['Suma dnia',tot,'is-total'],['Cel na dzień',targetOf(R.vm),'is-goal']])}</section>`;
   }
   function shownMeal(id,di,mi){
     const R=REG[id],d=R.vm.days[di],ch=R.st.choice[di+':'+mi];
@@ -229,7 +254,7 @@
     const alt=R.st.altOpen===key?altHTML(id,di,mi):'';
     return`<article class="dpv-meal${img?'':' no-img'}" data-dpv-meal="${key}">
       <div class="dpv-meal-main">
-        <div class="dpv-slot">${mi+1}. ${esc(m.slot||'Posiłek')}${m.edited||m.swapped?' <span class="dpv-tag">zmieniony</span>':''}${from?` <span class="dpv-tag">z dnia: ${esc(from)}</span>`:''}</div>
+        <div class="dpv-slot">${mi+1}. ${esc(m.slot||'Posiłek')}${R.vm.times[mi]?` <span class="dpv-when">· ok. ${esc(R.vm.times[mi])}</span>`:''}${m.edited||m.swapped?' <span class="dpv-tag">zmieniony</span>':''}${from?` <span class="dpv-tag">z dnia: ${esc(from)}</span>`:''}</div>
         <h3 class="dpv-name">${esc(title)}</h3>
         <div class="dpv-info">${m.min?`<span class="dpv-time">${m.min} min</span>`:''}<span class="dpv-macros">${macroLine(m.total)}</span></div>
       </div>${img}
@@ -258,6 +283,29 @@
     if(!list.length)return`<div class="dpv-alt" data-dpv-alt><p class="dpv-muted">W tym tygodniu nie ma innego posiłku o podobnej kaloryczności. Możesz zamienić produkty (niżej) albo napisać do trenera.</p></div>`;
     return`<div class="dpv-alt" data-dpv-alt><div class="dpv-lbl">Wybierz inny posiłek o podobnej kaloryczności</div><div class="dpv-tiles">${list.map(x=>`<button type="button" class="dpv-tile dpv-tile-btn${cur===x.a+':'+x.b?' is-cur':''}" onclick="dpvPickAlt('${id}',${di},${mi},'${x.a}:${x.b}')"><b>${esc(mealTitle(x.m))}</b><span>${macroShort(x.m.total)} · ${esc(x.day)}</span></button>`).join('')}${cur?`<button type="button" class="dpv-tile dpv-tile-btn" onclick="dpvPickAlt('${id}',${di},${mi},'')"><b>Wróć do planu</b><span>posiłek od trenera</span></button>`:''}</div></div>`;
   }
+  function whyHTML(vm){
+    if(!vm.why||!vm.why.length)return'';
+    return`<section class="dpv-why" data-dpv-why><h3 class="dpv-h3">Dlaczego taki plan?</h3><ul>${vm.why.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`;
+  }
+  /** „Dlaczego taki plan?” z prawdziwych ustawień: liczba posiłków, pory, dzień treningowy, cel, czas, wykluczenia, upodobania. */
+  function why(o){
+    o=o||{};const out=[];
+    const n=+o.meals||0;
+    if(n)out.push(`Plan ma ${n} ${n>=5?'posiłków':'posiłki'}${o.times&&o.times.length?' (ok. '+o.times.slice(0,n).join(', ')+')':''}, ponieważ ${o.mealsFromClient?'tyle posiłków pasuje do Twojego dnia':'tak łatwo rozłożyć jedzenie na cały dzień'}.`);
+    if(o.trainRest)out.push('W dni treningowe masz więcej węglowodanów, aby wspierać energię i regenerację. W dni bez treningu jest ich trochę mniej.');
+    const g=String(o.goal||'');
+    if(/redukc/i.test(g))out.push('Kalorie są trochę niższe niż Twoje dzienne potrzeby, żeby waga spadała spokojnie, bez głodówki.');
+    else if(/mas/i.test(g))out.push('Kalorie są trochę wyższe niż Twoje dzienne potrzeby, żeby wspierać budowę mięśni.');
+    else if(g)out.push('Kalorie odpowiadają Twoim dziennym potrzebom, żeby utrzymać wagę.');
+    out.push('W każdym posiłku jest białko, żeby łatwiej było się najeść i dbać o mięśnie.');
+    if(o.maxMin&&o.maxMin<=30)out.push(`Wybraliśmy szybkie posiłki (do ${o.maxMin} minut), ponieważ masz mało czasu na gotowanie.`);
+    if(o.prep>1)out.push(`Obiad gotujesz raz na ${o.prep} dni, więc wystarczy gotować rzadziej.`);
+    if(o.lunchbox)out.push('Obiady nadają się do zabrania do pracy w pudełku.');
+    if(o.budget==='eko')out.push('Posiłki opierają się na tanich, łatwo dostępnych produktach.');
+    if(o.ex&&o.ex.length)out.push('W planie nie ma: '+o.ex.join(', ')+'.');
+    if(o.likes)out.push('Częściej pojawiają się produkty, które lubisz.');
+    return out.slice(0,6);
+  }
   function dayTipsHTML(vm,d){
     const move=d.type==='trening'?'Trening według planu i krótki spacer':d.type==='wolny'?'Spacer 20–30 minut':'Spacer 20 minut';
     const rows=[['Woda',vm.water?`Cel: ${plNum(vm.water[0])}–${plNum(vm.water[1])} l`:'Cel: 2–2,5 l'],['Ruch',move],['Najważniejszy nawyk',vm.habit]];
@@ -268,8 +316,9 @@
     const vm=REG[id].vm,o=REG[id].opts;
     return`<div class="dpv-week">${vm.days.map((d,i)=>`<section class="dpv-wday${i===vm.today&&vm.days.length===7?' is-today':''}" data-dpv-wday="${i}">
       <div class="dpv-wday-h"><h2 class="dpv-h3">${dayLabel(vm,d,i)}</h2><span class="dpv-muted">${r(d.total.kcal)} kcal</span></div>
-      <ol class="dpv-wlist">${d.meals.map((m,mi)=>`<li>${m.img?`<img src="${esc((o.base||'')+'assets/dania/'+m.img)}" alt="" loading="lazy" width="40" height="40">`:'<span class="dpv-noimg" aria-hidden="true"></span>'}<span class="dpv-wl-t"><span class="dpv-muted">${mi+1}. ${esc(m.slot)}</span><b>${esc(mealTitle(m))}</b></span><span class="dpv-wl-k">${r(m.total.kcal)} kcal</span></li>`).join('')}</ol>
-      <button type="button" class="dpv-btn dpv-btn-sm" onclick="dpvOpenDay('${id}',${i})">Otwórz dzień</button></section>`).join('')}</div>`;
+      <ol class="dpv-wlist">${d.meals.map((m,mi)=>`<li>${m.img?`<img src="${esc((o.base||'')+'assets/dania/'+m.img)}" alt="" loading="lazy" width="40" height="40">`:'<span class="dpv-noimg" aria-hidden="true"></span>'}<span class="dpv-wl-t"><span class="dpv-muted">${mi+1}. ${esc(m.slot)}</span><b>${esc(mealTitle(m))}</b></span><span class="dpv-wl-k">${r(m.total.kcal)} kcal<small>B ${r(m.total.p)} · T ${r(m.total.f)} · W ${r(m.total.c)}</small></span></li>`).join('')}</ol>
+      <div class="dpv-wsum" data-dpv-wsum="${i}"><span>Suma dnia</span><b>${macroShort(d.total)}</b></div>
+      <button type="button" class="dpv-btn dpv-btn-sm" onclick="dpvOpenDay('${id}',${i})">Otwórz dzień</button></section>`).join('')}</div>${weekSumHTML(vm,'dpv-sumt','dpv-sum dpv-sum-week')}`;
   }
   /** Zamienniki: każdy produkt z planu raz, z porcją z pierwszego posiłku i zamiennikami o tym samym głównym składniku. */
   function swapsHTML(id){
@@ -280,10 +329,13 @@
     if(!list.length)return'<p class="dpv-muted">W tym planie nie ma zamienników.</p>';
     return`<p class="dpv-lead">Możesz zamienić produkt na inny z tej samej grupy. Ilości dotyczą przykładowej porcji z planu.</p>${groups.map(([role,l,d])=>{const g=list.filter(it=>(it.role||'x')===role);return g.length?`<section class="dpv-swapgroup"><h3 class="dpv-h3">${l}</h3>${d?`<p class="dpv-muted">${d}</p>`:''}${g.map(swapRowHTML).join('')}</section>`:'';}).join('')}`;
   }
-  const SHOP_SECTIONS=[['Mięso, wędliny i ryby',['mieso','wedlina','ryby']],['Nabiał, jaja i sery',['nabial','ser']],['Strączki i tofu',['roslinne']],['Pieczywo i płatki',['zboza']],['Kasze, ryż, makaron, ziemniaki',['skrobia']],['Tłuszcze, orzechy, nasiona',['orzechy','nasiona','oleje','pasty']],['Owoce',['owoce']],['Warzywa',['warzywa']],['Inne',['dodatki']]];
+  // Grupy listy zakupów (jak w sklepie). Mrożonki pokażą się, gdy w bazie będą produkty z grupą „mrozonki”.
+  const SHOP_SECTIONS=[['Warzywa i owoce',['warzywa','owoce']],['Mięso i ryby',['mieso','wedlina','ryby']],['Nabiał',['nabial','ser']],['Pieczywo',['@pieczywo']],['Produkty suche',['zboza','skrobia','orzechy','nasiona']],['Mrożonki',['mrozonki']],['Inne',['roslinne','oleje','pasty','dodatki']]];
+  const BREAD_IDS=new Set(['chleb','chleb-zytni','pita']);
+  const shopSub=id=>BREAD_IDS.has(id)?'@pieczywo':food(id).sub;
   function shopGroups(vm){
     const used=new Set();
-    const out=SHOP_SECTIONS.map(([l,subs])=>{const items=vm.shop.filter(s=>subs.includes(food(s.id).sub));items.forEach(s=>used.add(s.id));return{l,items};}).filter(g=>g.items.length);
+    const out=SHOP_SECTIONS.map(([l,subs])=>{const items=vm.shop.filter(s=>subs.includes(shopSub(s.id)));items.forEach(s=>used.add(s.id));return{l,items};}).filter(g=>g.items.length);
     const rest=vm.shop.filter(s=>!used.has(s.id));if(rest.length)out.push({l:'Inne',items:rest});
     return out;
   }
@@ -293,7 +345,7 @@
     const span=vm.shopDays===7?'na tydzień':vm.shopDays===1?'na 1 dzień':'na '+vm.shopDays+' dni';
     return`<div class="dpv-shop" data-dpv-shop><p class="dpv-lead">Lista ${span}${vm.people>1?', dla '+vm.people+' osób':''}. ${o.onShopToggle?'Odhacz, co już masz.':''}</p>
       ${shopGroups(vm).map(g=>`<section class="dpv-shopgroup"><h3 class="dpv-h3">${esc(g.l)}</h3><ul class="dpv-shoplist">${g.items.map(s=>{const on=done.has(s.id);return`<li>${o.onShopToggle?`<label class="dpv-check${on?' is-on':''}"><input type="checkbox" data-dpv-item="${esc(s.id)}"${on?' checked':''} onchange="dpvShop('${id}','${esc(s.id)}',this.checked)">`:'<span class="dpv-check">'}<span class="dpv-shop-n">${esc(shortName(food(s.id)))}</span><b class="dpv-shop-a">${esc(shopAmt(s.id,s.amount))}</b>${o.onShopToggle?'</label>':'</span>'}</li>`;}).join('')}</ul></section>`).join('')}
-      <p class="dpv-muted">Ilości orientacyjne. Ryż, makaron, kasze i płatki liczone na sucho, mięso i ryby na surowo.</p></div>`;
+      <p class="dpv-muted">Ilości orientacyjne. Ryż, makaron, kasze i płatki liczone na sucho, mięso i ryby na surowo.</p>${o.mode==='trainer'?`<div class="dpv-acts"><button type="button" class="dpv-btn" data-dpv-shopprint onclick="dpvAct('${id}','shopprint')">Drukuj listę zakupów / PDF</button></div>`:''}</div>`;
   }
   function tipsHTML(id){
     const R=REG[id],vm=R.vm,o=R.opts;
@@ -386,6 +438,13 @@
 .dpvp .daytips{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin:0 0 5mm;font-size:10pt;break-inside:avoid}
 .dpvp .daytips div{border-left:.8mm solid #d1d5db;padding:.6mm 2mm}
 .dpvp .daytips b{display:block;font-size:8.5pt;color:#6b7280;text-transform:uppercase;letter-spacing:.04em}
+.dpvp table.sum{width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 2mm;break-inside:avoid;page-break-inside:avoid}
+.dpvp table.sum caption{text-align:left;font-weight:700;font-size:9pt;color:#374151;padding:0 0 1mm;text-transform:uppercase;letter-spacing:.04em}
+.dpvp table.sum th,.dpvp table.sum td{padding:.5mm 1.5mm;border-bottom:.2mm solid #e5e7eb;text-align:right;white-space:nowrap}
+.dpvp table.sum th[scope=row],.dpvp table.sum thead th:first-child{text-align:left;font-weight:400;white-space:normal}
+.dpvp table.sum thead th{font-size:8.5pt;color:#6b7280;font-weight:700}
+.dpvp table.sum tr.is-total th,.dpvp table.sum tr.is-total td{font-weight:700;border-top:.4mm solid #374151;background:#f3f4f6}
+.dpvp table.sum tr.is-goal th,.dpvp table.sum tr.is-goal td{color:#4b5563}
 .dpvp .shop{columns:3;column-gap:6mm;margin-bottom:2mm}
 .dpvp .shop section{break-inside:avoid;margin:0 0 3mm}
 .dpvp .shop h3{font-size:9.5pt;margin:0 0 1mm;color:#374151}
@@ -395,6 +454,7 @@
 .dpvp .shop li span{flex:1}
 .dpvp .note{border:.3mm solid #e5e7eb;border-radius:2mm;padding:2mm 3mm;margin-top:3mm;font-size:9.5pt}
 .dpvp .small{font-size:8.5pt;color:#6b7280;margin-top:3mm}
+.dpvp .why{margin:0 0 3mm;font-size:9.5pt}
 @media print{
   @page dpv{size:A4 portrait;margin:14mm 13mm 16mm 13mm;@bottom-left{content:var(--dpv-foot-text);font-family:Arial,sans-serif;font-size:8pt;color:#6b7280}@bottom-right{content:"str. " counter(page);font-family:Arial,sans-serif;font-size:8pt;color:#6b7280}}
   html,body{background:#fff!important;margin:0!important;padding:0!important}
@@ -425,15 +485,18 @@
       <p class="flexnote">Plan jest elastyczny — korzystaj z zamienników.</p>`;
     const move=d=>d.type==='trening'?'Trening według planu':d.type==='wolny'?'Spacer 20–30 minut':'Spacer 20 minut';
     const blocks=[`<div class="blk head">${head}</div>`];
-    vm.days.forEach((d,i)=>{
+    if(!opts.shopOnly&&vm.why&&vm.why.length)blocks.push(`<div class="blk note why"><b>Dlaczego taki plan?</b> ${vm.why.map(esc).join(' ')}</div>`);
+    if(!opts.shopOnly)vm.days.forEach((d,i)=>{
       blocks.push(`<h2 class="blk" data-dpvp-day="${i}">${esc(d.name)}${d.type?` · ${d.type==='trening'?'dzień treningowy':'dzień bez treningu'}`:''}<small>${macroShort(d.total)}</small></h2>`);
       d.meals.forEach((m,mi)=>blocks.push(printMealHTML(m,mi,base)));
+      blocks.push(`<div class="blk daysum">${sumTable('sum','Suma dnia — '+d.name,d.meals.map((m,mi)=>[(mi+1)+'. '+m.slot,m.total]),[['Suma dnia',d.total,'is-total'],['Cel na dzień',targetOf(vm),'is-goal']])}</div>`);
       blocks.push(`<div class="blk daytips"><div><b>Woda</b>${vm.water?`${plNum(vm.water[0])}–${plNum(vm.water[1])} l`:'2–2,5 l'}</div><div><b>Ruch</b>${move(d)}</div><div><b>Nawyk</b>${esc(vm.habit)}</div></div>`);
     });
+    if(!opts.shopOnly&&vm.days.length>1)blocks.push(`<div class="blk weeksum">${weekSumHTML(vm,'sum','wk')}</div>`);
     const span=vm.shopDays===7?'na tydzień':vm.shopDays===1?'na 1 dzień':'na '+vm.shopDays+' dni';
-    blocks.push(`<h2 class="blk newpage" data-dpvp-shop>Lista zakupów ${span}${vm.people>1?' dla '+vm.people+' osób':''}</h2>`);
+    blocks.push(`<h2 class="blk${opts.shopOnly?'':' newpage'}" data-dpvp-shop>Lista zakupów ${span}${vm.people>1?' dla '+vm.people+' osób':''}</h2>`);
     blocks.push(`<div class="blk shop">${shopGroups(vm).map(g=>`<section><h3>${esc(g.l)}</h3><ul>${g.items.map(s=>`<li><span>${esc(shortName(food(s.id)))}</span><b>${esc(shopAmt(s.id,s.amount))}</b></li>`).join('')}</ul></section>`).join('')}</div>`);
-    if(vm.note)blocks.push(`<div class="blk note"><b>Notatka trenera:</b> ${esc(vm.note)}</div>`);
+    if(vm.note&&!opts.shopOnly)blocks.push(`<div class="blk note"><b>Notatka trenera:</b> ${esc(vm.note)}</div>`);
     blocks.push(`<div class="blk note"><b>Wskazówki:</b> ryż, makaron, kasze i płatki waż na sucho, mięso i ryby na surowo. Nie masz produktu? Weź zamiennik z karty posiłku. Jeden posiłek zjedzony inaczej nic nie psuje.</div>`);
     blocks.push(`<p class="blk small">Orientacyjny plan od trenera, liczony z wartości produktów z bazy USDA. Nie zastępuje porady lekarza ani dietetyka.</p>`);
     return`<div class="dpvp" data-foot="${esc(foot)}"><section class="sheet flow">${blocks.join('')}</section></div>`;
@@ -461,7 +524,7 @@
     const css=PRINT_CSS.replace('content:var(--dpv-foot-text)','content:"'+foot+'"');
     return'<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+(opts.base?'<base href="'+esc(opts.base)+'">':'')+
       '<title>Plan żywieniowy'+(vm.client?' – '+esc(vm.client):'')+'</title><style>body{margin:0;background:#e5e7eb;padding:8mm 0}'+css+'@media print{body{padding:0!important;background:#fff!important}}</style></head><body>'+
-      printBody(vm,{base:''})+'<script>'+PAGINATE+'<\/script>'+(opts.autoprint?'<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},400);});<\/script>':'')+'</body></html>';
+      printBody(vm,{base:'',shopOnly:opts.shopOnly})+'<script>'+PAGINATE+'<\/script>'+(opts.autoprint?'<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},400);});<\/script>':'')+'</body></html>';
   }
   function baseURL(){try{return String(root.location.href).split('#')[0].split('?')[0].replace(/[^/]*$/,'');}catch(e){return'';}}
   /** Podgląd wydruku: okno z dokładnie tym dokumentem, który pójdzie do drukarki / PDF. */
@@ -471,10 +534,10 @@
     close();
     const ov=d.createElement('div');
     ov.id='dpv-preview';ov.className='dpv-preview';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Podgląd wydruku');
-    ov.innerHTML=`<div class="dpv-preview-bar"><b>Podgląd wydruku · A4</b><span class="dpv-muted">Tak będzie wyglądać wydruk i PDF.</span><span class="dpv-grow"></span><button type="button" class="dpv-btn dpv-btn-primary" data-dpv-pprint>Drukuj / Zapisz PDF</button><button type="button" class="dpv-btn" data-dpv-pclose>Zamknij</button></div><iframe class="dpv-preview-frame" title="Podgląd wydruku planu"></iframe>`;
+    ov.innerHTML=`<div class="dpv-preview-bar"><b>${opts.shopOnly?'Lista zakupów':'Podgląd wydruku'} · A4</b><span class="dpv-muted">Tak będzie wyglądać wydruk i PDF.</span><span class="dpv-grow"></span><button type="button" class="dpv-btn dpv-btn-primary" data-dpv-pprint>Drukuj / Zapisz PDF</button><button type="button" class="dpv-btn" data-dpv-pclose>Zamknij</button></div><iframe class="dpv-preview-frame" title="Podgląd wydruku planu"></iframe>`;
     d.body.appendChild(ov);
     const fr=ov.querySelector('iframe');
-    fr.srcdoc=printHTML(vm,{base:opts.base||baseURL()});
+    fr.srcdoc=printHTML(vm,{base:opts.base||baseURL(),shopOnly:!!opts.shopOnly});
     ov.querySelector('[data-dpv-pclose]').onclick=close;
     ov.querySelector('[data-dpv-pprint]').onclick=()=>{try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){}};
     const key=e=>{if(e.key==='Escape'){close();}};
@@ -482,6 +545,27 @@
     setTimeout(()=>{const b=ov.querySelector('[data-dpv-pprint]');if(b)b.focus();},0);
     if(opts.print)fr.addEventListener('load',()=>{try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){}},{once:true});
     return ov;
+  }
+  /** „Podgląd klienta”: dokładnie to, co zobaczy klient (bez danych technicznych), na telefonie albo komputerze. */
+  function clientPreview(vm,opts){
+    opts=opts||{};
+    const d=doc();if(!d)return null;
+    close();
+    const ov=d.createElement('div');
+    ov.id='dpv-preview';ov.className='dpv-preview dpv-cpreview';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Podgląd klienta');
+    ov.innerHTML=`<div class="dpv-preview-bar"><b>Podgląd klienta</b><span class="dpv-muted">Tak klient zobaczy plan w aplikacji.</span><span class="dpv-grow"></span><div class="dpv-seg" role="group" aria-label="Urządzenie"><button type="button" class="dpv-btn dpv-btn-sm is-on" aria-pressed="true" data-dpv-dev="phone">Telefon</button><button type="button" class="dpv-btn dpv-btn-sm" aria-pressed="false" data-dpv-dev="desk">Komputer</button></div><button type="button" class="dpv-btn" data-dpv-pclose>Zamknij</button></div><div class="dpv-cpreview-scroll"><div class="dpv-cpreview-frame is-phone" data-dpv-cframe>${render('dpvclient',vm,{mode:'client',base:opts.base||''})}</div></div>`;
+    d.body.appendChild(ov);
+    ov.querySelector('[data-dpv-pclose]').onclick=close;
+    ov.querySelectorAll('[data-dpv-dev]').forEach(b=>b.onclick=()=>{const ph=b.getAttribute('data-dpv-dev')==='phone';ov.querySelector('[data-dpv-cframe]').classList.toggle('is-phone',ph);ov.querySelectorAll('[data-dpv-dev]').forEach(x=>{const on=x===b;x.classList.toggle('is-on',on);x.setAttribute('aria-pressed',String(on));});});
+    const key=e=>{if(e.key==='Escape')close();};d.addEventListener('keydown',key);ov._key=key;
+    return ov;
+  }
+  /** Model widoku → plan zapisany u klienta (ten sam format co PlanClient.publicPlan). */
+  function toPublic(vm,extra){
+    const itm=it=>{const sw=it.swaps.slice(0,4).map(s=>[s.id,s.amount]);return sw.length||it.role!=='x'?[it.id,it.amount,it.role,sw]:[it.id,it.amount];};
+    return Object.assign({form:'week',kcal:r(vm.kcal),p:vm.p,f:vm.f,c:vm.c,water:vm.water,meals:vm.mealsN,habits:[vm.habit],habit:vm.habit,
+      days:vm.days.map(d=>({n:d.name,t:d.type||'',m:d.meals.map(m=>{const o={n:m.slot,d:m.dish||'',k:r(m.total.kcal),p:r(m.total.p),f:r(m.total.f),c:r(m.total.c),i:m.items.map(itm)};if(m.img)o.img=m.img;if(m.min)o.min=m.min;if(m.steps)o.st=m.steps;return o;})})),
+      flex:[],cooking:[],shop:vm.shop.map(s=>[s.id,s.amount]),shopDays:vm.shopDays,people:vm.people,note:vm.note,why:vm.why,times:vm.times},extra||{});
   }
   function close(){const d=doc(),ov=d&&d.getElementById('dpv-preview');if(ov){if(ov._key)d.removeEventListener('keydown',ov._key);ov.remove();}}
 
@@ -516,6 +600,7 @@
       if(a==='shop'){if(o.onShop)o.onShop();R.st.tab='shop';rerender(id);}
       else if(a==='preview')preview(R.vm,{base:o.base});
       else if(a==='print')preview(R.vm,{base:o.base,print:true});
+      else if(a==='shopprint')preview(R.vm,{base:o.base,shopOnly:true});
       else if(a==='send'&&o.onSend)o.onSend();},
     dpvSaveNote:id=>{const R=REG[id];if(!R)return;const t=R.el.querySelector('[data-dpv-note]');if(t&&R.opts.onNote)R.opts.onNote(t.value.trim());},
     dpvEdit:(id,di,mi,focus)=>{const R=REG[id];if(!R)return;R.st.edit={key:di+'-'+mi,di,mi,focus,orig:snapOf(R.vm.days[di].meals[mi])};rerender(id);
@@ -556,7 +641,7 @@
     return week;
   }
 
-  const api={PAGINATE,fromBuilt,fromPublic,mount,render,html:id=>html(id),printHTML,printBody,preview,close,steps,mealTitle,applyEdits,shoppingOf,goalLabel,PRINT_CSS,_reg:REG,baseURL,beforePrint,afterPrint};
+  const api={PAGINATE,why,toPublic,clientPreview,fromBuilt,fromPublic,mount,render,html:id=>html(id),printHTML,printBody,preview,close,steps,mealTitle,applyEdits,shoppingOf,goalLabel,PRINT_CSS,_reg:REG,baseURL,beforePrint,afterPrint};
   root.DietView=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
