@@ -627,6 +627,9 @@ jobs:
       - name: Nawigacja klienta (pasek, Czat, brak internetu, pakiet do opłacenia)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_nav_ui.js
+      - name: Kafelek „Spotkanie z trenerem” na ekranie Dzisiaj
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_meeting_card_ui.js
       - name: 6a5. Testy UI przerwy i końca treningu klienta (prosty styl, wibracja, błąd pod polem)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_rest_ui.js
