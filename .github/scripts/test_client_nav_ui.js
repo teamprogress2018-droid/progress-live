@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** UI (Etap 10 UX): aplikacja klienta — pasek Dzisiaj, Trening, Czat, Postępy, Więcej; plakietka na Czacie;
+/** UI (Etap 10 UX): aplikacja klienta — pasek Dzisiaj, Trening, Czat, Postępy, Więcej; plakietka na Czacie; pakiet: ile treningów zostało, bez numeru konta;
  *  safe area; tekst w rem; pasek „Brak internetu”; karta „Pakiet do opłacenia” (także gdy pakiet się skończył);
  *  długie nazwy bez ucinania (bez nowrap) i bez stałej wysokości 150 px. */
 const fs = require('fs');
@@ -38,7 +38,7 @@ async function open(browser, opts) {
       days: [{ day: 'Dzień 1', muscles: 'Full Body', exercises: [{ name: 'Przysiad goblet', sets: '3', reps: '10', kg: '20', rest: '90s' }] }] }];
     window.SE = []; window.TASKS = []; window.MSGS = { c1: [] };
     if (o.longName) window.PL[0].days[0].muscles = 'Trening całego ciała z naciskiem na stabilizację tułowia i mobilność bioder';
-    window.PACKAGES = o.ended ? [{ id: 'pk0', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, payStatus: 'paid', status: 'active', sessions: 8, sessionsUsed: 8 }] : o.unpaid ? [{ id: 'pk1', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, payStatus: 'pending', status: 'active', paymentRequestedAt: new Date().toISOString() }] : [];
+    window.PACKAGES = o.active ? [{ id: 'pk2', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, payStatus: 'paid', status: 'active', sessions: 8, sessionsUsed: 3, expiresDate: '2099-12-31' }] : o.ended ? [{ id: 'pk0', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, payStatus: 'paid', status: 'active', sessions: 8, sessionsUsed: 8 }] : o.unpaid ? [{ id: 'pk1', clientId: 'c1', trainerId: 'cn-trainer', title: '8 treningów', price: 960, sessions: 8, sessionsUsed: 0, payStatus: 'pending', status: 'active', paymentRequestedAt: new Date().toISOString() }] : [];
     window.SETTINGS = { profile: { name: 'Trener' }, brand: {}, clientApp: { visibleSections: {} }, payments: { bankAccount: '12 3456 7890 1234 5678 9012 3456', currency: 'zł' } };
     if (o.unread) window.clientHasUnreadFromTrainer = () => true;
     enterClientLiveShell();
@@ -93,9 +93,16 @@ async function open(browser, opts) {
         allPrimary: document.querySelectorAll('.cs-today .cs-btn-primary').length } : null;
     });
     ok('payment card on Dzisiaj', !!pay && /Pakiet do opłacenia/.test(pay.text) && /8 treningów/.test(pay.text) && /960 zł/.test(pay.text), pay && pay.text);
-    ok('payment buttons secondary, one red action on screen', !!pay && pay.primary === 0 && pay.allPrimary === 1 && pay.btns.includes('Zapłaciłem') && pay.btns.includes('Kopiuj przelew') && /12 3456/.test(pay.text), JSON.stringify(pay));
+    ok('payment buttons secondary, one red action on screen', !!pay && pay.primary === 0 && pay.allPrimary === 1 && JSON.stringify(pay.btns) === '["Zapłaciłem"]', JSON.stringify(pay));
+    ok('payment card: no bank account / transfer title', !!pay && !/12 3456|Konto|Tytuł przelewu|numeru konta/.test(pay.text), pay && pay.text);
+    ok('payment card: trainings left', !!pay && /Zostało\s*8 z 8 treningów/.test(pay.text), pay && pay.text);
     const more = await page.evaluate(() => { const b = document.querySelector('#clive-bn-more .clive-nav-badge'); return !!b && getComputedStyle(b).display !== 'none'; });
     ok('unpaid package marks Więcej', more);
+    await ctx.close();
+
+    ({ ctx, page } = await open(browser, { active: true }));
+    const act = await page.evaluate(() => { const card = document.querySelector('.cs-today .cs-pay.is-active'); return card ? { text: card.innerText, btns: card.querySelectorAll('button').length, on: card.querySelectorAll('.cs-pkg-bar span.is-on').length, all: card.querySelectorAll('.cs-pkg-bar span').length } : null; });
+    ok('paid package: „Twój pakiet” with trainings left until the end', !!act && /Twój pakiet/.test(act.text) && /Zostało\s*5 z 8 treningów/.test(act.text) && /ważny do 31 grudnia/.test(act.text) && act.on === 5 && act.all === 8 && act.btns === 0, JSON.stringify(act));
     await ctx.close();
 
     ({ ctx, page } = await open(browser, { ended: true, longName: true }));

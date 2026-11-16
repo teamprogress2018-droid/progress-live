@@ -217,10 +217,39 @@ function csEndedPackage(c){
   return all.slice().sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0];
 }
 window.csEndedPackage=csEndedPackage;
-/** Karta „Pakiet do opłacenia” na ekranie Dzisiaj. Przyciski drugorzędne: czerwony zostaje przy treningu. */
+/** Ile treningów zostało w pakiecie: {left,total,used} albo null, gdy pakiet nie ma liczby treningów. */
+function csPackageLeft(p){
+  const total=Number(p&&p.sessions)||0;
+  if(!total)return null;
+  const used=Math.min(total,Math.max(0,Number(p.sessionsUsed)||0));
+  return {left:total-used,total,used};
+}
+window.csPackageLeft=csPackageLeft;
+/** „Zostało 5 z 8 treningów” + pasek do końca pakietu (wykorzystane = pełne kreski). */
+function csPackageLeftHTML(p){
+  const n=csPackageLeft(p);
+  if(!n)return '';
+  const segs=n.total<=20?Array.from({length:n.total},(_,i)=>`<span class="${i<n.left?'is-on':''}"></span>`).join(''):'';
+  const bar=segs?`<div class="cs-week-bar cs-pkg-bar" style="grid-template-columns:repeat(${n.total},minmax(0,1fr))" aria-hidden="true">${segs}</div>`:
+    `<div class="cs-pkg-meter" aria-hidden="true"><span style="width:${Math.round(n.left/n.total*100)}%"></span></div>`;
+  return `<div class="cs-pkg-left" aria-label="Zostało ${n.left} z ${n.total} treningów">
+    <div class="cs-week-row"><span>Zostało</span><b>${n.left} z ${n.total} ${csPlural(n.total,'treningu','treningów','treningów')}</b></div>${bar}
+  </div>`;
+}
+/** Karta pakietu na ekranie Dzisiaj: do opłacenia / aktywny (ile zostało do końca) / skończony.
+ *  Bez numeru konta — szczegóły płatności klient ustala z trenerem. Przyciski drugorzędne: czerwony zostaje przy treningu. */
 function csPayCardHTML(c){
   const unpaid=c&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(c.id):[];
   if(!unpaid.length){
+    const act=c&&typeof clientPaidPackageForSession==='function'?clientPaidPackageForSession(c.id):null;
+    if(act&&csPackageLeft(act)){
+      const exp=act.expiresDate?String(act.expiresDate).slice(0,10):'';
+      return `<section class="cs-card cs-pay is-active" aria-labelledby="cs-pay-title">
+    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">Twój pakiet</h2></div>
+    <p class="cs-pay-what"><b>${csEsc(act.title||'Pakiet treningów')}</b>${exp?` · ważny do ${csEsc(csDateLabel(exp).replace(/^[^,]+, /,''))}`:''}</p>
+    ${csPackageLeftHTML(act)}
+  </section>`;
+    }
     const p=csEndedPackage(c);
     if(!p)return '';
     const used=Number(p.sessions)>0&&Number(p.sessionsUsed||0)>=Number(p.sessions);
@@ -236,18 +265,13 @@ function csPayCardHTML(c){
   const seller=typeof paySeller==='function'?(paySeller()||{}):{};
   const price=Number(p.price||0);
   const amount=price?price.toLocaleString('pl')+' '+(seller.currency||'zł'):'';
-  const title=((p.clientName||c.name||'')+' '+(p.invoiceId||p.id||'')).trim();
   const more=unpaid.length>1?`<p class="cs-card-text">Do opłacenia masz ${unpaid.length} pakiety.</p>`:'';
   return `<section class="cs-card cs-pay" aria-labelledby="cs-pay-title">
     <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">Pakiet do opłacenia</h2></div>
     <p class="cs-pay-what"><b>${csEsc(p.title||'Pakiet treningów')}</b>${amount?` · ${csEsc(amount)}`:''}</p>
+    ${csPackageLeftHTML(p)}
     ${more}
-    ${seller.bank?`<dl class="cs-pay-bank"><dt>Konto</dt><dd>${csEsc(seller.bank)}</dd><dt>Tytuł przelewu</dt><dd>${csEsc(title)}</dd></dl>`:
-      `<p class="cs-card-text">Trener nie podał jeszcze numeru konta. Zapytaj na czacie.</p>`}
-    <div class="cs-pay-btns">
-      ${seller.bank&&typeof copyPackageTransfer==='function'?`<button type="button" class="cs-btn cs-btn-secondary" onclick="copyPackageTransfer('${csEsc(p.id)}')">Kopiuj przelew</button>`:''}
-      ${typeof clientNotifyPaid==='function'?`<button type="button" class="cs-btn cs-btn-secondary" onclick="clientNotifyPaid('${csEsc(p.id)}')">Zapłaciłem</button>`:''}
-    </div>
+    ${typeof clientNotifyPaid==='function'?`<div class="cs-pay-btns"><button type="button" class="cs-btn cs-btn-secondary" onclick="clientNotifyPaid('${csEsc(p.id)}')">Zapłaciłem</button></div>`:''}
   </section>`;
 }
 window.csPayCardHTML=csPayCardHTML;
