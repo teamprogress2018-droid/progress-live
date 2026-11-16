@@ -344,3 +344,12 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 }
 .cs-ex-foot .cs-saved { font-size: 0.875rem; }
 .cs-ex-foot .cs-saved > span { min-width: 0; }
+
+/* ===== Kafelek „Spotkanie z trenerem” na ekranie Dzisiaj (nad „Pakietem do opłacenia”): krótki, sam termin ===== */
+.cs-meet { flex-direction: row; align-items: center; gap: 14px; padding: 16px 20px; }
+.cs-meet-ico { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 14px; background: var(--bg-subtle); color: var(--text-primary); }
+.cs-meet-body { min-width: 0; }
+.cs-meet-title { margin: 0; color: var(--text-secondary); font-size: 0.9375rem; font-weight: 600; line-height: 1.3; }
+.cs-meet-when { margin: 2px 0 0; color: var(--text-primary); font-size: 1.125rem; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.cs-meet-when b { font-size: 1.375rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.cs-meet-sep { color: var(--text-secondary); font-weight: 400; }

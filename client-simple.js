@@ -149,6 +149,43 @@ function csTodayCardHTML(c,st){
   return `<section class="cs-card"><div class="cs-eyebrow">DZISIEJSZY PLAN</div><h2 class="cs-card-title">Plan w przygotowaniu</h2><p class="cs-card-text">Gdy trener przypisze Ci plan, trening pojawi się tutaj.</p><button type="button" class="cs-btn cs-btn-secondary" onclick="${csTrainerAction()}">Napisz do trenera</button></section>`;
 }
 
+/** Najbliższe spotkanie z trenerem z kalendarza (dziś albo później). Pomija treningi klienta,
+ *  odwołane terminy i dzisiejsze spotkanie, które już się skończyło. */
+function csNextMeeting(c){
+  if(!c)return null;
+  const today=csToday();
+  const now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
+  const toMin=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(String(t||''));return m?Number(m[1])*60+Number(m[2]):null;};
+  return (window.SE||[]).filter(s=>{
+    if(!s||s.clientId!==c.id||s.source==='client'||s.source==='live'||s.archived)return false;
+    if(['cancelled','canceled','completed','partial','finished','missed'].includes(String(s.status||'')))return false;
+    const d=String(s.date||'').slice(0,10);
+    if(!d||d<today)return false;
+    if(d===today){const st=toMin(s.time);if(st!=null&&st+(Number(s.duration)||60)<=nowMin)return false;}
+    return true;
+  }).sort((a,b)=>(String(a.date).slice(0,10)+(a.time||'99:99')).localeCompare(String(b.date).slice(0,10)+(b.time||'99:99')))[0]||null;
+}
+window.csNextMeeting=csNextMeeting;
+/** „Dzisiaj · 18:00”, „Jutro · 7:30”, „Czwartek, 19 listopada · 18:00”. */
+function csMeetingWhen(s){
+  const d=String(s.date||'').slice(0,10),today=csToday();
+  const day=d===today?'Dzisiaj':d===csAddDays(today,1)?'Jutro':csDateLabel(d);
+  const t=String(s.time||'').trim();
+  return {day,time:/^\d{1,2}:\d{2}/.test(t)?t.slice(0,5).replace(/^0(\d)/,'$1'):''};
+}
+/** Kafelek „Spotkanie z trenerem”: tylko termin. Plan treningu (nazwa dnia, mięśnie) zostaje w zakładce Trening. */
+function csMeetingCardHTML(c){
+  const s=csNextMeeting(c);
+  if(!s)return '';
+  const w=csMeetingWhen(s);
+  return `<section class="cs-card cs-meet" aria-labelledby="cs-meet-title">
+    <div class="cs-meet-ico" aria-hidden="true">${csIcon('calendar',22)}</div>
+    <div class="cs-meet-body"><h2 class="cs-meet-title" id="cs-meet-title">Spotkanie z trenerem</h2>
+    <p class="cs-meet-when"><span>${csEsc(w.day)}</span>${w.time?`<span class="cs-meet-sep"> · </span><b>${csEsc(w.time)}</b>`:''}</p></div>
+  </section>`;
+}
+window.csMeetingCardHTML=csMeetingCardHTML;
+
 function csTodayHTML(c){
   const st=csTodayState(c);
   const {slot,inProgress}=st;
@@ -157,15 +194,13 @@ function csTodayHTML(c){
     slot.kind==='workout'?'Masz dziś zaplanowany trening.':
     slot.kind==='done'?'Dzisiejszy trening masz już za sobą.':
     slot.kind==='rest'?'Dziś bez treningu — czas na regenerację.':'Witaj w aplikacji.';
-  const today=csToday();
-  const meeting=(slot.inPerson||[]).find(s=>s&&s.date>=today&&s.source!=='client'&&s.source!=='live');
   return `<div class="cs-screen cs-today">
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}
+    ${csMeetingCardHTML(c)}
     ${csPayCardHTML(c)}
-    ${typeof pkcTodayCardHTML==='function'?pkcTodayCardHTML(c):''}
-    ${meeting?`<div class="cs-note">${csIcon('calendar',18)}<span>Spotkanie z trenerem: ${csEsc(meeting.time||'')} ${csEsc(meeting.type||'')}</span></div>`:''}
     ${csWeekBar(c,slot.plan)}
+    ${typeof pkcTodayCardHTML==='function'?pkcTodayCardHTML(c):''}
   </div>`;
 }
 window.csTodayHTML=csTodayHTML;
