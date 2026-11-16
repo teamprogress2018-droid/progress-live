@@ -1958,7 +1958,6 @@ function calcTDEE(){
           </div>`).join('')}
       </div>
     </div>
-    ${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr),kcalFloor:kcalFloor.floor,selected:calcMacroMode==='books'?null:{p:proteinG,f:fatG,c:carbG}})}
     </div>
 
     <div class="calc-col-side">
@@ -1987,7 +1986,8 @@ function calcTDEE(){
       <div class="calc-tip"><strong style="color:var(--accent);">LBM (beztłuszczowa masa${bf!=null?', z pomiaru '+bf+'% BF':', szacunek bez pomiaru %BF'}):</strong> ~${lbm} kg. Spoczynkowa przemiana wg Cunninghama (370 + 21,6 × LBM) = ${Math.round(370+21.6*lbm)} kcal, dla porównania z Mifflinem. <span class="diet-src">📚 SN s. 200</span></div>
       <div class="calc-tip"><strong style="color:var(--accent);">Białko w ciągu dnia:</strong> ok. 0,25 g/kg na posiłek (${Math.round(weight*0.25)} g) w 4–5 posiłkach; osoby starsze 30–40 g. Ważniejsza jest dzienna suma niż dokładna pora — posiłek po treningu w ciągu kilku godzin w zupełności wystarczy. <span class="diet-src">📚 SN s. 42–49, 53, 230</span></div>
     </div>
-    </div>`;
+    </div>
+    <div class="calc-col-full">${calcDietCardHTML({weight,age,kcal:target,rmr:Math.round(bmr),kcalFloor:kcalFloor.floor,selected:calcMacroMode==='books'?null:{p:proteinG,f:fatG,c:carbG}})}</div>`;
 }
 
 // ════════ Twarde minimum kalorii (audyt 8.11.2026) ════════
@@ -2095,11 +2095,18 @@ function calcDietCardHTML(o){
   const td=dietTrainDaysNow();
   const restDay=!rest.same&&dietView!=='tydzien'&&dietDayType==='wolny';
   const shown=restDay?rest:t;
-  const opts={targets:t,rest,trainDays:td.days,dayType:dietDayType,meals:dietMeals,variant:dietVariant,prefs:dietPrefs,days:dietView==='3dni'?3:7,mealShift:dietMealShift,prep:dietPrep,people:dietPeople};
+  // Kreator (diet-wizard.js) dokłada do preferencji budżet i lunchbox jako zestawy dań; obliczenia bez zmian.
+  const prefsNow=typeof dietWizPrefs==='function'?dietWizPrefs(dietPrefs):dietPrefs;
+  const opts={targets:t,rest,trainDays:td.days,dayType:dietDayType,meals:dietMeals,variant:dietVariant,prefs:prefsNow,days:dietView==='3dni'?3:7,mealShift:dietMealShift,prep:dietPrep,people:dietPeople};
   const blocked=t.blocked||(restDay&&rest.blocked)||(dietView==='tydzien'&&!rest.same&&rest.blocked&&td.days.length<7);
   const day=blocked?null:dietView==='dzien'?DietPlan.dietBuildDay(Object.assign({},opts,{targets:shown})):DietPlan.dietBuildWeek(Object.assign({},opts,{targets:shown}));
   const cardT=blocked&&!t.blocked?(restDay||dietView==='tydzien'?rest:t):shown;
+  if(day&&typeof dietWizApplyEdits==='function')dietWizApplyEdits(day);
   window._dietLast={targets:shown,day};
+  if(typeof dietWizCardHTML==='function'){
+    window._dgCtx={t,rest,shown,cardT,day,blocked,td,review:calcDietReview(o)};
+    return dietWizCardHTML(window._dgCtx);
+  }
   const approval=window._dietApprovalOpen&&day?dietApprovalState(shown,day):null;
   return DietPlan.dietRenderCard(cardT,day,{approval,review:calcDietReview(o),meals:dietMeals,skipOpen:window._dietSkipOpen||false,openDay:window._dietOpenDay||0,train:t,rest,trainDays:td.days,trainDaysFromClient:td.fromClient,dayType:dietDayType});
 }
@@ -2188,7 +2195,9 @@ function dietPlanRecord(status){
   const now=new Date().toISOString();
   return{status,updatedAt:now,kcal:t.kcal,protein:t.protein.g,fat:t.fat.g,carbs:t.carbs.g,
     days:day.days?day.days.length:1,meals:dietMeals,prefs:day.prefs||null,
-    text:DietPlan.dietPlanText(t,day),checks:DietPlan.dietApprovalChecks(t,day,{risks:dietClientHealthRisks(dietCalcClient())}).map(x=>x.level+': '+x.text)};
+    text:DietPlan.dietPlanText(t,day),checks:DietPlan.dietApprovalChecks(t,day,{risks:dietClientHealthRisks(dietCalcClient())}).map(x=>x.level+': '+x.text),
+    // Nowy kreator: plan w formacie widoku klienta (Moje jedzenie), „Dlaczego taki plan?” i ustawienia kreatora.
+    ...(typeof dietWizRecordExtra==='function'?dietWizRecordExtra():{})};
 }
 function dietStorePlan(c,rec){
   if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
