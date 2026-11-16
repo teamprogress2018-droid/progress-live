@@ -1,0 +1,188 @@
+/* Widok planu żywieniowego (diet-plan-view.js). Kolory tylko z tokenów motywu. Wydruk: PRINT_CSS w JS (osobny dokument). */
+.dpv{max-width:960px;margin:0 auto;color:var(--text-primary);font-size:15px;line-height:1.45;box-sizing:border-box;min-width:0}
+.dpv *{box-sizing:border-box}
+.dpv-muted{color:var(--text-label);font-size:13px}
+.dpv-lead{margin:0 0 12px;color:var(--text-secondary)}
+.dpv-h2{margin:0;font-size:19px;font-weight:750;line-height:1.2}
+.dpv-h3{margin:0 0 8px;font-size:16px;font-weight:700}
+.dpv-lbl{display:block;font-size:13px;font-weight:650;color:var(--text-secondary);margin:0 0 6px}
+
+/* Nagłówek */
+.dpv-head{padding:20px;border:1px solid var(--border-subtle);border-radius:20px;background:var(--bg-card);margin-bottom:14px}
+.dpv-eyebrow{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-label)}
+.dpv-title{margin:4px 0 6px;font-size:28px;font-weight:780;line-height:1.1;letter-spacing:-.01em;overflow-wrap:anywhere}
+.dpv-goal{font-size:16px;margin-bottom:14px}
+.dpv-goal-lbl{display:inline-block;margin-right:6px;padding:2px 8px;border-radius:999px;background:var(--bg-subtle);color:var(--text-secondary);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.dpv-targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.dpv-target{padding:10px 12px;border-radius:14px;background:var(--bg-subtle);min-width:0}
+.dpv-target b{display:block;font-size:20px;font-weight:750;line-height:1.15;white-space:nowrap}
+.dpv-target span{font-size:12.5px;color:var(--text-label)}
+.dpv-meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:14px;color:var(--text-secondary)}
+.dpv-flexnote{margin:10px 0 0;padding:10px 12px;border-radius:12px;border:1px dashed var(--border-default);font-size:14px;color:var(--text-secondary)}
+
+/* Pasek trenera i zakładki */
+.dpv-tbar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.dpv-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 14px;padding:4px;border-radius:16px;background:var(--bg-subtle)}
+.dpv-tabs::-webkit-scrollbar{display:none}
+.dpv-tab{flex:1 1 auto;min-height:44px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:var(--text-secondary);font:inherit;font-size:14.5px;font-weight:650;cursor:pointer;white-space:nowrap}
+.dpv-tab.is-on{background:var(--bg-card);color:var(--text-primary);box-shadow:0 1px 3px rgba(16,24,40,.12)}
+.dpv-tab:focus-visible,.dpv-btn:focus-visible,.dpv-day:focus-visible,.dpv-link:focus-visible,.dpv-swaps summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* Przyciski */
+.dpv-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;border:1.5px solid var(--border-default);border-radius:12px;background:var(--bg-card);color:var(--text-primary);font:inherit;font-size:14.5px;font-weight:650;cursor:pointer}
+.dpv-btn:hover{background:var(--bg-hover)}
+.dpv-btn-sm{min-height:44px;font-size:13.5px;padding:0 12px}
+.dpv-btn-primary{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+.dpv-btn-primary:hover{background:var(--accent);filter:brightness(.96)}
+.dpv-link{min-height:44px;padding:0 4px;border:0;background:none;color:var(--text-primary);font:inherit;font-size:14px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.dpv-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+
+/* Dni */
+.dpv-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:0 0 12px}
+.dpv-day{position:relative;min-height:44px;border:1px solid var(--border-subtle);border-radius:12px;background:var(--bg-card);color:var(--text-primary);font:inherit;font-size:14px;font-weight:650;cursor:pointer}
+.dpv-day.is-on{border-color:var(--text-primary);background:var(--text-primary);color:var(--bg-card)}
+.dpv-dot{position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.dpv-dayhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin:0 0 10px}
+
+/* Karta posiłku */
+.dpv-meals{display:flex;flex-direction:column;gap:12px}
+.dpv-meal{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'main img' 'rest rest';column-gap:12px;padding:16px;border:1px solid var(--border-subtle);border-radius:18px;background:var(--bg-card);min-width:0}
+.dpv-meal.no-img{grid-template-areas:'main main' 'rest rest'}
+.dpv-meal-main{grid-area:main;min-width:0}
+.dpv-img{grid-area:img}
+.dpv-meal-rest{grid-area:rest;min-width:0}
+.dpv-slot{font-size:13px;font-weight:700;color:var(--text-label);text-transform:uppercase;letter-spacing:.04em}
+.dpv-name{margin:3px 0 6px;font-size:18px;font-weight:720;line-height:1.25;overflow-wrap:anywhere}
+.dpv-info{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:13.5px;color:var(--text-secondary)}
+.dpv-time{font-weight:650}
+.dpv-time::before{content:"";display:inline-block;width:.7em;height:.7em;margin-right:5px;border:2px solid currentColor;border-radius:50%;vertical-align:-1px}
+.dpv-macros{font-variant-numeric:tabular-nums}
+.dpv-img{flex:0 0 auto;width:88px;height:88px;object-fit:cover;border-radius:14px;background:var(--bg-subtle)}
+.dpv-tag{display:inline-block;margin-left:4px;padding:1px 7px;border-radius:999px;background:var(--bg-subtle);color:var(--text-secondary);font-size:11px;font-weight:650;text-transform:none;letter-spacing:0}
+.dpv-ings{list-style:none;margin:12px 0 0;padding:0}
+.dpv-ings li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid var(--border-subtle);font-size:15px}
+.dpv-ings li:last-child{border-bottom:0}
+.dpv-ing-n{min-width:0;overflow-wrap:anywhere}
+.dpv-ing-a{display:flex;flex-direction:column;align-items:flex-end;text-align:right;flex:0 0 auto}
+.dpv-ing-a b{white-space:nowrap}
+.dpv-home{font-size:12.5px;color:var(--text-label)}
+.dpv-prep{margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--bg-subtle)}
+.dpv-steps{margin:0;padding-left:22px}
+.dpv-steps li{margin:4px 0}
+.dpv-swaps{margin-top:10px;border-top:1px solid var(--border-subtle);padding-top:4px}
+.dpv-swaps summary{min-height:44px;display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:650;font-size:14.5px;list-style:none}
+.dpv-swaps summary::-webkit-details-marker{display:none}
+.dpv-swaps summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-right:4px}
+.dpv-swaps[open] summary::before{transform:rotate(45deg)}
+.dpv-swaprow{margin:6px 0 12px}
+.dpv-swapfor{font-size:13px;color:var(--text-label);margin-bottom:6px}
+.dpv-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.dpv-tile{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border-subtle);border-radius:12px;background:var(--bg-card);text-align:left;min-width:0}
+.dpv-tile b{font-size:14px;overflow-wrap:anywhere}
+.dpv-tile span{font-size:12.5px;color:var(--text-label);font-variant-numeric:tabular-nums}
+.dpv-tile.is-cur{background:var(--bg-subtle);border-color:var(--border-default)}
+.dpv-tile-btn{font:inherit;color:var(--text-primary);cursor:pointer;min-height:44px}
+.dpv-tile-btn:hover{border-color:var(--text-primary)}
+.dpv-alt{margin-top:10px;padding:12px;border-radius:14px;border:1px dashed var(--border-default)}
+.dpv-tacts{display:flex;flex-wrap:wrap;gap:0 14px;margin-top:8px;padding-top:6px;border-top:1px dashed var(--border-subtle)}
+
+/* Wskazówki na dzień */
+.dpv-daytips{margin-top:16px;padding:14px 16px;border-radius:16px;background:var(--bg-subtle)}
+.dpv-tipgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:0}
+.dpv-tipcell dt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-label)}
+.dpv-tipcell dd{margin:2px 0 0;font-size:14.5px}
+
+/* Cały tydzień */
+.dpv-week{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.dpv-wday{padding:14px;border:1px solid var(--border-subtle);border-radius:16px;background:var(--bg-card);display:flex;flex-direction:column;gap:8px;min-width:0}
+.dpv-wday.is-today{border-color:var(--text-primary)}
+.dpv-wday-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dpv-wday-h .dpv-h3{margin:0;font-size:15px}
+.dpv-wlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;flex:1}
+.dpv-wlist li{display:flex;align-items:center;gap:10px;min-width:0}
+.dpv-wlist img,.dpv-noimg{flex:0 0 40px;width:40px;height:40px;border-radius:10px;object-fit:cover;background:var(--bg-subtle)}
+.dpv-wl-t{display:flex;flex-direction:column;min-width:0;flex:1;font-size:14px;line-height:1.25}
+.dpv-wl-t b{font-weight:650;overflow-wrap:anywhere}
+.dpv-wl-t .dpv-muted{font-size:12px}
+.dpv-wl-k{flex:0 0 auto;font-size:13px;color:var(--text-label);font-variant-numeric:tabular-nums}
+
+/* Lista zakupów */
+.dpv-shop{display:block}
+.dpv-shopgroup{margin-bottom:14px;break-inside:avoid}
+.dpv-shoplist{list-style:none;margin:0;padding:0;border:1px solid var(--border-subtle);border-radius:14px;background:var(--bg-card);overflow:hidden}
+.dpv-shoplist li+li{border-top:1px solid var(--border-subtle)}
+.dpv-check{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 14px;cursor:pointer}
+.dpv-check input{width:22px;height:22px;flex:0 0 auto;accent-color:var(--accent)}
+.dpv-shop-n{flex:1;min-width:0}
+.dpv-shop-a{flex:0 0 auto;white-space:nowrap}
+.dpv-check.is-on .dpv-shop-n,.dpv-check.is-on .dpv-shop-a{text-decoration:line-through;color:var(--text-label)}
+
+/* Wskazówki */
+.dpv-tips{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.dpv-tips>.dpv-muted,.dpv-tips>.dpv-lbl,.dpv-tips>.dpv-input,.dpv-tips>.dpv-acts{grid-column:1/-1}
+.dpv-tipcard{padding:14px 16px;border:1px solid var(--border-subtle);border-radius:14px;background:var(--bg-card)}
+.dpv-tipcard b{display:block;margin-bottom:4px}
+.dpv-tipcard p{margin:0;color:var(--text-secondary)}
+.dpv-swapgroup{margin-bottom:16px}
+
+/* Edytor trenera */
+.dpv-editor{margin-top:12px;padding:14px;border:1.5px solid var(--border-default);border-radius:14px;background:var(--bg-subtle);display:flex;flex-direction:column;gap:10px}
+.dpv-fs{margin:0;padding:10px 12px;border:1px solid var(--border-subtle);border-radius:12px;background:var(--bg-card);min-width:0}
+.dpv-fs.is-focus{border-color:var(--text-primary)}
+.dpv-fs legend{padding:0 4px;font-size:13px;font-weight:700;color:var(--text-secondary)}
+.dpv-erow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0}
+.dpv-input{min-height:44px;padding:8px 10px;border:1px solid var(--border-strong);border-radius:10px;background:var(--bg-input);color:var(--text-primary);font:inherit;font-size:14.5px;min-width:0;width:100%}
+.dpv-erow .dpv-input{width:auto;flex:1 1 160px}
+.dpv-erow .dpv-num{flex:0 0 92px;width:92px}
+.dpv-unit{font-size:13px;color:var(--text-label);min-width:24px}
+.dpv-x{min-width:44px;min-height:44px;border:1px solid var(--border-subtle);border-radius:10px;background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font:inherit}
+
+/* Podgląd wydruku */
+.dpv-preview{position:fixed;inset:0;z-index:10050;display:flex;flex-direction:column;background:var(--bg-main)}
+.dpv-preview-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 16px;border-bottom:1px solid var(--border-subtle);background:var(--bg-card)}
+.dpv-grow{flex:1}
+.dpv-preview-frame{flex:1;width:100%;border:0;background:var(--bg-subtle)}
+
+/* Telefon */
+@media (max-width:600px){
+  .dpv{font-size:15px}
+  .dpv-head{padding:16px;border-radius:18px}
+  .dpv-title{font-size:24px}
+  .dpv-targets{gap:6px}
+  .dpv-target{padding:8px 6px;text-align:center;border-radius:12px}
+  .dpv-target b{font-size:16px}
+  .dpv-target span{font-size:11.5px}
+  .dpv-title{font-size:22px;margin:2px 0 4px}
+  .dpv-goal{margin-bottom:10px;font-size:15px}
+  .dpv-flexnote{padding:8px 10px;font-size:13.5px}
+  .dpv-meal{padding:14px}
+  .dpv-img{width:72px;height:72px;border-radius:12px}
+  .dpv-name{font-size:17px}
+  .dpv-acts .dpv-btn{flex:1 1 140px;padding:0 10px;font-size:14px;white-space:nowrap}
+  .dpv-tipgrid{grid-template-columns:1fr}
+  .dpv-days{gap:4px}
+  .dpv-day{font-size:13px;padding:0}
+  .dpv-tbar .dpv-btn{flex:1 1 45%}
+  .dpv-tiles{grid-template-columns:1fr 1fr}
+}
+@media (max-width:360px){.dpv-tiles{grid-template-columns:1fr}}
+
+/* Ctrl+P w aplikacji, gdy na ekranie jest plan: drukuje się tylko plan (host z diet-plan-view.js). */
+#dpv-print-host{display:none}
+@media print{
+  body.dpv-printing>*:not(#dpv-print-host){display:none!important}
+  body.dpv-printing #dpv-print-host{display:block!important}
+  body.dpv-printing{margin:0!important;padding:0!important;background:#fff!important;overflow:visible!important;height:auto!important}
+  .dpv-preview{display:none!important}
+}
+
+/* Komputer: tekst nie rozciąga się na całą szerokość karty */
+@media (min-width:760px){
+  .dpv-meal{padding:18px 20px;grid-template-areas:'main img' 'rest img';grid-template-rows:auto 1fr;column-gap:28px}
+  .dpv-meal.no-img{grid-template-areas:'main main' 'rest rest'}
+  .dpv-ings,.dpv-prep,.dpv-swaps,.dpv-alt{max-width:640px}
+  .dpv-ings li{padding:6px 0}
+  .dpv-ing-a{flex-direction:row-reverse;align-items:baseline;gap:10px}
+  .dpv-img{width:112px;height:112px}
+}
+.dpv-tile b .dpv-nw{white-space:nowrap;font-size:inherit;color:inherit}

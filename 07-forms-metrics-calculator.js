@@ -2209,7 +2209,9 @@ function dietDownloadPdf(){
   if(!last||!last.day){notify('Najpierw policz jadłospis');return false;}
   const c=dietCalcClient();
   const base=String(location.href).split('#')[0].split('?')[0].replace(/[^/]*$/,'');
-  const html=DietPlan.dietPlanPrintHTML(last.targets,last.day,{client:c&&c.name||'',date:new Date().toLocaleDateString('pl-PL'),base});
+  // Nowy wydruk (DietView): A4, stopka na każdej stronie, karty posiłków nie dzielą się między strony.
+  const html=window.DietView?DietView.printHTML(DietView.fromBuilt(last.targets,last.day,{client:c&&c.name||'',goalKey:c&&c.goal||'',kcal:last.targets.kcal,meals:dietMeals}),{base,autoprint:true})
+    :DietPlan.dietPlanPrintHTML(last.targets,last.day,{client:c&&c.name||'',date:new Date().toLocaleDateString('pl-PL'),base});
   // Bez „noopener”: z nim window.open zwraca null i nie da się wpisać treści do okna.
   const w=window.open('','_blank','width=860,height=900');
   if(!w){notify('Zablokowano okno — odblokuj pop-upy, żeby pobrać PDF');return false;}
