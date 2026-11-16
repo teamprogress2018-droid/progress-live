@@ -661,10 +661,10 @@ function unitOf(f){return f.unit==='szt'?1:100;}
 /** Porcja w granicach [min, max]; tłuszcz może zniknąć, gdy wychodzi go mniej niż pół porcji.
  *  Białko w przekąsce też (light), bo lepiej przekąska bez serka niż symboliczne 50 g;
  *  w głównym posiłku białko zostaje co najmniej w najmniejszej sensownej porcji. */
-function clampAmount(food,x,role,light){
-  if(role==='f'&&x<Math.max(3,food.min/2))return 0;
-  if(role==='p'&&light&&x<food.min*0.75)return 0;
-  const lo=food.min||0,hi=food.max||9999;
+function clampAmount(food,x,role,light,keep){
+  if(!keep&&role==='f'&&x<Math.max(3,food.min/2))return 0;
+  if(!keep&&role==='p'&&light&&x<food.min*0.75)return 0;
+  const lo=food.min||(keep?(food.unit==='szt'?1:5):0),hi=food.max||9999;
   const v=food.unit==='szt'?Math.round(x):round5(x);
   return Math.max(lo,Math.min(hi,v));
 }
@@ -672,8 +672,13 @@ function clampAmount(food,x,role,light){
 /** Gramatura jednego posiłku: dopasowanie węglowodanów, białka i tłuszczu w kilku przebiegach,
  *  z najmniejszą sensowną porcją każdego produktu. Gdy limit porcji obcina składnik,
  *  dochodzi drugi produkt z pasującej podgrupy (owoc do węglowodanów, nabiał do białka). */
+// Składnik z nazwy dania (np. masło orzechowe w „Lody bananowo-orzechowe”) nie może zniknąć z porcji,
+// bo wtedy nazwa przestaje się zgadzać z tym, co klient je. Dopasowanie po rdzeniu słowa (5 liter).
+function nameStems(name){return String(name||'').toLowerCase().split(/[^a-ząćęłńóśźż]+/).filter(w=>w.length>=5).map(w=>w.slice(0,5));}
+function inDishName(dish,id){const d=String(dish||'').toLowerCase();return!!d&&!!FOOD[id]&&nameStems(FOOD[id].name).some(st=>d.includes(st));}
 function solveMeal(tpl,target,allow,light){
   allow=allow||(()=>true);
+  const keep=new Set([tpl.p,tpl.c,tpl.f].filter(id=>id&&inDishName(tpl.dish,id)));
   const items=[];
   items.push({id:tpl.c,amount:0,role:'c'});
   items.push({id:tpl.p,amount:0,role:'p'});
@@ -682,7 +687,7 @@ function solveMeal(tpl,target,allow,light){
   const fit=i=>{
     const it=items[i],f=FOOD[it.id],key=it.role;
     if(!f[key])return;
-    it.amount=clampAmount(f,(target[key]-sumItems(items,i)[key])/f[key]*unitOf(f),key,light);
+    it.amount=clampAmount(f,(target[key]-sumItems(items,i)[key])/f[key]*unitOf(f),key,light,keep.has(it.id));
   };
   for(let pass=0;pass<6;pass++){
     items.forEach((it,i)=>{if(it.role!=='x')fit(i);});
@@ -767,7 +772,8 @@ function adaptTemplate(tpl,allow,today,light,like){
     out[role]=r?r.id:null;
   }
   // Inny produkt białkowy albo węglowodanowy = już nie to danie, więc bez nazwy.
-  if(out.changes.some(ch=>ch.from===tpl.p||ch.from===tpl.c)){out.dish='';out.img='';}
+  // Tak samo przy tłuszczu z nazwy dania (np. bez masła orzechowego przy alergii na orzeszki).
+  if(out.changes.some(ch=>ch.from===tpl.p||ch.from===tpl.c||inDishName(tpl.dish,ch.from))){out.dish='';out.img='';}
   return out;
 }
 /** Zestawy dla jednego rodzaju posiłku: najpierw pełne zgodne z preferencjami, potem przerobione;
@@ -822,10 +828,29 @@ function dietBuildDay(o){
     // cel posiłku zostaje ten sam, więc kalorie i makro dnia się nie zmieniają.
     const shift=Math.max(0,+(o.mealShift||{})[(+o.dayIndex||0)+':'+mi]||0);
     const fixed=o.fixVariant&&o.fixVariant[m.slot]!=null?Math.max(0,+o.fixVariant[m.slot]):variant;
-    const tpl=list[(fixed+seen-1+shift)%list.length];
+    const at=(fixed+seen-1+shift)%list.length;
     const k=m.share/shareLeft;
     const target={p:Math.max(0,(t.protein.g-done.p)/(n-mi)),c:Math.max(0,(t.carbs.g-done.c-Math.max(0,done.p-t.protein.g*mi/n))*k),f:Math.max(0,(t.fat.g-done.f)*k)};
     shareLeft-=m.share;
+    // Za dużo tłuszczu w posiłku (np. przy wykluczeniach zostają tłustsze produkty): sprawdź do 3 kolejnych
+    // zestawów i weź ten najbliżej celu. Nie dotyczy dania wybranego ręcznie ani gotowanego na zapas.
+    const over=tp=>sumItems(solveMeal(tp,target,allow,m.slot==='przekaska')).f-target.f;
+    const limit=Math.max(8,target.f*0.4);
+    const pickAt=a=>{
+      let best=list[a];
+      if(list.length<2||over(best)<=limit)return best;
+      let bestOver=over(best);
+      for(let j=1;j<=Math.min(3,list.length-1);j++){const cand=list[(a+j)%list.length];if(today.has(cand.p)&&cand.p!==list[a].p)continue;const ov=over(cand);if(ov<bestOver){best=cand;bestOver=ov;}}
+      return best;
+    };
+    let tpl;
+    if(o.fixVariant&&o.fixVariant[m.slot]!=null)tpl=list[at];
+    else if(shift>0){
+      // Zamiana: kolejne zestawy po kolei, z pominięciem tego, który był przed zamianą.
+      const a0=(fixed+seen-1)%list.length,base=pickAt(a0);
+      const seq=list.map((_,j)=>list[(a0+1+j)%list.length]).filter(x=>x!==base);
+      tpl=seq.length?seq[(shift-1)%seq.length]:base;
+    }else tpl=pickAt(at);
     const items=solveMeal(tpl,target,allow,m.slot==='przekaska').map(it=>Object.assign(it,{swaps:swapsFor(it,allow,new Set(prefs.like),m.slot==='sniadanie'||m.slot==='przekaska')}));
     const tot=sumItems(items);
     done=addM(done,tot);
