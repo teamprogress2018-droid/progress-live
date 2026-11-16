@@ -199,6 +199,7 @@
       <div class="dpv-eyebrow">Plan żywieniowy — ${esc(vm.period)}</div>
       <h1 class="dpv-title">${vm.first?esc(vm.first):'Twój plan'}</h1>
       <div class="dpv-goal"><span class="dpv-goal-lbl">Cel</span> ${esc(vm.goal)}</div>
+      <div class="dpv-tlabel">Cel dzienny</div>
       <div class="dpv-targets" data-dpv-targets>${tiles.map(([v,l])=>`<div class="dpv-target"><b>${esc(v)}</b><span>${l}</span></div>`).join('')}</div>
       <div class="dpv-meta"><span>${vm.mealsN} ${vm.mealsN>=5?'posiłków':'posiłki'} dziennie</span>${vm.water?`<span>Woda ${plNum(vm.water[0])}–${plNum(vm.water[1])} l</span>`:''}</div>
       <p class="dpv-flexnote">Plan jest elastyczny — korzystaj z zamienników.</p>
@@ -223,7 +224,7 @@
     const R=REG[id],vm=R.vm,st=R.st;
     const d=vm.days[st.day];
     if(!d)return'<p class="dpv-muted">Brak posiłków w planie.</p>';
-    return`${dayChips(id)}<div class="dpv-dayhead"><h2 class="dpv-h2" data-dpv-dayname>${dayLabel(vm,d,st.day)}</h2><span class="dpv-muted">${macroShort(d.total)}</span></div>
+    return`${dayChips(id)}<div class="dpv-dayhead"><h2 class="dpv-h2" data-dpv-dayname>${dayLabel(vm,d,st.day)}</h2><span class="dpv-muted" data-dpv-daytotal>${vm.days.length>1?'Suma tego dnia':'Suma przykładowego dnia'}: ${macroShort(d.total)}</span></div>
       <div class="dpv-meals">${d.meals.map((m,mi)=>mealHTML(id,st.day,mi)).join('')}</div>${daySumHTML(id)}${dayTipsHTML(vm,d)}${whyHTML(vm)}`;
   }
   /** Suma dnia: makro każdego posiłku (także wybranego zamiennika) i suma, obok celu. */
@@ -404,39 +405,62 @@
 
   /* ───────── Wydruk A4 ───────── */
   const PRINT_CSS=`
-.dpvp{font-family:Inter,Arial,Helvetica,sans-serif;color:#1f2328;font-size:10pt;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.dpvp{font-family:Inter,Arial,Helvetica,sans-serif;color:#1f2328;font-size:10.5pt;line-height:1.32;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .dpvp *{box-sizing:border-box}
 .dpvp .sheet{width:210mm;min-height:297mm;margin:0 auto 10mm;padding:14mm 13mm 18mm;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.18);position:relative}
 .dpvp .sheet-foot{position:absolute;left:13mm;right:13mm;bottom:7mm;font-size:8pt;color:#6b7280;display:flex;justify-content:space-between;border-top:.3mm solid #e5e7eb;padding-top:1.5mm}
-.dpvp h1{font-size:17pt;margin:0 0 .5mm;line-height:1.15}
-.dpvp .eyebrow{font-size:8.5pt;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;font-weight:700}
-.dpvp .goal{font-size:10.5pt;margin:0 0 2mm}
-.dpvp .targets{display:grid;grid-template-columns:repeat(5,1fr);gap:2mm;margin:0 0 2mm}
-.dpvp .targets div{border:.3mm solid #e5e7eb;border-radius:2mm;padding:1.2mm 2.5mm;background:#fafafa}
-.dpvp .targets b{display:block;font-size:12pt}
-.dpvp .targets span{font-size:8.5pt;color:#4b5563}
-.dpvp .flexnote{font-size:10pt;color:#374151;margin:0 0 3mm}
-.dpvp h2{font-size:13pt;margin:0 0 2mm;padding-bottom:1mm;border-bottom:.4mm solid #d1d5db;break-after:avoid;page-break-after:avoid;display:flex;justify-content:space-between;align-items:baseline;gap:4mm}
-.dpvp h2 small{font-size:9pt;font-weight:400;color:#4b5563}
+.dpvp .brand{display:flex;align-items:center;gap:4mm;margin:0 0 3mm}
+.dpvp .logo{font-weight:900;font-style:italic;font-size:17pt;letter-spacing:-.02em;color:#d40000;white-space:nowrap}
+.dpvp .logo{display:flex;align-items:center;padding-left:1.5mm}
+.dpvp .logo i{display:inline-block;width:1.6mm;height:5.5mm;background:#d40000;transform:skewX(-22deg);margin-right:1mm}
+.dpvp .logo i+i{margin-right:2.5mm}
+.dpvp .bline{flex:1;height:.5mm;background:#d40000}
+.dpvp .period{font-size:8.5pt;font-weight:700;color:#b30000;background:#fdecec;border-radius:1.5mm;padding:.8mm 2.5mm;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.dpvp h1{font-size:24pt;font-weight:900;margin:0 0 1mm;line-height:1.05;text-transform:uppercase;letter-spacing:-.01em}
+.dpvp .who{font-size:12pt;margin:0 0 4mm;display:flex;gap:3mm;flex-wrap:wrap}
+.dpvp .who .sep{color:#9ca3af}
+.dpvp .sect{display:flex;align-items:center;gap:3mm;margin:0 0 2.5mm}
+.dpvp .spill{background:#d40000;color:#fff;font-weight:800;font-size:12pt;padding:1mm 4mm;border-radius:2mm}
+.dpvp .bline{min-width:10mm}
+.dpvp .targets{display:grid;grid-template-columns:repeat(5,1fr);gap:2.5mm;margin:0 0 3mm}
+.dpvp .targets div{border-radius:2.5mm;padding:2.5mm 2mm;background:#fdf2f2;text-align:center}
+.dpvp .targets b{display:block;font-size:14pt;font-weight:800}
+.dpvp .targets span{font-size:9.5pt;color:#374151}
+.dpvp .flexnote{font-size:9.5pt;color:#374151;margin:0 0 4mm}
+.dpvp h2{font-size:13pt;margin:0 0 2.5mm;break-after:avoid;page-break-after:avoid;display:flex;justify-content:space-between;align-items:baseline;gap:4mm;flex-wrap:wrap}
+.dpvp h2 small{font-size:9.5pt;font-weight:400;color:#4b5563}
+.dpvp h2.daybar{background:#f1f2f4;border-radius:2.5mm;padding:2.5mm 4mm;align-items:center}
+.dpvp h2.daybar .dl{display:flex;align-items:center;gap:2.5mm;font-weight:800}
+.dpvp h2.daybar .dl i{display:inline-block;width:3mm;height:5mm;background:#d40000;transform:skewX(-20deg)}
+.dpvp h2.daybar .dv{color:#b30000;font-weight:800;font-size:12pt}
+.dpvp h2.daybar .dv em{font-style:normal;font-weight:600;color:#4b5563;font-size:10pt}
 .dpvp .blk{margin-top:0}
 .dpvp .newpage{break-before:page;page-break-before:always}
 .dpvp .sheet .newpage:first-child{break-before:auto;page-break-before:auto}
-.dpvp .meal{border:.3mm solid #e5e7eb;border-radius:2.5mm;padding:2mm 3mm;margin:0 0 2mm;background:#fff;break-inside:avoid;page-break-inside:avoid}
-.dpvp .mtop{display:flex;gap:3mm;justify-content:space-between;align-items:flex-start}
-.dpvp .mtop img{width:20mm;height:15mm;object-fit:cover;border-radius:1.5mm;flex:0 0 auto}
-.dpvp .slot{font-size:8.5pt;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.04em}
-.dpvp .mname{font-size:11pt;font-weight:700;margin:.2mm 0 .3mm}
-.dpvp .mk{font-size:9pt;color:#374151}
-.dpvp .mcols{display:grid;grid-template-columns:1.05fr 1fr;gap:4mm;margin-top:1mm}
+.dpvp .meal{border:.3mm solid #e5e7eb;border-radius:3mm;padding:2.5mm 3.5mm;margin:0 0 2.5mm;background:#fff;break-inside:avoid;page-break-inside:avoid}
+.dpvp .mhead{display:flex;align-items:center;gap:3mm}
+.dpvp .pill{background:#d40000;color:#fff;font-weight:800;font-size:10pt;border-radius:1.5mm;padding:.6mm 2.5mm;white-space:nowrap}
+.dpvp .mname{font-size:13pt;font-weight:800;line-height:1.2;border-left:.5mm solid #d40000;padding-left:3mm}
+.dpvp .mk{font-size:9.5pt;color:#4b5563;margin:1mm 0 2mm}
+.dpvp .mgrid{display:grid;grid-template-columns:34mm 1fr 1fr;gap:4mm;align-items:start}
+.dpvp .meal.noimg .mgrid{grid-template-columns:1fr 1fr}
+.dpvp img.mimg{width:34mm;height:26mm;object-fit:cover;border-radius:2.5mm}
+.dpvp .mcol+.mcol{border-left:.3mm solid #e5e7eb;padding-left:4mm}
+.dpvp .lbl{background:#fdecec;color:#b30000;font-weight:800;font-size:10pt;border-radius:1.5mm;padding:.6mm 2.5mm;margin:0 0 1.5mm}
 .dpvp ul.ings{list-style:none;margin:0;padding:0}
-.dpvp ul.ings li{display:flex;justify-content:space-between;gap:2mm;border-bottom:.2mm dotted #d1d5db;padding:.15mm 0;font-size:10pt}
-.dpvp ul.ings li b{white-space:nowrap}
-.dpvp ol.steps{margin:0;padding-left:4.5mm;font-size:10pt;color:#374151}
-.dpvp ol.steps li{margin:0 0 .2mm}
-.dpvp .sw{margin-top:1mm;font-size:9pt;color:#4b5563}
-.dpvp .sw span{display:inline-block;border:.25mm solid #e5e7eb;border-radius:1.2mm;padding:0 1.4mm;margin:.3mm 1mm 0 0;background:#fafafa}
+.dpvp ul.ings li{display:flex;align-items:baseline;gap:2mm;padding:.3mm 0;font-size:10.5pt;border-bottom:.2mm dotted #e5e7eb}
+.dpvp ul.ings li::before{content:"";flex:0 0 1.4mm;height:1.4mm;border-radius:50%;background:#d40000;align-self:center}
+.dpvp ul.ings li span{flex:1}
+.dpvp ul.ings li b{white-space:nowrap;text-align:right}
+.dpvp ul.ings li small{font-weight:400;font-size:8.5pt;color:#6b7280;margin-left:1.2mm}
+.dpvp ol.steps{margin:0;padding:0;list-style:none;counter-reset:st;font-size:10pt;color:#1f2328}
+.dpvp ol.steps li{counter-increment:st;display:flex;gap:2mm;align-items:flex-start;margin:0 0 1mm}
+.dpvp ol.steps li::before{content:counter(st);flex:0 0 4.6mm;height:4.6mm;border-radius:50%;background:#d40000;color:#fff;font-size:8pt;font-weight:800;text-align:center;line-height:4.6mm;margin-top:.2mm}
+.dpvp .sw{margin-top:2mm;font-size:9pt;color:#374151;border-top:.3mm dashed #e5e7eb;padding-top:1.5mm}
+.dpvp .sw span{display:inline-block;border:.25mm solid #e5e7eb;border-radius:1.2mm;padding:0 1.6mm;margin:.4mm 1mm 0 0;background:#fafafa}
+.dpvp .sw i{font-style:normal;color:#6b7280}
 .dpvp .daytips{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin:0 0 5mm;font-size:10pt;break-inside:avoid}
-.dpvp .daytips div{border-left:.8mm solid #d1d5db;padding:.6mm 2mm}
+.dpvp .daytips div{border-left:.8mm solid #d40000;padding:.6mm 2mm}
 .dpvp .daytips b{display:block;font-size:8.5pt;color:#6b7280;text-transform:uppercase;letter-spacing:.04em}
 .dpvp table.sum{width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 2mm;break-inside:avoid;page-break-inside:avoid}
 .dpvp table.sum caption{text-align:left;font-weight:700;font-size:9pt;color:#374151;padding:0 0 1mm;text-transform:uppercase;letter-spacing:.04em}
@@ -462,17 +486,20 @@
   .dpvp .sheet{width:auto!important;min-height:0!important;margin:0!important;padding:0!important;box-shadow:none!important;break-after:page;page-break-after:always}
   .dpvp .sheet:last-child{break-after:auto;page-break-after:auto}
   .dpvp .sheet-foot{display:none!important}
-  .dpvp img{max-width:22mm}
+  .dpvp img.mimg{max-width:34mm}
   .dpvp *{position:static!important}
   .dpv-noprint{display:none!important}
 }`;
-  function printMealHTML(m,i,base){
+  function printMealHTML(m,i,base,time){
     const title=mealTitle(m);
-    const sw=m.items.filter(it=>it.swaps.length&&it.role!=='x').slice(0,2);
-    return`<div class="blk meal"><div class="mtop"><div><div class="slot">${i+1}. ${esc(m.slot)}${m.min?' · '+m.min+' min':''}</div><div class="mname">${esc(title)}</div><div class="mk">${macroLine(m.total)}</div></div>${m.img?`<img src="${esc((base||'')+'assets/dania/'+m.img)}" alt="">`:''}</div>
-      <div class="mcols"><ul class="ings">${m.items.map(it=>{const h=home(it.id,it.amount);return`<li><span>${esc(shortName(food(it.id)))}</span><b>${esc(amt(it.id,it.amount))}${h?` <span style="font-weight:400;color:#6b7280">(${esc(h)})</span>`:''}</b></li>`;}).join('')}</ul>
-      <ol class="steps">${steps(m).map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div>
-      ${sw.length?`<div class="sw">Zamienniki: ${sw.map(it=>`<span>${esc(shortName(food(it.id)).toLowerCase())} → ${it.swaps.slice(0,2).map(s=>esc(shortName(food(s.id)).toLowerCase())+' '+esc(amt(s.id,s.amount))).join(' / ')}</span>`).join('')}</div>`:''}</div>`;
+    const sw=m.items.filter(it=>it.swaps.length&&it.role!=='x').slice(0,3);
+    const meta=[esc(m.slot)+(time?' · ok. '+esc(time):''),m.min?m.min+' min':'',macroLine(m.total)].filter(Boolean).join(' · ');
+    const swTxt=s=>`${esc(shortName(food(s.id)).toLowerCase())} ${esc(amt(s.id,s.amount))} <i>(${r(macros(s.id,s.amount).kcal)} kcal)</i>`;
+    return`<div class="blk meal${m.img?'':' noimg'}"><div class="mhead"><span class="pill">Posiłek ${i+1}</span><span class="mname">${esc(title)}</span></div><div class="mk">${meta}</div>
+      <div class="mgrid">${m.img?`<img class="mimg" src="${esc((base||'')+'assets/dania/'+m.img)}" alt="">`:''}
+      <div class="mcol"><div class="lbl">Składniki</div><ul class="ings">${m.items.map(it=>{const h=home(it.id,it.amount);return`<li><span>${esc(shortName(food(it.id)))}</span><b>${esc(amt(it.id,it.amount))}${h?`<small>${esc(h)}</small>`:''}</b></li>`;}).join('')}</ul></div>
+      <div class="mcol"><div class="lbl">Przygotowanie</div><ol class="steps">${steps(m).map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div></div>
+      ${sw.length?`<div class="sw"><b>Zamienniki</b> (porcje przeliczone na podobne kcal i makro): ${sw.map(it=>`<span>${esc(shortName(food(it.id)).toLowerCase())} ${esc(amt(it.id,it.amount))} → ${it.swaps.slice(0,2).map(swTxt).join(' lub ')}</span>`).join('')}</div>`:''}</div>`;
   }
   function footText(vm){return`Progress Live · Plan dla ${vm.client||'klienta'} · ${vm.date}`;}
   /** Treść wydruku (bez <html>): kartki A4, każdy dzień od nowej strony, na końcu lista zakupów i wskazówki. */
@@ -480,15 +507,18 @@
     opts=opts||{};
     const base=opts.base||'';
     const foot=footText(vm);
-    const head=`<div class="eyebrow">Plan żywieniowy — ${esc(vm.period)}</div><h1>${esc(vm.client||'Plan żywieniowy')}</h1><p class="goal">Cel: <b>${esc(vm.goal)}</b></p>
-      <div class="targets"><div><b>${r(vm.kcal)}</b><span>kcal dziennie</span></div><div><b>${vm.p} g</b><span>białko</span></div><div><b>${vm.f} g</b><span>tłuszcze</span></div><div><b>${vm.c} g</b><span>węglowodany</span></div><div><b>${vm.mealsN}</b><span>posiłków dziennie</span></div></div>
-      <p class="flexnote">Plan jest elastyczny — korzystaj z zamienników.</p>`;
+    const head=`<div class="brand"><span class="logo"><i></i><i></i>PROGRESS</span><span class="bline"></span><span class="period">${esc(vm.period)}</span></div>
+      <h1>Plan żywieniowy</h1><p class="who">${vm.client?`<span>${esc(vm.client)}</span><span class="sep">|</span>`:''}<span>Cel: <b>${esc(vm.goal)}</b></span></p>
+      <div class="sect"><span class="spill">Cel dzienny</span><span class="bline"></span></div>
+      <div class="targets"><div><b>${r(vm.kcal)} kcal</b><span>Kaloryczność</span></div><div><b>${vm.p} g</b><span>Białko</span></div><div><b>${vm.f} g</b><span>Tłuszcze</span></div><div><b>${vm.c} g</b><span>Węglowodany</span></div><div><b>${vm.mealsN}</b><span>${vm.mealsN>=5?'Posiłków':'Posiłki'}</span></div></div>
+      <p class="flexnote">Cel dzienny to wartości, do których dążymy. Suma przykładowego dnia wynika z realnych porcji i może się różnić o kilka procent. Plan jest elastyczny — korzystaj z zamienników.</p>`;
     const move=d=>d.type==='trening'?'Trening według planu':d.type==='wolny'?'Spacer 20–30 minut':'Spacer 20 minut';
     const blocks=[`<div class="blk head">${head}</div>`];
     if(!opts.shopOnly&&vm.why&&vm.why.length)blocks.push(`<div class="blk note why"><b>Dlaczego taki plan?</b> ${vm.why.map(esc).join(' ')}</div>`);
     if(!opts.shopOnly)vm.days.forEach((d,i)=>{
-      blocks.push(`<h2 class="blk" data-dpvp-day="${i}">${esc(d.name)}${d.type?` · ${d.type==='trening'?'dzień treningowy':'dzień bez treningu'}`:''}<small>${macroShort(d.total)}</small></h2>`);
-      d.meals.forEach((m,mi)=>blocks.push(printMealHTML(m,mi,base)));
+      const lbl=vm.days.length>1?esc(d.name)+(d.type?` <small>${d.type==='trening'?'dzień treningowy':'dzień bez treningu'}</small>`:''):'Przykładowy dzień';
+      blocks.push(`<h2 class="blk daybar" data-dpvp-day="${i}"><span class="dl"><i></i>${lbl}</span><span class="dv"><em>suma:</em> ${r(d.total.kcal)} kcal • B ${r(d.total.p)} g • T ${r(d.total.f)} g • W ${r(d.total.c)} g</span></h2>`);
+      d.meals.forEach((m,mi)=>blocks.push(printMealHTML(m,mi,base,vm.times&&vm.times[mi])));
       blocks.push(`<div class="blk daysum">${sumTable('sum','Suma dnia — '+d.name,d.meals.map((m,mi)=>[(mi+1)+'. '+m.slot,m.total]),[['Suma dnia',d.total,'is-total'],['Cel na dzień',targetOf(vm),'is-goal']])}</div>`);
       blocks.push(`<div class="blk daytips"><div><b>Woda</b>${vm.water?`${plNum(vm.water[0])}–${plNum(vm.water[1])} l`:'2–2,5 l'}</div><div><b>Ruch</b>${move(d)}</div><div><b>Nawyk</b>${esc(vm.habit)}</div></div>`);
     });

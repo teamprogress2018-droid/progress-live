@@ -51,8 +51,13 @@ ok('wydruk: A4 i marginesy 12–15 mm',/@page dpv\{size:A4 portrait;margin:14mm 
 ok('wydruk: stopka na każdej stronie',html.includes('@bottom-left{content:"Progress Live · Plan dla Anna Kowalczyk · 16.11.2026"'));
 ok('wydruk: karty nie dzielą się między strony',/\.dpvp \.meal\{[^}]*break-inside:avoid/.test(html));
 ok('wydruk: bez fixed i sticky w planie',/@media print\{[\s\S]*\.dpvp \*\{position:static!important\}/.test(html)&&!/position:(fixed|sticky)/.test(html.replace(/\.dpv-preview\{[^}]*\}/,'')));
-ok('wydruk: czcionka min. 10 pt w treści',/\.dpvp\{[^}]*font-size:10pt/.test(html)&&/ul\.ings li\{[^}]*font-size:10pt/.test(html));
-ok('wydruk: wszystkie posiłki i lista zakupów',(html.match(/class="blk meal"/g)||[]).length===35&&html.includes('Lista zakupów na tydzień'));
+const pt=re=>{const m=html.match(re);return m?parseFloat(m[1]):0;};
+ok('wydruk: czcionka min. 10 pt w treści',pt(/\.dpvp\{[^}]*font-size:([\d.]+)pt/)>=10&&pt(/ul\.ings li\{[^}]*font-size:([\d.]+)pt/)>=10&&pt(/ol\.steps\{[^}]*font-size:([\d.]+)pt/)>=10);
+ok('wydruk: styl Progress (cel dzienny, posiłek, składniki, przygotowanie)',html.includes('Cel dzienny')&&html.includes('class="pill">Posiłek 1<')&&html.includes('>Składniki<')&&html.includes('>Przygotowanie<'));
+ok('wydruk: cel dzienny oddzielony od sumy dnia',/class="blk daybar"[^>]*>[\s\S]*?<em>suma:<\/em>/.test(html)&&html.includes('Suma przykładowego dnia wynika z realnych porcji'));
+ok('wydruk: zamienniki z porcją i kcal',/class="sw"><b>Zamienniki<\/b>[\s\S]*?\d+ g <i>\(\d+ kcal\)<\/i>/.test(html));
+
+ok('wydruk: wszystkie posiłki i lista zakupów',(html.match(/class="blk meal[ "]/g)||[]).length===35&&html.includes('Lista zakupów na tydzień'));
 ok('wydruk: zdjęcia z adresu aplikacji',html.includes('<base href="https://x.test/app/">')&&html.includes('src="assets/dania/'));
 ok('wydruk: podział na strony w dokumencie',html.includes(V.PAGINATE.slice(0,40)));
 ok('wydruk: suma dnia pod posiłkami każdego dnia',(html.match(/class="blk daysum"/g)||[]).length===7&&html.includes('Suma dnia — Poniedziałek'));
