@@ -25,6 +25,21 @@
   function roundAmt(id,a){const f=food(id);if(f.unit==='szt')return Math.max(1,Math.round(a));const v=Math.round(a/5)*5;return Math.max(5,v);}
   const macroLine=m=>`${r(m.kcal)} kcal · B: ${r(m.p)} g · T: ${r(m.f)} g · W: ${r(m.c)} g`;
   const macroShort=m=>`${r(m.kcal)} kcal · B ${r(m.p)} · T ${r(m.f)} · W ${r(m.c)}`;
+  /** Tabela sum: wiersze [etykieta, makro], stopka [etykieta, makro, klasa]. Ta sama dla ekranu i wydruku. */
+  function sumTable(cls,caption,rows,foot,head){
+    const td=m=>`<td>${r(m.kcal)}</td><td>${r(m.p)} g</td><td>${r(m.f)} g</td><td>${r(m.c)} g</td>`;
+    return`<table class="${cls}"><caption>${esc(caption)}</caption><thead><tr><th scope="col">${head||'Posiłek'}</th><th scope="col">kcal</th><th scope="col">Białko</th><th scope="col">Tłuszcze</th><th scope="col">Węgl.</th></tr></thead>
+      <tbody>${rows.map(([l,m])=>`<tr><th scope="row">${esc(l)}</th>${td(m)}</tr>`).join('')}</tbody>
+      <tfoot>${foot.map(([l,m,c])=>`<tr${c?` class="${c}"`:''}><th scope="row">${esc(l)}</th>${td(m)}</tr>`).join('')}</tfoot></table>`;
+  }
+  const weekTotal=vm=>vm.days.reduce((s,d)=>add(s,d.total),ZERO);
+  const scale=(m,k)=>({kcal:m.kcal*k,p:m.p*k,f:m.f*k,c:m.c*k});
+  const targetOf=vm=>({kcal:vm.kcal||0,p:vm.p||0,f:vm.f||0,c:vm.c||0});
+  function weekSumHTML(vm,cls,wrap){
+    if(vm.days.length<2)return'';
+    const tot=weekTotal(vm),n=vm.days.length;
+    return`<section class="${wrap}" data-dpv-weeksum>${sumTable(cls,n===7?'Podsumowanie tygodnia':'Podsumowanie planu',vm.days.map(d=>[d.name,d.total]),[[n===7?'Suma tygodnia':'Suma '+n+' dni',tot,'is-total'],['Średnio dziennie',scale(tot,1/n),''],['Cel na dzień',targetOf(vm),'is-goal']],'Dzień')}</section>`;
+  }
   const plNum=v=>String(v).replace('.',',');
 
   const GOAL_LBL={redukcja:'Łagodna redukcja',masa:'Spokojny wzrost masy',sila:'Więcej siły',kondycja:'Lepsza kondycja',sprawnosc:'Lepsza sprawność',zdrowie:'Zdrowie i dobre samopoczucie',utrzymanie:'Utrzymanie wagi'};
@@ -206,7 +221,14 @@
     const d=vm.days[st.day];
     if(!d)return'<p class="dpv-muted">Brak posiłków w planie.</p>';
     return`${dayChips(id)}<div class="dpv-dayhead"><h2 class="dpv-h2" data-dpv-dayname>${dayLabel(vm,d,st.day)}</h2><span class="dpv-muted">${macroShort(d.total)}</span></div>
-      <div class="dpv-meals">${d.meals.map((m,mi)=>mealHTML(id,st.day,mi)).join('')}</div>${dayTipsHTML(vm,d)}`;
+      <div class="dpv-meals">${d.meals.map((m,mi)=>mealHTML(id,st.day,mi)).join('')}</div>${daySumHTML(id)}${dayTipsHTML(vm,d)}`;
+  }
+  /** Suma dnia: makro każdego posiłku (także wybranego zamiennika) i suma, obok celu. */
+  function daySumHTML(id){
+    const R=REG[id],d=R.vm.days[R.st.day];
+    const shown=d.meals.map((m,mi)=>shownMeal(id,R.st.day,mi).m);
+    const tot=shown.reduce((s,m)=>add(s,m.total),ZERO);
+    return`<section class="dpv-sum" data-dpv-daysum>${sumTable('dpv-sumt','Suma dnia',shown.map((m,mi)=>[(mi+1)+'. '+d.meals[mi].slot,m.total]),[['Suma dnia',tot,'is-total'],['Cel na dzień',targetOf(R.vm),'is-goal']])}</section>`;
   }
   function shownMeal(id,di,mi){
     const R=REG[id],d=R.vm.days[di],ch=R.st.choice[di+':'+mi];
@@ -268,8 +290,9 @@
     const vm=REG[id].vm,o=REG[id].opts;
     return`<div class="dpv-week">${vm.days.map((d,i)=>`<section class="dpv-wday${i===vm.today&&vm.days.length===7?' is-today':''}" data-dpv-wday="${i}">
       <div class="dpv-wday-h"><h2 class="dpv-h3">${dayLabel(vm,d,i)}</h2><span class="dpv-muted">${r(d.total.kcal)} kcal</span></div>
-      <ol class="dpv-wlist">${d.meals.map((m,mi)=>`<li>${m.img?`<img src="${esc((o.base||'')+'assets/dania/'+m.img)}" alt="" loading="lazy" width="40" height="40">`:'<span class="dpv-noimg" aria-hidden="true"></span>'}<span class="dpv-wl-t"><span class="dpv-muted">${mi+1}. ${esc(m.slot)}</span><b>${esc(mealTitle(m))}</b></span><span class="dpv-wl-k">${r(m.total.kcal)} kcal</span></li>`).join('')}</ol>
-      <button type="button" class="dpv-btn dpv-btn-sm" onclick="dpvOpenDay('${id}',${i})">Otwórz dzień</button></section>`).join('')}</div>`;
+      <ol class="dpv-wlist">${d.meals.map((m,mi)=>`<li>${m.img?`<img src="${esc((o.base||'')+'assets/dania/'+m.img)}" alt="" loading="lazy" width="40" height="40">`:'<span class="dpv-noimg" aria-hidden="true"></span>'}<span class="dpv-wl-t"><span class="dpv-muted">${mi+1}. ${esc(m.slot)}</span><b>${esc(mealTitle(m))}</b></span><span class="dpv-wl-k">${r(m.total.kcal)} kcal<small>B ${r(m.total.p)} · T ${r(m.total.f)} · W ${r(m.total.c)}</small></span></li>`).join('')}</ol>
+      <div class="dpv-wsum" data-dpv-wsum="${i}"><span>Suma dnia</span><b>${macroShort(d.total)}</b></div>
+      <button type="button" class="dpv-btn dpv-btn-sm" onclick="dpvOpenDay('${id}',${i})">Otwórz dzień</button></section>`).join('')}</div>${weekSumHTML(vm,'dpv-sumt','dpv-sum dpv-sum-week')}`;
   }
   /** Zamienniki: każdy produkt z planu raz, z porcją z pierwszego posiłku i zamiennikami o tym samym głównym składniku. */
   function swapsHTML(id){
@@ -386,6 +409,13 @@
 .dpvp .daytips{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin:0 0 5mm;font-size:10pt;break-inside:avoid}
 .dpvp .daytips div{border-left:.8mm solid #d1d5db;padding:.6mm 2mm}
 .dpvp .daytips b{display:block;font-size:8.5pt;color:#6b7280;text-transform:uppercase;letter-spacing:.04em}
+.dpvp table.sum{width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 2mm;break-inside:avoid;page-break-inside:avoid}
+.dpvp table.sum caption{text-align:left;font-weight:700;font-size:9pt;color:#374151;padding:0 0 1mm;text-transform:uppercase;letter-spacing:.04em}
+.dpvp table.sum th,.dpvp table.sum td{padding:.5mm 1.5mm;border-bottom:.2mm solid #e5e7eb;text-align:right;white-space:nowrap}
+.dpvp table.sum th[scope=row],.dpvp table.sum thead th:first-child{text-align:left;font-weight:400;white-space:normal}
+.dpvp table.sum thead th{font-size:8.5pt;color:#6b7280;font-weight:700}
+.dpvp table.sum tr.is-total th,.dpvp table.sum tr.is-total td{font-weight:700;border-top:.4mm solid #374151;background:#f3f4f6}
+.dpvp table.sum tr.is-goal th,.dpvp table.sum tr.is-goal td{color:#4b5563}
 .dpvp .shop{columns:3;column-gap:6mm;margin-bottom:2mm}
 .dpvp .shop section{break-inside:avoid;margin:0 0 3mm}
 .dpvp .shop h3{font-size:9.5pt;margin:0 0 1mm;color:#374151}
@@ -428,8 +458,10 @@
     vm.days.forEach((d,i)=>{
       blocks.push(`<h2 class="blk" data-dpvp-day="${i}">${esc(d.name)}${d.type?` · ${d.type==='trening'?'dzień treningowy':'dzień bez treningu'}`:''}<small>${macroShort(d.total)}</small></h2>`);
       d.meals.forEach((m,mi)=>blocks.push(printMealHTML(m,mi,base)));
+      blocks.push(`<div class="blk daysum">${sumTable('sum','Suma dnia — '+d.name,d.meals.map((m,mi)=>[(mi+1)+'. '+m.slot,m.total]),[['Suma dnia',d.total,'is-total'],['Cel na dzień',targetOf(vm),'is-goal']])}</div>`);
       blocks.push(`<div class="blk daytips"><div><b>Woda</b>${vm.water?`${plNum(vm.water[0])}–${plNum(vm.water[1])} l`:'2–2,5 l'}</div><div><b>Ruch</b>${move(d)}</div><div><b>Nawyk</b>${esc(vm.habit)}</div></div>`);
     });
+    if(!opts.shopOnly&&vm.days.length>1)blocks.push(`<div class="blk weeksum">${weekSumHTML(vm,'sum','wk')}</div>`);
     const span=vm.shopDays===7?'na tydzień':vm.shopDays===1?'na 1 dzień':'na '+vm.shopDays+' dni';
     blocks.push(`<h2 class="blk newpage" data-dpvp-shop>Lista zakupów ${span}${vm.people>1?' dla '+vm.people+' osób':''}</h2>`);
     blocks.push(`<div class="blk shop">${shopGroups(vm).map(g=>`<section><h3>${esc(g.l)}</h3><ul>${g.items.map(s=>`<li><span>${esc(shortName(food(s.id)))}</span><b>${esc(shopAmt(s.id,s.amount))}</b></li>`).join('')}</ul></section>`).join('')}</div>`);
