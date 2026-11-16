@@ -1258,7 +1258,7 @@ function cwLoggedExercises(cw){
   return (cw.exercises||[]).map((ex,i)=>({
     name:ex.name||'',plannedName:ex.plannedName||ex.name||'',exerciseId:ex.exerciseId||'',loadUnit:ex.loadUnit||'kg',
     plannedSets:((cw.planSnapshot||[])[i]?.sets||[]),
-    sets:(ex.sets||[]).filter(s=>s.done).map(s=>({setNo:s.setNo,kg:s.kg||'',reps:s.reps||'',rir:s.rir||'',kind:s.kind||'work',confirmed:true})),
+    sets:(ex.sets||[]).filter(s=>s.done).map(s=>({setNo:s.setNo,kg:s.kg||'',reps:s.reps||'',rir:s.rir||'',rirReported:!!s.rirReported,kind:s.kind||'work',confirmed:true})),
     skipped:!!ex.skipped,skipReason:ex.skipReason||'',approvedAlternatives:(ex.approvedAlts||[]).slice()
   }));
 }
@@ -1447,7 +1447,9 @@ function cwStartRest(seconds,kind){
     window._cw.restLeft-=1;
     const left=Math.max(0,window._cw.restLeft);
     const n=document.getElementById('cw-rest-num');
-    if(n)n.textContent=left;
+    if(n)n.textContent=typeof csRestClock==='function'?csRestClock(left):left;
+    const clk=document.getElementById('cw-clock');
+    if(clk)clk.textContent=cwFmt(window._cw.elapsed);
     cwRestAnnounce(left);
     if(window._cw.restLeft<=0){cwRestDoneSignal();cwSkipRest();}
   },1000);
@@ -1511,7 +1513,7 @@ function cwCheckSet(setIdx){
   if(!st.done){if(cw.lastSaved&&cw.lastSaved.exIdx===cw.exIdx&&cw.lastSaved.setIdx===setIdx)cw.lastSaved=null;cwRender();return;}
   cw.sheet=null;
   // „Seria 1 z 4 zapisana ✓” + „Cofnij” przez kilka sekund (także na ekranie przerwy).
-  cw.lastSaved={exIdx:cw.exIdx,setIdx,at:Date.now(),label:'Seria '+(setIdx+1)+' z '+ex.sets.length+' zapisana'};
+  cw.lastSaved={exIdx:cw.exIdx,setIdx,at:Date.now(),label:'Seria '+(setIdx+1)+' z '+ex.sets.length+' zapisana'+(st.reps&&typeof csRestHTML==='function'?' · '+String(st.reps)+(st.kg?' × '+String(st.kg).replace('.',',')+(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg')?' kg':''):''):'')};
   const prMsg=typeof prToastText==='function'?prToastText(window._clientId,ex.name,st.kg,st.reps):'';
   if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
     cwEnsureEmomClock();
@@ -1713,7 +1715,7 @@ function cwRenderBase(){
   const back=`<button type="button" class="cs-back-btn" aria-label="Wróć — trening zostanie zapisany do wznowienia" onclick="cwClose()">${typeof csIcon==='function'?csIcon('back',20):'‹'}<span>Wróć</span></button>`;
   const sheet=typeof csSheetHTML==='function'?csSheetHTML(cw):'';
   // Ćwiczenie i lista rozpoczętego treningu: stały nagłówek i dół, przewija się środek (safe area iPhone'a).
-  const exMode=(cw.phase==='exercise'&&typeof cwSimpleExerciseHTML==='function')||(cw.phase==='overview'&&typeof csOverviewHTML==='function'&&typeof cwStarted==='function'&&cwStarted(cw));
+  const exMode=(cw.phase==='exercise'&&typeof cwSimpleExerciseHTML==='function')||(cw.phase==='rest'&&typeof csRestHTML==='function')||(cw.phase==='overview'&&typeof csOverviewHTML==='function'&&typeof cwStarted==='function'&&cwStarted(cw));
   el.classList.toggle('cw-ex-mode',!!exMode);
   if(cw.phase==='overview'&&exMode){el.innerHTML=csOverviewHTML(cw)+sheet;return;}
   if(cw.phase==='overview'){
@@ -1726,6 +1728,11 @@ function cwRenderBase(){
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}${typeof exerciseIntensificationMethods==='function'&&exerciseIntensificationMethods(ex).length?' · ⚡':''}</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
+    return;
+  }
+  if(cw.phase==='rest'&&typeof csRestHTML==='function'){
+    el.innerHTML=csRestHTML(cw)+sheet;
+    if(typeof cwScheduleSavedHide==='function')cwScheduleSavedHide(cw);
     return;
   }
   if(cw.phase==='rest'){

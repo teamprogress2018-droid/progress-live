@@ -2727,10 +2727,16 @@ function parsePlanExercise(ex){
     cluster:parseSetKindCount(ex.cluster,3),
     rp:parseSetKindCount(ex.rp,2),
     amrap:isAmrapFlag(ex.amrap),
-    loadUnit:normalizeLoadUnit(ex.loadUnit||ex.load)||''
+    loadUnit:normalizeLoadUnit(ex.loadUnit||ex.load)||'',
+    // Oznaczenia trenera dla ekranu treningu klienta: ważna uwaga, kluczowe tempo, wymagana ocena zapasu.
+    noteKey:isPlanFlag(ex.noteKey||ex.importantNote),
+    tempoKey:isPlanFlag(ex.tempoKey),
+    rirRequired:isPlanFlag(ex.rirRequired||ex.rirReq)
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+function isPlanFlag(v){return v===true||v===1||v==='1'||v==='true';}
+window.isPlanFlag=isPlanFlag;
 
 function parseSetKindCount(v,max){
   const n=parseInt(v,10);
@@ -5978,6 +5984,10 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
       tempo:ex.tempo||'',
       rpe:ex.rpe||'',
       rir:typeof plannedRir==='function'?plannedRir(ex):(ex.rir||''),
+      planReps:ex.reps||'',
+      noteKey:!!ex.noteKey,
+      tempoKey:!!ex.tempoKey,
+      rirRequired:!!(ex.rirRequired||(plan&&isPlanFlag(plan.requireRir))),
       pct1rm:pct,
       loadUnit,
       kgHint:fromPct?fromPct.hint:'',
