@@ -163,6 +163,7 @@ function csTodayHTML(c){
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}
     ${csPayCardHTML(c)}
+    ${typeof pkcTodayCardHTML==='function'?pkcTodayCardHTML(c):''}
     ${meeting?`<div class="cs-note">${csIcon('calendar',18)}<span>Spotkanie z trenerem: ${csEsc(meeting.time||'')} ${csEsc(meeting.type||'')}</span></div>`:''}
     ${csWeekBar(c,slot.plan)}
   </div>`;

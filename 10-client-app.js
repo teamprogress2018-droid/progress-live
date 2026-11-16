@@ -842,6 +842,9 @@ async function clientSubmitCheckin(){
   }
   // Każda skala musi być zaznaczona — brak odpowiedzi nie może po cichu stać się „3” i fałszować wyniku.
   const SCALE_LABELS={energy:'energia',sleep:'sen',stress:'stres',nutrition:'odżywianie'};
+  // Plan klienta: nastrój i głód też są obowiązkowe (plan-client-client.js).
+  const extra=typeof pkcCheckinExtra==='function'&&pkcCheckinExtra();
+  if(extra)Object.assign(SCALE_LABELS,window.PKC_EXTRA_SCALES||{});
   const missing=Object.keys(SCALE_LABELS).filter(k=>!(+a[k]>=1&&+a[k]<=5));
   if(missing.length){
     if(typeof notify==='function')notify('Zaznacz jeszcze: '+missing.map(k=>SCALE_LABELS[k]).join(', '));
@@ -854,6 +857,7 @@ async function clientSubmitCheckin(){
     energy:+a.energy,sleep:+a.sleep,stress:+a.stress,nutrition:+a.nutrition,
     workouts:a.workouts!=null?+a.workouts:0,weight:a.weight||'',notes:a.notes||''
   };
+  if(extra){answers.mood=+a.mood;answers.hunger=+a.hunger;answers.hardest=String(a.hardest||'').slice(0,500);}
   const session=captureClientTenantSession();
   a.saving=true;
   let ci;

@@ -115,6 +115,9 @@ function capLiveMoreScreens(){
   const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
     {id:'plan',label:'Plan',icon:ic('plan','📋')},
+    // Plan klienta: jedzenie i zakupy tylko wtedy, gdy trener opublikował jadłospis (plan-client-client.js).
+    {id:'food',label:'Moje jedzenie',icon:ic('book','🍽'),pk:1},
+    {id:'shopping',label:'Lista zakupów',icon:ic('list','🛒'),pk:1},
     {id:'contact',label:'Kontakt',icon:ic('contact','📞')},
     {id:'checkin',label:'Ankieta tygodniowa',icon:ic('checkin','✅')},
     {id:'homework',label:'Zadania',icon:ic('homework','🏡')},
@@ -122,7 +125,7 @@ function capLiveMoreScreens(){
     {id:'resources',label:'Materiały',icon:ic('book','📚')},
     {id:'forum',label:'Forum',icon:ic('users','👥')},
     {id:'profile',label:'Profil',icon:ic('user','👤')}
-  ].filter(s=>s.id==='profile'||s.id==='contact'||capClientSectionVisible(s.id));
+  ].filter(s=>s.pk?(typeof pkcHasFood==='function'&&pkcHasFood()):(s.id==='profile'||s.id==='contact'||capClientSectionVisible(s.id)));
 }
 window.capLiveMoreScreens=capLiveMoreScreens;
 
@@ -939,6 +942,8 @@ function capScreenHTML(scr,c){
 
   if(scr==='train'&&typeof csTrainScreenHTML==='function')return csTrainScreenHTML(c);
   if(scr==='contact'&&typeof csContactHTML==='function')return csContactHTML(c);
+  if(scr==='food'&&typeof pkcFoodHTML==='function')return pkcFoodHTML(c);
+  if(scr==='shopping'&&typeof pkcShopHTML==='function')return pkcShopHTML(c);
   if(scr==='plan'&&capIsLiveClient()&&typeof csPlanHTML==='function')return csPlanHTML(c);
   if(scr==='plan') return `
     <div class="cap-section" style="padding-bottom:90px;">
@@ -1215,8 +1220,10 @@ function capScreenHTML(scr,c){
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">Check-in tygodniowy</div>
       <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:20px;">${live?'Wypełnij i wyślij do trenera':'Podgląd formularza'}</div>
+      ${typeof pkcCheckinExtra==='function'&&pkcCheckinExtra(c)?qrow('mood','Nastrój',['😣','😔','😐','😊','😄']):''}
       ${qrow('energy','Poziom energii',['😴','😪','😐','😊','⚡'])}
       ${qrow('sleep','Jakość snu',['😴','😪','😐','😊','🌟'])}
+      ${typeof pkcCheckinExtra==='function'&&pkcCheckinExtra(c)?qrow('hunger','Głód (1 = mały, 5 = duży)',['🙂','😌','😐','😋','🤤']):''}
       ${qrow('stress','Poziom stresu (1=niski)',['🧘','😌','😐','😰','🤯'])}
       ${qrow('nutrition','Odżywianie',['🍕','🌮','😐','🥗','💪'])}
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
@@ -1230,6 +1237,10 @@ function capScreenHTML(scr,c){
         <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Masa ciała (opcjonalnie)</div>
         <input type="number" inputmode="decimal" class="form-input" value="${escHtml(st.weight||'')}" oninput="window._cliveCheckin=window._cliveCheckin||{};window._cliveCheckin.weight=this.value" placeholder="kg" style="font-size:16px;">
       </div>
+      ${typeof pkcCheckinExtra==='function'&&pkcCheckinExtra(c)?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
+        <label for="ci-hardest" style="display:block;font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Co było najtrudniejsze w tym tygodniu?</label>
+        <textarea id="ci-hardest" class="form-textarea" rows="2" oninput="window._cliveCheckin=window._cliveCheckin||{};window._cliveCheckin.hardest=this.value" placeholder="Np. wieczorne podjadanie, brak czasu na trening">${escHtml(st.hardest||'')}</textarea>
+      </div>`:''}
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Komentarz dla trenera</div>
         <textarea class="form-textarea" rows="3" oninput="window._cliveCheckin=window._cliveCheckin||{};window._cliveCheckin.notes=this.value" placeholder="Jak minął tydzień?">${escHtml(st.notes||'')}</textarea>

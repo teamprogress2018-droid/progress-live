@@ -151,7 +151,8 @@ function persistWarn(msg){
 }
 // Pola widoczne tylko dla trenera. Leżą w kolekcji clientPrivate, do której reguły bazy nie dają dostępu klientowi.
 // Do czasu wdrożenia reguł (odczyt clientPrivate odrzucony) zostają w karcie klienta, jak dotąd.
-const CLIENT_PRIVATE_FIELDS=Object.freeze(['notes','psycho','_posture','timeline','planInterview']);
+// clientPlan (szkic planu, notatki trenera) i healthAck tylko dla trenera; klient dostaje opublikowany plan (plans) i jadłospis (dietPlan).
+const CLIENT_PRIVATE_FIELDS=Object.freeze(['notes','psycho','_posture','timeline','planInterview','clientPlan','healthAck']);
 window.CLIENT_PRIVATE_FIELDS=CLIENT_PRIVATE_FIELDS;
 function clientPrivateEnabled(){
   return !window._clientAppMode&&window._clientPrivateReady===true&&typeof window._deleteField==='function';
@@ -650,7 +651,7 @@ function goTo(n){
   if(typeof closeNavFlyouts==='function')closeNavFlyouts();
   // Ekran z menu wysuwanego podświetla przycisk swojej grupy w pasku bocznym.
   const navGroupScreens={
-    clients:['clients','checkin'],
+    clients:['clients','checkin','clientplan'],
     library:['library','plans','programs','templates','tasks','forms','metrics','progbuilder'],
     automation:['automation','onboarding'],
     ondemand:['ondemand','resources'],
@@ -748,6 +749,7 @@ function _goToRender(n){
   if(n==='aicoach'){initAICoach();}
   if(n==='bizstats'){initBizStats();}
   if(n==='aiplangen'){initAplangen();}
+  if(n==='clientplan'&&typeof pkInit==='function'){pkInit();}
   if(n==='reports'){initReports();}
   if(n==='live'){initLive();}
   if(n==='templates'){initTemplates();}

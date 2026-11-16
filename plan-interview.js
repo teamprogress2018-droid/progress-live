@@ -1,5 +1,5 @@
 /* Generator planu AI — wywiad przed planem („Poznaj klienta przed planem”).
-   Przepływ: wywiad (5 kroków) → Profil do planu (+ maks. 3 pytania AI) → Propozycja Progress AI → edytor.
+   Przepływ: wywiad (6 kroków; 6. „Jedzenie” jest opcjonalny) → Profil do planu (+ maks. 3 pytania AI) → Propozycja Progress AI → edytor.
    Wywiad nie zapisuje ani nie publikuje planu: plan trafia do edytora generatora, gdzie trener go zatwierdza.
    Logika (profil, ryzyko, dobór metody) jest deterministyczna i testowalna bez DOM. Nie diagnozujemy. */
 (function(root){
@@ -35,6 +35,21 @@
   const STEPS=[{v:'low',l:'< 5 tys. kroków'},{v:'mid',l:'5–8 tys.'},{v:'high',l:'8–12 tys.'},{v:'vhigh',l:'> 12 tys.'}];
   const WEEKDAYS=[{v:'1',l:'Pn'},{v:'2',l:'Wt'},{v:'3',l:'Śr'},{v:'4',l:'Cz'},{v:'5',l:'Pt'},{v:'6',l:'So'},{v:'0',l:'Nd'}];
   const PREFS=[{v:'free',l:'Wolne ciężary'},{v:'machines',l:'Maszyny'},{v:'short',l:'Trening krótki'},{v:'variety',l:'Większa różnorodność'},{v:'simple',l:'Proste, powtarzalne sesje'}];
+  /* Zdrowie: stany, przy których AI nie układa odżywiania (plan wymaga lekarza lub dietetyka klinicznego). */
+  const HEALTH=[
+    {v:'ciaza',l:'Ciąża'},{v:'karmienie',l:'Karmienie piersią'},{v:'cukrzyca',l:'Cukrzyca'},
+    {v:'leki',l:'Leki wpływające na metabolizm'},{v:'zaburzenia',l:'Zaburzenia odżywiania (teraz lub w przeszłości)'},
+    {v:'choroba',l:'Choroba nerek, serca lub inna poważna'},{v:'objawy',l:'Niepokojące objawy (ból w klatce, omdlenia, duszność)'},
+    {v:'none',l:'Nic z tego'}
+  ];
+  /* Jedzenie: wartości zgodne z diet-plan.js (DIET_STYLES, DIET_EXCLUSIONS, MEAL_LAYOUTS). */
+  const MEALS=[{v:'3',l:'3'},{v:'4',l:'4'},{v:'5',l:'5'},{v:'6',l:'6'}];
+  const FOOD_STYLE=[{v:'wszystko',l:'Bez ograniczeń'},{v:'wege',l:'Wegetariańska'},{v:'weganska',l:'Wegańska'}];
+  const FOOD_EX=[{v:'gluten',l:'Gluten'},{v:'mleko',l:'Mleko i nabiał'},{v:'jaja',l:'Jaja'},{v:'ryby',l:'Ryby'},{v:'orzeszki',l:'Orzeszki ziemne'},
+    {v:'orzechy',l:'Orzechy'},{v:'soja',l:'Soja'},{v:'sezam',l:'Sezam'}];
+  const BUDGET=[{v:'niski',l:'Niski'},{v:'sredni',l:'Średni'},{v:'wysoki',l:'Wysoki'}];
+  const COOKING=[{v:'15',l:'Do 15 min'},{v:'30',l:'Do 30 min'},{v:'45',l:'45 min i więcej'}];
+  const PREP=[{v:'0',l:'Nie'},{v:'2',l:'Na 2 dni'},{v:'3',l:'Na 3 dni'}];
   const label=(list,v)=>(list.find(x=>x.v===String(v))||{}).l||'';
 
   /* Kroki: pole z gwiazdką (req) jest niezbędne do bezpiecznej propozycji. Reszta — opcjonalna. */
@@ -61,7 +76,8 @@
       {k:'medicalText',t:'text',l:'Jakie zalecenia?',ph:'np. bez dźwigania nad głową do marca',when:d=>d.medical==='yes'},
       {k:'pain',t:'chips',l:'Ból, kontuzje, operacje, obszary wymagające ostrożności',opts:YESNO,req:true},
       {k:'painText',t:'text',l:'Co i gdzie?',ph:'np. kolano prawe, operacja łąkotki 2023',when:d=>d.pain==='yes'},
-      {k:'painMoves',t:'text',l:'Ruchy, które wywołują ból lub dyskomfort',ph:'np. głęboki przysiad, wyciskanie nad głowę',when:d=>d.pain==='yes'||d.medical==='yes'}
+      {k:'painMoves',t:'text',l:'Ruchy, które wywołują ból lub dyskomfort',ph:'np. głęboki przysiad, wyciskanie nad głowę',when:d=>d.pain==='yes'||d.medical==='yes'},
+      {k:'healthFlags',t:'multi',l:'Czy coś z tej listy dotyczy klienta?',opts:HEALTH}
     ]},
     {title:'Regeneracja i styl życia',fields:[
       {k:'sleepH',t:'number',l:'Sen — ile godzin?',ph:'np. 6.5',min:3,max:12,step:0.5},
@@ -80,16 +96,29 @@
       {k:'prefs',t:'multi',l:'Preferencje',opts:PREFS},
       {k:'technique',t:'scale',l:'Pewność techniki podstawowych ćwiczeń (1 — nowa, 5 — pewna)'},
       {k:'extra',t:'textarea',l:'Co trener powinien jeszcze wiedzieć, zanim ułoży plan?',ph:'Wszystko, co zmienia dobór planu'}
+    ]},
+    {title:'Jedzenie (opcjonalnie)',fields:[
+      {k:'mealsPerDay',t:'chips',l:'Ile posiłków dziennie klient realnie je?',opts:MEALS},
+      {k:'foodStyle',t:'chips',l:'Sposób odżywiania',opts:FOOD_STYLE},
+      {k:'foodExclusions',t:'multi',l:'Alergie i produkty wykluczone',opts:FOOD_EX},
+      {k:'foodDislikes',t:'text',l:'Czego nie lubi jeść?',ph:'np. makrela, brokuły'},
+      {k:'foodLikes',t:'text',l:'Co lubi jeść?',ph:'np. owsianka, jajka, kurczak'},
+      {k:'foodBudget',t:'chips',l:'Budżet na jedzenie',opts:BUDGET},
+      {k:'cookingTime',t:'chips',l:'Czas na gotowanie dziennie',opts:COOKING},
+      {k:'mealPrep',t:'chips',l:'Gotowanie na zapas',opts:PREP},
+      {k:'householdSize',t:'number',l:'Dla ilu osób robi zakupy?',ph:'np. 2',min:1,max:8}
     ]}
   ];
 
   /* Słowa, przy których plan oznaczamy jako wymagający uwagi trenera (bez diagnozowania). */
+  const HEALTH_STOP='Plan wymaga konsultacji z lekarzem lub dietetykiem klinicznym.';
   const RED_FLAGS=/operac|zabieg|drętw|mrowien|promieniuj|klatk|serc|zawrot|omdle|duszno|ostry|nasila|w nocy|ciąż|nadciśn|cukrzy|przepuklin|dyskopat|zwyrodn|endoprotez|zerwan|złaman/i;
 
   function emptyInterview(){
     return {v:1,status:'draft',step:1,goal:'',goalOther:'',priority:'',successSign:'',target:'',exp:'',recent:'',days:'',minutes:'',
       prefType:'',dislikes:'',equipment:[],equipmentOther:'',medical:'',medicalText:'',pain:'',painText:'',painMoves:'',
       sleepH:'',sleepQ:'',stress:'',job:'',steps:'',cardio:'',prefDays:[],height:'',weight:'',circ:'',strength:'',prefs:[],technique:'',extra:'',
+      healthFlags:[],mealsPerDay:'',foodStyle:'',foodExclusions:[],foodDislikes:'',foodLikes:'',foodBudget:'',cookingTime:'',mealPrep:'',householdSize:'',
       aiQuestions:[],updatedAt:''};
   }
 
@@ -115,6 +144,15 @@
     }
     if(Array.isArray(c.preferredWeekdays))d.prefDays=c.preferredWeekdays.map(String);
     if(c.activityLevel==='sedentary')d.steps='low';else if(c.activityLevel==='active')d.steps='high';
+    // Jedzenie z ostatniego planu żywieniowego (kreator diety), żeby trener nie pytał drugi raz.
+    const dp=c.dietPlan&&c.dietPlan.prefs;
+    if(dp){
+      if(FOOD_STYLE.some(x=>x.v===dp.style))d.foodStyle=dp.style;
+      d.foodExclusions=(dp.ex||[]).filter(id=>FOOD_EX.some(x=>x.v===id));
+      const mm=+dp.maxMin||0;if(mm)d.cookingTime=mm<=15?'15':mm<=30?'30':'45';
+    }
+    const ml=parseInt(c.dietPlan&&c.dietPlan.meals,10);
+    if(ml>=3&&ml<=6)d.mealsPerDay=String(ml);
     if(saved&&typeof saved==='object'){
       Object.keys(d).forEach(k=>{if(saved[k]!==undefined&&saved[k]!==null&&saved[k]!=='')d[k]=Array.isArray(d[k])?(Array.isArray(saved[k])?saved[k].slice():d[k]):saved[k];});
       if(Array.isArray(saved.aiQuestions))d.aiQuestions=saved.aiQuestions.map(q=>({q:txt(q.q),why:txt(q.why),a:txt(q.a)})).slice(0,3);
@@ -165,8 +203,13 @@
     const flags=[];
     if(d.medical==='yes')flags.push('Zalecenia lekarza lub fizjoterapeuty: '+(txt(d.medicalText)||'bez szczegółów'));
     if(d.pain==='yes'&&RED_FLAGS.test([d.painText,d.painMoves].join(' ')))flags.push('Zgłoszone objawy wymagają oceny trenera przed startem');
+    const hf=healthStops(d);
+    if(hf.length)flags.push(HEALTH_STOP+' ('+hf.map(v=>label(HEALTH,v).toLowerCase()).join(', ')+')');
     return flags;
   }
+
+  /** Zaznaczone stany zdrowia (bez „Nic z tego”). */
+  function healthStops(d){return(Array.isArray(d&&d.healthFlags)?d.healthFlags:[]).filter(v=>v!=='none'&&HEALTH.some(x=>x.v===v));}
 
   function overloadRisk(d){
     const why=[];
@@ -323,6 +366,7 @@
       line('Preferowane dni',(d.prefDays||[]).map(v=>label(WEEKDAYS,v)).join(', ')),
       line('Wyniki siłowe',d.strength),line('Obwody',d.circ),line('Preferencje',(d.prefs||[]).map(v=>label(PREFS,v)).join(', ')),
       line('Pewność techniki',txt(d.technique)?d.technique+'/5':''),line('Uwagi trenera',d.extra),
+      line('Zdrowie (wymaga konsultacji z lekarzem; bez zaleceń medycznych w planie)',healthStops(d).map(v=>label(HEALTH,v)).join(', ')),
       qa.length?'Odpowiedzi na dodatkowe pytania:\n'+qa.join('\n'):'',
       '=== DECYZJE ALGORYTMU PROGRESS (obowiązkowe; uzasadnij je w "rationale.reasoning") ===',
       '- Metoda: '+r.method+', '+r.days+' dni, sesja '+r.minutes+' min, '+r.weeks+' tyg.',
@@ -362,7 +406,7 @@
     if(!c){S.clientId=null;S.data=null;S.state='pick';render();return;}
     S.clientId=c.id;
     S.data=prefill(c,c.planInterview);
-    S.step=Math.max(1,Math.min(5,parseInt(opts.step||S.data.step,10)||1));
+    S.step=Math.max(1,Math.min(STEP_DEFS.length,parseInt(opts.step||S.data.step,10)||1));
     S.state=opts.state||(S.data.status==='done'?'summary':'interview');
     S.proposal=null;S.genError=null;
     refreshRec();
@@ -391,6 +435,8 @@
       const arr=Array.isArray(S.data[k])?S.data[k]:[];
       S.data[k]=arr.includes(v)?arr.filter(x=>x!==v):arr.concat([v]);
       if(k==='equipment'&&v==='gym'&&S.data[k].includes('gym'))S.data[k]=S.data[k].filter(x=>x==='gym'||x==='other');
+      // „Nic z tego” wyklucza pozostałe stany zdrowia i odwrotnie.
+      if(k==='healthFlags')S.data[k]=v==='none'?(S.data[k].includes('none')?['none']:[]):S.data[k].filter(x=>x!=='none');
     }else S.data[k]=String(S.data[k])===String(v)?'':String(v);
     refreshRec();render();
   }
@@ -411,7 +457,10 @@
     return `<div class="pliv-field">${head}<input id="pliv-f-${f.k}" type="${type}" class="form-input pliv-input" value="${esc(v)}" placeholder="${esc(f.ph||'')}"${extra}></div>`;
   }
   function medicalNoticeHTML(){
-    const d=S.data;if(!d||(d.pain!=='yes'&&d.medical!=='yes'))return'';
+    const d=S.data;if(!d)return'';
+    const hf=healthStops(d);
+    if(hf.length)return `<div class="pliv-medical is-strong" data-pliv-medical role="note"><b>${HEALTH_STOP}</b> AI nie ułoży odżywiania. Trening przygotujesz po potwierdzeniu, że klient ma zgodę lekarza.</div>`;
+    if(d.pain!=='yes'&&d.medical!=='yes')return'';
     const strong=medicalFlags(d).length>0;
     return `<div class="pliv-medical${strong?' is-strong':''}" data-pliv-medical role="note"><b>Plan treningowy nie zastępuje konsultacji medycznej.</b> ${strong?'Plan zostanie oznaczony jako wymagający uwagi trenera.':'Uwzględnimy to w doborze ćwiczeń — bez diagnozowania.'}</div>`;
   }
@@ -484,7 +533,7 @@
     return `<section class="pliv-card pliv-pick" data-pliv-pick>
       <div class="pliv-card-kicker">Generator planu AI</div>
       <h2 class="pliv-title">Poznaj klienta przed planem</h2>
-      <p class="pliv-hint">Krótki wywiad (5 kroków) — plan powstanie z danych klienta i wiedzy z Twoich książek, nie z szablonu.</p>
+      <p class="pliv-hint">Krótki wywiad (6 kroków, ostatni opcjonalny) — plan powstanie z danych klienta i wiedzy z Twoich książek, nie z szablonu.</p>
       <div class="pliv-pick-row">
         <select class="form-select" id="pliv-client" aria-label="Klient"><option value="">Wybierz klienta…</option>${list.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}${c.planInterview&&c.planInterview.status?' · wywiad '+(c.planInterview.status==='done'?'gotowy':'zaczęty'):''}</option>`).join('')}</select>
         <button type="button" class="btn btn-primary" onclick="plivStartFromPick()">Rozpocznij wywiad</button>
@@ -685,7 +734,7 @@
     refreshRec();save('done');
     applyToForm(variantHint);
     S.state='generating';S.genError=null;S.proposal=null;render();scrollTop();
-    root._plivSession={clientId:S.clientId,volume:{lo:S.rec.setsLo,hi:S.rec.setsHi},rec:S.rec};
+    root._plivSession={clientId:S.clientId,volume:{lo:S.rec.setsLo,hi:S.rec.setsHi},rec:S.rec,target:S.target||''};
     const gen=typeof root.aplGenerate==='function'?root.aplGenerate:null;
     if(!gen){S.genError={title:'Generator niedostępny',hint:'Odśwież aplikację i spróbuj ponownie.'};render();return;}
     await gen();
@@ -712,13 +761,42 @@
         }
       }));
     }
-    S.state='proposal';render();scrollTop();return true;
+    S.state='proposal';
+    // Ekran „Plan klienta”: szkic treningu trafia tam, a nie do propozycji generatora.
+    if(S.target==='clientplan'&&typeof root.pkOnTrainingReady==='function'){S.target='';root.pkOnTrainingReady(plan,S.rec,S.clientId);return true;}
+    render();scrollTop();return true;
   }
   function onPlanError(title,hint){
     if(!root._plivSession||S.state!=='generating')return false;
-    S.genError={title:title||'Błąd generowania planu',hint:hint||'Spróbuj ponownie za chwilę.'};render();return true;
+    S.genError={title:title||'Błąd generowania planu',hint:hint||'Spróbuj ponownie za chwilę.'};
+    if(S.target==='clientplan'&&typeof root.pkOnTrainingError==='function'){S.target='';S.state='summary';root.pkOnTrainingError(S.genError);return true;}
+    render();return true;
   }
-  function progress(msg){const el=doc()&&doc().getElementById('pliv-gen-status');if(el&&msg)el.textContent=msg;}
+  function progress(msg){const el=doc()&&doc().getElementById('pliv-gen-status');if(el&&msg)el.textContent=msg;if(S.target==='clientplan'&&msg&&typeof root.pkOnTrainingProgress==='function')root.pkOnTrainingProgress(msg);}
+
+  /**
+   * Szkic treningu dla ekranu „Plan klienta”: ten sam wywiad i generator, bez przechodzenia przez kroki.
+   * Brakujące pola wymagane dostają ostrożne założenia (zwracane, żeby pokazać je trenerowi); wywiad klienta się nie zmienia.
+   */
+  const ASSUME={goal:['zdrowie','cel: zdrowie'],exp:['3-12m','staż: 3–12 mies.'],days:['3','3 treningi w tygodniu'],minutes:['60','60 min na sesję'],
+    equipment:[['gym'],'pełna siłownia'],medical:['skip','brak informacji o zaleceniach lekarza (plan zachowawczy)'],pain:['skip','brak informacji o bólu (plan zachowawczy)']};
+  function generateForClientPlan(clientId){
+    const c=(root.CL||[]).find(x=>x&&x.id===clientId);
+    if(!c)return{ok:false,assumptions:[]};
+    S.clientId=c.id;S.data=prefill(c,c.planInterview);S.step=1;S.proposal=null;S.genError=null;
+    const assumptions=[];
+    Object.keys(ASSUME).forEach(k=>{const v=S.data[k];if(Array.isArray(v)?!v.length:!txt(v)){S.data[k]=Array.isArray(ASSUME[k][0])?ASSUME[k][0].slice():ASSUME[k][0];assumptions.push(ASSUME[k][1]);}});
+    const sel=doc()&&doc().getElementById('apl-client');
+    if(sel){sel.value=c.id;if(typeof root.aplFillFromClient==='function'){S._filling=true;try{root.aplFillFromClient();}catch(e){}finally{S._filling=false;}}}
+    refreshRec();
+    applyToForm('');
+    S.state='generating';S.target='clientplan';
+    root._plivSession={clientId:S.clientId,volume:{lo:S.rec.setsLo,hi:S.rec.setsHi},rec:S.rec,target:'clientplan'};
+    const gen=typeof root.aplGenerate==='function'?root.aplGenerate:null;
+    if(!gen){S.target='';S.state='summary';return{ok:false,assumptions,error:'Generator niedostępny'};}
+    Promise.resolve().then(()=>gen()).catch(e=>onPlanError('Błąd generowania planu',String(e&&e.message||e)));
+    return{ok:true,assumptions,rec:S.rec};
+  }
   /** Objętość z rekomendacji zastępuje domyślny cel objętości generatora (np. niższa przy słabym śnie). */
   function volumeOverride(vt){
     const s=root._plivSession;
@@ -757,8 +835,8 @@
     w._pliv=true;root[n]=w;
   });
 
-  const api={GOALS,EXP,EQUIP,STEP_DEFS,emptyInterview,prefill,stepErrors,levelOf,attendance,medicalFlags,overloadRisk,missingData,recommend,profile,
-    fallbackQuestions,notesBlock,bookHints,render,start,exit,onPlanReady,onPlanError,progress,volumeOverride,state:()=>S};
+  const api={GOALS,EXP,DAYS,MINUTES,JOB,STEPS,MEALS,YESNO,EQUIP,HEALTH,HEALTH_STOP,FOOD_STYLE,FOOD_EX,BUDGET,COOKING,PREP,healthStops,label,STEP_DEFS,emptyInterview,prefill,stepErrors,levelOf,attendance,medicalFlags,overloadRisk,missingData,recommend,profile,
+    fallbackQuestions,notesBlock,bookHints,render,start,exit,generateForClientPlan,onPlanReady,onPlanError,progress,volumeOverride,state:()=>S};
   root.PLIV=api;
   Object.assign(root,{
     plivPick:pick,plivNext:next,plivBack:back,plivGo:go,plivSaveLater:saveLater,plivEdit:()=>{S.state='interview';S.step=1;render();scrollTop();},

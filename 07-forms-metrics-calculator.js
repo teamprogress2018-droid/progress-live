@@ -1740,7 +1740,10 @@ function calcLoadFromClient(){
   }
   window._calcClientId=c.id;dietTrainDays=null;
   // Upodobania i wykluczenia z ostatniego planu klienta.
-  const sp=c.dietPlan&&c.dietPlan.prefs;
+  // Bez planu: sposób odżywiania, wykluczenia, czas gotowania i liczba posiłków z wywiadu (krok „Jedzenie”).
+  const fromIv=!(c.dietPlan&&c.dietPlan.prefs)&&window.PlanClient?PlanClient.dietPrefsFrom(c):null;
+  if(fromIv&&fromIv.meals)dietMeals=fromIv.meals;
+  const sp=c.dietPlan&&c.dietPlan.prefs||(fromIv&&fromIv.prefs);
   dietPrefs=sp?{style:sp.style||'wszystko',ex:(sp.ex||[]).slice(),skip:(sp.skip||[]).slice(),like:(sp.like||[]).slice(),maxMin:+sp.maxMin||0,col:(sp.col||[]).slice()}:{style:'wszystko',ex:[],skip:[],like:[],maxMin:0,col:[]};
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
