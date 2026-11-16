@@ -56,7 +56,7 @@
     const items=[
       ['cel klienta',!!(c&&c.goal)],
       ['dni treningowe',!!(ctx&&ctx.td&&ctx.td.fromClient)],
-      ['pory posiłków',(W.times||[]).length>0],
+      ['pory posiłków (teraz są domyślne)',!!W.timeSet||(W.times||[]).length>0],
       ['alergie i wykluczenia',W.exChecked||p.ex.length>0||!!W.other],
       ['choroby i leki',W.medical!==''],
       ['czas na przygotowanie',W.timeSet],
