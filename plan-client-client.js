@@ -31,6 +31,10 @@
       body=`<section class="cs-card cs-card-flat"><h2 class="cs-card-title cs-card-title-sm">3 nawyki na ten tydzień</h2><ol class="pkc-habits">${p.habits.map(h=>`<li>${esc(h)}</li>`).join('')}</ol></section>`;
     }else if(p.form==='flex'){
       body=p.flex.map(sl=>`<section class="cs-card cs-card-flat"><h2 class="cs-card-title cs-card-title-sm">${esc(sl.s)}</h2><p class="cs-card-text">Wybierz jedną propozycję.</p><ol class="pkc-meals">${sl.o.map(mealHTML).join('')}</ol></section>`).join('');
+    }else if(p.days.length&&root.DietView){
+      // Nowy widok planu: nagłówek z celem, zakładki, karty posiłków (diet-plan-view.js).
+      return`<div class="cs-screen pkc-dpv" data-pkc-food="${esc(p.form)}">${root.DietView.render('pkcdpv',vmOf(c,p),{mode:'client',
+        choice:loadChoice(c),onChoice:ch=>saveChoice(c,ch),shopDone:()=>shopDone(c),onShopToggle:(id,on)=>root.pkcShopToggle(id,on)})}</div>`;
     }else if(p.days.length){
       const di=Math.min(st.day,p.days.length-1),d=p.days[di];
       body=`<div class="cs-chips pkc-days" role="group" aria-label="Dzień tygodnia">${p.days.map((x,i)=>`<button type="button" class="cs-chip${i===di?' is-on':''}" aria-pressed="${i===di}" data-pkc-day="${i}" onclick="pkcDay(${i})">${esc(p.days.length===7?WD_SHORT[i]:(x.n||'').replace('Dzień ','D'))}</button>`).join('')}</div>
@@ -42,6 +46,15 @@
       <button type="button" class="cs-btn cs-btn-secondary" onclick="capGoScreen('shopping')">${ico('list',20)}Lista zakupów</button>
       <p class="pkc-muted">To orientacyjny plan od trenera. Jeśli coś nie pasuje, napisz na czacie.</p></div>`;
   }
+  /** Tydzień planu liczony od zatwierdzenia (1 = pierwszy tydzień). */
+  function weekNo(c){const d=c&&c.dietPlan,t=Date.parse(d&&d.approvedAt||'');return isFinite(t)?Math.max(1,Math.floor((Date.now()-t)/(7*864e5))+1):1;}
+  function vmOf(c,p){
+    return root.DietView.fromPublic(p,{client:c&&c.name||'',goalKey:p.goal||(c&&c.goal)||'',delta:0,period:'tydzień '+weekNo(c)});
+  }
+  // „Zamień posiłek” u klienta: wybrany posiłek z innego dnia pamiętamy na tym telefonie, dla tego planu.
+  function choiceKey(c){const d=c&&c.dietPlan;return'pkc-choice:'+(c&&c.id)+':'+(d&&d.approvedAt||'');}
+  function loadChoice(c){try{return JSON.parse(root.localStorage.getItem(choiceKey(c))||'{}')||{};}catch(e){return{};}}
+  function saveChoice(c,ch){try{root.localStorage.setItem(choiceKey(c),JSON.stringify(ch||{}));}catch(e){}}
   // Odhaczone produkty pamiętamy tylko na tym telefonie (wygoda przy zakupach).
   function shopKey(c){const d=c&&c.dietPlan;return'pkc-shop:'+(c&&c.id)+':'+(d&&d.approvedAt||'');}
   function shopDone(c){try{return JSON.parse(root.localStorage.getItem(shopKey(c))||'[]');}catch(e){return[];}}

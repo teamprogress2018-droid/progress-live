@@ -149,7 +149,7 @@
     if(!DP)return{ok:false,missing:[],assumptions,error:'Brak modułu diety'};
     const t=DP.dietBookTargets({weight,age,kcal,rmr:Math.round(bmr),pal,goal:goalKey==='sprawnosc'?'kondycja':goalKey,goalDelta:delta});
     const water=[Math.round(weight*0.030*10)/10,Math.round(weight*0.035*10)/10];
-    return{ok:!t.blocked,blocked:t.blocked,blocks:t.blocks,targets:t,kcal,bmr:Math.round(bmr),pal,delta,floorApplied:raw<floor,water,assumptions,weight};
+    return{ok:!t.blocked,goalKey,blocked:t.blocked,blocks:t.blocks,targets:t,kcal,bmr:Math.round(bmr),pal,delta,floorApplied:raw<floor,water,assumptions,weight};
   }
 
   const SLOT_ORDER=['Śniadanie','II śniadanie','Obiad','Podwieczorek','Przekąska','Kolacja'];
@@ -196,7 +196,7 @@
     const assumptions=nt.assumptions.slice();
     if(!dp.meals)assumptions.push('4 posiłki dziennie');
     const DP=root.DietPlan,t=nt.targets;
-    const out={ok:true,form,delta:nt.delta,bmr:nt.bmr,targets:t,kcal:nt.kcal,water:nt.water,meals,prefs:dp.prefs,people:dp.people,prep:dp.prep,assumptions,habits:(opts.habits||DEFAULT_HABITS).slice(0,3)};
+    const out={ok:true,form,goalKey:nt.goalKey,delta:nt.delta,bmr:nt.bmr,targets:t,kcal:nt.kcal,water:nt.water,meals,prefs:dp.prefs,people:dp.people,prep:dp.prep,assumptions,habits:(opts.habits||DEFAULT_HABITS).slice(0,3)};
     if(form==='flex'){out.flex=flexOptions(t,meals,dp.prefs);out.shopping=sumShop([].concat(...Object.values(out.flex)));out.shopDays=3;}
     else if(form==='week'){
       // Trener może zmienić gotowanie na zapas i liczbę osób w szkicu (opts), bez zmiany wywiadu.
@@ -234,14 +234,17 @@
   /** Jadłospis dla klienta (c.dietPlan.plan): tylko to, co klient ma zobaczyć, w zwartej postaci. */
   function publicPlan(n){
     const it=items=>(items||[]).map(i=>[i.id,i.amount]);
-    const meal=m=>({n:m.name,d:m.dish||'',k:Math.round(m.total.kcal),p:Math.round(m.total.p),i:it(m.items)});
+    // Pozycja posiłku: [produkt, ilość, rola, [[zamiennik, ilość], …]] — klient widzi zamienniki i makro (widok DietView).
+    const itm=items=>(items||[]).map(i=>{const sw=(i.swaps||[]).slice(0,4).map(s=>[s.id,s.amount]);return sw.length||i.role&&i.role!=='x'?[i.id,i.amount,i.role||'x',sw]:[i.id,i.amount];});
+    const meal=m=>{const o={n:m.name,d:m.dish||'',k:Math.round(m.total.kcal),p:Math.round(m.total.p),f:Math.round(m.total.f),c:Math.round(m.total.c),i:itm(m.items)};
+      if(m.img)o.img=m.img;const mn=m.minutes!=null?m.minutes:m.min;if(mn)o.min=mn;if(m.steps&&m.steps.length)o.st=m.steps.slice(0,5);return o;};
     const t=n.targets;
     return{form:n.form,kcal:n.kcal,p:t.protein.g,f:t.fat.g,c:t.carbs.g,water:n.water,meals:n.meals,
       habits:n.form==='habits'?n.habits.slice(0,3):[],
       days:n.form==='week'?n.week.days.map(d=>({n:d.name,t:d.dayType||'',m:d.meals.map(meal)})):[],
       flex:n.form==='flex'?Object.keys(n.flex).map(slot=>({s:slot,o:n.flex[slot].map(meal)})):[],
       cooking:n.form==='week'?(n.week.cooking||[]).map(b=>({days:b.days,i:it(b.items)})):[],
-      shop:it(n.shopping),shopDays:n.shopDays,people:n.form==='week'?(n.people||1):1};
+      shop:it(n.shopping),shopDays:n.shopDays,people:n.form==='week'?(n.people||1):1,note:String(n.note||'').slice(0,500),goal:n.goalKey||''};
   }
 
   /* ───────── Postępy: check-iny po publikacji i propozycje korekty (nigdy nie wprowadzane same) ───────── */

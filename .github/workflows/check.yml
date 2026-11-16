@@ -266,6 +266,9 @@ jobs:
       - name: 1i5f. Plan klienta — dane, braki, pewność, bramka zdrowia
         run: node .github/scripts/test_plan_client.js
 
+      - name: 1i5f2. Widok planu żywieniowego — model, kroki, zmiany trenera, wydruk A4
+        run: node .github/scripts/test_diet_plan_view.js
+
       - name: 1i5g. Testy generatora planu opartego na książkach (wszystkie książki, oznaczenia reguł)
         run: node .github/scripts/test_apl_books_plan.js
 
@@ -731,6 +734,7 @@ jobs:
           node .github/scripts/test_plan_interview_ui.js
           node .github/scripts/test_plan_client_ui.js
           node .github/scripts/test_plan_client_app_ui.js
+          node .github/scripts/test_diet_plan_view_ui.js
           node .github/scripts/test_lib_my_most_used_ui.js
           node .github/scripts/test_lib_my_parts_ui.js
           node .github/scripts/test_lib_exit_wide_ui.js
