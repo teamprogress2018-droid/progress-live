@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-11-09T12:17:28.012Z",
+ "generatedAt": "2026-11-16T12:12:05.045Z",
  "lookbackDays": 14,
  "categories": [
   {
@@ -53,6 +53,1072 @@
   }
  ],
  "items": [
+  {
+   "pmid": "43032446",
+   "doi": "10.3389/fpubh.2026.1922842",
+   "title": "Comparative effects of exercise modalities on visceral adipose tissue in children and adolescents with overweight or obesity: a systematic review and three-level meta-analysis.",
+   "abstract": "OBJECTIVE: Previous syntheses included broader age ranges and heterogeneous exercise classifications, leaving uncertainty about comparative effects across exercise modalities in pediatric populations. This review examined whether exercise modalities differ in their effects on visceral adipose tissue (VAT) and waist circumference (WC) in children and adolescents with overweight or obesity, and whether any modality shows superior effectiveness.\nMETHODS: Randomized and partially randomized controlled trials were identified from PubMed, Embase, the Cochrane Library, Web of Science, SPORTDiscus, and CNKI. VAT and WC were primary outcomes; SAT, body fat percentage, BMI, body weight, fat mass, and VO₂max were secondary outcomes. Hedges' g was synthesized using three-level random-effects models to accommodate dependent effect sizes within studies. Risk of bias was assessed with the Cochrane tool.\nRESULTS: Twenty-one trials involving 1,754 participants were included. Exercise interventions were associated with lower VAT (g = -0.725, 95% CI [-1.120, -0.330], p < 0.001) and WC (g = -0.692, 95% CI [-0.984, -0.400], p < 0.001). HIIT showed the largest VAT point estimate (g = -1.332, 95% CI [-1.874, -0.789]), but between-modality differences were not significant for VAT (p = 0.116) or WC (p = 0.184). Prediction intervals for both primary outcomes crossed the null, indicating uncertainty across study settings. Secondary outcomes generally favored exercise.\nCONCLUSION: Exercise-based interventions were associated with reductions in VAT and WC, but current evidence does not establish the superiority of any single modality. Although HIIT showed the largest VAT point estimate, non-significant between-modality tests and prediction intervals crossing the null preclude firm conclusions about an optimal exercise modality.\nSYSTEMATIC REVIEW REGISTRATION: CRD420261431627, https://www.crd.york.ac.uk/PROSPERO/view/CRD420261431627.",
+   "journal": "Frontiers in public health",
+   "journalAbbr": "Front Public Health",
+   "year": "2026",
+   "authors": "Chen C i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Chen C",
+    "Zhang W",
+    "Liu K",
+    "Ding X",
+    "Tong P"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Comparative Study"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43032446/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 5
+  },
+  {
+   "pmid": "43018843",
+   "doi": "10.1007/s11912-026-01859-3",
+   "title": "Feasibility of High-Intensity Interval Training Before, During, and After Cancer Treatment: A Systematic Review and Meta-Analysis.",
+   "abstract": "PURPOSE: To systematically evaluate the feasibility and safety of high-intensity interval training (HIIT) interventions in cancer populations across the cancer care continuum (before, during, and after cancer treatment).\nMETHODS: This systematic review and meta-analysis followed PRISMA guidelines and was registered in PROSPERO. PubMed, Scopus, and Web of Science were searched from inception to 31 December 2025. Studies were included if they enrolled adults with cancer, implemented a HIIT intervention, and reported feasibility outcomes. Recruitment, adherence, and dropout outcomes were calculated as study-specific proportions with 95% confidence intervals and pooled using random-effects models with REML estimation. Risk of bias was assessed using RoB 2 for RCTs and MMAT for non-randomized studies, while certainty of evidence was evaluated using GRADE.\nRESULTS: Twenty-two studies were included, comprising 559 participants in HIIT groups. Pooled recruitment across 20 studies was 0.57 (95% CI: 0.41-0.72), pooled adherence across 21 studies was 0.91 (95% CI: 0.86-0.95), and pooled dropout across 20 studies was 0.11 (95% CI: 0.06-0.16). Recruitment showed considerable heterogeneity, whereas adherence and dropout showed moderate heterogeneity. No statistically significant subgroup differences were observed by study design, intervention setting, treatment phase, or exercise frequency. Adverse events were reported in six studies, with no serious adverse events.\nCONCLUSIONS: HIIT appears feasible and safe for individuals with cancer, particularly after enrolment. However, recruitment remains moderate, and findings should be interpreted cautiously due to heterogeneity, risk of bias, and limited certainty of evidence.",
+   "journal": "Current oncology reports",
+   "journalAbbr": "Curr Oncol Rep",
+   "year": "2026",
+   "authors": "Karnarou K i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Karnarou K",
+    "Xanthopoulou V",
+    "Skouras AZ",
+    "Holborn C",
+    "Newton E",
+    "Tsamtsouri L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43018843/",
+   "topics": [
+    "kondycja",
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 5
+  },
+  {
+   "pmid": "43018837",
+   "doi": "10.1186/s40798-026-01125-7",
+   "title": "Effects of Hypoxic Exposure and Training Methods on Wingate Test Performance: A Systematic Review.",
+   "abstract": "BACKGROUND: Various forms of altitude/hypoxic exposure and training have been widely implemented in athletes; however, their effects on anaerobic performance remain inconclusive. Therefore, this study aimed to systematically review the effects of acute and chronic hypoxia, and intermittent hypoxic exposure-based training on Wingate Anaerobic Test (WAnT) performance, considering key variables such as differences across protocols and populations.\nMETHODS: A systematic literature search was conducted in three online databases (i.e., PubMed/MEDLINE, Scopus and Web of Science). The search was restricted to research articles published in peer-reviewed journals up to July 2025. Each article was read and coded for descriptive variables and WAnT outcomes (i.e., peak power output, mean power output, fatigue index and total work). The risk of bias was assessed using the PEDro scale.\nRESULTS: From the 210 studies identified, 43 studies were eligible for this systematic review. Acute protocols were conducted in 16 studies, with 7 reporting 3-8% lower WAnT performance in hypoxia than normoxia, while the remaining studies showed no difference. Chronic protocols were examined in 6 studies, with 4 reporting 2-8% decreased WAnT performance, while 2 observed no change. Seven of 21 intermittent exposure-based training studies reported 3-8% greater improvements in WAnT performance than the corresponding normoxic training.\nCONCLUSIONS: Acute hypoxic exposure does not lower WAnT performance unless the exercise is performed under severe hypoxia (FiO2 ~ 0.104) or performed repeatedly. A large hypoxic dose resulting from prolonged (≥30 days) chronic exposure at high altitude would decrease WAnT performance, but not after a shorter training camp at moderate altitude. Intermittent exposure-based training likely benefits WAnT performance when combined with long-duration (≥90 min) exercise but high-intensity interval training itself seems effective in improving anaerobic performance regardless of hypoxic exposure.",
+   "journal": "Sports medicine - open",
+   "journalAbbr": "Sports Med Open",
+   "year": "2026",
+   "authors": "Yamagishi T i in.",
+   "authorCount": 7,
+   "authorList": [
+    "Yamagishi T",
+    "Précart C",
+    "Bouten J",
+    "Yamashita D",
+    "Mujika I",
+    "Slawinski J"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43018837/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 5
+  },
+  {
+   "pmid": "43032781",
+   "doi": "10.7717/peerj.21900",
+   "title": "Network meta-analysis of the efficacy of different exercise therapies in patients with knee osteoarthritis.",
+   "abstract": "BACKGROUND: Knee osteoarthritis (KOA) is a leading cause of disability in the elderly and a growing social burden due to aging and increasing obesity rates. This study aims to investigate the effects of different exercise modalities on pain, physical function, stiffness, and muscle strength in patients with KOA.\nMETHODS: A systematic search was conducted in PubMed, Embase, Web of Science, Cochrane Library, and EBSCO databases for randomized controlled trials evaluating the efficacy of exercise therapy for KOA from January 2000 to 16 August 2025, followed by an updated search through 28 March 2026. No additional eligible studies were identified in the updated search. In total, 51 studies involving 3,045 participants (71.7% female; study-group mean ages ranged from 50.3 to 74.4 years) were included. The studies were conducted in 14 countries across Asia, Europe, North America, South America, and Oceania. A network meta-analysis was performed using Stata 16.0. This systematic review was registered with PROSPERO (CRD420251177632).\nRESULTS: The results showed that mind-body exercise was the most effective in reducing pain (standardized mean differences (SMD) = -1.13, 95% confidence interval (CI) [-1.47 to -0.79], P < 0.001, Surface Under the Cumulative Ranking Curve (SUCRA) = 83%) and improving joint stiffness (SMD = -1.15, 95% CI [-1.59 to -0.70], P < 0.001, SUCRA = 78.5%). Mixed exercise ranked highest in improving knee function (SMD = -1.43, 95% CI [-2.31 to -0.55], P < 0.001, SUCRA = 81.8%), followed by mind-body exercise (SMD = -1.28, 95% CI [-1.64 to -0.93], P < 0.001, SUCRA = 77.4%). Strength training was most effective in enhancing muscle strength (SMD = 0.79, 95% CI [0.470-1.12], P < 0.001, SUCRA = 79.1%).\nCONCLUSION: Mind-body exercise appeared to be the most favorable option for reducing pain and stiffness in patients with knee osteoarthritis, whereas strength training appeared to be the most beneficial for improving muscle strength. These findings may help inform individualized exercise prescription, but should be interpreted cautiously given the uncertainty and limitations of the available evidence.",
+   "journal": "PeerJ",
+   "journalAbbr": "PeerJ",
+   "year": "2026",
+   "authors": "Diao K i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Diao K",
+    "Zhang T",
+    "Wang H",
+    "Wang Y",
+    "Pan Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Network Meta-Analysis",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43032781/",
+   "topics": [
+    "hipertrofia",
+    "redukcja",
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43030326",
+   "doi": "10.3390/nu18213699",
+   "title": "Olive-Derived Nutritional Interventions in Exercise: Effects on Performance, Fatigue, Recovery, and Muscle Adaptation-A Systematic Review.",
+   "abstract": "Background/Objectives: Olive-derived foods and bioactive compounds are increasingly investigated in sports nutrition, but their effects on exercise outcomes remain unclear. This systematic review evaluated randomized controlled evidence on olive-derived nutritional interventions in humans. Methods: MEDLINE/PubMed, Scopus, Web of Science Core Collection, SPORTDiscus, the Cochrane Central Register of Controlled Trials (CENTRAL), ClinicalTrials.gov, and the World Health Organization International Clinical Trials Registry Platform (WHO ICTRP) were searched from inception to 30 September 2026. Randomized controlled trials of orally administered olive-derived interventions in healthy participants undergoing exercise, training, or physical-function assessment were included. Risk of bias was assessed using the revised Cochrane Risk of Bias tool for randomized trials (RoB 2), with two assessments rated as low risk and eight as having some concerns, and findings were synthesized without meta-analysis because of substantial heterogeneity. Results: Eleven reports representing 10 independent trials evaluated chemically distinct interventions: extra virgin olive oil, hydroxytyrosol-rich olive-fruit-water preparations, oleuropein-rich olive-leaf extracts, and maslinic acid. In specific exercise settings, maslinic acid was associated with lower perceived fatigue or muscle soreness, while selected muscle-related outcomes differed in trials involving older adults. Other preparations yielded heterogeneous physiological, metabolic, or fatigue-related findings, without consistent improvements in objective exercise performance. Conclusions: The available evidence does not establish a common ergogenic effect across olive-derived products. Any potential benefit must be interpreted in relation to the specific formulation, dose, population, exercise context, and outcome assessed. Independent confirmation is required before practical recommendations can be established.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Gil-Caselles L",
+   "authorCount": 1,
+   "authorList": [
+    "Gil-Caselles L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43030326/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43030322",
+   "doi": "10.3390/nu18213695",
+   "title": "Effects of Caffeine Mouth Rinse on Cognitive Performance and Psychological Responses in Trained Individuals: A Systematic Review.",
+   "abstract": "Background: Caffeine mouth rinse (Caf-MR) has been investigated as a non-ingestive strategy that may influence cognitive performance and psychological responses. However, evidence in trained individuals remains limited, and psychological responses have not been comprehensively synthesized. This systematic review evaluated the effects of Caf-MR on cognitive performance and psychological responses in trained individuals. Methods: Six electronic databases were searched through 24 September 2026 for randomized controlled studies comparing Caf-MR with a non-caffeinated placebo or control. Reference lists of relevant reviews and eligible studies were also screened. Owing to heterogeneity in protocols and outcomes, findings were synthesized qualitatively. Results: Ten studies were included; five assessed cognitive outcomes and six psychological responses, with one study contributing to both domains. Cognitive findings were heterogeneous, with improvements observed in selected reaction-time measures and Stroop interference time, as well as fewer errors during a sport-specific cognitive-motor task, while other reaction-time and accuracy outcomes showed no clear benefit. Among psychological studies, only one reported a Caf-MR-specific increase in felt arousal, with no consistent effects on mood, motivation, mental effort, mental fatigue, or enjoyment. Methodological quality ranged from fair to good, and all studies had some concerns regarding overall risk of bias. Conclusions: Overall, despite improvements in selected cognitive outcomes, current evidence remains insufficient to establish consistent cognitive or psychological benefits of Caf-MR in trained individuals. Future research should prioritize assessing blinding effectiveness, comparing Caf-MR protocols under standardized experimental conditions, and using comparable outcome measures to clarify potential differences across tasks and contexts.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Lu CJ i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Lu CJ",
+    "Tsai CL",
+    "Wang KP"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43030322/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43030176",
+   "doi": "10.3390/nu18213547",
+   "title": "Effects of Oral Vitamin D Supplementation on Physical Performance in Combat-Sport Athletes: A Systematic Review of Randomized Placebo-Controlled Trials.",
+   "abstract": "BACKGROUND/OBJECTIVES: Vitamin D plays an important role in bone and muscle health; however, whether supplementation improves physical performance in combat-sport athletes remains unclear. This review examined randomized placebo-controlled trials of oral vitamin D supplementation and objective physical-performance outcomes in healthy combat-sport athletes.\nMETHODS: PubMed, Scopus, and the Cochrane Library were searched from inception to 22 January 2026, with supplementary targeted verification searches conducted through 1 September 2026. Trials were eligible when combat-sport athletes were randomized to receive vitamin D or placebo/no vitamin D and objective physical performance was assessed. Two reviewers independently performed study selection, data extraction, and risk-of-bias assessment. Findings were synthesized narratively by prioritizing randomized between-group contrasts, group-by-time interactions, numerical changes, and reported effect sizes.\nRESULTS: Four trials were included, involving 108 randomized participants and 99 analyzed observations. Individual trials reported statistically significant group-by-time effects for selected measures of isokinetic torque, Wingate peak power, high-velocity knee-extension torque, lower-body peak oxygen uptake, handgrip strength, isometric press-up endurance, and lower-body best repeated-sprint peak power. Published standardized effect-size estimates were available for several selected outcomes; however, confidence intervals for between-group effects were generally unavailable. Related outcomes, including Wingate mean or average power, other torque velocities, upper-body peak oxygen uptake, time to exhaustion, oxygen kinetics, wall-sit endurance, and most repeated-sprint measures, showed no statistically significant between-group interaction. No trial assessed competition performance, and all trials presented at least some risk-of-bias concerns.\nCONCLUSIONS: Individual trials reported statistically significant effects on selected laboratory measures. However, the available evidence is not sufficient to determine whether vitamin D supplementation meaningfully improves physical or sport-specific performance in combat-sport athletes. Correcting low vitamin D status should be distinguished from supplementation for performance enhancement. Further well-designed trials are required.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Michael M i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Michael M",
+    "Giannaki CD",
+    "Stavrinou PS",
+    "Andreou E",
+    "Vlahoyiannis A"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43030176/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43022284",
+   "doi": "10.3389/or.2026.1926991",
+   "title": "Comparative effects of exercise and nutritional interventions on muscle mass and body composition in adults with cancer: a systematic review and network meta-analysis of randomized controlled trials.",
+   "abstract": "INTRODUCTION: Loss of muscle mass and changes in body composition are common in adults with cancer. We compared exercise, nutritional, and combined strategies and assessed the certainty and clinical interpretability of the evidence.\nMETHODS: We searched PubMed, Embase, the Cochrane Library, and Web of Science through April 2026 for randomized controlled trials reporting appendicular skeletal muscle mass, skeletal muscle index, lean mass, body mass index, body weight, or fat mass. Eight nodes were evaluated: standard of care (SOC), active low-intensity control (ALC), resistance exercise (RE), multicomponent exercise (ME), nutrition-only intervention (NOI), exercise-nutrition intervention without resistance exercise as the primary component (ENI), resistance exercise plus nutrition-only intervention (RE + NOI), and comprehensive exercise-nutrition intervention incorporating resistance exercise (ENI + RE). Random-effects network meta-analysis produced mean differences (MDs) with 95% confidence intervals (CIs); certainty was assessed with GRADE/CINeMA.\nRESULTS: Twenty-one trials and eight intervention nodes were included. Most network estimates were of low certainty. ME was associated with lower BMI than SOC (MD -3.53, 95% CI -7.01 to -0.04), but not with statistically significant differences in body weight or fat mass. ENI + RE was associated with lower lean mass than SOC (MD -6.72, 95% CI -12.43 to -1.02); this sparse, low-certainty estimate should not be interpreted as evidence that combined interventions are harmful or ineffective. No intervention showed a consistent advantage across muscle mass outcomes.\nCONCLUSION: Relative rankings did not establish clinical superiority. Sparse direct evidence, heterogeneous cancer and treatment contexts, varied intervention protocols and measurement methods, and low certainty limit inference. More standardized head-to-head trials are needed.",
+   "journal": "Oncology reviews",
+   "journalAbbr": "Oncol Rev",
+   "year": "2026",
+   "authors": "Gao S i in.",
+   "authorCount": 2,
+   "authorList": [
+    "Gao S",
+    "Dong Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43022284/",
+   "topics": [
+    "hipertrofia"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43021367",
+   "doi": "10.1186/s13102-026-01959-4",
+   "title": "Comparative effectiveness of exercise-based prehabilitation before total knee arthroplasty: a systematic review and network meta-analysis of randomized controlled trials.",
+   "abstract": "BACKGROUND: Exercise-based prehabilitation before total knee arthroplasty (TKA) is widely used, yet the comparative effectiveness of different exercise modalities remains uncertain. This network meta-analysis compared the effectiveness of common exercise-based prehabilitation strategies for patients undergoing TKA.\nMETHODS: Four databases were searched from inception to 31 January 2026. Randomized controlled trials (RCTs) in adults scheduled for primary TKA were included if they evaluated structured preoperative exercise (at least two sessions) versus usual care control (CON), education, or another exercise modality. Interventions were coded as resistance, neuromuscular, balance, aerobic, or multimodal exercise. Outcomes were pain, knee function, Timed Up and Go (TUG), quadriceps strength, knee flexion range of motion (ROM), and quality of life (QoL), assessed preoperatively and/or postoperatively. Random effects NMA estimated standardized mean differences (SMDs) with 95% confidence intervals (CIs) and SUCRA rankings.\nRESULTS: Twenty-two RCTs involving 1458 participants were included. Compared with CON, resistance training improved TUG (SMD - 0.58, 95% CI - 1.13 to - 0.02) and quadriceps strength (SMD 0.41, 95% CI 0.16 to 0.67). Multimodal exercise improved knee flexion ROM versus CON (SMD 1.63, 95% CI 0.86 to 2.40), balance training (SMD 1.60, 95% CI 0.74 to 2.46), and resistance training (SMD 1.59, 95% CI 0.81 to 2.38). For pain, neuromuscular training, aerobic exercise, education, and multimodal exercise were superior to CON; neuromuscular training and education reduced pain more than resistance training. No significant differences were observed for knee function or QoL.\nCONCLUSIONS: Prehabilitation effects are outcome specific. Resistance training most consistently improved objective functional reserve, neuromuscular and aerobic approaches were more favorable for pain reduction, and multimodal programmes produced the greatest improvement in knee flexion ROM. Preoperative programmes should be matched to the patient's dominant limitation.\nTRIAL REGISTRATION: CRD420261325501.",
+   "journal": "BMC sports science, medicine & rehabilitation",
+   "journalAbbr": "BMC Sports Sci Med Rehabil",
+   "year": "2026",
+   "authors": "Wu Y i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Wu Y",
+    "Zhang L",
+    "Luo W",
+    "Yang R",
+    "Ren Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43021367/",
+   "topics": [
+    "hipertrofia",
+    "programowanie",
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43019042",
+   "doi": "10.1177/03000605261501642",
+   "title": "Psychological interventions for anorexia nervosa in female athletes: A mixed-methods systematic review.",
+   "abstract": "ObjectiveFemale athletes are at high risk of anorexia nervosa. Current clinical guidelines and psychological treatments are largely based on evidence from the general population, highlighting the need for a tailored review of the evidence. This review addresses two complementary questions: first, what evidence exists regarding the effectiveness of psychological interventions; and second, how do athletes with anorexia nervosa experience psychological treatment and recovery, and what factors may influence these experiences?MethodsA convergent, segregated mixed-methods systematic review was conducted in accordance with the Preferred Reporting Items for Systematic Reviews and Meta-Analyses 2020 guidelines and the Joanna Briggs Institute guidelines (PROSPERO: CRD420251073240). Eight databases were searched up to April 2026. Studies were eligible if they involved adult female athletes aged ≥18 years, had a clinical diagnosis of anorexia nervosa and included a psychological intervention component. Quantitative findings were synthesised narratively using the Synthesis Without Meta-analysis framework, with certainty assessed using the Grading of Recommendations Assessment, Development and Evaluation approach. Qualitative findings underwent Joanna Briggs Institute meta-aggregation, with certainty assessed using the Confidence in the Evidence from Reviews of Qualitative Research approach. The findings were then integrated.ResultsEleven studies involving 153 participants (136 female and 17 male) were included. Most studies were conducted in the United States and used cognitive behavioural therapy as a core intervention. The certainty of evidence was very low across all quantitative outcomes (eating disorder psychopathology, weight restoration and return to sport), although the findings indicated potential for recovery. Qualitative evidence suggested that recovery is influenced by environmental, cultural and multidisciplinary support factors. Three themes illustrated these influences, and the integrated findings provided further insight.ConclusionStandard psychological treatments appear capable of supporting recovery in athletes, although outcomes may be enhanced when treatment delivery incorporates athlete-specific considerations, such as athletic identity, performance motivation, coach involvement and return-to-sport planning. Interventions may be more effective when they incorporate sport-specific cultural competence, performance-framed cognitive restructuring, structured coach involvement and return-to-sport goals. Future research should prioritise athlete-adapted experimental designs with sport-specific outcome measures to strengthen the evidence base.",
+   "journal": "The Journal of international medical research",
+   "journalAbbr": "J Int Med Res",
+   "year": "2026",
+   "authors": "Ekerold I i in.",
+   "authorCount": 2,
+   "authorList": [
+    "Ekerold I",
+    "Soundy A"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43019042/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43016583",
+   "doi": "10.3389/fnagi.2026.1978798",
+   "title": "Optimizing exercise prescriptions for improving neuropsychiatric symptoms in older adults with MCI or dementia: a dose-response meta-analysis.",
+   "abstract": "BACKGROUND: Mild cognitive impairment (MCI) and dementia are common among older adults and are often accompanied by neuropsychiatric symptoms, which negatively affect quality of life and functional independence. Although exercise is a promising non-pharmacological intervention, the effective dose ranges for different exercise modalities in improving neuropsychiatric symptoms remain unclear. This study aimed to examine the dose-response relationships between different exercise modalities and neuropsychiatric symptoms among older adults with MCI or dementia.\nMETHODS: Exercise dose was calculated as the product of duration, frequency, and intensity, expressed as metabolic equivalent of task minutes per week (MET-min/week). Bayesian network and dose-response meta-analyses were conducted to compare the effects of different exercise modalities and characterize their dose-response relationships.\nRESULTS: Nineteen studies involving 1587 older adults with MCI or dementia were included. Overall exercise showed a U-shaped dose-response association with improvements in neuropsychiatric symptoms, with the greatest effect observed at approximately 490 MET-min/week (SMD = -0.51, 95% CrI: -0.91, -0.08). When stratified by exercise modality, aerobic exercise (8 arms), resistance training (4 arms), and mind-body exercise (7 arms) were significantly associated with improvements in neuropsychiatric symptoms, although their effective and optimal doses varied across modalities. The doses associated with the model-identified greatest effects were 460 MET-min/week for aerobic exercise (SMD = -0.53, 95% CrI: -0.76, -0.24; very low certainty evidence), 470 MET-min/week for resistance training (SMD = -0.49, 95% CrI: -0.76, -0.17; very low certainty evidence), and 490 MET-min/week for mind-body exercise (SMD = -0.63, 95% CrI: -0.94, -0.28; low certainty evidence). No significant moderating effects were identified in network meta-regression analyses.\nCONCLUSION: Aerobic exercise, resistance training, and mind-body exercise showed distinct dose-response relationships for improving neuropsychiatric symptoms in older adults with MCI or dementia. However, given the very low to low certainty of evidence, these findings should be interpreted cautiously. Further high-quality randomized controlled trials are warranted to confirm these findings.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261486763, identifier CRD420261486763.",
+   "journal": "Frontiers in aging neuroscience",
+   "journalAbbr": "Front Aging Neurosci",
+   "year": "2026",
+   "authors": "Yu X i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Yu X",
+    "Chao X",
+    "Wang C",
+    "Liu Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43016583/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43016582",
+   "doi": "10.3389/fphys.2026.1815013",
+   "title": "Temporal dynamics of the repeated bout effect on exercise-induced muscle damage: a systematic review and three-level meta-analysis.",
+   "abstract": "OBJECTIVE: The repeated bout effect (RBE) confers protection against exercise-induced muscle damage (EIMD). However, the temporal profile of this protective response both across post-exercise recovery and across different intervention-to-damage intervals remains poorly defined. This three-level meta-analysis aimed to quantify the time-course of RBE protective effects and to characterize potential temporal windows for intervention and measurement.\nMETHODS: A systematic search of PubMed, Web of Science, Embase, and Scopus (inception to June 2025) identified 35 eligible studies. Three outcome measures, maximal voluntary contraction (MVC), delayed onset muscle soreness (DOMS), and creatine kinase (CK), were analyzed using three-level random-effects models. Effect sizes (Hedges' g) were stratified by post-exercise measurement time (24, 48, 72, and 96 h) and intervention interval (<1 week, 1-2 weeks, 2-3 weeks, and >3 weeks).\nRESULTS: RBE significantly protected MVC (overall g = 1.18, 95% CI: 0.91-1.45) and reduced DOMS (g = -1.37, 95% CI: -1.70 to -1.05) and CK (g = -0.91, 95% CI: -1.33 to -0.50). Time-stratified analyses revealed distinct temporal patterns. MVC and DOMS showed their largest observed protective estimates at 72 h post-damage (g = 1.47 and -1.65, respectively), whereas CK showed its largest observed protective estimate at 96 h (g = -1.53). Direct comparisons accounting for within-study dependence showed a larger MVC estimate at 72 h than at 48 h and a more protective CK estimate at 48 h than at 24 h. Subgroup analyses revealed outcome-specific interval patterns, with pooled protective effects for MVC and DOMS numerically smallest in magnitude in the 2-3-week subgroup at all four assessed time points.\nCONCLUSION: RBE-related protection showed time-dependent patterns across outcomes. Among the assessed time points, pooled protective effects were largest in magnitude at 72 h for functional (MVC) and perceptual (DOMS) outcomes, whereas biochemical (CK) effects increased progressively in magnitude through 96 h. The 2-3-week interval was characterized by numerically weaker pooled protective effects for MVC and DOMS. These findings provide an evidence-informed temporal framework for optimizing preconditioning and recovery-monitoring strategies in athletic training.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/, identifier CRD420251131290.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2026",
+   "authors": "Yu F i in.",
+   "authorCount": 6,
+   "authorList": [
+    "Yu F",
+    "Xu L",
+    "Su X",
+    "Gao Y",
+    "Chen C",
+    "Yu L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43016582/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43016440",
+   "doi": "10.3389/fphys.2026.1928723",
+   "title": "The effects of resistance training on postural control in children and adolescents: a systematic review and meta-analysis.",
+   "abstract": "OBJECTIVE: To evaluate the effects of resistance training on postural control in children and adolescents.\nMETHODS: PubMed, Cochrane Library, Embase, Scopus, and Web of Science were searched from inception to April 2026 for randomized controlled trials comparing resistance training with non-resistance control conditions. Standardized mean differences (SMDs) and 95% confidence intervals (CIs) were pooled using random-effects models. Subgroup analyses for dynamic balance examined training modality, intervention duration, population characteristics, and age. Certainty of evidence was assessed using the GRADE approach.\nRESULTS: Twelve trials involving 557 participants were included. Resistance training showed positive effects on static balance (SMD = 0.36, 95%CI[0.06,0.65], p < 0.05) and dynamic balance (SMD=0.56, 95%CI[0.23,0.89], p < 0.001) in children and adolescents. Subgroup analyses suggested that core and whole-body resistance training produced significant improvements in dynamic balance, whereas lower-limb resistance training did not reach statistical significance. Training modality may partly explain between-study heterogeneity. The GRADE assessment indicated that the certainty of evidence was very low for both static and dynamic balance.\nCONCLUSION: Resistance training may improve static and dynamic balance performance in children and adolescents. These findings remain preliminary because of methodological limitations, heterogeneity, and very low certainty of evidence. Further high-quality randomized controlled trials using standardized intervention protocols and outcome measures are needed to confirm the optimal training characteristics for improving postural control.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261375407, identifier CRD420261375407.",
+   "journal": "Frontiers in physiology",
+   "journalAbbr": "Front Physiol",
+   "year": "2026",
+   "authors": "Zhou S i in.",
+   "authorCount": 9,
+   "authorList": [
+    "Zhou S",
+    "Kong C",
+    "Shi W",
+    "Zhou T",
+    "Xu Y",
+    "Yang Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43016440/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43012808",
+   "doi": "10.1097/MD.0000000000051196",
+   "title": "Effects of caffeine supplementation on exercise-induced muscle damage: A systematic review.",
+   "abstract": "BACKGROUND: Exercise-induced muscle damage (EIMD) commonly occurs following unaccustomed or high-intensity exercise and is characterized by delayed-onset muscle soreness, elevated muscle damage biomarkers, and transient declines in muscle function. Caffeine, a widely consumed ergogenic aid, has been proposed to mitigate these adverse effects; however, the evidence across studies remains equivocal. This systematic review aimed to synthesize findings from randomized controlled trials (RCTs) that investigated the effects of caffeine supplementation on markers of EIMD.\nMETHODS: Following preferred reporting items for systematic reviews and meta-analyses guidelines, a comprehensive search was conducted in PubMed, Scopus, and Google Scholar databases, supplemented by citation tracking. RCTs published between 2005 and 2025 that included human participants and reported direct or indirect indicators of EIMD were eligible. Fifteen RCTs (n = 222) were included and assessed for methodological quality using the PEDro scale.\nRESULTS: Caffeine doses ranged from 3 to 6 mg/kg. Among the 6 studies assessing delayed-onset muscle soreness, 4 reported significant reductions in perceived soreness within 24 to 48 hours post-exercise, whereas 2 found no effect or adverse responses. Eleven studies examined biochemical markers; most detected no significant differences between caffeine and placebo, while 2 observed higher creatine kinase levels in the caffeine group. Five studies evaluated functional performance; some indicated attenuation of decrements in maximal voluntary isometric contraction or isokinetic torque, although results were inconsistent.\nCONCLUSION: Caffeine supplementation may transiently reduce subjective muscle soreness and, under certain conditions, help preserve muscle function following EIMD, but its effects on biochemical markers are inconsistent. The overall efficacy appears to depend on factors such as exercise modality, dosage, timing, and inter-individual variability. Larger, well-controlled RCTs with standardized protocols are needed to clarify caffeine's role in muscle damage and recovery.",
+   "journal": "Medicine",
+   "journalAbbr": "Medicine (Baltimore)",
+   "year": "2026",
+   "authors": "Mercan S i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Mercan S",
+    "Şahin Kafkas A",
+    "Coşkun IA",
+    "Kafkas ME"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43012808/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43010998",
+   "doi": "10.3389/fnut.2026.1966901",
+   "title": "Comparative efficacy of time-restricted eating combined with different exercise modalities for improving body composition, metabolic health, and physical performance in adults: a systematic review and fat-mass network meta-analysis.",
+   "abstract": "BACKGROUND: Time-restricted eating (TRE) is commonly combined with exercise, but the relative effects of different exercise modalities remain uncertain.\nOBJECTIVE: To compare usual diet or control, TRE alone, exercise alone, TRE plus aerobic exercise, TRE plus resistance training, TRE plus high-intensity interval training (HIIT), and TRE plus mixed or concurrent training.\nMETHODS: PubMed/MEDLINE, Web of Science, Scopus, Embase, the Cochrane Library, and Google Scholar were searched from 2016 to 20 July 2026. Seventeen reports representing 15 unique randomised trials met the eligibility criteria after cohort linkage. Eight independent trials contributed compatible fat-mass contrasts to a random-effects pairwise meta-analysis and a seven-node frequentist network meta-analysis.\nRESULTS: TRE plus exercise reduced fat mass more than the same exercise without TRE [mean difference (MD) -1.85 kg, 95% confidence interval (CI) -2.34 to -1.35; I 2 = 0%; τ 2 = 0.00, and 95% prediction interval -2.46 to -1.23]. Network estimates versus usual diet or control were -3.32 kg for TRE plus concurrent training, -3.10 kg for TRE plus HIIT, -3.03 kg for TRE plus aerobic exercise, and -2.79 kg for TRE plus resistance training. Corresponding P-scores were 0.838, 0.757, 0.742, and 0.650. Confidence intervals for the active combined modalities overlapped. Residual network heterogeneity was not detected (Q = 3.29, df = 6, p = 0.772).\nCONCLUSION: TRE adds a modest reduction in fat mass when combined with exercise. Concurrent training, HIIT, and aerobic exercise ranked highly for fat-mass reduction, while resistance training had the most repeated evidence for preserving fat-free mass and strength.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261440609, PROSPERO CRD420261440609.",
+   "journal": "Frontiers in nutrition",
+   "journalAbbr": "Front Nutr",
+   "year": "2026",
+   "authors": "Li H i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Li H",
+    "Lu C",
+    "Qin G",
+    "Li D"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43010998/",
+   "topics": [
+    "zywienie",
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43007455",
+   "doi": "10.1007/s00520-026-11427-x",
+   "title": "Physiological prehabilitation for patients undergoing cellular therapy in multiple myeloma and lymphoma: a systematic review.",
+   "abstract": "AIMS: To evaluate physiological prehabilitation for adults with multiple myeloma or lymphoma undergoing cellular or immune-based therapies and to describe intervention characteristics and programme duration.\nBACKGROUND: Fatigue, physical deconditioning, and muscle weakness can compromise treatment readiness and quality of life (QoL). Evidence on exercise begun before these therapies remains limited.\nMETHODS: Six databases were searched from inception to 4 September 2026. Randomised controlled trials (RCTs) and quasi-experimental studies were eligible if exercise began before stem cell transplantation, chimeric antigen receptor T-cell (CAR-T) therapy, or bispecific T-cell engager (BiTE) therapy and assessed physical function plus muscle strength, QoL, or fatigue. Joanna Briggs Institute tools informed methodological appraisal. Findings were synthesised narratively by outcome, alongside exercise characteristics and duration.\nRESULTS: Twelve studies (501 participants), comprising three pilot RCTs and nine quasi-experimental studies, were included. Ten evaluated transplantation and two CAR-T therapy; none evaluated BiTE therapy. Aerobic plus resistance or strength exercise predominated, and nine programmes reported a central or protocol duration within 4-8 weeks. Physical function and lower-limb performance findings were generally favourable; handgrip strength, QoL, and fatigue findings were mixed. Heterogeneous methods and predominantly uncontrolled designs limited interpretation.\nCONCLUSIONS: Physiological prehabilitation shows preliminary promise for functional preparation before treatment. Aerobic and resistance exercise and the commonly reported programme durations warrant comparative evaluation.\nIMPLICATIONS: Adequately powered, therapy-specific RCTs should standardise exercise reporting, assess clinically meaningful outcomes, and evaluate safety and sustained recovery after treatment.",
+   "journal": "Supportive care in cancer : official journal of the Multinational Association of Supportive Care in Cancer",
+   "journalAbbr": "Support Care Cancer",
+   "year": "2026",
+   "authors": "Barredo JMS i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Barredo JMS",
+    "Lim CC",
+    "Loy Y",
+    "Ooi M",
+    "Zeng Y"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43007455/",
+   "topics": [
+    "hipertrofia",
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43006840",
+   "doi": "10.1002/ejsc.70286",
+   "title": "Effects of Morning Strength and Power Priming Exercises on Afternoon Physical and Cognitive Performance in Male Rugby Union Players.",
+   "abstract": "The objective of this study was to assess the effect of morning strength and power priming exercises on afternoon physical and cognitive performance in male rugby union players. On two occasions in a randomised, counterbalanced design, 25 male rugby union players completed morning physical (countermovement jump, 40 m linear sprint) and cognitive (rapid visual information processing; spatial working memory; paired associates of learning) assessments. Control (passive rest) or intervention (barbell back squat, 3 × 3 repetitions at 85% of one repetition maximum and barbell squat jump, 5 × 3 repetitions at 40% one repetition maximum) trials were implemented 5.5 h before afternoon assessments. Differences between morning and afternoon assessments were found in sprinting performance following intervention for 30 m fly (-0.08 ± 0.13 s, p = 0.004, ES: 0.615) and 40 m (-0.12 ± 0.17 s, p = 0.001, ES: 0.711) relative to control (0.03 ± 0.07 s, p = 0.022, ES: -0.476; 0.01 ± 0.09 s, p = 0.740, ES: -0.065, 30 m fly and 40 m, respectively). Afternoon countermovement jump flight time improved following intervention compared with control (2% vs. 0%, p = 0.012, ES: -0.53). No changes were found for cognitive assessments (p > 0.05). Morning strength and power priming exercises combining heavy-load traditional and light-load ballistic exercises effectively enhanced vertical jump and sprint performance, but not cognitive performance, in the afternoon in male rugby union players.",
+   "journal": "European journal of sport science",
+   "journalAbbr": "Eur J Sport Sci",
+   "year": "2026",
+   "authors": "Knight J i in.",
+   "authorCount": 6,
+   "authorList": [
+    "Knight J",
+    "Russell M",
+    "Cunningham D",
+    "Cook C",
+    "Waldron M",
+    "Kilduff L"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43006840/",
+   "topics": [
+    "hipertrofia"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43005223",
+   "doi": "10.3389/fbioe.2026.1956053",
+   "title": "Effects of different recovery and regeneration modalities on delayed-onset muscle soreness and post-exercise muscle damage markers: a systematic review and network meta-analysis.",
+   "abstract": "OBJECTIVE: This study employed a systematic review and Bayesian network meta-analysis to compare the effects of multiple post-exercise interventions during the early recovery period, examine whether these effects varied across recovery time points, and provide evidence to inform the selection of post-exercise recovery strategies.\nMETHODS: PubMed, Embase, the Cochrane Library, and Web of Science were systematically searched, and randomized controlled trials, including parallel-group and crossover designs, were included. A Bayesian random-effects network meta-analysis was used to estimate mean differences (MDs) and 95% credible intervals (CrIs). The revised Cochrane risk-of-bias tool for randomized trials (RoB 2) and the Confidence in Network Meta-Analysis (CINeMA) framework were used to assess risk of bias and confidence in the evidence, respectively. Sensitivity analyses and exploratory univariable network meta-regression analyses were also performed.\nRESULTS: A total of 35 studies were included in this review. For delayed-onset muscle soreness (DOMS), whole-body cryotherapy (WBC) and photobiomodulation/phototherapy-related interventions (PHO) showed relatively large reductions in soreness at both 24 and 48 h after exercise. Compared with the combined control/placebo condition (CON/PBO), the effect estimates for WBC were MD = -38.92 (95% CrI: -69.08 to -9.15) at 24 h and MD = -40.03 (95% CrI: -67.74 to -12.44) at 48 h. The corresponding estimates for PHO were MD = -18.20 (95% CrI: -32.91 to -3.72) and MD = -19.46 (95% CrI: -33.55 to -5.99), respectively. For creatine kinase (CK), low-level laser therapy (LLLT) and PHO were associated with lower CK levels at both 24 and 48 h, with the largest estimated effect for LLLT at 48 h (MD = -499.96, 95% CrI: -831.59 to -203.59). For interleukin-6 (IL-6), CWI showed favorable estimates at both 24 and 48 h, although the evidence base was limited and the network was sparse.\nCONCLUSION: WBC and PHO showed relatively consistent favorable effects on DOMS at 24 and 48 h, whereas LLLT and PHO showed relatively consistent associations with lower CK levels. The IL-6 findings should be interpreted as exploratory because of the limited evidence base. Selection of post-exercise recovery strategies should consider the target outcome, recovery time window, evidence certainty, and network structure.",
+   "journal": "Frontiers in bioengineering and biotechnology",
+   "journalAbbr": "Front Bioeng Biotechnol",
+   "year": "2026",
+   "authors": "Li J i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Li J",
+    "Wang S",
+    "Wei M",
+    "Liu W"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43005223/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43001450",
+   "doi": "10.1080/15502783.2026.2749890",
+   "title": "Dose-specific effects of caffeinated chewing gum on reactive blocking timing, jump mechanics, and neuromuscular responses after volleyball-specific fatigue in elite female volleyball players.",
+   "abstract": "PURPOSE: To investigate the effects of caffeinated chewing gum at nominal target doses of 3 and 6 mg/kg on reactive blocking timing, block-jump mechanics, and neuromuscular responses in elite female volleyball players under post-fatigue conditions.\nMETHODS: Fifteen elite female volleyball players completed a randomized, placebo-controlled crossover study implemented with double-blinding procedures. Participants consumed placebo (PLA), caffeinated chewing gum at nominal target doses of 3 mg/kg (CAF3) or 6 mg/kg (CAF6), and were tested after supplementation and warm-up at PRE and immediately after a volleyball-specific repeated blocking fatigue protocol (POST). Primary outcomes were reactive blocking timing-chain indices and block-jump (BJ) peak power. Secondary outcomes included additional BJ mechanical variables and general jump measures from countermovement jump (CMJ) and drop jump (DJ) tests. Exploratory outcomes included synchronized surface electromyography (sEMG) variables of lower-limb muscles. Participant blinding was assessed after each visit.\nRESULTS: Fatigue impaired jump-related performance across conditions (p < 0.05). For the primary outcomes, the descriptive decline in BJ peak power was 6.9% in CAF6 versus 13.9% in PLA; the adjusted POST comparison did not establish superiority of CAF6 over CAF3. For timing outcomes, overall sequence time increased by 18.4% in PLA, 6.4% in CAF3, and 3.0% in CAF6; CAF6 therefore showed the smallest descriptive deterioration in the integrated sequence measure, whereas CAF3 showed little change in the mean stationary and movement component times. CAF6 showed a reduction in mean stationary response time and the smallest increase in overall sequence time. For secondary outcomes, caffeine showed more favorable post-fatigue responses in selected CMJ/DJ measures, including CMJ mean propulsive power and DJ contact time (p < 0.05), and CAF6 showed greater preservation of selected stretch-shortening cycle-related mechanical measures, including DJ jump height and DJ vertical stiffness, than PLA (p < 0.05). In contrast, CMJ mRSI showed a divergent pattern and was not interpreted as evidence of caffeine-related attenuation of fatigue-induced decrements. Exploratory sEMG results showed smaller post-fatigue changes in selected frequency-domain and activation-timing variables under CAF6, particularly in measures related to extensor-muscle function. Participant masking was incomplete: perceived caffeine ingestion was reported in 0.0%, 53.3%, and 80.0% of PLA, CAF3, and CAF6 visits, respectively, and adverse effects were more frequent in CAF6.\nCONCLUSIONS: The observed responses were outcome-specific: CAF6 showed a smaller decline in BJ peak power and the smallest increase in overall sequence time, whereas CAF3 showed little change in mean stationary and movement response times. These findings do not establish a generally preferable dose or a timing-stability advantage for CAF3. Incomplete participant masking limits attribution of the differences exclusively to caffeine dose.",
+   "journal": "Journal of the International Society of Sports Nutrition",
+   "journalAbbr": "J Int Soc Sports Nutr",
+   "year": "2026",
+   "authors": "Zhong J i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Zhong J",
+    "Xu J",
+    "Lu C",
+    "Wu H"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43001450/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": true,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43000402",
+   "doi": "10.1186/s13102-026-01971-8",
+   "title": "Dry-land training in developmental competitive swimmers: a systematic review and meta-analysis of comparative effects across three modalities, dose-response patterns, and associations between physical fitness and swimming-specific performance.",
+   "abstract": "BACKGROUND: Dry-land training is an important component of competitive swimming and is used to develop the physical fitness (PF) required for sport-specific training. However, the relative effects of different dry-land training modalities, their dose-response patterns, and associations between PF and swimming-specific performance (SSP) remain unclear.\nMETHODS: Eight databases were searched from inception to 15 February 2026, with additional records identified through websites and citation searching. Controlled intervention studies of three dry-land training modalities (core, plyometric, or resistance training) in youth, adolescent, age-group, or comparable competitive swimmers who trained with the intention to compete and remained within a sport-specific developmental pathway were included. Methodological quality was assessed using the PEDro scale. Hedges' g was calculated from pre-post changes. Random-effects meta-analyses, sensitivity analyses, continuous dose-response meta-regressions, and comparison-level analyses of associations between PF and SSP effects were performed.\nRESULTS: Thirty-seven studies involving 829 swimmers were included: 14 core training, 8 plyometric training, and 15 resistance training studies. All three modalities showed positive conventional pooled effects on SSP (g = 0.204, 95% CI 0.082 to 0.326; g = 0.376, 95% CI 0.163 to 0.588; and g = 0.291, 95% CI 0.202 to 0.380, respectively) and PF (g = 0.541, 95% CI 0.325 to 0.756; g = 0.247, 95% CI 0.066 to 0.428; and g = 0.356, 95% CI 0.242 to 0.470, respectively). Heterogeneity was absent to moderate across the six models (I² = 0.0%-47.7%). Statistical support was stronger for CT-SSP, RT-SSP, and RT-PF, whereas CT-PF and both PT outcome domains were more inference-sensitive. Exploratory comparison-level dose-response models indicated modality- and outcome-specific patterns within the observed dose ranges. The comparison-level PF-SSP effect association was unstable for CT (β = 0.021, p = 0.905), positive but conditional for PT (β = 0.579, p = 0.017), and showed the strongest statistical support for RT (β = 1.180, p < 0.001).\nCONCLUSIONS: The three included dry-land training modalities showed positive conventional pooled effects on PF and SSP in developmental competitive swimmers, although the strength and stability of support differed across combinations of training modality and outcome domain. Dose-response findings represented exploratory comparison-level patterns within the observed ranges and should not be treated as fixed prescriptions or definitive thresholds. Training planning may be informed by training modality, target outcome, observed-range dose-response characteristics, and comparison-level associations between PF and SSP effects.\nTRIAL REGISTRATION: PROSPERO CRD420261367300.",
+   "journal": "BMC sports science, medicine & rehabilitation",
+   "journalAbbr": "BMC Sports Sci Med Rehabil",
+   "year": "2026",
+   "authors": "Mou H i in.",
+   "authorCount": 5,
+   "authorList": [
+    "Mou H",
+    "Huang J",
+    "Chen J",
+    "Wen T",
+    "Dong W"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43000402/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 4
+  },
+  {
+   "pmid": "43030265",
+   "doi": "10.3390/nu18213639",
+   "title": "Caffeinated Gum Enhances External Work During Perceptually Regulated Cycling in Well-Trained Male Athletes.",
+   "abstract": "BACKGROUND: While caffeine may lower ratings of perceived exertion (RPE) or increase power output at a given RPE, whether caffeinated gum produces these effects during perceptually regulated exercise remains unclear.\nAIM: This study examined whether caffeinated gum increases self-selected cycling output at regulated-RPE in well-trained male athletes.\nMETHODS: Twelve well-trained male athletes (age: 21 ± 2 years; body mass: 77.3 ± 6.0 kg; VO2peak: 47 ± 4 mL/kg/min) completed randomized, double-blind, placebo-controlled crossover trials separated by 7 days. Athletes chewed caffeinated gum (6 mg/kg) or placebo for 15 min before two 10 min cycling stages at RPE 4 and 7 (0-10 OMNI Scale). Cadence, power output, oxygen uptake, heart rate, and blood lactate concentration were measured.\nRESULTS: Caffeinated gum significantly increased cadence (RPE 4: 72 ± 7 vs. 66 ± 10 rpm, p = 0.02; RPE 7: 77 ± 9 vs. 71 ± 11 rpm, p = 0.04), total work (53 ± 10 vs. 48 ± 10 kJ, p < 0.01; 87 ± 12 vs. 77 ± 14 kJ, p < 0.01), mean power output (88 ± 16 vs. 79 ± 16 W, p < 0.01; 146 ± 20 vs. 129 ± 24 W, p < 0.01) and peak power output (97 ± 18 vs. 88 ± 17 W, p < 0.01; 166 ± 27 vs. 147 ± 29 W, p = 0.01). Oxygen uptake was also higher in the caffeine condition at both RPE 4 (1.58 ± 0.12 vs. 1.42 ± 0.16 L/min, p = 0.005) and RPE 7 (2.17 ± 0.25 vs. 2.01 ± 0.22 L/min, p = 0.045), whereas heart rate and blood lactate concentration did not differ significantly between conditions (p > 0.05).\nCONCLUSION: Caffeinated gum (6 mg/kg) enhances self-selected cycling work at prescribed RPEs, indicating that it alters perceptually regulated exercise intensity in well-trained males.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Chen N i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Chen N",
+    "Xia Y",
+    "Xu L",
+    "Liu J",
+    "Ding L",
+    "Huang J"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43030265/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43030250",
+   "doi": "10.3390/nu18213625",
+   "title": "Development and Exploratory Evaluation of a Habitual Caffeine Intake-Based Index to Characterize the Ergogenic Response to Caffeine in Wrestlers.",
+   "abstract": "Objectives: This secondary exploratory analysis of a randomized, double-blind, placebo-controlled crossover trial developed and compared indices linking administered caffeine dose to habitual intake to characterize variability in performance and side effects in wrestlers. Methods: Seventy-two male wrestlers completed a randomized, double-blind, placebo-controlled crossover trial in which they ingested caffeine (4 mg·kg-1) or placebo 60 min before vertical jump and wrestling-specific testing. Three indices were calculated: DAR, expressing the administered dose as a multiple of the habitual intake; DDI, quantifying the additional caffeine received above habitual intake; and DNI, expressing this additional intake as a proportion of the administered dose. Hierarchical regression models were used to examine whether each index provided incremental explanatory value beyond habitual caffeine intake and absolute caffeine dose. Results: In exploratory hierarchical models adjusted for habitual caffeine intake and absolute dose, DAR was associated with additional explained variance for the change in total throws (ΔR2 = 0.249, p < 0.001), the wrestling performance index (ΔR2 = 0.321, p < 0.001), the Caffeine Utility Index (ΔR2 = 0.160, p < 0.001), and side effect severity (ΔR2 = 0.072, p = 0.008), but not for the change in vertical jump performance (ΔR2 = 0.004, p = 0.586). DDI provided significant incremental explanatory value for the change in total throws (ΔR2 = 0.061, p = 0.027) and the wrestling performance index (ΔR2 = 0.067, p = 0.022). Exploratory quadratic analyses identified a theoretical DAR vertex range between 2.25 and 2.81. Conclusions: These findings support DAR as the principal index for prospective evaluation, but they do not establish a dosing prescription. DAR is not intended to replace body-mass-based dosing (mg·kg-1); rather, it provides a complementary reference dimension that should be applied within established safety limits.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Khodadoost M i in.",
+   "authorCount": 6,
+   "authorList": [
+    "Khodadoost M",
+    "Negaresh R",
+    "Bagheri R",
+    "Al-Reiamy SAAS",
+    "Mokhtarzade M",
+    "Del Coso J"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43030250/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43030212",
+   "doi": "10.3390/nu18213584",
+   "title": "Anthocyanin-Rich Aronia melanocarpa Supplementation Modulates Intestinal Barrier Biomarkers and Stress-Axis Response in a Randomized Controlled Trial.",
+   "abstract": "BACKGROUND: Anthocyanin-rich berries may modulate intestinal barrier-related processes and physiological stress responses, but evidence from human studies remains limited.\nMETHODS: This randomized, double-blind, placebo-controlled trial included 15 elite male rowers (Aronia group, n = 7; placebo group, n = 8). Participants received Aronia melanocarpa supplementation or placebo for eight weeks and performed a standardized 2000-m rowing ergometer test before and after the intervention. Circulating claudin-3 (CLDN-3), lipopolysaccharide-binding protein (LBP), intestinal fatty acid-binding protein (I-FABP), and cortisol concentrations were assessed before exercise, immediately after exercise, and following 1 h of recovery.\nRESULTS: A significant Group × Time interaction was observed for CLDN-3 (p = 0.0463). After eight weeks, pre-exercise CLDN-3 concentrations were lower in the Aronia group than in the placebo group (p = 0.0367). Lower pre-exercise LBP concentrations (p = 0.0125) and lower cortisol concentrations at 1 h post-exercise (p = 0.0079) were also observed in the Aronia group compared with placebo. No significant supplementation-specific effect was observed for I-FABP.\nCONCLUSIONS: Eight weeks of Aronia melanocarpa supplementation was associated with differences in selected intestinal barrier-related biomarkers and post-exercise cortisol concentrations in elite male rowers. However, these findings were primarily related to specific sampling time points and should not be interpreted as evidence of improved intestinal barrier function. Given the small sample size and potential dietary confounding, the results are preliminary and require confirmation in larger randomized controlled trials.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Dziewiecka H i in.",
+   "authorCount": 9,
+   "authorList": [
+    "Dziewiecka H",
+    "Ostapiuk-Karolczuk J",
+    "Kasperska A",
+    "Cichoń-Woźniak J",
+    "Pasek M",
+    "Kaczmarczyk S"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43030212/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43030142",
+   "doi": "10.3390/nu18213513",
+   "title": "Comparative Effects of Different Carbohydrate-Protein Formulations on Resistance Training Adaptations in Healthy Young Men.",
+   "abstract": "Background/Objectives: Evidence is limited on whether carbohydrate formulations enhance resistance training adaptations when protein intake is relatively adequate. This study compared two carbohydrate-protein formulations in healthy young men. Methods: In this randomized, double-blind, placebo-controlled trial, 36 untrained men aged 18-25 years were assigned to a maltodextrin-based carbohydrate control group (PLA), low-molecular-weight carbohydrate plus protein (LMW-CHO+PRO), or high-molecular-weight carbohydrate plus protein (HMW-CHO+PRO). Thirty-three participants completed 8 weeks of supervised resistance training three times weekly and daily supplementation (50 g). Body composition, muscle circumference and thickness, strength, and serum testosterone, cortisol, and testosterone-to-cortisol ratio were assessed before and after intervention. The trial was registered with the Chinese Clinical Trial Registry (ChiCTR2500110509). Results: Body mass, total muscle mass, muscle circumference and thickness, and strength improved in all groups. Both supplementation groups showed greater improvements than PLA across several muscular adaptation measures. Time × group interactions were significant for body mass and total muscle mass, but not fat mass. HMW-CHO+PRO produced greater increases in body mass and total muscle mass than LMW-CHO+PRO; however, no consistent differences between formulations were observed in regional muscle circumference, muscle thickness, strength, or blood biomarkers. Conclusions: Under conditions of relatively adequate protein intake, combined carbohydrate and protein supplementation may provide additional support for resistance training adaptations. These findings do not establish an overall advantage of either formulation, nor can the observed differences be attributed specifically to carbohydrate molecular weight.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Liang W i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Liang W",
+    "Wang X",
+    "Sun C",
+    "Chen Y",
+    "Sun Y",
+    "Wang D"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Comparative Study"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43030142/",
+   "topics": [
+    "hipertrofia",
+    "zywienie"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43025847",
+   "doi": "10.2196/79146",
+   "title": "Chin Tuck Against Resistance Exercise With Feedback to Improve Swallowing, Eating, and Drinking in Frail Older People Admitted to Hospital With Pneumonia (CTAR-SwiFt): Randomized Controlled Feasibility Study.",
+   "abstract": "BACKGROUND: Community-acquired pneumonia in frail older people requiring hospital admission is considered to be commonly associated with swallowing difficulties (dysphagia). A rehabilitation program (chin tuck against resistance [CTAR]) targeting the anterior neck musculature involved in laryngeal movement can improve swallowing safety. We have developed a swallowing exercise rehabilitation intervention (CTAR-SwiFt [Chin Tuck Against Resistance Exercise With Feedback to Improve Swallowing, Eating, and Drinking in Frail Older People Admitted to Hospital With Pneumonia]) by adapting a previously established swallowing exercise. The CTAR-SwiFt intervention consists of a feedback-enabled exercise ball that can be squeezed under the chin, with real-time feedback provided via a mobile app.\nOBJECTIVE: This study aimed to assess the usability of the CTAR-SwiFt intervention and the feasibility of recruiting participants to take part in a larger-scale multicenter randomized controlled trial.\nMETHODS: We recruited participants aged 75 years and older who were admitted with a diagnosis of pneumonia to the acute frailty wards at 2 participating hospitals in the United Kingdom. Patients had to be medically stable. Study participants were randomized to 1 of 3 groups: standard care (control), low intensity (once daily), or high intensity (twice daily) CTAR-SwiFt exercises. The intervention period lasted for 12 weeks; the final follow-up assessment was conducted at 24 weeks. Feasibility outcomes were assessed descriptively and included participant recruitment rate, retention, compliance with the exercise regimen, and adverse incidents. The Eating Assessment Tool-10 (EAT-10) and 4 Question Test (4QT) measures were used to screen for oropharyngeal dysphagia. Additionally, we assessed the usability and acceptability of the intervention device and performance of different clinical outcome measures (chin tuck strength, Functional Oral Intake Scale [FOIS], Quality of Life in Swallowing Disorders [SWAL-QOL] questionnaire, EuroQol 5-Dimension 3-Level [EQ-5D-3L] questionnaire, and swallow speed).\nRESULTS: A total of 24 participants were recruited, and 21 were randomized at the rate of 0.91 recruits per month (95% CI 0.59-1.0). Of those approached, 32% (24/75) were willing to take part, and of those randomized, 52% (11/21) completed the study. The major reason for failing to complete the study was medical, with people becoming unwell or being readmitted to hospital. The outcome measures assessed suggested that there was an improvement in the EAT-10 and 4QT and a minimal impact on FOIS. Quality of life as measured by the EQ-5D-3L showed improvement with time. The low-intensity intervention demonstrated the best improvement. Participants were able to partake in the CTAR-SwiFt exercises. There was an improvement in the consistency of ball squeeze over the course of the intervention and an increase in maximum chin tuck strength by a mean of 0.8 (SD 0.9) kgf.\nCONCLUSIONS: The literature supports the benefit of CTAR in improving swallowing in community-dwelling older adults. Our study has demonstrated that older, frail adults are able to perform CTAR and could use the ExerPhager. A future study should investigate the benefits of CTAR-SwiFt in community-dwelling older, frail adults after pneumonia.\nTRIAL REGISTRATION: ISRCTN Registry ISRCTN12813363; https://www.isrctn.com/ISRCTN12813363.\nINTERNATIONAL REGISTERED REPORT IDENTIFIER (IRRID): RR2-10.1186/s40814-022-01060-w.",
+   "journal": "JMIR formative research",
+   "journalAbbr": "JMIR Form Res",
+   "year": "2026",
+   "authors": "Smithard DG i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Smithard DG",
+    "Swaine I",
+    "Ayis S",
+    "Goubar A",
+    "Gambaruto A",
+    "Stone-Ghariani A"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43025847/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43018676",
+   "doi": "10.1007/s13105-026-01253-4",
+   "title": "A pilot study on the impact of Hydroxiram D supplementation on nutritional status and sarcopenia-related parameters.",
+   "abstract": "Sarcopenia is a frequent and prognostically relevant complication of chronic liver disease. The SARCIRAM pilot trial investigated the effect of Hydroxiram D, a formulation of branched-chain amino acids (BCAAs), β-hydroxy-β-methylbutyrate (HMB), and vitamin D, on nutritional status and sarcopenia-related parameters in patients with compensated cirrhosis due to metabolic dysfunction-associated steatotic liver disease (MASLD). In this single-center, randomized pilot study, adults with compensated MASLD-related cirrhosis (Child-Pugh A) received Hydroxiram D plus standard care or standard care alone for 6 months. The primary outcome was phase angle (PA), while secondary outcomes were appendicular skeletal muscle mass (ASMM)/height², handgrip strength (HGS), and 4-meter walk test (4-mWT). Between-group comparisons used baseline-adjusted models. Post-hoc simulation analyses were used exploratorily to inform the design of future studies. Thirty-two patients were analyzed. After 6 months, the adjusted change in PA was significantly more favorable in the treated group versus controls (+ 0.36° vs. - 0.45°, p = 0.046). Between-group differences in muscle mass, HGS, and gait speed were not statistically significant, although effect estimates directionally favoured the intervention. No treatment-related adverse events were observed. Six months of Hydroxiram D was associated with a more favorable change in PA in patients with compensated MASLD-related cirrhosis, with favorable trends in muscle parameters. These hypothesis-generating findings warrant confirmation in larger, prospectively registered, double-blind trials to confirm efficacy and long-term outcomes.",
+   "journal": "Journal of physiology and biochemistry",
+   "journalAbbr": "J Physiol Biochem",
+   "year": "2026",
+   "authors": "Gallo P i in.",
+   "authorCount": 12,
+   "authorList": [
+    "Gallo P",
+    "Flagiello V",
+    "Di Cola S",
+    "Santoro L",
+    "Marcelli D",
+    "Reggiardo G"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43018676/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43017997",
+   "doi": "10.1590/1984-0462/2026/44/2026014",
+   "title": "Exercise training program in children and adolescents with asthma: a randomized clinical trial.",
+   "abstract": "OBJECTIVE: To evaluate, in children and adolescents with asthma, the effects of an 8-week exercise training program on exercise capacity.\nMETHODS: Single-blind, randomized clinical trial in participants with asthma between six and 17 years old under regular treatment. The intervention group performed supervised aerobic and resistance training, and the control group performed supervised stretching in 60-minute sessions twice a week for eight weeks. They were assessed at baseline and following the intervention. The primary outcomes were (VO2peak) and distance walked on the Modified Shuttle Test (MST). Secondary outcomes included quality of life, physical activity in daily living, and serum inflammatory profile. The analyses were intention-to-treat and per protocol.\nRESULTS: Thirty participants in the intervention group and 29 in the control group, mean age 10±3 years old, normal lung function (forced expiratory volume - FEV1/forced vital capacity - FVC: 86±8), Global Initiative for Asthma (GINA) step: 2 (1-3). No significant differences between groups were observed at the end of the protocol regarding all outcomes. The VO2 peak was 40.3±12.4 mL/kg in the intervention group and 39.2±16.0 mL/kg in the control group (p=0.764). The distance walked on the MST was 852±219 m for the intervention group and 759±255 m for the control group (p=0.142).\nCONCLUSIONS: A twice-weekly, 8-week exercise program for children and adolescents with asthma did not improve exercise capacity, quality of life, or the inflammatory profile. The optimal frequency of intervention for this population requires further investigation.",
+   "journal": "Revista paulista de pediatria : orgao oficial da Sociedade de Pediatria de Sao Paulo",
+   "journalAbbr": "Rev Paul Pediatr",
+   "year": "2026",
+   "authors": "Reimberg MM i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Reimberg MM",
+    "Scalco RS",
+    "Salu BR",
+    "Serra AJ",
+    "Wandalsen GF",
+    "Solé D"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43017997/",
+   "topics": [
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43015709",
+   "doi": "10.1186/s12887-026-07516-9",
+   "title": "The effect of reduced carbohydrate diet on cardiometabolic risk factors and gut microbiota in children and adolescents with obesity: a randomized controlled trial.",
+   "abstract": "OBJECTIVE: To compare the effects of a reduced-carbohydrate diet (RCD) with a standard diet (STD) on cardiometabolic risk factors and gut microbiota composition in children and adolescents with obesity.\nMETHODS: In this randomized controlled trial, 84 children and adolescents with obesity, aged 7-16 years, were randomly assigned to either a RCD (30-40% of total energy from carbohydrates, emphasizing high‑fiber sources) or a STD for 12 weeks. A calorie deficit was applied in both groups. Dietary assessments, anthropometric measurements, body composition analysis, biochemical measurements, and gut microbiota composition were evaluated at baseline and at the end of follow-up. Change in body mass index at 12 weeks was considered the primary outcome.\nRESULTS: Sixty-one participants (72.6%) completed the intervention. Both the reduced-carbohydrate diet (RCD) and standard diet (STD) groups showed significant reductions in BMI, BMI z-score, waist circumference, and percent body fat over the 12-week intervention, with no significant differences between groups (p > 0.05).Triglyceride levels and the triglyceride-to-HDL cholesterol ratio decreased significantly in the RCD group compared with the STD group (between-group mean difference - 40.31 mg/dL, 95% CI - 73.79 to - 6.82, p = 0.019 for TG; - 1.03, 95% CI - 1.85 to - 0.20, p = 0.016 for TG/HDL-C). The relative abundance of Verrucomicrobia increased in the RCD group, whereas it decreased in the STD group.\nCONCLUSIONS: The reduced carbohydrate diet did not show superiority to standard diet in reducing anthropometric indices. However, reduced carbohydrate diet showed beneficial effects on Triglyceride levels and Triglycerides to high-density lipoprotein cholesterol ratio. Further investigation of gut microbiota composition is needed.\nTRIAL REGISTRATION: Iranian Registry of Clinical Trials (IRCT), IRCT20180805040703N2, retrospectively registered on 7 May 2022.",
+   "journal": "BMC pediatrics",
+   "journalAbbr": "BMC Pediatr",
+   "year": "2026",
+   "authors": "Khorshidi Y i in.",
+   "authorCount": 8,
+   "authorList": [
+    "Khorshidi Y",
+    "Hadaegh F",
+    "Rafiei N",
+    "Hadaegh P",
+    "Salehpour S",
+    "Ejtahed HS"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43015709/",
+   "topics": [
+    "zywienie"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43008037",
+   "doi": "10.1371/journal.pone.0361864",
+   "title": "Acute doses of 3 and 6 mg/kg caffeine produce outcome- and phase-specific improvements in male 100-m sprinters: A randomized, double-blind, placebo-controlled crossover trial.",
+   "abstract": "UNLABELLED: Evidence is limited on whether commonly used caffeine doses provide uniform benefits across sprint phases and performance outcomes in trained sprinters. We compared the acute effects of 3 and 6 mg/kg caffeine in a randomized, double-blind, placebo-controlled, three-condition crossover trial. Twenty-one male 100-m sprinters completed placebo, 3 mg/kg caffeine, and 6 mg/kg caffeine trials separated by at least 7 days. Sixty minutes after ingestion, participants completed two maximal 60-m sprints, followed by countermovement jump, squat jump, and 10-s Wingate tests. Sprint times, derived split times, start reaction time, starting-block rate of force development, stride variables, and perceived exertion were also assessed. Linear mixed-effects models adjusting for treatment period and randomized sequence showed clear treatment effects for cumulative 10-, 30-, and 60-m times (all p < 0.001). Relative to placebo, 3 mg/kg shortened these times by 0.056, 0.083, and 0.123 s, whereas 6 mg/kg shortened them by 0.075, 0.115, and 0.175 s. Compared with 3 mg/kg, 6 mg/kg further reduced 30- and 60-m times by 0.032 and 0.052 s, respectively, whereas the additional 0.019-s reduction at 10 m was not statistically significant in the primary mixed-effects model. Both doses improved reaction time, perceived exertion, jump height, Wingate peak and mean power, and starting-block rate of force development relative to placebo. Additional benefits of 6 mg/kg were evident for jump height and rate of force development, but not for reaction time, perceived exertion, or Wingate mean power; Wingate peak power did not improve further with the higher dose. Stride length and frequency were unchanged. These findings indicate outcome-specific dose responses, with 3 mg/kg improving multiple performance outcomes and 6 mg/kg providing additional benefits most consistently for vertical jump height, starting-block rate of force development, and cumulative performance over the first 60 m.\nTRIAL REGISTRATION: Chinese Clinical Trial Registry, ChiCTR2600128594.",
+   "journal": "PloS one",
+   "journalAbbr": "PLoS One",
+   "year": "2026",
+   "authors": "Mei T i in.",
+   "authorCount": 3,
+   "authorList": [
+    "Mei T",
+    "Li J",
+    "Yang X"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43008037/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43000955",
+   "doi": "10.14814/phy2.71200",
+   "title": "Acute effects of arabica and chicory coffee on exercise performance and post-exercise biomarkers in young male adults: A controlled crossover study.",
+   "abstract": "To compare the acute effects of a single serving of Arabica and chicory coffee with a no-coffee reference condition on exercise performance, cardiometabolic responses, and post-exercise biomarkers in healthy young male adults. Twenty-two moderately active young male adults aged 18-25 years completed a single-blind controlled crossover study. The no-coffee reference session was completed first; the Arabica and chicory coffee order was randomized with a 3-day washout. Beverages (180 mL) were consumed 45 min before a 20-m shuttle-run test. Performance, cardiometabolic variables, and post-exercise LPL, TNF-α, adiponectin, and IL-6 were assessed. Shuttle-run performance, perceived exertion, and estimated VO2max did not differ among conditions (all p > 0.05). No significant condition × time interactions were observed for cardiometabolic variables. Post-exercise LPL protein concentrations differed significantly among conditions (p = 0.038) and were numerically highest after chicory coffee (27.72 ng/mL). IL-6 showed a non-significant trend toward lower concentrations after chicory coffee (38.03 pg/mL; p = 0.094); TNF-α and adiponectin did not differ significantly. Neither beverage improved acute exercise performance. Arabica and chicory coffee nevertheless showed different post-exercise biomarker patterns that warrant confirmation in larger crossover studies.",
+   "journal": "Physiological reports",
+   "journalAbbr": "Physiol Rep",
+   "year": "2026",
+   "authors": "Özcan FÖ i in.",
+   "authorCount": 4,
+   "authorList": [
+    "Özcan FÖ",
+    "Okudu C",
+    "Odabaş Hİ",
+    "Turan İT"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43000955/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "42968066",
+   "doi": "10.1186/s12913-026-15143-4",
+   "title": "Implementing physical activity counselling versus structured exercise for breast cancer survivors in the PAC-WOMAN trial: mapping TICD-based determinants to the behaviour change wheel.",
+   "abstract": "BACKGROUND: Physical activity (PA) benefits breast cancer survivorship, yet translation into routine care faces multilevel barriers. This study examined implementation determinants of two group-based PA interventions within the PAC-WOMAN trial, brief PA counselling (PAC) and supervised structured exercise (ExG), using the Tailored Implementation for Chronic Diseases (TICD) checklist and the Behaviour Change Wheel (BCW).\nMETHODS: Process evaluation included six online focus groups with 24 participants, semi-structured interviews with three implementers and six stakeholders, and implementation monitoring logbook assessment. Content analysis followed a framework approach, mapping TICD determinants onto BCW COM-B elements, intervention functions, and policy categories.\nRESULTS: Fifty-one TICD determinants were identified across six domains. Facilitators were primarily individual and interpersonal, including participant motivation, implementer trust, and supportive group dynamics. Barriers were largely structural, encompassing time constraints, transport difficulties, limited financial coverage, and insufficient policy support. Both interventions demonstrated feasibility and acceptability, with comparable attrition and predominantly non-intervention-related adverse events. BCW-informed strategies highlighted education, modelling, enablement, environmental restructuring, and policy actions to address key barriers.\nCONCLUSIONS: Sustainable implementation of PA interventions in cancer care requires supportive systems beyond evidence alone. Key determinants included motivation, professional capability, organisational networks, and financial incentives. Future efforts should prioritise policy reform, multisectoral collaboration, professional training, and fiscal mechanisms to embed PA within standard breast cancer survivorship care, using BCW-guided strategies to enhance capability, opportunity, and motivation.\nTRIAL REGISTRATION: April 20, 2023 - NCT05860621. April 21, 2023 - https://doi.org/10.17605/OSF.IO/ZAQ9N April 27, 2023 - UMIN000050945.",
+   "journal": "BMC health services research",
+   "journalAbbr": "BMC Health Serv Res",
+   "year": "2026",
+   "authors": "Franco S i in.",
+   "authorCount": 6,
+   "authorList": [
+    "Franco S",
+    "Carraça EV",
+    "Nobre I",
+    "Rodrigues B",
+    "Silva CS",
+    "Silva MN"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Pragmatic Clinical Trial",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42968066/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 3
+  },
+  {
+   "pmid": "43024645",
+   "doi": "10.1002/ksa.70657",
+   "title": "Defining the terminology of hip and groin pain in 2026: A scoping review of consensus statements.",
+   "abstract": "PURPOSE: This scoping review summarizes the current consensus statements for classifying hip and groin pain in young and middle-aged active individuals and evaluates their citation impact. Secondarily, it asseses to what extent they have been adopted in clinical practice.\nMETHODS: An electronic database search was performed in September 2026 using PubMed, EMBASE and Google Scholar to identify all consensus statements outlining terminology for young and middle-aged adults with hip or groin pain, and studies investigating the clinical adoption of proposed consensus terminology classifications. Citation counts were used to quantify citation impact, and survey data were used to evaluate clinical adoption.\nRESULTS: Nine consensus statements focusing on hip or groin pain in young and middle-aged adults were identified. Four papers, focused on groin pain (different entities); the terminology recommended across these statements varied considerably. All four consensus papers on the hip joint recommend the term femoroacetabular impingement syndrome and there was considerable overlap. One recent multidisciplinary consensus proposed a unified five-entity taxonomy spanning both hip joint and groin pain. The Warwick and Doha statements have been cited most frequently. The only study investigating clinical adoption found that clinicians and experts most commonly used the Doha agreement terminology in academic work and professional communication.\nCONCLUSION: Consensus on the terminology and classification of hip and groin pain has evolved substantially over the past decade. Consensus statements for groin pain vary significantly in their focus (based on different entities), terminology and levels of detail for classifying patients. Greater agreement exists in the terminology and classification of hip joint-related pain. Resolving these discrepancies is essential for consistent multidisciplinary communication, reliable research synthesis and for establishing clear clinical decision-making guidelines for patients with hip and groin pain.\nLEVEL OF EVIDENCE: Level V.",
+   "journal": "Knee surgery, sports traumatology, arthroscopy : official journal of the ESSKA",
+   "journalAbbr": "Knee Surg Sports Traumatol Arthrosc",
+   "year": "2026",
+   "authors": "Becker N i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Becker N",
+    "Papadopoulou T",
+    "Ahmad SS",
+    "Ayeni OR",
+    "Beaufils P",
+    "Hölmich P"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43024645/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 1
+  },
+  {
+   "pmid": "43011082",
+   "doi": "10.5646/ch.2026.32.e44",
+   "title": "Exaggerated blood pressure response to exercise: bridging the gap between evidence and guidelines.",
+   "abstract": "An exaggerated blood pressure response to exercise (EBPR), also termed a hypertensive response to exercise, is a hyperdynamic phenotype in which blood pressure (BP) rises disproportionately during graded physical exertion. Over more than 3 decades, EBPR has been linked to incident hypertension, masked hypertension, subclinical target-organ damage, and adverse cardiovascular outcomes, largely independent of resting BP. Despite this consistent body of evidence, EBPR has yet to be formally recognized as a diagnostic or prognostic entity in major hypertension guidelines. This gap reflects not only the absence of a standardized definition and measurement protocol but also unresolved questions regarding its incremental diagnostic value beyond ambulatory and home BP monitoring and the specific clinical actions that should follow an abnormal response. This review summarizes the definitional and standardization challenges, the underlying pathophysiology, the clinical and prognostic implications, considerations in special populations, current approaches to assessment and management, and remaining challenges including the promise of submaximal, fitness-indexed measurement and emerging cuffless and wearable technologies.",
+   "journal": "Clinical hypertension",
+   "journalAbbr": "Clin Hypertens",
+   "year": "2026",
+   "authors": "Cho IJ",
+   "authorCount": 1,
+   "authorList": [
+    "Cho IJ"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43011082/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 1
+  },
+  {
+   "pmid": "43003793",
+   "doi": "10.1177/1358863X261476685",
+   "title": "Noninvasive assessments for identifying peripheral artery disease described within guidelines, consensus, and best practice statements: A rapid systematic review.",
+   "abstract": "Peripheral artery disease (PAD) affects approximately 4% of adults and is associated with lower-limb pain, reduced function, ulceration, amputation, and an increased likelihood of cardiovascular events. Noninvasive vascular testing methods are essential for accurate diagnosis to enable clinicians to deliver appropriate management. Clinical guidelines, consensus statements, and best practice documents are commonly used to guide practice. The quality of these documents, how well they specify the populations requiring screening, assessment, and the most appropriate noninvasive tests to use when diagnosing PAD is currently unclear. This rapid systematic review identified 37 national and international guidelines, consensus statements, or best practice documents that included information on noninvasive assessments for PAD diagnosis published up to 2025. The quality of these documents was assessed using the Appraisal of Guidelines for Research and Evaluation Instrument 2 or Joanna Briggs Institute (JBI) appraisal checklist for textual evidence (policy/consensus guidelines), and scores varied substantially, with contemporary documents generally yielding higher scores. Common reasons for lower scores were a lack of systematic methods used to derive recommendations and inadequate engagement with key stakeholders, such as end-users. Within the documents, signs and symptoms of PAD consistently listed as indicators for further vascular assessment were intermittent claudication, rest pain, gangrene, and nonhealing wounds. Other prompts for vascular assessments were traditional cardiovascular risk factors, with some newer guidelines highlighting additional risk factors such as end-stage renal disease, First Nations ancestry, and lack of physical activity. There was varying guidance on the use and interpretation of the tests. Many documents did not consider the changes in diagnostic performance that occur in noninvasive tests in people with diabetes or renal disease. Some newer documents included clinical assessment pathways, which were considered beneficial in simplifying the assessment and interpretation process for clinicians. Although some high-quality documents with strong evidence-based recommendations were identified, there was a gap in comprehensive guidance that could be applied in a variety of settings and patient cohorts. Therefore, the development of an evidence-based, co-designed comprehensive guidance document for noninvasive vascular assessment is warranted.",
+   "journal": "Vascular medicine (London, England)",
+   "journalAbbr": "Vasc Med",
+   "year": "2026",
+   "authors": "Weerasekara I i in.",
+   "authorCount": 10,
+   "authorList": [
+    "Weerasekara I",
+    "Askew C",
+    "Perrin B",
+    "Charles J",
+    "Cheong K",
+    "Golledge J"
+   ],
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/43003793/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-11-16T12:12:04.884Z",
+   "score": 1
+  },
   {
    "pmid": "42993750",
    "doi": "10.1371/journal.pone.0362552",
