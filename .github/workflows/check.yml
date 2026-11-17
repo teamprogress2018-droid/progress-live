@@ -851,6 +851,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_diet_draft_ui.js
 
+      - name: 6d7. Historia ćwiczenia — treningi przewijane w bok (360/390/430 px)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ex_hist_swipe_ui.js
+
       - name: 6e. Testy UI wygaszacza z logo
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_screensaver_ui.js

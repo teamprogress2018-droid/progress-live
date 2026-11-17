@@ -5657,7 +5657,7 @@ function exerciseHistoryTableRowsHtml(sets){
 
 function exerciseHistoryModalBodyHtml(history){
   if(!history||!history.length)return '<div class="ex-hist-empty">Brak zapisanych serii tego ćwiczenia.</div>';
-  return history.map(h=>{
+  const cards=history.map(h=>{
     const stamp=formatHistorySessionStamp(h);
     const parts=splitHistSets(h.sets);
     const all=parts.wu.concat(parts.main,parts.extra);
@@ -5678,9 +5678,51 @@ function exerciseHistoryModalBodyHtml(history){
         <tfoot><tr class="ex-hist-total"><th>Σ</th><td>${escHtml(fmtHistNum(tot.reps))}</td><td>${escHtml(fmtHistNum(tot.kg))}</td><td>${escHtml(fmtHistNum(tot.obj))} kg</td></tr></tfoot>
       </table>
     </section>`;
-  }).join('');
+  });
+  if(cards.length===1)return cards[0]+'<p class="ex-hist-hint">To jedyny zapisany trening z tym ćwiczeniem.</p>';
+  // Kilka treningów: jeden na ekranie, przesuwanie palcem w bok (scroll-snap) albo strzałki ‹ ›.
+  // Najnowszy pierwszy; w lewo = starszy.
+  const n=cards.length;
+  return `<div class="ex-hist-swipe" data-ex-hist-swipe>
+    <div class="ex-hist-pager">
+      <button type="button" class="ex-hist-nav" data-act="ex-hist-nav" data-dir="-1" aria-label="Nowszy trening" disabled>‹</button>
+      <span class="ex-hist-pos" aria-live="polite">${exHistPosText(0,n)}</span>
+      <button type="button" class="ex-hist-nav" data-act="ex-hist-nav" data-dir="1" aria-label="Starszy trening">›</button>
+    </div>
+    <div class="ex-hist-track" tabindex="0" role="region" aria-label="Poprzednie treningi — przesuń w bok">${cards.join('')}</div>
+    <div class="ex-hist-dots" aria-hidden="true">${cards.map((_,i)=>`<span${i===0?' class="is-on"':''}></span>`).join('')}</div>
+    <p class="ex-hist-hint">Przesuń w bok, żeby zobaczyć starsze treningi.</p>
+  </div>`;
 }
 window.exerciseHistoryModalBodyHtml=exerciseHistoryModalBodyHtml;
+function exHistPosText(i,n){return 'Trening '+(i+1)+' z '+n+(i===0?' · ostatni':i===n-1?' · najstarszy':'');}
+/** Ustawia „Trening k z n”, kropki i strzałki według przewinięcia. */
+function exHistSwipeSync(track){
+  const root=track&&track.closest&&track.closest('[data-ex-hist-swipe]');if(!root)return;
+  const cards=track.children,n=cards.length,w=track.clientWidth||1;
+  const i=Math.max(0,Math.min(n-1,Math.round(track.scrollLeft/w)));
+  const pos=root.querySelector('.ex-hist-pos');if(pos)pos.textContent=exHistPosText(i,n);
+  root.querySelectorAll('.ex-hist-dots span').forEach((d,k)=>d.classList.toggle('is-on',k===i));
+  const prev=root.querySelector('.ex-hist-nav[data-dir="-1"]'),next=root.querySelector('.ex-hist-nav[data-dir="1"]');
+  if(prev)prev.disabled=i<=0;if(next)next.disabled=i>=n-1;
+}
+window.exHistSwipeSync=exHistSwipeSync;
+if(typeof uiAction==='function')uiAction('ex-hist-nav',(d,el)=>{
+  const root=el.closest('[data-ex-hist-swipe]');const track=root&&root.querySelector('.ex-hist-track');if(!track)return;
+  const w=track.clientWidth||1,i=Math.round(track.scrollLeft/w)+(Number(d.dir)||0);
+  const left=Math.max(0,Math.min(track.children.length-1,i))*w;
+  if(typeof track.scrollTo==='function')track.scrollTo({left,behavior:'smooth'});else track.scrollLeft=left;
+  setTimeout(()=>exHistSwipeSync(track),350);
+});
+if(typeof document!=='undefined'&&document.addEventListener){
+  // scroll nie wypływa w górę — łapiemy go w fazie przechwytywania.
+  document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('ex-hist-track'))exHistSwipeSync(t);},true);
+  document.addEventListener('keydown',e=>{
+    const t=e.target;if(!t||!t.classList||!t.classList.contains('ex-hist-track'))return;
+    if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+    e.preventDefault();const w=t.clientWidth||1;t.scrollLeft=Math.round(t.scrollLeft/w+(e.key==='ArrowRight'?1:-1))*w;exHistSwipeSync(t);
+  });
+}
 
 var _exHistCache={};
 var _exHistSeq=0;
