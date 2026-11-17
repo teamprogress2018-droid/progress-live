@@ -847,6 +847,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_forum_id_escape_ui.js
 
+      - name: 6d6. Szkic jadłospisu nie zastępuje klientowi zatwierdzonego planu
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_diet_draft_ui.js
+
       - name: 6e. Testy UI wygaszacza z logo
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_screensaver_ui.js

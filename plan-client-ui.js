@@ -440,7 +440,7 @@
         const rec={status:'zatwierdzony',updatedAt:at,approvedAt:at,approvedBy:root._uid||null,source:'plan-klienta',form:n.form,
           kcal:t.kcal,protein:t.protein.g,fat:t.fat.g,carbs:t.carbs.g,days:n.form==='week'?7:1,meals:n.meals,prefs:n.prefs||null,text,plan:PC().publicPlan(n)};
         if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
-        c.dietPlan=rec;
+        c.dietPlan=rec;c.dietDraft=null;
         if(typeof root.pushMsg==='function')root.pushMsg(c.id,text);
       }
       dr.status='opublikowany';dr.publishedAt=now();dr.updatedAt=dr.publishedAt;

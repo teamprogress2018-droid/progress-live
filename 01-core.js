@@ -205,7 +205,8 @@ function persistWarn(msg){
 // Pola widoczne tylko dla trenera. Leżą w kolekcji clientPrivate, do której reguły bazy nie dają dostępu klientowi.
 // Do czasu wdrożenia reguł (odczyt clientPrivate odrzucony) zostają w karcie klienta, jak dotąd.
 // clientPlan (szkic planu, notatki trenera) i healthAck tylko dla trenera; klient dostaje opublikowany plan (plans) i jadłospis (dietPlan).
-const CLIENT_PRIVATE_FIELDS=Object.freeze(['notes','psycho','_posture','timeline','planInterview','clientPlan','healthAck']);
+// dietDraft: szkic jadłospisu z kalkulatora — klient dostaje tylko zatwierdzony dietPlan.
+const CLIENT_PRIVATE_FIELDS=Object.freeze(['notes','psycho','_posture','timeline','planInterview','clientPlan','healthAck','dietDraft']);
 window.CLIENT_PRIVATE_FIELDS=CLIENT_PRIVATE_FIELDS;
 function clientPrivateEnabled(){
   return !window._clientAppMode&&window._clientPrivateReady===true&&typeof window._deleteField==='function';

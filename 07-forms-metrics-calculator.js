@@ -1741,9 +1741,10 @@ function calcLoadFromClient(){
   window._calcClientId=c.id;dietTrainDays=null;
   // Upodobania i wykluczenia z ostatniego planu klienta.
   // Bez planu: sposób odżywiania, wykluczenia, czas gotowania i liczba posiłków z wywiadu (krok „Jedzenie”).
-  const fromIv=!(c.dietPlan&&c.dietPlan.prefs)&&window.PlanClient?PlanClient.dietPrefsFrom(c):null;
+  const last=typeof dietTrainerPlan==='function'?dietTrainerPlan(c):c.dietPlan;
+  const fromIv=!(last&&last.prefs)&&window.PlanClient?PlanClient.dietPrefsFrom(c):null;
   if(fromIv&&fromIv.meals)dietMeals=fromIv.meals;
-  const sp=c.dietPlan&&c.dietPlan.prefs||(fromIv&&fromIv.prefs);
+  const sp=last&&last.prefs||(fromIv&&fromIv.prefs);
   dietPrefs=sp?{style:sp.style||'wszystko',ex:(sp.ex||[]).slice(),skip:(sp.skip||[]).slice(),like:(sp.like||[]).slice(),maxMin:+sp.maxMin||0,col:(sp.col||[]).slice()}:{style:'wszystko',ex:[],skip:[],like:[],maxMin:0,col:[]};
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
@@ -2169,7 +2170,7 @@ function dietClientHealthRisks(c){
 function dietApprovalState(t,day){
   const c=dietCalcClient();
   const age=parseInt(document.getElementById('calc-age')?.value,10)||null;
-  return{checks:DietPlan.dietApprovalChecks(t,day,{age,injuries:c&&c.injuries,risks:dietClientHealthRisks(c)}),saved:c&&c.dietPlan};
+  return{checks:DietPlan.dietApprovalChecks(t,day,{age,injuries:c&&c.injuries,risks:dietClientHealthRisks(c)}),saved:dietTrainerPlan(c)};
 }
 // Przycisk „Zatwierdź i wyślij” aktywny dopiero po zaznaczeniu wszystkich wymaganych potwierdzeń.
 function dietApprovalToggle(){
@@ -2199,9 +2200,24 @@ function dietPlanRecord(status){
     // Nowy kreator: plan w formacie widoku klienta (Moje jedzenie), „Dlaczego taki plan?” i ustawienia kreatora.
     ...(typeof dietWizRecordExtra==='function'?dietWizRecordExtra():{})};
 }
+/** Najnowszy jadłospis dla trenera: szkic (dietDraft), gdy jest nowszy, inaczej zatwierdzony (dietPlan). */
+function dietTrainerPlan(c){
+  if(!c)return null;
+  const d=c.dietDraft&&c.dietDraft.status==='szkic'?c.dietDraft:null,p=c.dietPlan||null;
+  if(d&&(!p||String(d.updatedAt||'')>=String(p.updatedAt||'')))return d;
+  return p||d;
+}
+window.dietTrainerPlan=dietTrainerPlan;
+/** Szkic ląduje w dietDraft (prywatne pole trenera), więc nie zastępuje klientowi zatwierdzonego jadłospisu.
+ *  Zatwierdzenie zapisuje dietPlan, przenosi poprzedni zatwierdzony do historii i czyści szkic. */
 function dietStorePlan(c,rec){
-  if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
-  c.dietPlan=rec;
+  if(rec&&rec.status==='szkic'){
+    c.dietDraft=rec;
+  }else{
+    if(c.dietPlan&&c.dietPlan.status==='zatwierdzony')c.dietPlanHistory=[c.dietPlan].concat(c.dietPlanHistory||[]).slice(0,5);
+    c.dietPlan=rec;
+    c.dietDraft=null;
+  }
   if(typeof persistById==='function')persistById('clients',c);
 }
 function dietSaveDraft(){
