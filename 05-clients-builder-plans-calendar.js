@@ -2841,8 +2841,13 @@ function builderRefreshTechMedia(row){
     html=typeof exTechniqueMediaHtml==='function'?exTechniqueMediaHtml({gif:video,name:media.name,poster},{compact:true}):`<video src="${typeof escHtml==='function'?escHtml(video):video}" muted loop playsinline preload="metadata"></video>`;
   }else if(media.img){
     html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}" loading="lazy" referrerpolicy="no-referrer">`;
+  }else if(!video){
+    // Brak filmu i obrazu: mała mapa mięśni (pełna mapa w okienku podglądu).
+    const mm=typeof muscleMapData==='function'?muscleMapData(media.name):null;
+    if(mm&&typeof muscleMapHTML==='function')html=muscleMapHTML(mm.primary,mm.secondary,{bare:true});
   }
   if(thumb){
+    thumb.classList.toggle('is-mm',/mm-bare/.test(html));
     if(html){
       thumb.innerHTML=html;
       thumb.hidden=false;
@@ -2868,6 +2873,7 @@ function builderFillExMediaPop(media){
   else if(video&&file)html=typeof exTechniqueMediaHtml==='function'?exTechniqueMediaHtml({gif:video,name:media.name,poster},{}):`<video src="${typeof escHtml==='function'?escHtml(video):video}" controls playsinline muted loop></video>`;
   else if(video&&media.videoEmbed)html=`<iframe src="${typeof escHtml==='function'?escHtml(media.videoEmbed):media.videoEmbed}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe>`;
   else if(media.img)html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}">`;
+  if(!html&&!video&&typeof muscleMapExHTML==='function')html=muscleMapExHTML(media.name,{compact:true});
   pop.querySelector('.builder-ex-media-pop-body').innerHTML=html||'<div class="builder-alt-empty">Brak podglądu techniki w bibliotece.</div>';
   const title=pop.querySelector('.builder-ex-media-pop-title');
   if(title)title.textContent=media.name||'Technika';
