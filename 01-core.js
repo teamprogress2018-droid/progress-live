@@ -242,6 +242,12 @@ async function persistById(colName,obj){
       const priv=splitClientPrivate(payload,owner);
       await window._setDoc(window._doc(window._db,'clientPrivate',docId),priv,{merge:true});
       if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return null;
+    }else if(colName==='clients'&&!window._clientAppMode){
+      // Bez dostępu do clientPrivate pola trenera (notatki, profil, zdrowie, szkice) NIE trafiają do karty,
+      // którą czyta klient. Zostają w pamięci i zapiszą się przy następnym zapisie po odświeżeniu.
+      const held=CLIENT_PRIVATE_FIELDS.filter(k=>payload[k]!==undefined&&payload[k]!==null);
+      CLIENT_PRIVATE_FIELDS.forEach(k=>{delete payload[k];});
+      if(held.length)persistWarn('⚠ Notatki trenera nie zostały zapisane (brak dostępu do części prywatnej). Odśwież aplikację i zapisz ponownie.');
     }
     await window._setDoc(window._doc(window._db,colName,docId),payload,{merge:true});
     if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return null;

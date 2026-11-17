@@ -107,8 +107,13 @@ test('complete client load includes forms, safe profile and only permitted forum
   docs.set('forumGroups/hidden',{trainerId:TID,privacy:'private',memberIds:['other-client']});
   docs.set('forumPosts/p1',{trainerId:TID,groupId:'public'});docs.set('forumPosts/p2',{trainerId:TID,groupId:'hidden'});
   docs.set('forumComments/c1',{trainerId:TID,postId:'p1'});docs.set('forumComments/c2',{trainerId:TID,postId:'p2'});
+  // Starsza karta z polami trenera: aplikacja klienta nie trzyma ich w pamięci.
+  docs.set('clients/'+CID,{trainerId:TID,name:'Klient',id:'spoof-profile-id',notes:'tajne',psycho:{x:1},healthAck:true,clientPlan:{draft:1},dietDraft:{status:'szkic'}});
+  ctx.CLIENT_PRIVATE_FIELDS=['notes','psycho','_posture','timeline','planInterview','clientPlan','healthAck','dietDraft'];
   await ctx.loadClientApp({...account,id:UID});
   assert.equal(ctx.entered,1);assert.equal(ctx.CL[0].id,CID);
+  ['notes','psycho','healthAck','clientPlan','dietDraft'].forEach(k=>assert.equal(ctx.CL[0][k],undefined,'pole trenera '+k+' w pamięci klienta'));
+  assert.equal(ctx.CL[0].name,'Klient');
   assert.equal(ctx.FORM_SENDS[0].id,'form-a');assert.equal(ctx.USER_RESOURCES[0].id,'res-a');
   assert.equal(ctx.USER_RESOURCES[0]._fbId,TID+'__res-a');
   assert.equal(ctx.METRIC_GROUPS[0].id,'mg2');assert.equal(ctx.METRIC_GROUPS[0].metrics[0].name,'Nadgarstek');

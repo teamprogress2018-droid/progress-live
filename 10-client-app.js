@@ -256,7 +256,10 @@ async function loadClientApp(account,session=captureClientTenantSession()){
   const privateData=Object.fromEntries(CLIENT_PRIVATE_COLLECTIONS.map((name,i)=>[name,privateRows[i]]));
   const sharedData=Object.fromEntries(clientSharedNames.map((name,i)=>[name,sharedRows[i]]));
   // Publish one complete, current-account snapshot; late requests cannot restore a previous account.
-  window.CL=[{...profileSnap.data(),id:profileSnap.id,_fbId:profileSnap.id}];
+  // Pola trenera (notatki, profil, zdrowie, szkice) ze starszych kart nie trafiają do pamięci aplikacji klienta.
+  const profileData={...profileSnap.data()};
+  (window.CLIENT_PRIVATE_FIELDS||[]).forEach(k=>{delete profileData[k];});
+  window.CL=[{...profileData,id:profileSnap.id,_fbId:profileSnap.id}];
   Object.assign(window,{PL:privateData.plans,SE:privateData.sessions,TASKS:privateData.tasks,PACKAGES:privateData.packages,
     METRIC_ENTRIES:privateData.metricEntries,PROGRESS_PHOTOS:privateData.progressPhotos,OD_PROGRESS:privateData.odProgress,
     FORM_SENDS:privateData.formSends,EX:sharedData.exercises,METRIC_GROUPS:sharedData.metricGroups,COACH_VIDEOS:sharedData.coachVideos,
