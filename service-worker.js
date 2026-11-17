@@ -6,7 +6,8 @@
 // ze starszymi plikami JavaScript pozostawionymi w cache PWA.
 // Wersja 67: adresy w cache sprowadzane do jednej postaci (bez duplikatów w addAll).
 // Wersja 92: nawigacja zapisuje do cache tylko poprawne odpowiedzi (response.ok).
-const CACHE_NAME='progress-live-shell-v92';
+// Wersja 93: akcje delegowane (data-act) zamiast onclick z id z bazy.
+const CACHE_NAME='progress-live-shell-v93';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

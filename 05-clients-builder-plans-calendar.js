@@ -4656,7 +4656,7 @@ function calWeekSessChip(s){
   const typeBit=s&&s.type?String(s.type):'';
   const tipRaw=who+(typeBit?' — '+typeBit:'')+(bits.happened?' · odbył się':'')+' — '+(bits.tip||'');
   const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw).replace(/"/g,'&quot;');
-  return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);min-width:0;max-width:100%;" onclick="event.stopPropagation();editSession('${s.id}')" title="${tip}">
+  return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);min-width:0;max-width:100%;" data-act="session-edit" data-act-stop-prop data-session-id="${escHtml(s.id)}" title="${tip}">
       <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}<span class="cal-week-sess-time">${s.time||''}</span> ${first}</div>
       ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
     </div>`;
@@ -4799,7 +4799,7 @@ function renderCalMonth(){
         const ci=c?CL.indexOf(c):-1;
         const col=SESS_COLORS[(ci>=0?ci:0)%6];
         const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
-        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')" title="${bits.tip}"><div class="cal-month-sess-line">${bits.mark}<span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}</div>`;
+        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" data-act="session-edit" data-act-stop-prop data-session-id="${escHtml(s.id)}" title="${bits.tip}"><div class="cal-month-sess-line">${bits.mark}<span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}</div>`;
       }).join('')}
       ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
     </div>`;
@@ -4851,7 +4851,7 @@ function renderCalList(){
         const ci=c?CL.indexOf(c):-1;
         const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(ci>=0?ci:0)%6];
         const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
-        return `<div class="cal-list-sess${bits.cls}" onclick="editSession('${s.id}')" title="${bits.tip}">
+        return `<div class="cal-list-sess${bits.cls}" data-act="session-edit" data-session-id="${escHtml(s.id)}" title="${bits.tip}">
           <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
           <div style="flex:1;">
@@ -4861,8 +4861,8 @@ function renderCalList(){
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
             ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editSession('${s.id}')">✏</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSession('${s.id}')">×</button>
+            <button class="btn btn-ghost btn-sm" data-act="session-edit" data-act-stop-prop data-session-id="${escHtml(s.id)}">✏</button>
+            <button class="btn btn-danger btn-sm" data-act="session-delete" data-act-stop-prop data-session-id="${escHtml(s.id)}">×</button>
           </div>
         </div>`;
       }).join('')}
@@ -4936,7 +4936,7 @@ function renderCalSidebar(){
       const d=new Date(s.date+'T12:00:00');
       const isToday=s.date===nowStr;
       const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
-      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;" onclick="editSession('${s.id}')" title="${bits.tip}">
+      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;" data-act="session-edit" data-session-id="${escHtml(s.id)}" title="${bits.tip}">
         <div style="text-align:center;min-width:40px;">
           <div style="font-size:var(--font-size-label);color:var(--text-label);font-weight:600;">${isToday?'Dziś':CAL_DAYS_PL[(d.getDay()+6)%7]}</div>
           <div class="ui-kpi-mini-val" style="font-size:22px;color:${col};">${d.getDate()}</div>

@@ -430,11 +430,17 @@ test('client submission actions preserve assignment, authority and other clients
   const metricId = run + '-metric';
   ok(await write('metricEntries/' + metricId, clientData({id: metricId, groupId: 'mg1',
     date: '2026-09-26', values: {m1: 75}, notes: 'Check-in', createdAt: new Date().toISOString()}), userA), 'client metric');
+  const evilMetricId = metricId + "-x');p('";
+  denied(await write('metricEntries/' + evilMetricId, clientData({id: evilMetricId, groupId: 'mg1',
+    date: '2026-09-26', values: {m1: 75}, notes: 'Check-in', createdAt: new Date().toISOString()}), userA), 'client metric id with quote and parenthesis');
   const photoId = run + '-photo';
   denied(await read('progressPhotos/' + photoId, userA), 'missing private photo preflight is denied');
   ok(await write('progressPhotos/' + photoId, clientData({id: photoId, source: 'client', photos: {front: 'data:test'},
     date: '2026-09-26', weight: '', note: '', createdAt: new Date().toISOString()}), userA), 'client photo');
   ok(await remove('progressPhotos/' + photoId, userA), 'delete own client photo');
+  const evilPhotoId = photoId + "-x');p('";
+  denied(await write('progressPhotos/' + evilPhotoId, clientData({id: evilPhotoId, source: 'client', photos: {front: 'data:test'},
+    date: '2026-09-26', weight: '', note: '', createdAt: new Date().toISOString()}), userA), 'client photo id with quote and parenthesis');
   const odId = run + '-od-progress';
   ok(await write('odProgress/' + odId, clientData({id: odId, programId: 'program-1', done: [], updatedAt: new Date().toISOString()}), userA), 'client on-demand progress');
   ok(await patch('odProgress/' + odId, {done: ['program-1:0:0']}, userA), 'complete on-demand day');
@@ -721,6 +727,8 @@ test('client sessions are tied to assigned plans or homework', async () => {
     duration: 30, exercises: [], volume: 0, feedback: 4, note: '', createdAt: new Date().toISOString()});
   denied(await read('sessions/' + sessionId, userA), 'missing private session preflight is denied');
   ok(await write('sessions/' + sessionId, data, userA), 'logged own plan session');
+  const evilSessionId = sessionId + "-x');p('";
+  denied(await write('sessions/' + evilSessionId, {...data, id: evilSessionId}, userA), 'client session id with quote and parenthesis');
   denied(await write('sessions/' + sessionId + '-foreign', {...data, id: sessionId + '-foreign', clientId: clientSibling}, userA), 'sibling session');
   denied(await write('sessions/' + sessionId + '-planned', {...data, id: sessionId + '-planned', source: 'planned'}, userA), 'client calendar scheduling');
   denied(await patch('sessions/' + sessionId, {source: 'live'}, userA), 'impersonated live source');
@@ -796,6 +804,16 @@ test('forum queries honor public groups and actual private membership', async ()
   denied(await patch('forumPosts/' + publicPost, {authorRole: 'klient', clientId: clientA}, userA), 'take over trainer post');
   denied(await patch('forumPosts/' + publicPost, {reactedBy: {[sibling.uid]: 'fire'}}, userA), 'forge sibling reaction');
   ok(await patch('forumPosts/' + publicPost, {reactedBy: {[userA.uid]: 'fire'}, reactions: {fire: 1}, likes: 1}, userA), 'own reaction');
+  // Id wpisu wybiera klient: apostrof albo nawias w id mógłby zamknąć literał JS w widoku trenera.
+  const clientPost = id => clientData({id, groupId: publicId, title: 'Wpis', body: 'Treść', type: 'post', authorName: 'Klient',
+    authorRole: 'klient', pinned: false, date: '2026-11-17', createdAt: new Date().toISOString(),
+    likes: 0, views: 0, comments: 0, reactions: {}, reactedBy: {}});
+  const safePostId = run + '-client-post';
+  ok(await write('forumPosts/' + safePostId, clientPost(safePostId), userA), 'client post with a safe id');
+  const evilPostId = run + "-x');window.pwned=1;('";
+  denied(await write('forumPosts/' + evilPostId, clientPost(evilPostId), userA), 'client post id with quote and parenthesis');
+  const spacedPostId = run + ' spaced';
+  denied(await write('forumPosts/' + spacedPostId, clientPost(spacedPostId), userA), 'client post id with a space');
   const commentId = run + '-comment';
   const comment = clientData({id: commentId, postId: publicPost, authorRole: 'klient', authorName: 'Klient',
     body: 'Komentarz', date: '2026-09-26', createdAt: new Date().toISOString(), likes: 0});
@@ -804,6 +822,8 @@ test('forum queries honor public groups and actual private membership', async ()
   denied(await write('forumComments/' + commentId + '-hidden', {...comment, id: commentId + '-hidden', postId: hiddenPost}, userA), 'comment on hidden group');
   denied(await remove('forumComments/' + commentId, sibling), 'delete sibling comment');
   ok(await remove('forumComments/' + commentId, userA), 'delete own comment');
+  const evilCommentId = run + "-c');x('";
+  denied(await write('forumComments/' + evilCommentId, {...comment, id: evilCommentId}, userA), 'comment id with quote and parenthesis');
 });
 test('admin-granted trainer role enables a client account without self-escalation', async () => {
   const ownId = run + '-dual-role-owned';

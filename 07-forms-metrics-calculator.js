@@ -1006,7 +1006,7 @@ function renderMetricData(cid,gid){
         <div style="font-size:18px;" class="${trendClass}">${e.source==='garmin'?'⌚':change==null?'—':parseFloat(change)>0?'↑':parseFloat(change)<0?'↓':'→'}</div>
         <div style="display:flex;gap:4px;">
           <button type="button" onclick="editMetricEntry('${e.id}')" title="Edytuj" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 6px;">✎</button>
-          <button type="button" onclick="delMetricEntry('${e.id}')" title="Usuń" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
+          <button type="button" data-act="metric-delete" data-entry-id="${escHtml(e.id)}" title="Usuń" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
         </div>
       </div>`;
     }).join('');
