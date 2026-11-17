@@ -374,3 +374,11 @@ html:has(#auth-screen.pl-landing[style*="flex"]) body { background: #f6f5f2; }
 @media (max-width: 560px) {
   .pl-land-top { padding-top: max(14px, calc(env(safe-area-inset-top) + 6px)); padding-bottom: 14px; }
 }
+
+/* Aplikacja klienta na iPhonie (PWA): pod dolnym paskiem nawigacji iOS zostawia pas na wysokość
+   paska Home, przez który prześwituje tło strony (#edf5ff). Na telefonie tło pod spodem = kolor paska.
+   Ekran treningu i odtwarzacz mają własny dół, więc tam zostaje tło aplikacji. Tło treści bez zmian. */
+@media (max-width: 520px) {
+  html[data-theme="light"]:has(body.client-app-mode:not(.cw-playing):not(.od-playing)),
+  html[data-theme="light"] body.client-app-mode:not(.cw-playing):not(.od-playing) { background: var(--bg-card, #ffffff); }
+}

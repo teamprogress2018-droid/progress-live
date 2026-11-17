@@ -36,6 +36,7 @@ ok('landing.css loaded after theme.css', html.indexOf('landing.css?v=2') > html.
 ok('safe area: pasek górny pod paskiem statusu', /\.pl-land-top \{[^}]*env\(safe-area-inset-top\)/.test(css));
 ok('safe area: dół nad paskiem Home', /#auth-screen\.pl-landing \{ padding-bottom: env\(safe-area-inset-bottom\); \}/.test(css));
 ok('safe area: tło html/body w kolorze strony startowej', /html:has\(#auth-screen\.pl-landing\[style\*="flex"\]\) body \{ background: #f6f5f2; \}/.test(css));
+ok('aplikacja klienta: tło pod dolnym paskiem w kolorze paska', /body\.client-app-mode:not\(\.cw-playing\):not\(\.od-playing\) \{ background: var\(--bg-card, #ffffff\); \}/.test(css));
 ok('viewport-fit=cover i przezroczysty pasek statusu', html.includes('viewport-fit=cover') && html.includes('black-translucent'));
 ok('no external scripts for the landing', !/https?:\/\//.test(js) && !/@import|https?:\/\//.test(css.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '')));
 
