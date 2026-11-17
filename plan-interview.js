@@ -145,13 +145,14 @@
     if(Array.isArray(c.preferredWeekdays))d.prefDays=c.preferredWeekdays.map(String);
     if(c.activityLevel==='sedentary')d.steps='low';else if(c.activityLevel==='active')d.steps='high';
     // Jedzenie z ostatniego planu żywieniowego (kreator diety), żeby trener nie pytał drugi raz.
-    const dp=c.dietPlan&&c.dietPlan.prefs;
+    const lastDiet=typeof root.dietTrainerPlan==='function'?root.dietTrainerPlan(c):c.dietPlan;
+    const dp=lastDiet&&lastDiet.prefs;
     if(dp){
       if(FOOD_STYLE.some(x=>x.v===dp.style))d.foodStyle=dp.style;
       d.foodExclusions=(dp.ex||[]).filter(id=>FOOD_EX.some(x=>x.v===id));
       const mm=+dp.maxMin||0;if(mm)d.cookingTime=mm<=15?'15':mm<=30?'30':'45';
     }
-    const ml=parseInt(c.dietPlan&&c.dietPlan.meals,10);
+    const ml=parseInt(lastDiet&&lastDiet.meals,10);
     if(ml>=3&&ml<=6)d.mealsPerDay=String(ml);
     if(saved&&typeof saved==='object'){
       Object.keys(d).forEach(k=>{if(saved[k]!==undefined&&saved[k]!==null&&saved[k]!=='')d[k]=Array.isArray(d[k])?(Array.isArray(saved[k])?saved[k].slice():d[k]):saved[k];});

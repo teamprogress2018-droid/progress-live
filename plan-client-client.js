@@ -10,7 +10,14 @@
 
   function me(){const id=root._clientId||root.capClientId;return(root.CL||[]).find(x=>x&&x.id===id)||null;}
   /** Jadłospis z ekranu „Plan klienta”, zatwierdzony przez trenera. */
-  function planOf(c){const d=c&&c.dietPlan;return d&&d.status==='zatwierdzony'&&d.plan&&typeof d.plan==='object'?d.plan:null;}
+  /** Zatwierdzony jadłospis. Starsze karty mogą mieć w dietPlan szkic, który zastąpił plan — wtedy ostatni zatwierdzony z historii. */
+  function approvedOf(c){
+    const ok=d=>d&&d.status==='zatwierdzony'&&d.plan&&typeof d.plan==='object';
+    if(!c)return null;if(ok(c.dietPlan))return c.dietPlan;
+    if(c.dietPlan&&c.dietPlan.status==='szkic')return(Array.isArray(c.dietPlanHistory)?c.dietPlanHistory:[]).find(ok)||null;
+    return null;
+  }
+  function planOf(c){const d=approvedOf(c);return d?d.plan:null;}
   function food(id){const D=root.DietPlan;if(!D)return{name:id,unit:'g'};if(!D._F){D._F={};D.DIET_FOODS.forEach(f=>{D._F[f.id]=f;});}return D._F[id]||{name:id,unit:'g'};}
   function amt(f,a){return f.unit==='szt'?a+' szt.':a+' '+f.unit;}
   function shopAmt(f,a){if(f.unit==='szt')return a+' szt.';return a>=1000?(Math.round(a/100)/10).toString().replace('.',',')+(f.unit==='ml'?' l':' kg'):a+' '+f.unit;}
@@ -47,16 +54,16 @@
       <p class="pkc-muted">To orientacyjny plan od trenera. Jeśli coś nie pasuje, napisz na czacie.</p></div>`;
   }
   /** Tydzień planu liczony od zatwierdzenia (1 = pierwszy tydzień). */
-  function weekNo(c){const d=c&&c.dietPlan,t=Date.parse(d&&d.approvedAt||'');return isFinite(t)?Math.max(1,Math.floor((Date.now()-t)/(7*864e5))+1):1;}
+  function weekNo(c){const d=approvedOf(c),t=Date.parse(d&&d.approvedAt||'');return isFinite(t)?Math.max(1,Math.floor((Date.now()-t)/(7*864e5))+1):1;}
   function vmOf(c,p){
     return root.DietView.fromPublic(p,{client:c&&c.name||'',goalKey:p.goal||(c&&c.goal)||'',delta:0,period:'tydzień '+weekNo(c)});
   }
   // „Zamień posiłek” u klienta: wybrany posiłek z innego dnia pamiętamy na tym telefonie, dla tego planu.
-  function choiceKey(c){const d=c&&c.dietPlan;return'pkc-choice:'+(c&&c.id)+':'+(d&&d.approvedAt||'');}
+  function choiceKey(c){const d=approvedOf(c);return'pkc-choice:'+(c&&c.id)+':'+(d&&d.approvedAt||'');}
   function loadChoice(c){try{return JSON.parse(root.localStorage.getItem(choiceKey(c))||'{}')||{};}catch(e){return{};}}
   function saveChoice(c,ch){try{root.localStorage.setItem(choiceKey(c),JSON.stringify(ch||{}));}catch(e){}}
   // Odhaczone produkty pamiętamy tylko na tym telefonie (wygoda przy zakupach).
-  function shopKey(c){const d=c&&c.dietPlan;return'pkc-shop:'+(c&&c.id)+':'+(d&&d.approvedAt||'');}
+  function shopKey(c){const d=approvedOf(c);return'pkc-shop:'+(c&&c.id)+':'+(d&&d.approvedAt||'');}
   function shopDone(c){try{return JSON.parse(root.localStorage.getItem(shopKey(c))||'[]');}catch(e){return[];}}
   function shopHTML(c){
     const p=planOf(c);

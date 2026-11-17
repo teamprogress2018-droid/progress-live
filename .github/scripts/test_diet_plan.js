@@ -306,7 +306,7 @@ ok('nielubiany nie może być lubianym', D.dietPrefsNorm({ like: ['kurczak'], sk
 const likeCard = D.dietRenderCard(tK, dLike, { meals: 5 });
 ok('karta: lubiane i nielubiane, makro zamienników', likeCard.includes("dietToggleLike('indyk')") && likeCard.includes('nie lubi lub nie je') && likeCard.includes('(to samo białko)') && /\(B \d+ g · \d+ kcal\)/.test(likeCard));
 ok('tekst: białko przy zamienniku', /= B \d+ g/.test(D.dietPlanText(tK, dLike)));
-ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function dietToggleLike(') && src07.includes('c.dietPlan&&c.dietPlan.prefs'));
+ok('kalkulator: lubiane, wczytanie upodobań klienta', src07.includes('function dietToggleLike(') && src07.includes('dietTrainerPlan(c)')&&src07.includes('last&&last.prefs'));
 // Realne porcje: serek od 100 g, jajka od 2 szt., jogurt od 150 g, mleko od 200 ml, owoce bez gór (jagody do 250 g);
 // zamiennik daje tyle samo głównego składnika (±15% albo ±3 g); w głównym posiłku zawsze jest produkt białkowy.
 {

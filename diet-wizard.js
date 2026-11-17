@@ -40,7 +40,8 @@
   function syncClient(){
     const c=client(),id=c&&c.id||'';
     if(W.clientId===id)return;
-    const saved=c&&c.dietPlan&&c.dietPlan.wizard;
+    const lastPlan=c&&(typeof root.dietTrainerPlan==='function'?root.dietTrainerPlan(c):c.dietPlan);
+    const saved=lastPlan&&lastPlan.wizard;
     Object.assign(W,FRESH(),saved&&typeof saved==='object'?saved:{},{clientId:id,edits:saved&&saved.edits||{},generated:!!(saved&&saved.generated)});
     if(!saved&&c&&root.PlanClient){
       const iv=root.PlanClient.interviewOf?root.PlanClient.interviewOf(c):{};
