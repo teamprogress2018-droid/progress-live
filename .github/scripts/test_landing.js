@@ -32,6 +32,11 @@ ok('login, register and reset forms kept', ['auth-login-view', 'auth-register-vi
 ok('old cup icon gone', !landing.includes('logo-mark'));
 ok('landing.js loaded right after the landing', /<\/div>\r?\n<script src="landing\.js\?v=\d+[^"]*"><\/script>/.test(html));
 ok('landing.css loaded after theme.css', html.indexOf('landing.css?v=2') > html.indexOf('theme.css?v=1'));
+// iPhone (PWA): pasek statusu i pasek Home nie zasłaniają strony startowej.
+ok('safe area: pasek górny pod paskiem statusu', /\.pl-land-top \{[^}]*env\(safe-area-inset-top\)/.test(css));
+ok('safe area: dół nad paskiem Home', /#auth-screen\.pl-landing \{ padding-bottom: env\(safe-area-inset-bottom\); \}/.test(css));
+ok('safe area: tło html/body w kolorze strony startowej', /html:has\(#auth-screen\.pl-landing\[style\*="flex"\]\) body \{ background: #f6f5f2; \}/.test(css));
+ok('viewport-fit=cover i przezroczysty pasek statusu', html.includes('viewport-fit=cover') && html.includes('black-translucent'));
 ok('no external scripts for the landing', !/https?:\/\//.test(js) && !/@import|https?:\/\//.test(css.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, '')));
 
 ok('reduced motion stops the tiles', /@media \(prefers-reduced-motion: reduce\) \{\s*\.pl-land-track \{ animation: none !important; \}/.test(css));
