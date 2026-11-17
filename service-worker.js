@@ -8,7 +8,8 @@
 // Wersja 92: nawigacja zapisuje do cache tylko poprawne odpowiedzi (response.ok).
 // Wersja 93: akcje delegowane (data-act) zamiast onclick z id z bazy.
 // Wersja 94: szkic jadłospisu w dietDraft.
-const CACHE_NAME='progress-live-shell-v94';
+// Wersja 95: pola prywatne trenera nie trafiają do karty klienta.
+const CACHE_NAME='progress-live-shell-v95';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

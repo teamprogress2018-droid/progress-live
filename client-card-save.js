@@ -128,7 +128,8 @@
     const ref=doc(window._db,'clients',docId);
     // Pola prywatne (uwagi trenera) żyją w clientPrivate — klient nie może ich odczytać.
     const privOn=typeof window.clientPrivateEnabled==='function'&&window.clientPrivateEnabled();
-    const privKeys=privOn?(window.CLIENT_PRIVATE_FIELDS||[]):[];
+    // Bez clientPrivate pól prywatnych nie zapisujemy do karty, którą czyta klient (zatrzymanie zapisu niżej).
+    const privKeys=window.CLIENT_PRIVATE_FIELDS||[];
     const privRef=privOn?doc(window._db,'clientPrivate',docId):null;
     assert(state);
     const saved=await transaction(window._db,async tx=>{
@@ -152,9 +153,12 @@
         if(!equal(remote[key],next))(privKeys.includes(key)?privPatch:patch)[key]=clone(next);
       }
       if(conflicts.length)throw conflict('Dane klienta zmieniły się w innym oknie ('+conflicts.join(', ')+'). Wczytaj aktualne dane przed kolejną edycją.',remote);
+      if(!privOn&&Object.keys(privPatch).length)
+        throw fail('Notatki trenera nie zostały zapisane: brak dostępu do części prywatnej. Odśwież aplikację i spróbuj ponownie.','client-card-private-unavailable');
       patch.clientCardWriteId=state.token;
       assert(state,remote);
-      const legacy=privKeys.filter(key=>own(raw,key));
+      // Stare pola przenosimy i kasujemy z karty tylko, gdy jest gdzie je zapisać (clientPrivate).
+      const legacy=privOn?privKeys.filter(key=>own(raw,key)):[];
       if(privOn&&(Object.keys(privPatch).length||legacy.length)){
         const moved={};
         legacy.forEach(key=>{if(!own(remotePriv,key))moved[key]=clone(raw[key]);});

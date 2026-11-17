@@ -533,11 +533,23 @@ test('private fields: a newer private value is a conflict, not an overwrite', as
   assert.equal(f.calls.commits.length, 0); assert.equal(f.docs.get('clientPrivate/client-a').notes, 'Zmienione w innym oknie');
   localUnchanged(f);
 });
-test('private fields stay in the card while clientPrivate is unavailable', async () => {
+test('private fields never go to the client-readable card while clientPrivate is unavailable', async () => {
   const f = fixture();
-  await f.ctx.saveClientCardConfirmed(f.edit({ notes: 'Bez nowych reguł' }), f.op(true));
-  assert.equal(f.docs.get('clients/client-a').notes, 'Bez nowych reguł'); assert.equal(f.docs.has('clientPrivate/client-a'), false);
-  assert.deepEqual(f.calls.transactions[0].reads, ['clients/client-a']);
+  f.ctx.clientPrivateEnabled = () => false;
+  f.ctx.CLIENT_PRIVATE_FIELDS = ['notes', 'psycho', '_posture', 'timeline'];
+  const before = clone(f.docs.get('clients/client-a'));
+  await assert.rejects(f.ctx.saveClientCardConfirmed(f.edit({ notes: 'Bez dostępu do clientPrivate' }), f.op(true)),
+    error => error.code === 'client-card-private-unavailable');
+  assert.equal(f.calls.commits.length, 0); assert.deepEqual(f.docs.get('clients/client-a'), before);
+  assert.equal(f.docs.has('clientPrivate/client-a'), false);
+  localUnchanged(f);
+});
+test('without clientPrivate an edit of ordinary fields still saves the card', async () => {
+  const f = fixture();
+  f.ctx.clientPrivateEnabled = () => false;
+  f.ctx.CLIENT_PRIVATE_FIELDS = ['notes', 'psycho', '_posture', 'timeline'];
+  await f.ctx.saveClientCardConfirmed(f.edit({ phone: '555' }), f.op(true));
+  assert.equal(f.docs.get('clients/client-a').phone, '555'); assert.equal(f.docs.has('clientPrivate/client-a'), false);
   localUnchanged(f);
 });
 

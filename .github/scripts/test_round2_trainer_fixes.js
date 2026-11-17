@@ -36,7 +36,7 @@ const rules = read('firestore.rules');
     const client = { id: 'c1', name: 'A', notes: 'tajne', psycho: { habits: {} }, phone: '1' };
     ctx._clientPrivateReady = false;
     await ctx.persistById('clients', { ...client });
-    assert.equal(writes.length, 1); assert.equal(writes[0].path, 'clients/c1'); assert.equal(writes[0].value.notes, 'tajne', 'before rules: legacy behaviour');
+    assert.equal(writes.length, 1); assert.equal(writes[0].path, 'clients/c1'); assert.equal(writes[0].value.notes, undefined, 'bez clientPrivate notatki nie trafiają do karty klienta'); assert.equal(writes[0].value.psycho, undefined); assert.equal(writes[0].value.phone, '1');
     writes.length = 0; ctx._clientPrivateReady = true;
     const local = { ...client };
     const saved = await ctx.persistById('clients', local);
