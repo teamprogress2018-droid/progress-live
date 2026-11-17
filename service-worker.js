@@ -10,7 +10,8 @@
 // Wersja 94: szkic jadłospisu w dietDraft.
 // Wersja 95: pola prywatne trenera nie trafiają do karty klienta.
 // Wersja 96: historia ćwiczenia przewijana w bok.
-const CACHE_NAME='progress-live-shell-v96';
+// Wersja 97: mapa mięśni dla ćwiczeń bez filmu.
+const CACHE_NAME='progress-live-shell-v97';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
