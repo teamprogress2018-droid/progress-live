@@ -40,7 +40,7 @@ ok('photo summary opens the main compare tab',/setCPTab\('photos'\)/.test(progre
 ok('chip css',css.includes('.cp-analytics-chip')&&css.includes('.cp-analytics-chips'));
 ok('empty progress cards drop the red accent',css.includes('#cp-body .cp-progress-empty::after')&&css.includes('.stat-card.cp-progress-quiet::after'));
 ok('pct bar chart',src08.includes('function cpPctBarChart'));
-ok('client app adherence',/Adherencja 30d/.test(src04)&&/cpHabitAdherenceWeekly/.test(src04));
+ok('client app adherence',/Realizacja planu · 30 dni/.test(src04)&&/cpHabitAdherenceWeekly/.test(src04));
 
 const today=new Date();
 today.setHours(12,0,0,0);

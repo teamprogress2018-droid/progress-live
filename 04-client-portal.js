@@ -176,7 +176,7 @@ function capHomeworkWorkoutCard(w,accent,live,opts){
     ${opts.due?`<div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Termin: ${escHtml(opts.due)}</div>`:''}
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button type="button" class="cap-btn-primary" style="flex:1;padding:11px;font-size:13px;" ${playBtn}>▶ Start treningu</button>
-      ${opts.taskId&&live&&!opts.done?`<button type="button" class="cap-btn-primary" style="padding:11px;font-size:13px;background:${CAP_S3};" onclick="clientCompleteHomework('${escHtml(opts.taskId)}')">✓ Zrobione — RPE i czas</button>`:''}
+      ${opts.taskId&&live&&!opts.done?`<button type="button" class="cap-btn-primary cap-btn-soft" style="padding:11px;font-size:13px;" onclick="clientCompleteHomework('${escHtml(opts.taskId)}')">✓ Zrobione — RPE i czas</button>`:''}
     </div>
   </div>`;
 }
@@ -513,6 +513,37 @@ function capWeeklyVolume(clientId,weeks){
   }
   return buckets;
 }
+/** Karta „Kontynuuj program” na górze ekranu On-demand (gdy klient zaczął program). Ekran Dzisiaj zostaje z jedną akcją. */
+function capOdContinueCardHTML(c,accent){
+  if(!c||typeof odProgramContinueForClient!=='function')return '';
+  const cont=odProgramContinueForClient(c.id);
+  if(!cont||!(cont.pct>0)||!cont.prog)return '';
+  const w=cont.workout;
+  const next=(cont.next&&cont.next.day&&cont.next.day.label)||(w&&w.name)||'Następny trening';
+  return `<section class="cap-od-continue" data-od-continue style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:6px;">Kontynuuj program</div>
+    <div style="font-size:16px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(cont.prog.name||'Program')}</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">${escHtml(next)} · ${cont.pct}% zrobione</div>
+    <div style="height:6px;background:${CAP_S3};border-radius:99px;overflow:hidden;margin-bottom:12px;"><div style="height:100%;width:${cont.pct}%;background:${accent};"></div></div>
+    <button type="button" class="cap-btn-primary" style="width:100%;" onclick="openODProgramContinue('${escHtml(c.id)}')">▶ Kontynuuj trening</button>
+    <button type="button" class="cap-btn-primary cap-btn-soft" style="width:100%;margin-bottom:0;" onclick="openODProgramClient('${escHtml(cont.prog.id)}')">Cały program</button>
+  </section>`;
+}
+window.capOdContinueCardHTML=capOdContinueCardHTML;
+/** Liczba po polsku (przecinek). Brak wartości → „—”. */
+function capPlNum(v){
+  const n=typeof v==='number'?v:parseFloat(String(v==null?'':v).replace(',','.'));
+  if(!Number.isFinite(n))return v==null||v===''?'—':String(v);
+  return String(Math.round(n*10)/10).replace('.',',');
+}
+function capPlural(n,one,few,many){const a=Math.abs(n)%100,b=a%10;if(n===1)return one;if(b>=2&&b<=4&&(a<12||a>14))return few;return many;}
+/** „3 z 4 treningów” albo „3 treningi w 30 dni”, gdy nie ma planu do porównania. */
+function capCountText(done,planned){
+  const d=Number(done)||0,p=Number(planned)||0;
+  if(p>0)return d+' z '+p+' '+capPlural(p,'treningu','treningów','treningów');
+  return d+' '+capPlural(d,'trening','treningi','treningów')+' w 30 dni';
+}
+window.capPlNum=capPlNum;window.capPlural=capPlural;window.capCountText=capCountText;
 function capClientProgressScreenHTML(c,accent){
   if(c&&c.id&&typeof rememberClientExerciseProgress==='function')rememberClientExerciseProgress(c.id);
   const live=capIsLiveClient();
@@ -561,14 +592,14 @@ function capClientProgressScreenHTML(c,accent){
       ${!metricsOn?`<div style="background:var(--s3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:${CAP_MUTED};line-height:1.45;">📏 Pomiary ciała (masa, obwody, Garmin) są wyłączone przez trenera — widać treningi, rekordy i historię.</div>`:''}
       <div class="cap-stat-kpi-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
-          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">✅ Adherencja 30d</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${adh.pct>=70?'#3ecfb2':accent};line-height:1;">${adh.pct}%</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${adh.logged}/${adh.assigned||'—'} treningów</div>
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">✅ Realizacja planu · 30 dni</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${adh.pct>=70?'var(--success)':CAP_TEXT};line-height:1;">${adh.pct}%</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${capCountText(adh.logged,adh.assigned)}</div>
         </div>
         ${metricsOn?`<div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa ciała</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
-          ${massDiff!=null?'<div style="font-size:11px;margin-top:4px;color:'+(massDiff<=0?'#3ecfb2':'#ff8c42')+';">'+(massDiff>0?'+':'')+massDiff+' kg od startu</div>':''}
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(capPlNum(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
+          ${massDiff!=null?'<div style="font-size:11px;margin-top:4px;color:'+(massDiff<=0?'var(--success)':'var(--warning)')+';">'+(massDiff>0?'+':'')+capPlNum(massDiff)+' kg od startu</div>':''}
         </div>`:`<div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🔥 Streak nawyków</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${bestStreak||'—'}</div>
@@ -577,22 +608,22 @@ function capClientProgressScreenHTML(c,accent){
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje (30 dni)</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${sess30}</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">łącznie ${logged.length} · ocena ${avg?avg+'/5':'—'}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">łącznie ${logged.length}${avg?' · ocena '+capPlNum(avg)+'/5':''}</div>
         </div>
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
-          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">📦 Tonaż</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${CAP_TEXT};line-height:1;">${totalVol>=1000?(Math.round(totalVol/100)/10)+'t':Math.round(totalVol)}<span style="font-size:11px;color:${CAP_MUTED};"> kg</span></div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${totalSets} serii roboczych</div>
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">📦 Podniesione kilogramy</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${CAP_TEXT};line-height:1;">${totalVol>=1000?capPlNum(Math.round(totalVol/100)/10):Math.round(totalVol)}<span style="font-size:11px;color:${CAP_MUTED};"> ${totalVol>=1000?'t':'kg'}</span></div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${totalSets} ${capPlural(totalSets,'seria robocza','serie robocze','serii roboczych')}</div>
         </div>
       </div>
       ${metricsOn&&massPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Trend masy ciała</div>
-        <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Pomiary od trenera · ostatnie ${massPts.length} wpisów</div>
+        <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Pomiary od trenera · ostatnie ${massPts.length} ${capPlural(massPts.length,'wpis','wpisy','wpisów')}</div>
         ${capSparklineSVG(massPts,accent,340,80)}
       </div>`:''}
       <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:14px;">
         <div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;">
-          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Tonaż tygodniowy</div>
+          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Kilogramy w tygodniu</div>
           <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Suma kg × powt. z zapisanych treningów</div>
           ${capBarChartSVG(volWeeks.map(wk=>({l:wk.l,v:wk.vol})),accent,340,92)}
         </div>
@@ -603,8 +634,8 @@ function capClientProgressScreenHTML(c,accent){
         </div>`:''}
         ${habits.length?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;">
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-            <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">Nawyki — adherencja</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#3ecfb2;">${habitPct}%</div>
+            <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">Nawyki — realizacja</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--success);">${habitPct}%</div>
           </div>
           <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Ostatnie 6 tygodni · streak ${bestStreak}d</div>
           ${typeof cpPctBarChart==='function'?cpPctBarChart(habitWeeks,{color:'#3ecfb2',w:340,h:88}):capBarChartSVG(habitWeeks.map(wk=>({l:wk.l,v:wk.pct})),'#3ecfb2',340,72)}
@@ -705,7 +736,7 @@ function capScreenHTML(scr,c){
           <div style="font-size:18px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div>
           <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:12px;">${n?n+' ćwiczeń · ':''}${escHtml(String(slot.session.duration||''))} min · ${emoji?escHtml(emoji)+' ':''}ocena ${escHtml(String(slot.session.feedback||'—'))}/5</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
-            ${sid?`<button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;background:${CAP_S3};" onclick="clientOpenSession('${escHtml(sid)}')">Szczegóły treningu</button>`:''}
+            ${sid?`<button type="button" class="cap-btn-primary cap-btn-soft" style="padding:10px;font-size:13px;" onclick="clientOpenSession('${escHtml(sid)}')">Szczegóły treningu</button>`:''}
             <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" ${startBtn(slot.plan.id,slot.dayIdx)}>↺ Powtórz trening</button>
           </div>
         </div>`;
@@ -720,7 +751,7 @@ function capScreenHTML(scr,c){
           <div style="font-size:16px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Dzień wolny</div>
           <div style="font-size:12px;color:${CAP_MUTED};line-height:1.6;margin-bottom:12px;">${restMsg}</div>
           ${other.length?`<div style="font-size:11px;color:${CAP_MUTED};margin-bottom:8px;">${slot.scheduleRest?'Chcesz i tak trenować? Wybierz dzień planu:':'Albo odpal inny dzień planu:'}</div>
-          <div style="display:flex;flex-direction:column;gap:6px;">${other.map(x=>`<button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;background:${CAP_S3};" ${startBtn(slot.plan.id,x.i)}>${escHtml(capDayLabel(x.d,x.i))}</button>`).join('')}</div>`:''}
+          <div style="display:flex;flex-direction:column;gap:6px;">${other.map(x=>`<button type="button" class="cap-btn-primary cap-btn-soft" style="padding:10px;font-size:13px;" ${startBtn(slot.plan.id,x.i)}>${escHtml(capDayLabel(x.d,x.i))}</button>`).join('')}</div>`:''}
         </div>`;
       }
       const list=capTodayExercises(c);
@@ -770,7 +801,7 @@ function capScreenHTML(scr,c){
             <div style="font-size:12px;color:${CAP_TEXT};">${escHtml(r.name)}</div>
             <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(capResourceDomain(r.url)||'youtube.com')}</div>
           </a>`).join('')}
-          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;margin-top:10px;background:${CAP_S3};" onclick="capGoScreen('resources')">Więcej zasobów</button>
+          <button type="button" class="cap-btn-primary cap-btn-soft" style="padding:10px;font-size:13px;margin-top:10px;" onclick="capGoScreen('resources')">Więcej zasobów</button>
         </div>`;
       })()}
       ${(()=>{
@@ -786,7 +817,7 @@ function capScreenHTML(scr,c){
           <div style="height:4px;background:${CAP_S3};border-radius:99px;overflow:hidden;margin-bottom:12px;"><div style="height:100%;width:${cont.pct}%;background:${accent};"></div></div>
           ${thumb?`<div style="height:72px;border-radius:12px;background:#000 url('${escHtml(thumb)}') center/cover no-repeat;margin-bottom:10px;"></div>`:''}
           <button type="button" class="cap-btn-primary" style="padding:12px;font-size:14px;width:100%;margin-bottom:8px;" onclick="openODProgramContinue('${escHtml(c.id)}')">▶ Kontynuuj trening</button>
-          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(cont.prog.id)}')">Cały program</button>
+          <button type="button" class="cap-btn-primary cap-btn-soft" style="padding:10px;font-size:13px;width:100%;" onclick="openODProgramClient('${escHtml(cont.prog.id)}')">Cały program</button>
         </div>`;
         }
         const progList=(typeof allODPrograms==='function'?allODPrograms():(window.OD_PROGRAMS||[])).filter(p=>(typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p)>0:p.status==='active')&&p.status!=='draft').slice(0,2);
@@ -1272,7 +1303,7 @@ function capScreenHTML(scr,c){
       </div>
       <div style="flex:1;overflow-y:auto;padding:14px 12px;">
         ${msgs.map(m=>`<div style="margin-bottom:10px;${!m.out?'text-align:right;':''}">
-          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'var(--on-accent,#fff)':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(m.odProgId)}')">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
+          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'var(--on-accent,#fff)':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary cap-btn-soft" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODProgramClient('${escHtml(m.odProgId)}')">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
           <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${escHtml(m.time)}</div>
         </div>`).join('')}
       </div>
@@ -1307,7 +1338,7 @@ function capScreenHTML(scr,c){
           }
           return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,due:t.due,trainerNote:t.desc,done:false});
         }).join('')}`:`<div style="background:${CAP_S2};border:1px dashed ${CAP_S3};border-radius:14px;padding:20px;text-align:center;margin-bottom:16px;font-size:13px;color:${CAP_MUTED};line-height:1.6;">Brak aktywnych zadań od trenera.<br>HIIT, mobilność i oddech na własną rękę → zakładka On-demand.</div>`}
-      ${capClientSectionVisible('ondemand')?`<button type="button" class="cap-btn-primary" style="padding:12px;font-size:14px;width:100%;background:${CAP_S3};margin-bottom:16px;" onclick="capGoScreen('ondemand')">Biblioteka On-demand →</button>`:''}
+      ${capClientSectionVisible('ondemand')?`<button type="button" class="cap-btn-primary cap-btn-soft" style="padding:12px;font-size:14px;width:100%;margin-bottom:16px;" onclick="capGoScreen('ondemand')">Biblioteka On-demand →</button>`:''}
       ${doneHw.length?`<div style="font-size:12px;font-weight:700;color:${CAP_MUTED};margin:8px 0 8px;">Ostatnio zrobione</div>${doneHw.map(t=>{const w=resolveW(t);if(!w)return '';return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,done:true});}).join('')}`:''}
     </div>`;
   }
@@ -1327,14 +1358,15 @@ function capScreenHTML(scr,c){
             </div>
             <span style="font-size:9px;font-family:'DM Mono',monospace;color:${accent};white-space:nowrap;">${escHtml(p.duration||'')}</span>
           </div>
-          <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${catLabel?escHtml(catLabel)+' · ':''}${n?n+' treningów YouTube · ':''}${escHtml(typeof LEVEL_MAP!=='undefined'&&p.level?(LEVEL_MAP[p.level]||p.level):p.level||'')}${pct?' · '+pct+'% zrobione':''}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${catLabel?escHtml(catLabel)+' · ':''}${n?n+' '+capPlural(n,'trening','treningi','treningów')+' YouTube · ':''}${escHtml(typeof LEVEL_MAP!=='undefined'&&p.level?(LEVEL_MAP[p.level]||p.level):p.level||'')}${pct?' · '+pct+'% zrobione':''}</div>
           ${pct?`<div style="height:4px;background:${CAP_S3};border-radius:99px;margin-top:8px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${accent};"></div></div>`:''}
         </button>`;
       }).join('');
     return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">On-demand</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Wielotygodniowe programy z filmami YouTube (mobilność, dom bez sprzętu, FBW). Klient sam wybiera dzień i tempo — to biblioteka planów, nie pojedyncze zadania od trenera. Pojedyncze treningi → zakładka <strong>Zadania domowe</strong>.</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Programy z filmami na kilka tygodni. Sam wybierasz dzień i tempo. Pojedyncze treningi od trenera są w zakładce <strong>Zadania domowe</strong>.</div>
+      ${capOdContinueCardHTML(c,accent)}
       ${programCards}
     </div>`;
   }
@@ -1369,12 +1401,12 @@ function capScreenHTML(scr,c){
           const isDone=done.has(key);
           if(!wo)return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:12px;margin-bottom:6px;font-size:12px;color:${CAP_MUTED};">${escHtml(d.label||'Trening')} — brak wideo</div>`;
           return `<div style="background:${CAP_S2};border:1px solid ${isDone?'rgba(62,207,178,0.45)':CAP_S3};border-radius:12px;padding:12px;margin-bottom:6px;display:flex;gap:10px;align-items:center;">
-            <button type="button" class="cap-check-circle" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid ${isDone?'var(--teal)':CAP_S3};background:${isDone?'rgba(62,207,178,0.25)':'transparent'};color:${isDone?'var(--teal)':CAP_MUTED};" onclick="toggleODProgramDay('${escHtml(p.id)}',${wi},${di})">${isDone?'✓':''}</button>
-            <button type="button" onclick="openODWorkout('${escHtml(wo.id)}')" style="flex:1;text-align:left;background:none;border:none;cursor:pointer;color:inherit;padding:0;">
+            <button type="button" class="cap-check-circle cap-od-check" aria-label="${isDone?'Odznacz':'Odhacz'}: ${escHtml(d.label||wo.name)}" aria-pressed="${isDone?'true':'false'}" style="border:1px solid ${isDone?'var(--teal)':CAP_S3};background:${isDone?'rgba(62,207,178,0.25)':'transparent'};color:${isDone?'var(--teal)':CAP_MUTED};" onclick="toggleODProgramDay('${escHtml(p.id)}',${wi},${di})">${isDone?'✓':''}</button>
+            <button type="button" class="cap-od-day" onclick="openODWorkout('${escHtml(wo.id)}')">
               <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(d.label||wo.name)}</div>
               <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(wo.name)} · ${wo.time||'?'} min · YouTube</div>
             </button>
-            <span style="color:${accent};font-size:18px;cursor:pointer;" onclick="openODWorkout('${escHtml(wo.id)}')">▶</span>
+            <button type="button" class="cap-od-play" aria-label="Odtwórz: ${escHtml(wo.name)}" onclick="openODWorkout('${escHtml(wo.id)}')">▶</button>
           </div>`;
         }).join('')}
       </div>`).join('')}
@@ -1401,7 +1433,7 @@ function capScreenHTML(scr,c){
         return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(r.name)}</div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(domain||r.cat||r.type||'')}${r.cat?' · '+escHtml(r.cat):''}</div>
-        ${r.url?`<a href="${escHtml(r.url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;font-size:11px;color:${accent};">Otwórz →</a>`:''}
+        ${r.url?`<a class="cap-res-open" href="${escHtml(r.url)}" target="_blank" rel="noopener noreferrer" style="color:${accent};">Otwórz →</a>`:''}
       </div>`;
       }).join('')}
     </div>`;

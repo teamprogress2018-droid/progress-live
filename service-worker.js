@@ -5,7 +5,8 @@
 // Wersja 64 naprawia sytuację, w której przeglądarka mieszała nowy index.html
 // ze starszymi plikami JavaScript pozostawionymi w cache PWA.
 // Wersja 67: adresy w cache sprowadzane do jednej postaci (bez duplikatów w addAll).
-const CACHE_NAME='progress-live-shell-v91';
+// Wersja 92: nawigacja zapisuje do cache tylko poprawne odpowiedzi (response.ok).
+const CACHE_NAME='progress-live-shell-v92';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
@@ -49,8 +50,11 @@ self.addEventListener('fetch',event=>{
 
   if(request.mode==='navigate'){
     event.respondWith(fetch(request).then(response=>{
-      const copy=response.clone();
-      caches.open(CACHE_NAME).then(cache=>cache.put('./index.html',copy));
+      // Strona błędu (404/500) nie może zastąpić aplikacji w pamięci offline.
+      if(response.ok&&response.type==='basic'){
+        const copy=response.clone();
+        caches.open(CACHE_NAME).then(cache=>cache.put('./index.html',copy));
+      }
       return response;
     }).catch(()=>caches.match('./index.html')));
     return;

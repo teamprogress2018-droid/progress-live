@@ -76,7 +76,7 @@
 .cs-kv { display: flex; flex-direction: column; gap: 2px; font-size: 1rem; }
 .cs-kv span { color: var(--text-secondary); font-size: 0.8125rem; }
 .cs-kv b { font-weight: 550; }
-.cs-kv a { color: var(--text-primary); text-decoration: none; font-weight: 550; }
+.cs-kv a { display: inline-flex; align-items: center; min-height: 44px; color: var(--text-primary); text-decoration: none; font-weight: 550; }
 
 /* Trening — jedno ćwiczenie */
 .cs-ex { display: flex; flex-direction: column; min-height: 100%; color: var(--text-primary); }
@@ -105,7 +105,7 @@
 .cs-dots span { width: 13px; height: 13px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--text-primary) 25%, transparent); box-sizing: border-box; }
 .cs-dots span.is-now { border-color: var(--accent); }
 .cs-dots span.is-done { border-color: var(--accent); background: var(--accent); }
-.cs-set-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cs-set-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 12px; }
 .cs-num { display: flex; flex-direction: column; gap: 2px; }
 .cs-num input { width: 100%; box-sizing: border-box; padding: 2px 0; border: 0; border-bottom: 2px solid color-mix(in srgb, var(--text-primary) 15%, transparent); background: transparent; color: var(--text-primary); font: inherit; font-size: 2.5rem; font-weight: 750; line-height: 1.1; font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
 .cs-num input::-webkit-outer-spin-button, .cs-num input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -124,7 +124,7 @@
 .cs-setlogs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .cs-setlog { display: grid; grid-template-columns: 1fr auto 72px; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid var(--border-subtle); font-size: 0.9375rem; color: var(--text-secondary); }
 .cs-setlog.is-done { color: var(--text-primary); }
-.cs-mini { min-height: 36px; border: 1px solid var(--border-subtle); border-radius: 10px; background: transparent; color: var(--text-primary); font: inherit; font-size: 0.8125rem; cursor: pointer; }
+.cs-mini { min-height: 44px; border: 1px solid var(--border-subtle); border-radius: 10px; background: transparent; color: var(--text-primary); font: inherit; font-size: 0.8125rem; cursor: pointer; }
 .cs-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .cs-chip { min-height: 40px; padding: 0 12px; border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 0.875rem; cursor: pointer; }
 .cs-tips-actions { display: flex; flex-direction: column; gap: 8px; }
@@ -290,8 +290,8 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-key-line { margin: 0; color: var(--text-primary); font-size: 0.9375rem; font-weight: 600; }
 .cs-num-lbl { padding-left: 4px; color: var(--text-secondary); font-size: 0.875rem; font-weight: 600; }
 .cs-num > span.cs-num-lbl { order: -1; }
-.cs-kg-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 4px; }
-.cs-step { height: 64px; min-width: 40px; padding: 0; border: 1.5px solid var(--border-strong, #6b7280); border-radius: 14px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 1.5rem; font-weight: 650; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.cs-kg-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 4px; }
+.cs-step { height: 64px; min-width: 44px; padding: 0; border: 1.5px solid var(--border-strong, #6b7280); border-radius: 14px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 1.5rem; font-weight: 650; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .cs-step:active { background: color-mix(in srgb, var(--text-primary) 8%, var(--bg-card)); }
 #clive-player-inner .cs-kg-row input, .cs-kg-row input { padding: 4px 6px !important; text-align: center; }
 .cs-step:focus-visible, .cs-q:focus-visible, .cs-hist summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
@@ -339,8 +339,6 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
   .cw-ex-mode .cs-ex-name { font-size: 1.3125rem; }
   .cs-ex-pos { font-size: 0.875rem; }
   .cs-back-btn span { font-size: 0.9375rem; }
-  .cs-kg-row { grid-template-columns: 36px minmax(0, 1fr) 36px; }
-  .cs-step { min-width: 36px; }
 }
 .cs-ex-foot .cs-saved { font-size: 0.875rem; }
 .cs-ex-foot .cs-saved > span { min-width: 0; }
@@ -361,3 +359,26 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-pkg-bar span.is-on { background: var(--success); }
 .cs-pkg-meter { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text-primary) 12%, transparent); overflow: hidden; }
 .cs-pkg-meter span { display: block; height: 100%; border-radius: 4px; background: var(--success); }
+
+/* Etap 1 (przegląd 17.11.2026): nagłówek, cele dotykowe, kontrast, ekran Technika. */
+.clive-top { gap: 8px; }
+.clive-brand { min-width: 0; flex: 0 1 auto; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+.clive-top-actions { display: flex; gap: 8px; align-items: center; flex: 0 0 auto; }
+@media (max-width: 379px) {
+  .clive-top { padding-left: calc(12px + var(--cs-sal)); padding-right: calc(12px + var(--cs-sar)); }
+  .clive-brand { font-size: 1rem; letter-spacing: 1px; }
+  .clive-top-actions { gap: 6px; }
+  .clive-top-actions .btn { padding-left: 10px; padding-right: 10px; }
+}
+#screen-clientlive .cap-btn-primary, #screen-clientlive .btn-sm { min-height: 44px; }
+.cap-btn-primary.cap-btn-soft { background: var(--cap-s3); color: var(--cap-text); }
+.cap-res-open { display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; font-size: 0.8125rem; font-weight: 600; }
+.cap-od-check { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; font-size: 1rem; }
+.cap-od-day { flex: 1; min-height: 44px; text-align: left; background: none; border: none; cursor: pointer; color: inherit; padding: 0; }
+.cap-od-play { flex-shrink: 0; width: 44px; height: 44px; border: 0; background: none; color: var(--accent-text, var(--accent)); font-size: 1.125rem; cursor: pointer; }
+/* Ukryty (zepsuty) obrazek techniki nie może zostać na ekranie jako ikona z podpisem. */
+.cw-technique-media img[hidden], .cw-technique-media video[hidden], .cw-technique-media iframe[hidden] { display: none !important; }
+#clive-player .cw-technique-media.is-unavailable { background: var(--cap-s2); border-color: var(--border-subtle); }
+#clive-player .cw-technique-media-fallback { background: var(--cap-s2); color: var(--text-secondary); }
+#clive-player .cw-technique-media-fallback b { color: var(--text-primary); }
+#clive-player .cw-technique-media.is-unavailable .cw-technique-cap { display: none; }

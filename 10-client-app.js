@@ -29,6 +29,36 @@ function switchClientAppToTrainer(){
 }
 window.switchClientAppToTrainer=switchClientAppToTrainer;
 
+/** „Panel trenera” w aplikacji klienta: tylko gdy to samo konto ma rolę trenera (trainerRoles/{uid}).
+ *  Zwykły klient nie ma tego przycisku w DOM. Brak odpowiedzi bazy = brak przycisku. */
+function clientLiveRenderTrainerSwitch(){
+  const box=document.getElementById('clive-top-actions');
+  if(!box||document.getElementById('clive-trainer-switch'))return;
+  const b=document.createElement('button');
+  b.type='button';b.id='clive-trainer-switch';b.className='btn btn-ghost btn-sm';b.textContent='Panel trenera';
+  b.addEventListener('click',switchClientAppToTrainer);
+  box.insertBefore(b,box.firstChild);
+}
+async function clientLiveSyncTrainerSwitch(session){
+  const old=document.getElementById('clive-trainer-switch');if(old&&typeof old.remove==='function')old.remove();
+  window._clientViewerIsTrainer=false;
+  if(!window._clientAppMode||!window._uid||typeof window._getDoc!=='function'||typeof window._doc!=='function'||!window._db)return false;
+  const uid=window._uid;
+  let isTrainer=false;
+  try{
+    const snap=await window._getDoc(window._doc(window._db,'trainerRoles',uid));
+    const d=snap&&snap.exists()?snap.data():null;
+    isTrainer=!!(d&&d.uid===uid&&d.role==='trainer'&&d.enabled===true);
+  }catch(e){isTrainer=false;}
+  if(window._uid!==uid||!window._clientAppMode)return false;
+  if(session&&typeof window.tenantSessionIsCurrent==='function'&&!window.tenantSessionIsCurrent(session))return false;
+  window._clientViewerIsTrainer=isTrainer;
+  if(isTrainer)clientLiveRenderTrainerSwitch();
+  return isTrainer;
+}
+window.clientLiveSyncTrainerSwitch=clientLiveSyncTrainerSwitch;
+window.clientLiveRenderTrainerSwitch=clientLiveRenderTrainerSwitch;
+
 function clientAppUrl(){
   return (location.origin+location.pathname).replace(/index\.html$/,'');
 }
@@ -247,6 +277,7 @@ async function loadClientApp(account,session=captureClientTenantSession()){
     if(typeof resetScreensaverIdle==='function')resetScreensaverIdle();
   }catch(e){}
   enterClientLiveShell();
+  clientLiveSyncTrainerSwitch(session);
   startClientMessagePolling();
 }
 
@@ -754,7 +785,7 @@ async function doClientRegister(){
       'client-invite-invalid':'Zaproszenie nie pasuje do podanego adresu. Sprawdź adres lub poproś trenera o nowy link.',
       'client-account-link-changed':'To konto ma już inne powiązanie z trenerem. Nie zostało zmienione.'
     };
-    authSetError('auth-reg-error',msgs[e.code]||('Nie udało się założyć konta: '+(e.message||e)));
+    authSetError('auth-reg-error',msgs[e.code]||('Nie udało się założyć konta. Spróbuj ponownie za chwilę.'+(e&&e.code?' ('+e.code+')':'')));
   }finally{
     if(btn){btn.disabled=false;btn.textContent='Utwórz konto i wejdź';}
   }
@@ -2064,8 +2095,8 @@ function ppBlockHTML(c,opts){
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px;">${views.map(v=>`<button type="button" class="btn ${view===v.id?'btn-primary':'btn-ghost'} btn-sm" onclick="ppCmpView('${v.id}')">${v.l}</button>`).join('')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:4px;">${escHtml(left.date)}${left.weight?' · '+escHtml(String(left.weight))+' kg':''}</div>${left.photos&&left.photos[view]?`<img src="${left.photos[view]}" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:3/4;">`:'<div style="aspect-ratio:3/4;border-radius:10px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.35);">Brak</div>'}</div>
-      <div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:4px;">${escHtml(right.date)}${right.weight?' · '+escHtml(String(right.weight))+' kg':''}</div>${right.photos&&right.photos[view]?`<img src="${right.photos[view]}" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:3/4;">`:'<div style="aspect-ratio:3/4;border-radius:10px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.35);">Brak</div>'}</div>
+      <div><div style="font-size:10px;color:var(--cap-muted);margin-bottom:4px;">${escHtml(left.date)}${left.weight?' · '+escHtml(String(left.weight))+' kg':''}</div>${left.photos&&left.photos[view]?`<img src="${left.photos[view]}" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:3/4;">`:'<div style="aspect-ratio:3/4;border-radius:10px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.35);">Brak</div>'}</div>
+      <div><div style="font-size:10px;color:var(--cap-muted);margin-bottom:4px;">${escHtml(right.date)}${right.weight?' · '+escHtml(String(right.weight))+' kg':''}</div>${right.photos&&right.photos[view]?`<img src="${right.photos[view]}" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:3/4;">`:'<div style="aspect-ratio:3/4;border-radius:10px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.35);">Brak</div>'}</div>
     </div>
   </div>`:'';
   const history=list.length?list.slice().reverse().map(p=>`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px;margin-bottom:8px;">
@@ -2076,8 +2107,8 @@ function ppBlockHTML(c,opts){
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
       ${views.map(v=>p.photos&&p.photos[v.id]?`<img src="${p.photos[v.id]}" style="width:100%;height:88px;object-fit:cover;border-radius:8px;">`:`<div style="height:88px;border-radius:8px;background:rgba(255,255,255,.04);"></div>`).join('')}
     </div>
-    ${p.note?`<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px;">${escHtml(p.note)}</div>`:''}
-  </div>`).join(''):`<div style="text-align:center;padding:18px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6;">Zrób zestaw przód / bok / tył — potem porównasz z kolejnym miesiącem.</div>`;
+    ${p.note?`<div style="font-size:11px;color:var(--cap-muted);margin-top:6px;">${escHtml(p.note)}</div>`:''}
+  </div>`).join(''):`<div style="text-align:center;padding:18px;color:var(--cap-muted);font-size:12px;line-height:1.6;">Zrób zestaw przód / bok / tył — potem porównasz z kolejnym miesiącem.</div>`;
   return `<div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
       <div style="font-size:13px;font-weight:700;">Zdjęcia sylwetki</div>
       ${draft&&draft.open?'':`<button type="button" class="btn btn-primary btn-sm" onclick="${live?'ppOpenDraft()':'notify(\'Podgląd — klient robi zdjęcia w swojej apce\')'}">+ Dodaj</button>`}

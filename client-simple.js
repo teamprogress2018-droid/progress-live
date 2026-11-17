@@ -128,11 +128,11 @@ function csTodayCardHTML(c,st){
   const {slot,inProgress}=st;
   const startCall=slot.plan?`csStart('${csEsc(slot.plan.id)}',${Number(slot.dayIdx)||0})`:'';
   if(inProgress&&inProgress.completeLocal){
-    return `<section class="cs-card is-done"><div class="cs-check" aria-hidden="true">${csIcon('check',26)}</div><h2 class="cs-card-title">Trening zapisany</h2><p class="cs-card-text">Zapisano ${Number(inProgress.confirmedSets||0)} serii na telefonie. Wyślemy je, gdy wróci internet.</p></section>`;
+    return `<section class="cs-card is-done"><div class="cs-check" aria-hidden="true">${csIcon('check',26)}</div><h2 class="cs-card-title">Trening zapisany</h2><p class="cs-card-text">Zapisano ${Number(inProgress.confirmedSets||0)} ${csPlural(Number(inProgress.confirmedSets||0),'serię','serie','serii')} na telefonie. Wyślemy je, gdy wróci internet.</p></section>`;
   }
   if(inProgress){
     const t=csDayTitle(slot.day,slot.dayIdx);
-    return `<section class="cs-card" data-cap-swipe-plan><div class="cs-eyebrow">TRENING W TOKU</div><h2 class="cs-card-title">${csEsc(inProgress.dayName&&!/^dzie[ńn]\s*\d+$/i.test(inProgress.dayName)?inProgress.dayName:t.title)}</h2><p class="cs-card-text">Zapisano ${Number(inProgress.confirmedSets||0)} serii${inProgress.syncState==='local'?' · na telefonie':''}.</p><button type="button" class="cs-btn cs-btn-primary" onclick="${startCall}">${CS_PLAY_ICON}Wznów trening</button></section>`;
+    return `<section class="cs-card" data-cap-swipe-plan><div class="cs-eyebrow">TRENING W TOKU</div><h2 class="cs-card-title">${csEsc(inProgress.dayName&&!/^dzie[ńn]\s*\d+$/i.test(inProgress.dayName)?inProgress.dayName:t.title)}</h2><p class="cs-card-text">Zapisano ${Number(inProgress.confirmedSets||0)} ${csPlural(Number(inProgress.confirmedSets||0),'serię','serie','serii')}${inProgress.syncState==='local'?' · na telefonie':''}.</p><button type="button" class="cs-btn cs-btn-primary" onclick="${startCall}">${CS_PLAY_ICON}Wznów trening</button></section>`;
   }
   if(slot.kind==='workout'){
     const t=csDayTitle(slot.day,slot.dayIdx);
