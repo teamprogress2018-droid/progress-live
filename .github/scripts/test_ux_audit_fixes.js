@@ -37,7 +37,7 @@ ok('int default daily', /class="auto-tab-btn active" id="int-tab-daily"/.test(ht
 ok('int catalog not wszystkie as default tab', html.includes('>Katalog</button>') && html.includes('Działa dziś'));
 ok('nutrition blocked copy', html.includes('Żywienie (wkrótce)') && aic.includes("mode==='nutrition'"));
 ok('clive primary nav + more', html.includes('id="clive-bn-home"') && src10.includes('id="clive-bn-more"') && html.includes('id="clive-more-sheet"'));
-ok('shared account can switch to trainer mode', html.includes('onclick="switchClientAppToTrainer()"') && src10.includes("sessionStorage.setItem('pl_auth_mode','trainer')") && html.includes("preferredMode==='trainer'"));
+ok('shared account can switch to trainer mode', src10.includes("b.addEventListener('click',switchClientAppToTrainer)")&&src10.includes("'trainerRoles',uid")&&!html.includes('switchClientAppToTrainer()') && src10.includes("sessionStorage.setItem('pl_auth_mode','trainer')") && html.includes("preferredMode==='trainer'"));
 ok('clive overflow in sheet', /function capLiveMoreScreens[\s\S]*?id:'homework'[\s\S]*?id:'ondemand'[\s\S]*?id:'resources'/.test(portal) && /clive-more-sheet[\s\S]*?moreScreens\.map/.test(src10));
 ok('cap preview homework nav', html.includes('id="capn-homework"'));
 ok('rest voice settings', html.includes('id="set-rest-voice"') || portal.includes('id="set-rest-voice"'));

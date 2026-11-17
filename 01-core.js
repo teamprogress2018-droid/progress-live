@@ -2598,9 +2598,11 @@ function showTechniqueMediaUnavailable(el){
   const fallback=document.createElement('div');
   fallback.className='cw-technique-media-fallback';
   const title=document.createElement('b');
-  title.textContent='Podgląd techniki niedostępny';
+  // Klient nie przypisuje mediów — dostaje prostą informację (np. offline, zdjęcie z GitHuba się nie wczytało).
+  const forClient=!!window._clientAppMode;
+  title.textContent=forClient?'Zdjęcie techniki się nie wczytało':'Podgląd techniki niedostępny';
   const copy=document.createElement('span');
-  copy.textContent='Wybierz ćwiczenie, aby otworzyć pełny film lub przypisać inne medium.';
+  copy.textContent=forClient?'Sprawdź internet. Wskazówki do ćwiczenia są niżej.':'Wybierz ćwiczenie, aby otworzyć pełny film lub przypisać inne medium.';
   fallback.append(title,copy);
   box.insertBefore(fallback,box.firstChild);
 }
