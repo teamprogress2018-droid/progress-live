@@ -39,6 +39,59 @@ function escHtml(s){
 }
 window.escHtml=escHtml;
 
+/* Akcje delegowane (XSS): wartości z bazy (id wpisu, treningu, zdjęcia) idą do data-*, a nie do onclick="fn('${id}')".
+   escHtml chroni HTML, ale nie literał JS w atrybucie: przeglądarka zamienia &#39; z powrotem w apostrof.
+   Element: data-act="nazwa" + data-*; data-act-stop-prop zatrzymuje kliknięcie (jak event.stopPropagation()),
+   data-act-stop na kontenerze odcina go od akcji rodzica. Obsługa w fazie przechwytywania, więc działa także
+   wewnątrz kontenerów z onclick="event.stopPropagation()". */
+const UI_ACTIONS=Object.create(null);
+function uiAction(name,fn){UI_ACTIONS[name]=fn;}
+function uiActionTarget(t){
+  if(!t||typeof t.closest!=='function')return null;
+  const el=t.closest('[data-act],[data-act-stop]');
+  if(!el||!el.hasAttribute('data-act'))return null;
+  // Własny przycisk / pole / onclick wewnątrz karty z data-act ma pierwszeństwo przed akcją karty.
+  for(let n=t;n&&n!==el;n=n.parentElement){
+    if(n.hasAttribute&&n.hasAttribute('onclick'))return null;
+    if(/^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY)$/.test(n.tagName||''))return null;
+  }
+  return el;
+}
+function uiActionRun(el,e){
+  const fn=UI_ACTIONS[el.getAttribute('data-act')];
+  if(typeof fn!=='function')return false;
+  if(el.hasAttribute('data-act-stop-prop'))e.stopPropagation();
+  fn(Object.assign({},el.dataset),el,e);
+  return true;
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  document.addEventListener('click',e=>{const el=uiActionTarget(e.target);if(el)uiActionRun(el,e);},true);
+  // Karty-przyciski (div role="button") reagują też na Enter i spację.
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const el=uiActionTarget(e.target);
+    if(!el||el!==e.target||el.tagName==='BUTTON'||el.tagName==='A'||el.getAttribute('role')!=='button')return;
+    e.preventDefault();uiActionRun(el,e);
+  },true);
+}
+const uiCall=(name,...args)=>{const fn=window[name];if(typeof fn==='function')return fn(...args);};
+uiAction('forum-open',d=>uiCall('openForumPost',d.postId));
+uiAction('forum-react',d=>uiCall('reactToPost',d.postId,d.reaction));
+uiAction('forum-comment',d=>uiCall('addComment',d.postId));
+uiAction('forum-pin',d=>uiCall('toggleForumPin',d.postId));
+uiAction('forum-delete',d=>uiCall('deleteForumPost',d.postId));
+uiAction('session-open',d=>uiCall('clientOpenSession',d.sessionId));
+uiAction('session-edit',d=>uiCall('editSession',d.sessionId));
+uiAction('session-live',d=>uiCall('dashStartLive',d.sessionId));
+uiAction('photo-delete',d=>uiCall('ppDelete',d.photoId));
+uiAction('forum-comment-delete',d=>uiCall('deleteForumComment',d.commentId,d.postId));
+uiAction('session-delete',d=>uiCall('delSession',d.sessionId));
+uiAction('metric-delete',d=>{if(d.confirm&&!confirm(d.confirm))return;uiCall('delMetricEntry',d.entryId);});
+// Tagi [od:…] / [odprog:…] pochodzą z treści wiadomości czatu, więc też idą przez data-*.
+uiAction('od-workout',d=>uiCall('openODWorkout',d.workoutId));
+uiAction('od-program',d=>uiCall('openODProgramClient',d.programId));
+window.uiAction=uiAction;
+
 /** Pole „wpisz i wybierz klienta”: ukryte id musi pasować do tekstu w polu.
  *  Gdy trener zmieni tekst bez kliknięcia na liście, stare id jest czyszczone;
  *  pełne imię i nazwisko jednego klienta wybiera go bez klikania. */

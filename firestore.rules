@@ -33,6 +33,9 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
     }
     function validId(value) { return value is string && value.size() <= 1300 && value.matches('^[^/]+$'); }
+    // Id wybierane przez klienta trafia do widoków trenera i innych klientów — tylko bezpieczne znaki
+    // (bez apostrofu, cudzysłowu, spacji i nawiasów), żeby nie dało się nim zamknąć literału JS w HTML.
+    function safeDocId(value) { return value is string && value.matches('^[A-Za-z0-9_.:@-]{1,200}$'); }
     function smallText(value, max) { return value is string && value.size() <= max; }
     function optionalImage(value) { return value == null || smallText(value, 800000); }
     function visibleFlags(flags) {
@@ -296,7 +299,7 @@ service cloud.firestore {
       // A trainer may inspect a new deterministic calendar ID before an atomic create.
       // Existing documents still require the normal owner or linked-client permission.
       allow get: if trainer() && resource == null;
-      allow create: if request.resource.data.id == docId && clientSession(request.resource.data)
+      allow create: if request.resource.data.id == docId && safeDocId(docId) && clientSession(request.resource.data)
         && ((request.resource.data.source == 'client'
             && ownClient(get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data))
           || (request.resource.data.source == 'homework'
@@ -311,12 +314,12 @@ service cloud.firestore {
             && request.resource.data.duration is number && request.resource.data.duration > 0));
     }
     match /metricEntries/{docId} {
-      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId && safeDocId(docId)
         && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'groupId', 'date', 'values', 'notes', 'source', 'createdAt'])
         && request.resource.data.values is map && request.resource.data.get('source', 'client') == 'client';
     }
     match /progressPhotos/{docId} {
-      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId && safeDocId(docId)
         && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'date', 'weight', 'note', 'photos', 'source', 'createdAt'])
         && request.resource.data.source == 'client' && request.resource.data.photos is map;
       allow delete: if ownClient(resource.data) && resource.data.source == 'client';
@@ -342,7 +345,7 @@ service cloud.firestore {
     match /forumPosts/{docId} {
       allow read: if sameTrainer(resource.data) && groupVisible(resource.data.groupId);
       allow create: if ownClient(request.resource.data) && groupVisible(request.resource.data.groupId)
-        && request.resource.data.id == docId && request.resource.data.authorRole == 'klient'
+        && request.resource.data.id == docId && safeDocId(docId) && request.resource.data.authorRole == 'klient'
         && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'title', 'body', 'type', 'groupId',
           'authorName', 'authorRole', 'pinned', 'date', 'createdAt', 'likes', 'views', 'comments', 'reactions', 'reactedBy'])
         && request.resource.data.pinned == false && request.resource.data.likes == 0
@@ -359,7 +362,7 @@ service cloud.firestore {
     match /forumComments/{docId} {
       allow read: if sameTrainer(resource.data) && postVisible(resource.data.postId);
       allow create: if ownClient(request.resource.data) && postVisible(request.resource.data.postId)
-        && request.resource.data.id == docId && request.resource.data.authorRole == 'klient'
+        && request.resource.data.id == docId && safeDocId(docId) && request.resource.data.authorRole == 'klient'
         && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'postId', 'authorName', 'authorRole', 'body', 'date', 'createdAt', 'likes'])
         && request.resource.data.likes == 0;
       allow update: if sameTrainer(resource.data) && postVisible(resource.data.postId)

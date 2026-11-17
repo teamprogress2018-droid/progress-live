@@ -2102,7 +2102,7 @@ function ppBlockHTML(c,opts){
   const history=list.length?list.slice().reverse().map(p=>`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px;margin-bottom:8px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
       <div style="font-size:12px;font-weight:700;">${escHtml(p.date)}${p.weight?' · '+escHtml(String(p.weight))+' kg':''}</div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="${live?`ppDelete('${escHtml(p.id)}')`:'void(0)'}">Usuń</button>
+      <button type="button" class="btn btn-ghost btn-sm" ${live?`data-act="photo-delete" data-photo-id="${escHtml(p.id)}"`:''}>Usuń</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
       ${views.map(v=>p.photos&&p.photos[v.id]?`<img src="${p.photos[v.id]}" style="width:100%;height:88px;object-fit:cover;border-radius:8px;">`:`<div style="height:88px;border-radius:8px;background:rgba(255,255,255,.04);"></div>`).join('')}

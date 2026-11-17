@@ -336,7 +336,7 @@ function capWorkoutHistoryList(c,list,live,accent){
     const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
     const n=(s.exercises||[]).length;
     const sets=typeof sessionSetsCount==='function'?sessionSetsCount(s):n;
-    return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenSession('${escHtml(s.id)}')">
+    return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" data-act="session-open" data-session-id="${escHtml(s.id)}">
       <div style="font-size:22px;width:36px;text-align:center;flex-shrink:0;">${emoji||'🏋️'}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||s.title||'Trening')}</div>
@@ -736,7 +736,7 @@ function capScreenHTML(scr,c){
           <div style="font-size:18px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div>
           <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:12px;">${n?n+' ćwiczeń · ':''}${escHtml(String(slot.session.duration||''))} min · ${emoji?escHtml(emoji)+' ':''}ocena ${escHtml(String(slot.session.feedback||'—'))}/5</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
-            ${sid?`<button type="button" class="cap-btn-primary cap-btn-soft" style="padding:10px;font-size:13px;" onclick="clientOpenSession('${escHtml(sid)}')">Szczegóły treningu</button>`:''}
+            ${sid?`<button type="button" class="cap-btn-primary cap-btn-soft" style="padding:10px;font-size:13px;" data-act="session-open" data-session-id="${escHtml(sid)}">Szczegóły treningu</button>`:''}
             <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" ${startBtn(slot.plan.id,slot.dayIdx)}>↺ Powtórz trening</button>
           </div>
         </div>`;
@@ -1079,7 +1079,7 @@ function capScreenHTML(scr,c){
       const sid=has?(logged.find(s=>s.date===ymd)||{}).id:(hasG?(garminSess.find(s=>s.date===ymd)||{}).id:'');
       const bg=isToday?accent:has?accent+'22':hasG?'rgba(0,124,195,0.28)':'transparent';
       const col=isToday?'#000':has?accent:hasG?'#5ec8ff':CAP_MUTED;
-      cells.push(`<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;background:${bg};color:${col};font-weight:${isToday||has||hasG?700:400};${sid?'cursor:pointer;':''}" ${sid?`onclick="clientOpenSession('${escHtml(sid)}')"`:''}>${d}</div>`);
+      cells.push(`<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;background:${bg};color:${col};font-weight:${isToday||has||hasG?700:400};${sid?'cursor:pointer;':''}" ${sid?`data-act="session-open" data-session-id="${escHtml(sid)}"`:''}>${d}</div>`);
     }
     return `
     <div class="cap-section" style="padding-bottom:90px;">
@@ -1116,7 +1116,7 @@ function capScreenHTML(scr,c){
         </div>
       </div>`).join('')}`:''}
       ${garminSess.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:14px 0 10px;">Z zegarka Garmin</div>
-      ${garminSess.slice(0,8).map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid rgba(0,124,195,0.35);border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;gap:12px;align-items:center;" onclick="clientOpenSession('${escHtml(s.id)}')">
+      ${garminSess.slice(0,8).map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid rgba(0,124,195,0.35);border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;gap:12px;align-items:center;" data-act="session-open" data-session-id="${escHtml(s.id)}">
         <div style="background:rgba(0,124,195,0.22);border-radius:10px;padding:8px 12px;text-align:center;flex-shrink:0;">
           <div style="font-size:11px;color:#5ec8ff;font-family:'DM Mono',monospace;">${escHtml((s.date||'').slice(5,7)||'—')}</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#5ec8ff;line-height:1;">${escHtml((s.date||'').slice(8,10)||'—')}</div>
@@ -1303,7 +1303,7 @@ function capScreenHTML(scr,c){
       </div>
       <div style="flex:1;overflow-y:auto;padding:14px 12px;">
         ${msgs.map(m=>`<div style="margin-bottom:10px;${!m.out?'text-align:right;':''}">
-          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'var(--on-accent,#fff)':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary cap-btn-soft" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODProgramClient('${escHtml(m.odProgId)}')">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
+          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'var(--on-accent,#fff)':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary cap-btn-soft" style="padding:8px 12px;font-size:12px;width:100%;" data-act="od-program" data-program-id="${escHtml(m.odProgId)}">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" data-act="od-workout" data-workout-id="${escHtml(m.odId)}">▶ Odtwórz trening</button></div>`:''}</div>
           <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${escHtml(m.time)}</div>
         </div>`).join('')}
       </div>
@@ -1457,7 +1457,7 @@ function capScreenHTML(scr,c){
           <div style="font-size:16px;font-weight:700;color:${CAP_TEXT};margin-bottom:8px;">${escHtml(open.title||'')}</div>
           <div style="font-size:13px;color:${CAP_MUTED};line-height:1.6;white-space:pre-line;">${escHtml(open.body||'')}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
-            ${Object.entries(REACTIONS_MAP).map(([r,icon])=>`<button class="forum-reaction-btn${myReact===r?' active':''}" onclick="reactToPost('${escHtml(open.id)}','${r}')">${icon} ${(open.reactions||{})[r]||''}</button>`).join('')}
+            ${Object.entries(REACTIONS_MAP).map(([r,icon])=>`<button class="forum-reaction-btn${myReact===r?' active':''}" data-act="forum-react" data-post-id="${escHtml(open.id)}" data-reaction="${escHtml(r)}">${icon} ${(open.reactions||{})[r]||''}</button>`).join('')}
           </div>
         </div>
         <div style="font-size:12px;font-weight:700;margin-bottom:8px;">Komentarze (${comments.length})</div>
@@ -1466,7 +1466,7 @@ function capScreenHTML(scr,c){
           <div style="font-size:12px;color:${CAP_MUTED};margin-top:4px;white-space:pre-line;">${escHtml(cm.body||'')}</div>
         </div>`).join(''):`<div style="font-size:12px;color:${CAP_MUTED};margin-bottom:10px;">Napisz pierwszy komentarz.</div>`}
         <textarea id="new-comment-${escHtml(open.id)}" rows="3" placeholder="Twój komentarz..." style="width:100%;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:10px;color:${CAP_TEXT};font-size:13px;margin-bottom:8px;"></textarea>
-        <button class="btn btn-primary" style="width:100%;" onclick="addComment('${escHtml(open.id)}')">Wyślij</button>
+        <button class="btn btn-primary" style="width:100%;" data-act="forum-comment" data-post-id="${escHtml(open.id)}">Wyślij</button>
       </div>`;
     }
     return `<div class="cap-section" style="padding-bottom:90px;">
@@ -1477,7 +1477,7 @@ function capScreenHTML(scr,c){
         <textarea id="clive-fp-body" rows="3" placeholder="Napisz do grupy..." style="width:100%;background:${CAP_S3};border:1px solid ${CAP_S3};border-radius:8px;padding:8px;color:${CAP_TEXT};font-size:13px;margin-bottom:8px;"></textarea>
         <button class="btn btn-primary btn-sm" style="width:100%;" onclick="clientSaveForumPost()">Opublikuj</button>
       </div>
-      ${posts.length?posts.map(p=>`<div onclick="openForumPost('${escHtml(p.id)}')" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:10px;cursor:pointer;">
+      ${posts.length?posts.map(p=>`<div data-act="forum-open" data-post-id="${escHtml(p.id)}" role="button" tabindex="0" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:10px;cursor:pointer;">
         ${p.pinned?'<div style="font-size:10px;color:var(--orange);margin-bottom:4px;">📌 Przypięty</div>':''}
         <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">${escHtml(p.title||'')}</div>
         <div style="font-size:11px;color:${CAP_MUTED};margin:4px 0 6px;">${escHtml(p.authorName||'')} · ${typeof forumFormatWhen==='function'?forumFormatWhen(p):''}</div>
@@ -1491,7 +1491,7 @@ function capScreenHTML(scr,c){
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="padding-top:8px;text-align:center;margin-bottom:20px;">
         <div style="width:80px;height:80px;border-radius:50%;background:${accent}22;border:3px solid ${accent};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:${accent};margin:0 auto 10px;">${getInit(c.name)}</div>
-        <div style="font-size:20px;font-weight:700;color:${CAP_TEXT};">${c.name}</div>
+        <div style="font-size:20px;font-weight:700;color:${CAP_TEXT};">${escHtml(c.name||'')}</div>
         <div style="font-size:11px;color:${CAP_MUTED};margin-top:3px;">${{masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja'}[c.goal]||c.goal||'Brak celu'}</div>
       </div>
       <!-- stats -->
@@ -5939,7 +5939,7 @@ function renderForumFeed(){
     const isTrainer=p.authorRole==='trener';
     const reactTotal=forumReactionScore(p);
     const myReact=(p.reactedBy||{})[me.uid];
-    return `<div class="forum-post-card${p.pinned?' pinned':''}${forumActivePost===p.id?' active':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${col};" onclick="openForumPost('${escHtml(p.id)}')">
+    return `<div class="forum-post-card${p.pinned?' pinned':''}${forumActivePost===p.id?' active':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${col};" data-act="forum-open" data-post-id="${escHtml(p.id)}">
       ${p.pinned?'<div style="position:absolute;top:10px;right:12px;font-size:12px;color:var(--orange);">📌 Przypięty</div>':''}
       <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">
         <div style="width:36px;height:36px;border-radius:50%;background:${isTrainer?'var(--adim)':'var(--s3)'};border:${isTrainer?'2px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;flex-shrink:0;color:${isTrainer?'var(--accent)':'var(--text)'};">${escHtml(getInit(p.authorName||'?'))}</div>
@@ -5957,11 +5957,11 @@ function renderForumFeed(){
       </div>
       <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${escHtml(p.title||'')}</div>
       <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escHtml((p.body||'').replace(/\n/g,' '))}</div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;" data-act-stop onclick="event.stopPropagation()">
         ${Object.keys(REACTIONS_MAP).map(r=>{
           const cnt=(p.reactions||{})[r]||0;
           if(!cnt&&r!==myReact)return '';
-          return `<button class="forum-reaction-btn${myReact===r?' active':''}" onclick="reactToPost('${escHtml(p.id)}','${r}')">${REACTIONS_MAP[r]} ${cnt||''}</button>`;
+          return `<button class="forum-reaction-btn${myReact===r?' active':''}" data-act="forum-react" data-post-id="${escHtml(p.id)}" data-reaction="${escHtml(r)}">${REACTIONS_MAP[r]} ${cnt||''}</button>`;
         }).join('')}
         <div style="margin-left:auto;display:flex;gap:8px;font-size:11px;color:var(--muted);">
           <span>💬 ${comments.length}</span>
@@ -6017,12 +6017,12 @@ function openForumPost(pid){
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
         ${Object.entries(REACTIONS_MAP).map(([r,icon])=>{
           const cnt=(p.reactions||{})[r]||0;
-          return `<button class="forum-reaction-btn${myReact===r?' active':''}" onclick="reactToPost('${escHtml(p.id)}','${r}')">${icon} ${cnt||''}</button>`;
+          return `<button class="forum-reaction-btn${myReact===r?' active':''}" data-act="forum-react" data-post-id="${escHtml(p.id)}" data-reaction="${escHtml(r)}">${icon} ${cnt||''}</button>`;
         }).join('')}
       </div>
       ${canManage?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
-        ${!window._clientAppMode?`<button class="btn btn-ghost btn-sm" onclick="toggleForumPin('${escHtml(p.id)}')">${p.pinned?'Odepnij':'📌 Przypnij'}</button>`:''}
-        <button class="btn btn-ghost btn-sm" onclick="deleteForumPost('${escHtml(p.id)}')">🗑 Usuń</button>
+        ${!window._clientAppMode?`<button class="btn btn-ghost btn-sm" data-act="forum-pin" data-post-id="${escHtml(p.id)}">${p.pinned?'Odepnij':'📌 Przypnij'}</button>`:''}
+        <button class="btn btn-ghost btn-sm" data-act="forum-delete" data-post-id="${escHtml(p.id)}">🗑 Usuń</button>
       </div>`:''}
     </div>
 
@@ -6039,7 +6039,7 @@ function openForumPost(pid){
               ${isT?'<span style="font-size:9px;color:var(--accent);font-family:\'DM Mono\',monospace;margin-left:4px;">TRENER</span>':''}
               <span style="font-size:10px;color:var(--muted);margin-left:6px;">${forumFormatWhen(c)}</span>
             </div>
-            ${canDel?`<button onclick="deleteForumComment('${escHtml(c.id)}','${escHtml(pid)}')" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;" title="Usuń">🗑</button>`:''}
+            ${canDel?`<button data-act="forum-comment-delete" data-comment-id="${escHtml(c.id)}" data-post-id="${escHtml(pid)}" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;" title="Usuń">🗑</button>`:''}
           </div>
           <div class="forum-comment-bubble">${escHtml(c.body||'')}</div>
         </div>`;
@@ -6049,7 +6049,7 @@ function openForumPost(pid){
     <div style="padding:12px 14px;border-top:1px solid var(--border);">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">DODAJ KOMENTARZ</div>
       <textarea id="new-comment-${escHtml(pid)}" rows="3" placeholder="Napisz komentarz..." style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;resize:none;line-height:1.5;font-family:'DM Sans',sans-serif;margin-bottom:8px;"></textarea>
-      <button class="btn btn-primary btn-sm" style="width:100%;" onclick="addComment('${escHtml(pid)}')">Opublikuj komentarz</button>
+      <button class="btn btn-primary btn-sm" style="width:100%;" data-act="forum-comment" data-post-id="${escHtml(pid)}">Opublikuj komentarz</button>
     </div>`;
 
   renderForumFeed();
@@ -6988,7 +6988,7 @@ function renderDashOps(){
           <div class="dash-ops-item-title">${esc(c?c.name:'Klient')} · ${esc(title)}</div>
           <div class="dash-ops-item-meta">${esc(s.date||'')}${sets?' · '+sets+' serii':''}${kgHint?' · '+kgHint:''}${note?' · „'+esc(String(note).slice(0,50))+'”':''}${s.feedback?' · ocena '+esc(s.feedback)+'/5':''}</div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="editSession('${esc(s.id)}')">Szczegóły</button>
+        <button class="btn btn-ghost btn-sm" data-act="session-edit" data-session-id="${esc(s.id)}">Szczegóły</button>
       </div>`;
     },`<div class="dash-ops-empty">Brak niedawno ukończonych treningów.</div>`);
   }
@@ -7409,9 +7409,9 @@ function renderDashToday(){
       brief.attn&&!urgentAttn?`<div class="dash-today-attn dash-today-attn-${esc(brief.attn.tone)}" data-dash-attn title="${esc(brief.attn.reason||'')}">${esc(brief.attn.title)}</div>`:''].join('');
     let btn;
     if(canStart){
-      btn=`<button onclick="event.stopPropagation();dashStartLive('${esc(s.id)}')" class="btn ${primaryUsed?'btn-ghost':'btn-primary'} btn-sm" data-dash-start title="Start treningu w Live">Start</button>`;
+      btn=`<button data-act="session-live" data-act-stop-prop data-session-id="${esc(s.id)}" class="btn ${primaryUsed?'btn-ghost':'btn-primary'} btn-sm" data-dash-start title="Start treningu w Live">Start</button>`;
       primaryUsed=true;
-    }else btn=`<button onclick="event.stopPropagation();editSession('${esc(s.id)}')" class="btn btn-ghost btn-sm">${st.kind==='unrecorded'?'Uzupełnij':'Szczegóły'}</button>`;
+    }else btn=`<button data-act="session-edit" data-act-stop-prop data-session-id="${esc(s.id)}" class="btn btn-ghost btn-sm">${st.kind==='unrecorded'?'Uzupełnij':'Szczegóły'}</button>`;
     return `<div class="dash-today-row" data-dash-session="${esc(s.id)}">
       <div class="dash-today-time">${esc(s.time||'—')}</div>
       <div class="dash-today-body">
@@ -7429,7 +7429,7 @@ function renderDashToday(){
     return `<div class="dash-tomorrow-row" data-dash-tomorrow-row="${esc(s.id)}">
       <div class="dash-today-time">${esc(s.time||'—')}</div>
       <div class="dash-tomorrow-name">${esc(c?c.name:'Klient')}</div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="editSession('${esc(s.id)}')">Szczegóły</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-act="session-edit" data-session-id="${esc(s.id)}">Szczegóły</button>
     </div>`;
   }
 

@@ -4188,7 +4188,7 @@ function renderCPMetrics(c){
               </div>
               <div style="display:flex;gap:4px;flex-shrink:0;">
                 <button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${e.id}')" title="Edytuj">✎</button>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="if(confirm('Usunąć ten pomiar?'))delMetricEntry('${e.id}')" title="Usuń" style="color:var(--red);">×</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-act="metric-delete" data-confirm="Usunąć ten pomiar?" data-entry-id="${escHtml(e.id)}" title="Usuń" style="color:var(--red);">×</button>
               </div>
             </div>`;
           }).join('')}
@@ -5370,7 +5370,7 @@ function renderCPTraining(c){
       const happened=typeof sessionHappened==='function'&&sessionHappened(s);
       const tip=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):title;
       const typeCol=s.source==='client'||s.source==='sala'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
-      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')" title="${escHtml(tip)}">
+      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" data-act="session-edit" data-session-id="${escHtml(s.id)}" title="${escHtml(tip)}">
         <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${happened?'✓':(emoji||'💪')}</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;">${happened?'✓ ':''}${escHtml(title)}</div>
@@ -5412,7 +5412,7 @@ function renderCPTraining(c){
       const skipBtn=state==='nolog'&&s.source==='planned'?`<button type="button" class="cp-week-btn cp-mark-skip" onclick="event.stopPropagation();markCpSessionSkipped('${s.id}')">Nie odbył się</button>`:'';
       const check=state==='done'?'<span class="cp-week-check">✓</span>':'';
       const stLabel=state==='nolog'?'Niezapisany':state==='future'?'Zaplanowany':state==='skip'?'Opuszczony':'';
-      return `<div class="cp-week-tile is-${state}${happened?' cp-sess-done':''}" onclick="event.stopPropagation();editSession('${happened?loggedItem.id:s.id}')" title="${escHtml(full)}">
+      return `<div class="cp-week-tile is-${state}${happened?' cp-sess-done':''}" data-act="session-edit" data-act-stop-prop data-session-id="${escHtml(happened?loggedItem.id:s.id)}" title="${escHtml(full)}">
         <div class="cp-week-tile-name">${check}${escHtml(title)}</div>
         ${stLabel?`<div class="cp-week-tile-st">${escHtml(stLabel)}</div>`:''}
         ${meta?`<div class="cp-week-tile-meta">${escHtml(meta)}</div>`:''}

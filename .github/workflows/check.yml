@@ -843,6 +843,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_mobile_fixes_ui.js
 
+      - name: 6d5. XSS — id wpisu forum i treningu z apostrofem nie wykonuje skryptu (klient i trener)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_forum_id_escape_ui.js
+
       - name: 6e. Testy UI wygaszacza z logo
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_screensaver_ui.js
