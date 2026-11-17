@@ -9,7 +9,8 @@
 // Wersja 93: akcje delegowane (data-act) zamiast onclick z id z bazy.
 // Wersja 94: szkic jadłospisu w dietDraft.
 // Wersja 95: pola prywatne trenera nie trafiają do karty klienta.
-const CACHE_NAME='progress-live-shell-v95';
+// Wersja 96: historia ćwiczenia przewijana w bok.
+const CACHE_NAME='progress-live-shell-v96';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
