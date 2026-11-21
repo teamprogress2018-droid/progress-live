@@ -155,6 +155,8 @@ ok('cache bumped', cacheAtLeast(html, '03-ai-plangen-bizstats-aicoach.js', 48) &
 const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
 ok('print doc builder', /function planPdfPrintHTML\(root\)/.test(src03) && /window\.planPdfPrint=planPdfPrint/.test(src03));
 ok('print css A4 landscape', /PLAN_PDF_PRINT_CSS=`[\s\S]*@page\{size:A4 landscape/.test(src03));
+// Etykieta metody w komórce tygodnia (np. „WOLNE OPUSZCZANIE”) zawija się zamiast wychodzić poza kolumnę / być uciętą w PDF.
+ok('week method tag wraps inside cell', /\.pp-wint\{[^}]*white-space:normal[^}]*max-width:100%/.test(src03) && !/\.pp-wint\{[^}]*nowrap/.test(src03));
 ok('print uses iframe', /plan-pdf-print-frame/.test(src03) && /contentWindow\.print\(\)/.test(src03));
 ok('reportPrint routes plan to compact print', /function reportPrint\(\)\{[\s\S]{0,300}planPdfPrint\(\)/.test(src04));
 ok('week cell shows kg', /plan-pdf-wk-kg/.test(src03) && /80 kg/.test(out));

@@ -3301,7 +3301,7 @@ tbody tr:nth-child(even) td.is-deload{background:#e3f8ea;}
 .pp-int i{font-style:normal;color:#6b7280;font-size:7pt;}
 .pp-int span{display:block;}
 .pp-int .pp-int-plan{color:#374151;margin-top:1pt;}
-.pp-wint{display:block;margin:1.5pt auto 0;font-style:normal;font-weight:800;font-size:6.3pt;letter-spacing:0.2px;border:0.6pt solid;border-radius:5pt;padding:0 2pt;white-space:nowrap;width:fit-content;}
+.pp-wint{display:block;margin:1.5pt auto 0;font-style:normal;font-weight:800;font-size:6.3pt;line-height:1.15;letter-spacing:0.2px;border:0.6pt solid;border-radius:5pt;padding:0.5pt 2pt;white-space:normal;overflow-wrap:anywhere;max-width:100%;width:fit-content;}
 .pp-legend{margin-top:8px;border:0.8pt solid #cbd5e1;border-radius:4pt;padding:5pt 7pt;break-inside:avoid;}
 .pp-legend-h{font-weight:800;font-size:9.5pt;margin-bottom:4pt;}
 .pp-legend-i{border-left:4pt solid;border-radius:2pt;padding:2.5pt 6pt;margin-bottom:3pt;font-size:8pt;line-height:1.35;}
