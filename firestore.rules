@@ -61,7 +61,7 @@ service cloud.firestore {
         'forms', 'programs', 'checkins', 'clientNotes', 'clientDocs', 'onboardingFlows',
         'planTemplates', 'settings', 'notifications', 'integrationConfigs', 'exerciseMediaImports', 'youtubeCuration', 'forumGroups',
         'forumPosts', 'forumComments', 'odWorkouts', 'odPrograms', 'odProgress',
-        'onboardingActive', 'clientGroups', 'resources', 'automationState', 'autoflows'];
+        'onboardingActive', 'clientGroups', 'resources', 'automationState', 'autoflows', 'commsCases'];
     }
     match /{collection}/{docId} {
       allow read, delete: if ownedCollection(collection) && owner();
@@ -369,6 +369,60 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
         && request.resource.data.likes == resource.data.get('likes', 0) + 1;
       allow delete: if ownClient(resource.data) && resource.data.authorRole == 'klient' && postVisible(resource.data.postId);
+    }
+    // Komunikacja: sprawy „Do odpowiedzi”. Klient zgłasza potwierdzenie / prośbę o zmianę / samopoczucie / trudność
+    // i widzi status swoich spraw. Status i notatkę zmienia tylko trener (ownedCollection).
+    match /commsCases/{docId} {
+      allow read: if ownClient(resource.data);
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId && safeDocId(docId)
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'type', 'sessionId', 'sessionStamp',
+          'reason', 'mood', 'text', 'status', 'source', 'createdAt'])
+        && request.resource.data.type in ['meeting_confirm', 'meeting_change', 'wellbeing', 'difficulty']
+        && request.resource.data.source == 'app'
+        && ((request.resource.data.type == 'meeting_confirm' && request.resource.data.status == 'done')
+          || (request.resource.data.type != 'meeting_confirm' && request.resource.data.status == 'new'))
+        && smallText(request.resource.data.get('text', ''), 2000) && smallText(request.resource.data.get('reason', ''), 60)
+        && smallText(request.resource.data.get('mood', ''), 30) && smallText(request.resource.data.get('sessionStamp', ''), 20)
+        && (request.resource.data.get('sessionId', null) == null
+          || ownClient(get(/databases/$(database)/documents/sessions/$(request.resource.data.sessionId)).data));
+    }
+    // Preferencje kontaktu klienta (kanał, zgody, kategorie, godziny ciszy). Zgodę zapisuje wyłącznie klient;
+    // trener tylko czyta. Dokument = id klienta.
+    function commsPrefsValid(d) {
+      return d.keys().hasOnly(['id', 'trainerId', 'clientId', 'channel', 'whatsapp', 'push', 'categories', 'quiet', 'fallback', 'updatedAt'])
+        && d.channel in ['push', 'whatsapp', 'none']
+        && (d.get('whatsapp', null) == null || (d.whatsapp is map
+          && d.whatsapp.keys().hasOnly(['optIn', 'phone', 'optInAt', 'optOutAt', 'consentText'])
+          && d.whatsapp.get('optIn', false) is bool && smallText(d.whatsapp.get('phone', ''), 20)
+          && smallText(d.whatsapp.get('consentText', ''), 600)))
+        && (d.get('push', null) == null || (d.push is map && d.push.keys().hasOnly(['subscribed', 'at', 'device'])
+          && smallText(d.push.get('device', ''), 120)))
+        && (d.get('categories', null) == null || (d.categories is map
+          && d.categories.keys().hasOnly(['meetings', 'plan', 'checkins'])))
+        && (d.get('quiet', null) == null || (d.quiet is map && d.quiet.keys().hasOnly(['from', 'to'])))
+        && d.get('fallback', true) is bool;
+    }
+    match /commsPrefs/{clientId} {
+      allow read: if owner() || ownClient(resource.data);
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == clientId
+        && request.resource.data.clientId == clientId && commsPrefsValid(request.resource.data);
+      allow update: if ownClient(resource.data) && ownClient(request.resource.data)
+        && request.resource.data.id == clientId && request.resource.data.clientId == clientId
+        && commsPrefsValid(request.resource.data);
+    }
+    // Subskrypcje Web Push: zapisuje klient na swoim urządzeniu, czyta i usuwa serwer (Admin SDK).
+    match /pushSubscriptions/{docId} {
+      allow get, delete: if ownClient(resource.data);
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId && safeDocId(docId)
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'endpoint', 'keys', 'device', 'createdAt'])
+        && smallText(request.resource.data.endpoint, 1000) && request.resource.data.endpoint.matches('^https://.*')
+        && request.resource.data.keys is map && request.resource.data.keys.keys().hasOnly(['p256dh', 'auth'])
+        && smallText(request.resource.data.get('device', ''), 120);
+    }
+    // Kolejka wiadomości automatycznych i ich statusy: zapisuje wyłącznie serwer, trener czyta swoje.
+    match /commsJobs/{docId} {
+      allow read: if owner();
+      allow write: if false;
     }
     match /serverAutomation/{document=**} { allow read, write: if false; }
     // Unknown collections and ALL descendants are denied by default.

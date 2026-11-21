@@ -475,6 +475,10 @@ jobs:
         run: node .github/scripts/test_tile_polish_restore.js
       - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń
         run: node .github/scripts/test_ex_ac_muscle_label.js
+      - name: 1n30c. Komunikacja — przypomnienia, zmiana i odwołanie terminu, zgody, kanał zapasowy, statusy, czas Warszawy
+        run: node .github/scripts/test_comms_core.js
+      - name: 1n30d. Komunikacja — praca serwera na danych testowych (bez sieci, bez Firebase)
+        run: node server/automation/test-comms-worker.cjs
       - name: 1n30b. Testy zamienników gdy nie ma maszyny
         run: node .github/scripts/test_studio_machine_alts.js
       - name: 1n30c. Testy zwijania zamienników Live (max 3)
@@ -830,6 +834,10 @@ jobs:
       - name: 6d1. Testy UI prostego widoku klienta (Dzisiaj, ćwiczenie, plan, postępy, kontakt)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_simple_ui.js
+
+      - name: 6d1c. Komunikacja w aplikacji — spotkanie, potwierdzenie, zmiana, samopoczucie, Do odpowiedzi, symulacja
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_comms_ui.js
 
       - name: 6d2. Ekran treningu klienta na iPhonie (safe area, Wróć, Zapisz serię, Cofnij, nawigacja bez swipe)
         if: ${{ !cancelled() }}

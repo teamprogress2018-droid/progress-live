@@ -2,9 +2,9 @@ name: Testy kolejki serwerowej
 on:
   push:
     branches: [main]
-    paths: ['server/automation/**', 'firestore.rules', '.github/workflows/automation-server-check.yml']
+    paths: ['server/automation/**', 'comms-core.js', 'firestore.rules', '.github/workflows/automation-server-check.yml']
   pull_request:
-    paths: ['server/automation/**', 'firestore.rules', '.github/workflows/automation-server-check.yml']
+    paths: ['server/automation/**', 'comms-core.js', 'firestore.rules', '.github/workflows/automation-server-check.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -35,6 +35,7 @@ jobs:
       - name: Testy logiki i przygotowanie izolowanych zależności
         run: |
           node server/automation/test-worker.cjs
+          node server/automation/test-comms-worker.cjs
           node server/automation/prepare-deploy.cjs
           npm install --prefix server/automation/.runtime --ignore-scripts --no-audit --no-fund
           npm install --prefix server/automation/.runtime --no-save --ignore-scripts --no-audit --no-fund firebase-tools@14.12.0

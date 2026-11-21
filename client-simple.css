@@ -396,3 +396,30 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .ex-hist-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong, #6b7280); opacity: 0.35; }
 .ex-hist-dots span.is-on { opacity: 1; background: var(--text-primary); }
 .ex-hist-hint { margin: 8px 0 0; text-align: center; font-size: 0.8125rem; color: var(--text-secondary); }
+
+/* Komunikacja (comms-app.js): status spotkania, działania, zgłoszenia i powiadomienia. */
+.cs-meet { align-items: flex-start; flex-wrap: wrap; row-gap: 0; }
+.cs-meet-body { flex: 1 1 auto; }
+.cs-meet-status { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; font-size: 0.9375rem; font-weight: 650; color: var(--text-primary); }
+.cs-meet-dot { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--text-secondary); flex-shrink: 0; }
+.cs-meet-status.is-confirmed .cs-meet-dot { background: var(--success, #157f3c); }
+.cs-meet-status.is-change_requested .cs-meet-dot { background: var(--warning, #b45309); }
+.cs-meet-status.is-cancelled { color: var(--danger, #b42318); }
+.cs-meet-status.is-cancelled .cs-meet-dot { background: var(--danger, #b42318); }
+.cs-meet-acts { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.cs-meet-acts .cs-btn { flex: 1 1 0; min-width: 0; min-height: 48px; width: auto; padding-left: 10px; padding-right: 10px; white-space: normal; line-height: 1.2; }
+.cs-meet-write { flex: 1 0 100%; justify-content: center; align-self: center; min-height: 44px; }
+.comms-feel-link { margin: -4px 0 0; color: var(--text-primary); }
+.comms-sheet .cs-sheet-body { display: flex; flex-direction: column; gap: 12px; }
+.comms-sheet .comms-opt { min-height: 52px; white-space: normal; line-height: 1.25; }
+.comms-sheet .comms-opt.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--bg-card)); box-shadow: inset 0 0 0 1px var(--accent); }
+.comms-feel { grid-template-columns: 1fr; }
+.cs-sheet-field textarea { min-height: 88px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-main, var(--bg-card)); color: var(--text-primary); font: inherit; font-size: 1rem; resize: vertical; }
+.cs-sheet-hint { margin: 0; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.45; }
+.comms-notify .cs-card { gap: 10px; }
+.comms-radios { display: flex; flex-direction: column; gap: 4px; }
+.comms-radio, .comms-check { display: flex; align-items: center; gap: 12px; min-height: 48px; font-size: 1rem; color: var(--text-primary); cursor: pointer; }
+.comms-radio input, .comms-check input { width: 1.375rem; height: 1.375rem; flex-shrink: 0; accent-color: var(--accent); }
+.comms-quiet { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 1rem; color: var(--text-primary); }
+.comms-quiet label { display: inline-flex; align-items: center; gap: 6px; }
+.comms-quiet input { min-height: 44px; padding: 0 8px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 1rem; }

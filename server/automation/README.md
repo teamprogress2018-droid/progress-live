@@ -169,3 +169,65 @@ node server/automation/test-youtube-curation-core.cjs
 Dokumentacja: [YouTube search.list](https://developers.google.com/youtube/v3/docs/search/list),
 [statystyki videos.list](https://developers.google.com/youtube/v3/docs/videos/list),
 [sekrety Firebase Functions](https://firebase.google.com/docs/functions/config-env).
+
+## Wiadomości automatyczne: przypomnienia o spotkaniach (A–F), push i WhatsApp
+
+Kod jest gotowy, ale **nic nie jest wdrożone ani wysyłane**. Bez kroków poniżej aplikacja działa
+tylko w środku: klient widzi spotkanie, potwierdza je i prosi o zmianę, a trener ma „Do odpowiedzi”.
+Podgląd kolejki w panelu trenera jest opisany jako symulacja.
+
+- `../../comms-core.js` — wspólna logika (aplikacja i serwer): co i kiedy wysłać, anulowanie po zmianie
+  lub odwołaniu terminu, przerwa klienta, zgody, jeden kanał naraz, kanał zapasowy, statusy, Europe/Warsaw.
+- `comms-worker.cjs` — harmonogram (`commsScheduler`, co 5 minut) i webhook WhatsApp (`whatsappWebhook`).
+- Testy bez sieci i bez Firebase: `node server/automation/test-comms-worker.cjs`.
+
+### Dane
+
+| Kolekcja | Kto zapisuje | Co zawiera |
+|---|---|---|
+| `commsCases` | klient (zgłoszenia), trener (status), serwer (WhatsApp, zadania) | sprawy „Do odpowiedzi”: nowa / w trakcie / zakończona |
+| `commsPrefs/{clientId}` | tylko klient | wybrany kanał, zgoda WhatsApp z datą i treścią, kategorie, cisza nocna |
+| `pushSubscriptions` | klient (swoje urządzenie), serwer usuwa wygasłe | adres i klucze Web Push |
+| `commsJobs` | tylko serwer | kolejka i statusy: zaplanowano → przekazano → dostarczono → odczytano, błąd, nieznany, anulowano |
+
+Reguły są w `firestore.rules` i są sprawdzane w emulatorze (`test-tenant-rules.cjs`).
+**Trzeba je opublikować w konsoli Firebase** (Firestore → Reguły). Do tego czasu zgłoszenia klientów
+idą zwykłą wiadomością czatu ze znacznikiem, a „Do odpowiedzi” odczytuje je z czatu.
+
+### Uruchomienie (administrator)
+
+1. Plan Blaze w projekcie `progress-live-fc83d` (Cloud Functions i Cloud Scheduler). To płatna usługa:
+   decyzja należy do właściciela.
+2. Push: wygenerować klucze VAPID (`npx web-push generate-vapid-keys`). Publiczny klucz wpisać
+   w `comms-app.js` (`VAPID_PUBLIC_KEY`) i jako parametr `VAPID_PUBLIC_KEY`. Prywatny zapisać jako sekret:
+   `firebase functions:secrets:set VAPID_PRIVATE_KEY --project progress-live-fc83d`.
+3. WhatsApp (opcjonalnie): konto Meta Business, WhatsApp Business Account, numer z dodaną płatnością,
+   zatwierdzone szablony (kategoria utility, język pl) o nazwach z `comms-core.js → whatsappTemplate`.
+   Sekrety: `WHATSAPP_TOKEN` (token systemowy), `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`.
+   Parametr: `WHATSAPP_PHONE_NUMBER_ID`. Adres webhooka: URL funkcji `whatsappWebhook`, pole `messages`.
+4. Wdrożenie tylko tych funkcji:
+   ```sh
+   node prepare-deploy.cjs && npm install --prefix .runtime
+   firebase deploy --project progress-live-fc83d --config firebase.json --only functions:autoflow-pending:commsScheduler,functions:autoflow-pending:whatsappWebhook
+   ```
+5. Włączenie dla jednego trenera — najpierw symulacja (dokument `serverAutomation/private/trainers/{UID}`):
+   ```json
+   {"comms": {"enabled": true, "enabledAt": "MOMENT_WŁĄCZENIA_ISO", "live": false, "channels": ["push"]}}
+   ```
+   Po sprawdzeniu historii („Symulacja — nic nie wysłano”) na koncie testowym: `"live": true`.
+   Dopisanie `"whatsapp"` do `channels` włącza WhatsApp. `enabled: false` zatrzymuje wszystko.
+   Zmiany i plany sprzed `enabledAt` nie wywołują wiadomości (brak zaległej wysyłki po włączeniu).
+
+### Zasady wysyłki
+
+- Jedna wiadomość jednym kanałem: wybranym przez klienta, jeśli ma zgodę. Bez zgody — tylko w aplikacji.
+- Błąd przejściowy: ponowienie po 5, 20, 60 min (3 próby). Potem raz kanał zapasowy (jeśli klient go nie wyłączył).
+  Błąd trwały (np. numer bez WhatsApp, wygasła subskrypcja push) — od razu kanał zapasowy.
+- Dwie instancje naraz nie wyślą dwa razy: zadanie jest zajmowane transakcją, id jest stałe.
+- Push nie daje potwierdzenia dostarczenia: status zostaje „Przekazano do dostawcy”.
+  WhatsApp zwraca dostarczono / odczytano (odczyt tylko, gdy klient ma włączone potwierdzenia).
+  Brak odpowiedzi dostawcy przez 24 h to „Status nieznany”, nie błąd.
+- Cisza nocna przesuwa przypomnienia (nie dotyczy zmiany i odwołania terminu).
+- Treści są ogólne (bez zdrowia, pomiarów, ćwiczeń) i oznaczone jako przypomnienie systemowe.
+- Odpowiedzi z WhatsApp: przycisk „Potwierdzam” zamyka sprawę, inny tekst trafia do „Do odpowiedzi”,
+  „STOP” wycofuje zgodę. Wiadomość z nieznanego numeru nie jest przypisywana do klienta.

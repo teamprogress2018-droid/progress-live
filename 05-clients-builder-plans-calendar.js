@@ -5011,6 +5011,10 @@ function editSession(id){
       <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;">Bez Live tonaż 0. Ocena 1–5 i minuty wchodzą do Postępów.</div>`:'';
   }
   renderRecordedExercises(s);
+  const cst=document.getElementById('as-comms-status');
+  if(cst)cst.innerHTML=typeof commsSessionStatusLine==='function'?commsSessionStatusLine(id):'';
+  const cbtn=document.getElementById('as-cancel-btn');
+  if(cbtn)cbtn.style.display=s.source==='client'||s.source==='live'||s.status==='cancelled'?'none':'';
 }
 
 function delSessionFromModal(){
@@ -5181,6 +5185,7 @@ async function saveSess(){
     if(typeof cpClientId!=='undefined'&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
   };
   if(existing){
+    const prevDT={date:existing.date,time:existing.time};
     existing.clientId=cid;
     existing.date=date;
     existing.time=time;
@@ -5188,6 +5193,10 @@ async function saveSess(){
     existing.notes=notes;
     existing.duration=duration;
     existing.updatedAt=new Date().toISOString();
+    // Zmiana terminu: changedAt pozwala serwerowi wysłać informację i anulować stare przypomnienie.
+    if(typeof commsMarkSessionChanged==='function')commsMarkSessionChanged(existing,prevDT);
+    // Ponowne zaplanowanie odwołanego spotkania przywraca je.
+    if(existing.status==='cancelled'&&(prevDT.date!==date||prevDT.time!==time))existing.status='planned';
     closeM('m-session');
     window._editingSessionId=null;
     refresh();
