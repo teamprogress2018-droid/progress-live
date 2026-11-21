@@ -858,6 +858,8 @@ function openM(id){
     const typ=document.getElementById('as-type');if(typ)typ.selectedIndex=0;
     const rec=document.getElementById('as-recorded-exercises');
     if(rec)rec.style.display='none';
+    const cst=document.getElementById('as-comms-status');if(cst)cst.innerHTML='';
+    const cbtn=document.getElementById('as-cancel-btn');if(cbtn)cbtn.style.display='none';
     const salaBar=document.getElementById('as-sala-done');
     if(salaBar){salaBar.style.display='none';salaBar.innerHTML='';}
     const planDays=document.getElementById('as-plan-days');

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 'use strict';
-/** UI: ekran „Dzisiaj” klienta — kafelek „Spotkanie z trenerem” (termin z kalendarza, bez nazwy dnia i mięśni),
- *  kolejność: trening → spotkanie → pakiet do opłacenia → tydzień; brak pustej karty; nie wchodzi pod dolny pasek. */
+/** UI: ekran „Dzisiaj” klienta — kafelek „Spotkanie z trenerem” (termin z kalendarza, status i działania, bez nazwy dnia i mięśni),
+ *  kolejność: trening → spotkanie → pakiet do opłacenia → (zgłoszenie samopoczucia) → tydzień; brak pustej karty;
+ *  odwołane spotkanie widać ze statusem „Odwołane”; nie wchodzi pod dolny pasek. */
 const { chromium } = require('playwright');
 
 let failed = 0;
@@ -40,7 +41,10 @@ async function open(browser, o) {
 const info = (page) => page.evaluate(() => {
   const m = document.querySelector('.cs-today .cs-meet');
   const kids = [...document.querySelector('.cs-today').children].map((e) => e.classList.contains('cs-meet') ? 'meet' : e.classList.contains('cs-pay') ? 'pay' : e.classList.contains('cs-week') ? 'week' : e.classList.contains('cs-card') ? 'train' : e.tagName.toLowerCase());
-  return { has: !!m, text: m ? m.innerText.replace(/\s+/g, ' ').trim() : '', title: m && m.querySelector('h2') ? m.querySelector('h2').textContent : '',
+  const w = m && m.querySelector('.cs-meet-when');
+  return { has: !!m, text: w ? 'Spotkanie z trenerem ' + w.innerText.replace(/\s+/g, ' ').trim() : '', full: m ? m.innerText.replace(/\s+/g, ' ').trim() : '',
+    status: m && m.querySelector('.cs-meet-status') ? m.querySelector('.cs-meet-status').innerText.trim() : '',
+    btns: m ? [...m.querySelectorAll('.cs-meet-acts button')].map((b) => b.innerText.trim()) : [], title: m && m.querySelector('h2') ? m.querySelector('h2').textContent : '',
     icon: !!(m && m.querySelector('svg')), order: kids, notes: document.querySelectorAll('.cs-today .cs-note').length, todayText: document.querySelector('.cs-today').innerText };
 });
 
@@ -53,11 +57,14 @@ const info = (page) => page.evaluate(() => {
     ok('meeting card shown with title', r.has && r.title === 'Spotkanie z trenerem', JSON.stringify(r.text));
     ok('meeting card has calendar icon', r.icon);
     ok('today meeting reads „Dzisiaj · HH:MM”', /Dzisiaj · \d{1,2}:\d{2}$/.test(r.text.replace('Spotkanie z trenerem ', '')), r.text);
-    ok('meeting card without day name / muscles', !/Push|Legs|barki|klatka|ćwicze/i.test(r.text), r.text);
-    ok('order: training → meeting → pay → week', JSON.stringify(r.order.filter((x) => x !== 'header')) === JSON.stringify(['train', 'meet', 'pay', 'week']), JSON.stringify(r.order));
+    ok('meeting card without day name / muscles', !/Push|Legs|barki|klatka|ćwicze/i.test(r.full), r.full);
+    ok('meeting status and actions', r.status === 'Czeka na potwierdzenie' && r.btns.join('|') === 'Potwierdzam|Poproś o zmianę|Napisz do trenera', r.status + ' / ' + r.btns.join('|'));
+    ok('order: training → meeting → pay → feel → week', JSON.stringify(r.order.filter((x) => x !== 'header')) === JSON.stringify(['train', 'meet', 'pay', 'button', 'week']), JSON.stringify(r.order));
     ok('old meeting line under payment removed', r.notes === 0 && (r.todayText.match(/Spotkanie z trenerem/g) || []).length === 1);
     const box = await page.$eval('.cs-meet', (e) => { const s = getComputedStyle(e); return { h: e.getBoundingClientRect().height, bg: s.backgroundColor, rad: parseFloat(s.borderTopLeftRadius), sh: s.boxShadow }; });
-    ok('meeting card short (<110 px), white, rounded, shadow', box.h < 110 && box.rad >= 16 && box.sh !== 'none', JSON.stringify(box));
+    ok('meeting card compact (<230 px), white, rounded, shadow', box.h < 230 && box.rad >= 16 && box.sh !== 'none', JSON.stringify(box));
+    const bh = await page.$$eval('.cs-meet-acts button', (bs) => bs.map((b) => b.getBoundingClientRect().height));
+    ok('meeting actions at least 44 px', bh.every((h) => h >= 44), bh.join(','));
     const train = await page.$eval('.cs-today .cs-card', (e) => getComputedStyle(e).backgroundColor);
     ok('meeting card background matches other cards', box.bg === train, box.bg + ' vs ' + train);
     await ctx.close();
@@ -80,8 +87,14 @@ const info = (page) => page.evaluate(() => {
     ok('later meeting shows weekday + date, nearest first', /^Spotkanie z trenerem \S+, \d{1,2} \S+ · 9:15$/.test(r.text), r.text);
     await ctx.close();
 
-    // Brak spotkania / odwołane / dzisiejsze już zakończone → brak karty
-    for (const [name, meetings] of [['no meeting', []], ['cancelled', [{ day: 1, time: '18:00', status: 'cancelled' }]], ['ended today', [{ day: 0, time: '00:00', duration: 1 }]], ['past day', [{ day: -1, time: '18:00' }]]]) {
+    // Odwołane: kafelek zostaje ze statusem „Odwołane”, bez potwierdzania i prośby o zmianę
+    ({ ctx, page } = await open(browser, { unpaid: true, meetings: [{ day: 1, time: '18:00', status: 'cancelled' }] }));
+    r = await info(page);
+    ok('cancelled meeting visible as „Odwołane”', r.has && r.status === 'Odwołane' && r.btns.join('|') === 'Napisz do trenera', r.status + ' / ' + r.btns.join('|'));
+    await ctx.close();
+
+    // Brak spotkania / dzisiejsze już zakończone / wczorajsze → brak karty
+    for (const [name, meetings] of [['no meeting', []], ['ended today', [{ day: 0, time: '00:00', duration: 1 }]], ['past day', [{ day: -1, time: '18:00' }]]]) {
       ({ ctx, page } = await open(browser, { unpaid: true, meetings }));
       r = await info(page);
       ok('no empty meeting card: ' + name, !r.has && r.notes === 0 && !/Spotkanie z trenerem/.test(r.todayText), JSON.stringify(r.order));

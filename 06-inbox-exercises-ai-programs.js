@@ -100,6 +100,11 @@ function renderInbox(){
   const el=document.getElementById('msg-list');
   if(!el)return;
 
+  if(inboxTab==='replies'&&typeof commsRenderRepliesList==='function'){
+    commsRenderRepliesList(el);
+    updateInboxNavBadge();
+    return;
+  }
   if(inboxTab==='groups'){
     renderInboxGroups(el,search);
     updateInboxNavBadge();
