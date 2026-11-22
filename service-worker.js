@@ -15,7 +15,8 @@
 // Wersja 101: trening klienta — cel i poprzedni wynik razem, „Twój wynik”, przerwa ±15 s i pasek przerwy.
 // Wersja 102: PDF planu — etykiety metod w komórkach tygodnia się zawijają.
 // Wersja 103: mapa mięśni dla ćwiczeń bez filmu.
-const CACHE_NAME='progress-live-shell-v103';
+// Wersja 104: pusty rekord z importu nie zasłania filmu techniki; bez „Dodane podczas importu materiału.”
+const CACHE_NAME='progress-live-shell-v104';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

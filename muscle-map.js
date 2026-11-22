@@ -155,7 +155,8 @@
     if(!ex||!ex.muscle)return null;
     const p=parseMuscles(ex.muscle);
     if(!p.primary.length&&!p.secondary.length)return null;
-    return {primary:p.primary,secondary:p.secondary,tip:String(ex.tip||'').trim(),name:ex.name||''};
+    const tip=String(ex.tip||'').trim();
+    return {primary:p.primary,secondary:p.secondary,tip:/^dodane podczas importu materia/i.test(tip)?'':tip,name:ex.name||''};
   }
 
   /** Mapa + „Jak wykonać” (pole tip) dla ćwiczenia; pusty tekst, gdy brak rozpoznanych mięśni. */

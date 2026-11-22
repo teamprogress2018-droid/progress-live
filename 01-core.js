@@ -2540,6 +2540,23 @@ function libExerciseMatchScore(ex,raw){
   return 0;
 }
 
+/** Tekst wstawiany automatycznie przy imporcie — to nie jest instrukcja wykonania. */
+function isPlaceholderExTip(t){
+  return /^dodane podczas importu materia/i.test(String(t||'').trim());
+}
+window.isPlaceholderExTip=isPlaceholderExTip;
+/** Rekord biblioteki bez filmu/obrazu i bez prawdziwego opisu (np. z importu nazw). */
+function libExerciseIsBareImport(ex){
+  if(!ex||typeof ex!=='object')return false;
+  const tip=String(ex.tip||'').trim();
+  if(tip&&!isPlaceholderExTip(tip))return false;
+  if(String(ex.video||'').trim())return false;
+  const img=String(ex.img||ex.thumb||ex.image||'').trim();
+  if(img&&isSafeMediaUrl(img)&&!isDecorativeExAsset(img))return false;
+  return !(typeof exGifUrl==='function'&&exGifUrl(ex));
+}
+window.libExerciseIsBareImport=libExerciseIsBareImport;
+
 /* Kreator i podgląd planu pytają o to samo ćwiczenie dziesiątki razy w jednym przebiegu
  * (media, alternatywy, baza wiedzy). Pełne dopasowanie do biblioteki trwa, więc wynik
  * trzymamy do końca bieżącego zadania — po nim pamięć się czyści (edycje biblioteki od razu widać). */
@@ -2560,7 +2577,18 @@ function libExerciseByName(name){
     if(s>bestScore){best=lib[i];bestScore=s;}
     if(s>=1000)break;
   }
-  const out=bestScore>=400?best:null;
+  let out=bestScore>=400?best:null;
+  // Pusty rekord z importu (bez filmu i bez opisu) nie zasłania ćwiczenia z filmem z biblioteki.
+  if(out&&libExerciseIsBareImport(out)){
+    let alt=null,altScore=0;
+    for(let i=0;i<lib.length;i++){
+      const e=lib[i];
+      if(e===out||libExerciseIsBareImport(e))continue;
+      const s=libExerciseMatchScore(e,name);
+      if(s>altScore){alt=e;altScore=s;}
+    }
+    if(alt&&altScore>=400)out=alt;
+  }
   _libByNameCache.set(ck,out);
   return out;
 }
@@ -2605,12 +2633,14 @@ window.youtubeSearchUrlForExercise=youtubeSearchUrlForExercise;
 
 function exerciseTodoNote(ex){
   if(!ex)return '';
+  const ph=t=>/^dodane podczas importu materia/i.test(String(t||'').trim());
   const own=String(ex.note||ex.notes||ex.cue||ex.planNote||'').trim();
-  if(own)return own;
+  if(own&&!ph(own))return own;
   const tip=String(ex.libTip||'').trim();
-  if(tip)return tip;
+  if(tip&&!ph(tip))return tip;
   const lib=typeof libExerciseByName==='function'?libExerciseByName(ex.name||ex.n||''):null;
-  return String((lib&&(lib.tip||lib.desc))||'').trim();
+  const t=String((lib&&(lib.tip||lib.desc))||'').trim();
+  return ph(t)?'':t;
 }
 window.exerciseTodoNote=exerciseTodoNote;
 
@@ -2624,6 +2654,7 @@ function resolveCoachMedia(parsed){
   let libTip='';
   if(!note&&lib){
     libTip=String(lib.tip||lib.desc||'').trim();
+    if(isPlaceholderExTip(libTip))libTip='';
     if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
   }
   let embed=coachVideoEmbed(video);
