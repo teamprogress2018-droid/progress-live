@@ -35,7 +35,7 @@ ok('calendar refill loaded once', names.filter((n) => n === 'calendar-refill.js'
 ok('calendar refill follows the calendar builder', names.indexOf('calendar-refill.js') === names.indexOf('05-clients-builder-plans-calendar.js') + 1);
 const expected = [
   'landing.js', 'ex-gif-manifest.js', 'ex-drive-media-manifest.js', 'ex-photo-manifest.js',
-  '01-core.js', '11-muscle-biomechanics-kb.js', '02-workouts-onboarding-templates-live.js', 'books-kb.js', '03-ai-plangen-bizstats-aicoach.js',
+  '01-core.js', '11-muscle-biomechanics-kb.js', 'muscle-map.js', '02-workouts-onboarding-templates-live.js', 'books-kb.js', '03-ai-plangen-bizstats-aicoach.js',
   '04-client-portal.js', 'client-card-save.js', 'dashboard-home.js', '05-clients-builder-plans-calendar.js', 'calendar-refill.js', 'package-save.js',
   '06-inbox-exercises-ai-programs.js', 'diet-plan.js', '07-forms-metrics-calculator.js', '08-client-profile-extras.js',
   '09-posture-kb-invites-private.js', 'client-simple.js', '10-client-app.js', 'comms-core.js', 'comms-app.js', '11-progress-academy.js', 'research-answer.js', 'research-academy.js', '12-manual-plan-wizard.js', '13-budget-bridge.js', '14-amateur-plan-wizard.js', '15-pro-plan-wizard.js', 'generator-workbench.js', 'plan-interview.js', 'plan-client.js', 'plan-client-ui.js', 'diet-plan-view.js', 'diet-wizard.js', 'plan-client-client.js', 'trainer-methodology.js'

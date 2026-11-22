@@ -2317,6 +2317,45 @@ button.exl-name { display: -webkit-box; width: 100%; padding: 0; border: 0; back
 /* Gdy karta „Ułóż pierwszy plan” jest widoczna, czerwień zostaje tylko na niej. */
 #client-onboard-body.has-saved-cta #client-onboard-steps .btn-primary { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-strong); box-shadow: none; }
 
+/* Mapa mięśni (muscle-map.js): sylwetka przód / tył, główne = czerwień, pomocnicze = jasna czerwień. */
+.mm { --mm-p: var(--danger, #b42318); --mm-s: color-mix(in srgb, var(--mm-p) 32%, var(--bg-card, #fff)); --mm-body: color-mix(in srgb, var(--text-primary, #111318) 9%, var(--bg-card, #fff)); --mm-idle: color-mix(in srgb, var(--text-primary, #111318) 16%, var(--bg-card, #fff)); margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mm-svg { display: block; width: 100%; max-width: 300px; height: auto; margin: 0 auto; touch-action: manipulation; }
+.mm-svg.mm-bare { --mm-p: var(--danger, #b42318); --mm-s: color-mix(in srgb, var(--mm-p) 32%, #fff); --mm-body: #e6e8ec; --mm-idle: #d5d8de; max-width: none; height: 100%; background: #fff; }
+.mm-body > * { fill: var(--mm-body); }
+.mm-m { fill: var(--mm-idle); stroke: var(--bg-card, #fff); stroke-width: .6; cursor: pointer; transition: fill .15s; }
+.mm-m.mm-s { fill: var(--mm-s); }
+.mm-m.mm-p { fill: var(--mm-p); }
+.mm-m.mm-on { stroke: var(--text-primary, #111318); stroke-width: 1.4; }
+.mm-draw { width: 100%; max-width: 300px; margin: 0 auto; }
+.mm-draw .mm-svg { max-width: none; }
+.mm-caps { display: flex; margin-top: 2px; }
+.mm-caps span { flex: 0 0 48%; text-align: center; font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); }
+.mm-caps span + span { margin-left: auto; }
+.mm-pick { margin: 0; min-height: 1.4em; text-align: center; font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+.mm-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.875rem; line-height: 1.4; color: var(--text-primary); }
+.mm-legend b { font-weight: 650; }
+.mm-dot { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.mm-dot-p { background: var(--mm-p); }
+.mm-dot-s { background: var(--mm-s); }
+.mm-compact .mm-draw { max-width: 190px; }
+.mm-compact .mm-legend, .mm-compact .mm-pick { font-size: 0.8125rem; }
+.mm-how { margin-top: 10px; }
+.mm-how-h { margin: 0 0 4px; font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); }
+.mm-how p { margin: 0; font-size: 0.9375rem; line-height: 1.5; color: var(--text-primary); overflow-wrap: anywhere; }
+.cs-mm { padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--text-primary) 4%, var(--bg-card)); }
+.cs-mm-more { margin-top: 10px; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 0 12px; }
+.cs-mm-more > summary { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; list-style: none; font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); }
+.cs-mm-more > summary::-webkit-details-marker { display: none; }
+.cs-mm-more[open] > summary .cs-chev { transform: rotate(180deg); }
+.cs-mm-more[open] { padding-bottom: 12px; }
+.cs-mm-more > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.exd-mm-row { display: flex; gap: 12px; align-items: flex-start; }
+.exd-mm-row > .exd-preview-desc { flex: 1 1 0; min-width: 0; }
+.exd-mm { flex: 0 0 150px; }
+.exd-mm .mm-draw { max-width: 150px; }
+@media (max-width: 520px) { .exd-mm-row { flex-direction: column; } .exd-mm { flex-basis: auto; width: 100%; } .exd-mm .mm-draw { max-width: 220px; } }
+.builder-ex-thumb.is-mm { background: #fff; }
+
 /* „Do odpowiedzi” i panel „Spotkania i powiadomienia” (comms-app.js). */
 .itab-n { display: inline-flex; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 4px; border-radius: 999px; align-items: center; justify-content: center; background: var(--danger, #b42318); color: #fff; font-size: 0.75rem; font-weight: 700; }
 .itab-n[hidden] { display: none; }

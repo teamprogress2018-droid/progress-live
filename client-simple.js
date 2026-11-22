@@ -705,7 +705,9 @@ function csSheetHTML(cw){
   }else if(sh.kind==='tech'){
     title='Technika';
     const note=csNoteInfo(ex);
-    const hasMedia=!!(ex.video||ex.videoEmbed||ex.gif||ex.img);
+    const decoImg=ex.img&&typeof isDecorativeExAsset==='function'&&isDecorativeExAsset(ex.img);
+    const hasMedia=!!(ex.video||ex.videoEmbed||ex.gif||(ex.img&&!decoImg));
+    const mm=typeof csMuscleMapBlock==='function'?csMuscleMapBlock(ex,hasMedia,note):'';
     const h=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex):{};
     const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
     const hasRir=ex.rir!=null&&String(ex.rir)!=='';
@@ -719,8 +721,9 @@ function csSheetHTML(cw){
     body=`<div class="cs-tech">
       ${csShortName(ex.name)!==ex.name?`<p class="cs-tech-full">${csEsc(ex.name)}</p>`:''}
       ${hasMedia&&typeof coachMediaHtml==='function'?`<div class="cs-media">${coachMediaHtml(ex,{showVideo:true,caption:false,showNote:false})}</div>`:''}
-      ${note.body?`<p class="cs-tech-note">${csEsc(note.body.replace(/^./,c=>c.toUpperCase()))}</p>`:''}
-      ${!hasMedia&&!note.full?'<p class="cw-media-missing" role="note">Brak materiału instruktażowego. Jeśli nie znasz tego ćwiczenia, poproś trenera o wskazówkę przed rozpoczęciem.</p>':''}
+      ${mm}
+      ${note.body&&!(mm&&/class="mm-how"/.test(mm)&&csMmTipSame(ex,note.body))?`<p class="cs-tech-note">${csEsc(note.body.replace(/^./,c=>c.toUpperCase()))}</p>`:''}
+      ${!hasMedia&&!mm&&!note.full?'<p class="cw-media-missing" role="note">Brak materiału instruktażowego. Jeśli nie znasz tego ćwiczenia, poproś trenera o wskazówkę przed rozpoczęciem.</p>':''}
       ${facts.length?`<dl class="cs-tech-facts">${facts.map(([k,v])=>`<dt>${csEsc(k)}</dt><dd>${csEsc(v)}</dd>`).join('')}</dl>`:''}
       ${methods.map(m=>{const def=(window.INTENSIFICATION_METHODS||{})[m.type]||{};const info=typeof intensificationInstruction==='function'?intensificationInstruction(m,ex):m.protocol;return `<div class="cs-method"><b>${csEsc(def.label||m.type)} · ${csEsc(def.when||'Wykonanie')}</b><span>${csEsc(info)}</span></div>`;}).join('')}
       ${note.priority?`<p class="cs-tip-line">Priorytet w planie: ${csEsc(note.priority)}</p>`:''}
@@ -862,6 +865,24 @@ function csTempoText(t){
 }
 function csTempoKey(ex){return !!(ex&&(ex.tempoKey||/!\s*$/.test(String(ex.tempo||''))));}
 
+/** Mapa mięśni w „Technice”: bez filmu/obrazu w miejscu mediów, z filmem zwinięta pod nim.
+    „Jak wykonać” = pole tip z biblioteki (notatka trenera o tej samej treści nie powtarza się pod spodem). */
+function csMuscleMapBlock(ex,hasMedia,note){
+  if(typeof muscleMapData!=='function'||typeof muscleMapHTML!=='function')return '';
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(ex&&ex.name):null;
+  const d=muscleMapData(lib&&lib.muscle?lib:{name:ex&&ex.name,muscle:ex&&ex.muscle,tip:ex&&(ex.libTip||ex.tip)});
+  if(!d)return '';
+  const tip=d.tip?`<div class="mm-how"><h4 class="mm-how-h">Jak wykonać</h4><p>${csEsc(d.tip)}</p></div>`:'';
+  const map=muscleMapHTML(d.primary,d.secondary);
+  if(!hasMedia)return `<div class="cs-mm" data-cs-mm>${map}${tip}</div>`;
+  return `<details class="cs-mm-more" data-cs-mm-more><summary>Które mięśnie pracują<span class="cs-chev">${csIcon('down',18)}</span></summary>${map}${tip}</details>`;
+}
+window.csMuscleMapBlock=csMuscleMapBlock;
+function csMmTipSame(ex,body){
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(ex&&ex.name):null;
+  const tip=String((lib&&lib.tip)||(ex&&(ex.libTip||ex.tip))||'').trim();
+  return !!tip&&String(body||'').trim()===tip;
+}
 function cwSimpleExerciseHTML(cw,ex){
   const n=cw.exercises.length,idx=cw.exIdx;
   const sets=ex.sets||[];

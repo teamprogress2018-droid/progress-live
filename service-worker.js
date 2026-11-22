@@ -14,7 +14,8 @@
 // Wersja 100: „Ściąganie wyciągu górnego …” z planu pokazuje film z biblioteki.
 // Wersja 101: trening klienta — cel i poprzedni wynik razem, „Twój wynik”, przerwa ±15 s i pasek przerwy.
 // Wersja 102: PDF planu — etykiety metod w komórkach tygodnia się zawijają.
-const CACHE_NAME='progress-live-shell-v102';
+// Wersja 103: mapa mięśni dla ćwiczeń bez filmu.
+const CACHE_NAME='progress-live-shell-v103';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

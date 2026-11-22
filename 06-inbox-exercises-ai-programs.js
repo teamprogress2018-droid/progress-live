@@ -3783,7 +3783,10 @@ function exdPreviewHtml(e){
   const kv=(k,v)=>v?`<div class="exd2-kv"><span>${k}</span><b>${v}</b></div>`:'';
   return `<p class="exd-preview-meta">${exdEsc(m.pat||e.cat||'')}${m.base?' <span class="exl-base" title="Baza Progress">Baza Progress</span>':''}</p>
     ${exdPreviewMediaHtml(e)}
-    ${e.tip?`<div class="exd-preview-desc">${exdEsc(e.tip)}</div>`:''}
+    ${(()=>{const mm=typeof muscleMapData==='function'?muscleMapData(e):null;
+      const map=mm&&typeof muscleMapHTML==='function'?muscleMapHTML(mm.primary,mm.secondary,{compact:true}):'';
+      const desc=e.tip?`<div class="exd-preview-desc">${exdEsc(e.tip)}</div>`:'';
+      return map?`<div class="exd-mm-row" data-exd-mm>${desc}<div class="exd-mm">${map}</div></div>`:desc;})()}
     <div class="exd2-facts">${kv('Mięśnie główne',exdEsc(e.muscle||'—'))}${kv('Sprzęt',exdEsc(e.eq||'—'))}${kv('Poziom',exdEsc(EX_LEVEL_LABEL[m.level]||''))}</div>
     ${alts.length?`<div class="exd2-alts"><div class="exd2-alts-h">Warianty i zamienniki</div><div class="exd-alt-list">${alts.map(a=>`<button type="button" class="exd-alt-link" onclick="openExDetail(${exJsArg(a)})">${exdEsc(a)}</button>`).join('')}</div></div>`:''}
     <button type="button" class="btn btn-primary exd-preview-cta" onclick="quickAddExToPlan(event,${safe})">+ Dodaj do planu</button>`;

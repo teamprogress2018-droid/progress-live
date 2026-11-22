@@ -475,6 +475,8 @@ jobs:
         run: node .github/scripts/test_tile_polish_restore.js
       - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń
         run: node .github/scripts/test_ex_ac_muscle_label.js
+      - name: 1n30a. Mapa mięśni (rozpoznawanie pola muscle, pokrycie biblioteki, SVG)
+        run: node .github/scripts/test_muscle_map.js
       - name: 1n30c. Komunikacja — przypomnienia, zmiana i odwołanie terminu, zgody, kanał zapasowy, statusy, czas Warszawy
         run: node .github/scripts/test_comms_core.js
       - name: 1n30d. Komunikacja — praca serwera na danych testowych (bez sieci, bez Firebase)
@@ -834,6 +836,10 @@ jobs:
       - name: 6d1. Testy UI prostego widoku klienta (Dzisiaj, ćwiczenie, plan, postępy, kontakt)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_simple_ui.js
+
+      - name: 6d1m. Mapa mięśni w „Technice” klienta (bez filmu mapa i „Jak wykonać”, z filmem zwinięta, 390 px)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_muscle_map_ui.js
 
       - name: 6d1e. Nazwy ćwiczeń z planu dopasowane do biblioteki (film techniki)
         if: ${{ !cancelled() }}
