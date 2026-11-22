@@ -2530,6 +2530,8 @@ function libExerciseMatchScore(ex,raw){
   const stop=new Set(['siedząc','siedzacy','siedzac','stojąc','stojacy','leżąc','lezac','sitting','seated','standing','na','do','dla','the','and','with']);
   const stem=w=>w.length>=5?w.slice(0,5):w;
   const toks=stripped.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(w=>w.length>=3&&!stop.has(w)).map(stem);
+  // „Ściąganie wyciągu górnego …” = „Ściąganie drążka …” (drążek wyciągu górnego) — nazwy z planów i generatora.
+  if(toks.includes('wycią')&&(toks.includes('górne')||toks.includes('ściąg'))&&!toks.includes('drążk'))toks.push('drążk');
   const nt=n.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(w=>w.length>=3&&!stop.has(w)).map(stem);
   if(nt.length>=2){
     const hit=nt.filter(w=>toks.includes(w)).length;

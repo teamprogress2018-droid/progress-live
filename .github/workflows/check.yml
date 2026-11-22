@@ -835,6 +835,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_simple_ui.js
 
+      - name: 6d1e. Nazwy ćwiczeń z planu dopasowane do biblioteki (film techniki)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_ex_name_match_ui.js
+
       - name: 6d1c. Komunikacja w aplikacji — spotkanie, potwierdzenie, zmiana, samopoczucie, Do odpowiedzi, symulacja
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_comms_ui.js
