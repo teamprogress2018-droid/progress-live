@@ -70,12 +70,12 @@ const geom = (page, ph) => page.evaluate(ph => {
     ok(ph.name + ': bez przewijania w poziomie', !g.overflowX);
     ok(ph.name + ': film tylko jako mały przycisk „Technika”', g.tech && g.tech.h <= 48, JSON.stringify(g.tech));
     ok(ph.name + ': domyślnie: ćwiczenie X z Y, krótka nazwa, cel serii, zapas, zapis', /Ćwiczenie 1 z 6/.test(g.text) && /Wiosłowanie na maszynie Hammer\n/.test(g.text) && !/siedząc/.test(g.text) && /Seria 1 z 4/.test(g.text) && /8 powt\. · 70 kg/.test(g.text) && /2–3 powtórzenia w zapasie/.test(g.text) && !/RIR|RPE|Tempo/.test(g.text) && /Zapisz serię/.test(g.text), g.text.slice(0, 300));
-    ok(ph.name + ': zwykła notatka trenera w „Technice”, tabela serii zwinięta', !/Kontroluj zakres|Pomiń ćwiczenie|warianty/i.test(g.text) && /Historia serii/.test(g.text) && !(await page.evaluate(() => document.querySelector('.cs-hist').open)));
+    ok(ph.name + ': zwykła notatka trenera w „Technice”, tabela serii zwinięta', !/Kontroluj zakres|Pomiń ćwiczenie|warianty/i.test(g.text) && /Zapisane serie/.test(g.text) && !(await page.evaluate(() => document.querySelector('.cs-hist').open)));
     ok(ph.name + ': jeden przycisk na dole, bez „Następne →”', !/Następne →|← Poprzednie/.test(g.text) && await page.evaluate(() => document.querySelectorAll('.cs-ex-foot button').length === 1));
     if (ph.w === 375) {
       let t0 = '';
       // RIR prostym językiem
-      ok('zapas: pytanie opcjonalne i odpowiedzi 0 / 1 / 2 / 3 / 4+', /Ile zostało w zapasie\? opcjonalnie/.test(g.text) && await page.locator('.cs-rir-opts button').allInnerTexts().then(t => t.join('|') === '0|1|2|3|4+'));
+      ok('zapas: pytanie opcjonalne i odpowiedzi 0 / 1 / 2 / 3 / 4+', /Ile powtórzeń dałbyś radę jeszcze zrobić\?\s*opcjonalnie/.test(g.text) && await page.locator('.cs-rir-opts button').allInnerTexts().then(t => t.join('|') === '0|1|2|3|4+'));
       await page.tap('.cs-rir-opts [data-rir="2"]');
       ok('zapas zapisany jako 2 (zgłoszony)', await page.evaluate(() => window._cw.exercises[0].sets[0].rir === '2' && window._cw.exercises[0].sets[0].rirReported === true));
       await page.tap('.cs-tech-btn');

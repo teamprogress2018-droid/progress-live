@@ -1470,7 +1470,7 @@ function cwPatchSet(setIdx,field,val){
 
 function cwStartRest(seconds,kind){
   const cw=window._cw;if(!cw)return;
-  cw.phase='rest';
+  cw.phase='rest';cw.restOnEx=false;
   cw.restKind=kind||'';
   cw.restLeft=seconds||90;
   cwClearTimers();
@@ -1620,7 +1620,7 @@ function cwCheckSet(setIdx){
 function cwSkipRest(){
   const cw=window._cw;if(!cw)return;
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
-  cw.phase='exercise';
+  cw.phase='exercise';cw.restOnEx=false;
   cwWriteLocal(cw);
   cwRender();
 }
