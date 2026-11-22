@@ -20,6 +20,22 @@ const ok = (n, c, x) => { if (!c) { console.error('FAIL ' + n + (x ? ' — ' + x
   ok('wyciąg dolny nie staje się ściąganiem drążka', r.row.lib && !/Ściąganie/.test(r.row.lib), JSON.stringify(r.row));
   ok('dokładna nazwa bez zmian', r.exact.lib === 'Ściąganie drążka szerokim chwytem' && r.exact.film);
   ok('podciąganie na drążku bez zmian', r.pull.lib === 'Podciąganie na drążku', JSON.stringify(r.pull));
+  // Pusty rekord z importu (ta sama nazwa, bez filmu, opis „Dodane podczas importu materiału.”) nie zasłania filmu.
+  const imp = await p.evaluate(() => {
+    const n = 'Ściąganie wyciągu górnego szerokim chwytem (maszyna)';
+    window.EX = window.EX || [];
+    window.EX.push({ id: 'exImpTest', name: n, cat: 'Plecy', eq: 'maszyna', muscle: 'Plecy', tip: 'Dodane podczas importu materiału.', nsca: '3x8–12.', alt: '', gif: '', img: '' });
+    window.EX.push({ id: 'exImpOnly', name: 'Moje ćwiczenie z importu XYZ', cat: 'Plecy', eq: 'maszyna', muscle: 'Plecy', tip: 'Dodane podczas importu materiału.', gif: '', img: '' });
+    const l = libExerciseByName(n); const m = resolveCoachMedia({ name: n });
+    const only = libExerciseByName('Moje ćwiczenie z importu XYZ');
+    const mm = typeof csMuscleMapBlock === 'function' ? csMuscleMapBlock({ name: 'Moje ćwiczenie z importu XYZ', muscle: 'Plecy', tip: 'Dodane podczas importu materiału.' }, false, {}) : '';
+    return { lib: l && l.name, film: !!(m.gif || m.video), libTip: m.libTip, note: exerciseTodoNote({ name: n, libTip: 'Dodane podczas importu materiału.' }),
+      onlyLib: only && only.id, onlyTip: resolveCoachMedia({ name: 'Moje ćwiczenie z importu XYZ' }).libTip, mmHasPlaceholder: /Dodane podczas importu/.test(mm) };
+  });
+  ok('pusty import nie zasłania ćwiczenia z filmem', imp.lib === 'Ściąganie drążka szerokim chwytem' && imp.film, JSON.stringify(imp));
+  ok('opis z biblioteki zamiast „Dodane podczas importu”', imp.libTip && !/Dodane podczas importu/.test(imp.libTip) && !/Dodane podczas importu/.test(imp.note), JSON.stringify(imp));
+  ok('ćwiczenie tylko z importu nadal się odnajduje', imp.onlyLib === 'exImpOnly', JSON.stringify(imp));
+  ok('„Dodane podczas importu” nie jest pokazywane jako opis wykonania', imp.onlyTip === '' && !imp.mmHasPlaceholder, JSON.stringify(imp));
   await b.close();
   if (failed) { console.error(failed + ' błąd(ów)'); process.exit(1); }
   console.log('Dopasowanie nazw ćwiczeń: OK');
