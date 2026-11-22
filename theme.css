@@ -2316,3 +2316,45 @@ button.exl-name { display: -webkit-box; width: 100%; padding: 0; border: 0; back
 .client-saved-cta-btns .btn { min-height: 44px; }
 /* Gdy karta „Ułóż pierwszy plan” jest widoczna, czerwień zostaje tylko na niej. */
 #client-onboard-body.has-saved-cta #client-onboard-steps .btn-primary { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-strong); box-shadow: none; }
+
+/* „Do odpowiedzi” i panel „Spotkania i powiadomienia” (comms-app.js). */
+.itab-n { display: inline-flex; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 4px; border-radius: 999px; align-items: center; justify-content: center; background: var(--danger, #b42318); color: #fff; font-size: 0.75rem; font-weight: 700; }
+.itab-n[hidden] { display: none; }
+.rep-head { padding: 10px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.rep-filters { display: flex; gap: 6px; }
+.rep-f { flex: 1; min-height: 36px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text-secondary); font: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer; }
+.rep-f.is-on { border-color: var(--text-primary); color: var(--text-primary); background: var(--bg-subtle, rgba(0,0,0,.04)); }
+.rep-note { margin: 0; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; }
+.rep-warn { color: var(--warning, #b45309); }
+.rep-item { border-bottom: 1px solid var(--border); padding: 8px 10px 10px; }
+.rep-item.is-new { box-shadow: inset 3px 0 0 var(--danger, #b42318); }
+.rep-item.is-in_progress { box-shadow: inset 3px 0 0 var(--warning, #b45309); }
+.rep-main { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 2px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 6px; }
+.rep-main:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rep-top { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8125rem; }
+.rep-ago { color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap; }
+.rep-type { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
+.rep-text { font-size: 0.8125rem; color: var(--text-primary); line-height: 1.4; overflow-wrap: anywhere; }
+.rep-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
+.rep-st { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-right: auto; }
+.rep-empty { padding: 30px 12px; text-align: center; color: var(--text-secondary); font-size: 0.8125rem; }
+.comms-sess-line { margin: 0 0 12px; padding: 8px 10px; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; background: var(--bg-subtle, rgba(0,0,0,.04)); color: var(--text-primary); }
+.comms-sess-line.is-confirmed { box-shadow: inset 3px 0 0 var(--success, #157f3c); }
+.comms-sess-line.is-change_requested { box-shadow: inset 3px 0 0 var(--warning, #b45309); }
+.comms-sess-line.is-cancelled { box-shadow: inset 3px 0 0 var(--danger, #b42318); }
+.comms-panel { display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem; color: var(--text-primary); }
+.comms-mode { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-subtle, rgba(0,0,0,.03)); line-height: 1.45; }
+.comms-mode span { color: var(--text-secondary); font-size: 0.8125rem; }
+.comms-h { margin: 12px 0 2px; font-size: 0.9375rem; font-weight: 700; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.comms-badge-sim { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--warning, #b45309); color: #fff; font-size: 0.6875rem; font-weight: 800; letter-spacing: .02em; }
+.comms-tg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 36px; line-height: 1.4; }
+.comms-tg input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); }
+.comms-tg input[type=time], .comms-tg input[type=number], .comms-tg select, .comms-quiet-t input { min-height: 32px; padding: 0 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--s3, transparent); color: var(--text-primary); font: inherit; font-size: 0.8125rem; }
+.comms-tg input[type=number] { width: 56px; }
+.comms-note { margin: 0; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.45; }
+.comms-tbl { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.comms-tbl th, .comms-tbl td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.comms-tbl th { color: var(--text-secondary); font-weight: 600; }
+.comms-tbl .st-failed { color: var(--danger, #b42318); font-weight: 600; }
+.comms-tbl .st-delivered, .comms-tbl .st-read, .comms-tbl .st-confirmed { color: var(--success, #157f3c); font-weight: 600; }
+.comms-prefs { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; line-height: 1.4; }

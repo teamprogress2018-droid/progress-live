@@ -33,9 +33,9 @@ const OWNED = ['clients', 'plans', 'sessions', 'exercises', 'exerciseGifs', 'coa
   'packages', 'invoices', 'formSends', 'reportHistory', 'forms', 'programs', 'checkins',
   'clientNotes', 'clientDocs', 'onboardingFlows', 'planTemplates', 'settings', 'notifications',
   'integrationConfigs', 'forumGroups', 'forumPosts', 'forumComments', 'odWorkouts', 'odPrograms',
-  'odProgress', 'onboardingActive', 'clientGroups', 'resources', 'automationState', 'autoflows'];
+  'odProgress', 'onboardingActive', 'clientGroups', 'resources', 'automationState', 'autoflows', 'commsCases'];
 const PRIVATE = ['plans', 'sessions', 'tasks', 'packages', 'invoices', 'metricEntries',
-  'progressPhotos', 'odProgress', 'messages', 'checkins', 'formSends'];
+  'progressPhotos', 'odProgress', 'messages', 'checkins', 'formSends', 'commsCases'];
 const SHARED = ['exercises', 'exerciseGifs', 'coachVideos', 'resources', 'odWorkouts', 'odPrograms', 'metricGroups'];
 const OWNER_ONLY = OWNED.filter(col => ![...PRIVATE, ...SHARED, 'clients', 'forumGroups', 'forumPosts', 'forumComments'].includes(col));
 const base = 'http://' + HOST + '/v1/projects/' + PROJECT + '/databases/(default)/documents';
@@ -445,6 +445,60 @@ test('client submission actions preserve assignment, authority and other clients
   ok(await write('odProgress/' + odId, clientData({id: odId, programId: 'program-1', done: [], updatedAt: new Date().toISOString()}), userA), 'client on-demand progress');
   ok(await patch('odProgress/' + odId, {done: ['program-1:0:0']}, userA), 'complete on-demand day');
   denied(await patch('odProgress/' + odId, {programId: 'other-program'}, userA), 'rebind on-demand program');
+});
+
+test('communication: client cases, contact preferences, push subscriptions and server-only job queue', async () => {
+  const now = new Date().toISOString();
+  const meetId = run + '-meeting', meetSibling = run + '-meeting-sibling';
+  await seed('sessions/' + meetId, clientData({id: meetId, date: '2026-12-01', time: '18:00', source: 'planned'}));
+  await seed('sessions/' + meetSibling, {id: meetSibling, trainerId: trainerA, clientId: clientSibling, date: '2026-12-01', time: '19:00'});
+  const caseData = (id, extra = {}) => clientData({id, type: 'meeting_confirm', sessionId: meetId, sessionStamp: '2026-12-01T18:00',
+    status: 'done', source: 'app', createdAt: now, ...extra});
+  const c1 = run + '-case-confirm';
+  ok(await write('commsCases/' + c1, caseData(c1), userA), 'client confirms own meeting');
+  ok(await read('commsCases/' + c1, userA), 'client reads own case status');
+  denied(await read('commsCases/' + c1, sibling), 'sibling cannot read case');
+  ok(await read('commsCases/' + c1, ownerA), 'trainer reads case');
+  denied(await patch('commsCases/' + c1, {status: 'new'}, userA), 'client cannot change case status');
+  ok(await patch('commsCases/' + c1, {status: 'in_progress'}, ownerA), 'trainer changes case status');
+  const c2 = run + '-case-change';
+  ok(await write('commsCases/' + c2, caseData(c2, {type: 'meeting_change', status: 'new', reason: 'inna godzina', text: 'Czy może być 19:00?'}), userA), 'client asks to reschedule');
+  const c3 = run + '-case-foreign';
+  denied(await write('commsCases/' + c3, caseData(c3, {sessionId: meetSibling}), userA), 'cannot confirm someone else meeting');
+  const c4 = run + '-case-done';
+  denied(await write('commsCases/' + c4, caseData(c4, {type: 'meeting_change', status: 'done'}), userA), 'client cannot close own request');
+  const c5 = run + '-case-trainer';
+  denied(await write('commsCases/' + c5, caseData(c5, {type: 'trainer_contact', status: 'new'}), userA), 'client cannot create trainer task');
+  const c6 = run + '-case-wa';
+  denied(await write('commsCases/' + c6, caseData(c6, {source: 'whatsapp'}), userA), 'client cannot pretend WhatsApp source');
+  const c7 = run + '-case-well';
+  ok(await write('commsCases/' + c7, clientData({id: c7, type: 'wellbeing', mood: 'zmeczenie', text: '', status: 'new', source: 'app', createdAt: now}), userA), 'client reports wellbeing');
+
+  const prefs = clientData({id: clientA, channel: 'whatsapp', whatsapp: {optIn: true, phone: '48600100200', optInAt: now,
+    consentText: 'Zgoda na przypomnienia od Progress Studio przez WhatsApp'}, push: {subscribed: false},
+    categories: {meetings: true, plan: true, checkins: false}, quiet: {from: '21:00', to: '08:00'}, fallback: true, updatedAt: now});
+  ok(await write('commsPrefs/' + clientA, prefs, userA), 'client saves own contact preferences and consent');
+  ok(await patch('commsPrefs/' + clientA, {channel: 'push'}, userA), 'client changes channel');
+  ok(await read('commsPrefs/' + clientA, ownerA), 'trainer reads preferences');
+  denied(await patch('commsPrefs/' + clientA, {channel: 'whatsapp'}, ownerA), 'trainer cannot give consent for client');
+  denied(await write('commsPrefs/' + clientSibling, {...prefs, id: clientSibling, clientId: clientSibling}, userA), 'cannot set sibling preferences');
+  denied(await read('commsPrefs/' + clientA, ownerB), 'foreign trainer cannot read preferences');
+  denied(await patch('commsPrefs/' + clientA, {channel: 'sms'}, userA), 'unknown channel rejected');
+
+  const subId = run + '-sub';
+  const sub = clientData({id: subId, endpoint: 'https://push.example.test/abc', keys: {p256dh: 'k', auth: 'a'}, device: 'iPhone', createdAt: now});
+  ok(await write('pushSubscriptions/' + subId, sub, userA), 'client stores own push subscription');
+  denied(await read('pushSubscriptions/' + subId, ownerA), 'trainer cannot read push keys');
+  denied(await write('pushSubscriptions/' + run + '-sub2', {...sub, id: run + '-sub2', endpoint: 'http://insecure.test'}, userA), 'insecure endpoint rejected');
+  ok(await remove('pushSubscriptions/' + subId, userA), 'client removes own subscription');
+
+  const jobId = run + '-job';
+  await seed('commsJobs/' + jobId, clientData({id: jobId, status: 'scheduled'}));
+  ok(await read('commsJobs/' + jobId, ownerA), 'trainer reads job status');
+  denied(await read('commsJobs/' + jobId, ownerB), 'foreign trainer cannot read jobs');
+  denied(await read('commsJobs/' + jobId, userA), 'client cannot read job queue');
+  denied(await patch('commsJobs/' + jobId, {status: 'delivered'}, ownerA), 'browser cannot fake delivery status');
+  denied(await write('commsJobs/' + run + '-job2', clientData({id: run + '-job2', status: 'delivered'}), ownerA), 'browser cannot create jobs');
 });
 
 test('builder plan transactions read missing IDs without exposing existing foreign plans', async () => {

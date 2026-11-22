@@ -10,8 +10,10 @@
 // Wersja 94: szkic jadłospisu w dietDraft.
 // Wersja 95: pola prywatne trenera nie trafiają do karty klienta.
 // Wersja 96: historia ćwiczenia przewijana w bok.
-// Wersja 98: PDF planu — etykiety metod w komórkach tygodnia się zawijają.
-const CACHE_NAME='progress-live-shell-v98';
+// Wersja 99: powiadomienia push (spotkania, plan) i otwieranie właściwego ekranu po dotknięciu.
+// Wersja 100: „Ściąganie wyciągu górnego …” z planu pokazuje film z biblioteki.
+// Wersja 102: PDF planu — etykiety metod w komórkach tygodnia się zawijają.
+const CACHE_NAME='progress-live-shell-v102';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
@@ -75,4 +77,30 @@ self.addEventListener('fetch',event=>{
     }
     return response;
   }).catch(()=>caches.match(request)));
+});
+
+/* Powiadomienia push z serwera wiadomości (server/automation/comms-worker.cjs).
+   Treść jest ogólna (bez zdrowia i pomiarów), bo bywa widoczna na zablokowanym ekranie. */
+self.addEventListener('push',event=>{
+  let d={};
+  try{d=event.data?event.data.json():{};}catch(e){d={title:'Progress',body:event.data?event.data.text():''};}
+  const title=String(d.title||'Progress').slice(0,80);
+  const options={body:String(d.body||'').slice(0,240),tag:String(d.tag||'progress'),icon:'./apple-touch-icon.png',badge:'./apple-touch-icon.png',
+    data:{url:typeof d.url==='string'&&/^\?cs=[a-z]+$/.test(d.url)?'./'+d.url:'./'}};
+  event.waitUntil(self.registration.showNotification(title,options));
+});
+/* Dotknięcie powiadomienia: otwarta aplikacja przechodzi do sprawy, inaczej otwiera się nowe okno. */
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();
+  const target=new URL((event.notification.data&&event.notification.data.url)||'./',self.registration.scope).href;
+  event.waitUntil((async()=>{
+    const all=await clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const c of all){
+      if(c.url.startsWith(self.registration.scope)&&'focus' in c){
+        try{await c.navigate(target);}catch(e){}
+        return c.focus();
+      }
+    }
+    return clients.openWindow(target);
+  })());
 });

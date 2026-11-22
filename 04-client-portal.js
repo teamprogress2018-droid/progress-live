@@ -119,13 +119,14 @@ function capLiveMoreScreens(){
     {id:'food',label:'Moje jedzenie',icon:ic('book','🍽'),pk:1},
     {id:'shopping',label:'Lista zakupów',icon:ic('list','🛒'),pk:1},
     {id:'contact',label:'Kontakt',icon:ic('contact','📞')},
+    {id:'notify',label:'Powiadomienia',icon:ic('bell','🔔')},
     {id:'checkin',label:'Ankieta tygodniowa',icon:ic('checkin','✅')},
     {id:'homework',label:'Zadania',icon:ic('homework','🏡')},
     {id:'ondemand',label:'Treningi nagrane',icon:ic('play','▶️')},
     {id:'resources',label:'Materiały',icon:ic('book','📚')},
     {id:'forum',label:'Forum',icon:ic('users','👥')},
     {id:'profile',label:'Profil',icon:ic('user','👤')}
-  ].filter(s=>s.pk?(typeof pkcHasFood==='function'&&pkcHasFood()):(s.id==='profile'||s.id==='contact'||capClientSectionVisible(s.id)));
+  ].filter(s=>s.pk?(typeof pkcHasFood==='function'&&pkcHasFood()):(s.id==='profile'||s.id==='contact'||s.id==='notify'||capClientSectionVisible(s.id)));
 }
 window.capLiveMoreScreens=capLiveMoreScreens;
 
@@ -973,6 +974,7 @@ function capScreenHTML(scr,c){
 
   if(scr==='train'&&typeof csTrainScreenHTML==='function')return csTrainScreenHTML(c);
   if(scr==='contact'&&typeof csContactHTML==='function')return csContactHTML(c);
+  if(scr==='notify'&&typeof commsNotifyHTML==='function')return commsNotifyHTML(c);
   if(scr==='food'&&typeof pkcFoodHTML==='function')return pkcFoodHTML(c);
   if(scr==='shopping'&&typeof pkcShopHTML==='function')return pkcShopHTML(c);
   if(scr==='plan'&&capIsLiveClient()&&typeof csPlanHTML==='function')return csPlanHTML(c);

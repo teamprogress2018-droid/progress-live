@@ -282,6 +282,8 @@ async function loadClientApp(account,session=captureClientTenantSession()){
   enterClientLiveShell();
   clientLiveSyncTrainerSwitch(session);
   startClientMessagePolling();
+  // Sprawy i preferencje kontaktu — osobno, bez blokowania startu (przed publikacją reguł odczyt jest odrzucany).
+  if(typeof commsClientLoad==='function')commsClientLoad(account,session);
 }
 
 /* Nowe wiadomości od trenera bez przeładowania strony: co 20 s (tylko gdy karta jest widoczna). */
