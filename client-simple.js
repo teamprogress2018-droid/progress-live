@@ -6,6 +6,7 @@
  * Dane: te same co dotąd (PL, SE, METRIC_ENTRIES, SETTINGS z publicznego profilu trenera). */
 
 const CS_ICONS={
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
   wifiOff:'<line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path d="M19 12.9a10 10 0 0 0-2.3-1.7"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
   home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"></path>',
@@ -173,16 +174,25 @@ function csMeetingWhen(s){
   const t=String(s.time||'').trim();
   return {day,time:/^\d{1,2}:\d{2}/.test(t)?t.slice(0,5).replace(/^0(\d)/,'$1'):''};
 }
-/** Kafelek „Spotkanie z trenerem”: tylko termin. Plan treningu (nazwa dnia, mięśnie) zostaje w zakładce Trening. */
+/** Kafelek „Spotkanie z trenerem”: termin, status i proste działania (potwierdź / poproś o zmianę / napisz).
+    Bez ćwiczeń i partii — plan treningu zostaje w zakładce Trening. Odwołane spotkanie zostaje widoczne do jego terminu. */
 function csMeetingCardHTML(c){
-  const s=csNextMeeting(c);
+  const s=csNextMeeting(c)||csCancelledMeeting(c);
   if(!s)return '';
   const w=csMeetingWhen(s);
+  const status=typeof commsMeetingActionsHTML==='function'?commsMeetingActionsHTML(s,'status'):'';
+  const acts=typeof commsMeetingActionsHTML==='function'?commsMeetingActionsHTML(s,'buttons'):'';
   return `<section class="cs-card cs-meet" aria-labelledby="cs-meet-title">
     <div class="cs-meet-ico" aria-hidden="true">${csIcon('calendar',22)}</div>
     <div class="cs-meet-body"><h2 class="cs-meet-title" id="cs-meet-title">Spotkanie z trenerem</h2>
-    <p class="cs-meet-when"><span>${csEsc(w.day)}</span>${w.time?`<span class="cs-meet-sep"> · </span><b>${csEsc(w.time)}</b>`:''}</p></div>
+    <p class="cs-meet-when"><span>${csEsc(w.day)}</span>${w.time?`<span class="cs-meet-sep"> · </span><b>${csEsc(w.time)}</b>`:''}</p>${status}</div>${acts}
   </section>`;
+}
+/** Najbliższe odwołane spotkanie (dziś lub później), gdy nie ma innego — żeby klient zobaczył odwołanie. */
+function csCancelledMeeting(c){
+  if(!c)return null;const today=csToday();
+  return (window.SE||[]).filter(s=>s&&s.clientId===c.id&&['cancelled','canceled'].includes(String(s.status||''))&&String(s.date||'').slice(0,10)>=today&&!['client','live'].includes(s.source))
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date)))[0]||null;
 }
 window.csMeetingCardHTML=csMeetingCardHTML;
 
@@ -199,6 +209,7 @@ function csTodayHTML(c){
     ${csTodayCardHTML(c,st)}
     ${csMeetingCardHTML(c)}
     ${csPayCardHTML(c)}
+    ${typeof commsFeelLinkHTML==='function'?commsFeelLinkHTML():''}
     ${csWeekBar(c,slot.plan)}
     ${typeof pkcTodayCardHTML==='function'?pkcTodayCardHTML(c):''}
   </div>`;

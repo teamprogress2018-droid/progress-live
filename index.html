@@ -15,12 +15,12 @@
 <link rel="stylesheet" href="globals.css?v=17&ux-look=1">
 <link rel="stylesheet" href="styles.css?v=194&ux-look=1">
 <link rel="stylesheet" href="research-academy.css?v=3">
-<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-a11y=1&ux-add-client=1&muscle-map=1">
+<link rel="stylesheet" href="theme.css?v=23&layout-v2=2&generator-ux=2&book-visuals=5&ux-empty-dash=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-a11y=1&ux-add-client=1&comms=1&muscle-map=1">
 <link rel="stylesheet" href="generator-workbench.css?v=2">
 <link rel="stylesheet" href="plan-client.css?v=1&editor=1&nutrition=1&client=1">
 <link rel="stylesheet" href="diet-plan-view.css?v=1&wizard=1&sumy=1&progress=1">
 <link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-tiles-kb=1&safe-area=1">
-<link rel="stylesheet" href="client-simple.css?v=2&ux-rest=1&ux-client-nav=1&ux-client-fix=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&ex-hist-swipe=1">
+<link rel="stylesheet" href="client-simple.css?v=2&ux-rest=1&ux-client-nav=1&ux-client-fix=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&ex-hist-swipe=1&comms=1">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
   .ex-card-delete-btn{position:absolute;top:6px;right:34px;z-index:2;border:0;border-radius:6px;background:transparent;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;padding:4px 5px;}
@@ -178,6 +178,7 @@
       <div class="nav-flyout" id="nav-automation-flyout" hidden role="menu" aria-label="Przypomnienia i wiadomości">
         <div class="nav-flyout-hd"><span>Przypomnienia i wiadomości</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg></div>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="automation" onclick="closeNavFlyouts();goTo('automation')">Automatyczne przypomnienia</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-act="comms-open-panel" onclick="closeNavFlyouts()">Spotkania i powiadomienia</button>
       </div>
     </div>
 
@@ -757,6 +758,7 @@
         <input type="text" id="inbox-search" placeholder="Szukaj rozmowy..." oninput="renderInbox()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
       </div>
       <div style="display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <button class="inbox-tab" id="itab-replies" onclick="setInboxTab('replies')">Do odpowiedzi <span class="itab-n" id="itab-replies-n" hidden></span></button>
         <button class="inbox-tab active" id="itab-all" onclick="setInboxTab('all')">Wszystkie</button>
         <button class="inbox-tab" id="itab-unread" onclick="setInboxTab('unread')">Nieprzeczytane</button>
         <button class="inbox-tab" id="itab-groups" onclick="setInboxTab('groups')">Grupy</button>
@@ -3736,6 +3738,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <div class="form-field"><label class="form-lbl">Notatki</label><textarea class="form-textarea" id="as-notes" rows="2"></textarea></div>
       <div id="as-sala-done" style="display:none;margin-bottom:12px;"></div>
+      <div id="as-comms-status"></div>
       <div id="as-plan-days" style="display:none;margin-top:-6px;margin-bottom:12px;">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">📋 Z planu klienta (1 klik = wypełnij notatkę)</div>
         <div id="as-plan-days-list" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -3745,7 +3748,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="as-recorded-exercises-list" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-danger" id="as-del-btn" style="display:none;margin-right:auto;" onclick="delSessionFromModal()">Usuń</button><button class="btn btn-ghost" onclick="closeM('m-session')">Anuluj</button><button class="btn btn-primary" onclick="saveSess()">Zapisz</button></div>
+    <div class="modal-footer"><button class="btn btn-danger" id="as-del-btn" style="display:none;margin-right:auto;" onclick="delSessionFromModal()">Usuń</button><button class="btn btn-ghost" id="as-cancel-btn" style="display:none;" onclick="commsCancelMeeting(window._editingSessionId)">Odwołaj spotkanie</button><button class="btn btn-ghost" onclick="closeM('m-session')">Anuluj</button><button class="btn btn-primary" onclick="saveSess()">Zapisz</button></div>
   </div>
 </div>
 
@@ -4915,6 +4918,8 @@ async function load(session=captureTenantSession()){
   window._tenantDataReady=true;
   window._clientPrivateReady=privateRows!==null;
   window._tenantLoadedUid=session.uid;
+  // Komunikacja (sprawy „Do odpowiedzi”, zgody klientów, statusy z serwera) — osobno: bez opublikowanych reguł odczyt jest odrzucany i nie blokuje startu.
+  if(typeof window.commsTrainerLoad==='function')setTimeout(()=>{window.commsTrainerLoad(name=>tenantReadOwnedCollection(name,session).catch(()=>null));},0);
   if(typeof window.liveFlushPendingSessions==='function')setTimeout(()=>{try{window.liveFlushPendingSessions();}catch(e){}},0);
   if(typeof window.pruneOldNotifications==='function')setTimeout(()=>{try{window.pruneOldNotifications();}catch(e){}},5000);
   // Jednorazowo: stare pola prywatne z kart klientów do clientPrivate. Usuwamy je z karty dopiero po udanym zapisie kopii.
@@ -4962,25 +4967,27 @@ async function load(session=captureTenantSession()){
 <script src="ex-gif-manifest.js?v=41"></script>
 <script src="ex-drive-media-manifest.js?v=3"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1&ux-a11y=1&ux-add-client=1&ux-client-nav=1&clientplan=2&set-screen=1&mobile-fix=1&xss-ids=1&diet-draft=1&private-fields=1&ex-hist-swipe=1"></script>
+<script src="01-core.js?v=164&drive-media=5&theme-v2=1&tenant-isolation=2&plan-save=1&assignment-calendar=1&baseline-save=1&client-save=1&onboard-days=1&onboard-skip=1&package-save=1&load-step=2&week-rir=1&layout-v2=1&gif-card-previews=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-look=1&ux-look=1&ux-a11y=1&ux-add-client=1&ux-client-nav=1&clientplan=2&set-screen=1&mobile-fix=1&xss-ids=1&diet-draft=1&private-fields=1&ex-hist-swipe=1&comms=1&ex-name=1"></script>
 <script src="11-muscle-biomechanics-kb.js?v=14"></script>
 <script src="muscle-map.js?v=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=115&ux-menu=1&ux-look=1&ux-a11y=1"></script>
 <script src="books-kb.js?v=8"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=61&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1&intensify=1&generator-ux=1&book-visuals=2&freq=4&reps=1&ux-look=1"></script>
-<script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1&ux-menu=1&ux-look=1&ux-client-nav=1&clientplan=1&mobile-fix=1&xss-ids=1"></script>
+<script src="04-client-portal.js?v=72&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1&ux-menu=1&ux-look=1&ux-client-nav=1&clientplan=1&mobile-fix=1&xss-ids=1&comms=1"></script>
 <script src="client-card-save.js?v=4&private-fields=1"></script>
 <script src="dashboard-home.js?v=2"></script>
-<script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1&ux-menu=1&ux-add-client=1&xss-ids=1&muscle-map=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=122&volume-control=1&layout-v2=1&ux-menu=1&ux-add-client=1&xss-ids=1&comms=1&muscle-map=1"></script>
 <script src="calendar-refill.js?v=2"></script>
 <script src="package-save.js?v=3"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-a11y=1&muscle-map=1"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=122&exercise-library-focus=1&library-windowed=1&biceps-media=1&functional-hiit-media=1&white-library-cards=1&white-technique-previews=1&static-gif-cards=1&gif-film-badge=1&import-categories=1&storage-upload=1&bulk-create=1&media-gap-groups=1&library-media-facts=1&library-cache=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-a11y=1&comms=1&muscle-map=1"></script>
 <script src="diet-plan.js?v=19&wizard=1&nazwy=1"></script>
 <script src="07-forms-metrics-calculator.js?v=59&week=1&diet=1&baseline-save=1&profile-save=1&ux-look=1&iv-food=1&dietview=1&wizard=1&xss-ids=1&diet-draft=1"></script>
 <script src="08-client-profile-extras.js?v=95&ui=2&journey=2&checkin-chronology=1&calendar-fill=1&profile-save=1&invoice-sequence=1&package-paid=1&monitor=1&progress-plan=1&report-due=1&recs-all=1&pay-actions=1&rep-target=2&ux-menu=1&clientplan=1&xss-ids=1"></script>
 <script src="09-posture-kb-invites-private.js?v=59&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1&ux-look=1&feed-pl=1"></script>
-<script src="client-simple.js?v=2&ux-rest=1&ux-client-nav=1&ux-client-fix=1&clientplan=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&muscle-map=1"></script>
-<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1&ux-rest=1&ux-client-nav=1&clientplan=1&set-screen=1&mobile-fix=1&xss-ids=1&private-fields=1"></script>
+<script src="client-simple.js?v=2&ux-rest=1&ux-client-nav=1&ux-client-fix=1&clientplan=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&comms=1&muscle-map=1"></script>
+<script src="10-client-app.js?v=55&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1&ux-rest=1&ux-client-nav=1&clientplan=1&set-screen=1&mobile-fix=1&xss-ids=1&private-fields=1&comms=1"></script>
+<script src="comms-core.js?v=1"></script>
+<script src="comms-app.js?v=1"></script>
 <script src="11-progress-academy.js?v=10&study-explanations=1&book-answers=1&research=1&visuals=3"></script>
 <script src="research-answer.js?v=2"></script>
 <script src="research-academy.js?v=3"></script>
