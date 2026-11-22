@@ -11,7 +11,8 @@
 // Wersja 95: pola prywatne trenera nie trafiają do karty klienta.
 // Wersja 96: historia ćwiczenia przewijana w bok.
 // Wersja 99: powiadomienia push (spotkania, plan) i otwieranie właściwego ekranu po dotknięciu.
-const CACHE_NAME='progress-live-shell-v99';
+// Wersja 101: trening klienta — cel i poprzedni wynik razem, „Twój wynik”, przerwa ±15 s i pasek przerwy.
+const CACHE_NAME='progress-live-shell-v101';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
