@@ -12,6 +12,8 @@
 // Wersja 96: historia ćwiczenia przewijana w bok.
 // Wersja 99: powiadomienia push (spotkania, plan) i otwieranie właściwego ekranu po dotknięciu.
 // Wersja 100: „Ściąganie wyciągu górnego …” z planu pokazuje film z biblioteki.
+// Wersja 101: trening klienta — cel i poprzedni wynik razem, „Twój wynik”, przerwa ±15 s i pasek przerwy.
+// Wersja 102: PDF planu — etykiety metod w komórkach tygodnia się zawijają.
 // Wersja 103: mapa mięśni dla ćwiczeń bez filmu.
 const CACHE_NAME='progress-live-shell-v103';
 const APP_SHELL=[
