@@ -39,7 +39,7 @@ function ok(name, cond, extra) {
   const txt = await page.textContent('.cs-ex');
   ok('RIR in plain words', /2–3 powtórzenia w zapasie/.test(txt) && !/RIR/.test(txt));
   ok('RIR answers', (await page.locator('.cs-rir-opts button').allInnerTexts()).join('|') === '0|1|2|3|4+');
-  ok('"Historia serii" and "Technika"', /Historia serii/.test(txt) && /Technika/.test(txt) && !/Pomoc \/ Technika/.test(txt));
+  ok('"Zapisane serie" and "Technika"', /Zapisane serie/.test(txt) && /Technika/.test(txt) && !/Pomoc \/ Technika/.test(txt));
   const inp = await page.$eval('input[aria-label="Seria 1: powtórzenia"]', (e) => { const cs = getComputedStyle(e); return { h: e.getBoundingClientRect().height, bw: cs.borderTopWidth, bc: cs.borderTopColor }; });
   // Chromium zaokrągla obramowanie w getComputedStyle do pełnych px, więc 1,5 px sprawdzamy w arkuszu stylów.
   const css = require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'client-simple.css'), 'utf8');
@@ -69,6 +69,20 @@ function ok(name, cond, extra) {
   ok('rest: role=timer, no per-second announcements', rest.timer === 'timer' && rest.live !== 'assertive' && rest.polite === 'polite');
   const ann = await page.evaluate(() => { cwRestAnnounce(11); const a = document.getElementById('cw-rest-live').textContent; cwRestAnnounce(10); const b = document.getElementById('cw-rest-live').textContent; return [a, b]; });
   ok('rest: announces at 10 s only', ann[0] === '' && /10 sekund/.test(ann[1]), JSON.stringify(ann));
+  // Cel trenera oddzielony od wyniku, poprzedni wynik nad polami (gdy jest historia), przerwa ±15 s i pasek przerwy na ekranie ćwiczenia.
+  const adj = await page.evaluate(() => { const before = window._cw.restLeft; window._cwRestTimer = setInterval(() => {}, 1e6); cwRestAdd(15); const up = window._cw.restLeft; cwRestAdd(-15); cwRestAdd(-999); return { before, up, min: window._cw.restLeft, txt: document.getElementById('cw-rest-num').textContent, btns: [...document.querySelectorAll('.cs-rest-adj button')].map(b => b.innerText) }; });
+  ok('rest: −15 s / +15 s change the countdown (min 5 s)', adj.up === adj.before + 15 && adj.min === 5 && adj.txt === '5 s' && adj.btns.join('|') === '−15 s|+15 s', JSON.stringify(adj));
+  await page.click('.cs-rest-edit');
+  const bar = await page.evaluate(() => { const b = document.querySelector('.cs-restbar'); return { phase: window._cw.phase, bar: !!b, text: b && b.innerText.replace(/\s+/g, ' '), input: !!document.querySelector('input[aria-label="Seria 2: ciężar"]'), result: (document.querySelector('.cs-result-h') || {}).textContent || '' }; });
+  ok('rest → edit next set: exercise screen with rest bar, fields editable', bar.phase === 'exercise' && bar.bar && /Przerwa 5 s/.test(bar.text) && bar.input, JSON.stringify(bar));
+  ok('result fields labelled „Twój wynik”', /^Twój wynik/.test(bar.result), bar.result);
+  await page.waitForTimeout(800); // blokada podwójnego dotknięcia po zapisie (700 ms)
+  await page.click('.cs-restbar-btn >> text=Koniec');
+  ok('rest bar „Koniec” ends the rest', await page.evaluate(() => !window._cwRestTimer && !document.querySelector('.cs-restbar') && window._cw.phase === 'exercise'));
+  await page.evaluate(() => { window._cw.exercises[0].lastSets = [{ reps: '9', kg: '67.5' }]; cwRender(); });
+  const gp = await page.evaluate(() => ({ goal: document.querySelector('[data-cs-target]').innerText, prev: document.querySelector('[data-cs-prev]').innerText, order: document.querySelector('.cs-goal-prev').compareDocumentPosition(document.querySelector('.cs-set-grid')) & Node.DOCUMENT_POSITION_FOLLOWING }));
+  ok('goal and previous result shown together above the fields', /^Cel/.test(gp.goal) && /^Poprzednio\s*9 × 67,5 kg$/.test(gp.prev) && gp.order, JSON.stringify(gp));
+
   await page.evaluate(() => { window._cw.restLeft = 1; window._cwRestTimer = setInterval(() => {}, 1e6); clearInterval(window._cwRestTimer); cwStartRest(1); });
   await page.waitForTimeout(1300);
   ok('rest end: vibration', await page.evaluate(() => window._vib.length > 0), await page.evaluate(() => JSON.stringify(window._vib)));

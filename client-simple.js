@@ -903,14 +903,20 @@ function cwSimpleExerciseHTML(cw,ex){
     return ex.lastKg?('Ostatnio: '+(ex.lastReps?csNum(ex.lastReps)+' × ':'')+csNum(ex.lastKg)+(weightUnit?' kg':' '+loadLbl)):'';
   })();
   const kgStep=weightUnit?2.5:1;
+  // Pola wypełnione celem (jeden dotyk zapisu) — podpis mówi wprost, że to cel, nie wynik.
+  const prefilled=!!(s&&!s.done&&s._dirty!==true&&String(s.reps==null?'':s.reps)===String(plan.reps==null?'':plan.reps)&&String(s.kg==null?'':s.kg)===String(plan.kg==null?'':plan.kg)&&(String(s.reps||'')!==''||String(s.kg||'')!==''));
   const card=allDone?`<div class="cs-set-done" data-cs-ex-done>${ex.skipped?'Ćwiczenie pominięte':'Ćwiczenie ukończone '+csIcon('check',20)}</div>
       ${ex.skipped?'':`<p class="cs-done-sum">${sets.filter(x=>x.done).map(x=>csEsc(csNum(x.reps||'—'))+' × '+csEsc(csNum(x.kg||'—'))+' '+csEsc(weightUnit?'kg':loadLbl)).join(' · ')}</p>`}`:`
-      ${target?`<p class="cs-target" data-cs-target><span class="cs-target-lbl">Cel</span> ${csEsc(target)}</p>`:''}
+      ${target||lastLine?`<div class="cs-goal-prev">
+        ${target?`<p class="cs-target" data-cs-target><span class="cs-target-lbl">Cel</span> ${csEsc(target)}</p>`:''}
+        ${lastLine?`<p class="cs-prev" data-cs-prev><span class="cs-prev-lbl">Poprzednio</span> ${csEsc(lastLine.replace(/^Ostatnio:\s*/,''))}</p>`:''}
+      </div>`:''}
       ${hasRir?`<div class="cs-rir-goal"><span>${csEsc(csRirFriendly(ex.rir).replace(/^./,c=>c.toUpperCase()))}</span><button type="button" class="cs-q" aria-label="Co to jest zapas powtórzeń?" aria-expanded="${cw.showRirHelp?'true':'false'}" aria-controls="cs-rir-help" onclick="cwToggleRirHelp()">?</button></div>
       ${cw.showRirHelp?`<p class="cs-rir-help" id="cs-rir-help">Zapas to liczba powtórzeń, które dałbyś radę zrobić jeszcze z dobrą techniką. Skończ serię, zanim ruch zacznie się psuć.</p>`:''}`:''}
       ${tempoKey?`<p class="cs-key-line">Tempo: ${csEsc(csTempoText(ex.tempo))}</p>`:''}
       ${workTxt&&!target?`<p class="cs-key-line">Czas pracy: ${csEsc(workTxt)}</p>`:''}
-      <div class="cs-set-grid">
+      <p class="cs-result-h" id="cs-result-h">Twój wynik${prefilled?` <span>— popraw, jeśli było inaczej</span>`:''}</p>
+      <div class="cs-set-grid" role="group" aria-labelledby="cs-result-h">
         <label class="cs-num"><span class="cs-num-lbl">${timed?'Sekundy':s.kind==='amrap'?'Powtórzenia (max)':'Powtórzenia'}</span><input type="text" inputmode="numeric" enterkeyhint="next" autocomplete="off" aria-label="Seria ${csEsc(setNo)}: ${timed?'sekundy':'powtórzenia'}"${errAttr('reps')} value="${csEsc(s.reps)}" placeholder="${s.kind==='amrap'?'max':'0'}" onfocus="cwFieldFocus(this)" oninput="cwPatchSet(${cur},'reps',this.value)" onkeydown="cwFieldKey(event,0)"></label>
         <div class="cs-num"><span class="cs-num-lbl" id="cs-kg-lbl">${weightUnit?'Ciężar (kg)':csEsc(loadLbl)}</span><div class="cs-kg-row">
           <button type="button" class="cs-step" aria-label="Ciężar mniej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},-${kgStep})">−</button>
@@ -919,14 +925,14 @@ function cwSimpleExerciseHTML(cw,ex){
         </div></div>
       </div>
       ${err?`<p class="cs-field-err" id="cs-set-err" role="alert">${csEsc(err.msg)}</p>`:''}
-      ${showRir?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało w zapasie?${ex.rirRequired?' (wymagane)':' (opcjonalnie)'}"><span>Ile zostało w zapasie? <em>${ex.rirRequired?'wymagane':'opcjonalnie'}</em></span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirPicked===v?'is-on':''}" aria-pressed="${rirPicked===v?'true':'false'}" aria-label="Zapas: ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}
-      ${lastLine?`<p class="cs-last">${csEsc(lastLine)}</p>`:''}`;
+      ${showRir?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało w zapasie?${ex.rirRequired?' (wymagane)':' (opcjonalnie)'}"><span>Ile powtórzeń dałbyś radę jeszcze zrobić? <em>${ex.rirRequired?'wymagane':'opcjonalnie'}</em></span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirPicked===v?'is-on':''}" aria-pressed="${rirPicked===v?'true':'false'}" aria-label="Zapas: ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}
+`;
   const rirShow=x=>x.rirReported&&x.rir!=null&&x.rir!==''?'zapas '+String(x.rir):'';
   const setList=sets.map((x,i)=>`<li class="cs-setlog${x.done?' is-done':''}"><span>Seria ${csEsc(x.setNo!=null?x.setNo:i+1)}${x.kind&&x.kind!=='work'?' · '+csEsc((typeof setKindBadge==='function'&&setKindBadge(x.kind))||x.kind):''}</span><span>${csEsc(csNum(x.reps||'—'))} × ${csEsc(csNum(x.kg||'—'))} ${csEsc(weightUnit?'kg':loadLbl)}${x.done&&rirShow(x)?' · '+csEsc(rirShow(x)):''}</span>${x.done?`<button type="button" class="cs-mini" aria-label="Cofnij zapis serii ${csEsc(x.setNo!=null?x.setNo:i+1)}" onclick="cwUndoSet(${i})">Cofnij</button>`:'<span class="cs-mini-ph"></span>'}</li>`).join('');
   const histExtra=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:window._clientId}):'';
   const pr=typeof exercisePR==='function'&&weightUnit?exercisePR(window._clientId,ex.name):null;
   const hist=`<details class="cs-hist"${cw.showHist?' open':''} ontoggle="cwHistToggle(this.open)">
-      <summary>Historia serii <span class="cs-hist-n">${doneN} z ${sets.length}</span><span class="cs-chev">${csIcon('down',18)}</span></summary>
+      <summary>Zapisane serie <span class="cs-hist-n">${doneN}/${sets.length}</span><span class="cs-chev">${csIcon('down',18)}</span></summary>
       <ul class="cs-setlogs">${setList}</ul>
       ${histExtra?`<div class="cs-hist-prev">${histExtra}</div>`:''}
       ${pr?`<p class="cs-tip-line">Rekord: ${csEsc(csNum(pr.kg))} kg × ${csEsc(String(pr.reps))}</p>`:''}
@@ -964,11 +970,28 @@ function cwSimpleExerciseHTML(cw,ex){
     <div class="cs-swipe-hint" aria-hidden="true"></div>
     <div class="cs-ex-foot">
       ${cwSavedBannerHTML(cw)}
+      ${cw.restOnEx&&window._cwRestTimer?`<div class="cs-restbar" role="timer" aria-label="Przerwa trwa"><span>Przerwa</span><b id="cw-rest-num">${csRestClock(cw.restLeft)}</b>
+        <button type="button" class="cs-restbar-btn" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button>
+        <button type="button" class="cs-restbar-btn" aria-label="Przerwa dłużej o 15 sekund" onclick="cwRestAdd(15)">+15 s</button>
+        <button type="button" class="cs-restbar-btn" onclick="cwSkipRestTap()">Koniec</button></div><div class="sr-only" id="cw-rest-live" aria-live="polite"></div>`:''}
       ${primary}
     </div>
   </div>`;
 }
 window.cwSimpleExerciseHTML=cwSimpleExerciseHTML;
+/** Przerwa: dłużej / krócej o 15 s (bez wychodzenia z ekranu). */
+function cwRestAdd(d){
+  const cw=window._cw;if(!cw||!window._cwRestTimer)return;
+  cw.restLeft=Math.max(5,Math.min(900,(cw.restLeft|0)+d));
+  const n=document.getElementById('cw-rest-num');if(n)n.textContent=csRestClock(cw.restLeft);
+}
+/** Z przerwy do ekranu ćwiczenia: można poprawić ciężar następnej serii, przerwa dalej liczy się na dole. */
+function cwRestToEx(){
+  const cw=window._cw;if(!cw||!window._cwRestTimer)return;
+  cw.restOnEx=true;cw.phase='exercise';
+  if(typeof cwRender==='function')cwRender();
+}
+window.cwRestAdd=cwRestAdd;window.cwRestToEx=cwRestToEx;
 window.csShortName=csShortName;window.csRirFriendly=csRirFriendly;window.csNoteInfo=csNoteInfo;window.csTempoText=csTempoText;window.csNum=csNum;
 
 /* Zapis serii: dokładnie raz. Po zapisie przycisk w tym samym miejscu zmienia znaczenie (przerwa / „Następne ćwiczenie”),
@@ -988,8 +1011,11 @@ function cwSaveSet(setIdx){
   // Zmieniony ciężar przechodzi na kolejne serie, które miały ten sam ciężar z planu (nie trzeba wpisywać 17,5 drugi raz).
   const origKg=st._orig?String(st._orig.kg==null?'':st._orig.kg):null;
   const newKg=String(st.kg==null?'':st.kg);
+  // Zapis w trakcie przerwy (pasek na dole): stara przerwa się kończy — po ostatniej serii nie liczy się dalej.
+  const restWas=!!(cw.restOnEx&&window._cwRestTimer);
   if(typeof cwCheckSet==='function')cwCheckSet(setIdx);
   if(!st.done)return;
+  if(restWas&&cw.phase!=='rest'&&window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;cw.restOnEx=false;if(typeof cwRender==='function')cwRender();}
   cwLockTaps();
   if(origKg!=null&&newKg!==''&&newKg!==origKg){
     let carried=false;
@@ -1053,6 +1079,7 @@ function csRestHTML(cw){
     <div class="cs-ex-top"><span class="cs-ex-pos">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</span><span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span></div>
     <div class="cs-ex-scroll"><div class="cw-rest cs-rest">
       <div class="cw-rest-num cs-rest-clock" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy">${csRestClock(cw.restLeft)}</div>
+      <div class="cs-rest-adj" role="group" aria-label="Zmień czas przerwy"><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa dłużej o 15 sekund" onclick="cwRestAdd(15)">+15 s</button></div>
       <div class="sr-only" id="cw-rest-live" aria-live="polite"></div>
       ${ns?`<div class="cs-rest-next">
         <span class="cs-eyebrow">${change?'NASTĘPNE ĆWICZENIE':(emom?'NASTĘPNA RUNDA':'NASTĘPNA SERIA')}</span>
@@ -1062,6 +1089,7 @@ function csRestHTML(cw){
     </div></div>
     <div class="cs-ex-foot">
       ${cwSavedBannerHTML(cw)}
+      ${ns?`<button type="button" class="cs-link cs-rest-edit" onclick="cwRestToEx()">Popraw ciężar następnej serii</button>`:''}
       <button type="button" class="cs-btn cs-btn-secondary cs-rest-skip" onclick="cwSkipRestTap()">Pomiń przerwę</button>
     </div>
   </div>`;
