@@ -47,6 +47,32 @@ async function clientPage(browser, rulesOk) {
 (async () => {
   const browser = await chromium.launch();
   try {
+    // ---------- klient: zgoda w telefonie jest, ale telefon nie jest zapisany w serwerze → zapis po cichu ----------
+    {
+      const r = await clientPage(browser, true);
+      const auto = await r.page.evaluate(async () => {
+        const fakeSub = { endpoint: 'https://push.example.test/abc', toJSON: () => ({ endpoint: 'https://push.example.test/abc', keys: { p256dh: 'P', auth: 'A' } }) };
+        let subscribed = 0;
+        const reg = { pushManager: { getSubscription: async () => (subscribed ? fakeSub : null), subscribe: async () => { subscribed++; return fakeSub; } } };
+        Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: { ready: Promise.resolve(reg) } });
+        Object.defineProperty(Notification, 'permission', { configurable: true, get: () => 'granted' });
+        window.__writes = [];
+        await window.commsAutoSubscribe();
+        const subs = window.__writes.filter(w => w[0] === 'pushSubscriptions');
+        const prefs = window.__writes.filter(w => w[0] === 'commsPrefs').pop();
+        // Klient sam wyłączył powiadomienia na tym telefonie → bez ponownego zapisu.
+        window.COMMS.prefs.c1 = Object.assign({}, window.COMMS.prefs.c1, { push: { subscribed: false, off: true } });
+        window.__writes = []; await window.commsAutoSubscribe();
+        const afterOff = window.__writes.length;
+        return { subs: subs.length, sub: subs[0] && { client: subs[0][1].clientId, trainer: subs[0][1].trainerId, hasKeys: !!subs[0][1].keys.p256dh },
+          prefs: prefs && prefs[1], afterOff, prompts: subscribed };
+      });
+      ok('push: zgoda w telefonie bez zapisu w serwerze → telefon zapisany po cichu', auto.subs === 1 && auto.sub.client === 'c1' && auto.sub.trainer === 'cs-trainer' && auto.sub.hasKeys, JSON.stringify(auto));
+      ok('push: po zapisie kanał „push” i subscribed=true', auto.prefs && auto.prefs.push.subscribed === true && auto.prefs.channel === 'push', JSON.stringify(auto.prefs));
+      ok('push: po ręcznym wyłączeniu na telefonie brak automatycznego zapisu', auto.afterOff === 0, JSON.stringify(auto));
+      ok('bez błędów JS (auto-zapis push)', !r.errors.length, r.errors.join(' | '));
+      await r.ctx.close();
+    }
     // ---------- klient: reguły opublikowane ----------
     let { ctx, page, errors } = await clientPage(browser, true);
     let v = await page.evaluate(() => {

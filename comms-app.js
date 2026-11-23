@@ -185,8 +185,24 @@
     COMMS.loaded=true;
     handleDeepLink();
     rerenderClient();
+    autoSubscribe();
   }
   window.commsClientLoad=commsClientLoad;
+  /* Zgoda w telefonie jest (np. dana przed uruchomieniem serwera), ale ten telefon nie jest zapisany w serwerze
+     albo zapis zniknął — zapisujemy go po cichu przy otwarciu. Bez pytania o zgodę: tylko gdy już jest „granted”. */
+  async function autoSubscribe(){
+    try{
+      if(!PUSH_SUPPORTED()||!VAPID_PUBLIC_KEY||Notification.permission!=='granted')return;
+      const p=myPrefs();
+      if(p&&p.channel==='none')return;
+      if(p&&p.push&&p.push.off)return; // klient sam wyłączył na tym telefonie
+      const reg=await navigator.serviceWorker.ready;
+      const cur=await reg.pushManager.getSubscription();
+      if(cur&&p&&p.push&&p.push.subscribed)return;
+      await subscribePush({silent:true});
+    }catch(e){}
+  }
+  window.commsAutoSubscribe=autoSubscribe;
   function myPrefs(){const cid=window._clientId;const p=COMMS.prefs[cid];return p&&typeof p==='object'?p:{channel:'push',categories:{meetings:true,plan:true,checkins:true},quiet:{from:'21:00',to:'08:00'},fallback:true};}
   async function savePrefs(patch){
     const cid=window._clientId,tid=window._trainerId||window._uid;
@@ -206,6 +222,7 @@
     if(!PUSH_SUPPORTED())pushInfo=IS_IOS()&&!STANDALONE()?'Na iPhonie powiadomienia działają po dodaniu aplikacji do ekranu początkowego (Udostępnij → „Do ekranu początkowego”) i otwarciu jej z ikony.':'Ta przeglądarka nie obsługuje powiadomień.';
     else if(perm==='denied')pushInfo='Powiadomienia są zablokowane w ustawieniach telefonu lub przeglądarki. Włącz je tam, a potem wróć tutaj.';
     else if(p.push&&p.push.subscribed)pushInfo='Ten telefon jest zapisany do powiadomień. Dostarczenie zależy też od ustawień telefonu (np. tryb skupienia).';
+    else if(perm==='granted')pushInfo='Telefon ma zgodę na powiadomienia, ale nie jest jeszcze zapisany do powiadomień od trenera. Dotknij „Włącz powiadomienia”.';
     else pushInfo='Powiadomienia nie są włączone na tym telefonie.';
     const serverReady=!!VAPID_PUBLIC_KEY;
     const ch=(v,l)=>`<label class="comms-radio"><input type="radio" name="comms-ch" value="${v}" ${p.channel===v?'checked':''} data-act="comms-channel"> <span>${l}</span></label>`;
@@ -258,20 +275,28 @@
     let perm;try{perm=await Notification.requestPermission();}catch(e){perm='default';}
     if(perm!=='granted'){toast(perm==='denied'?'Powiadomienia zablokowane. Możesz je włączyć w ustawieniach telefonu.':'Nie włączono powiadomień.');rerenderClient();return;}
     if(!VAPID_PUBLIC_KEY){toast('Zgoda zapisana na tym telefonie. Wysyłkę z serwera trener uruchomi później.');rerenderClient();return;}
+    const ok=await subscribePush({silent:false});
+    toast(ok?'Powiadomienia włączone.':'Nie udało się włączyć powiadomień. Spróbuj ponownie później.');
+  });
+  async function subscribePush(){
     try{
       const reg=await navigator.serviceWorker.ready;
-      const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC_KEY)});
+      const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC_KEY)});
       const j=sub.toJSON();const id='ps_'+(await sha(j.endpoint)).slice(0,40);
       const doc={id,trainerId:window._trainerId,clientId:window._clientId,endpoint:j.endpoint,keys:{p256dh:j.keys.p256dh,auth:j.keys.auth},device:deviceLabel(),createdAt:nowIso()};
       await window._setDoc(window._doc(window._db,'pushSubscriptions',id),doc);
-      await savePrefs({push:{subscribed:true,at:nowIso(),device:deviceLabel()}});
-      toast('Powiadomienia włączone.');
-    }catch(e){toast('Nie udało się włączyć powiadomień. Spróbuj ponownie później.');}
-  });
+      const p=myPrefs();
+      const patch={push:{subscribed:true,at:nowIso(),device:deviceLabel()}};
+      if(!p||!p.channel)patch.channel='push'; // pierwsze włączenie: push staje się sposobem przypominania
+      await savePrefs(patch);
+      rerenderClient();
+      return true;
+    }catch(e){return false;}
+  }
   act('comms-push-off',async()=>{
     try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();
       if(sub){const id='ps_'+(await sha(sub.endpoint)).slice(0,40);try{await window._del(window._doc(window._db,'pushSubscriptions',id));}catch(e){}await sub.unsubscribe();}}catch(e){}
-    savePrefs({push:{subscribed:false,at:nowIso(),device:deviceLabel()}});
+    savePrefs({push:{subscribed:false,off:true,at:nowIso(),device:deviceLabel()}});
   });
   act('comms-push-test',async()=>{
     try{const reg=await navigator.serviceWorker.ready;

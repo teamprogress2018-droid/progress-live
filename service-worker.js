@@ -19,7 +19,8 @@
 // Wersja 105: stan serwera wiadomości (działa / symulacja / wymaga konfiguracji), widoczny stan zapisu serii.
 // Wersja 106: klucz publiczny Web Push — klient może włączyć powiadomienia z serwera.
 // Wersja 107: kalendarz pokazuje imię i nazwisko klienta; szybkie dodanie klienta w oknie sesji.
-const CACHE_NAME='progress-live-shell-v107';
+// Wersja 108: telefon ze zgodą na powiadomienia zapisuje się do serwera sam przy otwarciu aplikacji.
+const CACHE_NAME='progress-live-shell-v108';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
