@@ -957,7 +957,7 @@ function cwSimpleExerciseHTML(cw,ex){
       <ul class="cs-setlogs">${setList}</ul>
       ${histExtra?`<div class="cs-hist-prev">${histExtra}</div>`:''}
       ${pr?`<p class="cs-tip-line">Rekord: ${csEsc(csNum(pr.kg))} kg × ${csEsc(String(pr.reps))}</p>`:''}
-      <div class="cw-sync-state ${cw.syncState==='local'?'is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>
+      ${cw.syncState==='local'||cw.syncState==='error'?'':`<div class="cw-sync-state" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`}
     </details>`;
   const nextEx=cw.exercises[idx+1];
   const primary=allDone
@@ -984,7 +984,7 @@ function cwSimpleExerciseHTML(cw,ex){
           <div class="cs-set-head"><b>${allDone?(ex.skipped?'Pominięte':'Wszystkie serie zrobione'):'Seria '+csEsc(setNo)+' z '+sets.length}${kindTag&&!allDone?` · ${csEsc(kindTag)}`:''}</b><span class="cs-dots" aria-hidden="true">${dots}</span></div>
           ${card}
         </section>
-        ${cw.syncState==='error'?`<div class="cw-sync-state is-error" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
+        ${cw.syncState==='error'||cw.syncState==='local'?`<div class="cw-sync-state${cw.syncState==='error'?' is-error':' is-local'}" role="status" aria-live="polite" data-cw-sync-visible>${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
         ${hist}
       </div>
     </div>

@@ -189,6 +189,7 @@ Podgląd kolejki w panelu trenera jest opisany jako symulacja.
 | `commsPrefs/{clientId}` | tylko klient | wybrany kanał, zgoda WhatsApp z datą i treścią, kategorie, cisza nocna |
 | `pushSubscriptions` | klient (swoje urządzenie), serwer usuwa wygasłe | adres i klucze Web Push |
 | `commsJobs` | tylko serwer | kolejka i statusy: zaplanowano → przekazano → dostarczono → odczytano, błąd, nieznany, anulowano |
+| `commsStatus/{trainerId}` | tylko serwer (każde uruchomienie) | czas ostatniego uruchomienia i stan kanałów: `live` / `simulation` / `needs_config` / `off` z NAZWAMI brakujących ustawień — bez treści, danych klientów i wartości sekretów |
 
 Reguły są w `firestore.rules` i są sprawdzane w emulatorze (`test-tenant-rules.cjs`).
 **Trzeba je opublikować w konsoli Firebase** (Firestore → Reguły). Do tego czasu zgłoszenia klientów
@@ -217,6 +218,11 @@ idą zwykłą wiadomością czatu ze znacznikiem, a „Do odpowiedzi” odczytuj
    Po sprawdzeniu historii („Symulacja — nic nie wysłano”) na koncie testowym: `"live": true`.
    Dopisanie `"whatsapp"` do `channels` włącza WhatsApp. `enabled: false` zatrzymuje wszystko.
    Zmiany i plany sprzed `enabledAt` nie wywołują wiadomości (brak zaległej wysyłki po włączeniu).
+6. Sprawdzenie w aplikacji: panel „Spotkania i powiadomienia” czyta `commsStatus`. Pokazuje „Działa” tylko wtedy,
+   gdy serwer uruchomił się w ostatnich 30 minutach, kanał jest włączony, ma komplet ustawień i `live: true`.
+   Bez dokumentu (serwer nie wdrożony albo reguła `commsStatus` nieopublikowana) panel i klient widzą
+   „Serwer nie jest uruchomiony”. Brak ustawień kanału = „Wymaga konfiguracji” z listą nazw, nigdy pozorna wysyłka.
+   W logach funkcji pojawia się wtedy `comms-config-missing` z nazwą kanału i nazwami brakujących ustawień.
 
 ### Zasady wysyłki
 

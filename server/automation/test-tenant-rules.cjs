@@ -499,6 +499,16 @@ test('communication: client cases, contact preferences, push subscriptions and s
   denied(await read('commsJobs/' + jobId, userA), 'client cannot read job queue');
   denied(await patch('commsJobs/' + jobId, {status: 'delivered'}, ownerA), 'browser cannot fake delivery status');
   denied(await write('commsJobs/' + run + '-job2', clientData({id: run + '-job2', status: 'delivered'}), ownerA), 'browser cannot create jobs');
+
+  // Stan serwera wiadomości: czyta trener i jego klienci, zapisuje tylko serwer (Admin SDK).
+  await seed('commsStatus/' + trainerA, {id: trainerA, trainerId: trainerA, lastRunAt: now, live: false, channels: {push: {mode: 'simulation', missing: []}}});
+  ok(await read('commsStatus/' + trainerA, ownerA), 'trainer reads messaging server status');
+  ok(await read('commsStatus/' + trainerA, userA), 'own client reads messaging server status');
+  denied(await read('commsStatus/' + trainerA, ownerB), 'foreign trainer cannot read server status');
+  denied(await read('commsStatus/' + trainerA, userB), 'foreign client cannot read server status');
+  denied(await read('commsStatus/' + trainerA, null), 'anonymous cannot read server status');
+  denied(await patch('commsStatus/' + trainerA, {live: true}, ownerA), 'browser cannot fake live sending');
+  denied(await write('commsStatus/' + trainerB, {id: trainerB, trainerId: trainerB, live: true}, ownerB), 'browser cannot create server status');
 });
 
 test('builder plan transactions read missing IDs without exposing existing foreign plans', async () => {

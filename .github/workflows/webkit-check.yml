@@ -1,0 +1,30 @@
+name: Safari (WebKit) — aplikacja klienta
+# Emulacja silnika Safari na Linuksie (Playwright WebKit, profil iPhone 13).
+# NIE zastępuje testu na prawdziwym iPhonie: patrz docs/pilotaz-test-reczny.md.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  webkit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Zainstaluj WebKit (Playwright)
+        run: |
+          npm install playwright
+          npx playwright install --with-deps webkit
+      - name: Uruchom lokalny serwer
+        run: |
+          python3 -m http.server 8080 &
+          sleep 2
+      - name: iPhone 13 na WebKit — PWA, VoiceOver (nazwy, fokus), 44 pt, błąd pod polem, obrót, offline, wznowienie
+        run: node .github/scripts/test_client_iphone_webkit_ui.js

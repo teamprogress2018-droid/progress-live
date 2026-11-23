@@ -120,8 +120,42 @@ async function dispatchDue(db, trainerId, state, control, providers, {runId, now
   return counts;
 }
 
-/** Jedno uruchomienie harmonogramu dla wszystkich trenerów z włączonymi wiadomościami. */
-async function runComms(db, {runId, nowMs = Date.now(), providers = {}} = {}) {
+/** Brakujące ustawienia kanałów (same NAZWY zmiennych, nigdy wartości). env: {NAZWA: wartość|''}. */
+const CHANNEL_CONFIG = {
+  push: ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY'],
+  whatsapp: ['WHATSAPP_TOKEN', 'WHATSAPP_PHONE_NUMBER_ID']
+};
+function commsConfigStatus(env = {}) {
+  const out = {};
+  for (const [channel, names] of Object.entries(CHANNEL_CONFIG)) {
+    const missing = names.filter(n => !String(env[n] || '').trim());
+    out[channel] = {configured: missing.length === 0, missing};
+  }
+  return out;
+}
+
+/** Stan kanału dla panelu trenera: działa / symulacja / wymaga konfiguracji / wyłączony. */
+function channelMode(control, config, providers, channel) {
+  if (!control.channels.includes(channel)) return 'off';
+  if (!providers[channel] || !(config[channel] && config[channel].configured !== false)) return 'needs_config';
+  return control.live ? 'live' : 'simulation';
+}
+
+/** Dokument commsStatus/{trainerId}: dowód, że serwer pracuje, i stan kanałów. Bez treści wiadomości i danych klientów. */
+async function writeStatus(db, trainerId, control, config, providers, counts, nowMs) {
+  const iso = new Date(nowMs).toISOString();
+  const channels = {};
+  for (const ch of Object.keys(CHANNEL_CONFIG)) {
+    channels[ch] = {mode: channelMode(control, config, providers, ch), missing: (config[ch] && config[ch].missing) || []};
+  }
+  await db.collection('commsStatus').doc(trainerId).set({id: trainerId, trainerId, lastRunAt: iso, live: control.live,
+    channels, counts: {sent: counts.sent, simulated: counts.simulated, failed: counts.failed, retry: counts.retry}}, {merge: false});
+}
+
+/** Jedno uruchomienie harmonogramu dla wszystkich trenerów z włączonymi wiadomościami.
+    config: wynik commsConfigStatus — brak ustawień kanału oznacza „wymaga konfiguracji”, nigdy pozorną wysyłkę. */
+async function runComms(db, {runId, nowMs = Date.now(), providers = {}, config = null} = {}) {
+  if (!config) config = Object.fromEntries(Object.keys(CHANNEL_CONFIG).map(ch => [ch, {configured: !!providers[ch], missing: providers[ch] ? [] : CHANNEL_CONFIG[ch]}]));
   const totals = {trainers: 0, created: 0, cancelled: 0, sent: 0, simulated: 0, failed: 0, retry: 0, inapp: 0, task: 0};
   const snap = await db.collection(CONTROL_PATH).get();
   for (const doc of snap.docs) {
@@ -135,6 +169,7 @@ async function runComms(db, {runId, nowMs = Date.now(), providers = {}} = {}) {
     state = {...state, jobs: (await list(db, 'commsJobs', trainerId, q => q.where('dueAt', '<=', nowMs))).map(j => ({...j, id: j.key || j.id}))};
     const c = await dispatchDue(db, trainerId, state, control, providers, {runId, nowMs});
     Object.keys(c).forEach(k => { totals[k] += c[k]; });
+    await writeStatus(db, trainerId, control, config, providers, c, nowMs);
   }
   return totals;
 }
@@ -232,5 +267,5 @@ async function handleWhatsAppWebhook(db, payload, nowMs = Date.now()) {
   return out;
 }
 
-module.exports = {commsControl, loadState, syncJobs, dispatchDue, runComms, safeId, webPushProvider, whatsappProvider,
+module.exports = {commsControl, commsConfigStatus, channelMode, CHANNEL_CONFIG, loadState, syncJobs, dispatchDue, runComms, safeId, webPushProvider, whatsappProvider,
   verifyWhatsAppSignature, handleWhatsAppWebhook};

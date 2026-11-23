@@ -31,6 +31,15 @@ const WA_PHONE_ID = defineString('WHATSAPP_PHONE_NUMBER_ID', {default: ''});
 const WA_APP_SECRET = defineSecret('WHATSAPP_APP_SECRET');
 const WA_VERIFY = defineSecret('WHATSAPP_VERIFY_TOKEN');
 
+function secretValue(secret) { try { return secret.value() || ''; } catch (e) { return ''; } }
+/** Które ustawienia są obecne — tylko tak/nie, wartości nie wychodzą poza tę funkcję. */
+function commsConfig() {
+  return comms.commsConfigStatus({
+    VAPID_PUBLIC_KEY: VAPID_PUBLIC.value(), VAPID_PRIVATE_KEY: secretValue(VAPID_PRIVATE),
+    WHATSAPP_TOKEN: secretValue(WA_TOKEN), WHATSAPP_PHONE_NUMBER_ID: WA_PHONE_ID.value()
+  });
+}
+
 function commsProviders() {
   const p = {};
   try { if (VAPID_PUBLIC.value() && VAPID_PRIVATE.value()) p.push = comms.webPushProvider({publicKey: VAPID_PUBLIC.value(), privateKey: VAPID_PRIVATE.value(), subject: VAPID_SUBJECT.value()}); } catch (e) { logger.warn('comms-push-config'); }
@@ -43,7 +52,11 @@ exports.commsScheduler = onSchedule({
   timeoutSeconds: 120, memory: '256MiB', maxInstances: 1, concurrency: 1, retryCount: 0,
   secrets: [VAPID_PRIVATE, WA_TOKEN]
 }, async event => {
-  const totals = await comms.runComms(getFirestore(), {runId: String(event.scheduleTime), providers: commsProviders()});
+  const config = commsConfig();
+  for (const [channel, c] of Object.entries(config)) {
+    if (!c.configured) logger.warn('comms-config-missing', {channel, missing: c.missing}); // same nazwy ustawień
+  }
+  const totals = await comms.runComms(getFirestore(), {runId: String(event.scheduleTime), providers: commsProviders(), config});
   logger.info('comms-summary', totals); // tylko liczniki, bez treści i nazw klientów
 });
 

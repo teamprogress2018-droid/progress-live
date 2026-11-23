@@ -849,6 +849,16 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_comms_ui.js
 
+      - name: 6d1p. Zapis i synchronizacja treningu klienta — offline, błąd zapisu, konflikt, zamknięcie i wznowienie (atrapa Firestore)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_sync_ui.js
+
+      - name: 6d1q. Scenariusz iPhone 13 w Chromium (ten sam co w workflow WebKit) — nazwy dla VoiceOver, fokus, 44 pt, obrót
+        if: ${{ !cancelled() }}
+        env:
+          BROWSER: chromium
+        run: node .github/scripts/test_client_iphone_webkit_ui.js
+
       - name: 6d2. Ekran treningu klienta na iPhonie (safe area, Wróć, Zapisz serię, Cofnij, nawigacja bez swipe)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_workout_ios_ui.js

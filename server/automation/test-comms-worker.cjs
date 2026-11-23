@@ -200,5 +200,23 @@ const reminder = db => jobs(db).find(j => j.kind === 'meeting_reminder');
   ok(out.ok && sent.body.type === 'template' && sent.body.to === '48600100200' && sent.body.template.name === 'progress_przypomnienie_spotkanie', 'WhatsApp template request');
   ok(/graph\.facebook\.com\/v\d+\.\d+\/123\/messages/.test(sent.url), 'Cloud API endpoint');
 
+  // 15. Stan dla panelu trenera (commsStatus): symulacja / wymaga konfiguracji / działa — bez treści i danych klientów.
+  const stOf = db0 => db0._store.commsStatus && db0._store.commsStatus[T];
+  db = seed(fakeDb());
+  await W.runComms(db, {runId: 's1', nowMs: now, providers: {whatsapp: spy, push: spy}});
+  ok(stOf(db) && stOf(db).channels.whatsapp.mode === 'simulation' && stOf(db).channels.push.mode === 'simulation' && stOf(db).lastRunAt === iso(now), 'status: simulation');
+  db = seed(fakeDb(), {live: true});
+  const cfgNone = W.commsConfigStatus({});
+  await W.runComms(db, {runId: 's2', nowMs: now, providers: {}, config: cfgNone});
+  ok(stOf(db).channels.whatsapp.mode === 'needs_config' && stOf(db).channels.push.mode === 'needs_config', 'status: needs configuration when keys are missing');
+  ok(stOf(db).channels.whatsapp.missing.join() === 'WHATSAPP_TOKEN,WHATSAPP_PHONE_NUMBER_ID' && reminder(db).status === 'simulated', 'missing names listed; nothing pretends to be sent');
+  db = seed(fakeDb(), {live: true});
+  const cfgWa = W.commsConfigStatus({WHATSAPP_TOKEN: 'x', WHATSAPP_PHONE_NUMBER_ID: '1'});
+  await W.runComms(db, {runId: 's3', nowMs: now, providers: {whatsapp: spy}, config: cfgWa});
+  ok(stOf(db).channels.whatsapp.mode === 'live' && stOf(db).channels.push.mode === 'needs_config', 'status: WhatsApp live, push needs configuration');
+  const raw = JSON.stringify(stOf(db));
+  ok(!/Anna|48600100200|x"|spotkani/i.test(raw) && !raw.includes('"x"'), 'status has no client data, message text or secret values');
+  ok(!/48600|token/i.test(JSON.stringify(W.commsConfigStatus({WHATSAPP_TOKEN: 'tajny-token-48600'}))), 'config status never contains values');
+
   console.log('comms worker: ' + count + ' checks passed');
 })().catch(e => { console.error(e); process.exit(1); });

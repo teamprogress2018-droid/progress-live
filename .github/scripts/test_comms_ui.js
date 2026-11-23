@@ -99,6 +99,7 @@ async function clientPage(browser, rulesOk) {
     await page.screenshot({ path: path.join(shotDir, 'comms_notify_390.png'), fullPage: true });
     ok('Powiadomienia: wybór jednego sposobu kontaktu (3 opcje)', v.radios === 3 && /nie wysyłamy jej naraz wszędzie/.test(v.t));
     ok('Powiadomienia: uczciwa informacja o serwerze', /nie jest jeszcze uruchomiona/.test(v.t));
+    ok('Powiadomienia: WhatsApp nie jest przedstawiany jako działający', /Wysyłka przez WhatsApp nie jest jeszcze uruchomiona/.test(v.t), v.t.slice(0, 300));
     ok('Powiadomienia: bez przewijania w poziomie', !v.overflow);
     await page.fill('#comms-wa-phone', '600 100 200');
     await page.tap('[data-act="comms-wa-on"]');
@@ -182,7 +183,24 @@ async function clientPage(browser, rulesOk) {
     await page.waitForSelector('#m-comms.show');
     v = await page.evaluate(() => document.getElementById('m-comms').innerText);
     await page.screenshot({ path: path.join(shotDir, 'comms_panel.png') });
-    ok('panel: SYMULACJA — nic nie jest wysyłane', /SYMULACJA — nic nie jest wysyłane/.test(v));
+    ok('panel: podgląd opisany jako niewysyłany z przeglądarki', /PODGLĄD — przeglądarka niczego nie wysyła/.test(v));
+    ok('panel: bez stanu serwera oba kanały „Serwer nie jest uruchomiony”', /Powiadomienia push: Serwer nie jest uruchomiony/.test(v) && /WhatsApp: Serwer nie jest uruchomiony/.test(v) && /jeszcze nie uruchomiona/.test(v), v.slice(0, 400));
+    // Pusta kolejka z opublikowanych reguł NIE oznacza, że serwer działa.
+    v = await page.evaluate(() => { window.COMMS.jobs = []; window.COMMS.status = null; openCommsPanel(); return document.getElementById('m-comms').innerText; });
+    ok('panel: pusta kolejka bez stanu serwera nie udaje działania', /jeszcze nie uruchomiona/.test(v) && !/Działa/.test(v), v.slice(0, 300));
+    // Stan z serwera: WhatsApp działa, push wymaga konfiguracji (nazwy brakujących ustawień, bez wartości).
+    v = await page.evaluate(() => { window.COMMS.status = { lastRunAt: new Date().toISOString(), live: true,
+      channels: { push: { mode: 'needs_config', missing: ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY'] }, whatsapp: { mode: 'live', missing: [] } } };
+      openCommsPanel(); const m = document.getElementById('m-comms');
+      return { t: m.innerText, push: m.querySelector('[data-comms-ch="push"]').dataset.state, wa: m.querySelector('[data-comms-ch="whatsapp"]').dataset.state }; });
+    ok('panel: WhatsApp „Działa”, push „Wymaga konfiguracji” z nazwami ustawień', v.wa === 'live' && v.push === 'needs_config' && /brakuje: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY/.test(v.t) && /Wysyłka po zamknięciu aplikacji: działa/.test(v.t), JSON.stringify(v).slice(0, 300));
+    v = await page.evaluate(() => { window.COMMS.status = { lastRunAt: new Date().toISOString(), live: false,
+      channels: { push: { mode: 'simulation' }, whatsapp: { mode: 'simulation' } } }; openCommsPanel(); return document.getElementById('m-comms').innerText; });
+    ok('panel: tryb symulacji serwera wyraźnie opisany', /pracuje, ale nic nie wysyła/.test(v) && /Symulacja — nic nie jest wysyłane/.test(v), v.slice(0, 300));
+    v = await page.evaluate(() => { window.COMMS.status = { lastRunAt: new Date(Date.now() - 3 * 3600e3).toISOString(), live: true,
+      channels: { push: { mode: 'live' }, whatsapp: { mode: 'live' } } }; openCommsPanel(); return document.getElementById('m-comms').innerText; });
+    ok('panel: stary stan (3 godz.) = serwer nie jest uruchomiony', /WhatsApp: Serwer nie jest uruchomiony/.test(v) && !/Wysyłka po zamknięciu aplikacji: działa/.test(v), v.slice(0, 300));
+    await page.evaluate(() => { window.COMMS.status = null; window.COMMS.jobs = null; openCommsPanel(); });
     ok('panel: przypomnienie dzień przed w podglądzie', /Przypomnienie dzień przed spotkaniem/.test(v));
     ok('panel: brak historii wysyłki bez serwera', /serwer nie wysyła jeszcze wiadomości/.test(v));
     ok('panel: klient bez wyboru = tylko w aplikacji', /nie wybrał\(a\) — tylko w aplikacji/.test(v));
