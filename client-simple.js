@@ -6,6 +6,8 @@
  * Dane: te same co dotąd (PL, SE, METRIC_ENTRIES, SETTINGS z publicznego profilu trenera). */
 
 const CS_ICONS={
+  lock:'<rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path>',
+  camera:'<path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect>',
   'bell-off':'<path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"></path><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path><path d="m2 2 20 20"></path>',
   bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
@@ -730,6 +732,7 @@ function csSheetHTML(cw){
     body=`${inEx&&cw.exIdx>0?`<button type="button" class="cs-btn cs-btn-ghost" data-cs-sheet-first onclick="cwNavGo(-1)">← Poprzednie ćwiczenie</button>`:''}
       ${inEx&&(ex.alts||[]).length?`<button type="button" class="cs-btn cs-btn-ghost"${cw.exIdx>0?'':' data-cs-sheet-first'} onclick="cwOpenSheet('swap')">Zamień ćwiczenie</button>`:''}
       ${inEx&&!exDone&&!ex.skipped?`<button type="button" class="cs-btn cs-btn-ghost" data-cs-skip onclick="cwSkipAsk()">Pomiń ćwiczenie…</button>`:''}
+      ${typeof cvOpen==='function'?`<button type="button" class="cs-btn cs-btn-ghost" data-cv-open onclick="cvOpen()">🎥 Wyślij film trenerowi</button>`:''}
       <button type="button" class="cs-btn cs-btn-ghost" onclick="cwSheetClose();cwToOverview()">Lista ćwiczeń</button>
       <button type="button" class="cs-btn cs-btn-ghost cs-warn" onclick="cwSheetClose();cwReportProblem()">Zgłoś ból lub problem</button>
       <button type="button" class="cs-btn cs-btn-ghost cs-warn" onclick="cwEndWorkout()">Zakończ trening</button>`;
@@ -767,6 +770,7 @@ function csSheetHTML(cw){
       ${ex.progHint?`<p class="cs-tip-line">${csEsc(ex.progHint)}</p>`:''}
       ${typeof isEmomExercise==='function'&&isEmomExercise(ex)?'<p class="cs-tip-line">EMOM: zrób serię i odpocznij do końca minuty.</p>':''}
     </div>
+    ${typeof cvOpen==='function'?`<button type="button" class="cs-btn cs-btn-ghost" data-cv-open onclick="cvOpen()">🎥 Wyślij film z techniką trenerowi</button>`:''}
     <button type="button" class="cs-btn cs-btn-secondary" data-cs-sheet-first onclick="cwSheetClose()">Wróć do serii</button>`;
   }else if(sh.kind==='skip'){
     title='Dlaczego pomijasz?';
@@ -1021,6 +1025,7 @@ function cwSimpleExerciseHTML(cw,ex){
         </section>
         ${cw.syncState==='error'||cw.syncState==='local'?`<div class="cw-sync-state${cw.syncState==='error'?' is-error':' is-local'}" role="status" aria-live="polite" data-cw-sync-visible>${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
         ${hist}
+        ${typeof cvOpen==='function'?`<button type="button" class="cs-link cs-cv-link" data-cv-open onclick="cvOpen()">${csIcon('camera',18)}Wyślij film trenerowi</button>`:''}
       </div>
     </div>
     <div class="cs-swipe-hint" aria-hidden="true"></div>

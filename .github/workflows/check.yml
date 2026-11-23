@@ -879,6 +879,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_motivation_ui.js
 
+      - name: 6d3c. Film techniki od klienta do trenera — podgląd i potwierdzenie, format/rozmiar/długość, błąd sieci i ponowienie, offline, karta w czacie, usuwanie (atrapa Storage)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_video_ui.js
+
       - name: 6d4. Aplikacja klienta na telefonie (nagłówek, 44 px, kontrast, Technika, 360/390/430 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_mobile_fixes_ui.js

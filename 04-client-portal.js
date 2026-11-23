@@ -139,7 +139,7 @@ function capOdProgMsgId(text){
   return m?m[1]:null;
 }
 function capStripOdTags(text){
-  return String(text||'').replace(/\[od(?:prog)?:[^\]]+\]\s*/g,'').trim();
+  return String(text||'').replace(/\[od(?:prog)?:[^\]]+\]\s*/g,'').replace(/\[film:[^\]]*\]\s*/g,'').trim();
 }
 function capSetOdTab(tab){
   window._capOdTab=tab;
@@ -1291,7 +1291,7 @@ function capScreenHTML(scr,c){
       const odId=capOdMsgId(raw);
       const odProgId=capOdProgMsgId(raw);
       const display=escHtml(capStripOdTags(raw));
-      return {out:!!m.out,text:display,time:m.time||'',odId,odProgId};
+      return {out:!!m.out,text:display,time:m.time||'',odId,odProgId,cv:typeof cvChatCardHTML==='function'?cvChatCardHTML(m,{viewer:'client'}):''};
     };
     const msgs=realMsgs.length?realMsgs.map(fmtMsg):[
       {out:false,text:escHtml('Hej! Napisz do mnie, gdy pojawi się pytanie o trening 💪'),time:'',odId:null}
@@ -1307,6 +1307,7 @@ function capScreenHTML(scr,c){
       <div style="flex:1;overflow-y:auto;padding:14px 12px;">
         ${msgs.map(m=>`<div style="margin-bottom:10px;${!m.out?'text-align:right;':''}">
           <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'var(--on-accent,#fff)':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odProgId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary cap-btn-soft" style="padding:8px 12px;font-size:12px;width:100%;" data-act="od-program" data-program-id="${escHtml(m.odProgId)}">📋 Otwórz program</button></div>`:''}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" data-act="od-workout" data-workout-id="${escHtml(m.odId)}">▶ Odtwórz trening</button></div>`:''}</div>
+          ${m.cv||''}
           <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${escHtml(m.time)}</div>
         </div>`).join('')}
       </div>

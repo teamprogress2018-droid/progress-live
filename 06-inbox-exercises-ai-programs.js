@@ -343,6 +343,7 @@ function openChat(id){
       ${pill}
       <div class="msg-bubble ${m.out?'msg-out':'msg-in'}" style="white-space:pre-wrap;">${escHtml(display)}</div>
       <div style="font-size:10px;color:var(--muted);margin-top:3px;">${escHtml(m.time||'')}</div>
+      ${!m.out&&typeof cvChatCardHTML==='function'?cvChatCardHTML(m,{viewer:'trainer',clientId:id}):''}
       ${!m.out&&typeof praiseChatBlockHTML==='function'?praiseChatBlockHTML(m,id):''}
     </div>`;
   }).join('')
