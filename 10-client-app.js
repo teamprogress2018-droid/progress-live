@@ -337,6 +337,7 @@ function enterClientLiveShell(){
   renderClientLive();
   // Wyniki zapisane offline są wysyłane po kolejnym otwarciu aplikacji.
   if(typeof cwFlushLocal==='function')setTimeout(()=>cwFlushLocal(),0);
+  if(typeof csOutboxFlush==='function')setTimeout(()=>csOutboxFlush(),0);
   clientTryOpenOdDeepLink();
   clientTryOpenPendingDeepLink();
 }
@@ -1307,8 +1308,10 @@ function cwBuildRecord(cw,status){
     id:cw.sessionId,clientId:window._clientId,date:cw.date||todayYmd(),time:cw.time||new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:cw.dayName||'Trening',duration,exercises:cwLoggedExercises(cw),volume,source:'client',planId:cw.planId,dayIdx:cw.dayIdx,
     createdAt:cw.createdAt||now,startedAt:cw.startedAtIso||now,updatedAt:now,status:status||'in_progress',
-    planSnapshot:{planId:cw.planId,planName:cw.planName||'',dayName:cw.dayName||'',exercises:cw.planSnapshot||[]},
-    issues:(cw.issues||[]).slice(),feedback:0,difficulty:Number(cw.rating)||0,note:cw.note||'',confirmedSets:total
+    // Rozgrzewka ustalana przed pierwszym zapisem sesji — dalej się nie zmienia (planSnapshot jest niezmienny w regułach).
+    planSnapshot:{planId:cw.planId,planName:cw.planName||'',dayName:cw.dayName||'',exercises:cw.planSnapshot||[],...(cw.warmupLog?{warmup:cw.warmupLog}:{})},
+    // feedback = samopoczucie po treningu 1–5 (ta sama skala co SESSION_RATING), 0 = bez odpowiedzi.
+    issues:(cw.issues||[]).slice(),feedback:Math.max(0,Math.min(5,Number(cw.feel)||0)),difficulty:Number(cw.rating)||0,note:cw.note||'',confirmedSets:total
   });
 }
 function cwWriteLocal(cw,preserveSyncState){
@@ -1366,6 +1369,7 @@ async function cwFlushLocal(){
   cached.active=true;cached.syncQueue=Promise.resolve();
   const ok=await cwPersist(cached,cached.status||'in_progress');
   if(ok&&['completed','partial'].includes(cached.status))cwClearLocal();
+  if(ok&&window._cwDone&&typeof csDoneRefresh==='function')csDoneRefresh();
   return ok;
 }
 if(typeof window.addEventListener==='function')window.addEventListener('online',()=>{if(window._cw&&window._cw.active)cwQueuePersist(window._cw,window._cw.status||'in_progress');else cwFlushLocal();});
@@ -1414,7 +1418,8 @@ function cwClose(force){
   if(force!==true&&window._cw&&window._cw.active&&typeof cwDirtySets==='function'&&cwDirtySets(window._cw).length&&typeof cwOpenSheet==='function'){
     cwOpenSheet('exit',{target:'close'});return;
   }
-  if(window._cw&&window._cw.active&&window._cw.phase!=='overview'&&window._cw.phase!=='finish'){
+  // Rozgrzewka jest przed startem: nic jeszcze nie zapisujemy (sesja powstaje dopiero po „Zacznij trening”).
+  if(window._cw&&window._cw.active&&window._cw.phase!=='overview'&&window._cw.phase!=='finish'&&window._cw.phase!=='warmup'){
     cwWriteLocal(window._cw);
     cwQueuePersist(window._cw,window._cw.status||'in_progress');
     if(typeof notify==='function')notify('Trening zapisano do wznowienia');
@@ -1473,21 +1478,24 @@ function cwStartRest(seconds,kind){
   cw.phase='rest';cw.restOnEx=false;
   cw.restKind=kind||'';
   cw.restLeft=seconds||90;
+  // Koniec przerwy liczony od zegara, nie od liczby „tyknięć” — przygaszony telefon nie wydłuża przerwy.
+  cw.restEndsAt=Date.now()+cw.restLeft*1000;
   cwClearTimers();
   window._cwClock=setInterval(()=>{
     if(!window._cw)return;
     window._cw.elapsed=Math.round((Date.now()-window._cw.startedAt)/1000);
   },1000);
   window._cwRestTimer=setInterval(()=>{
-    if(!window._cw)return;
-    window._cw.restLeft-=1;
-    const left=Math.max(0,window._cw.restLeft);
+    const c=window._cw;if(!c)return;
+    const left=c.restEndsAt?Math.max(0,Math.ceil((c.restEndsAt-Date.now())/1000)):Math.max(0,(c.restLeft|0)-1);
+    c.restLeft=left;
     const n=document.getElementById('cw-rest-num');
     if(n)n.textContent=typeof csRestClock==='function'?csRestClock(left):left;
+    if(typeof csRestFinalTick==='function')csRestFinalTick(left);
     const clk=document.getElementById('cw-clock');
-    if(clk)clk.textContent=cwFmt(window._cw.elapsed);
+    if(clk)clk.textContent=cwFmt(c.elapsed);
     cwRestAnnounce(left);
-    if(window._cw.restLeft<=0){cwRestDoneSignal();cwSkipRest();}
+    if(left<=0){cwRestDoneSignal();cwSkipRest();}
   },1000);
   cwRender();
 }
@@ -1500,6 +1508,8 @@ function cwRestAnnounce(left){
 }
 /** Koniec przerwy: wibracja (jeśli telefon pozwala) i krótki sygnał. */
 function cwRestDoneSignal(){
+  // Dźwięk i wibracja są opcjonalne (przełącznik na ekranie przerwy).
+  if(typeof csRestSignalOn==='function'&&!csRestSignalOn())return;
   if(typeof liveRestBeep==='function'){liveRestBeep('go');return;}
   try{if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate([140,70,220]);}catch(e){}
 }
@@ -1549,7 +1559,8 @@ function cwCheckSet(setIdx){
   if(!st.done){if(cw.lastSaved&&cw.lastSaved.exIdx===cw.exIdx&&cw.lastSaved.setIdx===setIdx)cw.lastSaved=null;cwRender();return;}
   cw.sheet=null;
   // „Seria 1 z 4 zapisana ✓” + „Cofnij” przez kilka sekund (także na ekranie przerwy).
-  cw.lastSaved={exIdx:cw.exIdx,setIdx,at:Date.now(),label:'Seria '+(setIdx+1)+' z '+ex.sets.length+' zapisana'+(st.reps&&typeof csRestHTML==='function'?' · '+String(st.reps)+(st.kg?' × '+String(st.kg).replace('.',',')+(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg')?' kg':''):''):'')};
+  const cheer=typeof csCheer==='function'?csCheer(cw,cw.exIdx):'';
+  cw.lastSaved={exIdx:cw.exIdx,setIdx,at:Date.now(),cheer,cheerKey:cheer?cw._cheerKey:'',label:'Seria '+(setIdx+1)+' z '+ex.sets.length+' zapisana'+(st.reps&&typeof csRestHTML==='function'?' · '+String(st.reps)+(st.kg?' × '+String(st.kg).replace('.',',')+(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg')?' kg':''):''):'')};
   const prMsg=typeof prToastText==='function'?prToastText(window._clientId,ex.name,st.kg,st.reps):'';
   if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
     cwEnsureEmomClock();
@@ -1620,7 +1631,7 @@ function cwCheckSet(setIdx){
 function cwSkipRest(){
   const cw=window._cw;if(!cw)return;
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
-  cw.phase='exercise';cw.restOnEx=false;
+  cw.phase='exercise';cw.restOnEx=false;cw.restEndsAt=0;
   cwWriteLocal(cw);
   cwRender();
 }
@@ -1751,8 +1762,11 @@ function cwRenderBase(){
   const back=`<button type="button" class="cs-back-btn" aria-label="Wróć — trening zostanie zapisany do wznowienia" onclick="cwClose()">${typeof csIcon==='function'?csIcon('back',20):'‹'}<span>Wróć</span></button>`;
   const sheet=typeof csSheetHTML==='function'?csSheetHTML(cw):'';
   // Ćwiczenie i lista rozpoczętego treningu: stały nagłówek i dół, przewija się środek (safe area iPhone'a).
-  const exMode=(cw.phase==='exercise'&&typeof cwSimpleExerciseHTML==='function')||(cw.phase==='rest'&&typeof csRestHTML==='function')||(cw.phase==='overview'&&typeof csOverviewHTML==='function'&&typeof cwStarted==='function'&&cwStarted(cw));
+  const exMode=(cw.phase==='exercise'&&typeof cwSimpleExerciseHTML==='function')||(cw.phase==='rest'&&typeof csRestHTML==='function')||(cw.phase==='overview'&&typeof csOverviewHTML==='function'&&typeof cwStarted==='function'&&cwStarted(cw))
+    ||(cw.phase==='warmup'&&typeof csWarmupHTML==='function')||(cw.phase==='finish'&&!cw.finishPrompt&&typeof csFinishHTML==='function');
   el.classList.toggle('cw-ex-mode',!!exMode);
+  if(cw.phase==='warmup'&&exMode){el.innerHTML=csWarmupHTML(cw)+sheet;return;}
+  if(cw.phase==='finish'&&exMode){el.innerHTML=csFinishHTML(cw)+sheet;return;}
   if(cw.phase==='overview'&&exMode){el.innerHTML=csOverviewHTML(cw)+sheet;return;}
   if(cw.phase==='overview'){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
@@ -1763,7 +1777,7 @@ function cwRenderBase(){
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}${typeof exerciseIntensificationMethods==='function'&&exerciseIntensificationMethods(ex).length?' · ⚡':''}</div>
       </div>`).join('')}
-      <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
+      <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="${typeof cwStartFlow==='function'?'cwStartFlow()':'cwBegin()'}">▶ Start</button>`;
     return;
   }
   if(cw.phase==='rest'&&typeof csRestHTML==='function'){
@@ -1801,7 +1815,7 @@ function cwRenderBase(){
           <h2 class="cs-ex-name">Zakończyć trening?</h2>
           <p class="cs-card-text">${missing===1?'Została 1 niewykonana seria':(missing%10>=2&&missing%10<=4&&(missing%100<10||missing%100>=20)?'Zostały '+missing+' niewykonane serie':'Zostało '+missing+' niewykonanych serii')}. Możesz do nich wrócić albo zakończyć teraz. Zapiszemy to, co zrobione.</p>
           <button type="button" class="cs-btn cs-btn-secondary" onclick="cwGoEx(${Math.max(0,first)})">Wróć do treningu</button>
-          <button type="button" class="cs-btn cs-btn-primary" onclick="cwFinish(true)">Zakończ teraz</button>
+          <button type="button" class="cs-btn cs-btn-primary" onclick="${typeof cwFinishConfirm==='function'?'cwFinishConfirm()':'cwFinish(true)'}">Zakończ teraz</button>
         </div>`;
       return;
     }
@@ -1929,18 +1943,24 @@ async function cwFinish(force){
     if(typeof notify==='function')notify('Nie udało się zapisać podsumowania. Trening pozostaje do wznowienia.');
     return false;
   }finally{cw.saving=false;}
-  pushClientMsg('Zrobiłem trening: '+cw.dayName+(cw.note?('\n'+cw.note):''));
+  // Informacja dla trenera: wiadomość w czacie z kolejką na telefonie (bez sieci wyśle się później, bez duplikatów).
+  const notice=typeof csTrainerNotice==='function'&&typeof csTrainerNoticeText==='function'
+    ?csTrainerNotice(csTrainerNoticeText(cw),cw.sessionId)
+    :pushClientMsg('Zrobiłem trening: '+cw.dayName+(cw.note?('\n'+cw.note):''));
   if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(clientId);}catch(e){}
-  if(typeof notify==='function')notify(cw.syncState==='synced'?'✓ Trening zsynchronizowany':'✓ Trening zapisany na urządzeniu');
   cwClearTimers();
   window._cw=null;
+  const done=typeof csDoneOpen==='function';
+  if(!done&&typeof notify==='function')notify(cw.syncState==='synced'?'✓ Trening zsynchronizowany':'✓ Trening zapisany na urządzeniu');
   const wrap=document.getElementById('clive-player');
-  if(wrap)wrap.hidden=true;
-  document.body.classList.remove('cw-playing');
+  if(wrap&&!done)wrap.hidden=true;
+  if(!done)document.body.classList.remove('cw-playing');
   window._cliveSessionId=cw.sessionId;
   window._clientLiveScreen='progress';window._csProgressFull=true;
   if(cw.syncState==='synced')cwClearLocal();
   renderClientLive();
+  // Ekran „Wysłano”: stan zapisu treningu i informacji dla trenera — bez udawania push/WhatsApp.
+  if(done)csDoneOpen(cw,notice);
   return true;
 }
 
