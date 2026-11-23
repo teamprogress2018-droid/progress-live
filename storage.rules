@@ -48,7 +48,8 @@ service firebase.storage {
     match /client-videos/{trainerId}/{clientId}/{fileName} {
       allow get: if isOwnClient(trainerId, clientId) || isOwnTrainer(trainerId);
       allow list: if false;
-      allow create: if isOwnClient(trainerId, clientId)
+      // resource == null: tylko nowy plik — istniejącego filmu nie da się nadpisać.
+      allow create: if resource == null && isOwnClient(trainerId, clientId)
         && fileName.matches('^v_[A-Za-z0-9_-]{6,80}[.](mp4|mov|webm)$')
         && request.resource.size > 0 && request.resource.size <= 75 * 1024 * 1024
         && request.resource.contentType.matches('^video/(mp4|quicktime|webm)$');
