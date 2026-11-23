@@ -199,13 +199,15 @@ idą zwykłą wiadomością czatu ze znacznikiem, a „Do odpowiedzi” odczytuj
 
 1. Plan Blaze w projekcie `progress-live-fc83d` (Cloud Functions i Cloud Scheduler). To płatna usługa:
    decyzja należy do właściciela.
-2. Push: wygenerować klucze VAPID (`npx web-push generate-vapid-keys`). Publiczny klucz wpisać
+2. Push: `bash server/automation/pilot.sh vapid` w Cloud Shell (albo ręcznie `npx web-push generate-vapid-keys`). Publiczny klucz wpisać
    w `comms-app.js` (`VAPID_PUBLIC_KEY`) i jako parametr `VAPID_PUBLIC_KEY`. Prywatny zapisać jako sekret:
    `firebase functions:secrets:set VAPID_PRIVATE_KEY --project progress-live-fc83d`.
 3. WhatsApp (opcjonalnie): konto Meta Business, WhatsApp Business Account, numer z dodaną płatnością,
    zatwierdzone szablony (kategoria utility, język pl) o nazwach z `comms-core.js → whatsappTemplate`.
    Sekrety: `WHATSAPP_TOKEN` (token systemowy), `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`.
    Parametr: `WHATSAPP_PHONE_NUMBER_ID`. Adres webhooka: URL funkcji `whatsappWebhook`, pole `messages`.
+   Na końcu dopisać `COMMS_WHATSAPP=on` do `server/automation/.env.progress-live-fc83d` i dodać `WA_TOKEN` do `secrets` funkcji
+   `commsScheduler` — bez tego WhatsApp nie jest deklarowany, a wdrożenie samego push nie wymaga jego sekretów.
 4. Wdrożenie tylko tych funkcji:
    ```sh
    node prepare-deploy.cjs && npm install --prefix .runtime

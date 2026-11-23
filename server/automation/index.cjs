@@ -26,24 +26,27 @@ exports.youtubeCurationSuggest = youtubeCurationSuggest;
 const VAPID_PUBLIC = defineString('VAPID_PUBLIC_KEY', {default: ''});
 const VAPID_PRIVATE = defineSecret('VAPID_PRIVATE_KEY');
 const VAPID_SUBJECT = defineString('VAPID_SUBJECT', {default: 'mailto:kontakt@teamprogress.pl'});
-const WA_TOKEN = defineSecret('WHATSAPP_TOKEN');
-const WA_PHONE_ID = defineString('WHATSAPP_PHONE_NUMBER_ID', {default: ''});
-const WA_APP_SECRET = defineSecret('WHATSAPP_APP_SECRET');
-const WA_VERIFY = defineSecret('WHATSAPP_VERIFY_TOKEN');
+// WhatsApp jest włączany osobno: dopiero gdy w .env.<projekt> jest COMMS_WHATSAPP=on (po założeniu konta Meta
+// i ustawieniu sekretów). Bez tego sekrety WhatsApp nie są deklarowane, więc wdrożenie push ich nie wymaga.
+const WA_ON = process.env.COMMS_WHATSAPP === 'on';
+const WA_TOKEN = WA_ON ? defineSecret('WHATSAPP_TOKEN') : null;
+const WA_PHONE_ID = WA_ON ? defineString('WHATSAPP_PHONE_NUMBER_ID', {default: ''}) : null;
+const WA_APP_SECRET = WA_ON ? defineSecret('WHATSAPP_APP_SECRET') : null;
+const WA_VERIFY = WA_ON ? defineSecret('WHATSAPP_VERIFY_TOKEN') : null;
 
-function secretValue(secret) { try { return secret.value() || ''; } catch (e) { return ''; } }
+function secretValue(secret) { try { return (secret && secret.value()) || ''; } catch (e) { return ''; } }
 /** Które ustawienia są obecne — tylko tak/nie, wartości nie wychodzą poza tę funkcję. */
 function commsConfig() {
   return comms.commsConfigStatus({
     VAPID_PUBLIC_KEY: VAPID_PUBLIC.value(), VAPID_PRIVATE_KEY: secretValue(VAPID_PRIVATE),
-    WHATSAPP_TOKEN: secretValue(WA_TOKEN), WHATSAPP_PHONE_NUMBER_ID: WA_PHONE_ID.value()
+    WHATSAPP_TOKEN: secretValue(WA_TOKEN), WHATSAPP_PHONE_NUMBER_ID: secretValue(WA_PHONE_ID)
   });
 }
 
 function commsProviders() {
   const p = {};
   try { if (VAPID_PUBLIC.value() && VAPID_PRIVATE.value()) p.push = comms.webPushProvider({publicKey: VAPID_PUBLIC.value(), privateKey: VAPID_PRIVATE.value(), subject: VAPID_SUBJECT.value()}); } catch (e) { logger.warn('comms-push-config'); }
-  try { if (WA_TOKEN.value() && WA_PHONE_ID.value()) p.whatsapp = comms.whatsappProvider({token: WA_TOKEN.value(), phoneNumberId: WA_PHONE_ID.value()}); } catch (e) { logger.warn('comms-wa-config'); }
+  try { if (WA_ON && WA_TOKEN.value() && WA_PHONE_ID.value()) p.whatsapp = comms.whatsappProvider({token: WA_TOKEN.value(), phoneNumberId: WA_PHONE_ID.value()}); } catch (e) { logger.warn('comms-wa-config'); }
   return p;
 }
 
@@ -61,7 +64,7 @@ exports.commsScheduler = onSchedule({
   logger.info('comms-summary', totals); // tylko liczniki, bez treści i nazw klientów
 });
 
-exports.whatsappWebhook = onRequest({region: 'europe-west1', maxInstances: 2, secrets: [WA_APP_SECRET, WA_VERIFY]}, async (req, res) => {
+if (WA_ON) exports.whatsappWebhook = onRequest({region: 'europe-west1', maxInstances: 2, secrets: [WA_APP_SECRET, WA_VERIFY]}, async (req, res) => {
   if (req.method === 'GET') {
     const ok = req.query['hub.mode'] === 'subscribe' && WA_VERIFY.value() && req.query['hub.verify_token'] === WA_VERIFY.value();
     res.status(ok ? 200 : 403).send(ok ? String(req.query['hub.challenge'] || '') : 'forbidden');

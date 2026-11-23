@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   // Publiczny klucz VAPID (nie jest tajny). Pusty = powiadomienia z serwera nie są jeszcze skonfigurowane.
-  const VAPID_PUBLIC_KEY='';
+  const VAPID_PUBLIC_KEY='BK0Zt0pvw1h3Q8Qmr2yTcLKtsBYpLlWnrjRv4nY8TPsczYAORYXQuwqwDV1AdzmUamnuufCcXMMGjy64gv71LGg';
   const CC=()=>window.CommsCore;
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const nowIso=()=>new Date().toISOString();
