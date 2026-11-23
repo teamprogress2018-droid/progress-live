@@ -200,6 +200,16 @@ const reminder = db => jobs(db).find(j => j.kind === 'meeting_reminder');
   ok(out.ok && sent.body.type === 'template' && sent.body.to === '48600100200' && sent.body.template.name === 'progress_przypomnienie_spotkanie', 'WhatsApp template request');
   ok(/graph\.facebook\.com\/v\d+\.\d+\/123\/messages/.test(sent.url), 'Cloud API endpoint');
 
+  // 14b. Klient woli WhatsApp, ale serwer ma włączony tylko push — wiadomość idzie pushem, nie „symulacją”.
+  db = seed(fakeDb(), {live: true}); calls = 0;
+  db._store['serverAutomation/private/trainers'][T].comms.channels = ['push'];
+  await W.runComms(db, {runId: 'pw', nowMs: now, providers: {push: spy}});
+  ok(reminder(db).status === 'handed_over' && reminder(db).channel === 'push' && calls === 1, 'falls back to live push when WhatsApp is not enabled');
+  db = seed(fakeDb(), {live: true, prefs: {push: {subscribed: false}}}); calls = 0;
+  db._store['serverAutomation/private/trainers'][T].comms.channels = ['push'];
+  await W.runComms(db, {runId: 'pw2', nowMs: now, providers: {push: spy}});
+  ok(reminder(db).status === 'simulated' && calls === 0, 'no push subscription and WhatsApp off: nothing pretends to be sent');
+
   // 15. Stan dla panelu trenera (commsStatus): symulacja / wymaga konfiguracji / działa — bez treści i danych klientów.
   const stOf = db0 => db0._store.commsStatus && db0._store.commsStatus[T];
   db = seed(fakeDb());
