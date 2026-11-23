@@ -871,6 +871,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_workout_set_ui.js
 
+      - name: 6d3a. Trening klienta — ile serii zostało, odliczanie 5 s, motywacja, rozgrzewka od trenera, podsumowanie, informacja dla trenera (atrapa Firestore)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_workout_flow_ui.js
+
       - name: 6d4. Aplikacja klienta na telefonie (nagłówek, 44 px, kontrast, Technika, 360/390/430 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_mobile_fixes_ui.js

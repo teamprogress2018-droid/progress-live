@@ -20,7 +20,8 @@
 // Wersja 106: klucz publiczny Web Push — klient może włączyć powiadomienia z serwera.
 // Wersja 107: kalendarz pokazuje imię i nazwisko klienta; szybkie dodanie klienta w oknie sesji.
 // Wersja 108: telefon ze zgodą na powiadomienia zapisuje się do serwera sam przy otwarciu aplikacji.
-const CACHE_NAME='progress-live-shell-v108';
+// Wersja 109: trening klienta — ile serii zostało, odliczanie końca przerwy, rozgrzewka od trenera, podsumowanie i informacja dla trenera.
+const CACHE_NAME='progress-live-shell-v109';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

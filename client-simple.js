@@ -6,6 +6,7 @@
  * Dane: te same co dotąd (PL, SE, METRIC_ENTRIES, SETTINGS z publicznego profilu trenera). */
 
 const CS_ICONS={
+  'bell-off':'<path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"></path><path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path><path d="m2 2 20 20"></path>',
   bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
   wifiOff:'<line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path d="M19 12.9a10 10 0 0 0-2.3-1.7"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
@@ -114,7 +115,7 @@ function csTrainerAction(){return csChatVisible()?"setClientLiveScreen('messages
 function csStart(planId,dayIdx){
   if(typeof cwOpen!=='function')return;
   cwOpen(planId,dayIdx);
-  if(window._cw&&window._cw.phase==='overview'&&typeof cwBegin==='function')cwBegin();
+  if(window._cw&&window._cw.phase==='overview')cwStartFlow();
 }
 window.csStart=csStart;
 
@@ -511,6 +512,32 @@ function csShortTip(text){
 const CW_UNDO_MS=7000;
 function csSetsLeft(ex){if(!ex||ex.skipped)return 0;return (ex.sets||[]).filter(x=>x&&!x.done).length;}
 function csLeftText(n){return (n===1?'Została':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'Zostały':'Zostało')+' '+n+' '+csPlural(n,'seria','serie','serii');}
+/** Pod „Seria k z n”: ile serii zostało razem z bieżącą; przy ostatniej — „Ostatnia seria”. */
+function csSetsLeftLabel(n){return n===1?'Ostatnia seria':n>1?csLeftText(n):'';}
+window.csSetsLeftLabel=csSetsLeftLabel;
+
+/* Krótkie komunikaty motywujące: tylko w ważnych momentach i każdy najwyżej raz w treningu. */
+function csCheer(cw,exIdx){
+  if(!cw||!Array.isArray(cw.exercises))return '';
+  const shown=cw.cheers=cw.cheers||{};
+  cw._cheerKey='';
+  const once=(key,text)=>{if(shown[key])return '';shown[key]=1;cw._cheerKey=key;return text;};
+  const ex=cw.exercises[exIdx]||{};
+  const total=(typeof cwConfirmedSets==='function')?cwConfirmedSets(cw):cw.exercises.flatMap(e=>e.sets||[]).filter(s=>s&&s.done).length;
+  const exOpen=e=>e&&!e.skipped&&(e.sets||[]).some(s=>!s.done);
+  if(!exOpen(ex)){
+    const n=cw.exercises.length,left=cw.exercises.filter(exOpen).length,done=n-left;
+    if(left===0)return once('all','Wszystkie ćwiczenia zrobione. Zakończ trening.');
+    if(left===1)return once('ex1','Zostało ostatnie ćwiczenie. Dasz radę!');
+    if(left===2)return once('ex2','Jeszcze 2 ćwiczenia do końca.');
+    if(n>=4&&done*2>=n)return once('half','Połowa treningu za Tobą.');
+    return '';
+  }
+  if(total===1)return once('first','Pierwsza seria za Tobą.');
+  if(csSetsLeft(ex)===1&&(ex.sets||[]).length>=3)return once('lastset','Została ostatnia seria.');
+  return '';
+}
+window.csCheer=csCheer;
 function cwSetDirty(st){
   if(!st||st.done||!st._orig)return false;
   return ['reps','kg','rir'].some(k=>String(st[k]==null?'':st[k])!==String(st._orig[k]==null?'':st._orig[k]));
@@ -641,6 +668,8 @@ function cwUndoLastSet(){
   cw.lastSaved=null;
   cw._tapLockUntil=0;
   if(!st||!st.done)return;
+  // Cofnięta seria: jej komunikat motywujący może pojawić się ponownie przy właściwym zapisie.
+  if(ls.cheerKey&&cw.cheers)delete cw.cheers[ls.cheerKey];
   st.done=false;
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
   cw.exIdx=ls.exIdx;cw.phase='exercise';cw.restLeft=0;
@@ -651,7 +680,7 @@ function cwUndoLastSet(){
 function cwSavedBannerHTML(cw){
   const ls=cw&&cw.lastSaved;
   if(!ls||Date.now()-ls.at>CW_UNDO_MS)return '';
-  return `<div class="cs-saved" role="status" aria-live="polite" data-cs-saved="${ls.at}"><span>${csEsc(ls.label)} ${csIcon('check',18)}</span><button type="button" class="cs-saved-undo" onclick="cwUndoLastSet()">Cofnij</button></div>`;
+  return `<div class="cs-saved" role="status" aria-live="polite" data-cs-saved="${ls.at}"><span>${csEsc(ls.label)} ${csIcon('check',18)}${ls.cheer?`<em class="cs-saved-cheer" data-cs-cheer>${csEsc(ls.cheer)}</em>`:''}</span><button type="button" class="cs-saved-undo" onclick="cwUndoLastSet()">Cofnij</button></div>`;
 }
 function cwScheduleSavedHide(cw){
   const ls=cw&&cw.lastSaved;if(!ls)return;
@@ -981,7 +1010,7 @@ function cwSimpleExerciseHTML(cw,ex){
         ${others.length?`<p class="cs-ex-ss">Bez przerwy z: ${others.map(o=>csEsc((o.ssLabel?o.ssLabel+' ':'')+csShortName(o.name))).join(', ')}</p>`:''}
         ${methods.length?`<p class="cs-ex-ss">⚡ ${csEsc(methods.map(m=>((window.INTENSIFICATION_METHODS||{})[m.type]||{}).label||m.type).join(', '))} · opis w „Technice”</p>`:''}
         <section class="cs-set" aria-label="Bieżąca seria">
-          <div class="cs-set-head"><b>${allDone?(ex.skipped?'Pominięte':'Wszystkie serie zrobione'):'Seria '+csEsc(setNo)+' z '+sets.length}${kindTag&&!allDone?` · ${csEsc(kindTag)}`:''}</b><span class="cs-dots" aria-hidden="true">${dots}</span></div>
+          <div class="cs-set-head"><div class="cs-set-title"><b class="cs-set-no">${allDone?(ex.skipped?'Pominięte':'Wszystkie serie zrobione'):'Seria '+csEsc(setNo)+' z '+sets.length}${kindTag&&!allDone?` · ${csEsc(kindTag)}`:''}</b>${allDone?'':`<span class="cs-set-left${csSetsLeft(ex)===1?' is-last':''}" data-cs-sets-left>${csEsc(csSetsLeftLabel(csSetsLeft(ex)))}</span>`}</div><span class="cs-dots" aria-hidden="true">${dots}</span></div>
           ${card}
         </section>
         ${cw.syncState==='error'||cw.syncState==='local'?`<div class="cw-sync-state${cw.syncState==='error'?' is-error':' is-local'}" role="status" aria-live="polite" data-cw-sync-visible>${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
@@ -991,7 +1020,7 @@ function cwSimpleExerciseHTML(cw,ex){
     <div class="cs-swipe-hint" aria-hidden="true"></div>
     <div class="cs-ex-foot">
       ${cwSavedBannerHTML(cw)}
-      ${cw.restOnEx&&window._cwRestTimer?`<div class="cs-restbar" role="timer" aria-label="Przerwa trwa"><span>Przerwa</span><b id="cw-rest-num">${csRestClock(cw.restLeft)}</b>
+      ${cw.restOnEx&&window._cwRestTimer?`<div class="cs-restbar${cw.restLeft>0&&cw.restLeft<=5?' is-final':''}" role="timer" aria-label="Przerwa trwa"><span>Przerwa</span><b id="cw-rest-num">${csRestClock(cw.restLeft)}</b>
         <button type="button" class="cs-restbar-btn" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button>
         <button type="button" class="cs-restbar-btn" aria-label="Przerwa dłużej o 15 sekund" onclick="cwRestAdd(15)">+15 s</button>
         <button type="button" class="cs-restbar-btn" onclick="cwSkipRestTap()">Koniec</button></div><div class="sr-only" id="cw-rest-live" aria-live="polite"></div>`:''}
@@ -1004,8 +1033,32 @@ window.cwSimpleExerciseHTML=cwSimpleExerciseHTML;
 function cwRestAdd(d){
   const cw=window._cw;if(!cw||!window._cwRestTimer)return;
   cw.restLeft=Math.max(5,Math.min(900,(cw.restLeft|0)+d));
+  cw.restEndsAt=Date.now()+cw.restLeft*1000;
   const n=document.getElementById('cw-rest-num');if(n)n.textContent=csRestClock(cw.restLeft);
+  csRestFinalTick(cw.restLeft,true);
 }
+/* Dźwięk i wibracja przerwy — opcjonalne, zapamiętane na tym telefonie (domyślnie włączone). */
+const CS_REST_SIGNAL_KEY='pl_cw_rest_signal_v1';
+function csRestSignalOn(){try{return localStorage.getItem(CS_REST_SIGNAL_KEY)!=='0';}catch(e){return true;}}
+function csRestSignalToggle(){
+  const on=!csRestSignalOn();
+  try{localStorage.setItem(CS_REST_SIGNAL_KEY,on?'1':'0');}catch(e){}
+  // iPhone odtwarza dźwięk tylko po dotknięciu — włączenie przełącznika „odblokowuje” dźwięk.
+  if(on&&typeof liveRestAudioCtx==='function')try{liveRestAudioCtx();}catch(e){}
+  document.querySelectorAll('[data-cs-rest-signal]').forEach(b=>{b.setAttribute('aria-pressed',on?'true':'false');b.innerHTML=csRestSignalLabel(on);});
+}
+function csRestSignalLabel(on){return (on?csIcon('bell',18):csIcon('bell-off',18))+'<span>Dźwięk i wibracja: '+(on?'włączone':'wyłączone')+'</span>';}
+/** Ostatnie 5 sekund przerwy: duże odliczanie 5…1 i „Przygotuj się”; krótki sygnał przy 3, 2, 1 (jeśli włączony). */
+function csRestFinalTick(left,silent){
+  const fin=left>0&&left<=5;
+  const num=document.getElementById('cw-rest-num');
+  if(num)num.classList.toggle('is-final',fin);
+  document.querySelectorAll('[data-cs-rest-final]').forEach(n=>{n.hidden=!fin;n.textContent=fin?String(left):'';});
+  document.querySelectorAll('[data-cs-rest-ready]').forEach(n=>{n.hidden=!fin;});
+  const bar=document.querySelector('.cs-restbar');if(bar)bar.classList.toggle('is-final',fin);
+  if(!silent&&fin&&left<=3&&csRestSignalOn()&&typeof liveRestBeep==='function')liveRestBeep('tick');
+}
+window.csRestSignalOn=csRestSignalOn;window.csRestSignalToggle=csRestSignalToggle;window.csRestFinalTick=csRestFinalTick;
 /** Z przerwy do ekranu ćwiczenia: można poprawić ciężar następnej serii, przerwa dalej liczy się na dole. */
 function cwRestToEx(){
   const cw=window._cw;if(!cw||!window._cwRestTimer)return;
@@ -1024,6 +1077,8 @@ function cwSaveSet(setIdx){
   const cw=window._cw;if(!cw||cwTapLocked())return;
   const ex=cw.exercises[cw.exIdx];const st=ex&&ex.sets&&ex.sets[setIdx];
   if(!st||st.done)return;
+  // Dotknięcie „Zapisz serię” odblokowuje dźwięk na iPhonie — sygnał końca przerwy zadziała bez ekranu.
+  if(csRestSignalOn()&&typeof liveRestAudioCtx==='function')try{liveRestAudioCtx();}catch(e){}
   const reps=Number.parseFloat(String(st.reps||'').replace(',','.'));
   if(reps>0&&ex.rirRequired&&!st.rirReported){
     cw.setError={exIdx:cw.exIdx,setIdx,field:'rir',msg:'Zaznacz, ile powtórzeń zostało w zapasie — trener o to prosi.'};
@@ -1096,11 +1151,16 @@ function csRestHTML(cw){
   const params=ns?[reps?reps+(unit==='sec'?' s':' powt.'):'',ns.kg!=null&&String(ns.kg).trim()!==''?csNum(ns.kg)+(weightUnit?' kg':''):''].filter(Boolean).join(' · '):'';
   const prevEx=cw.lastSaved?cw.exercises[cw.lastSaved.exIdx]:null;
   const change=prevEx&&prevEx!==nxt;
+  const fin=cw.restLeft>0&&cw.restLeft<=5;
   return `<div class="cs-ex cs-rest-scr">
     <div class="cs-ex-top"><span class="cs-ex-pos">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</span><span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span></div>
     <div class="cs-ex-scroll"><div class="cw-rest cs-rest">
-      <div class="cw-rest-num cs-rest-clock" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy">${csRestClock(cw.restLeft)}</div>
+      <span class="cs-rest-lbl">Do końca przerwy</span>
+      <div class="cw-rest-num cs-rest-clock${fin?' is-final':''}" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy">${csRestClock(cw.restLeft)}</div>
+      <div class="cs-rest-final" data-cs-rest-final aria-hidden="true"${fin?'':' hidden'}>${fin?cw.restLeft:''}</div>
+      <p class="cs-rest-ready" data-cs-rest-ready${fin?'':' hidden'}>Przygotuj się do serii</p>
       <div class="cs-rest-adj" role="group" aria-label="Zmień czas przerwy"><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa dłużej o 15 sekund" onclick="cwRestAdd(15)">+15 s</button></div>
+      <button type="button" class="cs-rest-signal" data-cs-rest-signal aria-pressed="${csRestSignalOn()?'true':'false'}" onclick="csRestSignalToggle()">${csRestSignalLabel(csRestSignalOn())}</button>
       <div class="sr-only" id="cw-rest-live" aria-live="polite"></div>
       ${ns?`<div class="cs-rest-next">
         <span class="cs-eyebrow">${change?'NASTĘPNE ĆWICZENIE':(emom?'NASTĘPNA RUNDA':'NASTĘPNA SERIA')}</span>
@@ -1131,3 +1191,224 @@ window.csRestHTML=csRestHTML;window.csRestClock=csRestClock;
   };
   vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
 })();
+
+/* ---------- Rozgrzewka przypisana przez trenera (client.warmup) ----------
+ * Trener wybiera ćwiczenia ze swojej biblioteki (warmup.js). Klient tylko odhacza wykonanie albo pomija;
+ * aplikacja niczego nie dobiera sama. Wynik trafia do planSnapshot.warmup przy pierwszym zapisie sesji. */
+function csClientWarmup(){
+  const c=(window.CL||[]).find(x=>x&&x.id===window._clientId);
+  const w=c&&c.warmup;
+  const items=(w&&Array.isArray(w.items)?w.items:[]).filter(i=>i&&String(i.name||'').trim()).slice(0,12);
+  return items.length?{items,note:String(w.note||'').slice(0,300)}:null;
+}
+function cwStartFlow(){
+  const cw=window._cw;if(!cw)return;
+  const fresh=!cw.began&&!(typeof cwConfirmedSets==='function'&&cwConfirmedSets(cw)>0)&&!cw.warmupLog;
+  const wu=fresh?csClientWarmup():null;
+  if(wu){
+    cw.warmup={items:wu.items.map(i=>({name:String(i.name).trim().slice(0,120),dose:String(i.dose||'').trim().slice(0,40)})),note:wu.note,done:wu.items.map(()=>false)};
+    cw.phase='warmup';cwRender();return;
+  }
+  if(typeof cwBegin==='function')cwBegin();
+}
+function cwWarmupToggle(i){
+  const cw=window._cw;if(!cw||!cw.warmup||cw.warmup.done[i]==null)return;
+  cw.warmup.done[i]=!cw.warmup.done[i];
+  const row=document.querySelector(`[data-cs-wu="${i}"]`);
+  if(row){row.classList.toggle('is-done',cw.warmup.done[i]);row.setAttribute('aria-checked',cw.warmup.done[i]?'true':'false');}
+  const n=cw.warmup.done.filter(Boolean).length;
+  const cnt=document.querySelector('[data-cs-wu-count]');if(cnt)cnt.textContent='Zrobione: '+n+' z '+cw.warmup.items.length;
+}
+function cwWarmupFinish(skip){
+  const cw=window._cw;if(!cw||!cw.warmup)return;
+  const done=skip?cw.warmup.done.map(()=>false):cw.warmup.done.slice();
+  cw.warmupLog={items:cw.warmup.items.map(i=>i.name),done,skipped:!done.some(Boolean)};
+  if(typeof cwBegin==='function')cwBegin();
+}
+function csWarmupHTML(cw){
+  const w=cw.warmup||{items:[],done:[]};
+  const n=w.done.filter(Boolean).length;
+  const rows=w.items.map((it,i)=>`<button type="button" role="checkbox" aria-checked="${w.done[i]?'true':'false'}" class="cs-wu-row${w.done[i]?' is-done':''}" data-cs-wu="${i}" onclick="cwWarmupToggle(${i})"><span class="cs-wu-box" aria-hidden="true">${csIcon('check',18)}</span><span class="cs-wu-name">${csEsc(it.name)}</span>${it.dose?`<span class="cs-wu-dose">${csEsc(it.dose)}</span>`:''}</button>`).join('');
+  return `<div class="cs-ex cs-wu">
+    <div class="cs-ex-top">
+      <button type="button" class="cs-back-btn" onclick="cwClose()">${csIcon('back',20)}<span>Wyjdź</span></button>
+      <span class="cs-ex-pos">Rozgrzewka</span>
+      <span class="cs-ex-clock" aria-hidden="true"></span>
+    </div>
+    <div class="cs-ex-scroll"><div class="cs-ex-body">
+      <div class="cs-eyebrow">OD TWOJEGO TRENERA</div>
+      <h2 class="cs-ex-name">Najpierw rozgrzewka</h2>
+      ${w.note?`<p class="cs-key-note" role="note"><b>Trener:</b> ${csEsc(w.note)}</p>`:''}
+      <p class="cs-wu-hint">Zaznacz ćwiczenia, które zrobiłeś. Jeśli coś boli, pomiń je i napisz do trenera.</p>
+      <div class="cs-wu-list" role="group" aria-label="Ćwiczenia rozgrzewki">${rows}</div>
+      <p class="cs-wu-count" data-cs-wu-count aria-live="polite">Zrobione: ${n} z ${w.items.length}</p>
+    </div></div>
+    <div class="cs-ex-foot">
+      <button type="button" class="cs-link cs-wu-skip" onclick="cwWarmupFinish(true)">Pomiń rozgrzewkę</button>
+      <button type="button" class="cs-btn cs-btn-primary" data-cs-primary="warmup" onclick="cwWarmupFinish(false)">Zacznij trening</button>
+    </div>
+  </div>`;
+}
+window.csClientWarmup=csClientWarmup;window.cwStartFlow=cwStartFlow;window.cwWarmupToggle=cwWarmupToggle;window.cwWarmupFinish=cwWarmupFinish;window.csWarmupHTML=csWarmupHTML;
+
+/* ---------- Podsumowanie po treningu ---------- */
+function csFinishStats(cw){
+  const exs=(cw&&cw.exercises)||[];
+  const rows=exs.map(ex=>{const sets=ex.sets||[];const d=sets.filter(s=>s&&s.done).length;return {name:ex.name||'',done:d,total:sets.length,skipped:!!ex.skipped};});
+  return {rows,exDone:rows.filter(r=>r.done>0).length,exTotal:rows.length,setsDone:rows.reduce((a,r)=>a+r.done,0),setsTotal:rows.reduce((a,r)=>a+r.total,0),elapsed:(cw&&cw.elapsed)||0};
+}
+function csWarmupSummary(log){
+  if(!log||!Array.isArray(log.items)||!log.items.length)return '';
+  const n=(log.done||[]).filter(Boolean).length;
+  return log.skipped?'pominięta':n===log.items.length?'zrobiona':('zrobione '+n+' z '+log.items.length);
+}
+function cwSetFeel(v){
+  const cw=window._cw;if(!cw)return;
+  cw.feel=cw.feel===v?0:v;
+  if(typeof cwWriteLocal==='function')cwWriteLocal(cw);
+  document.querySelectorAll('[data-cs-feel]').forEach(b=>{const on=Number(b.dataset.csFeel)===cw.feel;b.classList.toggle('is-on',on);b.setAttribute('aria-pressed',on?'true':'false');});
+}
+function cwFinishConfirm(){const cw=window._cw;if(!cw)return;cw.finishPrompt=false;cw.finishOk=true;if(typeof cwWriteLocal==='function')cwWriteLocal(cw);cwRender();}
+function csFinishHTML(cw){
+  const st=csFinishStats(cw);
+  const cl=(window.CL||[]).find(x=>x&&x.id===window._clientId);
+  const motiv=cl&&typeof csMotivation==='function'?csMotivation(cl,true):'';
+  const wu=csWarmupSummary(cw.warmupLog);
+  const R=window.SESSION_RATING||{1:{emoji:'😓',label:'Bardzo ciężko'},2:{emoji:'😐',label:'Ciężko'},3:{emoji:'🙂',label:'OK'},4:{emoji:'💪',label:'Dobre'},5:{emoji:'🔥',label:'Świetne'}};
+  const rows=st.rows.map(r=>`<li class="cs-sum-row${r.skipped?' is-skipped':r.done>=r.total&&r.total?' is-done':''}"><span class="cs-sum-name">${csEsc(csShortName(r.name))}</span><span class="cs-sum-st">${r.skipped?'pominięte':r.done?r.done+' z '+r.total+' '+csPlural(r.total,'serii','serii','serii'):'nie wykonano'}</span></li>`).join('');
+  return `<div class="cs-ex cs-sum">
+    <div class="cs-ex-top">
+      <button type="button" class="cs-back-btn" aria-label="Wróć do listy ćwiczeń" onclick="cwToOverview()">${csIcon('back',20)}<span>Trening</span></button>
+      <span class="cs-ex-pos">Podsumowanie</span>
+      <span class="cs-ex-clock" aria-hidden="true"></span>
+    </div>
+    <div class="cs-ex-scroll"><div class="cs-ex-body">
+      <div class="cs-sum-head"><div class="cs-finish-check" aria-hidden="true">${csIcon('check',40)}</div>
+        <h2 class="cs-finish-title">Trening zrobiony!</h2>${motiv?`<p class="cs-finish-msg">${csEsc(motiv)}</p>`:''}</div>
+      <div class="cs-sum-stats" data-cs-sum-stats>
+        <div><b>${st.exDone} z ${st.exTotal}</b><span>ćwiczeń</span></div>
+        <div><b>${st.setsDone}</b><span>${csPlural(st.setsDone,'seria','serie','serii')}</span></div>
+        <div><b>${typeof cwFmt==='function'?cwFmt(st.elapsed):''}</b><span>czas</span></div>
+      </div>
+      <ul class="cs-sum-list" aria-label="Wykonane ćwiczenia">${rows}</ul>
+      ${wu?`<p class="cs-sum-wu">Rozgrzewka: ${csEsc(wu)}</p>`:''}
+      <div class="cs-sum-feel" role="group" aria-label="Jak się czułeś na treningu? (opcjonalnie)">
+        <p class="cs-sum-q">Jak się czułeś na treningu? <em>opcjonalnie</em></p>
+        <div class="cs-feel-opts">${[1,2,3,4,5].map(v=>`<button type="button" data-cs-feel="${v}" class="${cw.feel===v?'is-on':''}" aria-pressed="${cw.feel===v?'true':'false'}" onclick="cwSetFeel(${v})"><span aria-hidden="true">${csEsc(R[v].emoji)}</span>${csEsc(R[v].label)}</button>`).join('')}</div>
+      </div>
+      <details class="cs-sum-more"${cw.rating?' open':''}><summary>Jak ciężki był trening? (1–10, opcjonalnie)</summary>
+        <div class="cs-rate-opts">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="${cw.rating===n?'is-on':''}" aria-label="Trudność treningu: ${n} na 10" aria-pressed="${cw.rating===n?'true':'false'}" onclick="cwRate(${n})">${n}</button>`).join('')}</div>
+      </details>
+      <label class="cs-sum-note"><span>Komentarz dla trenera <em>opcjonalnie</em></span>
+        <textarea rows="3" maxlength="1000" aria-label="Komentarz dla trenera, opcjonalnie" placeholder="Np. ciężar był w sam raz, bark bez bólu" oninput="window._cw.note=this.value;if(typeof cwWriteLocal==='function')cwWriteLocal(window._cw)">${csEsc(cw.note||'')}</textarea></label>
+      <div class="cw-sync-state${cw.syncState==='local'?' is-local':''}${cw.syncState==='error'?' is-error':''}" role="status" aria-live="polite">${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>
+    </div></div>
+    <div class="cs-ex-foot">
+      <button type="button" class="cs-btn cs-btn-primary" data-cs-primary="finish" onclick="cwFinish(${cw.finishOk?'true':''})">Zapisz i wyślij do trenera</button>
+    </div>
+  </div>`;
+}
+window.csFinishStats=csFinishStats;window.csFinishHTML=csFinishHTML;window.cwSetFeel=cwSetFeel;window.cwFinishConfirm=cwFinishConfirm;window.csWarmupSummary=csWarmupSummary;
+
+/* ---------- Informacja dla trenera: wiadomość w czacie aplikacji z kolejką na telefonie ----------
+ * Bez sieci wiadomość czeka w localStorage i wysyła się po powrocie połączenia (stałe id = bez duplikatów).
+ * To jedyny kanał do trenera: nie ma tu powiadomień push ani WhatsApp i ekran mówi to wprost. */
+const CS_OUTBOX_PREFIX='progress-live-client-outbox-v1:';
+function csOutboxKey(){return CS_OUTBOX_PREFIX+(window._uid||'guest')+':'+(window._clientId||'');}
+function csOutboxRead(){try{const v=JSON.parse(localStorage.getItem(csOutboxKey())||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
+function csOutboxSave(list){try{localStorage.setItem(csOutboxKey(),JSON.stringify(list.slice(-20)));return true;}catch(e){return false;}}
+function csTrainerNoticeText(cw){
+  const st=csFinishStats(cw);
+  const R=window.SESSION_RATING||{};
+  const wu=csWarmupSummary(cw.warmupLog);
+  return ['Zrobiłem trening: '+(cw.dayName||'Trening'),
+    'Serie: '+st.setsDone+' z '+st.setsTotal+' · ćwiczenia: '+st.exDone+' z '+st.exTotal+' · czas '+Math.max(1,Math.round(st.elapsed/60))+' min',
+    wu?'Rozgrzewka: '+wu:'',
+    cw.feel&&R[cw.feel]?'Samopoczucie: '+R[cw.feel].emoji+' '+R[cw.feel].label:'',
+    cw.rating?'Trudność: '+cw.rating+'/10':'',
+    String(cw.note||'').trim()].filter(Boolean).join('\n').slice(0,2000);
+}
+async function csOutboxFlush(){
+  const list=csOutboxRead();if(!list.length)return {};
+  const out={};
+  if(typeof navigator!=='undefined'&&navigator.onLine===false){list.forEach(m=>{out[m.id]='pending';});return out;}
+  const keep=[];
+  for(const m of list){
+    let ok=false;
+    try{
+      if(typeof clientConfirmWrite==='function'&&typeof captureClientTenantSession==='function'&&typeof withTrainer==='function'){
+        const msg=withTrainer({id:m.id,clientId:window._clientId,text:m.text,out:false,kind:'direct',time:m.time,createdAt:m.createdAt});
+        ok=!!(await clientConfirmWrite('messages',msg,captureClientTenantSession()));
+        if(ok){window.MSGS=window.MSGS||{};const arr=window.MSGS[window._clientId]=window.MSGS[window._clientId]||[];if(!arr.some(x=>x&&x.id===msg.id))arr.push(msg);}
+      }
+    }catch(e){ok=false;}
+    out[m.id]=ok?'sent':'pending';
+    if(!ok)keep.push({...m,tries:(m.tries||0)+1});
+  }
+  csOutboxSave(keep.concat(csOutboxRead().filter(m=>!list.some(x=>x.id===m.id))));
+  return out;
+}
+/** Kolejkuje informację o treningu i od razu próbuje ją wysłać. Zwraca 'sent' | 'pending'. */
+async function csTrainerNotice(text,sessionId){
+  const id='msg_'+String(sessionId||Date.now()).replace(/[^A-Za-z0-9_.:@-]/g,'_').slice(0,190);
+  const now=new Date();
+  const list=csOutboxRead().filter(m=>m.id!==id);
+  list.push({id,text,sessionId:sessionId||'',createdAt:now.toISOString(),time:now.toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
+  if(!csOutboxSave(list))return 'error';
+  const res=await csOutboxFlush();
+  return res[id]||'pending';
+}
+window.csTrainerNoticeText=csTrainerNoticeText;window.csOutboxFlush=csOutboxFlush;window.csTrainerNotice=csTrainerNotice;window.csOutboxRead=csOutboxRead;
+if(typeof window.addEventListener==='function')window.addEventListener('online',()=>{csOutboxFlush().then(()=>{if(window._cwDone)csDoneRefresh();});});
+
+/* ---------- Ekran po zapisie: co się zapisało i czy trener dostał informację ---------- */
+function csDoneOpen(cw,noticePromise){
+  const st=csFinishStats(cw);
+  window._cwDone={dayName:cw.dayName||'Trening',stats:st,sync:cw.syncState,sessionId:cw.sessionId||'',notice:'sending',noticeId:'msg_'+String(cw.sessionId||'').replace(/[^A-Za-z0-9_.:@-]/g,'_').slice(0,190)};
+  const wrap=document.getElementById('clive-player');if(wrap)wrap.hidden=false;
+  document.body.classList.add('cw-playing');
+  csDoneRender();
+  if(noticePromise&&typeof noticePromise.then==='function')noticePromise.then(r=>{if(window._cwDone){window._cwDone.notice=r||'pending';csDoneRender();}}).catch(()=>{if(window._cwDone){window._cwDone.notice='pending';csDoneRender();}});
+}
+function csDoneRefresh(){
+  const d=window._cwDone;if(!d)return;
+  if(d.notice==='pending'&&!csOutboxRead().some(m=>m.id===d.noticeId))d.notice='sent';
+  // Trening wysłany po powrocie sieci: szkic tej sesji zniknął z telefonu.
+  if(d.sync!=='synced'&&typeof cwReadLocal==='function'){const dr=cwReadLocal();if(!dr||!dr.state||dr.state.sessionId!==d.sessionId)d.sync='synced';}
+  csDoneRender();
+}
+function csDoneStatusHTML(d){
+  const sync=d.sync==='synced'?{cls:'is-ok',t:'Trening zapisany i zsynchronizowany.'}:{cls:'is-local',t:'Trening zapisany na telefonie. Wyślemy go sami, gdy wróci połączenie.'};
+  const n=d.notice==='sent'?{cls:'is-ok',t:'Trener dostał informację w aplikacji (wiadomość w czacie).'}
+    :d.notice==='sending'?{cls:'',t:'Wysyłamy informację do trenera…'}
+    :d.notice==='error'?{cls:'is-error',t:'Nie udało się przygotować informacji dla trenera. Napisz do niego w czacie.'}
+    :{cls:'is-local',t:'Informacja dla trenera czeka na połączenie. Wyślemy ją sami, gdy wrócisz do sieci.'};
+  return `<ul class="cs-done-status" data-cs-done-status>
+    <li class="${sync.cls}" data-cs-done-sync>${csEsc(sync.t)}</li>
+    <li class="${n.cls}" data-cs-done-notice="${csEsc(d.notice)}">${csEsc(n.t)}</li>
+    <li class="is-info">Powiadomienia push i WhatsApp do trenera nie są włączone. Trener zobaczy wiadomość po otwarciu aplikacji.</li>
+  </ul>`;
+}
+function csDoneRender(){
+  const el=document.getElementById('clive-player-inner');const d=window._cwDone;
+  if(!el||!d)return;
+  el.classList.add('cw-ex-mode');
+  el.innerHTML=`<div class="cs-ex cs-done">
+    <div class="cs-ex-top"><span class="cs-ex-pos">${d.notice==='sent'&&d.sync==='synced'?'Wysłano':'Zapisano'}</span></div>
+    <div class="cs-ex-scroll"><div class="cs-ex-body">
+      <div class="cs-sum-head"><div class="cs-finish-check" aria-hidden="true">${csIcon('check',40)}</div>
+        <h2 class="cs-finish-title">${csEsc(d.dayName)}</h2>
+        <p class="cs-finish-msg">${d.stats.setsDone} ${csPlural(d.stats.setsDone,'seria','serie','serii')} · ${typeof cwFmt==='function'?cwFmt(d.stats.elapsed):''}</p></div>
+      ${csDoneStatusHTML(d)}
+    </div></div>
+    <div class="cs-ex-foot"><button type="button" class="cs-btn cs-btn-primary" data-cs-primary="done" onclick="csDoneClose()">Gotowe</button></div>
+  </div>`;
+}
+function csDoneClose(){
+  window._cwDone=null;
+  const wrap=document.getElementById('clive-player');if(wrap)wrap.hidden=true;
+  document.body.classList.remove('cw-playing');
+  const el=document.getElementById('clive-player-inner');if(el){el.classList.remove('cw-ex-mode');el.innerHTML='';}
+  if(typeof renderClientLive==='function')renderClientLive();
+}
+window.csDoneOpen=csDoneOpen;window.csDoneClose=csDoneClose;window.csDoneRender=csDoneRender;window.csDoneRefresh=csDoneRefresh;
