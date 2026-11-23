@@ -448,6 +448,8 @@ function pushMsg(clientId,text,opts){
   const kind=normalizeMsgKind({text,kind:opts.kind,broadcast:!!opts.broadcast});
   const msg=withTrainer({id:newId('msg'),clientId,text,out:true,kind,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()});
   if(opts.broadcast)msg.broadcast=true;
+  // Pochwała po treningu: id treningu, do którego się odnosi (praise.js).
+  if(opts.praiseFor)msg.praiseFor=String(opts.praiseFor).slice(0,200);
   MSGS[clientId].push(msg);
   persistById('messages',msg);
   return msg;

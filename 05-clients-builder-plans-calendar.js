@@ -5060,7 +5060,8 @@ function renderRecordedExercises(s){
       <div class="as-recorded-ex-sets">Wynik: ${setsText||'brak zatwierdzonych serii'}${e.skipped?' · pominięto'+(e.skipReason?': '+escHtml(e.skipReason):''):''}</div>
     </div>`;
   }).join(''):'';
-  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'');
+  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'')
+    +(typeof praiseTrainerBlockHTML==='function'?praiseTrainerBlockHTML(s):'');
   wrap.style.display='block';
 }
 
