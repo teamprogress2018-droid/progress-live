@@ -88,7 +88,12 @@ async function dispatchDue(db, trainerId, state, control, providers, {runId, now
     if (!job) continue;
     const iso = new Date(nowMs).toISOString();
     const pref = state.prefs[job.clientId] || {};
-    const channel = job.channel || Core.pickChannel(pref, job);
+    let channel = job.channel || Core.pickChannel(pref, job);
+    // Na żywo: pierwszy kanał klienta, który serwer naprawdę obsługuje (np. push, gdy WhatsApp nie jest jeszcze włączony).
+    if (!job.channel && control.live) {
+      const ready = Core.channelsFor(pref, job).find(ch => control.channels.includes(ch) && providers[ch]);
+      if (ready) channel = ready;
+    }
     const done = (patch, status, extra = {}) => job._ref.update({...patch, status, channel,
       attempts: (job.attempts || 0) + 1, history: (job.history || []).concat({at: iso, status, channel, ...extra})});
     if (channel === 'trainer_task') {
