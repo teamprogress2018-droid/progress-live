@@ -32,7 +32,7 @@ function token(uid) {
     firebase: {sign_in_provider: 'password', identities: {}},
   }) + '.';
 }
-async function upload(uid, objectPath, contentType = 'video/mp4') {
+async function upload(uid, objectPath, contentType = 'video/mp4', payload = Buffer.from('test-media')) {
   // Same multipart request the Firebase JS SDK sends (metadata carries contentType).
   const url = 'http://' + ST_HOST + '/v0/b/' + BUCKET + '/o?name=' + encodeURIComponent(objectPath);
   const boundary = 'b' + randomUUID().replace(/-/g, '');
@@ -40,7 +40,7 @@ async function upload(uid, objectPath, contentType = 'video/mp4') {
     Buffer.from('--' + boundary + '\r\nContent-Type: application/json; charset=utf-8\r\n\r\n'
       + JSON.stringify({name: objectPath, contentType}) + '\r\n--' + boundary
       + '\r\nContent-Type: ' + contentType + '\r\n\r\n'),
-    Buffer.from('test-media'), Buffer.from('\r\n--' + boundary + '--'),
+    payload, Buffer.from('\r\n--' + boundary + '--'),
   ]);
   const response = await fetch(url, {
     method: 'POST', body,
@@ -63,6 +63,12 @@ async function listPrefix(uid, prefix) {
   const response = await fetch(url, {headers: uid ? {Authorization: 'Firebase ' + token(uid)} : {}, signal: AbortSignal.timeout(15000)});
   await response.text();
   return response.status;
+}
+async function removeObject(uid, objectPath) {
+  const url = 'http://' + ST_HOST + '/v0/b/' + BUCKET + '/o/' + encodeURIComponent(objectPath);
+  const response = await fetch(url, {method: 'DELETE', headers: uid ? {Authorization: 'Firebase ' + token(uid)} : {}, signal: AbortSignal.timeout(15000)});
+  await response.text();
+  return response.status === 204 ? 200 : response.status;
 }
 function allowed(status, label) { assert.equal(status, 200, label + ' (status ' + status + ')'); count++; }
 function denied(status, label) { assert.equal(status, 403, label + ' (status ' + status + ')'); count++; }
@@ -100,6 +106,45 @@ function denied(status, label) { assert.equal(status, 403, label + ' (status ' +
     denied(await readObject(client, priv), priv + ': client read denied');
   }
   denied(await listPrefix(null, ''), 'anonymous cannot list the bucket root');
+
+  // Film techniki klienta → przypisany trener (prywatny).
+  const trainer2 = run + '-trainer2', client2 = run + '-client2', clientOther = run + '-client-other';
+  await db.doc('trainerRoles/' + trainer2).set({uid: trainer2, role: 'trainer', enabled: true});
+  await db.doc('clientAccounts/' + client2).set({uid: client2, role: 'client', trainerId: trainer, clientId: 'c2'});
+  await db.doc('clientAccounts/' + clientOther).set({uid: clientOther, role: 'client', trainerId: trainer2, clientId: 'c9'});
+  const vid = name => 'client-videos/' + trainer + '/c1/' + name;
+  allowed(await upload(client, vid('v_abc12345.mp4')), 'client video: client uploads to own trainer folder');
+  allowed(await upload(client, vid('v_iphone123.mov'), 'video/quicktime'), 'client video: iPhone .mov (video/quicktime)');
+  allowed(await upload(client, vid('v_webm12345.webm'), 'video/webm'), 'client video: webm');
+  denied(await upload(client, 'client-videos/' + trainer2 + '/c1/v_foreign01.mp4'), 'client video: client cannot upload to another trainer');
+  denied(await upload(client, 'client-videos/' + trainer + '/c2/v_foreign02.mp4'), 'client video: client cannot upload as another client');
+  denied(await upload(trainer, vid('v_trainer01.mp4')), 'client video: trainer cannot upload into client folder');
+  denied(await upload(null, vid('v_anon00001.mp4')), 'client video: anonymous upload');
+  denied(await upload(fresh, vid('v_fresh0001.mp4')), 'client video: account without client link');
+  denied(await upload(client, vid('v_html00001.mp4'), 'text/html'), 'client video: non-video type');
+  denied(await upload(client, vid('v_image0001.mp4'), 'image/png'), 'client video: image type');
+  denied(await upload(client, vid('../evil.mp4')), 'client video: bad file name');
+  denied(await upload(client, vid('v_avi000001.avi'), 'video/x-msvideo'), 'client video: unsupported format');
+  denied(await upload(client, vid('v_big0000001.mp4'), 'video/mp4', Buffer.alloc(75 * 1024 * 1024 + 16)), 'client video: larger than 75 MB');
+  denied(await upload(client, vid('v_abc12345.mp4')), 'client video: existing file cannot be replaced');
+  allowed(await readObject(client, vid('v_abc12345.mp4')), 'client video: client reads own video');
+  allowed(await readObject(trainer, vid('v_abc12345.mp4')), 'client video: assigned trainer reads');
+  denied(await readObject(trainer2, vid('v_abc12345.mp4')), 'client video: another trainer cannot read');
+  denied(await readObject(client2, vid('v_abc12345.mp4')), 'client video: another client of the same trainer cannot read');
+  denied(await readObject(clientOther, vid('v_abc12345.mp4')), 'client video: client of another trainer cannot read');
+  denied(await readObject(fresh, vid('v_abc12345.mp4')), 'client video: unrelated account cannot read');
+  denied(await readObject(null, vid('v_abc12345.mp4')), 'client video: anonymous cannot read or download');
+  denied(await listPrefix(trainer, 'client-videos/' + trainer + '/c1/'), 'client video: even the trainer cannot list');
+  denied(await listPrefix(client, 'client-videos/' + trainer + '/c1/'), 'client video: client cannot list');
+  denied(await listPrefix(null, 'client-videos/'), 'client video: anonymous cannot list');
+  denied(await removeObject(trainer2, vid('v_abc12345.mp4')), 'client video: another trainer cannot delete');
+  denied(await removeObject(client2, vid('v_abc12345.mp4')), 'client video: another client cannot delete');
+  denied(await removeObject(null, vid('v_abc12345.mp4')), 'client video: anonymous cannot delete');
+  allowed(await removeObject(client, vid('v_abc12345.mp4')), 'client video: client deletes own video');
+  denied(await readObject(trainer, vid('v_abc12345.mp4')).then(s => s === 404 ? 403 : s), 'client video: deleted video is gone');
+  allowed(await removeObject(trainer, vid('v_iphone123.mov')), 'client video: assigned trainer deletes');
+  await db.doc('clientAccounts/' + client).set({uid: client, role: 'client', trainerId: trainer2, clientId: 'c1'});
+  denied(await readObject(client, vid('v_webm12345.webm')), 'client video: client moved to another trainer loses access');
   console.log(count + ' storage rule assertions; failures: 0');
 })().catch(error => { console.error(error.stack); process.exitCode = 1; })
   .finally(async () => { await db.terminate(); await deleteApp(app); });

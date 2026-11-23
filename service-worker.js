@@ -22,7 +22,8 @@
 // Wersja 108: telefon ze zgodą na powiadomienia zapisuje się do serwera sam przy otwarciu aplikacji.
 // Wersja 109: trening klienta — ile serii zostało, odliczanie końca przerwy, rozgrzewka od trenera, podsumowanie i informacja dla trenera.
 // Wersja 110: postęp w podsumowaniu treningu, pochwała od trenera, przyjazny powrót po opuszczonym treningu.
-const CACHE_NAME='progress-live-shell-v110';
+// Wersja 111: film techniki od klienta do trenera (prywatny plik, karta w czacie).
+const CACHE_NAME='progress-live-shell-v111';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

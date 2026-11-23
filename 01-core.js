@@ -435,7 +435,7 @@ function normalizeMsgKind(m){
 function msgDisplayText(m){
   const raw=String(typeof m==='string'?m:((m&&m.text)||''));
   if(typeof capStripOdTags==='function')return capStripOdTags(raw);
-  return raw.replace(/\[od(?:prog)?:[^\]]+\]\s*/g,'').trim();
+  return raw.replace(/\[od(?:prog)?:[^\]]+\]\s*/g,'').replace(/\[film:[^\]]*\]\s*/g,'').trim();
 }
 function msgKindLabel(kind){
   if(kind==='broadcast')return 'Broadcast';

@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://teamprogress2018-droid.github.io"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Content-Length", "Range"]
+  }
+]

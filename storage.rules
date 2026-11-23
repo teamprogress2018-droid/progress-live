@@ -14,7 +14,7 @@ service firebase.storage {
     // download URL; writes are limited to the signed-in trainer and media types.
     // Public GET of a known file only (exercise technique media is meant to be public).
     // LIST is denied: nobody can enumerate a trainer's folder; the owner trainer may list own files.
-    // No code path stores client photos or documents in Storage (progress photos live in Firestore).
+    // Progress photos live in Firestore; the only private client media is client-videos/ below.
     match /exercise-media/{userId}/{batchId}/{fileName} {
       allow get: if true;
       allow list: if request.auth != null && request.auth.uid == userId && hasTrainerRole();
@@ -31,6 +31,30 @@ service firebase.storage {
       allow write: if request.auth != null && request.auth.uid == userId && hasTrainerRole()
         && request.resource.size < 80 * 1024 * 1024
         && request.resource.contentType.matches('^(image/(gif|webp|jpeg|png)|video/(mp4|webm))$');
+    }
+    // Film techniki od klienta do przypisanego trenera — PRYWATNY (wizerunek klienta).
+    // Ścieżka: client-videos/{trainerId}/{clientId}/{plik}. Wgrywa tylko klient połączony z tym trenerem
+    // i tą kartą klienta (clientAccounts/{uid}); czyta i usuwa tylko ten klient albo ten trener z rolą.
+    // Brak listowania, brak podmiany pliku, brak publicznego odczytu. Aplikacja pobiera plik przez getBlob
+    // (zalogowane żądanie) i nie zapisuje w Firestore adresu z tokenem pobierania.
+    function clientAccountPath() { return /databases/(default)/documents/clientAccounts/$(request.auth.uid); }
+    function isOwnClient(trainerId, clientId) {
+      return request.auth != null && firestore.exists(clientAccountPath())
+        && firestore.get(clientAccountPath()).data.role == 'client'
+        && firestore.get(clientAccountPath()).data.trainerId == trainerId
+        && firestore.get(clientAccountPath()).data.clientId == clientId;
+    }
+    function isOwnTrainer(trainerId) { return request.auth != null && request.auth.uid == trainerId && hasTrainerRole(); }
+    match /client-videos/{trainerId}/{clientId}/{fileName} {
+      allow get: if isOwnClient(trainerId, clientId) || isOwnTrainer(trainerId);
+      allow list: if false;
+      // resource == null: tylko nowy plik — istniejącego filmu nie da się nadpisać.
+      allow create: if resource == null && isOwnClient(trainerId, clientId)
+        && fileName.matches('^v_[A-Za-z0-9_-]{6,80}[.](mp4|mov|webm)$')
+        && request.resource.size > 0 && request.resource.size <= 75 * 1024 * 1024
+        && request.resource.contentType.matches('^video/(mp4|quicktime|webm)$');
+      allow update: if false;
+      allow delete: if isOwnClient(trainerId, clientId) || isOwnTrainer(trainerId);
     }
     // Every other path (e.g. a future progress-photos/ folder) is denied by default for everyone.
   }
