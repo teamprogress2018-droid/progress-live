@@ -4657,13 +4657,12 @@ function calWeekSessChip(s){
   const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(cIdx>=0?cIdx:0)%6];
   const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
   const who=c?c.name:'Klient';
-  const first=c?c.name.split(' ')[0]:'Klient';
   const sid=s&&s.id?String(s.id).replace(/"/g,''):'';
   const typeBit=s&&s.type?String(s.type):'';
   const tipRaw=who+(typeBit?' — '+typeBit:'')+(bits.happened?' · odbył się':'')+' — '+(bits.tip||'');
   const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw).replace(/"/g,'&quot;');
   return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);min-width:0;max-width:100%;" data-act="session-edit" data-act-stop-prop data-session-id="${escHtml(s.id)}" title="${tip}">
-      <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}<span class="cal-week-sess-time">${s.time||''}</span> ${first}</div>
+      <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}<span class="cal-week-sess-time">${escHtml(s.time||'')}</span> <span class="cal-week-sess-who" data-cal-who>${escHtml(who)}</span></div>
       ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
     </div>`;
 }
@@ -4805,7 +4804,7 @@ function renderCalMonth(){
         const ci=c?CL.indexOf(c):-1;
         const col=SESS_COLORS[(ci>=0?ci:0)%6];
         const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
-        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" data-act="session-edit" data-act-stop-prop data-session-id="${escHtml(s.id)}" title="${bits.tip}"><div class="cal-month-sess-line">${bits.mark}<span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}</div>`;
+        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" data-act="session-edit" data-act-stop-prop data-session-id="${escHtml(s.id)}" title="${bits.tip}"><div class="cal-month-sess-line">${bits.mark}<span style="color:var(--muted);">${escHtml(s.time||'')}</span> ${escHtml(c?c.name.split(' ')[0]:'Klient')}</div>${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}</div>`;
       }).join('')}
       ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
     </div>`;
@@ -4861,9 +4860,9 @@ function renderCalList(){
           <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;">${bits.mark}${s.source==='garmin'?'⌚ ':''}${c?c.name:'Klient'}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.source==='garmin'?'Garmin · ':''}${s.type||'Sesja'} · ${s.duration||60} min${bits.happened?' · odbył się':''}</div>
-            ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${s.notes}</div>`:''}
+            <div style="font-size:13px;font-weight:700;">${bits.mark}${s.source==='garmin'?'⌚ ':''}${escHtml(c?c.name:'Klient')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.source==='garmin'?'Garmin · ':''}${escHtml(s.type||'Sesja')} · ${escHtml(s.duration||60)} min${bits.happened?' · odbył się':''}</div>
+            ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${escHtml(s.notes)}</div>`:''}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
             ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
@@ -4948,8 +4947,8 @@ function renderCalSidebar(){
           <div class="ui-kpi-mini-val" style="font-size:22px;color:${col};">${d.getDate()}</div>
         </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);">${bits.mark}${c?c.name:'Klient'}</div>
-          <div style="font-size:var(--font-size-label);color:var(--text-label);margin-top:4px;">${s.time||'—'} · ${s.type||'Sesja'}${bits.happened?' · odbył się':''}</div>
+          <div style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);">${bits.mark}${escHtml(c?c.name:'Klient')}</div>
+          <div style="font-size:var(--font-size-label);color:var(--text-label);margin-top:4px;">${escHtml(s.time||'—')} · ${escHtml(s.type||'Sesja')}${bits.happened?' · odbył się':''}</div>
         </div>
       </div>`;
     }).join('');
@@ -5109,12 +5108,16 @@ function asClientSearchInput(){
   list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
     .sort((a,b)=>b.act.days-a.act.days)
     .slice(0,8);
+  const raw=(document.getElementById('as-client-search')?.value||'').trim().replace(/\s+/g,' ');
+  const exact=raw&&CL.some(c=>String(c.name||'').trim().toLowerCase()===raw.toLowerCase());
+  // Nowa osoba z imienia i nazwiska: dodajemy kartę klienta i od razu planujemy trening (dane uzupełnisz później).
+  const addRow=raw.length>=3&&!exact?`<button type="button" class="as-client-add" data-act="as-quick-add-client" data-cname="${escHtml(raw)}" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer;min-height:44px;"><b>+ Dodaj klienta „${escHtml(raw)}”</b><span style="display:block;font-size:11px;color:var(--muted);">nowa karta — e-mail i resztę danych uzupełnisz później</span></button>`:'';
   if(!list.length){
-    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.innerHTML=addRow+(addRow?'':'<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>');
     res.style.display='block';
     return;
   }
-  res.innerHTML=list.map(({c,act})=>`
+  res.innerHTML=addRow+list.map(({c,act})=>`
     <div data-cid="${escHtml(c.id)}" data-cname="${escHtml(c.name||'')}" onclick="asSetClientField(this.dataset.cid,this.dataset.cname)" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
       <span style="font-size:13px;">${escHtml(c.name||'')}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
@@ -5122,6 +5125,40 @@ function asClientSearchInput(){
   res.style.display='block';
 }
 
+
+/** Szybkie dodanie klienta z okna sesji: tylko imię i nazwisko, bez startu współpracy i bez wiadomości. */
+async function asQuickAddClient(rawName){
+  const name=String(rawName||'').trim().replace(/\s+/g,' ');
+  if(name.length<3){notify('Wpisz imię i nazwisko klienta.');return null;}
+  const same=CL.find(c=>String(c.name||'').trim().toLowerCase()===name.toLowerCase());
+  if(same){asSetClientField(same.id,same.name);return same;}
+  if(window._asQuickAddPending)return null;
+  let auth;
+  try{auth=assignmentSession();if(!assignmentSessionCurrent(auth))throw new Error('Zaloguj się ponownie.');}
+  catch(e){notify(e.message||'Zaloguj się ponownie.');return null;}
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const candidate={id:'c_'+crypto.randomUUID(),name,email:'',trainerId:auth.uid,status:'active',joinDate:today,
+    createdAt:new Date().toISOString(),trainingFreq:3,onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow||'standard',
+    addedFrom:'calendar'};
+  window._asQuickAddPending=true;
+  const vis=document.getElementById('as-client-search');if(vis)vis.value=name+' — zapisuję…';
+  try{
+    const saved=await saveClientCardConfirmed(candidate,{auth,edit:false,base:null});
+    if(!assignmentSessionCurrent(auth))return null;
+    let c=CL.find(x=>x.id===saved.id);
+    if(c)Object.assign(c,saved);else{c=saved;CL.push(c);}
+    asSetClientField(c.id,c.name);
+    try{if(typeof renderClients==='function')renderClients();}catch(e){}
+    notify('✓ Dodano klienta '+c.name+'. Ustaw termin i zapisz sesję.');
+    return c;
+  }catch(e){
+    if(vis)vis.value=name;
+    notify('Nie dodano klienta: '+((e&&e.message)||'błąd zapisu')+'. Spróbuj ponownie.');
+    return null;
+  }finally{window._asQuickAddPending=false;}
+}
+window.asQuickAddClient=asQuickAddClient;
+if(typeof uiAction==='function')uiAction('as-quick-add-client',d=>asQuickAddClient(d.cname));
 
 async function delSession(id){
   const s=(window.SE||[]).find(x=>x&&x.id===id);
