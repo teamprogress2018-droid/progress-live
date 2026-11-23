@@ -1159,6 +1159,7 @@ function capScreenHTML(scr,c){
       <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="capGoScreen('progress')">← Postępy</button>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(title)}</div>
       <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:14px;">${escHtml(s.date||'')} ${escHtml(s.time||'')} · ${escHtml(src)}${status?' · '+escHtml(status):''}${s.duration?' · '+escHtml(String(s.duration))+' min':''}</div>
+      ${typeof praiseClientSessionHTML==='function'?praiseClientSessionHTML(s):''}
       ${s.source==='garmin'?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid rgba(0,124,195,0.35);">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#5ec8ff;">${escHtml(String(gv.m1||'—'))}</div>

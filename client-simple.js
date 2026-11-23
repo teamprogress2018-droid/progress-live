@@ -143,6 +143,10 @@ function csTodayCardHTML(c,st){
   if(slot.kind==='done'){
     return `<section class="cs-card is-done"><div class="cs-check" aria-hidden="true">${csIcon('check',26)}</div><h2 class="cs-card-title">Trening zrobiony</h2><p class="cs-card-text">Dobra robota. Teraz czas na odpoczynek.</p><button type="button" class="cs-btn cs-btn-secondary" onclick="setClientLiveScreen('progress')">Zobacz postępy</button></section>`;
   }
+  if(slot.kind==='rest'&&!slot.weekComplete){
+    const missed=csMissedRecent(c);
+    if(missed)return csMissedCardHTML(missed);
+  }
   if(slot.kind==='rest'){
     const next=slot.nextTrainingYmd?`<p class="cs-card-text cs-card-next">Następny trening: ${csEsc(csDateLabel(slot.nextTrainingYmd))}.</p>`:'';
     const lead=slot.weekComplete?'Plan na ten tydzień wykonany — świetna robota.':'Mięśnie rosną w czasie odpoczynku.';
@@ -208,6 +212,7 @@ function csTodayHTML(c){
   return `<div class="cs-screen cs-today">
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}
+    ${typeof praiseTodayCardHTML==='function'?praiseTodayCardHTML(c):''}
     ${csMeetingCardHTML(c)}
     ${csPayCardHTML(c)}
     ${typeof commsFeelLinkHTML==='function'?commsFeelLinkHTML():''}
@@ -361,7 +366,7 @@ function csPlanRows(c,plan){
   });
   return rows;
 }
-const CS_STATUS={done:['wykonany','is-done'],planned:['zaplanowany','is-planned'],skipped:['pominięty','is-skipped']};
+const CS_STATUS={done:['wykonany','is-done'],planned:['zaplanowany','is-planned'],skipped:['nie udało się','is-skipped']};
 function csOpenPlanRow(i){
   const c=(window.CL||[]).find(x=>x&&x.id===window._clientId)||(window.CL||[])[0];
   const plan=c&&typeof capClientPlan==='function'?capClientPlan(c):null;
@@ -412,6 +417,7 @@ function csPlanHTML(c){
   return `<div class="cs-screen"><h1 class="cs-h1 cs-h1-page">Mój plan</h1>
     <div class="cs-eyebrow">TEN TYDZIEŃ</div>
     <ul class="cs-rows">${list||'<li class="cs-lead">Brak treningów w tym tygodniu.</li>'}</ul>
+    ${csMissedPlanHTML(c)}
     <p class="cs-foot">${csEsc(plan.name||'Plan treningowy')}</p></div>`;
 }
 window.csPlanHTML=csPlanHTML;
@@ -1290,6 +1296,7 @@ function csFinishHTML(cw){
         <div><b>${st.setsDone}</b><span>${csPlural(st.setsDone,'seria','serie','serii')}</span></div>
         <div><b>${typeof cwFmt==='function'?cwFmt(st.elapsed):''}</b><span>czas</span></div>
       </div>
+      ${(()=>{const pf=csProgressFacts(cw);return pf.length?`<section class="cs-sum-prog" data-cs-progress aria-label="Twój postęp"><h3>Twój postęp</h3><ul>${pf.map(x=>`<li>${csEsc(x)}</li>`).join('')}</ul></section>`:'';})()}
       <ul class="cs-sum-list" aria-label="Wykonane ćwiczenia">${rows}</ul>
       ${wu?`<p class="cs-sum-wu">Rozgrzewka: ${csEsc(wu)}</p>`:''}
       <div class="cs-sum-feel" role="group" aria-label="Jak się czułeś na treningu? (opcjonalnie)">
@@ -1324,6 +1331,7 @@ function csTrainerNoticeText(cw){
   return ['Zrobiłem trening: '+(cw.dayName||'Trening'),
     'Serie: '+st.setsDone+' z '+st.setsTotal+' · ćwiczenia: '+st.exDone+' z '+st.exTotal+' · czas '+Math.max(1,Math.round(st.elapsed/60))+' min',
     wu?'Rozgrzewka: '+wu:'',
+    ...csProgressFacts(cw).filter(x=>!/trening w tym miesiącu/.test(x)).map(x=>'Postęp: '+x),
     cw.feel&&R[cw.feel]?'Samopoczucie: '+R[cw.feel].emoji+' '+R[cw.feel].label:'',
     cw.rating?'Trudność: '+cw.rating+'/10':'',
     String(cw.note||'').trim()].filter(Boolean).join('\n').slice(0,2000);
@@ -1412,3 +1420,88 @@ function csDoneClose(){
   if(typeof renderClientLive==='function')renderClientLive();
 }
 window.csDoneOpen=csDoneOpen;window.csDoneClose=csDoneClose;window.csDoneRender=csDoneRender;window.csDoneRefresh=csDoneRefresh;
+
+
+/* ---------- Postęp w podsumowaniu: tylko porównanie z poprzednim razem, bez zgadywania ---------- */
+function csNumVal(v){const n=Number.parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(n)?n:0;}
+function csBestSet(sets){
+  let best=null;
+  (sets||[]).forEach(x=>{if(!x)return;const kg=csNumVal(x.kg),r=csNumVal(x.reps);if(r<=0)return;if(!best||kg>best.kg||(kg===best.kg&&r>best.reps))best={kg,reps:r};});
+  return best;
+}
+/** Najwyżej 2 poprawy względem poprzedniego razu (więcej kg albo więcej powtórzeń przy tym samym ciężarze) + liczba treningów w miesiącu. */
+function csProgressFacts(cw){
+  if(!cw||!Array.isArray(cw.exercises))return [];
+  const work=x=>typeof isWorkingSet!=='function'||isWorkingSet(x);
+  const found=[];
+  cw.exercises.forEach(ex=>{
+    if(!ex||ex.skipped)return;
+    const now=csBestSet((ex.sets||[]).filter(x=>x&&x.done&&work(x)));
+    const prev=csBestSet((ex.lastSets||[]).filter(work));
+    if(!now||!prev)return;
+    const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+    const weight=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit);
+    const name=csShortName(ex.name);
+    if(weight&&prev.kg>0&&now.kg>prev.kg){
+      const d=Math.round((now.kg-prev.kg)*100)/100;
+      found.push({score:100+d,text:name+': +'+csNum(d)+' kg ('+csNum(now.kg)+' kg × '+now.reps+')'});
+    }else if(now.kg===prev.kg&&now.reps>prev.reps){
+      const d=now.reps-prev.reps;
+      found.push({score:d,text:unit==='sec'?name+': +'+d+' s':name+': +'+d+' '+csPlural(d,'powtórzenie','powtórzenia','powtórzeń')+(weight&&now.kg>0?' przy tym samym ciężarze':'')});
+    }
+  });
+  found.sort((a,b)=>b.score-a.score);
+  const lines=found.slice(0,2).map(x=>x.text);
+  const c=(window.CL||[]).find(x=>x&&x.id===window._clientId);
+  if(c){
+    const month=csToday().slice(0,7);
+    const n=csDoneSessions(c).filter(x=>String(x.date||'').slice(0,7)===month&&x.id!==cw.sessionId).length+1;
+    lines.push('To Twój '+n+'. trening w tym miesiącu.');
+  }
+  return lines;
+}
+window.csProgressFacts=csProgressFacts;
+
+/* ---------- Powrót bez wyrzutów: opuszczony trening z ostatnich 3 dni ---------- */
+const CS_WD_IN=['w niedzielę','w poniedziałek','we wtorek','w środę','w czwartek','w piątek','w sobotę'];
+function csMissedRecent(c){
+  const plan=c&&typeof capClientPlan==='function'?capClientPlan(c):null;
+  if(!plan)return null;
+  // Tylko dni z harmonogramu klienta z ostatnich 3 dni (także z poprzedniego tygodnia), po starcie planu.
+  const wds=typeof clientPreferredWeekdays==='function'?clientPreferredWeekdays(c):null;
+  if(!wds||!wds.length)return null;
+  const today=csToday(),planStart=String(plan.startDate||plan.createdAt||'').slice(0,10);
+  // Każdy trening tego dnia się liczy (sam w aplikacji, z trenerem, na sali) — odwołane nie.
+  const done=(window.SE||[]).filter(x=>x&&x.clientId===c.id&&x.date&&!['cancelled','canceled','in_progress'].includes(String(x.status||'')));
+  let row=null;
+  for(let i=1;i<=3&&!row;i++){
+    const d=csAddDays(today,-i);
+    if(planStart&&d<planStart)break;
+    if(wds.includes(csDow(d))&&!done.some(x=>x.date===d))row={date:d};
+  }
+  if(!row)return null;
+  if(done.some(x=>x.date>row.date))return null;
+  const train=typeof planTrainingDayIdxs==='function'?planTrainingDayIdxs(plan):[];
+  let idx=typeof suggestedPlanDayIdx==='function'?suggestedPlanDayIdx(c.id,plan):train[0];
+  const ok=i=>{const d=(plan.days||[])[i];return d&&!d.rest&&(d.exercises||[]).length;};
+  if(!ok(idx))idx=train.find(ok);
+  if(idx==null||!ok(idx))return null;
+  const when=row.date===csAddDays(today,-1)?'wczoraj':CS_WD_IN[csDow(row.date)];
+  return {plan,dayIdx:idx,date:row.date,when,title:csDayTitle(plan.days[idx],idx).title};
+}
+function csMissedCardHTML(m){
+  return `<section class="cs-card" data-cs-missed><div class="cs-eyebrow">BEZ PRESJI</div>
+    <h2 class="cs-card-title">Nie udało się ${csEsc(m.when)}?</h2>
+    <p class="cs-card-text">Nic straconego. Możesz zrobić ten trening dziś albo umówić z trenerem nowy termin.</p>
+    <button type="button" class="cs-btn cs-btn-primary" onclick="csStart('${csEsc(m.plan.id)}',${Number(m.dayIdx)})">${CS_PLAY_ICON}Zrób trening dziś</button>
+    <button type="button" class="cs-btn cs-btn-secondary" onclick="${csChatVisible()?'csBookTraining()':csTrainerAction()}">Wybierz nowy termin</button></section>`;
+}
+function csMissedPlanHTML(c){
+  const st=csTodayState(c);
+  if(st.inProgress||st.slot.kind==='done'||st.slot.kind==='workout')return '';
+  const m=csMissedRecent(c);
+  if(!m)return '';
+  return `<div class="cs-missed-line" data-cs-missed-plan><p>Nie udało się ${csEsc(m.when)}? Możesz zrobić ten trening dziś.</p>
+    <button type="button" class="cs-btn cs-btn-secondary" onclick="csStart('${csEsc(m.plan.id)}',${Number(m.dayIdx)})">Zrób trening dziś</button></div>`;
+}
+window.csMissedRecent=csMissedRecent;window.csMissedCardHTML=csMissedCardHTML;

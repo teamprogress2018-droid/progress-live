@@ -516,3 +516,25 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .wu-empty { color: var(--text-secondary); font-size: 0.8125rem; list-style: none; }
 .wu-err { color: var(--danger, #b91c1c); font-size: 0.8125rem; font-weight: 600; }
 .wu-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+/* ===== Motywacja: postęp, pochwała trenera, powrót bez wyrzutów ===== */
+.cs-sum-prog { margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--success-bg, rgba(16,185,129,.1)); border: 1px solid var(--success, #047857); }
+.cs-sum-prog h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 750; color: var(--text-primary); }
+.cs-sum-prog ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 0.9375rem; color: var(--text-primary); }
+.cs-praise-text { margin: 4px 0 2px; font-size: 1.125rem; font-weight: 650; line-height: 1.35; color: var(--text-primary); }
+.cs-praise-hist { margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--success-bg, rgba(16,185,129,.1)); border: 1px solid var(--success, #047857); }
+.cs-praise-hist p { margin: 4px 0 0; font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); }
+.cs-missed-line { margin: 12px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); }
+.cs-missed-line p { margin: 0 0 8px; font-size: 0.9375rem; color: var(--text-primary); }
+.cs-pill.is-skipped { background: var(--bg-subtle, rgba(0,0,0,.05)); color: var(--text-secondary); }
+/* Trener: pochwała */
+.pr-block { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); text-align: left; }
+.pr-block.is-sent { color: var(--success, #047857); font-size: 0.8125rem; font-weight: 600; }
+.pr-title { font-size: 0.8125rem; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
+.pr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.pr-chip { min-height: 36px; padding: 0 12px; border: 1px solid var(--border-strong, #6b7280); border-radius: 999px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer; }
+.pr-chip:hover { border-color: var(--text-primary); }
+.pr-own { display: flex; gap: 6px; }
+.pr-own input { flex: 1; min-height: 36px; }
+.pr-in-chat { display: inline-block; max-width: 420px; }
+.pr-chat-sent { font-size: 0.75rem; color: var(--success, #047857); font-weight: 600; margin-top: 2px; }
