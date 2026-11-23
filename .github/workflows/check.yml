@@ -849,6 +849,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_comms_ui.js
 
+      - name: 6d1r. Kalendarz — imię i nazwisko klienta na kafelku (kontrast, bez wstrzyknięcia HTML), szybkie dodanie klienta w oknie sesji
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_cal_client_name_ui.js
+
       - name: 6d1p. Zapis i synchronizacja treningu klienta — offline, błąd zapisu, konflikt, zamknięcie i wznowienie (atrapa Firestore)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_sync_ui.js

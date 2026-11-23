@@ -18,7 +18,8 @@
 // Wersja 104: pusty rekord z importu nie zasłania filmu techniki; bez „Dodane podczas importu materiału.”
 // Wersja 105: stan serwera wiadomości (działa / symulacja / wymaga konfiguracji), widoczny stan zapisu serii.
 // Wersja 106: klucz publiczny Web Push — klient może włączyć powiadomienia z serwera.
-const CACHE_NAME='progress-live-shell-v106';
+// Wersja 107: kalendarz pokazuje imię i nazwisko klienta; szybkie dodanie klienta w oknie sesji.
+const CACHE_NAME='progress-live-shell-v107';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
