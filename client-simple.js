@@ -208,7 +208,7 @@ function csTodayHTML(c){
   const sub=inProgress?'Wróć do treningu, gdy będziesz gotowy.':
     slot.kind==='workout'?'Masz dziś zaplanowany trening.':
     slot.kind==='done'?'Dzisiejszy trening masz już za sobą.':
-    slot.kind==='rest'?'Dziś bez treningu — czas na regenerację.':'Witaj w aplikacji.';
+    slot.kind==='rest'?(!slot.weekComplete&&csMissedRecent(c)?'Masz dziś wolne — możesz nadrobić trening, jeśli masz ochotę.':'Dziś bez treningu — czas na regenerację.'):'Witaj w aplikacji.';
   return `<div class="cs-screen cs-today">
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}

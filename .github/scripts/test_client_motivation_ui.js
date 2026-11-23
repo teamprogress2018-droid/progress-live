@@ -117,7 +117,7 @@ async function boot(page, o = {}) {
   // ---------- 3. Powrót bez wyrzutów ----------
   await boot(page, { missed: true });
   t = await page.evaluate(() => document.querySelector('.cs-today').innerText);
-  ok('„Dzisiaj” po opuszczonym treningu: bez wyrzutów, z wyborem', /Nie udało się wczoraj\?/.test(t) && /Nic straconego/.test(t) && /Zrób trening dziś/.test(t) && /Wybierz nowy termin/.test(t) && !/pominię|przerwał/i.test(t), t.slice(0, 400));
+  ok('„Dzisiaj” po opuszczonym treningu: bez wyrzutów, z wyborem', /Nie udało się wczoraj\?/.test(t) && /możesz nadrobić trening/.test(t) && !/czas na regenerację/.test(t) && /Nic straconego/.test(t) && /Zrób trening dziś/.test(t) && /Wybierz nowy termin/.test(t) && !/pominię|przerwał/i.test(t), t.slice(0, 400));
   await page.evaluate(() => setClientLiveScreen('plan'));
   await page.waitForTimeout(150);
   t = await page.evaluate(() => document.querySelector('.cs-screen').innerText);
