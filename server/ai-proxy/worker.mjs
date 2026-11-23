@@ -110,6 +110,10 @@ export default {
     if (!env || !env.RATE) {
       return json({ error: { type: 'config', message: 'Limit AI nie jest skonfigurowany (brak magazynu RATE w Workerze).' } }, 503, origin);
     }
+    // Brak sekretu = jasny błąd konfiguracji (bez wywołania Anthropic i bez zużycia limitu), nie mylące 401 dostawcy.
+    if (!String(env.ANTHROPIC_API_KEY || '').trim()) {
+      return json({ error: { type: 'config', message: 'Klucz AI nie jest skonfigurowany w Workerze (sekret ANTHROPIC_API_KEY).' } }, 503, origin);
+    }
     const key = uid + ':' + new Date().toISOString().slice(0, 10);
     const n = Number(await env.RATE.get(key) || 0);
     if (n >= DAILY_LIMIT) return json({ error: { type: 'rate_limit', message: 'Dzienny limit AI wyczerpany.' } }, 429, origin);

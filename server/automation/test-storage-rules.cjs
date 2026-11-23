@@ -52,6 +52,18 @@ async function upload(uid, objectPath, contentType = 'video/mp4') {
   if (process.env.STORAGE_DEBUG) console.log(response.status, text.slice(0, 200));
   return response.status;
 }
+async function readObject(uid, objectPath) {
+  const url = 'http://' + ST_HOST + '/v0/b/' + BUCKET + '/o/' + encodeURIComponent(objectPath) + '?alt=media';
+  const response = await fetch(url, {headers: uid ? {Authorization: 'Firebase ' + token(uid)} : {}, signal: AbortSignal.timeout(15000)});
+  await response.arrayBuffer();
+  return response.status;
+}
+async function listPrefix(uid, prefix) {
+  const url = 'http://' + ST_HOST + '/v0/b/' + BUCKET + '/o?prefix=' + encodeURIComponent(prefix) + '&delimiter=%2F';
+  const response = await fetch(url, {headers: uid ? {Authorization: 'Firebase ' + token(uid)} : {}, signal: AbortSignal.timeout(15000)});
+  await response.text();
+  return response.status;
+}
 function allowed(status, label) { assert.equal(status, 200, label + ' (status ' + status + ')'); count++; }
 function denied(status, label) { assert.equal(status, 403, label + ' (status ' + status + ')'); count++; }
 
@@ -68,6 +80,26 @@ function denied(status, label) { assert.equal(status, 403, label + ' (status ' +
     denied(await upload(fresh, p(trainer).replace('clip', 'foreign')), prefix + ': upload into another trainer folder');
     denied(await upload(trainer, p(trainer).replace('clip.mp4', 'page.html'), 'text/html'), prefix + ': non-media type');
   }
+  // Odczyt: plik techniki znany z adresu jest publiczny (tak ma być), ale nikt obcy nie wylistuje folderu trenera.
+  const client = run + '-client';
+  await db.doc('clientAccounts/' + client).set({uid: client, role: 'client', trainerId: trainer, clientId: 'c1'});
+  const media = 'exercise-media/' + trainer + '/batch-1/clip.mp4';
+  allowed(await readObject(null, media), 'exercise media: anonymous GET of a known file (public technique media)');
+  allowed(await readObject(client, media), 'exercise media: assigned client GET');
+  denied(await listPrefix(null, 'exercise-media/' + trainer + '/batch-1/'), 'exercise media: anonymous cannot list a trainer folder');
+  denied(await listPrefix(client, 'exercise-media/' + trainer + '/batch-1/'), 'exercise media: client cannot list the trainer folder');
+  denied(await listPrefix(fresh, 'exercise-media/' + trainer + '/batch-1/'), 'exercise media: other account cannot list the trainer folder');
+  allowed(await listPrefix(trainer, 'exercise-media/' + trainer + '/batch-1/'), 'exercise media: owner trainer lists own folder');
+  denied(await listPrefix(null, 'exercise-gifs/' + trainer + '/'), 'legacy gifs: anonymous cannot list');
+  // Klient (konto klienta bez roli trenera) nie wgrywa nic, a ścieżki spoza mediów ćwiczeń są zamknięte dla wszystkich.
+  denied(await upload(client, 'exercise-media/' + client + '/b/x.mp4'), 'client account cannot upload exercise media');
+  for (const priv of ['progress-photos/' + trainer + '/c1/front.jpg', 'clients/' + trainer + '/c1/doc.png', 'uploads/x.png']) {
+    denied(await upload(trainer, priv, 'image/png'), priv + ': trainer upload outside exercise media denied');
+    denied(await upload(client, priv, 'image/png'), priv + ': client upload outside exercise media denied');
+    denied(await readObject(null, priv), priv + ': anonymous read denied');
+    denied(await readObject(client, priv), priv + ': client read denied');
+  }
+  denied(await listPrefix(null, ''), 'anonymous cannot list the bucket root');
   console.log(count + ' storage rule assertions; failures: 0');
 })().catch(error => { console.error(error.stack); process.exitCode = 1; })
   .finally(async () => { await db.terminate(); await deleteApp(app); });

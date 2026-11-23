@@ -14,6 +14,25 @@
   const nid=p=>(typeof newId==='function'?newId(p):p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8));
   const COMMS=window.COMMS=window.COMMS||{cases:[],prefs:{},jobs:null,rulesOk:null,loaded:false};
   const act=(name,fn)=>{if(typeof window.uiAction==='function')window.uiAction(name,fn);};
+  /* Stan serwera wiadomości z dokumentu commsStatus/{trener} (zapisuje go tylko serwer przy każdym uruchomieniu).
+     Brak dokumentu albo stare uruchomienie = serwer nie pracuje. Nigdy nie zgadujemy „działa”. */
+  const STATUS_FRESH_MS=30*60000;
+  function channelState(ch,nowMs){
+    const st=COMMS.status;
+    if(!st||!st.lastRunAt)return 'not_running';
+    const t=Date.parse(st.lastRunAt);
+    if(!Number.isFinite(t)||(nowMs||Date.now())-t>STATUS_FRESH_MS)return 'not_running';
+    const c=st.channels&&st.channels[ch];
+    const m=c&&c.mode;
+    return ['live','simulation','needs_config','off'].includes(m)?m:'needs_config';
+  }
+  const STATE_LABEL={live:'Działa',simulation:'Symulacja — nic nie jest wysyłane',needs_config:'Wymaga konfiguracji',off:'Wyłączony',not_running:'Serwer nie jest uruchomiony'};
+  window.commsChannelState=channelState;
+  async function loadStatus(trainerId){
+    if(!trainerId||!window._db||!window._getDoc||!window._doc){COMMS.status=null;return;}
+    try{const d=await window._getDoc(window._doc(window._db,'commsStatus',trainerId));COMMS.status=d.exists()?d.data():null;}
+    catch(e){COMMS.status=null;}
+  }
 
   /* ================= wspólne: sprawy ================= */
   // Znacznik w czacie (zapas, gdy reguły nowej kolekcji nie są jeszcze opublikowane).
@@ -162,6 +181,7 @@
       COMMS.cases=rows;COMMS.rulesOk=true;
     }catch(e){COMMS.rulesOk=false;}
     try{const p=await window._getDoc(window._doc(window._db,'commsPrefs',cid));COMMS.prefs[cid]=p.exists()?p.data():null;}catch(e){COMMS.prefs[cid]=undefined;}
+    await loadStatus(tid);
     COMMS.loaded=true;
     handleDeepLink();
     rerenderClient();
@@ -202,9 +222,10 @@
           ?`<button type="button" class="cs-btn cs-btn-ghost" data-act="comms-push-off">Wyłącz na tym telefonie</button>`
           :`<button type="button" class="cs-btn cs-btn-primary" data-act="comms-push-on">Włącz powiadomienia</button>`):''}
         ${PUSH_SUPPORTED()&&perm==='granted'?`<button type="button" class="cs-btn cs-btn-secondary" data-act="comms-push-test">Wyślij powiadomienie testowe</button>`:''}
-        ${!serverReady?'<p class="cs-sheet-hint">Wysyłka powiadomień z serwera nie jest jeszcze uruchomiona przez trenera. Test pokazuje, jak powiadomienie wygląda na tym telefonie.</p>':''}
+        ${!serverReady||channelState('push')!=='live'?'<p class="cs-sheet-hint" data-comms-push-pending>Wysyłka powiadomień z serwera nie jest jeszcze uruchomiona przez trenera. Test pokazuje, jak powiadomienie wygląda na tym telefonie.</p>':''}
       </section>
       <section class="cs-card cs-card-flat"><h2 class="cs-card-title cs-card-title-sm">WhatsApp</h2>
+        ${channelState('whatsapp')!=='live'?'<p class="cs-sheet-hint" data-comms-wa-pending>Wysyłka przez WhatsApp nie jest jeszcze uruchomiona. Możesz zapisać zgodę, ale do tego czasu przypomnienia zobaczysz tylko w aplikacji.</p>':''}
         ${wa.optIn&&!wa.optOutAt?`<p class="cs-card-text">Zgoda udzielona ${esc(String(wa.optInAt||'').slice(0,10))} na numer <b>${esc(wa.phone||'')}</b>. Możesz ją wycofać tutaj albo odpisując „STOP”.</p>
           <button type="button" class="cs-btn cs-btn-ghost" data-act="comms-wa-off">Wycofaj zgodę na WhatsApp</button>`
           :`<p class="cs-card-text">Przypomnienia o spotkaniach i planie od Progress Studio Treningu Personalnego przez WhatsApp. Bez reklam. Zgodę możesz wycofać w każdej chwili.</p>
@@ -276,7 +297,9 @@
     const [cases,prefs,jobs]=await Promise.all(['commsCases','commsPrefs','commsJobs'].map(n=>Promise.resolve(read(n)).catch(()=>null)));
     COMMS.cases=cases||[];COMMS.rulesOk=cases!==null;
     COMMS.prefs={};(prefs||[]).forEach(p=>{if(p&&p.clientId)COMMS.prefs[p.clientId]=p;});
-    COMMS.jobs=jobs;COMMS.loaded=true;
+    COMMS.jobs=jobs;
+    await loadStatus(window._uid);
+    COMMS.loaded=true;
     try{if(typeof renderInbox==='function'&&inboxTabIs('replies'))renderInbox();}catch(e){}
     updateRepliesBadge();
   }
@@ -390,13 +413,19 @@
     const preview=C.planJobs({clients:window.CL||[],sessions:window.SE||[],plans:window.PL||[],settings:S.comms||{},enabledAt},Date.now())
       .filter(j=>j.dueAt>=Date.now()-36e5).sort((a,b)=>a.dueAt-b.dueAt).slice(0,25);
     const fmt=ms=>{const p=C.warsawParts(ms);return p.ymd.slice(8,10)+'.'+p.ymd.slice(5,7)+' '+p.hm;};
-    const server=Array.isArray(COMMS.jobs);
+    const running=channelState('push')!=='not_running';
+    const server=running&&Array.isArray(COMMS.jobs);
     const jobs=server?COMMS.jobs.slice().sort((a,b)=>(b.dueAt||0)-(a.dueAt||0)).slice(0,40):[];
+    const anyLive=['push','whatsapp'].some(ch=>channelState(ch)==='live');
+    const chRow=(ch,label)=>{const k=channelState(ch);const miss=(COMMS.status&&COMMS.status.channels&&COMMS.status.channels[ch]&&COMMS.status.channels[ch].missing)||[];
+      return `<li class="comms-ch is-${k}" data-comms-ch="${ch}" data-state="${k}"><b>${label}:</b> ${esc(STATE_LABEL[k])}${k==='needs_config'&&miss.length?' — brakuje: '+esc(miss.join(', ')):''}</li>`;};
+    const lastRun=running&&COMMS.status?new Date(COMMS.status.lastRunAt).toLocaleString('pl-PL',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'}):'';
     const row=(on,key,label,extra)=>`<label class="comms-tg"><input type="checkbox" data-cfg="${key}" ${on?'checked':''}> <span>${label}</span>${extra||''}</label>`;
     return `<div class="comms-panel">
-      <div class="comms-mode ${st.enabled?'is-on':'is-off'}">
-        <b>${server?'Serwer wiadomości: dane kolejki dostępne':'Wysyłka po zamknięciu aplikacji: jeszcze nie uruchomiona'}</b>
-        <span>${server?'Statusy poniżej pochodzą z serwera.':'Na razie klienci widzą spotkania, potwierdzenia i przypomnienia w aplikacji. Automatyczne push i WhatsApp ruszą po wdrożeniu serwera i konfiguracji (instrukcja w repozytorium: server/automation/README.md).'}</span>
+      <div class="comms-mode ${anyLive?'is-on':'is-off'}" data-comms-mode="${anyLive?'live':running?'server':'off'}">
+        <b>${anyLive?'Wysyłka po zamknięciu aplikacji: działa':running?'Serwer wiadomości pracuje, ale nic nie wysyła':'Wysyłka po zamknięciu aplikacji: jeszcze nie uruchomiona'}</b>
+        <ul class="comms-ch-list">${chRow('push','Powiadomienia push')}${chRow('whatsapp','WhatsApp')}</ul>
+        <span>${running?'Ostatnie uruchomienie serwera: '+esc(lastRun)+'. „Działa” oznacza przekazanie wiadomości dostawcy; dostarczenie zależy od telefonu klienta.':'Na razie klienci widzą spotkania, potwierdzenia i przypomnienia tylko w aplikacji. Automatyczne push i WhatsApp ruszą po wdrożeniu serwera i konfiguracji (server/automation/README.md).'}</span>
       </div>
       <h3 class="comms-h">Co wysyłać automatycznie</h3>
       ${row(st.remindDayBefore.on,'remindDayBefore.on','A. Przypomnienie dzień przed spotkaniem, z przyciskiem „Potwierdzam”',` o <input type="time" data-cfg="remindDayBefore.hour" value="${esc(st.remindDayBefore.hour)}">`)}
@@ -408,7 +437,7 @@
       <div class="comms-quiet-t">Cisza nocna (domyślnie dla klientów): od <input type="time" data-cfg="quiet.from" value="${esc(st.quiet.from)}"> do <input type="time" data-cfg="quiet.to" value="${esc(st.quiet.to)}"></div>
       <p class="comms-note">Czas: Europe/Warsaw (ze zmianą czasu). Klienci na przerwie lub zawieszeni nie dostają wiadomości. Każda wiadomość jest oznaczona jako przypomnienie systemowe — nie udaje, że piszesz osobiście.</p>
       <button type="button" class="btn btn-primary btn-sm" data-act="comms-save-cfg">Zapisz ustawienia</button>
-      <h3 class="comms-h">Najbliższe wiadomości <span class="comms-badge-sim">SYMULACJA — nic nie jest wysyłane</span></h3>
+      <h3 class="comms-h">Najbliższe wiadomości <span class="comms-badge-sim">PODGLĄD — przeglądarka niczego nie wysyła</span></h3>
       ${preview.length?`<table class="comms-tbl"><thead><tr><th>Kiedy</th><th>Klient</th><th>Co</th><th>Sposób</th></tr></thead><tbody>${preview.map(j=>`<tr><td>${esc(fmt(j.dueAt))}</td><td>${esc(clientName(j.clientId))}</td><td>${esc(KIND_LABEL[j.kind]||j.kind)}</td><td>${esc(CH_LABEL[C.pickChannel(COMMS.prefs[j.clientId],j)]||'')}</td></tr>`).join('')}</tbody></table>`:'<p class="comms-note">Na razie nic nie jest zaplanowane.</p>'}
       <h3 class="comms-h">Historia wysyłki (z serwera)</h3>
       ${server&&jobs.length?`<table class="comms-tbl"><thead><tr><th>Termin</th><th>Klient</th><th>Co</th><th>Kanał</th><th>Status</th></tr></thead><tbody>${jobs.map(j=>`<tr><td>${esc(fmt(j.dueAt))}</td><td>${esc(clientName(j.clientId))}</td><td>${esc(KIND_LABEL[j.kind]||j.kind)}</td><td>${esc(CH_LABEL[j.channel]||'—')}</td><td class="st-${esc(j.status)}">${esc(C.LABEL[C.staleStatus(j,Date.now())]||j.status)}${j.lastError?' · '+esc(j.lastError):''}</td></tr>`).join('')}</tbody></table>`

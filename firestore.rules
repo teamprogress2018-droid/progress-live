@@ -424,6 +424,12 @@ service cloud.firestore {
       allow read: if owner();
       allow write: if false;
     }
+    // Stan serwera wiadomości (ostatnie uruchomienie, tryb kanałów, nazwy brakujących ustawień — bez treści i danych klientów).
+    // Zapisuje wyłącznie serwer; trener i jego klienci czytają, żeby aplikacja nie obiecywała wysyłki, która nie działa.
+    match /commsStatus/{trainerId} {
+      allow read: if (trainer() && trainerId == request.auth.uid) || (linked() && account().trainerId == trainerId);
+      allow write: if false;
+    }
     match /serverAutomation/{document=**} { allow read, write: if false; }
     // Unknown collections and ALL descendants are denied by default.
     match /{document=**} { allow read, write: if false; }

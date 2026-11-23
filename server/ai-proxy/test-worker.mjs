@@ -119,6 +119,13 @@ test('without the RATE store the worker refuses instead of running unlimited (50
   assert.equal(r.status, 503); assert.equal(r.body.error.type, 'config'); count += 2;
   assert.equal(anthropicCalls, before); count++;
 });
+test('without the ANTHROPIC_API_KEY secret: clear 503 config error, no provider call, no quota used', async () => {
+  const before = anthropicCalls;
+  const env = { RATE: kv() };
+  const r = await call(await idToken('trainer-1'), env);
+  assert.equal(r.status, 503); assert.equal(r.body.error.type, 'config'); assert.match(r.body.error.message, /ANTHROPIC_API_KEY/); count += 3;
+  assert.equal(anthropicCalls, before); assert.equal(env.RATE.m.size, 0); count += 2;
+});
 test('role check failure fails closed (503), not open', async () => {
   resetCaches(); firestoreDown = true;
   const r = await call(await idToken('trainer-1'));
