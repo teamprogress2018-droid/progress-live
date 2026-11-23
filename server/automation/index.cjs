@@ -50,7 +50,8 @@ function commsProviders() {
 exports.commsScheduler = onSchedule({
   schedule: 'every 5 minutes', timeZone: 'Europe/Warsaw', region: 'europe-west1',
   timeoutSeconds: 120, memory: '256MiB', maxInstances: 1, concurrency: 1, retryCount: 0,
-  secrets: [VAPID_PRIVATE, WA_TOKEN]
+  // WhatsApp dojdzie później: jego sekrety dopisać tutaj dopiero po założeniu konta Meta (wdrożenie wymaga istnienia sekretów).
+  secrets: [VAPID_PRIVATE]
 }, async event => {
   const config = commsConfig();
   for (const [channel, c] of Object.entries(config)) {
