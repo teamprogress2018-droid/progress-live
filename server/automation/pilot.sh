@@ -65,7 +65,7 @@ push)
   grep -q '^VAPID_PUBLIC_KEY=.\+' server/automation/.env.$P || { echo "Brak klucza publicznego w server/automation/.env.$P"; exit 1; }
   node server/automation/prepare-deploy.cjs
   npm install --prefix server/automation/.runtime --silent --no-audit --no-fund
-  ( cd server/automation && firebase deploy --project "$P" --config firebase.json --only functions:autoflow-pending:commsScheduler --non-interactive )
+  ( cd server/automation && firebase deploy --project "$P" --config firebase.json --only functions:autoflow-pending:commsScheduler,functions:autoflow-pending:trainerMessagePush --non-interactive )
   ;;
 enable|live)
   uid="${2:?Podaj UID trenera}"
