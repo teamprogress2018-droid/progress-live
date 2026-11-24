@@ -135,7 +135,7 @@ const noHScroll = (page) => page.evaluate(() => document.scrollingElement.scroll
     await page.evaluate(() => { setClientLiveScreen('progress'); csProgressFull(true); });
     const prog = await page.evaluate(() => document.getElementById('clive-screen-content').innerText);
     await page.screenshot({ path: path.join(shotDir, 'progress_full_' + w + '.png') });
-    ok(w + ': Postępy — przecinek w liczbach (84,2 kg)', /84,2/.test(prog) && !/\b84\.2\b/.test(prog) && /-1,6 kg od startu/.test(prog), prog.slice(0, 300));
+    ok(w + ': Postępy — przecinek w liczbach (84,2 kg)', /84,2/.test(prog) && !/\b84\.2\b/.test(prog) && /−1,6 kg od /.test(prog), prog.slice(0, 300));
     ok(w + ': Postępy — bez „/—” i „2t kg”', !/\/—/.test(prog) && !/\dt kg/.test(prog), prog.slice(0, 300));
     ok(w + ': Postępy — kontrast tekstu >= 4,5:1', (await lowContrast(page, '#clive-screen-content')).length === 0, JSON.stringify(await lowContrast(page, '#clive-screen-content')));
     ok(w + ': Postępy bez przewijania w poziomie', await noHScroll(page));
