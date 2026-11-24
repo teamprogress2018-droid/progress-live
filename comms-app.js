@@ -321,7 +321,7 @@
   async function commsTrainerLoad(read){
     const [cases,prefs,jobs]=await Promise.all(['commsCases','commsPrefs','commsJobs'].map(n=>Promise.resolve(read(n)).catch(()=>null)));
     COMMS.cases=cases||[];COMMS.rulesOk=cases!==null;
-    COMMS.prefs={};(prefs||[]).forEach(p=>{if(p&&p.clientId)COMMS.prefs[p.clientId]=p;});
+    COMMS.prefs={};COMMS.prefsOk=prefs!==null;(prefs||[]).forEach(p=>{if(p&&p.clientId)COMMS.prefs[p.clientId]=p;});
     COMMS.jobs=jobs;
     await loadStatus(window._uid);
     COMMS.loaded=true;
@@ -432,6 +432,40 @@
     if(p.push&&p.push.subscribed)bits.push('push zapisany ('+(p.push.device||'urządzenie')+')');
     return bits.join(' · ');
   }
+  /** Ilu klientów ma zapisany telefon do powiadomień (commsPrefs.push.subscribed — zapisuje klient, serwer
+   *  zeruje, gdy wszystkie jego telefony wygasną). Lista bez powiadomień = komu pomóc przy następnej wizycie. */
+  function pushCoverage(){
+    const out={on:[],off:[],none:[]};
+    (window.CL||[]).filter(c=>c&&c.status!=='archived').forEach(c=>{
+      const p=COMMS.prefs[c.id];
+      if(p&&p.channel==='none')out.none.push({c,p});
+      else if(p&&p.push&&p.push.subscribed)out.on.push({c,p});
+      else out.off.push({c,p});
+    });
+    return out;
+  }
+  window.commsPushCoverage=pushCoverage;
+  function pushCoverageHTML(){
+    if(COMMS.prefsOk===false)return `<section class="comms-cov" data-comms-cov="error"><h3 class="comms-h">Kto dostaje powiadomienia</h3><p class="comms-note">Nie udało się odczytać ustawień klientów. Odśwież stronę za chwilę.</p></section>`;
+    const g=pushCoverage(),total=g.on.length+g.off.length+g.none.length;
+    if(!total)return '';
+    const pct=Math.round(g.on.length*100/total);
+    const why=p=>!p?'jeszcze nie włączył(a)':p.push&&p.push.off?'wyłączył(a) na telefonie':p.push&&p.push.device?'zapis telefonu wygasł — wystarczy otworzyć aplikację z ikony':'jeszcze nie włączył(a)';
+    return `<section class="comms-cov" data-comms-cov="ok">
+      <h3 class="comms-h">Kto dostaje powiadomienia</h3>
+      <div class="comms-cov-num"><b data-cov-on>${g.on.length}</b> z <b data-cov-total>${total}</b> klientów ma włączone powiadomienia na telefonie</div>
+      <div class="comms-cov-bar" role="img" aria-label="${pct}% klientów z powiadomieniami"><span style="width:${pct}%"></span></div>
+      ${g.off.length?`<p class="comms-cov-lead">Bez powiadomień — pomóż przy następnej wizycie:</p>
+        <ul class="comms-cov-list" data-cov-off>${g.off.map(({c,p})=>`<li><b>${esc(c.name)}</b> — ${esc(why(p))}</li>`).join('')}</ul>`
+        :'<p class="comms-cov-lead is-ok">Wszyscy aktywni klienci mają włączone powiadomienia.</p>'}
+      ${g.none.length?`<p class="comms-note" data-cov-none>Wybrali „bez przypomnień”: ${g.none.map(({c})=>esc(c.name)).join(', ')}.</p>`:''}
+      <details class="comms-cov-help"><summary>Jak włączyć u klienta (1 minuta)</summary>
+        <p><b>iPhone:</b> Safari → przycisk Udostępnij → „Do ekranu początkowego”. Otwórz aplikację z nowej ikony → Więcej → Powiadomienia → „Włącz powiadomienia” → Zezwól.</p>
+        <p><b>Android:</b> Chrome → menu ⋮ → „Zainstaluj aplikację” (albo „Dodaj do ekranu głównego”). Otwórz z ikony → Więcej → Powiadomienia → „Włącz powiadomienia” → Zezwól.</p>
+      </details>
+      <p class="comms-note">Stan według zapisu z telefonu klienta. Telefon może mimo to wyciszać powiadomienia (np. tryb skupienia).</p>
+    </section>`;
+  }
   function panelHTML(){
     const st=settings(),C=CC();
     const S=window.SETTINGS||{};const enabledAt=(S.comms&&S.comms.enabledAt)||new Date(Date.now()-864e5).toISOString();
@@ -453,6 +487,7 @@
         <span>${running?'Ostatnie uruchomienie serwera: '+esc(lastRun)+'. „Działa” oznacza przekazanie wiadomości dostawcy; dostarczenie zależy od telefonu klienta.':'Na razie klienci widzą spotkania, potwierdzenia i przypomnienia tylko w aplikacji. Automatyczne push i WhatsApp ruszą po wdrożeniu serwera i konfiguracji (server/automation/README.md).'}</span>
       </div>
       ${trainerPushHTML()}
+      ${pushCoverageHTML()}
       <h3 class="comms-h">Co wysyłać automatycznie</h3>
       ${row(st.remindDayBefore.on,'remindDayBefore.on','A. Przypomnienie dzień przed spotkaniem, z przyciskiem „Potwierdzam”',` o <input type="time" data-cfg="remindDayBefore.hour" value="${esc(st.remindDayBefore.hour)}">`)}
       ${row(st.meetingChange.on,'meetingChange.on','B. Informacja o zmianie lub odwołaniu terminu (od razu)')}

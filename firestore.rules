@@ -395,8 +395,8 @@ service cloud.firestore {
           && d.whatsapp.keys().hasOnly(['optIn', 'phone', 'optInAt', 'optOutAt', 'consentText'])
           && d.whatsapp.get('optIn', false) is bool && smallText(d.whatsapp.get('phone', ''), 20)
           && smallText(d.whatsapp.get('consentText', ''), 600)))
-        && (d.get('push', null) == null || (d.push is map && d.push.keys().hasOnly(['subscribed', 'at', 'device'])
-          && smallText(d.push.get('device', ''), 120)))
+        && (d.get('push', null) == null || (d.push is map && d.push.keys().hasOnly(['subscribed', 'off', 'at', 'device'])
+          && d.push.get('off', false) is bool && smallText(d.push.get('device', ''), 120)))
         && (d.get('categories', null) == null || (d.categories is map
           && d.categories.keys().hasOnly(['meetings', 'plan', 'checkins'])))
         && (d.get('quiet', null) == null || (d.quiet is map && d.quiet.keys().hasOnly(['from', 'to'])))

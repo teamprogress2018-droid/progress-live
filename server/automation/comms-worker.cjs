@@ -187,7 +187,7 @@ function webPushProvider({publicKey, privateKey, subject}, webpush = require('we
     async send({job, text, db, trainerId}) {
       const subs = await db.collection('pushSubscriptions').where('trainerId', '==', trainerId).where('clientId', '==', job.clientId).get();
       if (subs.empty) return {ok: false, permanent: true, code: 'no-subscription'};
-      let any = false, last = 'error';
+      let any = false, last = 'error', gone = 0;
       for (const s of subs.docs) {
         const sub = s.data();
         try {
@@ -197,12 +197,25 @@ function webPushProvider({publicKey, privateKey, subject}, webpush = require('we
         } catch (e) {
           last = String(e && e.statusCode || 'error');
           // 404/410 = subskrypcja wygasła (np. usunięta aplikacja, zmiana przeglądarki) — usuwamy ją.
-          if (e && (e.statusCode === 404 || e.statusCode === 410)) await s.ref.delete();
+          if (e && (e.statusCode === 404 || e.statusCode === 410)) { await s.ref.delete(); gone++; }
         }
       }
+      // Wszystkie telefony klienta wygasły: panel trenera nie może dalej pokazywać „powiadomienia włączone”.
+      // Bez pola „off” — po ponownym otwarciu aplikacji (zgoda nadal jest) telefon zapisze się sam.
+      if (gone && gone === subs.docs.length) await markPushGone(db, trainerId, job.clientId);
       return any ? {ok: true} : {ok: false, permanent: last === '404' || last === '410', code: 'push-' + last};
     }
   };
+}
+
+async function markPushGone(db, trainerId, clientId) {
+  try {
+    const ref = db.collection('commsPrefs').doc(clientId);
+    const snap = await ref.get();
+    const p = snap.exists ? snap.data() : null;
+    if (!p || p.trainerId !== trainerId || !p.push || !p.push.subscribed) return;
+    await ref.update({'push.subscribed': false, 'push.at': new Date().toISOString()});
+  } catch (e) { /* stan w panelu to tylko informacja — błąd nie zatrzymuje wysyłki */ }
 }
 
 /** WhatsApp Cloud API — wiadomość szablonowa (poza 24-godzinnym oknem dozwolone są tylko zatwierdzone szablony). */
