@@ -38,8 +38,9 @@ let fails=0;let W=0;const ok=(n,c,x)=>{console.log((c?'OK   ':'FAIL ')+W+' px: '
   ok('brak PRIORYTET/tempo/RPE/wariantów na ekranie', !/PRIORYTET|Tempo|RPE|warianty/i.test(t));
   ok('cel 10–12 · 15 kg + około 2–3', /10–12 powt\. · 15 kg/.test(t)&&/około 2–3 powtórzeń w zapasie/i.test(t));
   ok('jeden przycisk w stopce', await page.evaluate(()=>document.querySelectorAll('.cs-ex-foot button').length)===1);
-  for(const s of ['.cs-set-grid','[data-cs-primary="save"]','.cs-tech-btn','.cs-rir-opts']) ok('widoczne bez przewijania: '+s, await vis(s));
-  // ? zapasu
+  for(const s of ['.cs-set-grid','[data-cs-primary="save"]','.cs-tech-btn','[data-cs-rir-toggle]']) ok('widoczne bez przewijania: '+s, await vis(s));
+  // Zapas powtórzeń jest schowany pod jednym przyciskiem (opcjonalny); po rozwinięciu „?” i odpowiedzi.
+  await page.click('[data-cs-rir-toggle]');ok('zapas rozwija się z przycisku', await page.isVisible('.cs-rir-opts'));
   await page.click('.cs-q');ok('„?” pokazuje wyjaśnienie', await page.isVisible('#cs-rir-help'));await page.click('.cs-q');
   // Technika
   await page.click('.cs-tech-btn');const tech=await page.evaluate(()=>document.querySelector('.cs-sheet').innerText);
@@ -47,8 +48,14 @@ let fails=0;let W=0;const ok=(n,c,x)=>{console.log((c?'OK   ':'FAIL ')+W+' px: '
   await page.screenshot({path:`${out}/${W}-technika.png`});
   await page.click('.cs-sheet .cs-btn-secondary');
   // 1. 15 → 17,5 (przycisk +), 10 powt., zapis bez zapasu
-  await page.click('.cs-step:last-child');
+  await page.click('.cs-step[aria-label^="Ciężar więcej"]');
   const kgv=await page.inputValue('.cs-kg-row input');ok('+ zmienia 15 → 17,5', kgv==='17,5', kgv);
+  // Prosty układ: plus/minus także przy powtórzeniach, numery serii, „Ostatni trening / Dzisiaj”, ciężar wzrokowo po lewej.
+  {const r0=await page.inputValue('[data-cs-field="reps"]');await page.click('.cs-step[aria-label^="Powtórzenia więcej"]');const r1=await page.inputValue('[data-cs-field="reps"]');
+   ok('+ przy powtórzeniach dodaje 1', Number(r1)===Number(r0||0)+1, r0+'→'+r1);
+   await page.click('.cs-step[aria-label^="Powtórzenia mniej"]');ok('− przy powtórzeniach odejmuje 1', await page.inputValue('[data-cs-field="reps"]')===String(r0||0));
+   const lay=await page.evaluate(()=>({chips:[...document.querySelectorAll('.cs-dots span')].map(x=>x.textContent).join(''),kgLeft:document.querySelector('[data-cs-box="kg"]').getBoundingClientRect().left<document.querySelector('[data-cs-box="reps"]').getBoundingClientRect().left,dzis:/Dzisiaj:/.test(document.querySelector('.cs-goal-prev').innerText)}));
+   ok('numery serii 1 2 3, ciężar po lewej, „Dzisiaj:”', lay.chips==='123'&&lay.kgLeft&&lay.dzis, JSON.stringify(lay));}
   await page.fill('.cs-set-grid input >> nth=0','10');
   await page.screenshot({path:`${out}/${W}-1-wpisane.png`});
   await page.tap('[data-cs-primary="save"]');await page.waitForTimeout(100);
