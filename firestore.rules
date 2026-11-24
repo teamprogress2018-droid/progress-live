@@ -37,6 +37,14 @@ service cloud.firestore {
     // (bez apostrofu, cudzysłowu, spacji i nawiasów), żeby nie dało się nim zamknąć literału JS w HTML.
     function safeDocId(value) { return value is string && value.matches('^[A-Za-z0-9_.:@-]{1,200}$'); }
     function smallText(value, max) { return value is string && value.size() <= max; }
+    // Zgody RODO klienta na jego karcie (privacy.js): wersja polityki + zgoda na dane o zdrowiu, tylko ten kształt.
+    function consentsValid(d) {
+      return !('consents' in d) || (d.consents is map && d.consents.keys().hasOnly(['privacy', 'health'])
+        && (!('privacy' in d.consents) || (d.consents.privacy is map && d.consents.privacy.keys().hasOnly(['version', 'at'])
+          && smallText(d.consents.privacy.version, 40) && smallText(d.consents.privacy.at, 40)))
+        && (!('health' in d.consents) || (d.consents.health is map && d.consents.health.keys().hasOnly(['granted', 'at'])
+          && d.consents.health.granted is bool && smallText(d.consents.health.at, 40))));
+    }
     function optionalImage(value) { return value == null || smallText(value, 800000); }
     function visibleFlags(flags) {
       return flags.keys().hasOnly(['home', 'plan', 'homework', 'progress', 'checkin', 'ondemand', 'resources', 'forum', 'messages', 'profile', 'calendar', 'bodyWeight'])
@@ -204,7 +212,8 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'appJoined', 'appJoinedAt', 'inviteAcceptedAt', 'inviteSent', 'appInvited',
           'goal', 'goalDesc', 'level', 'injuries', 'trainingFreq', 'preferredWeekdays',
-          'preferredTrainTime', 'weight', 'baselineDone', 'baselineAt']);
+          'preferredTrainTime', 'weight', 'baselineDone', 'baselineAt', 'consents'])
+        && consentsValid(request.resource.data);
     }
     match /{collection}/{docId} {
       allow read: if collection in ['plans', 'sessions', 'tasks', 'packages', 'invoices',

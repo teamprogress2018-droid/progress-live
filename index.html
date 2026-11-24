@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="plan-client.css?v=1&editor=1&nutrition=1&client=1">
 <link rel="stylesheet" href="diet-plan-view.css?v=1&wizard=1&sumy=1&progress=1">
 <link rel="stylesheet" href="landing.css?v=2&ux-login=1&ux-start=1&ux-contrast=1&ux-menu=1&ux-rest=1&ux-tiles-kb=1&safe-area=1&pclean=1">
-<link rel="stylesheet" href="client-simple.css?v=5&ux-rest=1&ux-client-nav=1&ux-client-fix=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&ex-hist-swipe=1&comms=1&trening-ux=1&pclean=1&nav4=1&ex-simple=1&mod1=1&mod2=1&mod3=1&prog2=1">
+<link rel="stylesheet" href="client-simple.css?v=5&ux-rest=1&ux-client-nav=1&ux-client-fix=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&ex-hist-swipe=1&comms=1&trening-ux=1&pclean=1&nav4=1&ex-simple=1&mod1=1&mod2=1&mod3=1&prog2=1&rodo=1">
 <style>
   /* Stała kontrolka ukrycia/usunięcia na każdej karcie biblioteki. */
   .ex-card-delete-btn{position:absolute;top:6px;right:34px;z-index:2;border:0;border-radius:6px;background:transparent;color:var(--muted);font-size:14px;line-height:1;cursor:pointer;padding:4px 5px;}
@@ -93,6 +93,8 @@
       <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-reg-password" placeholder="min. 6 znaków" autocomplete="new-password"></div>
       <div class="form-field"><label class="form-lbl">Powtórz hasło</label><input type="password" class="form-input" id="auth-reg-password2" placeholder="powtórz hasło" autocomplete="new-password" onkeydown="if(event.key==='Enter')doClientRegister()"></div>
       <div class="form-field" id="auth-reg-token-field"><label class="form-lbl" for="auth-reg-token">Kod od trenera</label><input class="form-input" id="auth-reg-token" placeholder="wklej kod z linku" autocomplete="off" aria-describedby="auth-reg-token-help"><div class="pl-auth-help" id="auth-reg-token-help">Znajdziesz go w wiadomości od trenera. Najprościej otwórz link z tej wiadomości, wtedy kod wpisze się sam.</div></div>
+      <label class="pv-check pv-reg"><input type="checkbox" id="auth-reg-privacy"><span>Zapoznałem(-am) się z <a href="polityka-prywatnosci.html" target="_blank" rel="noopener">polityką prywatności</a> i ją akceptuję. <em>wymagane</em></span></label>
+      <label class="pv-check pv-reg"><input type="checkbox" id="auth-reg-health"><span>Zgadzam się na przetwarzanie moich danych o zdrowiu (pomiary ciała, zdjęcia sylwetki, kontuzje, filmy techniki) w celu prowadzenia treningów. <em>opcjonalne, możesz zmienić w aplikacji</em></span></label>
       <div id="auth-reg-error" class="pl-auth-error" role="alert" style="display:none;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-reg-btn" onclick="doClientRegister()">Utwórz konto i wejdź</button>
       <div class="pl-auth-links">
@@ -4983,7 +4985,7 @@ async function load(session=captureTenantSession()){
 <script src="02-workouts-onboarding-templates-live.js?v=115&ux-menu=1&ux-look=1&ux-a11y=1&pclean=1"></script>
 <script src="books-kb.js?v=8"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=61&books-kb=1&client-review=1&why=1&checkin-chronology=1&plan-save=1&gen-volume=2&patterns=1&workbench=1&intensify=1&generator-ux=1&book-visuals=2&freq=4&reps=1&ux-look=1&pdf-tags=1"></script>
-<script src="04-client-portal.js?v=74&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1&ux-menu=1&ux-look=1&ux-client-nav=1&clientplan=1&mobile-fix=1&xss-ids=1&comms=1&pclean=1&nav4=1&mod1=1&mod2=1&prog2=1"></script>
+<script src="04-client-portal.js?v=74&theme-v2=1&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1&report-summary=1&agenda=1&pay-actions=1&notif-prune=1&second-brain-export=1&ux-empty-dash=1&ux-start=1&ux-menu=1&ux-look=1&ux-client-nav=1&clientplan=1&mobile-fix=1&xss-ids=1&comms=1&pclean=1&nav4=1&mod1=1&mod2=1&prog2=1&rodo=1"></script>
 <script src="client-card-save.js?v=4&private-fields=1"></script>
 <script src="dashboard-home.js?v=2"></script>
 <script src="05-clients-builder-plans-calendar.js?v=124&volume-control=1&layout-v2=1&ux-menu=1&ux-add-client=1&xss-ids=1&comms=1&muscle-map=1&cal-who=1"></script>
@@ -4998,8 +5000,9 @@ async function load(session=captureTenantSession()){
 <script src="client-video.js?v=2"></script>
 <script src="09-posture-kb-invites-private.js?v=59&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1&ux-look=1&feed-pl=1"></script>
 <script src="client-simple.js?v=7&ux-rest=1&ux-client-nav=1&ux-client-fix=1&clientplan=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&comms=1&trening-ux=1&muscle-map=1&sync-visible=1&nav4=1&ex-simple=1&mod1=1&mod2=1&mod3=1&prog2=1&prog2=1"></script>
-<script src="client-progress.js?v=1"></script>
-<script src="10-client-app.js?v=56&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1&ux-rest=1&ux-client-nav=1&clientplan=1&set-screen=1&mobile-fix=1&xss-ids=1&private-fields=1&comms=1&trening-ux=1&pclean=1&nav4=1&mod1=1&mod2=1"></script>
+<script src="client-progress.js?v=2"></script>
+<script src="privacy.js?v=1"></script>
+<script src="10-client-app.js?v=56&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1&ux-rest=1&ux-client-nav=1&clientplan=1&set-screen=1&mobile-fix=1&xss-ids=1&private-fields=1&comms=1&trening-ux=1&pclean=1&nav4=1&mod1=1&mod2=1&rodo=1"></script>
 <script src="comms-core.js?v=1"></script>
 <script src="comms-app.js?v=6&nav4=1"></script>
 <script src="11-progress-academy.js?v=10&study-explanations=1&book-answers=1&research=1&visuals=3"></script>

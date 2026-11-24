@@ -321,6 +321,12 @@ test('linked clients see only their records and explicitly shared libraries', as
   denied(await read('clients/' + clientSibling, userA), 'sibling profile');
   ok(await patch('clients/' + clientA, {weight: 75, baselineDone: true, baselineAt: '2026-09-26'}, userA), 'client measurement sync');
   denied(await patch('clients/' + clientA, {status: 'archived'}, userA), 'client cannot archive itself');
+  const at = '2026-11-24T19:00:00.000Z';
+  ok(await patch('clients/' + clientA, {consents: {privacy: {version: '2026-11-24', at}, health: {granted: true, at}}}, userA), 'client saves RODO consents');
+  ok(await patch('clients/' + clientA, {consents: {privacy: {version: '2026-11-24', at}, health: {granted: false, at}}}, userA), 'client withdraws health consent');
+  denied(await patch('clients/' + clientA, {consents: {privacy: {version: '2026-11-24', at}, health: {granted: 'yes', at}}}, userA), 'consent must be boolean');
+  denied(await patch('clients/' + clientA, {consents: {privacy: {version: '2026-11-24', at}, admin: true}}, userA), 'consents accept only known keys');
+  denied(await patch('clients/' + clientSibling, {consents: {privacy: {version: '2026-11-24', at}}}, userA), 'no consents on sibling profile');
 });
 test('account binding cannot be rebound or forged by any trainer', async () => {
   const p = 'clientAccounts/' + userA.uid;

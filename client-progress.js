@@ -242,6 +242,7 @@ function cpgBodyHTML(c,from){
 function cpgSetPhotoView(v){window._cpgPhotoView=v;setClientLiveScreen('progress');}
 function cpgPhotosHTML(c,from){
   if(typeof ppFeatureOn==='function'&&!ppFeatureOn(c))return '';
+  if(typeof privacyHealthAllowed==='function'&&!privacyHealthAllowed(c))return `<section class="cpg-card" data-cpg-photos><h2 class="cpg-h">${csIcon('image',18)}Zdjęcia przed i po</h2><p class="cpg-sub">Zdjęcia sylwetki wymagają zgody na dane o zdrowiu. Możesz ją włączyć w Profilu (Trener → Profil → Prywatność).</p></section>`;
   const all=typeof ppListFor==='function'?ppListFor(c.id):[];
   const inR=all.filter(p=>cpgInRange(p.date,from));
   const views=[['front','Przód'],['side','Bok'],['back','Tył']];
