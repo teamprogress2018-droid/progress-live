@@ -1555,6 +1555,7 @@ function capScreenHTML(scr,c){
           </div>`:''}
       </div>`;
       })()}
+      ${capIsLiveClient()&&typeof privacyProfileCardHTML==='function'?privacyProfileCardHTML(c):''}
       <button type="button" class="cap-btn-secondary" style="margin-bottom:8px;" onclick="setClientLiveScreen('forms')">📋 Moje formularze</button>
       ${capIsLiveClient()?'':`<button class="cap-btn-secondary">⚙ Ustawienia konta</button>`}
       <button type="button" class="cap-btn-secondary" style="color:var(--red);border-color:rgba(255,77,77,0.2);" ${capIsLiveClient()?'onclick="doSignOut()"':''}>Wyloguj się</button>

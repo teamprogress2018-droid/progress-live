@@ -766,3 +766,25 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-strength .cpg-chip { flex: 0 0 auto; max-width: 78%; font-size: 0.875rem; }
 .cpg-cal { gap: 2px; }
 .cpg-hist-row.is-static { cursor: default; }
+
+/* ── RODO (privacy.js): bramka zgód, karta „Prywatność” w Profilu, pola zgód przy rejestracji ── */
+.pv-check { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 8px 0; font-size: 0.875rem; line-height: 1.45; color: var(--text-primary); cursor: pointer; text-align: left; }
+.pv-check input { flex: 0 0 auto; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--text-primary); }
+.pv-check em { display: block; font-style: normal; font-size: 0.8125rem; color: var(--text-secondary); }
+.pv-check a { color: inherit; text-decoration: underline; }
+.pv-reg { margin-bottom: 4px; }
+.pv-gate { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: flex-end; justify-content: center; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); background: rgba(16, 18, 22, 0.55); }
+.pv-gate-card { width: 100%; max-width: 480px; max-height: 92vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 22px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.pv-gate-card h2 { margin: 0; font-size: 1.25rem; }
+.pv-gate-card p { margin: 0; font-size: 0.9375rem; line-height: 1.5; }
+.pv-gate-card .cs-btn { width: 100%; min-height: 52px; }
+.pv-gate-card .cs-link { align-self: center; min-height: 44px; }
+.pv-err { color: var(--danger, #b42318) !important; font-weight: 600; }
+.pv-card { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 18px; background: var(--bg-card); }
+.pv-card h2 { margin: 0; font-size: 1rem; }
+.pv-line { margin: 0; font-size: 0.875rem; color: var(--text-secondary); }
+.pv-line a { color: var(--text-primary); }
+.pv-card .pv-btn { margin: 0; min-height: 48px; }
+.pv-danger { color: var(--danger, #b42318) !important; }
+.pv-danger-btn { background: var(--danger, #b42318) !important; border-color: var(--danger, #b42318) !important; color: #fff !important; }
+.pv-gate-card h2:focus { outline: none; }

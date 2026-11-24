@@ -280,6 +280,7 @@ async function loadClientApp(account,session=captureClientTenantSession()){
     if(typeof resetScreensaverIdle==='function')resetScreensaverIdle();
   }catch(e){}
   enterClientLiveShell();
+  if(typeof privacyGateCheck==='function')privacyGateCheck();
   clientLiveSyncTrainerSwitch(session);
   startClientMessagePolling();
   // Sprawy i preferencje kontaktu — osobno, bez blokowania startu (przed publikacją reguł odczyt jest odrzucany).
@@ -734,6 +735,9 @@ async function doClientRegister(){
   if(!email||!pass){authSetError('auth-reg-error','Wpisz e-mail i hasło.');return;}
   if(pass.length<6){authSetError('auth-reg-error','Hasło musi mieć co najmniej 6 znaków.');return;}
   if(pass!==pass2){authSetError('auth-reg-error','Hasła nie są takie same.');return;}
+  const privacyBox=document.getElementById('auth-reg-privacy');
+  if(privacyBox&&privacyBox.type==='checkbox'&&!privacyBox.checked){authSetError('auth-reg-error','Zaznacz akceptację polityki prywatności.');if(typeof privacyBox.focus==='function')privacyBox.focus();return;}
+  const regConsents=typeof privacyBuildConsents==='function'?privacyBuildConsents(!!(document.getElementById('auth-reg-health')||{}).checked):null;
   if(!window._createUser){authSetError('auth-reg-error','Brak połączenia z logowaniem. Odśwież stronę.');return;}
   if(btn){btn.disabled=true;btn.textContent='Zakładanie konta...';}
   let completeRegistration,failRegistration,registrationSession;
@@ -751,6 +755,8 @@ async function doClientRegister(){
     registrationSession=captureClientTenantSession();requireClientTenantSession(registrationSession);
     if(uid!==registrationSession.uid)throw clientTenantError('client-session-changed');
     const inv=await acceptClientInvite(token,email,uid,registrationSession);
+    // Zgody RODO z formularza — gdy zapis się nie uda, czekają w telefonie (privacy.js) i bramka nie pyta drugi raz.
+    if(regConsents&&typeof privacySaveConsents==='function')await privacySaveConsents(inv.clientId,regConsents).catch(()=>false);
     completeRegistration();
     if(window._clientRegistrationPromise===registrationReady)window._clientRegistrationPromise=null;
     // Domknięcie pętli zaproszenia — trener widzi „W apce”
