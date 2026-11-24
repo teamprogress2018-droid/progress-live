@@ -6740,3 +6740,52 @@ function countExercisesWithGif(){
   return all.filter(e=>typeof exGifUrl==='function'&&!!exGifUrl(e)).length;
 }
 window.countExercisesWithGif=countExercisesWithGif;
+
+
+/* ---------- Czat trenera odświeża się sam (bez F5) ----------
+ * Co 40 s (tylko gdy karta jest widoczna i jest internet) oraz po powrocie do karty / sieci
+ * panel ponownie czyta wiadomości (window.tenantRefreshMessages w index.html) i dokłada nowe.
+ * Otwarta rozmowa odświeża się bez utraty wpisywanego tekstu. */
+const MSG_REFRESH_MS=40000;
+function msgMergeServerRows(rows){
+  if(!Array.isArray(rows))return 0;
+  let added=0,fromClient=0;const touched=new Set();
+  rows.forEach(r=>{
+    if(!r||!r.id||!r.clientId)return;
+    const list=MSGS[r.clientId]=MSGS[r.clientId]||[];
+    if(list.some(m=>m&&(m.id===r.id||m._fbId===r.id)))return;
+    list.push(r);added++;touched.add(r.clientId);
+    if(!r.out)fromClient++;
+  });
+  if(!added)return 0;
+  touched.forEach(cid=>MSGS[cid].sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))));
+  try{updateInboxNavBadge();}catch(e){}
+  try{if(typeof renderDashMsgFollowup==='function')renderDashMsgFollowup();}catch(e){}
+  try{
+    const inbox=document.getElementById('screen-inbox');
+    if(inbox&&inbox.classList.contains('active')){
+      if(curChat&&touched.has(curChat)){
+        const inp=document.getElementById('msg-inp');const draft=inp?inp.value:'';const focused=inp&&document.activeElement===inp;
+        openChat(curChat);
+        const n=document.getElementById('msg-inp');if(n&&draft){n.value=draft;if(focused)n.focus();}
+      }else renderInbox();
+    }
+  }catch(e){}
+  if(fromClient&&typeof notify==='function')notify(fromClient===1?'Nowa wiadomość od klienta':'Nowe wiadomości od klientów: '+fromClient);
+  return added;
+}
+let _msgRefreshBusy=false,_msgRefreshLast=0;
+async function msgRefreshNow(force){
+  if(_msgRefreshBusy||window._clientAppMode||!window._tenantDataReady||typeof window.tenantRefreshMessages!=='function')return 0;
+  if(typeof document!=='undefined'&&document.hidden&&!force)return 0;
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return 0;
+  if(!force&&Date.now()-_msgRefreshLast<10000)return 0;
+  _msgRefreshBusy=true;_msgRefreshLast=Date.now();
+  try{return await window.tenantRefreshMessages();}catch(e){return 0;}finally{_msgRefreshBusy=false;}
+}
+if(typeof window!=='undefined'&&typeof setInterval==='function'&&!window._msgRefreshTimer){
+  window._msgRefreshTimer=setInterval(()=>{msgRefreshNow();},MSG_REFRESH_MS);
+  if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(!document.hidden)msgRefreshNow();});
+  if(window.addEventListener)window.addEventListener('online',()=>msgRefreshNow(true));
+}
+window.msgMergeServerRows=msgMergeServerRows;window.msgRefreshNow=msgRefreshNow;

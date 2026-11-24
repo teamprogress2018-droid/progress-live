@@ -521,7 +521,16 @@ const CW_UNDO_MS=7000;
 function csSetsLeft(ex){if(!ex||ex.skipped)return 0;return (ex.sets||[]).filter(x=>x&&!x.done).length;}
 function csLeftText(n){return (n===1?'Została':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'Zostały':'Zostało')+' '+n+' '+csPlural(n,'seria','serie','serii');}
 /** Pod „Seria k z n”: ile serii zostało razem z bieżącą; przy ostatniej — „Ostatnia seria”. */
-function csSetsLeftLabel(n){return n===1?'Ostatnia seria':n>1?csLeftText(n):'';}
+function csSetsLeftLabel(n,cw){
+  if(n!==1)return n>1?csLeftText(n):'';
+  // Ostatnia seria: co dalej — przerwa i kolejne ćwiczenie albo koniec treningu.
+  const c=cw||window._cw;
+  if(c&&Array.isArray(c.exercises)){
+    const open=c.exercises.filter((e,i)=>i!==c.exIdx&&e&&!e.skipped&&(e.sets||[]).some(s=>!s.done)).length;
+    return open?'Ostatnia seria · po niej przerwa i kolejne ćwiczenie':'Ostatnia seria treningu';
+  }
+  return 'Ostatnia seria';
+}
 window.csSetsLeftLabel=csSetsLeftLabel;
 
 /* Krótkie komunikaty motywujące: tylko w ważnych momentach i każdy najwyżej raz w treningu. */
@@ -539,7 +548,8 @@ function csCheer(cw,exIdx){
     if(left===1)return once('ex1','Zostało ostatnie ćwiczenie. Dasz radę!');
     if(left===2)return once('ex2','Jeszcze 2 ćwiczenia do końca.');
     if(n>=4&&done*2>=n)return once('half','Połowa treningu za Tobą.');
-    return '';
+    // Bez kamienia milowego: krótka informacja, co dalej (raz na ćwiczenie, bo to moment przejścia).
+    return 'Zrobione — przejdź do kolejnego ćwiczenia.';
   }
   if(total===1)return once('first','Pierwsza seria za Tobą.');
   if(csSetsLeft(ex)===1&&(ex.sets||[]).length>=3)return once('lastset','Została ostatnia seria.');

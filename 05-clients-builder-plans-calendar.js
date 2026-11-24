@@ -5039,7 +5039,8 @@ function renderRecordedExercises(s){
   const hasSkip=(s.exercises||[]).some(e=>e&&e.skipped);
   const hasIssues=Array.isArray(s.issues)&&s.issues.length;
   const hasRating=Number(s.feedback)>=1&&Number(s.feedback)<=5;
-  if(!hasDetailedSets&&!hasRating&&!hasSkip&&!hasIssues&&!(s.note||s.notes)){wrap.style.display='none';list.innerHTML='';return;}
+  const hasWarmup=!!(s.planSnapshot&&s.planSnapshot.warmup&&Array.isArray(s.planSnapshot.warmup.items)&&s.planSnapshot.warmup.items.length);
+  if(!hasDetailedSets&&!hasRating&&!hasSkip&&!hasIssues&&!hasWarmup&&!(s.note||s.notes)){wrap.style.display='none';list.innerHTML='';return;}
   const src=s.source==='client'?'klienta':s.source==='live'?'Treningu Live':s.source==='planned'?'planu':'sesji';
   const titleEl=wrap.querySelector('[data-rec-ex-title]');
   if(titleEl)titleEl.textContent='Wynik klienta (z '+src+')';
@@ -5060,7 +5061,10 @@ function renderRecordedExercises(s){
       <div class="as-recorded-ex-sets">Wynik: ${setsText||'brak zatwierdzonych serii'}${e.skipped?' · pominięto'+(e.skipReason?': '+escHtml(e.skipReason):''):''}</div>
     </div>`;
   }).join(''):'';
-  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'')
+  const wu=s.planSnapshot&&s.planSnapshot.warmup;
+  const wuSum=wu&&typeof csWarmupSummary==='function'?csWarmupSummary(wu):'';
+  const warmupLine=wuSum?`<div class="as-recorded-note" data-recorded-warmup>Rozgrzewka: <span>${escHtml(wuSum)}</span>${Array.isArray(wu.items)&&!wu.skipped?` <span style="color:var(--muted);">(${wu.items.map((n,i)=>escHtml(String(n||''))+(wu.done&&wu.done[i]?' ✓':' —')).join(', ')})</span>`:''}</div>`:'';
+  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+warmupLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'')
     +(typeof praiseTrainerBlockHTML==='function'?praiseTrainerBlockHTML(s):'');
   wrap.style.display='block';
 }
