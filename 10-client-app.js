@@ -1758,7 +1758,7 @@ function cwRenderBase(){
   const el=document.getElementById('clive-player-inner');
   const cw=window._cw;
   if(!el||!cw)return;
-  const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e60000';
+  const accent=(typeof brandAccent==='function'?brandAccent():'#c62828');
   const back=`<button type="button" class="cs-back-btn" aria-label="Wróć — trening zostanie zapisany do wznowienia" onclick="cwClose()">${typeof csIcon==='function'?csIcon('back',20):'‹'}<span>Wróć</span></button>`;
   const sheet=typeof csSheetHTML==='function'?csSheetHTML(cw):'';
   // Ćwiczenie i lista rozpoczętego treningu: stały nagłówek i dół, przewija się środek (safe area iPhone'a).
@@ -2086,7 +2086,7 @@ function ppSlotHTML(view,label,src,cid,live){
 function ppBlockHTML(c,opts){
   opts=opts||{};
   const live=!!opts.live;
-  const accent=opts.accent||'#e60000';
+  const accent=opts.accent||'#c62828';
   const cid=c.id;
   if(!ppFeatureOn(c))return '';
   const list=ppListFor(cid);

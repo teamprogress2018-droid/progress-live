@@ -61,7 +61,12 @@ assert.equal(JSON.parse(store.pl_theme_v2).mode,'light');
 assert.equal(meta.content,'#ffffff');
 ctx.applyBrandTheme({brand:{accentColor:'nie-kolor',themeMode:'dark'}});
 assert.equal(attrs['data-theme'],'dark');
-assert.equal(props['--accent'],'#e60000');
+assert.equal(props['--accent'],'#c62828');
+// Dawny domyślny czerwony zapisany w ustawieniach = domyślny Progress Clean; własny wybór zostaje.
+ctx.applyBrandTheme({brand:{accentColor:'#E60000'}});
+assert.equal(props['--accent'],'#c62828');
+assert.equal(ctx.brandAccent({brand:{accentColor:'#e60000'}}),'#c62828');
+assert.equal(ctx.brandAccent({brand:{accentColor:'#2563eb'}}),'#2563eb');
 
 // CSS: statusy nie odwołują się do akcentu, ostrzeżenia Academy używają --danger
 const css=fs.readFileSync(path.join(root,'theme.css'),'utf8');

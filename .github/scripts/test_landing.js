@@ -45,7 +45,7 @@ ok('seamless loop keyframes', css.includes('@keyframes pl-land-up') && css.inclu
 ok('phone layout', css.includes('@media (max-width: 900px)') && css.includes('@media (max-width: 560px)'));
 ok('readable text sizes', /\.pl-land-lead \{[^}]*font-size: clamp\(17px/.test(css) && /\.pl-land-points li \{[^}]*font-size: 16px/.test(css));
 ok('calm background, dark text', css.includes('--land-bg: #f6f5f2;') && css.includes('--land-ink: #141414;'));
-ok('no hardcoded accent red in landing', !/#e60000(?!\))/i.test(css.replace('var(--accent, #e60000)', '')));
+ok('no hardcoded accent red in landing', !/#(e60000|c62828)(?!\))/i.test(css.replace('var(--accent, #c62828)', '')));
 
 ok('invite flow opens the dialog', /function authShowRegister\(\)\{[\s\S]*?window\.landingOpenAuth\(\);\r?\n\}/.test(src10));
 ok('boot error opens the dialog', /function showTenantBootError[\s\S]*?window\.landingOpenAuth\(\);/.test(html));

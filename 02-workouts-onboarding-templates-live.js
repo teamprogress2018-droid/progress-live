@@ -5388,7 +5388,7 @@ function renderLiveClientMock(){
   const doneCnt=liveExercises.filter(e=>e.done).length;
   const total=liveExercises.length;
   const pct=total?Math.round(doneCnt/total*100):0;
-  const accent=window.SETTINGS?.brand?.accentColor||'#e60000';
+  const accent=(typeof brandAccent==='function'?brandAccent():'#c62828');
   el.innerHTML=`
     <div style="background:#07080a;border-radius:40px;border:6px solid #1a1a2a;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
       <div style="padding:12px 20px 6px;display:flex;justify-content:space-between;font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.5);">
@@ -5954,7 +5954,7 @@ function renderRepDocument(c,template,hasAI,ai){
   const text=isDark?'#eceae6':'#1a1a2a';
   const muted=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.45)';
   const border=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)';
-  const accent=window.SETTINGS?.brand?.accentColor||'#e60000';
+  const accent=(typeof brandAccent==='function'?brandAccent():'#c62828');
   const card=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)';
 
   const activeSections=[...document.querySelectorAll('.rep-section-check:checked')].map(cb=>cb.value);

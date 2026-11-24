@@ -15,9 +15,9 @@
   --text-label: #9ca3af;
 
   /* ── Akcent ── */
-  --accent-red: #e60000;       /* jeden akcent w całej aplikacji */
-  --accent-red-hover: #c40000;
-  --accent-rgb: 255, 59, 48;
+  --accent-red: #c62828;       /* jeden akcent w całej aplikacji (Progress Clean) */
+  --accent-red-hover: #a82222;
+  --accent-rgb: 198, 40, 40;
 
   /* ── Obramowania ── */
   --border-subtle: #374151;
@@ -72,7 +72,7 @@
   --input-bg: var(--bg-input);
   --input-text: var(--text-primary);
   --accent: var(--accent-red);
-  --accent2: #c40000;          /* hover akcentu */
+  --accent2: #a82222;          /* hover akcentu */
   --adim: rgba(var(--accent-rgb), 0.12);
   --glow: var(--focus-ring);
   --font-body: var(--font-ui);
