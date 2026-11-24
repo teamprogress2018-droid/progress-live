@@ -129,17 +129,17 @@ async function saveSet(page) {
   // ---------- 1/3. Ostatnia seria ----------
   await saveSet(page);
   t = await page.evaluate(() => document.querySelector('.cs-set-head').innerText + ' || ' + ((document.querySelector('[data-cs-cheer]') || {}).textContent || ''));
-  ok('przed ostatnią serią: „Ostatnia seria” w nagłówku i komunikat raz', /Seria 3 z 3/.test(t) && /Ostatnia seria/.test(t) && /Została ostatnia seria/.test(t), t);
+  ok('przed ostatnią serią: „Ostatnia seria · po niej przerwa i kolejne ćwiczenie” i komunikat raz', /Seria 3 z 3/.test(t) && /Ostatnia seria · po niej przerwa i kolejne ćwiczenie/.test(t) && /Została ostatnia seria/.test(t), t);
   await saveSet(page);
   t = await page.evaluate(() => (document.querySelector('[data-cs-cheer]') || {}).textContent || '');
-  ok('po ćwiczeniu: brak komunikatu bez kamienia milowego (4 ćwiczenia, zostały 3)', t === '', t);
+  ok('po ćwiczeniu bez kamienia milowego: „Zrobione — przejdź do kolejnego ćwiczenia”', /Zrobione — przejdź do kolejnego ćwiczenia/.test(t), t);
   // Drugie ćwiczenie (2 serie): po nim zostają 2 ćwiczenia
   await page.evaluate(() => cwNextEx());
   await saveSet(page); await saveSet(page);
   t = await page.evaluate(() => (document.querySelector('[data-cs-cheer]') || {}).textContent || '');
   ok('„Jeszcze 2 ćwiczenia do końca”', /Jeszcze 2 ćwiczenia do końca/.test(t), t);
   const once = await page.evaluate(() => { const c = window._cw; return csCheer(c, c.exIdx); });
-  ok('ten sam komunikat nie powtarza się', once === '', once);
+  ok('ten sam kamień milowy nie powtarza się', !/Jeszcze 2 ćwiczenia/.test(once), once);
 
   // ---------- 5. Podsumowanie ----------
   await page.evaluate(() => cwEndWorkout());
