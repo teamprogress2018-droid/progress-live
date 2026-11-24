@@ -88,6 +88,7 @@ jobs:
           node .github/scripts/test_client_offline_shell.js
           node .github/scripts/test_client_self_workout.js
           node .github/scripts/test_client_workout_light_theme.js
+          node .github/scripts/test_client_rest_ring_voice.js
           node .github/scripts/test_dash_simple_mode.js
           node .github/scripts/test_ex_biceps_media_catalog.js
           node .github/scripts/test_ex_functional_media_catalog.js
