@@ -658,3 +658,31 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 @media (prefers-reduced-motion: reduce) { .cs-ring-arc { transition: none; } }
 @media (max-height: 700px) { .cs-rest-ring { width: min(56vw, 200px); } .cs-rest .cs-rest-ring .cs-rest-clock { font-size: 3.25rem; } .cs-rest-ring .cs-rest-final { font-size: 4.5rem; } }
 .cs-rest-scr .cs-rest-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* „Do końca przerwy” mówi czytnik, na ekranie jest „PRZERWA” w kółku */
+
+/* ── Etap 3 modernizacji: Postępy (wykres siły + rekordy) i zwięzła zakładka Trener ── */
+.cs-stat-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cs-stat-pair .cs-stat { min-width: 0; }
+.cs-stat-pair .cs-stat-sub { font-size: 0.8125rem; }
+.cs-strength-name { font-size: 1.0625rem; font-weight: 700; color: var(--text-primary); }
+.cs-stat-sub.is-up { color: var(--success, #15803d); font-weight: 650; }
+.cs-chart { display: block; width: 100%; height: auto; margin-top: 6px; }
+.cs-ch-grid { stroke: var(--border-subtle); stroke-width: 1; stroke-dasharray: 3 4; }
+.cs-ch-ax { fill: var(--text-secondary); font-size: 0.6875rem; font-family: inherit; }
+.cs-ch-area { fill: color-mix(in srgb, var(--text-primary) 6%, transparent); }
+.cs-ch-line { fill: none; stroke: var(--text-primary); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.cs-ch-dot { fill: var(--bg-card); stroke: var(--text-primary); stroke-width: 2; }
+.cs-ch-dot.is-last { fill: var(--success, #15803d); stroke: var(--success, #15803d); }
+.cs-records ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; }
+.cs-records li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border-subtle); font-size: 0.9375rem; }
+.cs-records li:first-child { border-top: 0; }
+.cs-records li span { min-width: 0; overflow-wrap: anywhere; color: var(--text-primary); }
+.cs-records li b { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+/* Trener: wiersze o ok. 30% niższe, bez drugiej linii poza „Kontakt”. */
+.cs-hub .cs-hub-rows { gap: 8px; }
+.cs-hub .cs-row { min-height: 52px; padding: 8px 14px; border-radius: 16px; gap: 12px; }
+.cs-hub .cs-hub-ico { width: 34px; height: 34px; border-radius: 10px; }
+.cs-hub .cs-row-title { font-size: 1rem; }
+.cs-hub .cs-row:not([data-cs-hub-row="contact"]) .cs-row-sub { display: none; }
+.cs-stat-pair .cs-stat-value { font-size: 1.75rem; line-height: 1.1; overflow-wrap: anywhere; }
+.cs-stat-pair .cs-stat { gap: 4px; }
+.cs-stat .cs-stat-sub.is-up { color: var(--success, #15803d) !important; font-weight: 650; } /* globalne [class*="sub"] ma !important */

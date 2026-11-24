@@ -453,6 +453,67 @@ function csBodyWeight(c){
   return {value:last.v,delta:list.length>1?Math.round((last.v-first.v)*10)/10:null};
 }
 function csFmtNum(v){return String(v).replace('.',',');}
+/* ── Etap 3 modernizacji: Postępy pokazują zmianę siły (prawdziwe dane z zapisanych treningów, bez przykładów). ── */
+function csKgNum(v){const n=Number.parseFloat(String(v==null?'':v).replace(',','.'));return Number.isFinite(n)?n:0;}
+/** Najcięższa seria ćwiczenia w każdym treningu: {nazwa: [{date,kg,reps}]} (rosnąco po dacie, tylko kg, bez rozgrzewki). */
+function csStrengthSeries(c){
+  const out={};
+  csDoneSessions(c).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(s=>{
+    (s.exercises||[]).forEach(ex=>{
+      if(!ex||ex.skipped||!ex.name)return;
+      if(ex.loadUnit&&ex.loadUnit!=='kg')return;
+      let best=null;
+      (ex.sets||[]).forEach(x=>{if(!x||x.kind==='warmup')return;if(x.done===false)return;const kg=csKgNum(x.kg),reps=csKgNum(x.reps);if(kg<=0||reps<=0)return;if(!best||kg>best.kg||(kg===best.kg&&reps>best.reps))best={kg,reps};});
+      if(!best)return;
+      const name=csShortName(ex.name);
+      (out[name]=out[name]||[]).push({date:String(s.date).slice(0,10),kg:best.kg,reps:best.reps});
+    });
+  });
+  return out;
+}
+/** Ćwiczenie do wykresu: najczęściej robione (min. 2 treningi), przy remisie to z największym wzrostem. */
+function csStrengthPick(series){
+  const list=Object.keys(series).map(n=>({name:n,pts:series[n]})).filter(x=>x.pts.length>=2);
+  list.sort((a,b)=>b.pts.length-a.pts.length||((b.pts[b.pts.length-1].kg-b.pts[0].kg)-(a.pts[a.pts.length-1].kg-a.pts[0].kg)));
+  return list[0]||null;
+}
+function csDateShort(ymd){const p=String(ymd).split('-');return p.length===3?(+p[2])+'.'+p[1]:ymd;}
+function csStrengthChartSVG(pts){
+  const P=pts.slice(-8),W=320,H=150,L=34,R=12,T=14,B=26;
+  const vals=P.map(p=>p.kg);let lo=Math.min(...vals),hi=Math.max(...vals);
+  if(hi===lo){lo=Math.max(0,lo-5);hi=hi+5;}
+  const pad=(hi-lo)*0.15;lo=Math.max(0,lo-pad);hi=hi+pad;
+  const x=i=>L+(P.length===1?0:i*(W-L-R)/(P.length-1)),y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  const line=P.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p.kg).toFixed(1)).join(' ');
+  const area=line+` L${x(P.length-1).toFixed(1)} ${H-B} L${x(0).toFixed(1)} ${H-B} Z`;
+  const ticks=[hi,(hi+lo)/2,lo].map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" class="cs-ch-grid"/><text x="${L-6}" y="${(y(v)+4).toFixed(1)}" text-anchor="end" class="cs-ch-ax">${csEsc(csFmtNum(Math.round(v)))}</text>`).join('');
+  const dots=P.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.kg).toFixed(1)}" r="${i===P.length-1?5:3.5}" class="${i===P.length-1?'cs-ch-dot is-last':'cs-ch-dot'}"/>`).join('');
+  const labels=P.map((p,i)=>(i===0||i===P.length-1||P.length<=5)?`<text x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="${i===0?'start':i===P.length-1?'end':'middle'}" class="cs-ch-ax">${csEsc(csDateShort(p.date))}</text>`:'').join('');
+  return `<svg class="cs-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${csEsc('Ciężar w kolejnych treningach: '+P.map(p=>csDateShort(p.date)+' '+csFmtNum(p.kg)+' kg').join(', '))}">${ticks}<path d="${area}" class="cs-ch-area"/><path d="${line}" class="cs-ch-line"/>${dots}${labels}</svg>`;
+}
+function csStrengthHTML(c){
+  const series=csStrengthSeries(c);
+  const pick=csStrengthPick(series);
+  const names=Object.keys(series);
+  if(!names.length)return `<section class="cs-stat" data-cs-strength><span class="cs-stat-label">Postęp siłowy</span><span class="cs-stat-sub">Po 2 treningach z tym samym ćwiczeniem zobaczysz tu, jak rośnie Twój ciężar.</span></section>`;
+  let chart='';
+  if(pick){
+    const a=pick.pts[0],z=pick.pts[pick.pts.length-1],d=z.kg-a.kg;
+    const msg=d>0?`+${csFmtNum(d)} kg od ${csDateShort(a.date)}`:d===0?(z.reps>a.reps?`+${z.reps-a.reps} powt. przy ${csFmtNum(z.kg)} kg`:'Ciężar stabilny — dobra baza do kolejnego kroku'):'Lżej niż na początku — trener dobierze ciężar';
+    chart=`<section class="cs-stat cs-strength" data-cs-strength>
+      <span class="cs-stat-label">Postęp siłowy</span>
+      <b class="cs-strength-name">${csEsc(pick.name)}</b>
+      <span class="cs-stat-value">${csEsc(csFmtNum(a.kg))} → ${csEsc(csFmtNum(z.kg))} kg</span>
+      <span class="cs-stat-sub${d>0?' is-up':''}" data-cs-strength-delta>${csEsc(msg)}</span>
+      ${csStrengthChartSVG(pick.pts)}
+    </section>`;
+  }
+  // Rekordy: najcięższa seria w 3 najczęściej robionych ćwiczeniach.
+  const recs=names.map(n=>{const pts=series[n];let b=pts[0];pts.forEach(p=>{if(p.kg>b.kg||(p.kg===b.kg&&p.reps>b.reps))b=p;});return{name:n,n:pts.length,best:b};}).sort((a,b)=>b.n-a.n||b.best.kg-a.best.kg).slice(0,3);
+  const recHTML=`<section class="cs-stat cs-records" data-cs-records><span class="cs-stat-label">Twoje rekordy</span><ul>${recs.map(r=>`<li><span>${csEsc(r.name)}</span><b>${csEsc(csFmtNum(r.best.kg))} kg × ${csEsc(String(r.best.reps))}</b></li>`).join('')}</ul></section>`;
+  return chart+recHTML;
+}
+window.csStrengthSeries=csStrengthSeries;window.csStrengthPick=csStrengthPick;window.csStrengthHTML=csStrengthHTML;
 function csProgressHTML(c){
   const now=new Date(),monthKey=csToday().slice(0,7);
   const monthN=csDoneSessions(c).filter(s=>String(s.date).slice(0,7)===monthKey).length;
@@ -465,9 +526,10 @@ function csProgressHTML(c){
   }
   return `<div class="cs-screen"><h1 class="cs-h1 cs-h1-page">Postępy</h1>
     <p class="cs-motivation">${csEsc(csMotivation(c))}</p>
-    <section class="cs-stat"><span class="cs-stat-label">Treningi w ${CS_MONTHS_LOC[now.getMonth()]}</span><span class="cs-stat-value">${monthN}</span></section>
-    <section class="cs-stat"><span class="cs-stat-label">Regularność</span><span class="cs-stat-value">${weeks} ${csPlural(weeks,'tydzień','tygodnie','tygodni')}</span><span class="cs-stat-sub">${weeks?'z rzędu z co najmniej jednym treningiem':'Pierwszy trening zaczyna serię.'}</span></section>
+    <div class="cs-stat-pair"><section class="cs-stat"><span class="cs-stat-label">Treningi w ${CS_MONTHS_LOC[now.getMonth()]}</span><span class="cs-stat-value">${monthN}</span></section>
+    <section class="cs-stat"><span class="cs-stat-label">Regularność</span><span class="cs-stat-value">${weeks} ${csPlural(weeks,'tydzień','tygodnie','tygodni')}</span><span class="cs-stat-sub">${weeks?'z rzędu z treningiem':'Pierwszy trening zaczyna serię.'}</span></section></div>
     ${weight}
+    ${csStrengthHTML(c)}
     <button type="button" class="cs-link" onclick="csProgressFull(true)">Więcej statystyk ${csIcon('chevron',18)}</button></div>`;
 }
 function csProgressFull(on){window._csProgressFull=!!on;setClientLiveScreen('progress');}

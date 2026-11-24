@@ -900,6 +900,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_nav4_ui.js
 
+      - name: 6d3h. Postępy klienta — wykres siły i rekordy, zwięzły ekran Trener
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_progress_strength_ui.js
+
       - name: 6d4. Aplikacja klienta na telefonie (nagłówek, 44 px, kontrast, Technika, 360/390/430 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_mobile_fixes_ui.js
