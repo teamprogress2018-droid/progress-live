@@ -606,3 +606,41 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-rir-toggle em { font-style: normal; font-weight: 500; }
 @media (max-width: 350px) { .cs-set .cs-set-no { font-size: 1.875rem; } .cs-set-boxes .cs-box input { font-size: 2rem !important; } }
 @media (max-height: 720px) { .cs-ex-media { display: none; } } /* niski ekran: zdjęcie pod „Jak wykonać ćwiczenie?”, pola wyniku bez przewijania */
+
+/* ── Etap 1 modernizacji (audyt „bez przewijania”): ciężar, powtórzenia i „Zapisz serię” na jednym ekranie iPhone'a ──
+   Mała miniatura obok „Jak wykonać ćwiczenie?”, krótsza nazwa, „Ostatni trening | Dzisiaj” jako dwa kafelki,
+   „Zostały N serie” tylko dla czytnika (numery serii mówią to samo), ciaśniejsze odstępy. */
+.cw-ex-mode .cs-ex-body { gap: 12px; padding-bottom: 8px; }
+.cs-ex-body > .cs-ex-name, .cw-ex-mode .cs-ex-name { font-size: 1.375rem; line-height: 1.15; -webkit-line-clamp: 2; }
+.cs-ex-intro { display: flex; align-items: center; gap: 10px; }
+.cs-ex-intro .cs-ex-media { flex: 0 0 80px; height: 60px; border-radius: 12px; }
+.cs-ex-intro .cs-ex-media img { width: 100%; height: 100%; max-height: none; object-fit: cover; }
+.cs-ex-intro .cs-tech-btn { flex: 1 1 auto; min-width: 0; min-height: 48px; justify-content: center; padding: 0 14px; border-radius: 14px; border: 1px solid var(--border-default, #d0d5dd); background: var(--bg-card); color: var(--text-primary); font-size: 1rem; font-weight: 650; }
+.cs-ex-intro.has-media .cs-tech-btn { min-height: 48px; height: 48px; justify-content: flex-start; text-align: left; }
+.cs-set { gap: 10px; padding: 14px; border-radius: 20px; }
+.cs-set .cs-set-head { gap: 8px; }
+.cs-set .cs-set-no { font-size: 1.75rem; }
+.cs-set .cs-dots span { height: 40px; }
+.cs-set .cs-goal-prev.is-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0; background: none; }
+.cs-set .cs-goal-prev.is-pair > p { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0; padding: 8px 6px; border-radius: 12px; background: var(--bg-main); text-align: center; }
+.cs-set .cs-goal-prev.is-pair .cs-prev-lbl, .cs-set .cs-goal-prev.is-pair .cs-target-lbl { margin: 0; font-size: 0.875rem; }
+.cs-set .cs-goal-prev.is-pair .cs-tile-val { font-size: 1.0625rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.cs-set-boxes .cs-box { gap: 6px; padding: 10px 8px; }
+.cs-set-boxes .cs-box input { min-height: 52px; font-size: 2.25rem !important; }
+.cs-box-steps .cs-step { height: 44px; }
+.cs-rir-goal { font-size: 0.9375rem; }
+.cs-cv-link { margin-top: 0; }
+@media (max-height: 720px) { .cs-ex-intro .cs-ex-media { display: block; } }
+@media (max-height: 700px) { .cs-ex-intro .cs-ex-media { display: none; } .cs-ex-intro.has-media .cs-tech-btn { justify-content: center; } }
+.cs-rir-toggle { display: block; align-self: stretch; text-align: center; min-height: 44px; line-height: 1.35; padding: 10px 0; }
+@media (max-height: 700px) {
+  .cw-ex-mode .cs-ex-body { gap: 10px; }
+  .cs-ex-body > .cs-ex-name, .cw-ex-mode .cs-ex-name { font-size: 1.25rem; -webkit-line-clamp: 1; }
+  .cs-set { gap: 8px; padding: 12px; }
+  .cs-set .cs-set-no { font-size: 1.5rem; }
+  .cs-set .cs-dots span { height: 36px; }
+  .cs-set .cs-goal-prev.is-pair > p { padding: 6px; }
+  .cs-set-boxes .cs-box { padding: 8px 6px; }
+  .cs-set-boxes .cs-box input { min-height: 44px; font-size: 2rem !important; }
+}
+.cs-rir-toggle .cs-rir-cel { display: block; font-size: 0.875rem; font-weight: 500; }
