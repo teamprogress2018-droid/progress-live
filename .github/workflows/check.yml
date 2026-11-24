@@ -89,6 +89,7 @@ jobs:
           node .github/scripts/test_client_self_workout.js
           node .github/scripts/test_client_workout_light_theme.js
           node .github/scripts/test_client_rest_ring_voice.js
+          node .github/scripts/test_estimate_1rm.js
           node .github/scripts/test_dash_simple_mode.js
           node .github/scripts/test_ex_biceps_media_catalog.js
           node .github/scripts/test_ex_functional_media_catalog.js
@@ -900,9 +901,9 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_nav4_ui.js
 
-      - name: 6d3h. Postępy klienta — wykres siły i rekordy, zwięzły ekran Trener
+      - name: 6d3h. Postępy 2.0 klienta — zakres, kalendarz, siła, rekordy, ciało, zdjęcia; zwięzły ekran Trener
         if: ${{ !cancelled() }}
-        run: node .github/scripts/test_client_progress_strength_ui.js
+        run: node .github/scripts/test_client_progress_v2_ui.js
 
       - name: 6d4. Aplikacja klienta na telefonie (nagłówek, 44 px, kontrast, Technika, 360/390/430 px)
         if: ${{ !cancelled() }}

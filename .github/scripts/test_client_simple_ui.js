@@ -97,7 +97,7 @@ function ok(name, cond, extra) {
 
   await page.evaluate(() => setClientLiveScreen('progress'));
   let prog = await page.evaluate(() => document.getElementById('clive-screen-content').innerText);
-  ok('progress has simple stats', /Treningi w/.test(prog) && /Regularność/.test(prog) && /Więcej statystyk/.test(prog), prog);
+  ok('progress has simple stats (Postępy 2.0: jeden ekran, historia na dole)', /Treningi ·/.test(prog) && /Regularność/.test(prog) && /Historia treningów/.test(prog) && !/Więcej statystyk/.test(prog), prog);
   ok('body weight hidden by default', !/Masa ciała/.test(prog));
   await page.evaluate(() => { SETTINGS.clientApp.visibleSections.bodyWeight = true; setClientLiveScreen('progress'); });
   prog = await page.evaluate(() => document.getElementById('clive-screen-content').innerText);

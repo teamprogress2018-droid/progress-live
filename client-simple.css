@@ -686,3 +686,83 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-stat-pair .cs-stat-value { font-size: 1.75rem; line-height: 1.1; overflow-wrap: anywhere; }
 .cs-stat-pair .cs-stat { gap: 4px; }
 .cs-stat .cs-stat-sub.is-up { color: var(--success, #15803d) !important; font-weight: 650; } /* globalne [class*="sub"] ma !important */
+
+/* ── Postępy 2.0 (client-progress.js): jeden ekran, zwięzłe karty (ok. 35% niższe kafelki), ikony liniowe, bez pasków przy rekordach ── */
+.cpg { gap: 14px; }
+.cpg-card { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--border-subtle); border-radius: 18px; background: var(--bg-card); min-width: 0; }
+.cpg-h { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.cpg-h .cs-ico { color: var(--text-secondary); flex-shrink: 0; }
+.cpg-sub { margin: 0; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.4; }
+.cpg .cpg-sub.is-up, .cpg .cpg-sum-line.is-up { color: var(--success, #15803d) !important; font-weight: 650; }
+.cpg-big { font-size: 1.75rem; font-weight: 750; line-height: 1.1; letter-spacing: -.01em; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.cpg-goal { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: var(--text-primary); color: var(--bg-card); }
+.cpg-goal .cs-motivation { margin: 0; padding: 0; background: none; font-size: 1rem; line-height: 1.4; color: inherit; }
+.cpg-goal-row { display: flex; align-items: center; gap: 12px; }
+.cpg-goal-row b { font-size: 1rem; white-space: nowrap; }
+.cpg-goal-segs { flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
+.cpg-goal-segs span { height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--bg-card) 28%, transparent); }
+.cpg-goal-segs span.is-on { background: var(--bg-card); }
+.cpg .cpg-goal-src { margin: 0; font-size: 0.8125rem; color: color-mix(in srgb, var(--bg-card) 82%, transparent) !important; }
+.cpg-ach { display: flex; flex-direction: column; gap: 8px; }
+.cpg-ach-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--success, #15803d) 35%, var(--border-subtle)); background: color-mix(in srgb, var(--success, #15803d) 6%, var(--bg-card)); }
+.cpg-ach-ico { display: inline-flex; color: var(--success, #15803d); padding-top: 1px; }
+.cpg-ach-item b { display: block; font-size: 0.9375rem; color: var(--text-primary); }
+.cpg-ach-item em { display: block; font-style: normal; font-size: 0.8125rem; color: var(--text-secondary); }
+.cpg-range, .cpg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cpg-chip { min-height: 44px; padding: 0 14px; border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+.cpg-chip.is-on { border-color: var(--text-primary); background: var(--text-primary); color: var(--bg-card); }
+.cpg-chip:focus-visible, .cpg-rec:focus-visible, .cpg-hist-row:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cpg-chips .cpg-chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cpg-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cpg .cpg-kpi { gap: 2px; padding: 10px 12px; min-height: 0; border-radius: 16px; }
+.cpg .cpg-kpi .cs-stat-label { font-size: 0.8125rem; }
+.cpg .cpg-kpi .cs-stat-value { font-size: 1.5rem; line-height: 1.15; }
+.cpg .cpg-kpi .cs-stat-sub { font-size: 0.75rem; }
+.cpg-sum-month { display: flex; flex-direction: column; gap: 2px; }
+.cpg-sum-month + .cpg-sum-month { padding-top: 8px; border-top: 1px solid var(--border-subtle); }
+.cpg-sum-month b { font-size: 0.9375rem; }
+.cpg-sum-line { margin: 0; font-size: 0.9375rem; color: var(--text-primary); }
+.cpg-cal { display: grid; grid-template-rows: repeat(7, auto); gap: 3px; margin-top: 4px; }
+.cpg-cal-d { display: block; aspect-ratio: 1; min-width: 0; border-radius: 3px; background: color-mix(in srgb, var(--text-primary) 8%, transparent); }
+.cpg-cal-d.is-on { background: var(--success, #15803d); }
+.cpg-cal-d.is-fut { background: transparent; border: 1px dashed var(--border-subtle); box-sizing: border-box; }
+.cpg-cal-d.is-today { outline: 2px solid var(--text-primary); outline-offset: 1px; }
+.cpg-cal-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 0.75rem; color: var(--text-secondary); }
+.cpg-cal-key { display: inline-flex; align-items: center; gap: 4px; }
+.cpg-cal-key .cpg-cal-d { width: 10px; height: 10px; display: inline-block; }
+.cpg-recs, .cpg-hist, .cpg-circ { list-style: none; margin: 0; padding: 0; }
+.cpg-rec, .cpg-hist-row { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 10px; padding: 8px 0; border: 0; border-top: 1px solid var(--border-subtle); background: none; color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; }
+.cpg-recs li:first-child .cpg-rec, .cpg-hist li:first-child .cpg-hist-row { border-top: 0; }
+.cpg-rec-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cpg-rec-name { font-size: 0.9375rem; font-weight: 650; overflow-wrap: anywhere; }
+.cpg-rec-sub { font-size: 0.8125rem; color: var(--text-secondary); }
+.cpg-rec-val { flex-shrink: 0; font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+.cpg-new { margin-left: 4px; padding: 1px 6px; border-radius: 99px; font-style: normal; font-size: 0.6875rem; font-weight: 700; color: var(--success, #15803d); background: color-mix(in srgb, var(--success, #15803d) 12%, transparent); vertical-align: 1px; }
+.cpg-more { align-self: center; }
+.cpg-circ li { display: grid; grid-template-columns: 1fr auto 5.5rem; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--border-subtle); font-size: 0.9375rem; }
+.cpg-circ li:first-child { border-top: 0; }
+.cpg-circ b { font-variant-numeric: tabular-nums; }
+.cpg-delta { text-align: right; color: var(--text-secondary); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.cpg-ph-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cpg-ph { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.cpg-ph img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; background: var(--bg-main); }
+.cpg-ph figcaption { font-size: 0.8125rem; color: var(--text-secondary); }
+.cpg-ph figcaption b { color: var(--text-primary); }
+.cpg-photo-add { align-self: flex-start; }
+.cpg-more-data summary { display: flex; align-items: center; min-height: 44px; list-style: none; font-weight: 650; cursor: pointer; }
+.cpg-more-data summary::-webkit-details-marker { display: none; }
+.cpg-more-data summary .cs-chev { margin-left: auto; display: inline-flex; transition: transform .15s; }
+.cpg-more-data[open] summary .cs-chev { transform: rotate(180deg); }
+.cpg-sub-h { margin-top: 8px; font-size: 0.875rem; font-weight: 650; color: var(--text-secondary); }
+.cpg-bars { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; align-items: end; height: 96px; }
+.cpg-bar { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 4px; }
+.cpg-bar i { display: block; width: 100%; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--text-primary); opacity: .8; }
+.cpg-bar em { font-style: normal; font-size: 0.6875rem; color: var(--text-secondary); }
+.cpg-ach { gap: 0; border: 1px solid color-mix(in srgb, var(--success, #15803d) 35%, var(--border-subtle)); border-radius: 16px; background: color-mix(in srgb, var(--success, #15803d) 6%, var(--bg-card)); overflow: hidden; }
+.cpg-ach .cpg-ach-item { border: 0; border-radius: 0; background: none; }
+.cpg-ach .cpg-ach-item + .cpg-ach-item { border-top: 1px solid color-mix(in srgb, var(--success, #15803d) 20%, var(--border-subtle)); }
+.cs-strength .cpg-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 2px; -webkit-overflow-scrolling: touch; }
+.cs-strength .cpg-chips::-webkit-scrollbar { display: none; }
+.cs-strength .cpg-chip { flex: 0 0 auto; max-width: 78%; font-size: 0.875rem; }
+.cpg-cal { gap: 2px; }
+.cpg-hist-row.is-static { cursor: default; }

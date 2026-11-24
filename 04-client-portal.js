@@ -1142,7 +1142,7 @@ function capScreenHTML(scr,c){
 
   if(scr==='progress'){
     if(capIsLiveClient()&&typeof csProgressHTML==='function'){
-      if(!window._csProgressFull)return csProgressHTML(c);
+      if(!window._csProgressFull||typeof cpgProgressHTML==='function')return csProgressHTML(c); // Postępy 2.0: jeden ekran
       return `<div class="cs-screen cs-screen-tight"><button type="button" class="cs-back" onclick="csProgressFull(false)">${typeof csIcon==='function'?csIcon('back',18):'←'}Postępy</button></div>`+capClientProgressScreenHTML(c,accent);
     }
     return capClientProgressScreenHTML(c,accent);

@@ -57,21 +57,27 @@ function csDateLabel(ymd){const d=new Date(String(ymd).slice(0,10)+'T12:00:00');
 function csPlural(n,one,few,many){const a=Math.abs(n)%100,b=a%10;if(n===1)return one;if(b>=2&&b<=4&&(a<12||a>14))return few;return many;}
 
 /** Treningi klienta wykonane w aplikacji lub z trenerem na żywo (bez wpisów „zaplanowany”). */
+/** Wykonane treningi klienta — to samo źródło co historia u trenera (`isLoggedWorkout`): trening z aplikacji, Trening Live,
+ * zapis z sali i trening wpisany ręcznie z ćwiczeniami. Bez zadań domowych, planów, Garmina i treningów w toku. Jeden dzień z dwoma
+ * zapisami tego samego treningu (np. ponowne wysłanie) liczy się raz w celach tygodnia (`csWeekDone` liczy dni). */
 function csDoneSessions(c){
-  const ok=['completed','partial','finished',''];
-  return (window.SE||[]).filter(s=>s&&s.clientId===c.id&&(s.source==='client'||s.source==='live')&&ok.includes(String(s.status||''))&&s.date);
+  const done=s=>typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(['client','live','sala'].includes(s.source)&&s.status!=='in_progress');
+  return (window.SE||[]).filter(s=>s&&c&&s.clientId===c.id&&s.date&&s.source!=='homework'&&done(s));
 }
 function csWeekDone(c,ymd){
   const mon=csMonday(ymd||csToday()),sun=csAddDays(mon,6);
   return new Set(csDoneSessions(c).filter(s=>s.date>=mon&&s.date<=sun).map(s=>s.date)).size;
 }
 /** Ile treningów w tygodniu: dni z harmonogramu klienta, a bez niego dni treningowe planu. */
+/** Cel tygodnia = liczba dni treningowych w planie klienta (tyle treningów przewiduje trener).
+ * Bez planu: dni z harmonogramu klienta. */
 function csWeekTarget(c,plan){
+  if(plan){
+    const n=typeof planTrainingDayIdxs==='function'?planTrainingDayIdxs(plan).length:(plan.days||[]).filter(d=>d&&!d.rest&&(d.exercises||[]).length).length;
+    if(n)return Math.min(7,n);
+  }
   const wds=typeof clientPreferredWeekdays==='function'?clientPreferredWeekdays(c):null;
-  if(wds&&wds.length)return Math.min(7,wds.length);
-  if(!plan)return 0;
-  const n=typeof planTrainingDayIdxs==='function'?planTrainingDayIdxs(plan).length:(plan.days||[]).filter(d=>d&&!d.rest).length;
-  return Math.min(7,n);
+  return wds&&wds.length?Math.min(7,wds.length):0;
 }
 /** Szacowany czas: rozgrzewka 8 min + każda seria ok. 40 s pracy + przerwa z planu; w górę do 5 min. */
 function csDurationMin(day){
@@ -515,6 +521,7 @@ function csStrengthHTML(c){
 }
 window.csStrengthSeries=csStrengthSeries;window.csStrengthPick=csStrengthPick;window.csStrengthHTML=csStrengthHTML;
 function csProgressHTML(c){
+  if(typeof cpgProgressHTML==='function')return cpgProgressHTML(c); // Postępy 2.0 (client-progress.js)
   const now=new Date(),monthKey=csToday().slice(0,7);
   const monthN=csDoneSessions(c).filter(s=>String(s.date).slice(0,7)===monthKey).length;
   const weeks=csWeeksInRow(c);
