@@ -214,7 +214,7 @@
   const PUSH_SUPPORTED=()=>typeof window!=='undefined'&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
   const IS_IOS=()=>/iP(hone|ad|od)/.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   const STANDALONE=()=>(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
-  /** Ekran „Powiadomienia” klienta (Więcej → Powiadomienia). Pokazuje tylko statusy, które da się ustalić. */
+  /** Ekran „Powiadomienia” klienta (Trener → Powiadomienia). Pokazuje tylko statusy, które da się ustalić. */
   function notifyHTML(){
     const p=myPrefs(),wa=p.whatsapp||{},cat=p.categories||{};
     const perm=('Notification' in window)?Notification.permission:'unsupported';
@@ -460,8 +460,8 @@
         :'<p class="comms-cov-lead is-ok">Wszyscy aktywni klienci mają włączone powiadomienia.</p>'}
       ${g.none.length?`<p class="comms-note" data-cov-none>Wybrali „bez przypomnień”: ${g.none.map(({c})=>esc(c.name)).join(', ')}.</p>`:''}
       <details class="comms-cov-help"><summary>Jak włączyć u klienta (1 minuta)</summary>
-        <p><b>iPhone:</b> Safari → przycisk Udostępnij → „Do ekranu początkowego”. Otwórz aplikację z nowej ikony → Więcej → Powiadomienia → „Włącz powiadomienia” → Zezwól.</p>
-        <p><b>Android:</b> Chrome → menu ⋮ → „Zainstaluj aplikację” (albo „Dodaj do ekranu głównego”). Otwórz z ikony → Więcej → Powiadomienia → „Włącz powiadomienia” → Zezwól.</p>
+        <p><b>iPhone:</b> Safari → przycisk Udostępnij → „Do ekranu początkowego”. Otwórz aplikację z nowej ikony → Trener → Powiadomienia → „Włącz powiadomienia” → Zezwól.</p>
+        <p><b>Android:</b> Chrome → menu ⋮ → „Zainstaluj aplikację” (albo „Dodaj do ekranu głównego”). Otwórz z ikony → Trener → Powiadomienia → „Włącz powiadomienia” → Zezwól.</p>
       </details>
       <p class="comms-note">Stan według zapisu z telefonu klienta. Telefon może mimo to wyciszać powiadomienia (np. tryb skupienia).</p>
     </section>`;
@@ -505,7 +505,7 @@
         :`<p class="comms-note">${server?'Brak wysłanych wiadomości.':'Brak — serwer nie wysyła jeszcze wiadomości. Nie pokazujemy żadnych „wysłanych”, dopóki tak nie jest.'}</p>`}
       <h3 class="comms-h">Zgody i sposób kontaktu klientów</h3>
       <ul class="comms-prefs">${(window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>`<li><b>${esc(c.name)}</b> — ${esc(prefsSummary(c.id))}</li>`).join('')||'<li>Brak klientów.</li>'}</ul>
-      <p class="comms-note">Zgodę na WhatsApp i powiadomienia zaznacza klient w swojej aplikacji (Więcej → Powiadomienia). Brak zapisanego telefonu do push nie oznacza, że klient nie ma aplikacji.</p>
+      <p class="comms-note">Zgodę na WhatsApp i powiadomienia zaznacza klient w swojej aplikacji (Trener → Powiadomienia). Brak zapisanego telefonu do push nie oznacza, że klient nie ma aplikacji.</p>
     </div>`;
   }
   /* ---------- Powiadomienia dla TRENERA o aktywności klientów (to urządzenie) ----------

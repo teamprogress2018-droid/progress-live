@@ -58,7 +58,7 @@ function ok(name, cond, extra) {
   ok('title, time and count', /Full Body/.test(home.text) && /ok\. \d+ min/.test(home.text) && /6 ćwiczeń/.test(home.text), home.text);
   ok('no exercise list on home', !/Przysiad goblet/.test(home.text));
   ok('week progress', /W tym tygodniu/.test(home.text) && /0 z 1/.test(home.text), home.text);
-  ok('bottom nav', JSON.stringify(home.nav) === JSON.stringify(['Dzisiaj', 'Trening', 'Czat', 'Postępy', 'Więcej']), JSON.stringify(home.nav));
+  ok('bottom nav', JSON.stringify(home.nav) === JSON.stringify(['Dzisiaj', 'Trening', 'Postępy', 'Trener']), JSON.stringify(home.nav));
 
   await page.click('.cs-today .cs-btn-primary');
   await page.waitForSelector('.cs-ex');
@@ -108,7 +108,7 @@ function ok(name, cond, extra) {
   const contact = await page.evaluate(() => document.getElementById('clive-screen-content').innerText);
   ok('contact screen', /Napisz do trenera/.test(contact) && /Umów trening/.test(contact) && /Owczarska 64/.test(contact) && /692 535 692/.test(contact) && /teamprogress\.pl/.test(contact), contact);
   const more = await page.evaluate(() => capLiveMoreScreens().map(s => s.id));
-  // Etap 10 UX: Czat jest na dolnym pasku, pełny Plan w „Więcej”.
+  // Plan i Kontakt są na ekranie Trener (dawne „Więcej”), czat otwiera się z Trenera.
   ok('plan and contact in more sheet, chat on the bar', more[0] === 'plan' && more[1] === 'contact' && !more.includes('messages'), JSON.stringify(more));
 
   ok('no page errors', !errors.length, errors.join(' | '));

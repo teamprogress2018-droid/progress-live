@@ -567,3 +567,10 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cv-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .cv-player video { display: block; width: 100%; max-height: 360px; margin-top: 8px; border-radius: 10px; background: #000; }
 .cv-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+
+/* ── Ekran „Trener” (dolny pasek: Dzisiaj · Trening · Postępy · Trener) ── */
+.cs-hub .cs-hub-rows { margin: 0; }
+.cs-hub-msg { margin: 0; font-size: 1.0625rem; line-height: 1.45; color: var(--text-primary); overflow-wrap: anywhere; }
+.cs-hub-ico { width: 40px; height: 40px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--bg-main); color: var(--text-primary); }
+.cs-hub-logout { align-self: center; min-height: 48px; color: var(--text-secondary); }
+.cs-back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 8px 0 0 calc(16px + var(--cs-sal, 0px)); padding: 0 8px 0 0; border: 0; background: none; color: var(--text-primary); font: inherit; font-size: 1rem; font-weight: 650; cursor: pointer; }

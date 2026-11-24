@@ -99,17 +99,23 @@ function capClientSectionVisible(id){
   return true;
 }
 
-/** Dolny pasek aplikacji klienta (4 główne zakładki + „Więcej”). Ukryte przez trenera sekcje są pomijane. */
+/** Dolny pasek aplikacji klienta: Dzisiaj · Trening · Postępy · Trener (Progress Clean, 4 pozycje, bez „Więcej”).
+ *  „Trener” (ekran `trainer`, zawsze) zbiera czat, spotkanie, kontakt i pozostałe obszary z capLiveMoreScreens.
+ *  Ukryte przez trenera sekcje są pomijane. */
 function capLiveNavScreens(){
   const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
     {id:'home',label:'Dzisiaj',icon:ic('home','🏠')},
     {id:'train',label:'Trening',icon:ic('train','🏋️'),section:'plan'},
-    // Czat na dolnym pasku (z plakietką nieprzeczytanych); pełny plan jest w „Więcej” i na ekranie Trening.
-    {id:'messages',label:'Czat',icon:ic('chat','💬')},
-    {id:'progress',label:'Postępy',icon:ic('progress','📈')}
-  ].filter(s=>capClientSectionVisible(s.section||s.id));
+    {id:'progress',label:'Postępy',icon:ic('progress','📈')},
+    {id:'trainer',label:'Trener',icon:ic('user','👤'),always:true}
+  ].filter(s=>s.always||capClientSectionVisible(s.section||s.id));
 }
+/** Ekrany, które na dolnym pasku podświetlają „Trener” (czat, kontakt i lista z capLiveMoreScreens). */
+function capTrainerGroupScreens(){
+  return ['trainer','messages','contact'].concat((typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[]).map(s=>s.id));
+}
+window.capTrainerGroupScreens=capTrainerGroupScreens;
 /** Ekrany w arkuszu „Więcej” (kalendarz jest dostępny z Postępów). Kontakt jest zawsze. */
 function capLiveMoreScreens(){
   const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
@@ -709,6 +715,7 @@ function capScreenHTML(scr,c){
 
   const h=(html)=>html; // passthrough
 
+  if(scr==='trainer'&&typeof csTrainerHubHTML==='function')return csTrainerHubHTML(c);
   if(scr==='home'){
     if(capIsLiveClient())return capClientTodaySimple(c);
     const slot=capTodaySlot(c);
@@ -1329,7 +1336,7 @@ function capScreenHTML(scr,c){
     const resolveW=t=>(allW.find(x=>x.id===t.odWorkoutId)||null);
     return `<div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">Zadania domowe</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Tylko to, co trener Ci przypisał — termin, notatka i odhaczenie. Szablony bez filmu mają timer w apce. Katalog YouTube jest w <strong>On-demand</strong> (Więcej).</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Tylko to, co trener Ci przypisał — termin, notatka i odhaczenie. Szablony bez filmu mają timer w apce. Katalog YouTube jest w <strong>Treningi nagrane</strong> (zakładka Trener).</div>
       ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Do zrobienia (${openHw.length})</div>
         ${openHw.map(t=>{const w=resolveW(t);
           if(!w){

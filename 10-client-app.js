@@ -401,7 +401,7 @@ function renderClientLive(){
   const moreScreens=typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[];
   const navIds=navScreens.map(s=>s.id), moreIds=moreScreens.map(s=>s.id);
   // Podekrany otwierane z innych ekranów (np. program on-demand z „Treningi nagrane”).
-  const subScreens=['session','exercise','odprogram','contact','train'];
+  const subScreens=['session','exercise','odprogram','contact','train','messages'];
   if(scr==='calendar'&&!(typeof capClientSectionVisible==='function'&&capClientSectionVisible('calendar')))scr='progress';
   const allowed=scr==='calendar'||navIds.includes(scr)||moreIds.includes(scr)||subScreens.includes(scr);
   if(!allowed)scr='home';
@@ -409,7 +409,11 @@ function renderClientLive(){
   renderClientLiveNav(navScreens,moreScreens,scr);
   updateClientLiveNavBadges(c);
   if(typeof capScreenHTML==='function'&&c){
-    content.innerHTML=capScreenHTML(scr,c);
+    // Podekrany „Trenera” (czat, kontakt, plan, powiadomienia…) mają drogę powrotu, bo nie ma już „Więcej”.
+    const trainerTab=navIds.includes('trainer');
+    const back=trainerTab&&scr!=='trainer'&&typeof capTrainerGroupScreens==='function'&&capTrainerGroupScreens().includes(scr)
+      ?`<button type="button" class="cs-back-link" data-cs-back-trainer onclick="setClientLiveScreen('trainer')">${typeof csIcon==='function'?csIcon('back',18):'‹'}Trener</button>`:'';
+    content.innerHTML=back+capScreenHTML(scr,c);
     if(typeof capBindTodaySwipe==='function')capBindTodaySwipe(content);
   }
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
@@ -425,6 +429,16 @@ function renderClientLiveNav(navScreens,moreScreens,scr){
     const on=s.id===scr;
     return `<button type="button" class="clive-nav-btn${on?' active':''}" id="clive-bn-${esc(s.id)}" aria-current="${on?'page':'false'}" onclick="${extra||''}setClientLiveScreen('${esc(s.id)}')" onkeydown="moveClientLiveNav(event,this)"><span aria-hidden="true">${s.icon}</span><span>${esc(s.label)}</span></button>`;
   };
+  // Z zakładką „Trener” nie ma arkusza „Więcej”: jego ekrany są na ekranie Trener.
+  if(navScreens.some(s=>s.id==='trainer')){
+    const group=typeof capTrainerGroupScreens==='function'?capTrainerGroupScreens():['trainer'];
+    nav.innerHTML=navScreens.map(s=>{
+      if(s.id!=='trainer'||scr==='trainer'||!group.includes(scr))return btn(s);
+      return btn(s).replace('class="clive-nav-btn"','class="clive-nav-btn active"').replace('aria-current="false"','aria-current="page"');
+    }).join('');
+    if(sheet){sheet.innerHTML='';sheet.hidden=true;}
+    return;
+  }
   const moreActive=moreScreens.some(s=>s.id===scr);
   const sheetOpen=sheet&&!sheet.hidden;
   nav.innerHTML=navScreens.map(s=>btn(s)).join('')+
@@ -476,6 +490,7 @@ function updateClientLiveNavBadges(c){
   setBadge('clive-bn-more',pendPay||(unread&&!document.getElementById('clive-bn-messages')));
   setBadge('clive-bn-home',false);
   setBadge('clive-bn-messages',unread);
+  setBadge('clive-bn-trainer',unread||pendPay);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
