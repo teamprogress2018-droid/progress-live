@@ -1409,7 +1409,7 @@ function csDoneStatusHTML(d){
   return `<ul class="cs-done-status" data-cs-done-status>
     <li class="${sync.cls}" data-cs-done-sync>${csEsc(sync.t)}</li>
     <li class="${n.cls}" data-cs-done-notice="${csEsc(d.notice)}">${csEsc(n.t)}</li>
-    <li class="is-info">Powiadomienia push i WhatsApp do trenera nie są włączone. Trener zobaczy wiadomość po otwarciu aplikacji.</li>
+    <li class="is-info">Trener zobaczy wiadomość w aplikacji. Powiadomienie na telefon dostanie tylko wtedy, gdy włączył je u siebie. WhatsApp do trenera nie jest używany.</li>
   </ul>`;
 }
 function csDoneRender(){

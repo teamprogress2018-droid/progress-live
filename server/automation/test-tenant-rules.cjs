@@ -492,6 +492,21 @@ test('communication: client cases, contact preferences, push subscriptions and s
   denied(await write('pushSubscriptions/' + run + '-sub2', {...sub, id: run + '-sub2', endpoint: 'http://insecure.test'}, userA), 'insecure endpoint rejected');
   ok(await remove('pushSubscriptions/' + subId, userA), 'client removes own subscription');
 
+  const tsubId = run + '-tsub';
+  const tsub = {id: tsubId, trainerId: trainerA, endpoint: 'https://push.example.test/trainer', keys: {p256dh: 'k', auth: 'a'}, device: 'iPhone', kinds: ['message', 'video'], createdAt: now};
+  ok(await write('trainerPushSubscriptions/' + tsubId, tsub, ownerA), 'trainer stores own device for client-activity push');
+  ok(await read('trainerPushSubscriptions/' + tsubId, ownerA), 'trainer reads own device');
+  denied(await read('trainerPushSubscriptions/' + tsubId, ownerB), 'foreign trainer cannot read device keys');
+  denied(await read('trainerPushSubscriptions/' + tsubId, userA), 'client cannot read trainer device keys');
+  denied(await write('trainerPushSubscriptions/' + run + '-tsub2', {...tsub, id: run + '-tsub2'}, ownerB), 'trainer cannot register device for another trainer');
+  denied(await write('trainerPushSubscriptions/' + run + '-tsub3', {...tsub, id: run + '-tsub3', trainerId: userA.uid}, userA), 'client cannot register as trainer');
+  denied(await write('trainerPushSubscriptions/' + run + '-tsub4', {...tsub, id: run + '-tsub4', endpoint: 'http://insecure.test'}, ownerA), 'insecure trainer endpoint rejected');
+  denied(await write('trainerPushSubscriptions/' + run + '-tsub5', {...tsub, id: run + '-tsub5', kinds: ['sms']}, ownerA), 'unknown notification kind rejected');
+  denied(await write('trainerPushSubscriptions/' + run + '-tsub6', {...tsub, id: run + '-tsub6', extra: 1}, ownerA), 'extra fields rejected');
+  denied(await patch('trainerPushSubscriptions/' + tsubId, {kinds: ['workout']}, ownerA), 'device record cannot be edited in place');
+  denied(await remove('trainerPushSubscriptions/' + tsubId, ownerB), 'foreign trainer cannot remove device');
+  ok(await remove('trainerPushSubscriptions/' + tsubId, ownerA), 'trainer removes own device');
+
   const jobId = run + '-job';
   await seed('commsJobs/' + jobId, clientData({id: jobId, status: 'scheduled'}));
   ok(await read('commsJobs/' + jobId, ownerA), 'trainer reads job status');

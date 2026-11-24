@@ -3,6 +3,7 @@ const {initializeApp} = require('firebase-admin/app');
 const {getFirestore} = require('firebase-admin/firestore');
 const {onSchedule} = require('firebase-functions/v2/scheduler');
 const {onRequest} = require('firebase-functions/v2/https');
+const {onDocumentCreated} = require('firebase-functions/v2/firestore');
 const {defineSecret, defineString} = require('firebase-functions/params');
 const {logger} = require('firebase-functions');
 const {drainPending} = require('./worker.cjs');
@@ -62,6 +63,29 @@ exports.commsScheduler = onSchedule({
   }
   const totals = await comms.runComms(getFirestore(), {runId: String(event.scheduleTime), providers: commsProviders(), config});
   logger.info('comms-summary', totals); // tylko liczniki, bez treści i nazw klientów
+});
+
+// ---------- Powiadomienia dla trenera: nowa wiadomość / film / koniec treningu od klienta ----------
+// Te same klucze VAPID co przypomnienia klientów. Bez kluczy nic nie wysyła (licznik skipped).
+let trainerWebpush = null;
+function trainerPushClient() {
+  if (trainerWebpush) return trainerWebpush;
+  try {
+    if (!VAPID_PUBLIC.value() || !VAPID_PRIVATE.value()) return null;
+    const wp = require('web-push');
+    wp.setVapidDetails(VAPID_SUBJECT.value(), VAPID_PUBLIC.value(), VAPID_PRIVATE.value());
+    trainerWebpush = wp;
+    return wp;
+  } catch (e) { logger.warn('trainer-push-config'); return null; }
+}
+exports.trainerMessagePush = onDocumentCreated({
+  document: 'messages/{messageId}', region: 'europe-west1', maxInstances: 5, retry: false,
+  timeoutSeconds: 30, memory: '256MiB', secrets: [VAPID_PRIVATE]
+}, async event => {
+  const msg = event.data && event.data.data();
+  if (!msg || msg.out === true) return;
+  const res = await comms.notifyTrainerOfMessage(getFirestore(), msg, {webpush: trainerPushClient()});
+  logger.info('trainer-push', res); // tylko liczniki
 });
 
 if (WA_ON) exports.whatsappWebhook = onRequest({region: 'europe-west1', maxInstances: 2, secrets: [WA_APP_SECRET, WA_VERIFY]}, async (req, res) => {

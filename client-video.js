@@ -175,7 +175,7 @@
       foot=`<button type="button" class="cs-btn cs-btn-primary" data-cv-retry onclick="cvRetry()">Spróbuj ponownie</button><button type="button" class="cs-link cv-again" onclick="cvClose()">Anuluj</button>`;
     }else if(s.status==='sent'){
       body=`${ctx}<p class="cv-state is-ok" role="status" data-cv-status="sent">Wysłano. Trener zobaczy film w czacie i tam Ci odpowie.</p>
-        <p class="cv-hint">Powiadomienia push do trenera nie są włączone — zobaczy film po otwarciu aplikacji.</p>`;
+        <p class="cv-hint">Trener zobaczy film w aplikacji. Powiadomienie na telefon dostanie tylko wtedy, gdy włączył je u siebie — tego nie widzimy z Twojej strony.</p>`;
       foot=`<button type="button" class="cs-btn cs-btn-primary" onclick="cvClose()">Gotowe</button>`;
     }
     root.innerHTML=`<div class="cs-sheet-wrap cv-wrap" data-cv-sheet="${esc(s.status)}">

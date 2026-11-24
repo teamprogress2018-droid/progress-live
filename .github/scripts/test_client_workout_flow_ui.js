@@ -161,7 +161,7 @@ async function saveSet(page) {
   await page.waitForSelector('[data-cs-done-notice="sent"]');
   t = await inner(page);
   ok('status: trening zsynchronizowany, trener dostał informację w czacie', /zsynchronizowany/.test(t) && /Trener dostał informację w aplikacji/.test(t), t);
-  ok('status: jasno, że push/WhatsApp do trenera nie są włączone', /push i WhatsApp do trenera nie są włączone/.test(t));
+  ok('status: bez obietnicy push — tylko gdy trener włączył; WhatsApp nie jest używany', /Powiadomienie na telefon dostanie tylko wtedy, gdy włączył je u siebie/.test(t) && /WhatsApp do trenera nie jest używany/.test(t));
   const srv = await page.evaluate(() => { const s = Object.entries(window.__fs).find(([k]) => k.startsWith('sessions/'))[1]; const m = Object.entries(window.__fs).filter(([k]) => k.startsWith('messages/')).map(([, v]) => v); return { status: s.status, feedback: s.feedback, note: s.note, msgs: m.map((x) => x.text) }; });
   ok('serwer: sesja „partial”, samopoczucie i komentarz', srv.status === 'partial' && srv.feedback === 4 && srv.note === 'Bark bez bólu', JSON.stringify(srv));
   ok('serwer: jedna wiadomość dla trenera z podsumowaniem', srv.msgs.length === 1 && /Zrobiłem trening/.test(srv.msgs[0]) && /Serie: 5 z 8/.test(srv.msgs[0]) && /Rozgrzewka: zrobione 1 z 2/.test(srv.msgs[0]) && /Samopoczucie: .* Dobre/.test(srv.msgs[0]) && /Bark bez bólu/.test(srv.msgs[0]), JSON.stringify(srv.msgs));

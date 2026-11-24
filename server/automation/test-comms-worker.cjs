@@ -228,5 +228,39 @@ const reminder = db => jobs(db).find(j => j.kind === 'meeting_reminder');
   ok(!/Anna|48600100200|x"|spotkani/i.test(raw) && !raw.includes('"x"'), 'status has no client data, message text or secret values');
   ok(!/48600|token/i.test(JSON.stringify(W.commsConfigStatus({WHATSAPP_TOKEN: 'tajny-token-48600'}))), 'config status never contains values');
 
+  // ---------- Push dla trenera o aktywności klienta ----------
+  ok(W.trainerPushKind('🎥 Film techniki: Przysiad\nTrening: Nogi\n[film:v_abc123.mp4]') === 'video' && W.trainerPushKind('Zrobiłem trening: Dzień 1\nSerie: 3 z 4') === 'workout' && W.trainerPushKind('Cześć') === 'message', 'trainer push: kind from message text');
+  const tp = W.trainerPushText({clientId: 'c1', text: '🎥 Film techniki: Przysiad goblet\nTrening: Nogi\nCzy kolana ok?\n[film:v_abc123.mp4]'}, 'Anna Nowak');
+  ok(tp.title === 'Progress · Anna' && tp.body === '🎥 Wysłał(a) film techniki: Przysiad goblet' && tp.url === '?tchat=c1' && !/Nowak|kolana|film:/.test(JSON.stringify(tp)), 'trainer push: first name only, exercise name, no note or file tag');
+  const tw = W.trainerPushText({clientId: 'c1', text: 'Zrobiłem trening: Dzień 1\nSerie: 3 z 4\nSamopoczucie: 😓 Bardzo ciężko\nBolał bark'}, 'Anna Nowak');
+  ok(tw.body === '✅ Skończył(a) trening: Dzień 1' && !/bark|Samopoczucie/i.test(tw.body), 'trainer push: workout summary without wellbeing or comments');
+  const long = W.trainerPushText({clientId: 'c1', text: 'a'.repeat(200)}, '');
+  ok(long.body.length === 80 && long.title === 'Progress · Klient', 'trainer push: long message shortened');
+  {
+    const dbT = fakeDb(); const sent = [];
+    const wp = {sendNotification: async (sub, payload) => { if (sub.endpoint.includes('gone')) { const e = new Error('gone'); e.statusCode = 410; throw e; } sent.push({sub, payload: JSON.parse(payload)}); }};
+    dbT._store.clients = {c1: {id: 'c1', trainerId: T, name: 'Anna Nowak'}, cX: {id: 'cX', trainerId: 'other', name: 'Obcy'}};
+    dbT._store.trainerPushSubscriptions = {
+      a: {id: 'a', trainerId: T, endpoint: 'https://push.example.test/a', keys: {p256dh: 'k', auth: 'a'}},
+      b: {id: 'b', trainerId: T, endpoint: 'https://push.example.test/b', keys: {p256dh: 'k', auth: 'a'}, kinds: ['video']},
+      g: {id: 'g', trainerId: T, endpoint: 'https://push.example.test/gone', keys: {p256dh: 'k', auth: 'a'}},
+      o: {id: 'o', trainerId: 'other', endpoint: 'https://push.example.test/o', keys: {p256dh: 'k', auth: 'a'}}
+    };
+    let r = await W.notifyTrainerOfMessage(dbT, {clientId: 'c1', trainerId: T, out: false, text: 'Cześć, mam pytanie'}, {webpush: wp});
+    ok(r.sent === 1 && sent.length === 1 && sent[0].sub.endpoint.endsWith('/a') && sent[0].payload.title === 'Progress · Anna', 'trainer push: message goes only to this trainer, respecting chosen kinds');
+    ok(r.removed === 1 && !dbT._store.trainerPushSubscriptions.g && dbT._store.trainerPushSubscriptions.o, 'trainer push: expired device removed, other trainer untouched');
+    sent.length = 0;
+    r = await W.notifyTrainerOfMessage(dbT, {clientId: 'c1', trainerId: T, out: false, text: '🎥 Film techniki: Przysiad\n[film:v_abc123.mp4]'}, {webpush: wp});
+    ok(r.sent === 2 && sent.every(x => /film techniki/.test(x.payload.body)), 'trainer push: video goes to devices that chose videos');
+    sent.length = 0;
+    r = await W.notifyTrainerOfMessage(dbT, {clientId: 'c1', trainerId: T, out: true, text: 'Od trenera'}, {webpush: wp});
+    ok(r.sent === 0 && sent.length === 0, 'trainer push: trainer’s own messages do not notify');
+    r = await W.notifyTrainerOfMessage(dbT, {clientId: 'cX', trainerId: T, out: false, text: 'x'}, {webpush: wp});
+    ok(sent.length === 1 && sent[0].payload.title === 'Progress · Klient', 'trainer push: client of another trainer never shows a name');
+    sent.length = 0;
+    r = await W.notifyTrainerOfMessage(dbT, {clientId: 'c1', trainerId: T, out: false, text: 'x'}, {});
+    ok(r.sent === 0 && sent.length === 0, 'trainer push: without VAPID keys nothing is sent');
+  }
+
   console.log('comms worker: ' + count + ' checks passed');
 })().catch(e => { console.error(e); process.exit(1); });

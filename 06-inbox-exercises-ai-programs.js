@@ -6789,3 +6789,18 @@ if(typeof window!=='undefined'&&typeof setInterval==='function'&&!window._msgRef
   if(window.addEventListener)window.addEventListener('online',()=>msgRefreshNow(true));
 }
 window.msgMergeServerRows=msgMergeServerRows;window.msgRefreshNow=msgRefreshNow;
+
+/* Link z powiadomienia trenera: ?tchat=<clientId> otwiera rozmowę z klientem po wczytaniu danych. */
+(function(){
+  let id='';try{id=new URLSearchParams(location.search).get('tchat')||'';}catch(e){}
+  if(!id||!/^[A-Za-z0-9_.:@-]{1,200}$/.test(id))return;
+  let tries=0;
+  const t=setInterval(()=>{
+    tries++;
+    if(window._clientAppMode||tries>120){clearInterval(t);return;}
+    if(!window._tenantDataReady||!(window.CL||[]).some(c=>c&&c.id===id))return;
+    clearInterval(t);
+    try{if(typeof goTo==='function')goTo('inbox');openChat(id);}catch(e){}
+    try{history.replaceState(null,'',location.pathname);}catch(e){}
+  },250);
+})();
