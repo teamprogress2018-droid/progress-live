@@ -452,6 +452,7 @@
         <ul class="comms-ch-list">${chRow('push','Powiadomienia push')}${chRow('whatsapp','WhatsApp')}</ul>
         <span>${running?'Ostatnie uruchomienie serwera: '+esc(lastRun)+'. „Działa” oznacza przekazanie wiadomości dostawcy; dostarczenie zależy od telefonu klienta.':'Na razie klienci widzą spotkania, potwierdzenia i przypomnienia tylko w aplikacji. Automatyczne push i WhatsApp ruszą po wdrożeniu serwera i konfiguracji (server/automation/README.md).'}</span>
       </div>
+      ${trainerPushHTML()}
       <h3 class="comms-h">Co wysyłać automatycznie</h3>
       ${row(st.remindDayBefore.on,'remindDayBefore.on','A. Przypomnienie dzień przed spotkaniem, z przyciskiem „Potwierdzam”',` o <input type="time" data-cfg="remindDayBefore.hour" value="${esc(st.remindDayBefore.hour)}">`)}
       ${row(st.meetingChange.on,'meetingChange.on','B. Informacja o zmianie lub odwołaniu terminu (od razu)')}
@@ -472,6 +473,76 @@
       <p class="comms-note">Zgodę na WhatsApp i powiadomienia zaznacza klient w swojej aplikacji (Więcej → Powiadomienia). Brak zapisanego telefonu do push nie oznacza, że klient nie ma aplikacji.</p>
     </div>`;
   }
+  /* ---------- Powiadomienia dla TRENERA o aktywności klientów (to urządzenie) ----------
+   * Zapis: trainerPushSubscriptions/{tps_…} (reguły: tylko ten trener). Wysyła funkcja serwera trainerMessagePush
+   * przy nowej wiadomości klienta. Na tym urządzeniu pamiętamy tylko id wpisu i wybrane rodzaje. */
+  const TP_KEY='pl_trainer_push_v1';
+  const TP_KINDS=[['message','Nowe wiadomości od klientów'],['video','Filmy z techniką ćwiczenia'],['workout','Zakończone treningi']];
+  function tpState(){try{const v=JSON.parse(localStorage.getItem(TP_KEY)||'null');return v&&v.uid===window._uid?v:null;}catch(e){return null;}}
+  function tpSave(v){try{v?localStorage.setItem(TP_KEY,JSON.stringify(v)):localStorage.removeItem(TP_KEY);}catch(e){}}
+  function tpKindsFromForm(){const k=[...document.querySelectorAll('[data-tp-kind]')].filter(x=>x.checked).map(x=>x.getAttribute('data-tp-kind'));return k;}
+  function trainerPushHTML(){
+    const sup=PUSH_SUPPORTED();
+    const perm=sup?Notification.permission:'unsupported';
+    const st=tpState();const on=!!(st&&perm==='granted');
+    const kinds=(st&&st.kinds)||TP_KINDS.map(k=>k[0]);
+    const server=channelState('push');
+    const serverTxt=server==='live'?'Serwer powiadomień działa.':'Serwer powiadomień jeszcze nie działa — na razie nic nie przyjdzie, nawet po włączeniu.';
+    let state,btn;
+    if(!sup){state='To urządzenie lub przeglądarka nie obsługuje powiadomień. Na iPhonie dodaj aplikację do ekranu głównego i otwórz ją z ikony.';btn='';}
+    else if(perm==='denied'){state='Powiadomienia są zablokowane w ustawieniach tego urządzenia lub przeglądarki.';btn='';}
+    else if(on){state='Włączone na tym urządzeniu ('+esc(st.device||'')+').';btn=`<button type="button" class="btn btn-ghost btn-sm" data-act="tp-off">Wyłącz na tym urządzeniu</button> <button type="button" class="btn btn-ghost btn-sm" data-act="tp-test">Pokaż próbne powiadomienie</button>`;}
+    else{state='Wyłączone na tym urządzeniu.';btn=`<button type="button" class="btn btn-primary btn-sm" data-act="tp-on">Włącz na tym urządzeniu</button>`;}
+    return `<section class="comms-tp" data-tp-state="${on?'on':sup?perm:'unsupported'}">
+      <h3 class="comms-h">Powiadomienia dla Ciebie (na ten telefon lub komputer)</h3>
+      <p class="comms-note">Dostaniesz powiadomienie, gdy klient napisze, wyśle film z techniką albo skończy trening. Na ekranie blokady widać imię klienta i krótki opis — bez notatek i samopoczucia.</p>
+      <div class="comms-tp-kinds">${TP_KINDS.map(([k,l])=>`<label class="comms-tg"><input type="checkbox" data-tp-kind="${k}" data-act="tp-kinds" ${kinds.includes(k)?'checked':''}> <span>${l}</span></label>`).join('')}</div>
+      <p class="comms-tp-st" data-tp-status><b>${state}</b> ${esc(serverTxt)}</p>
+      ${btn}
+    </section>`;
+  }
+  function tpRerender(){const b=document.getElementById('m-comms-body');if(b)b.innerHTML=panelHTML();}
+  async function tpRegister(kinds){
+    const reg=await navigator.serviceWorker.ready;
+    const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID_PUBLIC_KEY)});
+    const j=sub.toJSON();const id='tps_'+(await sha(j.endpoint+'|'+window._uid)).slice(0,40);
+    const ref=window._doc(window._db,'trainerPushSubscriptions',id);
+    try{await window._del(ref);}catch(e){} // wpis jest niezmienny: zmiana rodzajów = usuń i utwórz
+    await window._setDoc(ref,{id,trainerId:window._uid,endpoint:j.endpoint,keys:{p256dh:j.keys.p256dh,auth:j.keys.auth},device:deviceLabel(),kinds,createdAt:nowIso()});
+    tpSave({uid:window._uid,id,kinds,device:deviceLabel()});
+  }
+  // Zgoda tylko po dotknięciu przycisku (wymóg iPhone'a).
+  act('tp-on',async()=>{
+    if(!PUSH_SUPPORTED()||!window._uid)return;
+    const kinds=tpKindsFromForm();
+    if(!kinds.length){toast('Zaznacz, o czym chcesz dostawać powiadomienia.');return;}
+    let perm;try{perm=await Notification.requestPermission();}catch(e){perm='default';}
+    if(perm!=='granted'){toast(perm==='denied'?'Powiadomienia zablokowane w ustawieniach urządzenia.':'Nie włączono powiadomień.');tpRerender();return;}
+    try{await tpRegister(kinds);toast('Powiadomienia włączone na tym urządzeniu.');}
+    catch(e){toast('Nie udało się włączyć powiadomień. Spróbuj ponownie.');}
+    tpRerender();
+  });
+  act('tp-off',async()=>{
+    const st=tpState();
+    // Subskrypcji przeglądarki nie wyłączamy — to samo urządzenie może dostawać przypomnienia jako klient.
+    if(st&&st.id){try{await window._del(window._doc(window._db,'trainerPushSubscriptions',st.id));}catch(e){toast('Nie udało się wyłączyć. Sprawdź połączenie.');return;}}
+    tpSave(null);toast('Powiadomienia wyłączone na tym urządzeniu.');tpRerender();
+  });
+  act('tp-kinds',async()=>{
+    const st=tpState();if(!st)return;
+    const kinds=tpKindsFromForm();
+    if(!kinds.length){toast('Zostaw zaznaczony co najmniej jeden rodzaj albo wyłącz powiadomienia.');tpRerender();return;}
+    try{await tpRegister(kinds);toast('Zapisano.');}catch(e){toast('Nie udało się zapisać. Sprawdź połączenie.');}
+    tpRerender();
+  });
+  act('tp-test',async()=>{
+    try{const reg=await navigator.serviceWorker.ready;
+      await reg.showNotification('Progress · Anna',{body:'🎥 Wysłał(a) film techniki: Przysiad goblet',tag:'tp-test',data:{url:'./'}});
+      toast('Próbne powiadomienie pokazane na tym urządzeniu (nic nie wysłano z serwera).');
+    }catch(e){toast('To urządzenie nie pozwoliło pokazać powiadomienia.');}
+  });
+  window.commsTrainerPushHTML=trainerPushHTML;
+
   function openPanel(){
     let ov=document.getElementById('m-comms');
     if(!ov){ov=document.createElement('div');ov.className='modal-ov';ov.id='m-comms';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-labelledby','m-comms-t');

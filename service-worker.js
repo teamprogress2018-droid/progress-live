@@ -24,7 +24,8 @@
 // Wersja 110: postęp w podsumowaniu treningu, pochwała od trenera, przyjazny powrót po opuszczonym treningu.
 // Wersja 111: film techniki od klienta do trenera (prywatny plik, karta w czacie).
 // Wersja 112: czat trenera odświeża się sam, rozgrzewka w oknie treningu, komunikaty „co dalej”.
-const CACHE_NAME='progress-live-shell-v112';
+// Wersja 113: powiadomienia dla trenera (link ?tchat= otwiera rozmowę z klientem).
+const CACHE_NAME='progress-live-shell-v113';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'
@@ -97,7 +98,8 @@ self.addEventListener('push',event=>{
   try{d=event.data?event.data.json():{};}catch(e){d={title:'Progress',body:event.data?event.data.text():''};}
   const title=String(d.title||'Progress').slice(0,80);
   const options={body:String(d.body||'').slice(0,240),tag:String(d.tag||'progress'),icon:'./apple-touch-icon.png',badge:'./apple-touch-icon.png',
-    data:{url:typeof d.url==='string'&&/^\?cs=[a-z]+$/.test(d.url)?'./'+d.url:'./'}};
+    // Dozwolone tylko linki wewnątrz aplikacji: ?cs=… (klient) i ?tchat=<id klienta> (trener → rozmowa).
+    data:{url:typeof d.url==='string'&&(/^\?cs=[a-z]+$/.test(d.url)||/^\?tchat=[A-Za-z0-9_.:@-]{1,200}$/.test(d.url))?'./'+d.url:'./'}};
   event.waitUntil(self.registration.showNotification(title,options));
 });
 /* Dotknięcie powiadomienia: otwarta aplikacja przechodzi do sprawy, inaczej otwiera się nowe okno. */

@@ -419,6 +419,18 @@ service cloud.firestore {
         && request.resource.data.keys is map && request.resource.data.keys.keys().hasOnly(['p256dh', 'auth'])
         && smallText(request.resource.data.get('device', ''), 120);
     }
+    // Urządzenia TRENERA do powiadomień o aktywności klientów (wiadomość, film, koniec treningu).
+    // Tylko trener z rolą zapisuje i czyta własne; klienci ich nie widzą. Bez aktualizacji: zmiana = usuń + utwórz.
+    match /trainerPushSubscriptions/{docId} {
+      allow get, delete: if owner();
+      allow create: if ownerCreate() && request.resource.data.id == docId && safeDocId(docId)
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'endpoint', 'keys', 'device', 'kinds', 'createdAt'])
+        && smallText(request.resource.data.endpoint, 1000) && request.resource.data.endpoint.matches('^https://.*')
+        && request.resource.data.keys is map && request.resource.data.keys.keys().hasOnly(['p256dh', 'auth'])
+        && smallText(request.resource.data.get('device', ''), 120)
+        && request.resource.data.get('kinds', ['message']) is list && request.resource.data.get('kinds', ['message']).size() <= 3
+        && request.resource.data.get('kinds', ['message']).hasOnly(['message', 'video', 'workout']);
+    }
     // Kolejka wiadomości automatycznych i ich statusy: zapisuje wyłącznie serwer, trener czyta swoje.
     match /commsJobs/{docId} {
       allow read: if owner();

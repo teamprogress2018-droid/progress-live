@@ -887,6 +887,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_trainer_chat_refresh_ui.js
 
+      - name: 6d3e. Powiadomienia dla trenera — włącznik na urządzeniu, rodzaje, wyłączenie, uczciwe stany, link ?tchat do rozmowy
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_trainer_push_ui.js
+
       - name: 6d4. Aplikacja klienta na telefonie (nagłówek, 44 px, kontrast, Technika, 360/390/430 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_mobile_fixes_ui.js

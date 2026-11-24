@@ -272,5 +272,62 @@ async function handleWhatsAppWebhook(db, payload, nowMs = Date.now()) {
   return out;
 }
 
-module.exports = {commsControl, commsConfigStatus, channelMode, CHANNEL_CONFIG, loadState, syncJobs, dispatchDue, runComms, safeId, webPushProvider, whatsappProvider,
+// ---------- Powiadomienia dla TRENERA o aktywności klienta ----------
+// Wyzwalacz: nowa wiadomość w czacie (messages) od klienta (out !== true). Trzy rodzaje:
+//  video   — „🎥 Film techniki: …” ze znacznikiem [film:…] (client-video.js),
+//  workout — „Zrobiłem trening: …” (podsumowanie po treningu),
+//  message — każda inna wiadomość klienta.
+// Urządzenia trenera: trainerPushSubscriptions (tylko jego, z wybranymi rodzajami). Na ekranie blokady
+// pokazujemy imię klienta i krótki opis — bez notatek, ocen samopoczucia ani pełnej treści dłuższych wiadomości.
+const TRAINER_PUSH_KINDS = ['message', 'video', 'workout'];
+function trainerPushKind(text) {
+  const t = String(text || '');
+  if (/\[film:[^\]]+\]/.test(t)) return 'video';
+  if (/^Zrobiłem trening/.test(t)) return 'workout';
+  return 'message';
+}
+function trainerPushText(msg, clientName) {
+  const raw = String(msg && msg.text || '');
+  const kind = trainerPushKind(raw);
+  const first = String(clientName || '').trim().split(/\s+/)[0] || 'Klient';
+  const clean = raw.replace(/\[[a-z]+:[^\]]*\]/gi, '').replace(/\s+/g, ' ').trim();
+  let body;
+  if (kind === 'video') {
+    const m = /Film techniki:\s*([^\n]+)/.exec(raw);
+    body = '🎥 Wysłał(a) film techniki' + (m ? ': ' + m[1].trim().slice(0, 80) : '');
+  } else if (kind === 'workout') {
+    const m = /^Zrobiłem trening:\s*([^\n]+)/.exec(raw);
+    body = '✅ Skończył(a) trening' + (m ? ': ' + m[1].trim().slice(0, 80) : '');
+  } else {
+    body = clean.length > 80 ? clean.slice(0, 79) + '…' : (clean || 'Nowa wiadomość');
+  }
+  return {kind, title: 'Progress · ' + first, body,
+    url: '?tchat=' + String(msg.clientId || '').replace(/[^A-Za-z0-9_.:@-]/g, '').slice(0, 200), tag: 'tchat-' + String(msg.clientId || '').slice(0, 60)};
+}
+/** Wysyła push do urządzeń trenera. Zwraca liczniki bez treści i bez danych klientów. */
+async function notifyTrainerOfMessage(db, msg, {webpush} = {}) {
+  const out = {sent: 0, skipped: 0, removed: 0, failed: 0};
+  if (!msg || msg.out === true || !msg.trainerId || !msg.clientId) { out.skipped++; return out; }
+  if (!webpush) { out.skipped++; return out; }
+  const subs = await db.collection('trainerPushSubscriptions').where('trainerId', '==', msg.trainerId).get();
+  if (subs.empty) { out.skipped++; return out; }
+  let name = '';
+  try { const c = await db.collection('clients').doc(String(msg.clientId)).get(); if (c.exists && c.data().trainerId === msg.trainerId) name = c.data().name || ''; } catch (e) { name = ''; }
+  const n = trainerPushText(msg, name);
+  for (const s of subs.docs) {
+    const sub = s.data();
+    const kinds = Array.isArray(sub.kinds) && sub.kinds.length ? sub.kinds : TRAINER_PUSH_KINDS;
+    if (!kinds.includes(n.kind)) { out.skipped++; continue; }
+    try {
+      await webpush.sendNotification({endpoint: sub.endpoint, keys: sub.keys},
+        JSON.stringify({title: n.title, body: n.body, url: n.url, tag: n.tag}), {TTL: 24 * 3600, urgency: 'normal'});
+      out.sent++;
+    } catch (e) {
+      if (e && (e.statusCode === 404 || e.statusCode === 410)) { await s.ref.delete(); out.removed++; } else out.failed++;
+    }
+  }
+  return out;
+}
+
+module.exports = {TRAINER_PUSH_KINDS, trainerPushKind, trainerPushText, notifyTrainerOfMessage, commsControl, commsConfigStatus, channelMode, CHANNEL_CONFIG, loadState, syncJobs, dispatchDue, runComms, safeId, webPushProvider, whatsappProvider,
   verifyWhatsAppSignature, handleWhatsAppWebhook};

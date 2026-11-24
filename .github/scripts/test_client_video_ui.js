@@ -113,7 +113,7 @@ const URL = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080') + '/index.
   await page.click('[data-cv-retry]');
   await page.waitForSelector('[data-cv-status="sent"]');
   t = await page.evaluate(() => document.getElementById('cv-root').innerText);
-  ok('ponowienie: „Wysłano”, bez udawania powiadomienia push', /Wysłano/.test(t) && /push do trenera nie są włączone/.test(t), t);
+  ok('ponowienie: „Wysłano”, bez udawania powiadomienia push', /Wysłano/.test(t) && /Powiadomienie na telefon dostanie tylko wtedy, gdy włączył je u siebie/.test(t), t);
   const sent = await page.evaluate(() => {
     const files = Object.keys(window.__st); const msgs = Object.values(window.__fs).filter((v) => v && v.text && /Film techniki/.test(v.text));
     return { files, meta: files[0] && window.__st[files[0]].meta, msg: msgs[0], n: msgs.length, publicUrl: !!window.__publicUrlRequested };
