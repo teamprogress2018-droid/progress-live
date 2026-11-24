@@ -3,7 +3,7 @@
   /* Design System v2 — tokeny (fallback gdy globals.css niedostępny) */
   --bg-main:#111318;--bg-elevated:#151820;--bg-card:#1e202a;--bg-input:#262935;--bg-hover:#2a3140;
   --text-primary:#ffffff;--text-secondary:#d1d5db;--text-label:#9ca3af;
-  --accent-red:#e60000;--accent-red-hover:#c40000;--accent-rgb:230,0,0;
+  --accent-red:#c62828;--accent-red-hover:#a82222;--accent-rgb:198,40,40;
   --border-subtle:#374151;--border-default:#4b5563;--border-focus:#d1d5db;
   --font-ui:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --font-display:var(--font-ui,'Inter',system-ui,sans-serif);
@@ -3869,7 +3869,7 @@ body,
   font-weight:700;
   letter-spacing:0.04em;
   line-height:1;
-  color:var(--accent-red,#e60000);
+  color:var(--accent-red,#c62828);
   text-shadow:0 2px 18px rgba(0,0,0,0.55),0 0 22px rgba(255,59,48,0.35);
 }
 .pl-ss-date{

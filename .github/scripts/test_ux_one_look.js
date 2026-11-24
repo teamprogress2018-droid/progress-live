@@ -33,8 +33,8 @@ ok('unknown icon gives empty string', ctx.plLineIcon('nope') === '');
 ok('icons use label grey, not accent', /\.pl-ico \{[^}]*color: var\(--text-label/.test(theme));
 
 // Kolor i promienie
-ok('one red in globals', globals.includes('--accent-red: #e60000;') && globals.includes('--accent2: #c40000;'));
-ok('one red in styles', styles.includes('--accent-red:#e60000;--accent-red-hover:#c40000;--accent-rgb:230,0,0;'));
+ok('one red in globals', globals.includes('--accent-red: #c62828;') && globals.includes('--accent2: #a82222;'));
+ok('one red in styles', styles.includes('--accent-red:#c62828;--accent-red-hover:#a82222;--accent-rgb:198,40,40;'));
 ok('two radii: 8 px and 12 px', globals.includes('--r: 8px;') && globals.includes('--r2: 12px;') && styles.includes('--r:8px;--r2:12px;'));
 ok('old coloured quick-action classes removed', !/\.qa-(red|blue|green|purple|orange|yellow)\b/.test(styles));
 const radii = [...theme.matchAll(/border-radius:\s*(\d+)px/g)].map((m) => +m[1]);

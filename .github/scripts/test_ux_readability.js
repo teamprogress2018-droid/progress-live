@@ -22,10 +22,10 @@ const light = theme.slice(theme.indexOf('html[data-theme="light"] {'));
 const tok = (name) => ((light.match(new RegExp('--' + name + ':\\s*(#[0-9a-fA-F]{6})')) || [])[1]);
 
 const label = tok('text-label'), warning = tok('warning'), bg = tok('bg-main'), subtle = tok('bg-subtle');
-ok('--text-label is #4b5563', label === '#4b5563', label);
+ok('--text-label is #5d6679 (Progress Clean, ≥5:1)', label === '#5d6679', label);
 ok('--text-label ≥4.5:1 on app background and chips', ratio(label, bg) >= 4.5 && ratio(label, subtle) >= 4.5, ratio(label, bg).toFixed(2) + ' / ' + ratio(label, subtle).toFixed(2));
-ok('--warning text is #9a3b06 (≥4.5:1)', warning === '#9a3b06' && ratio(warning, '#ffffff') >= 4.5);
-ok('--cap-muted dark enough', tok('cap-muted') === '#4b5563');
+ok('--warning text is #b45309 (≥4.5:1)', warning === '#b45309' && ratio(warning, '#ffffff') >= 4.5);
+ok('--cap-muted dark enough', tok('cap-muted') === '#5d6679');
 ok('accent text token for small red text', /--accent-text:\s*color-mix\(in srgb, var\(--accent\) 85%, #000\)/.test(theme));
 ok('landing small red text darker (#d40000)', /--land-accent-text:\s*color-mix\(in srgb, var\(--land-accent\) 92%, #000\)/.test(landing) && /\.pl-land-eyebrow span \{ color: var\(--land-accent-text\); \}/.test(landing));
 ok('#d40000 on cream ≥4.5:1', ratio('#d40000', '#f6f5f2') >= 4.5);

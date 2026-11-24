@@ -4,7 +4,7 @@
 var capScreen='home';var capDevice='phone';var capTab='preview';
 var capClientId=null;
 
-const CAP_ACCENT='#e60000';
+const CAP_ACCENT='#c62828';
 // Kolory widoku klienta jako zmienne CSS (theme.css): jasne lub ciemne zależnie od motywu.
 const CAP_BG='var(--cap-bg,#1a1a1a)';
 const CAP_S1='var(--cap-s1,#121212)';
@@ -1666,14 +1666,14 @@ function renderCapInfo(){
 
 function renderCapCustomize(){
   const el=document.getElementById('cap-customize-content');if(!el)return;
-  const accent=window.SETTINGS?.brand?.accentColor||'#e60000';
+  const accent=(typeof brandAccent==='function'?brandAccent():'#c62828');
   const appName=window.SETTINGS?.brand?.appName||'PROGRESS LIVE';
   el.innerHTML=`
     <div class="settings-card">
       <div class="settings-card-title">🎨 Kolor marki w aplikacji klienta</div>
       <div class="settings-card-desc">Główny kolor akcentu widoczny przez klienta w przyciskach, postępach i elementach aktywnych.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        ${['#e60000','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'].map(c=>`<div style="width:36px;height:36px;border-radius:10px;background:${c};cursor:pointer;border:3px solid ${c===accent?'white':'transparent'};" onclick="setAccentColor('${c}');renderCapCustomize()"></div>`).join('')}
+        ${['#c62828','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'].map(c=>`<div style="width:36px;height:36px;border-radius:10px;background:${c};cursor:pointer;border:3px solid ${c===accent?'white':'transparent'};" onclick="setAccentColor('${c}');renderCapCustomize()"></div>`).join('')}
         <input type="color" value="${accent}" oninput="setAccentColor(this.value);renderCapCustomize()" style="width:36px;height:36px;border-radius:10px;cursor:pointer;border:none;padding:2px;">
       </div>
     </div>
@@ -4176,7 +4176,7 @@ window.SETTINGS={
     certs:[],
   },
   brand:{
-    accentColor:'#e60000',
+    accentColor:'#c62828',
     themeMode:'light',
     appName:'PROGRESS LIVE',
     logo:null,
@@ -4306,7 +4306,7 @@ function renderSettingsContent(t,targetId){
   else if(t==='brand'){
     if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
     const ss=S.screensaver||{enabled:true,idleMinutes:3};
-    const accentNow=(typeof normalizeHexColor==='function'&&normalizeHexColor(S.brand.accentColor))||'#e60000';
+    const accentNow=(typeof brandAccent==='function'?brandAccent(S):'#c62828');
     const themeMode=typeof resolveThemeMode==='function'?resolveThemeMode(S.brand):'light';
     const presets=window.ACCENT_PRESETS||[];
     const isPreset=presets.some(p=>p.hex===accentNow);
@@ -4323,9 +4323,9 @@ function renderSettingsContent(t,targetId){
           <label class="accent-custom-lbl" for="set-custom-hex">Własny kolor (HEX)</label>
           <div class="accent-custom-row">
             <input type="color" id="set-custom-color" value="${accentNow}" aria-label="Wybierz własny kolor" oninput="setAccentColor(this.value,{quiet:true})" onchange="setAccentColor(this.value)">
-            <input type="text" class="form-input" id="set-custom-hex" value="${accentNow}" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#e60000" aria-describedby="accent-contrast" onkeydown="if(event.key==='Enter')applyCustomAccentHex()" onblur="applyCustomAccentHex()">
+            <input type="text" class="form-input" id="set-custom-hex" value="${accentNow}" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#c62828" aria-describedby="accent-contrast" onkeydown="if(event.key==='Enter')applyCustomAccentHex()" onblur="applyCustomAccentHex()">
             <button type="button" class="btn btn-ghost btn-sm" onclick="applyCustomAccentHex()">Zastosuj</button>
-            ${!isPreset||accentNow!=='#e60000'?`<button type="button" class="btn btn-ghost btn-sm" onclick="setAccentColor('#e60000')">Przywróć czerwony</button>`:''}
+            ${!isPreset||accentNow!=='#c62828'?`<button type="button" class="btn btn-ghost btn-sm" onclick="setAccentColor('#c62828')">Przywróć czerwony</button>`:''}
           </div>
           <div id="accent-contrast" class="accent-contrast" aria-live="polite">${accentContrastHTML(accentNow,themeMode)}</div>
         </div>
@@ -4643,7 +4643,7 @@ function moveAccentPreset(event,current){
 window.moveAccentPreset=moveAccentPreset;
 function setAccentColor(color,opts){
   const hex=(typeof normalizeHexColor==='function'?normalizeHexColor(color):color)||null;
-  if(!hex){notify('Podaj kolor w formacie HEX, np. #e60000');return false;}
+  if(!hex){notify('Podaj kolor w formacie HEX, np. #c62828');return false;}
   window.SETTINGS.brand.accentColor=hex;
   if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
   else{
@@ -4673,7 +4673,7 @@ function applyCustomAccentHex(){
   if(!el)return;
   const raw=el.value.trim();
   const hex=typeof normalizeHexColor==='function'?normalizeHexColor(raw):raw;
-  if(!hex){el.setAttribute('aria-invalid','true');notify('Podaj kolor w formacie HEX, np. #e60000');return;}
+  if(!hex){el.setAttribute('aria-invalid','true');notify('Podaj kolor w formacie HEX, np. #c62828');return;}
   el.removeAttribute('aria-invalid');
   el.value=hex;
   if(hex!==window.SETTINGS.brand.accentColor)setAccentColor(hex);
@@ -5255,7 +5255,7 @@ function clientReportSummary(clientId,from,to){
 window.clientReportSummary=clientReportSummary;
 function clientReportSummaryHTML(sum,colors){
   colors=colors||{};
-  const text=colors.text||'#1a1a2a',muted=colors.muted||'#6b7280',border=colors.border||'#e0e0e0',accent=colors.accent||'#e60000',surface=colors.surface||'transparent';
+  const text=colors.text||'#1a1a2a',muted=colors.muted||'#6b7280',border=colors.border||'#e0e0e0',accent=colors.accent||'#c62828',surface=colors.surface||'transparent';
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
   const row=(label,val,sub,key)=>`<div data-rep-sum="${key}" style="padding:12px 14px;border:1px solid ${border};border-radius:12px;background:${surface};">
     <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${muted};font-weight:700;">${label}</div>
@@ -5374,7 +5374,7 @@ function buildReportHTML(c,from,to,sec,template){
   const border=isDark?'rgba(255,255,255,0.08)':'#e0e0e0';
   const text=isDark?'#eceae6':'#1a1a2a';
   const muted=isDark?'#5a6070':'#6b7280';
-  const accent='#e60000';
+  const accent='#c62828';
   const accentDark=isDark?'rgba(225,31,46,0.1)':'rgba(100,180,0,0.08)';
   const blue=isDark?'#c9a227':'#2563eb';
   const orange=isDark?'#c97b3f':'#ea580c';

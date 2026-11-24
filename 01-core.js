@@ -7977,8 +7977,8 @@ window.syncClientFromIntakeForm=syncClientFromIntakeForm;
 // Kolory ostrzeżeń i statusów (--danger/--warning/--success/--info, --red…)
 // są w theme.css i NIE zależą od akcentu.
 const STUDIO_THEME={
-  accent:'#e60000',
-  accent2:'#b80000',
+  accent:'#c62828',
+  accent2:'#a82222',
   bg:'#1a1a1a',
   blue:'#0055a4',
   yellow:'#ffd700',
@@ -7986,7 +7986,7 @@ const STUDIO_THEME={
 };
 // Presety mają kontrast min. 4.5:1 z białym (tekst na przycisku i akcent na białym tle).
 const ACCENT_PRESETS=[
-  {id:'red',label:'Czerwony',hex:'#e60000'},
+  {id:'red',label:'Czerwony',hex:'#c62828'},
   {id:'orange',label:'Pomarańczowy',hex:'#c2410c'},
   {id:'blue',label:'Niebieski',hex:'#2563eb'},
   {id:'green',label:'Zielony',hex:'#15803d'},
@@ -8043,10 +8043,11 @@ function applyBrandTheme(settings){
   if(!root)return;
   const s=settings||window.SETTINGS||{};
   const brand=s.brand||{};
-  const accent=normalizeHexColor(brand.accentColor)||STUDIO_THEME.accent;
+  // Dawny domyślny czerwony (#e60000) = brak własnego wyboru → domyślny kolor Progress Clean.
+  const accent=brandAccent({brand});
   const mode=resolveThemeMode(brand);
   const rgb=hexToRgbStr(accent);
-  const hover=shadeHex(accent,-0.15); // #e60000 → #c40000
+  const hover=shadeHex(accent,-0.15); // #c62828 → #a82222
   root.setAttribute('data-theme',mode);
   root.style.colorScheme=mode;
   root.style.setProperty('--accent',accent);
@@ -8062,6 +8063,12 @@ function applyBrandTheme(settings){
   const meta=typeof document!=='undefined'?document.querySelector('meta[name="theme-color"]'):null;
   if(meta)meta.setAttribute('content',mode==='light'?'#ffffff':'#111318');
 }
+/** Kolor akcentu, którego aplikacja naprawdę używa (dawny domyślny #e60000 = domyślny Progress Clean). */
+function brandAccent(settings){
+  const s=settings||window.SETTINGS||{};const picked=normalizeHexColor(s.brand&&s.brand.accentColor);
+  return (picked&&picked!=='#e60000')?picked:STUDIO_THEME.accent;
+}
+window.brandAccent=brandAccent;
 window.ACCENT_PRESETS=ACCENT_PRESETS;
 window.normalizeHexColor=normalizeHexColor;
 window.hexToRgbStr=hexToRgbStr;

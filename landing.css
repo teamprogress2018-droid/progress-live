@@ -6,7 +6,7 @@
   --land-ink: #141414;
   --land-ink-2: #3d3d3d;
   --land-line: #e3e1dc;
-  --land-accent: var(--accent, #e60000);
+  --land-accent: var(--accent, #c62828);
   --land-on-accent: var(--on-accent, #ffffff);
   --land-accent-text: color-mix(in srgb, var(--land-accent) 92%, #000);
   position: fixed;
@@ -362,7 +362,7 @@
 
 /* iPhone jako aplikacja (PWA, pasek statusu „black-translucent”, viewport-fit=cover):
    logo i „Zaloguj się” pod paskiem statusu / notchem, ostatnia treść nad paskiem Home.
-   Tło html/body w kolorze strony startowej, żeby poniżej nie prześwitywało tło aplikacji (#edf5ff). */
+   Tło html/body w kolorze strony startowej, żeby poniżej nie prześwitywało tło aplikacji (--bg-main). */
 .pl-land-top {
   padding-top: max(20px, calc(env(safe-area-inset-top) + 8px));
   padding-left: max(clamp(16px, 4vw, 56px), env(safe-area-inset-left));
@@ -376,7 +376,7 @@ html:has(#auth-screen.pl-landing[style*="flex"]) body { background: #f6f5f2; }
 }
 
 /* Aplikacja klienta na iPhonie (PWA): pod dolnym paskiem nawigacji iOS zostawia pas na wysokość
-   paska Home, przez który prześwituje tło strony (#edf5ff). Na telefonie tło pod spodem = kolor paska.
+   paska Home, przez który prześwituje tło strony (--bg-main). Na telefonie tło pod spodem = kolor paska.
    Ekran treningu i odtwarzacz mają własny dół, więc tam zostaje tło aplikacji. Tło treści bez zmian. */
 @media (max-width: 520px) {
   html[data-theme="light"]:has(body.client-app-mode:not(.cw-playing):not(.od-playing)),

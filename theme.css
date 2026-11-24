@@ -33,21 +33,23 @@
 html[data-theme="light"] {
   color-scheme: light;
 
-  --bg-main: #edf5ff;
+  /* Progress Clean: 60% jasnoszare tło, 30% białe karty, 10% akcent. Kontrast AA: #667085 = 4,97:1 na bieli, 4,56:1 na tle. */
+  --bg-main: #f4f5f7;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
   --bg-input: #ffffff;
-  --bg-hover: #f3f7fc;
-  --bg-subtle: #e8f0fa;
+  --bg-hover: #f7f8fa;
+  --bg-subtle: #f4f5f7;
+  --accent-soft: #fce8e8; /* delikatne czerwone tło; na nim tylko tekst główny lub akcent, nie #667085 */
 
-  --text-primary: #111827;
-  --text-secondary: #374151;
-  --text-label: #4b5563; /* 6,88:1 na #edf5ff, 6,09:1 na chipach */
-  /* Czerwony tekst drobnym drukiem: ciemniejszy akcent (#e60000 → ok. #c40000), kontrast > 4,5:1 na kremowym i różowym tle */
+  --text-primary: #20242b;
+  --text-secondary: #667085;
+  --text-label: #5d6679; /* 5,29:1 na tle, 5,77:1 na bieli */
+  /* Czerwony tekst drobnym drukiem: ciemniejszy akcent (#c62828 → ok. #a82222), kontrast > 4,5:1 na kremowym i różowym tle */
   --accent-text: color-mix(in srgb, var(--accent) 85%, #000);
 
-  --border-subtle: #dce6f1;
-  --border-default: #cad8e7;
+  --border-subtle: #e1e4e8;
+  --border-default: #d0d5dd;
   --border-strong: #6b7280; /* ramki pól do wpisywania: 4,83:1 na bieli */
   --border-focus: var(--accent);
 
@@ -58,24 +60,24 @@ html[data-theme="light"] {
   /* Statusy (kontrast min. 4.5:1 na białym) — niezależne od akcentu */
   --danger: #b42318;
   --danger-bg: #fef3f2;
-  --warning: #9a3b06; /* 5,65:1 */
-  --warning-bg: #fffaeb;
-  --success: #067647;
-  --success-bg: #ecfdf3;
+  --warning: #b45309; /* 5,02:1 na bieli */
+  --warning-bg: #fff7ed;
+  --success: #15803d; /* 5,02:1 na bieli */
+  --success-bg: #f0fdf4;
   --info: #175cd3;
   --info-bg: #eff8ff;
 
-  --cap-bg: #f7f8fa;
+  --cap-bg: #f4f5f7;
   --cap-s1: #ffffff;
   --cap-s2: #ffffff;
-  --cap-s3: #e5e7eb;
-  --cap-text: #111827;
-  --cap-muted: #4b5563;
+  --cap-s3: #e1e4e8;
+  --cap-text: #20242b;
+  --cap-muted: #5d6679;
 
   /* Kolory semantyczne używane w modułach (ciemniejsze dla białego tła) */
   --red: #b42318;
-  --orange: #9a3b06;
-  --teal: #067647;
+  --orange: #b45309;
+  --teal: #15803d;
   --blue: #175cd3;
   --purple: #6941c6;
   --gold: #a15c07;
@@ -1045,12 +1047,12 @@ body.mobile-menu-open { overscroll-behavior: none; }
 
 /* Jasna powierzchnia aplikacji: tło pozostaje widoczne między białymi kartami.
    Dzięki temu nie zamienia się w jednolitą, płaską biel na ekranie LIVE. */
-html[data-theme="light"] .main { background: #edf5ff; }
+html[data-theme="light"] .main { background: var(--bg-main); }
 html[data-theme="light"] #screen-clients .cl-main,
 html[data-theme="light"] #screen-clients .cl-everfit,
 html[data-theme="light"] #screen-live .live-floor,
 html[data-theme="light"] #screen-live .live-pane {
-  background: #edf5ff;
+  background: var(--bg-main);
 }
 html[data-theme="light"] .cl-subnav { background: #fbfbfc; }
 html[data-theme="light"] #screen-live .live-side-left,

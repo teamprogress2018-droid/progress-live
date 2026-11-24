@@ -64,7 +64,7 @@ function ok(name, cond, extra) {
       timer: document.getElementById('cw-rest-num').getAttribute('role'), live: document.getElementById('cw-rest-num').getAttribute('aria-live'), polite: document.getElementById('cw-rest-live').getAttribute('aria-live') };
   });
   ok('rest: next set with exercise, set, reps, kg', rest.next === 'NASTĘPNA SERIA | Wyciskanie hantli | Seria 2 z 4 · 10 powt. · 70 kg', rest.next);
-  ok('rest: 17 px dark text', rest.fs >= 17 && rest.color === 'rgb(17, 24, 39)', JSON.stringify(rest));
+  ok('rest: 17 px dark text', rest.fs >= 17 && rest.color === 'rgb(32, 36, 43)', JSON.stringify(rest));
   ok('rest: "Pomiń przerwę" is secondary', rest.skipSecondary && !rest.skipPrimary);
   ok('rest: role=timer, no per-second announcements', rest.timer === 'timer' && rest.live !== 'assertive' && rest.polite === 'polite');
   const ann = await page.evaluate(() => { cwRestAnnounce(11); const a = document.getElementById('cw-rest-live').textContent; cwRestAnnounce(10); const b = document.getElementById('cw-rest-live').textContent; return [a, b]; });

@@ -131,7 +131,7 @@
 .cs-ex-foot .cs-btn-secondary { min-height: 52px; border-color: var(--border-default, var(--border-subtle)); font-size: 1rem; }
 
 /* Koniec treningu */
-.cs-finish-check { width: 84px; height: 84px; margin: 6px auto 14px; border-radius: 50%; background: var(--accent); color: var(--on-accent, #fff); display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 28px rgba(var(--accent-rgb, 230,0,0), .25); }
+.cs-finish-check { width: 84px; height: 84px; margin: 6px auto 14px; border-radius: 50%; background: var(--success, #15803d); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 28px rgba(21,128,61,.22); /* sukces = zielony (Progress Clean), czerwień tylko dla akcji */ }
 .cs-finish-title { font-size: 1.875rem; font-weight: 750; letter-spacing: -.02em; color: var(--text-primary); }
 .cs-finish-msg { margin: 8px auto 0; max-width: 320px; color: var(--text-secondary); font-size: 1.0625rem; line-height: 1.45; }
 
