@@ -644,3 +644,17 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
   .cs-set-boxes .cs-box input { min-height: 44px; font-size: 2rem !important; }
 }
 .cs-rir-toggle .cs-rir-cel { display: block; font-size: 0.875rem; font-weight: 500; }
+
+/* ── Etap 2 modernizacji: kółko odliczania przerwy (zielone = czas, który został) + głos 5…1, start ── */
+.cs-rest-ring { position: relative; width: min(58vw, 220px); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+.cs-rest-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cs-ring-bg { fill: none; stroke: color-mix(in srgb, var(--text-primary) 10%, transparent); stroke-width: 10; }
+.cs-ring-arc { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.cs-rest-ring-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cs-rest .cs-rest-ring .cs-rest-clock { font-size: 3.75rem; }
+.cw-ex-mode .cs-rest-scr .cs-rest { gap: 16px; }
+.cs-rest-ring .cs-rest-final { font-size: 6rem; }
+.cs-rest-ring-lbl { font-size: 0.8125rem; font-weight: 700; letter-spacing: .12em; color: var(--text-secondary); }
+@media (prefers-reduced-motion: reduce) { .cs-ring-arc { transition: none; } }
+@media (max-height: 700px) { .cs-rest-ring { width: min(56vw, 200px); } .cs-rest .cs-rest-ring .cs-rest-clock { font-size: 3.25rem; } .cs-rest-ring .cs-rest-final { font-size: 4.5rem; } }
+.cs-rest-scr .cs-rest-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* „Do końca przerwy” mówi czytnik, na ekranie jest „PRZERWA” w kółku */

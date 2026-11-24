@@ -1493,6 +1493,7 @@ function cwStartRest(seconds,kind){
   cw.phase='rest';cw.restOnEx=false;
   cw.restKind=kind||'';
   cw.restLeft=seconds||90;
+  cw.restTotal=cw.restLeft;
   // Koniec przerwy liczony od zegara, nie od liczby „tyknięć” — przygaszony telefon nie wydłuża przerwy.
   cw.restEndsAt=Date.now()+cw.restLeft*1000;
   cwClearTimers();

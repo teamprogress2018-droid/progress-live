@@ -1104,6 +1104,7 @@ window.cwSimpleExerciseHTML=cwSimpleExerciseHTML;
 function cwRestAdd(d){
   const cw=window._cw;if(!cw||!window._cwRestTimer)return;
   cw.restLeft=Math.max(5,Math.min(900,(cw.restLeft|0)+d));
+  cw.restTotal=Math.max(cw.restTotal|0,cw.restLeft);
   cw.restEndsAt=Date.now()+cw.restLeft*1000;
   const n=document.getElementById('cw-rest-num');if(n)n.textContent=csRestClock(cw.restLeft);
   csRestFinalTick(cw.restLeft,true);
@@ -1116,9 +1117,33 @@ function csRestSignalToggle(){
   try{localStorage.setItem(CS_REST_SIGNAL_KEY,on?'1':'0');}catch(e){}
   // iPhone odtwarza dźwięk tylko po dotknięciu — włączenie przełącznika „odblokowuje” dźwięk.
   if(on&&typeof liveRestAudioCtx==='function')try{liveRestAudioCtx();}catch(e){}
+  if(on)csRestUnlockVoice();else try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}
   document.querySelectorAll('[data-cs-rest-signal]').forEach(b=>{b.setAttribute('aria-pressed',on?'true':'false');b.innerHTML=csRestSignalLabel(on);});
 }
-function csRestSignalLabel(on){return (on?csIcon('bell',18):csIcon('bell-off',18))+'<span>Dźwięk i wibracja: '+(on?'włączone':'wyłączone')+'</span>';}
+function csRestSignalLabel(on){return (on?csIcon('bell',18):csIcon('bell-off',18))+'<span>Głos i wibracja: '+(on?'włączone':'wyłączone')+'</span>';}
+/* Odliczanie głosem po polsku w ostatnich 5 s przerwy: „pięć… jeden, start”. Bez syntezy mowy — krótki sygnał jak dotąd. */
+const CS_REST_WORDS={5:'pięć',4:'cztery',3:'trzy',2:'dwa',1:'jeden',0:'start'};
+function csRestSpeak(left){
+  const text=CS_REST_WORDS[left];if(!text)return false;
+  try{
+    const syn=window.speechSynthesis;
+    if(!syn||typeof syn.speak!=='function'||typeof SpeechSynthesisUtterance==='undefined')return false;
+    syn.cancel();
+    const u=new SpeechSynthesisUtterance(text);u.lang='pl-PL';u.rate=1.05;u.volume=1;
+    try{const pl=(syn.getVoices?syn.getVoices():[]).find(v=>String(v.lang||'').toLowerCase().indexOf('pl')===0);if(pl)u.voice=pl;}catch(e){}
+    syn.speak(u);return true;
+  }catch(e){return false;}
+}
+/** iPhone mówi dopiero po dotknięciu: „odblokowujemy” głos przy zapisie serii (dotknięcie) i przy włączeniu przełącznika. */
+function csRestUnlockVoice(){if(csRestSignalOn()&&typeof liveRestUnlockSpeech==='function')try{liveRestUnlockSpeech();}catch(e){}}
+/** Kółko wokół zegara przerwy: pełne na starcie, znika do zera. */
+const CS_RING_C=2*Math.PI*92;
+function csRestRingOffset(left,total){const t=Math.max(1,total|0);return (CS_RING_C*(1-Math.max(0,Math.min(1,(left|0)/t)))).toFixed(1);}
+function csRestRingUpdate(left){
+  const cw=window._cw;const arc=document.querySelector('[data-cs-rest-arc]');
+  if(arc&&cw)arc.setAttribute('stroke-dashoffset',csRestRingOffset(left,cw.restTotal||left));
+}
+window.csRestSpeak=csRestSpeak;window.csRestUnlockVoice=csRestUnlockVoice;window.csRestRingUpdate=csRestRingUpdate;
 /** Ostatnie 5 sekund przerwy: duże odliczanie 5…1 i „Przygotuj się”; krótki sygnał przy 3, 2, 1 (jeśli włączony). */
 function csRestFinalTick(left,silent){
   const fin=left>0&&left<=5;
@@ -1127,7 +1152,13 @@ function csRestFinalTick(left,silent){
   document.querySelectorAll('[data-cs-rest-final]').forEach(n=>{n.hidden=!fin;n.textContent=fin?String(left):'';});
   document.querySelectorAll('[data-cs-rest-ready]').forEach(n=>{n.hidden=!fin;});
   const bar=document.querySelector('.cs-restbar');if(bar)bar.classList.toggle('is-final',fin);
-  if(!silent&&fin&&left<=3&&csRestSignalOn()&&typeof liveRestBeep==='function')liveRestBeep('tick');
+  csRestRingUpdate(left);
+  if(silent||!csRestSignalOn())return;
+  if(fin||left===0){
+    const cw=window._cw;if(cw&&cw._spokenAt===left+'@'+cw.restEndsAt)return;if(cw)cw._spokenAt=left+'@'+cw.restEndsAt;
+    const spoken=csRestSpeak(left);
+    if(left>0&&left<=3){if(!spoken&&typeof liveRestBeep==='function')liveRestBeep('tick');else try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}}
+  }
 }
 window.csRestSignalOn=csRestSignalOn;window.csRestSignalToggle=csRestSignalToggle;window.csRestFinalTick=csRestFinalTick;
 /** Z przerwy do ekranu ćwiczenia: można poprawić ciężar następnej serii, przerwa dalej liczy się na dole. */
@@ -1150,6 +1181,7 @@ function cwSaveSet(setIdx){
   if(!st||st.done)return;
   // Dotknięcie „Zapisz serię” odblokowuje dźwięk na iPhonie — sygnał końca przerwy zadziała bez ekranu.
   if(csRestSignalOn()&&typeof liveRestAudioCtx==='function')try{liveRestAudioCtx();}catch(e){}
+  csRestUnlockVoice();
   const reps=Number.parseFloat(String(st.reps||'').replace(',','.'));
   if(reps>0&&ex.rirRequired&&!st.rirReported){
     cw.setError={exIdx:cw.exIdx,setIdx,field:'rir',msg:'Zaznacz, ile powtórzeń zostało w zapasie — trener o to prosi.'};
@@ -1238,8 +1270,14 @@ function csRestHTML(cw){
     <div class="cs-ex-top"><span class="cs-ex-pos">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</span><span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span></div>
     <div class="cs-ex-scroll"><div class="cw-rest cs-rest">
       <span class="cs-rest-lbl">Do końca przerwy</span>
-      <div class="cw-rest-num cs-rest-clock${fin?' is-final':''}" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy">${csRestClock(cw.restLeft)}</div>
-      <div class="cs-rest-final" data-cs-rest-final aria-hidden="true"${fin?'':' hidden'}>${fin?cw.restLeft:''}</div>
+      <div class="cs-rest-ring" data-cs-rest-ring>
+        <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><circle cx="100" cy="100" r="92" class="cs-ring-bg"/><circle cx="100" cy="100" r="92" class="cs-ring-arc" data-cs-rest-arc stroke-dasharray="${CS_RING_C.toFixed(1)}" stroke-dashoffset="${csRestRingOffset(cw.restLeft,cw.restTotal||cw.restLeft)}" transform="rotate(-90 100 100)"/></svg>
+        <div class="cs-rest-ring-in">
+          <div class="cw-rest-num cs-rest-clock${fin?' is-final':''}" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy">${csRestClock(cw.restLeft)}</div>
+          <div class="cs-rest-final" data-cs-rest-final aria-hidden="true"${fin?'':' hidden'}>${fin?cw.restLeft:''}</div>
+          <span class="cs-rest-ring-lbl" aria-hidden="true">PRZERWA</span>
+        </div>
+      </div>
       <p class="cs-rest-ready" data-cs-rest-ready${fin?'':' hidden'}>Przygotuj się do serii</p>
       <div class="cs-rest-adj" role="group" aria-label="Zmień czas przerwy"><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa dłużej o 15 sekund" onclick="cwRestAdd(15)">+15 s</button></div>
       <button type="button" class="cs-rest-signal" data-cs-rest-signal aria-pressed="${csRestSignalOn()?'true':'false'}" onclick="csRestSignalToggle()">${csRestSignalLabel(csRestSignalOn())}</button>
