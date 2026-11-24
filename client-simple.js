@@ -991,7 +991,8 @@ function cwSimpleExerciseHTML(cw,ex){
   const note=csNoteInfo(ex);
   const shortName=csShortName(ex.name);
   const segs=cw.exercises.map((_,i)=>`<span class="${i<idx?'is-past':i===idx?'is-now':''}"></span>`).join('');
-  const dots=sets.map((x,i)=>`<span class="${x.done?'is-done':i===cur?'is-now':''}"></span>`).join('');
+  // Numery serii (1 2 3 4): zrobiona = ✓ (nie tylko kolor), bieżąca wyróżniona.
+  const dots=sets.map((x,i)=>`<span class="${x.done?'is-done':i===cur?'is-now':''}">${x.done?'✓':i+1}</span>`).join('');
   const others=(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,idx):[];return g.filter(i=>i!==idx).map(i=>cw.exercises[i]).filter(Boolean);})();
   const methods=typeof exerciseIntensificationMethods==='function'?exerciseIntensificationMethods(ex):[];
   const hasRir=ex.rir!=null&&String(ex.rir)!=='';
@@ -1015,29 +1016,32 @@ function cwSimpleExerciseHTML(cw,ex){
     return ex.lastKg?('Ostatnio: '+(ex.lastReps?csNum(ex.lastReps)+' × ':'')+csNum(ex.lastKg)+(weightUnit?' kg':' '+loadLbl)):'';
   })();
   const kgStep=weightUnit?2.5:1;
+  const repStep=timed?5:1;
+  const media=(()=>{try{return typeof exThumbUrl==='function'?String(exThumbUrl(ex.name)||''):'';}catch(e){return '';}})();
+  const rirOpen=!!(ex.rirRequired||rirPicked||cw.showRirQ);
   // Pola wypełnione celem (jeden dotyk zapisu) — podpis mówi wprost, że to cel, nie wynik.
   const prefilled=!!(s&&!s.done&&s._dirty!==true&&String(s.reps==null?'':s.reps)===String(plan.reps==null?'':plan.reps)&&String(s.kg==null?'':s.kg)===String(plan.kg==null?'':plan.kg)&&(String(s.reps||'')!==''||String(s.kg||'')!==''));
   const card=allDone?`<div class="cs-set-done" data-cs-ex-done>${ex.skipped?'Ćwiczenie pominięte':'Ćwiczenie ukończone '+csIcon('check',20)}</div>
       ${ex.skipped?'':`<p class="cs-done-sum">${sets.filter(x=>x.done).map(x=>csEsc(csNum(x.reps||'—'))+' × '+csEsc(csNum(x.kg||'—'))+' '+csEsc(weightUnit?'kg':loadLbl)).join(' · ')}</p>`}`:`
       ${target||lastLine?`<div class="cs-goal-prev">
-        ${target?`<p class="cs-target" data-cs-target><span class="cs-target-lbl">Cel</span> ${csEsc(target)}</p>`:''}
-        ${lastLine?`<p class="cs-prev" data-cs-prev><span class="cs-prev-lbl">Poprzednio</span> ${csEsc(lastLine.replace(/^Ostatnio:\s*/,''))}</p>`:''}
+        ${lastLine?`<p class="cs-prev" data-cs-prev><span class="cs-prev-lbl">Ostatni trening:</span> ${csEsc(lastLine.replace(/^Ostatnio:\s*/,''))}</p>`:''}
+        ${target?`<p class="cs-target" data-cs-target><span class="cs-target-lbl">Dzisiaj:</span> ${csEsc(target)}</p>`:''}
       </div>`:''}
-      ${hasRir?`<div class="cs-rir-goal"><span>${csEsc(csRirFriendly(ex.rir).replace(/^./,c=>c.toUpperCase()))}</span><button type="button" class="cs-q" aria-label="Co to jest zapas powtórzeń?" aria-expanded="${cw.showRirHelp?'true':'false'}" aria-controls="cs-rir-help" onclick="cwToggleRirHelp()">?</button></div>
+      ${hasRir&&rirOpen?`<div class="cs-rir-goal"><span>${csEsc(csRirFriendly(ex.rir).replace(/^./,c=>c.toUpperCase()))}</span><button type="button" class="cs-q" aria-label="Co to jest zapas powtórzeń?" aria-expanded="${cw.showRirHelp?'true':'false'}" aria-controls="cs-rir-help" onclick="cwToggleRirHelp()">?</button></div>
       ${cw.showRirHelp?`<p class="cs-rir-help" id="cs-rir-help">Zapas to liczba powtórzeń, które dałbyś radę zrobić jeszcze z dobrą techniką. Skończ serię, zanim ruch zacznie się psuć.</p>`:''}`:''}
       ${tempoKey?`<p class="cs-key-line">Tempo: ${csEsc(csTempoText(ex.tempo))}</p>`:''}
       ${workTxt&&!target?`<p class="cs-key-line">Czas pracy: ${csEsc(workTxt)}</p>`:''}
-      <p class="cs-result-h" id="cs-result-h">Twój wynik${prefilled?` <span>— popraw, jeśli było inaczej</span>`:''}</p>
-      <div class="cs-set-grid" role="group" aria-labelledby="cs-result-h">
-        <label class="cs-num"><span class="cs-num-lbl">${timed?'Sekundy':s.kind==='amrap'?'Powtórzenia (max)':'Powtórzenia'}</span><input type="text" inputmode="numeric" enterkeyhint="next" autocomplete="off" aria-label="Seria ${csEsc(setNo)}: ${timed?'sekundy':'powtórzenia'}"${errAttr('reps')} value="${csEsc(s.reps)}" placeholder="${s.kind==='amrap'?'max':'0'}" onfocus="cwFieldFocus(this)" oninput="cwPatchSet(${cur},'reps',this.value)" onkeydown="cwFieldKey(event,0)"></label>
-        <div class="cs-num"><span class="cs-num-lbl" id="cs-kg-lbl">${weightUnit?'Ciężar (kg)':csEsc(loadLbl)}</span><div class="cs-kg-row">
-          <button type="button" class="cs-step" aria-label="Ciężar mniej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},-${kgStep})">−</button>
-          <input type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-labelledby="cs-kg-lbl" aria-label="Seria ${csEsc(setNo)}: ciężar" value="${csEsc(csNum(s.kg))}" placeholder="${weightUnit?'0':'—'}" onfocus="cwFieldFocus(this)" oninput="cwPatchSet(${cur},'kg',this.value)" onkeydown="cwFieldKey(event,1)">
-          <button type="button" class="cs-step" aria-label="Ciężar więcej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},${kgStep})">+</button>
-        </div></div>
+      <p class="cs-result-h${prefilled?' sr-only':''}" id="cs-result-h">Twój wynik${prefilled?' — wpisane jak w planie, popraw, jeśli było inaczej':''}</p>
+      <div class="cs-set-grid cs-set-boxes" role="group" aria-labelledby="cs-result-h">
+        <div class="cs-num cs-box" data-cs-box="reps"><span class="cs-num-lbl">${timed?'Sekundy':s.kind==='amrap'?'Powtórzenia (max)':'Powtórzenia'}</span><input type="text" inputmode="numeric" enterkeyhint="next" autocomplete="off" data-cs-field="reps" aria-label="Seria ${csEsc(setNo)}: ${timed?'sekundy':'powtórzenia'}"${errAttr('reps')} value="${csEsc(s.reps)}" placeholder="${s.kind==='amrap'?'max':'0'}" onfocus="cwFieldFocus(this)" oninput="cwPatchSet(${cur},'reps',this.value)" onkeydown="cwFieldKey(event,0)">
+          <div class="cs-box-steps"><button type="button" class="cs-step" aria-label="${timed?'Sekundy':'Powtórzenia'} mniej o ${repStep}" onclick="cwStepReps(${cur},-${repStep})">−</button><button type="button" class="cs-step" aria-label="${timed?'Sekundy':'Powtórzenia'} więcej o ${repStep}" onclick="cwStepReps(${cur},${repStep})">+</button></div></div>
+        <div class="cs-num cs-box cs-box-kg" data-cs-box="kg"><span class="cs-num-lbl" id="cs-kg-lbl">${weightUnit?'Ciężar (kg)':csEsc(loadLbl)}</span><div class="cs-kg-row">
+          <input type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" data-cs-field="kg" aria-labelledby="cs-kg-lbl" aria-label="Seria ${csEsc(setNo)}: ciężar" value="${csEsc(csNum(s.kg))}" placeholder="${weightUnit?'0':'—'}" onfocus="cwFieldFocus(this)" oninput="cwPatchSet(${cur},'kg',this.value)" onkeydown="cwFieldKey(event,1)"></div>
+          <div class="cs-box-steps"><button type="button" class="cs-step" aria-label="Ciężar mniej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},-${kgStep})">−</button><button type="button" class="cs-step" aria-label="Ciężar więcej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},${kgStep})">+</button></div></div>
       </div>
       ${err?`<p class="cs-field-err" id="cs-set-err" role="alert">${csEsc(err.msg)}</p>`:''}
-      ${showRir?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało w zapasie?${ex.rirRequired?' (wymagane)':' (opcjonalnie)'}"><span>Ile powtórzeń dałbyś radę jeszcze zrobić? <em>${ex.rirRequired?'wymagane':'opcjonalnie'}</em></span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirPicked===v?'is-on':''}" aria-pressed="${rirPicked===v?'true':'false'}" aria-label="Zapas: ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}
+      ${showRir&&!rirOpen?`<button type="button" class="cs-link cs-rir-toggle" data-cs-rir-toggle aria-expanded="false" onclick="cwToggleRirQ()">${hasRir?'Cel: '+csEsc(csRirFriendly(ex.rir))+' · ':''}Ile zostało w zapasie? <em>opcjonalnie</em></button>`:''}
+      ${showRir&&rirOpen?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało w zapasie?${ex.rirRequired?' (wymagane)':' (opcjonalnie)'}"><span>Ile powtórzeń dałbyś radę jeszcze zrobić? <em>${ex.rirRequired?'wymagane':'opcjonalnie'}</em></span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirPicked===v?'is-on':''}" aria-pressed="${rirPicked===v?'true':'false'}" aria-label="Zapas: ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}
 `;
   const rirShow=x=>x.rirReported&&x.rir!=null&&x.rir!==''?'zapas '+String(x.rir):'';
   const setList=sets.map((x,i)=>`<li class="cs-setlog${x.done?' is-done':''}"><span>Seria ${csEsc(x.setNo!=null?x.setNo:i+1)}${x.kind&&x.kind!=='work'?' · '+csEsc((typeof setKindBadge==='function'&&setKindBadge(x.kind))||x.kind):''}</span><span>${csEsc(csNum(x.reps||'—'))} × ${csEsc(csNum(x.kg||'—'))} ${csEsc(weightUnit?'kg':loadLbl)}${x.done&&rirShow(x)?' · '+csEsc(rirShow(x)):''}</span>${x.done?`<button type="button" class="cs-mini" aria-label="Cofnij zapis serii ${csEsc(x.setNo!=null?x.setNo:i+1)}" onclick="cwUndoSet(${i})">Cofnij</button>`:'<span class="cs-mini-ph"></span>'}</li>`).join('');
@@ -1064,10 +1068,9 @@ function cwSimpleExerciseHTML(cw,ex){
     <div class="cs-ex-segs" style="grid-template-columns:repeat(${n},minmax(0,1fr))" aria-hidden="true">${segs}</div>
     <div class="cs-ex-scroll" data-cs-swipe>
       <div class="cs-ex-body">
-        <div class="cs-ex-headrow">
-          <h2 class="cs-ex-name" title="${csEsc(ex.name)}">${ex.ssLabel?`<span class="cw-ss-badge">${csEsc(ex.ssLabel)}</span> `:''}${csEsc(shortName)}</h2>
-          <button type="button" class="cs-tech-btn" onclick="cwOpenSheet('tech')"><span class="cs-tech-play">${CS_PLAY_ICON}</span>Technika</button>
-        </div>
+        <h2 class="cs-ex-name" title="${csEsc(ex.name)}">${ex.ssLabel?`<span class="cw-ss-badge">${csEsc(ex.ssLabel)}</span> `:''}${csEsc(shortName)}</h2>
+        ${media?`<div class="cs-ex-media" data-cs-media><img src="${csEsc(media)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></div>`:''}
+        <button type="button" class="cs-tech-btn" onclick="cwOpenSheet('tech')"><span class="cs-tech-play">${CS_PLAY_ICON}</span>Jak wykonać ćwiczenie?</button>
         ${note.key&&note.full?`<p class="cs-key-note" role="note"><b>Uwaga trenera:</b> ${csEsc(note.full)}</p>`:''}
         ${others.length?`<p class="cs-ex-ss">Bez przerwy z: ${others.map(o=>csEsc((o.ssLabel?o.ssLabel+' ':'')+csShortName(o.name))).join(', ')}</p>`:''}
         ${methods.length?`<p class="cs-ex-ss">⚡ ${csEsc(methods.map(m=>((window.INTENSIFICATION_METHODS||{})[m.type]||{}).label||m.type).join(', '))} · opis w „Technice”</p>`:''}
@@ -1179,9 +1182,20 @@ function cwStepKg(setIdx,delta){
   const cur=Number.parseFloat(String(st.kg||'0').replace(',','.'))||0;
   const next=Math.max(0,Math.round((cur+delta)*100)/100);
   if(typeof cwPatchSet==='function')cwPatchSet(setIdx,'kg',String(next));
-  const inp=document.querySelector('#clive-player-inner .cs-kg-row input');
+  const inp=document.querySelector('#clive-player-inner [data-cs-field="kg"]');
   if(inp)inp.value=csNum(next);
 }
+function cwStepReps(setIdx,delta){
+  const cw=window._cw;if(!cw)return;
+  const st=((cw.exercises[cw.exIdx]||{}).sets||[])[setIdx];if(!st)return;
+  const cur=Number.parseInt(String(st.reps||'0'),10)||0;
+  const next=Math.max(0,cur+delta);
+  if(typeof cwPatchSet==='function')cwPatchSet(setIdx,'reps',String(next));
+  const inp=document.querySelector('#clive-player-inner [data-cs-field="reps"]');
+  if(inp)inp.value=String(next);
+}
+function cwToggleRirQ(){const cw=window._cw;if(!cw)return;cw.showRirQ=!cw.showRirQ;cwRender();}
+window.cwStepReps=cwStepReps;window.cwToggleRirQ=cwToggleRirQ;
 /** Pole wyniku: całe zaznaczone (wpisanie nadpisuje), widoczne nad klawiaturą. */
 function cwFieldFocus(inp){
   try{inp.select();}catch(e){}

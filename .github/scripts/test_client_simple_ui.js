@@ -70,7 +70,7 @@ function ok(name, cond, extra) {
   ok('starts on first exercise', /Ćwiczenie 1 z 6/.test(exv.text) && /Przysiad goblet/.test(exv.text), exv.text.slice(0, 120));
   ok('set, reps and load', /Seria 1 z 3/.test(exv.text) && exv.reps === '10' && exv.kg === '20', JSON.stringify(exv));
   ok('one big action', /Seria 1 z 3/.test(exv.text) && /Zapisz serię/.test(exv.text) && !/Następne →/.test(exv.text) && await page.evaluate(() => document.querySelectorAll('.cs-ex-foot button').length === 1));
-  ok('set history collapsed by default', !exv.tipsOpen && /Zapisane serie/.test(exv.text) && /Technika/.test(exv.text));
+  ok('set history collapsed by default', !exv.tipsOpen && /Zapisane serie/.test(exv.text) && /Jak wykonać ćwiczenie\?/.test(exv.text));
 
   await page.click('.cs-ex-foot [data-cs-primary="save"]');
   await page.waitForSelector('.cw-rest');

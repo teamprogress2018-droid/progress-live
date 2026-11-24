@@ -170,7 +170,7 @@ const noHScroll = (page) => page.evaluate(() => document.scrollingElement.scroll
     ok(w + ': trening bez przewijania w poziomie', await noHScroll(page));
 
     // 4. Technika: zdjęcie się nie wczytało — czytelny komunikat zamiast zepsutego obrazka
-    await page.evaluate(() => { const b = [...document.querySelectorAll('#clive-player button')].find((x) => /Technika/.test(x.innerText)); if (b) b.click(); });
+    await page.evaluate(() => { const b = document.querySelector('#clive-player .cs-tech-btn'); if (b) b.click(); });
     await page.waitForTimeout(1200);
     const tech = await page.evaluate(() => {
       const imgs = [...document.querySelectorAll('#clive-player img')];

@@ -574,3 +574,35 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-hub-ico { width: 40px; height: 40px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--bg-main); color: var(--text-primary); }
 .cs-hub-logout { align-self: center; min-height: 48px; color: var(--text-secondary); }
 .cs-back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 8px 0 0 calc(16px + var(--cs-sal, 0px)); padding: 0 8px 0 0; border: 0; background: none; color: var(--text-primary); font: inherit; font-size: 1rem; font-weight: 650; cursor: pointer; }
+
+/* ── Ekran ćwiczenia: prosty układ (Progress Clean) ──
+   Nazwa → (zdjęcie) → „Jak wykonać ćwiczenie?” → duże „SERIA k Z n” + numery serii →
+   „Ostatni trening / Dzisiaj” → dwa równe pola z −/+ pod spodem → „Zapisz serię”. */
+.cs-ex-body > .cs-ex-name { font-size: 1.625rem; }
+.cs-ex-media { overflow: hidden; border-radius: 16px; background: var(--bg-card); border: 1px solid var(--border-subtle); }
+.cs-ex-media img { display: block; width: 100%; max-height: 150px; object-fit: contain; background: #fff; }
+.cs-ex-body > .cs-tech-btn { width: 100%; justify-content: center; min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid var(--border-default, #d0d5dd); background: var(--bg-card); color: var(--text-primary); font-weight: 650; font-size: 1rem; }
+.cs-set .cs-set-head { flex-direction: column; align-items: stretch; gap: 12px; }
+.cs-set .cs-set-title { align-items: center; text-align: center; }
+.cs-set .cs-set-no { font-size: 2.25rem; line-height: 1.05; letter-spacing: -.01em; }
+.cs-set .cs-set-left { font-size: 1rem; }
+.cs-set .cs-dots { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+.cs-set .cs-dots span { width: auto; height: 44px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-main); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 1.0625rem; font-weight: 700; }
+.cs-set .cs-dots span.is-now { border-color: var(--accent); background: var(--accent); color: var(--on-accent, #fff); }
+.cs-set .cs-dots span.is-done { border-color: var(--success, #15803d); background: var(--success-bg, #f0fdf4); color: var(--success, #15803d); }
+.cs-set .cs-goal-prev { align-items: center; text-align: center; padding: 12px; background: var(--bg-main); }
+.cs-set .cs-prev, .cs-set .cs-target { font-size: 1rem; }
+.cs-set .cs-prev-lbl, .cs-set .cs-target-lbl { padding: 0; border: 0; background: none; font-size: 1rem; font-weight: 600; color: var(--text-secondary); }
+.cs-set .cs-target { font-weight: 700; color: var(--text-primary); }
+.cs-set-boxes { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
+.cs-set-boxes .cs-box-kg { order: -1; } /* wzrokowo: Ciężar | Powtórzenia (DOM i Tab: powtórzenia → ciężar) */
+.cs-set-boxes .cs-box { gap: 8px; padding: 12px 10px; border: 1px solid var(--border-subtle); border-radius: 16px; background: var(--bg-card); align-items: stretch; }
+.cs-set-boxes .cs-box .cs-num-lbl { padding: 0; text-align: center; font-size: 0.9375rem; }
+.cs-set-boxes .cs-kg-row { display: block; }
+.cs-set-boxes .cs-box input { min-height: 64px; text-align: center; font-size: 2.5rem !important; font-weight: 750; font-variant-numeric: tabular-nums; }
+.cs-box-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cs-box-steps .cs-step { height: 48px; border-radius: 12px; font-size: 1.5rem; }
+.cs-rir-toggle { align-self: center; font-weight: 600; color: var(--text-secondary); }
+.cs-rir-toggle em { font-style: normal; font-weight: 500; }
+@media (max-width: 350px) { .cs-set .cs-set-no { font-size: 1.875rem; } .cs-set-boxes .cs-box input { font-size: 2rem !important; } }
+@media (max-height: 720px) { .cs-ex-media { display: none; } } /* niski ekran: zdjęcie pod „Jak wykonać ćwiczenie?”, pola wyniku bez przewijania */
