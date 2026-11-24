@@ -1351,7 +1351,7 @@ function cwFindResumable(planId,dayIdx){
 }
 function cwSyncStateText(cw){
   if(cw&&cw.syncState==='error')return'Nie potwierdzono zapisu';
-  if(cw&&cw.syncState==='local')return'Zapisano na urządzeniu · oczekuje na synchronizację';
+  if(cw&&cw.syncState==='local')return'Zapisano w telefonie ✓ · oczekuje na synchronizację, wyśle się samo';
   return'Zsynchronizowano';
 }
 async function cwPersist(cw,status){

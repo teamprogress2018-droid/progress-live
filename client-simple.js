@@ -974,6 +974,9 @@ function csMmTipSame(ex,body){
   const tip=String((lib&&lib.tip)||(ex&&(ex.libTip||ex.tip))||'').trim();
   return !!tip&&String(body||'').trim()===tip;
 }
+/** Czy w tym treningu zapisano już jakąkolwiek serię (bez tego komunikat o synchronizacji tylko niepokoi). */
+function csAnySetDone(cw){return !!(cw&&(cw.exercises||[]).some(e=>(e.sets||[]).some(x=>x&&x.done)));}
+window.csAnySetDone=csAnySetDone;
 function cwSimpleExerciseHTML(cw,ex){
   const n=cw.exercises.length,idx=cw.exIdx;
   const sets=ex.sets||[];
@@ -1023,9 +1026,9 @@ function cwSimpleExerciseHTML(cw,ex){
   const prefilled=!!(s&&!s.done&&s._dirty!==true&&String(s.reps==null?'':s.reps)===String(plan.reps==null?'':plan.reps)&&String(s.kg==null?'':s.kg)===String(plan.kg==null?'':plan.kg)&&(String(s.reps||'')!==''||String(s.kg||'')!==''));
   const card=allDone?`<div class="cs-set-done" data-cs-ex-done>${ex.skipped?'Ćwiczenie pominięte':'Ćwiczenie ukończone '+csIcon('check',20)}</div>
       ${ex.skipped?'':`<p class="cs-done-sum">${sets.filter(x=>x.done).map(x=>csEsc(csNum(x.reps||'—'))+' × '+csEsc(csNum(x.kg||'—'))+' '+csEsc(weightUnit?'kg':loadLbl)).join(' · ')}</p>`}`:`
-      ${target||lastLine?`<div class="cs-goal-prev">
-        ${lastLine?`<p class="cs-prev" data-cs-prev><span class="cs-prev-lbl">Ostatni trening:</span> ${csEsc(lastLine.replace(/^Ostatnio:\s*/,''))}</p>`:''}
-        ${target?`<p class="cs-target" data-cs-target><span class="cs-target-lbl">Dzisiaj:</span> ${csEsc(target)}</p>`:''}
+      ${target||lastLine?`<div class="cs-goal-prev${target&&lastLine?' is-pair':''}">
+        ${lastLine?`<p class="cs-prev" data-cs-prev><span class="cs-prev-lbl">Ostatni trening:</span> <span class="cs-tile-val">${csEsc(lastLine.replace(/^Ostatnio:\s*/,''))}</span></p>`:''}
+        ${target?`<p class="cs-target" data-cs-target><span class="cs-target-lbl">Dzisiaj:</span> <span class="cs-tile-val">${csEsc(target)}</span></p>`:''}
       </div>`:''}
       ${hasRir&&rirOpen?`<div class="cs-rir-goal"><span>${csEsc(csRirFriendly(ex.rir).replace(/^./,c=>c.toUpperCase()))}</span><button type="button" class="cs-q" aria-label="Co to jest zapas powtórzeń?" aria-expanded="${cw.showRirHelp?'true':'false'}" aria-controls="cs-rir-help" onclick="cwToggleRirHelp()">?</button></div>
       ${cw.showRirHelp?`<p class="cs-rir-help" id="cs-rir-help">Zapas to liczba powtórzeń, które dałbyś radę zrobić jeszcze z dobrą techniką. Skończ serię, zanim ruch zacznie się psuć.</p>`:''}`:''}
@@ -1040,7 +1043,7 @@ function cwSimpleExerciseHTML(cw,ex){
           <div class="cs-box-steps"><button type="button" class="cs-step" aria-label="Ciężar mniej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},-${kgStep})">−</button><button type="button" class="cs-step" aria-label="Ciężar więcej o ${csNum(kgStep)}" onclick="cwStepKg(${cur},${kgStep})">+</button></div></div>
       </div>
       ${err?`<p class="cs-field-err" id="cs-set-err" role="alert">${csEsc(err.msg)}</p>`:''}
-      ${showRir&&!rirOpen?`<button type="button" class="cs-link cs-rir-toggle" data-cs-rir-toggle aria-expanded="false" onclick="cwToggleRirQ()">${hasRir?'Cel: '+csEsc(csRirFriendly(ex.rir))+' · ':''}Ile zostało w zapasie? <em>opcjonalnie</em></button>`:''}
+      ${showRir&&!rirOpen?`<button type="button" class="cs-link cs-rir-toggle" data-cs-rir-toggle aria-expanded="false" onclick="cwToggleRirQ()">Ile zostało w zapasie? <em>opcjonalnie</em>${hasRir?`<span class="cs-rir-cel">Cel: ${csEsc(csRirFriendly(ex.rir))}</span>`:''}</button>`:''}
       ${showRir&&rirOpen?`<div class="cs-rir-q" role="group" aria-label="Ile powtórzeń zostało w zapasie?${ex.rirRequired?' (wymagane)':' (opcjonalnie)'}"><span>Ile powtórzeń dałbyś radę jeszcze zrobić? <em>${ex.rirRequired?'wymagane':'opcjonalnie'}</em></span><div class="cs-rir-opts">${CS_RIR_OPTS.map(([v,l])=>`<button type="button" data-rir="${v}" class="${rirPicked===v?'is-on':''}" aria-pressed="${rirPicked===v?'true':'false'}" aria-label="Zapas: ${csEsc(l)}" onclick="cwSetRir(${cur},'${v}')">${csEsc(l)}</button>`).join('')}</div></div>`:''}
 `;
   const rirShow=x=>x.rirReported&&x.rir!=null&&x.rir!==''?'zapas '+String(x.rir):'';
@@ -1069,16 +1072,18 @@ function cwSimpleExerciseHTML(cw,ex){
     <div class="cs-ex-scroll" data-cs-swipe>
       <div class="cs-ex-body">
         <h2 class="cs-ex-name" title="${csEsc(ex.name)}">${ex.ssLabel?`<span class="cw-ss-badge">${csEsc(ex.ssLabel)}</span> `:''}${csEsc(shortName)}</h2>
-        ${media?`<div class="cs-ex-media" data-cs-media><img src="${csEsc(media)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></div>`:''}
-        <button type="button" class="cs-tech-btn" onclick="cwOpenSheet('tech')"><span class="cs-tech-play">${CS_PLAY_ICON}</span>Jak wykonać ćwiczenie?</button>
+        <div class="cs-ex-intro${media?' has-media':''}">
+          ${media?`<div class="cs-ex-media" data-cs-media><img src="${csEsc(media)}" alt="" loading="lazy" onerror="this.parentNode.parentNode.classList.remove('has-media');this.parentNode.remove()"></div>`:''}
+          <button type="button" class="cs-tech-btn" onclick="cwOpenSheet('tech')"><span class="cs-tech-play">${CS_PLAY_ICON}</span>Jak wykonać ćwiczenie?</button>
+        </div>
         ${note.key&&note.full?`<p class="cs-key-note" role="note"><b>Uwaga trenera:</b> ${csEsc(note.full)}</p>`:''}
         ${others.length?`<p class="cs-ex-ss">Bez przerwy z: ${others.map(o=>csEsc((o.ssLabel?o.ssLabel+' ':'')+csShortName(o.name))).join(', ')}</p>`:''}
         ${methods.length?`<p class="cs-ex-ss">⚡ ${csEsc(methods.map(m=>((window.INTENSIFICATION_METHODS||{})[m.type]||{}).label||m.type).join(', '))} · opis w „Technice”</p>`:''}
         <section class="cs-set" aria-label="Bieżąca seria">
-          <div class="cs-set-head"><div class="cs-set-title"><b class="cs-set-no">${allDone?(ex.skipped?'Pominięte':'Wszystkie serie zrobione'):'Seria '+csEsc(setNo)+' z '+sets.length}${kindTag&&!allDone?` · ${csEsc(kindTag)}`:''}</b>${allDone?'':`<span class="cs-set-left${csSetsLeft(ex)===1?' is-last':''}" data-cs-sets-left>${csEsc(csSetsLeftLabel(csSetsLeft(ex)))}</span>`}</div><span class="cs-dots" aria-hidden="true">${dots}</span></div>
+          <div class="cs-set-head"><div class="cs-set-title"><b class="cs-set-no">${allDone?(ex.skipped?'Pominięte':'Wszystkie serie zrobione'):'Seria '+csEsc(setNo)+' z '+sets.length}${kindTag&&!allDone?` · ${csEsc(kindTag)}`:''}</b>${allDone?'':`<span class="cs-set-left${csSetsLeft(ex)===1?' is-last':' sr-only'}" data-cs-sets-left>${csEsc(csSetsLeftLabel(csSetsLeft(ex)))}</span>`}</div><span class="cs-dots" aria-hidden="true">${dots}</span></div>
           ${card}
         </section>
-        ${cw.syncState==='error'||cw.syncState==='local'?`<div class="cw-sync-state${cw.syncState==='error'?' is-error':' is-local'}" role="status" aria-live="polite" data-cw-sync-visible>${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
+        ${cw.syncState==='error'||(cw.syncState==='local'&&csAnySetDone(cw))?`<div class="cw-sync-state${cw.syncState==='error'?' is-error':' is-local'}" role="status" aria-live="polite" data-cw-sync-visible>${csEsc(typeof cwSyncStateText==='function'?cwSyncStateText(cw):'')}</div>`:''}
         ${hist}
         ${typeof cvOpen==='function'?`<button type="button" class="cs-link cs-cv-link" data-cv-open onclick="cvOpen()">${csIcon('camera',18)}Wyślij film trenerowi</button>`:''}
       </div>
