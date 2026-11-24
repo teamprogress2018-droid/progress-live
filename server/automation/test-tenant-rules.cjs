@@ -479,6 +479,8 @@ test('communication: client cases, contact preferences, push subscriptions and s
     categories: {meetings: true, plan: true, checkins: false}, quiet: {from: '21:00', to: '08:00'}, fallback: true, updatedAt: now});
   ok(await write('commsPrefs/' + clientA, prefs, userA), 'client saves own contact preferences and consent');
   ok(await patch('commsPrefs/' + clientA, {channel: 'push'}, userA), 'client changes channel');
+  ok(await patch('commsPrefs/' + clientA, {push: {subscribed: false, off: true, at: '2026-11-24T06:00:00Z', device: 'iPhone'}}, userA), 'client turns push off on this phone');
+  denied(await patch('commsPrefs/' + clientA, {push: {subscribed: false, off: 'yes'}}, userA), 'push.off must be true/false');
   ok(await read('commsPrefs/' + clientA, ownerA), 'trainer reads preferences');
   denied(await patch('commsPrefs/' + clientA, {channel: 'whatsapp'}, ownerA), 'trainer cannot give consent for client');
   denied(await write('commsPrefs/' + clientSibling, {...prefs, id: clientSibling, clientId: clientSibling}, userA), 'cannot set sibling preferences');

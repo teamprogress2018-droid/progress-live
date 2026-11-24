@@ -2401,3 +2401,13 @@ button.exl-name { display: -webkit-box; width: 100%; padding: 0; border: 0; back
 .comms-tbl .st-failed { color: var(--danger, #b42318); font-weight: 600; }
 .comms-tbl .st-delivered, .comms-tbl .st-read, .comms-tbl .st-confirmed { color: var(--success, #157f3c); font-weight: 600; }
 .comms-prefs { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; line-height: 1.4; }
+.comms-cov { display: flex; flex-direction: column; gap: 8px; }
+.comms-cov-num { font-size: 0.9375rem; }
+.comms-cov-num b { font-size: 1.25rem; }
+.comms-cov-bar { height: 8px; border-radius: 999px; background: var(--border, #dbe4f0); overflow: hidden; }
+.comms-cov-bar span { display: block; height: 100%; background: var(--success, #16a34a); border-radius: inherit; }
+.comms-cov-lead { margin: 4px 0 0; font-weight: 600; }
+.comms-cov-lead.is-ok { color: var(--success, #16a34a); }
+.comms-cov-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; line-height: 1.4; }
+.comms-cov-help summary { cursor: pointer; font-weight: 600; }
+.comms-cov-help p { margin: 6px 0 0; line-height: 1.45; }

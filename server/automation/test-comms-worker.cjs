@@ -182,6 +182,14 @@ const reminder = db => jobs(db).find(j => j.kind === 'meeting_reminder');
   const pushP = W.webPushProvider({publicKey: 'p', privateKey: 'k', subject: 'mailto:x@y.z'}, fakeWebPush);
   const res = await pushP.send({job: {clientId: C, kind: 'meeting_reminder', id: 'j'}, text: {title: 't', body: 'b', url: '/'}, db, trainerId: T});
   ok(!res.ok && res.permanent && !db._store.pushSubscriptions.sub1, 'expired push subscription removed');
+  ok(db._store.commsPrefs[C].push.subscribed === false && !db._store.commsPrefs[C].push.off, 'all phones expired → prefs say push not subscribed (no off flag)');
+  // Jeden z dwóch telefonów wygasł: drugi działa, stan „włączone” zostaje.
+  db = seed(fakeDb());
+  db._store.pushSubscriptions.sub2 = {...db._store.pushSubscriptions.sub1, id: 'sub2', endpoint: 'https://push.example/ok'};
+  db._store.pushSubscriptions.sub1.endpoint = 'https://push.example/gone';
+  const halfWp = {setVapidDetails() {}, sendNotification: async (sub) => { if (sub.endpoint.includes('gone')) { const e = new Error('gone'); e.statusCode = 410; throw e; } }};
+  const res2 = await W.webPushProvider({publicKey: 'p', privateKey: 'k', subject: 'mailto:x@y.z'}, halfWp).send({job: {clientId: C, kind: 'meeting_reminder', id: 'j'}, text: {title: 't', body: 'b', url: '/'}, db, trainerId: T});
+  ok(res2.ok && db._store.commsPrefs[C].push.subscribed === true, 'one phone left → still subscribed');
 
   // 12. Przerwa w treningach: brak wiadomości.
   db = seed(fakeDb(), {live: true, status: 'paused'}); calls = 0;
