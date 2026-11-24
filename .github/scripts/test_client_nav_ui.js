@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** UI (Etap 10 UX): aplikacja klienta — pasek Dzisiaj, Trening, Czat, Postępy, Więcej; plakietka na Czacie; pakiet: ile treningów zostało, bez numeru konta;
+/** UI: aplikacja klienta — pasek Dzisiaj, Trening, Postępy, Trener (Progress Clean); plakietka na Trenerze; pakiet: ile treningów zostało, bez numeru konta;
  *  safe area; tekst w rem; pasek „Brak internetu”; karta „Pakiet do opłacenia” (także gdy pakiet się skończył);
  *  długie nazwy bez ucinania (bez nowrap) i bez stałej wysokości 150 px. */
 const fs = require('fs');
@@ -52,22 +52,22 @@ async function open(browser, opts) {
   try {
     let { ctx, page } = await open(browser, { unread: true });
     const nav = await page.evaluate(() => [...document.querySelectorAll('#clive-nav .clive-nav-btn')].map((b) => b.children[1].textContent.trim()));
-    ok('bottom nav: Dzisiaj, Trening, Czat, Postępy, Więcej', JSON.stringify(nav) === JSON.stringify(['Dzisiaj', 'Trening', 'Czat', 'Postępy', 'Więcej']), JSON.stringify(nav));
+    ok('bottom nav: Dzisiaj, Trening, Postępy, Trener', JSON.stringify(nav) === JSON.stringify(['Dzisiaj', 'Trening', 'Postępy', 'Trener']), JSON.stringify(nav));
     const badge = await page.evaluate(() => {
-      const chat = document.querySelector('#clive-bn-messages .clive-nav-badge');
-      const more = document.querySelector('#clive-bn-more .clive-nav-badge');
-      return { chat: !!chat && getComputedStyle(chat).display !== 'none', sr: chat ? chat.textContent.trim() : '', more: !!more && getComputedStyle(more).display !== 'none' };
+      const chat = document.querySelector('#clive-bn-trainer .clive-nav-badge');
+      return { chat: !!chat && getComputedStyle(chat).display !== 'none', sr: chat ? chat.textContent.trim() : '', more: !!document.getElementById('clive-bn-more') };
     });
-    ok('unread badge on Czat (with text for screen readers), not on Więcej', badge.chat && badge.sr === ', nowe' && !badge.more, JSON.stringify(badge));
+    ok('unread badge on Trener (with text for screen readers), no Więcej', badge.chat && badge.sr === ', nowe' && !badge.more, JSON.stringify(badge));
     const sizes = await page.$$eval('#clive-nav .clive-nav-btn', (els) => els.map((e) => [e.getBoundingClientRect().width, e.getBoundingClientRect().height]));
     ok('nav buttons ≥44×44', sizes.every(([w, h]) => w >= 44 && h >= 44), JSON.stringify(sizes));
-    await page.click('#clive-bn-more');
-    const sheet = await page.evaluate(() => [...document.querySelectorAll('#clive-more-sheet .clive-nav-btn')].map((b) => b.innerText.trim()));
-    ok('Plan moved to Więcej', sheet[0] === 'Plan' && !sheet.includes('Czat'), JSON.stringify(sheet));
-    await page.click('#clive-more-sheet #clive-bn-plan');
-    ok('Plan opens from Więcej', await page.evaluate(() => window._clientLiveScreen === 'plan'));
-    await page.click('#clive-bn-messages');
-    ok('Czat opens from bar', await page.evaluate(() => window._clientLiveScreen === 'messages'));
+    await page.click('#clive-bn-trainer');
+    const rows = await page.evaluate(() => [...document.querySelectorAll('[data-cs-hub-row]')].map((b) => b.dataset.csHubRow));
+    ok('Plan and Kontakt on Trener screen', rows.includes('plan') && rows.includes('contact') && !rows.includes('messages'), JSON.stringify(rows));
+    await page.click('[data-cs-hub-row="plan"]');
+    ok('Plan opens from Trener', await page.evaluate(() => window._clientLiveScreen === 'plan'));
+    await page.click('#clive-bn-trainer');
+    await page.click('[data-cs-hub-chat] .cs-btn-primary');
+    ok('Czat opens from Trener', await page.evaluate(() => window._clientLiveScreen === 'messages'));
 
     // Safe area (symulacja wycięcia i paska gestów)
     await page.evaluate(() => { const r = document.documentElement.style; r.setProperty('--cs-sab', '34px'); r.setProperty('--cs-sal', '20px'); r.setProperty('--cs-sar', '20px'); });
@@ -96,8 +96,8 @@ async function open(browser, opts) {
     ok('payment buttons secondary, one red action on screen', !!pay && pay.primary === 0 && pay.allPrimary === 1 && JSON.stringify(pay.btns) === '["Zapłaciłem"]', JSON.stringify(pay));
     ok('payment card: no bank account / transfer title', !!pay && !/12 3456|Konto|Tytuł przelewu|numeru konta/.test(pay.text), pay && pay.text);
     ok('payment card: trainings left', !!pay && /Zostało\s*8 z 8 treningów/.test(pay.text), pay && pay.text);
-    const more = await page.evaluate(() => { const b = document.querySelector('#clive-bn-more .clive-nav-badge'); return !!b && getComputedStyle(b).display !== 'none'; });
-    ok('unpaid package marks Więcej', more);
+    const more = await page.evaluate(() => { const b = document.querySelector('#clive-bn-trainer .clive-nav-badge'); return !!b && getComputedStyle(b).display !== 'none'; });
+    ok('unpaid package marks Trener', more);
     await ctx.close();
 
     ({ ctx, page } = await open(browser, { active: true }));

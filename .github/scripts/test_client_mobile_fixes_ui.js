@@ -1,5 +1,5 @@
 // UI: poprawki aplikacji klienta na telefonie (przegląd 17.11.2026) — 360, 390 i 430 px.
-// Nagłówek (Wyloguj w oknie, „Panel trenera” tylko dla trenera), brak przewijania w poziomie,
+// Nagłówek (bez „Wyloguj” — jest na ekranie Trener; „Panel trenera” tylko dla trenera), brak przewijania w poziomie,
 // cele dotykowe >= 44 px, kontrast tekstu >= 4,5:1, ekran Technika bez zepsutego obrazka,
 // polskie liczby w „Więcej statystyk” i karta „Kontynuuj program” na ekranie On-demand.
 // Bez Firebase i bez zapisu do produkcji: logowanie podstawione jak w test_client_simple_ui.js.
@@ -96,12 +96,12 @@ const noHScroll = (page) => page.evaluate(() => document.scrollingElement.scroll
 
     // 1–2. Nagłówek klienta
     const head = await page.evaluate(() => {
-      const out = [...document.querySelectorAll('.clive-top button')].find((b) => /Wyloguj/.test(b.innerText));
-      const r = out.getBoundingClientRect();
-      return { left: r.left, right: r.right, vw: innerWidth, trainerBtn: !!document.getElementById('clive-trainer-switch'), trainerText: /Panel trenera/.test(document.getElementById('screen-clientlive').innerHTML) };
+      const top = document.querySelector('.clive-top');
+      const r = top.getBoundingClientRect();
+      return { left: r.left, right: r.right, vw: innerWidth, logout: /Wyloguj/.test(top.innerText), trainerBtn: !!document.getElementById('clive-trainer-switch'), trainerText: /Panel trenera/.test(document.getElementById('screen-clientlive').innerHTML) };
     });
     await page.screenshot({ path: path.join(shotDir, 'header_client_' + w + '.png') });
-    ok(w + ': „Wyloguj” w całości w oknie', head.left >= 0 && head.right <= head.vw, JSON.stringify(head));
+    ok(w + ': nagłówek w oknie, bez „Wyloguj” (jest na ekranie Trener)', head.left >= 0 && head.right <= head.vw && !head.logout, JSON.stringify(head));
     ok(w + ': klient nie ma „Panel trenera” w DOM', !head.trainerBtn && !head.trainerText);
     ok(w + ': Dzisiaj bez przewijania w poziomie', await noHScroll(page));
 
@@ -111,11 +111,11 @@ const noHScroll = (page) => page.evaluate(() => document.scrollingElement.scroll
       window._getDoc = async (ref) => ({ exists: () => ref.col === 'trainerRoles' && ref.id === window._uid, data: () => ({ uid: window._uid, role: 'trainer', enabled: true }) });
       const res = await clientLiveSyncTrainerSwitch();
       const btn = document.getElementById('clive-trainer-switch');
-      const out = [...document.querySelectorAll('.clive-top button')].find((b) => /Wyloguj/.test(b.innerText)).getBoundingClientRect();
+      const out = (btn || document.querySelector('.clive-top')).getBoundingClientRect();
       return { res, btn: !!btn, right: out.right, vw: innerWidth, sw: document.scrollingElement.scrollWidth };
     });
     await page.screenshot({ path: path.join(shotDir, 'header_trainer_' + w + '.png') });
-    ok(w + ': trener widzi „Panel trenera”, „Wyloguj” dalej w oknie', trainer.res === true && trainer.btn && trainer.right <= trainer.vw && trainer.sw <= trainer.vw + 1, JSON.stringify(trainer));
+    ok(w + ': trener widzi „Panel trenera” w całości w oknie', trainer.res === true && trainer.btn && trainer.right <= trainer.vw && trainer.sw <= trainer.vw + 1, JSON.stringify(trainer));
     // Konto bez roli: przycisk znika.
     const plain = await page.evaluate(async () => {
       window._getDoc = async () => ({ exists: () => false, data: () => null });

@@ -500,6 +500,48 @@ function csContactHTML(c){
     ${address?`<a class="cs-link" href="https://www.google.com/maps/dir/?api=1&amp;destination=${encodeURIComponent(address)}" target="_blank" rel="noopener noreferrer">${csIcon('pin',18)}Mapa i dojazd</a>`:''}
   </div>`;
 }
+/** Ekran „Trener” (dolny pasek): czat z ostatnią wiadomością trenera, kontakt i pozostałe obszary (dawne „Więcej”),
+ *  na dole „Wyloguj”. Jedna główna akcja: otwarcie czatu (bez czatu: kontakt). */
+function csTrainerHubHTML(c){
+  const S=window.SETTINGS||{};
+  const k=S.contact||{};
+  const name=(typeof getTrainerName==='function'?getTrainerName(''):'')||k.name||(S.profile&&S.profile.name)||'Twój trener';
+  const chat=csChatVisible();
+  const msgs=(((typeof MSGS!=='undefined'?MSGS:window.MSGS)||{})[c&&c.id]||[]).filter(m=>m&&m.out===true).sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+  const last=msgs[msgs.length-1];
+  const unread=!!(c&&typeof clientHasUnreadFromTrainer==='function'&&clientHasUnreadFromTrainer(c.id));
+  const txt=last?(typeof msgDisplayText==='function'?msgDisplayText(last):String(last.text||'')):'';
+  const short=txt.length>140?txt.slice(0,137).trim()+'…':txt;
+  const when=last&&last.createdAt?new Date(last.createdAt).toLocaleDateString('pl-PL',{day:'numeric',month:'long'}):'';
+  const chatCard=chat?`<section class="cs-card" data-cs-hub-chat>
+      <div class="cs-eyebrow">${unread?'NOWA WIADOMOŚĆ':'WIADOMOŚCI'}</div>
+      ${last?`<p class="cs-hub-msg">„${csEsc(short)}”</p><p class="cs-card-sub">${csEsc(name)}${when?' · '+csEsc(when):''}</p>`
+        :`<p class="cs-card-text">Masz pytanie o trening, ból albo termin? Napisz — ${csEsc(name)} odpowie w aplikacji.</p>`}
+      <button type="button" class="cs-btn cs-btn-primary" onclick="setClientLiveScreen('messages')">${csIcon('chat',20)}${last?'Otwórz czat':'Napisz do trenera'}</button>
+    </section>`
+    :`<section class="cs-card"><p class="cs-card-text">Kontakt z trenerem znajdziesz poniżej.</p></section>`;
+  const more=(typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[]);
+  const order=['contact'].concat(more.map(x=>x.id).filter(id=>id!=='contact'));
+  const byId={};more.forEach(x=>{byId[x.id]=x;});
+  if(!byId.contact)byId.contact={id:'contact',label:'Kontakt'};
+  const sub={contact:'Telefon, adres, umówienie treningu',plan:'Wszystkie dni planu',notify:'Przypomnienia na telefon',checkin:'Krótko o samopoczuciu w tym tygodniu',profile:'Dane, pakiet i płatności'};
+  const icon={contact:'contact',plan:'plan',notify:'bell',checkin:'checkin',homework:'homework',ondemand:'play',resources:'book',forum:'users',profile:'user',food:'book',shopping:'list'};
+  const rows=order.map(id=>{const x=byId[id];return `<li><button type="button" class="cs-row" data-cs-hub-row="${csEsc(id)}" onclick="setClientLiveScreen('${csEsc(id)}')">
+      <span class="cs-hub-ico">${csIcon(icon[id]||'list',20)}</span><span class="cs-row-main"><span class="cs-row-title">${csEsc(x.label)}</span>${sub[id]?`<span class="cs-row-sub">${csEsc(sub[id])}</span>`:''}</span><span class="cs-row-chev">${csIcon('chevron',18)}</span></button></li>`;}).join('');
+  return `<div class="cs-screen cs-hub">
+    <header class="cs-hello"><h1 class="cs-h1 cs-h1-page">Twój trener</h1><p class="cs-lead">${csEsc(name)}</p></header>
+    ${chatCard}
+    <ul class="cs-rows cs-hub-rows" aria-label="Więcej od trenera">${rows}</ul>
+    <button type="button" class="cs-btn cs-btn-ghost cs-hub-logout" data-cs-logout onclick="csSignOut()">Wyloguj się</button>
+  </div>`;
+}
+window.csTrainerHubHTML=csTrainerHubHTML;
+function csSignOut(){
+  if(!confirm('Wylogować się z aplikacji? Treningi zapisane na telefonie zostaną wysłane po ponownym zalogowaniu.'))return;
+  if(typeof doSignOut==='function')doSignOut();
+}
+window.csSignOut=csSignOut;
+
 function csBookTraining(){
   setClientLiveScreen('messages');
   setTimeout(()=>{const el=document.getElementById('clive-chat-input');if(el&&!el.value){el.value='Cześć! Chcę umówić trening. Pasuje mi: ';el.focus();}},60);

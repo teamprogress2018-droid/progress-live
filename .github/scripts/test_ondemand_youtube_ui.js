@@ -141,16 +141,15 @@ function ok(name, cond, extra) {
     window.capClientId = 'c-anna';
     if (typeof renderClientLive === 'function') renderClientLive();
   });
-  await page.waitForSelector('#clive-bn-more');
-  await page.waitForSelector('#clive-bn-ondemand', { state: 'attached' });
-  await page.waitForSelector('#clive-bn-homework', { state: 'attached' });
+  await page.waitForSelector('#clive-bn-trainer');
+  await page.waitForFunction(() => capLiveMoreScreens().some((s) => s.id === 'ondemand') && capLiveMoreScreens().some((s) => s.id === 'homework'));
   const liveNav = await page.evaluate(() => ({
-    ondemandBtn: !!(document.getElementById('clive-bn-ondemand') && document.getElementById('clive-bn-ondemand').style.display !== 'none'),
+    ondemandBtn: capLiveMoreScreens().some((s) => s.id === 'ondemand'),
     homeToday: /DZISIEJSZY PLAN/.test((document.getElementById('clive-screen-content') || {}).innerText || '')
   }));
   await page.screenshot({ path: path.join(shotDir, 'client_live_home_ondemand.png') });
   ok('live nav ondemand', liveNav.ondemandBtn);
-  // Ekran startowy klienta w aplikacji to jedna decyzja (Dzisiaj); on-demand jest w „Więcej”.
+  // Ekran startowy klienta w aplikacji to jedna decyzja (Dzisiaj); on-demand jest na ekranie Trener.
   ok('live home is simple today view', liveNav.homeToday);
 
   await page.evaluate(() => {
@@ -172,9 +171,9 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'client_live_home_continue_program.png') });
   ok('live home keeps one decision', /DZISIEJSZY PLAN/.test(liveContinue.text) && !/KONTYNUUJ PROGRAM/i.test(liveContinue.text));
 
-  await page.click('#clive-bn-more');
-  await page.waitForSelector('#clive-more-sheet:not([hidden])');
-  await page.click('#clive-bn-ondemand');
+  await page.click('#clive-bn-trainer');
+  await page.waitForSelector('[data-cs-hub-row="ondemand"]');
+  await page.click('[data-cs-hub-row="ondemand"]');
   await page.waitForTimeout(300);
   const liveOd = await page.evaluate(() => {
     const html = (document.getElementById('clive-screen-content') || {}).innerHTML || '';
@@ -240,7 +239,7 @@ function ok(name, cond, extra) {
   });
   await page.waitForTimeout(250);
   const liveRes = await page.evaluate(() => ({
-    nav: !!(document.getElementById('clive-bn-resources') && document.getElementById('clive-bn-resources').style.display !== 'none'),
+    nav: capLiveMoreScreens().some((s) => s.id === 'resources') && !!document.querySelector('[data-cs-back-trainer]'),
     text: (document.getElementById('clive-screen-content') || {}).innerText || '',
     hrefs: [...document.querySelectorAll('#clive-screen-content a[href]')].map((a) => a.getAttribute('href') || '')
   }));
