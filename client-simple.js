@@ -1443,10 +1443,10 @@ window.csRestHTML=csRestHTML;window.csRestClock=csRestClock;
   const vv=typeof window!=='undefined'&&window.visualViewport;
   if(!vv||window._cwKbBound)return;
   window._cwKbBound=true;
+  const typingNow=()=>{const a=document.activeElement;return !!a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.isContentEditable);};
   const fit=()=>{
     const p=document.getElementById('clive-player');if(!p)return;
-    const a=document.activeElement;
-    const typing=!!a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.isContentEditable);
+    const typing=typingNow();
     const on=typing&&document.body.classList.contains('cw-playing')&&(window.innerHeight-vv.height)>120;
     p.classList.toggle('cw-kb',on);
     if(on){p.style.setProperty('--cw-vvh',Math.round(vv.height)+'px');p.style.top=Math.round(vv.offsetTop)+'px';}
@@ -1454,7 +1454,8 @@ window.csRestHTML=csRestHTML;window.csRestClock=csRestClock;
   };
   vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
   /* Po zapisie serii pole znika z ekranu, a iOS nie zawsze wysyła resize — bez tego odtwarzacz zostawał w wysokości „z klawiaturą” (ucięta przerwa). */
-  document.addEventListener('focusout',()=>{setTimeout(fit,0);setTimeout(fit,350);},true);
+  const fitIfIdle=()=>{if(!typingNow())fit();};/* fokus przeszedł do innego pola = klawiatura dalej otwarta, nic nie zmieniamy */
+  document.addEventListener('focusout',()=>{setTimeout(fitIfIdle,0);setTimeout(fitIfIdle,350);},true);
   window.addEventListener('orientationchange',()=>setTimeout(fit,350));
   window.cwKeyboardFitNow=fit;
 })();

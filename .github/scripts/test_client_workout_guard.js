@@ -7,8 +7,8 @@ const js=fs.readFileSync('client-simple.js','utf8');const css=fs.readFileSync('c
 let fails=0;const ok=(n,c)=>{console.log((c?'OK   ':'FAIL ')+n);if(!c)fails++;};
 
 // --- poprawka przerwy (statycznie) ---
-ok('tryb klawiatury tylko przy aktywnym polu', /const on=typing&&document\.body\.classList\.contains\('cw-playing'\)/.test(js));
-ok('po utracie fokusu wysokość wraca', /addEventListener\('focusout'/.test(js));
+ok('tryb klawiatury tylko przy aktywnym polu', /const on=typing&&document\.body\.classList\.contains\('cw-playing'\)/.test(js)&&/const fitIfIdle=\(\)=>\{if\(!typingNow\(\)\)fit\(\);\}/.test(js));
+ok('po utracie fokusu wysokość wraca', /addEventListener\('focusout',\(\)=>\{setTimeout\(fitIfIdle/.test(js));
 ok('kółko przerwy nie ucina się od góry (safe center)', /\.cw-ex-mode \.cs-rest \{[^}]*justify-content: safe center/.test(css));
 
 // --- strażnik (zachowanie na atrapach) ---
