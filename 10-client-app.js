@@ -1507,6 +1507,7 @@ function cwClose(force){
     if(typeof notify==='function')notify('Trening zapisano do wznowienia');
   }
   cwClearTimers();
+  if(typeof pvStop==='function')pvStop();
   window._cw=null;
   const wrap=document.getElementById('clive-player');
   if(wrap)wrap.hidden=true;
@@ -1532,6 +1533,7 @@ function cwBegin(){
   cwEnsureEmomClock();
   cwQueuePersist(cw,'in_progress');
   cwRender();
+  if(typeof pvEmit==='function'&&typeof pvExStartData==='function')pvEmit('EXERCISE_START',pvExStartData(cw,cw.exIdx,true));
 }
 
 function cwFmt(sec){
@@ -1563,6 +1565,7 @@ function cwStartRest(seconds,kind){
   cw.restTotal=cw.restLeft;
   // Koniec przerwy liczony od zegara, nie od liczby „tyknięć” — przygaszony telefon nie wydłuża przerwy.
   cw.restEndsAt=Date.now()+cw.restLeft*1000;
+  cw.restId=String(Date.now());
   cwClearTimers();
   window._cwClock=setInterval(()=>{
     if(!window._cw)return;
@@ -1578,9 +1581,18 @@ function cwStartRest(seconds,kind){
     const clk=document.getElementById('cw-clock');
     if(clk)clk.textContent=cwFmt(c.elapsed);
     cwRestAnnounce(left);
-    if(left<=0){cwRestDoneSignal();cwSkipRest();}
+    if(typeof pvEmit==='function')pvEmit('REST_TICK',{left,total:c.restTotal,restKey:c.restId});
+    if(left<=0){
+      const rc=typeof pvRestCompleteData==='function'?pvRestCompleteData(c):null;
+      cwRestDoneSignal();cwSkipRest();
+      if(rc&&typeof pvEmit==='function')pvEmit('REST_COMPLETE',rc);
+    }
   },1000);
   cwRender();
+  if(typeof pvEmit==='function'){
+    const open=(cw.exercises||[]).filter(e=>e&&!e.skipped&&(e.sets||[]).some(s=>!s.done)).length;
+    pvEmit('REST_START',{seconds:cw.restLeft,restKey:cw.restId,late:open<=2});
+  }
 }
 
 /** Czytnik ekranu: zegar przerwy nie gada co sekundę, tylko przy 10 s, 3 s i 0. */
@@ -1609,6 +1621,7 @@ function cwGoEx(idx){
   cwEnsureEmomClock();
   cwWriteLocal(cw);
   cwRender();
+  if(typeof pvEmit==='function'&&typeof pvExStartData==='function')pvEmit('EXERCISE_START',pvExStartData(cw,idx,false));
 }
 
 function cwEnsureEmomClock(){
@@ -1645,6 +1658,8 @@ function cwCheckSet(setIdx){
   const cheer=typeof csCheer==='function'?csCheer(cw,cw.exIdx):'';
   cw.lastSaved={exIdx:cw.exIdx,setIdx,at:Date.now(),cheer,cheerKey:cheer?cw._cheerKey:'',label:'Seria '+(setIdx+1)+' z '+ex.sets.length+' zapisana'+(st.reps&&typeof csRestHTML==='function'?' · '+String(st.reps)+(st.kg?' × '+String(st.kg).replace('.',',')+(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg')?' kg':''):''):'')};
   const prMsg=typeof prToastText==='function'?prToastText(window._clientId,ex.name,st.kg,st.reps):'';
+  // Progress Voice: rekord tylko, gdy prToastText go potwierdził; błąd audio nie zatrzymuje zapisu.
+  if(typeof pvAfterSet==='function')pvAfterSet(cw,cw.exIdx,setIdx,prMsg);
   if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
     cwEnsureEmomClock();
     const done=ex.sets.filter(s=>s.done).length;

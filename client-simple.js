@@ -1208,6 +1208,7 @@ function cwSimpleExerciseHTML(cw,ex){
       <button type="button" class="cs-back-btn" aria-label="Lista ćwiczeń treningu" onclick="cwBack()">${csIcon('back',20)}<span>Lista</span></button>
       <span class="cs-ex-pos">Ćwiczenie ${idx+1} z ${n}</span>
       <span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span>
+      ${typeof pvMuteBtnHTML==='function'?pvMuteBtnHTML():''}
       <button type="button" class="cs-more-btn" aria-label="Więcej: zamień, pomiń, poprzednie ćwiczenie" onclick="cwMenu()">${csIcon('more',22)}</button>
     </div>
     <div class="cs-ex-segs" style="grid-template-columns:repeat(${n},minmax(0,1fr))" aria-hidden="true">${segs}</div>
@@ -1266,6 +1267,8 @@ function csRestSignalLabel(on){return (on?csIcon('bell',18):csIcon('bell-off',18
 /* Odliczanie głosem po polsku w ostatnich 5 s przerwy: „pięć… jeden, start”. Bez syntezy mowy — krótki sygnał jak dotąd. */
 const CS_REST_WORDS={5:'pięć',4:'cztery',3:'trzy',2:'dwa',1:'jeden',0:'start'};
 function csRestSpeak(left){
+  // Progress Voice prowadzi odliczanie przez swoją kolejkę (przerywa inne komunikaty); bez niego — jak dotąd.
+  if(typeof pvCountdown==='function'&&typeof pvSettings==='function'&&pvSettings().enabled)return pvCountdown(left);
   const text=CS_REST_WORDS[left];if(!text)return false;
   try{
     const syn=window.speechSynthesis;
@@ -1409,7 +1412,7 @@ function csRestHTML(cw){
   const change=prevEx&&prevEx!==nxt;
   const fin=cw.restLeft>0&&cw.restLeft<=5;
   return `<div class="cs-ex cs-rest-scr">
-    <div class="cs-ex-top"><span class="cs-ex-pos">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</span><span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span></div>
+    <div class="cs-ex-top"><span class="cs-ex-pos">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</span><span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span>${typeof pvMuteBtnHTML==='function'?pvMuteBtnHTML():''}</div>
     <div class="cs-ex-scroll"><div class="cw-rest cs-rest">
       <span class="cs-rest-lbl">Do końca przerwy</span>
       <div class="cs-rest-ring" data-cs-rest-ring>
@@ -1475,10 +1478,12 @@ function cwStartFlow(){
   const fresh=!cw.began&&!(typeof cwConfirmedSets==='function'&&cwConfirmedSets(cw)>0)&&!cw.warmupLog;
   // Progress Readiness (client-readiness.js): dzisiejszy check-in z „Dzisiaj” trafia do pierwszego zapisu sesji.
   if(fresh&&typeof cwReadyAttach==='function')cwReadyAttach(cw);
+  // Progress Voice (client-voice.js): powitanie raz na trening (klucz w cw.pvSaid).
+  if(fresh&&typeof pvEmit==='function')pvEmit('WORKOUT_START',{returning:typeof pvReturning==='function'&&pvReturning()});
   const wu=fresh?csClientWarmup():null;
   if(wu){
     cw.warmup={items:wu.items.map(i=>({name:String(i.name).trim().slice(0,120),dose:String(i.dose||'').trim().slice(0,40)})),note:wu.note,done:wu.items.map(()=>false)};
-    cw.phase='warmup';cwRender();return;
+    cw.phase='warmup';cwRender();if(typeof pvEmit==='function')pvEmit('WARMUP_START');return;
   }
   if(typeof cwBegin==='function')cwBegin();
 }
@@ -1494,6 +1499,7 @@ function cwWarmupFinish(skip){
   const cw=window._cw;if(!cw||!cw.warmup)return;
   const done=skip?cw.warmup.done.map(()=>false):cw.warmup.done.slice();
   cw.warmupLog={items:cw.warmup.items.map(i=>i.name),done,skipped:!done.some(Boolean)};
+  if(!cw.warmupLog.skipped&&typeof pvEmit==='function')pvEmit('WARMUP_COMPLETE');
   if(typeof cwBegin==='function')cwBegin();
 }
 function csWarmupHTML(cw){
@@ -1647,7 +1653,13 @@ function csDoneOpen(cw,noticePromise){
   const wrap=document.getElementById('clive-player');if(wrap)wrap.hidden=false;
   document.body.classList.add('cw-playing');
   csDoneRender();
-  if(noticePromise&&typeof noticePromise.then==='function')noticePromise.then(r=>{if(window._cwDone){window._cwDone.notice=r||'pending';csDoneRender();}}).catch(()=>{if(window._cwDone){window._cwDone.notice='pending';csDoneRender();}});
+  // Progress Voice: podsumowanie; „zapisano” tylko po synchronizacji, „trener otrzymał” tylko po potwierdzeniu wysłania.
+  if(typeof pvEmit==='function'){
+    const ws=typeof pvWorkoutStats==='function'?pvWorkoutStats(cw):{};
+    pvEmit('WORKOUT_COMPLETE',{exDone:st.exDone,minutes:Math.max(1,Math.round((st.elapsed||0)/60)),...ws});
+    if(cw.syncState==='synced')pvEmit('WORKOUT_SAVED');
+  }
+  if(noticePromise&&typeof noticePromise.then==='function')noticePromise.then(r=>{if(window._cwDone){window._cwDone.notice=r||'pending';csDoneRender();if(r==='sent'&&typeof pvEmit==='function')pvEmit('COACH_NOTIFIED');}}).catch(()=>{if(window._cwDone){window._cwDone.notice='pending';csDoneRender();}});
 }
 function csDoneRefresh(){
   const d=window._cwDone;if(!d)return;
@@ -1685,6 +1697,7 @@ function csDoneRender(){
 }
 function csDoneClose(){
   window._cwDone=null;
+  if(typeof pvStop==='function')pvStop();
   const wrap=document.getElementById('clive-player');if(wrap)wrap.hidden=true;
   document.body.classList.remove('cw-playing');
   const el=document.getElementById('clive-player-inner');if(el){el.classList.remove('cw-ex-mode');el.innerHTML='';}

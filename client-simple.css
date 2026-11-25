@@ -857,3 +857,18 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-ready-result.is-good { border-color: color-mix(in srgb, var(--success) 45%, var(--border-subtle)); }
 .cs-ready-result.is-consult { border-color: color-mix(in srgb, var(--warning) 55%, var(--border-subtle)); }
 .cs-ready [data-ready-save]:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Progress Voice (client-voice.js): mała ikona głośnika w nagłówku treningu + karta ustawień w Profilu. */
+.pv-mute { background: transparent; }
+.pv-mute[aria-pressed="true"] { color: var(--text-secondary); }
+.pv-card { display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 12px; }
+.pv-h { margin: 0 0 4px; font-size: 1.25rem; font-weight: 750; color: var(--text-primary); }
+.pv-lead, .pv-note { margin: 0 0 8px; font-size: 0.9375rem; line-height: 1.45; color: var(--text-secondary); }
+.pv-note { margin: 8px 0 0; font-size: 0.875rem; }
+.pv-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 6px 0; border-top: 1px solid var(--border-subtle); color: var(--text-primary); cursor: pointer; }
+.pv-row span { display: flex; flex-direction: column; gap: 2px; font-size: 1rem; }
+.pv-row small { font-size: 0.875rem; color: var(--text-secondary); }
+.pv-row input[type="checkbox"] { width: 26px; height: 26px; flex: 0 0 26px; accent-color: var(--accent); }
+.pv-row select { min-height: 44px; max-width: 58%; padding: 0 10px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 0.9375rem; }
+.pv-row input[type="range"] { width: 50%; min-height: 44px; accent-color: var(--accent); }
+.pv-test { margin-top: 8px; min-height: 48px; width: 100%; }

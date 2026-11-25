@@ -1557,6 +1557,7 @@ function capScreenHTML(scr,c){
           </div>`:''}
       </div>`;
       })()}
+      ${capIsLiveClient()&&typeof pvSettingsCardHTML==='function'?pvSettingsCardHTML(c):''}
       ${capIsLiveClient()&&typeof privacyProfileCardHTML==='function'?privacyProfileCardHTML(c):''}
       <button type="button" class="cap-btn-secondary" style="margin-bottom:8px;" onclick="setClientLiveScreen('forms')">📋 Moje formularze</button>
       ${capIsLiveClient()?'':`<button class="cap-btn-secondary">⚙ Ustawienia konta</button>`}
