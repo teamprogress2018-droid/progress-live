@@ -1337,7 +1337,7 @@ function cwBuildRecord(cw,status){
     type:cw.dayName||'Trening',duration,exercises:cwLoggedExercises(cw),volume,source:'client',planId:cw.planId,dayIdx:cw.dayIdx,
     createdAt:cw.createdAt||now,startedAt:cw.startedAtIso||now,updatedAt:now,status:status||'in_progress',
     // Rozgrzewka ustalana przed pierwszym zapisem sesji — dalej się nie zmienia (planSnapshot jest niezmienny w regułach).
-    planSnapshot:{planId:cw.planId,planName:cw.planName||'',dayName:cw.dayName||'',exercises:cw.planSnapshot||[],...(cw.warmupLog?{warmup:cw.warmupLog}:{})},
+    planSnapshot:{planId:cw.planId,planName:cw.planName||'',dayName:cw.dayName||'',exercises:cw.planSnapshot||[],...(cw.warmupLog?{warmup:cw.warmupLog}:{}),...(cw.readiness?{readiness:cw.readiness}:{})},
     // feedback = samopoczucie po treningu 1–5 (ta sama skala co SESSION_RATING), 0 = bez odpowiedzi.
     issues:(cw.issues||[]).slice(),feedback:Math.max(0,Math.min(5,Number(cw.feel)||0)),difficulty:Number(cw.rating)||0,note:cw.note||'',confirmedSets:total
   });
@@ -1403,6 +1403,60 @@ async function cwFlushLocal(){
 if(typeof window.addEventListener==='function')window.addEventListener('online',()=>{if(window._cw&&window._cw.active)cwQueuePersist(window._cw,window._cw.status||'in_progress');else cwFlushLocal();});
 window.cwFindResumable=cwFindResumable;
 window.cwFlushLocal=cwFlushLocal;
+
+/* Etap 1 (3.0) — strażnik treningu klienta na telefonie:
+   - ekran nie gaśnie w trakcie treningu (Wake Lock, odnawiany po powrocie do aplikacji),
+   - przy schowaniu aplikacji (blokada, przełączenie) szkic zapisuje się w telefonie od razu,
+   - po powrocie zaległy zapis wysyła się sam — iPhone nie zawsze wysyła zdarzenie `online`,
+   - przy pierwszym treningu prosimy przeglądarkę o trwałe miejsce na dane (mniej ryzyka czyszczenia). */
+let _cwWakeLock=null;
+async function cwWakeLock(on){
+  try{
+    if(on){
+      if(_cwWakeLock||typeof navigator==='undefined'||!navigator.wakeLock)return;
+      if(typeof document!=='undefined'&&document.visibilityState!=='visible')return;
+      _cwWakeLock=await navigator.wakeLock.request('screen');
+      _cwWakeLock.addEventListener('release',()=>{_cwWakeLock=null;});
+    }else if(_cwWakeLock){
+      const l=_cwWakeLock;_cwWakeLock=null;await l.release();
+    }
+  }catch(e){_cwWakeLock=null;}
+}
+function cwPlaying(){return typeof document!=='undefined'&&!!document.body&&document.body.classList.contains('cw-playing');}
+let _cwPersistAsked=false;
+function cwAskPersistentStorage(){
+  if(_cwPersistAsked)return;_cwPersistAsked=true;
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
+}
+function cwGuardSync(){
+  const on=cwPlaying();
+  cwWakeLock(on);
+  if(on)cwAskPersistentStorage();
+}
+function cwSaveOnHide(){
+  const cw=window._cw;
+  if(cw&&cw.active)cwWriteLocal(cw,true);
+}
+function cwResumeSync(){
+  const cw=window._cw;
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return;
+  if(cw&&cw.active){if(cw.syncState!=='synced')cwQueuePersist(cw,cw.status||'in_progress');}
+  else cwFlushLocal();
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden'){cwSaveOnHide();return;}
+    cwGuardSync();cwResumeSync();
+  });
+  if(typeof window.addEventListener==='function')window.addEventListener('pagehide',cwSaveOnHide);
+  const bindObserver=()=>{
+    if(!document.body||typeof MutationObserver==='undefined')return;
+    new MutationObserver(cwGuardSync).observe(document.body,{attributes:true,attributeFilter:['class']});
+    cwGuardSync();
+  };
+  if(document.body)bindObserver();else document.addEventListener('DOMContentLoaded',bindObserver);
+}
+window.cwWakeLock=cwWakeLock;window.cwResumeSync=cwResumeSync;window.cwSaveOnHide=cwSaveOnHide;
 
 function cwOpen(planId,dayIdx){
   if(!window._clientAppMode){
