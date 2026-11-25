@@ -494,7 +494,7 @@ const PV_ICON_OFF='<path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="m22 9-6 6"/><path 
 function pvIcon(on){return `<svg class="cs-ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${on?PV_ICON_ON:PV_ICON_OFF}</svg>`;}
 function pvMuteBtnHTML(){
   const on=pvSettings().enabled;
-  return `<button type="button" class="cs-more-btn pv-mute" data-pv-mute aria-pressed="${on?'false':'true'}" aria-label="${on?'Wycisz asystenta głosowego':'Włącz asystenta głosowego'}" onclick="pvToggleMute()">${pvIcon(on)}</button>`;
+  return `<button type="button" class="pv-mute" data-pv-mute aria-pressed="${on?'false':'true'}" aria-label="${on?'Wycisz asystenta głosowego':'Włącz asystenta głosowego'}" onclick="pvToggleMute()">${pvIcon(on)}</button>`;
 }
 function pvToggleMute(){
   const s=pvSaveSettings({enabled:!pvSettings().enabled});
