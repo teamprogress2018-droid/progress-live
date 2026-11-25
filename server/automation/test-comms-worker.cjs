@@ -242,6 +242,8 @@ const reminder = db => jobs(db).find(j => j.kind === 'meeting_reminder');
   ok(tp.title === 'Progress · Anna' && tp.body === '🎥 Wysłał(a) film techniki: Przysiad goblet' && tp.url === '?tchat=c1' && !/Nowak|kolana|film:/.test(JSON.stringify(tp)), 'trainer push: first name only, exercise name, no note or file tag');
   const tw = W.trainerPushText({clientId: 'c1', text: 'Zrobiłem trening: Dzień 1\nSerie: 3 z 4\nSamopoczucie: 😓 Bardzo ciężko\nBolał bark'}, 'Anna Nowak');
   ok(tw.body === '✅ Skończył(a) trening: Dzień 1' && !/bark|Samopoczucie/i.test(tw.body), 'trainer push: workout summary without wellbeing or comments');
+  const pain = W.trainerPushText({clientId: 'c1', text: 'Zgłoszenie bólu: Kolano · mocno (7–10)\nĆwiczenie: Przysiad\nOpis: przy opuszczaniu'}, 'Anna Nowak');
+  ok(pain.kind === 'message' && /Zgłosił\(a\) ból/.test(pain.body) && !/Kolano|Przysiad|opuszczaniu/.test(pain.body), 'pain push: generic text without health details on lock screen');
   const long = W.trainerPushText({clientId: 'c1', text: 'a'.repeat(200)}, '');
   ok(long.body.length === 80 && long.title === 'Progress · Klient', 'trainer push: long message shortened');
   {

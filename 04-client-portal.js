@@ -1203,7 +1203,7 @@ function capScreenHTML(scr,c){
         <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;margin-bottom:6px;">Komentarz</div>
         <div style="font-size:13px;color:${CAP_TEXT};line-height:1.5;">${escHtml(s.note||s.notes||'')}</div>
       </div>`:''}
-      ${Array.isArray(s.issues)&&s.issues.length?`<div style="background:${CAP_S2};border:1px solid rgba(201,123,63,.45);border-radius:14px;padding:14px;margin-top:6px;"><div style="font-size:10px;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">Zgłoszone problemy</div><div style="font-size:13px;color:${CAP_TEXT};line-height:1.5;">${s.issues.map(x=>escHtml((x.exerciseName?x.exerciseName+': ':'')+(x.note||''))).join(' · ')}</div></div>`:''}
+      ${Array.isArray(s.issues)&&s.issues.length?`<div style="background:${CAP_S2};border:1px solid rgba(201,123,63,.45);border-radius:14px;padding:14px;margin-top:6px;"><div style="font-size:10px;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">Zgłoszone problemy</div><div style="font-size:13px;color:${CAP_TEXT};line-height:1.5;">${s.issues.map(x=>escHtml(typeof painIssueText==='function'?painIssueText(x):((x.exerciseName?x.exerciseName+': ':'')+(x.note||'')))).join(' · ')}</div></div>`:''}
       ${!live?'<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:12px;text-align:center;">Podgląd — klient otwiera to w swojej apce</div>':''}
     </div>`;
   }

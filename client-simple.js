@@ -1542,6 +1542,10 @@ async function csOutboxFlush(){
 /** Kolejkuje informację o treningu i od razu próbuje ją wysłać. Zwraca 'sent' | 'pending'. */
 async function csTrainerNotice(text,sessionId){
   const id='msg_'+String(sessionId||Date.now()).replace(/[^A-Za-z0-9_.:@-]/g,'_').slice(0,190);
+  return csOutboxQueue(id,text,sessionId);
+}
+/** Wiadomość do trenera przez kolejkę na telefonie (stałe id = bez duplikatów). Zwraca 'sent' | 'pending' | 'error'. */
+async function csOutboxQueue(id,text,sessionId){
   const now=new Date();
   const list=csOutboxRead().filter(m=>m.id!==id);
   list.push({id,text,sessionId:sessionId||'',createdAt:now.toISOString(),time:now.toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
@@ -1549,6 +1553,7 @@ async function csTrainerNotice(text,sessionId){
   const res=await csOutboxFlush();
   return res[id]||'pending';
 }
+window.csOutboxQueue=csOutboxQueue;
 window.csTrainerNoticeText=csTrainerNoticeText;window.csOutboxFlush=csOutboxFlush;window.csTrainerNotice=csTrainerNotice;window.csOutboxRead=csOutboxRead;
 if(typeof window.addEventListener==='function')window.addEventListener('online',()=>{csOutboxFlush().then(()=>{if(window._cwDone)csDoneRefresh();});});
 

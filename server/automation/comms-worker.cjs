@@ -311,6 +311,9 @@ function trainerPushText(msg, clientName) {
   } else if (kind === 'workout') {
     const m = /^Zrobiłem trening:\s*([^\n]+)/.exec(raw);
     body = '✅ Skończył(a) trening' + (m ? ': ' + m[1].trim().slice(0, 80) : '');
+  } else if (/^Zgłoszenie bólu/.test(raw)) {
+    // Zgłoszenie bólu z treningu (client-pain.js): na ekranie blokady bez szczegółów zdrowotnych.
+    body = '⚠️ Zgłosił(a) ból podczas treningu — otwórz czat';
   } else {
     body = clean.length > 80 ? clean.slice(0, 79) + '…' : (clean || 'Nowa wiadomość');
   }
