@@ -5051,7 +5051,7 @@ function renderRecordedExercises(s){
   const status=s.status==='in_progress'?'W trakcie':s.status==='partial'?'Częściowo wykonana':s.status==='completed'?'Zakończona':'';
   const statusLine=status?`<div class="as-recorded-note">Status: <span>${status}</span></div>`:'';
   const difficulty=Number(s.difficulty)>0?`<div class="as-recorded-note">Trudność: <span>${Number(s.difficulty)}/10</span></div>`:'';
-  const issueLine=hasIssues?`<div class="as-recorded-note">Zgłoszone problemy: <span>${s.issues.map(x=>escHtml((x.exerciseName?x.exerciseName+': ':'')+(x.note||''))).join(' · ')}</span></div>`:'';
+  const issueLine=hasIssues?`<div class="as-recorded-note">Zgłoszone problemy: <span>${s.issues.map(x=>escHtml(typeof painIssueText==='function'?painIssueText(x):((x.exerciseName?x.exerciseName+': ':'')+(x.note||'')))).join(' · ')}</span></div>`:'';
   const exHtml=(hasDetailedSets||hasSkip)?s.exercises.map(e=>{
     const setsText=(e.sets||[]).map(st=>`${st.kg||0}kg × ${st.reps||0}`).join(' · ');
     const planned=(e.plannedSets||[]).map(st=>`${st.kg||'—'}kg × ${st.reps||'—'}`).join(' · ');

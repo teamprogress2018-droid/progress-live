@@ -788,3 +788,25 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .pv-danger { color: var(--danger, #b42318) !important; }
 .pv-danger-btn { background: var(--danger, #b42318) !important; border-color: var(--danger, #b42318) !important; color: #fff !important; }
 .pv-gate-card h2:focus { outline: none; }
+
+/* ── Zgłoś ból (client-pain.js): panel na dole ekranu, ostrzeżenie bezpieczeństwa, miejsce i siła bólu ── */
+.cs-pain .pv-gate-card { gap: 12px; }
+.cs-pain-ex { margin: -6px 0 0 !important; color: var(--text-secondary); font-size: 0.9375rem !important; }
+.cs-pain-safe { padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--warning, #b45309) 45%, transparent); background: color-mix(in srgb, var(--warning, #b45309) 8%, var(--bg-card)); font-size: 0.875rem !important; }
+.cs-pain-set { margin: 0; padding: 0; border: 0; min-width: 0; }
+.cs-pain-set legend { padding: 0; margin-bottom: 6px; font-size: 0.9375rem; font-weight: 700; }
+.cs-pain-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-pain-chips .cpg-chip { font-size: 0.875rem; padding: 0 12px; }
+.cs-pain-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cs-pain-lvl { min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-card); color: var(--text-primary); font: inherit; cursor: pointer; }
+.cs-pain-lvl b { font-size: 0.9375rem; }
+.cs-pain-lvl span { font-size: 0.75rem; color: var(--text-secondary); }
+.cs-pain-lvl.is-on { border-color: var(--text-primary); background: var(--text-primary); color: var(--bg-card); }
+.cs-pain-lvl.is-on span { color: inherit; opacity: .85; }
+.cs-pain-lvl.is-strong.is-on { border-color: var(--danger, #b42318); background: var(--danger, #b42318); color: #fff; }
+.cs-pain-note { display: flex; flex-direction: column; gap: 4px; font-size: 0.9375rem; font-weight: 700; }
+.cs-pain-note em { font-style: normal; font-weight: 400; color: var(--text-secondary); font-size: 0.8125rem; }
+.cs-pain-note textarea { width: 100%; box-sizing: border-box; min-height: 64px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; font: inherit; font-weight: 400; font-size: 1rem; color: var(--text-primary); background: var(--bg-card); resize: vertical; }
+.cs-pain-stop { color: var(--danger, #b42318) !important; font-weight: 700; }
+.cs-pain-priv { text-align: center; font-size: 0.8125rem !important; color: var(--text-secondary); }
+.cs-pain-lvl:focus-visible, .cs-pain-note textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

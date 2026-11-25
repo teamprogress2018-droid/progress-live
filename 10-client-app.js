@@ -1679,6 +1679,7 @@ function cwPrevEx(){
 }
 
 function cwReportProblem(){
+  if(typeof cwPainOpen==='function')return cwPainOpen(); // client-pain.js: panel z miejscem, siłą bólu i wysyłką do trenera
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx]||{};
   const note=prompt('Opisz krótko ból lub problem dla trenera (bez automatycznej porady):');
