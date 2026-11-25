@@ -1404,6 +1404,60 @@ if(typeof window.addEventListener==='function')window.addEventListener('online',
 window.cwFindResumable=cwFindResumable;
 window.cwFlushLocal=cwFlushLocal;
 
+/* Etap 1 (3.0) — strażnik treningu klienta na telefonie:
+   - ekran nie gaśnie w trakcie treningu (Wake Lock, odnawiany po powrocie do aplikacji),
+   - przy schowaniu aplikacji (blokada, przełączenie) szkic zapisuje się w telefonie od razu,
+   - po powrocie zaległy zapis wysyła się sam — iPhone nie zawsze wysyła zdarzenie `online`,
+   - przy pierwszym treningu prosimy przeglądarkę o trwałe miejsce na dane (mniej ryzyka czyszczenia). */
+let _cwWakeLock=null;
+async function cwWakeLock(on){
+  try{
+    if(on){
+      if(_cwWakeLock||typeof navigator==='undefined'||!navigator.wakeLock)return;
+      if(typeof document!=='undefined'&&document.visibilityState!=='visible')return;
+      _cwWakeLock=await navigator.wakeLock.request('screen');
+      _cwWakeLock.addEventListener('release',()=>{_cwWakeLock=null;});
+    }else if(_cwWakeLock){
+      const l=_cwWakeLock;_cwWakeLock=null;await l.release();
+    }
+  }catch(e){_cwWakeLock=null;}
+}
+function cwPlaying(){return typeof document!=='undefined'&&!!document.body&&document.body.classList.contains('cw-playing');}
+let _cwPersistAsked=false;
+function cwAskPersistentStorage(){
+  if(_cwPersistAsked)return;_cwPersistAsked=true;
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
+}
+function cwGuardSync(){
+  const on=cwPlaying();
+  cwWakeLock(on);
+  if(on)cwAskPersistentStorage();
+}
+function cwSaveOnHide(){
+  const cw=window._cw;
+  if(cw&&cw.active)cwWriteLocal(cw,true);
+}
+function cwResumeSync(){
+  const cw=window._cw;
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return;
+  if(cw&&cw.active){if(cw.syncState!=='synced')cwQueuePersist(cw,cw.status||'in_progress');}
+  else cwFlushLocal();
+}
+if(typeof document!=='undefined'&&document.addEventListener){
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden'){cwSaveOnHide();return;}
+    cwGuardSync();cwResumeSync();
+  });
+  if(typeof window.addEventListener==='function')window.addEventListener('pagehide',cwSaveOnHide);
+  const bindObserver=()=>{
+    if(!document.body||typeof MutationObserver==='undefined')return;
+    new MutationObserver(cwGuardSync).observe(document.body,{attributes:true,attributeFilter:['class']});
+    cwGuardSync();
+  };
+  if(document.body)bindObserver();else document.addEventListener('DOMContentLoaded',bindObserver);
+}
+window.cwWakeLock=cwWakeLock;window.cwResumeSync=cwResumeSync;window.cwSaveOnHide=cwSaveOnHide;
+
 function cwOpen(planId,dayIdx){
   if(!window._clientAppMode){
     if(typeof notify==='function')notify('Podgląd — klient startuje trening w swojej apce');

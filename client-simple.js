@@ -1445,12 +1445,18 @@ window.csRestHTML=csRestHTML;window.csRestClock=csRestClock;
   window._cwKbBound=true;
   const fit=()=>{
     const p=document.getElementById('clive-player');if(!p)return;
-    const on=document.body.classList.contains('cw-playing')&&(window.innerHeight-vv.height)>120;
+    const a=document.activeElement;
+    const typing=!!a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.isContentEditable);
+    const on=typing&&document.body.classList.contains('cw-playing')&&(window.innerHeight-vv.height)>120;
     p.classList.toggle('cw-kb',on);
     if(on){p.style.setProperty('--cw-vvh',Math.round(vv.height)+'px');p.style.top=Math.round(vv.offsetTop)+'px';}
     else{p.style.removeProperty('--cw-vvh');p.style.top='';}
   };
   vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
+  /* Po zapisie serii pole znika z ekranu, a iOS nie zawsze wysyła resize — bez tego odtwarzacz zostawał w wysokości „z klawiaturą” (ucięta przerwa). */
+  document.addEventListener('focusout',()=>{setTimeout(fit,0);setTimeout(fit,350);},true);
+  window.addEventListener('orientationchange',()=>setTimeout(fit,350));
+  window.cwKeyboardFitNow=fit;
 })();
 
 /* ---------- Rozgrzewka przypisana przez trenera (client.warmup) ----------
