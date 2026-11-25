@@ -34,7 +34,8 @@ const CS_ICONS={
   play:'<rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M10 9v6l5-3z"></path>',
   book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5"></path>',
   users:'<circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"></path>',
-  user:'<circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>'
+  user:'<circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'
 };
 function csIcon(name,size){
   const s=size||22;
@@ -286,19 +287,57 @@ function csPayCardHTML(c){
     <div class="cs-pay-btns"><button type="button" class="cs-btn cs-btn-secondary" onclick="setClientLiveScreen('messages')">Napisz do trenera</button></div>
   </section>`;
   }
-  const p=unpaid.find(x=>x&&x.paymentRequestedAt)||unpaid[0];
+  // Opłacony pakiet w użyciu i pakiety czekające na wpłatę to dwie różne rzeczy — pokazujemy je osobno.
   const seller=typeof paySeller==='function'?(paySeller()||{}):{};
-  const price=Number(p.price||0);
-  const amount=price?price.toLocaleString('pl')+' '+(seller.currency||'zł'):'';
-  const more=unpaid.length>1?`<p class="cs-card-text">Do opłacenia masz ${unpaid.length} pakiety.</p>`:'';
+  const cur=!seller.currency||/^pln$/i.test(seller.currency)?'zł':seller.currency;
+  const money=v=>{const n=Number(v||0);return n?n.toLocaleString('pl-PL')+' '+cur:'';};
+  const act=typeof clientPaidPackageForSession==='function'?clientPaidPackageForSession(c.id):null;
+  const actHTML=act&&csPackageLeft(act)?`<div class="cs-pay-part" data-cs-pay-active>
+      <p class="cs-pay-label">Opłacony pakiet w użyciu</p>
+      <p class="cs-pay-what"><b>${csEsc(act.title||'Pakiet treningów')}</b></p>
+      ${csPackageLeftHTML(act)}
+    </div>`:'';
+  const list=unpaid.slice().sort((a,b)=>(b.paymentRequestedAt?1:0)-(a.paymentRequestedAt?1:0));
+  const total=list.reduce((t,p)=>t+Number(p.price||0),0);
+  const sessions=p=>Number(p.sessions)>0?Number(p.sessions)+' '+csPlural(Number(p.sessions),'trening','treningi','treningów'):'';
+  const rows=list.map(p=>`<li class="cs-pay-row" data-cs-pay-unpaid="${csEsc(p.id)}">
+      <span class="cs-pay-row-main"><b>${csEsc(p.title||'Pakiet treningów')}</b><span>${csEsc([sessions(p),money(p.price),'nieopłacony'].filter(Boolean).join(' · '))}</span></span>
+      ${typeof clientNotifyPaid==='function'?`<button type="button" class="cs-btn cs-btn-secondary cs-pay-paid" data-cs-paid="${csEsc(p.id)}">Zapłaciłem</button>`:''}
+    </li>`).join('');
+  const head=list.length>1?`Do opłacenia: ${list.length} ${csPlural(list.length,'pakiet','pakiety','pakietów')}${total?' · razem '+money(total):''}`:'Pakiet czeka na opłacenie';
   return `<section class="cs-card cs-pay" aria-labelledby="cs-pay-title">
-    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">Pakiet do opłacenia</h2></div>
-    <p class="cs-pay-what"><b>${csEsc(p.title||'Pakiet treningów')}</b>${amount?` · ${csEsc(amount)}`:''}</p>
-    ${csPackageLeftHTML(p)}
-    ${more}
-    ${typeof clientNotifyPaid==='function'?`<div class="cs-pay-btns"><button type="button" class="cs-btn cs-btn-secondary" onclick="clientNotifyPaid('${csEsc(p.id)}')">Zapłaciłem</button></div>`:''}
+    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">${act?'Twoje pakiety':'Pakiet do opłacenia'}</h2></div>
+    ${actHTML}
+    <div class="cs-pay-part is-due" data-cs-pay-due>
+      <p class="cs-pay-label">${csEsc(head)}</p>
+      <ul class="cs-pay-list">${rows}</ul>
+      <p class="cs-pay-note">Po wpłacie kliknij „Zapłaciłem” — trener oznaczy pakiet jako opłacony po sprawdzeniu.</p>
+    </div>
   </section>`;
 }
+/** Potwierdzenie przed zgłoszeniem wpłaty (żeby nie kliknąć przypadkiem w trakcie treningu). */
+function csConfirmPaid(pkgId){
+  const p=(typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).find(x=>x&&x.id===pkgId);
+  if(!p||document.getElementById('cs-paid-confirm'))return;
+  const price=Number(p.price||0);
+  document.body.insertAdjacentHTML('beforeend',`<div class="pv-gate" id="cs-paid-confirm" role="alertdialog" aria-modal="true" aria-labelledby="cs-paid-h" aria-describedby="cs-paid-d">
+    <div class="pv-gate-card">
+      <h2 id="cs-paid-h">Czy na pewno chcesz zgłosić opłacenie pakietu?</h2>
+      <p id="cs-paid-d"><b>${csEsc(p.title||'Pakiet treningów')}</b>${price?' · '+csEsc(price.toLocaleString('pl-PL'))+' zł':''}. Trener dostanie wiadomość i oznaczy pakiet jako opłacony po sprawdzeniu wpłaty.</p>
+      <button type="button" class="cs-btn cs-btn-primary" data-cs-paid-ok="${csEsc(p.id)}">Potwierdź</button>
+      <button type="button" class="cs-btn cs-btn-secondary" data-cs-paid-cancel>Anuluj</button>
+    </div></div>`);
+  setTimeout(()=>{const b=document.querySelector('#cs-paid-confirm [data-cs-paid-cancel]');if(b)b.focus();},0);
+}
+function csConfirmPaidClose(){const el=document.getElementById('cs-paid-confirm');if(el)el.remove();}
+document.addEventListener('click',e=>{
+  const t=e.target&&e.target.closest?e.target.closest('[data-cs-paid],[data-cs-paid-ok],[data-cs-paid-cancel]'):null;if(!t)return;
+  if(t.hasAttribute('data-cs-paid'))csConfirmPaid(t.getAttribute('data-cs-paid'));
+  else if(t.hasAttribute('data-cs-paid-ok')){const id=t.getAttribute('data-cs-paid-ok');csConfirmPaidClose();if(typeof clientNotifyPaid==='function')clientNotifyPaid(id);}
+  else csConfirmPaidClose();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('cs-paid-confirm'))csConfirmPaidClose();});
+window.csConfirmPaid=csConfirmPaid;
 window.csPayCardHTML=csPayCardHTML;
 
 /** Pasek „Brak internetu”: klient wie, że wyniki czekają na telefonie i nie są stracone. */
@@ -589,8 +628,9 @@ function csTrainerHubHTML(c){
       <button type="button" class="cs-btn cs-btn-primary" onclick="setClientLiveScreen('messages')">${csIcon('chat',20)}${last?'Otwórz czat':'Napisz do trenera'}</button>
     </section>`
     :`<section class="cs-card"><p class="cs-card-text">Kontakt z trenerem znajdziesz poniżej.</p></section>`;
-  const more=(typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[]);
-  const order=['contact'].concat(more.map(x=>x.id).filter(id=>id!=='contact'));
+  // Konto (Profil, Powiadomienia, Wyloguj) jest w menu ikony profilu w nagłówku — tu tylko współpraca z trenerem, każda pozycja raz.
+  const more=(typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[]).filter(x=>!CS_ACCOUNT_SCREENS.includes(x.id));
+  const order=[...new Set(['contact'].concat(more.map(x=>x.id)))];
   const byId={};more.forEach(x=>{byId[x.id]=x;});
   if(!byId.contact)byId.contact={id:'contact',label:'Kontakt'};
   const sub={contact:'Telefon, adres, umówienie treningu',plan:'Wszystkie dni planu',notify:'Przypomnienia na telefon',checkin:'Krótko o samopoczuciu w tym tygodniu',profile:'Dane, pakiet i płatności'};
@@ -601,10 +641,42 @@ function csTrainerHubHTML(c){
     <header class="cs-hello"><h1 class="cs-h1 cs-h1-page">Twój trener</h1><p class="cs-lead">${csEsc(name)}</p></header>
     ${chatCard}
     <ul class="cs-rows cs-hub-rows" aria-label="Więcej od trenera">${rows}</ul>
-    <button type="button" class="cs-btn cs-btn-ghost cs-hub-logout" data-cs-logout onclick="csSignOut()">Wyloguj się</button>
   </div>`;
 }
 window.csTrainerHubHTML=csTrainerHubHTML;
+
+/* ---------- Konto w nagłówku: ikona profilu → Profil, Powiadomienia, Wyloguj się ---------- */
+const CS_ACCOUNT_SCREENS=['profile','notify'];
+window.CS_ACCOUNT_SCREENS=CS_ACCOUNT_SCREENS;
+function csAccountMenuEnsure(){
+  const box=document.getElementById('clive-top-actions');
+  if(!box||document.getElementById('clive-account-btn'))return;
+  box.insertAdjacentHTML('beforeend',`<div class="cs-acct">
+    <button type="button" class="cs-acct-btn" id="clive-account-btn" aria-label="Twoje konto" aria-haspopup="true" aria-expanded="false" aria-controls="clive-account-menu" onclick="csAccountToggle()">${csIcon('user',22)}</button>
+    <div class="cs-acct-menu" id="clive-account-menu" role="menu" aria-label="Twoje konto" hidden>
+      <button type="button" role="menuitem" data-cs-acct="profile">${csIcon('user',20)}<span>Profil</span></button>
+      <button type="button" role="menuitem" data-cs-acct="notify">${csIcon('bell',20)}<span>Powiadomienia</span></button>
+      <button type="button" role="menuitem" class="cs-acct-out" data-cs-acct="logout" data-cs-logout>${csIcon('logout',20)}<span>Wyloguj się</span></button>
+    </div></div>`);
+}
+function csAccountToggle(open){
+  const m=document.getElementById('clive-account-menu'),b=document.getElementById('clive-account-btn');if(!m||!b)return;
+  const show=open==null?m.hidden:!!open;
+  m.hidden=!show;b.setAttribute('aria-expanded',String(show));
+  if(show){const f=m.querySelector('[role=menuitem]');if(f)f.focus();}
+}
+document.addEventListener('click',e=>{
+  const item=e.target&&e.target.closest?e.target.closest('[data-cs-acct]'):null;
+  if(item){const a=item.getAttribute('data-cs-acct');csAccountToggle(false);if(a==='logout')csSignOut();else setClientLiveScreen(a);return;}
+  const m=document.getElementById('clive-account-menu');
+  if(m&&!m.hidden&&!(e.target.closest&&e.target.closest('.cs-acct')))csAccountToggle(false);
+});
+document.addEventListener('keydown',e=>{
+  const m=document.getElementById('clive-account-menu');if(!m||m.hidden)return;
+  if(e.key==='Escape'){csAccountToggle(false);const b=document.getElementById('clive-account-btn');if(b)b.focus();}
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){const it=[...m.querySelectorAll('[role=menuitem]')];const i=it.indexOf(document.activeElement);const n=it[(i+(e.key==='ArrowDown'?1:-1)+it.length)%it.length];if(n){n.focus();e.preventDefault();}}
+});
+window.csAccountMenuEnsure=csAccountMenuEnsure;window.csAccountToggle=csAccountToggle;
 function csSignOut(){
   if(!confirm('Wylogować się z aplikacji? Treningi zapisane na telefonie zostaną wysłane po ponownym zalogowaniu.'))return;
   if(typeof doSignOut==='function')doSignOut();

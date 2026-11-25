@@ -113,7 +113,9 @@ function capLiveNavScreens(){
 }
 /** Ekrany, które na dolnym pasku podświetlają „Trener” (czat, kontakt i lista z capLiveMoreScreens). */
 function capTrainerGroupScreens(){
-  return ['trainer','messages','contact'].concat((typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[]).map(s=>s.id));
+  // Profil i Powiadomienia są w menu konta (ikona w nagłówku), nie w zakładce Trener.
+  const acct=window.CS_ACCOUNT_SCREENS||[];
+  return ['trainer','messages','contact'].concat((typeof capLiveMoreScreens==='function'?capLiveMoreScreens():[]).map(s=>s.id).filter(id=>!acct.includes(id)));
 }
 window.capTrainerGroupScreens=capTrainerGroupScreens;
 /** Ekrany w arkuszu „Więcej” (kalendarz jest dostępny z Postępów). Kontakt jest zawsze. */
@@ -900,7 +902,7 @@ function capScreenHTML(scr,c){
           </div>`:`<div style="font-size:11px;color:var(--orange);margin-bottom:10px;">Trener jeszcze nie podał numeru konta — napisz na czacie.</div>`}
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             ${seller.bank?`<button type="button" class="cap-btn-secondary" style="padding:10px;font-size:13px;flex:1;" onclick="copyPackageTransfer('${escHtml(p.id)}')">📋 Kopiuj przelew</button>`:''}
-            <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;flex:1;" onclick="clientNotifyPaid('${escHtml(p.id)}')">✓ Zapłaciłem</button>
+            <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;flex:1;" onclick="(typeof csConfirmPaid==='function'?csConfirmPaid:clientNotifyPaid)('${escHtml(p.id)}')">✓ Zapłaciłem</button>
           </div>
         </div>`;
       })()}
@@ -1551,7 +1553,7 @@ function capScreenHTML(scr,c){
           </div>`:`<div style="font-size:11px;color:var(--orange);margin-bottom:10px;">Brak numeru konta — napisz do trenera na czacie.</div>`}
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             ${seller.bank&&capIsLiveClient()?`<button type="button" class="cap-btn-secondary" style="padding:10px;font-size:12px;flex:1;" onclick="copyPackageTransfer('${escHtml(p.id)}')">📋 Kopiuj</button>`:''}
-            ${capIsLiveClient()?`<button type="button" class="cap-btn-primary" style="padding:10px;font-size:12px;flex:1;" onclick="clientNotifyPaid('${escHtml(p.id)}')">✓ Zapłaciłem</button>`:''}
+            ${capIsLiveClient()?`<button type="button" class="cap-btn-primary" style="padding:10px;font-size:12px;flex:1;" onclick="(typeof csConfirmPaid==='function'?csConfirmPaid:clientNotifyPaid)('${escHtml(p.id)}')">✓ Zapłaciłem</button>`:''}
           </div>`:''}
       </div>`;
       })()}
