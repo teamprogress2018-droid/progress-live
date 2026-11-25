@@ -5064,7 +5064,10 @@ function renderRecordedExercises(s){
   const wu=s.planSnapshot&&s.planSnapshot.warmup;
   const wuSum=wu&&typeof csWarmupSummary==='function'?csWarmupSummary(wu):'';
   const warmupLine=wuSum?`<div class="as-recorded-note" data-recorded-warmup>Rozgrzewka: <span>${escHtml(wuSum)}</span>${Array.isArray(wu.items)&&!wu.skipped?` <span style="color:var(--muted);">(${wu.items.map((n,i)=>escHtml(String(n||''))+(wu.done&&wu.done[i]?' ✓':' —')).join(', ')})</span>`:''}</div>`:'';
-  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+warmupLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'')
+  const rd=s.planSnapshot&&s.planSnapshot.readiness;
+  const rdSum=rd&&typeof readySummary==='function'?readySummary(rd):'';
+  const readyLine=rdSum?`<div class="as-recorded-note" data-recorded-readiness>Przed treningiem: <span>${escHtml(rdSum)}</span></div>`:'';
+  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+readyLine+warmupLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'')
     +(typeof praiseTrainerBlockHTML==='function'?praiseTrainerBlockHTML(s):'');
   wrap.style.display='block';
 }

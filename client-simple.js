@@ -221,6 +221,7 @@ function csTodayHTML(c){
   return `<div class="cs-screen cs-today">
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}
+    ${typeof readyTodayHTML==='function'?readyTodayHTML(c,st):''}
     ${typeof praiseTodayCardHTML==='function'?praiseTodayCardHTML(c):''}
     ${csMeetingCardHTML(c)}
     ${csPayCardHTML(c)}
@@ -1472,6 +1473,8 @@ function csClientWarmup(){
 function cwStartFlow(){
   const cw=window._cw;if(!cw)return;
   const fresh=!cw.began&&!(typeof cwConfirmedSets==='function'&&cwConfirmedSets(cw)>0)&&!cw.warmupLog;
+  // Progress Readiness (client-readiness.js): dzisiejszy check-in z „Dzisiaj” trafia do pierwszego zapisu sesji.
+  if(fresh&&typeof cwReadyAttach==='function')cwReadyAttach(cw);
   const wu=fresh?csClientWarmup():null;
   if(wu){
     cw.warmup={items:wu.items.map(i=>({name:String(i.name).trim().slice(0,120),dose:String(i.dose||'').trim().slice(0,40)})),note:wu.note,done:wu.items.map(()=>false)};
@@ -1593,6 +1596,7 @@ function csTrainerNoticeText(cw){
   return ['Zrobiłem trening: '+(cw.dayName||'Trening'),
     'Serie: '+st.setsDone+' z '+st.setsTotal+' · ćwiczenia: '+st.exDone+' z '+st.exTotal+' · czas '+Math.max(1,Math.round(st.elapsed/60))+' min',
     wu?'Rozgrzewka: '+wu:'',
+    cw.readiness&&typeof readySummary==='function'?'Przed treningiem: '+readySummary(cw.readiness):'',
     ...csProgressFacts(cw).filter(x=>!/trening w tym miesiącu/.test(x)).map(x=>'Postęp: '+x),
     cw.feel&&R[cw.feel]?'Samopoczucie: '+R[cw.feel].emoji+' '+R[cw.feel].label:'',
     cw.rating?'Trudność: '+cw.rating+'/10':'',

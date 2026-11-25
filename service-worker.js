@@ -25,7 +25,7 @@
 // Wersja 111: film techniki od klienta do trenera (prywatny plik, karta w czacie).
 // Wersja 112: czat trenera odświeża się sam, rozgrzewka w oknie treningu, komunikaty „co dalej”.
 // Wersja 113: powiadomienia dla trenera (link ?tchat= otwiera rozmowę z klientem).
-const CACHE_NAME='progress-live-shell-v125';
+const CACHE_NAME='progress-live-shell-v126';
 const APP_SHELL=[
   './', './index.html', './globals.css', './styles.css', './research-academy.css',
   './theme.css', './manifest.json', './favicon.svg', './apple-touch-icon.png'

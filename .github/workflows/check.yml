@@ -90,6 +90,7 @@ jobs:
           node .github/scripts/test_client_workout_light_theme.js
           node .github/scripts/test_client_rest_ring_voice.js
           node .github/scripts/test_client_workout_guard.js
+          node .github/scripts/test_client_readiness.js
           node .github/scripts/test_estimate_1rm.js
           node .github/scripts/test_dash_simple_mode.js
           node .github/scripts/test_ex_biceps_media_catalog.js
@@ -913,6 +914,10 @@ jobs:
       - name: 6d3j. Zgłoś ból w trakcie treningu — panel, wiadomość do trenera, kolejka bez sieci
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_pain_ui.js
+
+      - name: 6d3j2. Progress Readiness — opcjonalny check-in na Dzisiaj, wiadomość do trenera, zapis w treningu
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_readiness_ui.js
 
       - name: 6d3k. Karta pakietów na Dzisiaj — opłacony osobno od nieopłaconych, potwierdzenie „Zapłaciłem”
         if: ${{ !cancelled() }}
