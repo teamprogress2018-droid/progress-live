@@ -71,6 +71,16 @@ const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
   ok('bez emoji i bez dat ISO', !EMOJI.test(t) && !/\d{4}-\d{2}-\d{2}/.test(t), (t.match(EMOJI) || [''])[0]);
   ok('liczby po polsku (przecinek, nie kropka)', !/\d\.\d+\s?(kg|cm|t|min)\b/.test(t), (t.match(/\d\.\d+\s?(kg|cm|t|min)\b/) || [''])[0]);
 
+  // Ten sam ciężar, więcej powtórzeń: nagłówek „6 → 7 powt. (77,5 kg)”, nie „77,5 → 77,5 kg”.
+  await page.evaluate(() => { const d = (n) => { const x = new Date(todayYmd() + 'T12:00:00'); x.setDate(x.getDate() - n); return x.toISOString().slice(0, 10); };
+    window._cpgEx = 'Wyciskanie leżąc'; window.SE.push(...[[10, 6], [3, 7]].map(([n, r]) => ({ id: 'w' + n, clientId: 'c1', source: 'client', status: 'completed', date: d(n), exercises: [{ name: 'Wyciskanie leżąc', loadUnit: 'kg', sets: [{ kg: 77.5, reps: r }] }] })));
+    setClientLiveScreen('progress'); });
+  await page.waitForTimeout(200);
+  if (await page.$('[data-cpg-ex="Wyciskanie leżąc"]')) { await page.tap('[data-cpg-ex="Wyciskanie leżąc"]'); await page.waitForTimeout(200); }
+  const reps = await page.evaluate(() => ({ big: document.querySelector('[data-cpg-strength-big]').innerText, delta: document.querySelector('[data-cs-strength-delta]').innerText, up: document.querySelector('[data-cs-strength-delta]').classList.contains('is-up') }));
+  ok('ten sam ciężar: nagłówek z powtórzeniami „6 → 7 powt. (77,5 kg)”, na zielono', /^6 → 7 powt\.\s*\(77,5 kg\)$/.test(reps.big.trim()) && /\+1 powt\. przy tym samym ciężarze/.test(reps.delta) && reps.up, JSON.stringify(reps));
+  await page.evaluate(() => { window.SE = window.SE.filter((s) => !/^w\d/.test(s.id)); window._cpgEx = ''; setClientLiveScreen('progress'); });
+
   await page.tap('[data-cpg-range="30"]');
   await page.waitForTimeout(200);
   t = await txt();

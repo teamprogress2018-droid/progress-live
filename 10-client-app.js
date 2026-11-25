@@ -406,13 +406,17 @@ function renderClientLive(){
   if(scr==='calendar'&&!(typeof capClientSectionVisible==='function'&&capClientSectionVisible('calendar')))scr='progress';
   const allowed=scr==='calendar'||navIds.includes(scr)||moreIds.includes(scr)||subScreens.includes(scr);
   if(!allowed)scr='home';
+  const acctScr=(window.CS_ACCOUNT_SCREENS||[]).includes(scr);
   window._clientLiveScreen=scr;
+  if(typeof csAccountMenuEnsure==='function')csAccountMenuEnsure();
   renderClientLiveNav(navScreens,moreScreens,scr);
   updateClientLiveNavBadges(c);
   if(typeof capScreenHTML==='function'&&c){
     // Podekrany „Trenera” (czat, kontakt, plan, powiadomienia…) mają drogę powrotu, bo nie ma już „Więcej”.
     const trainerTab=navIds.includes('trainer');
-    const back=trainerTab&&scr!=='trainer'&&typeof capTrainerGroupScreens==='function'&&capTrainerGroupScreens().includes(scr)
+    const back=acctScr
+      ?`<button type="button" class="cs-back-link" data-cs-back-account onclick="setClientLiveScreen(window._clientPrevScreen||'home')">${typeof csIcon==='function'?csIcon('back',18):'‹'}Wróć</button>`
+      :trainerTab&&scr!=='trainer'&&typeof capTrainerGroupScreens==='function'&&capTrainerGroupScreens().includes(scr)
       ?`<button type="button" class="cs-back-link" data-cs-back-trainer onclick="setClientLiveScreen('trainer')">${typeof csIcon==='function'?csIcon('back',18):'‹'}Trener</button>`:'';
     content.innerHTML=back+capScreenHTML(scr,c);
     if(typeof capBindTodaySwipe==='function')capBindTodaySwipe(content);
@@ -500,6 +504,9 @@ function setClientLiveScreen(scr){
   if(scr==='train'&&typeof csTrainEntry==='function'&&csTrainEntry()){window._clientLiveScreen='train';return;}
   if(scr!=='plan')window._csPlanOpen=null;
   if(scr!=='progress')window._csProgressFull=false;
+  // „‹ Wróć” z ekranów konta (Profil, Powiadomienia) wraca tam, skąd klient przyszedł.
+  const prev=window._clientLiveScreen;
+  if(prev&&prev!==scr&&!(window.CS_ACCOUNT_SCREENS||[]).includes(prev))window._clientPrevScreen=prev;
   window._clientLiveScreen=scr;
   if(scr==='messages'&&window._clientId&&typeof clientMarkTrainerMsgsRead==='function'){
     try{clientMarkTrainerMsgsRead(window._clientId);}catch(e){}

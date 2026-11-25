@@ -913,6 +913,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_pain_ui.js
 
+      - name: 6d3k. Karta pakietów na Dzisiaj — opłacony osobno od nieopłaconych, potwierdzenie „Zapłaciłem”
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_pay_card_ui.js
+
       - name: 6d4. Aplikacja klienta na telefonie (nagłówek, 44 px, kontrast, Technika, 360/390/430 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_mobile_fixes_ui.js

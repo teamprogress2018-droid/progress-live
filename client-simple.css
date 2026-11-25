@@ -810,3 +810,28 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .cs-pain-stop { color: var(--danger, #b42318) !important; font-weight: 700; }
 .cs-pain-priv { text-align: center; font-size: 0.8125rem !important; color: var(--text-secondary); }
 .cs-pain-lvl:focus-visible, .cs-pain-note textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ── Nagłówek klienta: ikona konta (Profil, Powiadomienia, Wyloguj) ── */
+.cs-acct { position: relative; }
+.cs-acct-btn { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--bg-card); color: var(--text-primary); cursor: pointer; }
+.cs-acct-btn[aria-expanded="true"] { border-color: var(--text-primary); }
+.cs-acct-btn:focus-visible, .cs-acct-menu button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cs-acct-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 10040; min-width: 220px; padding: 6px; border: 1px solid var(--border-subtle); border-radius: 16px; background: var(--bg-card); box-shadow: 0 16px 40px rgba(16, 18, 22, .18); display: flex; flex-direction: column; }
+.cs-acct-menu[hidden] { display: none; }
+.cs-acct-menu button { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: var(--text-primary); font: inherit; font-size: 1rem; text-align: left; cursor: pointer; }
+.cs-acct-menu button:hover { background: var(--bg-main); }
+.cs-acct-menu .cs-acct-out { margin-top: 4px; border-top: 1px solid var(--border-subtle); border-radius: 0 0 10px 10px; color: var(--danger, #b42318); }
+
+/* ── Pakiety na „Dzisiaj”: opłacony pakiet w użyciu osobno od nieopłaconych ── */
+.cs-pay-part { display: flex; flex-direction: column; gap: 6px; }
+.cs-pay-part + .cs-pay-part { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.cs-pay-label { margin: 0; font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); }
+.cs-pay-part.is-due .cs-pay-label { color: var(--warning, #b45309) !important; }
+.cs-pay-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cs-pay-row { display: flex; align-items: center; gap: 10px; }
+.cs-pay-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cs-pay-row-main b { font-size: 0.9375rem; overflow-wrap: anywhere; }
+.cs-pay-row-main span { font-size: 0.8125rem; color: var(--text-secondary); }
+.cs-pay-row .cs-pay-paid { flex: 0 0 auto; width: auto; min-height: 44px; padding: 0 14px; font-size: 0.9375rem; }
+.cs-pay-note { margin: 2px 0 0; font-size: 0.8125rem; color: var(--text-secondary); }
+.cpg-big small { font-size: 0.9375rem; font-weight: 600; color: var(--text-secondary); }

@@ -95,7 +95,7 @@ async function open(browser, opts) {
     ok('payment card on Dzisiaj', !!pay && /Pakiet do opłacenia/.test(pay.text) && /8 treningów/.test(pay.text) && /960 zł/.test(pay.text), pay && pay.text);
     ok('payment buttons secondary, one red action on screen', !!pay && pay.primary === 0 && pay.allPrimary === 1 && JSON.stringify(pay.btns) === '["Zapłaciłem"]', JSON.stringify(pay));
     ok('payment card: no bank account / transfer title', !!pay && !/12 3456|Konto|Tytuł przelewu|numeru konta/.test(pay.text), pay && pay.text);
-    ok('payment card: trainings left', !!pay && /Zostało\s*8 z 8 treningów/.test(pay.text), pay && pay.text);
+    ok('payment card: unpaid package is clearly unpaid (no „Zostało 8 z 8”)', !!pay && /Pakiet czeka na opłacenie/i.test(pay.text) && /8 treningów · 960 zł · nieopłacony/.test(pay.text) && !/Zostało/.test(pay.text), pay && pay.text);
     const more = await page.evaluate(() => { const b = document.querySelector('#clive-bn-trainer .clive-nav-badge'); return !!b && getComputedStyle(b).display !== 'none'; });
     ok('unpaid package marks Trener', more);
     await ctx.close();

@@ -51,15 +51,29 @@ const BASE = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080') + '/index
   }));
   ok('Trener: ostatnia wiadomość trenera bez znacznika filmu', /NOWA WIADOMOŚĆ/.test(hub.text) && /Świetny trening/.test(hub.text) && !/\[film:/.test(hub.text), hub.text);
   ok('Trener: jedna główna akcja (czat)', hub.primaries === 1 && /Otwórz czat/.test(hub.text));
-  ok('Trener: dawne „Więcej” jako lista, Kontakt pierwszy', hub.rows[0] === 'contact' && ['plan', 'notify', 'profile'].every((x) => hub.rows.includes(x)), JSON.stringify(hub.rows));
+  ok('Trener: tylko współpraca z trenerem, Kontakt pierwszy, bez Profilu, Powiadomień i Wyloguj, bez powtórzeń', hub.rows[0] === 'contact' && hub.rows.includes('plan') && !hub.rows.includes('notify') && !hub.rows.includes('profile') && new Set(hub.rows).size === hub.rows.length && !/Wyloguj/.test(hub.text), JSON.stringify(hub.rows));
   ok('Trener podświetlony na pasku', hub.active === 'page');
 
-  await page.click('[data-cs-hub-row="notify"]');
+  await page.click('[data-cs-hub-row="checkin"]');
   await page.waitForTimeout(150);
-  const sub = await page.evaluate(() => ({ back: !!document.querySelector('[data-cs-back-trainer]'), active: document.querySelector('#clive-bn-trainer').getAttribute('aria-current'), notify: !!document.querySelector('.comms-notify') }));
-  ok('podekran (Powiadomienia): „‹ Trener” i podświetlony Trener', sub.back && sub.active === 'page' && sub.notify, JSON.stringify(sub));
+  const sub = await page.evaluate(() => ({ back: !!document.querySelector('[data-cs-back-trainer]'), active: document.querySelector('#clive-bn-trainer').getAttribute('aria-current') }));
+  ok('podekran (Ankieta): „‹ Trener” i podświetlony Trener', sub.back && sub.active === 'page', JSON.stringify(sub));
   await page.click('[data-cs-back-trainer]');
   ok('„‹ Trener” wraca na ekran Trener', await page.isVisible('.cs-hub'));
+
+  // Konto: ikona w nagłówku → Profil / Powiadomienia / Wyloguj się.
+  await page.click('#clive-account-btn');
+  const menu = await page.evaluate(() => ({ open: !document.getElementById('clive-account-menu').hidden, exp: document.getElementById('clive-account-btn').getAttribute('aria-expanded'), items: [...document.querySelectorAll('#clive-account-menu [role=menuitem]')].map((b) => b.innerText.trim()), h: Math.min(...[...document.querySelectorAll('#clive-account-menu button')].map((b) => b.getBoundingClientRect().height)), btn: document.getElementById('clive-account-btn').getBoundingClientRect().height }));
+  ok('menu konta: Profil, Powiadomienia, Wyloguj się; ≥ 44 px', menu.open && menu.exp === 'true' && menu.items.join('|') === 'Profil|Powiadomienia|Wyloguj się' && menu.h >= 44 && menu.btn >= 44, JSON.stringify(menu));
+  await page.keyboard.press('Escape');
+  ok('Escape zamyka menu konta', await page.evaluate(() => document.getElementById('clive-account-menu').hidden));
+  await page.click('#clive-account-btn');
+  await page.click('[data-cs-acct="notify"]');
+  await page.waitForTimeout(150);
+  const acct = await page.evaluate(() => ({ notify: !!document.querySelector('.comms-notify'), back: !!document.querySelector('[data-cs-back-account]'), trainerBack: !!document.querySelector('[data-cs-back-trainer]') }));
+  ok('Powiadomienia z menu konta, z „‹ Wróć” (bez „‹ Trener”)', acct.notify && acct.back && !acct.trainerBack, JSON.stringify(acct));
+  await page.click('[data-cs-back-account]');
+  ok('„‹ Wróć” wraca na poprzedni ekran (Trener)', await page.isVisible('.cs-hub'));
 
   await page.click('[data-cs-hub-chat] .cs-btn-primary');
   await page.waitForTimeout(150);
@@ -67,6 +81,7 @@ const BASE = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080') + '/index
   ok('po otwarciu czatu kropka znika', await page.evaluate(() => { const d = document.querySelector('#clive-bn-trainer .clive-nav-badge'); return !d || d.style.display === 'none'; }));
 
   await page.click('[data-cs-back-trainer]');
+  await page.click('#clive-account-btn');
   await page.click('[data-cs-logout]');
   ok('Wyloguj pyta o potwierdzenie; „Anuluj” nie wylogowuje', dialogs.some((m) => /Wylogować się/.test(m)) && (await page.evaluate(() => window._signedOut)) === 0);
 

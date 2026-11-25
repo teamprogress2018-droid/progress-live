@@ -182,12 +182,12 @@ function cpgStrengthHTML(c,from){
   const top=list.slice(0,4);
   const pick=top.find(x=>x.name===window._cpgEx)||top[0];
   const a=pick.pts[0],z=pick.pts[pick.pts.length-1],d=z.kg-a.kg;
-  const msg=d>0?`${cpgSigned(d)} kg od ${cpgDate(a.date)}`:d===0?(z.reps>a.reps?`+${z.reps-a.reps} powt. przy ${cpgNum(z.kg)} kg`:'Ciężar stabilny — dobra baza do kolejnego kroku'):'Lżej niż na początku okresu — trener dobierze ciężar';
+  const msg=d>0?`${cpgSigned(d)} kg od ${cpgDate(a.date)}`:d===0?(z.reps>a.reps?`+${z.reps-a.reps} powt. przy tym samym ciężarze od ${cpgDate(a.date)}`:z.reps<a.reps?'Ten sam ciężar, mniej powtórzeń — trener dobierze obciążenie':'Ciężar stabilny — dobra baza do kolejnego kroku'):'Lżej niż na początku okresu — trener dobierze ciężar';
   const chips=top.length>1?`<div class="cpg-chips" role="group" aria-label="Ćwiczenie na wykresie">${top.map(x=>`<button type="button" class="cpg-chip${x===pick?' is-on':''}" aria-pressed="${x===pick?'true':'false'}" data-cpg-ex="${csEsc(x.name)}">${csEsc(x.name)}</button>`).join('')}</div>`:'';
   return `<section class="cpg-card cs-strength" data-cs-strength><h2 class="cpg-h">${csIcon('progress',18)}Postęp siłowy</h2>
     ${chips||`<b class="cs-strength-name">${csEsc(pick.name)}</b>`}
-    <span class="cpg-big">${csEsc(cpgNum(a.kg))} → ${csEsc(cpgNum(z.kg))} kg</span>
-    <span class="cpg-sub${d>0?' is-up':''}" data-cs-strength-delta>${csEsc(msg)}</span>
+    <span class="cpg-big" data-cpg-strength-big>${d===0&&z.reps!==a.reps?`${a.reps} → ${z.reps} powt. <small>(${csEsc(cpgNum(z.kg))} kg)</small>`:`${csEsc(cpgNum(a.kg))} → ${csEsc(cpgNum(z.kg))} kg`}</span>
+    <span class="cpg-sub${d>0||(d===0&&z.reps>a.reps)?' is-up':''}" data-cs-strength-delta>${csEsc(msg)}</span>
     ${cpgLineSVG(pick.pts.map(p=>({date:p.date,v:p.kg})),'kg','Najcięższa seria w kolejnych treningach')}
   </section>`;
 }
