@@ -902,6 +902,7 @@ function clientRowHTML(c,i,issuesMap){
       <div class="cl2-nextcell">${nextHtml}</div>
       <div class="cl2-actions" onclick="event.stopPropagation()">
         <button type="button" class="cl2-act-btn${sev==='urgent'?' is-urgent':''}${sev==='ok'?' is-quiet':''}" onclick="clientDoAction(event,'${c.id}','${actKey}')" aria-label="${escHtml(actLabel)}: ${name}">${escHtml(actLabel)}</button>
+        ${top&&typeof coachResolveBtnHTML==='function'?coachResolveBtnHTML(c.id,top.key):''}
         <button type="button" class="cl2-more" onclick="toggleClientRowDetails(event,'${c.id}')" aria-expanded="${open?'true':'false'}" aria-controls="cl2-det-${escHtml(c.id)}" aria-label="Szczegóły: ${name}" title="Szczegóły: treningi, zadania, cel, status"><span class="cl2-more-txt">Szczegóły</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
       </div>
     </div>

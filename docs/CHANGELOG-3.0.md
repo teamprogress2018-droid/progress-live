@@ -53,3 +53,10 @@
 - „Zapisz jako grafikę”: PNG 1080 × 1350 w barwach Team Progress (canvas). „Udostępnij” tylko przez systemowe udostępnianie, dobrowolnie. Bez masy ciała, pomiarów, zdjęć i zgłoszeń zdrowotnych.
 - Trener (profil klienta → Plan): wiadomość do podsumowania bieżącego i poprzedniego miesiąca + podgląd liczb. Zapis `client.wrappedNotes` (24 ostatnie). Bez zmian reguł Firestore.
 - Testy: `test_wrapped.js`, `test_wrapped_ui.js`.
+
+## Etap 3a — Progress Coach (gałąź `feature/3.0-coach`)
+
+- `coach.js`: nowe sprawy w „Wymagają uwagi” (lista Klienci + pulpit, to samo źródło `clientIssues`): Zgłoszony ból (pilne), Samopoczucie: warto porozmawiać, Film techniki do obejrzenia, Nagroda do wręczenia, Nowy rekord.
+- Każda sprawa: powód, kiedy, priorytet, jedno działanie (czat / profil). Znika sama po odpowiedzi trenera w czacie (nagroda — po „wręczona”). Przycisk „Rozwiązane” (`client.coachResolved`) — sprawa wraca tylko przy nowym zdarzeniu.
+- Bez automatycznych wiadomości i bez ocen ryzyka zdrowotnego. Bez zmian reguł Firestore.
+- Testy: `test_coach.js`, `test_coach_ui.js`.

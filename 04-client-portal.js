@@ -6935,6 +6935,7 @@ function dashAttentionHTML(){
         <div class="dash-att-reason" title="${esc(it.meta||'')}">${esc(reason)}</div>
       </div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl||'Otwórz')}</button>
+      ${it.issue&&it.clientId&&typeof coachResolveBtnHTML==='function'?coachResolveBtnHTML(it.clientId,it.issue):''}
     </div>`;
   }).join('');
   const more=people.length>shown.length||expanded?`<button type="button" class="dash-att-all" data-dash-att-all="${people.length}" onclick="toggleDashListExpand('dash-attention')" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń listę':'Zobacz wszystkich wymagających uwagi ('+people.length+')'}</button>`:'';

@@ -942,3 +942,4 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .pw-next { margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
 .pw-note { margin: 0; font-size: 0.8125rem; color: var(--text-secondary); }
 .pw-tcard textarea { min-height: 64px; }
+.coach-resolve { margin-left: 4px; white-space: nowrap; }
