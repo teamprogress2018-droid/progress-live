@@ -98,7 +98,8 @@ const ORIGIN = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080');
   ok('bez zgody: zdjęcia sylwetki zablokowane z wyjaśnieniem', /wymagają zgody na dane o zdrowiu/.test(await page.innerText('[data-cpg-photos]')) && !(await page.$('[data-cpg-photos] .cpg-photo-add')));
 
   const exp = await page.evaluate(() => privacyExportPayload());
-  ok('eksport: tylko dane tego klienta (treningi, pomiary, wiadomości, zgody)', exp.workouts.length === 1 && exp.measurements.length === 1 && exp.messages.length === 1 && exp.profile.consents && !JSON.stringify(exp).includes('Cudzy') && !JSON.stringify(exp).includes('99'), JSON.stringify(exp).slice(0, 300));
+  // znacznik czasu eksportu (np. „…:23.499Z”) nie może fałszywie wyglądać jak cudzy pomiar „99”
+  ok('eksport: tylko dane tego klienta (treningi, pomiary, wiadomości, zgody)', exp.workouts.length === 1 && exp.measurements.length === 1 && exp.messages.length === 1 && exp.profile.consents && !JSON.stringify({ ...exp, exportedAt: '' }).includes('Cudzy') && !JSON.stringify({ ...exp, exportedAt: '' }).includes('99'), JSON.stringify(exp).slice(0, 300));
 
   await page.evaluate(() => setClientLiveScreen('profile'));
   await page.evaluate(() => privacyDeleteOpen());
