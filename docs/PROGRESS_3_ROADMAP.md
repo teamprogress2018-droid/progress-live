@@ -8,7 +8,7 @@ Statusy: **zaprojektowane** → **zaimplementowane** → **przetestowane (CI)** 
 | Etap | Zakres | Status |
 |---|---|---|
 | 1. Stabilizacja | Ekran przerwy po klawiaturze, strażnik treningu (Wake Lock, zapis przy schowaniu, wysyłka po powrocie, trwałe dane) | zaimplementowane, testy jednostkowe OK; czeka na CI i test na iPhonie |
-| 2. Doświadczenie | Readiness (zaimplementowane), Express, Journey + Rewards, Wrapped, głos trenera (klon) | w toku |
+| 2. Doświadczenie | Readiness, Progress Voice, Express (zaimplementowane), Journey + Rewards, Wrapped, głos trenera (klon) | w toku |
 | 3. Połączenie | Powiadomienia ze zdarzeń, nowe sygnały w „Wymagają uwagi”, Academy klienta | zaprojektowane |
 | 4. Inteligencja | Progress AI klienta, komendy głosowe, Vision (pilotaż) | zaprojektowane |
 | 5. Ekosystem | Body (suwak), Capacitor: Apple Health, Health Connect, widżety; ewentualnie Społeczność | zaprojektowane |

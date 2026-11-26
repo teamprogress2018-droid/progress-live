@@ -1337,7 +1337,7 @@ function cwBuildRecord(cw,status){
     type:cw.dayName||'Trening',duration,exercises:cwLoggedExercises(cw),volume,source:'client',planId:cw.planId,dayIdx:cw.dayIdx,
     createdAt:cw.createdAt||now,startedAt:cw.startedAtIso||now,updatedAt:now,status:status||'in_progress',
     // Rozgrzewka ustalana przed pierwszym zapisem sesji — dalej się nie zmienia (planSnapshot jest niezmienny w regułach).
-    planSnapshot:{planId:cw.planId,planName:cw.planName||'',dayName:cw.dayName||'',exercises:cw.planSnapshot||[],...(cw.warmupLog?{warmup:cw.warmupLog}:{}),...(cw.readiness?{readiness:cw.readiness}:{})},
+    planSnapshot:{planId:cw.planId,planName:cw.planName||'',dayName:cw.dayName||'',exercises:cw.planSnapshot||[],...(cw.warmupLog?{warmup:cw.warmupLog}:{}),...(cw.readiness?{readiness:cw.readiness}:{}),...(cw.variant?{variant:cw.variant}:{})},
     // feedback = samopoczucie po treningu 1–5 (ta sama skala co SESSION_RATING), 0 = bez odpowiedzi.
     issues:(cw.issues||[]).slice(),feedback:Math.max(0,Math.min(5,Number(cw.feel)||0)),difficulty:Number(cw.rating)||0,note:cw.note||'',confirmedSets:total
   });

@@ -5067,7 +5067,10 @@ function renderRecordedExercises(s){
   const rd=s.planSnapshot&&s.planSnapshot.readiness;
   const rdSum=rd&&typeof readySummary==='function'?readySummary(rd):'';
   const readyLine=rdSum?`<div class="as-recorded-note" data-recorded-readiness>Przed treningiem: <span>${escHtml(rdSum)}</span></div>`:'';
-  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+readyLine+warmupLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'')
+  const vr=s.planSnapshot&&s.planSnapshot.variant;
+  const vrSum=vr&&typeof xpSummary==='function'?xpSummary(vr):'';
+  const variantLine=vrSum?`<div class="as-recorded-note" data-recorded-variant>Wariant: <span>${escHtml(vrSum)}</span></div>`:'';
+  list.innerHTML=statusLine+ratingLine+difficulty+noteLine+issueLine+readyLine+variantLine+warmupLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'')
     +(typeof praiseTrainerBlockHTML==='function'?praiseTrainerBlockHTML(s):'');
   wrap.style.display='block';
 }

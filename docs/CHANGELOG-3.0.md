@@ -31,3 +31,10 @@
 - Głos trenera: 144 nagrania (ElevenLabs, model eleven_v4, ton „energetic, motivating coach voice”) w `assets/voice/pv/` (3,4 MB, 1–5,6 s na plik). Generator `.github/scripts/build_voice_pack.js` + workflow `voice-pack.yml` (klucz tylko w sekrecie `ELEVENLABS_API_KEY`). Ponowne generowanie: zmień `.github/voice-pack.request` albo uruchom workflow ręcznie; gotowe pliki są pomijane.
 - Zdania spoza paczki (np. z nazwą ćwiczenia) czyta synteza mowy telefonu.
 - Do zrobienia: panel nagrań trenera (osobny PR, reguły Storage).
+
+## Etap 2b — Progress Express (gałąź `feature/3.0-express`)
+
+- `express.js`: trener (profil klienta → Plan, pod rozgrzewką) włącza krótsze treningi i ustala regułę: skrócony ~30 min = pierwsze N ćwiczeń (domyślnie 4, serie: wszystkie albo maks. K), Express ~15 min = pierwsze N (domyślnie 2) × maks. K serii (domyślnie 2). Kolejność w planie = priorytet; super-serii nie rozcinamy; rozgrzewka zostaje. Podgląd dni aktywnego planu z czasem.
+- Klient: „Mniej czasu?” na „Dzisiaj” (tylko gdy trener włączył) → 3 warianty z czasem → start od razu (2 dotknięcia).
+- Zapis: `client.express` (karta klienta), w treningu `planSnapshot.variant` (rodzaj, czas, pominięte, limit serii). Trener widzi „Wariant: …” w oknie treningu i w wiadomości „Zrobiłem trening…”. Bez zmian reguł Firestore.
+- Testy: `test_express.js`, `test_express_ui.js`.
