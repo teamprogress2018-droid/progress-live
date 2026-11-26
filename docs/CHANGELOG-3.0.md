@@ -24,3 +24,10 @@
 - Trener: linia „Przed treningiem: …” w oknie treningu i w wiadomości „Zrobiłem trening…”; przy „warto skonsultować” od razu wiadomość w czacie (stałe id na dzień, 1. linia bez odpowiedzi). Push trenera z ogólną treścią (`comms-worker.cjs` — wymaga ponownego wdrożenia funkcji; do tego czasu push pokaże 1. linię wiadomości, która nie zawiera odpowiedzi).
 - Wyłącznik: `window.CS_READINESS_OFF=true`.
 - Testy: `test_client_readiness.js` (logika), `test_client_readiness_ui.js` (Playwright).
+
+## Progress Voice 1.0 (gałąź `feature/progress-voice`)
+
+- `client-voice.js`: 100 komunikatów, liczebniki po polsku, silnik zdarzeń z kolejką, style i częstotliwość, ustawienia w Profilu, ikona głośnika.
+- Głos trenera: 144 nagrania (ElevenLabs, model eleven_v4, ton „energetic, motivating coach voice”) w `assets/voice/pv/` (3,4 MB, 1–5,6 s na plik). Generator `.github/scripts/build_voice_pack.js` + workflow `voice-pack.yml` (klucz tylko w sekrecie `ELEVENLABS_API_KEY`). Ponowne generowanie: zmień `.github/voice-pack.request` albo uruchom workflow ręcznie; gotowe pliki są pomijane.
+- Zdania spoza paczki (np. z nazwą ćwiczenia) czyta synteza mowy telefonu.
+- Do zrobienia: panel nagrań trenera (osobny PR, reguły Storage).
