@@ -1000,3 +1000,20 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 
 .cs-pay.is-ending { border-color: color-mix(in srgb, var(--warning, #b45309) 55%, transparent); }
 .cs-pay.is-ending .cs-pay-head .cs-ico { color: var(--warning, #b45309); }
+
+/* Vision (pilotaż) — zgoda klienta przy filmie i analiza u trenera (client-video.js, vision.js) */
+.cv-ai-ok { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border, #e1e4e8); border-radius: 12px; font-size: 0.875rem; line-height: 1.4; color: var(--text-primary); }
+.cv-ai-ok input { width: 22px; height: 22px; flex: 0 0 22px; margin-top: 1px; accent-color: var(--accent); }
+.cv-ai-ok em { color: var(--text-secondary); font-style: normal; }
+.vi-box { margin-top: 10px; padding: 12px; border: 1px solid var(--border, #e1e4e8); border-radius: 12px; background: var(--bg-card, #fff); color: var(--text-primary, #20242b); font-size: 13px; line-height: 1.45; }
+.vi-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.vi-conf, .vi-k, .vi-lim { color: var(--text-secondary, #667085); font-size: 12px; }
+.vi-frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+.vi-frame { margin: 0; position: relative; }
+.vi-frame img { width: 100%; border-radius: 8px; display: block; }
+.vi-frame figcaption { position: absolute; left: 4px; top: 4px; padding: 0 6px; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: 11px; }
+.vi-h { margin: 8px 0 2px; font-weight: 700; }
+.vi-box ul, .vi-box ol { margin: 0; padding-left: 18px; }
+.vi-tip { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--bg-secondary, #f4f5f7); }
+.vi-raw { white-space: pre-wrap; }
+.vi-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
