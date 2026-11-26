@@ -44,6 +44,18 @@ Sprawdź w Cloudflare → Workers & Pages → `anthropic-proxy`:
 Dodatkowo w Anthropic Console → Settings → Limits ustaw **miesięczny limit wydatków** —
 to ostatnia bariera, niezależna od Workera.
 
+## Progress AI dla klienta (ścieżka `/client`, Progress Live 3.0)
+
+- Aplikacja klienta wysyła `POST <worker>/client` z tokenem Firebase klienta. Worker sprawdza `clientAccounts/{uid}`
+  i kartę `clients/{clientId}` (czyta je tokenem klienta — działają zwykłe reguły) i przepuszcza tylko, gdy trener
+  ustawił `aiCoach.on = true` (profil klienta → Plan → „Progress AI dla klienta”).
+- Klient wysyła tylko `question` (≤ 500 znaków), `history` (≤ 6 wiadomości) i `context` (≤ 6000 znaków JSON).
+  Prompt systemowy (`CLIENT_SYSTEM`), model i `max_tokens = 700` ustala Worker — klient nie może ich zmienić.
+- Limity w tym samym KV `RATE`: `aiCoach.limit` pytań na klienta na dobę (domyślnie 10, maks. 30)
+  oraz 300 pytań wszystkich klientów jednego trenera na dobę. Błąd dostawcy nie zużywa limitu.
+- **Wdrożenie:** wklej nową zawartość `server/ai-proxy/worker.mjs` w Cloudflare → Deploy (krok 5 wyżej). Bez tego
+  klient zobaczy „Progress AI nie odpowiedziało”, a funkcje trenera działają jak dotąd.
+
 ## Ograniczenia limitu
 
 KV w Cloudflare nie ma atomowego licznika i jest „ostatecznie spójny”: kilka równoległych zapytań
