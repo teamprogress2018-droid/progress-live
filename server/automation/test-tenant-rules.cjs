@@ -492,6 +492,8 @@ test('communication: client cases, contact preferences, push subscriptions and s
   denied(await write('commsPrefs/' + clientSibling, {...prefs, id: clientSibling, clientId: clientSibling}, userA), 'cannot set sibling preferences');
   denied(await read('commsPrefs/' + clientA, ownerB), 'foreign trainer cannot read preferences');
   denied(await patch('commsPrefs/' + clientA, {channel: 'sms'}, userA), 'unknown channel rejected');
+  ok(await patch('commsPrefs/' + clientA, {categories: {meetings: true, plan: true, checkins: true, habits: false}}, userA), 'client turns off habit reminders (3.0)');
+  denied(await patch('commsPrefs/' + clientA, {categories: {meetings: true, ads: true}}, userA), 'unknown notification category rejected');
 
   const subId = run + '-sub';
   const sub = clientData({id: subId, endpoint: 'https://push.example.test/abc', keys: {p256dh: 'k', auth: 'a'}, device: 'iPhone', createdAt: now});

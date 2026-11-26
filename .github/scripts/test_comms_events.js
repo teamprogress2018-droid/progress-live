@@ -81,5 +81,28 @@ ok('limit: spotkania nie są blokowane',C.overDailyLimit({kind:'meeting_reminder
 ok('limit: zadania trenera nie są blokowane',C.overDailyLimit({kind:'trainer_contact',audience:'trainer',clientId:'c1'},[n0-1,n0-2],n0,2)===false);
 ok('domyślny limit = 2',C.settingsOf({}).maxPerDay===2);
 
+
+// J. Przypomnienia o nawykach
+const hc={id:'c1',name:'Anna Kowalska',status:'active',habits:{on:true,items:[{id:'water',on:true,from:'09:00',to:'15:00',everyH:2},{id:'sleep',on:true,at:'22:30'},{id:'steps',on:false,at:'18:00'},{id:'custom',on:true,at:'08:00',text:'Weź witaminę D'}]}};
+ok('woda 9–15 co 2 h = 9, 11, 13, 15',C.habitTimes(hc.habits.items[0]).join()==='09:00,11:00,13:00,15:00');
+ok('własne bez treści — brak',C.habitTimes({id:'custom',on:true,at:'08:00',text:' '}).length===0);
+const subscribed={c1:{push:{subscribed:true},categories:{meetings:true}}};
+const hs={clients:[hc],sessions:[],plans:[],prefs:subscribed,settings:{},enabledAt};
+const hn=W('2026-11-24','10:30');
+let hj=C.planJobs(hs,hn).filter(j=>j.kind==='habit_reminder');
+const ids=hj.map(j=>j.id);
+ok('dziś: woda 11/13/15, sen 22:30; jutro: rano woda 9 i własne 8 (do 26 h)',ids.includes('habit:c1:water:2026-11-24:1100')&&ids.includes('habit:c1:sleep:2026-11-24:2230')&&ids.includes('habit:c1:water:2026-11-25:0900')&&ids.includes('habit:c1:custom:2026-11-25:0800')&&!ids.includes('habit:c1:water:2026-11-24:0900')&&!ids.some(i=>/steps/.test(i)),JSON.stringify(ids));
+const sl=hj.find(j=>j.id==='habit:c1:sleep:2026-11-24:2230');
+ok('sen 22:30 — bez przesuwania przez ciszę nocną',sl&&sl.dueAt===W('2026-11-24','22:30'));
+ok('bez push u klienta — serwer nic nie planuje',!C.planJobs({...hs,prefs:{c1:{push:{subscribed:false}}}},hn).some(j=>j.kind==='habit_reminder'));
+ok('klient wyłączył kategorię — nic',!C.planJobs({...hs,prefs:{c1:{push:{subscribed:true},categories:{habits:false}}}},hn).some(j=>j.kind==='habit_reminder'));
+ok('trener wyłączył — nic',!C.planJobs({...hs,clients:[{...hc,habits:{...hc.habits,on:false}}]},hn).some(j=>j.kind==='habit_reminder'));
+ok('przerwa klienta — nic',!C.planJobs({...hs,clients:[{...hc,status:'paused'}]},hn).some(j=>j.kind==='habit_reminder'));
+const rr=C.reconcile(C.reconcile([],hj).create,C.planJobs({...hs,clients:[{...hc,habits:{on:false,items:[]}}]},hn+60000));
+ok('wyłączenie anuluje zaplanowane przypomnienia',rr.cancel.some(x=>/^habit:c1:sleep/.test(x.id)),JSON.stringify(rr.cancel.map(x=>x.id)));
+ok('nawyki poza dziennym limitem',C.overDailyLimit({kind:'habit_reminder',clientId:'c1'},[hn-1,hn-2,hn-3],hn,2)===false);
+const tw=C.texts({kind:'habit_reminder',habit:'water'},{}),tc=C.texts({kind:'habit_reminder',habit:'custom',text:'Weź witaminę D'},{});
+ok('treść: woda i własna od trenera',/Czas na wodę$/.test(tw.title)&&/szklankę wody/.test(tw.body)&&tc.body==='Weź witaminę D'&&/^\?cs=/.test(tw.url));
+ok('kategoria „habits”',C.categoryOf('habit_reminder')==='habits'&&C.channelsFor({push:{subscribed:true},categories:{habits:false}},{kind:'habit_reminder'})[0]==='inapp');
 if(failed){console.error(failed+' test(ów) nie przeszło');process.exit(1);}
 console.log('Wszystkie testy zdarzeń przeszły.');

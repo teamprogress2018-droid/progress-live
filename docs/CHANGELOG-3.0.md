@@ -124,3 +124,10 @@
 - **Zakładka „Dieta”** na dolnym pasku, gdy klient ma zatwierdzony jadłospis — także ten z kalkulatora (tekst rozbity na dni, posiłki, listę zakupów). „Moje jedzenie” zniknęło z listy w „Trener”.
 - **Pakiet się kończy** na „Dzisiaj”: przy ≤ 2 treningach albo ≤ 5 dniach ważności karta „Pakiet wkrótce się kończy” z „Napisz do trenera”.
 - Test `test_client_fixes_ui.js`; zaktualizowane `test_client_voice.js`, `test_plan_client_app_ui.js`.
+
+## Przypomnienia o nawykach (gałąź `feature/3.0-habits`)
+- Trener: profil klienta → Plan → „Przypomnienia o nawykach” (`habits.js`): woda (od–do co 1–4 h), sen, spacer, własne (≤ 80 znaków). Zapis `client.habits`.
+- Serwer (`comms-core.js` J. `habit_reminder`): tylko push, o ustawionych godzinach (bez przesuwania przez ciszę nocną), poza dziennym limitem, tylko dla klientów z włączonym push; wyłączenie anuluje zaplanowane.
+- Klient: przełącznik „Przypomnienia o nawykach” w Powiadomieniach (kategoria `habits`; `firestore.rules` przyjmuje nową kategorię).
+- Wymaga: publikacji reguł (`pilot.sh rules`) i ponownego wdrożenia funkcji (`pilot.sh push`).
+- Testy: `test_comms_events.js` (J), `test_habits_ui.js`, reguły w `test-tenant-rules.cjs`.

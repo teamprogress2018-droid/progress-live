@@ -944,6 +944,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_fixes_ui.js
 
+      - name: 6d3j3e. Przypomnienia o nawykach — karta trenera, przełącznik klienta
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_habits_ui.js
+
       - name: 6d3j4. Progress Express — krótsze warianty treningu zatwierdzone przez trenera
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_express_ui.js
