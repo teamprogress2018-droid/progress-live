@@ -80,6 +80,7 @@ const PROXY = 'https://anthropic-proxy.teamprogress2018.workers.dev/';
     const m = window.MSGS.c1[window.MSGS.c1.length - 1];
     const noAi = { ...m, id: 'msg_x', text: m.text.replace(/\n🤖 Zgoda na analizę AI: tak/, '') };
     window.MSGS.c1.push(noAi);
+    window._uid = 'cs-trainer'; // w panelu trenera _uid = id trenera (ścieżka filmu client-videos/{trainerId}/…)
     const host = document.createElement('div'); host.id = 'vi-host';
     host.innerHTML = '<div id="a">' + cvChatCardHTML(m, { viewer: 'trainer', clientId: 'c1' }) + '</div><div id="b">' + cvChatCardHTML(noAi, { viewer: 'trainer', clientId: 'c1' }) + '</div>'
       + cvChatCardHTML(m, { viewer: 'client' }).replace('data-cv-card', 'data-cv-client-card') + '<textarea id="msg-inp"></textarea>';
