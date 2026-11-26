@@ -97,7 +97,7 @@ async function boot(page, opts = {}) {
   ok('brak sieci: komunikat, pytanie zostaje w polu, bez fałszywej odpowiedzi', /internetem/.test(s2.err) && s2.val === 'Pytanie bez internetu' && s2.n === 4, JSON.stringify(s2));
   mode = 'limit';
   await page.tap('[data-pai-send]');
-  await page.waitForFunction(() => document.getElementById('pai-in').disabled);
+  await page.waitForFunction(() => { const a = document.querySelector('#pai-sheet [role="alert"]'); return a && /limit/.test(a.innerText) && document.getElementById('pai-in').disabled; });
   const s3 = await page.evaluate(() => ({ err: document.querySelector('#pai-sheet [role="alert"]').innerText, btn: document.querySelector('[data-pai-send]').disabled, left: document.querySelector('[data-pai-left]').innerText }));
   ok('limit: komunikat, pole i przycisk zablokowane', /limit pytań/.test(s3.err) && s3.btn && /Zostało 0/.test(s3.left), JSON.stringify(s3));
   await page.tap('[data-pai-trainer]');
