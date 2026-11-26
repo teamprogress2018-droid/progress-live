@@ -32,6 +32,7 @@ const CS_ICONS={
   checkin:'<path d="M9 11l3 3 8-8"></path><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"></path>',
   homework:'<path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path>',
   play:'<rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M10 9v6l5-3z"></path>',
+  food:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10"></path><path d="M17 21V3c-2.2 1.2-3.5 3.6-3.5 6.5V14H17"></path>',
   book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19V5"></path>',
   users:'<circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"></path>',
   user:'<circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>',
@@ -254,6 +255,18 @@ function csPackageLeft(p){
   return {left:total-used,total,used};
 }
 window.csPackageLeft=csPackageLeft;
+/** Pakiet się kończy: zostały ≤ 2 treningi albo ≤ 5 dni ważności. Zwraca zdanie albo ''. */
+function csPackageEnding(p,today){
+  if(!p)return '';
+  const l=csPackageLeft(p);
+  const ymd=today||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const exp=p.expiresDate?String(p.expiresDate).slice(0,10):'';
+  const days=exp?Math.round((Date.parse(exp+'T12:00:00Z')-Date.parse(ymd+'T12:00:00Z'))/864e5):null;
+  if(l&&l.left>0&&l.left<=2)return l.left===1?'Został Ci ostatni trening w pakiecie.':'Zostały Ci '+l.left+' treningi w pakiecie.';
+  if(days!=null&&days>=0&&days<=5)return days===0?'Pakiet jest ważny do dziś.':days===1?'Pakiet jest ważny jeszcze 1 dzień.':'Pakiet jest ważny jeszcze '+days+' dni.';
+  return '';
+}
+window.csPackageEnding=csPackageEnding;
 /** „Zostało 5 z 8 treningów” + pasek do końca pakietu (wykorzystane = pełne kreski). */
 function csPackageLeftHTML(p){
   const n=csPackageLeft(p);
@@ -273,10 +286,13 @@ function csPayCardHTML(c){
     const act=c&&typeof clientPaidPackageForSession==='function'?clientPaidPackageForSession(c.id):null;
     if(act&&csPackageLeft(act)){
       const exp=act.expiresDate?String(act.expiresDate).slice(0,10):'';
-      return `<section class="cs-card cs-pay is-active" aria-labelledby="cs-pay-title">
-    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">Twój pakiet</h2></div>
+      const end=csPackageEnding(act);
+      return `<section class="cs-card cs-pay is-active${end?' is-ending':''}" aria-labelledby="cs-pay-title"${end?' data-cs-pay-ending':''}>
+    <div class="cs-pay-head">${csIcon('card',22)}<h2 class="cs-card-title" id="cs-pay-title">${end?'Pakiet wkrótce się kończy':'Twój pakiet'}</h2></div>
     <p class="cs-pay-what"><b>${csEsc(act.title||'Pakiet treningów')}</b>${exp?` · ważny do ${csEsc(csDateLabel(exp).replace(/^[^,]+, /,''))}`:''}</p>
     ${csPackageLeftHTML(act)}
+    ${end?`<p class="cs-card-text">${csEsc(end)} Napisz do trenera, żeby przedłużyć pakiet bez przerwy w treningach.</p>
+    <div class="cs-pay-btns"><button type="button" class="cs-btn cs-btn-secondary" onclick="setClientLiveScreen('messages')">Napisz do trenera</button></div>`:''}
   </section>`;
     }
     const p=csEndedPackage(c);
@@ -1273,6 +1289,8 @@ function csRestSpeak(left){
   // Progress Voice prowadzi odliczanie przez swoją kolejkę (przerywa inne komunikaty); bez niego — jak dotąd.
   if(typeof pvCountdown==='function'&&typeof pvSettings==='function'&&pvSettings().enabled)return pvCountdown(left);
   const text=CS_REST_WORDS[left];if(!text)return false;
+  // Wybrany głos trenera: bez głosu telefonu (inny, np. kobiecy) — zostaje krótki sygnał.
+  if(typeof pvSettings==='function'&&pvSettings().voice==='trainer')return false;
   try{
     const syn=window.speechSynthesis;
     if(!syn||typeof syn.speak!=='function'||typeof SpeechSynthesisUtterance==='undefined')return false;

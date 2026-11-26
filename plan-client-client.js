@@ -18,6 +18,42 @@
     return null;
   }
   function planOf(c){const d=approvedOf(c);return d?d.plan:null;}
+  /** Jadłospis z kalkulatora (zatwierdzony, bez widoku „Plan klienta”) — sam tekst z kcal i makro. */
+  function textDietOf(c){
+    if(!c)return null;
+    const ok=d=>d&&d.status==='zatwierdzony'&&typeof d.text==='string'&&d.text.trim();
+    if(ok(c.dietPlan))return c.dietPlan;
+    return(Array.isArray(c.dietPlanHistory)?c.dietPlanHistory:[]).find(ok)||null;
+  }
+  function hasDiet(c){return!!(planOf(c)||textDietOf(c));}
+  /** Zakładka „Dieta” dla jadłospisu z kalkulatora: tekst rozbity na dni, posiłki (karty) i uwagi. */
+  function textDietHTML(c,d){
+    const blocks=String(d.text).replace(/\r/g,'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length);
+    const head=blocks.shift()||[];
+    const macro=d.kcal?`ok. ${d.kcal} kcal · białko ${d.protein} g · tłuszcz ${d.fat} g · węglowodany ${d.carbs} g`:(head[1]||'');
+    const notes=[];let html='',dayOpen=false,dayN=0;
+    const card=(title,items,extra)=>`<section class="cs-card cs-card-flat pkc-tmeal"${extra||''}><h2 class="cs-card-title cs-card-title-sm">${esc(title)}</h2>${items.length?`<ul class="pkc-items pkc-titems">${items.map(x=>`<li>${esc(x.replace(/^[•\-]\s*/,''))}</li>`).join('')}</ul>`:''}</section>`;
+    blocks.forEach(b=>{
+      let lines=b.slice();
+      if(/^📅/.test(lines[0])){
+        if(dayOpen)html+='</div></details>';
+        const name=lines.shift().replace(/^📅\s*/,'');
+        html+=`<details class="pkc-tday"${dayN===0?' open':''} data-pkc-tday><summary>${esc(name.charAt(0)+name.slice(1).toLowerCase())}</summary><div class="pkc-tday-b">`;
+        dayOpen=true;dayN++;
+        if(!lines.length)return;
+      }
+      if(!/^[•\-]/.test(lines[0])&&lines.length>1&&lines.slice(1).every(x=>/^[•\-]/.test(x))){
+        const t=lines[0].replace(/^[🛒🍳]\s*/u,'').replace(/:$/,'');
+        if(/^[🛒🍳]/u.test(lines[0])&&dayOpen){html+='</div></details>';dayOpen=false;}
+        html+=card(t,lines.slice(1),/^🛒/u.test(lines[0])?' data-pkc-tshop':'');
+      }else lines.forEach(x=>notes.push(x));
+    });
+    if(dayOpen)html+='</div></details>';
+    return`<div class="cs-screen" data-pkc-food="text"><header><div class="cs-eyebrow">PLAN OD TRENERA</div><h1 class="cs-h1 cs-h1-page">Dieta</h1><p class="cs-lead">${esc(macro)}</p></header>
+      ${html||`<section class="cs-card cs-card-flat"><p class="cs-card-text" style="white-space:pre-line">${esc(d.text)}</p></section>`}
+      ${notes.map(n=>`<p class="pkc-muted">${esc(n)}</p>`).join('')}
+      <button type="button" class="cs-btn cs-btn-secondary" onclick="capGoScreen('messages')">${ico('chat',20)}Zapytaj trenera o dietę</button></div>`;
+  }
   function food(id){const D=root.DietPlan;if(!D)return{name:id,unit:'g'};if(!D._F){D._F={};D.DIET_FOODS.forEach(f=>{D._F[f.id]=f;});}return D._F[id]||{name:id,unit:'g'};}
   function amt(f,a){return f.unit==='szt'?a+' szt.':a+' '+f.unit;}
   function shopAmt(f,a){if(f.unit==='szt')return a+' szt.';return a>=1000?(Math.round(a/100)/10).toString().replace('.',',')+(f.unit==='ml'?' l':' kg'):a+' '+f.unit;}
@@ -31,7 +67,8 @@
   /** „Moje jedzenie”: forma, cel dzienny, posiłki (dzień tygodnia albo propozycje do wyboru) albo nawyki. */
   function foodHTML(c){
     const p=planOf(c);
-    if(!p)return`<div class="cs-screen" data-pkc-food="empty"><header><h1 class="cs-h1 cs-h1-page">Moje jedzenie</h1><p class="cs-lead">Trener jeszcze nie przygotował Twojego planu jedzenia. Możesz zapytać na czacie.</p></header></div>`;
+    if(!p&&textDietOf(c))return textDietHTML(c,textDietOf(c));
+    if(!p)return`<div class="cs-screen" data-pkc-food="empty"><header><h1 class="cs-h1 cs-h1-page">Dieta</h1><p class="cs-lead">Trener jeszcze nie przygotował Twojego planu jedzenia. Możesz zapytać na czacie.</p></header></div>`;
     const st=root._pkcFood||(root._pkcFood={day:todayIdx()});
     let body='';
     if(p.form==='habits'){
@@ -89,7 +126,7 @@
   const EXTRA_SCALES={mood:'nastrój',hunger:'głód'};
 
   Object.assign(root,{
-    pkcFoodHTML:foodHTML,pkcShopHTML:shopHTML,pkcTodayCardHTML:todayCardHTML,pkcHasFood:c=>!!planOf(c||me()),pkcMe:me,
+    pkcFoodHTML:foodHTML,pkcShopHTML:shopHTML,pkcTodayCardHTML:todayCardHTML,pkcHasFood:c=>!!planOf(c||me()),pkcHasDiet:c=>hasDiet(c||me()),pkcTextDietHTML:textDietHTML,pkcMe:me,
     pkcCheckinExtra:c=>hasClientPlan(c||me()),PKC_EXTRA_SCALES:EXTRA_SCALES,
     pkcDay:i=>{root._pkcFood={day:i};if(typeof root.renderClientLive==='function')root.renderClientLive();else if(typeof root.capGoScreen==='function')root.capGoScreen('food');},
     pkcShopToggle:(id,on)=>{const c=me();const s=new Set(shopDone(c));if(on)s.add(id);else s.delete(id);try{root.localStorage.setItem(shopKey(c),JSON.stringify([...s]));}catch(e){}

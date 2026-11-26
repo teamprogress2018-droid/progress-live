@@ -108,8 +108,10 @@ function capLiveNavScreens(){
     {id:'home',label:'Dzisiaj',icon:ic('home','🏠')},
     {id:'train',label:'Trening',icon:ic('train','🏋️'),section:'plan'},
     {id:'progress',label:'Postępy',icon:ic('progress','📈')},
+    // Dieta: własna zakładka, gdy trener wysłał klientowi zatwierdzony jadłospis (plan-client-client.js).
+    {id:'food',label:'Dieta',icon:ic('food','🍽'),diet:true},
     {id:'trainer',label:'Trener',icon:ic('user','👤'),always:true}
-  ].filter(s=>s.always||capClientSectionVisible(s.section||s.id));
+  ].filter(s=>s.diet?(typeof pkcHasDiet==='function'&&pkcHasDiet()):(s.always||capClientSectionVisible(s.section||s.id)));
 }
 /** Ekrany, które na dolnym pasku podświetlają „Trener” (czat, kontakt i lista z capLiveMoreScreens). */
 function capTrainerGroupScreens(){
@@ -123,8 +125,7 @@ function capLiveMoreScreens(){
   const ic=(n,e)=>typeof csIcon==='function'?csIcon(n):e;
   return [
     {id:'plan',label:'Plan',icon:ic('plan','📋')},
-    // Plan klienta: jedzenie i zakupy tylko wtedy, gdy trener opublikował jadłospis (plan-client-client.js).
-    {id:'food',label:'Moje jedzenie',icon:ic('book','🍽'),pk:1},
+    // Lista zakupów tylko przy jadłospisie z ekranu „Plan klienta” (plan-client-client.js); sama dieta ma zakładkę na dolnym pasku.
     {id:'shopping',label:'Lista zakupów',icon:ic('list','🛒'),pk:1},
     {id:'contact',label:'Kontakt',icon:ic('contact','📞')},
     {id:'notify',label:'Powiadomienia',icon:ic('bell','🔔')},

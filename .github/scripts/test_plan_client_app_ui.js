@@ -40,7 +40,8 @@ async function open(browser, withPlan) {
     let { ctx, page, errors } = await open(browser, true);
     ok('Dzisiaj: karta jedzenia na dziś', await page.locator('[data-pkc-today]').count() === 1 && /kcal/.test(await page.textContent('[data-pkc-today]')));
     const more = await page.evaluate(() => capLiveMoreScreens().map(s => s.label));
-    ok('Więcej: Moje jedzenie i Lista zakupów', more.includes('Moje jedzenie') && more.includes('Lista zakupów'), more.join(','));
+    const navL = await page.evaluate(() => capLiveNavScreens().map(s => s.label));
+    ok('Dieta na dolnym pasku, Lista zakupów w „Trener”', navL.includes('Dieta') && !more.includes('Moje jedzenie') && more.includes('Lista zakupów'), navL.join(',') + ' | ' + more.join(','));
     await page.click('[data-pkc-today] >> text=Moje jedzenie');
     await page.waitForSelector('[data-pkc-food="week"]');
     ok('Moje jedzenie: nagłówek z imieniem, celem i makro', await page.evaluate(() => { const h = document.querySelector('[data-dpv-head]'); return !!h && /Anna/.test(h.textContent) && /Łagodna redukcja/.test(h.textContent) && /białko/.test(h.textContent) && /korzystaj z zamienników/.test(h.textContent); }));
@@ -91,7 +92,7 @@ async function open(browser, withPlan) {
 
     ({ ctx, page, errors } = await open(browser, false));
     ok('bez planu: brak karty jedzenia', await page.locator('[data-pkc-today]').count() === 0);
-    ok('bez planu: brak pozycji w Więcej', await page.evaluate(() => !capLiveMoreScreens().some(s => s.id === 'food' || s.id === 'shopping')));
+    ok('bez planu: brak Diety i listy zakupów', await page.evaluate(() => !capLiveMoreScreens().some(s => s.id === 'food' || s.id === 'shopping') && !capLiveNavScreens().some(s => s.id === 'food')));
     await page.evaluate(() => capGoScreen('checkin'));
     await page.waitForTimeout(150);
     ok('bez planu: check-in bez nowych pytań', !/Co było najtrudniejsze/.test(await page.textContent('body')));

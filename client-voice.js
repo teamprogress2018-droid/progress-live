@@ -268,7 +268,8 @@ function pvPlay(item){
   const a=urls.length?pvAudioEl():null;
   if(a){
     let i=0;
-    const fallback=()=>{if(PV.speaking!==item)return;a.onended=a.onerror=null;PV.audio=null;if(i===0)pvSpeak(item,s);else pvDone(item);};
+    // Głos trenera: gdy nagranie nie zagra, milczymy — nigdy nie przechodzimy na głos telefonu (inny, np. kobiecy).
+    const fallback=()=>{if(PV.speaking!==item)return;a.onended=a.onerror=null;PV.audio=null;if(i===0&&s.voice!=='trainer')pvSpeak(item,s);else pvDone(item);};
     const next=()=>{
       if(PV.speaking!==item)return;
       if(i>=urls.length){a.onended=a.onerror=null;PV.audio=null;pvDone(item);return;}
@@ -282,6 +283,8 @@ function pvPlay(item){
     clearTimeout(PV.timer);PV.timer=setTimeout(()=>{try{a.pause();}catch(e){}if(PV.speaking===item){PV.audio=null;pvDone(item);}},20000);
     return;
   }
+  // Głos trenera bez nagrania tego zdania (albo paczka jeszcze się nie wczytała) — pomijamy, bez głosu telefonu.
+  if(s.voice==='trainer'){PV.skipped=(PV.skipped||0)+1;pvDone(item);return;}
   pvSpeak(item,s);
 }
 function pvPlVoice(syn,want){

@@ -117,3 +117,10 @@
 
 ### Stan
 - Nie testowane z prawdziwym modelem ani na telefonie.
+
+## Poprawki po teście na iPhonie (gałąź `feature/3.0-fixes-voice-diet`)
+- **Tylko głos trenera:** przy wybranym „Głos Twojego trenera” aplikacja nie przechodzi już na głos telefonu (był kobiecy) — zdania bez nagrania są pomijane, odliczanie przerwy bez nagrania = krótki sygnał (`client-voice.js` pvPlay, `client-simple.js` csRestSpeak).
+- **Zamykanie okien:** okna (`.pv-gate`) mają odstęp od paska stanu iPhone'a (safe area), a w Progress AI pasek z „×” jest przyklejony u góry podczas przewijania.
+- **Zakładka „Dieta”** na dolnym pasku, gdy klient ma zatwierdzony jadłospis — także ten z kalkulatora (tekst rozbity na dni, posiłki, listę zakupów). „Moje jedzenie” zniknęło z listy w „Trener”.
+- **Pakiet się kończy** na „Dzisiaj”: przy ≤ 2 treningach albo ≤ 5 dniach ważności karta „Pakiet wkrótce się kończy” z „Napisz do trenera”.
+- Test `test_client_fixes_ui.js`; zaktualizowane `test_client_voice.js`, `test_plan_client_app_ui.js`.
