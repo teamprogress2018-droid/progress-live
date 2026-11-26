@@ -36,3 +36,8 @@ Każdy etap to osobny PR do `main`. Wycofanie = `git revert` commita merge'a dan
 - [x] 3a Progress Coach — nowe sygnały w „Wymagają uwagi” (PR feature/3.0-coach)
 - [x] 3b Powiadomienia ze zdarzeń (rekord, kończący się pakiet, podsumowanie miesiąca; dłuższa przerwa = istniejące F) + limit dziennie — zaprojektowane, zaimplementowane, testy jednostkowe; **działa dopiero po wdrożeniu funkcji serwera** (`commsScheduler`)
 - [x] 3c Academy dla klienta (PR feature/3.0-academy)
+
+## Etap 4 — postęp
+- [x] 4a Komendy głosowe w treningu (`voice-commands.js`) — zaprojektowane, zaimplementowane, testy jednostkowe + UI na atrapie rozpoznawania mowy; **nie testowane na prawdziwym iPhonie**
+- [ ] 4b Progress AI dla klienta — wymaga zmiany pośrednika AI (dziś przyjmuje tylko token trenera) i decyzji o kosztach
+- [ ] 4c Vision (pilotaż) — po 4b

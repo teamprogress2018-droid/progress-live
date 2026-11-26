@@ -964,3 +964,10 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .ac-pick legend { font-weight: 650; padding: 0 4px; }
 .ac-own-h { margin: 12px 0 4px; font-size: 0.9375rem; }
 .ac-new { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid var(--border-subtle); }
+
+/* Progress Live 3.0 — komendy głosowe (voice-commands.js) */
+.vc-mic { width: 44px; height: 44px; flex: 0 0 44px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: transparent; color: var(--text-primary); cursor: pointer; }
+.vc-mic:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.vc-mic.is-on { background: var(--accent); color: var(--on-accent); animation: vc-pulse 1.2s ease-in-out infinite; }
+@keyframes vc-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), .45); } 50% { box-shadow: 0 0 0 8px rgba(var(--accent-rgb), 0); } }
+@media (prefers-reduced-motion: reduce) { .vc-mic.is-on { animation: none; } }

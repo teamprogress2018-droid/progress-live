@@ -85,3 +85,17 @@
 
 ### Stan
 - Zaprojektowane i zaimplementowane; testy jednostkowe przechodzą lokalnie. Nie testowane na prawdziwym telefonie ani na serwerze.
+
+## Etap 4a — Komendy głosowe (gałąź `feature/3.0-next`)
+
+### Dodane (`voice-commands.js`, style w `client-simple.css`)
+- Mikrofon obok głośnika na ekranie ćwiczenia i przerwy — tylko gdy klient włączy „Komendy głosowe” w Profilu (domyślnie wyłączone) i przeglądarka ma rozpoznawanie mowy.
+- Słuchanie po dotknięciu, jedno zdanie po polsku. Komendy: „60 kilo 10 powtórzeń”, „80 na 5”, „zapisz” / „zrobione”, „dalej”, „poprzednie”, „cofnij”, „pomiń przerwę” / „gotowy”, „dodaj 30 sekund”, „wycisz” / „włącz głos”, „technika”, „boli” (tylko otwiera formularz bólu).
+- Liczby słownie i cyfrą („sześćdziesiąt dwa i pół”, „62,5”). Te same funkcje co przyciski — bez nowej ścieżki zapisu.
+- Testy `test_voice_commands.js`, `test_voice_commands_ui.js`.
+
+### Prywatność
+- Mowę rozpoznaje usługa telefonu (Apple / Google). Progress nie zapisuje nagrań ani transkrypcji.
+
+### Stan
+- Nie testowane na prawdziwym iPhonie (Safari wymaga zgody na mikrofon i rozpoznawanie mowy; jakość rozpoznawania liczb do sprawdzenia na sali).
