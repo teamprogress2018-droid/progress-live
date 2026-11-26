@@ -16,7 +16,8 @@ const W='https://anthropic-proxy.teamprogress2018.workers.dev/';
     const token=typeof window._authIdToken==='function'?await window._authIdToken():null;
     if(token)headers.set('Authorization','Bearer '+token);
     opts.headers=headers;
-    return nativeFetch(W,opts);
+    // Ścieżka pośrednika (np. W+'client' dla Progress AI klienta) zostaje; api.anthropic.com → W.
+    return nativeFetch(url.indexOf(W)===0?url:W,opts);
   };
   wrapped._aiProxyAuth=true;
   window.fetch=wrapped;

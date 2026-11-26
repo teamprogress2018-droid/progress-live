@@ -99,3 +99,21 @@
 
 ### Stan
 - Nie testowane na prawdziwym iPhonie (Safari wymaga zgody na mikrofon i rozpoznawanie mowy; jakość rozpoznawania liczb do sprawdzenia na sali).
+
+## Etap 4b — Progress AI dla klienta (gałąź `feature/3.0-client-ai`)
+
+### Dodane
+- `client-ai.js`: karta „Progress AI” w zakładce „Trener” (tylko gdy trener włączył), okno rozmowy z 3 szybkimi pytaniami, licznikiem pytań i przyciskiem „Napisz do trenera”. Rozmowa tylko w pamięci.
+- Karta trenera w profilu klienta → Plan: włącz / wyłącz, limit 5 / 10 / 20 / 30 pytań dziennie (domyślnie wyłączone, limit 10). Pole `client.aiCoach`.
+- Pośrednik AI (`server/ai-proxy/worker.mjs`): ścieżka `/client` — konto klienta sprawdzane w Firestore, stały prompt bezpieczeństwa (bez diagnoz, bez zmian planu, bez diet; przy bólu do trenera, przy objawach 112), limity na klienta i na trenera, przycinanie danych wejściowych.
+- `01-core.js`: zabezpieczenie zapytań AI zachowuje ścieżkę pośrednika (`W+'client'`).
+- Kontekst dla AI: cel, plan na dziś, tydzień, 5 ostatnich treningów; kontuzje tylko przy zgodzie na dane o zdrowiu.
+- Polityka prywatności: opis Progress AI, nowa wersja `2026-11-26` (każdy klient raz potwierdzi politykę).
+- Testy: `server/ai-proxy/test-worker.mjs` (rozszerzony), `test_client_ai_ui.js`.
+
+### Wymaga od właściciela
+- Wklejenie nowego `worker.mjs` w Cloudflare (instrukcja: `docs/ai-proxy-worker.md`).
+- Włączenie Progress AI wybranym klientom.
+
+### Stan
+- Nie testowane z prawdziwym modelem ani na telefonie.
