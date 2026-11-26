@@ -18,6 +18,10 @@
     firstWorkoutCheck:{on:true,afterHours:3},     // D
     weeklySummary:{on:false,weekday:0,hour:'18:00'},// E (0 = niedziela)
     inactivity:{on:true,days:7,trainerAfterDays:3},// F
+    personalRecord:{on:true},                     // G (3.0) gratulacje po rekordzie osobistym
+    packageEnding:{on:true,daysBefore:5},         // H (3.0) kończący się pakiet / ostatni trening w pakiecie
+    monthlySummary:{on:true,hour:'18:00'},        // I (3.0) podsumowanie miesiąca (Progress Wrapped) 1. dnia miesiąca
+    maxPerDay:2,                                  // limit automatów do klienta na dobę (bez spotkań)
     quiet:{from:'21:00',to:'08:00'},
     maxAttempts:3,
     retryMinutes:[5,20,60]
@@ -158,7 +162,88 @@
         }
       }
     });
+    planJobs3(state,nowMs,st,push,enabledAt);
     return out.filter(j=>isFinite(j.dueAt));
+  }
+
+  // ---------- zdarzenia 3.0 (G–I) ----------
+  const DONE_SRC=['client','live','sala','homework'];
+  const exKey=n=>String(n||'').toLowerCase().replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+  const kgNum=v=>{const x=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(x)?x:0;};
+  /** Najcięższa seria robocza (kg) każdego ćwiczenia w treningu. */
+  function sessionBest(s){
+    const out={};
+    ((s&&s.exercises)||[]).forEach(ex=>{
+      if(!ex||ex.skipped||(ex.loadUnit&&ex.loadUnit!=='kg'))return;
+      const k=exKey(ex.name);if(!k)return;
+      ((ex.sets||ex.loggedSets||[])).forEach(st=>{if(!st||st.kind==='warmup'||st.done===false)return;const kg=kgNum(st.kg);if(kg>0&&(!out[k]||kg>out[k]))out[k]=kg;});
+    });
+    return out;
+  }
+  const doneTime=s=>Date.parse(s.completedAt||s.updatedAt||s.createdAt||'')||Date.parse(String(s.date||'')+'T12:00:00Z')||0;
+  /** Rekordy w treningu: ciężar wyższy niż WSZYSTKIE wcześniejsze zapisy tego ćwiczenia (pierwszy zapis to nie rekord).
+   *  history = pełna historia klienta — bez niej rekordu nie ogłaszamy (żadnych „rekordów” z niepełnych danych). */
+  function sessionPRs(s,history){
+    if(!s||!Array.isArray(history))return [];
+    const t=doneTime(s),d=String(s.date||'').slice(0,10);
+    const earlier=history.filter(x=>x&&x.id!==s.id&&DONE_SRC.includes(x.source)&&x.status!=='in_progress'&&(String(x.date||'').slice(0,10)<d||(String(x.date||'').slice(0,10)===d&&doneTime(x)<t)));
+    const prev={};earlier.forEach(x=>{const b=sessionBest(x);Object.keys(b).forEach(k=>{if(!prev[k]||b[k]>prev[k])prev[k]=b[k];});});
+    const cur=sessionBest(s);
+    return Object.keys(cur).filter(k=>prev[k]&&cur[k]>prev[k]);
+  }
+  /** Aktywny pakiet klienta (ta sama zasada co w aplikacji: nie wygasły, najpóźniej kończący się). */
+  function activePackage(packages,clientId){
+    const list=(packages||[]).filter(p=>p&&p.clientId===clientId&&p.status!=='expired'&&p.payStatus!=='expired');
+    return list.sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0]||null;
+  }
+  const MEETING_KINDS=['meeting_reminder','meeting_change','meeting_cancel'];
+  /** Dzienny limit automatów do klienta w dniu kalendarzowym (Warszawa; spotkania i zadania trenera się nie liczą). sentAt: lista czasów (ms) wysyłek do klienta. */
+  function overDailyLimit(job,sentAt,nowMs,max){
+    if(!job||job.audience==='trainer'||MEETING_KINDS.includes(job.kind))return false;
+    const m=Number(max);if(!(m>0))return false;
+    const day=warsawParts(nowMs).ymd;return (sentAt||[]).filter(t=>t<=nowMs&&warsawParts(t).ymd===day).length>=m;
+  }
+  function planJobs3(state,nowMs,st,push,enabledAt){
+    const clients=(state&&state.clients)||[],sessions=(state&&state.sessions)||[],packages=(state&&state.packages)||[];
+    const history=(state&&state.history)||{};
+    const p=warsawParts(nowMs);
+    clients.forEach(c=>{
+      if(!c||!c.id||clientPaused(c,nowMs))return;
+      const mine=sessions.filter(s=>s&&s.clientId===c.id&&DONE_SRC.includes(s.source)&&s.status!=='in_progress');
+      // G. Rekord osobisty — tylko z pełną historią klienta, w ciągu 2 dni od treningu.
+      if(st.personalRecord.on&&history[c.id]){
+        mine.forEach(s=>{
+          const t=doneTime(s);if(!t||t<enabledAt||nowMs-t>2*DAY)return;
+          if(sessionPRs(s,history[c.id]).length)push({id:`pr:${s.id}`,kind:'personal_record',clientId:c.id,dueAt:t+20*MIN,ref:s.id});
+        });
+      }
+      // H. Kończący się pakiet (N dni przed datą) i ostatni trening w pakiecie.
+      if(st.packageEnding.on){
+        const pkg=activePackage(packages,c.id);
+        if(pkg){
+          const exp=String(pkg.expiresDate||'').slice(0,10);
+          if(/^\d{4}-\d{2}-\d{2}$/.test(exp)&&exp>=p.ymd){
+            const start=addDaysYmd(exp,-Math.max(1,Number(st.packageEnding.daysBefore)||5));
+            // Stały termin (bez nowMs) — kolejka się nie „przesuwa” przy każdym przebiegu.
+            const due=Math.max(warsawToMs(start,'10:00'),enabledAt);
+            if(addDaysYmd(start,-1)<=p.ymd)push({id:`pkgend:${pkg.id}:${exp}`,kind:'package_ending',clientId:c.id,dueAt:due,ref:pkg.id,expires:exp});
+          }
+          const total=Number(pkg.sessions)||0,used=Number(pkg.sessionsUsed)||0;
+          const t=Date.parse(pkg.updatedAt||'');
+          if(total>1&&total-used===1&&Number.isFinite(t)&&t>=enabledAt&&nowMs-t<3*DAY)
+            push({id:`pkglast:${pkg.id}:${total}`,kind:'package_last',clientId:c.id,dueAt:t+5*MIN,ref:pkg.id});
+        }
+      }
+      // I. Podsumowanie miesiąca: 1. dnia miesiąca o ustalonej godzinie, gdy w poprzednim miesiącu był trening.
+      if(st.monthlySummary.on&&Number(p.ymd.slice(8,10))<=3){
+        const first=p.ymd.slice(0,8)+'01';
+        const prevYm=addDaysYmd(first,-1).slice(0,7);
+        if(mine.some(s=>String(s.date||'').slice(0,7)===prevYm)){
+          const due=warsawToMs(first,st.monthlySummary.hour);
+          if(due>=enabledAt&&nowMs-due<3*DAY)push({id:`month:${c.id}:${prevYm}`,kind:'monthly_summary',clientId:c.id,dueAt:due,ref:prevYm});
+        }
+      }
+    });
   }
 
   /**
@@ -178,7 +263,7 @@
     });
     Object.keys(have).forEach(id=>{
       const h=have[id];
-      if(!want[id]&&(h.status==='scheduled'||h.status==='retry')&&h.audience!=='trainer'&&['meeting_reminder','first_workout_check','weekly_summary','inactivity_nudge'].includes(h.kind))cancel.push({id,reason:'nieaktualne'});
+      if(!want[id]&&(h.status==='scheduled'||h.status==='retry')&&h.audience!=='trainer'&&['meeting_reminder','first_workout_check','weekly_summary','inactivity_nudge','package_ending','monthly_summary'].includes(h.kind))cancel.push({id,reason:'nieaktualne'});
     });
     return {create,cancel,update};
   }
@@ -202,7 +287,8 @@
   }
   function categoryOf(kind){
     return {meeting_reminder:'meetings',meeting_change:'meetings',meeting_cancel:'meetings',new_plan:'plan',
-      first_workout_check:'checkins',weekly_summary:'checkins',inactivity_nudge:'checkins'}[kind]||'other';
+      first_workout_check:'checkins',weekly_summary:'checkins',inactivity_nudge:'checkins',
+      personal_record:'checkins',monthly_summary:'checkins',package_ending:'plan',package_last:'plan'}[kind]||'other';
   }
   function pickChannel(pref,job){return channelsFor(pref,job)[0];}
   /** Po błędzie: ponów ten sam kanał (z przerwą), po wyczerpaniu prób — kolejny kanał; potem „błąd”. */
@@ -251,6 +337,8 @@
     const months=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
     return `${days[p.weekday]}, ${d} ${months[m-1]}, ${p.hm.replace(/^0/,'')}`;
   }
+  function fmtDay(ymd){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd||''));if(!m)return '';
+    const months=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];return Number(m[3])+' '+months[Number(m[2])-1];}
   /** Treść powiadomienia. Na zablokowanym ekranie: bez zdrowia, pomiarów i nazwy klienta. */
   function texts(job,opts){
     const o=opts||{};const studio=o.studio||'Progress';
@@ -264,7 +352,11 @@
       first_workout_check:{title:'Jak się czujesz po treningu?',body:'Odpowiedz jednym kliknięciem w aplikacji.',url:'?cs=feel'},
       weekly_summary:{title:'Podsumowanie tygodnia',body:'Zobacz, co udało się zrobić w tym tygodniu.',url:'?cs=progress'},
       inactivity_nudge:{title:'Dawno nie było treningu',body:'Jeśli coś przeszkadza, napisz — razem coś ustalimy.',url:'?cs=chat'},
-      trainer_contact:{title:'Skontaktuj się z klientem',body:'Brak aktywności mimo przypomnienia.',url:'?screen=inbox'}
+      trainer_contact:{title:'Skontaktuj się z klientem',body:'Brak aktywności mimo przypomnienia.',url:'?screen=inbox'},
+      personal_record:{title:'Nowy rekord osobisty!',body:'Gratulacje — zobacz go w Postępach.',url:'?cs=progress'},
+      package_ending:{title:'Pakiet treningów wkrótce się kończy',body:(job.expires?'Ważny do '+fmtDay(job.expires)+'. ':'')+'Porozmawiaj z trenerem o przedłużeniu.',url:'?cs=chat'},
+      package_last:{title:'Ostatni trening w pakiecie',body:'Porozmawiaj z trenerem o kolejnym pakiecie.',url:'?cs=chat'},
+      monthly_summary:{title:'Twoje podsumowanie miesiąca jest gotowe',body:'Zobacz, co udało się osiągnąć.',url:'?cs=progress'}
     };
     const t=map[job.kind]||{title:studio,body:'',url:''};
     return {title:`${studio}: ${t.title}`,body:t.body,url:t.url,tag,systemNote:`${tag} — wiadomość wysłana automatycznie, nie przez trenera osobiście.`};
@@ -279,7 +371,11 @@
       new_plan:{name:'progress_nowy_plan',lang:'pl',vars:[]},
       first_workout_check:{name:'progress_samopoczucie',lang:'pl',vars:[]},
       weekly_summary:{name:'progress_podsumowanie_tygodnia',lang:'pl',vars:[]},
-      inactivity_nudge:{name:'progress_brak_aktywnosci',lang:'pl',vars:[]}
+      inactivity_nudge:{name:'progress_brak_aktywnosci',lang:'pl',vars:[]},
+      personal_record:{name:'progress_rekord',lang:'pl',vars:[]},
+      package_ending:{name:'progress_pakiet_konczy_sie',lang:'pl',vars:[job.expires?fmtDay(job.expires):'']},
+      package_last:{name:'progress_pakiet_ostatni_trening',lang:'pl',vars:[]},
+      monthly_summary:{name:'progress_podsumowanie_miesiaca',lang:'pl',vars:[]}
     })[job.kind]||null;
   }
 
@@ -292,7 +388,7 @@
   function caseNeedsReply(c){return c&&c.type!=='meeting_confirm';}
 
   const api={TZ,DEFAULTS,settingsOf,warsawParts,warsawToMs,addDaysYmd,outsideQuiet,clientPaused,isMeeting,meetingMs,meetingState,stampOf,
-    planJobs,reconcile,channelsFor,categoryOf,pickChannel,nextAfterFailure,applyProviderEvent,staleStatus,LABEL,texts,whatsappTemplate,fmtWhen,
+    planJobs,reconcile,channelsFor,sessionPRs,sessionBest,activePackage,overDailyLimit,categoryOf,pickChannel,nextAfterFailure,applyProviderEvent,staleStatus,LABEL,texts,whatsappTemplate,fmtWhen,
     CASE_TYPES,CASE_LABEL,CASE_STATUS,caseNeedsReply};
   root.CommsCore=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;

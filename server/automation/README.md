@@ -204,6 +204,8 @@ idą zwykłą wiadomością czatu ze znacznikiem, a „Do odpowiedzi” odczytuj
    `firebase functions:secrets:set VAPID_PRIVATE_KEY --project progress-live-fc83d`.
 3. WhatsApp (opcjonalnie): konto Meta Business, WhatsApp Business Account, numer z dodaną płatnością,
    zatwierdzone szablony (kategoria utility, język pl) o nazwach z `comms-core.js → whatsappTemplate`.
+   Progress Live 3.0 dodaje szablony: `progress_rekord`, `progress_pakiet_konczy_sie` (zmienna: data), `progress_pakiet_ostatni_trening`,
+   `progress_podsumowanie_miesiaca` — bez ich zatwierdzenia te wiadomości idą tylko jako push.
    Sekrety: `WHATSAPP_TOKEN` (token systemowy), `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`.
    Parametr: `WHATSAPP_PHONE_NUMBER_ID`. Adres webhooka: URL funkcji `whatsappWebhook`, pole `messages`.
    Na końcu dopisać `COMMS_WHATSAPP=on` do `server/automation/.env.progress-live-fc83d` i dodać `WA_TOKEN` do `secrets` funkcji

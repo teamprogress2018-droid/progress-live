@@ -34,5 +34,5 @@ Każdy etap to osobny PR do `main`. Wycofanie = `git revert` commita merge'a dan
 
 ## Etap 3 — postęp
 - [x] 3a Progress Coach — nowe sygnały w „Wymagają uwagi” (PR feature/3.0-coach)
-- [ ] 3b Powiadomienia ze zdarzeń (rekord, kończący się pakiet, podsumowanie miesiąca, dłuższa przerwa) — wymaga wdrożenia funkcji serwera
+- [x] 3b Powiadomienia ze zdarzeń (rekord, kończący się pakiet, podsumowanie miesiąca; dłuższa przerwa = istniejące F) + limit dziennie — zaprojektowane, zaimplementowane, testy jednostkowe; **działa dopiero po wdrożeniu funkcji serwera** (`commsScheduler`)
 - [x] 3c Academy dla klienta (PR feature/3.0-academy)

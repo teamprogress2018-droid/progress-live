@@ -25,20 +25,30 @@ async function list(db, col, trainerId, extra) {
 
 /** Wczytuje stan trenera potrzebny do zaplanowania wiadomości. */
 async function loadState(db, trainerId, nowMs) {
-  const since = new Date(nowMs - 21 * DAY).toISOString().slice(0, 10);
-  const [clients, sessions, plans, prefsList, jobs, settingsDocs] = await Promise.all([
+  // 35 dni: podsumowanie miesiąca 1. dnia potrzebuje całego poprzedniego miesiąca.
+  const since = new Date(nowMs - 35 * DAY).toISOString().slice(0, 10);
+  const [clients, sessions, plans, prefsList, jobs, settingsDocs, packages] = await Promise.all([
     list(db, 'clients', trainerId),
     list(db, 'sessions', trainerId, q => q.where('date', '>=', since)),
     list(db, 'plans', trainerId),
     list(db, 'commsPrefs', trainerId),
     list(db, 'commsJobs', trainerId, q => q.where('dueAt', '>=', nowMs - 10 * DAY)),
-    list(db, 'settings', trainerId)
+    list(db, 'settings', trainerId),
+    list(db, 'packages', trainerId).catch(() => [])
   ]);
+  // Rekordy: pełna historia tylko klientów z treningiem ukończonym w ostatnich 2 dniach (mało odczytów).
+  const recent = new Set(sessions.filter(s => s && s.clientId && s.status !== 'in_progress' &&
+    (Date.parse(s.completedAt || s.updatedAt || '') || 0) > nowMs - 2 * DAY).map(s => s.clientId));
+  const history = {};
+  for (const cid of recent) {
+    try { history[cid] = await list(db, 'sessions', trainerId, q => q.where('clientId', '==', cid)); }
+    catch (e) { /* bez historii nie ogłaszamy rekordu */ }
+  }
   const prefs = {};
   prefsList.forEach(p => { prefs[p.clientId] = p; });
   const settings = (settingsDocs.find(s => s.comms) || {}).comms || {};
   // W kolejce id dokumentu to skrót, a logika porównuje stabilny klucz zadania (key).
-  return {clients, sessions, plans, prefs, jobs: jobs.map(j => ({...j, id: j.key || j.id})), settings};
+  return {clients, sessions, plans, prefs, packages, history, jobs: jobs.map(j => ({...j, id: j.key || j.id})), settings};
 }
 
 /** Przelicza kolejkę: tworzy brakujące zadania (tylko jeśli nie istnieją), anuluje nieaktualne. */
@@ -83,7 +93,24 @@ async function claim(db, jobId, runId, nowMs) {
 async function dispatchDue(db, trainerId, state, control, providers, {runId, nowMs, max = 50}) {
   const counts = {sent: 0, simulated: 0, failed: 0, retry: 0, inapp: 0, task: 0};
   const due = state.jobs.filter(j => OPEN.includes(j.status) && j.dueAt <= nowMs).slice(0, max);
+  // Dzienny limit automatów do klienta: wysłane w ostatniej dobie (z kolejki) + wysłane w tym przebiegu.
+  const maxPerDay = Core.settingsOf(state.settings).maxPerDay;
+  const sentAt = {};
+  state.jobs.forEach(j => {
+    if (!j.clientId || j.audience === 'trainer' || !['handed_over', 'delivered', 'simulated'].includes(j.status)) return;
+    const h = (j.history || []).slice().reverse().find(x => ['handed_over', 'delivered', 'simulated'].includes(x.status));
+    const t = Date.parse(h && h.at || '');
+    if (Number.isFinite(t) && !['meeting_reminder', 'meeting_change', 'meeting_cancel'].includes(j.kind)) (sentAt[j.clientId] = sentAt[j.clientId] || []).push(t);
+  });
+  counts.postponed = 0;
   for (const d of due) {
+    if (Core.overDailyLimit(d, sentAt[d.clientId], nowMs, maxPerDay)) {
+      // Przesuń na jutro 10:00 (poza ciszą nocną) zamiast zasypywać klienta.
+      const next = Core.warsawToMs(Core.addDaysYmd(Core.warsawParts(nowMs).ymd, 1), '10:00');
+      await db.collection('commsJobs').doc(d._id).update({dueAt: next,
+        history: (d.history || []).concat({at: new Date(nowMs).toISOString(), status: 'scheduled', note: 'limit wiadomości na dobę — przesunięte'})});
+      counts.postponed++; continue;
+    }
     const job = await claim(db, d._id, runId, nowMs);
     if (!job) continue;
     const iso = new Date(nowMs).toISOString();
@@ -106,11 +133,13 @@ async function dispatchDue(db, trainerId, state, control, providers, {runId, now
     if (channel === 'inapp') { await done({}, 'inapp', {note: 'brak zgody lub kanału — widoczne tylko w aplikacji'}); counts.inapp++; continue; }
     const text = Core.texts(job, {studio: (state.settings && state.settings.studioName) || 'Progress'});
     if (!control.live || !control.channels.includes(channel) || !providers[channel]) {
-      await done({}, 'simulated', {note: control.live ? 'kanał nie jest skonfigurowany' : 'tryb symulacji'}); counts.simulated++; continue;
+      await done({}, 'simulated', {note: control.live ? 'kanał nie jest skonfigurowany' : 'tryb symulacji'}); counts.simulated++;
+      (sentAt[job.clientId] = sentAt[job.clientId] || []).push(nowMs); continue;
     }
     const res = await providers[channel].send({job, pref, text, template: Core.whatsappTemplate(job), db, trainerId});
     if (res && res.ok) {
       await done({providerId: res.providerId || null, handedAt: iso}, 'handed_over'); counts.sent++;
+      (sentAt[job.clientId] = sentAt[job.clientId] || []).push(nowMs);
       continue;
     }
     const attemptJob = {...job, channel, attempts: (job.attempts || 0) + 1};

@@ -250,7 +250,7 @@
           <button type="button" class="cs-btn cs-btn-secondary" data-act="comms-wa-on">Zgadzam się na przypomnienia przez WhatsApp</button>`}
       </section>
       <section class="cs-card cs-card-flat"><h2 class="cs-card-title cs-card-title-sm">O czym przypominać</h2>
-        ${tog('meetings','Spotkania z trenerem (przypomnienie, zmiana, odwołanie)')}${tog('plan','Nowy plan treningowy')}${tog('checkins','Pytania o samopoczucie i podsumowanie tygodnia')}
+        ${tog('meetings','Spotkania z trenerem (przypomnienie, zmiana, odwołanie)')}${tog('plan','Nowy plan i pakiet treningów')}${tog('checkins','Samopoczucie, podsumowania i gratulacje (np. nowy rekord)')}
         <div class="comms-quiet"><span>Cisza nocna</span><label>od <input type="time" value="${esc((p.quiet||{}).from||'21:00')}" id="comms-quiet-from"></label><label>do <input type="time" value="${esc((p.quiet||{}).to||'08:00')}" id="comms-quiet-to"></label></div>
         <button type="button" class="cs-btn cs-btn-ghost" data-act="comms-quiet-save">Zapisz ciszę nocną</button>
         <p class="cs-sheet-hint">Zmiana lub odwołanie spotkania przychodzi także w czasie ciszy.</p>
@@ -419,8 +419,11 @@
   window.commsSessionStatusLine=sessionStatusLine;
 
   function settings(){const S=window.SETTINGS||{};return CC().settingsOf(S.comms||{});}
+  // Podgląd rekordów: w przeglądarce trener ma pełną historię klientów (SE).
+  function previewHistory(){const h={};(window.SE||[]).forEach(x=>{if(x&&x.clientId)(h[x.clientId]=h[x.clientId]||[]).push(x);});return h;}
   const KIND_LABEL={meeting_reminder:'Przypomnienie dzień przed spotkaniem',meeting_change:'Zmiana terminu',meeting_cancel:'Odwołanie spotkania',new_plan:'Nowy plan',
-    first_workout_check:'Pytanie po pierwszym treningu',weekly_summary:'Podsumowanie tygodnia',inactivity_nudge:'Przypomnienie po braku aktywności',trainer_contact:'Zadanie: kontakt z klientem'};
+    first_workout_check:'Pytanie po pierwszym treningu',weekly_summary:'Podsumowanie tygodnia',inactivity_nudge:'Przypomnienie po braku aktywności',trainer_contact:'Zadanie: kontakt z klientem',
+    personal_record:'Gratulacje: nowy rekord',package_ending:'Pakiet wkrótce się kończy',package_last:'Ostatni trening w pakiecie',monthly_summary:'Podsumowanie miesiąca'};
   const CH_LABEL={push:'Powiadomienie push',whatsapp:'WhatsApp',inapp:'Tylko w aplikacji',trainer_task:'Do odpowiedzi (trener)'};
   function prefsSummary(cid){
     const p=COMMS.prefs[cid];
@@ -469,7 +472,7 @@
   function panelHTML(){
     const st=settings(),C=CC();
     const S=window.SETTINGS||{};const enabledAt=(S.comms&&S.comms.enabledAt)||new Date(Date.now()-864e5).toISOString();
-    const preview=C.planJobs({clients:window.CL||[],sessions:window.SE||[],plans:window.PL||[],settings:S.comms||{},enabledAt},Date.now())
+    const preview=C.planJobs({clients:window.CL||[],sessions:window.SE||[],plans:window.PL||[],packages:window.PACKAGES||[],history:previewHistory(),settings:S.comms||{},enabledAt},Date.now())
       .filter(j=>j.dueAt>=Date.now()-36e5).sort((a,b)=>a.dueAt-b.dueAt).slice(0,25);
     const fmt=ms=>{const p=C.warsawParts(ms);return p.ymd.slice(8,10)+'.'+p.ymd.slice(5,7)+' '+p.hm;};
     const running=channelState('push')!=='not_running';
@@ -495,6 +498,10 @@
       ${row(st.firstWorkoutCheck.on,'firstWorkoutCheck.on','D. Pytanie o samopoczucie po pierwszym treningu',` po <input type="number" min="1" max="24" data-cfg="firstWorkoutCheck.afterHours" value="${esc(st.firstWorkoutCheck.afterHours)}"> godz.`)}
       ${row(st.weeklySummary.on,'weeklySummary.on','E. Podsumowanie tygodnia',` w <select data-cfg="weeklySummary.weekday">${['niedzielę','poniedziałek','wtorek','środę','czwartek','piątek','sobotę'].map((d,i)=>`<option value="${i}" ${+st.weeklySummary.weekday===i?'selected':''}>${d}</option>`).join('')}</select> o <input type="time" data-cfg="weeklySummary.hour" value="${esc(st.weeklySummary.hour)}">`)}
       ${row(st.inactivity.on,'inactivity.on','F. Jedno przypomnienie po braku treningu',` po <input type="number" min="3" max="30" data-cfg="inactivity.days" value="${esc(st.inactivity.days)}"> dniach, potem zadanie dla Ciebie po <input type="number" min="1" max="14" data-cfg="inactivity.trainerAfterDays" value="${esc(st.inactivity.trainerAfterDays)}"> dniach`)}
+      ${row(st.personalRecord.on,'personalRecord.on','G. Gratulacje po nowym rekordzie osobistym (ciężar wyższy niż wszystkie poprzednie)')}
+      ${row(st.packageEnding.on,'packageEnding.on','H. Pakiet się kończy',` — <input type="number" min="1" max="14" data-cfg="packageEnding.daysBefore" value="${esc(st.packageEnding.daysBefore)}"> dni przed datą oraz przy ostatnim treningu w pakiecie`)}
+      ${row(st.monthlySummary.on,'monthlySummary.on','I. Podsumowanie miesiąca (1. dnia miesiąca)',` o <input type="time" data-cfg="monthlySummary.hour" value="${esc(st.monthlySummary.hour)}">`)}
+      <div class="comms-quiet-t">Najwyżej <input type="number" min="1" max="5" data-cfg="maxPerDay" value="${esc(st.maxPerDay)}"> automatycznych wiadomości do klienta na dobę (spotkania się nie liczą — reszta przesuwa się na następny dzień).</div>
       <div class="comms-quiet-t">Cisza nocna (domyślnie dla klientów): od <input type="time" data-cfg="quiet.from" value="${esc(st.quiet.from)}"> do <input type="time" data-cfg="quiet.to" value="${esc(st.quiet.to)}"></div>
       <p class="comms-note">Czas: Europe/Warsaw (ze zmianą czasu). Klienci na przerwie lub zawieszeni nie dostają wiadomości. Każda wiadomość jest oznaczona jako przypomnienie systemowe — nie udaje, że piszesz osobiście.</p>
       <button type="button" class="btn btn-primary btn-sm" data-act="comms-save-cfg">Zapisz ustawienia</button>
