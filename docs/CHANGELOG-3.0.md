@@ -38,3 +38,11 @@
 - Klient: „Mniej czasu?” na „Dzisiaj” (tylko gdy trener włączył) → 3 warianty z czasem → start od razu (2 dotknięcia).
 - Zapis: `client.express` (karta klienta), w treningu `planSnapshot.variant` (rodzaj, czas, pominięte, limit serii). Trener widzi „Wariant: …” w oknie treningu i w wiadomości „Zrobiłem trening…”. Bez zmian reguł Firestore.
 - Testy: `test_express.js`, `test_express_ui.js`.
+
+## Etap 2c — Progress Journey + Rewards (gałąź `feature/3.0-journey`)
+
+- `journey.js`: „Twoja droga” (kamienie milowe: pierwszy trening, tydzień, 10 treningów, miesiąc, pierwszy rekord, 30/50 treningów, 100 dni, cel ustalony z trenerem) i „Odznaki” (8: Pierwszy krok, Regularność, Konsekwencja, Wytrwałość, Rekordzista, Zdrowe nawyki, Progress Champion, Progress Elite) na ekranie Postępy.
+- Wszystko liczone z zapisanych treningów przy każdym wyświetleniu — brak podwójnego naliczania; data zdobycia = dzień spełnienia warunku. Bez nagród za objętość i trening mimo bólu.
+- Trener (profil klienta → Plan): nagroda za odznakę (lista lub własna), „wręczona”, indywidualny cel klienta i jego osiągnięcie; „Do wręczenia (N)”. Klient widzi nagrodę dopiero po zdobyciu odznaki.
+- Zapis: `client.rewards`, `client.journeyGoal` (karta klienta). Bez zmian reguł Firestore.
+- Testy: `test_journey.js`, `test_journey_ui.js`.

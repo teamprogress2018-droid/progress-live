@@ -895,3 +895,31 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .xp-prev th, .xp-prev td { padding: 8px; border-top: 1px solid var(--border-subtle); text-align: left; vertical-align: top; }
 .xp-prev thead th { color: var(--text-secondary); font-weight: 600; }
 .xp-names { color: var(--text-secondary); }
+
+/* Progress Journey + Rewards (journey.js): oś drogi klienta, odznaki, nagroda od trenera. */
+.pj-list { list-style: none; margin: 8px 0 0; padding: 0; position: relative; }
+.pj-list::before { content: ""; position: absolute; left: 11px; top: 6px; bottom: 6px; width: 2px; background: var(--border-subtle); }
+.pj-item { position: relative; display: flex; gap: 12px; padding: 8px 0; }
+.pj-dot { position: relative; z-index: 1; flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-card); border: 2px solid var(--border-subtle); color: var(--bg-card); }
+.pj-item.is-done .pj-dot { background: var(--success); border-color: var(--success); }
+.pj-item.is-next .pj-dot { border-color: var(--text-primary); }
+.pj-item.is-later { opacity: .6; }
+.pj-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; font-size: 1rem; color: var(--text-primary); }
+.pj-sub { font-size: 0.875rem; color: var(--text-secondary); }
+.pj-bar { height: 8px; border-radius: 999px; background: var(--border-subtle); overflow: hidden; margin-top: 4px; max-width: 280px; }
+.pj-bar span { display: block; height: 100%; background: var(--text-primary); border-radius: inherit; }
+@media (prefers-reduced-motion: no-preference) { .pj-item.is-fresh .pj-dot { animation: pj-pop .6s ease-out 1; } }
+@keyframes pj-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.pj-count { margin-left: auto; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); }
+.pj-grid { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pj-badge { display: flex; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-card); color: var(--text-secondary); font-size: 0.9375rem; }
+.pj-badge b { color: var(--text-secondary); }
+.pj-badge.is-on { border-color: color-mix(in srgb, var(--success) 40%, var(--border-subtle)); }
+.pj-badge.is-on b { color: var(--text-primary); }
+.pj-medal { display: inline-flex; width: 36px; height: 36px; border-radius: 50%; align-items: center; justify-content: center; background: color-mix(in srgb, var(--text-secondary) 10%, var(--bg-card)); color: var(--text-secondary); }
+.pj-badge.is-on .pj-medal { background: color-mix(in srgb, var(--success) 14%, var(--bg-card)); color: var(--success); }
+.pj-gift { color: var(--text-primary); font-weight: 600; }
+.pj-prize { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0 4px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--success) 10%, var(--bg-card)); font-size: 0.9375rem; line-height: 1.45; color: var(--text-primary); }
+.pj-todo { margin: 6px 0 0; font-size: 0.875rem; color: var(--text-primary); }
+.pj-given { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; min-height: 36px; }
+.pj-table select, .pj-table input { min-height: 36px; margin-bottom: 4px; }

@@ -309,6 +309,8 @@ function cpgProgressHTML(c){
       ${target?`<div class="cpg-goal-row"><span class="cpg-goal-segs" aria-hidden="true">${seg}</span><b>${Math.min(weekDone,target)} z ${target}</b></div><p class="cpg-goal-src">${plan?'Cel z Twojego planu: '+target+' '+csPlural(target,'trening','treningi','treningów')+' w tygodniu':'Cel z Twojego harmonogramu'}</p>`:''}
     </section>
     ${ach.length?`<section class="cpg-ach" data-cpg-ach aria-label="Osiągnięcia">${ach.map(a=>`<div class="cpg-ach-item"><span class="cpg-ach-ico">${csIcon(a.ico,18)}</span><span><b>${csEsc(a.text)}</b>${a.sub?`<em>${csEsc(a.sub)}</em>`:''}</span></div>`).join('')}</section>`:''}
+    ${typeof pjJourneyHTML==='function'?pjJourneyHTML(c):''}
+    ${typeof pjBadgesHTML==='function'?pjBadgesHTML(c):''}
     <div class="cpg-range" role="group" aria-label="Okres">${CPG_RANGES.map(r=>`<button type="button" class="cpg-chip${r[0]===range?' is-on':''}" aria-pressed="${r[0]===range?'true':'false'}" data-cpg-range="${r[0]}">${r[1]}</button>`).join('')}</div>
     <div class="cpg-kpis" data-cpg-kpis>
       <section class="cs-stat cpg-kpi"><span class="cs-stat-label">Treningi · ${csEsc(rangeLbl.toLowerCase())}</span><span class="cs-stat-value">${days}</span></section>

@@ -93,6 +93,7 @@ jobs:
           node .github/scripts/test_client_readiness.js
           node .github/scripts/test_client_voice.js
           node .github/scripts/test_express.js
+          node .github/scripts/test_journey.js
           node .github/scripts/test_estimate_1rm.js
           node .github/scripts/test_dash_simple_mode.js
           node .github/scripts/test_ex_biceps_media_catalog.js
@@ -928,6 +929,10 @@ jobs:
       - name: 6d3j4. Progress Express — krótsze warianty treningu zatwierdzone przez trenera
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_express_ui.js
+
+      - name: 6d3j5. Progress Journey + Rewards — droga klienta, odznaki, nagrody trenera
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_journey_ui.js
 
       - name: 6d3k. Karta pakietów na Dzisiaj — opłacony osobno od nieopłaconych, potwierdzenie „Zapłaciłem”
         if: ${{ !cancelled() }}
