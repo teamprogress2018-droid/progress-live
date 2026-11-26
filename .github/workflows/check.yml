@@ -92,6 +92,7 @@ jobs:
           node .github/scripts/test_client_workout_guard.js
           node .github/scripts/test_client_readiness.js
           node .github/scripts/test_client_voice.js
+          node .github/scripts/test_voice_commands.js
           node .github/scripts/test_express.js
           node .github/scripts/test_journey.js
           node .github/scripts/test_wrapped.js
@@ -930,6 +931,10 @@ jobs:
       - name: 6d3j3. Progress Voice — asystent głosowy w treningu, odliczanie, wyciszenie, ustawienia
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_voice_ui.js
+
+      - name: 6d3j3b. Komendy głosowe — mikrofon w treningu, zapis serii i przerwa głosem, ustawienia
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_voice_commands_ui.js
 
       - name: 6d3j4. Progress Express — krótsze warianty treningu zatwierdzone przez trenera
         if: ${{ !cancelled() }}
