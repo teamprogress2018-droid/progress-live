@@ -131,7 +131,7 @@ function cpgSummaryHTML(c,sessions){
       <p class="cpg-sum-line">${csEsc(facts.join(' · '))}</p>
       ${s.bestGain?`<p class="cpg-sum-line is-up">Największy postęp: ${csEsc(s.bestGain.n)} ${csEsc(cpgSigned(s.bestGain.g))} kg</p>`:''}</div>`;
   }).join('');
-  return `<section class="cpg-card cpg-summary" data-cpg-summary><h2 class="cpg-h">${csIcon('summary',18)}Podsumowanie miesiąca</h2>${cards}</section>`;
+  return `<section class="cpg-card cpg-summary" data-cpg-summary><h2 class="cpg-h">${csIcon('summary',18)}Podsumowanie miesiąca</h2>${cards}${typeof pwOpenBtnHTML==='function'?pwOpenBtnHTML(c):''}</section>`;
 }
 
 /* ── Kalendarz regularności: tygodnie w kolumnach, dni (pn–nd) w wierszach ── */

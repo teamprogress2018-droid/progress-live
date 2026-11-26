@@ -923,3 +923,22 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .pj-todo { margin: 6px 0 0; font-size: 0.875rem; color: var(--text-primary); }
 .pj-given { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; min-height: 36px; }
 .pj-table select, .pj-table input { min-height: 36px; margin-bottom: 4px; }
+
+/* Progress Wrapped (wrapped.js): okno podsumowania okresu + karta trenera. */
+.pw-open { width: 100%; margin-top: 12px; min-height: 48px; }
+.pw-card { gap: 14px; }
+.pw-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.pw-tabs .cpg-chip { min-height: 44px; }
+.pw-hero { padding: 16px 18px; border-radius: 16px; background: var(--bg-main, #f4f5f7); border-top: 4px solid var(--accent); }
+.pw-brand { font-size: 0.75rem; font-weight: 750; letter-spacing: .12em; color: var(--accent); }
+.pw-hero h2 { margin: 4px 0 0; font-size: 1.75rem; line-height: 1.2; color: var(--text-primary); }
+.pw-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pw-fact { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: 14px; }
+.pw-fact b { font-size: 1.75rem; line-height: 1.15; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.pw-fact span { font-size: 0.875rem; color: var(--text-secondary); }
+.pw-hl { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 1rem; color: var(--text-primary); }
+.pw-msg { margin: 0; padding: 10px 14px; border-left: 4px solid var(--accent); background: var(--bg-main, #f4f5f7); border-radius: 0 12px 12px 0; font-size: 1rem; line-height: 1.45; color: var(--text-primary); }
+.pw-msg span, .pw-next span { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 2px; }
+.pw-next { margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.pw-note { margin: 0; font-size: 0.8125rem; color: var(--text-secondary); }
+.pw-tcard textarea { min-height: 64px; }

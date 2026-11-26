@@ -46,3 +46,10 @@
 - Trener (profil klienta → Plan): nagroda za odznakę (lista lub własna), „wręczona”, indywidualny cel klienta i jego osiągnięcie; „Do wręczenia (N)”. Klient widzi nagrodę dopiero po zdobyciu odznaki.
 - Zapis: `client.rewards`, `client.journeyGoal` (karta klienta). Bez zmian reguł Firestore.
 - Testy: `test_journey.js`, `test_journey_ui.js`.
+
+## Etap 2d — Progress Wrapped (gałąź `feature/3.0-wrapped`)
+
+- `wrapped.js`: Postępy → „Podsumowanie miesiąca” → „Zobacz swoje podsumowanie”. Okres: miesiąc / kwartał / rok (w pierwszych 5 dniach domyślnie poprzedni miesiąc). Treningi, czas aktywności, tygodnie z treningiem, realizacja planu, rekordy osobiste, największy postęp, etapy i odznaki z okresu, wiadomość od trenera, kolejny cel.
+- „Zapisz jako grafikę”: PNG 1080 × 1350 w barwach Team Progress (canvas). „Udostępnij” tylko przez systemowe udostępnianie, dobrowolnie. Bez masy ciała, pomiarów, zdjęć i zgłoszeń zdrowotnych.
+- Trener (profil klienta → Plan): wiadomość do podsumowania bieżącego i poprzedniego miesiąca + podgląd liczb. Zapis `client.wrappedNotes` (24 ostatnie). Bez zmian reguł Firestore.
+- Testy: `test_wrapped.js`, `test_wrapped_ui.js`.
