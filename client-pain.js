@@ -63,6 +63,8 @@ async function cwPainSend(decision){
   const cw=window._cw;if(!cw)return;
   const st=painState();const note=document.getElementById('cs-pain-note');st.note=String(note?note.value:st.note||'').trim().slice(0,300);
   if(!st.area||!st.level){st.err=!st.area?'Zaznacz, gdzie boli.':'Zaznacz, jak mocno boli.';painRender();return;}
+  // Progress Voice: komunikat bezpieczeństwa (bez diagnozy).
+  if(typeof pvEmit==='function')pvEmit('PAIN_REPORTED');
   const ex=cw.exercises[cw.exIdx]||{};
   const at=new Date().toISOString();
   cw.issues=cw.issues||[];

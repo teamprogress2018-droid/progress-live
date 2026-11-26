@@ -37,7 +37,9 @@ async function boot(page, o = {}) {
     const ex = (n, s, r, kg) => ({ name: n, sets: String(s), reps: String(r), kg: String(kg), rest: '90s' });
     window.PL = [{ id: 'p1', clientId: 'c1', trainerId: 'cs-trainer', name: 'Full Body', weekKeys: ['w1'], currentWeek: 'w1', startDate: add(today, -30),
       days: [{ day: 'Dzień 1', exercises: [ex('Wyciskanie hantli', 2, 10, 20), ex('Wiosłowanie', 2, 12, 18)] }] }];
-    const prevDate = o.missed ? add(today, -6) : add(today, -3);
+    // Poprzedni trening zawsze w ZESZŁYM tygodniu (−7 dni): „−3 dni” od czwartku do niedzieli wypadał w tym samym tygodniu,
+    // plan tygodnia (1 dzień) był wtedy wykonany i „Dzisiaj” słusznie pokazywało regenerację zamiast treningu.
+    const prevDate = o.missed ? add(today, -6) : add(today, -7);
     window.SE = [{ id: 's_prev', clientId: 'c1', trainerId: 'cs-trainer', source: 'client', status: 'completed', date: prevDate, planId: 'p1', dayIdx: 0, type: 'Dzień 1',
       exercises: [{ name: 'Wyciskanie hantli', sets: [{ setNo: 1, kg: '20', reps: '10', kind: 'work' }, { setNo: 2, kg: '20', reps: '10', kind: 'work' }] },
                   { name: 'Wiosłowanie', sets: [{ setNo: 1, kg: '16', reps: '12', kind: 'work' }, { setNo: 2, kg: '16', reps: '12', kind: 'work' }] }] }];
