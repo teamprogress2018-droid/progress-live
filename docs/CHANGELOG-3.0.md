@@ -31,3 +31,39 @@
 - Głos trenera: 144 nagrania (ElevenLabs, model eleven_v4, ton „energetic, motivating coach voice”) w `assets/voice/pv/` (3,4 MB, 1–5,6 s na plik). Generator `.github/scripts/build_voice_pack.js` + workflow `voice-pack.yml` (klucz tylko w sekrecie `ELEVENLABS_API_KEY`). Ponowne generowanie: zmień `.github/voice-pack.request` albo uruchom workflow ręcznie; gotowe pliki są pomijane.
 - Zdania spoza paczki (np. z nazwą ćwiczenia) czyta synteza mowy telefonu.
 - Do zrobienia: panel nagrań trenera (osobny PR, reguły Storage).
+
+## Etap 2b — Progress Express (gałąź `feature/3.0-express`)
+
+- `express.js`: trener (profil klienta → Plan, pod rozgrzewką) włącza krótsze treningi i ustala regułę: skrócony ~30 min = pierwsze N ćwiczeń (domyślnie 4, serie: wszystkie albo maks. K), Express ~15 min = pierwsze N (domyślnie 2) × maks. K serii (domyślnie 2). Kolejność w planie = priorytet; super-serii nie rozcinamy; rozgrzewka zostaje. Podgląd dni aktywnego planu z czasem.
+- Klient: „Mniej czasu?” na „Dzisiaj” (tylko gdy trener włączył) → 3 warianty z czasem → start od razu (2 dotknięcia).
+- Zapis: `client.express` (karta klienta), w treningu `planSnapshot.variant` (rodzaj, czas, pominięte, limit serii). Trener widzi „Wariant: …” w oknie treningu i w wiadomości „Zrobiłem trening…”. Bez zmian reguł Firestore.
+- Testy: `test_express.js`, `test_express_ui.js`.
+
+## Etap 2c — Progress Journey + Rewards (gałąź `feature/3.0-journey`)
+
+- `journey.js`: „Twoja droga” (kamienie milowe: pierwszy trening, tydzień, 10 treningów, miesiąc, pierwszy rekord, 30/50 treningów, 100 dni, cel ustalony z trenerem) i „Odznaki” (8: Pierwszy krok, Regularność, Konsekwencja, Wytrwałość, Rekordzista, Zdrowe nawyki, Progress Champion, Progress Elite) na ekranie Postępy.
+- Wszystko liczone z zapisanych treningów przy każdym wyświetleniu — brak podwójnego naliczania; data zdobycia = dzień spełnienia warunku. Bez nagród za objętość i trening mimo bólu.
+- Trener (profil klienta → Plan): nagroda za odznakę (lista lub własna), „wręczona”, indywidualny cel klienta i jego osiągnięcie; „Do wręczenia (N)”. Klient widzi nagrodę dopiero po zdobyciu odznaki.
+- Zapis: `client.rewards`, `client.journeyGoal` (karta klienta). Bez zmian reguł Firestore.
+- Testy: `test_journey.js`, `test_journey_ui.js`.
+
+## Etap 2d — Progress Wrapped (gałąź `feature/3.0-wrapped`)
+
+- `wrapped.js`: Postępy → „Podsumowanie miesiąca” → „Zobacz swoje podsumowanie”. Okres: miesiąc / kwartał / rok (w pierwszych 5 dniach domyślnie poprzedni miesiąc). Treningi, czas aktywności, tygodnie z treningiem, realizacja planu, rekordy osobiste, największy postęp, etapy i odznaki z okresu, wiadomość od trenera, kolejny cel.
+- „Zapisz jako grafikę”: PNG 1080 × 1350 w barwach Team Progress (canvas). „Udostępnij” tylko przez systemowe udostępnianie, dobrowolnie. Bez masy ciała, pomiarów, zdjęć i zgłoszeń zdrowotnych.
+- Trener (profil klienta → Plan): wiadomość do podsumowania bieżącego i poprzedniego miesiąca + podgląd liczb. Zapis `client.wrappedNotes` (24 ostatnie). Bez zmian reguł Firestore.
+- Testy: `test_wrapped.js`, `test_wrapped_ui.js`.
+
+## Etap 3a — Progress Coach (gałąź `feature/3.0-coach`)
+
+- `coach.js`: nowe sprawy w „Wymagają uwagi” (lista Klienci + pulpit, to samo źródło `clientIssues`): Zgłoszony ból (pilne), Samopoczucie: warto porozmawiać, Film techniki do obejrzenia, Nagroda do wręczenia, Nowy rekord.
+- Każda sprawa: powód, kiedy, priorytet, jedno działanie (czat / profil). Znika sama po odpowiedzi trenera w czacie (nagroda — po „wręczona”). Przycisk „Rozwiązane” (`client.coachResolved`) — sprawa wraca tylko przy nowym zdarzeniu.
+- Bez automatycznych wiadomości i bez ocen ryzyka zdrowotnego. Bez zmian reguł Firestore.
+- Testy: `test_coach.js`, `test_coach_ui.js`.
+
+## Etap 3c — Progress Academy dla klienta (gałąź `feature/3.0-academy`)
+
+- `academy-client.js`: biblioteka 10 lekcji Team Progress (1–3 min, 9 kategorii: trening siłowy, technika, regeneracja, odżywianie, sen, nawyki, motywacja, anatomia, aktywność codzienna); każda z krótkim tekstem, jednym pytaniem i jednym zadaniem.
+- Trener (profil klienta → Plan): przypisuje lekcje (kolejność = kolejność wskazówek) i dodaje własne (tytuł, kategoria, tekst, film YouTube, zadanie). Zapis `client.academy`.
+- Klient: najwyżej jedna wskazówka na „Dzisiaj” (pierwsza nieprzerobiona), karta „Academy” w zakładce „Trener”, lekcja z pytaniem i „Przerobione ✓”. Postęp zapisuje się na telefonie (klient nie może zmieniać swojej karty) — trener nie widzi jeszcze, co zostało przerobione.
+- Bez zmian reguł Firestore. Testy: `test_academy_client.js`, `test_academy_client_ui.js`.

@@ -8,7 +8,7 @@ Statusy: **zaprojektowane** → **zaimplementowane** → **przetestowane (CI)** 
 | Etap | Zakres | Status |
 |---|---|---|
 | 1. Stabilizacja | Ekran przerwy po klawiaturze, strażnik treningu (Wake Lock, zapis przy schowaniu, wysyłka po powrocie, trwałe dane) | zaimplementowane, testy jednostkowe OK; czeka na CI i test na iPhonie |
-| 2. Doświadczenie | Readiness (zaimplementowane), Express, Journey + Rewards, Wrapped, głos trenera (klon) | w toku |
+| 2. Doświadczenie | Readiness, Progress Voice, Express, Journey + Rewards, Wrapped, głos trenera (klon) — zaimplementowane | czeka na test na iPhonie i merge |
 | 3. Połączenie | Powiadomienia ze zdarzeń, nowe sygnały w „Wymagają uwagi”, Academy klienta | zaprojektowane |
 | 4. Inteligencja | Progress AI klienta, komendy głosowe, Vision (pilotaż) | zaprojektowane |
 | 5. Ekosystem | Body (suwak), Capacitor: Apple Health, Health Connect, widżety; ewentualnie Społeczność | zaprojektowane |
@@ -31,3 +31,8 @@ Statusy: **zaprojektowane** → **zaimplementowane** → **przetestowane (CI)** 
 ## Wycofanie
 
 Każdy etap to osobny PR do `main`. Wycofanie = `git revert` commita merge'a danego PR; dane w Firestore nie są migrowane w Etapie 1.
+
+## Etap 3 — postęp
+- [x] 3a Progress Coach — nowe sygnały w „Wymagają uwagi” (PR feature/3.0-coach)
+- [ ] 3b Powiadomienia ze zdarzeń (rekord, kończący się pakiet, podsumowanie miesiąca, dłuższa przerwa) — wymaga wdrożenia funkcji serwera
+- [x] 3c Academy dla klienta (PR feature/3.0-academy)

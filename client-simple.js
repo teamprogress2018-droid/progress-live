@@ -222,6 +222,8 @@ function csTodayHTML(c){
     <header class="cs-hello"><h1 class="cs-h1">Cześć${first?', '+csEsc(first):''}!</h1><p class="cs-lead">${sub}</p></header>
     ${csTodayCardHTML(c,st)}
     ${typeof readyTodayHTML==='function'?readyTodayHTML(c,st):''}
+    ${typeof xpTodayHTML==='function'?xpTodayHTML(c,st):''}
+    ${typeof acTodayHTML==='function'?acTodayHTML(c):''}
     ${typeof praiseTodayCardHTML==='function'?praiseTodayCardHTML(c):''}
     ${csMeetingCardHTML(c)}
     ${csPayCardHTML(c)}
@@ -641,6 +643,7 @@ function csTrainerHubHTML(c){
   return `<div class="cs-screen cs-hub">
     <header class="cs-hello"><h1 class="cs-h1 cs-h1-page">Twój trener</h1><p class="cs-lead">${csEsc(name)}</p></header>
     ${chatCard}
+    ${typeof acHubHTML==='function'?acHubHTML(c):''}
     <ul class="cs-rows cs-hub-rows" aria-label="Więcej od trenera">${rows}</ul>
   </div>`;
 }
@@ -1477,6 +1480,8 @@ function cwStartFlow(){
   const cw=window._cw;if(!cw)return;
   const fresh=!cw.began&&!(typeof cwConfirmedSets==='function'&&cwConfirmedSets(cw)>0)&&!cw.warmupLog;
   // Progress Readiness (client-readiness.js): dzisiejszy check-in z „Dzisiaj” trafia do pierwszego zapisu sesji.
+  // Progress Express (express.js): wariant wybrany na „Dzisiaj” — przed pierwszym zapisem sesji.
+  if(fresh&&typeof xpApplyPending==='function')xpApplyPending(cw);
   if(fresh&&typeof cwReadyAttach==='function')cwReadyAttach(cw);
   // Progress Voice (client-voice.js): powitanie raz na trening (klucz w cw.pvSaid).
   if(fresh&&typeof pvEmit==='function')pvEmit('WORKOUT_START',{returning:typeof pvReturning==='function'&&pvReturning()});
@@ -1603,6 +1608,7 @@ function csTrainerNoticeText(cw){
     'Serie: '+st.setsDone+' z '+st.setsTotal+' · ćwiczenia: '+st.exDone+' z '+st.exTotal+' · czas '+Math.max(1,Math.round(st.elapsed/60))+' min',
     wu?'Rozgrzewka: '+wu:'',
     cw.readiness&&typeof readySummary==='function'?'Przed treningiem: '+readySummary(cw.readiness):'',
+    cw.variant&&typeof xpSummary==='function'&&xpSummary(cw.variant)?'Wariant: '+xpSummary(cw.variant):'',
     ...csProgressFacts(cw).filter(x=>!/trening w tym miesiącu/.test(x)).map(x=>'Postęp: '+x),
     cw.feel&&R[cw.feel]?'Samopoczucie: '+R[cw.feel].emoji+' '+R[cw.feel].label:'',
     cw.rating?'Trudność: '+cw.rating+'/10':'',
