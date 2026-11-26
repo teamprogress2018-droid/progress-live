@@ -407,7 +407,7 @@ service cloud.firestore {
         && (d.get('push', null) == null || (d.push is map && d.push.keys().hasOnly(['subscribed', 'off', 'at', 'device'])
           && d.push.get('off', false) is bool && smallText(d.push.get('device', ''), 120)))
         && (d.get('categories', null) == null || (d.categories is map
-          && d.categories.keys().hasOnly(['meetings', 'plan', 'checkins'])))
+          && d.categories.keys().hasOnly(['meetings', 'plan', 'checkins', 'habits'])))
         && (d.get('quiet', null) == null || (d.quiet is map && d.quiet.keys().hasOnly(['from', 'to'])))
         && d.get('fallback', true) is bool;
     }

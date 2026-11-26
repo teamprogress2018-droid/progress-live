@@ -100,7 +100,7 @@ async function dispatchDue(db, trainerId, state, control, providers, {runId, now
     if (!j.clientId || j.audience === 'trainer' || !['handed_over', 'delivered', 'simulated'].includes(j.status)) return;
     const h = (j.history || []).slice().reverse().find(x => ['handed_over', 'delivered', 'simulated'].includes(x.status));
     const t = Date.parse(h && h.at || '');
-    if (Number.isFinite(t) && !['meeting_reminder', 'meeting_change', 'meeting_cancel'].includes(j.kind)) (sentAt[j.clientId] = sentAt[j.clientId] || []).push(t);
+    if (Number.isFinite(t) && !Core.LIMIT_EXEMPT.includes(j.kind)) (sentAt[j.clientId] = sentAt[j.clientId] || []).push(t);
   });
   counts.postponed = 0;
   for (const d of due) {
@@ -134,12 +134,12 @@ async function dispatchDue(db, trainerId, state, control, providers, {runId, now
     const text = Core.texts(job, {studio: (state.settings && state.settings.studioName) || 'Progress'});
     if (!control.live || !control.channels.includes(channel) || !providers[channel]) {
       await done({}, 'simulated', {note: control.live ? 'kanał nie jest skonfigurowany' : 'tryb symulacji'}); counts.simulated++;
-      (sentAt[job.clientId] = sentAt[job.clientId] || []).push(nowMs); continue;
+      if (!Core.LIMIT_EXEMPT.includes(job.kind)) (sentAt[job.clientId] = sentAt[job.clientId] || []).push(nowMs); continue;
     }
     const res = await providers[channel].send({job, pref, text, template: Core.whatsappTemplate(job), db, trainerId});
     if (res && res.ok) {
       await done({providerId: res.providerId || null, handedAt: iso}, 'handed_over'); counts.sent++;
-      (sentAt[job.clientId] = sentAt[job.clientId] || []).push(nowMs);
+      if (!Core.LIMIT_EXEMPT.includes(job.kind)) (sentAt[job.clientId] = sentAt[job.clientId] || []).push(nowMs);
       continue;
     }
     const attemptJob = {...job, channel, attempts: (job.attempts || 0) + 1};

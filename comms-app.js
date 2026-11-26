@@ -250,7 +250,7 @@
           <button type="button" class="cs-btn cs-btn-secondary" data-act="comms-wa-on">Zgadzam się na przypomnienia przez WhatsApp</button>`}
       </section>
       <section class="cs-card cs-card-flat"><h2 class="cs-card-title cs-card-title-sm">O czym przypominać</h2>
-        ${tog('meetings','Spotkania z trenerem (przypomnienie, zmiana, odwołanie)')}${tog('plan','Nowy plan i pakiet treningów')}${tog('checkins','Samopoczucie, podsumowania i gratulacje (np. nowy rekord)')}
+        ${tog('meetings','Spotkania z trenerem (przypomnienie, zmiana, odwołanie)')}${tog('plan','Nowy plan i pakiet treningów')}${tog('checkins','Samopoczucie, podsumowania i gratulacje (np. nowy rekord)')}${(()=>{const me=(window.CL||[]).find(x=>x&&x.id===window._clientId);return me&&me.habits&&me.habits.on===true?tog('habits','Przypomnienia o nawykach od trenera (np. woda, sen)'):'';})()}
         <div class="comms-quiet"><span>Cisza nocna</span><label>od <input type="time" value="${esc((p.quiet||{}).from||'21:00')}" id="comms-quiet-from"></label><label>do <input type="time" value="${esc((p.quiet||{}).to||'08:00')}" id="comms-quiet-to"></label></div>
         <button type="button" class="cs-btn cs-btn-ghost" data-act="comms-quiet-save">Zapisz ciszę nocną</button>
         <p class="cs-sheet-hint">Zmiana lub odwołanie spotkania przychodzi także w czasie ciszy.</p>
@@ -423,7 +423,7 @@
   function previewHistory(){const h={};(window.SE||[]).forEach(x=>{if(x&&x.clientId)(h[x.clientId]=h[x.clientId]||[]).push(x);});return h;}
   const KIND_LABEL={meeting_reminder:'Przypomnienie dzień przed spotkaniem',meeting_change:'Zmiana terminu',meeting_cancel:'Odwołanie spotkania',new_plan:'Nowy plan',
     first_workout_check:'Pytanie po pierwszym treningu',weekly_summary:'Podsumowanie tygodnia',inactivity_nudge:'Przypomnienie po braku aktywności',trainer_contact:'Zadanie: kontakt z klientem',
-    personal_record:'Gratulacje: nowy rekord',package_ending:'Pakiet wkrótce się kończy',package_last:'Ostatni trening w pakiecie',monthly_summary:'Podsumowanie miesiąca'};
+    personal_record:'Gratulacje: nowy rekord',habit_reminder:'Przypomnienie o nawyku',package_ending:'Pakiet wkrótce się kończy',package_last:'Ostatni trening w pakiecie',monthly_summary:'Podsumowanie miesiąca'};
   const CH_LABEL={push:'Powiadomienie push',whatsapp:'WhatsApp',inapp:'Tylko w aplikacji',trainer_task:'Do odpowiedzi (trener)'};
   function prefsSummary(cid){
     const p=COMMS.prefs[cid];

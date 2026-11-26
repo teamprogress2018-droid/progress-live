@@ -107,7 +107,8 @@
     const byId={};clients.forEach(c=>{if(c&&c.id)byId[c.id]=c;});
     const out=[];
     const push=j=>{const c=byId[j.clientId];if(!c||(j.audience!=='trainer'&&clientPaused(c,nowMs)))return;
-      if(j.audience!=='trainer'&&j.kind!=='meeting_change'&&j.kind!=='meeting_cancel')j.dueAt=outsideQuiet(j.dueAt,st.quiet);out.push(j);};
+      // Nawyki mają godzinę ustawioną przez trenera — bez przesuwania przez ciszę nocną.
+      if(j.audience!=='trainer'&&j.kind!=='meeting_change'&&j.kind!=='meeting_cancel'&&j.kind!=='habit_reminder')j.dueAt=outsideQuiet(j.dueAt,st.quiet);out.push(j);};
 
     sessions.filter(isMeeting).forEach(s=>{
       const at=meetingMs(s);if(!isFinite(at))return;
@@ -163,6 +164,7 @@
       }
     });
     planJobs3(state,nowMs,st,push,enabledAt);
+    planHabits(state,nowMs,push,enabledAt);
     return out.filter(j=>isFinite(j.dueAt));
   }
 
@@ -197,9 +199,47 @@
     return list.sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0]||null;
   }
   const MEETING_KINDS=['meeting_reminder','meeting_change','meeting_cancel'];
+  /** Rodzaje, które nie liczą się do dziennego limitu i nie są nim blokowane. */
+  const LIMIT_EXEMPT=MEETING_KINDS.concat('habit_reminder');
+  // ---------- J. przypomnienia o nawykach (3.0) ----------
+  const HABITS={water:{title:'Czas na wodę',body:'Wypij szklankę wody.'},
+    sleep:{title:'Pora szykować się do snu',body:'Odłóż telefon — sen to też część treningu.'},
+    steps:{title:'Czas na spacer',body:'Masz chwilę na krótki spacer?'},
+    custom:{title:'Przypomnienie od trenera',body:''}};
+  const HM=/^([01]\d|2[0-3]):[0-5]\d$/;
+  /** Godziny przypomnienia jednego nawyku w ciągu dnia (HH:MM). Woda: od–do co N godzin; reszta: jedna godzina. */
+  function habitTimes(it){
+    if(!it||it.on===false)return [];
+    if(it.id==='water'){
+      const from=HM.test(it.from)?it.from:'09:00',to=HM.test(it.to)?it.to:'19:00';
+      const step=[1,2,3,4].includes(Number(it.everyH))?Number(it.everyH)*60:120;
+      const out=[];for(let m=hmToMin(from);m<=hmToMin(to)&&out.length<16;m+=step)out.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
+      return out;
+    }
+    if(!HABITS[it.id])return [];
+    if(it.id==='custom'&&!String(it.text||'').trim())return [];
+    return HM.test(it.at)?[it.at]:[];
+  }
+  function planHabits(state,nowMs,push,enabledAt){
+    const prefs=(state&&state.prefs)||null;
+    const p=warsawParts(nowMs),days=[p.ymd,addDaysYmd(p.ymd,1)];
+    ((state&&state.clients)||[]).forEach(c=>{
+      const h=c&&c.habits;if(!c||!c.id||!h||h.on!==true||!Array.isArray(h.items))return;
+      // Na serwerze planujemy tylko dla klientów z włączonym push i bez wyłączonej kategorii (bez setek wpisów „tylko w aplikacji”).
+      if(prefs){const pr=prefs[c.id]||{};if(pr.channel==='none'||!(pr.push&&pr.push.subscribed)||(pr.categories&&pr.categories.habits===false))return;}
+      h.items.forEach(it=>{
+        habitTimes(it).forEach(hm=>days.forEach(d=>{
+          const due=warsawToMs(d,hm);
+          if(due<enabledAt||due<nowMs-10*MIN||due>nowMs+26*60*MIN)return;
+          push({id:`habit:${c.id}:${it.id}:${d}:${hm.replace(':','')}`,kind:'habit_reminder',clientId:c.id,dueAt:due,ref:it.id,habit:it.id,
+            ...(it.id==='custom'?{text:String(it.text).slice(0,80)}:{})});
+        }));
+      });
+    });
+  }
   /** Dzienny limit automatów do klienta w dniu kalendarzowym (Warszawa; spotkania i zadania trenera się nie liczą). sentAt: lista czasów (ms) wysyłek do klienta. */
   function overDailyLimit(job,sentAt,nowMs,max){
-    if(!job||job.audience==='trainer'||MEETING_KINDS.includes(job.kind))return false;
+    if(!job||job.audience==='trainer'||LIMIT_EXEMPT.includes(job.kind))return false;
     const m=Number(max);if(!(m>0))return false;
     const day=warsawParts(nowMs).ymd;return (sentAt||[]).filter(t=>t<=nowMs&&warsawParts(t).ymd===day).length>=m;
   }
@@ -263,7 +303,7 @@
     });
     Object.keys(have).forEach(id=>{
       const h=have[id];
-      if(!want[id]&&(h.status==='scheduled'||h.status==='retry')&&h.audience!=='trainer'&&['meeting_reminder','first_workout_check','weekly_summary','inactivity_nudge','package_ending','monthly_summary'].includes(h.kind))cancel.push({id,reason:'nieaktualne'});
+      if(!want[id]&&(h.status==='scheduled'||h.status==='retry')&&h.audience!=='trainer'&&['meeting_reminder','first_workout_check','weekly_summary','inactivity_nudge','package_ending','monthly_summary','habit_reminder'].includes(h.kind))cancel.push({id,reason:'nieaktualne'});
     });
     return {create,cancel,update};
   }
@@ -288,7 +328,7 @@
   function categoryOf(kind){
     return {meeting_reminder:'meetings',meeting_change:'meetings',meeting_cancel:'meetings',new_plan:'plan',
       first_workout_check:'checkins',weekly_summary:'checkins',inactivity_nudge:'checkins',
-      personal_record:'checkins',monthly_summary:'checkins',package_ending:'plan',package_last:'plan'}[kind]||'other';
+      personal_record:'checkins',monthly_summary:'checkins',package_ending:'plan',package_last:'plan',habit_reminder:'habits'}[kind]||'other';
   }
   function pickChannel(pref,job){return channelsFor(pref,job)[0];}
   /** Po błędzie: ponów ten sam kanał (z przerwą), po wyczerpaniu prób — kolejny kanał; potem „błąd”. */
@@ -356,7 +396,8 @@
       personal_record:{title:'Nowy rekord osobisty!',body:'Gratulacje — zobacz go w Postępach.',url:'?cs=progress'},
       package_ending:{title:'Pakiet treningów wkrótce się kończy',body:(job.expires?'Ważny do '+fmtDay(job.expires)+'. ':'')+'Porozmawiaj z trenerem o przedłużeniu.',url:'?cs=chat'},
       package_last:{title:'Ostatni trening w pakiecie',body:'Porozmawiaj z trenerem o kolejnym pakiecie.',url:'?cs=chat'},
-      monthly_summary:{title:'Twoje podsumowanie miesiąca jest gotowe',body:'Zobacz, co udało się osiągnąć.',url:'?cs=progress'}
+      monthly_summary:{title:'Twoje podsumowanie miesiąca jest gotowe',body:'Zobacz, co udało się osiągnąć.',url:'?cs=progress'},
+      habit_reminder:(()=>{const h=HABITS[job.habit]||HABITS.custom;return {title:h.title,body:job.habit==='custom'?String(job.text||'').slice(0,80):h.body,url:'?cs=today'};})()
     };
     const t=map[job.kind]||{title:studio,body:'',url:''};
     return {title:`${studio}: ${t.title}`,body:t.body,url:t.url,tag,systemNote:`${tag} — wiadomość wysłana automatycznie, nie przez trenera osobiście.`};
@@ -388,7 +429,7 @@
   function caseNeedsReply(c){return c&&c.type!=='meeting_confirm';}
 
   const api={TZ,DEFAULTS,settingsOf,warsawParts,warsawToMs,addDaysYmd,outsideQuiet,clientPaused,isMeeting,meetingMs,meetingState,stampOf,
-    planJobs,reconcile,channelsFor,sessionPRs,sessionBest,activePackage,overDailyLimit,categoryOf,pickChannel,nextAfterFailure,applyProviderEvent,staleStatus,LABEL,texts,whatsappTemplate,fmtWhen,
+    planJobs,reconcile,channelsFor,sessionPRs,sessionBest,activePackage,overDailyLimit,habitTimes,HABITS,LIMIT_EXEMPT,categoryOf,pickChannel,nextAfterFailure,applyProviderEvent,staleStatus,LABEL,texts,whatsappTemplate,fmtWhen,
     CASE_TYPES,CASE_LABEL,CASE_STATUS,caseNeedsReply};
   root.CommsCore=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
