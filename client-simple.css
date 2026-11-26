@@ -943,3 +943,24 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .pw-note { margin: 0; font-size: 0.8125rem; color: var(--text-secondary); }
 .pw-tcard textarea { min-height: 64px; }
 .coach-resolve { margin-left: 4px; white-space: nowrap; }
+
+/* Progress Academy dla klienta (academy-client.js): wskazówka na „Dzisiaj”, lista w „Trener”, lekcja, karta trenera. */
+.ac-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ac-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 52px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-card); color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; }
+.ac-item.is-done .ac-item-t { color: var(--text-secondary); }
+.ac-item-t { font-weight: 650; font-size: 1rem; }
+.ac-item-s { font-size: 0.875rem; color: var(--text-secondary); }
+.ac-p { margin: 0; font-size: 1rem; line-height: 1.55; color: var(--text-primary); }
+.ac-video { position: relative; padding-top: 56.25%; border-radius: 12px; overflow: hidden; background: #000; }
+.ac-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.ac-quiz { margin: 0; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 14px; display: flex; flex-direction: column; gap: 8px; }
+.ac-quiz legend { padding: 0 4px; font-weight: 650; }
+.ac-opt { min-height: 48px; }
+.ac-opt.is-good { border-color: var(--success); box-shadow: inset 0 0 0 1px var(--success); }
+.ac-opt.is-bad { border-color: var(--text-secondary); opacity: .7; }
+.ac-fb { margin: 0; font-size: 0.9375rem; color: var(--text-primary); }
+.ac-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 8px 0; }
+.ac-pick fieldset { margin: 0; padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: 12px; display: flex; flex-direction: column; gap: 2px; }
+.ac-pick legend { font-weight: 650; padding: 0 4px; }
+.ac-own-h { margin: 12px 0 4px; font-size: 0.9375rem; }
+.ac-new { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid var(--border-subtle); }

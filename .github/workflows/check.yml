@@ -96,6 +96,7 @@ jobs:
           node .github/scripts/test_journey.js
           node .github/scripts/test_wrapped.js
           node .github/scripts/test_coach.js
+          node .github/scripts/test_academy_client.js
           node .github/scripts/test_estimate_1rm.js
           node .github/scripts/test_dash_simple_mode.js
           node .github/scripts/test_ex_biceps_media_catalog.js
@@ -943,6 +944,10 @@ jobs:
       - name: 6d3j7. Progress Coach — sygnały ból/samopoczucie/film/nagroda/rekord, „Rozwiązane”
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_coach_ui.js
+
+      - name: 6d3j8. Progress Academy dla klienta — wskazówka, lekcja, karta trenera
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_academy_client_ui.js
 
       - name: 6d3k. Karta pakietów na Dzisiaj — opłacony osobno od nieopłaconych, potwierdzenie „Zapłaciłem”
         if: ${{ !cancelled() }}

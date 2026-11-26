@@ -1,0 +1,33 @@
+// Progress Academy dla klienta (academy-client.js): biblioteka lekcji (1–3 min, pytanie, zadanie), przypisanie przez trenera,
+// najwyżej jedna wskazówka na „Dzisiaj”, postęp na telefonie, własne lekcje trenera (bezpieczne id i linki), zaczepienia.
+'use strict';
+const fs=require('fs');const vm=require('vm');
+const src=fs.readFileSync('academy-client.js','utf8');const js=fs.readFileSync('client-simple.js','utf8');const html=fs.readFileSync('index.html','utf8');
+let fails=0;const ok=(n,c,x)=>{console.log((c?'OK   ':'FAIL ')+n+(c||x===undefined?'':' — '+JSON.stringify(x)));if(!c)fails++;};
+const store={};
+const ctx={window:{_clientId:'c1'},console,document:{getElementById:()=>null,querySelectorAll:()=>[]},localStorage:{getItem:k=>store[k]??null,setItem:(k,v)=>{store[k]=String(v);}}};
+vm.createContext(ctx);vm.runInContext(src,ctx);const W=ctx.window;
+ok('biblioteka: 10 lekcji, 1–3 min, każda z tekstem, pytaniem i zadaniem', W.AC_LIB.length===10&&W.AC_LIB.every(l=>l.min>=1&&l.min<=3&&l.text.length>=2&&l.quiz&&l.quiz.opts[l.quiz.a]&&l.task));
+ok('9 kategorii ze specyfikacji, wszystkie lekcje w nich', W.AC_CATS.length===9&&W.AC_LIB.every(l=>W.AC_CATS.includes(l.cat)));
+ok('lekcje bez diagnoz i zaleceń medycznych', !W.AC_LIB.some(l=>/diagnoz|lek(i|ów) |dawk|suplement|kalori/i.test(l.text.join(' '))));
+ok('lekcje odsyłają do trenera/lekarza przy bólu lub chorobie', /zgłoś trenerowi/i.test(W.AC_LIB.find(l=>l.id==='ac_zakwasy').text.join(' '))&&/lekarzem|dietetyk/i.test(W.AC_LIB.find(l=>l.id==='ac_sen').text.join(' ')+W.AC_LIB.find(l=>l.id==='ac_bialko').text.join(' ')));
+const none={id:'c1'};
+ok('bez przypisania: brak wskazówki i karty', W.acTodayHTML(none)===''&&W.acHubHTML(none)==='');
+const c={id:'c1',academy:{assigned:['ac_sen','ac_rir','nieistnieje'],custom:[{id:'acc_1"><img>',title:'Stopy w przysiadzie',cat:'Technika ćwiczeń',text:'Akapit 1\n\nAkapit 2',video:'javascript:alert(1)',task:'Zrób 5 przysiadów'}]}};
+const list=W.acAssigned(c);
+ok('przypisane w kolejności + własna lekcja; nieistniejące pominięte', list.map(l=>l.id).join()==='ac_sen,ac_rir,acc_1img'&&list[2].custom===true,list.map(l=>l.id));
+ok('własna lekcja: bezpieczne id, link tylko YouTube, akapity', list[2].id==='acc_1img'&&list[2].video===''&&list[2].text.length===2);
+let t=W.acTodayHTML(c);
+ok('„Dzisiaj”: jedna wskazówka — pierwsza nieprzerobiona', (t.match(/data-ac-tip=/g)||[]).length===1&&/Wskazówka od trenera: Sen a efekty treningu/.test(t)&&/Sen · 2 min/.test(t));
+W.acFinish('ac_sen');
+t=W.acTodayHTML(c);
+ok('po „Przerobione” — kolejna lekcja', /Zapas powtórzeń/.test(t)&&JSON.parse(store['pl_academy_done_v1:c1']).ac_sen);
+const hub=W.acHubHTML(c);
+ok('„Trener”: lista z postępem', /ACADEMY · 1 Z 3 PRZEROBIONYCH/.test(hub)&&/przerobione ✓/.test(hub)&&(hub.match(/data-ac-open=/g)||[]).length===3);
+const sheet=W.acSheetHTML(W.acLesson(c,'ac_rir'));
+ok('lekcja: tekst, pytanie (3 odpowiedzi), zadanie, „Przerobione”', /Zapas powtórzeń/.test(sheet)&&(sheet.match(/data-ac-opt=/g)||[]).length===3&&/Zadanie na dziś/.test(sheet)&&/data-ac-done/.test(sheet));
+const yt=W.acSheetHTML({...W.acLesson(c,'ac_rir'),video:'https://youtu.be/dQw4w9WgXcQ'});
+ok('film YouTube w trybie nocookie', /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/.test(yt));
+ok('zaczepienia: „Dzisiaj” i „Trener”', /acTodayHTML\(c\)/.test(js)&&/acHubHTML\(c\)/.test(js));
+ok('skrypt po coach.js', /<script src="coach\.js\?v=1"><\/script>\s*<script src="academy-client\.js\?v=\d+"><\/script>/.test(html));
+if(fails){console.log(fails+' failed');process.exit(1);}console.log('Progress Academy (klient, logika): OK');

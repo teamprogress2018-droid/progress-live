@@ -60,3 +60,10 @@
 - Każda sprawa: powód, kiedy, priorytet, jedno działanie (czat / profil). Znika sama po odpowiedzi trenera w czacie (nagroda — po „wręczona”). Przycisk „Rozwiązane” (`client.coachResolved`) — sprawa wraca tylko przy nowym zdarzeniu.
 - Bez automatycznych wiadomości i bez ocen ryzyka zdrowotnego. Bez zmian reguł Firestore.
 - Testy: `test_coach.js`, `test_coach_ui.js`.
+
+## Etap 3c — Progress Academy dla klienta (gałąź `feature/3.0-academy`)
+
+- `academy-client.js`: biblioteka 10 lekcji Team Progress (1–3 min, 9 kategorii: trening siłowy, technika, regeneracja, odżywianie, sen, nawyki, motywacja, anatomia, aktywność codzienna); każda z krótkim tekstem, jednym pytaniem i jednym zadaniem.
+- Trener (profil klienta → Plan): przypisuje lekcje (kolejność = kolejność wskazówek) i dodaje własne (tytuł, kategoria, tekst, film YouTube, zadanie). Zapis `client.academy`.
+- Klient: najwyżej jedna wskazówka na „Dzisiaj” (pierwsza nieprzerobiona), karta „Academy” w zakładce „Trener”, lekcja z pytaniem i „Przerobione ✓”. Postęp zapisuje się na telefonie (klient nie może zmieniać swojej karty) — trener nie widzi jeszcze, co zostało przerobione.
+- Bez zmian reguł Firestore. Testy: `test_academy_client.js`, `test_academy_client_ui.js`.

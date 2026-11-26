@@ -223,6 +223,7 @@ function csTodayHTML(c){
     ${csTodayCardHTML(c,st)}
     ${typeof readyTodayHTML==='function'?readyTodayHTML(c,st):''}
     ${typeof xpTodayHTML==='function'?xpTodayHTML(c,st):''}
+    ${typeof acTodayHTML==='function'?acTodayHTML(c):''}
     ${typeof praiseTodayCardHTML==='function'?praiseTodayCardHTML(c):''}
     ${csMeetingCardHTML(c)}
     ${csPayCardHTML(c)}
@@ -642,6 +643,7 @@ function csTrainerHubHTML(c){
   return `<div class="cs-screen cs-hub">
     <header class="cs-hello"><h1 class="cs-h1 cs-h1-page">Twój trener</h1><p class="cs-lead">${csEsc(name)}</p></header>
     ${chatCard}
+    ${typeof acHubHTML==='function'?acHubHTML(c):''}
     <ul class="cs-rows cs-hub-rows" aria-label="Więcej od trenera">${rows}</ul>
   </div>`;
 }
