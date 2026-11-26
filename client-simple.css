@@ -773,8 +773,8 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .pv-check em { display: block; font-style: normal; font-size: 0.8125rem; color: var(--text-secondary); }
 .pv-check a { color: inherit; text-decoration: underline; }
 .pv-reg { margin-bottom: 4px; }
-.pv-gate { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: flex-end; justify-content: center; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); background: rgba(16, 18, 22, 0.55); }
-.pv-gate-card { width: 100%; max-width: 480px; max-height: 92vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 22px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.pv-gate { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: flex-end; justify-content: center; padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); background: rgba(16, 18, 22, 0.55); }
+.pv-gate-card { width: 100%; max-width: 480px; max-height: 92vh; max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 22px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 20px 50px rgba(0,0,0,.25); }
 .pv-gate-card h2 { margin: 0; font-size: 1.25rem; }
 .pv-gate-card p { margin: 0; font-size: 0.9375rem; line-height: 1.5; }
 .pv-gate-card .cs-btn { width: 100%; min-height: 52px; }
@@ -973,7 +973,8 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 @media (prefers-reduced-motion: reduce) { .vc-mic.is-on { animation: none; } }
 
 /* Progress Live 3.0 — Progress AI dla klienta (client-ai.js) */
-.pai-top { display: flex; align-items: center; justify-content: space-between; }
+/* Zamknięcie zawsze pod ręką: pasek przykleja się do góry okna podczas przewijania rozmowy. */
+.pai-top { position: sticky; top: -20px; z-index: 1; margin: -20px -20px 0; padding: 8px 8px 0 20px; background: var(--bg-card); display: flex; align-items: center; justify-content: space-between; }
 .pai-x { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text-primary); font-size: 1.6rem; cursor: pointer; }
 .pai-x:focus-visible, .pai-trainer:focus-visible, .pai-q:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .pai-note { margin: 0; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.4; }
@@ -988,3 +989,14 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .pai-form { display: flex; flex-direction: column; gap: 8px; }
 .pai-form textarea { width: 100%; box-sizing: border-box; min-height: 64px; padding: 10px 12px; border: 1px solid var(--border, #e1e4e8); border-radius: 12px; font: inherit; font-size: 1rem; background: var(--bg-card); color: var(--text-primary); resize: vertical; }
 .pai-busy, .pai-left { margin: 0; color: var(--text-secondary); font-size: 0.875rem; }
+
+/* Zakładka „Dieta” — jadłospis z kalkulatora (plan-client-client.js textDietHTML) */
+.pkc-tday { margin: 0 0 12px; border: 1px solid var(--border, #e1e4e8); border-radius: 16px; background: var(--bg-card); }
+.pkc-tday > summary { min-height: 48px; display: flex; align-items: center; padding: 0 16px; font-weight: 700; cursor: pointer; }
+.pkc-tday > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 16px; }
+.pkc-tday-b { padding: 0 8px 8px; }
+.pkc-titems { list-style: disc; padding-left: 20px; }
+.pkc-titems li { display: list-item; padding: 3px 0; line-height: 1.45; }
+
+.cs-pay.is-ending { border-color: color-mix(in srgb, var(--warning, #b45309) 55%, transparent); }
+.cs-pay.is-ending .cs-pay-head .cs-ico { color: var(--warning, #b45309); }

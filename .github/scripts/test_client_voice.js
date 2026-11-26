@@ -13,6 +13,8 @@ function makeCtx(opts){
   opts=opts||{};
   const spoken=[];let now=opts.now||1_000_000;
   const store={};
+  // Testy silnika słuchają syntezy mowy, więc domyślnie „głos telefonu”; ścieżka nagrań trenera ma opts.trainerVoice.
+  if(!opts.trainerVoice)store['pl_pv_v1:c1']=JSON.stringify({voice:'system'});
   const ctx={
     window:{},console,
     localStorage:{getItem:k=>store[k]??null,setItem:(k,v)=>{store[k]=String(v);}},
@@ -162,27 +164,29 @@ t=makeCtx();t.W.pvSaveSettings({style:'energy'});
 ok('ustawienia zapisane per klient', JSON.parse(t.store['pl_pv_v1:c1']).style==='energy'&&t.W.pvSettings().freq==='standard');
 
 // --- paczka nagrań głosem trenera ---
-t=makeCtx();withWorkout(t);
+t=makeCtx({trainerVoice:true});withWorkout(t);
 t.W.PV.pack={'Świetna robota!':'a.mp3','Seria druga z czterech.':'b.mp3','Czas na odpoczynek.':'c.mp3'};
 ok('nagranie: cały tekst z manifestu', t.W.pvPackSource({text:'Świetna robota!'})==='assets/voice/pv/a.mp3');
 ok('nagranie: zdania po kolei, gdy każde jest w manifeście', JSON.stringify(t.W.pvPackSource({text:'Seria druga z czterech. Czas na odpoczynek.'}))===JSON.stringify(['assets/voice/pv/b.mp3','assets/voice/pv/c.mp3']));
 ok('nagranie: brak choć jednego zdania → synteza mowy', t.W.pvPackSource({text:'Seria druga z czterech. Następne ćwiczenie: X.'})===null);
 t.W.pvSaveSettings({voice:'system'});
 ok('głos telefonu wybrany → bez nagrań', t.W.pvPackSource({text:'Świetna robota!'})===null);
-ok('domyślnie głos trenera', makeCtx().W.pvSettings().voice==='trainer');
+ok('domyślnie głos trenera', makeCtx({trainerVoice:true}).W.pvSettings().voice==='trainer');
 // odtwarzanie z nagrania (atrapa <audio>)
-t=makeCtx();withWorkout(t);t.W.PV.pack={'Świetna robota!':'a.mp3'};
+t=makeCtx({trainerVoice:true});withWorkout(t);t.W.PV.pack={'Świetna robota!':'a.mp3'};
 const played=[];t.ctx.Audio=function(){this.play=()=>{played.push(this.src);return {catch(){}}};this.pause=()=>{};};
 t.W.pvEnqueue({text:'Świetna robota!'});
 ok('nagranie gra zamiast syntezy', played.includes('assets/voice/pv/a.mp3')&&!t.spoken.includes('Świetna robota!'),played);
 const a=t.W.PV.el;a.onended&&a.onended();t.finish();
 t.W.pvEnqueue({text:'Kolejna seria za Tobą.'});
-ok('tekst spoza paczki → synteza mowy', t.spoken.includes('Kolejna seria za Tobą.'),t.spoken);
+ok('głos trenera: tekst spoza paczki → pominięty, bez głosu telefonu', !t.spoken.length&&t.W.PV.skipped===1,t.spoken);
+t.W.pvSaveSettings({voice:'system'});t.finish();t.W.pvEnqueue({text:'Kolejna seria za Tobą.',key:'x2'});
+ok('głos telefonu wybrany → synteza mowy', t.spoken.includes('Kolejna seria za Tobą.'),t.spoken);
 // błąd nagrania → synteza
-t=makeCtx();withWorkout(t);t.W.PV.pack={'Świetna robota!':'a.mp3'};
+t=makeCtx({trainerVoice:true});withWorkout(t);t.W.PV.pack={'Świetna robota!':'a.mp3'};
 t.ctx.Audio=function(){this.play=()=>({catch(f){f(new Error('NotAllowed'));}});this.pause=()=>{};};
 t.W.pvEnqueue({text:'Świetna robota!'});
-ok('odtwarzanie zablokowane (iPhone) → synteza mowy', t.spoken.includes('Świetna robota!'),t.spoken);
+ok('głos trenera: odtwarzanie zablokowane (iPhone) → cisza, bez głosu telefonu', !t.spoken.length,t.spoken);
 // generator paczki
 const dry=require('child_process').spawnSync('node',['.github/scripts/build_voice_pack.js','--dry'],{encoding:'utf8'});
 ok('generator: 100 komunikatów + wsparcie + odliczanie + serie (144 linie), bez klucza w trybie próbnym', dry.status===0&&/Linii: 144/.test(dry.stdout),dry.stdout+dry.stderr);
