@@ -54,7 +54,7 @@ async function run(browser, W) {
   page.setDefaultTimeout(20000);
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
   await boot(page);
-  await page.evaluate(() => { localStorage.setItem('pl_pv_v1:c1', JSON.stringify({ freq: 'standard' })); });
+  await page.evaluate(() => { localStorage.setItem('pl_pv_v1:c1', JSON.stringify({ freq: 'standard', voice: 'system' })); });
   await page.click('.cs-today .cs-btn-primary');
   await page.waitForSelector('.cs-ex');
   await page.waitForTimeout(400);
@@ -97,7 +97,7 @@ async function run(browser, W) {
   const set = await page.evaluate(() => { const c = document.querySelector('[data-pv-settings]');
     return { t: c.innerText, sw: c.querySelectorAll('input[type="checkbox"]').length, sel: c.querySelectorAll('select').length, range: !!c.querySelector('input[type="range"]'),
       small: [...c.querySelectorAll('select,button,.pv-row')].filter((e) => e.getBoundingClientRect().height < 44).map((e) => e.outerHTML.slice(0, 60)) }; });
-  ok(W + ' px: Profil — Progress Voice: włącznik, głos, styl, częstotliwość, głośność, 5 przełączników, test', /Progress Voice/.test(set.t) && set.sw === 6 && set.sel === 3 && set.range && /Odsłuchaj przykładowy komunikat/.test(set.t) && /Progress Support/.test(set.t) && /Standardowa/.test(set.t), JSON.stringify(set));
+  ok(W + ' px: Profil — Progress Voice: włącznik, głos, styl, częstotliwość, głośność, 5 przełączników, test', /Progress Voice/.test(set.t) && set.sw === 6 && set.sel === 3 && set.range && /Odsłuchaj przykładowy komunikat/.test(set.t) && /Progress Support/.test(set.t) && /Głos Twojego trenera/.test(set.t) && /Standardowa/.test(set.t), JSON.stringify(set));
   ok(W + ' px: cele dotykowe ≥ 44 px', !set.small.length, JSON.stringify(set.small));
   await page.selectOption('[data-pv-set="style"]', 'calm');
   await page.selectOption('[data-pv-set="freq"]', 'extended');

@@ -1280,7 +1280,7 @@ function csRestSpeak(left){
   }catch(e){return false;}
 }
 /** iPhone mówi dopiero po dotknięciu: „odblokowujemy” głos przy zapisie serii (dotknięcie) i przy włączeniu przełącznika. */
-function csRestUnlockVoice(){if(csRestSignalOn()&&typeof liveRestUnlockSpeech==='function')try{liveRestUnlockSpeech();}catch(e){}}
+function csRestUnlockVoice(){if(csRestSignalOn()&&typeof liveRestUnlockSpeech==='function')try{liveRestUnlockSpeech();}catch(e){}if(typeof pvUnlockAudio==='function')pvUnlockAudio();}
 /** Kółko wokół zegara przerwy: pełne na starcie, znika do zera. */
 const CS_RING_C=2*Math.PI*92;
 function csRestRingOffset(left,total){const t=Math.max(1,total|0);return (CS_RING_C*(1-Math.max(0,Math.min(1,(left|0)/t)))).toFixed(1);}

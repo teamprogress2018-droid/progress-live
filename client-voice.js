@@ -137,7 +137,7 @@ function pvExName(name){
 }
 
 /* ---------- 3. Ustawienia (per klient, na tym telefonie) ---------- */
-const PV_DEFAULTS={enabled:true,voice:'',style:'support',freq:'standard',volume:1,countdown:true,info:true,motivation:true,records:true,summary:true};
+const PV_DEFAULTS={enabled:true,voice:'trainer',style:'support',freq:'standard',volume:1,countdown:true,info:true,motivation:true,records:true,summary:true};
 const PV_STYLES={calm:{label:'Progress Calm — spokojny',rate:0.95,pitch:0.95},support:{label:'Progress Support — wspierający',rate:1,pitch:1},energy:{label:'Progress Energy — energiczny',rate:1.08,pitch:1.05}};
 const PV_FREQS={minimal:{label:'Minimalna',motivGap:0},standard:{label:'Standardowa',motivGap:240},extended:{label:'Rozszerzona',motivGap:180}};
 function pvKey(){return 'pl_pv_v1:'+(window._clientId||'guest');}
@@ -159,6 +159,54 @@ function pvSaveSettings(patch){
 /* ---------- 4. Kolejka i odtwarzanie ---------- */
 const PV={queue:[],speaking:null,lastMotivAt:0,recentMotiv:[],countdownUntil:0,sources:[],audio:null,timer:null,log:[]};
 function pvRegisterSource(fn){if(typeof fn==='function')PV.sources.push(fn);}
+
+/* Paczka nagrań głosem trenera (assets/voice/pv/manifest.json, generowana raz przez .github/workflows/voice-pack.yml).
+ * Komunikat gra z nagrania, gdy cały tekst (albo każde jego zdanie) jest w manifeście; inaczej synteza mowy.
+ * Pliki trafiają do pamięci podręcznej service workera przy pierwszym odtworzeniu (potem działają offline). */
+const PV_PACK_DIR='assets/voice/pv/';
+function pvLoadPack(){
+  if(PV.packLoading||PV.pack)return PV.packLoading;
+  if(typeof fetch!=='function')return null;
+  PV.packLoading=fetch(PV_PACK_DIR+'manifest.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(m=>{
+    PV.pack=m&&m.items&&typeof m.items==='object'?m.items:null;
+    // Odliczanie musi grać od razu — pobieramy je z góry (5 krótkich plików).
+    if(PV.pack)['pięć','cztery','trzy','dwa','jeden'].forEach(t=>{const f=PV.pack[t];if(f)fetch(PV_PACK_DIR+f).catch(()=>{});});
+    return PV.pack;
+  }).catch(()=>null);
+  return PV.packLoading;
+}
+function pvPackSource(item){
+  const s=pvSettings();
+  if(s.voice!=='trainer'||!PV.pack||!item||!item.text)return null;
+  const whole=PV.pack[item.text];
+  if(whole)return PV_PACK_DIR+whole;
+  const parts=String(item.text).split(/(?<=[.!?])\s+/).filter(Boolean);
+  if(parts.length<2)return null;
+  const files=parts.map(p=>PV.pack[p]);
+  return files.every(Boolean)?files.map(f=>PV_PACK_DIR+f):null;
+}
+pvRegisterSource(pvPackSource);
+/* iPhone gra dźwięk z tego samego elementu <audio>, który raz zagrał po dotknięciu — odblokowujemy go przy starcie treningu. */
+function pvSilentWav(){
+  const b=new Uint8Array(46);const v=new DataView(b.buffer);const w=(o,t)=>{for(let i=0;i<t.length;i++)b[o+i]=t.charCodeAt(i);};
+  w(0,'RIFF');v.setUint32(4,38,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,2,true);b[44]=128;b[45]=128;
+  let str='';b.forEach(x=>{str+=String.fromCharCode(x);});return 'data:audio/wav;base64,'+btoa(str);
+}
+function pvAudioEl(){
+  if(PV.el||typeof Audio==='undefined')return PV.el||null;
+  try{PV.el=new Audio();PV.el.preload='auto';}catch(e){PV.el=null;}
+  return PV.el;
+}
+function pvUnlockAudio(){
+  try{
+    pvLoadPack();
+    const a=pvAudioEl();if(!a||PV.unlocked)return;
+    a.src=pvSilentWav();a.volume=0;
+    const p=a.play();
+    if(p&&p.then)p.then(()=>{PV.unlocked=true;}).catch(()=>{});else PV.unlocked=true;
+  }catch(e){}
+}
 function pvNow(){return Date.now();}
 /** Czy asystent ma teraz mówić: włączony + trwa trening (albo ekran podsumowania) + aplikacja na wierzchu. */
 function pvActive(){
@@ -216,14 +264,23 @@ function pvPlay(item){
   const s=pvSettings();
   let url=null;
   try{for(const fn of PV.sources){url=fn(item);if(url)break;}}catch(e){url=null;}
-  if(url&&typeof Audio!=='undefined'){
-    try{
-      const a=new Audio(url);a.volume=s.volume;PV.audio=a;
-      a.onended=a.onerror=()=>{PV.audio=null;pvDone(item);};
-      const p=a.play();if(p&&p.catch)p.catch(()=>{PV.audio=null;pvSpeak(item,s);});
-      PV.timer=setTimeout(()=>{try{a.pause();}catch(e){}PV.audio=null;pvDone(item);},20000);
-      return;
-    }catch(e){}
+  const urls=url?(Array.isArray(url)?url:[url]):[];
+  const a=urls.length?pvAudioEl():null;
+  if(a){
+    let i=0;
+    const fallback=()=>{if(PV.speaking!==item)return;a.onended=a.onerror=null;PV.audio=null;if(i===0)pvSpeak(item,s);else pvDone(item);};
+    const next=()=>{
+      if(PV.speaking!==item)return;
+      if(i>=urls.length){a.onended=a.onerror=null;PV.audio=null;pvDone(item);return;}
+      try{
+        a.onended=()=>{i++;next();};a.onerror=fallback;
+        a.src=urls[i];a.volume=s.volume;PV.audio=a;
+        const p=a.play();if(p&&p.catch)p.catch(fallback);
+      }catch(e){fallback();}
+    };
+    next();
+    clearTimeout(PV.timer);PV.timer=setTimeout(()=>{try{a.pause();}catch(e){}if(PV.speaking===item){PV.audio=null;pvDone(item);}},20000);
+    return;
   }
   pvSpeak(item,s);
 }
@@ -240,7 +297,7 @@ function pvSpeak(item,s){
     const u=new SpeechSynthesisUtterance(pvStyleText(item.text));
     const st=PV_STYLES[s.style]||PV_STYLES.support;
     u.lang='pl-PL';u.rate=item.kind==='countdown'?1.05:st.rate;u.pitch=st.pitch;u.volume=s.volume;
-    const v=pvPlVoice(syn,s.voice);if(v)u.voice=v;
+    const v=pvPlVoice(syn,s.voice==='trainer'||s.voice==='system'?'':s.voice);if(v)u.voice=v;
     u.onend=u.onerror=()=>pvDone(item);
     syn.speak(u);
     // iPhone czasem nie wysyła „onend” — bezpiecznik, żeby kolejka nie stanęła.
@@ -251,7 +308,7 @@ function pvSpeak(item,s){
 function pvStop(){
   PV.queue=[];PV.countdownUntil=0;
   clearTimeout(PV.timer);PV.timer=null;PV.speaking=null;
-  try{if(PV.audio){PV.audio.pause();PV.audio=null;}}catch(e){}
+  try{if(PV.audio){PV.audio.onended=PV.audio.onerror=null;PV.audio.pause();PV.audio=null;}}catch(e){}
   try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}
 }
 /** Odliczanie 5…1 (z csRestSpeak): najwyższy priorytet, przerywa bieżący komunikat i czyści kolejkę z mniej ważnych.
@@ -268,7 +325,7 @@ function pvCountdown(left){
     clearTimeout(PV.timer);PV.speaking=null;
     PV.countdownUntil=pvNow()+900;
     const item={text:words[left],kind:'countdown',prio:100,ttl:1500,at:pvNow()};
-    PV.speaking=item;pvSpeak(item,s);
+    pvPlay(item);
     return true;
   }catch(e){return false;}
 }
@@ -301,6 +358,7 @@ function pvPlanLine(st,unit){
 }
 const PV_HANDLERS={
   WORKOUT_START(d){
+    pvUnlockAudio();
     const s=pvSettings();
     if(d.returning&&s.motivation)pvEnqueue({text:PV_SUPPORT.returning,prio:60,kind:'support',key:'ws'});
     else if(s.motivation&&s.freq!=='minimal'){const m=pvLib('start',{prio:60,kind:'motiv',key:'ws'});if(m){pvEnqueue(m);PV.lastMotivAt=pvNow();}}
@@ -509,7 +567,7 @@ function pvEsc(s){return typeof csEsc==='function'?csEsc(s):String(s==null?'':s)
 function pvVoiceOptions(sel){
   let vs=[];
   try{vs=(window.speechSynthesis&&window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[]).filter(v=>String(v.lang||'').toLowerCase().indexOf('pl')===0);}catch(e){}
-  const opts=[`<option value="">Domyślny głos telefonu</option>`].concat(vs.map(v=>`<option value="${pvEsc(v.voiceURI||v.name)}"${(v.voiceURI||v.name)===sel?' selected':''}>${pvEsc(v.name)}</option>`));
+  const opts=[`<option value="trainer"${sel==='trainer'?' selected':''}>Głos Twojego trenera</option>`,`<option value="system"${sel==='system'||sel===''?' selected':''}>Głos telefonu</option>`].concat(vs.map(v=>`<option value="${pvEsc(v.voiceURI||v.name)}"${(v.voiceURI||v.name)===sel?' selected':''}>${pvEsc(v.name)}</option>`));
   return opts.join('');
 }
 function pvSettingsCardHTML(){
@@ -548,6 +606,11 @@ function pvTest(){
   const m=pvPick('motiv')||pvMsg(91);
   pvStop();
   const item={text:'Seria '+pvOrd(2,true)+' z '+pvNumGen(4)+'. '+m.text,kind:'test',prio:90,ttl:5000,at:pvNow()};
+  pvUnlockAudio();
+  if(PV.pack&&s.voice==='trainer'){
+    const t=pvPick('motiv');const it={text:'Seria druga z czterech. '+(t?t.text:''),kind:'test',prio:90,ttl:5000,at:pvNow()};
+    pvPlay(it);return;
+  }
   PV.speaking=item;pvSpeak(item,{...s,enabled:true});
 }
 
@@ -560,5 +623,5 @@ if(typeof document!=='undefined'&&document.addEventListener){
 window.PV=PV;window.PV_LIB=PV_LIB;window.PV_POOL=PV_POOL;window.PV_SUPPORT=PV_SUPPORT;window.PV_DEFAULTS=PV_DEFAULTS;
 window.pvNum=pvNum;window.pvNumF=pvNumF;window.pvNumGen=pvNumGen;window.pvOrd=pvOrd;window.pvPlural=pvPlural;window.pvKg=pvKg;window.pvSeconds=pvSeconds;window.pvMinutes=pvMinutes;window.pvReps=pvReps;window.pvExName=pvExName;
 window.pvSettings=pvSettings;window.pvSaveSettings=pvSaveSettings;window.pvEmit=pvEmit;window.pvEnqueue=pvEnqueue;window.pvStop=pvStop;window.pvCountdown=pvCountdown;window.pvRegisterSource=pvRegisterSource;
-window.pvAfterSet=pvAfterSet;window.pvExStartData=pvExStartData;window.pvRestCompleteData=pvRestCompleteData;window.pvWorkoutStats=pvWorkoutStats;window.pvReturning=pvReturning;
+window.pvUnlockAudio=pvUnlockAudio;window.pvLoadPack=pvLoadPack;window.pvPackSource=pvPackSource;window.pvAfterSet=pvAfterSet;window.pvExStartData=pvExStartData;window.pvRestCompleteData=pvRestCompleteData;window.pvWorkoutStats=pvWorkoutStats;window.pvReturning=pvReturning;
 window.pvMuteBtnHTML=pvMuteBtnHTML;window.pvToggleMute=pvToggleMute;window.pvSettingsCardHTML=pvSettingsCardHTML;window.pvSetFromUI=pvSetFromUI;window.pvTest=pvTest;

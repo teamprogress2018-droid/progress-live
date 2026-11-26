@@ -1,0 +1,48 @@
+name: Progress Voice — nagrania głosem trenera
+
+# Jednorazowe (i przy zmianie tekstów) generowanie MP3 głosem trenera w ElevenLabs.
+# Klucz tylko w sekrecie ELEVENLABS_API_KEY. Wynik (assets/voice/pv/) trafia commitem na tę samą gałąź.
+# Uruchamia się ręcznie albo po zmianie pliku-zlecenia .github/voice-pack.request.
+on:
+  workflow_dispatch:
+    inputs:
+      voice_id:
+        description: ElevenLabs voice ID
+        default: ktn1ayYhp3s7pvGT1Y3H
+      model:
+        description: Model
+        default: eleven_v4
+  push:
+    paths:
+      - .github/voice-pack.request
+
+permissions:
+  contents: write
+
+concurrency:
+  group: voice-pack-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Generuj nagrania
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          PV_VOICE_ID: ${{ github.event.inputs.voice_id || 'ktn1ayYhp3s7pvGT1Y3H' }}
+          PV_MODEL: ${{ github.event.inputs.model || 'eleven_v4' }}
+        run: node .github/scripts/build_voice_pack.js
+      - name: Zapisz w repo
+        run: |
+          git config user.name "progress-voice-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add assets/voice/pv
+          if git diff --cached --quiet; then echo "Bez zmian"; exit 0; fi
+          git commit -m "Progress Voice: nagrania głosem trenera (ElevenLabs)"
+          git push
