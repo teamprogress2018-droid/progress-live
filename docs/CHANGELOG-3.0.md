@@ -67,3 +67,21 @@
 - Trener (profil klienta → Plan): przypisuje lekcje (kolejność = kolejność wskazówek) i dodaje własne (tytuł, kategoria, tekst, film YouTube, zadanie). Zapis `client.academy`.
 - Klient: najwyżej jedna wskazówka na „Dzisiaj” (pierwsza nieprzerobiona), karta „Academy” w zakładce „Trener”, lekcja z pytaniem i „Przerobione ✓”. Postęp zapisuje się na telefonie (klient nie może zmieniać swojej karty) — trener nie widzi jeszcze, co zostało przerobione.
 - Bez zmian reguł Firestore. Testy: `test_academy_client.js`, `test_academy_client_ui.js`.
+
+## Etap 3b — Powiadomienia ze zdarzeń (gałąź `feature/3.0-notify`)
+
+### Dodane (`comms-core.js`, `server/automation/comms-worker.cjs`, `comms-app.js`)
+- G. **Nowy rekord osobisty** — 20 min po treningu, gdy najcięższa seria robocza (kg, bez rozgrzewki) jest wyższa niż wszystkie wcześniejsze zapisy ćwiczenia. Pierwszy zapis ćwiczenia nie jest rekordem; bez pełnej historii klienta rekordu nie ogłaszamy. Serwer czyta pełną historię tylko klientów z treningiem z ostatnich 2 dni.
+- H. **Pakiet się kończy** — N dni przed datą końca (domyślnie 5) o 10:00 oraz przy ostatnim treningu w pakiecie. Przedłużenie pakietu anuluje zaplanowane przypomnienie.
+- I. **Podsumowanie miesiąca** — 1. dnia miesiąca (domyślnie 18:00), gdy w poprzednim miesiącu był trening. Link do Postępów (Progress Wrapped).
+- **Limit wiadomości na dzień** (domyślnie 2, dzień kalendarzowy w Warszawie): spotkania i zadania trenera się nie liczą, reszta przesuwa się na następny dzień 10:00.
+- Ustawienia G/H/I i limitu w panelu „Spotkania i powiadomienia”; podgląd kolejki je pokazuje.
+- Treści na zablokowanym ekranie bez nazwiska, kg i danych o zdrowiu. Zgody: rekord i podsumowanie = „checkins”, pakiet = „plan” (bez zmian reguł Firestore).
+- Test `test_comms_events.js` (w `check.yml`), rozszerzony `server/automation/test-comms-worker.cjs`.
+
+### Wymaga od właściciela
+- Wdrożenie funkcji `commsScheduler` (instrukcja w `server/automation/README.md`). Bez tego nic nie jest wysyłane.
+- WhatsApp: zatwierdzenie w Meta 4 nowych szablonów; do tego czasu te wiadomości idą tylko jako push.
+
+### Stan
+- Zaprojektowane i zaimplementowane; testy jednostkowe przechodzą lokalnie. Nie testowane na prawdziwym telefonie ani na serwerze.

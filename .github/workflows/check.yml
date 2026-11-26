@@ -489,6 +489,8 @@ jobs:
         run: node .github/scripts/test_muscle_map.js
       - name: 1n30c. Komunikacja — przypomnienia, zmiana i odwołanie terminu, zgody, kanał zapasowy, statusy, czas Warszawy
         run: node .github/scripts/test_comms_core.js
+      - name: 1n30c2. Powiadomienia ze zdarzeń — rekord, pakiet, podsumowanie miesiąca, limit dzienny
+        run: node .github/scripts/test_comms_events.js
       - name: 1n30d. Komunikacja — praca serwera na danych testowych (bez sieci, bez Firebase)
         run: node server/automation/test-comms-worker.cjs
       - name: 1n30b. Testy zamienników gdy nie ma maszyny

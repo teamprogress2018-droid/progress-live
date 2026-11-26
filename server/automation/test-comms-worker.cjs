@@ -272,5 +272,35 @@ const reminder = db => jobs(db).find(j => j.kind === 'meeting_reminder');
     ok(r.sent === 0 && sent.length === 0, 'trainer push: without VAPID keys nothing is sent');
   }
 
+  // 3.0 Etap 3b: rekord, pakiet, limit dzienny (symulacja).
+  {
+    const n3 = Core.warsawToMs('2026-11-24', '20:00');
+    const sq = kg => [{name: 'Przysiad', sets: [{kg, reps: 5}]}];
+    const db3 = seed(fakeDb());
+    const s = db3._store;
+    s.sessions = {
+      h1: {id: 'h1', trainerId: T, clientId: C, date: '2026-09-01', source: 'client', status: 'done', completedAt: '2026-09-01T10:00:00Z', exercises: sq(70)},
+      h2: {id: 'h2', trainerId: T, clientId: C, date: '2026-11-17', source: 'client', status: 'done', completedAt: '2026-11-17T10:00:00Z', exercises: sq(60)},
+      h3: {id: 'h3', trainerId: T, clientId: C, date: '2026-11-24', source: 'client', status: 'done', completedAt: '2026-11-24T17:00:00Z', exercises: sq(72.5)}
+    };
+    s.packages = {p1: {id: 'p1', trainerId: T, clientId: C, expiresDate: '2026-11-27', sessions: 10, sessionsUsed: 5, status: 'active'}};
+    const st = await W.loadState(db3, T, n3);
+    ok(st.history[C] && st.history[C].length === 3, 'loadState: full history (beyond 35 days) for a client who just trained');
+    ok(st.packages.length === 1, 'loadState: packages loaded');
+    const planned = Core.planJobs({...st, enabledAt: '2026-11-01T00:00:00Z'}, n3);
+    ok(planned.some(j => j.id === 'pr:h3'), 'record vs 70 kg from September (outside the 35-day window) is detected');
+    s.settings = {st1: {id: 'st1', trainerId: T, comms: {maxPerDay: 1}}};
+    r = await W.runComms(db3, {runId: 'r3', nowMs: n3});
+    const auto = jobs(db3).filter(j => ['personal_record', 'package_ending'].includes(j.kind));
+    ok(auto.length === 2, 'record and package jobs created (' + auto.map(j => j.kind) + ')');
+    ok(auto.filter(j => j.status === 'simulated').length === 1, 'daily limit: only one automatic message per day');
+    const moved = auto.find(j => j.status !== 'simulated');
+    ok(moved && moved.dueAt === Core.warsawToMs('2026-11-25', '10:00') && /limit/.test(moved.history.slice(-1)[0].note), 'daily limit: the other one moved to tomorrow 10:00');
+    r = await W.runComms(db3, {runId: 'r4', nowMs: n3 + 5 * 60000});
+    ok(jobs(db3).filter(j => j.status === 'simulated').length === 1, 'daily limit holds on the next run');
+    r = await W.runComms(db3, {runId: 'r5', nowMs: Core.warsawToMs('2026-11-25', '10:05')});
+    ok(auto.every(j => db3._store.commsJobs[Object.keys(db3._store.commsJobs).find(k => db3._store.commsJobs[k].key === j.key)].status === 'simulated'), 'postponed message goes out next day');
+  }
+
   console.log('comms worker: ' + count + ' checks passed');
 })().catch(e => { console.error(e); process.exit(1); });
