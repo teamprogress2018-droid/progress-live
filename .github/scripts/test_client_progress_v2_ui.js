@@ -112,7 +112,7 @@ const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
   const slide = await page.evaluate(() => { const r = document.querySelector('[data-bd-range]'); r.value = '20'; r.dispatchEvent(new Event('input', { bubbles: true }));
     const cmp = document.querySelector('[data-bd-cmp]'); return { pos: cmp.style.getPropertyValue('--bd-pos'), h: r.getBoundingClientRect().height, knob: document.querySelector('.bd-knob').getBoundingClientRect().width }; });
   ok('Body: suwak przesuwa granicę zdjęć, cele ≥ 44 px', slide.pos === '20%' && slide.h >= 44 && slide.knob >= 44, JSON.stringify(slide));
-  const box = await page.evaluate(() => { const r = document.querySelector('[data-bd-cmp]').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+  const box = await page.evaluate(() => { const el = document.querySelector('[data-bd-cmp]'); el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
   await page.mouse.move(box.x + box.w * 0.5, box.y + box.h / 2); await page.mouse.down(); await page.mouse.move(box.x + box.w * 0.8, box.y + box.h / 2, { steps: 4 }); await page.mouse.up();
   ok('Body: przeciąganie po zdjęciu', await page.evaluate(() => Math.abs(parseFloat(document.querySelector('[data-bd-cmp]').style.getPropertyValue('--bd-pos')) - 80) <= 3));
   await page.evaluate(() => { const s = document.querySelector('[data-bd-a]'); s.value = 'ph2'; s.dispatchEvent(new Event('change', { bubbles: true })); });
