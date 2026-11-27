@@ -885,6 +885,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_variant_c_ui.js
 
+      - name: 6d2c. Trening klienta — etap 2 (przerwa: Wstrzymaj/+30 s, wznowienie przerwy po odświeżeniu, zegar treningu, głos)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_client_training_flow_v2_ui.js
+
       - name: 6d3. Ekran serii klienta (Zapisz serię raz, Cofnij, przerwa, zapas opcjonalny, 360/390/430 px)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_client_workout_set_ui.js

@@ -59,7 +59,7 @@ async function run(browser, W) {
   await page.waitForSelector('.cs-ex');
   await page.waitForTimeout(400);
   let sp = await page.evaluate(() => window.__spoken.slice());
-  ok(W + ' px: po starcie — pierwsze ćwiczenie słownie', sp.some((x) => /^Pierwsze ćwiczenie: Wyciskanie hantli\. Trzy serie\. Zaplanowano dziesięć powtórzeń\. Zaplanowane obciążenie: dwadzieścia kilogramów\.$/.test(x)), JSON.stringify(sp));
+  ok(W + ' px: po starcie — pierwsze ćwiczenie słownie', sp.some((x) => /^Pierwsze ćwiczenie: Wyciskanie hantli\. Trzy serie\. Zaplanowano dziesięć powtórzeń\. Zaplanowane obciążenie: dwadzieścia kilogramów\. Przygotuj stanowisko\. Jeśli potrzebujesz pomocy, obejrzyj film instruktażowy\.$/.test(x)), JSON.stringify(sp));
   const hdr = await page.evaluate(() => { const b = document.querySelector('.cs-ex-top [data-pv-mute]'); const top = document.querySelector('.cs-ex-top'); const r = b && b.getBoundingClientRect();
     return { has: !!b, h: r && r.height, w: r && r.width, fits: top.scrollWidth <= top.clientWidth + 1, label: b && b.getAttribute('aria-label') }; });
   ok(W + ' px: ikona głośnika w nagłówku, ≥ 44 px, nagłówek się mieści', hdr.has && hdr.h >= 44 && hdr.w >= 44 && hdr.fits && /Wycisz asystenta/.test(hdr.label), JSON.stringify(hdr));

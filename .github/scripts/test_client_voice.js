@@ -61,7 +61,7 @@ ok('nazwa ćwiczenia bez dopisków', W.pvExName('Przysiad z hantlem (goblet) —
 function withWorkout(tt){tt.W._cw={exercises:[{name:'Przysiad goblet',sets:[{reps:'12',kg:'20'},{reps:'12',kg:'20'},{reps:'12',kg:'20'},{reps:'12',kg:'20'}]},{name:'Wiosłowanie',sets:[{reps:'10',kg:'16'},{reps:'10',kg:'16'}]}],exIdx:0,phase:'exercise'};}
 t=makeCtx();withWorkout(t);
 t.W.pvEmit('EXERCISE_START',t.W.pvExStartData(t.W._cw,0,true));
-ok('ćwiczenie: nazwa, liczba serii, plan słownie', t.spoken[0]==='Pierwsze ćwiczenie: Przysiad goblet. Cztery serie. Zaplanowano dwanaście powtórzeń. Zaplanowane obciążenie: dwadzieścia kilogramów.',t.spoken[0]);
+ok('ćwiczenie: nazwa, liczba serii, plan słownie', t.spoken[0]==='Pierwsze ćwiczenie: Przysiad goblet. Cztery serie. Zaplanowano dwanaście powtórzeń. Zaplanowane obciążenie: dwadzieścia kilogramów. Przygotuj stanowisko. Jeśli potrzebujesz pomocy, obejrzyj film instruktażowy.',t.spoken[0]);
 t.W.pvEmit('EXERCISE_START',t.W.pvExStartData(t.W._cw,0,true));t.finish();
 ok('po odświeżeniu ten sam komunikat się nie powtarza (cw.pvSaid)', t.spoken.length===1&&t.W._cw.pvSaid['ex:0']===1);
 
@@ -83,15 +83,20 @@ ok('odliczanie wyłączone → false (zostaje sygnał awaryjny)', t.W.pvCountdow
 
 // motywacja: odstęp i brak powtórek
 t=makeCtx({random:()=>0});withWorkout(t);t.W._cw.phase='rest';
-t.W.pvEmit('REST_START',{seconds:90,restKey:'r1'});t.finish();
-const m1=t.spoken.length;
-t.advance(60_000);t.W.pvEmit('REST_START',{seconds:90,restKey:'r2'});t.finish();
-ok('motywacja: najwyżej raz na 4 min (standard)', m1===1&&t.spoken.length===1,t.spoken);
-t.advance(241_000);t.W.pvEmit('REST_START',{seconds:90,restKey:'r3'});t.finish();
-ok('motywacja po 4 min: inna niż ostatnie', t.spoken.length===2&&t.spoken[0]!==t.spoken[1],t.spoken);
+// Każda przerwa (standard) zaczyna się od „Odpoczynek: …” — motywację liczymy osobno.
+const motivOnly=a=>a.filter(x=>!/^Odpoczynek: /.test(x));
+// Po każdej przerwie mogą być dwie wypowiedzi z rzędu — atrapa kończy je po kolei.
+const drain=tt=>{for(let i=0;i<4;i++)tt.finish();};
+t.W.pvEmit('REST_START',{seconds:90,restKey:'r1'});drain(t);
+ok('przerwa (standard): zapowiedź długości odpoczynku', t.spoken[0]==='Odpoczynek: dziewięćdziesiąt sekund.',t.spoken);
+const m1=motivOnly(t.spoken).length;
+t.advance(60_000);t.W.pvEmit('REST_START',{seconds:90,restKey:'r2'});drain(t);
+ok('motywacja: najwyżej raz na 4 min (standard)', m1===1&&motivOnly(t.spoken).length===1,t.spoken);
+t.advance(241_000);t.W.pvEmit('REST_START',{seconds:90,restKey:'r3'});drain(t);
+ok('motywacja po 4 min: inna niż ostatnie', motivOnly(t.spoken).length===2&&motivOnly(t.spoken)[0]!==motivOnly(t.spoken)[1],t.spoken);
 const recent=new Set();t=makeCtx({random:()=>0});withWorkout(t);
-for(let i=0;i<6;i++){t.advance(300_000);t.W.pvEmit('REST_START',{seconds:90,restKey:'k'+i});t.finish();}
-ok('brak powtórzenia 5 ostatnich motywacji', (()=>{for(let i=5;i<t.spoken.length;i++){if(t.spoken.slice(i-5,i).includes(t.spoken[i]))return false;}return t.spoken.length===6;})(),t.spoken);
+for(let i=0;i<6;i++){t.advance(300_000);t.W.pvEmit('REST_START',{seconds:90,restKey:'k'+i});drain(t);}
+ok('brak powtórzenia 5 ostatnich motywacji', (()=>{const m=motivOnly(t.spoken);for(let i=5;i<m.length;i++){if(m.slice(i-5,i).includes(m[i]))return false;}return m.length===6;})(),t.spoken);
 t=makeCtx();withWorkout(t);t.W.pvSaveSettings({freq:'minimal'});t.W.pvEmit('REST_START',{seconds:120,restKey:'x'});
 ok('minimalna: bez motywacji', t.spoken.length===0);
 
@@ -193,7 +198,7 @@ t.W.pvEnqueue({text:'Świetna robota!'});
 ok('głos trenera: odtwarzanie zablokowane (iPhone) → cisza, bez głosu telefonu', !t.spoken.length,t.spoken);
 // generator paczki
 const dry=require('child_process').spawnSync('node',['.github/scripts/build_voice_pack.js','--dry'],{encoding:'utf8'});
-ok('generator: 454 linie, wszystkie już nagrane (nic do generowania), bez klucza w trybie próbnym', dry.status===0&&/Linii: 454/.test(dry.stdout)&&/do wygenerowania: 0 /.test(dry.stdout),dry.stdout+dry.stderr);
+ok('generator: 455 linii, wszystkie już nagrane (nic do generowania), bez klucza w trybie próbnym', dry.status===0&&/Linii: 455/.test(dry.stdout)&&/do wygenerowania: 0 /.test(dry.stdout),dry.stdout+dry.stderr);
 const gen=fs.readFileSync('.github/scripts/build_voice_pack.js','utf8');
 ok('generator: klucz tylko z sekretu, pomija gotowe pliki', /process\.env\.ELEVENLABS_API_KEY/.test(gen)&&/existsSync\(path\.join\(OUT,man\.items/.test(gen)&&!/sk_[a-z0-9]{10}/i.test(gen));
 

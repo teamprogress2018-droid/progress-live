@@ -103,7 +103,8 @@ const PV_SUPPORT={
   returning:'Dobrze, że wracasz. Dzisiaj pracujemy w Twoim tempie.',
   reduced:'Dostosowanie obciążenia do aktualnych możliwości to element dobrego treningu.',
   pain:'Przerwij ćwiczenie, jeśli powoduje ból. Skontaktuj się ze swoim trenerem.',
-  regular:'Twoja systematyczność zasługuje na uznanie.'
+  regular:'Twoja systematyczność zasługuje na uznanie.',
+  setup:'Przygotuj stanowisko. Jeśli potrzebujesz pomocy, obejrzyj film instruktażowy.'
 };
 
 /* ---------- 2. Liczebniki i odmiana ---------- */
@@ -464,6 +465,8 @@ const PV_HANDLERS={
     if(name)lines.push((d.first?'Pierwsze ćwiczenie: ':'Następne ćwiczenie: ')+name+'.');
     if(s.freq!=='minimal'&&d.sets){const w=pvNumF(d.sets);lines.push(w.charAt(0).toUpperCase()+w.slice(1)+' '+pvPlural(d.sets,'seria','serie','serii')+'.');}
     if(s.freq!=='minimal')lines.push(pvPlanLine(d.set,d.unit));
+    // Progress Guide: przed pierwszą serią nowego ćwiczenia — najpierw stanowisko (raz na ćwiczenie, klucz ex:idx).
+    if(s.freq!=='minimal')lines.push(PV_SUPPORT.setup);
     if(s.freq==='extended'){const t=pvPick('exTip');if(t)lines.push(t.text);}
     const text=lines.filter(Boolean).join(' ');
     if(text)pvEnqueue({text,prio:65,ttl:10000,kind:'info',key:'ex:'+d.exIdx});
@@ -487,8 +490,9 @@ const PV_HANDLERS={
   REST_START(d){
     const s=pvSettings();if(!d||!d.restKey)return;
     if(pvSaid('rs:'+d.restKey))return;pvMark('rs:'+d.restKey);
-    if(s.info&&s.freq==='extended'&&d.seconds>=20){
-      const m=pvPick('restStart');
+    // Po zapisie serii: ile odpoczywamy (standard i rozszerzona; rozszerzona dokłada zdanie o regeneracji).
+    if(s.info&&s.freq!=='minimal'&&d.seconds>=20){
+      const m=s.freq==='extended'?pvPick('restStart'):null;
       pvEnqueue({text:'Odpoczynek: '+pvSeconds(pvRestRound(d.seconds))+'.'+(m?' '+m.text:''),prio:35,ttl:6000,kind:'info'});
     }
     // Motywacja w przerwie (≥ 45 s), z odstępem 3–4 min; pod koniec treningu — wskazówka o technice.

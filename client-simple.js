@@ -6,6 +6,7 @@
  * Dane: te same co dotąd (PL, SE, METRIC_ENTRIES, SETTINGS z publicznego profilu trenera). */
 
 const CS_ICONS={
+  pause:'<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>',
   chart:'<path d="M3 3v18h18"></path><path d="m7 15 4-4 3 3 6-6"></path>',
   help:'<circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path>',
   lock:'<rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path>',
@@ -1320,7 +1321,7 @@ function cwSimpleExerciseHTML(cw,ex){
       ${cwSavedBannerHTML(cw)}
       ${cw.restOnEx&&window._cwRestTimer?`<div class="cs-restbar${cw.restLeft>0&&cw.restLeft<=5?' is-final':''}" role="timer" aria-label="Przerwa trwa"><span>Przerwa</span><b id="cw-rest-num">${csRestClock(cw.restLeft)}</b>
         <button type="button" class="cs-restbar-btn" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button>
-        <button type="button" class="cs-restbar-btn" aria-label="Przerwa dłużej o 15 sekund" onclick="cwRestAdd(15)">+15 s</button>
+        <button type="button" class="cs-restbar-btn" aria-label="Przerwa dłużej o 30 sekund" onclick="cwRestAdd(30)">+30 s</button>
         <button type="button" class="cs-restbar-btn" onclick="cwSkipRestTap()">Koniec</button></div><div class="sr-only" id="cw-rest-live" aria-live="polite"></div>`:''}
       ${primary}
     </div>
@@ -1332,10 +1333,49 @@ function cwRestAdd(d){
   const cw=window._cw;if(!cw||!window._cwRestTimer)return;
   cw.restLeft=Math.max(5,Math.min(900,(cw.restLeft|0)+d));
   cw.restTotal=Math.max(cw.restTotal|0,cw.restLeft);
-  cw.restEndsAt=Date.now()+cw.restLeft*1000;
+  if(!cw.restPaused)cw.restEndsAt=Date.now()+cw.restLeft*1000;
+  if(typeof csRestRingUpdate==='function')csRestRingUpdate(cw.restLeft);
   const n=document.getElementById('cw-rest-num');if(n)n.textContent=csRestClock(cw.restLeft);
   csRestFinalTick(cw.restLeft,true);
 }
+/** Wstrzymaj / wznów odliczanie przerwy. Zegar treningu idzie dalej; przy wstrzymaniu nie ma odliczania głosem.
+    Pozostały czas jest pamiętany w cw.restLeft, koniec liczony od nowa przy wznowieniu. */
+function cwRestPause(){
+  const cw=window._cw;if(!cw||cw.phase!=='rest'&&!cw.restOnEx)return;
+  if(cw.restPaused){
+    cw.restPaused=false;
+    cw.restEndsAt=Date.now()+Math.max(1,cw.restLeft|0)*1000;
+  }else{
+    const left=cw.restEndsAt?Math.max(0,Math.ceil((cw.restEndsAt-Date.now())/1000)):(cw.restLeft|0);
+    cw.restLeft=Math.max(1,left);cw.restPaused=true;cw.restEndsAt=0;
+    if(typeof pvStop==='function')pvStop();
+  }
+  if(typeof cwWriteLocal==='function')cwWriteLocal(cw,true);
+  if(typeof cwRender==='function')cwRender();
+  const live=document.getElementById('cw-rest-live');if(live)live.textContent=cw.restPaused?'Przerwa wstrzymana':'Przerwa wznowiona';
+}
+/** Krótki komunikat na ekranie przerwy — wynika z miejsca w treningu, bez porównań i presji. */
+function csRestMsg(cw,o){
+  const exs=(cw.exercises||[]).filter(e=>e&&!e.skipped);
+  const open=exs.filter(e=>(e.sets||[]).some(s=>!s.done)).length;
+  const done=exs.length-open;
+  const cheer=cw.lastSaved&&cw.lastSaved.cheer;
+  let msg='';
+  if(o.change){
+    if(open===1)msg='Kolejne ćwiczenie ukończone. Przed Tobą ostatnie.';
+    else if(exs.length>=4&&done*2===exs.length)msg='Połowa treningu za Tobą.';
+    else msg='Kolejne ćwiczenie ukończone.';
+  }else if(o.next>=0){
+    const left=o.nSets-o.next;
+    if(left===1)msg='Przed Tobą ostatnia seria tego ćwiczenia.';
+    else if(left===2)msg='Zostały jeszcze dwie serie.';
+    else if(left===3)msg='Zostały jeszcze trzy serie.';
+    else msg='Dobra robota, trzymasz się planu.';
+  }
+  // Pasek „Seria zapisana” ma już komunikat motywujący — jeden wystarczy.
+  return cheer?'':msg;
+}
+window.cwRestPause=cwRestPause;window.csRestMsg=csRestMsg;
 /* Dźwięk i wibracja przerwy — opcjonalne, zapamiętane na tym telefonie (domyślnie włączone). */
 const CS_REST_SIGNAL_KEY='pl_cw_rest_signal_v1';
 function csRestSignalOn(){try{return localStorage.getItem(CS_REST_SIGNAL_KEY)!=='0';}catch(e){return true;}}
@@ -1496,8 +1536,10 @@ function csRestHTML(cw){
   const params=ns?[reps?reps+(unit==='sec'?' s':' powt.'):'',ns.kg!=null&&String(ns.kg).trim()!==''?csNum(ns.kg)+(weightUnit?' kg':''):''].filter(Boolean).join(' · '):'';
   const prevEx=cw.lastSaved?cw.exercises[cw.lastSaved.exIdx]:null;
   const change=prevEx&&prevEx!==nxt;
+  const paused=!!cw.restPaused;
   const fin=cw.restLeft>0&&cw.restLeft<=5;
-  return `<div class="cs-ex cs-rest-scr">
+  const msg=csRestMsg(cw,{change,next:ns?ni:-1,nSets:nSets.length});
+  return `<div class="cs-ex cs-rest-scr${paused?' is-paused':''}">
     <div class="cs-ex-top"><span class="cs-ex-pos">${emom?'EMOM: czekaj na pełną minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</span><span id="cw-clock" class="cs-ex-clock" role="timer" aria-label="Czas treningu">${typeof cwFmt==='function'?cwFmt(cw.elapsed):''}</span>${typeof pvMuteBtnHTML==='function'?pvMuteBtnHTML():''}</div>
     <div class="cs-ex-scroll"><div class="cw-rest cs-rest">
       <span class="cs-rest-lbl">Do końca przerwy</span>
@@ -1506,11 +1548,16 @@ function csRestHTML(cw){
         <div class="cs-rest-ring-in">
           <div class="cw-rest-num cs-rest-clock${fin?' is-final':''}" id="cw-rest-num" role="timer" aria-label="Pozostały czas przerwy">${csRestClock(cw.restLeft)}</div>
           <div class="cs-rest-final" data-cs-rest-final aria-hidden="true"${fin?'':' hidden'}>${fin?cw.restLeft:''}</div>
-          <span class="cs-rest-ring-lbl" aria-hidden="true">PRZERWA</span>
+          <span class="cs-rest-ring-lbl" aria-hidden="true">${paused?'WSTRZYMANA':'PRZERWA'}</span>
         </div>
       </div>
-      <p class="cs-rest-ready" data-cs-rest-ready${fin?'':' hidden'}>Przygotuj się do serii</p>
-      <div class="cs-rest-adj" role="group" aria-label="Zmień czas przerwy"><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button><button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa dłużej o 15 sekund" onclick="cwRestAdd(15)">+15 s</button></div>
+      <p class="cs-rest-ready" data-cs-rest-ready${fin&&!paused?'':' hidden'}>Przygotuj się do serii</p>
+      ${msg?`<p class="cs-rest-msg" data-cs-rest-msg>${csEsc(msg)}</p>`:''}
+      <div class="cs-rest-adj" role="group" aria-label="Zmień czas przerwy">
+        <button type="button" class="cs-btn cs-btn-ghost" aria-label="Przerwa krócej o 15 sekund" onclick="cwRestAdd(-15)">−15 s</button>
+        <button type="button" class="cs-btn cs-btn-ghost cs-rest-pause" data-cs-rest-pause aria-pressed="${paused?'true':'false'}" onclick="cwRestPause()">${paused?CS_PLAY_ICON+'<span>Wznów</span>':csIcon('pause',20)+'<span>Wstrzymaj</span>'}</button>
+        <button type="button" class="cs-btn cs-btn-ghost" data-cs-rest-add aria-label="Przerwa dłużej o 30 sekund" onclick="cwRestAdd(30)">+30 s</button>
+      </div>
       <button type="button" class="cs-rest-signal" data-cs-rest-signal aria-pressed="${csRestSignalOn()?'true':'false'}" onclick="csRestSignalToggle()">${csRestSignalLabel(csRestSignalOn())}</button>
       <div class="sr-only" id="cw-rest-live" aria-live="polite"></div>
       ${ns?`<div class="cs-rest-next">

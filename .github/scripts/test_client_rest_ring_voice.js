@@ -4,7 +4,7 @@ const fs=require('fs');const vm=require('vm');
 const js=fs.readFileSync('client-simple.js','utf8');const css=fs.readFileSync('client-simple.css','utf8');const app=fs.readFileSync('10-client-app.js','utf8');
 let fails=0;const ok=(n,c)=>{console.log((c?'OK   ':'FAIL ')+n);if(!c)fails++;};
 ok('kółko w ekranie przerwy', /data-cs-rest-arc/.test(js)&&/class="cs-rest-ring"/.test(js)&&css.includes('.cs-ring-arc'));
-ok('pełny czas przerwy zapamiętany (restTotal)', /cw\.restTotal=cw\.restLeft/.test(app)&&/cw\.restTotal=Math\.max/.test(js));
+ok('pełny czas przerwy zapamiętany (restTotal)', /cw\.restTotal=o\.resume&&o\.total>=cw\.restLeft\?o\.total:cw\.restLeft/.test(app)&&/cw\.restTotal=Math\.max/.test(js));
 ok('głos po polsku: pięć…jeden, start', /pięć/.test(js)&&/'start'/.test(js)&&/u\.lang='pl-PL'/.test(js));
 ok('głos tylko przy włączonym przełączniku', /if\(silent\|\|!csRestSignalOn\(\)\)return;/.test(js));
 ok('głos odblokowany dotknięciem „Zapisz serię”', /csRestUnlockVoice\(\);/.test(js));

@@ -1347,7 +1347,11 @@ function cwWriteLocal(cw,preserveSyncState){
   if(!preserveSyncState)cw.syncState='local';
   try{
     if(!window.localStorage)throw new Error('local-storage-unavailable');
-    localStorage.setItem(cwDraftKey(),JSON.stringify({version:2,state:{...cw,restLeft:0,phase:cw.phase==='rest'?'exercise':cw.phase},savedAt:new Date().toISOString()}));
+    // Przerwa w toku: zapisujemy, kiedy się kończy (albo ile zostało przy wstrzymaniu), żeby wrócić do niej po ponownym otwarciu.
+    // phase/restLeft zostają jak dawniej (starsze wersje aplikacji wznowią od serii).
+    // Szkic odczytany przy starcie (bez otwartego treningu) zachowuje zapisaną przerwę, dopóki nie zostanie zakończona.
+    const restResume=cw.phase==='rest'&&!cw.restOnEx?{endsAt:cw.restEndsAt||0,left:cw.restLeft|0,paused:!!cw.restPaused,total:cw.restTotal|0,kind:cw.restKind||'',id:cw.restId||''}:(cw.restResume||null);
+    localStorage.setItem(cwDraftKey(),JSON.stringify({version:2,state:{...cw,restLeft:0,restPaused:false,restResume,phase:cw.phase==='rest'?'exercise':cw.phase},savedAt:new Date().toISOString()}));
     return true;
   }catch(e){if(!preserveSyncState)cw.syncState='error';return false;}
 }
@@ -1470,13 +1474,16 @@ function cwOpen(planId,dayIdx){
   const exercises=mapPlanExercisesForClient(day.exercises,window._clientId,plan,day);
   if(!exercises.length){if(typeof notify==='function')notify('Brak ćwiczeń w tym dniu');return;}
   cwClearTimers();
+  let resumeRest=null;
   const cached=cwReadLocal()?.state;
   if(cached&&cached.planId===planId&&Number(cached.dayIdx)===Number(dayIdx)&&['completed','partial'].includes(cached.status)){
     if(typeof notify==='function')notify('Ten trening jest zapisany na urządzeniu i czeka na synchronizację');
     return;
   }
   if(cached&&cached.planId===planId&&Number(cached.dayIdx)===Number(dayIdx)&&cached.sessionId&&cached.phase!=='finish'){
-    window._cw={...cached,active:true,restLeft:0,phase:cached.phase==='rest'?'exercise':cached.phase,syncQueue:Promise.resolve()};
+    window._cw={...cached,active:true,restLeft:0,restPaused:false,phase:cached.phase==='rest'?'exercise':cached.phase,syncQueue:Promise.resolve()};
+    resumeRest=cwRestResumeLeft(cached.restResume);
+    window._cw.restResume=null;
     if(typeof notify==='function')notify(cwSyncStateText(window._cw)+' · wznowiono trening');
   }else{
     const now=new Date();
@@ -1492,8 +1499,21 @@ function cwOpen(planId,dayIdx){
   const wrap=document.getElementById('clive-player');
   if(wrap)wrap.hidden=false;
   document.body.classList.add('cw-playing');
-  cwRender();
+  if(resumeRest){
+    const r=resumeRest;
+    cwStartRest(r.left,r.kind,{resume:true,total:r.total,id:r.id,paused:r.paused});
+    if(typeof notify==='function')notify('Wznowiono przerwę');
+  }else cwRender();
 }
+/** Ile sekund przerwy zostało po ponownym otwarciu (null = przerwa już minęła albo jej nie było; < 3 s nie wznawiamy). */
+function cwRestResumeLeft(r,now){
+  if(!r||typeof r!=='object')return null;
+  const t=now||Date.now();
+  const left=r.paused?(r.left|0):(r.endsAt?Math.ceil((Number(r.endsAt)-t)/1000):0);
+  if(!(left>=3)||left>900)return null;
+  return {left,paused:!!r.paused,total:Math.max(left,r.total|0),kind:String(r.kind||''),id:String(r.id||'')};
+}
+window.cwRestResumeLeft=cwRestResumeLeft;
 
 function cwClose(force){
   // Niezapisane wpisy (serie wpisane, ale nie zapisane): najpierw dolny panel z wyborem.
@@ -1557,15 +1577,19 @@ function cwPatchSet(setIdx,field,val){
   cwWriteLocal(cw);
 }
 
-function cwStartRest(seconds,kind){
+/** opts.resume: przerwa wznowiona po ponownym otwarciu aplikacji — ten sam id i pełny czas (łuk), bez zapowiedzi głosem;
+    opts.paused: wraca wstrzymana. */
+function cwStartRest(seconds,kind,opts){
   const cw=window._cw;if(!cw)return;
+  const o=opts||{};
   cw.phase='rest';cw.restOnEx=false;
   cw.restKind=kind||'';
   cw.restLeft=seconds||90;
-  cw.restTotal=cw.restLeft;
+  cw.restTotal=o.resume&&o.total>=cw.restLeft?o.total:cw.restLeft;
+  cw.restPaused=!!o.paused;
   // Koniec przerwy liczony od zegara, nie od liczby „tyknięć” — przygaszony telefon nie wydłuża przerwy.
-  cw.restEndsAt=Date.now()+cw.restLeft*1000;
-  cw.restId=String(Date.now());
+  cw.restEndsAt=cw.restPaused?0:Date.now()+cw.restLeft*1000;
+  cw.restId=o.resume&&o.id?String(o.id):String(Date.now());
   cwClearTimers();
   window._cwClock=setInterval(()=>{
     if(!window._cw)return;
@@ -1573,6 +1597,7 @@ function cwStartRest(seconds,kind){
   },1000);
   window._cwRestTimer=setInterval(()=>{
     const c=window._cw;if(!c)return;
+    if(c.restPaused){const clk=document.getElementById('cw-clock');if(clk)clk.textContent=cwFmt(c.elapsed);return;}
     const left=c.restEndsAt?Math.max(0,Math.ceil((c.restEndsAt-Date.now())/1000)):Math.max(0,(c.restLeft|0)-1);
     c.restLeft=left;
     const n=document.getElementById('cw-rest-num');
@@ -1589,7 +1614,7 @@ function cwStartRest(seconds,kind){
     }
   },1000);
   cwRender();
-  if(typeof pvEmit==='function'){
+  if(!o.resume&&typeof pvEmit==='function'){
     const open=(cw.exercises||[]).filter(e=>e&&!e.skipped&&(e.sets||[]).some(s=>!s.done)).length;
     pvEmit('REST_START',{seconds:cw.restLeft,restKey:cw.restId,late:open<=2});
   }
@@ -1729,7 +1754,7 @@ function cwCheckSet(setIdx){
 function cwSkipRest(){
   const cw=window._cw;if(!cw)return;
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
-  cw.phase='exercise';cw.restOnEx=false;cw.restEndsAt=0;
+  cw.phase='exercise';cw.restOnEx=false;cw.restEndsAt=0;cw.restPaused=false;cw.restResume=null;
   cwWriteLocal(cw);
   cwRender();
 }

@@ -1072,3 +1072,13 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
   .cs-video-frame { max-height: 20vh; }
   .cw-ex-mode .cs-ex-body { gap: 10px; }
 }
+
+/* ===== Etap 2 — Training Flow: przerwa (Wstrzymaj / +30 s, krótki komunikat) ===== */
+.cs-rest-msg { margin: 4px 0 0; text-align: center; color: var(--text-primary); font-size: 1.0625rem; font-weight: 650; }
+.cs-rest-adj { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 8px; width: 100%; max-width: 360px; }
+.cs-rest-adj .cs-btn { min-height: 48px; padding: 0 8px; }
+.cs-rest-pause { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; }
+.cs-rest-pause svg { width: 20px; height: 20px; flex: 0 0 auto; }
+.cs-rest-scr.is-paused .cs-ring-arc { stroke: var(--text-secondary); }
+.cs-rest-scr.is-paused .cs-rest-clock { color: var(--text-secondary); }
+.cs-rest-scr.is-paused .cs-rest-pause { border-color: var(--accent); color: var(--accent); }
