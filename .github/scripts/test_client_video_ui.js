@@ -60,8 +60,10 @@ const URL = 'http://localhost:' + (process.env.LAYOUT_PORT || '8080') + '/index.
   await page.waitForSelector('.cs-set-head');
 
   // ---------- Wejście z ekranu ćwiczenia ----------
-  ok('ekran ćwiczenia: „Wyślij film trenerowi”', await page.locator('.cs-ex [data-cv-open]').count() === 1);
-  await page.click('.cs-ex [data-cv-open]');
+  // Wariant C: wysyłka filmu jest w „Pomoc i opcje” (i w „Technice”), nie zajmuje miejsca na ekranie serii.
+  await page.click('.cs-ex [data-cs-help]');
+  ok('ekran ćwiczenia: „Pomoc i opcje” → „Wyślij film trenerowi”', await page.locator('.cs-sheet [data-cv-open]').count() === 1);
+  await page.click('.cs-sheet [data-cv-open]');
   await page.waitForSelector('[data-cv-sheet="pick"]');
   let t = await page.evaluate(() => document.getElementById('cv-root').innerText);
   ok('okno: nazwa ćwiczenia, trening, odbiorca i zgoda na udostępnienie', /Przysiad goblet/.test(t) && /Nogi/.test(t) && /Film zobaczy tylko Twój trener: Piotr Trener/.test(t) && /udostępniony/.test(t), t);

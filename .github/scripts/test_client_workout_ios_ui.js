@@ -63,14 +63,14 @@ const geom = (page, ph) => page.evaluate(ph => {
     const { ctx, page, errors } = await setup(browser, ph);
     const g = await geom(page, ph);
     await page.screenshot({ path: path.join(shotDir, 'cw_ios_' + ph.w + '.png') });
-    ok(ph.name + ': „‹ Lista” pod Dynamic Island / zegarem', g.back && g.back.t >= ph.sat && /Lista/.test(g.text), JSON.stringify(g.back));
+    ok(ph.name + ': „‹” (wróć do listy) pod Dynamic Island / zegarem', g.back && g.back.t >= ph.sat && /listy ćwiczeń/.test(await page.getAttribute('.cs-ex-top .cs-back-btn', 'aria-label')), JSON.stringify(g.back));
     ok(ph.name + ': „Seria 1 z 4” nie nachodzi na pasek statusu', g.head && g.head.t >= ph.sat + 40, JSON.stringify(g.head));
     ok(ph.name + ': dolny pasek CTA nad paskiem gestów', g.foot && g.foot.b <= g.vh + 0.5 && g.primary.b <= g.vh - ph.sab - 8, JSON.stringify({ foot: g.foot, primary: g.primary, vh: g.vh }));
     ok(ph.name + ': wszystkie przyciski min. 44 × 44', g.small.length === 0, JSON.stringify(g.small));
     ok(ph.name + ': bez przewijania w poziomie', !g.overflowX);
-    ok(ph.name + ': film tylko jako przycisk „Jak wykonać ćwiczenie?” (bez dużego odtwarzacza)', g.tech && g.tech.h <= 48, JSON.stringify(g.tech));
-    ok(ph.name + ': domyślnie: ćwiczenie X z Y, krótka nazwa, cel serii, zapas, zapis', /Ćwiczenie 1 z 6/.test(g.text) && /Wiosłowanie na maszynie Hammer\n/.test(g.text) && !/siedząc/.test(g.text) && /Seria 1 z 4/.test(g.text) && /8 powt\. · 70 kg/.test(g.text) && /2–3 powtórzenia w zapasie/.test(g.text) && !/RIR|RPE|Tempo/.test(g.text) && /Zapisz serię/.test(g.text), g.text.slice(0, 300));
-    ok(ph.name + ': zwykła notatka trenera w „Technice”, tabela serii zwinięta', !/Kontroluj zakres|Pomiń ćwiczenie|warianty/i.test(g.text) && /Zapisane serie/.test(g.text) && !(await page.evaluate(() => document.querySelector('.cs-hist').open)));
+    ok(ph.name + ': duży poziomy podgląd filmu na całą szerokość (bez autoodtwarzania)', g.tech && g.tech.w >= g.vw - 48 && (await page.$$('.cs-ex video, .cs-ex iframe')).length === 0, JSON.stringify(g.tech));
+    ok(ph.name + ': domyślnie: ćwiczenie X z Y, krótka nazwa, cel serii, zapas, zapis', /Ćwiczenie 1 z 6/.test(g.text) && /Wiosłowanie na maszynie Hammer\n/.test(g.text) && !/siedząc/.test(g.text) && /Seria 1 z 4/.test(g.text) && await page.evaluate(() => document.querySelector('[data-cs-field="reps"]').value === '8' && document.querySelector('[data-cs-field="kg"]').value === '70') && /2–3 powtórzenia w zapasie/.test(g.text) && !/RIR|RPE|Tempo/.test(g.text) && /Zapisz serię/.test(g.text), g.text.slice(0, 300));
+    ok(ph.name + ': zwykła notatka trenera w „Technice”, serie pod „Historia”', !/Kontroluj zakres|Pomiń ćwiczenie|warianty/i.test(g.text) && !/Zapisane serie/.test(g.text) && await page.isVisible('.cs-ex-top [data-cs-history]'));
     ok(ph.name + ': jeden przycisk na dole, bez „Następne →”', !/Następne →|← Poprzednie/.test(g.text) && await page.evaluate(() => document.querySelectorAll('.cs-ex-foot button').length === 1));
     if (ph.w === 375) {
       let t0 = '';
@@ -106,14 +106,14 @@ const geom = (page, ph) => page.evaluate(ph => {
       await page.evaluate(() => cwNav(1));
       await page.tap('.cs-sheet >> text=Przejdź do następnego ćwiczenia');
       ok('„Przejdź do następnego ćwiczenia” → ćwiczenie 2', await page.evaluate(() => window._cw.exIdx === 1 && /Ćwiczenie 2 z 6/.test(document.querySelector('.cs-ex').innerText)));
-      await page.tap('.cs-more-btn');
+      await page.tap('[data-cs-help]');
       await page.tap('.cs-sheet >> text=Poprzednie ćwiczenie');
-      ok('„… → Poprzednie ćwiczenie”; wpisany ciężar został (72,5)', await page.evaluate(() => window._cw.exIdx === 0 && document.querySelector('input[aria-label="Seria 1: ciężar"]').value === '72,5' && window._cw.exercises[0].sets[0].kg === '72.5'));
+      ok('„Pomoc i opcje → Poprzednie ćwiczenie”; wpisany ciężar został (72,5)', await page.evaluate(() => window._cw.exIdx === 0 && document.querySelector('input[aria-label="Seria 1: ciężar"]').value === '72,5' && window._cw.exercises[0].sets[0].kg === '72.5'));
 
       // Wyjście z niezapisanymi danymi → dolny panel
       await page.tap('.cs-back-btn');
       t = await page.evaluate(() => document.querySelector('.cs-sheet') ? document.querySelector('.cs-sheet').innerText : '');
-      ok('„‹ Lista” z niezapisanymi danymi → Zapisz i wyjdź / Kontynuuj trening / Wyjdź bez zapisu', /Zapisz i wyjdź/.test(t) && /Kontynuuj trening/.test(t) && /Wyjdź bez zapisu/.test(t), t);
+      ok('„‹” z niezapisanymi danymi → Zapisz i wyjdź / Kontynuuj trening / Wyjdź bez zapisu', /Zapisz i wyjdź/.test(t) && /Kontynuuj trening/.test(t) && /Wyjdź bez zapisu/.test(t), t);
       const sheetBtns = await page.evaluate(() => [...document.querySelectorAll('.cs-sheet button')].map(b => b.getBoundingClientRect().height));
       ok('przyciski panelu min. 44 pt', sheetBtns.every(h => h >= 44), JSON.stringify(sheetBtns));
       await page.tap('text=Kontynuuj trening');
@@ -143,7 +143,7 @@ const geom = (page, ph) => page.evaluate(ph => {
       ok('„Następne ćwiczenie” po ukończeniu — bez pytania', await page.evaluate(() => window._cw.exIdx === 1 && !document.querySelector('.cs-sheet')));
 
       // Menu „…”: Zakończ trening, pominięcie z powodem
-      await page.tap('.cs-more-btn');
+      await page.tap('[data-cs-help]');
       t = await page.evaluate(() => document.querySelector('.cs-sheet').innerText);
       ok('menu „…”: Poprzednie, Pomiń ćwiczenie, Zgłoś ból, Zakończ trening', /Poprzednie ćwiczenie/.test(t) && /Pomiń ćwiczenie/.test(t) && /Zgłoś ból/.test(t) && /Zakończ trening/.test(t), t);
       await page.tap('.cs-sheet >> text=Pomiń ćwiczenie');
@@ -163,18 +163,18 @@ const geom = (page, ph) => page.evaluate(ph => {
         el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, touches: [], changedTouches: [T(x0 + dx, y0 + dy)] }));
         return { shown, idx: window._cw.exIdx, sheet: document.querySelector('.cs-sheet') ? document.querySelector('.cs-sheet').innerText : '' };
       }, { sel, dx, dy });
-      let sw = await swipe('.cs-ex-name', -40, -200);
+      let sw = await swipe('.cs-ex-sub', -40, -200);
       ok('swipe: pionowe przewijanie nie zmienia ćwiczenia', sw.idx === 2 && !sw.sheet, JSON.stringify(sw));
       sw = await swipe('input[aria-label="Seria 1: ciężar"]', -220, 0);
       ok('swipe: nie działa na polu ciężaru', sw.idx === 2 && !sw.sheet, JSON.stringify(sw));
-      sw = await swipe('.cs-ex-name', -220, 4);
+      sw = await swipe('.cs-ex-sub', -220, 4);
       ok('swipe w pustej części: podgląd następnego ćwiczenia i pytanie o serie', /Następne: Martwy ciąg rumuński/.test(sw.shown) && /Zostały 3 serie/.test(sw.sheet) && sw.idx === 2, JSON.stringify(sw));
       await page.tap('text=Wróć do serii');
-      sw = await swipe('.cs-ex-name', 220, 4);
+      sw = await swipe('.cs-ex-sub', 220, 4);
       ok('swipe w prawo → poprzednie ćwiczenie', sw.idx === 1, JSON.stringify(sw));
 
       // Zakończ trening z menu
-      await page.tap('.cs-more-btn');
+      await page.tap('[data-cs-help]');
       await page.tap('.cs-sheet >> text=Zakończ trening');
       ok('„Zakończ trening” z menu → pytanie o niewykonane serie', await page.evaluate(() => window._cw.phase === 'finish' && /Zakończyć trening\?/.test(document.getElementById('clive-player-inner').innerText) && /Zakończ teraz/.test(document.getElementById('clive-player-inner').innerText)));
       const fin = await page.evaluate(() => { const r = document.querySelector('#clive-player-inner .cs-back-btn').getBoundingClientRect(); return { t: r.top, h: r.height }; });

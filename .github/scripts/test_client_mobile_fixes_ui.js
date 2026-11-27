@@ -165,9 +165,10 @@ const noHScroll = (page) => page.evaluate(() => document.scrollingElement.scroll
     ok(w + ': trening — „−” i „+” >= 44 px', (await smallTargets(page, '.cs-step')).length === 0, JSON.stringify(await smallTargets(page, '.cs-step')));
     await page.click('.cs-ex-foot [data-cs-primary="save"]');
     await page.evaluate(() => { if (typeof cwSkipRest === 'function') cwSkipRest(); });
-    await page.click('.cs-hist summary');
+    await page.click('[data-cs-history]');
     ok(w + ': trening — „Cofnij” w historii >= 44 px', (await smallTargets(page, '.cs-hist .cs-mini')).length === 0 && (await page.$$('.cs-hist .cs-mini')).length > 0, JSON.stringify(await smallTargets(page, '.cs-hist .cs-mini')));
     ok(w + ': trening bez przewijania w poziomie', await noHScroll(page));
+    await page.click('.cs-sheet [data-cs-sheet-first]');
 
     // 4. Technika: zdjęcie się nie wczytało — czytelny komunikat zamiast zepsutego obrazka
     await page.evaluate(() => { const b = document.querySelector('#clive-player .cs-tech-btn'); if (b) b.click(); });

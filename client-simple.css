@@ -1017,3 +1017,58 @@ html[data-theme="light"] .clive-brand span { color: var(--accent-text, var(--acc
 .vi-tip { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--bg-secondary, #f4f5f7); }
 .vi-raw { white-space: pre-wrap; }
 .vi-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+/* ===== Progress Clean — ekran ćwiczenia, wariant C (etap 1 Progress Guide) =====
+   Nagłówek: ‹ · nazwa ćwiczenia · głośnik · „Historia”. Pod spodem: „Ćwiczenie k z n” + zegar, duży poziomy film,
+   seria z numerami, Ciężar | Powtórzenia, „Pomoc i opcje”. Stały dół: „✓ Zapisz serię”. */
+.cw-ex-mode .cs-ex-top { gap: 4px; min-height: 56px; }
+.cs-ex-top .cs-back-btn { flex: 0 0 44px; width: 44px; padding: 0; justify-content: center; }
+.cw-ex-mode .cs-ex-top .cs-ex-name,
+.cs-ex-top .cs-ex-name { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 1.125rem; font-weight: 750; line-height: 1.2; letter-spacing: -.01em; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.cs-ex-top .pv-mute { flex: 0 0 44px; }
+.cs-hist-btn { flex: 0 0 auto; min-width: 56px; min-height: 48px; padding: 2px 6px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border: 0; border-radius: 12px; background: transparent; color: var(--text-primary); font: inherit; font-size: 0.75rem; font-weight: 650; line-height: 1.1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cs-hist-btn:active { background: color-mix(in srgb, var(--text-primary) 7%, transparent); }
+.cs-hist-btn:focus-visible, .cs-help-btn:focus-visible, .cs-video:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cs-ex-sub { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 -4px; color: var(--text-secondary); font-size: 0.9375rem; font-weight: 600; }
+.cs-ex-sub .cs-ex-pos { flex: 0 1 auto; text-align: left; color: var(--text-secondary); font-size: inherit; padding: 0; }
+.cs-ex-sub .cs-ex-clock { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+/* Duży film: 16:9, wyraźny przycisk odtwarzania, podpis pod spodem. Bez autoodtwarzania. */
+.cs-ex-body > .cs-video,
+.cs-video { display: flex; flex-direction: column; align-items: stretch; width: 100%; min-height: 48px; margin: 0; padding: 0; gap: 0; border: 1px solid var(--border-subtle); border-radius: 16px; background: var(--bg-card); color: var(--text-primary); text-align: left; overflow: hidden; cursor: pointer; font: inherit; -webkit-tap-highlight-color: transparent; }
+.cs-video-frame { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; max-height: min(28vh, 220px); background: #111; }
+.cs-video-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cs-video-play { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent); color: var(--on-accent, #fff); box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+.cs-video-play svg { width: 28px; height: 28px; margin-left: 3px; }
+.cs-video-cap { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 14px; min-height: 44px; box-sizing: border-box; }
+.cs-video-cap b { min-width: 0; font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cs-video-cap span { color: var(--text-secondary); font-size: 0.875rem; white-space: nowrap; }
+.cs-video.no-media { flex-direction: row; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 16px; font-weight: 650; font-size: 1rem; }
+.cs-video.no-media .cs-video-frame { display: none; }
+.cs-video.no-media .cs-video-cap { padding: 0; min-height: 0; }
+.cs-video.no-media .cs-video-cap span { display: none; }
+.cs-video .cs-tech-play { color: var(--accent); display: inline-flex; }
+/* Numery serii: bieżąca = czerwień, zrobiona = ✓ na zielonym, do zrobienia = jasnoszara. */
+.cs-set .cs-dots span.is-done { font-weight: 800; }
+.cs-set .cs-dots span:not(.is-now):not(.is-done) { background: color-mix(in srgb, var(--text-primary) 5%, var(--bg-card)); }
+.cs-plan-line { margin: 0 0 8px; text-align: center; color: var(--text-secondary); font-size: 0.9375rem; font-weight: 600; }
+.cs-set-boxes .cs-num-lbl { font-size: 1rem; font-weight: 650; color: var(--text-primary); }
+.cs-ex-foot .cs-btn-primary .cs-ico { flex: 0 0 auto; }
+/* Pomoc: łatwo dostępna, ale nie dominuje. */
+.cs-help-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; margin: 6px 0 0; padding: 0 12px 0 4px; border: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; }
+.cs-help-btn .cs-ico { color: var(--text-secondary); }
+/* Panel „Historia” */
+.cs-hs-sec { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 10px; border-bottom: 1px solid var(--border-subtle); }
+.cs-hs-sec h3 { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 1rem; font-weight: 750; }
+.cs-hs-sets { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.cs-hs-sets li { display: flex; justify-content: space-between; gap: 12px; min-height: 36px; align-items: center; font-size: 1rem; border-bottom: 1px dashed var(--border-subtle); }
+.cs-hs-sets li:last-child { border-bottom: 0; }
+.cs-hs-sets li span { color: var(--text-secondary); }
+.cs-hs-sets li b { font-size: 1.0625rem; font-variant-numeric: tabular-nums; }
+.cs-hs-prog { margin: 4px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--success-bg, #f0fdf4); color: var(--success, #15803d); font-weight: 650; }
+.cs-hs-sec.cs-hist { border-top: 0; }
+.cs-hs-chart summary { min-height: 44px; display: flex; align-items: center; font-weight: 650; cursor: pointer; }
+.cs-hs-chart svg { width: 100%; height: auto; }
+@media (max-height: 780px) {
+  .cs-video-frame { max-height: 20vh; }
+  .cw-ex-mode .cs-ex-body { gap: 10px; }
+}

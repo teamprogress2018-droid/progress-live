@@ -70,17 +70,18 @@ function ok(name, cond, extra) {
   ok('starts on first exercise', /Ćwiczenie 1 z 6/.test(exv.text) && /Przysiad goblet/.test(exv.text), exv.text.slice(0, 120));
   ok('set, reps and load', /Seria 1 z 3/.test(exv.text) && exv.reps === '10' && exv.kg === '20', JSON.stringify(exv));
   ok('one big action', /Seria 1 z 3/.test(exv.text) && /Zapisz serię/.test(exv.text) && !/Następne →/.test(exv.text) && await page.evaluate(() => document.querySelectorAll('.cs-ex-foot button').length === 1));
-  ok('set history collapsed by default', !exv.tipsOpen && /Zapisane serie/.test(exv.text) && /Jak wykonać ćwiczenie\?/.test(exv.text));
+  ok('history behind header button, technique as big video card', !exv.tipsOpen && !/Zapisane serie/.test(exv.text) && /Jak wykonać ćwiczenie\?/.test(exv.text) && await page.isVisible('.cs-ex-top [data-cs-history]'));
 
   await page.click('.cs-ex-foot [data-cs-primary="save"]');
   await page.waitForSelector('.cw-rest');
   await page.evaluate(() => cwSkipRest());
   const after = await page.evaluate(() => ({ text: document.querySelector('.cs-ex').innerText, done: window._cw.exercises[0].sets[0].done }));
   ok('complete set logs it', after.done && /Seria 2 z 3/.test(after.text), after.text.slice(0, 120));
-  await page.click('.cs-hist summary');
-  const tips = await page.evaluate(() => (document.querySelector('.cs-hist') || {}).innerText || '');
-  ok('history shows sets with undo', /Zapisane serie\s*1\/3/.test(tips) && /Cofnij/.test(tips), tips.slice(0, 160));
-  await page.click('.cs-more-btn');
+  await page.click('[data-cs-history]');
+  const tips = await page.evaluate(() => (document.querySelector('.cs-sheet .cs-hist') || {}).innerText || '');
+  ok('history shows sets with undo', /Dzisiaj\s*1 z 3/.test(tips) && /Cofnij/.test(tips), tips.slice(0, 160));
+  await page.click('.cs-sheet [data-cs-sheet-first]');
+  await page.click('[data-cs-help]');
   ok('menu: report problem', await page.isVisible('.cs-sheet >> text=Zgłoś ból lub problem'));
   await page.click('.cs-sheet-x');
   await page.evaluate(() => cwNav(1));

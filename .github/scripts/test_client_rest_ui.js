@@ -40,7 +40,7 @@ function ok(name, cond, extra) {
   ok('RIR in plain words', /2–3 powtórzenia w zapasie/.test(txt) && !/RIR/.test(txt));
   await page.click('[data-cs-rir-toggle]');
   ok('RIR answers (after opening the optional question)', (await page.locator('.cs-rir-opts button').allInnerTexts()).join('|') === '0|1|2|3|4+');
-  ok('"Zapisane serie" and "Jak wykonać ćwiczenie?"', /Zapisane serie/.test(txt) && /Jak wykonać ćwiczenie\?/.test(txt) && !/Pomoc \/ Technika/.test(txt));
+  ok('„Historia” w nagłówku i „Jak wykonać ćwiczenie?”', /Historia/.test(txt) && /Jak wykonać ćwiczenie\?/.test(txt) && !/Pomoc \/ Technika/.test(txt));
   const inp = await page.$eval('input[aria-label="Seria 1: powtórzenia"]', (e) => { const cs = getComputedStyle(e); return { h: e.getBoundingClientRect().height, bw: cs.borderTopWidth, bc: cs.borderTopColor }; });
   // Chromium zaokrągla obramowanie w getComputedStyle do pełnych px, więc 1,5 px sprawdzamy w arkuszu stylów.
   const css = require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'client-simple.css'), 'utf8');
@@ -81,8 +81,12 @@ function ok(name, cond, extra) {
   await page.click('.cs-restbar-btn >> text=Koniec');
   ok('rest bar „Koniec” ends the rest', await page.evaluate(() => !window._cwRestTimer && !document.querySelector('.cs-restbar') && window._cw.phase === 'exercise'));
   await page.evaluate(() => { window._cw.exercises[0].lastSets = [{ reps: '9', kg: '67.5' }]; cwRender(); });
-  const gp = await page.evaluate(() => ({ goal: document.querySelector('[data-cs-target]').innerText, prev: document.querySelector('[data-cs-prev]').innerText, order: document.querySelector('.cs-goal-prev').compareDocumentPosition(document.querySelector('.cs-set-grid')) & Node.DOCUMENT_POSITION_FOLLOWING }));
-  ok('last workout and today\'s plan shown together above the fields', /^Dzisiaj:/.test(gp.goal) && /^Ostatni trening:\s*9 × 67,5 kg$/.test(gp.prev) && gp.order, JSON.stringify(gp));
+  // Wariant C: plan jest wpisany w pola, ostatni trening — pod „Historia” (bez powielonych kafelków nad polami).
+  const gp = await page.evaluate(() => ({ tiles: !!document.querySelector('.cs-ex [data-cs-prev], .cs-ex .cs-goal-prev') }));
+  await page.click('[data-cs-history]');
+  const hl = await page.evaluate(() => (document.querySelector('.cs-sheet [data-cs-hist-last]') || {}).innerText || '');
+  ok('last workout in „Historia”, not duplicated above the fields', !gp.tiles && /Ostatni trening/.test(hl) && /9 × 67,5 kg/.test(hl), JSON.stringify({ gp, hl }));
+  await page.click('.cs-sheet [data-cs-sheet-first]');
 
   await page.evaluate(() => { window._cw.restLeft = 1; window._cwRestTimer = setInterval(() => {}, 1e6); clearInterval(window._cwRestTimer); cwStartRest(1); });
   await page.waitForTimeout(1300);
