@@ -36,7 +36,7 @@ async function boot(page, opts = {}) {
     };
     const today = todayYmd(); const wd = new Date().getDay();
     window.CL = [{ id: 'c1', trainerId: 'cs-trainer', name: 'Anna Nowak', status: 'active', preferredWeekdays: [wd], injuries: 'Ból barku przy unoszeniu ręki',
-      goal: 'Siła i lepsza kondycja', ...(o.ai ? { aiCoach: { on: true, limit: 10 } } : {}), ...(o.health != null ? { consents: { privacy: { version: '2026-11-26', at: '2026-11-26T08:00:00Z' }, health: { granted: o.health, at: '2026-11-26T08:00:00Z' } } } : {}) }];
+      goal: 'Siła i lepsza kondycja', ...(o.ai ? { aiCoach: { on: true, limit: 10 } } : {}), ...(o.health != null ? { consents: { privacy: { version: '2026-11-26-vision', at: '2026-11-26T08:00:00Z' }, health: { granted: o.health, at: '2026-11-26T08:00:00Z' } } } : {}) }];
     const ex = (n, s, r, kg) => ({ name: n, sets: String(s), reps: String(r), kg: String(kg), rest: '90s', rir: '2-3' });
     window.PL = [{ id: 'p1', clientId: 'c1', trainerId: 'cs-trainer', name: 'Full Body', weekKeys: ['w1'], currentWeek: 'w1', startDate: today,
       days: [{ day: 'Dzień 1', muscles: 'Full Body', exercises: [ex('Wyciskanie hantli', 3, 10, 20), ex('Wiosłowanie', 2, 12, 18), ex('Przysiad goblet', 2, 10, 16), ex('Plank', 1, 30, 0)] }] }];

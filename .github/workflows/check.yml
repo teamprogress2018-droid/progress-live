@@ -948,6 +948,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_habits_ui.js
 
+      - name: 6d3j3f. Vision (pilotaż) — zgoda klienta przy filmie, analiza AI u trenera
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/test_vision_ui.js
+
       - name: 6d3j4. Progress Express — krótsze warianty treningu zatwierdzone przez trenera
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_express_ui.js

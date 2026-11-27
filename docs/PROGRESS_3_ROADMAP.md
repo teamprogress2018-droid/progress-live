@@ -40,4 +40,4 @@ Każdy etap to osobny PR do `main`. Wycofanie = `git revert` commita merge'a dan
 ## Etap 4 — postęp
 - [x] 4a Komendy głosowe w treningu (`voice-commands.js`) — zaprojektowane, zaimplementowane, testy jednostkowe + UI na atrapie rozpoznawania mowy; **nie testowane na prawdziwym iPhonie**
 - [x] 4b Progress AI dla klienta (`client-ai.js`, ścieżka `/client` w pośredniku AI) — zaprojektowane, zaimplementowane, testy pośrednika + UI na atrapie; **działa po wklejeniu nowego Workera w Cloudflare**
-- [ ] 4c Vision (pilotaż) — po 4b
+- [x] 4c Vision (pilotaż) — analiza filmu techniki przez AI u trenera, za zgodą klienta (`vision.js`); **nie testowane na prawdziwych filmach**

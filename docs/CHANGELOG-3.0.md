@@ -131,3 +131,10 @@
 - Klient: przełącznik „Przypomnienia o nawykach” w Powiadomieniach (kategoria `habits`; `firestore.rules` przyjmuje nową kategorię).
 - Wymaga: publikacji reguł (`pilot.sh rules`) i ponownego wdrożenia funkcji (`pilot.sh push`).
 - Testy: `test_comms_events.js` (J), `test_habits_ui.js`, reguły w `test-tenant-rules.cjs`.
+
+## Etap 4c — Vision, pilotaż dla trenera (gałąź `feature/3.0-vision`)
+- Klient przy wysyłce filmu techniki może zaznaczyć zgodę na analizę AI tego jednego filmu (domyślnie wyłączona). Zgoda to widoczna linia w wiadomości „🤖 Zgoda na analizę AI: tak” (`client-video.js`).
+- Trener: przy takim filmie w czacie przycisk „Analiza AI (pilot)” (`vision.js`): 4 klatki (15/40/65/90%, maks. 640 px) przez pośrednika AI (ścieżka trenera, ten sam dzienny limit), wynik: dobrze / do poprawy z numerem klatki / wskazówka dla klienta (szkic) / pewność / ograniczenia. Tylko w pamięci; „Wstaw wskazówkę do wiadomości”.
+- Bez diagnoz, bez oceny bólu. Bez zmian serwera i reguł.
+- Polityka prywatności: opis analizy filmu przez AI, wersja `2026-11-26-vision` (klienci raz potwierdzą).
+- Test `test_vision_ui.js`.

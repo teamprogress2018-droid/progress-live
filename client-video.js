@@ -96,14 +96,18 @@
     }
     s.status='preview';s.error='';cvRender();
   }
+  /** Widoczna linia w wiadomości = zgoda klienta na analizę AI tego jednego filmu (Vision, pilotaż). */
+  const CV_AI_LINE='🤖 Zgoda na analizę AI: tak';
   function cvBuildText(s){
     const note=String(s.note||'').trim().slice(0,300);
-    return ('🎥 Film techniki: '+s.exName+'\nTrening: '+s.dayName+(s.date?' · '+cvDateLabel(s.date):'')+(note?'\n'+note:'')+'\n[film:'+s.videoFile+']').slice(0,2000);
+    return ('🎥 Film techniki: '+s.exName+'\nTrening: '+s.dayName+(s.date?' · '+cvDateLabel(s.date):'')+(note?'\n'+note:'')+(s.aiOk?'\n'+CV_AI_LINE:'')+'\n[film:'+s.videoFile+']').slice(0,2000);
   }
+  function cvAiAllowed(text){return String(text||'').indexOf(CV_AI_LINE)>=0;}
   /** Wysyłka po potwierdzeniu klienta: 1) plik do prywatnej ścieżki, 2) wiadomość w czacie. Ponowienie nie powtarza udanego kroku. */
   async function cvSend(){
     const s=window._cvSend;if(!s||!s.file||s.status==='sending')return;
     const ta=document.getElementById('cv-note');if(ta)s.note=ta.value;
+    const ai=document.getElementById('cv-ai');if(ai&&!s.msgSaved)s.aiOk=!!ai.checked;
     if(typeof navigator!=='undefined'&&navigator.onLine===false){s.status='waiting';s.error='';cvRender();return;}
     if(!cvStorageReady()||!window._trainerId||!window._clientId){s.status='error';s.error='Wysyłanie filmów nie jest teraz dostępne. Odśwież aplikację i spróbuj ponownie.';cvRender();return;}
     if(!s.videoFile){
@@ -162,7 +166,8 @@
         <p class="cv-meta">${s.duration!=null?Math.round(s.duration)+' s · ':''}${esc(cvMb(s.file.size))} MB</p>
         ${ctx}
         <label class="cv-note"><span>Wiadomość do trenera <em>opcjonalnie</em></span><textarea id="cv-note" rows="2" maxlength="300" placeholder="Np. czy kolana idą dobrze?">${esc(s.note||'')}</textarea></label>
-        ${privacy}`;
+        ${privacy}
+        <label class="cv-ai-ok" data-cv-ai-ok><input type="checkbox" id="cv-ai"${s.aiOk?' checked':''}><span>Pozwalam trenerowi sprawdzić ten film także narzędziem AI (kilka klatek trafi do Anthropic). <em>Opcjonalnie</em> — bez zgody trener obejrzy film sam.</span></label>`;
       foot=`<button type="button" class="cs-btn cs-btn-primary" data-cv-send onclick="cvSend()">Wyślij film trenerowi</button>
         <button type="button" class="cs-link cv-again" onclick="cvOpen(window._cvSend)">Wybierz inny film</button>`;
     }else if(s.status==='sending'){
@@ -201,8 +206,9 @@
     return `<div class="cv-card" data-cv-card="${esc(file)}" data-cv-cid="${esc(clientId)}">
       <div class="cv-card-row"><span class="cv-card-ico" aria-hidden="true">🎥</span><b>Film techniki</b>
         <button type="button" class="cv-btn" data-act="cv-play" data-act-stop-prop data-file="${esc(file)}" data-cid="${esc(clientId)}" data-tid="${esc(trainerId)}">Odtwórz</button>
+        ${o.viewer==='trainer'&&cvAiAllowed(m.text)?`<button type="button" class="cv-btn cv-ai-btn" data-act="cv-ai" data-act-stop-prop data-file="${esc(file)}" data-cid="${esc(clientId)}" data-tid="${esc(trainerId)}" data-mid="${esc(m.id||'')}">Analiza AI (pilot)</button>`:''}
         ${canDelete?`<button type="button" class="cv-btn cv-del" data-act="cv-del" data-act-stop-prop data-file="${esc(file)}" data-cid="${esc(clientId)}" data-tid="${esc(trainerId)}">Usuń film</button>`:''}</div>
-      <div class="cv-player" data-cv-player></div></div>`;
+      <div class="cv-player" data-cv-player></div><div class="cv-ai" data-cv-ai></div></div>`;
   }
   /** Karta, w której kliknięto (ten sam film może być w kilku widokach naraz). */
   function cardEl(file,cid,el){
@@ -257,5 +263,5 @@
     uiAction('cv-del',(d,el)=>{cvDelete(d,el);});
     uiAction('cv-del-cancel',(d,el)=>{const card=cardEl(d.file,d.cid,el);if(!card)return;card.classList.remove('is-confirm');const c=card.querySelector('[data-cv-confirm]');if(c)c.remove();});
   }
-  Object.assign(window,{CV_MAX_BYTES,CV_MAX_SEC,CV_MAX_MB,cvStripTag,cvFileFromText,cvValidate,cvFileType,cvOpen,cvClose,cvPicked,cvSend,cvRetry,cvRender,cvChatCardHTML,cvPlay,cvDelete,cvPath,cvStorageReady});
+  Object.assign(window,{CV_MAX_BYTES,CV_MAX_SEC,CV_MAX_MB,cvStripTag,cvFileFromText,cvValidate,cvFileType,cvOpen,cvClose,cvPicked,cvSend,cvRetry,cvRender,cvChatCardHTML,cvPlay,cvDelete,cvPath,cvStorageReady,cvAiAllowed,cvBuildText,CV_AI_LINE});
 })();
