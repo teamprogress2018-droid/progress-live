@@ -39,7 +39,35 @@ function lines(){
   Object.values(W.PV_SUPPORT).forEach(t=>out.push({text:t,tone:TONE}));
   ['pięć','cztery','trzy','dwa','jeden'].forEach(t=>out.push({text:t,tone:TONE_COUNT}));
   for(let n=2;n<=8;n++)for(let k=1;k<=n;k++)out.push({text:'Seria '+W.pvOrd(k,true)+' z '+W.pvNumGen(n)+'.',tone:TONE});
+  dynamicLines(W).forEach(t=>out.push({text:t,tone:TONE_SHORT}));
   const seen=new Set();return out.filter(x=>!seen.has(x.text)&&seen.add(x.text));
+}
+/* Zdania z liczbami i nazwami ćwiczeń, które silnik składa z kawałków (client-voice.js pvPackSource dzieli „Nagłówek: reszta.”).
+ * Zakresy dobrane do realnych treningów: obciążenie 1–40 kg co 1, 42,5–200 co 2,5; przerwa co 15 s; czas treningu co 5 min. */
+const TONE_SHORT='[energetic] ';
+function baseExerciseNames(W){
+  const src=fs.readFileSync('06-inbox-exercises-ai-programs.js','utf8');
+  const i=src.indexOf('const PROGRESS_BASE=[');if(i<0)return [];
+  const body=src.slice(i+'const PROGRESS_BASE='.length,src.indexOf('];',i)+1);
+  let arr=[];try{arr=vm.runInNewContext(body);}catch(e){return [];}
+  return arr.map(x=>W.pvExName(x.name)).filter(Boolean);
+}
+function dynamicLines(W){
+  const out=['Pierwsze ćwiczenie:','Następne ćwiczenie:','Zaplanowane obciążenie:','Odpoczynek:'];
+  const cap=w=>w.charAt(0).toUpperCase()+w.slice(1);
+  baseExerciseNames(W).forEach(n=>out.push(n+'.'));
+  for(let n=1;n<=10;n++)out.push(cap(W.pvNumF(n))+' '+W.pvPlural(n,'seria','serie','serii')+'.');
+  for(let n=1;n<=30;n++)out.push('Zaplanowano '+W.pvReps(n)+'.');
+  for(let n=10;n<=120;n+=5)out.push('Zaplanowano '+W.pvSeconds(n)+'.');
+  for(let kg=1;kg<=40;kg++)out.push(W.pvKg(kg)+'.');
+  for(let kg=42.5;kg<=200;kg+=2.5)out.push(W.pvKg(kg)+'.');
+  for(let s=15;s<=300;s+=15)out.push(W.pvSeconds(s)+'.');
+  for(let n=4;n<=9;n++)out.push('Zostały jeszcze '+W.pvNumF(n)+' '+W.pvPlural(n,'seria','serie','serii')+'.');
+  for(let n=1;n<=15;n++)out.push('Dzisiaj ukończono '+W.pvNum(n)+' '+W.pvPlural(n,'ćwiczenie','ćwiczenia','ćwiczeń')+'.');
+  for(let m=5;m<=120;m+=5)out.push('Twój trening trwał '+W.pvMinutes(m)+'.');
+  [25,50,75,100].forEach(n=>out.push('To już '+W.pvOrd(n)+' ukończony trening.'));
+  for(let n=2;n<=31;n++)out.push('To Twój '+W.pvOrd(n)+' trening w tym miesiącu.');
+  return out;
 }
 const fileFor=t=>crypto.createHash('sha1').update(t).digest('hex').slice(0,16)+'.mp3';
 
@@ -67,9 +95,9 @@ async function tts(text){
   let man={voiceId:VOICE,model:MODEL,items:{}};
   try{const old=JSON.parse(fs.readFileSync(MANIFEST,'utf8'));if(old.voiceId===VOICE&&old.model===MODEL)man.items=old.items||{};}catch(e){}
   const todo=list.filter(x=>!(man.items[x.text]&&fs.existsSync(path.join(OUT,man.items[x.text]))));
-  const chars=todo.reduce((s,x)=>s+x.text.length,0);
+  const chars=todo.reduce((s,x)=>s+x.text.length+(MODEL==='eleven_v4'?x.tone.length:0),0);
   console.log(`Linii: ${list.length}, do wygenerowania: ${todo.length} (${chars} znaków), głos ${VOICE}, model ${MODEL}`);
-  if(DRY){todo.slice(0,10).forEach(x=>console.log(' -',x.text));return;}
+  if(DRY){(process.env.PV_DRY_ALL?todo:todo.slice(0,10)).forEach(x=>console.log(' -',x.text));return;}
   if(todo.length&&!KEY){console.error('Brak sekretu ELEVENLABS_API_KEY (repo → Settings → Secrets and variables → Actions).');process.exit(2);}
   let done=0;
   for(const x of todo){
