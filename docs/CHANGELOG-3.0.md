@@ -138,3 +138,12 @@
 - Bez diagnoz, bez oceny bólu. Bez zmian serwera i reguł.
 - Polityka prywatności: opis analizy filmu przez AI, wersja `2026-11-26-vision` (klienci raz potwierdzą).
 - Test `test_vision_ui.js`.
+
+## Imię klienta głosem trenera (gałąź `feature/voice-names`)
+- Trener: profil klienta → Plan → „Głos asystenta: imię klienta” (`voice-names-app.js`): propozycja wołacza (`pvVocative`), zapis `client.voiceName`, „Zapisz i nagraj moim głosem”.
+- Serwer: funkcja `voiceNameClips` (`server/automation/voice-names.cjs`, onCall, europe-west1) — tylko trener z rolą i własny klient, 4 zwroty (`Cześć, {V}!`, `Ostatnia seria, {V}. Dawaj!`, `Świetna robota, {V}!`, `Brawo, {V}!`) w ElevenLabs, zapis do prywatnego Storage `client-voice/{trainerId}/{clientId}/` + spis `clientVoice/{clientId}`; bez ponownego płacenia za te same zwroty; 30 wywołań/dzień.
+- Reguły: `clientVoice` (czyta ten klient i trener, zapis tylko serwer), Storage `client-voice/` (get: klient i trener; zapis tylko serwer).
+- Silnik: imię na starcie, przy pierwszej „ostatniej serii”, przy rekordzie i na koniec — przy głosie trenera tylko, gdy jest nagranie.
+- Polityka prywatności: ElevenLabs jako podmiot przetwarzający (imię), wersja `2026-11-27`.
+- Wdrożenie: `pilot.sh rules`, potem `pilot.sh voice` (sekret ELEVENLABS_API_KEY + funkcja).
+- Testy: `test_voice_names.js`, `test_voice_names_ui.js`, reguły w `test-tenant-rules.cjs` i `test-storage-rules.cjs`.

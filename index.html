@@ -4493,7 +4493,7 @@ const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress
 const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
 const storage=getStorage(app);
 const functions=getFunctions(app,'europe-west1');
-window._youtubeCurationCall=httpsCallable(functions,'youtubeCurationSuggest',{timeout:45000});
+window._youtubeCurationCall=httpsCallable(functions,'youtubeCurationSuggest',{timeout:45000});window._voiceNamesCall=httpsCallable(functions,'voiceNameClips',{timeout:120000});
 window._storage=storage;window._storageRef=ref;window._uploadBytes=uploadBytes;window._getDownloadURL=getDownloadURL;window._getBlob=getBlob;window._deleteObject=deleteObject;
 window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._getDocsFromServer=getDocsFromServer;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;window._runTransaction=runTransaction;
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
@@ -5007,13 +5007,14 @@ async function load(session=captureTenantSession()){
 <script src="09-posture-kb-invites-private.js?v=59&theme-v2=1&books-kb=1&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1&assignment-calendar=1&profile-save=1&onboard-skip=1&package-save=1&invoice-sequence=1&package-paid=1&package-fields=1&pay-actions=1&od-films=1&layout-v2=1&ux-look=1&feed-pl=1"></script>
 <script src="client-simple.js?v=8&ux-rest=1&ux-client-nav=1&ux-client-fix=1&clientplan=1&set-screen=1&meet-card=1&pkg-left=1&mobile-fix=1&comms=1&trening-ux=1&muscle-map=1&sync-visible=1&nav4=1&ex-simple=1&mod1=1&mod2=1&mod3=1&prog2=1&prog2=1&pain=1&acct=1&pl3-s1=1&pl3-ready=1&pv=1&pvp=1&xp=1&ac=1&vc=1"></script>
 <script src="client-progress.js?v=3&pj=1&pw=1"></script>
-<script src="privacy.js?v=3"></script>
+<script src="privacy.js?v=4"></script>
 <script src="client-pain.js?v=2&pv=1"></script>
 <script src="client-readiness.js?v=1"></script>
-<script src="client-voice.js?v=4"></script>
+<script src="client-voice.js?v=5"></script>
 <script src="voice-commands.js?v=1"></script>
 <script src="client-ai.js?v=1"></script>
 <script src="habits.js?v=1"></script>
+<script src="voice-names-app.js?v=1"></script>
 <script src="10-client-app.js?v=56&tenant-isolation=2&save-status=1&trainer-mode-switch=2&login-timeout=1&ux-login=1&ux-start=1&ux-rest=1&ux-client-nav=1&clientplan=1&set-screen=1&mobile-fix=1&xss-ids=1&private-fields=1&comms=1&trening-ux=1&pclean=1&nav4=1&mod1=1&mod2=1&rodo=1&pain=1&acct=1&pl3-s1=1&pl3-ready=1&pv=1&xp=1"></script>
 <script src="comms-core.js?v=3"></script>
 <script src="comms-app.js?v=8&nav4=1"></script>

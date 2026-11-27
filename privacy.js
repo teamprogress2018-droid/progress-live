@@ -4,7 +4,7 @@
  * i zapisuje się przy następnym uruchomieniu — klient nie jest o nią pytany drugi raz. */
 'use strict';
 
-const PRIVACY_VERSION='2026-11-26-vision';
+const PRIVACY_VERSION='2026-11-27';
 const PRIVACY_URL='polityka-prywatnosci.html';
 const PRIVACY_PENDING_KEY='pl_privacy_pending_v1:';
 

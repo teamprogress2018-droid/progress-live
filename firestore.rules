@@ -411,6 +411,11 @@ service cloud.firestore {
         && (d.get('quiet', null) == null || (d.quiet is map && d.quiet.keys().hasOnly(['from', 'to'])))
         && d.get('fallback', true) is bool;
     }
+    // Progress Voice: spis nagrań z imieniem klienta (zapisuje tylko serwer — funkcja voiceNameClips).
+    match /clientVoice/{clientId} {
+      allow get: if owner() || ownClient(resource.data);
+      allow list, create, update, delete: if false;
+    }
     match /commsPrefs/{clientId} {
       allow read: if owner() || ownClient(resource.data);
       allow create: if ownClient(request.resource.data) && request.resource.data.id == clientId

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const target = path.join(__dirname, '.runtime');
 fs.mkdirSync(target, {recursive: true});
-for (const file of ['worker.cjs', 'youtube-curation-core.cjs', 'youtube-curation.cjs', 'comms-worker.cjs', 'index.cjs']) fs.copyFileSync(path.join(__dirname, file), path.join(target, file));
+for (const file of ['worker.cjs', 'youtube-curation-core.cjs', 'youtube-curation.cjs', 'comms-worker.cjs', 'voice-names.cjs', 'index.cjs']) fs.copyFileSync(path.join(__dirname, file), path.join(target, file));
 // Jawne parametry funkcji (np. publiczny klucz VAPID) — bez sekretów.
 for (const envFile of fs.readdirSync(__dirname).filter(f => /^\.env(\.[\w-]+)?$/.test(f))) fs.copyFileSync(path.join(__dirname, envFile), path.join(target, envFile));
 // Wspólna logika wiadomości (ta sama co w aplikacji).

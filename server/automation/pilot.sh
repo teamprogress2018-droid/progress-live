@@ -6,6 +6,7 @@
 #   bash server/automation/pilot.sh rules        — publikacja firestore.rules, indeksów i storage.rules
 #   bash server/automation/pilot.sh vapid        — klucze Web Push (tylko jeśli sekretu jeszcze nie ma)
 #   bash server/automation/pilot.sh push         — wdrożenie funkcji commsScheduler (bez WhatsApp)
+#   bash server/automation/pilot.sh voice        — imiona klientów głosem trenera (sekret ElevenLabs + funkcja voiceNameClips)
 #   bash server/automation/pilot.sh enable UID   — włączenie wiadomości dla trenera w trybie SYMULACJI
 #   bash server/automation/pilot.sh live UID     — przełączenie trenera na prawdziwą wysyłkę push
 #   bash server/automation/pilot.sh status UID   — stan serwera (commsStatus) bez treści
@@ -66,6 +67,16 @@ push)
   node server/automation/prepare-deploy.cjs
   npm install --prefix server/automation/.runtime --silent --no-audit --no-fund
   ( cd server/automation && firebase deploy --project "$P" --config firebase.json --only functions:autoflow-pending:commsScheduler,functions:autoflow-pending:trainerMessagePush --non-interactive )
+  ;;
+voice)
+  # Imiona klientów głosem trenera: najpierw sekret (jednorazowo), potem wdrożenie funkcji voiceNameClips.
+  if ! firebase functions:secrets:access ELEVENLABS_API_KEY --project "$P" >/dev/null 2>&1; then
+    echo "Wklej klucz API ElevenLabs (nie pokaże się na ekranie) i naciśnij Enter:"
+    firebase functions:secrets:set ELEVENLABS_API_KEY --project "$P"
+  fi
+  node server/automation/prepare-deploy.cjs
+  npm install --prefix server/automation/.runtime --silent --no-audit --no-fund
+  ( cd server/automation && firebase deploy --project "$P" --config firebase.json --only functions:autoflow-pending:voiceNameClips --non-interactive )
   ;;
 enable|live)
   uid="${2:?Podaj UID trenera}"

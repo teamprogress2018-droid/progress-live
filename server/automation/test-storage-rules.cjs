@@ -143,6 +143,14 @@ function denied(status, label) { assert.equal(status, 403, label + ' (status ' +
   allowed(await removeObject(client, vid('v_abc12345.mp4')), 'client video: client deletes own video');
   denied(await readObject(trainer, vid('v_abc12345.mp4')).then(s => s === 404 ? 403 : s), 'client video: deleted video is gone');
   allowed(await removeObject(trainer, vid('v_iphone123.mov')), 'client video: assigned trainer deletes');
+
+  // Progress Voice: zwroty z imieniem klienta — zapisuje tylko serwer (tu: upload odrzucony dla wszystkich).
+  const vn = 'client-voice/' + trainer + '/c1/n_0123456789abcdef.mp3';
+  denied(await upload(trainer, vn, 'audio/mpeg'), 'voice name: trainer cannot upload (server only)');
+  denied(await upload(client, vn, 'audio/mpeg'), 'voice name: client cannot upload');
+  denied(await readObject(trainer2, vn).then(s => s === 404 ? 403 : s), 'voice name: another trainer cannot read');
+  denied(await readObject(null, vn).then(s => s === 404 ? 403 : s), 'voice name: anonymous cannot read');
+  denied(await listPrefix(client, 'client-voice/' + trainer + '/c1/'), 'voice name: client cannot list');
   await db.doc('clientAccounts/' + client).set({uid: client, role: 'client', trainerId: trainer2, clientId: 'c1'});
   denied(await readObject(client, vid('v_webm12345.webm')), 'client video: client moved to another trainer loses access');
   console.log(count + ' storage rule assertions; failures: 0');
